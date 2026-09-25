@@ -4,9 +4,13 @@ import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.citizen.CitizenNames;
 import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.colony.ConstructionPorts;
+import dev.hycolony.core.construction.Blueprint;
+import dev.hycolony.core.construction.BlueprintSource;
 import dev.hycolony.core.kernel.WorldKey;
 import dev.hycolony.core.kernel.config.ColonyConfig;
 import dev.hycolony.core.kernel.event.EventBus;
+import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 /** A fully faked colony context. Fields are public so tests can steer the fakes. */
@@ -18,11 +22,19 @@ public final class TestContexts {
     public final FakePlayers players = new FakePlayers();
     public final FakeUi ui = new FakeUi();
     public final EventBus bus = new EventBus();
+    public final FakeCatalog catalog = new FakeCatalog();
+    public final FakeWorldBlocks blocks = new FakeWorldBlocks();
+    public final FakeContainers containers = new FakeContainers();
+    public final FakePlayerInventory playerInventory = new FakePlayerInventory();
+    public BlueprintSource blueprints = new BlueprintSource() {
+        @Override public Optional<Blueprint> load(String style, String buildingTypeId, int level, int rotation) { return Optional.empty(); }
+        @Override public List<String> styles() { return List.of(); }
+    };
     public ColonyConfig config = ColonyConfig.defaults();
 
     public ColonyContext context() {
         return new ColonyContext(new WorldKey("world"), config, clock, bodies, world, notifier, ui, players,
                 BuildingTypes.defaults(), CitizenNames.loadDefault(), new Random(1234), bus,
-                ConstructionPorts.unavailable());
+                new ConstructionPorts(catalog, blocks, containers, playerInventory, blueprints));
     }
 }

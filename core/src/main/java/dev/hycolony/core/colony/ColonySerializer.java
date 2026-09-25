@@ -16,6 +16,7 @@ import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.item.Inventory;
 import dev.hycolony.core.kernel.persist.MigrationChain;
+import dev.hycolony.core.request.RequestSerializer;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -36,8 +37,8 @@ public final class ColonySerializer {
         o.addProperty("day", c.day());
         o.add("permissions", permissions(c.permissions()));
 
+        o.add("requests", RequestSerializer.write(c.requests()));
         // Placeholders for schema v2 fields not yet backed by a model; future tasks extend this serializer.
-        o.add("requests", new JsonObject());
         o.add("workOrders", new JsonArray());
         JsonObject settings = new JsonObject();
         settings.addProperty("autoHiring", true);
@@ -85,6 +86,10 @@ public final class ColonySerializer {
         }
         for (JsonElement el : o.getAsJsonArray("citizens")) {
             c.citizens().restore(readCitizen(el.getAsJsonObject()));
+        }
+        // After the buildings: they re-registered as resolver providers.
+        if (o.has("requests")) {
+            RequestSerializer.read(o.getAsJsonObject("requests"), c.requests());
         }
         for (JsonElement el : o.getAsJsonArray("eventLog")) {
             JsonObject e = el.getAsJsonObject();
@@ -210,7 +215,9 @@ public final class ColonySerializer {
         });
         b.unknownModules().forEach(modules::add);
         o.add("modules", modules);
-        o.add("containers", new JsonArray());
+        JsonArray containers = new JsonArray();
+        b.registeredContainers().forEach(p -> containers.add(pos(p)));
+        o.add("containers", containers);
         o.addProperty("deconstructed", false);
         return o;
     }
@@ -221,6 +228,11 @@ public final class ColonySerializer {
         b.setBuilt(o.get("built").getAsBoolean());
         b.setCustomName(o.get("customName").getAsString());
         b.setStyle(o.get("style").getAsString());
+        if (o.has("containers")) {
+            for (JsonElement el : o.getAsJsonArray("containers")) {
+                b.addContainer(readPos(el));
+            }
+        }
         JsonObject modules = o.getAsJsonObject("modules");
         for (String key : modules.keySet()) {
             BuildingModule module = b.modules().get(key);

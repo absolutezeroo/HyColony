@@ -50,6 +50,7 @@ public record ConstructionPorts(ItemCatalog catalog, WorldBlocks blocks, Contain
         PlayerInventory playerInventory = new PlayerInventory() {
             @Override public int count(UUID player, ItemKey item) { return 0; }
             @Override public int take(UUID player, ItemKey item, int max) { return 0; }
+            @Override public Map<ItemKey, Integer> contents(UUID player) { return Map.of(); }
             @Override public ItemAmount give(UUID player, ItemAmount amount) { return amount; }
         };
         BlueprintSource blueprints = new BlueprintSource() {

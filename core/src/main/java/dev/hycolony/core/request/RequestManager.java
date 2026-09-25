@@ -27,6 +27,8 @@ import java.util.function.Predicate;
  * cascades (child completion, cancellation of a subtree, ...) keep MineColonies' synchronous callback order.
  */
 public final class RequestManager {
+    /** The colony ticks the manager every 11 game ticks (MineColonies' request system rate). */
+    public static final int TICK_INTERVAL = 11;
     private static final System.Logger LOG = System.getLogger(RequestManager.class.getName());
     private static final Set<RequestState> PUBLIC_STATES = EnumSet.of(RequestState.RESOLVED, RequestState.COMPLETED,
             RequestState.CANCELLED, RequestState.FAILED, RequestState.RECEIVED);
@@ -257,6 +259,39 @@ public final class RequestManager {
 
     public ItemCatalog catalog() {
         return catalog;
+    }
+
+    public Optional<Resolver> resolver(String resolverId) {
+        return Optional.ofNullable(resolversById.get(resolverId));
+    }
+
+    // ------------------------------------------------------------------ persistence (RequestSerializer)
+
+    Map<String, Set<RequestToken>> assignments() {
+        return Collections.unmodifiableMap(assigned);
+    }
+
+    void restore(Request req) {
+        requests.put(req.token(), req);
+        byRequester.computeIfAbsent(req.requester(), k -> new LinkedHashSet<>()).add(req.token());
+    }
+
+    void restoreAssignment(RequestToken token, Resolver resolver) {
+        if (requests.containsKey(token)) {
+            resolverOf.put(token, resolver);
+            assigned.computeIfAbsent(resolver.resolverId(), k -> new LinkedHashSet<>()).add(token);
+        }
+    }
+
+    /** A loaded request whose resolver no longer exists: reassigned rather than dropped (MineColonies dropped it). */
+    void reassignLoaded(RequestToken token) {
+        submit(() -> {
+            Request req = requests.get(token);
+            if (req != null) {
+                new ArrayList<>(req.children()).forEach(this::cancelDirectly);
+                reassignNow(req, req.blacklist());
+            }
+        });
     }
 
     // ------------------------------------------------------------------ queue
@@ -547,7 +582,7 @@ public final class RequestManager {
     }
 
     /** Buildings etc. via the registry first, then resolvers (requesters of the children they asked for). */
-    private Optional<Requester> requester(Request req) {
+    public Optional<Requester> requester(Request req) {
         Optional<Requester> found = requesters.find(req.requester());
         if (found.isEmpty()) {
             found = Optional.ofNullable(resolversByRequesterId.get(req.requester()));

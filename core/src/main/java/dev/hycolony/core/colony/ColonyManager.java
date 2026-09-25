@@ -8,11 +8,22 @@ import dev.hycolony.core.colony.ui.CitizenRow;
 import dev.hycolony.core.colony.ui.FoundColonyView;
 import dev.hycolony.core.colony.ui.TownHallView;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.item.ItemAmount;
+import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.persist.ColonyStorage;
 import dev.hycolony.core.kernel.persist.MigrationChain;
 import dev.hycolony.core.kernel.persist.SchemaTooNewException;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.Msg;
+import dev.hycolony.core.request.Deliverable;
+import dev.hycolony.core.request.Request;
+import dev.hycolony.core.request.RequestManager;
+import dev.hycolony.core.request.RequestState;
+import dev.hycolony.core.request.RequestToken;
+import dev.hycolony.core.request.Resolver;
+import dev.hycolony.core.request.StackRequest;
+import dev.hycolony.core.request.resolver.PlayerResolver;
+import dev.hycolony.core.request.resolver.RetryingResolver;
 import com.google.gson.JsonObject;
 import java.io.IOException;
 import java.util.Collection;
@@ -263,6 +274,113 @@ public final class ColonyManager {
         territory.releaseAll(colonyId);
         ctx.bus().post(new ColonyEvents.ColonyDeleted(colonyId));
         return true;
+    }
+
+    // ---- Requests: the player's "Fournir" / "Ajouter" ----
+
+    /**
+     * "Fournir": moves min(requested, owned) from the player to the requesting citizen (or, for the building
+     * itself, its hut containers) and overrules the request. A partial amount still closes it; the requester asks
+     * again for the rest. False if nothing was moved.
+     */
+    public boolean fulfil(UUID player, int colonyId, RequestToken token) {
+        Colony c = colonies.get(colonyId);
+        if (c == null || !c.permissions().hasPermission(player, Action.ACCESS_HUTS)) {
+            return false;
+        }
+        Request req = c.requests().get(token).orElse(null);
+        if (req == null || req.state().ordinal() >= RequestState.COMPLETED.ordinal()) {
+            return false;
+        }
+        ConstructionPorts ports = ctx.ports();
+        Deliverable wanted = req.requestable();
+        Optional<ItemKey> item = wanted instanceof StackRequest s ? Optional.of(s.item())
+                : ports.playerInventory().contents(player).keySet().stream()
+                        .filter(k -> wanted.matches(k, ports.catalog())).findFirst();
+        if (item.isEmpty()) {
+            return false;
+        }
+        int n = ports.playerInventory().take(player, item.get(), wanted.count());
+        if (n <= 0) {
+            return false;
+        }
+        ItemAmount taken = new ItemAmount(item.get(), n);
+        Optional<CitizenData> citizen = req.citizenId() == -1 ? Optional.empty() : c.citizens().get(req.citizenId());
+        ItemAmount rest = taken;
+        if (citizen.isPresent()) {
+            rest = citizen.get().inventory().insert(taken, ports.catalog()::maxStack);
+        } else {
+            Optional<Building> hut = c.requests().requester(req).flatMap(r -> c.buildings().at(r.location()));
+            if (hut.isPresent()) {
+                rest = ports.containers().insert(hut.get().containers(), taken);
+            }
+        }
+        int moved = n - giveBack(player, rest);
+        if (moved <= 0) {
+            return false;
+        }
+        c.requests().overrule(token, List.of(new ItemAmount(item.get(), moved)));
+        c.markDirty();
+        return true;
+    }
+
+    /**
+     * "Ajouter": moves min(wanted, owned) from the player into the hut's containers, then overrules the first open
+     * request of that building held by the player or retrying resolver for that item. Returns how many moved.
+     */
+    public int addToHut(UUID player, BlockPos hutPos, ItemKey item, int wanted) {
+        Colony c = colonyAt(hutPos).orElse(null);
+        if (c == null || wanted <= 0 || !c.permissions().hasPermission(player, Action.ACCESS_HUTS)) {
+            return 0;
+        }
+        Building b = c.buildings().at(hutPos).orElse(null);
+        if (b == null) {
+            return 0;
+        }
+        ConstructionPorts ports = ctx.ports();
+        int taken = ports.playerInventory().take(player, item, wanted);
+        if (taken <= 0) {
+            return 0;
+        }
+        int moved = taken - giveBack(player, ports.containers().insert(b.containers(), new ItemAmount(item, taken)));
+        if (moved > 0) {
+            overruleNextOpenRequestWithStack(c, b, new ItemAmount(item, moved));
+            c.markDirty();
+        }
+        return moved;
+    }
+
+    /** A player changed a hut container's content: the building's stuck requests get another chance. */
+    public void onContainerChanged(BlockPos containerPos) {
+        colonyAt(containerPos).ifPresent(c -> c.buildings().owningContainer(containerPos).ifPresent(b ->
+                c.requests().onColonyUpdate(r -> r.requester().equals(b.requesterId()))));
+    }
+
+    /** AbstractBuilding.overruleNextOpenRequestWithStack. */
+    private void overruleNextOpenRequestWithStack(Colony c, Building b, ItemAmount stack) {
+        RequestManager m = c.requests();
+        for (Request r : m.byRequester(b.requesterId())) {
+            String resolver = m.resolverOf(r.token()).map(Resolver::resolverId).orElse("");
+            boolean stuck = resolver.equals(PlayerResolver.ID) || resolver.equals(RetryingResolver.ID);
+            if (stuck && r.state().ordinal() < RequestState.COMPLETED.ordinal()
+                    && r.requestable().matches(stack.item(), ctx.ports().catalog())) {
+                m.overrule(r.token(), List.of(stack));
+                return;
+            }
+        }
+    }
+
+    /** Returns {@code rest} to the player; returns its count (0 if none). */
+    private int giveBack(UUID player, ItemAmount rest) {
+        if (rest == null) {
+            return 0;
+        }
+        ItemAmount lost = ctx.ports().playerInventory().give(player, rest);
+        if (lost != null) {
+            LOG.log(System.Logger.Level.WARNING, "Player {0} inventory full: {1} x {2} lost", player, lost.count(),
+                    lost.item().id());
+        }
+        return rest.count();
     }
 
     // ---- Ticking and bodies ----

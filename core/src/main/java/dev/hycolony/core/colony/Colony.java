@@ -1,11 +1,18 @@
 package dev.hycolony.core.colony;
 
+import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingManager;
 import dev.hycolony.core.citizen.CitizenManager;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.ai.AITarget;
 import dev.hycolony.core.kernel.ai.IStateSupplier;
 import dev.hycolony.core.kernel.ai.TickRateStateMachine;
+import dev.hycolony.core.request.RequestManager;
+import dev.hycolony.core.request.Requester;
+import dev.hycolony.core.request.RequesterId;
+import dev.hycolony.core.request.resolver.PlayerResolver;
+import dev.hycolony.core.request.resolver.RetryingResolver;
+import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.UUID;
 
@@ -26,7 +33,8 @@ public final class Colony {
     private String name;
     private final BlockPos center;
     private final Permissions permissions;
-    private final BuildingManager buildings = new BuildingManager();
+    private final BuildingManager buildings;
+    private final RequestManager requests;
     private final CitizenManager citizens;
     private final EventLog log = new EventLog();
     private final TickRateStateMachine<ColonyState> machine;
@@ -42,6 +50,21 @@ public final class Colony {
         this.name = name;
         this.center = center;
         this.permissions = permissions;
+        this.requests = new RequestManager(this::requester, ctx.ports().catalog());
+        this.buildings = new BuildingManager(new BuildingManager.Listener() {
+            @Override
+            public void added(Building building) {
+                building.attachContainers(ctx.ports().containers());
+                requests.onProviderAdded(building);
+            }
+
+            @Override
+            public void removed(Building building) {
+                requests.onProviderRemoved(building);
+            }
+        });
+        requests.registerBuiltIn(new PlayerResolver(center));
+        requests.registerBuiltIn(new RetryingResolver(center));
         this.citizens = new CitizenManager(this);
         this.wasDaytime = ctx.clock().isDaytime();
         this.machine = new TickRateStateMachine<>(ColonyState.INACTIVE, this::onException);
@@ -51,6 +74,7 @@ public final class Colony {
         machine.addTransition(new AITarget<>(ColonyState.ACTIVE, (IStateSupplier<ColonyState>) () -> { citizens.tickData(); return null; }, CITIZEN_DATA_INTERVAL));
         machine.addTransition(new AITarget<>(ColonyState.ACTIVE, (IStateSupplier<ColonyState>) () -> { checkDayTime(); return null; }, DAYTIME_INTERVAL));
         machine.addTransition(new AITarget<>(ColonyState.ACTIVE, (IStateSupplier<ColonyState>) () -> { slowTick(); return null; }, SLOW_TICK));
+        machine.addTransition(new AITarget<>(ColonyState.ACTIVE, (IStateSupplier<ColonyState>) () -> { requests.tick(); return null; }, RequestManager.TICK_INTERVAL));
     }
 
     public void tick() {
@@ -109,6 +133,10 @@ public final class Colony {
         citizens.onColonyTick();
     }
 
+    private Optional<Requester> requester(RequesterId id) {
+        return buildings.byRequester(id).map(Requester.class::cast);
+    }
+
     public boolean contains(BlockPos pos) {
         OptionalInt owner = territory.colonyAt(pos);
         return owner.isPresent() && owner.getAsInt() == id;
@@ -121,6 +149,7 @@ public final class Colony {
     public Permissions permissions() { return permissions; }
     public BuildingManager buildings() { return buildings; }
     public CitizenManager citizens() { return citizens; }
+    public RequestManager requests() { return requests; }
     public EventLog log() { return log; }
     public int day() { return day; }
     public void setDay(int day) { this.day = day; }
