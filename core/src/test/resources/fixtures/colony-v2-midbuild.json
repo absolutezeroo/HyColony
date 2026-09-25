@@ -1,0 +1,281 @@
+{
+  "schemaVersion": 2,
+  "id": 1,
+  "name": "Midbuild",
+  "center": {
+    "x": 0,
+    "y": 64,
+    "z": 0
+  },
+  "day": 0,
+  "permissions": {
+    "owner": "00000000-0000-0000-0000-00000000a11c",
+    "ownerName": "Alice",
+    "ranks": [
+      {
+        "id": 0,
+        "name": "Owner",
+        "permissions": 1915748349,
+        "initial": true,
+        "colonyManager": true,
+        "hostile": false
+      },
+      {
+        "id": 1,
+        "name": "Officer",
+        "permissions": 1915748333,
+        "initial": true,
+        "colonyManager": true,
+        "hostile": false
+      },
+      {
+        "id": 2,
+        "name": "Friend",
+        "permissions": 1345309825,
+        "initial": true,
+        "colonyManager": false,
+        "hostile": false
+      },
+      {
+        "id": 3,
+        "name": "Neutral",
+        "permissions": 1342177280,
+        "initial": true,
+        "colonyManager": false,
+        "hostile": false
+      },
+      {
+        "id": 4,
+        "name": "Hostile",
+        "permissions": 469762048,
+        "initial": true,
+        "colonyManager": false,
+        "hostile": true
+      }
+    ],
+    "members": [
+      {
+        "uuid": "00000000-0000-0000-0000-00000000a11c",
+        "name": "Alice",
+        "rank": 0
+      }
+    ]
+  },
+  "requests": {
+    "requests": [
+      {
+        "token": "00000000-0000-0000-0000-0000000000b1",
+        "requester": "building:70,64,0",
+        "requestable": {
+          "type": "stack",
+          "item": "test:planks_item",
+          "count": 12,
+          "minCount": 1,
+          "canBeResolvedByBuilding": true
+        },
+        "state": "IN_PROGRESS",
+        "parent": null,
+        "children": [],
+        "deliveries": [],
+        "citizenId": 1,
+        "blacklist": []
+      }
+    ],
+    "assignments": {
+      "retrying": [
+        "00000000-0000-0000-0000-0000000000b1"
+      ]
+    },
+    "retrying": {
+      "delays": {
+        "00000000-0000-0000-0000-0000000000b1": 1200
+      },
+      "tries": {
+        "00000000-0000-0000-0000-0000000000b1": 1
+      }
+    },
+    "player": []
+  },
+  "workOrders": [
+    {
+      "id": 1,
+      "type": "BUILD",
+      "pos": {
+        "x": 70,
+        "y": 64,
+        "z": 0
+      },
+      "targetLevel": 1,
+      "blueprintLevel": 1,
+      "style": "medieval",
+      "rotation": 0,
+      "priority": 0,
+      "claimedBy": {
+        "x": 70,
+        "y": 64,
+        "z": 0
+      },
+      "stage": "SOLID",
+      "progressIndex": 12,
+      "requested": false
+    }
+  ],
+  "settings": {
+    "autoHiring": true
+  },
+  "buildings": [
+    {
+      "type": "hycolony:townhall",
+      "pos": {
+        "x": 0,
+        "y": 64,
+        "z": 0
+      },
+      "rotation": 0,
+      "level": 0,
+      "built": false,
+      "customName": "",
+      "style": "",
+      "modules": {},
+      "containers": [],
+      "deconstructed": false
+    },
+    {
+      "type": "hycolony:builder",
+      "pos": {
+        "x": 70,
+        "y": 64,
+        "z": 0
+      },
+      "rotation": 0,
+      "level": 0,
+      "built": false,
+      "customName": "",
+      "style": "",
+      "modules": {
+        "worker": {
+          "workers": [
+            1
+          ],
+          "hiringMode": "DEFAULT"
+        },
+        "builderSettings": {
+          "mode": "AUTO"
+        }
+      },
+      "containers": [],
+      "deconstructed": false
+    }
+  ],
+  "citizens": [
+    {
+      "id": 1,
+      "name": "Aela K. Oakhart",
+      "gender": "FEMALE",
+      "child": false,
+      "skills": {
+        "Athletics": {
+          "level": 3,
+          "xp": 0.32
+        },
+        "Dexterity": {
+          "level": 5,
+          "xp": 26.59
+        },
+        "Strength": {
+          "level": 6,
+          "xp": 0.03
+        },
+        "Agility": {
+          "level": 1,
+          "xp": 0.0
+        },
+        "Stamina": {
+          "level": 9,
+          "xp": 0.0
+        },
+        "Mana": {
+          "level": 7,
+          "xp": 0.0
+        },
+        "Adaptability": {
+          "level": 5,
+          "xp": 0.65
+        },
+        "Focus": {
+          "level": 4,
+          "xp": 21.26
+        },
+        "Creativity": {
+          "level": 4,
+          "xp": 0.06
+        },
+        "Knowledge": {
+          "level": 8,
+          "xp": 0.0
+        },
+        "Intelligence": {
+          "level": 8,
+          "xp": 0.0
+        }
+      },
+      "lastPosition": {
+        "x": 67.5,
+        "y": 65.0,
+        "z": -2.5
+      },
+      "respawnPosition": null,
+      "home": null,
+      "work": {
+        "x": 70,
+        "y": 64,
+        "z": 0
+      },
+      "saturation": 60.0,
+      "inventory": [
+        {
+          "item": "test:chest_item",
+          "count": 1
+        },
+        {
+          "item": "test:torch_item",
+          "count": 1
+        }
+      ],
+      "job": {
+        "type": "hycolony:builder",
+        "actionsDone": 12
+      }
+    }
+  ],
+  "eventLog": [
+    {
+      "type": "colonyCreated",
+      "day": 0,
+      "params": [
+        "Midbuild"
+      ]
+    },
+    {
+      "type": "buildingPlaced",
+      "day": 0,
+      "params": [
+        "hycolony:townhall"
+      ]
+    },
+    {
+      "type": "buildingPlaced",
+      "day": 0,
+      "params": [
+        "hycolony:builder"
+      ]
+    },
+    {
+      "type": "citizenSpawned",
+      "day": 0,
+      "params": [
+        "Aela K. Oakhart"
+      ]
+    }
+  ]
+}
