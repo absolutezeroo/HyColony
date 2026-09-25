@@ -40,8 +40,7 @@ public final class ColonySerializer {
         o.add("permissions", permissions(c.permissions()));
 
         o.add("requests", RequestSerializer.write(c.requests()));
-        // Placeholder for a schema v2 field not yet backed by a model; a future task extends this serializer.
-        o.add("workOrders", new JsonArray());
+        o.add("workOrders", c.work().write());
         JsonObject settings = new JsonObject();
         settings.addProperty("autoHiring", c.settings().autoHiring());
         o.add("settings", settings);
@@ -98,6 +97,9 @@ public final class ColonySerializer {
         // After the buildings: they re-registered as resolver providers.
         if (o.has("requests")) {
             RequestSerializer.read(o.getAsJsonObject("requests"), c.requests());
+        }
+        if (o.has("workOrders")) {
+            c.work().read(o.getAsJsonArray("workOrders"));
         }
         for (JsonElement el : o.getAsJsonArray("eventLog")) {
             JsonObject e = el.getAsJsonObject();
@@ -226,7 +228,7 @@ public final class ColonySerializer {
         JsonArray containers = new JsonArray();
         b.registeredContainers().forEach(p -> containers.add(pos(p)));
         o.add("containers", containers);
-        o.addProperty("deconstructed", false);
+        o.addProperty("deconstructed", b.isDeconstructed());
         return o;
     }
 
@@ -236,6 +238,9 @@ public final class ColonySerializer {
         b.setBuilt(o.get("built").getAsBoolean());
         b.setCustomName(o.get("customName").getAsString());
         b.setStyle(o.get("style").getAsString());
+        if (o.has("deconstructed")) {
+            b.setDeconstructed(o.get("deconstructed").getAsBoolean());
+        }
         if (o.has("containers")) {
             for (JsonElement el : o.getAsJsonArray("containers")) {
                 b.addContainer(readPos(el));

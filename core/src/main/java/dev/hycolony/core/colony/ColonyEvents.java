@@ -1,6 +1,7 @@
 package dev.hycolony.core.colony;
 
 import dev.hycolony.core.building.Building;
+import dev.hycolony.core.construction.WorkOrder;
 
 /** Colony-level events posted on the world EventBus. */
 public final class ColonyEvents {
@@ -12,4 +13,5 @@ public final class ColonyEvents {
     public record BuildingRemoved(Colony colony, Building building) {}
     public record DayStarted(Colony colony) {}
     public record NightFell(Colony colony) {}
+    public record WorkOrderCreated(Colony colony, WorkOrder order) {}
 }

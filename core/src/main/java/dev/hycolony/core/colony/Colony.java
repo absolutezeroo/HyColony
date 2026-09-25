@@ -4,6 +4,7 @@ import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingManager;
 import dev.hycolony.core.building.BuildingModule;
 import dev.hycolony.core.citizen.CitizenManager;
+import dev.hycolony.core.construction.WorkManager;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.ai.AITarget;
@@ -39,6 +40,7 @@ public final class Colony {
     private final BuildingManager buildings;
     private final RequestManager requests;
     private final CitizenManager citizens;
+    private final WorkManager work = new WorkManager(this);
     private final ColonySettings settings = new ColonySettings();
     private final EventLog log = new EventLog();
     private final TickRateStateMachine<ColonyState> machine;
@@ -66,6 +68,7 @@ public final class Colony {
             public void removed(Building building) {
                 requests.cancelAllFrom(building.requesterId());
                 requests.onProviderRemoved(building);
+                work.onBuildingRemoved(building.position());
                 for (BuildingModule module : building.modules().values()) {
                     if (module instanceof WorkerModule worker) {
                         // Snapshot: fire() mutates worker.workers(), which this would otherwise iterate live.
@@ -88,6 +91,7 @@ public final class Colony {
         machine.addTransition(new AITarget<>(ColonyState.ACTIVE, (IStateSupplier<ColonyState>) () -> { checkDayTime(); return null; }, DAYTIME_INTERVAL));
         machine.addTransition(new AITarget<>(ColonyState.ACTIVE, (IStateSupplier<ColonyState>) () -> { slowTick(); return null; }, SLOW_TICK));
         machine.addTransition(new AITarget<>(ColonyState.ACTIVE, (IStateSupplier<ColonyState>) () -> { requests.tick(); return null; }, RequestManager.TICK_INTERVAL));
+        machine.addTransition(new AITarget<>(ColonyState.ACTIVE, (IStateSupplier<ColonyState>) () -> { work.tick(); return null; }, WorkManager.TICK_INTERVAL));
     }
 
     public void tick() {
@@ -164,6 +168,7 @@ public final class Colony {
     public CitizenManager citizens() { return citizens; }
     public ColonySettings settings() { return settings; }
     public RequestManager requests() { return requests; }
+    public WorkManager work() { return work; }
     public EventLog log() { return log; }
     public int day() { return day; }
     public void setDay(int day) { this.day = day; }

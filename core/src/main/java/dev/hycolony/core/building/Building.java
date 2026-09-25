@@ -24,6 +24,7 @@ public final class Building implements Requester, ResolverProvider {
     private final int rotation;
     private int level;
     private boolean built;
+    private boolean deconstructed;
     private String customName = "";
     private String style = "";
     private final Map<String, BuildingModule> modules = new LinkedHashMap<>();
@@ -60,6 +61,8 @@ public final class Building implements Requester, ResolverProvider {
     public void setLevel(int level) { this.level = level; }
     public boolean isBuilt() { return built; }
     public void setBuilt(boolean built) { this.built = built; }
+    public boolean isDeconstructed() { return deconstructed; }
+    public void setDeconstructed(boolean deconstructed) { this.deconstructed = deconstructed; }
     public String customName() { return customName; }
     public void setCustomName(String customName) { this.customName = customName; }
     public String style() { return style; }

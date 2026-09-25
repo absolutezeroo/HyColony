@@ -7,7 +7,11 @@ import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.ui.CitizenRow;
 import dev.hycolony.core.colony.ui.FoundColonyView;
 import dev.hycolony.core.colony.ui.TownHallView;
+import dev.hycolony.core.construction.WorkOrder;
+import dev.hycolony.core.construction.WorkOrderRefusal;
+import dev.hycolony.core.construction.WorkOrderType;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.Either;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.persist.ColonyStorage;
@@ -273,6 +277,44 @@ public final class ColonyManager {
         c.citizens().despawnAll();
         territory.releaseAll(colonyId);
         ctx.bus().post(new ColonyEvents.ColonyDeleted(colonyId));
+        return true;
+    }
+
+    // ---- Work orders ----
+
+    /** The hut's Build/Upgrade/Repair/Deconstruct button. On refusal the player gets its message. */
+    public Optional<WorkOrder> requestWorkOrder(UUID player, BlockPos buildingPos, WorkOrderType type, String style,
+            Optional<BlockPos> builder) {
+        Colony c = colonyAt(buildingPos).orElse(null);
+        if (c == null || c.buildings().at(buildingPos).isEmpty()) {
+            return Optional.empty();
+        }
+        return switch (c.work().request(player, buildingPos, type, style, builder)) {
+            case Either.Left<WorkOrder, WorkOrderRefusal> created -> Optional.of(created.value());
+            case Either.Right<WorkOrder, WorkOrderRefusal> refused -> {
+                ctx.notifier().send(player,
+                        Msg.of("hycolony.workorder.refused." + refused.value().name().toLowerCase(Locale.ROOT)));
+                yield Optional.empty();
+            }
+        };
+    }
+
+    /** Town hall info tab up/down arrows: {@code delta > 0} moves the order up. */
+    public boolean moveWorkOrder(UUID player, int colonyId, int orderId, int delta) {
+        Colony c = colonies.get(colonyId);
+        if (c == null || !c.permissions().hasPermission(player, Action.MANAGE_HUTS) || c.work().byId(orderId).isEmpty()) {
+            return false;
+        }
+        c.work().move(orderId, delta);
+        return true;
+    }
+
+    public boolean deleteWorkOrder(UUID player, int colonyId, int orderId) {
+        Colony c = colonies.get(colonyId);
+        if (c == null || !c.permissions().hasPermission(player, Action.MANAGE_HUTS) || c.work().byId(orderId).isEmpty()) {
+            return false;
+        }
+        c.work().cancel(orderId);
         return true;
     }
 
