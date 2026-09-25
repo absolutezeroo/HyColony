@@ -1,0 +1,32 @@
+package dev.hycolony.core.colony;
+
+public final class Rank {
+    private final int id;
+    private final String name;
+    private long permissions;
+    private final boolean initial;
+    private boolean colonyManager;
+    private boolean hostile;
+
+    public Rank(int id, String name, long permissions, boolean initial, boolean colonyManager, boolean hostile) {
+        this.id = id;
+        this.name = name;
+        this.permissions = permissions;
+        this.initial = initial;
+        this.colonyManager = colonyManager;
+        this.hostile = hostile;
+    }
+
+    public boolean has(Action action) { return (permissions & action.mask()) != 0; }
+    public void add(Action action) { permissions |= action.mask(); }
+    public void remove(Action action) { permissions &= ~action.mask(); }
+
+    public int id() { return id; }
+    public String name() { return name; }
+    public long permissions() { return permissions; }
+    public boolean isInitial() { return initial; }
+    public boolean isColonyManager() { return colonyManager; }
+    public boolean isHostile() { return hostile; }
+    void setColonyManager(boolean colonyManager) { this.colonyManager = colonyManager; }
+    void setHostile(boolean hostile) { this.hostile = hostile; }
+}
