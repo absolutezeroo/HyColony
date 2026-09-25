@@ -38,7 +38,8 @@ public final class HyColonyCommand extends AbstractCommandCollection {
 
     public HyColonyCommand(WorldRuntimes runtimes, IdMap ids) {
         super("hycolony", "HyColony colony management");
-        setPermissionGroups(PLAYERS);
+        // No group on the collection: subcommands without one inherit it (putRecursivePermissionGroups).
+        // Subcommands are dispatched before the collection's own permission is checked.
         addSubCommand(new Info(runtimes));
         addSubCommand(new Rank(runtimes));
         addSubCommand(new Delete(runtimes));
@@ -114,7 +115,7 @@ public final class HyColonyCommand extends AbstractCommandCollection {
         }
     }
 
-    /** Operators only (no permission group: needs the auto-generated node). */
+    /** Operators only (empty permission group list: needs the auto-generated node). */
     static final class Delete extends AbstractPlayerCommand {
         private final WorldRuntimes runtimes;
         private final RequiredArg<Integer> id;
@@ -123,6 +124,7 @@ public final class HyColonyCommand extends AbstractCommandCollection {
             super("delete", "Delete a colony (operators)");
             this.runtimes = runtimes;
             this.id = withRequiredArg("id", "Colony id", ArgTypes.INTEGER);
+            setPermissionGroups(); // explicit: no group ever grants it
         }
 
         @Override
@@ -148,6 +150,7 @@ public final class HyColonyCommand extends AbstractCommandCollection {
             super("selftest", "Check HyColony against this server (operators)");
             this.runtimes = runtimes;
             this.ids = ids;
+            setPermissionGroups(); // explicit: no group ever grants it
         }
 
         @Override
