@@ -23,7 +23,8 @@ public final class ConstructionBuildingTypes {
 
     public static final BuildingType BUILDER = new BuildingType("hycolony:builder", "hut.builder", 5, List.of(
             new ModuleProducer("worker", () -> new WorkerModule(BUILDER_JOB, Skill.Adaptability, Skill.Athletics, 1, true)),
-            new ModuleProducer("builderSettings", BuilderSettingsModule::new)
+            new ModuleProducer("builderSettings", BuilderSettingsModule::new),
+            new ModuleProducer("resources", BuildingResourcesModule::new)
     ));
 
     public static final BuildingType RESIDENCE = new BuildingType("hycolony:residence", "hut.residence", 5, List.of(
