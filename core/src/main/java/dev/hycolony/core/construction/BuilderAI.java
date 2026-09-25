@@ -83,6 +83,8 @@ public final class BuilderAI implements JobAI {
     private boolean mineDelayed;
     private ItemKey neededItem;
     private int lastRecomputeIndex = -1;
+    /** The walk over SOLID and DECORATE after the last stage ran for the loaded order. */
+    private boolean finalCheckDone;
 
     /** Last exception the machine caught (tests assert there is none). */
     RuntimeException lastError;
@@ -361,6 +363,12 @@ public final class BuilderAI implements JobAI {
                 return BuilderState.BUILDING_STEP;
             }
             Stage next = nextStage(stage);
+            if (next == Stage.DONE && stage == Stage.DECORATE && !finalCheckDone) {
+                // Not in MC (its iterator only goes forward): once per loaded order, SOLID and DECORATE are walked
+                // again, so a block broken behind the builder is placed again before completion.
+                finalCheckDone = true;
+                next = Stage.SOLID;
+            }
             progress(next, 0);
             return next == Stage.DONE ? BuilderState.COMPLETE_BUILD : BuilderState.BUILDING_STEP;
         }
@@ -571,6 +579,7 @@ public final class BuilderAI implements JobAI {
         mineDelayed = false;
         neededItem = null;
         lastRecomputeIndex = -1;
+        finalCheckDone = false;
         resources.reset();
     }
 }

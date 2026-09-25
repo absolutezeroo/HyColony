@@ -437,6 +437,26 @@ class BuilderAITest {
         assertTrue(colony.log().entries().stream().anyMatch(e -> e.type().equals("buildingDeconstructed")));
     }
 
+    /** Simulation: a block the player broke behind the builder was never placed again. */
+    @Test
+    void blockBrokenBehindIsPlacedAgainBeforeCompletion() {
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);
+        blueprint = bp(List.of(entry(1, 0, 0, STONE), entry(2, 0, 0, STONE), entry(3, 0, 0, STONE),
+                entry(1, 1, 0, TORCH)));
+        give(STONE_I, 4);
+        give(TORCH_I, 1);
+        WorkOrder o = order(res, WorkOrderType.UPGRADE);
+        tickUntil(() -> t.blocks.placed.size() == 2, 1000);
+
+        t.blocks.blocks.remove(at(1, 0, 0)); // the player breaks it
+        tickUntil(() -> gone(o), 5000);
+
+        assertEquals(List.of(at(1, 0, 0), at(2, 0, 0), at(3, 0, 0), at(1, 1, 0), at(1, 0, 0)), t.blocks.placed);
+        assertEquals(new BlockState(STONE, 0), t.blocks.blocks.get(at(1, 0, 0)));
+        assertEquals(0, citizen.inventory().count(STONE_I));
+        assertTrue(builderRequests().isEmpty());
+    }
+
     /** Simulation: a REMOVE left the mined chest registered as the building's container. */
     @Test
     void minedContainerIsUnregistered() {
@@ -678,11 +698,11 @@ class BuilderAITest {
     void newAiResumesFromSavedIndexWithoutReplacing() {
         Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);
         blueprint = bp(List.of(entry(1, 0, 0, STONE), entry(2, 0, 0, STONE), entry(3, 0, 0, STONE)));
-        give(STONE_I, 3);
+        give(STONE_I, 4);
         WorkOrder o = order(res, WorkOrderType.UPGRADE);
         tickUntil(() -> t.blocks.placed.size() == 1, 1000);
         assertEquals(1, o.progressIndex());
-        t.blocks.blocks.remove(at(1, 0, 0)); // gone again: only a restart from 0 would place it anew
+        t.blocks.blocks.remove(at(1, 0, 0)); // gone again: a restart from 0 would place it first
 
         BuilderAI fresh = new BuilderAI(colony, citizen, body); // e.g. after a server restart
         for (int i = 0; i < 5000 && !gone(o); i++) {
@@ -690,7 +710,8 @@ class BuilderAITest {
         }
 
         assertTrue(gone(o));
-        assertEquals(List.of(at(1, 0, 0), at(2, 0, 0), at(3, 0, 0)), t.blocks.placed);
+        // Resumed at index 1; the final check places the broken block again, last.
+        assertEquals(List.of(at(1, 0, 0), at(2, 0, 0), at(3, 0, 0), at(1, 0, 0)), t.blocks.placed);
     }
 
     @Test
