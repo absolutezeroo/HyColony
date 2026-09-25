@@ -13,6 +13,7 @@ import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyEvents;
 import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.EventLog;
+import dev.hycolony.core.job.JobXp;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Either;
@@ -22,10 +23,12 @@ import dev.hycolony.core.kernel.item.BlockKind;
 import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.core.kernel.item.ToolInfo;
 import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.request.Deliverable;
 import dev.hycolony.core.request.Request;
+import dev.hycolony.core.request.RequestState;
 import dev.hycolony.core.request.StackRequest;
 import dev.hycolony.core.request.ToolRequest;
 import dev.hycolony.core.testing.TestContexts;
@@ -256,7 +259,8 @@ class BuilderAITest {
         }
         Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);
         blueprint = bp(entries);
-        t.containers.containers.put(HUT, new java.util.LinkedHashMap<>(Map.of(bi, 5)));
+        // Netted from the inventory: B in the hut would go to the building's resolver (min 1, as in MC).
+        give(bi, 5);
         order(res, WorkOrderType.UPGRADE);
 
         tick(400);
@@ -265,10 +269,12 @@ class BuilderAITest {
 
         List<Request> reqs = builderRequests();
         assertEquals(2, reqs.size(), () -> "requests: " + reqs);
-        List<Deliverable> asked = reqs.stream().map(Request::requestable).toList();
-        assertTrue(asked.contains(new StackRequest(ai1, 18, 18, true)));
-        assertTrue(asked.contains(new StackRequest(bi, 13, 13, true)));
-        assertTrue(reqs.stream().allMatch(r -> r.citizenId() == citizen.id()));
+        Request a18 = reqs.stream().filter(r -> r.requestable().equals(new StackRequest(ai1, 18, 1, true)))
+                .findFirst().orElseThrow();
+        Request b13 = reqs.stream().filter(r -> r.requestable().equals(new StackRequest(bi, 13, 1, true)))
+                .findFirst().orElseThrow();
+        assertEquals(citizen.id(), a18.citizenId()); // needed now: sync
+        assertEquals(-1, b13.citizenId()); // bucket request: the building's, async
         assertEquals("NEEDS_ITEM", ai.stateName());
         assertNull(ai.lastError);
     }
@@ -298,7 +304,7 @@ class BuilderAITest {
             entries.add(entry(x, 0, 0, STONE));
         }
         blueprint = bp(entries);
-        give(STONE_I, 10);
+        give(STONE_I, 15); // bucket: 10
         order(res, WorkOrderType.UPGRADE);
         tickUntil(() -> ai.stateName().equals("BUILDING_STEP"), 500);
         List<ItemKey> junk = new ArrayList<>();
@@ -316,8 +322,8 @@ class BuilderAITest {
             assertEquals(1, t.containers.count(List.of(HUT), j), j.id());
             assertEquals(0, citizen.inventory().count(j));
         }
-        assertEquals(10, citizen.inventory().count(STONE_I)); // bucket items kept
-        assertEquals(0, t.containers.count(List.of(HUT), STONE_I));
+        assertEquals(10, citizen.inventory().count(STONE_I)); // the bucket amount is kept (MC keepX)
+        assertEquals(5, t.containers.count(List.of(HUT), STONE_I));
     }
 
     @Test
@@ -345,7 +351,9 @@ class BuilderAITest {
         tick(10_000);
 
         assertNull(ai.lastError);
-        assertTrue(o.stage() != Stage.CLEAR || o.progressIndex() > 0);
+        long mined = n - t.blocks.blocks.values().stream().filter(b -> b.key().equals(DIRT)).count();
+        assertTrue(mined > CitizenData.INVENTORY_SLOTS, "kept mining past a full inventory: " + mined);
+        assertTrue(o.stage() != Stage.CLEAR || o.progressIndex() >= mined - 1);
         assertTrue(citizen.inventory().isFull());
         assertTrue(colony.log().entries().stream().map(EventLog.Entry::type).anyMatch("debrisLost"::equals));
     }
@@ -387,8 +395,13 @@ class BuilderAITest {
         assertTrue(res.isBuilt());
         assertFalse(res.isDeconstructed());
         assertTrue(colony.contains(beyond));
-        var adaptability = citizen.skills();
-        assertTrue(adaptability.level(Skill.Adaptability) > 1 || adaptability.experience(Skill.Adaptability) > 0);
+        CitizenData expected = new CitizenData(99);
+        JobXp.award(expected, Skill.Adaptability, Skill.Athletics, 0.05, hut.level(), 0);
+        JobXp.award(expected, Skill.Adaptability, Skill.Athletics, 8, hut.level(), 0);
+        for (Skill s : Skill.values()) {
+            assertEquals(expected.skills().level(s), citizen.skills().level(s), s.name());
+            assertEquals(expected.skills().experience(s), citizen.skills().experience(s), 1e-9, s.name());
+        }
         assertTrue(colony.log().entries().stream().anyMatch(e -> e.type().equals("buildingBuilt")));
         assertEquals(List.of(new ColonyEvents.BuildingLevelChanged(colony, res, 0, 1)), events);
         assertEquals(1, t.notifier.sent.size());
@@ -401,11 +414,13 @@ class BuilderAITest {
     @Test
     void removeOrderDeconstructsKeepingLevel() {
         Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 2);
-        blueprint = bp(List.of(entry(1, 0, 0, STONE), entry(1, 1, 0, STONE)));
+        blueprint = bp(List.of(entry(1, 0, 0, STONE), entry(1, 1, 0, STONE), entry(2, 0, 0, ORE)));
         for (BlockPos p : List.of(at(1, 0, 0), at(1, 1, 0))) {
             t.blocks.blocks.put(p, new BlockState(STONE, 0));
             t.blocks.drops.put(p, List.of(new ItemAmount(STONE_I, 1)));
         }
+        t.blocks.blocks.put(at(2, 0, 0), new BlockState(ORE, 0));
+        t.blocks.drops.put(at(2, 0, 0), List.of(new ItemAmount(ORE_I, 1)));
         WorkOrder o = order(res, WorkOrderType.REMOVE);
 
         tickUntil(() -> gone(o), 5000);
@@ -416,6 +431,8 @@ class BuilderAITest {
         assertEquals(2, res.level());
         assertTrue(res.isDeconstructed());
         assertEquals(2, citizen.inventory().count(STONE_I));
+        assertFalse(t.blocks.blocks.containsKey(at(2, 0, 0)));
+        assertEquals(0, citizen.inventory().count(ORE_I)); // ores are voided in every stage (MC mineBlock !isOre)
         assertTrue(builderRequests().isEmpty());
         assertTrue(colony.log().entries().stream().anyMatch(e -> e.type().equals("buildingDeconstructed")));
     }
@@ -444,18 +461,20 @@ class BuilderAITest {
     void cancelledOrderSendsBuilderIdle() {
         Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);
         blueprint = bp(List.of(entry(1, 0, 0, STONE), entry(2, 0, 0, STONE)));
+        give(STONE_I, 2);
         WorkOrder o = order(res, WorkOrderType.UPGRADE);
-        tickUntil(() -> ai.stateName().equals("NEEDS_ITEM"), 1000);
+        tickUntil(() -> t.blocks.placed.size() == 1, 1000);
 
-        colony.work().cancel(o.id());
+        colony.work().cancel(o.id()); // mid-build, during the place delay
         Stage stage = o.stage();
         int progress = o.progressIndex();
         tick(400);
 
-        assertEquals("IDLE", ai.stateName());
-        assertEquals(0, resources().orderId());
+        assertEquals(1, t.blocks.placed.size()); // never placed for the dead order
         assertEquals(stage, o.stage());
         assertEquals(progress, o.progressIndex());
+        assertEquals("IDLE", ai.stateName());
+        assertEquals(0, resources().orderId());
         assertTrue(builderRequests().isEmpty());
         assertNull(ai.lastError);
     }
@@ -492,7 +511,191 @@ class BuilderAITest {
         tickUntil(() -> !builderRequests().isEmpty(), 1000);
 
         assertEquals(Map.of(bi, 4), resources().currentBucket().orElseThrow());
-        assertEquals(List.of(new StackRequest(bi, 4, 4, true)),
+        assertEquals(List.of(new StackRequest(bi, 4, 1, true)),
                 builderRequests().stream().map(Request::requestable).toList());
+    }
+
+    // ---- fix round 1 ----
+
+    /** An UPGRADE of {@code n} stones with nothing in stock: the builder waits on its one (sync) request. */
+    private Request waitingForStone(int n) {
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);
+        List<BlueprintEntry> entries = new ArrayList<>();
+        for (int x = 1; x <= n; x++) {
+            entries.add(entry(x, 0, 0, STONE));
+        }
+        blueprint = bp(entries);
+        order(res, WorkOrderType.UPGRADE);
+        tickUntil(() -> ai.stateName().equals("NEEDS_ITEM"), 1000);
+        List<Request> reqs = builderRequests();
+        assertEquals(1, reqs.size());
+        assertEquals(citizen.id(), reqs.get(0).citizenId());
+        return reqs.get(0);
+    }
+
+    @Test
+    void bucketRequestsDoNotBlockBuilding() {
+        BlockKey b = new BlockKey("b");
+        ItemKey bi = new ItemKey("b_i");
+        t.catalog.kinds.put(b, BlockKind.SOLID);
+        t.catalog.itemForBlock.put(b, bi);
+        t.catalog.maxStacks.put(STONE_I, 1);
+        t.catalog.maxStacks.put(bi, 1);
+        List<BlueprintEntry> entries = new ArrayList<>();
+        for (int x = 1; x <= 6; x++) {
+            for (int z = 0; z < 6; z++) {
+                entries.add(entry(x, 0, z, (x - 1) * 6 + z < 18 ? STONE : b)); // buckets [stone x18], [b x18]
+            }
+        }
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);
+        blueprint = bp(entries);
+        t.containers.containers.put(HUT, new java.util.LinkedHashMap<>(Map.of(STONE_I, 10)));
+        order(res, WorkOrderType.UPGRADE);
+
+        tickUntil(() -> t.blocks.placed.size() == 10, 5000);
+
+        // Placing went on while the bucket requests (stone x8, b x18) stayed open and async.
+        List<Request> reqs = builderRequests();
+        assertEquals(2, reqs.size(), () -> "requests: " + reqs);
+        assertTrue(reqs.stream().allMatch(r -> r.citizenId() == -1));
+        assertTrue(reqs.stream().allMatch(r -> r.state().ordinal() < RequestState.COMPLETED.ordinal()));
+        assertTrue(reqs.stream().anyMatch(r -> r.requestable().equals(new StackRequest(bi, 18, 1, true))));
+    }
+
+    @Test
+    void existingAsyncRequestBecomesSyncWhenItemNeededNow() {
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);
+        blueprint = bp(List.of(entry(1, 0, 0, STONE), entry(2, 0, 0, STONE), entry(3, 0, 0, STONE)));
+        var token = colony.requests().createAndAssign(hut, new StackRequest(STONE_I, 3, 1, true), -1);
+        order(res, WorkOrderType.UPGRADE);
+
+        tickUntil(() -> ai.stateName().equals("NEEDS_ITEM"), 1000);
+
+        List<Request> reqs = builderRequests();
+        assertEquals(1, reqs.size());
+        assertEquals(token, reqs.get(0).token()); // moved to the builder, not duplicated
+        assertEquals(citizen.id(), reqs.get(0).citizenId());
+    }
+
+    @Test
+    void completedAsyncRequestsAreMarkedReceived() {
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);
+        blueprint = bp(List.of(entry(1, 0, 0, STONE), entry(2, 0, 0, STONE), entry(3, 0, 0, STONE)));
+        t.containers.containers.put(HUT, new java.util.LinkedHashMap<>(Map.of(STONE_I, 3)));
+        var token = colony.requests().createAndAssign(hut, new StackRequest(STONE_I, 3, 1, true), -1);
+        assertEquals(RequestState.COMPLETED, colony.requests().get(token).orElseThrow().state()); // hut stock
+        WorkOrder o = order(res, WorkOrderType.UPGRADE);
+
+        tickUntil(() -> !t.blocks.placed.isEmpty(), 2000);
+
+        assertTrue(colony.requests().get(token).isEmpty(), "still pending: blocks re-requesting the item");
+        tickUntil(() -> gone(o), 2000);
+        assertEquals(3, t.blocks.placed.size());
+    }
+
+    @Test
+    void firedBuilderRequestsCancelledAndReplacementRequestsAgain() {
+        Request first = waitingForStone(2);
+
+        hut.module(WorkerModule.class).orElseThrow().fire(colony, hut, citizen.id());
+
+        assertTrue(colony.requests().get(first.token()).isEmpty());
+        CitizenData next = new CitizenData(2);
+        colony.citizens().restore(next);
+        assertTrue(hut.module(WorkerModule.class).orElseThrow().hire(colony, hut, next));
+        BuilderAI replacement = new BuilderAI(colony, next, t.bodies.existing(colony.id(), 2, Vec3.center(HUT)));
+        for (int i = 0; i < 1000 && builderRequests().isEmpty(); i++) {
+            replacement.tick();
+        }
+        List<Request> reqs = builderRequests();
+        assertEquals(1, reqs.size());
+        assertEquals(next.id(), reqs.get(0).citizenId());
+        for (int i = 0; i < 100 && !replacement.stateName().equals("NEEDS_ITEM"); i++) {
+            replacement.tick();
+        }
+        assertEquals("NEEDS_ITEM", replacement.stateName());
+    }
+
+    @Test
+    void completedRequestPickedUpFromHutThenReceivedAndBuildResumes() {
+        Request r = waitingForStone(2);
+        t.containers.containers.put(HUT, new java.util.LinkedHashMap<>(Map.of(STONE_I, 2))); // "Ajouter"
+        colony.requests().overrule(r.token(), List.of(new ItemAmount(STONE_I, 2)));
+
+        tickUntil(() -> colony.requests().get(r.token()).isEmpty(), 1000);
+
+        assertEquals(2, citizen.inventory().count(STONE_I) + t.blocks.placed.size());
+        assertEquals(0, t.containers.count(List.of(HUT), STONE_I));
+        tickUntil(() -> t.blocks.placed.size() == 2, 2000);
+    }
+
+    @Test
+    void missingDeliveryIsRequestedAgainForMissingCount() {
+        Request r = waitingForStone(2);
+        t.containers.containers.put(HUT, new java.util.LinkedHashMap<>(Map.of(STONE_I, 1))); // one taken meanwhile
+        colony.requests().overrule(r.token(), List.of(new ItemAmount(STONE_I, 2)));
+
+        tickUntil(() -> colony.requests().get(r.token()).isEmpty(), 1000);
+
+        assertEquals(1, citizen.inventory().count(STONE_I));
+        List<Request> reqs = builderRequests();
+        assertEquals(1, reqs.size());
+        assertEquals(new StackRequest(STONE_I, 1, 1, true), reqs.get(0).requestable());
+        assertEquals(citizen.id(), reqs.get(0).citizenId());
+    }
+
+    @Test
+    void overruledDeliveryAlreadyInInventoryNotExtracted() {
+        Request r = waitingForStone(2);
+        give(STONE_I, 2); // "Fournir" hands the items to the citizen
+        t.containers.containers.put(HUT, new java.util.LinkedHashMap<>(Map.of(STONE_I, 5)));
+        colony.requests().overrule(r.token(), List.of(new ItemAmount(STONE_I, 2)));
+
+        tickUntil(() -> colony.requests().get(r.token()).isEmpty(), 1000);
+
+        assertEquals(5, t.containers.count(List.of(HUT), STONE_I));
+        assertEquals(2, citizen.inventory().count(STONE_I));
+    }
+
+    @Test
+    void newAiResumesFromSavedIndexWithoutReplacing() {
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);
+        blueprint = bp(List.of(entry(1, 0, 0, STONE), entry(2, 0, 0, STONE), entry(3, 0, 0, STONE)));
+        give(STONE_I, 3);
+        WorkOrder o = order(res, WorkOrderType.UPGRADE);
+        tickUntil(() -> t.blocks.placed.size() == 1, 1000);
+        assertEquals(1, o.progressIndex());
+        t.blocks.blocks.remove(at(1, 0, 0)); // gone again: only a restart from 0 would place it anew
+
+        BuilderAI fresh = new BuilderAI(colony, citizen, body); // e.g. after a server restart
+        for (int i = 0; i < 5000 && !gone(o); i++) {
+            fresh.tick();
+        }
+
+        assertTrue(gone(o));
+        assertEquals(List.of(at(1, 0, 0), at(2, 0, 0), at(3, 0, 0)), t.blocks.placed);
+    }
+
+    @Test
+    void oneToolPerTypeIsKeptSoANeededToolFitsAgain() {
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 0);
+        blueprint = bp(List.of(entry(1, 0, 0, STONE)));
+        t.blocks.blocks.put(at(1, 0, 0), new BlockState(DIRT, 0));
+        t.catalog.toolForBlock.put(DIRT, ToolType.SHOVEL);
+        ItemKey shovel = new ItemKey("shovel");
+        t.catalog.tools.put(shovel, new ToolInfo(ToolType.SHOVEL, 0, 2f));
+        t.containers.containers.put(HUT, new java.util.LinkedHashMap<>(Map.of(shovel, 1)));
+        for (int i = 0; i < CitizenData.INVENTORY_SLOTS; i++) {
+            ItemKey pick = new ItemKey("pickaxe" + i);
+            t.catalog.tools.put(pick, new ToolInfo(ToolType.PICKAXE, 0, 2f));
+            give(pick, 1);
+        }
+        WorkOrder o = order(res, WorkOrderType.BUILD);
+
+        tickUntil(() -> o.stage() != Stage.CLEAR, 5000);
+
+        assertFalse(t.blocks.blocks.containsKey(at(1, 0, 0)));
+        assertEquals(1, citizen.inventory().count(shovel));
+        assertTrue(builderRequests().stream().noneMatch(r -> r.requestable() instanceof ToolRequest));
     }
 }

@@ -231,6 +231,32 @@ public final class RequestManager {
         });
     }
 
+    /** Cancels the requests {@code requester} made for one citizen (a worker leaving its building). */
+    public void cancelAllFrom(RequesterId requester, int citizenId) {
+        submit(() -> {
+            Set<RequestToken> mine = byRequester.get(requester);
+            if (mine != null) {
+                for (RequestToken t : new ArrayList<>(mine)) {
+                    Request r = requests.get(t);
+                    if (r != null && r.citizenId() == citizenId) {
+                        cancelDirectly(t);
+                    }
+                }
+            }
+        });
+    }
+
+    /** MC moveToSyncCitizen: a building's (async) request becomes the citizen's, who now waits for it. */
+    public void makeSync(RequestToken token, int citizenId) {
+        require(token);
+        submit(() -> {
+            Request req = requests.get(token);
+            if (req != null) {
+                req.setCitizenId(citizenId);
+            }
+        });
+    }
+
     public void onColonyUpdate(Predicate<Request> which) {
         submit(() -> List.copyOf(resolvers).forEach(r -> r.onColonyUpdate(this, which)));
     }

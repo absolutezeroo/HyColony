@@ -17,6 +17,8 @@ import dev.hycolony.core.request.RequestManager;
 import dev.hycolony.core.request.RequestState;
 import dev.hycolony.core.request.StackRequest;
 import dev.hycolony.core.request.ToolRequest;
+import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -25,8 +27,9 @@ import java.util.function.ToIntFunction;
 
 /**
  * The builder's items: its inventory, its hut's containers and its requests (MC AbstractEntityAIBasic dump, pickup
- * and tool helpers). Every request is filed under the builder hut, with the citizen's id: those are its sync
- * requests.
+ * and tool helpers). Every request is filed under the builder hut. Bucket requests are the building's (citizen -1,
+ * async: they never block); the request for the item needed right now carries the citizen's id (sync: the builder
+ * waits for it in NEEDS_ITEM).
  */
 final class BuilderStock {
     private static final System.Logger LOG = System.getLogger(BuilderStock.class.getName());
@@ -51,20 +54,25 @@ final class BuilderStock {
 
     int hutCount(ItemKey item) { return containers.count(hut.containers(), item); }
 
-    /** Moves up to {@code max} from the hut to the inventory (what does not fit goes back). Returns how many the hut had. */
+    /**
+     * Moves up to {@code max} from the hut to the inventory; what does not fit goes back to the hut. Returns how many
+     * landed in the inventory.
+     */
     int take(ItemKey item, int max) {
         if (max <= 0) {
             return 0;
         }
         List<BlockPos> hc = hut.containers();
         int got = containers.extract(hc, item, max);
-        if (got > 0) {
-            ItemAmount rest = inventory().insert(new ItemAmount(item, got), maxStack);
-            if (rest != null) {
-                containers.insert(hc, rest);
-            }
+        if (got <= 0) {
+            return 0;
         }
-        return got;
+        ItemAmount rest = inventory().insert(new ItemAmount(item, got), maxStack);
+        if (rest == null) {
+            return got;
+        }
+        lose(containers.insert(hc, rest));
+        return got - rest.count();
     }
 
     /** Tops the inventory up to each amount of {@code bucket} from the hut. */
@@ -73,17 +81,25 @@ final class BuilderStock {
     }
 
     /**
-     * Stores everything but {@code keep} items and tools (MC keepX) in the hut. False when the hut could not take it
-     * all: what could be stored is stored, the rest stays.
+     * Stores everything in the hut but (MC keepX) the {@code keep} amounts and one tool per type. False when the hut
+     * could not take it all: what could be stored is stored, the rest stays.
      */
     boolean dump(Map<ItemKey, Integer> keep) {
         List<BlockPos> hc = hut.containers();
+        Map<ItemKey, Integer> keepLeft = new HashMap<>(keep);
+        Set<ToolType> toolKept = EnumSet.noneOf(ToolType.class);
         for (ItemAmount a : inventory().contents()) {
-            if (keep.containsKey(a.item()) || catalog.tool(a.item()).isPresent()) {
+            ToolInfo tool = catalog.tool(a.item()).orElse(null);
+            if (tool != null && toolKept.add(tool.type())) {
                 continue;
             }
-            ItemAmount rest = containers.insert(hc, a);
-            int stored = a.count() - (rest == null ? 0 : rest.count());
+            int kept = Math.min(a.count(), keepLeft.getOrDefault(a.item(), 0));
+            keepLeft.computeIfPresent(a.item(), (k, n) -> n - kept);
+            if (kept == a.count()) {
+                continue;
+            }
+            ItemAmount rest = containers.insert(hc, a.withCount(a.count() - kept));
+            int stored = a.count() - kept - (rest == null ? 0 : rest.count());
             if (stored > 0) {
                 inventory().extract(a.item(), stored);
             }
@@ -99,13 +115,17 @@ final class BuilderStock {
         for (ItemAmount d : drops) {
             ItemAmount rest = inventory().insert(d, maxStack);
             if (rest != null) {
-                rest = containers.insert(hut.containers(), rest);
+                lose(containers.insert(hut.containers(), rest));
             }
-            if (rest != null) {
-                colony.log().add("debrisLost", colony.day(), rest.item().id(), String.valueOf(rest.count()));
-                LOG.log(System.Logger.Level.DEBUG, "Builder {0}: {1} x {2} lost, inventory and hut full",
-                        citizen.name(), rest.count(), rest.item().id());
-            }
+        }
+    }
+
+    /** Items that fit neither in the inventory nor in the hut: logged as {@code debrisLost}. */
+    private void lose(ItemAmount rest) {
+        if (rest != null) {
+            colony.log().add("debrisLost", colony.day(), rest.item().id(), String.valueOf(rest.count()));
+            LOG.log(System.Logger.Level.DEBUG, "Builder {0}: {1} x {2} lost, inventory and hut full",
+                    citizen.name(), rest.count(), rest.item().id());
         }
     }
 
@@ -172,8 +192,44 @@ final class BuilderStock {
         return out;
     }
 
-    void request(Deliverable what) {
+    private void request(Deliverable what) {
         requests().createAndAssign(hut, what, citizen.id());
+    }
+
+    /** MC checkOrRequestBucket: a building-level (async) request, min 1. */
+    void requestForBucket(ItemKey item, int count) {
+        requests().createAndAssign(hut, new StackRequest(item, count, 1, true), -1);
+    }
+
+    /**
+     * MC hasListOfResInInvOrRequest: the item this placement needs becomes a sync request. A live building request
+     * for it is moved to the citizen (moveToSyncCitizen) rather than duplicated; an own one is left alone.
+     */
+    void requestNow(ItemKey item, int count) {
+        for (Request r : requests().byRequester(hut.requesterId())) {
+            if (r.requestable() instanceof StackRequest s && s.item().equals(item)) {
+                if (r.citizenId() == -1 && r.state().ordinal() < RequestState.COMPLETED.ordinal()) {
+                    requests().makeSync(r.token(), citizen.id());
+                    return;
+                }
+                if (r.citizenId() == citizen.id()) {
+                    return;
+                }
+            }
+        }
+        request(new StackRequest(item, count, 1, true));
+    }
+
+    /**
+     * MC cleanAsync / markRequestAsAccepted: a completed building request left its items in the hut, where the
+     * builder takes them like any stock. RECEIVED, so the item can be asked for again.
+     */
+    void receiveCompletedBuildingRequests() {
+        for (Request r : requests().byRequester(hut.requesterId())) {
+            if (r.citizenId() == -1 && r.state() == RequestState.COMPLETED) {
+                requests().updateState(r.token(), RequestState.RECEIVED);
+            }
+        }
     }
 
     /** One ToolRequest(type, 0, hut level) unless one of that type is live. */
@@ -196,7 +252,9 @@ final class BuilderStock {
             if (inventory().count(d.item()) >= d.count()) {
                 continue;
             }
-            int missing = d.count() - take(d.item(), d.count());
+            int there = Math.min(d.count(), hutCount(d.item())); // what does not fit stays in the hut, still there
+            take(d.item(), there);
+            int missing = d.count() - there;
             if (missing > 0) {
                 request(r.requestable() instanceof StackRequest s
                         ? new StackRequest(s.item(), missing, Math.min(s.minCount(), missing), s.canBeResolvedByBuilding())

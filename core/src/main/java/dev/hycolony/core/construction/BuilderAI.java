@@ -25,7 +25,6 @@ import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.core.kernel.port.WorldBlocks;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.RequestState;
-import dev.hycolony.core.request.StackRequest;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -193,6 +192,7 @@ public final class BuilderAI implements JobAI {
     }
 
     private BuilderState dropOrder() {
+        colony.requests().cancelAllFrom(hut.requesterId()); // WorkManager.cancel already did; defence in depth
         resetStructure();
         return BuilderState.IDLE;
     }
@@ -259,7 +259,10 @@ public final class BuilderAI implements JobAI {
         return BuilderState.BUILDING_STEP;
     }
 
-    /** Fetches the current bucket (and the item needed now) from the hut, then asks for what is still missing. */
+    /**
+     * Fetches the current bucket (and the item needed now) from the hut, asks the building for what the current and
+     * next buckets still miss (async), and makes the request for the item needed now sync.
+     */
     private BuilderState gather() {
         if (plan == null) {
             return BuilderState.START_WORKING;
@@ -267,27 +270,35 @@ public final class BuilderAI implements JobAI {
         if (!walker.walkTo(hut.position())) {
             return null;
         }
+        stock.receiveCompletedBuildingRequests();
         resources.currentBucket().ifPresent(stock::takeBucket);
         ItemKey needed = neededItem;
         neededItem = null;
         if (needed != null && stock.inventory().count(needed) == 0) {
             stock.take(needed, requestAmount(needed));
+            if (stock.inventory().count(needed) == 0 && stock.hutCount(needed) > 0) {
+                return makeRoom(); // the hut has it, the inventory has no room: dump rather than ask again
+            }
         }
         Stage stage = order.stage();
         if (stage != Stage.CLEAR && stage != Stage.REMOVE) { // never request while clearing or removing
             Set<ItemKey> requested = stock.requestedItems();
             resources.missingForCurrentAndNext(stock.inventory(), stock::hutCount).forEach((item, n) -> {
                 if (requested.add(item)) {
-                    int count = n * RESOURCE_BATCH_MULTIPLIER;
-                    stock.request(new StackRequest(item, count, count, true));
+                    stock.requestForBucket(item, n * RESOURCE_BATCH_MULTIPLIER);
                 }
             });
-            if (needed != null && stock.inventory().count(needed) == 0 && requested.add(needed)) {
-                // Not covered by the buckets (hasListOfResInInvOrRequest): ask for this placement's item directly.
-                stock.request(new StackRequest(needed, requestAmount(needed), 1, true));
+            if (needed != null && stock.inventory().count(needed) == 0) {
+                stock.requestNow(needed, requestAmount(needed));
             }
         }
         return stock.hasSyncRequests() ? BuilderState.NEEDS_ITEM : BuilderState.BUILDING_STEP;
+    }
+
+    /** A dump now, whatever the retry delay. */
+    private BuilderState makeRoom() {
+        dumpRetryAt = 0;
+        return BuilderState.INVENTORY_FULL;
     }
 
     /** MC getTotalAmount: what is still needed of the item, capped to a stack, at least 1. */
@@ -305,6 +316,7 @@ public final class BuilderAI implements JobAI {
         if (!walker.walkTo(hut.position())) {
             return null;
         }
+        stock.receiveCompletedBuildingRequests();
         for (Request r : mine) {
             if (r.state() == RequestState.COMPLETED) {
                 stock.pickUp(r);
@@ -442,7 +454,7 @@ public final class BuilderAI implements JobAI {
         mineDelayed = false;
         mineTarget = null;
         var drops = blocks.breakBlock(pos);
-        if (!(order.stage() == Stage.CLEAR && catalog.isOre(state.key()))) { // CLEAR voids ores
+        if (!catalog.isOre(state.key())) { // MC EntityAIStructureBuilder.mineBlock: getDrops = !isOre
             stock.storeDrops(drops);
         }
         if (tool != null) {
@@ -463,8 +475,7 @@ public final class BuilderAI implements JobAI {
         if (!walker.walkTo(hut.position())) {
             return null;
         }
-        stock.take(inHut, 1);
-        return null;
+        return stock.take(inHut, 1) > 0 ? null : makeRoom();
     }
 
     private BuilderState completeBuild() {

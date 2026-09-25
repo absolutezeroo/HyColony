@@ -13,7 +13,7 @@ public final class Request {
     private final RequestToken token;
     private final RequesterId requester;
     private final Deliverable requestable;
-    private final int citizenId;
+    private int citizenId;
     private RequestState state = RequestState.CREATED;
     private RequestToken parent;
     private final List<RequestToken> children = new ArrayList<>();
@@ -49,6 +49,8 @@ public final class Request {
     void setState(RequestState s) { state = s; }
 
     void setParent(RequestToken p) { parent = p; }
+
+    void setCitizenId(int id) { citizenId = id; }
 
     void addChild(RequestToken c) { children.add(c); }
 

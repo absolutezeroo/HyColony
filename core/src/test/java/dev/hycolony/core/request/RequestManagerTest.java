@@ -406,6 +406,31 @@ class RequestManagerTest {
     }
 
     @Test
+    void cancelAllFromCitizenCancelsOnlyThatCitizensRequests() {
+        resolver("stock", 200, 0).handles = item(LOG);
+        RequestToken mine = m.createAndAssign(hut, stack(LOG), 7);
+        RequestToken building = m.createAndAssign(hut, stack(LOG), -1);
+        RequestToken other = m.createAndAssign(hut, stack(LOG), 8);
+
+        m.cancelAllFrom(hut.requesterId(), 7);
+
+        assertTrue(m.get(mine).isEmpty());
+        assertEquals(List.of(building, other), m.all().stream().map(Request::token).toList());
+        assertEquals(1, hut.cancelled.size());
+    }
+
+    @Test
+    void makeSyncMovesABuildingRequestToACitizen() {
+        resolver("stock", 200, 0).handles = item(LOG);
+        RequestToken t = m.createAndAssign(hut, stack(LOG), -1);
+
+        m.makeSync(t, 7);
+
+        assertEquals(7, req(t).citizenId());
+        assertEquals(RequestState.IN_PROGRESS, req(t).state()); // untouched otherwise
+    }
+
+    @Test
     void overruleCompletesOnceAndCancelsChildren() {
         FixedResolver stock = resolver("stock", 200, 0);
         stock.handles = item(LOG);
