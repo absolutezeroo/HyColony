@@ -1,0 +1,54 @@
+package dev.hycolony.core.building;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.google.gson.JsonObject;
+import dev.hycolony.core.kernel.BlockPos;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+
+class BuildingManagerTest {
+    static final class Counter implements TickingModule {
+        int ticks;
+        @Override public void onColonyTick(Building building) { ticks++; }
+    }
+
+    @Test
+    void registryFindsTownHallByIdAndHutKey() {
+        BuildingRegistry r = BuildingTypes.defaults();
+        assertEquals(BuildingTypes.TOWN_HALL, r.byId("hycolony:townhall").orElseThrow());
+        assertEquals(BuildingTypes.TOWN_HALL, r.byHutKey("hut.townhall").orElseThrow());
+    }
+
+    @Test
+    void createInstantiatesModulesInOrderAndTicksThem() {
+        BuildingType type = new BuildingType("test:b", "hut.b", 5, List.of(new ModuleProducer("counter", Counter::new)));
+        Building b = Building.create(type, new BlockPos(1, 2, 3), 1);
+        BuildingManager m = new BuildingManager();
+        m.add(b);
+        m.onColonyTick();
+        m.onColonyTick();
+        assertEquals(2, b.module(Counter.class).orElseThrow().ticks);
+        assertEquals(0, b.level());
+    }
+
+    @Test
+    void townHallLookupAndRemoval() {
+        BuildingManager m = new BuildingManager();
+        BlockPos pos = new BlockPos(0, 64, 0);
+        m.add(Building.create(BuildingTypes.TOWN_HALL, pos, 0));
+        assertTrue(m.townHall().isPresent());
+        assertTrue(m.remove(pos).isPresent());
+        assertTrue(m.townHall().isEmpty());
+    }
+
+    @Test
+    void unknownBuildingsAreKeptVerbatim() {
+        BuildingManager m = new BuildingManager();
+        JsonObject raw = new JsonObject();
+        raw.addProperty("type", "removed:thing");
+        m.keepUnknown(raw);
+        assertEquals(List.of(raw), m.unknown());
+    }
+}
