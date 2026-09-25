@@ -1,6 +1,7 @@
 package dev.hycolony.core.citizen;
 
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.job.Job;
 import dev.hycolony.core.job.JobAI;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
@@ -10,6 +11,7 @@ import dev.hycolony.core.kernel.ai.TickRateStateMachine;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.CitizenBodies;
 import dev.hycolony.core.kernel.port.NavStatus;
+import java.util.Objects;
 import java.util.random.RandomGenerator;
 
 /** Top-level citizen AI. Idle, wander, or work its job if it has one. */
@@ -28,6 +30,9 @@ public final class CitizenAI {
     private int idleTicksLeft;
     private int wanderTicks;
     private JobAI jobAI;
+    /** The job and work building {@link #jobAI} was created for. */
+    private Job aiJob;
+    private BlockPos aiWorkBuilding;
 
     public CitizenAI(Colony colony, CitizenData data, BodyId body) {
         this.colony = colony;
@@ -57,7 +62,7 @@ public final class CitizenAI {
 
     private CitizenState idle() {
         if (data.job().isPresent() && bodies.isAlive(body)) {
-            jobAI = data.job().get().createAI(colony, body);
+            startJob(data.job().get());
             return CitizenState.WORKING;
         }
         idleTicksLeft -= 20;
@@ -89,12 +94,23 @@ public final class CitizenAI {
     }
 
     private CitizenState work() {
-        if (data.job().isEmpty()) {
+        Job job = data.job().orElse(null);
+        if (job == null) {
             jobAI = null;
+            aiJob = null;
             return CitizenState.IDLE;
+        }
+        if (job != aiJob || !Objects.equals(data.workBuilding(), aiWorkBuilding)) {
+            startJob(job); // fired and hired again (elsewhere) between two ticks: bound to the new hut
         }
         jobAI.tick();
         return null;
+    }
+
+    private void startJob(Job job) {
+        aiJob = job;
+        aiWorkBuilding = data.workBuilding();
+        jobAI = job.createAI(colony, body);
     }
 
     private int nextIdle() {
