@@ -1,9 +1,9 @@
 package dev.hycolony.core.construction;
 
-import com.google.gson.JsonObject;
-import dev.hycolony.core.building.PersistentModule;
+import dev.hycolony.core.building.BuildingModule;
 import dev.hycolony.core.kernel.item.Inventory;
 import dev.hycolony.core.kernel.item.ItemKey;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,112 +11,80 @@ import java.util.Optional;
 import java.util.function.ToIntFunction;
 
 /**
- * The builder hut's current order: its progress (persisted) and its needs split into buckets (recomputed on load,
- * as in MineColonies). Port of MC's BuildingResourcesModule.
+ * The builder hut's current order: its needs split into buckets (recomputed on every start, as MC recomputes them on
+ * load). Progress lives in the {@link WorkOrder}, which persists it; this module only writes through to it, so it
+ * has nothing to save. Port of MC's BuildingResourcesModule.
  */
-public final class BuildingResourcesModule implements PersistentModule {
-    private int orderId; // 0 = none; work order ids start at 1
-    private Stage stage = Stage.DONE;
-    private int progressIndex;
+public final class BuildingResourcesModule implements BuildingModule {
+    private WorkOrder order;
     private NeededResources needs = NeededResources.empty();
     private List<Map<ItemKey, Integer>> buckets = List.of();
-    private int current;
 
-    /** Recomputes the buckets. Progress is kept when resuming the same order, else taken from the order. */
+    /** Takes the order's stage and index as they are, and recomputes the buckets from {@code needs}. */
     public void start(WorkOrder o, NeededResources needs) {
-        if (o.id() != orderId) {
-            orderId = o.id();
-            stage = o.stage();
-            progressIndex = o.progressIndex();
-        }
+        this.order = o;
         this.needs = needs;
-        this.buckets = Buckets.split(needs.remaining(), needs::maxStack);
-        this.current = 0;
+        this.buckets = Buckets.split(needs.sequence(), needs::maxStack);
     }
 
-    public Optional<Map<ItemKey, Integer>> currentBucket() { return bucket(current); }
+    public Optional<Map<ItemKey, Integer>> currentBucket() { return bucket(0); }
 
-    public Optional<Map<ItemKey, Integer>> nextBucket() { return bucket(current + 1); }
+    public Optional<Map<ItemKey, Integer>> nextBucket() { return bucket(1); }
 
     private Optional<Map<ItemKey, Integer>> bucket(int i) {
-        return i < buckets.size() ? Optional.of(buckets.get(i)) : Optional.empty();
+        return i < buckets.size() ? Optional.of(Collections.unmodifiableMap(buckets.get(i))) : Optional.empty();
     }
 
     /**
-     * Moves on once the current bucket's blocks are all placed (MC drops a bucket when its map empties). Merely
-     * holding the items is not enough: they would then also be counted against the next bucket's request.
-     * Inventory and hut are part of the contract but not needed for that test.
+     * One block placed with {@code item}: reduces the needs and the first bucket holding it (placement order), and
+     * drops that bucket once empty (MC's reduceNeededResource).
      */
-    public void advanceBucketIfSatisfied(Inventory builderInv, ToIntFunction<ItemKey> hutCount) {
-        while (current < buckets.size() && outstanding(buckets.get(current), current + 1).isEmpty()) {
-            current++;
+    public void onPlaced(ItemKey item) {
+        needs.reduce(item, 1);
+        for (int i = 0; i < buckets.size(); i++) {
+            Map<ItemKey, Integer> b = buckets.get(i);
+            Integer n = b.get(item);
+            if (n != null) {
+                if (n > 1) {
+                    b.put(item, n - 1);
+                } else {
+                    b.remove(item);
+                    if (b.isEmpty()) {
+                        buckets.remove(i);
+                    }
+                }
+                return;
+            }
         }
     }
 
     public NeededResources needs() { return needs; }
 
-    /** Per item of the current and next bucket: what is still to place there, minus inventory and hut; > 0 only. */
+    /** Per item of the current and next bucket together: need minus (inventory + hut), strictly positive only. */
     public Map<ItemKey, Integer> missingForCurrentAndNext(Inventory builderInv, ToIntFunction<ItemKey> hutCount) {
-        Map<ItemKey, Integer> want = new LinkedHashMap<>();
-        currentBucket().ifPresent(b -> b.forEach((k, v) -> want.merge(k, v, Integer::sum)));
-        nextBucket().ifPresent(b -> b.forEach((k, v) -> want.merge(k, v, Integer::sum)));
-        Map<ItemKey, Integer> out = outstanding(want, current + 2);
+        Map<ItemKey, Integer> out = new LinkedHashMap<>();
+        for (int i = 0; i < 2 && i < buckets.size(); i++) {
+            buckets.get(i).forEach((k, v) -> out.merge(k, v, Integer::sum));
+        }
         out.replaceAll((k, v) -> v - builderInv.count(k) - hutCount.applyAsInt(k));
         out.values().removeIf(v -> v <= 0);
         return out;
     }
 
-    /**
-     * What of {@code items} is not placed yet. Placement consumes buckets front to back, so an item's share in
-     * these buckets is what remains minus what the buckets from {@code after} on still hold.
-     */
-    private Map<ItemKey, Integer> outstanding(Map<ItemKey, Integer> items, int after) {
-        Map<ItemKey, Integer> out = new LinkedHashMap<>();
-        for (Map.Entry<ItemKey, Integer> e : items.entrySet()) {
-            int later = 0;
-            for (int j = after; j < buckets.size(); j++) {
-                later += buckets.get(j).getOrDefault(e.getKey(), 0);
-            }
-            int left = Math.min(e.getValue(), needs.remaining().getOrDefault(e.getKey(), 0) - later);
-            if (left > 0) {
-                out.put(e.getKey(), left);
-            }
-        }
-        return out;
-    }
+    /** 0 before any start (work order ids start at 1). */
+    public int orderId() { return order == null ? 0 : order.id(); }
 
-    public int orderId() { return orderId; }
+    /** DONE before any start. */
+    public Stage stage() { return order == null ? Stage.DONE : order.stage(); }
 
-    public Stage stage() { return stage; }
+    public int progressIndex() { return order == null ? 0 : order.progressIndex(); }
 
-    public int progressIndex() { return progressIndex; }
-
+    /** Writes through to the order, the single owner of progress. */
     public void progress(Stage s, int index) {
-        this.stage = s;
-        this.progressIndex = index;
-    }
-
-    @Override
-    public void write(JsonObject out) {
-        out.addProperty("orderId", orderId);
-        out.addProperty("stage", stage.name());
-        out.addProperty("progressIndex", progressIndex);
-    }
-
-    @Override
-    public void read(JsonObject in) {
-        orderId = in.has("orderId") ? in.get("orderId").getAsInt() : 0;
-        progressIndex = in.has("progressIndex") ? in.get("progressIndex").getAsInt() : 0;
-        stage = Stage.DONE;
-        if (in.has("stage")) {
-            try {
-                stage = Stage.valueOf(in.get("stage").getAsString());
-            } catch (IllegalArgumentException unknown) {
-                // stays DONE
-            }
+        if (order == null) {
+            throw new IllegalStateException("no order started");
         }
-        needs = NeededResources.empty();
-        buckets = List.of();
-        current = 0;
+        order.setStage(s);
+        order.setProgressIndex(index);
     }
 }

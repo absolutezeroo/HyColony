@@ -3,6 +3,7 @@ package dev.hycolony.core.construction;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.core.kernel.port.WorldBlocks;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -10,14 +11,20 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.ToIntFunction;
 
-/** Items still needed to finish a plan, in placement order (SOLID then DECO). Port of MC's neededResources. */
+/**
+ * Items still needed to finish a plan (SOLID then DECO, plan order). Port of MC's neededResources. The placement
+ * sequence (one item per not-done entry) is what the buckets are cut from, as MC's requestMaterials does.
+ */
 public final class NeededResources {
+    private final List<ItemKey> sequence;
     private final Map<ItemKey, Integer> remaining;
     private final Map<ItemKey, Integer> view;
     private final ToIntFunction<ItemKey> maxStack;
     private int total;
 
-    private NeededResources(Map<ItemKey, Integer> remaining, int total, ToIntFunction<ItemKey> maxStack) {
+    private NeededResources(List<ItemKey> sequence, Map<ItemKey, Integer> remaining, int total,
+            ToIntFunction<ItemKey> maxStack) {
+        this.sequence = Collections.unmodifiableList(sequence);
         this.remaining = remaining;
         this.view = Collections.unmodifiableMap(remaining);
         this.total = total;
@@ -25,29 +32,33 @@ public final class NeededResources {
     }
 
     static NeededResources empty() {
-        return new NeededResources(new LinkedHashMap<>(), 0, k -> 64);
+        return new NeededResources(List.of(), new LinkedHashMap<>(), 0, k -> 64);
     }
 
     /** One item per not-yet-done entry that has an item to place it with. */
     public static NeededResources compute(StructurePlan plan, WorldBlocks world, ItemCatalog catalog) {
-        Map<ItemKey, Integer> out = new LinkedHashMap<>();
-        int total = count(plan.solidList(), plan, world, catalog, out)
-                + count(plan.decoList(), plan, world, catalog, out);
-        return new NeededResources(out, total, catalog::maxStack);
+        List<ItemKey> seq = new ArrayList<>(plan.solidList().size() + plan.decoList().size());
+        collect(plan.solidList(), plan, world, catalog, seq);
+        collect(plan.decoList(), plan, world, catalog, seq);
+        Map<ItemKey, Integer> counts = new LinkedHashMap<>();
+        for (ItemKey item : seq) {
+            counts.merge(item, 1, Integer::sum);
+        }
+        return new NeededResources(seq, counts, seq.size(), catalog::maxStack);
     }
 
-    private static int count(List<BlueprintEntry> entries, StructurePlan plan, WorldBlocks world, ItemCatalog catalog,
-            Map<ItemKey, Integer> out) {
-        int n = 0;
+    private static void collect(List<BlueprintEntry> entries, StructurePlan plan, WorldBlocks world,
+            ItemCatalog catalog, List<ItemKey> out) {
         for (BlueprintEntry e : entries) {
             Optional<ItemKey> item = catalog.itemForBlock(e.state().key());
             if (item.isPresent() && !plan.isDone(e, world)) {
-                out.merge(item.get(), 1, Integer::sum);
-                n++;
+                out.add(item.get());
             }
         }
-        return n;
     }
+
+    /** Read-only placement order at compute time: one item per not-done entry. Not reduced by {@link #reduce}. */
+    public List<ItemKey> sequence() { return sequence; }
 
     /** Read-only, insertion-ordered. */
     public Map<ItemKey, Integer> remaining() { return view; }
