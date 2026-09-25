@@ -7,7 +7,11 @@ import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.EntityEventSystem;
 import com.hypixel.hytale.server.core.event.events.ecs.BreakBlockEvent;
 import com.hypixel.hytale.server.core.event.events.ecs.PlaceBlockEvent;
+import com.hypixel.hytale.server.core.event.events.ecs.UseBlockEvent;
+import com.hypixel.hytale.server.core.modules.block.BlockModule;
+import com.hypixel.hytale.server.core.modules.block.components.ItemContainerBlock;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
+import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.colony.Action;
 import dev.hycolony.core.colony.ColonyManager;
@@ -18,8 +22,9 @@ import dev.hycolony.plugin.WorldRuntime;
 import dev.hycolony.plugin.WorldRuntimes;
 import dev.hycolony.plugin.adapter.HytaleNotifier;
 import javax.annotation.Nonnull;
+import org.joml.Vector3i;
 
-/** PLACE_BLOCKS / BREAK_BLOCKS inside colonies (spec § 3.2). Hut blocks are handled by TownHallBlockSystems. */
+/** PLACE_BLOCKS / BREAK_BLOCKS / OPEN_CONTAINER inside colonies (spec § 3.2). Hut blocks are handled by TownHallBlockSystems. */
 public final class ProtectionSystems {
     private ProtectionSystems() {}
 
@@ -60,6 +65,40 @@ public final class ProtectionSystems {
             }
             if (deny(runtimes, store, TownHallBlockSystems.player(index, chunk, store),
                     TownHallBlockSystems.pos(event.getTargetBlock()), Action.PLACE_BLOCKS)) {
+                event.setCancelled(true);
+            }
+        }
+    }
+
+    /** OPEN_CONTAINER: only for blocks that actually hold an item container (chests, barrels...). */
+    public static final class Use extends EntityEventSystem<EntityStore, UseBlockEvent.Pre> {
+        private final WorldRuntimes runtimes;
+        private final String hutBlockId;
+
+        public Use(WorldRuntimes runtimes, IdMap ids) {
+            super(UseBlockEvent.Pre.class);
+            this.runtimes = runtimes;
+            this.hutBlockId = ids.blockId("hut.townhall");
+        }
+
+        @Override
+        public Query<EntityStore> getQuery() {
+            return PlayerRef.getComponentType();
+        }
+
+        @Override
+        public void handle(int index, @Nonnull ArchetypeChunk<EntityStore> chunk, @Nonnull Store<EntityStore> store,
+                           @Nonnull CommandBuffer<EntityStore> buffer, @Nonnull UseBlockEvent.Pre event) {
+            if (hutBlockId.equals(event.getBlockType().getId())) {
+                return;
+            }
+            Vector3i target = event.getTargetBlock();
+            World world = store.getExternalData().getWorld();
+            if (BlockModule.getComponent(ItemContainerBlock.getComponentType(), world, target.x, target.y, target.z) == null) {
+                return;
+            }
+            if (deny(runtimes, store, TownHallBlockSystems.player(index, chunk, store),
+                    TownHallBlockSystems.pos(target), Action.OPEN_CONTAINER)) {
                 event.setCancelled(true);
             }
         }

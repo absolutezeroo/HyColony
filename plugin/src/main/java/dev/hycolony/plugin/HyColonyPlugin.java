@@ -10,6 +10,7 @@ import com.hypixel.hytale.server.core.util.Config;
 import com.hypixel.hytale.server.npc.NPCPlugin;
 import dev.hycolony.plugin.block.ProtectionSystems;
 import dev.hycolony.plugin.block.TownHallBlockSystems;
+import dev.hycolony.plugin.command.HyColonyCommand;
 import dev.hycolony.plugin.npc.BuilderSensorHyColonyTarget;
 import dev.hycolony.plugin.npc.CitizenBodyLifecycleSystem;
 import dev.hycolony.plugin.npc.HyColonyComponents;
@@ -43,6 +44,8 @@ public final class HyColonyPlugin extends JavaPlugin {
         getEntityStoreRegistry().registerSystem(new TownHallBlockSystems.Use(runtimes, ids));
         getEntityStoreRegistry().registerSystem(new ProtectionSystems.Place(runtimes, ids));
         getEntityStoreRegistry().registerSystem(new ProtectionSystems.Break(runtimes, ids));
+        getEntityStoreRegistry().registerSystem(new ProtectionSystems.Use(runtimes, ids));
+        getCommandRegistry().registerCommand(new HyColonyCommand(runtimes, ids));
 
         // Assets (blocks, items, NPC roles) are all loaded once a world starts: validate ids there.
         getEventRegistry().registerGlobal(StartWorldEvent.class, e -> e.getWorld().execute(() -> {
