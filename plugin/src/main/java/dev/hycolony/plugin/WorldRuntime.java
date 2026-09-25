@@ -1,5 +1,6 @@
 package dev.hycolony.plugin;
 
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.universe.world.World;
 import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.citizen.CitizenNames;
@@ -18,6 +19,7 @@ import dev.hycolony.plugin.adapter.HytalePlayerDirectory;
 import dev.hycolony.plugin.adapter.HytaleUiPort;
 import dev.hycolony.plugin.adapter.HytaleWorldQuery;
 import java.util.Random;
+import java.util.logging.Level;
 
 /** One ColonyManager and its adapters for one Hytale world. World thread only. */
 public final class WorldRuntime {
@@ -26,10 +28,14 @@ public final class WorldRuntime {
     private final HytaleCitizenBodies bodies;
     private final HytaleBlocks blocks;
     private final ColonyManager manager;
-    private final long autosaveTicks;
-    private boolean enabled = true;
+    private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
-    WorldRuntime(World world, ColonyConfig config, IdMap ids, CitizenNames names) {
+    private final long autosaveTicks;
+    /** Colonies were read from disk. Never true while disabled, so a disabled runtime writes nothing. */
+    private final boolean loaded;
+    private boolean enabled;
+
+    WorldRuntime(World world, ColonyConfig config, IdMap ids, CitizenNames names, boolean enabled) {
         this.world = world;
         this.clock = new HytaleGameClock(world);
         this.bodies = new HytaleCitizenBodies(world, ids.npcRole("npc.citizen"));
@@ -42,7 +48,11 @@ public final class WorldRuntime {
         this.manager = new ColonyManager(ctx);
         self[0] = manager;
         manager.setStorage(new FileColonyStorage(world.getSavePath().resolve("hycolony")), MigrationChain.sp0());
-        manager.loadAll();
+        if (enabled) {
+            manager.loadAll(); // disabled (asset ids missing): leave the files alone
+        }
+        this.loaded = enabled;
+        this.enabled = enabled;
         this.autosaveTicks = config.autosaveIntervalMinutes() * 60L * 20L;
     }
 
@@ -51,10 +61,21 @@ public final class WorldRuntime {
         if (!enabled) {
             return;
         }
-        clock.advance();
-        manager.tick();
-        if (clock.currentTick() % autosaveTicks == 0) {
-            manager.saveDirty();
+        try {
+            clock.advance();
+            manager.tick();
+            if (clock.currentTick() % autosaveTicks == 0) {
+                manager.saveDirty();
+            }
+        } catch (RuntimeException e) {
+            LOG.at(Level.SEVERE).withCause(e).log("HyColony tick failed in world '%s'", world.getName());
+        }
+    }
+
+    /** Saves every colony, on the calling thread (must be the world thread, or the world is gone). */
+    public void saveAll() {
+        if (enabled) {
+            manager.saveAll();
         }
     }
 
@@ -64,5 +85,6 @@ public final class WorldRuntime {
     public HytaleGameClock clock() { return clock; }
     public HytaleBlocks blocks() { return blocks; }
     public boolean enabled() { return enabled; }
-    void setEnabled(boolean enabled) { this.enabled = enabled; }
+    /** A runtime that never loaded its colonies stays disabled: enabling it would overwrite their files. */
+    void setEnabled(boolean enabled) { this.enabled = enabled && loaded; }
 }

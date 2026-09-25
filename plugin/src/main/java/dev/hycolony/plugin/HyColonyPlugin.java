@@ -1,5 +1,6 @@
 package dev.hycolony.plugin;
 
+import com.hypixel.hytale.event.EventPriority;
 import com.hypixel.hytale.server.core.event.events.ShutdownEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
@@ -48,7 +49,9 @@ public final class HyColonyPlugin extends JavaPlugin {
         getCommandRegistry().registerCommand(new HyColonyCommand(runtimes, ids));
 
         // Assets (blocks, items, NPC roles) are all loaded once a world starts: validate ids there.
-        getEventRegistry().registerGlobal(StartWorldEvent.class, e -> e.getWorld().execute(() -> {
+        // World.onStart dispatches this on the world thread: create the runtime inline, before any
+        // chunk (and its citizen NPCs) loads, so CitizenBodyLifecycleSystem finds it.
+        getEventRegistry().registerGlobal(StartWorldEvent.class, e -> {
             try {
                 validateIds();
                 runtimes.create(e.getWorld());
@@ -57,9 +60,14 @@ public final class HyColonyPlugin extends JavaPlugin {
             } catch (RuntimeException ex) {
                 getLogger().at(Level.SEVERE).withCause(ex).log("HyColony failed to start for world '%s'", e.getWorld().getName());
             }
-        }));
-        getEventRegistry().registerGlobal(RemoveWorldEvent.class, e -> runtimes.remove(e.getWorld()));
-        getEventRegistry().register(ShutdownEvent.class, e -> runtimes.all().forEach(rt -> rt.manager().saveAll()));
+        });
+        // LAST: another listener may still cancel the removal, and then the runtime must stay.
+        getEventRegistry().registerGlobal(EventPriority.LAST, RemoveWorldEvent.class, e -> {
+            if (!e.isCancelled()) { // an EXCEPTIONAL removal always reports not cancelled
+                runtimes.remove(e.getWorld());
+            }
+        });
+        getEventRegistry().register(ShutdownEvent.class, e -> runtimes.all().forEach(WorldRuntime::saveAll));
         getEventRegistry().register(PlayerDisconnectEvent.class, e -> {
             UUID uuid = e.getPlayerRef().getUuid();
             runtimes.all().forEach(rt -> rt.world().execute(() -> rt.manager().cancelFoundation(uuid)
