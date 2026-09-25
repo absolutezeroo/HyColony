@@ -290,17 +290,20 @@ public final class RequestManager {
 
     /**
      * Cancels every root request whose requester no longer exists (e.g. a building missing from a save); each one
-     * logs the missing requester.
+     * logs the missing requester. Returns whether any was cancelled (always false if called re-entrantly).
      */
-    public void cancelOrphans() {
+    public boolean cancelOrphans() {
+        boolean[] cancelled = {false};
         submit(() -> {
             for (Request r : new ArrayList<>(requests.values())) {
                 if (requests.containsKey(r.token()) && r.parent().isEmpty() && requesters.find(r.requester()).isEmpty()
                         && !resolversByRequesterId.containsKey(r.requester())) {
                     cancelDirectly(r.token());
+                    cancelled[0] = true;
                 }
             }
         });
+        return cancelled[0];
     }
 
     /** MC moveToSyncCitizen: a building's (async) request becomes the citizen's, who now waits for it. */

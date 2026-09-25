@@ -14,6 +14,7 @@ import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.citizen.Skills;
 import dev.hycolony.core.job.Job;
 import dev.hycolony.core.job.JobType;
+import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.item.Inventory;
@@ -114,23 +115,36 @@ public final class ColonySerializer {
             }
             c.log().restore(new EventLog.Entry(e.get("type").getAsString(), e.get("day").getAsInt(), params));
         }
-        heal(c);
+        boolean healed = heal(c);
         c.clearDirty();
+        if (healed) {
+            c.markDirty(); // write the healed state at the next save instead of healing on every load
+        }
         return c;
     }
 
     /**
      * A save can reference what is gone (a building removed, or of a type no longer registered): its citizens are
-     * freed (job dropped, rehireable) and its requests cancelled, so nothing waits forever.
+     * freed (job dropped, rehireable) and its requests cancelled, so nothing waits forever. A hut's worker list
+     * keeps only citizens that exist and work there, so a hut never looks employed by nobody.
      */
-    private static void heal(Colony c) {
+    private static boolean heal(Colony c) {
+        boolean changed = false;
         for (CitizenData d : c.citizens().all()) {
             if (d.workBuilding() != null && c.buildings().at(d.workBuilding()).isEmpty()) {
                 d.setJob(null);
                 d.setWorkBuilding(null);
+                changed = true;
             }
         }
-        c.requests().cancelOrphans();
+        for (Building b : c.buildings().all()) {
+            Optional<WorkerModule> workers = b.module(WorkerModule.class);
+            if (workers.isPresent()) {
+                changed |= workers.get().retainWorkers(id -> c.citizens().get(id)
+                        .map(d -> b.position().equals(d.workBuilding())).orElse(false));
+            }
+        }
+        return c.requests().cancelOrphans() | changed;
     }
 
     // ---- positions ----

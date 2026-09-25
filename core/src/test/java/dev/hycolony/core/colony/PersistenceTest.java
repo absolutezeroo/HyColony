@@ -8,7 +8,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
+import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.construction.BuilderJob;
 import dev.hycolony.core.construction.ClaimRadius;
@@ -113,6 +115,24 @@ class PersistenceTest {
         CitizenData restored = reloaded.citizens().get(1).orElseThrow();
         assertTrue(restored.job().isEmpty());
         assertNull(restored.workBuilding());
+    }
+
+    @Test
+    void workerWithoutCitizenIsDroppedFromHutOnLoad() {
+        TestContexts t = new TestContexts();
+        ColonyManager m = manager(t);
+        m.beginFoundation(alice, "Alice", new BlockPos(0, 64, 0), 0);
+        Colony c = m.confirmFoundation(alice, "A").orElseThrow();
+        BlockPos hut = new BlockPos(20, 64, 0);
+        m.placeHut(c, ConstructionBuildingTypes.BUILDER.id(), hut, 0);
+        Building b = c.buildings().at(hut).orElseThrow();
+        assertTrue(b.module(WorkerModule.class).orElseThrow().hire(c, b, new CitizenData(99))); // 99 is not a colony citizen
+
+        Colony clean = ColonySerializer.read(ColonySerializer.write(c), t.context(), new TerritoryIndex());
+        assertTrue(clean.buildings().at(hut).orElseThrow().module(WorkerModule.class).orElseThrow().workers().isEmpty());
+        assertTrue(clean.isDirty());
+        assertFalse(ColonySerializer.read(ColonySerializer.write(clean), t.context(), new TerritoryIndex()).isDirty(),
+                "a consistent save loads clean");
     }
 
     @Test
@@ -279,6 +299,7 @@ class PersistenceTest {
         CitizenData restored = reloaded.citizens().get(1).orElseThrow();
         assertTrue(restored.job().isEmpty());
         assertNull(restored.workBuilding());
+        assertTrue(reloaded.isDirty(), "healed state is saved at the next save");
     }
 
     @Test

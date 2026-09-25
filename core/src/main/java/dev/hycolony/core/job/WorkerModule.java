@@ -55,6 +55,11 @@ public final class WorkerModule implements PersistentModule, TickingModule, Buil
         return true;
     }
 
+    /** Load healing: drops worker ids that fail {@code keep}. Returns whether any was dropped. */
+    public boolean retainWorkers(java.util.function.IntPredicate keep) {
+        return workers.removeIf(id -> !keep.test(id));
+    }
+
     public void fire(Colony c, Building b, int citizenId) {
         if (!workers.remove(Integer.valueOf(citizenId))) {
             return;
