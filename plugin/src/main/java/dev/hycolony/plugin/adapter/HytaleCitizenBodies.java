@@ -29,6 +29,9 @@ import org.joml.Vector3d;
 
 /** CitizenBodies over Hytale NPCs. World thread only. */
 public final class HytaleCitizenBodies implements CitizenBodies {
+    /** World ticks after moveTo during which a stale AT_GOAL etc. is ignored. */
+    private static final long FRESH_MOVE_TICKS = 10;
+
     private final World world;
     private final String roleName;
     private final Map<Long, Ref<EntityStore>> refs = new HashMap<>();
@@ -116,6 +119,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
         }
         mt.target.set(target.x(), target.y(), target.z());
         mt.active = true;
+        mt.sinceTick = world.getTick();
     }
 
     @Override
@@ -127,6 +131,9 @@ public final class HytaleCitizenBodies implements CitizenBodies {
         MoveTarget mt = store().getComponent(ref, HyColonyComponents.moveTarget());
         if (mt == null || !mt.active) {
             return NavStatus.IDLE;
+        }
+        if (world.getTick() - mt.sinceTick < FRESH_MOVE_TICKS) {
+            return NavStatus.MOVING; // the nav state still describes the previous goal
         }
         NPCEntity npc = store().getComponent(ref, NPCEntity.getComponentType());
         NavState state = npc.getRole().getActiveMotionController().getNavState();
@@ -155,7 +162,13 @@ public final class HytaleCitizenBodies implements CitizenBodies {
         Ref<EntityStore> ref = ref(body);
         if (ref != null) {
             untrack(ref);
-            store().removeEntity(ref, RemoveReason.REMOVE);
+            // Deferred: despawn can run inside a store callback (RefSystem.onEntityAdded), where
+            // removeEntity throws "Store is currently processing".
+            world.execute(() -> {
+                if (ref.isValid()) {
+                    store().removeEntity(ref, RemoveReason.REMOVE);
+                }
+            });
         }
     }
 }

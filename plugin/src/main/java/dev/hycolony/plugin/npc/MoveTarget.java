@@ -8,12 +8,15 @@ import org.joml.Vector3d;
 public final class MoveTarget implements Component<EntityStore> {
     public final Vector3d target = new Vector3d();
     public boolean active;
+    /** World tick of the last moveTo. */
+    public long sinceTick;
 
     @Override
     public Component<EntityStore> clone() {
         MoveTarget copy = new MoveTarget();
         copy.target.set(target);
         copy.active = active;
+        copy.sinceTick = sinceTick;
         return copy;
     }
 }
