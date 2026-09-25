@@ -13,4 +13,5 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
-rootProject.name = "Replace Me"
+rootProject.name = "HyColony"
+include(":core", ":plugin")

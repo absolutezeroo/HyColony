@@ -1,0 +1,26 @@
+{
+    "Group": "HyColony",
+    "Name": "hycolony",
+    "Version": "0.1.0",
+    "Description": "Colony management inspired by MineColonies: found a colony, citizens, buildings.",
+    "Authors": [
+        {
+            "Name": "Ctuto"
+        }
+    ],
+    "Website": "https://github.com/ldtteam/minecolonies",
+    "DisabledByDefault": false,
+    "IncludesAssetPack": true,
+    "Dependencies": {
+        "Hytale:AssetModule": "*",
+        "Hytale:NPC": "*"
+    },
+    "OptionalDependencies": {
+        
+    },
+    "ServerVersion": ">=0.6.8 <0.7.0",
+    "Main": "dev.hycolony.plugin.HyColonyPlugin",
+    "UpdateChecker": {
+        "CurseForge": ""
+    }
+}
