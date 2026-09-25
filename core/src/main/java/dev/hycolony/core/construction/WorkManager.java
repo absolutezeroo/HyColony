@@ -72,7 +72,7 @@ public final class WorkManager {
             case BUILD -> level == 0 && !b.isDeconstructed();
             case UPGRADE -> level >= 1;
             case REPAIR -> level > 0 || b.isDeconstructed();
-            case REMOVE -> true;
+            case REMOVE -> level > 0 && !b.isDeconstructed(); // deconstructed: MC picks the hut up instead
         };
         if (!validType) {
             return refuse(WorkOrderRefusal.INVALID_TYPE);

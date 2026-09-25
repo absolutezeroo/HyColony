@@ -418,6 +418,28 @@ class WorkManagerTest {
     }
 
     @Test
+    void footprintReachingIntoNegativeUnclaimedCellsIsRefused() {
+        builder(new BlockPos(10, 64, 0), 1);
+        Building res = residence(new BlockPos(20, 64, 0), 0);
+        blueprint = new Blueprint("bp", List.of(new BlueprintEntry(new BlockPos(0, 0, 0),
+                new BlockState(new BlockKey("Stone"), 0), false)), new BlockPos(-5000, 0, -1), new BlockPos(0, 0, 0));
+        assertRefused(WorkOrderRefusal.OUT_OF_COLONY, request(res.position(), WorkOrderType.BUILD));
+    }
+
+    @Test
+    void removeOrderLevelsPersist() {
+        builder(new BlockPos(10, 64, 0), 1);
+        Building res = residence(new BlockPos(20, 64, 0), 3);
+        WorkOrder o = created(res.position(), WorkOrderType.REMOVE);
+        TerritoryIndex territory = new TerritoryIndex();
+        territory.claimSquare(colony.id(), ClaimCell.of(colony.center()), t.config.initialColonySize());
+        WorkOrder loaded = ColonySerializer.read(ColonySerializer.write(colony), t.context(), territory)
+                .work().byId(o.id()).orElseThrow();
+        assertEquals(0, loaded.targetLevel());
+        assertEquals(3, loaded.blueprintLevel());
+    }
+
+    @Test
     void orderForMissingBuildingIsDropped() {
         builder(new BlockPos(10, 64, 0), 1);
         Building res = residence(new BlockPos(20, 64, 0), 0);
@@ -466,6 +488,8 @@ class WorkManagerTest {
         Building gone = residence(new BlockPos(40, 64, 0), 2);
         gone.setDeconstructed(true);
         assertRefused(WorkOrderRefusal.INVALID_TYPE, request(gone.position(), WorkOrderType.BUILD));
+        assertRefused(WorkOrderRefusal.INVALID_TYPE, request(gone.position(), WorkOrderType.REMOVE)); // MC picks it up
+        assertRefused(WorkOrderRefusal.INVALID_TYPE, request(unbuilt.position(), WorkOrderType.REMOVE));
         assertEquals(2, created(gone.position(), WorkOrderType.REPAIR).targetLevel());
     }
 

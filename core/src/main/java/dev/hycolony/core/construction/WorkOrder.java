@@ -93,7 +93,8 @@ public final class WorkOrder {
 
     public static WorkOrder read(JsonObject o) {
         WorkOrder w = new WorkOrder(o.get("id").getAsInt(), WorkOrderType.valueOf(o.get("type").getAsString()),
-                readPos(o.getAsJsonObject("pos")), o.get("targetLevel").getAsInt(), o.get("blueprintLevel").getAsInt(),
+                readPos(o.getAsJsonObject("pos")), o.get("targetLevel").getAsInt(),
+                o.has("blueprintLevel") ? o.get("blueprintLevel").getAsInt() : o.get("targetLevel").getAsInt(),
                 o.get("style").getAsString(), o.get("rotation").getAsInt());
         w.priority = o.get("priority").getAsInt();
         w.claimedBy = o.has("claimedBy") ? readPos(o.getAsJsonObject("claimedBy")) : null;
