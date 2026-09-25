@@ -737,6 +737,8 @@ public final class ColonyManager {
             for (int id : storage.colonyIds()) {
                 loadOne(id);
             }
+            // Second pass, once every initial square is claimed: a building never takes another colony's start.
+            colonies.values().forEach(this::claimBuildings);
         } catch (IOException e) {
             storageUnavailable = true;
             LOG.log(System.Logger.Level.ERROR, "Cannot list colonies of " + ctx.world() + "; storage disabled until restart", e);
@@ -805,16 +807,25 @@ public final class ColonyManager {
         nextId = Math.max(nextId, id + 1);
     }
 
+    /** Claims the colony's initial square only; on load, {@link #claimBuildings} follows for every colony. */
     void register(Colony colony) {
         colonies.put(colony.id(), colony);
         reserveId(colony.id());
         territory.claimSquare(colony.id(), ClaimCell.of(colony.center()), ctx.config().initialColonySize());
-        // The territory is not saved: the cells finished buildings claimed are claimed again (level 0 claims none).
+        colony.markDirty();
+    }
+
+    /**
+     * The territory is not saved: the cells finished buildings claimed are claimed again (level 0 claims none),
+     * bounded and never stealing, as at completion. Loading changes nothing to save.
+     */
+    private void claimBuildings(Colony colony) {
         for (Building b : colony.buildings().all()) {
             if (b.level() > 0) {
-                colony.claimAround(b.position(), ClaimRadius.of(b.type().id(), b.level()));
+                territory.claimSquareBounded(colony.id(), ClaimCell.of(b.position()),
+                        ClaimRadius.of(b.type().id(), b.level()), ClaimCell.of(colony.center()),
+                        ctx.config().maxColonySize());
             }
         }
-        colony.markDirty();
     }
 }

@@ -236,4 +236,27 @@ class PersistenceTest {
         assertFalse(r.contains(new BlockPos(-85, 64, 0))); // level 0 claims nothing
         assertFalse(r.isDirty());
     }
+
+    /** A's hut (cell 12, level 1) reaches cell 13, B's initial square: loading A first must not steal it. */
+    @Test
+    void initialSquaresAreClaimedBeforeBuildingsOnReload() {
+        TestContexts t = new TestContexts();
+        ColonyManager m = manager(t);
+        m.beginFoundation(alice, "Alice", new BlockPos(0, 64, 0), 0);
+        Colony a = m.confirmFoundation(alice, "A").orElseThrow();
+        m.beginFoundation(bob, "Bob", new BlockPos(17 * ClaimCell.SIZE, 64, 0), 0);
+        Colony b = m.confirmFoundation(bob, "B").orElseThrow();
+        BlockPos hut = new BlockPos(12 * ClaimCell.SIZE, 64, 0), bCell = new BlockPos(13 * ClaimCell.SIZE, 64, 0);
+        m.placeHut(a, ConstructionBuildingTypes.BUILDER.id(), hut, 0);
+        a.buildings().at(hut).orElseThrow().setLevel(1);
+        a.claimAround(hut, ClaimRadius.of(ConstructionBuildingTypes.BUILDER.id(), 1)); // never steals B's cell
+        assertTrue(b.contains(bCell));
+        m.saveAll();
+
+        ColonyManager reloaded = manager(new TestContexts());
+        reloaded.loadAll();
+
+        assertTrue(reloaded.byId(b.id()).orElseThrow().contains(bCell));
+        assertTrue(reloaded.byId(a.id()).orElseThrow().contains(new BlockPos(11 * ClaimCell.SIZE, 64, 0)));
+    }
 }
