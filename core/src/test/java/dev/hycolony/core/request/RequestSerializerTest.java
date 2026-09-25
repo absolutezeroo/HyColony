@@ -115,4 +115,35 @@ class RequestSerializerTest {
         assertEquals(RequestState.COMPLETED, r.state());
         assertEquals(List.of(new ItemAmount(PLANKS, 4)), r.deliveries());
     }
+
+    @Test
+    void inconsistentSaveIsHealedOnLoad() {
+        World w = new World();
+        containers.containers.computeIfAbsent(HUT, p -> new HashMap<>()).put(PLANKS, 4);
+        RequestToken done = w.m.createAndAssign(w.hut, new StackRequest(PLANKS, 4, 4, true), -1);
+        RequestToken retried = w.m.createAndAssign(w.hut, new StackRequest(STONE, 2, 2, true), -1);
+        RequestToken atPlayer = w.m.createAndAssign(w.hut, new StackRequest(STONE, 3, 3, true), -1);
+        w.m.onColonyUpdate(r -> r.token().equals(atPlayer));
+        assertEquals("player", w.resolverOf(atPlayer));
+
+        JsonObject json = roundTrip(RequestSerializer.write(w.m));
+        JsonObject assignments = json.getAsJsonObject("assignments");
+        assignments.add("ghost", assignments.remove("building:0,64,0"));
+        json.getAsJsonObject("retrying").getAsJsonObject("delays").remove(retried.id().toString());
+        json.getAsJsonObject("retrying").getAsJsonObject("tries").remove(retried.id().toString());
+        json.add("player", new JsonArray());
+
+        World l = new World();
+        RequestSerializer.read(json, l.m);
+
+        Request d = l.m.get(done).orElseThrow();
+        assertEquals(RequestState.COMPLETED, d.state(), "a finished orphan is not re-resolved");
+        assertEquals("none", l.resolverOf(done));
+        assertEquals(List.of(new ItemAmount(PLANKS, 4)), d.deliveries());
+
+        assertEquals("retrying", l.resolverOf(retried));
+        assertEquals(RetryingResolver.DELAY_TICKS, l.retrying.delays().get(retried));
+        assertEquals(1, l.retrying.tries().get(retried));
+        assertEquals(List.of(atPlayer), l.player.open().stream().map(Request::token).toList());
+    }
 }

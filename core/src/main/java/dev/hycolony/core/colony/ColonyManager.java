@@ -310,7 +310,7 @@ public final class ColonyManager {
         if (citizen.isPresent()) {
             rest = citizen.get().inventory().insert(taken, ports.catalog()::maxStack);
         } else {
-            Optional<Building> hut = c.requests().requester(req).flatMap(r -> c.buildings().at(r.location()));
+            Optional<Building> hut = c.buildings().byRequester(req.requester());
             if (hut.isPresent()) {
                 rest = ports.containers().insert(hut.get().containers(), taken);
             }

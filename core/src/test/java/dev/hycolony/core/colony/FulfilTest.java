@@ -11,9 +11,16 @@ import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.RequestState;
+import dev.hycolony.core.request.RequestManager;
 import dev.hycolony.core.request.RequestToken;
 import dev.hycolony.core.request.Resolver;
 import dev.hycolony.core.request.StackRequest;
+import dev.hycolony.core.request.ToolRequest;
+import dev.hycolony.core.request.resolver.PlayerResolver;
+import dev.hycolony.core.request.resolver.RetryingResolver;
+import dev.hycolony.core.kernel.item.ToolInfo;
+import dev.hycolony.core.kernel.item.ToolType;
+import com.google.gson.JsonObject;
 import dev.hycolony.core.testing.TestContexts;
 import java.util.List;
 import java.util.UUID;
@@ -132,5 +139,117 @@ class FulfilTest {
 
         assertEquals(RequestState.COMPLETED, get(token).state());
         assertEquals("building:0,64,0", colony.requests().resolverOf(token).map(Resolver::resolverId).orElseThrow());
+    }
+
+    private RetryingResolver retrying() {
+        return colony.requests().resolver(RetryingResolver.ID).map(RetryingResolver.class::cast).orElseThrow();
+    }
+
+    @Test
+    void addToHutThenNewRequestForSameItemIsNotDoubleReserved() {
+        RequestToken a = request(10, 1);
+        t.playerInventory.give(alice, new ItemAmount(PLANKS, 6));
+        assertEquals(6, manager.addToHut(alice, hall, PLANKS, 10));
+        assertEquals(RequestState.COMPLETED, get(a).state());
+
+        request(4, 1); // asserts it went to retrying: the 6 planks in the hut are A's
+    }
+
+    @Test
+    void removingBuildingCancelsItsRequestsAndNothingPersists() {
+        RequestToken retried = request(10, 1);
+        RequestToken atPlayer = request(3, 1);
+        colony.requests().onColonyUpdate(r -> r.token().equals(atPlayer));
+        t.containers.insert(hut.containers(), new ItemAmount(PLANKS, 2));
+        RequestToken byHut = colony.requests().createAndAssign(hut, new StackRequest(PLANKS, 2, 2, true), -1);
+        assertEquals(RequestState.COMPLETED, get(byHut).state());
+
+        manager.onHutRemoved(hall);
+
+        assertTrue(colony.requests().all().isEmpty());
+        assertTrue(retrying().delays().isEmpty());
+        PlayerResolver player = colony.requests().resolver(PlayerResolver.ID).map(PlayerResolver.class::cast).orElseThrow();
+        assertTrue(player.open().isEmpty());
+        JsonObject saved = ColonySerializer.write(colony).getAsJsonObject("requests");
+        assertEquals(0, saved.getAsJsonArray("requests").size());
+        assertEquals(0, saved.getAsJsonObject("assignments").size());
+        assertFalse(colony.requests().get(retried).isPresent());
+    }
+
+    @Test
+    void fulfilWithFullCitizenInventoryGivesBackRest() {
+        ItemKey dirt = new ItemKey("Dirt");
+        t.catalog.maxStacks.put(PLANKS, 5);
+        for (int i = 0; i < CitizenData.INVENTORY_SLOTS - 1; i++) {
+            citizen.inventory().insert(new ItemAmount(dirt, 64), k -> 64);
+        }
+        RequestToken token = request(10, 1);
+        t.playerInventory.give(alice, new ItemAmount(PLANKS, 10));
+
+        assertTrue(manager.fulfil(alice, colony.id(), token));
+
+        assertEquals(5, citizen.inventory().count(PLANKS));
+        assertEquals(5, t.playerInventory.count(alice, PLANKS), "the rest goes back to the player");
+        assertEquals(List.of(new ItemAmount(PLANKS, 5)), get(token).deliveries());
+    }
+
+    @Test
+    void fulfilToolRequestUsesFirstMatchingTool() {
+        ItemKey axe = new ItemKey("Axe");
+        ItemKey woodPick = new ItemKey("Pick_Wood");
+        ItemKey stonePick = new ItemKey("Pick_Stone");
+        ItemKey ironPick = new ItemKey("Pick_Iron");
+        t.catalog.tools.put(axe, new ToolInfo(ToolType.AXE, 1, 1f));
+        t.catalog.tools.put(woodPick, new ToolInfo(ToolType.PICKAXE, 0, 1f));
+        t.catalog.tools.put(stonePick, new ToolInfo(ToolType.PICKAXE, 1, 1f));
+        t.catalog.tools.put(ironPick, new ToolInfo(ToolType.PICKAXE, 2, 1f));
+        for (ItemKey k : List.of(axe, woodPick, stonePick, ironPick)) {
+            t.playerInventory.give(alice, new ItemAmount(k, 1));
+        }
+        RequestToken token = colony.requests().createAndAssign(hut, new ToolRequest(ToolType.PICKAXE, 1, 3), 1);
+
+        assertTrue(manager.fulfil(alice, colony.id(), token));
+
+        assertEquals(1, citizen.inventory().count(stonePick));
+        assertEquals(1, t.playerInventory.count(alice, ironPick));
+        assertEquals(1, t.playerInventory.count(alice, woodPick));
+        assertEquals(List.of(new ItemAmount(stonePick, 1)), get(token).deliveries());
+    }
+
+    @Test
+    void addToHutRequiresPermission() {
+        RequestToken token = request(10, 1);
+        t.playerInventory.give(bob, new ItemAmount(PLANKS, 6));
+
+        assertEquals(0, manager.addToHut(bob, hall, PLANKS, 10));
+
+        assertEquals(6, t.playerInventory.count(bob, PLANKS));
+        assertEquals(0, t.containers.count(hut.containers(), PLANKS));
+        assertEquals(RequestState.IN_PROGRESS, get(token).state());
+    }
+
+    private void run(int ticks) {
+        for (int i = 0; i < ticks; i++) {
+            t.clock.tick++;
+            colony.tick();
+        }
+    }
+
+    @Test
+    void colonyTicksRequestsEvery11TicksWhenActive() {
+        RequestToken token = request(10, 1);
+        run(200);
+        assertEquals(ColonyState.INACTIVE, colony.state());
+        assertEquals(RetryingResolver.DELAY_TICKS, retrying().delays().get(token), "not ticked while inactive");
+
+        t.players.online.put(alice, hall);
+        run(200);
+        assertEquals(ColonyState.ACTIVE, colony.state());
+        int before = retrying().delays().get(token);
+        run(110);
+        int elapsed = before - retrying().delays().get(token);
+        // 10 request ticks in 110 game ticks; a state-update tick may delay one of them.
+        assertEquals(0, elapsed % RequestManager.TICK_INTERVAL);
+        assertTrue(elapsed == 99 || elapsed == 110, "elapsed " + elapsed);
     }
 }

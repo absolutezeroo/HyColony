@@ -60,6 +60,7 @@ public final class Colony {
 
             @Override
             public void removed(Building building) {
+                requests.cancelAllFrom(building.requesterId());
                 requests.onProviderRemoved(building);
             }
         });

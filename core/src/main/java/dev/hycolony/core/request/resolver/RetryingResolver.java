@@ -79,9 +79,11 @@ public final class RetryingResolver implements Resolver {
             }
         }
         for (RequestToken t : due) {
-            delays.remove(t);
             if (canReassign(m, t)) {
+                delays.remove(t);
                 m.reassign(t, tries.getOrDefault(t, 0) >= MAX_TRIES ? Set.of(ID) : Set.of());
+            } else {
+                delays.put(t, DELAY_TICKS); // waits for its children instead of being stranded
             }
         }
     }
@@ -97,7 +99,7 @@ public final class RetryingResolver implements Resolver {
         }
     }
 
-    /** MineColonies forgot a request whose reassignment threw; a request with children cannot be reassigned. */
+    /** A request with children cannot be reassigned (MineColonies' reassignment threw and it was forgotten). */
     private static boolean canReassign(RequestManager m, RequestToken t) {
         return m.get(t).map(r -> r.children().isEmpty()).orElse(false);
     }

@@ -221,6 +221,16 @@ public final class RequestManager {
         });
     }
 
+    /** Cancels every request made by {@code requester} (subtrees first, requester notified), e.g. a removed building. */
+    public void cancelAllFrom(RequesterId requester) {
+        submit(() -> {
+            Set<RequestToken> mine = byRequester.get(requester);
+            if (mine != null) {
+                new ArrayList<>(mine).forEach(this::cancelDirectly);
+            }
+        });
+    }
+
     public void onColonyUpdate(Predicate<Request> which) {
         submit(() -> List.copyOf(resolvers).forEach(r -> r.onColonyUpdate(this, which)));
     }
@@ -582,7 +592,7 @@ public final class RequestManager {
     }
 
     /** Buildings etc. via the registry first, then resolvers (requesters of the children they asked for). */
-    public Optional<Requester> requester(Request req) {
+    private Optional<Requester> requester(Request req) {
         Optional<Requester> found = requesters.find(req.requester());
         if (found.isEmpty()) {
             found = Optional.ofNullable(resolversByRequesterId.get(req.requester()));

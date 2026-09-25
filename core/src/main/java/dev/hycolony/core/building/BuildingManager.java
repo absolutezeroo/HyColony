@@ -43,11 +43,13 @@ public final class BuildingManager {
         byRequester.put(building.requesterId(), building);
     }
 
+    /** The listener runs first, while the building can still be found (its requests are cancelled). */
     public Optional<Building> remove(BlockPos pos) {
-        Building removed = buildings.remove(pos);
+        Building removed = buildings.get(pos);
         if (removed != null) {
-            byRequester.remove(removed.requesterId());
             listener.removed(removed);
+            buildings.remove(pos);
+            byRequester.remove(removed.requesterId());
         }
         return Optional.ofNullable(removed);
     }

@@ -383,6 +383,29 @@ class RequestManagerTest {
     }
 
     @Test
+    void cancelAllFromCancelsEveryRequestOfThatRequesterWithSubtrees() {
+        FixedResolver stock = resolver("stock", 200, 0);
+        stock.handles = item(LOG);
+        FixedResolver crafter = resolver("crafter", 100, 0);
+        crafter.handles = item(PLANK);
+        crafter.children = List.of(stack(LOG));
+        TestRequester other = requester("other");
+
+        RequestToken a = m.createAndAssign(hut, stack(PLANK), -1);
+        RequestToken b = m.createAndAssign(hut, stack(LOG), -1);
+        RequestToken kept = m.createAndAssign(other, stack(LOG), -1);
+        Request child = req(req(a).children().get(0));
+
+        m.cancelAllFrom(hut.requesterId());
+
+        assertEquals(List.of(kept), m.all().stream().map(Request::token).toList());
+        assertEquals(2, hut.cancelled.size());
+        assertEquals(List.of(child), crafter.cancelled);
+        assertTrue(m.byRequester(hut.requesterId()).isEmpty());
+        assertTrue(m.get(b).isEmpty());
+    }
+
+    @Test
     void overruleCompletesOnceAndCancelsChildren() {
         FixedResolver stock = resolver("stock", 200, 0);
         stock.handles = item(LOG);

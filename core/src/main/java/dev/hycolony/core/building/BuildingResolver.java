@@ -66,7 +66,7 @@ public final class BuildingResolver implements Resolver {
         m.updateState(r.token(), RequestState.RESOLVED);
     }
 
-    /** Matching stock in the hut's containers, minus what our other requests already reserved. */
+    /** Matching stock in the hut's containers, minus the deliveries of the building's other requests (until RECEIVED). */
     private Map<ItemKey, Integer> available(RequestManager m, Request r) {
         Deliverable d = r.requestable();
         Map<ItemKey, Integer> stock = new LinkedHashMap<>();
@@ -75,7 +75,7 @@ public final class BuildingResolver implements Resolver {
                 stock.put(item, n);
             }
         });
-        for (Request other : m.assignedTo(id)) {
+        for (Request other : m.byRequester(building.requesterId())) {
             if (other != r) {
                 for (ItemAmount a : other.deliveries()) {
                     stock.computeIfPresent(a.item(), (k, n) -> n > a.count() ? n - a.count() : null);

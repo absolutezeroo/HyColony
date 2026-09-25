@@ -60,22 +60,32 @@ public final class RequestSerializer {
         for (String resolverId : assignments.keySet()) {
             Optional<Resolver> resolver = m.resolver(resolverId);
             for (RequestToken t : readTokens(assignments.getAsJsonArray(resolverId))) {
+                Optional<Request> req = m.get(t);
+                if (req.isEmpty()) {
+                    continue;
+                }
                 if (resolver.isPresent()) {
                     m.restoreAssignment(t, resolver.get());
-                } else if (m.get(t).isPresent()) {
-                    orphans.add(t);
+                } else if (req.get().state().ordinal() < RequestState.COMPLETED.ordinal()) {
+                    orphans.add(t); // a finished one just waits for pickup
                 }
             }
         }
 
-        if (o.has("retrying")) {
-            JsonObject ro = o.getAsJsonObject("retrying");
-            retrying(m).ifPresent(r -> r.restore(readCounts(ro.getAsJsonObject("delays"), m),
-                    readCounts(ro.getAsJsonObject("tries"), m)));
-        }
-        if (o.has("player")) {
-            player(m).ifPresent(p -> readTokens(o.getAsJsonArray("player")).forEach(t -> m.get(t).ifPresent(p::restore)));
-        }
+        // Membership comes from the assignments; the saved resolver state only supplies the numbers.
+        JsonObject ro = o.has("retrying") ? o.getAsJsonObject("retrying") : new JsonObject();
+        Map<RequestToken, Integer> savedDelays = readCounts(ro.getAsJsonObject("delays"));
+        Map<RequestToken, Integer> savedTries = readCounts(ro.getAsJsonObject("tries"));
+        retrying(m).ifPresent(r -> {
+            Map<RequestToken, Integer> delays = new LinkedHashMap<>();
+            Map<RequestToken, Integer> tries = new LinkedHashMap<>();
+            for (Request req : m.assignedTo(RetryingResolver.ID)) {
+                delays.put(req.token(), savedDelays.getOrDefault(req.token(), RetryingResolver.DELAY_TICKS));
+                tries.put(req.token(), savedTries.getOrDefault(req.token(), 1));
+            }
+            r.restore(delays, tries);
+        });
+        player(m).ifPresent(p -> m.assignedTo(PlayerResolver.ID).forEach(p::restore));
 
         orphans.forEach(m::reassignLoaded);
     }
@@ -196,13 +206,11 @@ public final class RequestSerializer {
         return o;
     }
 
-    /** Only tokens of loaded requests. */
-    private static Map<RequestToken, Integer> readCounts(JsonObject o, RequestManager m) {
+    private static Map<RequestToken, Integer> readCounts(JsonObject o) {
         Map<RequestToken, Integer> out = new LinkedHashMap<>();
-        for (String key : o.keySet()) {
-            RequestToken t = token(key);
-            if (m.get(t).isPresent()) {
-                out.put(t, o.get(key).getAsInt());
+        if (o != null) {
+            for (String key : o.keySet()) {
+                out.put(token(key), o.get(key).getAsInt());
             }
         }
         return out;

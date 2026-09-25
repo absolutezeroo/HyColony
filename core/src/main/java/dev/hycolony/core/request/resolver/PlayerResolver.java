@@ -29,7 +29,7 @@ public final class PlayerResolver implements Resolver {
         this.location = location;
     }
 
-    /** Assigned & not finished, in creation order: the content of the requests window. */
+    /** Assigned & not finished, in the order they reached the player: the content of the requests window. */
     public List<Request> open() {
         return List.copyOf(open.values());
     }

@@ -117,6 +117,19 @@ class ResolversTest {
     }
 
     @Test
+    void dueRequestThatCannotBeReassignedKeepsAFreshDelay() {
+        Building a = hut(new BlockPos(0, 64, 0));
+        RequestToken t = m.createAndAssign(a, planks(5), -1);
+        m.createChild(retrying, t, new StackRequest(PLANKS, 1, 1, false));
+        for (int i = 0; i * RequestManager.TICK_INTERVAL < RetryingResolver.DELAY_TICKS; i++) {
+            m.tick();
+        }
+        assertEquals("retrying", resolverOf(t));
+        assertEquals(RetryingResolver.DELAY_TICKS, retrying.delays().get(t), "not stranded without a delay");
+        assertEquals(1, retrying.tries().get(t));
+    }
+
+    @Test
     void colonyUpdateReassignsStuckRequestsToBuildingWhenStockArrives() {
         Building a = hut(new BlockPos(0, 64, 0));
         Building b = hut(new BlockPos(50, 64, 0));
