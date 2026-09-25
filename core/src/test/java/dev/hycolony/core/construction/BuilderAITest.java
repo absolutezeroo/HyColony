@@ -437,6 +437,23 @@ class BuilderAITest {
         assertTrue(colony.log().entries().stream().anyMatch(e -> e.type().equals("buildingDeconstructed")));
     }
 
+    /** Simulation: a REMOVE left the mined chest registered as the building's container. */
+    @Test
+    void minedContainerIsUnregistered() {
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);
+        BlockKey chest = new BlockKey("chest");
+        t.catalog.kinds.put(chest, BlockKind.SOLID);
+        blueprint = bp(List.of(new BlueprintEntry(new BlockPos(1, 0, 0), new BlockState(chest, 0), true)));
+        t.blocks.blocks.put(at(1, 0, 0), new BlockState(chest, 0));
+        res.addContainer(at(1, 0, 0));
+        WorkOrder o = order(res, WorkOrderType.REMOVE);
+
+        tickUntil(() -> gone(o), 5000);
+
+        assertFalse(t.blocks.blocks.containsKey(at(1, 0, 0)));
+        assertTrue(res.registeredContainers().isEmpty());
+    }
+
     @Test
     void movesOnlyWhenNextBlockBeyondTenBlocks() {
         Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);

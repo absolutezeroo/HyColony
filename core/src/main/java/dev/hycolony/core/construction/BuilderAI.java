@@ -454,6 +454,8 @@ public final class BuilderAI implements JobAI {
         mineDelayed = false;
         mineTarget = null;
         var drops = blocks.breakBlock(pos);
+        // MC: a rack that leaves the world leaves its building's containers (TileEntityRack removal).
+        colony.buildings().owningContainer(pos).ifPresent(b -> b.removeContainer(pos));
         if (!catalog.isOre(state.key())) { // MC EntityAIStructureBuilder.mineBlock: getDrops = !isOre
             stock.storeDrops(drops);
         }
