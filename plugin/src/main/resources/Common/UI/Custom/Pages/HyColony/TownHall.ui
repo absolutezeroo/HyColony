@@ -1,0 +1,64 @@
+$C = "../../Common.ui";
+$Sounds = "../../Sounds.ui";
+
+$C.@PageOverlay {
+  LayoutMode: Middle;
+
+  $C.@DecoratedContainer {
+    Anchor: (Width: 600);
+
+    #Title {
+      $C.@Title {
+        @Text = %hycolony.item.townhall.name;
+      }
+    }
+
+    #Content {
+      Padding: (Vertical: 24, Horizontal: 40);
+      LayoutMode: Top;
+
+      Label #ColonyName {
+        Style: (FontSize: 22, RenderBold: true, RenderUppercase: true);
+      }
+
+      Label #Owner {
+        Style: (TextColor: #94a7bb);
+        Anchor: (Top: 4);
+      }
+
+      Label #Day {
+        Style: (TextColor: #94a7bb);
+        Anchor: (Top: 2, Bottom: 10);
+      }
+
+      Group {
+        LayoutMode: Left;
+        Anchor: (Height: 44, Bottom: 12);
+
+        $C.@TextField #RenameInput {
+          FlexWeight: 1;
+        }
+
+        $C.@TextButton #RenameButton {
+          @Sounds = $Sounds.@SaveSettings;
+          @Anchor = (Left: 8);
+          Text: %hycolony.ui.townhall.rename;
+        }
+      }
+
+      Label {
+        Text: %hycolony.ui.townhall.citizens;
+        Style: (RenderBold: true, RenderUppercase: true, TextColor: #94a7bb);
+        Anchor: (Bottom: 6);
+      }
+
+      Group #CitizenList {
+        LayoutMode: TopScrolling;
+        ScrollbarStyle: $C.@DefaultScrollbarStyle;
+        Anchor: (Height: 300);
+      }
+    }
+  }
+}
+
+$C.@BackButton {}

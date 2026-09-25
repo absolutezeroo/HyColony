@@ -1,0 +1,12 @@
+Group {
+  LayoutMode: Left;
+  Anchor: (Height: 28);
+
+  Label #Name {
+    FlexWeight: 1;
+  }
+
+  Label #Status {
+    Style: (TextColor: #94a7bb);
+  }
+}

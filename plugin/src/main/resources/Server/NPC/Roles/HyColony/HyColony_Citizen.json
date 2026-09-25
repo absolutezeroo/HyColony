@@ -1,0 +1,31 @@
+{
+  "Type": "Generic",
+  "Appearance": "PlayerTestModel_V",
+  "MotionControllerList": [
+    {
+      "Type": "Walk",
+      "MaxWalkSpeed": 3,
+      "Gravity": 10,
+      "MaxFallSpeed": 20,
+      "Acceleration": 10
+    }
+  ],
+  "MaxHealth": 20,
+  "Invulnerable": true,
+  "Instructions": [
+    {
+      "Instructions": [
+        {
+          "Sensor": { "Type": "HyColonyTarget" },
+          "BodyMotion": {
+            "Type": "Seek",
+            "StopDistance": 0.6,
+            "SlowDownDistance": 1.5,
+            "AbortDistance": 64
+          }
+        }
+      ]
+    }
+  ],
+  "NameTranslationKey": "hycolony.npc.citizen.name"
+}
