@@ -659,10 +659,14 @@ public final class ColonyManager {
         return moved;
     }
 
-    /** A player changed a hut container's content: the building's stuck requests get another chance. */
+    /**
+     * A player changed a hut container's content: the building's stuck requests that its hut can now serve (enough
+     * matching stock beyond what its other requests reserved) get another chance.
+     */
     public void onContainerChanged(BlockPos containerPos) {
         colonyAt(containerPos).ifPresent(c -> c.buildings().owningContainer(containerPos).ifPresent(b ->
-                c.requests().onColonyUpdate(r -> r.requester().equals(b.requesterId()))));
+                c.requests().onColonyUpdate(r -> r.requester().equals(b.requesterId())
+                        && b.resolvers().stream().anyMatch(res -> res.canResolve(c.requests(), r)))));
     }
 
     /** AbstractBuilding.overruleNextOpenRequestWithStack. */

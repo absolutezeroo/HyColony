@@ -252,4 +252,23 @@ class FulfilTest {
         assertEquals(0, elapsed % RequestManager.TICK_INTERVAL);
         assertTrue(elapsed == 99 || elapsed == 110, "elapsed " + elapsed);
     }
+
+    @Test
+    void containerChangeReassignsOnlyWhatTheHutCanNowServe() {
+        RequestToken planks = request(5, 1);
+        RequestToken stone = colony.requests().createAndAssign(hut,
+                new StackRequest(new ItemKey("Stone"), 3, 3, true), 1);
+        t.containers.insert(hut.containers(), new ItemAmount(new ItemKey("Dirt"), 10));
+
+        manager.onContainerChanged(hall);
+
+        assertEquals("retrying", colony.requests().resolverOf(planks).map(Resolver::resolverId).orElseThrow());
+        assertEquals("retrying", colony.requests().resolverOf(stone).map(Resolver::resolverId).orElseThrow());
+
+        t.containers.insert(hut.containers(), new ItemAmount(PLANKS, 5));
+        manager.onContainerChanged(hall);
+
+        assertEquals("building:0,64,0", colony.requests().resolverOf(planks).map(Resolver::resolverId).orElseThrow());
+        assertEquals("retrying", colony.requests().resolverOf(stone).map(Resolver::resolverId).orElseThrow());
+    }
 }
