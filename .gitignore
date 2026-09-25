@@ -12,3 +12,5 @@ run/
 .vscode
 .superpowers/
 /server/
+# Dev server writes the plugin config into resources via the mods/ symlink
+plugin/src/main/resources/config.json
