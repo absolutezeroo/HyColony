@@ -10,6 +10,7 @@ public final class WorkOrder {
     private final WorkOrderType type;
     private final BlockPos buildingPos;
     private final int targetLevel;
+    private final int blueprintLevel;
     private final String style;
     private final int rotation;
     private int priority;
@@ -18,11 +19,13 @@ public final class WorkOrder {
     private int progressIndex;
     private boolean requested;
 
-    WorkOrder(int id, WorkOrderType type, BlockPos buildingPos, int targetLevel, String style, int rotation) {
+    WorkOrder(int id, WorkOrderType type, BlockPos buildingPos, int targetLevel, int blueprintLevel, String style,
+            int rotation) {
         this.id = id;
         this.type = type;
         this.buildingPos = buildingPos;
         this.targetLevel = targetLevel;
+        this.blueprintLevel = blueprintLevel;
         this.style = style;
         this.rotation = rotation;
         this.stage = initialStage();
@@ -32,6 +35,12 @@ public final class WorkOrder {
     public WorkOrderType type() { return type; }
     public BlockPos buildingPos() { return buildingPos; }
     public int targetLevel() { return targetLevel; }
+    /**
+     * Level of the plan the builder follows: the target for BUILD/UPGRADE/REPAIR, the current level for REMOVE
+     * (whose target is 0, as in MineColonies, so any builder may take it). Completing a REMOVE marks the building
+     * deconstructed without lowering its level.
+     */
+    public int blueprintLevel() { return blueprintLevel; }
     public String style() { return style; }
     public int rotation() { return rotation; }
     public int priority() { return priority; }
@@ -69,6 +78,7 @@ public final class WorkOrder {
         o.addProperty("type", type.name());
         o.add("pos", pos(buildingPos));
         o.addProperty("targetLevel", targetLevel);
+        o.addProperty("blueprintLevel", blueprintLevel);
         o.addProperty("style", style);
         o.addProperty("rotation", rotation);
         o.addProperty("priority", priority);
@@ -83,8 +93,8 @@ public final class WorkOrder {
 
     public static WorkOrder read(JsonObject o) {
         WorkOrder w = new WorkOrder(o.get("id").getAsInt(), WorkOrderType.valueOf(o.get("type").getAsString()),
-                readPos(o.getAsJsonObject("pos")), o.get("targetLevel").getAsInt(), o.get("style").getAsString(),
-                o.get("rotation").getAsInt());
+                readPos(o.getAsJsonObject("pos")), o.get("targetLevel").getAsInt(), o.get("blueprintLevel").getAsInt(),
+                o.get("style").getAsString(), o.get("rotation").getAsInt());
         w.priority = o.get("priority").getAsInt();
         w.claimedBy = o.has("claimedBy") ? readPos(o.getAsJsonObject("claimedBy")) : null;
         w.stage = Stage.valueOf(o.get("stage").getAsString());

@@ -19,8 +19,13 @@ public final class BuilderSettingsModule implements PersistentModule {
 
     @Override
     public void read(JsonObject in) {
+        mode = Mode.AUTO;
         if (in.has("mode")) {
-            mode = Mode.valueOf(in.get("mode").getAsString());
+            try {
+                mode = Mode.valueOf(in.get("mode").getAsString());
+            } catch (IllegalArgumentException unknown) {
+                // stays AUTO
+            }
         }
     }
 }

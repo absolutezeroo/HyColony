@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingType;
@@ -135,7 +137,9 @@ class WorkManagerTest {
         assertEquals(3, created(rep.position(), WorkOrderType.REPAIR).targetLevel());
         colony.work().request(alice, rem.position(), WorkOrderType.REMOVE, "custom", Optional.empty());
         WorkOrder remove = colony.work().byBuilding(rem.position()).orElseThrow();
-        assertEquals(4, remove.targetLevel());
+        assertEquals(0, remove.targetLevel());
+        assertEquals(4, remove.blueprintLevel());
+        assertEquals(3, upgrade.blueprintLevel());
         assertEquals("custom", remove.style());
         assertEquals(Stage.REMOVE, remove.stage());
     }
@@ -371,5 +375,147 @@ class WorkManagerTest {
         Either<WorkOrder, WorkOrderRefusal> next = loaded.work().request(alice, res.position(), WorkOrderType.BUILD, "",
                 Optional.empty());
         assertEquals(3, ((Either.Left<WorkOrder, WorkOrderRefusal>) next).value().id());
+    }
+
+    // ---- fix round 1 ----
+
+    private WorkOrder createdFor(BlockPos pos, WorkOrderType type, BlockPos chosen) {
+        Either<WorkOrder, WorkOrderRefusal> r = colony.work().request(alice, pos, type, "", Optional.of(chosen));
+        assertTrue(r instanceof Either.Left, () -> "refused: " + r);
+        return ((Either.Left<WorkOrder, WorkOrderRefusal>) r).value();
+    }
+
+    @Test
+    void level1BuilderTakesRemoveOfLevel3Building() {
+        Building b1 = builder(new BlockPos(10, 64, 0), 1);
+        Building res = residence(new BlockPos(20, 64, 0), 3);
+        WorkOrder o = created(res.position(), WorkOrderType.REMOVE);
+        assertEquals(0, o.targetLevel());
+        assertEquals(3, o.blueprintLevel());
+        assertEquals(List.of("medieval/hycolony:residence/3/0"), loads); // plan of the current level
+
+        colony.work().tick();
+
+        assertEquals(Optional.of(b1.position()), o.claimedBy());
+    }
+
+    @Test
+    void chosenBuilderMayTakeRemoveWhateverItsLevel() {
+        Building b0 = builder(new BlockPos(10, 64, 0), 0);
+        Building res = residence(new BlockPos(20, 64, 0), 3);
+        assertEquals(Optional.of(b0.position()),
+                createdFor(res.position(), WorkOrderType.REMOVE, b0.position()).claimedBy());
+    }
+
+    @Test
+    void footprintMarginOutsideTerritoryIsRefused() {
+        builder(new BlockPos(10, 64, 0), 1);
+        Building res = residence(new BlockPos(20, 64, 0), 0);
+        // the only entry is inside, but the plan's bounds reach 5000 blocks east
+        blueprint = new Blueprint("bp", List.of(new BlueprintEntry(new BlockPos(1, 0, 0),
+                new BlockState(new BlockKey("Stone"), 0), false)), new BlockPos(0, 0, 0), new BlockPos(5000, 0, 0));
+        assertRefused(WorkOrderRefusal.OUT_OF_COLONY, request(res.position(), WorkOrderType.BUILD));
+    }
+
+    @Test
+    void orderForMissingBuildingIsDropped() {
+        builder(new BlockPos(10, 64, 0), 1);
+        Building res = residence(new BlockPos(20, 64, 0), 0);
+        WorkOrder o = created(res.position(), WorkOrderType.BUILD);
+        JsonObject json = ColonySerializer.write(colony);
+        JsonArray kept = new JsonArray();
+        for (JsonElement el : json.getAsJsonArray("buildings")) {
+            if (el.getAsJsonObject().getAsJsonObject("pos").get("x").getAsInt() != 20) {
+                kept.add(el);
+            }
+        }
+        json.add("buildings", kept); // the residence is gone, its order is still saved
+        TerritoryIndex territory = new TerritoryIndex();
+        territory.claimSquare(colony.id(), ClaimCell.of(colony.center()), t.config.initialColonySize());
+        Colony loaded = ColonySerializer.read(json, t.context(), territory);
+        assertTrue(loaded.work().byId(o.id()).isPresent());
+
+        loaded.work().tick();
+
+        assertTrue(loaded.work().byId(o.id()).isEmpty());
+        assertTrue(loaded.work().byBuilding(res.position()).isEmpty());
+    }
+
+    @Test
+    void cancelOnlyCancelsRequestsOfTheBuildersActiveOrder() {
+        Building b = builder(new BlockPos(10, 64, 0), 1);
+        WorkOrder active = createdFor(residence(new BlockPos(20, 64, 0), 0).position(), WorkOrderType.BUILD, b.position());
+        WorkOrder queued = createdFor(residence(new BlockPos(30, 64, 0), 0).position(), WorkOrderType.BUILD, b.position());
+        assertEquals(Optional.of(active), colony.work().claimedBy(b.position()));
+        colony.requests().createAndAssign(b, new StackRequest(new ItemKey("Stone"), 4, 4, true), 1);
+
+        colony.work().cancel(queued.id());
+        assertEquals(1, colony.requests().byRequester(b.requesterId()).size());
+
+        colony.work().cancel(active.id());
+        assertTrue(colony.requests().byRequester(b.requesterId()).isEmpty());
+    }
+
+    @Test
+    void buildOnBuiltBuildingIsRefused() {
+        builder(new BlockPos(10, 64, 0), 5);
+        Building built = residence(new BlockPos(20, 64, 0), 1);
+        assertRefused(WorkOrderRefusal.INVALID_TYPE, request(built.position(), WorkOrderType.BUILD));
+        Building unbuilt = residence(new BlockPos(30, 64, 0), 0);
+        assertRefused(WorkOrderRefusal.INVALID_TYPE, request(unbuilt.position(), WorkOrderType.UPGRADE));
+        Building gone = residence(new BlockPos(40, 64, 0), 2);
+        gone.setDeconstructed(true);
+        assertRefused(WorkOrderRefusal.INVALID_TYPE, request(gone.position(), WorkOrderType.BUILD));
+        assertEquals(2, created(gone.position(), WorkOrderType.REPAIR).targetLevel());
+    }
+
+    @Test
+    void builderSettingsFallBackToAutoOnUnknownMode() {
+        BuilderSettingsModule m = new BuilderSettingsModule();
+        m.setMode(BuilderSettingsModule.Mode.MANUAL);
+        JsonObject in = new JsonObject();
+        in.addProperty("mode", "SOMETHING_ELSE");
+        m.read(in);
+        assertEquals(BuilderSettingsModule.Mode.AUTO, m.mode());
+    }
+
+    @Test
+    void chosenBuilderIsClaimedAtCreation() {
+        builder(new BlockPos(10, 64, 0), 1);
+        Building chosen = builder(new BlockPos(12, 64, 0), 1);
+        Building res = residence(new BlockPos(20, 64, 0), 0);
+        assertEquals(Optional.of(chosen.position()),
+                createdFor(res.position(), WorkOrderType.BUILD, chosen.position()).claimedBy());
+    }
+
+    @Test
+    void chosenBuilderBypassesTooFar() {
+        Building far = builder(new BlockPos(20, 64, 150), 1);
+        Building res = residence(new BlockPos(20, 64, 0), 0);
+        assertRefused(WorkOrderRefusal.BUILDER_TOO_FAR_AWAY, request(res.position(), WorkOrderType.BUILD));
+        assertEquals(Optional.of(far.position()),
+                createdFor(res.position(), WorkOrderType.BUILD, far.position()).claimedBy());
+    }
+
+    @Test
+    void chosenBuilderBelowTargetIsRefused() {
+        builder(new BlockPos(10, 64, 0), 3);
+        Building low = builder(new BlockPos(12, 64, 0), 1);
+        Building res = residence(new BlockPos(20, 64, 0), 1);
+        assertRefused(WorkOrderRefusal.BUILDER_NECESSARY, colony.work().request(alice, res.position(),
+                WorkOrderType.UPGRADE, "", Optional.of(low.position())));
+    }
+
+    @Test
+    void earlierRefusalWins() {
+        // max level AND no builder at all: MAX_LEVEL is checked first
+        Building res = residence(new BlockPos(20, 64, 0), 5);
+        assertRefused(WorkOrderRefusal.MAX_LEVEL, request(res.position(), WorkOrderType.UPGRADE));
+        // no permission AND already exists: NO_PERMISSION first
+        builder(new BlockPos(10, 64, 0), 1);
+        Building other = residence(new BlockPos(30, 64, 0), 0);
+        created(other.position(), WorkOrderType.BUILD);
+        assertRefused(WorkOrderRefusal.NO_PERMISSION, colony.work().request(UUID.randomUUID(), other.position(),
+                WorkOrderType.BUILD, "", Optional.empty()));
     }
 }

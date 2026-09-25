@@ -45,7 +45,9 @@ public final class WorkManager {
     }
 
     /**
-     * Refusals in order: permission, duplicate, max level, repair of an unbuilt building, no builder of the level,
+     * Refusals in order: permission, duplicate, max level, repair of an unbuilt building, a type that does not fit
+     * the building (BUILD needs level 0 and not deconstructed, UPGRADE level 1+, REPAIR level 1+ or deconstructed),
+     * no builder of the level,
      * no builder within 100 blocks (unless one is chosen), no blueprint, footprint outside the colony.
      * {@code buildingPos} must hold a building of this colony.
      */
@@ -63,13 +65,25 @@ public final class WorkManager {
         if ((type == WorkOrderType.BUILD || type == WorkOrderType.UPGRADE) && level >= b.type().maxLevel()) {
             return refuse(WorkOrderRefusal.MAX_LEVEL);
         }
-        if (type == WorkOrderType.REPAIR && level == 0) {
+        if (type == WorkOrderType.REPAIR && level == 0 && !b.isDeconstructed()) {
             return refuse(WorkOrderRefusal.NOT_BUILT);
         }
+        boolean validType = switch (type) {
+            case BUILD -> level == 0 && !b.isDeconstructed();
+            case UPGRADE -> level >= 1;
+            case REPAIR -> level > 0 || b.isDeconstructed();
+            case REMOVE -> true;
+        };
+        if (!validType) {
+            return refuse(WorkOrderRefusal.INVALID_TYPE);
+        }
+        // WorkOrderBuilding.create: REMOVE targets 0 but follows the plan of the current level.
         int target = switch (type) {
             case BUILD, UPGRADE -> level + 1;
-            case REPAIR, REMOVE -> level;
+            case REPAIR -> level;
+            case REMOVE -> 0;
         };
+        int blueprintLevel = type == WorkOrderType.REMOVE ? level : target;
         List<Building> employed = colony.buildings().all().stream().filter(WorkManager::isEmployedBuilder).toList();
         if (type != WorkOrderType.REMOVE && !canBeBuiltByBuilder(b, target)
                 && employed.stream().noneMatch(e -> e.level() >= target)) {
@@ -79,6 +93,7 @@ public final class WorkManager {
             return refuse(WorkOrderRefusal.BUILDER_TOO_FAR_AWAY);
         }
         if (builder.isPresent()) {
+            // REMOVE targets 0, so any builder hut qualifies.
             Optional<Building> chosen = colony.buildings().at(builder.get());
             if (chosen.isEmpty() || !chosen.get().type().equals(ConstructionBuildingTypes.BUILDER)
                     || (chosen.get().level() < target && !canBeBuiltByBuilder(b, target))) {
@@ -87,7 +102,7 @@ public final class WorkManager {
         }
         String resolvedStyle = resolveStyle(style, b);
         Optional<Blueprint> blueprint = colony.context().ports().blueprints()
-                .load(resolvedStyle, b.type().id(), target, b.rotation());
+                .load(resolvedStyle, b.type().id(), blueprintLevel, b.rotation());
         if (blueprint.isEmpty()) {
             return refuse(WorkOrderRefusal.NO_BLUEPRINT);
         }
@@ -95,7 +110,8 @@ public final class WorkManager {
             return refuse(WorkOrderRefusal.OUT_OF_COLONY);
         }
 
-        WorkOrder order = new WorkOrder(++topId, type, buildingPos, target, resolvedStyle, b.rotation());
+        WorkOrder order = new WorkOrder(++topId, type, buildingPos, target, blueprintLevel, resolvedStyle,
+                b.rotation());
         builder.ifPresent(order::setClaimedBy);
         add(order);
         colony.markDirty();
@@ -110,15 +126,22 @@ public final class WorkManager {
         return new Either.Left<>(order);
     }
 
-    /** Removes the order and cancels the requests of the builder that held it; placed blocks stay. */
+    /**
+     * Removes the order; if it was its builder's active order ({@link #claimedBy}), that builder's requests are
+     * cancelled too (they were made for it). Placed blocks stay.
+     */
     public void cancel(int orderId) {
-        WorkOrder order = orders.remove(orderId);
+        WorkOrder order = orders.get(orderId);
         if (order == null) {
             return;
         }
+        Optional<BlockPos> claimer = order.claimedBy();
+        boolean active = claimer.flatMap(this::claimedBy).map(order::equals).orElse(false);
+        orders.remove(orderId);
         byBuilding.remove(order.buildingPos());
-        order.claimedBy().flatMap(colony.buildings()::at)
-                .ifPresent(hut -> colony.requests().cancelAllFrom(hut.requesterId()));
+        if (active) {
+            colony.buildings().at(claimer.get()).ifPresent(hut -> colony.requests().cancelAllFrom(hut.requesterId()));
+        }
         order.release();
         colony.markDirty();
     }
@@ -160,9 +183,14 @@ public final class WorkManager {
         return Optional.ofNullable(byBuilding.get(buildingPos));
     }
 
+    /**
+     * The builder's active order: a builder can hold several claims (chosen at creation); it works on the one with
+     * the lowest id.
+     */
     public Optional<WorkOrder> claimedBy(BlockPos builderHut) {
         // ponytail: linear scan of a colony's few orders; index claims if colonies hold hundreds.
-        return orders.values().stream().filter(o -> builderHut.equals(o.claimedBy().orElse(null))).findFirst();
+        return orders.values().stream().filter(o -> builderHut.equals(o.claimedBy().orElse(null)))
+                .min(Comparator.comparingInt(WorkOrder::id));
     }
 
     /**
@@ -171,6 +199,14 @@ public final class WorkManager {
      * already sit with their builder (MineColonies sorts them first only to mark those builders busy).
      */
     public void tick() {
+        // WorkOrderBuilding.isValid: an order whose building is gone is dropped.
+        List<Integer> invalid = new ArrayList<>();
+        for (WorkOrder o : orders.values()) {
+            if (colony.buildings().at(o.buildingPos()).isEmpty()) {
+                invalid.add(o.id());
+            }
+        }
+        invalid.forEach(this::cancel);
         Set<BlockPos> busy = new HashSet<>();
         List<WorkOrder> free = new ArrayList<>();
         for (WorkOrder o : orders.values()) {
@@ -288,13 +324,18 @@ public final class WorkManager {
         return styles.isEmpty() ? "" : styles.get(0);
     }
 
-    /** Every claim cell the plan touches must belong to this colony (WorkManager.isWorkOrderWithinColony). */
+    /**
+     * WorkManager.isWorkOrderWithinColony: every claim cell of the footprint rectangle (hut + min .. hut + max, in x
+     * and z) must belong to this colony.
+     */
     private boolean insideColony(Blueprint bp, BlockPos hut) {
-        Set<ClaimCell> checked = new HashSet<>();
-        for (BlueprintEntry e : bp.entries()) {
-            BlockPos p = hut.offset(e.offset().x(), e.offset().y(), e.offset().z());
-            if (checked.add(ClaimCell.of(p)) && !colony.contains(p)) {
-                return false;
+        ClaimCell a = ClaimCell.of(hut.offset(bp.min().x(), 0, bp.min().z()));
+        ClaimCell b = ClaimCell.of(hut.offset(bp.max().x(), 0, bp.max().z()));
+        for (int cx = Math.min(a.x(), b.x()); cx <= Math.max(a.x(), b.x()); cx++) {
+            for (int cz = Math.min(a.z(), b.z()); cz <= Math.max(a.z(), b.z()); cz++) {
+                if (!colony.contains(new BlockPos(cx * ClaimCell.SIZE, hut.y(), cz * ClaimCell.SIZE))) {
+                    return false;
+                }
             }
         }
         return true;
