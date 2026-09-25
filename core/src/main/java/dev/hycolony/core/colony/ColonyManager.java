@@ -15,6 +15,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -87,11 +88,11 @@ public final class ColonyManager {
         if (p == null) {
             return Optional.empty();
         }
-        String name = rawName == null ? "" : rawName.trim();
-        if (name.isEmpty() || name.length() > MAX_NAME_LENGTH) {
-            ctx.notifier().send(player, Msg.of("hycolony.colony.invalidName", String.valueOf(MAX_NAME_LENGTH)));
+        Optional<String> validated = validName(player, rawName);
+        if (validated.isEmpty()) {
             return Optional.empty();
         }
+        String name = validated.get();
         HutPlacement check = checkHutPlacement(player, p.pos(), BuildingTypes.TOWN_HALL.id());
         if (check instanceof HutPlacement.Denied denied) {
             pending.remove(player);
@@ -175,17 +176,26 @@ public final class ColonyManager {
 
     public boolean rename(UUID actor, int colonyId, String rawName) {
         Colony c = colonies.get(colonyId);
-        String name = rawName == null ? "" : rawName.trim();
         if (c == null || !c.permissions().rankOf(actor).isColonyManager()) {
             return false;
         }
-        if (name.isEmpty() || name.length() > MAX_NAME_LENGTH) {
-            ctx.notifier().send(actor, Msg.of("hycolony.colony.invalidName", String.valueOf(MAX_NAME_LENGTH)));
+        Optional<String> name = validName(actor, rawName);
+        if (name.isEmpty()) {
             return false;
         }
-        c.setName(name);
+        c.setName(name.get());
         ctx.ui().showTownHall(actor, townHallView(c, actor));
         return true;
+    }
+
+    /** Trims {@code raw}; empty if blank or over {@link #MAX_NAME_LENGTH}, after notifying {@code actor}. */
+    private Optional<String> validName(UUID actor, String raw) {
+        String name = raw == null ? "" : raw.trim();
+        if (name.isEmpty() || name.length() > MAX_NAME_LENGTH) {
+            ctx.notifier().send(actor, Msg.of("hycolony.colony.invalidName", String.valueOf(MAX_NAME_LENGTH)));
+            return Optional.empty();
+        }
+        return Optional.of(name);
     }
 
     private TownHallView townHallView(Colony c, UUID viewer) {
@@ -197,7 +207,7 @@ public final class ColonyManager {
     private CitizenRow row(Colony c, CitizenData d) {
         boolean present = c.citizens().bodyOf(d.id()).map(ctx.bodies()::isAlive).orElse(false);
         String status = !present ? "absent"
-                : c.citizens().aiState(d.id()).map(s -> s.name().toLowerCase(java.util.Locale.ROOT)).orElse("idle");
+                : c.citizens().aiState(d.id()).map(s -> s.name().toLowerCase(Locale.ROOT)).orElse("idle");
         return new CitizenRow(d.name(), d.gender(), status);
     }
 
