@@ -14,7 +14,7 @@ public interface ColonyStorage {
     /** Main file, else its .bak; empty (and both quarantined) if neither parses. */
     Optional<JsonObject> load(int id) throws IOException;
 
-    /** Atomic: write .tmp, move current to .bak, move .tmp into place. */
+    /** Writes a .tmp file, rotates the current file to .bak, then atomically moves .tmp into place: only that final move is atomic. */
     void save(int id, String json) throws IOException;
 
     /** Copy kept before migrating; written once per version. */
