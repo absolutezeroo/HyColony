@@ -46,6 +46,7 @@ public final class WorkOrder {
     public int priority() { return priority; }
     public void setPriority(int p) { this.priority = p; }
     public Optional<BlockPos> claimedBy() { return Optional.ofNullable(claimedBy); }
+    boolean isClaimedBy(BlockPos builderHut) { return builderHut.equals(claimedBy); }
     public Stage stage() { return stage; }
     public int progressIndex() { return progressIndex; }
     public boolean requested() { return requested; }

@@ -6,6 +6,7 @@ import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.colony.ConstructionPorts;
 import dev.hycolony.core.construction.Blueprint;
 import dev.hycolony.core.construction.BlueprintSource;
+import dev.hycolony.core.construction.ConstructionBuildingTypes;
 import dev.hycolony.core.job.JobRegistry;
 import dev.hycolony.core.kernel.WorldKey;
 import dev.hycolony.core.kernel.config.ColonyConfig;
@@ -32,7 +33,13 @@ public final class TestContexts {
         @Override public List<String> styles() { return List.of(); }
     };
     public ColonyConfig config = ColonyConfig.defaults();
-    public JobRegistry jobs = JobRegistry.defaults();
+    public JobRegistry jobs = jobs();
+
+    private static JobRegistry jobs() {
+        JobRegistry r = JobRegistry.defaults();
+        ConstructionBuildingTypes.register(r);
+        return r;
+    }
 
     public ColonyContext context() {
         return new ColonyContext(new WorldKey("world"), config, clock, bodies, world, notifier, ui, players,

@@ -6,6 +6,7 @@ import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.WorldBlocks;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +18,8 @@ public final class FakeWorldBlocks implements WorldBlocks {
     public final Map<BlockPos, List<ItemAmount>> drops = new LinkedHashMap<>();
     public final Map<BodyId, ItemKey> toolDamage = new LinkedHashMap<>();
     public boolean loaded = true;
+    /** Every successful place(), in call order. */
+    public final List<BlockPos> placed = new ArrayList<>();
 
     @Override public boolean isLoaded(BlockPos pos) { return loaded; }
     @Override public Optional<BlockState> get(BlockPos pos) { return Optional.ofNullable(blocks.get(pos)); }
@@ -24,6 +27,7 @@ public final class FakeWorldBlocks implements WorldBlocks {
     @Override
     public boolean place(BlockPos pos, BlockState state, boolean withContainer) {
         blocks.put(pos, state);
+        placed.add(pos);
         return true;
     }
 

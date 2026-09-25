@@ -15,6 +15,8 @@ import com.hypixel.hytale.server.spawning.SpawnTestResult;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.WorldKey;
+import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.core.kernel.port.BodyAnimation;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.CitizenBodies;
 import dev.hycolony.core.kernel.port.NavStatus;
@@ -171,4 +173,12 @@ public final class HytaleCitizenBodies implements CitizenBodies {
             });
         }
     }
+
+    /** No-op for now: held items arrive with the plan B adapters. */
+    @Override
+    public void setHeldItem(BodyId body, Optional<ItemKey> item) {}
+
+    /** No-op for now: animations arrive with the plan B adapters. */
+    @Override
+    public void playAnimation(BodyId body, BodyAnimation animation) {}
 }

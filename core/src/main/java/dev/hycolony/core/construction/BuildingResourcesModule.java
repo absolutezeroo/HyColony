@@ -27,6 +27,13 @@ public final class BuildingResourcesModule implements BuildingModule {
         this.buckets = Buckets.split(needs.sequence(), needs::maxStack);
     }
 
+    /** Forgets the order (completed, cancelled or lost): back to the state before any start. */
+    public void reset() {
+        this.order = null;
+        this.needs = NeededResources.empty();
+        this.buckets = List.of();
+    }
+
     public Optional<Map<ItemKey, Integer>> currentBucket() { return bucket(0); }
 
     public Optional<Map<ItemKey, Integer>> nextBucket() { return bucket(1); }

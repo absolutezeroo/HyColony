@@ -179,6 +179,11 @@ public final class WorkManager {
         return Optional.ofNullable(orders.get(id));
     }
 
+    /** This very order is still registered (allocation-free, for the builder's per-step check). */
+    boolean holds(WorkOrder o) {
+        return orders.get(o.id()) == o;
+    }
+
     public Optional<WorkOrder> byBuilding(BlockPos buildingPos) {
         return Optional.ofNullable(byBuilding.get(buildingPos));
     }

@@ -8,9 +8,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Unlimited-capacity containers, keyed by block position. */
+/** Unlimited-capacity containers, keyed by block position; {@link #full} makes every insert fail. */
 public final class FakeContainers implements ContainerAccess {
     public final Map<BlockPos, Map<ItemKey, Integer>> containers = new LinkedHashMap<>();
+    public boolean full;
 
     @Override
     public int count(List<BlockPos> positions, ItemKey item) {
@@ -49,7 +50,7 @@ public final class FakeContainers implements ContainerAccess {
 
     @Override
     public ItemAmount insert(List<BlockPos> positions, ItemAmount amount) {
-        if (positions.isEmpty()) {
+        if (positions.isEmpty() || full) {
             return amount;
         }
         Map<ItemKey, Integer> c = containers.computeIfAbsent(positions.get(0), p -> new LinkedHashMap<>());

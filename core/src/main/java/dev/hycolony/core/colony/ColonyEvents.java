@@ -14,4 +14,6 @@ public final class ColonyEvents {
     public record DayStarted(Colony colony) {}
     public record NightFell(Colony colony) {}
     public record WorkOrderCreated(Colony colony, WorkOrder order) {}
+    /** A builder completed an order on {@code building}; old == new for REPAIR and REMOVE. */
+    public record BuildingLevelChanged(Colony colony, Building building, int oldLevel, int newLevel) {}
 }

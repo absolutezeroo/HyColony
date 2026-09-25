@@ -154,6 +154,15 @@ public final class Colony {
         return buildings.byRequester(id).map(Requester.class::cast);
     }
 
+    /**
+     * Claims the free cells within {@code radius} of {@code pos}'s cell, never beyond {@code maxColonySize} from the
+     * centre and never stealing a cell.
+     */
+    public void claimAround(BlockPos pos, int radius) {
+        territory.claimSquareBounded(id, ClaimCell.of(pos), radius, ClaimCell.of(center), ctx.config().maxColonySize());
+        markDirty();
+    }
+
     public boolean contains(BlockPos pos) {
         OptionalInt owner = territory.colonyAt(pos);
         return owner.isPresent() && owner.getAsInt() == id;

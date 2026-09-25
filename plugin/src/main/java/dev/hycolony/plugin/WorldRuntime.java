@@ -7,6 +7,7 @@ import dev.hycolony.core.citizen.CitizenNames;
 import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.ConstructionPorts;
+import dev.hycolony.core.construction.ConstructionBuildingTypes;
 import dev.hycolony.core.job.JobRegistry;
 import dev.hycolony.core.kernel.WorldKey;
 import dev.hycolony.core.kernel.config.ColonyConfig;
@@ -43,10 +44,12 @@ public final class WorldRuntime {
         this.bodies = new HytaleCitizenBodies(world, ids.npcRole("npc.citizen"));
         this.blocks = new HytaleBlocks(world);
         ColonyManager[] self = new ColonyManager[1];
+        JobRegistry jobs = JobRegistry.defaults();
+        ConstructionBuildingTypes.register(jobs);
         ColonyContext ctx = new ColonyContext(new WorldKey(world.getName()), config, clock, bodies,
                 new HytaleWorldQuery(world), new HytaleNotifier(),
                 new HytaleUiPort(() -> self[0], blocks, ids.blockId("hut.townhall"), ids.itemId("hut.townhall")),
-                new HytalePlayerDirectory(world), BuildingTypes.defaults(), JobRegistry.defaults(), names,
+                new HytalePlayerDirectory(world), BuildingTypes.defaults(), jobs, names,
                 new Random(), new EventBus(), ConstructionPorts.unavailable());
         this.manager = new ColonyManager(ctx);
         self[0] = manager;

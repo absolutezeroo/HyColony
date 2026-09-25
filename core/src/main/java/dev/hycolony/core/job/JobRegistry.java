@@ -17,7 +17,7 @@ public final class JobRegistry {
         return Optional.ofNullable(byId.get(id));
     }
 
-    /** No concrete job type is registered yet; real ones (builder, etc.) arrive with construction. */
+    /** Empty: the job package cannot see construction, which adds its jobs via ConstructionBuildingTypes.register. */
     public static JobRegistry defaults() {
         return new JobRegistry();
     }

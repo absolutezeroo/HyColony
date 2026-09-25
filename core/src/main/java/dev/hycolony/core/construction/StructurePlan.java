@@ -2,11 +2,14 @@ package dev.hycolony.core.construction;
 
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.BlockKind;
+import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.core.kernel.port.WorldBlocks;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Precomputed, immutable work lists for one work order's plan. {@link #build} runs once per order;
@@ -28,14 +31,20 @@ public final class StructurePlan {
     private final List<BlueprintEntry> solidList;
     private final List<BlueprintEntry> decoList;
     private final List<BlockPos> removeList;
+    private final List<BlockPos> solidPositions;
+    private final List<BlockPos> decoPositions;
+    private final Map<BlockPos, BlockState> stateAt;
 
     private StructurePlan(BlockPos hut, List<BlockPos> clearList, List<BlueprintEntry> solidList,
-            List<BlueprintEntry> decoList, List<BlockPos> removeList) {
+            List<BlueprintEntry> decoList, List<BlockPos> removeList, Map<BlockPos, BlockState> stateAt) {
         this.hut = hut;
         this.clearList = clearList;
         this.solidList = solidList;
         this.decoList = decoList;
         this.removeList = removeList;
+        this.solidPositions = solidList.stream().map(this::worldPos).toList();
+        this.decoPositions = decoList.stream().map(this::worldPos).toList();
+        this.stateAt = stateAt;
     }
 
     public static StructurePlan build(Blueprint bp, BlockPos hut, ItemCatalog catalog) {
@@ -44,7 +53,9 @@ public final class StructurePlan {
         List<BlueprintEntry> solid = new ArrayList<>();
         List<BlueprintEntry> deco = new ArrayList<>();
         List<BlockPos> remove = new ArrayList<>();
+        Map<BlockPos, BlockState> stateAt = new HashMap<>();
         for (BlueprintEntry e : bp.entries()) {
+            stateAt.put(hut.offset(e.offset().x(), e.offset().y(), e.offset().z()), e.state());
             BlockKind kind = catalog.kind(e.state().key());
             switch (kind) {
                 case SOLID -> solid.add(e);
@@ -58,7 +69,7 @@ public final class StructurePlan {
         solid.sort(BOTTOM_UP);
         deco.sort(BOTTOM_UP);
         remove.sort(TOP_DOWN);
-        return new StructurePlan(hut, clear, List.copyOf(solid), List.copyOf(deco), List.copyOf(remove));
+        return new StructurePlan(hut, clear, List.copyOf(solid), List.copyOf(deco), List.copyOf(remove), stateAt);
     }
 
     /** Every position in [hut+min, hut+max], y desc then x asc then z asc, excluding the hut itself. */
@@ -87,6 +98,15 @@ public final class StructurePlan {
     public List<BlueprintEntry> decoList() { return decoList; }
 
     public List<BlockPos> removeList() { return removeList; }
+
+    /** World positions of {@link #solidList()}, same order (precomputed: the builder scans them every step). */
+    public List<BlockPos> solidPositions() { return solidPositions; }
+
+    /** World positions of {@link #decoList()}, same order. */
+    public List<BlockPos> decoPositions() { return decoPositions; }
+
+    /** The planned state at a world position, or null where the plan has nothing (air). */
+    public BlockState stateAt(BlockPos worldPos) { return stateAt.get(worldPos); }
 
     public BlockPos worldPos(BlueprintEntry e) {
         return hut.offset(e.offset().x(), e.offset().y(), e.offset().z());
