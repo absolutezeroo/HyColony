@@ -2,10 +2,12 @@ package dev.hycolony.core.citizen;
 
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
+import dev.hycolony.core.kernel.item.Inventory;
 
 /** Persistent citizen state. The in-world body is disposable and rebuilt from this. */
 public final class CitizenData {
     public static final double MAX_SATURATION = 60;
+    public static final int INVENTORY_SLOTS = 27;
 
     private final int id;
     private String name = "";
@@ -17,6 +19,7 @@ public final class CitizenData {
     private BlockPos homeBuilding;
     private BlockPos workBuilding;
     private double saturation = MAX_SATURATION;
+    private Inventory inventory = new Inventory(INVENTORY_SLOTS);
 
     public CitizenData(int id) {
         this.id = id;
@@ -41,4 +44,6 @@ public final class CitizenData {
     public void setWorkBuilding(BlockPos workBuilding) { this.workBuilding = workBuilding; }
     public double saturation() { return saturation; }
     public void setSaturation(double saturation) { this.saturation = saturation; }
+    public Inventory inventory() { return inventory; }
+    public void setInventory(Inventory inventory) { this.inventory = inventory; }
 }

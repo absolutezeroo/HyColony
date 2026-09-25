@@ -22,13 +22,18 @@ class ArchitectureTest {
             .should().onlyDependOnClassesThat().resideInAnyPackage(
                     "dev.hycolony.core.kernel..", "java..", "com.google.gson..");
 
-    /** Futurs packages de fonctionnalités : ils ne communiquent que via le kernel (spec § 2.2). */
+    /** `request` knows neither buildings nor construction: they plug in via Requester/ResolverProvider (spec § 2). */
     @ArchTest
-    static final ArchRule featurePackagesAreIsolated = noClasses()
-            .that().resideInAnyPackage("dev.hycolony.core.request..", "dev.hycolony.core.construction..",
-                    "dev.hycolony.core.job..", "dev.hycolony.core.life..", "dev.hycolony.core.defense..")
-            .should().dependOnClassesThat().resideInAnyPackage("dev.hycolony.core.request..",
-                    "dev.hycolony.core.construction..", "dev.hycolony.core.job..", "dev.hycolony.core.life..",
-                    "dev.hycolony.core.defense..")
+    static final ArchRule requestDoesNotDependOnColonyBuildingConstructionJobOrCitizen = noClasses()
+            .that().resideInAPackage("dev.hycolony.core.request..")
+            .should().dependOnClassesThat().resideInAnyPackage("dev.hycolony.core.colony..",
+                    "dev.hycolony.core.building..", "dev.hycolony.core.construction..",
+                    "dev.hycolony.core.job..", "dev.hycolony.core.citizen..")
+            .allowEmptyShould(true);
+
+    @ArchTest
+    static final ArchRule jobDoesNotDependOnConstruction = noClasses()
+            .that().resideInAPackage("dev.hycolony.core.job..")
+            .should().dependOnClassesThat().resideInAPackage("dev.hycolony.core.construction..")
             .allowEmptyShould(true);
 }

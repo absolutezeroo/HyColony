@@ -26,4 +26,5 @@ public record ColonyContext(
         BuildingRegistry buildingTypes,
         CitizenNames names,
         RandomGenerator random,
-        EventBus bus) {}
+        EventBus bus,
+        ConstructionPorts ports) {}

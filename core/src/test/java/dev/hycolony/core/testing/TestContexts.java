@@ -3,6 +3,7 @@ package dev.hycolony.core.testing;
 import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.citizen.CitizenNames;
 import dev.hycolony.core.colony.ColonyContext;
+import dev.hycolony.core.colony.ConstructionPorts;
 import dev.hycolony.core.kernel.WorldKey;
 import dev.hycolony.core.kernel.config.ColonyConfig;
 import dev.hycolony.core.kernel.event.EventBus;
@@ -21,6 +22,7 @@ public final class TestContexts {
 
     public ColonyContext context() {
         return new ColonyContext(new WorldKey("world"), config, clock, bodies, world, notifier, ui, players,
-                BuildingTypes.defaults(), CitizenNames.loadDefault(), new Random(1234), bus);
+                BuildingTypes.defaults(), CitizenNames.loadDefault(), new Random(1234), bus,
+                ConstructionPorts.unavailable());
     }
 }

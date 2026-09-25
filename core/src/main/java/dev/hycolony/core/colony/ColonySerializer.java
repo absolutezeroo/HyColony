@@ -14,15 +14,16 @@ import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.citizen.Skills;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
+import dev.hycolony.core.kernel.item.Inventory;
 import dev.hycolony.core.kernel.persist.MigrationChain;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-/** Colony <-> JSON (schema 1). Unknown buildings/modules are kept verbatim. */
+/** Colony <-> JSON (schema 2). Unknown buildings/modules are kept verbatim. */
 public final class ColonySerializer {
-    public static final int SCHEMA_VERSION = 1;
+    public static final int SCHEMA_VERSION = 2;
 
     private ColonySerializer() {}
 
@@ -34,6 +35,13 @@ public final class ColonySerializer {
         o.add("center", pos(c.center()));
         o.addProperty("day", c.day());
         o.add("permissions", permissions(c.permissions()));
+
+        // Placeholders for schema v2 fields not yet backed by a model; future tasks extend this serializer.
+        o.add("requests", new JsonObject());
+        o.add("workOrders", new JsonArray());
+        JsonObject settings = new JsonObject();
+        settings.addProperty("autoHiring", true);
+        o.add("settings", settings);
 
         JsonArray buildings = new JsonArray();
         for (Building b : c.buildings().all()) {
@@ -202,6 +210,8 @@ public final class ColonySerializer {
         });
         b.unknownModules().forEach(modules::add);
         o.add("modules", modules);
+        o.add("containers", new JsonArray());
+        o.addProperty("deconstructed", false);
         return o;
     }
 
@@ -244,6 +254,8 @@ public final class ColonySerializer {
         o.add("home", pos(d.homeBuilding()));
         o.add("work", pos(d.workBuilding()));
         o.addProperty("saturation", d.saturation());
+        o.add("inventory", d.inventory().write());
+        o.add("job", JsonNull.INSTANCE);
         return o;
     }
 
@@ -266,6 +278,7 @@ public final class ColonySerializer {
         d.setHomeBuilding(readPos(o.get("home")));
         d.setWorkBuilding(readPos(o.get("work")));
         d.setSaturation(o.get("saturation").getAsDouble());
+        d.setInventory(Inventory.read(o.getAsJsonArray("inventory"), CitizenData.INVENTORY_SLOTS));
         return d;
     }
 }

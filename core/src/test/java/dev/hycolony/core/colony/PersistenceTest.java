@@ -29,7 +29,7 @@ class PersistenceTest {
 
     private ColonyManager manager(TestContexts t) {
         ColonyManager m = new ColonyManager(t.context());
-        m.setStorage(new FileColonyStorage(dir), MigrationChain.sp0());
+        m.setStorage(new FileColonyStorage(dir), MigrationChain.sp1());
         return m;
     }
 
@@ -181,7 +181,7 @@ class PersistenceTest {
         m.saveAll();
 
         ColonyManager reloaded = new ColonyManager(new TestContexts().context());
-        reloaded.setStorage(new FlakyStorage(dir, a.id()), MigrationChain.sp0());
+        reloaded.setStorage(new FlakyStorage(dir, a.id()), MigrationChain.sp1());
         reloaded.loadAll();
 
         assertTrue(reloaded.byId(a.id()).isEmpty());
