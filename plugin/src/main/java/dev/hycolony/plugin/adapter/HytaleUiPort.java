@@ -33,6 +33,7 @@ public final class HytaleUiPort implements UiPort {
     private final HytaleBlocks blocks;
     private final String townHallBlockId;
     private final String townHallItemId;
+    private final HytaleNotifier notifier = new HytaleNotifier();
     /** Players whose page Hytale is closing right now: close() must not close it a second time. */
     private final Set<UUID> closing = new HashSet<>();
 
@@ -93,8 +94,8 @@ public final class HytaleUiPort implements UiPort {
     @Override
     public void showWorkOrders(UUID player, WorkOrdersView view) { comingSoon(player); }
 
-    private static void comingSoon(UUID player) {
-        new HytaleNotifier().send(player, Msg.of("hycolony.ui.comingSoon"));
+    private void comingSoon(UUID player) {
+        notifier.send(player, Msg.of("hycolony.ui.comingSoon"));
     }
 
     @Override

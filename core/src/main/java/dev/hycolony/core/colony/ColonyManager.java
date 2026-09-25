@@ -43,6 +43,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -53,6 +54,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.BooleanSupplier;
 
 /** All colonies of one world. Entry point the plugin calls, always on the world thread. */
 public final class ColonyManager {
@@ -439,12 +441,18 @@ public final class ColonyManager {
     }
 
     /**
-     * MC's requestRemoval on a deconstructed hut: the building leaves the colony through the normal removal path
-     * (workers fired, requests and orders cancelled). The plugin then removes the block and gives the hut item.
+     * MC's requestRemoval on a deconstructed hut (AbstractBuilding.pickUp): once every check passes, {@code giveItem}
+     * gives the player the hut item (with its level) and says whether it fit. Only then does the building leave the
+     * colony through the normal removal path (workers fired, requests and orders cancelled); the plugin removes the
+     * block. A full inventory refuses and keeps the building.
      */
-    public boolean pickUpBuilding(UUID player, BlockPos hutPos) {
+    public boolean pickUpBuilding(UUID player, BlockPos hutPos, BooleanSupplier giveItem) {
         Hut h = managedHut(player, hutPos).orElse(null);
         if (h == null || !canPickUp(h.building())) {
+            return false;
+        }
+        if (!giveItem.getAsBoolean()) {
+            ctx.notifier().send(player, Msg.of("hycolony.hut.pickupInventoryFull"));
             return false;
         }
         onHutRemoved(hutPos);
@@ -475,7 +483,7 @@ public final class ColonyManager {
         boolean manage = c.permissions().hasPermission(viewer, Action.MANAGE_HUTS);
         ctx.ui().showBuilding(viewer, new BuildingView(c.id(), b.position(), b.type().id(), b.level(),
                 b.type().maxLevel(), b.isBuilt(), b.isDeconstructed(), workers, hireable,
-                w.map(WorkerModule::hiringMode).orElse(null),
+                w.map(WorkerModule::hiringMode),
                 order.map(o -> new BuildingView.OrderRow(o.id(), o.type(), o.targetLevel(), builderName(c, o),
                         percent(c, o))),
                 allowed, ctx.ports().blueprints().styles(), b.style(), manage, manage && canPickUp(b)));
@@ -555,9 +563,15 @@ public final class ColonyManager {
                 }
             }
         }
+        // WindowClipBoard: nearest requester to the player first, then by token (no position: token order only).
+        Optional<BlockPos> at = ctx.players().position(player);
+        List<Request> sorted = new ArrayList<>(roots.values());
+        sorted.sort(Comparator.comparingLong((Request r) -> at.map(p -> c.buildings().byRequester(r.requester())
+                .map(b -> b.position().distSq(p)).orElse(Long.MAX_VALUE)).orElse(0L))
+                .thenComparing(r -> r.token().id()));
         Map<ItemKey, Integer> owned = ctx.ports().playerInventory().contents(player);
-        List<RequestsView.RequestRow> rows = new ArrayList<>(roots.size());
-        for (Request r : roots.values()) {
+        List<RequestsView.RequestRow> rows = new ArrayList<>(sorted.size());
+        for (Request r : sorted) {
             int has = 0;
             for (Map.Entry<ItemKey, Integer> e : owned.entrySet()) {
                 if (r.requestable().matches(e.getKey(), ctx.ports().catalog())) {

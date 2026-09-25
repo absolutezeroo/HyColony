@@ -3,6 +3,7 @@ package dev.hycolony.core.colony;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingType;
@@ -54,6 +55,7 @@ class ViewsTest {
     private final UUID alice = UUID.randomUUID();
     private final UUID bob = UUID.randomUUID(); // neutral: never added
     private final UUID carol = UUID.randomUUID(); // friend: may look, not manage
+    private final UUID dave = UUID.randomUUID(); // hostile
     private final BlockPos hall = new BlockPos(0, 64, 0);
     private final Colony colony;
     private final Building builder;
@@ -75,6 +77,7 @@ class ViewsTest {
         manager.beginFoundation(alice, "Alice", hall, 0);
         colony = manager.confirmFoundation(alice, "A").orElseThrow();
         assertTrue(manager.setRank(alice, colony.id(), carol, "Carol", Permissions.FRIEND));
+        assertTrue(manager.setRank(alice, colony.id(), dave, "Dave", Permissions.HOSTILE));
         bobTheBuilder = citizen(1, "Bob");
         builder = hut(ConstructionBuildingTypes.BUILDER, new BlockPos(10, 64, 0), 5);
         assertTrue(builder.module(WorkerModule.class).orElseThrow().hire(colony, builder, bobTheBuilder));
@@ -120,6 +123,9 @@ class ViewsTest {
         BuildingView decon = view(alice, res);
         assertEquals(EnumSet.of(WorkOrderType.UPGRADE, WorkOrderType.REPAIR), decon.allowed());
         assertTrue(decon.canPickUp());
+        res.setLevel(0);
+        assertEquals(EnumSet.of(WorkOrderType.REPAIR), view(alice, res).allowed(), "deconstructed at level 0: Build = REPAIR");
+        res.setLevel(2);
         res.setDeconstructed(false);
         for (WorkOrderType type : WorkOrderType.values()) { // the server's predicate, not a copy of it
             assertEquals(WorkManager.isAllowed(res, type), view(alice, res).allowed().contains(type), type.name());
@@ -186,7 +192,7 @@ class ViewsTest {
     }
 
     @Test
-    void requestsViewListsPlayerAssignedOnly() {
+    void requestsViewListsPlayerAndRetryingRoots() {
         Building hallHut = colony.buildings().at(hall).orElseThrow();
         ItemKey planks = new ItemKey("Wood_Planks");
         RequestToken retried = colony.requests().createAndAssign(hallHut, new StackRequest(planks, 10, 10, true), 1);
@@ -194,15 +200,24 @@ class ViewsTest {
         colony.requests().reassign(atPlayer, Set.of(RetryingResolver.ID));
         t.containers.insert(hallHut.containers(), new ItemAmount(planks, 2));
         colony.requests().createAndAssign(hallHut, new StackRequest(planks, 2, 2, true), -1); // the building has it
+        Building res = residence(1); // at (20, 64, 0)
+        RequestToken far = colony.requests().createAndAssign(res, new StackRequest(planks, 1, 1, true), -1);
         t.playerInventory.give(alice, new ItemAmount(planks, 7));
+        t.players.online.put(alice, new BlockPos(20, 64, 0));
 
         manager.openRequests(alice, colony.id());
 
         RequestsView v = (RequestsView) t.ui.shown.get(alice);
         assertEquals(colony.id(), v.colonyId());
-        assertEquals(Set.of(new RequestsView.RequestRow(retried, "10 x Wood_Planks", "Bob", 7),
-                new RequestsView.RequestRow(atPlayer, "3 x Wood_Planks", hallHut.displayName(), 7)), Set.copyOf(v.rows()));
-        assertEquals(2, v.rows().size());
+        // WindowClipBoard order: requester's distance to the player, then token.
+        List<RequestsView.RequestRow> hallRows = new ArrayList<>(List.of(
+                new RequestsView.RequestRow(retried, "10 x Wood_Planks", "Bob", 7),
+                new RequestsView.RequestRow(atPlayer, "3 x Wood_Planks", hallHut.displayName(), 7)));
+        hallRows.sort(java.util.Comparator.comparing(r -> r.token().id()));
+        List<RequestsView.RequestRow> expected = new ArrayList<>();
+        expected.add(new RequestsView.RequestRow(far, "1 x Wood_Planks", res.displayName(), 7));
+        expected.addAll(hallRows);
+        assertEquals(expected, v.rows());
     }
 
     @Test
@@ -213,7 +228,7 @@ class ViewsTest {
         int orderId = colony.work().byBuilding(res.position()).orElseThrow().id();
         t.ui.shown.clear();
 
-        for (UUID player : List.of(bob, carol)) {
+        for (UUID player : List.of(bob, carol, dave)) {
             assertEquals(Optional.of(WorkOrderRefusal.NO_PERMISSION),
                     manager.orderWork(player, builder.position(), WorkOrderType.UPGRADE, ""));
             assertFalse(manager.cancelWork(player, res.position()));
@@ -223,7 +238,7 @@ class ViewsTest {
             assertFalse(manager.moveWorkOrder(player, colony.id(), orderId, 1));
             assertFalse(manager.deleteWorkOrder(player, colony.id(), orderId));
             res.setDeconstructed(true);
-            assertFalse(manager.pickUpBuilding(player, res.position()));
+            assertFalse(manager.pickUpBuilding(player, res.position(), () -> fail("no item for " + player)));
             res.setDeconstructed(false);
         }
         assertTrue(colony.work().byId(orderId).isPresent());
@@ -231,13 +246,15 @@ class ViewsTest {
         assertEquals(HiringMode.DEFAULT, builder.module(WorkerModule.class).orElseThrow().hiringMode());
         assertTrue(colony.buildings().at(res.position()).isPresent());
 
-        manager.openBuilding(bob, res.position());
-        manager.openBuilderResources(bob, builder.position());
-        manager.openRequests(bob, colony.id());
-        manager.openWorkOrders(bob, colony.id());
-        assertFalse(t.ui.shown.containsKey(bob), "a neutral sees nothing");
-        assertTrue(t.notifier.sent.stream().anyMatch(s -> s.player().equals(bob)
-                && s.msg().key().equals("hycolony.permission.denied")));
+        for (UUID player : List.of(bob, dave)) {
+            manager.openBuilding(player, res.position());
+            manager.openBuilderResources(player, builder.position());
+            manager.openRequests(player, colony.id());
+            manager.openWorkOrders(player, colony.id());
+            assertFalse(t.ui.shown.containsKey(player), "neutral and hostile see nothing");
+            assertTrue(t.notifier.sent.stream().anyMatch(s -> s.player().equals(player)
+                    && s.msg().key().equals("hycolony.permission.denied")));
+        }
 
         BuildingView friendView = view(carol, res);
         assertFalse(friendView.canManage());
@@ -276,7 +293,7 @@ class ViewsTest {
         assertEquals(List.of(), v.workers());
         assertEquals(List.of(new BuildingView.WorkerRow(ann.id(), "Ann"), new BuildingView.WorkerRow(ben.id(), "Ben")),
                 v.hireable());
-        assertEquals(HiringMode.DEFAULT, v.hiringMode());
+        assertEquals(Optional.of(HiringMode.DEFAULT), v.hiringMode());
 
         assertTrue(manager.hire(alice, hut.position(), ann.id()));
         v = (BuildingView) t.ui.shown.get(alice);
@@ -291,7 +308,9 @@ class ViewsTest {
         assertFalse(manager.fire(alice, hut.position(), ann.id()), "not a worker any more");
 
         assertTrue(manager.setHiring(alice, hut.position(), HiringMode.MANUAL));
-        assertEquals(HiringMode.MANUAL, ((BuildingView) t.ui.shown.get(alice)).hiringMode());
+        assertEquals(Optional.of(HiringMode.MANUAL), ((BuildingView) t.ui.shown.get(alice)).hiringMode());
+        assertEquals(Optional.empty(), view(alice, colony.buildings().at(hall).orElseThrow()).hiringMode(),
+                "the town hall employs no one");
         assertFalse(manager.hire(alice, hall, ann.id()), "the town hall employs no one");
     }
 
@@ -299,19 +318,26 @@ class ViewsTest {
     void pickUpDeconstructedBuilding() {
         Building res = residence(2);
         assertFalse(view(alice, res).canPickUp());
-        assertFalse(manager.pickUpBuilding(alice, res.position()), "still standing: deconstruct it first");
+        assertFalse(manager.pickUpBuilding(alice, res.position(), () -> fail("checks run first")),
+                "still standing: deconstruct it first");
 
         res.setDeconstructed(true);
         assertEquals(Optional.empty(), manager.orderWork(alice, res.position(), WorkOrderType.REPAIR, ""));
         int orderId = colony.work().byBuilding(res.position()).orElseThrow().id();
-        assertTrue(manager.pickUpBuilding(alice, res.position()));
+        assertFalse(manager.pickUpBuilding(alice, res.position(), () -> false), "inventory full: refused");
+        assertTrue(colony.buildings().at(res.position()).isPresent(), "the building is kept");
+        assertTrue(colony.work().byId(orderId).isPresent());
+        assertEquals("hycolony.hut.pickupInventoryFull", t.notifier.sent.getLast().msg().key());
+        int[] given = {0};
+        assertTrue(manager.pickUpBuilding(alice, res.position(), () -> ++given[0] > 0));
+        assertEquals(1, given[0]);
         assertTrue(colony.buildings().at(res.position()).isEmpty());
         assertTrue(colony.work().byId(orderId).isEmpty(), "removed through the normal path: its order is cancelled");
 
         Building townHall = colony.buildings().at(hall).orElseThrow();
         townHall.setDeconstructed(true);
         assertFalse(view(alice, townHall).canPickUp());
-        assertFalse(manager.pickUpBuilding(alice, hall), "the town hall is never picked up");
+        assertFalse(manager.pickUpBuilding(alice, hall, () -> fail("never given")), "the town hall is never picked up");
         assertTrue(colony.buildings().at(hall).isPresent());
     }
 }
