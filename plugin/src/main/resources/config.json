@@ -1,0 +1,9 @@
+Le{
+  "InitialCitizenAmount": 4,
+  "MaxCitizenPerColony": 250,
+  "InitialColonySize": 4,
+  "MinColonyDistance": 8,
+  "MaxColonySize": 20,
+  "EnableColonyProtection": true,
+  "AutosaveIntervalMinutes": 5
+}

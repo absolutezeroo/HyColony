@@ -28,6 +28,9 @@
     ],
     "HitboxType": "Bench_Architect",
     "VariantRotation": "NESW",
+    "Interactions": {
+      "Use": "HyColony_TownHall_Use"
+    },
     "Gathering": {
       "Breaking": { "GatherType": "Benches" }
     },

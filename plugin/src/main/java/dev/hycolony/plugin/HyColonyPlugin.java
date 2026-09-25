@@ -46,8 +46,14 @@ public final class HyColonyPlugin extends JavaPlugin {
 
         // Assets (blocks, items, NPC roles) are all loaded once a world starts: validate ids there.
         getEventRegistry().registerGlobal(StartWorldEvent.class, e -> e.getWorld().execute(() -> {
-            validateIds();
-            runtimes.create(e.getWorld());
+            try {
+                validateIds();
+                runtimes.create(e.getWorld());
+                getLogger().at(Level.INFO).log("HyColony runtime ready for world '%s' (%d colonies loaded)",
+                        e.getWorld().getName(), runtimes.of(e.getWorld()).manager().all().size());
+            } catch (RuntimeException ex) {
+                getLogger().at(Level.SEVERE).withCause(ex).log("HyColony failed to start for world '%s'", e.getWorld().getName());
+            }
         }));
         getEventRegistry().registerGlobal(RemoveWorldEvent.class, e -> runtimes.remove(e.getWorld()));
         getEventRegistry().register(ShutdownEvent.class, e -> runtimes.all().forEach(rt -> rt.manager().saveAll()));
