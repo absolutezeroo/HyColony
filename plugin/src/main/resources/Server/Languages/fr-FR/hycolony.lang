@@ -18,6 +18,7 @@ ui.townhall.owner = Propriétaire : {p0}
 ui.townhall.day = Jour {p0}
 ui.townhall.citizens = Citoyens
 ui.townhall.rename = Renommer
+ui.comingSoon = Cette fenêtre arrive bientôt (à venir).
 status.idle = Inactif
 status.wandering = Se promène
 status.absent = Absent

@@ -46,8 +46,7 @@ public final class WorkManager {
 
     /**
      * Refusals in order: permission, duplicate, max level, repair of an unbuilt building, a type that does not fit
-     * the building (BUILD needs level 0 and not deconstructed, UPGRADE level 1+, REPAIR level 1+ or deconstructed),
-     * no builder of the level,
+     * the building ({@link #isAllowed}), no builder of the level,
      * no builder within 100 blocks (unless one is chosen), no blueprint, footprint outside the colony.
      * {@code buildingPos} must hold a building of this colony.
      */
@@ -68,13 +67,7 @@ public final class WorkManager {
         if (type == WorkOrderType.REPAIR && level == 0 && !b.isDeconstructed()) {
             return refuse(WorkOrderRefusal.NOT_BUILT);
         }
-        boolean validType = switch (type) {
-            case BUILD -> level == 0 && !b.isDeconstructed();
-            case UPGRADE -> level >= 1;
-            case REPAIR -> level > 0 || b.isDeconstructed();
-            case REMOVE -> level > 0 && !b.isDeconstructed(); // deconstructed: MC picks the hut up instead
-        };
-        if (!validType) {
+        if (!isAllowed(b, type)) {
             return refuse(WorkOrderRefusal.INVALID_TYPE);
         }
         // WorkOrderBuilding.create: REMOVE targets 0 but follows the plan of the current level.
@@ -273,6 +266,21 @@ public final class WorkManager {
                 colony.markDirty();
             }
         }
+    }
+
+    /**
+     * Whether {@code type} fits the building; the hut window shows exactly these buttons. BUILD: level 0, not
+     * deconstructed; UPGRADE: 1 <= level < max; REPAIR: level 1+ or deconstructed; REMOVE: level 1+, not deconstructed
+     * (a deconstructed hut is picked up instead, as in MC).
+     */
+    public static boolean isAllowed(Building b, WorkOrderType type) {
+        int level = b.level();
+        return switch (type) {
+            case BUILD -> level == 0 && !b.isDeconstructed();
+            case UPGRADE -> level >= 1 && level < b.type().maxLevel();
+            case REPAIR -> level > 0 || b.isDeconstructed();
+            case REMOVE -> level > 0 && !b.isDeconstructed();
+        };
     }
 
     /** WorkOrderBuilding.canBuild: level high enough, or level 5, or its own hut; and within 100 blocks. */

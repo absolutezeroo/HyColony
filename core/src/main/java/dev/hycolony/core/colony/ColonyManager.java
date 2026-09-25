@@ -4,14 +4,24 @@ import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.citizen.CitizenData;
+import dev.hycolony.core.colony.ui.BuilderResourcesView;
+import dev.hycolony.core.colony.ui.BuildingView;
 import dev.hycolony.core.colony.ui.CitizenRow;
 import dev.hycolony.core.colony.ui.FoundColonyView;
+import dev.hycolony.core.colony.ui.RequestsView;
 import dev.hycolony.core.colony.ui.TownHallView;
+import dev.hycolony.core.colony.ui.WorkOrdersView;
+import dev.hycolony.core.construction.BuildingResourcesModule;
+import dev.hycolony.core.construction.NeededResources;
+import dev.hycolony.core.construction.WorkManager;
 import dev.hycolony.core.construction.WorkOrder;
 import dev.hycolony.core.construction.WorkOrderRefusal;
 import dev.hycolony.core.construction.WorkOrderType;
+import dev.hycolony.core.job.HiringMode;
+import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Either;
+import dev.hycolony.core.kernel.item.Inventory;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.persist.ColonyStorage;
@@ -30,8 +40,10 @@ import dev.hycolony.core.request.resolver.PlayerResolver;
 import dev.hycolony.core.request.resolver.RetryingResolver;
 import com.google.gson.JsonObject;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -215,11 +227,18 @@ public final class ColonyManager {
             return;
         }
         Colony c = colony.get();
-        if (!c.permissions().hasPermission(player, Action.ACCESS_HUTS)) {
-            ctx.notifier().send(player, Msg.of("hycolony.permission.denied", c.name()));
-            return;
+        if (canAccess(c, player)) {
+            ctx.ui().showTownHall(player, townHallView(c, player));
         }
-        ctx.ui().showTownHall(player, townHallView(c, player));
+    }
+
+    /** ACCESS_HUTS, else the player is told. */
+    private boolean canAccess(Colony c, UUID player) {
+        if (c.permissions().hasPermission(player, Action.ACCESS_HUTS)) {
+            return true;
+        }
+        ctx.notifier().send(player, Msg.of("hycolony.permission.denied", c.name()));
+        return false;
     }
 
     public boolean rename(UUID actor, int colonyId, String rawName) {
@@ -289,14 +308,46 @@ public final class ColonyManager {
         if (c == null || c.buildings().at(buildingPos).isEmpty()) {
             return Optional.empty();
         }
-        return switch (c.work().request(player, buildingPos, type, style, builder)) {
-            case Either.Left<WorkOrder, WorkOrderRefusal> created -> Optional.of(created.value());
-            case Either.Right<WorkOrder, WorkOrderRefusal> refused -> {
-                ctx.notifier().send(player,
-                        Msg.of("hycolony.workorder.refused." + refused.value().name().toLowerCase(Locale.ROOT)));
-                yield Optional.empty();
-            }
-        };
+        return submitWorkOrder(c, player, buildingPos, type, style, builder)
+                instanceof Either.Left<WorkOrder, WorkOrderRefusal> created ? Optional.of(created.value()) : Optional.empty();
+    }
+
+    /** The hut window's order button: empty on success (the window is re-shown), else the refusal. */
+    public Optional<WorkOrderRefusal> orderWork(UUID player, BlockPos hutPos, WorkOrderType type, String style) {
+        Colony c = colonyAt(hutPos).orElse(null);
+        Building b = c == null ? null : c.buildings().at(hutPos).orElse(null);
+        if (b == null) {
+            return Optional.of(WorkOrderRefusal.INVALID_TYPE); // the hut is gone
+        }
+        if (submitWorkOrder(c, player, hutPos, type, style, Optional.empty())
+                instanceof Either.Right<WorkOrder, WorkOrderRefusal> refused) {
+            return Optional.of(refused.value());
+        }
+        showBuilding(c, b, player);
+        return Optional.empty();
+    }
+
+    /** On refusal the player gets its message. */
+    private Either<WorkOrder, WorkOrderRefusal> submitWorkOrder(Colony c, UUID player, BlockPos pos, WorkOrderType type,
+            String style, Optional<BlockPos> builder) {
+        Either<WorkOrder, WorkOrderRefusal> r = c.work().request(player, pos, type, style, builder);
+        if (r instanceof Either.Right<WorkOrder, WorkOrderRefusal> refused) {
+            ctx.notifier().send(player,
+                    Msg.of("hycolony.workorder.refused." + refused.value().name().toLowerCase(Locale.ROOT)));
+        }
+        return r;
+    }
+
+    /** The hut window's Cancel button (MANAGE_HUTS). */
+    public boolean cancelWork(UUID player, BlockPos hutPos) {
+        Hut h = managedHut(player, hutPos).orElse(null);
+        Optional<WorkOrder> order = h == null ? Optional.empty() : h.colony().work().byBuilding(hutPos);
+        if (order.isEmpty()) {
+            return false;
+        }
+        h.colony().work().cancel(order.get().id());
+        showBuilding(h.colony(), h.building(), player);
+        return true;
     }
 
     /** Town hall info tab up/down arrows: {@code delta > 0} moves the order up. */
@@ -306,6 +357,7 @@ public final class ColonyManager {
             return false;
         }
         c.work().move(orderId, delta);
+        ctx.ui().showWorkOrders(player, workOrdersView(c, player));
         return true;
     }
 
@@ -315,10 +367,210 @@ public final class ColonyManager {
             return false;
         }
         c.work().cancel(orderId);
+        ctx.ui().showWorkOrders(player, workOrdersView(c, player));
         return true;
     }
 
+    public void openWorkOrders(UUID player, int colonyId) {
+        Colony c = colonies.get(colonyId);
+        if (c != null && canAccess(c, player)) {
+            ctx.ui().showWorkOrders(player, workOrdersView(c, player));
+        }
+    }
+
+    private WorkOrdersView workOrdersView(Colony c, UUID viewer) {
+        List<WorkOrdersView.OrderLine> lines = c.work().ordered().stream().map(o -> new WorkOrdersView.OrderLine(o.id(),
+                o.type(), c.buildings().at(o.buildingPos()).map(Building::displayName).orElse(""), o.targetLevel(),
+                o.priority(), builderName(c, o))).toList();
+        return new WorkOrdersView(c.id(), lines, c.permissions().hasPermission(viewer, Action.MANAGE_HUTS));
+    }
+
+    // ---- Hut windows ----
+
+    private record Hut(Colony colony, Building building) {}
+
+    /** The hut at {@code pos} if {@code player} may manage it (MANAGE_HUTS, as MC's building messages). */
+    private Optional<Hut> managedHut(UUID player, BlockPos pos) {
+        return colonyAt(pos).filter(c -> c.permissions().hasPermission(player, Action.MANAGE_HUTS))
+                .flatMap(c -> c.buildings().at(pos).map(b -> new Hut(c, b)));
+    }
+
+    /** Any hut's window (ACCESS_HUTS); the town hall's window reaches it through its "building" action. */
+    public void openBuilding(UUID player, BlockPos hutPos) {
+        Colony c = colonyAt(hutPos).orElse(null);
+        Building b = c == null ? null : c.buildings().at(hutPos).orElse(null);
+        if (b != null && canAccess(c, player)) {
+            showBuilding(c, b, player);
+        }
+    }
+
+    public boolean hire(UUID player, BlockPos hutPos, int citizenId) {
+        Hut h = managedHut(player, hutPos).orElse(null);
+        WorkerModule w = h == null ? null : h.building().module(WorkerModule.class).orElse(null);
+        CitizenData citizen = w == null ? null : h.colony().citizens().get(citizenId).orElse(null);
+        if (citizen == null || citizen.isChild() || !w.hire(h.colony(), h.building(), citizen)) {
+            return false;
+        }
+        showBuilding(h.colony(), h.building(), player);
+        return true;
+    }
+
+    public boolean fire(UUID player, BlockPos hutPos, int citizenId) {
+        Hut h = managedHut(player, hutPos).orElse(null);
+        WorkerModule w = h == null ? null : h.building().module(WorkerModule.class).orElse(null);
+        if (w == null || !w.workers().contains(citizenId)) {
+            return false;
+        }
+        w.fire(h.colony(), h.building(), citizenId);
+        showBuilding(h.colony(), h.building(), player);
+        return true;
+    }
+
+    public boolean setHiring(UUID player, BlockPos hutPos, HiringMode mode) {
+        Hut h = managedHut(player, hutPos).orElse(null);
+        WorkerModule w = h == null ? null : h.building().module(WorkerModule.class).orElse(null);
+        if (w == null || mode == null) {
+            return false;
+        }
+        w.setHiringMode(mode);
+        h.colony().markDirty();
+        showBuilding(h.colony(), h.building(), player);
+        return true;
+    }
+
+    /**
+     * MC's requestRemoval on a deconstructed hut: the building leaves the colony through the normal removal path
+     * (workers fired, requests and orders cancelled). The plugin then removes the block and gives the hut item.
+     */
+    public boolean pickUpBuilding(UUID player, BlockPos hutPos) {
+        Hut h = managedHut(player, hutPos).orElse(null);
+        if (h == null || !canPickUp(h.building())) {
+            return false;
+        }
+        onHutRemoved(hutPos);
+        ctx.ui().close(player);
+        return true;
+    }
+
+    private static boolean canPickUp(Building b) {
+        return b.isDeconstructed() && !b.type().equals(BuildingTypes.TOWN_HALL);
+    }
+
+    private void showBuilding(Colony c, Building b, UUID viewer) {
+        Optional<WorkerModule> w = b.module(WorkerModule.class);
+        List<BuildingView.WorkerRow> workers = w.map(m -> m.workers().stream()
+                .flatMap(id -> c.citizens().get(id).stream()).map(ColonyManager::workerRow).toList()).orElse(List.of());
+        List<BuildingView.WorkerRow> hireable = w.isEmpty() ? List.of() : c.citizens().all().stream()
+                .filter(d -> !d.isChild() && d.job().isEmpty() && d.workBuilding() == null)
+                .map(ColonyManager::workerRow).toList();
+        Optional<WorkOrder> order = c.work().byBuilding(b.position());
+        Set<WorkOrderType> allowed = EnumSet.noneOf(WorkOrderType.class);
+        if (order.isEmpty()) {
+            for (WorkOrderType type : WorkOrderType.values()) {
+                if (WorkManager.isAllowed(b, type)) {
+                    allowed.add(type);
+                }
+            }
+        }
+        boolean manage = c.permissions().hasPermission(viewer, Action.MANAGE_HUTS);
+        ctx.ui().showBuilding(viewer, new BuildingView(c.id(), b.position(), b.type().id(), b.level(),
+                b.type().maxLevel(), b.isBuilt(), b.isDeconstructed(), workers, hireable,
+                w.map(WorkerModule::hiringMode).orElse(null),
+                order.map(o -> new BuildingView.OrderRow(o.id(), o.type(), o.targetLevel(), builderName(c, o),
+                        percent(c, o))),
+                allowed, ctx.ports().blueprints().styles(), b.style(), manage, manage && canPickUp(b)));
+    }
+
+    private static BuildingView.WorkerRow workerRow(CitizenData d) {
+        return new BuildingView.WorkerRow(d.id(), d.name());
+    }
+
+    private static Optional<CitizenData> firstWorker(Colony c, Building b) {
+        return b.module(WorkerModule.class).flatMap(w -> w.workers().stream().findFirst()).flatMap(c.citizens()::get);
+    }
+
+    private static Optional<String> builderName(Colony c, WorkOrder o) {
+        return o.claimedBy().flatMap(c.buildings()::at).flatMap(hut -> firstWorker(c, hut)).map(CitizenData::name);
+    }
+
+    /** The order's progress, from its builder's resources module once that builder started it; 0 before. */
+    private static int percent(Colony c, WorkOrder o) {
+        return o.claimedBy().flatMap(c.buildings()::at).flatMap(hut -> hut.module(BuildingResourcesModule.class))
+                .filter(m -> m.orderId() == o.id()).map(m -> percent(m.needs())).orElse(0);
+    }
+
+    /** BuildingResourcesModuleView.getProgress: 100 minus the share of the plan's items still to place. */
+    private static int percent(NeededResources needs) {
+        int total = needs.sequence().size();
+        return total == 0 ? 0 : Math.max(100 - (int) (needs.total() * 100.0 / total), 0);
+    }
+
+    /** The builder hut's resources tab (ACCESS_HUTS). */
+    public void openBuilderResources(UUID player, BlockPos hutPos) {
+        Colony c = colonyAt(hutPos).orElse(null);
+        Building hut = c == null ? null : c.buildings().at(hutPos).orElse(null);
+        BuildingResourcesModule m = hut == null ? null : hut.module(BuildingResourcesModule.class).orElse(null);
+        if (m == null || !canAccess(c, player)) {
+            return;
+        }
+        Optional<WorkOrder> order = c.work().claimedBy(hutPos);
+        List<BuilderResourcesView.ResourceRow> rows = new ArrayList<>();
+        if (order.isPresent() && m.orderId() == order.get().id()) {
+            ConstructionPorts ports = ctx.ports();
+            Optional<Inventory> inv = firstWorker(c, hut).map(CitizenData::inventory);
+            List<BlockPos> containers = hut.containers();
+            m.needs().remaining().forEach((item, needed) -> {
+                int available = inv.map(i -> i.count(item)).orElse(0) + ports.containers().count(containers, item);
+                int has = ports.playerInventory().count(player, item);
+                rows.add(new BuilderResourcesView.ResourceRow(item, needed, available, has,
+                        BuilderResourcesView.Status.of(needed, available, has)));
+            });
+        }
+        ctx.ui().showBuilderResources(player, new BuilderResourcesView(c.id(), hutPos, rows,
+                order.map(o -> percent(c, o)).orElse(0),
+                order.map(o -> o.stage().name().toLowerCase(Locale.ROOT)).orElse("")));
+    }
+
     // ---- Requests: the player's "Fournir" / "Ajouter" ----
+
+    /** The clipboard (ACCESS_HUTS): root requests held by the player or retrying resolver, as WindowClipBoard. */
+    public void openRequests(UUID player, int colonyId) {
+        Colony c = colonies.get(colonyId);
+        if (c == null || !canAccess(c, player)) {
+            return;
+        }
+        RequestManager m = c.requests();
+        Map<RequestToken, Request> roots = new LinkedHashMap<>();
+        for (String resolver : List.of(PlayerResolver.ID, RetryingResolver.ID)) {
+            for (Request r : m.assignedTo(resolver)) {
+                if (r.state().ordinal() >= RequestState.COMPLETED.ordinal()) {
+                    continue;
+                }
+                Request root = r;
+                while (root != null && root.parent().isPresent()) {
+                    root = m.get(root.parent().get()).orElse(null);
+                }
+                if (root != null) {
+                    roots.putIfAbsent(root.token(), root);
+                }
+            }
+        }
+        Map<ItemKey, Integer> owned = ctx.ports().playerInventory().contents(player);
+        List<RequestsView.RequestRow> rows = new ArrayList<>(roots.size());
+        for (Request r : roots.values()) {
+            int has = 0;
+            for (Map.Entry<ItemKey, Integer> e : owned.entrySet()) {
+                if (r.requestable().matches(e.getKey(), ctx.ports().catalog())) {
+                    has += e.getValue();
+                }
+            }
+            String requester = r.citizenId() != -1
+                    ? c.citizens().get(r.citizenId()).map(CitizenData::name).orElse("")
+                    : c.buildings().byRequester(r.requester()).map(Building::displayName).orElse(r.requester().value());
+            rows.add(new RequestsView.RequestRow(r.token(), r.requestable().describe(), requester, has));
+        }
+        ctx.ui().showRequests(player, new RequestsView(c.id(), rows));
+    }
 
     /**
      * "Fournir": moves min(requested, owned) from the player to the requesting citizen (or, for the building

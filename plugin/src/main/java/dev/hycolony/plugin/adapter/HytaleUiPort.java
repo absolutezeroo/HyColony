@@ -9,10 +9,15 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.colony.ColonyManager;
+import dev.hycolony.core.colony.ui.BuilderResourcesView;
+import dev.hycolony.core.colony.ui.BuildingView;
 import dev.hycolony.core.colony.ui.FoundColonyView;
+import dev.hycolony.core.colony.ui.RequestsView;
 import dev.hycolony.core.colony.ui.TownHallView;
 import dev.hycolony.core.colony.ui.UiPort;
+import dev.hycolony.core.colony.ui.WorkOrdersView;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.port.Msg;
 import dev.hycolony.plugin.ui.FoundColonyPage;
 import dev.hycolony.plugin.ui.TownHallPage;
 import java.util.HashSet;
@@ -73,6 +78,23 @@ public final class HytaleUiPort implements UiPort {
     @Override
     public void showTownHall(UUID player, TownHallView view) {
         open(player, pr -> new TownHallPage(pr, view, name -> manager.get().rename(player, view.colonyId(), name)));
+    }
+
+    // Temporary: the real windows come in plan B.
+    @Override
+    public void showBuilding(UUID player, BuildingView view) { comingSoon(player); }
+
+    @Override
+    public void showBuilderResources(UUID player, BuilderResourcesView view) { comingSoon(player); }
+
+    @Override
+    public void showRequests(UUID player, RequestsView view) { comingSoon(player); }
+
+    @Override
+    public void showWorkOrders(UUID player, WorkOrdersView view) { comingSoon(player); }
+
+    private static void comingSoon(UUID player) {
+        new HytaleNotifier().send(player, Msg.of("hycolony.ui.comingSoon"));
     }
 
     @Override
