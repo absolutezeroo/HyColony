@@ -8,11 +8,15 @@ import com.google.gson.JsonParser;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.persist.ColonyStorage;
 import dev.hycolony.core.kernel.persist.FileColonyStorage;
 import dev.hycolony.core.kernel.persist.MigrationChain;
 import dev.hycolony.core.testing.TestContexts;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -116,5 +120,59 @@ class PersistenceTest {
         m.deleteColony(c.id());
         assertTrue(Files.notExists(dir.resolve("colony-" + c.id() + ".json")));
         assertTrue(Files.isDirectory(dir.resolve("archive")));
+    }
+
+    /** Fails to load one chosen colony id while delegating everything else to a real FileColonyStorage. */
+    private static final class FlakyStorage implements ColonyStorage {
+        private final FileColonyStorage delegate;
+        private final int failingId;
+
+        FlakyStorage(Path dir, int failingId) {
+            this.delegate = new FileColonyStorage(dir);
+            this.failingId = failingId;
+        }
+
+        @Override
+        public List<Integer> colonyIds() throws IOException { return delegate.colonyIds(); }
+
+        @Override
+        public int highestIdEverUsed() throws IOException { return delegate.highestIdEverUsed(); }
+
+        @Override
+        public Optional<JsonObject> load(int id) throws IOException {
+            if (id == failingId) {
+                throw new IOException("simulated read failure for colony " + id);
+            }
+            return delegate.load(id);
+        }
+
+        @Override
+        public void save(int id, String json) throws IOException { delegate.save(id, json); }
+
+        @Override
+        public void backupVersion(int id, int schemaVersion, String json) throws IOException {
+            delegate.backupVersion(id, schemaVersion, json);
+        }
+
+        @Override
+        public void archive(int id) throws IOException { delegate.archive(id); }
+    }
+
+    @Test
+    void loadAllContinuesAfterOneColonyIOException() {
+        TestContexts t = new TestContexts();
+        ColonyManager m = manager(t);
+        m.beginFoundation(alice, "Alice", new BlockPos(0, 64, 0), 0);
+        Colony a = m.confirmFoundation(alice, "A").orElseThrow();
+        m.beginFoundation(bob, "Bob", new BlockPos(2000, 64, 0), 0);
+        Colony b = m.confirmFoundation(bob, "B").orElseThrow();
+        m.saveAll();
+
+        ColonyManager reloaded = new ColonyManager(new TestContexts().context());
+        reloaded.setStorage(new FlakyStorage(dir, a.id()), MigrationChain.sp0());
+        reloaded.loadAll();
+
+        assertTrue(reloaded.byId(a.id()).isEmpty());
+        assertTrue(reloaded.byId(b.id()).isPresent());
     }
 }

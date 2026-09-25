@@ -282,14 +282,15 @@ public final class ColonyManager {
         }
     }
 
-    private void loadOne(int id) throws IOException {
-        Optional<JsonObject> raw = storage.load(id);
-        if (raw.isEmpty()) {
-            return;
-        }
-        JsonObject json = raw.get();
-        int version = migrations.versionOf(json);
+    /** One colony's failure (corrupt file, I/O error, newer schema) must not stop the others from loading. */
+    private void loadOne(int id) {
         try {
+            Optional<JsonObject> raw = storage.load(id);
+            if (raw.isEmpty()) {
+                return;
+            }
+            JsonObject json = raw.get();
+            int version = migrations.versionOf(json);
             if (version < migrations.current()) {
                 storage.backupVersion(id, version, json.toString());
             }
@@ -300,6 +301,9 @@ public final class ColonyManager {
         } catch (SchemaTooNewException e) {
             lockedIds.add(id);
             LOG.log(System.Logger.Level.ERROR, "Colony " + id + " was saved by a newer HyColony; not loaded", e);
+        } catch (IOException e) {
+            lockedIds.add(id);
+            LOG.log(System.Logger.Level.ERROR, "Colony " + id + " failed to load; file left untouched", e);
         } catch (RuntimeException e) {
             lockedIds.add(id);
             LOG.log(System.Logger.Level.ERROR, "Colony " + id + " failed to load; file left untouched", e);

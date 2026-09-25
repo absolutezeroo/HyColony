@@ -12,6 +12,8 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -20,6 +22,7 @@ import java.util.stream.Stream;
 public final class FileColonyStorage implements ColonyStorage {
     private static final System.Logger LOG = System.getLogger(FileColonyStorage.class.getName());
     private static final Pattern LIVE = Pattern.compile("colony-(\\d+)\\.json");
+    private static final Pattern BAK = Pattern.compile("colony-(\\d+)\\.json\\.bak");
     private static final Pattern ANY = Pattern.compile("colony-(\\d+)\\D.*");
 
     private final Path dir;
@@ -33,20 +36,26 @@ public final class FileColonyStorage implements ColonyStorage {
 
     @Override
     public List<Integer> colonyIds() throws IOException {
-        List<Integer> ids = new ArrayList<>();
+        // A colony with only a .bak (crash between the two moves in save()) is still loadable: include it.
+        Set<Integer> ids = new TreeSet<>();
         if (!Files.isDirectory(dir)) {
-            return ids;
+            return List.of();
         }
         try (Stream<Path> files = Files.list(dir)) {
             files.forEach(f -> {
-                Matcher m = LIVE.matcher(f.getFileName().toString());
-                if (m.matches()) {
-                    ids.add(Integer.parseInt(m.group(1)));
+                String name = f.getFileName().toString();
+                Matcher live = LIVE.matcher(name);
+                if (live.matches()) {
+                    ids.add(Integer.parseInt(live.group(1)));
+                    return;
+                }
+                Matcher bak = BAK.matcher(name);
+                if (bak.matches()) {
+                    ids.add(Integer.parseInt(bak.group(1)));
                 }
             });
         }
-        ids.sort(null);
-        return ids;
+        return new ArrayList<>(ids);
     }
 
     @Override
@@ -70,11 +79,23 @@ public final class FileColonyStorage implements ColonyStorage {
 
     @Override
     public Optional<JsonObject> load(int id) throws IOException {
-        Optional<JsonObject> json = parse(main(id)).or(() -> parse(bak(id)));
-        if (json.isEmpty() && (Files.exists(main(id)) || Files.exists(bak(id)))) {
+        Optional<JsonObject> fromMain = parse(main(id));
+        if (fromMain.isPresent()) {
+            return fromMain;
+        }
+        Optional<JsonObject> fromBak = parse(bak(id));
+        if (fromBak.isPresent()) {
+            // The main file exists but didn't parse: quarantine it now, so the next save() doesn't
+            // rotate it onto .bak and destroy the good backup we just recovered from.
+            if (Files.exists(main(id))) {
+                quarantineFile(main(id));
+            }
+            return fromBak;
+        }
+        if (Files.exists(main(id)) || Files.exists(bak(id))) {
             quarantine(id);
         }
-        return json;
+        return Optional.empty();
     }
 
     private Optional<JsonObject> parse(Path file) {
@@ -90,14 +111,17 @@ public final class FileColonyStorage implements ColonyStorage {
     }
 
     private void quarantine(int id) throws IOException {
-        Path corrupt = Files.createDirectories(dir.resolve("corrupt"));
-        long stamp = System.currentTimeMillis();
         for (Path f : List.of(main(id), bak(id))) {
             if (Files.exists(f)) {
-                Files.move(f, corrupt.resolve(f.getFileName() + "." + stamp), StandardCopyOption.REPLACE_EXISTING);
+                quarantineFile(f);
             }
         }
-        LOG.log(System.Logger.Level.ERROR, "Colony " + id + " is unreadable and was moved to " + corrupt);
+        LOG.log(System.Logger.Level.ERROR, "Colony " + id + " is unreadable and was moved to " + dir.resolve("corrupt"));
+    }
+
+    private void quarantineFile(Path f) throws IOException {
+        Path corrupt = Files.createDirectories(dir.resolve("corrupt"));
+        Files.move(f, corrupt.resolve(f.getFileName() + "." + System.currentTimeMillis()), StandardCopyOption.REPLACE_EXISTING);
     }
 
     @Override
