@@ -1,6 +1,7 @@
 package dev.hycolony.core.building;
 
 import com.google.gson.JsonObject;
+import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.request.RequesterId;
 import java.util.ArrayList;
@@ -80,11 +81,11 @@ public final class BuildingManager {
         return Collections.unmodifiableCollection(buildings.values());
     }
 
-    public void onColonyTick() {
+    public void onColonyTick(Colony colony) {
         for (Building building : buildings.values()) {
             for (BuildingModule module : building.modules().values()) {
                 if (module instanceof TickingModule ticking) {
-                    ticking.onColonyTick(building);
+                    ticking.onColonyTick(colony, building);
                 }
             }
         }

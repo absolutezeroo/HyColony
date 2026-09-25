@@ -12,6 +12,7 @@ import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Gender;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.citizen.Skills;
+import dev.hycolony.core.job.Job;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.item.Inventory;
@@ -38,10 +39,10 @@ public final class ColonySerializer {
         o.add("permissions", permissions(c.permissions()));
 
         o.add("requests", RequestSerializer.write(c.requests()));
-        // Placeholders for schema v2 fields not yet backed by a model; future tasks extend this serializer.
+        // Placeholder for a schema v2 field not yet backed by a model; a future task extends this serializer.
         o.add("workOrders", new JsonArray());
         JsonObject settings = new JsonObject();
-        settings.addProperty("autoHiring", true);
+        settings.addProperty("autoHiring", c.settings().autoHiring());
         o.add("settings", settings);
 
         JsonArray buildings = new JsonArray();
@@ -75,6 +76,12 @@ public final class ColonySerializer {
         Colony c = new Colony(ctx, territory, o.get("id").getAsInt(), o.get("name").getAsString(),
                 readPos(o.getAsJsonObject("center")), readPermissions(o.getAsJsonObject("permissions")));
         c.setDay(o.get("day").getAsInt());
+        if (o.has("settings")) {
+            JsonObject settings = o.getAsJsonObject("settings");
+            if (settings.has("autoHiring")) {
+                c.settings().setAutoHiring(settings.get("autoHiring").getAsBoolean());
+            }
+        }
         for (JsonElement el : o.getAsJsonArray("buildings")) {
             JsonObject b = el.getAsJsonObject();
             Optional<BuildingType> type = ctx.buildingTypes().byId(b.get("type").getAsString());
@@ -85,7 +92,7 @@ public final class ColonySerializer {
             c.buildings().add(readBuilding(b, type.get()));
         }
         for (JsonElement el : o.getAsJsonArray("citizens")) {
-            c.citizens().restore(readCitizen(el.getAsJsonObject()));
+            c.citizens().restore(readCitizen(el.getAsJsonObject(), ctx));
         }
         // After the buildings: they re-registered as resolver providers.
         if (o.has("requests")) {
@@ -267,11 +274,11 @@ public final class ColonySerializer {
         o.add("work", pos(d.workBuilding()));
         o.addProperty("saturation", d.saturation());
         o.add("inventory", d.inventory().write());
-        o.add("job", JsonNull.INSTANCE);
+        o.add("job", d.job().<JsonElement>map(Job::write).orElse(JsonNull.INSTANCE));
         return o;
     }
 
-    private static CitizenData readCitizen(JsonObject o) {
+    private static CitizenData readCitizen(JsonObject o, ColonyContext ctx) {
         CitizenData d = new CitizenData(o.get("id").getAsInt());
         d.setName(o.get("name").getAsString());
         d.setGender(Gender.valueOf(o.get("gender").getAsString()));
@@ -291,6 +298,15 @@ public final class ColonySerializer {
         d.setWorkBuilding(readPos(o.get("work")));
         d.setSaturation(o.get("saturation").getAsDouble());
         d.setInventory(Inventory.read(o.getAsJsonArray("inventory"), CitizenData.INVENTORY_SLOTS));
+        if (o.has("job") && !o.get("job").isJsonNull()) {
+            JsonObject jobJson = o.getAsJsonObject("job");
+            String typeId = jobJson.get("type").getAsString();
+            ctx.jobs().byId(typeId).ifPresent(type -> {
+                Job job = type.factory().apply(d);
+                job.read(jobJson);
+                d.setJob(job);
+            });
+        }
         return d;
     }
 }

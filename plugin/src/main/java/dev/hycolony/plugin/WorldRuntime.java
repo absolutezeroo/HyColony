@@ -7,6 +7,7 @@ import dev.hycolony.core.citizen.CitizenNames;
 import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.ConstructionPorts;
+import dev.hycolony.core.job.JobRegistry;
 import dev.hycolony.core.kernel.WorldKey;
 import dev.hycolony.core.kernel.config.ColonyConfig;
 import dev.hycolony.core.kernel.event.EventBus;
@@ -45,8 +46,8 @@ public final class WorldRuntime {
         ColonyContext ctx = new ColonyContext(new WorldKey(world.getName()), config, clock, bodies,
                 new HytaleWorldQuery(world), new HytaleNotifier(),
                 new HytaleUiPort(() -> self[0], blocks, ids.blockId("hut.townhall"), ids.itemId("hut.townhall")),
-                new HytalePlayerDirectory(world), BuildingTypes.defaults(), names, new Random(), new EventBus(),
-                ConstructionPorts.unavailable());
+                new HytalePlayerDirectory(world), BuildingTypes.defaults(), JobRegistry.defaults(), names,
+                new Random(), new EventBus(), ConstructionPorts.unavailable());
         this.manager = new ColonyManager(ctx);
         self[0] = manager;
         manager.setStorage(new FileColonyStorage(world.getSavePath().resolve("hycolony")), MigrationChain.sp1());

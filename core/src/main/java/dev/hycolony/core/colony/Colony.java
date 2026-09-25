@@ -36,6 +36,7 @@ public final class Colony {
     private final BuildingManager buildings;
     private final RequestManager requests;
     private final CitizenManager citizens;
+    private final ColonySettings settings = new ColonySettings();
     private final EventLog log = new EventLog();
     private final TickRateStateMachine<ColonyState> machine;
     private int day;
@@ -130,7 +131,7 @@ public final class Colony {
     }
 
     private void slowTick() {
-        buildings.onColonyTick();
+        buildings.onColonyTick(this);
         citizens.onColonyTick();
     }
 
@@ -150,6 +151,7 @@ public final class Colony {
     public Permissions permissions() { return permissions; }
     public BuildingManager buildings() { return buildings; }
     public CitizenManager citizens() { return citizens; }
+    public ColonySettings settings() { return settings; }
     public RequestManager requests() { return requests; }
     public EventLog log() { return log; }
     public int day() { return day; }

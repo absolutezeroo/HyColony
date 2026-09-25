@@ -4,14 +4,26 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.gson.JsonObject;
+import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.Permissions;
+import dev.hycolony.core.colony.TerritoryIndex;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.testing.TestContexts;
 import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 class BuildingManagerTest {
+    private final TestContexts t = new TestContexts();
+
     static final class Counter implements TickingModule {
         int ticks;
         @Override public void onColonyTick(Building building) { ticks++; }
+    }
+
+    private Colony colony() {
+        return new Colony(t.context(), new TerritoryIndex(), 1, "T", new BlockPos(0, 64, 0),
+                Permissions.createDefault(UUID.randomUUID(), "A"));
     }
 
     @Test
@@ -27,8 +39,9 @@ class BuildingManagerTest {
         Building b = Building.create(type, new BlockPos(1, 2, 3), 1);
         BuildingManager m = new BuildingManager();
         m.add(b);
-        m.onColonyTick();
-        m.onColonyTick();
+        Colony c = colony();
+        m.onColonyTick(c);
+        m.onColonyTick(c);
         assertEquals(2, b.module(Counter.class).orElseThrow().ticks);
         assertEquals(0, b.level());
     }

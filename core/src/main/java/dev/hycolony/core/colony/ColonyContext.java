@@ -3,6 +3,7 @@ package dev.hycolony.core.colony;
 import dev.hycolony.core.building.BuildingRegistry;
 import dev.hycolony.core.citizen.CitizenNames;
 import dev.hycolony.core.colony.ui.UiPort;
+import dev.hycolony.core.job.JobRegistry;
 import dev.hycolony.core.kernel.WorldKey;
 import dev.hycolony.core.kernel.config.ColonyConfig;
 import dev.hycolony.core.kernel.event.EventBus;
@@ -24,6 +25,7 @@ public record ColonyContext(
         UiPort ui,
         PlayerDirectory players,
         BuildingRegistry buildingTypes,
+        JobRegistry jobs,
         CitizenNames names,
         RandomGenerator random,
         EventBus bus,

@@ -1,6 +1,7 @@
 package dev.hycolony.core.citizen;
 
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.job.JobAI;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.ai.AITarget;
@@ -11,7 +12,7 @@ import dev.hycolony.core.kernel.port.CitizenBodies;
 import dev.hycolony.core.kernel.port.NavStatus;
 import java.util.random.RandomGenerator;
 
-/** Top-level citizen AI. SP0: idle, then wander within 10 blocks of the town hall. */
+/** Top-level citizen AI. Idle, wander, or work its job if it has one. */
 public final class CitizenAI {
     private static final System.Logger LOG = System.getLogger(CitizenAI.class.getName());
     private static final int WANDER_RADIUS = 10;
@@ -26,6 +27,7 @@ public final class CitizenAI {
     private final TickRateStateMachine<CitizenState> machine;
     private int idleTicksLeft;
     private int wanderTicks;
+    private JobAI jobAI;
 
     public CitizenAI(Colony colony, CitizenData data, BodyId body) {
         this.colony = colony;
@@ -37,6 +39,7 @@ public final class CitizenAI {
         this.machine = new TickRateStateMachine<>(CitizenState.IDLE, this::onException);
         machine.addTransition(new AITarget<>(CitizenState.IDLE, (IStateSupplier<CitizenState>) this::idle, 20));
         machine.addTransition(new AITarget<>(CitizenState.WANDERING, (IStateSupplier<CitizenState>) this::wander, 5));
+        machine.addTransition(new AITarget<>(CitizenState.WORKING, (IStateSupplier<CitizenState>) this::work, 1));
     }
 
     public void tick() {
@@ -53,6 +56,10 @@ public final class CitizenAI {
     }
 
     private CitizenState idle() {
+        if (data.job().isPresent() && bodies.isAlive(body)) {
+            jobAI = data.job().get().createAI(colony, body);
+            return CitizenState.WORKING;
+        }
         idleTicksLeft -= 20;
         if (idleTicksLeft > 0) {
             return null;
@@ -78,6 +85,15 @@ public final class CitizenAI {
             idleTicksLeft = nextIdle();
             return CitizenState.IDLE;
         }
+        return null;
+    }
+
+    private CitizenState work() {
+        if (data.job().isEmpty()) {
+            jobAI = null;
+            return CitizenState.IDLE;
+        }
+        jobAI.tick();
         return null;
     }
 
