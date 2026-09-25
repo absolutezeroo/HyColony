@@ -1,6 +1,7 @@
 package dev.hycolony.core.colony;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -8,6 +9,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
+import dev.hycolony.core.construction.ClaimRadius;
+import dev.hycolony.core.construction.ConstructionBuildingTypes;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.persist.ColonyStorage;
@@ -208,5 +211,29 @@ class PersistenceTest {
 
         assertTrue(reloaded.byId(a.id()).isEmpty());
         assertTrue(reloaded.byId(b.id()).isPresent());
+    }
+
+    /** Simulation: the cells a finished building claimed were lost at the next load. */
+    @Test
+    void claimsOfBuiltBuildingsSurviveReload() {
+        TestContexts t = new TestContexts();
+        ColonyManager m = manager(t);
+        m.beginFoundation(alice, "Alice", new BlockPos(0, 64, 0), 0);
+        Colony c = m.confirmFoundation(alice, "A").orElseThrow();
+        BlockPos edge = new BlockPos(70, 64, 0), beyond = new BlockPos(85, 64, 0), unbuilt = new BlockPos(-70, 64, 0);
+        m.placeHut(c, ConstructionBuildingTypes.BUILDER.id(), edge, 0);
+        m.placeHut(c, ConstructionBuildingTypes.RESIDENCE.id(), unbuilt, 0);
+        c.buildings().at(edge).orElseThrow().setLevel(1);
+        c.claimAround(edge, ClaimRadius.of(ConstructionBuildingTypes.BUILDER.id(), 1)); // as a finished build does
+        assertTrue(c.contains(beyond));
+        m.saveAll();
+
+        ColonyManager reloaded = manager(new TestContexts());
+        reloaded.loadAll();
+
+        Colony r = reloaded.byId(c.id()).orElseThrow();
+        assertTrue(r.contains(beyond));
+        assertFalse(r.contains(new BlockPos(-85, 64, 0))); // level 0 claims nothing
+        assertFalse(r.isDirty());
     }
 }

@@ -12,6 +12,7 @@ import dev.hycolony.core.colony.ui.RequestsView;
 import dev.hycolony.core.colony.ui.TownHallView;
 import dev.hycolony.core.colony.ui.WorkOrdersView;
 import dev.hycolony.core.construction.BuildingResourcesModule;
+import dev.hycolony.core.construction.ClaimRadius;
 import dev.hycolony.core.construction.NeededResources;
 import dev.hycolony.core.construction.WorkManager;
 import dev.hycolony.core.construction.WorkOrder;
@@ -804,6 +805,12 @@ public final class ColonyManager {
         colonies.put(colony.id(), colony);
         reserveId(colony.id());
         territory.claimSquare(colony.id(), ClaimCell.of(colony.center()), ctx.config().initialColonySize());
+        // The territory is not saved: the cells finished buildings claimed are claimed again (level 0 claims none).
+        for (Building b : colony.buildings().all()) {
+            if (b.level() > 0) {
+                colony.claimAround(b.position(), ClaimRadius.of(b.type().id(), b.level()));
+            }
+        }
         colony.markDirty();
     }
 }
