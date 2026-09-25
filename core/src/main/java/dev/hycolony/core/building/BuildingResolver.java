@@ -37,6 +37,7 @@ public final class BuildingResolver implements Resolver {
     @Override public String resolverId() { return id; }
     @Override public int priority() { return PRIORITY; }
     @Override public boolean handles(Deliverable requestable) { return true; }
+    @Override public Optional<RequesterId> servesOnly() { return Optional.of(building.requesterId()); }
     @Override public Optional<List<Deliverable>> attemptResolve(RequestManager m, Request r) { return Optional.of(List.of()); }
     @Override public double suitability(RequestManager m, Request r) { return 0; }
 

@@ -38,6 +38,10 @@ public final class RequestManager {
 
     /** Sorted by priority descending, registration order within a priority. */
     private final List<Resolver> resolvers = new ArrayList<>();
+    /** The resolvers offered every request ({@link Resolver#servesOnly()} empty), sorted the same way. */
+    private final List<Resolver> shared = new ArrayList<>();
+    /** The others, by the one requester they serve (a building's own resolver): an O(1) lookup per assignment. */
+    private final Map<RequesterId, List<Resolver>> ownResolvers = new HashMap<>();
     private final Map<String, Resolver> resolversById = new HashMap<>();
     private final Map<RequesterId, Resolver> resolversByRequesterId = new HashMap<>();
     private final Map<String, List<Resolver>> providers = new HashMap<>();
@@ -102,12 +106,31 @@ public final class RequestManager {
     private void register(Resolver r) {
         checkRegistrable(r);
         resolversById.put(r.resolverId(), r);
+        insertByPriority(resolvers, r);
+        Optional<RequesterId> only = r.servesOnly();
+        insertByPriority(only.isEmpty() ? shared : ownResolvers.computeIfAbsent(only.get(), k -> new ArrayList<>()), r);
+        resolversByRequesterId.put(r.requesterId(), r);
+    }
+
+    /** After every resolver of the same or a higher priority. */
+    private static void insertByPriority(List<Resolver> list, Resolver r) {
         int i = 0;
-        while (i < resolvers.size() && resolvers.get(i).priority() >= r.priority()) {
+        while (i < list.size() && list.get(i).priority() >= r.priority()) {
             i++;
         }
-        resolvers.add(i, r);
-        resolversByRequesterId.put(r.requesterId(), r);
+        list.add(i, r);
+    }
+
+    /** The resolvers a request of {@code requester} is offered, by priority. */
+    private List<Resolver> candidates(RequesterId requester) {
+        List<Resolver> own = ownResolvers.get(requester);
+        if (own == null) {
+            return shared;
+        }
+        List<Resolver> all = new ArrayList<>(shared.size() + own.size());
+        all.addAll(shared);
+        own.forEach(r -> insertByPriority(all, r));
+        return all;
     }
 
     private void removeProvider(String providerId) {
@@ -138,6 +161,13 @@ public final class RequestManager {
         }
         for (Resolver r : list) {
             resolvers.remove(r);
+            shared.remove(r);
+            r.servesOnly().ifPresent(only -> {
+                List<Resolver> own = ownResolvers.get(only);
+                if (own != null && own.remove(r) && own.isEmpty()) {
+                    ownResolvers.remove(only);
+                }
+            });
             resolversById.remove(r.resolverId());
             resolversByRequesterId.remove(r.requesterId(), r);
         }
@@ -387,7 +417,7 @@ public final class RequestManager {
         Resolver winner = null;
         double winnerMetric = Double.MAX_VALUE;
         List<RequestToken> attempt = List.of();
-        for (Resolver r : resolvers) {
+        for (Resolver r : candidates(req.requester())) {
             if (blacklist.contains(r.resolverId()) || beingRemoved.contains(r.resolverId())
                     || !r.handles(req.requestable())) {
                 continue;

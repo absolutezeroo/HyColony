@@ -17,6 +17,14 @@ public interface Resolver extends Requester {
 
     boolean handles(Deliverable requestable);
 
+    /**
+     * Present when the resolver only ever serves this requester's requests (a building's own stock): the manager
+     * then offers it those alone, found by requester, instead of offering it every request.
+     */
+    default Optional<RequesterId> servesOnly() {
+        return Optional.empty();
+    }
+
     boolean canResolve(RequestManager m, Request r);
 
     /** Empty = cannot resolve; otherwise the children to create (possibly none). */

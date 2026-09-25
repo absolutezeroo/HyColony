@@ -89,6 +89,7 @@ class RequestManagerTest {
         List<Deliverable> children = List.of();
         List<Deliverable> followups = List.of();
         Predicate<Deliverable> handles = d -> true;
+        RequesterId servesOnly;
         int canResolveCalls, attempts, ticks;
         final List<Request> assigned = new ArrayList<>();
         final List<Request> resolved = new ArrayList<>();
@@ -105,6 +106,7 @@ class RequestManagerTest {
         @Override public String resolverId() { return name; }
         @Override public int priority() { return priority; }
         @Override public boolean handles(Deliverable d) { return handles.test(d); }
+        @Override public Optional<RequesterId> servesOnly() { return Optional.ofNullable(servesOnly); }
         @Override public double suitability(RequestManager mm, Request r) { return suitability; }
 
         @Override
@@ -641,5 +643,22 @@ class RequestManagerTest {
             manager.createAndAssign(hut, stack(items[i % items.length]), i % 7);
         }
         return System.nanoTime() - start;
+    }
+
+    @Test
+    void ownResolverIsOfferedOnlyItsRequestersRequests() {
+        TestRequester other = requester("other");
+        FixedResolver own = new FixedResolver("own", 200, 0);
+        own.servesOnly = hut.requesterId();
+        m.registerBuiltIn(own);
+        FixedResolver player = resolver("player", 0, 0);
+
+        RequestToken fromOther = m.createAndAssign(other, stack(PLANK), -1);
+        assertEquals(0, own.canResolveCalls);
+        assertSame(player, m.resolverOf(fromOther).orElseThrow());
+
+        RequestToken fromHut = m.createAndAssign(hut, stack(PLANK), -1);
+        assertEquals(1, own.canResolveCalls);
+        assertSame(own, m.resolverOf(fromHut).orElseThrow());
     }
 }
