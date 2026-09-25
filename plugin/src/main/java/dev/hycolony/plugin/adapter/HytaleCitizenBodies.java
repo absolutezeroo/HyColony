@@ -4,6 +4,8 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Rotation3f;
+import com.hypixel.hytale.protocol.AnimationSlot;
+import com.hypixel.hytale.server.core.entity.AnimationUtils;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -11,6 +13,7 @@ import com.hypixel.hytale.server.npc.NPCPlugin;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 import com.hypixel.hytale.server.npc.movement.NavState;
 import com.hypixel.hytale.server.npc.role.support.DisplayNameSupport;
+import com.hypixel.hytale.server.npc.util.InventoryHelper;
 import com.hypixel.hytale.server.spawning.SpawnTestResult;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
@@ -174,11 +177,33 @@ public final class HytaleCitizenBodies implements CitizenBodies {
         }
     }
 
-    /** No-op for now: held items arrive with the plan B adapters. */
+    /** Hotbar slot 0 of the NPC (the role's default hotbar has 3 slots). */
     @Override
-    public void setHeldItem(BodyId body, Optional<ItemKey> item) {}
+    public void setHeldItem(BodyId body, Optional<ItemKey> item) {
+        Ref<EntityStore> ref = ref(body);
+        if (ref == null) {
+            return;
+        }
+        if (item.isEmpty()) {
+            InventoryHelper.clearItemInHand(ref, (byte) 0, store());
+        } else if (InventoryHelper.setHotbarItem(ref, item.get().id(), (byte) 0, store())) {
+            InventoryHelper.setHotbarSlot(ref, (byte) 0, store());
+        }
+    }
 
-    /** No-op for now: animations arrive with the plan B adapters. */
+    /**
+     * Plays an item animation on the Action slot (the model has no work animations of its own).
+     * Fallback if the client shows nothing: {@code "Default", "SwingRight"}.
+     */
     @Override
-    public void playAnimation(BodyId body, BodyAnimation animation) {}
+    public void playAnimation(BodyId body, BodyAnimation animation) {
+        Ref<EntityStore> ref = ref(body);
+        if (ref == null) {
+            return;
+        }
+        switch (animation) {
+            case BUILD -> AnimationUtils.playAnimation(ref, AnimationSlot.Action, "Block", "Build", store());
+            case MINE -> AnimationUtils.playAnimation(ref, AnimationSlot.Action, "Pickaxe", "Mine", store());
+        }
+    }
 }
