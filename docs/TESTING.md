@@ -18,3 +18,8 @@ Pour obtenir l'objet : `/give HyColony_TownHall`.
    Si l'aube réelle ne correspond pas, ajuster `HytaleGameClock.DAY_START_HOUR` et `NIGHT_START_HOUR`.
 8. **Selftest.** En opérateur, `/hycolony selftest` : toutes les lignes sont `[OK]`.
 9. **Fichiers.** `<sauvegarde du monde>/hycolony/colony-1.json` existe et contient `"schemaVersion":1`.
+10. **Échap.** A pose un hôtel de ville hors colonie, puis ferme la fenêtre « Fonder une colonie » avec Échap.
+    Attendu : le bloc disparaît, l'objet tombe au sol, et le serveur ne plante pas.
+11. **Commandes réservées.** B, non opérateur, lance `/hycolony delete 1` puis `/hycolony selftest` : les deux sont refusées.
+12. **Citoyens orphelins.** Placer des citoyens dans des chunks, s'en éloigner pour les décharger, supprimer la colonie avec `/hycolony delete`, puis redémarrer et revenir.
+    Attendu : aucun plantage, et les PNJ orphelins sont retirés.
