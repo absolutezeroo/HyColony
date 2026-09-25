@@ -1,0 +1,10 @@
+{
+  "order": "WESTERN",
+  "maleFirstNames": ["Aldric", "Bram", "Corwin", "Dorian", "Edric", "Falk", "Garrick", "Hale", "Isen", "Jory",
+    "Kael", "Lorin", "Merek", "Nils", "Orin", "Perrin", "Quill", "Rook", "Soren", "Tobin", "Ulric", "Varek", "Wystan", "Yorick"],
+  "femaleFirstNames": ["Aela", "Brina", "Cessa", "Dalia", "Elowen", "Fenna", "Gwyn", "Hesta", "Ilsa", "Jessa",
+    "Kira", "Liora", "Maren", "Nell", "Orla", "Pella", "Rhosyn", "Sela", "Tilda", "Una", "Vessa", "Wren", "Yara", "Zinnia"],
+  "surnames": ["Ashdown", "Brightwater", "Coldbrook", "Dunmere", "Emberfield", "Fairwind", "Greymantle", "Hollowell",
+    "Ironwood", "Kettleby", "Longmead", "Mossvale", "Northcott", "Oakhart", "Pinecroft", "Quarrystone", "Ravensworth",
+    "Stonebridge", "Thornbury", "Underhill", "Westmarch", "Wildermoor"]
+}
