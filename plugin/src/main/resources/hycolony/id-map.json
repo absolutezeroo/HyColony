@@ -1,0 +1,5 @@
+{
+  "items":  { "hut.townhall": "HyColony_TownHall" },
+  "blocks": { "hut.townhall": "HyColony_TownHall" },
+  "npcRoles": { "npc.citizen": "HyColony_Citizen" }
+}
