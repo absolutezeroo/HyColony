@@ -2,6 +2,7 @@ package dev.hycolony.core.request;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.kernel.BlockPos;
@@ -497,6 +498,71 @@ class RequestManagerTest {
         assertEquals(1, b.ticks);
         assertEquals(List.of(which), a.updates);
         assertEquals(List.of(which), b.updates);
+    }
+
+    @Test
+    void duplicateRequesterIdIsRejected() {
+        resolver("a", 100, 0);
+        FixedResolver sameRequesterId = new FixedResolver("a", 50, 0) {
+            @Override public String resolverId() { return "a-bis"; }
+        };
+        assertThrows(IllegalArgumentException.class, () -> m.registerBuiltIn(sameRequesterId));
+
+        FixedResolver clashesWithHut = new FixedResolver("hut", 50, 0); // requesterId "req:hut" is a known requester
+        assertThrows(IllegalArgumentException.class, () -> m.registerBuiltIn(clashesWithHut));
+
+        RequestToken t = m.createAndAssign(hut, stack(PLANK), -1);
+        assertEquals("a", resolverOf(t).resolverId(), "rejected resolvers were not registered");
+    }
+
+    @Test
+    void providerWithDuplicateIdRegistersNothing() {
+        FixedResolver taken = resolver("taken", 0, 0);
+        FixedResolver fresh = new FixedResolver("fresh", 200, 0);
+        FixedResolver dup = new FixedResolver("taken", 150, 0);
+        ResolverProvider bad = provider("p", fresh, dup);
+        assertThrows(IllegalArgumentException.class, () -> m.onProviderAdded(bad));
+
+        RequestToken t = m.createAndAssign(hut, stack(PLANK), -1);
+        assertSame(taken, resolverOf(t));
+        assertEquals(0, fresh.canResolveCalls, "fresh must not be partially registered");
+
+        FixedResolver f1 = new FixedResolver("f1", 200, 0);
+        FixedResolver f1again = new FixedResolver("f2", 200, 0) {
+            @Override public String resolverId() { return "f1"; }
+        };
+        assertThrows(IllegalArgumentException.class, () -> m.onProviderAdded(provider("q", f1, f1again)),
+                "duplicates inside the provider itself");
+        m.onProviderAdded(provider("p", fresh)); // the failed provider id is still free
+        assertSame(fresh, resolverOf(m.createAndAssign(hut, stack(PLANK), -1)));
+    }
+
+    ResolverProvider provider(String id, Resolver... rs) {
+        return new ResolverProvider() {
+            @Override public String providerId() { return id; }
+            @Override public List<Resolver> resolvers() { return List.of(rs); }
+        };
+    }
+
+    @Test
+    void failingOpDoesNotLeakQueuedOpsIntoNextCall() {
+        FixedResolver boom = new FixedResolver("boom", 100, 0) {
+            @Override
+            public void resolve(RequestManager mm, Request r) {
+                mm.updateState(r.token(), RequestState.RESOLVED); // queued...
+                throw new IllegalStateException("boom");           // ...then the op fails
+            }
+        };
+        m.registerBuiltIn(boom);
+
+        assertThrows(IllegalStateException.class, () -> m.createAndAssign(hut, stack(PLANK), -1));
+        Request r = m.all().iterator().next();
+        assertEquals(RequestState.IN_PROGRESS, r.state());
+
+        m.tick();
+
+        assertEquals(RequestState.IN_PROGRESS, r.state(), "the queued RESOLVED was dropped, not run later");
+        assertTrue(hut.completed.isEmpty());
     }
 
     @Test

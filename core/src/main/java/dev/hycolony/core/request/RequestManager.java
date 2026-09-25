@@ -67,6 +67,16 @@ public final class RequestManager {
             throw new IllegalArgumentException("Provider already registered: " + p.providerId());
         }
         List<Resolver> list = List.copyOf(p.resolvers());
+        // Validate everything first, so a failure leaves nothing partially registered.
+        Set<String> ids = new HashSet<>();
+        Set<RequesterId> requesterIds = new HashSet<>();
+        for (Resolver r : list) {
+            checkRegistrable(r);
+            if (!ids.add(r.resolverId()) || !requesterIds.add(r.requesterId())) {
+                throw new IllegalArgumentException("Duplicate resolver in provider " + p.providerId() + ": "
+                        + r.resolverId());
+            }
+        }
         list.forEach(this::register);
         providers.put(p.providerId(), list);
     }
@@ -76,10 +86,20 @@ public final class RequestManager {
         submit(() -> removeProvider(p.providerId()));
     }
 
-    private void register(Resolver r) {
-        if (resolversById.putIfAbsent(r.resolverId(), r) != null) {
+    /** Resolver ids and requester ids must be unique; a requester id must not belong to a registry requester. */
+    private void checkRegistrable(Resolver r) {
+        if (resolversById.containsKey(r.resolverId())) {
             throw new IllegalArgumentException("Resolver already registered: " + r.resolverId());
         }
+        if (resolversByRequesterId.containsKey(r.requesterId()) || requesters.find(r.requesterId()).isPresent()) {
+            throw new IllegalArgumentException("Requester id already in use: " + r.requesterId().value()
+                    + " (resolver " + r.resolverId() + ")");
+        }
+    }
+
+    private void register(Resolver r) {
+        checkRegistrable(r);
+        resolversById.put(r.resolverId(), r);
         int i = 0;
         while (i < resolvers.size() && resolvers.get(i).priority() >= r.priority()) {
             i++;
@@ -247,13 +267,21 @@ public final class RequestManager {
             return;
         }
         processing = true;
+        boolean ok = false;
         try {
             Runnable next;
             while ((next = queue.pollFirst()) != null) {
                 next.run();
             }
+            ok = true;
         } finally {
             processing = false;
+            if (!ok && !queue.isEmpty()) {
+                // Never replay them inside an unrelated later call.
+                LOG.log(System.Logger.Level.WARNING, "An operation failed; dropping {0} queued request operation(s)",
+                        queue.size());
+                queue.clear();
+            }
         }
     }
 
@@ -307,7 +335,7 @@ public final class RequestManager {
 
         if (winner == null) {
             req.setState(RequestState.REPORTED);
-            LOG.log(System.Logger.Level.WARNING, "No resolver for {0}", req);
+            LOG.log(System.Logger.Level.DEBUG, "No resolver for {0}", req); // REPORTED is a legitimate state
             return;
         }
         resolveWith(req, winner, blacklist, attempt);

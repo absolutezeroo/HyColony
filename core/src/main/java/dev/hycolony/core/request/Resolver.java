@@ -4,7 +4,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-/** MineColonies IRequestResolver. A resolver is also the requester of the children it asks for. */
+/**
+ * MineColonies IRequestResolver. A resolver is also the requester of the children it asks for, so its
+ * {@link #requesterId()} must be unique among resolvers and distinct from every other requester's id (e.g. a
+ * building's): use {@code "resolver:" + resolverId()}. {@link RequestManager} rejects a duplicate.
+ */
 public interface Resolver extends Requester {
     /** Stable, persisted, e.g. "building:1,64,2" / "player" / "retrying". */
     String resolverId();
