@@ -532,7 +532,8 @@ public final class BuilderAI implements JobAI {
             case REMOVE -> world != null && mineable(world) && notAHut(pos);
             default -> {
                 BlueprintEntry e = (stage == Stage.SOLID ? plan.solidList() : plan.decoList()).get(i);
-                yield !e.state().equals(world) && (world == null || catalog.kind(world.key()) != BlockKind.UNBREAKABLE);
+                yield !e.state().equals(world) && (world == null || catalog.kind(world.key()) != BlockKind.UNBREAKABLE)
+                        && notAHut(pos); // MC IBuilderUndestroyable: a colony hut is never built over
             }
         };
     }
@@ -545,7 +546,7 @@ public final class BuilderAI implements JobAI {
 
     private boolean mustMineFirst(BlockPos pos) {
         BlockState world = blocks.get(pos).orElse(null);
-        return world != null && mineable(world);
+        return world != null && mineable(world) && notAHut(pos);
     }
 
     private boolean notAHut(BlockPos pos) {

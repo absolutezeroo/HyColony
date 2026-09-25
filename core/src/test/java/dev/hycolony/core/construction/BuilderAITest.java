@@ -736,4 +736,23 @@ class BuilderAITest {
         assertEquals(1, citizen.inventory().count(shovel));
         assertTrue(builderRequests().stream().noneMatch(r -> r.requestable() instanceof ToolRequest));
     }
+
+    // ---- final fix wave ----
+
+    /** MC IBuilderUndestroyable: another hut standing where the plan wants a block is neither mined nor built over. */
+    @Test
+    void builderNeverMinesAnotherHut() {
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);
+        BlockPos other = at(2, 0, 0);
+        hut(ConstructionBuildingTypes.RESIDENCE, other, 1);
+        t.blocks.blocks.put(other, new BlockState(DIRT, 0)); // the other hut's block
+        blueprint = bp(List.of(entry(1, 0, 0, STONE), entry(2, 0, 0, STONE), entry(3, 0, 0, STONE)));
+        give(STONE_I, 3);
+        WorkOrder o = order(res, WorkOrderType.UPGRADE);
+
+        tickUntil(() -> gone(o), 5000);
+
+        assertEquals(new BlockState(DIRT, 0), t.blocks.blocks.get(other));
+        assertEquals(List.of(at(1, 0, 0), at(3, 0, 0)), t.blocks.placed);
+    }
 }

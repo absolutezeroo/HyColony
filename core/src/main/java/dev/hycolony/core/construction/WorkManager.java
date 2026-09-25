@@ -93,7 +93,7 @@ public final class WorkManager {
                 return refuse(WorkOrderRefusal.BUILDER_NECESSARY);
             }
         }
-        String resolvedStyle = resolveStyle(style, b);
+        String resolvedStyle = resolveStyle(style, type, b);
         Optional<Blueprint> blueprint = colony.context().ports().blueprints()
                 .load(resolvedStyle, b.type().id(), blueprintLevel, b.rotation());
         if (blueprint.isEmpty()) {
@@ -107,6 +107,9 @@ public final class WorkManager {
                 b.rotation());
         builder.ifPresent(order::setClaimedBy);
         add(order);
+        if (type == WorkOrderType.BUILD) {
+            b.setStyle(resolvedStyle); // the building keeps the style it is built in
+        }
         colony.markDirty();
         Msg created = Msg.of("hycolony.workorder.created", b.displayName(), colony.name(),
                 String.valueOf(buildingPos.x()), String.valueOf(buildingPos.y()), String.valueOf(buildingPos.z()));
@@ -326,7 +329,11 @@ public final class WorkManager {
         return b.type().equals(ConstructionBuildingTypes.BUILDER) && target == b.level() + 1;
     }
 
-    private String resolveStyle(String style, Building b) {
+    /** A built building keeps its style: only a BUILD may choose one. */
+    private String resolveStyle(String style, WorkOrderType type, Building b) {
+        if (type != WorkOrderType.BUILD && !b.style().isEmpty()) {
+            return b.style();
+        }
         if (style != null && !style.isEmpty()) {
             return style;
         }

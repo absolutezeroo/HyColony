@@ -542,4 +542,27 @@ class WorkManagerTest {
         assertRefused(WorkOrderRefusal.NO_PERMISSION, colony.work().request(UUID.randomUUID(), other.position(),
                 WorkOrderType.BUILD, "", Optional.empty()));
     }
+
+    // ---- final fix wave ----
+
+    @Test
+    void buildingKeepsTheStyleItWasBuiltIn() {
+        builder(new BlockPos(10, 64, 0), 5);
+        Building res = residence(new BlockPos(20, 64, 0), 0);
+        Either<WorkOrder, WorkOrderRefusal> r = colony.work().request(alice, res.position(), WorkOrderType.BUILD,
+                "desert", Optional.empty());
+        WorkOrder build = ((Either.Left<WorkOrder, WorkOrderRefusal>) r).value();
+        assertEquals("desert", res.style());
+        colony.work().complete(build);
+        res.setLevel(1);
+        loads.clear();
+
+        WorkOrder remove = created(res.position(), WorkOrderType.REMOVE);
+
+        assertEquals("desert", remove.style());
+        assertEquals(List.of("desert/hycolony:residence/1/0"), loads);
+        colony.work().cancel(remove.id());
+        colony.work().request(alice, res.position(), WorkOrderType.REPAIR, "medieval", Optional.empty());
+        assertEquals("desert", colony.work().byBuilding(res.position()).orElseThrow().style());
+    }
 }
