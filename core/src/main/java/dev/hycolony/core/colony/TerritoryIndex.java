@@ -23,6 +23,23 @@ public final class TerritoryIndex {
         }
     }
 
+    /**
+     * Like {@link #claimSquare}, but only claims cells within {@code maxSize} (Chebyshev distance)
+     * of {@code colonyCenter}. Never steals a cell.
+     */
+    public void claimSquareBounded(int colonyId, ClaimCell center, int radius, ClaimCell colonyCenter, int maxSize) {
+        for (int dx = -radius; dx <= radius; dx++) {
+            for (int dz = -radius; dz <= radius; dz++) {
+                ClaimCell cell = new ClaimCell(center.x() + dx, center.z() + dz);
+                int distFromCenter = Math.max(Math.abs(cell.x() - colonyCenter.x()), Math.abs(cell.z() - colonyCenter.z()));
+                if (distFromCenter > maxSize) {
+                    continue;
+                }
+                owners.putIfAbsent(cell, colonyId);
+            }
+        }
+    }
+
     public void releaseAll(int colonyId) {
         owners.values().removeIf(id -> id == colonyId);
     }
