@@ -1,0 +1,132 @@
+package dev.hycolony.core.citizen;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import dev.hycolony.core.building.Building;
+import dev.hycolony.core.building.BuildingTypes;
+import dev.hycolony.core.colony.ClaimCell;
+import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.Permissions;
+import dev.hycolony.core.colony.TerritoryIndex;
+import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.Vec3;
+import dev.hycolony.core.kernel.port.BodyId;
+import dev.hycolony.core.testing.TestContexts;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
+
+class CitizenManagerTest {
+    private final TestContexts t = new TestContexts();
+    private final BlockPos hall = new BlockPos(0, 64, 0);
+
+    private Colony colonyWithTownHall() {
+        TerritoryIndex territory = new TerritoryIndex();
+        territory.claimSquare(1, ClaimCell.of(hall), 4);
+        Colony c = new Colony(t.context(), territory, 1, "Test", hall, Permissions.createDefault(UUID.randomUUID(), "A"));
+        c.buildings().add(Building.create(BuildingTypes.TOWN_HALL, hall, 0));
+        return c;
+    }
+
+    /** Slow ticks as the colony would run them. */
+    private void slowTicks(Colony c, int n) {
+        for (int i = 0; i < n; i++) {
+            c.citizens().onColonyTick();
+        }
+    }
+
+    @Test
+    void initialCitizensFollowMineColoniesTimers() {
+        Colony c = colonyWithTownHall();
+        slowTicks(c, 1); // 600 - 500 = 100 > 0
+        assertEquals(0, c.citizens().all().size());
+        slowTicks(c, 1); // -400 -> spawn, reset to 1200
+        assertEquals(1, c.citizens().all().size());
+        slowTicks(c, 2); // 700, 200
+        assertEquals(1, c.citizens().all().size());
+        slowTicks(c, 1); // -300 -> spawn
+        assertEquals(2, c.citizens().all().size());
+        slowTicks(c, 30);
+        assertEquals(4, c.citizens().all().size()); // capped at initialCitizenAmount
+        assertEquals(4, t.bodies.aliveCount());
+    }
+
+    @Test
+    void noSpawnWithoutTownHall() {
+        TerritoryIndex territory = new TerritoryIndex();
+        Colony c = new Colony(t.context(), territory, 1, "T", hall, Permissions.createDefault(UUID.randomUUID(), "A"));
+        slowTicks(c, 20);
+        assertEquals(0, c.citizens().all().size());
+    }
+
+    @Test
+    void gendersAreBalancedAfterFirstCitizen() {
+        Colony c = colonyWithTownHall();
+        slowTicks(c, 40);
+        long females = c.citizens().all().stream().filter(d -> d.gender() == Gender.FEMALE).count();
+        assertEquals(2, females);
+    }
+
+    @Test
+    void idsStartAtOneAndSkillsRespectInitialCap() {
+        Colony c = colonyWithTownHall();
+        slowTicks(c, 40);
+        assertEquals(java.util.List.of(1, 2, 3, 4), c.citizens().all().stream().map(CitizenData::id).toList());
+        for (CitizenData d : c.citizens().all()) {
+            for (Skill s : Skill.values()) {
+                assertTrue(d.skills().level(s) >= 1 && d.skills().level(s) <= 9); // cap (int)5.5*2 = 10
+            }
+            assertFalse(d.name().isBlank());
+            assertEquals(CitizenData.MAX_SATURATION, d.saturation());
+        }
+    }
+
+    @Test
+    void deadBodyRespawnsOnlyAfterTimerAndIfLoaded() {
+        Colony c = colonyWithTownHall();
+        slowTicks(c, 2);
+        CitizenData d = c.citizens().all().iterator().next();
+        BodyId body = c.citizens().bodyOf(d.id()).orElseThrow();
+        t.bodies.despawn(body);
+        t.world.loaded = false;
+        slowTicks(c, 12); // respawn timer (6000) elapses, but chunk unloaded
+        assertTrue(c.citizens().bodyOf(d.id()).map(b -> !t.bodies.isAlive(b)).orElse(true));
+        t.world.loaded = true;
+        slowTicks(c, 13);
+        assertTrue(t.bodies.isAlive(c.citizens().bodyOf(d.id()).orElseThrow()));
+    }
+
+    @Test
+    void bodyLoadedTwiceKeepsFirstAndDespawnsSecond() {
+        Colony c = colonyWithTownHall();
+        CitizenData d = new CitizenData(7);
+        c.citizens().restore(d);
+        BodyId first = t.bodies.existing(1, 7, new Vec3(1, 64, 1));
+        BodyId second = t.bodies.existing(1, 7, new Vec3(2, 64, 2));
+        c.citizens().onBodyLoaded(first, 7);
+        c.citizens().onBodyLoaded(second, 7);
+        assertEquals(first, c.citizens().bodyOf(7).orElseThrow());
+        assertTrue(t.bodies.isAlive(first));
+        assertFalse(t.bodies.isAlive(second));
+    }
+
+    @Test
+    void bodyOfUnknownCitizenIsDespawned() {
+        Colony c = colonyWithTownHall();
+        BodyId stray = t.bodies.existing(1, 99, new Vec3(0, 64, 0));
+        c.citizens().onBodyLoaded(stray, 99);
+        assertFalse(t.bodies.isAlive(stray));
+    }
+
+    @Test
+    void tickDataRecordsLastPosition() {
+        Colony c = colonyWithTownHall();
+        slowTicks(c, 2);
+        CitizenData d = c.citizens().all().iterator().next();
+        BodyId body = c.citizens().bodyOf(d.id()).orElseThrow();
+        t.bodies.bodies.get(body).position = new Vec3(5, 64, 5);
+        c.citizens().tickData();
+        assertEquals(new Vec3(5, 64, 5), d.lastPosition());
+    }
+}

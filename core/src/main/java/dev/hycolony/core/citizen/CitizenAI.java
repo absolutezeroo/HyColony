@@ -1,0 +1,87 @@
+package dev.hycolony.core.citizen;
+
+import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.Vec3;
+import dev.hycolony.core.kernel.ai.AITarget;
+import dev.hycolony.core.kernel.ai.IStateSupplier;
+import dev.hycolony.core.kernel.ai.TickRateStateMachine;
+import dev.hycolony.core.kernel.port.BodyId;
+import dev.hycolony.core.kernel.port.CitizenBodies;
+import dev.hycolony.core.kernel.port.NavStatus;
+import java.util.random.RandomGenerator;
+
+/** Top-level citizen AI. SP0: idle, then wander within 10 blocks of the town hall. */
+public final class CitizenAI {
+    private static final System.Logger LOG = System.getLogger(CitizenAI.class.getName());
+    private static final int WANDER_RADIUS = 10;
+    private static final int IDLE_MIN_TICKS = 200, IDLE_MAX_TICKS = 400;
+    private static final int WANDER_TIMEOUT_TICKS = 600;
+
+    private final Colony colony;
+    private final CitizenData data;
+    private final BodyId body;
+    private final CitizenBodies bodies;
+    private final RandomGenerator random;
+    private final TickRateStateMachine<CitizenState> machine;
+    private int idleTicksLeft;
+    private int wanderTicks;
+
+    public CitizenAI(Colony colony, CitizenData data, BodyId body) {
+        this.colony = colony;
+        this.data = data;
+        this.body = body;
+        this.bodies = colony.context().bodies();
+        this.random = colony.context().random();
+        this.idleTicksLeft = nextIdle();
+        this.machine = new TickRateStateMachine<>(CitizenState.IDLE, this::onException);
+        machine.addTransition(new AITarget<>(CitizenState.IDLE, (IStateSupplier<CitizenState>) this::idle, 20));
+        machine.addTransition(new AITarget<>(CitizenState.WANDERING, (IStateSupplier<CitizenState>) this::wander, 5));
+    }
+
+    public void tick() {
+        machine.tick();
+    }
+
+    public CitizenState state() {
+        return machine.getState();
+    }
+
+    private void onException(RuntimeException e) {
+        LOG.log(System.Logger.Level.WARNING, "Citizen AI failed for " + data.name(), e);
+        machine.reset();
+    }
+
+    private CitizenState idle() {
+        idleTicksLeft -= 20;
+        if (idleTicksLeft > 0) {
+            return null;
+        }
+        Vec3 here = bodies.position(body).orElse(null);
+        if (here == null) {
+            return null;
+        }
+        BlockPos anchor = colony.buildings().townHall().map(b -> b.position()).orElse(here.toBlockPos());
+        int dx = random.nextInt(2 * WANDER_RADIUS + 1) - WANDER_RADIUS;
+        int dz = random.nextInt(2 * WANDER_RADIUS + 1) - WANDER_RADIUS;
+        Vec3 target = new Vec3(anchor.x() + dx + 0.5, here.y(), anchor.z() + dz + 0.5);
+        bodies.moveTo(body, target);
+        wanderTicks = 0;
+        return CitizenState.WANDERING;
+    }
+
+    private CitizenState wander() {
+        wanderTicks += 5;
+        NavStatus status = bodies.navStatus(body);
+        boolean done = status == NavStatus.ARRIVED || status == NavStatus.BLOCKED || status == NavStatus.FAILED;
+        if (done || wanderTicks >= WANDER_TIMEOUT_TICKS) {
+            idleTicksLeft = nextIdle();
+            return CitizenState.IDLE;
+        }
+        return null;
+    }
+
+    private int nextIdle() {
+        return IDLE_MIN_TICKS + random.nextInt(IDLE_MAX_TICKS - IDLE_MIN_TICKS + 1);
+    }
+}
