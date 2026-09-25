@@ -5,17 +5,21 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
+import dev.hycolony.core.construction.BuilderJob;
 import dev.hycolony.core.construction.ClaimRadius;
 import dev.hycolony.core.construction.ConstructionBuildingTypes;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
+import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.persist.ColonyStorage;
 import dev.hycolony.core.kernel.persist.FileColonyStorage;
 import dev.hycolony.core.kernel.persist.MigrationChain;
+import dev.hycolony.core.request.StackRequest;
 import dev.hycolony.core.testing.TestContexts;
 import dev.hycolony.core.testing.TestJobs;
 import java.io.IOException;
@@ -258,5 +262,49 @@ class PersistenceTest {
 
         assertTrue(reloaded.byId(b.id()).orElseThrow().contains(bCell));
         assertTrue(reloaded.byId(a.id()).orElseThrow().contains(new BlockPos(11 * ClaimCell.SIZE, 64, 0)));
+    }
+
+    @Test
+    void citizenOfMissingWorkBuildingIsFreedOnLoad() {
+        TestContexts t = new TestContexts();
+        Colony c = new Colony(t.context(), new TerritoryIndex(), 1, "T", new BlockPos(0, 64, 0),
+                Permissions.createDefault(alice, "Alice"));
+        CitizenData citizen = new CitizenData(1);
+        citizen.setJob(BuilderJob.TYPE.factory().apply(citizen));
+        citizen.setWorkBuilding(new BlockPos(5, 64, 5)); // no building there
+        c.citizens().restore(citizen);
+
+        Colony reloaded = ColonySerializer.read(ColonySerializer.write(c), t.context(), new TerritoryIndex());
+
+        CitizenData restored = reloaded.citizens().get(1).orElseThrow();
+        assertTrue(restored.job().isEmpty());
+        assertNull(restored.workBuilding());
+    }
+
+    @Test
+    void requestsOfMissingRequesterAreCancelledOnLoad() {
+        TestContexts t = new TestContexts();
+        ColonyManager m = manager(t);
+        m.beginFoundation(alice, "Alice", new BlockPos(0, 64, 0), 0);
+        Colony c = m.confirmFoundation(alice, "A").orElseThrow();
+        BlockPos res = new BlockPos(20, 64, 0);
+        m.placeHut(c, ConstructionBuildingTypes.RESIDENCE.id(), res, 0);
+        c.requests().createAndAssign(c.buildings().at(res).orElseThrow(),
+                new StackRequest(new ItemKey("Stone"), 4, 4, true), -1);
+        c.requests().createAndAssign(c.buildings().townHall().orElseThrow(),
+                new StackRequest(new ItemKey("Stone"), 2, 2, true), -1);
+        JsonObject json = ColonySerializer.write(c);
+        JsonArray kept = new JsonArray();
+        json.getAsJsonArray("buildings").forEach(b -> {
+            if (!b.getAsJsonObject().get("type").getAsString().equals(ConstructionBuildingTypes.RESIDENCE.id())) {
+                kept.add(b);
+            }
+        });
+        json.add("buildings", kept); // the residence is missing from the save
+
+        Colony reloaded = ColonySerializer.read(json, t.context(), new TerritoryIndex());
+
+        assertEquals(1, reloaded.requests().all().size()); // the town hall's is kept
+        assertEquals(2, reloaded.requests().all().iterator().next().requestable().count());
     }
 }

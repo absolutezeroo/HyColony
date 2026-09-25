@@ -41,6 +41,7 @@ public final class ColonySerializer {
 
         o.add("requests", RequestSerializer.write(c.requests()));
         o.add("workOrders", c.work().write());
+        o.addProperty("workOrderTopId", c.work().topId());
         JsonObject settings = new JsonObject();
         settings.addProperty("autoHiring", c.settings().autoHiring());
         o.add("settings", settings);
@@ -101,6 +102,9 @@ public final class ColonySerializer {
         if (o.has("workOrders")) {
             c.work().read(o.getAsJsonArray("workOrders"));
         }
+        if (o.has("workOrderTopId")) {
+            c.work().restoreTopId(o.get("workOrderTopId").getAsInt());
+        }
         for (JsonElement el : o.getAsJsonArray("eventLog")) {
             JsonObject e = el.getAsJsonObject();
             // Manual loop: JsonArray.asList() needs Gson 2.10+, and the server's Gson version is not guaranteed.
@@ -110,8 +114,23 @@ public final class ColonySerializer {
             }
             c.log().restore(new EventLog.Entry(e.get("type").getAsString(), e.get("day").getAsInt(), params));
         }
+        heal(c);
         c.clearDirty();
         return c;
+    }
+
+    /**
+     * A save can reference what is gone (a building removed, or of a type no longer registered): its citizens are
+     * freed (job dropped, rehireable) and its requests cancelled, so nothing waits forever.
+     */
+    private static void heal(Colony c) {
+        for (CitizenData d : c.citizens().all()) {
+            if (d.workBuilding() != null && c.buildings().at(d.workBuilding()).isEmpty()) {
+                d.setJob(null);
+                d.setWorkBuilding(null);
+            }
+        }
+        c.requests().cancelOrphans();
     }
 
     // ---- positions ----

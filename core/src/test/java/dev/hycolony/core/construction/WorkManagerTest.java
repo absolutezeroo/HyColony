@@ -328,7 +328,6 @@ class WorkManagerTest {
         colony.work().tick();
         o.setStage(Stage.SOLID);
         o.setProgressIndex(7);
-        o.setRequested(true);
         colony.requests().createAndAssign(b, new StackRequest(new ItemKey("Stone"), 4, 4, true), 1);
 
         manager.onHutRemoved(b.position());
@@ -337,7 +336,6 @@ class WorkManagerTest {
         assertTrue(o.claimedBy().isEmpty());
         assertEquals(Stage.CLEAR, o.stage());
         assertEquals(0, o.progressIndex());
-        assertFalse(o.requested());
         assertTrue(colony.requests().byRequester(b.requesterId()).isEmpty());
     }
 
@@ -352,7 +350,6 @@ class WorkManagerTest {
         colony.work().tick();
         c.setStage(Stage.SOLID);
         c.setProgressIndex(12);
-        c.setRequested(true);
         b.setDeconstructed(true);
 
         JsonObject json = ColonySerializer.write(colony);
@@ -365,7 +362,6 @@ class WorkManagerTest {
         assertEquals(Optional.of(b.position()), lc.claimedBy());
         assertEquals(Stage.SOLID, lc.stage());
         assertEquals(12, lc.progressIndex());
-        assertTrue(lc.requested());
         assertEquals(3, lc.priority());
         assertEquals(List.of(c.id(), a.id()), loaded.work().ordered().stream().map(WorkOrder::id).toList());
         assertTrue(loaded.buildings().at(b.position()).orElseThrow().isDeconstructed());
@@ -564,5 +560,33 @@ class WorkManagerTest {
         colony.work().cancel(remove.id());
         colony.work().request(alice, res.position(), WorkOrderType.REPAIR, "medieval", Optional.empty());
         assertEquals("desert", colony.work().byBuilding(res.position()).orElseThrow().style());
+    }
+
+    @Test
+    void orderIdsAreNeverReusedAfterReload() {
+        builder(new BlockPos(10, 64, 0), 1);
+        Building res = residence(new BlockPos(20, 64, 0), 0);
+        colony.work().complete(created(res.position(), WorkOrderType.BUILD)); // id 1, gone
+
+        TerritoryIndex territory = new TerritoryIndex();
+        territory.claimSquare(colony.id(), ClaimCell.of(colony.center()), t.config.initialColonySize());
+        Colony loaded = ColonySerializer.read(ColonySerializer.write(colony), t.context(), territory);
+        Either<WorkOrder, WorkOrderRefusal> next = loaded.work().request(alice, res.position(), WorkOrderType.BUILD,
+                "", Optional.empty());
+
+        assertEquals(2, ((Either.Left<WorkOrder, WorkOrderRefusal>) next).value().id());
+    }
+
+    @Test
+    void oldRequestedFlagIsReadAndDropped() {
+        builder(new BlockPos(10, 64, 0), 1);
+        JsonObject json = created(residence(new BlockPos(20, 64, 0), 0).position(), WorkOrderType.BUILD).write();
+        json.addProperty("requested", true); // saved by an earlier version
+
+        JsonObject rewritten = WorkOrder.read(json).write();
+
+        assertFalse(rewritten.has("requested"));
+        json.remove("requested");
+        assertEquals(json, rewritten);
     }
 }

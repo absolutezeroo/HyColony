@@ -294,6 +294,15 @@ public final class WorkManager {
         return allowed && builderHut.position().distSq(o.buildingPos()) <= MAX_DISTANCE_SQ;
     }
 
+    /** The highest order id ever given: saved, so ids are never reused after a restart. */
+    public int topId() {
+        return topId;
+    }
+
+    public void restoreTopId(int id) {
+        topId = Math.max(topId, id);
+    }
+
     public JsonArray write() {
         JsonArray arr = new JsonArray();
         orders.values().forEach(o -> arr.add(o.write()));

@@ -17,7 +17,6 @@ public final class WorkOrder {
     private BlockPos claimedBy;
     private Stage stage;
     private int progressIndex;
-    private boolean requested;
 
     WorkOrder(int id, WorkOrderType type, BlockPos buildingPos, int targetLevel, int blueprintLevel, String style,
             int rotation) {
@@ -49,12 +48,10 @@ public final class WorkOrder {
     boolean isClaimedBy(BlockPos builderHut) { return builderHut.equals(claimedBy); }
     public Stage stage() { return stage; }
     public int progressIndex() { return progressIndex; }
-    public boolean requested() { return requested; }
 
     void setClaimedBy(BlockPos builderHut) { this.claimedBy = builderHut; }
     void setStage(Stage stage) { this.stage = stage; }
     void setProgressIndex(int progressIndex) { this.progressIndex = progressIndex; }
-    void setRequested(boolean requested) { this.requested = requested; }
 
     /** BUILD starts by clearing the site, REMOVE by removing, UPGRADE and REPAIR build over what stands. */
     Stage initialStage() {
@@ -70,7 +67,6 @@ public final class WorkOrder {
         claimedBy = null;
         stage = initialStage();
         progressIndex = 0;
-        requested = false;
     }
 
     public JsonObject write() {
@@ -88,7 +84,6 @@ public final class WorkOrder {
         }
         o.addProperty("stage", stage.name());
         o.addProperty("progressIndex", progressIndex);
-        o.addProperty("requested", requested);
         return o;
     }
 
@@ -101,8 +96,7 @@ public final class WorkOrder {
         w.claimedBy = o.has("claimedBy") ? readPos(o.getAsJsonObject("claimedBy")) : null;
         w.stage = Stage.valueOf(o.get("stage").getAsString());
         w.progressIndex = o.get("progressIndex").getAsInt();
-        w.requested = o.get("requested").getAsBoolean();
-        return w;
+        return w; // an old "requested" flag is ignored
     }
 
     private static JsonObject pos(BlockPos p) {
