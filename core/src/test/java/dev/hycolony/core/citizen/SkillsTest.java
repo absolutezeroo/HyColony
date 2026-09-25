@@ -76,4 +76,23 @@ class SkillsTest {
         assertEquals(2, s.level(Skill.Focus));
         assertEquals(0.0, s.experience(Skill.Focus), 1e-9);
     }
+
+    @Test
+    void removeXpDelevelsAndFloorsAtLevelOne() {
+        Skills s = Skills.initRandom(1, new Random(1)); // all level 1
+
+        // Borrows across exactly one level: level 3 needs 5.0 more xp to reach the level-2 threshold (11.04),
+        // so removing 10 first drains the 5.0 on hand, then de-levels to 2 with the level's full requirement
+        // (11.04) before subtracting the remaining 5.0.
+        s.set(Skill.Focus, 3, 5.0);
+        s.removeXp(Skill.Focus, 10.0);
+        assertEquals(2, s.level(Skill.Focus));
+        assertEquals(6.04, s.experience(Skill.Focus), 1e-9);
+
+        // Floors at level 1 with zero (never negative), however large the removal.
+        s.set(Skill.Mana, 2, 2.0);
+        s.removeXp(Skill.Mana, 1000);
+        assertEquals(1, s.level(Skill.Mana));
+        assertEquals(0.0, s.experience(Skill.Mana), 1e-9);
+    }
 }

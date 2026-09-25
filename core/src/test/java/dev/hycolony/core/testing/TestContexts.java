@@ -32,10 +32,11 @@ public final class TestContexts {
         @Override public List<String> styles() { return List.of(); }
     };
     public ColonyConfig config = ColonyConfig.defaults();
+    public JobRegistry jobs = JobRegistry.defaults();
 
     public ColonyContext context() {
         return new ColonyContext(new WorldKey("world"), config, clock, bodies, world, notifier, ui, players,
-                BuildingTypes.defaults(), JobRegistry.defaults(), CitizenNames.loadDefault(), new Random(1234), bus,
+                BuildingTypes.defaults(), jobs, CitizenNames.loadDefault(), new Random(1234), bus,
                 new ConstructionPorts(catalog, blocks, containers, playerInventory, blueprints));
     }
 }

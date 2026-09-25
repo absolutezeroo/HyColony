@@ -36,6 +36,11 @@ class CitizenAIWorkTest {
         for (int i = 0; i < 5 && ai.state() != CitizenState.IDLE; i++) {
             ai.tick();
         }
-        assertEquals(CitizenState.IDLE, ai.state()); // back to its errand, no longer working
+        assertEquals(CitizenState.IDLE, ai.state()); // no longer working
+
+        for (int i = 0; i < 420 && ai.state() != CitizenState.WANDERING; i++) {
+            ai.tick();
+        }
+        assertEquals(CitizenState.WANDERING, ai.state()); // and resumes its errand
     }
 }

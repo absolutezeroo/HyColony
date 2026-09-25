@@ -2,7 +2,9 @@ package dev.hycolony.core.colony;
 
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingManager;
+import dev.hycolony.core.building.BuildingModule;
 import dev.hycolony.core.citizen.CitizenManager;
+import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.ai.AITarget;
 import dev.hycolony.core.kernel.ai.IStateSupplier;
@@ -12,6 +14,7 @@ import dev.hycolony.core.request.Requester;
 import dev.hycolony.core.request.RequesterId;
 import dev.hycolony.core.request.resolver.PlayerResolver;
 import dev.hycolony.core.request.resolver.RetryingResolver;
+import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.UUID;
@@ -63,6 +66,14 @@ public final class Colony {
             public void removed(Building building) {
                 requests.cancelAllFrom(building.requesterId());
                 requests.onProviderRemoved(building);
+                for (BuildingModule module : building.modules().values()) {
+                    if (module instanceof WorkerModule worker) {
+                        // Snapshot: fire() mutates worker.workers(), which this would otherwise iterate live.
+                        for (int citizenId : List.copyOf(worker.workers())) {
+                            worker.fire(Colony.this, building, citizenId);
+                        }
+                    }
+                }
             }
         });
         requests.registerBuiltIn(new PlayerResolver(center));

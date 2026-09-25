@@ -19,8 +19,9 @@ class JobXpTest {
         assertEquals(1, c.skills().level(Skill.Creativity)); // primary's complementary, +10%
         assertEquals(1.01, c.skills().experience(Skill.Creativity), 1e-9);
 
-        assertEquals(1, c.skills().level(Skill.Focus)); // primary's adverse, -10%
-        assertEquals(-1.01, c.skills().experience(Skill.Focus), 1e-9);
+        // primary's adverse, -10%: removeXp(1.01) on a level-1 skill with 0 xp floors at 0, never negative
+        assertEquals(1, c.skills().level(Skill.Focus));
+        assertEquals(0.0, c.skills().experience(Skill.Focus), 1e-9);
 
         assertEquals(1, c.skills().level(Skill.Athletics)); // secondary, 50%
         assertEquals(5.05, c.skills().experience(Skill.Athletics), 1e-9);
@@ -28,8 +29,9 @@ class JobXpTest {
         assertEquals(1, c.skills().level(Skill.Strength)); // secondary's complementary, +5%
         assertEquals(0.505, c.skills().experience(Skill.Strength), 1e-9);
 
-        assertEquals(1, c.skills().level(Skill.Dexterity)); // secondary's adverse, -5%
-        assertEquals(-0.505, c.skills().experience(Skill.Dexterity), 1e-9);
+        // secondary's adverse, -5%: removeXp(0.505) on a level-1 skill with 0 xp floors at 0, never negative
+        assertEquals(1, c.skills().level(Skill.Dexterity));
+        assertEquals(0.0, c.skills().experience(Skill.Dexterity), 1e-9);
 
         // untouched skill stays at its default
         assertEquals(1, c.skills().level(Skill.Mana));

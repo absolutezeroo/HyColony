@@ -1,6 +1,7 @@
 package dev.hycolony.core.colony;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.gson.JsonObject;
@@ -13,6 +14,7 @@ import dev.hycolony.core.kernel.persist.ColonyStorage;
 import dev.hycolony.core.kernel.persist.FileColonyStorage;
 import dev.hycolony.core.kernel.persist.MigrationChain;
 import dev.hycolony.core.testing.TestContexts;
+import dev.hycolony.core.testing.TestJobs;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -84,6 +86,26 @@ class PersistenceTest {
         reloaded.saveAll();
         String saved = Files.readString(file);
         assertTrue(saved.contains("future:windmill") && saved.contains("\"secret\":42"), saved);
+    }
+
+    @Test
+    void unknownJobOnLoadLeavesCitizenJobless() {
+        TestContexts t = new TestContexts();
+        t.jobs.register(TestJobs.TYPE);
+        Colony c = new Colony(t.context(), new TerritoryIndex(), 1, "T", new BlockPos(0, 64, 0),
+                Permissions.createDefault(alice, "Alice"));
+        CitizenData citizen = new CitizenData(1);
+        citizen.setJob(TestJobs.TYPE.factory().apply(citizen));
+        citizen.setWorkBuilding(new BlockPos(5, 64, 5));
+        c.citizens().restore(citizen);
+
+        JsonObject json = ColonySerializer.write(c);
+
+        // A fresh context whose JobRegistry never registered TestJobs.TYPE: the job type is unknown on load.
+        Colony reloaded = ColonySerializer.read(json, new TestContexts().context(), new TerritoryIndex());
+        CitizenData restored = reloaded.citizens().get(1).orElseThrow();
+        assertTrue(restored.job().isEmpty());
+        assertNull(restored.workBuilding());
     }
 
     @Test

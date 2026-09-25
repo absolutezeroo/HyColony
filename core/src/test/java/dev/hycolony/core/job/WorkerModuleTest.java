@@ -1,6 +1,8 @@
 package dev.hycolony.core.job;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.gson.JsonObject;
@@ -32,9 +34,13 @@ class WorkerModuleTest {
     }
 
     private Building buildingWith(WorkerModule module, int level, boolean built) {
+        return buildingWith(module, level, built, new BlockPos(1, 64, 1));
+    }
+
+    private Building buildingWith(WorkerModule module, int level, boolean built, BlockPos pos) {
         BuildingType type = new BuildingType("test:worker-hut", "hut.worker", 5,
                 List.of(new ModuleProducer("worker", () -> module)));
-        Building b = Building.create(type, new BlockPos(1, 64, 1), 0);
+        Building b = Building.create(type, pos, 0);
         b.setLevel(level);
         b.setBuilt(built);
         return b;
@@ -112,6 +118,45 @@ class WorkerModuleTest {
         c2.buildings().add(stillLevel0);
         c2.buildings().onColonyTick(c2);
         assertEquals(List.of(1), allowed.workers());
+    }
+
+    @Test
+    void cannotHireAlreadyEmployedCitizen() {
+        Colony c = colony();
+        CitizenData citizen = new CitizenData(1);
+        c.citizens().restore(citizen);
+        WorkerModule first = module();
+        Building buildingA = buildingWith(first, 1, true);
+        c.buildings().add(buildingA);
+        assertTrue(first.hire(c, buildingA, citizen));
+
+        WorkerModule second = module();
+        Building buildingB = buildingWith(second, 1, true, new BlockPos(2, 64, 2));
+        c.buildings().add(buildingB);
+
+        assertFalse(second.hire(c, buildingB, citizen)); // already has a job and a workBuilding
+        assertTrue(second.workers().isEmpty());
+        assertEquals(buildingA.position(), citizen.workBuilding());
+    }
+
+    @Test
+    void removingBuildingFreesItsWorkers() {
+        Colony c = colony();
+        c.citizens().restore(new CitizenData(1));
+        c.citizens().restore(new CitizenData(2));
+        WorkerModule module = module();
+        Building b = buildingWith(module, 1, true);
+        c.buildings().add(b);
+        assertTrue(module.hire(c, b, c.citizens().get(1).orElseThrow()));
+        assertTrue(module.hire(c, b, c.citizens().get(2).orElseThrow()));
+
+        c.buildings().remove(b.position());
+
+        assertTrue(module.workers().isEmpty());
+        assertTrue(c.citizens().get(1).orElseThrow().job().isEmpty());
+        assertNull(c.citizens().get(1).orElseThrow().workBuilding());
+        assertTrue(c.citizens().get(2).orElseThrow().job().isEmpty());
+        assertNull(c.citizens().get(2).orElseThrow().workBuilding());
     }
 
     @Test

@@ -13,6 +13,7 @@ import dev.hycolony.core.citizen.Gender;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.citizen.Skills;
 import dev.hycolony.core.job.Job;
+import dev.hycolony.core.job.JobType;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.item.Inventory;
@@ -301,11 +302,15 @@ public final class ColonySerializer {
         if (o.has("job") && !o.get("job").isJsonNull()) {
             JsonObject jobJson = o.getAsJsonObject("job");
             String typeId = jobJson.get("type").getAsString();
-            ctx.jobs().byId(typeId).ifPresent(type -> {
-                Job job = type.factory().apply(d);
+            Optional<JobType> type = ctx.jobs().byId(typeId);
+            if (type.isPresent()) {
+                Job job = type.get().factory().apply(d);
                 job.read(jobJson);
                 d.setJob(job);
-            });
+            } else {
+                // The job type no longer exists: drop the stale work assignment so the citizen is re-hireable.
+                d.setWorkBuilding(null);
+            }
         }
         return d;
     }

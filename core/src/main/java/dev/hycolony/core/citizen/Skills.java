@@ -62,4 +62,22 @@ public final class Skills {
         data.setExperience(data.level() >= MAX_CITIZEN_LEVEL ? 0 : xpToLevelUp);
         return data.level() > originalLevel;
     }
+
+    /**
+     * Port of removeXpFromSkill: borrows across levels (de-leveling as it goes), floors at level 1, and
+     * experience never goes negative.
+     */
+    public void removeXp(Skill skill, double xp) {
+        SkillData data = map.get(skill);
+        double xpToRemove = xp;
+        while (xpToRemove > 0) {
+            if (data.experience() >= xpToRemove || data.level() <= 1) {
+                data.setExperience(Math.max(0, data.experience() - xpToRemove));
+                break;
+            }
+            xpToRemove -= data.experience();
+            data.setExperience(Experience.xpNeededForNextLevel(data.level() - 1));
+            data.setLevel(data.level() - 1);
+        }
+    }
 }

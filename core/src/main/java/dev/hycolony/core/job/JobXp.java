@@ -24,7 +24,7 @@ public final class JobXp {
             c.skills().addXp(primary.complementary(), localXp * PRIMARY_DEPENDENCY_SHARE, homeLevel, homeMaxLevel);
         }
         if (primary.adverse() != null) {
-            c.skills().addXp(primary.adverse(), -localXp * PRIMARY_DEPENDENCY_SHARE, homeLevel, homeMaxLevel);
+            c.skills().removeXp(primary.adverse(), localXp * PRIMARY_DEPENDENCY_SHARE);
         }
 
         c.skills().addXp(secondary, localXp / 2.0, homeLevel, homeMaxLevel);
@@ -32,7 +32,7 @@ public final class JobXp {
             c.skills().addXp(secondary.complementary(), localXp * SECONDARY_DEPENDENCY_SHARE, homeLevel, homeMaxLevel);
         }
         if (secondary.adverse() != null) {
-            c.skills().addXp(secondary.adverse(), -localXp * SECONDARY_DEPENDENCY_SHARE, homeLevel, homeMaxLevel);
+            c.skills().removeXp(secondary.adverse(), localXp * SECONDARY_DEPENDENCY_SHARE);
         }
     }
 }

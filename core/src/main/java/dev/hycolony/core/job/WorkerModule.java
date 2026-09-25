@@ -42,9 +42,10 @@ public final class WorkerModule implements PersistentModule, TickingModule, Buil
         return assignableAtLevel0 || (b.level() > 0 && b.isBuilt());
     }
 
-    /** Fails (returns false) when full or {@link #canAssignCitizens} is false. */
+    /** Fails (returns false) when full, {@link #canAssignCitizens} is false, or the citizen is already employed. */
     public boolean hire(Colony c, Building b, CitizenData citizen) {
-        if (workers.size() >= maxWorkers || !canAssignCitizens(b)) {
+        if (workers.size() >= maxWorkers || !canAssignCitizens(b)
+                || citizen.job().isPresent() || citizen.workBuilding() != null) {
             return false;
         }
         citizen.setJob(jobType.factory().apply(citizen));
