@@ -1,5 +1,6 @@
 package dev.hycolony.core;
 
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 import com.tngtech.archunit.core.importer.ImportOption;
@@ -16,11 +17,10 @@ class ArchitectureTest {
             .allowEmptyShould(true);
 
     @ArchTest
-    static final ArchRule kernelDependsOnNothingElse = noClasses()
+    static final ArchRule kernelDependsOnNothingElse = classes()
             .that().resideInAPackage("dev.hycolony.core.kernel..")
-            .should().dependOnClassesThat().resideInAnyPackage(
-                    "dev.hycolony.core.colony..", "dev.hycolony.core.building..", "dev.hycolony.core.citizen..")
-            .allowEmptyShould(true);
+            .should().onlyDependOnClassesThat().resideInAnyPackage(
+                    "dev.hycolony.core.kernel..", "java..", "com.google.gson..");
 
     /** Futurs packages de fonctionnalités : ils ne communiquent que via le kernel (spec § 2.2). */
     @ArchTest

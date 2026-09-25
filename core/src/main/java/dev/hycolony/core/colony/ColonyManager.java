@@ -45,6 +45,8 @@ public final class ColonyManager {
     private MigrationChain migrations = MigrationChain.sp0();
     /** Ids whose file must never be touched (newer schema). */
     private final Set<Integer> lockedIds = new HashSet<>();
+    /** Set once listing the storage fails: saves are refused and founding is denied until restart. */
+    private boolean storageUnavailable;
 
     public ColonyManager(ColonyContext ctx) {
         this.ctx = ctx;
@@ -72,6 +74,9 @@ public final class ColonyManager {
         if (colony.isEmpty()) {
             if (!isTownHall) {
                 return new HutPlacement.Denied(Msg.of(ownedBy(player).isPresent() ? "hycolony.hut.tooFar" : "hycolony.hut.noTownHall"));
+            }
+            if (!storageAvailable()) {
+                return new HutPlacement.Denied(Msg.of("hycolony.storage.unavailable"));
             }
             if (ownedBy(player).isPresent()) {
                 return new HutPlacement.Denied(Msg.of("hycolony.colony.alreadyOwner"));
@@ -239,21 +244,25 @@ public final class ColonyManager {
         return new CitizenRow(d.name(), d.gender(), status);
     }
 
-    public void deleteColony(int colonyId) {
-        Colony c = colonies.remove(colonyId);
+    /** Archives before freeing anything; if archiving fails the colony stays registered. */
+    public boolean deleteColony(int colonyId) {
+        Colony c = colonies.get(colonyId);
         if (c == null) {
-            return;
+            return false;
         }
-        c.citizens().despawnAll();
-        territory.releaseAll(colonyId);
         if (storage != null) {
             try {
                 storage.archive(colonyId);
             } catch (IOException e) {
-                LOG.log(System.Logger.Level.ERROR, "Archiving colony " + colonyId + " failed", e);
+                LOG.log(System.Logger.Level.ERROR, "Archiving colony " + colonyId + " failed; colony kept", e);
+                return false;
             }
         }
+        colonies.remove(colonyId);
+        c.citizens().despawnAll();
+        territory.releaseAll(colonyId);
         ctx.bus().post(new ColonyEvents.ColonyDeleted(colonyId));
+        return true;
     }
 
     // ---- Ticking and bodies ----
@@ -286,6 +295,11 @@ public final class ColonyManager {
         this.migrations = migrations;
     }
 
+    /** False once listing the storage has failed: saves write nothing and founding is refused. */
+    public boolean storageAvailable() {
+        return !storageUnavailable;
+    }
+
     public void loadAll() {
         try {
             reserveId(storage.highestIdEverUsed());
@@ -293,7 +307,8 @@ public final class ColonyManager {
                 loadOne(id);
             }
         } catch (IOException e) {
-            LOG.log(System.Logger.Level.ERROR, "Cannot list colonies of " + ctx.world(), e);
+            storageUnavailable = true;
+            LOG.log(System.Logger.Level.ERROR, "Cannot list colonies of " + ctx.world() + "; storage disabled until restart", e);
         }
     }
 
@@ -338,13 +353,13 @@ public final class ColonyManager {
     }
 
     private void save(Colony c) {
-        if (storage == null || lockedIds.contains(c.id())) {
+        if (storage == null || storageUnavailable || lockedIds.contains(c.id())) {
             return;
         }
         try {
             storage.save(c.id(), ColonySerializer.write(c).toString());
             c.clearDirty();
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             LOG.log(System.Logger.Level.ERROR, "Saving colony " + c.id() + " failed; will retry", e);
         }
     }

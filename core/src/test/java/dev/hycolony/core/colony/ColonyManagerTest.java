@@ -5,13 +5,24 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.gson.JsonObject;
+import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.building.BuildingTypes;
+import dev.hycolony.core.building.ModuleProducer;
+import dev.hycolony.core.building.PersistentModule;
 import dev.hycolony.core.colony.ui.FoundColonyView;
 import dev.hycolony.core.colony.ui.TownHallView;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
+import dev.hycolony.core.kernel.persist.ColonyStorage;
+import dev.hycolony.core.kernel.persist.MigrationChain;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.testing.TestContexts;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
@@ -183,5 +194,94 @@ class ColonyManagerTest {
         BodyId stray = t.bodies.existing(42, 1, new Vec3(0, 64, 0));
         manager.onBodyLoaded(stray, 42, 1);
         assertFalse(t.bodies.isAlive(stray));
+    }
+
+    @Test
+    void storageListingFailureRefusesFoundingAndWritesNothing() {
+        FailingStorage storage = new FailingStorage();
+        storage.failHighestId = true;
+        manager.setStorage(storage, MigrationChain.sp0());
+        manager.loadAll();
+        assertFalse(manager.storageAvailable());
+
+        HutPlacement placement = manager.checkHutPlacement(alice, hall, TOWN_HALL);
+        assertEquals("hycolony.storage.unavailable", ((HutPlacement.Denied) placement).reason().key());
+
+        manager.beginFoundation(alice, "Alice", hall, 0);
+        assertTrue(manager.confirmFoundation(alice, "Rivendell").isEmpty());
+        assertEquals("hycolony.storage.unavailable", t.notifier.sent.getLast().msg().key());
+        assertTrue(storage.saved.isEmpty());
+        assertTrue(manager.all().isEmpty());
+    }
+
+    @Test
+    void saveAllStillSavesOtherColonyAfterOneFailsToSerialize() {
+        BuildingType throwing = new BuildingType("test:throwing", "hut.throwing", 1,
+                List.of(new ModuleProducer("boom", ThrowingModule::new)));
+        manager.context().buildingTypes().register(throwing);
+
+        Colony a = found(alice, "A", hall); // founded first: saved first in saveAll()
+        Colony b = found(bob, "B", new BlockPos(2000, 64, 0));
+        manager.placeHut(a, throwing.id(), hall.offset(5, 0, 5), 0);
+
+        FailingStorage storage = new FailingStorage();
+        manager.setStorage(storage, MigrationChain.sp0());
+        manager.saveAll();
+
+        assertTrue(a.isDirty());
+        assertFalse(b.isDirty());
+        assertTrue(storage.saved.containsKey(b.id()));
+        assertFalse(storage.saved.containsKey(a.id()));
+    }
+
+    @Test
+    void deleteColonyArchivesFirstAndKeepsColonyIfArchivingFails() {
+        Colony c = found(alice, "A", hall);
+        FailingStorage storage = new FailingStorage();
+        storage.failArchive = true;
+        manager.setStorage(storage, MigrationChain.sp0());
+
+        assertFalse(manager.deleteColony(c.id()));
+        assertTrue(manager.byId(c.id()).isPresent());
+        assertTrue(manager.colonyAt(hall).isPresent());
+
+        storage.failArchive = false;
+        assertTrue(manager.deleteColony(c.id()));
+        assertTrue(manager.byId(c.id()).isEmpty());
+    }
+
+    /** In-memory ColonyStorage double whose calls can be made to fail, for error-handling tests. */
+    private static final class FailingStorage implements ColonyStorage {
+        boolean failHighestId;
+        boolean failArchive;
+        final Map<Integer, String> saved = new HashMap<>();
+
+        @Override public List<Integer> colonyIds() { return List.copyOf(saved.keySet()); }
+
+        @Override public int highestIdEverUsed() throws IOException {
+            if (failHighestId) {
+                throw new IOException("test failure");
+            }
+            return saved.keySet().stream().mapToInt(Integer::intValue).max().orElse(0);
+        }
+
+        @Override public Optional<JsonObject> load(int id) { return Optional.empty(); }
+
+        @Override public void save(int id, String json) { saved.put(id, json); }
+
+        @Override public void backupVersion(int id, int schemaVersion, String json) {}
+
+        @Override public void archive(int id) throws IOException {
+            if (failArchive) {
+                throw new IOException("test failure");
+            }
+        }
+    }
+
+    /** A building module whose write() always throws, to simulate one colony failing to serialize. */
+    private static final class ThrowingModule implements PersistentModule {
+        @Override public void write(JsonObject out) { throw new RuntimeException("boom"); }
+
+        @Override public void read(JsonObject in) {}
     }
 }

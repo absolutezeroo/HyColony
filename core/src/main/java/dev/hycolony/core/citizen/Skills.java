@@ -54,12 +54,12 @@ public final class Skills {
         while (xpToLevelUp > 0 && data.level() < MAX_CITIZEN_LEVEL) {
             double next = Experience.xpNeededForNextLevel(data.level());
             if (next > xpToLevelUp) {
-                data.setExperience(xpToLevelUp);
                 break;
             }
             xpToLevelUp -= next;
             data.setLevel(data.level() + 1);
         }
+        data.setExperience(data.level() >= MAX_CITIZEN_LEVEL ? 0 : xpToLevelUp);
         return data.level() > originalLevel;
     }
 }

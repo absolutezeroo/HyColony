@@ -67,4 +67,13 @@ class SkillsTest {
         assertTrue(s.addXp(Skill.Focus, 1e9, 5, 5));
         assertEquals(Skills.MAX_CITIZEN_LEVEL, s.level(Skill.Focus));
     }
+
+    @Test
+    void exactRemainderXpStoresZero() {
+        Skills s = Skills.initRandom(1, new Random(1));
+        s.set(Skill.Focus, 1, 3.0); // stale nonzero experience left over from a previous gain
+        assertTrue(s.addXp(Skill.Focus, 6.005 - 3.0, 0, 5)); // exactly enough to reach the next level
+        assertEquals(2, s.level(Skill.Focus));
+        assertEquals(0.0, s.experience(Skill.Focus), 1e-9);
+    }
 }

@@ -150,6 +150,9 @@ public final class CitizenManager {
 
     /** A body tagged with this colony was loaded into the world. */
     public void onBodyLoaded(BodyId body, int citizenId) {
+        if (body.equals(bodies.get(citizenId))) {
+            return; // already bound to this exact body: don't rebind and reset the AI
+        }
         CitizenData data = citizens.get(citizenId);
         BodyId current = bodies.get(citizenId);
         boolean duplicate = current != null && !current.equals(body) && ctx().bodies().isAlive(current);

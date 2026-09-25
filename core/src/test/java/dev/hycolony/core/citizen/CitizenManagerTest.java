@@ -120,6 +120,22 @@ class CitizenManagerTest {
     }
 
     @Test
+    void loadingSameBodyTwiceKeepsAiState() {
+        Colony c = colonyWithTownHall();
+        slowTicks(c, 2);
+        CitizenData d = c.citizens().all().iterator().next();
+        BodyId body = c.citizens().bodyOf(d.id()).orElseThrow();
+        for (int i = 0; i < 500 && c.citizens().aiState(d.id()).orElseThrow() != CitizenState.WANDERING; i++) {
+            c.citizens().tickAi();
+        }
+        assertEquals(CitizenState.WANDERING, c.citizens().aiState(d.id()).orElseThrow());
+
+        c.citizens().onBodyLoaded(body, d.id()); // the exact same body, loaded again
+
+        assertEquals(CitizenState.WANDERING, c.citizens().aiState(d.id()).orElseThrow());
+    }
+
+    @Test
     void tickDataRecordsLastPosition() {
         Colony c = colonyWithTownHall();
         slowTicks(c, 2);
