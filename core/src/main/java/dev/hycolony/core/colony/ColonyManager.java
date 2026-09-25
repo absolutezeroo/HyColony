@@ -109,7 +109,8 @@ public final class ColonyManager {
         String name = validated.get();
         HutPlacement check = checkHutPlacement(player, p.pos(), BuildingTypes.TOWN_HALL.id());
         if (check instanceof HutPlacement.Denied denied) {
-            pending.remove(player);
+            // Same as a cancel; the adapter sees pendingPositionOf go empty and removes the block.
+            cancelFoundation(player);
             ctx.notifier().send(player, denied.reason());
             return Optional.empty();
         }
@@ -127,13 +128,25 @@ public final class ColonyManager {
 
     /** Returns where the unconfirmed town hall stands, so the adapter can remove it. */
     public Optional<BlockPos> cancelFoundation(UUID player) {
+        // Remove before closing, and close only once: closing may re-enter here (window dismiss = cancel).
         PendingFoundation p = pending.remove(player);
+        if (p == null) {
+            return Optional.empty();
+        }
         ctx.ui().close(player);
-        return Optional.ofNullable(p).map(PendingFoundation::pos);
+        return Optional.of(p.pos());
     }
 
-    public void onPlayerLeft(UUID player) {
-        pending.remove(player);
+    public Optional<BlockPos> pendingPositionOf(UUID player) {
+        return Optional.ofNullable(pending.get(player)).map(PendingFoundation::pos);
+    }
+
+    /** Cancels whichever player's unconfirmed town hall stands at {@code pos}; returns that player. */
+    public Optional<UUID> cancelFoundationAt(BlockPos pos) {
+        Optional<UUID> owner = pending.entrySet().stream()
+                .filter(e -> e.getValue().pos().equals(pos)).map(Map.Entry::getKey).findFirst();
+        owner.ifPresent(this::cancelFoundation);
+        return owner;
     }
 
     public void placeHut(Colony colony, String buildingTypeId, BlockPos pos, int rotation) {
@@ -254,7 +267,9 @@ public final class ColonyManager {
     public void onBodyLoaded(BodyId body, int colonyId, int citizenId) {
         Colony c = colonies.get(colonyId);
         if (c == null) {
-            ctx.bodies().despawn(body);
+            if (!lockedIds.contains(colonyId)) { // a colony we could not load still owns its bodies
+                ctx.bodies().despawn(body);
+            }
             return;
         }
         c.citizens().onBodyLoaded(body, citizenId);

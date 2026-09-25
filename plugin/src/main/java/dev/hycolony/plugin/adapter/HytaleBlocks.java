@@ -17,8 +17,11 @@ public final class HytaleBlocks {
         this.world = world;
     }
 
-    /** Removes the block at pos and drops {@code dropItemId} x1, like a player break. */
-    public void removeWithDrop(BlockPos pos, String dropItemId) {
+    /**
+     * If the block at pos is {@code expectedBlockId}, removes it and drops {@code dropItemId} x1, like a
+     * player break. Anything else is left alone, so a stale position can never duplicate an item.
+     */
+    public void removeWithDrop(BlockPos pos, String expectedBlockId, String dropItemId) {
         ChunkStore cs = world.getChunkStore();
         Ref<ChunkStore> section = cs.getChunkSectionReferenceAtBlock(pos.x(), pos.y(), pos.z());
         if (section == null) {
@@ -26,6 +29,9 @@ public final class HytaleBlocks {
         }
         BlockSection blocks = cs.getStore().getComponent(section, BlockSection.getComponentType());
         BlockType type = BlockType.getAssetMap().getAsset(blocks.get(pos.x(), pos.y(), pos.z()));
+        if (type == null || !expectedBlockId.equals(type.getId())) {
+            return;
+        }
         BlockHarvestUtils.naturallyRemoveBlock(new Vector3i(pos.x(), pos.y(), pos.z()), type,
                 blocks.getFiller(pos.x(), pos.y(), pos.z()), 1, dropItemId, null, 0, section,
                 world.getEntityStore().getStore(), cs.getStore());

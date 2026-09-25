@@ -27,9 +27,11 @@ public final class FoundColonyPage extends InteractiveCustomUIPage<FoundColonyPa
     }
 
     public interface Handler {
-        void confirm(String name);
+        /** True once the colony exists; false keeps the window answerable (e.g. invalid name). */
+        boolean confirm(String name);
 
-        void cancel();
+        /** {@code windowClosing}: called from onDismiss, while Hytale is already closing the page. */
+        void cancel(boolean windowClosing);
     }
 
     private final FoundColonyView view;
@@ -56,11 +58,11 @@ public final class FoundColonyPage extends InteractiveCustomUIPage<FoundColonyPa
     @Override
     public void handleDataEvent(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, @Nonnull Data data) {
         if ("confirm".equals(data.action)) {
-            answered = true; // an invalid name keeps the foundation pending; the core re-validates
-            handler.confirm(data.name);
+            answered = true; // set first: a successful confirm closes the page, which calls onDismiss
+            answered = handler.confirm(data.name); // an invalid name keeps the foundation pending
         } else {
             answered = true;
-            handler.cancel();
+            handler.cancel(false);
         }
         sendUpdate(new UICommandBuilder(), false); // required: otherwise the client stays in a loading state
     }
@@ -68,7 +70,8 @@ public final class FoundColonyPage extends InteractiveCustomUIPage<FoundColonyPa
     @Override
     public void onDismiss(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
         if (!answered) {
-            handler.cancel(); // closing the window = cancel (spec § 4.2)
+            answered = true; // set first: cancelling closes the page, which calls onDismiss again
+            handler.cancel(true); // closing the window = cancel (spec § 4.2)
         }
     }
 }

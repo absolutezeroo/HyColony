@@ -37,7 +37,7 @@ public final class WorldRuntime {
         ColonyManager[] self = new ColonyManager[1];
         ColonyContext ctx = new ColonyContext(new WorldKey(world.getName()), config, clock, bodies,
                 new HytaleWorldQuery(world), new HytaleNotifier(),
-                new HytaleUiPort(() -> self[0], blocks, ids.itemId("hut.townhall")),
+                new HytaleUiPort(() -> self[0], blocks, ids.blockId("hut.townhall"), ids.itemId("hut.townhall")),
                 new HytalePlayerDirectory(world), BuildingTypes.defaults(), names, new Random(), new EventBus());
         this.manager = new ColonyManager(ctx);
         self[0] = manager;

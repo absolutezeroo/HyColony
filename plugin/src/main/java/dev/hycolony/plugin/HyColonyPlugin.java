@@ -62,7 +62,8 @@ public final class HyColonyPlugin extends JavaPlugin {
         getEventRegistry().register(ShutdownEvent.class, e -> runtimes.all().forEach(rt -> rt.manager().saveAll()));
         getEventRegistry().register(PlayerDisconnectEvent.class, e -> {
             UUID uuid = e.getPlayerRef().getUuid();
-            runtimes.all().forEach(rt -> rt.world().execute(() -> rt.manager().onPlayerLeft(uuid)));
+            runtimes.all().forEach(rt -> rt.world().execute(() -> rt.manager().cancelFoundation(uuid)
+                    .ifPresent(pos -> rt.blocks().removeWithDrop(pos, ids.blockId("hut.townhall"), ids.itemId("hut.townhall")))));
         });
 
         getLogger().at(Level.INFO).log("HyColony setup complete");

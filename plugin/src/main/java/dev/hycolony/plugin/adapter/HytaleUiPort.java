@@ -12,8 +12,12 @@ import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.ui.FoundColonyView;
 import dev.hycolony.core.colony.ui.TownHallView;
 import dev.hycolony.core.colony.ui.UiPort;
+import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.plugin.ui.FoundColonyPage;
 import dev.hycolony.plugin.ui.TownHallPage;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -22,25 +26,46 @@ import java.util.function.Supplier;
 public final class HytaleUiPort implements UiPort {
     private final Supplier<ColonyManager> manager;
     private final HytaleBlocks blocks;
+    private final String townHallBlockId;
     private final String townHallItemId;
+    /** Players whose page Hytale is closing right now: close() must not close it a second time. */
+    private final Set<UUID> closing = new HashSet<>();
 
-    public HytaleUiPort(Supplier<ColonyManager> manager, HytaleBlocks blocks, String townHallItemId) {
+    public HytaleUiPort(Supplier<ColonyManager> manager, HytaleBlocks blocks, String townHallBlockId, String townHallItemId) {
         this.manager = manager;
         this.blocks = blocks;
+        this.townHallBlockId = townHallBlockId;
         this.townHallItemId = townHallItemId;
+    }
+
+    private void removeTownHall(BlockPos pos) {
+        blocks.removeWithDrop(pos, townHallBlockId, townHallItemId);
     }
 
     @Override
     public void showFoundColony(UUID player, FoundColonyView view) {
         open(player, pr -> new FoundColonyPage(pr, view, new FoundColonyPage.Handler() {
             @Override
-            public void confirm(String name) {
-                manager.get().confirmFoundation(player, name);
+            public boolean confirm(String name) {
+                ColonyManager m = manager.get();
+                Optional<BlockPos> pos = m.pendingPositionOf(player);
+                boolean created = m.confirmFoundation(player, name).isPresent();
+                if (!created && m.pendingPositionOf(player).isEmpty()) {
+                    pos.ifPresent(HytaleUiPort.this::removeTownHall); // spot became invalid: foundation dropped
+                }
+                return created;
             }
 
             @Override
-            public void cancel() {
-                manager.get().cancelFoundation(player).ifPresent(pos -> blocks.removeWithDrop(pos, townHallItemId));
+            public void cancel(boolean windowClosing) {
+                if (windowClosing) {
+                    closing.add(player);
+                }
+                try {
+                    manager.get().cancelFoundation(player).ifPresent(HytaleUiPort.this::removeTownHall);
+                } finally {
+                    closing.remove(player);
+                }
             }
         }));
     }
@@ -52,21 +77,24 @@ public final class HytaleUiPort implements UiPort {
 
     @Override
     public void close(UUID player) {
-        PlayerRef pr = Universe.get().getPlayer(player);
-        if (pr == null) {
+        if (closing.contains(player)) {
             return;
         }
-        Ref<EntityStore> ref = pr.getReference();
+        PlayerRef pr = Universe.get().getPlayer(player);
+        Ref<EntityStore> ref = pr == null ? null : pr.getReference();
+        if (ref == null || !ref.isValid()) {
+            return; // disconnected or not in a world
+        }
         Store<EntityStore> store = ref.getStore();
         store.getComponent(ref, Player.getComponentType()).getPageManager().setPage(ref, store, Page.None);
     }
 
     private void open(UUID player, Function<PlayerRef, CustomUIPage> page) {
         PlayerRef pr = Universe.get().getPlayer(player);
-        if (pr == null) {
+        Ref<EntityStore> ref = pr == null ? null : pr.getReference();
+        if (ref == null || !ref.isValid()) {
             return;
         }
-        Ref<EntityStore> ref = pr.getReference();
         Store<EntityStore> store = ref.getStore();
         store.getComponent(ref, Player.getComponentType()).getPageManager().openCustomPage(ref, store, page.apply(pr));
     }

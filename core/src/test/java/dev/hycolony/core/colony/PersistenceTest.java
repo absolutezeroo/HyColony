@@ -8,6 +8,7 @@ import com.google.gson.JsonParser;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.persist.ColonyStorage;
 import dev.hycolony.core.kernel.persist.FileColonyStorage;
 import dev.hycolony.core.kernel.persist.MigrationChain;
@@ -96,6 +97,17 @@ class PersistenceTest {
         assertTrue(c.id() > 9);
         m.saveAll();
         assertEquals("{\"schemaVersion\":99,\"id\":9}", Files.readString(dir.resolve("colony-9.json")));
+    }
+
+    @Test
+    void bodiesOfUnloadedColonyAreLeftAlone() throws Exception {
+        Files.writeString(dir.resolve("colony-9.json"), "{\"schemaVersion\":99,\"id\":9}");
+        TestContexts t = new TestContexts();
+        ColonyManager m = manager(t);
+        m.loadAll();
+        var body = t.bodies.existing(9, 1, new Vec3(0, 64, 0));
+        m.onBodyLoaded(body, 9, 1);
+        assertTrue(t.bodies.isAlive(body));
     }
 
     @Test

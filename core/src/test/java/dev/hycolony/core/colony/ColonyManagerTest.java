@@ -98,9 +98,44 @@ class ColonyManagerTest {
     }
 
     @Test
+    void cancelSurvivesUiCloseReenteringCancel() {
+        manager.beginFoundation(alice, "Alice", hall, 0);
+        t.ui.onClose = p -> manager.cancelFoundation(p); // Esc: close -> onDismiss -> cancel again
+        assertEquals(hall, manager.cancelFoundation(alice).orElseThrow());
+        assertTrue(manager.pendingPositionOf(alice).isEmpty());
+    }
+
+    @Test
+    void breakingAnotherPlayersPendingTownHallCancelsTheirFoundation() {
+        manager.beginFoundation(alice, "Alice", hall, 0);
+        assertEquals(alice, manager.cancelFoundationAt(hall).orElseThrow());
+        assertTrue(manager.pendingPositionOf(alice).isEmpty());
+        assertFalse(t.ui.shown.containsKey(alice));
+        assertTrue(manager.confirmFoundation(alice, "Late").isEmpty());
+    }
+
+    @Test
+    void breakingElsewhereKeepsYourPendingFoundation() {
+        manager.beginFoundation(alice, "Alice", hall, 0);
+        assertTrue(manager.cancelFoundationAt(hall.offset(1, 0, 0)).isEmpty());
+        assertEquals(hall, manager.pendingPositionOf(alice).orElseThrow());
+        assertTrue(t.ui.shown.containsKey(alice));
+    }
+
+    @Test
+    void confirmOnSpotThatBecameInvalidDropsPendingAndClosesUi() {
+        manager.beginFoundation(alice, "Alice", hall, 0);
+        found(bob, "B", new BlockPos(16 * 16, 64, 0)); // too close to alice's spot
+        assertTrue(manager.confirmFoundation(alice, "A").isEmpty());
+        assertTrue(manager.pendingPositionOf(alice).isEmpty());
+        assertFalse(t.ui.shown.containsKey(alice));
+        assertEquals("hycolony.colony.tooClose", t.notifier.sent.getLast().msg().key());
+    }
+
+    @Test
     void playerLeavingCancelsPendingFoundation() {
         manager.beginFoundation(alice, "Alice", hall, 0);
-        manager.onPlayerLeft(alice);
+        manager.cancelFoundation(alice); // what the disconnect handler does
         assertTrue(manager.confirmFoundation(alice, "Late").isEmpty());
         assertTrue(manager.all().isEmpty());
     }

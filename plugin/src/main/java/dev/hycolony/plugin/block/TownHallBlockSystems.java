@@ -107,8 +107,8 @@ public final class TownHallBlockSystems {
             }
             ColonyManager m = rt.manager();
             BlockPos pos = pos(event.getTargetBlock());
-            if (m.cancelFoundation(player.getUuid()).isPresent()) {
-                return; // broke its own pending town hall: foundation cancelled, normal drop
+            if (m.cancelFoundationAt(pos).isPresent()) {
+                return; // an unconfirmed town hall (anyone's): its foundation is cancelled, normal drop
             }
             if (m.colonyAt(pos).isPresent() && !m.isAllowed(player.getUuid(), pos, Action.BREAK_HUTS)) {
                 event.setCancelled(true);
