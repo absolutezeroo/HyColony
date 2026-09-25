@@ -51,7 +51,7 @@ public final class Skills {
         }
         int originalLevel = data.level();
         double xpToLevelUp = Math.min(Double.MAX_VALUE, data.experience() + xp);
-        while (xpToLevelUp > 0) {
+        while (xpToLevelUp > 0 && data.level() < MAX_CITIZEN_LEVEL) {
             double next = Experience.xpNeededForNextLevel(data.level());
             if (next > xpToLevelUp) {
                 data.setExperience(xpToLevelUp);

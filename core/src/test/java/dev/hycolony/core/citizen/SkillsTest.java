@@ -59,4 +59,12 @@ class SkillsTest {
         s.set(Skill.Mana, Skills.MAX_CITIZEN_LEVEL, 0);
         assertFalse(s.addXp(Skill.Mana, 1e9, 5, 5));
     }
+
+    @Test
+    void largeXpNeverExceedsMaxLevel() {
+        Skills s = Skills.initRandom(1, new Random(1));
+        s.set(Skill.Focus, 98, 0);
+        assertTrue(s.addXp(Skill.Focus, 1e9, 5, 5));
+        assertEquals(Skills.MAX_CITIZEN_LEVEL, s.level(Skill.Focus));
+    }
 }
