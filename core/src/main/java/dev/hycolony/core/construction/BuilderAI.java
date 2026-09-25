@@ -532,7 +532,10 @@ public final class BuilderAI implements JobAI {
             case REMOVE -> world != null && mineable(world) && notAHut(pos);
             default -> {
                 BlueprintEntry e = (stage == Stage.SOLID ? plan.solidList() : plan.decoList()).get(i);
-                yield !e.state().equals(world) && (world == null || catalog.kind(world.key()) != BlockKind.UNBREAKABLE)
+                // The final walk only refills what was broken (air); a block the player changed stays.
+                boolean open = finalCheckDone ? world == null || catalog.kind(world.key()) == BlockKind.AIR
+                        : world == null || catalog.kind(world.key()) != BlockKind.UNBREAKABLE;
+                yield !e.state().equals(world) && open
                         && notAHut(pos); // MC IBuilderUndestroyable: a colony hut is never built over
             }
         };

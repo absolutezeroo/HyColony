@@ -686,7 +686,7 @@ class BuilderAITest {
         Request r = waitingForStone(2);
         give(STONE_I, 2); // "Fournir" hands the items to the citizen
         t.containers.containers.put(HUT, new java.util.LinkedHashMap<>(Map.of(STONE_I, 5)));
-        colony.requests().overrule(r.token(), List.of(new ItemAmount(STONE_I, 2)));
+        colony.requests().overrule(r.token(), List.of(new ItemAmount(STONE_I, 2)), true);
 
         tickUntil(() -> colony.requests().get(r.token()).isEmpty(), 1000);
 
@@ -789,5 +789,42 @@ class BuilderAITest {
         assertTrue(loaded.wear(shovel, 3)); // the third use breaks it
         assertFalse(loaded.wear(shovel, 3)); // its replacement starts fresh
         assertFalse(job.wear(new ItemKey("unbreakable"), 0));
+    }
+
+    @Test
+    void mineWithoutAnyRequestIsEmpty() {
+        assertTrue(new BuilderStock(colony, citizen, hut).mine().isEmpty());
+    }
+
+    @Test
+    void directDeliveryPartlyUsedDoesNotTakeHutStock() {
+        Request r = waitingForStone(2);
+        t.containers.containers.put(HUT, new java.util.LinkedHashMap<>(Map.of(STONE_I, 5))); // reserved elsewhere
+        t.playerInventory.give(alice, new ItemAmount(STONE_I, 2));
+        assertTrue(manager.fulfil(alice, colony.id(), r.token())); // "Fournir": straight to the citizen
+        citizen.inventory().extract(STONE_I, 1); // one used before the pick-up
+
+        tickUntil(() -> colony.requests().get(r.token()).isEmpty(), 1000);
+
+        assertEquals(5, t.containers.count(List.of(HUT), STONE_I));
+        assertEquals(1, citizen.inventory().count(STONE_I));
+    }
+
+    /** The final walk only refills air: a block the player changed (not broken) stays. */
+    @Test
+    void verificationPassOnlyRefillsAir() {
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);
+        blueprint = bp(List.of(entry(1, 0, 0, STONE), entry(2, 0, 0, STONE), entry(3, 0, 0, STONE),
+                entry(1, 1, 0, TORCH)));
+        give(STONE_I, 4);
+        give(TORCH_I, 1);
+        WorkOrder o = order(res, WorkOrderType.UPGRADE);
+        tickUntil(() -> t.blocks.placed.size() == 2, 1000);
+
+        t.blocks.blocks.put(at(1, 0, 0), new BlockState(DIRT, 0)); // the player swaps it
+        tickUntil(() -> gone(o), 5000);
+
+        assertEquals(List.of(at(1, 0, 0), at(2, 0, 0), at(3, 0, 0), at(1, 1, 0)), t.blocks.placed);
+        assertEquals(new BlockState(DIRT, 0), t.blocks.blocks.get(at(1, 0, 0)));
     }
 }

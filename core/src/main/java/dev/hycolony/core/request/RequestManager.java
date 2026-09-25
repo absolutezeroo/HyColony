@@ -241,11 +241,20 @@ public final class RequestManager {
 
     /** The player provided the items: cancel children, then COMPLETED. Applied once (MineColonies ran it twice). */
     public void overrule(RequestToken token, List<ItemAmount> delivered) {
+        overrule(token, delivered, false);
+    }
+
+    /**
+     * {@code toCitizen}: the items were handed to the requesting citizen ("Fournir"), not left in the hut; the
+     * request remembers it ({@link Request#deliveredToCitizen()}) so its pick-up takes nothing from the hut.
+     */
+    public void overrule(RequestToken token, List<ItemAmount> delivered, boolean toCitizen) {
         require(token);
         List<ItemAmount> items = List.copyOf(delivered);
         submit(() -> {
             Request req = requests.get(token);
             if (req != null && req.state().ordinal() < RequestState.COMPLETED.ordinal()) {
+                req.setDeliveredToCitizen(toCitizen);
                 overruleNow(req, items);
             }
         });

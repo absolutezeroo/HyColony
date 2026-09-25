@@ -628,7 +628,7 @@ public final class ColonyManager {
         if (moved <= 0) {
             return false;
         }
-        c.requests().overrule(token, List.of(new ItemAmount(item.get(), moved)));
+        c.requests().overrule(token, List.of(new ItemAmount(item.get(), moved)), citizen.isPresent());
         c.markDirty();
         return true;
     }

@@ -19,6 +19,7 @@ public final class Request {
     private final List<RequestToken> children = new ArrayList<>();
     private final List<ItemAmount> deliveries = new ArrayList<>();
     private Set<String> blacklist = Set.of();
+    private boolean deliveredToCitizen;
 
     Request(RequestToken token, RequesterId requester, Deliverable requestable, int citizenId) {
         this.token = Objects.requireNonNull(token, "token");
@@ -41,6 +42,9 @@ public final class Request {
 
     public List<ItemAmount> deliveries() { return Collections.unmodifiableList(deliveries); }
 
+    /** The deliveries were handed to the citizen (the player's "Fournir"), not left in the hut. */
+    public boolean deliveredToCitizen() { return deliveredToCitizen; }
+
     /** -1 = the building itself. */
     public int citizenId() { return citizenId; }
 
@@ -51,6 +55,8 @@ public final class Request {
     void setParent(RequestToken p) { parent = p; }
 
     void setCitizenId(int id) { citizenId = id; }
+
+    void setDeliveredToCitizen(boolean b) { deliveredToCitizen = b; }
 
     void addChild(RequestToken c) { children.add(c); }
 

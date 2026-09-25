@@ -118,6 +118,9 @@ public final class RequestSerializer {
         }
         o.add("deliveries", deliveries);
         o.addProperty("citizenId", r.citizenId());
+        if (r.deliveredToCitizen()) {
+            o.addProperty("deliveredToCitizen", true);
+        }
         JsonArray blacklist = new JsonArray();
         r.blacklist().stream().sorted().forEach(blacklist::add);
         o.add("blacklist", blacklist);
@@ -137,6 +140,7 @@ public final class RequestSerializer {
             JsonObject d = el.getAsJsonObject();
             r.addDelivery(new ItemAmount(new ItemKey(d.get("item").getAsString()), d.get("count").getAsInt()));
         }
+        r.setDeliveredToCitizen(o.has("deliveredToCitizen") && o.get("deliveredToCitizen").getAsBoolean());
         Set<String> blacklist = new HashSet<>();
         for (JsonElement el : o.getAsJsonArray("blacklist")) {
             blacklist.add(el.getAsString());

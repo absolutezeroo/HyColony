@@ -146,4 +146,16 @@ class RequestSerializerTest {
         assertEquals(1, l.retrying.tries().get(retried));
         assertEquals(List.of(atPlayer), l.player.open().stream().map(Request::token).toList());
     }
+
+    @Test
+    void directDeliveryFlagSurvivesSave() {
+        World w = new World();
+        RequestToken t = w.m.createAndAssign(w.hut, new StackRequest(STONE, 2, 2, true), 1);
+        w.m.overrule(t, List.of(new ItemAmount(STONE, 2)), true);
+
+        World l = new World();
+        RequestSerializer.read(roundTrip(RequestSerializer.write(w.m)), l.m);
+
+        assertTrue(l.m.get(t).orElseThrow().deliveredToCitizen());
+    }
 }

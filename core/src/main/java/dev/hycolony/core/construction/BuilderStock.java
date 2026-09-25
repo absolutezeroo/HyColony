@@ -166,9 +166,7 @@ final class BuilderStock {
     private RequestManager requests() { return colony.requests(); }
 
     List<Request> mine() {
-        List<Request> all = requests().byRequester(hut.requesterId());
-        all.removeIf(r -> r.citizenId() != citizen.id());
-        return all;
+        return requests().byRequester(hut.requesterId()).stream().filter(r -> r.citizenId() == citizen.id()).toList();
     }
 
     /** Any live request of this builder, open or completed but not yet picked up. */
@@ -243,15 +241,12 @@ final class BuilderStock {
     }
 
     /**
-     * Takes a completed request's deliveries from the hut, then RECEIVED. Deliveries already in the inventory (the
-     * player's "Fournir" hands them to the citizen) are not taken again; a delivery the hut no longer holds is asked
+     * Takes a completed request's deliveries from the hut, then RECEIVED. Deliveries handed to the citizen (the
+     * player's "Fournir") are already in the inventory: nothing is taken. A delivery the hut no longer holds is asked
      * again.
      */
     void pickUp(Request r) {
-        for (ItemAmount d : r.deliveries()) {
-            if (inventory().count(d.item()) >= d.count()) {
-                continue;
-            }
+        for (ItemAmount d : r.deliveredToCitizen() ? List.<ItemAmount>of() : r.deliveries()) {
             int there = Math.min(d.count(), hutCount(d.item())); // what does not fit stays in the hut, still there
             take(d.item(), there);
             int missing = d.count() - there;
