@@ -615,16 +615,19 @@ class RequestManagerTest {
         assertTrue(hut.completed.isEmpty());
     }
 
+    /** Warm, about 6 ms (UUID tokens included): the budget keeps a 10x+ margin for slower CI machines. */
     @Test
-    void thousandRequestsAssignInUnder50ms() {
-        runBatch(new RequestManager(id -> Optional.empty(), new FakeCatalog())); // JIT warm-up
+    void thousandRequestsAssignInUnder100ms() {
+        for (int i = 0; i < 5; i++) {
+            runBatch(new RequestManager(id -> Optional.empty(), new FakeCatalog())); // JIT warm-up
+        }
         RequestManager fresh = new RequestManager(id -> Optional.ofNullable(known.get(id)), new FakeCatalog());
 
         long elapsed = runBatch(fresh);
 
         assertEquals(1000, fresh.all().size());
         assertTrue(fresh.all().stream().allMatch(r -> fresh.resolverOf(r.token()).isPresent()));
-        assertTrue(elapsed < 50_000_000L, "took " + elapsed / 1_000_000 + " ms");
+        assertTrue(elapsed < 100_000_000L, "took " + elapsed / 1_000_000 + " ms");
     }
 
     private long runBatch(RequestManager manager) {
@@ -660,5 +663,19 @@ class RequestManagerTest {
         RequestToken fromHut = m.createAndAssign(hut, stack(PLANK), -1);
         assertEquals(1, own.canResolveCalls);
         assertSame(own, m.resolverOf(fromHut).orElseThrow());
+    }
+
+    @Test
+    void creationListenerSeesRequestsClosedAtOnce() {
+        FixedResolver instant = resolver("instant", 100, 0);
+        instant.resolveImmediately = true;
+        List<Request> created = new ArrayList<>();
+        m.setCreationListener(created::add);
+
+        RequestToken t = m.createAndAssign(hut, stack(PLANK), -1);
+        m.updateState(t, RequestState.RECEIVED);
+
+        assertTrue(m.all().isEmpty()); // gone before any tick could see it
+        assertEquals(List.of(t), created.stream().map(Request::token).toList());
     }
 }

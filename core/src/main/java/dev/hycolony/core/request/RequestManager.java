@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 /**
@@ -55,6 +56,8 @@ public final class RequestManager {
 
     private final ArrayDeque<Runnable> queue = new ArrayDeque<>();
     private boolean processing;
+    /** Sees every request as it is created, even one closed within the same tick (simulations, debugging). */
+    private Consumer<Request> creationListener = r -> {};
 
     public RequestManager(RequesterRegistry requesters, ItemCatalog catalog) {
         this.requesters = Objects.requireNonNull(requesters, "requesters");
@@ -311,6 +314,10 @@ public final class RequestManager {
         });
     }
 
+    public void setCreationListener(Consumer<Request> listener) {
+        creationListener = Objects.requireNonNull(listener, "listener");
+    }
+
     public void onColonyUpdate(Predicate<Request> which) {
         submit(() -> List.copyOf(resolvers).forEach(r -> r.onColonyUpdate(this, which)));
     }
@@ -416,6 +423,7 @@ public final class RequestManager {
         Request req = new Request(RequestToken.random(), requester, what, citizenId);
         requests.put(req.token(), req);
         byRequester.computeIfAbsent(requester, k -> new LinkedHashSet<>()).add(req.token());
+        creationListener.accept(req);
         return req;
     }
 

@@ -13,8 +13,7 @@ class ArchitectureTest {
 
     @ArchTest
     static final ArchRule coreNeverTouchesHytale = noClasses()
-            .should().dependOnClassesThat().resideInAPackage("com.hypixel..")
-            .allowEmptyShould(true);
+            .should().dependOnClassesThat().resideInAPackage("com.hypixel..");
 
     @ArchTest
     static final ArchRule kernelDependsOnNothingElse = classes()
@@ -28,12 +27,10 @@ class ArchitectureTest {
             .that().resideInAPackage("dev.hycolony.core.request..")
             .should().dependOnClassesThat().resideInAnyPackage("dev.hycolony.core.colony..",
                     "dev.hycolony.core.building..", "dev.hycolony.core.construction..",
-                    "dev.hycolony.core.job..", "dev.hycolony.core.citizen..")
-            .allowEmptyShould(true);
+                    "dev.hycolony.core.job..", "dev.hycolony.core.citizen..");
 
     @ArchTest
     static final ArchRule jobDoesNotDependOnConstruction = noClasses()
             .that().resideInAPackage("dev.hycolony.core.job..")
-            .should().dependOnClassesThat().resideInAPackage("dev.hycolony.core.construction..")
-            .allowEmptyShould(true);
+            .should().dependOnClassesThat().resideInAPackage("dev.hycolony.core.construction..");
 }

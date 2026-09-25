@@ -84,7 +84,10 @@ class ConstructionSimulationTest {
     private final UUID alice = UUID.fromString("00000000-0000-0000-0000-00000000a11c");
     private ColonyManager manager;
     private Colony colony;
-    /** Every request seen, by token, last instance: a cleaned request keeps its final state (RECEIVED...). */
+    /**
+     * Every request seen, by token, from its creation (even one closed within a tick): a cleaned request keeps its
+     * final state (RECEIVED...).
+     */
     private final Map<RequestToken, Request> seen = new LinkedHashMap<>();
     /** Every resolver each request was seen with. */
     private final Map<RequestToken, Set<String>> resolversSeen = new HashMap<>();
@@ -120,6 +123,7 @@ class ConstructionSimulationTest {
         manager = newManager();
         manager.beginFoundation(alice, "Alice", TOWN_HALL, 0);
         colony = manager.confirmFoundation(alice, "Simulation").orElseThrow();
+        watch(colony);
         t.blocks.blocks.put(TOWN_HALL, state(HUT_BLOCK));
     }
 
@@ -169,6 +173,10 @@ class ConstructionSimulationTest {
     }
 
     // ---- ticking ----
+
+    private void watch(Colony c) {
+        c.requests().setCreationListener(r -> seen.put(r.token(), r));
+    }
 
     private void tick() {
         t.clock.tick++;
@@ -313,6 +321,7 @@ class ConstructionSimulationTest {
         manager = newManager();
         manager.loadAll();
         colony = manager.byId(colony.id()).orElseThrow();
+        watch(colony);
         assertTrue(colony.contains(BEYOND), "claims kept over a restart");
     }
 
@@ -344,6 +353,7 @@ class ConstructionSimulationTest {
         manager = newManager(); // the server restarts, same world
         manager.loadAll();
         colony = manager.byId(colonyId).orElseThrow();
+        watch(colony);
         manager.onBodyLoaded(body, colonyId, builder.id()); // the builder's entity comes back with its chunk
         assertEquals(openAtSave, new HashSet<>(colony.requests().all().stream().map(Request::token).toList()));
         Set<RequestToken> before = new HashSet<>(seen.keySet());
@@ -544,21 +554,27 @@ class ConstructionSimulationTest {
 
         int ticks = 20_000;
         long worst = 0;
+        int slow = 0; // ticks over 5 ms
         long start = System.nanoTime();
         for (int i = 0; i < ticks; i++) {
             long s = System.nanoTime();
             t.clock.tick++;
             manager.tick();
-            worst = Math.max(worst, System.nanoTime() - s);
+            long took = System.nanoTime() - s;
+            worst = Math.max(worst, took);
+            if (took > 5_000_000L) {
+                slow++;
+            }
         }
         double avgMs = (System.nanoTime() - start) / 1e6 / ticks;
         int placed = t.blocks.placed.size();
-        System.out.printf("perf: %d ticks, avg %.4f ms, worst %.3f ms, %d blocks placed, order at %s@%d%n", ticks,
-                avgMs, worst / 1e6, placed, o.stage(), o.progressIndex());
+        System.out.printf("perf: %d ticks, avg %.4f ms, worst %.3f ms, %d over 5 ms, %d blocks placed, order at %s@%d%n",
+                ticks, avgMs, worst / 1e6, slow, placed, o.stage(), o.progressIndex());
         assertFalse(colony.isSuspended());
         assertEquals(Stage.SOLID, o.stage());
         assertTrue(placed > 500, "the builder kept building: " + placed);
         assertTrue(avgMs < 2.0, "avg colony tick " + avgMs + " ms");
+        assertTrue(slow <= 3, slow + " ticks over 5 ms"); // the plan's load, not a steady cost
     }
 
     @Test
@@ -576,6 +592,7 @@ class ConstructionSimulationTest {
         manager = newManager();
         manager.loadAll();
         colony = manager.byId(1).orElseThrow();
+        watch(colony);
         Building hut = at(HUT);
         assertEquals(0, hut.level());
         WorkOrder o = colony.work().byBuilding(HUT).orElseThrow();

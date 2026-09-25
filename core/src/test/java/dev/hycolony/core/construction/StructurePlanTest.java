@@ -144,6 +144,9 @@ class StructurePlanTest {
         }
         Blueprint bp = new Blueprint("big", entries, new BlockPos(0, 0, 0), new BlockPos(x - 1, y - 1, z - 1));
 
+        for (int i = 0; i < 5; i++) {
+            StructurePlan.build(bp, HUT, catalog); // JIT warm-up: warm, about 3 ms, a 30x margin
+        }
         long start = System.nanoTime();
         StructurePlan plan = StructurePlan.build(bp, HUT, catalog);
         long elapsedMs = (System.nanoTime() - start) / 1_000_000;
