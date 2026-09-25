@@ -8,21 +8,30 @@ import dev.hycolony.core.colony.ui.CitizenRow;
 import dev.hycolony.core.colony.ui.FoundColonyView;
 import dev.hycolony.core.colony.ui.TownHallView;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.persist.ColonyStorage;
+import dev.hycolony.core.kernel.persist.MigrationChain;
+import dev.hycolony.core.kernel.persist.SchemaTooNewException;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.Msg;
+import com.google.gson.JsonObject;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 /** All colonies of one world. Entry point the plugin calls, always on the world thread. */
 public final class ColonyManager {
     public static final int MAX_NAME_LENGTH = 32;
+
+    private static final System.Logger LOG = System.getLogger(ColonyManager.class.getName());
 
     private record PendingFoundation(String playerName, BlockPos pos, int rotation) {}
 
@@ -31,6 +40,11 @@ public final class ColonyManager {
     private final Map<Integer, Colony> colonies = new LinkedHashMap<>();
     private final Map<UUID, PendingFoundation> pending = new HashMap<>();
     private int nextId = 1;
+
+    private ColonyStorage storage;
+    private MigrationChain migrations = MigrationChain.sp0();
+    /** Ids whose file must never be touched (newer schema). */
+    private final Set<Integer> lockedIds = new HashSet<>();
 
     public ColonyManager(ColonyContext ctx) {
         this.ctx = ctx;
@@ -107,6 +121,7 @@ public final class ColonyManager {
         ctx.bus().post(new ColonyEvents.ColonyCreated(colony));
         placeHut(colony, BuildingTypes.TOWN_HALL.id(), p.pos(), p.rotation());
         ctx.notifier().send(player, Msg.of("hycolony.colony.created", name));
+        save(colony);
         return Optional.of(colony);
     }
 
@@ -218,6 +233,13 @@ public final class ColonyManager {
         }
         c.citizens().despawnAll();
         territory.releaseAll(colonyId);
+        if (storage != null) {
+            try {
+                storage.archive(colonyId);
+            } catch (IOException e) {
+                LOG.log(System.Logger.Level.ERROR, "Archiving colony " + colonyId + " failed", e);
+            }
+        }
         ctx.bus().post(new ColonyEvents.ColonyDeleted(colonyId));
     }
 
@@ -240,6 +262,72 @@ public final class ColonyManager {
 
     public void onBodyUnloaded(BodyId body, int colonyId) {
         byId(colonyId).ifPresent(c -> c.citizens().onBodyUnloaded(body));
+    }
+
+    // ---- Persistence ----
+
+    public void setStorage(ColonyStorage storage, MigrationChain migrations) {
+        this.storage = storage;
+        this.migrations = migrations;
+    }
+
+    public void loadAll() {
+        try {
+            reserveId(storage.highestIdEverUsed());
+            for (int id : storage.colonyIds()) {
+                loadOne(id);
+            }
+        } catch (IOException e) {
+            LOG.log(System.Logger.Level.ERROR, "Cannot list colonies of " + ctx.world(), e);
+        }
+    }
+
+    private void loadOne(int id) throws IOException {
+        Optional<JsonObject> raw = storage.load(id);
+        if (raw.isEmpty()) {
+            return;
+        }
+        JsonObject json = raw.get();
+        int version = migrations.versionOf(json);
+        try {
+            if (version < migrations.current()) {
+                storage.backupVersion(id, version, json.toString());
+            }
+            json = migrations.migrate(json);
+            Colony colony = ColonySerializer.read(json, ctx, territory);
+            register(colony);
+            colony.clearDirty();
+        } catch (SchemaTooNewException e) {
+            lockedIds.add(id);
+            LOG.log(System.Logger.Level.ERROR, "Colony " + id + " was saved by a newer HyColony; not loaded", e);
+        } catch (RuntimeException e) {
+            lockedIds.add(id);
+            LOG.log(System.Logger.Level.ERROR, "Colony " + id + " failed to load; file left untouched", e);
+        }
+    }
+
+    public void saveDirty() {
+        for (Colony c : colonies.values()) {
+            if (c.isDirty()) {
+                save(c);
+            }
+        }
+    }
+
+    public void saveAll() {
+        colonies.values().forEach(this::save);
+    }
+
+    private void save(Colony c) {
+        if (storage == null || lockedIds.contains(c.id())) {
+            return;
+        }
+        try {
+            storage.save(c.id(), ColonySerializer.write(c).toString());
+            c.clearDirty();
+        } catch (IOException e) {
+            LOG.log(System.Logger.Level.ERROR, "Saving colony " + c.id() + " failed; will retry", e);
+        }
     }
 
     // ---- Used by persistence ----
