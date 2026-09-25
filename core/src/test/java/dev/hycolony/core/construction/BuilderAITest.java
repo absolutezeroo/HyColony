@@ -755,4 +755,39 @@ class BuilderAITest {
         assertEquals(new BlockState(DIRT, 0), t.blocks.blocks.get(other));
         assertEquals(List.of(at(1, 0, 0), at(3, 0, 0)), t.blocks.placed);
     }
+
+    @Test
+    void toolBreaksAfterDurabilityUses() {
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 0);
+        blueprint = bp(List.of(entry(3, 0, 0, STONE)));
+        for (int x = 1; x <= 3; x++) {
+            t.blocks.blocks.put(at(x, 0, 0), new BlockState(DIRT, 0));
+        }
+        t.catalog.toolForBlock.put(DIRT, ToolType.SHOVEL);
+        ItemKey shovel = new ItemKey("shovel");
+        t.catalog.tools.put(shovel, new ToolInfo(ToolType.SHOVEL, 0, 2f));
+        t.catalog.durability.put(shovel, 2);
+        give(shovel, 1);
+        order(res, WorkOrderType.BUILD);
+
+        tickUntil(() -> builderRequests().stream().anyMatch(r -> r.requestable() instanceof ToolRequest), 5000);
+
+        assertEquals(0, citizen.inventory().count(shovel)); // broken after its 2 uses
+        assertEquals(1, t.blocks.blocks.values().stream().filter(b -> b.key().equals(DIRT)).count());
+    }
+
+    @Test
+    void toolWearPersistsAcrossSaveAndLoad() {
+        ItemKey shovel = new ItemKey("shovel");
+        BuilderJob job = (BuilderJob) citizen.job().orElseThrow();
+        assertFalse(job.wear(shovel, 3));
+        assertFalse(job.wear(shovel, 3));
+
+        BuilderJob loaded = new BuilderJob(new CitizenData(7));
+        loaded.read(job.write());
+
+        assertTrue(loaded.wear(shovel, 3)); // the third use breaks it
+        assertFalse(loaded.wear(shovel, 3)); // its replacement starts fresh
+        assertFalse(job.wear(new ItemKey("unbreakable"), 0));
+    }
 }

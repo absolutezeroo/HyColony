@@ -3,8 +3,6 @@ package dev.hycolony.core.testing;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.core.kernel.item.ItemAmount;
-import dev.hycolony.core.kernel.item.ItemKey;
-import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.WorldBlocks;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -16,7 +14,6 @@ public final class FakeWorldBlocks implements WorldBlocks {
     public final Map<BlockPos, BlockState> blocks = new LinkedHashMap<>();
     /** Drops returned by breakBlock for a given position, set up by the test. */
     public final Map<BlockPos, List<ItemAmount>> drops = new LinkedHashMap<>();
-    public final Map<BodyId, ItemKey> toolDamage = new LinkedHashMap<>();
     public boolean loaded = true;
     /** Every successful place(), in call order. */
     public final List<BlockPos> placed = new ArrayList<>();
@@ -39,6 +36,4 @@ public final class FakeWorldBlocks implements WorldBlocks {
         }
         return drops.getOrDefault(pos, List.of());
     }
-
-    @Override public void damageTool(BodyId body, ItemKey tool) { toolDamage.put(body, tool); }
 }

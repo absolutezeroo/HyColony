@@ -467,8 +467,8 @@ public final class BuilderAI implements JobAI {
         if (!catalog.isOre(state.key())) { // MC EntityAIStructureBuilder.mineBlock: getDrops = !isOre
             stock.storeDrops(drops);
         }
-        if (tool != null) {
-            blocks.damageTool(body, tool);
+        if (tool != null && job instanceof BuilderJob b && b.wear(tool, catalog.durability(tool))) {
+            stock.inventory().extract(tool, 1); // worn out: it breaks
         }
         award(XP_PER_BLOCK);
         job.incrementActions();

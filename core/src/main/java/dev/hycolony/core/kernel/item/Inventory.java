@@ -9,7 +9,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.ToIntFunction;
 
-/** A fixed number of slots, each holding at most one {@link ItemAmount}. */
+/**
+ * A fixed number of slots, each holding at most one {@link ItemAmount}. Items are keys and counts only: item
+ * metadata (tool durability, a hut's level) does not travel through a citizen's inventory (known limitation, backlog).
+ */
 public final class Inventory {
     private final ItemAmount[] slots;
 

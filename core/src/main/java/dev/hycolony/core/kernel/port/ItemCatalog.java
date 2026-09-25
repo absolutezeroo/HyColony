@@ -22,4 +22,11 @@ public interface ItemCatalog {
     float hardness(BlockKey block);
 
     Optional<ToolInfo> tool(ItemKey item);
+
+    /**
+     * How many blocks the tool mines before it breaks; 0 = unbreakable (or not a tool). The core counts the uses
+     * itself: item metadata (durability, a hut's level) does not travel through citizen inventories (known
+     * limitation, backlog).
+     */
+    int durability(ItemKey item);
 }

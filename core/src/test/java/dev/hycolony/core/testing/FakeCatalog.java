@@ -21,6 +21,7 @@ public final class FakeCatalog implements ItemCatalog {
     public final Map<BlockKey, ToolType> toolForBlock = new HashMap<>();
     public final Map<BlockKey, Float> hardness = new HashMap<>();
     public final Map<ItemKey, ToolInfo> tools = new HashMap<>();
+    public final Map<ItemKey, Integer> durability = new HashMap<>();
 
     @Override public int maxStack(ItemKey item) { return maxStacks.getOrDefault(item, defaultMaxStack); }
     @Override public Optional<ItemKey> itemForBlock(BlockKey block) { return Optional.ofNullable(itemForBlock.get(block)); }
@@ -29,4 +30,5 @@ public final class FakeCatalog implements ItemCatalog {
     @Override public Optional<ToolType> toolFor(BlockKey block) { return Optional.ofNullable(toolForBlock.get(block)); }
     @Override public float hardness(BlockKey block) { return hardness.getOrDefault(block, 1.0f); }
     @Override public Optional<ToolInfo> tool(ItemKey item) { return Optional.ofNullable(tools.get(item)); }
+    @Override public int durability(ItemKey item) { return durability.getOrDefault(item, 0); }
 }

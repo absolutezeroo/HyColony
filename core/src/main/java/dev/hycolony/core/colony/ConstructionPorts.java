@@ -10,7 +10,6 @@ import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolInfo;
 import dev.hycolony.core.kernel.item.ToolType;
-import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.ContainerAccess;
 import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.core.kernel.port.PlayerInventory;
@@ -33,13 +32,13 @@ public record ConstructionPorts(ItemCatalog catalog, WorldBlocks blocks, Contain
             @Override public Optional<ToolType> toolFor(BlockKey block) { return Optional.empty(); }
             @Override public float hardness(BlockKey block) { return 0f; }
             @Override public Optional<ToolInfo> tool(ItemKey item) { return Optional.empty(); }
+            @Override public int durability(ItemKey item) { return 0; } // Plan B: read the item's max durability
         };
         WorldBlocks blocks = new WorldBlocks() {
             @Override public boolean isLoaded(BlockPos pos) { return false; }
             @Override public Optional<BlockState> get(BlockPos pos) { return Optional.empty(); }
             @Override public boolean place(BlockPos pos, BlockState state, boolean withContainer) { return false; }
             @Override public List<ItemAmount> breakBlock(BlockPos pos) { return List.of(); }
-            @Override public void damageTool(BodyId body, ItemKey tool) {}
         };
         ContainerAccess containers = new ContainerAccess() {
             @Override public int count(List<BlockPos> containers, ItemKey item) { return 0; }
