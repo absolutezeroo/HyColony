@@ -1,0 +1,273 @@
+package dev.hycolony.plugin.adapter;
+
+import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.protocol.BlockMaterial;
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockBreakingDropType;
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockGathering;
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
+import com.hypixel.hytale.server.core.asset.type.fluid.Fluid;
+import com.hypixel.hytale.server.core.inventory.ItemStack;
+import com.hypixel.hytale.server.core.modules.block.BlockModule;
+import com.hypixel.hytale.server.core.modules.block.components.ItemContainerBlock;
+import com.hypixel.hytale.server.core.modules.interaction.BlockHarvestUtils;
+import com.hypixel.hytale.server.core.universe.world.SetBlockSettings;
+import com.hypixel.hytale.server.core.universe.world.World;
+import com.hypixel.hytale.server.core.universe.world.chunk.BlockOperations;
+import com.hypixel.hytale.server.core.universe.world.chunk.section.BlockSection;
+import com.hypixel.hytale.server.core.universe.world.chunk.section.FluidSection;
+import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
+import com.hypixel.hytale.server.core.util.FillerBlockUtil;
+import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.item.BlockKey;
+import dev.hycolony.core.kernel.item.BlockState;
+import dev.hycolony.core.kernel.item.ItemAmount;
+import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.core.kernel.port.WorldBlocks;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.logging.Level;
+import org.joml.Vector3i;
+
+/**
+ * WorldBlocks over the section API (cheat sheet § 1). Never loads a chunk, never throws. Fluids are reported as the
+ * pseudo-key {@code ~fluid:<FluidId>}; state variants ({@code *…}) are reported as their base block. World thread only.
+ */
+public final class HytaleWorldBlocks implements WorldBlocks {
+    private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
+    /** Pseudo-key prefix for fluids, shared with {@link HytaleItemCatalog}. */
+    static final String FLUID_PREFIX = "~fluid:";
+    private static final int ROTATIONS = 64; // RotationTuple.VALUES.length
+
+    private final World world;
+    /** {@code get} is hot: one Optional per (block runtime id, rotation index), built once. */
+    private Optional<BlockState>[][] blockCache = newCache(1024);
+    private Optional<BlockState>[] fluidCache = newRow(64);
+    private boolean warned;
+
+    public HytaleWorldBlocks(World world) {
+        this.world = world;
+    }
+
+    @Override
+    public boolean isLoaded(BlockPos pos) {
+        try {
+            return section(pos) != null;
+        } catch (RuntimeException e) {
+            fail("isLoaded", pos, e);
+            return false;
+        }
+    }
+
+    @Override
+    public Optional<BlockState> get(BlockPos pos) {
+        try {
+            Ref<ChunkStore> sec = section(pos);
+            if (sec == null) {
+                return Optional.empty();
+            }
+            Store<ChunkStore> store = world.getChunkStore().getStore();
+            BlockSection blocks = store.getComponent(sec, BlockSection.getComponentType());
+            if (blocks == null) {
+                return Optional.empty();
+            }
+            int id = blocks.get(pos.x(), pos.y(), pos.z());
+            if (id == BlockType.EMPTY_ID) {
+                FluidSection fluids = store.getComponent(sec, FluidSection.getComponentType());
+                int fluid = fluids == null ? 0 : fluids.getFluidId(pos.x(), pos.y(), pos.z());
+                if (fluid != Fluid.EMPTY_ID) {
+                    return fluidState(fluid);
+                }
+            }
+            return blockState(id, blocks.getRotationIndex(pos.x(), pos.y(), pos.z()));
+        } catch (RuntimeException e) {
+            fail("get", pos, e);
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    public boolean place(BlockPos pos, BlockState state, boolean withContainer) {
+        try {
+            Ref<ChunkStore> sec = section(pos);
+            if (sec == null) {
+                return false;
+            }
+            Store<ChunkStore> store = world.getChunkStore().getStore();
+            String key = state.key().id();
+            if (key.startsWith(FLUID_PREFIX)) {
+                Fluid fluid = Fluid.getAssetMap().getAsset(key.substring(FLUID_PREFIX.length()));
+                if (fluid == null || fluid == Fluid.EMPTY) {
+                    return false;
+                }
+                store.ensureAndGetComponent(sec, FluidSection.getComponentType())
+                        .setFluid(pos.x(), pos.y(), pos.z(), fluid, (byte) fluid.getMaxFluidLevel());
+                return true;
+            }
+            int id = BlockType.getAssetMap().getIndex(key);
+            BlockType type = id == Integer.MIN_VALUE ? null : BlockType.getAssetMap().getAsset(id);
+            BlockSection blocks = store.getComponent(sec, BlockSection.getComponentType());
+            if (type == null || blocks == null) {
+                return false;
+            }
+            // The builder mined the spot first; the check also fails if part of the hitbox is in an unloaded section.
+            if (!BlockOperations.testPlaceBlock(store, blocks, pos.x(), pos.y(), pos.z(), type, state.rotation(),
+                    (x, y, z, other, rot, filler) -> true)) {
+                return false;
+            }
+            // Always NONE: the block entity is part of the block (a chest gets its container, a bench its state),
+            // so withContainer (the blueprint's "has an ItemContainerBlock") needs no special setting here.
+            BlockOperations.setBlock(world.getChunkStore(), sec, pos.x(), pos.y(), pos.z(), id, type, state.rotation(),
+                    0, SetBlockSettings.NONE);
+            if (type.getMaterial() == BlockMaterial.Solid) {
+                FluidSection fluids = store.getComponent(sec, FluidSection.getComponentType());
+                if (fluids != null && fluids.getFluidId(pos.x(), pos.y(), pos.z()) != Fluid.EMPTY_ID) {
+                    fluids.setFluid(pos.x(), pos.y(), pos.z(), Fluid.EMPTY_ID, (byte) 0);
+                }
+            }
+            return blocks.get(pos.x(), pos.y(), pos.z()) == id;
+        } catch (RuntimeException e) {
+            fail("place", pos, e);
+            return false;
+        }
+    }
+
+    @Override
+    public List<ItemAmount> breakBlock(BlockPos pos) {
+        try {
+            Ref<ChunkStore> sec = section(pos);
+            if (sec == null) {
+                return List.of();
+            }
+            Store<ChunkStore> store = world.getChunkStore().getStore();
+            BlockSection blocks = store.getComponent(sec, BlockSection.getComponentType());
+            if (blocks == null) {
+                return List.of();
+            }
+            int x = pos.x(), y = pos.y(), z = pos.z();
+            int id = blocks.get(x, y, z);
+            if (id == BlockType.EMPTY_ID) {
+                FluidSection fluids = store.getComponent(sec, FluidSection.getComponentType());
+                if (fluids != null && fluids.getFluidId(x, y, z) != Fluid.EMPTY_ID) {
+                    fluids.setFluid(x, y, z, Fluid.EMPTY_ID, (byte) 0); // a fluid drops nothing
+                }
+                return List.of();
+            }
+            BlockType type = BlockType.getAssetMap().getAsset(id);
+            if (type == null || type == BlockType.EMPTY) {
+                return List.of();
+            }
+            // A filler cell belongs to its origin block: the origin holds the container, and the whole block goes.
+            int filler = blocks.getFiller(x, y, z);
+            int ox = x - FillerBlockUtil.unpackX(filler), oy = y - FillerBlockUtil.unpackY(filler),
+                    oz = z - FillerBlockUtil.unpackZ(filler);
+            Ref<ChunkStore> originSec = filler == 0 ? sec : section(new BlockPos(ox, oy, oz));
+            if (originSec == null) {
+                return List.of(); // origin unloaded: Hytale would not remove it either, so no drops (no duplication)
+            }
+            BlockSection originBlocks = store.getComponent(originSec, BlockSection.getComponentType());
+            // An orphan filler (its origin is another block) is only cleared: it drops nothing.
+            boolean orphan = originBlocks == null || originBlocks.get(ox, oy, oz) != id;
+            List<ItemStack> out = new ArrayList<>();
+            if (!orphan) {
+                ItemContainerBlock container =
+                        BlockModule.getComponent(ItemContainerBlock.getComponentType(), world, ox, oy, oz);
+                if (container != null) {
+                    // Emptied before removal, else the removal system drops it on the ground. No filter: all of it.
+                    out.addAll(container.getItemContainer().dropAllItemStacks(false));
+                }
+                out.addAll(drops(type));
+            }
+            BlockHarvestUtils.naturallyRemoveBlock(new Vector3i(x, y, z), type, filler, 0, null, null,
+                    SetBlockSettings.NO_DROP_ITEMS, sec, world.getEntityStore().getStore(), store);
+            List<ItemAmount> amounts = new ArrayList<>(out.size());
+            for (ItemStack s : out) {
+                if (!ItemStack.isEmpty(s)) {
+                    amounts.add(new ItemAmount(new ItemKey(s.getItemId()), s.getQuantity()));
+                }
+            }
+            return amounts;
+        } catch (RuntimeException e) {
+            fail("breakBlock", pos, e);
+            return List.of();
+        }
+    }
+
+    /** What a player gets with the right tool: breaking drops, else soft drops, else the block's own item. */
+    private static List<ItemStack> drops(BlockType type) {
+        BlockGathering g = type.getGathering();
+        BlockBreakingDropType breaking = g == null ? null : g.getBreaking();
+        if (breaking != null) {
+            return BlockHarvestUtils.getDrops(type, Math.max(1, breaking.getQuantity()), breaking.getItemId(),
+                    breaking.getDropListId());
+        }
+        if (g != null && g.getSoft() != null) {
+            return BlockHarvestUtils.getDrops(type, 1, g.getSoft().getItemId(), g.getSoft().getDropListId());
+        }
+        return BlockHarvestUtils.getDrops(type, 1, null, null);
+    }
+
+    private Ref<ChunkStore> section(BlockPos pos) {
+        Ref<ChunkStore> sec = world.getChunkStore().getChunkSectionReferenceAtBlock(pos.x(), pos.y(), pos.z());
+        return sec != null && sec.isValid() ? sec : null;
+    }
+
+    private Optional<BlockState> blockState(int id, int rotation) {
+        if (id < 0 || rotation < 0 || rotation >= ROTATIONS) {
+            return Optional.empty();
+        }
+        if (id >= blockCache.length) {
+            blockCache = Arrays.copyOf(blockCache, Math.max(id + 1, blockCache.length * 2));
+        }
+        Optional<BlockState>[] byRotation = blockCache[id];
+        if (byRotation == null) {
+            byRotation = blockCache[id] = newRow(ROTATIONS);
+        }
+        Optional<BlockState> cached = byRotation[rotation];
+        if (cached == null) {
+            BlockType type = BlockType.getAssetMap().getAsset(id);
+            if (type == null) {
+                return Optional.empty(); // not cached: the asset may appear later
+            }
+            String key = type.getId();
+            if (key.startsWith("*") && type.getDefaultStateKey() != null) {
+                key = type.getDefaultStateKey(); // a state variant (e.g. an open chest) is its base block
+            }
+            cached = byRotation[rotation] = Optional.of(new BlockState(new BlockKey(key), rotation));
+        }
+        return cached;
+    }
+
+    private Optional<BlockState> fluidState(int fluid) {
+        if (fluid >= fluidCache.length) {
+            fluidCache = Arrays.copyOf(fluidCache, Math.max(fluid + 1, fluidCache.length * 2));
+        }
+        Optional<BlockState> cached = fluidCache[fluid];
+        if (cached == null) {
+            Fluid f = Fluid.getAssetMap().getAsset(fluid);
+            if (f == null) {
+                return Optional.empty();
+            }
+            cached = fluidCache[fluid] = Optional.of(new BlockState(new BlockKey(FLUID_PREFIX + f.getId()), 0));
+        }
+        return cached;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Optional<BlockState>[][] newCache(int size) {
+        return new Optional[size][];
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Optional<BlockState>[] newRow(int size) {
+        return new Optional[size];
+    }
+
+    private void fail(String op, BlockPos pos, RuntimeException e) {
+        LOG.at(warned ? Level.FINE : Level.WARNING).withCause(e).log("WorldBlocks.%s failed at %s", op, pos);
+        warned = true;
+    }
+}
