@@ -10,7 +10,7 @@ import com.hypixel.hytale.server.core.universe.world.events.StartWorldEvent;
 import com.hypixel.hytale.server.core.util.Config;
 import com.hypixel.hytale.server.npc.NPCPlugin;
 import dev.hycolony.plugin.block.ProtectionSystems;
-import dev.hycolony.plugin.block.TownHallBlockSystems;
+import dev.hycolony.plugin.block.HutBlockSystems;
 import dev.hycolony.plugin.command.HyColonyCommand;
 import dev.hycolony.plugin.npc.BuilderSensorHyColonyTarget;
 import dev.hycolony.plugin.npc.CitizenBodyLifecycleSystem;
@@ -40,9 +40,9 @@ public final class HyColonyPlugin extends JavaPlugin {
 
         getEntityStoreRegistry().registerSystem(new ColonyTickSystem(runtimes));
         getEntityStoreRegistry().registerSystem(new CitizenBodyLifecycleSystem(runtimes));
-        getEntityStoreRegistry().registerSystem(new TownHallBlockSystems.Place(runtimes, ids));
-        getEntityStoreRegistry().registerSystem(new TownHallBlockSystems.Break(runtimes, ids));
-        getEntityStoreRegistry().registerSystem(new TownHallBlockSystems.Use(runtimes, ids));
+        getEntityStoreRegistry().registerSystem(new HutBlockSystems.Place(runtimes, ids));
+        getEntityStoreRegistry().registerSystem(new HutBlockSystems.Break(runtimes, ids));
+        getEntityStoreRegistry().registerSystem(new HutBlockSystems.Use(runtimes, ids));
         getEntityStoreRegistry().registerSystem(new ProtectionSystems.Place(runtimes, ids));
         getEntityStoreRegistry().registerSystem(new ProtectionSystems.Break(runtimes, ids));
         getEntityStoreRegistry().registerSystem(new ProtectionSystems.Use(runtimes, ids));

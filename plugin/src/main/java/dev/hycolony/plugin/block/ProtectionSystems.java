@@ -21,10 +21,11 @@ import dev.hycolony.plugin.IdMap;
 import dev.hycolony.plugin.WorldRuntime;
 import dev.hycolony.plugin.WorldRuntimes;
 import dev.hycolony.plugin.adapter.HytaleNotifier;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import org.joml.Vector3i;
 
-/** PLACE_BLOCKS / BREAK_BLOCKS / OPEN_CONTAINER inside colonies (spec § 3.2). Hut blocks are handled by TownHallBlockSystems. */
+/** PLACE_BLOCKS / BREAK_BLOCKS / OPEN_CONTAINER inside colonies (spec § 3.2). Hut blocks are handled by HutBlockSystems. */
 public final class ProtectionSystems {
     private ProtectionSystems() {}
 
@@ -44,12 +45,12 @@ public final class ProtectionSystems {
 
     public static final class Place extends EntityEventSystem<EntityStore, PlaceBlockEvent> {
         private final WorldRuntimes runtimes;
-        private final String hutItemId;
+        private final Set<String> hutItemIds;
 
         public Place(WorldRuntimes runtimes, IdMap ids) {
             super(PlaceBlockEvent.class);
             this.runtimes = runtimes;
-            this.hutItemId = ids.itemId("hut.townhall");
+            this.hutItemIds = HutBlockSystems.byItemId(ids).keySet();
         }
 
         @Override
@@ -60,11 +61,11 @@ public final class ProtectionSystems {
         @Override
         public void handle(int index, @Nonnull ArchetypeChunk<EntityStore> chunk, @Nonnull Store<EntityStore> store,
                            @Nonnull CommandBuffer<EntityStore> buffer, @Nonnull PlaceBlockEvent event) {
-            if (event.getItemInHand() != null && hutItemId.equals(event.getItemInHand().getItemId())) {
+            if (event.getItemInHand() != null && hutItemIds.contains(event.getItemInHand().getItemId())) {
                 return;
             }
-            if (deny(runtimes, store, TownHallBlockSystems.player(index, chunk, store),
-                    TownHallBlockSystems.pos(event.getTargetBlock()), Action.PLACE_BLOCKS)) {
+            if (deny(runtimes, store, HutBlockSystems.player(index, chunk, store),
+                    HutBlockSystems.pos(event.getTargetBlock()), Action.PLACE_BLOCKS)) {
                 event.setCancelled(true);
             }
         }
@@ -73,12 +74,12 @@ public final class ProtectionSystems {
     /** OPEN_CONTAINER: only for blocks that actually hold an item container (chests, barrels...). */
     public static final class Use extends EntityEventSystem<EntityStore, UseBlockEvent.Pre> {
         private final WorldRuntimes runtimes;
-        private final String hutBlockId;
+        private final Set<String> hutBlockIds;
 
         public Use(WorldRuntimes runtimes, IdMap ids) {
             super(UseBlockEvent.Pre.class);
             this.runtimes = runtimes;
-            this.hutBlockId = ids.blockId("hut.townhall");
+            this.hutBlockIds = HutBlockSystems.byBlockId(ids).keySet();
         }
 
         @Override
@@ -89,7 +90,7 @@ public final class ProtectionSystems {
         @Override
         public void handle(int index, @Nonnull ArchetypeChunk<EntityStore> chunk, @Nonnull Store<EntityStore> store,
                            @Nonnull CommandBuffer<EntityStore> buffer, @Nonnull UseBlockEvent.Pre event) {
-            if (hutBlockId.equals(event.getBlockType().getId())) {
+            if (hutBlockIds.contains(event.getBlockType().getId())) {
                 return;
             }
             Vector3i target = event.getTargetBlock();
@@ -97,8 +98,8 @@ public final class ProtectionSystems {
             if (BlockModule.getComponent(ItemContainerBlock.getComponentType(), world, target.x, target.y, target.z) == null) {
                 return;
             }
-            if (deny(runtimes, store, TownHallBlockSystems.player(index, chunk, store),
-                    TownHallBlockSystems.pos(target), Action.OPEN_CONTAINER)) {
+            if (deny(runtimes, store, HutBlockSystems.player(index, chunk, store),
+                    HutBlockSystems.pos(target), Action.OPEN_CONTAINER)) {
                 event.setCancelled(true);
             }
         }
@@ -106,12 +107,12 @@ public final class ProtectionSystems {
 
     public static final class Break extends EntityEventSystem<EntityStore, BreakBlockEvent> {
         private final WorldRuntimes runtimes;
-        private final String hutBlockId;
+        private final Set<String> hutBlockIds;
 
         public Break(WorldRuntimes runtimes, IdMap ids) {
             super(BreakBlockEvent.class);
             this.runtimes = runtimes;
-            this.hutBlockId = ids.blockId("hut.townhall");
+            this.hutBlockIds = HutBlockSystems.byBlockId(ids).keySet();
         }
 
         @Override
@@ -122,11 +123,11 @@ public final class ProtectionSystems {
         @Override
         public void handle(int index, @Nonnull ArchetypeChunk<EntityStore> chunk, @Nonnull Store<EntityStore> store,
                            @Nonnull CommandBuffer<EntityStore> buffer, @Nonnull BreakBlockEvent event) {
-            if (hutBlockId.equals(event.getBlockType().getId())) {
+            if (hutBlockIds.contains(event.getBlockType().getId())) {
                 return;
             }
-            if (deny(runtimes, store, TownHallBlockSystems.player(index, chunk, store),
-                    TownHallBlockSystems.pos(event.getTargetBlock()), Action.BREAK_BLOCKS)) {
+            if (deny(runtimes, store, HutBlockSystems.player(index, chunk, store),
+                    HutBlockSystems.pos(event.getTargetBlock()), Action.BREAK_BLOCKS)) {
                 event.setCancelled(true);
             }
         }

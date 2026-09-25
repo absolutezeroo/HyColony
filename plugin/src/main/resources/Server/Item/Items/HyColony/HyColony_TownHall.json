@@ -28,6 +28,11 @@
     ],
     "HitboxType": "Bench_Architect",
     "VariantRotation": "NESW",
+    "BlockEntity": {
+      "Components": {
+        "ItemContainerBlock": { "Capacity": 27 }
+      }
+    },
     "Interactions": {
       "Use": "HyColony_TownHall_Use"
     },
