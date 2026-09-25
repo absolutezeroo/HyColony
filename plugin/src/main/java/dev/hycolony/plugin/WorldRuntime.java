@@ -48,7 +48,7 @@ public final class WorldRuntime {
         ConstructionBuildingTypes.register(jobs);
         ColonyContext ctx = new ColonyContext(new WorldKey(world.getName()), config, clock, bodies,
                 new HytaleWorldQuery(world), new HytaleNotifier(),
-                new HytaleUiPort(() -> self[0], blocks, ids.blockId("hut.townhall"), ids.itemId("hut.townhall")),
+                new HytaleUiPort(() -> self[0], blocks, ids),
                 new HytalePlayerDirectory(world), BuildingTypes.defaults(), jobs, names,
                 new Random(), new EventBus(), ConstructionPorts.unavailable());
         this.manager = new ColonyManager(ctx);

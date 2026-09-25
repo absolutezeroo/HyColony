@@ -35,6 +35,28 @@ $C.@PageOverlay {
         LayoutMode: Left;
         Anchor: (Height: 44, Bottom: 12);
 
+        $C.@SecondaryTextButton #BuildingButton {
+          @Anchor = (Right: 4);
+          Text: %hycolony.ui.townhall.building;
+          FlexWeight: 1;
+        }
+
+        $C.@SecondaryTextButton #WorkOrdersButton {
+          @Anchor = (Right: 4);
+          Text: %hycolony.ui.townhall.workOrders;
+          FlexWeight: 1;
+        }
+
+        $C.@SecondaryTextButton #RequestsButton {
+          Text: %hycolony.ui.townhall.requests;
+          FlexWeight: 1;
+        }
+      }
+
+      Group {
+        LayoutMode: Left;
+        Anchor: (Height: 44, Bottom: 12);
+
         $C.@TextField #RenameInput {
           FlexWeight: 1;
         }

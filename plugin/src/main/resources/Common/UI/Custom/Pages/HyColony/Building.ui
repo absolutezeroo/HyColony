@@ -1,0 +1,152 @@
+$C = "../../Common.ui";
+$Sounds = "../../Sounds.ui";
+
+$C.@PageOverlay {
+  LayoutMode: Middle;
+
+  $C.@DecoratedContainer {
+    Anchor: (Width: 700);
+
+    #Title {
+      $C.@Title {
+        @Text = %hycolony.ui.building.title;
+      }
+    }
+
+    #Content {
+      Padding: (Vertical: 24, Horizontal: 40);
+      LayoutMode: Top;
+
+      Label #TypeName {
+        Style: (FontSize: 22, RenderBold: true, RenderUppercase: true);
+      }
+
+      Label #Level {
+        Style: (TextColor: #94a7bb);
+        Anchor: (Top: 4);
+      }
+
+      Label #State {
+        Style: (TextColor: #94a7bb);
+        Anchor: (Top: 2, Bottom: 10);
+      }
+
+      Label #OrderInfo {
+        Anchor: (Bottom: 8);
+      }
+
+      Group {
+        LayoutMode: Left;
+        Anchor: (Height: 44, Bottom: 8);
+
+        $C.@TextButton #BuildButton {
+          @Anchor = (Right: 4);
+          Text: %hycolony.ui.workorder.type.build;
+          FlexWeight: 1;
+        }
+
+        $C.@TextButton #UpgradeButton {
+          @Anchor = (Right: 4);
+          Text: %hycolony.ui.workorder.type.upgrade;
+          FlexWeight: 1;
+        }
+
+        $C.@TextButton #RepairButton {
+          @Anchor = (Right: 4);
+          Text: %hycolony.ui.workorder.type.repair;
+          FlexWeight: 1;
+        }
+
+        $C.@TextButton #RemoveButton {
+          @Anchor = (Right: 4);
+          Text: %hycolony.ui.workorder.type.remove;
+          FlexWeight: 1;
+        }
+
+        $C.@SecondaryTextButton #CancelButton {
+          @Sounds = $Sounds.@ButtonsCancel;
+          Text: %hycolony.ui.building.cancelOrder;
+          FlexWeight: 1;
+        }
+      }
+
+      Group #StyleRow {
+        LayoutMode: Left;
+        Anchor: (Height: 44, Bottom: 8);
+
+        Label {
+          Text: %hycolony.ui.building.style;
+          Style: (RenderBold: true, RenderUppercase: true, TextColor: #94a7bb);
+          FlexWeight: 1;
+        }
+
+        $C.@SecondaryTextButton #StyleButton {
+          Text: "";
+          FlexWeight: 2;
+        }
+      }
+
+      $C.@SecondaryTextButton #HiringButton {
+        @Anchor = (Bottom: 8);
+        Text: "";
+      }
+
+      Group #WorkerSection {
+        LayoutMode: Top;
+
+        Label {
+          Text: %hycolony.ui.building.workers;
+          Style: (RenderBold: true, RenderUppercase: true, TextColor: #94a7bb);
+          Anchor: (Bottom: 6);
+        }
+
+        Group #Workers {
+          LayoutMode: TopScrolling;
+          ScrollbarStyle: $C.@DefaultScrollbarStyle;
+          Anchor: (Height: 80, Bottom: 8);
+        }
+      }
+
+      Group #HireSection {
+        LayoutMode: Top;
+
+        Label {
+          Text: %hycolony.ui.building.hireable;
+          Style: (RenderBold: true, RenderUppercase: true, TextColor: #94a7bb);
+          Anchor: (Bottom: 6);
+        }
+
+        Group #Hireable {
+          LayoutMode: TopScrolling;
+          ScrollbarStyle: $C.@DefaultScrollbarStyle;
+          Anchor: (Height: 120, Bottom: 8);
+        }
+      }
+
+      Group {
+        LayoutMode: Left;
+        Anchor: (Height: 44);
+
+        $C.@SecondaryTextButton #ResourcesButton {
+          @Anchor = (Right: 4);
+          Text: %hycolony.ui.building.resources;
+          FlexWeight: 1;
+        }
+
+        $C.@SecondaryTextButton #StorageButton {
+          @Anchor = (Right: 4);
+          Text: %hycolony.ui.building.storage;
+          FlexWeight: 1;
+        }
+
+        $C.@SecondaryTextButton #PickUpButton {
+          @Sounds = $Sounds.@ButtonsCancel;
+          Text: %hycolony.ui.building.pickUp;
+          FlexWeight: 1;
+        }
+      }
+    }
+  }
+}
+
+$C.@BackButton {}

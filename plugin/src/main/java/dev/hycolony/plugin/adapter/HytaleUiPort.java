@@ -3,11 +3,21 @@ package dev.hycolony.plugin.adapter;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.protocol.packets.interface_.Page;
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.entity.entities.player.pages.CustomUIPage;
+import com.hypixel.hytale.server.core.inventory.InventoryComponent;
+import com.hypixel.hytale.server.core.inventory.ItemStack;
+import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
+import com.hypixel.hytale.server.core.modules.interaction.BlockHarvestUtils;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
+import com.hypixel.hytale.server.core.universe.world.SetBlockSettings;
+import com.hypixel.hytale.server.core.universe.world.World;
+import com.hypixel.hytale.server.core.universe.world.chunk.section.BlockSection;
+import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.ui.BuilderResourcesView;
 import dev.hycolony.core.colony.ui.BuildingView;
@@ -17,31 +27,37 @@ import dev.hycolony.core.colony.ui.TownHallView;
 import dev.hycolony.core.colony.ui.UiPort;
 import dev.hycolony.core.colony.ui.WorkOrdersView;
 import dev.hycolony.core.kernel.BlockPos;
-import dev.hycolony.core.kernel.port.Msg;
+import dev.hycolony.plugin.IdMap;
+import dev.hycolony.plugin.ui.BuilderResourcesPage;
+import dev.hycolony.plugin.ui.BuildingPage;
 import dev.hycolony.plugin.ui.FoundColonyPage;
+import dev.hycolony.plugin.ui.RequestsPage;
 import dev.hycolony.plugin.ui.TownHallPage;
+import dev.hycolony.plugin.ui.WorkOrdersPage;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import org.joml.Vector3i;
 
 /** Renders core view models with Hytale custom pages. World thread only. */
 public final class HytaleUiPort implements UiPort {
     private final Supplier<ColonyManager> manager;
     private final HytaleBlocks blocks;
+    private final IdMap ids;
     private final String townHallBlockId;
     private final String townHallItemId;
-    private final HytaleNotifier notifier = new HytaleNotifier();
     /** Players whose page Hytale is closing right now: close() must not close it a second time. */
     private final Set<UUID> closing = new HashSet<>();
 
-    public HytaleUiPort(Supplier<ColonyManager> manager, HytaleBlocks blocks, String townHallBlockId, String townHallItemId) {
+    public HytaleUiPort(Supplier<ColonyManager> manager, HytaleBlocks blocks, IdMap ids) {
         this.manager = manager;
         this.blocks = blocks;
-        this.townHallBlockId = townHallBlockId;
-        this.townHallItemId = townHallItemId;
+        this.ids = ids;
+        this.townHallBlockId = ids.blockId("hut.townhall");
+        this.townHallItemId = ids.itemId("hut.townhall");
     }
 
     private void removeTownHall(BlockPos pos) {
@@ -78,24 +94,68 @@ public final class HytaleUiPort implements UiPort {
 
     @Override
     public void showTownHall(UUID player, TownHallView view) {
-        open(player, pr -> new TownHallPage(pr, view, name -> manager.get().rename(player, view.colonyId(), name)));
+        open(player, pr -> new TownHallPage(pr, view, manager.get()));
     }
 
-    // Temporary: the real windows come in plan B.
     @Override
-    public void showBuilding(UUID player, BuildingView view) { comingSoon(player); }
+    public void showBuilding(UUID player, BuildingView view) {
+        open(player, pr -> new BuildingPage(pr, view, manager.get(), () -> pickUp(player, view)));
+    }
 
     @Override
-    public void showBuilderResources(UUID player, BuilderResourcesView view) { comingSoon(player); }
+    public void showBuilderResources(UUID player, BuilderResourcesView view) {
+        open(player, pr -> new BuilderResourcesPage(pr, view, manager.get()));
+    }
 
     @Override
-    public void showRequests(UUID player, RequestsView view) { comingSoon(player); }
+    public void showRequests(UUID player, RequestsView view) {
+        open(player, pr -> new RequestsPage(pr, view, manager.get()));
+    }
 
     @Override
-    public void showWorkOrders(UUID player, WorkOrdersView view) { comingSoon(player); }
+    public void showWorkOrders(UUID player, WorkOrdersView view) {
+        open(player, pr -> new WorkOrdersPage(pr, view, manager.get()));
+    }
 
-    private void comingSoon(UUID player) {
-        notifier.send(player, Msg.of("hycolony.ui.comingSoon"));
+    /** "Pick up": the hut item goes to the player's inventory; once the core agrees, the block goes without a drop. */
+    private void pickUp(UUID player, BuildingView view) {
+        ColonyManager m = manager.get();
+        BuildingType type = m.context().buildingTypes().byId(view.typeId()).orElse(null);
+        PlayerRef pr = Universe.get().getPlayer(player);
+        Ref<EntityStore> ref = pr == null ? null : pr.getReference();
+        if (type == null || ref == null || !ref.isValid()) {
+            return;
+        }
+        String itemId = ids.itemId(type.hutBlockKey());
+        if (m.pickUpBuilding(player, view.pos(), () -> give(ref, itemId))) {
+            removeWithoutDrop(ref.getStore().getExternalData().getWorld(), view.pos(), ids.blockId(type.hutBlockKey()));
+        }
+    }
+
+    /**
+     * Removes the hut block if it is still {@code blockId}, with no item drop (the player already got it). Its
+     * container's contents still spill on the ground (ItemContainerSystems drops them on any removal).
+     */
+    private static void removeWithoutDrop(World world, BlockPos pos, String blockId) {
+        ChunkStore cs = world.getChunkStore();
+        Ref<ChunkStore> section = cs.getChunkSectionReferenceAtBlock(pos.x(), pos.y(), pos.z());
+        BlockSection blocks = section == null ? null : cs.getStore().getComponent(section, BlockSection.getComponentType());
+        if (blocks == null) {
+            return;
+        }
+        BlockType type = BlockType.getAssetMap().getAsset(blocks.get(pos.x(), pos.y(), pos.z()));
+        if (type == null || !(blockId.equals(type.getId()) || blockId.equals(type.getDefaultStateKey()))) {
+            return;
+        }
+        BlockHarvestUtils.naturallyRemoveBlock(new Vector3i(pos.x(), pos.y(), pos.z()), type,
+                blocks.getFiller(pos.x(), pos.y(), pos.z()), 0, null, null, SetBlockSettings.NO_DROP_ITEMS, section,
+                world.getEntityStore().getStore(), cs.getStore());
+    }
+
+    /** One {@code itemId} into hotbar then storage; true only if it fit. */
+    private static boolean give(Ref<EntityStore> ref, String itemId) {
+        ItemContainer inv = InventoryComponent.getCombined(ref.getStore(), ref, InventoryComponent.HOTBAR_FIRST);
+        return ItemStack.isEmpty(inv.addItemStack(new ItemStack(itemId, 1)).getRemainder());
     }
 
     @Override

@@ -1,0 +1,15 @@
+$C = "../../Common.ui";
+
+Group {
+  LayoutMode: Left;
+  Anchor: (Height: 36);
+
+  Label #Name {
+    FlexWeight: 1;
+  }
+
+  $C.@SecondaryTextButton #Button {
+    Anchor: (Width: 140, Height: 32);
+    Text: "";
+  }
+}

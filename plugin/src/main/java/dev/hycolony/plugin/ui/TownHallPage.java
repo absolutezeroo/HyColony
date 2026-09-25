@@ -14,27 +14,32 @@ import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.ui.CitizenRow;
 import dev.hycolony.core.colony.ui.TownHallView;
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.UUID;
 import javax.annotation.Nonnull;
 
 public final class TownHallPage extends InteractiveCustomUIPage<TownHallPage.Data> {
     public static final class Data {
         static final BuilderCodec<Data> CODEC = BuilderCodec.builder(Data.class, Data::new)
+                .append(new KeyedCodec<>("Action", Codec.STRING), (d, v) -> d.action = v, d -> d.action).add()
                 .append(new KeyedCodec<>("@Name", Codec.STRING), (d, v) -> d.name = v, d -> d.name).add()
                 .build();
+        String action;
         String name;
     }
 
     private final TownHallView view;
-    private final Consumer<String> rename;
+    private final ColonyManager manager;
+    private final UUID player;
 
-    public TownHallPage(PlayerRef player, TownHallView view, Consumer<String> rename) {
+    public TownHallPage(PlayerRef player, TownHallView view, ColonyManager manager) {
         super(player, CustomPageLifetime.CanDismiss, Data.CODEC);
         this.view = view;
-        this.rename = rename;
+        this.manager = manager;
+        this.player = player.getUuid();
     }
 
     @Override
@@ -52,6 +57,11 @@ public final class TownHallPage extends InteractiveCustomUIPage<TownHallPage.Dat
             ui.set(row + " #Name.Text", rows.get(i).name());
             ui.set(row + " #Status.Text", Message.translation("hycolony.status." + rows.get(i).status()));
         }
+        // Navigation opens another page: no interface lock, so nothing to unlock.
+        for (String action : new String[] {"building", "workOrders", "requests"}) {
+            String button = "#" + Character.toUpperCase(action.charAt(0)) + action.substring(1) + "Button";
+            events.addEventBinding(CustomUIEventBindingType.Activating, button, EventData.of("Action", action), false);
+        }
         if (view.canRename()) {
             events.addEventBinding(CustomUIEventBindingType.Activating, "#RenameButton",
                     new EventData().append("@Name", "#RenameInput.Value"));
@@ -63,7 +73,17 @@ public final class TownHallPage extends InteractiveCustomUIPage<TownHallPage.Dat
 
     @Override
     public void handleDataEvent(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, @Nonnull Data data) {
-        rename.accept(data.name); // core re-shows an updated TownHallView on success
+        if (data.action != null) {
+            switch (data.action) {
+                // The town hall stands at the colony's center.
+                case "building" -> manager.byId(view.colonyId()).ifPresent(c -> manager.openBuilding(player, c.center()));
+                case "workOrders" -> manager.openWorkOrders(player, view.colonyId());
+                case "requests" -> manager.openRequests(player, view.colonyId());
+                default -> { }
+            }
+            return;
+        }
+        manager.rename(player, view.colonyId(), data.name); // core re-shows an updated TownHallView on success
         sendUpdate(new UICommandBuilder(), false);
     }
 }

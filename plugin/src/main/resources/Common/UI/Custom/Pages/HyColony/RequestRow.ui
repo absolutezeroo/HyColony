@@ -1,0 +1,24 @@
+$C = "../../Common.ui";
+
+Group {
+  LayoutMode: Left;
+  Anchor: (Height: 44);
+
+  Group {
+    LayoutMode: Top;
+    FlexWeight: 1;
+
+    Label #Description {
+      Style: (RenderBold: true);
+    }
+
+    Label #Info {
+      Style: (TextColor: #94a7bb);
+    }
+  }
+
+  $C.@SecondaryTextButton #FulfilButton {
+    Anchor: (Width: 120, Height: 32);
+    Text: %hycolony.ui.requests.fulfil;
+  }
+}
