@@ -25,6 +25,7 @@ import java.util.function.ToIntFunction;
 final class BuilderStock {
     private static final System.Logger LOG = System.getLogger(BuilderStock.class.getName());
 
+    /** MC EntityAIStructureBuilder.ACTIONS_UNTIL_DUMP (the builder's own, not CitizenConstants' 32 for others). */
     static final int ACTIONS_UNTIL_DUMP = 4096;
     /**
      * After a dump the full hut refused, the next full-inventory dump waits this many actions (drops meanwhile go to

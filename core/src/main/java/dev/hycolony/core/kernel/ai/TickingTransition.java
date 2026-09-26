@@ -5,7 +5,9 @@ import java.util.function.BooleanSupplier;
 
 /** A transition evaluated every {@code tickRate} machine ticks. Port of MineColonies' TickingTransition. */
 public class TickingTransition<S extends IState> {
+    /** MC TickRateConstants.MAX_AI_TICKRATE, in ticks (not MAX_TICKRATE, the colony's 500-tick slow tick). */
     public static final int MAX_AI_TICKRATE = 20 * 60 * 10;
+    /** MC TickRateConstants.MAX_TICKRATE_VARIANT, in ticks. */
     public static final int MAX_TICKRATE_VARIANT = 50;
 
     /** Spreads transitions across ticks. Shared by all worlds, hence atomic. */
