@@ -3,6 +3,7 @@ package dev.hycolony.plugin.adapter;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.VariantRotation;
 import com.hypixel.hytale.server.core.asset.type.fluid.Fluid;
 import com.hypixel.hytale.server.core.modules.block.components.ItemContainerBlock;
 import com.hypixel.hytale.server.core.prefab.PrefabRotation;
@@ -24,7 +25,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 /**
@@ -39,15 +42,24 @@ import java.util.logging.Level;
  * <p>Entries: {@code filler == 0} only (placing the origin rebuilds the fillers); {@code Empty},
  * {@code Block_Spawner_Block} and {@code Editor_*} dropped; state ids ({@code *...}) normalised to their default state
  * like {@code HytaleWorldBlocks.get}; a fluid-only cell becomes {@code ~fluid:<FluidKey>}, rotation 0 (a block with a
- * fluid in it keeps the block: one state per cell). Prefab chances use {@code new Random(0)}, so every load sees the
- * same blueprint. Block-entity data in the prefab (chest contents, spawners) is ignored.
+ * fluid in it keeps the block: one state per cell). A block that cannot rotate ({@code VariantRotation.None}) gets
+ * rotation 0, since the buffer adds the yaw to every block and natural terrain would never match. Prefab chances use
+ * {@code new Random(0)}, so every load sees the same blueprint. Block-entity data in the prefab (chest contents,
+ * spawners) is ignored.
  *
- * <p>The first load of a prefab parses its JSON on the calling (world) thread; the result is cached per
- * (style, type, level, rotation).
+ * <p>Depth: vanilla prefabs mean "absent = keep the terrain", and their lower layers are foundations meant to sink
+ * into the ground. Only the floor layer (hut-relative y = -1, the hut stands on it) and above are kept, and the
+ * bounds start there, so the builder neither digs out nor refills the ground under the house.
+ *
+ * <p>{@link #prewarm()} parses the prefabs off the world thread at startup; a later load then reads the cached
+ * buffer. Results are cached per (style, type, level, rotation).
  */
 public final class HytaleBlueprintSource implements BlueprintSource {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
     private static final String FLUID_PREFIX = "~fluid:";
+    /** Hut-relative y of the floor the hut stands on: nothing below it is part of the blueprint. */
+    private static final int FLOOR_Y = -1;
+    private static final AtomicBoolean PREWARMED = new AtomicBoolean();
 
     private final PrefabStyles styles;
     private final Map<String, Optional<Blueprint>> cache = new ConcurrentHashMap<>();
@@ -56,6 +68,33 @@ public final class HytaleBlueprintSource implements BlueprintSource {
     /** Reads the bundled {@code hycolony/styles.json}; throws only if that file is missing or malformed. */
     public HytaleBlueprintSource() {
         this.styles = PrefabStyles.loadBundled();
+    }
+
+    /**
+     * Parses every prefab of the bundled styles.json in the background, once (like vanilla's prefab editor, which
+     * calls {@code getCached} in {@code supplyAsync}). Assets must be loaded. Logs the time taken; never throws.
+     */
+    public static void prewarm() {
+        if (!PREWARMED.compareAndSet(false, true)) {
+            return;
+        }
+        CompletableFuture.runAsync(() -> {
+            long start = System.nanoTime();
+            int n = 0;
+            for (String prefab : PrefabStyles.loadBundled().prefabs()) {
+                try {
+                    Path path = PrefabStore.get().findAssetPrefabPath(prefab);
+                    if (path != null) {
+                        PrefabBufferUtil.getCached(path);
+                        n++;
+                    }
+                } catch (RuntimeException e) {
+                    LOG.at(Level.WARNING).withCause(e).log("HyColony blueprint: cannot pre-load %s", prefab);
+                }
+            }
+            LOG.at(Level.INFO).log("HyColony blueprint: pre-loaded %d prefabs in %d ms", n,
+                    (System.nanoTime() - start) / 1_000_000);
+        });
     }
 
     @Override
@@ -117,7 +156,8 @@ public final class HytaleBlueprintSource implements BlueprintSource {
                         }
                         Holder<ChunkStore> entity = type.getBlockEntity();
                         container = entity != null && entity.getComponent(ItemContainerBlock.getComponentType()) != null;
-                        state = new BlockState(new BlockKey(id), rotation);
+                        int rot = type.getVariantRotation() == VariantRotation.None ? 0 : rotation;
+                        state = new BlockState(new BlockKey(id), rot);
                     } else if (fluidId != 0) {
                         Fluid fluid = Fluid.getAssetMap().getAsset(fluidId);
                         if (fluid == null) {
@@ -142,11 +182,12 @@ public final class HytaleBlueprintSource implements BlueprintSource {
         List<BlueprintEntry> entries = new ArrayList<>(cells.size());
         for (Cell c : cells) {
             BlockPos offset = PrefabStyles.relative(c.x(), c.y(), c.z(), hut);
-            if (offset.x() != 0 || offset.y() != 0 || offset.z() != 0) {
+            if (offset.y() >= FLOOR_Y && (offset.x() != 0 || offset.y() != 0 || offset.z() != 0)) {
                 entries.add(new BlueprintEntry(offset, c.state(), c.container()));
             }
         }
-        BlockPos min = PrefabStyles.relative(buf.getMinX(r), buf.getMinY(), buf.getMinZ(r), hut);
+        BlockPos low = PrefabStyles.relative(buf.getMinX(r), buf.getMinY(), buf.getMinZ(r), hut);
+        BlockPos min = new BlockPos(low.x(), Math.max(low.y(), FLOOR_Y), low.z());
         BlockPos max = PrefabStyles.relative(buf.getMaxX(r), buf.getMaxY(), buf.getMaxZ(r), hut);
         return Optional.of(new Blueprint(entry.prefab(), List.copyOf(entries), min, max));
     }

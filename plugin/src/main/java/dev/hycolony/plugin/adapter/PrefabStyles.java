@@ -10,8 +10,10 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.annotation.Nullable;
 
 /**
@@ -46,6 +48,17 @@ final class PrefabStyles {
         } catch (Exception e) {
             throw new IllegalStateException("Cannot read hycolony/styles.json", e);
         }
+    }
+
+    /** Every distinct prefab path, in file order. */
+    Set<String> prefabs() {
+        Set<String> out = new LinkedHashSet<>();
+        table.values().forEach(types -> types.values().forEach(levels -> levels.values().forEach(l -> {
+            if (l != null && l.prefab() != null) {
+                out.add(l.prefab());
+            }
+        })));
+        return out;
     }
 
     /** Style keys in file order, {@code outlander} first. */

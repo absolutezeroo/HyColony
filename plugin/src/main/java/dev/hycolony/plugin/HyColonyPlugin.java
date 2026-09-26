@@ -9,6 +9,7 @@ import com.hypixel.hytale.server.core.universe.world.events.RemoveWorldEvent;
 import com.hypixel.hytale.server.core.universe.world.events.StartWorldEvent;
 import com.hypixel.hytale.server.core.util.Config;
 import com.hypixel.hytale.server.npc.NPCPlugin;
+import dev.hycolony.plugin.adapter.HytaleBlueprintSource;
 import dev.hycolony.plugin.block.ProtectionSystems;
 import dev.hycolony.plugin.block.HutBlockSystems;
 import dev.hycolony.plugin.command.HyColonyCommand;
@@ -54,6 +55,7 @@ public final class HyColonyPlugin extends JavaPlugin {
         getEventRegistry().registerGlobal(StartWorldEvent.class, e -> {
             try {
                 validateIds();
+                HytaleBlueprintSource.prewarm(); // once, in the background: assets are loaded by now
                 runtimes.create(e.getWorld());
                 getLogger().at(Level.INFO).log("HyColony runtime ready for world '%s' (%d colonies loaded)",
                         e.getWorld().getName(), runtimes.of(e.getWorld()).manager().all().size());
