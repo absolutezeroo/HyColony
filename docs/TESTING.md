@@ -23,6 +23,9 @@ Pour obtenir les objets : `/give HyColony_TownHall`, `/give HyColony_Hut_Builder
 11. **Commandes réservées.** B, non opérateur, lance `/hycolony delete 1` puis `/hycolony selftest` : les deux sont refusées.
 12. **Citoyens orphelins.** Placer des citoyens dans des chunks, s'en éloigner pour les décharger, supprimer la colonie avec `/hycolony delete`, puis redémarrer et revenir.
     Attendu : aucun plantage, et les PNJ orphelins sont retirés.
+13. **Feu.** Poser un feu (`Deco_Fire`), un feu de camp éteint (`Deco_Campfire_Off`) et un brasero à moins de 10 blocs de l'hôtel de ville, puis regarder les citoyens errer 5 minutes.
+    Attendu : aucun citoyen ne s'arrête dans ou sur ces blocs. Viser un citoyen et lancer `/npc debug toggle VisPath` : le chemin affiché ne finit jamais sur un feu.
+    Noter si un chemin **traverse** un feu en passant (la navigation de Hytale ne l'évite pas, voir `docs/research/plugin-b-api.md`) et si le feu de camp de cuisine (`Bench_Campfire`) brûle.
 
 ## SP1+2 : requêtes et construction
 

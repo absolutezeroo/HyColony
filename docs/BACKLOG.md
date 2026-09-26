@@ -12,6 +12,11 @@ La garde arrête un agent qui dérive par erreur, pas un adversaire (CLAUDE.md �
 - `"disableAllHooks": true` dans les réglages utilisateur (`~/.claude/settings.json`) coupe la garde ; un `"disableAllHooks": false` dans `.claude/settings.json` le contrerait ;
 - en session déverrouillée (`HYCOLONY_GUARDRAILS_UNLOCKED=1`), la garde laisse passer quand elle plante, pour pouvoir la réparer.
 
+## Citoyens et feu : reste à faire (2026-09-26)
+
+- Un trajet peut encore **traverser** un feu : la navigation de Hytale n'évite que les blocs à `DamageToEntities`, pas les interactions de collision (feu, brasero, feu de camp éteint). Seules les cibles sont sûres (`DangerousCells`). Piste si le problème reste visible en jeu : suivre le chemin et relancer la marche quand le prochain point est dangereux.
+- Pas de réaction à une brûlure : MineColonies n'en a pas non plus (il compte sur son pathfinding) ; le rôle `HyColony_Citizen` est `Invulnerable`. À ajouter seulement si le point précédent ne suffit pas.
+
 ## Déplacement du constructeur : écarts à MineColonies non traités (contrôle de fidélité du 2026-09-26)
 
 Sujet volontairement mis en pause par l'utilisateur, faute de problème constaté en jeu. À reprendre seulement si un problème apparaît :

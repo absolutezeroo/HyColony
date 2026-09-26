@@ -47,14 +47,20 @@ public final class HytaleItemCatalog implements ItemCatalog {
     private static final float MIN_HARDNESS = 0.05f;
     private static final float MAX_HARDNESS = 3f; // ponytail: heuristic, replace by a table if balance is off
     private static final BlockInfo UNKNOWN_BLOCK =
-            new BlockInfo(BlockKind.UNBREAKABLE, Optional.empty(), false, Optional.empty(), 1f);
+            new BlockInfo(BlockKind.UNBREAKABLE, Optional.empty(), false, Optional.empty(), 1f, false);
     private static final BlockInfo FLUID =
-            new BlockInfo(BlockKind.FLUID, Optional.empty(), false, Optional.empty(), 0f);
-    private static final BlockInfo AIR = new BlockInfo(BlockKind.AIR, Optional.empty(), false, Optional.empty(), 0f);
+            new BlockInfo(BlockKind.FLUID, Optional.empty(), false, Optional.empty(), 0f, false);
+    private static final BlockInfo AIR =
+            new BlockInfo(BlockKind.AIR, Optional.empty(), false, Optional.empty(), 0f, false);
     private static final ItemInfo UNKNOWN_ITEM = new ItemInfo(1, Optional.empty(), 0);
 
     private record BlockInfo(
-            BlockKind kind, Optional<ItemKey> item, boolean ore, Optional<ToolType> tool, float hardness) {}
+            BlockKind kind,
+            Optional<ItemKey> item,
+            boolean ore,
+            Optional<ToolType> tool,
+            float hardness,
+            boolean harmful) {}
 
     private record ItemInfo(int maxStack, Optional<ToolInfo> tool, int durability) {}
 
@@ -89,8 +95,10 @@ public final class HytaleItemCatalog implements ItemCatalog {
     }
 
     /**
-     * A fluid with {@code DamageToEntities} or a collision interaction: vanilla lava and fire burn through their
-     * {@code Collision} interaction (their damage is 0), which {@link Fluid#isTrigger()} reports. A fluid key absent
+     * A fluid or block with {@code DamageToEntities} or a collision interaction: vanilla lava, fire, unlit campfires,
+     * braziers and cacti hurt through their {@code Collision} interaction (their damage is 0), which
+     * {@link Fluid#isTrigger()} and {@link BlockType#isTrigger()} report, the pair the collision module checks
+     * ({@code CollisionConfig}). A few harmless triggers (traps, slowing seaweed) are avoided too. A fluid key absent
      * from the asset map counts as harmful; an unknown fluid read from a chunk is an {@code UNKNOWN} clone with no
      * damage and no interaction, so it does not.
      */
@@ -98,7 +106,7 @@ public final class HytaleItemCatalog implements ItemCatalog {
     public boolean isHarmful(BlockKey block) {
         String id = block.id();
         if (!id.startsWith(HytaleWorldBlocks.FLUID_PREFIX)) {
-            return false;
+            return block(block).harmful();
         }
         try {
             Fluid fluid = Fluid.getAssetMap().getAsset(id.substring(HytaleWorldBlocks.FLUID_PREFIX.length()));
@@ -174,13 +182,14 @@ public final class HytaleItemCatalog implements ItemCatalog {
         if (type == BlockType.EMPTY) {
             return AIR;
         }
+        boolean harmful = type.getDamageToEntities() > 0 || type.isTrigger();
         Item item = type.getItem();
         Optional<ItemKey> itemKey = item == null ? Optional.empty() : Optional.of(new ItemKey(item.getId()));
         BlockGathering g = type.getGathering();
         BlockBreakingDropType breaking = g == null ? null : g.getBreaking();
         String gather = breaking == null ? null : breaking.getGatherType();
         if (g == null || "Unbreakable".equals(gather) || hutBlockIds.contains(type.getId())) {
-            return new BlockInfo(BlockKind.UNBREAKABLE, itemKey, false, Optional.empty(), 1f);
+            return new BlockInfo(BlockKind.UNBREAKABLE, itemKey, false, Optional.empty(), 1f, harmful);
         }
         BlockKind kind = type.getMaterial() == BlockMaterial.Empty ? BlockKind.NON_SOLID : BlockKind.SOLID;
         float hardness = MIN_HARDNESS; // soft or harvest-only blocks break in one hit
@@ -195,7 +204,8 @@ public final class HytaleItemCatalog implements ItemCatalog {
                 itemKey,
                 gather != null && gather.startsWith("Ore"),
                 Optional.ofNullable(toolType(gather)),
-                hardness);
+                hardness,
+                harmful);
     }
 
     private static ToolType toolType(String gather) {
