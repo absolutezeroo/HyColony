@@ -86,6 +86,6 @@ HyColony porte MineColonies sur Hytale 0.6.8 (épinglé), **à l'identique** : m
 5. Commits :
    - messages en anglais, au format `type(module): description` (`feat(core):`, `fix(plugin):`, `docs:`, `refactor(core):`, `test(core):`) ;
    - un commit par unité logique, qui compile seul ;
-   - `git add <chemins>` explicites, jamais `-A`. `.mcp.json`, `config.json` et `config.json.bak` ne sont jamais commités ;
+   - `git add <chemins>` explicites, jamais `-A`. `config.json` et `config.json.bak` (réglages locaux) ne sont jamais commités ;
    - les lignes de fin de commit sont celles demandées par la session en cours.
 6. La documentation du projet (`docs/`) est en français. L'utilisateur est francophone : on lui répond en français.
