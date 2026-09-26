@@ -120,4 +120,12 @@ class WorkSpotTest {
 
         assertEquals(new BlockPos(10, 1, 2), choose(), "the first column with no ground at all");
     }
+
+    @Test
+    void neverFallsBackAboveALake() {
+        world.blocks.put(new BlockPos(12, 0, 0), WATER);
+        world.blocks.put(new BlockPos(12, -1, 0), WATER); // outward: open air over a lake with no bed in range
+
+        assertEquals(new BlockPos(10, 1, 2), choose(), "the first column with no ground at all");
+    }
 }

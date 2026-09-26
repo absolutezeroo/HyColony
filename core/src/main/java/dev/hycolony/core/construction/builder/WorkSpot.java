@@ -96,7 +96,7 @@ final class WorkSpot {
         return top;
     }
 
-    /** The spot on the first solid block below {@code top}, or the top of a deep fluid; null if neither. */
+    /** The spot on the first solid block below {@code top}, or the first fluid cell with fluid above it; else null. */
     private BlockPos groundBelow(BlockPos top) {
         for (int i = 0; i <= GROUND_SCAN; i++) {
             BlockPos p = top.offset(0, -i, 0);
