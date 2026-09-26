@@ -38,8 +38,9 @@ final class WorkSpot {
     }
 
     /**
-     * The first free spot with ground under it; else the first free one (unloaded or open terrain); else 2 blocks
-     * outward and 1 up, as before (the stuck handler then gets the builder there or lets it work from where it is).
+     * The first free spot with ground under it; else the first free one (unloaded or open terrain, neither buried nor
+     * in a fluid); else 2 blocks outward and 1 up, as before (the stuck handler then gets the builder there or lets it
+     * work from where it is).
      */
     BlockPos choose(BlockPos block, BlockPos site, StructurePlan plan) {
         int[][] dirs = directions(block, site);
@@ -51,7 +52,7 @@ final class WorkSpot {
                 if (feet != null && open(plan, feet)) {
                     return feet;
                 }
-                if (feet == null && free == null && open(plan, top)) {
+                if (feet == null && free == null && standable(top, plan)) {
                     free = top;
                 }
             }
@@ -72,12 +73,15 @@ final class WorkSpot {
         return new int[][] {out, {-out[1], out[0]}, {out[1], -out[0]}, {-out[0], -out[1]}};
     }
 
-    /** Feet position on the first solid block below {@code top}, or above it when {@code top} is in the ground. */
+    /**
+     * Feet position on the first solid block below {@code top}, or above it when {@code top} is in the ground. None
+     * under a fluid: a body does not stand at the bottom of a lake.
+     */
     private BlockPos ground(BlockPos top) {
         if (solid(top)) {
             for (int i = 1; i <= GROUND_SCAN; i++) {
                 BlockPos p = top.offset(0, i, 0);
-                if (!solid(p) && !solid(p.offset(0, 1, 0))) {
+                if (standable(p)) {
                     return p;
                 }
             }
@@ -85,11 +89,29 @@ final class WorkSpot {
         }
         for (int i = 0; i <= GROUND_SCAN; i++) {
             BlockPos p = top.offset(0, -i, 0);
+            if (fluid(p)) {
+                return null;
+            }
             if (solid(p.offset(0, -1, 0))) {
                 return p;
             }
         }
         return null;
+    }
+
+    /** Neither the feet nor the head cell is solid, and the feet are not in a fluid. */
+    private boolean standable(BlockPos feet) {
+        return !solid(feet) && !solid(feet.offset(0, 1, 0)) && !fluid(feet);
+    }
+
+    /** Standable, and neither cell is one the plan will fill. */
+    private boolean standable(BlockPos feet, StructurePlan plan) {
+        return standable(feet) && open(plan, feet);
+    }
+
+    private boolean fluid(BlockPos p) {
+        BlockState s = blocks.get(p).orElse(null);
+        return s != null && catalog.kind(s.key()) == BlockKind.FLUID;
     }
 
     private boolean solid(BlockPos p) {
