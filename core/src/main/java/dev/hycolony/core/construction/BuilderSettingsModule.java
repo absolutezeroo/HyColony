@@ -2,6 +2,7 @@ package dev.hycolony.core.construction;
 
 import com.google.gson.JsonObject;
 import dev.hycolony.core.building.PersistentModule;
+import java.util.Arrays;
 
 /** The builder hut's work mode: AUTO takes orders from the work manager, MANUAL picks them itself. */
 public final class BuilderSettingsModule implements PersistentModule {
@@ -27,13 +28,10 @@ public final class BuilderSettingsModule implements PersistentModule {
 
     @Override
     public void read(JsonObject in) {
-        mode = Mode.AUTO;
-        if (in.has("mode")) {
-            try {
-                mode = Mode.valueOf(in.get("mode").getAsString());
-            } catch (IllegalArgumentException unknown) {
-                // stays AUTO
-            }
-        }
+        String saved = in.has("mode") ? in.get("mode").getAsString() : "";
+        mode = Arrays.stream(Mode.values())
+                .filter(m -> m.name().equals(saved))
+                .findFirst()
+                .orElse(Mode.AUTO); // an unknown mode stays AUTO
     }
 }

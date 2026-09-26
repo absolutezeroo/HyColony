@@ -42,7 +42,6 @@ CyclomaticComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleCiti
 CyclomaticComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleItemCatalog.java
 CyclomaticComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleWorldBlocks.java
 CyclomaticComplexity plugin/src/main/java/dev/hycolony/plugin/ui/BuildingPage.java
-EmptyCatchBlock core/src/main/java/dev/hycolony/core/construction/BuilderSettingsModule.java
 ExcessiveImports core/src/main/java/dev/hycolony/core/colony/ColonyManager.java
 ExcessiveImports core/src/main/java/dev/hycolony/core/construction/BuilderAI.java
 ExcessiveImports plugin/src/main/java/dev/hycolony/plugin/WorldRuntime.java
