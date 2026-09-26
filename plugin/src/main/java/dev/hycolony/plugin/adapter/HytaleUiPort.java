@@ -2,6 +2,7 @@ package dev.hycolony.plugin.adapter;
 
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.protocol.packets.interface_.Page;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.entity.entities.Player;
@@ -40,10 +41,12 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.logging.Level;
 import org.joml.Vector3i;
 
 /** Renders core view models with Hytale custom pages. World thread only. */
 public final class HytaleUiPort implements UiPort {
+    private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
     private final Supplier<ColonyManager> manager;
     private final HytaleBlocks blocks;
     private final IdMap ids;
@@ -145,6 +148,9 @@ public final class HytaleUiPort implements UiPort {
         }
         BlockType type = BlockType.getAssetMap().getAsset(blocks.get(pos.x(), pos.y(), pos.z()));
         if (type == null || !(blockId.equals(type.getId()) || blockId.equals(type.getDefaultStateKey()))) {
+            // The core already dropped the building and the player has the item: the block is left alone.
+            LOG.at(Level.WARNING).log("HyColony pick-up: expected %s at %s, found %s; block left in place", blockId,
+                    pos, type == null ? "nothing" : type.getId());
             return;
         }
         BlockHarvestUtils.naturallyRemoveBlock(new Vector3i(pos.x(), pos.y(), pos.z()), type,

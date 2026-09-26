@@ -16,12 +16,15 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.section.BlockSection;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import dev.hycolony.core.colony.Action;
 import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.ui.BuildingView;
 import dev.hycolony.core.construction.ConstructionBuildingTypes;
 import dev.hycolony.core.construction.WorkOrderType;
 import dev.hycolony.core.job.HiringMode;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.port.Msg;
+import dev.hycolony.plugin.adapter.HytaleNotifier;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -34,12 +37,20 @@ public final class BuildingPage extends ColonyPage {
     private final Runnable pickUp;
     /** Local choice sent with the next order; the core has no "set style" action. */
     private int styleIndex;
+    /** OPEN_CONTAINER, as for any chest in the colony: the storage button is hidden without it. */
+    private final boolean canOpenStorage;
 
     public BuildingPage(PlayerRef playerRef, BuildingView view, ColonyManager manager, Runnable pickUp) {
         super(playerRef, manager);
         this.view = view;
         this.pickUp = pickUp;
         this.styleIndex = Math.max(0, view.styles().indexOf(view.style()));
+        this.canOpenStorage = mayOpenStorage();
+    }
+
+    /** Same rule as ProtectionSystems' OPEN_CONTAINER check. */
+    private boolean mayOpenStorage() {
+        return !manager.protectionEnabled() || manager.isAllowed(player, view.pos(), Action.OPEN_CONTAINER);
     }
 
     private String style() {
@@ -118,7 +129,11 @@ public final class BuildingPage extends ColonyPage {
         } else {
             ui.set("#ResourcesButton.Visible", false);
         }
-        bind(events, "#StorageButton", "storage");
+        if (canOpenStorage) {
+            bind(events, "#StorageButton", "storage");
+        } else {
+            ui.set("#StorageButton.Visible", false);
+        }
         if (view.canPickUp()) {
             bind(events, "#PickUpButton", "pickUp");
         } else {
@@ -154,6 +169,9 @@ public final class BuildingPage extends ColonyPage {
             }
             case "cancel" -> manager.cancelWork(player, pos);
             case "style" -> {
+                if (view.styles().size() < 2) {
+                    return; // the button is hidden then: a forged event
+                }
                 styleIndex = (styleIndex + 1) % view.styles().size();
                 UICommandBuilder ui = new UICommandBuilder();
                 ui.set("#StyleButton.Text", style());
@@ -183,6 +201,11 @@ public final class BuildingPage extends ColonyPage {
      * window table (or it never opens again) and the core re-checks the building's stuck requests.
      */
     private void openStorage(Ref<EntityStore> ref, Store<EntityStore> store) {
+        if (!mayOpenStorage()) { // checked again: ranks may have changed since the page was built
+            manager.colonyAt(view.pos()).ifPresent(c -> playerRef.sendMessage(
+                    HytaleNotifier.toMessage(Msg.of("hycolony.permission.denied", c.name()))));
+            return;
+        }
         World world = store.getExternalData().getWorld();
         BlockPos p = view.pos();
         ChunkStore cs = world.getChunkStore();
