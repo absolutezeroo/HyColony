@@ -9,7 +9,7 @@ import com.google.gson.JsonObject;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.citizen.CitizenData;
-import dev.hycolony.core.construction.WorkOrderSerializer;
+import dev.hycolony.core.construction.workorder.WorkOrderSerializer;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.persist.MigrationChain;
 import dev.hycolony.core.request.RequestSerializer;

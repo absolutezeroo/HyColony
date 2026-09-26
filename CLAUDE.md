@@ -9,7 +9,7 @@ HyColony porte MineColonies sur Hytale 0.6.8 (épinglé), **à l'identique** : m
 - `core/` contient la logique du jeu en Java pur. **Aucun import `com.hypixel`** **[build : ArchitectureTest]**. Il ne dépend que du JDK et de Gson (compileOnly). Il est compilé en `--release 21`.
 - `plugin/` contient les adaptateurs Hytale et le pack d'assets. Il ne contient **pas** de règles de jeu : une décision de jeu prise dans le plugin est un bug.
 - Architecture ports & adaptateurs :
-  - le cœur définit des ports (`kernel/port`, `construction/BlueprintSource`, `colony/ui/UiPort`) ;
+  - le cœur définit des ports (`kernel/port`, `construction/blueprint/BlueprintSource`, `colony/ui/UiPort`) ;
   - le plugin les implémente (préfixe `Hytale*`) ;
   - les tests les simulent (préfixe `Fake*`, dans `core/src/test/.../testing`).
 - **Un paquet contient au plus 15 fichiers** **[build : `checkFileSizes`]**. Au-delà, on crée des sous-paquets par sous-domaine : par exemple `construction/blueprint`, `construction/workorder`, `construction/builder`, `construction/resources`, ou `colony/territory`, `colony/permission`, `colony/view`. Un sous-paquet regroupe ce qui change ensemble. Seul le point d'entrée du sous-domaine est `public`, le reste reste package-private autant que possible.

@@ -1,3 +1,2 @@
 # Packages still over 15 files (CLAUDE.md § 1). This list may only shrink: remove a line when the package is split.
-core/src/main/java/dev/hycolony/core/construction
 core/src/main/java/dev/hycolony/core/colony

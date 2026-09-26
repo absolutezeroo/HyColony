@@ -1,6 +1,6 @@
 package dev.hycolony.core.colony.ui;
 
-import dev.hycolony.core.construction.WorkOrderType;
+import dev.hycolony.core.construction.workorder.WorkOrderType;
 import java.util.List;
 import java.util.Optional;
 

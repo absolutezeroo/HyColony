@@ -20,7 +20,7 @@ import dev.hycolony.core.colony.Action;
 import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.ui.BuildingView;
 import dev.hycolony.core.construction.ConstructionBuildingTypes;
-import dev.hycolony.core.construction.WorkOrderType;
+import dev.hycolony.core.construction.workorder.WorkOrderType;
 import dev.hycolony.core.job.HiringMode;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.port.Msg;

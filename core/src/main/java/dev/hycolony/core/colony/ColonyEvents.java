@@ -1,7 +1,7 @@
 package dev.hycolony.core.colony;
 
 import dev.hycolony.core.building.Building;
-import dev.hycolony.core.construction.WorkOrder;
+import dev.hycolony.core.construction.workorder.WorkOrder;
 
 /** Colony-level events posted on the world EventBus. */
 public final class ColonyEvents {

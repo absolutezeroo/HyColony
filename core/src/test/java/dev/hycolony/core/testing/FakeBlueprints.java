@@ -1,8 +1,8 @@
 package dev.hycolony.core.testing;
 
-import dev.hycolony.core.construction.Blueprint;
-import dev.hycolony.core.construction.BlueprintEntry;
-import dev.hycolony.core.construction.BlueprintSource;
+import dev.hycolony.core.construction.blueprint.Blueprint;
+import dev.hycolony.core.construction.blueprint.BlueprintEntry;
+import dev.hycolony.core.construction.blueprint.BlueprintSource;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockKind;
