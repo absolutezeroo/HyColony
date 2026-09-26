@@ -35,6 +35,12 @@ Sujet volontairement mis en pause par l'utilisateur, faute de problème constat�
 - Le confinement du chercheur à `docs/research/` est surestimé dans CLAUDE.md.
 - `pre-push` construit HEAD et non la référence poussée. `pre-commit` ignore les listes non indexées.
 - Message trompeur pour `git checkout -- .`. `guard.js` fait 526 lignes : à découper.
+- Contournements trouvés par la relecture de 807cd8a. Ce sont des formes qu'un agent n'écrit pas par erreur, donc elles sont parquées :
+  - `env -S '…'` et `--split-string` ;
+  - `sh -o errexit gradlew runServer` ;
+  - un `cd ~/.claude` ou `cd` sans argument avant d'écrire `settings.json` ;
+  - `$USERPROFILE`, `${USERPROFILE}` et `${env:USERPROFILE}` dans le chemin des réglages utilisateur ;
+  - du code en ligne qui écrit `~/.claude/settings.json`.
 
 ## Relecture indépendante du 2026-09-26 (commits 6605ee1..6c6be03) : reste
 
