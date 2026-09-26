@@ -16,8 +16,8 @@
     "Scale": 0.5,
     "Translation": [ 0, -15 ]
   },
-  "Model": "Cosmetics/Head/Goggles.blockymodel",
-  "Texture": "Cosmetics/Head/Goggles_Texture.png",
+  "Model": "Items/HyColony/Build_Goggles.blockymodel",
+  "Texture": "Items/HyColony/Build_Goggles_Texture.png",
   "Recipe": {
     "Input": [
       { "ItemId": "Ingredient_Bar_Iron", "Quantity": 1 },
