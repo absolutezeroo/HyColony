@@ -13,6 +13,11 @@ Group {
     Padding: (Horizontal: 8);
   }
 
+  Label #Missing {
+    Padding: (Horizontal: 8);
+    Style: (TextColor: #94a7bb);
+  }
+
   Label #Count {
     Padding: (Horizontal: 8);
     Style: (TextColor: #94a7bb);

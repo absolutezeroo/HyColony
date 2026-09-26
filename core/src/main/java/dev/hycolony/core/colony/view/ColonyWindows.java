@@ -6,7 +6,6 @@ import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.permission.Action;
-import dev.hycolony.core.construction.resources.BuildingResourcesModule;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.port.Msg;
 import java.util.UUID;
@@ -22,14 +21,12 @@ public final class ColonyWindows {
     private final BuildingViews buildings;
     private final RequestViews requests;
     private final CitizenViews citizens;
-    private final BuilderResourcesViews builderResources;
 
     public ColonyWindows(ColonyManager manager) {
         this.manager = manager;
         this.ctx = manager.context();
         this.townHall = new TownHallViews(ctx);
-        this.builderResources = new BuilderResourcesViews(ctx);
-        this.buildings = new BuildingViews(ctx, new BuilderTabsViews(builderResources));
+        this.buildings = new BuildingViews(ctx, new BuilderTabsViews(new BuilderResourcesViews(ctx)));
         this.requests = new RequestViews(ctx);
         this.citizens = new CitizenViews(ctx, townHall, requests);
     }
@@ -59,18 +56,6 @@ public final class ColonyWindows {
 
     public void openWorkOrders(UUID player, int colonyId) {
         manager.byId(colonyId).filter(c -> canAccess(c, player)).ifPresent(c -> showWorkOrders(c, player));
-    }
-
-    /** The builder hut's resources tab. */
-    public void openBuilderResources(UUID player, BlockPos hutPos) {
-        Colony c = manager.colonyAt(hutPos).orElse(null);
-        Building hut = c == null ? null : c.buildings().at(hutPos).orElse(null);
-        BuildingResourcesModule m =
-                hut == null ? null : hut.module(BuildingResourcesModule.class).orElse(null);
-        if (m == null || !canAccess(c, player)) {
-            return;
-        }
-        ctx.ui().showBuilderResources(player, builderResources.of(c, hut, m, player));
     }
 
     /** The clipboard (MC WindowClipBoard): root requests held by the player or retrying resolver. */

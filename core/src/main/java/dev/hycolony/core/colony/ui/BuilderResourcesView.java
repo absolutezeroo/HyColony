@@ -1,7 +1,6 @@
 package dev.hycolony.core.colony.ui;
 
 import dev.hycolony.core.construction.workorder.WorkOrderType;
-import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemKey;
 import java.util.List;
 import java.util.Optional;
@@ -10,7 +9,7 @@ import java.util.Optional;
  * The builder hut's Resources tab (MC WindowBuilderResModule): rows in ResourceComparator order, and a header while
  * the hut holds an order.
  */
-public record BuilderResourcesView(int colonyId, BlockPos hut, List<ResourceRow> rows, Optional<Header> header) {
+public record BuilderResourcesView(List<ResourceRow> rows, Optional<Header> header) {
     /** MC RessourceAvailability, in its order; the rows are black, red, orange and dark green. */
     public enum Status {
         NOT_NEEDED,

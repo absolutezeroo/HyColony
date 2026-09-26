@@ -57,7 +57,7 @@ final class BuilderResourcesViews {
             m.needs().remaining().forEach((item, needed) -> rows.add(row(player, item, needed, inv, containers)));
         }
         rows.sort(RESOURCE_ORDER);
-        return new BuilderResourcesView(c.id(), hut.position(), rows, order.map(o -> header(c, o, rows)));
+        return new BuilderResourcesView(rows, order.map(o -> header(c, o, rows)));
     }
 
     private static BuilderResourcesView.Header header(Colony c, WorkOrder o, List<ResourceRow> rows) {

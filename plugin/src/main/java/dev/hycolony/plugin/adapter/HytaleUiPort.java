@@ -7,6 +7,7 @@ import com.hypixel.hytale.protocol.packets.interface_.Page;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.entity.entities.player.pages.CustomUIPage;
+import com.hypixel.hytale.server.core.entity.entities.player.pages.PageManager;
 import com.hypixel.hytale.server.core.inventory.InventoryComponent;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
@@ -20,7 +21,6 @@ import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.colony.ColonyManager;
-import dev.hycolony.core.colony.ui.BuilderResourcesView;
 import dev.hycolony.core.colony.ui.BuildingView;
 import dev.hycolony.core.colony.ui.CitizenView;
 import dev.hycolony.core.colony.ui.FoundColonyView;
@@ -31,7 +31,6 @@ import dev.hycolony.core.colony.ui.UiPort;
 import dev.hycolony.core.colony.ui.WorkOrdersView;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.plugin.IdMap;
-import dev.hycolony.plugin.ui.BuilderResourcesPage;
 import dev.hycolony.plugin.ui.BuildingPage;
 import dev.hycolony.plugin.ui.CitizenPage;
 import dev.hycolony.plugin.ui.FoundColonyPage;
@@ -42,6 +41,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -107,12 +107,10 @@ public final class HytaleUiPort implements UiPort {
 
     @Override
     public void showBuilding(UUID player, BuildingView view) {
-        open(player, pr -> new BuildingPage(pr, view, manager.get(), () -> pickUp(player, view)));
-    }
-
-    @Override
-    public void showBuilderResources(UUID player, BuilderResourcesView view) {
-        open(player, pr -> new BuilderResourcesPage(pr, view, manager.get()));
+        open(
+                player,
+                (pr, previous) ->
+                        new BuildingPage(pr, view, manager.get(), () -> pickUp(player, view)).keepTabOf(previous));
     }
 
     @Override
@@ -207,12 +205,18 @@ public final class HytaleUiPort implements UiPort {
     }
 
     private void open(UUID player, Function<PlayerRef, CustomUIPage> page) {
+        open(player, (pr, previous) -> page.apply(pr));
+    }
+
+    /** {@code page} also gets the page the player has open now (null if none), to keep its local state. */
+    private void open(UUID player, BiFunction<PlayerRef, CustomUIPage, CustomUIPage> page) {
         PlayerRef pr = Universe.get().getPlayer(player);
         Ref<EntityStore> ref = pr == null ? null : pr.getReference();
         if (ref == null || !ref.isValid()) {
             return;
         }
         Store<EntityStore> store = ref.getStore();
-        store.getComponent(ref, Player.getComponentType()).getPageManager().openCustomPage(ref, store, page.apply(pr));
+        PageManager pages = store.getComponent(ref, Player.getComponentType()).getPageManager();
+        pages.openCustomPage(ref, store, page.apply(pr, pages.getCustomPage()));
     }
 }

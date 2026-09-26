@@ -195,10 +195,7 @@ class ViewsTest {
         t.containers.insert(builder.containers(), new ItemAmount(STONE_I, 1));
         t.playerInventory.give(alice, new ItemAmount(PLANK_I, 5));
 
-        manager.windows().openBuilderResources(alice, builder.position());
-
-        BuilderResourcesView v = (BuilderResourcesView) t.ui.shown.get(alice);
-        assertEquals(builder.position(), v.hut());
+        BuilderResourcesView v = view(alice, builder).builder().orElseThrow().resources();
         assertEquals(
                 List.of(
                         new ResourceRow(PLANK_I, 2, 0, 5, Status.HAVE_ENOUGH),
@@ -276,7 +273,6 @@ class ViewsTest {
             manager.windows().openTownHall(player, hall);
             manager.windows().openCitizen(player, colony.id(), bobTheBuilder.id());
             manager.windows().openBuilding(player, res.position());
-            manager.windows().openBuilderResources(player, builder.position());
             manager.windows().openRequests(player, colony.id());
             manager.windows().openWorkOrders(player, colony.id());
             assertFalse(t.ui.shown.containsKey(player), "neutral and hostile see nothing");

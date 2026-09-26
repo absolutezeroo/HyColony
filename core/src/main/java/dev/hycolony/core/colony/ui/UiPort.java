@@ -10,8 +10,6 @@ public interface UiPort {
 
     void showBuilding(UUID player, BuildingView view);
 
-    void showBuilderResources(UUID player, BuilderResourcesView view);
-
     void showRequests(UUID player, RequestsView view);
 
     void showWorkOrders(UUID player, WorkOrdersView view);

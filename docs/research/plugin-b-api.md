@@ -429,6 +429,14 @@ Vérifié dans les sources 0.6.8 (détails dans `docs/research/build-goggles-and
 - Id = nom du fichier `.particlesystem` (appels vanilla : `"Splash"` = `Server/Particles/_Test/WaterRnD/Splash.particlesystem`). `ParticleSystem.getAssetMap().getAsset(id)` (`asset/type/particle/config/ParticleSystem.java`) sert à valider.
 - Assets 0.6.8, `Server/Particles/Spell/Fireworks/` : systèmes `Firework_Mix2` (traînée + rouge/violet, `StartDelay` 0,8 à 0,9 s), `Firework_Mix3` (bleu, violet, rouge, `StartDelay` 0,5 à 1,3 s), `Firework_Mix4` (rouge + violet + éclairs), `Firework_GS` (niveaux de gris, à teinter). `Firework_Red`, `Firework_Purple`, `Firework_Yellow` sont des **spawners** (`Spawners/*.particlespawner`), pas des systèmes : non utilisables seuls.
 
+## 12. Fenêtre de hutte en onglets (vérifié dans le code serveur)
+
+- **Onglets** : motif de `builtin/triggervolumes/ui/TriggerVolumeInspectorPage.java:518-535` (`buildTabs`) et de l'asset `Pages/TriggerVolume/TriggerVolumeInspectorTabButton.ui` (`$C.@SmallSecondaryTextButton #TabButton`, `TextTooltipStyle: $C.@DefaultTextTooltipStyle`), copié dans `Pages/HyColony/TabButton.ui` (seule la largeur passe de 96 à 150). On ajoute un bouton par onglet dans `#TabButtons`, on pose `.Text`, `.Disabled = (onglet choisi)` et un `Activating` ; chaque onglet est un `Group` dont on pose `.Visible` (`TriggerVolumeInspectorPage.java:696-698`). **[in-game]** rendu du bouton désactivé comme onglet actif.
+- **Redessiner la page** : `CustomUIPage.rebuild()` (`server/core/entity/entities/player/pages/CustomUIPage.java:118`) rappelle `build` et envoie la page entière (`clear = true`). Sert au changement d'onglet et à la sous-vue « Options de construction ».
+- **Page ouverte** : `PageManager.getCustomPage()` (`.../pages/PageManager.java:79`, `@Nullable`) rend la page affichée ; `HytaleUiPort` la passe à la nouvelle page pour garder l'onglet quand le cœur ré-affiche la fenêtre.
+- **Infobulle** : `cmd.set(sel + ".TooltipText", Message.translation(...))` (`TriggerVolumeInspectorPage.java:729`), sur un bouton qui déclare `TextTooltipStyle`. **[in-game]** infobulle d'un bouton `Disabled`.
+- **Couleur de fond** : `cmd.set(sel + ".Background", "#2a5a3a")` sur un `Group` qui a un `Background` (`builtin/adventure/shop/barter/BarterPage.java:122`, `Pages/BarterTradeRow.ui`). Sert au cadre vert de l'ordre en cours (`BuilderOrderRow.ui`, posé sur la racine `#BuilderOrders[i]`, comme `#TabButtons[i].Text`). **[in-game]** rendu du cadre.
+
 ## Could not verify
 
 1. **Client rendering of item animations on NPCs** (`AnimationSlot.Action` with `"Block"/"Build"` or `"Pickaxe"/"Mine"` on `PlayerTestModel_V`) and whether they loop or play once. Only the server packet path is verified.
