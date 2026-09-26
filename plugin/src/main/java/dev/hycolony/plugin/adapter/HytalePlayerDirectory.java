@@ -44,24 +44,26 @@ public final class HytalePlayerDirectory implements PlayerDirectory {
         return Optional.of(new BlockPos((int) Math.floor(p.x), (int) Math.floor(p.y), (int) Math.floor(p.z)));
     }
 
-    /**
-     * Operator: in the group {@code /op} adds players to (hytale:Admin), which holds "*" and so every
-     * operator-only command node. Creative: the Player component's game mode. Only a player in this world counts.
-     */
+    /** In the group {@code /op} adds players to (hytale:Admin), which holds "*" and so every operator-only node. */
     @Override
-    public boolean isCreativeOperator(UUID player) {
+    public boolean isOperator(UUID player) {
+        try {
+            return PermissionsModule.get().getGroupsForUser(player).contains(HytalePermissionsProvider.GROUP_ADMIN);
+        } catch (RuntimeException e) {
+            LOG.log(System.Logger.Level.WARNING, "Operator check failed for " + player, e);
+            return false;
+        }
+    }
+
+    /** The Player component's game mode; only a player in this world counts. */
+    @Override
+    public boolean isCreative(UUID player) {
         try {
             Ref<EntityStore> ref = refIn(player);
-            if (ref == null
-                    || !PermissionsModule.get()
-                            .getGroupsForUser(player)
-                            .contains(HytalePermissionsProvider.GROUP_ADMIN)) {
-                return false;
-            }
-            Player p = ref.getStore().getComponent(ref, Player.getComponentType());
+            Player p = ref == null ? null : ref.getStore().getComponent(ref, Player.getComponentType());
             return p != null && p.getGameMode() == GameMode.Creative;
         } catch (RuntimeException e) {
-            LOG.log(System.Logger.Level.WARNING, "Creative operator check failed for " + player, e);
+            LOG.log(System.Logger.Level.WARNING, "Creative check failed for " + player, e);
             return false;
         }
     }

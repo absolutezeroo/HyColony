@@ -1,8 +1,10 @@
 package dev.hycolony.core.colony.permission;
 
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /** Colony ranks and members. Default ranks replicate MineColonies' cascade. */
@@ -10,6 +12,30 @@ public final class Permissions {
     public static final int OWNER = 0, OFFICER = 1, FRIEND = 2, NEUTRAL = 3, HOSTILE = 4;
 
     public record Member(String name, int rankId) {}
+
+    /** MC Permissions.OP_RANK: what a player bypassing the colony's permissions may do, whatever the colony. */
+    private static final Set<Action> OP_RANK = EnumSet.of(
+            Action.ACCESS_HUTS,
+            Action.USE_SCAN_TOOL,
+            Action.TOSS_ITEM,
+            Action.PICKUP_ITEM,
+            Action.RIGHTCLICK_BLOCK,
+            Action.RIGHTCLICK_ENTITY,
+            Action.THROW_POTION,
+            Action.SHOOT_ARROW,
+            Action.ATTACK_CITIZEN,
+            Action.ATTACK_ENTITY,
+            Action.TELEPORT_TO_COLONY,
+            Action.ACCESS_TOGGLEABLES,
+            Action.PLACE_HUTS,
+            Action.BREAK_HUTS,
+            Action.MANAGE_HUTS,
+            Action.PLACE_BLOCKS,
+            Action.BREAK_BLOCKS,
+            Action.FILL_BUCKET,
+            Action.OPEN_CONTAINER,
+            Action.RALLY_GUARDS,
+            Action.MAP_BORDER);
 
     private final UUID owner;
     private String ownerName;
@@ -124,6 +150,11 @@ public final class Permissions {
 
     public boolean hasPermission(UUID player, Action action) {
         return rankOf(player).has(action);
+    }
+
+    /** MC hasPermission(OP_RANK, action): whether a player bypassing the permissions may do {@code action}. */
+    public static boolean operatorRankHas(Action action) {
+        return OP_RANK.contains(action);
     }
 
     /** A member = a player whose rank grants ACCESS_HUTS (Friend and above). */

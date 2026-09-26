@@ -5,6 +5,7 @@ import dev.hycolony.core.colony.action.HutActions;
 import dev.hycolony.core.colony.action.RequestActions;
 import dev.hycolony.core.colony.action.WorkOrderActions;
 import dev.hycolony.core.colony.permission.Action;
+import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.colony.territory.ClaimCell;
 import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.colony.view.ColonyWindows;
@@ -109,11 +110,27 @@ public final class ColonyManager {
         return ctx.config().permissions().enableColonyProtection();
     }
 
-    /** Outside any colony everything is allowed. */
+    /**
+     * Whether {@code player} may do {@code action} at {@code pos}; outside any colony everything is allowed. MC
+     * Permissions.hasPermission(Player, Action): the player's rank, else the operator rank if they bypass.
+     */
     public boolean isAllowed(UUID player, BlockPos pos, Action action) {
         return colonyAt(pos)
-                .map(c -> c.permissions().hasPermission(player, action))
+                .map(c -> c.permissions().hasPermission(player, action)
+                        || bypassesPermissions(player) && Permissions.operatorRankHas(action))
                 .orElse(true);
+    }
+
+    /**
+     * MC: a player in creative with at least operator level {@code PermissionEventBypassMinPermLevel}.
+     *
+     * <p>Deviation from MC: Hytale has no operator levels. Level 0 (MC: every player) lets any creative player
+     * through; levels 1 to 4 need a Hytale operator in creative.
+     */
+    private boolean bypassesPermissions(UUID player) {
+        return ctx.config().permissions().permissionEventBypassMinPermLevel() == 0
+                ? ctx.players().isCreative(player)
+                : ctx.players().isCreativeOperator(player);
     }
 
     public void tick() {

@@ -13,6 +13,14 @@ public interface PlayerDirectory {
 
     Collection<UUID> onlineIn(WorldKey world);
 
-    /** A server operator, online and in creative mode right now; false otherwise (never throws). */
-    boolean isCreativeOperator(UUID player);
+    /** A server operator; false otherwise (never throws). */
+    boolean isOperator(UUID player);
+
+    /** Online in this world and in creative mode right now; false otherwise (never throws). */
+    boolean isCreative(UUID player);
+
+    /** A server operator, online and in creative mode right now. */
+    default boolean isCreativeOperator(UUID player) {
+        return isOperator(player) && isCreative(player);
+    }
 }

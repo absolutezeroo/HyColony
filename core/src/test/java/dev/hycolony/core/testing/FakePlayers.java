@@ -14,11 +14,19 @@ import java.util.UUID;
 
 public final class FakePlayers implements PlayerDirectory {
     public final Map<UUID, BlockPos> online = new LinkedHashMap<>();
+    public final Set<UUID> operators = new HashSet<>();
+    public final Set<UUID> creative = new HashSet<>();
+    /** Both an operator and in creative mode. */
     public final Set<UUID> creativeOperators = new HashSet<>();
 
     @Override
-    public boolean isCreativeOperator(UUID player) {
-        return creativeOperators.contains(player);
+    public boolean isOperator(UUID player) {
+        return operators.contains(player) || creativeOperators.contains(player);
+    }
+
+    @Override
+    public boolean isCreative(UUID player) {
+        return creative.contains(player) || creativeOperators.contains(player);
     }
 
     @Override
