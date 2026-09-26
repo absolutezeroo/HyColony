@@ -1,0 +1,7 @@
+#!/bin/sh
+# CLAUDE.md § 8: the full build (tests, PMD, spotless, sizes) is green before anything leaves the machine.
+if ! ./gradlew build --quiet; then
+    echo >&2
+    echo "pre-push: ./gradlew build failed. Fix it before pushing; never bypass with --no-verify." >&2
+    exit 1
+fi

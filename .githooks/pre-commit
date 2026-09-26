@@ -1,0 +1,13 @@
+#!/bin/sh
+# Fast gate (CLAUDE.md § 3, § 8): formatting, file/package sizes, section dividers.
+# Skipped when no staged file can affect these checks (docs-only commits stay instant).
+# Note: Gradle checks the working tree, not the index; stash unstaged edits to check exactly what is staged.
+if ! git diff --cached --name-only --diff-filter=ACMR | grep -Eq '\.(java|kts)$|^gradle/|^config/'; then
+    exit 0
+fi
+if ! ./gradlew spotlessCheck checkFileSizes checkSectionDividers --quiet; then
+    echo >&2
+    echo "pre-commit: checks failed. Run ./gradlew spotlessApply, split oversized files/packages," >&2
+    echo "remove section dividers, then commit again. Never bypass with --no-verify (CLAUDE.md § 10)." >&2
+    exit 1
+fi

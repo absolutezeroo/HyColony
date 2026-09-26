@@ -15,6 +15,10 @@ Colony management for Hytale, recreating MineColonies' systems. Found a colony w
 
 ## Build
 
+After cloning, enable the versioned git hooks once (format, sizes, commit message, full build before push):
+
+    git config core.hooksPath .githooks
+
     ./gradlew build              # core tests + plugin jar (plugin/build/libs/HyColony-*.jar)
     ./gradlew setupHytaleDev     # once: download assets (Hytale login)
     ./gradlew :plugin:runServer  # local dev server
