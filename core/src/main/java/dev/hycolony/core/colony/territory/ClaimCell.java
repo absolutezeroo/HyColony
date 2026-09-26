@@ -1,4 +1,4 @@
-package dev.hycolony.core.colony;
+package dev.hycolony.core.colony.territory;
 
 import dev.hycolony.core.kernel.BlockPos;
 

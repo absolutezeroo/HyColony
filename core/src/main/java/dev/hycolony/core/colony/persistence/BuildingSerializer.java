@@ -1,7 +1,7 @@
-package dev.hycolony.core.colony;
+package dev.hycolony.core.colony.persistence;
 
-import static dev.hycolony.core.colony.JsonPositions.pos;
-import static dev.hycolony.core.colony.JsonPositions.readPos;
+import static dev.hycolony.core.colony.persistence.JsonPositions.pos;
+import static dev.hycolony.core.colony.persistence.JsonPositions.readPos;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;

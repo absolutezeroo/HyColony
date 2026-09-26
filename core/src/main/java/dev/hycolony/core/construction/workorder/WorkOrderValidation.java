@@ -1,8 +1,8 @@
 package dev.hycolony.core.construction.workorder;
 
 import dev.hycolony.core.building.Building;
-import dev.hycolony.core.colony.ClaimCell;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.territory.ClaimCell;
 import dev.hycolony.core.construction.ConstructionBuildingTypes;
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.kernel.BlockPos;

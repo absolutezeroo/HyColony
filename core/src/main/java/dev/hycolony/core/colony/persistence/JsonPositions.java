@@ -1,4 +1,4 @@
-package dev.hycolony.core.colony;
+package dev.hycolony.core.colony.persistence;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;

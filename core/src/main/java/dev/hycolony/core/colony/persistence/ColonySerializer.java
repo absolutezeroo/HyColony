@@ -1,7 +1,7 @@
-package dev.hycolony.core.colony;
+package dev.hycolony.core.colony.persistence;
 
-import static dev.hycolony.core.colony.JsonPositions.pos;
-import static dev.hycolony.core.colony.JsonPositions.readPos;
+import static dev.hycolony.core.colony.persistence.JsonPositions.pos;
+import static dev.hycolony.core.colony.persistence.JsonPositions.readPos;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -9,6 +9,11 @@ import com.google.gson.JsonObject;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.citizen.CitizenData;
+import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.ColonyContext;
+import dev.hycolony.core.colony.EventLog;
+import dev.hycolony.core.colony.permission.PermissionsSerializer;
+import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.construction.workorder.WorkOrderSerializer;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.persist.MigrationChain;

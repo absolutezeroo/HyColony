@@ -2,6 +2,7 @@ package dev.hycolony.core.colony;
 
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
+import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.colony.ui.NeedsPlayerNotice;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.request.Request;

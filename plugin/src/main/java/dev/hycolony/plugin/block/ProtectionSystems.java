@@ -13,8 +13,8 @@ import com.hypixel.hytale.server.core.modules.block.components.ItemContainerBloc
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import dev.hycolony.core.colony.Action;
 import dev.hycolony.core.colony.ColonyManager;
+import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.port.Msg;
 import dev.hycolony.plugin.IdMap;

@@ -3,8 +3,8 @@ package dev.hycolony.core.construction;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import dev.hycolony.core.building.BuildingTypes;
-import dev.hycolony.core.colony.ClaimCell;
-import dev.hycolony.core.colony.TerritoryIndex;
+import dev.hycolony.core.colony.territory.ClaimCell;
+import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.kernel.BlockPos;
 import java.util.OptionalInt;
 import org.junit.jupiter.api.Test;

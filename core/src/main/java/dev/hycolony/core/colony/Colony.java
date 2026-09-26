@@ -2,6 +2,9 @@ package dev.hycolony.core.colony;
 
 import dev.hycolony.core.building.BuildingManager;
 import dev.hycolony.core.citizen.CitizenManager;
+import dev.hycolony.core.colony.permission.Permissions;
+import dev.hycolony.core.colony.territory.ClaimCell;
+import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.construction.workorder.WorkManager;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.ai.AITarget;

@@ -13,7 +13,7 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ConstructionPorts;
-import dev.hycolony.core.colony.Permissions;
+import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.construction.ConstructionBuildingTypes;
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.kernel.BlockPos;

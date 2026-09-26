@@ -1,4 +1,4 @@
-package dev.hycolony.core.colony;
+package dev.hycolony.core.colony.permission;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;

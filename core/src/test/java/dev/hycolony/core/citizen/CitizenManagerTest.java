@@ -6,10 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingTypes;
-import dev.hycolony.core.colony.ClaimCell;
 import dev.hycolony.core.colony.Colony;
-import dev.hycolony.core.colony.Permissions;
-import dev.hycolony.core.colony.TerritoryIndex;
+import dev.hycolony.core.colony.permission.Permissions;
+import dev.hycolony.core.colony.territory.ClaimCell;
+import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.port.BodyId;

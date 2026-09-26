@@ -1,4 +1,4 @@
-package dev.hycolony.core.colony;
+package dev.hycolony.core.colony.permission;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;

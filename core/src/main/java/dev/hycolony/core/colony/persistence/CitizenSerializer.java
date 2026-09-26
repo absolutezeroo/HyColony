@@ -1,9 +1,9 @@
-package dev.hycolony.core.colony;
+package dev.hycolony.core.colony.persistence;
 
-import static dev.hycolony.core.colony.JsonPositions.pos;
-import static dev.hycolony.core.colony.JsonPositions.readPos;
-import static dev.hycolony.core.colony.JsonPositions.readVec;
-import static dev.hycolony.core.colony.JsonPositions.vec;
+import static dev.hycolony.core.colony.persistence.JsonPositions.pos;
+import static dev.hycolony.core.colony.persistence.JsonPositions.readPos;
+import static dev.hycolony.core.colony.persistence.JsonPositions.readVec;
+import static dev.hycolony.core.colony.persistence.JsonPositions.vec;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
@@ -12,6 +12,7 @@ import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Gender;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.citizen.Skills;
+import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.job.Job;
 import dev.hycolony.core.job.JobType;
 import dev.hycolony.core.kernel.item.Inventory;

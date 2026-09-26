@@ -1,4 +1,4 @@
-package dev.hycolony.core.colony;
+package dev.hycolony.core.colony.permission;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -8,10 +8,10 @@ import java.util.Map;
 import java.util.UUID;
 
 /** A colony's {@link Permissions} (owner, ranks, members) to and from JSON. */
-final class PermissionsSerializer {
+public final class PermissionsSerializer {
     private PermissionsSerializer() {}
 
-    static JsonObject write(Permissions p) {
+    public static JsonObject write(Permissions p) {
         JsonObject o = new JsonObject();
         o.addProperty("owner", p.owner().toString());
         o.addProperty("ownerName", p.ownerName());
@@ -39,7 +39,7 @@ final class PermissionsSerializer {
         return o;
     }
 
-    static Permissions read(JsonObject o) {
+    public static Permissions read(JsonObject o) {
         UUID owner = UUID.fromString(o.get("owner").getAsString());
         String ownerName = o.get("ownerName").getAsString();
         Permissions defaults = Permissions.createDefault(owner, ownerName);

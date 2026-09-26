@@ -9,6 +9,7 @@ import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
+import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.colony.ui.BuilderResourcesView;
 import dev.hycolony.core.colony.ui.BuilderResourcesView.ResourceRow;
 import dev.hycolony.core.colony.ui.BuilderResourcesView.Status;

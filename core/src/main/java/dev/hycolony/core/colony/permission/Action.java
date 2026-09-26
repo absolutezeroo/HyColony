@@ -1,4 +1,4 @@
-package dev.hycolony.core.colony;
+package dev.hycolony.core.colony.permission;
 
 /** Colony permission actions. Flags are MineColonies' exact bit indices: never renumber (saved masks). */
 public enum Action {

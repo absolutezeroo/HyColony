@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
+import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.colony.ui.NeedsPlayerNotice;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemKey;

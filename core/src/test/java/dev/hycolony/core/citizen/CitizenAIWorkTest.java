@@ -3,8 +3,8 @@ package dev.hycolony.core.citizen;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import dev.hycolony.core.colony.Colony;
-import dev.hycolony.core.colony.Permissions;
-import dev.hycolony.core.colony.TerritoryIndex;
+import dev.hycolony.core.colony.permission.Permissions;
+import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.job.Job;
 import dev.hycolony.core.job.JobAI;
 import dev.hycolony.core.job.JobType;

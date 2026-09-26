@@ -3,6 +3,9 @@ package dev.hycolony.core.colony;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.hycolony.core.colony.permission.Permissions;
+import dev.hycolony.core.colony.territory.ClaimCell;
+import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.testing.TestContexts;
 import java.util.ArrayList;

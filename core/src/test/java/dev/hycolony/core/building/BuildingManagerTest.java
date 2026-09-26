@@ -5,8 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.gson.JsonObject;
 import dev.hycolony.core.colony.Colony;
-import dev.hycolony.core.colony.Permissions;
-import dev.hycolony.core.colony.TerritoryIndex;
+import dev.hycolony.core.colony.permission.Permissions;
+import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.testing.TestContexts;
 import java.util.List;

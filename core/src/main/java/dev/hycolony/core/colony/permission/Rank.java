@@ -1,4 +1,4 @@
-package dev.hycolony.core.colony;
+package dev.hycolony.core.colony.permission;
 
 public final class Rank {
     private final int id;

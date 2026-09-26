@@ -10,6 +10,8 @@ import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.building.ModuleProducer;
 import dev.hycolony.core.building.PersistentModule;
+import dev.hycolony.core.colony.permission.Action;
+import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.colony.ui.FoundColonyView;
 import dev.hycolony.core.colony.ui.TownHallView;
 import dev.hycolony.core.kernel.BlockPos;
