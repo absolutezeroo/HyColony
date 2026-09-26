@@ -50,7 +50,27 @@ val checkFileSizes by tasks.registering {
         }
     }
 }
-subprojects { tasks.matching { it.name == "check" }.configureEach { dependsOn(checkFileSizes) } }
+// CLAUDE.md § 3: no section-divider comments ("// ---- section ----"): a class that needs sections must be split.
+val checkSectionDividers by tasks.registering {
+    group = "verification"
+    description = "Fails when a Java source file contains a section-divider comment"
+    val divider = Regex("""^\s*//\s*[-=*]{3,}""")
+    val sources = fileTree(rootDir) { include("core/src/*/java/**/*.java", "plugin/src/*/java/**/*.java") }
+    inputs.files(sources)
+    doLast {
+        val found = sources.files.sortedBy { it.path }.flatMap { file ->
+            file.readLines().withIndex().filter { divider.containsMatchIn(it.value) }
+                .map { "  ${file.relativeTo(rootDir).invariantSeparatorsPath}:${it.index + 1}: ${it.value.trim()}" }
+        }
+        if (found.isNotEmpty()) {
+            throw GradleException("Section-divider comments (CLAUDE.md § 3), remove them or split the class:\n" +
+                found.joinToString("\n"))
+        }
+    }
+}
+subprojects {
+    tasks.matching { it.name == "check" }.configureEach { dependsOn(checkFileSizes, checkSectionDividers) }
+}
 
 // CLAUDE.md § 3: formatting is checked by spotlessCheck (part of check). JSON, .ui and .lang are left alone.
 subprojects {

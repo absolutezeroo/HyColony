@@ -136,8 +136,6 @@ final class RequestStore {
         return out;
     }
 
-    // ---- persistence (RequestSerializer)
-
     Map<String, Set<RequestToken>> assignments() {
         return Collections.unmodifiableMap(assigned);
     }

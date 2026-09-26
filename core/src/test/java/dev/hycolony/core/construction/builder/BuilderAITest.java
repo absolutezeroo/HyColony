@@ -108,8 +108,6 @@ class BuilderAITest {
         t.notifier.sent.clear();
     }
 
-    // ---- helpers ----
-
     private Building hut(BuildingType type, BlockPos pos, int level) {
         manager.huts().place(colony, type.id(), pos, 0);
         Building b = colony.buildings().at(pos).orElseThrow();
@@ -182,8 +180,6 @@ class BuilderAITest {
     private BlockPos at(int dx, int dy, int dz) {
         return RES.offset(dx, dy, dz);
     }
-
-    // ---- tests ----
 
     @Test
     void idleWithoutOrderStaysIdle() {
@@ -678,8 +674,6 @@ class BuilderAITest {
                 builderRequests().stream().map(Request::requestable).toList());
     }
 
-    // ---- fix round 1 ----
-
     /** An UPGRADE of {@code n} stones with nothing in stock: the builder waits on its one (sync) request. */
     private Request waitingForStone(int n) {
         Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);
@@ -865,8 +859,6 @@ class BuilderAITest {
         assertTrue(builderRequests().stream().noneMatch(r -> r.requestable() instanceof ToolRequest));
     }
 
-    // ---- final fix wave ----
-
     /** MC IBuilderUndestroyable: another hut standing where the plan wants a block is neither mined nor built over. */
     @Test
     void builderNeverMinesAnotherHut() {
@@ -961,8 +953,6 @@ class BuilderAITest {
         assertEquals(new BlockState(DIRT, 0), t.blocks.blocks.get(at(1, 0, 0)));
     }
 
-    // ---- waited-for items placed in the hut (MC checkForToolOrWeapon / lookForRequests) ----
-
     /** Only a player can provide it now: the field bug's state, where no container event ever comes. */
     private void toPlayer(Request r) {
         colony.requests().reassign(r.token(), Set.of(RetryingResolver.ID));
@@ -1031,8 +1021,6 @@ class BuilderAITest {
                 RequestState.IN_PROGRESS,
                 colony.requests().get(r.token()).orElseThrow().state());
     }
-
-    // ---- field bug: a walk that never ends (nav stuck in PROGRESSING under an unreachable spot) ----
 
     @Test
     void builderWhoseNavNeverEndsIsUnstuckAndBuilds() {

@@ -53,8 +53,6 @@ public final class RequestManager {
         this.transitions = new RequestTransitions(this, store, resolvers, assigner, canceller);
     }
 
-    // ------------------------------------------------------------------ resolvers & providers
-
     /** Player, retrying: never removed. */
     public void registerBuiltIn(Resolver r) {
         resolvers.register(r);
@@ -71,8 +69,6 @@ public final class RequestManager {
             resolvers.removeProvider(p.providerId(), list);
         }));
     }
-
-    // ------------------------------------------------------------------ public mutations (queued)
 
     public RequestToken createAndAssign(Requester requester, Deliverable what, int citizenId) {
         Request req = store.create(requester.requesterId(), what, citizenId);
@@ -213,8 +209,6 @@ public final class RequestManager {
         store.require(token).addDelivery(amount);
     }
 
-    // ------------------------------------------------------------------ queries
-
     public Optional<Request> get(RequestToken token) {
         return Optional.ofNullable(store.request(token));
     }
@@ -243,8 +237,6 @@ public final class RequestManager {
     public Optional<Resolver> resolver(String resolverId) {
         return resolvers.byId(resolverId);
     }
-
-    // ------------------------------------------------------------------ persistence (RequestSerializer)
 
     RequestStore store() {
         return store;

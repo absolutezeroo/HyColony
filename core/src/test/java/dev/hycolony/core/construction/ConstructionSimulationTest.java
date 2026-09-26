@@ -154,8 +154,6 @@ class ConstructionSimulationTest {
                                 .toList());
     }
 
-    // ---- the player's side ----
-
     private ColonyManager newManager() {
         ColonyManager m = new ColonyManager(t.context());
         m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp1());
@@ -191,8 +189,6 @@ class ConstructionSimulationTest {
             }
         }
     }
-
-    // ---- ticking ----
 
     private void watch(Colony c) {
         c.requests().setCreationListener(r -> seen.put(r.token(), r));
@@ -259,8 +255,6 @@ class ConstructionSimulationTest {
         return colony.buildings().at(pos).orElseThrow();
     }
 
-    // ---- world checks ----
-
     /** Every position of the plan's box is exactly as planned; the hut block stays; the rest is empty. */
     private void assertWorldIs(Blueprint bp, BlockPos hut) {
         Map<BlockPos, BlockState> planned = new HashMap<>();
@@ -297,8 +291,6 @@ class ConstructionSimulationTest {
     private static int count(Request r) {
         return r.requestable().count();
     }
-
-    // ---- tests ----
 
     @Test
     void fullBuilderHutBuild() {

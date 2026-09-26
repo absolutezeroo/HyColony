@@ -70,8 +70,6 @@ public final class Request {
         return citizenId;
     }
 
-    // --- package-private mutators, used by RequestManager ---
-
     void setState(RequestState s) {
         state = s;
     }

@@ -106,8 +106,6 @@ class WorkManagerTest {
         assertEquals(new Either.Right<WorkOrder, WorkOrderRefusal>(expected), r);
     }
 
-    // ---- creation ----
-
     @Test
     void createsOrderNotifiesMembersAndPostsEvent() {
         List<ColonyEvents.WorkOrderCreated> events = new ArrayList<>();
@@ -225,8 +223,6 @@ class WorkManagerTest {
         assertEquals(Optional.of(own.position()), o.claimedBy());
     }
 
-    // ---- ordering ----
-
     @Test
     void sortedByPriorityThenId() {
         builder(new BlockPos(10, 64, 0), 1);
@@ -255,8 +251,6 @@ class WorkManagerTest {
         colony.work().move(a.id(), 1); // already first: no-op
         assertEquals(0, a.priority());
     }
-
-    // ---- assignment ----
 
     @Test
     void assignsToFirstEligibleIdleBuilder() {
@@ -314,8 +308,6 @@ class WorkManagerTest {
         assertTrue(o.claimedBy().isEmpty());
     }
 
-    // ---- cancellation and removal ----
-
     @Test
     void cancelReleasesAndCancelsRequests() {
         Building b = builder(new BlockPos(10, 64, 0), 1);
@@ -351,8 +343,6 @@ class WorkManagerTest {
         assertTrue(colony.requests().byRequester(b.requesterId()).isEmpty());
     }
 
-    // ---- persistence ----
-
     @Test
     void workOrdersPersist() {
         Building b = builder(new BlockPos(10, 64, 0), 1);
@@ -387,8 +377,6 @@ class WorkManagerTest {
         assertEquals(
                 3, ((Either.Left<WorkOrder, WorkOrderRefusal>) next).value().id());
     }
-
-    // ---- fix round 1 ----
 
     private WorkOrder createdFor(BlockPos pos, WorkOrderType type, BlockPos chosen) {
         Either<WorkOrder, WorkOrderRefusal> r = colony.work().request(alice, pos, type, "", Optional.of(chosen));
@@ -569,8 +557,6 @@ class WorkManagerTest {
                 WorkOrderRefusal.NO_PERMISSION,
                 colony.work().request(UUID.randomUUID(), other.position(), WorkOrderType.BUILD, "", Optional.empty()));
     }
-
-    // ---- final fix wave ----
 
     @Test
     void buildingKeepsTheStyleItWasBuiltIn() {

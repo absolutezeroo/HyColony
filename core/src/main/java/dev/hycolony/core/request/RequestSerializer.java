@@ -111,8 +111,6 @@ public final class RequestSerializer {
         return m.resolver(PlayerResolver.ID).map(PlayerResolver.class::cast);
     }
 
-    // ---- requests ----
-
     private static JsonObject request(Request r) {
         JsonObject o = new JsonObject();
         o.addProperty("token", r.token().id().toString());
@@ -207,8 +205,6 @@ public final class RequestSerializer {
             default -> throw new IllegalArgumentException("Unknown requestable type: " + type);
         };
     }
-
-    // ---- tokens ----
 
     private static RequestToken token(String s) {
         return new RequestToken(UUID.fromString(s));
