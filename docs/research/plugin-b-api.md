@@ -447,6 +447,27 @@ Vérifié dans les sources 0.6.8 (détails dans `docs/research/build-goggles-and
 - **Point d'apparition** : `world.getWorldConfig().getSpawnProvider()` (`server/core/universe/world/WorldConfig.java:415`, `@Nullable`), puis `ISpawnProvider.getSpawnPoint(World, UUID)` (`universe/world/spawn/ISpawnProvider.java`) qui rend un `Transform` (`getPosition()`). Le point peut dépendre du joueur (`IndividualSpawnProvider:79`, hachage de l'UUID).
 - **Opérateur** : `PermissionsModule.get().getGroupsForUser(uuid).contains(HytalePermissionsProvider.GROUP_ADMIN)` (groupe donné par `/op`, qui a `*`). Hytale n'a pas de niveaux d'opérateur. Le groupe d'une sous-commande se pose par `AbstractCommand.setPermissionGroups(String...)` (`server/core/command/system/AbstractCommand.java:195`, `protected`) ; une liste vide ne laisse que le nœud généré, que seul `*` accorde.
 
+## 14. Player facing (yaw, for `PlayerDirectory.facing`)
+
+- **Body vs. head**: the client's movement packet carries `bodyOrientation` and `lookOrientation` as two separate
+  `Direction` fields (`server/core/io/handlers/game/GamePacketHandler.java:421-427`), queued as
+  `PlayerInput.SetBody` (writes `TransformComponent.getRotation()`) and `PlayerInput.SetHead` (writes
+  `HeadRotation.getRotation()`) respectively (`server/core/modules/entity/player/PlayerInput.java:176-227`). Only
+  `HeadRotation` tracks where the player looks (the camera); `TransformComponent`'s rotation is the body/movement
+  orientation, which can lag or differ (strafing, free-look). `PlayerSystems.UpdatePlayerRef` queries both components
+  as required (`assert ... != null`) on every player entity (`:751-780`), so `HeadRotation` is always present.
+- **Units**: `Rotation3f.y` (`x`=pitch, `y`=yaw, `z`=roll, `math/vector/Rotation3f.java:26-90`) is read and written
+  directly by `TrigMathUtil.sin`/`cos` with no `Math.toRadians` conversion anywhere in `HeadRotation`,
+  `PhysicsMath` or `Rotation3f.lookAt`, so yaw is in **radians**, one full turn = `2*PI`.
+- **North**: `HeadRotation.getAxisDirection(pitch, yaw, …)` (`server/core/modules/entity/component/HeadRotation.java:107-121`)
+  computes `x = cos(pitch) * -sin(yaw)`, `z = cos(pitch) * -cos(yaw)`. At `yaw = 0` this is `(0, -1)`: **north is
+  `-Z` at yaw 0**, matching `PhysicsMath.headingFromDirection`'s same `-sin`/`-cos` convention
+  (`server/core/modules/physics/util/PhysicsMath.java:206-208, 369-391`). Increasing yaw turns **counterclockwise**
+  (north → west → south → east), i.e. the opposite sense of the port's clockwise quarter (0=north, 1=east, 2=south,
+  3=west, same as `Building`/`WorkOrder`/`BlueprintSource.load`): `facing = floorMod(-round(yaw / (PI/2)), 4)`.
+  **[in-game]** the sign of `lookOrientation.yaw` as actually sent by the 0.6.8 client was not captured on the wire;
+  only the server-side plumbing above was read.
+
 ## Could not verify
 
 1. **Client rendering of item animations on NPCs** (`AnimationSlot.Action` with `"Block"/"Build"` or `"Pickaxe"/"Mine"` on `PlayerTestModel_V`) and whether they loop or play once. Only the server packet path is verified.

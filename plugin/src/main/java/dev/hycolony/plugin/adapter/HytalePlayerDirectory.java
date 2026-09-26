@@ -4,6 +4,7 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.protocol.GameMode;
 import com.hypixel.hytale.server.core.entity.entities.Player;
+import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.permissions.PermissionsModule;
 import com.hypixel.hytale.server.core.permissions.provider.HytalePermissionsProvider;
@@ -22,6 +23,9 @@ import org.joml.Vector3d;
 
 public final class HytalePlayerDirectory implements PlayerDirectory {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
+
+    /** A quarter turn, in radians: {@code HeadRotation}'s yaw is a full-circle angle, not degrees. */
+    private static final float QUARTER_TURN_RAD = (float) (Math.PI / 2.0);
 
     private final World world;
     private boolean warned;
@@ -68,6 +72,35 @@ public final class HytalePlayerDirectory implements PlayerDirectory {
         } catch (RuntimeException e) {
             fail("isCreative", player, e);
             return false;
+        }
+    }
+
+    /**
+     * {@code HeadRotation}, not {@code TransformComponent}, follows the camera: the movement packet carries
+     * {@code bodyOrientation} and {@code lookOrientation} as two separate fields ({@code GamePacketHandler}), queued
+     * as {@code PlayerInput.SetBody} into the transform's rotation and {@code PlayerInput.SetHead} into
+     * {@code HeadRotation} respectively, and {@code PlayerSystems.UpdatePlayerRef} requires both components on every
+     * player. Yaw 0 rad is north (-Z) and grows counterclockwise (north to west), the convention
+     * {@code HeadRotation.getAxisDirection} and {@code PhysicsMath.headingFromDirection} both use
+     * ({@code x = -sin(yaw)}, {@code z = -cos(yaw)}). The port's clockwise quarter (0=north, 1=east, 2=south,
+     * 3=west) is the negated, rounded quarter turn.
+     */
+    @Override
+    public int facing(UUID player) {
+        try {
+            Ref<EntityStore> ref = refIn(player);
+            if (ref == null) {
+                return 0;
+            }
+            HeadRotation head = ref.getStore().getComponent(ref, HeadRotation.getComponentType());
+            if (head == null) {
+                return 0;
+            }
+            float yaw = head.getRotation().yaw();
+            return Math.floorMod(-Math.round(yaw / QUARTER_TURN_RAD), 4);
+        } catch (RuntimeException e) {
+            fail("facing", player, e);
+            return 0;
         }
     }
 

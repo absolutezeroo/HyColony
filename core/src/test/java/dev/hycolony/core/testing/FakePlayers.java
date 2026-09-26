@@ -19,6 +19,8 @@ public final class FakePlayers implements PlayerDirectory {
     /** Both an operator and in creative mode. */
     public final Set<UUID> creativeOperators = new HashSet<>();
 
+    private final Map<UUID, Integer> facing = new LinkedHashMap<>();
+
     @Override
     public boolean isOperator(UUID player) {
         return operators.contains(player) || creativeOperators.contains(player);
@@ -42,5 +44,15 @@ public final class FakePlayers implements PlayerDirectory {
     @Override
     public Collection<UUID> onlineIn(WorldKey world) {
         return List.copyOf(online.keySet());
+    }
+
+    @Override
+    public int facing(UUID player) {
+        return facing.getOrDefault(player, 0);
+    }
+
+    /** Sets the quarter-turn direction {@link #facing} reports for {@code player}; 0 (north) until set. */
+    public void setFacing(UUID player, int quarterTurn) {
+        facing.put(player, quarterTurn);
     }
 }

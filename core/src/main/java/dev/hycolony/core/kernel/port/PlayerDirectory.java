@@ -23,4 +23,12 @@ public interface PlayerDirectory {
     default boolean isCreativeOperator(UUID player) {
         return isOperator(player) && isCreative(player);
     }
+
+    /**
+     * The quarter-turn the player is facing, rounded to the nearest cardinal direction: 0 = north (-Z), 1 = east
+     * (+X), 2 = south (+Z), 3 = west (-X), clockwise from north, as {@code Building}, {@code WorkOrder} and
+     * {@code BlueprintSource.load} use for a placement rotation. The offline or unknown player gives 0 (never
+     * throws).
+     */
+    int facing(UUID player);
 }
