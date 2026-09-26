@@ -74,14 +74,18 @@ class ConstructionSimulationTest {
     private static final BlockPos TOWN_HALL = new BlockPos(0, 64, 0);
     /** Claim cell 4: the edge of the initial territory, so a finished level 1 claims cell 5. */
     private static final BlockPos HUT = new BlockPos(70, 64, 0);
+
     private static final BlockPos BEYOND = new BlockPos(85, 64, 0);
     private static final int MAX_TICKS = 200_000;
 
-    @TempDir Path dir;
+    @TempDir
+    Path dir;
+
     private final TestContexts t = new TestContexts();
     private final FakeBlueprints blueprints = new FakeBlueprints();
     /** Also the owner saved in the mid-build fixture. */
     private final UUID alice = UUID.fromString("00000000-0000-0000-0000-00000000a11c");
+
     private ColonyManager manager;
     private Colony colony;
     /**
@@ -93,11 +97,13 @@ class ConstructionSimulationTest {
     private final Map<RequestToken, Set<String>> resolversSeen = new HashMap<>();
     /** The player supplies the clipboard's requests every second. */
     private boolean autoFulfil = true;
+
     private int fulfils;
     /** Held strongly: LogManager only keeps loggers weakly, and a collected one would drop the spy. */
     private final Logger hycolonyLog = Logger.getLogger("dev.hycolony");
     /** Any warning or error the core logs (a caught AI exception, a failed save, a lost request...). */
     private final List<LogRecord> warnings = new ArrayList<>();
+
     private final Handler logSpy = new Handler() {
         @Override
         public void publish(LogRecord r) {
@@ -106,8 +112,11 @@ class ConstructionSimulationTest {
             }
         }
 
-        @Override public void flush() {}
-        @Override public void close() {}
+        @Override
+        public void flush() {}
+
+        @Override
+        public void close() {}
     };
 
     @BeforeEach
@@ -116,7 +125,8 @@ class ConstructionSimulationTest {
         t.bodies.instant = true;
         t.blueprints = blueprints;
         FakeBlueprints.registerBlocks(t.catalog);
-        blueprints.put(ConstructionBuildingTypes.BUILDER.id(), 1, FakeBlueprints.hut(false))
+        blueprints
+                .put(ConstructionBuildingTypes.BUILDER.id(), 1, FakeBlueprints.hut(false))
                 .put(ConstructionBuildingTypes.BUILDER.id(), 2, FakeBlueprints.hut(true))
                 .put(ConstructionBuildingTypes.RESIDENCE.id(), 1, FakeBlueprints.hut(false));
         t.players.online.put(alice, TOWN_HALL.offset(3, 0, 3)); // inside: the colony is ACTIVE
@@ -130,8 +140,12 @@ class ConstructionSimulationTest {
     @AfterEach
     void noWarnings() {
         hycolonyLog.removeHandler(logSpy);
-        assertTrue(warnings.isEmpty(), () -> "logged: " + warnings.stream()
-                .map(r -> r.getLevel() + " " + r.getMessage() + " " + r.getThrown()).toList());
+        assertTrue(
+                warnings.isEmpty(),
+                () -> "logged: "
+                        + warnings.stream()
+                                .map(r -> r.getLevel() + " " + r.getMessage() + " " + r.getThrown())
+                                .toList());
     }
 
     // ---- the player's side ----
@@ -183,8 +197,11 @@ class ConstructionSimulationTest {
         manager.tick();
         for (Request r : colony.requests().all()) {
             seen.put(r.token(), r);
-            colony.requests().resolverOf(r.token()).ifPresent(res ->
-                    resolversSeen.computeIfAbsent(r.token(), k -> new HashSet<>()).add(res.resolverId()));
+            colony.requests()
+                    .resolverOf(r.token())
+                    .ifPresent(res -> resolversSeen
+                            .computeIfAbsent(r.token(), k -> new HashSet<>())
+                            .add(res.resolverId()));
         }
         if (autoFulfil && t.clock.tick % 20 == 0) {
             fulfilAll();
@@ -200,20 +217,30 @@ class ConstructionSimulationTest {
     }
 
     private String describe() {
-        return "builders " + colony.buildings().all().stream()
-                .filter(b -> b.type().equals(ConstructionBuildingTypes.BUILDER))
-                .map(b -> b.position() + " L" + b.level() + " worker " + worker(b).map(c -> c.id() + " "
-                        + colony.citizens().aiState(c.id()).orElse(null) + " inv " + c.inventory().contents())
-                        .orElse("none"))
-                .toList()
-                + ", orders " + colony.work().ordered().stream().map(o -> o.id() + " " + o.type() + " "
-                        + o.claimedBy().orElse(null) + " " + o.stage() + "@" + o.progressIndex()).toList()
+        return "builders "
+                + colony.buildings().all().stream()
+                        .filter(b -> b.type().equals(ConstructionBuildingTypes.BUILDER))
+                        .map(b -> b.position() + " L" + b.level() + " worker "
+                                + worker(b)
+                                        .map(c -> c.id() + " "
+                                                + colony.citizens()
+                                                        .aiState(c.id())
+                                                        .orElse(null) + " inv "
+                                                + c.inventory().contents())
+                                        .orElse("none"))
+                        .toList()
+                + ", orders "
+                + colony.work().ordered().stream()
+                        .map(o -> o.id() + " " + o.type() + " " + o.claimedBy().orElse(null) + " " + o.stage() + "@"
+                                + o.progressIndex())
+                        .toList()
                 + ", requests " + colony.requests().all() + ", player " + t.playerInventory.contents(alice)
                 + ", tick " + t.clock.tick;
     }
 
     private Optional<CitizenData> worker(Building b) {
-        return b.module(WorkerModule.class).flatMap(w -> w.workers().stream().findFirst())
+        return b.module(WorkerModule.class)
+                .flatMap(w -> w.workers().stream().findFirst())
                 .flatMap(colony.citizens()::get);
     }
 
@@ -231,7 +258,9 @@ class ConstructionSimulationTest {
     /** Every position of the plan's box is exactly as planned; the hut block stays; the rest is empty. */
     private void assertWorldIs(Blueprint bp, BlockPos hut) {
         Map<BlockPos, BlockState> planned = new HashMap<>();
-        bp.entries().forEach(e -> planned.put(hut.offset(e.offset().x(), e.offset().y(), e.offset().z()), e.state()));
+        bp.entries()
+                .forEach(e -> planned.put(
+                        hut.offset(e.offset().x(), e.offset().y(), e.offset().z()), e.state()));
         planned.put(hut, state(HUT_BLOCK));
         for (int x = bp.min().x(); x <= bp.max().x(); x++) {
             for (int y = bp.min().y(); y <= bp.max().y(); y++) {
@@ -254,7 +283,9 @@ class ConstructionSimulationTest {
 
     private List<Request> liveStackRequests(ItemKey item) {
         return colony.requests().all().stream()
-                .filter(r -> r.requestable() instanceof StackRequest s && s.item().equals(item)).toList();
+                .filter(r ->
+                        r.requestable() instanceof StackRequest s && s.item().equals(item))
+                .toList();
     }
 
     private static int count(Request r) {
@@ -310,7 +341,8 @@ class ConstructionSimulationTest {
         assertTrue(xpScore(builder) > xpBefore);
         assertTrue(logged("buildingBuilt"));
         assertTrue(colony.contains(BEYOND), "claims extended");
-        assertTrue(seen.values().stream().anyMatch(r -> r.state() == RequestState.RECEIVED),
+        assertTrue(
+                seen.values().stream().anyMatch(r -> r.state() == RequestState.RECEIVED),
                 () -> "no request received: " + seen.values());
         assertTrue(fulfils > 0);
         assertTrue(colony.work().byBuilding(HUT).isEmpty());
@@ -333,11 +365,16 @@ class ConstructionSimulationTest {
         Building hut = hired(placeHut(ConstructionBuildingTypes.BUILDER, HUT));
         order(HUT, WorkOrderType.BUILD);
         WorkOrder o = colony.work().byBuilding(HUT).orElseThrow();
-        runUntil(() -> o.stage() == Stage.SOLID && playerHas(PLANKS_I) == 0 && o.progressIndex() == 12
-                && !liveStackRequests(PLANKS_I).isEmpty(), MAX_TICKS);
+        runUntil(
+                () -> o.stage() == Stage.SOLID
+                        && playerHas(PLANKS_I) == 0
+                        && o.progressIndex() == 12
+                        && !liveStackRequests(PLANKS_I).isEmpty(),
+                MAX_TICKS);
         tick(); // settle
         assertEquals(Stage.SOLID, o.stage());
-        Set<RequestToken> openAtSave = new HashSet<>(colony.requests().all().stream().map(Request::token).toList());
+        Set<RequestToken> openAtSave = new HashSet<>(
+                colony.requests().all().stream().map(Request::token).toList());
         Set<ItemKey> itemsAtSave = new HashSet<>();
         for (Request r : colony.requests().all()) {
             if (r.requestable() instanceof StackRequest s) {
@@ -355,7 +392,10 @@ class ConstructionSimulationTest {
         colony = manager.byId(colonyId).orElseThrow();
         watch(colony);
         manager.onBodyLoaded(body, colonyId, builder.id()); // the builder's entity comes back with its chunk
-        assertEquals(openAtSave, new HashSet<>(colony.requests().all().stream().map(Request::token).toList()));
+        assertEquals(
+                openAtSave,
+                new HashSet<>(
+                        colony.requests().all().stream().map(Request::token).toList()));
         Set<RequestToken> before = new HashSet<>(seen.keySet());
         stockPlayer(PLANKS_I, 64);
         Building reloadedHut = at(HUT);
@@ -402,8 +442,10 @@ class ConstructionSimulationTest {
         Request first = liveStackRequests(PLANKS_I).get(0);
         int needed = count(first);
         assertEquals(24, needed); // every plank of the plan
-        runUntil(() -> first.state() == RequestState.IN_PROGRESS
-                && colony.requests().resolverOf(first.token()).isPresent(), 2000);
+        runUntil(
+                () -> first.state() == RequestState.IN_PROGRESS
+                        && colony.requests().resolverOf(first.token()).isPresent(),
+                2000);
 
         autoFulfil = false;
         stockPlayer(PLANKS_I, needed / 2);
@@ -456,7 +498,9 @@ class ConstructionSimulationTest {
         List<Request> glass = glassRequests();
         assertTrue(glass.stream().allMatch(r -> count(r) == 6), glass::toString); // never the full 10
         List<Request> fromPlayer = glass.stream()
-                .filter(r -> !resolversSeen.get(r.token()).contains(hut.requesterId().value())).toList();
+                .filter(r ->
+                        !resolversSeen.get(r.token()).contains(hut.requesterId().value()))
+                .toList();
         assertEquals(1, fromPlayer.size(), glass::toString); // once the builder took the hut's 4
         assertTrue(resolversSeen.get(fromPlayer.get(0).token()).contains(RetryingResolver.ID));
         assertEquals(0, playerHas(GLASS_I));
@@ -465,7 +509,9 @@ class ConstructionSimulationTest {
 
     private List<Request> glassRequests() {
         return seen.values().stream()
-                .filter(r -> r.requestable() instanceof StackRequest s && s.item().equals(GLASS_I)).toList();
+                .filter(r ->
+                        r.requestable() instanceof StackRequest s && s.item().equals(GLASS_I))
+                .toList();
     }
 
     @Test
@@ -501,8 +547,12 @@ class ConstructionSimulationTest {
         assertTrue(colony.buildings().at(HUT).isEmpty());
         assertTrue(builder.job().isEmpty());
         assertEquals(null, builder.workBuilding());
-        runUntil(() -> colony.citizens().aiState(builder.id()).map(s -> s.name().equals("IDLE")
-                || s.name().equals("WANDERING")).orElse(false), 1000);
+        runUntil(
+                () -> colony.citizens()
+                        .aiState(builder.id())
+                        .map(s -> s.name().equals("IDLE") || s.name().equals("WANDERING"))
+                        .orElse(false),
+                1000);
         assertTrue(colony.requests().all().isEmpty());
         assertTrue(colony.work().ordered().isEmpty());
     }
@@ -568,7 +618,8 @@ class ConstructionSimulationTest {
         }
         double avgMs = (System.nanoTime() - start) / 1e6 / ticks;
         int placed = t.blocks.placed.size();
-        System.out.printf("perf: %d ticks, avg %.4f ms, worst %.3f ms, %d over 5 ms, %d blocks placed, order at %s@%d%n",
+        System.out.printf(
+                "perf: %d ticks, avg %.4f ms, worst %.3f ms, %d over 5 ms, %d blocks placed, order at %s@%d%n",
                 ticks, avgMs, worst / 1e6, slow, placed, o.stage(), o.progressIndex());
         assertFalse(colony.isSuspended());
         assertEquals(Stage.SOLID, o.stage());
@@ -587,7 +638,8 @@ class ConstructionSimulationTest {
         StructurePlan plan = StructurePlan.build(bp, HUT, t.catalog);
         t.blocks.blocks.put(HUT, state(HUT_BLOCK));
         for (int i = 0; i < 12; i++) {
-            t.blocks.blocks.put(plan.solidPositions().get(i), plan.solidList().get(i).state());
+            t.blocks.blocks.put(
+                    plan.solidPositions().get(i), plan.solidList().get(i).state());
         }
         manager = newManager();
         manager.loadAll();

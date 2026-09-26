@@ -15,14 +15,22 @@ public final class FakeWorldBlocks implements WorldBlocks {
     public final Map<BlockPos, BlockState> blocks = new LinkedHashMap<>();
     /** Drops returned by breakBlock for a given position, set up by the test. */
     public final Map<BlockPos, List<ItemAmount>> drops = new LinkedHashMap<>();
+
     public boolean loaded = true;
     /** Every successful place(), in call order. */
     public final List<BlockPos> placed = new ArrayList<>();
     /** Runs before every place() and breakBlock(), with the position (ordering checks). */
     public Consumer<BlockPos> beforeChange = p -> {};
 
-    @Override public boolean isLoaded(BlockPos pos) { return loaded; }
-    @Override public Optional<BlockState> get(BlockPos pos) { return Optional.ofNullable(blocks.get(pos)); }
+    @Override
+    public boolean isLoaded(BlockPos pos) {
+        return loaded;
+    }
+
+    @Override
+    public Optional<BlockState> get(BlockPos pos) {
+        return Optional.ofNullable(blocks.get(pos));
+    }
 
     @Override
     public boolean place(BlockPos pos, BlockState state, boolean withContainer) {

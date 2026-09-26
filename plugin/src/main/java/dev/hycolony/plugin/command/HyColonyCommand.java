@@ -16,13 +16,13 @@ import dev.hycolony.core.colony.ConstructionPorts;
 import dev.hycolony.core.colony.Permissions;
 import dev.hycolony.core.construction.Blueprint;
 import dev.hycolony.core.construction.ConstructionBuildingTypes;
+import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockKind;
 import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
-import dev.hycolony.core.kernel.BlockPos;
-import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.persist.FileColonyStorage;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.Msg;
@@ -55,7 +55,8 @@ public final class HyColonyCommand extends AbstractCommandCollection {
     }
 
     private static BlockPos where(Store<EntityStore> store, Ref<EntityStore> ref) {
-        Vector3d p = store.getComponent(ref, TransformComponent.getComponentType()).getPosition();
+        Vector3d p =
+                store.getComponent(ref, TransformComponent.getComponentType()).getPosition();
         return new Vec3(p.x, p.y, p.z).toBlockPos();
     }
 
@@ -73,17 +74,29 @@ public final class HyColonyCommand extends AbstractCommandCollection {
         }
 
         @Override
-        protected void execute(@Nonnull CommandContext ctx, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
-                               @Nonnull PlayerRef player, @Nonnull World world) {
+        protected void execute(
+                @Nonnull CommandContext ctx,
+                @Nonnull Store<EntityStore> store,
+                @Nonnull Ref<EntityStore> ref,
+                @Nonnull PlayerRef player,
+                @Nonnull World world) {
             WorldRuntime rt = runtimes.of(world);
-            Optional<Colony> colony = rt == null ? Optional.empty() : rt.manager().colonyAt(where(store, ref));
+            Optional<Colony> colony =
+                    rt == null ? Optional.empty() : rt.manager().colonyAt(where(store, ref));
             if (colony.isEmpty()) {
                 say(player, "hycolony.cmd.noColony");
                 return;
             }
             Colony c = colony.get();
-            say(player, "hycolony.cmd.info", c.name(), String.valueOf(c.id()), c.permissions().ownerName(),
-                    c.state().name().toLowerCase(Locale.ROOT), String.valueOf(c.day()), String.valueOf(c.citizens().all().size()));
+            say(
+                    player,
+                    "hycolony.cmd.info",
+                    c.name(),
+                    String.valueOf(c.id()),
+                    c.permissions().ownerName(),
+                    c.state().name().toLowerCase(Locale.ROOT),
+                    String.valueOf(c.day()),
+                    String.valueOf(c.citizens().all().size()));
         }
     }
 
@@ -101,10 +114,15 @@ public final class HyColonyCommand extends AbstractCommandCollection {
         }
 
         @Override
-        protected void execute(@Nonnull CommandContext ctx, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
-                               @Nonnull PlayerRef player, @Nonnull World world) {
+        protected void execute(
+                @Nonnull CommandContext ctx,
+                @Nonnull Store<EntityStore> store,
+                @Nonnull Ref<EntityStore> ref,
+                @Nonnull PlayerRef player,
+                @Nonnull World world) {
             WorldRuntime rt = runtimes.of(world);
-            Optional<Colony> colony = rt == null ? Optional.empty() : rt.manager().colonyAt(where(store, ref));
+            Optional<Colony> colony =
+                    rt == null ? Optional.empty() : rt.manager().colonyAt(where(store, ref));
             if (colony.isEmpty()) {
                 say(player, "hycolony.cmd.noColony");
                 return;
@@ -136,8 +154,12 @@ public final class HyColonyCommand extends AbstractCommandCollection {
         }
 
         @Override
-        protected void execute(@Nonnull CommandContext ctx, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
-                               @Nonnull PlayerRef player, @Nonnull World world) {
+        protected void execute(
+                @Nonnull CommandContext ctx,
+                @Nonnull Store<EntityStore> store,
+                @Nonnull Ref<EntityStore> ref,
+                @Nonnull PlayerRef player,
+                @Nonnull World world) {
             WorldRuntime rt = runtimes.of(world);
             int colonyId = ctx.get(id);
             if (rt != null && rt.manager().byId(colonyId).isPresent()) {
@@ -162,8 +184,12 @@ public final class HyColonyCommand extends AbstractCommandCollection {
         }
 
         @Override
-        protected void execute(@Nonnull CommandContext ctx, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
-                               @Nonnull PlayerRef player, @Nonnull World world) {
+        protected void execute(
+                @Nonnull CommandContext ctx,
+                @Nonnull Store<EntityStore> store,
+                @Nonnull Ref<EntityStore> ref,
+                @Nonnull PlayerRef player,
+                @Nonnull World world) {
             WorldRuntime rt = runtimes.of(world);
             List<String> idErrors = ids.validate();
             report(player, "asset ids", idErrors.isEmpty(), String.join(", ", idErrors));
@@ -176,7 +202,11 @@ public final class HyColonyCommand extends AbstractCommandCollection {
                 Path tmp = Files.createTempDirectory("hycolony-selftest");
                 FileColonyStorage storage = new FileColonyStorage(tmp);
                 storage.save(1, "{\"ok\":true}");
-                report(player, "storage", storage.load(1).map(o -> o.get("ok").getAsBoolean()).orElse(false), "round trip");
+                report(
+                        player,
+                        "storage",
+                        storage.load(1).map(o -> o.get("ok").getAsBoolean()).orElse(false),
+                        "round trip");
             } catch (Exception e) {
                 report(player, "storage", false, e.toString());
             }
@@ -209,20 +239,31 @@ public final class HyColonyCommand extends AbstractCommandCollection {
         private static void construction(PlayerRef player, WorldRuntime rt, BlockPos at, IdMap ids) {
             ConstructionPorts ports = rt.manager().context().ports();
             try {
-                Optional<Blueprint> bp = ports.blueprints().load("outlander", ConstructionBuildingTypes.BUILDER.id(), 1, 0);
-                report(player, "blueprint", bp.isPresent() && !bp.get().entries().isEmpty(),
-                        bp.map(b -> b.key() + " (" + b.entries().size() + " blocks)").orElse("outlander builder 1 missing"));
+                Optional<Blueprint> bp =
+                        ports.blueprints().load("outlander", ConstructionBuildingTypes.BUILDER.id(), 1, 0);
+                report(
+                        player,
+                        "blueprint",
+                        bp.isPresent() && !bp.get().entries().isEmpty(),
+                        bp.map(b -> b.key() + " (" + b.entries().size() + " blocks)")
+                                .orElse("outlander builder 1 missing"));
 
                 BlockPos test = at.offset(0, 3, 0);
-                boolean air = ports.blocks().get(test)
-                        .map(st -> ports.catalog().kind(st.key()) == BlockKind.AIR).orElse(false);
+                boolean air = ports.blocks()
+                        .get(test)
+                        .map(st -> ports.catalog().kind(st.key()) == BlockKind.AIR)
+                        .orElse(false);
                 if (!air) {
                     report(player, "blocks", false, "the cell 3 blocks above you must be loaded air");
                     return;
                 }
-                BlockState hut = new BlockState(new BlockKey(ids.blockId(ConstructionBuildingTypes.BUILDER.hutBlockKey())), 0);
+                BlockState hut =
+                        new BlockState(new BlockKey(ids.blockId(ConstructionBuildingTypes.BUILDER.hutBlockKey())), 0);
                 boolean placed = ports.blocks().place(test, hut, true)
-                        && ports.blocks().get(test).map(st -> st.key().equals(hut.key())).orElse(false);
+                        && ports.blocks()
+                                .get(test)
+                                .map(st -> st.key().equals(hut.key()))
+                                .orElse(false);
                 report(player, "place", placed, "place " + hut.key().id());
                 if (!placed) {
                     return;
@@ -230,11 +271,16 @@ public final class HyColonyCommand extends AbstractCommandCollection {
                 List<BlockPos> box = List.of(test);
                 ItemKey item = new ItemKey(ids.itemId(ConstructionBuildingTypes.BUILDER.hutBlockKey()));
                 ItemAmount rest = ports.containers().insert(box, new ItemAmount(item, 1));
-                boolean roundTrip = rest == null && ports.containers().count(box, item) == 1
-                        && ports.containers().extract(box, item, 1) == 1 && ports.containers().count(box, item) == 0;
+                boolean roundTrip = rest == null
+                        && ports.containers().count(box, item) == 1
+                        && ports.containers().extract(box, item, 1) == 1
+                        && ports.containers().count(box, item) == 0;
                 report(player, "container", roundTrip, "insert / count / extract");
                 List<ItemAmount> drops = ports.blocks().breakBlock(test);
-                boolean gone = ports.blocks().get(test).map(st -> ports.catalog().kind(st.key()) == BlockKind.AIR).orElse(false);
+                boolean gone = ports.blocks()
+                        .get(test)
+                        .map(st -> ports.catalog().kind(st.key()) == BlockKind.AIR)
+                        .orElse(false);
                 report(player, "break", gone, "drops " + drops);
             } catch (RuntimeException e) {
                 report(player, "construction", false, e.toString());

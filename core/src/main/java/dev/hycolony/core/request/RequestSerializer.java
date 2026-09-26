@@ -43,7 +43,9 @@ public final class RequestSerializer {
             ro.add("tries", counts(r.tries(), r.delays().keySet())); // stale tries are pruned at the next tick
             o.add("retrying", ro);
         });
-        player(m).ifPresent(p -> o.add("player", tokens(p.open().stream().map(Request::token).toList())));
+        player(m)
+                .ifPresent(p -> o.add(
+                        "player", tokens(p.open().stream().map(Request::token).toList())));
         return o;
     }
 
@@ -106,8 +108,11 @@ public final class RequestSerializer {
         o.addProperty("requester", r.requester().value());
         o.add("requestable", requestable(r.requestable()));
         o.addProperty("state", r.state().name());
-        o.add("parent", r.parent().<JsonElement>map(p -> new JsonPrimitive(p.id().toString()))
-                .orElse(JsonNull.INSTANCE));
+        o.add(
+                "parent",
+                r.parent()
+                        .<JsonElement>map(p -> new JsonPrimitive(p.id().toString()))
+                        .orElse(JsonNull.INSTANCE));
         o.add("children", tokens(r.children()));
         JsonArray deliveries = new JsonArray();
         for (ItemAmount a : r.deliveries()) {
@@ -128,8 +133,11 @@ public final class RequestSerializer {
     }
 
     private static Request readRequest(JsonObject o) {
-        Request r = new Request(token(o.get("token").getAsString()), new RequesterId(o.get("requester").getAsString()),
-                readRequestable(o.getAsJsonObject("requestable")), o.get("citizenId").getAsInt());
+        Request r = new Request(
+                token(o.get("token").getAsString()),
+                new RequesterId(o.get("requester").getAsString()),
+                readRequestable(o.getAsJsonObject("requestable")),
+                o.get("citizenId").getAsInt());
         r.setState(RequestState.valueOf(o.get("state").getAsString()));
         JsonElement parent = o.get("parent");
         if (parent != null && !parent.isJsonNull()) {
@@ -138,9 +146,11 @@ public final class RequestSerializer {
         readTokens(o.getAsJsonArray("children")).forEach(r::addChild);
         for (JsonElement el : o.getAsJsonArray("deliveries")) {
             JsonObject d = el.getAsJsonObject();
-            r.addDelivery(new ItemAmount(new ItemKey(d.get("item").getAsString()), d.get("count").getAsInt()));
+            r.addDelivery(new ItemAmount(
+                    new ItemKey(d.get("item").getAsString()), d.get("count").getAsInt()));
         }
-        r.setDeliveredToCitizen(o.has("deliveredToCitizen") && o.get("deliveredToCitizen").getAsBoolean());
+        r.setDeliveredToCitizen(
+                o.has("deliveredToCitizen") && o.get("deliveredToCitizen").getAsBoolean());
         Set<String> blacklist = new HashSet<>();
         for (JsonElement el : o.getAsJsonArray("blacklist")) {
             blacklist.add(el.getAsString());
@@ -172,10 +182,17 @@ public final class RequestSerializer {
     private static Deliverable readRequestable(JsonObject o) {
         String type = o.get("type").getAsString();
         return switch (type) {
-            case "stack" -> new StackRequest(new ItemKey(o.get("item").getAsString()), o.get("count").getAsInt(),
-                    o.get("minCount").getAsInt(), o.get("canBeResolvedByBuilding").getAsBoolean());
-            case "tool" -> new ToolRequest(ToolType.valueOf(o.get("tool").getAsString()), o.get("minLevel").getAsInt(),
-                    o.get("maxLevel").getAsInt());
+            case "stack" ->
+                new StackRequest(
+                        new ItemKey(o.get("item").getAsString()),
+                        o.get("count").getAsInt(),
+                        o.get("minCount").getAsInt(),
+                        o.get("canBeResolvedByBuilding").getAsBoolean());
+            case "tool" ->
+                new ToolRequest(
+                        ToolType.valueOf(o.get("tool").getAsString()),
+                        o.get("minLevel").getAsInt(),
+                        o.get("maxLevel").getAsInt());
             default -> throw new IllegalArgumentException("Unknown requestable type: " + type);
         };
     }

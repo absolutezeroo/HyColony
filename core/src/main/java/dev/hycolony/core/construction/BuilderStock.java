@@ -50,9 +50,13 @@ final class BuilderStock {
         this.maxStack = catalog::maxStack;
     }
 
-    Inventory inventory() { return citizen.inventory(); }
+    Inventory inventory() {
+        return citizen.inventory();
+    }
 
-    int hutCount(ItemKey item) { return containers.count(hut.containers(), item); }
+    int hutCount(ItemKey item) {
+        return containers.count(hut.containers(), item);
+    }
 
     /**
      * Moves up to {@code max} from the hut to the inventory; what does not fit goes back to the hut. Returns how many
@@ -124,8 +128,12 @@ final class BuilderStock {
     private void lose(ItemAmount rest) {
         if (rest != null) {
             colony.log().add("debrisLost", colony.day(), rest.item().id(), String.valueOf(rest.count()));
-            LOG.log(System.Logger.Level.DEBUG, "Builder {0}: {1} x {2} lost, inventory and hut full",
-                    citizen.name(), rest.count(), rest.item().id());
+            LOG.log(
+                    System.Logger.Level.DEBUG,
+                    "Builder {0}: {1} x {2} lost, inventory and hut full",
+                    citizen.name(),
+                    rest.count(),
+                    rest.item().id());
         }
     }
 
@@ -163,10 +171,14 @@ final class BuilderStock {
 
     // ---- requests ----
 
-    private RequestManager requests() { return colony.requests(); }
+    private RequestManager requests() {
+        return colony.requests();
+    }
 
     List<Request> mine() {
-        return requests().byRequester(hut.requesterId()).stream().filter(r -> r.citizenId() == citizen.id()).toList();
+        return requests().byRequester(hut.requesterId()).stream()
+                .filter(r -> r.citizenId() == citizen.id())
+                .toList();
     }
 
     /** Any live request of this builder, open or completed but not yet picked up. */
@@ -237,9 +249,11 @@ final class BuilderStock {
      * the hut without a container event (hopper, restart, another player's window).
      */
     void claimOpenFromHut() {
-        requests().onColonyUpdate(r -> r.requester().equals(hut.requesterId()) && r.citizenId() == citizen.id()
-                && r.state().ordinal() < RequestState.COMPLETED.ordinal()
-                && hut.resolvers().stream().anyMatch(res -> res.canResolve(requests(), r)));
+        requests()
+                .onColonyUpdate(r -> r.requester().equals(hut.requesterId())
+                        && r.citizenId() == citizen.id()
+                        && r.state().ordinal() < RequestState.COMPLETED.ordinal()
+                        && hut.resolvers().stream().anyMatch(res -> res.canResolve(requests(), r)));
     }
 
     /** One ToolRequest(type, 0, hut level) unless one of that type is live. */
@@ -263,9 +277,11 @@ final class BuilderStock {
             take(d.item(), there);
             int missing = d.count() - there;
             if (missing > 0) {
-                request(r.requestable() instanceof StackRequest s
-                        ? new StackRequest(s.item(), missing, Math.min(s.minCount(), missing), s.canBeResolvedByBuilding())
-                        : r.requestable());
+                request(
+                        r.requestable() instanceof StackRequest s
+                                ? new StackRequest(
+                                        s.item(), missing, Math.min(s.minCount(), missing), s.canBeResolvedByBuilding())
+                                : r.requestable());
             }
         }
         requests().updateState(r.token(), RequestState.RECEIVED);

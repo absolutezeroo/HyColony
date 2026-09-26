@@ -18,20 +18,55 @@ import java.util.function.Consumer;
 
 public final class FakeUi implements UiPort {
     public final Map<UUID, Object> shown = new LinkedHashMap<>();
+
     public record Notice(UUID player, NeedsPlayerNotice notice) {}
+
     public final List<Notice> notices = new ArrayList<>();
     /** Runs inside close(), like Hytale calling the page's onDismiss before it forgets the page. */
     public Consumer<UUID> onClose = p -> {};
 
-    @Override public void showFoundColony(UUID player, FoundColonyView view) { shown.put(player, view); }
-    @Override public void showTownHall(UUID player, TownHallView view) { shown.put(player, view); }
-    @Override public void showBuilding(UUID player, BuildingView view) { shown.put(player, view); }
-    @Override public void showBuilderResources(UUID player, BuilderResourcesView view) { shown.put(player, view); }
-    @Override public void showRequests(UUID player, RequestsView view) { shown.put(player, view); }
-    @Override public void showWorkOrders(UUID player, WorkOrdersView view) { shown.put(player, view); }
-    @Override public void showCitizen(UUID player, CitizenView view) { shown.put(player, view); }
-    @Override public void notifyNeedsPlayer(UUID player, NeedsPlayerNotice notice) { notices.add(new Notice(player, notice)); }
-    @Override public void close(UUID player) {
+    @Override
+    public void showFoundColony(UUID player, FoundColonyView view) {
+        shown.put(player, view);
+    }
+
+    @Override
+    public void showTownHall(UUID player, TownHallView view) {
+        shown.put(player, view);
+    }
+
+    @Override
+    public void showBuilding(UUID player, BuildingView view) {
+        shown.put(player, view);
+    }
+
+    @Override
+    public void showBuilderResources(UUID player, BuilderResourcesView view) {
+        shown.put(player, view);
+    }
+
+    @Override
+    public void showRequests(UUID player, RequestsView view) {
+        shown.put(player, view);
+    }
+
+    @Override
+    public void showWorkOrders(UUID player, WorkOrdersView view) {
+        shown.put(player, view);
+    }
+
+    @Override
+    public void showCitizen(UUID player, CitizenView view) {
+        shown.put(player, view);
+    }
+
+    @Override
+    public void notifyNeedsPlayer(UUID player, NeedsPlayerNotice notice) {
+        notices.add(new Notice(player, notice));
+    }
+
+    @Override
+    public void close(UUID player) {
         onClose.accept(player);
         shown.remove(player);
     }

@@ -31,8 +31,13 @@ public final class FileColonyStorage implements ColonyStorage {
         this.dir = dir;
     }
 
-    private Path main(int id) { return dir.resolve("colony-" + id + ".json"); }
-    private Path bak(int id) { return dir.resolve("colony-" + id + ".json.bak"); }
+    private Path main(int id) {
+        return dir.resolve("colony-" + id + ".json");
+    }
+
+    private Path bak(int id) {
+        return dir.resolve("colony-" + id + ".json.bak");
+    }
 
     @Override
     public List<Integer> colonyIds() throws IOException {
@@ -103,7 +108,8 @@ public final class FileColonyStorage implements ColonyStorage {
             return Optional.empty();
         }
         try {
-            return Optional.of(JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8)).getAsJsonObject());
+            return Optional.of(JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8))
+                    .getAsJsonObject());
         } catch (IOException | JsonParseException | IllegalStateException e) {
             LOG.log(System.Logger.Level.WARNING, "Unreadable colony file " + file, e);
             return Optional.empty();
@@ -116,12 +122,17 @@ public final class FileColonyStorage implements ColonyStorage {
                 quarantineFile(f);
             }
         }
-        LOG.log(System.Logger.Level.ERROR, "Colony " + id + " is unreadable and was moved to " + dir.resolve("corrupt"));
+        LOG.log(
+                System.Logger.Level.ERROR,
+                "Colony " + id + " is unreadable and was moved to " + dir.resolve("corrupt"));
     }
 
     private void quarantineFile(Path f) throws IOException {
         Path corrupt = Files.createDirectories(dir.resolve("corrupt"));
-        Files.move(f, corrupt.resolve(f.getFileName() + "." + System.currentTimeMillis()), StandardCopyOption.REPLACE_EXISTING);
+        Files.move(
+                f,
+                corrupt.resolve(f.getFileName() + "." + System.currentTimeMillis()),
+                StandardCopyOption.REPLACE_EXISTING);
     }
 
     @Override

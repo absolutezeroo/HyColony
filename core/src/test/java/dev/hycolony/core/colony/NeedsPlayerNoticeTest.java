@@ -47,7 +47,9 @@ class NeedsPlayerNoticeTest {
 
     private void toPlayer(RequestToken token) {
         colony.requests().reassign(token, Set.of(RetryingResolver.ID));
-        assertEquals(PlayerResolver.ID, colony.requests().resolverOf(token).orElseThrow().resolverId());
+        assertEquals(
+                PlayerResolver.ID,
+                colony.requests().resolverOf(token).orElseThrow().resolverId());
     }
 
     @Test
@@ -67,6 +69,8 @@ class NeedsPlayerNoticeTest {
     @Test
     void buildingRequestIsAnnouncedWithTheBuildingName() {
         toPlayer(colony.requests().createAndAssign(hut, PLANKS, -1));
-        assertEquals(new NeedsPlayerNotice(hut.displayName(), "", PLANKS), t.ui.notices.get(0).notice());
+        assertEquals(
+                new NeedsPlayerNotice(hut.displayName(), "", PLANKS),
+                t.ui.notices.get(0).notice());
     }
 }

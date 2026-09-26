@@ -57,7 +57,8 @@ class ColonyManagerTest {
     void otherHutOutsideColonyIsDenied() {
         manager.checkHutPlacement(alice, hall, TOWN_HALL);
         HutPlacement p = manager.checkHutPlacement(alice, hall, "test:other");
-        assertEquals("hycolony.hut.noTownHall", ((HutPlacement.Denied) p).reason().key());
+        assertEquals(
+                "hycolony.hut.noTownHall", ((HutPlacement.Denied) p).reason().key());
         found(alice, "A", hall);
         HutPlacement far = manager.checkHutPlacement(alice, new BlockPos(5000, 64, 0), "test:other");
         assertEquals("hycolony.hut.tooFar", ((HutPlacement.Denied) far).reason().key());
@@ -67,24 +68,33 @@ class ColonyManagerTest {
     void onePlayerOwnsOneColony() {
         found(alice, "A", hall);
         HutPlacement p = manager.checkHutPlacement(alice, new BlockPos(5000, 64, 0), TOWN_HALL);
-        assertEquals("hycolony.colony.alreadyOwner", ((HutPlacement.Denied) p).reason().key());
+        assertEquals(
+                "hycolony.colony.alreadyOwner",
+                ((HutPlacement.Denied) p).reason().key());
     }
 
     @Test
     void newColonyTooCloseIsDenied() {
         found(alice, "A", hall);
         HutPlacement p = manager.checkHutPlacement(bob, new BlockPos(16 * 16, 64, 0), TOWN_HALL);
-        assertEquals("hycolony.colony.tooClose", ((HutPlacement.Denied) p).reason().key());
-        assertInstanceOf(HutPlacement.FoundNewColony.class, manager.checkHutPlacement(bob, new BlockPos(17 * 16, 64, 0), TOWN_HALL));
+        assertEquals(
+                "hycolony.colony.tooClose", ((HutPlacement.Denied) p).reason().key());
+        assertInstanceOf(
+                HutPlacement.FoundNewColony.class,
+                manager.checkHutPlacement(bob, new BlockPos(17 * 16, 64, 0), TOWN_HALL));
     }
 
     @Test
     void insideColonyNeedsPlaceHutsAndOneTownHall() {
         Colony c = found(alice, "A", hall);
         HutPlacement strangers = manager.checkHutPlacement(bob, hall.offset(5, 0, 5), TOWN_HALL);
-        assertEquals("hycolony.permission.placeHuts", ((HutPlacement.Denied) strangers).reason().key());
+        assertEquals(
+                "hycolony.permission.placeHuts",
+                ((HutPlacement.Denied) strangers).reason().key());
         HutPlacement second = manager.checkHutPlacement(alice, hall.offset(5, 0, 5), TOWN_HALL);
-        assertEquals("hycolony.hut.townHallExists", ((HutPlacement.Denied) second).reason().key());
+        assertEquals(
+                "hycolony.hut.townHallExists",
+                ((HutPlacement.Denied) second).reason().key());
         manager.onHutRemoved(hall);
         assertTrue(c.buildings().townHall().isEmpty());
         assertTrue(manager.byId(c.id()).isPresent()); // colony persists
@@ -97,7 +107,9 @@ class ColonyManagerTest {
         manager.placeHut(c, TOWN_HALL, hall, 2); // the core still holds the hall: its block vanished unseen
         assertEquals(1, c.buildings().all().size());
         assertEquals(2, c.buildings().at(hall).orElseThrow().rotation());
-        assertEquals("buildingRemoved", c.log().entries().get(c.log().entries().size() - 2).type());
+        assertEquals(
+                "buildingRemoved",
+                c.log().entries().get(c.log().entries().size() - 2).type());
     }
 
     @Test
@@ -105,7 +117,8 @@ class ColonyManagerTest {
         manager.beginFoundation(alice, "Alice", hall, 0);
         assertTrue(manager.confirmFoundation(alice, "   ").isEmpty());
         assertTrue(manager.confirmFoundation(alice, "x".repeat(33)).isEmpty());
-        assertEquals("hycolony.colony.invalidName", t.notifier.sent.getLast().msg().key());
+        assertEquals(
+                "hycolony.colony.invalidName", t.notifier.sent.getLast().msg().key());
         assertTrue(manager.confirmFoundation(alice, "  Ok  ").isPresent());
         assertEquals("Ok", manager.ownedBy(alice).orElseThrow().name());
     }
@@ -176,7 +189,8 @@ class ColonyManagerTest {
     void townHallViewRequiresAccessAndRenameRequiresManager() {
         Colony c = found(alice, "A", hall);
         manager.openTownHall(bob, hall);
-        assertEquals("hycolony.permission.denied", t.notifier.sent.getLast().msg().key());
+        assertEquals(
+                "hycolony.permission.denied", t.notifier.sent.getLast().msg().key());
         manager.openTownHall(alice, hall);
         TownHallView view = (TownHallView) t.ui.shown.get(alice);
         assertEquals("A", view.colonyName());
@@ -214,19 +228,22 @@ class ColonyManagerTest {
         assertFalse(manager.storageAvailable());
 
         HutPlacement placement = manager.checkHutPlacement(alice, hall, TOWN_HALL);
-        assertEquals("hycolony.storage.unavailable", ((HutPlacement.Denied) placement).reason().key());
+        assertEquals(
+                "hycolony.storage.unavailable",
+                ((HutPlacement.Denied) placement).reason().key());
 
         manager.beginFoundation(alice, "Alice", hall, 0);
         assertTrue(manager.confirmFoundation(alice, "Rivendell").isEmpty());
-        assertEquals("hycolony.storage.unavailable", t.notifier.sent.getLast().msg().key());
+        assertEquals(
+                "hycolony.storage.unavailable", t.notifier.sent.getLast().msg().key());
         assertTrue(storage.saved.isEmpty());
         assertTrue(manager.all().isEmpty());
     }
 
     @Test
     void saveAllStillSavesOtherColonyAfterOneFailsToSerialize() {
-        BuildingType throwing = new BuildingType("test:throwing", "hut.throwing", 1,
-                List.of(new ModuleProducer("boom", ThrowingModule::new)));
+        BuildingType throwing = new BuildingType(
+                "test:throwing", "hut.throwing", 1, List.of(new ModuleProducer("boom", ThrowingModule::new)));
         manager.context().buildingTypes().register(throwing);
 
         Colony a = found(alice, "A", hall); // founded first: saved first in saveAll()
@@ -265,22 +282,34 @@ class ColonyManagerTest {
         boolean failArchive;
         final Map<Integer, String> saved = new HashMap<>();
 
-        @Override public List<Integer> colonyIds() { return List.copyOf(saved.keySet()); }
+        @Override
+        public List<Integer> colonyIds() {
+            return List.copyOf(saved.keySet());
+        }
 
-        @Override public int highestIdEverUsed() throws IOException {
+        @Override
+        public int highestIdEverUsed() throws IOException {
             if (failHighestId) {
                 throw new IOException("test failure");
             }
             return saved.keySet().stream().mapToInt(Integer::intValue).max().orElse(0);
         }
 
-        @Override public Optional<JsonObject> load(int id) { return Optional.empty(); }
+        @Override
+        public Optional<JsonObject> load(int id) {
+            return Optional.empty();
+        }
 
-        @Override public void save(int id, String json) { saved.put(id, json); }
+        @Override
+        public void save(int id, String json) {
+            saved.put(id, json);
+        }
 
-        @Override public void backupVersion(int id, int schemaVersion, String json) {}
+        @Override
+        public void backupVersion(int id, int schemaVersion, String json) {}
 
-        @Override public void archive(int id) throws IOException {
+        @Override
+        public void archive(int id) throws IOException {
             if (failArchive) {
                 throw new IOException("test failure");
             }
@@ -289,8 +318,12 @@ class ColonyManagerTest {
 
     /** A building module whose write() always throws, to simulate one colony failing to serialize. */
     private static final class ThrowingModule implements PersistentModule {
-        @Override public void write(JsonObject out) { throw new RuntimeException("boom"); }
+        @Override
+        public void write(JsonObject out) {
+            throw new RuntimeException("boom");
+        }
 
-        @Override public void read(JsonObject in) {}
+        @Override
+        public void read(JsonObject in) {}
     }
 }

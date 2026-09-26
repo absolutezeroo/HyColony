@@ -35,8 +35,8 @@ import org.joml.Vector3i;
 public final class HutBlockSystems {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
     // ponytail: explicit list (BuildingRegistry has no listing); add a line per new hut type.
-    private static final List<BuildingType> HUT_TYPES = List.of(
-            BuildingTypes.TOWN_HALL, ConstructionBuildingTypes.BUILDER, ConstructionBuildingTypes.RESIDENCE);
+    private static final List<BuildingType> HUT_TYPES =
+            List.of(BuildingTypes.TOWN_HALL, ConstructionBuildingTypes.BUILDER, ConstructionBuildingTypes.RESIDENCE);
 
     private HutBlockSystems() {}
 
@@ -84,10 +84,16 @@ public final class HutBlockSystems {
         }
 
         @Override
-        public void handle(int index, @Nonnull ArchetypeChunk<EntityStore> chunk, @Nonnull Store<EntityStore> store,
-                           @Nonnull CommandBuffer<EntityStore> buffer, @Nonnull PlaceBlockEvent event) {
+        public void handle(
+                int index,
+                @Nonnull ArchetypeChunk<EntityStore> chunk,
+                @Nonnull Store<EntityStore> store,
+                @Nonnull CommandBuffer<EntityStore> buffer,
+                @Nonnull PlaceBlockEvent event) {
             try {
-                BuildingType type = event.getItemInHand() == null ? null : huts.get(event.getItemInHand().getItemId());
+                BuildingType type = event.getItemInHand() == null
+                        ? null
+                        : huts.get(event.getItemInHand().getItemId());
                 if (type == null) {
                     return;
                 }
@@ -107,7 +113,8 @@ public final class HutBlockSystems {
                         player.sendMessage(HytaleNotifier.toMessage(denied.reason()));
                     }
                     // The core only returns this for a town hall.
-                    case HutPlacement.FoundNewColony f -> m.beginFoundation(player.getUuid(), player.getUsername(), pos, rotation);
+                    case HutPlacement.FoundNewColony f ->
+                        m.beginFoundation(player.getUuid(), player.getUsername(), pos, rotation);
                     case HutPlacement.Allowed allowed -> m.placeHut(allowed.colony(), type.id(), pos, rotation);
                 }
             } catch (RuntimeException e) {
@@ -133,8 +140,12 @@ public final class HutBlockSystems {
         }
 
         @Override
-        public void handle(int index, @Nonnull ArchetypeChunk<EntityStore> chunk, @Nonnull Store<EntityStore> store,
-                           @Nonnull CommandBuffer<EntityStore> buffer, @Nonnull BreakBlockEvent event) {
+        public void handle(
+                int index,
+                @Nonnull ArchetypeChunk<EntityStore> chunk,
+                @Nonnull Store<EntityStore> store,
+                @Nonnull CommandBuffer<EntityStore> buffer,
+                @Nonnull BreakBlockEvent event) {
             try {
                 if (!huts.containsKey(event.getBlockType().getId())) {
                     return;
@@ -151,7 +162,8 @@ public final class HutBlockSystems {
                 }
                 if (m.colonyAt(pos).isPresent() && !m.isAllowed(player.getUuid(), pos, Action.BREAK_HUTS)) {
                     event.setCancelled(true);
-                    player.sendMessage(HytaleNotifier.toMessage(Msg.of("hycolony.permission.denied", m.colonyAt(pos).get().name())));
+                    player.sendMessage(HytaleNotifier.toMessage(Msg.of(
+                            "hycolony.permission.denied", m.colonyAt(pos).get().name())));
                     return;
                 }
                 m.onHutRemoved(pos);
@@ -179,8 +191,12 @@ public final class HutBlockSystems {
         }
 
         @Override
-        public void handle(int index, @Nonnull ArchetypeChunk<EntityStore> chunk, @Nonnull Store<EntityStore> store,
-                           @Nonnull CommandBuffer<EntityStore> buffer, @Nonnull UseBlockEvent.Pre event) {
+        public void handle(
+                int index,
+                @Nonnull ArchetypeChunk<EntityStore> chunk,
+                @Nonnull Store<EntityStore> store,
+                @Nonnull CommandBuffer<EntityStore> buffer,
+                @Nonnull UseBlockEvent.Pre event) {
             try {
                 BuildingType type = huts.get(event.getBlockType().getId());
                 if (type == null) {

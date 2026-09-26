@@ -9,7 +9,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class TickRateStateMachineTest {
-    enum S implements IState { A, B, C, EMPTY }
+    enum S implements IState {
+        A,
+        B,
+        C,
+        EMPTY
+    }
 
     private final List<RuntimeException> errors = new ArrayList<>();
     private final List<String> log = new ArrayList<>();
@@ -24,7 +29,10 @@ class TickRateStateMachineTest {
     }
 
     private IStateSupplier<S> record(String name, S next) {
-        return () -> { log.add(name); return next; };
+        return () -> {
+            log.add(name);
+            return next;
+        };
     }
 
     @Test
@@ -83,7 +91,14 @@ class TickRateStateMachineTest {
         var sm = machine();
         List<Integer> runs = new ArrayList<>();
         int[] tick = {0};
-        sm.addTransition(new AITarget<>(S.A, (IStateSupplier<S>) () -> { runs.add(tick[0]); sm.setCurrentDelay(5); return null; }, 1));
+        sm.addTransition(new AITarget<>(
+                S.A,
+                (IStateSupplier<S>) () -> {
+                    runs.add(tick[0]);
+                    sm.setCurrentDelay(5);
+                    return null;
+                },
+                1));
         for (tick[0] = 1; tick[0] <= 7; tick[0]++) {
             sm.tick();
         }
@@ -112,7 +127,13 @@ class TickRateStateMachineTest {
     @Test
     void exceptionInConditionIsReportedAndEvaluationContinues() {
         var sm = machine();
-        sm.addTransition(new AITarget<>(S.A, () -> { throw new IllegalStateException("cond"); }, record("never", null), 1));
+        sm.addTransition(new AITarget<>(
+                S.A,
+                () -> {
+                    throw new IllegalStateException("cond");
+                },
+                record("never", null),
+                1));
         sm.addTransition(new AITarget<>(S.A, record("next", null), 1));
         sm.tick();
         assertEquals(1, errors.size());
@@ -122,7 +143,12 @@ class TickRateStateMachineTest {
     @Test
     void exceptionInActionIsReported() {
         var sm = machine();
-        sm.addTransition(new AITarget<>(S.A, (IStateSupplier<S>) () -> { throw new IllegalStateException("act"); }, 1));
+        sm.addTransition(new AITarget<>(
+                S.A,
+                (IStateSupplier<S>) () -> {
+                    throw new IllegalStateException("act");
+                },
+                1));
         sm.tick();
         assertEquals(1, errors.size());
         assertEquals(S.A, sm.getState());

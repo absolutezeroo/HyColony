@@ -131,7 +131,8 @@ public final class Inventory {
                 continue;
             }
             JsonObject o = el.getAsJsonObject();
-            inv.slots[i] = new ItemAmount(new ItemKey(o.get("item").getAsString()), o.get("count").getAsInt());
+            inv.slots[i] = new ItemAmount(
+                    new ItemKey(o.get("item").getAsString()), o.get("count").getAsInt());
         }
         return inv;
     }

@@ -34,6 +34,7 @@ class WorkManagerTest {
     private final TestContexts t = new TestContexts();
     /** What the fake blueprint source returns; null = no blueprint. */
     private Blueprint blueprint = blueprintAt(new BlockPos(1, 0, 0));
+
     private final List<String> loads = new ArrayList<>();
     private final ColonyManager manager;
     private final UUID alice = UUID.randomUUID();
@@ -49,7 +50,9 @@ class WorkManagerTest {
             }
 
             @Override
-            public List<String> styles() { return List.of("medieval", "desert"); }
+            public List<String> styles() {
+                return List.of("medieval", "desert");
+            }
         };
         manager = new ColonyManager(t.context());
         manager.beginFoundation(alice, "Alice", new BlockPos(0, 64, 0), 0);
@@ -58,8 +61,11 @@ class WorkManagerTest {
     }
 
     private static Blueprint blueprintAt(BlockPos offset) {
-        return new Blueprint("bp", List.of(new BlueprintEntry(offset, new BlockState(new BlockKey("Stone"), 0), false)),
-                offset, offset);
+        return new Blueprint(
+                "bp",
+                List.of(new BlueprintEntry(offset, new BlockState(new BlockKey("Stone"), 0), false)),
+                offset,
+                offset);
     }
 
     private Building hut(BuildingType type, BlockPos pos, int level) {
@@ -148,7 +154,8 @@ class WorkManagerTest {
     void refusesWithoutManageHutsPermission() {
         builder(new BlockPos(10, 64, 0), 1);
         Building res = residence(new BlockPos(20, 64, 0), 0);
-        assertRefused(WorkOrderRefusal.NO_PERMISSION,
+        assertRefused(
+                WorkOrderRefusal.NO_PERMISSION,
                 colony.work().request(UUID.randomUUID(), res.position(), WorkOrderType.BUILD, "", Optional.empty()));
     }
 
@@ -363,14 +370,17 @@ class WorkManagerTest {
         assertEquals(Stage.SOLID, lc.stage());
         assertEquals(12, lc.progressIndex());
         assertEquals(3, lc.priority());
-        assertEquals(List.of(c.id(), a.id()), loaded.work().ordered().stream().map(WorkOrder::id).toList());
+        assertEquals(
+                List.of(c.id(), a.id()),
+                loaded.work().ordered().stream().map(WorkOrder::id).toList());
         assertTrue(loaded.buildings().at(b.position()).orElseThrow().isDeconstructed());
         // ids continue after the highest loaded one
         Building res = loaded.buildings().at(new BlockPos(20, 64, 0)).orElseThrow();
         loaded.work().complete(loaded.work().byId(a.id()).orElseThrow());
-        Either<WorkOrder, WorkOrderRefusal> next = loaded.work().request(alice, res.position(), WorkOrderType.BUILD, "",
-                Optional.empty());
-        assertEquals(3, ((Either.Left<WorkOrder, WorkOrderRefusal>) next).value().id());
+        Either<WorkOrder, WorkOrderRefusal> next =
+                loaded.work().request(alice, res.position(), WorkOrderType.BUILD, "", Optional.empty());
+        assertEquals(
+                3, ((Either.Left<WorkOrder, WorkOrderRefusal>) next).value().id());
     }
 
     // ---- fix round 1 ----
@@ -399,7 +409,8 @@ class WorkManagerTest {
     void chosenBuilderMayTakeRemoveWhateverItsLevel() {
         Building b0 = builder(new BlockPos(10, 64, 0), 0);
         Building res = residence(new BlockPos(20, 64, 0), 3);
-        assertEquals(Optional.of(b0.position()),
+        assertEquals(
+                Optional.of(b0.position()),
                 createdFor(res.position(), WorkOrderType.REMOVE, b0.position()).claimedBy());
     }
 
@@ -408,8 +419,11 @@ class WorkManagerTest {
         builder(new BlockPos(10, 64, 0), 1);
         Building res = residence(new BlockPos(20, 64, 0), 0);
         // the only entry is inside, but the plan's bounds reach 5000 blocks east
-        blueprint = new Blueprint("bp", List.of(new BlueprintEntry(new BlockPos(1, 0, 0),
-                new BlockState(new BlockKey("Stone"), 0), false)), new BlockPos(0, 0, 0), new BlockPos(5000, 0, 0));
+        blueprint = new Blueprint(
+                "bp",
+                List.of(new BlueprintEntry(new BlockPos(1, 0, 0), new BlockState(new BlockKey("Stone"), 0), false)),
+                new BlockPos(0, 0, 0),
+                new BlockPos(5000, 0, 0));
         assertRefused(WorkOrderRefusal.OUT_OF_COLONY, request(res.position(), WorkOrderType.BUILD));
     }
 
@@ -417,8 +431,11 @@ class WorkManagerTest {
     void footprintReachingIntoNegativeUnclaimedCellsIsRefused() {
         builder(new BlockPos(10, 64, 0), 1);
         Building res = residence(new BlockPos(20, 64, 0), 0);
-        blueprint = new Blueprint("bp", List.of(new BlueprintEntry(new BlockPos(0, 0, 0),
-                new BlockState(new BlockKey("Stone"), 0), false)), new BlockPos(-5000, 0, -1), new BlockPos(0, 0, 0));
+        blueprint = new Blueprint(
+                "bp",
+                List.of(new BlueprintEntry(new BlockPos(0, 0, 0), new BlockState(new BlockKey("Stone"), 0), false)),
+                new BlockPos(-5000, 0, -1),
+                new BlockPos(0, 0, 0));
         assertRefused(WorkOrderRefusal.OUT_OF_COLONY, request(res.position(), WorkOrderType.BUILD));
     }
 
@@ -430,7 +447,9 @@ class WorkManagerTest {
         TerritoryIndex territory = new TerritoryIndex();
         territory.claimSquare(colony.id(), ClaimCell.of(colony.center()), t.config.initialColonySize());
         WorkOrder loaded = ColonySerializer.read(ColonySerializer.write(colony), t.context(), territory)
-                .work().byId(o.id()).orElseThrow();
+                .work()
+                .byId(o.id())
+                .orElseThrow();
         assertEquals(0, loaded.targetLevel());
         assertEquals(3, loaded.blueprintLevel());
     }
@@ -462,8 +481,10 @@ class WorkManagerTest {
     @Test
     void cancelOnlyCancelsRequestsOfTheBuildersActiveOrder() {
         Building b = builder(new BlockPos(10, 64, 0), 1);
-        WorkOrder active = createdFor(residence(new BlockPos(20, 64, 0), 0).position(), WorkOrderType.BUILD, b.position());
-        WorkOrder queued = createdFor(residence(new BlockPos(30, 64, 0), 0).position(), WorkOrderType.BUILD, b.position());
+        WorkOrder active =
+                createdFor(residence(new BlockPos(20, 64, 0), 0).position(), WorkOrderType.BUILD, b.position());
+        WorkOrder queued =
+                createdFor(residence(new BlockPos(30, 64, 0), 0).position(), WorkOrderType.BUILD, b.position());
         assertEquals(Optional.of(active), colony.work().claimedBy(b.position()));
         colony.requests().createAndAssign(b, new StackRequest(new ItemKey("Stone"), 4, 4, true), 1);
 
@@ -504,8 +525,10 @@ class WorkManagerTest {
         builder(new BlockPos(10, 64, 0), 1);
         Building chosen = builder(new BlockPos(12, 64, 0), 1);
         Building res = residence(new BlockPos(20, 64, 0), 0);
-        assertEquals(Optional.of(chosen.position()),
-                createdFor(res.position(), WorkOrderType.BUILD, chosen.position()).claimedBy());
+        assertEquals(
+                Optional.of(chosen.position()),
+                createdFor(res.position(), WorkOrderType.BUILD, chosen.position())
+                        .claimedBy());
     }
 
     @Test
@@ -513,7 +536,8 @@ class WorkManagerTest {
         Building far = builder(new BlockPos(20, 64, 150), 1);
         Building res = residence(new BlockPos(20, 64, 0), 0);
         assertRefused(WorkOrderRefusal.BUILDER_TOO_FAR_AWAY, request(res.position(), WorkOrderType.BUILD));
-        assertEquals(Optional.of(far.position()),
+        assertEquals(
+                Optional.of(far.position()),
                 createdFor(res.position(), WorkOrderType.BUILD, far.position()).claimedBy());
     }
 
@@ -522,8 +546,9 @@ class WorkManagerTest {
         builder(new BlockPos(10, 64, 0), 3);
         Building low = builder(new BlockPos(12, 64, 0), 1);
         Building res = residence(new BlockPos(20, 64, 0), 1);
-        assertRefused(WorkOrderRefusal.BUILDER_NECESSARY, colony.work().request(alice, res.position(),
-                WorkOrderType.UPGRADE, "", Optional.of(low.position())));
+        assertRefused(
+                WorkOrderRefusal.BUILDER_NECESSARY,
+                colony.work().request(alice, res.position(), WorkOrderType.UPGRADE, "", Optional.of(low.position())));
     }
 
     @Test
@@ -535,8 +560,9 @@ class WorkManagerTest {
         builder(new BlockPos(10, 64, 0), 1);
         Building other = residence(new BlockPos(30, 64, 0), 0);
         created(other.position(), WorkOrderType.BUILD);
-        assertRefused(WorkOrderRefusal.NO_PERMISSION, colony.work().request(UUID.randomUUID(), other.position(),
-                WorkOrderType.BUILD, "", Optional.empty()));
+        assertRefused(
+                WorkOrderRefusal.NO_PERMISSION,
+                colony.work().request(UUID.randomUUID(), other.position(), WorkOrderType.BUILD, "", Optional.empty()));
     }
 
     // ---- final fix wave ----
@@ -545,8 +571,8 @@ class WorkManagerTest {
     void buildingKeepsTheStyleItWasBuiltIn() {
         builder(new BlockPos(10, 64, 0), 5);
         Building res = residence(new BlockPos(20, 64, 0), 0);
-        Either<WorkOrder, WorkOrderRefusal> r = colony.work().request(alice, res.position(), WorkOrderType.BUILD,
-                "desert", Optional.empty());
+        Either<WorkOrder, WorkOrderRefusal> r =
+                colony.work().request(alice, res.position(), WorkOrderType.BUILD, "desert", Optional.empty());
         WorkOrder build = ((Either.Left<WorkOrder, WorkOrderRefusal>) r).value();
         assertEquals("desert", res.style());
         colony.work().complete(build);
@@ -559,7 +585,8 @@ class WorkManagerTest {
         assertEquals(List.of("desert/hycolony:residence/1/0"), loads);
         colony.work().cancel(remove.id());
         colony.work().request(alice, res.position(), WorkOrderType.REPAIR, "medieval", Optional.empty());
-        assertEquals("desert", colony.work().byBuilding(res.position()).orElseThrow().style());
+        assertEquals(
+                "desert", colony.work().byBuilding(res.position()).orElseThrow().style());
     }
 
     @Test
@@ -571,16 +598,18 @@ class WorkManagerTest {
         TerritoryIndex territory = new TerritoryIndex();
         territory.claimSquare(colony.id(), ClaimCell.of(colony.center()), t.config.initialColonySize());
         Colony loaded = ColonySerializer.read(ColonySerializer.write(colony), t.context(), territory);
-        Either<WorkOrder, WorkOrderRefusal> next = loaded.work().request(alice, res.position(), WorkOrderType.BUILD,
-                "", Optional.empty());
+        Either<WorkOrder, WorkOrderRefusal> next =
+                loaded.work().request(alice, res.position(), WorkOrderType.BUILD, "", Optional.empty());
 
-        assertEquals(2, ((Either.Left<WorkOrder, WorkOrderRefusal>) next).value().id());
+        assertEquals(
+                2, ((Either.Left<WorkOrder, WorkOrderRefusal>) next).value().id());
     }
 
     @Test
     void oldRequestedFlagIsReadAndDropped() {
         builder(new BlockPos(10, 64, 0), 1);
-        JsonObject json = created(residence(new BlockPos(20, 64, 0), 0).position(), WorkOrderType.BUILD).write();
+        JsonObject json = created(residence(new BlockPos(20, 64, 0), 0).position(), WorkOrderType.BUILD)
+                .write();
         json.addProperty("requested", true); // saved by an earlier version
 
         JsonObject rewritten = WorkOrder.read(json).write();

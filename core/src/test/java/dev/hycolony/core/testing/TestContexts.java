@@ -29,8 +29,15 @@ public final class TestContexts {
     public final FakeContainers containers = new FakeContainers();
     public final FakePlayerInventory playerInventory = new FakePlayerInventory();
     public BlueprintSource blueprints = new BlueprintSource() {
-        @Override public Optional<Blueprint> load(String style, String buildingTypeId, int level, int rotation) { return Optional.empty(); }
-        @Override public List<String> styles() { return List.of(); }
+        @Override
+        public Optional<Blueprint> load(String style, String buildingTypeId, int level, int rotation) {
+            return Optional.empty();
+        }
+
+        @Override
+        public List<String> styles() {
+            return List.of();
+        }
     };
     public ColonyConfig config = ColonyConfig.defaults();
     public JobRegistry jobs = jobs();
@@ -42,8 +49,20 @@ public final class TestContexts {
     }
 
     public ColonyContext context() {
-        return new ColonyContext(new WorldKey("world"), config, clock, bodies, world, notifier, ui, players,
-                BuildingTypes.defaults(), jobs, CitizenNames.loadDefault(), new Random(1234), bus,
+        return new ColonyContext(
+                new WorldKey("world"),
+                config,
+                clock,
+                bodies,
+                world,
+                notifier,
+                ui,
+                players,
+                BuildingTypes.defaults(),
+                jobs,
+                CitizenNames.loadDefault(),
+                new Random(1234),
+                bus,
                 new ConstructionPorts(catalog, blocks, containers, playerInventory, blueprints));
     }
 }

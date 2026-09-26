@@ -16,15 +16,15 @@ import dev.hycolony.core.kernel.persist.FileColonyStorage;
 import dev.hycolony.core.kernel.persist.MigrationChain;
 import dev.hycolony.plugin.adapter.HytaleBlocks;
 import dev.hycolony.plugin.adapter.HytaleBlueprintSource;
-import dev.hycolony.plugin.adapter.HytaleContainerAccess;
-import dev.hycolony.plugin.adapter.HytaleItemCatalog;
-import dev.hycolony.plugin.adapter.HytalePlayerInventory;
-import dev.hycolony.plugin.adapter.HytaleWorldBlocks;
 import dev.hycolony.plugin.adapter.HytaleCitizenBodies;
+import dev.hycolony.plugin.adapter.HytaleContainerAccess;
 import dev.hycolony.plugin.adapter.HytaleGameClock;
+import dev.hycolony.plugin.adapter.HytaleItemCatalog;
 import dev.hycolony.plugin.adapter.HytaleNotifier;
 import dev.hycolony.plugin.adapter.HytalePlayerDirectory;
+import dev.hycolony.plugin.adapter.HytalePlayerInventory;
 import dev.hycolony.plugin.adapter.HytaleUiPort;
+import dev.hycolony.plugin.adapter.HytaleWorldBlocks;
 import dev.hycolony.plugin.adapter.HytaleWorldQuery;
 import dev.hycolony.plugin.block.HutBlockSystems;
 import java.util.Random;
@@ -43,6 +43,7 @@ public final class WorldRuntime {
     private final long autosaveTicks;
     /** Colonies were read from disk. Never true while disabled, so a disabled runtime writes nothing. */
     private final boolean loaded;
+
     private boolean enabled;
 
     WorldRuntime(World world, ColonyConfig config, IdMap ids, CitizenNames names, boolean enabled) {
@@ -54,12 +55,26 @@ public final class WorldRuntime {
         JobRegistry jobs = JobRegistry.defaults();
         ConstructionBuildingTypes.register(jobs);
         Set<String> hutBlockIds = HutBlockSystems.byBlockId(ids).keySet(); // the builder never breaks these
-        ColonyContext ctx = new ColonyContext(new WorldKey(world.getName()), config, clock, bodies,
-                new HytaleWorldQuery(world), new HytaleNotifier(),
+        ColonyContext ctx = new ColonyContext(
+                new WorldKey(world.getName()),
+                config,
+                clock,
+                bodies,
+                new HytaleWorldQuery(world),
+                new HytaleNotifier(),
                 new HytaleUiPort(() -> self[0], blocks, ids),
-                new HytalePlayerDirectory(world), BuildingTypes.defaults(), jobs, names,
-                new Random(), new EventBus(), new ConstructionPorts(new HytaleItemCatalog(hutBlockIds), new HytaleWorldBlocks(world, hutBlockIds),
-                        new HytaleContainerAccess(world), new HytalePlayerInventory(world), new HytaleBlueprintSource()));
+                new HytalePlayerDirectory(world),
+                BuildingTypes.defaults(),
+                jobs,
+                names,
+                new Random(),
+                new EventBus(),
+                new ConstructionPorts(
+                        new HytaleItemCatalog(hutBlockIds),
+                        new HytaleWorldBlocks(world, hutBlockIds),
+                        new HytaleContainerAccess(world),
+                        new HytalePlayerInventory(world),
+                        new HytaleBlueprintSource()));
         this.manager = new ColonyManager(ctx);
         self[0] = manager;
         manager.setStorage(new FileColonyStorage(world.getSavePath().resolve("hycolony")), MigrationChain.sp1());
@@ -94,12 +109,31 @@ public final class WorldRuntime {
         }
     }
 
-    public World world() { return world; }
-    public ColonyManager manager() { return manager; }
-    public HytaleCitizenBodies bodies() { return bodies; }
-    public HytaleGameClock clock() { return clock; }
-    public HytaleBlocks blocks() { return blocks; }
-    public boolean enabled() { return enabled; }
+    public World world() {
+        return world;
+    }
+
+    public ColonyManager manager() {
+        return manager;
+    }
+
+    public HytaleCitizenBodies bodies() {
+        return bodies;
+    }
+
+    public HytaleGameClock clock() {
+        return clock;
+    }
+
+    public HytaleBlocks blocks() {
+        return blocks;
+    }
+
+    public boolean enabled() {
+        return enabled;
+    }
     /** A runtime that never loaded its colonies stays disabled: enabling it would overwrite their files. */
-    void setEnabled(boolean enabled) { this.enabled = enabled && loaded; }
+    void setEnabled(boolean enabled) {
+        this.enabled = enabled && loaded;
+    }
 }

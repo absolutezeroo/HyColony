@@ -23,11 +23,14 @@ final class BuilderActivity {
             case BUILDING_STEP -> walking ? "walking" : "placing";
             case MINE_BLOCK -> walking ? "walking" : "breaking";
         };
-        if (order == null || !(activity.equals("walking") || activity.equals("placing") || activity.equals("breaking"))) {
+        if (order == null
+                || !(activity.equals("walking") || activity.equals("placing") || activity.equals("breaking"))) {
             return Msg.of("hycolony.ai.builder." + activity);
         }
-        return Msg.of("hycolony.ai.builder." + activity,
+        return Msg.of(
+                "hycolony.ai.builder." + activity,
                 "%hycolony.ui.stage." + order.stage().name().toLowerCase(Locale.ROOT),
-                String.valueOf(order.progressIndex()), inHand == null ? "-" : inHand.id());
+                String.valueOf(order.progressIndex()),
+                inHand == null ? "-" : inHand.id());
     }
 }

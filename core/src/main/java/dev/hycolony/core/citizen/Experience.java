@@ -10,7 +10,10 @@ public final class Experience {
         if (currentLevel <= 0) {
             return 1;
         }
-        return Math.max(1, 1 + EXPERIENCE_MULTIPLIER * 5 * currentLevel
-                + 0.005 * ((double) currentLevel * currentLevel * currentLevel));
+        return Math.max(
+                1,
+                1
+                        + EXPERIENCE_MULTIPLIER * 5 * currentLevel
+                        + 0.005 * ((double) currentLevel * currentLevel * currentLevel));
     }
 }

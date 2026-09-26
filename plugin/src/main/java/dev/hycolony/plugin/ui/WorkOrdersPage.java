@@ -24,8 +24,11 @@ public final class WorkOrdersPage extends ColonyPage {
     }
 
     @Override
-    public void build(@Nonnull Ref<EntityStore> ref, @Nonnull UICommandBuilder ui, @Nonnull UIEventBuilder events,
-                      @Nonnull Store<EntityStore> store) {
+    public void build(
+            @Nonnull Ref<EntityStore> ref,
+            @Nonnull UICommandBuilder ui,
+            @Nonnull UIEventBuilder events,
+            @Nonnull Store<EntityStore> store) {
         ui.append("Pages/HyColony/WorkOrders.ui");
         List<OrderLine> orders = view.orders();
         if (orders.isEmpty()) {
@@ -36,14 +39,24 @@ public final class WorkOrdersPage extends ColonyPage {
             OrderLine o = orders.get(i);
             String row = "#Orders[" + i + "]";
             ui.append("#Orders", "Pages/HyColony/OrderRow.ui");
-            ui.set(row + " #Title.TextSpans", Message.translation("hycolony.ui.workorders.line")
-                    .param("p0", Message.translation("hycolony.ui.workorder.type." + o.type().name().toLowerCase(Locale.ROOT)))
-                    .param("p1", buildingName(o.buildingName()))
-                    .param("p2", String.valueOf(o.targetLevel())));
-            ui.set(row + " #Info.TextSpans", Message.translation("hycolony.ui.workorders.info")
-                    .param("p0", String.valueOf(o.priority()))
-                    .param("p1", o.builderName().map(Message::raw)
-                            .orElse(Message.translation("hycolony.ui.building.noBuilder"))));
+            ui.set(
+                    row + " #Title.TextSpans",
+                    Message.translation("hycolony.ui.workorders.line")
+                            .param(
+                                    "p0",
+                                    Message.translation("hycolony.ui.workorder.type."
+                                            + o.type().name().toLowerCase(Locale.ROOT)))
+                            .param("p1", buildingName(o.buildingName()))
+                            .param("p2", String.valueOf(o.targetLevel())));
+            ui.set(
+                    row + " #Info.TextSpans",
+                    Message.translation("hycolony.ui.workorders.info")
+                            .param("p0", String.valueOf(o.priority()))
+                            .param(
+                                    "p1",
+                                    o.builderName()
+                                            .map(Message::raw)
+                                            .orElse(Message.translation("hycolony.ui.building.noBuilder"))));
             if (view.canManage()) {
                 bind(events, row + " #UpButton", "up", i);
                 bind(events, row + " #DownButton", "down", i);
@@ -66,7 +79,7 @@ public final class WorkOrdersPage extends ColonyPage {
             case "up" -> manager.moveWorkOrder(player, view.colonyId(), id, 1);
             case "down" -> manager.moveWorkOrder(player, view.colonyId(), id, -1);
             case "delete" -> manager.deleteWorkOrder(player, view.colonyId(), id);
-            default -> { }
+            default -> {}
         }
     }
 }

@@ -40,7 +40,7 @@ class StructurePlanTest {
                 entry(0, 0, 0, STONE),
                 entry(0, 1, 0, WATER),
                 entry(0, 0, 0, PLANK) // duplicate offset with a different key: fine, entries aren't deduped here
-        );
+                );
         Blueprint bp = new Blueprint("k", entries, new BlockPos(0, 0, 0), new BlockPos(2, 2, 2));
         StructurePlan plan = StructurePlan.build(bp, HUT, catalog);
 
@@ -89,11 +89,7 @@ class StructurePlanTest {
         catalog.kinds.put(STONE, BlockKind.SOLID);
         catalog.kinds.put(AIR, BlockKind.AIR);
 
-        List<BlueprintEntry> entries = List.of(
-                entry(0, 1, 0, STONE),
-                entry(0, 0, 0, AIR),
-                entry(1, 0, 0, STONE)
-        );
+        List<BlueprintEntry> entries = List.of(entry(0, 1, 0, STONE), entry(0, 0, 0, AIR), entry(1, 0, 0, STONE));
         Blueprint bp = new Blueprint("k", entries, new BlockPos(0, 0, 0), new BlockPos(1, 1, 0));
         StructurePlan plan = StructurePlan.build(bp, HUT, catalog);
 

@@ -32,6 +32,7 @@ public final class Building implements Requester, ResolverProvider {
     private final RequesterId requesterId;
     /** Registered containers, besides the hut block itself. */
     private final Set<BlockPos> containers = new LinkedHashSet<>();
+
     private List<Resolver> resolvers = List.of();
 
     private Building(BuildingType type, BlockPos position, int rotation) {
@@ -51,23 +52,67 @@ public final class Building implements Requester, ResolverProvider {
     }
 
     public <T extends BuildingModule> Optional<T> module(Class<T> kind) {
-        return modules.values().stream().filter(kind::isInstance).map(kind::cast).findFirst();
+        return modules.values().stream()
+                .filter(kind::isInstance)
+                .map(kind::cast)
+                .findFirst();
     }
 
-    public BuildingType type() { return type; }
-    public BlockPos position() { return position; }
-    public int rotation() { return rotation; }
-    public int level() { return level; }
-    public void setLevel(int level) { this.level = level; }
-    public boolean isBuilt() { return built; }
-    public void setBuilt(boolean built) { this.built = built; }
-    public boolean isDeconstructed() { return deconstructed; }
-    public void setDeconstructed(boolean deconstructed) { this.deconstructed = deconstructed; }
-    public String customName() { return customName; }
-    public void setCustomName(String customName) { this.customName = customName; }
-    public String style() { return style; }
-    public void setStyle(String style) { this.style = style; }
-    public Map<String, BuildingModule> modules() { return Collections.unmodifiableMap(modules); }
+    public BuildingType type() {
+        return type;
+    }
+
+    public BlockPos position() {
+        return position;
+    }
+
+    public int rotation() {
+        return rotation;
+    }
+
+    public int level() {
+        return level;
+    }
+
+    public void setLevel(int level) {
+        this.level = level;
+    }
+
+    public boolean isBuilt() {
+        return built;
+    }
+
+    public void setBuilt(boolean built) {
+        this.built = built;
+    }
+
+    public boolean isDeconstructed() {
+        return deconstructed;
+    }
+
+    public void setDeconstructed(boolean deconstructed) {
+        this.deconstructed = deconstructed;
+    }
+
+    public String customName() {
+        return customName;
+    }
+
+    public void setCustomName(String customName) {
+        this.customName = customName;
+    }
+
+    public String style() {
+        return style;
+    }
+
+    public void setStyle(String style) {
+        this.style = style;
+    }
+
+    public Map<String, BuildingModule> modules() {
+        return Collections.unmodifiableMap(modules);
+    }
     /** Injected by the colony when the building is added; creates its {@link BuildingResolver}. */
     public void attachContainers(ContainerAccess access) {
         resolvers = List.of(new BuildingResolver(this, access));
@@ -81,7 +126,9 @@ public final class Building implements Requester, ResolverProvider {
         return out;
     }
 
-    public Set<BlockPos> registeredContainers() { return Collections.unmodifiableSet(containers); }
+    public Set<BlockPos> registeredContainers() {
+        return Collections.unmodifiableSet(containers);
+    }
 
     public void addContainer(BlockPos pos) {
         if (!pos.equals(position)) {
@@ -89,16 +136,43 @@ public final class Building implements Requester, ResolverProvider {
         }
     }
 
-    public void removeContainer(BlockPos pos) { containers.remove(pos); }
+    public void removeContainer(BlockPos pos) {
+        containers.remove(pos);
+    }
 
-    @Override public RequesterId requesterId() { return requesterId; }
-    @Override public BlockPos location() { return position; }
-    @Override public String displayName() { return customName.isEmpty() ? type.id() : customName; }
-    @Override public void onRequestComplete(RequestManager manager, Request request) {}
-    @Override public void onRequestCancelled(RequestManager manager, Request request) {}
-    @Override public String providerId() { return requesterId.value(); }
-    @Override public List<Resolver> resolvers() { return resolvers; }
+    @Override
+    public RequesterId requesterId() {
+        return requesterId;
+    }
+
+    @Override
+    public BlockPos location() {
+        return position;
+    }
+
+    @Override
+    public String displayName() {
+        return customName.isEmpty() ? type.id() : customName;
+    }
+
+    @Override
+    public void onRequestComplete(RequestManager manager, Request request) {}
+
+    @Override
+    public void onRequestCancelled(RequestManager manager, Request request) {}
+
+    @Override
+    public String providerId() {
+        return requesterId.value();
+    }
+
+    @Override
+    public List<Resolver> resolvers() {
+        return resolvers;
+    }
 
     /** Saved data of modules no longer registered for this type: written back untouched. */
-    public Map<String, JsonObject> unknownModules() { return unknownModules; }
+    public Map<String, JsonObject> unknownModules() {
+        return unknownModules;
+    }
 }

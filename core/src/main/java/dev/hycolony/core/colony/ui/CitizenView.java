@@ -16,10 +16,18 @@ import java.util.Optional;
  * custom name. {@code jobActivity} is the job AI's own line (e.g. the builder's stage, block and action). {@code
  * requests} are the citizen's open requests, each with what the viewer holds of it.
  */
-public record CitizenView(int colonyId, int citizenId, String name, Optional<String> jobId,
-        Optional<String> workBuilding, String activity, Optional<Deliverable> waitingFor, Optional<Msg> jobActivity,
+public record CitizenView(
+        int colonyId,
+        int citizenId,
+        String name,
+        Optional<String> jobId,
+        Optional<String> workBuilding,
+        String activity,
+        Optional<Deliverable> waitingFor,
+        Optional<Msg> jobActivity,
         Map<Skill, Integer> skills,
-        List<ItemAmount> inventory, List<RequestRow> requests) {
+        List<ItemAmount> inventory,
+        List<RequestRow> requests) {
     public CitizenView {
         skills = java.util.Collections.unmodifiableMap(new EnumMap<>(skills));
         inventory = List.copyOf(inventory);

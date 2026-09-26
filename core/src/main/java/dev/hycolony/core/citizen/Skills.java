@@ -31,9 +31,17 @@ public final class Skills {
         return skills;
     }
 
-    public int level(Skill skill) { return map.get(skill).level(); }
-    public double experience(Skill skill) { return map.get(skill).experience(); }
-    public Map<Skill, SkillData> view() { return java.util.Collections.unmodifiableMap(map); }
+    public int level(Skill skill) {
+        return map.get(skill).level();
+    }
+
+    public double experience(Skill skill) {
+        return map.get(skill).experience();
+    }
+
+    public Map<Skill, SkillData> view() {
+        return java.util.Collections.unmodifiableMap(map);
+    }
 
     public void set(Skill skill, int level, double experience) {
         map.put(skill, new SkillData(Math.max(1, Math.min(level, MAX_CITIZEN_LEVEL)), experience));

@@ -36,7 +36,11 @@ public enum Action {
         this.flag = flag;
     }
 
-    public int flag() { return flag; }
+    public int flag() {
+        return flag;
+    }
 
-    public long mask() { return 1L << flag; }
+    public long mask() {
+        return 1L << flag;
+    }
 }

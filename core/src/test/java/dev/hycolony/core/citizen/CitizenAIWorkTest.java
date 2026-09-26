@@ -24,8 +24,8 @@ class CitizenAIWorkTest {
     @Test
     void fireReturnsCitizenToWander() {
         BlockPos hall = new BlockPos(0, 64, 0);
-        Colony c = new Colony(t.context(), new TerritoryIndex(), 1, "T", hall,
-                Permissions.createDefault(UUID.randomUUID(), "A"));
+        Colony c = new Colony(
+                t.context(), new TerritoryIndex(), 1, "T", hall, Permissions.createDefault(UUID.randomUUID(), "A"));
         CitizenData d = new CitizenData(1);
         c.citizens().restore(d);
         BodyId body = t.bodies.existing(1, 1, new Vec3(0, 64, 0));
@@ -55,15 +55,28 @@ class CitizenAIWorkTest {
     private static final class BoundJob extends Job {
         static final JobType TYPE = new JobType("test:bound", BoundJob::new);
 
-        BoundJob(CitizenData citizen) { super(TYPE, citizen); }
+        BoundJob(CitizenData citizen) {
+            super(TYPE, citizen);
+        }
 
         @Override
         public JobAI createAI(Colony colony, BodyId body) {
             BlockPos at = citizen().workBuilding();
             return new JobAI() {
-                @Override public void tick() { TICKED_FOR.add(at); }
-                @Override public String stateName() { return "working"; }
-                @Override public boolean canBeInterrupted() { return true; }
+                @Override
+                public void tick() {
+                    TICKED_FOR.add(at);
+                }
+
+                @Override
+                public String stateName() {
+                    return "working";
+                }
+
+                @Override
+                public boolean canBeInterrupted() {
+                    return true;
+                }
             };
         }
     }
@@ -72,7 +85,12 @@ class CitizenAIWorkTest {
     void rehiredElsewhereBeforeNextTickGetsANewJobAi() {
         TICKED_FOR.clear();
         BlockPos hutA = new BlockPos(10, 64, 0), hutB = new BlockPos(20, 64, 0);
-        Colony c = new Colony(t.context(), new TerritoryIndex(), 1, "T", new BlockPos(0, 64, 0),
+        Colony c = new Colony(
+                t.context(),
+                new TerritoryIndex(),
+                1,
+                "T",
+                new BlockPos(0, 64, 0),
                 Permissions.createDefault(UUID.randomUUID(), "A"));
         CitizenData d = new CitizenData(1);
         c.citizens().restore(d);

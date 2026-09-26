@@ -44,7 +44,9 @@ public class TickRateStateMachine<S extends IState> {
 
     public void addTransition(TickingTransition<S> transition) {
         if (transition.getState() != null) {
-            transitionMap.computeIfAbsent(transition.getState(), k -> new ArrayList<>()).add(transition);
+            transitionMap
+                    .computeIfAbsent(transition.getState(), k -> new ArrayList<>())
+                    .add(transition);
         }
         if (transition.getEventType() != null) {
             eventList(transition.getEventType()).add(transition);

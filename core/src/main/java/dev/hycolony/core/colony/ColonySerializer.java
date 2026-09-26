@@ -75,8 +75,13 @@ public final class ColonySerializer {
     }
 
     public static Colony read(JsonObject o, ColonyContext ctx, TerritoryIndex territory) {
-        Colony c = new Colony(ctx, territory, o.get("id").getAsInt(), o.get("name").getAsString(),
-                readPos(o.getAsJsonObject("center")), readPermissions(o.getAsJsonObject("permissions")));
+        Colony c = new Colony(
+                ctx,
+                territory,
+                o.get("id").getAsInt(),
+                o.get("name").getAsString(),
+                readPos(o.getAsJsonObject("center")),
+                readPermissions(o.getAsJsonObject("permissions")));
         c.setDay(o.get("day").getAsInt());
         if (o.has("settings")) {
             JsonObject settings = o.getAsJsonObject("settings");
@@ -113,7 +118,9 @@ public final class ColonySerializer {
             for (JsonElement p : e.getAsJsonArray("params")) {
                 params.add(p.getAsString());
             }
-            c.log().restore(new EventLog.Entry(e.get("type").getAsString(), e.get("day").getAsInt(), params));
+            c.log()
+                    .restore(new EventLog.Entry(
+                            e.get("type").getAsString(), e.get("day").getAsInt(), params));
         }
         boolean healed = heal(c);
         c.clearDirty();
@@ -140,8 +147,11 @@ public final class ColonySerializer {
         for (Building b : c.buildings().all()) {
             Optional<WorkerModule> workers = b.module(WorkerModule.class);
             if (workers.isPresent()) {
-                changed |= workers.get().retainWorkers(id -> c.citizens().get(id)
-                        .map(d -> b.position().equals(d.workBuilding())).orElse(false));
+                changed |= workers.get()
+                        .retainWorkers(id -> c.citizens()
+                                .get(id)
+                                .map(d -> b.position().equals(d.workBuilding()))
+                                .orElse(false));
             }
         }
         return c.requests().cancelOrphans() | changed;
@@ -165,7 +175,8 @@ public final class ColonySerializer {
             return null;
         }
         JsonObject o = e.getAsJsonObject();
-        return new BlockPos(o.get("x").getAsInt(), o.get("y").getAsInt(), o.get("z").getAsInt());
+        return new BlockPos(
+                o.get("x").getAsInt(), o.get("y").getAsInt(), o.get("z").getAsInt());
     }
 
     private static JsonElement vec(Vec3 v) {
@@ -184,7 +195,8 @@ public final class ColonySerializer {
             return null;
         }
         JsonObject o = e.getAsJsonObject();
-        return new Vec3(o.get("x").getAsDouble(), o.get("y").getAsDouble(), o.get("z").getAsDouble());
+        return new Vec3(
+                o.get("x").getAsDouble(), o.get("y").getAsDouble(), o.get("z").getAsDouble());
     }
 
     // ---- permissions ----
@@ -224,15 +236,23 @@ public final class ColonySerializer {
         Map<Integer, Rank> ranks = new LinkedHashMap<>(defaults.ranks());
         for (JsonElement el : o.getAsJsonArray("ranks")) {
             JsonObject r = el.getAsJsonObject();
-            ranks.put(r.get("id").getAsInt(), new Rank(r.get("id").getAsInt(), r.get("name").getAsString(),
-                    r.get("permissions").getAsLong(), r.get("initial").getAsBoolean(),
-                    r.get("colonyManager").getAsBoolean(), r.get("hostile").getAsBoolean()));
+            ranks.put(
+                    r.get("id").getAsInt(),
+                    new Rank(
+                            r.get("id").getAsInt(),
+                            r.get("name").getAsString(),
+                            r.get("permissions").getAsLong(),
+                            r.get("initial").getAsBoolean(),
+                            r.get("colonyManager").getAsBoolean(),
+                            r.get("hostile").getAsBoolean()));
         }
         Map<UUID, Permissions.Member> members = new LinkedHashMap<>();
         for (JsonElement el : o.getAsJsonArray("members")) {
             JsonObject m = el.getAsJsonObject();
-            members.put(UUID.fromString(m.get("uuid").getAsString()),
-                    new Permissions.Member(m.get("name").getAsString(), m.get("rank").getAsInt()));
+            members.put(
+                    UUID.fromString(m.get("uuid").getAsString()),
+                    new Permissions.Member(
+                            m.get("name").getAsString(), m.get("rank").getAsInt()));
         }
         return Permissions.restore(owner, ownerName, ranks, members);
     }
@@ -266,7 +286,8 @@ public final class ColonySerializer {
     }
 
     private static Building readBuilding(JsonObject o, BuildingType type) {
-        Building b = Building.create(type, readPos(o.get("pos")), o.get("rotation").getAsInt());
+        Building b =
+                Building.create(type, readPos(o.get("pos")), o.get("rotation").getAsInt());
         b.setLevel(o.get("level").getAsInt());
         b.setBuilt(o.get("built").getAsBoolean());
         b.setCustomName(o.get("customName").getAsString());

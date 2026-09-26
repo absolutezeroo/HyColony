@@ -16,9 +16,17 @@ class MigrationChainTest {
 
     @Test
     void appliesMigrationsInOrder() {
-        MigrationChain chain = new MigrationChain(3, List.of(
-                new Migration(1, o -> { o.addProperty("a", true); return o; }),
-                new Migration(2, o -> { o.addProperty("b", o.get("a").getAsBoolean()); return o; })));
+        MigrationChain chain = new MigrationChain(
+                3,
+                List.of(
+                        new Migration(1, o -> {
+                            o.addProperty("a", true);
+                            return o;
+                        }),
+                        new Migration(2, o -> {
+                            o.addProperty("b", o.get("a").getAsBoolean());
+                            return o;
+                        })));
         JsonObject out = chain.migrate(doc(1));
         assertEquals(3, out.get("schemaVersion").getAsInt());
         assertEquals(true, out.get("b").getAsBoolean());

@@ -43,6 +43,7 @@ public final class BuilderAI implements JobAI {
 
     /** MC ENTITY_AI_TICKRATE: the machine runs every 5 game ticks and counts 5 per run. */
     static final int MACHINE_RATE = 5;
+
     static final int ACTIONS_UNTIL_DUMP = 4096;
     static final int SCAN_LIMIT = 10_000;
     static final double XP_PER_BLOCK = 0.05;
@@ -55,6 +56,7 @@ public final class BuilderAI implements JobAI {
      */
     // ponytail: fixed retry, no hut capacity query in ContainerAccess; poll the hut's space if players complain.
     static final int DUMP_RETRY_ACTIONS = 32;
+
     private static final int EXCEPTION_DELAY = 100;
 
     private final Colony colony;
@@ -98,16 +100,20 @@ public final class BuilderAI implements JobAI {
         this.colony = colony;
         this.citizen = citizen;
         this.body = body;
-        this.hut = citizen.workBuilding() == null ? null : colony.buildings().at(citizen.workBuilding()).orElse(null);
+        this.hut = citizen.workBuilding() == null
+                ? null
+                : colony.buildings().at(citizen.workBuilding()).orElse(null);
         this.job = citizen.job().orElse(null);
         this.bodies = colony.context().bodies();
         this.blocks = colony.context().ports().blocks();
         this.catalog = colony.context().ports().catalog();
-        this.resources = hut == null ? null : hut.module(BuildingResourcesModule.class).orElse(null);
+        this.resources =
+                hut == null ? null : hut.module(BuildingResourcesModule.class).orElse(null);
         this.stock = hut == null ? null : new BuilderStock(colony, citizen, hut);
         this.walker = new BuilderWalker(bodies, body, colony.context().clock()::currentTick);
         this.spots = new WorkSpot(blocks, catalog);
-        WorkerModule worker = hut == null ? null : hut.module(WorkerModule.class).orElse(null);
+        WorkerModule worker =
+                hut == null ? null : hut.module(WorkerModule.class).orElse(null);
         this.primary = worker == null ? Skill.Adaptability : worker.primary();
         this.secondary = worker == null ? Skill.Athletics : worker.secondary();
         this.machine = new TickRateStateMachine<>(BuilderState.IDLE, this::onException, MACHINE_RATE);
@@ -127,8 +133,7 @@ public final class BuilderAI implements JobAI {
         state(BuilderState.COMPLETE_BUILD, this::completeBuild, 5);
     }
 
-    private void event(AIBlockingEventType type, BooleanSupplier when,
-            IStateSupplier<BuilderState> then, int rate) {
+    private void event(AIBlockingEventType type, BooleanSupplier when, IStateSupplier<BuilderState> then, int rate) {
         machine.addTransition(new AIEventTarget<>(type, when, then, rate));
     }
 
@@ -192,7 +197,9 @@ public final class BuilderAI implements JobAI {
     /** MC checkIfNeedsItem: an open or completed sync request sends the builder to wait for / fetch it. */
     private boolean needsItem() {
         BuilderState s = machine.getState();
-        return s != BuilderState.INVENTORY_FULL && s != BuilderState.NEEDS_ITEM && s != BuilderState.COMPLETE_BUILD
+        return s != BuilderState.INVENTORY_FULL
+                && s != BuilderState.NEEDS_ITEM
+                && s != BuilderState.COMPLETE_BUILD
                 && stock.hasSyncRequests();
     }
 
@@ -253,11 +260,19 @@ public final class BuilderAI implements JobAI {
             return BuilderState.IDLE;
         }
         Building b = colony.buildings().at(o.buildingPos()).orElse(null);
-        Blueprint bp = b == null ? null : colony.context().ports().blueprints()
-                .load(o.style(), b.type().id(), o.blueprintLevel(), o.rotation()).orElse(null);
+        Blueprint bp = b == null
+                ? null
+                : colony.context()
+                        .ports()
+                        .blueprints()
+                        .load(o.style(), b.type().id(), o.blueprintLevel(), o.rotation())
+                        .orElse(null);
         if (bp == null) {
             // MC handleSpecificCancelActions: an order that cannot be loaded is dropped.
-            LOG.log(System.Logger.Level.WARNING, "No blueprint for work order {0} at {1}; removing it", o.id(),
+            LOG.log(
+                    System.Logger.Level.WARNING,
+                    "No blueprint for work order {0} at {1}; removing it",
+                    o.id(),
                     o.buildingPos());
             colony.work().cancel(o.id());
             resetStructure();
@@ -296,11 +311,13 @@ public final class BuilderAI implements JobAI {
         Stage stage = order.stage();
         if (stage != Stage.CLEAR && stage != Stage.REMOVE) { // never request while clearing or removing
             Set<ItemKey> requested = stock.requestedItems();
-            resources.missingForCurrentAndNext(stock.inventory(), stock::hutCount).forEach((item, n) -> {
-                if (requested.add(item)) {
-                    stock.requestForBucket(item, n * RESOURCE_BATCH_MULTIPLIER);
-                }
-            });
+            resources
+                    .missingForCurrentAndNext(stock.inventory(), stock::hutCount)
+                    .forEach((item, n) -> {
+                        if (requested.add(item)) {
+                            stock.requestForBucket(item, n * RESOURCE_BATCH_MULTIPLIER);
+                        }
+                    });
             if (needed != null && stock.inventory().count(needed) == 0) {
                 stock.requestNow(needed, requestAmount(needed));
             }
@@ -406,8 +423,12 @@ public final class BuilderAI implements JobAI {
     private void place(Stage stage, int i, BlockPos pos, BlueprintEntry e, ItemKey item) {
         bodies.lookAt(body, Vec3.middle(pos)); // MC BuildingStructureHandler.prePlacementLogic: faceBlock
         if (!blocks.place(pos, e.state(), e.hasContainer())) {
-            LOG.log(System.Logger.Level.WARNING, "Builder {0}: failed to place {1} at {2}; skipped", citizen.name(),
-                    e.state().key().id(), pos);
+            LOG.log(
+                    System.Logger.Level.WARNING,
+                    "Builder {0}: failed to place {1} at {2}; skipped",
+                    citizen.name(),
+                    e.state().key().id(),
+                    pos);
             progress(stage, i + 1);
             return;
         }
@@ -432,8 +453,9 @@ public final class BuilderAI implements JobAI {
      * world changed since the needs were computed), the needs are recomputed first, at most once per position.
      */
     private BuilderState missing(ItemKey item, int index) {
-        boolean inBuckets = resources.currentBucket().map(b -> b.containsKey(item)).orElse(false)
-                || resources.nextBucket().map(b -> b.containsKey(item)).orElse(false);
+        boolean inBuckets =
+                resources.currentBucket().map(b -> b.containsKey(item)).orElse(false)
+                        || resources.nextBucket().map(b -> b.containsKey(item)).orElse(false);
         if (!inBuckets && resources.needs().remaining().containsKey(item) && lastRecomputeIndex != index) {
             lastRecomputeIndex = index;
             resources.start(order, NeededResources.compute(plan, blocks, catalog));
@@ -472,8 +494,10 @@ public final class BuilderAI implements JobAI {
             mineDelayed = true;
             bodies.lookAt(body, Vec3.middle(pos));
             hold(tool);
-            startDelay(BuilderTimings.breakDelay(citizen.skills().level(secondary), catalog.hardness(state.key()),
-                    stock.toolSpeed(tool)), BodyAnimation.MINE);
+            startDelay(
+                    BuilderTimings.breakDelay(
+                            citizen.skills().level(secondary), catalog.hardness(state.key()), stock.toolSpeed(tool)),
+                    BodyAnimation.MINE);
             return null;
         }
         mineDelayed = false;
@@ -564,9 +588,11 @@ public final class BuilderAI implements JobAI {
             default -> {
                 BlueprintEntry e = (stage == Stage.SOLID ? plan.solidList() : plan.decoList()).get(i);
                 // The final walk only refills what was broken (air); a block the player changed stays.
-                boolean open = finalCheckDone ? world == null || catalog.kind(world.key()) == BlockKind.AIR
+                boolean open = finalCheckDone
+                        ? world == null || catalog.kind(world.key()) == BlockKind.AIR
                         : world == null || catalog.kind(world.key()) != BlockKind.UNBREAKABLE;
-                yield !e.state().equals(world) && open
+                yield !e.state().equals(world)
+                        && open
                         && notAHut(pos); // MC IBuilderUndestroyable: a colony hut is never built over
             }
         };
@@ -604,8 +630,12 @@ public final class BuilderAI implements JobAI {
     }
 
     private void award(double xp) {
-        int homeLevel = citizen.homeBuilding() == null ? 0
-                : colony.buildings().at(citizen.homeBuilding()).map(Building::level).orElse(0);
+        int homeLevel = citizen.homeBuilding() == null
+                ? 0
+                : colony.buildings()
+                        .at(citizen.homeBuilding())
+                        .map(Building::level)
+                        .orElse(0);
         JobXp.award(citizen, primary, secondary, xp, hut.level(), homeLevel);
     }
 

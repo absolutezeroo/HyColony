@@ -72,30 +72,32 @@ public final class HytaleUiPort implements UiPort {
 
     @Override
     public void showFoundColony(UUID player, FoundColonyView view) {
-        open(player, pr -> new FoundColonyPage(pr, view, new FoundColonyPage.Handler() {
-            @Override
-            public boolean confirm(String name) {
-                ColonyManager m = manager.get();
-                Optional<BlockPos> pos = m.pendingPositionOf(player);
-                boolean created = m.confirmFoundation(player, name).isPresent();
-                if (!created && m.pendingPositionOf(player).isEmpty()) {
-                    pos.ifPresent(HytaleUiPort.this::removeTownHall); // spot became invalid: foundation dropped
-                }
-                return created;
-            }
+        open(
+                player,
+                pr -> new FoundColonyPage(pr, view, new FoundColonyPage.Handler() {
+                    @Override
+                    public boolean confirm(String name) {
+                        ColonyManager m = manager.get();
+                        Optional<BlockPos> pos = m.pendingPositionOf(player);
+                        boolean created = m.confirmFoundation(player, name).isPresent();
+                        if (!created && m.pendingPositionOf(player).isEmpty()) {
+                            pos.ifPresent(HytaleUiPort.this::removeTownHall); // spot became invalid: foundation dropped
+                        }
+                        return created;
+                    }
 
-            @Override
-            public void cancel(boolean windowClosing) {
-                if (windowClosing) {
-                    closing.add(player);
-                }
-                try {
-                    manager.get().cancelFoundation(player).ifPresent(HytaleUiPort.this::removeTownHall);
-                } finally {
-                    closing.remove(player);
-                }
-            }
-        }));
+                    @Override
+                    public void cancel(boolean windowClosing) {
+                        if (windowClosing) {
+                            closing.add(player);
+                        }
+                        try {
+                            manager.get().cancelFoundation(player).ifPresent(HytaleUiPort.this::removeTownHall);
+                        } finally {
+                            closing.remove(player);
+                        }
+                    }
+                }));
     }
 
     @Override
@@ -158,20 +160,30 @@ public final class HytaleUiPort implements UiPort {
     private static void removeWithoutDrop(World world, BlockPos pos, String blockId) {
         ChunkStore cs = world.getChunkStore();
         Ref<ChunkStore> section = cs.getChunkSectionReferenceAtBlock(pos.x(), pos.y(), pos.z());
-        BlockSection blocks = section == null ? null : cs.getStore().getComponent(section, BlockSection.getComponentType());
+        BlockSection blocks =
+                section == null ? null : cs.getStore().getComponent(section, BlockSection.getComponentType());
         if (blocks == null) {
             return;
         }
         BlockType type = BlockType.getAssetMap().getAsset(blocks.get(pos.x(), pos.y(), pos.z()));
         if (type == null || !(blockId.equals(type.getId()) || blockId.equals(type.getDefaultStateKey()))) {
             // The core already dropped the building and the player has the item: the block is left alone.
-            LOG.at(Level.WARNING).log("HyColony pick-up: expected %s at %s, found %s; block left in place", blockId,
-                    pos, type == null ? "nothing" : type.getId());
+            LOG.at(Level.WARNING).log(
+                    "HyColony pick-up: expected %s at %s, found %s; block left in place",
+                    blockId, pos, type == null ? "nothing" : type.getId());
             return;
         }
-        BlockHarvestUtils.naturallyRemoveBlock(new Vector3i(pos.x(), pos.y(), pos.z()), type,
-                blocks.getFiller(pos.x(), pos.y(), pos.z()), 0, null, null, SetBlockSettings.NO_DROP_ITEMS, section,
-                world.getEntityStore().getStore(), cs.getStore());
+        BlockHarvestUtils.naturallyRemoveBlock(
+                new Vector3i(pos.x(), pos.y(), pos.z()),
+                type,
+                blocks.getFiller(pos.x(), pos.y(), pos.z()),
+                0,
+                null,
+                null,
+                SetBlockSettings.NO_DROP_ITEMS,
+                section,
+                world.getEntityStore().getStore(),
+                cs.getStore());
     }
 
     /** One {@code itemId} into hotbar then storage; true only if it fit. */

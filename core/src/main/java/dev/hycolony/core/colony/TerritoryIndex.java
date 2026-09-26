@@ -31,7 +31,8 @@ public final class TerritoryIndex {
         for (int dx = -radius; dx <= radius; dx++) {
             for (int dz = -radius; dz <= radius; dz++) {
                 ClaimCell cell = new ClaimCell(center.x() + dx, center.z() + dz);
-                int distFromCenter = Math.max(Math.abs(cell.x() - colonyCenter.x()), Math.abs(cell.z() - colonyCenter.z()));
+                int distFromCenter =
+                        Math.max(Math.abs(cell.x() - colonyCenter.x()), Math.abs(cell.z() - colonyCenter.z()));
                 if (distFromCenter > maxSize) {
                     continue;
                 }

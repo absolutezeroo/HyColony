@@ -84,13 +84,16 @@ class RequestSerializerTest {
             assertEquals(before.blacklist(), after.blacklist());
             assertEquals(w.resolverOf(before.token()), l.resolverOf(before.token()));
         }
-        assertEquals(List.of(new ItemAmount(PLANKS, 4)), l.m.get(byBuilding).orElseThrow().deliveries());
+        assertEquals(
+                List.of(new ItemAmount(PLANKS, 4)),
+                l.m.get(byBuilding).orElseThrow().deliveries());
         assertEquals(List.of(child), l.m.get(retried).orElseThrow().children());
         assertEquals(Set.of("retrying"), l.m.get(toPlayer).orElseThrow().blacklist());
         assertEquals(w.retrying.delays(), l.retrying.delays());
         assertEquals(w.retrying.tries(), l.retrying.tries());
         assertTrue(l.retrying.delays().get(retried) < RetryingResolver.DELAY_TICKS);
-        assertEquals(List.of(toPlayer), l.player.open().stream().map(Request::token).toList());
+        assertEquals(
+                List.of(toPlayer), l.player.open().stream().map(Request::token).toList());
         assertEquals(l.m.byRequester(w.hut.requesterId()).size(), 3);
     }
 
@@ -129,8 +132,12 @@ class RequestSerializerTest {
         JsonObject json = roundTrip(RequestSerializer.write(w.m));
         JsonObject assignments = json.getAsJsonObject("assignments");
         assignments.add("ghost", assignments.remove("building:0,64,0"));
-        json.getAsJsonObject("retrying").getAsJsonObject("delays").remove(retried.id().toString());
-        json.getAsJsonObject("retrying").getAsJsonObject("tries").remove(retried.id().toString());
+        json.getAsJsonObject("retrying")
+                .getAsJsonObject("delays")
+                .remove(retried.id().toString());
+        json.getAsJsonObject("retrying")
+                .getAsJsonObject("tries")
+                .remove(retried.id().toString());
         json.add("player", new JsonArray());
 
         World l = new World();
@@ -144,7 +151,8 @@ class RequestSerializerTest {
         assertEquals("retrying", l.resolverOf(retried));
         assertEquals(RetryingResolver.DELAY_TICKS, l.retrying.delays().get(retried));
         assertEquals(1, l.retrying.tries().get(retried));
-        assertEquals(List.of(atPlayer), l.player.open().stream().map(Request::token).toList());
+        assertEquals(
+                List.of(atPlayer), l.player.open().stream().map(Request::token).toList());
     }
 
     @Test

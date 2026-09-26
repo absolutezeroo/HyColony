@@ -25,7 +25,12 @@ class WorkerModuleTest {
     private final TestContexts t = new TestContexts();
 
     private Colony colony() {
-        return new Colony(t.context(), new TerritoryIndex(), 1, "T", new BlockPos(0, 64, 0),
+        return new Colony(
+                t.context(),
+                new TerritoryIndex(),
+                1,
+                "T",
+                new BlockPos(0, 64, 0),
                 Permissions.createDefault(UUID.randomUUID(), "A"));
     }
 
@@ -38,8 +43,8 @@ class WorkerModuleTest {
     }
 
     private Building buildingWith(WorkerModule module, int level, boolean built, BlockPos pos) {
-        BuildingType type = new BuildingType("test:worker-hut", "hut.worker", 5,
-                List.of(new ModuleProducer("worker", () -> module)));
+        BuildingType type = new BuildingType(
+                "test:worker-hut", "hut.worker", 5, List.of(new ModuleProducer("worker", () -> module)));
         Building b = Building.create(type, pos, 0);
         b.setLevel(level);
         b.setBuilt(built);

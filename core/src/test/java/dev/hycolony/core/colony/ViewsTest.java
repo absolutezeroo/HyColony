@@ -69,11 +69,14 @@ class ViewsTest {
             @Override
             public Optional<Blueprint> load(String style, String buildingTypeId, int level, int rotation) {
                 BlockPos o = new BlockPos(1, 0, 0);
-                return Optional.of(new Blueprint("bp", List.of(new BlueprintEntry(o, new BlockState(STONE, 0), false)), o, o));
+                return Optional.of(
+                        new Blueprint("bp", List.of(new BlueprintEntry(o, new BlockState(STONE, 0), false)), o, o));
             }
 
             @Override
-            public List<String> styles() { return List.of("medieval", "desert"); }
+            public List<String> styles() {
+                return List.of("medieval", "desert");
+            }
         };
         manager = new ColonyManager(t.context());
         manager.beginFoundation(alice, "Alice", hall, 0);
@@ -115,7 +118,9 @@ class ViewsTest {
         Building res = residence(0);
         assertEquals(EnumSet.of(WorkOrderType.BUILD), view(alice, res).allowed());
         res.setLevel(2);
-        assertEquals(EnumSet.of(WorkOrderType.UPGRADE, WorkOrderType.REPAIR, WorkOrderType.REMOVE), view(alice, res).allowed());
+        assertEquals(
+                EnumSet.of(WorkOrderType.UPGRADE, WorkOrderType.REPAIR, WorkOrderType.REMOVE),
+                view(alice, res).allowed());
         res.setLevel(5);
         BuildingView max = view(alice, res);
         assertEquals(EnumSet.of(WorkOrderType.REPAIR, WorkOrderType.REMOVE), max.allowed());
@@ -126,11 +131,15 @@ class ViewsTest {
         assertEquals(EnumSet.of(WorkOrderType.UPGRADE, WorkOrderType.REPAIR), decon.allowed());
         assertTrue(decon.canPickUp());
         res.setLevel(0);
-        assertEquals(EnumSet.of(WorkOrderType.REPAIR), view(alice, res).allowed(), "deconstructed at level 0: Build = REPAIR");
+        assertEquals(
+                EnumSet.of(WorkOrderType.REPAIR),
+                view(alice, res).allowed(),
+                "deconstructed at level 0: Build = REPAIR");
         res.setLevel(2);
         res.setDeconstructed(false);
         for (WorkOrderType type : WorkOrderType.values()) { // the server's predicate, not a copy of it
-            assertEquals(WorkManager.isAllowed(res, type), view(alice, res).allowed().contains(type), type.name());
+            assertEquals(
+                    WorkManager.isAllowed(res, type), view(alice, res).allowed().contains(type), type.name());
         }
 
         assertEquals(Optional.empty(), manager.orderWork(alice, res.position(), WorkOrderType.UPGRADE, "desert"));
@@ -151,7 +160,8 @@ class ViewsTest {
         assertTrue(manager.cancelWork(alice, res.position()));
         BuildingView cancelled = (BuildingView) t.ui.shown.get(alice);
         assertTrue(cancelled.order().isEmpty());
-        assertEquals(EnumSet.of(WorkOrderType.UPGRADE, WorkOrderType.REPAIR, WorkOrderType.REMOVE), cancelled.allowed());
+        assertEquals(
+                EnumSet.of(WorkOrderType.UPGRADE, WorkOrderType.REPAIR, WorkOrderType.REMOVE), cancelled.allowed());
         assertFalse(manager.cancelWork(alice, res.position()), "nothing left to cancel");
     }
 
@@ -175,7 +185,8 @@ class ViewsTest {
         }
         Blueprint bp = new Blueprint("bp", entries, new BlockPos(0, 0, 0), new BlockPos(6, 0, 0));
         StructurePlan plan = StructurePlan.build(bp, res.position(), t.catalog);
-        BuildingResourcesModule module = builder.module(BuildingResourcesModule.class).orElseThrow();
+        BuildingResourcesModule module =
+                builder.module(BuildingResourcesModule.class).orElseThrow();
         module.start(order, NeededResources.compute(plan, t.blocks, t.catalog));
         module.onPlaced(STONE_I);
         bobTheBuilder.inventory().insert(new ItemAmount(STONE_I, 1), k -> 64);
@@ -186,8 +197,11 @@ class ViewsTest {
 
         BuilderResourcesView v = (BuilderResourcesView) t.ui.shown.get(alice);
         assertEquals(builder.position(), v.hut());
-        assertEquals(List.of(new ResourceRow(STONE_I, 3, 2, 0, Status.DONT_HAVE),
-                new ResourceRow(PLANK_I, 2, 0, 5, Status.HAVE_ENOUGH)), v.rows());
+        assertEquals(
+                List.of(
+                        new ResourceRow(STONE_I, 3, 2, 0, Status.DONT_HAVE),
+                        new ResourceRow(PLANK_I, 2, 0, 5, Status.HAVE_ENOUGH)),
+                v.rows());
         assertEquals(17, v.percent(), "1 of 6 placed: 100 - (int) (5 / 6 * 100)");
         assertEquals("clear", v.stage());
         assertEquals(17, view(alice, res).order().orElseThrow().percent(), "same progress on the building's order");
@@ -231,7 +245,8 @@ class ViewsTest {
         t.ui.shown.clear();
 
         for (UUID player : List.of(bob, carol, dave)) {
-            assertEquals(Optional.of(WorkOrderRefusal.NO_PERMISSION),
+            assertEquals(
+                    Optional.of(WorkOrderRefusal.NO_PERMISSION),
                     manager.orderWork(player, builder.position(), WorkOrderType.UPGRADE, ""));
             assertFalse(manager.cancelWork(player, res.position()));
             assertFalse(manager.hire(player, builder.position(), idle.id()));
@@ -244,8 +259,12 @@ class ViewsTest {
             res.setDeconstructed(false);
         }
         assertTrue(colony.work().byId(orderId).isPresent());
-        assertEquals(List.of(bobTheBuilder.id()), builder.module(WorkerModule.class).orElseThrow().workers());
-        assertEquals(HiringMode.DEFAULT, builder.module(WorkerModule.class).orElseThrow().hiringMode());
+        assertEquals(
+                List.of(bobTheBuilder.id()),
+                builder.module(WorkerModule.class).orElseThrow().workers());
+        assertEquals(
+                HiringMode.DEFAULT,
+                builder.module(WorkerModule.class).orElseThrow().hiringMode());
         assertTrue(colony.buildings().at(res.position()).isPresent());
 
         for (UUID player : List.of(bob, dave)) {
@@ -254,8 +273,8 @@ class ViewsTest {
             manager.openRequests(player, colony.id());
             manager.openWorkOrders(player, colony.id());
             assertFalse(t.ui.shown.containsKey(player), "neutral and hostile see nothing");
-            assertTrue(t.notifier.sent.stream().anyMatch(s -> s.player().equals(player)
-                    && s.msg().key().equals("hycolony.permission.denied")));
+            assertTrue(t.notifier.sent.stream()
+                    .anyMatch(s -> s.player().equals(player) && s.msg().key().equals("hycolony.permission.denied")));
         }
 
         BuildingView friendView = view(carol, res);
@@ -264,23 +283,32 @@ class ViewsTest {
         manager.openWorkOrders(carol, colony.id());
         WorkOrdersView orders = (WorkOrdersView) t.ui.shown.get(carol);
         assertFalse(orders.canManage());
-        assertEquals(List.of(new WorkOrdersView.OrderLine(orderId, WorkOrderType.REPAIR, res.displayName(), 2, 0,
-                Optional.empty())), orders.orders());
+        assertEquals(
+                List.of(new WorkOrdersView.OrderLine(
+                        orderId, WorkOrderType.REPAIR, res.displayName(), 2, 0, Optional.empty())),
+                orders.orders());
     }
 
     @Test
     void orderWorkReturnsRefusal() {
         Building res = residence(0);
-        assertEquals(Optional.of(WorkOrderRefusal.INVALID_TYPE),
+        assertEquals(
+                Optional.of(WorkOrderRefusal.INVALID_TYPE),
                 manager.orderWork(alice, res.position(), WorkOrderType.REMOVE, ""));
-        assertEquals("hycolony.workorder.refused.invalid_type", t.notifier.sent.getLast().msg().key());
+        assertEquals(
+                "hycolony.workorder.refused.invalid_type",
+                t.notifier.sent.getLast().msg().key());
         res.setLevel(5);
-        assertEquals(Optional.of(WorkOrderRefusal.MAX_LEVEL), manager.orderWork(alice, res.position(), WorkOrderType.UPGRADE, ""));
+        assertEquals(
+                Optional.of(WorkOrderRefusal.MAX_LEVEL),
+                manager.orderWork(alice, res.position(), WorkOrderType.UPGRADE, ""));
         res.setLevel(0);
 
         assertEquals(Optional.empty(), manager.orderWork(alice, res.position(), WorkOrderType.BUILD, "desert"));
-        assertEquals("desert", colony.work().byBuilding(res.position()).orElseThrow().style());
-        assertEquals(Optional.of(WorkOrderRefusal.ALREADY_EXISTS),
+        assertEquals(
+                "desert", colony.work().byBuilding(res.position()).orElseThrow().style());
+        assertEquals(
+                Optional.of(WorkOrderRefusal.ALREADY_EXISTS),
                 manager.orderWork(alice, res.position(), WorkOrderType.BUILD, ""));
     }
 
@@ -293,7 +321,8 @@ class ViewsTest {
 
         BuildingView v = view(alice, hut);
         assertEquals(List.of(), v.workers());
-        assertEquals(List.of(new BuildingView.WorkerRow(ann.id(), "Ann"), new BuildingView.WorkerRow(ben.id(), "Ben")),
+        assertEquals(
+                List.of(new BuildingView.WorkerRow(ann.id(), "Ann"), new BuildingView.WorkerRow(ben.id(), "Ben")),
                 v.hireable());
         assertEquals(Optional.of(HiringMode.DEFAULT), v.hiringMode());
 
@@ -311,7 +340,9 @@ class ViewsTest {
 
         assertTrue(manager.setHiring(alice, hut.position(), HiringMode.MANUAL));
         assertEquals(Optional.of(HiringMode.MANUAL), ((BuildingView) t.ui.shown.get(alice)).hiringMode());
-        assertEquals(Optional.empty(), view(alice, colony.buildings().at(hall).orElseThrow()).hiringMode(),
+        assertEquals(
+                Optional.empty(),
+                view(alice, colony.buildings().at(hall).orElseThrow()).hiringMode(),
                 "the town hall employs no one");
         assertFalse(manager.hire(alice, hall, ann.id()), "the town hall employs no one");
     }
@@ -320,7 +351,8 @@ class ViewsTest {
     void pickUpDeconstructedBuilding() {
         Building res = residence(2);
         assertFalse(view(alice, res).canPickUp());
-        assertFalse(manager.pickUpBuilding(alice, res.position(), () -> fail("checks run first")),
+        assertFalse(
+                manager.pickUpBuilding(alice, res.position(), () -> fail("checks run first")),
                 "still standing: deconstruct it first");
 
         res.setDeconstructed(true);
@@ -329,7 +361,9 @@ class ViewsTest {
         assertFalse(manager.pickUpBuilding(alice, res.position(), () -> false), "inventory full: refused");
         assertTrue(colony.buildings().at(res.position()).isPresent(), "the building is kept");
         assertTrue(colony.work().byId(orderId).isPresent());
-        assertEquals("hycolony.hut.pickupInventoryFull", t.notifier.sent.getLast().msg().key());
+        assertEquals(
+                "hycolony.hut.pickupInventoryFull",
+                t.notifier.sent.getLast().msg().key());
         int[] given = {0};
         assertTrue(manager.pickUpBuilding(alice, res.position(), () -> ++given[0] > 0));
         assertEquals(1, given[0]);
@@ -347,8 +381,8 @@ class ViewsTest {
     void citizenWindowShowsJobHutActivitySkillsInventoryAndOpenRequests() {
         bobTheBuilder.skills().set(Skill.Knowledge, 7, 0);
         bobTheBuilder.inventory().insert(new ItemAmount(STONE_I, 3), t.catalog::maxStack);
-        RequestToken token = colony.requests().createAndAssign(builder, new StackRequest(PLANK_I, 4, 4, true),
-                bobTheBuilder.id());
+        RequestToken token =
+                colony.requests().createAndAssign(builder, new StackRequest(PLANK_I, 4, 4, true), bobTheBuilder.id());
         t.playerInventory.give(alice, new ItemAmount(PLANK_I, 2));
 
         manager.openCitizen(alice, colony.id(), bobTheBuilder.id());
@@ -362,7 +396,8 @@ class ViewsTest {
         assertEquals(Skill.values().length, v.skills().size());
         assertEquals(7, v.skills().get(Skill.Knowledge));
         assertEquals(List.of(new ItemAmount(STONE_I, 3)), v.inventory());
-        assertEquals(List.of(new RequestsView.RequestRow(token, new StackRequest(PLANK_I, 4, 4, true), "Bob", 2)),
+        assertEquals(
+                List.of(new RequestsView.RequestRow(token, new StackRequest(PLANK_I, 4, 4, true), "Bob", 2)),
                 v.requests());
 
         assertTrue(manager.fulfil(alice, colony.id(), token)); // the window's "Supply"

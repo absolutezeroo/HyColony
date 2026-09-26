@@ -30,9 +30,14 @@ import java.util.function.Predicate;
 public final class RequestManager {
     /** The colony ticks the manager every 11 game ticks (MineColonies' request system rate). */
     public static final int TICK_INTERVAL = 11;
+
     private static final System.Logger LOG = System.getLogger(RequestManager.class.getName());
-    private static final Set<RequestState> PUBLIC_STATES = EnumSet.of(RequestState.RESOLVED, RequestState.COMPLETED,
-            RequestState.CANCELLED, RequestState.FAILED, RequestState.RECEIVED);
+    private static final Set<RequestState> PUBLIC_STATES = EnumSet.of(
+            RequestState.RESOLVED,
+            RequestState.COMPLETED,
+            RequestState.CANCELLED,
+            RequestState.FAILED,
+            RequestState.RECEIVED);
 
     private final RequesterRegistry requesters;
     private final ItemCatalog catalog;
@@ -43,6 +48,7 @@ public final class RequestManager {
     private final List<Resolver> shared = new ArrayList<>();
     /** The others, by the one requester they serve (a building's own resolver): an O(1) lookup per assignment. */
     private final Map<RequesterId, List<Resolver>> ownResolvers = new HashMap<>();
+
     private final Map<String, Resolver> resolversById = new HashMap<>();
     private final Map<RequesterId, Resolver> resolversByRequesterId = new HashMap<>();
     private final Map<String, List<Resolver>> providers = new HashMap<>();
@@ -82,8 +88,8 @@ public final class RequestManager {
         for (Resolver r : list) {
             checkRegistrable(r);
             if (!ids.add(r.resolverId()) || !requesterIds.add(r.requesterId())) {
-                throw new IllegalArgumentException("Duplicate resolver in provider " + p.providerId() + ": "
-                        + r.resolverId());
+                throw new IllegalArgumentException(
+                        "Duplicate resolver in provider " + p.providerId() + ": " + r.resolverId());
             }
         }
         list.forEach(this::register);
@@ -100,9 +106,10 @@ public final class RequestManager {
         if (resolversById.containsKey(r.resolverId())) {
             throw new IllegalArgumentException("Resolver already registered: " + r.resolverId());
         }
-        if (resolversByRequesterId.containsKey(r.requesterId()) || requesters.find(r.requesterId()).isPresent()) {
-            throw new IllegalArgumentException("Requester id already in use: " + r.requesterId().value()
-                    + " (resolver " + r.resolverId() + ")");
+        if (resolversByRequesterId.containsKey(r.requesterId())
+                || requesters.find(r.requesterId()).isPresent()) {
+            throw new IllegalArgumentException(
+                    "Requester id already in use: " + r.requesterId().value() + " (resolver " + r.resolverId() + ")");
         }
     }
 
@@ -296,7 +303,9 @@ public final class RequestManager {
         boolean[] cancelled = {false};
         submit(() -> {
             for (Request r : new ArrayList<>(requests.values())) {
-                if (requests.containsKey(r.token()) && r.parent().isEmpty() && requesters.find(r.requester()).isEmpty()
+                if (requests.containsKey(r.token())
+                        && r.parent().isEmpty()
+                        && requesters.find(r.requester()).isEmpty()
                         && !resolversByRequesterId.containsKey(r.requester())) {
                     cancelDirectly(r.token());
                     cancelled[0] = true;
@@ -379,7 +388,8 @@ public final class RequestManager {
     void restoreAssignment(RequestToken token, Resolver resolver) {
         if (requests.containsKey(token)) {
             resolverOf.put(token, resolver);
-            assigned.computeIfAbsent(resolver.resolverId(), k -> new LinkedHashSet<>()).add(token);
+            assigned.computeIfAbsent(resolver.resolverId(), k -> new LinkedHashSet<>())
+                    .add(token);
         }
     }
 
@@ -413,14 +423,17 @@ public final class RequestManager {
             processing = false;
             if (!ok && !queue.isEmpty()) {
                 // Never replay them inside an unrelated later call.
-                LOG.log(System.Logger.Level.WARNING, "An operation failed; dropping {0} queued request operation(s)",
+                LOG.log(
+                        System.Logger.Level.WARNING,
+                        "An operation failed; dropping {0} queued request operation(s)",
                         queue.size());
                 queue.clear();
             }
         }
     }
 
-    // ------------------------------------------------------------------ assignment (RequestHandler.assignRequestDefault)
+    // ------------------------------------------------------------------ assignment
+    // (RequestHandler.assignRequestDefault)
 
     private Request create(RequesterId requester, Deliverable what, int citizenId) {
         Request req = new Request(RequestToken.random(), requester, what, citizenId);
@@ -438,7 +451,8 @@ public final class RequestManager {
         double winnerMetric = Double.MAX_VALUE;
         List<RequestToken> attempt = List.of();
         for (Resolver r : candidates(req.requester())) {
-            if (blacklist.contains(r.resolverId()) || beingRemoved.contains(r.resolverId())
+            if (blacklist.contains(r.resolverId())
+                    || beingRemoved.contains(r.resolverId())
                     || !r.handles(req.requestable())) {
                 continue;
             }
@@ -488,7 +502,8 @@ public final class RequestManager {
     /** RequestHandler.resolve: register, notify, link and assign children, then IN_PROGRESS. */
     private void resolveWith(Request req, Resolver resolver, Set<String> blacklist, List<RequestToken> children) {
         resolverOf.put(req.token(), resolver);
-        assigned.computeIfAbsent(resolver.resolverId(), k -> new LinkedHashSet<>()).add(req.token());
+        assigned.computeIfAbsent(resolver.resolverId(), k -> new LinkedHashSet<>())
+                .add(req.token());
         req.setState(RequestState.ASSIGNED);
         resolver.onAssigned(this, req);
 
@@ -531,13 +546,16 @@ public final class RequestManager {
 
     private void resolveNow(Request req) {
         Resolver resolver = resolverOf.get(req.token());
-        if (resolver == null || req.state() != RequestState.IN_PROGRESS || !req.children().isEmpty()) {
+        if (resolver == null
+                || req.state() != RequestState.IN_PROGRESS
+                || !req.children().isEmpty()) {
             throw new IllegalStateException("Cannot resolve " + req);
         }
         resolver.resolve(this, req);
     }
 
-    // ------------------------------------------------------------------ transitions (StandardRequestManager.updateRequestState)
+    // ------------------------------------------------------------------ transitions
+    // (StandardRequestManager.updateRequestState)
 
     private void transition(Request req, RequestState state) {
         req.setState(state);
@@ -546,7 +564,7 @@ public final class RequestManager {
             case COMPLETED -> onCompleted(req);
             case CANCELLED, FAILED -> onCancelled(req);
             case RECEIVED -> clean(req.token());
-            default -> { }
+            default -> {}
         }
     }
 
@@ -689,7 +707,11 @@ public final class RequestManager {
             found = Optional.ofNullable(resolversByRequesterId.get(req.requester()));
         }
         if (found.isEmpty()) {
-            LOG.log(System.Logger.Level.WARNING, "Requester {0} not found for {1}", req.requester().value(), req);
+            LOG.log(
+                    System.Logger.Level.WARNING,
+                    "Requester {0} not found for {1}",
+                    req.requester().value(),
+                    req);
         }
         return found;
     }

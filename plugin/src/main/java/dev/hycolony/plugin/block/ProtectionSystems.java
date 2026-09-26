@@ -30,7 +30,8 @@ public final class ProtectionSystems {
     private ProtectionSystems() {}
 
     /** True (and the player is told) when the action must be refused. */
-    private static boolean deny(WorldRuntimes runtimes, Store<EntityStore> store, PlayerRef player, BlockPos pos, Action action) {
+    private static boolean deny(
+            WorldRuntimes runtimes, Store<EntityStore> store, PlayerRef player, BlockPos pos, Action action) {
         WorldRuntime rt = runtimes.of(store.getExternalData().getWorld());
         if (rt == null || !rt.enabled() || player == null) {
             return false;
@@ -39,7 +40,8 @@ public final class ProtectionSystems {
         if (!m.protectionEnabled() || m.isAllowed(player.getUuid(), pos, action)) {
             return false;
         }
-        player.sendMessage(HytaleNotifier.toMessage(Msg.of("hycolony.permission.denied", m.colonyAt(pos).get().name())));
+        player.sendMessage(HytaleNotifier.toMessage(
+                Msg.of("hycolony.permission.denied", m.colonyAt(pos).get().name())));
         return true;
     }
 
@@ -59,13 +61,22 @@ public final class ProtectionSystems {
         }
 
         @Override
-        public void handle(int index, @Nonnull ArchetypeChunk<EntityStore> chunk, @Nonnull Store<EntityStore> store,
-                           @Nonnull CommandBuffer<EntityStore> buffer, @Nonnull PlaceBlockEvent event) {
-            if (event.getItemInHand() != null && hutItemIds.contains(event.getItemInHand().getItemId())) {
+        public void handle(
+                int index,
+                @Nonnull ArchetypeChunk<EntityStore> chunk,
+                @Nonnull Store<EntityStore> store,
+                @Nonnull CommandBuffer<EntityStore> buffer,
+                @Nonnull PlaceBlockEvent event) {
+            if (event.getItemInHand() != null
+                    && hutItemIds.contains(event.getItemInHand().getItemId())) {
                 return;
             }
-            if (deny(runtimes, store, HutBlockSystems.player(index, chunk, store),
-                    HutBlockSystems.pos(event.getTargetBlock()), Action.PLACE_BLOCKS)) {
+            if (deny(
+                    runtimes,
+                    store,
+                    HutBlockSystems.player(index, chunk, store),
+                    HutBlockSystems.pos(event.getTargetBlock()),
+                    Action.PLACE_BLOCKS)) {
                 event.setCancelled(true);
             }
         }
@@ -88,18 +99,27 @@ public final class ProtectionSystems {
         }
 
         @Override
-        public void handle(int index, @Nonnull ArchetypeChunk<EntityStore> chunk, @Nonnull Store<EntityStore> store,
-                           @Nonnull CommandBuffer<EntityStore> buffer, @Nonnull UseBlockEvent.Pre event) {
+        public void handle(
+                int index,
+                @Nonnull ArchetypeChunk<EntityStore> chunk,
+                @Nonnull Store<EntityStore> store,
+                @Nonnull CommandBuffer<EntityStore> buffer,
+                @Nonnull UseBlockEvent.Pre event) {
             if (hutBlockIds.contains(event.getBlockType().getId())) {
                 return;
             }
             Vector3i target = event.getTargetBlock();
             World world = store.getExternalData().getWorld();
-            if (BlockModule.getComponent(ItemContainerBlock.getComponentType(), world, target.x, target.y, target.z) == null) {
+            if (BlockModule.getComponent(ItemContainerBlock.getComponentType(), world, target.x, target.y, target.z)
+                    == null) {
                 return;
             }
-            if (deny(runtimes, store, HutBlockSystems.player(index, chunk, store),
-                    HutBlockSystems.pos(target), Action.OPEN_CONTAINER)) {
+            if (deny(
+                    runtimes,
+                    store,
+                    HutBlockSystems.player(index, chunk, store),
+                    HutBlockSystems.pos(target),
+                    Action.OPEN_CONTAINER)) {
                 event.setCancelled(true);
             }
         }
@@ -121,13 +141,21 @@ public final class ProtectionSystems {
         }
 
         @Override
-        public void handle(int index, @Nonnull ArchetypeChunk<EntityStore> chunk, @Nonnull Store<EntityStore> store,
-                           @Nonnull CommandBuffer<EntityStore> buffer, @Nonnull BreakBlockEvent event) {
+        public void handle(
+                int index,
+                @Nonnull ArchetypeChunk<EntityStore> chunk,
+                @Nonnull Store<EntityStore> store,
+                @Nonnull CommandBuffer<EntityStore> buffer,
+                @Nonnull BreakBlockEvent event) {
             if (hutBlockIds.contains(event.getBlockType().getId())) {
                 return;
             }
-            if (deny(runtimes, store, HutBlockSystems.player(index, chunk, store),
-                    HutBlockSystems.pos(event.getTargetBlock()), Action.BREAK_BLOCKS)) {
+            if (deny(
+                    runtimes,
+                    store,
+                    HutBlockSystems.player(index, chunk, store),
+                    HutBlockSystems.pos(event.getTargetBlock()),
+                    Action.BREAK_BLOCKS)) {
                 event.setCancelled(true);
             }
         }

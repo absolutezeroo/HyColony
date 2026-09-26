@@ -16,9 +16,23 @@ public final class FakePlayers implements PlayerDirectory {
     public final Map<UUID, BlockPos> online = new LinkedHashMap<>();
     public final Set<UUID> creativeOperators = new HashSet<>();
 
-    @Override public boolean isCreativeOperator(UUID player) { return creativeOperators.contains(player); }
+    @Override
+    public boolean isCreativeOperator(UUID player) {
+        return creativeOperators.contains(player);
+    }
 
-    @Override public boolean isOnline(UUID player) { return online.containsKey(player); }
-    @Override public Optional<BlockPos> position(UUID player) { return Optional.ofNullable(online.get(player)); }
-    @Override public Collection<UUID> onlineIn(WorldKey world) { return List.copyOf(online.keySet()); }
+    @Override
+    public boolean isOnline(UUID player) {
+        return online.containsKey(player);
+    }
+
+    @Override
+    public Optional<BlockPos> position(UUID player) {
+        return Optional.ofNullable(online.get(player));
+    }
+
+    @Override
+    public Collection<UUID> onlineIn(WorldKey world) {
+        return List.copyOf(online.keySet());
+    }
 }

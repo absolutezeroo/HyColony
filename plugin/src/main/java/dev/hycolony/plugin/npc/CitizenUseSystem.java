@@ -36,8 +36,12 @@ public final class CitizenUseSystem extends EntityEventSystem<EntityStore, UseEn
     }
 
     @Override
-    public void handle(int index, @Nonnull ArchetypeChunk<EntityStore> chunk, @Nonnull Store<EntityStore> store,
-                       @Nonnull CommandBuffer<EntityStore> buffer, @Nonnull UseEntityEvent.Pre event) {
+    public void handle(
+            int index,
+            @Nonnull ArchetypeChunk<EntityStore> chunk,
+            @Nonnull Store<EntityStore> store,
+            @Nonnull CommandBuffer<EntityStore> buffer,
+            @Nonnull UseEntityEvent.Pre event) {
         try {
             Ref<EntityStore> target = event.getTargetEntity();
             if (event.getInteractionType() != InteractionType.Use || !target.isValid()) {

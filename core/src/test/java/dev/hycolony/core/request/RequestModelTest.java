@@ -59,9 +59,22 @@ class RequestModelTest {
 
     @Test
     void stateOrdinalsMatchMineColonies() {
-        List<String> expected = List.of("CREATED", "REPORTED", "ASSIGNING", "ASSIGNED", "IN_PROGRESS", "RESOLVED",
-                "FOLLOWUP_IN_PROGRESS", "COMPLETED", "OVERRULED", "CANCELLED", "RECEIVED", "FINALIZING", "FAILED");
-        assertEquals(expected, Arrays.stream(RequestState.values()).map(Enum::name).toList());
+        List<String> expected = List.of(
+                "CREATED",
+                "REPORTED",
+                "ASSIGNING",
+                "ASSIGNED",
+                "IN_PROGRESS",
+                "RESOLVED",
+                "FOLLOWUP_IN_PROGRESS",
+                "COMPLETED",
+                "OVERRULED",
+                "CANCELLED",
+                "RECEIVED",
+                "FINALIZING",
+                "FAILED");
+        assertEquals(
+                expected, Arrays.stream(RequestState.values()).map(Enum::name).toList());
     }
 
     @Test

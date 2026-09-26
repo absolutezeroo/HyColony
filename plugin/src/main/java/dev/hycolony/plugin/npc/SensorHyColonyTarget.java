@@ -17,7 +17,11 @@ public final class SensorHyColonyTarget extends SensorBase {
     }
 
     @Override
-    public boolean matches(@Nonnull Ref<EntityStore> ref, @Nonnull ExecutionSupport support, double dt, @Nonnull Store<EntityStore> store) {
+    public boolean matches(
+            @Nonnull Ref<EntityStore> ref,
+            @Nonnull ExecutionSupport support,
+            double dt,
+            @Nonnull Store<EntityStore> store) {
         if (!super.matches(ref, support, dt, store)) {
             positionProvider.clear();
             return false;

@@ -60,18 +60,39 @@ public final class Permissions {
             rank.add(Action.MAP_DEATHS);
         }
         if (id <= OFFICER) {
-            for (Action a : new Action[] {Action.PLACE_HUTS, Action.BREAK_HUTS, Action.MANAGE_HUTS, Action.RECEIVE_MESSAGES,
-                    Action.PLACE_BLOCKS, Action.BREAK_BLOCKS, Action.FILL_BUCKET, Action.OPEN_CONTAINER, Action.RALLY_GUARDS,
-                    Action.MAP_BORDER, Action.MAP_DEATHS}) {
+            for (Action a : new Action[] {
+                Action.PLACE_HUTS,
+                Action.BREAK_HUTS,
+                Action.MANAGE_HUTS,
+                Action.RECEIVE_MESSAGES,
+                Action.PLACE_BLOCKS,
+                Action.BREAK_BLOCKS,
+                Action.FILL_BUCKET,
+                Action.OPEN_CONTAINER,
+                Action.RALLY_GUARDS,
+                Action.MAP_BORDER,
+                Action.MAP_DEATHS
+            }) {
                 rank.add(a);
             }
             rank.setColonyManager(true);
         }
         if (id <= FRIEND) {
-            for (Action a : new Action[] {Action.ACCESS_HUTS, Action.USE_SCAN_TOOL, Action.TOSS_ITEM, Action.PICKUP_ITEM,
-                    Action.RIGHTCLICK_BLOCK, Action.RIGHTCLICK_ENTITY, Action.THROW_POTION, Action.SHOOT_ARROW,
-                    Action.ATTACK_CITIZEN, Action.ATTACK_ENTITY, Action.TELEPORT_TO_COLONY, Action.ACCESS_TOGGLEABLES,
-                    Action.MAP_BORDER}) {
+            for (Action a : new Action[] {
+                Action.ACCESS_HUTS,
+                Action.USE_SCAN_TOOL,
+                Action.TOSS_ITEM,
+                Action.PICKUP_ITEM,
+                Action.RIGHTCLICK_BLOCK,
+                Action.RIGHTCLICK_ENTITY,
+                Action.THROW_POTION,
+                Action.SHOOT_ARROW,
+                Action.ATTACK_CITIZEN,
+                Action.ATTACK_ENTITY,
+                Action.TELEPORT_TO_COLONY,
+                Action.ACCESS_TOGGLEABLES,
+                Action.MAP_BORDER
+            }) {
                 rank.add(a);
             }
         }
@@ -80,8 +101,13 @@ public final class Permissions {
         return rank;
     }
 
-    public UUID owner() { return owner; }
-    public String ownerName() { return ownerName; }
+    public UUID owner() {
+        return owner;
+    }
+
+    public String ownerName() {
+        return ownerName;
+    }
 
     public Rank rankOf(UUID player) {
         Member member = members.get(player);
@@ -106,6 +132,11 @@ public final class Permissions {
         return true;
     }
 
-    public Map<Integer, Rank> ranks() { return Collections.unmodifiableMap(ranks); }
-    public Map<UUID, Member> members() { return Collections.unmodifiableMap(members); }
+    public Map<Integer, Rank> ranks() {
+        return Collections.unmodifiableMap(ranks);
+    }
+
+    public Map<UUID, Member> members() {
+        return Collections.unmodifiableMap(members);
+    }
 }

@@ -28,41 +28,73 @@ public final class Request {
         this.citizenId = citizenId;
     }
 
-    public RequestToken token() { return token; }
+    public RequestToken token() {
+        return token;
+    }
 
-    public RequesterId requester() { return requester; }
+    public RequesterId requester() {
+        return requester;
+    }
 
-    public Deliverable requestable() { return requestable; }
+    public Deliverable requestable() {
+        return requestable;
+    }
 
-    public RequestState state() { return state; }
+    public RequestState state() {
+        return state;
+    }
 
-    public Optional<RequestToken> parent() { return Optional.ofNullable(parent); }
+    public Optional<RequestToken> parent() {
+        return Optional.ofNullable(parent);
+    }
 
-    public List<RequestToken> children() { return Collections.unmodifiableList(children); }
+    public List<RequestToken> children() {
+        return Collections.unmodifiableList(children);
+    }
 
-    public List<ItemAmount> deliveries() { return Collections.unmodifiableList(deliveries); }
+    public List<ItemAmount> deliveries() {
+        return Collections.unmodifiableList(deliveries);
+    }
 
     /** The deliveries were handed to the citizen (the player's "Fournir"), not left in the hut. */
-    public boolean deliveredToCitizen() { return deliveredToCitizen; }
+    public boolean deliveredToCitizen() {
+        return deliveredToCitizen;
+    }
 
     /** -1 = the building itself. */
-    public int citizenId() { return citizenId; }
+    public int citizenId() {
+        return citizenId;
+    }
 
     // --- package-private mutators, used by RequestManager ---
 
-    void setState(RequestState s) { state = s; }
+    void setState(RequestState s) {
+        state = s;
+    }
 
-    void setParent(RequestToken p) { parent = p; }
+    void setParent(RequestToken p) {
+        parent = p;
+    }
 
-    void setCitizenId(int id) { citizenId = id; }
+    void setCitizenId(int id) {
+        citizenId = id;
+    }
 
-    void setDeliveredToCitizen(boolean b) { deliveredToCitizen = b; }
+    void setDeliveredToCitizen(boolean b) {
+        deliveredToCitizen = b;
+    }
 
-    void addChild(RequestToken c) { children.add(c); }
+    void addChild(RequestToken c) {
+        children.add(c);
+    }
 
-    void removeChild(RequestToken c) { children.remove(c); }
+    void removeChild(RequestToken c) {
+        children.remove(c);
+    }
 
-    void addDelivery(ItemAmount a) { deliveries.add(a); }
+    void addDelivery(ItemAmount a) {
+        deliveries.add(a);
+    }
 
     void setDeliveries(List<ItemAmount> d) {
         deliveries.clear();
@@ -70,9 +102,13 @@ public final class Request {
     }
 
     /** The resolver blacklist this request was last assigned with; its children inherit it. */
-    Set<String> blacklist() { return blacklist; }
+    Set<String> blacklist() {
+        return blacklist;
+    }
 
-    void setBlacklist(Set<String> b) { blacklist = Set.copyOf(b); }
+    void setBlacklist(Set<String> b) {
+        blacklist = Set.copyOf(b);
+    }
 
     @Override
     public String toString() {

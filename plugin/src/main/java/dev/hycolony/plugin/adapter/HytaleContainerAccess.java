@@ -106,7 +106,8 @@ public final class HytaleContainerAccess implements ContainerAccess {
     }
 
     private ItemContainer container(BlockPos p) {
-        ItemContainerBlock b = BlockModule.getComponent(ItemContainerBlock.getComponentType(), world, p.x(), p.y(), p.z());
+        ItemContainerBlock b =
+                BlockModule.getComponent(ItemContainerBlock.getComponentType(), world, p.x(), p.y(), p.z());
         return b == null ? null : b.getItemContainer();
     }
 

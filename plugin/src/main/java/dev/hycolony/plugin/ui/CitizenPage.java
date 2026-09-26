@@ -27,20 +27,35 @@ public final class CitizenPage extends ColonyPage {
     }
 
     @Override
-    public void build(@Nonnull Ref<EntityStore> ref, @Nonnull UICommandBuilder ui, @Nonnull UIEventBuilder events,
-                      @Nonnull Store<EntityStore> store) {
+    public void build(
+            @Nonnull Ref<EntityStore> ref,
+            @Nonnull UICommandBuilder ui,
+            @Nonnull UIEventBuilder events,
+            @Nonnull Store<EntityStore> store) {
         ui.append("Pages/HyColony/Citizen.ui");
         Message none = Message.translation("hycolony.ui.citizen.none");
         ui.set("#Name.Text", view.name());
-        ui.set("#Job.TextSpans", Message.translation("hycolony.ui.citizen.job")
-                .param("p0", view.jobId().map(ColonyPage::jobName).orElse(none)));
-        ui.set("#Workplace.TextSpans", Message.translation("hycolony.ui.citizen.workplace")
-                .param("p0", view.workBuilding().map(ColonyPage::buildingName).orElse(none)));
+        ui.set(
+                "#Job.TextSpans",
+                Message.translation("hycolony.ui.citizen.job")
+                        .param("p0", view.jobId().map(ColonyPage::jobName).orElse(none)));
+        ui.set(
+                "#Workplace.TextSpans",
+                Message.translation("hycolony.ui.citizen.workplace")
+                        .param(
+                                "p0",
+                                view.workBuilding()
+                                        .map(ColonyPage::buildingName)
+                                        .orElse(none)));
         if (view.waitingFor().isPresent()) {
-            ui.set("#Activity.TextSpans", Message.translation("hycolony.ui.citizen.waitingFor")
-                    .param("p0", RequestsPage.describe(view.waitingFor().get())));
+            ui.set(
+                    "#Activity.TextSpans",
+                    Message.translation("hycolony.ui.citizen.waitingFor")
+                            .param("p0", RequestsPage.describe(view.waitingFor().get())));
         } else if (view.jobActivity().isPresent()) {
-            ui.set("#Activity.TextSpans", HytaleNotifier.toMessage(view.jobActivity().get()));
+            ui.set(
+                    "#Activity.TextSpans",
+                    HytaleNotifier.toMessage(view.jobActivity().get()));
         } else {
             ui.set("#Activity.Text", Message.translation("hycolony.status." + view.activity()));
         }
@@ -49,7 +64,8 @@ public final class CitizenPage extends ColonyPage {
         for (int i = 0; i < skills.length; i++) {
             String row = "#Skills[" + i + "]";
             ui.append("#Skills", "Pages/HyColony/CitizenRow.ui");
-            ui.set(row + " #Name.Text",
+            ui.set(
+                    row + " #Name.Text",
                     Message.translation("hycolony.ui.skill." + skills[i].name().toLowerCase(Locale.ROOT)));
             ui.set(row + " #Status.Text", String.valueOf(view.skills().get(skills[i])));
         }
@@ -78,8 +94,11 @@ public final class CitizenPage extends ColonyPage {
             String row = "#Requests[" + i + "]";
             ui.append("#Requests", "Pages/HyColony/RequestRow.ui");
             ui.set(row + " #Description.TextSpans", RequestsPage.describe(r.requestable()));
-            ui.set(row + " #Info.TextSpans", Message.translation("hycolony.ui.requests.info")
-                    .param("p0", buildingName(r.requesterName())).param("p1", String.valueOf(r.playerHas())));
+            ui.set(
+                    row + " #Info.TextSpans",
+                    Message.translation("hycolony.ui.requests.info")
+                            .param("p0", buildingName(r.requesterName()))
+                            .param("p1", String.valueOf(r.playerHas())));
             if (r.playerHas() > 0) {
                 bind(events, row + " #FulfilButton", "fulfil", i);
             } else {
@@ -90,8 +109,11 @@ public final class CitizenPage extends ColonyPage {
 
     @Override
     public void handleDataEvent(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, @Nonnull Act act) {
-        if (act.action.equals("fulfil") && act.index >= 0 && act.index < view.requests().size()) {
-            manager.fulfil(player, view.colonyId(), view.requests().get(act.index).token());
+        if (act.action.equals("fulfil")
+                && act.index >= 0
+                && act.index < view.requests().size()) {
+            manager.fulfil(
+                    player, view.colonyId(), view.requests().get(act.index).token());
             manager.openCitizen(player, view.colonyId(), view.citizenId()); // fulfil does not re-show
         }
     }

@@ -32,8 +32,16 @@ public final class HytaleBlocks {
         if (type == null || !expectedBlockId.equals(type.getId())) {
             return;
         }
-        BlockHarvestUtils.naturallyRemoveBlock(new Vector3i(pos.x(), pos.y(), pos.z()), type,
-                blocks.getFiller(pos.x(), pos.y(), pos.z()), 1, dropItemId, null, 0, section,
-                world.getEntityStore().getStore(), cs.getStore());
+        BlockHarvestUtils.naturallyRemoveBlock(
+                new Vector3i(pos.x(), pos.y(), pos.z()),
+                type,
+                blocks.getFiller(pos.x(), pos.y(), pos.z()),
+                1,
+                dropItemId,
+                null,
+                0,
+                section,
+                world.getEntityStore().getStore(),
+                cs.getStore());
     }
 }

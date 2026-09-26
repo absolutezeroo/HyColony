@@ -28,6 +28,7 @@ public final class PlayerResolver implements Resolver {
     private final Map<RequestToken, Request> open = new LinkedHashMap<>();
     /** Requests already announced: a request coming back after a retry is not announced again. */
     private final Set<RequestToken> announced = new HashSet<>();
+
     private Consumer<Request> onNeedsPlayer = r -> {};
 
     public PlayerResolver(BlockPos location) {
@@ -50,11 +51,31 @@ public final class PlayerResolver implements Resolver {
         announced.add(request.token());
     }
 
-    @Override public String resolverId() { return ID; }
-    @Override public int priority() { return PRIORITY; }
-    @Override public boolean handles(Deliverable requestable) { return true; }
-    @Override public boolean canResolve(RequestManager m, Request r) { return true; }
-    @Override public Optional<List<Deliverable>> attemptResolve(RequestManager m, Request r) { return Optional.of(List.of()); }
+    @Override
+    public String resolverId() {
+        return ID;
+    }
+
+    @Override
+    public int priority() {
+        return PRIORITY;
+    }
+
+    @Override
+    public boolean handles(Deliverable requestable) {
+        return true;
+    }
+
+    @Override
+    public boolean canResolve(RequestManager m, Request r) {
+        return true;
+    }
+
+    @Override
+    public Optional<List<Deliverable>> attemptResolve(RequestManager m, Request r) {
+        return Optional.of(List.of());
+    }
+
     @Override
     public void resolve(RequestManager m, Request r) {
         open.put(r.token(), r);
@@ -63,8 +84,16 @@ public final class PlayerResolver implements Resolver {
             onNeedsPlayer.accept(r);
         }
     }
-    @Override public void onCancelling(RequestManager m, Request r) { open.remove(r.token()); }
-    @Override public double suitability(RequestManager m, Request r) { return 0; }
+
+    @Override
+    public void onCancelling(RequestManager m, Request r) {
+        open.remove(r.token());
+    }
+
+    @Override
+    public double suitability(RequestManager m, Request r) {
+        return 0;
+    }
 
     /** Matching requests get another chance, with the player blacklisted. */
     @Override
@@ -76,9 +105,24 @@ public final class PlayerResolver implements Resolver {
         }
     }
 
-    @Override public RequesterId requesterId() { return REQUESTER_ID; }
-    @Override public BlockPos location() { return location; }
-    @Override public String displayName() { return "Player"; }
-    @Override public void onRequestComplete(RequestManager manager, Request request) {}
-    @Override public void onRequestCancelled(RequestManager manager, Request request) {}
+    @Override
+    public RequesterId requesterId() {
+        return REQUESTER_ID;
+    }
+
+    @Override
+    public BlockPos location() {
+        return location;
+    }
+
+    @Override
+    public String displayName() {
+        return "Player";
+    }
+
+    @Override
+    public void onRequestComplete(RequestManager manager, Request request) {}
+
+    @Override
+    public void onRequestCancelled(RequestManager manager, Request request) {}
 }

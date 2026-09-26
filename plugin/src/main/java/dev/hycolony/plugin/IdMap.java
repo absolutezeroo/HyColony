@@ -29,9 +29,17 @@ public final class IdMap {
         }
     }
 
-    public String itemId(String key) { return require(data.items(), key); }
-    public String blockId(String key) { return require(data.blocks(), key); }
-    public String npcRole(String key) { return require(data.npcRoles(), key); }
+    public String itemId(String key) {
+        return require(data.items(), key);
+    }
+
+    public String blockId(String key) {
+        return require(data.blocks(), key);
+    }
+
+    public String npcRole(String key) {
+        return require(data.npcRoles(), key);
+    }
 
     private static String require(Map<String, String> map, String key) {
         String id = map.get(key);

@@ -24,8 +24,10 @@ import javax.annotation.Nonnull;
 public final class TownHallPage extends InteractiveCustomUIPage<TownHallPage.Data> {
     public static final class Data {
         static final BuilderCodec<Data> CODEC = BuilderCodec.builder(Data.class, Data::new)
-                .append(new KeyedCodec<>("Action", Codec.STRING), (d, v) -> d.action = v, d -> d.action).add()
-                .append(new KeyedCodec<>("@Name", Codec.STRING), (d, v) -> d.name = v, d -> d.name).add()
+                .append(new KeyedCodec<>("Action", Codec.STRING), (d, v) -> d.action = v, d -> d.action)
+                .add()
+                .append(new KeyedCodec<>("@Name", Codec.STRING), (d, v) -> d.name = v, d -> d.name)
+                .add()
                 .build();
         String action;
         String name;
@@ -43,8 +45,11 @@ public final class TownHallPage extends InteractiveCustomUIPage<TownHallPage.Dat
     }
 
     @Override
-    public void build(@Nonnull Ref<EntityStore> ref, @Nonnull UICommandBuilder ui, @Nonnull UIEventBuilder events,
-                      @Nonnull Store<EntityStore> store) {
+    public void build(
+            @Nonnull Ref<EntityStore> ref,
+            @Nonnull UICommandBuilder ui,
+            @Nonnull UIEventBuilder events,
+            @Nonnull Store<EntityStore> store) {
         ui.append("Pages/HyColony/TownHall.ui");
         ui.set("#ColonyName.Text", view.colonyName());
         ui.set("#Owner.Text", Message.translation("hycolony.ui.townhall.owner").param("p0", view.ownerName()));
@@ -55,7 +60,9 @@ public final class TownHallPage extends InteractiveCustomUIPage<TownHallPage.Dat
             String row = "#CitizenList[" + i + "]";
             ui.append("#CitizenList", "Pages/HyColony/CitizenRow.ui");
             ui.set(row + " #Name.Text", rows.get(i).name());
-            ui.set(row + " #Status.Text", Message.translation("hycolony.status." + rows.get(i).status()));
+            ui.set(
+                    row + " #Status.Text",
+                    Message.translation("hycolony.status." + rows.get(i).status()));
         }
         // Navigation opens another page: no interface lock, so nothing to unlock.
         for (String action : new String[] {"building", "workOrders", "requests"}) {
@@ -63,7 +70,9 @@ public final class TownHallPage extends InteractiveCustomUIPage<TownHallPage.Dat
             events.addEventBinding(CustomUIEventBindingType.Activating, button, EventData.of("Action", action), false);
         }
         if (view.canRename()) {
-            events.addEventBinding(CustomUIEventBindingType.Activating, "#RenameButton",
+            events.addEventBinding(
+                    CustomUIEventBindingType.Activating,
+                    "#RenameButton",
                     new EventData().append("@Name", "#RenameInput.Value"));
         } else {
             ui.set("#RenameButton.Visible", false);
@@ -76,10 +85,11 @@ public final class TownHallPage extends InteractiveCustomUIPage<TownHallPage.Dat
         if (data.action != null) {
             switch (data.action) {
                 // The town hall stands at the colony's center.
-                case "building" -> manager.byId(view.colonyId()).ifPresent(c -> manager.openBuilding(player, c.center()));
+                case "building" ->
+                    manager.byId(view.colonyId()).ifPresent(c -> manager.openBuilding(player, c.center()));
                 case "workOrders" -> manager.openWorkOrders(player, view.colonyId());
                 case "requests" -> manager.openRequests(player, view.colonyId());
-                default -> { }
+                default -> {}
             }
             return;
         }

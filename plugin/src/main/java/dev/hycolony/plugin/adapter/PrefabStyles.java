@@ -36,8 +36,8 @@ final class PrefabStyles {
     }
 
     static PrefabStyles parse(Reader in) {
-        Map<String, Map<String, Map<String, Level>>> t = new Gson().fromJson(in,
-                new TypeToken<LinkedHashMap<String, Map<String, Map<String, Level>>>>() {}.getType());
+        Map<String, Map<String, Map<String, Level>>> t = new Gson()
+                .fromJson(in, new TypeToken<LinkedHashMap<String, Map<String, Map<String, Level>>>>() {}.getType());
         return new PrefabStyles(t == null ? Map.of() : t);
     }
 
@@ -53,11 +53,13 @@ final class PrefabStyles {
     /** Every distinct prefab path, in file order. */
     Set<String> prefabs() {
         Set<String> out = new LinkedHashSet<>();
-        table.values().forEach(types -> types.values().forEach(levels -> levels.values().forEach(l -> {
-            if (l != null && l.prefab() != null) {
-                out.add(l.prefab());
-            }
-        })));
+        table.values()
+                .forEach(types -> types.values()
+                        .forEach(levels -> levels.values().forEach(l -> {
+                            if (l != null && l.prefab() != null) {
+                                out.add(l.prefab());
+                            }
+                        })));
         return out;
     }
 
@@ -86,8 +88,16 @@ final class PrefabStyles {
      * The hut cell, anchor-relative and unrotated: {@code hutOffset - anchor}, or by default the centre X/Z (floor)
      * of the unrotated box on the lowest non-empty layer.
      */
-    static int[] hutCell(@Nullable int[] hutOffset, int anchorX, int anchorY, int anchorZ,
-            int minX, int maxX, int lowestY, int minZ, int maxZ) {
+    static int[] hutCell(
+            @Nullable int[] hutOffset,
+            int anchorX,
+            int anchorY,
+            int anchorZ,
+            int minX,
+            int maxX,
+            int lowestY,
+            int minZ,
+            int maxZ) {
         if (hutOffset != null) {
             return new int[] {hutOffset[0] - anchorX, hutOffset[1] - anchorY, hutOffset[2] - anchorZ};
         }

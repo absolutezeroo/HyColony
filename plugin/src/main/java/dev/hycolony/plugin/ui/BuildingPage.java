@@ -62,23 +62,34 @@ public final class BuildingPage extends ColonyPage {
     }
 
     @Override
-    public void build(@Nonnull Ref<EntityStore> ref, @Nonnull UICommandBuilder ui, @Nonnull UIEventBuilder events,
-                      @Nonnull Store<EntityStore> store) {
+    public void build(
+            @Nonnull Ref<EntityStore> ref,
+            @Nonnull UICommandBuilder ui,
+            @Nonnull UIEventBuilder events,
+            @Nonnull Store<EntityStore> store) {
         ui.append("Pages/HyColony/Building.ui");
         ui.set("#TypeName.Text", buildingName(view.typeId()));
-        ui.set("#Level.Text", Message.translation("hycolony.ui.building.level")
-                .param("p0", String.valueOf(view.level())).param("p1", String.valueOf(view.maxLevel())));
+        ui.set(
+                "#Level.Text",
+                Message.translation("hycolony.ui.building.level")
+                        .param("p0", String.valueOf(view.level()))
+                        .param("p1", String.valueOf(view.maxLevel())));
         String state = view.deconstructed() ? "deconstructed" : view.built() ? "built" : "notBuilt";
         ui.set("#State.Text", Message.translation("hycolony.ui.building.state." + state));
 
         if (view.order().isPresent()) {
             BuildingView.OrderRow o = view.order().get();
-            ui.set("#OrderInfo.TextSpans", Message.translation("hycolony.ui.building.order")
-                    .param("p0", typeName(o.type()))
-                    .param("p1", String.valueOf(o.targetLevel()))
-                    .param("p2", o.builderName().map(Message::raw)
-                            .orElse(Message.translation("hycolony.ui.building.noBuilder")))
-                    .param("p3", String.valueOf(o.percent())));
+            ui.set(
+                    "#OrderInfo.TextSpans",
+                    Message.translation("hycolony.ui.building.order")
+                            .param("p0", typeName(o.type()))
+                            .param("p1", String.valueOf(o.targetLevel()))
+                            .param(
+                                    "p2",
+                                    o.builderName()
+                                            .map(Message::raw)
+                                            .orElse(Message.translation("hycolony.ui.building.noBuilder")))
+                            .param("p3", String.valueOf(o.percent())));
         } else {
             ui.set("#OrderInfo.Text", Message.translation("hycolony.ui.building.noOrder"));
         }
@@ -106,8 +117,10 @@ public final class BuildingPage extends ColonyPage {
 
         if (view.hiringMode().isPresent()) {
             // A button's Text renders no nested message: one full key per mode.
-            ui.set("#HiringButton.Text", Message.translation(
-                    "hycolony.ui.building.hiring." + view.hiringMode().get().name().toLowerCase(Locale.ROOT)));
+            ui.set(
+                    "#HiringButton.Text",
+                    Message.translation("hycolony.ui.building.hiring."
+                            + view.hiringMode().get().name().toLowerCase(Locale.ROOT)));
             if (view.canManage()) {
                 bind(events, "#HiringButton", "hiring");
             } else {
@@ -142,8 +155,13 @@ public final class BuildingPage extends ColonyPage {
         }
     }
 
-    private void rows(UICommandBuilder ui, UIEventBuilder events, String list, List<BuildingView.WorkerRow> rows,
-                      String action, String buttonKey) {
+    private void rows(
+            UICommandBuilder ui,
+            UIEventBuilder events,
+            String list,
+            List<BuildingView.WorkerRow> rows,
+            String action,
+            String buttonKey) {
         for (int i = 0; i < rows.size(); i++) {
             String row = list + "[" + i + "]";
             ui.append(list, "Pages/HyColony/WorkerRow.ui");
@@ -178,8 +196,10 @@ public final class BuildingPage extends ColonyPage {
                 ui.set("#StyleButton.Text", style());
                 sendUpdate(ui, false);
             }
-            case "hiring" -> view.hiringMode().ifPresent(m ->
-                    manager.setHiring(player, pos, HiringMode.values()[(m.ordinal() + 1) % HiringMode.values().length]));
+            case "hiring" ->
+                view.hiringMode()
+                        .ifPresent(m -> manager.setHiring(
+                                player, pos, HiringMode.values()[(m.ordinal() + 1) % HiringMode.values().length]));
             case "fire" -> {
                 if (i >= 0 && i < view.workers().size()) {
                     manager.fire(player, pos, view.workers().get(i).citizenId());
@@ -193,7 +213,7 @@ public final class BuildingPage extends ColonyPage {
             case "resources" -> manager.openBuilderResources(player, pos);
             case "storage" -> openStorage(ref, store);
             case "pickUp" -> pickUp.run();
-            default -> { }
+            default -> {}
         }
     }
 
@@ -203,15 +223,17 @@ public final class BuildingPage extends ColonyPage {
      */
     private void openStorage(Ref<EntityStore> ref, Store<EntityStore> store) {
         if (!mayOpenStorage()) { // checked again: ranks may have changed since the page was built
-            manager.colonyAt(view.pos()).ifPresent(c -> playerRef.sendMessage(
-                    HytaleNotifier.toMessage(Msg.of("hycolony.permission.denied", c.name()))));
+            manager.colonyAt(view.pos())
+                    .ifPresent(c -> playerRef.sendMessage(
+                            HytaleNotifier.toMessage(Msg.of("hycolony.permission.denied", c.name()))));
             return;
         }
         World world = store.getExternalData().getWorld();
         BlockPos p = view.pos();
         ChunkStore cs = world.getChunkStore();
         Ref<ChunkStore> section = cs.getChunkSectionReferenceAtBlock(p.x(), p.y(), p.z());
-        ItemContainerBlock container = BlockModule.getComponent(ItemContainerBlock.getComponentType(), world, p.x(), p.y(), p.z());
+        ItemContainerBlock container =
+                BlockModule.getComponent(ItemContainerBlock.getComponentType(), world, p.x(), p.y(), p.z());
         if (section == null || container == null) {
             playerRef.sendMessage(Message.translation("hycolony.ui.building.noStorage"));
             return;
@@ -222,8 +244,8 @@ public final class BuildingPage extends ColonyPage {
         if (type == null || playerComponent == null) {
             return;
         }
-        ContainerBlockWindow window = new ContainerBlockWindow(p.x(), p.y(), p.z(),
-                blocks.getRotationIndex(p.x(), p.y(), p.z()), type, container.getItemContainer());
+        ContainerBlockWindow window = new ContainerBlockWindow(
+                p.x(), p.y(), p.z(), blocks.getRotationIndex(p.x(), p.y(), p.z()), type, container.getItemContainer());
         Map<UUID, ContainerBlockWindow> windows = container.getWindows();
         if (windows.putIfAbsent(player, window) != null) {
             return; // already open

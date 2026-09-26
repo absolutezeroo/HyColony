@@ -33,19 +33,28 @@ class FreeWorkOrderTest {
             @Override
             public Optional<Blueprint> load(String style, String buildingTypeId, int level, int rotation) {
                 BlockPos o = new BlockPos(1, 0, 0);
-                return Optional.of(new Blueprint("bp",
-                        List.of(new BlueprintEntry(o, new BlockState(new BlockKey("Stone"), 0), false)), o, o));
+                return Optional.of(new Blueprint(
+                        "bp", List.of(new BlueprintEntry(o, new BlockState(new BlockKey("Stone"), 0), false)), o, o));
             }
 
             @Override
-            public List<String> styles() { return List.of("medieval"); }
+            public List<String> styles() {
+                return List.of("medieval");
+            }
         };
     }
 
     private static ColonyConfig config(boolean infinite, boolean creativeOps) {
-        return new ColonyConfig(D.initialCitizenAmount(), D.maxCitizenPerColony(), D.initialColonySize(),
-                D.minColonyDistance(), D.maxColonySize(), D.enableColonyProtection(), D.autosaveIntervalMinutes(),
-                infinite, creativeOps);
+        return new ColonyConfig(
+                D.initialCitizenAmount(),
+                D.maxCitizenPerColony(),
+                D.initialColonySize(),
+                D.minColonyDistance(),
+                D.maxColonySize(),
+                D.enableColonyProtection(),
+                D.autosaveIntervalMinutes(),
+                infinite,
+                creativeOps);
     }
 
     private void start(ColonyConfig config) {

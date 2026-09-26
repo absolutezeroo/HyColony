@@ -16,17 +16,27 @@ public abstract class Job {
         this.citizen = citizen;
     }
 
-    public JobType type() { return type; }
+    public JobType type() {
+        return type;
+    }
 
-    public CitizenData citizen() { return citizen; }
+    public CitizenData citizen() {
+        return citizen;
+    }
 
     public abstract JobAI createAI(Colony colony, BodyId body);
 
-    public int actionsDone() { return actionsDone; }
+    public int actionsDone() {
+        return actionsDone;
+    }
 
-    public void incrementActions() { actionsDone++; }
+    public void incrementActions() {
+        actionsDone++;
+    }
 
-    public void clearActions() { actionsDone = 0; }
+    public void clearActions() {
+        actionsDone = 0;
+    }
 
     public JsonObject write() {
         JsonObject o = new JsonObject();

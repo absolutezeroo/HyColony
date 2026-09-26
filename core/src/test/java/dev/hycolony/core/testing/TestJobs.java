@@ -14,14 +14,25 @@ public final class TestJobs {
     private TestJobs() {}
 
     private static final class TestJob extends Job {
-        TestJob(CitizenData citizen) { super(TYPE, citizen); }
+        TestJob(CitizenData citizen) {
+            super(TYPE, citizen);
+        }
 
         @Override
         public JobAI createAI(Colony colony, BodyId body) {
             return new JobAI() {
-                @Override public void tick() {}
-                @Override public String stateName() { return "working"; }
-                @Override public boolean canBeInterrupted() { return true; }
+                @Override
+                public void tick() {}
+
+                @Override
+                public String stateName() {
+                    return "working";
+                }
+
+                @Override
+                public boolean canBeInterrupted() {
+                    return true;
+                }
             };
         }
     }

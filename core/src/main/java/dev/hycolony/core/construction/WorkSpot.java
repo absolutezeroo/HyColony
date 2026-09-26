@@ -17,6 +17,7 @@ import dev.hycolony.core.kernel.port.WorldBlocks;
 final class WorkSpot {
     /** walkToConstructionSite: a new spot once BlockPosUtil.getDistance2D(worker, block), |dx| + |dz|, exceeds 5. */
     static final int REACH = 5;
+
     private static final int MIN_OUT = 2;
     /** PathJobMoveCloseToXNearY's range. */
     private static final int MAX_OUT = 4;

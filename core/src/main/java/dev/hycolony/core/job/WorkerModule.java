@@ -31,12 +31,29 @@ public final class WorkerModule implements PersistentModule, TickingModule, Buil
         this.assignableAtLevel0 = assignableAtLevel0;
     }
 
-    public List<Integer> workers() { return Collections.unmodifiableList(workers); }
-    public HiringMode hiringMode() { return hiringMode; }
-    public void setHiringMode(HiringMode hiringMode) { this.hiringMode = hiringMode; }
-    public Skill primary() { return primary; }
-    public Skill secondary() { return secondary; }
-    public JobType job() { return jobType; }
+    public List<Integer> workers() {
+        return Collections.unmodifiableList(workers);
+    }
+
+    public HiringMode hiringMode() {
+        return hiringMode;
+    }
+
+    public void setHiringMode(HiringMode hiringMode) {
+        this.hiringMode = hiringMode;
+    }
+
+    public Skill primary() {
+        return primary;
+    }
+
+    public Skill secondary() {
+        return secondary;
+    }
+
+    public JobType job() {
+        return jobType;
+    }
 
     public boolean canAssignCitizens(Building b) {
         return assignableAtLevel0 || (b.level() > 0 && b.isBuilt());
@@ -44,8 +61,10 @@ public final class WorkerModule implements PersistentModule, TickingModule, Buil
 
     /** Fails (returns false) when full, {@link #canAssignCitizens} is false, or the citizen is already employed. */
     public boolean hire(Colony c, Building b, CitizenData citizen) {
-        if (workers.size() >= maxWorkers || !canAssignCitizens(b)
-                || citizen.job().isPresent() || citizen.workBuilding() != null) {
+        if (workers.size() >= maxWorkers
+                || !canAssignCitizens(b)
+                || citizen.job().isPresent()
+                || citizen.workBuilding() != null) {
             return false;
         }
         citizen.setJob(jobType.factory().apply(citizen));

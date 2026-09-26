@@ -28,8 +28,11 @@ public final class BuildingManager {
 
     public BuildingManager() {
         this(new Listener() {
-            @Override public void added(Building building) {}
-            @Override public void removed(Building building) {}
+            @Override
+            public void added(Building building) {}
+
+            @Override
+            public void removed(Building building) {}
         });
     }
 
@@ -66,7 +69,9 @@ public final class BuildingManager {
             return Optional.of(hut);
         }
         // ponytail: scans a few buildings x few containers; index it if colonies grow large.
-        return buildings.values().stream().filter(b -> b.registeredContainers().contains(pos)).findFirst();
+        return buildings.values().stream()
+                .filter(b -> b.registeredContainers().contains(pos))
+                .findFirst();
     }
 
     public Optional<Building> at(BlockPos pos) {
@@ -74,7 +79,9 @@ public final class BuildingManager {
     }
 
     public Optional<Building> townHall() {
-        return buildings.values().stream().filter(b -> b.type().equals(BuildingTypes.TOWN_HALL)).findFirst();
+        return buildings.values().stream()
+                .filter(b -> b.type().equals(BuildingTypes.TOWN_HALL))
+                .findFirst();
     }
 
     public Collection<Building> all() {

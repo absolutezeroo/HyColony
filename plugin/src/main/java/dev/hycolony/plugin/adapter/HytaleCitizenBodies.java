@@ -46,6 +46,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
     private static final long FRESH_MOVE_TICKS = 10;
     /** MC completeStuckAction searches 10 blocks around the goal. */
     private static final double TELEPORT_Y_RANGE = 10;
+
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
     private final World world;
@@ -92,14 +93,22 @@ public final class HytaleCitizenBodies implements CitizenBodies {
     public Optional<BodyId> spawn(WorldKey key, BlockPos near, int colonyId, int citizenId, String displayName) {
         @SuppressWarnings("unchecked")
         Ref<EntityStore>[] spawned = new Ref[1];
-        SpawnTestResult result = NPCPlugin.get().spawnNPCWithColumnProbe(store(), roleName, null, world,
-                near.x() + 1, near.z(), near.y(), new Rotation3f(),
-                (npc, ref, st) -> {
-                    st.addComponent(ref, HyColonyComponents.citizenTag(), new CitizenTag(colonyId, citizenId));
-                    st.addComponent(ref, HyColonyComponents.moveTarget(), new MoveTarget());
-                    DisplayNameSupport.setDisplayName(ref, displayName, st);
-                    spawned[0] = ref;
-                });
+        SpawnTestResult result = NPCPlugin.get()
+                .spawnNPCWithColumnProbe(
+                        store(),
+                        roleName,
+                        null,
+                        world,
+                        near.x() + 1,
+                        near.z(),
+                        near.y(),
+                        new Rotation3f(),
+                        (npc, ref, st) -> {
+                            st.addComponent(ref, HyColonyComponents.citizenTag(), new CitizenTag(colonyId, citizenId));
+                            st.addComponent(ref, HyColonyComponents.moveTarget(), new MoveTarget());
+                            DisplayNameSupport.setDisplayName(ref, displayName, st);
+                            spawned[0] = ref;
+                        });
         if (result != SpawnTestResult.TEST_OK || spawned[0] == null) {
             return Optional.empty();
         }
@@ -276,8 +285,13 @@ public final class HytaleCitizenBodies implements CitizenBodies {
             }
             Vector3d to = new Vector3d(target.x(), target.y(), target.z());
             MotionController mc = npc.getRole().getActiveMotionController();
-            if (!mc.translateToAccessiblePosition(to, box == null ? null : box.getBoundingBox(), to.y - TELEPORT_Y_RANGE,
-                    to.y + TELEPORT_Y_RANGE, st) || !mc.isValidPosition(to, st)) {
+            if (!mc.translateToAccessiblePosition(
+                            to,
+                            box == null ? null : box.getBoundingBox(),
+                            to.y - TELEPORT_Y_RANGE,
+                            to.y + TELEPORT_Y_RANGE,
+                            st)
+                    || !mc.isValidPosition(to, st)) {
                 LOG.at(Level.WARNING).log("HyColony: no free spot to unstick a citizen near %s", to);
                 return;
             }

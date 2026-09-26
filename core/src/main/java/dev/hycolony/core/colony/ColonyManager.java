@@ -1,5 +1,6 @@
 package dev.hycolony.core.colony;
 
+import com.google.gson.JsonObject;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.building.BuildingTypes;
@@ -41,7 +42,6 @@ import dev.hycolony.core.request.Resolver;
 import dev.hycolony.core.request.StackRequest;
 import dev.hycolony.core.request.resolver.PlayerResolver;
 import dev.hycolony.core.request.resolver.RetryingResolver;
-import com.google.gson.JsonObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -85,10 +85,21 @@ public final class ColonyManager {
         this.ctx = ctx;
     }
 
-    public ColonyContext context() { return ctx; }
-    public TerritoryIndex territory() { return territory; }
-    public Collection<Colony> all() { return Collections.unmodifiableCollection(colonies.values()); }
-    public Optional<Colony> byId(int id) { return Optional.ofNullable(colonies.get(id)); }
+    public ColonyContext context() {
+        return ctx;
+    }
+
+    public TerritoryIndex territory() {
+        return territory;
+    }
+
+    public Collection<Colony> all() {
+        return Collections.unmodifiableCollection(colonies.values());
+    }
+
+    public Optional<Colony> byId(int id) {
+        return Optional.ofNullable(colonies.get(id));
+    }
 
     public Optional<Colony> colonyAt(BlockPos pos) {
         var id = territory.colonyAt(pos);
@@ -96,7 +107,9 @@ public final class ColonyManager {
     }
 
     public Optional<Colony> ownedBy(UUID player) {
-        return colonies.values().stream().filter(c -> c.permissions().owner().equals(player)).findFirst();
+        return colonies.values().stream()
+                .filter(c -> c.permissions().owner().equals(player))
+                .findFirst();
     }
 
     // ---- Hut placement (port of AbstractBlockHut.canPaste) ----
@@ -106,7 +119,8 @@ public final class ColonyManager {
         Optional<Colony> colony = colonyAt(pos);
         if (colony.isEmpty()) {
             if (!isTownHall) {
-                return new HutPlacement.Denied(Msg.of(ownedBy(player).isPresent() ? "hycolony.hut.tooFar" : "hycolony.hut.noTownHall"));
+                return new HutPlacement.Denied(
+                        Msg.of(ownedBy(player).isPresent() ? "hycolony.hut.tooFar" : "hycolony.hut.noTownHall"));
             }
             if (!storageAvailable()) {
                 return new HutPlacement.Denied(Msg.of("hycolony.storage.unavailable"));
@@ -114,7 +128,8 @@ public final class ColonyManager {
             if (ownedBy(player).isPresent()) {
                 return new HutPlacement.Denied(Msg.of("hycolony.colony.alreadyOwner"));
             }
-            if (!territory.isFreeForNewColony(pos, ctx.config().initialColonySize(), ctx.config().minColonyDistance())) {
+            if (!territory.isFreeForNewColony(
+                    pos, ctx.config().initialColonySize(), ctx.config().minColonyDistance())) {
                 return new HutPlacement.Denied(Msg.of("hycolony.colony.tooClose"));
             }
             return new HutPlacement.FoundNewColony();
@@ -154,7 +169,8 @@ public final class ColonyManager {
         }
         pending.remove(player);
         ctx.ui().close(player);
-        Colony colony = new Colony(ctx, territory, allocateId(), name, p.pos(), Permissions.createDefault(player, p.playerName()));
+        Colony colony = new Colony(
+                ctx, territory, allocateId(), name, p.pos(), Permissions.createDefault(player, p.playerName()));
         register(colony);
         colony.log().add("colonyCreated", colony.day(), name);
         ctx.bus().post(new ColonyEvents.ColonyCreated(colony));
@@ -182,7 +198,9 @@ public final class ColonyManager {
     /** Cancels whichever player's unconfirmed town hall stands at {@code pos}; returns that player. */
     public Optional<UUID> cancelFoundationAt(BlockPos pos) {
         Optional<UUID> owner = pending.entrySet().stream()
-                .filter(e -> e.getValue().pos().equals(pos)).map(Map.Entry::getKey).findFirst();
+                .filter(e -> e.getValue().pos().equals(pos))
+                .map(Map.Entry::getKey)
+                .findFirst();
         owner.ifPresent(this::cancelFoundation);
         return owner;
     }
@@ -218,7 +236,9 @@ public final class ColonyManager {
 
     /** Outside any colony everything is allowed. */
     public boolean isAllowed(UUID player, BlockPos pos, Action action) {
-        return colonyAt(pos).map(c -> c.permissions().hasPermission(player, action)).orElse(true);
+        return colonyAt(pos)
+                .map(c -> c.permissions().hasPermission(player, action))
+                .orElse(true);
     }
 
     public boolean setRank(UUID actor, int colonyId, UUID target, String targetName, int rankId) {
@@ -279,7 +299,12 @@ public final class ColonyManager {
 
     private TownHallView townHallView(Colony c, UUID viewer) {
         List<CitizenRow> rows = c.citizens().all().stream().map(d -> row(c, d)).toList();
-        return new TownHallView(c.id(), c.name(), c.permissions().ownerName(), c.day(), rows,
+        return new TownHallView(
+                c.id(),
+                c.name(),
+                c.permissions().ownerName(),
+                c.day(),
+                rows,
                 c.permissions().rankOf(viewer).isColonyManager());
     }
 
@@ -290,8 +315,12 @@ public final class ColonyManager {
     /** "absent" without a live body, else the AI state: "idle", "wandering" or "working". */
     private String status(Colony c, CitizenData d) {
         boolean present = c.citizens().bodyOf(d.id()).map(ctx.bodies()::isAlive).orElse(false);
-        return !present ? "absent"
-                : c.citizens().aiState(d.id()).map(s -> s.name().toLowerCase(Locale.ROOT)).orElse("idle");
+        return !present
+                ? "absent"
+                : c.citizens()
+                        .aiState(d.id())
+                        .map(s -> s.name().toLowerCase(Locale.ROOT))
+                        .orElse("idle");
     }
 
     // ---- Citizen window (MC WindowCitizen) ----
@@ -315,11 +344,23 @@ public final class ColonyManager {
         for (Skill s : Skill.values()) {
             skills.put(s, d.skills().level(s));
         }
-        ctx.ui().showCitizen(player, new CitizenView(c.id(), d.id(), d.name(), d.job().map(j -> j.type().id()),
-                Optional.ofNullable(d.workBuilding()).flatMap(c.buildings()::at).map(Building::displayName),
-                waitingFor.isPresent() ? "waitingFor" : status(c, d), waitingFor, c.citizens().jobActivity(d.id()), skills,
-                d.inventory().contents(),
-                requests));
+        ctx.ui()
+                .showCitizen(
+                        player,
+                        new CitizenView(
+                                c.id(),
+                                d.id(),
+                                d.name(),
+                                d.job().map(j -> j.type().id()),
+                                Optional.ofNullable(d.workBuilding())
+                                        .flatMap(c.buildings()::at)
+                                        .map(Building::displayName),
+                                waitingFor.isPresent() ? "waitingFor" : status(c, d),
+                                waitingFor,
+                                c.citizens().jobActivity(d.id()),
+                                skills,
+                                d.inventory().contents(),
+                                requests));
     }
 
     /** Archives before freeing anything; if archiving fails the colony stays registered. */
@@ -346,14 +387,16 @@ public final class ColonyManager {
     // ---- Work orders ----
 
     /** The hut's Build/Upgrade/Repair/Deconstruct button. On refusal the player gets its message. */
-    public Optional<WorkOrder> requestWorkOrder(UUID player, BlockPos buildingPos, WorkOrderType type, String style,
-            Optional<BlockPos> builder) {
+    public Optional<WorkOrder> requestWorkOrder(
+            UUID player, BlockPos buildingPos, WorkOrderType type, String style, Optional<BlockPos> builder) {
         Colony c = colonyAt(buildingPos).orElse(null);
         if (c == null || c.buildings().at(buildingPos).isEmpty()) {
             return Optional.empty();
         }
         return submitWorkOrder(c, player, buildingPos, type, style, builder)
-                instanceof Either.Left<WorkOrder, WorkOrderRefusal> created ? Optional.of(created.value()) : Optional.empty();
+                        instanceof Either.Left<WorkOrder, WorkOrderRefusal> created
+                ? Optional.of(created.value())
+                : Optional.empty();
     }
 
     /** The hut window's order button: empty on success (the window is re-shown), else the refusal. */
@@ -372,12 +415,15 @@ public final class ColonyManager {
     }
 
     /** On refusal the player gets its message. */
-    private Either<WorkOrder, WorkOrderRefusal> submitWorkOrder(Colony c, UUID player, BlockPos pos, WorkOrderType type,
-            String style, Optional<BlockPos> builder) {
+    private Either<WorkOrder, WorkOrderRefusal> submitWorkOrder(
+            Colony c, UUID player, BlockPos pos, WorkOrderType type, String style, Optional<BlockPos> builder) {
         Either<WorkOrder, WorkOrderRefusal> r = c.work().request(player, pos, type, style, builder);
         if (r instanceof Either.Right<WorkOrder, WorkOrderRefusal> refused) {
-            ctx.notifier().send(player,
-                    Msg.of("hycolony.workorder.refused." + refused.value().name().toLowerCase(Locale.ROOT)));
+            ctx.notifier()
+                    .send(
+                            player,
+                            Msg.of("hycolony.workorder.refused."
+                                    + refused.value().name().toLowerCase(Locale.ROOT)));
         }
         return r;
     }
@@ -385,7 +431,8 @@ public final class ColonyManager {
     /** The hut window's Cancel button (MANAGE_HUTS). */
     public boolean cancelWork(UUID player, BlockPos hutPos) {
         Hut h = managedHut(player, hutPos).orElse(null);
-        Optional<WorkOrder> order = h == null ? Optional.empty() : h.colony().work().byBuilding(hutPos);
+        Optional<WorkOrder> order =
+                h == null ? Optional.empty() : h.colony().work().byBuilding(hutPos);
         if (order.isEmpty()) {
             return false;
         }
@@ -397,7 +444,9 @@ public final class ColonyManager {
     /** Town hall info tab up/down arrows: {@code delta > 0} moves the order up. */
     public boolean moveWorkOrder(UUID player, int colonyId, int orderId, int delta) {
         Colony c = colonies.get(colonyId);
-        if (c == null || !c.permissions().hasPermission(player, Action.MANAGE_HUTS) || c.work().byId(orderId).isEmpty()) {
+        if (c == null
+                || !c.permissions().hasPermission(player, Action.MANAGE_HUTS)
+                || c.work().byId(orderId).isEmpty()) {
             return false;
         }
         c.work().move(orderId, delta);
@@ -407,7 +456,9 @@ public final class ColonyManager {
 
     public boolean deleteWorkOrder(UUID player, int colonyId, int orderId) {
         Colony c = colonies.get(colonyId);
-        if (c == null || !c.permissions().hasPermission(player, Action.MANAGE_HUTS) || c.work().byId(orderId).isEmpty()) {
+        if (c == null
+                || !c.permissions().hasPermission(player, Action.MANAGE_HUTS)
+                || c.work().byId(orderId).isEmpty()) {
             return false;
         }
         c.work().cancel(orderId);
@@ -423,9 +474,18 @@ public final class ColonyManager {
     }
 
     private WorkOrdersView workOrdersView(Colony c, UUID viewer) {
-        List<WorkOrdersView.OrderLine> lines = c.work().ordered().stream().map(o -> new WorkOrdersView.OrderLine(o.id(),
-                o.type(), c.buildings().at(o.buildingPos()).map(Building::displayName).orElse(""), o.targetLevel(),
-                o.priority(), builderName(c, o))).toList();
+        List<WorkOrdersView.OrderLine> lines = c.work().ordered().stream()
+                .map(o -> new WorkOrdersView.OrderLine(
+                        o.id(),
+                        o.type(),
+                        c.buildings()
+                                .at(o.buildingPos())
+                                .map(Building::displayName)
+                                .orElse(""),
+                        o.targetLevel(),
+                        o.priority(),
+                        builderName(c, o)))
+                .toList();
         return new WorkOrdersView(c.id(), lines, c.permissions().hasPermission(viewer, Action.MANAGE_HUTS));
     }
 
@@ -435,7 +495,8 @@ public final class ColonyManager {
 
     /** The hut at {@code pos} if {@code player} may manage it (MANAGE_HUTS, as MC's building messages). */
     private Optional<Hut> managedHut(UUID player, BlockPos pos) {
-        return colonyAt(pos).filter(c -> c.permissions().hasPermission(player, Action.MANAGE_HUTS))
+        return colonyAt(pos)
+                .filter(c -> c.permissions().hasPermission(player, Action.MANAGE_HUTS))
                 .flatMap(c -> c.buildings().at(pos).map(b -> new Hut(c, b)));
     }
 
@@ -450,8 +511,10 @@ public final class ColonyManager {
 
     public boolean hire(UUID player, BlockPos hutPos, int citizenId) {
         Hut h = managedHut(player, hutPos).orElse(null);
-        WorkerModule w = h == null ? null : h.building().module(WorkerModule.class).orElse(null);
-        CitizenData citizen = w == null ? null : h.colony().citizens().get(citizenId).orElse(null);
+        WorkerModule w =
+                h == null ? null : h.building().module(WorkerModule.class).orElse(null);
+        CitizenData citizen =
+                w == null ? null : h.colony().citizens().get(citizenId).orElse(null);
         if (citizen == null || citizen.isChild() || !w.hire(h.colony(), h.building(), citizen)) {
             return false;
         }
@@ -461,7 +524,8 @@ public final class ColonyManager {
 
     public boolean fire(UUID player, BlockPos hutPos, int citizenId) {
         Hut h = managedHut(player, hutPos).orElse(null);
-        WorkerModule w = h == null ? null : h.building().module(WorkerModule.class).orElse(null);
+        WorkerModule w =
+                h == null ? null : h.building().module(WorkerModule.class).orElse(null);
         if (w == null || !w.workers().contains(citizenId)) {
             return false;
         }
@@ -472,7 +536,8 @@ public final class ColonyManager {
 
     public boolean setHiring(UUID player, BlockPos hutPos, HiringMode mode) {
         Hut h = managedHut(player, hutPos).orElse(null);
-        WorkerModule w = h == null ? null : h.building().module(WorkerModule.class).orElse(null);
+        WorkerModule w =
+                h == null ? null : h.building().module(WorkerModule.class).orElse(null);
         if (w == null || mode == null) {
             return false;
         }
@@ -509,10 +574,16 @@ public final class ColonyManager {
     private void showBuilding(Colony c, Building b, UUID viewer) {
         Optional<WorkerModule> w = b.module(WorkerModule.class);
         List<BuildingView.WorkerRow> workers = w.map(m -> m.workers().stream()
-                .flatMap(id -> c.citizens().get(id).stream()).map(ColonyManager::workerRow).toList()).orElse(List.of());
-        List<BuildingView.WorkerRow> hireable = w.isEmpty() ? List.of() : c.citizens().all().stream()
-                .filter(d -> !d.isChild() && d.job().isEmpty() && d.workBuilding() == null)
-                .map(ColonyManager::workerRow).toList();
+                        .flatMap(id -> c.citizens().get(id).stream())
+                        .map(ColonyManager::workerRow)
+                        .toList())
+                .orElse(List.of());
+        List<BuildingView.WorkerRow> hireable = w.isEmpty()
+                ? List.of()
+                : c.citizens().all().stream()
+                        .filter(d -> !d.isChild() && d.job().isEmpty() && d.workBuilding() == null)
+                        .map(ColonyManager::workerRow)
+                        .toList();
         Optional<WorkOrder> order = c.work().byBuilding(b.position());
         Set<WorkOrderType> allowed = EnumSet.noneOf(WorkOrderType.class);
         if (order.isEmpty()) {
@@ -523,12 +594,27 @@ public final class ColonyManager {
             }
         }
         boolean manage = c.permissions().hasPermission(viewer, Action.MANAGE_HUTS);
-        ctx.ui().showBuilding(viewer, new BuildingView(c.id(), b.position(), b.type().id(), b.level(),
-                b.type().maxLevel(), b.isBuilt(), b.isDeconstructed(), workers, hireable,
-                w.map(WorkerModule::hiringMode),
-                order.map(o -> new BuildingView.OrderRow(o.id(), o.type(), o.targetLevel(), builderName(c, o),
-                        percent(c, o))),
-                allowed, ctx.ports().blueprints().styles(), b.style(), manage, manage && canPickUp(b)));
+        ctx.ui()
+                .showBuilding(
+                        viewer,
+                        new BuildingView(
+                                c.id(),
+                                b.position(),
+                                b.type().id(),
+                                b.level(),
+                                b.type().maxLevel(),
+                                b.isBuilt(),
+                                b.isDeconstructed(),
+                                workers,
+                                hireable,
+                                w.map(WorkerModule::hiringMode),
+                                order.map(o -> new BuildingView.OrderRow(
+                                        o.id(), o.type(), o.targetLevel(), builderName(c, o), percent(c, o))),
+                                allowed,
+                                ctx.ports().blueprints().styles(),
+                                b.style(),
+                                manage,
+                                manage && canPickUp(b)));
     }
 
     private static BuildingView.WorkerRow workerRow(CitizenData d) {
@@ -536,17 +622,26 @@ public final class ColonyManager {
     }
 
     private static Optional<CitizenData> firstWorker(Colony c, Building b) {
-        return b.module(WorkerModule.class).flatMap(w -> w.workers().stream().findFirst()).flatMap(c.citizens()::get);
+        return b.module(WorkerModule.class)
+                .flatMap(w -> w.workers().stream().findFirst())
+                .flatMap(c.citizens()::get);
     }
 
     private static Optional<String> builderName(Colony c, WorkOrder o) {
-        return o.claimedBy().flatMap(c.buildings()::at).flatMap(hut -> firstWorker(c, hut)).map(CitizenData::name);
+        return o.claimedBy()
+                .flatMap(c.buildings()::at)
+                .flatMap(hut -> firstWorker(c, hut))
+                .map(CitizenData::name);
     }
 
     /** The order's progress, from its builder's resources module once that builder started it; 0 before. */
     private static int percent(Colony c, WorkOrder o) {
-        return o.claimedBy().flatMap(c.buildings()::at).flatMap(hut -> hut.module(BuildingResourcesModule.class))
-                .filter(m -> m.orderId() == o.id()).map(m -> percent(m.needs())).orElse(0);
+        return o.claimedBy()
+                .flatMap(c.buildings()::at)
+                .flatMap(hut -> hut.module(BuildingResourcesModule.class))
+                .filter(m -> m.orderId() == o.id())
+                .map(m -> percent(m.needs()))
+                .orElse(0);
     }
 
     /** BuildingResourcesModuleView.getProgress: 100 minus the share of the plan's items still to place. */
@@ -559,7 +654,8 @@ public final class ColonyManager {
     public void openBuilderResources(UUID player, BlockPos hutPos) {
         Colony c = colonyAt(hutPos).orElse(null);
         Building hut = c == null ? null : c.buildings().at(hutPos).orElse(null);
-        BuildingResourcesModule m = hut == null ? null : hut.module(BuildingResourcesModule.class).orElse(null);
+        BuildingResourcesModule m =
+                hut == null ? null : hut.module(BuildingResourcesModule.class).orElse(null);
         if (m == null || !canAccess(c, player)) {
             return;
         }
@@ -571,15 +667,23 @@ public final class ColonyManager {
             Optional<Inventory> inv = firstWorker(c, hut).map(CitizenData::inventory);
             List<BlockPos> containers = hut.containers();
             m.needs().remaining().forEach((item, needed) -> {
-                int available = inv.map(i -> i.count(item)).orElse(0) + ports.containers().count(containers, item);
+                int available = inv.map(i -> i.count(item)).orElse(0)
+                        + ports.containers().count(containers, item);
                 int has = ports.playerInventory().count(player, item);
-                rows.add(new BuilderResourcesView.ResourceRow(item, needed, available, has,
-                        BuilderResourcesView.Status.of(needed, available, has)));
+                rows.add(new BuilderResourcesView.ResourceRow(
+                        item, needed, available, has, BuilderResourcesView.Status.of(needed, available, has)));
             });
         }
-        ctx.ui().showBuilderResources(player, new BuilderResourcesView(c.id(), hutPos, rows,
-                order.map(o -> percent(c, o)).orElse(0),
-                order.map(o -> o.stage().name().toLowerCase(Locale.ROOT)).orElse("")));
+        ctx.ui()
+                .showBuilderResources(
+                        player,
+                        new BuilderResourcesView(
+                                c.id(),
+                                hutPos,
+                                rows,
+                                order.map(o -> percent(c, o)).orElse(0),
+                                order.map(o -> o.stage().name().toLowerCase(Locale.ROOT))
+                                        .orElse("")));
     }
 
     // ---- Requests: the player's "Fournir" / "Ajouter" ----
@@ -609,11 +713,15 @@ public final class ColonyManager {
         // WindowClipBoard: nearest requester to the player first, then by token (no position: token order only).
         Optional<BlockPos> at = ctx.players().position(player);
         List<Request> sorted = new ArrayList<>(roots.values());
-        sorted.sort(Comparator.comparingLong((Request r) -> at.map(p -> c.buildings().byRequester(r.requester())
-                .map(b -> b.position().distSq(p)).orElse(Long.MAX_VALUE)).orElse(0L))
+        sorted.sort(Comparator.comparingLong((Request r) -> at.map(p -> c.buildings()
+                                .byRequester(r.requester())
+                                .map(b -> b.position().distSq(p))
+                                .orElse(Long.MAX_VALUE))
+                        .orElse(0L))
                 .thenComparing(r -> r.token().id()));
         Map<ItemKey, Integer> owned = ctx.ports().playerInventory().contents(player);
-        List<RequestsView.RequestRow> rows = sorted.stream().map(r -> requestRow(c, r, owned)).toList();
+        List<RequestsView.RequestRow> rows =
+                sorted.stream().map(r -> requestRow(c, r, owned)).toList();
         ctx.ui().showRequests(player, new RequestsView(c.id(), rows));
     }
 
@@ -627,7 +735,10 @@ public final class ColonyManager {
         }
         String requester = r.citizenId() != -1
                 ? c.citizens().get(r.citizenId()).map(CitizenData::name).orElse("")
-                : c.buildings().byRequester(r.requester()).map(Building::displayName).orElse(r.requester().value());
+                : c.buildings()
+                        .byRequester(r.requester())
+                        .map(Building::displayName)
+                        .orElse(r.requester().value());
         return new RequestsView.RequestRow(r.token(), r.requestable(), requester, has);
     }
 
@@ -647,9 +758,11 @@ public final class ColonyManager {
         }
         ConstructionPorts ports = ctx.ports();
         Deliverable wanted = req.requestable();
-        Optional<ItemKey> item = wanted instanceof StackRequest s ? Optional.of(s.item())
+        Optional<ItemKey> item = wanted instanceof StackRequest s
+                ? Optional.of(s.item())
                 : ports.playerInventory().contents(player).keySet().stream()
-                        .filter(k -> wanted.matches(k, ports.catalog())).findFirst();
+                        .filter(k -> wanted.matches(k, ports.catalog()))
+                        .findFirst();
         if (item.isEmpty()) {
             return false;
         }
@@ -658,7 +771,8 @@ public final class ColonyManager {
             return false;
         }
         ItemAmount taken = new ItemAmount(item.get(), n);
-        Optional<CitizenData> citizen = req.citizenId() == -1 ? Optional.empty() : c.citizens().get(req.citizenId());
+        Optional<CitizenData> citizen =
+                req.citizenId() == -1 ? Optional.empty() : c.citizens().get(req.citizenId());
         ItemAmount rest = taken;
         if (citizen.isPresent()) {
             rest = citizen.get().inventory().insert(taken, ports.catalog()::maxStack);
@@ -708,9 +822,12 @@ public final class ColonyManager {
      * matching stock beyond what its other requests reserved) get another chance.
      */
     public void onContainerChanged(BlockPos containerPos) {
-        colonyAt(containerPos).ifPresent(c -> c.buildings().owningContainer(containerPos).ifPresent(b ->
-                c.requests().onColonyUpdate(r -> r.requester().equals(b.requesterId())
-                        && b.resolvers().stream().anyMatch(res -> res.canResolve(c.requests(), r)))));
+        colonyAt(containerPos)
+                .ifPresent(c -> c.buildings()
+                        .owningContainer(containerPos)
+                        .ifPresent(b -> c.requests()
+                                .onColonyUpdate(r -> r.requester().equals(b.requesterId())
+                                        && b.resolvers().stream().anyMatch(res -> res.canResolve(c.requests(), r)))));
     }
 
     /** AbstractBuilding.overruleNextOpenRequestWithStack. */
@@ -719,7 +836,8 @@ public final class ColonyManager {
         for (Request r : m.byRequester(b.requesterId())) {
             String resolver = m.resolverOf(r.token()).map(Resolver::resolverId).orElse("");
             boolean stuck = resolver.equals(PlayerResolver.ID) || resolver.equals(RetryingResolver.ID);
-            if (stuck && r.state().ordinal() < RequestState.COMPLETED.ordinal()
+            if (stuck
+                    && r.state().ordinal() < RequestState.COMPLETED.ordinal()
                     && r.requestable().matches(stack.item(), ctx.ports().catalog())) {
                 m.overrule(r.token(), List.of(stack));
                 return;
@@ -734,7 +852,11 @@ public final class ColonyManager {
         }
         ItemAmount lost = ctx.ports().playerInventory().give(player, rest);
         if (lost != null) {
-            LOG.log(System.Logger.Level.WARNING, "Player {0} inventory full: {1} x {2} lost", player, lost.count(),
+            LOG.log(
+                    System.Logger.Level.WARNING,
+                    "Player {0} inventory full: {1} x {2} lost",
+                    player,
+                    lost.count(),
                     lost.item().id());
         }
         return rest.count();
@@ -785,7 +907,10 @@ public final class ColonyManager {
             colonies.values().forEach(this::claimBuildings);
         } catch (IOException e) {
             storageUnavailable = true;
-            LOG.log(System.Logger.Level.ERROR, "Cannot list colonies of " + ctx.world() + "; storage disabled until restart", e);
+            LOG.log(
+                    System.Logger.Level.ERROR,
+                    "Cannot list colonies of " + ctx.world() + "; storage disabled until restart",
+                    e);
         }
     }
 
@@ -855,7 +980,8 @@ public final class ColonyManager {
     void register(Colony colony) {
         colonies.put(colony.id(), colony);
         reserveId(colony.id());
-        territory.claimSquare(colony.id(), ClaimCell.of(colony.center()), ctx.config().initialColonySize());
+        territory.claimSquare(
+                colony.id(), ClaimCell.of(colony.center()), ctx.config().initialColonySize());
         colony.markDirty();
     }
 
@@ -866,8 +992,11 @@ public final class ColonyManager {
     private void claimBuildings(Colony colony) {
         for (Building b : colony.buildings().all()) {
             if (b.level() > 0) {
-                territory.claimSquareBounded(colony.id(), ClaimCell.of(b.position()),
-                        ClaimRadius.of(b.type().id(), b.level()), ClaimCell.of(colony.center()),
+                territory.claimSquareBounded(
+                        colony.id(),
+                        ClaimCell.of(b.position()),
+                        ClaimRadius.of(b.type().id(), b.level()),
+                        ClaimCell.of(colony.center()),
                         ctx.config().maxColonySize());
             }
         }

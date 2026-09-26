@@ -4,23 +4,23 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.gson.JsonObject;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.core.kernel.item.ToolInfo;
+import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.request.Request;
-import dev.hycolony.core.request.RequestState;
 import dev.hycolony.core.request.RequestManager;
+import dev.hycolony.core.request.RequestState;
 import dev.hycolony.core.request.RequestToken;
 import dev.hycolony.core.request.Resolver;
 import dev.hycolony.core.request.StackRequest;
 import dev.hycolony.core.request.ToolRequest;
 import dev.hycolony.core.request.resolver.PlayerResolver;
 import dev.hycolony.core.request.resolver.RetryingResolver;
-import dev.hycolony.core.kernel.item.ToolInfo;
-import dev.hycolony.core.kernel.item.ToolType;
-import com.google.gson.JsonObject;
 import dev.hycolony.core.testing.TestContexts;
 import java.util.List;
 import java.util.UUID;
@@ -45,8 +45,11 @@ class FulfilTest {
     }
 
     private RequestToken request(int count, int citizenId) {
-        RequestToken token = colony.requests().createAndAssign(hut, new StackRequest(PLANKS, count, count, true), citizenId);
-        assertEquals("retrying", colony.requests().resolverOf(token).map(Resolver::resolverId).orElseThrow());
+        RequestToken token =
+                colony.requests().createAndAssign(hut, new StackRequest(PLANKS, count, count, true), citizenId);
+        assertEquals(
+                "retrying",
+                colony.requests().resolverOf(token).map(Resolver::resolverId).orElseThrow());
         return token;
     }
 
@@ -126,8 +129,12 @@ class FulfilTest {
 
         Building hut2 = loaded.buildings().at(hall).orElseThrow();
         assertEquals(List.of(hall, chest), hut2.containers());
-        assertEquals("retrying", loaded.requests().resolverOf(token).map(Resolver::resolverId).orElseThrow());
-        assertEquals(RequestState.IN_PROGRESS, loaded.requests().get(token).orElseThrow().state());
+        assertEquals(
+                "retrying",
+                loaded.requests().resolverOf(token).map(Resolver::resolverId).orElseThrow());
+        assertEquals(
+                RequestState.IN_PROGRESS,
+                loaded.requests().get(token).orElseThrow().state());
     }
 
     @Test
@@ -138,11 +145,16 @@ class FulfilTest {
         manager.onContainerChanged(hall);
 
         assertEquals(RequestState.COMPLETED, get(token).state());
-        assertEquals("building:0,64,0", colony.requests().resolverOf(token).map(Resolver::resolverId).orElseThrow());
+        assertEquals(
+                "building:0,64,0",
+                colony.requests().resolverOf(token).map(Resolver::resolverId).orElseThrow());
     }
 
     private RetryingResolver retrying() {
-        return colony.requests().resolver(RetryingResolver.ID).map(RetryingResolver.class::cast).orElseThrow();
+        return colony.requests()
+                .resolver(RetryingResolver.ID)
+                .map(RetryingResolver.class::cast)
+                .orElseThrow();
     }
 
     @Test
@@ -168,7 +180,10 @@ class FulfilTest {
 
         assertTrue(colony.requests().all().isEmpty());
         assertTrue(retrying().delays().isEmpty());
-        PlayerResolver player = colony.requests().resolver(PlayerResolver.ID).map(PlayerResolver.class::cast).orElseThrow();
+        PlayerResolver player = colony.requests()
+                .resolver(PlayerResolver.ID)
+                .map(PlayerResolver.class::cast)
+                .orElseThrow();
         assertTrue(player.open().isEmpty());
         JsonObject saved = ColonySerializer.write(colony).getAsJsonObject("requests");
         assertEquals(0, saved.getAsJsonArray("requests").size());
@@ -256,19 +271,27 @@ class FulfilTest {
     @Test
     void containerChangeReassignsOnlyWhatTheHutCanNowServe() {
         RequestToken planks = request(5, 1);
-        RequestToken stone = colony.requests().createAndAssign(hut,
-                new StackRequest(new ItemKey("Stone"), 3, 3, true), 1);
+        RequestToken stone =
+                colony.requests().createAndAssign(hut, new StackRequest(new ItemKey("Stone"), 3, 3, true), 1);
         t.containers.insert(hut.containers(), new ItemAmount(new ItemKey("Dirt"), 10));
 
         manager.onContainerChanged(hall);
 
-        assertEquals("retrying", colony.requests().resolverOf(planks).map(Resolver::resolverId).orElseThrow());
-        assertEquals("retrying", colony.requests().resolverOf(stone).map(Resolver::resolverId).orElseThrow());
+        assertEquals(
+                "retrying",
+                colony.requests().resolverOf(planks).map(Resolver::resolverId).orElseThrow());
+        assertEquals(
+                "retrying",
+                colony.requests().resolverOf(stone).map(Resolver::resolverId).orElseThrow());
 
         t.containers.insert(hut.containers(), new ItemAmount(PLANKS, 5));
         manager.onContainerChanged(hall);
 
-        assertEquals("building:0,64,0", colony.requests().resolverOf(planks).map(Resolver::resolverId).orElseThrow());
-        assertEquals("retrying", colony.requests().resolverOf(stone).map(Resolver::resolverId).orElseThrow());
+        assertEquals(
+                "building:0,64,0",
+                colony.requests().resolverOf(planks).map(Resolver::resolverId).orElseThrow());
+        assertEquals(
+                "retrying",
+                colony.requests().resolverOf(stone).map(Resolver::resolverId).orElseThrow());
     }
 }

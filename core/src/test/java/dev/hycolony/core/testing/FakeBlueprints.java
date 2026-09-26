@@ -64,7 +64,9 @@ public final class FakeBlueprints implements BlueprintSource {
     }
 
     @Override
-    public List<String> styles() { return List.of(STYLE); }
+    public List<String> styles() {
+        return List.of(STYLE);
+    }
 
     public static BlockState state(BlockKey key) {
         return new BlockState(key, 0);

@@ -32,8 +32,8 @@ public final class WorkManager {
     /** WorkOrderBuilding.MAX_DISTANCE_SQ: 100 blocks, 3D. */
     public static final long MAX_DISTANCE_SQ = 100L * 100L;
     /** IWorkOrder.WORK_ORDER_COMPARATOR. */
-    private static final Comparator<WorkOrder> ORDER = Comparator.comparingInt(WorkOrder::priority).reversed()
-            .thenComparingInt(WorkOrder::id);
+    private static final Comparator<WorkOrder> ORDER =
+            Comparator.comparingInt(WorkOrder::priority).reversed().thenComparingInt(WorkOrder::id);
 
     private final Colony colony;
     private final Map<Integer, WorkOrder> orders = new LinkedHashMap<>();
@@ -50,18 +50,20 @@ public final class WorkManager {
      * no builder within 100 blocks (unless one is chosen), no blueprint, footprint outside the colony.
      * {@code buildingPos} must hold a building of this colony.
      */
-    public Either<WorkOrder, WorkOrderRefusal> request(UUID player, BlockPos buildingPos, WorkOrderType type,
-            String style, Optional<BlockPos> builder) {
+    public Either<WorkOrder, WorkOrderRefusal> request(
+            UUID player, BlockPos buildingPos, WorkOrderType type, String style, Optional<BlockPos> builder) {
         if (!colony.permissions().hasPermission(player, Action.MANAGE_HUTS)) {
             return refuse(WorkOrderRefusal.NO_PERMISSION);
         }
-        Building b = colony.buildings().at(buildingPos)
+        Building b = colony.buildings()
+                .at(buildingPos)
                 .orElseThrow(() -> new IllegalArgumentException("No building at " + buildingPos));
         if (byBuilding.containsKey(buildingPos)) {
             return refuse(WorkOrderRefusal.ALREADY_EXISTS);
         }
         int level = b.level();
-        if ((type == WorkOrderType.BUILD || type == WorkOrderType.UPGRADE) && level >= b.type().maxLevel()) {
+        if ((type == WorkOrderType.BUILD || type == WorkOrderType.UPGRADE)
+                && level >= b.type().maxLevel()) {
             return refuse(WorkOrderRefusal.MAX_LEVEL);
         }
         if (type == WorkOrderType.REPAIR && level == 0 && !b.isDeconstructed()) {
@@ -77,24 +79,31 @@ public final class WorkManager {
             case REMOVE -> 0;
         };
         int blueprintLevel = type == WorkOrderType.REMOVE ? level : target;
-        List<Building> employed = colony.buildings().all().stream().filter(WorkManager::isEmployedBuilder).toList();
-        if (type != WorkOrderType.REMOVE && !canBeBuiltByBuilder(b, target)
+        List<Building> employed = colony.buildings().all().stream()
+                .filter(WorkManager::isEmployedBuilder)
+                .toList();
+        if (type != WorkOrderType.REMOVE
+                && !canBeBuiltByBuilder(b, target)
                 && employed.stream().noneMatch(e -> e.level() >= target)) {
             return refuse(WorkOrderRefusal.BUILDER_NECESSARY);
         }
-        if (builder.isEmpty() && employed.stream().noneMatch(e -> e.position().distSq(buildingPos) <= MAX_DISTANCE_SQ)) {
+        if (builder.isEmpty()
+                && employed.stream().noneMatch(e -> e.position().distSq(buildingPos) <= MAX_DISTANCE_SQ)) {
             return refuse(WorkOrderRefusal.BUILDER_TOO_FAR_AWAY);
         }
         if (builder.isPresent()) {
             // REMOVE targets 0, so any builder hut qualifies.
             Optional<Building> chosen = colony.buildings().at(builder.get());
-            if (chosen.isEmpty() || !chosen.get().type().equals(ConstructionBuildingTypes.BUILDER)
+            if (chosen.isEmpty()
+                    || !chosen.get().type().equals(ConstructionBuildingTypes.BUILDER)
                     || (chosen.get().level() < target && !canBeBuiltByBuilder(b, target))) {
                 return refuse(WorkOrderRefusal.BUILDER_NECESSARY);
             }
         }
         String resolvedStyle = resolveStyle(style, type, b);
-        Optional<Blueprint> blueprint = colony.context().ports().blueprints()
+        Optional<Blueprint> blueprint = colony.context()
+                .ports()
+                .blueprints()
                 .load(resolvedStyle, b.type().id(), blueprintLevel, b.rotation());
         if (blueprint.isEmpty()) {
             return refuse(WorkOrderRefusal.NO_BLUEPRINT);
@@ -103,8 +112,8 @@ public final class WorkManager {
             return refuse(WorkOrderRefusal.OUT_OF_COLONY);
         }
 
-        WorkOrder order = new WorkOrder(++topId, type, buildingPos, target, blueprintLevel, resolvedStyle,
-                b.rotation());
+        WorkOrder order =
+                new WorkOrder(++topId, type, buildingPos, target, blueprintLevel, resolvedStyle, b.rotation());
         builder.ifPresent(order::setClaimedBy);
         order.setFree(isFree(player, type));
         add(order);
@@ -112,8 +121,13 @@ public final class WorkManager {
             b.setStyle(resolvedStyle); // the building keeps the style it is built in
         }
         colony.markDirty();
-        Msg created = Msg.of("hycolony.workorder.created", b.displayName(), colony.name(),
-                String.valueOf(buildingPos.x()), String.valueOf(buildingPos.y()), String.valueOf(buildingPos.z()));
+        Msg created = Msg.of(
+                "hycolony.workorder.created",
+                b.displayName(),
+                colony.name(),
+                String.valueOf(buildingPos.x()),
+                String.valueOf(buildingPos.y()),
+                String.valueOf(buildingPos.z()));
         for (UUID member : colony.permissions().members().keySet()) {
             if (colony.permissions().hasPermission(member, Action.RECEIVE_MESSAGES)) {
                 colony.context().notifier().send(member, created);
@@ -126,8 +140,10 @@ public final class WorkManager {
     /** MC builderInfiniteResources, or a creative operator's order (if enabled); a REMOVE never is. */
     private boolean isFree(UUID player, WorkOrderType type) {
         var config = colony.context().config();
-        return type != WorkOrderType.REMOVE && (config.builderInfiniteResources()
-                || (config.creativeOperatorFreeBuilds() && colony.context().players().isCreativeOperator(player)));
+        return type != WorkOrderType.REMOVE
+                && (config.builderInfiniteResources()
+                        || (config.creativeOperatorFreeBuilds()
+                                && colony.context().players().isCreativeOperator(player)));
     }
 
     /**
@@ -144,7 +160,9 @@ public final class WorkManager {
         orders.remove(orderId);
         byBuilding.remove(order.buildingPos());
         if (active) {
-            colony.buildings().at(claimer.get()).ifPresent(hut -> colony.requests().cancelAllFrom(hut.requesterId()));
+            colony.buildings()
+                    .at(claimer.get())
+                    .ifPresent(hut -> colony.requests().cancelAllFrom(hut.requesterId()));
         }
         order.release();
         colony.markDirty();
@@ -198,7 +216,8 @@ public final class WorkManager {
      */
     public Optional<WorkOrder> claimedBy(BlockPos builderHut) {
         // ponytail: linear scan of a colony's few orders; index claims if colonies hold hundreds.
-        return orders.values().stream().filter(o -> builderHut.equals(o.claimedBy().orElse(null)))
+        return orders.values().stream()
+                .filter(o -> builderHut.equals(o.claimedBy().orElse(null)))
                 .min(Comparator.comparingInt(WorkOrder::id));
     }
 
@@ -236,8 +255,11 @@ public final class WorkManager {
         free.sort(ORDER);
         List<Building> idle = new ArrayList<>();
         for (Building b : colony.buildings().all()) {
-            if (isEmployedBuilder(b) && !busy.contains(b.position()) && b.module(BuilderSettingsModule.class)
-                    .map(s -> s.mode() != BuilderSettingsModule.Mode.MANUAL).orElse(true)) {
+            if (isEmployedBuilder(b)
+                    && !busy.contains(b.position())
+                    && b.module(BuilderSettingsModule.class)
+                            .map(s -> s.mode() != BuilderSettingsModule.Mode.MANUAL)
+                            .orElse(true)) {
                 idle.add(b);
             }
         }

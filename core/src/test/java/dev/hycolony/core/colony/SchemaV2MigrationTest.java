@@ -17,7 +17,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 class SchemaV2MigrationTest {
-    @TempDir Path dir;
+    @TempDir
+    Path dir;
 
     private ColonyManager manager() {
         ColonyManager m = new ColonyManager(new TestContexts().context());

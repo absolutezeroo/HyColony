@@ -38,7 +38,7 @@ class TerritoryIndexTest {
         TerritoryIndex t = new TerritoryIndex();
         t.claimSquare(1, new ClaimCell(0, 0), 4); // cells -4..4
         assertFalse(t.isFreeForNewColony(new BlockPos(16 * 16, 64, 0), 4, 8)); // centre cell 16: 16-12 = 4 claimed
-        assertTrue(t.isFreeForNewColony(new BlockPos(17 * 16, 64, 0), 4, 8));  // 17-12 = 5 free
+        assertTrue(t.isFreeForNewColony(new BlockPos(17 * 16, 64, 0), 4, 8)); // 17-12 = 5 free
     }
 
     @Test

@@ -26,7 +26,6 @@ import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolInfo;
 import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.kernel.port.BodyId;
-import dev.hycolony.core.request.Deliverable;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.RequestState;
 import dev.hycolony.core.request.StackRequest;
@@ -76,7 +75,9 @@ class BuilderAITest {
             }
 
             @Override
-            public List<String> styles() { return List.of("medieval"); }
+            public List<String> styles() {
+                return List.of("medieval");
+            }
         };
         t.catalog.kinds.put(STONE, BlockKind.SOLID);
         t.catalog.kinds.put(DIRT, BlockKind.SOLID);
@@ -116,9 +117,12 @@ class BuilderAITest {
     private static Blueprint bp(List<BlueprintEntry> entries) {
         int minX = 0, minY = 0, minZ = 0, maxX = 0, maxY = 0, maxZ = 0;
         for (BlueprintEntry e : entries) {
-            minX = Math.min(minX, e.offset().x()); maxX = Math.max(maxX, e.offset().x());
-            minY = Math.min(minY, e.offset().y()); maxY = Math.max(maxY, e.offset().y());
-            minZ = Math.min(minZ, e.offset().z()); maxZ = Math.max(maxZ, e.offset().z());
+            minX = Math.min(minX, e.offset().x());
+            maxX = Math.max(maxX, e.offset().x());
+            minY = Math.min(minY, e.offset().y());
+            maxY = Math.max(maxY, e.offset().y());
+            minZ = Math.min(minZ, e.offset().z());
+            maxZ = Math.max(maxZ, e.offset().z());
         }
         return new Blueprint("bp", entries, new BlockPos(minX, minY, minZ), new BlockPos(maxX, maxY, maxZ));
     }
@@ -300,10 +304,14 @@ class BuilderAITest {
 
         List<Request> reqs = builderRequests();
         assertEquals(2, reqs.size(), () -> "requests: " + reqs);
-        Request a18 = reqs.stream().filter(r -> r.requestable().equals(new StackRequest(ai1, 18, 1, true)))
-                .findFirst().orElseThrow();
-        Request b13 = reqs.stream().filter(r -> r.requestable().equals(new StackRequest(bi, 13, 1, true)))
-                .findFirst().orElseThrow();
+        Request a18 = reqs.stream()
+                .filter(r -> r.requestable().equals(new StackRequest(ai1, 18, 1, true)))
+                .findFirst()
+                .orElseThrow();
+        Request b13 = reqs.stream()
+                .filter(r -> r.requestable().equals(new StackRequest(bi, 13, 1, true)))
+                .findFirst()
+                .orElseThrow();
         assertEquals(citizen.id(), a18.citizenId()); // needed now: sync
         assertEquals(-1, b13.citizenId()); // bucket request: the building's, async
         assertEquals("NEEDS_ITEM", ai.stateName());
@@ -342,7 +350,8 @@ class BuilderAITest {
         for (int i = 0; i < 5000 && !gone(o); i++) {
             ai.tick();
             assertTrue(colony.requests().all().isEmpty(), "a free order requested items");
-            assertFalse(ai.stateName().equals("GATHERING_REQUIRED_MATERIALS") || ai.stateName().equals("NEEDS_ITEM"));
+            assertFalse(ai.stateName().equals("GATHERING_REQUIRED_MATERIALS")
+                    || ai.stateName().equals("NEEDS_ITEM"));
         }
 
         assertTrue(gone(o));
@@ -387,8 +396,7 @@ class BuilderAITest {
     @Test
     void clearWithFullHutDoesNotLoop() {
         Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 0);
-        blueprint = new Blueprint("bp", List.of(entry(1, 0, 0, STONE)), new BlockPos(-3, 0, -3),
-                new BlockPos(3, 2, 3));
+        blueprint = new Blueprint("bp", List.of(entry(1, 0, 0, STONE)), new BlockPos(-3, 0, -3), new BlockPos(3, 2, 3));
         int n = 0;
         for (int x = -3; x <= 3; x++) {
             for (int y = 0; y <= 2; y++) {
@@ -409,7 +417,10 @@ class BuilderAITest {
         tick(10_000);
 
         assertNull(ai.lastError);
-        long mined = n - t.blocks.blocks.values().stream().filter(b -> b.key().equals(DIRT)).count();
+        long mined = n
+                - t.blocks.blocks.values().stream()
+                        .filter(b -> b.key().equals(DIRT))
+                        .count();
         assertTrue(mined > CitizenData.INVENTORY_SLOTS, "kept mining past a full inventory: " + mined);
         assertTrue(o.stage() != Stage.CLEAR || o.progressIndex() >= mined - 1);
         assertTrue(citizen.inventory().isFull());
@@ -464,7 +475,8 @@ class BuilderAITest {
         assertEquals(List.of(new ColonyEvents.BuildingLevelChanged(colony, res, 0, 1)), events);
         assertEquals(1, t.notifier.sent.size());
         assertEquals("hycolony.build.complete", t.notifier.sent.get(0).msg().key());
-        assertEquals(List.of(res.displayName(), "1"), t.notifier.sent.get(0).msg().params());
+        assertEquals(
+                List.of(res.displayName(), "1"), t.notifier.sent.get(0).msg().params());
         tickUntil(() -> ai.stateName().equals("IDLE"), 200);
         assertEquals(0, resources().orderId());
     }
@@ -499,8 +511,8 @@ class BuilderAITest {
     @Test
     void blockBrokenBehindIsPlacedAgainBeforeCompletion() {
         Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);
-        blueprint = bp(List.of(entry(1, 0, 0, STONE), entry(2, 0, 0, STONE), entry(3, 0, 0, STONE),
-                entry(1, 1, 0, TORCH)));
+        blueprint =
+                bp(List.of(entry(1, 0, 0, STONE), entry(2, 0, 0, STONE), entry(3, 0, 0, STONE), entry(1, 1, 0, TORCH)));
         give(STONE_I, 4);
         give(TORCH_I, 1);
         WorkOrder o = order(res, WorkOrderType.UPGRADE);
@@ -550,7 +562,8 @@ class BuilderAITest {
 
         tickUntil(() -> gone(o), 20_000);
 
-        List<Vec3> workMoves = t.bodies.moves.stream().filter(v -> !v.equals(Vec3.center(HUT))).toList();
+        List<Vec3> workMoves =
+                t.bodies.moves.stream().filter(v -> !v.equals(Vec3.center(HUT))).toList();
         // A line at x 31..60: the spot 2 outward is on the line (planned), so the builder stands 2 to the side, on
         // the ground, and takes a new spot once the block is more than 5 away (MC walkToConstructionSite:
         // getDistance2D, |dx| + |dz|, > 5): x 31, 35, ... 55. Past the line's end, x 61 outward is free again.
@@ -573,7 +586,8 @@ class BuilderAITest {
 
         tickUntil(() -> t.blocks.placed.size() == 1, 2000);
 
-        List<Vec3> workMoves = t.bodies.moves.stream().filter(v -> !v.equals(Vec3.center(HUT))).toList();
+        List<Vec3> workMoves =
+                t.bodies.moves.stream().filter(v -> !v.equals(Vec3.center(HUT))).toList();
         assertEquals(Vec3.center(at(1, 1, 2)), workMoves.get(0));
     }
 
@@ -650,7 +664,8 @@ class BuilderAITest {
         tickUntil(() -> !builderRequests().isEmpty(), 1000);
 
         assertEquals(Map.of(bi, 4), resources().currentBucket().orElseThrow());
-        assertEquals(List.of(new StackRequest(bi, 4, 1, true)),
+        assertEquals(
+                List.of(new StackRequest(bi, 4, 1, true)),
                 builderRequests().stream().map(Request::requestable).toList());
     }
 
@@ -722,7 +737,9 @@ class BuilderAITest {
         blueprint = bp(List.of(entry(1, 0, 0, STONE), entry(2, 0, 0, STONE), entry(3, 0, 0, STONE)));
         t.containers.containers.put(HUT, new java.util.LinkedHashMap<>(Map.of(STONE_I, 3)));
         var token = colony.requests().createAndAssign(hut, new StackRequest(STONE_I, 3, 1, true), -1);
-        assertEquals(RequestState.COMPLETED, colony.requests().get(token).orElseThrow().state()); // hut stock
+        assertEquals(
+                RequestState.COMPLETED,
+                colony.requests().get(token).orElseThrow().state()); // hut stock
         WorkOrder o = order(res, WorkOrderType.UPGRADE);
 
         tickUntil(() -> !t.blocks.placed.isEmpty(), 2000);
@@ -875,7 +892,11 @@ class BuilderAITest {
         tickUntil(() -> builderRequests().stream().anyMatch(r -> r.requestable() instanceof ToolRequest), 5000);
 
         assertEquals(0, citizen.inventory().count(shovel)); // broken after its 2 uses
-        assertEquals(1, t.blocks.blocks.values().stream().filter(b -> b.key().equals(DIRT)).count());
+        assertEquals(
+                1,
+                t.blocks.blocks.values().stream()
+                        .filter(b -> b.key().equals(DIRT))
+                        .count());
     }
 
     @Test
@@ -916,8 +937,8 @@ class BuilderAITest {
     @Test
     void verificationPassOnlyRefillsAir() {
         Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);
-        blueprint = bp(List.of(entry(1, 0, 0, STONE), entry(2, 0, 0, STONE), entry(3, 0, 0, STONE),
-                entry(1, 1, 0, TORCH)));
+        blueprint =
+                bp(List.of(entry(1, 0, 0, STONE), entry(2, 0, 0, STONE), entry(3, 0, 0, STONE), entry(1, 1, 0, TORCH)));
         give(STONE_I, 4);
         give(TORCH_I, 1);
         WorkOrder o = order(res, WorkOrderType.UPGRADE);
@@ -935,7 +956,9 @@ class BuilderAITest {
     /** Only a player can provide it now: the field bug's state, where no container event ever comes. */
     private void toPlayer(Request r) {
         colony.requests().reassign(r.token(), Set.of(RetryingResolver.ID));
-        assertEquals(PlayerResolver.ID, colony.requests().resolverOf(r.token()).orElseThrow().resolverId());
+        assertEquals(
+                PlayerResolver.ID,
+                colony.requests().resolverOf(r.token()).orElseThrow().resolverId());
     }
 
     @Test
@@ -994,7 +1017,9 @@ class BuilderAITest {
         tick(1000);
         assertEquals("NEEDS_ITEM", ai.stateName());
         assertEquals(1, t.containers.count(List.of(HUT), iron));
-        assertEquals(RequestState.IN_PROGRESS, colony.requests().get(r.token()).orElseThrow().state());
+        assertEquals(
+                RequestState.IN_PROGRESS,
+                colony.requests().get(r.token()).orElseThrow().state());
     }
 
     // ---- field bug: a walk that never ends (nav stuck in PROGRESSING under an unreachable spot) ----
@@ -1021,7 +1046,9 @@ class BuilderAITest {
         give(STONE_I, 2);
         colony.requests().overrule(r.token(), List.of(new ItemAmount(STONE_I, 2)), true);
         tickUntil(() -> t.blocks.placed.size() == 1, 2000);
-        assertEquals(Optional.of(dev.hycolony.core.kernel.port.Msg.of("hycolony.ai.builder.placing",
-                "%hycolony.ui.stage.solid", "1", STONE_I.id())), ai.describe());
+        assertEquals(
+                Optional.of(dev.hycolony.core.kernel.port.Msg.of(
+                        "hycolony.ai.builder.placing", "%hycolony.ui.stage.solid", "1", STONE_I.id())),
+                ai.describe());
     }
 }

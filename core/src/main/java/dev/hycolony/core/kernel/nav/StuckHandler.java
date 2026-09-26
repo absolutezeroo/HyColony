@@ -24,7 +24,12 @@ import dev.hycolony.core.kernel.Vec3;
  * path); the levels collapse to repath, teleport, give up.
  */
 public final class StuckHandler {
-    public enum Action { NONE, REPATH, TELEPORT, GIVE_UP }
+    public enum Action {
+        NONE,
+        REPATH,
+        TELEPORT,
+        GIVE_UP
+    }
 
     static final int CHECK_INTERVAL = 10;
     static final int DELAY_BEFORE_ACTIONS = 5 * 20;
@@ -88,7 +93,8 @@ public final class StuckHandler {
     }
 
     private long globalTimeout(Vec3 pos) {
-        long manhattan = Math.round(Math.abs(pos.x() - destination.x()) + Math.abs(pos.y() - destination.y())
+        long manhattan = Math.round(Math.abs(pos.x() - destination.x())
+                + Math.abs(pos.y() - destination.y())
                 + Math.abs(pos.z() - destination.z()));
         return Math.max(MIN_TP_DELAY, (long) TIME_PER_BLOCK * Math.max(MIN_DIST_FOR_TP, manhattan));
     }

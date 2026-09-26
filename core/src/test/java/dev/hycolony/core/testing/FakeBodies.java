@@ -48,6 +48,7 @@ public final class FakeBodies implements CitizenBodies {
     public final List<Vec3> looks = new ArrayList<>();
     /** Every setDisplayName call, in call order. */
     public final List<String> renames = new ArrayList<>();
+
     private long next = 1;
 
     /** Simulates a body that already exists in the world (e.g. loaded from a chunk). */
@@ -71,8 +72,17 @@ public final class FakeBodies implements CitizenBodies {
         return Optional.of(id);
     }
 
-    @Override public boolean isAlive(BodyId body) { Body b = bodies.get(body); return b != null && b.alive; }
-    @Override public Optional<Vec3> position(BodyId body) { return isAlive(body) ? Optional.of(bodies.get(body).position) : Optional.empty(); }
+    @Override
+    public boolean isAlive(BodyId body) {
+        Body b = bodies.get(body);
+        return b != null && b.alive;
+    }
+
+    @Override
+    public Optional<Vec3> position(BodyId body) {
+        return isAlive(body) ? Optional.of(bodies.get(body).position) : Optional.empty();
+    }
+
     @Override
     public void moveTo(BodyId body, Vec3 target) {
         Body b = bodies.get(body);
@@ -93,11 +103,32 @@ public final class FakeBodies implements CitizenBodies {
         b.status = NavStatus.IDLE;
     }
 
-    @Override public NavStatus navStatus(BodyId body) { return bodies.get(body).status; }
-    @Override public void setDisplayName(BodyId body, String name) { bodies.get(body).name = name; renames.add(name); }
-    @Override public void lookAt(BodyId body, Vec3 target) { looks.add(target); }
-    @Override public void despawn(BodyId body) { Body b = bodies.get(body); if (b != null) b.alive = false; }
-    @Override public void setHeldItem(BodyId body, Optional<ItemKey> item) { bodies.get(body).held = item.orElse(null); }
+    @Override
+    public NavStatus navStatus(BodyId body) {
+        return bodies.get(body).status;
+    }
+
+    @Override
+    public void setDisplayName(BodyId body, String name) {
+        bodies.get(body).name = name;
+        renames.add(name);
+    }
+
+    @Override
+    public void lookAt(BodyId body, Vec3 target) {
+        looks.add(target);
+    }
+
+    @Override
+    public void despawn(BodyId body) {
+        Body b = bodies.get(body);
+        if (b != null) b.alive = false;
+    }
+
+    @Override
+    public void setHeldItem(BodyId body, Optional<ItemKey> item) {
+        bodies.get(body).held = item.orElse(null);
+    }
 
     @Override
     public void playAnimation(BodyId body, BodyAnimation animation) {

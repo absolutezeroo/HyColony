@@ -16,13 +16,13 @@ import java.util.Map;
  * the getters just hand back the already-sorted lists.
  */
 public final class StructurePlan {
-    private static final Comparator<BlueprintEntry> BOTTOM_UP = Comparator
-            .comparingInt((BlueprintEntry e) -> e.offset().y())
+    private static final Comparator<BlueprintEntry> BOTTOM_UP = Comparator.comparingInt(
+                    (BlueprintEntry e) -> e.offset().y())
             .thenComparingInt(e -> e.offset().x())
             .thenComparingInt(e -> e.offset().z());
 
-    private static final Comparator<BlockPos> TOP_DOWN = Comparator
-            .comparingInt(BlockPos::y).reversed()
+    private static final Comparator<BlockPos> TOP_DOWN = Comparator.comparingInt(BlockPos::y)
+            .reversed()
             .thenComparingInt(BlockPos::x)
             .thenComparingInt(BlockPos::z);
 
@@ -35,8 +35,13 @@ public final class StructurePlan {
     private final List<BlockPos> decoPositions;
     private final Map<BlockPos, BlockState> stateAt;
 
-    private StructurePlan(BlockPos hut, List<BlockPos> clearList, List<BlueprintEntry> solidList,
-            List<BlueprintEntry> decoList, List<BlockPos> removeList, Map<BlockPos, BlockState> stateAt) {
+    private StructurePlan(
+            BlockPos hut,
+            List<BlockPos> clearList,
+            List<BlueprintEntry> solidList,
+            List<BlueprintEntry> decoList,
+            List<BlockPos> removeList,
+            Map<BlockPos, BlockState> stateAt) {
         this.hut = hut;
         this.clearList = clearList;
         this.solidList = solidList;
@@ -60,7 +65,7 @@ public final class StructurePlan {
             switch (kind) {
                 case SOLID -> solid.add(e);
                 case NON_SOLID, FLUID -> deco.add(e);
-                default -> { }
+                default -> {}
             }
             if (kind != BlockKind.AIR) {
                 remove.add(hut.offset(e.offset().x(), e.offset().y(), e.offset().z()));
@@ -91,22 +96,36 @@ public final class StructurePlan {
         return List.copyOf(list);
     }
 
-    public List<BlockPos> clearList() { return clearList; }
+    public List<BlockPos> clearList() {
+        return clearList;
+    }
 
-    public List<BlueprintEntry> solidList() { return solidList; }
+    public List<BlueprintEntry> solidList() {
+        return solidList;
+    }
 
-    public List<BlueprintEntry> decoList() { return decoList; }
+    public List<BlueprintEntry> decoList() {
+        return decoList;
+    }
 
-    public List<BlockPos> removeList() { return removeList; }
+    public List<BlockPos> removeList() {
+        return removeList;
+    }
 
     /** World positions of {@link #solidList()}, same order (precomputed: the builder scans them every step). */
-    public List<BlockPos> solidPositions() { return solidPositions; }
+    public List<BlockPos> solidPositions() {
+        return solidPositions;
+    }
 
     /** World positions of {@link #decoList()}, same order. */
-    public List<BlockPos> decoPositions() { return decoPositions; }
+    public List<BlockPos> decoPositions() {
+        return decoPositions;
+    }
 
     /** The planned state at a world position, or null where the plan has nothing (air). */
-    public BlockState stateAt(BlockPos worldPos) { return stateAt.get(worldPos); }
+    public BlockState stateAt(BlockPos worldPos) {
+        return stateAt.get(worldPos);
+    }
 
     public BlockPos worldPos(BlueprintEntry e) {
         return hut.offset(e.offset().x(), e.offset().y(), e.offset().z());

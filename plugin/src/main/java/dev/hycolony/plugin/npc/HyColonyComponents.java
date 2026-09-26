@@ -15,6 +15,11 @@ public final class HyColonyComponents {
         moveTarget = registry.registerComponent(MoveTarget.class, MoveTarget::new);
     }
 
-    public static ComponentType<EntityStore, CitizenTag> citizenTag() { return citizenTag; }
-    public static ComponentType<EntityStore, MoveTarget> moveTarget() { return moveTarget; }
+    public static ComponentType<EntityStore, CitizenTag> citizenTag() {
+        return citizenTag;
+    }
+
+    public static ComponentType<EntityStore, MoveTarget> moveTarget() {
+        return moveTarget;
+    }
 }

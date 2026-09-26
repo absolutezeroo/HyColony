@@ -26,8 +26,11 @@ public final class CitizenBodyLifecycleSystem extends RefSystem<EntityStore> {
     }
 
     @Override
-    public void onEntityAdded(@Nonnull Ref<EntityStore> ref, @Nonnull AddReason reason,
-                              @Nonnull Store<EntityStore> store, @Nonnull CommandBuffer<EntityStore> buffer) {
+    public void onEntityAdded(
+            @Nonnull Ref<EntityStore> ref,
+            @Nonnull AddReason reason,
+            @Nonnull Store<EntityStore> store,
+            @Nonnull CommandBuffer<EntityStore> buffer) {
         if (reason != AddReason.LOAD) {
             return; // freshly spawned bodies are bound by HytaleCitizenBodies.spawn
         }
@@ -40,8 +43,11 @@ public final class CitizenBodyLifecycleSystem extends RefSystem<EntityStore> {
     }
 
     @Override
-    public void onEntityRemove(@Nonnull Ref<EntityStore> ref, @Nonnull RemoveReason reason,
-                               @Nonnull Store<EntityStore> store, @Nonnull CommandBuffer<EntityStore> buffer) {
+    public void onEntityRemove(
+            @Nonnull Ref<EntityStore> ref,
+            @Nonnull RemoveReason reason,
+            @Nonnull Store<EntityStore> store,
+            @Nonnull CommandBuffer<EntityStore> buffer) {
         WorldRuntime rt = runtimes.of(store.getExternalData().getWorld());
         if (rt == null) {
             return;

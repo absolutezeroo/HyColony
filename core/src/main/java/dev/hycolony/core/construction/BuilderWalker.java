@@ -24,6 +24,7 @@ final class BuilderWalker {
     private BlockPos navTarget;
     /** A target whose walk ended (nav result or given up): the builder works from where it stands. */
     private BlockPos settled;
+
     private BlockPos workPos;
     /** The block the work spot was already chosen again for, because it was out of reach from the first one. */
     private BlockPos repickedFor;
@@ -41,8 +42,9 @@ final class BuilderWalker {
 
     /** True while a walk is under way (for the citizen window). */
     boolean walking() {
-        return navTarget != null && !navTarget.equals(settled) && bodies.position(body)
-                .map(p -> !within(p, navTarget)).orElse(false);
+        return navTarget != null
+                && !navTarget.equals(settled)
+                && bodies.position(body).map(p -> !within(p, navTarget)).orElse(false);
     }
 
     /**
@@ -106,7 +108,7 @@ final class BuilderWalker {
                 settled = to;
                 return true;
             }
-            case NONE -> { }
+            case NONE -> {}
         }
         return false;
     }

@@ -9,8 +9,19 @@ public final class SkillData {
         this.experience = experience;
     }
 
-    public int level() { return level; }
-    public double experience() { return experience; }
-    void setLevel(int level) { this.level = level; }
-    void setExperience(double experience) { this.experience = experience; }
+    public int level() {
+        return level;
+    }
+
+    public double experience() {
+        return experience;
+    }
+
+    void setLevel(int level) {
+        this.level = level;
+    }
+
+    void setExperience(double experience) {
+        this.experience = experience;
+    }
 }

@@ -36,9 +36,13 @@ public final class RetryingResolver implements Resolver {
         this.location = location;
     }
 
-    public Map<RequestToken, Integer> delays() { return Collections.unmodifiableMap(delays); }
+    public Map<RequestToken, Integer> delays() {
+        return Collections.unmodifiableMap(delays);
+    }
 
-    public Map<RequestToken, Integer> tries() { return Collections.unmodifiableMap(tries); }
+    public Map<RequestToken, Integer> tries() {
+        return Collections.unmodifiableMap(tries);
+    }
 
     /** Persistence only. */
     public void restore(Map<RequestToken, Integer> newDelays, Map<RequestToken, Integer> newTries) {
@@ -48,12 +52,35 @@ public final class RetryingResolver implements Resolver {
         tries.putAll(newTries);
     }
 
-    @Override public String resolverId() { return ID; }
-    @Override public int priority() { return PRIORITY; }
-    @Override public boolean handles(Deliverable requestable) { return true; }
-    @Override public boolean canResolve(RequestManager m, Request r) { return true; }
-    @Override public Optional<List<Deliverable>> attemptResolve(RequestManager m, Request r) { return Optional.of(List.of()); }
-    @Override public double suitability(RequestManager m, Request r) { return 0; }
+    @Override
+    public String resolverId() {
+        return ID;
+    }
+
+    @Override
+    public int priority() {
+        return PRIORITY;
+    }
+
+    @Override
+    public boolean handles(Deliverable requestable) {
+        return true;
+    }
+
+    @Override
+    public boolean canResolve(RequestManager m, Request r) {
+        return true;
+    }
+
+    @Override
+    public Optional<List<Deliverable>> attemptResolve(RequestManager m, Request r) {
+        return Optional.of(List.of());
+    }
+
+    @Override
+    public double suitability(RequestManager m, Request r) {
+        return 0;
+    }
 
     @Override
     public void resolve(RequestManager m, Request r) {
@@ -104,9 +131,24 @@ public final class RetryingResolver implements Resolver {
         return m.get(t).map(r -> r.children().isEmpty()).orElse(false);
     }
 
-    @Override public RequesterId requesterId() { return REQUESTER_ID; }
-    @Override public BlockPos location() { return location; }
-    @Override public String displayName() { return "Player"; }
-    @Override public void onRequestComplete(RequestManager manager, Request request) {}
-    @Override public void onRequestCancelled(RequestManager manager, Request request) {}
+    @Override
+    public RequesterId requesterId() {
+        return REQUESTER_ID;
+    }
+
+    @Override
+    public BlockPos location() {
+        return location;
+    }
+
+    @Override
+    public String displayName() {
+        return "Player";
+    }
+
+    @Override
+    public void onRequestComplete(RequestManager manager, Request request) {}
+
+    @Override
+    public void onRequestCancelled(RequestManager manager, Request request) {}
 }

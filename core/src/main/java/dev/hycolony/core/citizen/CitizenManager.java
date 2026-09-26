@@ -37,11 +37,25 @@ public final class CitizenManager {
         return colony.context();
     }
 
-    public Collection<CitizenData> all() { return Collections.unmodifiableCollection(citizens.values()); }
-    public Optional<CitizenData> get(int id) { return Optional.ofNullable(citizens.get(id)); }
-    public Optional<BodyId> bodyOf(int id) { return Optional.ofNullable(bodies.get(id)); }
-    public Optional<CitizenState> aiState(int id) { return Optional.ofNullable(ais.get(id)).map(CitizenAI::state); }
-    public Optional<Msg> jobActivity(int id) { return Optional.ofNullable(ais.get(id)).flatMap(CitizenAI::jobActivity); }
+    public Collection<CitizenData> all() {
+        return Collections.unmodifiableCollection(citizens.values());
+    }
+
+    public Optional<CitizenData> get(int id) {
+        return Optional.ofNullable(citizens.get(id));
+    }
+
+    public Optional<BodyId> bodyOf(int id) {
+        return Optional.ofNullable(bodies.get(id));
+    }
+
+    public Optional<CitizenState> aiState(int id) {
+        return Optional.ofNullable(ais.get(id)).map(CitizenAI::state);
+    }
+
+    public Optional<Msg> jobActivity(int id) {
+        return Optional.ofNullable(ais.get(id)).flatMap(CitizenAI::jobActivity);
+    }
 
     /** Adds a citizen loaded from disk. */
     public void restore(CitizenData data) {
@@ -55,7 +69,9 @@ public final class CitizenManager {
             throw new IllegalStateException("test failure");
         }
         for (Map.Entry<Integer, BodyId> e : bodies.entrySet()) {
-            ctx().bodies().position(e.getValue()).ifPresent(p -> citizens.get(e.getKey()).setLastPosition(p));
+            ctx().bodies()
+                    .position(e.getValue())
+                    .ifPresent(p -> citizens.get(e.getKey()).setLastPosition(p));
         }
         if (!bodies.isEmpty()) {
             colony.markDirty();
@@ -91,7 +107,9 @@ public final class CitizenManager {
     }
 
     private void spawnInitialCitizen(BlockPos townHall) {
-        int femaleCount = (int) citizens.values().stream().filter(c -> c.gender() == Gender.FEMALE).count();
+        int femaleCount = (int) citizens.values().stream()
+                .filter(c -> c.gender() == Gender.FEMALE)
+                .count();
         CitizenData data = createAndRegister();
         Gender gender;
         if (citizens.size() == 1) {
@@ -131,9 +149,11 @@ public final class CitizenManager {
         if (body != null && ctx().bodies().isAlive(body)) {
             return;
         }
-        BlockPos target = data.respawnPosition() != null ? data.respawnPosition()
-                : data.lastPosition() != null ? data.lastPosition().toBlockPos()
-                : colony.buildings().townHall().map(Building::position).orElse(colony.center());
+        BlockPos target = data.respawnPosition() != null
+                ? data.respawnPosition()
+                : data.lastPosition() != null
+                        ? data.lastPosition().toBlockPos()
+                        : colony.buildings().townHall().map(Building::position).orElse(colony.center());
         if (!ctx().worldQuery().isLoaded(target)) {
             return;
         }
@@ -141,7 +161,13 @@ public final class CitizenManager {
     }
 
     private void spawnBody(CitizenData data, BlockPos near) {
-        ctx().bodies().spawn(ctx().world(), near, colony.id(), data.id(), colony.nameplates().nameFor(data))
+        ctx().bodies()
+                .spawn(
+                        ctx().world(),
+                        near,
+                        colony.id(),
+                        data.id(),
+                        colony.nameplates().nameFor(data))
                 .ifPresent(body -> bind(data, body));
     }
 
@@ -157,7 +183,8 @@ public final class CitizenManager {
         }
         CitizenData data = citizens.get(citizenId);
         BodyId current = bodies.get(citizenId);
-        boolean duplicate = current != null && !current.equals(body) && ctx().bodies().isAlive(current);
+        boolean duplicate =
+                current != null && !current.equals(body) && ctx().bodies().isAlive(current);
         if (data == null || duplicate) {
             ctx().bodies().despawn(body);
             return;

@@ -61,6 +61,7 @@ public final class HytaleBlueprintSource implements BlueprintSource {
     private static final String FLUID_PREFIX = "~fluid:";
     /** Hut-relative y of the floor the hut stands on: nothing below it is part of the blueprint. */
     private static final int FLOOR_Y = -1;
+
     private static final AtomicBoolean PREWARMED = new AtomicBoolean();
 
     private final PrefabStyles styles;
@@ -94,8 +95,8 @@ public final class HytaleBlueprintSource implements BlueprintSource {
                     LOG.at(Level.WARNING).withCause(e).log("HyColony blueprint: cannot pre-load %s", prefab);
                 }
             }
-            LOG.at(Level.INFO).log("HyColony blueprint: pre-loaded %d prefabs in %d ms", n,
-                    (System.nanoTime() - start) / 1_000_000);
+            LOG.at(Level.INFO).log(
+                    "HyColony blueprint: pre-loaded %d prefabs in %d ms", n, (System.nanoTime() - start) / 1_000_000);
         });
     }
 
@@ -134,9 +135,19 @@ public final class HytaleBlueprintSource implements BlueprintSource {
         record Cell(int x, int y, int z, BlockState state, boolean container) {}
         List<Cell> cells = new ArrayList<>();
         int[] lowestY = {Integer.MAX_VALUE};
-        buf.forEach(IPrefabBuffer.iterateAllColumns(),
-                (int x, int y, int z, int blockId, Holder<ChunkStore> holder, int support, int rotation, int filler,
-                        PrefabBufferCall call, int fluidId, int fluidLevel) -> {
+        buf.forEach(
+                IPrefabBuffer.iterateAllColumns(),
+                (int x,
+                        int y,
+                        int z,
+                        int blockId,
+                        Holder<ChunkStore> holder,
+                        int support,
+                        int rotation,
+                        int filler,
+                        PrefabBufferCall call,
+                        int fluidId,
+                        int fluidLevel) -> {
                     if (filler != 0) {
                         return;
                     }
@@ -152,12 +163,15 @@ public final class HytaleBlueprintSource implements BlueprintSource {
                             id = type.getDefaultStateKey();
                             type = BlockType.getAssetMap().getAsset(id);
                         }
-                        if (type == null || id.equals("Empty") || id.equals("Block_Spawner_Block")
+                        if (type == null
+                                || id.equals("Empty")
+                                || id.equals("Block_Spawner_Block")
                                 || id.startsWith("Editor_")) {
                             return;
                         }
                         Holder<ChunkStore> entity = type.getBlockEntity();
-                        container = entity != null && entity.getComponent(ItemContainerBlock.getComponentType()) != null;
+                        container =
+                                entity != null && entity.getComponent(ItemContainerBlock.getComponentType()) != null;
                         int rot = type.getVariantRotation() == VariantRotation.None ? 0 : rotation;
                         state = new BlockState(new BlockKey(id), rot);
                     } else if (fluidId != 0) {
@@ -171,16 +185,28 @@ public final class HytaleBlueprintSource implements BlueprintSource {
                     }
                     lowestY[0] = Math.min(lowestY[0], y);
                     cells.add(new Cell(x, y, z, state, container));
-                }, null, null, new PrefabBufferCall(new Random(0), r));
+                },
+                null,
+                null,
+                new PrefabBufferCall(new Random(0), r));
         if (cells.isEmpty()) {
             warnOnce("prefab has no blocks: " + entry.prefab(), null);
             return Optional.empty();
         }
 
         // Pass 2: the unrotated hut cell, turned like the entries, then everything made hut-relative.
-        BlockPos hut = PrefabStyles.rotate(r, PrefabStyles.hutCell(entry.hutOffset(),
-                buf.getAnchorX(), buf.getAnchorY(), buf.getAnchorZ(),
-                buf.getMinX(), buf.getMaxX(), lowestY[0], buf.getMinZ(), buf.getMaxZ()));
+        BlockPos hut = PrefabStyles.rotate(
+                r,
+                PrefabStyles.hutCell(
+                        entry.hutOffset(),
+                        buf.getAnchorX(),
+                        buf.getAnchorY(),
+                        buf.getAnchorZ(),
+                        buf.getMinX(),
+                        buf.getMaxX(),
+                        lowestY[0],
+                        buf.getMinZ(),
+                        buf.getMaxZ()));
         List<BlueprintEntry> entries = new ArrayList<>(cells.size());
         for (Cell c : cells) {
             BlockPos offset = PrefabStyles.relative(c.x(), c.y(), c.z(), hut);

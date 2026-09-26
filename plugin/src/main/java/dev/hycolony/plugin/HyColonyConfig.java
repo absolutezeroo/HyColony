@@ -7,16 +7,53 @@ import dev.hycolony.core.kernel.config.ColonyConfig;
 
 /** mods/<group>_HyColony/config.json. Ranges are clamped like the MineColonies config. */
 public final class HyColonyConfig {
-    public static final BuilderCodec<HyColonyConfig> CODEC = BuilderCodec.builder(HyColonyConfig.class, HyColonyConfig::new)
-            .append(new KeyedCodec<>("InitialCitizenAmount", Codec.INTEGER), (c, v) -> c.initialCitizenAmount = v, c -> c.initialCitizenAmount).add()
-            .append(new KeyedCodec<>("MaxCitizenPerColony", Codec.INTEGER), (c, v) -> c.maxCitizenPerColony = v, c -> c.maxCitizenPerColony).add()
-            .append(new KeyedCodec<>("InitialColonySize", Codec.INTEGER), (c, v) -> c.initialColonySize = v, c -> c.initialColonySize).add()
-            .append(new KeyedCodec<>("MinColonyDistance", Codec.INTEGER), (c, v) -> c.minColonyDistance = v, c -> c.minColonyDistance).add()
-            .append(new KeyedCodec<>("MaxColonySize", Codec.INTEGER), (c, v) -> c.maxColonySize = v, c -> c.maxColonySize).add()
-            .append(new KeyedCodec<>("EnableColonyProtection", Codec.BOOLEAN), (c, v) -> c.enableColonyProtection = v, c -> c.enableColonyProtection).add()
-            .append(new KeyedCodec<>("AutosaveIntervalMinutes", Codec.INTEGER), (c, v) -> c.autosaveIntervalMinutes = v, c -> c.autosaveIntervalMinutes).add()
-            .append(new KeyedCodec<>("BuilderInfiniteResources", Codec.BOOLEAN), (c, v) -> c.builderInfiniteResources = v, c -> c.builderInfiniteResources).add()
-            .append(new KeyedCodec<>("CreativeOperatorFreeBuilds", Codec.BOOLEAN), (c, v) -> c.creativeOperatorFreeBuilds = v, c -> c.creativeOperatorFreeBuilds).add()
+    public static final BuilderCodec<HyColonyConfig> CODEC = BuilderCodec.builder(
+                    HyColonyConfig.class, HyColonyConfig::new)
+            .append(
+                    new KeyedCodec<>("InitialCitizenAmount", Codec.INTEGER),
+                    (c, v) -> c.initialCitizenAmount = v,
+                    c -> c.initialCitizenAmount)
+            .add()
+            .append(
+                    new KeyedCodec<>("MaxCitizenPerColony", Codec.INTEGER),
+                    (c, v) -> c.maxCitizenPerColony = v,
+                    c -> c.maxCitizenPerColony)
+            .add()
+            .append(
+                    new KeyedCodec<>("InitialColonySize", Codec.INTEGER),
+                    (c, v) -> c.initialColonySize = v,
+                    c -> c.initialColonySize)
+            .add()
+            .append(
+                    new KeyedCodec<>("MinColonyDistance", Codec.INTEGER),
+                    (c, v) -> c.minColonyDistance = v,
+                    c -> c.minColonyDistance)
+            .add()
+            .append(
+                    new KeyedCodec<>("MaxColonySize", Codec.INTEGER),
+                    (c, v) -> c.maxColonySize = v,
+                    c -> c.maxColonySize)
+            .add()
+            .append(
+                    new KeyedCodec<>("EnableColonyProtection", Codec.BOOLEAN),
+                    (c, v) -> c.enableColonyProtection = v,
+                    c -> c.enableColonyProtection)
+            .add()
+            .append(
+                    new KeyedCodec<>("AutosaveIntervalMinutes", Codec.INTEGER),
+                    (c, v) -> c.autosaveIntervalMinutes = v,
+                    c -> c.autosaveIntervalMinutes)
+            .add()
+            .append(
+                    new KeyedCodec<>("BuilderInfiniteResources", Codec.BOOLEAN),
+                    (c, v) -> c.builderInfiniteResources = v,
+                    c -> c.builderInfiniteResources)
+            .add()
+            .append(
+                    new KeyedCodec<>("CreativeOperatorFreeBuilds", Codec.BOOLEAN),
+                    (c, v) -> c.creativeOperatorFreeBuilds = v,
+                    c -> c.creativeOperatorFreeBuilds)
+            .add()
             .build();
 
     private int initialCitizenAmount = 4;

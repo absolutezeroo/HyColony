@@ -4,7 +4,11 @@ package dev.hycolony.core.colony;
 public final class ColonySettings {
     private boolean autoHiring = true;
 
-    public boolean autoHiring() { return autoHiring; }
+    public boolean autoHiring() {
+        return autoHiring;
+    }
 
-    public void setAutoHiring(boolean autoHiring) { this.autoHiring = autoHiring; }
+    public void setAutoHiring(boolean autoHiring) {
+        this.autoHiring = autoHiring;
+    }
 }

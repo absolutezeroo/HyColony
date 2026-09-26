@@ -55,7 +55,13 @@ public final class Colony {
     private boolean dirty;
     private long suspendedUntilTick = Long.MIN_VALUE;
 
-    public Colony(ColonyContext ctx, TerritoryIndex territory, int id, String name, BlockPos center, Permissions permissions) {
+    public Colony(
+            ColonyContext ctx,
+            TerritoryIndex territory,
+            int id,
+            String name,
+            BlockPos center,
+            Permissions permissions) {
         this.ctx = ctx;
         this.territory = territory;
         this.id = id;
@@ -93,14 +99,51 @@ public final class Colony {
         this.wasDaytime = ctx.clock().isDaytime();
         this.machine = new TickRateStateMachine<>(ColonyState.INACTIVE, this::onException);
         for (ColonyState s : ColonyState.values()) {
-            machine.addTransition(new AITarget<>(s, (IStateSupplier<ColonyState>) this::updateState, UPDATE_STATE_INTERVAL));
+            machine.addTransition(
+                    new AITarget<>(s, (IStateSupplier<ColonyState>) this::updateState, UPDATE_STATE_INTERVAL));
         }
-        machine.addTransition(new AITarget<>(ColonyState.ACTIVE, (IStateSupplier<ColonyState>) () -> { citizens.tickData(); return null; }, CITIZEN_DATA_INTERVAL));
-        machine.addTransition(new AITarget<>(ColonyState.ACTIVE, (IStateSupplier<ColonyState>) () -> { checkDayTime(); return null; }, DAYTIME_INTERVAL));
-        machine.addTransition(new AITarget<>(ColonyState.ACTIVE, (IStateSupplier<ColonyState>) () -> { slowTick(); return null; }, SLOW_TICK));
-        machine.addTransition(new AITarget<>(ColonyState.ACTIVE, (IStateSupplier<ColonyState>) () -> { requests.tick(); return null; }, RequestManager.TICK_INTERVAL));
-        machine.addTransition(new AITarget<>(ColonyState.ACTIVE, (IStateSupplier<ColonyState>) () -> { work.tick(); return null; }, WorkManager.TICK_INTERVAL));
-        machine.addTransition(new AITarget<>(ColonyState.ACTIVE, (IStateSupplier<ColonyState>) () -> { nameplates.refresh(); return null; }, CitizenNameplates.INTERVAL));
+        machine.addTransition(new AITarget<>(
+                ColonyState.ACTIVE,
+                (IStateSupplier<ColonyState>) () -> {
+                    citizens.tickData();
+                    return null;
+                },
+                CITIZEN_DATA_INTERVAL));
+        machine.addTransition(new AITarget<>(
+                ColonyState.ACTIVE,
+                (IStateSupplier<ColonyState>) () -> {
+                    checkDayTime();
+                    return null;
+                },
+                DAYTIME_INTERVAL));
+        machine.addTransition(new AITarget<>(
+                ColonyState.ACTIVE,
+                (IStateSupplier<ColonyState>) () -> {
+                    slowTick();
+                    return null;
+                },
+                SLOW_TICK));
+        machine.addTransition(new AITarget<>(
+                ColonyState.ACTIVE,
+                (IStateSupplier<ColonyState>) () -> {
+                    requests.tick();
+                    return null;
+                },
+                RequestManager.TICK_INTERVAL));
+        machine.addTransition(new AITarget<>(
+                ColonyState.ACTIVE,
+                (IStateSupplier<ColonyState>) () -> {
+                    work.tick();
+                    return null;
+                },
+                WorkManager.TICK_INTERVAL));
+        machine.addTransition(new AITarget<>(
+                ColonyState.ACTIVE,
+                (IStateSupplier<ColonyState>) () -> {
+                    nameplates.refresh();
+                    return null;
+                },
+                CitizenNameplates.INTERVAL));
     }
 
     public void tick() {
@@ -165,10 +208,14 @@ public final class Colony {
      */
     private void announceNeedsPlayer(Request r) {
         Building b = buildings.byRequester(r.requester()).orElse(null);
-        Optional<CitizenData> citizen = r.citizenId() != -1 ? citizens.get(r.citizenId())
-                : Optional.ofNullable(b).flatMap(hut -> hut.module(WorkerModule.class))
-                        .flatMap(w -> w.workers().stream().findFirst()).flatMap(citizens::get);
-        String who = r.citizenId() != -1 ? citizen.map(CitizenData::name).orElse("")
+        Optional<CitizenData> citizen = r.citizenId() != -1
+                ? citizens.get(r.citizenId())
+                : Optional.ofNullable(b)
+                        .flatMap(hut -> hut.module(WorkerModule.class))
+                        .flatMap(w -> w.workers().stream().findFirst())
+                        .flatMap(citizens::get);
+        String who = r.citizenId() != -1
+                ? citizen.map(CitizenData::name).orElse("")
                 : b != null ? b.displayName() : r.requester().value();
         String job = citizen.flatMap(CitizenData::job).map(j -> j.type().id()).orElse("");
         NeedsPlayerNotice notice = new NeedsPlayerNotice(who, job, r.requestable());
@@ -195,7 +242,12 @@ public final class Colony {
      * centre and never stealing a cell.
      */
     public void claimAround(BlockPos pos, int radius) {
-        territory.claimSquareBounded(id, ClaimCell.of(pos), radius, ClaimCell.of(center), ctx.config().maxColonySize());
+        territory.claimSquareBounded(
+                id,
+                ClaimCell.of(pos),
+                radius,
+                ClaimCell.of(center),
+                ctx.config().maxColonySize());
         markDirty();
     }
 
@@ -204,23 +256,80 @@ public final class Colony {
         return owner.isPresent() && owner.getAsInt() == id;
     }
 
-    public int id() { return id; }
-    public String name() { return name; }
-    public void setName(String name) { this.name = name; markDirty(); }
-    public BlockPos center() { return center; }
-    public Permissions permissions() { return permissions; }
-    public BuildingManager buildings() { return buildings; }
-    public CitizenManager citizens() { return citizens; }
-    public ColonySettings settings() { return settings; }
-    public RequestManager requests() { return requests; }
-    public WorkManager work() { return work; }
-    public CitizenNameplates nameplates() { return nameplates; }
-    public EventLog log() { return log; }
-    public int day() { return day; }
-    public void setDay(int day) { this.day = day; }
-    public ColonyState state() { return machine.getState(); }
-    public ColonyContext context() { return ctx; }
-    public boolean isDirty() { return dirty; }
-    public void markDirty() { dirty = true; }
-    public void clearDirty() { dirty = false; }
+    public int id() {
+        return id;
+    }
+
+    public String name() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+        markDirty();
+    }
+
+    public BlockPos center() {
+        return center;
+    }
+
+    public Permissions permissions() {
+        return permissions;
+    }
+
+    public BuildingManager buildings() {
+        return buildings;
+    }
+
+    public CitizenManager citizens() {
+        return citizens;
+    }
+
+    public ColonySettings settings() {
+        return settings;
+    }
+
+    public RequestManager requests() {
+        return requests;
+    }
+
+    public WorkManager work() {
+        return work;
+    }
+
+    public CitizenNameplates nameplates() {
+        return nameplates;
+    }
+
+    public EventLog log() {
+        return log;
+    }
+
+    public int day() {
+        return day;
+    }
+
+    public void setDay(int day) {
+        this.day = day;
+    }
+
+    public ColonyState state() {
+        return machine.getState();
+    }
+
+    public ColonyContext context() {
+        return ctx;
+    }
+
+    public boolean isDirty() {
+        return dirty;
+    }
+
+    public void markDirty() {
+        dirty = true;
+    }
+
+    public void clearDirty() {
+        dirty = false;
+    }
 }

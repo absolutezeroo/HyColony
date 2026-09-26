@@ -9,15 +9,19 @@ import dev.hycolony.core.job.WorkerModule;
 import java.util.List;
 
 public final class ConstructionBuildingTypes {
-    public static final BuildingType BUILDER = new BuildingType("hycolony:builder", "hut.builder", 5, List.of(
-            new ModuleProducer("worker", () -> new WorkerModule(BuilderJob.TYPE, Skill.Adaptability, Skill.Athletics, 1, true)),
-            new ModuleProducer("builderSettings", BuilderSettingsModule::new),
-            new ModuleProducer("resources", BuildingResourcesModule::new)
-    ));
+    public static final BuildingType BUILDER = new BuildingType(
+            "hycolony:builder",
+            "hut.builder",
+            5,
+            List.of(
+                    new ModuleProducer(
+                            "worker",
+                            () -> new WorkerModule(BuilderJob.TYPE, Skill.Adaptability, Skill.Athletics, 1, true)),
+                    new ModuleProducer("builderSettings", BuilderSettingsModule::new),
+                    new ModuleProducer("resources", BuildingResourcesModule::new)));
 
-    public static final BuildingType RESIDENCE = new BuildingType("hycolony:residence", "hut.residence", 5, List.of(
-            new ModuleProducer("living", LivingModule::new)
-    ));
+    public static final BuildingType RESIDENCE = new BuildingType(
+            "hycolony:residence", "hut.residence", 5, List.of(new ModuleProducer("living", LivingModule::new)));
 
     private ConstructionBuildingTypes() {}
 

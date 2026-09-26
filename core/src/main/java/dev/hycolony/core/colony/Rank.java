@@ -17,16 +17,47 @@ public final class Rank {
         this.hostile = hostile;
     }
 
-    public boolean has(Action action) { return (permissions & action.mask()) != 0; }
-    public void add(Action action) { permissions |= action.mask(); }
-    public void remove(Action action) { permissions &= ~action.mask(); }
+    public boolean has(Action action) {
+        return (permissions & action.mask()) != 0;
+    }
 
-    public int id() { return id; }
-    public String name() { return name; }
-    public long permissions() { return permissions; }
-    public boolean isInitial() { return initial; }
-    public boolean isColonyManager() { return colonyManager; }
-    public boolean isHostile() { return hostile; }
-    void setColonyManager(boolean colonyManager) { this.colonyManager = colonyManager; }
-    void setHostile(boolean hostile) { this.hostile = hostile; }
+    public void add(Action action) {
+        permissions |= action.mask();
+    }
+
+    public void remove(Action action) {
+        permissions &= ~action.mask();
+    }
+
+    public int id() {
+        return id;
+    }
+
+    public String name() {
+        return name;
+    }
+
+    public long permissions() {
+        return permissions;
+    }
+
+    public boolean isInitial() {
+        return initial;
+    }
+
+    public boolean isColonyManager() {
+        return colonyManager;
+    }
+
+    public boolean isHostile() {
+        return hostile;
+    }
+
+    void setColonyManager(boolean colonyManager) {
+        this.colonyManager = colonyManager;
+    }
+
+    void setHostile(boolean hostile) {
+        this.hostile = hostile;
+    }
 }

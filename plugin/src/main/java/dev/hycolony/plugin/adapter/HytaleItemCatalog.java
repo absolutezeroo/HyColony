@@ -47,11 +47,13 @@ public final class HytaleItemCatalog implements ItemCatalog {
     private static final float MAX_HARDNESS = 3f; // ponytail: heuristic, replace by a table if balance is off
     private static final BlockInfo UNKNOWN_BLOCK =
             new BlockInfo(BlockKind.UNBREAKABLE, Optional.empty(), false, Optional.empty(), 1f);
-    private static final BlockInfo FLUID = new BlockInfo(BlockKind.FLUID, Optional.empty(), false, Optional.empty(), 0f);
+    private static final BlockInfo FLUID =
+            new BlockInfo(BlockKind.FLUID, Optional.empty(), false, Optional.empty(), 0f);
     private static final BlockInfo AIR = new BlockInfo(BlockKind.AIR, Optional.empty(), false, Optional.empty(), 0f);
     private static final ItemInfo UNKNOWN_ITEM = new ItemInfo(1, Optional.empty(), 0);
 
-    private record BlockInfo(BlockKind kind, Optional<ItemKey> item, boolean ore, Optional<ToolType> tool, float hardness) {}
+    private record BlockInfo(
+            BlockKind kind, Optional<ItemKey> item, boolean ore, Optional<ToolType> tool, float hardness) {}
 
     private record ItemInfo(int maxStack, Optional<ToolInfo> tool, int durability) {}
 
@@ -162,11 +164,16 @@ public final class HytaleItemCatalog implements ItemCatalog {
         float hardness = MIN_HARDNESS; // soft or harvest-only blocks break in one hit
         if (gather != null) {
             ItemToolSpec unarmed = ItemToolSpec.getAssetMap().getAsset(gather);
-            hardness = unarmed == null || unarmed.getPower() <= 0 ? 1f
+            hardness = unarmed == null || unarmed.getPower() <= 0
+                    ? 1f
                     : Math.clamp(MIN_HARDNESS / unarmed.getPower(), MIN_HARDNESS, MAX_HARDNESS);
         }
-        return new BlockInfo(kind, itemKey, gather != null && gather.startsWith("Ore"),
-                Optional.ofNullable(toolType(gather)), hardness);
+        return new BlockInfo(
+                kind,
+                itemKey,
+                gather != null && gather.startsWith("Ore"),
+                Optional.ofNullable(toolType(gather)),
+                hardness);
     }
 
     private static ToolType toolType(String gather) {
@@ -190,12 +197,14 @@ public final class HytaleItemCatalog implements ItemCatalog {
         }
         int maxStack = Math.max(1, item.getMaxStack());
         ItemTool tool = item.getTool();
-        ToolType type = tool == null ? null : switch (String.valueOf(item.getPlayerAnimationsId())) {
-            case "Pickaxe" -> ToolType.PICKAXE;
-            case "Hatchet" -> ToolType.AXE;
-            case "Shovel" -> ToolType.SHOVEL;
-            default -> null;
-        };
+        ToolType type = tool == null
+                ? null
+                : switch (String.valueOf(item.getPlayerAnimationsId())) {
+                    case "Pickaxe" -> ToolType.PICKAXE;
+                    case "Hatchet" -> ToolType.AXE;
+                    case "Shovel" -> ToolType.SHOVEL;
+                    default -> null;
+                };
         if (type == null) {
             return new ItemInfo(maxStack, Optional.empty(), 0);
         }

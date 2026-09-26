@@ -45,12 +45,14 @@ public final class HytaleWorldBlocks implements WorldBlocks {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
     /** Pseudo-key prefix for fluids, shared with {@link HytaleItemCatalog}. */
     static final String FLUID_PREFIX = "~fluid:";
+
     private static final int ROTATIONS = 64; // RotationTuple.VALUES.length
 
     private final World world;
     private final Set<String> hutBlockIds;
     /** {@code get} is hot: one Optional per (block runtime id, rotation index), built once. */
     private Optional<BlockState>[][] blockCache = newCache(1024);
+
     private Optional<BlockState>[] fluidCache = newRow(64);
     private boolean warned;
 
@@ -121,21 +123,38 @@ public final class HytaleWorldBlocks implements WorldBlocks {
                 return true;
             }
             int id = BlockType.getAssetMap().getIndex(key);
-            BlockType type = id == Integer.MIN_VALUE ? null : BlockType.getAssetMap().getAsset(id);
+            BlockType type =
+                    id == Integer.MIN_VALUE ? null : BlockType.getAssetMap().getAsset(id);
             BlockSection blocks = store.getComponent(sec, BlockSection.getComponentType());
             if (type == null || blocks == null) {
                 return false;
             }
             // The builder mined the spot first, so leftovers are replaced, except a hut (a multi-cell block's hitbox
             // may reach one). The check also fails if part of the hitbox is in an unloaded section.
-            if (!BlockOperations.testPlaceBlock(store, blocks, pos.x(), pos.y(), pos.z(), type, state.rotation(),
+            if (!BlockOperations.testPlaceBlock(
+                    store,
+                    blocks,
+                    pos.x(),
+                    pos.y(),
+                    pos.z(),
+                    type,
+                    state.rotation(),
                     (x, y, z, other, rot, filler) -> !isHut(other))) {
                 return false;
             }
             // Always NONE: the block entity is part of the block (a chest gets its container, a bench its state),
             // so withContainer (the blueprint's "has an ItemContainerBlock") needs no special setting here.
-            BlockOperations.setBlock(world.getChunkStore(), sec, pos.x(), pos.y(), pos.z(), id, type, state.rotation(),
-                    0, SetBlockSettings.NONE);
+            BlockOperations.setBlock(
+                    world.getChunkStore(),
+                    sec,
+                    pos.x(),
+                    pos.y(),
+                    pos.z(),
+                    id,
+                    type,
+                    state.rotation(),
+                    0,
+                    SetBlockSettings.NONE);
             if (type.getMaterial() == BlockMaterial.Solid) {
                 FluidSection fluids = store.getComponent(sec, FluidSection.getComponentType());
                 if (fluids != null && fluids.getFluidId(pos.x(), pos.y(), pos.z()) != Fluid.EMPTY_ID) {
@@ -176,7 +195,8 @@ public final class HytaleWorldBlocks implements WorldBlocks {
             }
             // A filler cell belongs to its origin block: the origin holds the container, and the whole block goes.
             int filler = blocks.getFiller(x, y, z);
-            int ox = x - FillerBlockUtil.unpackX(filler), oy = y - FillerBlockUtil.unpackY(filler),
+            int ox = x - FillerBlockUtil.unpackX(filler),
+                    oy = y - FillerBlockUtil.unpackY(filler),
                     oz = z - FillerBlockUtil.unpackZ(filler);
             Ref<ChunkStore> originSec = filler == 0 ? sec : section(new BlockPos(ox, oy, oz));
             if (originSec == null) {
@@ -195,8 +215,17 @@ public final class HytaleWorldBlocks implements WorldBlocks {
                 }
                 out.addAll(drops(type));
             }
-            BlockHarvestUtils.naturallyRemoveBlock(new Vector3i(x, y, z), type, filler, 0, null, null,
-                    SetBlockSettings.NO_DROP_ITEMS, sec, world.getEntityStore().getStore(), store);
+            BlockHarvestUtils.naturallyRemoveBlock(
+                    new Vector3i(x, y, z),
+                    type,
+                    filler,
+                    0,
+                    null,
+                    null,
+                    SetBlockSettings.NO_DROP_ITEMS,
+                    sec,
+                    world.getEntityStore().getStore(),
+                    store);
             List<ItemAmount> amounts = new ArrayList<>(out.size());
             for (ItemStack s : out) {
                 if (!ItemStack.isEmpty(s)) {
@@ -215,11 +244,12 @@ public final class HytaleWorldBlocks implements WorldBlocks {
         BlockGathering g = type.getGathering();
         BlockBreakingDropType breaking = g == null ? null : g.getBreaking();
         if (breaking != null) {
-            return BlockHarvestUtils.getDrops(type, Math.max(1, breaking.getQuantity()), breaking.getItemId(),
-                    breaking.getDropListId());
+            return BlockHarvestUtils.getDrops(
+                    type, Math.max(1, breaking.getQuantity()), breaking.getItemId(), breaking.getDropListId());
         }
         if (g != null && g.getSoft() != null) {
-            return BlockHarvestUtils.getDrops(type, 1, g.getSoft().getItemId(), g.getSoft().getDropListId());
+            return BlockHarvestUtils.getDrops(
+                    type, 1, g.getSoft().getItemId(), g.getSoft().getDropListId());
         }
         return BlockHarvestUtils.getDrops(type, 1, null, null);
     }

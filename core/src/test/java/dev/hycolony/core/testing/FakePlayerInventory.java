@@ -42,7 +42,9 @@ public final class FakePlayerInventory implements PlayerInventory {
 
     @Override
     public ItemAmount give(UUID player, ItemAmount amount) {
-        inventories.computeIfAbsent(player, p -> new LinkedHashMap<>()).merge(amount.item(), amount.count(), Integer::sum);
+        inventories
+                .computeIfAbsent(player, p -> new LinkedHashMap<>())
+                .merge(amount.item(), amount.count(), Integer::sum);
         return null;
     }
 }

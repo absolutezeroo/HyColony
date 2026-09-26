@@ -10,8 +10,8 @@ import com.hypixel.hytale.server.core.universe.world.events.StartWorldEvent;
 import com.hypixel.hytale.server.core.util.Config;
 import com.hypixel.hytale.server.npc.NPCPlugin;
 import dev.hycolony.plugin.adapter.HytaleBlueprintSource;
-import dev.hycolony.plugin.block.ProtectionSystems;
 import dev.hycolony.plugin.block.HutBlockSystems;
+import dev.hycolony.plugin.block.ProtectionSystems;
 import dev.hycolony.plugin.command.HyColonyCommand;
 import dev.hycolony.plugin.npc.BuilderSensorHyColonyTarget;
 import dev.hycolony.plugin.npc.CitizenBodyLifecycleSystem;
@@ -59,10 +59,19 @@ public final class HyColonyPlugin extends JavaPlugin {
                 validateIds();
                 HytaleBlueprintSource.prewarm(); // once, in the background: assets are loaded by now
                 runtimes.create(e.getWorld());
-                getLogger().at(Level.INFO).log("HyColony runtime ready for world '%s' (%d colonies loaded)",
-                        e.getWorld().getName(), runtimes.of(e.getWorld()).manager().all().size());
+                getLogger()
+                        .at(Level.INFO)
+                        .log(
+                                "HyColony runtime ready for world '%s' (%d colonies loaded)",
+                                e.getWorld().getName(),
+                                runtimes.of(e.getWorld()).manager().all().size());
             } catch (RuntimeException ex) {
-                getLogger().at(Level.SEVERE).withCause(ex).log("HyColony failed to start for world '%s'", e.getWorld().getName());
+                getLogger()
+                        .at(Level.SEVERE)
+                        .withCause(ex)
+                        .log(
+                                "HyColony failed to start for world '%s'",
+                                e.getWorld().getName());
             }
         });
         // LAST: another listener may still cancel the removal, and then the runtime must stay.
@@ -74,8 +83,13 @@ public final class HyColonyPlugin extends JavaPlugin {
         getEventRegistry().register(ShutdownEvent.class, e -> runtimes.all().forEach(WorldRuntime::saveAll));
         getEventRegistry().register(PlayerDisconnectEvent.class, e -> {
             UUID uuid = e.getPlayerRef().getUuid();
-            runtimes.all().forEach(rt -> rt.world().execute(() -> rt.manager().cancelFoundation(uuid)
-                    .ifPresent(pos -> rt.blocks().removeWithDrop(pos, ids.blockId("hut.townhall"), ids.itemId("hut.townhall")))));
+            runtimes.all()
+                    .forEach(rt -> rt.world()
+                            .execute(() -> rt.manager()
+                                    .cancelFoundation(uuid)
+                                    .ifPresent(pos -> rt.blocks()
+                                            .removeWithDrop(
+                                                    pos, ids.blockId("hut.townhall"), ids.itemId("hut.townhall")))));
         });
 
         getLogger().at(Level.INFO).log("HyColony setup complete");
@@ -90,7 +104,9 @@ public final class HyColonyPlugin extends JavaPlugin {
         for (String error : errors) {
             getLogger().at(Level.SEVERE).log("HyColony: missing asset id %s", error);
         }
-        getLogger().at(Level.SEVERE).log("HyColony disabled: vital asset ids are missing (see above). Saves are untouched.");
+        getLogger()
+                .at(Level.SEVERE)
+                .log("HyColony disabled: vital asset ids are missing (see above). Saves are untouched.");
         runtimes.setEnabled(false);
     }
 

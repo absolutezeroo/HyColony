@@ -24,7 +24,8 @@ class CitizenAITest {
     @Test
     void wandersNearTownHallThenReturnsToIdleOnArrival() {
         BlockPos hall = new BlockPos(100, 64, 100);
-        Colony c = new Colony(t.context(), new TerritoryIndex(), 1, "T", hall, Permissions.createDefault(UUID.randomUUID(), "A"));
+        Colony c = new Colony(
+                t.context(), new TerritoryIndex(), 1, "T", hall, Permissions.createDefault(UUID.randomUUID(), "A"));
         c.buildings().add(Building.create(BuildingTypes.TOWN_HALL, hall, 0));
         CitizenData d = new CitizenData(1);
         BodyId body = t.bodies.existing(1, 1, new Vec3(100, 64, 100));
@@ -48,7 +49,8 @@ class CitizenAITest {
     @Test
     void wanderTimesOutAfter30Seconds() {
         BlockPos hall = new BlockPos(0, 64, 0);
-        Colony c = new Colony(t.context(), new TerritoryIndex(), 1, "T", hall, Permissions.createDefault(UUID.randomUUID(), "A"));
+        Colony c = new Colony(
+                t.context(), new TerritoryIndex(), 1, "T", hall, Permissions.createDefault(UUID.randomUUID(), "A"));
         BodyId body = t.bodies.existing(1, 1, new Vec3(0, 64, 0));
         CitizenAI ai = new CitizenAI(c, new CitizenData(1), body);
         for (int i = 0; i < 420 && ai.state() == CitizenState.IDLE; i++) {

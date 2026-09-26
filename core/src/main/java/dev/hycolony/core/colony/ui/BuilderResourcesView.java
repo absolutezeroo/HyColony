@@ -8,7 +8,10 @@ import java.util.List;
 public record BuilderResourcesView(int colonyId, BlockPos hut, List<ResourceRow> rows, int percent, String stage) {
     /** Row colours: red, orange, green, black. */
     public enum Status {
-        DONT_HAVE, NEED_MORE, HAVE_ENOUGH, NOT_NEEDED;
+        DONT_HAVE,
+        NEED_MORE,
+        HAVE_ENOUGH,
+        NOT_NEEDED;
 
         /** BuildingBuilderResource.getAvailabilityStatus (without IN_DELIVERY: no couriers yet). */
         public static Status of(int needed, int available, int playerHas) {

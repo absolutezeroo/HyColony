@@ -10,11 +10,11 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
-import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.construction.BuilderJob;
 import dev.hycolony.core.construction.ClaimRadius;
 import dev.hycolony.core.construction.ConstructionBuildingTypes;
+import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.item.ItemKey;
@@ -34,7 +34,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 class PersistenceTest {
-    @TempDir Path dir;
+    @TempDir
+    Path dir;
+
     private final UUID alice = UUID.randomUUID();
     private final UUID bob = UUID.randomUUID();
 
@@ -101,7 +103,12 @@ class PersistenceTest {
     void unknownJobOnLoadLeavesCitizenJobless() {
         TestContexts t = new TestContexts();
         t.jobs.register(TestJobs.TYPE);
-        Colony c = new Colony(t.context(), new TerritoryIndex(), 1, "T", new BlockPos(0, 64, 0),
+        Colony c = new Colony(
+                t.context(),
+                new TerritoryIndex(),
+                1,
+                "T",
+                new BlockPos(0, 64, 0),
                 Permissions.createDefault(alice, "Alice"));
         CitizenData citizen = new CitizenData(1);
         citizen.setJob(TestJobs.TYPE.factory().apply(citizen));
@@ -126,12 +133,22 @@ class PersistenceTest {
         BlockPos hut = new BlockPos(20, 64, 0);
         m.placeHut(c, ConstructionBuildingTypes.BUILDER.id(), hut, 0);
         Building b = c.buildings().at(hut).orElseThrow();
-        assertTrue(b.module(WorkerModule.class).orElseThrow().hire(c, b, new CitizenData(99))); // 99 is not a colony citizen
+        assertTrue(b.module(WorkerModule.class)
+                .orElseThrow()
+                .hire(c, b, new CitizenData(99))); // 99 is not a colony citizen
 
         Colony clean = ColonySerializer.read(ColonySerializer.write(c), t.context(), new TerritoryIndex());
-        assertTrue(clean.buildings().at(hut).orElseThrow().module(WorkerModule.class).orElseThrow().workers().isEmpty());
+        assertTrue(clean.buildings()
+                .at(hut)
+                .orElseThrow()
+                .module(WorkerModule.class)
+                .orElseThrow()
+                .workers()
+                .isEmpty());
         assertTrue(clean.isDirty());
-        assertFalse(ColonySerializer.read(ColonySerializer.write(clean), t.context(), new TerritoryIndex()).isDirty(),
+        assertFalse(
+                ColonySerializer.read(ColonySerializer.write(clean), t.context(), new TerritoryIndex())
+                        .isDirty(),
                 "a consistent save loads clean");
     }
 
@@ -194,10 +211,14 @@ class PersistenceTest {
         }
 
         @Override
-        public List<Integer> colonyIds() throws IOException { return delegate.colonyIds(); }
+        public List<Integer> colonyIds() throws IOException {
+            return delegate.colonyIds();
+        }
 
         @Override
-        public int highestIdEverUsed() throws IOException { return delegate.highestIdEverUsed(); }
+        public int highestIdEverUsed() throws IOException {
+            return delegate.highestIdEverUsed();
+        }
 
         @Override
         public Optional<JsonObject> load(int id) throws IOException {
@@ -208,7 +229,9 @@ class PersistenceTest {
         }
 
         @Override
-        public void save(int id, String json) throws IOException { delegate.save(id, json); }
+        public void save(int id, String json) throws IOException {
+            delegate.save(id, json);
+        }
 
         @Override
         public void backupVersion(int id, int schemaVersion, String json) throws IOException {
@@ -216,7 +239,9 @@ class PersistenceTest {
         }
 
         @Override
-        public void archive(int id) throws IOException { delegate.archive(id); }
+        public void archive(int id) throws IOException {
+            delegate.archive(id);
+        }
     }
 
     @Test
@@ -287,7 +312,12 @@ class PersistenceTest {
     @Test
     void citizenOfMissingWorkBuildingIsFreedOnLoad() {
         TestContexts t = new TestContexts();
-        Colony c = new Colony(t.context(), new TerritoryIndex(), 1, "T", new BlockPos(0, 64, 0),
+        Colony c = new Colony(
+                t.context(),
+                new TerritoryIndex(),
+                1,
+                "T",
+                new BlockPos(0, 64, 0),
                 Permissions.createDefault(alice, "Alice"));
         CitizenData citizen = new CitizenData(1);
         citizen.setJob(BuilderJob.TYPE.factory().apply(citizen));
@@ -310,10 +340,12 @@ class PersistenceTest {
         Colony c = m.confirmFoundation(alice, "A").orElseThrow();
         BlockPos res = new BlockPos(20, 64, 0);
         m.placeHut(c, ConstructionBuildingTypes.RESIDENCE.id(), res, 0);
-        c.requests().createAndAssign(c.buildings().at(res).orElseThrow(),
-                new StackRequest(new ItemKey("Stone"), 4, 4, true), -1);
-        c.requests().createAndAssign(c.buildings().townHall().orElseThrow(),
-                new StackRequest(new ItemKey("Stone"), 2, 2, true), -1);
+        c.requests()
+                .createAndAssign(
+                        c.buildings().at(res).orElseThrow(), new StackRequest(new ItemKey("Stone"), 4, 4, true), -1);
+        c.requests()
+                .createAndAssign(
+                        c.buildings().townHall().orElseThrow(), new StackRequest(new ItemKey("Stone"), 2, 2, true), -1);
         JsonObject json = ColonySerializer.write(c);
         JsonArray kept = new JsonArray();
         json.getAsJsonArray("buildings").forEach(b -> {
@@ -326,6 +358,7 @@ class PersistenceTest {
         Colony reloaded = ColonySerializer.read(json, t.context(), new TerritoryIndex());
 
         assertEquals(1, reloaded.requests().all().size()); // the town hall's is kept
-        assertEquals(2, reloaded.requests().all().iterator().next().requestable().count());
+        assertEquals(
+                2, reloaded.requests().all().iterator().next().requestable().count());
     }
 }

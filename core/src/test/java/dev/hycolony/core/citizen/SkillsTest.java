@@ -50,7 +50,7 @@ class SkillsTest {
         s.set(Skill.Focus, 10, 0);
         assertFalse(s.addXp(Skill.Focus, 1000, 0, 5)); // (0+1)*10 <= 10 -> blocked
         assertEquals(10, s.level(Skill.Focus));
-        assertTrue(s.addXp(Skill.Focus, 60, 1, 5));  // home level 1 allows up to 20
+        assertTrue(s.addXp(Skill.Focus, 60, 1, 5)); // home level 1 allows up to 20
     }
 
     @Test

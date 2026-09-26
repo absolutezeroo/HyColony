@@ -34,9 +34,13 @@ public final class BuildingResourcesModule implements BuildingModule {
         this.buckets = List.of();
     }
 
-    public Optional<Map<ItemKey, Integer>> currentBucket() { return bucket(0); }
+    public Optional<Map<ItemKey, Integer>> currentBucket() {
+        return bucket(0);
+    }
 
-    public Optional<Map<ItemKey, Integer>> nextBucket() { return bucket(1); }
+    public Optional<Map<ItemKey, Integer>> nextBucket() {
+        return bucket(1);
+    }
 
     private Optional<Map<ItemKey, Integer>> bucket(int i) {
         return i < buckets.size() ? Optional.of(Collections.unmodifiableMap(buckets.get(i))) : Optional.empty();
@@ -65,7 +69,9 @@ public final class BuildingResourcesModule implements BuildingModule {
         }
     }
 
-    public NeededResources needs() { return needs; }
+    public NeededResources needs() {
+        return needs;
+    }
 
     /** Per item of the current and next bucket together: need minus (inventory + hut), strictly positive only. */
     public Map<ItemKey, Integer> missingForCurrentAndNext(Inventory builderInv, ToIntFunction<ItemKey> hutCount) {
@@ -79,12 +85,18 @@ public final class BuildingResourcesModule implements BuildingModule {
     }
 
     /** 0 before any start (work order ids start at 1). */
-    public int orderId() { return order == null ? 0 : order.id(); }
+    public int orderId() {
+        return order == null ? 0 : order.id();
+    }
 
     /** DONE before any start. */
-    public Stage stage() { return order == null ? Stage.DONE : order.stage(); }
+    public Stage stage() {
+        return order == null ? Stage.DONE : order.stage();
+    }
 
-    public int progressIndex() { return order == null ? 0 : order.progressIndex(); }
+    public int progressIndex() {
+        return order == null ? 0 : order.progressIndex();
+    }
 
     /** Writes through to the order, the single owner of progress. */
     public void progress(Stage s, int index) {

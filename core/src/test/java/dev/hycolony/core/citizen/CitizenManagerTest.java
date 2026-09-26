@@ -24,7 +24,8 @@ class CitizenManagerTest {
     private Colony colonyWithTownHall() {
         TerritoryIndex territory = new TerritoryIndex();
         territory.claimSquare(1, ClaimCell.of(hall), 4);
-        Colony c = new Colony(t.context(), territory, 1, "Test", hall, Permissions.createDefault(UUID.randomUUID(), "A"));
+        Colony c =
+                new Colony(t.context(), territory, 1, "Test", hall, Permissions.createDefault(UUID.randomUUID(), "A"));
         c.buildings().add(Building.create(BuildingTypes.TOWN_HALL, hall, 0));
         return c;
     }
@@ -64,7 +65,9 @@ class CitizenManagerTest {
     void gendersAreBalancedAfterFirstCitizen() {
         Colony c = colonyWithTownHall();
         slowTicks(c, 40);
-        long females = c.citizens().all().stream().filter(d -> d.gender() == Gender.FEMALE).count();
+        long females = c.citizens().all().stream()
+                .filter(d -> d.gender() == Gender.FEMALE)
+                .count();
         assertEquals(2, females);
     }
 
@@ -72,7 +75,9 @@ class CitizenManagerTest {
     void idsStartAtOneAndSkillsRespectInitialCap() {
         Colony c = colonyWithTownHall();
         slowTicks(c, 40);
-        assertEquals(java.util.List.of(1, 2, 3, 4), c.citizens().all().stream().map(CitizenData::id).toList());
+        assertEquals(
+                java.util.List.of(1, 2, 3, 4),
+                c.citizens().all().stream().map(CitizenData::id).toList());
         for (CitizenData d : c.citizens().all()) {
             for (Skill s : Skill.values()) {
                 assertTrue(d.skills().level(s) >= 1 && d.skills().level(s) <= 9); // cap (int)5.5*2 = 10

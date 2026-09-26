@@ -34,6 +34,7 @@ public final class CitizenAI {
     private JobAI jobAI;
     /** The job and work building {@link #jobAI} was created for. */
     private Job aiJob;
+
     private BlockPos aiWorkBuilding;
 
     public CitizenAI(Colony colony, CitizenData data, BodyId body) {

@@ -34,12 +34,35 @@ public final class BuildingResolver implements Resolver {
         this.requesterId = new RequesterId("resolver:" + id);
     }
 
-    @Override public String resolverId() { return id; }
-    @Override public int priority() { return PRIORITY; }
-    @Override public boolean handles(Deliverable requestable) { return true; }
-    @Override public Optional<RequesterId> servesOnly() { return Optional.of(building.requesterId()); }
-    @Override public Optional<List<Deliverable>> attemptResolve(RequestManager m, Request r) { return Optional.of(List.of()); }
-    @Override public double suitability(RequestManager m, Request r) { return 0; }
+    @Override
+    public String resolverId() {
+        return id;
+    }
+
+    @Override
+    public int priority() {
+        return PRIORITY;
+    }
+
+    @Override
+    public boolean handles(Deliverable requestable) {
+        return true;
+    }
+
+    @Override
+    public Optional<RequesterId> servesOnly() {
+        return Optional.of(building.requesterId());
+    }
+
+    @Override
+    public Optional<List<Deliverable>> attemptResolve(RequestManager m, Request r) {
+        return Optional.of(List.of());
+    }
+
+    @Override
+    public double suitability(RequestManager m, Request r) {
+        return 0;
+    }
 
     @Override
     public boolean canResolve(RequestManager m, Request r) {
@@ -86,9 +109,24 @@ public final class BuildingResolver implements Resolver {
         return stock;
     }
 
-    @Override public RequesterId requesterId() { return requesterId; }
-    @Override public BlockPos location() { return building.position(); }
-    @Override public String displayName() { return building.displayName(); }
-    @Override public void onRequestComplete(RequestManager manager, Request request) {}
-    @Override public void onRequestCancelled(RequestManager manager, Request request) {}
+    @Override
+    public RequesterId requesterId() {
+        return requesterId;
+    }
+
+    @Override
+    public BlockPos location() {
+        return building.position();
+    }
+
+    @Override
+    public String displayName() {
+        return building.displayName();
+    }
+
+    @Override
+    public void onRequestComplete(RequestManager manager, Request request) {}
+
+    @Override
+    public void onRequestCancelled(RequestManager manager, Request request) {}
 }

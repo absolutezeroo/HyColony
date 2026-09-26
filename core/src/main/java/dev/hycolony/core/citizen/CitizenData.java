@@ -28,27 +28,95 @@ public final class CitizenData {
         this.id = id;
     }
 
-    public int id() { return id; }
-    public String name() { return name; }
-    public void setName(String name) { this.name = name; }
-    public Gender gender() { return gender; }
-    public void setGender(Gender gender) { this.gender = gender; }
-    public boolean isChild() { return child; }
-    public void setChild(boolean child) { this.child = child; }
-    public Skills skills() { return skills; }
-    public void setSkills(Skills skills) { this.skills = skills; }
-    public Vec3 lastPosition() { return lastPosition; }
-    public void setLastPosition(Vec3 lastPosition) { this.lastPosition = lastPosition; }
-    public BlockPos respawnPosition() { return respawnPosition; }
-    public void setRespawnPosition(BlockPos respawnPosition) { this.respawnPosition = respawnPosition; }
-    public BlockPos homeBuilding() { return homeBuilding; }
-    public void setHomeBuilding(BlockPos homeBuilding) { this.homeBuilding = homeBuilding; }
-    public BlockPos workBuilding() { return workBuilding; }
-    public void setWorkBuilding(BlockPos workBuilding) { this.workBuilding = workBuilding; }
-    public double saturation() { return saturation; }
-    public void setSaturation(double saturation) { this.saturation = saturation; }
-    public Inventory inventory() { return inventory; }
-    public void setInventory(Inventory inventory) { this.inventory = inventory; }
-    public Optional<Job> job() { return Optional.ofNullable(job); }
-    public void setJob(Job job) { this.job = job; }
+    public int id() {
+        return id;
+    }
+
+    public String name() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Gender gender() {
+        return gender;
+    }
+
+    public void setGender(Gender gender) {
+        this.gender = gender;
+    }
+
+    public boolean isChild() {
+        return child;
+    }
+
+    public void setChild(boolean child) {
+        this.child = child;
+    }
+
+    public Skills skills() {
+        return skills;
+    }
+
+    public void setSkills(Skills skills) {
+        this.skills = skills;
+    }
+
+    public Vec3 lastPosition() {
+        return lastPosition;
+    }
+
+    public void setLastPosition(Vec3 lastPosition) {
+        this.lastPosition = lastPosition;
+    }
+
+    public BlockPos respawnPosition() {
+        return respawnPosition;
+    }
+
+    public void setRespawnPosition(BlockPos respawnPosition) {
+        this.respawnPosition = respawnPosition;
+    }
+
+    public BlockPos homeBuilding() {
+        return homeBuilding;
+    }
+
+    public void setHomeBuilding(BlockPos homeBuilding) {
+        this.homeBuilding = homeBuilding;
+    }
+
+    public BlockPos workBuilding() {
+        return workBuilding;
+    }
+
+    public void setWorkBuilding(BlockPos workBuilding) {
+        this.workBuilding = workBuilding;
+    }
+
+    public double saturation() {
+        return saturation;
+    }
+
+    public void setSaturation(double saturation) {
+        this.saturation = saturation;
+    }
+
+    public Inventory inventory() {
+        return inventory;
+    }
+
+    public void setInventory(Inventory inventory) {
+        this.inventory = inventory;
+    }
+
+    public Optional<Job> job() {
+        return Optional.ofNullable(job);
+    }
+
+    public void setJob(Job job) {
+        this.job = job;
+    }
 }

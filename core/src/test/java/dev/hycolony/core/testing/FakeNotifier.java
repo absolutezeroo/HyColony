@@ -11,5 +11,8 @@ public final class FakeNotifier implements Notifier {
 
     public final List<Sent> sent = new ArrayList<>();
 
-    @Override public void send(UUID player, Msg message) { sent.add(new Sent(player, message)); }
+    @Override
+    public void send(UUID player, Msg message) {
+        sent.add(new Sent(player, message));
+    }
 }

@@ -28,8 +28,11 @@ public final class RequestsPage extends ColonyPage {
     }
 
     @Override
-    public void build(@Nonnull Ref<EntityStore> ref, @Nonnull UICommandBuilder ui, @Nonnull UIEventBuilder events,
-                      @Nonnull Store<EntityStore> store) {
+    public void build(
+            @Nonnull Ref<EntityStore> ref,
+            @Nonnull UICommandBuilder ui,
+            @Nonnull UIEventBuilder events,
+            @Nonnull Store<EntityStore> store) {
         ui.append("Pages/HyColony/Requests.ui");
         List<RequestRow> rows = view.rows();
         if (rows.isEmpty()) {
@@ -41,8 +44,11 @@ public final class RequestsPage extends ColonyPage {
             String row = "#Requests[" + i + "]";
             ui.append("#Requests", "Pages/HyColony/RequestRow.ui");
             ui.set(row + " #Description.TextSpans", describe(r.requestable()));
-            ui.set(row + " #Info.TextSpans", Message.translation("hycolony.ui.requests.info")
-                    .param("p0", buildingName(r.requesterName())).param("p1", String.valueOf(r.playerHas())));
+            ui.set(
+                    row + " #Info.TextSpans",
+                    Message.translation("hycolony.ui.requests.info")
+                            .param("p0", buildingName(r.requesterName()))
+                            .param("p1", String.valueOf(r.playerHas())));
             if (r.playerHas() > 0) {
                 bind(events, row + " #FulfilButton", "fulfil", i);
             } else {
@@ -53,24 +59,35 @@ public final class RequestsPage extends ColonyPage {
 
     /** The chat line "{requester} ({job}) needs: {requestable}". */
     public static Message needsPlayer(NeedsPlayerNotice n) {
-        return Message.translation("hycolony.request.needsPlayer").param("p0", buildingName(n.requesterName()))
-                .param("p1", jobName(n.jobId())).param("p2", describe(n.requestable()));
+        return Message.translation("hycolony.request.needsPlayer")
+                .param("p0", buildingName(n.requesterName()))
+                .param("p1", jobName(n.jobId()))
+                .param("p2", describe(n.requestable()));
     }
 
     /** "64 x Stone" or "Pickaxe (level 0 to 1)", in the player's language. */
     static Message describe(Deliverable d) {
         return switch (d) {
-            case StackRequest s -> Message.translation("hycolony.ui.requests.stack")
-                    .param("p0", String.valueOf(s.count())).param("p1", itemName(s.item().id()));
-            case ToolRequest t -> Message.translation("hycolony.ui.requests.tool")
-                    .param("p0", Message.translation("hycolony.ui.tool." + t.type().name().toLowerCase(Locale.ROOT)))
-                    .param("p1", String.valueOf(t.minLevel())).param("p2", String.valueOf(t.maxLevel()));
+            case StackRequest s ->
+                Message.translation("hycolony.ui.requests.stack")
+                        .param("p0", String.valueOf(s.count()))
+                        .param("p1", itemName(s.item().id()));
+            case ToolRequest t ->
+                Message.translation("hycolony.ui.requests.tool")
+                        .param(
+                                "p0",
+                                Message.translation(
+                                        "hycolony.ui.tool." + t.type().name().toLowerCase(Locale.ROOT)))
+                        .param("p1", String.valueOf(t.minLevel()))
+                        .param("p2", String.valueOf(t.maxLevel()));
         };
     }
 
     @Override
     public void handleDataEvent(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, @Nonnull Act act) {
-        if (act.action.equals("fulfil") && act.index >= 0 && act.index < view.rows().size()) {
+        if (act.action.equals("fulfil")
+                && act.index >= 0
+                && act.index < view.rows().size()) {
             manager.fulfil(player, view.colonyId(), view.rows().get(act.index).token());
             manager.openRequests(player, view.colonyId()); // fulfil does not re-show
         }

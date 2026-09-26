@@ -32,15 +32,20 @@ public final class BuilderResourcesPage extends ColonyPage {
     }
 
     @Override
-    public void build(@Nonnull Ref<EntityStore> ref, @Nonnull UICommandBuilder ui, @Nonnull UIEventBuilder events,
-                      @Nonnull Store<EntityStore> store) {
+    public void build(
+            @Nonnull Ref<EntityStore> ref,
+            @Nonnull UICommandBuilder ui,
+            @Nonnull UIEventBuilder events,
+            @Nonnull Store<EntityStore> store) {
         ui.append("Pages/HyColony/BuilderResources.ui");
         if (view.stage().isEmpty()) {
             ui.set("#Progress.Text", Message.translation("hycolony.ui.resources.noOrder"));
         } else {
-            ui.set("#Progress.TextSpans", Message.translation("hycolony.ui.resources.progress")
-                    .param("p0", String.valueOf(view.percent()))
-                    .param("p1", Message.translation("hycolony.ui.stage." + view.stage())));
+            ui.set(
+                    "#Progress.TextSpans",
+                    Message.translation("hycolony.ui.resources.progress")
+                            .param("p0", String.valueOf(view.percent()))
+                            .param("p1", Message.translation("hycolony.ui.stage." + view.stage())));
         }
         List<ResourceRow> rows = view.rows();
         if (rows.isEmpty() && !view.stage().isEmpty()) {
@@ -75,7 +80,7 @@ public final class BuilderResourcesPage extends ColonyPage {
                 }
             }
             case "hut" -> manager.openBuilding(player, view.hut());
-            default -> { }
+            default -> {}
         }
     }
 }

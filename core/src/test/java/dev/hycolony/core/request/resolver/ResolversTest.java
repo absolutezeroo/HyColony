@@ -47,7 +47,10 @@ class ResolversTest {
     }
 
     private void stock(Building b, int count) {
-        containers.containers.computeIfAbsent(b.position(), p -> new HashMap<>()).put(PLANKS, count);
+        containers
+                .containers
+                .computeIfAbsent(b.position(), p -> new HashMap<>())
+                .put(PLANKS, count);
     }
 
     private String resolverOf(RequestToken t) {
@@ -83,13 +86,15 @@ class ResolversTest {
         Building a = hut(new BlockPos(0, 64, 0));
         stock(a, 10);
         RequestToken first = m.createAndAssign(a, planks(8), -1);
-        assertEquals(List.of(new ItemAmount(PLANKS, 8)), m.get(first).orElseThrow().deliveries());
+        assertEquals(
+                List.of(new ItemAmount(PLANKS, 8)), m.get(first).orElseThrow().deliveries());
 
         RequestToken second = m.createAndAssign(a, planks(5), -1);
         assertEquals("retrying", resolverOf(second), "only 2 unreserved planks left");
 
         RequestToken third = m.createAndAssign(a, new StackRequest(PLANKS, 5, 2, true), -1);
-        assertEquals(List.of(new ItemAmount(PLANKS, 2)), m.get(third).orElseThrow().deliveries());
+        assertEquals(
+                List.of(new ItemAmount(PLANKS, 2)), m.get(third).orElseThrow().deliveries());
     }
 
     @Test
@@ -108,7 +113,8 @@ class ResolversTest {
         assertEquals("player", resolverOf(t));
         // One 11-tick step of overshoot per 1200-tick delay.
         int expected = RetryingResolver.MAX_TRIES * RetryingResolver.DELAY_TICKS;
-        assertTrue(ticks >= expected && ticks <= expected + RetryingResolver.MAX_TRIES * RequestManager.TICK_INTERVAL,
+        assertTrue(
+                ticks >= expected && ticks <= expected + RetryingResolver.MAX_TRIES * RequestManager.TICK_INTERVAL,
                 "reached player after " + ticks + " ticks");
 
         m.tick();

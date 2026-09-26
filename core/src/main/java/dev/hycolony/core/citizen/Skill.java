@@ -2,7 +2,17 @@ package dev.hycolony.core.citizen;
 
 /** The 11 citizen skills, in MineColonies order. */
 public enum Skill {
-    Athletics, Dexterity, Strength, Agility, Stamina, Mana, Adaptability, Focus, Creativity, Knowledge, Intelligence;
+    Athletics,
+    Dexterity,
+    Strength,
+    Agility,
+    Stamina,
+    Mana,
+    Adaptability,
+    Focus,
+    Creativity,
+    Knowledge,
+    Intelligence;
 
     public Skill complementary() {
         return switch (this) {

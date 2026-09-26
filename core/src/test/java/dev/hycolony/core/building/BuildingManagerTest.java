@@ -18,11 +18,20 @@ class BuildingManagerTest {
 
     static final class Counter implements TickingModule {
         int ticks;
-        @Override public void onColonyTick(Building building) { ticks++; }
+
+        @Override
+        public void onColonyTick(Building building) {
+            ticks++;
+        }
     }
 
     private Colony colony() {
-        return new Colony(t.context(), new TerritoryIndex(), 1, "T", new BlockPos(0, 64, 0),
+        return new Colony(
+                t.context(),
+                new TerritoryIndex(),
+                1,
+                "T",
+                new BlockPos(0, 64, 0),
                 Permissions.createDefault(UUID.randomUUID(), "A"));
     }
 
@@ -35,7 +44,8 @@ class BuildingManagerTest {
 
     @Test
     void createInstantiatesModulesInOrderAndTicksThem() {
-        BuildingType type = new BuildingType("test:b", "hut.b", 5, List.of(new ModuleProducer("counter", Counter::new)));
+        BuildingType type =
+                new BuildingType("test:b", "hut.b", 5, List.of(new ModuleProducer("counter", Counter::new)));
         Building b = Building.create(type, new BlockPos(1, 2, 3), 1);
         BuildingManager m = new BuildingManager();
         m.add(b);

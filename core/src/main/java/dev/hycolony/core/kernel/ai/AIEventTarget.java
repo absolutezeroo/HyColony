@@ -6,7 +6,8 @@ import java.util.function.BooleanSupplier;
 public class AIEventTarget<S extends IState> extends TickingTransition<S> {
     private final AIBlockingEventType eventType;
 
-    public AIEventTarget(AIBlockingEventType eventType, BooleanSupplier condition, IStateSupplier<S> action, int tickRate) {
+    public AIEventTarget(
+            AIBlockingEventType eventType, BooleanSupplier condition, IStateSupplier<S> action, int tickRate) {
         super(null, condition, action, tickRate);
         this.eventType = eventType;
     }

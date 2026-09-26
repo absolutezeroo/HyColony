@@ -60,7 +60,8 @@ public final class BuilderJob extends Job {
         super.read(o);
         toolUses.clear();
         if (o.has("toolUses")) {
-            for (Map.Entry<String, JsonElement> e : o.getAsJsonObject("toolUses").entrySet()) {
+            for (Map.Entry<String, JsonElement> e :
+                    o.getAsJsonObject("toolUses").entrySet()) {
                 toolUses.put(new ItemKey(e.getKey()), e.getValue().getAsInt());
             }
         }

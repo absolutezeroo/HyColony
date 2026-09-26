@@ -37,6 +37,7 @@ class RequestManagerTest {
 
     /** Shared event log to check callback ordering. */
     final List<String> log = new ArrayList<>();
+
     final Map<RequesterId, Requester> known = new HashMap<>();
     final RequestManager m = new RequestManager(id -> Optional.ofNullable(known.get(id)), new FakeCatalog());
     final TestRequester hut = requester("hut");
@@ -59,11 +60,24 @@ class RequestManagerTest {
         final List<Request> cancelled = new ArrayList<>();
         BiConsumer<RequestManager, Request> onComplete = (mm, r) -> {};
 
-        TestRequester(String name) { this.name = name; }
+        TestRequester(String name) {
+            this.name = name;
+        }
 
-        @Override public RequesterId requesterId() { return new RequesterId("req:" + name); }
-        @Override public BlockPos location() { return new BlockPos(0, 0, 0); }
-        @Override public String displayName() { return name; }
+        @Override
+        public RequesterId requesterId() {
+            return new RequesterId("req:" + name);
+        }
+
+        @Override
+        public BlockPos location() {
+            return new BlockPos(0, 0, 0);
+        }
+
+        @Override
+        public String displayName() {
+            return name;
+        }
 
         @Override
         public void onRequestComplete(RequestManager manager, Request request) {
@@ -103,11 +117,30 @@ class RequestManagerTest {
             this.suitability = suitability;
         }
 
-        @Override public String resolverId() { return name; }
-        @Override public int priority() { return priority; }
-        @Override public boolean handles(Deliverable d) { return handles.test(d); }
-        @Override public Optional<RequesterId> servesOnly() { return Optional.ofNullable(servesOnly); }
-        @Override public double suitability(RequestManager mm, Request r) { return suitability; }
+        @Override
+        public String resolverId() {
+            return name;
+        }
+
+        @Override
+        public int priority() {
+            return priority;
+        }
+
+        @Override
+        public boolean handles(Deliverable d) {
+            return handles.test(d);
+        }
+
+        @Override
+        public Optional<RequesterId> servesOnly() {
+            return Optional.ofNullable(servesOnly);
+        }
+
+        @Override
+        public double suitability(RequestManager mm, Request r) {
+            return suitability;
+        }
 
         @Override
         public boolean canResolve(RequestManager mm, Request r) {
@@ -130,7 +163,10 @@ class RequestManagerTest {
             }
         }
 
-        @Override public List<Deliverable> followups(RequestManager mm, Request r) { return followups; }
+        @Override
+        public List<Deliverable> followups(RequestManager mm, Request r) {
+            return followups;
+        }
 
         @Override
         public void onAssigned(RequestManager mm, Request r) {
@@ -150,8 +186,15 @@ class RequestManagerTest {
             cancelledAssigned.add(r);
         }
 
-        @Override public void onColonyUpdate(RequestManager mm, Predicate<Request> which) { updates.add(which); }
-        @Override public void tick(RequestManager mm) { ticks++; }
+        @Override
+        public void onColonyUpdate(RequestManager mm, Predicate<Request> which) {
+            updates.add(which);
+        }
+
+        @Override
+        public void tick(RequestManager mm) {
+            ticks++;
+        }
     }
 
     Request req(RequestToken t) {
@@ -380,7 +423,8 @@ class RequestManagerTest {
         assertEquals(RequestState.CANCELLED, grandchild.state());
         assertTrue(m.assignedTo("quarry").isEmpty());
         assertTrue(m.byRequester(hut.requesterId()).isEmpty());
-        assertTrue(log.indexOf("quarry.cancelled:4 x Stone") < log.indexOf("hut.requestCancelled:4 x Plank"),
+        assertTrue(
+                log.indexOf("quarry.cancelled:4 x Stone") < log.indexOf("hut.requestCancelled:4 x Plank"),
                 "children first");
     }
 
@@ -417,7 +461,8 @@ class RequestManagerTest {
         m.cancelAllFrom(hut.requesterId(), 7);
 
         assertTrue(m.get(mine).isEmpty());
-        assertEquals(List.of(building, other), m.all().stream().map(Request::token).toList());
+        assertEquals(
+                List.of(building, other), m.all().stream().map(Request::token).toList());
         assertEquals(1, hut.cancelled.size());
     }
 
@@ -453,8 +498,15 @@ class RequestManagerTest {
         assertEquals(List.of(new ItemAmount(PLANK, 3)), parent.deliveries());
         assertTrue(m.get(child).isEmpty());
         assertEquals(1, crafter.cancelled.size(), "child cancelled directly");
-        assertEquals(List.of("stock.cancelling:4 x Log", "stock.cancelled:4 x Log", "crafter.requestCancelled:4 x Log",
-                "crafter.cancelling:4 x Plank", "hut.complete:4 x Plank", "crafter.cancelled:4 x Plank"), log);
+        assertEquals(
+                List.of(
+                        "stock.cancelling:4 x Log",
+                        "stock.cancelled:4 x Log",
+                        "crafter.requestCancelled:4 x Log",
+                        "crafter.cancelling:4 x Plank",
+                        "hut.complete:4 x Plank",
+                        "crafter.cancelled:4 x Plank"),
+                log);
     }
 
     @Test
@@ -484,8 +536,15 @@ class RequestManagerTest {
         a.children = List.of(stack(LOG));
         FixedResolver a2 = new FixedResolver("a2", 150, 0);
         ResolverProvider provider = new ResolverProvider() {
-            @Override public String providerId() { return "hut-provider"; }
-            @Override public List<Resolver> resolvers() { return List.of(a, a2); }
+            @Override
+            public String providerId() {
+                return "hut-provider";
+            }
+
+            @Override
+            public List<Resolver> resolvers() {
+                return List.of(a, a2);
+            }
         };
         m.onProviderAdded(provider);
 
@@ -527,7 +586,9 @@ class RequestManagerTest {
 
         RequestToken t = m.createAndAssign(hut, stack(PLANK), -1);
 
-        assertEquals(List.of(RequestState.COMPLETED, RequestState.COMPLETED), seen,
+        assertEquals(
+                List.of(RequestState.COMPLETED, RequestState.COMPLETED),
+                seen,
                 "the RECEIVED update is queued, not applied inside the callback");
         assertEquals(1, crafter.completed.size());
         assertEquals(1, hut.completed.size());
@@ -554,7 +615,10 @@ class RequestManagerTest {
     void duplicateRequesterIdIsRejected() {
         resolver("a", 100, 0);
         FixedResolver sameRequesterId = new FixedResolver("a", 50, 0) {
-            @Override public String resolverId() { return "a-bis"; }
+            @Override
+            public String resolverId() {
+                return "a-bis";
+            }
         };
         assertThrows(IllegalArgumentException.class, () -> m.registerBuiltIn(sameRequesterId));
 
@@ -579,9 +643,14 @@ class RequestManagerTest {
 
         FixedResolver f1 = new FixedResolver("f1", 200, 0);
         FixedResolver f1again = new FixedResolver("f2", 200, 0) {
-            @Override public String resolverId() { return "f1"; }
+            @Override
+            public String resolverId() {
+                return "f1";
+            }
         };
-        assertThrows(IllegalArgumentException.class, () -> m.onProviderAdded(provider("q", f1, f1again)),
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> m.onProviderAdded(provider("q", f1, f1again)),
                 "duplicates inside the provider itself");
         m.onProviderAdded(provider("p", fresh)); // the failed provider id is still free
         assertSame(fresh, resolverOf(m.createAndAssign(hut, stack(PLANK), -1)));
@@ -589,8 +658,15 @@ class RequestManagerTest {
 
     ResolverProvider provider(String id, Resolver... rs) {
         return new ResolverProvider() {
-            @Override public String providerId() { return id; }
-            @Override public List<Resolver> resolvers() { return List.of(rs); }
+            @Override
+            public String providerId() {
+                return id;
+            }
+
+            @Override
+            public List<Resolver> resolvers() {
+                return List.of(rs);
+            }
         };
     }
 
@@ -600,7 +676,7 @@ class RequestManagerTest {
             @Override
             public void resolve(RequestManager mm, Request r) {
                 mm.updateState(r.token(), RequestState.RESOLVED); // queued...
-                throw new IllegalStateException("boom");           // ...then the op fails
+                throw new IllegalStateException("boom"); // ...then the op fails
             }
         };
         m.registerBuiltIn(boom);
@@ -626,7 +702,8 @@ class RequestManagerTest {
         long elapsed = runBatch(fresh);
 
         assertEquals(1000, fresh.all().size());
-        assertTrue(fresh.all().stream().allMatch(r -> fresh.resolverOf(r.token()).isPresent()));
+        assertTrue(
+                fresh.all().stream().allMatch(r -> fresh.resolverOf(r.token()).isPresent()));
         assertTrue(elapsed < 100_000_000L, "took " + elapsed / 1_000_000 + " ms");
     }
 

@@ -11,9 +11,13 @@ import java.util.random.RandomGenerator;
 
 /** Name lists + MineColonies' generateName format. */
 public final class CitizenNames {
-    public enum Order { WESTERN, EASTERN }
+    public enum Order {
+        WESTERN,
+        EASTERN
+    }
 
-    private record Data(Order order, List<String> maleFirstNames, List<String> femaleFirstNames, List<String> surnames) {}
+    private record Data(
+            Order order, List<String> maleFirstNames, List<String> femaleFirstNames, List<String> surnames) {}
 
     private final Data data;
 

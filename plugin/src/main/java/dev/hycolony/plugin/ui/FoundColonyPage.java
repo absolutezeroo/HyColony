@@ -19,8 +19,10 @@ import javax.annotation.Nonnull;
 public final class FoundColonyPage extends InteractiveCustomUIPage<FoundColonyPage.Data> {
     public static final class Data {
         static final BuilderCodec<Data> CODEC = BuilderCodec.builder(Data.class, Data::new)
-                .append(new KeyedCodec<>("Action", Codec.STRING), (d, v) -> d.action = v, d -> d.action).add()
-                .append(new KeyedCodec<>("@Name", Codec.STRING), (d, v) -> d.name = v, d -> d.name).add()
+                .append(new KeyedCodec<>("Action", Codec.STRING), (d, v) -> d.action = v, d -> d.action)
+                .add()
+                .append(new KeyedCodec<>("@Name", Codec.STRING), (d, v) -> d.name = v, d -> d.name)
+                .add()
                 .build();
         String action;
         String name;
@@ -45,14 +47,19 @@ public final class FoundColonyPage extends InteractiveCustomUIPage<FoundColonyPa
     }
 
     @Override
-    public void build(@Nonnull Ref<EntityStore> ref, @Nonnull UICommandBuilder ui, @Nonnull UIEventBuilder events,
-                      @Nonnull Store<EntityStore> store) {
+    public void build(
+            @Nonnull Ref<EntityStore> ref,
+            @Nonnull UICommandBuilder ui,
+            @Nonnull UIEventBuilder events,
+            @Nonnull Store<EntityStore> store) {
         ui.append("Pages/HyColony/FoundColony.ui");
         ui.set("#NameInput.Value", view.suggestedName());
-        events.addEventBinding(CustomUIEventBindingType.Activating, "#ConfirmButton",
+        events.addEventBinding(
+                CustomUIEventBindingType.Activating,
+                "#ConfirmButton",
                 new EventData().append("Action", "confirm").append("@Name", "#NameInput.Value"));
-        events.addEventBinding(CustomUIEventBindingType.Activating, "#CancelButton",
-                new EventData().append("Action", "cancel"));
+        events.addEventBinding(
+                CustomUIEventBindingType.Activating, "#CancelButton", new EventData().append("Action", "cancel"));
     }
 
     @Override

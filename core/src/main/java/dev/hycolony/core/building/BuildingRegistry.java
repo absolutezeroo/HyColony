@@ -18,6 +18,8 @@ public final class BuildingRegistry {
     }
 
     public Optional<BuildingType> byHutKey(String hutBlockKey) {
-        return byId.values().stream().filter(t -> t.hutBlockKey().equals(hutBlockKey)).findFirst();
+        return byId.values().stream()
+                .filter(t -> t.hutBlockKey().equals(hutBlockKey))
+                .findFirst();
     }
 }

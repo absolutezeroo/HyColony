@@ -22,8 +22,8 @@ public final class NeededResources {
     private final ToIntFunction<ItemKey> maxStack;
     private int total;
 
-    private NeededResources(List<ItemKey> sequence, Map<ItemKey, Integer> remaining, int total,
-            ToIntFunction<ItemKey> maxStack) {
+    private NeededResources(
+            List<ItemKey> sequence, Map<ItemKey, Integer> remaining, int total, ToIntFunction<ItemKey> maxStack) {
         this.sequence = Collections.unmodifiableList(sequence);
         this.remaining = remaining;
         this.view = Collections.unmodifiableMap(remaining);
@@ -37,7 +37,8 @@ public final class NeededResources {
 
     /** One item per not-yet-done entry that has an item to place it with. */
     public static NeededResources compute(StructurePlan plan, WorldBlocks world, ItemCatalog catalog) {
-        List<ItemKey> seq = new ArrayList<>(plan.solidList().size() + plan.decoList().size());
+        List<ItemKey> seq =
+                new ArrayList<>(plan.solidList().size() + plan.decoList().size());
         collect(plan.solidList(), plan, world, catalog, seq);
         collect(plan.decoList(), plan, world, catalog, seq);
         Map<ItemKey, Integer> counts = new LinkedHashMap<>();
@@ -47,8 +48,12 @@ public final class NeededResources {
         return new NeededResources(seq, counts, seq.size(), catalog::maxStack);
     }
 
-    private static void collect(List<BlueprintEntry> entries, StructurePlan plan, WorldBlocks world,
-            ItemCatalog catalog, List<ItemKey> out) {
+    private static void collect(
+            List<BlueprintEntry> entries,
+            StructurePlan plan,
+            WorldBlocks world,
+            ItemCatalog catalog,
+            List<ItemKey> out) {
         for (BlueprintEntry e : entries) {
             Optional<ItemKey> item = catalog.itemForBlock(e.state().key());
             if (item.isPresent() && !plan.isDone(e, world)) {
@@ -58,10 +63,14 @@ public final class NeededResources {
     }
 
     /** Read-only placement order at compute time: one item per not-done entry. Not reduced by {@link #reduce}. */
-    public List<ItemKey> sequence() { return sequence; }
+    public List<ItemKey> sequence() {
+        return sequence;
+    }
 
     /** Read-only, insertion-ordered. */
-    public Map<ItemKey, Integer> remaining() { return view; }
+    public Map<ItemKey, Integer> remaining() {
+        return view;
+    }
 
     /** On placement. Drops the item once nothing of it is left. */
     public void reduce(ItemKey item, int n) {
@@ -78,7 +87,11 @@ public final class NeededResources {
         }
     }
 
-    public int total() { return total; }
+    public int total() {
+        return total;
+    }
 
-    int maxStack(ItemKey item) { return maxStack.applyAsInt(item); }
+    int maxStack(ItemKey item) {
+        return maxStack.applyAsInt(item);
+    }
 }

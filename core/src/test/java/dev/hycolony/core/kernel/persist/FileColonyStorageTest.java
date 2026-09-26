@@ -10,7 +10,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 class FileColonyStorageTest {
-    @TempDir Path dir;
+    @TempDir
+    Path dir;
 
     @Test
     void saveThenLoadKeepsBackupOfPrevious() throws Exception {

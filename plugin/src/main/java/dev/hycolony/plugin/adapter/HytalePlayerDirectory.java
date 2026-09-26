@@ -52,8 +52,10 @@ public final class HytalePlayerDirectory implements PlayerDirectory {
     public boolean isCreativeOperator(UUID player) {
         try {
             Ref<EntityStore> ref = refIn(player);
-            if (ref == null || !PermissionsModule.get().getGroupsForUser(player)
-                    .contains(HytalePermissionsProvider.GROUP_ADMIN)) {
+            if (ref == null
+                    || !PermissionsModule.get()
+                            .getGroupsForUser(player)
+                            .contains(HytalePermissionsProvider.GROUP_ADMIN)) {
                 return false;
             }
             Player p = ref.getStore().getComponent(ref, Player.getComponentType());
@@ -65,7 +67,9 @@ public final class HytalePlayerDirectory implements PlayerDirectory {
     }
 
     private Ref<EntityStore> refIn(UUID player) {
-        Optional<PlayerRef> pr = world.getPlayerRefs().stream().filter(p -> p.getUuid().equals(player)).findFirst();
+        Optional<PlayerRef> pr = world.getPlayerRefs().stream()
+                .filter(p -> p.getUuid().equals(player))
+                .findFirst();
         Ref<EntityStore> ref = pr.map(PlayerRef::getReference).orElse(null);
         return ref != null && ref.isValid() ? ref : null;
     }

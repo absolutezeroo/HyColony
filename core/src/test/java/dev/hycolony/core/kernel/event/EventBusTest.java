@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 
 class EventBusTest {
     record Ping(int n) {}
+
     record Other() {}
 
     @Test
@@ -25,7 +26,9 @@ class EventBusTest {
     void failingListenerDoesNotStopOthers() {
         EventBus bus = new EventBus();
         List<String> seen = new ArrayList<>();
-        bus.subscribe(Ping.class, p -> { throw new IllegalStateException("boom"); });
+        bus.subscribe(Ping.class, p -> {
+            throw new IllegalStateException("boom");
+        });
         bus.subscribe(Ping.class, p -> seen.add("ok"));
         bus.post(new Ping(1));
         assertEquals(List.of("ok"), seen);
