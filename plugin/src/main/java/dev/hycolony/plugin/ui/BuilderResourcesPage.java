@@ -38,17 +38,18 @@ public final class BuilderResourcesPage extends ColonyPage {
             @Nonnull UIEventBuilder events,
             @Nonnull Store<EntityStore> store) {
         ui.append("Pages/HyColony/BuilderResources.ui");
-        if (view.stage().isEmpty()) {
+        if (view.header().isEmpty()) {
             ui.set("#Progress.Text", Message.translation("hycolony.ui.resources.noOrder"));
         } else {
+            BuilderResourcesView.Header h = view.header().get();
             ui.set(
-                    "#Progress.TextSpans",
+                    "#Progress.Text",
                     Message.translation("hycolony.ui.resources.progress")
-                            .param("p0", String.valueOf(view.percent()))
-                            .param("p1", Message.translation("hycolony.ui.stage." + view.stage())));
+                            .param("p0", String.valueOf(h.percent()))
+                            .param("p1", h.step() + "/" + h.totalSteps()));
         }
         List<ResourceRow> rows = view.rows();
-        if (rows.isEmpty() && !view.stage().isEmpty()) {
+        if (rows.isEmpty() && view.header().isPresent()) {
             ui.set("#Empty.Visible", true);
             ui.set("#Empty.Text", Message.translation("hycolony.ui.resources.empty"));
         }

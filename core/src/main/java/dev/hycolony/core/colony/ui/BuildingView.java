@@ -9,7 +9,8 @@ import java.util.Set;
 
 /**
  * A hut's window. {@code allowed} is empty while an order exists (the button becomes Cancel); {@code hiringMode} is
- * empty for a building that employs no one; {@code canPickUp}: deconstructed, MANAGE_HUTS, not the town hall.
+ * empty for a building that employs no one; {@code canPickUp}: deconstructed, MANAGE_HUTS, not the town hall;
+ * {@code builder}: the builder hut's own tabs, empty for any other hut.
  */
 public record BuildingView(
         int colonyId,
@@ -27,7 +28,8 @@ public record BuildingView(
         List<String> styles,
         String style,
         boolean canManage,
-        boolean canPickUp) {
+        boolean canPickUp,
+        Optional<BuilderTabs> builder) {
     public record WorkerRow(int citizenId, String name) {}
 
     public record OrderRow(int id, WorkOrderType type, int targetLevel, Optional<String> builderName, int percent) {}

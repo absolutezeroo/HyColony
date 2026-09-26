@@ -201,11 +201,14 @@ class ViewsTest {
         assertEquals(builder.position(), v.hut());
         assertEquals(
                 List.of(
-                        new ResourceRow(STONE_I, 3, 2, 0, Status.DONT_HAVE),
-                        new ResourceRow(PLANK_I, 2, 0, 5, Status.HAVE_ENOUGH)),
-                v.rows());
-        assertEquals(17, v.percent(), "1 of 6 placed: 100 - (int) (5 / 6 * 100)");
-        assertEquals("clear", v.stage());
+                        new ResourceRow(PLANK_I, 2, 0, 5, Status.HAVE_ENOUGH),
+                        new ResourceRow(STONE_I, 3, 2, 0, Status.DONT_HAVE)),
+                v.rows(),
+                "MC ResourceComparator: HAVE_ENOUGH before DONT_HAVE");
+        BuilderResourcesView.Header header = v.header().orElseThrow();
+        assertEquals(17, header.percent(), "1 of 6 placed: 100 - (int) (5 / 6 * 100)");
+        assertEquals(0, header.step(), "CLEAR under way");
+        assertEquals(40, header.suppliedPercent(), "2 of the 5 still needed are in the hut or on the builder");
         assertEquals(17, view(alice, res).order().orElseThrow().percent(), "same progress on the building's order");
     }
 

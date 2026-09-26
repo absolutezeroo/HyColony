@@ -16,12 +16,17 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-/** Builds a hut's window view: its level, workers, the citizens it may hire, its work order and the orders it allows. */
+/**
+ * Builds a hut's window view: its level, workers, the citizens it may hire, its work order, the orders it allows and,
+ * for a builder hut, its own tabs.
+ */
 final class BuildingViews {
     private final ColonyContext ctx;
+    private final BuilderTabsViews builderTabs;
 
-    BuildingViews(ColonyContext ctx) {
+    BuildingViews(ColonyContext ctx, BuilderTabsViews builderTabs) {
         this.ctx = ctx;
+        this.builderTabs = builderTabs;
     }
 
     BuildingView of(Colony c, Building b, UUID viewer) {
@@ -49,7 +54,8 @@ final class BuildingViews {
                 ctx.ports().blueprints().styles(),
                 b.style(),
                 manage,
-                manage && b.canBePickedUp());
+                manage && b.canBePickedUp(),
+                builderTabs.of(c, b, viewer));
     }
 
     private static List<BuildingView.WorkerRow> workers(Colony c, Optional<WorkerModule> w) {

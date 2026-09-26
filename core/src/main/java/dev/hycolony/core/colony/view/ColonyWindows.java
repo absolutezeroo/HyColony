@@ -28,10 +28,10 @@ public final class ColonyWindows {
         this.manager = manager;
         this.ctx = manager.context();
         this.townHall = new TownHallViews(ctx);
-        this.buildings = new BuildingViews(ctx);
+        this.builderResources = new BuilderResourcesViews(ctx);
+        this.buildings = new BuildingViews(ctx, new BuilderTabsViews(builderResources));
         this.requests = new RequestViews(ctx);
         this.citizens = new CitizenViews(ctx, townHall, requests);
-        this.builderResources = new BuilderResourcesViews(ctx);
     }
 
     public void openTownHall(UUID player, BlockPos hutPos) {

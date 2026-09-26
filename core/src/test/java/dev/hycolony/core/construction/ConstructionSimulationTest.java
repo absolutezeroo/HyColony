@@ -313,18 +313,18 @@ class ConstructionSimulationTest {
         runUntil(() -> o.stage() == Stage.SOLID && o.progressIndex() == 10, MAX_TICKS);
 
         // Mid-build, the hut's windows: 10 of the 26 items placed.
-        manager.windows().openBuilderResources(alice, HUT);
-        BuilderResourcesView resources = (BuilderResourcesView) t.ui.shown.get(alice);
-        assertEquals("solid", resources.stage());
-        assertEquals(100 - (int) (16 * 100.0 / 26), resources.percent());
+        manager.windows().openBuilding(alice, HUT);
+        BuildingView view = (BuildingView) t.ui.shown.get(alice);
+        BuilderResourcesView resources = view.builder().orElseThrow().resources();
+        BuilderResourcesView.Header header = resources.header().orElseThrow();
+        assertEquals(1, header.step(), "CLEAR done, SOLID under way");
+        assertEquals(100 - (int) (16 * 100.0 / 26), header.percent());
         Map<ItemKey, Integer> needed = new HashMap<>();
         resources.rows().forEach(r -> needed.put(r.item(), r.needed()));
         assertEquals(Map.of(PLANKS_I, 14, TORCH_I, 1, CHEST_I, 1), needed);
-        manager.windows().openBuilding(alice, HUT);
-        BuildingView view = (BuildingView) t.ui.shown.get(alice);
         BuildingView.OrderRow row = view.order().orElseThrow();
         assertEquals(Optional.of(builder.name()), row.builderName());
-        assertEquals(resources.percent(), row.percent());
+        assertEquals(header.percent(), row.percent());
         assertTrue(view.allowed().isEmpty());
 
         runUntil(() -> hut.level() == 1, MAX_TICKS);
