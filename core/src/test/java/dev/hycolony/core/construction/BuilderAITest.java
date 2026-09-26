@@ -465,8 +465,8 @@ class BuilderAITest {
         assertFalse(res.isDeconstructed());
         assertTrue(colony.contains(beyond));
         CitizenData expected = new CitizenData(99);
-        JobXp.award(expected, Skill.Adaptability, Skill.Athletics, 0.05, hut.level(), 0);
-        JobXp.award(expected, Skill.Adaptability, Skill.Athletics, 8, hut.level(), 0);
+        JobXp.award(expected, Skill.Adaptability, Skill.Athletics, 0.05, new JobXp.Levels(hut.level(), 0));
+        JobXp.award(expected, Skill.Adaptability, Skill.Athletics, 8, new JobXp.Levels(hut.level(), 0));
         for (Skill s : Skill.values()) {
             assertEquals(expected.skills().level(s), citizen.skills().level(s), s.name());
             assertEquals(expected.skills().experience(s), citizen.skills().experience(s), 1e-9, s.name());

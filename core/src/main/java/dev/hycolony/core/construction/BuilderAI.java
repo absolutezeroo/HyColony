@@ -636,7 +636,7 @@ public final class BuilderAI implements JobAI {
                         .at(citizen.homeBuilding())
                         .map(Building::level)
                         .orElse(0);
-        JobXp.award(citizen, primary, secondary, xp, hut.level(), homeLevel);
+        JobXp.award(citizen, primary, secondary, xp, new JobXp.Levels(hut.level(), homeLevel));
     }
 
     /** Forgets the structure and the module's order (completion, cancellation, failure). */

@@ -11,7 +11,7 @@ class JobXpTest {
     void jobXpSplitMatchesMineColonies() {
         CitizenData c = new CitizenData(1);
         // level term = 1 + (0+0)/10 = 1; intelligence term = 1 + 1/100 = 1.01; localXp = 10 * 1.01 = 10.1
-        JobXp.award(c, Skill.Adaptability, Skill.Athletics, 10.0, 0, 0);
+        JobXp.award(c, Skill.Adaptability, Skill.Athletics, 10.0, new JobXp.Levels(0, 0));
 
         assertEquals(2, c.skills().level(Skill.Adaptability)); // primary, 100%: 10.1 xp, levels 1->2
         assertEquals(4.095, c.skills().experience(Skill.Adaptability), 1e-9);
@@ -42,7 +42,7 @@ class JobXpTest {
     void noXpWhenStarving() {
         CitizenData c = new CitizenData(1);
         c.setSaturation(0);
-        JobXp.award(c, Skill.Adaptability, Skill.Athletics, 100.0, 5, 5);
+        JobXp.award(c, Skill.Adaptability, Skill.Athletics, 100.0, new JobXp.Levels(5, 5));
         for (Skill s : Skill.values()) {
             assertEquals(1, c.skills().level(s), s.toString());
             assertEquals(0.0, c.skills().experience(s), 1e-9, s.toString());
