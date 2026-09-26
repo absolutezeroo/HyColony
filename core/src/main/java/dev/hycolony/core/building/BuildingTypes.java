@@ -1,6 +1,6 @@
 package dev.hycolony.core.building;
 
-import dev.hycolony.core.construction.ConstructionBuildingTypes;
+import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
 import java.util.List;
 
 public final class BuildingTypes {

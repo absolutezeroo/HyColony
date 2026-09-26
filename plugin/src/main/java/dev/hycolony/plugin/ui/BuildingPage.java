@@ -19,7 +19,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.colony.ui.BuildingView;
-import dev.hycolony.core.construction.ConstructionBuildingTypes;
+import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
 import dev.hycolony.core.construction.workorder.WorkOrderType;
 import dev.hycolony.core.job.HiringMode;
 import dev.hycolony.core.kernel.BlockPos;

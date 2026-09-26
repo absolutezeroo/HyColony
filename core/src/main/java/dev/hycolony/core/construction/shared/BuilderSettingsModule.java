@@ -1,4 +1,4 @@
-package dev.hycolony.core.construction;
+package dev.hycolony.core.construction.shared;
 
 import com.google.gson.JsonObject;
 import dev.hycolony.core.building.PersistentModule;

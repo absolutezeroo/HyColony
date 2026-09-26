@@ -1,4 +1,4 @@
-package dev.hycolony.core.construction;
+package dev.hycolony.core.construction.hut;
 
 import dev.hycolony.core.building.BuildingRegistry;
 import dev.hycolony.core.building.BuildingType;
@@ -6,15 +6,18 @@ import dev.hycolony.core.building.ModuleProducer;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.construction.builder.BuilderJob;
 import dev.hycolony.core.construction.resources.BuildingResourcesModule;
+import dev.hycolony.core.construction.shared.BuilderHut;
+import dev.hycolony.core.construction.shared.BuilderSettingsModule;
 import dev.hycolony.core.job.JobRegistry;
 import dev.hycolony.core.job.WorkerModule;
 import java.util.List;
 
+/** The hut types of the construction system (builder and residence) with their modules. MC ModBuildings. */
 public final class ConstructionBuildingTypes {
     public static final BuildingType BUILDER = new BuildingType(
-            "hycolony:builder",
+            BuilderHut.TYPE_ID,
             "hut.builder",
-            5,
+            BuilderHut.MAX_LEVEL,
             List.of(
                     new ModuleProducer(
                             "worker",
@@ -27,6 +30,7 @@ public final class ConstructionBuildingTypes {
 
     private ConstructionBuildingTypes() {}
 
+    /** Registers the builder and residence hut types. */
     public static void register(BuildingRegistry r) {
         r.register(BUILDER);
         r.register(RESIDENCE);

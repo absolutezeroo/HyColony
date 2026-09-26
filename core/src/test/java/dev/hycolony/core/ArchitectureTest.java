@@ -46,8 +46,13 @@ class ArchitectureTest {
             .dependOnClassesThat()
             .resideInAPackage("dev.hycolony.core.construction..");
 
-    /** The construction sub-packages (blueprint, builder, resources, workorder) form no dependency cycle. */
+    /** The construction sub-packages form no dependency cycle. */
     @ArchTest
     static final ArchRule constructionSubPackagesAreFreeOfCycles =
             slices().matching("dev.hycolony.core.construction.(*)..").should().beFreeOfCycles();
+
+    /** The slices above ignore the root package, so a class there could hide a cycle: every class lives in one. */
+    @ArchTest
+    static final ArchRule constructionRootPackageIsEmpty =
+            noClasses().should().resideInAPackage("dev.hycolony.core.construction");
 }

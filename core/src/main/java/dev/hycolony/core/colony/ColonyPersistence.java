@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.colony.persistence.ColonySerializer;
 import dev.hycolony.core.colony.territory.ClaimCell;
-import dev.hycolony.core.construction.ClaimRadius;
+import dev.hycolony.core.construction.shared.ClaimRadius;
 import dev.hycolony.core.kernel.persist.ColonyStorage;
 import dev.hycolony.core.kernel.persist.MigrationChain;
 import dev.hycolony.core.kernel.persist.SchemaTooNewException;

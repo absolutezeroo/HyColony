@@ -7,7 +7,7 @@ import dev.hycolony.core.citizen.CitizenNames;
 import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.ConstructionPorts;
-import dev.hycolony.core.construction.ConstructionBuildingTypes;
+import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
 import dev.hycolony.core.job.JobRegistry;
 import dev.hycolony.core.kernel.WorldKey;
 import dev.hycolony.core.kernel.config.ColonyConfig;

@@ -4,7 +4,7 @@ import dev.hycolony.core.building.Building;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyEvents;
 import dev.hycolony.core.colony.permission.Action;
-import dev.hycolony.core.construction.ConstructionBuildingTypes;
+import dev.hycolony.core.construction.shared.BuilderHut;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Either;
@@ -257,7 +257,7 @@ public final class WorkManager {
     /** WorkOrderBuilding.canBuild: level high enough, or level 5, or its own hut; and within 100 blocks. */
     public static boolean canBuild(Building builderHut, WorkOrder o, int builderLevel) {
         boolean allowed = builderLevel >= o.targetLevel()
-                || builderLevel == ConstructionBuildingTypes.BUILDER.maxLevel()
+                || builderLevel == BuilderHut.MAX_LEVEL
                 || builderHut.position().equals(o.buildingPos());
         return allowed && builderHut.position().distSq(o.buildingPos()) <= MAX_DISTANCE_SQ;
     }
@@ -292,7 +292,7 @@ public final class WorkManager {
     }
 
     static boolean isEmployedBuilder(Building b) {
-        return b.type().equals(ConstructionBuildingTypes.BUILDER)
+        return BuilderHut.is(b)
                 && b.module(WorkerModule.class).map(w -> !w.workers().isEmpty()).orElse(false);
     }
 }

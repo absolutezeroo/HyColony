@@ -3,8 +3,8 @@ package dev.hycolony.core.construction.workorder;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.territory.ClaimCell;
-import dev.hycolony.core.construction.ConstructionBuildingTypes;
 import dev.hycolony.core.construction.blueprint.Blueprint;
+import dev.hycolony.core.construction.shared.BuilderHut;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Either;
 import java.util.List;
@@ -88,14 +88,14 @@ final class WorkOrderValidation {
         // REMOVE targets 0, so any builder hut qualifies.
         Optional<Building> chosen = colony.buildings().at(builder.get());
         boolean fits = chosen.isPresent()
-                && chosen.get().type().equals(ConstructionBuildingTypes.BUILDER)
+                && BuilderHut.is(chosen.get())
                 && (chosen.get().level() >= target || canBeBuiltByBuilder(b, target));
         return fits ? Optional.empty() : Optional.of(WorkOrderRefusal.BUILDER_NECESSARY);
     }
 
     /** BuildingBuilder.canBeBuiltByBuilder: a builder hut may always order its own next level. */
     private static boolean canBeBuiltByBuilder(Building b, int target) {
-        return b.type().equals(ConstructionBuildingTypes.BUILDER) && target == b.level() + 1;
+        return BuilderHut.is(b) && target == b.level() + 1;
     }
 
     /** A built building keeps its style: only a BUILD may choose one. */

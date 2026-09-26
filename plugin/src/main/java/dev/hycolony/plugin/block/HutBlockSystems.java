@@ -17,7 +17,7 @@ import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.HutPlacement;
 import dev.hycolony.core.colony.permission.Action;
-import dev.hycolony.core.construction.ConstructionBuildingTypes;
+import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.port.Msg;
 import dev.hycolony.plugin.IdMap;

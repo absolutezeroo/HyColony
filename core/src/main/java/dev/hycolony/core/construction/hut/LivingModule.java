@@ -1,4 +1,4 @@
-package dev.hycolony.core.construction;
+package dev.hycolony.core.construction.hut;
 
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingModule;
