@@ -106,6 +106,15 @@ public final class CitizenFireImmunitySystems {
         private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
         private static final String PHYSICAL_CAUSE_ID = "Physical";
 
+        /**
+         * {@code EntityEffect.Locale} of Block_Damage's anonymous effect: the only Physical-cause, effect-driven
+         * damage that shares it is Environmental_Block_Damage (cactus, brambles), whose cause is Environmental, not
+         * Physical, so the pair (cause, locale) is unique to campfire embers. Survival_Trap_Spike_* and
+         * Survival_Trap_Snapjaw are also anonymous Physical-cause effects, but their locale is "spikes"/"snapjaw":
+         * traps must keep hurting citizens.
+         */
+        private static final String BLOCK_DAMAGE_LOCALE = "block";
+
         private int physicalCauseIndex = Integer.MIN_VALUE;
         private boolean causeResolved;
 
@@ -138,13 +147,18 @@ public final class CitizenFireImmunitySystems {
 
         /**
          * Combat damage always carries an {@code EntitySource}/{@code ProjectileSource}; a DoT tick from an entity
-         * effect (Burn, Lava_Burn, embers...) carries the {@link ActiveEntityEffect} itself as source. Burn and
-         * Lava_Burn use the {@code Fire} cause and never reach here (see {@link Grant}); embers are the only
-         * {@code Physical}-cause damage delivered this way.
+         * effect (Burn, Lava_Burn, embers, spike traps...) carries the {@link ActiveEntityEffect} itself as source.
+         * Burn and Lava_Burn use the {@code Fire} cause and never reach here (see {@link Grant}). Among the
+         * remaining Physical-cause effect ticks, only Block_Damage's locale identifies the embers (see
+         * {@link #BLOCK_DAMAGE_LOCALE}); spike traps and the snapjaw must still hurt citizens.
          */
         private boolean isEmberContactDamage(Damage event) {
-            return event.getSource() instanceof ActiveEntityEffect
-                    && event.getDamageCauseIndex() == resolvePhysicalCauseIndex();
+            if (event.getDamageCauseIndex() != resolvePhysicalCauseIndex()
+                    || !(event.getSource() instanceof ActiveEntityEffect activeEffect)) {
+                return false;
+            }
+            EntityEffect effect = EntityEffect.getAssetMap().getAsset(activeEffect.getEntityEffectIndex());
+            return effect != null && BLOCK_DAMAGE_LOCALE.equals(effect.getLocale());
         }
 
         /** Resolved once (this cause never disappears mid-run): a repeated failure would just repeat the same miss. */
