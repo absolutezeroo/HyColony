@@ -54,6 +54,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
     private final Map<Long, Ref<EntityStore>> refs = new HashMap<>();
     private final Map<Ref<EntityStore>, Long> ids = new IdentityHashMap<>();
     private long nextId = 1;
+    private boolean teleportWarned;
 
     public HytaleCitizenBodies(World world, String roleName) {
         this.world = world;
@@ -292,7 +293,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
                             to.y + TELEPORT_Y_RANGE,
                             st)
                     || !mc.isValidPosition(to, st)) {
-                LOG.at(Level.WARNING).log("HyColony: no free spot to unstick a citizen near %s", to);
+                warnNoFreeSpot(to);
                 return;
             }
             MoveTarget mt = st.getComponent(ref, HyColonyComponents.moveTarget());
@@ -301,5 +302,12 @@ public final class HytaleCitizenBodies implements CitizenBodies {
             }
             st.addComponent(ref, Teleport.getComponentType(), Teleport.createExact(to, t.getRotation()));
         });
+    }
+
+    /** CLAUDE.md § 4: the first failed teleport is a WARNING, the following ones FINE. */
+    private void warnNoFreeSpot(Vector3d to) {
+        LOG.at(teleportWarned ? Level.FINE : Level.WARNING).log(
+                "HyColony: no free spot to unstick a citizen near %s", to);
+        teleportWarned = true;
     }
 }
