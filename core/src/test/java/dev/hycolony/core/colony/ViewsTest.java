@@ -270,6 +270,8 @@ class ViewsTest {
         assertTrue(colony.buildings().at(res.position()).isPresent());
 
         for (UUID player : List.of(bob, dave)) {
+            manager.windows().openTownHall(player, hall);
+            manager.windows().openCitizen(player, colony.id(), bobTheBuilder.id());
             manager.windows().openBuilding(player, res.position());
             manager.windows().openBuilderResources(player, builder.position());
             manager.windows().openRequests(player, colony.id());

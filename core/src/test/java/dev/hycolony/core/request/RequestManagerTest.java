@@ -261,6 +261,17 @@ class RequestManagerTest {
     }
 
     @Test
+    void equalSuitabilityKeepsTheFirstRegisteredResolver() {
+        FixedResolver first = resolver("first", 100, 2);
+        FixedResolver second = resolver("second", 100, 2);
+
+        RequestToken t = m.createAndAssign(hut, stack(PLANK), -1);
+
+        assertSame(first, resolverOf(t));
+        assertEquals(0, second.attempts, "an equal suitability is not better");
+    }
+
+    @Test
     void priorityChangeStopsSearch() {
         FixedResolver high = resolver("high", 200, 5);
         FixedResolver better = resolver("better", 100, 0);

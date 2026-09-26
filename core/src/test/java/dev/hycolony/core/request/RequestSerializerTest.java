@@ -3,6 +3,7 @@ package dev.hycolony.core.request;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -21,6 +22,8 @@ import dev.hycolony.core.request.resolver.PlayerResolver;
 import dev.hycolony.core.request.resolver.RetryingResolver;
 import dev.hycolony.core.testing.FakeCatalog;
 import dev.hycolony.core.testing.FakeContainers;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -100,6 +103,21 @@ class RequestSerializerTest {
         assertEquals(
                 List.of(toPlayer), l.player.open().stream().map(Request::token).toList());
         assertEquals(l.m.byRequester(w.hut.requesterId()).size(), 3);
+    }
+
+    /** A save of every request shape (building, retrying with a child, player, blacklist) loads and saves unchanged. */
+    @Test
+    void savedRequestsFixtureLoadsAndSavesIdentically() throws IOException {
+        JsonObject fixture;
+        try (var in = getClass().getResourceAsStream("/fixtures/requests-v2.json")) {
+            fixture = JsonParser.parseString(new String(in.readAllBytes(), StandardCharsets.UTF_8))
+                    .getAsJsonObject();
+        }
+        World l = new World();
+        RequestSerializer.read(fixture.deepCopy(), l.m);
+
+        // Compared in Gson's default form, which leaves out the null parents the fixture omits.
+        assertEquals(fixture, JsonParser.parseString(new Gson().toJson(RequestSerializer.write(l.m))));
     }
 
     @Test

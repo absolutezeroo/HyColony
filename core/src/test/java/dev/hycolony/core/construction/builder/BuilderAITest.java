@@ -37,6 +37,7 @@ import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.model.RequestState;
+import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.request.model.StackRequest;
 import dev.hycolony.core.request.model.ToolRequest;
 import dev.hycolony.core.request.resolver.PlayerResolver;
@@ -1022,6 +1023,27 @@ class BuilderAITest {
         assertEquals(
                 RequestState.IN_PROGRESS,
                 colony.requests().get(r.token()).orElseThrow().state());
+    }
+
+    @Test
+    void waitingBuilderLeavesHutStockReservedForAnotherRequest() {
+        Request r = waitingForStone(2);
+        toPlayer(r);
+        t.containers.containers.put(HUT, new java.util.LinkedHashMap<>(Map.of(STONE_I, 2))); // no container event
+        // Another worker of the hut asked for the same stone first: the hut's resolver reserved both for it.
+        RequestToken other = colony.requests().createAndAssign(hut, new StackRequest(STONE_I, 2, 2, true), 99);
+        tick(20);
+        assertEquals(
+                List.of(new ItemAmount(STONE_I, 2)),
+                colony.requests().get(other).orElseThrow().deliveries());
+
+        tick(1000);
+        assertEquals("NEEDS_ITEM", ai.stateName());
+        assertEquals(
+                RequestState.IN_PROGRESS,
+                colony.requests().get(r.token()).orElseThrow().state());
+        assertEquals(2, t.containers.count(List.of(HUT), STONE_I));
+        assertEquals(0, t.blocks.placed.size());
     }
 
     @Test

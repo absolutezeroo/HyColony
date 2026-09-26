@@ -1,0 +1,102 @@
+{
+  "requests": [
+    {
+      "token": "00000000-0000-0000-0000-000000000001",
+      "requester": "building:0,64,0",
+      "requestable": {
+        "type": "stack",
+        "item": "Wood_Planks",
+        "count": 4,
+        "minCount": 4,
+        "canBeResolvedByBuilding": true
+      },
+      "state": "COMPLETED",
+      "children": [],
+      "deliveries": [
+        {
+          "item": "Wood_Planks",
+          "count": 4
+        }
+      ],
+      "citizenId": 3,
+      "blacklist": []
+    },
+    {
+      "token": "00000000-0000-0000-0000-000000000002",
+      "requester": "building:0,64,0",
+      "requestable": {
+        "type": "stack",
+        "item": "Rock_Stone",
+        "count": 2,
+        "minCount": 1,
+        "canBeResolvedByBuilding": true
+      },
+      "state": "IN_PROGRESS",
+      "children": [
+        "00000000-0000-0000-0000-000000000003"
+      ],
+      "deliveries": [],
+      "citizenId": -1,
+      "blacklist": []
+    },
+    {
+      "token": "00000000-0000-0000-0000-000000000003",
+      "requester": "resolver:retrying",
+      "requestable": {
+        "type": "stack",
+        "item": "Rock_Stone",
+        "count": 1,
+        "minCount": 1,
+        "canBeResolvedByBuilding": false
+      },
+      "state": "IN_PROGRESS",
+      "parent": "00000000-0000-0000-0000-000000000002",
+      "children": [],
+      "deliveries": [],
+      "citizenId": -1,
+      "blacklist": []
+    },
+    {
+      "token": "00000000-0000-0000-0000-000000000004",
+      "requester": "building:0,64,0",
+      "requestable": {
+        "type": "tool",
+        "tool": "PICKAXE",
+        "minLevel": 0,
+        "maxLevel": 2
+      },
+      "state": "IN_PROGRESS",
+      "children": [],
+      "deliveries": [],
+      "citizenId": 5,
+      "blacklist": [
+        "retrying"
+      ]
+    }
+  ],
+  "assignments": {
+    "retrying": [
+      "00000000-0000-0000-0000-000000000002",
+      "00000000-0000-0000-0000-000000000003"
+    ],
+    "building:0,64,0": [
+      "00000000-0000-0000-0000-000000000001"
+    ],
+    "player": [
+      "00000000-0000-0000-0000-000000000004"
+    ]
+  },
+  "retrying": {
+    "delays": {
+      "00000000-0000-0000-0000-000000000002": 1178,
+      "00000000-0000-0000-0000-000000000003": 1178
+    },
+    "tries": {
+      "00000000-0000-0000-0000-000000000003": 1,
+      "00000000-0000-0000-0000-000000000002": 1
+    }
+  },
+  "player": [
+    "00000000-0000-0000-0000-000000000004"
+  ]
+}
