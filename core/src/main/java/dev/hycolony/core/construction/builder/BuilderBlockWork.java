@@ -133,8 +133,8 @@ final class BuilderBlockWork {
         mineTarget = null;
         List<ItemAmount> drops = ctx.blocks().breakBlock(pos);
         if (clearing && ctx.catalog().kind(state.key()) == BlockKind.FLUID) {
-            // ponytail: one removal per fluid cell; a neighbouring source may flow back, and looping on it would
-            // never end. Refill after CLEAR is left as is (SOLID overwrites it, decorations sit in it).
+            // Deviation from MC: one removal per fluid cell; a neighbouring source may flow back, and looping on it
+            // would never end. Refill after CLEAR is left as is (SOLID overwrites it, decorations sit in it).
             ctx.site().progress(Stage.CLEAR, ctx.site().order().progressIndex() + 1);
         }
         // MC: a rack that leaves the world leaves its building's containers (TileEntityRack removal).

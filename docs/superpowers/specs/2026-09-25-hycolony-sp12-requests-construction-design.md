@@ -279,3 +279,25 @@ C'est un portage des états de `AbstractEntityAIStructure` et `EntityAIStructure
 - Bâtiments enfants.
 - Déplacement d'une cabane (ramasser et reposer).
 - Mode MANUAL de sélection d'ordre dans l'UI : le mode existe dans le core, mais il n'a pas de fenêtre de choix pour l'instant.
+
+## 11. Écarts à MineColonies
+
+Chaque écart porte un commentaire `Deviation from MC:` dans le code (CLAUDE.md § 6). La liste ci-dessous les reprend.
+
+**Déplacements du constructeur**
+- **Anti-blocage** (`kernel/nav/StuckHandler`) : Hytale calcule lui-même les chemins, donc il n'y a ni nœuds de chemin à sauter, ni recul, ni échelles, ni blocs cassés. Les niveaux de MineColonies se réduisent à trois actions : relancer la marche, téléporter près de la cible, abandonner. Le progrès se mesure à la position du corps (1 bloc parcouru), et non aux nœuds de chemin franchis. Après une téléportation, la marche est aussi abandonnée si le PNJ tourne en rond pendant le délai global (au moins 2 400 ticks) : chez MineColonies le citoyen atterrit à côté de sa cible, alors qu'une téléportation Hytale peut le poser sous un toit à deux blocs de là.
+- **Emplacement de travail** (`construction/builder/WorkSpot`) : sans recherche de chemin, l'emplacement d'où le constructeur travaille est choisi d'après le monde et le plan, à 2 à 4 blocs du bloc : vers l'extérieur du chantier d'abord, puis sur les côtés, puis vers l'intérieur. Les pieds et la tête ne sont jamais dans une case que le plan va remplir. L'emplacement n'est jamais enterré ni dans un fluide (pas de place au fond d'un lac).
+- **Portée** (`construction/builder/BuilderWalker`) : MineColonies travaille encore une fois le bloc hors de portée avant de se déplacer. Ici le constructeur se déplace d'abord, et ne travaille donc jamais un bloc à plus de 5 blocs (distance `|dx| + |dz|`).
+
+**Construction**
+- **Retrait des fluides pendant CLEAR** (`construction/builder/BuilderBlockWork`) : comme MineColonies, CLEAR vide l'emprise de l'eau et de la lave, mais chaque case de fluide n'est retirée qu'une fois. Une source voisine peut la remplir de nouveau : boucler dessus ne finirait jamais. Ce qui revient après CLEAR reste en place (SOLID l'écrase, les décorations s'y posent).
+- **Vérification finale** (`construction/builder/BuilderAI.stageDone`) : l'itérateur de MineColonies ne fait qu'avancer. Ici, une fois par ordre chargé, SOLID et DECORATE sont parcourus de nouveau avant la fin, pour reposer un bloc cassé derrière le constructeur.
+- **Ordres gratuits d'un opérateur en créatif** (`construction/workorder/WorkManager.isFree`) : ajout demandé. Avec l'option `creativeOperatorFreeBuilds`, un ordre passé par un opérateur en mode créatif se construit sans matériaux. MineColonies n'a que l'option globale `builderInfiniteResources`. Un ordre REMOVE n'est jamais gratuit.
+- **Animations de travail** (`construction/builder/BuilderGestures`) : MineColonies fait balancer le bras à chaque tick d'IA (5 ticks de jeu), ce qui donne un mouvement continu parce que le geste est court. Les animations Hytale (Block/Build, Pickaxe/Mine) durent plus longtemps : les relancer tous les 5 ticks les jouerait deux fois. La pose joue Build une fois par bloc, et le minage ne relance le coup de pioche qu'une fois le précédent terminé.
+
+**Citoyens**
+- **Marqueur « ! »** (`colony/CitizenNameplates`) : MineColonies affiche une icône au-dessus de la tête d'un citoyen qui attend un joueur. Les PNJ Hytale n'ont pas cette surcouche, donc le nom l'affiche : « ! Nom ».
+
+**Requêtes**
+- **Fourniture par le joueur** (`request/RequestManager.overrule`) : appliquée une seule fois, alors que MineColonies l'exécutait deux fois.
+- **Résolveur disparu au chargement** (`request/RequestManager.reassignLoaded`) : la requête est réassignée au lieu d'être supprimée comme dans MineColonies.

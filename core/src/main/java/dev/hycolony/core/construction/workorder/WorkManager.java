@@ -106,7 +106,12 @@ public final class WorkManager {
         colony.context().bus().post(new ColonyEvents.WorkOrderCreated(colony, order));
     }
 
-    /** MC builderInfiniteResources, or a creative operator's order (if enabled); a REMOVE never is. */
+    /**
+     * MC builderInfiniteResources, or a creative operator's order (if enabled); a REMOVE never is.
+     *
+     * <p>Deviation from MC: the creative operator's free order is ours (config {@code creativeOperatorFreeBuilds});
+     * MC only has the colony-wide builderInfiniteResources.
+     */
     private boolean isFree(UUID player, WorkOrderType type) {
         var config = colony.context().config();
         return type != WorkOrderType.REMOVE

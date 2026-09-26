@@ -257,7 +257,7 @@ public final class BuilderAI implements JobAI {
     private BuilderState stageDone(Stage stage) {
         Stage next = StructureScan.nextStage(stage);
         if (next == Stage.DONE && stage == Stage.DECORATE && !site.finalCheckDone()) {
-            // Not in MC (its iterator only goes forward): once per loaded order, SOLID and DECORATE are walked
+            // Deviation from MC (its iterator only goes forward): once per loaded order, SOLID and DECORATE are walked
             // again, so a block broken behind the builder is placed again before completion.
             site.startFinalCheck();
             next = Stage.SOLID;
