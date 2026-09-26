@@ -10,8 +10,6 @@ import dev.hycolony.core.kernel.port.CitizenBodies;
 import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.core.kernel.port.NavStatus;
 import dev.hycolony.core.kernel.port.WorldBlocks;
-import java.util.ArrayDeque;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,8 +28,12 @@ public final class DetouringBodies implements CitizenBodies {
 
     private final CitizenBodies bodies;
     private final SafeRoute route;
-    /** Per walking body, the waypoint it walks to now, then the rest; absent once the last leg is handed over. */
-    private final Map<BodyId, Deque<Vec3>> legs = new HashMap<>();
+    /**
+     * Per walking body, the waypoint it walks to now, then the rest, with the clearance they were planned with (the
+     * next-leg check asks for no more, so it never refuses a leg its own plan accepted); absent once the last leg is
+     * handed over.
+     */
+    private final Map<BodyId, SafeRoute.Plan> legs = new HashMap<>();
     /** Per walking body, how many times its walk was replanned. */
     private final Map<BodyId, Integer> replans = new HashMap<>();
 
@@ -45,7 +47,7 @@ public final class DetouringBodies implements CitizenBodies {
     public void moveTo(BodyId body, Vec3 target) {
         replans.remove(body);
         Optional<Vec3> from = bodies.position(body);
-        walk(body, new ArrayDeque<>(from.isPresent() ? route.plan(from.get(), target) : List.of(target)));
+        walk(body, from.map(f -> route.plan(f, target)).orElse(new SafeRoute.Plan(List.of(target), 0)));
     }
 
     /**
@@ -56,17 +58,18 @@ public final class DetouringBodies implements CitizenBodies {
     @Override
     public NavStatus navStatus(BodyId body) {
         NavStatus status = bodies.navStatus(body);
-        Deque<Vec3> rest = legs.get(body);
+        SafeRoute.Plan rest = legs.get(body);
         if (rest == null) {
             return status;
         }
         boolean arrived = status == NavStatus.ARRIVED;
-        if (arrived || reached(body, rest.peek())) {
-            Vec3 here = bodies.position(body).orElse(rest.peek());
-            List<Vec3> next = List.copyOf(rest).subList(1, rest.size());
-            if (route.clear(here, next.getFirst())) {
-                rest.poll();
-                walk(body, rest);
+        Vec3 waypoint = rest.waypoints().getFirst();
+        if (arrived || reached(body, waypoint)) {
+            Vec3 here = bodies.position(body).orElse(waypoint);
+            SafeRoute.Plan next = new SafeRoute.Plan(
+                    rest.waypoints().subList(1, rest.waypoints().size()), rest.clearance());
+            if (route.clear(here, next.waypoints().getFirst(), next.clearance())) {
+                walk(body, next);
             } else if (arrived) {
                 replan(body, here, next);
             }
@@ -79,15 +82,17 @@ public final class DetouringBodies implements CitizenBodies {
     }
 
     /** Walks a new safe route from {@code here} to the walk's target; past {@link #MAX_REPLANS}, the next leg as is. */
-    private void replan(BodyId body, Vec3 here, List<Vec3> next) {
+    private void replan(BodyId body, Vec3 here, SafeRoute.Plan next) {
         int count = replans.merge(body, 1, Integer::sum);
-        walk(body, new ArrayDeque<>(count > MAX_REPLANS ? next : route.plan(here, next.getLast())));
+        walk(
+                body,
+                count > MAX_REPLANS ? next : route.plan(here, next.waypoints().getLast()));
     }
 
-    private void walk(BodyId body, Deque<Vec3> waypoints) {
-        bodies.moveTo(body, waypoints.peek());
-        if (waypoints.size() > 1) {
-            legs.put(body, waypoints);
+    private void walk(BodyId body, SafeRoute.Plan plan) {
+        bodies.moveTo(body, plan.waypoints().getFirst());
+        if (plan.waypoints().size() > 1) {
+            legs.put(body, plan);
         } else {
             forget(body);
         }

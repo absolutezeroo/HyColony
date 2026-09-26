@@ -85,7 +85,8 @@ class DetouringBodiesTest {
         assertEquals(NavStatus.MOVING, bodies.navStatus(body));
         Vec3 next = fake.moves.getLast();
         assertTrue(!next.equals(TO), "a new detour leg, not the straight line through the fire: " + fake.moves);
-        assertTrue(new SafeRoute(new DangerousCells(world, catalog)).clear(new Vec3(4.55, 64, 1.30), next));
+        assertTrue(new SafeRoute(new DangerousCells(world, catalog))
+                .clear(new Vec3(4.55, 64, 1.30), next, RouteSearch.BODY_RADIUS));
     }
 
     @Test
@@ -98,7 +99,11 @@ class DetouringBodiesTest {
                 assertTrue(!fake.moves.getLast().equals(TO), "replan " + (i + 1) + " is a detour: " + fake.moves);
             }
             arrive();
-            assertEquals(TO, fake.moves.getLast(), "past the cap, the next leg as it is");
+            Vec3 secondLeg = new SafeRoute(new DangerousCells(world, catalog))
+                    .plan(new Vec3(4.55, 64, 1.30), TO)
+                    .waypoints()
+                    .get(1);
+            assertEquals(secondLeg, fake.moves.getLast(), "past the cap, the last replan's next leg as it is");
         }
     }
 

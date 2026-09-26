@@ -15,8 +15,8 @@ final class RouteSearch {
     static final int MARGIN = 6;
     /** Most columns visited by one search, so a long walk costs a bounded number of block reads. */
     static final int SEARCH_LIMIT = 4096;
-    /** Half the body's width, in blocks: a column this close to the walked line is touched. */
-    private static final double BODY_RADIUS = 0.35;
+    /** Half the body's width, in blocks (the Player model's hitbox is 0.325): the tightest clearance a walk needs. */
+    static final double BODY_RADIUS = 0.35;
     /** Distance between two points checked along a leg, in blocks. */
     private static final double STEP = 0.25;
     /** Blocks around the walk's height checked for danger: floor, feet, head, and 1 of slope either way. */
@@ -27,25 +27,35 @@ final class RouteSearch {
     private final DangerousCells danger;
     private final Vec3 from;
     private final Vec3 to;
+    /** Half-width, in blocks, of the square around the body's centre that must stay off dangerous columns. */
+    private final double clearance;
+
     private final Map<Long, Boolean> dangerous = new HashMap<>();
 
-    RouteSearch(DangerousCells danger, Vec3 from, Vec3 to) {
+    RouteSearch(DangerousCells danger, Vec3 from, Vec3 to, double clearance) {
         this.danger = danger;
         this.from = from;
         this.to = to;
+        this.clearance = clearance;
     }
 
-    /** Whether a body walking straight from {@code a} to {@code b} touches no dangerous column. */
+    /** Whether a body walking straight from {@code a} to {@code b} keeps its clearance off every dangerous column. */
     boolean clear(Vec3 a, Vec3 b) {
         int steps = (int) Math.ceil(Math.hypot(b.x() - a.x(), b.z() - a.z()) / STEP);
         for (int i = 0; i <= steps; i++) {
             double t = steps == 0 ? 0 : (double) i / steps;
-            double x = a.x() + (b.x() - a.x()) * t;
-            double z = a.z() + (b.z() - a.z()) * t;
-            for (int corner = 0; corner < 4; corner++) {
-                double cx = x + ((corner & 1) == 0 ? -BODY_RADIUS : BODY_RADIUS);
-                double cz = z + ((corner & 2) == 0 ? -BODY_RADIUS : BODY_RADIUS);
-                if (dangerous(floor(cx), floor(cz))) {
+            if (!clearAt(a.x() + (b.x() - a.x()) * t, a.z() + (b.z() - a.z()) * t)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /** Whether no column under the clearance square centred on (x, z) is dangerous. */
+    private boolean clearAt(double x, double z) {
+        for (int cx = floor(x - clearance); cx <= floor(x + clearance); cx++) {
+            for (int cz = floor(z - clearance); cz <= floor(z + clearance); cz++) {
+                if (dangerous(cx, cz)) {
                     return false;
                 }
             }
@@ -53,7 +63,7 @@ final class RouteSearch {
         return true;
     }
 
-    /** Column centres from the one after the start's to the target's, around dangerous columns; empty if none. */
+    /** Column centres from the one after the start's to the target's, each clear at its centre; empty if none. */
     List<Vec3> cellPath() {
         long start = key(floor(from.x()), floor(from.z()));
         long goal = key(floor(to.x()), floor(to.z()));
@@ -69,7 +79,7 @@ final class RouteSearch {
                 int x = x(cell) + n[0];
                 int z = z(cell) + n[1];
                 long next = key(x, z);
-                if (inArea(x, z) && !parent.containsKey(next) && !dangerous(x, z)) {
+                if (inArea(x, z) && !parent.containsKey(next) && clearAt(x + 0.5, z + 0.5)) {
                     parent.put(next, cell);
                     open.add(next);
                 }
