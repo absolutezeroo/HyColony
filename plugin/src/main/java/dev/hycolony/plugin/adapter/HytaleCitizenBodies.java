@@ -3,15 +3,22 @@ package dev.hycolony.plugin.adapter;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.protocol.AnimationSlot;
 import com.hypixel.hytale.server.core.entity.AnimationUtils;
+import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
+import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
+import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
+import com.hypixel.hytale.server.core.modules.entity.teleport.Teleport;
+import com.hypixel.hytale.server.core.modules.physics.util.PhysicsMath;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.NPCPlugin;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 import com.hypixel.hytale.server.npc.movement.NavState;
+import com.hypixel.hytale.server.npc.movement.controllers.MotionController;
 import com.hypixel.hytale.server.npc.role.support.DisplayNameSupport;
 import com.hypixel.hytale.server.npc.util.InventoryHelper;
 import com.hypixel.hytale.server.spawning.SpawnTestResult;
@@ -30,12 +37,16 @@ import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.logging.Level;
 import org.joml.Vector3d;
 
 /** CitizenBodies over Hytale NPCs. World thread only. */
 public final class HytaleCitizenBodies implements CitizenBodies {
     /** World ticks after moveTo during which a stale AT_GOAL etc. is ignored. */
     private static final long FRESH_MOVE_TICKS = 10;
+    /** MC completeStuckAction searches 10 blocks around the goal. */
+    private static final double TELEPORT_Y_RANGE = 10;
+    private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
     private final World world;
     private final String roleName;
@@ -142,11 +153,13 @@ public final class HytaleCitizenBodies implements CitizenBodies {
         }
         NPCEntity npc = store().getComponent(ref, NPCEntity.getComponentType());
         NavState state = npc.getRole().getActiveMotionController().getNavState();
+        // Every NavState: INIT ("doing nothing"), PROGRESSING and DEFER may last forever (e.g. a Seek goal more than
+        // 1 block above the feet is never AT_GOAL): the core's stuck handler watches the position, not this.
         NavStatus status = switch (state) {
             case AT_GOAL -> NavStatus.ARRIVED;
             case BLOCKED -> NavStatus.BLOCKED;
             case ABORTED -> NavStatus.FAILED;
-            default -> NavStatus.MOVING;
+            case INIT, PROGRESSING, DEFER -> NavStatus.MOVING;
         };
         if (status != NavStatus.MOVING) {
             mt.active = false;
@@ -205,5 +218,74 @@ public final class HytaleCitizenBodies implements CitizenBodies {
             case BUILD -> AnimationUtils.playAnimation(ref, AnimationSlot.Action, "Block", "Build", store());
             case MINE -> AnimationUtils.playAnimation(ref, AnimationSlot.Action, "Pickaxe", "Mine", store());
         }
+    }
+
+    /**
+     * MC WorkerUtil.faceBlock: body yaw toward the target (TransformComponent rotation) and head yaw and pitch from
+     * the eyes (HeadRotation), with PhysicsMath's heading/pitch as NPC motions use. The walk is ended first: with no
+     * Seek target the role has no body steering, so MotionControllerBase keeps the yaw it reads from the transform
+     * each tick, and the head, without head steering, turns toward that body yaw.
+     */
+    @Override
+    public void lookAt(BodyId body, Vec3 target) {
+        Ref<EntityStore> ref = ref(body);
+        if (ref == null) {
+            return;
+        }
+        MoveTarget mt = store().getComponent(ref, HyColonyComponents.moveTarget());
+        if (mt != null) {
+            mt.active = false;
+        }
+        TransformComponent t = store().getComponent(ref, TransformComponent.getComponentType());
+        HeadRotation head = store().getComponent(ref, HeadRotation.getComponentType());
+        if (t == null) {
+            return;
+        }
+        Vector3d p = t.getPosition();
+        double dx = target.x() - p.x, dz = target.z() - p.z;
+        double dy = target.y() - (p.y + ModelComponent.getEyeHeight(ref, store()));
+        float yaw = PhysicsMath.normalizeTurnAngle(PhysicsMath.headingFromDirection(dx, dz));
+        t.getRotation().setYaw(yaw);
+        if (head != null) {
+            head.getRotation().setYaw(yaw);
+            head.getRotation().setPitch(PhysicsMath.pitchFromDirection(dx, dy, dz));
+        }
+    }
+
+    /**
+     * MC PathingStuckHandler.completeStuckAction (teleport near the goal): the motion controller moves the target to
+     * an accessible position within 10 blocks up or down (as BodyMotionTeleport does), then a Teleport component is
+     * added. Deferred to world.execute: the colony ticks inside a store system, where structural changes throw.
+     */
+    @Override
+    public void teleport(BodyId body, Vec3 target) {
+        Ref<EntityStore> ref = ref(body);
+        if (ref == null) {
+            return;
+        }
+        world.execute(() -> {
+            if (!ref.isValid()) {
+                return;
+            }
+            Store<EntityStore> st = store();
+            NPCEntity npc = st.getComponent(ref, NPCEntity.getComponentType());
+            TransformComponent t = st.getComponent(ref, TransformComponent.getComponentType());
+            BoundingBox box = st.getComponent(ref, BoundingBox.getComponentType());
+            if (npc == null || t == null) {
+                return;
+            }
+            Vector3d to = new Vector3d(target.x(), target.y(), target.z());
+            MotionController mc = npc.getRole().getActiveMotionController();
+            if (!mc.translateToAccessiblePosition(to, box == null ? null : box.getBoundingBox(), to.y - TELEPORT_Y_RANGE,
+                    to.y + TELEPORT_Y_RANGE, st) || !mc.isValidPosition(to, st)) {
+                LOG.at(Level.WARNING).log("HyColony: no free spot to unstick a citizen near %s", to);
+                return;
+            }
+            MoveTarget mt = st.getComponent(ref, HyColonyComponents.moveTarget());
+            if (mt != null) {
+                mt.active = false;
+            }
+            st.addComponent(ref, Teleport.getComponentType(), Teleport.createExact(to, t.getRotation()));
+        });
     }
 }

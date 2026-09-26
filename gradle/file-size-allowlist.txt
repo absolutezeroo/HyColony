@@ -1,0 +1,4 @@
+# Files still over 400 lines (CLAUDE.md § 2). This list may only shrink: remove a line when its file is split.
+core/src/main/java/dev/hycolony/core/colony/ColonyManager.java
+core/src/main/java/dev/hycolony/core/request/RequestManager.java
+core/src/main/java/dev/hycolony/core/construction/BuilderAI.java

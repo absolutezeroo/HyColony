@@ -9,6 +9,7 @@ import dev.hycolony.core.job.JobAI;
 import dev.hycolony.core.job.JobXp;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.ai.AIBlockingEventType;
 import dev.hycolony.core.kernel.ai.AIEventTarget;
 import dev.hycolony.core.kernel.ai.AITarget;
@@ -66,6 +67,7 @@ public final class BuilderAI implements JobAI {
     private final BuildingResourcesModule resources;
     private final BuilderStock stock;
     private final BuilderWalker walker;
+    private final WorkSpot spots;
     private final Skill primary;
     private final Skill secondary;
     private final TickRateStateMachine<BuilderState> machine;
@@ -74,6 +76,8 @@ public final class BuilderAI implements JobAI {
     private int delay;
     private BodyAnimation animation;
     private int dumpRetryAt;
+    /** What the builder holds: the block it places or the tool it mines with (for the citizen window). */
+    private ItemKey inHand;
 
     // The structure being worked on; null when none is loaded.
     private WorkOrder order;
@@ -100,7 +104,8 @@ public final class BuilderAI implements JobAI {
         this.catalog = colony.context().ports().catalog();
         this.resources = hut == null ? null : hut.module(BuildingResourcesModule.class).orElse(null);
         this.stock = hut == null ? null : new BuilderStock(colony, citizen, hut);
-        this.walker = new BuilderWalker(bodies, body);
+        this.walker = new BuilderWalker(bodies, body, colony.context().clock()::currentTick);
+        this.spots = new WorkSpot(blocks, catalog);
         WorkerModule worker = hut == null ? null : hut.module(WorkerModule.class).orElse(null);
         this.primary = worker == null ? Skill.Adaptability : worker.primary();
         this.secondary = worker == null ? Skill.Athletics : worker.secondary();
@@ -385,7 +390,7 @@ public final class BuilderAI implements JobAI {
         if (item != null && !order.free() && stock.inventory().count(item) == 0) {
             return missing(item, i);
         }
-        if (!walker.walkToWorkPos(pos, order.buildingPos())) {
+        if (!walkToWork(pos)) {
             return null;
         }
         place(stage, i, pos, e, item);
@@ -393,6 +398,7 @@ public final class BuilderAI implements JobAI {
     }
 
     private void place(Stage stage, int i, BlockPos pos, BlueprintEntry e, ItemKey item) {
+        bodies.lookAt(body, Vec3.middle(pos)); // MC BuildingStructureHandler.prePlacementLogic: faceBlock
         if (!blocks.place(pos, e.state(), e.hasContainer())) {
             LOG.log(System.Logger.Level.WARNING, "Builder {0}: failed to place {1} at {2}; skipped", citizen.name(),
                     e.state().key().id(), pos);
@@ -411,7 +417,7 @@ public final class BuilderAI implements JobAI {
         award(XP_PER_BLOCK);
         job.incrementActions();
         progress(stage, i + 1);
-        bodies.setHeldItem(body, Optional.ofNullable(item));
+        hold(item);
         startDelay(BuilderTimings.placeDelay(citizen.skills().level(primary)), BodyAnimation.BUILD);
     }
 
@@ -453,12 +459,13 @@ public final class BuilderAI implements JobAI {
                 return fetchTool(type);
             }
         }
-        if (!walker.walkToWorkPos(pos, order.buildingPos())) {
+        if (!walkToWork(pos)) {
             return null;
         }
         if (!mineDelayed) {
             mineDelayed = true;
-            bodies.setHeldItem(body, Optional.ofNullable(tool));
+            bodies.lookAt(body, Vec3.middle(pos));
+            hold(tool);
             startDelay(BuilderTimings.breakDelay(citizen.skills().level(secondary), catalog.hardness(state.key()),
                     stock.toolSpeed(tool)), BodyAnimation.MINE);
             return null;
@@ -514,6 +521,15 @@ public final class BuilderAI implements JobAI {
     }
 
     // ---- helpers ----
+
+    private boolean walkToWork(BlockPos pos) {
+        return walker.walkToWorkPos(pos, () -> spots.choose(pos, order.buildingPos(), plan));
+    }
+
+    private void hold(ItemKey item) {
+        inHand = item;
+        bodies.setHeldItem(body, Optional.ofNullable(item));
+    }
 
     private List<BlockPos> positions(Stage stage) {
         return switch (stage) {

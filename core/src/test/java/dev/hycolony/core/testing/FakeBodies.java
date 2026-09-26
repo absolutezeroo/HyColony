@@ -38,8 +38,14 @@ public final class FakeBodies implements CitizenBodies {
     public boolean refuseSpawn;
     /** When set, moveTo teleports the body to its target and reports ARRIVED. */
     public boolean instant;
+    /** When set (and not instant), moveTo never moves the body and navStatus stays MOVING: a nav that never ends. */
+    public boolean frozen;
+    /** Every teleport target, in call order. */
+    public final List<Vec3> teleports = new ArrayList<>();
     /** Every moveTo target, in call order. */
     public final List<Vec3> moves = new ArrayList<>();
+    /** Every lookAt target, in call order. */
+    public final List<Vec3> looks = new ArrayList<>();
     /** Every setDisplayName call, in call order. */
     public final List<String> renames = new ArrayList<>();
     private long next = 1;
@@ -73,14 +79,23 @@ public final class FakeBodies implements CitizenBodies {
         moves.add(target);
         b.target = target;
         b.status = NavStatus.MOVING;
-        if (instant) {
+        if (instant && !frozen) {
             b.position = target;
             b.status = NavStatus.ARRIVED;
         }
     }
 
+    @Override
+    public void teleport(BodyId body, Vec3 target) {
+        Body b = bodies.get(body);
+        teleports.add(target);
+        b.position = target;
+        b.status = NavStatus.IDLE;
+    }
+
     @Override public NavStatus navStatus(BodyId body) { return bodies.get(body).status; }
     @Override public void setDisplayName(BodyId body, String name) { bodies.get(body).name = name; renames.add(name); }
+    @Override public void lookAt(BodyId body, Vec3 target) { looks.add(target); }
     @Override public void despawn(BodyId body) { Body b = bodies.get(body); if (b != null) b.alive = false; }
     @Override public void setHeldItem(BodyId body, Optional<ItemKey> item) { bodies.get(body).held = item.orElse(null); }
 

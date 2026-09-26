@@ -130,15 +130,21 @@ class BuilderAITest {
         return ((Either.Left<WorkOrder, WorkOrderRefusal>) r).value();
     }
 
+    /** One game tick: the clock advances with the AI (the walker's stuck handler measures time with it). */
+    private void step() {
+        t.clock.tick++;
+        ai.tick();
+    }
+
     private void tick(int n) {
         for (int i = 0; i < n; i++) {
-            ai.tick();
+            step();
         }
     }
 
     private void tickUntil(BooleanSupplier done, int max) {
         for (int i = 0; i < max && !done.getAsBoolean(); i++) {
-            ai.tick();
+            step();
         }
         assertTrue(done.getAsBoolean(), () -> "not reached; state " + ai.stateName());
         assertNull(ai.lastError);
@@ -527,11 +533,16 @@ class BuilderAITest {
     }
 
     @Test
-    void movesOnlyWhenNextBlockBeyondTenBlocks() {
+    void movesWhenNextBlockBeyondMineColoniesReach() {
         Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);
         List<BlueprintEntry> entries = new ArrayList<>();
         for (int x = 1; x <= 30; x++) {
             entries.add(entry(x, 0, 0, STONE));
+        }
+        for (int x = -2; x <= 33; x++) {
+            for (int z = -3; z <= 3; z++) {
+                t.blocks.blocks.put(at(x, -1, z), new BlockState(DIRT, 0)); // the ground
+            }
         }
         blueprint = bp(entries);
         give(STONE_I, 30);
@@ -540,10 +551,49 @@ class BuilderAITest {
         tickUntil(() -> gone(o), 20_000);
 
         List<Vec3> workMoves = t.bodies.moves.stream().filter(v -> !v.equals(Vec3.center(HUT))).toList();
-        // Blocks at x 31..60: work spots 2 beyond the first block and 1 up, renewed once a block is > 10 away.
-        assertEquals(List.of(Vec3.center(new BlockPos(33, 65, 0)), Vec3.center(new BlockPos(45, 65, 0)),
-                Vec3.center(new BlockPos(57, 65, 0))), workMoves);
+        // A line at x 31..60: the spot 2 outward is on the line (planned), so the builder stands 2 to the side, on
+        // the ground, and takes a new spot once the block is more than 5 away (MC walkToConstructionSite:
+        // getDistance2D, |dx| + |dz|, > 5): x 31, 35, ... 55. Past the line's end, x 61 outward is free again.
+        List<Vec3> expected = new ArrayList<>();
+        for (int x = 1; x <= 25; x += 4) {
+            expected.add(Vec3.center(at(x, 0, 2)));
+        }
+        expected.add(Vec3.center(at(31, 0, 0)));
+        assertEquals(expected, workMoves);
         assertEquals(30, t.blocks.placed.size());
+    }
+
+    @Test
+    void workSpotNeverStandsInPlannedCells() {
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);
+        // at(3, 1, 0) is the outward spot of the first block: planned, so the builder stands beside instead.
+        blueprint = bp(List.of(entry(1, 0, 0, STONE), entry(3, 1, 0, STONE)));
+        give(STONE_I, 2);
+        order(res, WorkOrderType.UPGRADE);
+
+        tickUntil(() -> t.blocks.placed.size() == 1, 2000);
+
+        List<Vec3> workMoves = t.bodies.moves.stream().filter(v -> !v.equals(Vec3.center(HUT))).toList();
+        assertEquals(Vec3.center(at(1, 1, 2)), workMoves.get(0));
+    }
+
+    @Test
+    void facesEachBlockBeforePlacingOrBreakingIt() {
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);
+        blueprint = bp(List.of(entry(1, 0, 0, STONE), entry(2, 0, 0, STONE)));
+        t.blocks.blocks.put(at(1, 0, 0), new BlockState(DIRT, 0)); // cleared first
+        give(STONE_I, 2);
+        List<BlockPos> changed = new ArrayList<>();
+        t.blocks.beforeChange = p -> {
+            assertFalse(t.bodies.looks.isEmpty(), "changed a block without facing it");
+            assertEquals(Vec3.middle(p), t.bodies.looks.get(t.bodies.looks.size() - 1));
+            changed.add(p);
+        };
+        WorkOrder o = order(res, WorkOrderType.UPGRADE);
+
+        tickUntil(() -> gone(o), 5000);
+
+        assertEquals(List.of(at(1, 0, 0), at(1, 0, 0), at(2, 0, 0)), changed); // break, then two placements
     }
 
     @Test
@@ -945,5 +995,21 @@ class BuilderAITest {
         assertEquals("NEEDS_ITEM", ai.stateName());
         assertEquals(1, t.containers.count(List.of(HUT), iron));
         assertEquals(RequestState.IN_PROGRESS, colony.requests().get(r.token()).orElseThrow().state());
+    }
+
+    // ---- field bug: a walk that never ends (nav stuck in PROGRESSING under an unreachable spot) ----
+
+    @Test
+    void builderWhoseNavNeverEndsIsUnstuckAndBuilds() {
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);
+        blueprint = bp(List.of(entry(1, 0, 0, STONE)));
+        give(STONE_I, 1);
+        t.bodies.frozen = true; // moveTo never moves the body, navStatus stays MOVING
+        WorkOrder o = order(res, WorkOrderType.UPGRADE);
+
+        tickUntil(() -> gone(o), 5000);
+
+        assertEquals(List.of(Vec3.center(at(3, 1, 0))), t.bodies.teleports, "repathed, then teleported to the spot");
+        assertEquals(List.of(at(1, 0, 0)), t.blocks.placed);
     }
 }

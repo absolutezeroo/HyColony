@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 public final class FakeWorldBlocks implements WorldBlocks {
     public final Map<BlockPos, BlockState> blocks = new LinkedHashMap<>();
@@ -17,12 +18,15 @@ public final class FakeWorldBlocks implements WorldBlocks {
     public boolean loaded = true;
     /** Every successful place(), in call order. */
     public final List<BlockPos> placed = new ArrayList<>();
+    /** Runs before every place() and breakBlock(), with the position (ordering checks). */
+    public Consumer<BlockPos> beforeChange = p -> {};
 
     @Override public boolean isLoaded(BlockPos pos) { return loaded; }
     @Override public Optional<BlockState> get(BlockPos pos) { return Optional.ofNullable(blocks.get(pos)); }
 
     @Override
     public boolean place(BlockPos pos, BlockState state, boolean withContainer) {
+        beforeChange.accept(pos);
         blocks.put(pos, state);
         placed.add(pos);
         return true;
@@ -30,6 +34,7 @@ public final class FakeWorldBlocks implements WorldBlocks {
 
     @Override
     public List<ItemAmount> breakBlock(BlockPos pos) {
+        beforeChange.accept(pos);
         BlockState removed = blocks.remove(pos);
         if (removed == null) {
             return List.of();

@@ -27,4 +27,10 @@ public interface CitizenBodies {
     void setHeldItem(BodyId body, Optional<ItemKey> item);
 
     void playAnimation(BodyId body, BodyAnimation animation);
+
+    /** Turns body and head toward {@code target} (MC WorkerUtil.faceBlock); ends any walk in progress. */
+    void lookAt(BodyId body, Vec3 target);
+
+    /** Moves the body to a free spot at or near {@code target} at once (MC's stuck handler, last resort). */
+    void teleport(BodyId body, Vec3 target);
 }
