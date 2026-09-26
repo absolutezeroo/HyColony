@@ -97,7 +97,7 @@ public final class CitizenManager {
             citizenRespawnTimer = RESPAWN_CHECK_TICKS;
             citizens.values().forEach(this::updateBodyIfNecessary);
         }
-        if (citizens.size() < ctx().config().initialCitizenAmount()) {
+        if (citizens.size() < ctx().config().gameplay().initialCitizenAmount()) {
             respawnInterval -= 500 + 60 * townHall.get().level();
             if (respawnInterval <= 0) {
                 respawnInterval = INITIAL_SPAWN_RESET;
@@ -136,7 +136,7 @@ public final class CitizenManager {
         CitizenData data = new CitizenData(id);
         data.setSaturation(CitizenData.MAX_SATURATION);
         int levelCap = (int) PLACEHOLDER_HAPPINESS * 2;
-        if (citizens.size() < ctx().config().initialCitizenAmount()) {
+        if (citizens.size() < ctx().config().gameplay().initialCitizenAmount()) {
             levelCap = Math.max(5, levelCap);
         }
         data.setSkills(Skills.initRandom(levelCap, ctx().random()));

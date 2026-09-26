@@ -95,7 +95,7 @@ public final class WorldRuntime {
         }
         this.loaded = enabled;
         this.enabled = enabled;
-        this.autosaveTicks = config.autosaveIntervalMinutes() * 60L * 20L;
+        this.autosaveTicks = config.hycolony().autosaveIntervalMinutes() * 60L * 20L;
     }
 
     /** One core tick (1/20 s). */

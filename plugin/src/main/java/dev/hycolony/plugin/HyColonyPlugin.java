@@ -14,6 +14,7 @@ import dev.hycolony.plugin.adapter.HytaleBlueprintSource;
 import dev.hycolony.plugin.block.HutBlockSystems;
 import dev.hycolony.plugin.block.ProtectionSystems;
 import dev.hycolony.plugin.command.HyColonyCommand;
+import dev.hycolony.plugin.config.HyColonyConfig;
 import dev.hycolony.plugin.goggles.GogglesSystems;
 import dev.hycolony.plugin.npc.BuilderSensorHyColonyTarget;
 import dev.hycolony.plugin.npc.CitizenBodyLifecycleSystem;

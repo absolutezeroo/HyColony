@@ -105,7 +105,7 @@ public final class ColonyPersistence {
                                 ClaimCell.of(b.position()),
                                 ClaimRadius.of(b.type().id(), b.level()),
                                 ClaimCell.of(colony.center()),
-                                manager.context().config().maxColonySize());
+                                manager.context().config().claims().maxColonySize());
             }
         }
     }

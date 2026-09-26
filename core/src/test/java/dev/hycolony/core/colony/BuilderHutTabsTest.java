@@ -181,7 +181,8 @@ class BuilderHutTabsTest {
         assertEquals(Optional.of(builder.position()), older.claimedBy(), "queued: MC setWorkOrder with hasWorkOrder");
         assertEquals(Optional.of(current), colony.work().claimedBy(builder.position()), "the current one stays");
         TerritoryIndex territory = new TerritoryIndex();
-        territory.claimSquare(colony.id(), ClaimCell.of(colony.center()), t.config.initialColonySize());
+        territory.claimSquare(
+                colony.id(), ClaimCell.of(colony.center()), t.config.claims().initialColonySize());
         Colony loaded = ColonySerializer.read(ColonySerializer.write(colony), t.context(), territory);
         assertEquals(
                 current.id(),

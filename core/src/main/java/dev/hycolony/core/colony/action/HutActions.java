@@ -65,7 +65,9 @@ public final class HutActions {
         ColonyContext ctx = manager.context();
         if (!manager.territory()
                 .isFreeForNewColony(
-                        pos, ctx.config().initialColonySize(), ctx.config().minColonyDistance())) {
+                        pos,
+                        ctx.config().claims().initialColonySize(),
+                        ctx.config().claims().minColonyDistance())) {
             return new HutPlacement.Denied(Msg.of("hycolony.colony.tooClose"));
         }
         return new HutPlacement.FoundNewColony();

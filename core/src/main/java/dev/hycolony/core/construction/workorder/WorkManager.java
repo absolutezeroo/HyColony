@@ -107,16 +107,16 @@ public final class WorkManager {
     }
 
     /**
-     * MC builderInfiniteResources, or a creative operator's order (if enabled); a REMOVE never is.
+     * Every order when {@code BuilderInfiniteResources}, or a creative operator's order (if enabled); a REMOVE never is.
      *
-     * <p>Deviation from MC: the creative operator's free order is ours (config {@code creativeOperatorFreeBuilds});
-     * MC only has the colony-wide builderInfiniteResources.
+     * <p>Deviation from MC: both options are ours. MC only has the hard-coded constant
+     * Constants.BUILDER_INF_RESOURECES (false), which our {@code BuilderInfiniteResources} exposes in the config.
      */
     private boolean isFree(UUID player, WorkOrderType type) {
         var config = colony.context().config();
         return type != WorkOrderType.REMOVE
-                && (config.builderInfiniteResources()
-                        || (config.creativeOperatorFreeBuilds()
+                && (config.hycolony().builderInfiniteResources()
+                        || (config.hycolony().creativeOperatorFreeBuilds()
                                 && colony.context().players().isCreativeOperator(player)));
     }
 

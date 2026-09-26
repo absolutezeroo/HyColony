@@ -354,7 +354,8 @@ class WorkManagerTest {
 
         JsonObject json = ColonySerializer.write(colony);
         TerritoryIndex territory = new TerritoryIndex();
-        territory.claimSquare(colony.id(), ClaimCell.of(colony.center()), t.config.initialColonySize());
+        territory.claimSquare(
+                colony.id(), ClaimCell.of(colony.center()), t.config.claims().initialColonySize());
         Colony loaded = ColonySerializer.read(json, t.context(), territory);
 
         assertEquals(json.getAsJsonArray("workOrders"), WorkOrderSerializer.write(loaded.work()));
@@ -389,7 +390,8 @@ class WorkManagerTest {
             el.getAsJsonObject().remove("active"); // saved before the active flag existed
         }
         TerritoryIndex territory = new TerritoryIndex();
-        territory.claimSquare(colony.id(), ClaimCell.of(colony.center()), t.config.initialColonySize());
+        territory.claimSquare(
+                colony.id(), ClaimCell.of(colony.center()), t.config.claims().initialColonySize());
 
         Colony loaded = ColonySerializer.read(json, t.context(), territory);
 
@@ -459,7 +461,8 @@ class WorkManagerTest {
         Building res = residence(new BlockPos(20, 64, 0), 3);
         WorkOrder o = created(res.position(), WorkOrderType.REMOVE);
         TerritoryIndex territory = new TerritoryIndex();
-        territory.claimSquare(colony.id(), ClaimCell.of(colony.center()), t.config.initialColonySize());
+        territory.claimSquare(
+                colony.id(), ClaimCell.of(colony.center()), t.config.claims().initialColonySize());
         WorkOrder loaded = ColonySerializer.read(ColonySerializer.write(colony), t.context(), territory)
                 .work()
                 .byId(o.id())
@@ -482,7 +485,8 @@ class WorkManagerTest {
         }
         json.add("buildings", kept); // the residence is gone, its order is still saved
         TerritoryIndex territory = new TerritoryIndex();
-        territory.claimSquare(colony.id(), ClaimCell.of(colony.center()), t.config.initialColonySize());
+        territory.claimSquare(
+                colony.id(), ClaimCell.of(colony.center()), t.config.claims().initialColonySize());
         Colony loaded = ColonySerializer.read(json, t.context(), territory);
         assertTrue(loaded.work().byId(o.id()).isPresent());
 
@@ -608,7 +612,8 @@ class WorkManagerTest {
         colony.work().complete(created(res.position(), WorkOrderType.BUILD)); // id 1, gone
 
         TerritoryIndex territory = new TerritoryIndex();
-        territory.claimSquare(colony.id(), ClaimCell.of(colony.center()), t.config.initialColonySize());
+        territory.claimSquare(
+                colony.id(), ClaimCell.of(colony.center()), t.config.claims().initialColonySize());
         Colony loaded = ColonySerializer.read(ColonySerializer.write(colony), t.context(), territory);
         Either<WorkOrder, WorkOrderRefusal> next =
                 loaded.work().request(alice, res.position(), WorkOrderType.BUILD, "", Optional.empty());

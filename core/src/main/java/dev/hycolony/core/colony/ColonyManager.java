@@ -106,7 +106,7 @@ public final class ColonyManager {
     }
 
     public boolean protectionEnabled() {
-        return ctx.config().enableColonyProtection();
+        return ctx.config().permissions().enableColonyProtection();
     }
 
     /** Outside any colony everything is allowed. */
@@ -163,7 +163,9 @@ public final class ColonyManager {
         colonies.put(colony.id(), colony);
         reserveId(colony.id());
         territory.claimSquare(
-                colony.id(), ClaimCell.of(colony.center()), ctx.config().initialColonySize());
+                colony.id(),
+                ClaimCell.of(colony.center()),
+                ctx.config().claims().initialColonySize());
         colony.markDirty();
     }
 }

@@ -50,15 +50,12 @@ class FreeWorkOrderTest {
 
     private static ColonyConfig config(boolean infinite, boolean creativeOps) {
         return new ColonyConfig(
-                D.initialCitizenAmount(),
-                D.maxCitizenPerColony(),
-                D.initialColonySize(),
-                D.minColonyDistance(),
-                D.maxColonySize(),
-                D.enableColonyProtection(),
-                D.autosaveIntervalMinutes(),
-                infinite,
-                creativeOps);
+                D.gameplay(),
+                D.claims(),
+                D.permissions(),
+                D.commands(),
+                D.client(),
+                new ColonyConfig.HyColony(D.hycolony().autosaveIntervalMinutes(), infinite, creativeOps));
     }
 
     private void start(ColonyConfig config) {

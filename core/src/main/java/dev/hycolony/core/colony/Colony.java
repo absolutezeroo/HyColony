@@ -155,7 +155,7 @@ public final class Colony {
                 ClaimCell.of(pos),
                 radius,
                 ClaimCell.of(center),
-                ctx.config().maxColonySize());
+                ctx.config().claims().maxColonySize());
         markDirty();
     }
 
