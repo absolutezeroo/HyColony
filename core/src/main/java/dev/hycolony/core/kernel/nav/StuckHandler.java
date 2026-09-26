@@ -18,10 +18,13 @@ import dev.hycolony.core.kernel.Vec3;
  *   <li>MC's global timeout: the same destination for more than max({@link #MIN_TP_DELAY},
  *       {@link #TIME_PER_BLOCK} x max({@link #MIN_DIST_FOR_TP}, Manhattan distance)) ticks teleports, even while the
  *       body moves (circling).</li>
+ *   <li>After the teleport, the same timeout counted from the teleport gives up, even while the body moves.</li>
  * </ul>
  *
  * <p>Deviation from MC: no path nodes to skip, no move-away, ladders or block breaking (Hytale's nav owns the
- * path); the levels collapse to repath, teleport, give up.
+ * path); the levels collapse to repath, teleport, give up. MC's citizen lands next to its goal after
+ * completeStuckAction; a Hytale teleport can land it under a roof two blocks off, so the walk is also given up when it
+ * circles for a global timeout after the teleport.
  */
 public final class StuckHandler {
     public enum Action {
@@ -48,6 +51,7 @@ public final class StuckHandler {
     private long lastProgress;
     private int level;
     private boolean teleported;
+    private long teleportTick;
 
     public void start(Vec3 destination, Vec3 from, long now) {
         this.destination = destination;
@@ -64,8 +68,8 @@ public final class StuckHandler {
             return Action.NONE;
         }
         lastCheck = now;
-        if (!teleported && now - startTick > globalTimeout(pos)) {
-            return teleport(pos, now);
+        if (now - (teleported ? teleportTick : startTick) > globalTimeout(pos)) {
+            return teleported ? giveUp() : teleport(pos, now);
         }
         if (pos.distance(lastPos) >= PROGRESS_DIST) {
             lastPos = pos;
@@ -83,14 +87,19 @@ public final class StuckHandler {
         }
         lastProgress = now;
         if (pos.distance(destination) < MIN_TARGET_DIST || teleported) {
-            destination = null;
-            return Action.GIVE_UP;
+            return giveUp();
         }
         return level++ == 0 ? Action.REPATH : teleport(pos, now);
     }
 
+    private Action giveUp() {
+        destination = null;
+        return Action.GIVE_UP;
+    }
+
     private Action teleport(Vec3 pos, long now) {
         teleported = true;
+        teleportTick = now;
         lastPos = pos; // a teleport that worked shows as progress; one that did not, as none
         lastProgress = now;
         level = 1;

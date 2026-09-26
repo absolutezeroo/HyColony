@@ -71,4 +71,21 @@ class StuckHandlerTest {
         }
         assertEquals("TELEPORT@2410", actions.get(0), "MIN_TP_DELAY, checked every 10 ticks");
     }
+
+    @Test
+    void circlingAfterTeleportGivesUp() {
+        StuckHandler h = new StuckHandler();
+        h.start(FAR, HOME, 0);
+        List<String> actions = new ArrayList<>();
+        for (long t = 1; t <= 6000; t++) {
+            // Stuck at home until the teleport, then stepping one block back and forth 10 blocks from the goal.
+            Vec3 pos = t <= 300 ? HOME : new Vec3(10, 64, (t / 10) % 2);
+            Action a = h.check(pos, t);
+            if (a != Action.NONE) {
+                actions.add(a + "@" + t);
+            }
+        }
+        // Teleported at 300, then MIN_TP_DELAY (2400) of moving without arriving: first check past 2700.
+        assertEquals(List.of("REPATH@100", "TELEPORT@300", "GIVE_UP@2710"), actions);
+    }
 }
