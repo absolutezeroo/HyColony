@@ -2,6 +2,7 @@ package dev.hycolony.core.testing;
 
 import dev.hycolony.core.colony.ui.BuilderResourcesView;
 import dev.hycolony.core.colony.ui.BuildingView;
+import dev.hycolony.core.colony.ui.CitizenView;
 import dev.hycolony.core.colony.ui.FoundColonyView;
 import dev.hycolony.core.colony.ui.NeedsPlayerNotice;
 import dev.hycolony.core.colony.ui.RequestsView;
@@ -28,6 +29,7 @@ public final class FakeUi implements UiPort {
     @Override public void showBuilderResources(UUID player, BuilderResourcesView view) { shown.put(player, view); }
     @Override public void showRequests(UUID player, RequestsView view) { shown.put(player, view); }
     @Override public void showWorkOrders(UUID player, WorkOrdersView view) { shown.put(player, view); }
+    @Override public void showCitizen(UUID player, CitizenView view) { shown.put(player, view); }
     @Override public void notifyNeedsPlayer(UUID player, NeedsPlayerNotice notice) { notices.add(new Notice(player, notice)); }
     @Override public void close(UUID player) {
         onClose.accept(player);

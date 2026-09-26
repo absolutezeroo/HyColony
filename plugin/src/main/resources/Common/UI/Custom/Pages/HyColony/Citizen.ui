@@ -1,0 +1,103 @@
+$C = "../../Common.ui";
+
+$C.@PageOverlay {
+  LayoutMode: Middle;
+
+  $C.@DecoratedContainer {
+    Anchor: (Width: 760);
+
+    #Title {
+      $C.@Title {
+        @Text = %hycolony.ui.citizen.title;
+      }
+    }
+
+    #Content {
+      Padding: (Vertical: 24, Horizontal: 40);
+      LayoutMode: Top;
+
+      Label #Name {
+        Style: (FontSize: 22, RenderBold: true);
+      }
+
+      Label #Job {
+        Style: (TextColor: #94a7bb);
+        Anchor: (Top: 4);
+      }
+
+      Label #Workplace {
+        Style: (TextColor: #94a7bb);
+        Anchor: (Top: 2);
+      }
+
+      Label #Activity {
+        Style: (RenderBold: true);
+        Anchor: (Top: 6, Bottom: 10);
+      }
+
+      Group {
+        LayoutMode: Left;
+        Anchor: (Height: 250, Bottom: 10);
+
+        Group {
+          LayoutMode: Top;
+          FlexWeight: 1;
+          Padding: (Right: 12);
+
+          Label {
+            Text: %hycolony.ui.citizen.skills;
+            Style: (RenderBold: true, RenderUppercase: true, TextColor: #94a7bb);
+            Anchor: (Bottom: 6);
+          }
+
+          Group #Skills {
+            LayoutMode: TopScrolling;
+            ScrollbarStyle: $C.@DefaultScrollbarStyle;
+            FlexWeight: 1;
+          }
+        }
+
+        Group {
+          LayoutMode: Top;
+          FlexWeight: 1;
+
+          Label {
+            Text: %hycolony.ui.citizen.inventory;
+            Style: (RenderBold: true, RenderUppercase: true, TextColor: #94a7bb);
+            Anchor: (Bottom: 6);
+          }
+
+          Label #InventoryEmpty {
+            Style: (TextColor: #94a7bb);
+            Visible: false;
+          }
+
+          Group #Inventory {
+            LayoutMode: TopScrolling;
+            ScrollbarStyle: $C.@DefaultScrollbarStyle;
+            FlexWeight: 1;
+          }
+        }
+      }
+
+      Label {
+        Text: %hycolony.ui.citizen.requests;
+        Style: (RenderBold: true, RenderUppercase: true, TextColor: #94a7bb);
+        Anchor: (Bottom: 6);
+      }
+
+      Label #RequestsEmpty {
+        Style: (TextColor: #94a7bb);
+        Visible: false;
+      }
+
+      Group #Requests {
+        LayoutMode: TopScrolling;
+        ScrollbarStyle: $C.@DefaultScrollbarStyle;
+        Anchor: (Height: 140);
+      }
+    }
+  }
+}
+
+$C.@BackButton {}

@@ -8,10 +8,12 @@ import static org.junit.jupiter.api.Assertions.fail;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.citizen.CitizenData;
+import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.colony.ui.BuilderResourcesView;
 import dev.hycolony.core.colony.ui.BuilderResourcesView.ResourceRow;
 import dev.hycolony.core.colony.ui.BuilderResourcesView.Status;
 import dev.hycolony.core.colony.ui.BuildingView;
+import dev.hycolony.core.colony.ui.CitizenView;
 import dev.hycolony.core.colony.ui.RequestsView;
 import dev.hycolony.core.colony.ui.WorkOrdersView;
 import dev.hycolony.core.construction.Blueprint;
@@ -339,5 +341,49 @@ class ViewsTest {
         assertFalse(view(alice, townHall).canPickUp());
         assertFalse(manager.pickUpBuilding(alice, hall, () -> fail("never given")), "the town hall is never picked up");
         assertTrue(colony.buildings().at(hall).isPresent());
+    }
+
+    @Test
+    void citizenWindowShowsJobHutActivitySkillsInventoryAndOpenRequests() {
+        bobTheBuilder.skills().set(Skill.Knowledge, 7, 0);
+        bobTheBuilder.inventory().insert(new ItemAmount(STONE_I, 3), t.catalog::maxStack);
+        RequestToken token = colony.requests().createAndAssign(builder, new StackRequest(PLANK_I, 4, 4, true),
+                bobTheBuilder.id());
+        t.playerInventory.give(alice, new ItemAmount(PLANK_I, 2));
+
+        manager.openCitizen(alice, colony.id(), bobTheBuilder.id());
+        CitizenView v = (CitizenView) t.ui.shown.get(alice);
+
+        assertEquals("Bob", v.name());
+        assertEquals(Optional.of("hycolony:builder"), v.jobId());
+        assertEquals(Optional.of(builder.displayName()), v.workBuilding());
+        assertEquals("waitingFor", v.activity());
+        assertEquals(Optional.of(new StackRequest(PLANK_I, 4, 4, true)), v.waitingFor());
+        assertEquals(Skill.values().length, v.skills().size());
+        assertEquals(7, v.skills().get(Skill.Knowledge));
+        assertEquals(List.of(new ItemAmount(STONE_I, 3)), v.inventory());
+        assertEquals(List.of(new RequestsView.RequestRow(token, new StackRequest(PLANK_I, 4, 4, true), "Bob", 2)),
+                v.requests());
+
+        assertTrue(manager.fulfil(alice, colony.id(), token)); // the window's "Supply"
+        manager.openCitizen(alice, colony.id(), bobTheBuilder.id());
+        CitizenView after = (CitizenView) t.ui.shown.get(alice);
+        assertEquals(List.of(), after.requests());
+        assertEquals(Optional.empty(), after.waitingFor());
+        assertEquals("absent", after.activity(), "no body in the world");
+    }
+
+    @Test
+    void citizenWindowNeedsAccessHuts() {
+        CitizenData idle = citizen(9, "Idle");
+        manager.openCitizen(bob, colony.id(), idle.id());
+        assertFalse(t.ui.shown.containsKey(bob));
+        assertEquals("hycolony.permission.denied", t.notifier.sent.get(0).msg().key());
+
+        manager.openCitizen(carol, colony.id(), idle.id());
+        CitizenView v = (CitizenView) t.ui.shown.get(carol);
+        assertEquals(Optional.empty(), v.jobId());
+        assertEquals(Optional.empty(), v.workBuilding());
+        assertEquals(List.of(), v.requests());
     }
 }

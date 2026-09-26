@@ -4,9 +4,11 @@ import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.citizen.CitizenData;
+import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.colony.ui.BuilderResourcesView;
 import dev.hycolony.core.colony.ui.BuildingView;
 import dev.hycolony.core.colony.ui.CitizenRow;
+import dev.hycolony.core.colony.ui.CitizenView;
 import dev.hycolony.core.colony.ui.FoundColonyView;
 import dev.hycolony.core.colony.ui.RequestsView;
 import dev.hycolony.core.colony.ui.TownHallView;
@@ -45,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -281,10 +284,41 @@ public final class ColonyManager {
     }
 
     private CitizenRow row(Colony c, CitizenData d) {
+        return new CitizenRow(d.name(), d.gender(), status(c, d));
+    }
+
+    /** "absent" without a live body, else the AI state: "idle", "wandering" or "working". */
+    private String status(Colony c, CitizenData d) {
         boolean present = c.citizens().bodyOf(d.id()).map(ctx.bodies()::isAlive).orElse(false);
-        String status = !present ? "absent"
+        return !present ? "absent"
                 : c.citizens().aiState(d.id()).map(s -> s.name().toLowerCase(Locale.ROOT)).orElse("idle");
-        return new CitizenRow(d.name(), d.gender(), status);
+    }
+
+    // ---- Citizen window (MC WindowCitizen) ----
+
+    /** Right-click on a citizen (ACCESS_HUTS, else the player is told). */
+    public void openCitizen(UUID player, int colonyId, int citizenId) {
+        Colony c = colonies.get(colonyId);
+        CitizenData d = c == null ? null : c.citizens().get(citizenId).orElse(null);
+        if (d == null || !canAccess(c, player)) {
+            return;
+        }
+        Map<ItemKey, Integer> owned = ctx.ports().playerInventory().contents(player);
+        List<RequestsView.RequestRow> requests = new ArrayList<>();
+        for (Request r : c.requests().all()) {
+            if (r.citizenId() == citizenId && r.state().ordinal() < RequestState.COMPLETED.ordinal()) {
+                requests.add(requestRow(c, r, owned));
+            }
+        }
+        Optional<Deliverable> waitingFor = requests.stream().findFirst().map(RequestsView.RequestRow::requestable);
+        Map<Skill, Integer> skills = new EnumMap<>(Skill.class);
+        for (Skill s : Skill.values()) {
+            skills.put(s, d.skills().level(s));
+        }
+        ctx.ui().showCitizen(player, new CitizenView(c.id(), d.id(), d.name(), d.job().map(j -> j.type().id()),
+                Optional.ofNullable(d.workBuilding()).flatMap(c.buildings()::at).map(Building::displayName),
+                waitingFor.isPresent() ? "waitingFor" : status(c, d), waitingFor, skills, d.inventory().contents(),
+                requests));
     }
 
     /** Archives before freeing anything; if archiving fails the colony stays registered. */
@@ -578,20 +612,22 @@ public final class ColonyManager {
                 .map(b -> b.position().distSq(p)).orElse(Long.MAX_VALUE)).orElse(0L))
                 .thenComparing(r -> r.token().id()));
         Map<ItemKey, Integer> owned = ctx.ports().playerInventory().contents(player);
-        List<RequestsView.RequestRow> rows = new ArrayList<>(sorted.size());
-        for (Request r : sorted) {
-            int has = 0;
-            for (Map.Entry<ItemKey, Integer> e : owned.entrySet()) {
-                if (r.requestable().matches(e.getKey(), ctx.ports().catalog())) {
-                    has += e.getValue();
-                }
-            }
-            String requester = r.citizenId() != -1
-                    ? c.citizens().get(r.citizenId()).map(CitizenData::name).orElse("")
-                    : c.buildings().byRequester(r.requester()).map(Building::displayName).orElse(r.requester().value());
-            rows.add(new RequestsView.RequestRow(r.token(), r.requestable(), requester, has));
-        }
+        List<RequestsView.RequestRow> rows = sorted.stream().map(r -> requestRow(c, r, owned)).toList();
         ctx.ui().showRequests(player, new RequestsView(c.id(), rows));
+    }
+
+    /** A request as the player sees it: who asks, and how many matching items {@code owned} holds. */
+    private RequestsView.RequestRow requestRow(Colony c, Request r, Map<ItemKey, Integer> owned) {
+        int has = 0;
+        for (Map.Entry<ItemKey, Integer> e : owned.entrySet()) {
+            if (r.requestable().matches(e.getKey(), ctx.ports().catalog())) {
+                has += e.getValue();
+            }
+        }
+        String requester = r.citizenId() != -1
+                ? c.citizens().get(r.citizenId()).map(CitizenData::name).orElse("")
+                : c.buildings().byRequester(r.requester()).map(Building::displayName).orElse(r.requester().value());
+        return new RequestsView.RequestRow(r.token(), r.requestable(), requester, has);
     }
 
     /**

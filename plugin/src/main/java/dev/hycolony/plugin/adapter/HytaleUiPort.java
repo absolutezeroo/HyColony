@@ -22,6 +22,7 @@ import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.ui.BuilderResourcesView;
 import dev.hycolony.core.colony.ui.BuildingView;
+import dev.hycolony.core.colony.ui.CitizenView;
 import dev.hycolony.core.colony.ui.FoundColonyView;
 import dev.hycolony.core.colony.ui.NeedsPlayerNotice;
 import dev.hycolony.core.colony.ui.RequestsView;
@@ -32,6 +33,7 @@ import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.plugin.IdMap;
 import dev.hycolony.plugin.ui.BuilderResourcesPage;
 import dev.hycolony.plugin.ui.BuildingPage;
+import dev.hycolony.plugin.ui.CitizenPage;
 import dev.hycolony.plugin.ui.FoundColonyPage;
 import dev.hycolony.plugin.ui.RequestsPage;
 import dev.hycolony.plugin.ui.TownHallPage;
@@ -119,6 +121,11 @@ public final class HytaleUiPort implements UiPort {
     @Override
     public void showWorkOrders(UUID player, WorkOrdersView view) {
         open(player, pr -> new WorkOrdersPage(pr, view, manager.get()));
+    }
+
+    @Override
+    public void showCitizen(UUID player, CitizenView view) {
+        open(player, pr -> new CitizenPage(pr, view, manager.get()));
     }
 
     @Override
