@@ -397,7 +397,16 @@ class ViewsTest {
         assertEquals("waitingFor", v.activity());
         assertEquals(Optional.of(new StackRequest(PLANK_I, 4, 4, true)), v.waitingFor());
         assertEquals(Skill.values().length, v.skills().size());
-        assertEquals(7, v.skills().get(Skill.Knowledge));
+        assertEquals(Skill.Adaptability, v.skills().get(0).skill(), "the builder's primary skill first");
+        assertEquals(Skill.Athletics, v.skills().get(1).skill(), "then its secondary");
+        assertTrue(v.skills().get(0).jobSkill());
+        assertEquals(
+                7,
+                v.skills().stream()
+                        .filter(r -> r.skill() == Skill.Knowledge)
+                        .findFirst()
+                        .orElseThrow()
+                        .level());
         assertEquals(List.of(new ItemAmount(STONE_I, 3)), v.inventory());
         assertEquals(
                 List.of(new RequestsView.RequestRow(token, new StackRequest(PLANK_I, 4, 4, true), "Bob", 2)),
@@ -424,5 +433,6 @@ class ViewsTest {
         assertEquals(Optional.empty(), v.workBuilding());
         assertEquals(List.of(), v.requests());
         assertEquals(Optional.empty(), v.jobActivity(), "no job AI running");
+        assertFalse(v.skills().get(0).jobSkill(), "no workplace: no highlighted skill");
     }
 }

@@ -7,9 +7,9 @@ import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.ui.CitizenView;
+import dev.hycolony.core.colony.ui.CitizenView.SkillRow;
 import dev.hycolony.core.colony.ui.RequestsView.RequestRow;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.plugin.adapter.HytaleNotifier;
@@ -60,14 +60,15 @@ public final class CitizenPage extends ColonyPage {
             ui.set("#Activity.Text", Message.translation("hycolony.status." + view.activity()));
         }
 
-        Skill[] skills = Skill.values();
-        for (int i = 0; i < skills.length; i++) {
+        List<SkillRow> skills = view.skills();
+        for (int i = 0; i < skills.size(); i++) {
             String row = "#Skills[" + i + "]";
             ui.append("#Skills", "Pages/HyColony/CitizenRow.ui");
             ui.set(
                     row + " #Name.Text",
-                    Message.translation("hycolony.ui.skill." + skills[i].name().toLowerCase(Locale.ROOT)));
-            ui.set(row + " #Status.Text", String.valueOf(view.skills().get(skills[i])));
+                    Message.translation(
+                            "hycolony.ui.skill." + skills.get(i).skill().name().toLowerCase(Locale.ROOT)));
+            ui.set(row + " #Status.Text", String.valueOf(skills.get(i).level()));
         }
 
         List<ItemAmount> items = view.inventory();

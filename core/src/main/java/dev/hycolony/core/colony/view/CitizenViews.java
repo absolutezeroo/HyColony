@@ -7,12 +7,12 @@ import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.colony.ui.CitizenView;
 import dev.hycolony.core.colony.ui.RequestsView;
+import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.model.Deliverable;
 import dev.hycolony.core.request.model.RequestState;
 import java.util.ArrayList;
-import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -39,20 +39,20 @@ final class CitizenViews {
             }
         }
         Optional<Deliverable> waitingFor = open.stream().findFirst().map(RequestsView.RequestRow::requestable);
-        Map<Skill, Integer> skills = new EnumMap<>(Skill.class);
-        for (Skill s : Skill.values()) {
-            skills.put(s, d.skills().level(s));
-        }
+        Optional<Building> work = Optional.ofNullable(d.workBuilding()).flatMap(c.buildings()::at);
+        List<Skill> jobSkills = work.flatMap(b -> b.module(WorkerModule.class))
+                .map(w -> List.of(w.primary(), w.secondary()))
+                .orElse(List.of());
         return new CitizenView(
                 c.id(),
                 d.id(),
                 d.name(),
                 d.job().map(j -> j.type().id()),
-                Optional.ofNullable(d.workBuilding()).flatMap(c.buildings()::at).map(Building::displayName),
+                work.map(Building::displayName),
                 waitingFor.isPresent() ? "waitingFor" : townHall.status(c, d),
                 waitingFor,
                 c.citizens().jobActivity(d.id()),
-                skills,
+                SkillRows.of(d.skills(), jobSkills),
                 d.inventory().contents(),
                 open);
     }
