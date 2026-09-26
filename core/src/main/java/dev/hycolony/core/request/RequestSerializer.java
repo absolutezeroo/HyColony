@@ -34,7 +34,7 @@ public final class RequestSerializer {
         o.add("requests", requests);
 
         JsonObject assignments = new JsonObject();
-        m.assignments().forEach((id, tokens) -> assignments.add(id, tokens(tokens)));
+        m.store().assignments().forEach((id, tokens) -> assignments.add(id, tokens(tokens)));
         o.add("assignments", assignments);
 
         retrying(m).ifPresent(r -> {
@@ -54,7 +54,7 @@ public final class RequestSerializer {
             return; // schema v1 placeholder
         }
         for (JsonElement el : o.getAsJsonArray("requests")) {
-            m.restore(readRequest(el.getAsJsonObject()));
+            m.store().restore(readRequest(el.getAsJsonObject()));
         }
 
         List<RequestToken> orphans = readAssignments(o.getAsJsonObject("assignments"), m);
@@ -88,7 +88,7 @@ public final class RequestSerializer {
                     continue;
                 }
                 if (resolver.isPresent()) {
-                    m.restoreAssignment(t, resolver.get());
+                    m.store().restoreAssignment(t, resolver.get());
                 } else if (req.get().state().ordinal() < RequestState.COMPLETED.ordinal()) {
                     orphans.add(t); // a finished one just waits for pickup
                 }
