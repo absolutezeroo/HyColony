@@ -222,8 +222,9 @@ public final class RequestManager {
     }
 
     /**
-     * A loaded request whose resolver no longer exists. Deviation from MC: reassigned rather than dropped, so a save
-     * whose resolver vanished keeps its requests.
+     * Reassigns a loaded request whose resolver no longer exists, after cancelling its children: MC
+     * ResolverHandler.removeResolverWithAssignedRequests. Deviation from MC: MC runs it when a provider is removed;
+     * here the resolver vanished between save and load, and the request is kept rather than dropped.
      */
     void reassignLoaded(RequestToken token) {
         queue.submit(() -> {
