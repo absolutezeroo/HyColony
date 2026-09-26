@@ -92,6 +92,15 @@ class ColonyManagerTest {
     }
 
     @Test
+    void placeHutOverAStaleBuildingReplacesItInsteadOfThrowing() {
+        Colony c = found(alice, "A", hall);
+        manager.placeHut(c, TOWN_HALL, hall, 2); // the core still holds the hall: its block vanished unseen
+        assertEquals(1, c.buildings().all().size());
+        assertEquals(2, c.buildings().at(hall).orElseThrow().rotation());
+        assertEquals("buildingRemoved", c.log().entries().get(c.log().entries().size() - 2).type());
+    }
+
+    @Test
     void rejectsBlankOrTooLongName() {
         manager.beginFoundation(alice, "Alice", hall, 0);
         assertTrue(manager.confirmFoundation(alice, "   ").isEmpty());

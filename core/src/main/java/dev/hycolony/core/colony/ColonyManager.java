@@ -184,8 +184,10 @@ public final class ColonyManager {
         return owner;
     }
 
+    /** A building already registered at {@code pos} is stale (its block is gone): it is removed first, never a throw. */
     public void placeHut(Colony colony, String buildingTypeId, BlockPos pos, int rotation) {
         BuildingType type = ctx.buildingTypes().byId(buildingTypeId).orElseThrow();
+        removeHut(colony, pos);
         Building building = Building.create(type, pos, rotation);
         colony.buildings().add(building);
         colony.log().add("buildingPlaced", colony.day(), type.id());
@@ -194,11 +196,15 @@ public final class ColonyManager {
     }
 
     public void onHutRemoved(BlockPos pos) {
-        colonyAt(pos).ifPresent(c -> c.buildings().remove(pos).ifPresent(b -> {
+        colonyAt(pos).ifPresent(c -> removeHut(c, pos));
+    }
+
+    private void removeHut(Colony c, BlockPos pos) {
+        c.buildings().remove(pos).ifPresent(b -> {
             c.log().add("buildingRemoved", c.day(), b.type().id());
             c.markDirty();
             ctx.bus().post(new ColonyEvents.BuildingRemoved(c, b));
-        }));
+        });
     }
 
     // ---- Protection and management ----
