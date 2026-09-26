@@ -220,6 +220,20 @@ class BuilderCleanupTest {
     }
 
     @Test
+    void upgradeKeepsTheOldFloorOutsideTheNewFootprint() {
+        hut(ConstructionBuildingTypes.RESIDENCE.id(), RES, 1);
+        plans.put(1, bp(new BlockPos(4, 0, 0), entry(1, 0, 0, STONE), entry(4, -1, 0, STONE)));
+        plans.put(2, bp(new BlockPos(1, 0, 0), entry(1, 0, 0, STONE)));
+        put(1, 0, 0, STONE);
+        put(4, -1, 0, STONE); // the old level's floor, sticking out of the smaller new footprint
+
+        order(WorkOrderType.UPGRADE);
+        tickUntil(this::finished);
+
+        assertEquals(new BlockState(STONE, 0), world(4, -1, 0), "no trench where the old floor was");
+    }
+
+    @Test
     void upgradeKeepsOldBlocksTheNewPlanReuses() {
         builtLevelOneThenUpgradeDropsTheRoof();
 
