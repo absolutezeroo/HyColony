@@ -16,6 +16,7 @@ import dev.hycolony.plugin.block.ExplosionProtectionSystem;
 import dev.hycolony.plugin.block.HutBlockSystems;
 import dev.hycolony.plugin.block.ProtectionSystems;
 import dev.hycolony.plugin.command.HyColonyCommand;
+import dev.hycolony.plugin.config.ConfigQuarantine;
 import dev.hycolony.plugin.config.HyColonyConfig;
 import dev.hycolony.plugin.goggles.GogglesSystems;
 import dev.hycolony.plugin.npc.BuilderSensorHyColonyTarget;
@@ -34,6 +35,8 @@ public final class HyColonyPlugin extends JavaPlugin {
 
     public HyColonyPlugin(@Nonnull JavaPluginInit init) {
         super(init);
+        // Before withConfig: preLoad decodes the file and a malformed one would abort the whole server start.
+        ConfigQuarantine.moveAsideIfUnreadable(getDataDirectory().resolve("config.json"), HyColonyConfig.CODEC);
         this.config = withConfig("config", HyColonyConfig.CODEC);
     }
 

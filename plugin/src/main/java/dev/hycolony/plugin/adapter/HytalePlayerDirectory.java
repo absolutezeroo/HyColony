@@ -1,6 +1,7 @@
 package dev.hycolony.plugin.adapter;
 
 import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.protocol.GameMode;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
@@ -16,12 +17,14 @@ import dev.hycolony.core.kernel.port.PlayerDirectory;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.logging.Level;
 import org.joml.Vector3d;
 
 public final class HytalePlayerDirectory implements PlayerDirectory {
-    private final World world;
+    private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
-    private static final System.Logger LOG = System.getLogger(HytalePlayerDirectory.class.getName());
+    private final World world;
+    private boolean warned;
 
     public HytalePlayerDirectory(World world) {
         this.world = world;
@@ -50,7 +53,7 @@ public final class HytalePlayerDirectory implements PlayerDirectory {
         try {
             return PermissionsModule.get().getGroupsForUser(player).contains(HytalePermissionsProvider.GROUP_ADMIN);
         } catch (RuntimeException e) {
-            LOG.log(System.Logger.Level.WARNING, "Operator check failed for " + player, e);
+            fail("isOperator", player, e);
             return false;
         }
     }
@@ -63,9 +66,15 @@ public final class HytalePlayerDirectory implements PlayerDirectory {
             Player p = ref == null ? null : ref.getStore().getComponent(ref, Player.getComponentType());
             return p != null && p.getGameMode() == GameMode.Creative;
         } catch (RuntimeException e) {
-            LOG.log(System.Logger.Level.WARNING, "Creative check failed for " + player, e);
+            fail("isCreative", player, e);
             return false;
         }
+    }
+
+    /** CLAUDE.md § 4: the first failure at WARNING, the following ones at FINE. */
+    private void fail(String op, UUID player, RuntimeException e) {
+        LOG.at(warned ? Level.FINE : Level.WARNING).withCause(e).log("PlayerDirectory.%s failed for %s", op, player);
+        warned = true;
     }
 
     private Ref<EntityStore> refIn(UUID player) {
