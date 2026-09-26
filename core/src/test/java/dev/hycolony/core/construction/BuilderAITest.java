@@ -319,6 +319,33 @@ class BuilderAITest {
     }
 
     @Test
+    void freeOrderBuildsWithoutItemsNorRequests() {
+        t.players.creativeOperators.add(alice);
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 0);
+        blueprint = bp(List.of(entry(1, 0, 0, STONE), entry(2, 0, 0, TORCH)));
+        t.blocks.blocks.put(at(2, 0, 0), new BlockState(DIRT, 0)); // cleared as usual
+        t.blocks.drops.put(at(2, 0, 0), List.of(new ItemAmount(DIRT_I, 1)));
+        t.containers.containers.put(HUT, new java.util.LinkedHashMap<>(Map.of(STONE_I, 3)));
+        give(STONE_I, 1);
+        WorkOrder o = order(res, WorkOrderType.BUILD);
+        assertTrue(o.free());
+
+        for (int i = 0; i < 5000 && !gone(o); i++) {
+            ai.tick();
+            assertTrue(colony.requests().all().isEmpty(), "a free order requested items");
+            assertFalse(ai.stateName().equals("GATHERING_REQUIRED_MATERIALS") || ai.stateName().equals("NEEDS_ITEM"));
+        }
+
+        assertTrue(gone(o));
+        assertNull(ai.lastError);
+        assertEquals(List.of(at(1, 0, 0), at(2, 0, 0)), t.blocks.placed);
+        assertEquals(1, citizen.inventory().count(STONE_I)); // never used
+        assertEquals(3, t.containers.count(List.of(HUT), STONE_I)); // never fetched
+        assertEquals(1, citizen.inventory().count(DIRT_I)); // mining drops still kept
+        assertEquals(1, res.level());
+    }
+
+    @Test
     void fullInventoryDumpsKeepingBucketItems() {
         Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);
         List<BlueprintEntry> entries = new ArrayList<>();

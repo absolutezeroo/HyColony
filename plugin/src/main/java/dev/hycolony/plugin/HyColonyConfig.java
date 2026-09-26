@@ -15,6 +15,8 @@ public final class HyColonyConfig {
             .append(new KeyedCodec<>("MaxColonySize", Codec.INTEGER), (c, v) -> c.maxColonySize = v, c -> c.maxColonySize).add()
             .append(new KeyedCodec<>("EnableColonyProtection", Codec.BOOLEAN), (c, v) -> c.enableColonyProtection = v, c -> c.enableColonyProtection).add()
             .append(new KeyedCodec<>("AutosaveIntervalMinutes", Codec.INTEGER), (c, v) -> c.autosaveIntervalMinutes = v, c -> c.autosaveIntervalMinutes).add()
+            .append(new KeyedCodec<>("BuilderInfiniteResources", Codec.BOOLEAN), (c, v) -> c.builderInfiniteResources = v, c -> c.builderInfiniteResources).add()
+            .append(new KeyedCodec<>("CreativeOperatorFreeBuilds", Codec.BOOLEAN), (c, v) -> c.creativeOperatorFreeBuilds = v, c -> c.creativeOperatorFreeBuilds).add()
             .build();
 
     private int initialCitizenAmount = 4;
@@ -24,6 +26,8 @@ public final class HyColonyConfig {
     private int maxColonySize = 20;
     private boolean enableColonyProtection = true;
     private int autosaveIntervalMinutes = 5;
+    private boolean builderInfiniteResources = false;
+    private boolean creativeOperatorFreeBuilds = true;
 
     public ColonyConfig toCore() {
         return new ColonyConfig(
@@ -33,7 +37,9 @@ public final class HyColonyConfig {
                 clamp(minColonyDistance, 1, 200),
                 clamp(maxColonySize, 1, 250),
                 enableColonyProtection,
-                clamp(autosaveIntervalMinutes, 1, 60));
+                clamp(autosaveIntervalMinutes, 1, 60),
+                builderInfiniteResources,
+                creativeOperatorFreeBuilds);
     }
 
     private static int clamp(int v, int min, int max) {

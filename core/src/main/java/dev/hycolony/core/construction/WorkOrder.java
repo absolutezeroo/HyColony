@@ -17,6 +17,7 @@ public final class WorkOrder {
     private BlockPos claimedBy;
     private Stage stage;
     private int progressIndex;
+    private boolean free;
 
     WorkOrder(int id, WorkOrderType type, BlockPos buildingPos, int targetLevel, int blueprintLevel, String style,
             int rotation) {
@@ -48,10 +49,13 @@ public final class WorkOrder {
     boolean isClaimedBy(BlockPos builderHut) { return builderHut.equals(claimedBy); }
     public Stage stage() { return stage; }
     public int progressIndex() { return progressIndex; }
+    /** Built without materials: nothing is requested, fetched or consumed. Set at creation, never for REMOVE. */
+    public boolean free() { return free; }
 
     void setClaimedBy(BlockPos builderHut) { this.claimedBy = builderHut; }
     void setStage(Stage stage) { this.stage = stage; }
     void setProgressIndex(int progressIndex) { this.progressIndex = progressIndex; }
+    void setFree(boolean free) { this.free = free; }
 
     /** BUILD starts by clearing the site, REMOVE by removing, UPGRADE and REPAIR build over what stands. */
     Stage initialStage() {
@@ -84,6 +88,7 @@ public final class WorkOrder {
         }
         o.addProperty("stage", stage.name());
         o.addProperty("progressIndex", progressIndex);
+        o.addProperty("free", free);
         return o;
     }
 
@@ -96,6 +101,7 @@ public final class WorkOrder {
         w.claimedBy = o.has("claimedBy") ? readPos(o.getAsJsonObject("claimedBy")) : null;
         w.stage = Stage.valueOf(o.get("stage").getAsString());
         w.progressIndex = o.get("progressIndex").getAsInt();
+        w.free = o.has("free") && o.get("free").getAsBoolean();
         return w; // an old "requested" flag is ignored
     }
 

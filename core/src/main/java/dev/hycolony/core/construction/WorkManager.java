@@ -106,6 +106,7 @@ public final class WorkManager {
         WorkOrder order = new WorkOrder(++topId, type, buildingPos, target, blueprintLevel, resolvedStyle,
                 b.rotation());
         builder.ifPresent(order::setClaimedBy);
+        order.setFree(isFree(player, type));
         add(order);
         if (type == WorkOrderType.BUILD) {
             b.setStyle(resolvedStyle); // the building keeps the style it is built in
@@ -120,6 +121,13 @@ public final class WorkManager {
         }
         colony.context().bus().post(new ColonyEvents.WorkOrderCreated(colony, order));
         return new Either.Left<>(order);
+    }
+
+    /** MC builderInfiniteResources, or a creative operator's order (if enabled); a REMOVE never is. */
+    private boolean isFree(UUID player, WorkOrderType type) {
+        var config = colony.context().config();
+        return type != WorkOrderType.REMOVE && (config.builderInfiniteResources()
+                || (config.creativeOperatorFreeBuilds() && colony.context().players().isCreativeOperator(player)));
     }
 
     /**

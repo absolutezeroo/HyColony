@@ -381,7 +381,7 @@ public final class BuilderAI implements JobAI {
         }
         BlueprintEntry e = (stage == Stage.SOLID ? plan.solidList() : plan.decoList()).get(i);
         ItemKey item = catalog.itemForBlock(e.state().key()).orElse(null); // none: free to place
-        if (item != null && stock.inventory().count(item) == 0) {
+        if (item != null && !order.free() && stock.inventory().count(item) == 0) {
             return missing(item, i);
         }
         if (!walker.walkToWorkPos(pos, order.buildingPos())) {
@@ -399,8 +399,10 @@ public final class BuilderAI implements JobAI {
             return;
         }
         if (item != null) {
-            stock.inventory().extract(item, 1);
-            resources.onPlaced(item);
+            if (!order.free()) {
+                stock.inventory().extract(item, 1);
+            }
+            resources.onPlaced(item); // a free order still counts it, for the progress shown
         }
         if (e.hasContainer()) {
             target.addContainer(pos); // MC: racks the builder places become the building's containers

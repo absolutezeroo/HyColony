@@ -530,7 +530,8 @@ public final class ColonyManager {
         }
         Optional<WorkOrder> order = c.work().claimedBy(hutPos);
         List<BuilderResourcesView.ResourceRow> rows = new ArrayList<>();
-        if (order.isPresent() && m.orderId() == order.get().id()) {
+        // A free order needs nothing: its list is empty.
+        if (order.isPresent() && m.orderId() == order.get().id() && !order.get().free()) {
             ConstructionPorts ports = ctx.ports();
             Optional<Inventory> inv = firstWorker(c, hut).map(CitizenData::inventory);
             List<BlockPos> containers = hut.containers();

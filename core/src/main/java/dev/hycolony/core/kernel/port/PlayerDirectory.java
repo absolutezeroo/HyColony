@@ -12,4 +12,7 @@ public interface PlayerDirectory {
     Optional<BlockPos> position(UUID player);
 
     Collection<UUID> onlineIn(WorldKey world);
+
+    /** A server operator, online and in creative mode right now; false otherwise (never throws). */
+    boolean isCreativeOperator(UUID player);
 }

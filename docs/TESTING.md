@@ -47,4 +47,5 @@ Avant de commencer : un hôtel de ville posé **avant** cette version n'a pas de
 23. **Résidence et style.** Poser une résidence, choisir le style `kweebec` puis « Construire » : la maison Kweebec est construite.
 24. **Stockage.** « Stockage » ouvre le coffre de la hutte ; le fermer puis le rouvrir fonctionne. Y déposer un objet demandé débloque la requête.
 25. **Permissions.** B, sans rang, ne peut ni ouvrir une hutte de la colonie ni utiliser les boutons.
+26. **Ordre gratuit.** A, opérateur (`/op self`) en mode Créatif, commande « Construire » sur une résidence : le constructeur bâtit sans matériaux ni requêtes (fenêtre « Ressources » vide) ; il casse et range toujours les blocs et demande une pioche si besoin. Désactivable avec `CreativeOperatorFreeBuilds: false` ; `BuilderInfiniteResources: true` rend tout ordre gratuit.
 
