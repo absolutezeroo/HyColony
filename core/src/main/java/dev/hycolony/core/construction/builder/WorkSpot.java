@@ -75,7 +75,7 @@ final class WorkSpot {
 
     /**
      * Feet position on the first solid block below {@code top}, or above it when {@code top} is in the ground. None
-     * under a fluid: a body does not stand at the bottom of a lake.
+     * under a fluid 2 or more deep: a body does not stand at the bottom of a lake, but wades in ankle-deep water.
      */
     private BlockPos ground(BlockPos top) {
         if (solid(top)) {
@@ -89,7 +89,7 @@ final class WorkSpot {
         }
         for (int i = 0; i <= GROUND_SCAN; i++) {
             BlockPos p = top.offset(0, -i, 0);
-            if (fluid(p)) {
+            if (fluid(p) && fluid(p.offset(0, 1, 0))) {
                 return null;
             }
             if (solid(p.offset(0, -1, 0))) {

@@ -53,4 +53,22 @@ class WorkSpotTest {
 
         assertEquals(new BlockPos(10, 1, 2), choose());
     }
+
+    @Test
+    void standsInAnkleDeepWaterOnSolidGround() {
+        world.blocks.put(new BlockPos(12, 0, 0), WATER);
+        world.blocks.put(new BlockPos(12, -1, 0), STONE); // outward: one block of water on stone
+
+        assertEquals(new BlockPos(12, 0, 0), choose());
+    }
+
+    @Test
+    void refusesWaterTwoBlocksDeep() {
+        world.blocks.put(new BlockPos(12, 1, 0), WATER);
+        world.blocks.put(new BlockPos(12, 0, 0), WATER);
+        world.blocks.put(new BlockPos(12, -1, 0), STONE); // outward: two blocks of water on stone
+        world.blocks.put(new BlockPos(10, 0, 2), STONE); // first side: dry ground
+
+        assertEquals(new BlockPos(10, 1, 2), choose());
+    }
 }
