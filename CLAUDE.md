@@ -35,7 +35,9 @@ HyColony porte MineColonies sur Hytale 0.6.8 (épinglé), **à l'identique** : m
 
 - Identifiants, Javadoc et commentaires de code en anglais. Documentation `docs/` et messages de commit : voir § 9.
 - 4 espaces, 120 colonnes, UTF-8, fin de ligne LF **[.editorconfig]**. Pas d'import `*`.
-- Imports (Google Java Style) : un bloc d'imports statiques, une ligne vide, puis un bloc d'imports normaux, chacun trié dans l'ordre ASCII.
+- Le formatage est celui de palantir-java-format **[build : `spotlessCheck`]**. On lance `./gradlew spotlessApply` avant chaque commit.
+- Imports (Google Java Style) : un bloc d'imports statiques, une ligne vide, puis un bloc d'imports normaux, chacun trié dans l'ordre ASCII **[build : `spotlessCheck`]**.
+- Complexité, classes fourre-tout, code mort et code fragile sont vérifiés par PMD (`config/pmd/ruleset.xml`) **[build : `pmdMain`]**.
 - Les commentaires expliquent **pourquoi**, jamais ce que le code dit déjà. Javadoc courte sur l'API publique du cœur.
 - Constantes : `static final` en `UPPER_SNAKE`, avec leur unité dans le nom ou la Javadoc (`DELAY_TICKS`).
 
@@ -71,7 +73,8 @@ HyColony porte MineColonies sur Hytale 0.6.8 (épinglé), **à l'identique** : m
 
 - **TDD** : le test qui échoue d'abord, puis le code. Tout changement de comportement du cœur a un test. Tout bug corrigé a le test qui le reproduit.
 - Noms de tests : phrases en camelCase (`waitingBuilderTakesToolPlacedInHutAndResumes`).
-- `./gradlew build` **vert avant chaque commit** : tests du cœur, compilation du plugin, `checkFileSizes`.
+- `./gradlew build` **vert avant chaque commit** : tests du cœur, compilation du plugin, `checkFileSizes`, `spotlessCheck` et PMD. Le build échoue sur une erreur de formatage, une violation PMD ou un fichier trop long.
+- Les listes d'exceptions `gradle/file-size-allowlist.txt` et `config/pmd/known-violations.txt` ne peuvent que **rétrécir** : on retire une ligne quand le fichier est découpé ou nettoyé, on n'en ajoute jamais.
 - Le plugin n'a pas de tests unitaires. Il est vérifié par `/hycolony selftest` et `docs/TESTING.md`, que l'utilisateur déroule en jeu.
 
 ## 9. Processus
