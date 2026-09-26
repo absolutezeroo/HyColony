@@ -1,10 +1,7 @@
 package dev.hycolony.core.construction;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.colony.Action;
-import dev.hycolony.core.colony.ClaimCell;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyEvents;
 import dev.hycolony.core.job.WorkerModule;
@@ -12,15 +9,14 @@ import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Either;
 import dev.hycolony.core.kernel.port.Msg;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -32,95 +28,68 @@ public final class WorkManager {
     /** WorkOrderBuilding.MAX_DISTANCE_SQ: 100 blocks, 3D. */
     public static final long MAX_DISTANCE_SQ = 100L * 100L;
     /** IWorkOrder.WORK_ORDER_COMPARATOR. */
-    private static final Comparator<WorkOrder> ORDER =
+    static final Comparator<WorkOrder> ORDER =
             Comparator.comparingInt(WorkOrder::priority).reversed().thenComparingInt(WorkOrder::id);
 
     private final Colony colony;
+    private final WorkOrderValidation validation;
+    private final WorkOrderAssignment assignment;
     private final Map<Integer, WorkOrder> orders = new LinkedHashMap<>();
     private final Map<BlockPos, WorkOrder> byBuilding = new HashMap<>();
     private int topId;
 
     public WorkManager(Colony colony) {
         this.colony = colony;
+        this.validation = new WorkOrderValidation(colony);
+        this.assignment = new WorkOrderAssignment(colony);
     }
 
     /**
-     * Refusals in order: permission, duplicate, max level, repair of an unbuilt building, a type that does not fit
-     * the building ({@link #isAllowed}), no builder of the level,
-     * no builder within 100 blocks (unless one is chosen), no blueprint, footprint outside the colony.
-     * {@code buildingPos} must hold a building of this colony.
+     * Refusals in order: permission, duplicate, then those of {@link WorkOrderValidation} (max level, repair of an
+     * unbuilt building, a type that does not fit the building ({@link #isAllowed}), no builder of the level, no builder
+     * within 100 blocks (unless one is chosen), no blueprint, footprint outside the colony). {@code buildingPos} must
+     * hold a building of this colony.
      */
     public Either<WorkOrder, WorkOrderRefusal> request(
             UUID player, BlockPos buildingPos, WorkOrderType type, String style, Optional<BlockPos> builder) {
         if (!colony.permissions().hasPermission(player, Action.MANAGE_HUTS)) {
-            return refuse(WorkOrderRefusal.NO_PERMISSION);
+            return new Either.Right<>(WorkOrderRefusal.NO_PERMISSION);
         }
         Building b = colony.buildings()
                 .at(buildingPos)
                 .orElseThrow(() -> new IllegalArgumentException("No building at " + buildingPos));
         if (byBuilding.containsKey(buildingPos)) {
-            return refuse(WorkOrderRefusal.ALREADY_EXISTS);
+            return new Either.Right<>(WorkOrderRefusal.ALREADY_EXISTS);
         }
-        int level = b.level();
-        if ((type == WorkOrderType.BUILD || type == WorkOrderType.UPGRADE)
-                && level >= b.type().maxLevel()) {
-            return refuse(WorkOrderRefusal.MAX_LEVEL);
-        }
-        if (type == WorkOrderType.REPAIR && level == 0 && !b.isDeconstructed()) {
-            return refuse(WorkOrderRefusal.NOT_BUILT);
-        }
-        if (!isAllowed(b, type)) {
-            return refuse(WorkOrderRefusal.INVALID_TYPE);
-        }
-        // WorkOrderBuilding.create: REMOVE targets 0 but follows the plan of the current level.
-        int target = switch (type) {
-            case BUILD, UPGRADE -> level + 1;
-            case REPAIR -> level;
-            case REMOVE -> 0;
+        return switch (validation.check(b, type, style, builder)) {
+            case Either.Right<WorkOrderValidation.Accepted, WorkOrderRefusal> refused ->
+                new Either.Right<>(refused.value());
+            case Either.Left<WorkOrderValidation.Accepted, WorkOrderRefusal> accepted ->
+                new Either.Left<>(create(player, b, type, builder, accepted.value()));
         };
-        int blueprintLevel = type == WorkOrderType.REMOVE ? level : target;
-        List<Building> employed = colony.buildings().all().stream()
-                .filter(WorkManager::isEmployedBuilder)
-                .toList();
-        if (type != WorkOrderType.REMOVE
-                && !canBeBuiltByBuilder(b, target)
-                && employed.stream().noneMatch(e -> e.level() >= target)) {
-            return refuse(WorkOrderRefusal.BUILDER_NECESSARY);
-        }
-        if (builder.isEmpty()
-                && employed.stream().noneMatch(e -> e.position().distSq(buildingPos) <= MAX_DISTANCE_SQ)) {
-            return refuse(WorkOrderRefusal.BUILDER_TOO_FAR_AWAY);
-        }
-        if (builder.isPresent()) {
-            // REMOVE targets 0, so any builder hut qualifies.
-            Optional<Building> chosen = colony.buildings().at(builder.get());
-            if (chosen.isEmpty()
-                    || !chosen.get().type().equals(ConstructionBuildingTypes.BUILDER)
-                    || (chosen.get().level() < target && !canBeBuiltByBuilder(b, target))) {
-                return refuse(WorkOrderRefusal.BUILDER_NECESSARY);
-            }
-        }
-        String resolvedStyle = resolveStyle(style, type, b);
-        Optional<Blueprint> blueprint = colony.context()
-                .ports()
-                .blueprints()
-                .load(resolvedStyle, b.type().id(), blueprintLevel, b.rotation());
-        if (blueprint.isEmpty()) {
-            return refuse(WorkOrderRefusal.NO_BLUEPRINT);
-        }
-        if (!insideColony(blueprint.get(), buildingPos)) {
-            return refuse(WorkOrderRefusal.OUT_OF_COLONY);
-        }
+    }
 
-        WorkOrder order = new WorkOrder(
-                ++topId, type, buildingPos, target, new WorkOrder.Layout(resolvedStyle, blueprintLevel, b.rotation()));
+    private WorkOrder create(
+            UUID player,
+            Building b,
+            WorkOrderType type,
+            Optional<BlockPos> builder,
+            WorkOrderValidation.Accepted accepted) {
+        WorkOrder order = new WorkOrder(++topId, type, b.position(), accepted.targetLevel(), accepted.layout());
         builder.ifPresent(order::setClaimedBy);
         order.setFree(isFree(player, type));
         add(order);
         if (type == WorkOrderType.BUILD) {
-            b.setStyle(resolvedStyle); // the building keeps the style it is built in
+            b.setStyle(order.style()); // the building keeps the style it is built in
         }
         colony.markDirty();
+        announceCreated(b, order);
+        return order;
+    }
+
+    /** Tells the members allowed to receive messages, then posts {@link ColonyEvents.WorkOrderCreated}. */
+    private void announceCreated(Building b, WorkOrder order) {
+        BlockPos buildingPos = order.buildingPos();
         Msg created = Msg.of(
                 "hycolony.workorder.created",
                 b.displayName(),
@@ -134,7 +103,6 @@ public final class WorkManager {
             }
         }
         colony.context().bus().post(new ColonyEvents.WorkOrderCreated(colony, order));
-        return new Either.Left<>(order);
     }
 
     /** MC builderInfiniteResources, or a creative operator's order (if enabled); a REMOVE never is. */
@@ -174,19 +142,20 @@ public final class WorkManager {
      */
     public void move(int orderId, int delta) {
         List<WorkOrder> list = ordered();
-        for (int i = 0; i < list.size(); i++) {
-            WorkOrder o = list.get(i);
-            if (o.id() != orderId) {
-                continue;
-            }
-            if (delta > 0 && i > 0) {
-                o.setPriority(list.get(i - 1).priority() + 1);
-                colony.markDirty();
-            } else if (delta < 0 && i < list.size() - 1) {
-                o.setPriority(list.get(i + 1).priority() - 1);
-                colony.markDirty();
-            }
+        int i = 0;
+        while (i < list.size() && list.get(i).id() != orderId) {
+            i++;
+        }
+        if (i == list.size()) {
             return;
+        }
+        WorkOrder o = list.get(i);
+        if (delta > 0 && i > 0) {
+            o.setPriority(list.get(i - 1).priority() + 1);
+            colony.markDirty();
+        } else if (delta < 0 && i < list.size() - 1) {
+            o.setPriority(list.get(i + 1).priority() - 1);
+            colony.markDirty();
         }
     }
 
@@ -203,7 +172,7 @@ public final class WorkManager {
 
     /** This very order is still registered (allocation-free, for the builder's per-step check). */
     boolean holds(WorkOrder o) {
-        return orders.get(o.id()) == o;
+        return o.equals(orders.get(o.id()));
     }
 
     public Optional<WorkOrder> byBuilding(BlockPos buildingPos) {
@@ -221,11 +190,7 @@ public final class WorkManager {
                 .min(Comparator.comparingInt(WorkOrder::id));
     }
 
-    /**
-     * WorkManager.onColonyTick: each free order, in {@link #ordered()} order, goes to the first builder hut (in
-     * building order) that has a worker, holds no order, is not MANUAL and passes {@link #canBuild}. Claimed orders
-     * already sit with their builder (MineColonies sorts them first only to mark those builders busy).
-     */
+    /** WorkManager.onColonyTick: drops the orders whose building is gone, then {@link WorkOrderAssignment}. */
     public void tick() {
         // WorkOrderBuilding.isValid: an order whose building is gone is dropped.
         List<Integer> invalid = new ArrayList<>();
@@ -235,45 +200,7 @@ public final class WorkManager {
             }
         }
         invalid.forEach(this::cancel);
-        Set<BlockPos> busy = new HashSet<>();
-        List<WorkOrder> free = new ArrayList<>();
-        for (WorkOrder o : orders.values()) {
-            Optional<BlockPos> claimer = o.claimedBy();
-            if (claimer.isPresent() && colony.buildings().at(claimer.get()).isPresent()) {
-                busy.add(claimer.get());
-                continue;
-            }
-            if (claimer.isPresent()) { // failsafe: the builder hut vanished
-                o.release();
-                colony.markDirty();
-            }
-            free.add(o);
-        }
-        if (free.isEmpty()) {
-            return;
-        }
-        free.sort(ORDER);
-        List<Building> idle = new ArrayList<>();
-        for (Building b : colony.buildings().all()) {
-            if (isEmployedBuilder(b)
-                    && !busy.contains(b.position())
-                    && b.module(BuilderSettingsModule.class)
-                            .map(s -> s.mode() != BuilderSettingsModule.Mode.MANUAL)
-                            .orElse(true)) {
-                idle.add(b);
-            }
-        }
-        for (WorkOrder o : free) {
-            for (Iterator<Building> it = idle.iterator(); it.hasNext(); ) {
-                Building b = it.next();
-                if (canBuild(b, o, b.level())) {
-                    o.setClaimedBy(b.position());
-                    it.remove();
-                    colony.markDirty();
-                    break;
-                }
-            }
-        }
+        assignment.assign(orders.values());
     }
 
     /** The order is done: removed without touching requests. */
@@ -333,17 +260,16 @@ public final class WorkManager {
         topId = Math.max(topId, id);
     }
 
-    public JsonArray write() {
-        JsonArray arr = new JsonArray();
-        orders.values().forEach(o -> arr.add(o.write()));
-        return arr;
+    /** Every order, in creation order (for {@link WorkOrderSerializer}). */
+    Collection<WorkOrder> all() {
+        return Collections.unmodifiableCollection(orders.values());
     }
 
-    public void read(JsonArray arr) {
+    /** Replaces every order with {@code loaded} (for {@link WorkOrderSerializer}). */
+    void restore(List<WorkOrder> loaded) {
         orders.clear();
         byBuilding.clear();
-        for (JsonElement el : arr) {
-            WorkOrder o = WorkOrder.read(el.getAsJsonObject());
+        for (WorkOrder o : loaded) {
             add(o);
             topId = Math.max(topId, o.id());
         }
@@ -354,49 +280,8 @@ public final class WorkManager {
         byBuilding.put(o.buildingPos(), o);
     }
 
-    private static Either<WorkOrder, WorkOrderRefusal> refuse(WorkOrderRefusal r) {
-        return new Either.Right<>(r);
-    }
-
-    private static boolean isEmployedBuilder(Building b) {
+    static boolean isEmployedBuilder(Building b) {
         return b.type().equals(ConstructionBuildingTypes.BUILDER)
                 && b.module(WorkerModule.class).map(w -> !w.workers().isEmpty()).orElse(false);
-    }
-
-    /** BuildingBuilder.canBeBuiltByBuilder: a builder hut may always order its own next level. */
-    private static boolean canBeBuiltByBuilder(Building b, int target) {
-        return b.type().equals(ConstructionBuildingTypes.BUILDER) && target == b.level() + 1;
-    }
-
-    /** A built building keeps its style: only a BUILD may choose one. */
-    private String resolveStyle(String style, WorkOrderType type, Building b) {
-        if (type != WorkOrderType.BUILD && !b.style().isEmpty()) {
-            return b.style();
-        }
-        if (style != null && !style.isEmpty()) {
-            return style;
-        }
-        if (!b.style().isEmpty()) {
-            return b.style();
-        }
-        List<String> styles = colony.context().ports().blueprints().styles();
-        return styles.isEmpty() ? "" : styles.get(0);
-    }
-
-    /**
-     * WorkManager.isWorkOrderWithinColony: every claim cell of the footprint rectangle (hut + min .. hut + max, in x
-     * and z) must belong to this colony.
-     */
-    private boolean insideColony(Blueprint bp, BlockPos hut) {
-        ClaimCell a = ClaimCell.of(hut.offset(bp.min().x(), 0, bp.min().z()));
-        ClaimCell b = ClaimCell.of(hut.offset(bp.max().x(), 0, bp.max().z()));
-        for (int cx = Math.min(a.x(), b.x()); cx <= Math.max(a.x(), b.x()); cx++) {
-            for (int cz = Math.min(a.z(), b.z()); cz <= Math.max(a.z(), b.z()); cz++) {
-                if (!colony.contains(new BlockPos(cx * ClaimCell.SIZE, hut.y(), cz * ClaimCell.SIZE))) {
-                    return false;
-                }
-            }
-        }
-        return true;
     }
 }

@@ -2,4 +2,3 @@
 core/src/main/java/dev/hycolony/core/colony/ColonyManager.java
 core/src/main/java/dev/hycolony/core/request/RequestManager.java
 core/src/main/java/dev/hycolony/core/construction/BuilderAI.java
-core/src/main/java/dev/hycolony/core/construction/WorkManager.java

@@ -1,21 +1,17 @@
 # PMD baseline: violations that existed when PMD was added (CLAUDE.md § 8).
 # One "Rule path" pair per line; the rule is suppressed for the whole top-level type of that file.
 # This list may only shrink: remove a line once its file is cleaned or split. Never add one.
-AvoidBranchingStatementAsLastInLoop core/src/main/java/dev/hycolony/core/construction/WorkManager.java
 CognitiveComplexity core/src/main/java/dev/hycolony/core/colony/ColonyManager.java
 CognitiveComplexity core/src/main/java/dev/hycolony/core/construction/BuilderAI.java
-CognitiveComplexity core/src/main/java/dev/hycolony/core/construction/WorkManager.java
 CognitiveComplexity core/src/main/java/dev/hycolony/core/request/RequestManager.java
 CognitiveComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleBlueprintSource.java
 CognitiveComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleItemCatalog.java
 CognitiveComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleWorldBlocks.java
 CognitiveComplexity plugin/src/main/java/dev/hycolony/plugin/ui/BuildingPage.java
 CompareObjectsWithEquals core/src/main/java/dev/hycolony/core/construction/BuilderAI.java
-CompareObjectsWithEquals core/src/main/java/dev/hycolony/core/construction/WorkManager.java
 CompareObjectsWithEquals plugin/src/main/java/dev/hycolony/plugin/adapter/HytalePlayerInventory.java
 CouplingBetweenObjects core/src/main/java/dev/hycolony/core/colony/ColonyManager.java
 CouplingBetweenObjects core/src/main/java/dev/hycolony/core/construction/BuilderAI.java
-CouplingBetweenObjects core/src/main/java/dev/hycolony/core/construction/WorkManager.java
 CouplingBetweenObjects core/src/main/java/dev/hycolony/core/request/RequestManager.java
 CouplingBetweenObjects plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleCitizenBodies.java
 CouplingBetweenObjects plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleItemCatalog.java
@@ -24,7 +20,6 @@ CouplingBetweenObjects plugin/src/main/java/dev/hycolony/plugin/command/HyColony
 CouplingBetweenObjects plugin/src/main/java/dev/hycolony/plugin/ui/BuildingPage.java
 CyclomaticComplexity core/src/main/java/dev/hycolony/core/colony/ColonyManager.java
 CyclomaticComplexity core/src/main/java/dev/hycolony/core/construction/BuilderAI.java
-CyclomaticComplexity core/src/main/java/dev/hycolony/core/construction/WorkManager.java
 CyclomaticComplexity core/src/main/java/dev/hycolony/core/request/RequestManager.java
 CyclomaticComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleCitizenBodies.java
 CyclomaticComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleItemCatalog.java
@@ -48,7 +43,6 @@ GodClass plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleCitizenBodies.ja
 GodClass plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleItemCatalog.java
 GodClass plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleWorldBlocks.java
 NPathComplexity core/src/main/java/dev/hycolony/core/construction/BuilderAI.java
-NPathComplexity core/src/main/java/dev/hycolony/core/construction/WorkManager.java
 NPathComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleItemCatalog.java
 NPathComplexity plugin/src/main/java/dev/hycolony/plugin/ui/BuildingPage.java
 TooManyMethods core/src/main/java/dev/hycolony/core/colony/ColonyManager.java

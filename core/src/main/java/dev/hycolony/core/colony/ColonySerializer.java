@@ -9,6 +9,7 @@ import com.google.gson.JsonObject;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.citizen.CitizenData;
+import dev.hycolony.core.construction.WorkOrderSerializer;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.persist.MigrationChain;
 import dev.hycolony.core.request.RequestSerializer;
@@ -32,7 +33,7 @@ public final class ColonySerializer {
         o.add("permissions", PermissionsSerializer.write(c.permissions()));
 
         o.add("requests", RequestSerializer.write(c.requests()));
-        o.add("workOrders", c.work().write());
+        o.add("workOrders", WorkOrderSerializer.write(c.work()));
         o.addProperty("workOrderTopId", c.work().topId());
         JsonObject settings = new JsonObject();
         settings.addProperty("autoHiring", c.settings().autoHiring());
@@ -106,7 +107,7 @@ public final class ColonySerializer {
 
     private static void readWorkOrders(JsonObject o, Colony c) {
         if (o.has("workOrders")) {
-            c.work().read(o.getAsJsonArray("workOrders"));
+            WorkOrderSerializer.read(o.getAsJsonArray("workOrders"), c.work());
         }
         if (o.has("workOrderTopId")) {
             c.work().restoreTopId(o.get("workOrderTopId").getAsInt());

@@ -364,7 +364,7 @@ class WorkManagerTest {
         territory.claimSquare(colony.id(), ClaimCell.of(colony.center()), t.config.initialColonySize());
         Colony loaded = ColonySerializer.read(json, t.context(), territory);
 
-        assertEquals(json.getAsJsonArray("workOrders"), loaded.work().write());
+        assertEquals(json.getAsJsonArray("workOrders"), WorkOrderSerializer.write(loaded.work()));
         WorkOrder lc = loaded.work().byId(c.id()).orElseThrow();
         assertEquals(Optional.of(b.position()), lc.claimedBy());
         assertEquals(Stage.SOLID, lc.stage());
