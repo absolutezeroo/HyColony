@@ -107,12 +107,17 @@ public final class WorkOrder {
         this.free = free;
     }
 
-    /** BUILD starts by clearing the site, REMOVE by removing, UPGRADE and REPAIR build over what stands. */
+    /**
+     * BUILD and REPAIR start by clearing the site, REMOVE by removing, UPGRADE builds over what stands (MC
+     * AbstractEntityAIStructure.loadStructure: CLEAR only for a level-0 building).
+     */
     Stage initialStage() {
         return switch (type) {
-            case BUILD -> Stage.CLEAR;
+            // Deviation from MC: a REPAIR clears too (MC skips CLEAR for a built building), so the blocks players put
+            // in the wrong place inside the plan's box are removed.
+            case BUILD, REPAIR -> Stage.CLEAR;
             case REMOVE -> Stage.REMOVE;
-            case UPGRADE, REPAIR -> Stage.SOLID;
+            case UPGRADE -> Stage.SOLID;
         };
     }
 

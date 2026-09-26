@@ -169,8 +169,8 @@ C'est un portage fidèle de `StandardRequestManager`, `RequestHandler` et des r�
 
 ### Étapes et besoins
 - **Étapes** :
-  - `BUILD` d'un bâtiment de niveau 0 : `CLEAR`, puis `SOLID`, puis `DECORATE` ;
-  - `UPGRADE` et `REPAIR` : `SOLID`, puis `DECORATE`, sans `CLEAR` ;
+  - `BUILD` d'un bâtiment de niveau 0 et `REPAIR` : `CLEAR`, puis `SOLID`, puis `DECORATE` ;
+  - `UPGRADE` : `SOLID`, puis `DECORATE`, sans `CLEAR` ;
   - `REMOVE` : `REMOVE`, qui enlève de haut en bas les positions du plan au niveau actuel, sans matériaux.
   - Écarts assumés par rapport à MineColonies :
     - `WEAK_SOLID` est fusionné dans `SOLID` (Hytale n'a pas de blocs « faibles ») ;
@@ -292,6 +292,7 @@ Chaque écart porte un commentaire `Deviation from MC:` dans le code (CLAUDE.md 
 **Construction**
 - **Retrait des fluides pendant CLEAR** (`construction/builder/BuilderBlockWork`) : comme MineColonies, CLEAR vide l'emprise de l'eau et de la lave, mais chaque case de fluide n'est retirée qu'une fois. Une source voisine peut la remplir de nouveau : boucler dessus ne finirait jamais. Ce qui revient après CLEAR reste en place (SOLID l'écrase, les décorations s'y posent).
 - **Vérification finale** (`construction/builder/BuilderAI.stageDone`) : l'itérateur de MineColonies ne fait qu'avancer. Ici, une fois par ordre chargé, SOLID et DECORATE sont parcourus de nouveau avant la fin, pour reposer un bloc cassé derrière le constructeur.
+- **Réparation avec déblaiement** (`construction/workorder/WorkOrder.initialStage`) : MineColonies saute `CLEAR` pour un bâtiment déjà construit (`AbstractEntityAIStructure.loadStructure`). Ici une réparation commence par `CLEAR`, comme une construction : les joueurs posent des blocs au mauvais endroit, et la réparation doit les retirer. Dans la boîte du plan (à partir du niveau de la hutte), tout bloc que le plan ne veut pas à cet endroit est miné, ses drops vont à la hutte ; la hutte et les blocs `UNBREAKABLE` sont épargnés.
 - **Ordres gratuits d'un opérateur en créatif** (`construction/workorder/WorkManager.isFree`) : ajout demandé. Avec l'option `creativeOperatorFreeBuilds`, un ordre passé par un opérateur en mode créatif se construit sans matériaux. MineColonies n'a que l'option globale `builderInfiniteResources`. Un ordre REMOVE n'est jamais gratuit.
 - **Animations de travail** (`construction/builder/BuilderGestures`) : MineColonies fait balancer le bras à chaque tick d'IA (5 ticks de jeu), ce qui donne un mouvement continu parce que le geste est court. Les animations Hytale (Block/Build, Pickaxe/Mine) durent plus longtemps : les relancer tous les 5 ticks les jouerait deux fois. La pose joue Build une fois par bloc, et le minage ne relance le coup de pioche qu'une fois le précédent terminé.
 
