@@ -112,7 +112,7 @@ public final class BuilderAI implements JobAI {
         };
     }
 
-    /** MC EntityAIStructureBuilder.canGoIdle: true when its hut holds no claimed work order (or is gone). */
+    /** MC EntityAIStructureBuilder.canGoIdle: true when its hut has no active work order (or is gone). */
     @Override
     public boolean canGoIdle() {
         return ctx.hut() == null || claimedOrder().isEmpty();

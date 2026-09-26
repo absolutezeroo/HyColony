@@ -18,6 +18,7 @@ public final class WorkOrder {
     private Stage stage;
     private int progressIndex;
     private boolean free;
+    private boolean active;
 
     /** The blueprint an order follows: its style, level (see {@link #blueprintLevel()}) and rotation. */
     record Layout(String style, int blueprintLevel, int rotation) {}
@@ -97,6 +98,20 @@ public final class WorkOrder {
         this.claimedBy = builderHut;
     }
 
+    /** The claimer works on this order (MC AbstractBuildingStructureBuilder.workOrderId); its others are queued. */
+    boolean active() {
+        return active;
+    }
+
+    void activate() {
+        active = true;
+    }
+
+    /** An old save's order already under way, preferred when a builder's active order is chosen. */
+    boolean started() {
+        return stage != initialStage() || progressIndex > 0;
+    }
+
     /** Where the builder stands in the order; public for the building's resources module, which mirrors it. */
     public void progress(Stage stage, int progressIndex) {
         this.stage = stage;
@@ -124,6 +139,7 @@ public final class WorkOrder {
     /** Unclaimed, back to the first stage; blocks already placed stay. */
     void release() {
         claimedBy = null;
+        active = false;
         stage = initialStage();
         progressIndex = 0;
     }
@@ -144,6 +160,7 @@ public final class WorkOrder {
         o.addProperty("stage", stage.name());
         o.addProperty("progressIndex", progressIndex);
         o.addProperty("free", free);
+        o.addProperty("active", active);
         return o;
     }
 
@@ -164,6 +181,7 @@ public final class WorkOrder {
         w.stage = Stage.valueOf(o.get("stage").getAsString());
         w.progressIndex = o.get("progressIndex").getAsInt();
         w.free = o.has("free") && o.get("free").getAsBoolean();
+        w.active = o.has("active") && o.get("active").getAsBoolean();
         return w; // an old "requested" flag is ignored
     }
 

@@ -95,7 +95,10 @@ public final class WorkOrderActions {
         };
     }
 
-    /** The builder hut's Work orders tab, Cancel (MANAGE_HUTS, MC WorkOrderChangeMessage): the order is removed. */
+    /**
+     * The builder hut's Work orders tab, Cancel (MANAGE_HUTS): removes any colony order by id, claimed by this hut or
+     * not, as MC WorkOrderChangeMessage does. Returns false for an unknown hut, order or permission.
+     */
     public boolean cancelFromBuilder(UUID player, BlockPos builderHut, int orderId) {
         ManagedHut h = ManagedHut.find(manager, player, builderHut).orElse(null);
         if (h == null || h.colony().work().byId(orderId).isEmpty()) {

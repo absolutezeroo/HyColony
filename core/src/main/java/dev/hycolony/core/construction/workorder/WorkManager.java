@@ -186,14 +186,37 @@ public final class WorkManager {
     }
 
     /**
-     * The builder's active order: a builder can hold several claims (chosen at creation); it works on the one with
-     * the lowest id.
+     * The builder's active order, or empty if it holds none. MC AbstractBuildingStructureBuilder.getWorkOrder: a
+     * builder works on one order and queues the others it claimed; when it has none, the first claimed in
+     * WORK_ORDER_COMPARATOR order becomes active (MC WorkManager.tryAssignWorkOrder), marking the colony dirty.
+     *
+     * <p>Deviation from MC: the active flag lives on the order, not the hut, and the promotion happens on lookup
+     * rather than on the colony tick; an old save's order already under way is preferred so it resumes.
      */
     public Optional<WorkOrder> claimedBy(BlockPos builderHut) {
-        // ponytail: linear scan of a colony's few orders; index claims if colonies hold hundreds.
-        return orders.values().stream()
-                .filter(o -> builderHut.equals(o.claimedBy().orElse(null)))
-                .min(Comparator.comparingInt(WorkOrder::id));
+        // ponytail: linear scan of a colony's few orders, allocation-free (called every builder tick).
+        WorkOrder next = null;
+        for (WorkOrder o : orders.values()) {
+            if (!o.isClaimedBy(builderHut)) {
+                continue;
+            }
+            if (o.active()) {
+                return Optional.of(o);
+            }
+            if (next == null || isBefore(o, next)) {
+                next = o;
+            }
+        }
+        if (next == null) {
+            return Optional.empty();
+        }
+        next.activate();
+        colony.markDirty();
+        return Optional.of(next);
+    }
+
+    private static boolean isBefore(WorkOrder a, WorkOrder b) {
+        return a.started() != b.started() ? a.started() : ORDER.compare(a, b) < 0;
     }
 
     /** WorkManager.onColonyTick: drops the orders whose building is gone, then {@link WorkOrderAssignment}. */

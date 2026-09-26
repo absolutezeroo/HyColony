@@ -43,8 +43,8 @@ public final class ManualSelection {
     }
 
     /**
-     * {@code hut} claims order {@code orderId} if {@link #check} allows it; a builder that already holds an order
-     * queues it (it works on its lowest id). Returns the refusal, or empty once claimed.
+     * {@code hut} claims order {@code orderId} if {@link #check} allows it; a builder that already has an active order
+     * ({@link WorkManager#claimedBy}) queues it behind that one. Returns the refusal, or empty once claimed.
      */
     public static Optional<Refusal> select(Colony c, Building hut, int orderId) {
         WorkOrder o = c.work().byId(orderId).orElse(null);
@@ -53,6 +53,7 @@ public final class ManualSelection {
         }
         Optional<Refusal> refusal = check(hut, o);
         if (refusal.isEmpty()) {
+            c.work().claimedBy(hut.position()); // settles the active order first, so o is queued behind it
             o.setClaimedBy(hut.position());
             c.markDirty();
         }

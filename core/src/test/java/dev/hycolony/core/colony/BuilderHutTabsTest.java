@@ -8,6 +8,9 @@ import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.permission.Permissions;
+import dev.hycolony.core.colony.persistence.ColonySerializer;
+import dev.hycolony.core.colony.territory.ClaimCell;
+import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.colony.ui.BuilderResourcesView;
 import dev.hycolony.core.colony.ui.BuilderResourcesView.ResourceRow;
 import dev.hycolony.core.colony.ui.BuilderResourcesView.Status;
@@ -163,6 +166,55 @@ class BuilderHutTabsTest {
 
         assertTrue(colony.work().byId(order.id()).isEmpty());
         assertTrue(t.ui.shown.get(alice) instanceof BuildingView);
+    }
+
+    @Test
+    void selectingAnOrderWithALowerIdQueuesItBehindTheOrderUnderWay() {
+        assertTrue(manager.huts().setBuilderMode(alice, builder.position(), Mode.MANUAL));
+        WorkOrder older = order(new BlockPos(20, 64, 0), 0, WorkOrderType.BUILD);
+        WorkOrder current = order(new BlockPos(30, 64, 0), 0, WorkOrderType.BUILD);
+        assertTrue(manager.workOrders().select(alice, builder.position(), current.id()));
+        assertEquals(Optional.of(current), colony.work().claimedBy(builder.position()));
+
+        assertTrue(manager.workOrders().select(alice, builder.position(), older.id()));
+
+        assertEquals(Optional.of(builder.position()), older.claimedBy(), "queued: MC setWorkOrder with hasWorkOrder");
+        assertEquals(Optional.of(current), colony.work().claimedBy(builder.position()), "the current one stays");
+        TerritoryIndex territory = new TerritoryIndex();
+        territory.claimSquare(colony.id(), ClaimCell.of(colony.center()), t.config.initialColonySize());
+        Colony loaded = ColonySerializer.read(ColonySerializer.write(colony), t.context(), territory);
+        assertEquals(
+                current.id(),
+                loaded.work().claimedBy(builder.position()).orElseThrow().id(),
+                "still current after a restart");
+
+        colony.work().cancel(current.id());
+        assertEquals(Optional.of(older), colony.work().claimedBy(builder.position()), "the queued one comes next");
+    }
+
+    @Test
+    void selectingAnUnknownOrderOrFromAnotherHutIsNotForTheBuilder() {
+        WorkOrder order = order(new BlockPos(20, 64, 0), 0, WorkOrderType.BUILD);
+        Building residence = hut(ConstructionBuildingTypes.RESIDENCE, new BlockPos(40, 64, 0), 1);
+
+        assertFalse(manager.workOrders().select(alice, builder.position(), order.id() + 100));
+        assertEquals(
+                "hycolony.workorder.select.notForBuilder",
+                t.notifier.sent.getLast().msg().key());
+        assertFalse(manager.workOrders().select(alice, residence.position(), order.id()));
+        assertEquals(
+                "hycolony.workorder.select.notForBuilder",
+                t.notifier.sent.getLast().msg().key());
+        assertTrue(order.claimedBy().isEmpty());
+    }
+
+    @Test
+    void cancellingAnUnknownOrderFromTheBuilderHutDoesNothing() {
+        WorkOrder order = order(new BlockPos(20, 64, 0), 0, WorkOrderType.BUILD);
+
+        assertFalse(manager.workOrders().cancelFromBuilder(alice, builder.position(), order.id() + 100));
+
+        assertTrue(colony.work().byId(order.id()).isPresent());
     }
 
     private BuilderTabs tabs(UUID player) {
