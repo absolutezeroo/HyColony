@@ -1,6 +1,7 @@
 package dev.hycolony.core.construction.builder;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.building.Building;
@@ -14,6 +15,7 @@ import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.BlueprintEntry;
 import dev.hycolony.core.construction.blueprint.BlueprintSource;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
+import dev.hycolony.core.construction.workorder.WorkOrder;
 import dev.hycolony.core.construction.workorder.WorkOrderType;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
@@ -23,6 +25,7 @@ import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockKind;
 import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.testing.TestContexts;
 import java.util.List;
 import java.util.Optional;
@@ -34,17 +37,19 @@ class BuilderIdleTest {
     private static final BlockPos HUT = new BlockPos(10, 64, 0);
     private static final BlockPos RES = new BlockPos(30, 64, 0);
     private static final BlockKey STONE = new BlockKey("stone");
+    private static final ItemKey STONE_ITEM = new ItemKey("stone_item");
 
     private final TestContexts t = new TestContexts();
     private final UUID alice = UUID.randomUUID();
     private final ColonyManager manager;
     private final Colony colony;
     private final CitizenAI ai;
+    private final BodyId body;
 
     BuilderIdleTest() {
         t.bodies.instant = true;
         t.catalog.kinds.put(STONE, BlockKind.SOLID);
-        t.catalog.itemForBlock.put(STONE, new ItemKey("stone_item"));
+        t.catalog.itemForBlock.put(STONE, STONE_ITEM);
         t.blueprints = new BlueprintSource() {
             @Override
             public Optional<Blueprint> load(String style, String buildingTypeId, int level, int rotation) {
@@ -65,7 +70,8 @@ class BuilderIdleTest {
         CitizenData citizen = new CitizenData(1);
         colony.citizens().restore(citizen);
         assertTrue(hut.module(WorkerModule.class).orElseThrow().hire(colony, hut, citizen));
-        ai = new CitizenAI(colony, citizen, t.bodies.existing(colony.id(), 1, Vec3.center(HUT)));
+        body = t.bodies.existing(colony.id(), 1, Vec3.center(HUT));
+        ai = new CitizenAI(colony, citizen, body);
     }
 
     private Building hut(BuildingType type, BlockPos pos, int level) {
@@ -76,10 +82,11 @@ class BuilderIdleTest {
         return b;
     }
 
-    private void claimOrder() {
+    private WorkOrder claimOrder() {
         Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 0);
         var r = colony.work().request(alice, res.position(), WorkOrderType.BUILD, "", Optional.of(HUT));
         assertTrue(r instanceof Either.Left, () -> "refused: " + r);
+        return colony.work().byBuilding(RES).orElseThrow();
     }
 
     private boolean tickUntil(CitizenState state, int max) {
@@ -108,5 +115,18 @@ class BuilderIdleTest {
         assertTrue(tickUntil(CitizenState.WANDERING, 420));
         claimOrder();
         assertTrue(tickUntil(CitizenState.WORKING, 40));
+    }
+
+    @Test
+    void builderReturnsToWanderingWhenItsOrderIsCancelledMidWork() {
+        WorkOrder order = claimOrder();
+        assertTrue(tickUntil(CitizenState.WORKING, 40));
+        t.bodies.bodies.get(body).held = STONE_ITEM;
+
+        colony.work().cancel(order.id());
+
+        assertTrue(tickUntil(CitizenState.IDLE, 40));
+        assertNull(t.bodies.bodies.get(body).held, "MC resetAI clears the held item");
+        assertTrue(tickUntil(CitizenState.WANDERING, 40), "the next idle decision wanders at once");
     }
 }

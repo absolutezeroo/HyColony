@@ -26,6 +26,8 @@ public final class CitizenAI {
     private static final int WANDER_RADIUS = 10;
     private static final int IDLE_MIN_TICKS = 200, IDLE_MAX_TICKS = 400;
     private static final int WANDER_TIMEOUT_TICKS = 600;
+    /** MC CitizenAI: decideAiTask runs as an EVENT target every 10 ticks. */
+    private static final int DECIDE_INTERVAL_TICKS = 10;
 
     private final Colony colony;
     private final CitizenData data;
@@ -35,6 +37,7 @@ public final class CitizenAI {
     private final TickRateStateMachine<CitizenState> machine;
     private int idleTicksLeft;
     private int wanderTicks;
+    private int workTicks;
     private JobAI jobAI;
     /** The job and work building {@link #jobAI} was created for. */
     private Job aiJob;
@@ -113,7 +116,8 @@ public final class CitizenAI {
         if (!job.equals(aiJob) || !Objects.equals(data.workBuilding(), aiWorkBuilding)) {
             startJob(job); // fired and hired again (elsewhere) between two ticks: bound to the new hut
         }
-        if (jobAI.canGoIdle()) {
+        // MC re-decides every DECIDE_INTERVAL_TICKS, which also keeps the order lookup off the per-tick path.
+        if (++workTicks % DECIDE_INTERVAL_TICKS == 0 && jobAI.canGoIdle()) {
             dropJobAI();
             idleTicksLeft = 0; // the next idle decision wanders, replacing the job's unfinished walk
             return CitizenState.IDLE;
