@@ -1,24 +1,22 @@
-package dev.hycolony.core.construction.builder;
+package dev.hycolony.core.construction.workorder;
 
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.colony.Action;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyEvents;
 import dev.hycolony.core.construction.ClaimRadius;
-import dev.hycolony.core.construction.workorder.WorkOrder;
-import dev.hycolony.core.construction.workorder.WorkOrderType;
 import dev.hycolony.core.kernel.port.Msg;
 import java.util.UUID;
 
 /** The building side of a finished order (MC executeSpecificCompleteActions + sendCompletionMessage). */
-final class BuildCompletion {
+public final class BuildCompletion {
     private BuildCompletion() {}
 
     /**
      * BUILD/UPGRADE/REPAIR: target level, built, claims. REMOVE: deconstructed, level kept. Then log, members'
      * message, {@link ColonyEvents.BuildingLevelChanged}, and the order leaves the work manager.
      */
-    static void apply(Colony colony, WorkOrder o, Building b) {
+    public static void apply(Colony colony, WorkOrder o, Building b) {
         int oldLevel = b.level();
         String logType;
         if (o.type() == WorkOrderType.REMOVE) {

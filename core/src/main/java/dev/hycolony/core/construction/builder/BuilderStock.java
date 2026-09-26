@@ -34,12 +34,21 @@ import java.util.function.ToIntFunction;
 final class BuilderStock {
     private static final System.Logger LOG = System.getLogger(BuilderStock.class.getName());
 
+    static final int ACTIONS_UNTIL_DUMP = 4096;
+    /**
+     * After a dump the full hut refused, the next full-inventory dump waits this many actions (drops meanwhile go to
+     * the hut or are lost).
+     */
+    // ponytail: fixed retry, no hut capacity query in ContainerAccess; poll the hut's space if players complain.
+    static final int DUMP_RETRY_ACTIONS = 32;
+
     private final Colony colony;
     private final CitizenData citizen;
     private final Building hut;
     private final ItemCatalog catalog;
     private final ContainerAccess containers;
     private final ToIntFunction<ItemKey> maxStack;
+    private int dumpRetryAt;
 
     BuilderStock(Colony colony, CitizenData citizen, Building hut) {
         this.colony = colony;
@@ -84,11 +93,27 @@ final class BuilderStock {
         bucket.forEach((item, n) -> take(item, n - inventory().count(item)));
     }
 
+    /** A dump every {@link #ACTIONS_UNTIL_DUMP} actions, or once the inventory is full and the retry delay passed. */
+    boolean dumpDue(int actionsDone) {
+        return actionsDone >= ACTIONS_UNTIL_DUMP || (inventory().isFull() && actionsDone >= dumpRetryAt);
+    }
+
+    /** The next full-inventory dump happens at once, whatever the retry delay. */
+    void dumpNow() {
+        dumpRetryAt = 0;
+    }
+
     /**
-     * Stores everything in the hut but (MC keepX) the {@code keep} amounts and one tool per type. False when the hut
-     * could not take it all: what could be stored is stored, the rest stays.
+     * Stores everything in the hut but (MC keepX) the {@code keep} amounts and one tool per type. When the hut could
+     * not take it all (what could be stored is stored, the rest stays), or nothing was left to store, the next
+     * full-inventory dump waits {@link #DUMP_RETRY_ACTIONS} instead of bouncing back at once.
      */
-    boolean dump(Map<ItemKey, Integer> keep) {
+    void dump(Map<ItemKey, Integer> keep) {
+        boolean stored = storeAll(keep);
+        dumpRetryAt = stored && !inventory().isFull() ? 0 : DUMP_RETRY_ACTIONS;
+    }
+
+    private boolean storeAll(Map<ItemKey, Integer> keep) {
         List<BlockPos> hc = hut.containers();
         Map<ItemKey, Integer> keepLeft = new HashMap<>(keep);
         Set<ToolType> toolKept = EnumSet.noneOf(ToolType.class);
