@@ -31,7 +31,6 @@ CouplingBetweenObjects plugin/src/main/java/dev/hycolony/plugin/command/HyColony
 CouplingBetweenObjects plugin/src/main/java/dev/hycolony/plugin/ui/BuildingPage.java
 CyclomaticComplexity core/src/main/java/dev/hycolony/core/colony/ColonyManager.java
 CyclomaticComplexity core/src/main/java/dev/hycolony/core/colony/ColonySerializer.java
-CyclomaticComplexity core/src/main/java/dev/hycolony/core/colony/Permissions.java
 CyclomaticComplexity core/src/main/java/dev/hycolony/core/construction/BuilderAI.java
 CyclomaticComplexity core/src/main/java/dev/hycolony/core/construction/BuilderActivity.java
 CyclomaticComplexity core/src/main/java/dev/hycolony/core/construction/BuilderWalker.java
@@ -55,7 +54,6 @@ ExcessiveImports plugin/src/main/java/dev/hycolony/plugin/command/HyColonyComman
 ExcessiveImports plugin/src/main/java/dev/hycolony/plugin/ui/BuildingPage.java
 ExcessiveParameterList core/src/main/java/dev/hycolony/core/colony/Colony.java
 ExcessiveParameterList core/src/main/java/dev/hycolony/core/colony/ColonyManager.java
-ExcessiveParameterList core/src/main/java/dev/hycolony/core/colony/Rank.java
 ExcessiveParameterList core/src/main/java/dev/hycolony/core/construction/WorkOrder.java
 ExcessiveParameterList core/src/main/java/dev/hycolony/core/job/JobXp.java
 ExcessiveParameterList plugin/src/main/java/dev/hycolony/plugin/adapter/PrefabStyles.java

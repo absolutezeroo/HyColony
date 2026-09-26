@@ -8,13 +8,12 @@ public final class Rank {
     private boolean colonyManager;
     private boolean hostile;
 
-    public Rank(int id, String name, long permissions, boolean initial, boolean colonyManager, boolean hostile) {
+    /** Neither colony manager nor hostile until set. */
+    public Rank(int id, String name, long permissions, boolean initial) {
         this.id = id;
         this.name = name;
         this.permissions = permissions;
         this.initial = initial;
-        this.colonyManager = colonyManager;
-        this.hostile = hostile;
     }
 
     public boolean has(Action action) {

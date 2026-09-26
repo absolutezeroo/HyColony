@@ -37,16 +37,38 @@ public final class Permissions {
         return new Permissions(owner, ownerName, new LinkedHashMap<>(ranks), new LinkedHashMap<>(members));
     }
 
+    private static final Action[] OFFICER_ACTIONS = {
+        Action.PLACE_HUTS,
+        Action.BREAK_HUTS,
+        Action.MANAGE_HUTS,
+        Action.RECEIVE_MESSAGES,
+        Action.PLACE_BLOCKS,
+        Action.BREAK_BLOCKS,
+        Action.FILL_BUCKET,
+        Action.OPEN_CONTAINER,
+        Action.RALLY_GUARDS,
+        Action.MAP_BORDER,
+        Action.MAP_DEATHS
+    };
+    private static final Action[] FRIEND_ACTIONS = {
+        Action.ACCESS_HUTS,
+        Action.USE_SCAN_TOOL,
+        Action.TOSS_ITEM,
+        Action.PICKUP_ITEM,
+        Action.RIGHTCLICK_BLOCK,
+        Action.RIGHTCLICK_ENTITY,
+        Action.THROW_POTION,
+        Action.SHOOT_ARROW,
+        Action.ATTACK_CITIZEN,
+        Action.ATTACK_ENTITY,
+        Action.TELEPORT_TO_COLONY,
+        Action.ACCESS_TOGGLEABLES,
+        Action.MAP_BORDER
+    };
+
     /** Same fall-through as MineColonies Permissions: OWNER ⊃ OFFICER ⊃ FRIEND ⊃ NEUTRAL; HOSTILE apart. */
     private static Rank defaultRank(int id) {
-        String name = switch (id) {
-            case OWNER -> "Owner";
-            case OFFICER -> "Officer";
-            case FRIEND -> "Friend";
-            case NEUTRAL -> "Neutral";
-            default -> "Hostile";
-        };
-        Rank rank = new Rank(id, name, 0L, true, false, false);
+        Rank rank = new Rank(id, defaultName(id), 0L, true);
         if (id == HOSTILE) {
             rank.add(Action.HURT_CITIZEN);
             rank.add(Action.HURT_VISITOR);
@@ -60,45 +82,31 @@ public final class Permissions {
             rank.add(Action.MAP_DEATHS);
         }
         if (id <= OFFICER) {
-            for (Action a : new Action[] {
-                Action.PLACE_HUTS,
-                Action.BREAK_HUTS,
-                Action.MANAGE_HUTS,
-                Action.RECEIVE_MESSAGES,
-                Action.PLACE_BLOCKS,
-                Action.BREAK_BLOCKS,
-                Action.FILL_BUCKET,
-                Action.OPEN_CONTAINER,
-                Action.RALLY_GUARDS,
-                Action.MAP_BORDER,
-                Action.MAP_DEATHS
-            }) {
-                rank.add(a);
-            }
+            addAll(rank, OFFICER_ACTIONS);
             rank.setColonyManager(true);
         }
         if (id <= FRIEND) {
-            for (Action a : new Action[] {
-                Action.ACCESS_HUTS,
-                Action.USE_SCAN_TOOL,
-                Action.TOSS_ITEM,
-                Action.PICKUP_ITEM,
-                Action.RIGHTCLICK_BLOCK,
-                Action.RIGHTCLICK_ENTITY,
-                Action.THROW_POTION,
-                Action.SHOOT_ARROW,
-                Action.ATTACK_CITIZEN,
-                Action.ATTACK_ENTITY,
-                Action.TELEPORT_TO_COLONY,
-                Action.ACCESS_TOGGLEABLES,
-                Action.MAP_BORDER
-            }) {
-                rank.add(a);
-            }
+            addAll(rank, FRIEND_ACTIONS);
         }
         rank.add(Action.ACCESS_TOGGLEABLES);
         rank.add(Action.MAP_BORDER);
         return rank;
+    }
+
+    private static String defaultName(int id) {
+        return switch (id) {
+            case OWNER -> "Owner";
+            case OFFICER -> "Officer";
+            case FRIEND -> "Friend";
+            case NEUTRAL -> "Neutral";
+            default -> "Hostile";
+        };
+    }
+
+    private static void addAll(Rank rank, Action... actions) {
+        for (Action a : actions) {
+            rank.add(a);
+        }
     }
 
     public UUID owner() {

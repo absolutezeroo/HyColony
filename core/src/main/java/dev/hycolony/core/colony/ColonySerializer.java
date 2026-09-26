@@ -236,15 +236,14 @@ public final class ColonySerializer {
         Map<Integer, Rank> ranks = new LinkedHashMap<>(defaults.ranks());
         for (JsonElement el : o.getAsJsonArray("ranks")) {
             JsonObject r = el.getAsJsonObject();
-            ranks.put(
+            Rank rank = new Rank(
                     r.get("id").getAsInt(),
-                    new Rank(
-                            r.get("id").getAsInt(),
-                            r.get("name").getAsString(),
-                            r.get("permissions").getAsLong(),
-                            r.get("initial").getAsBoolean(),
-                            r.get("colonyManager").getAsBoolean(),
-                            r.get("hostile").getAsBoolean()));
+                    r.get("name").getAsString(),
+                    r.get("permissions").getAsLong(),
+                    r.get("initial").getAsBoolean());
+            rank.setColonyManager(r.get("colonyManager").getAsBoolean());
+            rank.setHostile(r.get("hostile").getAsBoolean());
+            ranks.put(r.get("id").getAsInt(), rank);
         }
         Map<UUID, Permissions.Member> members = new LinkedHashMap<>();
         for (JsonElement el : o.getAsJsonArray("members")) {
