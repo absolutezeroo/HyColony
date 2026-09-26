@@ -87,4 +87,23 @@ class DetouringBodiesTest {
         assertTrue(!next.equals(TO), "a new detour leg, not the straight line through the fire: " + fake.moves);
         assertTrue(new SafeRoute(new DangerousCells(world, catalog)).clear(new Vec3(4.55, 64, 1.30), next));
     }
+
+    @Test
+    void takesTheNextLegAsItIsAfterMaxReplansAndMoveToResetsTheCount() {
+        for (int walk = 0; walk < 2; walk++) {
+            bodies.moveTo(body, TO);
+            fake.bodies.get(body).position = new Vec3(4.55, 64, 1.30); // stuck short: the line to the target burns
+            for (int i = 0; i < DetouringBodies.MAX_REPLANS; i++) {
+                arrive();
+                assertTrue(!fake.moves.getLast().equals(TO), "replan " + (i + 1) + " is a detour: " + fake.moves);
+            }
+            arrive();
+            assertEquals(TO, fake.moves.getLast(), "past the cap, the next leg as it is");
+        }
+    }
+
+    private void arrive() {
+        fake.bodies.get(body).status = NavStatus.ARRIVED;
+        assertEquals(NavStatus.MOVING, bodies.navStatus(body));
+    }
 }
