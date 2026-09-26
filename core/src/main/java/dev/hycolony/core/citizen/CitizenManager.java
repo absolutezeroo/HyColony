@@ -5,6 +5,7 @@ import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.port.BodyId;
+import dev.hycolony.core.kernel.port.Msg;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -40,6 +41,7 @@ public final class CitizenManager {
     public Optional<CitizenData> get(int id) { return Optional.ofNullable(citizens.get(id)); }
     public Optional<BodyId> bodyOf(int id) { return Optional.ofNullable(bodies.get(id)); }
     public Optional<CitizenState> aiState(int id) { return Optional.ofNullable(ais.get(id)).map(CitizenAI::state); }
+    public Optional<Msg> jobActivity(int id) { return Optional.ofNullable(ais.get(id)).flatMap(CitizenAI::jobActivity); }
 
     /** Adds a citizen loaded from disk. */
     public void restore(CitizenData data) {

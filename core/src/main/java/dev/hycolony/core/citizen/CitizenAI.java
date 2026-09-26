@@ -10,8 +10,10 @@ import dev.hycolony.core.kernel.ai.IStateSupplier;
 import dev.hycolony.core.kernel.ai.TickRateStateMachine;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.CitizenBodies;
+import dev.hycolony.core.kernel.port.Msg;
 import dev.hycolony.core.kernel.port.NavStatus;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.random.RandomGenerator;
 
 /** Top-level citizen AI. Idle, wander, or work its job if it has one. */
@@ -53,6 +55,11 @@ public final class CitizenAI {
 
     public CitizenState state() {
         return machine.getState();
+    }
+
+    /** The job AI's own line while working. */
+    public Optional<Msg> jobActivity() {
+        return state() == CitizenState.WORKING && jobAI != null ? jobAI.describe() : Optional.empty();
     }
 
     private void onException(RuntimeException e) {

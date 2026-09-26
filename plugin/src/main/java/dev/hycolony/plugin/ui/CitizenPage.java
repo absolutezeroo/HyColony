@@ -12,6 +12,7 @@ import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.ui.CitizenView;
 import dev.hycolony.core.colony.ui.RequestsView.RequestRow;
 import dev.hycolony.core.kernel.item.ItemAmount;
+import dev.hycolony.plugin.adapter.HytaleNotifier;
 import java.util.List;
 import java.util.Locale;
 import javax.annotation.Nonnull;
@@ -38,6 +39,8 @@ public final class CitizenPage extends ColonyPage {
         if (view.waitingFor().isPresent()) {
             ui.set("#Activity.TextSpans", Message.translation("hycolony.ui.citizen.waitingFor")
                     .param("p0", RequestsPage.describe(view.waitingFor().get())));
+        } else if (view.jobActivity().isPresent()) {
+            ui.set("#Activity.TextSpans", HytaleNotifier.toMessage(view.jobActivity().get()));
         } else {
             ui.set("#Activity.Text", Message.translation("hycolony.status." + view.activity()));
         }

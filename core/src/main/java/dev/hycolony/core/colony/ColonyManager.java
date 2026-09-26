@@ -317,7 +317,8 @@ public final class ColonyManager {
         }
         ctx.ui().showCitizen(player, new CitizenView(c.id(), d.id(), d.name(), d.job().map(j -> j.type().id()),
                 Optional.ofNullable(d.workBuilding()).flatMap(c.buildings()::at).map(Building::displayName),
-                waitingFor.isPresent() ? "waitingFor" : status(c, d), waitingFor, skills, d.inventory().contents(),
+                waitingFor.isPresent() ? "waitingFor" : status(c, d), waitingFor, c.citizens().jobActivity(d.id()), skills,
+                d.inventory().contents(),
                 requests));
     }
 

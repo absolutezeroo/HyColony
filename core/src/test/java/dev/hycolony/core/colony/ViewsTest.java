@@ -385,5 +385,6 @@ class ViewsTest {
         assertEquals(Optional.empty(), v.jobId());
         assertEquals(Optional.empty(), v.workBuilding());
         assertEquals(List.of(), v.requests());
+        assertEquals(Optional.empty(), v.jobActivity(), "no job AI running");
     }
 }

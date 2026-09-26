@@ -1012,4 +1012,16 @@ class BuilderAITest {
         assertEquals(List.of(Vec3.center(at(3, 1, 0))), t.bodies.teleports, "repathed, then teleported to the spot");
         assertEquals(List.of(at(1, 0, 0)), t.blocks.placed);
     }
+
+    @Test
+    void describesWhatItIsDoing() {
+        Request r = waitingForStone(2);
+        assertEquals(Optional.of(dev.hycolony.core.kernel.port.Msg.of("hycolony.ai.builder.waiting")), ai.describe());
+
+        give(STONE_I, 2);
+        colony.requests().overrule(r.token(), List.of(new ItemAmount(STONE_I, 2)), true);
+        tickUntil(() -> t.blocks.placed.size() == 1, 2000);
+        assertEquals(Optional.of(dev.hycolony.core.kernel.port.Msg.of("hycolony.ai.builder.placing",
+                "%hycolony.ui.stage.solid", "1", STONE_I.id())), ai.describe());
+    }
 }

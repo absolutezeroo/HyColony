@@ -23,6 +23,7 @@ import dev.hycolony.core.kernel.port.BodyAnimation;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.CitizenBodies;
 import dev.hycolony.core.kernel.port.ItemCatalog;
+import dev.hycolony.core.kernel.port.Msg;
 import dev.hycolony.core.kernel.port.WorldBlocks;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.RequestState;
@@ -147,6 +148,11 @@ public final class BuilderAI implements JobAI {
     @Override
     public String stateName() {
         return machine.getState().name();
+    }
+
+    @Override
+    public Optional<Msg> describe() {
+        return Optional.of(BuilderActivity.describe(machine.getState(), order, walker.walking(), inHand));
     }
 
     /** MC isOkayToEat. */
