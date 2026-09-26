@@ -193,7 +193,7 @@ Les constantes suivantes ressemblent à des options mais **ne correspondent à a
 
 Constantes propres à Hytale (pas d'équivalent MC, ne pas exposer non plus) : `plugin:ColonyTickSystem.java:15,17`, `plugin:adapter/HytaleCitizenBodies.java:46,48`, `plugin:adapter/HytaleGameClock.java:10`, `plugin:adapter/HytaleItemCatalog.java:47-48`.
 
-Non vérifié ici (écarts de valeur possibles, à confier à `mc-fidelity-checker`) : `BuilderStock.ACTIONS_UNTIL_DUMP = 4096` alors que `CitizenConstants.java:166` vaut 32 (peut-être une autre constante côté bâtisseur) ; `TickingTransition.MAX_AI_TICKRATE = 12000` alors que `TickRateConstants.MAX_TICKRATE = 500`.
+Vérifié (clone MC `6b3916a1`) : ce ne sont pas des écarts. `BuilderStock.ACTIONS_UNTIL_DUMP = 4096` est la constante propre du bâtisseur, `EntityAIStructureBuilder.java:50` (le 32 de `CitizenConstants.java:166` vaut pour les autres métiers, `AbstractEntityAIBasic.java:427`). `TickingTransition.MAX_AI_TICKRATE = 12000` est `TickRateConstants.MAX_AI_TICKRATE = 20*60*10` (`MAX_TICKRATE = 500` est le tick lent de la colonie, une autre constante).
 
 ## 5. Disposition proposée de `config.json`
 
@@ -257,3 +257,16 @@ Les sections reprennent les catégories MC (`gameplay`, `claims`, `permissions`,
 5. Une valeur d'enum inconnue (`TurnOffExplosionsInColonies`) doit prendre le défaut MC. Le comportement d'un codec d'enum Hytale sur une valeur inconnue n'a pas été vérifié : proposition, décoder une `Codec.STRING` et la convertir soi-même avec repli.
 
 Tout ce comportement est vérifié dans les sources seulement **[in-game]** : à confirmer avec un vieux `config.json` plat au redémarrage.
+
+## 6. État après la restructuration (2026-09-26)
+
+`config.json` suit la disposition du § 5, sauf `RequestSystem` et les clés non branchées (`AlwaysRenderNameTag`, `AllowOtherDimColonies`) : aucune n'est encore lue, elles viendront avec leur système. Code : `plugin:config/` (une classe par section) et `core:kernel/config/ColonyConfig.java` (un record par section).
+
+| Option | Branchement |
+|---|---|
+| `Client.BuildGoggleRange` | `core:construction/goggles/GogglesView.java` (remplace `RANGE_SQ`) |
+| `Gameplay.MaxCitizenPerColony` | **non lue**, conforme à MC : MC ne plafonne que l'immigration et les naissances (`CitizenManager.spawnCitizenOnPosition`, `force = false`) ; l'apparition initiale, seule apparition de HyColony, passe `force = true` (`CitizenManager.java:630`) et est bornée par `InitialCitizenAmount` (≤ 10 < 25) |
+| `Permissions.PermissionEventBypassMinPermLevel` | `core:colony/ColonyManager.isAllowed` (protection) ; 0 = tout joueur en créatif, 1-4 = opérateur en créatif |
+| `Permissions.TurnOffExplosionsInColonies` | `core:colony/ColonyManager.explosionSparesBlock` et `plugin:block/ExplosionProtectionSystem` ; blocs seulement (voir `plugin-b-api.md` § 13) |
+| `Claims.Min/MaxDistanceFromWorldSpawn` | `core:colony/action/HutActions.spawnDistanceRefusal` |
+| `Commands.*` | `plugin:command/HyColonyCommand` (groupe de permission) ; `delete` passe par `ColonyAdministration.delete` (opérateur ou gestionnaire de la colonie) |

@@ -170,7 +170,7 @@ C'est un portage fidèle de `BasicStateMachine` et `TickRateStateMachine` de Min
   - **Hostile** : HURT_CITIZEN, HURT_VISITOR, MAP_BORDER ; `isHostile`.
 - Un joueur inconnu de la colonie a le rang **Neutral**.
 - **Appliquées dans le sous-projet 0** : PLACE_BLOCKS, BREAK_BLOCKS, PLACE_HUTS, BREAK_HUTS, ACCESS_HUTS, OPEN_CONTAINER. Les autres actions sont modélisées et sauvegardées, et seront appliquées par les sous-projets qui les concernent.
-- La protection est désactivable par la config `enableColonyProtection` (vrai par défaut).
+- La protection est désactivable par la config `Permissions.EnableColonyProtection` (vrai par défaut). Un joueur en créatif qui contourne les permissions (`Permissions.PermissionEventBypassMinPermLevel`, voir § 3.5) a les droits du rang opérateur de MineColonies.
 - Le propriétaire ou un rang `EDIT_PERMISSIONS` gère les membres via `/hycolony rank <joueur> <rang>`. La fenêtre de permissions viendra plus tard, car elle est lourde en UI. *Écart temporaire assumé par rapport à MineColonies.*
 
 **Journal de colonie** : liste bornée à **100 entrées** (type, jour, paramètres). Types du sous-projet 0 : `ColonyCreated`, `CitizenSpawned`, `BuildingPlaced`, `BuildingRemoved`.
@@ -216,17 +216,37 @@ C'est la version réduite du `CitizenAI` de MineColonies (IDLE, WORK, SLEEP, EAT
 
 ### 3.5 Configuration
 
-La config du plugin est `mods/<group>_HyColony/config.json` (`withConfig`, codec Hytale). Le plugin la traduit en un `record ColonyConfig` du core.
+La config du plugin est `mods/<group>_HyColony/config.json` (`withConfig`, codec Hytale). Elle reprend les sections de MineColonies ; le plugin la traduit en un `record ColonyConfig` du core (un record par section), qui ramène chaque valeur dans ses bornes.
 
-| Clé | Défaut (MineColonies) |
-|---|---|
-| `initialCitizenAmount` | 4 (plage 1–10) |
-| `maxCitizenPerColony` | 250 (plage 25–500) |
-| `initialColonySize` | 4 (cellules) |
-| `minColonyDistance` | 8 (cellules) |
-| `maxColonySize` | 20 (cellules) |
-| `enableColonyProtection` | true |
-| `autosaveIntervalMinutes` | 5 (propre à HyColony) |
+| Section | Clé | Défaut (MineColonies) | Bornes |
+|---|---|---|---|
+| `Gameplay` | `InitialCitizenAmount` | 4 | 1–10 |
+| `Gameplay` | `MaxCitizenPerColony` | 250 | 25–500 |
+| `Claims` | `MaxColonySize` | 20 (cellules) | 1–250 |
+| `Claims` | `MinColonyDistance` | 8 (cellules) | 1–200 |
+| `Claims` | `InitialColonySize` | 4 (cellules) | 1–15 |
+| `Claims` | `MaxDistanceFromWorldSpawn` | 30000 (blocs) | 1000–2147483647 |
+| `Claims` | `MinDistanceFromWorldSpawn` | 0 (blocs) | 0–1000 |
+| `Permissions` | `EnableColonyProtection` | true | |
+| `Permissions` | `TurnOffExplosionsInColonies` | `DAMAGE_ENTITIES` | `DAMAGE_NOTHING`, `DAMAGE_PLAYERS`, `DAMAGE_ENTITIES`, `DAMAGE_EVERYTHING` |
+| `Permissions` | `PermissionEventBypassMinPermLevel` | 2 | 0–4 |
+| `Commands` | `CanPlayerUseShowColonyInfoCommand` | true | |
+| `Commands` | `CanPlayerUseAddOfficerCommand` | true | |
+| `Commands` | `CanPlayerUseDeleteColonyCommand` | false | |
+| `Client` | `BuildGoggleRange` | 50 (blocs) | 1–250 |
+| `HyColony` | `AutosaveIntervalMinutes` | 5 (propre à HyColony) | 1–60 |
+| `HyColony` | `BuilderInfiniteResources` | false (constante `BUILDER_INF_RESOURECES` chez MC) | |
+| `HyColony` | `CreativeOperatorFreeBuilds` | true (propre à HyColony) | |
+
+Migration : les neuf clés plates du premier format restent lues (leur valeur passe dans la section) mais ne sont jamais réécrites ; le `save()` du démarrage réécrit donc un ancien fichier en sections, avec ses valeurs.
+
+Écarts avec MineColonies :
+- `BuildGoggleRange` est une option cliente chez MC, un réglage serveur ici (pas de config cliente pour un plugin Hytale).
+- `PermissionEventBypassMinPermLevel` : Hytale n'a pas de niveaux d'opérateur. 0 laisse passer tout joueur en créatif, 1 à 4 un opérateur (groupe de `/op`) en créatif.
+- `TurnOffExplosionsInColonies` ne protège que les blocs : Hytale ne permet pas de distinguer les dégâts d'explosion aux entités des dégâts de projectile.
+- Commandes refusées par la config : message « pas la permission » de Hytale au lieu de « commande désactivée dans la config ».
+- `MinDistanceFromWorldSpawn` / `MaxDistanceFromWorldSpawn` mesurent la distance au point d'apparition du fondateur (Hytale peut en donner un par joueur).
+- `MaxCitizenPerColony` n'est lue par rien : comme chez MC, elle ne plafonne que l'immigration et les naissances, pas encore portées.
 
 ---
 

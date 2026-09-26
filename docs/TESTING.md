@@ -90,3 +90,16 @@ Avant de commencer : un hôtel de ville posé **avant** cette version n'a pas de
 41. **Portée.** A s'éloigne à plus de 50 blocs de la hutte : le fantôme disparaît dans la seconde ; il revient quand A se rapproche.
 42. **Visibilité.** B, sans lunettes, près du même chantier : il ne voit aucun fantôme. Si B porte aussi des lunettes, chacun voit le sien et pas celui de l'autre (pas de fantôme en double).
 43. **Retrait.** A retire les lunettes : tous ses fantômes disparaissent. A se déconnecte avec les lunettes puis revient : les fantômes réapparaissent.
+
+## Configuration (`mods/<group>_HyColony/config.json`)
+
+Serveur arrêté pour chaque modification du fichier, puis relancé.
+
+53. **Ancienne config plate.** Remplacer `config.json` par l'ancien format :
+    `{"InitialCitizenAmount": 6, "MaxColonySize": 30, "EnableColonyProtection": false, "AutosaveIntervalMinutes": 10, "BuilderInfiniteResources": true, "CreativeOperatorFreeBuilds": false}`.
+    Relancer. Attendu : le fichier est réécrit en sections `Gameplay`, `Claims`, `Permissions`, `Commands`, `Client`, `HyColony`, sans aucune clé plate ; il garde les valeurs (`Gameplay.InitialCitizenAmount` 6, `Claims.MaxColonySize` 30, `Permissions.EnableColonyProtection` false, `HyColony.AutosaveIntervalMinutes` 10, `HyColony.BuilderInfiniteResources` true, `HyColony.CreativeOperatorFreeBuilds` false) ; les autres clés ont leur défaut (`Claims.MaxDistanceFromWorldSpawn` 30000, `Client.BuildGoggleRange` 50…). En jeu, B casse un bloc dans la colonie de A (protection coupée). Relancer une seconde fois : valeurs inchangées. Remettre ensuite la config par défaut (supprimer le fichier).
+54. **Portée des lunettes.** `Client.BuildGoggleRange: 10` : le fantôme du point 40 disparaît dès que A est à plus de 10 blocs de la hutte et revient en deçà.
+55. **Contournement opérateur.** B, opérateur (`/op`) en Créatif, casse et pose des blocs et ouvre un coffre dans la colonie de A. En Survie, il est refusé. Avec `Permissions.PermissionEventBypassMinPermLevel: 0`, B non opérateur en Créatif passe aussi. B ne peut toujours pas changer les rangs (`/hycolony rank`).
+56. **Explosions.** Faire exploser un explosif (bombe, bloc explosif) au bord de la colonie de A : les blocs dans la colonie restent intacts, ceux hors colonie sont détruits. Avec `Permissions.TurnOffExplosionsInColonies: "DAMAGE_EVERYTHING"`, les blocs de la colonie sont détruits aussi. Noter l'allure du souffle (il s'arrête aux blocs protégés) et si une explosion non liée (feu, chute de bloc) est touchée. Les joueurs et PNJ restent blessés dans tous les cas (écart connu).
+57. **Distance au point d'apparition.** `Claims.MinDistanceFromWorldSpawn: 1000` : A pose un hôtel de ville près du point d'apparition, refusé avec « … d'au moins N blocs » (N = ce qui manque). `Claims.MaxDistanceFromWorldSpawn: 1000` : un hôtel de ville à plus de 1000 blocs est refusé avec « Rebroussons chemin d'au moins N blocs ».
+58. **Commandes.** Par défaut, B (non opérateur) lance `/hycolony info` : ça marche ; `/hycolony delete 1` : refusé par Hytale. Avec `Commands.CanPlayerUseShowColonyInfoCommand: false`, `info` est refusé à B mais pas à un opérateur. Avec `Commands.CanPlayerUseDeleteColonyCommand: true`, B (sans rang) lance `/hycolony delete 1` : « Impossible de supprimer la colonie. », la colonie reste ; A (propriétaire) supprime la sienne.
