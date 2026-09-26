@@ -15,7 +15,6 @@ CompareObjectsWithEquals core/src/main/java/dev/hycolony/core/construction/WorkM
 CompareObjectsWithEquals plugin/src/main/java/dev/hycolony/plugin/adapter/HytalePlayerInventory.java
 CouplingBetweenObjects core/src/main/java/dev/hycolony/core/colony/Colony.java
 CouplingBetweenObjects core/src/main/java/dev/hycolony/core/colony/ColonyManager.java
-CouplingBetweenObjects core/src/main/java/dev/hycolony/core/colony/ColonySerializer.java
 CouplingBetweenObjects core/src/main/java/dev/hycolony/core/construction/BuilderAI.java
 CouplingBetweenObjects core/src/main/java/dev/hycolony/core/construction/WorkManager.java
 CouplingBetweenObjects core/src/main/java/dev/hycolony/core/request/RequestManager.java
@@ -25,7 +24,6 @@ CouplingBetweenObjects plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleUi
 CouplingBetweenObjects plugin/src/main/java/dev/hycolony/plugin/command/HyColonyCommand.java
 CouplingBetweenObjects plugin/src/main/java/dev/hycolony/plugin/ui/BuildingPage.java
 CyclomaticComplexity core/src/main/java/dev/hycolony/core/colony/ColonyManager.java
-CyclomaticComplexity core/src/main/java/dev/hycolony/core/colony/ColonySerializer.java
 CyclomaticComplexity core/src/main/java/dev/hycolony/core/construction/BuilderAI.java
 CyclomaticComplexity core/src/main/java/dev/hycolony/core/construction/WorkManager.java
 CyclomaticComplexity core/src/main/java/dev/hycolony/core/request/RequestManager.java
@@ -48,12 +46,10 @@ ExcessiveParameterList plugin/src/main/java/dev/hycolony/plugin/adapter/PrefabSt
 ExcessiveParameterList plugin/src/main/java/dev/hycolony/plugin/ui/BuildingPage.java
 GodClass core/src/main/java/dev/hycolony/core/colony/Colony.java
 GodClass core/src/main/java/dev/hycolony/core/colony/ColonyManager.java
-GodClass core/src/main/java/dev/hycolony/core/colony/ColonySerializer.java
 GodClass core/src/main/java/dev/hycolony/core/request/RequestManager.java
 GodClass plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleCitizenBodies.java
 GodClass plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleItemCatalog.java
 GodClass plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleWorldBlocks.java
-NPathComplexity core/src/main/java/dev/hycolony/core/colony/ColonySerializer.java
 NPathComplexity core/src/main/java/dev/hycolony/core/construction/BuilderAI.java
 NPathComplexity core/src/main/java/dev/hycolony/core/construction/WorkManager.java
 NPathComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleItemCatalog.java

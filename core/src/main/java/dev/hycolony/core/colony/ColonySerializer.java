@@ -1,29 +1,20 @@
 package dev.hycolony.core.colony;
 
+import static dev.hycolony.core.colony.JsonPositions.pos;
+import static dev.hycolony.core.colony.JsonPositions.readPos;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import dev.hycolony.core.building.Building;
-import dev.hycolony.core.building.BuildingModule;
 import dev.hycolony.core.building.BuildingType;
-import dev.hycolony.core.building.PersistentModule;
 import dev.hycolony.core.citizen.CitizenData;
-import dev.hycolony.core.citizen.Gender;
-import dev.hycolony.core.citizen.Skill;
-import dev.hycolony.core.citizen.Skills;
-import dev.hycolony.core.job.Job;
-import dev.hycolony.core.job.JobType;
 import dev.hycolony.core.job.WorkerModule;
-import dev.hycolony.core.kernel.BlockPos;
-import dev.hycolony.core.kernel.Vec3;
-import dev.hycolony.core.kernel.item.Inventory;
 import dev.hycolony.core.kernel.persist.MigrationChain;
 import dev.hycolony.core.request.RequestSerializer;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 /** Colony <-> JSON (schema 2). Unknown buildings/modules are kept verbatim. */
 public final class ColonySerializer {
@@ -38,7 +29,7 @@ public final class ColonySerializer {
         o.addProperty("name", c.name());
         o.add("center", pos(c.center()));
         o.addProperty("day", c.day());
-        o.add("permissions", permissions(c.permissions()));
+        o.add("permissions", PermissionsSerializer.write(c.permissions()));
 
         o.add("requests", RequestSerializer.write(c.requests()));
         o.add("workOrders", c.work().write());
@@ -49,28 +40,17 @@ public final class ColonySerializer {
 
         JsonArray buildings = new JsonArray();
         for (Building b : c.buildings().all()) {
-            buildings.add(building(b));
+            buildings.add(BuildingSerializer.write(b));
         }
         c.buildings().unknown().forEach(buildings::add);
         o.add("buildings", buildings);
 
         JsonArray citizens = new JsonArray();
         for (CitizenData d : c.citizens().all()) {
-            citizens.add(citizen(d));
+            citizens.add(CitizenSerializer.write(d));
         }
         o.add("citizens", citizens);
-
-        JsonArray log = new JsonArray();
-        for (EventLog.Entry e : c.log().entries()) {
-            JsonObject entry = new JsonObject();
-            entry.addProperty("type", e.type());
-            entry.addProperty("day", e.day());
-            JsonArray params = new JsonArray();
-            e.params().forEach(params::add);
-            entry.add("params", params);
-            log.add(entry);
-        }
-        o.add("eventLog", log);
+        o.add("eventLog", eventLog(c.log()));
         return o;
     }
 
@@ -81,53 +61,82 @@ public final class ColonySerializer {
                 o.get("id").getAsInt(),
                 o.get("name").getAsString(),
                 readPos(o.getAsJsonObject("center")),
-                readPermissions(o.getAsJsonObject("permissions")));
+                PermissionsSerializer.read(o.getAsJsonObject("permissions")));
         c.setDay(o.get("day").getAsInt());
-        if (o.has("settings")) {
-            JsonObject settings = o.getAsJsonObject("settings");
-            if (settings.has("autoHiring")) {
-                c.settings().setAutoHiring(settings.get("autoHiring").getAsBoolean());
-            }
-        }
-        for (JsonElement el : o.getAsJsonArray("buildings")) {
-            JsonObject b = el.getAsJsonObject();
-            Optional<BuildingType> type = ctx.buildingTypes().byId(b.get("type").getAsString());
-            if (type.isEmpty()) {
-                c.buildings().keepUnknown(b);
-                continue;
-            }
-            c.buildings().add(readBuilding(b, type.get()));
-        }
+        readSettings(o, c);
+        readBuildings(o.getAsJsonArray("buildings"), c, ctx);
         for (JsonElement el : o.getAsJsonArray("citizens")) {
-            c.citizens().restore(readCitizen(el.getAsJsonObject(), ctx));
+            c.citizens().restore(CitizenSerializer.read(el.getAsJsonObject(), ctx));
         }
         // After the buildings: they re-registered as resolver providers.
         if (o.has("requests")) {
             RequestSerializer.read(o.getAsJsonObject("requests"), c.requests());
         }
-        if (o.has("workOrders")) {
-            c.work().read(o.getAsJsonArray("workOrders"));
-        }
-        if (o.has("workOrderTopId")) {
-            c.work().restoreTopId(o.get("workOrderTopId").getAsInt());
-        }
-        for (JsonElement el : o.getAsJsonArray("eventLog")) {
-            JsonObject e = el.getAsJsonObject();
-            // Manual loop: JsonArray.asList() needs Gson 2.10+, and the server's Gson version is not guaranteed.
-            java.util.List<String> params = new java.util.ArrayList<>();
-            for (JsonElement p : e.getAsJsonArray("params")) {
-                params.add(p.getAsString());
-            }
-            c.log()
-                    .restore(new EventLog.Entry(
-                            e.get("type").getAsString(), e.get("day").getAsInt(), params));
-        }
+        readWorkOrders(o, c);
+        readEventLog(o.getAsJsonArray("eventLog"), c.log());
         boolean healed = heal(c);
         c.clearDirty();
         if (healed) {
             c.markDirty(); // write the healed state at the next save instead of healing on every load
         }
         return c;
+    }
+
+    private static void readSettings(JsonObject o, Colony c) {
+        if (o.has("settings")) {
+            JsonObject settings = o.getAsJsonObject("settings");
+            if (settings.has("autoHiring")) {
+                c.settings().setAutoHiring(settings.get("autoHiring").getAsBoolean());
+            }
+        }
+    }
+
+    private static void readBuildings(JsonArray buildings, Colony c, ColonyContext ctx) {
+        for (JsonElement el : buildings) {
+            JsonObject b = el.getAsJsonObject();
+            Optional<BuildingType> type = ctx.buildingTypes().byId(b.get("type").getAsString());
+            if (type.isEmpty()) {
+                c.buildings().keepUnknown(b);
+                continue;
+            }
+            c.buildings().add(BuildingSerializer.read(b, type.get()));
+        }
+    }
+
+    private static void readWorkOrders(JsonObject o, Colony c) {
+        if (o.has("workOrders")) {
+            c.work().read(o.getAsJsonArray("workOrders"));
+        }
+        if (o.has("workOrderTopId")) {
+            c.work().restoreTopId(o.get("workOrderTopId").getAsInt());
+        }
+    }
+
+    private static JsonArray eventLog(EventLog eventLog) {
+        JsonArray log = new JsonArray();
+        for (EventLog.Entry e : eventLog.entries()) {
+            JsonObject entry = new JsonObject();
+            entry.addProperty("type", e.type());
+            entry.addProperty("day", e.day());
+            JsonArray params = new JsonArray();
+            e.params().forEach(params::add);
+            entry.add("params", params);
+            log.add(entry);
+        }
+        return log;
+    }
+
+    private static void readEventLog(JsonArray entries, EventLog log) {
+        for (JsonElement el : entries) {
+            JsonObject e = el.getAsJsonObject();
+            // Manual loop: JsonArray.asList() needs Gson 2.10+, and the server's Gson version is not guaranteed.
+            List<String> params = new ArrayList<>();
+            for (JsonElement p : e.getAsJsonArray("params")) {
+                params.add(p.getAsString());
+            }
+            log.restore(
+                    new EventLog.Entry(e.get("type").getAsString(), e.get("day").getAsInt(), params));
+        }
     }
 
     /**
@@ -155,221 +164,5 @@ public final class ColonySerializer {
             }
         }
         return c.requests().cancelOrphans() | changed;
-    }
-
-    // ---- positions ----
-
-    private static JsonElement pos(BlockPos p) {
-        if (p == null) {
-            return JsonNull.INSTANCE;
-        }
-        JsonObject o = new JsonObject();
-        o.addProperty("x", p.x());
-        o.addProperty("y", p.y());
-        o.addProperty("z", p.z());
-        return o;
-    }
-
-    private static BlockPos readPos(JsonElement e) {
-        if (e == null || e.isJsonNull()) {
-            return null;
-        }
-        JsonObject o = e.getAsJsonObject();
-        return new BlockPos(
-                o.get("x").getAsInt(), o.get("y").getAsInt(), o.get("z").getAsInt());
-    }
-
-    private static JsonElement vec(Vec3 v) {
-        if (v == null) {
-            return JsonNull.INSTANCE;
-        }
-        JsonObject o = new JsonObject();
-        o.addProperty("x", v.x());
-        o.addProperty("y", v.y());
-        o.addProperty("z", v.z());
-        return o;
-    }
-
-    private static Vec3 readVec(JsonElement e) {
-        if (e == null || e.isJsonNull()) {
-            return null;
-        }
-        JsonObject o = e.getAsJsonObject();
-        return new Vec3(
-                o.get("x").getAsDouble(), o.get("y").getAsDouble(), o.get("z").getAsDouble());
-    }
-
-    // ---- permissions ----
-
-    private static JsonObject permissions(Permissions p) {
-        JsonObject o = new JsonObject();
-        o.addProperty("owner", p.owner().toString());
-        o.addProperty("ownerName", p.ownerName());
-        JsonArray ranks = new JsonArray();
-        for (Rank r : p.ranks().values()) {
-            JsonObject ro = new JsonObject();
-            ro.addProperty("id", r.id());
-            ro.addProperty("name", r.name());
-            ro.addProperty("permissions", r.permissions());
-            ro.addProperty("initial", r.isInitial());
-            ro.addProperty("colonyManager", r.isColonyManager());
-            ro.addProperty("hostile", r.isHostile());
-            ranks.add(ro);
-        }
-        o.add("ranks", ranks);
-        JsonArray members = new JsonArray();
-        p.members().forEach((uuid, m) -> {
-            JsonObject mo = new JsonObject();
-            mo.addProperty("uuid", uuid.toString());
-            mo.addProperty("name", m.name());
-            mo.addProperty("rank", m.rankId());
-            members.add(mo);
-        });
-        o.add("members", members);
-        return o;
-    }
-
-    private static Permissions readPermissions(JsonObject o) {
-        UUID owner = UUID.fromString(o.get("owner").getAsString());
-        String ownerName = o.get("ownerName").getAsString();
-        Permissions defaults = Permissions.createDefault(owner, ownerName);
-        Map<Integer, Rank> ranks = new LinkedHashMap<>(defaults.ranks());
-        for (JsonElement el : o.getAsJsonArray("ranks")) {
-            JsonObject r = el.getAsJsonObject();
-            Rank rank = new Rank(
-                    r.get("id").getAsInt(),
-                    r.get("name").getAsString(),
-                    r.get("permissions").getAsLong(),
-                    r.get("initial").getAsBoolean());
-            rank.setColonyManager(r.get("colonyManager").getAsBoolean());
-            rank.setHostile(r.get("hostile").getAsBoolean());
-            ranks.put(r.get("id").getAsInt(), rank);
-        }
-        Map<UUID, Permissions.Member> members = new LinkedHashMap<>();
-        for (JsonElement el : o.getAsJsonArray("members")) {
-            JsonObject m = el.getAsJsonObject();
-            members.put(
-                    UUID.fromString(m.get("uuid").getAsString()),
-                    new Permissions.Member(
-                            m.get("name").getAsString(), m.get("rank").getAsInt()));
-        }
-        return Permissions.restore(owner, ownerName, ranks, members);
-    }
-
-    // ---- buildings ----
-
-    private static JsonObject building(Building b) {
-        JsonObject o = new JsonObject();
-        o.addProperty("type", b.type().id());
-        o.add("pos", pos(b.position()));
-        o.addProperty("rotation", b.rotation());
-        o.addProperty("level", b.level());
-        o.addProperty("built", b.isBuilt());
-        o.addProperty("customName", b.customName());
-        o.addProperty("style", b.style());
-        JsonObject modules = new JsonObject();
-        b.modules().forEach((key, module) -> {
-            if (module instanceof PersistentModule pm) {
-                JsonObject m = new JsonObject();
-                pm.write(m);
-                modules.add(key, m);
-            }
-        });
-        b.unknownModules().forEach(modules::add);
-        o.add("modules", modules);
-        JsonArray containers = new JsonArray();
-        b.registeredContainers().forEach(p -> containers.add(pos(p)));
-        o.add("containers", containers);
-        o.addProperty("deconstructed", b.isDeconstructed());
-        return o;
-    }
-
-    private static Building readBuilding(JsonObject o, BuildingType type) {
-        Building b =
-                Building.create(type, readPos(o.get("pos")), o.get("rotation").getAsInt());
-        b.setLevel(o.get("level").getAsInt());
-        b.setBuilt(o.get("built").getAsBoolean());
-        b.setCustomName(o.get("customName").getAsString());
-        b.setStyle(o.get("style").getAsString());
-        if (o.has("deconstructed")) {
-            b.setDeconstructed(o.get("deconstructed").getAsBoolean());
-        }
-        if (o.has("containers")) {
-            for (JsonElement el : o.getAsJsonArray("containers")) {
-                b.addContainer(readPos(el));
-            }
-        }
-        JsonObject modules = o.getAsJsonObject("modules");
-        for (String key : modules.keySet()) {
-            BuildingModule module = b.modules().get(key);
-            if (module instanceof PersistentModule pm) {
-                pm.read(modules.getAsJsonObject(key));
-            } else if (module == null) {
-                b.unknownModules().put(key, modules.getAsJsonObject(key));
-            }
-        }
-        return b;
-    }
-
-    // ---- citizens ----
-
-    private static JsonObject citizen(CitizenData d) {
-        JsonObject o = new JsonObject();
-        o.addProperty("id", d.id());
-        o.addProperty("name", d.name());
-        o.addProperty("gender", d.gender().name());
-        o.addProperty("child", d.isChild());
-        JsonObject skills = new JsonObject();
-        for (Skill s : Skill.values()) {
-            JsonObject so = new JsonObject();
-            so.addProperty("level", d.skills().level(s));
-            so.addProperty("xp", d.skills().experience(s));
-            skills.add(s.name(), so);
-        }
-        o.add("skills", skills);
-        o.add("lastPosition", vec(d.lastPosition()));
-        o.add("respawnPosition", pos(d.respawnPosition()));
-        o.add("home", pos(d.homeBuilding()));
-        o.add("work", pos(d.workBuilding()));
-        o.addProperty("saturation", d.saturation());
-        o.add("inventory", d.inventory().write());
-        o.add("job", d.job().<JsonElement>map(Job::write).orElse(JsonNull.INSTANCE));
-        return o;
-    }
-
-    private static CitizenData readCitizen(JsonObject o, ColonyContext ctx) {
-        CitizenData d = new CitizenData(o.get("id").getAsInt());
-        d.setName(o.get("name").getAsString());
-        d.setGender(Gender.valueOf(o.get("gender").getAsString()));
-        d.setChild(o.get("child").getAsBoolean());
-        Skills skills = Skills.empty();
-        JsonObject so = o.getAsJsonObject("skills");
-        for (Skill s : Skill.values()) {
-            if (so.has(s.name())) {
-                JsonObject e = so.getAsJsonObject(s.name());
-                skills.set(s, e.get("level").getAsInt(), e.get("xp").getAsDouble());
-            }
-        }
-        d.setSkills(skills);
-        d.setLastPosition(readVec(o.get("lastPosition")));
-        d.setRespawnPosition(readPos(o.get("respawnPosition")));
-        d.setHomeBuilding(readPos(o.get("home")));
-        d.setWorkBuilding(readPos(o.get("work")));
-        d.setSaturation(o.get("saturation").getAsDouble());
-        d.setInventory(Inventory.read(o.getAsJsonArray("inventory"), CitizenData.INVENTORY_SLOTS));
-        if (o.has("job") && !o.get("job").isJsonNull()) {
-            JsonObject jobJson = o.getAsJsonObject("job");
-            String typeId = jobJson.get("type").getAsString();
-            Optional<JobType> type = ctx.jobs().byId(typeId);
-            if (type.isPresent()) {
-                Job job = type.get().factory().apply(d);
-                job.read(jobJson);
-                d.setJob(job);
-            } else {
-                // The job type no longer exists: drop the stale work assignment so the citizen is re-hireable.
-                d.setWorkBuilding(null);
-            }
-        }
-        return d;
     }
 }
