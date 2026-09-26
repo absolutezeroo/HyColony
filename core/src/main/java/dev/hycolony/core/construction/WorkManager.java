@@ -112,8 +112,8 @@ public final class WorkManager {
             return refuse(WorkOrderRefusal.OUT_OF_COLONY);
         }
 
-        WorkOrder order =
-                new WorkOrder(++topId, type, buildingPos, target, blueprintLevel, resolvedStyle, b.rotation());
+        WorkOrder order = new WorkOrder(
+                ++topId, type, buildingPos, target, new WorkOrder.Layout(resolvedStyle, blueprintLevel, b.rotation()));
         builder.ifPresent(order::setClaimedBy);
         order.setFree(isFree(player, type));
         add(order);

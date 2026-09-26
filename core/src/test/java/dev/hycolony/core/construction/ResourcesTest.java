@@ -78,7 +78,7 @@ class ResourcesTest {
     }
 
     private static WorkOrder order(int id) {
-        return new WorkOrder(id, WorkOrderType.BUILD, HUT, 1, 1, "s", 0);
+        return new WorkOrder(id, WorkOrderType.BUILD, HUT, 1, new WorkOrder.Layout("s", 1, 0));
     }
 
     @Test

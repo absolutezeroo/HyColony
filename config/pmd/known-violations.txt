@@ -45,7 +45,6 @@ ExcessiveImports plugin/src/main/java/dev/hycolony/plugin/command/HyColonyComman
 ExcessiveImports plugin/src/main/java/dev/hycolony/plugin/ui/BuildingPage.java
 ExcessiveParameterList core/src/main/java/dev/hycolony/core/colony/Colony.java
 ExcessiveParameterList core/src/main/java/dev/hycolony/core/colony/ColonyManager.java
-ExcessiveParameterList core/src/main/java/dev/hycolony/core/construction/WorkOrder.java
 ExcessiveParameterList plugin/src/main/java/dev/hycolony/plugin/adapter/PrefabStyles.java
 ExcessiveParameterList plugin/src/main/java/dev/hycolony/plugin/ui/BuildingPage.java
 GodClass core/src/main/java/dev/hycolony/core/colony/Colony.java

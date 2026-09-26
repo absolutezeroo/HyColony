@@ -19,21 +19,17 @@ public final class WorkOrder {
     private int progressIndex;
     private boolean free;
 
-    WorkOrder(
-            int id,
-            WorkOrderType type,
-            BlockPos buildingPos,
-            int targetLevel,
-            int blueprintLevel,
-            String style,
-            int rotation) {
+    /** The blueprint an order follows: its style, level (see {@link #blueprintLevel()}) and rotation. */
+    record Layout(String style, int blueprintLevel, int rotation) {}
+
+    WorkOrder(int id, WorkOrderType type, BlockPos buildingPos, int targetLevel, Layout layout) {
         this.id = id;
         this.type = type;
         this.buildingPos = buildingPos;
         this.targetLevel = targetLevel;
-        this.blueprintLevel = blueprintLevel;
-        this.style = style;
-        this.rotation = rotation;
+        this.blueprintLevel = layout.blueprintLevel();
+        this.style = layout.style();
+        this.rotation = layout.rotation();
         this.stage = initialStage();
     }
 
@@ -154,11 +150,12 @@ public final class WorkOrder {
                 WorkOrderType.valueOf(o.get("type").getAsString()),
                 readPos(o.getAsJsonObject("pos")),
                 o.get("targetLevel").getAsInt(),
-                o.has("blueprintLevel")
-                        ? o.get("blueprintLevel").getAsInt()
-                        : o.get("targetLevel").getAsInt(),
-                o.get("style").getAsString(),
-                o.get("rotation").getAsInt());
+                new Layout(
+                        o.get("style").getAsString(),
+                        o.has("blueprintLevel")
+                                ? o.get("blueprintLevel").getAsInt()
+                                : o.get("targetLevel").getAsInt(),
+                        o.get("rotation").getAsInt()));
         w.priority = o.get("priority").getAsInt();
         w.claimedBy = o.has("claimedBy") ? readPos(o.getAsJsonObject("claimedBy")) : null;
         w.stage = Stage.valueOf(o.get("stage").getAsString());
