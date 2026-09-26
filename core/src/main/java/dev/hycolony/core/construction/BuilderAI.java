@@ -319,6 +319,7 @@ public final class BuilderAI implements JobAI {
             return null;
         }
         stock.receiveCompletedBuildingRequests();
+        stock.claimOpenFromHut();
         for (Request r : mine) {
             if (r.state() == RequestState.COMPLETED) {
                 stock.pickUp(r);

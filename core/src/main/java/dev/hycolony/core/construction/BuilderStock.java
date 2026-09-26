@@ -230,6 +230,18 @@ final class BuilderStock {
         }
     }
 
+    /**
+     * MC checkForToolOrWeapon / lookForRequests, run while the builder waits: an open request of this builder that its
+     * hut can now serve (a tool of the right type and level, or the full stack, beyond what other requests reserved)
+     * goes to the hut's own resolver, which completes it with the hut's items for {@link #pickUp}. Covers what reached
+     * the hut without a container event (hopper, restart, another player's window).
+     */
+    void claimOpenFromHut() {
+        requests().onColonyUpdate(r -> r.requester().equals(hut.requesterId()) && r.citizenId() == citizen.id()
+                && r.state().ordinal() < RequestState.COMPLETED.ordinal()
+                && hut.resolvers().stream().anyMatch(res -> res.canResolve(requests(), r)));
+    }
+
     /** One ToolRequest(type, 0, hut level) unless one of that type is live. */
     void requestTool(ToolType type) {
         for (Request r : requests().byRequester(hut.requesterId())) {

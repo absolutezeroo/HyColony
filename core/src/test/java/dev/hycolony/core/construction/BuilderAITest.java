@@ -31,11 +31,14 @@ import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.RequestState;
 import dev.hycolony.core.request.StackRequest;
 import dev.hycolony.core.request.ToolRequest;
+import dev.hycolony.core.request.resolver.PlayerResolver;
+import dev.hycolony.core.request.resolver.RetryingResolver;
 import dev.hycolony.core.testing.TestContexts;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.BooleanSupplier;
 import org.junit.jupiter.api.Test;
@@ -875,5 +878,72 @@ class BuilderAITest {
 
         assertEquals(List.of(at(1, 0, 0), at(2, 0, 0), at(3, 0, 0), at(1, 1, 0)), t.blocks.placed);
         assertEquals(new BlockState(DIRT, 0), t.blocks.blocks.get(at(1, 0, 0)));
+    }
+
+    // ---- waited-for items placed in the hut (MC checkForToolOrWeapon / lookForRequests) ----
+
+    /** Only a player can provide it now: the field bug's state, where no container event ever comes. */
+    private void toPlayer(Request r) {
+        colony.requests().reassign(r.token(), Set.of(RetryingResolver.ID));
+        assertEquals(PlayerResolver.ID, colony.requests().resolverOf(r.token()).orElseThrow().resolverId());
+    }
+
+    @Test
+    void waitingBuilderTakesToolPlacedInHutAndResumes() {
+        ItemKey shovel = new ItemKey("shovel");
+        t.catalog.tools.put(shovel, new ToolInfo(ToolType.SHOVEL, 0, 1f));
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 0);
+        blueprint = bp(List.of(entry(1, 0, 0, STONE)));
+        t.blocks.blocks.put(at(1, 0, 0), new BlockState(DIRT, 0));
+        t.catalog.toolForBlock.put(DIRT, ToolType.SHOVEL);
+        give(STONE_I, 1);
+        WorkOrder o = order(res, WorkOrderType.BUILD);
+        tickUntil(() -> ai.stateName().equals("NEEDS_ITEM"), 1000);
+        Request r = builderRequests().get(0);
+        assertTrue(r.requestable() instanceof ToolRequest);
+        toPlayer(r);
+        tick(200);
+        assertEquals("NEEDS_ITEM", ai.stateName(), "nothing in the hut yet");
+
+        t.containers.containers.put(HUT, new java.util.LinkedHashMap<>(Map.of(shovel, 1))); // no container event
+
+        tickUntil(() -> gone(o), 5000);
+        assertTrue(colony.requests().get(r.token()).isEmpty(), "closed, not leaked");
+        assertTrue(builderRequests().isEmpty());
+        assertEquals(1, citizen.inventory().count(shovel));
+        assertEquals(0, t.containers.count(List.of(HUT), shovel));
+        assertEquals(new BlockState(STONE, 0), t.blocks.blocks.get(at(1, 0, 0)));
+    }
+
+    @Test
+    void waitingBuilderTakesStackPlacedInHutAndResumes() {
+        Request r = waitingForStone(2);
+        toPlayer(r);
+        t.containers.containers.put(HUT, new java.util.LinkedHashMap<>(Map.of(STONE_I, 2))); // no container event
+
+        tickUntil(() -> t.blocks.placed.size() == 2, 3000);
+        assertTrue(colony.requests().get(r.token()).isEmpty(), "closed, not leaked");
+        assertEquals(0, t.containers.count(List.of(HUT), STONE_I));
+    }
+
+    @Test
+    void waitingBuilderIgnoresToolAboveTheRequestedLevel() {
+        ItemKey iron = new ItemKey("iron_shovel");
+        t.catalog.tools.put(iron, new ToolInfo(ToolType.SHOVEL, 2, 1f));
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 0);
+        blueprint = bp(List.of(entry(1, 0, 0, STONE)));
+        t.blocks.blocks.put(at(1, 0, 0), new BlockState(DIRT, 0));
+        t.catalog.toolForBlock.put(DIRT, ToolType.SHOVEL);
+        hut.setLevel(1);
+        order(res, WorkOrderType.BUILD);
+        tickUntil(() -> ai.stateName().equals("NEEDS_ITEM"), 1000);
+        Request r = builderRequests().get(0);
+        toPlayer(r);
+        t.containers.containers.put(HUT, new java.util.LinkedHashMap<>(Map.of(iron, 1)));
+
+        tick(1000);
+        assertEquals("NEEDS_ITEM", ai.stateName());
+        assertEquals(1, t.containers.count(List.of(HUT), iron));
+        assertEquals(RequestState.IN_PROGRESS, colony.requests().get(r.token()).orElseThrow().state());
     }
 }
