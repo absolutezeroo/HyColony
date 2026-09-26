@@ -17,6 +17,7 @@ La garde arrête un agent qui dérive par erreur, pas un adversaire (CLAUDE.md �
 - Le détour (`SafeRoute`) ne lit pas le relief : la hauteur est interpolée entre départ et cible. Un feu sur une colline ou dans un creux de plus de 2 blocs peut être manqué, et entre deux étapes la navigation de Hytale peut encore dévier sur un feu pour contourner un obstacle. À reprendre si on le voit en jeu (lecture de la hauteur du sol par colonne).
 - Le détour ne tient pas compte des murs : `SafeRoute` ne lit que les colonnes dangereuses, et peut faire passer un segment à travers un bloc plein. La navigation de Hytale contourne alors le mur à sa façon, parfois sur le feu (relecture du 2026-09-26).
 - `isHarmful` compte comme dangereux tout bloc qui a une interaction de collision (`BlockType.isTrigger`), y compris des blocs sans dégâts (pièges, algue ralentissante, fleur d'eau). Les citoyens les évitent aussi (relecture du 2026-09-26).
+- `DetouringBodiesTest` : aucun test ne montre que l'étape refusée est revérifiée quand le corps change de bloc (relecture de b7666c4).
 - Pas de réaction à une brûlure : MineColonies n'en a pas non plus (il compte sur son pathfinding) ; le rôle `HyColony_Citizen` est `Invulnerable`. À ajouter seulement si le point précédent ne suffit pas.
 
 ## Déplacement du constructeur : écarts à MineColonies non traités (contrôle de fidélité du 2026-09-26)
