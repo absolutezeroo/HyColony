@@ -101,6 +101,11 @@ final class BuilderWalker {
         if (s == NavStatus.IDLE) {
             bodies.moveTo(body, Vec3.center(to)); // the walk was dropped (e.g. by lookAt): ask again
         }
+        return unstick(to, p, now);
+    }
+
+    /** Follows the stuck handler's advice; true once it gave up (the walk then counts as ended). */
+    private boolean unstick(BlockPos to, Vec3 p, long now) {
         switch (stuck.check(p, now)) {
             case REPATH -> bodies.moveTo(body, Vec3.center(to));
             case TELEPORT -> bodies.teleport(body, Vec3.center(to));

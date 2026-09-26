@@ -5,7 +5,6 @@ AvoidBranchingStatementAsLastInLoop core/src/main/java/dev/hycolony/core/constru
 CognitiveComplexity core/src/main/java/dev/hycolony/core/colony/ColonyManager.java
 CognitiveComplexity core/src/main/java/dev/hycolony/core/construction/BuilderAI.java
 CognitiveComplexity core/src/main/java/dev/hycolony/core/construction/WorkManager.java
-CognitiveComplexity core/src/main/java/dev/hycolony/core/construction/WorkSpot.java
 CognitiveComplexity core/src/main/java/dev/hycolony/core/request/RequestManager.java
 CognitiveComplexity core/src/main/java/dev/hycolony/core/request/RequestSerializer.java
 CognitiveComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleBlueprintSource.java
@@ -29,8 +28,6 @@ CouplingBetweenObjects plugin/src/main/java/dev/hycolony/plugin/ui/BuildingPage.
 CyclomaticComplexity core/src/main/java/dev/hycolony/core/colony/ColonyManager.java
 CyclomaticComplexity core/src/main/java/dev/hycolony/core/colony/ColonySerializer.java
 CyclomaticComplexity core/src/main/java/dev/hycolony/core/construction/BuilderAI.java
-CyclomaticComplexity core/src/main/java/dev/hycolony/core/construction/BuilderActivity.java
-CyclomaticComplexity core/src/main/java/dev/hycolony/core/construction/BuilderWalker.java
 CyclomaticComplexity core/src/main/java/dev/hycolony/core/construction/WorkManager.java
 CyclomaticComplexity core/src/main/java/dev/hycolony/core/request/RequestManager.java
 CyclomaticComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleCitizenBodies.java

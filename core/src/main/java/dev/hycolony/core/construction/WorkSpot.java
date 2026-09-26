@@ -47,19 +47,20 @@ final class WorkSpot {
             for (int[] dir : dirs) {
                 BlockPos top = block.offset(dir[0] * d, 1, dir[1] * d);
                 BlockPos feet = ground(top);
-                BlockPos spot = feet == null ? top : feet;
-                if (planned(plan, spot) || planned(plan, spot.offset(0, 1, 0))) {
-                    continue;
+                if (feet != null && open(plan, feet)) {
+                    return feet;
                 }
-                if (feet != null) {
-                    return spot;
-                }
-                if (free == null) {
-                    free = spot;
+                if (feet == null && free == null && open(plan, top)) {
+                    free = top;
                 }
             }
         }
         return free != null ? free : block.offset(dirs[0][0] * MIN_OUT, 1, dirs[0][1] * MIN_OUT);
+    }
+
+    /** Neither the feet cell nor the head cell above it is one the plan will fill. */
+    private boolean open(StructurePlan plan, BlockPos feet) {
+        return !planned(plan, feet) && !planned(plan, feet.offset(0, 1, 0));
     }
 
     /** Outward (the dominant axis from the site to the block), its two sides, then inward. */
