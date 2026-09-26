@@ -55,9 +55,9 @@ public class TickRateStateMachine<S extends IState> {
 
     public void removeTransition(TickingTransition<S> transition) {
         if (transition.getEventType() != null) {
-            eventList(transition.getEventType()).removeIf(t -> t == transition);
+            eventList(transition.getEventType()).removeIf(transition::equals);
         } else {
-            transitionMap.get(transition.getState()).removeIf(t -> t == transition);
+            transitionMap.get(transition.getState()).removeIf(transition::equals);
         }
     }
 
@@ -119,7 +119,7 @@ public class TickRateStateMachine<S extends IState> {
         if (transition.isOneTime()) {
             removeTransition(transition);
         }
-        if (newState != state) {
+        if (!newState.equals(state)) {
             currentStateTransitions = transitionMap.get(newState);
             if (currentStateTransitions == null || currentStateTransitions.isEmpty()) {
                 exceptionHandler.accept(new IllegalStateException("Missing AI transition for state: " + newState));

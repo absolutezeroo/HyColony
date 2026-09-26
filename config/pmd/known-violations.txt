@@ -12,11 +12,8 @@ CognitiveComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleBluep
 CognitiveComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleItemCatalog.java
 CognitiveComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleWorldBlocks.java
 CognitiveComplexity plugin/src/main/java/dev/hycolony/plugin/ui/BuildingPage.java
-CompareObjectsWithEquals core/src/main/java/dev/hycolony/core/building/BuildingResolver.java
-CompareObjectsWithEquals core/src/main/java/dev/hycolony/core/citizen/CitizenAI.java
 CompareObjectsWithEquals core/src/main/java/dev/hycolony/core/construction/BuilderAI.java
 CompareObjectsWithEquals core/src/main/java/dev/hycolony/core/construction/WorkManager.java
-CompareObjectsWithEquals core/src/main/java/dev/hycolony/core/kernel/ai/TickRateStateMachine.java
 CompareObjectsWithEquals plugin/src/main/java/dev/hycolony/plugin/adapter/HytalePlayerInventory.java
 CouplingBetweenObjects core/src/main/java/dev/hycolony/core/colony/Colony.java
 CouplingBetweenObjects core/src/main/java/dev/hycolony/core/colony/ColonyManager.java

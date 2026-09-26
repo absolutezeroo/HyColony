@@ -100,7 +100,7 @@ public final class BuildingResolver implements Resolver {
             }
         });
         for (Request other : m.byRequester(building.requesterId())) {
-            if (other != r) {
+            if (!other.equals(r)) {
                 for (ItemAmount a : other.deliveries()) {
                     stock.computeIfPresent(a.item(), (k, n) -> n > a.count() ? n - a.count() : null);
                 }

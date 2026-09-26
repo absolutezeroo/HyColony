@@ -108,7 +108,7 @@ public final class CitizenAI {
             aiJob = null;
             return CitizenState.IDLE;
         }
-        if (job != aiJob || !Objects.equals(data.workBuilding(), aiWorkBuilding)) {
+        if (!job.equals(aiJob) || !Objects.equals(data.workBuilding(), aiWorkBuilding)) {
             startJob(job); // fired and hired again (elsewhere) between two ticks: bound to the new hut
         }
         jobAI.tick();
