@@ -97,6 +97,7 @@ Le core ne contient **aucune notion Hytale** : pas de `Ref`, `Store` ni `BlockTy
 - Hytale fait tourner chaque monde sur son propre thread.
 - **Le core n'est pas thread-safe et n'a pas besoin de l'être** : il y a un `ColonyManager` par monde, et le plugin ne l'appelle que depuis le thread de ce monde (systèmes ECS, handlers d'événements, `world.execute`).
 - Les écritures de fichiers sont les seules opérations hors du thread du monde. Le core sérialise en JSON sur le thread du monde (un instantané immuable), et l'écriture disque passe ensuite par un `Executor` fourni par le plugin.
+- **Amendement (SP1+2)** : l'écriture disque est restée **synchrone** sur le thread du monde (`FileColonyStorage`, écriture atomique avec `.bak`). Une colonie pèse quelques dizaines de Ko et n'est écrite qu'à l'autosave ou à l'arrêt : l'`Executor` n'a pas été nécessaire. À revoir si une mesure montre un à-coup.
 
 ### 2.5 Cadence de tick
 

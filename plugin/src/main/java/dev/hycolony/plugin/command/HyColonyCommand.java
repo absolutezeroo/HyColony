@@ -12,7 +12,15 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.ConstructionPorts;
 import dev.hycolony.core.colony.Permissions;
+import dev.hycolony.core.construction.Blueprint;
+import dev.hycolony.core.construction.ConstructionBuildingTypes;
+import dev.hycolony.core.kernel.item.BlockKey;
+import dev.hycolony.core.kernel.item.BlockKind;
+import dev.hycolony.core.kernel.item.BlockState;
+import dev.hycolony.core.kernel.item.ItemAmount;
+import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.persist.FileColonyStorage;
@@ -173,6 +181,8 @@ public final class HyColonyCommand extends AbstractCommandCollection {
                 report(player, "storage", false, e.toString());
             }
 
+            construction(player, rt, where(store, ref), ids);
+
             // Tag (-1, -1): if this body survives a crash, onBodyLoaded finds no colony -1 and despawns it.
             Optional<BodyId> body = rt.bodies().spawn(null, where(store, ref).offset(2, 0, 0), -1, -1, "SelfTest");
             report(player, "spawn", body.isPresent(), "spawnNPCWithColumnProbe");
@@ -193,6 +203,42 @@ public final class HyColonyCommand extends AbstractCommandCollection {
                 };
                 world.scheduleAfter(poll[0], 500, TimeUnit.MILLISECONDS);
             });
+        }
+
+        /** Blueprint load, then place / container round trip / break of a builder hut 3 blocks above the player. */
+        private static void construction(PlayerRef player, WorldRuntime rt, BlockPos at, IdMap ids) {
+            ConstructionPorts ports = rt.manager().context().ports();
+            try {
+                Optional<Blueprint> bp = ports.blueprints().load("outlander", ConstructionBuildingTypes.BUILDER.id(), 1, 0);
+                report(player, "blueprint", bp.isPresent() && !bp.get().entries().isEmpty(),
+                        bp.map(b -> b.key() + " (" + b.entries().size() + " blocks)").orElse("outlander builder 1 missing"));
+
+                BlockPos test = at.offset(0, 3, 0);
+                boolean air = ports.blocks().get(test)
+                        .map(st -> ports.catalog().kind(st.key()) == BlockKind.AIR).orElse(false);
+                if (!air) {
+                    report(player, "blocks", false, "the cell 3 blocks above you must be loaded air");
+                    return;
+                }
+                BlockState hut = new BlockState(new BlockKey(ids.blockId(ConstructionBuildingTypes.BUILDER.hutBlockKey())), 0);
+                boolean placed = ports.blocks().place(test, hut, true)
+                        && ports.blocks().get(test).map(st -> st.key().equals(hut.key())).orElse(false);
+                report(player, "place", placed, "place " + hut.key().id());
+                if (!placed) {
+                    return;
+                }
+                List<BlockPos> box = List.of(test);
+                ItemKey item = new ItemKey(ids.itemId(ConstructionBuildingTypes.BUILDER.hutBlockKey()));
+                ItemAmount rest = ports.containers().insert(box, new ItemAmount(item, 1));
+                boolean roundTrip = rest == null && ports.containers().count(box, item) == 1
+                        && ports.containers().extract(box, item, 1) == 1 && ports.containers().count(box, item) == 0;
+                report(player, "container", roundTrip, "insert / count / extract");
+                List<ItemAmount> drops = ports.blocks().breakBlock(test);
+                boolean gone = ports.blocks().get(test).map(st -> ports.catalog().kind(st.key()) == BlockKind.AIR).orElse(false);
+                report(player, "break", gone, "drops " + drops);
+            } catch (RuntimeException e) {
+                report(player, "construction", false, e.toString());
+            }
         }
 
         private static void report(PlayerRef player, String step, boolean ok, String detail) {

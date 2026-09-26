@@ -15,6 +15,11 @@ import dev.hycolony.core.kernel.event.EventBus;
 import dev.hycolony.core.kernel.persist.FileColonyStorage;
 import dev.hycolony.core.kernel.persist.MigrationChain;
 import dev.hycolony.plugin.adapter.HytaleBlocks;
+import dev.hycolony.plugin.adapter.HytaleBlueprintSource;
+import dev.hycolony.plugin.adapter.HytaleContainerAccess;
+import dev.hycolony.plugin.adapter.HytaleItemCatalog;
+import dev.hycolony.plugin.adapter.HytalePlayerInventory;
+import dev.hycolony.plugin.adapter.HytaleWorldBlocks;
 import dev.hycolony.plugin.adapter.HytaleCitizenBodies;
 import dev.hycolony.plugin.adapter.HytaleGameClock;
 import dev.hycolony.plugin.adapter.HytaleNotifier;
@@ -50,7 +55,8 @@ public final class WorldRuntime {
                 new HytaleWorldQuery(world), new HytaleNotifier(),
                 new HytaleUiPort(() -> self[0], blocks, ids),
                 new HytalePlayerDirectory(world), BuildingTypes.defaults(), jobs, names,
-                new Random(), new EventBus(), ConstructionPorts.unavailable());
+                new Random(), new EventBus(), new ConstructionPorts(new HytaleItemCatalog(), new HytaleWorldBlocks(world),
+                        new HytaleContainerAccess(world), new HytalePlayerInventory(world), new HytaleBlueprintSource()));
         this.manager = new ColonyManager(ctx);
         self[0] = manager;
         manager.setStorage(new FileColonyStorage(world.getSavePath().resolve("hycolony")), MigrationChain.sp1());
