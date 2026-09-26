@@ -14,7 +14,7 @@ La garde arrête un agent qui dérive par erreur, pas un adversaire (CLAUDE.md �
 
 ## Citoyens et feu : reste à faire (2026-09-26)
 
-- Un trajet peut encore **traverser** un feu : la navigation de Hytale n'évite que les blocs à `DamageToEntities`, pas les interactions de collision (feu, brasero, feu de camp éteint). Seules les cibles sont sûres (`DangerousCells`). Piste si le problème reste visible en jeu : suivre le chemin et relancer la marche quand le prochain point est dangereux.
+- Le détour (`SafeRoute`) ne lit pas le relief : la hauteur est interpolée entre départ et cible. Un feu sur une colline ou dans un creux de plus de 2 blocs peut être manqué, et entre deux étapes la navigation de Hytale peut encore dévier sur un feu pour contourner un obstacle. À reprendre si on le voit en jeu (lecture de la hauteur du sol par colonne).
 - Pas de réaction à une brûlure : MineColonies n'en a pas non plus (il compte sur son pathfinding) ; le rôle `HyColony_Citizen` est `Invulnerable`. À ajouter seulement si le point précédent ne suffit pas.
 
 ## Déplacement du constructeur : écarts à MineColonies non traités (contrôle de fidélité du 2026-09-26)

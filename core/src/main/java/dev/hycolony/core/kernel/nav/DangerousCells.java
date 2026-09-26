@@ -10,9 +10,7 @@ import dev.hycolony.core.kernel.port.WorldBlocks;
  * SurfaceType.getSurfaceType and AbstractPathJob.isPassable apply it, where a dangerous block is not passable and
  * neither is the cell above one. Danger is {@link ItemCatalog#isHarmful}.
  *
- * <p>Deviation from MC: Hytale's nav owns the path and only avoids blocks with {@code DamageToEntities}, not the
- * collision interactions vanilla fire and campfires burn with, so only walk targets are kept clear of danger; a path
- * may still cross one.
+ * <p>Walk targets are kept off these cells, and {@link SafeRoute} routes walks around them.
  */
 public final class DangerousCells {
     private final WorldBlocks blocks;

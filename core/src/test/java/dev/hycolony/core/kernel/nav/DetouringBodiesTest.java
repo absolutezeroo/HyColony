@@ -1,0 +1,69 @@
+package dev.hycolony.core.kernel.nav;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.Vec3;
+import dev.hycolony.core.kernel.item.BlockKey;
+import dev.hycolony.core.kernel.item.BlockKind;
+import dev.hycolony.core.kernel.item.BlockState;
+import dev.hycolony.core.kernel.port.BodyId;
+import dev.hycolony.core.kernel.port.NavStatus;
+import dev.hycolony.core.testing.FakeBodies;
+import dev.hycolony.core.testing.FakeCatalog;
+import dev.hycolony.core.testing.FakeWorldBlocks;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+
+class DetouringBodiesTest {
+    private static final BlockState FIRE = new BlockState(new BlockKey("fire"), 0);
+    private static final Vec3 TO = new Vec3(10.5, 64, 0.5);
+
+    private final FakeWorldBlocks world = new FakeWorldBlocks();
+    private final FakeCatalog catalog = new FakeCatalog();
+    private final FakeBodies fake = new FakeBodies();
+    private final DetouringBodies bodies = new DetouringBodies(fake, world, catalog);
+    private final BodyId body = fake.existing(1, 1, new Vec3(0.5, 64, 0.5));
+
+    DetouringBodiesTest() {
+        catalog.kinds.put(FIRE.key(), BlockKind.NON_SOLID);
+        catalog.harmful.add(FIRE.key());
+        world.blocks.put(new BlockPos(5, 64, 0), FIRE);
+    }
+
+    @Test
+    void walksTheDetourWaypointsOneByOneThenReportsArrival() {
+        fake.instant = true;
+
+        bodies.moveTo(body, TO);
+        NavStatus status = NavStatus.MOVING;
+        for (int i = 0; i < 20 && status == NavStatus.MOVING; i++) {
+            status = bodies.navStatus(body);
+        }
+
+        assertEquals(NavStatus.ARRIVED, status);
+        assertTrue(fake.moves.size() > 1, "waypoints before the target: " + fake.moves);
+        assertEquals(TO, fake.moves.getLast());
+    }
+
+    @Test
+    void movesOnWhenCloseToAWaypointTheNavNeverReaches() {
+        bodies.moveTo(body, TO);
+        Vec3 waypoint = fake.moves.getFirst();
+        fake.bodies.get(body).position = new Vec3(waypoint.x() + 0.5, waypoint.y() + 2, waypoint.z()); // on a hill
+
+        assertEquals(NavStatus.MOVING, bodies.navStatus(body));
+        assertEquals(2, fake.moves.size(), "the next waypoint is asked for");
+    }
+
+    @Test
+    void lookAtDropsTheRemainingDetour() {
+        bodies.moveTo(body, TO);
+        bodies.lookAt(body, TO);
+        fake.bodies.get(body).status = NavStatus.ARRIVED;
+
+        assertEquals(NavStatus.ARRIVED, bodies.navStatus(body));
+        assertEquals(List.of(fake.moves.getFirst()), fake.moves, "no further waypoint");
+    }
+}

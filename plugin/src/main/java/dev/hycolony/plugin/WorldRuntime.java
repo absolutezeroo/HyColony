@@ -14,6 +14,7 @@ import dev.hycolony.core.job.JobRegistry;
 import dev.hycolony.core.kernel.WorldKey;
 import dev.hycolony.core.kernel.config.ColonyConfig;
 import dev.hycolony.core.kernel.event.EventBus;
+import dev.hycolony.core.kernel.nav.DetouringBodies;
 import dev.hycolony.core.kernel.persist.FileColonyStorage;
 import dev.hycolony.core.kernel.persist.MigrationChain;
 import dev.hycolony.plugin.adapter.HytaleBlocks;
@@ -63,11 +64,13 @@ public final class WorldRuntime {
         BuildingRegistry buildings = BuildingTypes.defaults();
         ConstructionBuildingTypes.register(buildings);
         Set<String> hutBlockIds = HutBlockSystems.byBlockId(ids).keySet(); // the builder never breaks these
+        HytaleItemCatalog catalog = new HytaleItemCatalog(hutBlockIds);
+        HytaleWorldBlocks worldBlocks = new HytaleWorldBlocks(world, hutBlockIds);
         ColonyContext ctx = new ColonyContext(
                 new WorldKey(world.getName()),
                 config,
                 clock,
-                bodies,
+                new DetouringBodies(bodies, worldBlocks, catalog), // Hytale's nav walks through fire
                 new HytaleWorldQuery(world),
                 new HytaleNotifier(),
                 new HytaleUiPort(() -> self[0], blocks, ids),
@@ -78,8 +81,8 @@ public final class WorldRuntime {
                 new Random(),
                 new EventBus(),
                 new ConstructionPorts(
-                        new HytaleItemCatalog(hutBlockIds),
-                        new HytaleWorldBlocks(world, hutBlockIds),
+                        catalog,
+                        worldBlocks,
                         new HytaleContainerAccess(world),
                         new HytalePlayerInventory(world),
                         new HytaleBlueprintSource(),
