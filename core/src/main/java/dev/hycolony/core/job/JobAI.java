@@ -11,6 +11,11 @@ public interface JobAI {
 
     boolean canBeInterrupted();
 
+    /** MC AbstractEntityAIBasic.canGoIdle: true when the worker has nothing to do and may wander; false by default. */
+    default boolean canGoIdle() {
+        return false;
+    }
+
     /** What the job is doing right now, as one translatable line (the citizen window); empty if nothing to say. */
     default Optional<Msg> describe() {
         return Optional.empty();

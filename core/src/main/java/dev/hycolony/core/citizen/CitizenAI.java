@@ -16,7 +16,11 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.random.RandomGenerator;
 
-/** Top-level citizen AI. Idle, wander, or work its job if it has one. */
+/**
+ * Top-level citizen AI: idle, wander, or work its job. Port of MC CitizenAI.calculateNextState, reduced to the work
+ * decision: the citizen works only when its job AI cannot go idle ({@link JobAI#canGoIdle}). Deviation from MC: no
+ * leisure time yet (no leisure system), so a worker with work never takes a break.
+ */
 public final class CitizenAI {
     private static final System.Logger LOG = System.getLogger(CitizenAI.class.getName());
     private static final int WANDER_RADIUS = 10;
@@ -69,8 +73,7 @@ public final class CitizenAI {
     }
 
     private CitizenState idle() {
-        if (data.job().isPresent() && bodies.isAlive(body)) {
-            startJob(data.job().get());
+        if (shouldWork()) {
             return CitizenState.WORKING;
         }
         idleTicksLeft -= 20;
@@ -104,15 +107,41 @@ public final class CitizenAI {
     private CitizenState work() {
         Job job = data.job().orElse(null);
         if (job == null) {
-            jobAI = null;
-            aiJob = null;
+            dropJobAI();
             return CitizenState.IDLE;
         }
         if (!job.equals(aiJob) || !Objects.equals(data.workBuilding(), aiWorkBuilding)) {
             startJob(job); // fired and hired again (elsewhere) between two ticks: bound to the new hut
         }
+        if (jobAI.canGoIdle()) {
+            dropJobAI();
+            idleTicksLeft = 0; // the next idle decision wanders, replacing the job's unfinished walk
+            return CitizenState.IDLE;
+        }
         jobAI.tick();
         return null;
+    }
+
+    /**
+     * MC calculateNextState: work only when the job AI cannot go idle. Asks a fresh job AI, which then starts from
+     * its first state like MC's resetAI on entering WORK.
+     */
+    private boolean shouldWork() {
+        Job job = data.job().orElse(null);
+        if (job == null || !bodies.isAlive(body)) {
+            return false;
+        }
+        if (jobAI == null || !job.equals(aiJob) || !Objects.equals(data.workBuilding(), aiWorkBuilding)) {
+            startJob(job);
+        }
+        return !jobAI.canGoIdle();
+    }
+
+    /** Forgets the job AI and its held item (MC resetAI clears the render metadata). */
+    private void dropJobAI() {
+        jobAI = null;
+        aiJob = null;
+        bodies.setHeldItem(body, Optional.empty());
     }
 
     private void startJob(Job job) {

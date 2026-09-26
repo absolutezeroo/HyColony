@@ -300,6 +300,7 @@ Chaque écart porte un commentaire `Deviation from MC:` dans le code (CLAUDE.md 
 - **Animations de travail** (`construction/builder/BuilderGestures`) : MineColonies fait balancer le bras à chaque tick d'IA (5 ticks de jeu), ce qui donne un mouvement continu parce que le geste est court. Les animations Hytale (Block/Build, Pickaxe/Mine) durent plus longtemps : les relancer tous les 5 ticks les jouerait deux fois. La pose joue Build une fois par bloc, et le minage ne relance le coup de pioche qu'une fois le précédent terminé.
 
 **Citoyens**
+- **Pas de temps libre** (`citizen/CitizenAI`) : comme MineColonies (`CitizenAI.calculateNextState`), un travailleur dont l'IA de métier peut se reposer (`canGoIdle`, par exemple un constructeur sans ordre réclamé) erre au lieu de travailler. Le temps libre (`getLeisureTime`) n'existe pas encore : un travailleur qui a du travail ne fait jamais de pause.
 - **Marqueur « ! »** (`colony/CitizenNameplates`) : MineColonies affiche une icône au-dessus de la tête d'un citoyen qui attend un joueur. Les PNJ Hytale n'ont pas cette surcouche, donc le nom l'affiche : « ! Nom ».
 
 **Requêtes**
