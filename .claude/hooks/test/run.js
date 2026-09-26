@@ -5,6 +5,7 @@
 const { execFileSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
+const os = require("os");
 
 const ROOT = path.resolve(__dirname, "../../..");
 const GUARD = path.resolve(process.argv[2] || path.join(__dirname, "../guard.js"));
@@ -48,6 +49,9 @@ const FILE_CASES = [
     ["deny", "Edit", { file_path: W(".claude/hooks/guard.js"), old_string: "a", new_string: "b" }],
     ["deny", "Write", { file_path: W(".claude/settings.local.json"), content: '{"disableAllHooks": true}' }],
     ["deny", "Write", { file_path: W(".claude/settings.local.json"), content: "{}" }, "unlocked"],
+    ["deny", "Write", { file_path: path.join(os.homedir(), ".claude/settings.json"), content: "{}" }, "unlocked"],
+    ["deny", "Edit", { file_path: path.join(os.homedir(), ".claude/settings.local.json"), old_string: "a", new_string: "b" }, "unlocked"],
+    ["deny", "Write", { file_path: "~/.claude/settings.json", content: "{}" }, "unlocked"],
     ["deny", "Edit", { file_path: W("AGENTS.md"), old_string: "a", new_string: "b" }],
     ["deny", "Edit", { file_path: W("CLAUDE.md"), old_string: "a", new_string: "b" }],
     ["deny", "Edit", { file_path: W(".claude/agents/hycolony-reviewer.md"), old_string: "a", new_string: "b" }],

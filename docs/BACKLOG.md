@@ -28,10 +28,6 @@ Sujet volontairement mis en pause par l'utilisateur, faute de problème constat�
 
 ## Garde-fous : relecture du 2026-09-26 (3e passe)
 
-**Bloquant**
-- `timeout`, `nice`, `env -i`, `stdbuf`, ou `sh`/`bash` sans `-c` placés devant `./gradlew runServer` ou `git commit -n` laissent passer la commande.
-- `~/.claude/settings.json` (réglages utilisateur) n'est pas protégé. Il faut aussi ajouter `"disableAllHooks": false` dans `.claude/settings.json`.
-
 **Mineur**
 - Faux positifs : un code en ligne (`python -c`, `node -e`) qui ne fait que **lire** un garde-fou est refusé.
 - `%USERPROFILE%` dans `.claude/skills/hytale-api/SKILL.md:11`.

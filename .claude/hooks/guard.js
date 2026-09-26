@@ -8,6 +8,7 @@
 "use strict";
 const fs = require("fs");
 const path = require("path");
+const os = require("os");
 
 const UNLOCKED = process.env.HYCOLONY_GUARDRAILS_UNLOCKED === "1";
 const RESEARCH_ONLY = process.argv.includes("--research-only");
@@ -41,7 +42,7 @@ const MENTION_GUARD = /\.githooks|\.claude\/(hooks|agents|skills|settings\.json)
 const WRITE_CALL = /write|append|delete|unlink|\brm|rename|copy|truncate|chmod|symlink|mkdir|remove|move|replace|open\s*\(|set-content|out-file|>/;
 const ASK_USER = "Ask the user: guardrail changes need their explicit approval (CLAUDE.md § 10).";
 
-const WRAPPERS = new Set(["env", "command", "builtin", "exec", "nohup", "time", "sudo", "then", "do", "else", "if",
+const WRAPPERS = new Set(["command", "builtin", "exec", "nohup", "time", "sudo", "then", "do", "else", "if",
     "elif", "while", "until", "!", "{", "&", "."]);
 const DESTROY = new Set(["rm", "rmdir", "unlink", "shred", "del", "erase", "rd", "ri", "remove-item", "mv", "move",
     "mi", "move-item", "ren", "rni", "rename-item", "rename"]);
@@ -51,6 +52,13 @@ const WRITE = new Set(["tee", "tee-object", "touch", "truncate", "chmod", "chown
 const COPY = new Set(["cp", "copy", "cpi", "copy-item", "install", "rsync", "scp"]);
 const INTERPRETERS = new Set(["node", "python", "python3", "py", "perl", "ruby", "php", "deno", "bun"]);
 const SHELLS = new Set(["bash", "sh", "zsh", "dash"]);
+// Wrappers that run the command after their options, with the options that take a value.
+const PREFIXES = {
+    timeout: ["-s", "-k", "--signal", "--kill-after"],
+    nice: ["-n", "--adjustment"],
+    stdbuf: ["-i", "-o", "-e", "--input", "--output", "--error"],
+    env: ["-u", "--unset", "-C", "--chdir", "-S", "--split-string"],
+};
 
 function deny(reason) {
     console.log(JSON.stringify({
@@ -120,8 +128,17 @@ function category(rel, whole) {
     return /(^|\/)config\.json\.bak$/.test(rel) ? [LOCAL, rel] : null;
 }
 
+/** True when `word` names the user's own Claude settings (~/.claude/settings.json or settings.local.json). */
+function isUserSettings(word, base) {
+    const home = norm(os.homedir()).replace(/\/$/, "");
+    const expanded = norm(word).replace(/^(~|\$home|\$\{home\}|\$env:userprofile|%userprofile%)(?=\/)/, home);
+    const a = absolute(expanded, base);
+    return a === home + "/.claude/settings.json" || a === home + "/.claude/settings.local.json";
+}
+
 /** Denies a command writing `word` (a file or, when `whole`, a directory tree). */
-function checkTarget(word, whole, base) {
+function checkTarget(word, whole, base = ctx.cwd) {
+    if (isUserSettings(word, base)) deny(`${word}: the user's local settings are never written by an agent. Ask them.`);
     const rel = relative(word, base);
     if (rel === null) return;
     if (RESEARCH_ONLY && !rel.startsWith("docs/research/")) deny(`hycolony-researcher writes only under docs/research/ (${word}).`);
@@ -267,10 +284,7 @@ function checkSegment(seg, ps) {
     if (all.some((w) => /^(\$env:)?git_config/.test(w)) && all.some((w) => w.includes("core.hookspath"))) {
         deny("CLAUDE.md § 10: core.hooksPath stays .githooks (GIT_CONFIG_* environment). " + ASK_USER);
     }
-    let words = seg.words;
-    while (words.length && (WRAPPERS.has(words[0].toLowerCase()) || /^[A-Za-z_]\w*=/.test(words[0]))) {
-        words = words.slice(1);
-    }
+    const words = stripPrefixes(seg.words);
     if (!words.length) return;
     const name = norm(words[0]).split("/").pop().replace(/\.(exe|bat|cmd|ps1)$/, "");
     const args = words.slice(1);
@@ -289,6 +303,8 @@ function checkSegment(seg, ps) {
     else if (SHELLS.has(name)) {
         const c = args.findIndex((a) => /^-[a-z]*c$/.test(a));
         if (c >= 0 && args[c + 1] !== undefined) checkCommand(args[c + 1], false);
+        const file = args.findIndex((a) => !a.startsWith("-"));
+        if (c < 0 && file >= 0 && norm(args[file]).split("/").pop() === "gradlew") checkGradle(args.slice(file + 1));
         seg.bodies.forEach((b) => checkCommand(b, false));
     } else if (name === "pwsh" || name === "powershell") checkPowerShell(args);
     else if (["eval", "iex", "invoke-expression"].includes(name)) checkCommand(args.join(" "), ps);
@@ -297,6 +313,25 @@ function checkSegment(seg, ps) {
         const launched = args.flatMap((a) => a.split(",")).filter((a) => a && !/^-(filepath|argumentlist|wait|nonewwindow|passthru|workingdirectory|windowstyle|verb)$/i.test(a));
         checkSegment({ words: launched, targets: [], bodies: [] }, ps);
     }
+}
+
+/** Words left once wrappers (sudo, timeout 60, nice -n 5, env -i VAR=x…) and their options are removed. */
+function stripPrefixes(words) {
+    while (words.length) {
+        const w = words[0].toLowerCase();
+        const valued = PREFIXES[w];
+        if (WRAPPERS.has(w) || /^[A-Za-z_]\w*=/.test(words[0])) {
+            words = words.slice(1);
+        } else if (valued) {
+            let i = 1;
+            while (i < words.length && words[i].startsWith("-")) {
+                if (words[i] === "--") { i++; break; }
+                i += valued.includes(words[i]) ? 2 : 1;
+            }
+            words = words.slice(w === "timeout" ? i + 1 : i);
+        } else break;
+    }
+    return words;
 }
 
 function moveTo(dir) {
@@ -492,6 +527,7 @@ const checks = (text) => text.replace(/\r\n/g, "\n").slice(Math.max(0, text.repl
 
 function checkFile(tool, input) {
     const file = input.file_path || input.notebook_path || "";
+    if (isUserSettings(file, ctx.cwd)) deny(`${file}: the user's local settings are never written by an agent. Ask them.`);
     const rel = relative(file);
     if (RESEARCH_ONLY && (rel === null || !rel.startsWith("docs/research/"))) deny(`hycolony-researcher writes only under docs/research/ (${file}).`);
     const [cat] = (rel !== null && category(rel, false)) || [];

@@ -144,6 +144,18 @@ deny PowerShell Start-Process java -ArgumentList '-jar','HytaleServer.jar'
 deny PowerShell Start-Process .\gradlew.bat -ArgumentList ':plugin:runServer'
 deny PowerShell & .\gradlew.bat :plugin:runServer
 deny PowerShell .\gradlew :plugin:runServer
+deny Bash timeout 600 ./gradlew runServer
+deny Bash nice ./gradlew runServer
+deny Bash nice -n 5 ./gradlew runServer
+deny Bash stdbuf -oL ./gradlew runServer
+deny Bash env -i -u X A=b ./gradlew runServer
+deny Bash bash ./gradlew runServer
+deny Bash sh gradlew :plugin:runServer
+deny Bash timeout 60 git commit -n -m x
+deny Bash env -i git commit -n -m x
+deny Bash timeout -k 5 60 git commit -n -m x
+allow Bash timeout 600 ./gradlew build
+allow Bash bash ./gradlew build
 allow Bash grep -n runServer README.md
 allow Bash ./gradlew tasks --all | grep -i runServer
 allow Bash ./gradlew build
@@ -244,6 +256,11 @@ deny Bash git checkout HEAD~5 -- gradle/package-size-allowlist.txt
 deny Bash node -e "require('fs').appendFileSync('gradle/file-size-allowlist.txt','x')"
 deny PowerShell Add-Content config\pmd\known-violations.txt 'x'
 deny PowerShell Set-Content .claude\settings.local.json '{}'
+deny unlocked Bash echo '{"disableAllHooks": true}' > ~/.claude/settings.json
+deny unlocked Bash echo '{}' > ~/.claude/settings.local.json
+deny unlocked Bash cp x $HOME/.claude/settings.json
+deny unlocked PowerShell Set-Content $env:USERPROFILE\.claude\settings.json '{}'
+allow Bash cat ~/.claude/settings.json
 allow Bash cat config/pmd/known-violations.txt | wc -l
 allow Bash git diff -- gradle/file-size-allowlist.txt
 // hycolony-researcher: writes only under docs/research/, never changes git state.
