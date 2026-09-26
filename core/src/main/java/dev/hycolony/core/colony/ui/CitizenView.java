@@ -4,7 +4,7 @@ import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.colony.ui.RequestsView.RequestRow;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.port.Msg;
-import dev.hycolony.core.request.Deliverable;
+import dev.hycolony.core.request.model.Deliverable;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;

@@ -22,7 +22,7 @@ import dev.hycolony.core.kernel.Either;
 import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.core.kernel.item.ItemKey;
-import dev.hycolony.core.request.StackRequest;
+import dev.hycolony.core.request.model.StackRequest;
 import dev.hycolony.core.testing.TestContexts;
 import java.util.ArrayList;
 import java.util.List;

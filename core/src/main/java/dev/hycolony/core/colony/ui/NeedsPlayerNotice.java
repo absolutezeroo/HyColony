@@ -1,6 +1,6 @@
 package dev.hycolony.core.colony.ui;
 
-import dev.hycolony.core.request.Deliverable;
+import dev.hycolony.core.request.model.Deliverable;
 
 /**
  * A request only a player can provide, announced in chat: "{requester} ({job}) needs: {requestable}".

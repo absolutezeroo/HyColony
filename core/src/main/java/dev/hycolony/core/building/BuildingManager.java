@@ -3,7 +3,7 @@ package dev.hycolony.core.building;
 import com.google.gson.JsonObject;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.kernel.BlockPos;
-import dev.hycolony.core.request.RequesterId;
+import dev.hycolony.core.request.model.RequesterId;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;

@@ -2,6 +2,10 @@ package dev.hycolony.core.request;
 
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.port.ItemCatalog;
+import dev.hycolony.core.request.model.Deliverable;
+import dev.hycolony.core.request.model.RequestState;
+import dev.hycolony.core.request.model.RequestToken;
+import dev.hycolony.core.request.model.RequesterId;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;

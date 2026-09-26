@@ -1,4 +1,4 @@
-package dev.hycolony.core.request;
+package dev.hycolony.core.request.model;
 
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolType;

@@ -9,7 +9,7 @@ import dev.hycolony.core.kernel.ai.IStateSupplier;
 import dev.hycolony.core.kernel.ai.TickRateStateMachine;
 import dev.hycolony.core.request.RequestManager;
 import dev.hycolony.core.request.Requester;
-import dev.hycolony.core.request.RequesterId;
+import dev.hycolony.core.request.model.RequesterId;
 import dev.hycolony.core.request.resolver.PlayerResolver;
 import dev.hycolony.core.request.resolver.RetryingResolver;
 import java.util.Optional;

@@ -1,4 +1,4 @@
-package dev.hycolony.core.request;
+package dev.hycolony.core.request.model;
 
 /** MineColonies RequestState, same order: ordinals are compared (and were persisted by MineColonies). */
 public enum RequestState {

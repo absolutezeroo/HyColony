@@ -26,7 +26,7 @@ import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.core.kernel.port.Msg;
 import dev.hycolony.core.kernel.port.WorldBlocks;
 import dev.hycolony.core.request.Request;
-import dev.hycolony.core.request.RequestState;
+import dev.hycolony.core.request.model.RequestState;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;

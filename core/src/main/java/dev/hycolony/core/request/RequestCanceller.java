@@ -1,5 +1,7 @@
 package dev.hycolony.core.request;
 
+import dev.hycolony.core.request.model.RequestState;
+import dev.hycolony.core.request.model.RequestToken;
 import java.util.ArrayList;
 
 /**

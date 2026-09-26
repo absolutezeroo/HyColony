@@ -3,7 +3,7 @@ package dev.hycolony.core.colony;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.request.Request;
-import dev.hycolony.core.request.RequestState;
+import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.resolver.PlayerResolver;
 import java.util.HashMap;
 import java.util.HashSet;

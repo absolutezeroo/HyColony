@@ -1,7 +1,7 @@
 package dev.hycolony.core.colony.ui;
 
-import dev.hycolony.core.request.Deliverable;
-import dev.hycolony.core.request.RequestToken;
+import dev.hycolony.core.request.model.Deliverable;
+import dev.hycolony.core.request.model.RequestToken;
 import java.util.List;
 
 /** Open requests the player can supply (the clipboard): those held by the player and retrying resolvers. */

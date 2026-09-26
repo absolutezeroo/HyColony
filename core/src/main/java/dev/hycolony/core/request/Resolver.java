@@ -1,5 +1,7 @@
 package dev.hycolony.core.request;
 
+import dev.hycolony.core.request.model.Deliverable;
+import dev.hycolony.core.request.model.RequesterId;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;

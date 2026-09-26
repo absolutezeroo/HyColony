@@ -21,7 +21,7 @@ import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.persist.ColonyStorage;
 import dev.hycolony.core.kernel.persist.FileColonyStorage;
 import dev.hycolony.core.kernel.persist.MigrationChain;
-import dev.hycolony.core.request.StackRequest;
+import dev.hycolony.core.request.model.StackRequest;
 import dev.hycolony.core.testing.TestContexts;
 import dev.hycolony.core.testing.TestJobs;
 import java.io.IOException;

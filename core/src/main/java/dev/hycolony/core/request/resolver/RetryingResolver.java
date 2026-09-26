@@ -1,12 +1,12 @@
 package dev.hycolony.core.request.resolver;
 
 import dev.hycolony.core.kernel.BlockPos;
-import dev.hycolony.core.request.Deliverable;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.RequestManager;
-import dev.hycolony.core.request.RequestToken;
-import dev.hycolony.core.request.RequesterId;
 import dev.hycolony.core.request.Resolver;
+import dev.hycolony.core.request.model.Deliverable;
+import dev.hycolony.core.request.model.RequestToken;
+import dev.hycolony.core.request.model.RequesterId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;

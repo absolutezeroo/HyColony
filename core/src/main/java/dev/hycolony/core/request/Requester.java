@@ -1,6 +1,7 @@
 package dev.hycolony.core.request;
 
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.request.model.RequesterId;
 
 public interface Requester {
     RequesterId requesterId();
