@@ -13,6 +13,7 @@
 
 Notes :
 - Les colonies sont dans `<sauvegarde du monde>/hycolony/colony-<id>.json` (avec `.bak`, `archive/` et `corrupt/`). Elles ne dépendent pas du format de sauvegarde de Hytale.
+- La configuration est dans `mods/<group>_HyColony/config.json`, en sections comme celle de MineColonies (voir la spec SP0, § 3.5). Un ancien fichier à clés plates est relu, puis réécrit en sections avec ses valeurs au premier démarrage.
 - Les identifiants d'assets Hytale sont tous dans `plugin/src/main/resources/hycolony/id-map.json`.
 - Les plans de bâtiments (chemins de prefabs vanilla et position de la hutte) sont dans `plugin/src/main/resources/hycolony/styles.json`. Si Hytale déplace ou renomme un prefab, `/hycolony selftest` affiche `[KO] blueprint`.
 - API instables à surveiller (voir `docs/research/plugin-b-api.md`) : `BlockOperations.setBlock` (« Not yet stable », l'Update 7 passe aux sections), `PrefabBufferCall` / `IPrefabBuffer.forEach`, `ContainerBlockWindow` et `PageManager.setPageWithWindows`, `AnimationUtils.playAnimation`. Elles ne sont utilisées que dans `plugin/.../adapter/` et `plugin/.../ui/`.

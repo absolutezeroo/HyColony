@@ -43,6 +43,7 @@ HyColony porte MineColonies sur Hytale 0.6.8 (épinglé), **à l'identique** : m
 - **Documentation du code** : chaque classe, et chaque méthode qui n'est pas un simple accesseur, a une Javadoc **courte et précise**. Elle dit ce que fait la méthode et ce qu'elle renvoie, en une à trois lignes, sans roman. Elle ajoute ses effets de bord (état modifié, message envoyé), ce qu'elle renvoie sur une entrée absente ou invalide, et sa source MineColonies s'il y en a une. Exemple : `/** Places the next planned block of the current stage; skips positions already correct. */`.
 - À l'intérieur des méthodes, un commentaire explique seulement le **pourquoi** (contrainte Hytale, règle de MineColonies, cas limite), jamais ce que le code dit déjà.
 - Constantes : `static final` en `UPPER_SNAKE`, avec leur unité dans le nom ou la Javadoc (`DELAY_TICKS`).
+- **Configuration** : tout réglage que MineColonies expose dans sa configuration passe par `config.json`, dans la section MC correspondante (`Gameplay`, `Claims`, `Permissions`, `Commands`, `RequestSystem`, `Client`…), avec le défaut et les bornes de MC (rappliquées par `ColonyConfig`). Il n'est jamais codé en dur. Ce que MC code en dur reste une constante. Nos propres options vont dans la section `HyColony`. Une clé renommée ou déplacée reste lisible, sans être réécrite (voir `plugin/config/HyColonyConfig`).
 
 ## 4. Robustesse
 
