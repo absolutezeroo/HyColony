@@ -50,12 +50,12 @@ val checkFileSizes by tasks.registering {
         }
     }
 }
-// CLAUDE.md § 3: no section-divider comments ("// ---- section ----", "/* ---- */"):
+// CLAUDE.md § 3: no section-divider comments ("// ---- section ----", "/* ---- */", or a " * ----" line in a block):
 // a class that needs sections must be split.
 val checkSectionDividers by tasks.registering {
     group = "verification"
     description = "Fails when a Java source file contains a section-divider comment"
-    val divider = Regex("""^\s*(//|/\*+)\s*[-=*]{3,}""")
+    val divider = Regex("""^\s*(//|/\*+|\*)\s*[-=*]{3,}""")
     val sources = fileTree(rootDir) { include("core/src/*/java/**/*.java", "plugin/src/*/java/**/*.java") }
     inputs.files(sources)
     doLast {
