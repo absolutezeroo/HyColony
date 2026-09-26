@@ -15,6 +15,8 @@ import java.util.Set;
  * a citizen has an open request that only a player can provide (held by the {@link PlayerResolver}, the same
  * condition as the chat notice), its nameplate reads "! name". Recomputed every {@link #INTERVAL} ticks; a body is
  * renamed only when its name changes, or once when first seen (a body loaded after a restart may carry a stale name).
+ *
+ * <p>Deviation from MC: MC renders an icon over the head; Hytale NPCs have no such overlay, so the name carries it.
  */
 public final class CitizenNameplates {
     public static final int INTERVAL = 20;

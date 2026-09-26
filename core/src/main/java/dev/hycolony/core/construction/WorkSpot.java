@@ -11,6 +11,8 @@ import dev.hycolony.core.kernel.port.WorldBlocks;
  * found by PathJobMoveCloseToXNearY(block, site, 4). Without a path search, a spot is tried 2 to 4 blocks from the
  * block, outward from the site first (the builder then faces the structure), then to the sides, then inward. Its feet
  * stand on the ground found in that column, and neither its feet nor its head is a cell the plan will fill.
+ *
+ * <p>Deviation from MC: no path search (Hytale's nav owns paths), so the spot is picked from the world and the plan.
  */
 final class WorkSpot {
     /** walkToConstructionSite: a new spot once BlockPosUtil.getDistance2D(worker, block), |dx| + |dz|, exceeds 5. */

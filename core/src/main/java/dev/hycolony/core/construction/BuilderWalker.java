@@ -49,6 +49,9 @@ final class BuilderWalker {
      * EntityAIStructureBuilder.walkToConstructionSite: walks to the block's work spot and keeps it while the block is
      * within {@link WorkSpot#REACH} of where the builder stands; beyond, a new spot is chosen, once per block (a
      * block still out of reach from there is worked from where the builder got).
+     *
+     * <p>Deviation from MC: MC still works the out-of-reach block once before moving; here the builder moves first,
+     * so it never works on a block more than 5 blocks away.
      */
     boolean walkToWorkPos(BlockPos block, Supplier<BlockPos> spot) {
         if (workPos == null) {

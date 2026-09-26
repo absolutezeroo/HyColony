@@ -19,6 +19,9 @@ import dev.hycolony.core.kernel.Vec3;
  *       {@link #TIME_PER_BLOCK} x max({@link #MIN_DIST_FOR_TP}, Manhattan distance)) ticks teleports, even while the
  *       body moves (circling).</li>
  * </ul>
+ *
+ * <p>Deviation from MC: no path nodes to skip, no move-away, ladders or block breaking (Hytale's nav owns the
+ * path); the levels collapse to repath, teleport, give up.
  */
 public final class StuckHandler {
     public enum Action { NONE, REPATH, TELEPORT, GIVE_UP }
