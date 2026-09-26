@@ -57,8 +57,6 @@ public final class ColonyManager {
         return territory;
     }
 
-    // ---- collaborators ----
-
     public ColonyPersistence persistence() {
         return persistence;
     }
@@ -88,8 +86,6 @@ public final class ColonyManager {
         return administration;
     }
 
-    // ---- lookup ----
-
     public Collection<Colony> all() {
         return Collections.unmodifiableCollection(colonies.values());
     }
@@ -109,8 +105,6 @@ public final class ColonyManager {
                 .findFirst();
     }
 
-    // ---- protection ----
-
     public boolean protectionEnabled() {
         return ctx.config().enableColonyProtection();
     }
@@ -121,8 +115,6 @@ public final class ColonyManager {
                 .map(c -> c.permissions().hasPermission(player, action))
                 .orElse(true);
     }
-
-    // ---- lifecycle ----
 
     public void tick() {
         for (Colony colony : colonies.values()) {
@@ -157,8 +149,6 @@ public final class ColonyManager {
         ctx.bus().post(new ColonyEvents.ColonyDeleted(colonyId));
         return true;
     }
-
-    // ---- registration (founding and loading) ----
 
     int allocateId() {
         return nextId++;

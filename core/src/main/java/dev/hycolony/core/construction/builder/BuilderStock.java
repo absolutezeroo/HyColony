@@ -194,8 +194,6 @@ final class BuilderStock {
         return tool == null ? 1f : catalog.tool(tool).map(ToolInfo::speed).orElse(1f);
     }
 
-    // ---- requests ----
-
     private RequestManager requests() {
         return colony.requests();
     }

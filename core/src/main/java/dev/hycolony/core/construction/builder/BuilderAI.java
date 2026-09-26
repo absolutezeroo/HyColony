@@ -122,8 +122,6 @@ public final class BuilderAI implements JobAI {
         ctx.gestures().pause(EXCEPTION_DELAY);
     }
 
-    // ---- blocking events ----
-
     /** MC checkIfNeedsItem: an open or completed sync request sends the builder to wait for / fetch it. */
     private boolean needsItem() {
         BuilderState s = machine.getState();
@@ -156,8 +154,6 @@ public final class BuilderAI implements JobAI {
     private boolean dumpDue() {
         return ctx.stock().dumpDue(ctx.job().actionsDone());
     }
-
-    // ---- states ----
 
     private BuilderState idle() {
         if (!ctx.walkToHut()) {

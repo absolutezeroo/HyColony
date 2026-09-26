@@ -39,6 +39,7 @@ HyColony porte MineColonies sur Hytale 0.6.8 (épinglé), **à l'identique** : m
 - Le formatage est celui de palantir-java-format **[build : `spotlessCheck`]**. On lance `./gradlew spotlessApply` avant chaque commit.
 - Imports (Google Java Style) : un bloc d'imports statiques, une ligne vide, puis un bloc d'imports normaux, chacun trié dans l'ordre ASCII **[build : `spotlessCheck`]**.
 - Complexité, classes fourre-tout, code mort et code fragile sont vérifiés par PMD (`config/pmd/ruleset.xml`) **[build : `pmdMain`]**.
+- Pas de commentaires séparateurs (`// ---- section ----`, bannières) : si une classe a besoin de sections, elle doit être découpée.
 - Les commentaires expliquent **pourquoi**, jamais ce que le code dit déjà. Javadoc courte sur l'API publique du cœur.
 - Constantes : `static final` en `UPPER_SNAKE`, avec leur unité dans le nom ou la Javadoc (`DELAY_TICKS`).
 
