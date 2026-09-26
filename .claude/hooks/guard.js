@@ -68,9 +68,10 @@ function norm(p) {
 
 function findRoot(cwd) {
     if (process.env.CLAUDE_PROJECT_DIR) return norm(process.env.CLAUDE_PROJECT_DIR).replace(/\/$/, "");
-    for (let dir = path.resolve(cwd || "."); ; dir = path.dirname(dir)) {
+    const start = path.resolve(norm(cwd || "."));
+    for (let dir = start; ; dir = path.dirname(dir)) {
         if (fs.existsSync(path.join(dir, ".git"))) return norm(dir);
-        if (path.dirname(dir) === dir) return norm(path.resolve(cwd || "."));
+        if (path.dirname(dir) === dir) return norm(start);
     }
 }
 
@@ -489,7 +490,7 @@ const entries = (text) => text.split(/\r?\n/).map((l) => l.trim()).filter((l) =>
 // The root build file's checks (sizes, section dividers, spotless, PMD) start at its first "// CLAUDE.md §" comment.
 const checks = (text) => text.replace(/\r\n/g, "\n").slice(Math.max(0, text.replace(/\r\n/g, "\n").indexOf("// CLAUDE.md §")));
 
-function checkFile(tool, input, rawCwd) {
+function checkFile(tool, input) {
     const file = input.file_path || input.notebook_path || "";
     const rel = relative(file);
     if (RESEARCH_ONLY && (rel === null || !rel.startsWith("docs/research/"))) deny(`hycolony-researcher writes only under docs/research/ (${file}).`);
@@ -498,7 +499,7 @@ function checkFile(tool, input, rawCwd) {
     if (!cat || (cat === GUARD && UNLOCKED)) return;
     if (cat === GUARD && rel !== "build.gradle.kts") deny(`${file} is a guardrail. ` + ASK_USER);
     if (!["Write", "Edit", "MultiEdit"].includes(tool)) deny(`${file}: use Edit or Write. ` + ASK_USER);
-    const disk = path.resolve(rawCwd || ".", file);
+    const disk = absolute(file, ctx.cwd);
     const before = fs.existsSync(disk) ? fs.readFileSync(disk, "utf8") : "";
     const after = simulate(tool, input, before);
     if (cat === GUARD && checks(before) !== checks(after)) deny(`${file}: the build checks and their thresholds are guardrails. ` + ASK_USER);
@@ -515,9 +516,9 @@ function checkFile(tool, input, rawCwd) {
 try {
     const { tool_name: tool, tool_input: input = {}, cwd } = JSON.parse(fs.readFileSync(0, "utf8"));
     ctx.root = findRoot(cwd);
-    ctx.cwd = cwd ? norm(path.resolve(cwd)) : ctx.root;
+    ctx.cwd = (cwd && absolute(cwd, ctx.root)) || ctx.root;
     if (tool === "Bash" || tool === "PowerShell") checkCommand(String(input.command || ""), tool === "PowerShell");
-    else if (["Edit", "Write", "MultiEdit", "NotebookEdit"].includes(tool)) checkFile(tool, input, cwd);
+    else if (["Edit", "Write", "MultiEdit", "NotebookEdit"].includes(tool)) checkFile(tool, input);
 } catch (e) {
     // Fail closed; an unlocked session (the user maintaining the guardrails) fails open so a broken guard can be fixed.
     if (UNLOCKED) process.stderr.write(`guard.js crashed, allowed because the guardrails are unlocked: ${e.stack}\n`);

@@ -9,6 +9,8 @@ const path = require("path");
 const ROOT = path.resolve(__dirname, "../../..");
 const GUARD = path.resolve(process.argv[2] || path.join(__dirname, "../guard.js"));
 const W = (rel) => path.join(ROOT, rel);
+// The same root as Git Bash writes it (/c/Users/...).
+const GIT_BASH_ROOT = ROOT.replace(/\\/g, "/").replace(/^([A-Za-z]):/, (_, d) => "/" + d.toLowerCase());
 
 function run(tool, input, mode, extra = {}) {
     const env = { ...process.env, CLAUDE_PROJECT_DIR: ROOT, HYCOLONY_GUARDRAILS_UNLOCKED: mode === "unlocked" ? "1" : "0" };
@@ -69,6 +71,11 @@ const FILE_CASES = [
     ["deny", "NotebookEdit", { notebook_path: W(".claude/hooks/x.ipynb"), new_source: "x" }],
     ["deny", "Edit", { file_path: W(".githooks/pre-commit"), old_string: "a", new_string: "b" }, "locked", { cwd: W("core"), env: { CLAUDE_PROJECT_DIR: "" } }],
     ["allow", "Write", { file_path: W("docs/research/x.md"), content: "x" }, "research"],
+    ["allow", "Write", { file_path: "docs/research/x.md", content: "x" }, "research", { cwd: GIT_BASH_ROOT, env: { CLAUDE_PROJECT_DIR: GIT_BASH_ROOT } }],
+    ["deny", "Write", { file_path: "docs/BACKLOG.md", content: "x" }, "research", { cwd: GIT_BASH_ROOT, env: { CLAUDE_PROJECT_DIR: GIT_BASH_ROOT } }],
+    ["allow", "Edit", { file_path: "config/pmd/known-violations.txt", old_string: firstEntry + "\n", new_string: "" }, "locked", { cwd: GIT_BASH_ROOT }],
+    ["deny", "Edit", { file_path: "config/pmd/known-violations.txt", old_string: firstEntry, new_string: firstEntry + "\nGodClass x" }, "locked", { cwd: GIT_BASH_ROOT }],
+    ["allow", "Edit", { file_path: GIT_BASH_ROOT + "/build.gradle.kts", old_string: 'version "8.10.3"', new_string: 'version "8.10.4"' }],
     ["deny", "Write", { file_path: W("docs/BACKLOG.md"), content: "x" }, "research"],
     ["deny", "Edit", { file_path: W("core/src/main/java/Foo.java"), old_string: "a", new_string: "b" }, "research"],
     ["deny", "Write", { file_path: "C:/Temp/x.md", content: "x" }, "research"],
