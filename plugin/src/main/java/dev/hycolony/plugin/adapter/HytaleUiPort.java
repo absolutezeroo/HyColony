@@ -28,15 +28,13 @@ import dev.hycolony.core.colony.ui.NeedsPlayerNotice;
 import dev.hycolony.core.colony.ui.RequestsView;
 import dev.hycolony.core.colony.ui.TownHallView;
 import dev.hycolony.core.colony.ui.UiPort;
-import dev.hycolony.core.colony.ui.WorkOrdersView;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.plugin.IdMap;
 import dev.hycolony.plugin.ui.BuildingPage;
 import dev.hycolony.plugin.ui.CitizenPage;
 import dev.hycolony.plugin.ui.FoundColonyPage;
 import dev.hycolony.plugin.ui.RequestsPage;
-import dev.hycolony.plugin.ui.TownHallPage;
-import dev.hycolony.plugin.ui.WorkOrdersPage;
+import dev.hycolony.plugin.ui.townhall.TownHallPage;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -102,7 +100,7 @@ public final class HytaleUiPort implements UiPort {
 
     @Override
     public void showTownHall(UUID player, TownHallView view) {
-        open(player, pr -> new TownHallPage(pr, view, manager.get()));
+        open(player, (pr, previous) -> new TownHallPage(pr, view, manager.get()).keepTabOf(previous));
     }
 
     @Override
@@ -116,11 +114,6 @@ public final class HytaleUiPort implements UiPort {
     @Override
     public void showRequests(UUID player, RequestsView view) {
         open(player, pr -> new RequestsPage(pr, view, manager.get()));
-    }
-
-    @Override
-    public void showWorkOrders(UUID player, WorkOrdersView view) {
-        open(player, pr -> new WorkOrdersPage(pr, view, manager.get()));
     }
 
     @Override

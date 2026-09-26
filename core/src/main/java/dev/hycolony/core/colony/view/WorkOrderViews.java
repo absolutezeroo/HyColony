@@ -7,7 +7,7 @@ import dev.hycolony.core.colony.ui.WorkOrdersView;
 import java.util.List;
 import java.util.UUID;
 
-/** Builds the town hall's work order list (MC WindowInfoPage's orders), by priority. */
+/** Builds the town hall's work order list (MC WindowInfoPage.fillWorkOrderList), by priority. */
 final class WorkOrderViews {
     private WorkOrderViews() {}
 
@@ -21,9 +21,8 @@ final class WorkOrderViews {
                                 .map(Building::displayName)
                                 .orElse(""),
                         o.targetLevel(),
-                        o.priority(),
                         WorkOrderStatus.builderName(c, o)))
                 .toList();
-        return new WorkOrdersView(c.id(), lines, c.permissions().hasPermission(viewer, Action.MANAGE_HUTS));
+        return new WorkOrdersView(lines, c.permissions().hasPermission(viewer, Action.MANAGE_HUTS));
     }
 }

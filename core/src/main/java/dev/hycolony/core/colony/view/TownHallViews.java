@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
-/** Builds the town hall window's view (MC WindowTownHall): the colony and its citizens' status. */
+/** Builds the town hall window's view (MC WindowTownHall): the colony, its work orders, citizens and statistics. */
 final class TownHallViews {
     private final ColonyContext ctx;
 
@@ -27,7 +27,9 @@ final class TownHallViews {
                 c.permissions().ownerName(),
                 c.day(),
                 rows,
-                c.permissions().rankOf(viewer).isColonyManager());
+                c.permissions().rankOf(viewer).isColonyManager(),
+                WorkOrderViews.of(c, viewer),
+                TownHallStats.of(c));
     }
 
     /** "absent" without a live body, else the AI state: "idle", "wandering" or "working". */

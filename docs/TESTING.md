@@ -13,7 +13,7 @@ Pour obtenir les objets : `/give HyColony_TownHall`, `/give HyColony_Hut_Builder
    Attendu : la colonie et les 4 citoyens sont là, avec les mêmes noms et sans doublon. Les logs affichent `(1 colonies loaded)`.
 5. **Protection.** B essaie de casser ou de poser un bloc dans la colonie, et d'ouvrir un coffre : refusé, avec un message.
    A lance `/hycolony rank B officer` : B peut alors le faire.
-6. **Fenêtre.** Un clic droit sur l'hôtel de ville affiche le nom, le propriétaire, le jour et les citoyens. A renomme la colonie : le nouveau nom s'affiche.
+6. **Fenêtre.** Un clic droit sur l'hôtel de ville ouvre l'onglet Accueil : le nom, le propriétaire et le jour ; l'onglet Citoyens liste les citoyens. A renomme la colonie : le nouveau nom s'affiche, toujours sur l'onglet Accueil.
 7. **Jour/nuit.** Lancer `/hycolony info` avant et après une aube : le jour augmente de 1.
    Si l'aube réelle ne correspond pas, ajuster `HytaleGameClock.DAY_START_HOUR` et `NIGHT_START_HOUR`.
 8. **Selftest.** En opérateur, `/hycolony selftest`, debout avec de l'air au-dessus de la tête : toutes les lignes sont `[OK]` (ids, stockage, `blueprint`, `place`, `container`, `break`, `spawn`, `move`).
@@ -32,7 +32,7 @@ Avant de commencer : un hôtel de ville posé **avant** cette version n'a pas de
     Clic droit : la fenêtre « Bâtiment » s'ouvre (niveau 0 / 5, « Pas encore construit »), sans plantage du client, avec les onglets Principal, Ressources, Réglages et Ordres de travail (voir le point 45).
 14. **Embauche.** Dans les 30 secondes (tick lent), un citoyen apparaît dans « Travailleurs ». Renvoyer puis Embaucher fonctionne ; le bouton du mode d'embauche fait défiler les modes.
 15. **Commande.** « Options de construction », puis « Construire » sur la hutte du constructeur elle-même.
-    Attendu : un message de création, retour à l'onglet Principal, la ligne d'ordre (Construire au niveau 1) et le bouton devenu « Annuler la construction ». La fenêtre « Ordres » (depuis l'hôtel de ville) liste l'ordre.
+    Attendu : un message de création, retour à l'onglet Principal, la ligne d'ordre (Construire au niveau 1) et le bouton devenu « Annuler la construction ». L'onglet Informations de l'hôtel de ville liste l'ordre.
 16. **Chantier.** Le constructeur marche jusqu'à la hutte, dégage le terrain (haut en bas), puis pose la structure (bas en haut) et la décoration. Il tient un outil ou un bloc, les animations se jouent (sinon, le noter : repli prévu).
     Les blocs qu'il casse vont dans son inventaire, puis dans la hutte (« Stockage »).
 17. **Matériaux.** L'onglet « Ressources » de la hutte du constructeur liste les objets (voir le point 46). « Ajouter » déplace les objets de l'inventaire de A vers la hutte, la fenêtre reste sur l'onglet Ressources et le constructeur reprend.
@@ -73,6 +73,12 @@ Avant de commencer : un hôtel de ville posé **avant** cette version n'a pas de
 46. **Onglet Ressources.** Pendant un chantier : nom de l'ordre (« Construire : Hutte du constructeur (niveau 1) », traduit, pas de `{…}`), « Étape 1/4 » (4 étapes pour une construction ou une réparation, 3 pour une amélioration, 1 pour une déconstruction), « Livré 40 % / avancement 12 % ». Les lignes sont triées : vert (A en a assez), orange (A en a un peu), rouge (A n'en a pas), gris (plus rien à livrer), puis par identifiant d'objet. Toute la ligne (nom, manque, compte) prend la couleur. Une colonne « -3 » indique ce qui manque encore une fois l'inventaire de A compté ; elle est vide sinon. « Ajouter » est désactivé sur les lignes rouges et grises. Sans ordre : « Aucun ordre de travail en cours. ».
 47. **Onglet Réglages.** Le bouton « Automatique » passe à « Manuel » et inversement. En manuel, le constructeur ne prend plus d'ordre tout seul (commander une résidence : l'ordre reste sans constructeur). Un ami (FRIEND) voit le bouton désactivé. Redémarrer le serveur : le mode est conservé.
 48. **Onglet Ordres de travail.** En automatique : seulement les ordres pris par ce constructeur, avec « À N blocs » (|dx| + |dz|) et « Annuler ». L'ordre en cours a un cadre vert. En manuel : aussi les ordres sans constructeur qu'il peut bâtir (pas ceux au-dessus de son niveau), avec « Sélectionner ». « Sélectionner » fait prendre l'ordre au constructeur (la ligne passe à « Annuler ») ; sans travailleur dans la hutte, le bouton est désactivé et son infobulle dit « Aucun constructeur n'est affecté à cette hutte. ». « Annuler » supprime l'ordre (il disparaît aussi de la liste de l'hôtel de ville). Liste vide : « Aucun ordre de travail. ».
+
+### Hôtel de ville en onglets (comme MineColonies)
+
+49. **Onglets de l'hôtel de ville.** La rangée du haut montre Accueil, Informations, Citoyens, Statistiques (« Home, Information, Citizens, Statistics » en anglais) ; l'onglet ouvert est grisé et un clic change le contenu sans fermer la fenêtre, sans plantage du client. Accueil : nom, propriétaire, jour, renommage (masqué pour un ami), « Bâtiment » (fenêtre de hutte de l'hôtel de ville) et « Requêtes ». Il n'y a plus de bouton ni de fenêtre « Ordres ».
+50. **Onglet Informations.** Avec trois ordres : chaque ligne montre « Construire : Résidence (niveau 1) » puis le nom du constructeur (ou « aucun »), **sans numéro de priorité**. La première ligne n'a pas « Monter », la dernière n'a pas « Descendre » ; avec un seul ordre, ni l'un ni l'autre. « Monter », « Descendre » et « Supprimer » réordonnent ou retirent l'ordre et la fenêtre reste sur l'onglet Informations. Un ami (FRIEND) ne voit aucun bouton. Noter si les lignes restent alignées quand un bouton est masqué. Liste vide : « Aucun ordre de travail. ».
+51. **Onglet Statistiques.** « Nombre de citoyens : 5 », puis une ligne par métier « Constructeur : 1/2 » (travailleurs / places, toutes huttes confondues ; nom traduit, pas de `{…}`), puis « Enfants : 0 » et « Sans emploi : 4 ». Embaucher ou renvoyer, puis rouvrir : les nombres suivent.
 
 ## Lunettes de constructeur
 

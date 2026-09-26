@@ -1,0 +1,8 @@
+Group {
+  LayoutMode: Left;
+  Anchor: (Height: 28);
+
+  Label #Line {
+    FlexWeight: 1;
+  }
+}

@@ -7,7 +7,6 @@ import dev.hycolony.core.colony.ui.NeedsPlayerNotice;
 import dev.hycolony.core.colony.ui.RequestsView;
 import dev.hycolony.core.colony.ui.TownHallView;
 import dev.hycolony.core.colony.ui.UiPort;
-import dev.hycolony.core.colony.ui.WorkOrdersView;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -41,11 +40,6 @@ public final class FakeUi implements UiPort {
 
     @Override
     public void showRequests(UUID player, RequestsView view) {
-        shown.put(player, view);
-    }
-
-    @Override
-    public void showWorkOrders(UUID player, WorkOrdersView view) {
         shown.put(player, view);
     }
 

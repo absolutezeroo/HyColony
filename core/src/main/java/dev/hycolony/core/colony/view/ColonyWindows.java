@@ -54,10 +54,6 @@ public final class ColonyWindows {
         }
     }
 
-    public void openWorkOrders(UUID player, int colonyId) {
-        manager.byId(colonyId).filter(c -> canAccess(c, player)).ifPresent(c -> showWorkOrders(c, player));
-    }
-
     /** The clipboard (MC WindowClipBoard): root requests held by the player or retrying resolver. */
     public void openRequests(UUID player, int colonyId) {
         Colony c = manager.byId(colonyId).orElse(null);
@@ -81,14 +77,6 @@ public final class ColonyWindows {
      */
     public void showBuilding(Colony c, Building b, UUID viewer) {
         ctx.ui().showBuilding(viewer, buildings.of(c, b, viewer));
-    }
-
-    /**
-     * Re-shows the window after an action. Checks no permission: the caller has checked that {@code viewer} may
-     * see it (ACCESS_HUTS, or the right its own action requires). Public for the colony actions.
-     */
-    public void showWorkOrders(Colony c, UUID viewer) {
-        ctx.ui().showWorkOrders(viewer, WorkOrderViews.of(c, viewer));
     }
 
     /** ACCESS_HUTS, else the player is told. */

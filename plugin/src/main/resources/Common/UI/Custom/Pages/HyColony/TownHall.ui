@@ -5,7 +5,7 @@ $C.@PageOverlay {
   LayoutMode: Middle;
 
   $C.@DecoratedContainer {
-    Anchor: (Width: 600);
+    Anchor: (Width: 700);
 
     #Title {
       $C.@Title {
@@ -17,67 +17,108 @@ $C.@PageOverlay {
       Padding: (Vertical: 24, Horizontal: 40);
       LayoutMode: Top;
 
-      Label #ColonyName {
-        Style: (FontSize: 22, RenderBold: true, RenderUppercase: true);
-      }
-
-      Label #Owner {
-        Style: (TextColor: #94a7bb);
-        Anchor: (Top: 4);
-      }
-
-      Label #Day {
-        Style: (TextColor: #94a7bb);
-        Anchor: (Top: 2, Bottom: 10);
-      }
-
-      Group {
+      Group #TabButtons {
         LayoutMode: Left;
-        Anchor: (Height: 44, Bottom: 12);
+        Anchor: (Height: 32, Bottom: 12);
+      }
 
-        $C.@SecondaryTextButton #BuildingButton {
-          @Anchor = (Right: 4);
-          Text: %hycolony.ui.townhall.building;
-          FlexWeight: 1;
+      Group #ActionsTab {
+        LayoutMode: Top;
+
+        Label #ColonyName {
+          Style: (FontSize: 22, RenderBold: true, RenderUppercase: true);
         }
 
-        $C.@SecondaryTextButton #WorkOrdersButton {
-          @Anchor = (Right: 4);
+        Label #Owner {
+          Style: (TextColor: #94a7bb);
+          Anchor: (Top: 4);
+        }
+
+        Label #Day {
+          Style: (TextColor: #94a7bb);
+          Anchor: (Top: 2, Bottom: 10);
+        }
+
+        Group {
+          LayoutMode: Left;
+          Anchor: (Height: 44, Bottom: 12);
+
+          $C.@TextField #RenameInput {
+            FlexWeight: 1;
+          }
+
+          $C.@TextButton #RenameButton {
+            @Sounds = $Sounds.@SaveSettings;
+            @Anchor = (Left: 8);
+            Text: %hycolony.ui.townhall.rename;
+          }
+        }
+
+        Group {
+          LayoutMode: Left;
+          Anchor: (Height: 44);
+
+          $C.@SecondaryTextButton #BuildingButton {
+            @Anchor = (Right: 4);
+            Text: %hycolony.ui.townhall.building;
+            FlexWeight: 1;
+          }
+
+          $C.@SecondaryTextButton #RequestsButton {
+            Text: %hycolony.ui.townhall.requests;
+            FlexWeight: 1;
+          }
+        }
+      }
+
+      Group #InfoTab {
+        LayoutMode: Top;
+        Visible: false;
+
+        Label {
           Text: %hycolony.ui.townhall.workOrders;
-          FlexWeight: 1;
+          Style: (RenderBold: true, RenderUppercase: true, TextColor: #94a7bb);
+          Anchor: (Bottom: 6);
         }
 
-        $C.@SecondaryTextButton #RequestsButton {
-          Text: %hycolony.ui.townhall.requests;
-          FlexWeight: 1;
-        }
-      }
-
-      Group {
-        LayoutMode: Left;
-        Anchor: (Height: 44, Bottom: 12);
-
-        $C.@TextField #RenameInput {
-          FlexWeight: 1;
+        Label #OrdersEmpty {
+          Style: (TextColor: #94a7bb);
+          Anchor: (Bottom: 10);
+          Visible: false;
         }
 
-        $C.@TextButton #RenameButton {
-          @Sounds = $Sounds.@SaveSettings;
-          @Anchor = (Left: 8);
-          Text: %hycolony.ui.townhall.rename;
+        Group #Orders {
+          LayoutMode: TopScrolling;
+          ScrollbarStyle: $C.@DefaultScrollbarStyle;
+          Anchor: (Height: 380);
         }
       }
 
-      Label {
-        Text: %hycolony.ui.townhall.citizens;
-        Style: (RenderBold: true, RenderUppercase: true, TextColor: #94a7bb);
-        Anchor: (Bottom: 6);
+      Group #CitizensTab {
+        LayoutMode: Top;
+        Visible: false;
+
+        Group #CitizenList {
+          LayoutMode: TopScrolling;
+          ScrollbarStyle: $C.@DefaultScrollbarStyle;
+          Anchor: (Height: 400);
+        }
       }
 
-      Group #CitizenList {
-        LayoutMode: TopScrolling;
-        ScrollbarStyle: $C.@DefaultScrollbarStyle;
-        Anchor: (Height: 300);
+      Group #StatsTab {
+        LayoutMode: Top;
+        Visible: false;
+
+        Label #TotalCitizens {
+          Style: (RenderBold: true);
+          Anchor: (Bottom: 10);
+        }
+
+        Group #StatLines {
+          LayoutMode: TopScrolling;
+          ScrollbarStyle: $C.@DefaultScrollbarStyle;
+          Anchor: (Height: 360);
+        }
       }
     }
   }

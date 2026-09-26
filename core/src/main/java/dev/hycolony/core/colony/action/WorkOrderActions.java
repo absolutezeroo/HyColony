@@ -116,7 +116,7 @@ public final class WorkOrderActions {
             return false;
         }
         c.work().move(orderId, delta);
-        windows.showWorkOrders(c, player);
+        windows.showTownHall(c, player);
         return true;
     }
 
@@ -126,7 +126,7 @@ public final class WorkOrderActions {
             return false;
         }
         c.work().cancel(orderId);
-        windows.showWorkOrders(c, player);
+        windows.showTownHall(c, player);
         return true;
     }
 

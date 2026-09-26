@@ -17,9 +17,10 @@ import java.util.UUID;
 /**
  * A HyColony window: buttons send {@code Action} (+ {@code Index} for list rows) and call ColonyManager, which
  * re-shows a fresh snapshot. Buttons do not lock the interface, so no "unlock" update is ever needed; a re-shown
- * page waits for the client's acknowledgement, which drops double clicks. World thread only.
+ * page waits for the client's acknowledgement, which drops double clicks. World thread only. Public for the window
+ * sub-packages.
  */
-abstract class ColonyPage extends InteractiveCustomUIPage<ColonyPage.Act> {
+public abstract class ColonyPage extends InteractiveCustomUIPage<ColonyPage.Act> {
     public static final class Act {
         static final BuilderCodec<Act> CODEC = BuilderCodec.builder(Act.class, Act::new)
                 .append(new KeyedCodec<>("Action", Codec.STRING), (d, v) -> d.action = v, d -> d.action)
@@ -29,9 +30,25 @@ abstract class ColonyPage extends InteractiveCustomUIPage<ColonyPage.Act> {
                         (d, v) -> d.index = parse(v),
                         d -> String.valueOf(d.index))
                 .add()
+                .append(new KeyedCodec<>("@Name", Codec.STRING), (d, v) -> d.name = v, d -> d.name)
+                .add()
                 .build();
         String action = "";
         int index = -1;
+        /** A text field's value, sent as {@code @Name}; empty when the event carries none. */
+        String name = "";
+
+        public String action() {
+            return action;
+        }
+
+        public int index() {
+            return index;
+        }
+
+        public String name() {
+            return name;
+        }
 
         private static int parse(String s) {
             try {
@@ -45,17 +62,17 @@ abstract class ColonyPage extends InteractiveCustomUIPage<ColonyPage.Act> {
     protected final ColonyManager manager;
     protected final UUID player;
 
-    ColonyPage(PlayerRef playerRef, ColonyManager manager) {
+    protected ColonyPage(PlayerRef playerRef, ColonyManager manager) {
         super(playerRef, CustomPageLifetime.CanDismiss, Act.CODEC);
         this.manager = manager;
         this.player = playerRef.getUuid();
     }
 
-    static void bind(UIEventBuilder events, String selector, String action) {
+    public static void bind(UIEventBuilder events, String selector, String action) {
         events.addEventBinding(CustomUIEventBindingType.Activating, selector, EventData.of("Action", action), false);
     }
 
-    static void bind(UIEventBuilder events, String selector, String action, int index) {
+    public static void bind(UIEventBuilder events, String selector, String action, int index) {
         events.addEventBinding(
                 CustomUIEventBindingType.Activating,
                 selector,
@@ -64,20 +81,20 @@ abstract class ColonyPage extends InteractiveCustomUIPage<ColonyPage.Act> {
     }
 
     /** "hycolony:builder" -> hycolony.ui.building.type.builder; a custom name stays as is. */
-    static Message buildingName(String typeIdOrName) {
+    public static Message buildingName(String typeIdOrName) {
         return typeIdOrName.startsWith("hycolony:")
                 ? Message.translation("hycolony.ui.building.type." + typeIdOrName.substring("hycolony:".length()))
                 : Message.raw(typeIdOrName);
     }
 
     /** "hycolony:builder" -> hycolony.ui.job.builder; no job -> hycolony.ui.job.none. */
-    static Message jobName(String jobId) {
+    public static Message jobName(String jobId) {
         return jobId.isEmpty()
                 ? Message.translation("hycolony.ui.job.none")
                 : Message.translation("hycolony.ui.job." + jobId.substring(jobId.indexOf(':') + 1));
     }
 
-    static Message itemName(String itemId) {
+    public static Message itemName(String itemId) {
         Item item = Item.getAssetMap().getAsset(itemId);
         return item == null ? Message.raw(itemId) : item.getTranslationMessage();
     }

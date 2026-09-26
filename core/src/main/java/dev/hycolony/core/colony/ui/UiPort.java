@@ -12,8 +12,6 @@ public interface UiPort {
 
     void showRequests(UUID player, RequestsView view);
 
-    void showWorkOrders(UUID player, WorkOrdersView view);
-
     void showCitizen(UUID player, CitizenView view);
 
     /** A chat line, not a window. */

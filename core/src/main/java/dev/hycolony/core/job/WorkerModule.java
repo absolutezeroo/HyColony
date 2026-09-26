@@ -35,6 +35,11 @@ public final class WorkerModule implements PersistentModule, TickingModule, Buil
         return Collections.unmodifiableList(workers);
     }
 
+    /** MC getMaxInhabitants: the places this module offers. */
+    public int maxWorkers() {
+        return maxWorkers;
+    }
+
     public HiringMode hiringMode() {
         return hiringMode;
     }

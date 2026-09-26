@@ -16,6 +16,7 @@ import dev.hycolony.core.colony.ui.BuilderResourcesView.Status;
 import dev.hycolony.core.colony.ui.BuildingView;
 import dev.hycolony.core.colony.ui.CitizenView;
 import dev.hycolony.core.colony.ui.RequestsView;
+import dev.hycolony.core.colony.ui.TownHallView;
 import dev.hycolony.core.colony.ui.WorkOrdersView;
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.BlueprintEntry;
@@ -274,7 +275,6 @@ class ViewsTest {
             manager.windows().openCitizen(player, colony.id(), bobTheBuilder.id());
             manager.windows().openBuilding(player, res.position());
             manager.windows().openRequests(player, colony.id());
-            manager.windows().openWorkOrders(player, colony.id());
             assertFalse(t.ui.shown.containsKey(player), "neutral and hostile see nothing");
             assertTrue(t.notifier.sent.stream()
                     .anyMatch(s -> s.player().equals(player) && s.msg().key().equals("hycolony.permission.denied")));
@@ -283,12 +283,12 @@ class ViewsTest {
         BuildingView friendView = view(carol, res);
         assertFalse(friendView.canManage());
         assertFalse(friendView.canPickUp());
-        manager.windows().openWorkOrders(carol, colony.id());
-        WorkOrdersView orders = (WorkOrdersView) t.ui.shown.get(carol);
+        manager.windows().openTownHall(carol, hall);
+        WorkOrdersView orders = ((TownHallView) t.ui.shown.get(carol)).workOrders();
         assertFalse(orders.canManage());
         assertEquals(
                 List.of(new WorkOrdersView.OrderLine(
-                        orderId, WorkOrderType.REPAIR, res.displayName(), 2, 0, Optional.empty())),
+                        orderId, WorkOrderType.REPAIR, res.displayName(), 2, Optional.empty())),
                 orders.orders());
     }
 

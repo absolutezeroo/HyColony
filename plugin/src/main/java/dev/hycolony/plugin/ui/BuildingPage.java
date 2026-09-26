@@ -2,7 +2,6 @@ package dev.hycolony.plugin.ui;
 
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
-import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.entity.entities.player.pages.CustomUIPage;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
@@ -23,7 +22,7 @@ import javax.annotation.Nullable;
  */
 public final class BuildingPage extends ColonyPage {
     /** A tab: its content group and its label key. */
-    enum Tab {
+    enum Tab implements TabBar.Tab {
         MAIN("#MainTab", "main"),
         RESOURCES("#ResourcesTab", "resources"),
         SETTINGS("#SettingsTab", "settings"),
@@ -35,6 +34,16 @@ public final class BuildingPage extends ColonyPage {
         Tab(String group, String key) {
             this.group = group;
             this.key = key;
+        }
+
+        @Override
+        public String group() {
+            return group;
+        }
+
+        @Override
+        public String labelKey() {
+            return "hycolony.ui.building.tab." + key;
         }
     }
 
@@ -72,16 +81,7 @@ public final class BuildingPage extends ColonyPage {
             @Nonnull UIEventBuilder events,
             @Nonnull Store<EntityStore> store) {
         ui.append("Pages/HyColony/Building.ui");
-        for (int i = 0; i < tabs.size(); i++) {
-            String button = "#TabButtons[" + i + "]";
-            ui.append("#TabButtons", "Pages/HyColony/TabButton.ui");
-            ui.set(button + ".Text", Message.translation("hycolony.ui.building.tab." + tabs.get(i).key));
-            ui.set(button + ".Disabled", tabs.get(i) == tab);
-            bind(events, button, "tab", i);
-        }
-        for (Tab t : Tab.values()) {
-            ui.set(t.group + ".Visible", t == tab);
-        }
+        TabBar.render(ui, events, tabs, tab);
         main.render(ui, events, storage.mayOpen());
         view.builder().ifPresent(b -> {
             resources(b).render(ui, events);
