@@ -14,7 +14,8 @@ import java.util.Optional;
  * first open request), else "working", "wandering", "idle" or "absent". {@code workBuilding} is a building type id or
  * custom name. {@code jobActivity} is the job AI's own line (e.g. the builder's stage, block and action). {@code
  * requests} are the citizen's open requests, each with what the viewer holds of it. {@code skills} lists the job's
- * primary and secondary skills first, then the rest in MineColonies order.
+ * primary and secondary skills first, then the rest in MineColonies order. {@code jobSkills} feeds the Job tab and is
+ * empty for a citizen without a workplace.
  */
 public record CitizenView(
         int colonyId,
@@ -27,7 +28,8 @@ public record CitizenView(
         Optional<Msg> jobActivity,
         List<SkillRow> skills,
         List<ItemAmount> inventory,
-        List<RequestRow> requests) {
+        List<RequestRow> requests,
+        Optional<JobSkills> jobSkills) {
     public CitizenView {
         skills = List.copyOf(skills);
         inventory = List.copyOf(inventory);
@@ -48,4 +50,18 @@ public record CitizenView(
             return maxed() || xpForNextLevel <= 0 ? 1f : Math.min(1f, (float) xp / xpForNextLevel);
         }
     }
+
+    /**
+     * MC CitizenWindowUtils.updateJobPage: the primary skill then its complementary and adverse skill, the same for the
+     * secondary; the complementary and adverse lines are absent for Intelligence.
+     */
+    public record JobSkills(List<SkillShare> primary, List<SkillShare> secondary) {
+        public JobSkills {
+            primary = List.copyOf(primary);
+            secondary = List.copyOf(secondary);
+        }
+    }
+
+    /** A skill and the share of the job's XP it gets, in percent; negative for an adverse skill, which loses XP. */
+    public record SkillShare(Skill skill, int xpPercent) {}
 }

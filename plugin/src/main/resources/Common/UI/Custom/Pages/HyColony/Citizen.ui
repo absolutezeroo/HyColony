@@ -4,7 +4,7 @@ $C.@PageOverlay {
   LayoutMode: Middle;
 
   $C.@DecoratedContainer {
-    Anchor: (Width: 860);
+    Anchor: (Width: 700);
 
     #Title {
       $C.@Title {
@@ -16,85 +16,100 @@ $C.@PageOverlay {
       Padding: (Vertical: 24, Horizontal: 40);
       LayoutMode: Top;
 
-      Label #Name {
-        Style: (FontSize: 22, RenderBold: true);
-      }
-
-      Label #Job {
-        Style: (TextColor: #94a7bb);
-        Anchor: (Top: 4);
-      }
-
-      Label #Workplace {
-        Style: (TextColor: #94a7bb);
-        Anchor: (Top: 2);
-      }
-
-      Label #Activity {
-        Style: (RenderBold: true);
-        Anchor: (Top: 6, Bottom: 10);
-      }
-
-      Group {
+      Group #TabButtons {
         LayoutMode: Left;
-        Anchor: (Height: 300, Bottom: 10);
+        Anchor: (Height: 32, Bottom: 12);
+      }
 
-        Group {
-          LayoutMode: Top;
-          FlexWeight: 1;
-          Padding: (Right: 12);
+      Group #MainTab {
+        LayoutMode: Top;
 
-          Label {
-            Text: %hycolony.ui.citizen.skills;
-            Style: (RenderBold: true, RenderUppercase: true, TextColor: #94a7bb);
-            Anchor: (Bottom: 6);
-          }
-
-          Group #Skills {
-            LayoutMode: TopScrolling;
-            ScrollbarStyle: $C.@DefaultScrollbarStyle;
-            FlexWeight: 1;
-          }
+        Label #Name {
+          Style: (FontSize: 22, RenderBold: true);
         }
 
-        Group {
-          LayoutMode: Top;
-          FlexWeight: 1;
+        Label #Job {
+          Style: (TextColor: #94a7bb);
+          Anchor: (Top: 4);
+        }
 
-          Label {
-            Text: %hycolony.ui.citizen.inventory;
-            Style: (RenderBold: true, RenderUppercase: true, TextColor: #94a7bb);
-            Anchor: (Bottom: 6);
-          }
+        Label #Workplace {
+          Style: (TextColor: #94a7bb);
+          Anchor: (Top: 2);
+        }
 
-          Label #InventoryEmpty {
-            Style: (TextColor: #94a7bb);
-            Visible: false;
-          }
+        Label #Activity {
+          Style: (RenderBold: true);
+          Anchor: (Top: 6, Bottom: 10);
+        }
 
-          Group #Inventory {
-            LayoutMode: TopScrolling;
-            ScrollbarStyle: $C.@DefaultScrollbarStyle;
-            FlexWeight: 1;
-          }
+        Label {
+          Text: %hycolony.ui.citizen.skills;
+          Style: (RenderBold: true, RenderUppercase: true, TextColor: #94a7bb);
+          Anchor: (Bottom: 6);
+        }
+
+        Group #Skills {
+          LayoutMode: TopScrolling;
+          ScrollbarStyle: $C.@DefaultScrollbarStyle;
+          Anchor: (Height: 300);
         }
       }
 
-      Label {
-        Text: %hycolony.ui.citizen.requests;
-        Style: (RenderBold: true, RenderUppercase: true, TextColor: #94a7bb);
-        Anchor: (Bottom: 6);
-      }
-
-      Label #RequestsEmpty {
-        Style: (TextColor: #94a7bb);
+      Group #RequestsTab {
+        LayoutMode: Top;
         Visible: false;
+
+        Label #RequestsEmpty {
+          Style: (TextColor: #94a7bb);
+          Visible: false;
+        }
+
+        Group #Requests {
+          LayoutMode: TopScrolling;
+          ScrollbarStyle: $C.@DefaultScrollbarStyle;
+          Anchor: (Height: 400);
+        }
       }
 
-      Group #Requests {
-        LayoutMode: TopScrolling;
-        ScrollbarStyle: $C.@DefaultScrollbarStyle;
-        Anchor: (Height: 140);
+      Group #InventoryTab {
+        LayoutMode: Top;
+        Visible: false;
+
+        Label #InventoryEmpty {
+          Style: (TextColor: #94a7bb);
+          Visible: false;
+        }
+
+        Group #Inventory {
+          LayoutMode: TopScrolling;
+          ScrollbarStyle: $C.@DefaultScrollbarStyle;
+          Anchor: (Height: 400);
+        }
+      }
+
+      Group #JobTab {
+        LayoutMode: Top;
+        Visible: false;
+
+        Label #JobLabel {
+          Style: (FontSize: 18, RenderBold: true);
+        }
+
+        Label {
+          Text: %hycolony.ui.citizen.jobDesc;
+          Style: (TextColor: #94a7bb);
+          Anchor: (Top: 4, Bottom: 10);
+        }
+
+        Group #JobPrimary {
+          LayoutMode: Top;
+          Anchor: (Bottom: 16);
+        }
+
+        Group #JobSecondary {
+          LayoutMode: Top;
+        }
       }
     }
   }

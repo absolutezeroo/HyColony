@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
+import dev.hycolony.core.citizen.Skill;
+import dev.hycolony.core.colony.ui.CitizenView;
 import dev.hycolony.core.colony.ui.TownHallView;
 import dev.hycolony.core.colony.ui.TownHallView.JobCount;
 import dev.hycolony.core.colony.ui.TownHallView.Stats;
@@ -24,14 +26,14 @@ import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
-class TownHallTabsTest {
+class WindowTabsTest {
     private final TestContexts t = new TestContexts();
     private final ColonyManager manager;
     private final UUID alice = UUID.randomUUID();
     private final BlockPos hall = new BlockPos(0, 64, 0);
     private final Colony colony;
 
-    TownHallTabsTest() {
+    WindowTabsTest() {
         t.blueprints = new BlueprintSource() {
             @Override
             public Optional<Blueprint> load(String style, String buildingTypeId, int level, int rotation) {
@@ -108,5 +110,25 @@ class TownHallTabsTest {
         assertTrue(manager.workOrders().delete(alice, colony.id(), last.id()));
         assertEquals(
                 1, ((TownHallView) t.ui.shown.get(alice)).workOrders().orders().size());
+    }
+
+    @Test
+    void citizenWindowCarriesTheJobSkillSharesOnlyForAWorker() {
+        Building builder = hut(new BlockPos(10, 64, 0), 1);
+        CitizenData bob = citizen(1, "Bob");
+        CitizenData idle = citizen(2, "Idle");
+        assertTrue(builder.module(WorkerModule.class).orElseThrow().hire(colony, builder, bob));
+
+        manager.windows().openCitizen(alice, colony.id(), bob.id());
+        CitizenView worker = (CitizenView) t.ui.shown.get(alice);
+        assertEquals(
+                Skill.Adaptability,
+                worker.jobSkills().orElseThrow().primary().get(0).skill());
+        assertEquals(
+                Skill.Athletics,
+                worker.jobSkills().orElseThrow().secondary().get(0).skill());
+
+        manager.windows().openCitizen(alice, colony.id(), idle.id());
+        assertEquals(Optional.empty(), ((CitizenView) t.ui.shown.get(alice)).jobSkills());
     }
 }

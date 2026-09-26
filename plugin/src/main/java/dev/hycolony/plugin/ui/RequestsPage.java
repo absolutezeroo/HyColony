@@ -66,7 +66,7 @@ public final class RequestsPage extends ColonyPage {
     }
 
     /** "64 x Stone" or "Pickaxe (level 0 to 1)", in the player's language. */
-    static Message describe(Deliverable d) {
+    public static Message describe(Deliverable d) {
         return switch (d) {
             case StackRequest s ->
                 Message.translation("hycolony.ui.requests.stack")

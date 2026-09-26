@@ -31,9 +31,9 @@ import dev.hycolony.core.colony.ui.UiPort;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.plugin.IdMap;
 import dev.hycolony.plugin.ui.BuildingPage;
-import dev.hycolony.plugin.ui.CitizenPage;
 import dev.hycolony.plugin.ui.FoundColonyPage;
 import dev.hycolony.plugin.ui.RequestsPage;
+import dev.hycolony.plugin.ui.citizen.CitizenPage;
 import dev.hycolony.plugin.ui.townhall.TownHallPage;
 import java.util.HashSet;
 import java.util.Optional;
@@ -118,7 +118,7 @@ public final class HytaleUiPort implements UiPort {
 
     @Override
     public void showCitizen(UUID player, CitizenView view) {
-        open(player, pr -> new CitizenPage(pr, view, manager.get(), ids));
+        open(player, (pr, previous) -> new CitizenPage(pr, view, manager.get(), ids).keepTabOf(previous));
     }
 
     @Override

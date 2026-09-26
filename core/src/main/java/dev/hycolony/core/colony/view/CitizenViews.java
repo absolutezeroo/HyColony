@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-/** Builds the citizen window's view (MC WindowCitizen): job, workplace, activity, skills, inventory, open requests. */
+/** Builds the citizen window's view (MC WindowCitizen): job, activity, skills, inventory, requests, job skills. */
 final class CitizenViews {
     private final ColonyContext ctx;
     private final TownHallViews townHall;
@@ -40,9 +40,9 @@ final class CitizenViews {
         }
         Optional<Deliverable> waitingFor = open.stream().findFirst().map(RequestsView.RequestRow::requestable);
         Optional<Building> work = Optional.ofNullable(d.workBuilding()).flatMap(c.buildings()::at);
-        List<Skill> jobSkills = work.flatMap(b -> b.module(WorkerModule.class))
-                .map(w -> List.of(w.primary(), w.secondary()))
-                .orElse(List.of());
+        Optional<WorkerModule> worker = work.flatMap(b -> b.module(WorkerModule.class));
+        List<Skill> jobSkills =
+                worker.map(w -> List.of(w.primary(), w.secondary())).orElse(List.of());
         return new CitizenView(
                 c.id(),
                 d.id(),
@@ -54,6 +54,7 @@ final class CitizenViews {
                 c.citizens().jobActivity(d.id()),
                 SkillRows.of(d.skills(), jobSkills),
                 d.inventory().contents(),
-                open);
+                open,
+                worker.map(w -> JobSkillShares.of(w.primary(), w.secondary())));
     }
 }

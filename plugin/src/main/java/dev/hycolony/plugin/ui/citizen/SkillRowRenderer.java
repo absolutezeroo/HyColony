@@ -1,4 +1,4 @@
-package dev.hycolony.plugin.ui;
+package dev.hycolony.plugin.ui.citizen;
 
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
