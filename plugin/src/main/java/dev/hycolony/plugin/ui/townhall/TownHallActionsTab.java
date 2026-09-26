@@ -50,9 +50,7 @@ final class TownHallActionsTab {
     /** Navigation opens another window; rename goes to the core, which re-shows the town hall on success. */
     void handle(ColonyPage.Act act) {
         switch (act.action()) {
-            // The town hall stands at the colony's center.
-            case "building" ->
-                manager.byId(view.colonyId()).ifPresent(c -> manager.windows().openBuilding(player, c.center()));
+            case "building" -> manager.windows().openTownHallBuilding(player, view.colonyId());
             case "requests" -> manager.windows().openRequests(player, view.colonyId());
             case "rename" -> manager.administration().rename(player, view.colonyId(), act.name());
             default -> {}

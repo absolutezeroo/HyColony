@@ -54,6 +54,20 @@ public final class ColonyWindows {
         }
     }
 
+    /**
+     * The town hall's own hut window (MC "build" button on the Home tab): looked up on {@code colonyId} directly, not
+     * through a hut position, since the caller already knows which colony it is showing. A missing colony or town
+     * hall building is a silent no-op, like {@link #openBuilding}.
+     */
+    public void openTownHallBuilding(UUID player, int colonyId) {
+        manager.byId(colonyId)
+                .ifPresent(c -> c.buildings().townHall().ifPresent(b -> {
+                    if (canAccess(c, player)) {
+                        showBuilding(c, b, player);
+                    }
+                }));
+    }
+
     /** The clipboard (MC WindowClipBoard): root requests held by the player or retrying resolver. */
     public void openRequests(UUID player, int colonyId) {
         Colony c = manager.byId(colonyId).orElse(null);

@@ -116,6 +116,14 @@ class ViewsTest {
     }
 
     @Test
+    void townHallBuildingButtonOpensTheTownHallsOwnHutWindow() {
+        manager.windows().openTownHallBuilding(alice, colony.id());
+        BuildingView v = (BuildingView) t.ui.shown.get(alice);
+        assertEquals("hycolony:townhall", v.typeId());
+        assertEquals(hall, v.pos());
+    }
+
+    @Test
     void allowedActionsByLevelAndOrder() {
         Building res = residence(0);
         assertEquals(EnumSet.of(WorkOrderType.BUILD), view(alice, res).allowed());
@@ -274,6 +282,7 @@ class ViewsTest {
             manager.windows().openTownHall(player, hall);
             manager.windows().openCitizen(player, colony.id(), bobTheBuilder.id());
             manager.windows().openBuilding(player, res.position());
+            manager.windows().openTownHallBuilding(player, colony.id());
             manager.windows().openRequests(player, colony.id());
             assertFalse(t.ui.shown.containsKey(player), "neutral and hostile see nothing");
             assertTrue(t.notifier.sent.stream()
