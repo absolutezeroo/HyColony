@@ -11,6 +11,7 @@ Group {
   Label #Name {
     FlexWeight: 1;
     Padding: (Horizontal: 8);
+    Style: (TextColor: #ffffff);
   }
 
   Label #Missing {
