@@ -107,6 +107,49 @@ class DetouringBodiesTest {
         }
     }
 
+    @Test
+    void walksAOneBlockGapInAWallOfFireWaypointByWaypointWithoutReplanning() {
+        wallOfFireWithAGapAt(2);
+        fake.frozen = true;
+        List<Vec3> plan = new SafeRoute(new DangerousCells(world, catalog))
+                .plan(new Vec3(0.5, 64, 0.5), TO)
+                .waypoints();
+
+        bodies.moveTo(body, TO);
+        for (int i = 1; i < plan.size(); i++) {
+            fake.bodies.get(body).position = fake.moves.getLast(); // on the waypoint, the nav not done yet
+            assertEquals(NavStatus.MOVING, bodies.navStatus(body));
+        }
+
+        assertTrue(plan.size() > 1, "a detour through the gap: " + plan);
+        assertEquals(plan, fake.moves, "each waypoint handed over as planned, none replanned");
+    }
+
+    @Test
+    void aRefusedNextLegIsCheckedAgainOnlyOnceTheBodyChangesBlock() {
+        wallOfFireWithAGapAt(2);
+        fake.frozen = true;
+        bodies.moveTo(body, TO);
+        Vec3 waypoint = fake.moves.getFirst();
+        // in the waypoint's block, pressed against the fire at z = 1: the next leg burns
+        fake.bodies.get(body).position = new Vec3(waypoint.x(), waypoint.y(), 2.1);
+
+        bodies.navStatus(body);
+        int reads = world.reads;
+        bodies.navStatus(body);
+
+        assertEquals(1, fake.moves.size(), "the next leg is refused: " + fake.moves);
+        assertEquals(reads, world.reads, "no new check in the same block");
+    }
+
+    private void wallOfFireWithAGapAt(int gapZ) {
+        for (int z = -30; z <= 30; z++) {
+            if (z != gapZ) {
+                world.blocks.put(new BlockPos(5, 64, z), FIRE);
+            }
+        }
+    }
+
     private void arrive() {
         fake.bodies.get(body).status = NavStatus.ARRIVED;
         assertEquals(NavStatus.MOVING, bodies.navStatus(body));

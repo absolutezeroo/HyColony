@@ -75,8 +75,10 @@ class SafeRouteTest {
             }
         }
 
-        List<Vec3> plan = route.plan(FROM, TO).waypoints();
+        SafeRoute.Plan planned = route.plan(FROM, TO);
+        List<Vec3> plan = planned.waypoints();
 
+        assertEquals(RouteSearch.BODY_RADIUS, planned.clearance());
         assertTrue(plan.size() > 1, "a detour through the gap: " + plan);
         assertEquals(TO, plan.getLast());
         for (int z = -30; z <= 30; z++) {

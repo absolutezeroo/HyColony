@@ -17,6 +17,8 @@ public final class FakeWorldBlocks implements WorldBlocks {
     public final Map<BlockPos, List<ItemAmount>> drops = new LinkedHashMap<>();
 
     public boolean loaded = true;
+    /** How many times get() was called. */
+    public int reads;
     /** Every successful place(), in call order. */
     public final List<BlockPos> placed = new ArrayList<>();
     /** Runs before every place() and breakBlock(), with the position (ordering checks). */
@@ -29,6 +31,7 @@ public final class FakeWorldBlocks implements WorldBlocks {
 
     @Override
     public Optional<BlockState> get(BlockPos pos) {
+        reads++;
         return Optional.ofNullable(blocks.get(pos));
     }
 

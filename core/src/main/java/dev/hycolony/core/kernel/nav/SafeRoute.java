@@ -24,7 +24,12 @@ public final class SafeRoute {
     }
 
     /** The points to walk to in turn, ending with the target, and the clearance they were planned with. */
-    public record Plan(List<Vec3> waypoints, double clearance) {}
+    public record Plan(List<Vec3> waypoints, double clearance) {
+        /** The same plan once its first waypoint is reached. */
+        Plan withoutFirst() {
+            return new Plan(waypoints.subList(1, waypoints.size()), clearance);
+        }
+    }
 
     /**
      * The route to {@code to}, with {@link #WIDE_CLEARANCE} if possible, else with the body's half-width: just

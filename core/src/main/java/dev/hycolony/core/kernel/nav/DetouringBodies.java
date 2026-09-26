@@ -36,6 +36,11 @@ public final class DetouringBodies implements CitizenBodies {
     private final Map<BodyId, SafeRoute.Plan> legs = new HashMap<>();
     /** Per walking body, how many times its walk was replanned. */
     private final Map<BodyId, Integer> replans = new HashMap<>();
+    /**
+     * Per walking body, the packed block from which its next leg was refused; the check reads blocks, so it is only
+     * redone once the body changes block or waypoint. Cleared on every new leg.
+     */
+    private final Map<BodyId, Long> refusedFrom = new HashMap<>();
 
     public DetouringBodies(CitizenBodies bodies, WorldBlocks blocks, ItemCatalog catalog) {
         this.bodies = bodies;
@@ -66,12 +71,10 @@ public final class DetouringBodies implements CitizenBodies {
         Vec3 waypoint = rest.waypoints().getFirst();
         if (arrived || reached(body, waypoint)) {
             Vec3 here = bodies.position(body).orElse(waypoint);
-            SafeRoute.Plan next = new SafeRoute.Plan(
-                    rest.waypoints().subList(1, rest.waypoints().size()), rest.clearance());
-            if (route.clear(here, next.waypoints().getFirst(), next.clearance())) {
-                walk(body, next);
+            if (nextLegClear(body, here, rest)) {
+                walk(body, rest.withoutFirst());
             } else if (arrived) {
-                replan(body, here, next);
+                replan(body, here, rest.withoutFirst());
             }
             return NavStatus.MOVING;
         }
@@ -79,6 +82,28 @@ public final class DetouringBodies implements CitizenBodies {
             forget(body);
         }
         return status;
+    }
+
+    /** Whether the line from {@code here} to the waypoint after the current one keeps the plan's clearance. */
+    private boolean nextLegClear(BodyId body, Vec3 here, SafeRoute.Plan rest) {
+        long block = packBlock(here);
+        Long refused = refusedFrom.get(body);
+        if (refused != null && refused == block) {
+            return false;
+        }
+        if (route.clear(here, rest.waypoints().get(1), rest.clearance())) {
+            return true;
+        }
+        refusedFrom.put(body, block);
+        return false;
+    }
+
+    /** The block holding {@code p}, packed as MC BlockPos.asLong does (26 bits x, 26 bits z, 12 bits y). */
+    private static long packBlock(Vec3 p) {
+        long x = (long) Math.floor(p.x());
+        long y = (long) Math.floor(p.y());
+        long z = (long) Math.floor(p.z());
+        return (x & 0x3FFFFFFL) << 38 | (z & 0x3FFFFFFL) << 12 | y & 0xFFFL;
     }
 
     /** Walks a new safe route from {@code here} to the walk's target; past {@link #MAX_REPLANS}, the next leg as is. */
@@ -90,6 +115,7 @@ public final class DetouringBodies implements CitizenBodies {
     }
 
     private void walk(BodyId body, SafeRoute.Plan plan) {
+        refusedFrom.remove(body);
         bodies.moveTo(body, plan.waypoints().getFirst());
         if (plan.waypoints().size() > 1) {
             legs.put(body, plan);
@@ -101,6 +127,7 @@ public final class DetouringBodies implements CitizenBodies {
     private void forget(BodyId body) {
         legs.remove(body);
         replans.remove(body);
+        refusedFrom.remove(body);
     }
 
     private boolean reached(BodyId body, Vec3 waypoint) {
