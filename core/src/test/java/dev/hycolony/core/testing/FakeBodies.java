@@ -40,6 +40,8 @@ public final class FakeBodies implements CitizenBodies {
     public boolean instant;
     /** Every moveTo target, in call order. */
     public final List<Vec3> moves = new ArrayList<>();
+    /** Every setDisplayName call, in call order. */
+    public final List<String> renames = new ArrayList<>();
     private long next = 1;
 
     /** Simulates a body that already exists in the world (e.g. loaded from a chunk). */
@@ -78,7 +80,7 @@ public final class FakeBodies implements CitizenBodies {
     }
 
     @Override public NavStatus navStatus(BodyId body) { return bodies.get(body).status; }
-    @Override public void setDisplayName(BodyId body, String name) { bodies.get(body).name = name; }
+    @Override public void setDisplayName(BodyId body, String name) { bodies.get(body).name = name; renames.add(name); }
     @Override public void despawn(BodyId body) { Body b = bodies.get(body); if (b != null) b.alive = false; }
     @Override public void setHeldItem(BodyId body, Optional<ItemKey> item) { bodies.get(body).held = item.orElse(null); }
 

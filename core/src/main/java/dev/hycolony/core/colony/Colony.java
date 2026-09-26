@@ -46,6 +46,7 @@ public final class Colony {
     private final RequestManager requests;
     private final CitizenManager citizens;
     private final WorkManager work = new WorkManager(this);
+    private final CitizenNameplates nameplates = new CitizenNameplates(this);
     private final ColonySettings settings = new ColonySettings();
     private final EventLog log = new EventLog();
     private final TickRateStateMachine<ColonyState> machine;
@@ -99,6 +100,7 @@ public final class Colony {
         machine.addTransition(new AITarget<>(ColonyState.ACTIVE, (IStateSupplier<ColonyState>) () -> { slowTick(); return null; }, SLOW_TICK));
         machine.addTransition(new AITarget<>(ColonyState.ACTIVE, (IStateSupplier<ColonyState>) () -> { requests.tick(); return null; }, RequestManager.TICK_INTERVAL));
         machine.addTransition(new AITarget<>(ColonyState.ACTIVE, (IStateSupplier<ColonyState>) () -> { work.tick(); return null; }, WorkManager.TICK_INTERVAL));
+        machine.addTransition(new AITarget<>(ColonyState.ACTIVE, (IStateSupplier<ColonyState>) () -> { nameplates.refresh(); return null; }, CitizenNameplates.INTERVAL));
     }
 
     public void tick() {
@@ -212,6 +214,7 @@ public final class Colony {
     public ColonySettings settings() { return settings; }
     public RequestManager requests() { return requests; }
     public WorkManager work() { return work; }
+    public CitizenNameplates nameplates() { return nameplates; }
     public EventLog log() { return log; }
     public int day() { return day; }
     public void setDay(int day) { this.day = day; }

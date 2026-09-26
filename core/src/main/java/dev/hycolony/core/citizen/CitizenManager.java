@@ -139,7 +139,7 @@ public final class CitizenManager {
     }
 
     private void spawnBody(CitizenData data, BlockPos near) {
-        ctx().bodies().spawn(ctx().world(), near, colony.id(), data.id(), data.name())
+        ctx().bodies().spawn(ctx().world(), near, colony.id(), data.id(), colony.nameplates().nameFor(data))
                 .ifPresent(body -> bind(data, body));
     }
 
