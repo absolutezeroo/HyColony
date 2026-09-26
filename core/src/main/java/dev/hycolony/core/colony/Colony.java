@@ -68,52 +68,21 @@ public final class Colony {
         this.citizens = new CitizenManager(this);
         this.wasDaytime = ctx.clock().isDaytime();
         this.machine = new TickRateStateMachine<>(ColonyState.INACTIVE, this::onException);
+        registerTicks();
+    }
+
+    /** The colony's periodic work: the state update in every state, the rest only while ACTIVE. */
+    private void registerTicks() {
         for (ColonyState s : ColonyState.values()) {
             machine.addTransition(
                     new AITarget<>(s, (IStateSupplier<ColonyState>) this::updateState, UPDATE_STATE_INTERVAL));
         }
-        machine.addTransition(new AITarget<>(
-                ColonyState.ACTIVE,
-                (IStateSupplier<ColonyState>) () -> {
-                    citizens.tickData();
-                    return null;
-                },
-                CITIZEN_DATA_INTERVAL));
-        machine.addTransition(new AITarget<>(
-                ColonyState.ACTIVE,
-                (IStateSupplier<ColonyState>) () -> {
-                    checkDayTime();
-                    return null;
-                },
-                DAYTIME_INTERVAL));
-        machine.addTransition(new AITarget<>(
-                ColonyState.ACTIVE,
-                (IStateSupplier<ColonyState>) () -> {
-                    slowTick();
-                    return null;
-                },
-                SLOW_TICK));
-        machine.addTransition(new AITarget<>(
-                ColonyState.ACTIVE,
-                (IStateSupplier<ColonyState>) () -> {
-                    requests.tick();
-                    return null;
-                },
-                RequestManager.TICK_INTERVAL));
-        machine.addTransition(new AITarget<>(
-                ColonyState.ACTIVE,
-                (IStateSupplier<ColonyState>) () -> {
-                    work.tick();
-                    return null;
-                },
-                WorkManager.TICK_INTERVAL));
-        machine.addTransition(new AITarget<>(
-                ColonyState.ACTIVE,
-                (IStateSupplier<ColonyState>) () -> {
-                    nameplates.refresh();
-                    return null;
-                },
-                CitizenNameplates.INTERVAL));
+        machine.addTransition(AITarget.every(ColonyState.ACTIVE, citizens::tickData, CITIZEN_DATA_INTERVAL));
+        machine.addTransition(AITarget.every(ColonyState.ACTIVE, this::checkDayTime, DAYTIME_INTERVAL));
+        machine.addTransition(AITarget.every(ColonyState.ACTIVE, this::slowTick, SLOW_TICK));
+        machine.addTransition(AITarget.every(ColonyState.ACTIVE, requests::tick, RequestManager.TICK_INTERVAL));
+        machine.addTransition(AITarget.every(ColonyState.ACTIVE, work::tick, WorkManager.TICK_INTERVAL));
+        machine.addTransition(AITarget.every(ColonyState.ACTIVE, nameplates::refresh, CitizenNameplates.INTERVAL));
     }
 
     public void tick() {
