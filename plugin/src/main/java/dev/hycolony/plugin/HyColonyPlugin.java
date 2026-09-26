@@ -21,6 +21,7 @@ import dev.hycolony.plugin.config.HyColonyConfig;
 import dev.hycolony.plugin.goggles.GogglesSystems;
 import dev.hycolony.plugin.npc.BuilderSensorHyColonyTarget;
 import dev.hycolony.plugin.npc.CitizenBodyLifecycleSystem;
+import dev.hycolony.plugin.npc.CitizenFireImmunitySystems;
 import dev.hycolony.plugin.npc.CitizenUseSystem;
 import dev.hycolony.plugin.npc.HyColonyComponents;
 import java.util.List;
@@ -55,6 +56,8 @@ public final class HyColonyPlugin extends JavaPlugin {
         getEntityStoreRegistry().registerSystem(new HutBlockSystems.Break(runtimes, ids));
         getEntityStoreRegistry().registerSystem(new HutBlockSystems.Use(runtimes, ids));
         getEntityStoreRegistry().registerSystem(new CitizenUseSystem(runtimes));
+        getEntityStoreRegistry().registerSystem(new CitizenFireImmunitySystems.Grant());
+        getEntityStoreRegistry().registerSystem(new CitizenFireImmunitySystems.Guard());
         getEntityStoreRegistry().registerSystem(new ProtectionSystems.Place(runtimes, ids));
         getEntityStoreRegistry().registerSystem(new ProtectionSystems.Break(runtimes, ids));
         getEntityStoreRegistry().registerSystem(new ProtectionSystems.Use(runtimes, ids));

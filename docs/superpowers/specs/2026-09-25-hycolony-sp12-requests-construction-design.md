@@ -303,6 +303,7 @@ Chaque écart porte un commentaire `Deviation from MC:` dans le code (CLAUDE.md 
 **Citoyens**
 - **Pas de temps libre** (`citizen/CitizenAI`) : comme MineColonies (`CitizenAI.calculateNextState`), un travailleur dont l'IA de métier peut se reposer (`canGoIdle`, par exemple un constructeur sans ordre réclamé) erre au lieu de travailler. Le temps libre (`getLeisureTime`) n'existe pas encore : un travailleur qui a du travail ne fait jamais de pause.
 - **Marqueur « ! »** (`colony/CitizenNameplates`) : MineColonies affiche une icône au-dessus de la tête d'un citoyen qui attend un joueur. Les PNJ Hytale n'ont pas cette surcouche, donc le nom l'affiche : « ! Nom ».
+- **Immunité au feu** (`plugin/npc/CitizenFireImmunitySystems`) : ajout demandé. Un citoyen ne brûle jamais (ni dégâts, ni teinte d'écran, ni particules), et ce indépendamment de l'invulnérabilité du rôle : `Grant` lui donne l'effet Hytale permanent `Immunity_Fire`, qui bloque nativement `Burn`/`Lava_Burn` (`Burn_Template.ApplyConditions`) ; `Guard` annule en plus les dégâts de contact des braises d'un feu de camp éteint (`Block_Damage`, un effet à cause `Physical` sans lien avec `Immunity_Fire`). MineColonies, lui, laisse un citoyen brûler comme toute entité vivante.
 
 **Requêtes**
 - **Fourniture par le joueur** (`request/RequestManager.overrule`) : appliquée une seule fois, alors que MineColonies l'exécutait deux fois.
