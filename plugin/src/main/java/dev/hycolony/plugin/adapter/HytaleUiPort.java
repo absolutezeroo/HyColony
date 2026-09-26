@@ -23,6 +23,7 @@ import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.ui.BuilderResourcesView;
 import dev.hycolony.core.colony.ui.BuildingView;
 import dev.hycolony.core.colony.ui.FoundColonyView;
+import dev.hycolony.core.colony.ui.NeedsPlayerNotice;
 import dev.hycolony.core.colony.ui.RequestsView;
 import dev.hycolony.core.colony.ui.TownHallView;
 import dev.hycolony.core.colony.ui.UiPort;
@@ -118,6 +119,14 @@ public final class HytaleUiPort implements UiPort {
     @Override
     public void showWorkOrders(UUID player, WorkOrdersView view) {
         open(player, pr -> new WorkOrdersPage(pr, view, manager.get()));
+    }
+
+    @Override
+    public void notifyNeedsPlayer(UUID player, NeedsPlayerNotice notice) {
+        PlayerRef pr = Universe.get().getPlayer(player);
+        if (pr != null) {
+            pr.sendMessage(RequestsPage.needsPlayer(notice));
+        }
     }
 
     /** "Pick up": the hut item goes to the player's inventory; once the core agrees, the block goes without a drop. */

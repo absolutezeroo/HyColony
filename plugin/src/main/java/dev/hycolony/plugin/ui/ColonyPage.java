@@ -62,6 +62,12 @@ abstract class ColonyPage extends InteractiveCustomUIPage<ColonyPage.Act> {
                 : Message.raw(typeIdOrName);
     }
 
+    /** "hycolony:builder" -> hycolony.ui.job.builder; no job -> hycolony.ui.job.none. */
+    static Message jobName(String jobId) {
+        return jobId.isEmpty() ? Message.translation("hycolony.ui.job.none")
+                : Message.translation("hycolony.ui.job." + jobId.substring(jobId.indexOf(':') + 1));
+    }
+
     static Message itemName(String itemId) {
         Item item = Item.getAssetMap().getAsset(itemId);
         return item == null ? Message.raw(itemId) : item.getTranslationMessage();

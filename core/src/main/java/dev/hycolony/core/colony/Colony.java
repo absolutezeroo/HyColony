@@ -3,21 +3,26 @@ package dev.hycolony.core.colony;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingManager;
 import dev.hycolony.core.building.BuildingModule;
+import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.CitizenManager;
+import dev.hycolony.core.colony.ui.NeedsPlayerNotice;
 import dev.hycolony.core.construction.WorkManager;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.ai.AITarget;
 import dev.hycolony.core.kernel.ai.IStateSupplier;
 import dev.hycolony.core.kernel.ai.TickRateStateMachine;
+import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.RequestManager;
 import dev.hycolony.core.request.Requester;
 import dev.hycolony.core.request.RequesterId;
 import dev.hycolony.core.request.resolver.PlayerResolver;
 import dev.hycolony.core.request.resolver.RetryingResolver;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.Set;
 import java.util.UUID;
 
 /** One colony. Ticked 20 times per second on its world thread. */
@@ -79,7 +84,9 @@ public final class Colony {
                 }
             }
         });
-        requests.registerBuiltIn(new PlayerResolver(center));
+        PlayerResolver playerResolver = new PlayerResolver(center);
+        playerResolver.setOnNeedsPlayer(this::announceNeedsPlayer);
+        requests.registerBuiltIn(playerResolver);
         requests.registerBuiltIn(new RetryingResolver(center));
         this.citizens = new CitizenManager(this);
         this.wasDaytime = ctx.clock().isDaytime();
@@ -148,6 +155,33 @@ public final class Colony {
     private void slowTick() {
         buildings.onColonyTick(this);
         citizens.onColonyTick();
+    }
+
+    /**
+     * MC StandardPlayerRequestResolver's "needs" message: a request only a player can provide is told to the online
+     * owner and officers, naming the citizen (or the building) and its job.
+     */
+    private void announceNeedsPlayer(Request r) {
+        Building b = buildings.byRequester(r.requester()).orElse(null);
+        Optional<CitizenData> citizen = r.citizenId() != -1 ? citizens.get(r.citizenId())
+                : Optional.ofNullable(b).flatMap(hut -> hut.module(WorkerModule.class))
+                        .flatMap(w -> w.workers().stream().findFirst()).flatMap(citizens::get);
+        String who = r.citizenId() != -1 ? citizen.map(CitizenData::name).orElse("")
+                : b != null ? b.displayName() : r.requester().value();
+        String job = citizen.flatMap(CitizenData::job).map(j -> j.type().id()).orElse("");
+        NeedsPlayerNotice notice = new NeedsPlayerNotice(who, job, r.requestable());
+        Set<UUID> to = new LinkedHashSet<>();
+        to.add(permissions.owner());
+        permissions.members().forEach((p, m) -> {
+            if (m.rankId() <= Permissions.OFFICER) {
+                to.add(p);
+            }
+        });
+        for (UUID p : to) {
+            if (ctx.players().isOnline(p)) {
+                ctx.ui().notifyNeedsPlayer(p, notice);
+            }
+        }
     }
 
     private Optional<Requester> requester(RequesterId id) {

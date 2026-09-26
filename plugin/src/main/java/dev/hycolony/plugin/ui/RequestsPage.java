@@ -8,6 +8,7 @@ import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.colony.ColonyManager;
+import dev.hycolony.core.colony.ui.NeedsPlayerNotice;
 import dev.hycolony.core.colony.ui.RequestsView;
 import dev.hycolony.core.colony.ui.RequestsView.RequestRow;
 import dev.hycolony.core.request.Deliverable;
@@ -50,8 +51,14 @@ public final class RequestsPage extends ColonyPage {
         }
     }
 
+    /** The chat line "{requester} ({job}) needs: {requestable}". */
+    public static Message needsPlayer(NeedsPlayerNotice n) {
+        return Message.translation("hycolony.request.needsPlayer").param("p0", buildingName(n.requesterName()))
+                .param("p1", jobName(n.jobId())).param("p2", describe(n.requestable()));
+    }
+
     /** "64 x Stone" or "Pickaxe (level 0 to 1)", in the player's language. */
-    private static Message describe(Deliverable d) {
+    static Message describe(Deliverable d) {
         return switch (d) {
             case StackRequest s -> Message.translation("hycolony.ui.requests.stack")
                     .param("p0", String.valueOf(s.count())).param("p1", itemName(s.item().id()));

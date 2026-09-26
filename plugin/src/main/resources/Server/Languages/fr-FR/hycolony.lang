@@ -119,3 +119,6 @@ ui.building.hiring.default = Embauche : Par défaut
 ui.building.hiring.auto = Embauche : Automatique
 ui.building.hiring.manual = Embauche : Manuelle
 ui.building.hiring.locked = Embauche : Verrouillée
+request.needsPlayer = {p0} ({p1}) a besoin de : {p2}
+ui.job.builder = Constructeur
+ui.job.none = sans emploi
