@@ -10,6 +10,7 @@ import com.hypixel.hytale.server.core.universe.world.events.RemoveWorldEvent;
 import com.hypixel.hytale.server.core.universe.world.events.StartWorldEvent;
 import com.hypixel.hytale.server.core.util.Config;
 import com.hypixel.hytale.server.npc.NPCPlugin;
+import dev.hycolony.core.kernel.config.ColonyConfig;
 import dev.hycolony.plugin.adapter.HytaleBlueprintSource;
 import dev.hycolony.plugin.block.ExplosionProtectionSystem;
 import dev.hycolony.plugin.block.HutBlockSystems;
@@ -39,7 +40,8 @@ public final class HyColonyPlugin extends JavaPlugin {
     @Override
     protected void setup() {
         config.save();
-        runtimes = new WorldRuntimes(config.get().toCore(), ids);
+        ColonyConfig colonyConfig = config.get().toCore();
+        runtimes = new WorldRuntimes(colonyConfig, ids);
 
         HyColonyComponents.register(getEntityStoreRegistry());
         NPCPlugin.get().registerCoreComponentType("HyColonyTarget", BuilderSensorHyColonyTarget::new);
@@ -60,7 +62,7 @@ public final class HyColonyPlugin extends JavaPlugin {
                 .registerGlobal(
                         PlayerReadyEvent.class,
                         e -> GogglesSystems.onPlayerReady(runtimes, ids.itemId("build_goggles"), e));
-        getCommandRegistry().registerCommand(new HyColonyCommand(runtimes, ids));
+        getCommandRegistry().registerCommand(new HyColonyCommand(runtimes, ids, colonyConfig.commands()));
 
         // Assets (blocks, items, NPC roles) are all loaded once a world starts: validate ids there.
         // World.onStart dispatches this on the world thread: create the runtime inline, before any

@@ -9,7 +9,7 @@ import dev.hycolony.core.kernel.port.Msg;
 import java.util.Optional;
 import java.util.UUID;
 
-/** What a colony's managers change about the colony itself: its name and its members' ranks. */
+/** What a colony's managers change about the colony itself: its name, its members' ranks, its existence. */
 public final class ColonyAdministration {
     private final ColonyManager manager;
     private final ColonyWindows windows;
@@ -30,6 +30,20 @@ public final class ColonyAdministration {
             c.markDirty();
         }
         return changed;
+    }
+
+    /**
+     * Deletes the colony if {@code actor} is an operator or has a colony manager's rank; false otherwise or if the
+     * colony is unknown or could not be archived. MC CommandDeleteColony, IMCColonyOfficerCommand.checkPreCondition.
+     */
+    public boolean delete(UUID actor, int colonyId) {
+        Colony c = manager.byId(colonyId).orElse(null);
+        if (c == null
+                || !manager.context().players().isOperator(actor)
+                        && !c.permissions().rankOf(actor).isColonyManager()) {
+            return false;
+        }
+        return manager.deleteColony(colonyId);
     }
 
     /** A colony manager's rank renames the colony; the town hall window is shown again. */

@@ -18,6 +18,7 @@ import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
+import dev.hycolony.core.kernel.config.ColonyConfig;
 import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockKind;
 import dev.hycolony.core.kernel.item.BlockState;
@@ -40,18 +41,29 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import org.joml.Vector3d;
 
-/** /hycolony info|rank (all players) and delete|selftest (operators: default permission node). */
+/**
+ * /hycolony info|rank|delete and selftest. Operators run them all (their group holds "*"); non-operators run info,
+ * rank and delete only when config Commands allows it (MC canPlayerUse...Command), selftest never.
+ *
+ * <p>Deviation from MC: a refused non-operator gets Hytale's own "no permission" answer instead of MC's "This command
+ * is disabled in the config", since the config picks the command's permission group.
+ */
 public final class HyColonyCommand extends AbstractCommandCollection {
     private static final String PLAYERS = "hytale:Adventurer";
 
-    public HyColonyCommand(WorldRuntimes runtimes, IdMap ids) {
+    public HyColonyCommand(WorldRuntimes runtimes, IdMap ids, ColonyConfig.Commands config) {
         super("hycolony", "HyColony colony management");
         // No group on the collection: subcommands without one inherit it (putRecursivePermissionGroups).
         // Subcommands are dispatched before the collection's own permission is checked.
-        addSubCommand(new Info(runtimes));
-        addSubCommand(new Rank(runtimes));
-        addSubCommand(new Delete(runtimes));
+        addSubCommand(new Info(runtimes, config.canPlayerUseShowColonyInfoCommand()));
+        addSubCommand(new Rank(runtimes, config.canPlayerUseAddOfficerCommand()));
+        addSubCommand(new Delete(runtimes, config.canPlayerUseDeleteColonyCommand()));
         addSubCommand(new SelfTest(runtimes, ids));
+    }
+
+    /** Every player, or operators only: an empty group list leaves only the auto-generated node, held by "*". */
+    private static String[] groups(boolean players) {
+        return players ? new String[] {PLAYERS} : new String[0];
     }
 
     private static BlockPos where(Store<EntityStore> store, Ref<EntityStore> ref) {
@@ -67,10 +79,10 @@ public final class HyColonyCommand extends AbstractCommandCollection {
     static final class Info extends AbstractPlayerCommand {
         private final WorldRuntimes runtimes;
 
-        Info(WorldRuntimes runtimes) {
+        Info(WorldRuntimes runtimes, boolean players) {
             super("info", "Colony at your position");
             this.runtimes = runtimes;
-            setPermissionGroups(PLAYERS);
+            setPermissionGroups(groups(players));
         }
 
         @Override
@@ -105,12 +117,12 @@ public final class HyColonyCommand extends AbstractCommandCollection {
         private final RequiredArg<PlayerRef> target;
         private final RequiredArg<String> rank;
 
-        Rank(WorldRuntimes runtimes) {
+        Rank(WorldRuntimes runtimes, boolean players) {
             super("rank", "Set a player's rank in the colony you stand in");
             this.runtimes = runtimes;
             this.target = withRequiredArg("player", "Target player", ArgTypes.PLAYER_REF);
             this.rank = withRequiredArg("rank", "officer|friend|neutral|hostile", ArgTypes.STRING);
-            setPermissionGroups(PLAYERS); // the colony's EDIT_PERMISSIONS check is done by the core
+            setPermissionGroups(groups(players)); // the colony's EDIT_PERMISSIONS check is done by the core
         }
 
         @Override
@@ -143,16 +155,16 @@ public final class HyColonyCommand extends AbstractCommandCollection {
         }
     }
 
-    /** Operators only (empty permission group list: needs the auto-generated node). */
+    /** Deletes a colony by id; the core checks the sender is an operator or a manager of that colony. */
     static final class Delete extends AbstractPlayerCommand {
         private final WorldRuntimes runtimes;
         private final RequiredArg<Integer> id;
 
-        Delete(WorldRuntimes runtimes) {
-            super("delete", "Delete a colony (operators)");
+        Delete(WorldRuntimes runtimes, boolean players) {
+            super("delete", "Delete a colony (operators, or its managers if the config allows)");
             this.runtimes = runtimes;
             this.id = withRequiredArg("id", "Colony id", ArgTypes.INTEGER);
-            setPermissionGroups(); // explicit: no group ever grants it
+            setPermissionGroups(groups(players));
         }
 
         @Override
@@ -164,11 +176,12 @@ public final class HyColonyCommand extends AbstractCommandCollection {
                 @Nonnull World world) {
             WorldRuntime rt = runtimes.of(world);
             int colonyId = ctx.get(id);
-            if (rt != null && rt.manager().byId(colonyId).isPresent()) {
-                rt.manager().deleteColony(colonyId);
+            if (rt == null || rt.manager().byId(colonyId).isEmpty()) {
+                say(player, "hycolony.cmd.noColony");
+            } else if (rt.manager().administration().delete(player.getUuid(), colonyId)) {
                 say(player, "hycolony.cmd.deleted");
             } else {
-                say(player, "hycolony.cmd.noColony");
+                say(player, "hycolony.cmd.deleteFailed");
             }
         }
     }
@@ -182,7 +195,7 @@ public final class HyColonyCommand extends AbstractCommandCollection {
             super("selftest", "Check HyColony against this server (operators)");
             this.runtimes = runtimes;
             this.ids = ids;
-            setPermissionGroups(); // explicit: no group ever grants it
+            setPermissionGroups(groups(false));
         }
 
         @Override

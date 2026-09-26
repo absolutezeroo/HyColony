@@ -28,6 +28,7 @@ cmd.info = {p0} (#{p1}) - propriétaire {p2} - {p3} - jour {p4} - {p5} citoyens
 cmd.rankSet = Rang mis à jour.
 cmd.rankFailed = Impossible de changer le rang.
 cmd.deleted = Colonie supprimée.
+cmd.deleteFailed = Impossible de supprimer la colonie.
 selftest.ok = [OK] {p0}
 selftest.ko = [KO] {p0} : {p1}
 item.hut.builder.name = Hutte du constructeur

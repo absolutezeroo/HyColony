@@ -28,6 +28,7 @@ cmd.info = {p0} (#{p1}) - owner {p2} - {p3} - day {p4} - {p5} citizens
 cmd.rankSet = Rank updated.
 cmd.rankFailed = Could not change rank.
 cmd.deleted = Colony deleted.
+cmd.deleteFailed = Could not delete the colony.
 selftest.ok = [OK] {p0}
 selftest.ko = [KO] {p0}: {p1}
 item.hut.builder.name = Builder's Hut
