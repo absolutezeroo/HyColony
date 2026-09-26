@@ -6,7 +6,6 @@ import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.StructurePlan;
 import dev.hycolony.core.construction.resources.NeededResources;
-import dev.hycolony.core.construction.workorder.BuildCompletion;
 import dev.hycolony.core.construction.workorder.Stage;
 import dev.hycolony.core.construction.workorder.WorkOrder;
 import dev.hycolony.core.job.JobAI;
@@ -275,7 +274,7 @@ public final class BuilderAI implements JobAI {
             resetStructure();
             return BuilderState.IDLE;
         }
-        BuildCompletion.apply(ctx.colony(), o, b);
+        ctx.colony().work().finish(o, b);
         ctx.job().incrementActions();
         ctx.award(XP_EACH_BUILDING);
         // All builder requests are sync: leftovers (e.g. a next bucket no longer needed) would block it forever.

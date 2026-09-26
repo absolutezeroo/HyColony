@@ -330,8 +330,7 @@ class WorkManagerTest {
         Building b = builder(new BlockPos(10, 64, 0), 1);
         WorkOrder o = created(residence(new BlockPos(20, 64, 0), 0).position(), WorkOrderType.BUILD);
         colony.work().tick();
-        o.setStage(Stage.SOLID);
-        o.setProgressIndex(7);
+        o.progress(Stage.SOLID, 7);
         colony.requests().createAndAssign(b, new StackRequest(new ItemKey("Stone"), 4, 4, true), 1);
 
         manager.huts().onRemoved(b.position());
@@ -350,8 +349,7 @@ class WorkManagerTest {
         WorkOrder c = created(residence(new BlockPos(30, 64, 0), 0).position(), WorkOrderType.BUILD);
         c.setPriority(3);
         colony.work().tick();
-        c.setStage(Stage.SOLID);
-        c.setProgressIndex(12);
+        c.progress(Stage.SOLID, 12);
         b.setDeconstructed(true);
 
         JsonObject json = ColonySerializer.write(colony);

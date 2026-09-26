@@ -204,8 +204,13 @@ public final class WorkManager {
         assignment.assign(orders.values());
     }
 
+    /** The order is built: the building takes its result ({@link BuildCompletion}), then the order leaves. */
+    public void finish(WorkOrder o, Building b) {
+        BuildCompletion.apply(colony, o, b);
+    }
+
     /** The order is done: removed without touching requests. */
-    public void complete(WorkOrder o) {
+    void complete(WorkOrder o) {
         if (orders.remove(o.id()) != null) {
             byBuilding.remove(o.buildingPos());
             colony.markDirty();

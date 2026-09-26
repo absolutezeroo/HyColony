@@ -105,7 +105,6 @@ public final class BuildingResourcesModule implements BuildingModule {
         if (order == null) {
             throw new IllegalStateException("no order started");
         }
-        order.setStage(s);
-        order.setProgressIndex(index);
+        order.progress(s, index);
     }
 }

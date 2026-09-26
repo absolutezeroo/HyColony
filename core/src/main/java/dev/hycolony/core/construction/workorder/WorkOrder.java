@@ -69,7 +69,7 @@ public final class WorkOrder {
         return priority;
     }
 
-    public void setPriority(int p) {
+    void setPriority(int p) {
         this.priority = p;
     }
 
@@ -97,11 +97,9 @@ public final class WorkOrder {
         this.claimedBy = builderHut;
     }
 
-    public void setStage(Stage stage) {
+    /** Where the builder stands in the order; public for the building's resources module, which mirrors it. */
+    public void progress(Stage stage, int progressIndex) {
         this.stage = stage;
-    }
-
-    public void setProgressIndex(int progressIndex) {
         this.progressIndex = progressIndex;
     }
 

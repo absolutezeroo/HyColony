@@ -9,14 +9,14 @@ import dev.hycolony.core.kernel.port.Msg;
 import java.util.UUID;
 
 /** The building side of a finished order (MC executeSpecificCompleteActions + sendCompletionMessage). */
-public final class BuildCompletion {
+final class BuildCompletion {
     private BuildCompletion() {}
 
     /**
      * BUILD/UPGRADE/REPAIR: target level, built, claims. REMOVE: deconstructed, level kept. Then log, members'
      * message, {@link ColonyEvents.BuildingLevelChanged}, and the order leaves the work manager.
      */
-    public static void apply(Colony colony, WorkOrder o, Building b) {
+    static void apply(Colony colony, WorkOrder o, Building b) {
         int oldLevel = b.level();
         String logType;
         if (o.type() == WorkOrderType.REMOVE) {
