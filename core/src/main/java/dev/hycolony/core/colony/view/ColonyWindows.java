@@ -82,14 +82,26 @@ public final class ColonyWindows {
         ctx.ui().showRequests(player, requests.of(c, player));
     }
 
+    /**
+     * Re-shows the window after an action. Checks no permission: the caller has checked that {@code viewer} may
+     * see it (ACCESS_HUTS, or the right its own action requires). Public for the colony actions.
+     */
     public void showTownHall(Colony c, UUID viewer) {
         ctx.ui().showTownHall(viewer, townHall.of(c, viewer));
     }
 
+    /**
+     * Re-shows the window after an action. Checks no permission: the caller has checked that {@code viewer} may
+     * see it (ACCESS_HUTS, or the right its own action requires). Public for the colony actions.
+     */
     public void showBuilding(Colony c, Building b, UUID viewer) {
         ctx.ui().showBuilding(viewer, buildings.of(c, b, viewer));
     }
 
+    /**
+     * Re-shows the window after an action. Checks no permission: the caller has checked that {@code viewer} may
+     * see it (ACCESS_HUTS, or the right its own action requires). Public for the colony actions.
+     */
     public void showWorkOrders(Colony c, UUID viewer) {
         ctx.ui().showWorkOrders(viewer, WorkOrderViews.of(c, viewer));
     }
