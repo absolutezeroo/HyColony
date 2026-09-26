@@ -25,6 +25,7 @@ Group {
 
       Label #Name {
         FlexWeight: 1;
+        Style: (TextColor: #ffffff);
       }
 
       Label #Xp {
