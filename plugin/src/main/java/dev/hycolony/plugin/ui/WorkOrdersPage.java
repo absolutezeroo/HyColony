@@ -36,11 +36,11 @@ public final class WorkOrdersPage extends ColonyPage {
             OrderLine o = orders.get(i);
             String row = "#Orders[" + i + "]";
             ui.append("#Orders", "Pages/HyColony/OrderRow.ui");
-            ui.set(row + " #Title.Text", Message.translation("hycolony.ui.workorders.line")
+            ui.set(row + " #Title.TextSpans", Message.translation("hycolony.ui.workorders.line")
                     .param("p0", Message.translation("hycolony.ui.workorder.type." + o.type().name().toLowerCase(Locale.ROOT)))
                     .param("p1", buildingName(o.buildingName()))
                     .param("p2", String.valueOf(o.targetLevel())));
-            ui.set(row + " #Info.Text", Message.translation("hycolony.ui.workorders.info")
+            ui.set(row + " #Info.TextSpans", Message.translation("hycolony.ui.workorders.info")
                     .param("p0", String.valueOf(o.priority()))
                     .param("p1", o.builderName().map(Message::raw)
                             .orElse(Message.translation("hycolony.ui.building.noBuilder"))));

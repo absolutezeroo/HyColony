@@ -39,8 +39,8 @@ public final class RequestsPage extends ColonyPage {
             RequestRow r = rows.get(i);
             String row = "#Requests[" + i + "]";
             ui.append("#Requests", "Pages/HyColony/RequestRow.ui");
-            ui.set(row + " #Description.Text", describe(r.requestable()));
-            ui.set(row + " #Info.Text", Message.translation("hycolony.ui.requests.info")
+            ui.set(row + " #Description.TextSpans", describe(r.requestable()));
+            ui.set(row + " #Info.TextSpans", Message.translation("hycolony.ui.requests.info")
                     .param("p0", buildingName(r.requesterName())).param("p1", String.valueOf(r.playerHas())));
             if (r.playerHas() > 0) {
                 bind(events, row + " #FulfilButton", "fulfil", i);

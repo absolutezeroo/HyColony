@@ -115,3 +115,7 @@ ui.requests.tool = {p0} (niveau {p1} à {p2})
 ui.tool.pickaxe = Pioche
 ui.tool.axe = Hache
 ui.tool.shovel = Pelle
+ui.building.hiring.default = Embauche : Par défaut
+ui.building.hiring.auto = Embauche : Automatique
+ui.building.hiring.manual = Embauche : Manuelle
+ui.building.hiring.locked = Embauche : Verrouillée

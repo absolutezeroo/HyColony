@@ -73,7 +73,7 @@ public final class BuildingPage extends ColonyPage {
 
         if (view.order().isPresent()) {
             BuildingView.OrderRow o = view.order().get();
-            ui.set("#OrderInfo.Text", Message.translation("hycolony.ui.building.order")
+            ui.set("#OrderInfo.TextSpans", Message.translation("hycolony.ui.building.order")
                     .param("p0", typeName(o.type()))
                     .param("p1", String.valueOf(o.targetLevel()))
                     .param("p2", o.builderName().map(Message::raw)
@@ -105,8 +105,9 @@ public final class BuildingPage extends ColonyPage {
         }
 
         if (view.hiringMode().isPresent()) {
-            ui.set("#HiringButton.Text", Message.translation("hycolony.ui.building.hiring").param("p0",
-                    Message.translation("hycolony.ui.hiring." + view.hiringMode().get().name().toLowerCase(Locale.ROOT))));
+            // A button's Text renders no nested message: one full key per mode.
+            ui.set("#HiringButton.Text", Message.translation(
+                    "hycolony.ui.building.hiring." + view.hiringMode().get().name().toLowerCase(Locale.ROOT)));
             if (view.canManage()) {
                 bind(events, "#HiringButton", "hiring");
             } else {

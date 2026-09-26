@@ -38,7 +38,7 @@ public final class BuilderResourcesPage extends ColonyPage {
         if (view.stage().isEmpty()) {
             ui.set("#Progress.Text", Message.translation("hycolony.ui.resources.noOrder"));
         } else {
-            ui.set("#Progress.Text", Message.translation("hycolony.ui.resources.progress")
+            ui.set("#Progress.TextSpans", Message.translation("hycolony.ui.resources.progress")
                     .param("p0", String.valueOf(view.percent()))
                     .param("p1", Message.translation("hycolony.ui.stage." + view.stage())));
         }
