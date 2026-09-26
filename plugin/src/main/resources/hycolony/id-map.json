@@ -9,5 +9,18 @@
     "hut.builder": "HyColony_Hut_Builder",
     "hut.residence": "HyColony_Hut_Residence"
   },
-  "npcRoles": { "npc.citizen": "HyColony_Citizen" }
+  "npcRoles": { "npc.citizen": "HyColony_Citizen" },
+  "skillIcons": {
+    "Athletics": "Armor_Leather_Light_Legs",
+    "Dexterity": "Weapon_Daggers_Iron",
+    "Strength": "Tool_Hammer_Iron",
+    "Agility": "Ingredient_Feathers_Light",
+    "Stamina": "Potion_Stamina",
+    "Mana": "Ingredient_Crystal_Purple",
+    "Adaptability": "Tool_Map",
+    "Focus": "Furniture_Crude_Candle",
+    "Creativity": "Furniture_Village_Painting_1x1",
+    "Knowledge": "Deco_Book_Pile_Small",
+    "Intelligence": "Deco_Scroll"
+  }
 }

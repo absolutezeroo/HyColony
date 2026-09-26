@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
 import com.hypixel.hytale.server.npc.NPCPlugin;
+import dev.hycolony.core.citizen.Skill;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -13,7 +14,11 @@ import java.util.Map;
 
 /** Logical keys -> Hytale asset ids. The only place asset ids live (spec § 4.3). */
 public final class IdMap {
-    private record Data(Map<String, String> items, Map<String, String> blocks, Map<String, String> npcRoles) {}
+    private record Data(
+            Map<String, String> items,
+            Map<String, String> blocks,
+            Map<String, String> npcRoles,
+            Map<String, String> skillIcons) {}
 
     private final Data data;
 
@@ -41,6 +46,11 @@ public final class IdMap {
         return require(data.npcRoles(), key);
     }
 
+    /** The item shown as {@code skill}'s icon in the citizen window. */
+    public String skillIcon(Skill skill) {
+        return require(data.skillIcons(), skill.name());
+    }
+
     private static String require(Map<String, String> map, String key) {
         String id = map.get(key);
         if (id == null) {
@@ -62,6 +72,12 @@ public final class IdMap {
                 errors.add("block " + key + " -> " + id);
             }
         });
+        for (Skill skill : Skill.values()) {
+            String id = data.skillIcons().get(skill.name());
+            if (id == null || Item.getAssetMap().getAsset(id) == null) {
+                errors.add("skill icon " + skill + " -> " + id);
+            }
+        }
         data.npcRoles().forEach((key, id) -> {
             if (!NPCPlugin.get().hasRoleName(id)) {
                 errors.add("npc role " + key + " -> " + id);

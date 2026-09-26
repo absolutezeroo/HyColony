@@ -12,18 +12,20 @@ import dev.hycolony.core.colony.ui.CitizenView;
 import dev.hycolony.core.colony.ui.CitizenView.SkillRow;
 import dev.hycolony.core.colony.ui.RequestsView.RequestRow;
 import dev.hycolony.core.kernel.item.ItemAmount;
+import dev.hycolony.plugin.IdMap;
 import dev.hycolony.plugin.adapter.HytaleNotifier;
 import java.util.List;
-import java.util.Locale;
 import javax.annotation.Nonnull;
 
 /** MineColonies WindowCitizen: job, workplace, activity, skills, inventory and open requests with "Supply". */
 public final class CitizenPage extends ColonyPage {
     private final CitizenView view;
+    private final SkillRowRenderer skillRows;
 
-    public CitizenPage(PlayerRef playerRef, CitizenView view, ColonyManager manager) {
+    public CitizenPage(PlayerRef playerRef, CitizenView view, ColonyManager manager, IdMap ids) {
         super(playerRef, manager);
         this.view = view;
+        this.skillRows = new SkillRowRenderer(ids);
     }
 
     @Override
@@ -62,13 +64,7 @@ public final class CitizenPage extends ColonyPage {
 
         List<SkillRow> skills = view.skills();
         for (int i = 0; i < skills.size(); i++) {
-            String row = "#Skills[" + i + "]";
-            ui.append("#Skills", "Pages/HyColony/CitizenRow.ui");
-            ui.set(
-                    row + " #Name.Text",
-                    Message.translation(
-                            "hycolony.ui.skill." + skills.get(i).skill().name().toLowerCase(Locale.ROOT)));
-            ui.set(row + " #Status.Text", String.valueOf(skills.get(i).level()));
+            skillRows.append(ui, "#Skills", i, skills.get(i));
         }
 
         List<ItemAmount> items = view.inventory();

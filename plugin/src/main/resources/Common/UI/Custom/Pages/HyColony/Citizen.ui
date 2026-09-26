@@ -4,7 +4,7 @@ $C.@PageOverlay {
   LayoutMode: Middle;
 
   $C.@DecoratedContainer {
-    Anchor: (Width: 760);
+    Anchor: (Width: 860);
 
     #Title {
       $C.@Title {
@@ -37,7 +37,7 @@ $C.@PageOverlay {
 
       Group {
         LayoutMode: Left;
-        Anchor: (Height: 250, Bottom: 10);
+        Anchor: (Height: 300, Bottom: 10);
 
         Group {
           LayoutMode: Top;

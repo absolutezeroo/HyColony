@@ -127,7 +127,7 @@ public final class HytaleUiPort implements UiPort {
 
     @Override
     public void showCitizen(UUID player, CitizenView view) {
-        open(player, pr -> new CitizenPage(pr, view, manager.get()));
+        open(player, pr -> new CitizenPage(pr, view, manager.get(), ids));
     }
 
     @Override
