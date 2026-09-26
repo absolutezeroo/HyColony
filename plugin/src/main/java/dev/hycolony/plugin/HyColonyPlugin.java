@@ -86,7 +86,8 @@ public final class HyColonyPlugin extends JavaPlugin {
             runtimes.all()
                     .forEach(rt -> rt.world()
                             .execute(() -> rt.manager()
-                                    .cancelFoundation(uuid)
+                                    .foundation()
+                                    .cancel(uuid)
                                     .ifPresent(pos -> rt.blocks()
                                             .removeWithDrop(
                                                     pos, ids.blockId("hut.townhall"), ids.itemId("hut.townhall")))));

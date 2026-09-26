@@ -88,8 +88,9 @@ public final class RequestsPage extends ColonyPage {
         if (act.action.equals("fulfil")
                 && act.index >= 0
                 && act.index < view.rows().size()) {
-            manager.fulfil(player, view.colonyId(), view.rows().get(act.index).token());
-            manager.openRequests(player, view.colonyId()); // fulfil does not re-show
+            manager.requestActions()
+                    .fulfil(player, view.colonyId(), view.rows().get(act.index).token());
+            manager.windows().openRequests(player, view.colonyId()); // fulfil does not re-show
         }
     }
 }

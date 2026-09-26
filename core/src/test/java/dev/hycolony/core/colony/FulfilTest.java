@@ -40,8 +40,8 @@ class FulfilTest {
     private final CitizenData citizen = new CitizenData(1);
 
     FulfilTest() {
-        manager.beginFoundation(alice, "Alice", hall, 0);
-        colony = manager.confirmFoundation(alice, "A").orElseThrow();
+        manager.foundation().begin(alice, "Alice", hall, 0);
+        colony = manager.foundation().confirm(alice, "A").orElseThrow();
         hut = colony.buildings().at(hall).orElseThrow();
         colony.citizens().restore(citizen);
     }
@@ -64,7 +64,7 @@ class FulfilTest {
         RequestToken token = request(10, 1);
         t.playerInventory.give(alice, new ItemAmount(PLANKS, 15));
 
-        assertTrue(manager.fulfil(alice, colony.id(), token));
+        assertTrue(manager.requestActions().fulfil(alice, colony.id(), token));
 
         assertEquals(10, citizen.inventory().count(PLANKS));
         assertEquals(5, t.playerInventory.count(alice, PLANKS));
@@ -77,7 +77,7 @@ class FulfilTest {
         RequestToken token = request(10, 1);
         t.playerInventory.give(alice, new ItemAmount(PLANKS, 4));
 
-        assertTrue(manager.fulfil(alice, colony.id(), token));
+        assertTrue(manager.requestActions().fulfil(alice, colony.id(), token));
 
         assertEquals(4, citizen.inventory().count(PLANKS));
         assertEquals(0, t.playerInventory.count(alice, PLANKS));
@@ -90,7 +90,7 @@ class FulfilTest {
         RequestToken token = request(3, -1);
         t.playerInventory.give(alice, new ItemAmount(PLANKS, 3));
 
-        assertTrue(manager.fulfil(alice, colony.id(), token));
+        assertTrue(manager.requestActions().fulfil(alice, colony.id(), token));
 
         assertEquals(3, t.containers.count(hut.containers(), PLANKS));
         assertEquals(RequestState.COMPLETED, get(token).state());
@@ -99,11 +99,11 @@ class FulfilTest {
     @Test
     void fulfilWithoutItemsReturnsFalse() {
         RequestToken token = request(10, 1);
-        assertFalse(manager.fulfil(alice, colony.id(), token));
+        assertFalse(manager.requestActions().fulfil(alice, colony.id(), token));
         assertEquals(RequestState.IN_PROGRESS, get(token).state());
 
         t.playerInventory.give(bob, new ItemAmount(PLANKS, 10));
-        assertFalse(manager.fulfil(bob, colony.id(), token), "bob may not access the huts");
+        assertFalse(manager.requestActions().fulfil(bob, colony.id(), token), "bob may not access the huts");
         assertEquals(10, t.playerInventory.count(bob, PLANKS));
         assertEquals(RequestState.IN_PROGRESS, get(token).state());
     }
@@ -113,7 +113,7 @@ class FulfilTest {
         RequestToken token = request(10, 1);
         t.playerInventory.give(alice, new ItemAmount(PLANKS, 6));
 
-        assertEquals(6, manager.addToHut(alice, hall, PLANKS, 10));
+        assertEquals(6, manager.requestActions().addToHut(alice, hall, PLANKS, 10));
 
         assertEquals(6, t.containers.count(hut.containers(), PLANKS));
         assertEquals(0, t.playerInventory.count(alice, PLANKS));
@@ -144,7 +144,7 @@ class FulfilTest {
         RequestToken token = request(5, 1);
         t.containers.insert(hut.containers(), new ItemAmount(PLANKS, 5));
 
-        manager.onContainerChanged(hall);
+        manager.requestActions().onContainerChanged(hall);
 
         assertEquals(RequestState.COMPLETED, get(token).state());
         assertEquals(
@@ -163,7 +163,7 @@ class FulfilTest {
     void addToHutThenNewRequestForSameItemIsNotDoubleReserved() {
         RequestToken a = request(10, 1);
         t.playerInventory.give(alice, new ItemAmount(PLANKS, 6));
-        assertEquals(6, manager.addToHut(alice, hall, PLANKS, 10));
+        assertEquals(6, manager.requestActions().addToHut(alice, hall, PLANKS, 10));
         assertEquals(RequestState.COMPLETED, get(a).state());
 
         request(4, 1); // asserts it went to retrying: the 6 planks in the hut are A's
@@ -178,7 +178,7 @@ class FulfilTest {
         RequestToken byHut = colony.requests().createAndAssign(hut, new StackRequest(PLANKS, 2, 2, true), -1);
         assertEquals(RequestState.COMPLETED, get(byHut).state());
 
-        manager.onHutRemoved(hall);
+        manager.huts().onRemoved(hall);
 
         assertTrue(colony.requests().all().isEmpty());
         assertTrue(retrying().delays().isEmpty());
@@ -203,7 +203,7 @@ class FulfilTest {
         RequestToken token = request(10, 1);
         t.playerInventory.give(alice, new ItemAmount(PLANKS, 10));
 
-        assertTrue(manager.fulfil(alice, colony.id(), token));
+        assertTrue(manager.requestActions().fulfil(alice, colony.id(), token));
 
         assertEquals(5, citizen.inventory().count(PLANKS));
         assertEquals(5, t.playerInventory.count(alice, PLANKS), "the rest goes back to the player");
@@ -225,7 +225,7 @@ class FulfilTest {
         }
         RequestToken token = colony.requests().createAndAssign(hut, new ToolRequest(ToolType.PICKAXE, 1, 3), 1);
 
-        assertTrue(manager.fulfil(alice, colony.id(), token));
+        assertTrue(manager.requestActions().fulfil(alice, colony.id(), token));
 
         assertEquals(1, citizen.inventory().count(stonePick));
         assertEquals(1, t.playerInventory.count(alice, ironPick));
@@ -238,7 +238,7 @@ class FulfilTest {
         RequestToken token = request(10, 1);
         t.playerInventory.give(bob, new ItemAmount(PLANKS, 6));
 
-        assertEquals(0, manager.addToHut(bob, hall, PLANKS, 10));
+        assertEquals(0, manager.requestActions().addToHut(bob, hall, PLANKS, 10));
 
         assertEquals(6, t.playerInventory.count(bob, PLANKS));
         assertEquals(0, t.containers.count(hut.containers(), PLANKS));
@@ -277,7 +277,7 @@ class FulfilTest {
                 colony.requests().createAndAssign(hut, new StackRequest(new ItemKey("Stone"), 3, 3, true), 1);
         t.containers.insert(hut.containers(), new ItemAmount(new ItemKey("Dirt"), 10));
 
-        manager.onContainerChanged(hall);
+        manager.requestActions().onContainerChanged(hall);
 
         assertEquals(
                 "retrying",
@@ -287,7 +287,7 @@ class FulfilTest {
                 colony.requests().resolverOf(stone).map(Resolver::resolverId).orElseThrow());
 
         t.containers.insert(hut.containers(), new ItemAmount(PLANKS, 5));
-        manager.onContainerChanged(hall);
+        manager.requestActions().onContainerChanged(hall);
 
         assertEquals(
                 "building:0,64,0",

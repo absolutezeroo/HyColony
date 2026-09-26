@@ -136,7 +136,9 @@ public final class HyColonyCommand extends AbstractCommandCollection {
             };
             PlayerRef t = ctx.get(target);
             boolean ok = rankId >= 0
-                    && rt.manager().setRank(player.getUuid(), colony.get().id(), t.getUuid(), t.getUsername(), rankId);
+                    && rt.manager()
+                            .administration()
+                            .setRank(player.getUuid(), colony.get().id(), t.getUuid(), t.getUsername(), rankId);
             say(player, ok ? "hycolony.cmd.rankSet" : "hycolony.cmd.rankFailed");
         }
     }

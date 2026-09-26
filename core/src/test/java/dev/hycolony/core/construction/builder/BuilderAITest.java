@@ -97,8 +97,8 @@ class BuilderAITest {
         t.catalog.ores.add(ORE);
 
         manager = new ColonyManager(t.context());
-        manager.beginFoundation(alice, "Alice", new BlockPos(0, 64, 0), 0);
-        colony = manager.confirmFoundation(alice, "A").orElseThrow();
+        manager.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
+        colony = manager.foundation().confirm(alice, "A").orElseThrow();
         hut = hut(ConstructionBuildingTypes.BUILDER, HUT, 5);
         citizen = new CitizenData(1);
         colony.citizens().restore(citizen);
@@ -111,7 +111,7 @@ class BuilderAITest {
     // ---- helpers ----
 
     private Building hut(BuildingType type, BlockPos pos, int level) {
-        manager.placeHut(colony, type.id(), pos, 0);
+        manager.huts().place(colony, type.id(), pos, 0);
         Building b = colony.buildings().at(pos).orElseThrow();
         b.setLevel(level);
         b.setBuilt(level > 0);
@@ -933,7 +933,8 @@ class BuilderAITest {
         Request r = waitingForStone(2);
         t.containers.containers.put(HUT, new java.util.LinkedHashMap<>(Map.of(STONE_I, 5))); // reserved elsewhere
         t.playerInventory.give(alice, new ItemAmount(STONE_I, 2));
-        assertTrue(manager.fulfil(alice, colony.id(), r.token())); // "Fournir": straight to the citizen
+        assertTrue(
+                manager.requestActions().fulfil(alice, colony.id(), r.token())); // "Fournir": straight to the citizen
         citizen.inventory().extract(STONE_I, 1); // one used before the pick-up
 
         tickUntil(() -> colony.requests().get(r.token()).isEmpty(), 1000);

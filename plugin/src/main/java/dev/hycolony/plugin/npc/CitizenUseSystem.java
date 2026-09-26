@@ -55,7 +55,7 @@ public final class CitizenUseSystem extends EntityEventSystem<EntityStore, UseEn
             WorldRuntime rt = runtimes.of(store.getExternalData().getWorld());
             PlayerRef player = store.getComponent(chunk.getReferenceTo(index), PlayerRef.getComponentType());
             if (rt != null && rt.enabled() && player != null) {
-                rt.manager().openCitizen(player.getUuid(), tag.colonyId(), tag.citizenId());
+                rt.manager().windows().openCitizen(player.getUuid(), tag.colonyId(), tag.citizenId());
             }
         } catch (RuntimeException e) {
             event.setCancelled(true);

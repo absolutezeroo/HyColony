@@ -77,9 +77,10 @@ public final class WorldRuntime {
                         new HytaleBlueprintSource()));
         this.manager = new ColonyManager(ctx);
         self[0] = manager;
-        manager.setStorage(new FileColonyStorage(world.getSavePath().resolve("hycolony")), MigrationChain.sp1());
+        manager.persistence()
+                .setStorage(new FileColonyStorage(world.getSavePath().resolve("hycolony")), MigrationChain.sp1());
         if (enabled) {
-            manager.loadAll(); // disabled (asset ids missing): leave the files alone
+            manager.persistence().loadAll(); // disabled (asset ids missing): leave the files alone
         }
         this.loaded = enabled;
         this.enabled = enabled;
@@ -95,7 +96,7 @@ public final class WorldRuntime {
             clock.advance();
             manager.tick();
             if (clock.currentTick() % autosaveTicks == 0) {
-                manager.saveDirty();
+                manager.persistence().saveDirty();
             }
         } catch (RuntimeException e) {
             LOG.at(Level.SEVERE).withCause(e).log("HyColony tick failed in world '%s'", world.getName());
@@ -105,7 +106,7 @@ public final class WorldRuntime {
     /** Saves every colony, on the calling thread (must be the world thread, or the world is gone). */
     public void saveAll() {
         if (enabled) {
-            manager.saveAll();
+            manager.persistence().saveAll();
         }
     }
 

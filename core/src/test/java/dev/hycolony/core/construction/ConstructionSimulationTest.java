@@ -137,8 +137,8 @@ class ConstructionSimulationTest {
                 .put(ConstructionBuildingTypes.RESIDENCE.id(), 1, FakeBlueprints.hut(false));
         t.players.online.put(alice, TOWN_HALL.offset(3, 0, 3)); // inside: the colony is ACTIVE
         manager = newManager();
-        manager.beginFoundation(alice, "Alice", TOWN_HALL, 0);
-        colony = manager.confirmFoundation(alice, "Simulation").orElseThrow();
+        manager.foundation().begin(alice, "Alice", TOWN_HALL, 0);
+        colony = manager.foundation().confirm(alice, "Simulation").orElseThrow();
         watch(colony);
         t.blocks.blocks.put(TOWN_HALL, state(HUT_BLOCK));
     }
@@ -158,7 +158,7 @@ class ConstructionSimulationTest {
 
     private ColonyManager newManager() {
         ColonyManager m = new ColonyManager(t.context());
-        m.setStorage(new FileColonyStorage(dir), MigrationChain.sp1());
+        m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp1());
         return m;
     }
 
@@ -171,22 +171,22 @@ class ConstructionSimulationTest {
     }
 
     private Building placeHut(BuildingType type, BlockPos pos) {
-        assertInstanceOf(HutPlacement.Allowed.class, manager.checkHutPlacement(alice, pos, type.id()));
+        assertInstanceOf(HutPlacement.Allowed.class, manager.huts().checkPlacement(alice, pos, type.id()));
         t.blocks.blocks.put(pos, state(HUT_BLOCK));
-        manager.placeHut(colony, type.id(), pos, 0);
+        manager.huts().place(colony, type.id(), pos, 0);
         return colony.buildings().at(pos).orElseThrow();
     }
 
     private void order(BlockPos pos, WorkOrderType type) {
-        assertEquals(Optional.empty(), manager.orderWork(alice, pos, type, ""));
+        assertEquals(Optional.empty(), manager.workOrders().order(alice, pos, type, ""));
     }
 
     /** The clipboard, supplied from the player's inventory. */
     private void fulfilAll() {
-        manager.openRequests(alice, colony.id());
+        manager.windows().openRequests(alice, colony.id());
         RequestsView view = (RequestsView) t.ui.shown.get(alice);
         for (RequestsView.RequestRow row : view.rows()) {
-            if (row.playerHas() > 0 && manager.fulfil(alice, colony.id(), row.token())) {
+            if (row.playerHas() > 0 && manager.requestActions().fulfil(alice, colony.id(), row.token())) {
                 fulfils++;
             }
         }
@@ -320,14 +320,14 @@ class ConstructionSimulationTest {
         runUntil(() -> o.stage() == Stage.SOLID && o.progressIndex() == 10, MAX_TICKS);
 
         // Mid-build, the hut's windows: 10 of the 26 items placed.
-        manager.openBuilderResources(alice, HUT);
+        manager.windows().openBuilderResources(alice, HUT);
         BuilderResourcesView resources = (BuilderResourcesView) t.ui.shown.get(alice);
         assertEquals("solid", resources.stage());
         assertEquals(100 - (int) (16 * 100.0 / 26), resources.percent());
         Map<ItemKey, Integer> needed = new HashMap<>();
         resources.rows().forEach(r -> needed.put(r.item(), r.needed()));
         assertEquals(Map.of(PLANKS_I, 14, TORCH_I, 1, CHEST_I, 1), needed);
-        manager.openBuilding(alice, HUT);
+        manager.windows().openBuilding(alice, HUT);
         BuildingView view = (BuildingView) t.ui.shown.get(alice);
         BuildingView.OrderRow row = view.order().orElseThrow();
         assertEquals(Optional.of(builder.name()), row.builderName());
@@ -337,7 +337,7 @@ class ConstructionSimulationTest {
         runUntil(() -> hut.level() == 1, MAX_TICKS);
 
         assertWorldIs(FakeBlueprints.hut(false), HUT);
-        manager.openBuilding(alice, HUT);
+        manager.windows().openBuilding(alice, HUT);
         BuildingView done = (BuildingView) t.ui.shown.get(alice);
         assertEquals(1, done.level());
         assertTrue(done.order().isEmpty());
@@ -355,9 +355,9 @@ class ConstructionSimulationTest {
         assertTrue(hut.registeredContainers().contains(HUT.offset(0, 2, 0)), "the chest became a container");
         runUntil(() -> colony.requests().all().isEmpty(), 2000);
 
-        manager.saveAll(); // the claims outlive a restart
+        manager.persistence().saveAll(); // the claims outlive a restart
         manager = newManager();
-        manager.loadAll();
+        manager.persistence().loadAll();
         colony = manager.byId(colony.id()).orElseThrow();
         watch(colony);
         assertTrue(colony.contains(BEYOND), "claims kept over a restart");
@@ -391,10 +391,10 @@ class ConstructionSimulationTest {
         int colonyId = colony.id();
         CitizenData builder = worker(hut).orElseThrow();
         BodyId body = colony.citizens().bodyOf(builder.id()).orElseThrow();
-        manager.saveAll();
+        manager.persistence().saveAll();
 
         manager = newManager(); // the server restarts, same world
-        manager.loadAll();
+        manager.persistence().loadAll();
         colony = manager.byId(colonyId).orElseThrow();
         watch(colony);
         manager.onBodyLoaded(body, colonyId, builder.id()); // the builder's entity comes back with its chunk
@@ -455,7 +455,7 @@ class ConstructionSimulationTest {
 
         autoFulfil = false;
         stockPlayer(PLANKS_I, needed / 2);
-        assertTrue(manager.fulfil(alice, colony.id(), first.token()));
+        assertTrue(manager.requestActions().fulfil(alice, colony.id(), first.token()));
 
         assertTrue(first.state().ordinal() >= RequestState.COMPLETED.ordinal());
         runUntil(() -> liveStackRequests(PLANKS_I).stream().anyMatch(r -> r != first), 20_000);
@@ -549,7 +549,7 @@ class ConstructionSimulationTest {
         assertTrue(colony.work().byBuilding(HUT).isEmpty());
 
         CitizenData builder = worker(hut).orElseThrow();
-        assertTrue(manager.pickUpBuilding(alice, HUT, () -> true)); // the deconstructed hut goes back to the player
+        assertTrue(manager.huts().pickUp(alice, HUT, () -> true)); // the deconstructed hut goes back to the player
         assertTrue(colony.buildings().at(HUT).isEmpty());
         assertTrue(builder.job().isEmpty());
         assertEquals(null, builder.workBuilding());
@@ -648,7 +648,7 @@ class ConstructionSimulationTest {
                     plan.solidPositions().get(i), plan.solidList().get(i).state());
         }
         manager = newManager();
-        manager.loadAll();
+        manager.persistence().loadAll();
         colony = manager.byId(1).orElseThrow();
         watch(colony);
         Building hut = at(HUT);

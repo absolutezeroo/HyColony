@@ -1,0 +1,59 @@
+package dev.hycolony.core.colony.view;
+
+import dev.hycolony.core.building.Building;
+import dev.hycolony.core.citizen.CitizenData;
+import dev.hycolony.core.citizen.Skill;
+import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.ColonyContext;
+import dev.hycolony.core.colony.ui.CitizenView;
+import dev.hycolony.core.colony.ui.RequestsView;
+import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.core.request.Request;
+import dev.hycolony.core.request.model.Deliverable;
+import dev.hycolony.core.request.model.RequestState;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+
+/** Builds the citizen window's view (MC WindowCitizen): job, workplace, activity, skills, inventory, open requests. */
+final class CitizenViews {
+    private final ColonyContext ctx;
+    private final TownHallViews townHall;
+    private final RequestViews requests;
+
+    CitizenViews(ColonyContext ctx, TownHallViews townHall, RequestViews requests) {
+        this.ctx = ctx;
+        this.townHall = townHall;
+        this.requests = requests;
+    }
+
+    CitizenView of(Colony c, CitizenData d, UUID player) {
+        Map<ItemKey, Integer> owned = ctx.ports().playerInventory().contents(player);
+        List<RequestsView.RequestRow> open = new ArrayList<>();
+        for (Request r : c.requests().all()) {
+            if (r.citizenId() == d.id() && r.state().ordinal() < RequestState.COMPLETED.ordinal()) {
+                open.add(requests.row(c, r, owned));
+            }
+        }
+        Optional<Deliverable> waitingFor = open.stream().findFirst().map(RequestsView.RequestRow::requestable);
+        Map<Skill, Integer> skills = new EnumMap<>(Skill.class);
+        for (Skill s : Skill.values()) {
+            skills.put(s, d.skills().level(s));
+        }
+        return new CitizenView(
+                c.id(),
+                d.id(),
+                d.name(),
+                d.job().map(j -> j.type().id()),
+                Optional.ofNullable(d.workBuilding()).flatMap(c.buildings()::at).map(Building::displayName),
+                waitingFor.isPresent() ? "waitingFor" : townHall.status(c, d),
+                waitingFor,
+                c.citizens().jobActivity(d.id()),
+                skills,
+                d.inventory().contents(),
+                open);
+    }
+}

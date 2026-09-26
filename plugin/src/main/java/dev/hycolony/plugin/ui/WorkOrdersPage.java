@@ -76,9 +76,9 @@ public final class WorkOrdersPage extends ColonyPage {
         }
         int id = view.orders().get(act.index).id();
         switch (act.action) {
-            case "up" -> manager.moveWorkOrder(player, view.colonyId(), id, 1);
-            case "down" -> manager.moveWorkOrder(player, view.colonyId(), id, -1);
-            case "delete" -> manager.deleteWorkOrder(player, view.colonyId(), id);
+            case "up" -> manager.workOrders().move(player, view.colonyId(), id, 1);
+            case "down" -> manager.workOrders().move(player, view.colonyId(), id, -1);
+            case "delete" -> manager.workOrders().delete(player, view.colonyId(), id);
             default -> {}
         }
     }

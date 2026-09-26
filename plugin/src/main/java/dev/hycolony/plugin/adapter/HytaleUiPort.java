@@ -78,9 +78,9 @@ public final class HytaleUiPort implements UiPort {
                     @Override
                     public boolean confirm(String name) {
                         ColonyManager m = manager.get();
-                        Optional<BlockPos> pos = m.pendingPositionOf(player);
-                        boolean created = m.confirmFoundation(player, name).isPresent();
-                        if (!created && m.pendingPositionOf(player).isEmpty()) {
+                        Optional<BlockPos> pos = m.foundation().pendingPositionOf(player);
+                        boolean created = m.foundation().confirm(player, name).isPresent();
+                        if (!created && m.foundation().pendingPositionOf(player).isEmpty()) {
                             pos.ifPresent(HytaleUiPort.this::removeTownHall); // spot became invalid: foundation dropped
                         }
                         return created;
@@ -92,7 +92,7 @@ public final class HytaleUiPort implements UiPort {
                             closing.add(player);
                         }
                         try {
-                            manager.get().cancelFoundation(player).ifPresent(HytaleUiPort.this::removeTownHall);
+                            manager.get().foundation().cancel(player).ifPresent(HytaleUiPort.this::removeTownHall);
                         } finally {
                             closing.remove(player);
                         }
@@ -148,7 +148,7 @@ public final class HytaleUiPort implements UiPort {
             return;
         }
         String itemId = ids.itemId(type.hutBlockKey());
-        if (m.pickUpBuilding(player, view.pos(), () -> give(ref, itemId))) {
+        if (m.huts().pickUp(player, view.pos(), () -> give(ref, itemId))) {
             removeWithoutDrop(ref.getStore().getExternalData().getWorld(), view.pos(), ids.blockId(type.hutBlockKey()));
         }
     }

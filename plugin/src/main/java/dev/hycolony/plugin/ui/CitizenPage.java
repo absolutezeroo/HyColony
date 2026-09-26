@@ -112,9 +112,12 @@ public final class CitizenPage extends ColonyPage {
         if (act.action.equals("fulfil")
                 && act.index >= 0
                 && act.index < view.requests().size()) {
-            manager.fulfil(
-                    player, view.colonyId(), view.requests().get(act.index).token());
-            manager.openCitizen(player, view.colonyId(), view.citizenId()); // fulfil does not re-show
+            manager.requestActions()
+                    .fulfil(
+                            player,
+                            view.colonyId(),
+                            view.requests().get(act.index).token());
+            manager.windows().openCitizen(player, view.colonyId(), view.citizenId()); // fulfil does not re-show
         }
     }
 }

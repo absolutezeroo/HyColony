@@ -183,10 +183,10 @@ public final class BuildingPage extends ColonyPage {
             // A refusal is already sent to the player by the core (hycolony.workorder.refused.*).
             case "order" -> {
                 if (i >= 0 && i < WorkOrderType.values().length) {
-                    manager.orderWork(player, pos, WorkOrderType.values()[i], style());
+                    manager.workOrders().order(player, pos, WorkOrderType.values()[i], style());
                 }
             }
-            case "cancel" -> manager.cancelWork(player, pos);
+            case "cancel" -> manager.workOrders().cancel(player, pos);
             case "style" -> {
                 if (view.styles().size() < 2) {
                     return; // the button is hidden then: a forged event
@@ -198,19 +198,22 @@ public final class BuildingPage extends ColonyPage {
             }
             case "hiring" ->
                 view.hiringMode()
-                        .ifPresent(m -> manager.setHiring(
-                                player, pos, HiringMode.values()[(m.ordinal() + 1) % HiringMode.values().length]));
+                        .ifPresent(m -> manager.huts()
+                                .setHiring(
+                                        player,
+                                        pos,
+                                        HiringMode.values()[(m.ordinal() + 1) % HiringMode.values().length]));
             case "fire" -> {
                 if (i >= 0 && i < view.workers().size()) {
-                    manager.fire(player, pos, view.workers().get(i).citizenId());
+                    manager.huts().fire(player, pos, view.workers().get(i).citizenId());
                 }
             }
             case "hire" -> {
                 if (i >= 0 && i < view.hireable().size()) {
-                    manager.hire(player, pos, view.hireable().get(i).citizenId());
+                    manager.huts().hire(player, pos, view.hireable().get(i).citizenId());
                 }
             }
-            case "resources" -> manager.openBuilderResources(player, pos);
+            case "resources" -> manager.windows().openBuilderResources(player, pos);
             case "storage" -> openStorage(ref, store);
             case "pickUp" -> pickUp.run();
             default -> {}
@@ -253,7 +256,7 @@ public final class BuildingPage extends ColonyPage {
         if (playerComponent.getPageManager().setPageWithWindows(ref, store, Page.Bench, true, window)) {
             window.registerCloseEvent(e -> {
                 windows.remove(player, window);
-                world.execute(() -> manager.onContainerChanged(p));
+                world.execute(() -> manager.requestActions().onContainerChanged(p));
             });
         } else {
             windows.remove(player, window);

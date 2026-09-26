@@ -80,10 +80,10 @@ class ViewsTest {
             }
         };
         manager = new ColonyManager(t.context());
-        manager.beginFoundation(alice, "Alice", hall, 0);
-        colony = manager.confirmFoundation(alice, "A").orElseThrow();
-        assertTrue(manager.setRank(alice, colony.id(), carol, "Carol", Permissions.FRIEND));
-        assertTrue(manager.setRank(alice, colony.id(), dave, "Dave", Permissions.HOSTILE));
+        manager.foundation().begin(alice, "Alice", hall, 0);
+        colony = manager.foundation().confirm(alice, "A").orElseThrow();
+        assertTrue(manager.administration().setRank(alice, colony.id(), carol, "Carol", Permissions.FRIEND));
+        assertTrue(manager.administration().setRank(alice, colony.id(), dave, "Dave", Permissions.HOSTILE));
         bobTheBuilder = citizen(1, "Bob");
         builder = hut(ConstructionBuildingTypes.BUILDER, new BlockPos(10, 64, 0), 5);
         assertTrue(builder.module(WorkerModule.class).orElseThrow().hire(colony, builder, bobTheBuilder));
@@ -99,7 +99,7 @@ class ViewsTest {
     }
 
     private Building hut(BuildingType type, BlockPos pos, int level) {
-        manager.placeHut(colony, type.id(), pos, 0);
+        manager.huts().place(colony, type.id(), pos, 0);
         Building b = colony.buildings().at(pos).orElseThrow();
         b.setLevel(level);
         return b;
@@ -110,7 +110,7 @@ class ViewsTest {
     }
 
     private BuildingView view(UUID player, Building b) {
-        manager.openBuilding(player, b.position());
+        manager.windows().openBuilding(player, b.position());
         return (BuildingView) t.ui.shown.get(player);
     }
 
@@ -143,7 +143,8 @@ class ViewsTest {
                     WorkManager.isAllowed(res, type), view(alice, res).allowed().contains(type), type.name());
         }
 
-        assertEquals(Optional.empty(), manager.orderWork(alice, res.position(), WorkOrderType.UPGRADE, "desert"));
+        assertEquals(
+                Optional.empty(), manager.workOrders().order(alice, res.position(), WorkOrderType.UPGRADE, "desert"));
         BuildingView ordered = (BuildingView) t.ui.shown.get(alice); // re-shown by the action
         assertEquals(Set.of(), ordered.allowed(), "an order exists: the button becomes Cancel");
         BuildingView.OrderRow row = ordered.order().orElseThrow();
@@ -158,12 +159,12 @@ class ViewsTest {
         colony.work().tick();
         assertEquals(Optional.of("Bob"), view(alice, res).order().orElseThrow().builderName());
 
-        assertTrue(manager.cancelWork(alice, res.position()));
+        assertTrue(manager.workOrders().cancel(alice, res.position()));
         BuildingView cancelled = (BuildingView) t.ui.shown.get(alice);
         assertTrue(cancelled.order().isEmpty());
         assertEquals(
                 EnumSet.of(WorkOrderType.UPGRADE, WorkOrderType.REPAIR, WorkOrderType.REMOVE), cancelled.allowed());
-        assertFalse(manager.cancelWork(alice, res.position()), "nothing left to cancel");
+        assertFalse(manager.workOrders().cancel(alice, res.position()), "nothing left to cancel");
     }
 
     @Test
@@ -177,7 +178,7 @@ class ViewsTest {
         t.catalog.itemForBlock.put(STONE, STONE_I);
         t.catalog.itemForBlock.put(PLANK, PLANK_I);
         Building res = residence(0);
-        assertEquals(Optional.empty(), manager.orderWork(alice, res.position(), WorkOrderType.BUILD, ""));
+        assertEquals(Optional.empty(), manager.workOrders().order(alice, res.position(), WorkOrderType.BUILD, ""));
         colony.work().tick();
         WorkOrder order = colony.work().claimedBy(builder.position()).orElseThrow();
         List<BlueprintEntry> entries = new ArrayList<>();
@@ -194,7 +195,7 @@ class ViewsTest {
         t.containers.insert(builder.containers(), new ItemAmount(STONE_I, 1));
         t.playerInventory.give(alice, new ItemAmount(PLANK_I, 5));
 
-        manager.openBuilderResources(alice, builder.position());
+        manager.windows().openBuilderResources(alice, builder.position());
 
         BuilderResourcesView v = (BuilderResourcesView) t.ui.shown.get(alice);
         assertEquals(builder.position(), v.hut());
@@ -222,7 +223,7 @@ class ViewsTest {
         t.playerInventory.give(alice, new ItemAmount(planks, 7));
         t.players.online.put(alice, new BlockPos(20, 64, 0));
 
-        manager.openRequests(alice, colony.id());
+        manager.windows().openRequests(alice, colony.id());
 
         RequestsView v = (RequestsView) t.ui.shown.get(alice);
         assertEquals(colony.id(), v.colonyId());
@@ -241,22 +242,22 @@ class ViewsTest {
     void actionsCheckPermissions() {
         Building res = residence(2);
         CitizenData idle = citizen(nextCitizen++, "Idle");
-        assertEquals(Optional.empty(), manager.orderWork(alice, res.position(), WorkOrderType.REPAIR, ""));
+        assertEquals(Optional.empty(), manager.workOrders().order(alice, res.position(), WorkOrderType.REPAIR, ""));
         int orderId = colony.work().byBuilding(res.position()).orElseThrow().id();
         t.ui.shown.clear();
 
         for (UUID player : List.of(bob, carol, dave)) {
             assertEquals(
                     Optional.of(WorkOrderRefusal.NO_PERMISSION),
-                    manager.orderWork(player, builder.position(), WorkOrderType.UPGRADE, ""));
-            assertFalse(manager.cancelWork(player, res.position()));
-            assertFalse(manager.hire(player, builder.position(), idle.id()));
-            assertFalse(manager.fire(player, builder.position(), bobTheBuilder.id()));
-            assertFalse(manager.setHiring(player, builder.position(), HiringMode.LOCKED));
-            assertFalse(manager.moveWorkOrder(player, colony.id(), orderId, 1));
-            assertFalse(manager.deleteWorkOrder(player, colony.id(), orderId));
+                    manager.workOrders().order(player, builder.position(), WorkOrderType.UPGRADE, ""));
+            assertFalse(manager.workOrders().cancel(player, res.position()));
+            assertFalse(manager.huts().hire(player, builder.position(), idle.id()));
+            assertFalse(manager.huts().fire(player, builder.position(), bobTheBuilder.id()));
+            assertFalse(manager.huts().setHiring(player, builder.position(), HiringMode.LOCKED));
+            assertFalse(manager.workOrders().move(player, colony.id(), orderId, 1));
+            assertFalse(manager.workOrders().delete(player, colony.id(), orderId));
             res.setDeconstructed(true);
-            assertFalse(manager.pickUpBuilding(player, res.position(), () -> fail("no item for " + player)));
+            assertFalse(manager.huts().pickUp(player, res.position(), () -> fail("no item for " + player)));
             res.setDeconstructed(false);
         }
         assertTrue(colony.work().byId(orderId).isPresent());
@@ -269,10 +270,10 @@ class ViewsTest {
         assertTrue(colony.buildings().at(res.position()).isPresent());
 
         for (UUID player : List.of(bob, dave)) {
-            manager.openBuilding(player, res.position());
-            manager.openBuilderResources(player, builder.position());
-            manager.openRequests(player, colony.id());
-            manager.openWorkOrders(player, colony.id());
+            manager.windows().openBuilding(player, res.position());
+            manager.windows().openBuilderResources(player, builder.position());
+            manager.windows().openRequests(player, colony.id());
+            manager.windows().openWorkOrders(player, colony.id());
             assertFalse(t.ui.shown.containsKey(player), "neutral and hostile see nothing");
             assertTrue(t.notifier.sent.stream()
                     .anyMatch(s -> s.player().equals(player) && s.msg().key().equals("hycolony.permission.denied")));
@@ -281,7 +282,7 @@ class ViewsTest {
         BuildingView friendView = view(carol, res);
         assertFalse(friendView.canManage());
         assertFalse(friendView.canPickUp());
-        manager.openWorkOrders(carol, colony.id());
+        manager.windows().openWorkOrders(carol, colony.id());
         WorkOrdersView orders = (WorkOrdersView) t.ui.shown.get(carol);
         assertFalse(orders.canManage());
         assertEquals(
@@ -295,22 +296,23 @@ class ViewsTest {
         Building res = residence(0);
         assertEquals(
                 Optional.of(WorkOrderRefusal.INVALID_TYPE),
-                manager.orderWork(alice, res.position(), WorkOrderType.REMOVE, ""));
+                manager.workOrders().order(alice, res.position(), WorkOrderType.REMOVE, ""));
         assertEquals(
                 "hycolony.workorder.refused.invalid_type",
                 t.notifier.sent.getLast().msg().key());
         res.setLevel(5);
         assertEquals(
                 Optional.of(WorkOrderRefusal.MAX_LEVEL),
-                manager.orderWork(alice, res.position(), WorkOrderType.UPGRADE, ""));
+                manager.workOrders().order(alice, res.position(), WorkOrderType.UPGRADE, ""));
         res.setLevel(0);
 
-        assertEquals(Optional.empty(), manager.orderWork(alice, res.position(), WorkOrderType.BUILD, "desert"));
+        assertEquals(
+                Optional.empty(), manager.workOrders().order(alice, res.position(), WorkOrderType.BUILD, "desert"));
         assertEquals(
                 "desert", colony.work().byBuilding(res.position()).orElseThrow().style());
         assertEquals(
                 Optional.of(WorkOrderRefusal.ALREADY_EXISTS),
-                manager.orderWork(alice, res.position(), WorkOrderType.BUILD, ""));
+                manager.workOrders().order(alice, res.position(), WorkOrderType.BUILD, ""));
     }
 
     @Test
@@ -327,25 +329,25 @@ class ViewsTest {
                 v.hireable());
         assertEquals(Optional.of(HiringMode.DEFAULT), v.hiringMode());
 
-        assertTrue(manager.hire(alice, hut.position(), ann.id()));
+        assertTrue(manager.huts().hire(alice, hut.position(), ann.id()));
         v = (BuildingView) t.ui.shown.get(alice);
         assertEquals(List.of(new BuildingView.WorkerRow(ann.id(), "Ann")), v.workers());
         assertEquals(List.of(new BuildingView.WorkerRow(ben.id(), "Ben")), v.hireable());
-        assertFalse(manager.hire(alice, hut.position(), ben.id()), "a builder hut employs one worker");
-        assertFalse(manager.hire(alice, hut.position(), bobTheBuilder.id()), "already employed elsewhere");
+        assertFalse(manager.huts().hire(alice, hut.position(), ben.id()), "a builder hut employs one worker");
+        assertFalse(manager.huts().hire(alice, hut.position(), bobTheBuilder.id()), "already employed elsewhere");
 
-        assertTrue(manager.fire(alice, hut.position(), ann.id()));
+        assertTrue(manager.huts().fire(alice, hut.position(), ann.id()));
         assertTrue(((BuildingView) t.ui.shown.get(alice)).workers().isEmpty());
         assertTrue(ann.job().isEmpty());
-        assertFalse(manager.fire(alice, hut.position(), ann.id()), "not a worker any more");
+        assertFalse(manager.huts().fire(alice, hut.position(), ann.id()), "not a worker any more");
 
-        assertTrue(manager.setHiring(alice, hut.position(), HiringMode.MANUAL));
+        assertTrue(manager.huts().setHiring(alice, hut.position(), HiringMode.MANUAL));
         assertEquals(Optional.of(HiringMode.MANUAL), ((BuildingView) t.ui.shown.get(alice)).hiringMode());
         assertEquals(
                 Optional.empty(),
                 view(alice, colony.buildings().at(hall).orElseThrow()).hiringMode(),
                 "the town hall employs no one");
-        assertFalse(manager.hire(alice, hall, ann.id()), "the town hall employs no one");
+        assertFalse(manager.huts().hire(alice, hall, ann.id()), "the town hall employs no one");
     }
 
     @Test
@@ -353,20 +355,20 @@ class ViewsTest {
         Building res = residence(2);
         assertFalse(view(alice, res).canPickUp());
         assertFalse(
-                manager.pickUpBuilding(alice, res.position(), () -> fail("checks run first")),
+                manager.huts().pickUp(alice, res.position(), () -> fail("checks run first")),
                 "still standing: deconstruct it first");
 
         res.setDeconstructed(true);
-        assertEquals(Optional.empty(), manager.orderWork(alice, res.position(), WorkOrderType.REPAIR, ""));
+        assertEquals(Optional.empty(), manager.workOrders().order(alice, res.position(), WorkOrderType.REPAIR, ""));
         int orderId = colony.work().byBuilding(res.position()).orElseThrow().id();
-        assertFalse(manager.pickUpBuilding(alice, res.position(), () -> false), "inventory full: refused");
+        assertFalse(manager.huts().pickUp(alice, res.position(), () -> false), "inventory full: refused");
         assertTrue(colony.buildings().at(res.position()).isPresent(), "the building is kept");
         assertTrue(colony.work().byId(orderId).isPresent());
         assertEquals(
                 "hycolony.hut.pickupInventoryFull",
                 t.notifier.sent.getLast().msg().key());
         int[] given = {0};
-        assertTrue(manager.pickUpBuilding(alice, res.position(), () -> ++given[0] > 0));
+        assertTrue(manager.huts().pickUp(alice, res.position(), () -> ++given[0] > 0));
         assertEquals(1, given[0]);
         assertTrue(colony.buildings().at(res.position()).isEmpty());
         assertTrue(colony.work().byId(orderId).isEmpty(), "removed through the normal path: its order is cancelled");
@@ -374,7 +376,7 @@ class ViewsTest {
         Building townHall = colony.buildings().at(hall).orElseThrow();
         townHall.setDeconstructed(true);
         assertFalse(view(alice, townHall).canPickUp());
-        assertFalse(manager.pickUpBuilding(alice, hall, () -> fail("never given")), "the town hall is never picked up");
+        assertFalse(manager.huts().pickUp(alice, hall, () -> fail("never given")), "the town hall is never picked up");
         assertTrue(colony.buildings().at(hall).isPresent());
     }
 
@@ -386,7 +388,7 @@ class ViewsTest {
                 colony.requests().createAndAssign(builder, new StackRequest(PLANK_I, 4, 4, true), bobTheBuilder.id());
         t.playerInventory.give(alice, new ItemAmount(PLANK_I, 2));
 
-        manager.openCitizen(alice, colony.id(), bobTheBuilder.id());
+        manager.windows().openCitizen(alice, colony.id(), bobTheBuilder.id());
         CitizenView v = (CitizenView) t.ui.shown.get(alice);
 
         assertEquals("Bob", v.name());
@@ -401,8 +403,8 @@ class ViewsTest {
                 List.of(new RequestsView.RequestRow(token, new StackRequest(PLANK_I, 4, 4, true), "Bob", 2)),
                 v.requests());
 
-        assertTrue(manager.fulfil(alice, colony.id(), token)); // the window's "Supply"
-        manager.openCitizen(alice, colony.id(), bobTheBuilder.id());
+        assertTrue(manager.requestActions().fulfil(alice, colony.id(), token)); // the window's "Supply"
+        manager.windows().openCitizen(alice, colony.id(), bobTheBuilder.id());
         CitizenView after = (CitizenView) t.ui.shown.get(alice);
         assertEquals(List.of(), after.requests());
         assertEquals(Optional.empty(), after.waitingFor());
@@ -412,11 +414,11 @@ class ViewsTest {
     @Test
     void citizenWindowNeedsAccessHuts() {
         CitizenData idle = citizen(9, "Idle");
-        manager.openCitizen(bob, colony.id(), idle.id());
+        manager.windows().openCitizen(bob, colony.id(), idle.id());
         assertFalse(t.ui.shown.containsKey(bob));
         assertEquals("hycolony.permission.denied", t.notifier.sent.get(0).msg().key());
 
-        manager.openCitizen(carol, colony.id(), idle.id());
+        manager.windows().openCitizen(carol, colony.id(), idle.id());
         CitizenView v = (CitizenView) t.ui.shown.get(carol);
         assertEquals(Optional.empty(), v.jobId());
         assertEquals(Optional.empty(), v.workBuilding());

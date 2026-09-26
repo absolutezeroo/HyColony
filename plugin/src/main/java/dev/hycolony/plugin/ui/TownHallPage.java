@@ -86,14 +86,16 @@ public final class TownHallPage extends InteractiveCustomUIPage<TownHallPage.Dat
             switch (data.action) {
                 // The town hall stands at the colony's center.
                 case "building" ->
-                    manager.byId(view.colonyId()).ifPresent(c -> manager.openBuilding(player, c.center()));
-                case "workOrders" -> manager.openWorkOrders(player, view.colonyId());
-                case "requests" -> manager.openRequests(player, view.colonyId());
+                    manager.byId(view.colonyId())
+                            .ifPresent(c -> manager.windows().openBuilding(player, c.center()));
+                case "workOrders" -> manager.windows().openWorkOrders(player, view.colonyId());
+                case "requests" -> manager.windows().openRequests(player, view.colonyId());
                 default -> {}
             }
             return;
         }
-        manager.rename(player, view.colonyId(), data.name); // core re-shows an updated TownHallView on success
+        manager.administration()
+                .rename(player, view.colonyId(), data.name); // core re-shows an updated TownHallView on success
         sendUpdate(new UICommandBuilder(), false);
     }
 }

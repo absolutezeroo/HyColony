@@ -31,8 +31,8 @@ class CitizenNameplatesTest {
     private final BodyId body;
 
     CitizenNameplatesTest() {
-        manager.beginFoundation(alice, "Alice", hall, 0);
-        colony = manager.confirmFoundation(alice, "A").orElseThrow();
+        manager.foundation().begin(alice, "Alice", hall, 0);
+        colony = manager.foundation().confirm(alice, "A").orElseThrow();
         hut = colony.buildings().at(hall).orElseThrow();
         jean.setName("Jean");
         colony.citizens().restore(jean);

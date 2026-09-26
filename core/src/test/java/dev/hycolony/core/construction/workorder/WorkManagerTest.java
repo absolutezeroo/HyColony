@@ -60,8 +60,8 @@ class WorkManagerTest {
             }
         };
         manager = new ColonyManager(t.context());
-        manager.beginFoundation(alice, "Alice", new BlockPos(0, 64, 0), 0);
-        colony = manager.confirmFoundation(alice, "A").orElseThrow();
+        manager.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
+        colony = manager.foundation().confirm(alice, "A").orElseThrow();
         t.notifier.sent.clear();
     }
 
@@ -74,7 +74,7 @@ class WorkManagerTest {
     }
 
     private Building hut(BuildingType type, BlockPos pos, int level) {
-        manager.placeHut(colony, type.id(), pos, 0);
+        manager.huts().place(colony, type.id(), pos, 0);
         Building b = colony.buildings().at(pos).orElseThrow();
         b.setLevel(level);
         return b;
@@ -324,7 +324,7 @@ class WorkManagerTest {
         colony.requests().createAndAssign(b, new StackRequest(new ItemKey("Stone"), 4, 4, true), 1);
         assertEquals(1, colony.requests().byRequester(b.requesterId()).size());
 
-        assertTrue(manager.deleteWorkOrder(alice, colony.id(), o.id()));
+        assertTrue(manager.workOrders().delete(alice, colony.id(), o.id()));
 
         assertTrue(colony.work().byId(o.id()).isEmpty());
         assertTrue(colony.work().byBuilding(o.buildingPos()).isEmpty());
@@ -342,7 +342,7 @@ class WorkManagerTest {
         o.setProgressIndex(7);
         colony.requests().createAndAssign(b, new StackRequest(new ItemKey("Stone"), 4, 4, true), 1);
 
-        manager.onHutRemoved(b.position());
+        manager.huts().onRemoved(b.position());
 
         assertEquals(Optional.of(o), colony.work().byId(o.id()));
         assertTrue(o.claimedBy().isEmpty());

@@ -64,8 +64,8 @@ class FreeWorkOrderTest {
     private void start(ColonyConfig config) {
         t.config = config;
         manager = new ColonyManager(t.context());
-        manager.beginFoundation(alice, "Alice", new BlockPos(0, 64, 0), 0);
-        colony = manager.confirmFoundation(alice, "A").orElseThrow();
+        manager.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
+        colony = manager.foundation().confirm(alice, "A").orElseThrow();
         Building builder = hut(ConstructionBuildingTypes.BUILDER, new BlockPos(10, 64, 0), 5);
         CitizenData c = new CitizenData(1);
         colony.citizens().restore(c);
@@ -73,7 +73,7 @@ class FreeWorkOrderTest {
     }
 
     private Building hut(dev.hycolony.core.building.BuildingType type, BlockPos pos, int level) {
-        manager.placeHut(colony, type.id(), pos, 0);
+        manager.huts().place(colony, type.id(), pos, 0);
         Building b = colony.buildings().at(pos).orElseThrow();
         b.setLevel(level);
         return b;

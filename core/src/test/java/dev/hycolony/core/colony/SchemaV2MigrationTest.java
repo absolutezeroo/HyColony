@@ -22,7 +22,7 @@ class SchemaV2MigrationTest {
 
     private ColonyManager manager() {
         ColonyManager m = new ColonyManager(new TestContexts().context());
-        m.setStorage(new FileColonyStorage(dir), MigrationChain.sp1());
+        m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp1());
         return m;
     }
 
@@ -32,10 +32,10 @@ class SchemaV2MigrationTest {
             Files.write(dir.resolve("colony-1.json"), in.readAllBytes());
         }
         ColonyManager m = manager();
-        m.loadAll();
+        m.persistence().loadAll();
         Colony c = m.byId(1).orElseThrow();
         assertEquals("Fixture", c.name());
-        m.saveAll();
+        m.persistence().saveAll();
 
         String saved = Files.readString(dir.resolve("colony-1.json"));
         assertTrue(saved.contains("\"schemaVersion\":2"), saved);
@@ -50,7 +50,7 @@ class SchemaV2MigrationTest {
             Files.write(dir.resolve("colony-1.json"), in.readAllBytes());
         }
         ColonyManager m = manager();
-        m.loadAll();
+        m.persistence().loadAll();
         Colony c = m.byId(1).orElseThrow();
         assertEquals("Fixture", c.name());
         assertEquals(1, c.citizens().all().size());
@@ -60,18 +60,18 @@ class SchemaV2MigrationTest {
     void citizenInventoryRoundTrip() {
         UUID alice = UUID.randomUUID();
         ColonyManager m = manager();
-        m.beginFoundation(alice, "Alice", new BlockPos(0, 64, 0), 0);
-        Colony c = m.confirmFoundation(alice, "Rivendell").orElseThrow();
+        m.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
+        Colony c = m.foundation().confirm(alice, "Rivendell").orElseThrow();
         for (int i = 0; i < 20; i++) {
             c.citizens().onColonyTick();
         }
         CitizenData original = c.citizens().all().iterator().next();
         ItemKey pick = new ItemKey("hycolony:test_pickaxe");
         original.inventory().insert(new ItemAmount(pick, 5), item -> 64);
-        m.saveAll();
+        m.persistence().saveAll();
 
         ColonyManager reloaded = manager();
-        reloaded.loadAll();
+        reloaded.persistence().loadAll();
         Colony r = reloaded.byId(c.id()).orElseThrow();
         CitizenData restored = r.citizens().get(original.id()).orElseThrow();
         assertEquals(5, restored.inventory().count(pick));

@@ -1,25 +1,21 @@
 # PMD baseline: violations that existed when PMD was added (CLAUDE.md § 8).
 # One "Rule path" pair per line; the rule is suppressed for the whole top-level type of that file.
 # This list may only shrink: remove a line once its file is cleaned or split. Never add one.
-CognitiveComplexity core/src/main/java/dev/hycolony/core/colony/ColonyManager.java
 CognitiveComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleBlueprintSource.java
 CognitiveComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleItemCatalog.java
 CognitiveComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleWorldBlocks.java
 CognitiveComplexity plugin/src/main/java/dev/hycolony/plugin/ui/BuildingPage.java
 CompareObjectsWithEquals plugin/src/main/java/dev/hycolony/plugin/adapter/HytalePlayerInventory.java
-CouplingBetweenObjects core/src/main/java/dev/hycolony/core/colony/ColonyManager.java
 CouplingBetweenObjects core/src/main/java/dev/hycolony/core/request/RequestManager.java
 CouplingBetweenObjects plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleCitizenBodies.java
 CouplingBetweenObjects plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleItemCatalog.java
 CouplingBetweenObjects plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleUiPort.java
 CouplingBetweenObjects plugin/src/main/java/dev/hycolony/plugin/command/HyColonyCommand.java
 CouplingBetweenObjects plugin/src/main/java/dev/hycolony/plugin/ui/BuildingPage.java
-CyclomaticComplexity core/src/main/java/dev/hycolony/core/colony/ColonyManager.java
 CyclomaticComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleCitizenBodies.java
 CyclomaticComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleItemCatalog.java
 CyclomaticComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleWorldBlocks.java
 CyclomaticComplexity plugin/src/main/java/dev/hycolony/plugin/ui/BuildingPage.java
-ExcessiveImports core/src/main/java/dev/hycolony/core/colony/ColonyManager.java
 ExcessiveImports plugin/src/main/java/dev/hycolony/plugin/WorldRuntime.java
 ExcessiveImports plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleCitizenBodies.java
 ExcessiveImports plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleUiPort.java
@@ -27,14 +23,11 @@ ExcessiveImports plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleWorldBlo
 ExcessiveImports plugin/src/main/java/dev/hycolony/plugin/block/HutBlockSystems.java
 ExcessiveImports plugin/src/main/java/dev/hycolony/plugin/command/HyColonyCommand.java
 ExcessiveImports plugin/src/main/java/dev/hycolony/plugin/ui/BuildingPage.java
-ExcessiveParameterList core/src/main/java/dev/hycolony/core/colony/ColonyManager.java
 ExcessiveParameterList plugin/src/main/java/dev/hycolony/plugin/adapter/PrefabStyles.java
 ExcessiveParameterList plugin/src/main/java/dev/hycolony/plugin/ui/BuildingPage.java
-GodClass core/src/main/java/dev/hycolony/core/colony/ColonyManager.java
 GodClass plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleCitizenBodies.java
 GodClass plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleItemCatalog.java
 GodClass plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleWorldBlocks.java
 NPathComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleItemCatalog.java
 NPathComplexity plugin/src/main/java/dev/hycolony/plugin/ui/BuildingPage.java
-TooManyMethods core/src/main/java/dev/hycolony/core/colony/ColonyManager.java
 UnusedLocalVariable plugin/src/main/java/dev/hycolony/plugin/block/HutBlockSystems.java

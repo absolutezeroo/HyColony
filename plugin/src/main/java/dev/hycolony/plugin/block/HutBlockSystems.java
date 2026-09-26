@@ -106,7 +106,7 @@ public final class HutBlockSystems {
                 ColonyManager m = rt.manager();
                 BlockPos pos = pos(event.getTargetBlock());
                 int rotation = event.getRotation().yaw().ordinal();
-                HutPlacement result = m.checkHutPlacement(player.getUuid(), pos, type.id());
+                HutPlacement result = m.huts().checkPlacement(player.getUuid(), pos, type.id());
                 switch (result) {
                     case HutPlacement.Denied denied -> {
                         event.setCancelled(true);
@@ -114,8 +114,8 @@ public final class HutBlockSystems {
                     }
                     // The core only returns this for a town hall.
                     case HutPlacement.FoundNewColony f ->
-                        m.beginFoundation(player.getUuid(), player.getUsername(), pos, rotation);
-                    case HutPlacement.Allowed allowed -> m.placeHut(allowed.colony(), type.id(), pos, rotation);
+                        m.foundation().begin(player.getUuid(), player.getUsername(), pos, rotation);
+                    case HutPlacement.Allowed allowed -> m.huts().place(allowed.colony(), type.id(), pos, rotation);
                 }
             } catch (RuntimeException e) {
                 event.setCancelled(true);
@@ -157,7 +157,7 @@ public final class HutBlockSystems {
                 }
                 ColonyManager m = rt.manager();
                 BlockPos pos = pos(event.getTargetBlock());
-                if (m.cancelFoundationAt(pos).isPresent()) {
+                if (m.foundation().cancelAt(pos).isPresent()) {
                     return; // an unconfirmed town hall (anyone's): its foundation is cancelled, normal drop
                 }
                 if (m.colonyAt(pos).isPresent() && !m.isAllowed(player.getUuid(), pos, Action.BREAK_HUTS)) {
@@ -166,7 +166,7 @@ public final class HutBlockSystems {
                             "hycolony.permission.denied", m.colonyAt(pos).get().name())));
                     return;
                 }
-                m.onHutRemoved(pos);
+                m.huts().onRemoved(pos);
             } catch (RuntimeException e) {
                 event.setCancelled(true);
                 failed("break", event.getTargetBlock(), e);
@@ -210,9 +210,9 @@ public final class HutBlockSystems {
                 }
                 BlockPos pos = pos(event.getTargetBlock());
                 if (type == BuildingTypes.TOWN_HALL) {
-                    rt.manager().openTownHall(player.getUuid(), pos);
+                    rt.manager().windows().openTownHall(player.getUuid(), pos);
                 } else {
-                    rt.manager().openBuilding(player.getUuid(), pos);
+                    rt.manager().windows().openBuilding(player.getUuid(), pos);
                 }
             } catch (RuntimeException e) {
                 event.setCancelled(true);

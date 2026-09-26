@@ -94,6 +94,11 @@ public final class Building implements Requester, ResolverProvider {
         this.deconstructed = deconstructed;
     }
 
+    /** MC AbstractBuilding.pickUp: a deconstructed hut goes back to a player's inventory; the town hall never does. */
+    public boolean canBePickedUp() {
+        return deconstructed && !type.equals(BuildingTypes.TOWN_HALL);
+    }
+
     public String customName() {
         return customName;
     }

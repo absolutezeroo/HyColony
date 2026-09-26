@@ -75,11 +75,11 @@ public final class BuilderResourcesPage extends ColonyPage {
             case "add" -> {
                 if (act.index >= 0 && act.index < view.rows().size()) {
                     ResourceRow r = view.rows().get(act.index);
-                    manager.addToHut(player, view.hut(), r.item(), r.needed() - r.available());
-                    manager.openBuilderResources(player, view.hut()); // addToHut does not re-show
+                    manager.requestActions().addToHut(player, view.hut(), r.item(), r.needed() - r.available());
+                    manager.windows().openBuilderResources(player, view.hut()); // addToHut does not re-show
                 }
             }
-            case "hut" -> manager.openBuilding(player, view.hut());
+            case "hut" -> manager.windows().openBuilding(player, view.hut());
             default -> {}
         }
     }

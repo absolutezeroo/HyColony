@@ -46,7 +46,7 @@ class PersistenceTest {
 
     private ColonyManager manager(TestContexts t) {
         ColonyManager m = new ColonyManager(t.context());
-        m.setStorage(new FileColonyStorage(dir), MigrationChain.sp1());
+        m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp1());
         return m;
     }
 
@@ -54,17 +54,17 @@ class PersistenceTest {
     void fullRoundTrip() {
         TestContexts t = new TestContexts();
         ColonyManager m = manager(t);
-        m.beginFoundation(alice, "Alice", new BlockPos(0, 64, 0), 1);
-        Colony c = m.confirmFoundation(alice, "Rivendell").orElseThrow();
-        m.setRank(alice, c.id(), bob, "Bob", Permissions.FRIEND);
+        m.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 1);
+        Colony c = m.foundation().confirm(alice, "Rivendell").orElseThrow();
+        m.administration().setRank(alice, c.id(), bob, "Bob", Permissions.FRIEND);
         for (int i = 0; i < 20; i++) {
             c.citizens().onColonyTick();
         }
         c.setDay(7);
-        m.saveAll();
+        m.persistence().saveAll();
 
         ColonyManager reloaded = manager(new TestContexts());
-        reloaded.loadAll();
+        reloaded.persistence().loadAll();
         Colony r = reloaded.byId(c.id()).orElseThrow();
         assertEquals("Rivendell", r.name());
         assertEquals(7, r.day());
@@ -84,9 +84,9 @@ class PersistenceTest {
     void unknownBuildingTypeIsPreservedVerbatim() throws Exception {
         TestContexts t = new TestContexts();
         ColonyManager m = manager(t);
-        m.beginFoundation(alice, "Alice", new BlockPos(0, 64, 0), 0);
-        Colony c = m.confirmFoundation(alice, "A").orElseThrow();
-        m.saveAll();
+        m.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
+        Colony c = m.foundation().confirm(alice, "A").orElseThrow();
+        m.persistence().saveAll();
         Path file = dir.resolve("colony-" + c.id() + ".json");
         JsonObject json = JsonParser.parseString(Files.readString(file)).getAsJsonObject();
         JsonObject alien = new JsonObject();
@@ -96,9 +96,9 @@ class PersistenceTest {
         Files.writeString(file, json.toString());
 
         ColonyManager reloaded = manager(new TestContexts());
-        reloaded.loadAll();
+        reloaded.persistence().loadAll();
         reloaded.byId(c.id()).orElseThrow().markDirty();
-        reloaded.saveAll();
+        reloaded.persistence().saveAll();
         String saved = Files.readString(file);
         assertTrue(saved.contains("future:windmill") && saved.contains("\"secret\":42"), saved);
     }
@@ -129,10 +129,10 @@ class PersistenceTest {
     void workerWithoutCitizenIsDroppedFromHutOnLoad() {
         TestContexts t = new TestContexts();
         ColonyManager m = manager(t);
-        m.beginFoundation(alice, "Alice", new BlockPos(0, 64, 0), 0);
-        Colony c = m.confirmFoundation(alice, "A").orElseThrow();
+        m.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
+        Colony c = m.foundation().confirm(alice, "A").orElseThrow();
         BlockPos hut = new BlockPos(20, 64, 0);
-        m.placeHut(c, ConstructionBuildingTypes.BUILDER.id(), hut, 0);
+        m.huts().place(c, ConstructionBuildingTypes.BUILDER.id(), hut, 0);
         Building b = c.buildings().at(hut).orElseThrow();
         assertTrue(b.module(WorkerModule.class)
                 .orElseThrow()
@@ -157,12 +157,12 @@ class PersistenceTest {
     void newerSchemaIsSkippedAndNeverOverwritten() throws Exception {
         Files.writeString(dir.resolve("colony-9.json"), "{\"schemaVersion\":99,\"id\":9}");
         ColonyManager m = manager(new TestContexts());
-        m.loadAll();
+        m.persistence().loadAll();
         assertTrue(m.byId(9).isEmpty());
-        m.beginFoundation(alice, "Alice", new BlockPos(0, 64, 0), 0);
-        Colony c = m.confirmFoundation(alice, "New").orElseThrow();
+        m.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
+        Colony c = m.foundation().confirm(alice, "New").orElseThrow();
         assertTrue(c.id() > 9);
-        m.saveAll();
+        m.persistence().saveAll();
         assertEquals("{\"schemaVersion\":99,\"id\":9}", Files.readString(dir.resolve("colony-9.json")));
     }
 
@@ -171,7 +171,7 @@ class PersistenceTest {
         Files.writeString(dir.resolve("colony-9.json"), "{\"schemaVersion\":99,\"id\":9}");
         TestContexts t = new TestContexts();
         ColonyManager m = manager(t);
-        m.loadAll();
+        m.persistence().loadAll();
         var body = t.bodies.existing(9, 1, new Vec3(0, 64, 0));
         m.onBodyLoaded(body, 9, 1);
         assertTrue(t.bodies.isAlive(body));
@@ -183,7 +183,7 @@ class PersistenceTest {
             Files.write(dir.resolve("colony-1.json"), in.readAllBytes());
         }
         ColonyManager m = manager(new TestContexts());
-        m.loadAll();
+        m.persistence().loadAll();
         Colony c = m.byId(1).orElseThrow();
         assertEquals("Fixture", c.name());
         assertEquals(1, c.citizens().all().size());
@@ -193,9 +193,9 @@ class PersistenceTest {
     void deleteArchivesFile() {
         TestContexts t = new TestContexts();
         ColonyManager m = manager(t);
-        m.beginFoundation(alice, "Alice", new BlockPos(0, 64, 0), 0);
-        Colony c = m.confirmFoundation(alice, "A").orElseThrow();
-        m.saveAll();
+        m.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
+        Colony c = m.foundation().confirm(alice, "A").orElseThrow();
+        m.persistence().saveAll();
         m.deleteColony(c.id());
         assertTrue(Files.notExists(dir.resolve("colony-" + c.id() + ".json")));
         assertTrue(Files.isDirectory(dir.resolve("archive")));
@@ -249,15 +249,15 @@ class PersistenceTest {
     void loadAllContinuesAfterOneColonyIOException() {
         TestContexts t = new TestContexts();
         ColonyManager m = manager(t);
-        m.beginFoundation(alice, "Alice", new BlockPos(0, 64, 0), 0);
-        Colony a = m.confirmFoundation(alice, "A").orElseThrow();
-        m.beginFoundation(bob, "Bob", new BlockPos(2000, 64, 0), 0);
-        Colony b = m.confirmFoundation(bob, "B").orElseThrow();
-        m.saveAll();
+        m.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
+        Colony a = m.foundation().confirm(alice, "A").orElseThrow();
+        m.foundation().begin(bob, "Bob", new BlockPos(2000, 64, 0), 0);
+        Colony b = m.foundation().confirm(bob, "B").orElseThrow();
+        m.persistence().saveAll();
 
         ColonyManager reloaded = new ColonyManager(new TestContexts().context());
-        reloaded.setStorage(new FlakyStorage(dir, a.id()), MigrationChain.sp1());
-        reloaded.loadAll();
+        reloaded.persistence().setStorage(new FlakyStorage(dir, a.id()), MigrationChain.sp1());
+        reloaded.persistence().loadAll();
 
         assertTrue(reloaded.byId(a.id()).isEmpty());
         assertTrue(reloaded.byId(b.id()).isPresent());
@@ -268,18 +268,18 @@ class PersistenceTest {
     void claimsOfBuiltBuildingsSurviveReload() {
         TestContexts t = new TestContexts();
         ColonyManager m = manager(t);
-        m.beginFoundation(alice, "Alice", new BlockPos(0, 64, 0), 0);
-        Colony c = m.confirmFoundation(alice, "A").orElseThrow();
+        m.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
+        Colony c = m.foundation().confirm(alice, "A").orElseThrow();
         BlockPos edge = new BlockPos(70, 64, 0), beyond = new BlockPos(85, 64, 0), unbuilt = new BlockPos(-70, 64, 0);
-        m.placeHut(c, ConstructionBuildingTypes.BUILDER.id(), edge, 0);
-        m.placeHut(c, ConstructionBuildingTypes.RESIDENCE.id(), unbuilt, 0);
+        m.huts().place(c, ConstructionBuildingTypes.BUILDER.id(), edge, 0);
+        m.huts().place(c, ConstructionBuildingTypes.RESIDENCE.id(), unbuilt, 0);
         c.buildings().at(edge).orElseThrow().setLevel(1);
         c.claimAround(edge, ClaimRadius.of(ConstructionBuildingTypes.BUILDER.id(), 1)); // as a finished build does
         assertTrue(c.contains(beyond));
-        m.saveAll();
+        m.persistence().saveAll();
 
         ColonyManager reloaded = manager(new TestContexts());
-        reloaded.loadAll();
+        reloaded.persistence().loadAll();
 
         Colony r = reloaded.byId(c.id()).orElseThrow();
         assertTrue(r.contains(beyond));
@@ -292,19 +292,19 @@ class PersistenceTest {
     void initialSquaresAreClaimedBeforeBuildingsOnReload() {
         TestContexts t = new TestContexts();
         ColonyManager m = manager(t);
-        m.beginFoundation(alice, "Alice", new BlockPos(0, 64, 0), 0);
-        Colony a = m.confirmFoundation(alice, "A").orElseThrow();
-        m.beginFoundation(bob, "Bob", new BlockPos(17 * ClaimCell.SIZE, 64, 0), 0);
-        Colony b = m.confirmFoundation(bob, "B").orElseThrow();
+        m.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
+        Colony a = m.foundation().confirm(alice, "A").orElseThrow();
+        m.foundation().begin(bob, "Bob", new BlockPos(17 * ClaimCell.SIZE, 64, 0), 0);
+        Colony b = m.foundation().confirm(bob, "B").orElseThrow();
         BlockPos hut = new BlockPos(12 * ClaimCell.SIZE, 64, 0), bCell = new BlockPos(13 * ClaimCell.SIZE, 64, 0);
-        m.placeHut(a, ConstructionBuildingTypes.BUILDER.id(), hut, 0);
+        m.huts().place(a, ConstructionBuildingTypes.BUILDER.id(), hut, 0);
         a.buildings().at(hut).orElseThrow().setLevel(1);
         a.claimAround(hut, ClaimRadius.of(ConstructionBuildingTypes.BUILDER.id(), 1)); // never steals B's cell
         assertTrue(b.contains(bCell));
-        m.saveAll();
+        m.persistence().saveAll();
 
         ColonyManager reloaded = manager(new TestContexts());
-        reloaded.loadAll();
+        reloaded.persistence().loadAll();
 
         assertTrue(reloaded.byId(b.id()).orElseThrow().contains(bCell));
         assertTrue(reloaded.byId(a.id()).orElseThrow().contains(new BlockPos(11 * ClaimCell.SIZE, 64, 0)));
@@ -334,10 +334,10 @@ class PersistenceTest {
     void requestsOfMissingRequesterAreCancelledOnLoad() {
         TestContexts t = new TestContexts();
         ColonyManager m = manager(t);
-        m.beginFoundation(alice, "Alice", new BlockPos(0, 64, 0), 0);
-        Colony c = m.confirmFoundation(alice, "A").orElseThrow();
+        m.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
+        Colony c = m.foundation().confirm(alice, "A").orElseThrow();
         BlockPos res = new BlockPos(20, 64, 0);
-        m.placeHut(c, ConstructionBuildingTypes.RESIDENCE.id(), res, 0);
+        m.huts().place(c, ConstructionBuildingTypes.RESIDENCE.id(), res, 0);
         c.requests()
                 .createAndAssign(
                         c.buildings().at(res).orElseThrow(), new StackRequest(new ItemKey("Stone"), 4, 4, true), -1);

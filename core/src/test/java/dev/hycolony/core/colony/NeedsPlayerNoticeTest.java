@@ -32,8 +32,8 @@ class NeedsPlayerNoticeTest {
     private final Building hut;
 
     NeedsPlayerNoticeTest() {
-        manager.beginFoundation(alice, "Alice", hall, 0);
-        colony = manager.confirmFoundation(alice, "A").orElseThrow();
+        manager.foundation().begin(alice, "Alice", hall, 0);
+        colony = manager.foundation().confirm(alice, "A").orElseThrow();
         hut = colony.buildings().at(hall).orElseThrow();
         CitizenData citizen = new CitizenData(1);
         citizen.setName("Jean");
