@@ -103,4 +103,21 @@ class WorkSpotTest {
 
         assertEquals(new BlockPos(10, 1, 2), choose());
     }
+
+    @Test
+    void refusesASpotUnderAnOverhang() {
+        world.blocks.put(new BlockPos(12, 0, 0), STONE);
+        world.blocks.put(new BlockPos(12, 2, 0), STONE); // outward: ground, but no room for the head
+        world.blocks.put(new BlockPos(10, 0, 2), STONE); // first side: dry ground
+
+        assertEquals(new BlockPos(10, 1, 2), choose());
+    }
+
+    @Test
+    void neverFallsBackAboveUnfitGround() {
+        world.blocks.put(new BlockPos(12, 0, 0), LAVA);
+        world.blocks.put(new BlockPos(12, -1, 0), STONE); // outward: open air over one block of lava on stone
+
+        assertEquals(new BlockPos(10, 1, 2), choose(), "the first column with no ground at all");
+    }
 }

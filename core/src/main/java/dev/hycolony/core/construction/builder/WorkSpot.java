@@ -38,9 +38,10 @@ final class WorkSpot {
     }
 
     /**
-     * The first free spot with ground under it; else the first free one (unloaded or open terrain, neither buried nor
-     * in a fluid); else 2 blocks outward and 1 up, as before (the stuck handler then gets the builder there or lets it
-     * work from where it is).
+     * The first free spot with ground under it; else the first free one in a column with no ground at all (unloaded
+     * or open terrain, neither buried nor in a fluid: never above unfit ground such as lava); else 2 blocks outward and
+     * 1 up, which may be over lava (the walk there then ends, blocked or given up by the stuck handler, and the builder
+     * works from where it got).
      */
     BlockPos choose(BlockPos block, BlockPos site, StructurePlan plan) {
         int[][] dirs = directions(block, site);
@@ -49,11 +50,12 @@ final class WorkSpot {
             for (int[] dir : dirs) {
                 BlockPos top = block.offset(dir[0] * d, 1, dir[1] * d);
                 BlockPos feet = ground(top);
-                if (feet != null && open(plan, feet)) {
+                if (feet == null) {
+                    if (free == null && standable(top, plan)) {
+                        free = top;
+                    }
+                } else if (fits(feet) && open(plan, feet)) {
                     return feet;
-                }
-                if (feet == null && free == null && standable(top, plan)) {
-                    free = top;
                 }
             }
         }
@@ -74,15 +76,16 @@ final class WorkSpot {
     }
 
     /**
-     * Feet position on the first solid block below {@code top}, or above it when {@code top} is in the ground; none if
-     * that spot does not {@link #fits fit} a body. The downward scan also stops at a fluid 2 or more deep: a body does
-     * not stand at the bottom of a lake.
+     * Feet position on the first solid block below {@code top}, or above it when {@code top} is in the ground; null
+     * only when the column has no ground at all. The spot found may not {@link #fits fit} a body: the downward scan
+     * also stops at a fluid 2 or more deep (a body does not stand at the bottom of a lake), and a buried column with
+     * no fitting spot above returns {@code top} itself.
      */
     private BlockPos ground(BlockPos top) {
         return solid(top) ? groundAbove(top) : groundBelow(top);
     }
 
-    /** The first fitting spot on a solid block above the buried {@code top}, or null. */
+    /** The first fitting spot on a solid block above the buried {@code top}, else {@code top} (which never fits). */
     private BlockPos groundAbove(BlockPos top) {
         for (int i = 1; i <= GROUND_SCAN; i++) {
             BlockPos p = top.offset(0, i, 0);
@@ -90,18 +93,15 @@ final class WorkSpot {
                 return p;
             }
         }
-        return null;
+        return top;
     }
 
-    /** The spot on the first solid block below {@code top} if it fits, or null (also under a deep fluid). */
+    /** The spot on the first solid block below {@code top}, or the top of a deep fluid; null if neither. */
     private BlockPos groundBelow(BlockPos top) {
         for (int i = 0; i <= GROUND_SCAN; i++) {
             BlockPos p = top.offset(0, -i, 0);
-            if (fluid(p) && fluid(p.offset(0, 1, 0))) {
-                return null;
-            }
-            if (solid(p.offset(0, -1, 0))) {
-                return fits(p) ? p : null;
+            if (fluid(p) && fluid(p.offset(0, 1, 0)) || solid(p.offset(0, -1, 0))) {
+                return p;
             }
         }
         return null;
