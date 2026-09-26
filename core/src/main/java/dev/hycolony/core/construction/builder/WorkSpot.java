@@ -25,6 +25,9 @@ final class WorkSpot {
     /** How far a column is searched for ground, down (or up out of the ground) from the block's level + 1. */
     private static final int GROUND_SCAN = 16;
 
+    /** A chosen spot; {@code verified} is false only for the last-resort spot, which was never checked. */
+    record Spot(BlockPos pos, boolean verified) {}
+
     private final WorldBlocks blocks;
     private final ItemCatalog catalog;
 
@@ -40,10 +43,13 @@ final class WorkSpot {
     /**
      * The first free spot with ground under it; else the first free one in a column with no ground at all (unloaded
      * or open terrain, neither buried nor in a fluid: never above unfit ground such as lava); else 2 blocks outward and
-     * 1 up, which may be over lava (the walk there then ends, blocked or given up by the stuck handler, and the builder
-     * works from where it got).
+     * 1 up, unverified since it may be over lava (the walk there then ends, blocked or given up by the stuck handler,
+     * and the builder works from where it got).
+     *
+     * <p>Deviation from MC: the walker never teleports onto an unverified spot, where MC's PathingStuckHandler
+     * teleports regardless; it gives up the walk instead.
      */
-    BlockPos choose(BlockPos block, BlockPos site, StructurePlan plan) {
+    Spot choose(BlockPos block, BlockPos site, StructurePlan plan) {
         int[][] dirs = directions(block, site);
         BlockPos free = null;
         for (int d = MIN_OUT; d <= MAX_OUT; d++) {
@@ -55,11 +61,13 @@ final class WorkSpot {
                         free = top;
                     }
                 } else if (fits(feet) && open(plan, feet)) {
-                    return feet;
+                    return new Spot(feet, true);
                 }
             }
         }
-        return free != null ? free : block.offset(dirs[0][0] * MIN_OUT, 1, dirs[0][1] * MIN_OUT);
+        return free != null
+                ? new Spot(free, true)
+                : new Spot(block.offset(dirs[0][0] * MIN_OUT, 1, dirs[0][1] * MIN_OUT), false);
     }
 
     /** Neither the feet cell nor the head cell above it is one the plan will fill. */

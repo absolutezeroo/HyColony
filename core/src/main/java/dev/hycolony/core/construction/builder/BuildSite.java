@@ -87,7 +87,7 @@ final class BuildSite {
     }
 
     /** Where the builder stands to work on {@code block}. */
-    BlockPos workSpot(BlockPos block) {
+    WorkSpot.Spot workSpot(BlockPos block) {
         return spots.choose(block, order.buildingPos(), plan);
     }
 

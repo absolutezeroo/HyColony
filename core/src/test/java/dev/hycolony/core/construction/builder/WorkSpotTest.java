@@ -1,6 +1,7 @@
 package dev.hycolony.core.construction.builder;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.StructurePlan;
@@ -34,7 +35,9 @@ class WorkSpotTest {
     }
 
     private BlockPos choose() {
-        return new WorkSpot(world, catalog).choose(BLOCK, SITE, plan);
+        WorkSpot.Spot spot = new WorkSpot(world, catalog).choose(BLOCK, SITE, plan);
+        assertTrue(spot.verified(), "a spot found in the world");
+        return spot.pos();
     }
 
     @Test
@@ -127,5 +130,21 @@ class WorkSpotTest {
         world.blocks.put(new BlockPos(12, -1, 0), WATER); // outward: open air over a lake with no bed in range
 
         assertEquals(new BlockPos(10, 1, 2), choose(), "the first column with no ground at all");
+    }
+
+    @Test
+    void lastResortSpotIsUnverified() {
+        for (int d = 2; d <= 4; d++) {
+            for (BlockPos c : List.of(
+                    BLOCK.offset(d, 0, 0), BLOCK.offset(-d, 0, 0), BLOCK.offset(0, 0, d), BLOCK.offset(0, 0, -d))) {
+                world.blocks.put(c, LAVA);
+                world.blocks.put(c.offset(0, -1, 0), STONE); // every column: open air over lava on stone
+            }
+        }
+
+        assertEquals(
+                new WorkSpot.Spot(new BlockPos(12, 1, 0), false),
+                new WorkSpot(world, catalog).choose(BLOCK, SITE, plan),
+                "2 out and 1 up, unchecked");
     }
 }

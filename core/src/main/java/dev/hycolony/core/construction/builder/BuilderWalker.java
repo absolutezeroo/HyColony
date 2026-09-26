@@ -12,7 +12,8 @@ import java.util.function.Supplier;
 /**
  * The builder's non-blocking walks (MC walkToBuilding / walkToConstructionSite), over the same port as wandering. No
  * walk blocks the AI forever: a nav that ends anywhere counts as arrived, and the {@link StuckHandler} repaths,
- * teleports, then gives up on a body that makes no progress, whatever the nav reports.
+ * teleports, then gives up on a body that makes no progress, whatever the nav reports. It never teleports onto an
+ * unverified work spot (Deviation from MC, see {@link WorkSpot#choose}): that walk gives up instead.
  */
 final class BuilderWalker {
     static final int ARRIVAL_RANGE = 2;
@@ -25,7 +26,7 @@ final class BuilderWalker {
     /** A target whose walk ended (nav result or given up): the builder works from where it stands. */
     private BlockPos settled;
 
-    private BlockPos workPos;
+    private WorkSpot.Spot workPos;
     /** The block the work spot was already chosen again for, because it was out of reach from the first one. */
     private BlockPos repickedFor;
 
@@ -55,12 +56,12 @@ final class BuilderWalker {
      * <p>Deviation from MC: MC still works the out-of-reach block once before moving; here the builder moves first,
      * so it never works on a block more than 5 blocks away.
      */
-    boolean walkToWorkPos(BlockPos block, Supplier<BlockPos> spot) {
+    boolean walkToWorkPos(BlockPos block, Supplier<WorkSpot.Spot> spot) {
         if (workPos == null) {
             workPos = spot.get();
             repickedFor = null;
         }
-        if (!walkTo(workPos)) {
+        if (!walkTo(workPos.pos(), workPos.verified())) {
             return false;
         }
         BlockPos at = bodies.position(body).map(Vec3::toBlockPos).orElse(null);
@@ -69,7 +70,7 @@ final class BuilderWalker {
         }
         repickedFor = block;
         workPos = spot.get();
-        return walkTo(workPos);
+        return walkTo(workPos.pos(), workPos.verified());
     }
 
     /**
@@ -78,6 +79,11 @@ final class BuilderWalker {
      * body only when the target changes, or when the stuck handler says so.
      */
     boolean walkTo(BlockPos to) {
+        return walkTo(to, true);
+    }
+
+    /** {@link #walkTo(BlockPos)}; the stuck handler teleports to {@code to} only when {@code teleportAllowed}. */
+    private boolean walkTo(BlockPos to, boolean teleportAllowed) {
         Vec3 p = bodies.position(body).orElse(null);
         if (p == null) {
             return false;
@@ -90,7 +96,7 @@ final class BuilderWalker {
             navTarget = to;
             settled = null;
             bodies.moveTo(body, Vec3.center(to));
-            stuck.start(Vec3.center(to), p, now);
+            stuck.start(Vec3.center(to), p, now, teleportAllowed);
             return false;
         }
         NavStatus s = bodies.navStatus(body);

@@ -24,7 +24,8 @@ import dev.hycolony.core.kernel.Vec3;
  * <p>Deviation from MC: no path nodes to skip, no move-away, ladders or block breaking (Hytale's nav owns the
  * path); the levels collapse to repath, teleport, give up. MC's citizen lands next to its goal after
  * completeStuckAction; a Hytale teleport can land it under a roof two blocks off, so the walk is also given up when it
- * circles for a global timeout after the teleport.
+ * circles for a global timeout after the teleport. A walk started without teleport (to a spot never checked, which
+ * may be in lava) gives up wherever it would teleport: MC's handler teleports regardless.
  */
 public final class StuckHandler {
     public enum Action {
@@ -52,9 +53,16 @@ public final class StuckHandler {
     private int level;
     private boolean teleported;
     private long teleportTick;
+    private boolean teleportAllowed;
 
     /** Starts watching a walk from {@code from} to {@code destination}, forgetting the previous one. */
     public void start(Vec3 destination, Vec3 from, long now) {
+        start(destination, from, now, true);
+    }
+
+    /** {@link #start(Vec3, Vec3, long)}; without {@code teleportAllowed}, gives up where it would teleport. */
+    public void start(Vec3 destination, Vec3 from, long now, boolean teleportAllowed) {
+        this.teleportAllowed = teleportAllowed;
         this.destination = destination;
         startTick = now;
         lastCheck = now;
@@ -103,6 +111,9 @@ public final class StuckHandler {
     }
 
     private Action teleport(Vec3 pos, long now) {
+        if (!teleportAllowed) {
+            return giveUp();
+        }
         teleported = true;
         teleportTick = now;
         lastPos = pos; // a teleport that worked shows as progress; one that did not, as none
