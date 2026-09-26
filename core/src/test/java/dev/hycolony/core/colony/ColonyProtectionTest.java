@@ -6,11 +6,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.config.ColonyConfig;
+import dev.hycolony.core.kernel.config.Explosions;
 import dev.hycolony.core.testing.TestContexts;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
-/** MC Permissions.hasPermission(Player, Action): the creative operator bypass of colony protection. */
+/** The creative operator bypass (MC Permissions.hasPermission) and explosions (MC TurnOffExplosionsInColonies). */
 class ColonyProtectionTest {
     private final TestContexts t = new TestContexts();
     private final UUID alice = UUID.randomUUID();
@@ -19,14 +20,12 @@ class ColonyProtectionTest {
     private final BlockPos inside = hall.offset(3, 0, 3);
 
     private ColonyManager start(int bypassLevel) {
+        return start(new ColonyConfig.Permissions(true, Explosions.DAMAGE_ENTITIES, bypassLevel));
+    }
+
+    private ColonyManager start(ColonyConfig.Permissions permissions) {
         ColonyConfig d = ColonyConfig.defaults();
-        t.config = new ColonyConfig(
-                d.gameplay(),
-                d.claims(),
-                new ColonyConfig.Permissions(true, d.permissions().turnOffExplosionsInColonies(), bypassLevel),
-                d.commands(),
-                d.client(),
-                d.hycolony());
+        t.config = new ColonyConfig(d.gameplay(), d.claims(), permissions, d.commands(), d.client(), d.hycolony());
         ColonyManager manager = new ColonyManager(t.context());
         manager.foundation().begin(alice, "Alice", hall, 0);
         manager.foundation().confirm(alice, "A").orElseThrow();
@@ -61,5 +60,15 @@ class ColonyProtectionTest {
         t.players.creative.add(bob);
 
         assertTrue(manager.isAllowed(bob, inside, Action.PLACE_BLOCKS));
+    }
+
+    @Test
+    void explosionsSpareColonyBlocksUnlessDamageEverything() {
+        ColonyManager manager = start(new ColonyConfig.Permissions(false, Explosions.DAMAGE_ENTITIES, 2));
+        assertTrue(manager.explosionSparesBlock(inside)); // regardless of EnableColonyProtection, like MC
+        assertFalse(manager.explosionSparesBlock(new BlockPos(9000, 64, 0)));
+
+        manager = start(new ColonyConfig.Permissions(true, Explosions.DAMAGE_EVERYTHING, 2));
+        assertFalse(manager.explosionSparesBlock(inside));
     }
 }

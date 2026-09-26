@@ -11,6 +11,7 @@ import com.hypixel.hytale.server.core.universe.world.events.StartWorldEvent;
 import com.hypixel.hytale.server.core.util.Config;
 import com.hypixel.hytale.server.npc.NPCPlugin;
 import dev.hycolony.plugin.adapter.HytaleBlueprintSource;
+import dev.hycolony.plugin.block.ExplosionProtectionSystem;
 import dev.hycolony.plugin.block.HutBlockSystems;
 import dev.hycolony.plugin.block.ProtectionSystems;
 import dev.hycolony.plugin.command.HyColonyCommand;
@@ -52,6 +53,7 @@ public final class HyColonyPlugin extends JavaPlugin {
         getEntityStoreRegistry().registerSystem(new ProtectionSystems.Place(runtimes, ids));
         getEntityStoreRegistry().registerSystem(new ProtectionSystems.Break(runtimes, ids));
         getEntityStoreRegistry().registerSystem(new ProtectionSystems.Use(runtimes, ids));
+        getEntityStoreRegistry().registerSystem(new ExplosionProtectionSystem(runtimes));
         getEntityStoreRegistry().registerSystem(new GogglesSystems.ArmorChange(runtimes, ids.itemId("build_goggles")));
         getEntityStoreRegistry().registerSystem(new GogglesSystems.Visibility(runtimes));
         getEventRegistry()

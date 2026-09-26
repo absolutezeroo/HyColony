@@ -10,6 +10,7 @@ import dev.hycolony.core.colony.territory.ClaimCell;
 import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.colony.view.ColonyWindows;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.config.Explosions;
 import dev.hycolony.core.kernel.port.BodyId;
 import java.util.Collection;
 import java.util.Collections;
@@ -119,6 +120,16 @@ public final class ColonyManager {
                 .map(c -> c.permissions().hasPermission(player, action)
                         || bypassesPermissions(player) && Permissions.operatorRankHas(action))
                 .orElse(true);
+    }
+
+    /**
+     * Whether an explosion must leave the block at {@code pos} intact: inside a colony, unless the config is
+     * DAMAGE_EVERYTHING. MC ColonyPermissionEventHandler.on(ExplosionEvent.Detonate), block part; like MC it ignores
+     * EnableColonyProtection.
+     */
+    public boolean explosionSparesBlock(BlockPos pos) {
+        return ctx.config().permissions().turnOffExplosionsInColonies() != Explosions.DAMAGE_EVERYTHING
+                && colonyAt(pos).isPresent();
     }
 
     /**
