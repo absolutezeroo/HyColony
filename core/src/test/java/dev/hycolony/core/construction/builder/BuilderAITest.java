@@ -917,7 +917,9 @@ class BuilderAITest {
 
     @Test
     void mineWithoutAnyRequestIsEmpty() {
-        assertTrue(new BuilderStock(colony, citizen, hut).mine().isEmpty());
+        assertTrue(new BuilderRequests(colony, citizen, hut, new BuilderStock(colony, citizen, hut))
+                .mine()
+                .isEmpty());
     }
 
     @Test

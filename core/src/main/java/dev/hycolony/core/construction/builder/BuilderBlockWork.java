@@ -102,7 +102,7 @@ final class BuilderBlockWork {
     private BuilderState fetchTool(ToolType type) {
         ItemKey inHut = ctx.stock().toolInHut(type);
         if (inHut == null) {
-            ctx.stock().requestTool(type);
+            ctx.requests().requestTool(type);
             return BuilderState.NEEDS_ITEM;
         }
         if (!ctx.walkToHut()) {

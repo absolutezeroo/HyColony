@@ -16,8 +16,8 @@ import dev.hycolony.core.kernel.port.WorldBlocks;
 
 /**
  * What one builder's AI and its steps share (MC AbstractEntityAIBasic's worker, job and building): the builder, its
- * hut, and the collaborators that hold its items, walks, gestures and structure. {@code hut}, {@code stock} and
- * {@code resources} are null for a builder without a hut, whose AI never runs.
+ * hut, and the collaborators that hold its items, requests, walks, gestures and structure. {@code hut},
+ * {@code stock}, {@code requests} and {@code resources} are null for a builder without a hut, whose AI never runs.
  */
 record BuilderContext(
         Colony colony,
@@ -28,6 +28,7 @@ record BuilderContext(
         ItemCatalog catalog,
         BuildingResourcesModule resources,
         BuilderStock stock,
+        BuilderRequests requests,
         BuilderWalker walker,
         BuilderGestures gestures,
         BuildSite site,
@@ -47,6 +48,7 @@ record BuilderContext(
                 hut == null ? null : hut.module(BuildingResourcesModule.class).orElse(null);
         WorkerModule worker =
                 hut == null ? null : hut.module(WorkerModule.class).orElse(null);
+        BuilderStock stock = hut == null ? null : new BuilderStock(colony, citizen, hut);
         return new BuilderContext(
                 colony,
                 citizen,
@@ -55,7 +57,8 @@ record BuilderContext(
                 blocks,
                 catalog,
                 resources,
-                hut == null ? null : new BuilderStock(colony, citizen, hut),
+                stock,
+                hut == null ? null : new BuilderRequests(colony, citizen, hut, stock),
                 new BuilderWalker(bodies, body, colony.context().clock()::currentTick),
                 new BuilderGestures(bodies, body),
                 new BuildSite(colony, resources, new WorkSpot(blocks, catalog)),

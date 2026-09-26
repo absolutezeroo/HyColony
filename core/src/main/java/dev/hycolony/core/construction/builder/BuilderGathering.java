@@ -63,7 +63,7 @@ final class BuilderGathering {
             return null;
         }
         BuilderStock stock = ctx.stock();
-        stock.receiveCompletedBuildingRequests();
+        ctx.requests().receiveCompletedBuildingRequests();
         ctx.resources().currentBucket().ifPresent(stock::takeBucket);
         ItemKey needed = neededItem;
         neededItem = null;
@@ -75,7 +75,7 @@ final class BuilderGathering {
         if (stage != Stage.CLEAR && stage != Stage.REMOVE) { // never request while clearing or removing
             request(needed);
         }
-        return stock.hasSyncRequests() ? BuilderState.NEEDS_ITEM : BuilderState.BUILDING_STEP;
+        return ctx.requests().hasSyncRequests() ? BuilderState.NEEDS_ITEM : BuilderState.BUILDING_STEP;
     }
 
     /** Takes the item from the hut; false when the hut has some but none fitted in the inventory. */
@@ -88,37 +88,37 @@ final class BuilderGathering {
     /** Requests what the current and next buckets miss (async), and the item needed now (sync). */
     private void request(ItemKey needed) {
         BuilderStock stock = ctx.stock();
-        Set<ItemKey> requested = stock.requestedItems();
+        Set<ItemKey> requested = ctx.requests().requestedItems();
         ctx.resources()
                 .missingForCurrentAndNext(stock.inventory(), stock::hutCount)
                 .forEach((item, n) -> {
                     if (requested.add(item)) {
-                        stock.requestForBucket(item, n * RESOURCE_BATCH_MULTIPLIER);
+                        ctx.requests().requestForBucket(item, n * RESOURCE_BATCH_MULTIPLIER);
                     }
                 });
         if (needed != null && stock.inventory().count(needed) == 0) {
-            stock.requestNow(needed, requestAmount(needed));
+            ctx.requests().requestNow(needed, requestAmount(needed));
         }
     }
 
     /** MC waitForRequests / lookForRequests: fetch every completed request at the hut, wait for the open ones. */
     BuilderState waitForRequests() {
-        BuilderStock stock = ctx.stock();
-        List<Request> mine = stock.mine();
+        BuilderRequests requests = ctx.requests();
+        List<Request> mine = requests.mine();
         if (mine.isEmpty()) {
             return BuilderState.START_WORKING;
         }
         if (!ctx.walkToHut()) {
             return null;
         }
-        stock.receiveCompletedBuildingRequests();
-        stock.claimOpenFromHut();
+        requests.receiveCompletedBuildingRequests();
+        requests.claimOpenFromHut();
         for (Request r : mine) {
             if (r.state() == RequestState.COMPLETED) {
-                stock.pickUp(r);
+                requests.pickUp(r);
             }
         }
-        return stock.hasSyncRequests() ? null : BuilderState.START_WORKING;
+        return requests.hasSyncRequests() ? null : BuilderState.START_WORKING;
     }
 
     /** MC getTotalAmount: what is still needed of the item, capped to a stack, at least 1. */
