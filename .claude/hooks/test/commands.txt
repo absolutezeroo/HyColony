@@ -1,0 +1,263 @@
+// Commit: hooks are never skipped, staging stays explicit.
+deny Bash git commit --no-verify -m x
+deny Bash git commit -am 'fix: x'
+deny Bash git commit --no-verif -m 'fix: x'
+deny Bash git commit --no-veri -m 'fix: x'
+deny Bash git commit "--no-verify" -m x
+deny Bash git commit '-n' -m x
+deny Bash git commit -m x "-n"
+deny Bash git commit --no-""verify -m x
+deny Bash git -C . commit --no-verify -m x
+deny Bash git -c user.name=x commit -n -m x
+deny Bash git --no-pager commit -nm x
+deny Bash git commit --all -m x
+deny Bash git commit --al -m x
+deny Bash git commit -m x .
+deny Bash git commit -m "fix: a; b" --no-verify
+deny Bash git commit -m "fix: x|y" -n
+deny Bash git commit -m "$(cat <<'EOF'<NL>feat: x<NL>EOF<NL>)" --no-verify
+deny Bash git commit -F - --no-verify <<'EOF'<NL>feat: x<NL>EOF
+deny Bash cd core && git commit --no-verify -m x
+deny Bash bash -c "git commit --no-verify -m x"
+deny PowerShell git commit --no-verify -m x
+deny PowerShell git commit -m "fix: x" '-n'
+allow Bash git commit -m "fix: handle -a flag"
+allow Bash git commit -m 'docs: mention -n option'
+allow Bash git commit -m "fix(core): x" -m "never use --no-verify"
+allow Bash git commit -m "fix(core): support -Wall style"
+allow Bash git commit -F msg.txt
+allow Bash git commit --amend -m 'fix: x'
+allow Bash git commit --amend --no-edit
+allow Bash git commit -s -m 'fix: x'
+allow Bash git commit --signoff -m 'fix: x'
+allow Bash git commit --include -m x core/Foo.java
+allow Bash git commit -m x -- core/Foo.java
+allow Bash git commit -m x core/Foo.java
+allow Bash git commit -m "$(cat <<'EOF'<NL>docs: never git add -A, never --no-verify, .githooks/ and git push --force<NL><NL>Co-Authored-By: x<NL>EOF<NL>)"
+allow Bash git commit -F - <<'EOF'<NL>docs: x<NL>git commit --no-verify<NL>echo x > .githooks/pre-commit<NL>EOF
+allow PowerShell git commit -m "docs: never --no-verify nor -n"
+// core.hooksPath stays .githooks.
+deny Bash git -c core.hooksPath=/dev/null commit -m 'fix: x'
+deny Bash git -c core.hooksPath= commit -m 'fix: x'
+deny Bash git -c "core.hooksPath=" commit -m 'fix: x'
+deny Bash git --config-env=core.hooksPath=HOOKS commit -m x
+deny Bash git config core.hooksPath ""
+deny Bash git config core.hooksPath ''
+deny Bash git config --unset core.hooksPath
+deny Bash git config --unset-all core.hooksPath
+deny Bash git config --local core.hooksPath /dev/null
+deny Bash git config core.hookspath x
+deny Bash git config set core.hooksPath x
+deny Bash git config unset core.hooksPath
+deny Bash git config --remove-section core
+deny Bash git config remove-section core
+deny Bash git config --rename-section core x
+deny Bash git config --edit
+deny Bash git config -e
+deny Bash echo "[core] hooksPath = x" >> .git/config
+deny Bash sed -i 's/githooks/x/' .git/config
+deny Bash GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.hooksPath GIT_CONFIG_VALUE_0=/x git commit -m 'fix: x'
+deny PowerShell $env:GIT_CONFIG_KEY_0='core.hooksPath'; git commit -m x
+deny unlocked Bash git config core.hooksPath x
+allow Bash git config core.hooksPath .githooks
+allow Bash git config core.hooksPath ".githooks"
+allow Bash git config core.hooksPath
+allow Bash git config --get core.hooksPath
+allow Bash git config --list | grep core.hooksPath
+allow Bash git config user.email x@y.z
+allow Bash grep -rn core.hooksPath docs/ CLAUDE.md
+allow Bash rm .git/hooks/pre-commit
+// Push.
+deny Bash git push --force
+deny Bash git push -f origin main
+deny Bash git push -uf origin main
+deny Bash git push origin +main
+deny Bash git push origin +HEAD:main
+deny Bash git push --force-with-lease
+deny Bash git push --force-with-lease=main:abc
+deny Bash git push --no-verify
+deny Bash git push --no-veri
+deny Bash git push origin :main
+deny Bash git push --delete origin main
+deny Bash git push origin -d main
+deny Bash git push --mirror
+deny Bash git push --prune origin
+deny Bash git push "--force"
+deny Bash git push --for""ce
+deny Bash git push origin main --force
+deny Bash git -C . push --force
+deny PowerShell git push '--force'
+allow Bash git push -n
+allow Bash git push --dry-run
+allow Bash git push --follow-tags
+allow Bash git push -u origin sp0-foundations
+allow Bash git push -o ci.skip origin main
+// git add / stage: explicit paths only, never the local files.
+deny Bash git add -A
+deny Bash git add --all
+deny Bash git add .
+deny Bash git add ./
+deny Bash git add :/
+deny Bash git add -- .
+deny Bash git add *
+deny Bash git add 'core/*.java'
+deny Bash git add --update
+deny Bash git add -u
+deny Bash git add "-A"
+deny Bash git add -"A"
+deny Bash git add -Av
+deny Bash git add -uv
+deny Bash git add --pathspec-from-file=list.txt
+deny Bash git stage -A
+deny Bash git stage .
+deny Bash git -C . add -A
+deny Bash cd core && git add ..
+deny Bash git add -f plugin/src/main/resources/config.json
+deny Bash git add plugin/src/main/resources/config.json.bak
+deny Bash git add .mcp.json
+deny Bash git add .claude/settings.local.json
+deny Bash git add .claude\settings.local.json
+deny PowerShell git add -A
+allow Bash git add core
+allow Bash git add -p core/Foo.java
+allow Bash git add .gitattributes
+allow Bash git add docs/config.json.md
+allow Bash git add core/src/test/resources/fixtures/config.json
+allow Bash git add .githooks/pre-commit .claude/hooks/guard.js
+allow Bash git add docs/BACKLOG.md && git commit -m "docs: never git add -A"
+// Server launch.
+deny Bash ./gradlew :plugin:runServer
+deny Bash ./gradlew runServer
+deny Bash gradlew.bat :plugin:runServer
+deny Bash ./gradlew :plugin:runS
+deny Bash ./gradlew :plugin:rS
+deny Bash ./gradlew :plugin:run""Server
+deny Bash ./gradlew --offline -q :plugin:runServ
+deny Bash ./gradlew build && ./gradlew :plugin:runServer
+deny Bash java -jar server/HytaleServer.jar
+deny Bash java -Xmx4G -jar "server/HytaleServer.jar"
+deny Bash cd server && java -jar HytaleServer.jar --assets x
+deny Bash java -jar ./run/HytaleServer.jar
+deny Bash java -cp server/HytaleServer.jar com.hypixel.hytale.Main
+deny Bash cmd /c "gradlew :plugin:runServer"
+deny PowerShell Start-Process java -ArgumentList '-jar','HytaleServer.jar'
+deny PowerShell Start-Process .\gradlew.bat -ArgumentList ':plugin:runServer'
+deny PowerShell & .\gradlew.bat :plugin:runServer
+deny PowerShell .\gradlew :plugin:runServer
+allow Bash grep -n runServer README.md
+allow Bash ./gradlew tasks --all | grep -i runServer
+allow Bash ./gradlew build
+allow Bash ./gradlew spotlessApply -q --offline
+allow Bash ./gradlew :core:test --tests '*WorkSpotTest*'
+allow Bash ./gradlew build -x runServer
+// Reading guardrails is fine, even next to an unrelated redirect or write.
+allow Bash cat CLAUDE.md .githooks/pre-commit
+allow Bash git diff .claude/hooks/guard.js > /tmp/x.diff
+allow Bash git log -p -- .githooks/ 2>&1 | head
+allow Bash node .claude/hooks/guard.js < x.json
+allow Bash node -e "a => a" .claude/hooks/guard.js
+allow Bash cat .claude/settings.json | node -e "x => x"
+allow Bash cat .githooks/pre-commit > /tmp/pre-commit.bak
+allow Bash cp .githooks/pre-commit /tmp/
+allow Bash rm -rf build && cat .claude/hooks/guard.js
+allow Bash grep -n "echo > .githooks/pre-commit" docs/BACKLOG.md
+allow Bash node .claude/hooks/test/run.js
+allow Bash rm -f *.log
+allow Bash rm -rf .claude/worktrees/agent-1
+allow Bash git checkout main
+allow Bash git checkout -b feature/x
+allow Bash git restore --staged .
+allow Bash git rm --cached .githooks/pre-commit
+// Writing the backlog (or any file) with text that quotes forbidden paths and commands (false positive, 2026-09-26).
+allow Bash cat > docs/BACKLOG.md <<'EOF'<NL>- `git add -A`, `git commit --no-verify`, `git push --force`<NL>- echo x > .githooks/pre-commit ; rm .claude/settings.json<NL>- ./gradlew :plugin:runServer<NL>EOF
+allow Bash printf '%s\n' 'git commit -n; rm -rf .githooks' >> docs/notes.md
+allow PowerShell @'<NL>git add -A; Set-Content .githooks/pre-commit ''<NL>'@ | Set-Content docs/notes.md
+allow PowerShell Set-Content docs/notes.md -Value "never write .githooks/pre-commit nor CLAUDE.md"
+// Guardrail files (locked session).
+deny Bash echo 'exit 0' > .githooks/pre-commit
+deny Bash printf x>.githooks/pre-commit
+deny Bash node -e "require('fs').writeFileSync('.githooks/pre-commit','')"
+deny Bash node <<'EOF'<NL>require('fs').writeFileSync('.githooks/pre-commit', '')<NL>EOF
+deny Bash bash <<'EOF'<NL>echo > .githooks/pre-commit<NL>EOF
+deny Bash git checkout HEAD~5 -- .githooks
+deny Bash git checkout HEAD~5 .claude/hooks/guard.js
+deny Bash git restore --source HEAD~5 .githooks
+deny Bash git restore -s HEAD~5 CLAUDE.md
+deny Bash git rm .githooks/pre-commit
+deny Bash git -C .githooks rm pre-commit
+deny Bash git mv .githooks/pre-commit x
+deny Bash git update-index --chmod=-x .githooks/pre-commit
+deny Bash git checkout -- .
+deny Bash python -c "open('.claude/settings.json','w')"
+deny Bash python3 - <<'EOF'<NL>open('.claude/settings.json', 'w').write('{}')<NL>EOF
+deny Bash cd .githooks && echo '' > pre-commit
+deny Bash cd .claude && echo '{}' > settings.json
+deny Bash cd core && rm ../.githooks/pre-commit
+deny Bash echo '' > ./.githooks/pre-commit
+deny Bash echo '' > C:/Users/Ctuto/Desktop/HyColony/.githooks/pre-commit
+deny Bash echo '' > /c/Users/Ctuto/Desktop/HyColony/.githooks/pre-commit
+deny Bash echo '' > .claude\hooks\guard.js
+deny Bash echo '' > .GITHOOKS/Pre-Commit
+deny Bash perl -pi -e 's/a/b/' .githooks/pre-commit
+deny Bash dd of=.githooks/pre-commit
+deny Bash ln -sf /dev/null .githooks/pre-commit
+deny Bash chmod -x .githooks/pre-commit
+deny Bash rm -rf .claude
+deny Bash rm .githooks/*
+deny Bash rm -f *.md
+deny Bash mv .githooks /tmp/x
+deny Bash tee .claude/settings.json < /tmp/x
+deny Bash sed -i 's/400/800/' build.gradle.kts
+deny Bash echo a >> AGENTS.md
+deny Bash echo a >> CLAUDE.md
+deny Bash echo a >> .claude/agents/hycolony-reviewer.md
+deny Bash echo a >> .claude/skills/port-mc/SKILL.md
+deny Bash echo a >> config/pmd/ruleset.xml
+deny Bash sh -c "echo > .githooks/pre-commit"
+deny PowerShell Set-Content .githooks\pre-commit ''
+deny PowerShell Set-Content -Path .\.claude\hooks\guard.js -Value ''
+deny PowerShell sc .githooks/pre-commit ''
+deny PowerShell ac CLAUDE.md 'x'
+deny PowerShell '' | Out-File .claude/settings.json
+deny PowerShell [IO.File]::WriteAllText('.claude/settings.json','{}')
+deny PowerShell [System.IO.File]::Delete("$PWD\.githooks\pre-commit")
+deny PowerShell ri .githooks -Recurse
+deny PowerShell del .githooks\pre-commit
+deny PowerShell Remove-Item -Recurse -Force .claude
+deny PowerShell Copy-Item x -Destination .githooks\pre-commit
+deny PowerShell cd .githooks; Set-Content pre-commit ''
+deny PowerShell powershell -Command "Set-Content .githooks/pre-commit ''"
+allow unlocked Bash echo 'exit 0' > .githooks/pre-commit
+allow unlocked Bash git checkout HEAD~1 -- .claude/hooks/guard.js
+allow unlocked PowerShell Set-Content .githooks\pre-commit ''
+// Local files and shrink-only lists: never through a command, even unlocked.
+deny Bash echo x > .claude/settings.local.json
+deny unlocked Bash echo '{"disableAllHooks": true}' > .claude/settings.local.json
+deny Bash echo '{}' > .mcp.json
+deny Bash echo '{}' > plugin/src/main/resources/config.json
+deny Bash cp /tmp/x plugin/src/main/resources/config.json.bak
+deny Bash echo a >> config/pmd/known-violations.txt
+deny unlocked Bash echo a >> config/pmd/known-violations.txt
+deny Bash sed -i '$d' config/pmd/known-violations.txt
+deny Bash echo a >> gradle/file-size-allowlist.txt
+deny Bash git checkout HEAD~5 -- gradle/package-size-allowlist.txt
+deny Bash node -e "require('fs').appendFileSync('gradle/file-size-allowlist.txt','x')"
+deny PowerShell Add-Content config\pmd\known-violations.txt 'x'
+deny PowerShell Set-Content .claude\settings.local.json '{}'
+allow Bash cat config/pmd/known-violations.txt | wc -l
+allow Bash git diff -- gradle/file-size-allowlist.txt
+// hycolony-researcher: writes only under docs/research/, never changes git state.
+allow research Bash unzip -p assets.zip Server/x.json > docs/research/x.json
+allow research Bash unzip -l assets.zip > /tmp/list.txt
+allow research Bash grep -rn Foo build/vineflower | head
+deny research Bash echo x > docs/BACKLOG.md
+deny research Bash echo x > core/src/main/java/Foo.java
+deny research Bash git add docs/research/x.md
+deny research Bash git stash
+deny research Bash git checkout -- core
+allow research Bash git log --oneline -5 && git branch && git config --get user.name
+allow Bash diff <(git show HEAD:CLAUDE.md) CLAUDE.md
+// Remaining cases from the 2026-09-26 review bench.
+deny Bash git commit --no-ve -m 'fix: x'
+allow Bash git commit --include -m x
+deny Bash ./gradlew runserver
