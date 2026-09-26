@@ -423,6 +423,12 @@ Vérifié dans les sources 0.6.8 (détails dans `docs/research/build-goggles-and
 
 ---
 
+## 11. Particules : feux d'artifice
+
+- `ParticleUtil.spawnParticleEffect(String name, Vector3dc position, ComponentAccessor<EntityStore> accessor)` (`server/core/universe/world/ParticleUtil.java`) : collecte les joueurs à moins de `DEFAULT_PARTICLE_DISTANCE` (75 blocs) via `EntityModule.getPlayerSpatialResourceType()`, puis envoie à chacun un paquet `SpawnParticleSystem(name, Position, …)` par `PlayerRef.getPacketHandler().writeNoCache`. Aucun contrôle de l'id côté serveur : un id inconnu ne lève rien (effet côté client **[in-game]**). L'accesseur est `world.getEntityStore().getStore()` (thread du monde). `Vector3dc` est `org.joml`.
+- Id = nom du fichier `.particlesystem` (appels vanilla : `"Splash"` = `Server/Particles/_Test/WaterRnD/Splash.particlesystem`). `ParticleSystem.getAssetMap().getAsset(id)` (`asset/type/particle/config/ParticleSystem.java`) sert à valider.
+- Assets 0.6.8, `Server/Particles/Spell/Fireworks/` : systèmes `Firework_Mix2` (traînée + rouge/violet, `StartDelay` 0,8 à 0,9 s), `Firework_Mix3` (bleu, violet, rouge, `StartDelay` 0,5 à 1,3 s), `Firework_Mix4` (rouge + violet + éclairs), `Firework_GS` (niveaux de gris, à teinter). `Firework_Red`, `Firework_Purple`, `Firework_Yellow` sont des **spawners** (`Spawners/*.particlespawner`), pas des systèmes : non utilisables seuls.
+
 ## Could not verify
 
 1. **Client rendering of item animations on NPCs** (`AnimationSlot.Action` with `"Block"/"Build"` or `"Pickaxe"/"Mine"` on `PlayerTestModel_V`) and whether they loop or play once. Only the server packet path is verified.
