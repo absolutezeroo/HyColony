@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset name="HyColony"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+    <description>
+        Curated rules backing CLAUDE.md (class size, complexity, dead code, error-prone code).
+        No style rules: formatting is Spotless' job.
+        Every rule keeps a properties element: the build injects the known-violations.txt baseline into it.
+    </description>
+
+    <!-- Design: classes that grow into catch-alls (CLAUDE.md § 2). -->
+    <rule ref="category/java/design.xml/GodClass"><properties/></rule>
+    <rule ref="category/java/design.xml/CyclomaticComplexity">
+        <properties>
+            <property name="methodReportLevel" value="10"/>
+            <property name="classReportLevel" value="80"/>
+        </properties>
+    </rule>
+    <rule ref="category/java/design.xml/NPathComplexity">
+        <properties><property name="reportLevel" value="200"/></properties>
+    </rule>
+    <rule ref="category/java/design.xml/CognitiveComplexity">
+        <properties><property name="reportLevel" value="15"/></properties>
+    </rule>
+    <!-- CLAUDE.md § 2: 5 parameters at most, so 6 is reported. -->
+    <rule ref="category/java/design.xml/ExcessiveParameterList">
+        <properties><property name="minimum" value="6"/></properties>
+    </rule>
+    <!-- The default XPath already skips getters and setters. -->
+    <rule ref="category/java/design.xml/TooManyMethods">
+        <properties><property name="maxmethods" value="25"/></properties>
+    </rule>
+    <rule ref="category/java/design.xml/ExcessiveImports">
+        <properties><property name="minimum" value="30"/></properties>
+    </rule>
+    <rule ref="category/java/design.xml/CouplingBetweenObjects">
+        <properties><property name="threshold" value="20"/></properties>
+    </rule>
+
+    <!-- Error prone. -->
+    <rule ref="category/java/errorprone.xml/EmptyCatchBlock"><properties/></rule>
+    <rule ref="category/java/errorprone.xml/AvoidCatchingNPE"><properties/></rule>
+    <rule ref="category/java/errorprone.xml/AvoidCatchingThrowable"><properties/></rule>
+    <rule ref="category/java/errorprone.xml/CompareObjectsWithEquals"><properties/></rule>
+    <rule ref="category/java/errorprone.xml/UseEqualsToCompareStrings"><properties/></rule>
+    <rule ref="category/java/errorprone.xml/EqualsNull"><properties/></rule>
+    <rule ref="category/java/errorprone.xml/OverrideBothEqualsAndHashcode"><properties/></rule>
+    <rule ref="category/java/errorprone.xml/ImplicitSwitchFallThrough"><properties/></rule>
+    <rule ref="category/java/errorprone.xml/ReturnFromFinallyBlock"><properties/></rule>
+    <rule ref="category/java/errorprone.xml/BrokenNullCheck"><properties/></rule>
+    <rule ref="category/java/errorprone.xml/MisplacedNullCheck"><properties/></rule>
+    <rule ref="category/java/errorprone.xml/AvoidBranchingStatementAsLastInLoop"><properties/></rule>
+
+    <!-- Best practices: dead code. -->
+    <rule ref="category/java/bestpractices.xml/UnusedPrivateField"><properties/></rule>
+    <rule ref="category/java/bestpractices.xml/UnusedPrivateMethod"><properties/></rule>
+    <rule ref="category/java/bestpractices.xml/UnusedLocalVariable"><properties/></rule>
+    <rule ref="category/java/bestpractices.xml/UnusedFormalParameter"><properties/></rule>
+</ruleset>

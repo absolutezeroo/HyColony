@@ -1,5 +1,11 @@
+plugins {
+    id("com.diffplug.spotless") version "8.10.3" apply false
+}
+
 subprojects {
     apply(plugin = "java")
+    apply(plugin = "com.diffplug.spotless")
+    apply(plugin = "pmd")
 
     group = rootProject.property("group").toString()
     version = rootProject.property("version").toString()
@@ -36,3 +42,50 @@ val checkFileSizes by tasks.registering {
     }
 }
 subprojects { tasks.matching { it.name == "check" }.configureEach { dependsOn(checkFileSizes) } }
+
+// CLAUDE.md § 3: formatting is checked by spotlessCheck (part of check). JSON, .ui and .lang are left alone.
+subprojects {
+    extensions.configure<com.diffplug.gradle.spotless.SpotlessExtension> {
+        java {
+            palantirJavaFormat("2.99.0")
+            removeUnusedImports()
+            importOrder("""\#""", "") // Google Java Style: statics, blank line, the rest.
+            trimTrailingWhitespace()
+            endWithNewline()
+        }
+    }
+}
+
+// PMD on main sources. PMD has no baseline: config/pmd/known-violations.txt lists "Rule path" pairs
+// that are suppressed (violationSuppressXPath on the file's top-level type). This list may only shrink.
+val pmdRuleset = file("config/pmd/ruleset.xml")
+val pmdKnownViolations = file("config/pmd/known-violations.txt")
+
+fun pmdRulesetWithBaseline(): String {
+    val entries = pmdKnownViolations.readLines().map { it.trim() }.filter { it.isNotEmpty() && !it.startsWith("#") }
+    var ruleset = pmdRuleset.readText()
+    entries.map { it.split(Regex("""\s+"""), 2) }.groupBy({ it[0] }, { it[1] }).forEach { (rule, paths) ->
+        val matches = paths.joinToString(" or ") { path ->
+            val type = path.substringAfter("/src/main/java/").removeSuffix(".java")
+            "(@PackageName='${type.substringBeforeLast('/').replace('/', '.')}' and */@SimpleName='${type.substringAfterLast('/')}')"
+        }
+        val property = "<property name=\"violationSuppressXPath\" value=\"/CompilationUnit[$matches]\"/>"
+        val anchor = Regex("""(ref="category/java/\w+\.xml/$rule">\s*<properties)(/?)>""")
+        val found = anchor.find(ruleset) ?: throw GradleException("$pmdKnownViolations: rule $rule is not in $pmdRuleset")
+        val closing = if (found.groupValues[2] == "/") "</properties>" else ""
+        ruleset = ruleset.replaceRange(found.range, "${found.groupValues[1]}>$property$closing")
+    }
+    return ruleset
+}
+
+subprojects {
+    extensions.configure<PmdExtension> {
+        toolVersion = "7.28.0"
+        ruleSets = emptyList()
+        ruleSetConfig = resources.text.fromString(pmdRulesetWithBaseline())
+        isConsoleOutput = true
+        isIgnoreFailures = false
+    }
+    tasks.named("pmdTest") { enabled = false }
+    tasks.withType<Pmd>().configureEach { inputs.files(pmdRuleset, pmdKnownViolations) }
+}
