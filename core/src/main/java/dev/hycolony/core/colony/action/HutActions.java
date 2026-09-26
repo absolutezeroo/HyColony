@@ -62,6 +62,10 @@ public final class HutActions {
         if (owner) {
             return new HutPlacement.Denied(Msg.of("hycolony.colony.alreadyOwner"));
         }
+        Optional<Msg> spawn = spawnDistanceRefusal(player, pos);
+        if (spawn.isPresent()) {
+            return new HutPlacement.Denied(spawn.get());
+        }
         ColonyContext ctx = manager.context();
         if (!manager.territory()
                 .isFreeForNewColony(
@@ -71,6 +75,31 @@ public final class HutActions {
             return new HutPlacement.Denied(Msg.of("hycolony.colony.tooClose"));
         }
         return new HutPlacement.FoundNewColony();
+    }
+
+    /**
+     * MC CreateColonyMessage: the refusal when {@code pos} is nearer to the world spawn (2D) than
+     * {@code MinDistanceFromWorldSpawn} or farther than {@code MaxDistanceFromWorldSpawn}, with the blocks missing or
+     * in excess; empty if in range or the spawn is unknown.
+     */
+    private Optional<Msg> spawnDistanceRefusal(UUID player, BlockPos pos) {
+        Optional<BlockPos> spawn = manager.context().worldQuery().spawnPoint(player);
+        if (spawn.isEmpty()) {
+            return Optional.empty();
+        }
+        long dx = (long) pos.x() - spawn.get().x();
+        long dz = (long) pos.z() - spawn.get().z();
+        double distance = Math.sqrt(dx * dx + dz * dz);
+        var claims = manager.context().config().claims();
+        if (distance < claims.minDistanceFromWorldSpawn()) {
+            int missing = (int) (claims.minDistanceFromWorldSpawn() - distance);
+            return Optional.of(Msg.of("hycolony.colony.tooCloseToSpawn", String.valueOf(missing)));
+        }
+        if (distance > claims.maxDistanceFromWorldSpawn()) {
+            int excess = (int) (distance - claims.maxDistanceFromWorldSpawn());
+            return Optional.of(Msg.of("hycolony.colony.tooFarFromSpawn", String.valueOf(excess)));
+        }
+        return Optional.empty();
     }
 
     /** A building already registered at {@code pos} is stale (its block is gone): it is removed first, never a throw. */
