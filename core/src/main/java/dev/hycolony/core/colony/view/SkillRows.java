@@ -7,7 +7,12 @@ import dev.hycolony.core.colony.ui.CitizenView.SkillRow;
 import java.util.ArrayList;
 import java.util.List;
 
-/** The citizen window's skill list (MC WindowCitizen skills): job skills first, each with its XP toward next level. */
+/**
+ * The citizen window's skill list (MC WindowCitizen skills): job skills first, each with its XP toward next level.
+ *
+ * <p>Deviation from MC: MC's main page lists the eleven skills in a fixed order with their level only; the job's
+ * primary and secondary skills first (as WindowHireWorker orders them) and the XP bar are kept at the user's request.
+ */
 final class SkillRows {
     private SkillRows() {}
 
