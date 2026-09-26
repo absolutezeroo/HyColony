@@ -1,0 +1,28 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard.js\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"$CLAUDE_PROJECT_DIR\" && if [ -n \"$(git status --porcelain -- '*.java')\" ]; then ./gradlew spotlessApply -q --offline >/dev/null 2>&1 || echo '{\"systemMessage\":\"spotlessApply a échoué : lance ./gradlew spotlessApply\"}'; fi",
+            "timeout": 180,
+            "statusMessage": "Formatage Java (spotlessApply)…"
+          }
+        ]
+      }
+    ]
+  }
+}
