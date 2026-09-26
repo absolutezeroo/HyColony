@@ -15,6 +15,7 @@ import dev.hycolony.core.construction.workorder.WorkOrderType;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Either;
+import dev.hycolony.core.kernel.config.ColonyConfig;
 import dev.hycolony.core.kernel.port.PreviewPort;
 import dev.hycolony.core.testing.FakeBlueprints;
 import dev.hycolony.core.testing.FakePreviews;
@@ -33,11 +34,17 @@ class BuildGogglesTest {
     private final TestContexts t = new TestContexts();
     private final FakePreviews previews = new FakePreviews();
     private final UUID alice = UUID.randomUUID();
-    private final ColonyManager manager;
-    private final Colony colony;
-    private final BuildGoggles goggles;
+    private ColonyManager manager;
+    private Colony colony;
+    private BuildGoggles goggles;
 
     BuildGogglesTest() {
+        start(ColonyConfig.defaults());
+    }
+
+    /** A fresh colony under {@code config}. */
+    private void start(ColonyConfig config) {
+        t.config = config;
         FakeBlueprints.registerBlocks(t.catalog);
         FakeBlueprints bps = new FakeBlueprints();
         for (int level = 1; level <= 5; level++) {
@@ -128,6 +135,22 @@ class BuildGogglesTest {
         assertTrue(previews.of(alice).isEmpty());
 
         t.players.online.put(alice, HOUSE.offset(50, 0, 0));
+        ticks(BuildGoggles.CHECK_INTERVAL_TICKS);
+        assertEquals(1, previews.of(alice).size());
+    }
+
+    @Test
+    void configuredGoggleRangeReplacesTheFiftyBlockDefault() {
+        ColonyConfig d = ColonyConfig.defaults();
+        start(new ColonyConfig(
+                d.gameplay(), d.claims(), d.permissions(), d.commands(), new ColonyConfig.Client(10), d.hycolony()));
+        claimedBuild();
+        t.players.online.put(alice, HOUSE.offset(11, 0, 0));
+
+        goggles.equip(alice);
+        assertTrue(previews.of(alice).isEmpty());
+
+        t.players.online.put(alice, HOUSE.offset(10, 0, 0));
         ticks(BuildGoggles.CHECK_INTERVAL_TICKS);
         assertEquals(1, previews.of(alice).size());
     }

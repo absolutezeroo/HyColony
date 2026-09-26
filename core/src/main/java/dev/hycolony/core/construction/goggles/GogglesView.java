@@ -21,15 +21,12 @@ import java.util.Optional;
 /**
  * The build sites a goggles wearer sees, and what is left to do on each. MC ColonyBlueprintRenderer's BuildGoggles
  * rule: the work orders of the colony the player stands in (or the nearest one) whose hut is within
- * {@code buildgogglerange}.
+ * {@code buildgogglerange} blocks (config {@code Client.BuildGoggleRange}), compared squared like MC.
  *
  * <p>Deviation from MC: only orders claimed by a builder, and only their remaining blocks (MC draws every order's
  * full blueprint, a box for REMOVE and the anchor of unbuilt huts).
  */
 final class GogglesView {
-    /** MC ClientConfiguration.buildgogglerange default, 50 blocks, compared squared to the hut. */
-    static final long RANGE_SQ = 50L * 50L;
-
     /** One visible claimed order; {@code id} names its preview. */
     record Site(String id, Colony colony, WorkOrder order) {}
 
@@ -45,9 +42,10 @@ final class GogglesView {
         if (colony.isEmpty()) {
             return List.of();
         }
+        long range = manager.context().config().client().buildGoggleRange();
         List<Site> sites = new ArrayList<>();
         for (WorkOrder o : colony.get().work().ordered()) {
-            if (o.claimedBy().isPresent() && o.buildingPos().distSq(player) <= RANGE_SQ) {
+            if (o.claimedBy().isPresent() && o.buildingPos().distSq(player) <= range * range) {
                 sites.add(new Site(colony.get().id() + ":" + o.id(), colony.get(), o));
             }
         }
