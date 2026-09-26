@@ -25,11 +25,15 @@ import java.util.Optional;
 public final class DetouringBodies implements CitizenBodies {
     /** Horizontal distance, in blocks, at which a waypoint counts as reached even if the nav never says so. */
     static final double WAYPOINT_REACH = 1.0;
+    /** Replans from where the nav stopped, per walk, before the next leg is taken as it is (never stalls). */
+    static final int MAX_REPLANS = 8;
 
     private final CitizenBodies bodies;
     private final SafeRoute route;
     /** Per walking body, the waypoint it walks to now, then the rest; absent once the last leg is handed over. */
     private final Map<BodyId, Deque<Vec3>> legs = new HashMap<>();
+    /** Per walking body, how many times its walk was replanned. */
+    private final Map<BodyId, Integer> replans = new HashMap<>();
 
     public DetouringBodies(CitizenBodies bodies, WorldBlocks blocks, ItemCatalog catalog) {
         this.bodies = bodies;
@@ -39,11 +43,16 @@ public final class DetouringBodies implements CitizenBodies {
     /** Walks to the first leg of a safe route to {@code target}; replaces any walk in progress. */
     @Override
     public void moveTo(BodyId body, Vec3 target) {
+        replans.remove(body);
         Optional<Vec3> from = bodies.position(body);
         walk(body, new ArrayDeque<>(from.isPresent() ? route.plan(from.get(), target) : List.of(target)));
     }
 
-    /** The real status on the last leg; on an earlier one, MOVING, and the next leg starts once this one is reached. */
+    /**
+     * The real status on the last leg; on an earlier one, MOVING. The next leg starts once this one is reached and the
+     * line from the body to the next waypoint is clear: the body stops short of a waypoint, and cutting the corner
+     * from there could cross the fire the detour avoids. Arrived short with no clear line, the walk is replanned.
+     */
     @Override
     public NavStatus navStatus(BodyId body) {
         NavStatus status = bodies.navStatus(body);
@@ -51,15 +60,28 @@ public final class DetouringBodies implements CitizenBodies {
         if (rest == null) {
             return status;
         }
-        if (status == NavStatus.ARRIVED || reached(body, rest.peek())) {
-            rest.poll();
-            walk(body, rest);
+        boolean arrived = status == NavStatus.ARRIVED;
+        if (arrived || reached(body, rest.peek())) {
+            Vec3 here = bodies.position(body).orElse(rest.peek());
+            List<Vec3> next = List.copyOf(rest).subList(1, rest.size());
+            if (route.clear(here, next.getFirst())) {
+                rest.poll();
+                walk(body, rest);
+            } else if (arrived) {
+                replan(body, here, next);
+            }
             return NavStatus.MOVING;
         }
         if (status == NavStatus.BLOCKED || status == NavStatus.FAILED) {
-            legs.remove(body);
+            forget(body);
         }
         return status;
+    }
+
+    /** Walks a new safe route from {@code here} to the walk's target; past {@link #MAX_REPLANS}, the next leg as is. */
+    private void replan(BodyId body, Vec3 here, List<Vec3> next) {
+        int count = replans.merge(body, 1, Integer::sum);
+        walk(body, new ArrayDeque<>(count > MAX_REPLANS ? next : route.plan(here, next.getLast())));
     }
 
     private void walk(BodyId body, Deque<Vec3> waypoints) {
@@ -67,8 +89,13 @@ public final class DetouringBodies implements CitizenBodies {
         if (waypoints.size() > 1) {
             legs.put(body, waypoints);
         } else {
-            legs.remove(body);
+            forget(body);
         }
+    }
+
+    private void forget(BodyId body) {
+        legs.remove(body);
+        replans.remove(body);
     }
 
     private boolean reached(BodyId body, Vec3 waypoint) {
@@ -79,19 +106,19 @@ public final class DetouringBodies implements CitizenBodies {
 
     @Override
     public void lookAt(BodyId body, Vec3 target) {
-        legs.remove(body);
+        forget(body);
         bodies.lookAt(body, target);
     }
 
     @Override
     public void teleport(BodyId body, Vec3 target) {
-        legs.remove(body);
+        forget(body);
         bodies.teleport(body, target);
     }
 
     @Override
     public void despawn(BodyId body) {
-        legs.remove(body);
+        forget(body);
         bodies.despawn(body);
     }
 

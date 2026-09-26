@@ -30,4 +30,9 @@ public final class SafeRoute {
         List<Vec3> cells = search.cellPath();
         return cells.isEmpty() ? List.of(to) : search.shorten(cells);
     }
+
+    /** Whether a body walking straight from {@code from} to {@code to} touches no dangerous column. */
+    public boolean clear(Vec3 from, Vec3 to) {
+        return new RouteSearch(danger, from, to).clear(from, to);
+    }
 }

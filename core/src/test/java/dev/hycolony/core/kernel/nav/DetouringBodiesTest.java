@@ -66,4 +66,25 @@ class DetouringBodiesTest {
         assertEquals(NavStatus.ARRIVED, bodies.navStatus(body));
         assertEquals(List.of(fake.moves.getFirst()), fake.moves, "no further waypoint");
     }
+
+    @Test
+    void neverCutsTheCornerIntoTheFireWhenCloseToAWaypoint() {
+        bodies.moveTo(body, TO);
+        fake.bodies.get(body).position = new Vec3(4.55, 64, 1.30); // 1 block short of the first waypoint, by the fire
+
+        assertEquals(NavStatus.MOVING, bodies.navStatus(body));
+        assertEquals(1, fake.moves.size(), "keeps seeking the waypoint: the line to the target crosses the fire");
+    }
+
+    @Test
+    void replansFromWhereTheNavStoppedWhenTheNextLegCrossesTheFire() {
+        bodies.moveTo(body, TO);
+        fake.bodies.get(body).position = new Vec3(4.55, 64, 1.30);
+        fake.bodies.get(body).status = NavStatus.ARRIVED;
+
+        assertEquals(NavStatus.MOVING, bodies.navStatus(body));
+        Vec3 next = fake.moves.getLast();
+        assertTrue(!next.equals(TO), "a new detour leg, not the straight line through the fire: " + fake.moves);
+        assertTrue(new SafeRoute(new DangerousCells(world, catalog)).clear(new Vec3(4.55, 64, 1.30), next));
+    }
 }
