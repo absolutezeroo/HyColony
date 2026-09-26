@@ -28,6 +28,7 @@ public final class DetouringBodies implements CitizenBodies {
 
     private final CitizenBodies bodies;
     private final SafeRoute route;
+    private final ClearTarget clearTarget;
     /**
      * Per walking body, the waypoint it walks to now, then the rest, with the clearance they were planned with (the
      * next-leg check asks for no more, so it never refuses a leg its own plan accepted); absent once the last leg is
@@ -44,15 +45,21 @@ public final class DetouringBodies implements CitizenBodies {
 
     public DetouringBodies(CitizenBodies bodies, WorldBlocks blocks, ItemCatalog catalog) {
         this.bodies = bodies;
-        this.route = new SafeRoute(new DangerousCells(blocks, catalog));
+        DangerousCells danger = new DangerousCells(blocks, catalog);
+        this.route = new SafeRoute(danger);
+        this.clearTarget = new ClearTarget(blocks, catalog, danger);
     }
 
-    /** Walks to the first leg of a safe route to {@code target}; replaces any walk in progress. */
+    /**
+     * Walks to the first leg of a safe route to {@code target}, moved up to {@link ClearTarget#RADIUS} blocks off the
+     * edge of a dangerous block ({@link ClearTarget#of}); replaces any walk in progress.
+     */
     @Override
     public void moveTo(BodyId body, Vec3 target) {
         replans.remove(body);
+        Vec3 end = clearTarget.of(target);
         Optional<Vec3> from = bodies.position(body);
-        walk(body, from.map(f -> route.plan(f, target)).orElse(new SafeRoute.Plan(List.of(target), 0)));
+        walk(body, from.map(f -> route.plan(f, end)).orElse(new SafeRoute.Plan(List.of(end), 0)));
     }
 
     /**

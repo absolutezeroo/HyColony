@@ -96,6 +96,29 @@ class CitizenAITest {
     }
 
     @Test
+    void wanderNeverTargetsACellBesideABrazier() {
+        BlockState brazier = new BlockState(new BlockKey("Furniture_Crude_Brazier"), 0); // solid, 0.3 high, burns
+        t.catalog.harmful.add(brazier.key());
+        for (int z = 90; z <= 110; z++) {
+            t.blocks.blocks.put(new BlockPos(95, 64, z), brazier); // a row of braziers across the wander square
+        }
+        BodyId body = t.bodies.existing(1, 1, new Vec3(100, 64, 100));
+        CitizenAI ai = new CitizenAI(colonyAt(new BlockPos(100, 64, 100)), new CitizenData(1), body);
+
+        for (int i = 0; i < 20_000; i++) {
+            ai.tick();
+            if (ai.state() == CitizenState.WANDERING) {
+                t.bodies.bodies.get(body).status = NavStatus.ARRIVED;
+            }
+        }
+
+        assertFalse(t.bodies.moves.isEmpty(), "still wanders");
+        assertTrue(
+                t.bodies.moves.stream().allMatch(v -> Math.abs(Math.floor(v.x()) - 95) > 1),
+                "never beside a brazier: " + t.bodies.moves);
+    }
+
+    @Test
     void staysIdleWhenEveryWanderColumnIsHarmful() {
         BlockState fire = new BlockState(new BlockKey("fire"), 0);
         t.catalog.kinds.put(fire.key(), BlockKind.NON_SOLID);

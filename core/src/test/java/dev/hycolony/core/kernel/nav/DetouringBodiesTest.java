@@ -19,6 +19,11 @@ import org.junit.jupiter.api.Test;
 class DetouringBodiesTest {
     private static final BlockState FIRE = new BlockState(new BlockKey("fire"), 0);
     private static final Vec3 TO = new Vec3(10.5, 64, 0.5);
+    private static final BlockState STONE = new BlockState(new BlockKey("stone"), 0);
+    /** Solid and 0.3 high: Hytale walks over it, and it burns on contact. */
+    private static final BlockState BRAZIER = new BlockState(new BlockKey("Furniture_Crude_Brazier"), 0);
+
+    private static final BlockState CAMPFIRE = new BlockState(new BlockKey("Deco_Campfire"), 0);
 
     private final FakeWorldBlocks world = new FakeWorldBlocks();
     private final FakeCatalog catalog = new FakeCatalog();
@@ -30,6 +35,9 @@ class DetouringBodiesTest {
         catalog.kinds.put(FIRE.key(), BlockKind.NON_SOLID);
         catalog.harmful.add(FIRE.key());
         world.blocks.put(new BlockPos(5, 64, 0), FIRE);
+        catalog.harmful.add(BRAZIER.key());
+        catalog.kinds.put(CAMPFIRE.key(), BlockKind.NON_SOLID);
+        catalog.harmful.add(CAMPFIRE.key());
     }
 
     @Test
@@ -153,5 +161,41 @@ class DetouringBodiesTest {
     private void arrive() {
         fake.bodies.get(body).status = NavStatus.ARRIVED;
         assertEquals(NavStatus.MOVING, bodies.navStatus(body));
+    }
+
+    @Test
+    void aWalkEndingBesideABrazierStopsOneBlockFurther() {
+        for (int x = 0; x <= 20; x++) {
+            for (int z = -4; z <= 4; z++) {
+                world.blocks.put(new BlockPos(x, 63, z), STONE);
+            }
+        }
+        world.blocks.put(new BlockPos(15, 64, 0), BRAZIER);
+        fake.instant = true;
+
+        bodies.moveTo(body, new Vec3(14.5, 64, 0.5));
+
+        assertEquals(NavStatus.ARRIVED, walkToTheEnd(), "the caller still sees its walk arrive");
+        assertEquals(new Vec3(13.5, 64, 0.5), fake.moves.getLast());
+    }
+
+    @Test
+    void keepsATargetBesideACampfireWhenNoClearCellIsNearby() {
+        world.blocks.put(new BlockPos(14, 63, 0), STONE); // the only floor around: the target's own
+        world.blocks.put(new BlockPos(15, 64, 0), CAMPFIRE);
+        fake.instant = true;
+
+        bodies.moveTo(body, new Vec3(14.5, 64, 0.5));
+
+        assertEquals(NavStatus.ARRIVED, walkToTheEnd());
+        assertEquals(new Vec3(14.5, 64, 0.5), fake.moves.getLast());
+    }
+
+    private NavStatus walkToTheEnd() {
+        NavStatus status = NavStatus.MOVING;
+        for (int i = 0; i < 20 && status == NavStatus.MOVING; i++) {
+            status = bodies.navStatus(body);
+        }
+        return status;
     }
 }

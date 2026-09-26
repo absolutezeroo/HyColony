@@ -7,6 +7,9 @@ import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.core.kernel.nav.DangerousCells;
 import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.core.kernel.port.WorldBlocks;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Where the builder stands to work on a block: MC EntityAIStructureBuilder.walkToConstructionSite's {@code workFrom},
@@ -45,7 +48,8 @@ final class WorkSpot {
     }
 
     /**
-     * The first free spot with ground under it; else the first free one in a column with no ground at all (unloaded
+     * The first free spot with ground under it and no dangerous block within 1 block ({@link DangerousCells#near});
+     * else the first free spot with ground under it; else the first free one in a column with no ground at all (unloaded
      * or open terrain, neither buried nor in a fluid: never above unfit ground such as lava); else 2 blocks outward and
      * 1 up, unverified since it may be over lava (the walk there then ends, blocked or given up by the stuck handler,
      * and the builder works from where it got).
@@ -55,23 +59,30 @@ final class WorkSpot {
      */
     Spot choose(BlockPos block, BlockPos site, StructurePlan plan) {
         int[][] dirs = directions(block, site);
-        BlockPos free = null;
+        List<BlockPos> tops = new ArrayList<>();
         for (int d = MIN_OUT; d <= MAX_OUT; d++) {
             for (int[] dir : dirs) {
-                BlockPos top = block.offset(dir[0] * d, 1, dir[1] * d);
-                BlockPos feet = ground(top);
-                if (feet == null) {
-                    if (free == null && standable(top, plan)) {
-                        free = top;
-                    }
-                } else if (fits(feet) && open(plan, feet)) {
-                    return new Spot(feet, true);
-                }
+                tops.add(block.offset(dir[0] * d, 1, dir[1] * d));
             }
         }
-        return free != null
-                ? new Spot(free, true)
-                : new Spot(block.offset(dirs[0][0] * MIN_OUT, 1, dirs[0][1] * MIN_OUT), false);
+        return grounded(tops, plan, true)
+                .or(() -> grounded(tops, plan, false))
+                .or(() -> tops.stream()
+                        .filter(top -> ground(top) == null && standable(top, plan))
+                        .findFirst())
+                .map(pos -> new Spot(pos, true))
+                .orElseGet(() -> new Spot(block.offset(dirs[0][0] * MIN_OUT, 1, dirs[0][1] * MIN_OUT), false));
+    }
+
+    /** The first fitting, open spot on the ground of {@code tops}; with {@code clear}, also 1 block from danger. */
+    private Optional<BlockPos> grounded(List<BlockPos> tops, StructurePlan plan, boolean clear) {
+        for (BlockPos top : tops) {
+            BlockPos feet = ground(top);
+            if (feet != null && fits(feet) && open(plan, feet) && !(clear && danger.near(feet, 1))) {
+                return Optional.of(feet);
+            }
+        }
+        return Optional.empty();
     }
 
     /** Neither the feet cell nor the head cell above it is one the plan will fill. */

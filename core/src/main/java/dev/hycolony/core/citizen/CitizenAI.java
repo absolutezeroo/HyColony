@@ -113,20 +113,25 @@ public final class CitizenAI {
     }
 
     /**
-     * A random spot within {@link #WANDER_RADIUS} of {@code anchor}, at height {@code y}, whose column holds no
-     * dangerous block (MC PathJobRandomPos never ends on one, PathfindingUtils.isDangerous); empty after
-     * {@link #WANDER_TRIES} dangerous picks.
+     * A random spot within {@link #WANDER_RADIUS} of {@code anchor}, at height {@code y}, with no dangerous block within
+     * 1 block ({@link DangerousCells#near}); else the first pick whose own column holds none (MC PathJobRandomPos never
+     * ends on one, PathfindingUtils.isDangerous); empty after {@link #WANDER_TRIES} dangerous picks.
      */
     private Optional<Vec3> wanderTarget(BlockPos anchor, double y) {
+        Vec3 columnSafe = null;
         for (int i = 0; i < WANDER_TRIES; i++) {
             int dx = random.nextInt(2 * WANDER_RADIUS + 1) - WANDER_RADIUS;
             int dz = random.nextInt(2 * WANDER_RADIUS + 1) - WANDER_RADIUS;
             Vec3 target = new Vec3(anchor.x() + dx + 0.5, y, anchor.z() + dz + 0.5);
-            if (!danger.inColumn(target.toBlockPos(), WANDER_DANGER_HALF_HEIGHT)) {
+            BlockPos cell = target.toBlockPos();
+            if (!danger.near(cell, WANDER_DANGER_HALF_HEIGHT)) {
                 return Optional.of(target);
             }
+            if (columnSafe == null && !danger.inColumn(cell, WANDER_DANGER_HALF_HEIGHT)) {
+                columnSafe = target;
+            }
         }
-        return Optional.empty();
+        return Optional.ofNullable(columnSafe);
     }
 
     private CitizenState wander() {

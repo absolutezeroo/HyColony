@@ -24,6 +24,8 @@ class WorkSpotTest {
     private static final BlockState LAVA = new BlockState(new BlockKey("lava"), 0);
     private static final BlockState CAMPFIRE = new BlockState(new BlockKey("campfire"), 0);
     private static final BlockState FIRE = new BlockState(new BlockKey("fire"), 0);
+    /** Solid and 0.3 high: Hytale walks over it, and it burns on contact. */
+    private static final BlockState BRAZIER = new BlockState(new BlockKey("Furniture_Crude_Brazier"), 0);
 
     private final FakeWorldBlocks world = new FakeWorldBlocks();
     private final FakeCatalog catalog = new FakeCatalog();
@@ -37,6 +39,7 @@ class WorkSpotTest {
         catalog.harmful.add(CAMPFIRE.key());
         catalog.kinds.put(FIRE.key(), BlockKind.NON_SOLID);
         catalog.harmful.add(FIRE.key());
+        catalog.harmful.add(BRAZIER.key());
     }
 
     private BlockPos choose() {
@@ -175,5 +178,22 @@ class WorkSpotTest {
         world.blocks.put(new BlockPos(12, 1, 0), FIRE); // outward: a fire floating over a column with no ground
 
         assertEquals(new BlockPos(10, 1, 2), choose(), "the next column with no ground at all");
+    }
+
+    @Test
+    void neverStandsBesideABrazierWhenAnotherSpotExists() {
+        world.blocks.put(new BlockPos(12, 0, 0), STONE); // outward: dry ground...
+        world.blocks.put(new BlockPos(13, 1, 0), BRAZIER); // ...but a brazier burns right beside it
+        world.blocks.put(new BlockPos(10, 0, 2), STONE); // first side: dry ground, clear
+
+        assertEquals(new BlockPos(10, 1, 2), choose());
+    }
+
+    @Test
+    void standsBesideABrazierWhenNoOtherSpotExists() {
+        world.blocks.put(new BlockPos(12, 0, 0), STONE);
+        world.blocks.put(new BlockPos(13, 1, 0), BRAZIER); // the only ground, beside a brazier
+
+        assertEquals(new BlockPos(12, 1, 0), choose(), "the per-column rule, never no spot");
     }
 }

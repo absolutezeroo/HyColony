@@ -23,8 +23,8 @@ Pour obtenir les objets : `/give HyColony_TownHall`, `/give HyColony_Hut_Builder
 11. **Commandes réservées.** B, non opérateur, lance `/hycolony delete 1` puis `/hycolony selftest` : les deux sont refusées.
 12. **Citoyens orphelins.** Placer des citoyens dans des chunks, s'en éloigner pour les décharger, supprimer la colonie avec `/hycolony delete`, puis redémarrer et revenir.
     Attendu : aucun plantage, et les PNJ orphelins sont retirés.
-13. **Feu.** Poser un feu (`Deco_Fire`), un feu de camp éteint (`Deco_Campfire_Off`) et un brasero à moins de 10 blocs de l'hôtel de ville, puis regarder les citoyens errer 5 minutes.
-    Attendu : aucun citoyen ne s'arrête dans ou sur ces blocs, et aucun ne les **traverse** : placer un feu entre un citoyen et l'hôtel de ville, il le contourne. Viser un citoyen et lancer `/npc debug toggle VisPath` : chaque segment affiché passe à côté du feu.
+13. **Feu.** Poser un feu (`Deco_Fire`), un feu de camp éteint (`Deco_Campfire_Off`) et un brasero (`Furniture_Crude_Brazier`) à moins de 10 blocs de l'hôtel de ville, puis regarder les citoyens errer 5 minutes.
+    Attendu : aucun citoyen ne s'arrête dans ou sur ces blocs, ni juste à côté (il s'arrête à au moins 1 bloc, diagonales comprises, même près d'une porte de maison), aucun ne brûle, et aucun ne les **traverse** : placer un feu entre un citoyen et l'hôtel de ville, il le contourne. Viser un citoyen et lancer `/npc debug toggle VisPath` : chaque segment affiché passe à côté du feu.
     Noter aussi si le feu de camp de cuisine (`Bench_Campfire`) brûle : d'après les données, il ne devrait pas, et il n'est donc pas évité.
 
 ## SP1+2 : requêtes et construction

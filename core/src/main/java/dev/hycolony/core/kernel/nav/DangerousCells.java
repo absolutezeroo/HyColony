@@ -11,6 +11,10 @@ import dev.hycolony.core.kernel.port.WorldBlocks;
  * neither is the cell above one. Danger is {@link ItemCatalog#isHarmful}.
  *
  * <p>Walk targets are kept off these cells, and {@link SafeRoute} routes walks around them.
+ *
+ * <p>Deviation from MC: a spot where a citizen stands still is also kept {@link #near 1 block} away from them. MC only
+ * refuses the dangerous cell itself, but Hytale's steering and body push make a citizen stopped at the edge touch
+ * the block, and a low one (a campfire, a 0.3 high brazier) is walked over as a step.
  */
 public final class DangerousCells {
     private final WorldBlocks blocks;
@@ -30,6 +34,21 @@ public final class DangerousCells {
             BlockState s = blocks.get(center.offset(0, dy, 0)).orElse(null);
             if (s != null && catalog.isHarmful(s.key())) {
                 return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Whether {@link #inColumn} holds for the column of {@code center} or any of its 8 neighbours, diagonals included:
+     * a body standing at {@code center} could touch a harmful block.
+     */
+    public boolean near(BlockPos center, int halfHeight) {
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                if (inColumn(center.offset(dx, 0, dz), halfHeight)) {
+                    return true;
+                }
             }
         }
         return false;
