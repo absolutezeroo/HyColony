@@ -301,3 +301,10 @@ Chaque écart porte un commentaire `Deviation from MC:` dans le code (CLAUDE.md 
 **Requêtes**
 - **Fourniture par le joueur** (`request/RequestManager.overrule`) : appliquée une seule fois, alors que MineColonies l'exécutait deux fois.
 - **Résolveur disparu au chargement** (`request/RequestManager.reassignLoaded`) : comme dans MineColonies (`ResolverHandler.removeResolverWithAssignedRequests`), les enfants sont annulés et la requête réassignée. Deux différences : le déclencheur (au chargement, quand le résolveur a disparu entre la sauvegarde et le chargement, au lieu du retrait d'un fournisseur) et la liste d'exclusion (`req.blacklist()` au lieu des résolveurs du fournisseur retiré, qui ne sont plus connus au chargement).
+
+**Lunettes de constructeur** (`construction/goggles`, spec `2026-09-26-hycolony-build-goggles-design.md`)
+- Seuls les ordres **réclamés par un constructeur** sont affichés. MineColonies affiche tous les ordres de la colonie, la seule boîte pour une démolition et l'ancre des huttes de niveau 0 sans ordre.
+- Le fantôme ne montre que les **blocs qui restent à poser** (pour une démolition, ceux qui restent à retirer), au lieu du plan complet.
+- Pas de contours, pas de mode accroupi, pas de touche d'activation : porter les lunettes suffit.
+- Rafraîchissement par paliers : entrées et sorties de zone vérifiées toutes les 20 ticks, contenu recréé au plus toutes les 100 ticks s'il a changé. MineColonies redessine à chaque image depuis un cache reconstruit tous les 12,5 blocs parcourus ; un aperçu Hytale se renvoie en entier.
+- Recette : Hytale 0.6.8 n'a ni verre ni pépite d'or, et la baguette n'existe pas encore. Recette à l'établi : 1 lingot de fer, 2 cristaux cyan (les verres), 2 cuirs légers. MineColonies : pépites d'or, lingot de fer, vitres, Build Tool, cuir.
