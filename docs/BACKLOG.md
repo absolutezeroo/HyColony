@@ -12,6 +12,34 @@ La garde arrête un agent qui dérive par erreur, pas un adversaire (CLAUDE.md �
 - `"disableAllHooks": true` dans les réglages utilisateur (`~/.claude/settings.json`) coupe la garde ; un `"disableAllHooks": false` dans `.claude/settings.json` le contrerait ;
 - en session déverrouillée (`HYCOLONY_GUARDRAILS_UNLOCKED=1`), la garde laisse passer quand elle plante, pour pouvoir la réparer.
 
+## Déplacement du constructeur : écarts à MineColonies non traités (contrôle de fidélité du 2026-09-26)
+
+Sujet volontairement mis en pause par l'utilisateur, faute de problème constaté en jeu. À reprendre seulement si un problème apparaît :
+
+- La spec § 11 « Portée » dit que le constructeur ne travaille jamais un bloc à plus de 5 blocs. C'est faux : après un deuxième choix d'emplacement, il travaille d'où il est (`BuilderWalker.java:68`). MC ne le fait qu'une fois, et seulement à moins de 100 blocs du chantier. **Corriger au moins la spec.**
+- Emplacement préféré : extérieur, puis côtés, puis intérieur. MC préfère la case la plus proche du bloc et du centre du chantier (`PathJobMoveCloseToXNearY`).
+- La distance verticale n'est pas bornée (jusqu'à 16 blocs). MC exige une distance de Manhattan 3D ≤ 4.
+- Seules 12 colonnes sont testées (4 directions × 2 à 4 blocs). MC teste toute case à distance de Manhattan de 1 à 4, diagonales comprises.
+- Pas de remise à zéro de l'emplacement quand le constructeur est sur la colonne du bloc. Pas de nouveau choix d'emplacement quand il est bloqué.
+- Toute fin de navigation compte comme une arrivée (rayon de 2). MC relance la marche si le constructeur est à plus de 4 blocs.
+- La téléportation arrive environ 8 fois plus tôt que dans MC, qui passe d'abord par sauts de nœud, recalcul et recul. Près de la cible, MC remet à zéro le délai global et attend.
+- La cadence réelle de MC est de 12 ticks, pas 10. La source MC citée dans `StuckHandler` est inexacte (c'est `AbstractEntityCitizen:352`).
+- Si le même emplacement passe de « vérifié » à « non vérifié », le trajet n'est pas relancé : téléportation possible dans ce cas très improbable (`BuilderWalker.navTarget`).
+
+## Garde-fous : relecture du 2026-09-26 (3e passe)
+
+**Bloquant**
+- `timeout`, `nice`, `env -i`, `stdbuf`, ou `sh`/`bash` sans `-c` placés devant `./gradlew runServer` ou `git commit -n` laissent passer la commande.
+- `~/.claude/settings.json` (réglages utilisateur) n'est pas protégé. Il faut aussi ajouter `"disableAllHooks": false` dans `.claude/settings.json`.
+
+**Mineur**
+- Faux positifs : un code en ligne (`python -c`, `node -e`) qui ne fait que **lire** un garde-fou est refusé.
+- `%USERPROFILE%` dans `.claude/skills/hytale-api/SKILL.md:11`.
+- Limites à ajouter à la liste ci-dessus : chemins en variable (`$CLAUDE_PROJECT_DIR`, `~`), `find -delete`, `git clean -fdX`, changement de commit courant (`checkout`/`switch`/`merge`/`rebase`/`pull`), `Push-Location`, `git -C core add .`, code placé avant `// CLAUDE.md §` dans `build.gradle.kts`.
+- Le confinement du chercheur à `docs/research/` est surestimé dans CLAUDE.md.
+- `pre-push` construit HEAD et non la référence poussée. `pre-commit` ignore les listes non indexées.
+- Message trompeur pour `git checkout -- .`. `guard.js` fait 526 lignes : à découper.
+
 ## Relecture indépendante du 2026-09-26 (commits 6605ee1..6c6be03) : reste
 
 Les autres points de la relecture sont corrigés. Il reste :
