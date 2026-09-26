@@ -6,15 +6,9 @@ Ce qui a été décidé ou signalé mais pas encore fait, du plus urgent au moin
 
 ### Correctifs du tour 2 (9e77965..d4641b8)
 
-**Bloquant**
-1. `WorkSpot.java:92` : la règle « on peut se tenir dans 1 bloc de fluide » accepte aussi **1 bloc de lave**, parce que `HytaleItemCatalog` classe tous les `~fluid:*` en FLUID. Correctif : ajouter au port une information indiquant si l'on peut se tenir dans ce fluide (sûr ou dangereux), remplie à partir de l'asset `Fluid`. Ajouter le test `neverStandsInAnkleDeepLava`.
-
 **Mineur**
 
-2. `WorkSpot.ground()` : la branche qui monte refuse toujours l'eau, tandis que celle qui descend l'accepte. Les aligner ou documenter l'écart.
-3. Un cycle reste via `building` : `shared.ClaimRadius` → `building.BuildingTypes` → `hut.ConstructionBuildingTypes` → `shared`. ArchUnit ne le détecte pas. Soit on l'accepte explicitement, soit on passe l'id de l'hôtel de ville en paramètre à `ClaimRadius`.
-4. `RequestManager.reassignLoaded` (ligne 224) ne cite pas sa méthode source dans MineColonies.
-5. Les séparateurs écrits en commentaire bloc sur plusieurs lignes ne sont pas détectés.
+5. Les séparateurs écrits en commentaire bloc sur plusieurs lignes ne sont pas détectés. Les sources `main` et `test` n'en contiennent aucun ; reste la vérification du build.
 
 ### Garde-fous (d80fbc1, 487c6ad, 0c5ba06, b9c7eda)
 
