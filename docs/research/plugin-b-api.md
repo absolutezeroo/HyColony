@@ -420,3 +420,7 @@ A row using `$C.@TextButton` must declare `$C = "../../Common.ui";` at its top, 
 9. The unarmed `ItemToolSpec` JSONs have no `GatherType` field, but the asset store is keyed by `getGatherType`. I did not trace how the key is filled in (probably from the file name).
 10. Fluid replication after `FluidSection.setFluid` outside `PrefabUtil`: it is the same call, but no client check was done.
 11. The `hytale-docs` MCP search returned only generic pages for these topics. Nothing in this sheet relies on it.
+
+## Verified in game (2026-09-26)
+
+- A `Message` with a nested `Message` param (`param(key, Message)`, stored in `messageParams`) renders as `{key}` when set on a label `.Text`. Set it on `.TextSpans` instead (vanilla `PortalDeviceActivePage` does this). Buttons: avoid nested params, use one full key per variant.
