@@ -90,8 +90,9 @@ public final class HytaleItemCatalog implements ItemCatalog {
 
     /**
      * A fluid with {@code DamageToEntities} or a collision interaction: vanilla lava and fire burn through their
-     * {@code Collision} interaction (their damage is 0), which {@link Fluid#isTrigger()} reports. An unknown fluid
-     * counts as harmful, so no citizen is sent into it.
+     * {@code Collision} interaction (their damage is 0), which {@link Fluid#isTrigger()} reports. A fluid key absent
+     * from the asset map counts as harmful; an unknown fluid read from a chunk is an {@code UNKNOWN} clone with no
+     * damage and no interaction, so it does not.
      */
     @Override
     public boolean isHarmful(BlockKey block) {

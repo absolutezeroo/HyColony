@@ -300,4 +300,4 @@ Chaque écart porte un commentaire `Deviation from MC:` dans le code (CLAUDE.md 
 
 **Requêtes**
 - **Fourniture par le joueur** (`request/RequestManager.overrule`) : appliquée une seule fois, alors que MineColonies l'exécutait deux fois.
-- **Résolveur disparu au chargement** (`request/RequestManager.reassignLoaded`) : la requête est réassignée au lieu d'être supprimée comme dans MineColonies.
+- **Résolveur disparu au chargement** (`request/RequestManager.reassignLoaded`) : comme dans MineColonies (`ResolverHandler.removeResolverWithAssignedRequests`), les enfants sont annulés et la requête réassignée. Deux différences : le déclencheur (au chargement, quand le résolveur a disparu entre la sauvegarde et le chargement, au lieu du retrait d'un fournisseur) et la liste d'exclusion (`req.blacklist()` au lieu des résolveurs du fournisseur retiré, qui ne sont plus connus au chargement).
