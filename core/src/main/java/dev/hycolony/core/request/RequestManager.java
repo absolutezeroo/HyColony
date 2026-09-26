@@ -6,11 +6,8 @@ import dev.hycolony.core.request.model.Deliverable;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.request.model.RequesterId;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.EnumSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -30,13 +27,6 @@ public final class RequestManager {
     /** The colony ticks the manager every 11 game ticks (MineColonies' request system rate). */
     public static final int TICK_INTERVAL = 11;
 
-    private static final Set<RequestState> PUBLIC_STATES = EnumSet.of(
-            RequestState.RESOLVED,
-            RequestState.COMPLETED,
-            RequestState.CANCELLED,
-            RequestState.FAILED,
-            RequestState.RECEIVED);
-
     private final ItemCatalog catalog;
     private final ResolverRegistry resolvers;
     private final RequestStore store = new RequestStore();
@@ -46,8 +36,8 @@ public final class RequestManager {
     private final RequestTransitions transitions;
 
     public RequestManager(RequesterRegistry requesters, ItemCatalog catalog) {
-        this.resolvers = new ResolverRegistry(Objects.requireNonNull(requesters, "requesters"));
-        this.catalog = Objects.requireNonNull(catalog, "catalog");
+        this.resolvers = new ResolverRegistry(requesters);
+        this.catalog = catalog;
         this.canceller = new RequestCanceller(this, store, resolvers);
         this.assigner = new RequestAssigner(this, store, resolvers, canceller);
         this.transitions = new RequestTransitions(this, store, resolvers, assigner, canceller);
@@ -113,7 +103,7 @@ public final class RequestManager {
 
     /** Public transitions only: RESOLVED, COMPLETED, CANCELLED, FAILED, RECEIVED (use {@link #overrule}). */
     public void updateState(RequestToken token, RequestState newState) {
-        if (!PUBLIC_STATES.contains(newState)) {
+        if (!RequestTransitions.isPublic(newState)) {
             throw new IllegalArgumentException("Not a public transition: " + newState);
         }
         store.require(token);
@@ -148,19 +138,12 @@ public final class RequestManager {
 
     /** Cancels every request made by {@code requester} (subtrees first, requester notified), e.g. a removed building. */
     public void cancelAllFrom(RequesterId requester) {
-        queue.submit(() -> store.tokensOf(requester).forEach(canceller::cancel));
+        queue.submit(() -> canceller.cancelAllFrom(requester));
     }
 
     /** Cancels the requests {@code requester} made for one citizen (a worker leaving its building). */
     public void cancelAllFrom(RequesterId requester, int citizenId) {
-        queue.submit(() -> {
-            for (RequestToken t : store.tokensOf(requester)) {
-                Request r = store.request(t);
-                if (r != null && r.citizenId() == citizenId) {
-                    canceller.cancel(t);
-                }
-            }
-        });
+        queue.submit(() -> canceller.cancelAllFrom(requester, citizenId));
     }
 
     /**
@@ -169,14 +152,7 @@ public final class RequestManager {
      */
     public boolean cancelOrphans() {
         boolean[] cancelled = {false};
-        queue.submit(() -> {
-            for (Request r : new ArrayList<>(store.all())) {
-                if (store.contains(r.token()) && r.parent().isEmpty() && !resolvers.knowsRequester(r.requester())) {
-                    canceller.cancel(r.token());
-                    cancelled[0] = true;
-                }
-            }
-        });
+        queue.submit(() -> cancelled[0] = canceller.cancelOrphans());
         return cancelled[0];
     }
 

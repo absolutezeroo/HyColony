@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -31,7 +32,7 @@ final class ResolverRegistry {
     private final Set<String> beingRemoved = new HashSet<>();
 
     ResolverRegistry(RequesterRegistry requesters) {
-        this.requesters = requesters;
+        this.requesters = Objects.requireNonNull(requesters, "requesters");
     }
 
     void register(Resolver r) {

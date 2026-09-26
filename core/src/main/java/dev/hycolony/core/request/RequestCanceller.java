@@ -2,6 +2,7 @@ package dev.hycolony.core.request;
 
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequestToken;
+import dev.hycolony.core.request.model.RequesterId;
 import java.util.ArrayList;
 
 /**
@@ -39,6 +40,33 @@ final class RequestCanceller {
         }
         resolvers.requester(req).ifPresent(r -> r.onRequestCancelled(manager, req));
         store.clean(token);
+    }
+
+    /** Every request made by {@code requester}. */
+    void cancelAllFrom(RequesterId requester) {
+        store.tokensOf(requester).forEach(this::cancel);
+    }
+
+    /** The requests {@code requester} made for one citizen. */
+    void cancelAllFrom(RequesterId requester, int citizenId) {
+        for (RequestToken t : store.tokensOf(requester)) {
+            Request r = store.request(t);
+            if (r != null && r.citizenId() == citizenId) {
+                cancel(t);
+            }
+        }
+    }
+
+    /** Every root request whose requester no longer exists; whether any was cancelled. */
+    boolean cancelOrphans() {
+        boolean cancelled = false;
+        for (Request r : new ArrayList<>(store.all())) {
+            if (store.contains(r.token()) && r.parent().isEmpty() && !resolvers.knowsRequester(r.requester())) {
+                cancel(r.token());
+                cancelled = true;
+            }
+        }
+        return cancelled;
     }
 
     /** Cancels every child of {@code req} (a snapshot: each cancellation unlinks one). */

@@ -4,6 +4,7 @@ import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.request.model.Deliverable;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequestToken;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
@@ -12,6 +13,14 @@ import java.util.Set;
  * parent resolved or completed once its last child is, a cancelled child reassigning its parent).
  */
 final class RequestTransitions {
+    /** The states a caller outside the request system may set; the others are the manager's own. */
+    private static final Set<RequestState> PUBLIC_STATES = EnumSet.of(
+            RequestState.RESOLVED,
+            RequestState.COMPLETED,
+            RequestState.CANCELLED,
+            RequestState.FAILED,
+            RequestState.RECEIVED);
+
     private final RequestManager manager;
     private final RequestStore store;
     private final ResolverRegistry resolvers;
@@ -29,6 +38,10 @@ final class RequestTransitions {
         this.resolvers = resolvers;
         this.assigner = assigner;
         this.canceller = canceller;
+    }
+
+    static boolean isPublic(RequestState state) {
+        return PUBLIC_STATES.contains(state);
     }
 
     void transition(Request req, RequestState state) {
