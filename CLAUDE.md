@@ -92,3 +92,26 @@ HyColony porte MineColonies sur Hytale 0.6.8 (épinglé), **à l'identique** : m
    - `git add <chemins>` explicites, jamais `-A`. `config.json` et `config.json.bak` (réglages locaux) ne sont jamais commités ;
    - les lignes de fin de commit sont celles demandées par la session en cours.
 6. La documentation du projet (`docs/`) est en français. L'utilisateur est francophone : on lui répond en français.
+
+## 10. Garde-fous
+
+Ces garde-fous rendent les erreurs impossibles plutôt qu'interdites. **Toute modification d'un garde-fou demande l'accord explicite de l'utilisateur.**
+
+- `AGENTS.md` : résumé pour les autres outils (Codex, Cursor, Copilot…). Il renvoie ici sans dupliquer les règles.
+- Agents (`.claude/agents/`) :
+  - `hycolony-implementer` code une modification validée, tests d'abord, puis commite ;
+  - `hycolony-reviewer` fait la relecture indépendante du § 9.3 ;
+  - `mc-fidelity-checker` compare le code porté avec MineColonies ;
+  - `hycolony-researcher` vérifie les faits et n'écrit que dans `docs/research/`.
+- Skills (`.claude/skills/`) : `port-mc`, `hytale-api` et `add-lang-key`.
+- Hooks git versionnés (`.githooks/`), activés une fois par clone avec `git config core.hooksPath .githooks` :
+  - `pre-commit` lance `spotlessCheck checkFileSizes checkSectionDividers` si un fichier `.java`, `.kts`, `gradle/` ou `config/` est indexé ;
+  - `commit-msg` impose `type(scope): description` ;
+  - `pre-push` lance `./gradlew build`.
+- Hook Claude Code (`.claude/hooks/guard.js`, déclaré dans `.claude/settings.json`). Il refuse :
+  - `git add -A`/`.`/`-u`, `git commit -a`, `--no-verify`, `git push --force` et tout changement de `core.hooksPath` ;
+  - le lancement du serveur Hytale ;
+  - la croissance des trois listes d'exceptions ;
+  - l'écriture de `.mcp.json`, `config.json` et `config.json.bak` ;
+  - l'écriture des garde-fous eux-mêmes (`.githooks/`, `.claude/hooks/`, `.claude/settings.json`), sauf si l'utilisateur lance la session avec `HYCOLONY_GUARDRAILS_UNLOCKED=1`.
+- Un hook qui échoue se corrige à la source. On ne le contourne jamais.
