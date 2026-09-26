@@ -26,6 +26,12 @@ Sujet volontairement mis en pause par l'utilisateur, faute de problème constat�
 - La cadence réelle de MC est de 12 ticks, pas 10. La source MC citée dans `StuckHandler` est inexacte (c'est `AbstractEntityCitizen:352`).
 - Si le même emplacement passe de « vérifié » à « non vérifié », le trajet n'est pas relancé : téléportation possible dans ce cas très improbable (`BuilderWalker.navTarget`).
 
+## Lunettes de constructeur : points mis de côté (relecture du 2026-09-26)
+
+- Si le chunk de l'entité d'aperçu se décharge, l'aperçu disparaît et n'est recréé qu'au prochain changement de blocs.
+- Aucun test ne couvre le cas « colonie la plus proche » (`GogglesView.nearest`), quand le joueur est hors de toute colonie.
+- `docs/TESTING.md` contient une section SP1+2 en double (points 13 à 18 répétés).
+
 ## Garde-fous : relecture du 2026-09-26 (3e passe)
 
 **Mineur**

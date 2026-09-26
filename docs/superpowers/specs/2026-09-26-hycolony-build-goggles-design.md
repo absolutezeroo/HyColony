@@ -9,7 +9,7 @@ Un joueur qui porte les lunettes voit, en fantôme, **ce qui reste à construire
 ## Règles de jeu
 
 - **Objet** : « Lunettes de constructeur » (`HyColony_Build_Goggles`), qui se porte en casque (emplacement `Head` de l'armure) et ne donne aucune protection. Il utilise le modèle cosmétique de lunettes vanilla (`Cosmetics/Head/Goggles.blockymodel`).
-- **Recette** : à l'établi, avec des ingrédients vanilla (verre, cuir, fer). La recette exacte et le niveau d'établi sont vérifiés dans les assets. Quand la baguette existera, elle entrera dans la recette, comme dans MineColonies.
+- **Recette** : à l'établi (`Workbench`), avec 1 `Ingredient_Bar_Iron`, 2 `Ingredient_Crystal_Cyan` et 2 `Ingredient_Leather_Light`. Hytale 0.6.8 n'a pas de verre, les cristaux cyan en tiennent lieu. Quand la baguette existera, elle entrera dans la recette, comme dans MineColonies.
 - **Chantiers affichés** : les ordres de travail **réclamés par un constructeur** (en cours) de la colonie où se trouve le joueur, ou de la plus proche, et dont la hutte est à 50 blocs ou moins du joueur (`buildgogglerange` de MineColonies). Tous les types d'ordre : construction, amélioration et réparation. Pour une démolition, les blocs qui restent à retirer.
 - **Contenu du fantôme** : uniquement les **blocs qui restent à poser**, calculés en comparant le plan au monde.
 - **Rafraîchissement** : par paliers, jamais à chaque bloc.
