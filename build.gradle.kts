@@ -29,12 +29,21 @@ val checkFileSizes by tasks.registering {
     val maxLines = 400
     val allowlist = file("gradle/file-size-allowlist.txt")
     val sources = fileTree(rootDir) { include("core/src/main/java/**/*.java", "plugin/src/main/java/**/*.java") }
-    inputs.files(sources, allowlist)
+    inputs.files(sources, allowlist, file("gradle/package-size-allowlist.txt"))
     doLast {
         val allowed = allowlist.readLines().map { it.trim() }.filter { it.isNotEmpty() && !it.startsWith("#") }.toSet()
         val tooBig = sources.files
             .map { it.relativeTo(rootDir).invariantSeparatorsPath to it.readLines().size }
             .filter { (path, lines) -> lines > maxLines && path !in allowed }
+        val maxFilesPerPackage = 15
+        val allowedPackages = file("gradle/package-size-allowlist.txt").readLines()
+            .map { it.trim() }.filter { it.isNotEmpty() && !it.startsWith("#") }.toSet()
+        val crowded = sources.files.groupBy { it.parentFile.relativeTo(rootDir).invariantSeparatorsPath }
+            .filter { (dir, files) -> files.size > maxFilesPerPackage && dir !in allowedPackages }
+        if (crowded.isNotEmpty()) {
+            throw GradleException("Packages over $maxFilesPerPackage files (CLAUDE.md § 1), split them into sub-packages:\n" +
+                crowded.entries.joinToString("\n") { (dir, files) -> "  $dir: ${files.size}" })
+        }
         if (tooBig.isNotEmpty()) {
             throw GradleException("Files over $maxLines lines (CLAUDE.md § 2), split them:\n" +
                 tooBig.joinToString("\n") { (path, lines) -> "  $path: $lines" })

@@ -12,6 +12,7 @@ HyColony porte MineColonies sur Hytale 0.6.8 (épinglé), **à l'identique** : m
   - le cœur définit des ports (`kernel/port`, `construction/BlueprintSource`, `colony/ui/UiPort`) ;
   - le plugin les implémente (préfixe `Hytale*`) ;
   - les tests les simulent (préfixe `Fake*`, dans `core/src/test/.../testing`).
+- **Un paquet contient au plus 15 fichiers** **[build : `checkFileSizes`]**. Au-delà, on crée des sous-paquets par sous-domaine : par exemple `construction/blueprint`, `construction/workorder`, `construction/builder`, `construction/resources`, ou `colony/territory`, `colony/permission`, `colony/view`. Un sous-paquet regroupe ce qui change ensemble. Seul le point d'entrée du sous-domaine est `public`, le reste reste package-private autant que possible.
 - Les paquets du cœur sont découpés **par fonctionnalité** (`colony`, `building`, `citizen`, `request`, `job`, `construction`…), pas par couche. `kernel` ne dépend d'aucun autre paquet **[build]**.
 - Toute l'API Hytale utilisée doit être vérifiée dans les sources décompilées (`build/vineflower/hytale-server`), jamais supposée. Les découvertes vont dans `docs/research/plugin-b-api.md`.
 
