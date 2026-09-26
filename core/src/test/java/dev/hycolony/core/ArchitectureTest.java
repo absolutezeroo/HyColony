@@ -2,6 +2,7 @@ package dev.hycolony.core;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
+import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
 
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
@@ -44,4 +45,9 @@ class ArchitectureTest {
             .should()
             .dependOnClassesThat()
             .resideInAPackage("dev.hycolony.core.construction..");
+
+    /** The construction sub-packages (blueprint, builder, resources, workorder) form no dependency cycle. */
+    @ArchTest
+    static final ArchRule constructionSubPackagesAreFreeOfCycles =
+            slices().matching("dev.hycolony.core.construction.(*)..").should().beFreeOfCycles();
 }

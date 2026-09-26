@@ -5,7 +5,6 @@ import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.building.ModuleProducer;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.construction.builder.BuilderJob;
-import dev.hycolony.core.construction.builder.BuilderSettingsModule;
 import dev.hycolony.core.construction.resources.BuildingResourcesModule;
 import dev.hycolony.core.job.JobRegistry;
 import dev.hycolony.core.job.WorkerModule;

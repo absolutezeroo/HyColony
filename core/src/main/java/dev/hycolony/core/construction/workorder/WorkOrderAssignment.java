@@ -2,7 +2,7 @@ package dev.hycolony.core.construction.workorder;
 
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.colony.Colony;
-import dev.hycolony.core.construction.builder.BuilderSettingsModule;
+import dev.hycolony.core.construction.BuilderSettingsModule;
 import dev.hycolony.core.kernel.BlockPos;
 import java.util.ArrayList;
 import java.util.Collection;
