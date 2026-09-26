@@ -17,6 +17,7 @@ import dev.hycolony.core.kernel.port.ItemCatalog;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.logging.Level;
 
 /**
@@ -37,6 +38,8 @@ import java.util.logging.Level;
  *   <li>durability = blocks of its own gather type mined before breaking:
  *       {@code maxDurability / (lossPerHit * ceil(1 / power))}.</li>
  * </ul>
+ * Hut blocks are UNBREAKABLE, so the builder never mines or builds over a hut, filler cells included (a filler cell
+ * reports its origin's block, see {@link HytaleWorldBlocks}).
  */
 public final class HytaleItemCatalog implements ItemCatalog {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
@@ -54,7 +57,13 @@ public final class HytaleItemCatalog implements ItemCatalog {
 
     private final Map<BlockKey, BlockInfo> blocks = new HashMap<>();
     private final Map<ItemKey, ItemInfo> items = new HashMap<>();
+    private final Set<String> hutBlockIds;
     private boolean warned;
+
+    /** {@code hutBlockIds}: the id-map's hut block ids. */
+    public HytaleItemCatalog(Set<String> hutBlockIds) {
+        this.hutBlockIds = Set.copyOf(hutBlockIds);
+    }
 
     @Override
     public int maxStack(ItemKey item) {
@@ -124,7 +133,7 @@ public final class HytaleItemCatalog implements ItemCatalog {
         return info;
     }
 
-    private static BlockInfo computeBlock(String id) {
+    private BlockInfo computeBlock(String id) {
         if (id.startsWith(HytaleWorldBlocks.FLUID_PREFIX)) {
             return FLUID;
         }
@@ -146,7 +155,7 @@ public final class HytaleItemCatalog implements ItemCatalog {
         BlockGathering g = type.getGathering();
         BlockBreakingDropType breaking = g == null ? null : g.getBreaking();
         String gather = breaking == null ? null : breaking.getGatherType();
-        if (g == null || "Unbreakable".equals(gather)) {
+        if (g == null || "Unbreakable".equals(gather) || hutBlockIds.contains(type.getId())) {
             return new BlockInfo(BlockKind.UNBREAKABLE, itemKey, false, Optional.empty(), 1f);
         }
         BlockKind kind = type.getMaterial() == BlockMaterial.Empty ? BlockKind.NON_SOLID : BlockKind.SOLID;

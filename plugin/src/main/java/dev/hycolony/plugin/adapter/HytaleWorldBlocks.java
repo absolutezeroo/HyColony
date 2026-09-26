@@ -7,6 +7,7 @@ import com.hypixel.hytale.protocol.BlockMaterial;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockBreakingDropType;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockGathering;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.VariantRotation;
 import com.hypixel.hytale.server.core.asset.type.fluid.Fluid;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.block.BlockModule;
@@ -29,12 +30,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.logging.Level;
 import org.joml.Vector3i;
 
 /**
  * WorldBlocks over the section API (cheat sheet § 1). Never loads a chunk, never throws. Fluids are reported as the
- * pseudo-key {@code ~fluid:<FluidId>}; state variants ({@code *…}) are reported as their base block. World thread only.
+ * pseudo-key {@code ~fluid:<FluidId>}; state variants ({@code *…}) are reported as their base block. A filler cell
+ * holds its origin's block id and rotation ({@code FillerBlockUtil.setFillerBlocksAt}), so it reports the origin's
+ * key: a hut's filler cells read as the hut, which the catalog calls UNBREAKABLE. A block that cannot rotate
+ * ({@code VariantRotation.None}) reads as rotation 0, like its blueprint entry. World thread only.
  */
 public final class HytaleWorldBlocks implements WorldBlocks {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
@@ -43,13 +48,21 @@ public final class HytaleWorldBlocks implements WorldBlocks {
     private static final int ROTATIONS = 64; // RotationTuple.VALUES.length
 
     private final World world;
+    private final Set<String> hutBlockIds;
     /** {@code get} is hot: one Optional per (block runtime id, rotation index), built once. */
     private Optional<BlockState>[][] blockCache = newCache(1024);
     private Optional<BlockState>[] fluidCache = newRow(64);
     private boolean warned;
 
-    public HytaleWorldBlocks(World world) {
+    /** {@code hutBlockIds}: the id-map's hut block ids; never broken nor built over. */
+    public HytaleWorldBlocks(World world, Set<String> hutBlockIds) {
         this.world = world;
+        this.hutBlockIds = Set.copyOf(hutBlockIds);
+    }
+
+    private boolean isHut(BlockType type) {
+        return hutBlockIds.contains(type.getId())
+                || (type.getDefaultStateKey() != null && hutBlockIds.contains(type.getDefaultStateKey()));
     }
 
     @Override
@@ -113,9 +126,10 @@ public final class HytaleWorldBlocks implements WorldBlocks {
             if (type == null || blocks == null) {
                 return false;
             }
-            // The builder mined the spot first; the check also fails if part of the hitbox is in an unloaded section.
+            // The builder mined the spot first, so leftovers are replaced, except a hut (a multi-cell block's hitbox
+            // may reach one). The check also fails if part of the hitbox is in an unloaded section.
             if (!BlockOperations.testPlaceBlock(store, blocks, pos.x(), pos.y(), pos.z(), type, state.rotation(),
-                    (x, y, z, other, rot, filler) -> true)) {
+                    (x, y, z, other, rot, filler) -> !isHut(other))) {
                 return false;
             }
             // Always NONE: the block entity is part of the block (a chest gets its container, a bench its state),
@@ -157,8 +171,8 @@ public final class HytaleWorldBlocks implements WorldBlocks {
                 return List.of();
             }
             BlockType type = BlockType.getAssetMap().getAsset(id);
-            if (type == null || type == BlockType.EMPTY) {
-                return List.of();
+            if (type == null || type == BlockType.EMPTY || isHut(type)) {
+                return List.of(); // a hut (origin or filler cell) only goes through the hut systems
             }
             // A filler cell belongs to its origin block: the origin holds the container, and the whole block goes.
             int filler = blocks.getFiller(x, y, z);
@@ -236,7 +250,10 @@ public final class HytaleWorldBlocks implements WorldBlocks {
             if (key.startsWith("*") && type.getDefaultStateKey() != null) {
                 key = type.getDefaultStateKey(); // a state variant (e.g. an open chest) is its base block
             }
-            cached = byRotation[rotation] = Optional.of(new BlockState(new BlockKey(key), rotation));
+            // A block that cannot rotate still stores the index it was placed with (a prefab adds its yaw to every
+            // block): reported as 0 so it matches its blueprint entry and natural terrain.
+            int r = type.getVariantRotation() == VariantRotation.None ? 0 : rotation;
+            cached = byRotation[rotation] = Optional.of(new BlockState(new BlockKey(key), r));
         }
         return cached;
     }

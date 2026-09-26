@@ -38,7 +38,7 @@ public final class HutBlockSystems {
     private HutBlockSystems() {}
 
     /** Hut block id -> building type, from the id-map. */
-    static Map<String, BuildingType> byBlockId(IdMap ids) {
+    public static Map<String, BuildingType> byBlockId(IdMap ids) {
         Map<String, BuildingType> map = new HashMap<>();
         HUT_TYPES.forEach(t -> map.put(ids.blockId(t.hutBlockKey()), t));
         return Map.copyOf(map);

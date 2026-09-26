@@ -26,7 +26,9 @@ import dev.hycolony.plugin.adapter.HytaleNotifier;
 import dev.hycolony.plugin.adapter.HytalePlayerDirectory;
 import dev.hycolony.plugin.adapter.HytaleUiPort;
 import dev.hycolony.plugin.adapter.HytaleWorldQuery;
+import dev.hycolony.plugin.block.HutBlockSystems;
 import java.util.Random;
+import java.util.Set;
 import java.util.logging.Level;
 
 /** One ColonyManager and its adapters for one Hytale world. World thread only. */
@@ -51,11 +53,12 @@ public final class WorldRuntime {
         ColonyManager[] self = new ColonyManager[1];
         JobRegistry jobs = JobRegistry.defaults();
         ConstructionBuildingTypes.register(jobs);
+        Set<String> hutBlockIds = HutBlockSystems.byBlockId(ids).keySet(); // the builder never breaks these
         ColonyContext ctx = new ColonyContext(new WorldKey(world.getName()), config, clock, bodies,
                 new HytaleWorldQuery(world), new HytaleNotifier(),
                 new HytaleUiPort(() -> self[0], blocks, ids),
                 new HytalePlayerDirectory(world), BuildingTypes.defaults(), jobs, names,
-                new Random(), new EventBus(), new ConstructionPorts(new HytaleItemCatalog(), new HytaleWorldBlocks(world),
+                new Random(), new EventBus(), new ConstructionPorts(new HytaleItemCatalog(hutBlockIds), new HytaleWorldBlocks(world, hutBlockIds),
                         new HytaleContainerAccess(world), new HytalePlayerInventory(world), new HytaleBlueprintSource()));
         this.manager = new ColonyManager(ctx);
         self[0] = manager;
