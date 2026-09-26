@@ -5,6 +5,7 @@ import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.colony.view.ColonyWindows;
+import dev.hycolony.core.construction.workorder.ManualSelection;
 import dev.hycolony.core.construction.workorder.WorkOrder;
 import dev.hycolony.core.construction.workorder.WorkOrderRefusal;
 import dev.hycolony.core.construction.workorder.WorkOrderType;
@@ -16,8 +17,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * What players do to work orders: order one from a hut's window, cancel it there, and reorder or delete orders from
- * the town hall's list (MANAGE_HUTS). Each re-shows the window it came from.
+ * What players do to work orders: order one from a hut's window, cancel it there, select or cancel one from a builder
+ * hut's Work orders tab, and reorder or delete orders from the town hall's list (MANAGE_HUTS). Each re-shows the window
+ * it came from.
  */
 public final class WorkOrderActions {
     private final ColonyManager manager;
@@ -61,6 +63,45 @@ public final class WorkOrderActions {
             return false;
         }
         h.colony().work().cancel(order.get().id());
+        windows.showBuilding(h.colony(), h.building(), player);
+        return true;
+    }
+
+    /**
+     * The builder hut's Work orders tab, Select (MANAGE_HUTS): the hut claims the order (MC
+     * BuildingBuilder.setWorkOrder). True once claimed (the hut window is re-shown); a refusal is told to the player.
+     */
+    public boolean select(UUID player, BlockPos builderHut, int orderId) {
+        ManagedHut h = ManagedHut.find(manager, player, builderHut).orElse(null);
+        if (h == null) {
+            return false;
+        }
+        Optional<ManualSelection.Refusal> refused = ManualSelection.select(h.colony(), h.building(), orderId);
+        if (refused.isPresent()) {
+            manager.context().notifier().send(player, Msg.of(selectRefusalKey(refused.get())));
+            return false;
+        }
+        windows.showBuilding(h.colony(), h.building(), player);
+        return true;
+    }
+
+    /** MC's MESSAGE_WARNING_* of each refusal. */
+    public static String selectRefusalKey(ManualSelection.Refusal r) {
+        return switch (r) {
+            case NO_WORKER -> "hycolony.workorder.select.noWorker";
+            case NOT_FOR_BUILDER -> "hycolony.workorder.select.notForBuilder";
+            case ALREADY_CLAIMED -> "hycolony.workorder.select.alreadyClaimed";
+            case CANNOT_BUILD -> "hycolony.workorder.select.cannotBuild";
+        };
+    }
+
+    /** The builder hut's Work orders tab, Cancel (MANAGE_HUTS, MC WorkOrderChangeMessage): the order is removed. */
+    public boolean cancelFromBuilder(UUID player, BlockPos builderHut, int orderId) {
+        ManagedHut h = ManagedHut.find(manager, player, builderHut).orElse(null);
+        if (h == null || h.colony().work().byId(orderId).isEmpty()) {
+            return false;
+        }
+        h.colony().work().cancel(orderId);
         windows.showBuilding(h.colony(), h.building(), player);
         return true;
     }

@@ -254,12 +254,17 @@ public final class WorkManager {
         };
     }
 
-    /** WorkOrderBuilding.canBuild: level high enough, or level 5, or its own hut; and within 100 blocks. */
+    /** WorkOrderBuilding.canBuild: {@link #canBuildIgnoringDistance}, and within 100 blocks. */
     public static boolean canBuild(Building builderHut, WorkOrder o, int builderLevel) {
-        boolean allowed = builderLevel >= o.targetLevel()
+        return canBuildIgnoringDistance(builderHut.position(), builderLevel, o)
+                && builderHut.position().distSq(o.buildingPos()) <= MAX_DISTANCE_SQ;
+    }
+
+    /** WorkOrderBuilding.canBuildIgnoringDistance: level high enough, or level 5, or the builder's own hut. */
+    public static boolean canBuildIgnoringDistance(BlockPos builderHut, int builderLevel, WorkOrder o) {
+        return builderLevel >= o.targetLevel()
                 || builderLevel == BuilderHut.MAX_LEVEL
-                || builderHut.position().equals(o.buildingPos());
-        return allowed && builderHut.position().distSq(o.buildingPos()) <= MAX_DISTANCE_SQ;
+                || builderHut.equals(o.buildingPos());
     }
 
     /** The highest order id ever given: saved, so ids are never reused after a restart. */

@@ -11,6 +11,7 @@ import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.HutPlacement;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.colony.view.ColonyWindows;
+import dev.hycolony.core.construction.shared.BuilderSettingsModule;
 import dev.hycolony.core.job.HiringMode;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
@@ -21,7 +22,7 @@ import java.util.function.BooleanSupplier;
 
 /**
  * What players do to huts: place and remove them (MC AbstractBlockHut), pick a deconstructed one up, and staff it
- * (hire, fire, hiring mode). A managing action needs MANAGE_HUTS and re-shows the hut's window.
+ * (hire, fire, hiring mode, builder mode). A managing action needs MANAGE_HUTS and re-shows the hut's window.
  */
 public final class HutActions {
     private final ColonyManager manager;
@@ -127,6 +128,21 @@ public final class HutActions {
             return false;
         }
         w.setHiringMode(mode);
+        h.colony().markDirty();
+        windows.showBuilding(h.colony(), h.building(), player);
+        return true;
+    }
+
+    /** The builder hut's Settings tab (MC BuilderSettingsModule's mode setting); false for a hut without it. */
+    public boolean setBuilderMode(UUID player, BlockPos hutPos, BuilderSettingsModule.Mode mode) {
+        ManagedHut h = ManagedHut.find(manager, player, hutPos).orElse(null);
+        BuilderSettingsModule s = h == null
+                ? null
+                : h.building().module(BuilderSettingsModule.class).orElse(null);
+        if (s == null || mode == null) {
+            return false;
+        }
+        s.setMode(mode);
         h.colony().markDirty();
         windows.showBuilding(h.colony(), h.building(), player);
         return true;
