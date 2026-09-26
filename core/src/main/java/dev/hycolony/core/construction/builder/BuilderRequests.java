@@ -17,10 +17,10 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * The builder's requests (MC AbstractEntityAIBasic request helpers). Every
- * request is filed under the builder hut. Bucket requests are the building's (citizen -1, async: they never block);
- * the request for the item needed right now carries the citizen's id (sync: the builder waits for it in NEEDS_ITEM).
- * Deliveries are picked up from the hut through {@link BuilderStock}.
+ * The builder's requests (MC AbstractEntityAIBasic request helpers). Every request is filed under the builder hut.
+ * Bucket requests are the building's (citizen -1, async: they never block); the request for the item needed right now
+ * carries the citizen's id (sync: the builder waits for it in NEEDS_ITEM). Deliveries are picked up from the hut
+ * through {@link BuilderStock}.
  */
 final class BuilderRequests {
     private final Colony colony;
@@ -39,6 +39,7 @@ final class BuilderRequests {
         return colony.requests();
     }
 
+    /** This builder's own (sync) requests: those of the hut that carry its citizen's id. */
     List<Request> mine() {
         return requests().byRequester(hut.requesterId()).stream()
                 .filter(r -> r.citizenId() == citizen.id())

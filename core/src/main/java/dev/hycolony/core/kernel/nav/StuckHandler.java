@@ -53,6 +53,7 @@ public final class StuckHandler {
     private boolean teleported;
     private long teleportTick;
 
+    /** Starts watching a walk from {@code from} to {@code destination}, forgetting the previous one. */
     public void start(Vec3 destination, Vec3 from, long now) {
         this.destination = destination;
         startTick = now;
@@ -63,6 +64,10 @@ public final class StuckHandler {
         teleported = false;
     }
 
+    /**
+     * The action to take for the body now at {@code pos}: {@link Action#NONE} between checks, while it progresses, and
+     * after {@link Action#GIVE_UP} until the next {@link #start}.
+     */
     public Action check(Vec3 pos, long now) {
         if (destination == null || now - lastCheck < CHECK_INTERVAL) {
             return Action.NONE;

@@ -115,7 +115,10 @@ public final class RequestManager {
         });
     }
 
-    /** The player provided the items: cancel children, then COMPLETED. Applied once (MineColonies ran it twice). */
+    /**
+     * The player provided the items: cancel children, then COMPLETED. MC StandardRequestManager.overruleRequest.
+     * Deviation from MC: applied once; MineColonies ran it twice.
+     */
     public void overrule(RequestToken token, List<ItemAmount> delivered) {
         overrule(token, delivered, false);
     }
@@ -218,7 +221,10 @@ public final class RequestManager {
         return store;
     }
 
-    /** A loaded request whose resolver no longer exists: reassigned rather than dropped (MineColonies dropped it). */
+    /**
+     * A loaded request whose resolver no longer exists. Deviation from MC: reassigned rather than dropped, so a save
+     * whose resolver vanished keeps its requests.
+     */
     void reassignLoaded(RequestToken token) {
         queue.submit(() -> {
             Request req = store.request(token);
