@@ -74,29 +74,49 @@ final class WorkSpot {
     }
 
     /**
-     * Feet position on the first solid block below {@code top}, or above it when {@code top} is in the ground. None
-     * under a fluid 2 or more deep: a body does not stand at the bottom of a lake, but wades in ankle-deep water.
+     * Feet position on the first solid block below {@code top}, or above it when {@code top} is in the ground; none if
+     * that spot does not {@link #fits fit} a body. The downward scan also stops at a fluid 2 or more deep: a body does
+     * not stand at the bottom of a lake.
      */
     private BlockPos ground(BlockPos top) {
-        if (solid(top)) {
-            for (int i = 1; i <= GROUND_SCAN; i++) {
-                BlockPos p = top.offset(0, i, 0);
-                if (standable(p)) {
-                    return p;
-                }
+        return solid(top) ? groundAbove(top) : groundBelow(top);
+    }
+
+    /** The first fitting spot on a solid block above the buried {@code top}, or null. */
+    private BlockPos groundAbove(BlockPos top) {
+        for (int i = 1; i <= GROUND_SCAN; i++) {
+            BlockPos p = top.offset(0, i, 0);
+            if (solid(p.offset(0, -1, 0)) && fits(p)) {
+                return p;
             }
-            return null;
         }
+        return null;
+    }
+
+    /** The spot on the first solid block below {@code top} if it fits, or null (also under a deep fluid). */
+    private BlockPos groundBelow(BlockPos top) {
         for (int i = 0; i <= GROUND_SCAN; i++) {
             BlockPos p = top.offset(0, -i, 0);
             if (fluid(p) && fluid(p.offset(0, 1, 0))) {
                 return null;
             }
             if (solid(p.offset(0, -1, 0))) {
-                return p;
+                return fits(p) ? p : null;
             }
         }
         return null;
+    }
+
+    /**
+     * Feet and head cells are not solid, and the feet are dry or wade in 1 block of a harmless fluid (ankle-deep
+     * water, never lava).
+     */
+    private boolean fits(BlockPos feet) {
+        BlockPos head = feet.offset(0, 1, 0);
+        if (solid(feet) || solid(head)) {
+            return false;
+        }
+        return !fluid(feet) || !fluid(head) && !harmful(feet);
     }
 
     /** Neither the feet nor the head cell is solid, and the feet are not in a fluid. */
@@ -112,6 +132,11 @@ final class WorkSpot {
     private boolean fluid(BlockPos p) {
         BlockState s = blocks.get(p).orElse(null);
         return s != null && catalog.kind(s.key()) == BlockKind.FLUID;
+    }
+
+    private boolean harmful(BlockPos p) {
+        BlockState s = blocks.get(p).orElse(null);
+        return s != null && catalog.isHarmful(s.key());
     }
 
     private boolean solid(BlockPos p) {

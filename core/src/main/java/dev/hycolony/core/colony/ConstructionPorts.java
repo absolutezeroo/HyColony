@@ -50,6 +50,11 @@ public record ConstructionPorts(
             }
 
             @Override
+            public boolean isHarmful(BlockKey block) {
+                return false;
+            }
+
+            @Override
             public Optional<ToolType> toolFor(BlockKey block) {
                 return Optional.empty();
             }

@@ -18,6 +18,7 @@ public final class FakeCatalog implements ItemCatalog {
     public final Map<BlockKey, ItemKey> itemForBlock = new HashMap<>();
     public final Map<BlockKey, BlockKind> kinds = new HashMap<>();
     public final Set<BlockKey> ores = new HashSet<>();
+    public final Set<BlockKey> harmful = new HashSet<>();
     public final Map<BlockKey, ToolType> toolForBlock = new HashMap<>();
     public final Map<BlockKey, Float> hardness = new HashMap<>();
     public final Map<ItemKey, ToolInfo> tools = new HashMap<>();
@@ -41,6 +42,11 @@ public final class FakeCatalog implements ItemCatalog {
     @Override
     public boolean isOre(BlockKey block) {
         return ores.contains(block);
+    }
+
+    @Override
+    public boolean isHarmful(BlockKey block) {
+        return harmful.contains(block);
     }
 
     @Override

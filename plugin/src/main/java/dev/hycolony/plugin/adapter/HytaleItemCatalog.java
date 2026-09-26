@@ -5,6 +5,7 @@ import com.hypixel.hytale.protocol.BlockMaterial;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockBreakingDropType;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockGathering;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
+import com.hypixel.hytale.server.core.asset.type.fluid.Fluid;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
 import com.hypixel.hytale.server.core.asset.type.item.config.ItemTool;
 import com.hypixel.hytale.server.core.asset.type.item.config.ItemToolSpec;
@@ -85,6 +86,26 @@ public final class HytaleItemCatalog implements ItemCatalog {
     @Override
     public boolean isOre(BlockKey block) {
         return block(block).ore();
+    }
+
+    /**
+     * A fluid with {@code DamageToEntities} or a collision interaction: vanilla lava and fire burn through their
+     * {@code Collision} interaction (their damage is 0), which {@link Fluid#isTrigger()} reports. An unknown fluid
+     * counts as harmful, so no citizen is sent into it.
+     */
+    @Override
+    public boolean isHarmful(BlockKey block) {
+        String id = block.id();
+        if (!id.startsWith(HytaleWorldBlocks.FLUID_PREFIX)) {
+            return false;
+        }
+        try {
+            Fluid fluid = Fluid.getAssetMap().getAsset(id.substring(HytaleWorldBlocks.FLUID_PREFIX.length()));
+            return fluid == null || fluid.getDamageToEntities() > 0 || fluid.isTrigger();
+        } catch (RuntimeException e) {
+            fail(id, e);
+            return true;
+        }
     }
 
     @Override

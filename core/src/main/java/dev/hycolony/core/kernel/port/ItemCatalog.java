@@ -17,6 +17,9 @@ public interface ItemCatalog {
 
     boolean isOre(BlockKey block);
 
+    /** Whether a body standing in this fluid is hurt (lava, fire); false for a harmless fluid or a non-fluid block. */
+    boolean isHarmful(BlockKey block);
+
     Optional<ToolType> toolFor(BlockKey block);
 
     float hardness(BlockKey block);

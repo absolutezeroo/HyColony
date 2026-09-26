@@ -20,6 +20,7 @@ class WorkSpotTest {
 
     private static final BlockState STONE = new BlockState(new BlockKey("stone"), 0);
     private static final BlockState WATER = new BlockState(new BlockKey("water"), 0);
+    private static final BlockState LAVA = new BlockState(new BlockKey("lava"), 0);
 
     private final FakeWorldBlocks world = new FakeWorldBlocks();
     private final FakeCatalog catalog = new FakeCatalog();
@@ -28,6 +29,8 @@ class WorkSpotTest {
 
     WorkSpotTest() {
         catalog.kinds.put(WATER.key(), BlockKind.FLUID);
+        catalog.kinds.put(LAVA.key(), BlockKind.FLUID);
+        catalog.harmful.add(LAVA.key());
     }
 
     private BlockPos choose() {
@@ -67,6 +70,35 @@ class WorkSpotTest {
         world.blocks.put(new BlockPos(12, 1, 0), WATER);
         world.blocks.put(new BlockPos(12, 0, 0), WATER);
         world.blocks.put(new BlockPos(12, -1, 0), STONE); // outward: two blocks of water on stone
+        world.blocks.put(new BlockPos(10, 0, 2), STONE); // first side: dry ground
+
+        assertEquals(new BlockPos(10, 1, 2), choose());
+    }
+
+    @Test
+    void neverStandsInAnkleDeepLava() {
+        world.blocks.put(new BlockPos(12, 0, 0), LAVA);
+        world.blocks.put(new BlockPos(12, -1, 0), STONE); // outward: one block of lava on stone
+        world.blocks.put(new BlockPos(10, 1, 2), STONE);
+        world.blocks.put(new BlockPos(10, 2, 2), LAVA); // first side: raised ground under one block of lava
+        world.blocks.put(new BlockPos(10, 0, -2), STONE); // second side: dry ground
+
+        assertEquals(new BlockPos(10, 1, -2), choose());
+    }
+
+    @Test
+    void standsInAnkleDeepWaterOnRaisedGround() {
+        world.blocks.put(new BlockPos(12, 1, 0), STONE);
+        world.blocks.put(new BlockPos(12, 2, 0), WATER); // outward: ground above the block's level, one water on it
+
+        assertEquals(new BlockPos(12, 2, 0), choose());
+    }
+
+    @Test
+    void refusesWaterTwoBlocksDeepOnRaisedGround() {
+        world.blocks.put(new BlockPos(12, 1, 0), STONE);
+        world.blocks.put(new BlockPos(12, 2, 0), WATER);
+        world.blocks.put(new BlockPos(12, 3, 0), WATER); // outward: raised ground under two blocks of water
         world.blocks.put(new BlockPos(10, 0, 2), STONE); // first side: dry ground
 
         assertEquals(new BlockPos(10, 1, 2), choose());
