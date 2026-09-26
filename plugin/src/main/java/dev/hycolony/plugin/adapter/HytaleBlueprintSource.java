@@ -48,8 +48,10 @@ import java.util.logging.Level;
  * spawners) is ignored.
  *
  * <p>Depth: vanilla prefabs mean "absent = keep the terrain", and their lower layers are foundations meant to sink
- * into the ground. Only the floor layer (hut-relative y = -1, the hut stands on it) and above are kept, and the
- * bounds start there, so the builder neither digs out nor refills the ground under the house.
+ * into the ground. Only the floor layer (hut-relative y = -1, the hut stands on it) and above are kept, so the
+ * builder neither digs out nor refills the ground under the house. The bounds (the CLEAR box) start one layer
+ * higher, at the hut's level: floor cells the prefab leaves absent keep their ground instead of becoming a ditch,
+ * and the floor entries are still placed (SOLID mines a differing ground block first).
  *
  * <p>{@link #prewarm()} parses the prefabs off the world thread at startup; a later load then reads the cached
  * buffer. Results are cached per (style, type, level, rotation).
@@ -187,7 +189,7 @@ public final class HytaleBlueprintSource implements BlueprintSource {
             }
         }
         BlockPos low = PrefabStyles.relative(buf.getMinX(r), buf.getMinY(), buf.getMinZ(r), hut);
-        BlockPos min = new BlockPos(low.x(), Math.max(low.y(), FLOOR_Y), low.z());
+        BlockPos min = new BlockPos(low.x(), Math.max(low.y(), FLOOR_Y + 1), low.z());
         BlockPos max = PrefabStyles.relative(buf.getMaxX(r), buf.getMaxY(), buf.getMaxZ(r), hut);
         return Optional.of(new Blueprint(entry.prefab(), List.copyOf(entries), min, max));
     }
