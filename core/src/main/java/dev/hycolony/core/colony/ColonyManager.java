@@ -582,7 +582,7 @@ public final class ColonyManager {
             String requester = r.citizenId() != -1
                     ? c.citizens().get(r.citizenId()).map(CitizenData::name).orElse("")
                     : c.buildings().byRequester(r.requester()).map(Building::displayName).orElse(r.requester().value());
-            rows.add(new RequestsView.RequestRow(r.token(), r.requestable().describe(), requester, has));
+            rows.add(new RequestsView.RequestRow(r.token(), r.requestable(), requester, has));
         }
         ctx.ui().showRequests(player, new RequestsView(c.id(), rows));
     }

@@ -211,11 +211,11 @@ class ViewsTest {
         assertEquals(colony.id(), v.colonyId());
         // WindowClipBoard order: requester's distance to the player, then token.
         List<RequestsView.RequestRow> hallRows = new ArrayList<>(List.of(
-                new RequestsView.RequestRow(retried, "10 x Wood_Planks", "Bob", 7),
-                new RequestsView.RequestRow(atPlayer, "3 x Wood_Planks", hallHut.displayName(), 7)));
+                new RequestsView.RequestRow(retried, new StackRequest(planks, 10, 10, true), "Bob", 7),
+                new RequestsView.RequestRow(atPlayer, new StackRequest(planks, 3, 3, true), hallHut.displayName(), 7)));
         hallRows.sort(java.util.Comparator.comparing(r -> r.token().id()));
         List<RequestsView.RequestRow> expected = new ArrayList<>();
-        expected.add(new RequestsView.RequestRow(far, "1 x Wood_Planks", res.displayName(), 7));
+        expected.add(new RequestsView.RequestRow(far, new StackRequest(planks, 1, 1, true), res.displayName(), 7));
         expected.addAll(hallRows);
         assertEquals(expected, v.rows());
     }

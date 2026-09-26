@@ -10,7 +10,11 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.ui.RequestsView;
 import dev.hycolony.core.colony.ui.RequestsView.RequestRow;
+import dev.hycolony.core.request.Deliverable;
+import dev.hycolony.core.request.StackRequest;
+import dev.hycolony.core.request.ToolRequest;
 import java.util.List;
+import java.util.Locale;
 import javax.annotation.Nonnull;
 
 /** The colony's open requests the player can supply (MineColonies' clipboard). */
@@ -35,15 +39,26 @@ public final class RequestsPage extends ColonyPage {
             RequestRow r = rows.get(i);
             String row = "#Requests[" + i + "]";
             ui.append("#Requests", "Pages/HyColony/RequestRow.ui");
-            ui.set(row + " #Description.Text", r.description());
+            ui.set(row + " #Description.Text", describe(r.requestable()));
             ui.set(row + " #Info.Text", Message.translation("hycolony.ui.requests.info")
-                    .param("p0", r.requesterName()).param("p1", String.valueOf(r.playerHas())));
+                    .param("p0", buildingName(r.requesterName())).param("p1", String.valueOf(r.playerHas())));
             if (r.playerHas() > 0) {
                 bind(events, row + " #FulfilButton", "fulfil", i);
             } else {
                 ui.set(row + " #FulfilButton.Visible", false);
             }
         }
+    }
+
+    /** "64 x Stone" or "Pickaxe (level 0 to 1)", in the player's language. */
+    private static Message describe(Deliverable d) {
+        return switch (d) {
+            case StackRequest s -> Message.translation("hycolony.ui.requests.stack")
+                    .param("p0", String.valueOf(s.count())).param("p1", itemName(s.item().id()));
+            case ToolRequest t -> Message.translation("hycolony.ui.requests.tool")
+                    .param("p0", Message.translation("hycolony.ui.tool." + t.type().name().toLowerCase(Locale.ROOT)))
+                    .param("p1", String.valueOf(t.minLevel())).param("p2", String.valueOf(t.maxLevel()));
+        };
     }
 
     @Override
