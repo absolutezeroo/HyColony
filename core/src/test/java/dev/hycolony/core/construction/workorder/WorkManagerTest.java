@@ -376,6 +376,29 @@ class WorkManagerTest {
                 3, ((Either.Left<WorkOrder, WorkOrderRefusal>) next).value().id());
     }
 
+    @Test
+    void oldSaveWithoutActiveFlagResumesTheStartedOrderBeforeALowerId() {
+        Building b = builder(new BlockPos(10, 64, 0), 1);
+        WorkOrder waiting =
+                createdFor(residence(new BlockPos(20, 64, 0), 0).position(), WorkOrderType.BUILD, b.position());
+        WorkOrder started =
+                createdFor(residence(new BlockPos(30, 64, 0), 0).position(), WorkOrderType.BUILD, b.position());
+        started.progress(started.stage(), 5);
+        JsonObject json = ColonySerializer.write(colony);
+        for (JsonElement el : json.getAsJsonArray("workOrders")) {
+            el.getAsJsonObject().remove("active"); // saved before the active flag existed
+        }
+        TerritoryIndex territory = new TerritoryIndex();
+        territory.claimSquare(colony.id(), ClaimCell.of(colony.center()), t.config.initialColonySize());
+
+        Colony loaded = ColonySerializer.read(json, t.context(), territory);
+
+        assertTrue(waiting.id() < started.id());
+        assertEquals(
+                started.id(),
+                loaded.work().claimedBy(b.position()).orElseThrow().id());
+    }
+
     private WorkOrder createdFor(BlockPos pos, WorkOrderType type, BlockPos chosen) {
         Either<WorkOrder, WorkOrderRefusal> r = colony.work().request(alice, pos, type, "", Optional.of(chosen));
         assertTrue(r instanceof Either.Left, () -> "refused: " + r);
