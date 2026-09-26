@@ -17,7 +17,10 @@ public interface ItemCatalog {
 
     boolean isOre(BlockKey block);
 
-    /** Whether a body standing in this fluid is hurt (lava, fire); false for a harmless fluid or a non-fluid block. */
+    /**
+     * Whether a body in or on this block is hurt: a harmful fluid (lava, fire) or a block that damages or burns on
+     * contact (campfire, brazier, cactus). MC PathfindingUtils.isDangerous; false for anything else.
+     */
     boolean isHarmful(BlockKey block);
 
     Optional<ToolType> toolFor(BlockKey block);

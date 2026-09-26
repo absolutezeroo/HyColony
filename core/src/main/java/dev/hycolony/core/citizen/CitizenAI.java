@@ -8,6 +8,7 @@ import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.ai.AITarget;
 import dev.hycolony.core.kernel.ai.IStateSupplier;
 import dev.hycolony.core.kernel.ai.TickRateStateMachine;
+import dev.hycolony.core.kernel.nav.DangerousCells;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.CitizenBodies;
 import dev.hycolony.core.kernel.port.Msg;
@@ -26,6 +27,16 @@ public final class CitizenAI {
     private static final int WANDER_RADIUS = 10;
     private static final int IDLE_MIN_TICKS = 200, IDLE_MAX_TICKS = 400;
     private static final int WANDER_TIMEOUT_TICKS = 600;
+    /**
+     * Random wander spots tried before resting again. Deviation from MC: EntityAICitizenWander's walkToRandomPos runs
+     * a path search (PathJobRandomPos) that never ends on a dangerous block; without one, a few spots are drawn.
+     */
+    private static final int WANDER_TRIES = 10;
+    /**
+     * Blocks above and below the body's height checked for danger in a wander column: the floor, feet and head, plus
+     * the slope the nav may climb or drop on the way to the column's ground.
+     */
+    private static final int WANDER_DANGER_HALF_HEIGHT = 3;
     /** MC CitizenAI: decideAiTask runs as an EVENT target every 10 ticks. */
     private static final int DECIDE_INTERVAL_TICKS = 10;
 
@@ -34,6 +45,7 @@ public final class CitizenAI {
     private final BodyId body;
     private final CitizenBodies bodies;
     private final RandomGenerator random;
+    private final DangerousCells danger;
     private final TickRateStateMachine<CitizenState> machine;
     private int idleTicksLeft;
     private int wanderTicks;
@@ -50,6 +62,8 @@ public final class CitizenAI {
         this.body = body;
         this.bodies = colony.context().bodies();
         this.random = colony.context().random();
+        this.danger = new DangerousCells(
+                colony.context().ports().blocks(), colony.context().ports().catalog());
         this.idleTicksLeft = nextIdle();
         this.machine = new TickRateStateMachine<>(CitizenState.IDLE, this::onException);
         machine.addTransition(new AITarget<>(CitizenState.IDLE, (IStateSupplier<CitizenState>) this::idle, 20));
@@ -88,12 +102,31 @@ public final class CitizenAI {
             return null;
         }
         BlockPos anchor = colony.buildings().townHall().map(b -> b.position()).orElse(here.toBlockPos());
-        int dx = random.nextInt(2 * WANDER_RADIUS + 1) - WANDER_RADIUS;
-        int dz = random.nextInt(2 * WANDER_RADIUS + 1) - WANDER_RADIUS;
-        Vec3 target = new Vec3(anchor.x() + dx + 0.5, here.y(), anchor.z() + dz + 0.5);
+        Vec3 target = wanderTarget(anchor, here.y()).orElse(null);
+        if (target == null) {
+            idleTicksLeft = nextIdle();
+            return null;
+        }
         bodies.moveTo(body, target);
         wanderTicks = 0;
         return CitizenState.WANDERING;
+    }
+
+    /**
+     * A random spot within {@link #WANDER_RADIUS} of {@code anchor}, at height {@code y}, whose column holds no
+     * dangerous block (MC PathJobRandomPos never ends on one, PathfindingUtils.isDangerous); empty after
+     * {@link #WANDER_TRIES} dangerous picks.
+     */
+    private Optional<Vec3> wanderTarget(BlockPos anchor, double y) {
+        for (int i = 0; i < WANDER_TRIES; i++) {
+            int dx = random.nextInt(2 * WANDER_RADIUS + 1) - WANDER_RADIUS;
+            int dz = random.nextInt(2 * WANDER_RADIUS + 1) - WANDER_RADIUS;
+            Vec3 target = new Vec3(anchor.x() + dx + 0.5, y, anchor.z() + dz + 0.5);
+            if (!danger.inColumn(target.toBlockPos(), WANDER_DANGER_HALF_HEIGHT)) {
+                return Optional.of(target);
+            }
+        }
+        return Optional.empty();
     }
 
     private CitizenState wander() {

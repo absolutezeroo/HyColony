@@ -4,6 +4,7 @@ import dev.hycolony.core.construction.blueprint.StructurePlan;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.BlockKind;
 import dev.hycolony.core.kernel.item.BlockState;
+import dev.hycolony.core.kernel.nav.DangerousCells;
 import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.core.kernel.port.WorldBlocks;
 
@@ -11,7 +12,8 @@ import dev.hycolony.core.kernel.port.WorldBlocks;
  * Where the builder stands to work on a block: MC EntityAIStructureBuilder.walkToConstructionSite's {@code workFrom},
  * found by PathJobMoveCloseToXNearY(block, site, 4). Without a path search, a spot is tried 2 to 4 blocks from the
  * block, outward from the site first (the builder then faces the structure), then to the sides, then inward. Its feet
- * stand on the ground found in that column, and neither its feet nor its head is a cell the plan will fill.
+ * stand on the ground found in that column, neither its feet nor its head is a cell the plan will fill, and none of
+ * its floor, feet or head is dangerous ({@link DangerousCells}, MC PathfindingUtils.isDangerous).
  *
  * <p>Deviation from MC: no path search (Hytale's nav owns paths), so the spot is picked from the world and the plan.
  */
@@ -30,10 +32,12 @@ final class WorkSpot {
 
     private final WorldBlocks blocks;
     private final ItemCatalog catalog;
+    private final DangerousCells danger;
 
     WorkSpot(WorldBlocks blocks, ItemCatalog catalog) {
         this.blocks = blocks;
         this.catalog = catalog;
+        this.danger = new DangerousCells(blocks, catalog);
     }
 
     static boolean inReach(BlockPos standing, BlockPos block) {
@@ -116,20 +120,20 @@ final class WorkSpot {
     }
 
     /**
-     * Feet and head cells are not solid, and the feet are dry or wade in 1 block of a harmless fluid (ankle-deep
-     * water, never lava).
+     * Feet and head cells are not solid, floor, feet and head are not dangerous (fire, a campfire underfoot, lava), and
+     * the feet are dry or wade in 1 block of fluid (ankle-deep water).
      */
     private boolean fits(BlockPos feet) {
         BlockPos head = feet.offset(0, 1, 0);
-        if (solid(feet) || solid(head)) {
+        if (solid(feet) || solid(head) || danger.inColumn(feet, 1)) {
             return false;
         }
-        return !fluid(feet) || !fluid(head) && !harmful(feet);
+        return !fluid(feet) || !fluid(head);
     }
 
-    /** Neither the feet nor the head cell is solid, and the feet are not in a fluid. */
+    /** Neither the feet nor the head cell is solid, the feet are not in a fluid, and no cell around is dangerous. */
     private boolean standable(BlockPos feet) {
-        return !solid(feet) && !solid(feet.offset(0, 1, 0)) && !fluid(feet);
+        return !solid(feet) && !solid(feet.offset(0, 1, 0)) && !fluid(feet) && !danger.inColumn(feet, 1);
     }
 
     /** Standable, and neither cell is one the plan will fill. */
@@ -140,11 +144,6 @@ final class WorkSpot {
     private boolean fluid(BlockPos p) {
         BlockState s = blocks.get(p).orElse(null);
         return s != null && catalog.kind(s.key()) == BlockKind.FLUID;
-    }
-
-    private boolean harmful(BlockPos p) {
-        BlockState s = blocks.get(p).orElse(null);
-        return s != null && catalog.isHarmful(s.key());
     }
 
     private boolean solid(BlockPos p) {

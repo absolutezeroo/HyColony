@@ -32,7 +32,7 @@ La recherche, les visiteurs et la taverne, les tombes et le deuil seront rattach
 ### Critère de réussite du sous-projet 0 (en jeu)
 
 1. Un joueur pose un **bloc hôtel de ville**. Une fenêtre « Fonder une colonie » s'ouvre. Il saisit un nom et confirme : la colonie est créée.
-2. **Quatre citoyens nommés** apparaissent près de l'hôtel de ville, l'un après l'autre, et **errent** autour.
+2. **Quatre citoyens nommés** apparaissent près de l'hôtel de ville, l'un après l'autre, et **errent** autour. Un point d'errance n'est jamais dans une colonne qui contient un bloc dangereux sur 3 blocs au-dessus et au-dessous (feu, lave, feu de camp éteint, brasero : `DangerousCells`, comme `PathfindingUtils.isDangerous` de MineColonies) ; après 10 tirages dangereux, le citoyen reste au repos. Écart à MineColonies : la navigation de Hytale n'évite que les blocs à `DamageToEntities`, pas le feu (interaction de collision), donc un trajet peut encore traverser un feu ; seules les cibles sont sûres.
 3. Après un **redémarrage du serveur**, la colonie, ses citoyens et leurs compétences sont intacts. Il n'y a ni doublon ni citoyen perdu.
 4. Un joueur **sans permission** ne peut ni poser ni casser de blocs dans la colonie, et reçoit un message.
 5. Un clic sur l'hôtel de ville ouvre sa fenêtre : nom (modifiable), propriétaire, jour, liste des citoyens.

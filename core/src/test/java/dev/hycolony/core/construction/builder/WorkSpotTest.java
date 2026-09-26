@@ -22,6 +22,8 @@ class WorkSpotTest {
     private static final BlockState STONE = new BlockState(new BlockKey("stone"), 0);
     private static final BlockState WATER = new BlockState(new BlockKey("water"), 0);
     private static final BlockState LAVA = new BlockState(new BlockKey("lava"), 0);
+    private static final BlockState CAMPFIRE = new BlockState(new BlockKey("campfire"), 0);
+    private static final BlockState FIRE = new BlockState(new BlockKey("fire"), 0);
 
     private final FakeWorldBlocks world = new FakeWorldBlocks();
     private final FakeCatalog catalog = new FakeCatalog();
@@ -32,6 +34,9 @@ class WorkSpotTest {
         catalog.kinds.put(WATER.key(), BlockKind.FLUID);
         catalog.kinds.put(LAVA.key(), BlockKind.FLUID);
         catalog.harmful.add(LAVA.key());
+        catalog.harmful.add(CAMPFIRE.key());
+        catalog.kinds.put(FIRE.key(), BlockKind.NON_SOLID);
+        catalog.harmful.add(FIRE.key());
     }
 
     private BlockPos choose() {
@@ -146,5 +151,29 @@ class WorkSpotTest {
                 new WorkSpot.Spot(new BlockPos(12, 1, 0), false),
                 new WorkSpot(world, catalog).choose(BLOCK, SITE, plan),
                 "2 out and 1 up, unchecked");
+    }
+
+    @Test
+    void neverStandsOnACampfire() {
+        world.blocks.put(new BlockPos(12, 0, 0), CAMPFIRE); // outward: the only ground is a campfire
+        world.blocks.put(new BlockPos(10, 0, 2), STONE); // first side: dry ground
+
+        assertEquals(new BlockPos(10, 1, 2), choose());
+    }
+
+    @Test
+    void neverStandsInAFireBlock() {
+        world.blocks.put(new BlockPos(12, 0, 0), STONE);
+        world.blocks.put(new BlockPos(12, 1, 0), FIRE); // outward: stone, but a fire burns on it
+        world.blocks.put(new BlockPos(10, 0, 2), STONE); // first side: dry ground
+
+        assertEquals(new BlockPos(10, 1, 2), choose());
+    }
+
+    @Test
+    void neverFallsBackIntoAFireWithNoGround() {
+        world.blocks.put(new BlockPos(12, 1, 0), FIRE); // outward: a fire floating over a column with no ground
+
+        assertEquals(new BlockPos(10, 1, 2), choose(), "the next column with no ground at all");
     }
 }
