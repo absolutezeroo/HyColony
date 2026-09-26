@@ -73,6 +73,27 @@ class StuckHandlerTest {
     }
 
     @Test
+    void stuckWithoutTeleportGivesUpWhereItWouldTeleport() {
+        StuckHandler h = new StuckHandler();
+        h.start(FAR, HOME, 0, false);
+        assertEquals(List.of("REPATH@100", "GIVE_UP@300"), run(h, HOME, 600));
+    }
+
+    @Test
+    void circlingWithoutTeleportGivesUpAtTheGlobalTimeout() {
+        StuckHandler h = new StuckHandler();
+        h.start(new Vec3(5, 64, 0), new Vec3(10, 64, 0), 0, false);
+        List<String> actions = new ArrayList<>();
+        for (long t = 1; t <= 3000; t++) {
+            Action a = h.check(new Vec3(10 + (t % 100) / 10.0, 64, 0), t); // circling, 5 to 15 blocks away
+            if (a != Action.NONE) {
+                actions.add(a + "@" + t);
+            }
+        }
+        assertEquals(List.of("GIVE_UP@2410"), actions);
+    }
+
+    @Test
     void circlingAfterTeleportGivesUp() {
         StuckHandler h = new StuckHandler();
         h.start(FAR, HOME, 0);
