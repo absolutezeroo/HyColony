@@ -8,6 +8,7 @@ import dev.hycolony.core.citizen.CitizenNames;
 import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.ConstructionPorts;
+import dev.hycolony.core.construction.goggles.BuildGoggles;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
 import dev.hycolony.core.job.JobRegistry;
 import dev.hycolony.core.kernel.WorldKey;
@@ -24,6 +25,7 @@ import dev.hycolony.plugin.adapter.HytaleItemCatalog;
 import dev.hycolony.plugin.adapter.HytaleNotifier;
 import dev.hycolony.plugin.adapter.HytalePlayerDirectory;
 import dev.hycolony.plugin.adapter.HytalePlayerInventory;
+import dev.hycolony.plugin.adapter.HytalePreviewPort;
 import dev.hycolony.plugin.adapter.HytaleUiPort;
 import dev.hycolony.plugin.adapter.HytaleWorldBlocks;
 import dev.hycolony.plugin.adapter.HytaleWorldQuery;
@@ -39,6 +41,8 @@ public final class WorldRuntime {
     private final HytaleCitizenBodies bodies;
     private final HytaleBlocks blocks;
     private final ColonyManager manager;
+    private final HytalePreviewPort previews;
+    private final BuildGoggles goggles;
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
     private final long autosaveTicks;
@@ -80,6 +84,8 @@ public final class WorldRuntime {
                         new HytaleBlueprintSource()));
         this.manager = new ColonyManager(ctx);
         self[0] = manager;
+        this.previews = new HytalePreviewPort(world);
+        this.goggles = new BuildGoggles(manager, previews);
         manager.persistence()
                 .setStorage(new FileColonyStorage(world.getSavePath().resolve("hycolony")), MigrationChain.sp1());
         if (enabled) {
@@ -98,6 +104,7 @@ public final class WorldRuntime {
         try {
             clock.advance();
             manager.tick();
+            goggles.tick();
             if (clock.currentTick() % autosaveTicks == 0) {
                 manager.persistence().saveDirty();
             }
@@ -119,6 +126,14 @@ public final class WorldRuntime {
 
     public ColonyManager manager() {
         return manager;
+    }
+
+    public BuildGoggles goggles() {
+        return goggles;
+    }
+
+    public HytalePreviewPort previews() {
+        return previews;
     }
 
     public HytaleCitizenBodies bodies() {

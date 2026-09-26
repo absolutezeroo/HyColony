@@ -3,6 +3,7 @@ package dev.hycolony.plugin;
 import com.hypixel.hytale.event.EventPriority;
 import com.hypixel.hytale.server.core.event.events.ShutdownEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
+import com.hypixel.hytale.server.core.event.events.player.PlayerReadyEvent;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 import com.hypixel.hytale.server.core.universe.world.events.RemoveWorldEvent;
@@ -13,6 +14,7 @@ import dev.hycolony.plugin.adapter.HytaleBlueprintSource;
 import dev.hycolony.plugin.block.HutBlockSystems;
 import dev.hycolony.plugin.block.ProtectionSystems;
 import dev.hycolony.plugin.command.HyColonyCommand;
+import dev.hycolony.plugin.goggles.GogglesSystems;
 import dev.hycolony.plugin.npc.BuilderSensorHyColonyTarget;
 import dev.hycolony.plugin.npc.CitizenBodyLifecycleSystem;
 import dev.hycolony.plugin.npc.CitizenUseSystem;
@@ -49,6 +51,12 @@ public final class HyColonyPlugin extends JavaPlugin {
         getEntityStoreRegistry().registerSystem(new ProtectionSystems.Place(runtimes, ids));
         getEntityStoreRegistry().registerSystem(new ProtectionSystems.Break(runtimes, ids));
         getEntityStoreRegistry().registerSystem(new ProtectionSystems.Use(runtimes, ids));
+        getEntityStoreRegistry().registerSystem(new GogglesSystems.ArmorChange(runtimes, ids.itemId("build_goggles")));
+        getEntityStoreRegistry().registerSystem(new GogglesSystems.Visibility(runtimes));
+        getEventRegistry()
+                .registerGlobal(
+                        PlayerReadyEvent.class,
+                        e -> GogglesSystems.onPlayerReady(runtimes, ids.itemId("build_goggles"), e));
         getCommandRegistry().registerCommand(new HyColonyCommand(runtimes, ids));
 
         // Assets (blocks, items, NPC roles) are all loaded once a world starts: validate ids there.
@@ -83,6 +91,7 @@ public final class HyColonyPlugin extends JavaPlugin {
         getEventRegistry().register(ShutdownEvent.class, e -> runtimes.all().forEach(WorldRuntime::saveAll));
         getEventRegistry().register(PlayerDisconnectEvent.class, e -> {
             UUID uuid = e.getPlayerRef().getUuid();
+            runtimes.all().forEach(rt -> rt.world().execute(() -> rt.goggles().unequip(uuid)));
             runtimes.all()
                     .forEach(rt -> rt.world()
                             .execute(() -> rt.manager()

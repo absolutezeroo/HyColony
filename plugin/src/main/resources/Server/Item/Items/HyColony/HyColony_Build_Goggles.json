@@ -1,0 +1,45 @@
+{
+  "TranslationProperties": {
+    "Name": "hycolony.item.build_goggles.name",
+    "Description": "hycolony.item.build_goggles.description"
+  },
+  "Quality": "Uncommon",
+  "MaxStack": 1,
+  "PlayerAnimationsId": "Block",
+  "ItemSoundSetId": "ISS_Armor_Cloth",
+  "Categories": [
+    "Items.Armors"
+  ],
+  "Icon": "Icons/ItemsGenerated/Armor_Diving_Crude_Head.png",
+  "IconProperties": {
+    "Rotation": [ 22.5, 45, 22.5 ],
+    "Scale": 0.5,
+    "Translation": [ 0, -15 ]
+  },
+  "Model": "Cosmetics/Head/Goggles.blockymodel",
+  "Texture": "Cosmetics/Head/Goggles_Texture.png",
+  "Recipe": {
+    "Input": [
+      { "ItemId": "Ingredient_Bar_Iron", "Quantity": 1 },
+      { "ItemId": "Ingredient_Crystal_Cyan", "Quantity": 2 },
+      { "ItemId": "Ingredient_Leather_Light", "Quantity": 2 }
+    ],
+    "BenchRequirement": [
+      { "Id": "Workbench", "Type": "Crafting", "Categories": [ "Workbench_Crafting" ] }
+    ],
+    "KnowledgeRequired": false
+  },
+  "Interactions": {
+    "Primary": { "Interactions": [ { "Type": "EquipItem" } ] },
+    "Secondary": { "Interactions": [ { "Type": "EquipItem" } ] }
+  },
+  "Armor": {
+    "ArmorSlot": "Head",
+    "BaseDamageResistance": 0
+  },
+  "Tags": {
+    "Type": [
+      "Armor"
+    ]
+  }
+}

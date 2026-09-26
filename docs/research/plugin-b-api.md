@@ -409,6 +409,20 @@ A row using `$C.@TextButton` must declare `$C = "../../Common.ui";` at its top, 
 
 ---
 
+## 10. Lunettes de constructeur : aperçu en mémoire et casque
+
+Vérifié dans les sources 0.6.8 (détails dans `docs/research/build-goggles-and-wand.md`, partie B).
+
+- **Entité d'aperçu en mémoire** (`plugin/.../adapter/HytalePreviewPort`) : `NetworkId(store.getExternalData().takeNextNetworkId())`, `EntityStore.REGISTRY.getNonSerializedComponentType()` + `NonSerialized.get()` (motif de `builtin/model/pages/ChangeModelPage.java:211-217`), `TransformComponent(Vector3d, new Rotation3f())` et `new PrefabPreview(BlockChange[], FluidChange[], visibleLayerCount, biomeTint, waterTint)` (`server/core/modules/entity/component/PrefabPreview.java:46`). `PrefabPreviewTracker` n'exige que `Visible ∧ PrefabPreview` (`prefabpreview/PrefabPreviewSystems.java:169-173`). Couches : `Integer.MAX_VALUE` = toutes (défaut de `PrefabPreviewCommand`). Teintes par défaut 6004264 et 668501 (constantes privées de `PrefabPreviewSystems`, recopiées). **[in-game]** Le client affiche-t-il une entité qui n'a jamais eu de `PersistentPrefabPreview` ? Le coin du bloc de la hutte est-il la bonne ancre des offsets ?
+- **Changements structurels** : `store.addEntity` et `removeEntity` lèvent « Store is currently processing » dans un système ; l'adaptateur passe par `world.execute`, comme `HytaleCitizenBodies`.
+- **`BlockChange(x, y, z, blockId, (byte) rotation)`** (`protocol/packets/interface_/BlockChange.java:26`) ; l'id vient de `BlockType.getAssetMap().getIndex(key)`, qui vaut `Integer.MIN_VALUE` si la clé est inconnue (`assetstore/map/BlockTypeAssetMap.java:41`).
+- **Filtre de visibilité** : `EntityTickingSystem` du groupe `EntityTrackerSystems.FIND_VISIBLE_ENTITIES_GROUP`, `SystemDependency(AFTER, CollectVisible.class)`, requête `EntityViewer ∧ PlayerRef`. On retire des refs de `EntityViewer.visible` (public) et on incrémente `hiddenCount` (`server/core/modules/entity/system/HideEntitySystems.java`). `isParallel` vaut `false` par défaut (`component/system/tick/EntityTickingSystem.java:21`). **[in-game]**
+- **Casque** : `InventoryChangeEvent` (ECS) émis par `InventorySystems.ArmorChangeEventSystem`. `event.getComponentType()` vaut `InventoryComponent.Armor.getComponentType()` ; `event.getInventory().getInventory().getItemStack((short) 0)` est la tête. Écoute par `EntityEventSystem<EntityStore, InventoryChangeEvent>` (motif `ObjectiveInventoryChangeSystem`).
+- **Entrée dans un monde** : `PlayerReadyEvent` (`registerGlobal`, clé = nom du monde), émis par `Player.handleClientReady` quand l'entité est déjà dans le monde (`server/core/entity/entities/Player.java:377-390`). `getPlayerRef()` donne la `Ref`, `getPlayer().getWorld()` le monde. `AddPlayerToWorldEvent` arrive trop tôt : le holder n'est pas encore ajouté (`World.java:1349`).
+- **Assets** : Hytale 0.6.8 n'a ni verre ni vitre (aucun objet `*Glass*`), les lentilles sont `Ingredient_Crystal_Cyan`. Pas d'icône de lunettes : `Icons/ItemsGenerated/Armor_Diving_Crude_Head.png`. Modèle `Cosmetics/Head/Goggles.blockymodel` **[in-game]**.
+
+---
+
 ## Could not verify
 
 1. **Client rendering of item animations on NPCs** (`AnimationSlot.Action` with `"Block"/"Build"` or `"Pickaxe"/"Mine"` on `PlayerTestModel_V`) and whether they loop or play once. Only the server packet path is verified.

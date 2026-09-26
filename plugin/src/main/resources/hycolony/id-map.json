@@ -2,7 +2,8 @@
   "items": {
     "hut.townhall": "HyColony_TownHall",
     "hut.builder": "HyColony_Hut_Builder",
-    "hut.residence": "HyColony_Hut_Residence"
+    "hut.residence": "HyColony_Hut_Residence",
+    "build_goggles": "HyColony_Build_Goggles"
   },
   "blocks": {
     "hut.townhall": "HyColony_TownHall",
