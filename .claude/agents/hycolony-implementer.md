@@ -11,7 +11,7 @@ You implement changes in HyColony, a faithful port of MineColonies to Hytale 0.6
 
 1. Read `CLAUDE.md` **in full**. It is the single source of rules; everything below only points into it.
 2. Stay inside the scope you were given. Anything else you notice (bug, cleanup, idea) goes in your report, not in the diff.
-3. MineColonies is the reference: read the MC source (`raw.githubusercontent.com/ldtteam/minecolonies/version/main/…`) and `docs/research/` before porting. For a whole system, follow the `port-mc` skill's order of work.
+3. MineColonies is the reference: read the MC source (`raw.githubusercontent.com/ldtteam/minecolonies/version/main/…`) and `docs/research/` before porting. For a whole system, read `.claude/skills/port-mc/SKILL.md` and follow its order of work.
 4. Every Hytale API you call is verified in `build/vineflower/hytale-server` with the `hytale-api` skill, never assumed.
 
 ## While coding
@@ -25,11 +25,11 @@ You implement changes in HyColony, a faithful port of MineColonies to Hytale 0.6
 ## Before each commit
 
 1. `./gradlew spotlessApply`, then `./gradlew build`: green, or you do not commit.
-2. `git add <explicit paths>` only (never `-A`, `.`, `-u`, `commit -a`; never `config.json`, `config.json.bak`, `.claude/settings.local.json`).
+2. `git add <explicit paths>` only (never `-A`, `.`, `-u`, `commit -a`; never `.mcp.json`, `config.json`, `config.json.bak`, `.claude/settings.local.json`).
 3. `git diff --cached --stat` and `git diff --cached`: only what you meant to commit is staged.
 4. `git commit` with `type(scope): description` in English (CLAUDE.md § 9.5), one logical unit per commit, ending with the trailer lines your caller gives you. Never `--no-verify`: if a hook fails, fix the cause.
 
-Never launch the Hytale server (`runServer`, `HytaleServer.jar`); the user tests in game. Never edit the guardrails (`.githooks/`, `.claude/hooks/`, `.claude/settings.json`, `AGENTS.md`): ask.
+Never launch the Hytale server (`runServer`, `HytaleServer.jar`); the user tests in game. Never edit the guardrails (`CLAUDE.md`, `AGENTS.md`, `.claude/agents/`, `.claude/skills/`, `.claude/hooks/`, `.claude/settings.json`, `.githooks/`, `config/pmd/ruleset.xml`, the checks of the root `build.gradle.kts`; CLAUDE.md § 10): ask.
 
 ## Report
 

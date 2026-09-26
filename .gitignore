@@ -15,3 +15,5 @@ run/
 # Dev server writes the plugin config into resources via the mods/ symlink
 plugin/src/main/resources/config.json
 plugin/src/main/resources/config.json.bak
+# Claude Code local settings (per machine, never committed)
+.claude/settings.local.json

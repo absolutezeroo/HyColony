@@ -15,12 +15,13 @@ The build must be green. Versioned git hooks enforce this: run `git config core.
 
 - Launch the Hytale server (`runServer`, `HytaleServer.jar`). The user runs it and tests in game.
 - `git add -A`, `git add .`, `git add -u`, `git commit -a`: stage explicit paths only.
-- `--no-verify` (or `-n`) on commit or push, `git push --force`, or changing `core.hooksPath`.
+- `--no-verify` on commit or push (nor `-n` on commit), `git push --force`, or changing `core.hooksPath`.
 - Add a line to `gradle/file-size-allowlist.txt`, `gradle/package-size-allowlist.txt` or
   `config/pmd/known-violations.txt`: these lists only shrink.
-- Commit `config.json`, `config.json.bak` or `.claude/settings.local.json` (local settings).
-- Edit the guardrails (`AGENTS.md`, `.githooks/`, `.claude/hooks/`, `.claude/settings.json`) without the user's
-  explicit approval.
+- Write or commit `.mcp.json`, `config.json`, `config.json.bak` or `.claude/settings.local.json` (local settings).
+- Edit the guardrails without the user's explicit approval: `CLAUDE.md`, `AGENTS.md`, `.claude/agents/`,
+  `.claude/skills/`, `.claude/hooks/`, `.claude/settings.json`, `.githooks/`, `config/pmd/ruleset.xml` and the checks
+  of the root `build.gradle.kts` (CLAUDE.md § 10).
 
 Commit messages: `type(scope): description` in English, type in feat|fix|refactor|test|docs|build|style|chore|perf.
 
