@@ -73,6 +73,11 @@ public final class StuckHandler {
             level = 0;
             return Action.NONE;
         }
+        return escalate(pos, now);
+    }
+
+    /** No progress since the last check: repath, then teleport, then give up, each once its delay passed. */
+    private Action escalate(Vec3 pos, long now) {
         if (now - lastProgress < (level == 0 ? DELAY_BEFORE_ACTIONS : NEXT_ACTION_DELAY)) {
             return Action.NONE;
         }

@@ -31,23 +31,35 @@ public final class Inventory {
     public ItemAmount insert(ItemAmount amount, ToIntFunction<ItemKey> maxStack) {
         Objects.requireNonNull(amount, "amount");
         int max = maxStack.applyAsInt(amount.item());
-        int remaining = amount.count();
+        int remaining = fillEmpty(amount.item(), merge(amount.item(), amount.count(), max), max);
+        return remaining == 0 ? null : amount.withCount(remaining);
+    }
+
+    /** Tops up the stacks of {@code item} to {@code max}; returns what is left of {@code count}. */
+    private int merge(ItemKey item, int count, int max) {
+        int remaining = count;
         for (int i = 0; i < slots.length && remaining > 0; i++) {
             ItemAmount cur = slots[i];
-            if (cur != null && cur.item().equals(amount.item()) && cur.count() < max) {
+            if (cur != null && cur.item().equals(item) && cur.count() < max) {
                 int add = Math.min(max - cur.count(), remaining);
                 slots[i] = cur.withCount(cur.count() + add);
                 remaining -= add;
             }
         }
+        return remaining;
+    }
+
+    /** Puts stacks of up to {@code max} in empty slots; returns what is left of {@code count}. */
+    private int fillEmpty(ItemKey item, int count, int max) {
+        int remaining = count;
         for (int i = 0; i < slots.length && remaining > 0; i++) {
             if (slots[i] == null) {
                 int add = Math.min(max, remaining);
-                slots[i] = new ItemAmount(amount.item(), add);
+                slots[i] = new ItemAmount(item, add);
                 remaining -= add;
             }
         }
-        return remaining == 0 ? null : amount.withCount(remaining);
+        return remaining;
     }
 
     /** Removes up to {@code max}, from the last slots first. Returns how much was actually removed. */

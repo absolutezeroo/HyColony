@@ -32,8 +32,6 @@ CyclomaticComplexity core/src/main/java/dev/hycolony/core/construction/BuilderAI
 CyclomaticComplexity core/src/main/java/dev/hycolony/core/construction/BuilderActivity.java
 CyclomaticComplexity core/src/main/java/dev/hycolony/core/construction/BuilderWalker.java
 CyclomaticComplexity core/src/main/java/dev/hycolony/core/construction/WorkManager.java
-CyclomaticComplexity core/src/main/java/dev/hycolony/core/kernel/item/Inventory.java
-CyclomaticComplexity core/src/main/java/dev/hycolony/core/kernel/nav/StuckHandler.java
 CyclomaticComplexity core/src/main/java/dev/hycolony/core/request/RequestManager.java
 CyclomaticComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleCitizenBodies.java
 CyclomaticComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleItemCatalog.java
