@@ -29,7 +29,6 @@ CouplingBetweenObjects plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleIt
 CouplingBetweenObjects plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleUiPort.java
 CouplingBetweenObjects plugin/src/main/java/dev/hycolony/plugin/command/HyColonyCommand.java
 CouplingBetweenObjects plugin/src/main/java/dev/hycolony/plugin/ui/BuildingPage.java
-CyclomaticComplexity core/src/main/java/dev/hycolony/core/citizen/Skill.java
 CyclomaticComplexity core/src/main/java/dev/hycolony/core/colony/ColonyManager.java
 CyclomaticComplexity core/src/main/java/dev/hycolony/core/colony/ColonySerializer.java
 CyclomaticComplexity core/src/main/java/dev/hycolony/core/colony/Permissions.java
