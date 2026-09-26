@@ -29,6 +29,7 @@ public final class TestContexts {
     public final FakeWorldBlocks blocks = new FakeWorldBlocks();
     public final FakeContainers containers = new FakeContainers();
     public final FakePlayerInventory playerInventory = new FakePlayerInventory();
+    public final FakeWorldEffects effects = new FakeWorldEffects();
     public BlueprintSource blueprints = new BlueprintSource() {
         @Override
         public Optional<Blueprint> load(String style, String buildingTypeId, int level, int rotation) {
@@ -70,6 +71,6 @@ public final class TestContexts {
                 CitizenNames.loadDefault(),
                 new Random(1234),
                 bus,
-                new ConstructionPorts(catalog, blocks, containers, playerInventory, blueprints));
+                new ConstructionPorts(catalog, blocks, containers, playerInventory, blueprints, effects));
     }
 }

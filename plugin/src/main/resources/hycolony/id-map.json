@@ -11,6 +11,7 @@
     "hut.residence": "HyColony_Hut_Residence"
   },
   "npcRoles": { "npc.citizen": "HyColony_Citizen" },
+  "fireworks": ["Firework_Mix2", "Firework_Mix3", "Firework_Mix4"],
   "skillIcons": {
     "Athletics": "Armor_Leather_Light_Legs",
     "Dexterity": "Weapon_Daggers_Iron",

@@ -28,6 +28,7 @@ import dev.hycolony.plugin.adapter.HytalePlayerInventory;
 import dev.hycolony.plugin.adapter.HytalePreviewPort;
 import dev.hycolony.plugin.adapter.HytaleUiPort;
 import dev.hycolony.plugin.adapter.HytaleWorldBlocks;
+import dev.hycolony.plugin.adapter.HytaleWorldEffects;
 import dev.hycolony.plugin.adapter.HytaleWorldQuery;
 import dev.hycolony.plugin.block.HutBlockSystems;
 import java.util.Random;
@@ -81,7 +82,8 @@ public final class WorldRuntime {
                         new HytaleWorldBlocks(world, hutBlockIds),
                         new HytaleContainerAccess(world),
                         new HytalePlayerInventory(world),
-                        new HytaleBlueprintSource()));
+                        new HytaleBlueprintSource(),
+                        new HytaleWorldEffects(world, ids.fireworks())));
         this.manager = new ColonyManager(ctx);
         self[0] = manager;
         this.previews = new HytalePreviewPort(world);

@@ -3,6 +3,7 @@ package dev.hycolony.plugin;
 import com.google.gson.Gson;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
+import com.hypixel.hytale.server.core.asset.type.particle.config.ParticleSystem;
 import com.hypixel.hytale.server.npc.NPCPlugin;
 import dev.hycolony.core.citizen.Skill;
 import java.io.InputStream;
@@ -18,7 +19,8 @@ public final class IdMap {
             Map<String, String> items,
             Map<String, String> blocks,
             Map<String, String> npcRoles,
-            Map<String, String> skillIcons) {}
+            Map<String, String> skillIcons,
+            List<String> fireworks) {}
 
     private final Data data;
 
@@ -51,6 +53,11 @@ public final class IdMap {
         return require(data.skillIcons(), skill.name());
     }
 
+    /** Particle systems fired when a building level rises. */
+    public List<String> fireworks() {
+        return List.copyOf(data.fireworks());
+    }
+
     private static String require(Map<String, String> map, String key) {
         String id = map.get(key);
         if (id == null) {
@@ -76,6 +83,11 @@ public final class IdMap {
             String id = data.skillIcons().get(skill.name());
             if (id == null || Item.getAssetMap().getAsset(id) == null) {
                 errors.add("skill icon " + skill + " -> " + id);
+            }
+        }
+        for (String id : data.fireworks()) {
+            if (ParticleSystem.getAssetMap().getAsset(id) == null) {
+                errors.add("particle system -> " + id);
             }
         }
         data.npcRoles().forEach((key, id) -> {

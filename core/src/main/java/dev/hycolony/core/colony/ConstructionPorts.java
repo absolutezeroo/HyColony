@@ -14,6 +14,7 @@ import dev.hycolony.core.kernel.port.ContainerAccess;
 import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.core.kernel.port.PlayerInventory;
 import dev.hycolony.core.kernel.port.WorldBlocks;
+import dev.hycolony.core.kernel.port.WorldEffects;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -25,7 +26,8 @@ public record ConstructionPorts(
         WorldBlocks blocks,
         ContainerAccess containers,
         PlayerInventory playerInventory,
-        BlueprintSource blueprints) {
+        BlueprintSource blueprints,
+        WorldEffects effects) {
 
     public static ConstructionPorts unavailable() {
         ItemCatalog catalog = new ItemCatalog() {
@@ -148,6 +150,6 @@ public record ConstructionPorts(
                 return List.of();
             }
         };
-        return new ConstructionPorts(catalog, blocks, containers, playerInventory, blueprints);
+        return new ConstructionPorts(catalog, blocks, containers, playerInventory, blueprints, hut -> {});
     }
 }

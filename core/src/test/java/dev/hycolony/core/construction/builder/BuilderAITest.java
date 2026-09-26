@@ -482,7 +482,8 @@ class BuilderAITest {
         assertEquals(1, t.notifier.sent.size());
         assertEquals("hycolony.build.complete", t.notifier.sent.get(0).msg().key());
         assertEquals(
-                List.of(res.displayName(), "1"), t.notifier.sent.get(0).msg().params());
+                List.of("%hycolony.ui.building.type.residence", "1"),
+                t.notifier.sent.get(0).msg().params());
         tickUntil(() -> ai.stateName().equals("IDLE"), 200);
         assertEquals(0, resources().orderId());
     }
