@@ -6,7 +6,6 @@ CognitiveComplexity core/src/main/java/dev/hycolony/core/colony/ColonyManager.ja
 CognitiveComplexity core/src/main/java/dev/hycolony/core/construction/BuilderAI.java
 CognitiveComplexity core/src/main/java/dev/hycolony/core/construction/WorkManager.java
 CognitiveComplexity core/src/main/java/dev/hycolony/core/request/RequestManager.java
-CognitiveComplexity core/src/main/java/dev/hycolony/core/request/RequestSerializer.java
 CognitiveComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleBlueprintSource.java
 CognitiveComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleItemCatalog.java
 CognitiveComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleWorldBlocks.java

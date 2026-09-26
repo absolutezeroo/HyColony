@@ -57,22 +57,7 @@ public final class RequestSerializer {
             m.restore(readRequest(el.getAsJsonObject()));
         }
 
-        List<RequestToken> orphans = new ArrayList<>();
-        JsonObject assignments = o.getAsJsonObject("assignments");
-        for (String resolverId : assignments.keySet()) {
-            Optional<Resolver> resolver = m.resolver(resolverId);
-            for (RequestToken t : readTokens(assignments.getAsJsonArray(resolverId))) {
-                Optional<Request> req = m.get(t);
-                if (req.isEmpty()) {
-                    continue;
-                }
-                if (resolver.isPresent()) {
-                    m.restoreAssignment(t, resolver.get());
-                } else if (req.get().state().ordinal() < RequestState.COMPLETED.ordinal()) {
-                    orphans.add(t); // a finished one just waits for pickup
-                }
-            }
-        }
+        List<RequestToken> orphans = readAssignments(o.getAsJsonObject("assignments"), m);
 
         // Membership comes from the assignments; the saved resolver state only supplies the numbers.
         JsonObject ro = o.has("retrying") ? o.getAsJsonObject("retrying") : new JsonObject();
@@ -90,6 +75,26 @@ public final class RequestSerializer {
         player(m).ifPresent(p -> m.assignedTo(PlayerResolver.ID).forEach(p::restore));
 
         orphans.forEach(m::reassignLoaded);
+    }
+
+    /** Restores the assignments whose resolver still exists; returns the open requests whose resolver is gone. */
+    private static List<RequestToken> readAssignments(JsonObject assignments, RequestManager m) {
+        List<RequestToken> orphans = new ArrayList<>();
+        for (String resolverId : assignments.keySet()) {
+            Optional<Resolver> resolver = m.resolver(resolverId);
+            for (RequestToken t : readTokens(assignments.getAsJsonArray(resolverId))) {
+                Optional<Request> req = m.get(t);
+                if (req.isEmpty()) {
+                    continue;
+                }
+                if (resolver.isPresent()) {
+                    m.restoreAssignment(t, resolver.get());
+                } else if (req.get().state().ordinal() < RequestState.COMPLETED.ordinal()) {
+                    orphans.add(t); // a finished one just waits for pickup
+                }
+            }
+        }
+        return orphans;
     }
 
     private static Optional<RetryingResolver> retrying(RequestManager m) {
