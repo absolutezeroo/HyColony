@@ -22,6 +22,9 @@ final class BuildSite {
     // Null when no structure is loaded.
     private WorkOrder order;
     private StructurePlan plan;
+    /** An UPGRADE's previous level, whose leftovers {@link Stage#CLEAR_LEFTOVERS} mines. */
+    private StructurePlan previousPlan;
+
     private Building target;
     /** The walk over SOLID and DECORATE after the last stage ran for the loaded order. */
     private boolean finalCheckDone;
@@ -32,16 +35,19 @@ final class BuildSite {
         this.spots = spots;
     }
 
-    void load(WorkOrder o, Building b, StructurePlan p) {
+    /** {@code previous} is the plan of the level an UPGRADE replaces, null for other orders. */
+    void load(WorkOrder o, Building b, StructurePlan p, StructurePlan previous) {
         order = o;
         target = b;
         plan = p;
+        previousPlan = previous;
     }
 
     /** Forgets the structure and the module's order (completion, cancellation, failure). */
     void clear() {
         order = null;
         plan = null;
+        previousPlan = null;
         target = null;
         finalCheckDone = false;
         resources.reset();
@@ -57,6 +63,11 @@ final class BuildSite {
 
     StructurePlan plan() {
         return plan;
+    }
+
+    /** The replaced level's plan; only called for positions of {@link Stage#CLEAR_LEFTOVERS}, never null there. */
+    StructurePlan previousPlan() {
+        return previousPlan;
     }
 
     Building target() {
@@ -77,6 +88,7 @@ final class BuildSite {
             case SOLID -> plan.solidPositions();
             case DECORATE -> plan.decoPositions();
             case REMOVE -> plan.removeList();
+            case CLEAR_LEFTOVERS -> previousPlan == null ? List.of() : previousPlan.removeList();
             case DONE -> List.of();
         };
     }

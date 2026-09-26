@@ -8,6 +8,7 @@ import dev.hycolony.core.construction.blueprint.StructurePlan;
 import dev.hycolony.core.construction.resources.NeededResources;
 import dev.hycolony.core.construction.workorder.Stage;
 import dev.hycolony.core.construction.workorder.WorkOrder;
+import dev.hycolony.core.construction.workorder.WorkOrderType;
 import dev.hycolony.core.job.JobAI;
 import dev.hycolony.core.kernel.ai.AIBlockingEventType;
 import dev.hycolony.core.kernel.ai.AIEventTarget;
@@ -186,14 +187,7 @@ public final class BuilderAI implements JobAI {
             return BuilderState.IDLE;
         }
         Building b = ctx.colony().buildings().at(o.buildingPos()).orElse(null);
-        Blueprint bp = b == null
-                ? null
-                : ctx.colony()
-                        .context()
-                        .ports()
-                        .blueprints()
-                        .load(o.style(), b.type().id(), o.blueprintLevel(), o.rotation())
-                        .orElse(null);
+        Blueprint bp = b == null ? null : blueprint(o, b, o.blueprintLevel()).orElse(null);
         if (bp == null) {
             // MC handleSpecificCancelActions: an order that cannot be loaded is dropped.
             LOG.log(
@@ -206,10 +200,31 @@ public final class BuilderAI implements JobAI {
             return BuilderState.IDLE;
         }
         resetStructure();
-        site.load(o, b, StructurePlan.build(bp, o.buildingPos(), ctx.catalog()));
+        site.load(o, b, StructurePlan.build(bp, o.buildingPos(), ctx.catalog()), previousPlan(o, b));
         // Takes the order's saved stage and index: the order is the single owner of progress.
         ctx.resources().start(o, NeededResources.compute(site.plan(), ctx.blocks(), ctx.catalog()));
         return BuilderState.BUILDING_STEP;
+    }
+
+    private Optional<Blueprint> blueprint(WorkOrder o, Building b, int level) {
+        return ctx.colony()
+                .context()
+                .ports()
+                .blueprints()
+                .load(o.style(), b.type().id(), level, o.rotation());
+    }
+
+    /**
+     * The plan of the level an UPGRADE replaces (same style and rotation), whose leftovers CLEAR_LEFTOVERS mines;
+     * null for other orders or when that blueprint is missing (nothing is then removed).
+     */
+    private StructurePlan previousPlan(WorkOrder o, Building b) {
+        if (o.type() != WorkOrderType.UPGRADE) {
+            return null;
+        }
+        return blueprint(o, b, o.blueprintLevel() - 1)
+                .map(old -> StructurePlan.build(old, o.buildingPos(), ctx.catalog()))
+                .orElse(null);
     }
 
     private Optional<WorkOrder> claimedOrder() {
@@ -255,10 +270,11 @@ public final class BuilderAI implements JobAI {
     }
 
     private BuilderState stageDone(Stage stage) {
-        Stage next = StructureScan.nextStage(stage);
-        if (next == Stage.DONE && stage == Stage.DECORATE && !site.finalCheckDone()) {
+        Stage next = site.finalCheckDone() && stage == Stage.DECORATE ? Stage.DONE : StructureScan.nextStage(stage);
+        if (next == Stage.DONE && stage == Stage.CLEAR_LEFTOVERS && !site.finalCheckDone()) {
             // Deviation from MC (its iterator only goes forward): once per loaded order, SOLID and DECORATE are walked
-            // again, so a block broken behind the builder is placed again before completion.
+            // again, so a block broken behind the builder is placed again before completion. It runs after
+            // CLEAR_LEFTOVERS, whose removals the new plan does not want, so it only refills the new plan's cells.
             site.startFinalCheck();
             next = Stage.SOLID;
         }

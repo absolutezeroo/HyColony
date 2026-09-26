@@ -98,6 +98,7 @@ ui.resources.backToHut = Retour à la hutte
 ui.stage.clear = déblaiement
 ui.stage.solid = structure
 ui.stage.decorate = décoration
+ui.stage.clear_leftovers = retrait des restes
 ui.stage.remove = démolition
 ui.stage.done = terminé
 ui.requests.title = Requêtes

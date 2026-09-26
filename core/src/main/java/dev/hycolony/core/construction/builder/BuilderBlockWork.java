@@ -34,7 +34,10 @@ final class BuilderBlockWork {
     /** The position at {@code i} needs work: mine it first, or place its block once the item is at hand. */
     BuilderState work(Stage stage, int i) {
         BlockPos pos = ctx.site().positions(stage).get(i);
-        if (stage == Stage.CLEAR || stage == Stage.REMOVE || ctx.scan().mustMineFirst(pos)) {
+        if (stage == Stage.CLEAR
+                || stage == Stage.REMOVE
+                || stage == Stage.CLEAR_LEFTOVERS
+                || ctx.scan().mustMineFirst(pos)) {
             return startMining(pos);
         }
         BlueprintEntry e = ctx.site().entry(stage, i);

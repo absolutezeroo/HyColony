@@ -98,6 +98,7 @@ ui.resources.backToHut = Back to the hut
 ui.stage.clear = clearing
 ui.stage.solid = structure
 ui.stage.decorate = decoration
+ui.stage.clear_leftovers = leftover removal
 ui.stage.remove = removal
 ui.stage.done = done
 ui.requests.title = Requests

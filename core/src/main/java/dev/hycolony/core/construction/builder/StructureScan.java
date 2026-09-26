@@ -39,17 +39,27 @@ final class StructureScan {
         return switch (stage) {
             case CLEAR -> Stage.SOLID;
             case SOLID -> Stage.DECORATE;
+            case DECORATE -> Stage.CLEAR_LEFTOVERS;
             default -> Stage.DONE;
         };
     }
 
-    /** CLEAR: a block the plan does not want there; REMOVE: any block; SOLID/DECORATE: not yet as planned. */
+    /**
+     * CLEAR: a block the plan does not want there; REMOVE: any block; CLEAR_LEFTOVERS: a block still as the previous
+     * level placed it, that the new plan does not want; SOLID/DECORATE: not yet as planned.
+     */
     private boolean needsWork(BuildSite site, Stage stage, int i, BlockPos pos) {
         BlockState world = blocks.get(pos).orElse(null);
         return switch (stage) {
             case CLEAR ->
                 world != null && clearable(world) && !world.equals(site.plan().stateAt(pos)) && notAHut(pos);
             case REMOVE -> world != null && mineable(world) && notAHut(pos);
+            case CLEAR_LEFTOVERS ->
+                world != null
+                        && world.equals(site.previousPlan().stateAt(pos))
+                        && !world.equals(site.plan().stateAt(pos))
+                        && mineable(world)
+                        && notAHut(pos);
             default -> {
                 BlueprintEntry e = site.entry(stage, i);
                 // The final walk only refills what was broken (air); a block the player changed stays.

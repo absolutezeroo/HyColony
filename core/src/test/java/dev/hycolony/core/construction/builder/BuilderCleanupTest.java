@@ -38,7 +38,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/** What a builder removes that the plan does not want: a REPAIR's misplaced blocks. */
+/** What a builder removes that the plan does not want: a REPAIR's misplaced blocks, an UPGRADE's old leftovers. */
 class BuilderCleanupTest {
     private static final BlockPos HUT = new BlockPos(10, 64, 0);
     private static final BlockPos RES = new BlockPos(30, 64, 0);
@@ -187,5 +187,80 @@ class BuilderCleanupTest {
         assertNull(world(3, 1, 0));
         assertNull(world(2, 1, 0));
         assertEquals(new BlockState(STONE, 0), world(1, 0, 0));
+    }
+
+    /** Level 1 built: stone at x 1..3, and a stone roof at (3, 1, 0) that level 2 no longer has. */
+    private void builtLevelOneThenUpgradeDropsTheRoof() {
+        hut(ConstructionBuildingTypes.RESIDENCE.id(), RES, 1);
+        plans.put(
+                1,
+                bp(
+                        new BlockPos(3, 1, 0),
+                        entry(1, 0, 0, STONE),
+                        entry(2, 0, 0, STONE),
+                        entry(3, 0, 0, STONE),
+                        entry(3, 1, 0, STONE)));
+        plans.put(2, bp(new BlockPos(3, 0, 0), entry(1, 0, 0, STONE), entry(2, 0, 0, STONE), entry(3, 0, 0, STONE)));
+        put(1, 0, 0, STONE);
+        put(2, 0, 0, STONE);
+        put(3, 0, 0, STONE);
+        put(3, 1, 0, STONE);
+    }
+
+    @Test
+    void upgradeRemovesOldLevelBlocksTheNewPlanDoesNotWant() {
+        builtLevelOneThenUpgradeDropsTheRoof();
+        t.blocks.drops.put(RES.offset(3, 1, 0), List.of(new ItemAmount(STONE_I, 1)));
+
+        order(WorkOrderType.UPGRADE);
+        tickUntil(this::finished);
+
+        assertNull(world(3, 1, 0));
+        assertEquals(17, citizen.inventory().count(STONE_I)); // the drop joins the 16 given
+    }
+
+    @Test
+    void upgradeKeepsOldBlocksTheNewPlanReuses() {
+        builtLevelOneThenUpgradeDropsTheRoof();
+
+        order(WorkOrderType.UPGRADE);
+        tickUntil(this::finished);
+
+        assertEquals(new BlockState(STONE, 0), world(1, 0, 0));
+        assertEquals(new BlockState(STONE, 0), world(2, 0, 0));
+        assertEquals(new BlockState(STONE, 0), world(3, 0, 0));
+        assertTrue(t.blocks.placed.isEmpty(), "nothing broken, nothing placed again");
+    }
+
+    @Test
+    void upgradeLeavesPlayerBlocksThatAreNotFromTheOldPlan() {
+        builtLevelOneThenUpgradeDropsTheRoof();
+        put(3, 1, 0, DIRT); // the player swapped the old roof
+        put(0, 1, 0, DIRT); // and added a block the old plan never had
+
+        order(WorkOrderType.UPGRADE);
+        tickUntil(this::finished);
+
+        assertEquals(new BlockState(DIRT, 0), world(3, 1, 0));
+        assertEquals(new BlockState(DIRT, 0), world(0, 1, 0));
+    }
+
+    @Test
+    void upgradeResumesItsLeftoverRemovalAfterARestart() {
+        builtLevelOneThenUpgradeDropsTheRoof();
+        plans.put(2, bp(new BlockPos(3, 0, 0), entry(1, 0, 0, STONE), entry(2, 0, 0, STONE)));
+        WorkOrder o = order(WorkOrderType.UPGRADE);
+        tickUntil(() -> world(3, 1, 0) == null);
+        assertEquals(Stage.CLEAR_LEFTOVERS, o.stage());
+        assertEquals(new BlockState(STONE, 0), world(3, 0, 0)); // removed top down: next
+
+        restart();
+        assertEquals(
+                Stage.CLEAR_LEFTOVERS,
+                colony.work().byBuilding(RES).orElseThrow().stage());
+        tickUntil(this::finished);
+
+        assertNull(world(3, 0, 0));
+        assertEquals(new BlockState(STONE, 0), world(2, 0, 0));
     }
 }
