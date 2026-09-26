@@ -208,6 +208,28 @@ class BuilderAITest {
     }
 
     @Test
+    void clearRemovesUnwantedFluidsAndNeverTouchesUnbreakable() {
+        BlockKey water = new BlockKey("~fluid:Water");
+        BlockKey bedrock = new BlockKey("bedrock"); // also what a hut's filler cell reports
+        t.catalog.kinds.put(water, BlockKind.FLUID);
+        t.catalog.kinds.put(bedrock, BlockKind.UNBREAKABLE);
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 0);
+        blueprint = bp(List.of(entry(1, 0, 0, STONE), entry(2, 0, 0, water), entry(3, 1, 0, STONE)));
+        t.blocks.blocks.put(at(1, 0, 0), new BlockState(water, 0)); // the plan wants stone: the water goes
+        t.blocks.blocks.put(at(2, 0, 0), new BlockState(water, 0)); // as planned: kept
+        t.blocks.blocks.put(at(3, 0, 0), new BlockState(bedrock, 0));
+        t.blocks.blocks.put(at(0, 1, 0), new BlockState(water, 0)); // absent from the plan: goes too
+        WorkOrder o = order(res, WorkOrderType.BUILD);
+
+        tickUntil(() -> o.stage() != Stage.CLEAR, 5000);
+
+        assertFalse(t.blocks.blocks.containsKey(at(1, 0, 0)));
+        assertFalse(t.blocks.blocks.containsKey(at(0, 1, 0)));
+        assertEquals(new BlockState(water, 0), t.blocks.blocks.get(at(2, 0, 0)));
+        assertEquals(new BlockState(bedrock, 0), t.blocks.blocks.get(at(3, 0, 0)));
+    }
+
+    @Test
     void solidBeforeDecoBottomUp() {
         Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);
         blueprint = bp(List.of(entry(1, 0, 0, TORCH), entry(2, 1, 0, STONE), entry(2, 0, 0, STONE)));

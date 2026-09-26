@@ -437,7 +437,8 @@ public final class BuilderAI implements JobAI {
     private BuilderState mine() {
         BlockPos pos = mineTarget;
         BlockState state = pos == null ? null : blocks.get(pos).orElse(null);
-        if (state == null || !mineable(state)) {
+        boolean clearing = order != null && order.stage() == Stage.CLEAR;
+        if (state == null || !(clearing ? clearable(state) : mineable(state))) {
             mineTarget = null;
             return BuilderState.BUILDING_STEP;
         }
@@ -462,6 +463,11 @@ public final class BuilderAI implements JobAI {
         mineDelayed = false;
         mineTarget = null;
         var drops = blocks.breakBlock(pos);
+        if (clearing && catalog.kind(state.key()) == BlockKind.FLUID) {
+            // ponytail: one removal per fluid cell; a neighbouring source may flow back, and looping on it would
+            // never end. Refill after CLEAR is left as is (SOLID overwrites it, decorations sit in it).
+            progress(Stage.CLEAR, order.progressIndex() + 1);
+        }
         // MC: a rack that leaves the world leaves its building's containers (TileEntityRack removal).
         colony.buildings().owningContainer(pos).ifPresent(b -> b.removeContainer(pos));
         if (!catalog.isOre(state.key())) { // MC EntityAIStructureBuilder.mineBlock: getDrops = !isOre
@@ -528,7 +534,7 @@ public final class BuilderAI implements JobAI {
     private boolean needsWork(Stage stage, int i, BlockPos pos) {
         BlockState world = blocks.get(pos).orElse(null);
         return switch (stage) {
-            case CLEAR -> world != null && mineable(world) && !world.equals(plan.stateAt(pos)) && notAHut(pos);
+            case CLEAR -> world != null && clearable(world) && !world.equals(plan.stateAt(pos)) && notAHut(pos);
             case REMOVE -> world != null && mineable(world) && notAHut(pos);
             default -> {
                 BlueprintEntry e = (stage == Stage.SOLID ? plan.solidList() : plan.decoList()).get(i);
@@ -545,6 +551,11 @@ public final class BuilderAI implements JobAI {
     private boolean mineable(BlockState state) {
         BlockKind kind = catalog.kind(state.key());
         return kind != BlockKind.AIR && kind != BlockKind.FLUID && kind != BlockKind.UNBREAKABLE;
+    }
+
+    /** CLEAR also removes fluids the plan does not want (MC clears the footprint of water and lava). */
+    private boolean clearable(BlockState state) {
+        return mineable(state) || catalog.kind(state.key()) == BlockKind.FLUID;
     }
 
     private boolean mustMineFirst(BlockPos pos) {
