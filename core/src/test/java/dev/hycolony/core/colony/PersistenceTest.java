@@ -106,10 +106,7 @@ class PersistenceTest {
         Colony c = new Colony(
                 t.context(),
                 new TerritoryIndex(),
-                1,
-                "T",
-                new BlockPos(0, 64, 0),
-                Permissions.createDefault(alice, "Alice"));
+                new Colony.Founding(1, "T", new BlockPos(0, 64, 0), Permissions.createDefault(alice, "Alice")));
         CitizenData citizen = new CitizenData(1);
         citizen.setJob(TestJobs.TYPE.factory().apply(citizen));
         citizen.setWorkBuilding(new BlockPos(5, 64, 5));
@@ -315,10 +312,7 @@ class PersistenceTest {
         Colony c = new Colony(
                 t.context(),
                 new TerritoryIndex(),
-                1,
-                "T",
-                new BlockPos(0, 64, 0),
-                Permissions.createDefault(alice, "Alice"));
+                new Colony.Founding(1, "T", new BlockPos(0, 64, 0), Permissions.createDefault(alice, "Alice")));
         CitizenData citizen = new CitizenData(1);
         citizen.setJob(BuilderJob.TYPE.factory().apply(citizen));
         citizen.setWorkBuilding(new BlockPos(5, 64, 5)); // no building there

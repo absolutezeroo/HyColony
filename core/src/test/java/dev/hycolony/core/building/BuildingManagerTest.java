@@ -29,10 +29,7 @@ class BuildingManagerTest {
         return new Colony(
                 t.context(),
                 new TerritoryIndex(),
-                1,
-                "T",
-                new BlockPos(0, 64, 0),
-                Permissions.createDefault(UUID.randomUUID(), "A"));
+                new Colony.Founding(1, "T", new BlockPos(0, 64, 0), Permissions.createDefault(UUID.randomUUID(), "A")));
     }
 
     @Test

@@ -1,28 +1,19 @@
 package dev.hycolony.core.colony;
 
-import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingManager;
-import dev.hycolony.core.building.BuildingModule;
-import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.CitizenManager;
-import dev.hycolony.core.colony.ui.NeedsPlayerNotice;
 import dev.hycolony.core.construction.WorkManager;
-import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.ai.AITarget;
 import dev.hycolony.core.kernel.ai.IStateSupplier;
 import dev.hycolony.core.kernel.ai.TickRateStateMachine;
-import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.RequestManager;
 import dev.hycolony.core.request.Requester;
 import dev.hycolony.core.request.RequesterId;
 import dev.hycolony.core.request.resolver.PlayerResolver;
 import dev.hycolony.core.request.resolver.RetryingResolver;
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
-import java.util.Set;
 import java.util.UUID;
 
 /** One colony. Ticked 20 times per second on its world thread. */
@@ -35,6 +26,9 @@ public final class Colony {
     public static final int EXCEPTION_SUSPEND_TICKS = 5 * 60 * 20;
 
     private static final System.Logger LOG = System.getLogger(Colony.class.getName());
+
+    /** What a colony is founded with (or loaded with): its id, first name, centre and permissions. */
+    public record Founding(int id, String name, BlockPos center, Permissions permissions) {}
 
     private final ColonyContext ctx;
     private final TerritoryIndex territory;
@@ -55,44 +49,17 @@ public final class Colony {
     private boolean dirty;
     private long suspendedUntilTick = Long.MIN_VALUE;
 
-    public Colony(
-            ColonyContext ctx,
-            TerritoryIndex territory,
-            int id,
-            String name,
-            BlockPos center,
-            Permissions permissions) {
+    public Colony(ColonyContext ctx, TerritoryIndex territory, Founding founding) {
         this.ctx = ctx;
         this.territory = territory;
-        this.id = id;
-        this.name = name;
-        this.center = center;
-        this.permissions = permissions;
+        this.id = founding.id();
+        this.name = founding.name();
+        this.center = founding.center();
+        this.permissions = founding.permissions();
         this.requests = new RequestManager(this::requester, ctx.ports().catalog());
-        this.buildings = new BuildingManager(new BuildingManager.Listener() {
-            @Override
-            public void added(Building building) {
-                building.attachContainers(ctx.ports().containers());
-                requests.onProviderAdded(building);
-            }
-
-            @Override
-            public void removed(Building building) {
-                requests.cancelAllFrom(building.requesterId());
-                requests.onProviderRemoved(building);
-                work.onBuildingRemoved(building.position());
-                for (BuildingModule module : building.modules().values()) {
-                    if (module instanceof WorkerModule worker) {
-                        // Snapshot: fire() mutates worker.workers(), which this would otherwise iterate live.
-                        for (int citizenId : List.copyOf(worker.workers())) {
-                            worker.fire(Colony.this, building, citizenId);
-                        }
-                    }
-                }
-            }
-        });
+        this.buildings = new BuildingManager(new ColonyBuildingListener(this));
         PlayerResolver playerResolver = new PlayerResolver(center);
-        playerResolver.setOnNeedsPlayer(this::announceNeedsPlayer);
+        playerResolver.setOnNeedsPlayer(new NeedsPlayerAnnouncer(this)::announce);
         requests.registerBuiltIn(playerResolver);
         requests.registerBuiltIn(new RetryingResolver(center));
         this.citizens = new CitizenManager(this);
@@ -200,37 +167,6 @@ public final class Colony {
     private void slowTick() {
         buildings.onColonyTick(this);
         citizens.onColonyTick();
-    }
-
-    /**
-     * MC StandardPlayerRequestResolver's "needs" message: a request only a player can provide is told to the online
-     * owner and officers, naming the citizen (or the building) and its job.
-     */
-    private void announceNeedsPlayer(Request r) {
-        Building b = buildings.byRequester(r.requester()).orElse(null);
-        Optional<CitizenData> citizen = r.citizenId() != -1
-                ? citizens.get(r.citizenId())
-                : Optional.ofNullable(b)
-                        .flatMap(hut -> hut.module(WorkerModule.class))
-                        .flatMap(w -> w.workers().stream().findFirst())
-                        .flatMap(citizens::get);
-        String who = r.citizenId() != -1
-                ? citizen.map(CitizenData::name).orElse("")
-                : b != null ? b.displayName() : r.requester().value();
-        String job = citizen.flatMap(CitizenData::job).map(j -> j.type().id()).orElse("");
-        NeedsPlayerNotice notice = new NeedsPlayerNotice(who, job, r.requestable());
-        Set<UUID> to = new LinkedHashSet<>();
-        to.add(permissions.owner());
-        permissions.members().forEach((p, m) -> {
-            if (m.rankId() <= Permissions.OFFICER) {
-                to.add(p);
-            }
-        });
-        for (UUID p : to) {
-            if (ctx.players().isOnline(p)) {
-                ctx.ui().notifyNeedsPlayer(p, notice);
-            }
-        }
     }
 
     private Optional<Requester> requester(RequesterId id) {

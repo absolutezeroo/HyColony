@@ -13,7 +13,6 @@ CognitiveComplexity plugin/src/main/java/dev/hycolony/plugin/ui/BuildingPage.jav
 CompareObjectsWithEquals core/src/main/java/dev/hycolony/core/construction/BuilderAI.java
 CompareObjectsWithEquals core/src/main/java/dev/hycolony/core/construction/WorkManager.java
 CompareObjectsWithEquals plugin/src/main/java/dev/hycolony/plugin/adapter/HytalePlayerInventory.java
-CouplingBetweenObjects core/src/main/java/dev/hycolony/core/colony/Colony.java
 CouplingBetweenObjects core/src/main/java/dev/hycolony/core/colony/ColonyManager.java
 CouplingBetweenObjects core/src/main/java/dev/hycolony/core/construction/BuilderAI.java
 CouplingBetweenObjects core/src/main/java/dev/hycolony/core/construction/WorkManager.java
@@ -40,11 +39,9 @@ ExcessiveImports plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleWorldBlo
 ExcessiveImports plugin/src/main/java/dev/hycolony/plugin/block/HutBlockSystems.java
 ExcessiveImports plugin/src/main/java/dev/hycolony/plugin/command/HyColonyCommand.java
 ExcessiveImports plugin/src/main/java/dev/hycolony/plugin/ui/BuildingPage.java
-ExcessiveParameterList core/src/main/java/dev/hycolony/core/colony/Colony.java
 ExcessiveParameterList core/src/main/java/dev/hycolony/core/colony/ColonyManager.java
 ExcessiveParameterList plugin/src/main/java/dev/hycolony/plugin/adapter/PrefabStyles.java
 ExcessiveParameterList plugin/src/main/java/dev/hycolony/plugin/ui/BuildingPage.java
-GodClass core/src/main/java/dev/hycolony/core/colony/Colony.java
 GodClass core/src/main/java/dev/hycolony/core/colony/ColonyManager.java
 GodClass core/src/main/java/dev/hycolony/core/request/RequestManager.java
 GodClass plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleCitizenBodies.java

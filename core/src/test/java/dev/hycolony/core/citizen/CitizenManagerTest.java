@@ -24,8 +24,10 @@ class CitizenManagerTest {
     private Colony colonyWithTownHall() {
         TerritoryIndex territory = new TerritoryIndex();
         territory.claimSquare(1, ClaimCell.of(hall), 4);
-        Colony c =
-                new Colony(t.context(), territory, 1, "Test", hall, Permissions.createDefault(UUID.randomUUID(), "A"));
+        Colony c = new Colony(
+                t.context(),
+                territory,
+                new Colony.Founding(1, "Test", hall, Permissions.createDefault(UUID.randomUUID(), "A")));
         c.buildings().add(Building.create(BuildingTypes.TOWN_HALL, hall, 0));
         return c;
     }
@@ -56,7 +58,10 @@ class CitizenManagerTest {
     @Test
     void noSpawnWithoutTownHall() {
         TerritoryIndex territory = new TerritoryIndex();
-        Colony c = new Colony(t.context(), territory, 1, "T", hall, Permissions.createDefault(UUID.randomUUID(), "A"));
+        Colony c = new Colony(
+                t.context(),
+                territory,
+                new Colony.Founding(1, "T", hall, Permissions.createDefault(UUID.randomUUID(), "A")));
         slowTicks(c, 20);
         assertEquals(0, c.citizens().all().size());
     }

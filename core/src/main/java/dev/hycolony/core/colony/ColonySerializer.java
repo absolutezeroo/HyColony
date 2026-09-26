@@ -58,10 +58,11 @@ public final class ColonySerializer {
         Colony c = new Colony(
                 ctx,
                 territory,
-                o.get("id").getAsInt(),
-                o.get("name").getAsString(),
-                readPos(o.getAsJsonObject("center")),
-                PermissionsSerializer.read(o.getAsJsonObject("permissions")));
+                new Colony.Founding(
+                        o.get("id").getAsInt(),
+                        o.get("name").getAsString(),
+                        readPos(o.getAsJsonObject("center")),
+                        PermissionsSerializer.read(o.getAsJsonObject("permissions"))));
         c.setDay(o.get("day").getAsInt());
         readSettings(o, c);
         readBuildings(o.getAsJsonArray("buildings"), c, ctx);

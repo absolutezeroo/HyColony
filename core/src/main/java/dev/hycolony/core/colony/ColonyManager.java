@@ -170,7 +170,9 @@ public final class ColonyManager {
         pending.remove(player);
         ctx.ui().close(player);
         Colony colony = new Colony(
-                ctx, territory, allocateId(), name, p.pos(), Permissions.createDefault(player, p.playerName()));
+                ctx,
+                territory,
+                new Colony.Founding(allocateId(), name, p.pos(), Permissions.createDefault(player, p.playerName())));
         register(colony);
         colony.log().add("colonyCreated", colony.day(), name);
         ctx.bus().post(new ColonyEvents.ColonyCreated(colony));

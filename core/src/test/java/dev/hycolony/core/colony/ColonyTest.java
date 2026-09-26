@@ -18,7 +18,10 @@ class ColonyTest {
     private Colony colony() {
         BlockPos center = new BlockPos(0, 64, 0);
         territory.claimSquare(1, ClaimCell.of(center), 4);
-        return new Colony(t.context(), territory, 1, "Test", center, Permissions.createDefault(owner, "Alice"));
+        return new Colony(
+                t.context(),
+                territory,
+                new Colony.Founding(1, "Test", center, Permissions.createDefault(owner, "Alice")));
     }
 
     private void run(Colony c, int ticks) {

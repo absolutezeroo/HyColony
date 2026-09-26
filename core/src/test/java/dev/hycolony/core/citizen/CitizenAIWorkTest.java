@@ -25,7 +25,9 @@ class CitizenAIWorkTest {
     void fireReturnsCitizenToWander() {
         BlockPos hall = new BlockPos(0, 64, 0);
         Colony c = new Colony(
-                t.context(), new TerritoryIndex(), 1, "T", hall, Permissions.createDefault(UUID.randomUUID(), "A"));
+                t.context(),
+                new TerritoryIndex(),
+                new Colony.Founding(1, "T", hall, Permissions.createDefault(UUID.randomUUID(), "A")));
         CitizenData d = new CitizenData(1);
         c.citizens().restore(d);
         BodyId body = t.bodies.existing(1, 1, new Vec3(0, 64, 0));
@@ -88,10 +90,7 @@ class CitizenAIWorkTest {
         Colony c = new Colony(
                 t.context(),
                 new TerritoryIndex(),
-                1,
-                "T",
-                new BlockPos(0, 64, 0),
-                Permissions.createDefault(UUID.randomUUID(), "A"));
+                new Colony.Founding(1, "T", new BlockPos(0, 64, 0), Permissions.createDefault(UUID.randomUUID(), "A")));
         CitizenData d = new CitizenData(1);
         c.citizens().restore(d);
         BodyId body = t.bodies.existing(1, 1, new Vec3(0, 64, 0));
