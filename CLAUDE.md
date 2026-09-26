@@ -40,7 +40,8 @@ HyColony porte MineColonies sur Hytale 0.6.8 (épinglé), **à l'identique** : m
 - Imports (Google Java Style) : un bloc d'imports statiques, une ligne vide, puis un bloc d'imports normaux, chacun trié dans l'ordre ASCII **[build : `spotlessCheck`]**.
 - Complexité, classes fourre-tout, code mort et code fragile sont vérifiés par PMD (`config/pmd/ruleset.xml`) **[build : `pmdMain`]**.
 - Pas de commentaires séparateurs (`// ---- section ----`, bannières) : si une classe a besoin de sections, elle doit être découpée.
-- Les commentaires expliquent **pourquoi**, jamais ce que le code dit déjà. Javadoc courte sur l'API publique du cœur.
+- **Documentation du code** : chaque classe, et chaque méthode qui n'est pas un simple accesseur, a une Javadoc **courte et précise**. Elle dit ce que fait la méthode et ce qu'elle renvoie, en une à trois lignes, sans roman. Elle ajoute ses effets de bord (état modifié, message envoyé), ce qu'elle renvoie sur une entrée absente ou invalide, et sa source MineColonies s'il y en a une. Exemple : `/** Places the next planned block of the current stage; skips positions already correct. */`.
+- À l'intérieur des méthodes, un commentaire explique seulement le **pourquoi** (contrainte Hytale, règle de MineColonies, cas limite), jamais ce que le code dit déjà.
 - Constantes : `static final` en `UPPER_SNAKE`, avec leur unité dans le nom ou la Javadoc (`DELAY_TICKS`).
 
 ## 4. Robustesse
