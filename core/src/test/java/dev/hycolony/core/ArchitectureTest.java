@@ -46,6 +46,18 @@ class ArchitectureTest {
             .dependOnClassesThat()
             .resideInAPackage("dev.hycolony.core.construction..");
 
+    /**
+     * Construction depends on buildings, never the reverse: this closes any building/construction cycle (construction
+     * hut types are registered by the composition root, like its jobs).
+     */
+    @ArchTest
+    static final ArchRule buildingDoesNotDependOnConstruction = noClasses()
+            .that()
+            .resideInAPackage("dev.hycolony.core.building..")
+            .should()
+            .dependOnClassesThat()
+            .resideInAPackage("dev.hycolony.core.construction..");
+
     /** The construction sub-packages form no dependency cycle. */
     @ArchTest
     static final ArchRule constructionSubPackagesAreFreeOfCycles =

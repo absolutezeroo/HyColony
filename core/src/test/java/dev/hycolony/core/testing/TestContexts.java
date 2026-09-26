@@ -1,5 +1,6 @@
 package dev.hycolony.core.testing;
 
+import dev.hycolony.core.building.BuildingRegistry;
 import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.citizen.CitizenNames;
 import dev.hycolony.core.colony.ColonyContext;
@@ -42,6 +43,12 @@ public final class TestContexts {
     public ColonyConfig config = ColonyConfig.defaults();
     public JobRegistry jobs = jobs();
 
+    private static BuildingRegistry buildings() {
+        BuildingRegistry r = BuildingTypes.defaults();
+        ConstructionBuildingTypes.register(r);
+        return r;
+    }
+
     private static JobRegistry jobs() {
         JobRegistry r = JobRegistry.defaults();
         ConstructionBuildingTypes.register(r);
@@ -58,7 +65,7 @@ public final class TestContexts {
                 notifier,
                 ui,
                 players,
-                BuildingTypes.defaults(),
+                buildings(),
                 jobs,
                 CitizenNames.loadDefault(),
                 new Random(1234),

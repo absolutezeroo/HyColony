@@ -2,6 +2,7 @@ package dev.hycolony.plugin;
 
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.universe.world.World;
+import dev.hycolony.core.building.BuildingRegistry;
 import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.citizen.CitizenNames;
 import dev.hycolony.core.colony.ColonyContext;
@@ -54,6 +55,8 @@ public final class WorldRuntime {
         ColonyManager[] self = new ColonyManager[1];
         JobRegistry jobs = JobRegistry.defaults();
         ConstructionBuildingTypes.register(jobs);
+        BuildingRegistry buildings = BuildingTypes.defaults();
+        ConstructionBuildingTypes.register(buildings);
         Set<String> hutBlockIds = HutBlockSystems.byBlockId(ids).keySet(); // the builder never breaks these
         ColonyContext ctx = new ColonyContext(
                 new WorldKey(world.getName()),
@@ -64,7 +67,7 @@ public final class WorldRuntime {
                 new HytaleNotifier(),
                 new HytaleUiPort(() -> self[0], blocks, ids),
                 new HytalePlayerDirectory(world),
-                BuildingTypes.defaults(),
+                buildings,
                 jobs,
                 names,
                 new Random(),
