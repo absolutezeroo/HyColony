@@ -1,9 +1,18 @@
 #!/bin/sh
 # Fast gate (CLAUDE.md § 3, § 8): formatting, file/package sizes, section dividers.
 # Skipped when no staged file can affect these checks (docs-only commits stay instant).
-# Note: Gradle checks the working tree, not the index; stash unstaged edits to check exactly what is staged.
-if ! git diff --cached --name-only --diff-filter=ACMR | grep -Eq '\.(java|kts)$|^gradle/|^config/'; then
+relevant=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(java|kts)$|^gradle/|^config/|(^|/)gradle\.properties$')
+if [ -z "$relevant" ]; then
     exit 0
+fi
+# Gradle checks the working tree, not the index: a staged file that also has unstaged changes would be checked in a
+# state that is not the one committed.
+partial=$(git diff --name-only | grep -Fx -e "$relevant")
+if [ -n "$partial" ]; then
+    echo "pre-commit: these staged files also have unstaged changes, so the checks would not see what is committed:" >&2
+    printf '  %s\n' $partial >&2
+    echo "Stage them fully (git add <path>) or set the unstaged part aside, then commit again." >&2
+    exit 1
 fi
 if ! ./gradlew spotlessCheck checkFileSizes checkSectionDividers --quiet; then
     echo >&2

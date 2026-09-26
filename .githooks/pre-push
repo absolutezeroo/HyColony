@@ -1,5 +1,12 @@
 #!/bin/sh
 # CLAUDE.md § 8: the full build (tests, PMD, spotless, sizes) is green before anything leaves the machine.
+# Gradle builds the working tree: it must be clean for the build to check what is pushed.
+if [ -n "$(git status --porcelain)" ]; then
+    echo "pre-push: the working tree has uncommitted or untracked changes, so the build would not check what is pushed:" >&2
+    git status --short >&2
+    echo "Commit them or set them aside, then push again. Never bypass with --no-verify (CLAUDE.md § 10)." >&2
+    exit 1
+fi
 if ! ./gradlew build --quiet; then
     echo >&2
     echo "pre-push: ./gradlew build failed. Fix it before pushing; never bypass with --no-verify." >&2

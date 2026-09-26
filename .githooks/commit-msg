@@ -1,9 +1,16 @@
 #!/bin/sh
 # CLAUDE.md § 9.5: "type(scope): description" or "type: description", in English.
+# Merge and Revert subjects are accepted only in git's own formats; fixup!/squash!/amend! are checked on their target.
 subject=$(sed -n '/^[^#]/{p;q;}' "$1")
-case "$subject" in
-    Merge\ *|Revert\ *|fixup!\ *|squash!\ *) exit 0 ;;
-esac
+if printf '%s\n' "$subject" | grep -Eq "^Merge (branch|branches|remote-tracking branch|tag|commit) '|^Merge pull request #[0-9]+ from |^(Revert|Reapply) \".+\"$"; then
+    exit 0
+fi
+while :; do
+    case "$subject" in
+        "fixup! "* | "squash! "* | "amend! "*) subject=${subject#* } ;;
+        *) break ;;
+    esac
+done
 if ! printf '%s\n' "$subject" | grep -Eq '^(feat|fix|refactor|test|docs|build|style|chore|perf)(\([a-z0-9._/-]+\))?: [^ ]'; then
     echo "commit-msg: subject must be 'type(scope): description' or 'type: description'" >&2
     echo "  type: feat|fix|refactor|test|docs|build|style|chore|perf" >&2
