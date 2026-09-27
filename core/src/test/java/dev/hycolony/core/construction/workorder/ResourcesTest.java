@@ -4,9 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.hycolony.core.building.Building;
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.BlueprintEntry;
 import dev.hycolony.core.construction.blueprint.StructurePlan;
+import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
 import dev.hycolony.core.construction.resources.Buckets;
 import dev.hycolony.core.construction.resources.BuildingResourcesModule;
 import dev.hycolony.core.construction.resources.NeededResources;
@@ -17,6 +19,7 @@ import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.core.kernel.item.Inventory;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.core.logistics.pickup.KeepRule;
 import dev.hycolony.core.testing.FakeCatalog;
 import dev.hycolony.core.testing.FakeWorldBlocks;
 import java.util.ArrayList;
@@ -287,5 +290,23 @@ class ResourcesTest {
         loaded.start(loadedOrder, NeededResources.compute(plan, world, c));
         assertEquals(Stage.CLEAR, loaded.stage());
         assertEquals(0, loaded.progressIndex());
+    }
+
+    @Test
+    void remainingNeedsAreKeptByTheBuilderHut() {
+        FakeCatalog c = catalog();
+        Building hut = Building.create(ConstructionBuildingTypes.BUILDER, HUT, 0);
+        BuildingResourcesModule m = hut.module(BuildingResourcesModule.class).orElseThrow();
+        m.start(order(1), NeededResources.compute(row(c, List.of(STONE, STONE, PLANK)), new FakeWorldBlocks(), c));
+
+        List<KeepRule> rules = m.keepRules(hut, c);
+
+        KeepRule stone = rules.stream()
+                .filter(r -> r.matches().test(STONE_I))
+                .findFirst()
+                .orElseThrow();
+        assertEquals(2, stone.amount());
+        assertTrue(stone.inventory());
+        assertFalse(rules.stream().anyMatch(r -> r.matches().test(TORCH_I)));
     }
 }

@@ -1,10 +1,14 @@
 package dev.hycolony.core.construction.resources;
 
-import dev.hycolony.core.building.BuildingModule;
+import dev.hycolony.core.building.Building;
 import dev.hycolony.core.construction.workorder.Stage;
 import dev.hycolony.core.construction.workorder.WorkOrder;
 import dev.hycolony.core.kernel.item.Inventory;
 import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.core.kernel.port.ItemCatalog;
+import dev.hycolony.core.logistics.pickup.KeepRule;
+import dev.hycolony.core.logistics.pickup.KeepsItems;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -17,7 +21,7 @@ import java.util.function.ToIntFunction;
  * load). Progress lives in the {@link WorkOrder}, which persists it; this module only writes through to it, so it
  * has nothing to save. Port of MC's BuildingResourcesModule.
  */
-public final class BuildingResourcesModule implements BuildingModule {
+public final class BuildingResourcesModule implements KeepsItems {
     private WorkOrder order;
     private NeededResources needs = NeededResources.empty();
     private List<Map<ItemKey, Integer>> buckets = List.of();
@@ -69,6 +73,17 @@ public final class BuildingResourcesModule implements BuildingModule {
                 return;
             }
         }
+    }
+
+    /**
+     * Every item the order still needs, in its remaining amount, stays in the hut and the builder's inventory (MC
+     * {@code AbstractBuildingStructureBuilder.getRequiredItemsAndAmount}).
+     */
+    @Override
+    public List<KeepRule> keepRules(Building building, ItemCatalog catalog) {
+        List<KeepRule> out = new ArrayList<>(needs.remaining().size());
+        needs.remaining().forEach((item, n) -> out.add(new KeepRule(item::equals, n, true)));
+        return out;
     }
 
     public NeededResources needs() {

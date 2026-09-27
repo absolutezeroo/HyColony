@@ -8,6 +8,7 @@ import dev.hycolony.core.request.RequestManager;
 import dev.hycolony.core.request.Requester;
 import dev.hycolony.core.request.Resolver;
 import dev.hycolony.core.request.ResolverProvider;
+import dev.hycolony.core.request.model.Pickup;
 import dev.hycolony.core.request.model.RequesterId;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,6 +20,9 @@ import java.util.Optional;
 import java.util.Set;
 
 public final class Building implements Requester, ResolverProvider {
+    /** MC AbstractBuildingContainer.unscaledPickUpPriority default. */
+    public static final int DEFAULT_PICKUP_PRIORITY = 5;
+
     private final BuildingType type;
     private final BlockPos position;
     private final int rotation;
@@ -27,6 +31,7 @@ public final class Building implements Requester, ResolverProvider {
     private boolean deconstructed;
     private String customName = "";
     private String style = "";
+    private int pickupPriority = DEFAULT_PICKUP_PRIORITY;
     private final Map<String, BuildingModule> modules = new LinkedHashMap<>();
     private final Map<String, JsonObject> unknownModules = new LinkedHashMap<>();
     private final RequesterId requesterId;
@@ -113,6 +118,21 @@ public final class Building implements Requester, ResolverProvider {
 
     public void setStyle(String style) {
         this.style = style;
+    }
+
+    /** MC getPickUpPriority: 0 (never picked up) to {@link Pickup#MAX_BUILDING_PRIORITY}. */
+    public int pickupPriority() {
+        return pickupPriority;
+    }
+
+    /** Sets the pickup priority, clamped to 0..{@link Pickup#MAX_BUILDING_PRIORITY}. */
+    public void setPickupPriority(int priority) {
+        pickupPriority = Math.clamp(priority, 0, Pickup.MAX_BUILDING_PRIORITY);
+    }
+
+    /** MC alterPickUpPriority: adds {@code delta} (the window's +1/-1), clamped like {@link #setPickupPriority}. */
+    public void alterPickupPriority(int delta) {
+        setPickupPriority(pickupPriority + delta);
     }
 
     public Map<String, BuildingModule> modules() {

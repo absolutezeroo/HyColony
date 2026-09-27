@@ -56,6 +56,7 @@ Toutes reprises de MineColonies ; les références `§` renvoient à la recherch
 - Rangements = conteneurs Hytale du plan (coffres) au lieu des étagères MC.
 - Le constructeur est aujourd'hui le seul ouvrier : il demande un ramassage quand sa hutte est pleine et après un dépôt, selon la règle générique `AbstractEntityAIBasic` (§ 0.1). Aucun autre producteur tant que SP3 n'en ajoute pas.
 - Pluie : dépend de la météo Hytale (à vérifier, voir plus bas) ; si le serveur ne l'expose pas, le livreur travaille toujours, écart documenté.
+- Outils gardés (`KeepToolsModule`) : niveau maximal = niveau de la hutte (comme les demandes d'outil du constructeur), au lieu de `getMaxEquipmentLevel` de MC (N0 → 1, N5 → illimité). Le constructeur garde pioche, pelle et hache ; houe et cisailles n'existent pas dans `ToolType`.
 
 ## Architecture
 
