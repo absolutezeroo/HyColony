@@ -8,6 +8,8 @@ import dev.hycolony.core.construction.resources.BuildingResourcesModule;
 import dev.hycolony.core.job.Job;
 import dev.hycolony.core.job.JobXp;
 import dev.hycolony.core.job.WorkerModule;
+import dev.hycolony.core.job.work.ToolRequests;
+import dev.hycolony.core.job.work.WorkerStock;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.CitizenBodies;
@@ -20,8 +22,8 @@ import org.jspecify.annotations.Nullable;
 /**
  * What one builder's AI and its steps share (MC AbstractEntityAIBasic's worker, job and building): the builder, its
  * hut, and the collaborators that hold its items, requests, walks, gestures and structure. {@code hut}, {@code job},
- * {@code stock}, {@code requests} and {@code resources} are null for a builder without a hut, whose AI never runs:
- * their accessors are only called while it runs ({@link #hasHut()} tells).
+ * {@code stock}, {@code requests}, {@code tools} and {@code resources} are null for a builder without a hut, whose AI
+ * never runs: their accessors are only called while it runs ({@link #hasHut()} tells).
  */
 record BuilderContext(
         Colony colony,
@@ -31,8 +33,9 @@ record BuilderContext(
         WorldBlocks blocks,
         ItemCatalog catalog,
         @Nullable BuildingResourcesModule resources,
-        @Nullable BuilderStock stock,
+        @Nullable WorkerStock stock,
         @Nullable BuilderRequests requests,
+        @Nullable ToolRequests tools,
         BuilderWalker walker,
         BuilderGestures gestures,
         BuildSite site,
@@ -41,6 +44,9 @@ record BuilderContext(
         Skill secondary) {
 
     private static final String NO_HUT = "builder without a hut";
+
+    /** MC EntityAIStructureBuilder.ACTIONS_UNTIL_DUMP (the builder's own, not CitizenConstants' 32 for others). */
+    static final int ACTIONS_UNTIL_DUMP = 4096;
 
     /** The context of {@code citizen}'s builder AI, around the hut it works at (if any). */
     static BuilderContext of(Colony colony, CitizenData citizen, BodyId body) {
@@ -54,9 +60,14 @@ record BuilderContext(
                 hut == null ? null : hut.module(BuildingResourcesModule.class).orElse(null);
         WorkerModule worker =
                 hut == null ? null : hut.module(WorkerModule.class).orElse(null);
-        BuilderStock stock = hut == null ? null : new BuilderStock(colony, citizen, hut);
-        BuilderRequests requests =
-                hut == null || stock == null ? null : new BuilderRequests(colony, citizen, hut, stock);
+        WorkerStock stock = null;
+        BuilderRequests requests = null;
+        ToolRequests tools = null;
+        if (hut != null) {
+            stock = new WorkerStock(colony, citizen, hut, ACTIONS_UNTIL_DUMP);
+            requests = new BuilderRequests(colony, citizen, hut, stock);
+            tools = new ToolRequests(colony, citizen, hut);
+        }
         return new BuilderContext(
                 colony,
                 citizen,
@@ -67,6 +78,7 @@ record BuilderContext(
                 resources,
                 stock,
                 requests,
+                tools,
                 new BuilderWalker(bodies, body, colony.context().clock()::currentTick),
                 new BuilderGestures(bodies, body, colony.context().ports().effects()),
                 // Without a hut the AI never runs: the site gets a detached module it never touches.
@@ -105,13 +117,18 @@ record BuilderContext(
     }
 
     @Override
-    public BuilderStock stock() {
+    public WorkerStock stock() {
         return Objects.requireNonNull(stock, NO_HUT);
     }
 
     @Override
     public BuilderRequests requests() {
         return Objects.requireNonNull(requests, NO_HUT);
+    }
+
+    @Override
+    public ToolRequests tools() {
+        return Objects.requireNonNull(tools, NO_HUT);
     }
 
     boolean walkToHut() {

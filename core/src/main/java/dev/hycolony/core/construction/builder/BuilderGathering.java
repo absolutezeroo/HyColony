@@ -3,6 +3,7 @@ package dev.hycolony.core.construction.builder;
 import dev.hycolony.core.construction.resources.BuildingResourcesModule;
 import dev.hycolony.core.construction.resources.NeededResources;
 import dev.hycolony.core.construction.workorder.Stage;
+import dev.hycolony.core.job.work.WorkerStock;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.model.RequestState;
@@ -64,9 +65,12 @@ final class BuilderGathering {
         if (!ctx.walkToHut()) {
             return null;
         }
-        BuilderStock stock = ctx.stock();
+        WorkerStock stock = ctx.stock();
         ctx.requests().receiveCompletedBuildingRequests();
-        ctx.resources().currentBucket().ifPresent(stock::takeBucket);
+        ctx.resources()
+                .currentBucket()
+                .ifPresent(bucket -> bucket.forEach(
+                        (item, n) -> stock.take(item, n - stock.inventory().count(item))));
         ItemKey needed = neededItem;
         neededItem = null;
         if (needed != null && stock.inventory().count(needed) == 0 && !fetch(needed)) {
@@ -82,14 +86,14 @@ final class BuilderGathering {
 
     /** Takes the item from the hut; false when the hut has some but none fitted in the inventory. */
     private boolean fetch(ItemKey needed) {
-        BuilderStock stock = ctx.stock();
+        WorkerStock stock = ctx.stock();
         stock.take(needed, requestAmount(needed));
         return stock.inventory().count(needed) != 0 || stock.hutCount(needed) <= 0;
     }
 
     /** Requests what the current and next buckets miss (async), and the item needed now (sync). */
     private void request(@Nullable ItemKey needed) {
-        BuilderStock stock = ctx.stock();
+        WorkerStock stock = ctx.stock();
         Set<ItemKey> requested = ctx.requests().requestedItems();
         ctx.resources()
                 .missingForCurrentAndNext(stock.inventory(), stock::hutCount)

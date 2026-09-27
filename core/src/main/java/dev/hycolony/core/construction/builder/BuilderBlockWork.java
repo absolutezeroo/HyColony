@@ -106,9 +106,9 @@ final class BuilderBlockWork {
 
     /** MC checkForNeededTool: the hut's, else a tool request. */
     private @Nullable BuilderState fetchTool(ToolType type) {
-        ItemKey inHut = ctx.stock().toolInHut(type);
+        ItemKey inHut = ctx.stock().toolInHut(type).orElse(null);
         if (inHut == null) {
-            ctx.requests().requestTool(type);
+            ctx.tools().requestTool(type);
             return BuilderState.NEEDS_ITEM;
         }
         if (!ctx.walkToHut()) {

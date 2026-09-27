@@ -1,4 +1,4 @@
-package dev.hycolony.core.construction.builder;
+package dev.hycolony.core.job.work;
 
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
@@ -23,20 +23,18 @@ import java.util.function.ToIntFunction;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The builder's items: its inventory and its hut's containers (MC AbstractEntityAIBasic dump, pickup and tool
- * helpers). Its requests are {@link BuilderRequests}'.
+ * A worker's items: its inventory and its hut's containers (MC AbstractEntityAIBasic dumpInventory, keepX, pickup and
+ * getMostEfficientTool helpers). Any job composes one around its citizen and hut.
  */
-final class BuilderStock {
-    private static final System.Logger LOG = System.getLogger(BuilderStock.class.getName());
+public final class WorkerStock {
+    private static final System.Logger LOG = System.getLogger(WorkerStock.class.getName());
 
-    /** MC EntityAIStructureBuilder.ACTIONS_UNTIL_DUMP (the builder's own, not CitizenConstants' 32 for others). */
-    static final int ACTIONS_UNTIL_DUMP = 4096;
     /**
      * After a dump the full hut refused, the next full-inventory dump waits this many actions (drops meanwhile go to
      * the hut or are lost).
      */
     // ponytail: fixed retry, no hut capacity query in ContainerAccess; poll the hut's space if players complain.
-    static final int DUMP_RETRY_ACTIONS = 32;
+    private static final int DUMP_RETRY_ACTIONS = 32;
 
     private final Colony colony;
     private final CitizenData citizen;
@@ -44,23 +42,29 @@ final class BuilderStock {
     private final ItemCatalog catalog;
     private final ContainerAccess containers;
     private final ToIntFunction<ItemKey> maxStack;
+    private final int actionsUntilDump;
     private int dumpRetryAt;
 
-    BuilderStock(Colony colony, CitizenData citizen, Building hut) {
+    /**
+     * The stock of {@code citizen} working at {@code hut}, dumping every {@code actionsUntilDump} actions (MC
+     * getActionsDoneUntilDumping: CitizenConstants.ACTIONS_UNTIL_DUMP, 32, unless the job overrides it).
+     */
+    public WorkerStock(Colony colony, CitizenData citizen, Building hut, int actionsUntilDump) {
         this.colony = colony;
         this.citizen = citizen;
         this.hut = hut;
+        this.actionsUntilDump = actionsUntilDump;
         this.catalog = colony.context().ports().catalog();
         this.containers = colony.context().ports().containers();
         this.maxStack = catalog::maxStack;
     }
 
-    Inventory inventory() {
+    public Inventory inventory() {
         return citizen.inventory();
     }
 
     /** How many of {@code item} the hut holds, a worn-out tool apart (it serves nothing). */
-    int hutCount(ItemKey item) {
+    public int hutCount(ItemKey item) {
         int total = 0;
         for (BlockPos container : hut.containers()) {
             for (ItemAmount a : containers.stacks(container)) {
@@ -74,7 +78,7 @@ final class BuilderStock {
      * Moves up to {@code max} from the hut to the inventory, each stack with its damage; a worn-out tool stays in the
      * hut, and what does not fit goes back there. Returns how many landed in the inventory.
      */
-    int take(ItemKey item, int max) {
+    public int take(ItemKey item, int max) {
         if (max <= 0) {
             return 0;
         }
@@ -88,18 +92,13 @@ final class BuilderStock {
         return landed;
     }
 
-    /** Tops the inventory up to each amount of {@code bucket} from the hut. */
-    void takeBucket(Map<ItemKey, Integer> bucket) {
-        bucket.forEach((item, n) -> take(item, n - inventory().count(item)));
-    }
-
-    /** A dump every {@link #ACTIONS_UNTIL_DUMP} actions, or once the inventory is full and the retry delay passed. */
-    boolean dumpDue(int actionsDone) {
-        return actionsDone >= ACTIONS_UNTIL_DUMP || (inventory().isFull() && actionsDone >= dumpRetryAt);
+    /** A dump every {@code actionsUntilDump} actions, or once the inventory is full and the retry delay passed. */
+    public boolean dumpDue(int actionsDone) {
+        return actionsDone >= actionsUntilDump || (inventory().isFull() && actionsDone >= dumpRetryAt);
     }
 
     /** The next full-inventory dump happens at once, whatever the retry delay. */
-    void dumpNow() {
+    public void dumpNow() {
         dumpRetryAt = 0;
     }
 
@@ -109,7 +108,7 @@ final class BuilderStock {
      * store, the next full-inventory dump waits {@link #DUMP_RETRY_ACTIONS} instead of bouncing back at once. Then asks
      * a courier to empty the hut ({@link PickupRequests#afterDump}).
      */
-    void dump(Map<ItemKey, Integer> keep) {
+    public void dump(Map<ItemKey, Integer> keep) {
         int before = carried();
         boolean stored = storeAll(keep);
         dumpRetryAt = stored && !inventory().isFull() ? 0 : DUMP_RETRY_ACTIONS;
@@ -159,7 +158,7 @@ final class BuilderStock {
     }
 
     /** Drops go to the inventory, then the hut; what fits in neither is lost (logged). */
-    void storeDrops(List<ItemAmount> drops) {
+    public void storeDrops(List<ItemAmount> drops) {
         for (ItemAmount d : drops) {
             ItemAmount rest = inventory().insert(d, maxStack);
             if (rest != null) {
@@ -174,7 +173,7 @@ final class BuilderStock {
             colony.log().add("debrisLost", colony.day(), rest.item().id(), String.valueOf(rest.count()));
             LOG.log(
                     System.Logger.Level.DEBUG,
-                    "Builder {0}: {1} x {2} lost, inventory and hut full",
+                    "Worker {0}: {1} x {2} lost, inventory and hut full",
                     citizen.name(),
                     rest.count(),
                     rest.item().id());
@@ -183,10 +182,10 @@ final class BuilderStock {
 
     /**
      * MC getMostEfficientTool: the slot of the lowest-level tool of {@code type} in the inventory within the hut's max
-     * equipment level (the least powerful one that does the job), the first such slot; empty if none. The builder
+     * equipment level (the least powerful one that does the job), the first such slot; empty if none. The worker
      * holds and wears that slot (MC setHeldItem(hand, slot)).
      */
-    OptionalInt toolInInventory(ToolType type) {
+    public OptionalInt toolInInventory(ToolType type) {
         int best = -1;
         int bestLevel = Integer.MAX_VALUE;
         for (int i = 0; i < inventory().size(); i++) {
@@ -200,17 +199,16 @@ final class BuilderStock {
         return best < 0 ? OptionalInt.empty() : OptionalInt.of(best);
     }
 
-    /** A tool of {@code type} within the hut's max equipment level stored in the hut, or null. */
-    @Nullable
-    ItemKey toolInHut(ToolType type) {
+    /** A tool of {@code type} within the hut's max equipment level stored in the hut; empty if none. */
+    public Optional<ItemKey> toolInHut(ToolType type) {
         for (BlockPos container : hut.containers()) {
             for (ItemAmount a : containers.stacks(container)) {
                 if (usableTool(a, type) != null) {
-                    return a.item();
+                    return Optional.of(a.item());
                 }
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     /** {@code a}'s tool info when it is a tool of {@code type} the hut allows and not worn out, else null. */
@@ -221,7 +219,8 @@ final class BuilderStock {
                 : null;
     }
 
-    float toolSpeed(@Nullable ItemKey tool) {
+    /** The speed of {@code tool}; 1 for bare hands or an item that is no tool. */
+    public float toolSpeed(@Nullable ItemKey tool) {
         return tool == null ? 1f : catalog.tool(tool).map(ToolInfo::speed).orElse(1f);
     }
 }

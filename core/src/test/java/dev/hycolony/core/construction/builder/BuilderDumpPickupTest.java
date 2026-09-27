@@ -8,6 +8,7 @@ import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
+import dev.hycolony.core.job.work.WorkerStock;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
@@ -32,7 +33,7 @@ class BuilderDumpPickupTest {
     private final Colony colony;
     private final Building hut;
     private final CitizenData citizen = new CitizenData(1);
-    private final BuilderStock stock;
+    private final WorkerStock stock;
 
     BuilderDumpPickupTest() {
         UUID alice = UUID.randomUUID();
@@ -42,7 +43,7 @@ class BuilderDumpPickupTest {
         manager.huts().place(colony, ConstructionBuildingTypes.BUILDER.id(), HUT, 0);
         hut = colony.buildings().at(HUT).orElseThrow();
         colony.citizens().restore(citizen);
-        stock = new BuilderStock(colony, citizen, hut);
+        stock = new WorkerStock(colony, citizen, hut, BuilderContext.ACTIONS_UNTIL_DUMP);
     }
 
     private List<Pickup> pickups() {

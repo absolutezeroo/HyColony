@@ -3,15 +3,14 @@ package dev.hycolony.core.construction.builder;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.job.work.WorkerStock;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
-import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.RequestManager;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.Requestable;
 import dev.hycolony.core.request.model.StackRequest;
-import dev.hycolony.core.request.model.ToolRequest;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -20,15 +19,15 @@ import java.util.Set;
  * The builder's requests (MC AbstractEntityAIBasic request helpers). Every request is filed under the builder hut.
  * Bucket requests are the building's (citizen -1, async: they never block); the request for the item needed right now
  * carries the citizen's id (sync: the builder waits for it in NEEDS_ITEM). Deliveries are picked up from the hut
- * through {@link BuilderStock}.
+ * through {@link WorkerStock}; tools are asked by {@link dev.hycolony.core.job.work.ToolRequests}.
  */
 final class BuilderRequests {
     private final Colony colony;
     private final CitizenData citizen;
     private final Building hut;
-    private final BuilderStock stock;
+    private final WorkerStock stock;
 
-    BuilderRequests(Colony colony, CitizenData citizen, Building hut, BuilderStock stock) {
+    BuilderRequests(Colony colony, CitizenData citizen, Building hut, WorkerStock stock) {
         this.colony = colony;
         this.citizen = citizen;
         this.hut = hut;
@@ -119,19 +118,6 @@ final class BuilderRequests {
                         && r.citizenId() == citizen.id()
                         && r.state().isBefore(RequestState.COMPLETED)
                         && hut.resolvers().stream().anyMatch(res -> res.canResolve(requests(), r)));
-    }
-
-    /**
-     * One ToolRequest(type, 0, hut max equipment level) unless one of that type is live (MC checkForToolOrWeapon:
-     * {@code Tool(type, TOOL_LEVEL_WOOD_OR_GOLD, max(maxEquip, min))}; min is 0, so the max is maxEquip).
-     */
-    void requestTool(ToolType type) {
-        for (Request r : requests().byRequester(hut.requesterId())) {
-            if (r.requestable() instanceof ToolRequest t && t.type() == type) {
-                return;
-            }
-        }
-        request(new ToolRequest(type, 0, hut.maxEquipmentLevel()));
     }
 
     /**
