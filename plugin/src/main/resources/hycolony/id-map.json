@@ -9,7 +9,10 @@
   "blocks": {
     "hut.townhall": "HyColony_TownHall",
     "hut.builder": "HyColony_Hut_Builder",
-    "hut.residence": "HyColony_Hut_Residence"
+    "hut.residence": "HyColony_Hut_Residence",
+    "selftest.stair_corner": "*Rock_Stone_Brick_Stairs_State_Definitions_Corner_Right",
+    "selftest.door": "Furniture_Crude_Door",
+    "selftest.door_open": "*Furniture_Crude_Door_State_Definitions_OpenDoorIn"
   },
   "npcRoles": { "npc.citizen": "HyColony_Citizen" },
   "fireworks": ["Firework_Mix2", "Firework_Mix3", "Firework_Mix4"],

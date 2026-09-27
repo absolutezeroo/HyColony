@@ -158,11 +158,8 @@ public final class HytaleBlueprintSource implements BlueprintSource {
                         if (type == null) {
                             return;
                         }
-                        String id = type.getId();
-                        if (id.startsWith("*") && type.getDefaultStateKey() != null) {
-                            id = type.getDefaultStateKey();
-                            type = BlockType.getAssetMap().getAsset(id);
-                        }
+                        String id = HytaleWorldBlocks.blockKey(type);
+                        type = BlockType.getAssetMap().getAsset(id);
                         if (type == null
                                 || id.equals("Empty")
                                 || id.equals("Block_Spawner_Block")

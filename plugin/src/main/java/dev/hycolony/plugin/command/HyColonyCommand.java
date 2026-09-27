@@ -2,6 +2,7 @@ package dev.hycolony.plugin.command;
 
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
 import com.hypixel.hytale.server.core.command.system.arguments.system.RequiredArg;
 import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
@@ -32,6 +33,7 @@ import dev.hycolony.plugin.IdMap;
 import dev.hycolony.plugin.WorldRuntime;
 import dev.hycolony.plugin.WorldRuntimes;
 import dev.hycolony.plugin.adapter.HytaleNotifier;
+import dev.hycolony.plugin.adapter.HytaleWorldBlocks;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -227,6 +229,7 @@ public final class HyColonyCommand extends AbstractCommandCollection {
             }
 
             construction(player, rt, where(store, ref), ids);
+            blockKeys(player, ids);
 
             // Tag (-1, -1): if this body survives a crash, onBodyLoaded finds no colony -1 and despawns it.
             Optional<BodyId> body = rt.bodies().spawn(null, where(store, ref).offset(2, 0, 0), -1, -1, "SelfTest");
@@ -300,6 +303,19 @@ public final class HyColonyCommand extends AbstractCommandCollection {
             } catch (RuntimeException e) {
                 report(player, "construction", false, e.toString());
             }
+        }
+
+        /** A stair corner keeps its variant id through blockKey; an open door reads as its base block. */
+        private static void blockKeys(PlayerRef player, IdMap ids) {
+            String corner = ids.blockId("selftest.stair_corner");
+            String door = ids.blockId("selftest.door_open");
+            BlockType cornerType = BlockType.getAssetMap().getAsset(corner);
+            BlockType doorType = BlockType.getAssetMap().getAsset(door);
+            boolean ok = cornerType != null
+                    && doorType != null
+                    && corner.equals(HytaleWorldBlocks.blockKey(cornerType))
+                    && ids.blockId("selftest.door").equals(HytaleWorldBlocks.blockKey(doorType));
+            report(player, "block keys", ok, corner + " kept, " + door + " normalized");
         }
 
         private static void report(PlayerRef player, String step, boolean ok, String detail) {

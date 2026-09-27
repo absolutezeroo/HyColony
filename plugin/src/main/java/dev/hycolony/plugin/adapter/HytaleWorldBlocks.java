@@ -16,6 +16,9 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.BlockOperations;
 import com.hypixel.hytale.server.core.universe.world.chunk.section.BlockSection;
 import com.hypixel.hytale.server.core.universe.world.chunk.section.FluidSection;
+import com.hypixel.hytale.server.core.universe.world.connectedblocks.ConnectedBlockRuleSet;
+import com.hypixel.hytale.server.core.universe.world.connectedblocks.CustomTemplateConnectedBlockRuleSet;
+import com.hypixel.hytale.server.core.universe.world.connectedblocks.builtin.StairLikeConnectedBlockRuleSet;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.util.FillerBlockUtil;
 import dev.hycolony.core.kernel.BlockPos;
@@ -34,8 +37,9 @@ import org.joml.Vector3i;
 
 /**
  * WorldBlocks over the section API (cheat sheet § 1). Never loads a chunk, never throws. Fluids are reported as the
- * pseudo-key {@code ~fluid:<FluidId>}; state variants ({@code *…}) are reported as their base block. A filler cell
- * holds its origin's block id and rotation ({@code FillerBlockUtil.setFillerBlocksAt}), so it reports the origin's
+ * pseudo-key {@code ~fluid:<FluidId>}; state variants ({@code *…}) are reported as their base block, except
+ * connected-block shapes ({@link #blockKey}). A filler cell holds its origin's block id and rotation
+ * ({@code FillerBlockUtil.setFillerBlocksAt}), so it reports the origin's
  * key: a hut's filler cells read as the hut, which the catalog calls UNBREAKABLE. A block that cannot rotate
  * ({@code VariantRotation.None}) reads as rotation 0, like its blueprint entry. World thread only.
  */
@@ -273,16 +277,36 @@ public final class HytaleWorldBlocks implements WorldBlocks {
             if (type == null) {
                 return Optional.empty(); // not cached: the asset may appear later
             }
-            String key = type.getId();
-            if (key.startsWith("*") && type.getDefaultStateKey() != null) {
-                key = type.getDefaultStateKey(); // a state variant (e.g. an open chest) is its base block
-            }
+            String key = blockKey(type);
             // A block that cannot rotate still stores the index it was placed with (a prefab adds its yaw to every
             // block): reported as 0 so it matches its blueprint entry and natural terrain.
             int r = type.getVariantRotation() == VariantRotation.None ? 0 : rotation;
             cached = byRotation[rotation] = Optional.of(new BlockState(new BlockKey(key), r));
         }
         return cached;
+    }
+
+    /**
+     * The key the builder places and compares: a connected-block shape state (stair or roof corner, roof Topper,
+     * fence Corner/T/Cross) keeps its variant id, as vanilla prefab pasting writes it; any other state variant
+     * ({@code *…}, e.g. an open door or chest) is its base block, so a player's interaction is not rebuilt.
+     */
+    public static String blockKey(BlockType type) {
+        String id = type.getId();
+        String base = type.getDefaultStateKey();
+        if (!id.startsWith("*") || base == null) {
+            return id;
+        }
+        ConnectedBlockRuleSet rules = type.getConnectedBlockRuleSet();
+        if (rules instanceof StairLikeConnectedBlockRuleSet) {
+            return id; // every stair and roof state is a shape
+        }
+        if (rules instanceof CustomTemplateConnectedBlockRuleSet template
+                && !template.getShapesForBlockType(BlockType.getAssetMap().getIndex(id))
+                        .isEmpty()) {
+            return id;
+        }
+        return base;
     }
 
     private Optional<BlockState> fluidState(int fluid) {
