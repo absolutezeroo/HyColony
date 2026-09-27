@@ -41,14 +41,14 @@ public final class WorkOrderActions {
             return Optional.of(WorkOrderRefusal.INVALID_TYPE); // the hut is gone
         }
         Either<WorkOrder, WorkOrderRefusal> r = c.work().request(player, hutPos, type, style, Optional.empty());
-        if (r instanceof Either.Right<WorkOrder, WorkOrderRefusal> refused) {
+        if (r instanceof Either.Right(var refusal)) {
             manager.context()
                     .notifier()
                     .send(
                             player,
                             Msg.of("hycolony.workorder.refused."
-                                    + refused.value().name().toLowerCase(Locale.ROOT)));
-            return Optional.of(refused.value());
+                                    + refusal.name().toLowerCase(Locale.ROOT)));
+            return Optional.of(refusal);
         }
         windows.showBuilding(c, b, player);
         return Optional.empty();

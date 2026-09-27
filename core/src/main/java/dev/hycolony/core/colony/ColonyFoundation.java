@@ -52,10 +52,10 @@ public final class ColonyFoundation {
         }
         String name = validated.get();
         HutPlacement check = huts.checkPlacement(player, p.pos(), BuildingTypes.TOWN_HALL.id());
-        if (check instanceof HutPlacement.Denied denied) {
+        if (check instanceof HutPlacement.Denied(var reason)) {
             // Same as a cancel; the adapter sees pendingPositionOf go empty and removes the block.
             cancel(player);
-            manager.context().notifier().send(player, denied.reason());
+            manager.context().notifier().send(player, reason);
             return Optional.empty();
         }
         pending.remove(player);

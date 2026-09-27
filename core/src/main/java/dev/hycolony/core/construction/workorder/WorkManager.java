@@ -63,10 +63,8 @@ public final class WorkManager {
             return new Either.Right<>(WorkOrderRefusal.ALREADY_EXISTS);
         }
         return switch (validation.check(b, type, style, builder)) {
-            case Either.Right<WorkOrderValidation.Accepted, WorkOrderRefusal> refused ->
-                new Either.Right<>(refused.value());
-            case Either.Left<WorkOrderValidation.Accepted, WorkOrderRefusal> accepted ->
-                new Either.Left<>(create(player, b, type, builder, accepted.value()));
+            case Either.Right(var refusal) -> new Either.Right<>(refusal);
+            case Either.Left(var accepted) -> new Either.Left<>(create(player, b, type, builder, accepted));
         };
     }
 

@@ -77,8 +77,8 @@ final class WandPlacement {
             return location.get();
         }
         HutPlacement check = manager.huts().checkHutRules(player, pos, s.buildingTypeId());
-        if (check instanceof HutPlacement.Denied denied) {
-            return new Refused(denied.reason());
+        if (check instanceof HutPlacement.Denied(var reason)) {
+            return new Refused(reason);
         }
         return place(player, playerName, s, type.get(), check);
     }
@@ -140,11 +140,11 @@ final class WandPlacement {
         if (!creative) {
             ports().playerInventory().take(player, item, 1);
         }
-        if (check instanceof HutPlacement.Allowed allowed) {
-            manager.huts().place(allowed.colony(), type.id(), pos, s.rotation());
-            Building building = allowed.colony().buildings().at(pos).orElseThrow();
+        if (check instanceof HutPlacement.Allowed(var colony)) {
+            manager.huts().place(colony, type.id(), pos, s.rotation());
+            Building building = colony.buildings().at(pos).orElseThrow();
             building.setStyle(s.style());
-            allowed.colony().markDirty();
+            colony.markDirty();
             return new Placed(building);
         }
         manager.foundation().begin(player, playerName, pos, s.rotation(), s.style());

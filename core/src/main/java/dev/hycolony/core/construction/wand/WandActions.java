@@ -135,8 +135,8 @@ public final class WandActions {
     public boolean confirm(UUID player, String playerName) {
         WandSession s = sessions.get(player);
         WandPlacement.Result result = placement.confirm(player, playerName, s);
-        if (result instanceof WandPlacement.Refused refused) {
-            manager.context().notifier().send(player, refused.reason());
+        if (result instanceof WandPlacement.Refused(var reason)) {
+            manager.context().notifier().send(player, reason);
             show(player, s);
             return false;
         }
