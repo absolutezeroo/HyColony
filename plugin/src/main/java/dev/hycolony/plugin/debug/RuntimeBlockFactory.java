@@ -48,8 +48,11 @@ final class RuntimeBlockFactory {
         this.packKey = packKey;
     }
 
-    /** Blue tent texture with red vertical stripes, read from the loaded common assets; throws if one is missing. */
-    byte[] composeTexture() {
+    /**
+     * Blue tent texture with red vertical stripes, read from the loaded common assets, its first pixel set from
+     * {@code n} so every texture has its own hash; throws if a source is missing.
+     */
+    byte[] composeTexture(int n) {
         BufferedImage base = read(BASE_TEXTURE);
         BufferedImage stripes = read(STRIPE_TEXTURE);
         if (base.getWidth() != stripes.getWidth() || base.getHeight() != stripes.getHeight()) {
@@ -62,6 +65,8 @@ final class RuntimeBlockFactory {
                 out.setRGB(x, y, src.getRGB(x, y));
             }
         }
+        // Identical bytes under new names gave missing textures in game: rule out a client cache keyed by hash.
+        out.setRGB(0, 0, 0xFF000000 | n);
         try (ByteArrayOutputStream bytes = new ByteArrayOutputStream()) {
             ImageIO.write(out, "png", bytes);
             return bytes.toByteArray();

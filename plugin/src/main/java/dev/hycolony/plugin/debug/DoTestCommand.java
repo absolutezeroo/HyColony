@@ -5,6 +5,8 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
+import com.hypixel.hytale.server.core.command.system.arguments.system.DefaultArg;
+import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
 import com.hypixel.hytale.server.core.command.system.basecommands.AbstractPlayerCommand;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
@@ -13,9 +15,11 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.kernel.port.Msg;
 import dev.hycolony.plugin.adapter.HytaleNotifier;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import javax.annotation.Nonnull;
@@ -36,11 +40,14 @@ public final class DoTestCommand extends AbstractPlayerCommand {
     // Commands from different worlds run on different threads.
     private final Queue<Placed> placed = new ConcurrentLinkedQueue<>();
     private final AtomicInteger next = new AtomicInteger(1);
+    private final DefaultArg<Integer> delayMs;
 
     /** @param packKey the plugin's asset pack name ({@code getIdentifier().toString()}) */
     public DoTestCommand(String packKey) {
         super("dotest", "Runtime block type experiment (operators)");
         this.factory = new RuntimeBlockFactory(packKey);
+        // --delay=<ms> between the texture and the BlockType, to test whether the client needs its rebuild finished.
+        this.delayMs = withDefaultArg("delay", "Milliseconds between texture and block type", ArgTypes.INTEGER, 0, "0");
         setPermissionGroups(new String[0]);
         addSubCommand(new Clear());
     }
@@ -58,29 +65,44 @@ public final class DoTestCommand extends AbstractPlayerCommand {
             @Nonnull World world) {
         int n = next.getAndIncrement();
         Placed at = inFront(store, ref, world);
+        long start = System.nanoTime();
         // World.tick holds AssetRegistry.ASSET_LOCK's read lock and loadAssets needs its write lock: loading assets on
         // the world thread deadlocks it (a ReentrantReadWriteLock cannot upgrade).
-        CompletableFuture.runAsync(() -> create(n, at, player)).whenComplete((v, t) -> {
-            if (t != null) {
-                LOG.at(Level.SEVERE).withCause(t).log("dotest %d failed", n);
-            }
-        });
+        CompletableFuture.supplyAsync(() -> createTexture(n, player))
+                .thenAcceptAsync(
+                        texture -> createBlock(n, texture, at, player, start),
+                        CompletableFuture.delayedExecutor(Math.max(0, ctx.get(delayMs)), TimeUnit.MILLISECONDS))
+                .whenComplete((v, t) -> {
+                    if (t != null) {
+                        LOG.at(Level.SEVERE).withCause(t).log("dotest %d failed", n);
+                    }
+                });
     }
 
-    /** Off the world thread: registers texture and BlockType {@code HyColony_DoTest_<n>}, then queues the placing. */
-    private void create(int n, Placed at, PlayerRef player) {
-        String id = "HyColony_DoTest_" + n;
+    /** Off the world thread: composes and registers texture {@code Test_<n>}; returns its name, empty on failure. */
+    private Optional<String> createTexture(int n, PlayerRef player) {
         String step = "compose";
         try {
-            byte[] png = factory.composeTexture();
-            long start = System.nanoTime();
+            byte[] png = factory.composeTexture(n);
             step = "texture";
-            String texture = factory.registerTexture("Test_" + n, png);
-            step = "blocktype";
-            factory.registerBlockType(id, texture);
+            return Optional.of(factory.registerTexture("Test_" + n, png));
+        } catch (RuntimeException e) {
+            fail(e, step, "Test_" + n, player);
+            return Optional.empty();
+        }
+    }
+
+    /** Off the world thread: loads BlockType {@code HyColony_DoTest_<n>} with {@code texture}, then queues placing. */
+    private void createBlock(int n, Optional<String> texture, Placed at, PlayerRef player, long start) {
+        if (texture.isEmpty()) {
+            return;
+        }
+        String id = "HyColony_DoTest_" + n;
+        try {
+            factory.registerBlockType(id, texture.get());
             at.world().execute(() -> place(id, at, player, start));
         } catch (RuntimeException e) {
-            fail(e, step, id, player);
+            fail(e, "blocktype", id, player);
         }
     }
 
