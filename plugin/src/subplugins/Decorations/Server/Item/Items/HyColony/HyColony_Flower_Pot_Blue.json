@@ -28,10 +28,10 @@
     "Material": "Solid",
     "DrawType": "Model",
     "Opacity": "Transparent",
-    "CustomModel": "Blocks/HyColony/Flower_Pot/Empty.blockymodel",
+    "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Empty.blockymodel",
     "CustomModelTexture": [
       {
-        "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+        "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
         "Weight": 1
       }
     ],
@@ -60,10 +60,10 @@
     "State": {
       "Definitions": {
         "Plant_Flower_Bushy_Blue": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Bushy_Blue.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Bushy_Blue.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -92,10 +92,10 @@
           }
         },
         "Plant_Flower_Bushy_Cyan": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Bushy_Cyan.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Bushy_Cyan.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -124,10 +124,10 @@
           }
         },
         "Plant_Flower_Bushy_Green": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Bushy_Green.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Bushy_Green.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -156,10 +156,10 @@
           }
         },
         "Plant_Flower_Bushy_Grey": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Bushy_Grey.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Bushy_Grey.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -188,10 +188,10 @@
           }
         },
         "Plant_Flower_Bushy_Orange": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Bushy_Orange.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Bushy_Orange.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -223,10 +223,10 @@
           }
         },
         "Plant_Flower_Bushy_Poisoned": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Bushy_Poisoned.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Bushy_Poisoned.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -255,10 +255,10 @@
           }
         },
         "Plant_Flower_Bushy_Purple": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Bushy_Purple.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Bushy_Purple.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -287,10 +287,10 @@
           }
         },
         "Plant_Flower_Bushy_Red": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Bushy_Red.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Bushy_Red.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -319,10 +319,10 @@
           }
         },
         "Plant_Flower_Bushy_Violet": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Bushy_Violet.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Bushy_Violet.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -351,10 +351,10 @@
           }
         },
         "Plant_Flower_Bushy_White": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Bushy_White.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Bushy_White.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -383,10 +383,10 @@
           }
         },
         "Plant_Flower_Bushy_Yellow": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Bushy_Yellow.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Bushy_Yellow.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -415,10 +415,10 @@
           }
         },
         "Plant_Flower_Common_Blue": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Common_Blue.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Common_Blue.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -447,10 +447,10 @@
           }
         },
         "Plant_Flower_Common_Blue2": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Common_Blue2.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Common_Blue2.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -479,10 +479,10 @@
           }
         },
         "Plant_Flower_Common_Cyan": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Common_Cyan.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Common_Cyan.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -511,10 +511,10 @@
           }
         },
         "Plant_Flower_Common_Cyan2": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Common_Cyan2.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Common_Cyan2.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -543,10 +543,10 @@
           }
         },
         "Plant_Flower_Common_Grey": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Common_Grey.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Common_Grey.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -575,10 +575,10 @@
           }
         },
         "Plant_Flower_Common_Grey2": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Common_Grey2.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Common_Grey2.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -607,10 +607,10 @@
           }
         },
         "Plant_Flower_Common_Lime": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Common_Lime.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Common_Lime.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -639,10 +639,10 @@
           }
         },
         "Plant_Flower_Common_Lime2": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Common_Lime2.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Common_Lime2.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -671,10 +671,10 @@
           }
         },
         "Plant_Flower_Common_Orange": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Common_Orange.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Common_Orange.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -703,10 +703,10 @@
           }
         },
         "Plant_Flower_Common_Orange2": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Common_Orange2.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Common_Orange2.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -735,10 +735,10 @@
           }
         },
         "Plant_Flower_Common_Pink": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Common_Pink.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Common_Pink.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -771,10 +771,10 @@
           }
         },
         "Plant_Flower_Common_Pink2": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Common_Pink2.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Common_Pink2.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -803,10 +803,10 @@
           }
         },
         "Plant_Flower_Common_Poisoned": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Common_Poisoned.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Common_Poisoned.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -835,10 +835,10 @@
           }
         },
         "Plant_Flower_Common_Poisoned2": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Common_Poisoned2.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Common_Poisoned2.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -870,10 +870,10 @@
           }
         },
         "Plant_Flower_Common_Purple": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Common_Purple.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Common_Purple.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -902,10 +902,10 @@
           }
         },
         "Plant_Flower_Common_Purple2": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Common_Purple2.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Common_Purple2.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -934,10 +934,10 @@
           }
         },
         "Plant_Flower_Common_Red": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Common_Red.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Common_Red.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -966,10 +966,10 @@
           }
         },
         "Plant_Flower_Common_Red2": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Common_Red2.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Common_Red2.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -998,10 +998,10 @@
           }
         },
         "Plant_Flower_Common_Violet": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Common_Violet.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Common_Violet.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -1030,10 +1030,10 @@
           }
         },
         "Plant_Flower_Common_Violet2": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Common_Violet2.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Common_Violet2.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -1062,10 +1062,10 @@
           }
         },
         "Plant_Flower_Common_White": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Common_White.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Common_White.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -1094,10 +1094,10 @@
           }
         },
         "Plant_Flower_Common_White2": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Common_White2.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Common_White2.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -1126,10 +1126,10 @@
           }
         },
         "Plant_Flower_Common_Yellow": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Common_Yellow.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Common_Yellow.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -1158,10 +1158,10 @@
           }
         },
         "Plant_Flower_Common_Yellow2": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Common_Yellow2.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Common_Yellow2.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -1190,10 +1190,10 @@
           }
         },
         "Plant_Flower_Flax_Blue": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Flax_Blue.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Flax_Blue.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -1222,10 +1222,10 @@
           }
         },
         "Plant_Flower_Flax_Orange": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Flax_Orange.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Flax_Orange.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -1257,10 +1257,10 @@
           }
         },
         "Plant_Flower_Flax_Pink": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Flax_Pink.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Flax_Pink.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -1289,10 +1289,10 @@
           }
         },
         "Plant_Flower_Flax_Purple": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Flax_Purple.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Flax_Purple.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -1321,10 +1321,10 @@
           }
         },
         "Plant_Flower_Flax_White": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Flax_White.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Flax_White.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -1353,10 +1353,10 @@
           }
         },
         "Plant_Flower_Flax_Yellow": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Flax_Yellow.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Flax_Yellow.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -1385,10 +1385,10 @@
           }
         },
         "Plant_Flower_Hemlock": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Hemlock.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Hemlock.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -1420,10 +1420,10 @@
           }
         },
         "Plant_Flower_Orchid_Blue": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Orchid_Blue.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Orchid_Blue.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -1455,10 +1455,10 @@
           }
         },
         "Plant_Flower_Orchid_Cyan": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Orchid_Cyan.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Orchid_Cyan.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -1490,10 +1490,10 @@
           }
         },
         "Plant_Flower_Orchid_Orange": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Orchid_Orange.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Orchid_Orange.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -1522,10 +1522,10 @@
           }
         },
         "Plant_Flower_Orchid_Pink": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Orchid_Pink.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Orchid_Pink.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -1554,10 +1554,10 @@
           }
         },
         "Plant_Flower_Orchid_Poisoned": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Orchid_Poisoned.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Orchid_Poisoned.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -1586,10 +1586,10 @@
           }
         },
         "Plant_Flower_Orchid_Purple": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Orchid_Purple.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Orchid_Purple.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -1618,10 +1618,10 @@
           }
         },
         "Plant_Flower_Orchid_Red": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Orchid_Red.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Orchid_Red.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -1650,10 +1650,10 @@
           }
         },
         "Plant_Flower_Orchid_White": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Orchid_White.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Orchid_White.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -1682,10 +1682,10 @@
           }
         },
         "Plant_Flower_Orchid_Yellow": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Orchid_Yellow.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Orchid_Yellow.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -1714,10 +1714,10 @@
           }
         },
         "Plant_Flower_Poisoned_Orange": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Poisoned_Orange.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Poisoned_Orange.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -1746,10 +1746,10 @@
           }
         },
         "Plant_Flower_Tall_Blue": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Tall_Blue.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Tall_Blue.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -1778,10 +1778,10 @@
           }
         },
         "Plant_Flower_Tall_Cyan": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Tall_Cyan.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Tall_Cyan.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -1813,10 +1813,10 @@
           }
         },
         "Plant_Flower_Tall_Cyan2": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Tall_Cyan2.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Tall_Cyan2.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -1845,10 +1845,10 @@
           }
         },
         "Plant_Flower_Tall_Pink": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Tall_Pink.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Tall_Pink.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -1877,10 +1877,10 @@
           }
         },
         "Plant_Flower_Tall_Purple": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Tall_Purple.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Tall_Purple.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -1909,10 +1909,10 @@
           }
         },
         "Plant_Flower_Tall_Red": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Tall_Red.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Tall_Red.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -1945,10 +1945,10 @@
           }
         },
         "Plant_Flower_Tall_Violet": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Tall_Violet.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Tall_Violet.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -1977,10 +1977,10 @@
           }
         },
         "Plant_Flower_Tall_Yellow": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Flower_Tall_Yellow.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Flower_Tall_Yellow.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -2009,10 +2009,10 @@
           }
         },
         "Plant_Sapling_Amber": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Sapling_Amber.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Sapling_Amber.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -2041,10 +2041,10 @@
           }
         },
         "Plant_Sapling_Apple": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Sapling_Apple.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Sapling_Apple.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -2073,10 +2073,10 @@
           }
         },
         "Plant_Sapling_Ash": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Sapling_Ash.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Sapling_Ash.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -2105,10 +2105,10 @@
           }
         },
         "Plant_Sapling_Aspen": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Sapling_Aspen.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Sapling_Aspen.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -2137,10 +2137,10 @@
           }
         },
         "Plant_Sapling_Azure": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Sapling_Azure.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Sapling_Azure.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -2169,10 +2169,10 @@
           }
         },
         "Plant_Sapling_Bamboo": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Sapling_Bamboo.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Sapling_Bamboo.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -2201,10 +2201,10 @@
           }
         },
         "Plant_Sapling_Banyan": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Sapling_Banyan.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Sapling_Banyan.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -2233,10 +2233,10 @@
           }
         },
         "Plant_Sapling_Beech": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Sapling_Beech.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Sapling_Beech.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -2265,10 +2265,10 @@
           }
         },
         "Plant_Sapling_Birch": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Sapling_Birch.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Sapling_Birch.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -2297,10 +2297,10 @@
           }
         },
         "Plant_Sapling_Bottletree": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Sapling_Bottletree.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Sapling_Bottletree.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -2329,10 +2329,10 @@
           }
         },
         "Plant_Sapling_Camphor": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Sapling_Camphor.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Sapling_Camphor.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -2361,10 +2361,10 @@
           }
         },
         "Plant_Sapling_Cedar": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Sapling_Cedar.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Sapling_Cedar.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -2393,10 +2393,10 @@
           }
         },
         "Plant_Sapling_Crystal": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Sapling_Crystal.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Sapling_Crystal.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -2425,10 +2425,10 @@
           }
         },
         "Plant_Sapling_Dry": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Sapling_Dry.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Sapling_Dry.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -2457,10 +2457,10 @@
           }
         },
         "Plant_Sapling_Fig_Blue": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Sapling_Fig_Blue.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Sapling_Fig_Blue.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -2489,10 +2489,10 @@
           }
         },
         "Plant_Sapling_Fire": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Sapling_Fire.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Sapling_Fire.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -2521,10 +2521,10 @@
           }
         },
         "Plant_Sapling_Gumboab": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Sapling_Gumboab.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Sapling_Gumboab.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -2553,10 +2553,10 @@
           }
         },
         "Plant_Sapling_Ice": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Sapling_Ice.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Sapling_Ice.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -2585,10 +2585,10 @@
           }
         },
         "Plant_Sapling_Jungle": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Sapling_Jungle.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Sapling_Jungle.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -2617,10 +2617,10 @@
           }
         },
         "Plant_Sapling_Maple": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Sapling_Maple.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Sapling_Maple.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -2649,10 +2649,10 @@
           }
         },
         "Plant_Sapling_Oak": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Sapling_Oak.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Sapling_Oak.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -2681,10 +2681,10 @@
           }
         },
         "Plant_Sapling_Palm": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Sapling_Palm.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Sapling_Palm.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -2713,10 +2713,10 @@
           }
         },
         "Plant_Sapling_Palo": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Sapling_Palo.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Sapling_Palo.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -2745,10 +2745,10 @@
           }
         },
         "Plant_Sapling_Petrified": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Sapling_Petrified.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Sapling_Petrified.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -2777,10 +2777,10 @@
           }
         },
         "Plant_Sapling_Poisoned": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Sapling_Poisoned.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Sapling_Poisoned.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -2809,10 +2809,10 @@
           }
         },
         "Plant_Sapling_Redwood": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Sapling_Redwood.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Sapling_Redwood.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -2841,10 +2841,10 @@
           }
         },
         "Plant_Sapling_Sallow": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Sapling_Sallow.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Sapling_Sallow.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -2873,10 +2873,10 @@
           }
         },
         "Plant_Sapling_Spiral": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Sapling_Spiral.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Sapling_Spiral.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -2905,10 +2905,10 @@
           }
         },
         "Plant_Sapling_Spruce": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Sapling_Spruce.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Sapling_Spruce.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -2937,10 +2937,10 @@
           }
         },
         "Plant_Sapling_Spruce_Frozen": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Sapling_Spruce_Frozen.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Sapling_Spruce_Frozen.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -2969,10 +2969,10 @@
           }
         },
         "Plant_Sapling_Stormbark": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Sapling_Stormbark.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Sapling_Stormbark.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -3001,10 +3001,10 @@
           }
         },
         "Plant_Sapling_Windwillow": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Sapling_Windwillow.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Sapling_Windwillow.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -3033,10 +3033,10 @@
           }
         },
         "Plant_Sapling_Wisteria_Wild": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Sapling_Wisteria_Wild.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Sapling_Wisteria_Wild.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -3065,10 +3065,10 @@
           }
         },
         "Plant_Crop_Mushroom_Boomshroom_Small": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Crop_Mushroom_Boomshroom_Small.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Crop_Mushroom_Boomshroom_Small.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -3100,10 +3100,10 @@
           }
         },
         "Plant_Crop_Mushroom_Cap_Brown": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Crop_Mushroom_Cap_Brown.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Crop_Mushroom_Cap_Brown.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -3132,10 +3132,10 @@
           }
         },
         "Plant_Crop_Mushroom_Cap_Green": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Crop_Mushroom_Cap_Green.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Crop_Mushroom_Cap_Green.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -3164,10 +3164,10 @@
           }
         },
         "Plant_Crop_Mushroom_Cap_Poison": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Crop_Mushroom_Cap_Poison.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Crop_Mushroom_Cap_Poison.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -3199,10 +3199,10 @@
           }
         },
         "Plant_Crop_Mushroom_Cap_Red": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Crop_Mushroom_Cap_Red.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Crop_Mushroom_Cap_Red.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -3231,10 +3231,10 @@
           }
         },
         "Plant_Crop_Mushroom_Cap_White": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Crop_Mushroom_Cap_White.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Crop_Mushroom_Cap_White.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -3267,10 +3267,10 @@
           }
         },
         "Plant_Crop_Mushroom_Common_Blue": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Crop_Mushroom_Common_Blue.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Crop_Mushroom_Common_Blue.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -3299,10 +3299,10 @@
           }
         },
         "Plant_Crop_Mushroom_Common_Brown": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Crop_Mushroom_Common_Brown.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Crop_Mushroom_Common_Brown.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -3331,10 +3331,10 @@
           }
         },
         "Plant_Crop_Mushroom_Common_Lime": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Crop_Mushroom_Common_Lime.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Crop_Mushroom_Common_Lime.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -3366,10 +3366,10 @@
           }
         },
         "Plant_Crop_Mushroom_Flatcap_Blue": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Crop_Mushroom_Flatcap_Blue.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Crop_Mushroom_Flatcap_Blue.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -3401,10 +3401,10 @@
           }
         },
         "Plant_Crop_Mushroom_Flatcap_Green": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Crop_Mushroom_Flatcap_Green.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Crop_Mushroom_Flatcap_Green.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -3436,10 +3436,10 @@
           }
         },
         "Plant_Crop_Mushroom_Glowing_Blue": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Crop_Mushroom_Glowing_Blue.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Crop_Mushroom_Glowing_Blue.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -3471,10 +3471,10 @@
           }
         },
         "Plant_Crop_Mushroom_Glowing_Green": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Crop_Mushroom_Glowing_Green.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Crop_Mushroom_Glowing_Green.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -3506,10 +3506,10 @@
           }
         },
         "Plant_Crop_Mushroom_Glowing_Red": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Crop_Mushroom_Glowing_Red.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Crop_Mushroom_Glowing_Red.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -3541,10 +3541,10 @@
           }
         },
         "Plant_Crop_Mushroom_Glowing_Violet": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Crop_Mushroom_Glowing_Violet.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Crop_Mushroom_Glowing_Violet.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -3576,10 +3576,10 @@
           }
         },
         "Plant_Fern": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Fern.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Fern.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -3608,10 +3608,10 @@
           }
         },
         "Plant_Fern_Arid": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Fern_Arid.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Fern_Arid.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -3640,10 +3640,10 @@
           }
         },
         "Plant_Fern_Tall": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Fern_Tall.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Fern_Tall.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -3672,10 +3672,10 @@
           }
         },
         "Plant_Bush_Dead": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Bush_Dead.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Bush_Dead.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -3704,10 +3704,10 @@
           }
         },
         "Plant_Bush_Dead_Twisted": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Bush_Dead_Twisted.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Bush_Dead_Twisted.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -3736,10 +3736,10 @@
           }
         },
         "Plant_Cactus_1": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Cactus_1.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Cactus_1.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -3768,10 +3768,10 @@
           }
         },
         "Plant_Cactus_2": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Cactus_2.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Cactus_2.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -3800,10 +3800,10 @@
           }
         },
         "Plant_Cactus_3": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Cactus_3.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Cactus_3.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -3832,10 +3832,10 @@
           }
         },
         "Plant_Cactus_Ball_1": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Cactus_Ball_1.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Cactus_Ball_1.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -3864,10 +3864,10 @@
           }
         },
         "Plant_Cactus_Flat_1": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Cactus_Flat_1.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Cactus_Flat_1.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -3896,10 +3896,10 @@
           }
         },
         "Plant_Cactus_Flat_2": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Cactus_Flat_2.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Cactus_Flat_2.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -3928,10 +3928,10 @@
           }
         },
         "Plant_Cactus_Flat_3": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Cactus_Flat_3.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Cactus_Flat_3.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],
@@ -3960,10 +3960,10 @@
           }
         },
         "Plant_Cactus_Flower": {
-          "CustomModel": "Blocks/HyColony/Flower_Pot/Plant_Cactus_Flower.blockymodel",
+          "CustomModel": "Blocks/HyColony/Flower_Pot/Blue/Plant_Cactus_Flower.blockymodel",
           "CustomModelTexture": [
             {
-              "Texture": "Blocks/HyColony/Flower_Pot/Atlas_Blue.png",
+              "Texture": "Blocks/HyColony/Flower_Pot/Atlas.png",
               "Weight": 1
             }
           ],

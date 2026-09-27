@@ -2,11 +2,12 @@
 potted_<plant> blocks. The colours are a requested addition: Minecraft's flower pot has one colour.
 
 Each state's model is the pot plus the plant's vanilla model scaled to stand in it (Minecraft's flower_pot_cross parent
-model does the same with the plant's texture). The models are shared by every colour; each colour has one atlas with
-the same layout (every plant texture, the dirt, and its clay), used by the pot and all its states. To pot a new plant,
-add its item id to PLANTS and re-run generate.py.
+model does the same with the plant's texture). One atlas serves every pot: each plant texture once, the dirt and one
+clay swatch per colour. Each colour has its own models (its empty pot and one per plant), which differ only in the UVs
+of the pot's faces. To pot a new plant, add its item id to PLANTS and re-run generate.py.
 """
 
+import json
 import shutil
 
 from PIL import Image
@@ -15,6 +16,7 @@ from models import bounds, box_node, empty_shape, face_rects, node, scaled, shif
 from pack import ICON_SIZE, PACK, draw_box, save_png, write_json
 
 MODELS = "Blocks/HyColony/Flower_Pot/"
+ATLAS = MODELS + "Atlas.png"
 DIRT = "BlockTextures/Soil_Dirt_Wet.png"
 # Hytale's dyed clay blocks (Soil_Clay_Smooth_<C>, the counterpart of Minecraft's terracotta): pot colour ->
 # (English, French) name, after the clay's vanilla name. Three of that clay make one pot.
@@ -95,29 +97,32 @@ def generate(assets):
         old.unlink()
     plants = {p: assets.item(p)["BlockType"] for p in PLANTS}
     textures = {p: plant_texture(assets, block) for p, block in plants.items()}
-    layout, size = pack_layout(dict(textures.values()))
-    base = Image.new("RGBA", size, (0, 0, 0, 0))
+    clays = {c: assets.item("Soil_Clay_Smooth_" + c) for c in COLOURS}
+    layout, size = pack_layout(dict(textures.values()), ["clay:" + c for c in COLOURS] + ["dirt"])
+    atlas = Image.new("RGBA", size, (0, 0, 0, 0))
     for key, image in dict(textures.values()).items():
-        base.paste(image, layout[key])
+        atlas.paste(image, layout[key])
     dirt = assets.image("Common/" + DIRT)
-    base.paste(dirt.crop((0, 0, CELL, CELL)), layout["dirt"])
-    write_model("Empty", pot_nodes(layout["clay"], layout["dirt"]))
+    atlas.paste(dirt.crop((0, 0, CELL, CELL)), layout["dirt"])
+    for colour, clay_item in clays.items():
+        atlas.paste(clay_texture(assets, clay_item).crop((0, 0, CELL, CELL)), layout["clay:" + colour])
+    save_png(atlas, PACK / "Common" / ATLAS)
+    potted = {}
     for plant_id, block in plants.items():
         key, image = textures[plant_id]
         model = assets.json("Common/" + block["CustomModel"])
         check_uvs(plant_id, model["nodes"], image.size)
         shift_uvs(model["nodes"], *layout[key])
         room = PATCH_ROOM if plant_id in PATCHES else PLANT_ROOM
-        plant = scaled(model["nodes"], fit(model["nodes"], block.get("CustomModelScale", 1), room), DIRT_TOP)
-        write_model(plant_id, pot_nodes(layout["clay"], layout["dirt"]) + [plant])
-    for colour in COLOURS:
-        clay_item = assets.item("Soil_Clay_Smooth_" + colour)
-        clay = clay_texture(assets, clay_item)
-        atlas = base.copy()
-        atlas.paste(clay.crop((0, 0, CELL, CELL)), layout["clay"])
-        save_png(atlas, PACK / "Common" / (MODELS + "Atlas_" + colour + ".png"))
+        potted[plant_id] = scaled(model["nodes"], fit(model["nodes"], block.get("CustomModelScale", 1), room), DIRT_TOP)
+    for colour, clay_item in clays.items():
+        pot = pot_nodes(layout["clay:" + colour], layout["dirt"])
+        write_model(colour + "/Empty", pot)
+        for plant_id, plant in potted.items():
+            write_model(colour + "/" + plant_id, pot + [plant])
         write_json(PACK / "Server/Item/Items/HyColony" / (pot_id(colour) + ".json"), pot_item(colour, clay_item, plants))
-        save_png(icon(clay, dirt), PACK / "Common/Icons/Items/HyColony" / ("Flower_Pot_" + colour + ".png"))
+        save_png(icon(clay_texture(assets, clay_item), dirt), PACK / "Common/Icons/Items/HyColony" / (
+            "Flower_Pot_" + colour + ".png"))
     write_json(PACK / "Server/Item/Block/Hitboxes/HyColony/HyColony_Flower_Pot.json", hitbox())
     write_json(PACK / "hycolony/id-map.json", id_map())
 
@@ -143,12 +148,13 @@ def tinted(texture, colour):
     return Image.merge("RGBA", (*channels, a))
 
 
-def pack_layout(images):
-    """Places every texture of images ({key: image}) plus a 'clay' and a 'dirt' cell on a grid of 32 px cells, tallest
-    first, ATLAS_WIDTH wide. Returns {key: (u, v)} and the atlas size, a power of two high. Same input, same layout."""
+def pack_layout(images, cells):
+    """Places every texture of images ({key: image}), then one 32 px cell per key of cells, on a grid of 32 px cells,
+    tallest first, ATLAS_WIDTH wide. Returns {key: (u, v)} and the atlas size, a power of two high. Same input, same
+    layout."""
     sizes = {key: (image.size[0] // CELL, image.size[1] // CELL) for key, image in images.items()}
-    order = sorted(sizes, key=lambda k: (-sizes[k][1], -sizes[k][0], k)) + ["clay", "dirt"]
-    sizes["clay"] = sizes["dirt"] = (1, 1)
+    order = sorted(sizes, key=lambda k: (-sizes[k][1], -sizes[k][0], k)) + list(cells)
+    sizes.update({key: (1, 1) for key in cells})
     used = set()
     layout = {}
     for key in order:
@@ -207,18 +213,32 @@ def write_model(name, nodes):
     root = node("Origin", (0, 0, 0), empty_shape(), nodes)
     for index, n in enumerate(walk([root]), start=1):
         n["id"] = str(index)
-    write_json(PACK / "Common" / (MODELS + name + ".blockymodel"), {"lod": "auto", "nodes": [root]})
+    path = PACK / "Common" / (MODELS + name + ".blockymodel")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    # Compact, 4 decimals (1/1000 of a pixel): 16 x 122 models would otherwise weigh tens of megabytes.
+    text = json.dumps(rounded({"lod": "auto", "nodes": [root]}), separators=(",", ":"))
+    path.write_text(text + "\n", encoding="utf-8", newline="\n")
+
+
+def rounded(data):
+    if isinstance(data, float):
+        return round(data, 4)
+    if isinstance(data, dict):
+        return {k: rounded(v) for k, v in data.items()}
+    if isinstance(data, list):
+        return [rounded(v) for v in data]
+    return data
 
 
 def pot_item(colour, clay_item, plants):
     """Minecraft flower pot: 3 clay (its bricks), 3/8 high, needs no support (Java places it even over the void),
     breaks at once; one state per plant, which drops the pot and the plant."""
     pot = pot_id(colour)
-    texture = [{"Texture": MODELS + "Atlas_" + colour + ".png", "Weight": 1}]
+    texture = [{"Texture": ATLAS, "Weight": 1}]
     states = {}
     for plant_id, block in plants.items():
         state = {
-            "CustomModel": MODELS + plant_id + ".blockymodel",
+            "CustomModel": MODELS + colour + "/" + plant_id + ".blockymodel",
             "CustomModelTexture": texture,
             "Gathering": {"Soft": {"DropList": {"Container": {"Type": "Multiple", "Containers": [
                 {"Type": "Single", "Item": {"ItemId": pot}},
@@ -241,7 +261,7 @@ def pot_item(colour, clay_item, plants):
             "Material": "Solid",
             "DrawType": "Model",
             "Opacity": "Transparent",
-            "CustomModel": MODELS + "Empty.blockymodel",
+            "CustomModel": MODELS + colour + "/Empty.blockymodel",
             "CustomModelTexture": texture,
             "HitboxType": "HyColony_Flower_Pot",
             "Gathering": {"Soft": {"ItemId": pot}},
