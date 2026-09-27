@@ -5,6 +5,7 @@ hut.noTownHall = Vous devez d'abord poser un hôtel de ville.
 hut.tooFar = C'est trop loin de votre hôtel de ville.
 hut.townHallExists = Cette colonie a déjà un hôtel de ville.
 hut.pickupInventoryFull = Votre inventaire est plein : la hutte n'a pas été récupérée.
+hut.notBuiltYet = Vous devez d'abord finir de construire cette hutte pour pouvoir embaucher.
 warehouse.full = L'entrepôt est plein, veuillez l'améliorer !
 warehouse.fullMax = L'entrepôt est plein, veuillez en construire un autre et faire de la place !
 pickup.forced = Un livreur viendra vider cette hutte.

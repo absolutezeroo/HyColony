@@ -36,6 +36,7 @@ import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.core.logistics.courier.DeliverymanHut;
 import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.request.model.StackRequest;
 import dev.hycolony.core.request.resolver.RetryingResolver;
@@ -369,6 +370,22 @@ class ViewsTest {
                 view(alice, colony.buildings().at(hall).orElseThrow()).hiringMode(),
                 "the town hall employs no one");
         assertFalse(manager.huts().hire(alice, hall, ann.id()), "the town hall employs no one");
+    }
+
+    @Test
+    void hiringAnUnbuiltHutSendsANotBuiltMessageInsteadOfSilentlyFailing() {
+        Building courierHut = hut(DeliverymanHut.TYPE, new BlockPos(40, 64, 0), 0);
+        CitizenData idle = citizen(nextCitizen++, "Idle");
+
+        assertFalse(manager.huts().hire(alice, courierHut.position(), idle.id()));
+        assertTrue(idle.job().isEmpty());
+        assertEquals("hycolony.hut.notBuiltYet", t.notifier.sent.getLast().msg().key());
+
+        courierHut.setLevel(1);
+        courierHut.setBuilt(true);
+        t.notifier.sent.clear();
+        assertTrue(manager.huts().hire(alice, courierHut.position(), idle.id()));
+        assertTrue(t.notifier.sent.isEmpty(), "no message once the hut is built");
     }
 
     @Test

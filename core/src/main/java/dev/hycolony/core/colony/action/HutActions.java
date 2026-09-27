@@ -137,10 +137,19 @@ public final class HutActions {
         });
     }
 
+    /**
+     * MC {@code AbstractWindowWorkerModuleBuilding.hireClicked}: refuses with a
+     * {@code com.minecolonies.coremod.gui.workerhuts.level0}-style chat message when the hut cannot assign citizens
+     * yet ({@link WorkerModule#canAssignCitizens}), instead of the silent failure of {@link WorkerModule#hire}.
+     */
     public boolean hire(UUID player, BlockPos hutPos, int citizenId) {
         ManagedHut h = ManagedHut.find(manager, player, hutPos).orElse(null);
         WorkerModule w =
                 h == null ? null : h.building().module(WorkerModule.class).orElse(null);
+        if (w != null && !w.canAssignCitizens(h.building())) {
+            manager.context().notifier().send(player, Msg.of("hycolony.hut.notBuiltYet"));
+            return false;
+        }
         CitizenData citizen =
                 w == null ? null : h.colony().citizens().get(citizenId).orElse(null);
         if (citizen == null || citizen.isChild() || !w.hire(h.colony(), h.building(), citizen)) {

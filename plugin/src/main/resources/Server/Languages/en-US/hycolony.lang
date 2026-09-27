@@ -5,6 +5,7 @@ hut.noTownHall = You must place a Town Hall first.
 hut.tooFar = This is too far from your Town Hall.
 hut.townHallExists = This colony already has a Town Hall.
 hut.pickupInventoryFull = Your inventory is full: the hut was not picked up.
+hut.notBuiltYet = You need to finish building this hut before you can hire.
 warehouse.full = The warehouse is full, please upgrade it!
 warehouse.fullMax = The warehouse is full, please build another one and make some space!
 pickup.forced = A courier will come and empty this hut.
