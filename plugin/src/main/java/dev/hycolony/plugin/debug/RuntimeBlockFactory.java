@@ -67,14 +67,16 @@ final class RuntimeBlockFactory {
     }
 
     /**
-     * Writes the PNG to a temp directory (created on first use) and registers it as common asset {@code Blocks/HyColony/DoTest/<name>.png};
-     * {@code CommonAssetModule.addCommonAsset} sends it to every connected player. Returns the asset name.
+     * Writes the PNG to a temp directory (created on first use) and registers it as common asset
+     * {@code Blocks/HyColony/DoTest/<name>.png}; {@code CommonAssetModule.addCommonAsset} sends it to every connected
+     * player. Returns the asset name.
      */
     String registerTexture(String name, byte[] png) {
         String assetName = TEXTURE_DIR + name + ".png";
         Path file;
         try {
             // FileCommonAsset rereads the file once its weak reference is gone, so the PNG must stay on disk.
+            // Unsynchronized on purpose: a race only creates a second temp dir, and file names are unique.
             if (textureDir == null) {
                 textureDir = Files.createTempDirectory("hycolony-dotest");
             }

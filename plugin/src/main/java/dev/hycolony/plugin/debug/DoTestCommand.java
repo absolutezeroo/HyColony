@@ -75,7 +75,7 @@ public final class DoTestCommand extends AbstractPlayerCommand {
         }
     }
 
-    /** The feet-level cell {@link #DISTANCE} blocks along the player's view yaw (x = -sin, z = -cos, see HeadRotation). */
+    /** The feet-level cell {@link #DISTANCE} blocks along the view yaw (x = -sin, z = -cos, see HeadRotation). */
     private static Placed inFront(Store<EntityStore> store, Ref<EntityStore> ref, World world) {
         Vector3d p =
                 store.getComponent(ref, TransformComponent.getComponentType()).getPosition();
