@@ -15,6 +15,7 @@ import java.util.function.ToIntFunction;
  */
 public final class Inventory {
     private final ItemAmount[] slots;
+    private long changes;
 
     public Inventory(int slots) {
         this.slots = new ItemAmount[slots];
@@ -32,6 +33,9 @@ public final class Inventory {
         Objects.requireNonNull(amount, "amount");
         int max = maxStack.applyAsInt(amount.item());
         int remaining = fillEmpty(amount.item(), merge(amount.item(), amount.count(), max), max);
+        if (remaining != amount.count()) {
+            changes++;
+        }
         return remaining == 0 ? null : amount.withCount(remaining);
     }
 
@@ -72,6 +76,9 @@ public final class Inventory {
                 slots[i] = take == cur.count() ? null : cur.withCount(cur.count() - take);
                 removed += take;
             }
+        }
+        if (removed > 0) {
+            changes++;
         }
         return removed;
     }
@@ -118,6 +125,24 @@ public final class Inventory {
 
     public Optional<ItemAmount> slot(int index) {
         return Optional.ofNullable(slots[index]);
+    }
+
+    /** Puts {@code amount} in {@code index}, or empties it; a player moving items in the citizen's window. */
+    public void set(int index, Optional<ItemAmount> amount) {
+        slots[index] = amount.orElse(null);
+        changes++;
+    }
+
+    /** Bumped by every change, so a view can tell its copy is stale without comparing slots. */
+    public long changes() {
+        return changes;
+    }
+
+    /** A detached copy of the slots, e.g. to compare before and after a player's move. */
+    public Inventory copy() {
+        Inventory out = new Inventory(slots.length);
+        System.arraycopy(slots, 0, out.slots, 0, slots.length);
+        return out;
     }
 
     public JsonArray write() {

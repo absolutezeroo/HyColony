@@ -2,11 +2,13 @@ package dev.hycolony.core.kernel.item;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.gson.JsonArray;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 class InventoryTest {
@@ -60,5 +62,42 @@ class InventoryTest {
         Inventory restored = Inventory.read(json, 3);
         assertEquals(3, restored.size());
         assertEquals(inv.contents(), restored.contents());
+    }
+
+    @Test
+    void setReplacesOrEmptiesOneSlot() {
+        Inventory inv = new Inventory(3);
+        inv.set(1, Optional.of(new ItemAmount(STONE, 7)));
+        assertEquals(Optional.of(new ItemAmount(STONE, 7)), inv.slot(1));
+        inv.set(1, Optional.of(new ItemAmount(DIRT, 2)));
+        assertEquals(Optional.of(new ItemAmount(DIRT, 2)), inv.slot(1));
+        inv.set(1, Optional.empty());
+        assertTrue(inv.slot(1).isEmpty());
+    }
+
+    @Test
+    void everyMutationBumpsTheChangeCounterButNoOpsDoNot() {
+        Inventory inv = new Inventory(2);
+        long start = inv.changes();
+        inv.insert(new ItemAmount(STONE, 3), item -> 64);
+        long afterInsert = inv.changes();
+        assertNotEquals(start, afterInsert);
+        inv.extract(DIRT, 5);
+        assertEquals(afterInsert, inv.changes(), "nothing extracted");
+        inv.extract(STONE, 1);
+        long afterExtract = inv.changes();
+        assertNotEquals(afterInsert, afterExtract);
+        inv.set(1, Optional.of(new ItemAmount(SAND, 1)));
+        assertNotEquals(afterExtract, inv.changes());
+    }
+
+    @Test
+    void copyIsIndependentOfTheOriginal() {
+        Inventory inv = new Inventory(2);
+        inv.insert(new ItemAmount(STONE, 3), item -> 64);
+        Inventory copy = inv.copy();
+        inv.set(0, Optional.empty());
+        assertEquals(2, copy.size());
+        assertEquals(Optional.of(new ItemAmount(STONE, 3)), copy.slot(0));
     }
 }
