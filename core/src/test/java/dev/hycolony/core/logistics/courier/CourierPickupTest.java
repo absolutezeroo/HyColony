@@ -16,6 +16,18 @@ import org.junit.jupiter.api.Test;
 
 /** MC EntityAIWorkDeliveryman.pickup. */
 class CourierPickupTest extends CourierAITestBase {
+    /** MC AbstractBuilding.onRequestedRequestComplete: the hut receives its completed pickup at once. */
+    @Test
+    void aCompletedPickupIsReceivedByItsHutAndLeavesTheRequestSystem() {
+        hire();
+        put(target.position(), LOG, 10);
+        RequestToken task = pickup(target, 5);
+
+        runUntil(() -> carried(LOG) == 10 && m.all().isEmpty());
+
+        assertEquals(RequestState.RECEIVED, made.get(task).state());
+    }
+
     @Test
     void pickupTakesWhatTheHutDoesNotKeepOneSlotPerStep() {
         hire();

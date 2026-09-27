@@ -18,12 +18,14 @@ import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.logistics.warehouse.WarehouseBuilding;
+import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.RequestManager;
 import dev.hycolony.core.request.model.Delivery;
 import dev.hycolony.core.request.model.Pickup;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.testing.TestContexts;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -50,7 +52,11 @@ abstract class CourierAITestBase {
     BodyId body;
     JobAI ai;
 
+    /** Every request made, by token; a cleaned request keeps its last state. */
+    final Map<RequestToken, Request> made = new HashMap<>();
+
     CourierAITestBase() {
+        m.setCreationListener(r -> made.put(r.token(), r));
         warehouse.addContainer(RACK);
         warehouse.addContainer(OTHER_RACK);
         t.bodies.instant = true;
@@ -113,14 +119,15 @@ abstract class CourierAITestBase {
         return m.createAndAssign(from, new Pickup(priority, 0, 10), -1);
     }
 
+    /** Completed, or already received by its hut (a building-level delivery or pickup). */
     boolean completed(RequestToken token) {
-        return m.get(token).map(r -> r.state() == RequestState.COMPLETED).orElse(false);
+        RequestState state = made.get(token).state();
+        return state == RequestState.COMPLETED || state == RequestState.RECEIVED;
     }
 
     boolean failed(RequestToken token) {
-        return m.get(token)
-                .map(r -> r.state() == RequestState.FAILED || r.state() == RequestState.CANCELLED)
-                .orElse(true);
+        RequestState state = made.get(token).state();
+        return state == RequestState.FAILED || state == RequestState.CANCELLED;
     }
 
     /** The Agility XP of an award of {@code xp}: x1.5 for the level-5 hut, x1.01 for Intelligence 1 (MC). */

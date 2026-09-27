@@ -8,6 +8,7 @@ import dev.hycolony.core.request.RequestManager;
 import dev.hycolony.core.request.Requester;
 import dev.hycolony.core.request.Resolver;
 import dev.hycolony.core.request.ResolverProvider;
+import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequesterId;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -189,8 +190,18 @@ public final class Building implements Requester, ResolverProvider {
         return customName.isEmpty() ? type.id() : customName;
     }
 
+    /**
+     * MC AbstractBuilding.onRequestedRequestComplete: a building-level request that brings no items (a pickup, a
+     * courier delivery) is received at once, so it leaves the request system. Deviation from MC: MC receives every
+     * building-level request here; a building-level item request stays COMPLETED for the worker taking its items,
+     * since our builder files at building level the async requests MC files under its citizen.
+     */
     @Override
-    public void onRequestComplete(RequestManager manager, Request request) {}
+    public void onRequestComplete(RequestManager manager, Request request) {
+        if (request.citizenId() == -1 && request.deliverable().isEmpty()) {
+            manager.updateState(request.token(), RequestState.RECEIVED);
+        }
+    }
 
     @Override
     public void onRequestCancelled(RequestManager manager, Request request) {}
