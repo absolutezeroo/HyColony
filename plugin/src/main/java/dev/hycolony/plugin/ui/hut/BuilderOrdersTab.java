@@ -5,8 +5,7 @@ import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.action.WorkOrderActions;
-import dev.hycolony.core.colony.ui.tab.BuilderTabs;
-import dev.hycolony.core.construction.shared.BuilderSettingsModule.Mode;
+import dev.hycolony.core.colony.ui.tab.WorkOrderListView;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.plugin.ui.ColonyPage;
 import java.util.List;
@@ -23,10 +22,10 @@ final class BuilderOrdersTab implements HutTab {
     private final ColonyManager manager;
     private final UUID player;
     private final BlockPos hut;
-    private final BuilderTabs tabs;
+    private final WorkOrderListView tabs;
     private final boolean canManage;
 
-    BuilderOrdersTab(ColonyManager manager, UUID player, BlockPos hut, BuilderTabs tabs, boolean canManage) {
+    BuilderOrdersTab(ColonyManager manager, UUID player, BlockPos hut, WorkOrderListView tabs, boolean canManage) {
         this.manager = manager;
         this.player = player;
         this.hut = hut;
@@ -46,13 +45,13 @@ final class BuilderOrdersTab implements HutTab {
 
     @Override
     public void render(UICommandBuilder ui, UIEventBuilder events, String root) {
-        List<BuilderTabs.OrderLine> lines = tabs.orders();
+        List<WorkOrderListView.OrderLine> lines = tabs.orders();
         if (lines.isEmpty()) {
             ui.set(root + " #OrdersEmpty.Visible", true);
             ui.set(root + " #OrdersEmpty.Text", Message.translation("hycolony.ui.workorders.empty"));
         }
         for (int i = 0; i < lines.size(); i++) {
-            BuilderTabs.OrderLine o = lines.get(i);
+            WorkOrderListView.OrderLine o = lines.get(i);
             String row = root + " #BuilderOrders[" + i + "]";
             ui.append(root + " #BuilderOrders", "Pages/HyColony/BuilderOrderRow.ui");
             if (o.current()) {
@@ -72,8 +71,9 @@ final class BuilderOrdersTab implements HutTab {
         }
     }
 
-    private void button(UICommandBuilder ui, UIEventBuilder events, String button, BuilderTabs.OrderLine o, int i) {
-        if (!canManage || (!o.claimedHere() && tabs.mode() != Mode.MANUAL)) {
+    private void button(
+            UICommandBuilder ui, UIEventBuilder events, String button, WorkOrderListView.OrderLine o, int i) {
+        if (!canManage || (!o.claimedHere() && !tabs.manual())) {
             ui.set(button + ".Visible", false);
             return;
         }
@@ -97,7 +97,7 @@ final class BuilderOrdersTab implements HutTab {
     /** Select and Cancel go to the core, which checks MANAGE_HUTS and shows the window again. */
     @Override
     public void handle(ColonyPage.Act act) {
-        List<BuilderTabs.OrderLine> lines = tabs.orders();
+        List<WorkOrderListView.OrderLine> lines = tabs.orders();
         if (act.index() < 0 || act.index() >= lines.size()) {
             return;
         }

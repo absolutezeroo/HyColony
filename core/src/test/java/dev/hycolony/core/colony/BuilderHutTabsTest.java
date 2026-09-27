@@ -11,11 +11,13 @@ import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.colony.persistence.ColonySerializer;
 import dev.hycolony.core.colony.territory.ClaimCell;
 import dev.hycolony.core.colony.territory.TerritoryIndex;
-import dev.hycolony.core.colony.ui.BuilderResourcesView;
-import dev.hycolony.core.colony.ui.BuilderResourcesView.ResourceRow;
-import dev.hycolony.core.colony.ui.BuilderResourcesView.Status;
 import dev.hycolony.core.colony.ui.BuildingView;
-import dev.hycolony.core.colony.ui.tab.BuilderTabs;
+import dev.hycolony.core.colony.ui.tab.BuilderResourcesView;
+import dev.hycolony.core.colony.ui.tab.BuilderResourcesView.ResourceRow;
+import dev.hycolony.core.colony.ui.tab.BuilderResourcesView.Status;
+import dev.hycolony.core.colony.ui.tab.BuilderSettingsView;
+import dev.hycolony.core.colony.ui.tab.ModuleTab;
+import dev.hycolony.core.colony.ui.tab.WorkOrderListView;
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.BlueprintEntry;
 import dev.hycolony.core.construction.blueprint.BlueprintSource;
@@ -218,9 +220,9 @@ class BuilderHutTabsTest {
         assertTrue(colony.work().byId(order.id()).isPresent());
     }
 
-    private BuilderTabs tabs(UUID player) {
+    private <T extends ModuleTab> T tab(UUID player, Class<T> kind) {
         manager.windows().openBuilding(player, builder.position());
-        return ((BuildingView) t.ui.shown.get(player)).tab(BuilderTabs.class).orElseThrow();
+        return ((BuildingView) t.ui.shown.get(player)).tab(kind).orElseThrow();
     }
 
     @Test
@@ -228,8 +230,10 @@ class BuilderHutTabsTest {
         Building residence = hut(ConstructionBuildingTypes.RESIDENCE, new BlockPos(20, 64, 0), 1);
         manager.windows().openBuilding(alice, residence.position());
 
-        assertTrue(((BuildingView) t.ui.shown.get(alice)).tab(BuilderTabs.class).isEmpty());
-        assertEquals(Mode.AUTO, tabs(alice).mode());
+        assertTrue(((BuildingView) t.ui.shown.get(alice))
+                .tab(BuilderSettingsView.class)
+                .isEmpty());
+        assertEquals(Mode.AUTO, tab(alice, BuilderSettingsView.class).mode());
     }
 
     /** Blocks a, b, c, d of the plan need items A (x2), B, C, D; the builder already placed nothing. */
@@ -259,7 +263,7 @@ class BuilderHutTabsTest {
         t.playerInventory.give(alice, new ItemAmount(new ItemKey("B"), 1)); // B: HAVE_ENOUGH
         // C: DONT_HAVE
 
-        BuilderResourcesView v = tabs(alice).resources();
+        BuilderResourcesView v = tab(alice, BuilderResourcesView.class);
 
         assertEquals(
                 List.of(
@@ -289,10 +293,12 @@ class BuilderHutTabsTest {
         WorkOrder tooHigh = order(new BlockPos(40, 64, 0), 2, WorkOrderType.UPGRADE); // target 3
         builder.setLevel(1);
 
-        assertEquals(List.of(mine.id()), ids(tabs(alice).orders()), "AUTO: only its own orders");
+        assertEquals(
+                List.of(mine.id()), ids(tab(alice, WorkOrderListView.class).orders()), "AUTO: only its own orders");
 
         assertTrue(manager.huts().setBuilderMode(alice, builder.position(), Mode.MANUAL));
-        List<BuilderTabs.OrderLine> lines = tabs(alice).orders();
+        List<WorkOrderListView.OrderLine> lines =
+                tab(alice, WorkOrderListView.class).orders();
 
         assertEquals(
                 List.of(mine.id(), free.id()), ids(lines), "MANUAL: the unclaimed ones it can build, current first");
@@ -308,10 +314,10 @@ class BuilderHutTabsTest {
         builder.module(WorkerModule.class).orElseThrow().fire(colony, builder, bob.id());
         assertEquals(
                 Optional.of(ManualSelection.Refusal.NO_WORKER),
-                tabs(alice).orders().getLast().selectRefusal());
+                tab(alice, WorkOrderListView.class).orders().getLast().selectRefusal());
     }
 
-    private static List<Integer> ids(List<BuilderTabs.OrderLine> lines) {
-        return lines.stream().map(BuilderTabs.OrderLine::id).toList();
+    private static List<Integer> ids(List<WorkOrderListView.OrderLine> lines) {
+        return lines.stream().map(WorkOrderListView.OrderLine::id).toList();
     }
 }

@@ -25,8 +25,9 @@ public final class ConstructionBuildingTypes {
                     new ModuleProducer(
                             "worker",
                             () -> new WorkerModule(BuilderJob.TYPE, Skill.Adaptability, Skill.Athletics, 1, true)),
-                    new ModuleProducer("builderSettings", BuilderSettingsModule::new),
                     new ModuleProducer("resources", BuildingResourcesModule::new),
+                    new ModuleProducer("builderSettings", BuilderSettingsModule::new),
+                    new ModuleProducer("workOrderList", WorkOrderListModule::new),
                     new ModuleProducer("keepTools", () -> new KeepToolsModule(EnumSet.allOf(ToolType.class)))));
 
     public static final BuildingType RESIDENCE = new BuildingType(

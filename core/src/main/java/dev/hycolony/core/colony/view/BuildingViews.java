@@ -12,6 +12,8 @@ import dev.hycolony.core.construction.workorder.WorkManager;
 import dev.hycolony.core.construction.workorder.WorkOrder;
 import dev.hycolony.core.construction.workorder.WorkOrderType;
 import dev.hycolony.core.job.WorkerModule;
+import dev.hycolony.core.kernel.item.ItemAmount;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
@@ -20,8 +22,8 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Builds a hut's window view: its level, workers, the citizens it may hire, its work order, the orders it allows and
- * the tabs its modules provide.
+ * Builds a hut's window view: its level, workers, the citizens it may hire, its work order, the orders it allows, its
+ * stock and the tabs its modules provide.
  */
 final class BuildingViews {
     private final ColonyContext ctx;
@@ -58,7 +60,24 @@ final class BuildingViews {
                 manage && b.canBePickedUp(),
                 // MC AbstractWindowWorkerModuleBuilding: only a hut with workers shows its pickup priority.
                 w.isPresent() ? OptionalInt.of(b.pickupPriority().value()) : OptionalInt.empty(),
+                stock(b),
                 tabs(c, b, viewer));
+    }
+
+    /**
+     * MC WindowHutAllInventory with its "count, descending" sort: every item of the hut block and racks, most held
+     * first, ties by id.
+     *
+     * <p>Deviation from MC: no sort button nor search field; the list always uses this order.
+     */
+    private List<ItemAmount> stock(Building b) {
+        return ctx.ports().containers().contents(b.containers()).entrySet().stream()
+                .filter(e -> e.getValue() > 0)
+                .map(e -> new ItemAmount(e.getKey(), e.getValue()))
+                .sorted(Comparator.comparingInt(ItemAmount::count)
+                        .reversed()
+                        .thenComparing(a -> a.item().id()))
+                .toList();
     }
 
     /** MC BuildingEntry: one tab per module that has a view, in module order. */

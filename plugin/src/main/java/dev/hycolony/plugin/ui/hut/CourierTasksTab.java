@@ -3,16 +3,16 @@ package dev.hycolony.plugin.ui.hut;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
-import dev.hycolony.core.colony.ui.tab.CourierTabs;
+import dev.hycolony.core.colony.ui.tab.CourierTasksView;
 
 /**
  * The courier hut's Tasks tab (MC CourierRequestTaskModuleView): the warehouse its courier serves, or that it has
  * none, then its task list.
  */
 final class CourierTasksTab implements HutTab {
-    private final CourierTabs courier;
+    private final CourierTasksView courier;
 
-    CourierTasksTab(CourierTabs courier) {
+    CourierTasksTab(CourierTasksView courier) {
         this.courier = courier;
     }
 

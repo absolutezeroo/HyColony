@@ -4,8 +4,8 @@ import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ConstructionPorts;
-import dev.hycolony.core.colony.ui.BuilderResourcesView;
-import dev.hycolony.core.colony.ui.BuilderResourcesView.ResourceRow;
+import dev.hycolony.core.colony.ui.tab.BuilderResourcesView;
+import dev.hycolony.core.colony.ui.tab.BuilderResourcesView.ResourceRow;
 import dev.hycolony.core.construction.workorder.Stage;
 import dev.hycolony.core.construction.workorder.WorkOrder;
 import dev.hycolony.core.construction.workorder.WorkOrderType;
@@ -47,10 +47,7 @@ final class BuilderResourcesViews {
         List<ResourceRow> rows = new ArrayList<>();
         // A free order needs nothing: its list is empty.
         if (order.isPresent() && m.orderId() == order.get().id() && !order.get().free()) {
-            Optional<Inventory> inv = hut.module(WorkerModule.class)
-                    .flatMap(w -> w.workers().stream().findFirst())
-                    .flatMap(c.citizens()::get)
-                    .map(CitizenData::inventory);
+            Optional<Inventory> inv = WorkerModule.firstWorker(c, hut).map(CitizenData::inventory);
             List<BlockPos> containers = hut.containers();
             ConstructionPorts ports = c.context().ports();
             m.needs()

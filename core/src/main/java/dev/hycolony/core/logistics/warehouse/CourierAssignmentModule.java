@@ -8,6 +8,7 @@ import dev.hycolony.core.building.ProvidesTab;
 import dev.hycolony.core.building.TickingModule;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.ui.tab.CourierAssignmentView;
 import dev.hycolony.core.colony.ui.tab.ModuleTab;
 import dev.hycolony.core.job.HiringMode;
 import java.util.ArrayList;
@@ -107,12 +108,14 @@ public final class CourierAssignmentModule implements TickingModule, PersistentM
         }
     }
 
-    /**
-     * The warehouse's Couriers (MC CourierAssignmentModuleView), Stock (MC WindowHutAllInventory) and Tasks (MC
-     * WarehouseRequestTaskModuleView) tabs.
-     */
+    /** The warehouse's Couriers tab (MC CourierAssignmentModuleView). */
     @Override
     public ModuleTab tab(Colony colony, Building building, UUID viewer) {
-        return WarehouseTabsViews.of(colony, building, this);
+        return new CourierAssignmentView(
+                couriers.stream()
+                        .flatMap(id -> colony.citizens().get(id).stream())
+                        .map(CitizenData::name)
+                        .toList(),
+                maxCouriers(building));
     }
 }

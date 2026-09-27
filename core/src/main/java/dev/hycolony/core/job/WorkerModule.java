@@ -12,6 +12,7 @@ import dev.hycolony.core.colony.Colony;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Assigns citizens to a job at a building. Port of MineColonies' WorkerBuildingModule.
@@ -35,6 +36,13 @@ public final class WorkerModule implements PersistentModule, TickingModule, Buil
         this.secondary = secondary;
         this.maxWorkers = maxWorkers;
         this.assignableAtLevel0 = assignableAtLevel0;
+    }
+
+    /** The first worker of {@code b}'s worker module; empty for a hut without workers or module. */
+    public static Optional<CitizenData> firstWorker(Colony colony, Building b) {
+        return b.module(WorkerModule.class)
+                .flatMap(w -> w.workers.stream().findFirst())
+                .flatMap(colony.citizens()::get);
     }
 
     public List<Integer> workers() {

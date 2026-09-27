@@ -10,15 +10,14 @@ import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.colony.permission.Permissions;
-import dev.hycolony.core.colony.ui.BuilderResourcesView;
-import dev.hycolony.core.colony.ui.BuilderResourcesView.ResourceRow;
-import dev.hycolony.core.colony.ui.BuilderResourcesView.Status;
 import dev.hycolony.core.colony.ui.BuildingView;
 import dev.hycolony.core.colony.ui.CitizenView;
 import dev.hycolony.core.colony.ui.RequestsView;
 import dev.hycolony.core.colony.ui.TownHallView;
 import dev.hycolony.core.colony.ui.WorkOrdersView;
-import dev.hycolony.core.colony.ui.tab.BuilderTabs;
+import dev.hycolony.core.colony.ui.tab.BuilderResourcesView;
+import dev.hycolony.core.colony.ui.tab.BuilderResourcesView.ResourceRow;
+import dev.hycolony.core.colony.ui.tab.BuilderResourcesView.Status;
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.BlueprintEntry;
 import dev.hycolony.core.construction.blueprint.BlueprintSource;
@@ -207,7 +206,7 @@ class ViewsTest {
         t.playerInventory.give(alice, new ItemAmount(PLANK_I, 5));
 
         BuilderResourcesView v =
-                view(alice, builder).tab(BuilderTabs.class).orElseThrow().resources();
+                view(alice, builder).tab(BuilderResourcesView.class).orElseThrow();
         assertEquals(
                 List.of(
                         new ResourceRow(PLANK_I, 2, 0, 5, Status.HAVE_ENOUGH),

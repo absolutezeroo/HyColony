@@ -28,7 +28,7 @@ public final class DeliverymanHut {
                     new ModuleProducer(
                             "worker",
                             () -> new WorkerModule(DeliverymanJob.TYPE, Skill.Agility, Skill.Adaptability, 1, false)),
-                    new ModuleProducer("courierTaskView", CourierTaskView::new)));
+                    new ModuleProducer("courierTaskView", CourierTaskListModule::new)));
 
     private DeliverymanHut() {}
 

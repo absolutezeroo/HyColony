@@ -1,4 +1,4 @@
-package dev.hycolony.core.colony;
+package dev.hycolony.core.colony.view;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -8,14 +8,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.citizen.CitizenData;
+import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.colony.ui.BuildingView;
 import dev.hycolony.core.colony.ui.CitizenView;
 import dev.hycolony.core.colony.ui.RequestsView;
 import dev.hycolony.core.colony.ui.RequestsView.RequestRow;
-import dev.hycolony.core.colony.ui.tab.CourierTabs;
+import dev.hycolony.core.colony.ui.tab.CourierAssignmentView;
+import dev.hycolony.core.colony.ui.tab.CourierTasksView;
 import dev.hycolony.core.colony.ui.tab.TaskRow;
-import dev.hycolony.core.colony.ui.tab.WarehouseTabs;
+import dev.hycolony.core.colony.ui.tab.WarehouseTasksView;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
@@ -37,7 +40,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 /** The logistics windows (MC warehouse modules, courier task list, pickup priority) and courier requests in views. */
-class LogisticsViewsTest {
+class LogisticsWindowsTest {
     private static final ItemKey STONE = new ItemKey("Rock_Stone");
     private static final ItemKey LOG = new ItemKey("Wood_Oak_Trunk");
 
@@ -49,7 +52,7 @@ class LogisticsViewsTest {
     private final Building builder;
     private final Building warehouse;
 
-    LogisticsViewsTest() {
+    LogisticsWindowsTest() {
         manager = new ColonyManager(t.context());
         manager.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
         colony = manager.foundation().confirm(alice, "A").orElseThrow();
@@ -99,8 +102,8 @@ class LogisticsViewsTest {
     void onlyWorkerHutsShowThePickupPriority() {
         assertEquals(OptionalInt.of(5), view(alice, builder).pickupPriority());
         assertEquals(OptionalInt.empty(), view(alice, warehouse).pickupPriority(), "MC: worker huts only");
-        assertEquals(Optional.empty(), view(alice, builder).tab(WarehouseTabs.class));
-        assertEquals(Optional.empty(), view(alice, builder).tab(CourierTabs.class));
+        assertEquals(Optional.empty(), view(alice, builder).tab(WarehouseTasksView.class));
+        assertEquals(Optional.empty(), view(alice, builder).tab(CourierTasksView.class));
     }
 
     @Test
@@ -157,12 +160,13 @@ class LogisticsViewsTest {
         t.containers.insert(List.of(warehouse.position()), new ItemAmount(LOG, 3));
         t.containers.insert(List.of(warehouse.position()), new ItemAmount(STONE, 40));
 
-        WarehouseTabs w = view(alice, warehouse).tab(WarehouseTabs.class).orElseThrow();
+        BuildingView v = view(alice, warehouse);
+        CourierAssignmentView w = v.tab(CourierAssignmentView.class).orElseThrow();
 
         assertEquals(List.of("Cora"), w.couriers());
         assertEquals(2, w.maxCouriers(), "level 1 x 2");
-        assertEquals(List.of(new ItemAmount(STONE, 40), new ItemAmount(LOG, 3)), w.stock());
-        assertEquals(List.of(), w.queue());
+        assertEquals(List.of(new ItemAmount(STONE, 40), new ItemAmount(LOG, 3)), v.stock());
+        assertEquals(List.of(), v.tab(WarehouseTasksView.class).orElseThrow().queue());
     }
 
     @Test
@@ -171,8 +175,10 @@ class LogisticsViewsTest {
         t.containers.insert(List.of(warehouse.position()), new ItemAmount(STONE, 40));
         colony.requests().createAndAssign(builder, new StackRequest(STONE, 10, 10, true), -1);
 
-        List<TaskRow> queue =
-                view(alice, warehouse).tab(WarehouseTabs.class).orElseThrow().queue();
+        List<TaskRow> queue = view(alice, warehouse)
+                .tab(WarehouseTasksView.class)
+                .orElseThrow()
+                .queue();
 
         assertEquals(1, queue.size());
         TaskRow row = queue.get(0);
@@ -188,8 +194,8 @@ class LogisticsViewsTest {
         DeliverymanJob job = courier();
         Building courierHut = colony.buildings().at(new BlockPos(-20, 64, 0)).orElseThrow();
         assertEquals(
-                Optional.of(new CourierTabs(Optional.of(warehouse.position()), List.of())),
-                view(alice, courierHut).tab(CourierTabs.class));
+                Optional.of(new CourierTasksView(Optional.of(warehouse.position()), List.of())),
+                view(alice, courierHut).tab(CourierTasksView.class));
         assertEquals(OptionalInt.of(5), view(alice, courierHut).pickupPriority());
 
         RequestToken token = colony.requests()
@@ -199,14 +205,16 @@ class LogisticsViewsTest {
                         -1);
         job.currentTask(colony);
 
-        List<TaskRow> tasks =
-                view(alice, courierHut).tab(CourierTabs.class).orElseThrow().tasks();
+        List<TaskRow> tasks = view(alice, courierHut)
+                .tab(CourierTasksView.class)
+                .orElseThrow()
+                .tasks();
         assertEquals(1, tasks.size());
         assertEquals(token, tasks.get(0).token());
         assertEquals(13, tasks.get(0).priority());
         assertTrue(
                 view(alice, warehouse)
-                        .tab(WarehouseTabs.class)
+                        .tab(WarehouseTasksView.class)
                         .orElseThrow()
                         .queue()
                         .isEmpty(),
@@ -217,8 +225,8 @@ class LogisticsViewsTest {
     void courierHutWithoutWarehouseSaysSo() {
         Building courierHut = hut(DeliverymanHut.TYPE, new BlockPos(-20, 64, 0));
         assertEquals(
-                Optional.of(new CourierTabs(Optional.empty(), List.of())),
-                view(alice, courierHut).tab(CourierTabs.class));
+                Optional.of(new CourierTasksView(Optional.empty(), List.of())),
+                view(alice, courierHut).tab(CourierTasksView.class));
     }
 
     @Test

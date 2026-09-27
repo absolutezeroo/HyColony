@@ -1,4 +1,4 @@
-package dev.hycolony.core.colony.ui;
+package dev.hycolony.core.colony.ui.tab;
 
 import dev.hycolony.core.construction.workorder.WorkOrderType;
 import dev.hycolony.core.kernel.item.ItemKey;
@@ -9,7 +9,7 @@ import java.util.Optional;
  * The builder hut's Resources tab (MC WindowBuilderResModule): rows in ResourceComparator order, and a header while
  * the hut holds an order.
  */
-public record BuilderResourcesView(List<ResourceRow> rows, Optional<Header> header) {
+public record BuilderResourcesView(List<ResourceRow> rows, Optional<Header> header) implements ModuleTab {
     /** MC RessourceAvailability, in its order; the rows are black, red, orange and dark green. */
     public enum Status {
         NOT_NEEDED,

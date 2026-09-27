@@ -3,14 +3,19 @@ package dev.hycolony.core.logistics.warehouse;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.PersistentModule;
+import dev.hycolony.core.building.ProvidesTab;
+import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.ui.tab.ModuleTab;
+import dev.hycolony.core.colony.ui.tab.WarehouseTasksView;
 import dev.hycolony.core.request.model.RequestToken;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 /** The deliveries and pickups waiting for a courier at this warehouse (MC {@code WarehouseRequestQueueModule}). */
-public final class WarehouseRequestQueue implements PersistentModule {
+public final class WarehouseRequestQueue implements PersistentModule, ProvidesTab {
     private final List<RequestToken> tokens = new ArrayList<>();
 
     /** MC addRequest: appends {@code token} at the end of the queue. */
@@ -44,5 +49,11 @@ public final class WarehouseRequestQueue implements PersistentModule {
                 // tolerant read (CLAUDE.md § 5)
             }
         }
+    }
+
+    /** The warehouse's Tasks tab (MC WarehouseRequestTaskModuleView). */
+    @Override
+    public ModuleTab tab(Colony colony, Building building, UUID viewer) {
+        return new WarehouseTasksView(TaskRows.of(colony, tokens));
     }
 }

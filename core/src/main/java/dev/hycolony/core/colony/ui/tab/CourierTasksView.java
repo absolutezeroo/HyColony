@@ -8,8 +8,8 @@ import java.util.Optional;
  * The courier hut's task list (MC CourierRequestTaskModuleView): its courier's own queue, head first, and the
  * warehouse that courier is attached to; empty when there is none, so the player sees why nothing moves.
  */
-public record CourierTabs(Optional<BlockPos> warehouse, List<TaskRow> tasks) implements ModuleTab {
-    public CourierTabs {
+public record CourierTasksView(Optional<BlockPos> warehouse, List<TaskRow> tasks) implements ModuleTab {
+    public CourierTasksView {
         tasks = List.copyOf(tasks);
     }
 }

@@ -128,12 +128,9 @@ public final class BuildingResourcesModule implements KeepsItems, ProvidesTab {
         order.progress(s, index);
     }
 
-    /**
-     * The builder hut's Resources, Settings and Work orders tabs (MC BUILDING_RESOURCES, BUILDER_SETTINGS and
-     * WORKORDER_VIEW module views).
-     */
+    /** The builder hut's Resources tab (MC BuildingResourcesModuleView of BUILDING_RESOURCES). */
     @Override
     public ModuleTab tab(Colony colony, Building building, UUID viewer) {
-        return BuilderTabsViews.of(colony, building, this, viewer);
+        return BuilderResourcesViews.of(colony, building, this, viewer);
     }
 }

@@ -1,6 +1,5 @@
 package dev.hycolony.core.colony.view;
 
-import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.construction.resources.BuildingResourcesModule;
@@ -15,7 +14,7 @@ final class WorkOrderStatus {
     static Optional<String> builderName(Colony c, WorkOrder o) {
         return o.claimedBy()
                 .flatMap(c.buildings()::at)
-                .flatMap(hut -> firstWorker(c, hut))
+                .flatMap(hut -> WorkerModule.firstWorker(c, hut))
                 .map(CitizenData::name);
     }
 
@@ -27,11 +26,5 @@ final class WorkOrderStatus {
                 .filter(m -> m.orderId() == o.id())
                 .map(m -> m.needs().progressPercent())
                 .orElse(0);
-    }
-
-    private static Optional<CitizenData> firstWorker(Colony c, Building b) {
-        return b.module(WorkerModule.class)
-                .flatMap(w -> w.workers().stream().findFirst())
-                .flatMap(c.citizens()::get);
     }
 }

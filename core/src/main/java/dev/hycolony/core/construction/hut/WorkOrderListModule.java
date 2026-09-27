@@ -1,8 +1,11 @@
-package dev.hycolony.core.construction.resources;
+package dev.hycolony.core.construction.hut;
 
 import dev.hycolony.core.building.Building;
+import dev.hycolony.core.building.ProvidesTab;
 import dev.hycolony.core.colony.Colony;
-import dev.hycolony.core.colony.ui.tab.BuilderTabs;
+import dev.hycolony.core.colony.ui.tab.ModuleTab;
+import dev.hycolony.core.colony.ui.tab.WorkOrderListView;
+import dev.hycolony.core.construction.resources.BuildingResourcesModule;
 import dev.hycolony.core.construction.shared.BuilderSettingsModule;
 import dev.hycolony.core.construction.workorder.ManualSelection;
 import dev.hycolony.core.construction.workorder.WorkManager;
@@ -12,36 +15,35 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
-/** Builds the builder hut's own tabs: Resources, Settings (its mode) and Work orders (MC WorkOrderModuleWindow). */
-final class BuilderTabsViews {
-    private BuilderTabsViews() {}
-
-    /** The tabs of {@code hut}, whose resources module is {@code m}; a hut without settings shows the default mode. */
-    static BuilderTabs of(Colony c, Building hut, BuildingResourcesModule m, UUID viewer) {
-        BuilderSettingsModule.Mode mode = hut.module(BuilderSettingsModule.class)
-                .map(BuilderSettingsModule::mode)
-                .orElse(BuilderSettingsModule.Mode.AUTO);
-        return new BuilderTabs(BuilderResourcesViews.of(c, hut, m, viewer), mode, orders(c, hut, m.orderId(), mode));
-    }
-
+/**
+ * The builder hut's Work orders tab: a view-only module without state (MC {@code WORKORDER_VIEW}, whose producer has
+ * no module, only a {@code WorkOrderListModuleView}). It reads the hut's mode and current order from its other
+ * modules, as MC WorkOrderModuleWindow reads them from the building view.
+ */
+final class WorkOrderListModule implements ProvidesTab {
     /**
      * WorkOrderModuleWindow.updateWorkOrders: the orders this hut could build (ignoring distance) that it claimed, or,
      * in MANUAL mode, that nobody claimed; the current one first, then those claimed here, then by priority.
      */
-    private static List<BuilderTabs.OrderLine> orders(
-            Colony c, Building hut, int currentId, BuilderSettingsModule.Mode mode) {
+    @Override
+    public ModuleTab tab(Colony colony, Building hut, UUID viewer) {
         BlockPos pos = hut.position();
-        boolean manual = mode == BuilderSettingsModule.Mode.MANUAL;
+        boolean manual = hut.module(BuilderSettingsModule.class)
+                .filter(s -> s.mode() == BuilderSettingsModule.Mode.MANUAL)
+                .isPresent();
+        int currentId = hut.module(BuildingResourcesModule.class)
+                .map(BuildingResourcesModule::orderId)
+                .orElse(0);
         Comparator<WorkOrder> group =
                 Comparator.comparingInt(o -> o.id() == currentId ? 0 : o.isClaimedBy(pos) ? 1 : 2);
-        return c.work().ordered().stream() // already WORK_ORDER_COMPARATOR: the stable sort below keeps it per group
+        List<WorkOrderListView.OrderLine> lines = colony.work().ordered().stream() // already WORK_ORDER_COMPARATOR
                 .filter(o -> WorkManager.canBuildIgnoringDistance(pos, hut.level(), o)
                         && (o.isClaimedBy(pos) || (manual && o.claimedBy().isEmpty())))
-                .sorted(group)
-                .map(o -> new BuilderTabs.OrderLine(
+                .sorted(group) // stable: keeps the priority order within each group
+                .map(o -> new WorkOrderListView.OrderLine(
                         o.id(),
                         o.type(),
-                        c.buildings()
+                        colony.buildings()
                                 .at(o.buildingPos())
                                 .map(Building::displayName)
                                 .orElse(""),
@@ -51,6 +53,7 @@ final class BuilderTabsViews {
                         o.isClaimedBy(pos),
                         ManualSelection.check(hut, o)))
                 .toList();
+        return new WorkOrderListView(lines, manual);
     }
 
     /** BlockPosUtil.getDistance2D: |dx| + |dz|. */
