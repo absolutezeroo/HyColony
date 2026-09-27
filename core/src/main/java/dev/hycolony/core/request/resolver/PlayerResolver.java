@@ -29,7 +29,7 @@ public final class PlayerResolver implements Resolver {
     /** Requests already announced: a request coming back after a retry is not announced again. */
     private final Set<RequestToken> announced = new HashSet<>();
 
-    private Consumer<Request> onNeedsPlayer = r -> {};
+    private Consumer<Request> onNeedsPlayer = _ -> {};
 
     public PlayerResolver(BlockPos location) {
         this.location = location;

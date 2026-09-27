@@ -120,7 +120,7 @@ final class RouteSearch {
             return false;
         }
         return dangerous.computeIfAbsent(
-                key(x, z), k -> danger.inColumn(new BlockPos(x, (int) Math.floor(height(x, z)), z), HALF_HEIGHT));
+                key(x, z), _ -> danger.inColumn(new BlockPos(x, (int) Math.floor(height(x, z)), z), HALF_HEIGHT));
     }
 
     /** The walk's height above column (x, z): start and target heights, interpolated along the straight line. */

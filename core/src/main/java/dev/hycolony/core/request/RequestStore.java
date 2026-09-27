@@ -25,7 +25,7 @@ final class RequestStore {
     private final Map<String, Set<RequestToken>> assigned = new HashMap<>();
     private final Map<RequesterId, Set<RequestToken>> byRequester = new HashMap<>();
     /** Sees every request as it is created, even one closed within the same tick (simulations, debugging). */
-    private Consumer<Request> creationListener = r -> {};
+    private Consumer<Request> creationListener = _ -> {};
 
     void setCreationListener(Consumer<Request> listener) {
         creationListener = Objects.requireNonNull(listener, "listener");
@@ -34,7 +34,7 @@ final class RequestStore {
     Request create(RequesterId requester, Requestable what, int citizenId) {
         Request req = new Request(RequestToken.random(), requester, what, citizenId);
         requests.put(req.token(), req);
-        byRequester.computeIfAbsent(requester, k -> new LinkedHashSet<>()).add(req.token());
+        byRequester.computeIfAbsent(requester, _ -> new LinkedHashSet<>()).add(req.token());
         creationListener.accept(req);
         return req;
     }
@@ -67,7 +67,7 @@ final class RequestStore {
 
     void assign(RequestToken token, Resolver resolver) {
         resolverOf.put(token, resolver);
-        assigned.computeIfAbsent(resolver.resolverId(), k -> new LinkedHashSet<>())
+        assigned.computeIfAbsent(resolver.resolverId(), _ -> new LinkedHashSet<>())
                 .add(token);
     }
 
@@ -142,7 +142,7 @@ final class RequestStore {
 
     void restore(Request req) {
         requests.put(req.token(), req);
-        byRequester.computeIfAbsent(req.requester(), k -> new LinkedHashSet<>()).add(req.token());
+        byRequester.computeIfAbsent(req.requester(), _ -> new LinkedHashSet<>()).add(req.token());
     }
 
     void restoreAssignment(RequestToken token, Resolver resolver) {

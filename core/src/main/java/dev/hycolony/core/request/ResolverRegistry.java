@@ -40,7 +40,7 @@ final class ResolverRegistry {
         resolversById.put(r.resolverId(), r);
         insertByPriority(resolvers, r);
         Optional<RequesterId> only = r.servesOnly();
-        insertByPriority(only.isEmpty() ? shared : ownResolvers.computeIfAbsent(only.get(), k -> new ArrayList<>()), r);
+        insertByPriority(only.isEmpty() ? shared : ownResolvers.computeIfAbsent(only.get(), _ -> new ArrayList<>()), r);
         resolversByRequesterId.put(r.requesterId(), r);
     }
 

@@ -127,7 +127,7 @@ final class BuilderStock {
                 continue;
             }
             int kept = Math.min(a.count(), keepLeft.getOrDefault(a.item(), 0));
-            keepLeft.computeIfPresent(a.item(), (k, n) -> n - kept);
+            keepLeft.computeIfPresent(a.item(), (_, n) -> n - kept);
             if (kept == a.count()) {
                 continue;
             }

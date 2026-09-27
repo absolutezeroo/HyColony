@@ -163,6 +163,6 @@ public record ConstructionPorts(
                 return List.of();
             }
         };
-        return new ConstructionPorts(catalog, blocks, containers, playerInventory, blueprints, hut -> {});
+        return new ConstructionPorts(catalog, blocks, containers, playerInventory, blueprints, _ -> {});
     }
 }

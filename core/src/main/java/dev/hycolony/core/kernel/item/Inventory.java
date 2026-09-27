@@ -17,7 +17,7 @@ import java.util.function.ToIntFunction;
 public final class Inventory {
     private final ItemAmount[] slots;
     private long changes;
-    private Consumer<ItemKey> onGone = item -> {};
+    private Consumer<ItemKey> onGone = _ -> {};
 
     public Inventory(int slots) {
         this.slots = new ItemAmount[slots];

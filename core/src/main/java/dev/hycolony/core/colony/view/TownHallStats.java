@@ -25,7 +25,7 @@ final class TownHallStats {
         Map<String, int[]> perJob = new TreeMap<>();
         for (Building b : c.buildings().all()) {
             b.module(WorkerModule.class).ifPresent(w -> {
-                int[] count = perJob.computeIfAbsent(w.job().id(), k -> new int[2]);
+                int[] count = perJob.computeIfAbsent(w.job().id(), _ -> new int[2]);
                 count[0] += w.workers().size();
                 count[1] += w.maxWorkers();
             });

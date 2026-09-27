@@ -13,7 +13,7 @@ public final class EventBus {
     private final Map<Class<?>, List<Consumer<Object>>> listeners = new HashMap<>();
 
     public <E> void subscribe(Class<E> type, Consumer<? super E> listener) {
-        listeners.computeIfAbsent(type, k -> new ArrayList<>()).add(e -> listener.accept(type.cast(e)));
+        listeners.computeIfAbsent(type, _ -> new ArrayList<>()).add(e -> listener.accept(type.cast(e)));
     }
 
     public void post(Object event) {

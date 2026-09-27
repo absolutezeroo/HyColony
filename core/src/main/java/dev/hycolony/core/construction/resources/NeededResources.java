@@ -34,7 +34,7 @@ public final class NeededResources {
     }
 
     static NeededResources empty() {
-        return new NeededResources(List.of(), new LinkedHashMap<>(), 0, k -> 64);
+        return new NeededResources(List.of(), new LinkedHashMap<>(), 0, _ -> 64);
     }
 
     /** One item per not-yet-done entry that has an item to place it with. */
