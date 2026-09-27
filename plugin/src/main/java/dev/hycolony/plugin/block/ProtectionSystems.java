@@ -17,7 +17,6 @@ import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.port.Msg;
-import dev.hycolony.plugin.IdMap;
 import dev.hycolony.plugin.WorldRuntime;
 import dev.hycolony.plugin.WorldRuntimes;
 import dev.hycolony.plugin.adapter.HytaleNotifier;
@@ -49,10 +48,10 @@ public final class ProtectionSystems {
         private final WorldRuntimes runtimes;
         private final Set<String> hutItemIds;
 
-        public Place(WorldRuntimes runtimes, IdMap ids) {
+        public Place(WorldRuntimes runtimes) {
             super(PlaceBlockEvent.class);
             this.runtimes = runtimes;
-            this.hutItemIds = HutBlockSystems.byItemId(ids).keySet();
+            this.hutItemIds = HutBlockSystems.byItemId(runtimes.setup()).keySet();
         }
 
         @Override
@@ -87,10 +86,10 @@ public final class ProtectionSystems {
         private final WorldRuntimes runtimes;
         private final Set<String> hutBlockIds;
 
-        public Use(WorldRuntimes runtimes, IdMap ids) {
+        public Use(WorldRuntimes runtimes) {
             super(UseBlockEvent.Pre.class);
             this.runtimes = runtimes;
-            this.hutBlockIds = HutBlockSystems.byBlockId(ids).keySet();
+            this.hutBlockIds = HutBlockSystems.byBlockId(runtimes.setup()).keySet();
         }
 
         @Override
@@ -129,10 +128,10 @@ public final class ProtectionSystems {
         private final WorldRuntimes runtimes;
         private final Set<String> hutBlockIds;
 
-        public Break(WorldRuntimes runtimes, IdMap ids) {
+        public Break(WorldRuntimes runtimes) {
             super(BreakBlockEvent.class);
             this.runtimes = runtimes;
-            this.hutBlockIds = HutBlockSystems.byBlockId(ids).keySet();
+            this.hutBlockIds = HutBlockSystems.byBlockId(runtimes.setup()).keySet();
         }
 
         @Override

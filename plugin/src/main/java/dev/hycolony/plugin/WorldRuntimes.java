@@ -3,7 +3,6 @@ package dev.hycolony.plugin;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.universe.world.World;
 import dev.hycolony.core.citizen.CitizenNames;
-import dev.hycolony.core.kernel.config.ColonyConfig;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -16,14 +15,17 @@ public final class WorldRuntimes {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
     private final Map<String, WorldRuntime> byWorld = new ConcurrentHashMap<>();
-    private final ColonyConfig config;
-    private final IdMap ids;
+    private final RuntimeSetup setup;
     private final CitizenNames names = CitizenNames.loadDefault();
     private volatile boolean enabled = true;
 
-    public WorldRuntimes(ColonyConfig config, IdMap ids) {
-        this.config = config;
-        this.ids = ids;
+    public WorldRuntimes(RuntimeSetup setup) {
+        this.setup = setup;
+    }
+
+    /** The config, ids and registries every world shares. */
+    public RuntimeSetup setup() {
+        return setup;
     }
 
     /** The world's runtime; null for a null world or one without a runtime (not started, or removed). */
@@ -33,7 +35,7 @@ public final class WorldRuntimes {
 
     /** Creates and returns the world's runtime, replacing any previous one. */
     public WorldRuntime create(World world) {
-        WorldRuntime rt = new WorldRuntime(world, config, ids, names, enabled);
+        WorldRuntime rt = new WorldRuntime(world, setup, names, enabled);
         byWorld.put(world.getName(), rt);
         return rt;
     }

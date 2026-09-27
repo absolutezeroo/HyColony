@@ -12,22 +12,18 @@ import com.hypixel.hytale.server.core.event.events.ecs.PlaceBlockEvent;
 import com.hypixel.hytale.server.core.event.events.ecs.UseBlockEvent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import dev.hycolony.core.CoreFeatures;
-import dev.hycolony.core.building.BuildingRegistry;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.HutPlacement;
 import dev.hycolony.core.colony.permission.Action;
-import dev.hycolony.core.job.JobRegistry;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.port.Msg;
-import dev.hycolony.plugin.IdMap;
+import dev.hycolony.plugin.RuntimeSetup;
 import dev.hycolony.plugin.WorldRuntime;
 import dev.hycolony.plugin.WorldRuntimes;
 import dev.hycolony.plugin.adapter.HytaleNotifier;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import javax.annotation.Nonnull;
@@ -36,28 +32,20 @@ import org.joml.Vector3i;
 /** Player-caused place / break / use of every hut block. Queries PlayerRef so only players trigger these. */
 public final class HutBlockSystems {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
-    private static final List<BuildingType> HUT_TYPES = hutTypes();
 
     private HutBlockSystems() {}
 
-    /** Every building type the core registers, so a new hut needs no line here. */
-    private static List<BuildingType> hutTypes() {
-        BuildingRegistry buildings = new BuildingRegistry();
-        CoreFeatures.register(buildings, new JobRegistry());
-        return buildings.all();
-    }
-
-    /** Hut block id -> building type, from the id-map. */
-    public static Map<String, BuildingType> byBlockId(IdMap ids) {
+    /** Hut block id -> building type, for every registered type (core and sub-plugins), from the id-map. */
+    public static Map<String, BuildingType> byBlockId(RuntimeSetup setup) {
         Map<String, BuildingType> map = new HashMap<>();
-        HUT_TYPES.forEach(t -> map.put(ids.blockId(t.hutBlockKey()), t));
+        setup.buildings().all().forEach(t -> map.put(setup.ids().blockId(t.hutBlockKey()), t));
         return Map.copyOf(map);
     }
 
-    /** Hut item id -> building type, from the id-map. */
-    static Map<String, BuildingType> byItemId(IdMap ids) {
+    /** Hut item id -> building type, for every registered type (core and sub-plugins), from the id-map. */
+    static Map<String, BuildingType> byItemId(RuntimeSetup setup) {
         Map<String, BuildingType> map = new HashMap<>();
-        HUT_TYPES.forEach(t -> map.put(ids.itemId(t.hutBlockKey()), t));
+        setup.buildings().all().forEach(t -> map.put(setup.ids().itemId(t.hutBlockKey()), t));
         return Map.copyOf(map);
     }
 
@@ -79,10 +67,10 @@ public final class HutBlockSystems {
         private final WorldRuntimes runtimes;
         private final Map<String, BuildingType> huts;
 
-        public Place(WorldRuntimes runtimes, IdMap ids) {
+        public Place(WorldRuntimes runtimes) {
             super(PlaceBlockEvent.class);
             this.runtimes = runtimes;
-            this.huts = byItemId(ids);
+            this.huts = byItemId(runtimes.setup());
         }
 
         @Override
@@ -135,10 +123,10 @@ public final class HutBlockSystems {
         private final WorldRuntimes runtimes;
         private final Map<String, BuildingType> huts;
 
-        public Break(WorldRuntimes runtimes, IdMap ids) {
+        public Break(WorldRuntimes runtimes) {
             super(BreakBlockEvent.class);
             this.runtimes = runtimes;
-            this.huts = byBlockId(ids);
+            this.huts = byBlockId(runtimes.setup());
         }
 
         @Override
@@ -186,10 +174,10 @@ public final class HutBlockSystems {
         private final WorldRuntimes runtimes;
         private final Map<String, BuildingType> huts;
 
-        public Use(WorldRuntimes runtimes, IdMap ids) {
+        public Use(WorldRuntimes runtimes) {
             super(UseBlockEvent.Pre.class);
             this.runtimes = runtimes;
-            this.huts = byBlockId(ids);
+            this.huts = byBlockId(runtimes.setup());
         }
 
         @Override

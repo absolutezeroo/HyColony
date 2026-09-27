@@ -2,15 +2,12 @@ package dev.hycolony.plugin;
 
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.universe.world.World;
-import dev.hycolony.core.CoreFeatures;
-import dev.hycolony.core.building.BuildingRegistry;
 import dev.hycolony.core.citizen.CitizenNames;
 import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.ConstructionPorts;
 import dev.hycolony.core.construction.goggles.BuildGoggles;
 import dev.hycolony.core.construction.wand.WandActions;
-import dev.hycolony.core.job.JobRegistry;
 import dev.hycolony.core.kernel.WorldKey;
 import dev.hycolony.core.kernel.config.ColonyConfig;
 import dev.hycolony.core.kernel.event.EventBus;
@@ -57,18 +54,17 @@ public final class WorldRuntime {
 
     private boolean enabled;
 
-    WorldRuntime(World world, ColonyConfig config, IdMap ids, CitizenNames names, boolean enabled) {
+    WorldRuntime(World world, RuntimeSetup setup, CitizenNames names, boolean enabled) {
         this.world = world;
+        ColonyConfig config = setup.config();
+        IdMap ids = setup.ids();
         this.clock = new HytaleGameClock(world);
         this.bodies = new HytaleCitizenBodies(world, ids.npcRole("npc.citizen"), new CitizenSpeed(ids.speedEffects()));
-        Set<String> hutBlockIds = HutBlockSystems.byBlockId(ids).keySet(); // the builder never breaks these
+        Set<String> hutBlockIds = HutBlockSystems.byBlockId(setup).keySet(); // the builder never breaks these
         HytaleItemCatalog catalog = new HytaleItemCatalog(hutBlockIds);
         this.blocks = new HytaleBlocks(world, catalog.stacks());
         ColonyManager[] self = new ColonyManager[1];
         WandActions[] wandSelf = new WandActions[1]; // the UI port needs it before it exists
-        JobRegistry jobs = new JobRegistry();
-        BuildingRegistry buildings = new BuildingRegistry();
-        CoreFeatures.register(buildings, jobs);
         HytaleWorldBlocks worldBlocks = new HytaleWorldBlocks(world, hutBlockIds, blocks);
         ColonyContext ctx = new ColonyContext(
                 new WorldKey(world.getName()),
@@ -79,8 +75,8 @@ public final class WorldRuntime {
                 new HytaleNotifier(),
                 new HytaleUiPort(() -> self[0], () -> wandSelf[0], blocks, ids),
                 new HytalePlayerDirectory(world),
-                buildings,
-                jobs,
+                setup.buildings(),
+                setup.jobs(),
                 names,
                 new Random(),
                 new EventBus(),

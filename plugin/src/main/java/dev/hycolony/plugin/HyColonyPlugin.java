@@ -49,22 +49,22 @@ public final class HyColonyPlugin extends JavaPlugin {
             return null;
         });
         ColonyConfig colonyConfig = config.get().toCore();
-        WorldRuntimes worlds = new WorldRuntimes(colonyConfig, ids);
+        WorldRuntimes worlds = new WorldRuntimes(RuntimeSetup.create(colonyConfig, ids));
 
         HyColonyComponents.register(getEntityStoreRegistry());
         NPCPlugin.get().registerCoreComponentType("HyColonyTarget", BuilderSensorHyColonyTarget::new);
 
         getEntityStoreRegistry().registerSystem(new ColonyTickSystem(worlds));
         getEntityStoreRegistry().registerSystem(new CitizenBodyLifecycleSystem(worlds));
-        getEntityStoreRegistry().registerSystem(new HutBlockSystems.Place(worlds, ids));
-        getEntityStoreRegistry().registerSystem(new HutBlockSystems.Break(worlds, ids));
-        getEntityStoreRegistry().registerSystem(new HutBlockSystems.Use(worlds, ids));
+        getEntityStoreRegistry().registerSystem(new HutBlockSystems.Place(worlds));
+        getEntityStoreRegistry().registerSystem(new HutBlockSystems.Break(worlds));
+        getEntityStoreRegistry().registerSystem(new HutBlockSystems.Use(worlds));
         getEntityStoreRegistry().registerSystem(new CitizenUseSystem(worlds));
         getEntityStoreRegistry().registerSystem(new CitizenFireImmunitySystems.Grant());
         getEntityStoreRegistry().registerSystem(new CitizenFireImmunitySystems.Guard());
-        getEntityStoreRegistry().registerSystem(new ProtectionSystems.Place(worlds, ids));
-        getEntityStoreRegistry().registerSystem(new ProtectionSystems.Break(worlds, ids));
-        getEntityStoreRegistry().registerSystem(new ProtectionSystems.Use(worlds, ids));
+        getEntityStoreRegistry().registerSystem(new ProtectionSystems.Place(worlds));
+        getEntityStoreRegistry().registerSystem(new ProtectionSystems.Break(worlds));
+        getEntityStoreRegistry().registerSystem(new ProtectionSystems.Use(worlds));
         getEntityStoreRegistry().registerSystem(new ExplosionProtectionSystem(worlds));
         getEntityStoreRegistry().registerSystem(new GogglesSystems.ArmorChange(worlds, ids.itemId("build_goggles")));
         getEntityStoreRegistry().registerSystem(new GogglesSystems.Visibility(worlds));
