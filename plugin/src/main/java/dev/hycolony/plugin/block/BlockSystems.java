@@ -21,9 +21,10 @@ public final class BlockSystems {
         registry.registerSystem(new HutBlockSystems.Place(worlds));
         registry.registerSystem(new HutBlockSystems.Break(worlds));
         registry.registerSystem(new HutBlockSystems.Use(worlds));
-        registry.registerSystem(new ProtectionSystems.Place(worlds));
-        registry.registerSystem(new ProtectionSystems.Break(worlds));
-        registry.registerSystem(new BlockUseProtectionSystem(worlds, ids));
+        ProtectionSystems.Check check = new ProtectionSystems.Check(worlds, new ColonyRefusals());
+        registry.registerSystem(new ProtectionSystems.Place(check));
+        registry.registerSystem(new ProtectionSystems.Break(check));
+        registry.registerSystem(new BlockUseProtectionSystem(check, ids));
         registry.registerSystem(new ExplosionProtectionSystem(worlds));
         if (flowerPots) {
             registry.registerSystem(new FlowerPotSystem(ids));

@@ -15,11 +15,9 @@ import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.permission.BlockUse;
 import dev.hycolony.core.kernel.BlockPos;
-import dev.hycolony.core.kernel.port.Msg;
 import dev.hycolony.plugin.IdMap;
 import dev.hycolony.plugin.WorldRuntime;
 import dev.hycolony.plugin.WorldRuntimes;
-import dev.hycolony.plugin.adapter.HytaleNotifier;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
@@ -35,12 +33,14 @@ public final class BlockUseProtectionSystem extends EntityEventSystem<EntityStor
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
     private final WorldRuntimes runtimes;
+    private final ColonyRefusals refusals;
     private final Set<String> hutBlockIds;
     private final BlockUses uses;
 
-    public BlockUseProtectionSystem(WorldRuntimes runtimes, IdMap ids) {
+    public BlockUseProtectionSystem(ProtectionSystems.Check check, IdMap ids) {
         super(UseBlockEvent.Pre.class);
-        this.runtimes = runtimes;
+        this.runtimes = check.runtimes();
+        this.refusals = check.refusals();
         this.hutBlockIds = HutBlockSystems.byBlockId(runtimes.setup()).keySet();
         this.uses = new BlockUses(ids);
     }
@@ -78,8 +78,7 @@ public final class BlockUseProtectionSystem extends EntityEventSystem<EntityStor
             if (use.refused(action -> manager.isAllowed(player.getUuid(), pos, action), manager.protectionEnabled())
                     .isPresent()) {
                 event.setCancelled(true);
-                player.sendMessage(HytaleNotifier.toMessage(
-                        Msg.of("hycolony.permission.denied", colony.get().name())));
+                refusals.tell(rt, player, colony.get().name());
             }
         } catch (RuntimeException e) {
             // A failing check must not let the use through.
