@@ -76,6 +76,11 @@ $C.@PageOverlay {
         LayoutMode: Top;
         Visible: false;
 
+        $C.@SecondaryTextButton #OpenInventoryButton {
+          @Anchor = (Bottom: 10);
+          Text: %hycolony.ui.citizen.openInventory;
+        }
+
         Label #InventoryEmpty {
           Style: (TextColor: #94a7bb);
           Visible: false;

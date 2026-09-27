@@ -35,6 +35,7 @@ import dev.hycolony.plugin.IdMap;
 import dev.hycolony.plugin.ui.BuildingPage;
 import dev.hycolony.plugin.ui.FoundColonyPage;
 import dev.hycolony.plugin.ui.RequestsPage;
+import dev.hycolony.plugin.ui.citizen.CitizenInventoryWindows;
 import dev.hycolony.plugin.ui.citizen.CitizenPage;
 import dev.hycolony.plugin.ui.townhall.TownHallPage;
 import dev.hycolony.plugin.ui.wand.WandPage;
@@ -57,11 +58,13 @@ public final class HytaleUiPort implements UiPort {
     private final IdMap ids;
     private final String townHallBlockId;
     private final String townHallItemId;
+    private final CitizenInventoryWindows citizenInventories;
     /** Players whose page Hytale is closing right now: close() must not close it a second time. */
     private final Set<UUID> closing = new HashSet<>();
 
     public HytaleUiPort(Supplier<ColonyManager> manager, Supplier<WandActions> wand, HytaleBlocks blocks, IdMap ids) {
         this.manager = manager;
+        this.citizenInventories = new CitizenInventoryWindows(manager);
         this.wand = wand;
         this.blocks = blocks;
         this.ids = ids;
@@ -131,9 +134,10 @@ public final class HytaleUiPort implements UiPort {
         open(player, pr -> new WandPage(pr, view, manager.get(), wand.get(), ids));
     }
 
-    /** Not reachable yet: no button opens it until the container window lands. */
     @Override
-    public void openCitizenInventory(UUID player, int colonyId, int citizenId) {}
+    public void openCitizenInventory(UUID player, int colonyId, int citizenId) {
+        citizenInventories.open(player, colonyId, citizenId);
+    }
 
     @Override
     public void notifyNeedsPlayer(UUID player, NeedsPlayerNotice notice) {

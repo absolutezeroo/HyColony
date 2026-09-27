@@ -194,6 +194,7 @@ ui.citizen.skillLevel = {p0} - Niv. {p1}
 ui.citizen.skillXp = {p0} / {p1} XP
 ui.citizen.skillXpMax = Niveau max
 ui.citizen.inventoryEmpty = Vide
+ui.citizen.openInventory = Ouvrir l'inventaire
 ui.citizen.tab.main = Principal
 ui.citizen.tab.requests = Requêtes
 ui.citizen.tab.inventory = Inventaire

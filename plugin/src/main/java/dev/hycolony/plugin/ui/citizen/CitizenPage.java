@@ -22,7 +22,7 @@ import javax.annotation.Nullable;
  * with a workplace.
  *
  * <p>Deviation from MC: no Happiness, Family nor Debug tab (no such systems yet), and the Inventory tab lists the
- * items instead of opening the citizen's container.
+ * items with a button opening the citizen's container (see {@link CitizenInventoryTab}).
  */
 public final class CitizenPage extends ColonyPage {
     /** A tab: its content group and its label key. */
@@ -85,7 +85,7 @@ public final class CitizenPage extends ColonyPage {
         TabBar.render(ui, events, tabs, tab);
         CitizenMainTab.render(ui, view, new SkillRowRenderer(ids));
         requests.render(ui, events);
-        CitizenInventoryTab.render(ui, view.inventory());
+        CitizenInventoryTab.render(ui, events, view.inventory());
         view.jobSkills().ifPresent(j -> CitizenJobTab.render(ui, ids, view.jobId(), j));
     }
 
@@ -96,6 +96,10 @@ public final class CitizenPage extends ColonyPage {
                 tab = tabs.get(act.index());
                 rebuild();
             }
+            return;
+        }
+        if ("openInventory".equals(act.action())) {
+            manager.citizenInventories().open(player, view.colonyId(), view.citizenId());
             return;
         }
         requests.handle(act);

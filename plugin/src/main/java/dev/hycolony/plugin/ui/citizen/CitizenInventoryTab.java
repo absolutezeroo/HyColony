@@ -2,20 +2,22 @@ package dev.hycolony.plugin.ui.citizen;
 
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
+import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.plugin.ui.ColonyPage;
 import java.util.List;
 
 /**
- * The citizen's Inventory tab, read only.
+ * The citizen's Inventory tab: its items, and a button opening the citizen's container (MC OpenInventoryMessage).
  *
- * <p>Deviation from MC: MC's tab opens the citizen's container (OpenInventoryMessage); opening an NPC's inventory is
- * not verified on Hytale, so the items are listed.
+ * <p>Deviation from MC: MC's Inventory tab opens the container straight away; here the tab still lists the items, read
+ * without the permission the container needs, and its button opens the container.
  */
 final class CitizenInventoryTab {
     private CitizenInventoryTab() {}
 
-    static void render(UICommandBuilder ui, List<ItemAmount> items) {
+    static void render(UICommandBuilder ui, UIEventBuilder events, List<ItemAmount> items) {
+        ColonyPage.bind(events, "#OpenInventoryButton", "openInventory");
         if (items.isEmpty()) {
             ui.set("#InventoryEmpty.Visible", true);
             ui.set("#InventoryEmpty.Text", Message.translation("hycolony.ui.citizen.inventoryEmpty"));
