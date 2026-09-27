@@ -26,8 +26,9 @@ import javax.annotation.Nonnull;
 import org.joml.Vector3d;
 
 /**
- * /hycolony dotest [clear], operators only: creates a new texture and BlockType at runtime, places it 2 blocks in
- * front of the player, and clears the placed blocks on {@code clear}.
+ * /hycolony dotest [--delay=ms] [clear], operators only: creates a new texture and BlockType at runtime, places it 2
+ * blocks in front of the player, and clears the placed blocks on {@code clear}. {@code --delay} waits between the
+ * texture and the BlockType, to probe a client-side race.
  *
  * <p>Temporary experiment for the Domum Ornamentum port (docs/research/domum-ornamentum.md B.6): it answers whether a
  * connected client renders a BlockType created at runtime without reconnecting. Remove it after the in-game test.
@@ -41,7 +42,6 @@ public final class DoTestCommand extends AbstractPlayerCommand {
     private final Queue<Placed> placed = new ConcurrentLinkedQueue<>();
     private final AtomicInteger next = new AtomicInteger(1);
     private final DefaultArg<Integer> delayMs;
-    private final DefaultArg<Boolean> rebuildAfter;
 
     /** @param packKey the plugin's asset pack name ({@code getIdentifier().toString()}) */
     public DoTestCommand(String packKey) {
@@ -49,9 +49,6 @@ public final class DoTestCommand extends AbstractPlayerCommand {
         this.factory = new RuntimeBlockFactory(packKey);
         // --delay=<ms> between the texture and the BlockType, to test whether the client needs its rebuild finished.
         this.delayMs = withDefaultArg("delay", "Milliseconds between texture and block type", ArgTypes.INTEGER, 0, "0");
-        // --after=true sends the client rebuild request after the BlockType instead of after the texture.
-        this.rebuildAfter =
-                withDefaultArg("after", "Rebuild request after the block type", ArgTypes.BOOLEAN, false, "false");
         setPermissionGroups(new String[0]);
         addSubCommand(new Clear());
     }
@@ -70,23 +67,11 @@ public final class DoTestCommand extends AbstractPlayerCommand {
         int n = next.getAndIncrement();
         Placed at = inFront(store, ref, world);
         long start = System.nanoTime();
-        boolean after = ctx.get(rebuildAfter);
         // World.tick holds AssetRegistry.ASSET_LOCK's read lock and loadAssets needs its write lock: loading assets on
         // the world thread deadlocks it (a ReentrantReadWriteLock cannot upgrade).
-        CompletableFuture.supplyAsync(() -> {
-                    Optional<String> texture = createTexture(n, player);
-                    if (!after) {
-                        RuntimeBlockFactory.requestClientRebuild();
-                    }
-                    return texture;
-                })
+        CompletableFuture.supplyAsync(() -> createTexture(n, player))
                 .thenAcceptAsync(
-                        texture -> {
-                            createBlock(n, texture, at, player, start);
-                            if (after) {
-                                RuntimeBlockFactory.requestClientRebuild();
-                            }
-                        },
+                        texture -> createBlock(n, texture, at, player, start),
                         CompletableFuture.delayedExecutor(Math.max(0, ctx.get(delayMs)), TimeUnit.MILLISECONDS))
                 .whenComplete((v, t) -> {
                     if (t != null) {
