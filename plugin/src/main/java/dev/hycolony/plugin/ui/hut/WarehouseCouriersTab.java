@@ -33,7 +33,7 @@ final class WarehouseCouriersTab implements HutTab {
     public void render(UICommandBuilder ui, UIEventBuilder events, String root) {
         ui.set(
                 root + " #CouriersCount.Text",
-                Message.translation("hycolony.ui.assignment.couriers")
+                Message.translation("hycolony.ui.warehouse.couriers")
                         .param("p0", String.valueOf(assignment.couriers().size()))
                         .param("p1", String.valueOf(assignment.maxCouriers())));
         if (assignment.couriers().isEmpty()) {
