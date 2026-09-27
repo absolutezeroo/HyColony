@@ -113,20 +113,11 @@ final class WorkOrderValidation {
         return styles.isEmpty() ? "" : styles.get(0);
     }
 
-    /**
-     * WorkManager.isWorkOrderWithinColony: every claim cell of the footprint rectangle (hut + min .. hut + max, in x
-     * and z) must belong to this colony.
-     */
+    /** The blueprint's footprint around {@code hut} lies in this colony (see {@link ClaimCell#allOwned}). */
     private boolean insideColony(Blueprint bp, BlockPos hut) {
-        ClaimCell a = ClaimCell.of(hut.offset(bp.min().x(), 0, bp.min().z()));
-        ClaimCell b = ClaimCell.of(hut.offset(bp.max().x(), 0, bp.max().z()));
-        for (int cx = Math.min(a.x(), b.x()); cx <= Math.max(a.x(), b.x()); cx++) {
-            for (int cz = Math.min(a.z(), b.z()); cz <= Math.max(a.z(), b.z()); cz++) {
-                if (!colony.contains(new BlockPos(cx * ClaimCell.SIZE, hut.y(), cz * ClaimCell.SIZE))) {
-                    return false;
-                }
-            }
-        }
-        return true;
+        return ClaimCell.allOwned(
+                hut.offset(bp.min().x(), 0, bp.min().z()),
+                hut.offset(bp.max().x(), 0, bp.max().z()),
+                colony::contains);
     }
 }
