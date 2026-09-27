@@ -160,16 +160,23 @@ public final class HutActions {
         return hired;
     }
 
+    /**
+     * MC {@code HireFireMessage} (fire): the citizen leaves the hut. A citizen who no longer works here is ignored
+     * without a message, as in MC, but the window is still re-shown, as MC's client redraws its hire window.
+     */
     public boolean fire(UUID player, BlockPos hutPos, int citizenId) {
         ManagedHut h = ManagedHut.find(manager, player, hutPos).orElse(null);
         WorkerModule w =
                 h == null ? null : h.building().module(WorkerModule.class).orElse(null);
-        if (w == null || !w.workers().contains(citizenId)) {
+        if (w == null) {
             return false;
         }
-        w.fire(h.colony(), h.building(), citizenId);
+        boolean fired = w.workers().contains(citizenId);
+        if (fired) {
+            w.fire(h.colony(), h.building(), citizenId);
+        }
         windows.showBuilding(h.colony(), h.building(), player);
-        return true;
+        return fired;
     }
 
     public boolean setHiring(UUID player, BlockPos hutPos, HiringMode mode) {

@@ -43,4 +43,20 @@ class StaleHireWindowTest {
         assertEquals(List.of(new BuildingView.WorkerRow(1, "Ann")), shown.workers());
         assertEquals(List.of(), shown.hireable());
     }
+
+    @Test
+    void fireClickedOnAWorkerWhoAlreadyLeftReShowsTheHutWithoutAMessage() {
+        manager.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
+        Colony colony = manager.foundation().confirm(alice, "A").orElseThrow();
+        BlockPos pos = new BlockPos(10, 64, 0);
+        manager.huts().place(colony, ConstructionBuildingTypes.BUILDER.id(), pos, 0);
+        manager.windows().openBuilding(alice, pos);
+        t.ui.shown.clear();
+        int messages = t.notifier.sent.size();
+
+        assertFalse(manager.huts().fire(alice, pos, 1), "no citizen 1 works here");
+
+        assertTrue(t.ui.shown.get(alice) instanceof BuildingView, "MC's client redraws its hire window anyway");
+        assertEquals(messages, t.notifier.sent.size(), "MC's HireFireMessage ignores it silently");
+    }
 }
