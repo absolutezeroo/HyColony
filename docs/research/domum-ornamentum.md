@@ -126,7 +126,7 @@ Les briques et blocs « extra » ont des recettes vanilla : par exemple `beige_b
   - `AssetStore.loadAssets(packKey, List<T>)` charge des assets à chaud (`H: assetstore/AssetStore.java:464-474`), et `UpdateType.AddOrUpdate` existe (`H: protocol/UpdateType.java:6-8`).
   - Mais `addCommonAsset` envoie une **notification à tout l'univers** à chaque ajout (l.203-208) : c'est l'outil de rechargement de l'éditeur d'assets. Les seules implémentations de `CommonAsset` sont `FileCommonAsset` et `ResourceCommonAsset` : aucune ne vient de la mémoire. La **génération au build** du pack d'assets du plugin (`IncludesAssetPack: true`, `plugin/src/main/resources/manifest.json`) reste possible.
 - **Résultat en jeu (2026-09-27, expérience `/hycolony dotest`, retirée depuis) : la génération à l'exécution n'est pas fiable.** Après chaque démarrage du serveur, seuls **les un ou deux premiers** blocs générés s'affichent sans reconnexion ; les suivants restent roses et noirs (journaux du 2026-09-27, par exemple 7 essais : 2 bons puis des cubes roses). Après une reconnexion, **tous** s'affichent. La cause est côté client (code fermé), non trouvée.
-  - Séquence essayée en dernier (commit `d67fe4c`, `--after=true`) : `addCommonAsset` (la PNG part), puis `BlockType.getAssetStore().loadAssets(..., AssetUpdateQuery.DEFAULT)` (`UpdateBlockTypes` part), puis mise en file de la pose, puis `RequestCommonAssetsRebuild`. Les « 15 réussites » rapportées étaient réparties sur 8 démarrages (1 à 4 essais chacun) et sur plusieurs variantes du code (`d67fe4c` à `60c1f33`, d'après l'heure des démarrages), d'où l'illusion d'un ordre qui marche.
+  - Séquence essayée en dernier (commit `d67fe4c`, `--after=true`) : `addCommonAsset` (la PNG part), puis `BlockType.getAssetStore().loadAssets(..., AssetUpdateQuery.DEFAULT)` (`UpdateBlockTypes` part), puis mise en file de la pose, puis `RequestCommonAssetsRebuild`. Les « 15 réussites » rapportées venaient de 8 démarrages (1 à 4 essais chacun), qui couvraient plusieurs variantes du code (`d67fe4c` à `60c1f33`, d'après l'heure des démarrages), d'où l'illusion d'un ordre qui marche.
   - Autres séquences essayées, qui échouent dès le premier bloc :
     - aucune demande de reconstruction ;
     - demande envoyée juste après la texture, avant le `BlockType`, même avec 2 à 3 s d'écart (`--delay`) et des PNG au hash unique ;
@@ -184,5 +184,5 @@ L'enjeu est pourtant réel dans MC : 68 % des plans et 14,9 % des blocs des styl
 **Questions à tester en jeu.**
 - Le client tient-il plusieurs milliers de `BlockType` et de textures de plus (temps de chargement, atlas) ? **[in-game]**
 - Une variante pondérée de `Textures` / `CustomModelTexture` est-elle choisie par position (stable) côté client ? **[in-game]**
-- ~~Génération en cours de partie : le nouveau bloc s'affiche-t-il sans reconnexion ?~~ Tranché le 2026-09-27 : non, de façon fiable (B.6).
+- ~~Génération en cours de partie : le nouveau bloc s'affiche-t-il sans reconnexion ?~~ Tranché le 2026-09-27 : pas de façon fiable (B.6).
 - Un objet sans icône propre (icône d'un autre `itemId`) est-il accepté par la validation des assets ? **[in-game]**
