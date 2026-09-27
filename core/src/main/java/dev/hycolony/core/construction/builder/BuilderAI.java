@@ -84,7 +84,7 @@ public final class BuilderAI implements JobAI {
 
     @Override
     public void tick() {
-        if (ctx.resources() == null || ctx.job() == null || ++calls < MACHINE_RATE) {
+        if (!ctx.canRun() || ++calls < MACHINE_RATE) {
             return;
         }
         calls = 0;

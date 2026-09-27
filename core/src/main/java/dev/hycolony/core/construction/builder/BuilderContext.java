@@ -84,6 +84,11 @@ record BuilderContext(
         return hut != null;
     }
 
+    /** True when the AI can run: a hut with its resources module, and a job. */
+    boolean canRun() {
+        return hut != null && resources != null && job != null;
+    }
+
     @Override
     public Building hut() {
         return Objects.requireNonNull(hut, NO_HUT);

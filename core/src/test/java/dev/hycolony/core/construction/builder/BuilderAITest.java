@@ -110,6 +110,18 @@ class BuilderAITest {
         t.notifier.sent.clear();
     }
 
+    @Test
+    void aBuilderWithoutAHutTicksWithoutThrowing() {
+        CitizenData homeless = new CitizenData(2);
+        colony.citizens().restore(homeless);
+        BuilderAI idle = new BuilderAI(colony, homeless, t.bodies.existing(colony.id(), 2, Vec3.center(HUT)));
+        for (int i = 0; i < 20; i++) {
+            idle.tick();
+        }
+        assertNull(idle.lastError);
+        assertTrue(idle.canGoIdle());
+    }
+
     private Building hut(BuildingType type, BlockPos pos, int level) {
         manager.huts().place(colony, type.id(), pos, 0);
         Building b = colony.buildings().at(pos).orElseThrow();
