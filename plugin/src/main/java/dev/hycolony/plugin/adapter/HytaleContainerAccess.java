@@ -11,6 +11,7 @@ import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.ContainerAccess;
+import dev.hycolony.plugin.item.HytaleStacks;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -21,16 +22,18 @@ import org.jspecify.annotations.Nullable;
 /**
  * ContainerAccess over {@link ItemContainerBlock} (cheat sheet § 3). An unloaded chunk or a position without a
  * container is skipped. Items are matched by id and removed by slot, never by {@code ItemStack} equality (a worn
- * tool would not match). World thread only.
+ * tool would not match); a stack's durability travels as its damage ({@link HytaleStacks}). World thread only.
  */
 public final class HytaleContainerAccess implements ContainerAccess {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
     private final World world;
+    private final HytaleStacks stacks;
     private boolean warned;
 
-    public HytaleContainerAccess(World world) {
+    public HytaleContainerAccess(World world, HytaleStacks stacks) {
         this.world = world;
+        this.stacks = stacks;
     }
 
     @Override
@@ -51,22 +54,23 @@ public final class HytaleContainerAccess implements ContainerAccess {
     }
 
     @Override
-    public int extract(List<BlockPos> containers, ItemKey item, int max) {
-        int taken = 0;
+    public List<ItemAmount> extractStacks(List<BlockPos> containers, ItemKey item, int max) {
+        List<ItemAmount> out = new ArrayList<>();
         try {
+            int taken = 0;
             for (BlockPos p : containers) {
                 if (taken >= max) {
                     break;
                 }
                 ItemContainer c = container(p);
                 if (c != null) {
-                    taken += takeBySlot(c, item, max - taken);
+                    taken += takeBySlot(c, item, max - taken, stacks, out);
                 }
             }
         } catch (RuntimeException e) {
             fail("extract", e); // what was already taken stays taken: report it
         }
-        return taken;
+        return out;
     }
 
     @Override
@@ -79,7 +83,7 @@ public final class HytaleContainerAccess implements ContainerAccess {
             for (BlockPos p : containers) {
                 ItemContainer c = container(p);
                 if (c != null) {
-                    left = give(c, left);
+                    left = give(c, left, stacks);
                     if (left == null) {
                         return null;
                     }
@@ -133,7 +137,7 @@ public final class HytaleContainerAccess implements ContainerAccess {
         try {
             ItemContainer c = container(container);
             if (c != null) {
-                c.forEach((slot, s) -> out.add(new ItemAmount(new ItemKey(s.getItemId()), s.getQuantity())));
+                c.forEach((slot, s) -> out.add(stacks.toAmount(s)));
             }
         } catch (RuntimeException e) {
             fail("stacks", e);
@@ -148,8 +152,11 @@ public final class HytaleContainerAccess implements ContainerAccess {
         return b == null ? null : b.getItemContainer();
     }
 
-    /** Removes up to {@code max} of {@code item}, slot by slot. Returns how many were removed. */
-    static int takeBySlot(ItemContainer c, ItemKey item, int max) {
+    /**
+     * Removes up to {@code max} of {@code item}, slot by slot, adding each part taken to {@code out} with its damage.
+     * Returns how many were removed.
+     */
+    static int takeBySlot(ItemContainer c, ItemKey item, int max, HytaleStacks stacks, List<ItemAmount> out) {
         int taken = 0;
         for (short s = 0; s < c.getCapacity() && taken < max; s++) {
             ItemStack st = c.getItemStack(s);
@@ -159,14 +166,15 @@ public final class HytaleContainerAccess implements ContainerAccess {
             int n = Math.min(max - taken, st.getQuantity());
             if (c.removeItemStackFromSlot(s, n).succeeded()) {
                 taken += n;
+                out.add(stacks.toAmount(st, n));
             }
         }
         return taken;
     }
 
-    /** Adds {@code a} to {@code c}. Returns the remainder, or null if everything fit. */
-    static @Nullable ItemAmount give(ItemContainer c, ItemAmount a) {
-        ItemStack rem = c.addItemStack(new ItemStack(a.item().id(), a.count())).getRemainder();
+    /** Adds {@code a}, with its damage, to {@code c}. Returns the remainder, or null if everything fit. */
+    static @Nullable ItemAmount give(ItemContainer c, ItemAmount a, HytaleStacks stacks) {
+        ItemStack rem = c.addItemStack(stacks.toStack(a)).getRemainder();
         return rem == null || ItemStack.isEmpty(rem) ? null : a.withCount(rem.getQuantity());
     }
 

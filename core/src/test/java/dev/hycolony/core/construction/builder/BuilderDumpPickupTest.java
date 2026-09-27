@@ -1,6 +1,7 @@
 package dev.hycolony.core.construction.builder;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
@@ -10,11 +11,14 @@ import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.core.kernel.item.ToolInfo;
+import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.model.Pickup;
 import dev.hycolony.core.testing.TestContexts;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
@@ -96,5 +100,27 @@ class BuilderDumpPickupTest {
         stock.dump(Map.of());
 
         assertEquals(List.of(), pickups());
+    }
+
+    /** MC: the damage is on the stack, so a tool left in the hut comes back as worn as it went. */
+    @Test
+    void aWornToolStoredInTheHutAndTakenBackKeepsItsWear() {
+        ItemKey pick = new ItemKey("pickaxe");
+        t.catalog.tools.put(pick, new ToolInfo(ToolType.PICKAXE, 0, 1f));
+        t.catalog.maxStacks.put(pick, 1);
+        citizen.inventory().set(0, Optional.of(new ItemAmount(pick, 1)));
+        citizen.inventory().set(1, Optional.of(new ItemAmount(pick, 1, 7)));
+        citizen.inventory().set(2, Optional.of(new ItemAmount(pick, 1)));
+
+        stock.dump(Map.of()); // MC keepX: the first tool of each type stays
+
+        assertEquals(List.of(new ItemAmount(pick, 1)), citizen.inventory().contents());
+        assertTrue(t.containers.stacks(HUT).contains(new ItemAmount(pick, 1, 7)));
+        citizen.inventory().set(0, Optional.empty());
+
+        assertEquals(2, stock.take(pick, 2));
+
+        assertTrue(citizen.inventory().contents().contains(new ItemAmount(pick, 1, 7)));
+        assertTrue(citizen.inventory().contents().contains(new ItemAmount(pick, 1)));
     }
 }

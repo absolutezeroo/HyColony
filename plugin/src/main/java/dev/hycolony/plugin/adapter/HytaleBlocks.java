@@ -16,6 +16,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemAmount;
+import dev.hycolony.plugin.item.HytaleStacks;
 import java.util.ArrayList;
 import java.util.List;
 import org.joml.Vector3d;
@@ -24,9 +25,11 @@ import org.joml.Vector3i;
 /** Section-API block and drop helpers (no deprecated World/WorldChunk calls). World thread only. */
 public final class HytaleBlocks {
     private final World world;
+    private final HytaleStacks stacks;
 
-    public HytaleBlocks(World world) {
+    public HytaleBlocks(World world, HytaleStacks stacks) {
         this.world = world;
+        this.stacks = stacks;
     }
 
     /**
@@ -58,18 +61,23 @@ public final class HytaleBlocks {
     }
 
     /**
-     * Spawns {@code items} as item entities at the block's bottom centre, as BlockHarvestUtils.spawnDrops does for a
-     * broken block. The chunk must be loaded.
+     * Spawns {@code items}, with their damage, as item entities at the block's bottom centre, as
+     * BlockHarvestUtils.spawnDrops does for a broken block. The chunk must be loaded.
      */
     public void drop(BlockPos pos, List<ItemAmount> items) {
-        List<ItemStack> stacks = new ArrayList<>(items.size());
+        List<ItemStack> dropped = new ArrayList<>(items.size());
         for (ItemAmount a : items) {
-            stacks.add(new ItemStack(a.item().id(), a.count()));
+            dropped.add(stacks.toStack(a));
         }
         Store<EntityStore> entities = world.getEntityStore().getStore();
         Vector3d at = new Vector3d(pos.x() + 0.5, pos.y(), pos.z() + 0.5);
         entities.addEntities(
-                ItemComponent.generateItemDrops(entities, stacks, at, Rotation3f.IDENTITY), AddReason.SPAWN);
+                ItemComponent.generateItemDrops(entities, dropped, at, Rotation3f.IDENTITY), AddReason.SPAWN);
+    }
+
+    /** {@code s} as a core stack, with the damage its durability shows. */
+    ItemAmount toAmount(ItemStack s) {
+        return stacks.toAmount(s);
     }
 
     /** What a player gets with the right tool: breaking drops, else soft drops, else the block's own item. */

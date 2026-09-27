@@ -7,11 +7,14 @@ import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolInfo;
 import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequestToken;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /** MC EntityAIWorkDeliveryman.pickup. */
@@ -115,5 +118,21 @@ class CourierPickupTest extends CourierAITestBase {
 
         assertEquals(3, carried(pick));
         assertEquals(3, stored(builderHut.position(), pick));
+    }
+
+    @Test
+    void aWornToolPickedUpIsStoredAtTheWarehouseWithItsWear() {
+        hire();
+        ItemKey pick = new ItemKey("Tool_Pickaxe_Iron");
+        t.catalog.maxStacks.put(pick, 1);
+        t.containers.worn.put(target.position(), new ArrayList<>(List.of(new ItemAmount(pick, 1, 9))));
+        RequestToken task = pickup(target, 5);
+
+        runUntil(() -> completed(task));
+        assertEquals(List.of(new ItemAmount(pick, 1, 9)), citizen.inventory().contents());
+        runUntil(() -> carried(pick) == 0);
+
+        assertTrue(warehouse.containers().stream()
+                .anyMatch(rack -> t.containers.stacks(rack).contains(new ItemAmount(pick, 1, 9))));
     }
 }

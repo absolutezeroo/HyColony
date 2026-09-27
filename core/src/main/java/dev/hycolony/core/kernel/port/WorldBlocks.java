@@ -14,7 +14,7 @@ public interface WorldBlocks {
 
     boolean place(BlockPos pos, BlockState state, boolean withContainer);
 
-    /** Drops, including container contents. Empty list if the block is air or unloaded. */
+    /** Drops, including container contents with their damage. Empty list if the block is air or unloaded. */
     List<ItemAmount> breakBlock(BlockPos pos);
 
     /**
@@ -26,6 +26,6 @@ public interface WorldBlocks {
     /** {@link #breakBlock} without the block's particles and sound, for the same reason as {@link #placeQuietly}. */
     List<ItemAmount> breakQuietly(BlockPos pos);
 
-    /** Drops {@code items} on the ground at {@code pos}, like a broken block's drops; nothing if unloaded. */
+    /** Drops {@code items}, with their damage, at {@code pos} like a broken block's drops; nothing if unloaded. */
     void drop(BlockPos pos, List<ItemAmount> items);
 }

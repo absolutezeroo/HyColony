@@ -38,8 +38,8 @@ public final class RequestActions {
 
     /**
      * "Fournir": moves min(requested, owned) from the player to the requesting citizen (or, for the building
-     * itself, its hut containers) and overrules the request. A partial amount still closes it; the requester asks
-     * again for the rest. False if nothing was moved.
+     * itself, its hut containers), each stack with its damage, and overrules the request. A partial amount still
+     * closes it; the requester asks again for the rest. False if nothing was moved.
      */
     public boolean fulfil(UUID player, int colonyId, RequestToken token) {
         Colony c = manager.byId(colonyId).orElse(null);
@@ -56,13 +56,13 @@ public final class RequestActions {
         if (item.isEmpty()) {
             return false;
         }
-        int n = ports.playerInventory().take(player, item.get(), wanted.count());
-        if (n <= 0) {
-            return false;
-        }
+        List<ItemAmount> taken = ports.playerInventory().takeStacks(player, item.get(), wanted.count());
         Optional<CitizenData> citizen =
                 req.citizenId() == -1 ? Optional.empty() : c.citizens().get(req.citizenId());
-        int moved = n - giveBack(player, deliver(c, req, citizen, new ItemAmount(item.get(), n)));
+        int moved = 0;
+        for (ItemAmount stack : taken) {
+            moved += stack.count() - giveBack(player, deliver(c, req, citizen, stack));
+        }
         if (moved <= 0) {
             return false;
         }
@@ -113,11 +113,10 @@ public final class RequestActions {
             return 0;
         }
         ConstructionPorts ports = manager.context().ports();
-        int taken = ports.playerInventory().take(player, item, wanted);
-        if (taken <= 0) {
-            return 0;
+        int moved = 0;
+        for (ItemAmount stack : ports.playerInventory().takeStacks(player, item, wanted)) {
+            moved += stack.count() - giveBack(player, ports.containers().insert(b.containers(), stack));
         }
-        int moved = taken - giveBack(player, ports.containers().insert(b.containers(), new ItemAmount(item, taken)));
         if (moved > 0) {
             overruleNextOpenRequestWithStack(c, b, new ItemAmount(item, moved));
             c.markDirty();

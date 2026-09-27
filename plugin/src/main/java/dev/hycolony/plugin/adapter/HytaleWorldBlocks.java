@@ -25,7 +25,6 @@ import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.core.kernel.item.ItemAmount;
-import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.WorldBlocks;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -64,10 +63,10 @@ public final class HytaleWorldBlocks implements WorldBlocks {
     private boolean warned;
 
     /** {@code hutBlockIds}: the id-map's hut block ids; never broken nor built over. */
-    public HytaleWorldBlocks(World world, Set<String> hutBlockIds) {
+    public HytaleWorldBlocks(World world, Set<String> hutBlockIds, HytaleBlocks drops) {
         this.world = world;
         this.hutBlockIds = Set.copyOf(hutBlockIds);
-        this.drops = new HytaleBlocks(world);
+        this.drops = drops;
     }
 
     private boolean isHut(BlockType type) {
@@ -250,7 +249,7 @@ public final class HytaleWorldBlocks implements WorldBlocks {
             List<ItemAmount> amounts = new ArrayList<>(out.size());
             for (ItemStack s : out) {
                 if (!ItemStack.isEmpty(s)) {
-                    amounts.add(new ItemAmount(new ItemKey(s.getItemId()), s.getQuantity()));
+                    amounts.add(drops.toAmount(s));
                 }
             }
             return amounts;

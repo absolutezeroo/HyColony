@@ -13,7 +13,10 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.PlayerInventory;
+import dev.hycolony.plugin.item.HytaleStacks;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -22,16 +25,18 @@ import org.jspecify.annotations.Nullable;
 /**
  * PlayerInventory over the player's hotbar then storage (cheat sheet § 4, {@code InventoryComponent.HOTBAR_FIRST}).
  * A player who is offline or in another world has nothing: 0, empty, or the full remainder. Items are taken by slot
- * and id, like {@link HytaleContainerAccess}. World thread only.
+ * and id, with their damage, like {@link HytaleContainerAccess}. World thread only.
  */
 public final class HytalePlayerInventory implements PlayerInventory {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
     private final World world;
+    private final HytaleStacks stacks;
     private boolean warned;
 
-    public HytalePlayerInventory(World world) {
+    public HytalePlayerInventory(World world, HytaleStacks stacks) {
         this.world = world;
+        this.stacks = stacks;
     }
 
     @Override
@@ -46,14 +51,17 @@ public final class HytalePlayerInventory implements PlayerInventory {
     }
 
     @Override
-    public int take(UUID player, ItemKey item, int max) {
+    public List<ItemAmount> takeStacks(UUID player, ItemKey item, int max) {
+        List<ItemAmount> out = new ArrayList<>();
         try {
             ItemContainer c = inventory(player);
-            return c == null ? 0 : HytaleContainerAccess.takeBySlot(c, item, max);
+            if (c != null) {
+                HytaleContainerAccess.takeBySlot(c, item, max, stacks, out);
+            }
         } catch (RuntimeException e) {
-            fail("take", e);
-            return 0;
+            fail("take", e); // what was already taken stays taken: report it
         }
+        return out;
     }
 
     @Override
@@ -77,7 +85,7 @@ public final class HytalePlayerInventory implements PlayerInventory {
             if (c == null || Item.getAssetMap().getAsset(amount.item().id()) == null) {
                 return amount;
             }
-            return HytaleContainerAccess.give(c, amount);
+            return HytaleContainerAccess.give(c, amount, stacks);
         } catch (RuntimeException e) {
             fail("give", e);
             return amount;

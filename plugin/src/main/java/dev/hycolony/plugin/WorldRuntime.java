@@ -64,7 +64,9 @@ public final class WorldRuntime {
         this.world = world;
         this.clock = new HytaleGameClock(world);
         this.bodies = new HytaleCitizenBodies(world, ids.npcRole("npc.citizen"), new CitizenSpeed(ids.speedEffects()));
-        this.blocks = new HytaleBlocks(world);
+        Set<String> hutBlockIds = HutBlockSystems.byBlockId(ids).keySet(); // the builder never breaks these
+        HytaleItemCatalog catalog = new HytaleItemCatalog(hutBlockIds);
+        this.blocks = new HytaleBlocks(world, catalog.stacks());
         ColonyManager[] self = new ColonyManager[1];
         WandActions[] wandSelf = new WandActions[1]; // the UI port needs it before it exists
         JobRegistry jobs = JobRegistry.defaults();
@@ -74,9 +76,7 @@ public final class WorldRuntime {
         ConstructionBuildingTypes.register(buildings);
         WarehouseBuilding.register(buildings);
         DeliverymanHut.register(buildings);
-        Set<String> hutBlockIds = HutBlockSystems.byBlockId(ids).keySet(); // the builder never breaks these
-        HytaleItemCatalog catalog = new HytaleItemCatalog(hutBlockIds);
-        HytaleWorldBlocks worldBlocks = new HytaleWorldBlocks(world, hutBlockIds);
+        HytaleWorldBlocks worldBlocks = new HytaleWorldBlocks(world, hutBlockIds, blocks);
         ColonyContext ctx = new ColonyContext(
                 new WorldKey(world.getName()),
                 config,
@@ -94,8 +94,8 @@ public final class WorldRuntime {
                 new ConstructionPorts(
                         catalog,
                         worldBlocks,
-                        new HytaleContainerAccess(world),
-                        new HytalePlayerInventory(world),
+                        new HytaleContainerAccess(world, catalog.stacks()),
+                        new HytalePlayerInventory(world, catalog.stacks()),
                         new HytaleBlueprintSource(ids),
                         new HytaleWorldEffects(world, ids.fireworks())));
         this.manager = new ColonyManager(ctx);

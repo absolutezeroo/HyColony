@@ -113,15 +113,19 @@ final class DeliveryPreparation {
         if (ctx.containers().count(source, stack.item()) < stack.count()) {
             return false;
         }
-        int taken = ctx.containers().extract(source, stack.item(), stack.count());
-        if (taken <= 0) {
+        List<ItemAmount> taken = ctx.containers().extractStacks(source, stack.item(), stack.count());
+        if (taken.isEmpty()) {
             return false;
         }
-        ItemAmount rest = ctx.inventory().insert(stack.withCount(taken), ctx.catalog()::maxStack);
-        if (rest != null) {
-            ctx.putBack(source, rest);
+        int landed = 0;
+        for (ItemAmount got : taken) {
+            ItemAmount rest = ctx.inventory().insert(got, ctx.catalog()::maxStack);
+            landed += got.count() - (rest == null ? 0 : rest.count());
+            if (rest != null) {
+                ctx.putBack(source, rest);
+            }
         }
         ctx.showHeld();
-        return rest == null && taken >= stack.count();
+        return landed >= stack.count();
     }
 }

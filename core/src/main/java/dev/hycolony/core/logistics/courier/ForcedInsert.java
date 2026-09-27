@@ -45,19 +45,21 @@ final class ForcedInsert {
     private static Optional<ItemAmount> swap(
             CourierContext ctx, List<BlockPos> container, ItemAmount local, ItemAmount rest) {
         ContainerAccess access = ctx.containers();
-        int removed = access.extract(container, local.item(), local.count());
-        if (removed <= 0) {
+        List<ItemAmount> removed = access.extractStacks(container, local.item(), local.count());
+        if (removed.isEmpty()) {
             return Optional.empty();
         }
         ItemAmount left = access.insert(container, rest);
         if (left == null) {
-            return Optional.of(local.withCount(removed));
+            // A tool stacks to 1, so what one swap takes out of a slot is one stack: its damage goes with it.
+            int count = removed.stream().mapToInt(ItemAmount::count).sum();
+            return Optional.of(removed.getFirst().withCount(count));
         }
         int placed = rest.count() - left.count();
         if (placed > 0) {
             access.extract(container, rest.item(), placed);
         }
-        ctx.putBack(container, local.withCount(removed));
+        removed.forEach(r -> ctx.putBack(container, r));
         return Optional.empty();
     }
 }

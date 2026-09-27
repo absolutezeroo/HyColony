@@ -109,17 +109,25 @@ final class PickupRound {
     }
 
     /**
-     * Moves what the hut does not keep of {@code stack} into the inventory (what does not fit goes back). The next slot
+     * Moves what the hut does not keep of {@code stack} into the inventory, with its damage (what does not fit goes
+     * back). The next slot
      * comes next, unless the whole stack left: the listing only has non-empty slots, so the next one moved up.
      */
     private void take(HutKeep rules, BlockPos container, ItemAmount stack) {
         int amount = rules.removable(stack);
-        int taken = amount > 0 ? ctx.containers().extract(List.of(container), stack.item(), amount) : 0;
-        ItemAmount rest = taken > 0 ? ctx.inventory().insert(stack.withCount(taken), ctx.catalog()::maxStack) : null;
-        if (rest != null) {
-            ctx.putBack(List.of(container), rest);
+        List<ItemAmount> taken =
+                amount > 0 ? ctx.containers().extractStacks(List.of(container), stack.item(), amount) : List.of();
+        int count = 0;
+        boolean putBack = false;
+        for (ItemAmount got : taken) {
+            count += got.count();
+            ItemAmount rest = ctx.inventory().insert(got, ctx.catalog()::maxStack);
+            if (rest != null) {
+                ctx.putBack(List.of(container), rest);
+                putBack = true;
+            }
         }
-        if (taken < stack.count() || rest != null) {
+        if (count < stack.count() || putBack) {
             slot++;
         }
         ctx.showHeld();

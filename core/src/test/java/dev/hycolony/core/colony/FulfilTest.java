@@ -60,6 +60,30 @@ class FulfilTest {
     }
 
     @Test
+    void aWornToolAPlayerSuppliesKeepsItsWear() {
+        ItemKey pick = new ItemKey("Tool_Pickaxe_Iron");
+        t.catalog.maxStacks.put(pick, 1);
+        RequestToken token = colony.requests().createAndAssign(hut, new StackRequest(pick, 1, 1, true), citizen.id());
+        t.playerInventory.give(alice, new ItemAmount(pick, 1, 30));
+
+        assertTrue(manager.requestActions().fulfil(alice, colony.id(), token));
+
+        assertEquals(List.of(new ItemAmount(pick, 1, 30)), citizen.inventory().contents());
+        assertEquals(0, t.playerInventory.count(alice, pick));
+    }
+
+    @Test
+    void aWornToolAPlayerAddsToAHutKeepsItsWear() {
+        ItemKey pick = new ItemKey("Tool_Pickaxe_Iron");
+        t.playerInventory.give(alice, new ItemAmount(pick, 1, 30));
+
+        assertEquals(1, manager.requestActions().addToHut(alice, hall, pick, 1));
+
+        assertTrue(
+                hut.containers().stream().anyMatch(c -> t.containers.stacks(c).contains(new ItemAmount(pick, 1, 30))));
+    }
+
+    @Test
     void fulfilMovesItemsToCitizenAndOverrules() {
         RequestToken token = request(10, 1);
         t.playerInventory.give(alice, new ItemAmount(PLANKS, 15));

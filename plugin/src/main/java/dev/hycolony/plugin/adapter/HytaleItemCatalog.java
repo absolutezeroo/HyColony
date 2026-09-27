@@ -15,6 +15,7 @@ import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolInfo;
 import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.kernel.port.ItemCatalog;
+import dev.hycolony.plugin.item.HytaleStacks;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -68,11 +69,17 @@ public final class HytaleItemCatalog implements ItemCatalog {
     private final Map<BlockKey, BlockInfo> blocks = new HashMap<>();
     private final Map<ItemKey, ItemInfo> items = new HashMap<>();
     private final Set<String> hutBlockIds;
+    private final HytaleStacks stacks = new HytaleStacks(this::durability);
     private boolean warned;
 
     /** {@code hutBlockIds}: the id-map's hut block ids. */
     public HytaleItemCatalog(Set<String> hutBlockIds) {
         this.hutBlockIds = Set.copyOf(hutBlockIds);
+    }
+
+    /** The stack conversion that turns a tool's damage into Hytale durability with this catalog's durabilities. */
+    public HytaleStacks stacks() {
+        return stacks;
     }
 
     @Override

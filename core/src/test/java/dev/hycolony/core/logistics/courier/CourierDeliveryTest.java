@@ -7,10 +7,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.item.ItemAmount;
+import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.NavStatus;
 import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.request.model.StackRequest;
 import dev.hycolony.core.testing.FakeBodies;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -29,6 +31,20 @@ class CourierDeliveryTest extends CourierAITestBase {
         assertTrue(job.taskQueue().isEmpty());
         assertTrue(job.ongoingDeliveries().isEmpty());
         assertEquals(awarded(1.5), citizen.skills().experience(Skill.Agility), 1e-9);
+    }
+
+    @Test
+    void aWornToolDeliveredByTheCourierKeepsItsWear() {
+        hire();
+        ItemKey pick = new ItemKey("Tool_Pickaxe_Iron");
+        t.catalog.maxStacks.put(pick, 1);
+        t.containers.worn.put(RACK, new ArrayList<>(List.of(new ItemAmount(pick, 1, 12))));
+        RequestToken task = delivery(RACK, pick, 1);
+
+        runUntil(() -> completed(task));
+
+        assertEquals(List.of(new ItemAmount(pick, 1, 12)), t.containers.stacks(target.position()));
+        assertEquals(0, carried(pick));
     }
 
     @Test

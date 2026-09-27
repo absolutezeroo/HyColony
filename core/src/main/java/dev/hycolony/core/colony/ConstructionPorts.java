@@ -117,8 +117,8 @@ public record ConstructionPorts(
             }
 
             @Override
-            public int extract(List<BlockPos> containers, ItemKey item, int max) {
-                return 0;
+            public List<ItemAmount> extractStacks(List<BlockPos> containers, ItemKey item, int max) {
+                return List.of();
             }
 
             @Override
@@ -148,8 +148,8 @@ public record ConstructionPorts(
             }
 
             @Override
-            public int take(UUID player, ItemKey item, int max) {
-                return 0;
+            public List<ItemAmount> takeStacks(UUID player, ItemKey item, int max) {
+                return List.of();
             }
 
             @Override

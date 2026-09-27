@@ -6,6 +6,7 @@ import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.ContainerAccess;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,10 +14,12 @@ import java.util.Map;
 /**
  * Containers keyed by block position; {@link #full} makes every insert fail. A position listed in {@link #slots} holds
  * that many slots of at most {@link #maxStack} items each (unlimited by default, so one slot per distinct item) and an
- * insert there can fit partly, like a real container; any other position is unlimited.
+ * insert there can fit partly, like a real container; any other position is unlimited. Damaged stacks (worn tools) sit
+ * in {@link #worn}, one slot each, listed and taken after the undamaged ones.
  */
 public final class FakeContainers implements ContainerAccess {
     public final Map<BlockPos, Map<ItemKey, Integer>> containers = new LinkedHashMap<>();
+    public final Map<BlockPos, List<ItemAmount>> worn = new LinkedHashMap<>();
     public final Map<BlockPos, Integer> slots = new HashMap<>();
     public int maxStack = Integer.MAX_VALUE;
     public boolean full;
@@ -26,32 +29,46 @@ public final class FakeContainers implements ContainerAccess {
         int total = 0;
         for (BlockPos pos : positions) {
             total += containers.getOrDefault(pos, Map.of()).getOrDefault(item, 0);
+            for (ItemAmount a : worn.getOrDefault(pos, List.of())) {
+                total += a.item().equals(item) ? a.count() : 0;
+            }
         }
         return total;
     }
 
     @Override
-    public int extract(List<BlockPos> positions, ItemKey item, int max) {
+    public List<ItemAmount> extractStacks(List<BlockPos> positions, ItemKey item, int max) {
+        List<ItemAmount> out = new ArrayList<>();
         int removed = 0;
         for (BlockPos pos : positions) {
-            if (removed >= max) {
-                break;
-            }
             Map<ItemKey, Integer> c = containers.get(pos);
-            if (c == null) {
-                continue;
-            }
-            int have = c.getOrDefault(item, 0);
+            int have = c == null ? 0 : c.getOrDefault(item, 0);
             int take = Math.min(have, max - removed);
-            if (take <= 0) {
-                continue;
+            if (c != null && take > 0) {
+                if (take == have) {
+                    c.remove(item);
+                } else {
+                    c.put(item, have - take);
+                }
+                out.add(new ItemAmount(item, take));
+                removed += take;
             }
-            if (take == have) {
-                c.remove(item);
-            } else {
-                c.put(item, have - take);
+            removed += takeWorn(pos, item, max - removed, out);
+        }
+        return out;
+    }
+
+    /** Takes whole worn stacks of {@code item} at {@code pos}, up to {@code max} items, into {@code out}. */
+    private int takeWorn(BlockPos pos, ItemKey item, int max, List<ItemAmount> out) {
+        int removed = 0;
+        Iterator<ItemAmount> it = worn.getOrDefault(pos, new ArrayList<>()).iterator();
+        while (it.hasNext() && removed < max) {
+            ItemAmount a = it.next();
+            if (a.item().equals(item) && a.count() <= max - removed) {
+                it.remove();
+                out.add(a);
+                removed += a.count();
             }
-            removed += take;
         }
         return removed;
     }
@@ -62,6 +79,13 @@ public final class FakeContainers implements ContainerAccess {
             return amount;
         }
         BlockPos pos = positions.get(0);
+        if (amount.damage() > 0) {
+            if (slots.containsKey(pos) && freeSlots(pos) <= 0) {
+                return amount;
+            }
+            worn.computeIfAbsent(pos, p -> new ArrayList<>()).add(amount);
+            return null;
+        }
         Map<ItemKey, Integer> c = containers.computeIfAbsent(pos, p -> new LinkedHashMap<>());
         int fits = slots.containsKey(pos) ? (int) Math.min(amount.count(), room(pos, amount.item())) : amount.count();
         if (fits > 0) {
@@ -75,6 +99,9 @@ public final class FakeContainers implements ContainerAccess {
         Map<ItemKey, Integer> total = new LinkedHashMap<>();
         for (BlockPos pos : positions) {
             containers.getOrDefault(pos, Map.of()).forEach((k, v) -> total.merge(k, v, Integer::sum));
+            for (ItemAmount a : worn.getOrDefault(pos, List.of())) {
+                total.merge(a.item(), a.count(), Integer::sum);
+            }
         }
         return total;
     }
@@ -85,7 +112,7 @@ public final class FakeContainers implements ContainerAccess {
         if (capacity == null) {
             return Integer.MAX_VALUE;
         }
-        long used = 0;
+        long used = worn.getOrDefault(container, List.of()).size();
         for (int count : containers.getOrDefault(container, Map.of()).values()) {
             used += (count + (long) maxStack - 1) / maxStack;
         }
@@ -102,6 +129,7 @@ public final class FakeContainers implements ContainerAccess {
                 out.add(new ItemAmount(item, Math.min(left, size)));
             }
         });
+        out.addAll(worn.getOrDefault(container, List.of()));
         return out;
     }
 
