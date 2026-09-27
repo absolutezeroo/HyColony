@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.hycolony.core.citizen.CitizenAI;
+import dev.hycolony.core.citizen.CitizenState;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.item.ItemAmount;
@@ -12,7 +14,7 @@ import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
-/** MC EntityAIWorkDeliveryman: decide, dump, working state, rain, speed and finishRequest. */
+/** MC EntityAIWorkDeliveryman: decide, dump, working state, speed and finishRequest; the rain rule through CitizenAI. */
 class DeliverymanAITest extends CourierAITestBase {
     @Test
     void withoutTaskItWaitsAtTheWarehouse() {
@@ -58,6 +60,31 @@ class DeliverymanAITest extends CourierAITestBase {
         run(200);
 
         assertFalse(job.isWorking());
+    }
+
+    @Test
+    void courierStopsInTheRain() {
+        hire();
+        hut.setLevel(1); // below max level: MC WorkerBuildingModule.canWorkDuringTheRain is false
+        CitizenAI citizenAI = new CitizenAI(colony, citizen, body);
+        assertTrue(tickUntil(citizenAI, CitizenState.WORKING, 40));
+
+        t.world.raining = true;
+
+        assertTrue(tickUntil(citizenAI, CitizenState.IDLE, 10));
+        assertFalse(tickUntil(citizenAI, CitizenState.WORKING, 420));
+
+        hut.setLevel(DeliverymanHut.MAX_LEVEL);
+
+        assertTrue(tickUntil(citizenAI, CitizenState.WORKING, 420), "a max-level hut works in the rain");
+    }
+
+    private boolean tickUntil(CitizenAI citizenAI, CitizenState state, int max) {
+        for (int i = 0; i < max && citizenAI.state() != state; i++) {
+            t.clock.tick++;
+            citizenAI.tick();
+        }
+        return citizenAI.state() == state;
     }
 
     @Test

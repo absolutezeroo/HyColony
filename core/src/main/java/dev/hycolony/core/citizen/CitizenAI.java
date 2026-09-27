@@ -167,8 +167,9 @@ public final class CitizenAI {
     }
 
     /**
-     * MC calculateNextState: work only when the job AI cannot go idle. Asks a fresh job AI, which then starts from
-     * its first state like MC's resetAI on entering WORK.
+     * MC calculateNextState: work only when the rain does not stop it ({@link #rainStopsWork}, checked first as in MC)
+     * and the job AI cannot go idle. Asks a fresh job AI, which then starts from its first state like MC's resetAI on
+     * entering WORK.
      */
     private boolean shouldWork() {
         Job job = data.job().orElse(null);

@@ -36,7 +36,7 @@ abstract class CourierAITestBase {
     static final ItemKey DIRT = new ItemKey("Soil_Dirt");
     static final BlockPos RACK = new BlockPos(2, 64, 0);
     static final BlockPos OTHER_RACK = new BlockPos(3, 64, 0);
-    final TestContexts t = contexts();
+    final TestContexts t = new TestContexts();
     final Colony colony = new Colony(
             t.context(),
             new TerritoryIndex(),
@@ -49,11 +49,6 @@ abstract class CourierAITestBase {
     DeliverymanJob job;
     BodyId body;
     JobAI ai;
-
-    /** The fakes of the colony; a subclass may change their config (called while the base is built). */
-    TestContexts contexts() {
-        return new TestContexts();
-    }
 
     CourierAITestBase() {
         warehouse.addContainer(RACK);
