@@ -20,7 +20,7 @@ import javax.annotation.Nonnull;
 /**
  * A citizen's core inventory seen as a Hytale container: every slot read and write goes to the core, so the player and
  * the citizen's AI share one live inventory (MC ContainerCitizenInventory's SlotItemHandler on the citizen's
- * inventory). {@code items} only caches the stacks built from the core; a tool shows the wear its job counted. An
+ * inventory). {@code items} only caches the stacks built from the core; the stack of a tool its job wears shows the wear it counted. An
  * open window is re-sent only when the inventory changes, not on wear alone: reopening it shows the current wear. World
  * thread only.
  */
@@ -60,7 +60,7 @@ final class CitizenItemContainer extends SimpleItemContainer {
             cached = new ItemStack(a.item().id(), a.count());
         }
         if (!cached.isUnbreakable()) {
-            OptionalDouble condition = condition(a.item());
+            OptionalDouble condition = actions.get().slotCondition(colonyId, citizen.id(), slot);
             // At least 1 while the core still holds it: Hytale shows 0 as broken, the core removes a broken tool.
             double durability = condition.isPresent()
                     ? Math.max(1, cached.getMaxDurability() * condition.getAsDouble())

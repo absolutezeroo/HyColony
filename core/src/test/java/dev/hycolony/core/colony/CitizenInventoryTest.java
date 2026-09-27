@@ -292,4 +292,45 @@ class CitizenInventoryTest {
                 .toolCondition(colony.id(), 99, SHOVEL)
                 .isEmpty());
     }
+
+    private OptionalDouble slotCondition(int slot) {
+        return manager.citizenInventories().slotCondition(colony.id(), worker.id(), slot);
+    }
+
+    @Test
+    void onlyTheStackTheBuilderWearsShowsTheWear() {
+        t.catalog.durability.put(SHOVEL, 4);
+        worker.setJob(new BuilderJob(worker));
+        worker.inventory().set(0, Optional.of(new ItemAmount(SHOVEL, 1)));
+        worker.inventory().set(1, Optional.of(new ItemAmount(SHOVEL, 1)));
+        putShovel(2, 0.5);
+
+        assertEquals(OptionalDouble.of(1.0), slotCondition(0));
+        assertEquals(OptionalDouble.of(1.0), slotCondition(1));
+        assertEquals(OptionalDouble.of(0.5), slotCondition(2));
+        assertTrue(slotCondition(3).isEmpty()); // empty slot
+
+        worker.inventory().extract(SHOVEL, 1); // a break removes that very stack
+        assertTrue(worker.inventory().slot(2).isEmpty());
+    }
+
+    @Test
+    void takingAFreshStackOutKeepsTheWearOfTheOneThatStays() {
+        t.catalog.durability.put(SHOVEL, 4);
+        worker.setJob(new BuilderJob(worker));
+        worker.inventory().set(0, Optional.of(new ItemAmount(SHOVEL, 1)));
+        putShovel(1, 0.5);
+
+        worker.inventory().set(0, Optional.empty());
+
+        assertEquals(OptionalDouble.of(0.5), slotCondition(1));
+    }
+
+    @Test
+    void aSlotOfAnItemTheJobDoesNotWearHasNoCondition() {
+        worker.setJob(new BuilderJob(worker));
+        worker.inventory().set(0, Optional.of(new ItemAmount(DIRT, 4)));
+
+        assertTrue(slotCondition(0).isEmpty());
+    }
 }

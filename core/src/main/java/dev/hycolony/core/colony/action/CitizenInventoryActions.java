@@ -95,6 +95,35 @@ public final class CitizenInventoryActions {
     }
 
     /**
+     * {@link #toolCondition} of the stack in {@code slot} when it is the one its job wears: the last slot holding that
+     * tool, which a break removes ({@code Inventory.extract} takes from the last slots first). Another stack of that
+     * tool is new (1). Empty for an empty slot or an item the job does not wear.
+     */
+    public OptionalDouble slotCondition(int colonyId, int citizenId, int slot) {
+        Inventory inv = manager.byId(colonyId)
+                .flatMap(c -> c.citizens().get(citizenId))
+                .map(CitizenData::inventory)
+                .orElse(null);
+        ItemKey tool = inv == null || slot < 0 || slot >= inv.size()
+                ? null
+                : inv.slot(slot).map(ItemAmount::item).orElse(null);
+        if (tool == null) {
+            return OptionalDouble.empty();
+        }
+        OptionalDouble condition = toolCondition(colonyId, citizenId, tool);
+        return condition.isPresent() && slot != lastSlotOf(inv, tool) ? OptionalDouble.of(1) : condition;
+    }
+
+    private static int lastSlotOf(Inventory inv, ItemKey item) {
+        for (int i = inv.size() - 1; i >= 0; i--) {
+            if (inv.slot(i).filter(a -> a.item().equals(item)).isPresent()) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
      * The player put {@code tool} with {@code condition} (as {@link #toolCondition}) in the citizen's inventory: its
      * job's use count follows it, a partly used step counting as a whole so it is never repaired. The core counts
      * wear per item kind, so when the citizen holds another of that kind the worst wear stays. A gone citizen, a job
