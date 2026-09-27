@@ -2,7 +2,7 @@
   "TranslationProperties": {
     "Name": "hycolony.item.flower_pot.name"
   },
-  "Icon": "Icons/HyColony/Flower_Pot.png",
+  "Icon": "Icons/Items/HyColony/Flower_Pot.png",
   "Categories": [
     "Blocks.Deco"
   ],

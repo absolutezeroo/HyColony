@@ -2,7 +2,7 @@
   "TranslationProperties": {
     "Name": "hycolony.item.carpet.orange.name"
   },
-  "Icon": "Icons/HyColony/Carpet_Orange.png",
+  "Icon": "Icons/Items/HyColony/Carpet_Orange.png",
   "Categories": [
     "Blocks.Cloth"
   ],

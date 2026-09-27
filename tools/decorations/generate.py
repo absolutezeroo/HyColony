@@ -38,7 +38,7 @@ def carpets(assets):
         icon = Image.new("RGBA", (ICON_SIZE, ICON_SIZE), (0, 0, 0, 0))
         faces = {"top": texture, "front": texture.crop((0, 0, 32, 2)), "right": texture.crop((0, 0, 32, 2))}
         draw_box(icon, ((-16, 0, -16), (16, 2, 16)), faces, 1.1, (32, 33))
-        save_png(icon, PACK / "Common/Icons/HyColony" / ("Carpet_" + colour + ".png"))
+        save_png(icon, PACK / "Common/Icons/Items/HyColony" / ("Carpet_" + colour + ".png"))
 
 
 def carpet_item(colour, wool, texture_path):
@@ -46,7 +46,7 @@ def carpet_item(colour, wool, texture_path):
     item_id = "HyColony_Carpet_" + colour
     return {
         "TranslationProperties": {"Name": "hycolony.item.carpet." + colour.lower() + ".name"},
-        "Icon": "Icons/HyColony/Carpet_" + colour + ".png",
+        "Icon": "Icons/Items/HyColony/Carpet_" + colour + ".png",
         "Categories": ["Blocks.Cloth"],
         "Recipe": {
             "Input": [{"ItemId": "Cloth_Block_Wool_" + colour, "Quantity": 2}],

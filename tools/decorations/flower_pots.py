@@ -86,7 +86,7 @@ def generate(assets):
     write_json(PACK / "Server/Item/Items/HyColony" / (POT_ID + ".json"), pot_item(states))
     write_json(PACK / "Server/Item/Block/Hitboxes/HyColony" / (POT_ID + ".json"), hitbox())
     write_json(PACK / "hycolony/id-map.json", id_map())
-    save_png(icon(clay, dirt), PACK / "Common/Icons/HyColony/Flower_Pot.png")
+    save_png(icon(clay, dirt), PACK / "Common/Icons/Items/HyColony/Flower_Pot.png")
 
 
 def potted_state(assets, plant_id, clay, dirt):
@@ -274,7 +274,7 @@ def pot_item(states):
     """MC flower pot: 3 bricks, 3/8 high, needs no support (Java places it even over the void), breaks at once."""
     return {
         "TranslationProperties": {"Name": "hycolony.item.flower_pot.name"},
-        "Icon": "Icons/HyColony/Flower_Pot.png",
+        "Icon": "Icons/Items/HyColony/Flower_Pot.png",
         "Categories": ["Blocks.Deco"],
         "Recipe": {
             "Input": [{"ItemId": "Soil_Clay_Brick", "Quantity": 3}],
