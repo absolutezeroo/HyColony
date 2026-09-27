@@ -14,7 +14,7 @@ Poser une hutte comme dans MineColonies : choisir un style, une hutte et un nive
   - miroir ;
   - aperçus partagés (`share_previews`) ;
   - huttes voisines affichées pendant le placement (`NearBuildPreview`) ;
-  - collage créatif « Complete/Pretty » ;
+  - collage créatif « Complete » (« Pretty » est porté, voir plus bas) ;
   - outils de scan et de formes.
 
 ## Règles de jeu (Structurize `ItemBuildTool`, `WindowExtendedBuildTool`, `AbstractBlueprintManipulationWindow` ; MineColonies `SurvivalHandler`)
@@ -62,7 +62,16 @@ Poser une hutte comme dans MineColonies : choisir un style, une hutte et un nive
 - **Recette** : les pierres de MineColonies sont remplacées par leurs équivalents Hytale, voir le tableau plus haut.
 - **Emprise dans la colonie** : chaque cellule de 16×16 touchée par l'emprise est testée (`ClaimCell.allOwned`). MineColonies avance de 16 blocs à partir de `min+1` tant que `< max` : il saute les colonnes du bord et peut manquer la dernière cellule (bogue probable de MC). Une hutte qui dépasse de quelques blocs la frontière est refusée ici.
 - **Bloc de hutte manquant** : un message `hycolony.wand.missingHut` s'affiche ; MineColonies ne joue qu'un son d'erreur (le cœur n'a pas de port de son).
-- **Créatif** : un joueur en créatif passe par le chemin de survie, sans rien consommer. Le collage créatif de Structurize est hors de portée.
+- **Créatif** : « Valider » prend le chemin de survie, sans rien consommer. Le collage « Pretty » a sa section ; ses écarts sont listés dans la spec SP1+2 § 11.
+
+## Collage créatif « Pretty » (ajouté le 2026-09-27)
+
+Port de Structurize `BlueprintPlacementHandling` et de MineColonies `AbstractBlockHut.setup`/`canPaste` (recherche : `docs/research/build-goggles-and-wand.md`, C.1 à C.4).
+- **Bouton** « Coller », visible seulement en créatif avec une hutte choisie. Le serveur revérifie le mode créatif au clic.
+- **Vérifications** : `PLACE_HUTS` dans une colonie (`hycolony.permission.placeHuts`), puis les règles de `HutActions.checkHutRules`. Ni emprise, ni distance à l'hôtel de ville pour une autre hutte, ni bloc de hutte pris.
+- **Hutte** : le bloc déjà là est cassé (drops au sol), le bloc de hutte est posé, la hutte est enregistrée avec son style, sa rotation et le **niveau choisi**, construite, avec son territoire, ses feux d'artifice et `BuildingLevelChanged` (`UpgradeCompletion.reach`, partagé avec la fin d'un ordre). Ni ordre, ni message, ni journal. La fenêtre et le fantôme restent, comme dans Structurize.
+- **Blocs** : une file en mémoire (`PasteQueue`), dont seule la tête avance, d'au plus `Structurize.MaxOperationsPerTick` (1000) changements par tick. Elle casse d'abord ce que le plan laisse vide (sans drops), puis pose les solides, puis les décorations et fluides, de bas en haut. Un bloc déjà correct est laissé ; un bloc refusé (section non chargée) est sauté. Chaque bloc à conteneur posé devient un conteneur du bâtiment.
+- **Hôtel de ville hors colonie** : les blocs sont collés et la fondation s'ouvre ; la colonie créée a son hôtel de ville au niveau collé, construit.
 
 ## Architecture
 

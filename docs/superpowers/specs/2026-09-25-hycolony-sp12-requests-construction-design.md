@@ -342,6 +342,13 @@ Chaque écart porte un commentaire `Deviation from MC:` dans le code (CLAUDE.md 
 - **Pas de raccourcis clavier** (flèches, Maj+flèches, M, Entrée) : Hytale n'envoie pas les touches au serveur. Seuls les boutons de la fenêtre existent (`WandPage`).
 - **Pas de décalage de sol** par les tags du plan : nos prefabs Hytale n'en ont pas. L'ancre est le bloc au-dessus du bloc cliqué (`WandInteraction.anchor`) : l'interaction `OpenCustomUI` n'attend pas les données du client, la face visée n'est donc pas connue. Structurize ancre sur la face visée.
 - **Recette** : les pierres de MineColonies sont remplacées par leurs équivalents Hytale : pierre (`Rock_Stone_Cobble`), pierre noire (`Rock_Basalt_Cobble`), ardoise des profondeurs (`Rock_Slate_Cobble`), plus 6 bâtons (`Ingredient_Stick`).
+- **Collage créatif** (`construction/wand/WandPaste`, `construction/wand/PasteQueue`, recherche `docs/research/build-goggles-and-wand.md`, section « Collage créatif ») :
+  - seul « Pretty » existe (bouton « Coller ») ; « Complete » est omis, car nos prefabs n'ont pas de blocs substituts et les deux poseraient les mêmes blocs ;
+  - la hutte collée prend le **niveau choisi**, l'intention du code de MineColonies (sa lecture du chemin donnerait le niveau 1) ;
+  - les règles de l'hôtel de ville (`checkHutRules`) vérifient la distance aux colonies et au point d'apparition dès le collage ; MineColonies ne les vérifie qu'à la création de la colonie ;
+  - `Structurize.MaxOperationsPerTick` a un minimum de 1 au lieu de 0 : à 0, un collage n'avancerait jamais ;
+  - les coffres collés sont vides : nos plans remplacent les coffres des prefabs par un coffre vide, MineColonies collerait leur contenu ;
+  - pas d'annuler/refaire ni de phase des entités.
 
 **Entrepôt et livreurs** (`logistics/`, `colony/view/LogisticsViews`, `plugin/ui/logistics`, spec `2026-09-27-hycolony-sp3a-warehouse-courier-design.md`, section « Écarts » : liste complète)
 - **Rangements** : les coffres Hytale posés par le constructeur remplacent les étagères MC ; pas de 2e choix « objet similaire » (onglet créatif) ; pas d'amélioration de stockage.

@@ -85,7 +85,7 @@ Les autres points de la relecture sont corrigés. Il reste :
   - miroir ;
   - aperçus partagés (`share_previews` de Structurize) ;
   - huttes voisines affichées pendant le placement (`NearBuildPreview`) ;
-  - collage créatif « Complete/Pretty », outils de scan et de formes ;
+  - collage créatif « Complete » (inutile sans blocs substituts ; « Pretty » est fait), outils de scan et de formes ;
   - ancre sur la face visée plutôt qu'au-dessus du bloc, si Hytale peut la donner à une interaction serveur ;
   - retirer les lunettes efface aussi le fantôme de la baguette (`BuildGoggles.unequip` appelle `hideAll`) : il revient au prochain clic.
 - **SP3a, colonie autonome** : entrepôt et livreurs faits ; restent bûcheron, puis mineur ou carrière (voir les recherches `sp3a-*`).
