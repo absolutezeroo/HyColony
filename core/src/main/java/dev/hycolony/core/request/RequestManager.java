@@ -132,7 +132,7 @@ public final class RequestManager {
         List<ItemAmount> items = List.copyOf(delivered);
         queue.submit(() -> {
             Request req = store.request(token);
-            if (req != null && req.state().ordinal() < RequestState.COMPLETED.ordinal()) {
+            if (req != null && req.state().isBefore(RequestState.COMPLETED)) {
                 req.setDeliveredToCitizen(toCitizen);
                 transitions.overrule(req, items);
             }

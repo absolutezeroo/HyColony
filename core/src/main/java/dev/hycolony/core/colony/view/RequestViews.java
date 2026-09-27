@@ -55,7 +55,7 @@ final class RequestViews {
         Map<RequestToken, Request> roots = new LinkedHashMap<>();
         for (String resolver : List.of(PlayerResolver.ID, RetryingResolver.ID)) {
             for (Request r : m.assignedTo(resolver)) {
-                if (r.state().ordinal() < RequestState.COMPLETED.ordinal()) {
+                if (r.state().isBefore(RequestState.COMPLETED)) {
                     root(m, r).ifPresent(root -> roots.putIfAbsent(root.token(), root));
                 }
             }

@@ -1,6 +1,6 @@
 package dev.hycolony.core.request.model;
 
-/** MineColonies RequestState, same order: ordinals are compared (and were persisted by MineColonies). */
+/** MineColonies RequestState, same order: MC compares ordinals (and persisted them). */
 public enum RequestState {
     CREATED,
     REPORTED,
@@ -14,5 +14,10 @@ public enum RequestState {
     CANCELLED,
     RECEIVED,
     FINALIZING,
-    FAILED
+    FAILED;
+
+    /** Whether this state comes before {@code other}: MC's {@code state.ordinal() < other.ordinal()}. */
+    public boolean isBefore(RequestState other) {
+        return compareTo(other) < 0;
+    }
 }

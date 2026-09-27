@@ -34,7 +34,7 @@ final class CitizenViews {
         Map<ItemKey, Integer> owned = ctx.ports().playerInventory().contents(player);
         List<RequestsView.RequestRow> open = new ArrayList<>();
         for (Request r : c.requests().all()) {
-            if (r.citizenId() == d.id() && r.state().ordinal() < RequestState.COMPLETED.ordinal()) {
+            if (r.citizenId() == d.id() && r.state().isBefore(RequestState.COMPLETED)) {
                 requests.tree(c, r, 0, owned, open);
             }
         }

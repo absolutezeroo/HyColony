@@ -83,7 +83,7 @@ final class BuilderRequests {
     void requestNow(ItemKey item, int count) {
         for (Request r : requests().byRequester(hut.requesterId())) {
             if (r.requestable() instanceof StackRequest s && s.item().equals(item)) {
-                if (r.citizenId() == -1 && r.state().ordinal() < RequestState.COMPLETED.ordinal()) {
+                if (r.citizenId() == -1 && r.state().isBefore(RequestState.COMPLETED)) {
                     requests().makeSync(r.token(), citizen.id());
                     return;
                 }
@@ -117,7 +117,7 @@ final class BuilderRequests {
         requests()
                 .onColonyUpdate(r -> r.requester().equals(hut.requesterId())
                         && r.citizenId() == citizen.id()
-                        && r.state().ordinal() < RequestState.COMPLETED.ordinal()
+                        && r.state().isBefore(RequestState.COMPLETED)
                         && hut.resolvers().stream().anyMatch(res -> res.canResolve(requests(), r)));
     }
 

@@ -74,7 +74,7 @@ public final class RequestActions {
     private static Optional<Request> openItemRequest(Colony c, RequestToken token) {
         return c.requests()
                 .get(token)
-                .filter(r -> r.state().ordinal() < RequestState.COMPLETED.ordinal()
+                .filter(r -> r.state().isBefore(RequestState.COMPLETED)
                         && r.deliverable().isPresent());
     }
 
@@ -144,7 +144,7 @@ public final class RequestActions {
             String resolver = m.resolverOf(r.token()).map(Resolver::resolverId).orElse("");
             boolean stuck = resolver.equals(PlayerResolver.ID) || resolver.equals(RetryingResolver.ID);
             if (stuck
-                    && r.state().ordinal() < RequestState.COMPLETED.ordinal()
+                    && r.state().isBefore(RequestState.COMPLETED)
                     && r.deliverable()
                             .filter(d -> d.matches(
                                     stack.item(), manager.context().ports().catalog()))

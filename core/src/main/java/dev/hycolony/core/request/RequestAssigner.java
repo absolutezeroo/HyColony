@@ -105,7 +105,7 @@ final class RequestAssigner {
         }
         assignUnassigned(children, blacklist);
 
-        if (req.state().ordinal() < RequestState.IN_PROGRESS.ordinal()) {
+        if (req.state().isBefore(RequestState.IN_PROGRESS)) {
             req.setState(RequestState.IN_PROGRESS);
             if (req.children().isEmpty()) {
                 resolve(req);

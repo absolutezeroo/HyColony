@@ -29,8 +29,7 @@ public final class PickupRequests {
             return false;
         }
         boolean open = colony.requests().byRequester(building.requesterId()).stream()
-                .anyMatch(r ->
-                        r.requestable() instanceof Pickup && r.state().ordinal() < RequestState.COMPLETED.ordinal());
+                .anyMatch(r -> r.requestable() instanceof Pickup && r.state().isBefore(RequestState.COMPLETED));
         if (open) {
             return false;
         }

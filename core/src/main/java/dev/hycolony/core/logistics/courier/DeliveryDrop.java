@@ -96,7 +96,7 @@ final class DeliveryDrop {
     private static Set<ItemKey> inRequest(Colony colony, Building target) {
         Set<ItemKey> out = new HashSet<>();
         for (Request r : colony.requests().byRequester(target.requesterId())) {
-            if (r.state().ordinal() < RequestState.COMPLETED.ordinal()) {
+            if (r.state().isBefore(RequestState.COMPLETED)) {
                 r.deliveries().forEach(d -> out.add(d.item()));
             }
         }

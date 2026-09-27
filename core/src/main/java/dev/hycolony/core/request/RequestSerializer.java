@@ -98,7 +98,7 @@ public final class RequestSerializer {
                 }
                 if (resolver.isPresent()) {
                     m.store().restoreAssignment(t, resolver.get());
-                } else if (req.get().state().ordinal() < RequestState.COMPLETED.ordinal()) {
+                } else if (req.get().state().isBefore(RequestState.COMPLETED)) {
                     orphans.add(t); // a finished one just waits for pickup
                 }
             }
