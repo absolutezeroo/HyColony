@@ -124,5 +124,5 @@ Points à tenir :
 ## 7. Mise en œuvre retenue (2026-09-27)
 
 - Renvoi au client : pas de compteur lu au tick de colonie, mais `CitizenInventoryWindow.consumeIsDirty` surchargée, lue par Hytale à chaque tick (`plugin-b-api.md` § 16).
-- Règle MC au dépôt : pas d'abonné `registerChangeEvent` ; `CitizenItemContainer` surcharge `writeAction`, copie l'inventaire avant l'écriture la plus externe, puis le cœur (`CitizenInventoryActions.onPlayerEdit`) compare avant/après et traite chaque case qui a grossi ou changé d'objet comme un `Slot.set`.
+- Règle MC au dépôt : pas d'abonné `registerChangeEvent` ; `CitizenItemContainer` surcharge `writeAction`, copie l'inventaire avant l'écriture la plus externe, puis le cœur (`CitizenInventoryActions.onPlayerEdit`) compare avant/après et traite chaque case vide qui reçoit une pile, ou dont l'objet change, comme un `Slot.set` (une pile complétée ne compte pas).
 - Fermeture : un citoyen ne disparaît aujourd'hui qu'avec sa colonie ; `CitizenInventoryWindows` ferme les fenêtres sur `ColonyEvents.ColonyDeleted`, et `validate` refuse tout déplacement si le citoyen n'existe plus.

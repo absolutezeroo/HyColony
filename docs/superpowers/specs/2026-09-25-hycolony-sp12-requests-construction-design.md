@@ -323,7 +323,7 @@ Chaque écart porte un commentaire `Deviation from MC:` dans le code (CLAUDE.md 
 - **Inventaire du citoyen** (`colony/action/CitizenInventoryActions`, `plugin/ui/citizen/CitizenItemContainer`) : comme `ContainerCitizenInventory`, le joueur (avec `MANAGE_HUTS`) et l'IA partagent le même inventaire, sans limite de distance. Écarts :
   - il s'ouvre même si le corps du citoyen n'est pas chargé (MineColonies a besoin de l'entité) : l'inventaire vit dans le cœur ;
   - un outil usé ou un objet avec des métadonnées est refusé, car le cœur ne garde que l'identifiant et le nombre ;
-  - Hytale n'a pas d'appel « case posée » : une case qui gagne un objet ou change d'objet pendant un déplacement du joueur compte comme une pose (`overruleNextOpenRequestOfCitizenWithStack`, avec la pile entière de la case, comme `Slot.set`). MineColonies appelle aussi `set` avec le reste d'une pile sortie par Maj+clic, ce qui ne résout rien ici ;
+  - Hytale n'a pas d'appel « case posée » : une case vide qui reçoit une pile, ou dont l'objet change, pendant un déplacement du joueur compte comme une pose (`overruleNextOpenRequestOfCitizenWithStack`, avec la pile entière de la case, comme `Slot.set`). Une pile seulement complétée ne compte pas (MineColonies : `moveItemStackTo` la fait grossir et appelle `setChanged`). MineColonies appelle aussi `set` avec le reste d'une pile sortie par Maj+clic, ce qui ne résout rien ici ;
   - pas de repli « artisan » (enfants des tâches d'un `AbstractJobCrafter`) : il n'y a pas encore de métier d'artisan ;
   - pas de 4 cases d'armure ;
   - la fenêtre se ferme quand la colonie est supprimée, seul cas où un citoyen disparaît aujourd'hui.
