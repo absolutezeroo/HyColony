@@ -7,7 +7,7 @@ public record BlockPos(int x, int y, int z) {
     }
 
     public long distSq(BlockPos o) {
-        long dx = x - o.x, dy = y - o.y, dz = z - o.z;
+        long dx = (long) x - o.x, dy = (long) y - o.y, dz = (long) z - o.z;
         return dx * dx + dy * dy + dz * dz;
     }
 }
