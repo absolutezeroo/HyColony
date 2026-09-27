@@ -142,6 +142,10 @@ public final class CitizenAI {
 
     private CitizenState wander() {
         wanderTicks += 5;
+        // MC re-decides every DECIDE_INTERVAL_TICKS in any state: a worker stopped by the rain resumes mid-walk.
+        if (wanderTicks % DECIDE_INTERVAL_TICKS == 0 && shouldWork()) {
+            return CitizenState.WORKING;
+        }
         NavStatus status = bodies.navStatus(body);
         boolean done = status == NavStatus.ARRIVED || status == NavStatus.BLOCKED || status == NavStatus.FAILED;
         if (done || wanderTicks >= WANDER_TIMEOUT_TICKS) {

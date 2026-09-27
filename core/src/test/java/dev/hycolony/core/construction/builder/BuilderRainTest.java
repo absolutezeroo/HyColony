@@ -155,6 +155,20 @@ class BuilderRainTest {
     }
 
     @Test
+    void workerResumesWithinTenTicksWhenTheRainStopsWhileWandering() {
+        start(1, false, 0);
+        assertTrue(tickUntil(CitizenState.WORKING, 40));
+        t.world.raining = true;
+        assertTrue(tickUntil(CitizenState.IDLE, 10));
+        t.bodies.frozen = true; // the wander walk never ends: only the decision can leave WANDERING
+        assertTrue(tickUntil(CitizenState.WANDERING, 420));
+
+        t.world.raining = false;
+
+        assertTrue(tickUntil(CitizenState.WORKING, 10), "MC CitizenAI re-decides every 10 ticks in any state");
+    }
+
+    @Test
     void builderWorksInTheRainWhenConfigured() {
         start(1, true, 0);
         t.world.raining = true;
