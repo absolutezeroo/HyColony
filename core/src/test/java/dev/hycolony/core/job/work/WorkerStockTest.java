@@ -66,7 +66,7 @@ class WorkerStockTest {
     }
 
     @Test
-    void aDumpKeepsTheKeepAmountsAndOneToolPerType() {
+    void aDumpKeepsTheKeepAmountsAndTheFirstToolOfEachType() {
         citizen.inventory().insert(new ItemAmount(LOG, 20), k -> 64);
         citizen.inventory().set(1, Optional.of(new ItemAmount(PICK, 1)));
         citizen.inventory().set(2, Optional.of(new ItemAmount(IRON_PICK, 1)));
