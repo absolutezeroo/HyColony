@@ -163,6 +163,13 @@ public record ConstructionPorts(
                 return List.of();
             }
         };
-        return new ConstructionPorts(catalog, blocks, containers, playerInventory, blueprints, _ -> {});
+        WorldEffects effects = new WorldEffects() {
+            @Override
+            public void celebrate(BlockPos hut) {}
+
+            @Override
+            public void blockHit(BlockPos pos, float progress) {}
+        };
+        return new ConstructionPorts(catalog, blocks, containers, playerInventory, blueprints, effects);
     }
 }

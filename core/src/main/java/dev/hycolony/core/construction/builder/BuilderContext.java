@@ -68,7 +68,7 @@ record BuilderContext(
                 stock,
                 requests,
                 new BuilderWalker(bodies, body, colony.context().clock()::currentTick),
-                new BuilderGestures(bodies, body),
+                new BuilderGestures(bodies, body, colony.context().ports().effects()),
                 // Without a hut the AI never runs: the site gets a detached module it never touches.
                 new BuildSite(
                         colony,

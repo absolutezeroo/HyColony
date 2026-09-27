@@ -125,12 +125,12 @@ final class BuilderBlockWork {
         ctx.gestures().lookAt(pos);
         ctx.gestures().hold(tool);
         ctx.gestures()
-                .startDelay(
+                .startMining(
                         BuilderTimings.breakDelay(
                                 ctx.citizen().skills().level(ctx.secondary()),
                                 ctx.catalog().hardness(state.key()),
                                 ctx.stock().toolSpeed(tool)),
-                        BodyAnimation.MINE);
+                        pos);
     }
 
     private void breakBlock(BlockPos pos, BlockState state, @Nullable ItemKey tool, boolean clearing) {

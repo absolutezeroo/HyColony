@@ -52,4 +52,8 @@ public final class HytaleWorldEffects implements WorldEffects {
             warned = true;
         }
     }
+
+    /** No block hit feedback yet. */
+    @Override
+    public void blockHit(BlockPos pos, float progress) {}
 }

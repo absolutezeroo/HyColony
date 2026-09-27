@@ -3,10 +3,12 @@ package dev.hycolony.core.construction.builder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.port.BodyAnimation;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.testing.FakeBodies;
+import dev.hycolony.core.testing.FakeWorldEffects;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -14,7 +16,8 @@ import org.junit.jupiter.api.Test;
 class BuilderGesturesTest {
     private final FakeBodies bodies = new FakeBodies();
     private final BodyId body = bodies.existing(1, 1, new Vec3(0, 0, 0));
-    private final BuilderGestures gestures = new BuilderGestures(bodies, body);
+    private final FakeWorldEffects effects = new FakeWorldEffects();
+    private final BuilderGestures gestures = new BuilderGestures(bodies, body, effects);
 
     /** Runs the delay out one machine tick at a time; returns the game tick of every play (0 = startDelay). */
     private List<Integer> playTicks(int delay, BodyAnimation anim) {
@@ -53,5 +56,37 @@ class BuilderGesturesTest {
         playTicks(BuilderGestures.MINE_ANIMATION_TICKS - 1, BodyAnimation.MINE);
 
         assertEquals(1, bodies.bodies.get(body).animations);
+    }
+
+    @Test
+    void miningHitsTheBlockEveryAiTickWithIncreasingProgress() {
+        BlockPos target = new BlockPos(2, 0, 0);
+        gestures.startMining(20, target);
+        while (gestures.waiting()) {
+            // runs the delay out
+        }
+
+        assertEquals(List.of(target, target, target, target), effects.hits);
+        assertEquals(List.of(0.25f, 0.5f, 0.75f, 1f), effects.hitProgress);
+    }
+
+    @Test
+    void miningFartherThanFourBlocksDoesNotHitTheBlock() {
+        gestures.startMining(20, new BlockPos(4, 0, 0));
+        while (gestures.waiting()) {
+            // runs the delay out
+        }
+
+        assertTrue(effects.hits.isEmpty());
+    }
+
+    @Test
+    void placingABlockDoesNotHitIt() {
+        gestures.startDelay(BuilderTimings.placeDelay(0), BodyAnimation.BUILD);
+        while (gestures.waiting()) {
+            // runs the delay out
+        }
+
+        assertTrue(effects.hits.isEmpty());
     }
 }
