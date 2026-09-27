@@ -54,7 +54,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
     private final String roleName;
     private final CitizenSpeed speed;
     private final Map<Long, Ref<EntityStore>> refs = new HashMap<>();
-    private final Map<Ref<EntityStore>, Long> ids = new IdentityHashMap<>();
+    private final IdentityHashMap<Ref<EntityStore>, Long> ids = new IdentityHashMap<>();
     private long nextId = 1;
     private boolean teleportWarned;
     private boolean speedWarned;

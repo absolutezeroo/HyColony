@@ -129,8 +129,8 @@ final class CitizenItemContainer extends SimpleItemContainer {
     protected boolean cantAddToSlot(short slot, ItemStack itemStack, ItemStack slotItemStack) {
         return !alive.getAsBoolean()
                 || itemStack.getMetadata() != null
-                || worn(itemStack)
-                        && condition(new ItemKey(itemStack.getItemId())).isEmpty()
+                || (worn(itemStack)
+                        && condition(new ItemKey(itemStack.getItemId())).isEmpty())
                 || super.cantAddToSlot(slot, itemStack, slotItemStack);
     }
 

@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.logging.Level;
 
@@ -34,8 +35,8 @@ public final class ConfigQuarantine {
         try {
             decode(file, codec);
         } catch (IOException | RuntimeException e) {
-            Path broken = file.resolveSibling(
-                    file.getFileName() + ".broken-" + LocalDateTime.now().format(STAMP));
+            Path broken = file.resolveSibling(file.getFileName() + ".broken-"
+                    + LocalDateTime.now(ZoneId.systemDefault()).format(STAMP));
             LOG.at(Level.SEVERE).withCause(e).log(
                     "HyColony: %s is not valid (%s); moved to %s, starting with defaults", file, e, broken);
             try {

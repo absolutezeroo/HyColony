@@ -24,6 +24,7 @@ public final class BuilderSensorHyColonyTarget extends BuilderSensorBase {
     }
 
     @Nonnull
+    @Override
     public Sensor build(@Nonnull BuilderSupport builderSupport) {
         return new SensorHyColonyTarget(this);
     }
