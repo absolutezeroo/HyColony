@@ -82,20 +82,26 @@ val subpluginResources by tasks.registering(Sync::class) {
 // the items' Common paths against CommonAssetValidator's roots, and that the pack's own (HyColony) files exist.
 val checkSubpluginAssets by tasks.registering {
     val src = subpluginsSrc.asFile
+    val stamp = layout.buildDirectory.file("tmp/checkSubpluginAssets.stamp")
     inputs.dir(src)
+    outputs.file(stamp)
     doLast {
-        val roots = mapOf(
-            "Icon" to listOf("Icons/ItemsGenerated/", "Icons/Items/"),
-            "CustomModel" to listOf("Blocks/", "Items/", "Resources/", "NPC/", "VFX/", "Consumable/"),
-            "Texture" to listOf("Blocks/", "BlockTextures/", "Items/", "NPC/", "Resources/", "VFX/"),
-        )
+        val model = ".blockymodel" to listOf("Blocks/", "Items/", "Resources/", "NPC/", "VFX/", "Consumable/")
+        val texture = ".png" to listOf("Blocks/", "BlockTextures/", "Items/", "NPC/", "Resources/", "VFX/")
+        // Item.Icon, Model, Texture; BlockType.CustomModel, CustomModelTexture[].Texture, Textures[].<face>.
+        val rules = mapOf("Icon" to (".png" to listOf("Icons/ItemsGenerated/", "Icons/Items/")), "Model" to model,
+            "CustomModel" to model, "Texture" to texture) +
+            listOf("All", "Sides", "Top", "Bottom", "UpDown", "North", "South", "East", "West").associateWith { texture }
         val errors = mutableListOf<String>()
         fun walk(pack: File, item: String, node: Any?) {
             when (node) {
                 is Map<*, *> -> node.forEach { (key, value) ->
-                    val allowed = roots[key]
-                    if (allowed != null && value is String) {
-                        if (allowed.none { value.startsWith(it) }) errors += "$item: $key $value is not under $allowed"
+                    val rule = rules[key]
+                    if (rule != null && value is String) {
+                        val (extension, allowed) = rule
+                        if (allowed.none { value.startsWith(it) } || !value.endsWith(extension)) {
+                            errors += "$item: $key $value is not a $extension under $allowed"
+                        }
                         if (value.contains("/HyColony/") && !File(pack, "Common/$value").isFile) {
                             errors += "$item: $key $value does not exist"
                         }
@@ -112,6 +118,7 @@ val checkSubpluginAssets by tasks.registering {
             }
         }
         if (errors.isNotEmpty()) throw GradleException(errors.joinToString("\n"))
+        stamp.get().asFile.writeText("ok\n")
     }
 }
 subpluginResources { dependsOn(checkSubpluginAssets) }

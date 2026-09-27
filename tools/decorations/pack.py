@@ -110,12 +110,25 @@ def save_png(image, path):
 
 def validate_pack(assets):
     """Fails loudly on what Hytale would refuse in the pack's items: a Common path outside its root, of the wrong type
-    or missing (from the pack and the vanilla assets), an unknown item id or hitbox."""
+    or missing (from the pack and the vanilla assets), an unknown item, hitbox, sound or particle set, material,
+    animation set, or crafting bench and category."""
     errors = []
     items = {p.stem: p for p in (PACK / "Server/Item/Items").rglob("*.json")}
     hitboxes = {p.stem for p in (PACK / "Server/Item/Block/Hitboxes").rglob("*.json")}
-    vanilla_items = {n.rsplit("/", 1)[-1][:-5] for n in assets.names if n.startswith("Server/Item/Items/")}
-    vanilla_hitboxes = {n.rsplit("/", 1)[-1][:-5] for n in assets.names if n.startswith("Server/Item/Block/Hitboxes/")}
+
+    def vanilla(folder):
+        return {n.rsplit("/", 1)[-1][:-5] for n in assets.names if n.startswith(folder) and n.endswith(".json")}
+
+    known = {
+        "ItemId": set(items) | vanilla("Server/Item/Items/"),
+        "HitboxType": hitboxes | vanilla("Server/Item/Block/Hitboxes/"),
+        "BlockSoundSetId": vanilla("Server/Item/Block/Sounds/"),
+        "BlockParticleSetId": vanilla("Server/Item/Block/Particles/"),
+        "PhysicalMaterialId": vanilla("Server/Item/Block/PhysicalMaterials/"),
+        "ItemSoundSetId": vanilla("Server/Audio/ItemSounds/"),
+        "PlayerAnimationsId": vanilla("Server/Item/Animations/"),
+    }
+    benches = vanilla_benches(assets)
 
     def common(path, roots, extension, where):
         if not path.startswith(roots) or not path.endswith(extension):
@@ -127,16 +140,35 @@ def validate_pack(assets):
         data = json.loads(path.read_text(encoding="utf-8"))
         common(data["Icon"], ICON_ROOTS, ".png", name)
         for key, value in walk_json(data):
-            if key == "CustomModel":
+            if key in ("CustomModel", "Model"):
                 common(value, MODEL_ROOTS, ".blockymodel", name)
             elif key == "Texture" or key in ("All", "Sides", "Top", "Bottom"):
                 common(value, TEXTURE_ROOTS, ".png", name)
-            elif key == "ItemId" and value not in items and value not in vanilla_items:
-                errors.append(f"{name}: unknown item {value}")
-            elif key == "HitboxType" and value not in hitboxes and value not in vanilla_hitboxes:
-                errors.append(f"{name}: unknown hitbox {value}")
+            elif key in known and value not in known[key]:
+                errors.append(f"{name}: unknown {key} {value}")
+        for bench in data.get("Recipe", {}).get("BenchRequirement", []):
+            categories = benches.get((bench["Id"], bench["Type"]))
+            if categories is None or not set(bench.get("Categories", [])) <= categories:
+                errors.append(f"{name}: no vanilla bench {bench}")
     if errors:
         raise SystemExit("Invalid Decorations pack:\n  " + "\n  ".join(errors))
+
+
+def vanilla_benches(assets):
+    """(bench id, type) -> its category ids, from the vanilla items' BlockType.Bench."""
+    benches = {}
+    for name in assets.names:
+        if not (name.startswith("Server/Item/Items/") and name.endswith(".json")):
+            continue
+        try:
+            block = assets.json(name).get("BlockType")
+        except ValueError:
+            continue
+        bench = block.get("Bench") if isinstance(block, dict) else None
+        if isinstance(bench, dict) and "Id" in bench:
+            categories = {c["Id"] for c in bench.get("Categories", []) if isinstance(c, dict)}
+            benches.setdefault((bench["Id"], bench.get("Type")), set()).update(categories)
+    return benches
 
 
 def walk_json(data):
