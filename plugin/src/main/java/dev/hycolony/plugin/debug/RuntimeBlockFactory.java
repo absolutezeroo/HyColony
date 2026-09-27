@@ -78,7 +78,7 @@ final class RuntimeBlockFactory {
     /**
      * Writes the PNG to a temp directory (created on first use) and registers it as common asset
      * {@code Blocks/HyColony/DoTest/<name>.png}; {@code CommonAssetModule.addCommonAsset} sends it to every connected
-     * player, then every client is asked to rebuild its common assets. Returns the asset name.
+     * player (see {@link #requestClientRebuild}). Returns the asset name.
      */
     String registerTexture(String name, byte[] png) {
         String assetName = TEXTURE_DIR + name + ".png";
@@ -99,10 +99,15 @@ final class RuntimeBlockFactory {
         CompletableFuture<byte[]> blob = asset.getBlob();
         CommonAssetModule.get().addCommonAsset(packKey, asset);
         Reference.reachabilityFence(blob);
-        // addCommonAsset sends the file without a rebuild request, so clients never use it (seen in game: untextured
-        // block); vanilla's CommonAssetMonitorHandler follows its reloads with RequestCommonAssetsRebuild.
-        Universe.get().broadcastPacketNoCache(new RequestCommonAssetsRebuild());
         return assetName;
+    }
+
+    /**
+     * Asks every client to rebuild its common assets. addCommonAsset sends files without this request, so clients
+     * never use them (seen in game: untextured block); vanilla's CommonAssetMonitorHandler sends it after reloads.
+     */
+    static void requestClientRebuild() {
+        Universe.get().broadcastPacketNoCache(new RequestCommonAssetsRebuild());
     }
 
     /**
