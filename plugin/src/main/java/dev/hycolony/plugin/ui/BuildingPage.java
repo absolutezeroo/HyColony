@@ -10,6 +10,8 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.ui.BuilderTabs;
 import dev.hycolony.core.colony.ui.BuildingView;
+import dev.hycolony.plugin.ui.logistics.CourierTasksRenderer;
+import dev.hycolony.plugin.ui.logistics.WarehouseTabsRenderer;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
@@ -17,8 +19,9 @@ import javax.annotation.Nullable;
 
 /**
  * A hut's window, in tabs as MC AbstractBuildingWindow: Main, then the builder hut's Resources, Settings and Work
- * orders (MC module order). Vanilla tab pattern (TriggerVolumeInspectorPage): a {@code #TabButtons} row, the active
- * tab disabled, one content group per tab shown or hidden. The open tab is page state, kept across the core's re-shows.
+ * orders, the warehouse's Couriers, Stock and Tasks, or the courier hut's Tasks (MC module order). Vanilla tab pattern
+ * (TriggerVolumeInspectorPage): a {@code #TabButtons} row, the active tab disabled, one content group per tab shown or
+ * hidden. The open tab is page state, kept across the core's re-shows.
  */
 public final class BuildingPage extends ColonyPage {
     /** A tab: its content group and its label key. */
@@ -26,7 +29,11 @@ public final class BuildingPage extends ColonyPage {
         MAIN("#MainTab", "main"),
         RESOURCES("#ResourcesTab", "resources"),
         SETTINGS("#SettingsTab", "settings"),
-        ORDERS("#OrdersTab", "orders");
+        ORDERS("#OrdersTab", "orders"),
+        COURIERS("#CouriersTab", "couriers"),
+        STOCK("#StockTab", "stock"),
+        WAREHOUSE_TASKS("#WarehouseTasksTab", "tasks"),
+        COURIER_TASKS("#CourierTasksTab", "tasks");
 
         private final String group;
         private final String key;
@@ -64,6 +71,12 @@ public final class BuildingPage extends ColonyPage {
         if (view.builder().isPresent()) {
             tabs.addAll(List.of(Tab.RESOURCES, Tab.SETTINGS, Tab.ORDERS));
         }
+        if (view.warehouse().isPresent()) {
+            tabs.addAll(List.of(Tab.COURIERS, Tab.STOCK, Tab.WAREHOUSE_TASKS));
+        }
+        if (view.courier().isPresent()) {
+            tabs.add(Tab.COURIER_TASKS);
+        }
     }
 
     /** Opens on the tab {@code previous} showed if it is this hut's window (the core re-shows after each action). */
@@ -88,6 +101,8 @@ public final class BuildingPage extends ColonyPage {
             settings(b).render(ui, events);
             orders(b).render(ui, events);
         });
+        view.warehouse().ifPresent(w -> WarehouseTabsRenderer.render(ui, w));
+        view.courier().ifPresent(c -> CourierTasksRenderer.render(ui, c));
     }
 
     private BuilderResourcesTab resources(BuilderTabs b) {

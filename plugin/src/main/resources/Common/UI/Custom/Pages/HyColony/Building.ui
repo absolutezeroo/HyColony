@@ -88,6 +88,31 @@ $C.@PageOverlay {
             }
           }
 
+          Group #PickupSection {
+            LayoutMode: Left;
+            Anchor: (Height: 44, Bottom: 8);
+
+            Label #PickupPriority {
+              Style: (RenderBold: true, TextColor: #94a7bb);
+              FlexWeight: 1;
+            }
+
+            $C.@SecondaryTextButton #PickupDownButton {
+              @Anchor = (Width: 60, Right: 4);
+              Text: %hycolony.ui.pickup.down;
+            }
+
+            $C.@SecondaryTextButton #PickupUpButton {
+              @Anchor = (Width: 60, Right: 4);
+              Text: %hycolony.ui.pickup.up;
+            }
+
+            $C.@SecondaryTextButton #ForcePickupButton {
+              @Anchor = (Width: 200);
+              Text: %hycolony.ui.pickup.force;
+            }
+          }
+
           $C.@SecondaryTextButton #StorageButton {
             Text: %hycolony.ui.building.storage;
           }
@@ -224,6 +249,84 @@ $C.@PageOverlay {
           LayoutMode: TopScrolling;
           ScrollbarStyle: $C.@DefaultScrollbarStyle;
           Anchor: (Height: 420);
+        }
+      }
+
+      Group #CouriersTab {
+        LayoutMode: Top;
+        Visible: false;
+
+        Label #CouriersCount {
+          Style: (RenderBold: true);
+          Anchor: (Bottom: 10);
+        }
+
+        Label #CouriersEmpty {
+          Style: (TextColor: #94a7bb);
+          Anchor: (Bottom: 10);
+          Visible: false;
+        }
+
+        Group #Couriers {
+          LayoutMode: TopScrolling;
+          ScrollbarStyle: $C.@DefaultScrollbarStyle;
+          Anchor: (Height: 380);
+        }
+      }
+
+      Group #StockTab {
+        LayoutMode: Top;
+        Visible: false;
+
+        Label #StockEmpty {
+          Style: (TextColor: #94a7bb);
+          Anchor: (Bottom: 10);
+          Visible: false;
+        }
+
+        Group #Stock {
+          LayoutMode: TopScrolling;
+          ScrollbarStyle: $C.@DefaultScrollbarStyle;
+          Anchor: (Height: 420);
+        }
+      }
+
+      Group #WarehouseTasksTab {
+        LayoutMode: Top;
+        Visible: false;
+
+        Label #WarehouseTasksEmpty {
+          Style: (TextColor: #94a7bb);
+          Anchor: (Bottom: 10);
+          Visible: false;
+        }
+
+        Group #WarehouseTasks {
+          LayoutMode: TopScrolling;
+          ScrollbarStyle: $C.@DefaultScrollbarStyle;
+          Anchor: (Height: 420);
+        }
+      }
+
+      Group #CourierTasksTab {
+        LayoutMode: Top;
+        Visible: false;
+
+        Label #CourierWarehouse {
+          Style: (RenderBold: true);
+          Anchor: (Bottom: 10);
+        }
+
+        Label #CourierTasksEmpty {
+          Style: (TextColor: #94a7bb);
+          Anchor: (Bottom: 10);
+          Visible: false;
+        }
+
+        Group #CourierTasks {
+          LayoutMode: TopScrolling;
+          ScrollbarStyle: $C.@DefaultScrollbarStyle;
+          Anchor: (Height: 380);
         }
       }
     }

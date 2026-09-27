@@ -7,25 +7,28 @@ import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.ui.BuildingView;
 import dev.hycolony.core.construction.workorder.WorkOrderType;
 import dev.hycolony.core.job.HiringMode;
+import dev.hycolony.plugin.ui.logistics.PickupPanel;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
 /**
  * The hut window's Main tab (MC AbstractBuildingMainWindow): level, state, work order, the single build button, hiring
- * and workers, storage; and its Build options sub-view.
+ * and workers, pickup priority, storage; and its Build options sub-view.
  */
 final class BuildingMainTab {
     private final ColonyManager manager;
     private final UUID player;
     private final BuildingView view;
     private final BuildOptionsPanel options;
+    private final PickupPanel pickup;
 
     BuildingMainTab(ColonyManager manager, UUID player, BuildingView view) {
         this.manager = manager;
         this.player = player;
         this.view = view;
         this.options = new BuildOptionsPanel(manager, player, view);
+        this.pickup = new PickupPanel(manager, player, view);
     }
 
     /** Fills the tab; {@code canOpenStorage} shows the Storage button. */
@@ -46,6 +49,7 @@ final class BuildingMainTab {
         }
         buildButton(ui, events);
         staff(ui, events);
+        pickup.render(ui, events);
         if (canOpenStorage) {
             ColonyPage.bind(events, "#StorageButton", "storage");
         } else {
@@ -160,7 +164,7 @@ final class BuildingMainTab {
                 }
             }
             default -> {
-                return options.handle(act);
+                return !pickup.handle(act) && options.handle(act);
             }
         }
         return false;

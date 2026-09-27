@@ -1,0 +1,33 @@
+$C = "../../Common.ui";
+
+Group {
+  LayoutMode: Left;
+  Anchor: (Height: 48, Bottom: 4);
+  Background: #1a2530;
+  Padding: 2;
+
+  Group {
+    LayoutMode: Left;
+    FlexWeight: 1;
+    Background: #1c2835;
+    Padding: (Horizontal: 8);
+
+    Group {
+      LayoutMode: Top;
+      FlexWeight: 1;
+
+      Label #Title {
+        Style: (RenderBold: true);
+      }
+
+      Label #Requester {
+        Style: (TextColor: #94a7bb);
+      }
+    }
+
+    Label #Priority {
+      Style: (TextColor: #6fa8dc);
+      Padding: (Horizontal: 8);
+    }
+  }
+}
