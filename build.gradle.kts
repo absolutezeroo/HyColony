@@ -1,5 +1,9 @@
+import net.ltgt.gradle.errorprone.CheckSeverity
+import net.ltgt.gradle.errorprone.errorprone
+
 plugins {
     id("com.diffplug.spotless") version "8.10.3" apply false
+    id("net.ltgt.errorprone") version "5.1.1" apply false
 }
 
 subprojects {
@@ -16,7 +20,23 @@ subprojects {
         toolchain.languageVersion.set(JavaLanguageVersion.of(rootProject.property("java_version").toString().toInt()))
     }
 
-    tasks.withType<JavaCompile>().configureEach { options.encoding = "UTF-8" }
+    // Error Prone on main sources: its ERROR-level checks fail the build. NullAway stays at WARN until the core
+    // carries @Nullable annotations (its findings so far are map/Optional invariants it cannot see).
+    apply(plugin = "net.ltgt.errorprone")
+    dependencies {
+        "errorprone"("com.google.errorprone:error_prone_core:2.50.0")
+        "errorprone"("com.uber.nullaway:nullaway:0.14.2")
+    }
+
+    tasks.withType<JavaCompile>().configureEach {
+        options.encoding = "UTF-8"
+        options.errorprone {
+            disableWarningsInGeneratedCode.set(true)
+            option("NullAway:AnnotatedPackages", "dev.hycolony")
+            check("NullAway", CheckSeverity.WARN)
+        }
+    }
+    tasks.named<JavaCompile>("compileTestJava") { options.errorprone.enabled.set(false) }
     tasks.withType<Javadoc>().configureEach {
         (options as org.gradle.external.javadoc.StandardJavadocDocletOptions).addStringOption("Xdoclint:-missing", "-quiet")
     }
