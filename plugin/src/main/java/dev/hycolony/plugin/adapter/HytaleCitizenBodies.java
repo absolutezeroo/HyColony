@@ -1,5 +1,6 @@
 package dev.hycolony.plugin.adapter;
 
+import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.component.Store;
@@ -19,6 +20,7 @@ import com.hypixel.hytale.server.npc.NPCPlugin;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 import com.hypixel.hytale.server.npc.movement.NavState;
 import com.hypixel.hytale.server.npc.movement.controllers.MotionController;
+import com.hypixel.hytale.server.npc.role.Role;
 import com.hypixel.hytale.server.npc.role.support.DisplayNameSupport;
 import com.hypixel.hytale.server.npc.util.InventoryHelper;
 import com.hypixel.hytale.server.spawning.SpawnTestResult;
@@ -165,8 +167,11 @@ public final class HytaleCitizenBodies implements CitizenBodies {
         if (world.getTick() - mt.sinceTick < FRESH_MOVE_TICKS) {
             return NavStatus.MOVING; // the nav state still describes the previous goal
         }
-        NPCEntity npc = store().getComponent(ref, NPCEntity.getComponentType());
-        NavState state = npc.getRole().getActiveMotionController().getNavState();
+        Role role = role(store(), ref);
+        if (role == null) {
+            return NavStatus.FAILED; // no longer an NPC: nothing will move it
+        }
+        NavState state = role.getActiveMotionController().getNavState();
         // Every NavState: INIT ("doing nothing"), PROGRESSING and DEFER may last forever (e.g. a Seek goal more than
         // 1 block above the feet is never AT_GOAL): the core's stuck handler watches the position, not this.
         NavStatus status = switch (state) {
@@ -179,6 +184,13 @@ public final class HytaleCitizenBodies implements CitizenBodies {
             mt.active = false;
         }
         return status;
+    }
+
+    /** The body's NPC role; null when the entity is not (or no longer) an NPC, or the NPC module is absent. */
+    private static Role role(Store<EntityStore> st, Ref<EntityStore> ref) {
+        ComponentType<EntityStore, NPCEntity> type = NPCEntity.getComponentType();
+        NPCEntity npc = type == null ? null : st.getComponent(ref, type);
+        return npc == null ? null : npc.getRole();
     }
 
     @Override
@@ -297,14 +309,14 @@ public final class HytaleCitizenBodies implements CitizenBodies {
                 return;
             }
             Store<EntityStore> st = store();
-            NPCEntity npc = st.getComponent(ref, NPCEntity.getComponentType());
+            Role role = role(st, ref);
             TransformComponent t = st.getComponent(ref, TransformComponent.getComponentType());
             BoundingBox box = st.getComponent(ref, BoundingBox.getComponentType());
-            if (npc == null || t == null) {
+            if (role == null || t == null) {
                 return;
             }
             Vector3d to = new Vector3d(target.x(), target.y(), target.z());
-            MotionController mc = npc.getRole().getActiveMotionController();
+            MotionController mc = role.getActiveMotionController();
             if (!mc.translateToAccessiblePosition(
                             to,
                             box == null ? null : box.getBoundingBox(),
