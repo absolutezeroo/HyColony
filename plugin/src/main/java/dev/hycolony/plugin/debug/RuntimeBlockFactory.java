@@ -1,12 +1,14 @@
 package dev.hycolony.plugin.debug;
 
 import com.hypixel.hytale.assetstore.AssetUpdateQuery;
+import com.hypixel.hytale.protocol.packets.setup.RequestCommonAssetsRebuild;
 import com.hypixel.hytale.server.core.asset.common.CommonAsset;
 import com.hypixel.hytale.server.core.asset.common.CommonAssetModule;
 import com.hypixel.hytale.server.core.asset.common.CommonAssetRegistry;
 import com.hypixel.hytale.server.core.asset.common.asset.FileCommonAsset;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.CustomModelTexture;
+import com.hypixel.hytale.server.core.universe.Universe;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -69,7 +71,7 @@ final class RuntimeBlockFactory {
     /**
      * Writes the PNG to a temp directory (created on first use) and registers it as common asset
      * {@code Blocks/HyColony/DoTest/<name>.png}; {@code CommonAssetModule.addCommonAsset} sends it to every connected
-     * player. Returns the asset name.
+     * player, then every client is asked to rebuild its common assets. Returns the asset name.
      */
     String registerTexture(String name, byte[] png) {
         String assetName = TEXTURE_DIR + name + ".png";
@@ -85,6 +87,9 @@ final class RuntimeBlockFactory {
             throw new UncheckedIOException(e);
         }
         CommonAssetModule.get().addCommonAsset(packKey, new FileCommonAsset(file, assetName, png));
+        // addCommonAsset sends the file without a rebuild request, so clients never use it (seen in game: untextured
+        // block); vanilla's asset monitor follows its sends with RequestCommonAssetsRebuild (CommonAssetModule l.132).
+        Universe.get().broadcastPacketNoCache(new RequestCommonAssetsRebuild());
         return assetName;
     }
 
