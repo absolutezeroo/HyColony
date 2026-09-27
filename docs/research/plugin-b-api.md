@@ -613,6 +613,16 @@ Pour la tâche 7 du plan `docs/superpowers/plans/2026-09-27-hycolony-architectur
 
 - Non vérifié : l'arbre public obtenu par l'API GitHub (`api.github.com/repos/gchougland/Aetherhaven/git/trees/HEAD?recursive=1`, peut-être tronqué) ne montre aucun chemin `subplugin-assets`, et `AetherhavenPlugin.java` n'appelle pas `registerPack` (il récupère un pack déjà enregistré dans `start()`). Rien à en tirer pour l'instant.
 
+## 22. Objet tenu utilisé sur un bloc (`plugin/block/FlowerPotSystem`, `FlowerPotUse`)
+
+Chemins relatifs à `build/vineflower/hytale-server/com/hypixel/hytale/server/core/`. Détail et conséquences : `docs/research/carpets-flower-pots.md` § 6.
+
+- `UseBlockEvent.Pre` n'est émis que si le bloc visé déclare une interaction du type utilisé (`modules/interaction/interaction/config/client/UseBlockInteraction.java:70-73`). **L'annuler fait échouer `UseBlock`** (l. 79-82) : le repli `Failed` de l'objet tenu s'exécute alors (`Block_Secondary` → `PlaceModeSelect`, `Empty.Use` → `UseEntity` → `BreakBlock` `Harvest`). Pour « consommer » l'usage sans effet de bord, ne pas annuler et donner au bloc une racine `{"Interactions": [{"Type": "Simple"}]}`.
+- Interactions d'un objet tenu : les siennes, puis celles de `UnarmedInteractions` nommées par son `PlayerAnimationsId` (`Block` → `Secondary: Block_Secondary`), puis `Empty` (`Use` → `UseBlock`) (`asset/type/item/config/Item.java:1270-1285`) ; main vide : `Empty` seul (`entity/InteractionContext.java:626-660`).
+- Objet tenu : `InteractionContext.getHeldItem()`, `getHeldItemContainer()`, `getHeldItemSlot()`, `setHeldItem(...)` (l. 407-428). En retirer 1 : `container.removeItemStackFromSlot(slot, held, 1)` puis `setHeldItem(transaction.getSlotAfter())`, comme `ModifyInventoryInteraction.firstRun` (`modules/interaction/interaction/config/server/ModifyInventoryInteraction.java:116-150`). Donner ou jeter au sol : `SimpleItemContainer.addOrDropItemStack(accessor, ref, InventoryComponent.getCombined(accessor, ref, InventoryComponent.HOTBAR_STORAGE_BACKPACK), stack)`.
+- Mode de jeu : `Player.getGameMode()` → `protocol.GameMode` (`Adventure`, `Creative`).
+- Changer l'état d'un bloc en gardant sa rotation : comme `ChangeStateInteraction` (`…/config/client/ChangeStateInteraction.java:95-125`), `BlockOperations.setBlock(chunkStore, section, x, y, z, id, type, rotation, 0, 260)` (`PERFORM_BLOCK_UPDATE | NO_SEND_PARTICLES`). Clé d'un état : `"*" + bloc + "_State_Definitions_" + état` (`StateData.java:112`, `AssetExtraInfo.java:42`). **[in-game]** : affichage immédiat côté client.
+
 ## Could not verify
 
 1. **Client rendering of item animations on NPCs** (`AnimationSlot.Action` with `"Block"/"Build"` or `"Pickaxe"/"Mine"` on `PlayerTestModel_V`) and whether they loop or play once. Only the server packet path is verified.

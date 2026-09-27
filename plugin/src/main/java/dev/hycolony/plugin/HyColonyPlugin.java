@@ -11,9 +11,7 @@ import com.hypixel.hytale.server.core.universe.world.events.StartWorldEvent;
 import com.hypixel.hytale.server.core.util.Config;
 import com.hypixel.hytale.server.npc.NPCPlugin;
 import dev.hycolony.core.kernel.config.ColonyConfig;
-import dev.hycolony.plugin.block.ExplosionProtectionSystem;
-import dev.hycolony.plugin.block.HutBlockSystems;
-import dev.hycolony.plugin.block.ProtectionSystems;
+import dev.hycolony.plugin.block.BlockSystems;
 import dev.hycolony.plugin.command.HyColonyCommand;
 import dev.hycolony.plugin.config.ConfigQuarantine;
 import dev.hycolony.plugin.config.HyColonyConfig;
@@ -60,16 +58,10 @@ public final class HyColonyPlugin extends JavaPlugin {
 
         getEntityStoreRegistry().registerSystem(new ColonyTickSystem(worlds));
         getEntityStoreRegistry().registerSystem(new CitizenBodyLifecycleSystem(worlds));
-        getEntityStoreRegistry().registerSystem(new HutBlockSystems.Place(worlds));
-        getEntityStoreRegistry().registerSystem(new HutBlockSystems.Break(worlds));
-        getEntityStoreRegistry().registerSystem(new HutBlockSystems.Use(worlds));
+        BlockSystems.register(getEntityStoreRegistry(), worlds, ids, packs.isEnabled("Decorations"));
         getEntityStoreRegistry().registerSystem(new CitizenUseSystem(worlds));
         getEntityStoreRegistry().registerSystem(new CitizenFireImmunitySystems.Grant());
         getEntityStoreRegistry().registerSystem(new CitizenFireImmunitySystems.Guard());
-        getEntityStoreRegistry().registerSystem(new ProtectionSystems.Place(worlds));
-        getEntityStoreRegistry().registerSystem(new ProtectionSystems.Break(worlds));
-        getEntityStoreRegistry().registerSystem(new ProtectionSystems.Use(worlds));
-        getEntityStoreRegistry().registerSystem(new ExplosionProtectionSystem(worlds));
         getEntityStoreRegistry().registerSystem(new GogglesSystems.ArmorChange(worlds, ids.itemId("build_goggles")));
         getEntityStoreRegistry().registerSystem(new GogglesSystems.Visibility(worlds));
         getEventRegistry()

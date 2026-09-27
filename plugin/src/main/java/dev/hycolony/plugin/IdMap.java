@@ -26,7 +26,8 @@ public final class IdMap {
             Map<String, String> skillIcons,
             List<String> fireworks,
             List<String> precipitationParticles,
-            Map<String, String> speedEffects) {}
+            Map<String, String> speedEffects,
+            Map<String, String> flowerPots) {}
 
     private final Data data;
 
@@ -78,6 +79,11 @@ public final class IdMap {
         return Map.copyOf(out);
     }
 
+    /** Pottable plant item -> the flower pot's block holding it; empty when the Decorations pack is off. */
+    public Map<String, String> flowerPots() {
+        return Map.copyOf(pots());
+    }
+
     /** Absent from an older id-map file: no precipitation particle (never rains). */
     private List<String> precipitation() {
         return Objects.requireNonNullElse(data.precipitationParticles(), List.of());
@@ -86,6 +92,10 @@ public final class IdMap {
     /** Absent from an older id-map file: no speed effect (normal speed). */
     private Map<String, String> speeds() {
         return Objects.requireNonNullElse(data.speedEffects(), Map.of());
+    }
+
+    private Map<String, String> pots() {
+        return Objects.requireNonNullElse(data.flowerPots(), Map.of());
     }
 
     private static String require(Map<String, String> map, String key) {
@@ -111,6 +121,8 @@ public final class IdMap {
         check(errors, "particle system", byId(data.fireworks()), particle);
         check(errors, "precipitation particle system", byId(precipitation()), particle);
         check(errors, "speed effect", speeds(), id -> EntityEffect.getAssetMap().getAsset(id) != null);
+        check(errors, "potted plant item", byId(List.copyOf(pots().keySet())), item);
+        check(errors, "flower pot block", pots(), id -> BlockType.getAssetMap().getIndex(id) != Integer.MIN_VALUE);
         check(errors, "npc role", data.npcRoles(), id -> NPCPlugin.get().hasRoleName(id));
         return errors;
     }

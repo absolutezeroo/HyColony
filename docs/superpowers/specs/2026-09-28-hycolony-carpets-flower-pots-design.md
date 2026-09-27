@@ -28,7 +28,7 @@ Ajouter le vrai tapis et le vrai pot de fleurs de Minecraft. Ce sont des blocs v
 - Ces modèles sont **générés une seule fois** par un script gardé dans le dépôt, puis commités. Le script assemble le modèle du pot et le modèle vanilla de la plante, et range leurs textures dans un atlas. Pour ajouter une plante, on ajoute une ligne et on relance le script. C'est l'équivalent du modèle parent `flower_pot_cross` de Minecraft, qui reçoit la texture de la plante.
 - Le code se partage ainsi :
   - la règle (quelle plante, mettre, rendre, ne rien faire) est une fonction pure du cœur, testée ;
-  - le plugin l'applique : un système `UseBlockEvent.Pre` lit l'objet en main, change l'état du bloc, ajuste l'inventaire puis annule l'événement ;
+  - le plugin l'applique : un système `UseBlockEvent.Pre` lit l'objet en main, change l'état du bloc et ajuste l'inventaire. Il **n'annule pas** l'événement : un `UseBlock` annulé échoue, et le repli de l'objet tenu poserait alors la plante à côté du pot (`Block_Secondary` → `PlaceModeSelect`) ; la racine du pot est un `Simple` sans effet (`docs/research/carpets-flower-pots.md` § 6). Le pot garni cassé rend le pot et la plante par la `DropList` de son état, sans code ;
   - ce système ne tourne que si le pack `Decorations` est activé.
 
 ## À vérifier en jeu

@@ -212,6 +212,11 @@ public final class SubPlugins {
         return fragments;
     }
 
+    /** True when the bundled pack {@code name} is ENABLED: set up at startup, and neither disabled nor failed. */
+    public boolean isEnabled(String name) {
+        return enabled().stream().anyMatch(p -> p.name().equals(name));
+    }
+
     private List<Pack> enabled() {
         return packs.stream().filter(p -> p.state() == State.ENABLED).toList();
     }
