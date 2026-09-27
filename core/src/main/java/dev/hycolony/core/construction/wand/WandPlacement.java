@@ -2,6 +2,7 @@ package dev.hycolony.core.construction.wand;
 
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingType;
+import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.ConstructionPorts;
@@ -12,6 +13,7 @@ import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockState;
+import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.Msg;
 import java.util.Optional;
@@ -19,11 +21,16 @@ import java.util.UUID;
 import java.util.function.Function;
 
 /**
- * Validates and places the hut chosen with the build tool (MC SurvivalHandler.handle): permission, town hall rules,
- * footprint in the colony, hut block in the inventory, then the block and the building at level 0, with no work
- * order.
+ * Validates and places the hut chosen with the build tool (MC SurvivalHandler.handle): permission, town hall
+ * distance or footprint in the colony, hut rules, hut block in the inventory, then the block and the building at
+ * level 0, with no work order.
+ *
+ * <p>Deviation from MC: a creative player goes through this same survival path, only without consuming the hut
+ * block; Structurize's creative paste (CreativeBuildingStructureHandler) is out of scope.
  */
 final class WandPlacement {
+    private static final System.Logger LOG = System.getLogger(WandPlacement.class.getName());
+
     /** Outcome of {@link #confirm}. */
     sealed interface Result permits Refused, Placed, FoundColony {}
 
@@ -68,17 +75,32 @@ final class WandPlacement {
         if (colony.isPresent() && !colony.get().permissions().hasPermission(player, Action.MANAGE_HUTS)) {
             return refused("hycolony.wand.noPermission");
         }
+        Optional<Refused> location = locationRefusal(s, pos, colony);
+        if (location.isPresent()) {
+            return location.get();
+        }
         HutPlacement check = manager.huts().checkHutRules(player, pos, s.buildingTypeId());
         if (check instanceof HutPlacement.Denied denied) {
             return new Refused(denied.reason());
         }
-        if (check instanceof HutPlacement.Allowed) {
-            Optional<Refused> outside = footprintRefusal(s, pos, colony.orElseThrow());
-            if (outside.isPresent()) {
-                return outside.get();
-            }
-        }
         return place(player, playerName, s, type.get(), check);
+    }
+
+    /**
+     * MC SurvivalHandler.handle l.112-132: a town hall inside a colony passes, and outside one it must be far enough
+     * from every colony (TOWNHALL_TOO_CLOSE); any other hut must stand in a colony with its whole footprint.
+     */
+    private Optional<Refused> locationRefusal(WandSession s, BlockPos pos, Optional<Colony> colony) {
+        if (BuildingTypes.TOWN_HALL.id().equals(s.buildingTypeId())) {
+            var claims = manager.context().config().claims();
+            boolean far =
+                    manager.territory().isFreeForNewColony(pos, claims.initialColonySize(), claims.minColonyDistance());
+            return colony.isPresent() || far ? Optional.empty() : Optional.of(refused("hycolony.colony.tooClose"));
+        }
+        if (colony.isEmpty()) {
+            return Optional.of(refused("hycolony.wand.outsideColony"));
+        }
+        return footprintRefusal(s, pos, colony.get());
     }
 
     /** Step 3: the plan of the chosen level, as rotated, must stay in the colony (MC BP_OUTSIDE_COLONY). */
@@ -95,16 +117,20 @@ final class WandPlacement {
     }
 
     /**
-     * Steps 4 and 5: checks a survival player has the hut block, places it, and only then takes one, so nothing is
-     * consumed if placing fails; then registers the hut or begins founding.
+     * Steps 4 and 5: checks a survival player has the hut block, breaks what stands at the anchor, places the hut
+     * block, and only then takes one, so nothing is consumed if placing fails; then registers the hut or begins
+     * founding.
      */
     private Result place(UUID player, String playerName, WandSession s, BuildingType type, HutPlacement check) {
         ItemKey item = hutItem.apply(type.hutBlockKey());
         boolean creative = manager.context().players().isCreative(player);
         if (!creative && ports().playerInventory().count(player, item) < 1) {
+            // Deviation from MC: SurvivalHandler only plays an error sound here; the core has no sound port, so the
+            // player gets a chat message instead.
             return refused("hycolony.wand.missingHut");
         }
         BlockPos pos = s.anchor().orElseThrow();
+        breakAnchor(player, pos);
         BlockState state = new BlockState(hutBlock.apply(type.hutBlockKey()), s.rotation());
         if (!ports().blocks().place(pos, state, false)) {
             return refused("hycolony.wand.placeFailed");
@@ -121,6 +147,25 @@ final class WandPlacement {
         }
         manager.foundation().begin(player, playerName, pos, s.rotation(), s.style());
         return new FoundColony();
+    }
+
+    /**
+     * MC SurvivalHandler.handle l.168 {@code world.destroyBlock(blockPos, true)}: breaks what stands at the anchor.
+     * Deviation from MC: the drops go to the player's inventory (the core has no port to drop items in the world);
+     * what does not fit is lost and logged, as RequestActions.giveBack does.
+     */
+    private void breakAnchor(UUID player, BlockPos pos) {
+        for (ItemAmount drop : ports().blocks().breakBlock(pos)) {
+            ItemAmount lost = ports().playerInventory().give(player, drop);
+            if (lost != null) {
+                LOG.log(
+                        System.Logger.Level.WARNING,
+                        "Player {0} inventory full: {1} x {2} lost",
+                        player,
+                        lost.count(),
+                        lost.item().id());
+            }
+        }
     }
 
     private ConstructionPorts ports() {

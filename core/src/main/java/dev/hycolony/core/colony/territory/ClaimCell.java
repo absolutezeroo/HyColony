@@ -13,7 +13,12 @@ public record ClaimCell(int x, int z) {
 
     /**
      * MC WorkManager.isWorkOrderWithinColony: whether {@code owned} holds for every claim cell of the x/z rectangle
-     * between corners {@code a} and {@code b} (tested at each cell's corner, at {@code a}'s height).
+     * between corners {@code a} and {@code b} (tested at each cell's corner, at {@code a}'s height). Also MC
+     * SurvivalHandler.isBlueprintInColony, which uses the same loop.
+     *
+     * <p>Deviation from MC: every cell the rectangle touches is tested. MC steps 16 blocks from {@code min+1} while
+     * {@code < max}, so it skips the edge columns and can miss the last cell (likely an MC bug): a plan reaching a
+     * few blocks past the border is accepted there and refused here.
      */
     public static boolean allOwned(BlockPos a, BlockPos b, Predicate<BlockPos> owned) {
         ClaimCell ca = of(a);

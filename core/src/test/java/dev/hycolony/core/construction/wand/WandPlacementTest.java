@@ -14,10 +14,12 @@ import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockState;
+import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.testing.FakeBlueprints;
 import dev.hycolony.core.testing.TestContexts;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -40,7 +42,9 @@ class WandPlacementTest {
 
     private static TestContexts contexts() {
         TestContexts t = new TestContexts();
-        t.blueprints = new FakeBlueprints().put(BUILDER, 1, FakeBlueprints.hut(false));
+        t.blueprints = new FakeBlueprints()
+                .put(BUILDER, 1, FakeBlueprints.hut(false))
+                .put(TOWN_HALL, 1, FakeBlueprints.hut(false));
         return t;
     }
 
@@ -174,5 +178,40 @@ class WandPlacementTest {
         assertEquals("hycolony.wand.placeFailed", refusal(placement.confirm(alice, "Alice", session(spot, BUILDER))));
         assertEquals(1, t.playerInventory.count(alice, BUILDER_ITEM));
         assertTrue(colony.buildings().at(spot).isEmpty());
+    }
+
+    @Test
+    void townHallInsideItsOwnColonySkipsTheFootprintCheck() {
+        colony.buildings().remove(new BlockPos(0, 64, 0));
+        give(alice, TOWN_HALL_ITEM);
+        BlockPos border = new BlockPos(79, 64, 0);
+        assertInstanceOf(WandPlacement.Placed.class, placement.confirm(alice, "Alice", session(border, TOWN_HALL)));
+    }
+
+    @Test
+    void townHallTooCloseToAnotherColonyIsRefusedBeforeTheFoundingRules() {
+        give(alice, TOWN_HALL_ITEM);
+        BlockPos nearby = new BlockPos(100, 64, 0);
+        assertEquals(
+                "hycolony.colony.tooClose", refusal(placement.confirm(alice, "Alice", session(nearby, TOWN_HALL))));
+    }
+
+    @Test
+    void hutOutsideAnyColonyIsRefusedAsOutsideTheColony() {
+        give(bob, BUILDER_ITEM);
+        BlockPos far = new BlockPos(5000, 64, 0);
+        assertEquals("hycolony.wand.outsideColony", refusal(placement.confirm(bob, "Bob", session(far, BUILDER))));
+        give(alice, BUILDER_ITEM);
+        assertEquals("hycolony.wand.outsideColony", refusal(placement.confirm(alice, "Alice", session(far, BUILDER))));
+    }
+
+    @Test
+    void blockAlreadyAtTheAnchorIsBrokenAndItsDropsGoToThePlayer() {
+        give(alice, BUILDER_ITEM);
+        t.blocks.blocks.put(spot, FakeBlueprints.state(FakeBlueprints.DIRT));
+        t.blocks.drops.put(spot, List.of(new ItemAmount(FakeBlueprints.DIRT_I, 1)));
+        assertInstanceOf(WandPlacement.Placed.class, placement.confirm(alice, "Alice", session(spot, BUILDER)));
+        assertEquals(1, t.playerInventory.count(alice, FakeBlueprints.DIRT_I));
+        assertEquals(new BlockState(new BlockKey("block:hut.builder"), 2), t.blocks.blocks.get(spot));
     }
 }
