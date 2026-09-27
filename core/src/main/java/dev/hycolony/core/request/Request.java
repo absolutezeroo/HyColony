@@ -55,11 +55,11 @@ public final class Request {
      * priority point, capped at {@link Delivery#MAX_AGING_PRIORITY}; any other request is unchanged.
      */
     public void incrementPriorityDueToAging() {
-        if (requestable instanceof Delivery d) {
-            requestable = d.withAgedPriority();
-        } else if (requestable instanceof Pickup p) {
-            requestable = p.withAgedPriority();
-        }
+        requestable = switch (requestable) {
+            case Delivery d -> d.withAgedPriority();
+            case Pickup p -> p.withAgedPriority();
+            case Deliverable deliverable -> deliverable;
+        };
     }
 
     /** The requestable when it is an item deliverable (count, matches); empty for a courier delivery or pickup. */

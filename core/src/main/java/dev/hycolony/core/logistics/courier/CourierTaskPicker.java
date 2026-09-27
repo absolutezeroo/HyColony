@@ -7,6 +7,7 @@ import dev.hycolony.core.logistics.warehouse.CourierAssignmentModule;
 import dev.hycolony.core.logistics.warehouse.RequesterLocation;
 import dev.hycolony.core.logistics.warehouse.WarehouseRequestQueue;
 import dev.hycolony.core.request.Request;
+import dev.hycolony.core.request.model.Deliverable;
 import dev.hycolony.core.request.model.Delivery;
 import dev.hycolony.core.request.model.Pickup;
 import dev.hycolony.core.request.model.RequestToken;
@@ -141,12 +142,11 @@ final class CourierTaskPicker {
      * unloaded target is not ported: MC overwrites it with the priority for every courier task, so it never applies.
      */
     private int score(Request r, int index) {
-        int priority = 1;
-        if (r.requestable() instanceof Delivery d) {
-            priority = d.priority();
-        } else if (r.requestable() instanceof Pickup p) {
-            priority = p.day() > colony.day() ? p.priority() - NOT_DUE_MALUS : p.priority();
-        }
+        int priority = switch (r.requestable()) {
+            case Delivery d -> d.priority();
+            case Pickup p -> p.day() > colony.day() ? p.priority() - NOT_DUE_MALUS : p.priority();
+            case Deliverable _ -> 1;
+        };
         priority += shared.size() - index;
         return priority - distanceMalus(r);
     }
@@ -167,17 +167,19 @@ final class CourierTaskPicker {
 
     /** MC {@code getSource}: a delivery's rack; the warehouse for a pickup, which runs the other way. */
     private Optional<BlockPos> source(Request r) {
-        if (r.requestable() instanceof Delivery d) {
-            return Optional.of(d.start());
-        }
-        return r.requestable() instanceof Pickup ? Optional.of(warehouse) : Optional.empty();
+        return switch (r.requestable()) {
+            case Delivery d -> Optional.of(d.start());
+            case Pickup _ -> Optional.of(warehouse);
+            case Deliverable _ -> Optional.empty();
+        };
     }
 
     /** MC {@code getTarget}: where a delivery goes, or the building a pickup empties. */
     private Optional<BlockPos> target(Request r) {
-        if (r.requestable() instanceof Delivery d) {
-            return RequesterLocation.of(colony, d.target());
-        }
-        return r.requestable() instanceof Pickup ? RequesterLocation.of(colony, r.requester()) : Optional.empty();
+        return switch (r.requestable()) {
+            case Delivery d -> RequesterLocation.of(colony, d.target());
+            case Pickup _ -> RequesterLocation.of(colony, r.requester());
+            case Deliverable _ -> Optional.empty();
+        };
     }
 }
