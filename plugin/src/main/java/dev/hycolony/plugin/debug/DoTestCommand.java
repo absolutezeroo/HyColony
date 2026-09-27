@@ -14,6 +14,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.kernel.port.Msg;
 import dev.hycolony.plugin.adapter.HytaleNotifier;
 import java.util.Queue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -44,7 +45,10 @@ public final class DoTestCommand extends AbstractPlayerCommand {
         addSubCommand(new Clear());
     }
 
-    /** Runs the four steps on the world thread; a failure is logged SEVERE and reported with its step name. */
+    /**
+     * Picks the cell on the world thread, then creates the texture and BlockType off it and places the block back on
+     * it; a failure is logged SEVERE and reported with its step name.
+     */
     @Override
     protected void execute(
             @Nonnull CommandContext ctx,
@@ -53,6 +57,14 @@ public final class DoTestCommand extends AbstractPlayerCommand {
             @Nonnull PlayerRef player,
             @Nonnull World world) {
         int n = next.getAndIncrement();
+        Placed at = inFront(store, ref, world);
+        // World.tick holds AssetRegistry.ASSET_LOCK's read lock and loadAssets needs its write lock: loading assets on
+        // the world thread deadlocks it (a ReentrantReadWriteLock cannot upgrade).
+        CompletableFuture.runAsync(() -> create(n, at, player));
+    }
+
+    /** Off the world thread: registers texture and BlockType {@code HyColony_DoTest_<n>}, then places it. */
+    private void create(int n, Placed at, PlayerRef player) {
         String id = "HyColony_DoTest_" + n;
         String step = "compose";
         try {
@@ -62,17 +74,29 @@ public final class DoTestCommand extends AbstractPlayerCommand {
             String texture = factory.registerTexture("Test_" + n, png);
             step = "blocktype";
             factory.registerBlockType(id, texture);
-            step = "place";
-            Placed at = inFront(store, ref, world);
-            world.setBlock(at.x(), at.y(), at.z(), id);
+            at.world().execute(() -> place(id, at, player, start));
+        } catch (RuntimeException e) {
+            fail(e, step, id, at, player);
+        }
+    }
+
+    /** On the world thread: places {@code id} at {@code at}, records it and reports the elapsed milliseconds. */
+    private void place(String id, Placed at, PlayerRef player, long start) {
+        try {
+            at.world().setBlock(at.x(), at.y(), at.z(), id);
             placed.add(at);
             long ms = (System.nanoTime() - start) / 1_000_000;
             LOG.at(Level.INFO).log("dotest: created %s at %d %d %d in %d ms", id, at.x(), at.y(), at.z(), ms);
             say(player, "hycolony.dotest.created", id, String.valueOf(ms));
         } catch (RuntimeException e) {
-            LOG.at(Level.SEVERE).withCause(e).log("dotest failed at step %s for %s", step, id);
-            say(player, "hycolony.dotest.failed", step);
+            fail(e, "place", id, at, player);
         }
+    }
+
+    /** Logs the failure SEVERE and tells the player, on the world thread. */
+    private static void fail(RuntimeException e, String step, String id, Placed at, PlayerRef player) {
+        LOG.at(Level.SEVERE).withCause(e).log("dotest failed at step %s for %s", step, id);
+        at.world().execute(() -> say(player, "hycolony.dotest.failed", step));
     }
 
     /** The feet-level cell {@link #DISTANCE} blocks along the view yaw (x = -sin, z = -cos, see HeadRotation). */
