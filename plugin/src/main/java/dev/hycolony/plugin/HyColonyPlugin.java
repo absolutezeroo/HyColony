@@ -70,9 +70,7 @@ public final class HyColonyPlugin extends JavaPlugin {
                         PlayerReadyEvent.class,
                         e -> GogglesSystems.onPlayerReady(runtimes, ids.itemId("build_goggles"), e));
         WandInteraction.register(this, runtimes);
-        getCommandRegistry()
-                .registerCommand(new HyColonyCommand(
-                        runtimes, ids, colonyConfig.commands(), getIdentifier().toString()));
+        getCommandRegistry().registerCommand(new HyColonyCommand(runtimes, ids, colonyConfig.commands()));
 
         // Assets (blocks, items, NPC roles) are all loaded once a world starts: validate ids there.
         // World.onStart dispatches this on the world thread: create the runtime inline, before any
