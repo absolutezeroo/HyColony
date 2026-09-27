@@ -25,6 +25,10 @@
       { "ItemId": "Ingredient_Crystal_Cyan", "Quantity": 2 },
       { "ItemId": "Ingredient_Leather_Light", "Quantity": 2 }
     ],
+    "Output": [
+      { "ItemId": "HyColony_Build_Goggles", "Quantity": 1 },
+      { "ItemId": "HyColony_Build_Tool", "Quantity": 1 }
+    ],
     "BenchRequirement": [
       { "Id": "Workbench", "Type": "Crafting", "Categories": [ "Workbench_Crafting" ] }
     ],
