@@ -17,6 +17,7 @@ class ColonyConfigTest {
         ColonyConfig c = ColonyConfig.defaults();
         assertEquals(4, c.gameplay().initialCitizenAmount());
         assertEquals(250, c.gameplay().maxCitizenPerColony());
+        assertFalse(c.gameplay().workersAlwaysWorkInRain()); // MC workersalwaysworkinrain
         assertEquals(20, c.claims().maxColonySize());
         assertEquals(8, c.claims().minColonyDistance());
         assertEquals(4, c.claims().initialColonySize());
@@ -52,9 +53,9 @@ class ColonyConfigTest {
 
     @Test
     void gameplayGogglesAndBypassLevelAreClampedToMineColoniesBounds() {
-        assertEquals(1, new ColonyConfig.Gameplay(0, 0).initialCitizenAmount());
-        assertEquals(25, new ColonyConfig.Gameplay(0, 0).maxCitizenPerColony());
-        assertEquals(500, new ColonyConfig.Gameplay(99, 9999).maxCitizenPerColony());
+        assertEquals(1, new ColonyConfig.Gameplay(0, 0, false).initialCitizenAmount());
+        assertEquals(25, new ColonyConfig.Gameplay(0, 0, false).maxCitizenPerColony());
+        assertEquals(500, new ColonyConfig.Gameplay(99, 9999, false).maxCitizenPerColony());
         assertEquals(1, new ColonyConfig.Client(0).buildGoggleRange());
         assertEquals(250, new ColonyConfig.Client(999).buildGoggleRange());
         assertEquals(

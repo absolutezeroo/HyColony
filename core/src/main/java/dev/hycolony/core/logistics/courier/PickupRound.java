@@ -41,6 +41,7 @@ final class PickupRound {
         ctx.setDelay(CourierContext.WALK_DELAY);
         Request task = ctx.task().filter(r -> r.requestable() instanceof Pickup).orElse(null);
         if (task == null) {
+            reset(); // the round was for another task (cancelled): its keep rules belong to that hut
             return CourierState.START_WORKING;
         }
         if (cannotHoldMoreItems()) {
@@ -49,6 +50,7 @@ final class PickupRound {
         }
         Building hut = ctx.colony().buildings().byRequester(task.requester()).orElse(null);
         if (hut == null) {
+            reset();
             ctx.job().finishRequest(ctx.colony(), false);
             return CourierState.START_WORKING;
         }
@@ -112,7 +114,7 @@ final class PickupRound {
         int taken = amount > 0 ? ctx.containers().extract(List.of(container), stack.item(), amount) : 0;
         ItemAmount rest = taken > 0 ? ctx.inventory().insert(stack.withCount(taken), ctx.catalog()::maxStack) : null;
         if (rest != null) {
-            ctx.containers().insert(List.of(container), rest);
+            ctx.putBack(List.of(container), rest);
         }
         if (taken < stack.count() || rest != null) {
             slot++;

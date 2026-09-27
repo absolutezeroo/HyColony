@@ -16,7 +16,9 @@ public record ColonyConfig(
     public record Gameplay(
             int initialCitizenAmount,
             /** Read by nothing yet: MC only caps immigration and births (housing), and forces the initial spawn. */
-            int maxCitizenPerColony) {
+            int maxCitizenPerColony,
+            /** MC workersalwaysworkinrain: rain never stops a worker (CitizenAI.shouldWorkWhileRaining). */
+            boolean workersAlwaysWorkInRain) {
         public Gameplay {
             initialCitizenAmount = clamp(initialCitizenAmount, 1, 10);
             maxCitizenPerColony = clamp(maxCitizenPerColony, 25, 500);
@@ -92,7 +94,7 @@ public record ColonyConfig(
     /** MineColonies' defaults, and ours for the HyColony section. */
     public static ColonyConfig defaults() {
         return new ColonyConfig(
-                new Gameplay(4, 250),
+                new Gameplay(4, 250, false),
                 new Claims(20, 8, 4, 30000, 0),
                 new Permissions(true, Explosions.DAMAGE_ENTITIES, 2),
                 new Commands(true, true, false),

@@ -93,10 +93,13 @@ final class DeliverymanAI implements JobAI {
     /**
      * MC CitizenAI: a worker whose hut cannot work in the rain ({@code canWorkingDuringRain = false}) idles while it
      * rains; true too without a hut. Deviation from MC: rain or snow at the hut, not a world-wide flag (Hytale's
-     * weather is per zone).
+     * weather is per zone). The MC config {@code workersAlwaysWorkInRain} lifts it.
      */
     @Override
     public boolean canGoIdle() {
+        if (ctx.colony().context().config().gameplay().workersAlwaysWorkInRain()) {
+            return ctx.hut().isEmpty();
+        }
         return ctx.hut()
                 .map(hut -> ctx.colony().context().worldQuery().isRainingAt(hut.position()))
                 .orElse(true);
@@ -122,7 +125,13 @@ final class DeliverymanAI implements JobAI {
         return hasWarehouse;
     }
 
-    /** MC decide: no task, wait at the warehouse (storing what is carried); a delivery starts empty-handed. */
+    /**
+     * MC decide: no task, wait at the warehouse (storing what is carried); a delivery starts empty-handed.
+     *
+     * <p>A full warehouse keeps a loaded courier cycling DUMPING and START_WORKING, its deliveries pending: a
+     * documented exception to CLAUDE.md § 4, as in MC. The way out is a player action (freeing room), which the
+     * "warehouse full" message announces every 5 minutes ({@link WarehouseStorage#TICKS_FIVE_MIN}).
+     */
     private CourierState decide() {
         Optional<Request> task = ctx.job().currentTask(ctx.colony());
         boolean empty = ctx.inventory().freeSlots() == ctx.inventory().size();

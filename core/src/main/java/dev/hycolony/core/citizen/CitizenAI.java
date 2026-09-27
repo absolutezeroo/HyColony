@@ -190,7 +190,9 @@ public final class CitizenAI {
         bodies.setMovementSpeed(body, 1);
     }
 
+    /** A fresh job AI, at normal speed: a courier hired for another job loses its Agility bonus (MC). */
     private void startJob(Job job) {
+        bodies.setMovementSpeed(body, 1);
         aiJob = job;
         aiWorkBuilding = data.workBuilding();
         jobAI = job.createAI(colony, body);

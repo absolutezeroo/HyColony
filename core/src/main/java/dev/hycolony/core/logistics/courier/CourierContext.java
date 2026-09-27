@@ -15,6 +15,7 @@ import dev.hycolony.core.kernel.port.ContainerAccess;
 import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.core.logistics.warehouse.CourierAssignmentModule;
 import dev.hycolony.core.request.Request;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -22,6 +23,8 @@ import java.util.Optional;
  * walks, its hut and warehouse, and the work delay (MC setDelay).
  */
 final class CourierContext {
+    private static final System.Logger LOG = System.getLogger(CourierContext.class.getName());
+
     /** MC EntityAIWorkDeliveryman WALK_DELAY: ticks between two checks of a walk. */
     static final int WALK_DELAY = 20;
 
@@ -30,6 +33,7 @@ final class CourierContext {
     private final BodyId body;
     private final BodyWalker walker;
     private int delay;
+    private boolean warnedLost;
 
     CourierContext(Colony colony, DeliverymanJob job, BodyId body) {
         this.colony = colony;
@@ -99,6 +103,26 @@ final class CourierContext {
         }
         delay -= elapsed;
         return true;
+    }
+
+    /**
+     * Puts {@code amount} back into {@code containers} (items taken out that found no place). What still does not fit
+     * is dropped on the ground there and logged, WARNING the first time then FINE, so it is never lost silently.
+     */
+    void putBack(List<BlockPos> containers, ItemAmount amount) {
+        ItemAmount left = containers().insert(containers, amount);
+        if (left == null || containers.isEmpty()) {
+            return;
+        }
+        LOG.log(
+                warnedLost ? System.Logger.Level.DEBUG : System.Logger.Level.WARNING,
+                "Courier {0} could not put back {1} x {2} at {3}; dropped",
+                citizen().name(),
+                left.count(),
+                left.item().id(),
+                containers.get(0));
+        warnedLost = true;
+        colony.context().ports().blocks().drop(containers.get(0), List.of(left));
     }
 
     /** MC setHeldItem(SLOT_HAND): the courier shows what is in its first slot. */

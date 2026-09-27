@@ -6,6 +6,7 @@ import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.model.Delivery;
+import dev.hycolony.core.request.model.RequestToken;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,10 @@ final class DeliveryPreparation {
     private final CourierContext ctx;
     /** What the deliveries already covered take from the inventory, per item (kept to spare an allocation). */
     private final Map<ItemKey, Integer> covered = new HashMap<>();
+    /** The rack the courier walks to for the task {@link #walkingFor}; null once there. */
+    private BlockPos walkingTo;
+
+    private RequestToken walkingFor;
 
     DeliveryPreparation(CourierContext ctx) {
         this.ctx = ctx;
@@ -38,17 +43,36 @@ final class DeliveryPreparation {
         if (task == null) {
             return CourierState.START_WORKING;
         }
+        if (stillWalking(task)) {
+            return CourierState.PREPARE_DELIVERY; // no need to list the tasks again on the way
+        }
         Next next = next(ctx.job().tasksWithSameDestination(ctx.colony(), task)).orElse(null);
         if (next == null || next.place() > ctx.job().maxParallelDeliveries(ctx.colony())) {
             return CourierState.DELIVERY;
         }
         Delivery delivery = (Delivery) next.task().requestable();
         if (!ctx.walkTo(delivery.start())) {
+            walkingTo = delivery.start();
+            walkingFor = task.token();
             return CourierState.PREPARE_DELIVERY;
         }
         if (ctx.inventory().isFull()) {
             return CourierState.DUMPING;
         }
+        return load(next, delivery);
+    }
+
+    /** True while the walk started for {@code task} goes on; forgets it once over (or for another task). */
+    private boolean stillWalking(Request task) {
+        if (walkingTo != null && task.token().equals(walkingFor) && !ctx.walkTo(walkingTo)) {
+            return true;
+        }
+        walkingTo = null;
+        return false;
+    }
+
+    /** MC: takes the delivery's stack at its rack; without it, the loaded ones go, or the delivery fails alone. */
+    private CourierState load(Next next, Delivery delivery) {
         ctx.job().addConcurrentDelivery(next.task().token());
         if (gather(delivery.start(), delivery.stack())) {
             return CourierState.PREPARE_DELIVERY;
@@ -93,7 +117,9 @@ final class DeliveryPreparation {
             return false;
         }
         ItemAmount rest = ctx.inventory().insert(stack.withCount(taken), ctx.catalog()::maxStack);
-        Optional.ofNullable(rest).ifPresent(r -> ctx.containers().insert(source, r));
+        if (rest != null) {
+            ctx.putBack(source, rest);
+        }
         ctx.showHeld();
         return rest == null && taken >= stack.count();
     }

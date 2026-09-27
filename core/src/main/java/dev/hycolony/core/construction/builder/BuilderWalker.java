@@ -4,6 +4,7 @@ import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.nav.BodyWalker;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.CitizenBodies;
+import java.util.Optional;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
@@ -49,8 +50,8 @@ final class BuilderWalker {
         if (!walker.walkTo(workPos.pos(), workPos.verified())) {
             return false;
         }
-        BlockPos at = walker.at();
-        if (at == null || WorkSpot.inReach(at, block) || block.equals(repickedFor)) {
+        Optional<BlockPos> at = walker.at();
+        if (at.isEmpty() || WorkSpot.inReach(at.get(), block) || block.equals(repickedFor)) {
             return true;
         }
         repickedFor = block;

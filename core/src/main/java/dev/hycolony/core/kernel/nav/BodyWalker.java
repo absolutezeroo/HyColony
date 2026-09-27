@@ -5,6 +5,7 @@ import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.CitizenBodies;
 import dev.hycolony.core.kernel.port.NavStatus;
+import java.util.Optional;
 import java.util.function.LongSupplier;
 
 /**
@@ -37,9 +38,9 @@ public final class BodyWalker {
                 && bodies.position(body).map(p -> !within(p, navTarget)).orElse(false);
     }
 
-    /** The body's block, or null while it has no body. */
-    public BlockPos at() {
-        return bodies.position(body).map(Vec3::toBlockPos).orElse(null);
+    /** The body's block; empty while it has no body. */
+    public Optional<BlockPos> at() {
+        return bodies.position(body).map(Vec3::toBlockPos);
     }
 
     /**

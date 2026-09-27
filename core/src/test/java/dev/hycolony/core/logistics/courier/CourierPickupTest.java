@@ -10,6 +10,7 @@ import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolInfo;
 import dev.hycolony.core.kernel.item.ToolType;
+import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequestToken;
 import org.junit.jupiter.api.Test;
 
@@ -82,5 +83,25 @@ class CourierPickupTest extends CourierAITestBase {
 
         runUntil(() -> failed(task));
         assertTrue(job.taskQueue().isEmpty());
+    }
+
+    @Test
+    void aCancelledPickupDoesNotCarryItsKeepRulesToTheNextHut() {
+        hire();
+        ItemKey pick = new ItemKey("Tool_Pickaxe_Wood");
+        t.catalog.tools.put(pick, new ToolInfo(ToolType.PICKAXE, 0, 1f));
+        Building builderHut = building(ConstructionBuildingTypes.BUILDER, new BlockPos(15, 64, 0), 1);
+        put(builderHut.position(), LOG, 10); // taken first
+        put(builderHut.position(), pick, 3); // the builder hut keeps one
+        RequestToken first = pickup(builderHut, 5);
+        runUntil(() -> carried(LOG) == 10);
+
+        m.updateState(first, RequestState.CANCELLED);
+        put(target.position(), pick, 3); // the residence keeps no tool
+        RequestToken second = pickup(target, 5);
+        runUntil(() -> completed(second));
+
+        assertEquals(3, carried(pick));
+        assertEquals(3, stored(builderHut.position(), pick));
     }
 }

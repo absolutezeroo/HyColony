@@ -32,7 +32,7 @@ Légende de la colonne « Statut » :
 | `maxcitizenpercolony` | 250 | 25-500 (`CITIZEN_LIMIT_MAX`, `CitizenConstants.java:33`) | Plafond de citoyens par colonie | ACTUEL |
 | `enableindevelopmentfeatures` | false | - | Fonctions en développement | n/a |
 | `alwaysrendernametag` | true | - | Afficher le nom des citoyens (`EntityCitizen.java:267`) | ACTUEL |
-| `workersalwaysworkinrain` | false | - | Les ouvriers travaillent sous la pluie (`CitizenAI.java:307`) | futur (pluie non portée) |
+| `workersalwaysworkinrain` | false | - | Les ouvriers travaillent sous la pluie (`CitizenAI.java:307`) | porté : `Gameplay.WorkersAlwaysWorkInRain` (seul le livreur s'arrête sous la pluie pour l'instant) |
 | `luckyblockchance` | 1 | 0-100 | % de minerai trouvé par le mineur | futur (mineur) |
 | `minthleveltoteleport` | 3 | 0-5 | Niveau d'hôtel de ville pour la téléportation alliée | futur |
 | `foodmodifier` | 1.0 | 0.1-100 | Multiplicateur de consommation de nourriture (`CitizenData.java:1168`) | futur (nourriture) |

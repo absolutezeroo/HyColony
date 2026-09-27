@@ -18,6 +18,11 @@ final class GameplaySection {
                     (s, v) -> s.maxCitizenPerColony = v,
                     s -> s.maxCitizenPerColony)
             .add()
+            .append(
+                    new KeyedCodec<>("WorkersAlwaysWorkInRain", Codec.BOOLEAN),
+                    (s, v) -> s.workersAlwaysWorkInRain = v,
+                    s -> s.workersAlwaysWorkInRain)
+            .add()
             .build();
 
     private static final ColonyConfig.Gameplay DEFAULTS =
@@ -25,8 +30,9 @@ final class GameplaySection {
 
     int initialCitizenAmount = DEFAULTS.initialCitizenAmount();
     int maxCitizenPerColony = DEFAULTS.maxCitizenPerColony();
+    boolean workersAlwaysWorkInRain = DEFAULTS.workersAlwaysWorkInRain();
 
     ColonyConfig.Gameplay toCore() {
-        return new ColonyConfig.Gameplay(initialCitizenAmount, maxCitizenPerColony);
+        return new ColonyConfig.Gameplay(initialCitizenAmount, maxCitizenPerColony, workersAlwaysWorkInRain);
     }
 }

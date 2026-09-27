@@ -21,16 +21,15 @@ final class ForcedInsert {
      * that {@code keep} does not protect. Returns null when all went in, the swapped-out stack after a swap, or the
      * rest when no swap made room (the whole {@code stack} when nothing fitted), like the port's insert.
      */
-    static ItemAmount insert(
-            ContainerAccess access, List<BlockPos> containers, ItemAmount stack, Predicate<ItemKey> keep) {
-        ItemAmount rest = access.insert(containers, stack);
+    static ItemAmount insert(CourierContext ctx, List<BlockPos> containers, ItemAmount stack, Predicate<ItemKey> keep) {
+        ItemAmount rest = ctx.containers().insert(containers, stack);
         if (rest == null) {
             return null;
         }
         for (BlockPos container : containers) {
-            for (ItemAmount local : access.stacks(container)) {
+            for (ItemAmount local : ctx.containers().stacks(container)) {
                 if (!keep.test(local.item())) {
-                    Optional<ItemAmount> swapped = swap(access, List.of(container), local, rest);
+                    Optional<ItemAmount> swapped = swap(ctx, List.of(container), local, rest);
                     if (swapped.isPresent()) {
                         return swapped.get();
                     }
@@ -42,7 +41,8 @@ final class ForcedInsert {
 
     /** Takes {@code local} out and puts {@code rest} in; undoes both and returns empty when {@code rest} did not fit. */
     private static Optional<ItemAmount> swap(
-            ContainerAccess access, List<BlockPos> container, ItemAmount local, ItemAmount rest) {
+            CourierContext ctx, List<BlockPos> container, ItemAmount local, ItemAmount rest) {
+        ContainerAccess access = ctx.containers();
         int removed = access.extract(container, local.item(), local.count());
         if (removed <= 0) {
             return Optional.empty();
@@ -55,7 +55,7 @@ final class ForcedInsert {
         if (placed > 0) {
             access.extract(container, rest.item(), placed);
         }
-        access.insert(container, local.withCount(removed));
+        ctx.putBack(container, local.withCount(removed));
         return Optional.empty();
     }
 }

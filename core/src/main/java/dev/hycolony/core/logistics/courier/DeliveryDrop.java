@@ -79,7 +79,7 @@ final class DeliveryDrop {
             }
             inventory.set(i, Optional.empty());
             extracted = true;
-            ItemAmount back = ForcedInsert.insert(ctx.containers(), target.containers(), stack, kept::contains);
+            ItemAmount back = ForcedInsert.insert(ctx, target.containers(), stack, kept::contains);
             if (back != null) {
                 success &= !back.equals(stack);
                 inventory.set(i, Optional.of(back));

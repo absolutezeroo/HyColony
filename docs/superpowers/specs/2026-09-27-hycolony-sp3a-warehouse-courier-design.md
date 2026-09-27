@@ -55,7 +55,7 @@ Toutes reprises de MineColonies ; les références `§` renvoient à la recherch
 
 - Rangements = conteneurs Hytale du plan (coffres) au lieu des étagères MC.
 - Le constructeur est aujourd'hui le seul ouvrier : il demande un ramassage quand sa hutte est pleine et après un dépôt, selon la règle générique `AbstractEntityAIBasic` (§ 0.1). Aucun autre producteur tant que SP3 n'en ajoute pas.
-- Pluie : le livreur ne travaille pas s'il pleut **ou neige** à la position de sa hutte (port `WorldQuery.isRainingAt`) ; MC teste une pluie globale au monde. Le réglage MC `workersAlwaysWorkInRain` n'est pas encore porté.
+- Pluie : le livreur ne travaille pas s'il pleut **ou neige** à la position de sa hutte (port `WorldQuery.isRainingAt`) ; MC teste une pluie globale au monde. Le réglage MC `workersAlwaysWorkInRain` (`Gameplay.WorkersAlwaysWorkInRain`, défaut `false`) lève cet arrêt. Dans MC, le constructeur ne travaille pas non plus sous la pluie (`BUILDER_WORK`, `canWorkingDuringRain = false`) ; le nôtre continue : écart antérieur à SP3a, non traité ici, à décider.
 - Outils gardés (`KeepToolsModule`) : le constructeur garde pioche, pelle et hache ; houe et cisailles n'existent pas dans `ToolType`.
 - Rangement (`WarehouseStorage`) : le 2e choix de MC (une étagère qui contient un objet « similaire », même onglet créatif) est sauté, les objets Hytale n'ont pas d'onglet créatif dans le cœur. Sans améliorations de stockage, un entrepôt de niveau 5 plein envoie toujours le message « amélioration maximale » de MC, jamais « payez un bloc d'émeraude ». Le premier message « entrepôt plein » n'est pas retardé : notre compteur de ticks repart de 0 au lancement du serveur (le temps de jeu de MC est sauvegardé).
 - Résolveurs de stock (`WarehouseStockResolver`) : un seul résolveur au lieu du couple générique / concret de MC, qui ne se distinguent que par la façon de compter (NBT, usure contre prédicat) ; `Deliverable.matches` couvre les deux. Pas de `StackList` (`INonExhaustiveDeliverable`) dans nos requêtes, donc le `leftOver` gardé vaut toujours 0 ; pas de `MinimumStack`, donc la règle « pas pour le stock minimum d'un autre entrepôt » n'a rien à tester. Les deux arrivent avec le stock minimum (backlog).
@@ -68,7 +68,9 @@ Toutes reprises de MineColonies ; les références `§` renvoient à la recherch
   - « objets de ses requêtes » de la cible (`isItemStackInRequest`) : toutes les requêtes ouvertes du bâtiment, pas seulement celles de ses citoyens, car notre constructeur demande ses matériaux au nom de la hutte ;
   - ramassage : le parcours case par case porte sur les cases non vides des conteneurs de la hutte (hutte d'abord) ; l'indice reste en place quand la pile est partie entière ;
   - vitesse : facteur de la vitesse de base donné au corps (`CitizenBodies.setMovementSpeed`), recalculé à chaque décision (MC `onLevelUp`) et remis à 1 quand l'IA de métier est abandonnée (MC retire le modificateur avec le métier) ;
-  - pas de test de dimension (`isReachableFromLocation`) : un seul monde.
+  - pas de test de dimension (`isReachableFromLocation`) : un seul monde ;
+  - objets sortis d'un conteneur qui n'y rentrent plus (rangement ou échange défait) : jetés au sol à cet endroit et journalisés (MC ne les remet pas) ;
+  - entrepôt plein (exception assumée à CLAUDE.md § 4, comme MC) : un livreur chargé alterne DUMPING et START_WORKING et ses livraisons attendent ; la sortie est une action du joueur (libérer de la place), annoncée par le message « entrepôt plein » toutes les 5 minutes.
 
 ## Architecture
 
