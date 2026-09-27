@@ -105,10 +105,7 @@ public final class WorkerModule implements PersistentModule, TickingModule, Buil
         c.markDirty();
     }
 
-    /** Auto-hiring needs the colony (its citizens and settings): see the two-arg overload. */
-    @Override
-    public void onColonyTick(Building building) {}
-
+    /** MC WorkerBuildingModule.onColonyTick: auto-hires the first idle adult while there is room. */
     @Override
     public void onColonyTick(Colony colony, Building building) {
         if (workers.size() >= maxWorkers || !hiringMode.canAutoHire(colony, building, assignableAtLevel0)) {

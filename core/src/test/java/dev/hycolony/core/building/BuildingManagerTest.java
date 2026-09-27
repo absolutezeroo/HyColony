@@ -20,7 +20,7 @@ class BuildingManagerTest {
         int ticks;
 
         @Override
-        public void onColonyTick(Building building) {
+        public void onColonyTick(Colony colony, Building building) {
             ticks++;
         }
     }

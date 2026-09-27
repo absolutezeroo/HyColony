@@ -51,10 +51,6 @@ public final class CourierAssignmentModule implements TickingModule, PersistentM
                 .findFirst();
     }
 
-    /** Needs the colony's citizens: see the two-arg overload. */
-    @Override
-    public void onColonyTick(Building building) {}
-
     /**
      * MC onColonyTick: attaches every courier without a warehouse while there is room and auto-hiring applies, then
      * detaches the citizens who are gone or no longer couriers. Marks the colony dirty on a change.

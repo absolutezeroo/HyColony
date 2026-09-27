@@ -2,12 +2,8 @@ package dev.hycolony.core.building;
 
 import dev.hycolony.core.colony.Colony;
 
-/** Ticked on the colony slow tick (every 500 ticks). */
+/** Ticked on the colony slow tick (every 500 ticks). MC {@code ITickingModule.onColonyTick}. */
 public interface TickingModule extends BuildingModule {
-    void onColonyTick(Building building);
-
-    /** Colony-aware overload; modules that need the colony (e.g. auto-hiring) override this instead. */
-    default void onColonyTick(Colony colony, Building building) {
-        onColonyTick(building);
-    }
+    /** Runs this module's slow-tick work for {@code building} in {@code colony}. */
+    void onColonyTick(Colony colony, Building building);
 }
