@@ -25,11 +25,11 @@ final class CourierTasks {
         if (queue.isEmpty()) {
             return;
         }
-        RequestToken current = queue.get(0);
+        RequestToken current = queue.getFirst();
         Optional<Request> request = colony.requests().get(current);
         RequestState state = successful ? RequestState.RESOLVED : RequestState.FAILED;
         if (request.isEmpty()) {
-            queue.remove(0);
+            queue.removeFirst();
         } else if (request.get().requestable() instanceof Delivery) {
             List<RequestToken> done = ongoing.isEmpty() ? List.of(current) : List.copyOf(ongoing);
             for (RequestToken token : done) {

@@ -120,9 +120,9 @@ final class CourierContext {
                 citizen().name(),
                 left.count(),
                 left.item().id(),
-                containers.get(0));
+                containers.getFirst());
         warnedLost = true;
-        colony.context().ports().blocks().drop(containers.get(0), List.of(left));
+        colony.context().ports().blocks().drop(containers.getFirst(), List.of(left));
     }
 
     /** MC setHeldItem(SLOT_HAND): the courier shows what is in its first slot. */

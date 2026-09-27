@@ -54,11 +54,11 @@ final class CourierTaskPicker {
      */
     static Optional<Request> ownHead(Colony colony, List<RequestToken> queue) {
         while (!queue.isEmpty()) {
-            Optional<Request> head = colony.requests().get(queue.get(0));
+            Optional<Request> head = colony.requests().get(queue.getFirst());
             if (head.isPresent()) {
                 return head;
             }
-            queue.remove(0);
+            queue.removeFirst();
             colony.markDirty();
         }
         return Optional.empty();

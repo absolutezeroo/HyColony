@@ -110,7 +110,7 @@ final class WorkOrderValidation {
             return b.style();
         }
         List<String> styles = colony.context().ports().blueprints().styles();
-        return styles.isEmpty() ? "" : styles.get(0);
+        return styles.isEmpty() ? "" : styles.getFirst();
     }
 
     /** The blueprint's footprint around {@code hut} lies in this colony (see {@link ClaimCell#allOwned}). */

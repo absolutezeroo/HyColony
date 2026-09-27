@@ -76,7 +76,7 @@ public final class DeliverymanJob extends Job implements CourierTaskQueue {
             return 1;
         }
         return colony.citizens()
-                .get(work.get().workers().get(0))
+                .get(work.get().workers().getFirst())
                 .map(worker -> 1 + worker.skills().level(work.get().secondary()) / 5)
                 .orElse(1);
     }
