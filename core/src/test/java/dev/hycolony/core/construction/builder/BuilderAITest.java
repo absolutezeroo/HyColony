@@ -2,6 +2,7 @@ package dev.hycolony.core.construction.builder;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -952,6 +953,39 @@ class BuilderAITest {
         tickUntil(() -> builderRequests().stream().anyMatch(r -> r.requestable() instanceof ToolRequest), 5000);
 
         assertEquals(3, dirtLeft());
+    }
+
+    /** MC: a broken tool no longer exists; the builder takes the good shovel from its hut, not the broken one. */
+    @Test
+    void aBrokenToolInTheHutIsSkippedAndTheGoodOneTaken() {
+        ItemKey shovel = shovelWork(2);
+        t.containers.worn.put(HUT, new ArrayList<>(List.of(new ItemAmount(shovel, 1, 2))));
+        t.containers.containers.put(HUT, new java.util.LinkedHashMap<>(Map.of(shovel, 1)));
+
+        tickUntil(() -> dirtLeft() == 2, 5000);
+
+        assertEquals(List.of(new ItemAmount(shovel, 1, 2)), t.containers.stacks(HUT));
+        assertEquals(List.of(new ItemAmount(shovel, 1, 1)), citizen.inventory().contents());
+    }
+
+    /** A broken tool alone in the hut does not resolve the builder's tool request from the hut. */
+    @Test
+    void aBrokenToolInTheHutNeverResolvesAToolRequest() {
+        ItemKey shovel = shovelWork(2);
+        t.containers.worn.put(HUT, new ArrayList<>(List.of(new ItemAmount(shovel, 1, 2))));
+
+        tickUntil(() -> builderRequests().stream().anyMatch(r -> r.requestable() instanceof ToolRequest), 5000);
+        tick(100);
+
+        Request r = builderRequests().stream()
+                .filter(q -> q.requestable() instanceof ToolRequest)
+                .findFirst()
+                .orElseThrow();
+        assertNotEquals(
+                hut.requesterId().value(),
+                colony.requests().resolverOf(r.token()).orElseThrow().resolverId());
+        assertEquals(3, dirtLeft());
+        assertEquals(List.of(new ItemAmount(shovel, 1, 2)), t.containers.stacks(HUT));
     }
 
     @Test

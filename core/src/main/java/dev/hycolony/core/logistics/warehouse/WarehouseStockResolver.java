@@ -4,7 +4,6 @@ import dev.hycolony.core.building.Building;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemAmount;
-import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.ContainerAccess;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.RequestManager;
@@ -16,7 +15,6 @@ import dev.hycolony.core.request.model.Requestable;
 import dev.hycolony.core.request.model.RequesterId;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -161,21 +159,25 @@ final class WarehouseStockResolver implements Resolver {
     /** MC {@code getWarehouseInternalCount}: the matching items in all of {@code building}'s racks. */
     private int count(Building building, Deliverable d, RequestManager m) {
         int total = 0;
-        for (Map.Entry<ItemKey, Integer> e :
-                containers().contents(building.containers()).entrySet()) {
-            if (d.matches(e.getKey(), m.catalog())) {
-                total += e.getValue();
-            }
+        for (RackStack s : matchingStacks(building, d, m)) {
+            total += s.stack().count();
         }
         return total;
     }
 
-    /** MC {@code getMatchingItemStacksInWarehouse}: this warehouse's matching slots, hut block first. */
     private List<RackStack> matchingStacks(Deliverable d, RequestManager m) {
+        return matchingStacks(warehouse, d, m);
+    }
+
+    /**
+     * MC {@code getMatchingItemStacksInWarehouse}: {@code building}'s matching slots, hut block first. A worn-out tool
+     * never matches (the stack match of {@link Deliverable}): MC has destroyed it.
+     */
+    private List<RackStack> matchingStacks(Building building, Deliverable d, RequestManager m) {
         List<RackStack> out = new ArrayList<>();
-        for (BlockPos rack : warehouse.containers()) {
+        for (BlockPos rack : building.containers()) {
             for (ItemAmount stack : containers().stacks(rack)) {
-                if (d.matches(stack.item(), m.catalog())) {
+                if (d.matches(stack, m.catalog())) {
                     out.add(new RackStack(rack, stack));
                 }
             }

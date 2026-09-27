@@ -2,6 +2,7 @@ package dev.hycolony.core.kernel.port;
 
 import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockKind;
+import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolInfo;
 import dev.hycolony.core.kernel.item.ToolType;
@@ -29,10 +30,15 @@ public interface ItemCatalog {
 
     Optional<ToolInfo> tool(ItemKey item);
 
-    /**
-     * How many blocks the tool mines before it breaks; 0 = unbreakable (or not a tool). The core counts the uses
-     * itself: item metadata (durability, a hut's level) does not travel through citizen inventories (known
-     * limitation, backlog).
-     */
+    /** How many blocks the tool mines before it breaks (its uses, MC max damage); 0 = unbreakable (or not a tool). */
     int durability(ItemKey item);
+
+    /**
+     * Whether {@code stack} is worn to its {@link #durability}: a tool Hytale broke (it keeps it at 0 durability, MC
+     * destroys it). Such a stack no longer exists for MC, so it never answers a request nor serves as a tool.
+     */
+    default boolean wornOut(ItemAmount stack) {
+        int uses = durability(stack.item());
+        return uses > 0 && stack.damage() >= uses;
+    }
 }

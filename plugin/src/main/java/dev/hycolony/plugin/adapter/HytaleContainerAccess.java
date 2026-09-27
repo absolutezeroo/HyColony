@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import org.jspecify.annotations.Nullable;
 
@@ -54,7 +55,8 @@ public final class HytaleContainerAccess implements ContainerAccess {
     }
 
     @Override
-    public List<ItemAmount> extractStacks(List<BlockPos> containers, ItemKey item, int max) {
+    public List<ItemAmount> extractStacks(
+            List<BlockPos> containers, ItemKey item, int max, Predicate<ItemAmount> accept) {
         List<ItemAmount> out = new ArrayList<>();
         try {
             int taken = 0;
@@ -64,7 +66,7 @@ public final class HytaleContainerAccess implements ContainerAccess {
                 }
                 ItemContainer c = container(p);
                 if (c != null) {
-                    taken += takeBySlot(c, item, max - taken, stacks, out);
+                    taken += takeBySlot(c, new Take(item, max - taken, accept), stacks, out);
                 }
             }
         } catch (RuntimeException e) {
@@ -152,18 +154,24 @@ public final class HytaleContainerAccess implements ContainerAccess {
         return b == null ? null : b.getItemContainer();
     }
 
+    /** Up to {@code max} of {@code item}, from the slots whose stack {@code accept}s. */
+    record Take(ItemKey item, int max, Predicate<ItemAmount> accept) {}
+
     /**
-     * Removes up to {@code max} of {@code item}, slot by slot, adding each part taken to {@code out} with its damage.
-     * Returns how many were removed.
+     * Removes what {@code take} asks, slot by slot, adding each part taken to {@code out} with its damage. Returns how
+     * many were removed.
      */
-    static int takeBySlot(ItemContainer c, ItemKey item, int max, HytaleStacks stacks, List<ItemAmount> out) {
+    static int takeBySlot(ItemContainer c, Take take, HytaleStacks stacks, List<ItemAmount> out) {
         int taken = 0;
-        for (short s = 0; s < c.getCapacity() && taken < max; s++) {
+        for (short s = 0; s < c.getCapacity() && taken < take.max(); s++) {
             ItemStack st = c.getItemStack(s);
-            if (st == null || ItemStack.isEmpty(st) || !st.getItemId().equals(item.id())) {
+            if (st == null
+                    || ItemStack.isEmpty(st)
+                    || !st.getItemId().equals(take.item().id())
+                    || !take.accept().test(stacks.toAmount(st))) {
                 continue;
             }
-            int n = Math.min(max - taken, st.getQuantity());
+            int n = Math.min(take.max() - taken, st.getQuantity());
             if (c.removeItemStackFromSlot(s, n).succeeded()) {
                 taken += n;
                 out.add(stacks.toAmount(st, n));

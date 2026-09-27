@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Predicate;
 
 /** Ports the construction system needs. {@link #unavailable()} lets the plugin compile before it wires the real ones. */
 public record ConstructionPorts(
@@ -117,7 +118,8 @@ public record ConstructionPorts(
             }
 
             @Override
-            public List<ItemAmount> extractStacks(List<BlockPos> containers, ItemKey item, int max) {
+            public List<ItemAmount> extractStacks(
+                    List<BlockPos> containers, ItemKey item, int max, Predicate<ItemAmount> accept) {
                 return List.of();
             }
 

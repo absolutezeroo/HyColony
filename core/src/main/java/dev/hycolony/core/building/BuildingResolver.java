@@ -93,18 +93,29 @@ public final class BuildingResolver implements Resolver {
         m.updateState(r.token(), RequestState.RESOLVED);
     }
 
-    /** Matching stock in the hut's containers, minus the deliveries of the building's other requests (until RECEIVED). */
+    /**
+     * Matching stock in the hut's containers (never a worn-out tool), minus the deliveries of the building's other
+     * requests (until RECEIVED).
+     */
     private Map<ItemKey, Integer> available(RequestManager m, Request r, Deliverable d) {
-        Map<ItemKey, Integer> stock = new LinkedHashMap<>();
-        containers.contents(building.containers()).forEach((item, n) -> {
-            if (n > 0 && d.matches(item, m.catalog())) {
-                stock.put(item, n);
-            }
-        });
+        Map<ItemKey, Integer> stock = matching(m, d);
         for (Request other : m.byRequester(building.requesterId())) {
             if (!other.equals(r)) {
                 for (ItemAmount a : other.deliveries()) {
                     stock.computeIfPresent(a.item(), (_, n) -> n > a.count() ? n - a.count() : null);
+                }
+            }
+        }
+        return stock;
+    }
+
+    /** The hut's stacks that match {@code d}, by item (a worn-out tool never does). */
+    private Map<ItemKey, Integer> matching(RequestManager m, Deliverable d) {
+        Map<ItemKey, Integer> stock = new LinkedHashMap<>();
+        for (BlockPos container : building.containers()) {
+            for (ItemAmount a : containers.stacks(container)) {
+                if (d.matches(a, m.catalog())) {
+                    stock.merge(a.item(), a.count(), Integer::sum);
                 }
             }
         }

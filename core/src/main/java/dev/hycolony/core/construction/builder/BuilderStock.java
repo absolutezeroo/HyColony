@@ -59,13 +59,20 @@ final class BuilderStock {
         return citizen.inventory();
     }
 
+    /** How many of {@code item} the hut holds, a worn-out tool apart (it serves nothing). */
     int hutCount(ItemKey item) {
-        return containers.count(hut.containers(), item);
+        int total = 0;
+        for (BlockPos container : hut.containers()) {
+            for (ItemAmount a : containers.stacks(container)) {
+                total += a.item().equals(item) && !catalog.wornOut(a) ? a.count() : 0;
+            }
+        }
+        return total;
     }
 
     /**
-     * Moves up to {@code max} from the hut to the inventory, each stack with its damage; what does not fit goes back to
-     * the hut. Returns how many landed in the inventory.
+     * Moves up to {@code max} from the hut to the inventory, each stack with its damage; a worn-out tool stays in the
+     * hut, and what does not fit goes back there. Returns how many landed in the inventory.
      */
     int take(ItemKey item, int max) {
         if (max <= 0) {
@@ -73,7 +80,7 @@ final class BuilderStock {
         }
         List<BlockPos> hc = hut.containers();
         int landed = 0;
-        for (ItemAmount got : containers.extractStacks(hc, item, max)) {
+        for (ItemAmount got : containers.extractStacks(hc, item, max, a -> !catalog.wornOut(a))) {
             ItemAmount rest = inventory().insert(got, maxStack);
             landed += got.count() - (rest == null ? 0 : rest.count());
             lose(rest == null ? null : containers.insert(hc, rest));
@@ -128,7 +135,7 @@ final class BuilderStock {
                 continue;
             }
             ToolInfo tool = catalog.tool(a.item()).orElse(null);
-            if (tool != null && !wornOut(a) && toolKept.add(tool.type())) {
+            if (tool != null && !catalog.wornOut(a) && toolKept.add(tool.type())) {
                 continue;
             }
             int kept = Math.min(a.count(), keepLeft.getOrDefault(a.item(), 0));
@@ -209,18 +216,9 @@ final class BuilderStock {
     /** {@code a}'s tool info when it is a tool of {@code type} the hut allows and not worn out, else null. */
     private @Nullable ToolInfo usableTool(ItemAmount a, ToolType type) {
         ToolInfo info = catalog.tool(a.item()).orElse(null);
-        return info != null && info.type() == type && info.level() <= hut.maxEquipmentLevel() && !wornOut(a)
+        return info != null && info.type() == type && info.level() <= hut.maxEquipmentLevel() && !catalog.wornOut(a)
                 ? info
                 : null;
-    }
-
-    /**
-     * A stack worn to its durability. The core breaks a tool at that point (MC), but Hytale keeps a broken tool at 0
-     * durability, and a player can hand one over.
-     */
-    private boolean wornOut(ItemAmount a) {
-        int durability = catalog.durability(a.item());
-        return durability > 0 && a.damage() >= durability;
     }
 
     float toolSpeed(@Nullable ItemKey tool) {

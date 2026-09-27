@@ -5,6 +5,7 @@ import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import org.jspecify.annotations.Nullable;
 
 public interface ContainerAccess {
@@ -17,11 +18,17 @@ public interface ContainerAccess {
                 .sum();
     }
 
+    /** {@link #extractStacks(List, ItemKey, int, Predicate)} of any stack. */
+    default List<ItemAmount> extractStacks(List<BlockPos> containers, ItemKey item, int max) {
+        return extractStacks(containers, item, max, _ -> true);
+    }
+
     /**
-     * Removes up to {@code max} of {@code item}; returns the stacks removed, each with its damage, so a worn tool stays
-     * worn wherever it goes. Empty when there is none or the chunks are not loaded.
+     * Removes up to {@code max} of {@code item} from the slots whose stack {@code accept}s; returns the stacks removed,
+     * each with its damage, so a worn tool stays worn wherever it goes. Empty when there is none or the chunks are not
+     * loaded.
      */
-    List<ItemAmount> extractStacks(List<BlockPos> containers, ItemKey item, int max);
+    List<ItemAmount> extractStacks(List<BlockPos> containers, ItemKey item, int max, Predicate<ItemAmount> accept);
 
     /**
      * Inserts {@code amount} with its damage. Returns the remainder that did not fit, or {@code null} if everything was

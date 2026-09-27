@@ -10,12 +10,13 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 /**
  * Containers keyed by block position; {@link #full} makes every insert fail. A position listed in {@link #slots} holds
  * that many slots of at most {@link #maxStack} items each (unlimited by default, so one slot per distinct item) and an
  * insert there can fit partly, like a real container; any other position is unlimited. Damaged stacks (worn tools) sit
- * in {@link #worn}, one slot each, listed and taken after the undamaged ones.
+ * in {@link #worn}, one slot each, listed and taken before the undamaged ones (a broken tool in an earlier slot).
  */
 public final class FakeContainers implements ContainerAccess {
     public final Map<BlockPos, Map<ItemKey, Integer>> containers = new LinkedHashMap<>();
@@ -37,14 +38,16 @@ public final class FakeContainers implements ContainerAccess {
     }
 
     @Override
-    public List<ItemAmount> extractStacks(List<BlockPos> positions, ItemKey item, int max) {
+    public List<ItemAmount> extractStacks(
+            List<BlockPos> positions, ItemKey item, int max, Predicate<ItemAmount> accept) {
         List<ItemAmount> out = new ArrayList<>();
         int removed = 0;
         for (BlockPos pos : positions) {
+            removed += takeWorn(pos, item, max - removed, accept, out);
             Map<ItemKey, Integer> c = containers.get(pos);
             int have = c == null ? 0 : c.getOrDefault(item, 0);
             int take = Math.min(have, max - removed);
-            if (c != null && take > 0) {
+            if (c != null && take > 0 && accept.test(new ItemAmount(item, take))) {
                 if (take == have) {
                     c.remove(item);
                 } else {
@@ -53,18 +56,17 @@ public final class FakeContainers implements ContainerAccess {
                 out.add(new ItemAmount(item, take));
                 removed += take;
             }
-            removed += takeWorn(pos, item, max - removed, out);
         }
         return out;
     }
 
     /** Takes whole worn stacks of {@code item} at {@code pos}, up to {@code max} items, into {@code out}. */
-    private int takeWorn(BlockPos pos, ItemKey item, int max, List<ItemAmount> out) {
+    private int takeWorn(BlockPos pos, ItemKey item, int max, Predicate<ItemAmount> accept, List<ItemAmount> out) {
         int removed = 0;
         Iterator<ItemAmount> it = worn.getOrDefault(pos, new ArrayList<>()).iterator();
         while (it.hasNext() && removed < max) {
             ItemAmount a = it.next();
-            if (a.item().equals(item) && a.count() <= max - removed) {
+            if (a.item().equals(item) && a.count() <= max - removed && accept.test(a)) {
                 it.remove();
                 out.add(a);
                 removed += a.count();
@@ -123,13 +125,12 @@ public final class FakeContainers implements ContainerAccess {
     @Override
     public List<ItemAmount> stacks(BlockPos container) {
         int size = slots.containsKey(container) ? maxStack : Integer.MAX_VALUE;
-        List<ItemAmount> out = new ArrayList<>();
+        List<ItemAmount> out = new ArrayList<>(worn.getOrDefault(container, List.of()));
         containers.getOrDefault(container, Map.of()).forEach((item, count) -> {
             for (int left = count; left > 0; left -= size) {
                 out.add(new ItemAmount(item, Math.min(left, size)));
             }
         });
-        out.addAll(worn.getOrDefault(container, List.of()));
         return out;
     }
 

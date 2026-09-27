@@ -113,7 +113,10 @@ final class DeliveryPreparation {
         if (ctx.containers().count(source, stack.item()) < stack.count()) {
             return false;
         }
-        List<ItemAmount> taken = ctx.containers().extractStacks(source, stack.item(), stack.count());
+        // A worn-out tool answers no request (MC destroyed it): it stays where it is.
+        List<ItemAmount> taken = ctx.containers()
+                .extractStacks(
+                        source, stack.item(), stack.count(), a -> !ctx.catalog().wornOut(a));
         if (taken.isEmpty()) {
             return false;
         }

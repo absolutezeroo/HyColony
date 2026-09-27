@@ -12,6 +12,8 @@ import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.core.kernel.item.ToolInfo;
+import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.RequestManager;
 import dev.hycolony.core.request.Resolver;
@@ -19,7 +21,9 @@ import dev.hycolony.core.request.model.Delivery;
 import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.request.model.Requestable;
 import dev.hycolony.core.request.model.StackRequest;
+import dev.hycolony.core.request.model.ToolRequest;
 import dev.hycolony.core.testing.TestContexts;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.UUID;
@@ -212,5 +216,25 @@ class WarehouseStockResolverTest {
 
         assertEquals(stockResolver(w).resolverId(), resolverOf(token));
         assertEquals(1, children(token).size());
+    }
+
+    /** MC: a broken tool no longer exists, so a worn-out stack in the racks never answers a tool request. */
+    @Test
+    void aBrokenToolInTheWarehouseIsNeverDeliveredForAToolRequest() {
+        ItemKey shovel = new ItemKey("Tool_Shovel_Crude");
+        t.catalog.tools.put(shovel, new ToolInfo(ToolType.SHOVEL, 0, 1f));
+        t.catalog.durability.put(shovel, 150);
+        Building w = warehouse(new BlockPos(10, 64, 0));
+        Building requester = hut(new BlockPos(30, 64, 0));
+        t.containers.worn.put(w.position(), new ArrayList<>(List.of(new ItemAmount(shovel, 1, 150))));
+
+        RequestToken broken = m.createAndAssign(requester, new ToolRequest(ToolType.SHOVEL, 0, 5), -1);
+
+        assertNotEquals(stockResolver(w).resolverId(), resolverOf(broken));
+
+        t.containers.worn.get(w.position()).add(new ItemAmount(shovel, 1, 20));
+        RequestToken worn = m.createAndAssign(requester, new ToolRequest(ToolType.SHOVEL, 0, 5), -1);
+
+        assertEquals(stockResolver(w).resolverId(), resolverOf(worn)); // a worn but usable one still serves
     }
 }

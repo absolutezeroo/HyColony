@@ -56,7 +56,7 @@ public final class HytalePlayerInventory implements PlayerInventory {
         try {
             ItemContainer c = inventory(player);
             if (c != null) {
-                HytaleContainerAccess.takeBySlot(c, item, max, stacks, out);
+                HytaleContainerAccess.takeBySlot(c, new HytaleContainerAccess.Take(item, max, _ -> true), stacks, out);
             }
         } catch (RuntimeException e) {
             fail("take", e); // what was already taken stays taken: report it
