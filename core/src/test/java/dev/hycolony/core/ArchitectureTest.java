@@ -100,6 +100,10 @@ class ArchitectureTest {
             .dependOnClassesThat()
             .resideInAnyPackage("dev.hycolony.core.job..", "dev.hycolony.core.logistics..");
 
+    // No "job does not depend on logistics" rule: WorkerStock.dump asks for a pickup right after a dump, like MC
+    // AbstractEntityAIBasic.dumpInventory calls building.createPickupRequest, and logistics is a core feature that
+    // cannot be switched off.
+
     /** The colony root knows no logistics type: couriers and warehouses register from their own feature. */
     @ArchTest
     static final ArchRule colonyRootDoesNotDependOnLogistics = noClasses()
@@ -123,6 +127,26 @@ class ArchitectureTest {
             .should()
             .dependOnClassesThat()
             .resideInAnyPackage("dev.hycolony.core.colony.view..", "dev.hycolony.core.colony.persistence..");
+
+    /**
+     * Player actions sit above the features. The one exception, {@code construction.wand}, is itself a player action
+     * (like {@code colony.action}) that places huts through {@code HutActions}.
+     */
+    @ArchTest
+    static final ArchRule featuresDoNotDependOnColonyActions = noClasses()
+            .that()
+            .resideInAnyPackage(
+                    "dev.hycolony.core.building..",
+                    "dev.hycolony.core.citizen..",
+                    "dev.hycolony.core.job..",
+                    "dev.hycolony.core.request..",
+                    "dev.hycolony.core.construction..",
+                    "dev.hycolony.core.logistics..")
+            .and()
+            .resideOutsideOfPackage("dev.hycolony.core.construction.wand..")
+            .should()
+            .dependOnClassesThat()
+            .resideInAPackage("dev.hycolony.core.colony.action..");
 
     @ArchTest
     static final ArchRule logisticsSubPackagesAreFreeOfCycles =
