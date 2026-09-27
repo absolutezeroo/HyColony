@@ -1,15 +1,27 @@
 package dev.hycolony.plugin.adapter;
 
+import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.math.vector.Rotation3f;
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockBreakingDropType;
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockGathering;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
+import com.hypixel.hytale.server.core.inventory.ItemStack;
+import com.hypixel.hytale.server.core.modules.entity.item.ItemComponent;
 import com.hypixel.hytale.server.core.modules.interaction.BlockHarvestUtils;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.section.BlockSection;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.item.ItemAmount;
+import java.util.ArrayList;
+import java.util.List;
+import org.joml.Vector3d;
 import org.joml.Vector3i;
 
-/** Section-API block helpers (no deprecated World/WorldChunk calls). World thread only. */
+/** Section-API block and drop helpers (no deprecated World/WorldChunk calls). World thread only. */
 public final class HytaleBlocks {
     private final World world;
 
@@ -43,5 +55,35 @@ public final class HytaleBlocks {
                 section,
                 world.getEntityStore().getStore(),
                 cs.getStore());
+    }
+
+    /**
+     * Spawns {@code items} as item entities at the block's bottom centre, as BlockHarvestUtils.spawnDrops does for a
+     * broken block. The chunk must be loaded.
+     */
+    public void drop(BlockPos pos, List<ItemAmount> items) {
+        List<ItemStack> stacks = new ArrayList<>(items.size());
+        for (ItemAmount a : items) {
+            stacks.add(new ItemStack(a.item().id(), a.count()));
+        }
+        Store<EntityStore> entities = world.getEntityStore().getStore();
+        Vector3d at = new Vector3d(pos.x() + 0.5, pos.y(), pos.z() + 0.5);
+        entities.addEntities(
+                ItemComponent.generateItemDrops(entities, stacks, at, Rotation3f.IDENTITY), AddReason.SPAWN);
+    }
+
+    /** What a player gets with the right tool: breaking drops, else soft drops, else the block's own item. */
+    static List<ItemStack> drops(BlockType type) {
+        BlockGathering g = type.getGathering();
+        BlockBreakingDropType breaking = g == null ? null : g.getBreaking();
+        if (breaking != null) {
+            return BlockHarvestUtils.getDrops(
+                    type, Math.max(1, breaking.getQuantity()), breaking.getItemId(), breaking.getDropListId());
+        }
+        if (g != null && g.getSoft() != null) {
+            return BlockHarvestUtils.getDrops(
+                    type, 1, g.getSoft().getItemId(), g.getSoft().getDropListId());
+        }
+        return BlockHarvestUtils.getDrops(type, 1, null, null);
     }
 }

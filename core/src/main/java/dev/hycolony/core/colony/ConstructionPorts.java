@@ -96,6 +96,9 @@ public record ConstructionPorts(
             public List<ItemAmount> breakBlock(BlockPos pos) {
                 return List.of();
             }
+
+            @Override
+            public void drop(BlockPos pos, List<ItemAmount> items) {}
         };
         ContainerAccess containers = new ContainerAccess() {
             @Override

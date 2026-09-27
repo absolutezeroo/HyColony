@@ -4,8 +4,6 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.protocol.BlockMaterial;
-import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockBreakingDropType;
-import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockGathering;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.VariantRotation;
 import com.hypixel.hytale.server.core.asset.type.fluid.Fluid;
@@ -50,6 +48,7 @@ public final class HytaleWorldBlocks implements WorldBlocks {
 
     private final World world;
     private final Set<String> hutBlockIds;
+    private final HytaleBlocks drops;
     /** {@code get} is hot: one Optional per (block runtime id, rotation index), built once. */
     private Optional<BlockState>[][] blockCache = newCache(1024);
 
@@ -60,6 +59,7 @@ public final class HytaleWorldBlocks implements WorldBlocks {
     public HytaleWorldBlocks(World world, Set<String> hutBlockIds) {
         this.world = world;
         this.hutBlockIds = Set.copyOf(hutBlockIds);
+        this.drops = new HytaleBlocks(world);
     }
 
     private boolean isHut(BlockType type) {
@@ -213,7 +213,7 @@ public final class HytaleWorldBlocks implements WorldBlocks {
                     // Emptied before removal, else the removal system drops it on the ground. No filter: all of it.
                     out.addAll(container.getItemContainer().dropAllItemStacks(false));
                 }
-                out.addAll(drops(type));
+                out.addAll(HytaleBlocks.drops(type));
             }
             BlockHarvestUtils.naturallyRemoveBlock(
                     new Vector3i(x, y, z),
@@ -239,19 +239,16 @@ public final class HytaleWorldBlocks implements WorldBlocks {
         }
     }
 
-    /** What a player gets with the right tool: breaking drops, else soft drops, else the block's own item. */
-    private static List<ItemStack> drops(BlockType type) {
-        BlockGathering g = type.getGathering();
-        BlockBreakingDropType breaking = g == null ? null : g.getBreaking();
-        if (breaking != null) {
-            return BlockHarvestUtils.getDrops(
-                    type, Math.max(1, breaking.getQuantity()), breaking.getItemId(), breaking.getDropListId());
+    /** Drops {@code items} at the block like a broken block's drops (see {@link HytaleBlocks#drop}). */
+    @Override
+    public void drop(BlockPos pos, List<ItemAmount> items) {
+        try {
+            if (!items.isEmpty() && section(pos) != null) {
+                drops.drop(pos, items);
+            }
+        } catch (RuntimeException e) {
+            fail("drop", pos, e);
         }
-        if (g != null && g.getSoft() != null) {
-            return BlockHarvestUtils.getDrops(
-                    type, 1, g.getSoft().getItemId(), g.getSoft().getDropListId());
-        }
-        return BlockHarvestUtils.getDrops(type, 1, null, null);
     }
 
     private Ref<ChunkStore> section(BlockPos pos) {

@@ -13,7 +13,6 @@ import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockState;
-import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.Msg;
 import java.util.Optional;
@@ -29,8 +28,6 @@ import java.util.function.Function;
  * block; Structurize's creative paste (CreativeBuildingStructureHandler) is out of scope.
  */
 final class WandPlacement {
-    private static final System.Logger LOG = System.getLogger(WandPlacement.class.getName());
-
     /** Outcome of {@link #confirm}. */
     sealed interface Result permits Refused, Placed, FoundColony {}
 
@@ -93,9 +90,10 @@ final class WandPlacement {
     private Optional<Refused> locationRefusal(WandSession s, BlockPos pos, Optional<Colony> colony) {
         if (BuildingTypes.TOWN_HALL.id().equals(s.buildingTypeId())) {
             var claims = manager.context().config().claims();
-            boolean far =
-                    manager.territory().isFreeForNewColony(pos, claims.initialColonySize(), claims.minColonyDistance());
-            return colony.isPresent() || far ? Optional.empty() : Optional.of(refused("hycolony.colony.tooClose"));
+            boolean fits = colony.isPresent()
+                    || manager.territory()
+                            .isFreeForNewColony(pos, claims.initialColonySize(), claims.minColonyDistance());
+            return fits ? Optional.empty() : Optional.of(refused("hycolony.colony.tooClose"));
         }
         if (colony.isEmpty()) {
             return Optional.of(refused("hycolony.wand.outsideColony"));
@@ -130,9 +128,13 @@ final class WandPlacement {
             return refused("hycolony.wand.missingHut");
         }
         BlockPos pos = s.anchor().orElseThrow();
-        breakAnchor(player, pos);
+        Optional<BlockState> before = ports().blocks().get(pos);
+        breakAnchor(pos);
         BlockState state = new BlockState(hutBlock.apply(type.hutBlockKey()), s.rotation());
         if (!ports().blocks().place(pos, state, false)) {
+            if (!ports().blocks().get(pos).equals(before)) {
+                manager.huts().onRemoved(pos); // a hut broken at the anchor must not stay registered without its block
+            }
             return refused("hycolony.wand.placeFailed");
         }
         if (!creative) {
@@ -150,22 +152,11 @@ final class WandPlacement {
     }
 
     /**
-     * MC SurvivalHandler.handle l.168 {@code world.destroyBlock(blockPos, true)}: breaks what stands at the anchor.
-     * Deviation from MC: the drops go to the player's inventory (the core has no port to drop items in the world);
-     * what does not fit is lost and logged, as RequestActions.giveBack does.
+     * MC SurvivalHandler.handle l.168 {@code world.destroyBlock(blockPos, true)}: breaks what stands at the anchor and
+     * drops its items there.
      */
-    private void breakAnchor(UUID player, BlockPos pos) {
-        for (ItemAmount drop : ports().blocks().breakBlock(pos)) {
-            ItemAmount lost = ports().playerInventory().give(player, drop);
-            if (lost != null) {
-                LOG.log(
-                        System.Logger.Level.WARNING,
-                        "Player {0} inventory full: {1} x {2} lost",
-                        player,
-                        lost.count(),
-                        lost.item().id());
-            }
-        }
+    private void breakAnchor(BlockPos pos) {
+        ports().blocks().drop(pos, ports().blocks().breakBlock(pos));
     }
 
     private ConstructionPorts ports() {

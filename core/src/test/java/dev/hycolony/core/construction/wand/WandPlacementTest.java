@@ -206,12 +206,24 @@ class WandPlacementTest {
     }
 
     @Test
-    void blockAlreadyAtTheAnchorIsBrokenAndItsDropsGoToThePlayer() {
+    void blockAlreadyAtTheAnchorIsBrokenAndItsDropsFallAtTheAnchor() {
         give(alice, BUILDER_ITEM);
         t.blocks.blocks.put(spot, FakeBlueprints.state(FakeBlueprints.DIRT));
-        t.blocks.drops.put(spot, List.of(new ItemAmount(FakeBlueprints.DIRT_I, 1)));
+        List<ItemAmount> drops = List.of(new ItemAmount(FakeBlueprints.DIRT_I, 1));
+        t.blocks.drops.put(spot, drops);
         assertInstanceOf(WandPlacement.Placed.class, placement.confirm(alice, "Alice", session(spot, BUILDER)));
-        assertEquals(1, t.playerInventory.count(alice, FakeBlueprints.DIRT_I));
+        assertEquals(drops, t.blocks.dropped.get(spot));
+        assertEquals(0, t.playerInventory.count(alice, FakeBlueprints.DIRT_I));
         assertEquals(new BlockState(new BlockKey("block:hut.builder"), 2), t.blocks.blocks.get(spot));
+    }
+
+    @Test
+    void hutBrokenAtTheAnchorIsUnregisteredWhenTheNewBlockCannotBePlaced() {
+        manager.huts().place(colony, BUILDER, spot, 0);
+        t.blocks.blocks.put(spot, new BlockState(new BlockKey("block:hut.builder"), 0));
+        give(alice, BUILDER_ITEM);
+        t.blocks.refusePlace = true;
+        assertEquals("hycolony.wand.placeFailed", refusal(placement.confirm(alice, "Alice", session(spot, BUILDER))));
+        assertTrue(colony.buildings().at(spot).isEmpty());
     }
 }

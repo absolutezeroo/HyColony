@@ -16,6 +16,9 @@ public final class FakeWorldBlocks implements WorldBlocks {
     /** Drops returned by breakBlock for a given position, set up by the test. */
     public final Map<BlockPos, List<ItemAmount>> drops = new LinkedHashMap<>();
 
+    /** Items dropped on the ground by drop(), by position, in call order. */
+    public final Map<BlockPos, List<ItemAmount>> dropped = new LinkedHashMap<>();
+
     public boolean loaded = true;
     /** When true, place() fails and changes nothing (a Hytale placement refused by a hitbox or unloaded chunk). */
     public boolean refusePlace;
@@ -56,5 +59,10 @@ public final class FakeWorldBlocks implements WorldBlocks {
             return List.of();
         }
         return drops.getOrDefault(pos, List.of());
+    }
+
+    @Override
+    public void drop(BlockPos pos, List<ItemAmount> items) {
+        dropped.computeIfAbsent(pos, p -> new ArrayList<>()).addAll(items);
     }
 }

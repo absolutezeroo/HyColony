@@ -481,6 +481,8 @@ Vérifié dans les sources 0.6.8 (détails dans `docs/research/build-goggles-and
 - **Page sans fond assombri** : le voile vient seulement de `$C.@PageOverlay` (`Group { Background: #000000(0.45); }`, `Common/UI/Custom/Common.ui:879`). Une page dont la racine est un `$C.@Container` ancré sur un côté n'a pas de voile : `Common/UI/Custom/Pages/EntitySpawnPage.ui` (`Anchor: (Left: 50, Top: 170, Width: 450, Bottom: 120)`), comme `ParticleSpawnPage.ui` et `ChangeModelPage.ui`. **[in-game]** : le client n'ajoute pas de flou ni de voile de lui-même.
 - **Icônes de flèches** : `Common/UI/Custom/Common/InputIconKey{Up,Down,Left,Right}_White@2x.png` (48×48, flèches blanches), appelées sans `@2x` (`Hud/ToolsLegends/ToolsLegendsCommon.ui:45`). Pas d'icône de rotation ni de plus/moins dans les assets 0.6.8, et les polices du client (`NunitoSans`, `Lexend`, `NotoSans`) n'ont ni flèches (U+2190-2193) ni ↺/↻ : seuls `°` et `−` y sont.
 
+- **Faire tomber des objets au sol** : `ItemComponent.generateItemDrops(accessor, List<ItemStack>, Vector3d, Rotation3f.IDENTITY)` (`server/core/modules/entity/item/ItemComponent.java:430`) puis `store.addEntities(holders, AddReason.SPAWN)`, exactement ce que fait `BlockHarvestUtils.spawnDrops` (`server/core/modules/interaction/BlockHarvestUtils.java:1368-1371`), à la position `bloc + (0.5, 0, 0.5)` (`:652`). HyColony : `HytaleBlocks.drop`, derrière `WorldBlocks.drop`.
+
 ## Could not verify
 
 1. **Client rendering of item animations on NPCs** (`AnimationSlot.Action` with `"Block"/"Build"` or `"Pickaxe"/"Mine"` on `PlayerTestModel_V`) and whether they loop or play once. Only the server packet path is verified.

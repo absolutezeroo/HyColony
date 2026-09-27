@@ -50,7 +50,7 @@ Poser une hutte comme dans MineColonies : choisir un style, une hutte et un nive
   3. Toute autre hutte : elle doit être dans une colonie, et toute l'emprise du plan aussi, sinon `hycolony.wand.outsideColony` (`BP_OUTSIDE_COLONY`). Chaque cellule de 16×16 touchée par l'emprise est testée (écart, voir plus bas). Cette étape ne s'applique jamais à un hôtel de ville, même dans sa colonie.
   4. Les règles de `HutActions.checkHutRules` (`EventHandler.onBlockHutPlaced`) : un seul hôtel de ville par colonie ; pour fonder, la sauvegarde disponible, pas déjà propriétaire, la distance au spawn.
   5. Le bloc de hutte doit être dans l'inventaire, sauf en créatif. S'il manque, la validation est refusée.
-  6. Le bloc déjà présent à l'ancre est cassé avec ses drops (`destroyBlock(pos, true)`), puis le bloc de hutte est posé à l'ancre avec la rotation choisie, et un bloc est retiré de l'inventaire (sauf en créatif). La hutte est enregistrée par le même chemin que la pose à la main (`HutActions.place`), avec le style choisi et le **niveau 0**. Le niveau choisi ne sert qu'à l'aperçu : le wiki le dit, on améliore ensuite la hutte pour monter de niveau.
+  6. Le bloc déjà présent à l'ancre est cassé et ses drops tombent au sol à l'ancre (`destroyBlock(pos, true)`), puis le bloc de hutte est posé à l'ancre avec la rotation choisie, et un bloc est retiré de l'inventaire (sauf en créatif). La hutte est enregistrée par le même chemin que la pose à la main (`HutActions.place`), avec le style choisi et le **niveau 0**. Le niveau choisi ne sert qu'à l'aperçu : le wiki le dit, on améliore ensuite la hutte pour monter de niveau.
   7. **Aucun ordre de travail n'est créé** : le joueur lance la construction depuis la fenêtre de la hutte.
   8. Le fantôme et la sélection sont effacés.
 - **Session** : la sélection d'un joueur est gardée en mémoire. Elle n'est pas sauvegardée, et elle est vidée à la déconnexion.
@@ -63,7 +63,6 @@ Poser une hutte comme dans MineColonies : choisir un style, une hutte et un nive
 - **Emprise dans la colonie** : chaque cellule de 16×16 touchée par l'emprise est testée (`ClaimCell.allOwned`). MineColonies avance de 16 blocs à partir de `min+1` tant que `< max` : il saute les colonnes du bord et peut manquer la dernière cellule (bogue probable de MC). Une hutte qui dépasse de quelques blocs la frontière est refusée ici.
 - **Bloc de hutte manquant** : un message `hycolony.wand.missingHut` s'affiche ; MineColonies ne joue qu'un son d'erreur (le cœur n'a pas de port de son).
 - **Créatif** : un joueur en créatif passe par le chemin de survie, sans rien consommer. Le collage créatif de Structurize est hors de portée.
-- **Drops du bloc cassé à l'ancre** : ils vont dans l'inventaire du joueur (ce qui ne rentre pas est perdu et journalisé), car le cœur n'a pas de port pour faire tomber des objets dans le monde. MineColonies les fait tomber au sol.
 
 ## Architecture
 

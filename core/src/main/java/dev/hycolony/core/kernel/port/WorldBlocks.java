@@ -16,4 +16,7 @@ public interface WorldBlocks {
 
     /** Drops, including container contents. Empty list if the block is air or unloaded. */
     List<ItemAmount> breakBlock(BlockPos pos);
+
+    /** Drops {@code items} on the ground at {@code pos}, like a broken block's drops; nothing if unloaded. */
+    void drop(BlockPos pos, List<ItemAmount> items);
 }
