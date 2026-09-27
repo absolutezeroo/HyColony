@@ -92,7 +92,7 @@ final class CourierResolver implements Resolver {
      */
     @Override
     public double suitability(RequestManager m, Request r) {
-        Optional<BlockPos> from = WarehouseStockResolver.requesterLocation(colony, r.requester());
+        Optional<BlockPos> from = RequesterLocation.of(colony, r.requester());
         if (from.isEmpty()) {
             return Double.MAX_VALUE;
         }
@@ -118,7 +118,7 @@ final class CourierResolver implements Resolver {
 
     /** The requester sits at a warehouse other than this one: its couriers carry it. */
     private boolean fromAnotherWarehouse(Request r) {
-        return WarehouseStockResolver.requesterLocation(colony, r.requester())
+        return RequesterLocation.of(colony, r.requester())
                 .filter(pos -> !pos.equals(warehouse.position()))
                 .flatMap(colony.buildings()::at)
                 .map(CourierResolver::isWarehouse)
