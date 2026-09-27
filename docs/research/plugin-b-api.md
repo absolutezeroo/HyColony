@@ -553,6 +553,64 @@ Chemins relatifs à `build/vineflower/hytale-server/com/hypixel/hytale/server/co
 - `ItemContainer.removeItemStackFromSlot(short, int)` (`container/ItemContainer.java:277`) : la pile lue juste avant dans la case donne la durabilité de la part retirée.
 - **[in-game]** : un outil posé avec `withDurability` s'affiche et s'use côté joueur comme un outil vanilla usé.
 
+## 21. Packs d'assets embarqués / sous-plugins
+
+Pour la tâche 7 du plan `docs/superpowers/plans/2026-09-27-hycolony-architecture-subplugins.md`. Chemins relatifs à `build/vineflower/hytale-server/com/hypixel/hytale/`.
+
+### 21.1 `AssetModule.registerPack`
+
+- Signature : `public boolean registerPack(@Nonnull String name, @Nonnull Path path, @Nonnull PluginManifest manifest, @Nonnull AssetPack.PackSource source)` (`server/core/asset/AssetModule.java:418`). `unregisterPack(String name)` existe (l. 471). Accès : `AssetModule.get()` (l. 82).
+- `name` : identifiant du pack, par convention `new PluginIdentifier(manifest).toString()` (`Groupe:Nom`, l. 109, 392-393). Un même nom déjà présent : si la source existante l'emporte (`PackSource.overrides` = ordinal plus petit, `assetstore/AssetPack.java:129-131`, ordre `CLI < CLASSPATH < MODS < RUNTIME`), le nouveau est ignoré et la méthode renvoie `true` ; à source égale, erreur SEVERE et `false` (l. 419-435). Les appelants vanilla arrêtent alors le serveur (l. 110-113, 405-408). Choisir un nom unique par sous-pack (`HyColony:hycolony-outlander`…).
+- `manifest` : un `PluginManifest` déjà construit, **pas lu par `registerPack`**. Le fichier `manifest.json` n'est lu que par le chemin « dossier `mods/` » (`loadPackManifest`, l. 325-358). Le manifeste sert ensuite à l'ordre de chargement (`Mod.calculateLoadOrder`, l. 508-519, dépendances du manifeste) et à la vérification `ServerVersion` (l. 130-170, faite seulement dans `setup()` d'`AssetModule`, donc pas pour un pack ajouté plus tard). On peut le décoder avec `PluginManifest.CODEC` comme l. 331-335.
+- `path` (l. 437-454) :
+  - fichier `.zip` ou `.jar` : ouvert en `FileSystems.newFileSystem(path, null)`, racine du pack = **racine du zip**, pack marqué immuable ;
+  - sinon : utilisé tel quel comme racine, immuable seulement si `CommonAssetsIndex.hashes` est présent à la racine (l. 443).
+  - Il n'y a pas de paramètre « sous-dossier dans un jar » : un jar donne toujours sa racine. Les sous-packs rangés sous `subplugin-assets/<Nom>/` dans notre jar ne sont donc **pas** vus par le pack principal (qui ne lit que `Common/` et `Server/` à la racine) ni atteignables en passant le chemin du jar.
+- Structure d'un pack : `Common/…` (assets envoyés au client, `server/core/asset/common/CommonAssetModule.java:153`, 446-489), `Server/<chemin du store>` (assets serveur, `AssetModule.java:597-600`), `Server/Languages/<locale>/*.lang` (`server/core/modules/i18n/I18nModule.java:223`), `Server/Prefabs/…` (`server/core/prefab/PrefabStore.java:262`).
+- Moment de l'appel. Ordre de démarrage (`server/core/HytaleServer.java:342-395`) : `pluginManager.setup()` → `LoadAssetEvent` → `pluginManager.start()`.
+  - Appelé dans `setup()` du plugin : `hasLoaded` est faux, le pack est seulement ajouté à la liste (l. 455-461) ; il est chargé avec tous les autres au `LoadAssetEvent` (l. 498-526), après tri par dépendances. C'est le moment recommandé.
+  - Appelé plus tard (`start()`, commande) : `AssetPackRegisterEvent` est émis (l. 463). Il charge les stores serveur (`AssetModule.java:202`), les `Common/` (`CommonAssetModule.java:104`, puis `RequestCommonAssetsRebuild` diffusé l. 179), les langues (`I18nModule.java:96`) et les rôles PNJ (`server/npc/NPCPlugin.java:515`). L'éditeur d'assets fait exactement cela à chaud (`builtin/asseteditor/AssetEditorPlugin.java:853`, `server/core/ui/browser/AssetPackSaveBrowser.java:550`). À noter : `AssetRegistry.ASSET_LOCK` est pris en écriture pendant la diffusion (l. 456-466), donc jamais depuis le thread d'un monde qui tient déjà un verrou d'assets (voir la mémoire « world thread asset lock »).
+- Envoi au client : oui. `CommonAssetModule` parcourt `Common/` de **chaque** pack enregistré (l. 99-104) et l'envoie (`sendAsset`, l. 216-218). Les assets serveur (`Server/`) sont chargés côté serveur pour chaque pack (`AssetRegistryLoader.loadAssets(event, pack)`, l. 524-525 et 202).
+- Comment notre plugin livre aujourd'hui ses assets : `plugin/src/main/resources/manifest.json` a `"IncludesAssetPack": true` ; `PluginManager` met alors le jar du plugin dans `classpathAssetPacks` (`server/core/plugin/PluginManager.java:691-692`, 737-738), qu'`AssetModule.setup()` enregistre avec `PackSource.CLASSPATH` (`AssetModule.java:108-115`) ; un plugin chargé plus tard passe par `registerAssetPackIfNeeded` (`PluginManager.java:823-847`, source `RUNTIME`). Racine du pack = racine du jar, d'où `Common/` et `Server/` directement sous `plugin/src/main/resources/`.
+
+**Pack dans le jar ou extrait ?** `registerPack` exige un `Path`. Trois options, par ordre de sûreté :
+
+1. **Recommandé : un zip par sous-pack, extrait sur disque.** Le build produit `subplugin-assets/<Nom>.zip` (avec `Common/`, `Server/`) dans le jar ; au `setup()`, le plugin le copie dans son dossier de données (si absent ou différent) puis appelle `registerPack(id, cheminDuZip, manifest, PackSource.RUNTIME)`. C'est exactement le cas d'un zip de `mods/` : racine = racine du zip, pack immuable, donc pas de surveillance de fichiers ni d'écriture dans le pack (le cache `.lpf` des prefabs d'un pack immuable va sous `.cache/prefabs/<pack>/`, `server/core/prefab/selection/buffer/PrefabBufferUtil.java:135-149`).
+2. Dossier extrait sur disque : marche aussi, mais le pack est **mutable** (pas de `CommonAssetsIndex.hashes`) : surveillé par l'`AssetMonitor`, le cache `.lpf` est écrit à côté des prefabs (`PrefabBufferUtil.java:151`) et `CommonAssetModule` **supprime** tout fichier `*.hash` qu'il trouve (`CommonAssetModule.java:467-469`).
+3. Déconseillé : un `Path` d'un `FileSystem` zip ouvert sur notre propre jar, pointant `subplugin-assets/<Nom>`. Le code n'appelle jamais `toFile()` sur ces chemins (`FileCommonAsset.getBlob0` utilise `Files.readAllBytes`, `server/core/asset/common/asset/FileCommonAsset.java:30`), mais le pack serait mutable : l'`AssetMonitor` enregistrerait un chemin zip sur le `WatchService` du système par défaut (`server/core/asset/monitor/PathWatcherThread.java:42`, 135), et le cache `.lpf` serait écrit **dans le jar** (zipfs ouvert en écriture par défaut). **[in-game]** non essayé.
+
+### 21.2 Fichiers de langue
+
+- Chaque pack est lu dans l'ordre de la liste (`I18nModule.java:91-96`) ; toutes les langues d'un même code partagent **une seule table** (`languages.computeIfAbsent(languageKey, …)`, l. 314). Les fichiers ne se remplacent pas : les **clés** sont fusionnées.
+- Clé = préfixe + `.` + clé du fichier (l. 339). Préfixe = nom du fichier sans `.lang`, précédé des sous-dossiers sous `<locale>/` joints par `.` (`getPrefix`, l. 355-365). Donc `hycolony.lang` → `hycolony.*` ; `hycolony_outlander.lang` → `hycolony_outlander.*` ; `en-US/hycolony/outlander.lang` → `hycolony.outlander.*`.
+- Deux packs peuvent chacun fournir `Server/Languages/<locale>/hycolony.lang` : les clés sont fusionnées. En cas de clé en double, **la première chargée gagne** (pas d'écrasement) avec un WARNING « has multiple definitions » si la valeur diffère (l. 341-348). L'ordre est celui des packs après `Mod.calculateLoadOrder` (`AssetModule.java:517-518`), c'est-à-dire par dépendances du manifeste. Un sous-pack ne doit donc pas compter redéfinir une clé du pack principal.
+- Réserve : `getPrefix` remplace `File.separatorChar` (`\` sous Windows) par `.` ; dans un zip, le séparateur est `/`. Un sous-dossier sur **plusieurs** niveaux dans un zip donnerait un préfixe avec `/` sous Windows. Un seul niveau (ou pas de sous-dossier) n'est pas touché.
+- `AssetPackUnregisterEvent` ne retire aucune traduction (écouteur vide, l. 97).
+
+### 21.3 Enregistrement conditionnel
+
+- Rien ne l'empêche : `registerPack` est public, sans contrôle d'appelant ni de phase. Notre config est déjà lue dans le constructeur (`withConfig`, `plugin/src/main/java/dev/hycolony/plugin/HyColonyPlugin.java:41`), donc `config.get()` est disponible dans `setup()` (l. 51), avant le `LoadAssetEvent`.
+- Vanilla fait déjà un enregistrement conditionnel : `loadAndRegisterPack` n'enregistre un pack que si `ModConfig.enabled` / `DisabledByDefault` le permettent (`AssetModule.java:395-414`) ; `WorldGenPlugin` enregistre des packs de version à son `setup` (`builtin/worldgen/WorldGenPlugin.java:125`).
+- `unregisterPack(name)` existe (l. 471-496) : ferme le `FileSystem` du pack, puis `AssetPackUnregisterEvent` retire ses assets des stores (l. 203-207) et ses `Common/` (`CommonAssetModule.java:105-133`). Les traductions restent (21.2). À réserver à un usage à chaud ; au démarrage, il suffit de ne pas enregistrer.
+
+### 21.4 Asset d'un pack désactivé encore référencé
+
+- Bloc inconnu dans un **chunk sauvegardé** : `BlockSection` passe par `BlockType.getBlockIdOrUnknown` (`server/core/universe/world/chunk/section/BlockSection.java:884`), qui journalise un WARNING et enregistre à la volée un clone du bloc `Unknown` sous la clé manquante (`server/core/asset/type/blocktype/config/BlockType.java:2242-2257`). Pas de plantage ; le bloc s'affiche « Unknown » **[in-game]**.
+- Bloc inconnu dans un **prefab** : même repli (`server/core/prefab/selection/buffer/BsonPrefabBufferDeserializer.java:216`).
+- Objet inconnu dans une pile : `ItemStack.getItem()` renvoie `Item.UNKNOWN` (`server/core/inventory/ItemStack.java:331-334`).
+- **Côté HyColony, en revanche, c'est bloquant** : `IdMap.validate()` vérifie chaque id de `id-map.json` (`plugin/.../IdMap.java:100-115`) et, au moindre manque, `HyColonyPlugin.validateIds` **désactive tout HyColony** (`HyColonyPlugin.java:140-153`). Les fragments `id-map.json` d'un sous-pack désactivé ne doivent donc jamais être fusionnés. Un plan de `styles.json` dont le prefab manque est déjà toléré : `findAssetPrefabPath` renvoie `null` (`server/core/prefab/PrefabStore.java:321-331`) et `HytaleBlueprintSource` renvoie vide avec un avertissement unique (`plugin/.../prefab/HytaleBlueprintSource.java:131-154`).
+
+### 21.5 Lecture actuelle de `styles.json`, `id-map.json` et des prefabs
+
+- `styles.json` : `PrefabStyles.class.getResourceAsStream("/hycolony/styles.json")` (`plugin/src/main/java/dev/hycolony/plugin/prefab/PrefabStyles.java:49`), donc **classpath du jar**, un seul fichier.
+- `id-map.json` : `IdMap.class.getResourceAsStream("/hycolony/id-map.json")` (`plugin/.../IdMap.java:40`), classpath aussi.
+- Prefabs : par clé via `PrefabStore.get().findAssetPrefabPath(prefab)` (`HytaleBlueprintSource.java:98`, 149), qui cherche `Server/Prefabs/<clé>` dans **tous les packs enregistrés**, dans l'ordre de la liste (`PrefabStore.java:321-331`). Un prefab livré par un sous-pack est donc trouvé sans changement, dès que le pack est enregistré.
+- Conséquence : les fragments `styles.json` / `id-map.json` d'un sous-pack ne sont **pas** trouvés par `getResourceAsStream` (un seul chemin, et `hycolony/` est hors de `Common/` et `Server/`). Deux voies : les lire depuis le classpath sous un chemin propre à chaque sous-pack (`/subplugin-assets/<Nom>/hycolony/styles.json`) pour les seuls sous-packs activés, ou les placer dans le pack et les lire via `AssetModule.get().getAssetPack(id).getRoot().resolve(...)` (`AssetModule.java:545-553`, `AssetPack.getRoot()`).
+
+### 21.6 Aetherhaven (idées seulement)
+
+- Non vérifié : l'arbre public obtenu par l'API GitHub (`api.github.com/repos/gchougland/Aetherhaven/git/trees/HEAD?recursive=1`, peut-être tronqué) ne montre aucun chemin `subplugin-assets`, et `AetherhavenPlugin.java` n'appelle pas `registerPack` (il récupère un pack déjà enregistré dans `start()`). Rien à en tirer pour l'instant.
+
 ## Could not verify
 
 1. **Client rendering of item animations on NPCs** (`AnimationSlot.Action` with `"Block"/"Build"` or `"Pickaxe"/"Mine"` on `PlayerTestModel_V`) and whether they loop or play once. Only the server packet path is verified.
