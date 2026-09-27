@@ -77,7 +77,7 @@ final class CourierTasks {
             return true;
         }
         for (Building building : colony.buildings().all()) {
-            if (building.type() == WarehouseBuilding.TYPE
+            if (building.type().equals(WarehouseBuilding.TYPE)
                     && building.containers().contains(a.start())
                     && building.containers().contains(b.start())) {
                 return true;
