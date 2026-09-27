@@ -30,9 +30,9 @@ import java.util.Optional;
  * ({@code INonExhaustiveDeliverable}), so the {@code leftOver} MC keeps is always 0, and no {@code MinimumStack}, so
  * the "not for another warehouse's minimum stock" rule has nothing to test.
  */
-public final class WarehouseStockResolver implements Resolver {
+final class WarehouseStockResolver implements Resolver {
     /** MC {@code CONST_WAREHOUSE_RESOLVER_PRIORITY}: after the hut's own stock (200), before the couriers (100). */
-    public static final int PRIORITY = 150;
+    static final int PRIORITY = 150;
 
     private final Colony colony;
     private final Building warehouse;
@@ -67,10 +67,12 @@ public final class WarehouseStockResolver implements Resolver {
      */
     @Override
     public boolean canResolve(RequestManager m, Request r) {
-        Deliverable d = r.deliverable().orElse(null);
-        if (d == null || isAtThisWarehouse(r)) {
-            return false;
-        }
+        return !isAtThisWarehouse(r)
+                && r.deliverable().map(d -> warehousesHold(d, m)).orElse(false);
+    }
+
+    /** Whether this warehouse has some of {@code d} and all of them together enough (see {@link #canResolve}). */
+    private boolean warehousesHold(Deliverable d, RequestManager m) {
         int total = count(warehouse, d, m);
         if (total <= 0) {
             return false;

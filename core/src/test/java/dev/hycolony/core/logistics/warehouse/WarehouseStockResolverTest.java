@@ -129,6 +129,24 @@ class WarehouseStockResolverTest {
     }
 
     @Test
+    void partialStockAboveMinCountResolvesWithoutChild() {
+        Building w = warehouse(new BlockPos(10, 64, 0));
+        stock(w.position(), 5);
+        Building hut = hut(new BlockPos(0, 64, 0));
+
+        RequestToken token = request(hut, 8, 4);
+
+        assertEquals(stockResolver(w).resolverId(), resolverOf(token));
+        assertEquals(
+                List.of(new Delivery(
+                        w.position(), hut.requesterId(), new ItemAmount(STONE, 5), Delivery.DEFAULT_DELIVERY_PRIORITY)),
+                children(token));
+        assertEquals(5, ((Delivery) children(token).get(0)).stack().count());
+        assertEquals(
+                List.of(new ItemAmount(STONE, 5)), m.get(token).orElseThrow().deliveries());
+    }
+
+    @Test
     void oneDeliveryPerSourceSlot() {
         t.containers.maxStack = 64;
         Building w = warehouse(new BlockPos(10, 64, 0));
