@@ -47,7 +47,7 @@ public final class DoTestCommand extends AbstractPlayerCommand {
     public DoTestCommand(String packKey) {
         super("dotest", "Runtime block type experiment (operators)");
         this.factory = new RuntimeBlockFactory(packKey);
-        // --delay=<ms> between the texture and the BlockType, to test whether the client needs its rebuild finished.
+        // --delay=<ms> between the texture send and the BlockType load, to probe client-side ordering.
         this.delayMs = withDefaultArg("delay", "Milliseconds between texture and block type", ArgTypes.INTEGER, 0, "0");
         setPermissionGroups(new String[0]);
         addSubCommand(new Clear());
