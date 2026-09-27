@@ -62,7 +62,7 @@ record FlowerPotUse(
         return true;
     }
 
-    /** Gives one {@code item} to the player, dropped at his feet when his inventory is full (MC Player.addItem). */
+    /** Gives one {@code item} to the player, dropped at his feet when his inventory is full (Minecraft Player.addItem). */
     void give(String item) {
         ItemContainer inventory =
                 InventoryComponent.getCombined(buffer, player, InventoryComponent.HOTBAR_STORAGE_BACKPACK);

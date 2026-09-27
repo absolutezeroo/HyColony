@@ -74,6 +74,8 @@ public final class FlowerPotSystem extends EntityEventSystem<EntityStore, UseBlo
                             ref,
                             buffer));
         } catch (RuntimeException e) {
+            // Handlers cancel on failure (project rule). The use then fails and the held item's fallback runs (a held
+            // plant is placed beside the pot): the lesser evil next to a half-done swap.
             event.setCancelled(true);
             LOG.at(Level.SEVERE).withCause(e).log("HyColony flower pot use failed at %s", event.getTargetBlock());
         }
@@ -95,7 +97,7 @@ public final class FlowerPotSystem extends EntityEventSystem<EntityStore, UseBlo
                 }
             }
             case FlowerPot.Nothing _ -> {
-                // MC returns CONSUME: the use ends here, nothing changes.
+                // Minecraft returns CONSUME: the use ends here, nothing changes.
             }
         }
     }

@@ -58,7 +58,7 @@ public final class HyColonyPlugin extends JavaPlugin {
 
         getEntityStoreRegistry().registerSystem(new ColonyTickSystem(worlds));
         getEntityStoreRegistry().registerSystem(new CitizenBodyLifecycleSystem(worlds));
-        BlockSystems.register(getEntityStoreRegistry(), worlds, ids, packs.isEnabled("Decorations"));
+        BlockSystems.register(getEntityStoreRegistry(), worlds, ids, packs.isEnabled(BlockSystems.FLOWER_POT_PACK));
         getEntityStoreRegistry().registerSystem(new CitizenUseSystem(worlds));
         getEntityStoreRegistry().registerSystem(new CitizenFireImmunitySystems.Grant());
         getEntityStoreRegistry().registerSystem(new CitizenFireImmunitySystems.Guard());

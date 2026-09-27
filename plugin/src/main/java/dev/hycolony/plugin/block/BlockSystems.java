@@ -7,6 +7,9 @@ import dev.hycolony.plugin.WorldRuntimes;
 
 /** Registers the block systems: huts, colony protection and, when its pack is enabled, the flower pot. */
 public final class BlockSystems {
+    /** The sub-plugin that brings the flower pots; their system is registered only when it is enabled. */
+    public static final String FLOWER_POT_PACK = "Decorations";
+
     private BlockSystems() {}
 
     /**
