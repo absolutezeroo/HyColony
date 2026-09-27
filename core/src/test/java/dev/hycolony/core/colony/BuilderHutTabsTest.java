@@ -14,8 +14,8 @@ import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.colony.ui.BuilderResourcesView;
 import dev.hycolony.core.colony.ui.BuilderResourcesView.ResourceRow;
 import dev.hycolony.core.colony.ui.BuilderResourcesView.Status;
-import dev.hycolony.core.colony.ui.BuilderTabs;
 import dev.hycolony.core.colony.ui.BuildingView;
+import dev.hycolony.core.colony.ui.tab.BuilderTabs;
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.BlueprintEntry;
 import dev.hycolony.core.construction.blueprint.BlueprintSource;
@@ -220,7 +220,7 @@ class BuilderHutTabsTest {
 
     private BuilderTabs tabs(UUID player) {
         manager.windows().openBuilding(player, builder.position());
-        return ((BuildingView) t.ui.shown.get(player)).builder().orElseThrow();
+        return ((BuildingView) t.ui.shown.get(player)).tab(BuilderTabs.class).orElseThrow();
     }
 
     @Test
@@ -228,7 +228,7 @@ class BuilderHutTabsTest {
         Building residence = hut(ConstructionBuildingTypes.RESIDENCE, new BlockPos(20, 64, 0), 1);
         manager.windows().openBuilding(alice, residence.position());
 
-        assertTrue(((BuildingView) t.ui.shown.get(alice)).builder().isEmpty());
+        assertTrue(((BuildingView) t.ui.shown.get(alice)).tab(BuilderTabs.class).isEmpty());
         assertEquals(Mode.AUTO, tabs(alice).mode());
     }
 

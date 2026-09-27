@@ -1,7 +1,5 @@
 package dev.hycolony.core.colony.view;
 
-import dev.hycolony.core.building.Building;
-import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.colony.ui.RequestsView;
@@ -80,7 +78,8 @@ final class RequestViews {
         if (rows.stream().anyMatch(row -> row.token().equals(r.token()))) {
             return;
         }
-        rows.add(new RequestsView.RequestRow(r.token(), r.requestable(), requesterName(c, r), has(r, owned), depth));
+        rows.add(new RequestsView.RequestRow(
+                r.token(), r.requestable(), RequesterLocation.displayName(c, r), has(r, owned), depth));
         for (RequestToken child : r.children()) {
             c.requests().get(child).ifPresent(k -> tree(c, k, depth + 1, owned, rows));
         }
@@ -99,19 +98,5 @@ final class RequestViews {
             }
         }
         return has;
-    }
-
-    /**
-     * MC getRequesterDisplayName: the citizen who asks, else the building, or the building whose resolver asks (a
-     * warehouse's delivery); else the raw requester id.
-     */
-    static String requesterName(Colony c, Request r) {
-        if (r.citizenId() != -1) {
-            return c.citizens().get(r.citizenId()).map(CitizenData::name).orElse("");
-        }
-        return RequesterLocation.of(c, r.requester())
-                .flatMap(c.buildings()::at)
-                .map(Building::displayName)
-                .orElse(r.requester().value());
     }
 }

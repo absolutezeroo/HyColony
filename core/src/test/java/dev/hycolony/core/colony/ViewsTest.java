@@ -18,6 +18,7 @@ import dev.hycolony.core.colony.ui.CitizenView;
 import dev.hycolony.core.colony.ui.RequestsView;
 import dev.hycolony.core.colony.ui.TownHallView;
 import dev.hycolony.core.colony.ui.WorkOrdersView;
+import dev.hycolony.core.colony.ui.tab.BuilderTabs;
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.BlueprintEntry;
 import dev.hycolony.core.construction.blueprint.BlueprintSource;
@@ -205,7 +206,8 @@ class ViewsTest {
         t.containers.insert(builder.containers(), new ItemAmount(STONE_I, 1));
         t.playerInventory.give(alice, new ItemAmount(PLANK_I, 5));
 
-        BuilderResourcesView v = view(alice, builder).builder().orElseThrow().resources();
+        BuilderResourcesView v =
+                view(alice, builder).tab(BuilderTabs.class).orElseThrow().resources();
         assertEquals(
                 List.of(
                         new ResourceRow(PLANK_I, 2, 0, 5, Status.HAVE_ENOUGH),

@@ -1,9 +1,8 @@
-package dev.hycolony.core.colony.view;
+package dev.hycolony.core.construction.resources;
 
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.colony.Colony;
-import dev.hycolony.core.colony.ui.BuilderTabs;
-import dev.hycolony.core.construction.resources.BuildingResourcesModule;
+import dev.hycolony.core.colony.ui.tab.BuilderTabs;
 import dev.hycolony.core.construction.shared.BuilderSettingsModule;
 import dev.hycolony.core.construction.workorder.ManualSelection;
 import dev.hycolony.core.construction.workorder.WorkManager;
@@ -11,29 +10,18 @@ import dev.hycolony.core.construction.workorder.WorkOrder;
 import dev.hycolony.core.kernel.BlockPos;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 /** Builds the builder hut's own tabs: Resources, Settings (its mode) and Work orders (MC WorkOrderModuleWindow). */
 final class BuilderTabsViews {
-    private final BuilderResourcesViews resources;
+    private BuilderTabsViews() {}
 
-    BuilderTabsViews(BuilderResourcesViews resources) {
-        this.resources = resources;
-    }
-
-    /** Empty for a hut without the builder's modules. */
-    Optional<BuilderTabs> of(Colony c, Building hut, UUID viewer) {
-        Optional<BuildingResourcesModule> m = hut.module(BuildingResourcesModule.class);
-        Optional<BuilderSettingsModule> settings = hut.module(BuilderSettingsModule.class);
-        if (m.isEmpty() || settings.isEmpty()) {
-            return Optional.empty();
-        }
-        BuilderSettingsModule.Mode mode = settings.get().mode();
-        return Optional.of(new BuilderTabs(
-                resources.of(c, hut, m.get(), viewer),
-                mode,
-                orders(c, hut, m.get().orderId(), mode)));
+    /** The tabs of {@code hut}, whose resources module is {@code m}; a hut without settings shows the default mode. */
+    static BuilderTabs of(Colony c, Building hut, BuildingResourcesModule m, UUID viewer) {
+        BuilderSettingsModule.Mode mode = hut.module(BuilderSettingsModule.class)
+                .map(BuilderSettingsModule::mode)
+                .orElse(BuilderSettingsModule.Mode.AUTO);
+        return new BuilderTabs(BuilderResourcesViews.of(c, hut, m, viewer), mode, orders(c, hut, m.orderId(), mode));
     }
 
     /**

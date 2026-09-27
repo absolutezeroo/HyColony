@@ -2,7 +2,7 @@ package dev.hycolony.plugin.ui.logistics;
 
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
-import dev.hycolony.core.colony.ui.logistics.CourierTabs;
+import dev.hycolony.core.colony.ui.tab.CourierTabs;
 
 /**
  * The courier hut's Tasks tab (MC CourierRequestTaskModuleView): the warehouse its courier serves, or that it has

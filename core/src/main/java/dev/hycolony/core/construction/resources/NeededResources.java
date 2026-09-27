@@ -93,6 +93,12 @@ public final class NeededResources {
         return total;
     }
 
+    /** MC BuildingResourcesModuleView.getProgress: 100 minus the share of the plan's items still to place; 0 if none. */
+    public int progressPercent() {
+        int all = sequence.size();
+        return all == 0 ? 0 : Math.max(100 - (int) (total * 100.0 / all), 0);
+    }
+
     int maxStack(ItemKey item) {
         return maxStack.applyAsInt(item);
     }

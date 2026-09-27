@@ -1,11 +1,13 @@
 package dev.hycolony.core.colony.view;
 
 import dev.hycolony.core.building.Building;
+import dev.hycolony.core.building.ProvidesTab;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.colony.ui.BuildingView;
+import dev.hycolony.core.colony.ui.tab.ModuleTab;
 import dev.hycolony.core.construction.workorder.WorkManager;
 import dev.hycolony.core.construction.workorder.WorkOrder;
 import dev.hycolony.core.construction.workorder.WorkOrderType;
@@ -13,22 +15,19 @@ import dev.hycolony.core.job.WorkerModule;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.UUID;
 
 /**
  * Builds a hut's window view: its level, workers, the citizens it may hire, its work order, the orders it allows and
- * the builder's, warehouse's or courier hut's own tabs.
+ * the tabs its modules provide.
  */
 final class BuildingViews {
     private final ColonyContext ctx;
-    private final BuilderTabsViews builderTabs;
-    private final LogisticsViews logistics;
 
-    BuildingViews(ColonyContext ctx, BuilderTabsViews builderTabs) {
+    BuildingViews(ColonyContext ctx) {
         this.ctx = ctx;
-        this.builderTabs = builderTabs;
-        this.logistics = new LogisticsViews(ctx);
     }
 
     BuildingView of(Colony c, Building b, UUID viewer) {
@@ -57,10 +56,17 @@ final class BuildingViews {
                 b.style(),
                 manage,
                 manage && b.canBePickedUp(),
-                builderTabs.of(c, b, viewer),
-                LogisticsViews.pickupPriority(b),
-                logistics.warehouse(c, b),
-                LogisticsViews.courier(c, b));
+                // MC AbstractWindowWorkerModuleBuilding: only a hut with workers shows its pickup priority.
+                w.isPresent() ? OptionalInt.of(b.pickupPriority().value()) : OptionalInt.empty(),
+                tabs(c, b, viewer));
+    }
+
+    /** MC BuildingEntry: one tab per module that has a view, in module order. */
+    private static List<ModuleTab> tabs(Colony c, Building b, UUID viewer) {
+        return b.modules().values().stream()
+                .filter(ProvidesTab.class::isInstance)
+                .map(m -> ((ProvidesTab) m).tab(c, b, viewer))
+                .toList();
     }
 
     private static List<BuildingView.WorkerRow> workers(Colony c, Optional<WorkerModule> w) {

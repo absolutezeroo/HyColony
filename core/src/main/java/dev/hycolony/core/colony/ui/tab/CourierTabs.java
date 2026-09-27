@@ -1,4 +1,4 @@
-package dev.hycolony.core.colony.ui.logistics;
+package dev.hycolony.core.colony.ui.tab;
 
 import dev.hycolony.core.kernel.BlockPos;
 import java.util.List;
@@ -8,7 +8,7 @@ import java.util.Optional;
  * The courier hut's task list (MC CourierRequestTaskModuleView): its courier's own queue, head first, and the
  * warehouse that courier is attached to; empty when there is none, so the player sees why nothing moves.
  */
-public record CourierTabs(Optional<BlockPos> warehouse, List<TaskRow> tasks) {
+public record CourierTabs(Optional<BlockPos> warehouse, List<TaskRow> tasks) implements ModuleTab {
     public CourierTabs {
         tasks = List.copyOf(tasks);
     }

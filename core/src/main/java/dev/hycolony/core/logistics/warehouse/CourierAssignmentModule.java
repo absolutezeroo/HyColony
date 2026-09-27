@@ -4,20 +4,23 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.PersistentModule;
+import dev.hycolony.core.building.ProvidesTab;
 import dev.hycolony.core.building.TickingModule;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.ui.tab.ModuleTab;
 import dev.hycolony.core.job.HiringMode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Links couriers, already hired by their own hut, to this warehouse (MC {@code CourierAssignmentModule}). It gives no
  * job: it only records which citizens may use the warehouse ({@code canAccessWareHouse}).
  */
-public final class CourierAssignmentModule implements TickingModule, PersistentModule {
+public final class CourierAssignmentModule implements TickingModule, PersistentModule, ProvidesTab {
     /** The courier job id (MC {@code ModJobs.delivery}); the courier {@code JobType} uses this id. */
     public static final String COURIER_JOB_ID = "hycolony:deliveryman";
 
@@ -102,5 +105,14 @@ public final class CourierAssignmentModule implements TickingModule, PersistentM
                 // tolerant read (CLAUDE.md § 5)
             }
         }
+    }
+
+    /**
+     * The warehouse's Couriers (MC CourierAssignmentModuleView), Stock (MC WindowHutAllInventory) and Tasks (MC
+     * WarehouseRequestTaskModuleView) tabs.
+     */
+    @Override
+    public ModuleTab tab(Colony colony, Building building, UUID viewer) {
+        return WarehouseTabsViews.of(colony, building, this);
     }
 }

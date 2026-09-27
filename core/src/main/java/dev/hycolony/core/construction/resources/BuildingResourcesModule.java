@@ -1,6 +1,9 @@
 package dev.hycolony.core.construction.resources;
 
 import dev.hycolony.core.building.Building;
+import dev.hycolony.core.building.ProvidesTab;
+import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.ui.tab.ModuleTab;
 import dev.hycolony.core.construction.workorder.Stage;
 import dev.hycolony.core.construction.workorder.WorkOrder;
 import dev.hycolony.core.kernel.item.Inventory;
@@ -14,6 +17,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.ToIntFunction;
 import org.jspecify.annotations.Nullable;
 
@@ -22,7 +26,7 @@ import org.jspecify.annotations.Nullable;
  * load). Progress lives in the {@link WorkOrder}, which persists it; this module only writes through to it, so it
  * has nothing to save. Port of MC's BuildingResourcesModule.
  */
-public final class BuildingResourcesModule implements KeepsItems {
+public final class BuildingResourcesModule implements KeepsItems, ProvidesTab {
     private @Nullable WorkOrder order;
     private NeededResources needs = NeededResources.empty();
     private List<Map<ItemKey, Integer>> buckets = List.of();
@@ -122,5 +126,14 @@ public final class BuildingResourcesModule implements KeepsItems {
             throw new IllegalStateException("no order started");
         }
         order.progress(s, index);
+    }
+
+    /**
+     * The builder hut's Resources, Settings and Work orders tabs (MC BUILDING_RESOURCES, BUILDER_SETTINGS and
+     * WORKORDER_VIEW module views).
+     */
+    @Override
+    public ModuleTab tab(Colony colony, Building building, UUID viewer) {
+        return BuilderTabsViews.of(colony, building, this, viewer);
     }
 }

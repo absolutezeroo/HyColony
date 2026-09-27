@@ -28,6 +28,7 @@ import dev.hycolony.core.colony.HutPlacement;
 import dev.hycolony.core.colony.ui.BuilderResourcesView;
 import dev.hycolony.core.colony.ui.BuildingView;
 import dev.hycolony.core.colony.ui.RequestsView;
+import dev.hycolony.core.colony.ui.tab.BuilderTabs;
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.BlueprintEntry;
 import dev.hycolony.core.construction.blueprint.StructurePlan;
@@ -315,7 +316,8 @@ class ConstructionSimulationTest {
         // Mid-build, the hut's windows: 10 of the 26 items placed.
         manager.windows().openBuilding(alice, HUT);
         BuildingView view = (BuildingView) t.ui.shown.get(alice);
-        BuilderResourcesView resources = view.builder().orElseThrow().resources();
+        BuilderResourcesView resources =
+                view.tab(BuilderTabs.class).orElseThrow().resources();
         BuilderResourcesView.Header header = resources.header().orElseThrow();
         assertEquals(1, header.step(), "CLEAR done, SOLID under way");
         assertEquals(100 - (int) (16 * 100.0 / 26), header.percent());

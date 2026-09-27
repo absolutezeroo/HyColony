@@ -13,9 +13,9 @@ import dev.hycolony.core.colony.ui.BuildingView;
 import dev.hycolony.core.colony.ui.CitizenView;
 import dev.hycolony.core.colony.ui.RequestsView;
 import dev.hycolony.core.colony.ui.RequestsView.RequestRow;
-import dev.hycolony.core.colony.ui.logistics.CourierTabs;
-import dev.hycolony.core.colony.ui.logistics.TaskRow;
-import dev.hycolony.core.colony.ui.logistics.WarehouseTabs;
+import dev.hycolony.core.colony.ui.tab.CourierTabs;
+import dev.hycolony.core.colony.ui.tab.TaskRow;
+import dev.hycolony.core.colony.ui.tab.WarehouseTabs;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
@@ -99,8 +99,8 @@ class LogisticsViewsTest {
     void onlyWorkerHutsShowThePickupPriority() {
         assertEquals(OptionalInt.of(5), view(alice, builder).pickupPriority());
         assertEquals(OptionalInt.empty(), view(alice, warehouse).pickupPriority(), "MC: worker huts only");
-        assertEquals(Optional.empty(), view(alice, builder).warehouse());
-        assertEquals(Optional.empty(), view(alice, builder).courier());
+        assertEquals(Optional.empty(), view(alice, builder).tab(WarehouseTabs.class));
+        assertEquals(Optional.empty(), view(alice, builder).tab(CourierTabs.class));
     }
 
     @Test
@@ -157,7 +157,7 @@ class LogisticsViewsTest {
         t.containers.insert(List.of(warehouse.position()), new ItemAmount(LOG, 3));
         t.containers.insert(List.of(warehouse.position()), new ItemAmount(STONE, 40));
 
-        WarehouseTabs w = view(alice, warehouse).warehouse().orElseThrow();
+        WarehouseTabs w = view(alice, warehouse).tab(WarehouseTabs.class).orElseThrow();
 
         assertEquals(List.of("Cora"), w.couriers());
         assertEquals(2, w.maxCouriers(), "level 1 x 2");
@@ -171,7 +171,8 @@ class LogisticsViewsTest {
         t.containers.insert(List.of(warehouse.position()), new ItemAmount(STONE, 40));
         colony.requests().createAndAssign(builder, new StackRequest(STONE, 10, 10, true), -1);
 
-        List<TaskRow> queue = view(alice, warehouse).warehouse().orElseThrow().queue();
+        List<TaskRow> queue =
+                view(alice, warehouse).tab(WarehouseTabs.class).orElseThrow().queue();
 
         assertEquals(1, queue.size());
         TaskRow row = queue.get(0);
@@ -188,7 +189,7 @@ class LogisticsViewsTest {
         Building courierHut = colony.buildings().at(new BlockPos(-20, 64, 0)).orElseThrow();
         assertEquals(
                 Optional.of(new CourierTabs(Optional.of(warehouse.position()), List.of())),
-                view(alice, courierHut).courier());
+                view(alice, courierHut).tab(CourierTabs.class));
         assertEquals(OptionalInt.of(5), view(alice, courierHut).pickupPriority());
 
         RequestToken token = colony.requests()
@@ -198,11 +199,18 @@ class LogisticsViewsTest {
                         -1);
         job.currentTask(colony);
 
-        List<TaskRow> tasks = view(alice, courierHut).courier().orElseThrow().tasks();
+        List<TaskRow> tasks =
+                view(alice, courierHut).tab(CourierTabs.class).orElseThrow().tasks();
         assertEquals(1, tasks.size());
         assertEquals(token, tasks.get(0).token());
         assertEquals(13, tasks.get(0).priority());
-        assertTrue(view(alice, warehouse).warehouse().orElseThrow().queue().isEmpty(), "taken by the courier");
+        assertTrue(
+                view(alice, warehouse)
+                        .tab(WarehouseTabs.class)
+                        .orElseThrow()
+                        .queue()
+                        .isEmpty(),
+                "taken by the courier");
     }
 
     @Test
@@ -210,7 +218,7 @@ class LogisticsViewsTest {
         Building courierHut = hut(DeliverymanHut.TYPE, new BlockPos(-20, 64, 0));
         assertEquals(
                 Optional.of(new CourierTabs(Optional.empty(), List.of())),
-                view(alice, courierHut).courier());
+                view(alice, courierHut).tab(CourierTabs.class));
     }
 
     @Test

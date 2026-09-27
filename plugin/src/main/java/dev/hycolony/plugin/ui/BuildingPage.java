@@ -8,8 +8,10 @@ import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.colony.ColonyManager;
-import dev.hycolony.core.colony.ui.BuilderTabs;
 import dev.hycolony.core.colony.ui.BuildingView;
+import dev.hycolony.core.colony.ui.tab.BuilderTabs;
+import dev.hycolony.core.colony.ui.tab.CourierTabs;
+import dev.hycolony.core.colony.ui.tab.WarehouseTabs;
 import dev.hycolony.plugin.ui.logistics.CourierTasksRenderer;
 import dev.hycolony.plugin.ui.logistics.WarehouseTabsRenderer;
 import java.util.ArrayList;
@@ -68,13 +70,13 @@ public final class BuildingPage extends ColonyPage {
         this.storage = new HutStorage(playerRef, manager, view.pos());
         this.main = new BuildingMainTab(manager, player, view);
         tabs.add(Tab.MAIN);
-        if (view.builder().isPresent()) {
+        if (view.tab(BuilderTabs.class).isPresent()) {
             tabs.addAll(List.of(Tab.RESOURCES, Tab.SETTINGS, Tab.ORDERS));
         }
-        if (view.warehouse().isPresent()) {
+        if (view.tab(WarehouseTabs.class).isPresent()) {
             tabs.addAll(List.of(Tab.COURIERS, Tab.STOCK, Tab.WAREHOUSE_TASKS));
         }
-        if (view.courier().isPresent()) {
+        if (view.tab(CourierTabs.class).isPresent()) {
             tabs.add(Tab.COURIER_TASKS);
         }
     }
@@ -113,13 +115,13 @@ public final class BuildingPage extends ColonyPage {
         ui.append("Pages/HyColony/Building.ui");
         TabBar.render(ui, events, tabs, tab);
         main.render(ui, events, storage.mayOpen());
-        view.builder().ifPresent(b -> {
+        view.tab(BuilderTabs.class).ifPresent(b -> {
             resources(b).render(ui, events);
             settings(b).render(ui, events);
             orders(b).render(ui, events);
         });
-        view.warehouse().ifPresent(w -> WarehouseTabsRenderer.render(ui, w));
-        view.courier().ifPresent(c -> CourierTasksRenderer.render(ui, c));
+        view.tab(WarehouseTabs.class).ifPresent(w -> WarehouseTabsRenderer.render(ui, w));
+        view.tab(CourierTabs.class).ifPresent(c -> CourierTasksRenderer.render(ui, c));
     }
 
     private BuilderResourcesTab resources(BuilderTabs b) {
@@ -149,7 +151,7 @@ public final class BuildingPage extends ColonyPage {
                 if (main.handle(act)) {
                     rebuild();
                 }
-                view.builder().ifPresent(b -> {
+                view.tab(BuilderTabs.class).ifPresent(b -> {
                     resources(b).handle(act);
                     settings(b).handle(act);
                     orders(b).handle(act);

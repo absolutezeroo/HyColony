@@ -33,7 +33,7 @@ public final class ColonyWindows {
         this.manager = manager;
         this.ctx = manager.context();
         this.townHall = new TownHallViews(ctx);
-        this.buildings = new BuildingViews(ctx, new BuilderTabsViews(new BuilderResourcesViews(ctx)));
+        this.buildings = new BuildingViews(ctx);
         this.requests = new RequestViews(ctx);
         this.citizens = new CitizenViews(ctx, townHall, requests);
         this.open = new OpenWindows(ctx.ui());

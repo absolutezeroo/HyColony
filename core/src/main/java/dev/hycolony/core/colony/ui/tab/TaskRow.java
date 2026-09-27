@@ -1,4 +1,4 @@
-package dev.hycolony.core.colony.ui.logistics;
+package dev.hycolony.core.colony.ui.tab;
 
 import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.request.model.Requestable;

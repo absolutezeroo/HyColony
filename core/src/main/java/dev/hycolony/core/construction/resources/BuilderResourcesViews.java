@@ -1,16 +1,15 @@
-package dev.hycolony.core.colony.view;
+package dev.hycolony.core.construction.resources;
 
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
-import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.colony.ConstructionPorts;
 import dev.hycolony.core.colony.ui.BuilderResourcesView;
 import dev.hycolony.core.colony.ui.BuilderResourcesView.ResourceRow;
-import dev.hycolony.core.construction.resources.BuildingResourcesModule;
 import dev.hycolony.core.construction.workorder.Stage;
 import dev.hycolony.core.construction.workorder.WorkOrder;
 import dev.hycolony.core.construction.workorder.WorkOrderType;
+import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.Inventory;
 import dev.hycolony.core.kernel.item.ItemKey;
@@ -41,26 +40,34 @@ final class BuilderResourcesViews {
     /** An UPGRADE starts at SOLID (WorkOrder.initialStage). */
     private static final List<Stage> UPGRADE_STAGES = BUILD_STAGES.subList(1, BUILD_STAGES.size());
 
-    private final ColonyContext ctx;
+    private BuilderResourcesViews() {}
 
-    BuilderResourcesViews(ColonyContext ctx) {
-        this.ctx = ctx;
-    }
-
-    BuilderResourcesView of(Colony c, Building hut, BuildingResourcesModule m, UUID player) {
+    static BuilderResourcesView of(Colony c, Building hut, BuildingResourcesModule m, UUID player) {
         Optional<WorkOrder> order = c.work().claimedBy(hut.position());
         List<ResourceRow> rows = new ArrayList<>();
         // A free order needs nothing: its list is empty.
         if (order.isPresent() && m.orderId() == order.get().id() && !order.get().free()) {
-            Optional<Inventory> inv = WorkOrderStatus.firstWorker(c, hut).map(CitizenData::inventory);
+            Optional<Inventory> inv = hut.module(WorkerModule.class)
+                    .flatMap(w -> w.workers().stream().findFirst())
+                    .flatMap(c.citizens()::get)
+                    .map(CitizenData::inventory);
             List<BlockPos> containers = hut.containers();
-            m.needs().remaining().forEach((item, needed) -> rows.add(row(player, item, needed, inv, containers)));
+            ConstructionPorts ports = c.context().ports();
+            m.needs()
+                    .remaining()
+                    .forEach((item, needed) -> rows.add(row(
+                            item,
+                            needed,
+                            inv.map(i -> i.count(item)).orElse(0)
+                                    + ports.containers().count(containers, item),
+                            ports.playerInventory().count(player, item))));
         }
         rows.sort(RESOURCE_ORDER);
-        return new BuilderResourcesView(rows, order.map(o -> header(c, o, rows)));
+        return new BuilderResourcesView(rows, order.map(o -> header(c, o, m, rows)));
     }
 
-    private static BuilderResourcesView.Header header(Colony c, WorkOrder o, List<ResourceRow> rows) {
+    private static BuilderResourcesView.Header header(
+            Colony c, WorkOrder o, BuildingResourcesModule m, List<ResourceRow> rows) {
         List<Stage> stages = stages(o.type());
         int step = o.stage() == Stage.DONE ? stages.size() : Math.max(0, stages.indexOf(o.stage()));
         return new BuilderResourcesView.Header(
@@ -70,7 +77,7 @@ final class BuilderResourcesViews {
                 step,
                 stages.size(),
                 suppliedPercent(rows),
-                WorkOrderStatus.percent(c, o));
+                m.orderId() == o.id() ? m.needs().progressPercent() : 0);
     }
 
     /**
@@ -98,11 +105,7 @@ final class BuilderResourcesViews {
         return total > 0 ? (int) (supplied / total * 100) : 0;
     }
 
-    private ResourceRow row(UUID player, ItemKey item, int needed, Optional<Inventory> inv, List<BlockPos> containers) {
-        ConstructionPorts ports = ctx.ports();
-        int available =
-                inv.map(i -> i.count(item)).orElse(0) + ports.containers().count(containers, item);
-        int has = ports.playerInventory().count(player, item);
+    private static ResourceRow row(ItemKey item, int needed, int available, int has) {
         return new ResourceRow(item, needed, available, has, BuilderResourcesView.Status.of(needed, available, has));
     }
 }

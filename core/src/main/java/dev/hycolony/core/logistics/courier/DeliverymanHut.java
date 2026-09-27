@@ -12,7 +12,7 @@ import java.util.List;
 
 /**
  * The courier hut type (MC {@code BuildingDeliveryman}, modules from {@code ModBuildingsInitializer}): one courier,
- * Agility then Adaptability, and the hut level caps what it carries on a pickup.
+ * Agility then Adaptability, its task list, and the hut level caps what it carries on a pickup.
  */
 public final class DeliverymanHut {
     public static final String TYPE_ID = "hycolony:deliveryman";
@@ -24,9 +24,11 @@ public final class DeliverymanHut {
             TYPE_ID,
             "hut.deliveryman",
             MAX_LEVEL,
-            List.of(new ModuleProducer(
-                    "worker",
-                    () -> new WorkerModule(DeliverymanJob.TYPE, Skill.Agility, Skill.Adaptability, 1, false))));
+            List.of(
+                    new ModuleProducer(
+                            "worker",
+                            () -> new WorkerModule(DeliverymanJob.TYPE, Skill.Agility, Skill.Adaptability, 1, false)),
+                    new ModuleProducer("courierTaskView", CourierTaskView::new)));
 
     private DeliverymanHut() {}
 

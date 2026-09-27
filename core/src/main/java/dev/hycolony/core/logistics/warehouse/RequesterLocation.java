@@ -1,8 +1,10 @@
 package dev.hycolony.core.logistics.warehouse;
 
 import dev.hycolony.core.building.Building;
+import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.Resolver;
 import dev.hycolony.core.request.model.RequesterId;
 import java.util.Optional;
@@ -27,5 +29,19 @@ public final class RequesterLocation {
             }
         }
         return Optional.empty();
+    }
+
+    /**
+     * MC getRequesterDisplayName: the citizen who asks, else the building, or the building whose resolver asks (a
+     * warehouse's delivery); else the raw requester id.
+     */
+    public static String displayName(Colony colony, Request r) {
+        if (r.citizenId() != -1) {
+            return colony.citizens().get(r.citizenId()).map(CitizenData::name).orElse("");
+        }
+        return of(colony, r.requester())
+                .flatMap(colony.buildings()::at)
+                .map(Building::displayName)
+                .orElse(r.requester().value());
     }
 }

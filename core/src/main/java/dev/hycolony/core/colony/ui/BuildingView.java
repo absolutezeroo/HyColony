@@ -1,7 +1,6 @@
 package dev.hycolony.core.colony.ui;
 
-import dev.hycolony.core.colony.ui.logistics.CourierTabs;
-import dev.hycolony.core.colony.ui.logistics.WarehouseTabs;
+import dev.hycolony.core.colony.ui.tab.ModuleTab;
 import dev.hycolony.core.construction.workorder.WorkOrderType;
 import dev.hycolony.core.job.HiringMode;
 import dev.hycolony.core.kernel.BlockPos;
@@ -13,8 +12,8 @@ import java.util.Set;
 /**
  * A hut's window. {@code allowed} is empty while an order exists (the button becomes Cancel); {@code hiringMode} is
  * empty for a building that employs no one; {@code canPickUp}: deconstructed, MANAGE_HUTS, not the town hall;
- * {@code builder}: the builder hut's own tabs, empty for any other hut. {@code pickupPriority}: shown on worker huts
- * only (MC AbstractWindowWorkerModuleBuilding); {@code warehouse} and {@code courier}: those huts' own tabs.
+ * {@code pickupPriority}: shown on worker huts only (MC AbstractWindowWorkerModuleBuilding); {@code tabs}: the tabs of
+ * the hut's modules, in module order (MC module views).
  */
 public record BuildingView(
         int colonyId,
@@ -33,10 +32,8 @@ public record BuildingView(
         String style,
         boolean canManage,
         boolean canPickUp,
-        Optional<BuilderTabs> builder,
         OptionalInt pickupPriority,
-        Optional<WarehouseTabs> warehouse,
-        Optional<CourierTabs> courier) {
+        List<ModuleTab> tabs) {
     public record WorkerRow(int citizenId, String name) {}
 
     public record OrderRow(int id, WorkOrderType type, int targetLevel, Optional<String> builderName, int percent) {}
@@ -46,5 +43,11 @@ public record BuildingView(
         hireable = List.copyOf(hireable);
         allowed = Set.copyOf(allowed);
         styles = List.copyOf(styles);
+        tabs = List.copyOf(tabs);
+    }
+
+    /** The first module tab of kind {@code kind}; empty when the hut has none. */
+    public <T extends ModuleTab> Optional<T> tab(Class<T> kind) {
+        return tabs.stream().filter(kind::isInstance).map(kind::cast).findFirst();
     }
 }
