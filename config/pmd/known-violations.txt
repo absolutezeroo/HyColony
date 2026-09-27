@@ -1,7 +1,6 @@
 # PMD baseline: violations that existed when PMD was added (CLAUDE.md § 8).
 # One "Rule path" pair per line; the rule is suppressed for the whole top-level type of that file.
 # This list may only shrink: remove a line once its file is cleaned or split. Never add one.
-CognitiveComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleBlueprintSource.java
 CognitiveComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleItemCatalog.java
 CognitiveComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleWorldBlocks.java
 CognitiveComplexity plugin/src/main/java/dev/hycolony/plugin/ui/BuildingPage.java

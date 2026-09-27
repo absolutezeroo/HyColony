@@ -74,6 +74,10 @@ Toutes reprises de MineColonies ; les références `§` renvoient à la recherch
   - objets sortis d'un conteneur qui n'y rentrent plus (rangement ou échange défait) : jetés au sol à cet endroit et journalisés (MC ne les remet pas) ;
   - entrepôt plein (exception assumée à CLAUDE.md § 4, comme MC) : un livreur chargé alterne DUMPING et START_WORKING et ses livraisons attendent ; la sortie est une action du joueur (libérer de la place), annoncée par le message « entrepôt plein » toutes les 5 minutes.
 
+- Plugin (tâche 11) :
+  - vitesse : Hytale n'a pas d'attribut de vitesse réglable sur un PNJ (le maximum du contrôleur `Walk` est final) ; le facteur passe par un effet d'entité infini (`HorizontalSpeedMultiplier`), arrondi au pas de 0,05 le plus proche (effets `HyColony_Speed_105` à `_200` de l'id-map ; plus près de 1 que de 1,05 : aucun effet) ; MC règle l'attribut exactement ;
+  - plans provisoires (prefabs vanilla) : un générateur de coffre (`Block_Spawner_Block` dont la table contient un bloc à conteneur) devient un coffre vide obtenable du style (`Furniture_Crude_Chest_Small` Outlander, `Furniture_Kweebec_Chest_Small` Kweebec), pour les seuls niveaux marqués `spawnerChests` dans `styles.json` (entrepôt, livreur) ; les autres huttes ignorent toujours les générateurs (leurs chantiers en cours ne changent pas). Les coffres Outlander vanilla (`Furniture_Human_Ruins_Chest_Small`) ne sont pas obtenables, d'où un coffre fixe par style plutôt que le coffre tiré par la table.
+
 ## Architecture
 
 - **Cœur**, nouveau domaine `logistics/` découpé par sous-domaine (15 fichiers au plus par paquet), seul le point d'entrée de chacun est public :

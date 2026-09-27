@@ -2,10 +2,6 @@ package dev.hycolony.plugin.adapter;
 
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
-import com.hypixel.hytale.server.core.asset.type.blocktype.config.VariantRotation;
-import com.hypixel.hytale.server.core.asset.type.fluid.Fluid;
-import com.hypixel.hytale.server.core.modules.block.components.ItemContainerBlock;
 import com.hypixel.hytale.server.core.prefab.PrefabRotation;
 import com.hypixel.hytale.server.core.prefab.PrefabStore;
 import com.hypixel.hytale.server.core.prefab.selection.buffer.PrefabBufferCall;
@@ -16,8 +12,9 @@ import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.BlueprintEntry;
 import dev.hycolony.core.construction.blueprint.BlueprintSource;
 import dev.hycolony.core.kernel.BlockPos;
-import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockState;
+import dev.hycolony.plugin.IdMap;
+import dev.hycolony.plugin.prefab.PrefabCells;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,13 +36,15 @@ import java.util.logging.Level;
  * {@code VALUES[i] == PrefabRotation.fromRotation(Rotation.VALUES[i])}. The buffer turns every entry's own rotation by
  * the same amount ({@code PrefabRotation.getRotation(int)} adds the yaw), so the house turns with the hut block.
  *
- * <p>Entries: {@code filler == 0} only (placing the origin rebuilds the fillers); {@code Empty},
- * {@code Block_Spawner_Block} and {@code Editor_*} dropped; state ids ({@code *...}) normalised to their default state
+ * <p>Entries: {@code filler == 0} only (placing the origin rebuilds the fillers), each resolved by
+ * {@link PrefabCells}: {@code Empty}, {@code Block_Spawner_Block} and {@code Editor_*} dropped, except that a level
+ * marked {@code spawnerChests} (warehouse, courier) turns a chest spawner into the style's empty chest
+ * ({@code blueprint.spawnerChest.<style>} in the id-map); state ids ({@code *...}) normalised to their default state
  * like {@code HytaleWorldBlocks.get}; a fluid-only cell becomes {@code ~fluid:<FluidKey>}, rotation 0 (a block with a
  * fluid in it keeps the block: one state per cell). A block that cannot rotate ({@code VariantRotation.None}) gets
  * rotation 0, since the buffer adds the yaw to every block and natural terrain would never match. Prefab chances use
- * {@code new Random(0)}, so every load sees the same blueprint. Block-entity data in the prefab (chest contents,
- * spawners) is ignored.
+ * {@code new Random(0)}, so every load sees the same blueprint. Other block-entity data in the prefab (chest
+ * contents, spawner loot) is ignored.
  *
  * <p>Depth: vanilla prefabs mean "absent = keep the terrain", and their lower layers are foundations meant to sink
  * into the ground. Only the floor layer (hut-relative y = -1, the hut stands on it) and above are kept, so the
@@ -58,19 +57,26 @@ import java.util.logging.Level;
  */
 public final class HytaleBlueprintSource implements BlueprintSource {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
-    private static final String FLUID_PREFIX = "~fluid:";
     /** Hut-relative y of the floor the hut stands on: nothing below it is part of the blueprint. */
     private static final int FLOOR_Y = -1;
+
+    /** id-map block key prefix of the style's empty chest that replaces a chest spawner. */
+    private static final String SPAWNER_CHEST_KEY = "blueprint.spawnerChest.";
+
+    /** A rotated, anchor-relative prefab cell. */
+    private record Cell(int x, int y, int z, BlockState state, boolean container) {}
 
     private static final AtomicBoolean PREWARMED = new AtomicBoolean();
 
     private final PrefabStyles styles;
+    private final IdMap ids;
     private final Map<String, Optional<Blueprint>> cache = new ConcurrentHashMap<>();
     private final Set<String> warned = ConcurrentHashMap.newKeySet();
 
     /** Reads the bundled {@code hycolony/styles.json}; throws only if that file is missing or malformed. */
-    public HytaleBlueprintSource() {
+    public HytaleBlueprintSource(IdMap ids) {
         this.styles = PrefabStyles.loadBundled();
+        this.ids = ids;
     }
 
     /**
@@ -115,7 +121,7 @@ public final class HytaleBlueprintSource implements BlueprintSource {
                 return Optional.empty();
             }
             try {
-                return read(entry, PrefabRotation.VALUES[rot]);
+                return read(style, entry, PrefabRotation.VALUES[rot]);
             } catch (RuntimeException e) {
                 warnOnce("cannot read prefab " + entry.prefab(), e);
                 return Optional.empty();
@@ -123,7 +129,7 @@ public final class HytaleBlueprintSource implements BlueprintSource {
         });
     }
 
-    private Optional<Blueprint> read(PrefabStyles.Level entry, PrefabRotation r) {
+    private Optional<Blueprint> read(String style, PrefabStyles.Level entry, PrefabRotation r) {
         Path path = PrefabStore.get().findAssetPrefabPath(entry.prefab());
         if (path == null) {
             warnOnce("prefab not found: " + entry.prefab(), null);
@@ -132,7 +138,7 @@ public final class HytaleBlueprintSource implements BlueprintSource {
         IPrefabBuffer buf = PrefabBufferUtil.getCached(path);
 
         // Pass 1: rotated, anchor-relative cells. The hut cell is only known afterwards (default = lowest layer).
-        record Cell(int x, int y, int z, BlockState state, boolean container) {}
+        String chest = entry.spawnerChests() ? ids.blockId(SPAWNER_CHEST_KEY + style) : null;
         List<Cell> cells = new ArrayList<>();
         int[] lowestY = {Integer.MAX_VALUE};
         buf.forEach(
@@ -151,37 +157,12 @@ public final class HytaleBlueprintSource implements BlueprintSource {
                     if (filler != 0) {
                         return;
                     }
-                    BlockState state;
-                    boolean container = false;
-                    if (blockId != BlockType.EMPTY_ID) {
-                        BlockType type = BlockType.getAssetMap().getAsset(blockId);
-                        if (type == null) {
-                            return;
-                        }
-                        String id = HytaleWorldBlocks.blockKey(type);
-                        type = BlockType.getAssetMap().getAsset(id);
-                        if (type == null
-                                || id.equals("Empty")
-                                || id.equals("Block_Spawner_Block")
-                                || id.startsWith("Editor_")) {
-                            return;
-                        }
-                        Holder<ChunkStore> entity = type.getBlockEntity();
-                        container =
-                                entity != null && entity.getComponent(ItemContainerBlock.getComponentType()) != null;
-                        int rot = type.getVariantRotation() == VariantRotation.None ? 0 : rotation;
-                        state = new BlockState(new BlockKey(id), rot);
-                    } else if (fluidId != 0) {
-                        Fluid fluid = Fluid.getAssetMap().getAsset(fluidId);
-                        if (fluid == null) {
-                            return;
-                        }
-                        state = new BlockState(new BlockKey(FLUID_PREFIX + fluid.getId()), 0);
-                    } else {
+                    PrefabCells.Resolved c = PrefabCells.resolve(blockId, holder, rotation, fluidId, chest);
+                    if (c == null) {
                         return;
                     }
                     lowestY[0] = Math.min(lowestY[0], y);
-                    cells.add(new Cell(x, y, z, state, container));
+                    cells.add(new Cell(x, y, z, c.state(), c.container()));
                 },
                 null,
                 null,

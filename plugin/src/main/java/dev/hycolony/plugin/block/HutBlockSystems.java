@@ -20,6 +20,8 @@ import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.port.Msg;
+import dev.hycolony.core.logistics.courier.DeliverymanHut;
+import dev.hycolony.core.logistics.warehouse.WarehouseBuilding;
 import dev.hycolony.plugin.IdMap;
 import dev.hycolony.plugin.WorldRuntime;
 import dev.hycolony.plugin.WorldRuntimes;
@@ -35,8 +37,12 @@ import org.joml.Vector3i;
 public final class HutBlockSystems {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
     // ponytail: explicit list (BuildingRegistry has no listing); add a line per new hut type.
-    private static final List<BuildingType> HUT_TYPES =
-            List.of(BuildingTypes.TOWN_HALL, ConstructionBuildingTypes.BUILDER, ConstructionBuildingTypes.RESIDENCE);
+    private static final List<BuildingType> HUT_TYPES = List.of(
+            BuildingTypes.TOWN_HALL,
+            ConstructionBuildingTypes.BUILDER,
+            ConstructionBuildingTypes.RESIDENCE,
+            WarehouseBuilding.TYPE,
+            DeliverymanHut.TYPE);
 
     private HutBlockSystems() {}
 

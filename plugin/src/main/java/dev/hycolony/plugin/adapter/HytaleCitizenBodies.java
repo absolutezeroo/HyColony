@@ -30,6 +30,7 @@ import dev.hycolony.core.kernel.port.BodyAnimation;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.CitizenBodies;
 import dev.hycolony.core.kernel.port.NavStatus;
+import dev.hycolony.plugin.npc.CitizenSpeed;
 import dev.hycolony.plugin.npc.CitizenTag;
 import dev.hycolony.plugin.npc.HyColonyComponents;
 import dev.hycolony.plugin.npc.MoveTarget;
@@ -51,14 +52,17 @@ public final class HytaleCitizenBodies implements CitizenBodies {
 
     private final World world;
     private final String roleName;
+    private final CitizenSpeed speed;
     private final Map<Long, Ref<EntityStore>> refs = new HashMap<>();
     private final Map<Ref<EntityStore>, Long> ids = new IdentityHashMap<>();
     private long nextId = 1;
     private boolean teleportWarned;
+    private boolean speedWarned;
 
-    public HytaleCitizenBodies(World world, String roleName) {
+    public HytaleCitizenBodies(World world, String roleName, CitizenSpeed speed) {
         this.world = world;
         this.roleName = roleName;
+        this.speed = speed;
     }
 
     private Store<EntityStore> store() {
@@ -185,9 +189,20 @@ public final class HytaleCitizenBodies implements CitizenBodies {
         }
     }
 
-    /** Not wired yet (SP3a task 11 finds the Hytale speed control): bodies keep their normal speed. */
+    /** Through {@link CitizenSpeed}'s speed effects; never throws (first failure WARNING, then FINE). */
     @Override
-    public void setMovementSpeed(BodyId body, double factor) {}
+    public void setMovementSpeed(BodyId body, double factor) {
+        Ref<EntityStore> ref = ref(body);
+        if (ref == null) {
+            return;
+        }
+        try {
+            speed.apply(ref, factor, store());
+        } catch (RuntimeException e) {
+            LOG.at(speedWarned ? Level.FINE : Level.WARNING).withCause(e).log("HyColony: cannot set a citizen's speed");
+            speedWarned = true;
+        }
+    }
 
     @Override
     public void despawn(BodyId body) {

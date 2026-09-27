@@ -37,6 +37,7 @@ import dev.hycolony.plugin.adapter.HytaleWorldBlocks;
 import dev.hycolony.plugin.adapter.HytaleWorldEffects;
 import dev.hycolony.plugin.adapter.HytaleWorldQuery;
 import dev.hycolony.plugin.block.HutBlockSystems;
+import dev.hycolony.plugin.npc.CitizenSpeed;
 import java.util.Random;
 import java.util.Set;
 import java.util.logging.Level;
@@ -62,7 +63,7 @@ public final class WorldRuntime {
     WorldRuntime(World world, ColonyConfig config, IdMap ids, CitizenNames names, boolean enabled) {
         this.world = world;
         this.clock = new HytaleGameClock(world);
-        this.bodies = new HytaleCitizenBodies(world, ids.npcRole("npc.citizen"));
+        this.bodies = new HytaleCitizenBodies(world, ids.npcRole("npc.citizen"), new CitizenSpeed(ids.speedEffects()));
         this.blocks = new HytaleBlocks(world);
         ColonyManager[] self = new ColonyManager[1];
         WandActions[] wandSelf = new WandActions[1]; // the UI port needs it before it exists
@@ -81,7 +82,7 @@ public final class WorldRuntime {
                 config,
                 clock,
                 new DetouringBodies(bodies, worldBlocks, catalog), // Hytale's nav walks through fire
-                new HytaleWorldQuery(world),
+                new HytaleWorldQuery(world, ids.precipitationParticles()),
                 new HytaleNotifier(),
                 new HytaleUiPort(() -> self[0], () -> wandSelf[0], blocks, ids),
                 new HytalePlayerDirectory(world),
@@ -95,7 +96,7 @@ public final class WorldRuntime {
                         worldBlocks,
                         new HytaleContainerAccess(world),
                         new HytalePlayerInventory(world),
-                        new HytaleBlueprintSource(),
+                        new HytaleBlueprintSource(ids),
                         new HytaleWorldEffects(world, ids.fireworks())));
         this.manager = new ColonyManager(ctx);
         self[0] = manager;

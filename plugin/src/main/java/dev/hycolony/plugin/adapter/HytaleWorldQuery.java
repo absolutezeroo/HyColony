@@ -1,12 +1,19 @@
 package dev.hycolony.plugin.adapter;
 
+import com.hypixel.hytale.builtin.weather.resources.WeatherResource;
+import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.util.ChunkUtil;
+import com.hypixel.hytale.protocol.WeatherParticle;
+import com.hypixel.hytale.server.core.asset.type.weather.config.Weather;
 import com.hypixel.hytale.server.core.universe.world.World;
+import com.hypixel.hytale.server.core.universe.world.chunk.BlockChunk;
 import com.hypixel.hytale.server.core.universe.world.spawn.ISpawnProvider;
+import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.port.WorldQuery;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 import org.joml.Vector3d;
@@ -15,10 +22,14 @@ public final class HytaleWorldQuery implements WorldQuery {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
     private final World world;
+    private final Set<String> precipitation;
     private boolean warned;
+    private boolean weatherWarned;
 
-    public HytaleWorldQuery(World world) {
+    /** {@code precipitation}: the weather particle systems that count as rain or snow (id-map). */
+    public HytaleWorldQuery(World world, Set<String> precipitation) {
         this.world = world;
+        this.precipitation = precipitation;
     }
 
     @Override
@@ -43,9 +54,38 @@ public final class HytaleWorldQuery implements WorldQuery {
         }
     }
 
-    /** Not wired yet (SP3a task 11 reads the weather): never rains, so the courier always works. */
+    /**
+     * Rain or snow in the environment of {@code pos}: the forced weather ({@code /weather set}) wins, else the weather
+     * WeatherSystem drew for the block's environment this hour, as WorldSupport.getCurrentWeatherIndex does for NPCs.
+     * The weather counts as precipitation when its particle system is in the id-map list. False when the chunk is not
+     * loaded, the weather is not computed yet, or anything fails (never throws).
+     *
+     * <p>Deviation from MC: MC Level.isRaining is one flag for the whole world; Hytale has weather per environment
+     * only, so the core asks at the worker's hut. Snow counts as rain, as MC's global flag is also true in snowy biomes.
+     */
     @Override
     public boolean isRainingAt(BlockPos pos) {
-        return false;
+        try {
+            WeatherResource weather = world.getEntityStore().getStore().getResource(WeatherResource.getResourceType());
+            int index = weather.getForcedWeatherIndex();
+            if (index == 0) {
+                Ref<ChunkStore> chunk =
+                        world.getChunkStore().getChunkReference(ChunkUtil.indexChunkFromBlock(pos.x(), pos.z()));
+                BlockChunk blocks = chunk == null
+                        ? null
+                        : world.getChunkStore().getStore().getComponent(chunk, BlockChunk.getComponentType());
+                if (blocks == null) {
+                    return false;
+                }
+                index = weather.getWeatherIndexForEnvironment(blocks.getEnvironment(pos.x(), pos.y(), pos.z()));
+            }
+            Weather asset = Weather.getAssetMap().getAsset(index);
+            WeatherParticle particle = asset == null ? null : asset.getParticle();
+            return particle != null && particle.systemId != null && precipitation.contains(particle.systemId);
+        } catch (RuntimeException e) {
+            LOG.at(weatherWarned ? Level.FINE : Level.WARNING).withCause(e).log("WorldQuery.isRainingAt failed");
+            weatherWarned = true;
+            return false;
+        }
     }
 }

@@ -20,14 +20,16 @@ import javax.annotation.Nullable;
  * Pure part of {@link HytaleBlueprintSource}: the {@code hycolony/styles.json} table and the hut-cell math. Needs no
  * running server ({@link PrefabRotation} is a plain enum).
  *
- * <p>Format: {@code { style: { buildingTypeId: { level: { "prefab": "<path under Server/Prefabs>", "hutOffset": [x,y,z] } } } }}.
+ * <p>Format: {@code { style: { buildingTypeId: { level: { "prefab": "<path under Server/Prefabs>", "hutOffset": [x,y,z],
+ * "spawnerChests": true } } } }}; {@code spawnerChests} is optional (false).
  * {@code hutOffset} is in the prefab file's own coordinates (the x/y/z written in the {@code .prefab.json}, before the
  * anchor is subtracted), unrotated. Absent: the default cell, see {@link #hutCell}.
  */
 final class PrefabStyles {
     static final String FIRST_STYLE = "outlander";
 
-    record Level(String prefab, @Nullable int[] hutOffset) {}
+    /** {@code spawnerChests}: chest spawners become the style's empty chest (see HytaleBlueprintSource). */
+    record Level(String prefab, @Nullable int[] hutOffset, boolean spawnerChests) {}
 
     private final Map<String, Map<String, Map<String, Level>>> table;
 
