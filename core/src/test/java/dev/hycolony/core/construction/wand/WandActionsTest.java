@@ -26,6 +26,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
@@ -33,6 +34,8 @@ class WandActionsTest {
     private static final String BUILDER = ConstructionBuildingTypes.BUILDER.id();
     private static final String TOWN_HALL = BuildingTypes.TOWN_HALL.id();
     private static final ItemKey BUILDER_ITEM = new ItemKey("item:hut.builder");
+    /** A second style, with no plan at all. */
+    private static final String NORDIC = "nordic";
 
     /** Every rotation the plan was loaded with. */
     private final List<Integer> rotations = new ArrayList<>();
@@ -48,17 +51,21 @@ class WandActionsTest {
 
     private TestContexts contexts() {
         TestContexts c = new TestContexts();
-        FakeBlueprints plans = new FakeBlueprints().put(BUILDER, 1, FakeBlueprints.hut(false));
+        FakeBlueprints plans = new FakeBlueprints()
+                .put(BUILDER, 1, FakeBlueprints.hut(false))
+                .put(TOWN_HALL, 1, FakeBlueprints.hut(false));
         c.blueprints = new BlueprintSource() {
             @Override
             public Optional<Blueprint> load(String style, String buildingTypeId, int level, int rotation) {
                 rotations.add(rotation);
-                return plans.load(style, buildingTypeId, level, rotation);
+                return FakeBlueprints.STYLE.equals(style)
+                        ? plans.load(style, buildingTypeId, level, rotation)
+                        : Optional.empty();
             }
 
             @Override
             public List<String> styles() {
-                return plans.styles();
+                return List.of(FakeBlueprints.STYLE, NORDIC);
             }
         };
         return c;
@@ -90,18 +97,21 @@ class WandActionsTest {
                 .toList();
     }
 
-    /** Opens on {@link #spot} with the builder hut chosen, in survival with the hut block. */
+    /** Opens on {@link #spot} with the medieval style and the builder hut chosen, in survival with the hut block. */
     private void chooseBuilder() {
         give(BUILDER_ITEM);
         wand.open(alice, Optional.of(spot));
+        wand.selectStyle(alice, FakeBlueprints.STYLE);
         wand.selectBuilding(alice, BUILDER);
     }
 
     @Test
     void openOnABlockAnchorsThereAndShowsTheWindow() {
         assertTrue(wand.open(alice, Optional.of(spot)));
-        assertEquals(List.of(FakeBlueprints.STYLE), view().styles());
-        assertEquals(FakeBlueprints.STYLE, view().style());
+        assertEquals(List.of(FakeBlueprints.STYLE, NORDIC), view().styles());
+        // ST preselects no pack: nothing is offered until a style is chosen.
+        assertEquals("", view().style());
+        assertTrue(view().buildingTypeIds().isEmpty());
         chooseBuilder();
         assertEquals(spot, ghost().orElseThrow().origin());
     }
@@ -126,6 +136,7 @@ class WandActionsTest {
     void survivalListsOnlyHutsInTheInventory() {
         give(BUILDER_ITEM);
         wand.open(alice, Optional.of(spot));
+        wand.selectStyle(alice, FakeBlueprints.STYLE);
         assertEquals(List.of(BUILDER), view().buildingTypeIds());
         assertFalse(wand.selectBuilding(alice, TOWN_HALL));
     }
@@ -134,8 +145,31 @@ class WandActionsTest {
     void creativeListsEveryHut() {
         t.players.creative.add(alice);
         wand.open(alice, Optional.of(spot));
+        wand.selectStyle(alice, FakeBlueprints.STYLE);
         assertTrue(view().buildingTypeIds().containsAll(List.of(BUILDER, TOWN_HALL)));
         assertTrue(wand.selectBuilding(alice, TOWN_HALL));
+    }
+
+    @Test
+    void offersOnlyHutsWithAPlanInTheStyle() {
+        t.players.creative.add(alice);
+        wand.open(alice, Optional.of(spot));
+        wand.selectStyle(alice, FakeBlueprints.STYLE);
+        assertEquals(Set.of(BUILDER, TOWN_HALL), Set.copyOf(view().buildingTypeIds()));
+        wand.selectStyle(alice, NORDIC);
+        assertTrue(view().buildingTypeIds().isEmpty());
+        assertFalse(wand.selectBuilding(alice, BUILDER));
+    }
+
+    @Test
+    void switchingToAStyleWithoutTheChosenHutClearsTheSelection() {
+        chooseBuilder();
+        assertTrue(wand.selectStyle(alice, FakeBlueprints.STYLE));
+        assertEquals(BUILDER, view().buildingTypeId());
+        assertTrue(wand.selectStyle(alice, NORDIC));
+        assertEquals("", view().buildingTypeId());
+        assertFalse(view().manipulate());
+        assertTrue(ghost().isEmpty());
     }
 
     @Test
@@ -161,13 +195,14 @@ class WandActionsTest {
         chooseBuilder();
         assertTrue(wand.rotate(alice, true));
         assertEquals(1, view().rotation());
-        assertEquals(1, rotations.get(rotations.size() - 1));
+        assertTrue(rotations.contains(1));
     }
 
     @Test
     void manipulationHiddenUntilAHutIsChosen() {
         give(BUILDER_ITEM);
         wand.open(alice, Optional.of(spot));
+        wand.selectStyle(alice, FakeBlueprints.STYLE);
         assertFalse(view().manipulate());
         assertFalse(wand.move(alice, WandMoves.Dir.UP));
         wand.selectBuilding(alice, BUILDER);
@@ -181,6 +216,10 @@ class WandActionsTest {
         assertTrue(ghost().isEmpty());
         assertFalse(t.ui.shown.containsKey(alice));
         assertFalse(wand.open(alice, Optional.empty()));
+        // The style outlives the window, like ST's selected pack.
+        wand.open(alice, Optional.of(spot));
+        assertEquals(FakeBlueprints.STYLE, view().style());
+        assertEquals("", view().buildingTypeId());
     }
 
     @Test

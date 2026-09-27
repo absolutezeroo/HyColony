@@ -42,8 +42,9 @@ public final class WandActions {
 
     /**
      * ST ItemBuildTool.useOn/use: a clicked block becomes the anchor; a click in the air keeps the current one, or
-     * says {@code hycolony.wand.missingPos} and opens nothing (false) when there is none. The first style is chosen
-     * on first open.
+     * says {@code hycolony.wand.missingPos} and opens nothing (false) when there is none. No style is preselected:
+     * like ST WindowExtendedBuildTool.onOpened, which sends a player without a pack to WindowSwitchPack, the window
+     * offers no hut until one is chosen.
      */
     public boolean open(UUID player, Optional<BlockPos> clicked) {
         WandSession s = sessions.get(player);
@@ -53,31 +54,31 @@ public final class WandActions {
             manager.context().notifier().send(player, Msg.of("hycolony.wand.missingPos"));
             return false;
         }
-        List<String> styles = styles();
-        if (s.style().isEmpty() && !styles.isEmpty()) {
-            s = s.withStyle(styles.get(0));
-        }
         update(player, s);
         return true;
     }
 
-    /** Chooses one of the blueprint styles; false if unknown or the window was never opened. */
+    /**
+     * Chooses one of the blueprint styles; a different one drops the chosen hut and its ghost, as ST
+     * WindowExtendedBuildTool.init does on a pack change. False if unknown or the window was never opened.
+     */
     public boolean selectStyle(UUID player, String style) {
         Optional<WandSession> s = opened(player);
         if (s.isEmpty() || !styles().contains(style)) {
             return false;
         }
-        update(player, s.get().withStyle(style));
+        WandSession next = s.get().withStyle(style);
+        update(player, style.equals(s.get().style()) ? next : next.withBuilding(""));
         return true;
     }
 
     /** Chooses one of the offered huts, capping the level at its maximum; false if it is not offered. */
     public boolean selectBuilding(UUID player, String buildingTypeId) {
         Optional<WandSession> s = opened(player);
-        Optional<BuildingType> type = offered(player).stream()
+        Optional<BuildingType> type = s.flatMap(session -> offered(player, session.style()).stream()
                 .filter(t -> t.id().equals(buildingTypeId))
-                .findFirst();
-        if (s.isEmpty() || type.isEmpty()) {
+                .findFirst());
+        if (type.isEmpty()) {
             return false;
         }
         int level = Math.min(s.get().level(), type.get().maxLevel());
@@ -128,13 +129,19 @@ public final class WandActions {
             return false;
         }
         forget(player);
+        sessions.put(player, WandSession.empty().withStyle(s.style()));
         manager.context().ui().close(player);
         return true;
     }
 
-    /** ST cancel: hides the ghost, forgets the selection and anchor, and closes the window. Always true. */
+    /**
+     * ST cancel: hides the ghost, forgets the anchor and the hut, and closes the window. Always true. The style is
+     * kept, like ST's selected pack, which outlives the window.
+     */
     public boolean cancel(UUID player) {
+        String style = sessions.get(player).style();
         forget(player);
+        sessions.put(player, WandSession.empty().withStyle(style));
         manager.context().ui().close(player);
         return true;
     }
@@ -156,7 +163,8 @@ public final class WandActions {
     }
 
     private void show(UUID player, WandSession s) {
-        List<String> huts = offered(player).stream().map(BuildingType::id).toList();
+        List<String> huts =
+                offered(player, s.style()).stream().map(BuildingType::id).toList();
         WandView view = new WandView(
                 styles(), huts, maxLevel(s), s.style(), s.buildingTypeId(), s.level(), s.rotation(), s.hasBuilding());
         manager.context().ui().showWand(player, view);
@@ -172,13 +180,24 @@ public final class WandActions {
         return opened(player).filter(WandSession::hasBuilding);
     }
 
-    /** Every hut in creative; in survival only those whose hut block the player carries (ST BLOCK_BLUEPRINT_REQUIREMENT). */
-    private List<BuildingType> offered(UUID player) {
-        List<BuildingType> all = manager.context().buildingTypes().all();
-        if (manager.context().players().isCreative(player)) {
-            return all;
-        }
-        return all.stream().filter(t -> carries(player, t)).toList();
+    /**
+     * The huts with a plan in {@code style} (ST lists the blueprints of the pack); in survival, only those whose hut
+     * block the player carries too (ST BLOCK_BLUEPRINT_REQUIREMENT). Empty before a style is chosen.
+     */
+    private List<BuildingType> offered(UUID player, String style) {
+        boolean creative = manager.context().players().isCreative(player);
+        return manager.context().buildingTypes().all().stream()
+                .filter(t -> hasPlan(style, t) && (creative || carries(player, t)))
+                .toList();
+    }
+
+    private boolean hasPlan(String style, BuildingType type) {
+        return !style.isEmpty()
+                && manager.context()
+                        .ports()
+                        .blueprints()
+                        .load(style, type.id(), 1, 0)
+                        .isPresent();
     }
 
     private boolean carries(UUID player, BuildingType type) {
