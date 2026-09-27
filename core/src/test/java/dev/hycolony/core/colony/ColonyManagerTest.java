@@ -202,6 +202,13 @@ class ColonyManagerTest {
         assertEquals(Optional.empty(), refusedUse(bob, inside, pot));
     }
 
+    @Test
+    void aNeutralPlayerOpensTheColonysDoorsByDefault() {
+        found(alice, "A", hall);
+        BlockUse door = new BlockUse(true, false, false, BlockUse.Held.NOTHING);
+        assertEquals(Optional.empty(), refusedUse(bob, hall.offset(3, 0, 3), door));
+    }
+
     /** How the plugin asks: the rank's permissions at that spot, everything allowed outside colonies. */
     private Optional<Action> refusedUse(UUID player, BlockPos pos, BlockUse use) {
         return use.refused(action -> manager.isAllowed(player, pos, action), manager.protectionEnabled());

@@ -4,6 +4,9 @@ import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.component.dependency.Dependency;
+import com.hypixel.hytale.component.dependency.Order;
+import com.hypixel.hytale.component.dependency.SystemDependency;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.EntityEventSystem;
 import com.hypixel.hytale.logger.HytaleLogger;
@@ -17,6 +20,7 @@ import dev.hycolony.core.decoration.FlowerPot;
 import dev.hycolony.core.decoration.FlowerPotBlocks;
 import dev.hycolony.plugin.IdMap;
 import java.util.Optional;
+import java.util.Set;
 import java.util.logging.Level;
 import javax.annotation.Nonnull;
 
@@ -29,6 +33,10 @@ import javax.annotation.Nonnull;
 public final class FlowerPotSystem extends EntityEventSystem<EntityStore, UseBlockEvent.Pre> {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
+    /** After the colony protection, so that a refused use is already cancelled here. */
+    private final Set<Dependency<EntityStore>> dependencies =
+            Set.of(new SystemDependency<>(Order.AFTER, BlockUseProtectionSystem.class));
+
     private final FlowerPotBlocks blocks;
     private final FlowerPot rule;
 
@@ -36,6 +44,11 @@ public final class FlowerPotSystem extends EntityEventSystem<EntityStore, UseBlo
         super(UseBlockEvent.Pre.class);
         this.blocks = new FlowerPotBlocks(ids.flowerPots());
         this.rule = new FlowerPot(blocks.plants());
+    }
+
+    @Override
+    public Set<Dependency<EntityStore>> getDependencies() {
+        return dependencies;
     }
 
     @Override
@@ -86,10 +99,11 @@ public final class FlowerPotSystem extends EntityEventSystem<EntityStore, UseBlo
         switch (outcome) {
             case FlowerPot.Plant plant -> {
                 // Pot first: a hand that changed meanwhile then undoes it, and nothing is lost.
-                String potted = blocks.block(pot, Optional.of(plant.plant())).orElse(null);
-                if (use.swap(potted) && plant.consume() && !use.takeOneHeld()) {
-                    use.swap(pot);
-                }
+                blocks.block(pot, Optional.of(plant.plant())).ifPresent(potted -> {
+                    if (use.swap(potted) && plant.consume() && !use.takeOneHeld()) {
+                        use.swap(pot);
+                    }
+                });
             }
             case FlowerPot.GiveBack back -> {
                 if (use.swap(pot)) {

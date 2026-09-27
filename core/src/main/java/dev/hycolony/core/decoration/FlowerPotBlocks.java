@@ -34,7 +34,9 @@ public final class FlowerPotBlocks {
         return Optional.ofNullable(byBlock.get(block));
     }
 
-    /** The block of {@code pot} holding {@code plant} (the empty pot for none); empty when that pot has no such block. */
+    /**
+     * The block of {@code pot} holding {@code plant} (the empty pot for none); empty when that pot has no such block.
+     */
     public Optional<String> block(String pot, Optional<String> plant) {
         Map<String, String> potted = pots.get(pot);
         if (potted == null) {

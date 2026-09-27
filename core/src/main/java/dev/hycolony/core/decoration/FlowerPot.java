@@ -4,10 +4,10 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * What using a flower pot does, like Minecraft FlowerPotBlock.useItemOn then useWithoutItem: an empty pot takes a pottable
- * plant (one consumed unless creative, Minecraft ItemStack.consume); a filled pot gives its plant back unless the player holds
- * a pottable plant. Deviation from MC: a requested addition, the flower pot being a vanilla Minecraft block that
- * MineColonies only uses in its schematics.
+ * What using a flower pot does, like Minecraft FlowerPotBlock.useItemOn then useWithoutItem: an empty pot takes a
+ * pottable plant (one consumed unless creative, Minecraft ItemStack.consume); a filled pot gives its plant back unless
+ * the player holds a pottable plant. Deviation from MC: a requested addition, the flower pot being a vanilla
+ * Minecraft block that MineColonies only uses in its schematics.
  *
  * @param pottable the plant items a pot accepts (the Decorations pack's table)
  */

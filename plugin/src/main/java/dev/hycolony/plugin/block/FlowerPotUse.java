@@ -15,7 +15,6 @@ import com.hypixel.hytale.server.core.universe.world.chunk.section.BlockSection;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import org.joml.Vector3i;
-import org.jspecify.annotations.Nullable;
 
 /**
  * The world and inventory changes of one flower pot use, done as the vanilla interactions do them: the pot's block is
@@ -32,8 +31,8 @@ record FlowerPotUse(
     private static final int SWAP_SETTINGS = 260;
 
     /** Replaces the pot at the target by the block {@code key}, keeping its rotation; false if key or chunk is gone. */
-    boolean swap(@Nullable String key) {
-        int id = key == null ? Integer.MIN_VALUE : BlockType.getAssetMap().getIndex(key);
+    boolean swap(String key) {
+        int id = BlockType.getAssetMap().getIndex(key);
         ChunkStore chunks = world.getChunkStore();
         Ref<ChunkStore> section = chunks.getChunkSectionReferenceAtBlock(target.x, target.y, target.z);
         BlockType type =
@@ -62,7 +61,7 @@ record FlowerPotUse(
         return true;
     }
 
-    /** Gives one {@code item} to the player, dropped at his feet when his inventory is full (Minecraft Player.addItem). */
+    /** Gives one {@code item} to the player, dropped at his feet if his inventory is full (Minecraft addItem). */
     void give(String item) {
         ItemContainer inventory =
                 InventoryComponent.getCombined(buffer, player, InventoryComponent.HOTBAR_STORAGE_BACKPACK);

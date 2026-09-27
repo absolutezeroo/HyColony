@@ -13,25 +13,25 @@ import java.util.function.Predicate;
  * colonyProtectionException tag) since HyColony has no way yet to declare them; no scan tool check, HyColony has no
  * scan tool; no PvP-mode exception.
  *
- * @param toggleable a door or a gate (MC BlockTags.DOORS, FENCE_GATES)
- * @param container a block holding items (MC BaseEntityBlock with a container)
- * @param blockEntity a block with a block entity (MC Level.getBlockEntity != null)
+ * @param toggleable a door or a gate (Minecraft BlockTags.DOORS, FENCE_GATES)
+ * @param container a block holding items (Minecraft BaseEntityBlock with a container)
+ * @param blockEntity a block with a block entity (Minecraft Level.getBlockEntity != null)
  * @param held what the player holds
  */
 public record BlockUse(boolean toggleable, boolean container, boolean blockEntity, Held held) {
     /** The held item, as far as the rule cares. */
     public enum Held {
         NOTHING,
-        /** MC ItemStack.isEdible. */
+        /** Minecraft ItemStack.isEdible. */
         FOOD,
-        /** MC PotionItem. */
+        /** Minecraft PotionItem. */
         POTION,
         OTHER
     }
 
     /**
-     * The action the player lacks for this use, or empty when it is allowed. {@code allowed}: what the player's rank may
-     * do in this colony; {@code protection}: MC enableColonyProtection. Same order of checks as MC.
+     * The action the player lacks for this use, or empty when it is allowed. {@code allowed}: what the player's rank
+     * may do in this colony; {@code protection}: MC enableColonyProtection. Same order of checks as MC.
      */
     public Optional<Action> refused(Predicate<Action> allowed, boolean protection) {
         if ((toggleable && allowed.test(Action.ACCESS_TOGGLEABLES)) || !protection) {

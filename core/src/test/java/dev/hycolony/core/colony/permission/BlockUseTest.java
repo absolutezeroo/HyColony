@@ -38,6 +38,12 @@ class BlockUseTest {
     }
 
     @Test
+    void aDoorWithoutAccessToToggleablesIsAPlainBlock() {
+        BlockUse door = new BlockUse(true, false, false, Held.NOTHING);
+        assertEquals(Optional.empty(), refused(door, Set.of(Action.RIGHTCLICK_BLOCK), true));
+    }
+
+    @Test
     void aContainerAlsoNeedsOpenContainer() {
         BlockUse chest = new BlockUse(false, true, true, Held.NOTHING);
         assertEquals(Optional.of(Action.OPEN_CONTAINER), refused(chest, Set.of(Action.RIGHTCLICK_BLOCK), true));

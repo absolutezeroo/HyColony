@@ -13,8 +13,8 @@ public final class BlockSystems {
     private BlockSystems() {}
 
     /**
-     * Hut, then protection, then flower pot systems: they handle the same block events in that order, so a use the
-     * colony refuses is already cancelled when the flower pot sees it.
+     * Registers the hut, protection and flower pot systems. The flower pot runs after the protection through its own
+     * dependency, which must already be registered.
      */
     public static void register(
             ComponentRegistryProxy<EntityStore> registry, WorldRuntimes worlds, IdMap ids, boolean flowerPots) {
