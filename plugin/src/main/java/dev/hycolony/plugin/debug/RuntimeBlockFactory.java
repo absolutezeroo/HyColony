@@ -1,12 +1,14 @@
 package dev.hycolony.plugin.debug;
 
 import com.hypixel.hytale.assetstore.AssetUpdateQuery;
+import com.hypixel.hytale.protocol.packets.setup.RequestCommonAssetsRebuild;
 import com.hypixel.hytale.server.core.asset.common.CommonAsset;
 import com.hypixel.hytale.server.core.asset.common.CommonAssetModule;
 import com.hypixel.hytale.server.core.asset.common.CommonAssetRegistry;
 import com.hypixel.hytale.server.core.asset.common.asset.FileCommonAsset;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.CustomModelTexture;
+import com.hypixel.hytale.server.core.universe.Universe;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -37,9 +39,6 @@ final class RuntimeBlockFactory {
     private static final String STRIPE_TEXTURE = "Blocks/Structures/Roofs/Cloth_Roof_Textures/Tent_Red.png";
     private static final String TEXTURE_DIR = "Blocks/HyColony/DoTest/";
     private static final int STRIPE_PX = 16;
-    /** Only the texture caches: the model is the source's, already known to clients. */
-    private static final AssetUpdateQuery TEXTURES_ONLY =
-            new AssetUpdateQuery(new AssetUpdateQuery.RebuildCache(true, false, true, false, false, false));
 
     private final String packKey;
     private Path textureDir;
@@ -78,8 +77,8 @@ final class RuntimeBlockFactory {
 
     /**
      * Writes the PNG to a temp directory (created on first use), registers it as common asset
-     * {@code Blocks/HyColony/DoTest/<name>.png}, then sends it to every connected player followed by a common-assets
-     * rebuild request, in one batch. Returns the asset name.
+     * {@code Blocks/HyColony/DoTest/<name>.png}; {@code CommonAssetModule.addCommonAsset} sends it to every connected
+     * player. Clients use it only after the rebuild that {@link #registerBlockType} requests. Returns the asset name.
      */
     String registerTexture(String name, byte[] png) {
         String assetName = TEXTURE_DIR + name + ".png";
@@ -95,22 +94,18 @@ final class RuntimeBlockFactory {
             throw new UncheckedIOException(e);
         }
         FileCommonAsset asset = new FileCommonAsset(file, assetName, png);
-        // The asset holds its bytes by weak reference: keeping the blob reachable makes both sends write now, on this
-        // thread, before the BlockType packet.
+        // The asset holds its bytes by weak reference: keeping the blob reachable makes addCommonAsset send it now, on
+        // this thread, before the BlockType packet.
         CompletableFuture<byte[]> blob = asset.getBlob();
-        CommonAssetModule module = CommonAssetModule.get();
-        module.addCommonAsset(packKey, asset);
-        // addCommonAsset sends without a rebuild request (seen in game: missing textures until reconnect); this second
-        // send carries AssetInitialize/Part/Finalize and RequestCommonAssetsRebuild in a single broadcast.
-        module.sendAsset(asset, true);
+        CommonAssetModule.get().addCommonAsset(packKey, asset);
         Reference.reachabilityFence(blob);
         return assetName;
     }
 
     /**
      * Loads BlockType {@code id}: a copy of {@link #SOURCE_BLOCK} with {@code texture}, without its states and
-     * connected-block rules (so it never turns into a vanilla corner). Clients rebuild only their block and model
-     * texture caches; {@code HytaleAssetStore.handleRemoveOrUpdate} broadcasts the {@code UpdateBlockTypes} packet.
+     * connected-block rules (so it never turns into a vanilla corner), then asks every client to rebuild its common
+     * assets. {@code HytaleAssetStore.handleRemoveOrUpdate} broadcasts the {@code UpdateBlockTypes} packet.
      */
     void registerBlockType(String id, String texture) {
         BlockType source = BlockType.getAssetMap().getAsset(SOURCE_BLOCK);
@@ -118,10 +113,13 @@ final class RuntimeBlockFactory {
             throw new IllegalStateException("missing source block " + SOURCE_BLOCK);
         }
         BlockType generated = new GeneratedBlockType(source, id, texture);
-        BlockType.getAssetStore().loadAssets(packKey, List.of(generated), TEXTURES_ONLY);
+        BlockType.getAssetStore().loadAssets(packKey, List.of(generated), AssetUpdateQuery.DEFAULT);
         if (BlockType.getAssetMap().getIndex(id) == Integer.MIN_VALUE) {
             throw new IllegalStateException("BlockType " + id + " was not loaded");
         }
+        // Seen in game: without a rebuild the texture stays missing until reconnect, and a rebuild sent before
+        // UpdateBlockTypes (alone or batched with the texture) does not help; only a rebuild after it does.
+        Universe.get().broadcastPacketNoCache(new RequestCommonAssetsRebuild());
     }
 
     private static BufferedImage read(String name) {

@@ -124,7 +124,15 @@ Les briques et blocs « extra » ont des recettes vanilla : par exemple `beige_b
 - **Génération à l'exécution (comme DO, à la demande)** : les mécanismes existent.
   - `CommonAssetModule.addCommonAsset(pack, asset)` diffuse l'asset aux joueurs connectés (`H: server/core/asset/common/CommonAssetModule.java:187-221`) et `sendAssets` l'envoie en `AssetInitialize`/`AssetPart`/`AssetFinalize` (l.542-561).
   - `AssetStore.loadAssets(packKey, List<T>)` charge des assets à chaud (`H: assetstore/AssetStore.java:464-474`), et `UpdateType.AddOrUpdate` existe (`H: protocol/UpdateType.java:6-8`).
-  - Mais `addCommonAsset` envoie une **notification à tout l'univers** à chaque ajout (l.203-208) : c'est l'outil de rechargement de l'éditeur d'assets. Les seules implémentations de `CommonAsset` sont `FileCommonAsset` et `ResourceCommonAsset` : aucune ne vient de la mémoire. Fiabilité et coût sont inconnus **[in-game]**. La **génération au build** du pack d'assets du plugin (`IncludesAssetPack: true`, `plugin/src/main/resources/manifest.json`) est plus sûre.
+  - Mais `addCommonAsset` envoie une **notification à tout l'univers** à chaque ajout (l.203-208) : c'est l'outil de rechargement de l'éditeur d'assets. Les seules implémentations de `CommonAsset` sont `FileCommonAsset` et `ResourceCommonAsset` : aucune ne vient de la mémoire. La **génération au build** du pack d'assets du plugin (`IncludesAssetPack: true`, `plugin/src/main/resources/manifest.json`) reste possible.
+- **Résultat en jeu (2026-09-27, `/hycolony dotest`, `plugin/.../debug/`) : la génération à l'exécution fonctionne, sans reconnexion, à condition de respecter l'ordre.**
+  - Séquence qui marche : `addCommonAsset` (la PNG part), puis `BlockType.getAssetStore().loadAssets(..., AssetUpdateQuery.DEFAULT)` (le paquet `UpdateBlockTypes` part), puis `RequestCommonAssetsRebuild` diffusé **après**.
+  - Séquences qui échouent (texture rose et noire jusqu'à la reconnexion ; après reconnexion, tout s'affiche) :
+    - aucune demande de reconstruction ;
+    - demande envoyée juste après la texture, avant le `BlockType`, même avec 2 à 3 s d'écart (`--delay`) et des PNG au hash unique ;
+    - `sendAsset(asset, true)` (texture et demande dans le même lot), suivi d'un `BlockType` chargé avec seulement `blockTextures` et `modelTextures`.
+  - Chaque ajout fait scintiller l'image (reconstruction complète des assets du client) et envoie une notification d'asset. Pour DO, il faudra regrouper les créations.
+  - Le chargement doit se faire **hors du thread du monde** : `World.tick` tient le verrou de lecture de `AssetRegistry.ASSET_LOCK` et `loadAssets` demande son verrou d'écriture (blocage définitif, voir `docs/research/plugin-b-api.md` § 17).
 
 ### B.7 Données propres à une pile d'objets
 
