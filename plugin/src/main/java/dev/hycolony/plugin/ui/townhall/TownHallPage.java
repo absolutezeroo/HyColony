@@ -61,6 +61,11 @@ public final class TownHallPage extends ColonyPage {
         this.orders = new WorkOrderListTab(manager, player, view.colonyId(), view.workOrders());
     }
 
+    /** The view drawn, to tell whose window this is. */
+    public TownHallView view() {
+        return view;
+    }
+
     /** Opens on the tab {@code previous} showed if it is this colony's town hall (the core re-shows after actions). */
     public TownHallPage keepTabOf(@Nullable CustomUIPage previous) {
         if (previous instanceof TownHallPage p && p.view.colonyId() == view.colonyId()) {

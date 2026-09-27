@@ -6,13 +6,18 @@ import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.permission.Action;
+import dev.hycolony.core.colony.ui.BuildingView;
+import dev.hycolony.core.colony.ui.CitizenView;
+import dev.hycolony.core.colony.ui.TownHallView;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.port.Msg;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
  * Shows the colony's windows (MC's Window* classes) through the UI port. Opening one needs ACCESS_HUTS, else the
- * player is told; the {@code show*} methods re-show a window after an action that already checked its permission.
+ * player is told; the {@code show*} methods re-show a window after an action that already checked its permission. The
+ * hut, town hall and citizen windows shown stay live ({@link OpenWindows}).
  */
 public final class ColonyWindows {
     private final ColonyManager manager;
@@ -21,6 +26,7 @@ public final class ColonyWindows {
     private final BuildingViews buildings;
     private final RequestViews requests;
     private final CitizenViews citizens;
+    private final OpenWindows open = new OpenWindows();
 
     public ColonyWindows(ColonyManager manager) {
         this.manager = manager;
@@ -42,7 +48,14 @@ public final class ColonyWindows {
         if (d == null || !canAccess(c, player)) {
             return;
         }
-        ctx.ui().showCitizen(player, citizens.of(c, d, player));
+        CitizenView view = citizens.of(c, d, player);
+        ctx.ui().showCitizen(player, view);
+        open.watch(
+                player,
+                view,
+                () -> watchable(c.id(), player)
+                        .flatMap(col -> col.citizens().get(citizenId).map(cd -> citizens.of(col, cd, player))),
+                ctx.ui()::refreshCitizen);
     }
 
     /** Any hut's window; the town hall's window reaches it through its "building" action. */
@@ -82,7 +95,13 @@ public final class ColonyWindows {
      * see it (ACCESS_HUTS, or the right its own action requires). Public for the colony actions.
      */
     public void showTownHall(Colony c, UUID viewer) {
-        ctx.ui().showTownHall(viewer, townHall.of(c, viewer));
+        TownHallView view = townHall.of(c, viewer);
+        ctx.ui().showTownHall(viewer, view);
+        open.watch(
+                viewer,
+                view,
+                () -> watchable(c.id(), viewer).map(col -> townHall.of(col, viewer)),
+                ctx.ui()::refreshTownHall);
     }
 
     /**
@@ -90,7 +109,25 @@ public final class ColonyWindows {
      * see it (ACCESS_HUTS, or the right its own action requires). Public for the colony actions.
      */
     public void showBuilding(Colony c, Building b, UUID viewer) {
-        ctx.ui().showBuilding(viewer, buildings.of(c, b, viewer));
+        BuildingView view = buildings.of(c, b, viewer);
+        ctx.ui().showBuilding(viewer, view);
+        BlockPos pos = b.position();
+        open.watch(
+                viewer,
+                view,
+                () -> watchable(c.id(), viewer)
+                        .flatMap(col -> col.buildings().at(pos).map(hut -> buildings.of(col, hut, viewer))),
+                ctx.ui()::refreshBuilding);
+    }
+
+    /** MC's subscriber update: redraws each open colony window whose view changed. Called every tick. */
+    public void tick() {
+        open.tick();
+    }
+
+    /** The colony, while it exists and {@code viewer} may still see its windows (ACCESS_HUTS); silent. */
+    private Optional<Colony> watchable(int colonyId, UUID viewer) {
+        return manager.byId(colonyId).filter(c -> c.permissions().hasPermission(viewer, Action.ACCESS_HUTS));
     }
 
     /** ACCESS_HUTS, else the player is told. */

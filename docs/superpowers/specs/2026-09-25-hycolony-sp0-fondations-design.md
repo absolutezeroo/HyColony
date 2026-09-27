@@ -87,8 +87,10 @@ Ce sont des interfaces définies dans `kernel.port`. Le plugin les implémente, 
 | `WorldQuery` | le chunk contenant une position est-il chargé ; hauteur du sol (pour choisir un point d'errance ou d'apparition) | `ChunkStore.getChunkReference`, `BlockSection` |
 | `ColonyStorage` | lire, écrire et lister les documents JSON des colonies | `FileColonyStorage` (dans le core, java.nio) ; le plugin ne fournit que le dossier |
 | `Notifier` | envoyer un message traduisible à un joueur | `Message.translation(...)`, `playerRef.sendMessage` |
-| `UiPort` | afficher un modèle de vue à un joueur ; fermer | `InteractiveCustomUIPage` + fichiers `.ui` |
+| `UiPort` | afficher un modèle de vue à un joueur ; redessiner en place la fenêtre encore ouverte (`refresh*`) ; fermer | `InteractiveCustomUIPage` + fichiers `.ui` |
 | `PlayerDirectory` | un joueur est-il en ligne ; son nom ; sa position | `Universe.get().getPlayer(uuid)` |
+
+Fenêtres vivantes : comme `ColonyPackageManager.updateSubscribers` de MineColonies (toutes les `UPDATE_SUBSCRIBERS_INTERVAL` = 20 ticks), `ColonyWindows` redessine la fenêtre de hutte, d'hôtel de ville ou de citoyen que chaque joueur a ouverte (`OpenWindows`). Écart : pas de drapeaux « sale » par vue ; la vue recalculée est comparée à la dernière affichée, ce qui envoie les mêmes mises à jour. Le plugin ne redessine que si cette fenêtre est encore la page ouverte, par une mise à jour non initiale (`rebuild`), jamais par une réouverture.
 
 Le core ne contient **aucune notion Hytale** : pas de `Ref`, `Store` ni `BlockType`. Les positions sont un `record BlockPos(int x, int y, int z)` et un `record Vec3(double x, double y, double z)` propres au core. Les mondes sont identifiés par un `WorldKey(String name)`.
 

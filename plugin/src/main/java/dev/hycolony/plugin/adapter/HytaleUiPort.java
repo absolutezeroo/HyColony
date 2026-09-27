@@ -2,24 +2,13 @@ package dev.hycolony.plugin.adapter;
 
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
-import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.protocol.packets.interface_.Page;
-import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.entity.entities.player.pages.CustomUIPage;
 import com.hypixel.hytale.server.core.entity.entities.player.pages.PageManager;
-import com.hypixel.hytale.server.core.inventory.InventoryComponent;
-import com.hypixel.hytale.server.core.inventory.ItemStack;
-import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
-import com.hypixel.hytale.server.core.modules.interaction.BlockHarvestUtils;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
-import com.hypixel.hytale.server.core.universe.world.SetBlockSettings;
-import com.hypixel.hytale.server.core.universe.world.World;
-import com.hypixel.hytale.server.core.universe.world.chunk.section.BlockSection;
-import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.ui.BuildingView;
 import dev.hycolony.core.colony.ui.CitizenView;
@@ -33,6 +22,7 @@ import dev.hycolony.core.construction.wand.WandActions;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.plugin.IdMap;
 import dev.hycolony.plugin.ui.BuildingPage;
+import dev.hycolony.plugin.ui.ColonyPage;
 import dev.hycolony.plugin.ui.FoundColonyPage;
 import dev.hycolony.plugin.ui.RequestsPage;
 import dev.hycolony.plugin.ui.citizen.CitizenInventoryWindows;
@@ -45,13 +35,11 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
-import java.util.logging.Level;
-import org.joml.Vector3i;
 
 /** Renders core view models with Hytale custom pages. World thread only. */
 public final class HytaleUiPort implements UiPort {
-    private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
     private final Supplier<ColonyManager> manager;
     private final Supplier<WandActions> wand;
     private final HytaleBlocks blocks;
@@ -59,12 +47,14 @@ public final class HytaleUiPort implements UiPort {
     private final String townHallBlockId;
     private final String townHallItemId;
     private final CitizenInventoryWindows citizenInventories;
+    private final HutPickUp pickUp;
     /** Players whose page Hytale is closing right now: close() must not close it a second time. */
     private final Set<UUID> closing = new HashSet<>();
 
     public HytaleUiPort(Supplier<ColonyManager> manager, Supplier<WandActions> wand, HytaleBlocks blocks, IdMap ids) {
         this.manager = manager;
         this.citizenInventories = new CitizenInventoryWindows(manager);
+        this.pickUp = new HutPickUp(manager, ids);
         this.wand = wand;
         this.blocks = blocks;
         this.ids = ids;
@@ -108,15 +98,49 @@ public final class HytaleUiPort implements UiPort {
 
     @Override
     public void showTownHall(UUID player, TownHallView view) {
-        open(player, (pr, previous) -> new TownHallPage(pr, view, manager.get()).keepTabOf(previous));
+        open(player, townHallPage(view));
     }
 
     @Override
     public void showBuilding(UUID player, BuildingView view) {
-        open(
+        open(player, buildingPage(player, view));
+    }
+
+    @Override
+    public boolean refreshBuilding(UUID player, BuildingView view) {
+        return refresh(
                 player,
-                (pr, previous) ->
-                        new BuildingPage(pr, view, manager.get(), () -> pickUp(player, view)).keepTabOf(previous));
+                p -> p instanceof BuildingPage b && b.view().pos().equals(view.pos()),
+                buildingPage(player, view));
+    }
+
+    @Override
+    public boolean refreshTownHall(UUID player, TownHallView view) {
+        return refresh(
+                player, p -> p instanceof TownHallPage t && t.view().colonyId() == view.colonyId(), townHallPage(view));
+    }
+
+    @Override
+    public boolean refreshCitizen(UUID player, CitizenView view) {
+        return refresh(
+                player,
+                p -> p instanceof CitizenPage c
+                        && c.view().colonyId() == view.colonyId()
+                        && c.view().citizenId() == view.citizenId(),
+                citizenPage(view));
+    }
+
+    private BiFunction<PlayerRef, CustomUIPage, ColonyPage> townHallPage(TownHallView view) {
+        return (pr, previous) -> new TownHallPage(pr, view, manager.get()).keepTabOf(previous);
+    }
+
+    private BiFunction<PlayerRef, CustomUIPage, ColonyPage> buildingPage(UUID player, BuildingView view) {
+        return (pr, previous) ->
+                new BuildingPage(pr, view, manager.get(), () -> pickUp.run(player, view)).keepTabOf(previous);
+    }
+
+    private BiFunction<PlayerRef, CustomUIPage, ColonyPage> citizenPage(CitizenView view) {
+        return (pr, previous) -> new CitizenPage(pr, view, manager.get(), ids).keepTabOf(previous);
     }
 
     @Override
@@ -126,7 +150,7 @@ public final class HytaleUiPort implements UiPort {
 
     @Override
     public void showCitizen(UUID player, CitizenView view) {
-        open(player, (pr, previous) -> new CitizenPage(pr, view, manager.get(), ids).keepTabOf(previous));
+        open(player, citizenPage(view));
     }
 
     @Override
@@ -145,60 +169,6 @@ public final class HytaleUiPort implements UiPort {
         if (pr != null) {
             pr.sendMessage(RequestsPage.needsPlayer(notice));
         }
-    }
-
-    /** "Pick up": the hut item goes to the player's inventory; once the core agrees, the block goes without a drop. */
-    private void pickUp(UUID player, BuildingView view) {
-        ColonyManager m = manager.get();
-        BuildingType type = m.context().buildingTypes().byId(view.typeId()).orElse(null);
-        PlayerRef pr = Universe.get().getPlayer(player);
-        Ref<EntityStore> ref = pr == null ? null : pr.getReference();
-        if (type == null || ref == null || !ref.isValid()) {
-            return;
-        }
-        String itemId = ids.itemId(type.hutBlockKey());
-        if (m.huts().pickUp(player, view.pos(), () -> give(ref, itemId))) {
-            removeWithoutDrop(ref.getStore().getExternalData().getWorld(), view.pos(), ids.blockId(type.hutBlockKey()));
-        }
-    }
-
-    /**
-     * Removes the hut block if it is still {@code blockId}, with no item drop (the player already got it). Its
-     * container's contents still spill on the ground (ItemContainerSystems drops them on any removal).
-     */
-    private static void removeWithoutDrop(World world, BlockPos pos, String blockId) {
-        ChunkStore cs = world.getChunkStore();
-        Ref<ChunkStore> section = cs.getChunkSectionReferenceAtBlock(pos.x(), pos.y(), pos.z());
-        BlockSection blocks =
-                section == null ? null : cs.getStore().getComponent(section, BlockSection.getComponentType());
-        if (blocks == null) {
-            return;
-        }
-        BlockType type = BlockType.getAssetMap().getAsset(blocks.get(pos.x(), pos.y(), pos.z()));
-        if (type == null || !(blockId.equals(type.getId()) || blockId.equals(type.getDefaultStateKey()))) {
-            // The core already dropped the building and the player has the item: the block is left alone.
-            LOG.at(Level.WARNING).log(
-                    "HyColony pick-up: expected %s at %s, found %s; block left in place",
-                    blockId, pos, type == null ? "nothing" : type.getId());
-            return;
-        }
-        BlockHarvestUtils.naturallyRemoveBlock(
-                new Vector3i(pos.x(), pos.y(), pos.z()),
-                type,
-                blocks.getFiller(pos.x(), pos.y(), pos.z()),
-                0,
-                null,
-                null,
-                SetBlockSettings.NO_DROP_ITEMS,
-                section,
-                world.getEntityStore().getStore(),
-                cs.getStore());
-    }
-
-    /** One {@code itemId} into hotbar then storage; true only if it fit. */
-    private static boolean give(Ref<EntityStore> ref, String itemId) {
-        ItemContainer inv = InventoryComponent.getCombined(ref.getStore(), ref, InventoryComponent.HOTBAR_FIRST);
-        return ItemStack.isEmpty(inv.addItemStack(new ItemStack(itemId, 1)).getRemainder());
     }
 
     @Override
@@ -220,7 +190,7 @@ public final class HytaleUiPort implements UiPort {
     }
 
     /** {@code page} also gets the page the player has open now (null if none), to keep its local state. */
-    private void open(UUID player, BiFunction<PlayerRef, CustomUIPage, CustomUIPage> page) {
+    private void open(UUID player, BiFunction<PlayerRef, CustomUIPage, ? extends CustomUIPage> page) {
         PlayerRef pr = Universe.get().getPlayer(player);
         Ref<EntityStore> ref = pr == null ? null : pr.getReference();
         if (ref == null || !ref.isValid()) {
@@ -228,6 +198,27 @@ public final class HytaleUiPort implements UiPort {
         }
         Store<EntityStore> store = ref.getStore();
         PageManager pages = store.getComponent(ref, Player.getComponentType()).getPageManager();
-        pages.openCustomPage(ref, store, page.apply(pr, pages.getCustomPage()));
+        CustomUIPage current = pages.getCustomPage();
+        pages.openCustomPage(ref, store, page.apply(pr, current instanceof ColonyPage c ? c.live() : current));
+    }
+
+    /**
+     * Redraws in place the page open now if {@code same} accepts it; opens nothing. False when the player is gone, or
+     * has closed that window or opened another one (a vanilla page, the wand, a citizen inventory) since.
+     */
+    private boolean refresh(
+            UUID player, Predicate<ColonyPage> same, BiFunction<PlayerRef, CustomUIPage, ColonyPage> page) {
+        PlayerRef pr = Universe.get().getPlayer(player);
+        Ref<EntityStore> ref = pr == null ? null : pr.getReference();
+        if (ref == null || !ref.isValid()) {
+            return false;
+        }
+        Player p = ref.getStore().getComponent(ref, Player.getComponentType());
+        CustomUIPage current = p == null ? null : p.getPageManager().getCustomPage();
+        if (!(current instanceof ColonyPage open) || !same.test(open.live())) {
+            return false;
+        }
+        open.refreshWith(page.apply(pr, open.live()));
+        return true;
     }
 }

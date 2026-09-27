@@ -164,6 +164,7 @@ public final class ColonyManager {
         for (Colony colony : colonies.values()) {
             colony.tick();
         }
+        windows.tick();
     }
 
     public void onBodyLoaded(BodyId body, int colonyId, int citizenId) {

@@ -79,6 +79,11 @@ public final class BuildingPage extends ColonyPage {
         }
     }
 
+    /** The view drawn, to tell whose window this is. */
+    public BuildingView view() {
+        return view;
+    }
+
     /** Opens on the tab {@code previous} showed if it is this hut's window (the core re-shows after each action). */
     public BuildingPage keepTabOf(@Nullable CustomUIPage previous) {
         if (previous instanceof BuildingPage p && p.view.pos().equals(view.pos()) && tabs.contains(p.tab)) {

@@ -67,6 +67,11 @@ public final class CitizenPage extends ColonyPage {
         }
     }
 
+    /** The view drawn, to tell whose window this is. */
+    public CitizenView view() {
+        return view;
+    }
+
     /** Opens on the tab {@code previous} showed if it is this citizen's window (the core re-shows after actions). */
     public CitizenPage keepTabOf(@Nullable CustomUIPage previous) {
         if (previous instanceof CitizenPage p && p.view.citizenId() == view.citizenId() && tabs.contains(p.tab)) {

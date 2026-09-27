@@ -3,6 +3,8 @@ package dev.hycolony.plugin.ui;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
+import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.protocol.packets.interface_.CustomPageLifetime;
 import com.hypixel.hytale.protocol.packets.interface_.CustomUIEventBindingType;
 import com.hypixel.hytale.server.core.Message;
@@ -11,8 +13,11 @@ import com.hypixel.hytale.server.core.entity.entities.player.pages.InteractiveCu
 import com.hypixel.hytale.server.core.ui.builder.EventData;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.colony.ColonyManager;
 import java.util.UUID;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * A HyColony window: buttons send {@code Action} (+ {@code Index} for list rows) and call ColonyManager, which
@@ -61,11 +66,37 @@ public abstract class ColonyPage extends InteractiveCustomUIPage<ColonyPage.Act>
 
     protected final ColonyManager manager;
     protected final UUID player;
+    /** The page answering for this one since the last live refresh; null until then. */
+    @Nullable
+    private ColonyPage successor;
 
     protected ColonyPage(PlayerRef playerRef, ColonyManager manager) {
         super(playerRef, CustomPageLifetime.CanDismiss, Act.CODEC);
         this.manager = manager;
         this.player = playerRef.getUuid();
+    }
+
+    /** The page that draws and answers this window now (see {@link #refreshWith}). */
+    public final ColonyPage live() {
+        return successor == null ? this : successor;
+    }
+
+    /**
+     * Redraws this open window in place with {@code fresh}'s content, which from now on answers its events. Unlike
+     * {@code openCustomPage}, the client gets a non-initial update (as a tab change), so the window is not reopened.
+     */
+    public final void refreshWith(ColonyPage fresh) {
+        successor = fresh;
+        fresh.rebuild();
+    }
+
+    @Override
+    public void handleDataEvent(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, String rawData) {
+        if (successor == null) {
+            super.handleDataEvent(ref, store, rawData);
+        } else {
+            successor.handleDataEvent(ref, store, rawData);
+        }
     }
 
     public static void bind(UIEventBuilder events, String selector, String action) {

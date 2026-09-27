@@ -14,6 +14,18 @@ public interface UiPort {
 
     void showCitizen(UUID player, CitizenView view);
 
+    /**
+     * Redraws in place the window of this hut if {@code player} still has it open (MC building view sync); never
+     * opens one. False when that window is closed or replaced by another.
+     */
+    boolean refreshBuilding(UUID player, BuildingView view);
+
+    /** {@link #refreshBuilding} for the town hall window of the view's colony. */
+    boolean refreshTownHall(UUID player, TownHallView view);
+
+    /** {@link #refreshBuilding} for this citizen's window. */
+    boolean refreshCitizen(UUID player, CitizenView view);
+
     /** The build tool window; re-shown after every button. */
     void showWand(UUID player, WandView view);
 

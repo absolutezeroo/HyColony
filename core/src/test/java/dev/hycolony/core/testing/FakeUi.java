@@ -25,6 +25,8 @@ public final class FakeUi implements UiPort {
     public record OpenedInventory(UUID player, int colonyId, int citizenId) {}
 
     public final List<OpenedInventory> openedInventories = new ArrayList<>();
+    /** Views drawn in place by a live refresh, in order; a refresh never touches {@link #shown}'s keys. */
+    public final List<Object> redrawn = new ArrayList<>();
     /** Runs inside close(), like Hytale calling the page's onDismiss before it forgets the page. */
     public Consumer<UUID> onClose = p -> {};
 
@@ -66,6 +68,38 @@ public final class FakeUi implements UiPort {
     @Override
     public void notifyNeedsPlayer(UUID player, NeedsPlayerNotice notice) {
         notices.add(new Notice(player, notice));
+    }
+
+    @Override
+    public boolean refreshBuilding(UUID player, BuildingView view) {
+        return redraw(
+                player,
+                view,
+                shown.get(player) instanceof BuildingView b && b.pos().equals(view.pos()));
+    }
+
+    @Override
+    public boolean refreshTownHall(UUID player, TownHallView view) {
+        return redraw(player, view, shown.get(player) instanceof TownHallView v && v.colonyId() == view.colonyId());
+    }
+
+    @Override
+    public boolean refreshCitizen(UUID player, CitizenView view) {
+        return redraw(
+                player,
+                view,
+                shown.get(player) instanceof CitizenView v
+                        && v.colonyId() == view.colonyId()
+                        && v.citizenId() == view.citizenId());
+    }
+
+    /** Like Hytale: only the window still open is redrawn. */
+    private boolean redraw(UUID player, Object view, boolean stillOpen) {
+        if (stillOpen) {
+            shown.put(player, view);
+            redrawn.add(view);
+        }
+        return stillOpen;
     }
 
     @Override
