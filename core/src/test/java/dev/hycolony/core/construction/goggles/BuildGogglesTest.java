@@ -143,7 +143,13 @@ class BuildGogglesTest {
     void configuredGoggleRangeReplacesTheFiftyBlockDefault() {
         ColonyConfig d = ColonyConfig.defaults();
         start(new ColonyConfig(
-                d.gameplay(), d.claims(), d.permissions(), d.commands(), new ColonyConfig.Client(10), d.hycolony()));
+                d.gameplay(),
+                d.claims(),
+                d.permissions(),
+                d.commands(),
+                new ColonyConfig.Client(10),
+                d.hycolony(),
+                d.structurize()));
         claimedBuild();
         t.players.online.put(alice, HOUSE.offset(11, 0, 0));
 

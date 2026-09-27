@@ -25,7 +25,8 @@ class ColonyProtectionTest {
 
     private ColonyManager start(ColonyConfig.Permissions permissions) {
         ColonyConfig d = ColonyConfig.defaults();
-        t.config = new ColonyConfig(d.gameplay(), d.claims(), permissions, d.commands(), d.client(), d.hycolony());
+        t.config = new ColonyConfig(
+                d.gameplay(), d.claims(), permissions, d.commands(), d.client(), d.hycolony(), d.structurize());
         ColonyManager manager = new ColonyManager(t.context());
         manager.foundation().begin(alice, "Alice", hall, 0);
         manager.foundation().confirm(alice, "A").orElseThrow();

@@ -29,7 +29,8 @@ class SpawnDistanceTest {
                 d.permissions(),
                 d.commands(),
                 d.client(),
-                d.hycolony());
+                d.hycolony(),
+                d.structurize());
         t.world.spawn = new BlockPos(0, 100, 0);
         return new ColonyManager(t.context());
     }

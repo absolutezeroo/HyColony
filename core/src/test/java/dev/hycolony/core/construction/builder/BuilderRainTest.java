@@ -99,7 +99,8 @@ class BuilderRainTest {
                 d.permissions(),
                 d.commands(),
                 d.client(),
-                d.hycolony());
+                d.hycolony(),
+                d.structurize());
     }
 
     private Building place(ColonyManager manager, String type, BlockPos pos, int level) {

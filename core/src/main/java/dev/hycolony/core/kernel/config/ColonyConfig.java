@@ -10,7 +10,8 @@ public record ColonyConfig(
         Permissions permissions,
         Commands commands,
         Client client,
-        HyColony hycolony) {
+        HyColony hycolony,
+        Structurize structurize) {
 
     /** MC ServerConfiguration, section gameplay. */
     public record Gameplay(
@@ -87,6 +88,18 @@ public record ColonyConfig(
         }
     }
 
+    /**
+     * Structurize ServerConfiguration: {@code maxOperationsPerTick} is the blocks a creative paste changes per tick
+     * (ST StructurePlacer.getStepsPerCall).
+     *
+     * <p>Deviation from MC: the minimum is 1, not 0; at 0 a paste would never progress.
+     */
+    public record Structurize(int maxOperationsPerTick) {
+        public Structurize {
+            maxOperationsPerTick = Math.clamp(maxOperationsPerTick, 1, 100_000);
+        }
+    }
+
     /** MineColonies' defaults, and ours for the HyColony section. */
     public static ColonyConfig defaults() {
         return new ColonyConfig(
@@ -95,6 +108,7 @@ public record ColonyConfig(
                 new Permissions(true, Explosions.DAMAGE_ENTITIES, 2),
                 new Commands(true, true, false),
                 new Client(50),
-                new HyColony(5, false, true));
+                new HyColony(5, false, true),
+                new Structurize(1000));
     }
 }

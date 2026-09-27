@@ -47,6 +47,11 @@ public final class HyColonyConfig {
                     new KeyedCodec<>("HyColony", HyColonySection.CODEC),
                     (c, v) -> c.hycolony = orNew(v, HyColonySection::new),
                     c -> c.hycolony)
+            .add()
+            .append(
+                    new KeyedCodec<>("Structurize", StructurizeSection.CODEC),
+                    (c, v) -> c.structurize = orNew(v, StructurizeSection::new),
+                    c -> c.structurize)
             .add();
 
     public static final BuilderCodec<HyColonyConfig> CODEC = legacy(SECTIONS).build();
@@ -57,6 +62,7 @@ public final class HyColonyConfig {
     private CommandsSection commands = new CommandsSection();
     private ClientSection client = new ClientSection();
     private HyColonySection hycolony = new HyColonySection();
+    private StructurizeSection structurize = new StructurizeSection();
 
     /** The core configuration; the core clamps every value to MineColonies' bounds. */
     public ColonyConfig toCore() {
@@ -66,7 +72,8 @@ public final class HyColonyConfig {
                 permissions.toCore(),
                 commands.toCore(),
                 client.toCore(),
-                hycolony.toCore());
+                hycolony.toCore(),
+                structurize.toCore());
     }
 
     /** The nine flat keys of the first format, read into their sections and never written back. */

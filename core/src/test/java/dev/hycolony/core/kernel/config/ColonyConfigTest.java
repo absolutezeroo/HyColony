@@ -33,6 +33,13 @@ class ColonyConfigTest {
         assertEquals(5, c.hycolony().autosaveIntervalMinutes());
         assertFalse(c.hycolony().builderInfiniteResources());
         assertTrue(c.hycolony().creativeOperatorFreeBuilds());
+        assertEquals(1000, c.structurize().maxOperationsPerTick()); // ST ServerConfiguration.maxOperationsPerTick
+    }
+
+    @Test
+    void pasteOperationsPerTickAreClampedToAtLeastOne() {
+        assertEquals(1, new ColonyConfig.Structurize(0).maxOperationsPerTick());
+        assertEquals(100_000, new ColonyConfig.Structurize(999_999).maxOperationsPerTick());
     }
 
     @Test
