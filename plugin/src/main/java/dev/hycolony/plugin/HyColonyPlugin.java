@@ -44,7 +44,11 @@ public final class HyColonyPlugin extends JavaPlugin {
 
     @Override
     protected void setup() {
-        config.save();
+        // save() returns a Future: log a failure instead of dropping it (CLAUDE.md sec 4).
+        var _ = config.save().exceptionally(e -> {
+            getLogger().at(Level.WARNING).withCause(e).log("HyColony: could not save initial config");
+            return null;
+        });
         ColonyConfig colonyConfig = config.get().toCore();
         runtimes = new WorldRuntimes(colonyConfig, ids);
 

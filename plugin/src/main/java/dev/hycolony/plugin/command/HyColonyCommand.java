@@ -2,6 +2,7 @@ package dev.hycolony.plugin.command;
 
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
 import com.hypixel.hytale.server.core.command.system.arguments.system.RequiredArg;
@@ -39,7 +40,11 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import javax.annotation.Nonnull;
 import org.joml.Vector3d;
 
@@ -190,6 +195,8 @@ public final class HyColonyCommand extends AbstractCommandCollection {
 
     /** Exercises each port against the live server (spec § 4.5). Operators only. */
     static final class SelfTest extends AbstractPlayerCommand {
+        private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
+
         private final WorldRuntimes runtimes;
         private final IdMap ids;
 
@@ -239,18 +246,39 @@ public final class HyColonyCommand extends AbstractCommandCollection {
                 Vec3 start = rt.bodies().position(b).orElseThrow();
                 rt.bodies().moveTo(b, new Vec3(start.x() + 3, start.y(), start.z()));
                 long[] waited = {0};
+                boolean[] scheduleWarned = {false};
                 Runnable[] poll = new Runnable[1];
                 poll[0] = () -> {
                     NavStatus s = rt.bodies().navStatus(b);
                     waited[0] += 500;
                     if (s == NavStatus.MOVING && waited[0] < 15_000) {
-                        world.scheduleAfter(poll[0], 500, TimeUnit.MILLISECONDS);
+                        scheduleLogged(world, poll[0], scheduleWarned);
                         return;
                     }
                     report(player, "move", s == NavStatus.ARRIVED, s.name());
                     rt.bodies().despawn(b);
                 };
-                world.scheduleAfter(poll[0], 500, TimeUnit.MILLISECONDS);
+                scheduleLogged(world, poll[0], scheduleWarned);
+            });
+        }
+
+        /**
+         * Reschedules {@code task} 500 ms out, like the poll loop above, and watches the dispatch off the world
+         * thread so a failure is not silently dropped (CLAUDE.md sec 4): the first one logs WARNING, later calls
+         * with the same {@code warnedOnce} flag log FINE.
+         */
+        private static void scheduleLogged(World world, Runnable task, boolean[] warnedOnce) {
+            ScheduledFuture<?> future = world.scheduleAfter(task, 500, TimeUnit.MILLISECONDS);
+            var _ = CompletableFuture.runAsync(() -> {
+                try {
+                    future.get();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                } catch (ExecutionException e) {
+                    Level level = warnedOnce[0] ? Level.FINE : Level.WARNING;
+                    warnedOnce[0] = true;
+                    LOG.at(level).withCause(e.getCause()).log("HyColony selftest: scheduleAfter dispatch failed");
+                }
             });
         }
 

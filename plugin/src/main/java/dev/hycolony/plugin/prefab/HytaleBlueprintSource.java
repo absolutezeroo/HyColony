@@ -86,30 +86,39 @@ public final class HytaleBlueprintSource implements BlueprintSource {
         if (!PREWARMED.compareAndSet(false, true)) {
             return;
         }
-        CompletableFuture.runAsync(() -> {
-            long start = System.nanoTime();
-            int n = 0;
-            try {
-                for (String prefab : PrefabStyles.loadBundled().prefabs()) {
+        // runAsync's Future is discarded: attach a backstop for anything that escapes the try/catch below
+        // (the RuntimeException cases already log there), so no failure is ever silently dropped (CLAUDE.md sec 4).
+        var _ = CompletableFuture.runAsync(() -> {
+                    long start = System.nanoTime();
+                    int n = 0;
                     try {
-                        Path path = PrefabStore.get().findAssetPrefabPath(prefab);
-                        if (path != null) {
-                            PrefabBufferUtil.getCached(path);
-                            n++;
+                        for (String prefab : PrefabStyles.loadBundled().prefabs()) {
+                            try {
+                                Path path = PrefabStore.get().findAssetPrefabPath(prefab);
+                                if (path != null) {
+                                    PrefabBufferUtil.getCached(path);
+                                    n++;
+                                }
+                            } catch (RuntimeException e) {
+                                LOG.at(Level.WARNING).withCause(e).log(
+                                        "HyColony blueprint: cannot pre-load %s", prefab);
+                            }
                         }
                     } catch (RuntimeException e) {
-                        LOG.at(Level.WARNING).withCause(e).log("HyColony blueprint: cannot pre-load %s", prefab);
+                        // styles.json is already read by the constructor on the world thread, which logs there too;
+                        // this background read only needs its own warning so the failure is not silent.
+                        LOG.at(Level.WARNING).withCause(e).log(
+                                "HyColony blueprint: cannot pre-load prefabs (styles.json)");
+                        return;
                     }
-                }
-            } catch (RuntimeException e) {
-                // styles.json is already read by the constructor on the world thread, which logs there too; this
-                // background read only needs its own warning so the failure is not silent.
-                LOG.at(Level.WARNING).withCause(e).log("HyColony blueprint: cannot pre-load prefabs (styles.json)");
-                return;
-            }
-            LOG.at(Level.INFO).log(
-                    "HyColony blueprint: pre-loaded %d prefabs in %d ms", n, (System.nanoTime() - start) / 1_000_000);
-        });
+                    LOG.at(Level.INFO).log(
+                            "HyColony blueprint: pre-loaded %d prefabs in %d ms",
+                            n, (System.nanoTime() - start) / 1_000_000);
+                })
+                .exceptionally(e -> {
+                    LOG.at(Level.WARNING).withCause(e).log("HyColony blueprint: pre-load task failed unexpectedly");
+                    return null;
+                });
     }
 
     @Override
