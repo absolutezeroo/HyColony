@@ -15,6 +15,7 @@ import dev.hycolony.core.colony.EventLog;
 import dev.hycolony.core.colony.permission.PermissionsSerializer;
 import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.construction.workorder.WorkOrderSerializer;
+import dev.hycolony.core.job.Job;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.persist.MigrationChain;
 import dev.hycolony.core.request.RequestSerializer;
@@ -149,7 +150,8 @@ public final class ColonySerializer {
     /**
      * A save can reference what is gone (a building removed, or of a type no longer registered): its citizens are
      * freed (job dropped, rehireable) and its requests cancelled, so nothing waits forever. A hut's worker list
-     * keeps only citizens that exist and work there, so a hut never looks employed by nobody.
+     * keeps only citizens that exist and work there, so a hut never looks employed by nobody. A job forgets the wear
+     * of tools its citizen no longer holds, so the next one delivered starts fresh.
      */
     private static boolean heal(Colony c) {
         boolean changed = false;
@@ -160,6 +162,7 @@ public final class ColonySerializer {
                 d.setWorkBuilding(null);
                 changed = true;
             }
+            changed |= d.job().map(Job::forgetWearOfToolsNotHeld).orElse(false);
         }
         for (Building b : c.buildings().all()) {
             Optional<WorkerModule> workers = b.module(WorkerModule.class);

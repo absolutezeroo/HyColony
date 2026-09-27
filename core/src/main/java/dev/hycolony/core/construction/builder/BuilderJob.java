@@ -62,6 +62,11 @@ public final class BuilderJob extends Job {
     }
 
     @Override
+    public boolean forgetWearOfToolsNotHeld() {
+        return toolUses.keySet().removeIf(tool -> citizen().inventory().count(tool) == 0);
+    }
+
+    @Override
     public JsonObject write() {
         JsonObject o = super.write();
         JsonObject uses = new JsonObject();

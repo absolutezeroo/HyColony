@@ -97,6 +97,11 @@ public abstract class Job {
     /** Sets the uses worn off {@code tool} (a worn one handed over); ignored when this job does not wear its tools. */
     public void setToolUses(ItemKey tool, int uses) {}
 
+    /** Drops the wear of tools the citizen holds none of (an older save kept it); true when any was dropped. */
+    public boolean forgetWearOfToolsNotHeld() {
+        return false;
+    }
+
     /** Also saves whether the citizen is working (MC CitizenData TAG_ACTIVE); the inactivity timer restarts unset. */
     public JsonObject write() {
         JsonObject o = new JsonObject();
