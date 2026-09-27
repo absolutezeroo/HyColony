@@ -1,0 +1,42 @@
+{
+  "TranslationProperties": {
+    "Name": "hycolony.item.build_tool.name",
+    "Description": "hycolony.item.build_tool.description"
+  },
+  "Quality": "Uncommon",
+  "MaxStack": 1,
+  "PlayerAnimationsId": "Item",
+  "ItemSoundSetId": "ISS_Weapons_Wand",
+  "Categories": [
+    "Items.Tools"
+  ],
+  "Icon": "Icons/ItemsGenerated/Weapon_Wand_Wood.png",
+  "IconProperties": {
+    "Scale": 0.6,
+    "Translation": [ -13, -16 ],
+    "Rotation": [ 45, 90, 0 ]
+  },
+  "Model": "Items/Weapons/Wand/Wood.blockymodel",
+  "Texture": "Items/Weapons/Wand/Wood_Texture.png",
+  "Recipe": {
+    "Input": [
+      { "ItemId": "Rock_Stone_Cobble", "Quantity": 1 },
+      { "ItemId": "Rock_Basalt_Cobble", "Quantity": 1 },
+      { "ItemId": "Rock_Slate_Cobble", "Quantity": 1 },
+      { "ItemId": "Ingredient_Stick", "Quantity": 6 }
+    ],
+    "BenchRequirement": [
+      { "Id": "Workbench", "Type": "Crafting", "Categories": [ "Workbench_Crafting" ] }
+    ],
+    "KnowledgeRequired": false
+  },
+  "Interactions": {
+    "Primary": { "Interactions": [ { "Type": "OpenCustomUI", "Page": { "Id": "HyColony_Build_Tool" } } ] },
+    "Secondary": { "Interactions": [ { "Type": "OpenCustomUI", "Page": { "Id": "HyColony_Build_Tool" } } ] }
+  },
+  "Tags": {
+    "Type": [
+      "Tool"
+    ]
+  }
+}
