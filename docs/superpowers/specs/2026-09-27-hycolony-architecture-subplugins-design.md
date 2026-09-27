@@ -48,6 +48,10 @@ Hors portée : la défense, la recherche, les autres métiers de SP3, et l'accè
 - Aucun changement de comportement en jeu, sauf ceux listés ; les tests existants restent verts.
 - Toute règle MC reste citée ; aucun écart nouveau non documenté.
 
+## Écarts avec MineColonies
+
+- `WorkerModule` ne porte pas `WorkerBuildingModule.onUpgradeComplete`. Son `calculateMaxCitizens` n'a pas encore d'équivalent, faute de capacité de logement (SP4).
+
 ## À vérifier en jeu
 
 - Démarrage, `/hycolony selftest`, chargement d'une colonie existante : rien ne change.
