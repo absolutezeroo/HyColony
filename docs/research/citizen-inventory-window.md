@@ -120,3 +120,9 @@ Points à tenir :
 - Taille maximale de pile : le cœur utilise `maxStack` du catalogue ; Hytale applique la sienne dans `internal_*`. Les deux viennent de l'asset `MaxStack`, donc cohérentes, **[in-game]** à confirmer.
 - **[in-game]** Rendu de `Page.Bench` avec un seul `ContainerWindow` de 27 slots (grille, titre) : le modèle `/inv see` suggère que ça marche, non vérifié en jeu.
 - **[in-game]** Comportement MC exact à la mort du citoyen pendant que la fenêtre est ouverte : non vérifié dans les sources MC.
+
+## 7. Mise en œuvre retenue (2026-09-27)
+
+- Renvoi au client : pas de compteur lu au tick de colonie, mais `CitizenInventoryWindow.consumeIsDirty` surchargée, lue par Hytale à chaque tick (`plugin-b-api.md` § 16).
+- Règle MC au dépôt : pas d'abonné `registerChangeEvent` ; `CitizenItemContainer` surcharge `writeAction`, copie l'inventaire avant l'écriture la plus externe, puis le cœur (`CitizenInventoryActions.onPlayerEdit`) compare avant/après et traite chaque case qui a grossi ou changé d'objet comme un `Slot.set`.
+- Fermeture : un citoyen ne disparaît aujourd'hui qu'avec sa colonie ; `CitizenInventoryWindows` ferme les fenêtres sur `ColonyEvents.ColonyDeleted`, et `validate` refuse tout déplacement si le citoyen n'existe plus.

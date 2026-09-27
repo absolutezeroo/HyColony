@@ -483,6 +483,17 @@ Vérifié dans les sources 0.6.8 (détails dans `docs/research/build-goggles-and
 
 - **Faire tomber des objets au sol** : `ItemComponent.generateItemDrops(accessor, List<ItemStack>, Vector3d, Rotation3f.IDENTITY)` (`server/core/modules/entity/item/ItemComponent.java:430`) puis `store.addEntities(holders, AddReason.SPAWN)`, exactement ce que fait `BlockHarvestUtils.spawnDrops` (`server/core/modules/interaction/BlockHarvestUtils.java:1368-1371`), à la position `bloc + (0.5, 0, 0.5)` (`:652`). HyColony : `HytaleBlocks.drop`, derrière `WorldBlocks.drop`.
 
+## 16. Inventaire du citoyen : conteneur adossé au cœur
+
+Analyse complète : `docs/research/citizen-inventory-window.md`. Ce que l'implémentation (`plugin/ui/citizen/CitizenItemContainer`, `CitizenInventoryWindow`, `CitizenInventoryWindows`) utilise en plus :
+
+- **Toute écriture passe par `writeAction`** : `SimpleItemContainer.writeAction(Supplier)` et `writeAction(Function, X)` sont protégées et surchargeables (`server/core/inventory/container/SimpleItemContainer.java:128-152`). Les déplacements entre deux conteneurs verrouillent les deux (`ItemContainer.java:369, 411, 549-550, 769`) et les utilitaires `InternalContainerUtilItemStack` passent aussi par `itemContainer.writeAction` (l. 115-524). Les appels s'imbriquent (un déplacement appelle `internal_removeItemStack` sous son propre `writeAction`) : HyColony compte la profondeur et ne compare l'inventaire avant/après qu'au niveau le plus externe. Une transaction qui échoue remet la case (`internal_setSlot(slot, getSlotBefore())`, l. 576-606) : la comparaison avant/après ne voit alors aucun changement.
+- **`sendUpdate` ne notifie que les transactions réussies** (`ItemContainer.java:1409-1415`).
+- **Renvoi au client sans transaction** : `Window.consumeIsDirty()` est protégée (`windows/Window.java:208`) et `WindowManager.updateWindows()` (`WindowManager.java:415-421`) la lit pour chaque fenêtre, à chaque tick, depuis `PlayerSendInventorySystem` (l. 120). `CitizenInventoryWindow` la surcharge pour ajouter « le compteur `Inventory.changes()` a bougé ». **Attention** : `PlayerSendInventorySystem.isParallel` renvoie `maybeUseParallel(...)` (l. 64) ; ce système peut donc tourner sur plusieurs fils à la fois (chaque fil ses joueurs). La surcharge et `toPacket` ne font que **lire** le cœur, et aucun autre système ne l'écrit pendant ce temps (les systèmes s'exécutent l'un après l'autre).
+- **`ItemStack(String, int)`** (`inventory/ItemStack.java:134`) : durabilité = maximum de l'objet ; `getItem()` renvoie `Item.UNKNOWN` pour un identifiant inconnu (l. 331-334), sans exception. `isUnbreakable()` = `maxDurability <= 0` (l. 192).
+- **`Window.equals`** compare classe, id, type et `PlayerRef` (`Window.java:251-266`) ; `WindowManager.getWindow(id)` rend `null` pour une fenêtre fermée et lève une exception pour l'id -1 (l. 272-279), posé seulement quand l'ouverture échoue (l. 104, 154).
+- **[in-game]** rendu de `Page.Bench` avec une seule `ContainerWindow` de 27 cases (titre, grille) ; retour visuel quand `cantAddToSlot` refuse un dépôt.
+
 ## Could not verify
 
 1. **Client rendering of item animations on NPCs** (`AnimationSlot.Action` with `"Block"/"Build"` or `"Pickaxe"/"Mine"` on `PlayerTestModel_V`) and whether they loop or play once. Only the server packet path is verified.
