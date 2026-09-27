@@ -145,7 +145,7 @@ public final class FileColonyStorage implements ColonyStorage {
         }
         try {
             Files.move(tmp, main(id), StandardCopyOption.ATOMIC_MOVE);
-        } catch (AtomicMoveNotSupportedException e) {
+        } catch (AtomicMoveNotSupportedException _) {
             Files.move(tmp, main(id), StandardCopyOption.REPLACE_EXISTING);
         }
     }
