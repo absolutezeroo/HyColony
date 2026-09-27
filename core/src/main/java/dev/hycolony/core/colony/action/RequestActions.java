@@ -103,7 +103,8 @@ public final class RequestActions {
 
     /**
      * "Ajouter": moves min(wanted, owned) from the player into the hut's containers, then overrules the first open
-     * request of that building held by the player or retrying resolver for that item. Returns how many moved.
+     * request of that building held by the player or retrying resolver for that item, with the stacks moved that are
+     * not worn out (a broken tool closes nothing, MC destroyed it). Returns how many moved.
      */
     public int addToHut(UUID player, BlockPos hutPos, ItemKey item, int wanted) {
         Colony c = manager.colonyAt(hutPos).orElse(null);
@@ -116,11 +117,16 @@ public final class RequestActions {
         }
         ConstructionPorts ports = manager.context().ports();
         int moved = 0;
+        int usable = 0;
         for (ItemAmount stack : ports.playerInventory().takeStacks(player, item, wanted)) {
-            moved += stack.count() - giveBack(player, ports.containers().insert(b.containers(), stack));
+            int in = stack.count() - giveBack(player, ports.containers().insert(b.containers(), stack));
+            moved += in;
+            usable += ports.catalog().wornOut(stack) ? 0 : in;
+        }
+        if (usable > 0) {
+            overruleNextOpenRequestWithStack(c, b, new ItemAmount(item, usable));
         }
         if (moved > 0) {
-            overruleNextOpenRequestWithStack(c, b, new ItemAmount(item, moved));
             c.markDirty();
         }
         return moved;
@@ -148,8 +154,8 @@ public final class RequestActions {
             if (stuck
                     && r.state().isBefore(RequestState.COMPLETED)
                     && r.deliverable()
-                            .filter(d -> d.matches(
-                                    stack.item(), manager.context().ports().catalog()))
+                            .filter(d ->
+                                    d.matches(stack, manager.context().ports().catalog()))
                             .isPresent()) {
                 m.overrule(r.token(), List.of(stack));
                 return;

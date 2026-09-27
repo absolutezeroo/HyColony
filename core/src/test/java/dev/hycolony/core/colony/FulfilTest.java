@@ -163,6 +163,24 @@ class FulfilTest {
         assertEquals(List.of(new ItemAmount(PLANKS, 6)), get(token).deliveries());
     }
 
+    /** MC: a broken tool no longer exists, so adding one to the hut closes no tool request. */
+    @Test
+    void addingABrokenToolToTheHutNeverClosesAToolRequest() {
+        ItemKey shovel = new ItemKey("Tool_Shovel_Crude");
+        t.catalog.tools.put(shovel, new ToolInfo(ToolType.SHOVEL, 0, 1f));
+        t.catalog.durability.put(shovel, 150);
+        t.catalog.maxStacks.put(shovel, 1);
+        RequestToken token = colony.requests().createAndAssign(hut, new ToolRequest(ToolType.SHOVEL, 0, 5), -1);
+        t.playerInventory.give(alice, new ItemAmount(shovel, 1, 150));
+
+        assertEquals(1, manager.requestActions().addToHut(alice, hall, shovel, 1));
+
+        assertTrue(get(token).state().isBefore(RequestState.COMPLETED));
+        t.playerInventory.give(alice, new ItemAmount(shovel, 1, 20));
+        assertEquals(1, manager.requestActions().addToHut(alice, hall, shovel, 1));
+        assertEquals(RequestState.COMPLETED, get(token).state());
+    }
+
     @Test
     void requestsAndContainersSurviveColonySave() {
         RequestToken token = request(10, 1);

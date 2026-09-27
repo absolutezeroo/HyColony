@@ -10,11 +10,14 @@ import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.Inventory;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.core.kernel.item.ToolInfo;
+import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.kernel.port.Msg;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.request.model.StackRequest;
+import dev.hycolony.core.request.model.ToolRequest;
 import dev.hycolony.core.testing.FakeNotifier;
 import dev.hycolony.core.testing.FakeUi;
 import dev.hycolony.core.testing.TestContexts;
@@ -190,5 +193,20 @@ class CitizenInventoryTest {
         playerSets(0, Optional.empty());
 
         assertTrue(colony.isDirty());
+    }
+
+    /** MC: a broken tool no longer exists, so putting one in the citizen's inventory closes no tool request. */
+    @Test
+    void puttingABrokenToolOverrulesNoToolRequest() {
+        t.catalog.tools.put(SHOVEL, new ToolInfo(ToolType.SHOVEL, 0, 1f));
+        t.catalog.durability.put(SHOVEL, 150);
+        RequestToken token =
+                colony.requests().createAndAssign(hut, new ToolRequest(ToolType.SHOVEL, 0, 5), worker.id());
+
+        playerSets(0, Optional.of(new ItemAmount(SHOVEL, 1, 150)));
+
+        assertEquals(RequestState.IN_PROGRESS, get(token).state());
+        playerSets(1, Optional.of(new ItemAmount(SHOVEL, 1, 20)));
+        assertEquals(RequestState.COMPLETED, get(token).state());
     }
 }
