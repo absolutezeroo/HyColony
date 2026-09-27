@@ -21,7 +21,17 @@
   },
   "npcRoles": { "npc.citizen": "HyColony_Citizen" },
   "toggleableUseInteractions": ["Door"],
-  "potionCategories": ["Items.Potions"],
+  "potions": [
+    "Potion_Antidote", "Potion_Health", "Potion_Health_Greater", "Potion_Health_Large", "Potion_Health_Lesser",
+    "Potion_Health_Small", "Potion_Mana", "Potion_Mana_Large", "Potion_Mana_Small", "Potion_Morph_Dog",
+    "Potion_Morph_Frog", "Potion_Morph_Mouse", "Potion_Morph_Pigeon", "Potion_Poison", "Potion_Poison_Large",
+    "Potion_Poison_Minor", "Potion_Purify", "Potion_Regen_Health", "Potion_Regen_Health_Large",
+    "Potion_Regen_Health_Small", "Potion_Regen_Mana", "Potion_Regen_Mana_Large", "Potion_Regen_Mana_Small",
+    "Potion_Regen_Stamina", "Potion_Regen_Stamina_Large", "Potion_Regen_Stamina_Small", "Potion_Signature",
+    "Potion_Signature_Greater", "Potion_Signature_Large", "Potion_Signature_Lesser", "Potion_Signature_Small",
+    "Potion_Stamina", "Potion_Stamina_Greater", "Potion_Stamina_Large", "Potion_Stamina_Lesser",
+    "Potion_Stamina_Small", "Weapon_Bomb_Potion_Poison"
+  ],
   "precipitationParticles": ["Rain", "Rain_Light", "Rain_Heavy", "Snow_Light", "Snow_Heavy", "Snow_Storm"],
   "speedEffects": {
     "1.05": "HyColony_Speed_105",

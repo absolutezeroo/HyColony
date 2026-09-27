@@ -9,7 +9,6 @@ import com.hypixel.hytale.server.core.modules.block.components.ItemContainerBloc
 import com.hypixel.hytale.server.core.universe.world.World;
 import dev.hycolony.core.colony.permission.BlockUse;
 import dev.hycolony.plugin.IdMap;
-import java.util.Arrays;
 import java.util.Set;
 import org.joml.Vector3i;
 import org.jspecify.annotations.Nullable;
@@ -17,11 +16,11 @@ import org.jspecify.annotations.Nullable;
 /** Describes a Hytale block use as the core {@link BlockUse} rule sees it. World thread only. */
 final class BlockUses {
     private final Set<String> toggleables;
-    private final Set<String> potionCategories;
+    private final Set<String> potions;
 
     BlockUses(IdMap ids) {
         this.toggleables = ids.toggleableUseInteractions();
-        this.potionCategories = ids.potionCategories();
+        this.potions = ids.potions();
     }
 
     /** Door or gate (its Use interaction), container, block entity, and what the player holds. */
@@ -41,8 +40,7 @@ final class BlockUses {
         if (stack == null || stack.isEmpty()) {
             return BlockUse.Held.NOTHING;
         }
-        String[] categories = stack.getItem().getCategories();
-        if (categories != null && Arrays.stream(categories).anyMatch(potionCategories::contains)) {
+        if (potions.contains(stack.getItemId())) {
             return BlockUse.Held.POTION;
         }
         return stack.getItem().isConsumable() ? BlockUse.Held.FOOD : BlockUse.Held.OTHER;

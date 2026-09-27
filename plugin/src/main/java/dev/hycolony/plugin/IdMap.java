@@ -30,7 +30,7 @@ public final class IdMap {
             Map<String, String> speedEffects,
             Map<String, Map<String, String>> flowerPots,
             List<String> toggleableUseInteractions,
-            List<String> potionCategories) {}
+            List<String> potions) {}
 
     private final Data data;
 
@@ -92,9 +92,13 @@ public final class IdMap {
         return Set.copyOf(Objects.requireNonNullElse(data.toggleableUseInteractions(), List.of()));
     }
 
-    /** Item categories of potions (MC PotionItem: THROW_POTION). Creative-library paths, not asset keys. */
-    public Set<String> potionCategories() {
-        return Set.copyOf(Objects.requireNonNullElse(data.potionCategories(), List.of()));
+    /** Every potion item, drunk or thrown (Minecraft PotionItem, which MC checks for THROW_POTION). */
+    public Set<String> potions() {
+        return Set.copyOf(potionList());
+    }
+
+    private List<String> potionList() {
+        return Objects.requireNonNullElse(data.potions(), List.of());
     }
 
     /** Absent from an older id-map file: no precipitation particle (never rains). */
@@ -145,6 +149,7 @@ public final class IdMap {
                 "toggleable use interaction",
                 byId(List.copyOf(toggleableUseInteractions())),
                 id -> RootInteraction.getAssetMap().getAsset(id) != null);
+        check(errors, "potion item", byId(potionList()), item);
         check(errors, "npc role", data.npcRoles(), id -> NPCPlugin.get().hasRoleName(id));
         return errors;
     }
