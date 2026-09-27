@@ -85,7 +85,7 @@ public final class WorldRuntime {
                         worldBlocks,
                         new HytaleContainerAccess(world, catalog.stacks()),
                         new HytalePlayerInventory(world, catalog.stacks()),
-                        new HytaleBlueprintSource(ids),
+                        new HytaleBlueprintSource(ids, setup.styles()),
                         new HytaleWorldEffects(world, ids.fireworks())));
         this.manager = new ColonyManager(ctx);
         self[0] = manager;

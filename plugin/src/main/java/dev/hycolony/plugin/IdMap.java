@@ -1,15 +1,13 @@
 package dev.hycolony.plugin;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
 import com.hypixel.hytale.server.core.asset.type.particle.config.ParticleSystem;
 import com.hypixel.hytale.server.npc.NPCPlugin;
 import dev.hycolony.core.citizen.Skill;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -36,12 +34,9 @@ public final class IdMap {
         this.data = data;
     }
 
-    public static IdMap loadBundled() {
-        try (InputStream in = IdMap.class.getResourceAsStream("/hycolony/id-map.json")) {
-            return new IdMap(new Gson().fromJson(new InputStreamReader(in, StandardCharsets.UTF_8), Data.class));
-        } catch (Exception e) {
-            throw new IllegalStateException("Cannot read hycolony/id-map.json", e);
-        }
+    /** The id-map read from {@code json}: the core's hycolony/id-map.json merged with the enabled packs' fragments. */
+    public static IdMap of(JsonObject json) {
+        return new IdMap(new Gson().fromJson(json, Data.class));
     }
 
     public String itemId(String key) {

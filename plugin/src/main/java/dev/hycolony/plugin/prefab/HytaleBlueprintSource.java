@@ -28,7 +28,7 @@ import java.util.logging.Level;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Blueprints read from vanilla prefabs listed in {@code hycolony/styles.json}. Never throws: an unknown style/type/level,
+ * Blueprints read from the prefabs listed in {@link PrefabStyles}. Never throws: an unknown style/type/level,
  * a missing prefab or a failed parse gives {@link Optional#empty()} and one logged warning.
  *
  * <p>Rotation: the int is the hut's {@code yaw().ordinal()} (SP0). {@code PrefabRotation.VALUES} is
@@ -52,7 +52,7 @@ import org.jspecify.annotations.Nullable;
  * higher, at the hut's level: floor cells the prefab leaves absent keep their ground instead of becoming a ditch,
  * and the floor entries are still placed (SOLID mines a differing ground block first).
  *
- * <p>{@link #prewarm()} parses the prefabs off the world thread at startup; a later load then reads the cached
+ * <p>{@link #prewarm(PrefabStyles)} parses the prefabs off the world thread at startup; a later load then reads the cached
  * buffer. Results are cached per (style, type, level, rotation).
  */
 public final class HytaleBlueprintSource implements BlueprintSource {
@@ -73,17 +73,17 @@ public final class HytaleBlueprintSource implements BlueprintSource {
     private final Map<String, Optional<Blueprint>> cache = new ConcurrentHashMap<>();
     private final Set<String> warned = ConcurrentHashMap.newKeySet();
 
-    /** Reads the bundled {@code hycolony/styles.json}; throws only if that file is missing or malformed. */
-    public HytaleBlueprintSource(IdMap ids) {
-        this.styles = PrefabStyles.loadBundled();
+    /** Blueprints of {@code styles}, whose spawner chests come from {@code ids}. */
+    public HytaleBlueprintSource(IdMap ids, PrefabStyles styles) {
+        this.styles = styles;
         this.ids = ids;
     }
 
     /**
-     * Parses every prefab of the bundled styles.json in the background, once (like vanilla's prefab editor, which
+     * Parses every prefab of {@code styles} in the background, once (like vanilla's prefab editor, which
      * calls {@code getCached} in {@code supplyAsync}). Assets must be loaded. Logs the time taken; never throws.
      */
-    public static void prewarm() {
+    public static void prewarm(PrefabStyles styles) {
         if (!PREWARMED.compareAndSet(false, true)) {
             return;
         }
@@ -92,25 +92,16 @@ public final class HytaleBlueprintSource implements BlueprintSource {
         var _ = CompletableFuture.runAsync(() -> {
                     long start = System.nanoTime();
                     int n = 0;
-                    try {
-                        for (String prefab : PrefabStyles.loadBundled().prefabs()) {
-                            try {
-                                Path path = PrefabStore.get().findAssetPrefabPath(prefab);
-                                if (path != null) {
-                                    PrefabBufferUtil.getCached(path);
-                                    n++;
-                                }
-                            } catch (RuntimeException e) {
-                                LOG.at(Level.WARNING).withCause(e).log(
-                                        "HyColony blueprint: cannot pre-load %s", prefab);
+                    for (String prefab : styles.prefabs()) {
+                        try {
+                            Path path = PrefabStore.get().findAssetPrefabPath(prefab);
+                            if (path != null) {
+                                PrefabBufferUtil.getCached(path);
+                                n++;
                             }
+                        } catch (RuntimeException e) {
+                            LOG.at(Level.WARNING).withCause(e).log("HyColony blueprint: cannot pre-load %s", prefab);
                         }
-                    } catch (RuntimeException e) {
-                        // styles.json is already read by the constructor on the world thread, which logs there too;
-                        // this background read only needs its own warning so the failure is not silent.
-                        LOG.at(Level.WARNING).withCause(e).log(
-                                "HyColony blueprint: cannot pre-load prefabs (styles.json)");
-                        return;
                     }
                     LOG.at(Level.INFO).log(
                             "HyColony blueprint: pre-loaded %d prefabs in %d ms",

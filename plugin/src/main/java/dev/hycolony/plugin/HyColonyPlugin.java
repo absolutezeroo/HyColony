@@ -24,15 +24,14 @@ import dev.hycolony.plugin.npc.CitizenFireImmunitySystems;
 import dev.hycolony.plugin.npc.CitizenUseSystem;
 import dev.hycolony.plugin.npc.HyColonyComponents;
 import dev.hycolony.plugin.prefab.HytaleBlueprintSource;
+import dev.hycolony.plugin.subplugin.SubPlugins;
 import dev.hycolony.plugin.ui.wand.WandInteraction;
-import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import javax.annotation.Nonnull;
 
 public final class HyColonyPlugin extends JavaPlugin {
     private final Config<HyColonyConfig> config;
-    private final IdMap ids = IdMap.loadBundled();
 
     public HyColonyPlugin(@Nonnull JavaPluginInit init) {
         super(init);
@@ -49,7 +48,10 @@ public final class HyColonyPlugin extends JavaPlugin {
             return null;
         });
         ColonyConfig colonyConfig = config.get().toCore();
-        WorldRuntimes worlds = new WorldRuntimes(RuntimeSetup.create(colonyConfig, ids));
+        // Sub-plugin asset packs must be registered here, before LoadAssetEvent (plugin-b-api § 21.1).
+        SubPlugins packs = SubPlugins.load(this, config.get().subPlugins());
+        WorldRuntimes worlds = new WorldRuntimes(RuntimeSetup.create(colonyConfig, packs));
+        IdMap ids = worlds.setup().ids();
 
         HyColonyComponents.register(getEntityStoreRegistry());
         NPCPlugin.get().registerCoreComponentType("HyColonyTarget", BuilderSensorHyColonyTarget::new);
@@ -73,15 +75,15 @@ public final class HyColonyPlugin extends JavaPlugin {
                         PlayerReadyEvent.class,
                         e -> GogglesSystems.onPlayerReady(worlds, ids.itemId("build_goggles"), e));
         WandInteraction.register(this, worlds);
-        getCommandRegistry().registerCommand(new HyColonyCommand(worlds, ids, colonyConfig.commands()));
+        getCommandRegistry().registerCommand(new HyColonyCommand(worlds, ids, colonyConfig.commands(), packs));
 
         // Assets (blocks, items, NPC roles) are all loaded once a world starts: validate ids there.
         // World.onStart dispatches this on the world thread: create the runtime inline, before any
         // chunk (and its citizen NPCs) loads, so CitizenBodyLifecycleSystem finds it.
         getEventRegistry().registerGlobal(StartWorldEvent.class, e -> {
             try {
-                validateIds(worlds);
-                HytaleBlueprintSource.prewarm(); // once, in the background: assets are loaded by now
+                worlds.enableIfIdsValid();
+                HytaleBlueprintSource.prewarm(worlds.setup().styles()); // once, in the background: assets are loaded
                 WorldRuntime created = worlds.create(e.getWorld());
                 getLogger()
                         .at(Level.INFO)
@@ -135,20 +137,5 @@ public final class HyColonyPlugin extends JavaPlugin {
         } catch (RuntimeException ex) {
             getLogger().at(Level.SEVERE).withCause(ex).log("HyColony: %s clean-up on disconnect failed", what);
         }
-    }
-
-    private void validateIds(WorldRuntimes worlds) {
-        List<String> errors = ids.validate();
-        if (errors.isEmpty()) {
-            worlds.setEnabled(true);
-            return;
-        }
-        for (String error : errors) {
-            getLogger().at(Level.SEVERE).log("HyColony: missing asset id %s", error);
-        }
-        getLogger()
-                .at(Level.SEVERE)
-                .log("HyColony disabled: vital asset ids are missing (see above). Saves are untouched.");
-        worlds.setEnabled(false);
     }
 }

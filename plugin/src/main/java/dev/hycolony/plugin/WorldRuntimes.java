@@ -4,6 +4,7 @@ import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.universe.world.World;
 import dev.hycolony.core.citizen.CitizenNames;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -65,8 +66,22 @@ public final class WorldRuntimes {
         return byWorld.values();
     }
 
+    /**
+     * Enables every runtime when each id of the id-map exists in the loaded assets; else logs the missing ones SEVERE
+     * and disables them all. Assets must be loaded (a world has started).
+     */
+    public void enableIfIdsValid() {
+        List<String> errors = setup.ids().validate();
+        errors.forEach(error -> LOG.at(Level.SEVERE).log("HyColony: missing asset id %s", error));
+        if (!errors.isEmpty()) {
+            LOG.at(Level.SEVERE).log(
+                    "HyColony disabled: vital asset ids are missing (see above). Saves are untouched.");
+        }
+        setEnabled(errors.isEmpty());
+    }
+
     /** Disabled = nothing ticks and nothing is written (vital asset id missing). */
-    public void setEnabled(boolean enabled) {
+    private void setEnabled(boolean enabled) {
         this.enabled = enabled;
         byWorld.values().forEach(rt -> rt.setEnabled(enabled));
     }

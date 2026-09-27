@@ -4,6 +4,7 @@ import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import dev.hycolony.core.kernel.config.ColonyConfig;
+import dev.hycolony.core.kernel.config.FeatureFlags;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
@@ -74,6 +75,11 @@ public final class HyColonyConfig {
                 client.toCore(),
                 hycolony.toCore(),
                 structurize.toCore());
+    }
+
+    /** Which sub-plugins are switched on or off ({@code HyColony.SubPlugins}); a pack not named keeps its default. */
+    public FeatureFlags subPlugins() {
+        return hycolony.subPlugins();
     }
 
     /** The nine flat keys of the first format, read into their sections and never written back. */

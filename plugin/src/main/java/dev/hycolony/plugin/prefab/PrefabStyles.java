@@ -1,14 +1,11 @@
 package dev.hycolony.plugin.prefab;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.reflect.TypeToken;
 import com.hypixel.hytale.server.core.prefab.PrefabRotation;
 import com.hypixel.hytale.server.core.prefab.selection.buffer.impl.IPrefabBuffer;
 import dev.hycolony.core.kernel.BlockPos;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -26,7 +23,7 @@ import javax.annotation.Nullable;
  * {@code hutOffset} is in the prefab file's own coordinates (the x/y/z written in the {@code .prefab.json}, before the
  * anchor is subtracted), unrotated. Absent: the default cell, see {@link #hutCell}.
  */
-final class PrefabStyles {
+public final class PrefabStyles {
     static final String FIRST_STYLE = "outlander";
 
     /** {@code spawnerChests}: chest spawners become the style's empty chest (see HytaleBlueprintSource). */
@@ -38,19 +35,11 @@ final class PrefabStyles {
         this.table = table;
     }
 
-    static PrefabStyles parse(Reader in) {
+    /** The table read from {@code json}: the core's hycolony/styles.json merged with the enabled packs' fragments. */
+    public static PrefabStyles of(JsonElement json) {
         Map<String, Map<String, Map<String, Level>>> t = new Gson()
-                .fromJson(in, new TypeToken<LinkedHashMap<String, Map<String, Map<String, Level>>>>() {}.getType());
+                .fromJson(json, new TypeToken<LinkedHashMap<String, Map<String, Map<String, Level>>>>() {}.getType());
         return new PrefabStyles(t == null ? Map.of() : t);
-    }
-
-    /** Throws if the bundled file is missing or malformed (a packaging bug, like IdMap). */
-    static PrefabStyles loadBundled() {
-        try (InputStream in = PrefabStyles.class.getResourceAsStream("/hycolony/styles.json")) {
-            return parse(new InputStreamReader(in, StandardCharsets.UTF_8));
-        } catch (Exception e) {
-            throw new IllegalStateException("Cannot read hycolony/styles.json", e);
-        }
     }
 
     /** Every distinct prefab path, in file order. */

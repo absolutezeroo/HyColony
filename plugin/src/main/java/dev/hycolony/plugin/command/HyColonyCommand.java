@@ -35,6 +35,7 @@ import dev.hycolony.plugin.WorldRuntime;
 import dev.hycolony.plugin.WorldRuntimes;
 import dev.hycolony.plugin.adapter.HytaleNotifier;
 import dev.hycolony.plugin.adapter.HytaleWorldBlocks;
+import dev.hycolony.plugin.subplugin.SubPlugins;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -58,14 +59,14 @@ import org.joml.Vector3d;
 public final class HyColonyCommand extends AbstractCommandCollection {
     private static final String PLAYERS = "hytale:Adventurer";
 
-    public HyColonyCommand(WorldRuntimes runtimes, IdMap ids, ColonyConfig.Commands config) {
+    public HyColonyCommand(WorldRuntimes runtimes, IdMap ids, ColonyConfig.Commands config, SubPlugins packs) {
         super("hycolony", "HyColony colony management");
         // No group on the collection: subcommands without one inherit it (putRecursivePermissionGroups).
         // Subcommands are dispatched before the collection's own permission is checked.
         addSubCommand(new Info(runtimes, config.canPlayerUseShowColonyInfoCommand()));
         addSubCommand(new Rank(runtimes, config.canPlayerUseAddOfficerCommand()));
         addSubCommand(new Delete(runtimes, config.canPlayerUseDeleteColonyCommand()));
-        addSubCommand(new SelfTest(runtimes, ids));
+        addSubCommand(new SelfTest(runtimes, ids, packs));
     }
 
     /** Every player, or operators only: an empty group list leaves only the auto-generated node, held by "*". */
@@ -199,11 +200,13 @@ public final class HyColonyCommand extends AbstractCommandCollection {
 
         private final WorldRuntimes runtimes;
         private final IdMap ids;
+        private final SubPlugins packs;
 
-        SelfTest(WorldRuntimes runtimes, IdMap ids) {
+        SelfTest(WorldRuntimes runtimes, IdMap ids, SubPlugins packs) {
             super("selftest", "Check HyColony against this server (operators)");
             this.runtimes = runtimes;
             this.ids = ids;
+            this.packs = packs;
             setPermissionGroups(groups(false));
         }
 
@@ -217,6 +220,7 @@ public final class HyColonyCommand extends AbstractCommandCollection {
             WorldRuntime rt = runtimes.of(world);
             List<String> idErrors = ids.validate();
             report(player, "asset ids", idErrors.isEmpty(), String.join(", ", idErrors));
+            subPlugins(player, packs);
             if (rt == null) {
                 report(player, "runtime", false, "no HyColony runtime for this world");
                 return;
@@ -282,6 +286,16 @@ public final class HyColonyCommand extends AbstractCommandCollection {
                     LOG.at(level).withCause(e.getCause()).log("HyColony selftest: scheduleAfter dispatch failed");
                 }
             });
+        }
+
+        /** One line per bundled sub-plugin (a disabled one is fine: the config chose it), then the fragment count. */
+        private static void subPlugins(PlayerRef player, SubPlugins packs) {
+            packs.statuses().forEach(p -> {
+                String state = p.state().name().toLowerCase(Locale.ROOT);
+                String step = "sub-plugin " + p.name() + " " + p.version() + " (" + state + ")";
+                report(player, step, p.state() != SubPlugins.State.FAILED, "see the server log");
+            });
+            report(player, "sub-plugin fragments: " + packs.fragmentsMerged() + " merged", true, "");
         }
 
         /**
