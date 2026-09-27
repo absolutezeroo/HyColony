@@ -20,8 +20,8 @@ public record ColonyConfig(
             /** MC workersalwaysworkinrain: rain never stops a worker (CitizenAI.shouldWorkWhileRaining). */
             boolean workersAlwaysWorkInRain) {
         public Gameplay {
-            initialCitizenAmount = clamp(initialCitizenAmount, 1, 10);
-            maxCitizenPerColony = clamp(maxCitizenPerColony, 25, 500);
+            initialCitizenAmount = Math.clamp(initialCitizenAmount, 1, 10);
+            maxCitizenPerColony = Math.clamp(maxCitizenPerColony, 25, 500);
         }
     }
 
@@ -33,11 +33,11 @@ public record ColonyConfig(
             int maxDistanceFromWorldSpawn,
             int minDistanceFromWorldSpawn) {
         public Claims {
-            maxColonySize = clamp(maxColonySize, 1, 250);
-            minColonyDistance = clamp(minColonyDistance, 1, 200);
-            initialColonySize = clamp(initialColonySize, 1, 15);
-            maxDistanceFromWorldSpawn = clamp(maxDistanceFromWorldSpawn, 1000, Integer.MAX_VALUE);
-            minDistanceFromWorldSpawn = clamp(minDistanceFromWorldSpawn, 0, 1000);
+            maxColonySize = Math.clamp(maxColonySize, 1, 250);
+            minColonyDistance = Math.clamp(minColonyDistance, 1, 200);
+            initialColonySize = Math.clamp(initialColonySize, 1, 15);
+            maxDistanceFromWorldSpawn = Math.clamp(maxDistanceFromWorldSpawn, 1000, Integer.MAX_VALUE);
+            minDistanceFromWorldSpawn = Math.clamp(minDistanceFromWorldSpawn, 0, 1000);
         }
     }
 
@@ -50,7 +50,7 @@ public record ColonyConfig(
         public Permissions {
             turnOffExplosionsInColonies =
                     turnOffExplosionsInColonies == null ? Explosions.DAMAGE_ENTITIES : turnOffExplosionsInColonies;
-            permissionEventBypassMinPermLevel = clamp(permissionEventBypassMinPermLevel, 0, 4);
+            permissionEventBypassMinPermLevel = Math.clamp(permissionEventBypassMinPermLevel, 0, 4);
         }
     }
 
@@ -67,7 +67,7 @@ public record ColonyConfig(
      */
     public record Client(int buildGoggleRange) {
         public Client {
-            buildGoggleRange = clamp(buildGoggleRange, 1, 250);
+            buildGoggleRange = Math.clamp(buildGoggleRange, 1, 250);
         }
     }
 
@@ -83,12 +83,8 @@ public record ColonyConfig(
             /** Orders made by an operator in creative mode are free. */
             boolean creativeOperatorFreeBuilds) {
         public HyColony {
-            autosaveIntervalMinutes = clamp(autosaveIntervalMinutes, 1, 60);
+            autosaveIntervalMinutes = Math.clamp(autosaveIntervalMinutes, 1, 60);
         }
-    }
-
-    private static int clamp(int value, int min, int max) {
-        return Math.max(min, Math.min(max, value));
     }
 
     /** MineColonies' defaults, and ours for the HyColony section. */

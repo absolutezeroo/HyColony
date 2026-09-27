@@ -23,7 +23,7 @@ public class TickingTransition<S extends IState> {
         this.state = state;
         this.condition = condition;
         this.nextState = nextState;
-        this.tickRate = Math.max(1, Math.min(tickRate, MAX_AI_TICKRATE));
+        this.tickRate = Math.clamp(tickRate, 1, MAX_AI_TICKRATE);
         int variant = OFFSET_VARIANT.getAndUpdate(v -> v + 1 >= MAX_TICKRATE_VARIANT ? 0 : v + 1);
         this.ticksToUpdate = variant % this.tickRate;
     }

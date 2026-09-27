@@ -44,7 +44,7 @@ public final class Skills {
     }
 
     public void set(Skill skill, int level, double experience) {
-        map.put(skill, new SkillData(Math.max(1, Math.min(level, MAX_CITIZEN_LEVEL)), experience));
+        map.put(skill, new SkillData(Math.clamp(level, 1, MAX_CITIZEN_LEVEL), experience));
     }
 
     /**
