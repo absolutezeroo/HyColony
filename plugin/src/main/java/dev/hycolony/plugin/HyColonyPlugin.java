@@ -72,7 +72,7 @@ public final class HyColonyPlugin extends JavaPlugin {
         WandInteraction.register(this, runtimes);
         getCommandRegistry()
                 .registerCommand(new HyColonyCommand(
-                        runtimes, ids, colonyConfig.commands(), getIdentifier().toString(), getDataDirectory()));
+                        runtimes, ids, colonyConfig.commands(), getIdentifier().toString()));
 
         // Assets (blocks, items, NPC roles) are all loaded once a world starts: validate ids there.
         // World.onStart dispatches this on the world thread: create the runtime inline, before any

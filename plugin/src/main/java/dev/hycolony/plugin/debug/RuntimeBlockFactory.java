@@ -22,6 +22,10 @@ import javax.imageio.ImageIO;
  *
  * <p>Temporary experiment for the Domum Ornamentum port (docs/research/domum-ornamentum.md B.6, option 3): remove
  * once the in-game test has answered whether a runtime BlockType renders without reconnecting.
+ *
+ * <p>The copied BlockType drops its source's {@code AssetExtraInfo.Data}: kept, it would make every load re-decode the
+ * source's contained state assets under our pack and make {@code getItem()} name the source's item
+ * (docs/research/plugin-b-api.md § 17).
  */
 final class RuntimeBlockFactory {
     /** Vanilla block whose model, hitbox and sounds the generated block copies. */
@@ -33,15 +37,11 @@ final class RuntimeBlockFactory {
     private static final int STRIPE_PX = 16;
 
     private final String packKey;
-    private final Path dataDir;
+    private Path textureDir;
 
-    /**
-     * @param packKey the plugin's asset pack name ({@code Group:Name}, as PluginManager registers it)
-     * @param dataDir the plugin data folder, where the generated PNGs are written
-     */
-    RuntimeBlockFactory(String packKey, Path dataDir) {
+    /** @param packKey the plugin's asset pack name ({@code Group:Name}, as PluginManager registers it) */
+    RuntimeBlockFactory(String packKey) {
         this.packKey = packKey;
-        this.dataDir = dataDir;
     }
 
     /** Blue tent texture with red vertical stripes, read from the loaded common assets; throws if one is missing. */
@@ -67,15 +67,18 @@ final class RuntimeBlockFactory {
     }
 
     /**
-     * Writes the PNG to the data folder and registers it as common asset {@code Blocks/HyColony/DoTest/<name>.png};
+     * Writes the PNG to a temp directory (created on first use) and registers it as common asset {@code Blocks/HyColony/DoTest/<name>.png};
      * {@code CommonAssetModule.addCommonAsset} sends it to every connected player. Returns the asset name.
      */
     String registerTexture(String name, byte[] png) {
         String assetName = TEXTURE_DIR + name + ".png";
-        Path file = dataDir.resolve("dotest").resolve(name + ".png");
+        Path file;
         try {
-            Files.createDirectories(file.getParent());
-            Files.write(file, png);
+            // FileCommonAsset rereads the file once its weak reference is gone, so the PNG must stay on disk.
+            if (textureDir == null) {
+                textureDir = Files.createTempDirectory("hycolony-dotest");
+            }
+            file = Files.write(textureDir.resolve(name + ".png"), png);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -121,6 +124,7 @@ final class RuntimeBlockFactory {
     private static final class GeneratedBlockType extends BlockType {
         GeneratedBlockType(BlockType source, String id, String texture) {
             super(source);
+            this.data = null;
             this.id = id;
             this.customModelTexture = new CustomModelTexture[] {new CustomModelTexture(texture, 1)};
             this.state = null;

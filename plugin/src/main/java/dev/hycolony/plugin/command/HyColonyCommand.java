@@ -57,10 +57,8 @@ public final class HyColonyCommand extends AbstractCommandCollection {
 
     /**
      * @param packKey the plugin's asset pack name, for the dotest experiment
-     * @param dataDir the plugin data folder, for the dotest experiment
      */
-    public HyColonyCommand(
-            WorldRuntimes runtimes, IdMap ids, ColonyConfig.Commands config, String packKey, Path dataDir) {
+    public HyColonyCommand(WorldRuntimes runtimes, IdMap ids, ColonyConfig.Commands config, String packKey) {
         super("hycolony", "HyColony colony management");
         // No group on the collection: subcommands without one inherit it (putRecursivePermissionGroups).
         // Subcommands are dispatched before the collection's own permission is checked.
@@ -69,7 +67,7 @@ public final class HyColonyCommand extends AbstractCommandCollection {
         addSubCommand(new Delete(runtimes, config.canPlayerUseDeleteColonyCommand()));
         addSubCommand(new SelfTest(runtimes, ids));
         // Temporary Domum Ornamentum experiment: remove with the debug package after the in-game test.
-        addSubCommand(new DoTestCommand(packKey, dataDir));
+        addSubCommand(new DoTestCommand(packKey));
     }
 
     /** Every player, or operators only: an empty group list leaves only the auto-generated node, held by "*". */

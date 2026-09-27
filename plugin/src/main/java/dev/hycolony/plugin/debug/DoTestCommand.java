@@ -13,9 +13,9 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.kernel.port.Msg;
 import dev.hycolony.plugin.adapter.HytaleNotifier;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import javax.annotation.Nonnull;
 import org.joml.Vector3d;
@@ -32,16 +32,14 @@ public final class DoTestCommand extends AbstractPlayerCommand {
     private static final int DISTANCE = 2;
 
     private final RuntimeBlockFactory factory;
-    private final List<Placed> placed = new ArrayList<>();
-    private int next = 1;
+    // Commands from different worlds run on different threads.
+    private final Queue<Placed> placed = new ConcurrentLinkedQueue<>();
+    private final AtomicInteger next = new AtomicInteger(1);
 
-    /**
-     * @param packKey the plugin's asset pack name ({@code getIdentifier().toString()})
-     * @param dataDir the plugin data folder
-     */
-    public DoTestCommand(String packKey, Path dataDir) {
+    /** @param packKey the plugin's asset pack name ({@code getIdentifier().toString()}) */
+    public DoTestCommand(String packKey) {
         super("dotest", "Runtime block type experiment (operators)");
-        this.factory = new RuntimeBlockFactory(packKey, dataDir);
+        this.factory = new RuntimeBlockFactory(packKey);
         setPermissionGroups(new String[0]);
         addSubCommand(new Clear());
     }
@@ -54,7 +52,7 @@ public final class DoTestCommand extends AbstractPlayerCommand {
             @Nonnull Ref<EntityStore> ref,
             @Nonnull PlayerRef player,
             @Nonnull World world) {
-        int n = next++;
+        int n = next.getAndIncrement();
         String id = "HyColony_DoTest_" + n;
         String step = "compose";
         try {
@@ -89,6 +87,7 @@ public final class DoTestCommand extends AbstractPlayerCommand {
         return new Placed(world, (int) Math.floor(x), (int) Math.floor(p.y), (int) Math.floor(z));
     }
 
+    /** Sends the translated {@code key} with its parameters to the player. */
     private static void say(PlayerRef player, String key, String... params) {
         player.sendMessage(HytaleNotifier.toMessage(Msg.of(key, params)));
     }
@@ -96,7 +95,10 @@ public final class DoTestCommand extends AbstractPlayerCommand {
     /** A block this command placed, kept only in memory. */
     private record Placed(World world, int x, int y, int z) {}
 
-    /** Sets every recorded cell back to air on its own world thread, so no generated id stays in saved chunks. */
+    /**
+     * Sets every recorded cell back to air on its own world thread. Positions live only in memory, so blocks placed
+     * before a server restart are no longer cleared.
+     */
     private final class Clear extends AbstractPlayerCommand {
         Clear() {
             super("clear", "Remove the blocks placed by dotest (operators)");
@@ -110,12 +112,14 @@ public final class DoTestCommand extends AbstractPlayerCommand {
                 @Nonnull Ref<EntityStore> ref,
                 @Nonnull PlayerRef player,
                 @Nonnull World world) {
-            int count = placed.size();
+            int count = 0;
             try {
-                for (Placed at : placed) {
-                    at.world().execute(() -> at.world().setBlock(at.x(), at.y(), at.z(), BlockType.EMPTY_KEY));
+                for (Placed at = placed.poll(); at != null; at = placed.poll()) {
+                    Placed cell = at;
+                    cell.world()
+                            .execute(() -> cell.world().setBlock(cell.x(), cell.y(), cell.z(), BlockType.EMPTY_KEY));
+                    count++;
                 }
-                placed.clear();
                 say(player, "hycolony.dotest.cleared", String.valueOf(count));
             } catch (RuntimeException e) {
                 LOG.at(Level.SEVERE).withCause(e).log("dotest clear failed");
