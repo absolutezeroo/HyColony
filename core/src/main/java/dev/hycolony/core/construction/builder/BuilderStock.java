@@ -11,6 +11,7 @@ import dev.hycolony.core.kernel.item.ToolInfo;
 import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.kernel.port.ContainerAccess;
 import dev.hycolony.core.kernel.port.ItemCatalog;
+import dev.hycolony.core.logistics.pickup.PickupRequests;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -98,11 +99,22 @@ final class BuilderStock {
     /**
      * Stores everything in the hut but (MC keepX) the {@code keep} amounts and one tool per type. When the hut could
      * not take it all (what could be stored is stored, the rest stays), or nothing was left to store, the next
-     * full-inventory dump waits {@link #DUMP_RETRY_ACTIONS} instead of bouncing back at once.
+     * full-inventory dump waits {@link #DUMP_RETRY_ACTIONS} instead of bouncing back at once. Then asks a courier to
+     * empty the hut ({@link PickupRequests#afterDump}).
      */
     void dump(Map<ItemKey, Integer> keep) {
+        int before = carried();
         boolean stored = storeAll(keep);
         dumpRetryAt = stored && !inventory().isFull() ? 0 : DUMP_RETRY_ACTIONS;
+        PickupRequests.afterDump(colony, hut, before - carried());
+    }
+
+    private int carried() {
+        int total = 0;
+        for (ItemAmount a : inventory().contents()) {
+            total += a.count();
+        }
+        return total;
     }
 
     private boolean storeAll(Map<ItemKey, Integer> keep) {

@@ -2,6 +2,8 @@ package dev.hycolony.core.logistics.pickup;
 
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.port.ContainerAccess;
 import dev.hycolony.core.request.model.Pickup;
 import dev.hycolony.core.request.model.RequestState;
 
@@ -35,6 +37,36 @@ public final class PickupRequests {
         int priority = force ? Pickup.MAX_BUILDING_PRIORITY : hutPriority;
         int delay = Math.max(0, (Pickup.MAX_BUILDING_PRIORITY - hutPriority) - qty / ITEMS_PER_DAY_EARLIER);
         colony.requests().createAndAssign(building, new Pickup(priority, colony.day() + delay, qty), -1);
+        return true;
+    }
+
+    /**
+     * The pickup a worker's dump into {@code hut} asks for (MC {@code AbstractEntityAIBasic.dumpInventory}): forced
+     * when the hut is full ({@link #isFull}), else unforced when {@code dumped > 0}; nothing at pickup priority 0.
+     *
+     * <p>Deviation from MC: our dump stores the whole inventory in one pass, so fullness is checked once after it.
+     * MC checks it before each slot; a hut filled by the very last slot then gets an unforced pickup, here a forced
+     * one. No "inventory full chest" chat line (no interaction system yet).
+     */
+    public static void afterDump(Colony colony, Building hut, int dumped) {
+        if (hut.pickupPriority().value() <= 0) {
+            return;
+        }
+        if (isFull(colony, hut)) {
+            createPickupRequest(colony, hut, dumped, true);
+        } else if (dumped > 0) {
+            createPickupRequest(colony, hut, dumped, false);
+        }
+    }
+
+    /** MC {@code InventoryUtils.isBuildingFull}: no container of the hut has a free slot (unloaded ones count full). */
+    private static boolean isFull(Colony colony, Building hut) {
+        ContainerAccess containers = colony.context().ports().containers();
+        for (BlockPos pos : hut.containers()) {
+            if (containers.freeSlots(pos) > 0) {
+                return false;
+            }
+        }
         return true;
     }
 }
