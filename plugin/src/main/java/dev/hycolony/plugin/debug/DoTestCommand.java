@@ -60,10 +60,14 @@ public final class DoTestCommand extends AbstractPlayerCommand {
         Placed at = inFront(store, ref, world);
         // World.tick holds AssetRegistry.ASSET_LOCK's read lock and loadAssets needs its write lock: loading assets on
         // the world thread deadlocks it (a ReentrantReadWriteLock cannot upgrade).
-        CompletableFuture.runAsync(() -> create(n, at, player));
+        CompletableFuture.runAsync(() -> create(n, at, player)).whenComplete((v, t) -> {
+            if (t != null) {
+                LOG.at(Level.SEVERE).withCause(t).log("dotest %d failed", n);
+            }
+        });
     }
 
-    /** Off the world thread: registers texture and BlockType {@code HyColony_DoTest_<n>}, then places it. */
+    /** Off the world thread: registers texture and BlockType {@code HyColony_DoTest_<n>}, then queues the placing. */
     private void create(int n, Placed at, PlayerRef player) {
         String id = "HyColony_DoTest_" + n;
         String step = "compose";
@@ -76,7 +80,7 @@ public final class DoTestCommand extends AbstractPlayerCommand {
             factory.registerBlockType(id, texture);
             at.world().execute(() -> place(id, at, player, start));
         } catch (RuntimeException e) {
-            fail(e, step, id, at, player);
+            fail(e, step, id, player);
         }
     }
 
@@ -89,14 +93,14 @@ public final class DoTestCommand extends AbstractPlayerCommand {
             LOG.at(Level.INFO).log("dotest: created %s at %d %d %d in %d ms", id, at.x(), at.y(), at.z(), ms);
             say(player, "hycolony.dotest.created", id, String.valueOf(ms));
         } catch (RuntimeException e) {
-            fail(e, "place", id, at, player);
+            fail(e, "place", id, player);
         }
     }
 
-    /** Logs the failure SEVERE and tells the player, on the world thread. */
-    private static void fail(RuntimeException e, String step, String id, Placed at, PlayerRef player) {
+    /** Logs the failure SEVERE and tells the player (sendMessage is safe off the world thread). */
+    private static void fail(RuntimeException e, String step, String id, PlayerRef player) {
         LOG.at(Level.SEVERE).withCause(e).log("dotest failed at step %s for %s", step, id);
-        at.world().execute(() -> say(player, "hycolony.dotest.failed", step));
+        say(player, "hycolony.dotest.failed", step);
     }
 
     /** The feet-level cell {@link #DISTANCE} blocks along the view yaw (x = -sin, z = -cos, see HeadRotation). */
