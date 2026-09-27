@@ -155,15 +155,18 @@ final class BuilderStock {
     }
 
     /**
-     * MC getMostEfficientTool: the lowest-level tool of {@code type} in the inventory within the hut's level (the
-     * least powerful one that does the job). Null if none.
+     * MC getMostEfficientTool: the lowest-level tool of {@code type} in the inventory within the hut's max equipment
+     * level (the least powerful one that does the job). Null if none.
      */
     ItemKey toolInInventory(ToolType type) {
         ItemKey best = null;
         int bestLevel = Integer.MAX_VALUE;
         for (ItemAmount a : inventory().contents()) {
             ToolInfo info = catalog.tool(a.item()).orElse(null);
-            if (info != null && info.type() == type && info.level() <= hut.level() && info.level() < bestLevel) {
+            if (info != null
+                    && info.type() == type
+                    && info.level() <= hut.maxEquipmentLevel()
+                    && info.level() < bestLevel) {
                 best = a.item();
                 bestLevel = info.level();
             }
@@ -171,11 +174,11 @@ final class BuilderStock {
         return best;
     }
 
-    /** A tool of {@code type} within the hut's level stored in the hut, or null. */
+    /** A tool of {@code type} within the hut's max equipment level stored in the hut, or null. */
     ItemKey toolInHut(ToolType type) {
         for (ItemKey item : containers.contents(hut.containers()).keySet()) {
             ToolInfo info = catalog.tool(item).orElse(null);
-            if (info != null && info.type() == type && info.level() <= hut.level()) {
+            if (info != null && info.type() == type && info.level() <= hut.maxEquipmentLevel()) {
                 return item;
             }
         }

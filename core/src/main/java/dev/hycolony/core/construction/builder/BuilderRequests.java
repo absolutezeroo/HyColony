@@ -121,14 +121,17 @@ final class BuilderRequests {
                         && hut.resolvers().stream().anyMatch(res -> res.canResolve(requests(), r)));
     }
 
-    /** One ToolRequest(type, 0, hut level) unless one of that type is live. */
+    /**
+     * One ToolRequest(type, 0, hut max equipment level) unless one of that type is live (MC checkForToolOrWeapon:
+     * {@code Tool(type, TOOL_LEVEL_WOOD_OR_GOLD, max(maxEquip, min))}; min is 0, so the max is maxEquip).
+     */
     void requestTool(ToolType type) {
         for (Request r : requests().byRequester(hut.requesterId())) {
             if (r.requestable() instanceof ToolRequest t && t.type() == type) {
                 return;
             }
         }
-        request(new ToolRequest(type, 0, hut.level()));
+        request(new ToolRequest(type, 0, hut.maxEquipmentLevel()));
     }
 
     /**

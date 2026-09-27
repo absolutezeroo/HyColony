@@ -22,7 +22,8 @@ public final class PickupRequests {
      * always false), so an open pickup simply makes this return false, as in MC.
      */
     public static boolean createPickupRequest(Colony colony, Building building, int qty, boolean force) {
-        if (!force && building.pickupPriority() == 0) {
+        int hutPriority = building.pickupPriority().value();
+        if (!force && hutPriority == 0) {
             return false;
         }
         boolean open = colony.requests().byRequester(building.requesterId()).stream()
@@ -31,9 +32,8 @@ public final class PickupRequests {
         if (open) {
             return false;
         }
-        int priority = force ? Pickup.MAX_BUILDING_PRIORITY : building.pickupPriority();
-        int delay =
-                Math.max(0, (Pickup.MAX_BUILDING_PRIORITY - building.pickupPriority()) - qty / ITEMS_PER_DAY_EARLIER);
+        int priority = force ? Pickup.MAX_BUILDING_PRIORITY : hutPriority;
+        int delay = Math.max(0, (Pickup.MAX_BUILDING_PRIORITY - hutPriority) - qty / ITEMS_PER_DAY_EARLIER);
         colony.requests().createAndAssign(building, new Pickup(priority, colony.day() + delay, qty), -1);
         return true;
     }

@@ -446,7 +446,10 @@ class BuilderAITest {
 
         List<Request> reqs = builderRequests();
         assertEquals(1, reqs.size());
-        assertEquals(new ToolRequest(ToolType.SHOVEL, 0, 5), reqs.get(0).requestable());
+        assertEquals(
+                new ToolRequest(ToolType.SHOVEL, 0, Integer.MAX_VALUE),
+                reqs.get(0).requestable(),
+                "max level hut");
         assertEquals(citizen.id(), reqs.get(0).citizenId());
         assertTrue(t.blocks.blocks.containsKey(at(1, 0, 0))); // not mined without its tool
     }
@@ -990,6 +993,28 @@ class BuilderAITest {
         assertEquals(1, citizen.inventory().count(shovel));
         assertEquals(0, t.containers.count(List.of(HUT), shovel));
         assertEquals(new BlockState(STONE, 0), t.blocks.blocks.get(at(1, 0, 0)));
+    }
+
+    @Test
+    void builderToolRequestUsesMaxEquipmentLevel() {
+        ItemKey stoneShovel = new ItemKey("stone_shovel");
+        t.catalog.tools.put(stoneShovel, new ToolInfo(ToolType.SHOVEL, 1, 1f));
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 0);
+        blueprint = bp(List.of(entry(1, 0, 0, STONE)));
+        t.blocks.blocks.put(at(1, 0, 0), new BlockState(DIRT, 0));
+        t.catalog.toolForBlock.put(DIRT, ToolType.SHOVEL);
+        give(STONE_I, 1);
+        WorkOrder o = order(res, WorkOrderType.BUILD);
+        hut.setLevel(0); // after the order: a level 0 builder is not offered one
+        tickUntil(() -> ai.stateName().equals("NEEDS_ITEM"), 1000);
+        Request r = builderRequests().get(0);
+        assertEquals(new ToolRequest(ToolType.SHOVEL, 0, 1), r.requestable(), "MC BASIC_TOOL_LEVEL at hut level 0");
+        toPlayer(r);
+
+        t.containers.containers.put(HUT, new java.util.LinkedHashMap<>(Map.of(stoneShovel, 1)));
+
+        tickUntil(() -> gone(o), 5000);
+        assertEquals(1, citizen.inventory().count(stoneShovel), "the level 0 hut uses the stone tool it asked for");
     }
 
     @Test

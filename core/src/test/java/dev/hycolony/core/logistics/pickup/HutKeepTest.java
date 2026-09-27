@@ -66,6 +66,17 @@ class HutKeepTest {
     }
 
     @Test
+    void level0HutKeepsAStoneTool() {
+        ItemKey stonePick = new ItemKey("Tool_Pickaxe_Stone");
+        t.catalog.tools.put(stonePick, new ToolInfo(ToolType.PICKAXE, 1, 1f));
+        builderHut.setLevel(0);
+
+        HutKeep keep = HutKeep.of(colony, builderHut, false);
+
+        assertEquals(0, keep.removable(new ItemAmount(stonePick, 1)), "MC BASIC_TOOL_LEVEL at hut level 0");
+    }
+
+    @Test
     void workerDumpIgnoresRequestDeliveries() {
         RequestToken parent = colony.requests().createAndAssign(builderHut, new StackRequest(STONE, 1, 1, true), -1);
         RequestToken child = colony.requests()

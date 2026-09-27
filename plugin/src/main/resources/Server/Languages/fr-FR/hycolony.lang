@@ -177,6 +177,7 @@ ui.workorders.empty = Aucun ordre de travail.
 status.working = Au travail
 ui.requests.stack = {p0} x {p1}
 ui.requests.tool = {p0} (niveau {p1} à {p2})
+ui.requests.toolAnyLevel = {p0} (niveau {p1} ou plus)
 ui.tool.pickaxe = Pioche
 ui.tool.axe = Hache
 ui.tool.shovel = Pelle

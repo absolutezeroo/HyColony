@@ -65,22 +65,25 @@ public final class RequestsPage extends ColonyPage {
                 .param("p2", describe(n.requestable()));
     }
 
-    /** "64 x Stone" or "Pickaxe (level 0 to 1)", in the player's language. */
+    /** "64 x Stone" or "Pickaxe (level 0 to 1)" or "Pickaxe (level 0 or higher)", in the player's language. */
     public static Message describe(Deliverable d) {
         return switch (d) {
             case StackRequest s ->
                 Message.translation("hycolony.ui.requests.stack")
                         .param("p0", String.valueOf(s.count()))
                         .param("p1", itemName(s.item().id()));
-            case ToolRequest t ->
-                Message.translation("hycolony.ui.requests.tool")
-                        .param(
-                                "p0",
-                                Message.translation(
-                                        "hycolony.ui.tool." + t.type().name().toLowerCase(Locale.ROOT)))
-                        .param("p1", String.valueOf(t.minLevel()))
-                        .param("p2", String.valueOf(t.maxLevel()));
+            case ToolRequest t -> describeTool(t);
         };
+    }
+
+    /** A max-level hut asks for any tool level (MC TOOL_LEVEL_MAXIMUM): "level 0 or higher", not "0 to 2147483647". */
+    private static Message describeTool(ToolRequest t) {
+        boolean anyLevel = t.maxLevel() == Integer.MAX_VALUE;
+        Message tool = Message.translation("hycolony.ui.tool." + t.type().name().toLowerCase(Locale.ROOT));
+        Message m = Message.translation(anyLevel ? "hycolony.ui.requests.toolAnyLevel" : "hycolony.ui.requests.tool")
+                .param("p0", tool)
+                .param("p1", String.valueOf(t.minLevel()));
+        return anyLevel ? m : m.param("p2", String.valueOf(t.maxLevel()));
     }
 
     @Override

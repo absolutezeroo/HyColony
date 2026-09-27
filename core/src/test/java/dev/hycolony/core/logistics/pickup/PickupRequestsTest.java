@@ -42,28 +42,29 @@ class PickupRequestsTest {
 
     @Test
     void defaultPickupPriorityIsFive() {
-        assertEquals(5, hut.pickupPriority());
+        assertEquals(5, hut.pickupPriority().value());
     }
 
     @Test
     void priorityIsClampedToZeroAndTen() {
         for (int i = 0; i < 8; i++) {
-            hut.alterPickupPriority(1);
+            hut.pickupPriority().alter(1);
         }
-        assertEquals(10, hut.pickupPriority());
+        assertEquals(10, hut.pickupPriority().value());
         for (int i = 0; i < 12; i++) {
-            hut.alterPickupPriority(-1);
+            hut.pickupPriority().alter(-1);
         }
-        assertEquals(0, hut.pickupPriority());
+        assertEquals(0, hut.pickupPriority().value());
     }
 
     @Test
     void pickupPriorityIsSavedAndReadBack() {
-        hut.alterPickupPriority(-2);
+        hut.pickupPriority().alter(-2);
 
         Colony loaded = ColonySerializer.read(ColonySerializer.write(colony), t.context(), new TerritoryIndex());
 
-        assertEquals(3, loaded.buildings().at(hall).orElseThrow().pickupPriority());
+        assertEquals(
+                3, loaded.buildings().at(hall).orElseThrow().pickupPriority().value());
     }
 
     @Test
@@ -95,7 +96,7 @@ class PickupRequestsTest {
 
     @Test
     void forcedPickupHasPriorityTen() {
-        hut.alterPickupPriority(-3);
+        hut.pickupPriority().alter(-3);
 
         PickupRequests.createPickupRequest(colony, hut, 64, true);
 
@@ -107,7 +108,7 @@ class PickupRequestsTest {
 
     @Test
     void priorityZeroNeverCreatesAPickup() {
-        hut.alterPickupPriority(-5);
+        hut.pickupPriority().alter(-5);
 
         assertFalse(PickupRequests.createPickupRequest(colony, hut, 64, false));
         assertTrue(pickups().isEmpty());

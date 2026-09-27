@@ -177,6 +177,7 @@ ui.workorders.empty = No work order.
 status.working = Working
 ui.requests.stack = {p0} x {p1}
 ui.requests.tool = {p0} (level {p1} to {p2})
+ui.requests.toolAnyLevel = {p0} (level {p1} or higher)
 ui.tool.pickaxe = Pickaxe
 ui.tool.axe = Axe
 ui.tool.shovel = Shovel

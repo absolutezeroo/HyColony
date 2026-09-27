@@ -24,7 +24,7 @@ final class BuildingSerializer {
         o.addProperty("built", b.isBuilt());
         o.addProperty("customName", b.customName());
         o.addProperty("style", b.style());
-        o.addProperty("pickupPriority", b.pickupPriority());
+        o.addProperty("pickupPriority", b.pickupPriority().value());
         JsonObject modules = new JsonObject();
         b.modules().forEach((key, module) -> {
             if (module instanceof PersistentModule pm) {
@@ -50,7 +50,7 @@ final class BuildingSerializer {
         b.setCustomName(o.get("customName").getAsString());
         b.setStyle(o.get("style").getAsString());
         if (o.has("pickupPriority")) {
-            b.setPickupPriority(o.get("pickupPriority").getAsInt());
+            b.pickupPriority().set(o.get("pickupPriority").getAsInt());
         }
         if (o.has("deconstructed")) {
             b.setDeconstructed(o.get("deconstructed").getAsBoolean());
