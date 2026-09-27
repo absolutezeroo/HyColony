@@ -22,12 +22,13 @@ Rendre l'ajout d'un métier, d'un bâtiment ou d'un pack de contenu **local** : 
    - Le plugin associe un rendu à chaque type d'onglet par un `switch` exhaustif.
    - Chaque onglet a son propre fichier `.ui`, au lieu d'un `Building.ui` qui contient tout.
 6. **Règles.** ArchUnit fige les frontières vraies aujourd'hui :
-   - `building` ne dépend ni de `job` ni de `logistics` ;
+   - `building` ne dépend ni de `construction`, ni de `job`, ni de `logistics` ;
    - aucune fonctionnalité ne dépend de `colony.action`, `colony.view` ou `colony.persistence`. Seule exception, `construction.wand` peut appeler `colony.action` : la baguette est elle-même une action du joueur, qui pose les huttes par `HutActions` ;
    - personne ne dépend de `construction.builder` ;
    - pas de cycle entre les sous-paquets de `logistics` ;
    - héritage de profondeur 1 au plus sous `Job` et `JobAI`.
-   - pas de règle « `job` ne dépend pas de `logistics` » : `WorkerStock.dump` demande un ramassage juste après le dépôt, comme MC `AbstractEntityAIBasic.dumpInventory` appelle `building.createPickupRequest`. La logistique est une fonctionnalité du cœur, qu'on ne peut pas désactiver.
+
+   Il n'y a pas de règle « `job` ne dépend pas de `logistics` » : `WorkerStock.dump` demande un ramassage juste après le dépôt, comme MC `AbstractEntityAIBasic.dumpInventory` appelle `building.createPickupRequest`. La logistique est une fonctionnalité du cœur, qu'on ne peut pas désactiver.
 
    Les règles qui touchent des garde-fous (PMD `NcssCount`, échec sur une exception PMD inutilisée) attendent une session déverrouillée.
 7. **Sous-plugins.**

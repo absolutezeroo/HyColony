@@ -58,16 +58,17 @@ class ArchitectureTest {
             .resideInAPackage("dev.hycolony.core.construction..");
 
     /**
-     * Construction depends on buildings, never the reverse: this closes any building/construction cycle (construction
-     * hut types are registered by the composition root, like its jobs).
+     * Buildings host the other features through modules: construction, jobs and logistics depend on buildings, never
+     * the reverse (spec § 6). Construction hut types are registered by the composition root, like its jobs.
      */
     @ArchTest
-    static final ArchRule buildingDoesNotDependOnConstruction = noClasses()
+    static final ArchRule buildingDependsOnNeitherConstructionJobNorLogistics = noClasses()
             .that()
             .resideInAPackage("dev.hycolony.core.building..")
             .should()
             .dependOnClassesThat()
-            .resideInAPackage("dev.hycolony.core.construction..");
+            .resideInAnyPackage(
+                    "dev.hycolony.core.construction..", "dev.hycolony.core.job..", "dev.hycolony.core.logistics..");
 
     /** The construction sub-packages form no dependency cycle. */
     @ArchTest
@@ -90,15 +91,6 @@ class ArchitectureTest {
             .should()
             .dependOnClassesThat(resideInAPackage("dev.hycolony.core.construction.builder..")
                     .and(not(equivalentTo(BuilderJob.class))));
-
-    /** Buildings host workers through modules; jobs and logistics plug into them, never the reverse (spec § 6). */
-    @ArchTest
-    static final ArchRule buildingDependsOnNeitherJobNorLogistics = noClasses()
-            .that()
-            .resideInAPackage("dev.hycolony.core.building..")
-            .should()
-            .dependOnClassesThat()
-            .resideInAnyPackage("dev.hycolony.core.job..", "dev.hycolony.core.logistics..");
 
     // No "job does not depend on logistics" rule: WorkerStock.dump asks for a pickup right after a dump, like MC
     // AbstractEntityAIBasic.dumpInventory calls building.createPickupRequest, and logistics is a core feature that
@@ -148,6 +140,7 @@ class ArchitectureTest {
             .dependOnClassesThat()
             .resideInAPackage("dev.hycolony.core.colony.action..");
 
+    /** The logistics sub-packages (courier, pickup, warehouse) form no dependency cycle. */
     @ArchTest
     static final ArchRule logisticsSubPackagesAreFreeOfCycles =
             slices().matching("dev.hycolony.core.logistics.(*)..").should().beFreeOfCycles();
@@ -163,11 +156,13 @@ class ArchitectureTest {
             .should(have(DescribedPredicate.describe(
                     "a parent that is a strict subtype of Job or JobAI", ArchitectureTest::extendsAJobOrJobAISubtype)));
 
+    /** True if a direct superclass or interface of {@code type} is itself below Job or JobAI. */
     private static boolean extendsAJobOrJobAISubtype(JavaClass type) {
         return Stream.concat(type.getRawSuperclass().stream(), type.getRawInterfaces().stream())
                 .anyMatch(parent -> isStrictSubtype(parent, Job.class) || isStrictSubtype(parent, JobAI.class));
     }
 
+    /** True if {@code type} is assignable to {@code root} without being {@code root} itself. */
     private static boolean isStrictSubtype(JavaClass type, Class<?> root) {
         return type.isAssignableTo(root) && !type.isEquivalentTo(root);
     }
