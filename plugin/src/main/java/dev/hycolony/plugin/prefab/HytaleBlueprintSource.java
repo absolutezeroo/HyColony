@@ -89,16 +89,23 @@ public final class HytaleBlueprintSource implements BlueprintSource {
         CompletableFuture.runAsync(() -> {
             long start = System.nanoTime();
             int n = 0;
-            for (String prefab : PrefabStyles.loadBundled().prefabs()) {
-                try {
-                    Path path = PrefabStore.get().findAssetPrefabPath(prefab);
-                    if (path != null) {
-                        PrefabBufferUtil.getCached(path);
-                        n++;
+            try {
+                for (String prefab : PrefabStyles.loadBundled().prefabs()) {
+                    try {
+                        Path path = PrefabStore.get().findAssetPrefabPath(prefab);
+                        if (path != null) {
+                            PrefabBufferUtil.getCached(path);
+                            n++;
+                        }
+                    } catch (RuntimeException e) {
+                        LOG.at(Level.WARNING).withCause(e).log("HyColony blueprint: cannot pre-load %s", prefab);
                     }
-                } catch (RuntimeException e) {
-                    LOG.at(Level.WARNING).withCause(e).log("HyColony blueprint: cannot pre-load %s", prefab);
                 }
+            } catch (RuntimeException e) {
+                // styles.json is already read by the constructor on the world thread, which logs there too; this
+                // background read only needs its own warning so the failure is not silent.
+                LOG.at(Level.WARNING).withCause(e).log("HyColony blueprint: cannot pre-load prefabs (styles.json)");
+                return;
             }
             LOG.at(Level.INFO).log(
                     "HyColony blueprint: pre-loaded %d prefabs in %d ms", n, (System.nanoTime() - start) / 1_000_000);

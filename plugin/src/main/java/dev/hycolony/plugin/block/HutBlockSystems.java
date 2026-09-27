@@ -215,7 +215,7 @@ public final class HutBlockSystems {
                     return;
                 }
                 BlockPos pos = pos(event.getTargetBlock());
-                if (type == BuildingTypes.TOWN_HALL) {
+                if (type.equals(BuildingTypes.TOWN_HALL)) {
                     rt.manager().windows().openTownHall(player.getUuid(), pos);
                 } else {
                     rt.manager().windows().openBuilding(player.getUuid(), pos);
