@@ -61,7 +61,7 @@ public final class CitizenInventoryWindows {
                 .flatMap(c -> c.citizens().get(citizenId))
                 .isPresent();
         CitizenItemContainer container = new CitizenItemContainer(
-                citizen, alive, before -> manager.get().citizenInventories().onPlayerEdit(colonyId, citizenId, before));
+                citizen, colonyId, alive, () -> manager.get().citizenInventories());
         CitizenInventoryWindow window = new CitizenInventoryWindow(container, citizen, alive);
         window.coreChanged(); // the client gets the current state on open, no need to send it twice
         if (playerComponent.getPageManager().setPageWithWindows(ref, store, Page.Bench, true, window)) {
