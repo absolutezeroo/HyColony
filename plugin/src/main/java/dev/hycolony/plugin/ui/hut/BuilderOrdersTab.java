@@ -1,4 +1,4 @@
-package dev.hycolony.plugin.ui;
+package dev.hycolony.plugin.ui.hut;
 
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
@@ -8,6 +8,7 @@ import dev.hycolony.core.colony.action.WorkOrderActions;
 import dev.hycolony.core.colony.ui.tab.BuilderTabs;
 import dev.hycolony.core.construction.shared.BuilderSettingsModule.Mode;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.plugin.ui.ColonyPage;
 import java.util.List;
 import java.util.UUID;
 
@@ -15,7 +16,7 @@ import java.util.UUID;
  * The builder hut's Work orders tab (MC WorkOrderModuleWindow): name, distance, the current order framed in green,
  * Cancel on orders claimed here, Select on the others in MANUAL mode (disabled with the reason as tooltip).
  */
-final class BuilderOrdersTab {
+final class BuilderOrdersTab implements HutTab {
     /** MC's workOrderBox colour for the current order: (0, 170, 0). */
     private static final String CURRENT_FRAME = "#00aa00";
 
@@ -33,23 +34,34 @@ final class BuilderOrdersTab {
         this.canManage = canManage;
     }
 
-    void render(UICommandBuilder ui, UIEventBuilder events) {
+    @Override
+    public String document() {
+        return "Pages/HyColony/BuilderOrdersTab.ui";
+    }
+
+    @Override
+    public String labelKey() {
+        return "hycolony.ui.building.tab.orders";
+    }
+
+    @Override
+    public void render(UICommandBuilder ui, UIEventBuilder events, String root) {
         List<BuilderTabs.OrderLine> lines = tabs.orders();
         if (lines.isEmpty()) {
-            ui.set("#OrdersEmpty.Visible", true);
-            ui.set("#OrdersEmpty.Text", Message.translation("hycolony.ui.workorders.empty"));
+            ui.set(root + " #OrdersEmpty.Visible", true);
+            ui.set(root + " #OrdersEmpty.Text", Message.translation("hycolony.ui.workorders.empty"));
         }
         for (int i = 0; i < lines.size(); i++) {
             BuilderTabs.OrderLine o = lines.get(i);
-            String row = "#BuilderOrders[" + i + "]";
-            ui.append("#BuilderOrders", "Pages/HyColony/BuilderOrderRow.ui");
+            String row = root + " #BuilderOrders[" + i + "]";
+            ui.append(root + " #BuilderOrders", "Pages/HyColony/BuilderOrderRow.ui");
             if (o.current()) {
                 ui.set(row + ".Background", CURRENT_FRAME);
             }
             ui.set(
                     row + " #Title.TextSpans",
                     Message.translation("hycolony.ui.workorders.line")
-                            .param("p0", BuildingMainTab.typeName(o.type()))
+                            .param("p0", ColonyPage.workOrderTypeName(o.type()))
                             .param("p1", ColonyPage.buildingName(o.buildingName()))
                             .param("p2", String.valueOf(o.targetLevel())));
             ui.set(
@@ -83,13 +95,14 @@ final class BuilderOrdersTab {
     }
 
     /** Select and Cancel go to the core, which checks MANAGE_HUTS and shows the window again. */
-    void handle(ColonyPage.Act act) {
+    @Override
+    public void handle(ColonyPage.Act act) {
         List<BuilderTabs.OrderLine> lines = tabs.orders();
-        if (act.index < 0 || act.index >= lines.size()) {
+        if (act.index() < 0 || act.index() >= lines.size()) {
             return;
         }
-        int orderId = lines.get(act.index).id();
-        switch (act.action) {
+        int orderId = lines.get(act.index()).id();
+        switch (act.action()) {
             case "select" -> manager.workOrders().select(player, hut, orderId);
             case "orderCancel" -> manager.workOrders().cancelFromBuilder(player, hut, orderId);
             default -> {}

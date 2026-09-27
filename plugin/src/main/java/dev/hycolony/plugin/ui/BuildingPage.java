@@ -9,59 +9,33 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.ui.BuildingView;
-import dev.hycolony.core.colony.ui.tab.BuilderTabs;
-import dev.hycolony.core.colony.ui.tab.CourierTabs;
-import dev.hycolony.core.colony.ui.tab.WarehouseTabs;
-import dev.hycolony.plugin.ui.logistics.CourierTasksRenderer;
-import dev.hycolony.plugin.ui.logistics.WarehouseTabsRenderer;
+import dev.hycolony.plugin.ui.hut.HutTab;
+import dev.hycolony.plugin.ui.hut.HutTabs;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * A hut's window, in tabs as MC AbstractBuildingWindow: Main, then the builder hut's Resources, Settings and Work
- * orders, the warehouse's Couriers, Stock and Tasks, or the courier hut's Tasks (MC module order). Vanilla tab pattern
+ * A hut's window, in tabs as MC AbstractBuildingWindow: Main, then one tab per module view of the hut (MC module
+ * order), each appended from its own {@code .ui} into {@code #ModuleTabs}. Vanilla tab pattern
  * (TriggerVolumeInspectorPage): a {@code #TabButtons} row, the active tab disabled, one content group per tab shown or
  * hidden. The open tab is page state, kept across the core's re-shows.
  */
 public final class BuildingPage extends ColonyPage {
-    /** A tab: its content group and its label key. */
-    enum Tab implements TabBar.Tab {
-        MAIN("#MainTab", "main"),
-        RESOURCES("#ResourcesTab", "resources"),
-        SETTINGS("#SettingsTab", "settings"),
-        ORDERS("#OrdersTab", "orders"),
-        COURIERS("#CouriersTab", "couriers"),
-        STOCK("#StockTab", "stock"),
-        WAREHOUSE_TASKS("#WarehouseTasksTab", "tasks"),
-        COURIER_TASKS("#CourierTasksTab", "tasks");
+    private static final String MODULE_TABS = "#ModuleTabs";
 
-        private final String group;
-        private final String key;
-
-        Tab(String group, String key) {
-            this.group = group;
-            this.key = key;
-        }
-
-        @Override
-        public String group() {
-            return group;
-        }
-
-        @Override
-        public String labelKey() {
-            return "hycolony.ui.building.tab." + key;
-        }
-    }
+    /** A tab button: its content group and its label key. */
+    private record Bar(String group, String labelKey) implements TabBar.Tab {}
 
     private final BuildingView view;
     private final Runnable pickUp;
     private final HutStorage storage;
     private final BuildingMainTab main;
-    private final List<Tab> tabs = new ArrayList<>();
-    private Tab tab = Tab.MAIN;
+    private final List<HutTab> moduleTabs;
+    private final List<Bar> bar = new ArrayList<>();
+    /** Index in {@link #bar}; 0 is Main. */
+    private int tab;
 
     public BuildingPage(PlayerRef playerRef, BuildingView view, ColonyManager manager, Runnable pickUp) {
         super(playerRef, manager);
@@ -69,16 +43,15 @@ public final class BuildingPage extends ColonyPage {
         this.pickUp = pickUp;
         this.storage = new HutStorage(playerRef, manager, view.pos());
         this.main = new BuildingMainTab(manager, player, view);
-        tabs.add(Tab.MAIN);
-        if (view.tab(BuilderTabs.class).isPresent()) {
-            tabs.addAll(List.of(Tab.RESOURCES, Tab.SETTINGS, Tab.ORDERS));
+        this.moduleTabs = HutTabs.of(view, manager, player);
+        bar.add(new Bar("#MainTab", "hycolony.ui.building.tab.main"));
+        for (int i = 0; i < moduleTabs.size(); i++) {
+            bar.add(new Bar(root(i), moduleTabs.get(i).labelKey()));
         }
-        if (view.tab(WarehouseTabs.class).isPresent()) {
-            tabs.addAll(List.of(Tab.COURIERS, Tab.STOCK, Tab.WAREHOUSE_TASKS));
-        }
-        if (view.tab(CourierTabs.class).isPresent()) {
-            tabs.add(Tab.COURIER_TASKS);
-        }
+    }
+
+    private static String root(int moduleTab) {
+        return MODULE_TABS + "[" + moduleTab + "]";
     }
 
     /** The view drawn, to tell whose window this is. */
@@ -88,7 +61,7 @@ public final class BuildingPage extends ColonyPage {
 
     /** Opens on the tab {@code previous} showed if it is this hut's window (the core re-shows after each action). */
     public BuildingPage keepTabOf(@Nullable CustomUIPage previous) {
-        if (previous instanceof BuildingPage p && p.view.pos().equals(view.pos()) && tabs.contains(p.tab)) {
+        if (previous instanceof BuildingPage p && p.view.pos().equals(view.pos()) && p.tab < bar.size()) {
             tab = p.tab;
         }
         return this;
@@ -113,35 +86,23 @@ public final class BuildingPage extends ColonyPage {
             @Nonnull UIEventBuilder events,
             @Nonnull Store<EntityStore> store) {
         ui.append("Pages/HyColony/Building.ui");
-        TabBar.render(ui, events, tabs, tab);
+        // Appended before the tab row, which shows or hides each tab's root.
+        for (HutTab t : moduleTabs) {
+            ui.append(MODULE_TABS, t.document());
+        }
+        TabBar.render(ui, events, bar, bar.get(tab));
         main.render(ui, events, storage.mayOpen());
-        view.tab(BuilderTabs.class).ifPresent(b -> {
-            resources(b).render(ui, events);
-            settings(b).render(ui, events);
-            orders(b).render(ui, events);
-        });
-        view.tab(WarehouseTabs.class).ifPresent(w -> WarehouseTabsRenderer.render(ui, w));
-        view.tab(CourierTabs.class).ifPresent(c -> CourierTasksRenderer.render(ui, c));
-    }
-
-    private BuilderResourcesTab resources(BuilderTabs b) {
-        return new BuilderResourcesTab(manager, player, view.pos(), b.resources());
-    }
-
-    private BuilderSettingsTab settings(BuilderTabs b) {
-        return new BuilderSettingsTab(manager, player, view.pos(), b.mode(), view.canManage());
-    }
-
-    private BuilderOrdersTab orders(BuilderTabs b) {
-        return new BuilderOrdersTab(manager, player, view.pos(), b, view.canManage());
+        for (int i = 0; i < moduleTabs.size(); i++) {
+            moduleTabs.get(i).render(ui, events, root(i));
+        }
     }
 
     @Override
     public void handleDataEvent(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, @Nonnull Act act) {
         switch (act.action) {
             case "tab" -> {
-                if (act.index >= 0 && act.index < tabs.size()) {
-                    tab = tabs.get(act.index);
+                if (act.index >= 0 && act.index < bar.size()) {
+                    tab = act.index;
                     rebuild();
                 }
             }
@@ -151,11 +112,7 @@ public final class BuildingPage extends ColonyPage {
                 if (main.handle(act)) {
                     rebuild();
                 }
-                view.tab(BuilderTabs.class).ifPresent(b -> {
-                    resources(b).handle(act);
-                    settings(b).handle(act);
-                    orders(b).handle(act);
-                });
+                moduleTabs.forEach(t -> t.handle(act));
             }
         }
     }

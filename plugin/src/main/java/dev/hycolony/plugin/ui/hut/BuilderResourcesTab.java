@@ -1,4 +1,4 @@
-package dev.hycolony.plugin.ui;
+package dev.hycolony.plugin.ui.hut;
 
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
@@ -7,6 +7,7 @@ import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.ui.BuilderResourcesView;
 import dev.hycolony.core.colony.ui.BuilderResourcesView.ResourceRow;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.plugin.ui.ColonyPage;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,7 +15,7 @@ import java.util.UUID;
  * The builder hut's Resources tab (MC WindowBuilderResModule): order name, step, supplied / progress, then one row per
  * item, whole row coloured by status, with the player's shortfall and an Add button.
  */
-final class BuilderResourcesTab {
+final class BuilderResourcesTab implements HutTab {
     private final ColonyManager manager;
     private final UUID player;
     private final BlockPos hut;
@@ -39,17 +40,28 @@ final class BuilderResourcesTab {
         };
     }
 
-    void render(UICommandBuilder ui, UIEventBuilder events) {
-        header(ui);
+    @Override
+    public String document() {
+        return "Pages/HyColony/BuilderResourcesTab.ui";
+    }
+
+    @Override
+    public String labelKey() {
+        return "hycolony.ui.building.tab.resources";
+    }
+
+    @Override
+    public void render(UICommandBuilder ui, UIEventBuilder events, String root) {
+        header(ui, root);
         List<ResourceRow> rows = view.rows();
         if (rows.isEmpty() && view.header().isPresent()) {
-            ui.set("#ResourcesEmpty.Visible", true);
-            ui.set("#ResourcesEmpty.Text", Message.translation("hycolony.ui.resources.empty"));
+            ui.set(root + " #ResourcesEmpty.Visible", true);
+            ui.set(root + " #ResourcesEmpty.Text", Message.translation("hycolony.ui.resources.empty"));
         }
         for (int i = 0; i < rows.size(); i++) {
             ResourceRow r = rows.get(i);
-            String row = "#Resources[" + i + "]";
-            ui.append("#Resources", "Pages/HyColony/ResourceRow.ui");
+            String row = root + " #Resources[" + i + "]";
+            ui.append(root + " #Resources", "Pages/HyColony/ResourceRow.ui");
             ui.set(row + " #Icon.ItemId", r.item().id());
             ui.set(row + " #Name.Text", ColonyPage.itemName(r.item().id()));
             int missing = r.missingFromPlayer();
@@ -70,30 +82,30 @@ final class BuilderResourcesTab {
         }
     }
 
-    private void header(UICommandBuilder ui) {
+    private void header(UICommandBuilder ui, String root) {
         if (view.header().isEmpty()) {
-            ui.set("#OrderName.Text", Message.translation("hycolony.ui.resources.noOrder"));
-            ui.set("#Step.Visible", false);
-            ui.set("#Supply.Visible", false);
+            ui.set(root + " #OrderName.Text", Message.translation("hycolony.ui.resources.noOrder"));
+            ui.set(root + " #Step.Visible", false);
+            ui.set(root + " #Supply.Visible", false);
             return;
         }
         BuilderResourcesView.Header h = view.header().get();
         ui.set(
-                "#OrderName.TextSpans",
+                root + " #OrderName.TextSpans",
                 Message.translation("hycolony.ui.workorders.line")
-                        .param("p0", BuildingMainTab.typeName(h.type()))
+                        .param("p0", ColonyPage.workOrderTypeName(h.type()))
                         .param("p1", ColonyPage.buildingName(h.buildingName()))
                         .param("p2", String.valueOf(h.targetLevel())));
         ui.set(
-                "#Step.Text",
+                root + " #Step.Text",
                 Message.translation("hycolony.ui.resources.step")
                         .param("p0", String.valueOf(h.step()))
                         .param("p1", String.valueOf(h.totalSteps())));
         if (view.rows().isEmpty()) {
-            ui.set("#Supply.Visible", false); // MC sets it only when something is needed
+            ui.set(root + " #Supply.Visible", false); // MC sets it only when something is needed
         } else {
             ui.set(
-                    "#Supply.Text",
+                    root + " #Supply.Text",
                     Message.translation("hycolony.ui.resources.supply")
                             .param("p0", String.valueOf(h.suppliedPercent()))
                             .param("p1", String.valueOf(h.percent())));
@@ -101,11 +113,12 @@ final class BuilderResourcesTab {
     }
 
     /** Add: the player's items go into the hut (MC TransferItemsRequestMessage), then the window is shown again. */
-    void handle(ColonyPage.Act act) {
-        if ("add".equals(act.action)
-                && act.index >= 0
-                && act.index < view.rows().size()) {
-            ResourceRow r = view.rows().get(act.index);
+    @Override
+    public void handle(ColonyPage.Act act) {
+        if ("add".equals(act.action())
+                && act.index() >= 0
+                && act.index() < view.rows().size()) {
+            ResourceRow r = view.rows().get(act.index());
             manager.requestActions().addToHut(player, hut, r.item(), r.needed() - r.available());
             manager.windows().openBuilding(player, hut); // addToHut does not re-show
         }

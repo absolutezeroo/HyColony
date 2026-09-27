@@ -1,0 +1,22 @@
+$C = "../../Common.ui";
+
+Group {
+  LayoutMode: Top;
+  Visible: false;
+
+  Group {
+    LayoutMode: Left;
+    Anchor: (Height: 44);
+
+    Label {
+      Text: %hycolony.ui.builder.mode;
+      Style: (RenderBold: true, RenderUppercase: true, TextColor: #94a7bb);
+      FlexWeight: 1;
+    }
+
+    $C.@SecondaryTextButton #ModeButton {
+      Text: "";
+      FlexWeight: 2;
+    }
+  }
+}

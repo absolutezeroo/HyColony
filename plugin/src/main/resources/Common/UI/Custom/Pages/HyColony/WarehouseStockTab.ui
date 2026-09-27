@@ -1,0 +1,18 @@
+$C = "../../Common.ui";
+
+Group {
+  LayoutMode: Top;
+  Visible: false;
+
+  Label #StockEmpty {
+    Style: (TextColor: #94a7bb);
+    Anchor: (Bottom: 10);
+    Visible: false;
+  }
+
+  Group #Stock {
+    LayoutMode: TopScrolling;
+    ScrollbarStyle: $C.@DefaultScrollbarStyle;
+    Anchor: (Height: 420);
+  }
+}

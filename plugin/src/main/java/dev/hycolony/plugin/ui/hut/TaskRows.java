@@ -1,4 +1,4 @@
-package dev.hycolony.plugin.ui.logistics;
+package dev.hycolony.plugin.ui.hut;
 
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;

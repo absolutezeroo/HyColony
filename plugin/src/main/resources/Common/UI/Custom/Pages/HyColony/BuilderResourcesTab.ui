@@ -1,0 +1,32 @@
+$C = "../../Common.ui";
+
+Group {
+  LayoutMode: Top;
+  Visible: false;
+
+  Label #OrderName {
+    Style: (RenderBold: true);
+  }
+
+  Label #Step {
+    Style: (TextColor: #94a7bb);
+    Anchor: (Top: 2);
+  }
+
+  Label #Supply {
+    Style: (TextColor: #94a7bb);
+    Anchor: (Top: 2, Bottom: 10);
+  }
+
+  Label #ResourcesEmpty {
+    Style: (TextColor: #94a7bb);
+    Anchor: (Bottom: 10);
+    Visible: false;
+  }
+
+  Group #Resources {
+    LayoutMode: TopScrolling;
+    ScrollbarStyle: $C.@DefaultScrollbarStyle;
+    Anchor: (Height: 380);
+  }
+}

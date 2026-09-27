@@ -15,6 +15,8 @@ import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.colony.ColonyManager;
+import dev.hycolony.core.construction.workorder.WorkOrderType;
+import java.util.Locale;
 import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -134,6 +136,11 @@ public abstract class ColonyPage extends InteractiveCustomUIPage<ColonyPage.Act>
         return jobId.isEmpty()
                 ? Message.translation("hycolony.ui.job.none")
                 : Message.translation("hycolony.ui.job." + jobId.substring(jobId.indexOf(':') + 1));
+    }
+
+    /** The translated work order type ("Build", "Upgrade"...). */
+    public static Message workOrderTypeName(WorkOrderType type) {
+        return Message.translation("hycolony.ui.workorder.type." + type.name().toLowerCase(Locale.ROOT));
     }
 
     public static Message itemName(String itemId) {

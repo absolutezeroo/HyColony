@@ -5,7 +5,6 @@ import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.ui.BuildingView;
-import dev.hycolony.core.construction.workorder.WorkOrderType;
 import dev.hycolony.core.job.HiringMode;
 import dev.hycolony.plugin.ui.logistics.PickupPanel;
 import java.util.List;
@@ -71,7 +70,7 @@ final class BuildingMainTab {
         ui.set(
                 "#OrderInfo.TextSpans",
                 Message.translation("hycolony.ui.building.order")
-                        .param("p0", typeName(o.type()))
+                        .param("p0", ColonyPage.workOrderTypeName(o.type()))
                         .param("p1", String.valueOf(o.targetLevel()))
                         .param(
                                 "p2",
@@ -79,10 +78,6 @@ final class BuildingMainTab {
                                         .map(Message::raw)
                                         .orElse(Message.translation("hycolony.ui.building.noBuilder")))
                         .param("p3", String.valueOf(o.percent())));
-    }
-
-    static Message typeName(WorkOrderType type) {
-        return Message.translation("hycolony.ui.workorder.type." + type.name().toLowerCase(Locale.ROOT));
     }
 
     /**
