@@ -5,17 +5,14 @@ import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.permission.Action;
-import dev.hycolony.core.job.Job;
 import dev.hycolony.core.kernel.item.Inventory;
 import dev.hycolony.core.kernel.item.ItemAmount;
-import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.Msg;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.RequestManager;
 import dev.hycolony.core.request.model.RequestState;
 import java.util.List;
 import java.util.Optional;
-import java.util.OptionalDouble;
 import java.util.UUID;
 
 /**
@@ -79,74 +76,6 @@ public final class CitizenInventoryActions {
                 overruleNextOpenRequestOfCitizenWithStack(c, work, d, is.get());
             }
         }
-    }
-
-    /**
-     * Share of {@code tool}'s durability the citizen's job has left on it, 1 new to 0 worn out, for the window to show
-     * the real wear. Empty for a gone citizen, a job that does not wear tools, or an unbreakable item.
-     */
-    public OptionalDouble toolCondition(int colonyId, int citizenId, ItemKey tool) {
-        int durability = manager.context().ports().catalog().durability(tool);
-        Optional<Job> job = job(colonyId, citizenId);
-        if (durability <= 0 || job.isEmpty()) {
-            return OptionalDouble.empty();
-        }
-        return job.get().toolUses(tool).stream()
-                .mapToDouble(uses -> Math.max(0, 1 - (double) uses / durability))
-                .findFirst();
-    }
-
-    /**
-     * {@link #toolCondition} of the stack in {@code slot} when it is the one its job wears: the last slot holding that
-     * tool, which a break removes ({@code Inventory.extract} takes from the last slots first). Another stack of that
-     * tool is new (1). Empty for an empty slot or an item the job does not wear.
-     */
-    public OptionalDouble slotCondition(int colonyId, int citizenId, int slot) {
-        Inventory inv = manager.byId(colonyId)
-                .flatMap(c -> c.citizens().get(citizenId))
-                .map(CitizenData::inventory)
-                .orElse(null);
-        if (inv == null || slot < 0 || slot >= inv.size()) {
-            return OptionalDouble.empty();
-        }
-        ItemKey tool = inv.slot(slot).map(ItemAmount::item).orElse(null);
-        if (tool == null) {
-            return OptionalDouble.empty();
-        }
-        OptionalDouble condition = toolCondition(colonyId, citizenId, tool);
-        return condition.isPresent() && slot != lastSlotOf(inv, tool) ? OptionalDouble.of(1) : condition;
-    }
-
-    private static int lastSlotOf(Inventory inv, ItemKey item) {
-        for (int i = inv.size() - 1; i >= 0; i--) {
-            if (inv.slot(i).filter(a -> a.item().equals(item)).isPresent()) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    /**
-     * The player put {@code tool} with {@code condition} (as {@link #toolCondition}) in the citizen's inventory: its
-     * job's use count follows it, a partly used step counting as a whole so it is never repaired. The core counts
-     * wear per item kind, so when the citizen holds another of that kind the worst wear stays. A gone citizen, a job
-     * that does not wear tools or an unbreakable item does nothing.
-     */
-    public void toolPutIn(int colonyId, int citizenId, ItemKey tool, double condition) {
-        int durability = manager.context().ports().catalog().durability(tool);
-        Job job = job(colonyId, citizenId).orElse(null);
-        if (durability <= 0 || job == null) {
-            return;
-        }
-        // Tolerance: a stack read back from toolCondition must give its uses again, not one more.
-        int uses = (int) Math.ceil((1 - condition) * durability - 1e-6);
-        int held = job.citizen().inventory().count(tool);
-        int kept = job.toolUses(tool).orElse(0);
-        job.setToolUses(tool, held > 1 ? Math.max(kept, uses) : Math.max(0, uses));
-    }
-
-    private Optional<Job> job(int colonyId, int citizenId) {
-        return manager.byId(colonyId).flatMap(c -> c.citizens().get(citizenId)).flatMap(CitizenData::job);
     }
 
     /** Whether a slot that held {@code was} now holding {@code is} means the player put a stack there. */

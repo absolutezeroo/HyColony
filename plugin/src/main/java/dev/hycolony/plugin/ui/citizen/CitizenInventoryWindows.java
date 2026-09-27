@@ -11,6 +11,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.ColonyEvents;
 import dev.hycolony.core.colony.ColonyManager;
+import dev.hycolony.plugin.item.HytaleStacks;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -61,7 +62,11 @@ public final class CitizenInventoryWindows {
                 .flatMap(c -> c.citizens().get(citizenId))
                 .isPresent();
         CitizenItemContainer container = new CitizenItemContainer(
-                citizen, colonyId, alive, () -> manager.get().citizenInventories());
+                citizen,
+                colonyId,
+                alive,
+                () -> manager.get().citizenInventories(),
+                new HytaleStacks(manager.get().context().ports().catalog()::durability));
         CitizenInventoryWindow window = new CitizenInventoryWindow(container, citizen, alive);
         window.coreChanged(); // the client gets the current state on open, no need to send it twice
         if (playerComponent.getPageManager().setPageWithWindows(ref, store, Page.Bench, true, window)) {

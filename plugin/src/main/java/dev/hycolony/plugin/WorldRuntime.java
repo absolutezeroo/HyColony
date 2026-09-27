@@ -106,7 +106,7 @@ public final class WorldRuntime {
                 new WandActions(manager, previews, k -> new ItemKey(ids.itemId(k)), k -> new BlockKey(ids.blockId(k)));
         wandSelf[0] = wand;
         manager.persistence()
-                .setStorage(new FileColonyStorage(world.getSavePath().resolve("hycolony")), MigrationChain.sp1());
+                .setStorage(new FileColonyStorage(world.getSavePath().resolve("hycolony")), MigrationChain.sp2());
         if (enabled) {
             manager.persistence().loadAll(); // disabled (asset ids missing): leave the files alone
         }

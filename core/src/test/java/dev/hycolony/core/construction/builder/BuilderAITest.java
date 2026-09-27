@@ -47,7 +47,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.OptionalInt;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.BooleanSupplier;
@@ -894,8 +893,8 @@ class BuilderAITest {
         assertEquals(List.of(at(1, 0, 0), at(3, 0, 0)), t.blocks.placed);
     }
 
-    @Test
-    void toolBreaksAfterDurabilityUses() {
+    /** Three dirt blocks in the way of the plan, all to dig with a shovel. */
+    private ItemKey shovelWork(int durability) {
         Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 0);
         blueprint = bp(List.of(entry(3, 0, 0, STONE)));
         for (int x = 1; x <= 3; x++) {
@@ -904,35 +903,55 @@ class BuilderAITest {
         t.catalog.toolForBlock.put(DIRT, ToolType.SHOVEL);
         ItemKey shovel = new ItemKey("shovel");
         t.catalog.tools.put(shovel, new ToolInfo(ToolType.SHOVEL, 0, 2f));
-        t.catalog.durability.put(shovel, 2);
-        give(shovel, 1);
+        t.catalog.durability.put(shovel, durability);
+        t.catalog.maxStacks.put(shovel, 1);
         order(res, WorkOrderType.BUILD);
+        return shovel;
+    }
 
+    private long dirtLeft() {
+        return t.blocks.blocks.values().stream()
+                .filter(b -> b.key().equals(DIRT))
+                .count();
+    }
+
+    /** MC CitizenItemUtils.damageItemInHand: 1 per block; the tool breaks at its durability, then another is asked. */
+    @Test
+    void aToolBreaksExactlyAtItsDurabilityAndTheBuilderRequestsANewOne() {
+        ItemKey shovel = shovelWork(2);
+        give(shovel, 1);
+
+        tickUntil(() -> dirtLeft() == 2, 5000);
+        assertEquals(List.of(new ItemAmount(shovel, 1, 1)), citizen.inventory().contents());
         tickUntil(() -> builderRequests().stream().anyMatch(r -> r.requestable() instanceof ToolRequest), 5000);
 
         assertEquals(0, citizen.inventory().count(shovel)); // broken after its 2 uses
-        assertEquals(
-                1,
-                t.blocks.blocks.values().stream()
-                        .filter(b -> b.key().equals(DIRT))
-                        .count());
+        assertEquals(1, dirtLeft());
     }
 
     @Test
-    void toolWearPersistsAcrossSaveAndLoad() {
-        ItemKey shovel = new ItemKey("shovel");
-        BuilderJob job = (BuilderJob) citizen.job().orElseThrow();
-        assertFalse(job.wear(shovel, 3));
-        assertFalse(job.wear(shovel, 3));
+    void fiveFreshToolsWearOneByOne() {
+        ItemKey shovel = shovelWork(2);
+        give(shovel, 5);
 
-        BuilderJob loaded = new BuilderJob(new CitizenData(7));
-        loaded.read(job.write());
+        tickUntil(() -> dirtLeft() == 0, 5000);
 
-        assertEquals(OptionalInt.of(2), loaded.toolUses(shovel));
-        assertTrue(loaded.wear(shovel, 3)); // the third use breaks it
-        assertEquals(OptionalInt.of(0), loaded.toolUses(shovel));
-        assertFalse(loaded.wear(shovel, 3)); // its replacement starts fresh
-        assertFalse(job.wear(new ItemKey("unbreakable"), 0));
+        // 3 blocks: the first shovel broke after 2, the next one took the third.
+        assertEquals(4, citizen.inventory().count(shovel));
+        assertEquals(
+                List.of(new ItemAmount(shovel, 1, 1), new ItemAmount(shovel, 1), new ItemAmount(shovel, 1)),
+                citizen.inventory().contents().subList(0, 3));
+    }
+
+    /** A tool Hytale broke (durability 0) is worn out: the builder does not dig with it but asks for another. */
+    @Test
+    void aWornOutToolIsNeverUsed() {
+        ItemKey shovel = shovelWork(2);
+        citizen.inventory().set(0, java.util.Optional.of(new ItemAmount(shovel, 1, 2)));
+
+        tickUntil(() -> builderRequests().stream().anyMatch(r -> r.requestable() instanceof ToolRequest), 5000);
+
+        assertEquals(3, dirtLeft());
     }
 
     @Test

@@ -8,9 +8,8 @@ import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.action.CitizenInventoryActions;
 import dev.hycolony.core.kernel.item.Inventory;
 import dev.hycolony.core.kernel.item.ItemAmount;
-import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.plugin.item.HytaleStacks;
 import java.util.Optional;
-import java.util.OptionalDouble;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -21,9 +20,9 @@ import org.jspecify.annotations.Nullable;
 /**
  * A citizen's core inventory seen as a Hytale container: every slot read and write goes to the core, so the player and
  * the citizen's AI share one live inventory (MC ContainerCitizenInventory's SlotItemHandler on the citizen's
- * inventory). {@code items} only caches the stacks built from the core; the stack of a tool its job wears shows the wear it counted. An
- * open window is re-sent only when the inventory changes, not on wear alone: reopening it shows the current wear. World
- * thread only.
+ * inventory). {@code items} only caches the stacks built from the core, each tool at the durability its damage leaves
+ * ({@link HytaleStacks}); a tool worn by a mined block changes the inventory, so an open window shows it. World thread
+ * only.
  */
 final class CitizenItemContainer extends SimpleItemContainer {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
@@ -32,20 +31,27 @@ final class CitizenItemContainer extends SimpleItemContainer {
     private final int colonyId;
     private final BooleanSupplier alive;
     private final Supplier<CitizenInventoryActions> actions;
+    private final HytaleStacks stacks;
     /** Nesting of write actions: a move locks both containers and re-enters, only the outermost one reports. */
     private int writeDepth;
 
     /**
      * Reads {@code citizen}'s inventory directly; {@code alive} says whether it is still in its colony (nothing is
-     * accepted once it is not); {@code actions} gets each player move that changed it, and keeps its tools' wear.
+     * accepted once it is not); {@code actions} gets each player move that changed it; {@code stacks} converts a tool's
+     * damage to and from Hytale durability.
      */
     CitizenItemContainer(
-            CitizenData citizen, int colonyId, BooleanSupplier alive, Supplier<CitizenInventoryActions> actions) {
+            CitizenData citizen,
+            int colonyId,
+            BooleanSupplier alive,
+            Supplier<CitizenInventoryActions> actions,
+            HytaleStacks stacks) {
         super((short) citizen.inventory().size());
         this.citizen = citizen;
         this.colonyId = colonyId;
         this.alive = alive;
         this.actions = actions;
+        this.stacks = stacks;
     }
 
     @Override
@@ -57,25 +63,12 @@ final class CitizenItemContainer extends SimpleItemContainer {
             forget(slot);
             return null;
         }
-        if (cached == null || !cached.getItemId().equals(a.item().id()) || cached.getQuantity() != a.count()) {
-            cached = new ItemStack(a.item().id(), a.count());
-        }
-        if (!cached.isUnbreakable()) {
-            OptionalDouble condition = actions.get().slotCondition(colonyId, citizen.id(), slot);
-            // At least 1 while the core still holds it: Hytale shows 0 as broken, the core removes a broken tool.
-            double durability = condition.isPresent()
-                    ? Math.max(1, cached.getMaxDurability() * condition.getAsDouble())
-                    : cached.getMaxDurability();
-            if (cached.getDurability() != durability) {
-                cached = cached.withDurability(durability);
-            }
+        // The stack a player put keeps its exact durability while the core reads it as the same damage.
+        if (cached == null || !stacks.toAmount(cached).equals(a)) {
+            cached = stacks.toStack(a);
         }
         items[slot] = cached;
         return cached;
-    }
-
-    private OptionalDouble condition(ItemKey item) {
-        return actions.get().toolCondition(colonyId, citizen.id(), item);
     }
 
     @Override
@@ -86,13 +79,7 @@ final class CitizenItemContainer extends SimpleItemContainer {
         ItemStack previous = internal_getSlot(slot);
         Inventory inv = citizen.inventory();
         if (slot < inv.size()) {
-            ItemKey item = new ItemKey(itemStack.getItemId());
-            inv.set(slot, Optional.of(new ItemAmount(item, itemStack.getQuantity())));
-            if (!itemStack.isUnbreakable()) {
-                actions.get()
-                        .toolPutIn(
-                                colonyId, citizen.id(), item, itemStack.getDurability() / itemStack.getMaxDurability());
-            }
+            inv.set(slot, Optional.of(stacks.toAmount(itemStack)));
             items[slot] = itemStack;
         }
         return previous;
@@ -129,21 +116,14 @@ final class CitizenItemContainer extends SimpleItemContainer {
     /**
      * Refuses anything the core cannot hold as it is, and everything once the citizen is gone.
      *
-     * <p>Deviation from MC: the core keeps item keys and counts only, so an item with metadata is refused rather than
-     * stripped. A worn tool is kept as its job's use count for that kind of tool (MC keeps the damage on the stack);
-     * a citizen whose job does not wear tools refuses it rather than repair it.
+     * <p>Deviation from MC: the core keeps an item's key, count and damage only, so an item with other metadata is
+     * refused rather than stripped. A worn tool is accepted: its damage goes with it.
      */
     @Override
     protected boolean cantAddToSlot(short slot, ItemStack itemStack, ItemStack slotItemStack) {
         return !alive.getAsBoolean()
                 || itemStack.getMetadata() != null
-                || (worn(itemStack)
-                        && condition(new ItemKey(itemStack.getItemId())).isEmpty())
                 || super.cantAddToSlot(slot, itemStack, slotItemStack);
-    }
-
-    private static boolean worn(ItemStack itemStack) {
-        return !itemStack.isUnbreakable() && itemStack.getDurability() < itemStack.getMaxDurability();
     }
 
     @Override

@@ -122,7 +122,7 @@ abstract class LogisticsSimulation {
 
     ColonyManager newManager() {
         ColonyManager m = new ColonyManager(t.context());
-        m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp1());
+        m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp2());
         return m;
     }
 

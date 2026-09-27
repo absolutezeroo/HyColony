@@ -18,11 +18,9 @@ import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.construction.builder.BuilderJob;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
 import dev.hycolony.core.construction.shared.ClaimRadius;
-import dev.hycolony.core.job.Job;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
-import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.persist.ColonyStorage;
 import dev.hycolony.core.kernel.persist.FileColonyStorage;
@@ -35,7 +33,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
-import java.util.OptionalInt;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -49,7 +46,7 @@ class PersistenceTest {
 
     private ColonyManager manager(TestContexts t) {
         ColonyManager m = new ColonyManager(t.context());
-        m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp1());
+        m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp2());
         return m;
     }
 
@@ -259,7 +256,7 @@ class PersistenceTest {
         m.persistence().saveAll();
 
         ColonyManager reloaded = new ColonyManager(new TestContexts().context());
-        reloaded.persistence().setStorage(new FlakyStorage(dir, a.id()), MigrationChain.sp1());
+        reloaded.persistence().setStorage(new FlakyStorage(dir, a.id()), MigrationChain.sp2());
         reloaded.persistence().loadAll();
 
         assertTrue(reloaded.byId(a.id()).isEmpty());
@@ -330,30 +327,6 @@ class PersistenceTest {
         CitizenData restored = reloaded.citizens().get(1).orElseThrow();
         assertTrue(restored.job().isEmpty());
         assertNull(restored.workBuilding());
-        assertTrue(reloaded.isDirty(), "healed state is saved at the next save");
-    }
-
-    @Test
-    void wearOfAToolTheCitizenNoLongerHoldsIsForgottenOnLoad() {
-        TestContexts t = new TestContexts();
-        Colony c = new Colony(
-                t.context(),
-                new TerritoryIndex(),
-                new Colony.Founding(1, "T", new BlockPos(0, 64, 0), Permissions.createDefault(alice, "Alice")));
-        ItemKey shovel = new ItemKey("shovel");
-        ItemKey pickaxe = new ItemKey("pickaxe");
-        CitizenData citizen = new CitizenData(1);
-        citizen.setJob(BuilderJob.TYPE.factory().apply(citizen));
-        citizen.inventory().insert(new ItemAmount(shovel, 1), item -> 1);
-        citizen.job().orElseThrow().setToolUses(shovel, 2);
-        citizen.job().orElseThrow().setToolUses(pickaxe, 3); // an older save kept it after the pickaxe left
-        c.citizens().restore(citizen);
-
-        Colony reloaded = ColonySerializer.read(ColonySerializer.write(c), t.context(), new TerritoryIndex());
-
-        Job job = reloaded.citizens().get(1).orElseThrow().job().orElseThrow();
-        assertEquals(OptionalInt.of(2), job.toolUses(shovel));
-        assertEquals(OptionalInt.of(0), job.toolUses(pickaxe));
         assertTrue(reloaded.isDirty(), "healed state is saved at the next save");
     }
 

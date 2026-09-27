@@ -11,6 +11,7 @@ import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.kernel.port.BodyAnimation;
 import java.util.List;
+import java.util.OptionalInt;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -79,18 +80,18 @@ final class BuilderBlockWork {
             return BuilderState.BUILDING_STEP;
         }
         ToolType type = ctx.catalog().toolFor(state.key()).orElse(null);
-        ItemKey tool = type == null ? null : ctx.stock().toolInInventory(type);
-        if (type != null && tool == null) {
+        OptionalInt toolSlot = type == null ? OptionalInt.empty() : ctx.stock().toolInInventory(type);
+        if (type != null && toolSlot.isEmpty()) {
             return fetchTool(type);
         }
         if (!ctx.walkToWork(pos)) {
             return null;
         }
         if (!mineDelayed) {
-            startBreaking(pos, state, tool);
+            startBreaking(pos, state, toolSlot);
             return null;
         }
-        breakBlock(pos, state, tool, clearing);
+        breakBlock(pos, state, toolSlot, clearing);
         return BuilderState.BUILDING_STEP;
     }
 
@@ -120,7 +121,19 @@ final class BuilderBlockWork {
         return BuilderState.INVENTORY_FULL;
     }
 
-    private void startBreaking(BlockPos pos, BlockState state, @Nullable ItemKey tool) {
+    /** The item in {@code slot} of the inventory; null for no slot (bare hands). */
+    private @Nullable ItemKey itemIn(OptionalInt slot) {
+        return slot.isEmpty()
+                ? null
+                : ctx.stock()
+                        .inventory()
+                        .slot(slot.getAsInt())
+                        .map(ItemAmount::item)
+                        .orElse(null);
+    }
+
+    private void startBreaking(BlockPos pos, BlockState state, OptionalInt toolSlot) {
+        ItemKey tool = itemIn(toolSlot);
         mineDelayed = true;
         ctx.gestures().lookAt(pos);
         ctx.gestures().hold(tool);
@@ -133,7 +146,9 @@ final class BuilderBlockWork {
                         pos);
     }
 
-    private void breakBlock(BlockPos pos, BlockState state, @Nullable ItemKey tool, boolean clearing) {
+    /** MC mineBlock: breaks the block, keeps its drops, then wears the tool in hand by 1 (damageItemInHand). */
+    private void breakBlock(BlockPos pos, BlockState state, OptionalInt toolSlot, boolean clearing) {
+        ItemKey tool = itemIn(toolSlot);
         mineDelayed = false;
         mineTarget = null;
         List<ItemAmount> drops = ctx.blocks().breakBlock(pos);
@@ -147,10 +162,9 @@ final class BuilderBlockWork {
         if (!ctx.catalog().isOre(state.key())) { // MC EntityAIStructureBuilder.mineBlock: getDrops = !isOre
             ctx.stock().storeDrops(drops);
         }
-        if (tool != null
-                && ctx.job() instanceof BuilderJob b
-                && b.wear(tool, ctx.catalog().durability(tool))) {
-            ctx.stock().inventory().extract(tool, 1); // worn out: it breaks
+        if (tool != null) {
+            // MC damageItemInHand: 1 per block; at its durability the tool breaks, no message (the next block asks).
+            ctx.stock().inventory().damage(toolSlot.getAsInt(), 1, ctx.catalog().durability(tool));
         }
         ctx.award(XP_PER_BLOCK);
         ctx.job().incrementActions();

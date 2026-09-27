@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
-import dev.hycolony.core.construction.builder.BuilderJob;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.Inventory;
 import dev.hycolony.core.kernel.item.ItemAmount;
@@ -21,7 +20,6 @@ import dev.hycolony.core.testing.FakeUi;
 import dev.hycolony.core.testing.TestContexts;
 import java.util.List;
 import java.util.Optional;
-import java.util.OptionalDouble;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
@@ -192,145 +190,5 @@ class CitizenInventoryTest {
         playerSets(0, Optional.empty());
 
         assertTrue(colony.isDirty());
-    }
-
-    private OptionalDouble shovelCondition() {
-        return manager.citizenInventories().toolCondition(colony.id(), worker.id(), SHOVEL);
-    }
-
-    private void putShovel(int slot, double condition) {
-        worker.inventory().set(slot, Optional.of(new ItemAmount(SHOVEL, 1)));
-        manager.citizenInventories().toolPutIn(colony.id(), worker.id(), SHOVEL, condition);
-    }
-
-    @Test
-    void aWornToolPutInShowsTheSameWearBack() {
-        t.catalog.durability.put(SHOVEL, 4);
-        worker.setJob(new BuilderJob(worker));
-
-        putShovel(0, 0.5);
-
-        assertEquals(OptionalDouble.of(0.5), shovelCondition());
-    }
-
-    @Test
-    void aPartlyUsedToolCountsAsOneMoreUseSoItIsNeverRepaired() {
-        t.catalog.durability.put(SHOVEL, 4);
-        worker.setJob(new BuilderJob(worker));
-
-        putShovel(0, 0.6); // 1.6 uses worn
-
-        assertEquals(OptionalDouble.of(0.5), shovelCondition());
-    }
-
-    @Test
-    void aSecondToolOfTheSameKindKeepsTheWorstWear() {
-        t.catalog.durability.put(SHOVEL, 4);
-        worker.setJob(new BuilderJob(worker));
-        putShovel(0, 0.25);
-
-        putShovel(1, 1.0);
-
-        assertEquals(OptionalDouble.of(0.25), shovelCondition());
-    }
-
-    @Test
-    void aNewToolSwappedForTheWornOneStartsFresh() {
-        t.catalog.durability.put(SHOVEL, 4);
-        worker.setJob(new BuilderJob(worker));
-        putShovel(0, 0.25);
-
-        putShovel(0, 1.0); // replaces it in the same slot: the citizen never holds none
-
-        assertEquals(OptionalDouble.of(1.0), shovelCondition());
-    }
-
-    @Test
-    void aFreshToolDeliveredAfterTheWornOneLeftStartsFresh() {
-        t.catalog.durability.put(SHOVEL, 4);
-        worker.setJob(new BuilderJob(worker));
-        putShovel(0, 0.5);
-        worker.inventory().set(0, Optional.empty()); // taken out through the window
-
-        worker.inventory().insert(new ItemAmount(SHOVEL, 1), item -> 1); // delivered by the core
-
-        assertEquals(OptionalDouble.of(1.0), shovelCondition());
-    }
-
-    @Test
-    void aFreshToolDeliveredAfterTheWornOneLeftByTheCoreStartsFresh() {
-        t.catalog.durability.put(SHOVEL, 4);
-        worker.setJob(new BuilderJob(worker));
-        putShovel(0, 0.5);
-        worker.inventory().extract(SHOVEL, 1);
-
-        worker.inventory().insert(new ItemAmount(SHOVEL, 1), item -> 1);
-
-        assertEquals(OptionalDouble.of(1.0), shovelCondition());
-    }
-
-    @Test
-    void aWornToolThatStaysKeepsItsWearWhenAnotherOfItsKindLeaves() {
-        t.catalog.durability.put(SHOVEL, 4);
-        worker.setJob(new BuilderJob(worker));
-        putShovel(0, 0.25);
-        putShovel(1, 1.0);
-
-        worker.inventory().extract(SHOVEL, 1);
-
-        assertEquals(OptionalDouble.of(0.25), shovelCondition());
-    }
-
-    @Test
-    void noConditionWithoutToolWearingJobOrForAnUnbreakableTool() {
-        assertTrue(shovelCondition().isEmpty());
-
-        worker.setJob(new BuilderJob(worker));
-
-        assertTrue(shovelCondition().isEmpty()); // durability 0: unbreakable
-        assertTrue(manager.citizenInventories()
-                .toolCondition(colony.id(), 99, SHOVEL)
-                .isEmpty());
-    }
-
-    private OptionalDouble slotCondition(int slot) {
-        return manager.citizenInventories().slotCondition(colony.id(), worker.id(), slot);
-    }
-
-    @Test
-    void onlyTheStackTheBuilderWearsShowsTheWear() {
-        t.catalog.durability.put(SHOVEL, 4);
-        worker.setJob(new BuilderJob(worker));
-        worker.inventory().set(0, Optional.of(new ItemAmount(SHOVEL, 1)));
-        worker.inventory().set(1, Optional.of(new ItemAmount(SHOVEL, 1)));
-        putShovel(2, 0.5);
-
-        assertEquals(OptionalDouble.of(1.0), slotCondition(0));
-        assertEquals(OptionalDouble.of(1.0), slotCondition(1));
-        assertEquals(OptionalDouble.of(0.5), slotCondition(2));
-        assertTrue(slotCondition(3).isEmpty()); // empty slot
-
-        worker.inventory().extract(SHOVEL, 1); // a break removes that very stack
-        assertTrue(worker.inventory().slot(2).isEmpty());
-    }
-
-    @Test
-    void takingAFreshStackOutKeepsTheWearOfTheOneThatStays() {
-        t.catalog.durability.put(SHOVEL, 4);
-        worker.setJob(new BuilderJob(worker));
-        worker.inventory().set(0, Optional.of(new ItemAmount(SHOVEL, 1)));
-        putShovel(1, 0.5);
-
-        worker.inventory().set(0, Optional.empty());
-
-        assertEquals(OptionalDouble.of(0.5), slotCondition(1));
-    }
-
-    @Test
-    void aSlotOfAnItemTheJobDoesNotWearHasNoCondition() {
-        worker.setJob(new BuilderJob(worker));
-        worker.inventory().set(0, Optional.of(new ItemAmount(DIRT, 4)));
-
-        assertTrue(slotCondition(0).isEmpty());
     }
 }

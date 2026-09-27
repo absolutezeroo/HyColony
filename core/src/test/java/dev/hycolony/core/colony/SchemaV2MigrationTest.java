@@ -22,12 +22,12 @@ class SchemaV2MigrationTest {
 
     private ColonyManager manager() {
         ColonyManager m = new ColonyManager(new TestContexts().context());
-        m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp1());
+        m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp2());
         return m;
     }
 
     @Test
-    void v1FixtureMigratesToV2() throws Exception {
+    void v1FixtureMigratesToTheCurrentSchema() throws Exception {
         try (var in = getClass().getResourceAsStream("/fixtures/colony-v1.json")) {
             Files.write(dir.resolve("colony-1.json"), in.readAllBytes());
         }
@@ -38,7 +38,7 @@ class SchemaV2MigrationTest {
         m.persistence().saveAll();
 
         String saved = Files.readString(dir.resolve("colony-1.json"));
-        assertTrue(saved.contains("\"schemaVersion\":2"), saved);
+        assertTrue(saved.contains("\"schemaVersion\":3"), saved);
         assertTrue(Files.exists(dir.resolve("colony-1.v1.json")));
         String backup = Files.readString(dir.resolve("colony-1.v1.json"));
         assertTrue(backup.contains("\"schemaVersion\":1"), backup);

@@ -6,6 +6,7 @@ import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -25,9 +26,13 @@ public final class MigrationChain {
         return new MigrationChain(1, List.of());
     }
 
-    /** SP1: schema 2. Adds citizen inventory/job, colony requests/workOrders/settings, building containers. */
-    public static MigrationChain sp1() {
-        return new MigrationChain(2, List.of(new Migration(1, MigrationChain::v1ToV2)));
+    /**
+     * SP2: schema 3. Schema 2 added citizen inventory/job, colony requests/workOrders/settings, building containers;
+     * schema 3 moved a tool's wear from the job's per-item counter onto the stack.
+     */
+    public static MigrationChain sp2() {
+        return new MigrationChain(
+                3, List.of(new Migration(1, MigrationChain::v1ToV2), new Migration(2, MigrationChain::v2ToV3)));
     }
 
     private static JsonObject v1ToV2(JsonObject doc) {
@@ -47,6 +52,38 @@ public final class MigrationChain {
             building.addProperty("deconstructed", false);
         }
         return doc;
+    }
+
+    /**
+     * The builder's {@code toolUses} counter (blocks mined per tool id) becomes the {@code damage} of the last slot
+     * holding that tool, the stack its break would have removed; a counter for a tool no longer held is dropped.
+     */
+    private static JsonObject v2ToV3(JsonObject doc) {
+        for (JsonElement el : doc.getAsJsonArray("citizens")) {
+            JsonObject citizen = el.getAsJsonObject();
+            JsonElement job = citizen.get("job");
+            if (job == null || !job.isJsonObject() || !job.getAsJsonObject().has("toolUses")) {
+                continue;
+            }
+            JsonObject uses = job.getAsJsonObject().remove("toolUses").getAsJsonObject();
+            JsonArray inventory = citizen.has("inventory") ? citizen.getAsJsonArray("inventory") : new JsonArray();
+            uses.entrySet()
+                    .forEach(e -> lastSlotOf(inventory, e.getKey())
+                            .ifPresent(slot ->
+                                    slot.addProperty("damage", e.getValue().getAsInt())));
+        }
+        return doc;
+    }
+
+    private static Optional<JsonObject> lastSlotOf(JsonArray inventory, String item) {
+        for (int i = inventory.size() - 1; i >= 0; i--) {
+            JsonElement slot = inventory.get(i);
+            if (slot.isJsonObject()
+                    && item.equals(slot.getAsJsonObject().get("item").getAsString())) {
+                return Optional.of(slot.getAsJsonObject());
+            }
+        }
+        return Optional.empty();
     }
 
     public int current() {

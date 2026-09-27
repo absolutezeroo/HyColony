@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.function.ToIntFunction;
 import org.jspecify.annotations.Nullable;
 
@@ -18,7 +17,6 @@ import org.jspecify.annotations.Nullable;
 public final class Inventory {
     private final @Nullable ItemAmount[] slots;
     private long changes;
-    private Consumer<ItemKey> onGone = _ -> {};
 
     public Inventory(int slots) {
         this.slots = new @Nullable ItemAmount[slots];
@@ -85,7 +83,6 @@ public final class Inventory {
         }
         if (removed > 0) {
             changes++;
-            notifyIfGone(item);
         }
         return removed;
     }
@@ -107,7 +104,6 @@ public final class Inventory {
             return false;
         }
         slots[slot] = null;
-        notifyIfGone(cur.item());
         return true;
     }
 
@@ -157,26 +153,8 @@ public final class Inventory {
 
     /** Puts {@code amount} in {@code index}, or empties it; a player moving items in the citizen's window. */
     public void set(int index, Optional<ItemAmount> amount) {
-        ItemAmount was = slots[index];
         slots[index] = amount.orElse(null);
         changes++;
-        if (was != null) {
-            notifyIfGone(was.item());
-        }
-    }
-
-    /**
-     * Calls {@code onGone} with an item each time the last of it leaves, by {@link #extract} or {@link #set}. Replaces
-     * the previous listener; a {@link #copy} has none.
-     */
-    public void onGone(Consumer<ItemKey> onGone) {
-        this.onGone = Objects.requireNonNull(onGone, "onGone");
-    }
-
-    private void notifyIfGone(ItemKey item) {
-        if (count(item) == 0) {
-            onGone.accept(item);
-        }
     }
 
     /** Bumped by every change, so a view can tell its copy is stale without comparing slots. */
