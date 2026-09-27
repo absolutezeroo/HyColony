@@ -12,17 +12,27 @@ PACK = ROOT / "plugin" / "src" / "subplugins" / "Decorations"
 ICON_SIZE = 64
 
 
+# Hytale's CommonAssetValidator roots (plugin-b-api § 23): a path outside them, or missing, stops the whole server.
+ICON_ROOTS = ("Icons/ItemsGenerated/", "Icons/Items/")
+MODEL_ROOTS = ("Blocks/", "Items/", "Resources/", "NPC/", "VFX/", "Consumable/")
+TEXTURE_ROOTS = ("Blocks/", "BlockTextures/", "Items/", "NPC/", "Resources/", "VFX/")
+
+
 class Assets:
     """Read-only view of the vanilla assets zip."""
 
     def __init__(self, path):
         self.zip = zipfile.ZipFile(path)
+        self.names = set(self.zip.namelist())
 
     def json(self, name):
         return json.loads(self.zip.read(name).decode("utf-8"))
 
     def image(self, name):
         return Image.open(io.BytesIO(self.zip.read(name))).convert("RGBA")
+
+    def has(self, name):
+        return name in self.names
 
     def item(self, item_id):
         """The item JSON with its Parent chain merged (BlockType merged key by key, like the codec's inheritance)."""
@@ -96,3 +106,47 @@ def draw_box(icon, box, textures, scale, origin):
 def save_png(image, path):
     path.parent.mkdir(parents=True, exist_ok=True)
     image.save(path, optimize=True)
+
+
+def validate_pack(assets):
+    """Fails loudly on what Hytale would refuse in the pack's items: a Common path outside its root, of the wrong type
+    or missing (from the pack and the vanilla assets), an unknown item id or hitbox."""
+    errors = []
+    items = {p.stem: p for p in (PACK / "Server/Item/Items").rglob("*.json")}
+    hitboxes = {p.stem for p in (PACK / "Server/Item/Block/Hitboxes").rglob("*.json")}
+    vanilla_items = {n.rsplit("/", 1)[-1][:-5] for n in assets.names if n.startswith("Server/Item/Items/")}
+    vanilla_hitboxes = {n.rsplit("/", 1)[-1][:-5] for n in assets.names if n.startswith("Server/Item/Block/Hitboxes/")}
+
+    def common(path, roots, extension, where):
+        if not path.startswith(roots) or not path.endswith(extension):
+            errors.append(f"{where}: {path} must be a {extension} under {roots}")
+        elif not (PACK / "Common" / path).is_file() and not assets.has("Common/" + path):
+            errors.append(f"{where}: {path} does not exist")
+
+    for name, path in sorted(items.items()):
+        data = json.loads(path.read_text(encoding="utf-8"))
+        common(data["Icon"], ICON_ROOTS, ".png", name)
+        for key, value in walk_json(data):
+            if key == "CustomModel":
+                common(value, MODEL_ROOTS, ".blockymodel", name)
+            elif key == "Texture" or key in ("All", "Sides", "Top", "Bottom"):
+                common(value, TEXTURE_ROOTS, ".png", name)
+            elif key == "ItemId" and value not in items and value not in vanilla_items:
+                errors.append(f"{name}: unknown item {value}")
+            elif key == "HitboxType" and value not in hitboxes and value not in vanilla_hitboxes:
+                errors.append(f"{name}: unknown hitbox {value}")
+    if errors:
+        raise SystemExit("Invalid Decorations pack:\n  " + "\n  ".join(errors))
+
+
+def walk_json(data):
+    """Every (key, string value) pair, at any depth."""
+    if isinstance(data, dict):
+        for key, value in data.items():
+            if isinstance(value, str):
+                yield key, value
+            else:
+                yield from walk_json(value)
+    elif isinstance(data, list):
+        for value in data:
+            yield from walk_json(value)

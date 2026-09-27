@@ -24,9 +24,13 @@ import org.jspecify.annotations.Nullable;
  * The optional sub-plugins bundled in the jar, set up once in {@code setup()}, in {@code Order}: an enabled pack
  * ({@code HyColony.SubPlugins} in config.json, else its manifest's {@code EnabledByDefault}) has its fragments checked,
  * its assets registered with Hytale, its fragments merged into the core's files and its registrar run. A pack that
- * fails at any step is FAILED, logged SEVERE, and adds nothing more; HyColony keeps running. A disabled pack adds
- * nothing: its ids are never checked. A missing asset id in an enabled pack's fragment still disables all of HyColony
- * (IdMap.validate, once assets are loaded).
+ * fails at any of these steps is FAILED, logged SEVERE, and adds nothing more; HyColony keeps running. A disabled pack
+ * adds nothing: its ids are never checked. A missing asset id in an enabled pack's fragment still disables all of
+ * HyColony (IdMap.validate, once assets are loaded).
+ *
+ * <p>Not caught here: once registered, the pack's zip is an immutable pack, and Hytale shuts the whole server down when
+ * one of its assets fails to load or validate at LoadAssetEvent (a Common path outside the allowed roots, a missing
+ * file...; plugin-b-api § 23). The generator and the build check the packs' asset paths for that reason.
  *
  * <p>Translations: a pack's {@code Server/Languages/<locale>/hycolony.lang} keys join the core's, the first loaded
  * winning (plugin-b-api § 21.2), so a pack only adds keys and never redefines a core one.

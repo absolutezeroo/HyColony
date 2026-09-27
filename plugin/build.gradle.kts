@@ -78,6 +78,44 @@ val subpluginResources by tasks.registering(Sync::class) {
     }
 }
 
+// Hytale shuts the whole server down when a zip pack holds an invalid asset (docs/research/plugin-b-api.md § 23): check
+// the items' Common paths against CommonAssetValidator's roots, and that the pack's own (HyColony) files exist.
+val checkSubpluginAssets by tasks.registering {
+    val src = subpluginsSrc.asFile
+    inputs.dir(src)
+    doLast {
+        val roots = mapOf(
+            "Icon" to listOf("Icons/ItemsGenerated/", "Icons/Items/"),
+            "CustomModel" to listOf("Blocks/", "Items/", "Resources/", "NPC/", "VFX/", "Consumable/"),
+            "Texture" to listOf("Blocks/", "BlockTextures/", "Items/", "NPC/", "Resources/", "VFX/"),
+        )
+        val errors = mutableListOf<String>()
+        fun walk(pack: File, item: String, node: Any?) {
+            when (node) {
+                is Map<*, *> -> node.forEach { (key, value) ->
+                    val allowed = roots[key]
+                    if (allowed != null && value is String) {
+                        if (allowed.none { value.startsWith(it) }) errors += "$item: $key $value is not under $allowed"
+                        if (value.contains("/HyColony/") && !File(pack, "Common/$value").isFile) {
+                            errors += "$item: $key $value does not exist"
+                        }
+                    } else {
+                        walk(pack, item, value)
+                    }
+                }
+                is List<*> -> node.forEach { walk(pack, item, it) }
+            }
+        }
+        src.listFiles { f -> f.isDirectory }.orEmpty().forEach { pack ->
+            File(pack, "Server/Item/Items").walkTopDown().filter { it.extension == "json" }.forEach {
+                walk(pack, it.name, groovy.json.JsonSlurper().parse(it))
+            }
+        }
+        if (errors.isNotEmpty()) throw GradleException(errors.joinToString("\n"))
+    }
+}
+subpluginResources { dependsOn(checkSubpluginAssets) }
+
 sourceSets.main { resources.srcDir(subpluginResources) }
 // runServer puts the resources' source dirs on its classpath without building them.
 tasks.matching { it.name == "prepareRunServer" }.configureEach { dependsOn(subpluginResources) }

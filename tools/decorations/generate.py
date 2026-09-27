@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 
 import flower_pots
-from pack import PACK, Assets, write_json
+from pack import PACK, Assets, validate_pack, write_json
 
 DEFAULT_ZIP = Path.home() / ".gradle" / "caches" / "hytale-assets" / "release-0.6.8-Assets.zip"
 
@@ -73,6 +73,7 @@ def main():
     assets = Assets(Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_ZIP)
     carpets(assets)
     flower_pots.generate(assets)
+    validate_pack(assets)
 
 
 if __name__ == "__main__":

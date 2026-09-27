@@ -623,6 +623,17 @@ Chemins relatifs à `build/vineflower/hytale-server/com/hypixel/hytale/server/co
 - Mode de jeu : `Player.getGameMode()` → `protocol.GameMode` (`Adventure`, `Creative`).
 - Changer l'état d'un bloc en gardant sa rotation : comme `ChangeStateInteraction` (`…/config/client/ChangeStateInteraction.java:95-125`), `BlockOperations.setBlock(chunkStore, section, x, y, z, id, type, rotation, 0, 260)` (`PERFORM_BLOCK_UPDATE | NO_SEND_PARTICLES`). Clé d'un état : `"*" + bloc + "_State_Definitions_" + état` (`StateData.java:112`, `AssetExtraInfo.java:42`). **[in-game]** : affichage immédiat côté client.
 
+## 23. Validation des assets d'un pack : un asset invalide arrête le serveur
+
+Chemins relatifs à `build/vineflower/hytale-server/com/hypixel/hytale/server/core/`. Constaté dans le journal de l'utilisateur le 2026-09-28 (icônes de Decorations hors `Icons/Items`).
+
+- **Racines imposées** (`asset/common/CommonAssetValidator.java:15-35`, contrôle l. 80-99) : un chemin `Common/` référencé doit commencer par une des racines, avoir l'extension, et **exister** (`CommonAssetRegistry.hasCommonAsset`, l. 102-111 ; pour un asset d'UI, `@2x.png` suffit). Ceux qui nous concernent :
+  - `ICON_ITEM` (`Item.Icon`, `asset/type/item/config/Item.java:100`) : `png` sous `Icons/ItemsGenerated` ou `Icons/Items` ;
+  - `MODEL_ITEM` (`BlockType.CustomModel`, `asset/type/blocktype/config/BlockType.java:178` ; `Item` l. 192) : `blockymodel` sous `Blocks`, `Items`, `Resources`, `NPC`, `VFX` ou `Consumable` ;
+  - `TEXTURE_ITEM` (`BlockType.Textures`, l. 150 et 289 ; `CustomModelTexture.Texture`, `CustomModelTexture.java:16` ; `Item` l. 211) : `png` sous `Blocks`, `BlockTextures`, `Items`, `NPC`, `Resources` ou `VFX` ;
+  - `ANIMATION_ITEM_BLOCK` (`BlockType` l. 229, `Item` l. 224, 251).
+- **Un asset invalide dans un pack immuable arrête tout le serveur** : un pack enregistré depuis un `.zip` ou un `.jar` est immuable (`asset/AssetModule.java:444-448`). `AssetRegistryLoader.loadAssets0` passe alors `shouldFail = assetPack.isImmutable() && !IGNORE_BROKEN_MODS` (`asset/AssetRegistryLoader.java:240-241`) et, au moindre asset en échec, `event.failed(shouldFail, "Mod … failed to load…")` (l. 310-315). `HytaleServer` voit `LoadAssetEvent.isShouldShutdown()` et arrête le serveur (« Asset validation FAILED », `HytaleServer.java:355-364`). Nos sous-plugins sont des zips : une icône hors racine ou un fichier manquant ne désactive pas seulement le pack, il empêche le serveur de démarrer. D'où les contrôles du générateur (`tools/decorations/pack.py`) et du build (`checkSubpluginAssets`).
+
 ## Could not verify
 
 1. **Client rendering of item animations on NPCs** (`AnimationSlot.Action` with `"Block"/"Build"` or `"Pickaxe"/"Mine"` on `PlayerTestModel_V`) and whether they loop or play once. Only the server packet path is verified.
