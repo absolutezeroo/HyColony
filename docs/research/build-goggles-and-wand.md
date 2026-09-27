@@ -263,4 +263,164 @@ L'entité créée porte `NetworkId`, `TransformComponent(position, rotation)`, `
 - Raccourcis clavier de Structurize (flèches, Maj+flèches, M, Entrée, pavé numérique) : pas de capture de touche côté serveur. On passe par les boutons de page, et `KeyDown` reste à tester.
 - Réutiliser l'aperçu de collage client des builder tools vanilla : il est réservé aux permissions d'éditeur et au mode Créatif.
 - Mise à jour incrémentale des blocs d'un aperçu : il n'existe que le renvoi complet. Pour « seulement le reste », on recrée l'entité par paliers (par étape de construction, par exemple) et jamais à chaque bloc.
-- Collage créatif « Complete/Pretty », annuler/refaire, outils de scan et de formes : hors du besoin de survie, optionnels. Le créatif peut rester aux builder tools vanilla de Hytale.
+- Collage créatif « Complete/Pretty », annuler/refaire, outils de scan et de formes : hors du besoin de survie, optionnels. Le créatif peut rester aux builder tools vanilla de Hytale. (Le collage créatif est détaillé plus bas, section « Collage créatif ».)
+
+## Collage créatif
+
+Recherche du 2026-09-27. Question : que se passe-t-il quand un joueur en **créatif** valide l'outil de construction ? Aujourd'hui, HyColony n'a pas de collage. Un joueur créatif passe par le chemin de survie, sans rien consommer (Javadoc de `WandPlacement` ; spec `2026-09-26-hycolony-build-tool-design.md`, l.17 et 65).
+
+### C.1 Structurize : les options de placement
+
+**Qui voit quoi** (`ST/client/gui/AbstractBlueprintManipulationWindow.java`) :
+- `confirmClicked` (l.148-174). En survie, on cherche les `ISurvivalBlueprintHandler` compatibles. Aucun : son d'erreur. Un seul : il est appliqué directement. Plusieurs : une liste s'ouvre. **En créatif, la liste s'ouvre toujours.**
+- `updatePlacementOptions` (l.206-247). Si `player.isCreative()`, deux entrées viennent en tête : `structurize.gui.buildtool.complete` (`HandlerType.Complete`) et `structurize.gui.buildtool.pretty` (`HandlerType.Pretty`). Viennent ensuite les gestionnaires de survie compatibles. Avec MineColonies, un joueur créatif a donc trois choix : Complete, Pretty, et le placement de survie de `SurvivalHandler` (hutte niveau 0, voir A.2).
+- **Seule condition : le mode créatif**, testé **côté client**. Il n'y a ni permission d'opérateur ni option de configuration. Le serveur ne revérifie pas le mode : `BuildToolPlacementMessage.onExecute` appelle `BlueprintPlacementHandling.handlePlacement` sans aucun test (`ST/network/messages/BuildToolPlacementMessage.java`, `onExecute` ; `ST/storage/BlueprintPlacementHandling.java`, `process`, l.62-118).
+- La fenêtre envoie `(type, handlerId, pack, chemin "…/nom.blueprint", pos, rotation, miroir)` (`ST/client/gui/WindowExtendedBuildTool.java:319-337`). Elle ne se ferme qu'après un placement de survie : `cancelClicked` n'est appelé que pour `Survival`.
+
+**Traitement serveur** (`BlueprintPlacementHandling.process`) :
+- `Survival` : le gestionnaire choisi est appliqué, et c'est tout.
+- Sinon, un son de succès est joué et la rotation et le miroir sont appliqués au plan. Ensuite :
+  - si l'ancre du plan est un `ISpecialCreativeHandlerAnchorBlock` (toutes les huttes MC, par `AbstractBlockHut`), on appelle d'abord `setup(player, world, pos, blueprint, settings, pretty, pack, path)`. S'il renvoie `false`, tout est annulé. Le gestionnaire de structure est alors celui que fournit le bloc ;
+  - sinon, le gestionnaire est `new CreativeStructureHandler(world, pos, blueprint, settings, pretty)` ;
+  - enfin, `Manager.addToQueue(new PlaceStructureOperation(new StructurePlacer(handler), player))`.
+
+**Complete ou Pretty** (`fancyPlacement = (type == Pretty)`, `ST/placement/handlers/placement/PlacementHandlers.java`) :
+- `SubstitutionPlacementHandler` (l.1262-1312) : Complete pose le bloc substitut tel quel. Pretty ne pose rien, et le monde garde ce qu'il a.
+- `SolidSubstitutionPlacementHandler` (l.1205-1260) : Pretty le remplace par un bloc solide pris dans le terrain (`getSolidBlockForPos` → `BlockUtils.getSubstitutionBlockAtWorld`). Complete pose le substitut.
+- `FluidSubstitutionPlacementHandler` (l.196-286) : Pretty pose le fluide de la dimension (ou met le bloc en `WATERLOGGED`). Complete pose le substitut.
+- `GrassPlacementHandler`, `DoorPlacementHandler` et `BlockGrassPathPlacementHandler` diffèrent un peu, dans la comparaison ou dans les objets requis.
+- Le wiki dit : « le bouton de gauche colle complètement, y compris les blocs substituts, utile pour concevoir des plans ; celui de droite colle exactement comme si un bâtisseur l'avait construit (sans substituts) » (https://minecolonies.com/wiki/items/sceptergold/).
+
+**Gestionnaire créatif** (`ST/placement/structure/CreativeStructureHandler.java:56-145`) :
+- pas d'inventaire ;
+- `isCreative() = true` : aucun objet n'est requis ni consommé (`StructurePlacer.handleBlockPlacement`, l.329-374) ;
+- `allowReplace() = true` : il remplace ce qui est déjà là ;
+- `shouldBlocksBeConsideredEqual = false`.
+
+**La pose est étalée sur plusieurs ticks, pas instantanée.**
+- `Manager.onWorldTick` ne traite que **la tête** d'une file globale : `scanToolOperationPool.peek()`, retirée quand `apply` renvoie `true`. Les collages passent donc l'un après l'autre (`ST/management/Manager.java:66-90`).
+- `PlaceStructureOperation.apply` (`ST/operations/PlaceStructureOperation.java`) avance en 5 phases :
+  - 0 : les blocs qui ne flottent pas ;
+  - 1 : les solides « faibles » ;
+  - 2 : le retrait de l'eau ;
+  - 3 : les non solides ;
+  - 4 : les entités.
+
+  À la fin, il appelle `handler.onCompletion()`.
+- Chaque appel s'arrête après `getStepsPerCall()` pas (`StructurePlacer.java:127, 193`). Cette valeur vient de la config serveur Structurize **`maxOperationsPerTick` : 1000 par défaut, bornes 0 à 100000** (`ST/config/ServerConfiguration.java:74` ; `CreativeStructureHandler.java:70-73, 111-115`).
+- Chaque opération est aussi gardée pour annuler et refaire (`ChangeStorage`, `maxCachedChanges` = 50).
+
+### C.2 MineColonies : collage créatif d'une hutte
+
+Il n'existe ni `CreativeRawStructureHandler` ni gestionnaire créatif dans `core/placementhandlers/main/`, qui ne contient que `SurvivalHandler` et `SuppliesHandler`. Le créatif passe par :
+- `MC/api/blocks/AbstractBlockHut.java` : `setup` (l.214-289), `canPaste` (l.296-335) et `getStructureHandler` (l.208-212), qui renvoie un `CreativeBuildingStructureHandler` ;
+- `MC/api/util/CreativeBuildingStructureHandler.java` ;
+- `MC/core/placementhandlers/HutPlacementHandler.java`, pour le bloc de hutte lui-même.
+
+**Complete.** `setup` sort tout de suite : si `!fancyPlacement && player.isCreative()`, il renvoie `true` (l.226-229). Il n'y a aucune vérification et aucun bâtiment n'est créé : les blocs sont collés bruts, bloc de hutte compris. `HutPlacementHandler.handle` n'appelle `setPlacedBy` qu'en Pretty (`if (placementContext.fancyPlacement())`), donc la hutte collée n'est pas enregistrée. Seule exception : si un bâtiment existait déjà à cette position, `CreativeBuildingStructureHandler.setupBuilding` le retrouve et lui enregistre les blocs.
+
+**Pretty**, dans l'ordre :
+1. **Vérifications** (`canPaste`). Elles sont sautées si la config serveur `blueprintbuildmode` (défaut `false`) est active.
+   - S'il n'y a pas de colonie à la position, seul l'**hôtel de ville** passe. Les autres huttes sont refusées avec `MESSAGE_WARNING_TOWN_HALL_NOT_PRESENT` si le joueur n'a pas de colonie, sinon avec `MESSAGE_WARNING_TOWN_HALL_TOO_FAR_AWAY`.
+   - Dans une colonie, il faut la permission **`PLACE_HUTS`** (et non `MANAGE_HUTS`), sinon `PERMISSION_OPEN_HUT`.
+   - Vient ensuite `canPlaceAt` : pour l'hôtel de ville, c'est un refus s'il y en a déjà un (`WARNING_DUPLICATE_TOWN_HALL`, `BlockHutTownHall.java:218-233`).
+   - Il n'y a **pas** de test d'emprise dans la colonie, **pas** de test de distance pour l'hôtel de ville, et le bloc de hutte n'est **ni requis ni pris**.
+2. **Pose de la hutte.** `world.destroyBlock(pos, true)` casse ce qui est là, avec ses objets. `setBlockAndUpdate(pos, anchor)` pose la hutte. Puis `onBlockPlacedByBuildTool` donne le miroir, le pack et le chemin à l'entité de bloc, et appelle `setPlacedBy`. Celui-ci appelle `addNewBuilding` si une colonie couvre la position (`AbstractColonyBlock.java:249-276`). Le bâtiment reçoit alors le pack et le chemin (`RegisteredStructureManager.addNewBuilding`, l.561-600).
+3. **Bâtiment** (l.249-287) :
+   - hôtel de ville sans colonie : aucun bâtiment n'est créé, `setup` renvoie `true` et le collage continue ;
+   - autre hutte sans bâtiment : son d'erreur et `false`, donc rien n'est collé ;
+   - sinon : `setStructurePack`, `setBlueprintPath`, le niveau lu dans le chemin, `setIsMirrored`, puis **`onUpgradeComplete(blueprint, niveau)`**. Cette méthode (`AbstractBuilding.java:940-975`) :
+     - réclame les chunks (`claimBuildingChunks` avec `getClaimRadius(niveau)`) ;
+     - retire le ruban et recalcule les coins ;
+     - passe `isBuilt` à `true` ;
+     - annule les requêtes d'outil bloquées ;
+     - prévient les modules et relance la recherche automatique ;
+     - recalcule le nombre maximal de citoyens (`onBuildingUpgradeComplete`) et le prestige.
+4. **Collage** des blocs, étalé sur plusieurs ticks (voir C.1). Pour chaque bloc posé, `triggerSuccess` appelle `building.registerBlockPosition` (`AbstractBuildingContainer.java:148-180` ; `AbstractBuilding.java:1415-1419`) :
+   - **les racks deviennent des conteneurs du bâtiment** (`addContainerPosition`, puis `setBuildingPos`) ;
+   - une hutte enfant reçoit son parent et le pack ;
+   - les modules qui gèrent des blocs externes sont prévenus.
+5. **Fin** : `onCompletion` retire le ruban de chantier (`CreativeBuildingStructureHandler.java:176-184`).
+
+**Aucun ordre de travail** n'est créé, et il n'y a ni message de fin ni entrée de journal : `onUpgradeComplete` n'en émet pas. Le message « construit » et le journal viennent de la fin d'un ordre, pas d'un collage.
+
+**Niveau obtenu : incertain à la lecture du code.** Deux mécanismes existent :
+- `setup` lit le niveau dans le chemin avec `adjusted.substring(L - 2, L - 1)`, où `adjusted` est le chemin sans `.blueprint` et `L` sa longueur. C'est donc **l'avant-dernier caractère**. Si ce n'est pas un chiffre, le niveau vaut **1** (repli sur `NumberFormatException`). Les fichiers MC s'appellent par exemple `…/fundamentals/townhall3.blueprint` (arbre `src/main/resources/blueprints/minecolonies/…`). L'avant-dernier caractère de `townhall3` est `l` : à la lecture, on obtient donc le niveau 1.
+- La synchronisation `upgradeBuildingLevelToSchematicData` (`AbstractSchematicProvider.java:523-565`) prend le **dernier** caractère du nom de plan de l'entité de bloc (`townhall3` → 3). Elle monte le niveau s'il est plus haut, ou le fixe si le bâtiment est « déconstruit ». Elle lance un feu d'artifice si le niveau monte, puis appelle `onUpgradeComplete(null, niveau)`. Elle est déclenchée par `readSchematicDataFromNBT` de l'entité de hutte (`AbstractTileEntityColonyBuilding.java:276-292`), que `CreativeBuildingStructureHandler.triggerSuccess` appelle après `setDeconstructed()` (l.94-129).
+- Mais `StructurePlacer.handleBlockPlacement` renvoie `SUCCESS` **sans** appeler `triggerSuccess` quand le monde correspond déjà au plan (l.318-321). De plus, `HutPlacementHandler.doesWorldStateMatchBlueprintState` ne compare que l'état de bloc. Comme `setup` a déjà posé la hutte avec l'état tourné du plan, la synchronisation du bloc ancre semble **ne pas** avoir lieu.
+- Conclusion de lecture : le niveau final serait 1 pour la hutte ancre, et le niveau choisi pour les huttes enfants. **[in-game MC]** C'est à confirmer dans MineColonies. L'intention évidente du code est d'appliquer le niveau choisi.
+
+**Hôtel de ville hors colonie.** La hutte est posée et le plan collé, mais aucune colonie n'est créée et rien n'est enregistré : pas de bâtiment, donc pas de conteneurs. Un clic droit sur la hutte ouvre ensuite la création de colonie (`BlockHutTownHall.use` → `GetColonyInfoMessage`). À la création de la colonie, `addNewBuilding` appelle `upgradeBuildingLevelToSchematicData` : l'hôtel de ville prend alors **le niveau du plan collé**, lu dans l'entité de bloc (`RegisteredStructureManager.java:561-575`). Les racks collés avant la fondation ne sont pas enregistrés.
+
+### C.3 HyColony aujourd'hui (lu dans le code)
+
+- `WandActions.confirm` → `WandPlacement.confirm` suit le chemin de survie. Il vérifie `MANAGE_HUTS`, l'emprise, la distance de l'hôtel de ville et les règles de hutte, et prend le bloc de hutte sauf en créatif. La hutte est posée au **niveau 0, sans ordre**, avec son style et sa rotation (`manager.huts().place(colony, type, pos, rotation)`, puis `building.setStyle`). Un hôtel de ville hors colonie lance `manager.foundation().begin(player, name, pos, rotation, style)`.
+- En créatif, `WandActions.offered` propose toutes les huttes, comme `AbstractBlockHut.areRequirementsMet`, qui renvoie `true` en créatif.
+- Le bâtisseur pose les blocs un à un avec `WorldBlocks.place(pos, state, hasContainer)` (`BuilderBlockWork.place`, l.157-185). Un bloc `hasContainer` est enregistré par `building.addContainer(pos)`, comme les racks de MC.
+- `HytaleWorldBlocks.place` (`plugin/.../adapter/HytaleWorldBlocks.java:112-172`) :
+  - appelle `testPlaceBlock`, qui refuse de remplacer une hutte ;
+  - pose avec `BlockOperations.setBlock(…, SetBlockSettings.NONE)` ;
+  - pose les fluides par `FluidSection` ;
+  - renvoie `false` si la section n'est pas chargée.
+- Les formes connectées (escaliers, coins de toit, barrières) sont posées **telles que le plan les porte** (`blockKey`, l.289-311 ; `docs/research/connected-blocks.md`). `PrefabUtil.paste` fait de même, sans cascade de voisinage.
+- Les plans excluent déjà les blocs d'éditeur et l'air sans fluide (`PrefabCells`, l.35-66). Nos prefabs n'ont pas d'équivalent des substituts de Structurize : **Complete et Pretty donneraient les mêmes blocs**.
+- Fin d'un ordre (`BuildCompletion.apply`) :
+  - `setLevel(cible)`, `setBuilt(true)`, `setDeconstructed(false)` ;
+  - `claimAround(pos, ClaimRadius.of(type, niveau))` ;
+  - une entrée de journal, et `effects().celebrate` si le niveau monte ;
+  - un message aux membres, puis `ColonyEvents.BuildingLevelChanged` ;
+  - le retrait de l'ordre.
+- Tick : `WorldRuntime.tickCore` appelle `manager.tick()` à chaque tick du cœur (1/20 s).
+
+### C.4 Conception minimale fidèle (proposition)
+
+**Choix à faire valider par l'utilisateur** :
+1. Un seul bouton « Coller » (Pretty). Complete est omis, car nos prefabs n'ont pas de substituts : c'est un **écart**, à documenter. Complete porté à l'identique poserait seulement des blocs, sans enregistrer la hutte : on obtiendrait une hutte morte.
+2. On applique le **niveau choisi**, qui est l'intention de MC (voir l'incertitude en C.2).
+
+**Cœur** (`construction/wand`, 6 fichiers aujourd'hui, 15 au plus) :
+- `WandView` reçoit un champ `boolean creative`, que `WandActions.show` remplit avec `players().isCreative(player)`.
+- `WandActions.paste(UUID player, String playerName)` refuse (renvoie `false`, rien ne change) si le joueur n'est pas en créatif au moment du clic. Chez MC, la liste est filtrée côté client ; notre fenêtre est côté serveur, donc le test s'y fait. Sinon, il délègue à une nouvelle classe `WandPaste` (package-private), qui suit `AbstractBlockHut.setup` et `canPaste` :
+  - si une colonie couvre l'ancre, il faut la permission **`PLACE_HUTS`** (`Action.PLACE_HUTS` existe, niveau 2), sinon c'est un refus ;
+  - `manager.huts().checkHutRules(player, pos, type)` : hors colonie, seul l'hôtel de ville passe (`noTownHall`/`tooFar`), et un second hôtel de ville est refusé. Ce contrôle ajoute le test de distance, que MC ne fait qu'à la création de la colonie : c'est un **écart** mineur, à signaler ;
+  - pas de test d'emprise, pas de bloc de hutte consommé ;
+  - `breakAnchor` et la pose du bloc de hutte (code de `WandPlacement.place`, à factoriser), puis `huts().place(colony, type, pos, rotation)` et `setStyle(style)` ;
+  - puis, comme `onUpgradeComplete` : `setLevel(niveau)`, `setBuilt(true)`, `setDeconstructed(false)`, `claimAround(pos, ClaimRadius.of(type, niveau))`, `celebrate` si le niveau monte (le feu d'artifice de `upgradeBuildingLevelToSchematicData` chez MC), `bus().post(BuildingLevelChanged)` (nombre maximal de citoyens…) et `markDirty`. **Ni ordre, ni journal, ni message de fin.** Le plus simple est d'extraire de `BuildCompletion` une méthode publique « le bâtiment atteint le niveau N », partagée par les deux chemins ;
+  - hôtel de ville hors colonie : les blocs sont collés, puis `foundation().begin(…)` est appelé. `ColonyFoundation.Pending` doit alors porter le niveau collé, pour que l'hôtel de ville fondé naisse à ce niveau, déjà bâti (chez MC : `addNewBuilding` → `upgradeBuildingLevelToSchematicData`).
+- **File de collage** (nouvelle classe, par exemple `PasteQueue`) : l'équivalent de `Manager` et de `PlaceStructureOperation`.
+  - Une file FIFO globale, dont seule la tête avance, gardée en mémoire comme chez MC.
+  - À chaque tick, au plus **`maxOperationsPerTick`** pas.
+  - Ordre de pose :
+    1. vider la boîte `StructurePlan.clearList()` des blocs que le plan ne veut pas, car MC remplace tout (`allowReplace`, et le plan contient ses blocs d'air). On utilise `breakBlock` **sans** `drop` : les objets renvoyés sont ignorés, puisqu'on est en créatif ;
+    2. poser `solidList` ;
+    3. poser `decoList`, qui contient aussi les fluides.
+
+    Chaque liste va du bas vers le haut, comme les phases 0-1 puis 3 de MC.
+  - Pour chaque entrée `hasContainer` posée : `building.addContainer(pos)`, si le bâtiment existe.
+  - À la fin : rien, car nous n'avons pas de ruban de chantier.
+  - Réglage : `maxOperationsPerTick` vient de la config **serveur de Structurize**. Il va dans `config.json`, section `Structurize`, avec 1000 par défaut. Le minimum est 1 et non 0, car avec 0 la file n'avancerait jamais (CLAUDE.md § 4) : c'est un **écart**.
+  - Le tick part de `ColonyManager.tick()` ou d'un `WandActions.tick()` appelé par `WorldRuntime.tickCore`.
+  - Si la section n'est pas chargée, `place` échoue : on saute le bloc, sans jamais boucler. Le premier échec est journalisé en WARNING, les suivants en FINE.
+- Tests (TDD, avec les `Fake*`) :
+  - `creativePastePlacesHutAtChosenLevelWithoutWorkOrder` ;
+  - `survivalPlayerCannotPaste` ;
+  - `pasteNeedsPlaceHutsPermission` ;
+  - `pasteRegistersPlacedContainers` ;
+  - `pastePlacesAtMostMaxOperationsPerTick` ;
+  - `pastedTownHallOutsideColonyFoundsAtPastedLevel`.
+
+**Plugin** :
+- `WandPage` : un bouton `#PasteButton`, visible si `view.creative() && view.manipulate()`. Son action `"paste"` appelle `wand.paste(player, playerRef.getUsername())`. Dans `WandPage.ui`, il copie le bouton de validation.
+- Une clé `hycolony.ui.wand.paste` (en-US et fr-FR). Aucune autre clé n'est nécessaire si l'on réutilise `hycolony.hut.*` et `hycolony.wand.noPermission`.
+- `HyColonyConfig` lit `Structurize.maxOperationsPerTick`, et `ColonyConfig` applique les bornes.
+- Aucune nouvelle API Hytale : `WorldBlocks.place` et `breakBlock` suffisent.
+
+**Côté Hytale, à vérifier [in-game]** :
+- **Coût de 1000 `setBlock` par tick.** `BlockOperations.setBlock` est appelé bloc par bloc, avec `SetBlockSettings.NONE`. Le coût réseau et serveur d'une hutte de quelques milliers de blocs, posée en 2 à 5 ticks, n'est pas mesuré. Repli possible : baisser la valeur par défaut, ce qui serait un écart.
+- **Alternative vanilla, non retenue** : `PrefabUtil.paste(IPrefabBuffer, World, Vector3i, Rotation, Random, flags, setBlockSettings, …)` (`HY/server/core/util/PrefabUtil.java:315-500`).
+  - Elle colle tout un prefab **en un seul appel synchrone**.
+  - Elle émet `PrefabPasteEvent`, restaure les entités de bloc et les entités du prefab, et appelle `testPlaceBlock` pour chaque bloc.
+  - Mais elle ne passe pas par notre plan, qui filtre les blocs d'éditeur et les coffres. Elle ne permet ni budget par tick ni enregistrement des conteneurs.
+- **Conteneurs.** `place` pose le bloc avec son entité de bloc : le coffre a son conteneur (commentaire l.149-150). Mais les coffres collés sont vides, car `PrefabCells` remplace les coffres des prefabs par un coffre vide. MC, lui, collerait leur contenu (`ContainerPlacementHandler`, `handleTileEntityPlacement`) : c'est un **écart** assumé.
+- **Formes connectées** : le collage prend le même chemin que le bâtisseur, donc elles se comportent en jeu comme chez lui.
+- **Chunks** : la zone collée est près du joueur, donc chargée. Si l'emprise déborde sur une section non chargée, ces blocs sont perdus **[in-game]**.
