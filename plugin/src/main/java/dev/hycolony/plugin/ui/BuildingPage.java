@@ -68,8 +68,8 @@ public final class BuildingPage extends ColonyPage {
     }
 
     /**
-     * For the core's live refresh: {@link #keepTabOf} plus the Build options sub-view and its chosen style, which an
-     * action's re-show resets.
+     * For the core's live refresh: {@link #keepTabOf} plus the Build options (and its chosen style) and inventory
+     * summary sub-views, which an action's re-show resets.
      */
     public BuildingPage keepStateOf(@Nullable CustomUIPage previous) {
         keepTabOf(previous);

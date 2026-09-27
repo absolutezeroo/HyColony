@@ -114,7 +114,12 @@ $C.@PageOverlay {
           }
 
           $C.@SecondaryTextButton #StorageButton {
+            @Anchor = (Bottom: 8);
             Text: %hycolony.ui.building.storage;
+          }
+
+          $C.@SecondaryTextButton #StockButton {
+            Text: %hycolony.ui.building.inventorySummary;
           }
         }
 
@@ -178,6 +183,27 @@ $C.@PageOverlay {
           }
 
           $C.@SecondaryTextButton #OptBackButton {
+            Text: %hycolony.ui.building.options.back;
+          }
+        }
+
+        Group #StockView {
+          LayoutMode: Top;
+          Visible: false;
+
+          Label #StockEmpty {
+            Style: (TextColor: #94a7bb);
+            Anchor: (Bottom: 10);
+            Visible: false;
+          }
+
+          Group #Stock {
+            LayoutMode: TopScrolling;
+            ScrollbarStyle: $C.@DefaultScrollbarStyle;
+            Anchor: (Height: 380, Bottom: 8);
+          }
+
+          $C.@SecondaryTextButton #StockBackButton {
             Text: %hycolony.ui.building.options.back;
           }
         }

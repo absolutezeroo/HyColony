@@ -13,7 +13,7 @@ import java.util.UUID;
 
 /**
  * The hut window's Main tab (MC AbstractBuildingMainWindow): level, state, work order, the single build button, hiring
- * and workers, pickup priority, storage; and its Build options sub-view.
+ * and workers, pickup priority, storage, inventory summary; and its Build options and inventory summary sub-views.
  */
 final class BuildingMainTab {
     private final ColonyManager manager;
@@ -21,6 +21,7 @@ final class BuildingMainTab {
     private final BuildingView view;
     private final BuildOptionsPanel options;
     private final PickupPanel pickup;
+    private final HutStockPanel stock;
 
     BuildingMainTab(ColonyManager manager, UUID player, BuildingView view) {
         this.manager = manager;
@@ -28,11 +29,13 @@ final class BuildingMainTab {
         this.view = view;
         this.options = new BuildOptionsPanel(manager, player, view);
         this.pickup = new PickupPanel(manager, player, view);
+        this.stock = new HutStockPanel(view.stock());
     }
 
-    /** Takes over {@code previous}'s local state (the Build options sub-view), for a live refresh. */
+    /** Takes over {@code previous}'s local state (the Build options and inventory summary sub-views), for a refresh. */
     void keepStateOf(BuildingMainTab previous) {
         options.keepStateOf(previous.options);
+        stock.keepStateOf(previous.stock);
     }
 
     /** Fills the tab; {@code canOpenStorage} shows the Storage button. */
@@ -46,11 +49,13 @@ final class BuildingMainTab {
         String state = view.deconstructed() ? "deconstructed" : view.built() ? "built" : "notBuilt";
         ui.set("#State.Text", Message.translation("hycolony.ui.building.state." + state));
         orderInfo(ui);
-        ui.set("#MainActions.Visible", !options.isOpen());
+        ui.set("#MainActions.Visible", !options.isOpen() && !stock.isOpen());
         ui.set("#BuildOptions.Visible", options.isOpen());
+        ui.set("#StockView.Visible", stock.isOpen());
         if (options.isOpen()) {
             options.render(ui, events);
         }
+        stock.render(ui, events);
         buildButton(ui, events);
         staff(ui, events);
         pickup.render(ui, events);
@@ -164,7 +169,7 @@ final class BuildingMainTab {
                 }
             }
             default -> {
-                return !pickup.handle(act) && options.handle(act);
+                return !pickup.handle(act) && (stock.handle(act) || options.handle(act));
             }
         }
         return false;
