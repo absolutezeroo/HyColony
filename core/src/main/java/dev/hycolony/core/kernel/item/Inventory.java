@@ -12,8 +12,8 @@ import java.util.function.ToIntFunction;
 import org.jspecify.annotations.Nullable;
 
 /**
- * A fixed number of slots, each holding at most one {@link ItemAmount}. Items are keys and counts only: item
- * metadata (tool durability, a hut's level) does not travel through a citizen's inventory (known limitation, backlog).
+ * A fixed number of slots, each holding at most one {@link ItemAmount}: an item, a count and a tool's damage. Other item
+ * metadata (a hut's level) does not travel through a citizen's inventory (known limitation, backlog).
  */
 public final class Inventory {
     private final @Nullable ItemAmount[] slots;
@@ -29,25 +29,28 @@ public final class Inventory {
     }
 
     /**
-     * Merges into existing stacks of the same item first (up to {@code maxStack}), then fills empty slots.
+     * Merges into existing stacks of the same item and damage first (up to {@code maxStack}), then fills empty slots.
      * Returns the remainder that did not fit, or {@code null} if everything was inserted.
      */
     public @Nullable ItemAmount insert(ItemAmount amount, ToIntFunction<ItemKey> maxStack) {
         Objects.requireNonNull(amount, "amount");
         int max = maxStack.applyAsInt(amount.item());
-        int remaining = fillEmpty(amount.item(), merge(amount.item(), amount.count(), max), max);
+        int remaining = fillEmpty(amount, merge(amount, max), max);
         if (remaining != amount.count()) {
             changes++;
         }
         return remaining == 0 ? null : amount.withCount(remaining);
     }
 
-    /** Tops up the stacks of {@code item} to {@code max}; returns what is left of {@code count}. */
-    private int merge(ItemKey item, int count, int max) {
-        int remaining = count;
+    /** Tops up the stacks like {@code amount} to {@code max}; returns what is left of its count. */
+    private int merge(ItemAmount amount, int max) {
+        int remaining = amount.count();
         for (int i = 0; i < slots.length && remaining > 0; i++) {
             ItemAmount cur = slots[i];
-            if (cur != null && cur.item().equals(item) && cur.count() < max) {
+            if (cur != null
+                    && cur.item().equals(amount.item())
+                    && cur.damage() == amount.damage()
+                    && cur.count() < max) {
                 int add = Math.min(max - cur.count(), remaining);
                 slots[i] = cur.withCount(cur.count() + add);
                 remaining -= add;
@@ -56,13 +59,13 @@ public final class Inventory {
         return remaining;
     }
 
-    /** Puts stacks of up to {@code max} in empty slots; returns what is left of {@code count}. */
-    private int fillEmpty(ItemKey item, int count, int max) {
+    /** Puts stacks like {@code amount} of up to {@code max} in empty slots; returns what is left of {@code count}. */
+    private int fillEmpty(ItemAmount amount, int count, int max) {
         int remaining = count;
         for (int i = 0; i < slots.length && remaining > 0; i++) {
             if (slots[i] == null) {
                 int add = Math.min(max, remaining);
-                slots[i] = new ItemAmount(item, add);
+                slots[i] = amount.withCount(add);
                 remaining -= add;
             }
         }
@@ -85,6 +88,27 @@ public final class Inventory {
             notifyIfGone(item);
         }
         return removed;
+    }
+
+    /**
+     * MC InventoryCitizen.damageInventoryItem: wears the stack in {@code slot} by {@code amount} uses; true when that
+     * reaches {@code durability} and breaks it (the slot empties). An empty slot or a durability of 0 (unbreakable)
+     * takes nothing.
+     */
+    public boolean damage(int slot, int amount, int durability) {
+        ItemAmount cur = slots[slot];
+        if (cur == null || durability <= 0 || amount <= 0) {
+            return false;
+        }
+        changes++;
+        int damage = cur.damage() + amount;
+        if (damage < durability) {
+            slots[slot] = new ItemAmount(cur.item(), cur.count(), damage);
+            return false;
+        }
+        slots[slot] = null;
+        notifyIfGone(cur.item());
+        return true;
     }
 
     public int count(ItemKey item) {
@@ -176,6 +200,9 @@ public final class Inventory {
                 JsonObject o = new JsonObject();
                 o.addProperty("item", a.item().id());
                 o.addProperty("count", a.count());
+                if (a.damage() > 0) {
+                    o.addProperty("damage", a.damage());
+                }
                 out.add(o);
             }
         }
@@ -190,8 +217,9 @@ public final class Inventory {
                 continue;
             }
             JsonObject o = el.getAsJsonObject();
+            int damage = o.has("damage") ? Math.max(0, o.get("damage").getAsInt()) : 0;
             inv.slots[i] = new ItemAmount(
-                    new ItemKey(o.get("item").getAsString()), o.get("count").getAsInt());
+                    new ItemKey(o.get("item").getAsString()), o.get("count").getAsInt(), damage);
         }
         return inv;
     }
