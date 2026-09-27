@@ -30,7 +30,7 @@ public final class CoreFeatures {
 
     /**
      * Registers a sub-plugin's types all together or not at all: the pack first runs on scratch registries, then none
-     * of its ids may already be registered and each hut key must pass {@code hutKeyKnown} (the merged id-map has it).
+     * of its ids or hut keys may already be registered and each hut key must pass {@code hutKeyKnown} (the merged id-map has it).
      * Returns the problems found, empty when the types are registered. A pack that throws registers nothing either:
      * its exception reaches the caller.
      */
@@ -44,6 +44,10 @@ public final class CoreFeatures {
             if (buildings.byId(type.id()).isPresent()) {
                 problems.add("building type " + type.id() + " is already registered");
             }
+            buildings
+                    .byHutKey(type.hutBlockKey())
+                    .ifPresent(other -> problems.add("hut key " + type.hutBlockKey() + " of " + type.id()
+                            + " is already used by " + other.id()));
             if (!hutKeyKnown.test(type.hutBlockKey())) {
                 problems.add("hut key " + type.hutBlockKey() + " of " + type.id() + " is not in the id-map");
             }

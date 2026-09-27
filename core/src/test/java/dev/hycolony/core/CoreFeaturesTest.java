@@ -18,12 +18,18 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class CoreFeaturesTest {
+    private static final BuildingType FARM = new BuildingType("pack:farm", "hut.farm", 5, List.of());
+    private static final JobType FARMER = new JobType("pack:farmer", c -> null);
+    private static final FeaturePack FARM_PACK = (b, j) -> {
+        b.register(FARM);
+        j.register(FARMER);
+    };
+
+    private final BuildingRegistry buildings = new BuildingRegistry();
+    private final JobRegistry jobs = new JobRegistry();
 
     @Test
     void coreFeaturesRegisterEveryCoreBuildingAndJobTypeOnce() {
-        BuildingRegistry buildings = new BuildingRegistry();
-        JobRegistry jobs = new JobRegistry();
-
         CoreFeatures.register(buildings, jobs);
 
         assertEquals(
@@ -36,16 +42,6 @@ class CoreFeaturesTest {
                 buildings.all());
         assertEquals(List.of(BuilderJob.TYPE, DeliverymanJob.TYPE), jobs.all());
     }
-
-    private static final BuildingType FARM = new BuildingType("pack:farm", "hut.farm", 5, List.of());
-    private static final JobType FARMER = new JobType("pack:farmer", c -> null);
-    private static final FeaturePack FARM_PACK = (b, j) -> {
-        b.register(FARM);
-        j.register(FARMER);
-    };
-
-    private final BuildingRegistry buildings = new BuildingRegistry();
-    private final JobRegistry jobs = new JobRegistry();
 
     @Test
     void aFeaturePackRegistersItsTypesAfterTheCoreOnes() {
@@ -93,5 +89,39 @@ class CoreFeaturesTest {
 
         assertThrows(IllegalStateException.class, () -> CoreFeatures.registerPack(pack, buildings, jobs, key -> true));
         assertTrue(buildings.all().isEmpty());
+    }
+
+    @Test
+    void aPackThatReusesACoreHutKeyRegistersNothing() {
+        CoreFeatures.register(buildings, jobs);
+        String builderHut = ConstructionBuildingTypes.BUILDER.hutBlockKey();
+        FeaturePack pack = (b, j) -> {
+            b.register(FARM);
+            b.register(new BuildingType("pack:mason", builderHut, 5, List.of()));
+        };
+
+        List<String> problems = CoreFeatures.registerPack(pack, buildings, jobs, key -> true);
+
+        assertEquals(
+                List.of("hut key " + builderHut + " of pack:mason is already used by "
+                        + ConstructionBuildingTypes.BUILDER.id()),
+                problems);
+        assertTrue(buildings.byId(FARM.id()).isEmpty());
+        assertTrue(buildings.byId("pack:mason").isEmpty());
+    }
+
+    @Test
+    void aPackThatReusesACoreJobIdRegistersNothing() {
+        CoreFeatures.register(buildings, jobs);
+        FeaturePack pack = (b, j) -> {
+            b.register(FARM);
+            j.register(new JobType(BuilderJob.TYPE.id(), c -> null));
+        };
+
+        List<String> problems = CoreFeatures.registerPack(pack, buildings, jobs, key -> true);
+
+        assertEquals(List.of("job type " + BuilderJob.TYPE.id() + " is already registered"), problems);
+        assertEquals(BuilderJob.TYPE, jobs.byId(BuilderJob.TYPE.id()).orElseThrow());
+        assertTrue(buildings.byId(FARM.id()).isEmpty());
     }
 }
