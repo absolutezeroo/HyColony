@@ -14,9 +14,8 @@ import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.decoration.FlowerPot;
+import dev.hycolony.core.decoration.FlowerPotBlocks;
 import dev.hycolony.plugin.IdMap;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import javax.annotation.Nonnull;
@@ -30,20 +29,13 @@ import javax.annotation.Nonnull;
 public final class FlowerPotSystem extends EntityEventSystem<EntityStore, UseBlockEvent.Pre> {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
-    private final String emptyPot;
-    /** Plant item -> pot block holding it. */
-    private final Map<String, String> potted;
-    /** Pot block holding a plant -> that plant item. */
-    private final Map<String, String> plantIn = new HashMap<>();
-
+    private final FlowerPotBlocks blocks;
     private final FlowerPot rule;
 
     public FlowerPotSystem(IdMap ids) {
         super(UseBlockEvent.Pre.class);
-        this.emptyPot = ids.blockId("decorations.flower_pot");
-        this.potted = ids.flowerPots();
-        potted.forEach((plant, block) -> plantIn.put(block, plant));
-        this.rule = new FlowerPot(potted.keySet());
+        this.blocks = new FlowerPotBlocks(ids.flowerPots());
+        this.rule = new FlowerPot(blocks.plants());
     }
 
     @Override
@@ -59,8 +51,8 @@ public final class FlowerPotSystem extends EntityEventSystem<EntityStore, UseBlo
             @Nonnull CommandBuffer<EntityStore> buffer,
             @Nonnull UseBlockEvent.Pre event) {
         try {
-            String block = event.getBlockType().getId();
-            if (!block.equals(emptyPot) && !plantIn.containsKey(block)) {
+            FlowerPotBlocks.Pot pot = blocks.find(event.getBlockType().getId()).orElse(null);
+            if (pot == null) {
                 return;
             }
             Ref<EntityStore> ref = chunk.getReferenceTo(index);
@@ -68,9 +60,10 @@ public final class FlowerPotSystem extends EntityEventSystem<EntityStore, UseBlo
             Optional<String> heldId = held == null || held.isEmpty() ? Optional.empty() : Optional.of(held.getItemId());
             Player player = buffer.getComponent(ref, Player.getComponentType());
             boolean creative = player != null && player.getGameMode() == GameMode.Creative;
-            FlowerPot.Outcome outcome = rule.use(Optional.ofNullable(plantIn.get(block)), heldId, creative);
+            FlowerPot.Outcome outcome = rule.use(pot.plant(), heldId, creative);
             apply(
                     outcome,
+                    pot.pot(),
                     new FlowerPotUse(
                             store.getExternalData().getWorld(),
                             event.getTargetBlock(),
@@ -83,16 +76,18 @@ public final class FlowerPotSystem extends EntityEventSystem<EntityStore, UseBlo
         }
     }
 
-    private void apply(FlowerPot.Outcome outcome, FlowerPotUse use) {
+    /** Carries out {@code outcome} on a pot whose empty block (its colour) is {@code pot}. */
+    private void apply(FlowerPot.Outcome outcome, String pot, FlowerPotUse use) {
         switch (outcome) {
             case FlowerPot.Plant plant -> {
                 // Pot first: a hand that changed meanwhile then undoes it, and nothing is lost.
-                if (use.swap(potted.get(plant.plant())) && plant.consume() && !use.takeOneHeld()) {
-                    use.swap(emptyPot);
+                String potted = blocks.block(pot, Optional.of(plant.plant())).orElse(null);
+                if (use.swap(potted) && plant.consume() && !use.takeOneHeld()) {
+                    use.swap(pot);
                 }
             }
             case FlowerPot.GiveBack back -> {
-                if (use.swap(emptyPot)) {
+                if (use.swap(pot)) {
                     use.give(back.plant());
                 }
             }

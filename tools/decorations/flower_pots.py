@@ -1,41 +1,51 @@
-"""The flower pot and one potted state per plant, like MC's flower_pot and its potted_<plant> blocks.
+"""The flower pots, one per smooth clay colour, and one potted state per plant, like Minecraft's flower_pot and its
+potted_<plant> blocks. The colours are a requested addition: Minecraft's flower pot has one colour.
 
-Each state's model is the pot plus the plant's vanilla model scaled to stand in it (MC's flower_pot_cross parent model
-does the same with the plant's texture); its texture is an atlas of the plant's texture and the pot's. Hytale takes
-one model and one texture per state, hence one pair per plant. To pot a new plant, add its item id to PLANTS and
-re-run generate.py.
+Each state's model is the pot plus the plant's vanilla model scaled to stand in it (Minecraft's flower_pot_cross parent
+model does the same with the plant's texture). The models are shared by every colour; each colour has one atlas with
+the same layout (every plant texture, the dirt, and its clay), used by the pot and all its states. To pot a new plant,
+add its item id to PLANTS and re-run generate.py.
 """
 
-import copy
-import math
 import shutil
 
 from PIL import Image
 
+from models import bounds, box_node, empty_shape, face_rects, node, scaled, shift_uvs, walk
 from pack import ICON_SIZE, PACK, draw_box, save_png, write_json
 
-POT_ID = "HyColony_Flower_Pot"
 MODELS = "Blocks/HyColony/Flower_Pot/"
-CLAY = "BlockTextures/Clay_Smooth_Orange.png"
 DIRT = "BlockTextures/Soil_Dirt_Wet.png"
+# Hytale's dyed clay blocks (Soil_Clay_Smooth_<C>, the counterpart of Minecraft's terracotta): pot colour ->
+# (English, French) name, after the clay's vanilla name. Three of that clay make one pot.
+COLOURS = {
+    "Black": ("Black", "noir"), "Blue": ("Blue", "bleu"), "Cyan": ("Cyan", "cyan"), "Green": ("Green", "vert"),
+    "GreenDark": ("Dark Green", "vert foncé"), "Grey": ("Dark Gray", "gris foncé"), "Grey2": ("Gray", "gris"),
+    "Lime": ("Lime", "vert citron"), "Orange": ("Brown", "marron"), "Pink": ("Pink", "rose"),
+    "Purple": ("Purple", "violet"), "Red": ("Dark Brown", "brun foncé"), "Red2": ("Red", "rouge"),
+    "White": ("White", "blanc"), "Yellow": ("Yellow", "jaune"), "Yellow2": ("Orange", "orange"),
+}
+CELL = 32
+ATLAS_WIDTH = 512
 
-# MC flower_pot model, in Hytale units (32 per block, MC pixels x 2): 12 wide, 12 high, walls 2 thick, dirt up to 8.
+# Minecraft flower_pot model, in Hytale units (32 per block, Minecraft pixels x 2): 12 wide, 12 high, walls 2 thick,
+# dirt up to 8.
 POT_SIZE = 12
 WALL = 2
 DIRT_TOP = 8
-# Room left for the plant above the dirt: MC's flower_pot_cross squeezes a 16 px plant into 12 px (x 0.75).
+# Room left for the plant above the dirt: flower_pot_cross squeezes a 16 px plant into 12 px (x 0.75).
 PLANT_ROOM = 32 - DIRT_TOP
 PLANT_SHRINK = 0.75
 # Vanilla models that spread several plants over the whole block: squeezed to the pot's width instead.
 PATCHES = {
     "Plant_Flower_Bushy_Yellow", "Plant_Flower_Common_Grey2", "Plant_Flower_Common_Lime2", "Plant_Flower_Tall_Purple",
-    "Plant_Flower_Tall_Violet"
+    "Plant_Flower_Tall_Violet",
 }
 PATCH_ROOM = POT_SIZE + 4
 
-# Hytale equivalents of MC's pottable plants (docs/research/carpets-flower-pots.md): one-block flowers, saplings
-# (bamboo included), floor mushrooms, small ferns, dead bushes and cacti. Left out: models reaching far below the
-# ground (Plant_Bush_Dead_Tall, Mushroom_Balls: Plant_Crop_Mushroom_Glowing_Orange and _Purple), which would stick
+# Hytale equivalents of Minecraft's pottable plants (docs/research/carpets-flower-pots.md): one-block flowers,
+# saplings (bamboo included), floor mushrooms, small ferns, dead bushes and cacti. Left out: models reaching far below
+# the ground (Plant_Bush_Dead_Tall, Mushroom_Balls: Plant_Crop_Mushroom_Glowing_Orange and _Purple), which would stick
 # out under the pot.
 PLANTS = [
     "Plant_Flower_Bushy_Blue", "Plant_Flower_Bushy_Cyan", "Plant_Flower_Bushy_Green", "Plant_Flower_Bushy_Grey",
@@ -75,209 +85,155 @@ PLANTS = [
 ]
 
 
+def pot_id(colour):
+    return "HyColony_Flower_Pot_" + colour
+
+
 def generate(assets):
-    clay = assets.image("Common/" + CLAY)
-    dirt = assets.image("Common/" + DIRT)
     shutil.rmtree(PACK / "Common" / MODELS, ignore_errors=True)  # a plant taken off PLANTS leaves nothing behind
-    write_model("Empty", pot_nodes(0), atlas(None, clay, dirt))
-    states = {}
-    for plant_id in PLANTS:
-        states[plant_id] = potted_state(assets, plant_id, clay, dirt)
-    write_json(PACK / "Server/Item/Items/HyColony" / (POT_ID + ".json"), pot_item(states))
-    write_json(PACK / "Server/Item/Block/Hitboxes/HyColony" / (POT_ID + ".json"), hitbox())
+    for old in (PACK / "Server/Item/Items/HyColony").glob("HyColony_Flower_Pot*.json"):
+        old.unlink()
+    plants = {p: assets.item(p)["BlockType"] for p in PLANTS}
+    textures = {p: plant_texture(assets, block) for p, block in plants.items()}
+    layout, size = pack_layout(dict(textures.values()))
+    base = Image.new("RGBA", size, (0, 0, 0, 0))
+    for key, image in dict(textures.values()).items():
+        base.paste(image, layout[key])
+    dirt = assets.image("Common/" + DIRT)
+    base.paste(dirt.crop((0, 0, CELL, CELL)), layout["dirt"])
+    write_model("Empty", pot_nodes(layout["clay"], layout["dirt"]))
+    for plant_id, block in plants.items():
+        key, image = textures[plant_id]
+        model = assets.json("Common/" + block["CustomModel"])
+        check_uvs(plant_id, model["nodes"], image.size)
+        shift_uvs(model["nodes"], *layout[key])
+        room = PATCH_ROOM if plant_id in PATCHES else PLANT_ROOM
+        plant = scaled(model["nodes"], fit(model["nodes"], block.get("CustomModelScale", 1), room), DIRT_TOP)
+        write_model(plant_id, pot_nodes(layout["clay"], layout["dirt"]) + [plant])
+    for colour in COLOURS:
+        clay_item = assets.item("Soil_Clay_Smooth_" + colour)
+        clay = clay_texture(assets, clay_item)
+        atlas = base.copy()
+        atlas.paste(clay.crop((0, 0, CELL, CELL)), layout["clay"])
+        save_png(atlas, PACK / "Common" / (MODELS + "Atlas_" + colour + ".png"))
+        write_json(PACK / "Server/Item/Items/HyColony" / (pot_id(colour) + ".json"), pot_item(colour, clay_item, plants))
+        save_png(icon(clay, dirt), PACK / "Common/Icons/Items/HyColony" / ("Flower_Pot_" + colour + ".png"))
+    write_json(PACK / "Server/Item/Block/Hitboxes/HyColony/HyColony_Flower_Pot.json", hitbox())
     write_json(PACK / "hycolony/id-map.json", id_map())
-    save_png(icon(clay, dirt), PACK / "Common/Icons/Items/HyColony/Flower_Pot.png")
 
 
-def potted_state(assets, plant_id, clay, dirt):
-    """The pot's state for plant_id: its generated model and atlas, its light, and a drop of pot plus plant."""
-    block = assets.item(plant_id)["BlockType"]
-    texture = assets.image("Common/" + max(block["CustomModelTexture"], key=lambda t: t["Weight"])["Texture"])
-    tint = block.get("Tint") or []
-    if tint:
-        texture = tinted(texture, tint[0])
-    model = assets.json("Common/" + block["CustomModel"])
-    plant = scaled(model["nodes"], block.get("CustomModelScale", 1), PATCH_ROOM if plant_id in PATCHES else PLANT_ROOM)
-    write_model(plant_id, pot_nodes(texture.size[1]) + [plant], atlas(texture, clay, dirt))
-    state = {
-        "CustomModel": MODELS + plant_id + ".blockymodel",
-        "CustomModelTexture": [{"Texture": MODELS + plant_id + ".png", "Weight": 1}],
-        "Gathering": {"Soft": {"DropList": {"Container": {"Type": "Multiple", "Containers": [
-            {"Type": "Single", "Item": {"ItemId": POT_ID}},
-            {"Type": "Single", "Item": {"ItemId": plant_id}},
-        ]}}}},
-    }
-    if "Light" in block:
-        state["Light"] = block["Light"]
-    return state
+def plant_texture(assets, block):
+    """(key, image): the plant's most weighted texture, its static Tint baked in as the client would tint it."""
+    path = max(block["CustomModelTexture"], key=lambda t: t["Weight"])["Texture"]
+    tint = (block.get("Tint") or [None])[0]
+    image = assets.image("Common/" + path)
+    return (path + "|" + str(tint), tinted(image, tint) if tint else image)
+
+
+def clay_texture(assets, clay_item):
+    textures = clay_item["BlockType"]["Textures"][0]
+    return assets.image("Common/" + (textures.get("All") or textures.get("Sides")))
 
 
 def tinted(texture, colour):
-    """texture multiplied by colour ('#rrggbb'), as the client tints the vanilla block."""
+    """texture multiplied by colour ('#rrggbb')."""
     rgb = tuple(int(colour[i:i + 2], 16) for i in (1, 3, 5))
     r, g, b, a = texture.split()
     channels = [c.point(lambda p, k=k: p * k // 255) for c, k in zip((r, g, b), rgb)]
     return Image.merge("RGBA", (*channels, a))
 
 
-def atlas(plant_texture, clay, dirt):
-    """The plant's texture at (0, 0), so its UVs stay as they are, then the clay and the dirt below it."""
-    plant_height = plant_texture.size[1] if plant_texture else 0
-    width = power_of_two(max(plant_texture.size[0] if plant_texture else 0, 64))
-    image = Image.new("RGBA", (width, power_of_two(plant_height + 32)), (0, 0, 0, 0))
-    if plant_texture:
-        image.paste(plant_texture, (0, 0))
-    image.paste(clay.crop((0, 0, 32, 32)), (0, plant_height))
-    image.paste(dirt.crop((0, 0, 32, 32)), (32, plant_height))
-    return image
+def pack_layout(images):
+    """Places every texture of images ({key: image}) plus a 'clay' and a 'dirt' cell on a grid of 32 px cells, tallest
+    first, ATLAS_WIDTH wide. Returns {key: (u, v)} and the atlas size, a power of two high. Same input, same layout."""
+    sizes = {key: (image.size[0] // CELL, image.size[1] // CELL) for key, image in images.items()}
+    order = sorted(sizes, key=lambda k: (-sizes[k][1], -sizes[k][0], k)) + ["clay", "dirt"]
+    sizes["clay"] = sizes["dirt"] = (1, 1)
+    used = set()
+    layout = {}
+    for key in order:
+        w, h = sizes[key]
+        row = 0
+        while (column := free_column(used, row, w, h)) is None:
+            row += 1
+        used |= {(column + dx, row + dy) for dx in range(w) for dy in range(h)}
+        layout[key] = (column * CELL, row * CELL)
+    height = max(y for _, y in used) + 1
+    return layout, (ATLAS_WIDTH, power_of_two(height * CELL))
+
+
+def free_column(used, row, w, h):
+    for x in range(ATLAS_WIDTH // CELL - w + 1):
+        if all((x + dx, row + dy) not in used for dx in range(w) for dy in range(h)):
+            return x
+    return None
 
 
 def power_of_two(n):
     return 1 << (n - 1).bit_length()
 
 
-def pot_nodes(clay_row):
-    """The four walls and the dirt, textured from the atlas row clay_row (clay at x 0, dirt at x 32)."""
-    half = POT_SIZE / 2
-    inner = POT_SIZE - 2 * WALL
-    wall_middle = half - WALL / 2
-    boxes = [
-        ("Wall_North", (0, half, -wall_middle), (POT_SIZE, POT_SIZE, WALL), 0),
-        ("Wall_South", (0, half, wall_middle), (POT_SIZE, POT_SIZE, WALL), 0),
-        ("Wall_West", (-wall_middle, half, 0), (WALL, POT_SIZE, inner), 0),
-        ("Wall_East", (wall_middle, half, 0), (WALL, POT_SIZE, inner), 0),
-        ("Dirt", (0, DIRT_TOP / 2, 0), (inner, DIRT_TOP, inner), 32),
-    ]
-    return [box_node(name, centre, size, (u, clay_row)) for name, centre, size, u in boxes]
+def check_uvs(plant_id, nodes, size):
+    """Fails on a face reading outside its texture: in an atlas it would read the neighbouring texture."""
+    for name, u0, v0, u1, v1 in face_rects(nodes):
+        if u0 < 0 or v0 < 0 or u1 > size[0] or v1 > size[1]:
+            raise SystemExit(f"{plant_id}: face of {name} reads ({u0}, {v0})-({u1}, {v1}) outside its {size} texture")
 
 
-def box_node(name, centre, size, uv):
-    face = {"offset": {"x": uv[0], "y": uv[1]}, "mirror": {"x": False, "y": False}, "angle": 0}
-    return node(name, [0, 0, 0], {
-        "type": "box",
-        "offset": xyz(centre),
-        "stretch": xyz((1, 1, 1)),
-        "settings": {"size": xyz(size)},
-        "visible": True,
-        "doubleSided": False,
-        "shadingMode": "flat",
-        "unwrapMode": "custom",
-        "textureLayout": {side: copy.deepcopy(face) for side in ("front", "back", "left", "right", "top", "bottom")},
-    })
-
-
-def node(name, position, shape, children=()):
-    return {"id": "0", "name": name, "children": list(children), "position": xyz(position),
-            "orientation": {"x": 0, "y": 0, "z": 0, "w": 1}, "shape": shape}
-
-
-def empty_shape():
-    return {"type": "none", "offset": xyz((0, 0, 0)), "stretch": xyz((1, 1, 1)), "settings": {"isPiece": False},
-            "visible": True, "doubleSided": False, "shadingMode": "flat", "unwrapMode": "custom",
-            "textureLayout": {}}
-
-
-def xyz(values):
-    return {"x": values[0], "y": values[1], "z": values[2]}
-
-
-def scaled(nodes, vanilla_scale, width_room):
-    """The plant's nodes under a group standing on the dirt, uniformly scaled to fit the room above it."""
+def fit(nodes, vanilla_scale, width_room):
+    """Uniform scale making the plant stand in the room above the dirt, never sinking below the pot."""
     low, high = bounds(nodes)
     height = max(high[1], 1.0)
     width = 2 * max(abs(low[0]), abs(high[0]), abs(low[2]), abs(high[2]), 1.0)
     factor = min(PLANT_SHRINK * vanilla_scale, PLANT_ROOM / height, width_room / width)
-    if low[1] < 0:
-        factor = min(factor, DIRT_TOP / -low[1])
-    plant = [copy.deepcopy(n) for n in nodes]
-    for n in walk(plant):
-        n["position"] = {k: v * factor for k, v in n["position"].items()}
-        shape = n["shape"]
-        shape["offset"] = {k: v * factor for k, v in shape["offset"].items()}
-        shape["stretch"] = {k: v * factor for k, v in shape["stretch"].items()}
-    return node("Plant", (0, DIRT_TOP, 0), empty_shape(), plant)
+    return min(factor, DIRT_TOP / -low[1]) if low[1] < 0 else factor
 
 
-def walk(nodes):
-    for n in nodes:
-        yield n
-        yield from walk(n.get("children", []))
+def pot_nodes(clay_uv, dirt_uv):
+    """The four walls (clay) and the dirt."""
+    half = POT_SIZE / 2
+    inner = POT_SIZE - 2 * WALL
+    wall_middle = half - WALL / 2
+    return [
+        box_node("Wall_North", (0, half, -wall_middle), (POT_SIZE, POT_SIZE, WALL), clay_uv),
+        box_node("Wall_South", (0, half, wall_middle), (POT_SIZE, POT_SIZE, WALL), clay_uv),
+        box_node("Wall_West", (-wall_middle, half, 0), (WALL, POT_SIZE, inner), clay_uv),
+        box_node("Wall_East", (wall_middle, half, 0), (WALL, POT_SIZE, inner), clay_uv),
+        box_node("Dirt", (0, DIRT_TOP / 2, 0), (inner, DIRT_TOP, inner), dirt_uv),
+    ]
 
 
-def bounds(nodes):
-    """Lowest and highest corner, in model units, of every shape of the model."""
-    points = []
-    for n in nodes:
-        collect(n, (0.0, 0.0, 0.0), (0.0, 0.0, 0.0, 1.0), points)
-    if not points:
-        return (0, 0, 0), (0, 0, 0)
-    return tuple(min(p[i] for p in points) for i in range(3)), tuple(max(p[i] for p in points) for i in range(3))
-
-
-def collect(n, parent_position, parent_rotation, points):
-    o = n["orientation"]
-    rotation = multiply(parent_rotation, (o["x"], o["y"], o["z"], o["w"]))
-    p = n["position"]
-    position = add(parent_position, rotate(parent_rotation, (p["x"], p["y"], p["z"])))
-    shape = n["shape"]
-    offset = (shape["offset"]["x"], shape["offset"]["y"], shape["offset"]["z"])
-    stretch = (shape["stretch"]["x"], shape["stretch"]["y"], shape["stretch"]["z"])
-    for corner in corners(shape):
-        local = add(offset, tuple(c * s for c, s in zip(corner, stretch)))
-        points.append(add(position, rotate(rotation, local)))
-    for child in n.get("children", []):
-        collect(child, position, rotation, points)
-
-
-def corners(shape):
-    size = shape.get("settings", {}).get("size")
-    if shape["type"] == "box":
-        hx, hy, hz = size["x"] / 2, size["y"] / 2, size["z"] / 2
-        return [(sx * hx, sy * hy, sz * hz) for sx in (-1, 1) for sy in (-1, 1) for sz in (-1, 1)]
-    if shape["type"] == "quad":
-        hx, hy = size["x"] / 2, size["y"] / 2
-        if shape["settings"].get("normal", "+Z").endswith("Y"):
-            return [(sx * hx, 0, sy * hy) for sx in (-1, 1) for sy in (-1, 1)]
-        return [(sx * hx, sy * hy, 0) for sx in (-1, 1) for sy in (-1, 1)]
-    return []
-
-
-def add(a, b):
-    return tuple(x + y for x, y in zip(a, b))
-
-
-def multiply(q, r):
-    x1, y1, z1, w1 = q
-    x2, y2, z2, w2 = r
-    return (w1 * x2 + x1 * w2 + y1 * z2 - z1 * y2,
-            w1 * y2 - x1 * z2 + y1 * w2 + z1 * x2,
-            w1 * z2 + x1 * y2 - y1 * x2 + z1 * w2,
-            w1 * w2 - x1 * x2 - y1 * y2 - z1 * z2)
-
-
-def rotate(q, v):
-    norm = math.sqrt(sum(c * c for c in q)) or 1.0
-    q = tuple(c / norm for c in q)
-    x, y, z, _ = multiply(multiply(q, (v[0], v[1], v[2], 0.0)), (-q[0], -q[1], -q[2], q[3]))
-    return (x, y, z)
-
-
-def write_model(name, nodes, texture):
+def write_model(name, nodes):
     root = node("Origin", (0, 0, 0), empty_shape(), nodes)
     for index, n in enumerate(walk([root]), start=1):
         n["id"] = str(index)
     write_json(PACK / "Common" / (MODELS + name + ".blockymodel"), {"lod": "auto", "nodes": [root]})
-    save_png(texture, PACK / "Common" / (MODELS + name + ".png"))
 
 
-def pot_item(states):
-    """MC flower pot: 3 bricks, 3/8 high, needs no support (Java places it even over the void), breaks at once."""
+def pot_item(colour, clay_item, plants):
+    """Minecraft flower pot: 3 clay (its bricks), 3/8 high, needs no support (Java places it even over the void),
+    breaks at once; one state per plant, which drops the pot and the plant."""
+    pot = pot_id(colour)
+    texture = [{"Texture": MODELS + "Atlas_" + colour + ".png", "Weight": 1}]
+    states = {}
+    for plant_id, block in plants.items():
+        state = {
+            "CustomModel": MODELS + plant_id + ".blockymodel",
+            "CustomModelTexture": texture,
+            "Gathering": {"Soft": {"DropList": {"Container": {"Type": "Multiple", "Containers": [
+                {"Type": "Single", "Item": {"ItemId": pot}},
+                {"Type": "Single", "Item": {"ItemId": plant_id}},
+            ]}}}},
+        }
+        if "Light" in block:
+            state["Light"] = block["Light"]
+        states[plant_id] = state
     return {
-        "TranslationProperties": {"Name": "hycolony.item.flower_pot.name"},
-        "Icon": "Icons/Items/HyColony/Flower_Pot.png",
+        "TranslationProperties": {"Name": "hycolony.item.flower_pot." + colour.lower() + ".name"},
+        "Icon": "Icons/Items/HyColony/Flower_Pot_" + colour + ".png",
         "Categories": ["Blocks.Deco"],
         "Recipe": {
-            "Input": [{"ItemId": "Soil_Clay_Brick", "Quantity": 3}],
+            "Input": [{"ItemId": "Soil_Clay_Smooth_" + colour, "Quantity": 3}],
             "BenchRequirement": [{"Id": "Workbench", "Type": "Crafting", "Categories": ["Workbench_Crafting"]}],
         },
         "PlayerAnimationsId": "Block",
@@ -286,9 +242,9 @@ def pot_item(states):
             "DrawType": "Model",
             "Opacity": "Transparent",
             "CustomModel": MODELS + "Empty.blockymodel",
-            "CustomModelTexture": [{"Texture": MODELS + "Empty.png", "Weight": 1}],
-            "HitboxType": POT_ID,
-            "Gathering": {"Soft": {"ItemId": POT_ID}},
+            "CustomModelTexture": texture,
+            "HitboxType": "HyColony_Flower_Pot",
+            "Gathering": {"Soft": {"ItemId": pot}},
             # UseBlockEvent fires only for an interaction type the block declares (UseBlockInteraction):
             # Use is the interaction key, Secondary the right click with a block item such as a plant.
             "Interactions": {
@@ -297,7 +253,7 @@ def pot_item(states):
             },
             "State": {"Definitions": states},
             "BlockParticleSetId": "Clay",
-            "ParticleColor": "#b4643c",
+            "ParticleColor": clay_item["BlockType"]["ParticleColor"],
             "BlockSoundSetId": "Clay_Pot_Small",
             "PhysicalMaterialId": "Stone",
         },
@@ -307,17 +263,17 @@ def pot_item(states):
 
 
 def hitbox():
-    """MC flower pot shape: 6 x 6 pixels, 6 high, centred."""
+    """Minecraft flower pot shape: 6 x 6 pixels, 6 high, centred."""
     low, high = 5 / 16, 11 / 16
     return {"Boxes": [{"Min": {"X": low, "Y": 0, "Z": low}, "Max": {"X": high, "Y": 6 / 16, "Z": high}}]}
 
 
 def id_map():
-    """The pot, and plant item -> potted block key (Hytale names a state '*<block>_State_Definitions_<state>')."""
-    return {
-        "blocks": {"decorations.flower_pot": POT_ID},
-        "flowerPots": {p: "*" + POT_ID + "_State_Definitions_" + p for p in PLANTS},
-    }
+    """Pot block -> plant item -> that pot's block holding it (Hytale names a state
+    '*<block>_State_Definitions_<state>')."""
+    return {"flowerPots": {
+        pot_id(c): {p: "*" + pot_id(c) + "_State_Definitions_" + p for p in PLANTS} for c in COLOURS
+    }}
 
 
 def icon(clay, dirt):

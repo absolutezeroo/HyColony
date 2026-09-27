@@ -27,7 +27,7 @@ public final class IdMap {
             List<String> fireworks,
             List<String> precipitationParticles,
             Map<String, String> speedEffects,
-            Map<String, String> flowerPots) {}
+            Map<String, Map<String, String>> flowerPots) {}
 
     private final Data data;
 
@@ -79,8 +79,8 @@ public final class IdMap {
         return Map.copyOf(out);
     }
 
-    /** Pottable plant item -> the flower pot's block holding it; empty when the Decorations pack is off. */
-    public Map<String, String> flowerPots() {
+    /** Flower pot (item and empty block) -> plant item -> that pot's block holding it; none when Decorations is off. */
+    public Map<String, Map<String, String>> flowerPots() {
         return Map.copyOf(pots());
     }
 
@@ -94,7 +94,7 @@ public final class IdMap {
         return Objects.requireNonNullElse(data.speedEffects(), Map.of());
     }
 
-    private Map<String, String> pots() {
+    private Map<String, Map<String, String>> pots() {
         return Objects.requireNonNullElse(data.flowerPots(), Map.of());
     }
 
@@ -121,8 +121,12 @@ public final class IdMap {
         check(errors, "particle system", byId(data.fireworks()), particle);
         check(errors, "precipitation particle system", byId(precipitation()), particle);
         check(errors, "speed effect", speeds(), id -> EntityEffect.getAssetMap().getAsset(id) != null);
-        check(errors, "potted plant item", byId(List.copyOf(pots().keySet())), item);
-        check(errors, "flower pot block", pots(), id -> BlockType.getAssetMap().getIndex(id) != Integer.MIN_VALUE);
+        Predicate<String> block = id -> BlockType.getAssetMap().getIndex(id) != Integer.MIN_VALUE;
+        check(errors, "flower pot item", byId(List.copyOf(pots().keySet())), item.and(block));
+        pots().forEach((pot, potted) -> {
+            check(errors, "potted plant item", byId(List.copyOf(potted.keySet())), item);
+            check(errors, "flower pot " + pot + " block", potted, block);
+        });
         check(errors, "npc role", data.npcRoles(), id -> NPCPlugin.get().hasRoleName(id));
         return errors;
     }
