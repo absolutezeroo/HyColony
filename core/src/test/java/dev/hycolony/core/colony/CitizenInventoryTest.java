@@ -1,6 +1,7 @@
 package dev.hycolony.core.colony;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.building.Building;
@@ -101,13 +102,50 @@ class CitizenInventoryTest {
     }
 
     @Test
-    void addingToAStackOverrulesWithTheWholeStackLikeMcSlotSet() {
+    void toppingUpAStackOverrulesNothingLikeMcSetChanged() {
         worker.inventory().set(0, Optional.of(new ItemAmount(PLANKS, 2)));
         RequestToken token = request(10, worker.id());
 
         playerSets(0, Optional.of(new ItemAmount(PLANKS, 5)));
 
+        assertEquals(RequestState.IN_PROGRESS, get(token).state());
+    }
+
+    @Test
+    void replacingAStackWithAnotherItemOverrulesWithTheNewStack() {
+        worker.inventory().set(0, Optional.of(new ItemAmount(DIRT, 2)));
+        RequestToken token = request(10, worker.id());
+
+        playerSets(0, Optional.of(new ItemAmount(PLANKS, 5)));
+
         assertEquals(List.of(new ItemAmount(PLANKS, 5)), get(token).deliveries());
+    }
+
+    @Test
+    void twoSlotsFilledInOneMoveResolveTwoRequests() {
+        RequestToken first = request(10, worker.id());
+        RequestToken second = request(3, worker.id());
+        Inventory before = worker.inventory().copy();
+        worker.inventory().set(0, Optional.of(new ItemAmount(PLANKS, 4)));
+        worker.inventory().set(1, Optional.of(new ItemAmount(PLANKS, 2)));
+
+        manager.citizenInventories().onPlayerEdit(colony.id(), worker.id(), before);
+
+        assertEquals(List.of(new ItemAmount(PLANKS, 4)), get(first).deliveries());
+        assertEquals(List.of(new ItemAmount(PLANKS, 2)), get(second).deliveries());
+    }
+
+    @Test
+    void anEditForAnUnknownColonyOrCitizenDoesNothing() {
+        RequestToken token = request(10, worker.id());
+        Inventory before = new Inventory(CitizenData.INVENTORY_SLOTS);
+        colony.clearDirty();
+
+        manager.citizenInventories().onPlayerEdit(42, worker.id(), before);
+        manager.citizenInventories().onPlayerEdit(colony.id(), 99, before);
+
+        assertEquals(RequestState.IN_PROGRESS, get(token).state());
+        assertFalse(colony.isDirty());
     }
 
     @Test

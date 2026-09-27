@@ -46,11 +46,12 @@ public final class CitizenInventoryActions {
     }
 
     /**
-     * A player's move changed the citizen's inventory from {@code before}: each slot that now holds a new item or more
-     * of it is a stack the player put there, offered to the citizen's workplace (MC ContainerCitizenInventory slot
+     * A player's move changed the citizen's inventory from {@code before}: each slot that was empty or now holds another
+     * item is a stack the player put there (MC ContainerCitizenInventory slot {@code set}), offered to the citizen's
+     * workplace. A stack only topped up is not (MC {@code moveItemStackTo} grows it and calls {@code setChanged}, not
      * {@code set}). Marks the colony to save; a citizen gone does nothing, one without workplace overrules nothing.
      *
-     * <p>Deviation from MC: Hytale has no per-slot {@code set} callback, so a put is read from the slot's growth; MC
+     * <p>Deviation from MC: Hytale has no per-slot {@code set} callback, so a put is read from the slot's content; MC
      * also calls {@code set} with the rest of a stack shift-clicked out, which overrules nothing here.
      */
     public void onPlayerEdit(int colonyId, int citizenId, Inventory before) {
@@ -69,15 +70,15 @@ public final class CitizenInventoryActions {
         Inventory now = d.inventory();
         for (int i = 0; i < now.size() && i < before.size(); i++) {
             Optional<ItemAmount> is = now.slot(i);
-            if (is.isPresent() && grew(before.slot(i), is.get())) {
+            if (is.isPresent() && placed(before.slot(i), is.get())) {
                 overruleNextOpenRequestOfCitizenWithStack(c, work, d, is.get());
             }
         }
     }
 
     /** Whether a slot that held {@code was} now holding {@code is} means the player put a stack there. */
-    private static boolean grew(Optional<ItemAmount> was, ItemAmount is) {
-        return was.isEmpty() || !was.get().item().equals(is.item()) || was.get().count() < is.count();
+    private static boolean placed(Optional<ItemAmount> was, ItemAmount is) {
+        return was.isEmpty() || !was.get().item().equals(is.item());
     }
 
     /**
