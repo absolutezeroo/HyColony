@@ -98,6 +98,15 @@ Les autres points de la relecture sont corrigés. Il reste :
   - onglet Stock : bouton de tri et recherche (MC `WindowHutAllInventory`) ;
   - annonce au joueur d'une livraison ou d'un ramassage qu'il détient faute de livreur (aujourd'hui seulement visibles dans le presse-papiers).
   - `keepFood` quand le système de faim existera : chaque hutte garde `niveau × 2` aliments, inventaire compris (MC `AbstractBuilding.keepFood`, `HutKeep`).
+- **Entrepôt et livreurs : points mineurs reportés** (relecture finale de SP3a, 2026-09-27) :
+  - `CourierTaskPicker` appelle `RequesterLocation.of` pour chaque entrée de la file (file × bâtiments, sans `SCAN_LIMIT`) ;
+  - la tâche en cours (`ongoing`) d'un livreur n'est pas vidée quand il devient inactif (comme MC), sans que ce soit documenté ;
+  - Javadoc à compléter : `tokens()` de la file, onglet Stock (`LogisticsViews.stock`) ;
+  - tests : le message « entrepôt plein » n'est suivi que sur 2000 ticks ; les simulations d'échec ne vérifient la conservation des objets que pour `PLANKS` ;
+  - plugin : les gestionnaires « fournir » de `RequestsPage` ne revérifient pas `canSupply` ;
+  - `LogisticsViews.forRequester` remonte les parents sans garde contre un cycle ;
+  - nom d'objet : repli sur le `Message` brut quand la traduction manque (`itemName`) ;
+  - constante de cadre dupliquée dans les fenêtres de logistique du plugin.
 - **Domum Ornamentum** (mis en pause par l'utilisateur le 2026-09-27) : impossible à l'identique en 0.6.8, car le client ne reçoit qu'un id par bloc. La génération en cours de partie n'est pas fiable (seuls les 1 ou 2 premiers blocs de chaque session s'affichent sans reconnexion). La piste retenue pour plus tard est un **générateur au build** : un vrai `BlockType`, une PNG composée, une icône et une recette par combinaison, dans le pack du plugin. Il faut d'abord compter les matériaux Hytale et les familles DO réutilisables. Voir `docs/research/domum-ornamentum.md`.
 - **Modes de construction** (spirale, de l'extérieur vers l'intérieur…), débloqués par la recherche (université).
 - **Apparences aléatoires des citoyens.**
