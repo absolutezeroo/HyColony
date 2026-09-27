@@ -40,7 +40,7 @@ final class StructureScan {
             case CLEAR -> Stage.SOLID;
             case SOLID -> Stage.DECORATE;
             case DECORATE -> Stage.CLEAR_LEFTOVERS;
-            default -> Stage.DONE;
+            case CLEAR_LEFTOVERS, REMOVE, DONE -> Stage.DONE;
         };
     }
 

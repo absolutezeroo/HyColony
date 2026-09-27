@@ -64,7 +64,7 @@ final class BuildCompletion {
         return switch (type) {
             case REMOVE -> Msg.of("hycolony.build.removeComplete", name);
             case REPAIR -> Msg.of("hycolony.build.repairComplete", name, level);
-            default -> Msg.of("hycolony.build.complete", name, level);
+            case BUILD, UPGRADE -> Msg.of("hycolony.build.complete", name, level);
         };
     }
 }

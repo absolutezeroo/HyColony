@@ -65,7 +65,7 @@ public final class StructurePlan {
             switch (kind) {
                 case SOLID -> solid.add(e);
                 case NON_SOLID, FLUID -> deco.add(e);
-                default -> {}
+                case AIR, UNBREAKABLE -> {}
             }
             if (kind != BlockKind.AIR) {
                 remove.add(hut.offset(e.offset().x(), e.offset().y(), e.offset().z()));

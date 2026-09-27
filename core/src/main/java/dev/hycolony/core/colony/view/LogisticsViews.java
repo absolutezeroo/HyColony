@@ -15,6 +15,7 @@ import dev.hycolony.core.logistics.warehouse.CourierAssignmentModule;
 import dev.hycolony.core.logistics.warehouse.RequesterLocation;
 import dev.hycolony.core.logistics.warehouse.WarehouseRequestQueue;
 import dev.hycolony.core.request.Request;
+import dev.hycolony.core.request.model.Deliverable;
 import dev.hycolony.core.request.model.Delivery;
 import dev.hycolony.core.request.model.Pickup;
 import dev.hycolony.core.request.model.RequestState;
@@ -134,7 +135,7 @@ final class LogisticsViews {
         return switch (r.requestable()) {
             case Delivery d -> d.priority();
             case Pickup p -> p.priority();
-            default -> 0;
+            case Deliverable _ -> 0;
         };
     }
 }
