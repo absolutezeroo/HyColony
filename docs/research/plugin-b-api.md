@@ -531,6 +531,16 @@ Chemins relatifs à `build/vineflower/hytale-server/com/hypixel/hytale/`. Recher
   - `BlockSpawnerTable.getAssetMap().getAsset(id)` puis `getEntries().internalKeys()` (`builtin/blockspawner/BlockSpawnerTable.java`, `common/map/IWeightedMap.java`) donnent les `BlockSpawnerEntry.getBlockName()` possibles ; « générateur de coffre » = l'un d'eux a un `ItemContainerBlock` ;
   - à la résolution en jeu, le bloc tiré prend la rotation du générateur (`RotationMode.INHERIT` par défaut, `BlockSpawnerPlugin.java:198-212`) : le coffre de remplacement garde donc la rotation de la cellule du prefab.
 
+## 19. Coups sur un bloc (`HytaleWorldEffects.blockHit`)
+
+Chemins relatifs à `build/vineflower/hytale-server/com/hypixel/hytale/`. Recherche : `docs/research/builder-tools-durability-breaking.md` § B.
+
+- **Son** : `BlockSoundSet.getAssetMap().getAsset(type.getBlockSoundSetIndex()).getSoundEventIndices().getOrDefault(BlockSoundEvent.Hit, 0)`, puis `SoundUtil.playSoundEvent3d(int, SoundCategory, double x, double y, double z, ComponentAccessor<EntityStore>)` (`server/core/universe/world/SoundUtil.java:234`), qui ignore l'index 0 et envoie aux joueurs à portée de l'événement. Une surcharge prend aussi `volumeModifier, pitchModifier` (l. 240). Le coup du joueur utilise (1, 1) (`BlockHarvestUtils.playBlockSound`, l. 1356).
+- **Éclats** : `world.getNotificationHandler().sendBlockParticle(x, y, z, blockId, BlockParticleEvent.Hit)` (`WorldNotificationHandler.java:84`), seulement si le chunk est chargé.
+- **Fissures** : `BlockHealthChunk` (`server/core/modules/blockhealth/`), sur la colonne `ChunkSection.getChunkColumnReference()` (`chunk/section/ChunkSection.java:60`), type `BlockHealthModule.get().getBlockHealthChunkComponentType()`. `damageBlock(Instant, World, org.joml.Vector3i, float)` garde la clé `Vector3i` dans sa map (une instance neuve à chaque appel) et envoie `UpdateBlockDamage` à tous les joueurs. Temps : `TimeResource.getNow()` de l'`EntityStore`.
+- **Casse** : `naturallyRemoveBlock` sans `NO_SEND_AUDIO` (1024) ni `NO_SEND_PARTICLES` (4) joue déjà le son `Break` (`BlockHarvestUtils.java:636-646`), envoie les particules `Break` (`BlockOperations.java:71, 369-379`) et efface la santé (`removeBlock`, l. 1317).
+- **[in-game]** : affichage des éclats `Hit` envoyés par le serveur, correspondance santé → étape de fissure.
+
 ## Could not verify
 
 1. **Client rendering of item animations on NPCs** (`AnimationSlot.Action` with `"Block"/"Build"` or `"Pickaxe"/"Mine"` on `PlayerTestModel_V`) and whether they loop or play once. Only the server packet path is verified.
