@@ -3,6 +3,7 @@ package dev.hycolony.core.citizen;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.job.Job;
 import dev.hycolony.core.job.JobAI;
+import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.ai.AITarget;
@@ -19,8 +20,9 @@ import java.util.random.RandomGenerator;
 
 /**
  * Top-level citizen AI: idle, wander, or work its job. Port of MC CitizenAI.calculateNextState, reduced to the work
- * decision: the citizen works only when its job AI cannot go idle ({@link JobAI#canGoIdle}). Deviation from MC: no
- * leisure time yet (no leisure system), so a worker with work never takes a break.
+ * decision: the citizen works only when its job AI cannot go idle ({@link JobAI#canGoIdle}) and the rain does not stop
+ * it ({@link #rainStopsWork}). Deviation from MC: no leisure time yet (no leisure system), so a worker with work
+ * never takes a break.
  */
 public final class CitizenAI {
     private static final System.Logger LOG = System.getLogger(CitizenAI.class.getName());
@@ -155,7 +157,7 @@ public final class CitizenAI {
             startJob(job); // fired and hired again (elsewhere) between two ticks: bound to the new hut
         }
         // MC re-decides every DECIDE_INTERVAL_TICKS, which also keeps the order lookup off the per-tick path.
-        if (++workTicks % DECIDE_INTERVAL_TICKS == 0 && jobAI.canGoIdle()) {
+        if (++workTicks % DECIDE_INTERVAL_TICKS == 0 && (rainStopsWork() || jobAI.canGoIdle())) {
             dropJobAI();
             idleTicksLeft = 0; // the next idle decision wanders, replacing the job's unfinished walk
             return CitizenState.IDLE;
@@ -170,13 +172,33 @@ public final class CitizenAI {
      */
     private boolean shouldWork() {
         Job job = data.job().orElse(null);
-        if (job == null || !bodies.isAlive(body)) {
+        if (job == null || !bodies.isAlive(body) || rainStopsWork()) {
             return false;
         }
         if (jobAI == null || !job.equals(aiJob) || !Objects.equals(data.workBuilding(), aiWorkBuilding)) {
             startJob(job);
         }
         return !jobAI.canGoIdle();
+    }
+
+    /**
+     * MC calculateNextState: while it rains a worker idles, even mid-task, unless shouldWorkWhileRaining (the config
+     * workersAlwaysWorkInRain, or its hut's {@link WorkerModule#canWorkDuringTheRain}). Deviation from MC: rain or
+     * snow at the work hut (Hytale weather is per zone), not a world-wide flag; no WORKING_IN_RAIN research nor
+     * BAD_WEATHER status line; a worker without a work hut is left to its job AI (MC idles it).
+     */
+    private boolean rainStopsWork() {
+        BlockPos at = data.workBuilding();
+        if (at == null || colony.context().config().gameplay().workersAlwaysWorkInRain()) {
+            return false;
+        }
+        return colony.buildings()
+                .at(at)
+                .filter(hut -> !hut.module(WorkerModule.class)
+                        .map(m -> m.canWorkDuringTheRain(hut))
+                        .orElse(false))
+                .map(hut -> colony.context().worldQuery().isRainingAt(hut.position()))
+                .orElse(false);
     }
 
     /**

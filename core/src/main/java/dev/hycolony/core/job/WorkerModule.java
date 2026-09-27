@@ -60,6 +60,14 @@ public final class WorkerModule implements PersistentModule, TickingModule, Buil
         return jobType;
     }
 
+    /**
+     * MC canWorkDuringTheRain: a max-level hut works in the rain. MC's {@code canWorkingDuringRain} flag is false for
+     * every worker ported so far (builder, courier), so it is not a field until a worker needs it true.
+     */
+    public boolean canWorkDuringTheRain(Building b) {
+        return b.level() >= b.type().maxLevel();
+    }
+
     public boolean canAssignCitizens(Building b) {
         return HiringMode.canAssignCitizens(b, assignableAtLevel0);
     }

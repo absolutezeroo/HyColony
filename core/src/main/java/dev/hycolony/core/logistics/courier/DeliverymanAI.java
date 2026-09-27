@@ -90,19 +90,10 @@ final class DeliverymanAI implements JobAI {
         };
     }
 
-    /**
-     * MC CitizenAI: a worker whose hut cannot work in the rain ({@code canWorkingDuringRain = false}) idles while it
-     * rains; true too without a hut. Deviation from MC: rain or snow at the hut, not a world-wide flag (Hytale's
-     * weather is per zone). The MC config {@code workersAlwaysWorkInRain} lifts it.
-     */
+    /** True without a hut. The rain rule is every worker's, in {@code CitizenAI} (MC CitizenAI.calculateNextState). */
     @Override
     public boolean canGoIdle() {
-        if (ctx.colony().context().config().gameplay().workersAlwaysWorkInRain()) {
-            return ctx.hut().isEmpty();
-        }
-        return ctx.hut()
-                .map(hut -> ctx.colony().context().worldQuery().isRainingAt(hut.position()))
-                .orElse(true);
+        return ctx.hut().isEmpty();
     }
 
     private void onException(RuntimeException e) {

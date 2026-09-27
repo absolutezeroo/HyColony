@@ -61,16 +61,6 @@ class DeliverymanAITest extends CourierAITestBase {
     }
 
     @Test
-    void doesNotWorkInTheRain() {
-        hire();
-        assertFalse(ai.canGoIdle());
-
-        t.world.raining = true;
-
-        assertTrue(ai.canGoIdle());
-    }
-
-    @Test
     void speedGrowsWithAgility() {
         hire(50, 0);
 
