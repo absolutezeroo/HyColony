@@ -14,6 +14,9 @@ public interface UiPort {
 
     void showCitizen(UUID player, CitizenView view);
 
+    /** The build tool window; re-shown after every button. */
+    void showWand(UUID player, WandView view);
+
     /** A chat line, not a window. */
     void notifyNeedsPlayer(UUID player, NeedsPlayerNotice notice);
 

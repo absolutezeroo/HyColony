@@ -28,6 +28,7 @@ import dev.hycolony.core.colony.ui.NeedsPlayerNotice;
 import dev.hycolony.core.colony.ui.RequestsView;
 import dev.hycolony.core.colony.ui.TownHallView;
 import dev.hycolony.core.colony.ui.UiPort;
+import dev.hycolony.core.colony.ui.WandView;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.plugin.IdMap;
 import dev.hycolony.plugin.ui.BuildingPage;
@@ -120,6 +121,10 @@ public final class HytaleUiPort implements UiPort {
     public void showCitizen(UUID player, CitizenView view) {
         open(player, (pr, previous) -> new CitizenPage(pr, view, manager.get(), ids).keepTabOf(previous));
     }
+
+    /** Nothing yet: the wand window is added with the plugin task. */
+    @Override
+    public void showWand(UUID player, WandView view) {}
 
     @Override
     public void notifyNeedsPlayer(UUID player, NeedsPlayerNotice notice) {
