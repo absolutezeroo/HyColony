@@ -29,6 +29,7 @@ import dev.hycolony.core.colony.ui.RequestsView;
 import dev.hycolony.core.colony.ui.TownHallView;
 import dev.hycolony.core.colony.ui.UiPort;
 import dev.hycolony.core.colony.ui.WandView;
+import dev.hycolony.core.construction.wand.WandActions;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.plugin.IdMap;
 import dev.hycolony.plugin.ui.BuildingPage;
@@ -36,6 +37,7 @@ import dev.hycolony.plugin.ui.FoundColonyPage;
 import dev.hycolony.plugin.ui.RequestsPage;
 import dev.hycolony.plugin.ui.citizen.CitizenPage;
 import dev.hycolony.plugin.ui.townhall.TownHallPage;
+import dev.hycolony.plugin.ui.wand.WandPage;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -50,6 +52,7 @@ import org.joml.Vector3i;
 public final class HytaleUiPort implements UiPort {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
     private final Supplier<ColonyManager> manager;
+    private final Supplier<WandActions> wand;
     private final HytaleBlocks blocks;
     private final IdMap ids;
     private final String townHallBlockId;
@@ -57,8 +60,9 @@ public final class HytaleUiPort implements UiPort {
     /** Players whose page Hytale is closing right now: close() must not close it a second time. */
     private final Set<UUID> closing = new HashSet<>();
 
-    public HytaleUiPort(Supplier<ColonyManager> manager, HytaleBlocks blocks, IdMap ids) {
+    public HytaleUiPort(Supplier<ColonyManager> manager, Supplier<WandActions> wand, HytaleBlocks blocks, IdMap ids) {
         this.manager = manager;
+        this.wand = wand;
         this.blocks = blocks;
         this.ids = ids;
         this.townHallBlockId = ids.blockId("hut.townhall");
@@ -122,9 +126,10 @@ public final class HytaleUiPort implements UiPort {
         open(player, (pr, previous) -> new CitizenPage(pr, view, manager.get(), ids).keepTabOf(previous));
     }
 
-    /** Nothing yet: the wand window is added with the plugin task. */
     @Override
-    public void showWand(UUID player, WandView view) {}
+    public void showWand(UUID player, WandView view) {
+        open(player, pr -> new WandPage(pr, view, manager.get(), wand.get(), ids));
+    }
 
     @Override
     public void notifyNeedsPlayer(UUID player, NeedsPlayerNotice notice) {

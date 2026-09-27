@@ -1,0 +1,153 @@
+$C = "../../Common.ui";
+$Sounds = "../../Sounds.ui";
+
+$C.@PageOverlay {
+  LayoutMode: Middle;
+
+  $C.@DecoratedContainer {
+    Anchor: (Width: 860);
+
+    #Title {
+      $C.@Title {
+        @Text = %hycolony.ui.wand.title;
+      }
+    }
+
+    #Content {
+      Padding: (Vertical: 24, Horizontal: 40);
+      LayoutMode: Top;
+
+      Label {
+        Text: %hycolony.ui.wand.style;
+        Style: (RenderBold: true, RenderUppercase: true, TextColor: #94a7bb);
+        Anchor: (Bottom: 6);
+      }
+
+      Group #Styles {
+        LayoutMode: LeftCenterWrap;
+        Anchor: (Bottom: 12);
+      }
+
+      Label #ChooseStyle {
+        Text: %hycolony.ui.wand.chooseStyle;
+        Style: (TextColor: #94a7bb);
+        Anchor: (Bottom: 12);
+      }
+
+      Group #HutSection {
+        LayoutMode: Top;
+        Visible: false;
+
+        Label {
+          Text: %hycolony.ui.wand.hut;
+          Style: (RenderBold: true, RenderUppercase: true, TextColor: #94a7bb);
+          Anchor: (Bottom: 6);
+        }
+
+        Label #NoHut {
+          Text: %hycolony.ui.wand.noHut;
+          Style: (TextColor: #94a7bb);
+          Anchor: (Bottom: 12);
+          Visible: false;
+        }
+
+        Group #Huts {
+          LayoutMode: TopScrolling;
+          ScrollbarStyle: $C.@DefaultScrollbarStyle;
+          Anchor: (Height: 160, Bottom: 12);
+        }
+      }
+
+      Group #LevelSection {
+        LayoutMode: Top;
+        Visible: false;
+
+        Label {
+          Text: %hycolony.ui.wand.level;
+          Style: (RenderBold: true, RenderUppercase: true, TextColor: #94a7bb);
+          Anchor: (Bottom: 6);
+        }
+
+        Group #Levels {
+          LayoutMode: LeftCenterWrap;
+          Anchor: (Bottom: 12);
+        }
+      }
+
+      Group #Manipulator {
+        LayoutMode: Top;
+        Visible: false;
+
+        Group {
+          LayoutMode: Center;
+          Anchor: (Height: 36, Bottom: 6);
+
+          $C.@SecondaryTextButton #LeftButton {
+            @Anchor = (Width: 150, Right: 4);
+            Text: %hycolony.ui.wand.left;
+          }
+
+          $C.@SecondaryTextButton #ForwardButton {
+            @Anchor = (Width: 150, Right: 4);
+            Text: %hycolony.ui.wand.forward;
+          }
+
+          $C.@SecondaryTextButton #BackButton {
+            @Anchor = (Width: 150, Right: 4);
+            Text: %hycolony.ui.wand.back;
+          }
+
+          $C.@SecondaryTextButton #RightButton {
+            @Anchor = (Width: 150);
+            Text: %hycolony.ui.wand.right;
+          }
+        }
+
+        Group {
+          LayoutMode: Center;
+          Anchor: (Height: 36, Bottom: 12);
+
+          $C.@SecondaryTextButton #UpButton {
+            @Anchor = (Width: 150, Right: 4);
+            Text: %hycolony.ui.wand.up;
+          }
+
+          $C.@SecondaryTextButton #DownButton {
+            @Anchor = (Width: 150, Right: 4);
+            Text: %hycolony.ui.wand.down;
+          }
+
+          $C.@SecondaryTextButton #RotateLeftButton {
+            @Anchor = (Width: 150, Right: 4);
+            Text: %hycolony.ui.wand.rotateLeft;
+          }
+
+          $C.@SecondaryTextButton #RotateRightButton {
+            @Anchor = (Width: 150);
+            Text: %hycolony.ui.wand.rotateRight;
+          }
+        }
+
+        Group {
+          LayoutMode: Center;
+
+          $C.@TextButton #ConfirmButton {
+            @Sounds = $Sounds.@SaveSettings;
+            @Anchor = (Right: 4);
+            Text: %hycolony.ui.wand.confirm;
+            FlexWeight: 1;
+          }
+
+          $C.@SecondaryTextButton #CancelButton {
+            @Sounds = $Sounds.@ButtonsCancel;
+            @Anchor = (Left: 4);
+            Text: %hycolony.ui.wand.cancel;
+            FlexWeight: 1;
+          }
+        }
+      }
+    }
+  }
+}
+
+$C.@BackButton {}

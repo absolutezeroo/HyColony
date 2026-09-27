@@ -24,6 +24,7 @@ import dev.hycolony.plugin.npc.CitizenBodyLifecycleSystem;
 import dev.hycolony.plugin.npc.CitizenFireImmunitySystems;
 import dev.hycolony.plugin.npc.CitizenUseSystem;
 import dev.hycolony.plugin.npc.HyColonyComponents;
+import dev.hycolony.plugin.ui.wand.WandInteraction;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -68,6 +69,7 @@ public final class HyColonyPlugin extends JavaPlugin {
                 .registerGlobal(
                         PlayerReadyEvent.class,
                         e -> GogglesSystems.onPlayerReady(runtimes, ids.itemId("build_goggles"), e));
+        WandInteraction.register(this, runtimes);
         getCommandRegistry().registerCommand(new HyColonyCommand(runtimes, ids, colonyConfig.commands()));
 
         // Assets (blocks, items, NPC roles) are all loaded once a world starts: validate ids there.
@@ -102,7 +104,11 @@ public final class HyColonyPlugin extends JavaPlugin {
         getEventRegistry().register(ShutdownEvent.class, e -> runtimes.all().forEach(WorldRuntime::saveAll));
         getEventRegistry().register(PlayerDisconnectEvent.class, e -> {
             UUID uuid = e.getPlayerRef().getUuid();
-            runtimes.all().forEach(rt -> rt.world().execute(() -> rt.goggles().unequip(uuid)));
+            runtimes.all()
+                    .forEach(rt -> rt.world().execute(() -> {
+                        rt.goggles().unequip(uuid);
+                        rt.wand().disconnect(uuid);
+                    }));
             runtimes.all()
                     .forEach(rt -> rt.world()
                             .execute(() -> rt.manager()

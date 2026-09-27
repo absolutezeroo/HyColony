@@ -10,10 +10,13 @@ import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.ConstructionPorts;
 import dev.hycolony.core.construction.goggles.BuildGoggles;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
+import dev.hycolony.core.construction.wand.WandActions;
 import dev.hycolony.core.job.JobRegistry;
 import dev.hycolony.core.kernel.WorldKey;
 import dev.hycolony.core.kernel.config.ColonyConfig;
 import dev.hycolony.core.kernel.event.EventBus;
+import dev.hycolony.core.kernel.item.BlockKey;
+import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.nav.DetouringBodies;
 import dev.hycolony.core.kernel.persist.FileColonyStorage;
 import dev.hycolony.core.kernel.persist.MigrationChain;
@@ -45,6 +48,7 @@ public final class WorldRuntime {
     private final ColonyManager manager;
     private final HytalePreviewPort previews;
     private final BuildGoggles goggles;
+    private final WandActions wand;
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
     private final long autosaveTicks;
@@ -59,6 +63,7 @@ public final class WorldRuntime {
         this.bodies = new HytaleCitizenBodies(world, ids.npcRole("npc.citizen"));
         this.blocks = new HytaleBlocks(world);
         ColonyManager[] self = new ColonyManager[1];
+        WandActions[] wandSelf = new WandActions[1]; // the UI port needs it before it exists
         JobRegistry jobs = JobRegistry.defaults();
         ConstructionBuildingTypes.register(jobs);
         BuildingRegistry buildings = BuildingTypes.defaults();
@@ -73,7 +78,7 @@ public final class WorldRuntime {
                 new DetouringBodies(bodies, worldBlocks, catalog), // Hytale's nav walks through fire
                 new HytaleWorldQuery(world),
                 new HytaleNotifier(),
-                new HytaleUiPort(() -> self[0], blocks, ids),
+                new HytaleUiPort(() -> self[0], () -> wandSelf[0], blocks, ids),
                 new HytalePlayerDirectory(world),
                 buildings,
                 jobs,
@@ -91,6 +96,9 @@ public final class WorldRuntime {
         self[0] = manager;
         this.previews = new HytalePreviewPort(world);
         this.goggles = new BuildGoggles(manager, previews);
+        this.wand =
+                new WandActions(manager, previews, k -> new ItemKey(ids.itemId(k)), k -> new BlockKey(ids.blockId(k)));
+        wandSelf[0] = wand;
         manager.persistence()
                 .setStorage(new FileColonyStorage(world.getSavePath().resolve("hycolony")), MigrationChain.sp1());
         if (enabled) {
@@ -135,6 +143,10 @@ public final class WorldRuntime {
 
     public BuildGoggles goggles() {
         return goggles;
+    }
+
+    public WandActions wand() {
+        return wand;
     }
 
     public HytalePreviewPort previews() {
