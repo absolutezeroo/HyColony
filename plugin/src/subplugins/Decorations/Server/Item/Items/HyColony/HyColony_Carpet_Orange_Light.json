@@ -1,0 +1,65 @@
+{
+  "TranslationProperties": {
+    "Name": "hycolony.item.carpet.orange_light.name"
+  },
+  "Icon": "Icons/HyColony/Carpet_Orange_Light.png",
+  "Categories": [
+    "Blocks.Cloth"
+  ],
+  "Recipe": {
+    "Input": [
+      {
+        "ItemId": "Cloth_Block_Wool_Orange_Light",
+        "Quantity": 2
+      }
+    ],
+    "OutputQuantity": 3,
+    "BenchRequirement": [
+      {
+        "Type": "Crafting",
+        "Id": "Furniture_Bench",
+        "Categories": [
+          "Furniture_Textiles"
+        ]
+      }
+    ]
+  },
+  "PlayerAnimationsId": "Block",
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Model",
+    "Opacity": "Transparent",
+    "CustomModel": "Blocks/HyColony/Carpet.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "BlockTextures/Cloth_Orange_Light.png",
+        "Weight": 1
+      }
+    ],
+    "HitboxType": "Block_Flat",
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "SoftBlocks",
+        "ItemId": "HyColony_Carpet_Orange_Light"
+      }
+    },
+    "Support": {
+      "Down": [
+        {
+          "FaceType": "Full"
+        }
+      ]
+    },
+    "BlockParticleSetId": "Dust",
+    "ParticleColor": "#ffb153",
+    "BlockSoundSetId": "Cloth",
+    "PhysicalMaterialId": "Wool",
+    "TextureComputedColor": "#BF9467"
+  },
+  "Tags": {
+    "Type": [
+      "Cloth"
+    ]
+  },
+  "ItemSoundSetId": "ISS_Items_Cloth"
+}
