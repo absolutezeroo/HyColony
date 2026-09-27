@@ -78,7 +78,7 @@ Poser une hutte comme dans MineColonies : choisir un style, une hutte et un nive
   - L'inventaire du joueur passe par un port existant, ou par un ajout à un port existant : « a-t-il cet objet ? » et « retirer un objet ».
 - **Plugin** :
   - l'objet `HyColony_Build_Tool`, avec `OpenCustomUI` sur `Primary` et `Secondary` (`registerCustomPageSupplier`, `context.getTargetBlock()` qui peut être nul) ;
-  - `WandPage` et `WandPage.ui`, sur les motifs vanilla ;
+  - `WandPage` et `WandPage.ui`, disposés comme `windowbuildtool.xml` et `layoutmanipulation.xml` de Structurize : un petit panneau sur le côté droit, **sans fond assombri** (`lightbox="false"`, racine `$C.@Container` comme `EntitySpawnPage.ui`, pas `$C.@PageOverlay`), les styles et le fil « style / hutte » en haut, les niveaux à gauche, les huttes au milieu, la croix 3×3 à droite (flèches vanilla `InputIconKey*_White`, « ±90° » pour tourner, « +/- » pour Y, case du miroir vide) avec l'indicateur de rotation, Annuler et Valider en bas. Pas de bouton Réglages : aucun réglage n'est porté ;
   - l'objet, la recette, `id-map.json`, et les traductions en-US et fr-FR.
 - **Tests du cœur (TDD)** :
   - les déplacements selon chaque direction du joueur ;
