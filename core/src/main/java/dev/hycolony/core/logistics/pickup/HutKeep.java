@@ -20,10 +20,12 @@ import java.util.Map;
  */
 public final class HutKeep {
     private final List<KeepRule> rules;
+    private final ItemCatalog catalog;
     private final int[] kept;
 
-    private HutKeep(List<KeepRule> rules) {
+    private HutKeep(List<KeepRule> rules, ItemCatalog catalog) {
         this.rules = rules;
+        this.catalog = catalog;
         this.kept = new int[rules.size()];
     }
 
@@ -48,7 +50,7 @@ public final class HutKeep {
                 }
             }
         }
-        return new HutKeep(rules);
+        return new HutKeep(rules, catalog);
     }
 
     /** MC: the items in {@code getDeliveries()} of the requests made by the building's resolvers, summed per item. */
@@ -68,7 +70,8 @@ public final class HutKeep {
 
     /**
      * How many of {@code stack} may leave the building; what stays counts as kept for the next stacks. The first rule
-     * matching the item decides; an item no rule matches leaves whole.
+     * matching the item decides; an item no rule matches leaves whole, and so does a worn-out tool
+     * ({@link ItemCatalog#wornOut}): MC has destroyed it, so it is never the tool a hut keeps.
      *
      * <p>MC also keeps a stack that is better equipment than the one already kept, but then counts it past the kept
      * amount and lets it leave anyway, so that check is not ported.
@@ -77,6 +80,9 @@ public final class HutKeep {
      * included): the core has no notion of food items yet (backlog, with the hunger system).
      */
     public int removable(ItemAmount stack) {
+        if (catalog.wornOut(stack)) {
+            return stack.count();
+        }
         int i = 0;
         while (i < rules.size() && !rules.get(i).matches().test(stack.item())) {
             i++;

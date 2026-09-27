@@ -16,7 +16,8 @@ import java.util.function.Predicate;
  * Containers keyed by block position; {@link #full} makes every insert fail. A position listed in {@link #slots} holds
  * that many slots of at most {@link #maxStack} items each (unlimited by default, so one slot per distinct item) and an
  * insert there can fit partly, like a real container; any other position is unlimited. Damaged stacks (worn tools) sit
- * in {@link #worn}, one slot each, listed and taken before the undamaged ones (a broken tool in an earlier slot).
+ * in {@link #worn}, one slot each, listed and taken before the undamaged ones (a broken tool in an earlier slot); a
+ * test may put an undamaged stack there too, to set the slot order.
  */
 public final class FakeContainers implements ContainerAccess {
     public final Map<BlockPos, Map<ItemKey, Integer>> containers = new LinkedHashMap<>();

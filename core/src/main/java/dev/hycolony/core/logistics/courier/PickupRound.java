@@ -115,8 +115,11 @@ final class PickupRound {
      */
     private void take(HutKeep rules, BlockPos container, ItemAmount stack) {
         int amount = rules.removable(stack);
-        List<ItemAmount> taken =
-                amount > 0 ? ctx.containers().extractStacks(List.of(container), stack.item(), amount) : List.of();
+        // By item only, the port could take another slot of it: a fresh tool the hut keeps instead of a broken one.
+        List<ItemAmount> taken = amount > 0
+                ? ctx.containers()
+                        .extractStacks(List.of(container), stack.item(), amount, a -> a.damage() == stack.damage())
+                : List.of();
         int count = 0;
         boolean putBack = false;
         for (ItemAmount got : taken) {

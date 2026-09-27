@@ -135,4 +135,26 @@ class CourierPickupTest extends CourierAITestBase {
         assertTrue(warehouse.containers().stream()
                 .anyMatch(rack -> t.containers.stacks(rack).contains(new ItemAmount(pick, 1, 9))));
     }
+
+    /** MC: a broken tool no longer exists, so the hut keeps the good one and the broken one leaves. */
+    @Test
+    void pickupKeepsTheGoodToolAndTakesTheBrokenOne() {
+        hire();
+        ItemKey shovel = new ItemKey("Tool_Shovel_Crude");
+        t.catalog.tools.put(shovel, new ToolInfo(ToolType.SHOVEL, 0, 1f));
+        t.catalog.durability.put(shovel, 150);
+        t.catalog.maxStacks.put(shovel, 1);
+        Building builderHut = building(ConstructionBuildingTypes.BUILDER, new BlockPos(15, 64, 0), 1);
+        // One slot each, the fresh one first.
+        t.containers.worn.put(
+                builderHut.position(),
+                new ArrayList<>(List.of(new ItemAmount(shovel, 1), new ItemAmount(shovel, 1, 150))));
+        RequestToken task = pickup(builderHut, 5);
+
+        runUntil(() -> completed(task));
+
+        assertEquals(List.of(new ItemAmount(shovel, 1)), t.containers.stacks(builderHut.position()));
+        assertEquals(
+                List.of(new ItemAmount(shovel, 1, 150)), citizen.inventory().contents());
+    }
 }
