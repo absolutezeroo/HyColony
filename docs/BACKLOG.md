@@ -90,6 +90,7 @@ Les autres points de la relecture sont corrigés. Il reste :
   - retirer les lunettes efface aussi le fantôme de la baguette (`BuildGoggles.unequip` appelle `hideAll`) : il revient au prochain clic.
 - **SP3a, colonie autonome** : entrepôt, livreurs, bûcheron, puis mineur ou carrière (voir les recherches `sp3a-*`).
   - Décision : mineur adapté (escalier en colimaçon, car les PNJ ne montent pas aux échelles) ou carrière d'abord ?
+- **Domum Ornamentum** (mis en pause par l'utilisateur le 2026-09-27) : impossible à l'identique en 0.6.8, car le client ne reçoit qu'un id par bloc. La génération en cours de partie n'est pas fiable (seuls les 1 ou 2 premiers blocs de chaque session s'affichent sans reconnexion). La piste retenue pour plus tard est un **générateur au build** : un vrai `BlockType`, une PNG composée, une icône et une recette par combinaison, dans le pack du plugin. Il faut d'abord compter les matériaux Hytale et les familles DO réutilisables. Voir `docs/research/domum-ornamentum.md`.
 - **Modes de construction** (spirale, de l'extérieur vers l'intérieur…), débloqués par la recherche (université).
 - **Apparences aléatoires des citoyens.**
 - **Hôtel de ville disparu** sans être cassé par un joueur : aujourd'hui il ne peut plus être reposé, il faut passer par `/hycolony delete`.
