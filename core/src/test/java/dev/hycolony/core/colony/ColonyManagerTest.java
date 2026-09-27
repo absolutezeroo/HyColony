@@ -224,6 +224,13 @@ class ColonyManagerTest {
     }
 
     @Test
+    void loadAllWithoutStorageLoadsNothing() {
+        manager.persistence().loadAll();
+        assertTrue(manager.all().isEmpty());
+        assertTrue(manager.persistence().available());
+    }
+
+    @Test
     void storageListingFailureRefusesFoundingAndWritesNothing() {
         FailingStorage storage = new FailingStorage();
         storage.failHighestId = true;

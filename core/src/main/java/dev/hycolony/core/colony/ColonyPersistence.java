@@ -47,7 +47,11 @@ public final class ColonyPersistence {
         return lockedIds.contains(colonyId);
     }
 
+    /** Loads every stored colony; does nothing before {@link #setStorage}. */
     public void loadAll() {
+        if (storage == null) {
+            return;
+        }
         try {
             manager.reserveId(storage.highestIdEverUsed());
             for (int id : storage.colonyIds()) {
