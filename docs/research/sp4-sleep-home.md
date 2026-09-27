@@ -240,7 +240,7 @@ Aux niveaux 2, 3 et 5, il y a moins de lits que d'habitants. Les citoyens en tro
 - `CitizenAI` (`core/.../citizen/CitizenAI.java`) : `IDLE` toutes les 20 ticks, `WANDERING` toutes les 5, `WORKING` toutes les 1. Le travail est redécidé toutes les `DECIDE_INTERVAL_TICKS = 10`, avec la pluie puis `canGoIdle`. La flânerie se fait autour de l'hôtel de ville (`WANDER_RADIUS = 10`). **Aucune notion de nuit.**
 - `Colony.checkDayTime` (`Colony.java:81,127-136`, toutes les `DAYTIME_INTERVAL = 20` ticks) incrémente `day` et publie `DayStarted` / `NightFell`, sans aucun abonné.
 - Le constructeur (`construction/builder/…`) ne consulte ni l'horloge ni ces événements. **Il travaille la nuit.**
-- `BuildingEventsModule` a déjà un point d'accroche `onWakeUp(Building)` (`building/BuildingEventsModule.java:10`), jamais appelé.
+- `BuildingEventsModule` n'a plus de point d'accroche `onWakeUp` : il a été retiré, car rien ne l'appelait. Le sous-projet 4 doit rajouter `onWakeUp(Colony, Building)`, appelé depuis l'équivalent de MC `AbstractBuilding.onWakeUp`.
 - `CitizenBodies` (`kernel/port/CitizenBodies.java`) a déjà `moveTo`, `navStatus`, `teleport`, `setHeldItem`, `playAnimation(BUILD|MINE)` et `position`. Il manque « coucher dans le lit » et « lever ».
 - `TownHallStats` note la déviation « no housing capacity (no housing system yet) » (l. 17). `ColonyConfig.maxCitizenPerColony` n'est lu par rien (l. 18).
 
@@ -279,7 +279,7 @@ Aux niveaux 2, 3 et 5, il y a moins de lits que d'habitants. Les citoyens en tro
    - `teleport` au point de sortie.
 
    L'objet tenu est retiré. `isAsleep` et `bedPos` sont persistés, et un rechargement réveille le citoyen (MC `CitizenData.java:574`).
-9. Réveil : dès que `dayTicks <= 10600`, `onWakeUp`, qui appelle `BuildingEventsModule.onWakeUp` de la maison et de l'atelier. Message « tous les citoyens dorment » (clé en-US / fr-FR).
+9. Réveil : dès que `dayTicks <= 10600`, `onWakeUp`, qui appelle `BuildingEventsModule.onWakeUp(Colony, Building)` (à rajouter à l'interface, depuis l'équivalent de MC `AbstractBuilding.onWakeUp`) de la maison et de l'atelier. Message « tous les citoyens dorment » (clé en-US / fr-FR).
 
 **Reporté, avec raison** :
 

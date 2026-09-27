@@ -13,7 +13,7 @@ Rendre l'ajout d'un métier, d'un bâtiment ou d'un pack de contenu **local** : 
    - Un métier inconnu est conservé brut et réécrit tel quel, comme les bâtiments et modules inconnus ; le citoyen garde son affectation.
 2. **Nettoyage de l'API des bâtiments.**
    - `TickingModule` n'a plus qu'une méthode, `onColonyTick(Colony, Building)`.
-   - `BuildingEventsModule` est réellement distribué (pose, retrait, fin d'amélioration), comme MC `AbstractBuilding`. Le test `instanceof WorkerModule` de `ColonyBuildingListener` disparaît.
+   - `BuildingEventsModule` est réellement distribué au retrait (avant l'annulation des requêtes) et à la fin d'amélioration (hausse de niveau ou reconstruction après déconstruction, jamais une réparation), comme MC `AbstractBuilding`. MC n'a pas d'événement de pose pour les modules : `onPlaced` est supprimé. Le test `instanceof WorkerModule` de `ColonyBuildingListener` disparaît.
    - Le code mort est supprimé : `ConstructionPorts.unavailable()` et les lignes PMD périmées de `BuildingPage`.
 3. **Socle commun des ouvriers.** Les parties génériques de MC `AbstractEntityAIBasic` enfermées dans le constructeur sortent en composants partagés : `WorkerStock` (dépôt, `keepX`, outil le plus efficace) et `ToolRequests` (`checkForToolOrWeapon`). Le constructeur les utilise, sans changer de comportement. Pas de classe abstraite nouvelle.
 4. **Enregistrement unique.** `CoreFeatures.register(...)` déclare en un seul endroit les types de bâtiments et de métiers du cœur. Côté plugin, les huttes (`HutBlockSystems`), les objets et le câblage lisent ces registres au lieu de listes écrites à la main. Chaque fonctionnalité optionnelle a un drapeau dans `config.json`, section `HyColony`.

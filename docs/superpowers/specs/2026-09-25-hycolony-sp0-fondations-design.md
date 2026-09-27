@@ -185,7 +185,7 @@ C'est le squelette qui accueillera les 54 bâtiments. Il est fidèle au modèle 
 - **`ModuleProducer`** : `key` (string stable, utilisée pour la sauvegarde) et `Supplier<BuildingModule>`.
 - **`BuildingRegistry`** : enregistrement au démarrage. La recherche par id sert au chargement des sauvegardes.
 - **`Building`** : `type`, `position`, `rotation` (0 à 3), `level` (0 à 5), `isBuilt`, `customName`, `style` (chaîne réservée au sous-projet 2), modules indexés par clé.
-- **Interfaces de capacités des modules** : `BuildingModule` (base), `PersistentModule` (écrire et lire son `JsonObject`), `TickingModule` (`onColonyTick`), `BuildingEventsModule` (`onPlaced`, `onRemoved`, `onUpgradeComplete`, `onWakeUp`). Les capacités d'affectation de citoyens et de création de résolveurs arriveront avec les sous-projets 1 et 3.
+- **Interfaces de capacités des modules** : `BuildingModule` (base), `PersistentModule` (écrire et lire son `JsonObject`), `TickingModule` (`onColonyTick`), `BuildingEventsModule` (`onRemoved`, `onUpgradeComplete` ; `onPlaced` et `onWakeUp` ont été retirés : MC n'a pas d'événement de pose, et `onWakeUp` reviendra avec le sous-projet 4). Les capacités d'affectation de citoyens et de création de résolveurs arriveront avec les sous-projets 1 et 3.
 - **Contenu du sous-projet 0** : un seul type, l'**hôtel de ville**, posé au **niveau 0**. Il deviendra niveau 1 quand le constructeur l'aura bâti, au sous-projet 2. Il n'a pas encore de module métier.
 
 ### 3.4 Citoyens : `citizen`
