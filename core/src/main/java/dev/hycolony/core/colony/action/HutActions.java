@@ -100,7 +100,7 @@ public final class HutActions {
         }
         long dx = (long) pos.x() - spawn.get().x();
         long dz = (long) pos.z() - spawn.get().z();
-        double distance = Math.sqrt(dx * dx + dz * dz);
+        double distance = Math.sqrt((double) (dx * dx + dz * dz));
         var claims = manager.context().config().claims();
         if (distance < claims.minDistanceFromWorldSpawn()) {
             int missing = (int) (claims.minDistanceFromWorldSpawn() - distance);

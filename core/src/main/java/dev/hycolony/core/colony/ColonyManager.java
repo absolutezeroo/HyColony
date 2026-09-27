@@ -134,7 +134,7 @@ public final class ColonyManager {
     public boolean isAllowed(UUID player, BlockPos pos, Action action) {
         return colonyAt(pos)
                 .map(c -> c.permissions().hasPermission(player, action)
-                        || bypassesPermissions(player) && Permissions.operatorRankHas(action))
+                        || (bypassesPermissions(player) && Permissions.operatorRankHas(action)))
                 .orElse(true);
     }
 

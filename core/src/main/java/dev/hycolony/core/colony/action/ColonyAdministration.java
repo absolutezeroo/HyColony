@@ -39,8 +39,8 @@ public final class ColonyAdministration {
     public boolean delete(UUID actor, int colonyId) {
         Colony c = manager.byId(colonyId).orElse(null);
         if (c == null
-                || !manager.context().players().isOperator(actor)
-                        && !c.permissions().rankOf(actor).isColonyManager()) {
+                || (!manager.context().players().isOperator(actor)
+                        && !c.permissions().rankOf(actor).isColonyManager())) {
             return false;
         }
         return manager.deleteColony(colonyId);
