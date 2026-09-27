@@ -14,9 +14,11 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.lang.ref.Reference;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import javax.imageio.ImageIO;
 
 /**
@@ -86,9 +88,14 @@ final class RuntimeBlockFactory {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        CommonAssetModule.get().addCommonAsset(packKey, new FileCommonAsset(file, assetName, png));
+        FileCommonAsset asset = new FileCommonAsset(file, assetName, png);
+        // The asset holds its bytes by weak reference: keeping the blob reachable makes sendAsset write the parts now,
+        // on this thread, so they cannot be overtaken by the rebuild request below.
+        CompletableFuture<byte[]> blob = asset.getBlob();
+        CommonAssetModule.get().addCommonAsset(packKey, asset);
+        Reference.reachabilityFence(blob);
         // addCommonAsset sends the file without a rebuild request, so clients never use it (seen in game: untextured
-        // block); vanilla's asset monitor follows its sends with RequestCommonAssetsRebuild (CommonAssetModule l.132).
+        // block); vanilla's CommonAssetMonitorHandler follows its reloads with RequestCommonAssetsRebuild.
         Universe.get().broadcastPacketNoCache(new RequestCommonAssetsRebuild());
         return assetName;
     }
