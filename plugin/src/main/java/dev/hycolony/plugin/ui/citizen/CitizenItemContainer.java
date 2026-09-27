@@ -4,10 +4,12 @@ import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.inventory.container.SimpleItemContainer;
 import com.hypixel.hytale.server.core.inventory.transaction.ClearTransaction;
+import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.kernel.item.Inventory;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import java.util.Optional;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -22,33 +24,35 @@ import javax.annotation.Nonnull;
 final class CitizenItemContainer extends SimpleItemContainer {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
-    private final Supplier<Optional<Inventory>> core;
+    private final CitizenData citizen;
+    private final BooleanSupplier alive;
     private final Consumer<Inventory> onPlayerEdit;
     /** Nesting of write actions: a move locks both containers and re-enters, only the outermost one reports. */
     private int writeDepth;
 
     /**
-     * {@code core} is re-read on every access (the citizen may be gone, its inventory replaced); {@code onPlayerEdit}
-     * gets the inventory as it was before each player move that changed it.
+     * Reads {@code citizen}'s inventory directly; {@code alive} says whether it is still in its colony (nothing is
+     * accepted once it is not); {@code onPlayerEdit} gets the inventory as it was before each player move that
+     * changed it.
      */
-    CitizenItemContainer(int capacity, Supplier<Optional<Inventory>> core, Consumer<Inventory> onPlayerEdit) {
-        super((short) capacity);
-        this.core = core;
+    CitizenItemContainer(CitizenData citizen, BooleanSupplier alive, Consumer<Inventory> onPlayerEdit) {
+        super((short) citizen.inventory().size());
+        this.citizen = citizen;
+        this.alive = alive;
         this.onPlayerEdit = onPlayerEdit;
     }
 
     @Override
     protected ItemStack internal_getSlot(short slot) {
-        Optional<ItemAmount> a = core.get().filter(inv -> slot < inv.size()).flatMap(inv -> inv.slot(slot));
+        Inventory inv = citizen.inventory();
+        ItemAmount a = slot < inv.size() ? inv.slot(slot).orElse(null) : null;
         ItemStack cached = items[slot];
-        if (a.isEmpty()) {
+        if (a == null) {
             items[slot] = null;
             return null;
         }
-        if (cached == null
-                || !cached.getItemId().equals(a.get().item().id())
-                || cached.getQuantity() != a.get().count()) {
-            cached = new ItemStack(a.get().item().id(), a.get().count());
+        if (cached == null || !cached.getItemId().equals(a.item().id()) || cached.getQuantity() != a.count()) {
+            cached = new ItemStack(a.item().id(), a.count());
             items[slot] = cached;
         }
         return cached;
@@ -60,12 +64,9 @@ final class CitizenItemContainer extends SimpleItemContainer {
             return internal_removeSlot(slot);
         }
         ItemStack previous = internal_getSlot(slot);
-        Optional<Inventory> inv = core.get().filter(i -> slot < i.size());
-        if (inv.isPresent()) {
-            inv.get()
-                    .set(
-                            slot,
-                            Optional.of(new ItemAmount(new ItemKey(itemStack.getItemId()), itemStack.getQuantity())));
+        Inventory inv = citizen.inventory();
+        if (slot < inv.size()) {
+            inv.set(slot, Optional.of(new ItemAmount(new ItemKey(itemStack.getItemId()), itemStack.getQuantity())));
             items[slot] = itemStack;
         }
         return previous;
@@ -74,7 +75,10 @@ final class CitizenItemContainer extends SimpleItemContainer {
     @Override
     protected ItemStack internal_removeSlot(short slot) {
         ItemStack previous = internal_getSlot(slot);
-        core.get().filter(i -> slot < i.size()).ifPresent(i -> i.set(slot, Optional.empty()));
+        Inventory inv = citizen.inventory();
+        if (slot < inv.size()) {
+            inv.set(slot, Optional.empty());
+        }
         items[slot] = null;
         return previous;
     }
@@ -97,7 +101,7 @@ final class CitizenItemContainer extends SimpleItemContainer {
      */
     @Override
     protected boolean cantAddToSlot(short slot, ItemStack itemStack, ItemStack slotItemStack) {
-        return core.get().isEmpty()
+        return !alive.getAsBoolean()
                 || itemStack.getMetadata() != null
                 || !itemStack.isUnbreakable() && itemStack.getDurability() < itemStack.getMaxDurability()
                 || super.cantAddToSlot(slot, itemStack, slotItemStack);
@@ -105,7 +109,8 @@ final class CitizenItemContainer extends SimpleItemContainer {
 
     @Override
     public boolean isEmpty() {
-        return core.get().map(i -> i.contents().isEmpty()).orElse(true);
+        Inventory inv = citizen.inventory();
+        return inv.freeSlots() == inv.size();
     }
 
     /** A detached snapshot of the current slots (Hytale copies containers for previews and transactions). */
@@ -137,14 +142,18 @@ final class CitizenItemContainer extends SimpleItemContainer {
 
     /** Runs a write; the outermost one then tells the core what the player changed, if anything. */
     private <V> V reporting(Supplier<V> write) {
-        Inventory before = writeDepth == 0 ? core.get().map(Inventory::copy).orElse(null) : null;
-        long changes = before == null ? 0 : core.get().map(Inventory::changes).orElse(0L);
+        if (writeDepth > 0) {
+            return write.get();
+        }
+        Inventory inv = citizen.inventory();
+        Inventory before = inv.copy();
+        long changes = inv.changes();
         writeDepth++;
         try {
             return write.get();
         } finally {
             writeDepth--;
-            if (before != null && core.get().map(Inventory::changes).orElse(changes) != changes) {
+            if (citizen.inventory().changes() != changes) {
                 report(before);
             }
         }

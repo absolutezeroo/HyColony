@@ -2,6 +2,7 @@ package dev.hycolony.plugin.ui.citizen;
 
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.protocol.packets.interface_.Page;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
@@ -10,18 +11,20 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.ColonyEvents;
 import dev.hycolony.core.colony.ColonyManager;
-import dev.hycolony.core.kernel.item.Inventory;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
+import java.util.logging.Level;
 
 /**
  * The citizen inventory windows open in one world: opens them, and closes them when their citizen is gone. World
  * thread only.
  */
 public final class CitizenInventoryWindows {
+    private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
+
     private record Open(Ref<EntityStore> player, int colonyId, CitizenInventoryWindow window) {}
 
     private final Supplier<ColonyManager> manager;
@@ -39,11 +42,11 @@ public final class CitizenInventoryWindows {
     public void open(UUID player, int colonyId, int citizenId) {
         PlayerRef pr = Universe.get().getPlayer(player);
         Ref<EntityStore> ref = pr == null ? null : pr.getReference();
-        Supplier<Optional<Inventory>> core = () -> manager.get()
+        CitizenData citizen = manager.get()
                 .byId(colonyId)
                 .flatMap(c -> c.citizens().get(citizenId))
-                .map(CitizenData::inventory);
-        if (ref == null || !ref.isValid() || core.get().isEmpty()) {
+                .orElse(null);
+        if (ref == null || !ref.isValid() || citizen == null) {
             return;
         }
         Store<EntityStore> store = ref.getStore();
@@ -52,16 +55,18 @@ public final class CitizenInventoryWindows {
             return;
         }
         subscribeOnce();
+        // Read on moves only, never per tick.
+        BooleanSupplier alive = () -> manager.get()
+                .byId(colonyId)
+                .flatMap(c -> c.citizens().get(citizenId))
+                .isPresent();
         CitizenItemContainer container = new CitizenItemContainer(
-                CitizenData.INVENTORY_SLOTS,
-                core,
-                before -> manager.get().citizenInventories().onPlayerEdit(colonyId, citizenId, before));
-        CitizenInventoryWindow window = new CitizenInventoryWindow(container, core);
+                citizen, alive, before -> manager.get().citizenInventories().onPlayerEdit(colonyId, citizenId, before));
+        CitizenInventoryWindow window = new CitizenInventoryWindow(container, citizen, alive);
         window.coreChanged(); // the client gets the current state on open, no need to send it twice
         if (playerComponent.getPageManager().setPageWithWindows(ref, store, Page.Bench, true, window)) {
-            Open o = new Open(ref, colonyId, window);
-            open.add(o);
-            window.registerCloseEvent(e -> open.remove(o));
+            open.add(new Open(ref, colonyId, window));
+            window.registerCloseEvent(e -> forget(window));
         }
     }
 
@@ -73,26 +78,44 @@ public final class CitizenInventoryWindows {
         }
     }
 
-    /** Closes the colony's windows still open; backwards, since each close removes its entry. */
+    /**
+     * Closes the colony's windows still open; backwards, since each close removes its entry. A failing close is logged
+     * and forgotten, the others still close.
+     */
     private void closeAll(int colonyId) {
         for (int i = open.size() - 1; i >= 0; i--) {
             Open o = open.get(i);
             if (o.colonyId() != colonyId) {
                 continue;
             }
-            Player playerComponent = o.player().isValid()
-                    ? o.player().getStore().getComponent(o.player(), Player.getComponentType())
-                    : null;
-            boolean stillOpen = playerComponent != null
-                    && o.window()
-                            .equals(playerComponent
-                                    .getWindowManager()
-                                    .getWindow(o.window().getId()));
-            if (stillOpen) {
-                o.window().close(o.player(), o.player().getStore()); // its close event drops the entry
-            } else {
-                open.remove(i);
+            try {
+                if (isOpen(o)) {
+                    o.window().close(o.player(), o.player().getStore()); // its close event forgets it
+                }
+            } catch (RuntimeException e) {
+                LOG.at(Level.SEVERE).withCause(e).log("HyColony: could not close a citizen inventory window");
             }
+            forget(o.window());
         }
+    }
+
+    /**
+     * Whether the player's window manager still holds this very window: {@code Window.equals} only compares id, type
+     * and player, which a later window may share.
+     */
+    @SuppressWarnings("PMD.CompareObjectsWithEquals")
+    private static boolean isOpen(Open o) {
+        if (!o.player().isValid()) {
+            return false;
+        }
+        Player playerComponent = o.player().getStore().getComponent(o.player(), Player.getComponentType());
+        return playerComponent != null
+                && playerComponent.getWindowManager().getWindow(o.window().getId()) == o.window();
+    }
+
+    /** Drops the entry of this very window, if still listed. */
+    @SuppressWarnings("PMD.CompareObjectsWithEquals") // identity: see isOpen
+    private void forget(CitizenInventoryWindow window) {
+        open.removeIf(o -> o.window() == window);
     }
 }

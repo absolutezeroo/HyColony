@@ -5,9 +5,9 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.entity.entities.player.windows.ContainerWindow;
 import com.hypixel.hytale.server.core.entity.entities.player.windows.ValidatedWindow;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.kernel.item.Inventory;
-import java.util.Optional;
-import java.util.function.Supplier;
+import java.util.function.BooleanSupplier;
 import javax.annotation.Nonnull;
 
 /**
@@ -15,24 +15,26 @@ import javax.annotation.Nonnull;
  * ContainerCitizenInventory.stillValid is always true). World thread only.
  */
 final class CitizenInventoryWindow extends ContainerWindow implements ValidatedWindow {
-    private final Supplier<Optional<Inventory>> core;
+    private final CitizenData citizen;
+    private final BooleanSupplier alive;
     private Inventory seen;
     private long seenChanges;
 
-    CitizenInventoryWindow(CitizenItemContainer container, Supplier<Optional<Inventory>> core) {
+    CitizenInventoryWindow(CitizenItemContainer container, CitizenData citizen, BooleanSupplier alive) {
         super(container);
-        this.core = core;
+        this.citizen = citizen;
+        this.alive = alive;
     }
 
     /** Hytale checks it before each move in the window and closes the window when it fails. */
     @Override
     public boolean validate(@Nonnull Ref<EntityStore> ref, @Nonnull ComponentAccessor<EntityStore> accessor) {
-        return core.get().isPresent();
+        return alive.getAsBoolean();
     }
 
     /**
      * Hytale asks every tick (PlayerSendInventorySystem, WindowManager.updateWindows) whether to re-send the window: yes
-     * also when the citizen's AI changed the inventory, which no container transaction reports.
+     * also when the citizen's AI changed the inventory, which no container transaction reports. Allocates nothing.
      */
     @Override
     protected boolean consumeIsDirty() {
@@ -40,9 +42,10 @@ final class CitizenInventoryWindow extends ContainerWindow implements ValidatedW
     }
 
     /** Whether the citizen's inventory changed since the last call (the AI took or stored items, or was replaced). */
+    @SuppressWarnings("PMD.CompareObjectsWithEquals") // the same Inventory object, not an equal one
     boolean coreChanged() {
-        Inventory inv = core.get().orElse(null);
-        if (inv == null || inv.equals(seen) && inv.changes() == seenChanges) {
+        Inventory inv = citizen.inventory();
+        if (inv == seen && inv.changes() == seenChanges) {
             return false;
         }
         seen = inv;
