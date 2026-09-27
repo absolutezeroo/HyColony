@@ -90,6 +90,7 @@ public final class WorkerModule implements PersistentModule, TickingModule, Buil
         }
         c.requests().cancelAllFrom(b.requesterId(), citizenId); // MC: a leaving worker's requests go with it
         c.citizens().get(citizenId).ifPresent(citizen -> {
+            citizen.job().ifPresent(job -> job.onRemoval(c));
             citizen.setJob(null);
             citizen.setWorkBuilding(null);
         });

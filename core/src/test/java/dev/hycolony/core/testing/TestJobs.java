@@ -15,7 +15,7 @@ import java.util.List;
 /** A minimal job for tests; real jobs (builder, etc.) arrive with the construction task. */
 public final class TestJobs {
     public static final JobType TYPE = new JobType("test:worker", c -> new TestJob(TestJobs.TYPE, c));
-    /** A citizen with this job counts as a courier for the warehouse (the real courier job comes later). */
+    /** A courier double with the real courier job id, whose task queue tests fill by hand. */
     public static final JobType COURIER = new JobType(CourierAssignmentModule.COURIER_JOB_ID, TestCourierJob::new);
 
     private TestJobs() {}

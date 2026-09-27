@@ -62,11 +62,14 @@ public final class CitizenManager {
         citizens.put(data.id(), data);
     }
 
-    /** Every 60 ticks while ACTIVE: record positions. */
+    /** Every 60 ticks while ACTIVE: record positions and count job inactivity (MC CitizenData.update). */
     public void tickData() {
         if (failNextTick) {
             failNextTick = false;
             throw new IllegalStateException("test failure");
+        }
+        for (CitizenData data : citizens.values()) {
+            data.job().ifPresent(job -> job.tickInactivity(colony));
         }
         for (Map.Entry<Integer, BodyId> e : bodies.entrySet()) {
             ctx().bodies()

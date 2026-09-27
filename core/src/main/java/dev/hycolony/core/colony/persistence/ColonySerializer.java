@@ -155,6 +155,7 @@ public final class ColonySerializer {
         boolean changed = false;
         for (CitizenData d : c.citizens().all()) {
             if (d.workBuilding() != null && c.buildings().at(d.workBuilding()).isEmpty()) {
+                d.job().ifPresent(job -> job.onRemoval(c));
                 d.setJob(null);
                 d.setWorkBuilding(null);
                 changed = true;

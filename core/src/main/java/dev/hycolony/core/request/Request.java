@@ -2,6 +2,8 @@ package dev.hycolony.core.request;
 
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.request.model.Deliverable;
+import dev.hycolony.core.request.model.Delivery;
+import dev.hycolony.core.request.model.Pickup;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.request.model.Requestable;
@@ -13,11 +15,14 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-/** A request tracked by the {@link RequestManager}; only the manager mutates it. */
+/**
+ * A request tracked by the {@link RequestManager}; only the manager mutates it, except the courier aging of
+ * {@link #incrementPriorityDueToAging()}.
+ */
 public final class Request {
     private final RequestToken token;
     private final RequesterId requester;
-    private final Requestable requestable;
+    private Requestable requestable;
     private int citizenId;
     private RequestState state = RequestState.CREATED;
     private RequestToken parent;
@@ -43,6 +48,18 @@ public final class Request {
 
     public Requestable requestable() {
         return requestable;
+    }
+
+    /**
+     * MC {@code AbstractDeliverymanRequestable.incrementPriorityDueToAging}: a courier delivery or pickup gains one
+     * priority point, capped at {@link Delivery#MAX_AGING_PRIORITY}; any other request is unchanged.
+     */
+    public void incrementPriorityDueToAging() {
+        if (requestable instanceof Delivery d) {
+            requestable = d.withAgedPriority();
+        } else if (requestable instanceof Pickup p) {
+            requestable = p.withAgedPriority();
+        }
     }
 
     /** The requestable when it is an item deliverable (count, matches); empty for a courier delivery or pickup. */

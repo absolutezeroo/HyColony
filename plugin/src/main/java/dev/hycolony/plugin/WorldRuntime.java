@@ -20,6 +20,7 @@ import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.nav.DetouringBodies;
 import dev.hycolony.core.kernel.persist.FileColonyStorage;
 import dev.hycolony.core.kernel.persist.MigrationChain;
+import dev.hycolony.core.logistics.courier.DeliverymanHut;
 import dev.hycolony.core.logistics.warehouse.WarehouseBuilding;
 import dev.hycolony.plugin.adapter.HytaleBlocks;
 import dev.hycolony.plugin.adapter.HytaleBlueprintSource;
@@ -67,9 +68,11 @@ public final class WorldRuntime {
         WandActions[] wandSelf = new WandActions[1]; // the UI port needs it before it exists
         JobRegistry jobs = JobRegistry.defaults();
         ConstructionBuildingTypes.register(jobs);
+        DeliverymanHut.register(jobs);
         BuildingRegistry buildings = BuildingTypes.defaults();
         ConstructionBuildingTypes.register(buildings);
         WarehouseBuilding.register(buildings);
+        DeliverymanHut.register(buildings);
         Set<String> hutBlockIds = HutBlockSystems.byBlockId(ids).keySet(); // the builder never breaks these
         HytaleItemCatalog catalog = new HytaleItemCatalog(hutBlockIds);
         HytaleWorldBlocks worldBlocks = new HytaleWorldBlocks(world, hutBlockIds);
