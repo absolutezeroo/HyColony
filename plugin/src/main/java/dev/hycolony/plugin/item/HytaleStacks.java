@@ -8,9 +8,9 @@ import java.util.function.ToIntFunction;
 
 /**
  * Converts core stacks to Hytale stacks and back, a tool's damage (uses, MC) becoming its Hytale durability through
- * {@link DurabilityScale}: one use costs {@code maxDurability / durability(id)} points. Read back, a partly spent use
- * counts as a whole one, so no transfer repairs a tool; a broken Hytale tool reads as worn out. A breakable item the
- * core never wears (a weapon, armour) counts one use per durability point, so its wear travels too.
+ * {@link DurabilityScale}: one use costs {@code maxDurability / durability(id)} points of the item's own max. Read
+ * back, a partly spent use counts as a whole one, and the max a Hytale repair took off the stack counts as damage, so
+ * no transfer repairs a tool; a broken Hytale tool reads as worn out.
  */
 public final class HytaleStacks {
     private final ToIntFunction<ItemKey> durability;
@@ -27,22 +27,16 @@ public final class HytaleStacks {
             return s;
         }
         return s.withDurability(
-                DurabilityScale.durability(a.damage(), uses(a.item(), s.getMaxDurability()), s.getMaxDurability()));
+                DurabilityScale.durability(a.damage(), durability.applyAsInt(a.item()), s.getMaxDurability()));
     }
 
     /** {@code count} of {@code s}, with the damage its durability shows. */
     public ItemAmount toAmount(ItemStack s, int count) {
         ItemKey item = new ItemKey(s.getItemId());
-        int damage = s.isUnbreakable()
-                ? 0
-                : DurabilityScale.damage(s.getDurability(), uses(item, s.getMaxDurability()), s.getMaxDurability());
+        // Against the item's max, not the stack's: a repair lowers the stack's (RepairItemInteraction).
+        int damage = DurabilityScale.damage(
+                s.getDurability(), s.getMaxDurability(), s.getItem().getMaxDurability(), durability.applyAsInt(item));
         return new ItemAmount(item, count, damage);
-    }
-
-    /** The core uses of {@code item}; one per point for an item the core does not wear. */
-    private int uses(ItemKey item, double max) {
-        int uses = durability.applyAsInt(item);
-        return uses > 0 ? uses : (int) Math.ceil(max);
     }
 
     /** The whole of {@code s}, with the damage its durability shows. */
