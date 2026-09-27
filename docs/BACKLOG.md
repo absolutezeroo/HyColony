@@ -88,8 +88,15 @@ Les autres points de la relecture sont corrigés. Il reste :
   - collage créatif « Complete/Pretty », outils de scan et de formes ;
   - ancre sur la face visée plutôt qu'au-dessus du bloc, si Hytale peut la donner à une interaction serveur ;
   - retirer les lunettes efface aussi le fantôme de la baguette (`BuildGoggles.unequip` appelle `hideAll`) : il revient au prochain clic.
-- **SP3a, colonie autonome** : entrepôt, livreurs, bûcheron, puis mineur ou carrière (voir les recherches `sp3a-*`).
+- **SP3a, colonie autonome** : entrepôt et livreurs faits ; restent bûcheron, puis mineur ou carrière (voir les recherches `sp3a-*`).
   - Décision : mineur adapté (escalier en colimaçon, car les PNJ ne montent pas aux échelles) ou carrière d'abord ?
+- **Entrepôt, hors de la première version** (spec `2026-09-27-hycolony-sp3a-warehouse-courier-design.md`) :
+  - stock minimum (`MinimumStockModule`), avec les `StackList` (`leftOver`) et la règle « pas pour le stock minimum d'un autre entrepôt » ;
+  - bouton « trier » de l'entrepôt au niveau 3 (`SortBuildingMessage`) ;
+  - améliorations de stockage au niveau 5 (`UpgradeWarehouseMessage`, `MAX_STORAGE_UPGRADE = 3`) et le message « payez un bloc d'émeraude » ;
+  - onglet Livreurs : rattacher ou détacher un livreur à la main, mode d'embauche (MC `SpecialAssignmentModuleWindow`) ;
+  - onglet Stock : bouton de tri et recherche (MC `WindowHutAllInventory`) ;
+  - annonce au joueur d'une livraison ou d'un ramassage qu'il détient faute de livreur (aujourd'hui seulement visibles dans le presse-papiers).
 - **Domum Ornamentum** (mis en pause par l'utilisateur le 2026-09-27) : impossible à l'identique en 0.6.8, car le client ne reçoit qu'un id par bloc. La génération en cours de partie n'est pas fiable (seuls les 1 ou 2 premiers blocs de chaque session s'affichent sans reconnexion). La piste retenue pour plus tard est un **générateur au build** : un vrai `BlockType`, une PNG composée, une icône et une recette par combinaison, dans le pack du plugin. Il faut d'abord compter les matériaux Hytale et les familles DO réutilisables. Voir `docs/research/domum-ornamentum.md`.
 - **Modes de construction** (spirale, de l'extérieur vers l'intérieur…), débloqués par la recherche (université).
 - **Apparences aléatoires des citoyens.**

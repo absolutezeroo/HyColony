@@ -341,3 +341,11 @@ Chaque écart porte un commentaire `Deviation from MC:` dans le code (CLAUDE.md 
 - **Pas de raccourcis clavier** (flèches, Maj+flèches, M, Entrée) : Hytale n'envoie pas les touches au serveur. Seuls les boutons de la fenêtre existent (`WandPage`).
 - **Pas de décalage de sol** par les tags du plan : nos prefabs Hytale n'en ont pas. L'ancre est le bloc au-dessus du bloc cliqué (`WandInteraction.anchor`) : l'interaction `OpenCustomUI` n'attend pas les données du client, la face visée n'est donc pas connue. Structurize ancre sur la face visée.
 - **Recette** : les pierres de MineColonies sont remplacées par leurs équivalents Hytale : pierre (`Rock_Stone_Cobble`), pierre noire (`Rock_Basalt_Cobble`), ardoise des profondeurs (`Rock_Slate_Cobble`), plus 6 bâtons (`Ingredient_Stick`).
+
+**Entrepôt et livreurs** (`logistics/`, `colony/view/LogisticsViews`, `plugin/ui/logistics`, spec `2026-09-27-hycolony-sp3a-warehouse-courier-design.md`, section « Écarts » : liste complète)
+- **Rangements** : les coffres Hytale posés par le constructeur remplacent les étagères MC ; pas de 2e choix « objet similaire » (onglet créatif) ; pas d'amélioration de stockage.
+- **Résolveurs de stock** : un seul résolveur au lieu du couple générique / concret ; pas de `StackList` ni de stock minimum.
+- **Pluie** : un ouvrier s'arrête s'il pleut **ou neige** à la position de sa hutte (MC : pluie globale) ; le constructeur aussi, comme MC.
+- **Livreur** : pas d'interactions de chat, de faim, de sac à dos ni de statistiques ; vitesse par effet d'entité arrondie à 0,05 ; objets qui ne rentrent plus jetés au sol ; entrepôt plein : le livreur attend une action du joueur (exception assumée à CLAUDE.md § 4).
+- **Plans provisoires** : prefabs vanilla, générateurs de coffre remplacés par un coffre vide obtenable, pour ces deux huttes seulement.
+- **Fenêtres** : liste des livreurs de l'entrepôt en lecture seule, stock toujours trié par quantité, enfants des requêtes marqués « > » au lieu d'être décalés, tâche en cours encadrée de vert.
