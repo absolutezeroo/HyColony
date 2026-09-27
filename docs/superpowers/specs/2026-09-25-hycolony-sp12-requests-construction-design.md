@@ -327,4 +327,9 @@ Chaque écart porte un commentaire `Deviation from MC:` dans le code (CLAUDE.md 
 - Le fantôme ne montre que les **blocs qui restent à poser** (pour une démolition, ceux qui restent à retirer), au lieu du plan complet.
 - Pas de contours, pas de mode accroupi, pas de touche d'activation : porter les lunettes suffit.
 - Rafraîchissement par paliers : entrées et sorties de zone vérifiées toutes les 20 ticks, contenu recréé au plus toutes les 100 ticks s'il a changé. MineColonies redessine à chaque image depuis un cache reconstruit tous les 12,5 blocs parcourus ; un aperçu Hytale se renvoie en entier.
-- Recette : Hytale 0.6.8 n'a ni verre ni pépite d'or, et la baguette n'existe pas encore. Recette à l'établi : 1 lingot de fer, 2 cristaux cyan (les verres), 2 cuirs légers. MineColonies : pépites d'or, lingot de fer, vitres, Build Tool, cuir.
+- Recette : Hytale 0.6.8 n'a ni verre ni pépite d'or. Recette à l'établi : 1 baguette de construction, 1 lingot de fer, 2 cristaux cyan (les verres), 2 cuirs légers. MineColonies : pépites d'or, lingot de fer, vitres, Build Tool, cuir.
+
+**Baguette de construction** (`construction/wand`, `plugin/ui/wand`, spec `2026-09-26-hycolony-build-tool-design.md`)
+- **Pas de raccourcis clavier** (flèches, Maj+flèches, M, Entrée) : Hytale n'envoie pas les touches au serveur. Seuls les boutons de la fenêtre existent (`WandPage`).
+- **Pas de décalage de sol** par les tags du plan : nos prefabs Hytale n'en ont pas. L'ancre est le bloc au-dessus du bloc cliqué (`WandInteraction.anchor`) : l'interaction `OpenCustomUI` n'attend pas les données du client, la face visée n'est donc pas connue. Structurize ancre sur la face visée.
+- **Recette** : les pierres de MineColonies sont remplacées par leurs équivalents Hytale : pierre (`Rock_Stone_Cobble`), pierre noire (`Rock_Basalt_Cobble`), ardoise des profondeurs (`Rock_Slate_Cobble`), plus 6 bâtons (`Ingredient_Stick`).

@@ -78,7 +78,14 @@ Les autres points de la relecture sont corrigés. Il reste :
 
 ## Plus tard
 
-- **Baguette de construction** (outil de Structurize) : aperçu fantôme du bâtiment avec `PersistentPrefabPreview`, qu'on déplace et fait pivoter avant de poser la hutte.
+- **Baguette de construction, hors de la première version** (spec `2026-09-26-hycolony-build-tool-design.md`) :
+  - décorations et ordres de décoration ;
+  - miroir ;
+  - aperçus partagés (`share_previews` de Structurize) ;
+  - huttes voisines affichées pendant le placement (`NearBuildPreview`) ;
+  - collage créatif « Complete/Pretty », outils de scan et de formes ;
+  - ancre sur la face visée plutôt qu'au-dessus du bloc, si Hytale peut la donner à une interaction serveur ;
+  - retirer les lunettes efface aussi le fantôme de la baguette (`BuildGoggles.unequip` appelle `hideAll`) : il revient au prochain clic.
 - **SP3a, colonie autonome** : entrepôt, livreurs, bûcheron, puis mineur ou carrière (voir les recherches `sp3a-*`).
   - Décision : mineur adapté (escalier en colimaçon, car les PNJ ne montent pas aux échelles) ou carrière d'abord ?
 - **Modes de construction** (spirale, de l'extérieur vers l'intérieur…), débloqués par la recherche (université).

@@ -466,7 +466,16 @@ Vérifié dans les sources 0.6.8 (détails dans `docs/research/build-goggles-and
   (north → west → south → east), i.e. the opposite sense of the port's clockwise quarter (0=north, 1=east, 2=south,
   3=west, same as `Building`/`WorkOrder`/`BlueprintSource.load`): `facing = floorMod(-round(yaw / (PI/2)), 4)`.
   **[in-game]** the sign of `lookOrientation.yaw` as actually sent by the 0.6.8 client was not captured on the wire;
-  only the server-side plumbing above was read.
+  only the server-side plumbing above was read. The build tool arrows use this facing: in-game check
+  `docs/TESTING.md` point 62.
+
+## 15. Baguette de construction : `OpenCustomUI` depuis un objet
+
+- **Enregistrer une page** : `OpenCustomUIInteraction.registerCustomPageSupplier(PluginBase, Class<?>, String id, CustomPageSupplier)` (`server/core/modules/interaction/interaction/config/server/OpenCustomUIInteraction.java:79-89`) enregistre `id` dans `PAGE_CODEC` (un `CodecMapCodec`, clé `Id`) avec un codec qui rend toujours le même fournisseur. Vanilla l'appelle dans `setup` (`builtin/adventure/memories/MemoriesPlugin.java:117`, avec la classe de la page). L'objet le nomme par `"Interactions": { "Primary": { "Interactions": [ { "Type": "OpenCustomUI", "Page": { "Id": "..." } } ] } }`, comme `Server/Item/Items/Tool/Repair_Kit/Tool_Repair_Kit_Crude.json` (assets 0.6.8). **[in-game]** que notre `setup` passe bien avant le décodage des objets de notre pack.
+- **`CustomPageSupplier.tryCreate(Ref<EntityStore>, ComponentAccessor<EntityStore>, PlayerRef, InteractionContext)`** (`:151-156`, `@Nullable`) : `firstRun` (`:55-73`) ne l'appelle que si le joueur n'a **aucune** page ouverte (`pageManager.getCustomPage() == null`), puis ouvre la page rendue si elle n'est pas nulle. HyColony rend toujours `null` : `WandActions.open` ouvre elle-même la fenêtre par `UiPort.showWand` (ou la refuse), sur le thread du monde (tick des interactions).
+- **Bloc visé** : `InteractionContext.getTargetBlock()` (`server/core/entity/InteractionContext.java:464`, `@Nullable`) lit `Interaction.TARGET_BLOCK`, posé au début de la chaîne à partir du `blockPosition` envoyé par le client, filler ramené au bloc de base (`server/core/entity/InteractionManager.java:1233-1243`). Nul pour un clic dans le vide.
+- **Face visée : non disponible**. `InteractionSyncData.blockFace` (`protocol/InteractionSyncData.java:35`, défaut `None`) n'est lu que dans l'état client (`context.getClientState()`) des interactions qui attendent les données du client (`WaitForDataFrom.Client`, par exemple `CarryPlaceBlockInteraction.java:46-49, 96` ou `PlaceBlockInteraction.java:215`). `OpenCustomUIInteraction` (un `SimpleInstantInteraction`) ne l'attend pas : l'ancre de la baguette est donc le bloc visé + 1 en Y (écart noté dans la spec SP1+2 § 11).
+- **`PageManager`** : `openCustomPage` (`server/core/entity/entities/player/pages/PageManager.java:129-134`) et `setPage(..., Page.None)` (`:103-108`) appellent `onDismiss` de la page ouverte. C'est pour ça que `WandActions.confirm` ne ferme pas la fenêtre quand un hôtel de ville lance la fondation : la fenêtre de fondation a remplacé celle de la baguette, et la fermer annulerait la fondation.
 
 ## Could not verify
 
