@@ -4,6 +4,7 @@ import dev.hycolony.core.job.Job;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.item.Inventory;
+import dev.hycolony.core.kernel.item.ItemKey;
 import java.util.Optional;
 
 /** Persistent citizen state. The in-world body is disposable and rebuilt from this. */
@@ -26,6 +27,7 @@ public final class CitizenData {
 
     public CitizenData(int id) {
         this.id = id;
+        inventory.onGone(this::forgetWear);
     }
 
     public int id() {
@@ -110,6 +112,17 @@ public final class CitizenData {
 
     public void setInventory(Inventory inventory) {
         this.inventory = inventory;
+        inventory.onGone(this::forgetWear);
+    }
+
+    /**
+     * The job counts tool wear per item kind (MC keeps it on the stack), so once the citizen holds none of {@code item}
+     * its count ends with it: whichever path it left by, the next one delivered starts fresh.
+     */
+    private void forgetWear(ItemKey item) {
+        if (job != null) {
+            job.setToolUses(item, 0);
+        }
     }
 
     public Optional<Job> job() {

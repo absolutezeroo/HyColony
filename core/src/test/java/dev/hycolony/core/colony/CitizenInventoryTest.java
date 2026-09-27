@@ -235,15 +235,50 @@ class CitizenInventoryTest {
     }
 
     @Test
-    void aNewToolAloneStartsFresh() {
+    void aNewToolSwappedForTheWornOneStartsFresh() {
         t.catalog.durability.put(SHOVEL, 4);
         worker.setJob(new BuilderJob(worker));
         putShovel(0, 0.25);
-        worker.inventory().set(0, Optional.empty());
 
-        putShovel(0, 1.0);
+        putShovel(0, 1.0); // replaces it in the same slot: the citizen never holds none
 
         assertEquals(OptionalDouble.of(1.0), shovelCondition());
+    }
+
+    @Test
+    void aFreshToolDeliveredAfterTheWornOneLeftStartsFresh() {
+        t.catalog.durability.put(SHOVEL, 4);
+        worker.setJob(new BuilderJob(worker));
+        putShovel(0, 0.5);
+        worker.inventory().set(0, Optional.empty()); // taken out through the window
+
+        worker.inventory().insert(new ItemAmount(SHOVEL, 1), item -> 1); // delivered by the core
+
+        assertEquals(OptionalDouble.of(1.0), shovelCondition());
+    }
+
+    @Test
+    void aFreshToolDeliveredAfterTheWornOneLeftByTheCoreStartsFresh() {
+        t.catalog.durability.put(SHOVEL, 4);
+        worker.setJob(new BuilderJob(worker));
+        putShovel(0, 0.5);
+        worker.inventory().extract(SHOVEL, 1);
+
+        worker.inventory().insert(new ItemAmount(SHOVEL, 1), item -> 1);
+
+        assertEquals(OptionalDouble.of(1.0), shovelCondition());
+    }
+
+    @Test
+    void aWornToolThatStaysKeepsItsWearWhenAnotherOfItsKindLeaves() {
+        t.catalog.durability.put(SHOVEL, 4);
+        worker.setJob(new BuilderJob(worker));
+        putShovel(0, 0.25);
+        putShovel(1, 1.0);
+
+        worker.inventory().extract(SHOVEL, 1);
+
+        assertEquals(OptionalDouble.of(0.25), shovelCondition());
     }
 
     @Test

@@ -20,7 +20,8 @@ import javax.annotation.Nonnull;
 /**
  * A citizen's core inventory seen as a Hytale container: every slot read and write goes to the core, so the player and
  * the citizen's AI share one live inventory (MC ContainerCitizenInventory's SlotItemHandler on the citizen's
- * inventory). {@code items} only caches the stacks built from the core; a tool shows the wear its job counted. World
+ * inventory). {@code items} only caches the stacks built from the core; a tool shows the wear its job counted. An
+ * open window is re-sent only when the inventory changes, not on wear alone: reopening it shows the current wear. World
  * thread only.
  */
 final class CitizenItemContainer extends SimpleItemContainer {
