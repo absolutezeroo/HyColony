@@ -72,6 +72,9 @@ public final class HutKeep {
      *
      * <p>MC also keeps a stack that is better equipment than the one already kept, but then counts it past the kept
      * amount and lets it leave anyway, so that check is not ported.
+     *
+     * <p>Deviation from MC: no {@code keepFood} rule (MC AbstractBuilding keeps {@code level * 2} food, inventory
+     * included): the core has no notion of food items yet (backlog, with the hunger system).
      */
     public int removable(ItemAmount stack) {
         int i = 0;

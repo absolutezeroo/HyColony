@@ -129,7 +129,11 @@ final class WarehouseStockResolver implements Resolver {
         return deliveries;
     }
 
-    /** MC {@code getSuitabilityMetric}: {@code max(distance / 10, 1)} plus the warehouse's courier queue length. */
+    /**
+     * MC {@code getSuitabilityMetric}: {@code max(distance / 10, 1)} plus the warehouse's courier queue length. Deviation
+     * from MC: an unknown requester (its hut removed) scores the worst; MC's requester keeps its saved location, so it
+     * always gets a distance (or NPEs).
+     */
     @Override
     public double suitability(RequestManager m, Request r) {
         Optional<BlockPos> from = RequesterLocation.of(colony, r.requester());
@@ -144,7 +148,10 @@ final class WarehouseStockResolver implements Resolver {
         return Math.max(distance / 10, 1) + queue;
     }
 
-    /** An unknown requester counts as here: there is nowhere to deliver to. */
+    /**
+     * An unknown requester counts as here: there is nowhere to deliver to. Deviation from MC: MC compares the
+     * requester's saved location, which outlives its hut; ours is looked up among the colony's buildings.
+     */
     private boolean isAtThisWarehouse(Request r) {
         return RequesterLocation.of(colony, r.requester())
                 .map(warehouse.position()::equals)

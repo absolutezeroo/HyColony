@@ -88,7 +88,9 @@ final class CourierResolver implements Resolver {
 
     /**
      * MC {@code getSuitabilityMetric}: for a delivery {@code max(distance / 10, 1)} plus the warehouse queue length,
-     * for a pickup the distance alone, from the requester to the warehouse; the worst for an unknown requester.
+     * for a pickup the distance alone, from the requester to the warehouse. Deviation from MC: an unknown requester
+     * (its hut removed) scores the worst; MC's requester keeps its saved location, so it always gets a distance (or
+     * NPEs).
      */
     @Override
     public double suitability(RequestManager m, Request r) {

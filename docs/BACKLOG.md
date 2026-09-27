@@ -97,6 +97,7 @@ Les autres points de la relecture sont corrigés. Il reste :
   - onglet Livreurs : rattacher ou détacher un livreur à la main, mode d'embauche (MC `SpecialAssignmentModuleWindow`) ;
   - onglet Stock : bouton de tri et recherche (MC `WindowHutAllInventory`) ;
   - annonce au joueur d'une livraison ou d'un ramassage qu'il détient faute de livreur (aujourd'hui seulement visibles dans le presse-papiers).
+  - `keepFood` quand le système de faim existera : chaque hutte garde `niveau × 2` aliments, inventaire compris (MC `AbstractBuilding.keepFood`, `HutKeep`).
 - **Domum Ornamentum** (mis en pause par l'utilisateur le 2026-09-27) : impossible à l'identique en 0.6.8, car le client ne reçoit qu'un id par bloc. La génération en cours de partie n'est pas fiable (seuls les 1 ou 2 premiers blocs de chaque session s'affichent sans reconnexion). La piste retenue pour plus tard est un **générateur au build** : un vrai `BlockType`, une PNG composée, une icône et une recette par combinaison, dans le pack du plugin. Il faut d'abord compter les matériaux Hytale et les familles DO réutilisables. Voir `docs/research/domum-ornamentum.md`.
 - **Modes de construction** (spirale, de l'extérieur vers l'intérieur…), débloqués par la recherche (université).
 - **Apparences aléatoires des citoyens.**
