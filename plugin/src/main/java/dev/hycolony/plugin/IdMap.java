@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -67,14 +68,24 @@ public final class IdMap {
 
     /** Weather particle systems that count as rain or snow (MC Level.isRaining). */
     public Set<String> precipitationParticles() {
-        return Set.copyOf(data.precipitationParticles());
+        return Set.copyOf(precipitation());
     }
 
     /** Walking-speed factor -> infinite entity effect with that HorizontalSpeedMultiplier. */
     public Map<Double, String> speedEffects() {
         Map<Double, String> out = new HashMap<>();
-        data.speedEffects().forEach((factor, id) -> out.put(Double.valueOf(factor), id));
+        speeds().forEach((factor, id) -> out.put(Double.valueOf(factor), id));
         return Map.copyOf(out);
+    }
+
+    /** Absent from an older id-map file: no precipitation particle (never rains). */
+    private List<String> precipitation() {
+        return Objects.requireNonNullElse(data.precipitationParticles(), List.of());
+    }
+
+    /** Absent from an older id-map file: no speed effect (normal speed). */
+    private Map<String, String> speeds() {
+        return Objects.requireNonNullElse(data.speedEffects(), Map.of());
     }
 
     private static String require(Map<String, String> map, String key) {
@@ -98,12 +109,8 @@ public final class IdMap {
         }
         check(errors, "skill icon", icons, item);
         check(errors, "particle system", byId(data.fireworks()), particle);
-        check(errors, "precipitation particle system", byId(data.precipitationParticles()), particle);
-        check(
-                errors,
-                "speed effect",
-                data.speedEffects(),
-                id -> EntityEffect.getAssetMap().getAsset(id) != null);
+        check(errors, "precipitation particle system", byId(precipitation()), particle);
+        check(errors, "speed effect", speeds(), id -> EntityEffect.getAssetMap().getAsset(id) != null);
         check(errors, "npc role", data.npcRoles(), id -> NPCPlugin.get().hasRoleName(id));
         return errors;
     }

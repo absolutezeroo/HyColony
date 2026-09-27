@@ -1,4 +1,4 @@
-package dev.hycolony.plugin.adapter;
+package dev.hycolony.plugin.prefab;
 
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.logger.HytaleLogger;
@@ -14,7 +14,6 @@ import dev.hycolony.core.construction.blueprint.BlueprintSource;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.plugin.IdMap;
-import dev.hycolony.plugin.prefab.PrefabCells;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -157,12 +156,11 @@ public final class HytaleBlueprintSource implements BlueprintSource {
                     if (filler != 0) {
                         return;
                     }
-                    PrefabCells.Resolved c = PrefabCells.resolve(blockId, holder, rotation, fluidId, chest);
-                    if (c == null) {
-                        return;
-                    }
-                    lowestY[0] = Math.min(lowestY[0], y);
-                    cells.add(new Cell(x, y, z, c.state(), c.container()));
+                    PrefabCells.resolve(blockId, holder, rotation, fluidId, chest)
+                            .ifPresent(c -> {
+                                lowestY[0] = Math.min(lowestY[0], y);
+                                cells.add(new Cell(x, y, z, c.state(), c.container()));
+                            });
                 },
                 null,
                 null,
@@ -173,18 +171,7 @@ public final class HytaleBlueprintSource implements BlueprintSource {
         }
 
         // Pass 2: the unrotated hut cell, turned like the entries, then everything made hut-relative.
-        BlockPos hut = PrefabStyles.rotate(
-                r,
-                PrefabStyles.hutCell(
-                        entry.hutOffset(),
-                        buf.getAnchorX(),
-                        buf.getAnchorY(),
-                        buf.getAnchorZ(),
-                        buf.getMinX(),
-                        buf.getMaxX(),
-                        lowestY[0],
-                        buf.getMinZ(),
-                        buf.getMaxZ()));
+        BlockPos hut = PrefabStyles.rotate(r, PrefabStyles.hutCell(entry.hutOffset(), buf, lowestY[0]));
         List<BlueprintEntry> entries = new ArrayList<>(cells.size());
         for (Cell c : cells) {
             BlockPos offset = PrefabStyles.relative(c.x(), c.y(), c.z(), hut);

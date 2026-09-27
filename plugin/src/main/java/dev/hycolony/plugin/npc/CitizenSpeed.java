@@ -69,7 +69,10 @@ public final class CitizenSpeed {
         return best;
     }
 
-    /** Asset indexes, resolved on first use (assets are loaded by then); Integer.MIN_VALUE for a missing id. */
+    /**
+     * Asset indexes, resolved on first use (assets are loaded by then); Integer.MIN_VALUE for a missing id. Cached for
+     * the runtime's life: an asset hot-reload that renumbers or adds these effects is not supported (restart).
+     */
     private int[] indexes() {
         if (indexes == null) {
             int[] out = new int[ids.length];

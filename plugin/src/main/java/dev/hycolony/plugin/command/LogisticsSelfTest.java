@@ -1,5 +1,6 @@
 package dev.hycolony.plugin.command;
 
+import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.BlueprintEntry;
 import dev.hycolony.core.construction.blueprint.BlueprintSource;
@@ -13,19 +14,17 @@ import java.util.Optional;
 
 /** Selftest steps of the warehouse and courier huts: their plans in every style, and the weather where you stand. */
 final class LogisticsSelfTest {
-    private static final int MAX_LEVEL = 5;
-
     private LogisticsSelfTest() {}
 
     /** One report line per (hut type, style) with the racks of each level, then one for the rain at {@code at}. */
     static void run(SelfTestReport report, WorldRuntime rt, BlockPos at) {
         BlueprintSource blueprints = rt.manager().context().ports().blueprints();
-        for (String type : List.of(WarehouseBuilding.TYPE_ID, DeliverymanHut.TYPE_ID)) {
+        for (BuildingType type : List.of(WarehouseBuilding.TYPE, DeliverymanHut.TYPE)) {
             for (String style : blueprints.styles()) {
                 List<String> racks = new ArrayList<>();
                 boolean all = true;
-                for (int level = 1; level <= MAX_LEVEL; level++) {
-                    Optional<Blueprint> bp = blueprints.load(style, type, level, 0);
+                for (int level = 1; level <= type.maxLevel(); level++) {
+                    Optional<Blueprint> bp = blueprints.load(style, type.id(), level, 0);
                     all &= bp.isPresent();
                     racks.add(bp.map(b -> Long.toString(b.entries().stream()
                                     .filter(BlueprintEntry::hasContainer)
@@ -34,11 +33,13 @@ final class LogisticsSelfTest {
                 }
                 // An OK line shows only the step, so the rack counts go in the step name.
                 report.line(
-                        "blueprint " + type + " " + style + ", racks per level " + racks, all, "a level is missing");
+                        "blueprint " + type.id() + " " + style + ", racks per level " + racks,
+                        all,
+                        "a level is missing");
             }
         }
         boolean raining = rt.manager().context().worldQuery().isRainingAt(at);
-        report.line("weather, raining or snowing here: " + raining, true, "");
+        report.line("weather (information only), raining or snowing here: " + raining, true, "");
     }
 
     /** Where a selftest step writes its result. */

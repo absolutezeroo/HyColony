@@ -22,7 +22,6 @@ ExcessiveImports plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleWorldBlo
 ExcessiveImports plugin/src/main/java/dev/hycolony/plugin/block/HutBlockSystems.java
 ExcessiveImports plugin/src/main/java/dev/hycolony/plugin/command/HyColonyCommand.java
 ExcessiveImports plugin/src/main/java/dev/hycolony/plugin/ui/BuildingPage.java
-ExcessiveParameterList plugin/src/main/java/dev/hycolony/plugin/adapter/PrefabStyles.java
 ExcessiveParameterList plugin/src/main/java/dev/hycolony/plugin/ui/BuildingPage.java
 GodClass plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleCitizenBodies.java
 GodClass plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleItemCatalog.java

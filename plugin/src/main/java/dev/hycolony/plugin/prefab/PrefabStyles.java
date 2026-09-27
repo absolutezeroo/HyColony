@@ -1,8 +1,9 @@
-package dev.hycolony.plugin.adapter;
+package dev.hycolony.plugin.prefab;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.hypixel.hytale.server.core.prefab.PrefabRotation;
+import com.hypixel.hytale.server.core.prefab.selection.buffer.impl.IPrefabBuffer;
 import dev.hycolony.core.kernel.BlockPos;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -18,7 +19,7 @@ import javax.annotation.Nullable;
 
 /**
  * Pure part of {@link HytaleBlueprintSource}: the {@code hycolony/styles.json} table and the hut-cell math. Needs no
- * running server ({@link PrefabRotation} is a plain enum).
+ * running server ({@link PrefabRotation} is a plain enum, {@link IPrefabBuffer} only read through its getters).
  *
  * <p>Format: {@code { style: { buildingTypeId: { level: { "prefab": "<path under Server/Prefabs>", "hutOffset": [x,y,z],
  * "spawnerChests": true } } } }}; {@code spawnerChests} is optional (false).
@@ -88,22 +89,17 @@ final class PrefabStyles {
 
     /**
      * The hut cell, anchor-relative and unrotated: {@code hutOffset - anchor}, or by default the centre X/Z (floor)
-     * of the unrotated box on the lowest non-empty layer.
+     * of the unrotated box of {@code buf} on its lowest non-empty layer {@code lowestY}.
      */
-    static int[] hutCell(
-            @Nullable int[] hutOffset,
-            int anchorX,
-            int anchorY,
-            int anchorZ,
-            int minX,
-            int maxX,
-            int lowestY,
-            int minZ,
-            int maxZ) {
+    static int[] hutCell(@Nullable int[] hutOffset, IPrefabBuffer buf, int lowestY) {
         if (hutOffset != null) {
-            return new int[] {hutOffset[0] - anchorX, hutOffset[1] - anchorY, hutOffset[2] - anchorZ};
+            return new int[] {
+                hutOffset[0] - buf.getAnchorX(), hutOffset[1] - buf.getAnchorY(), hutOffset[2] - buf.getAnchorZ()
+            };
         }
-        return new int[] {Math.floorDiv(minX + maxX, 2), lowestY, Math.floorDiv(minZ + maxZ, 2)};
+        return new int[] {
+            Math.floorDiv(buf.getMinX() + buf.getMaxX(), 2), lowestY, Math.floorDiv(buf.getMinZ() + buf.getMaxZ(), 2)
+        };
     }
 
     /** An anchor-relative cell turned by {@code r} (the same turn the prefab buffer applies to its entries). */

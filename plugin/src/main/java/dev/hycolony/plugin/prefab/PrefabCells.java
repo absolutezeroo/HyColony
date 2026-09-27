@@ -12,6 +12,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.plugin.adapter.HytaleWorldBlocks;
+import java.util.Optional;
 import javax.annotation.Nullable;
 
 /**
@@ -21,29 +22,28 @@ import javax.annotation.Nullable;
  * become the building's racks. The chest keeps the spawner's rotation (the spawner's own rotation mode is INHERIT)
  * and gets no loot.
  */
-public final class PrefabCells {
+final class PrefabCells {
     private static final String SPAWNER = "Block_Spawner_Block";
     private static final String FLUID_PREFIX = "~fluid:";
 
     /** A blueprint state and whether it holds items. */
-    public record Resolved(BlockState state, boolean container) {}
+    record Resolved(BlockState state, boolean container) {}
 
     private PrefabCells() {}
 
     /**
-     * The cell's blueprint state, or null when it is skipped: air without fluid (a fluid-only cell becomes
+     * The cell's blueprint state, or empty when it is skipped: air without fluid (a fluid-only cell becomes
      * {@code ~fluid:<FluidKey>}), an unknown block, {@code Empty}, {@code Editor_*}, or a spawner unless {@code chest}
      * is set and it is a chest spawner. A state id is normalised to its default state, like HytaleWorldBlocks.get.
      */
-    @Nullable
-    public static Resolved resolve(
+    static Optional<Resolved> resolve(
             int blockId, @Nullable Holder<ChunkStore> holder, int rotation, int fluidId, @Nullable String chest) {
         if (blockId == BlockType.EMPTY_ID) {
             return fluid(fluidId);
         }
         BlockType type = BlockType.getAssetMap().getAsset(blockId);
         if (type == null) {
-            return null;
+            return Optional.empty();
         }
         String id = HytaleWorldBlocks.blockKey(type);
         if (id.equals(SPAWNER) && chest != null && isChestSpawner(holder)) {
@@ -52,23 +52,21 @@ public final class PrefabCells {
         return block(id, rotation);
     }
 
-    @Nullable
-    private static Resolved fluid(int fluidId) {
+    private static Optional<Resolved> fluid(int fluidId) {
         Fluid fluid = fluidId == 0 ? null : Fluid.getAssetMap().getAsset(fluidId);
         return fluid == null
-                ? null
-                : new Resolved(new BlockState(new BlockKey(FLUID_PREFIX + fluid.getId()), 0), false);
+                ? Optional.empty()
+                : Optional.of(new Resolved(new BlockState(new BlockKey(FLUID_PREFIX + fluid.getId()), 0), false));
     }
 
     /** A block that cannot rotate gets rotation 0: the prefab buffer adds the yaw to every block. */
-    @Nullable
-    private static Resolved block(String id, int rotation) {
+    private static Optional<Resolved> block(String id, int rotation) {
         BlockType type = BlockType.getAssetMap().getAsset(id);
         if (type == null || id.equals("Empty") || id.equals(SPAWNER) || id.startsWith("Editor_")) {
-            return null;
+            return Optional.empty();
         }
         int rot = type.getVariantRotation() == VariantRotation.None ? 0 : rotation;
-        return new Resolved(new BlockState(new BlockKey(id), rot), hasContainer(type));
+        return Optional.of(new Resolved(new BlockState(new BlockKey(id), rot), hasContainer(type)));
     }
 
     /** Whether one of the spawner's table entries is a block with an item container (a loot chest spawner). */
