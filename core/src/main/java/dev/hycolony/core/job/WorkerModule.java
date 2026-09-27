@@ -13,7 +13,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/** Assigns citizens to a job at a building. Port of MineColonies' WorkerBuildingModule. */
+/**
+ * Assigns citizens to a job at a building. Port of MineColonies' WorkerBuildingModule. It does not override
+ * onUpgradeComplete: MC's calculateMaxCitizens is covered by BuildingLevelChanged, and its model reset only concerns
+ * an assigned citizen without a job.
+ */
 public final class WorkerModule implements PersistentModule, TickingModule, BuildingEventsModule {
     private final JobType jobType;
     private final Skill primary;

@@ -7,6 +7,9 @@ import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.construction.shared.UpgradeCompletion;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.core.request.model.RequestState;
+import dev.hycolony.core.request.model.StackRequest;
 import dev.hycolony.core.testing.TestContexts;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +25,9 @@ class BuildingEventsModuleTest {
         @Override
         public void onRemoved(Colony colony, Building building) {
             events.add("removed " + building.position());
+            colony.requests().byRequester(building.requesterId()).stream()
+                    .filter(r -> r.state() != RequestState.CANCELLED)
+                    .forEach(r -> events.add("saw open request"));
         }
 
         @Override
@@ -49,6 +55,34 @@ class BuildingEventsModuleTest {
         Building b = addHut(recorder);
         colony.buildings().remove(b.position());
         assertEquals(List.of("removed " + b.position()), recorder.events);
+    }
+
+    @Test
+    void eventModulesHearOfRemovalBeforeTheHutsRequestsAreCancelled() {
+        Recorder recorder = new Recorder();
+        Building b = addHut(recorder);
+        colony.requests().createAndAssign(b, new StackRequest(new ItemKey("Wood_Planks"), 4, 4, true), 1);
+        colony.buildings().remove(b.position());
+        assertEquals(List.of("removed " + b.position(), "saw open request"), recorder.events);
+    }
+
+    @Test
+    void aSameLevelRepairDoesNotTellEventModules() {
+        Recorder recorder = new Recorder();
+        Building b = addHut(recorder);
+        b.setLevel(2);
+        UpgradeCompletion.reach(colony, b, 2);
+        assertEquals(List.of(), recorder.events);
+    }
+
+    @Test
+    void rebuildingADeconstructedHutAtItsLevelTellsEventModules() {
+        Recorder recorder = new Recorder();
+        Building b = addHut(recorder);
+        b.setLevel(2);
+        b.setDeconstructed(true);
+        UpgradeCompletion.reach(colony, b, 2);
+        assertEquals(List.of("upgraded to 2"), recorder.events);
     }
 
     @Test

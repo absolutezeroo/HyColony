@@ -29,16 +29,16 @@ final class ColonyBuildingListener implements BuildingManager.Listener {
         colony.requests().onProviderAdded(building);
     }
 
-    /** MC AbstractBuilding.destroy: cancels its requests and work orders, then tells its event modules. */
+    /** MC AbstractBuilding.destroy: tells its event modules, then cancels its requests and work orders. */
     @Override
     public void removed(Building building) {
-        colony.requests().cancelAllFrom(building.requesterId());
-        colony.requests().onProviderRemoved(building);
-        colony.work().onBuildingRemoved(building.position());
         for (BuildingModule module : building.modules().values()) {
             if (module instanceof BuildingEventsModule events) {
                 events.onRemoved(colony, building);
             }
         }
+        colony.requests().cancelAllFrom(building.requesterId());
+        colony.requests().onProviderRemoved(building);
+        colony.work().onBuildingRemoved(building.position());
     }
 }

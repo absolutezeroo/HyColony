@@ -15,10 +15,13 @@ public final class UpgradeCompletion {
 
     /**
      * Sets the level, marks the building built and not deconstructed, claims around it, celebrates when the level
-     * rose, tells the building's event modules, posts {@link ColonyEvents.BuildingLevelChanged} and marks the colony dirty.
+     * rose, tells the building's event modules when it rose or the building was deconstructed, posts
+     * {@link ColonyEvents.BuildingLevelChanged} and marks the colony dirty.
      */
     public static void reach(Colony colony, Building b, int level) {
         int oldLevel = b.level();
+        // MC upgradeBuildingLevelToSchematicData: modules hear only of a rise or a rebuild, never of a repair.
+        boolean upgraded = level > oldLevel || b.isDeconstructed();
         b.setLevel(level);
         b.setBuilt(true);
         b.setDeconstructed(false);
@@ -26,9 +29,11 @@ public final class UpgradeCompletion {
         if (level > oldLevel) {
             colony.context().ports().effects().celebrate(b.position());
         }
-        for (BuildingModule module : b.modules().values()) {
-            if (module instanceof BuildingEventsModule events) {
-                events.onUpgradeComplete(colony, b, level);
+        if (upgraded) {
+            for (BuildingModule module : b.modules().values()) {
+                if (module instanceof BuildingEventsModule events) {
+                    events.onUpgradeComplete(colony, b, level);
+                }
             }
         }
         colony.context().bus().post(new ColonyEvents.BuildingLevelChanged(colony, b, oldLevel, level));
