@@ -13,6 +13,7 @@ import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.RequestManager;
 import dev.hycolony.core.request.Requester;
 import dev.hycolony.core.request.Resolver;
+import dev.hycolony.core.request.model.Delivery;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.request.model.Requestable;
@@ -159,7 +160,7 @@ class ResolversTest {
     void playerResolverNeverTakesANonDeliverable() {
         Building a = hut(new BlockPos(0, 64, 0));
         stock(a, 5);
-        Requestable notItems = () -> "not items";
+        Requestable notItems = new Delivery(a.position(), a.requesterId(), new ItemAmount(PLANKS, 5), 13);
 
         RequestToken t = m.createAndAssign(a, notItems, -1);
 

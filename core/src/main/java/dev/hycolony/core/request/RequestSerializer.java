@@ -5,10 +5,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolType;
-import dev.hycolony.core.request.model.Deliverable;
+import dev.hycolony.core.request.model.Delivery;
+import dev.hycolony.core.request.model.Pickup;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.request.model.Requestable;
@@ -169,7 +171,7 @@ public final class RequestSerializer {
         return r;
     }
 
-    /** Throws on a requestable with no saved form (none of the built-in ones). */
+    /** Requestable's JSON form; exhaustive over the sealed hierarchy, so every kind is always saved. */
     private static JsonObject requestable(Requestable r) {
         JsonObject o = new JsonObject();
         switch (r) {
@@ -186,12 +188,25 @@ public final class RequestSerializer {
                 o.addProperty("minLevel", t.minLevel());
                 o.addProperty("maxLevel", t.maxLevel());
             }
-            default -> throw new IllegalArgumentException("Unsaved requestable type: " + r.describe());
+            case Delivery d -> {
+                o.addProperty("type", "delivery");
+                o.add("start", blockPos(d.start()));
+                o.addProperty("target", d.target().value());
+                o.addProperty("item", d.stack().item().id());
+                o.addProperty("count", d.stack().count());
+                o.addProperty("priority", d.priority());
+            }
+            case Pickup p -> {
+                o.addProperty("type", "pickup");
+                o.addProperty("priority", p.priority());
+                o.addProperty("day", p.day());
+                o.addProperty("quantity", p.quantity());
+            }
         }
         return o;
     }
 
-    private static Deliverable readRequestable(JsonObject o) {
+    private static Requestable readRequestable(JsonObject o) {
         String type = o.get("type").getAsString();
         return switch (type) {
             case "stack" ->
@@ -205,8 +220,34 @@ public final class RequestSerializer {
                         ToolType.valueOf(o.get("tool").getAsString()),
                         o.get("minLevel").getAsInt(),
                         o.get("maxLevel").getAsInt());
+            case "delivery" ->
+                new Delivery(
+                        blockPos(o.getAsJsonObject("start")),
+                        new RequesterId(o.get("target").getAsString()),
+                        new ItemAmount(
+                                new ItemKey(o.get("item").getAsString()),
+                                o.get("count").getAsInt()),
+                        o.get("priority").getAsInt());
+            case "pickup" ->
+                new Pickup(
+                        o.get("priority").getAsInt(),
+                        o.get("day").getAsInt(),
+                        o.get("quantity").getAsInt());
             default -> throw new IllegalArgumentException("Unknown requestable type: " + type);
         };
+    }
+
+    private static JsonObject blockPos(BlockPos p) {
+        JsonObject o = new JsonObject();
+        o.addProperty("x", p.x());
+        o.addProperty("y", p.y());
+        o.addProperty("z", p.z());
+        return o;
+    }
+
+    private static BlockPos blockPos(JsonObject o) {
+        return new BlockPos(
+                o.get("x").getAsInt(), o.get("y").getAsInt(), o.get("z").getAsInt());
     }
 
     private static RequestToken token(String s) {

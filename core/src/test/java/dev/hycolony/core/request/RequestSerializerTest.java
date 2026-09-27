@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.hycolony.core.building.Building;
@@ -13,6 +14,8 @@ import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolType;
+import dev.hycolony.core.request.model.Delivery;
+import dev.hycolony.core.request.model.Pickup;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.request.model.RequesterId;
@@ -103,6 +106,36 @@ class RequestSerializerTest {
         assertEquals(
                 List.of(toPlayer), l.player.open().stream().map(Request::token).toList());
         assertEquals(l.m.byRequester(w.hut.requesterId()).size(), 3);
+    }
+
+    @Test
+    void deliveryAndPickupRequestsRoundTripThroughSave() {
+        World w = new World();
+        Delivery deliveryRequestable =
+                new Delivery(HUT, w.hut.requesterId(), new ItemAmount(PLANKS, 4), Delivery.DEFAULT_DELIVERY_PRIORITY);
+        Pickup pickupRequestable = new Pickup(5, 12, 20);
+        RequestToken delivery = w.m.createAndAssign(w.hut, deliveryRequestable, -1);
+        RequestToken pickup = w.m.createAndAssign(w.hut, pickupRequestable, -1);
+
+        JsonObject json = roundTrip(RequestSerializer.write(w.m));
+        assertEquals("delivery", requestableJson(json, delivery).get("type").getAsString());
+        assertEquals("pickup", requestableJson(json, pickup).get("type").getAsString());
+
+        World l = new World();
+        RequestSerializer.read(json, l.m);
+
+        assertEquals(deliveryRequestable, l.m.get(delivery).orElseThrow().requestable());
+        assertEquals(pickupRequestable, l.m.get(pickup).orElseThrow().requestable());
+    }
+
+    private static JsonObject requestableJson(JsonObject root, RequestToken token) {
+        for (JsonElement el : root.getAsJsonArray("requests")) {
+            JsonObject r = el.getAsJsonObject();
+            if (r.get("token").getAsString().equals(token.id().toString())) {
+                return r.getAsJsonObject("requestable");
+            }
+        }
+        throw new AssertionError("No request found for " + token);
     }
 
     /** A save of every request shape (building, retrying with a child, player, blacklist) loads and saves unchanged. */
