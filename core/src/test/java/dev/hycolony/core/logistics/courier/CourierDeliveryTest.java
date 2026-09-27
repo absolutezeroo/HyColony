@@ -135,6 +135,24 @@ class CourierDeliveryTest extends CourierAITestBase {
         runUntil(() -> stored(warehouse.position(), DIRT) == 7); // carried back and stored
     }
 
+    /** MC forceItemStackToItemHandler swaps out the stack itself: a worn tool leaves with its damage. */
+    @Test
+    void aWornToolSwappedOutOfAFullTargetIsCarriedBackWithItsWear() {
+        hire();
+        ItemKey pick = new ItemKey("Tool_Pickaxe_Iron");
+        t.catalog.maxStacks.put(pick, 1);
+        t.containers.slots.put(target.position(), 1);
+        t.containers.worn.put(target.position(), new ArrayList<>(List.of(new ItemAmount(pick, 1, 12))));
+        put(RACK, STONE, 5);
+        RequestToken task = delivery(RACK, STONE, 5);
+
+        runUntil(() -> completed(task));
+
+        assertEquals(List.of(new ItemAmount(STONE, 5)), t.containers.stacks(target.position()));
+        runUntil(() -> warehouse.containers().stream()
+                .anyMatch(rack -> t.containers.stacks(rack).contains(new ItemAmount(pick, 1, 12))));
+    }
+
     @Test
     void aFullTargetKeepingItsStacksLeavesTheItemsWithTheCourier() {
         hire();
