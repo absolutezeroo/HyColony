@@ -97,6 +97,11 @@ public final class StructurePlan {
         return List.copyOf(list);
     }
 
+    /** The hut block's world position, the plan's anchor. */
+    public BlockPos hut() {
+        return hut;
+    }
+
     public List<BlockPos> clearList() {
         return clearList;
     }

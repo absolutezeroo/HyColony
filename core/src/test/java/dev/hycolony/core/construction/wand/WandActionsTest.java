@@ -266,4 +266,26 @@ class WandActionsTest {
         assertInstanceOf(FoundColonyView.class, t.ui.shown.get(bob));
         assertTrue(previews.of(bob).isEmpty());
     }
+
+    @Test
+    void survivalPlayerCannotPaste() {
+        chooseBuilder();
+        assertFalse(view().creative());
+        assertFalse(wand.paste(alice, "Alice"));
+        assertTrue(colony.buildings().at(spot).isEmpty());
+        assertTrue(ghost().isPresent());
+    }
+
+    @Test
+    void creativePasteBuildsTheHutKeepsTheWindowAndFillsTheBlocksOverTicks() {
+        t.players.creative.add(alice);
+        chooseBuilder();
+        assertTrue(view().creative());
+        assertTrue(wand.paste(alice, "Alice"));
+        assertTrue(colony.buildings().at(spot).orElseThrow().isBuilt());
+        assertEquals(BUILDER, view().buildingTypeId());
+        assertTrue(ghost().isPresent());
+        wand.tick();
+        assertTrue(t.blocks.blocks.containsKey(spot.offset(1, 0, 1)));
+    }
 }

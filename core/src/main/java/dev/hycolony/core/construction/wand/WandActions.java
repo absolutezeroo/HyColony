@@ -33,6 +33,8 @@ public final class WandActions {
     private final Function<String, ItemKey> hutItem;
     private final WandSessions sessions = new WandSessions();
     private final WandPlacement placement;
+    private final PasteQueue pastes;
+    private final WandPaste paster;
     private final WandPreview preview;
 
     /**
@@ -47,6 +49,8 @@ public final class WandActions {
         this.manager = manager;
         this.hutItem = hutItem;
         this.placement = new WandPlacement(manager, hutItem, hutBlock);
+        this.pastes = new PasteQueue(manager);
+        this.paster = new WandPaste(manager, placement, pastes);
         this.preview = new WandPreview(manager, previews);
     }
 
@@ -134,7 +138,34 @@ public final class WandActions {
      */
     public boolean confirm(UUID player, String playerName) {
         WandSession s = sessions.get(player);
-        WandPlacement.Result result = placement.confirm(player, playerName, s);
+        return finish(player, s, placement.confirm(player, playerName, s));
+    }
+
+    /**
+     * The creative "Pretty" paste ({@link WandPaste}). False, with nothing changed, if the player is not in creative
+     * mode: ST only offers the button then, and our window lives on the server, so the check is made again here. A
+     * refusal is handled like {@link #confirm}'s; a paste keeps the session, ghost and window, as ST closes its window
+     * after a survival placement only, except for a town hall whose founding window has replaced ours.
+     */
+    public boolean paste(UUID player, String playerName) {
+        if (!manager.context().players().isCreative(player)) {
+            return false;
+        }
+        WandSession s = sessions.get(player);
+        WandPlacement.Result result = paster.paste(player, playerName, s);
+        if (result instanceof WandPlacement.Placed) {
+            show(player, s);
+            return true;
+        }
+        return finish(player, s, result);
+    }
+
+    /** One core tick: the pastes in progress place their next blocks (ST Manager.onWorldTick). */
+    public void tick() {
+        pastes.tick();
+    }
+
+    private boolean finish(UUID player, WandSession s, WandPlacement.Result result) {
         if (result instanceof WandPlacement.Refused(var reason)) {
             manager.context().notifier().send(player, reason);
             show(player, s);
@@ -180,7 +211,15 @@ public final class WandActions {
         List<String> huts =
                 offered(player, s.style()).stream().map(BuildingType::id).toList();
         WandView view = new WandView(
-                styles(), huts, maxLevel(s), s.style(), s.buildingTypeId(), s.level(), s.rotation(), s.hasBuilding());
+                styles(),
+                huts,
+                maxLevel(s),
+                s.style(),
+                s.buildingTypeId(),
+                s.level(),
+                s.rotation(),
+                s.hasBuilding(),
+                manager.context().players().isCreative(player));
         manager.context().ui().showWand(player, view);
     }
 

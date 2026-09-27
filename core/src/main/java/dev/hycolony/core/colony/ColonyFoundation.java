@@ -6,6 +6,7 @@ import dev.hycolony.core.colony.action.ColonyAdministration;
 import dev.hycolony.core.colony.action.HutActions;
 import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.colony.ui.FoundColonyView;
+import dev.hycolony.core.construction.shared.UpgradeCompletion;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.port.Msg;
 import java.util.HashMap;
@@ -18,7 +19,13 @@ import java.util.UUID;
  * colony) or cancel (the adapter removes the block).
  */
 public final class ColonyFoundation {
-    private record Pending(String playerName, BlockPos pos, int rotation, String style) {}
+    /**
+     * The town hall waiting for its colony: its block, rotation, style ("" for the pack's first) and level (0 when
+     * placed, the pasted level after a creative paste).
+     */
+    public record TownHall(BlockPos pos, int rotation, String style, int level) {}
+
+    private record Pending(String playerName, TownHall hall) {}
 
     private final ColonyManager manager;
     private final HutActions huts;
@@ -31,12 +38,20 @@ public final class ColonyFoundation {
 
     /** Hand placement: no style chosen, so the town hall gets the pack's first one (MC default). */
     public void begin(UUID player, String playerName, BlockPos pos, int rotation) {
-        begin(player, playerName, pos, rotation, "");
+        begin(player, playerName, new TownHall(pos, rotation, "", 0));
     }
 
     /** Build tool placement: {@code style} is carried to the town hall once the colony is confirmed. */
     public void begin(UUID player, String playerName, BlockPos pos, int rotation, String style) {
-        pending.put(player, new Pending(playerName, pos, rotation, style));
+        begin(player, playerName, new TownHall(pos, rotation, style, 0));
+    }
+
+    /**
+     * Opens the founding window for {@code hall}. A pasted town hall is founded at its pasted level, as MC
+     * RegisteredStructureManager.addNewBuilding syncs it to the pasted blueprint (upgradeBuildingLevelToSchematicData).
+     */
+    public void begin(UUID player, String playerName, TownHall hall) {
+        pending.put(player, new Pending(playerName, hall));
         manager.context().ui().showFoundColony(player, new FoundColonyView(playerName + "'s Colony"));
     }
 
@@ -51,7 +66,8 @@ public final class ColonyFoundation {
             return Optional.empty();
         }
         String name = validated.get();
-        HutPlacement check = huts.checkPlacement(player, p.pos(), BuildingTypes.TOWN_HALL.id());
+        TownHall hall = p.hall();
+        HutPlacement check = huts.checkPlacement(player, hall.pos(), BuildingTypes.TOWN_HALL.id());
         if (check instanceof HutPlacement.Denied(var reason)) {
             // Same as a cancel; the adapter sees pendingPositionOf go empty and removes the block.
             cancel(player);
@@ -65,14 +81,17 @@ public final class ColonyFoundation {
                 ctx,
                 manager.territory(),
                 new Colony.Founding(
-                        manager.allocateId(), name, p.pos(), Permissions.createDefault(player, p.playerName())));
+                        manager.allocateId(), name, hall.pos(), Permissions.createDefault(player, p.playerName())));
         manager.register(colony);
         colony.log().add("colonyCreated", colony.day(), name);
         ctx.bus().post(new ColonyEvents.ColonyCreated(colony));
-        huts.place(colony, BuildingTypes.TOWN_HALL.id(), p.pos(), p.rotation());
-        if (!p.style().isEmpty()) {
-            Building townHall = colony.buildings().at(p.pos()).orElseThrow();
-            townHall.setStyle(p.style());
+        huts.place(colony, BuildingTypes.TOWN_HALL.id(), hall.pos(), hall.rotation());
+        Building townHall = colony.buildings().at(hall.pos()).orElseThrow();
+        if (!hall.style().isEmpty()) {
+            townHall.setStyle(hall.style());
+        }
+        if (hall.level() > 0) {
+            UpgradeCompletion.reach(colony, townHall, hall.level());
         }
         ctx.notifier().send(player, Msg.of("hycolony.colony.created", name));
         manager.persistence().save(colony);
@@ -87,17 +106,17 @@ public final class ColonyFoundation {
             return Optional.empty();
         }
         manager.context().ui().close(player);
-        return Optional.of(p.pos());
+        return Optional.of(p.hall().pos());
     }
 
     public Optional<BlockPos> pendingPositionOf(UUID player) {
-        return Optional.ofNullable(pending.get(player)).map(Pending::pos);
+        return Optional.ofNullable(pending.get(player)).map(p -> p.hall().pos());
     }
 
     /** Cancels whichever player's unconfirmed town hall stands at {@code pos}; returns that player. */
     public Optional<UUID> cancelAt(BlockPos pos) {
         Optional<UUID> owner = pending.entrySet().stream()
-                .filter(e -> e.getValue().pos().equals(pos))
+                .filter(e -> e.getValue().hall().pos().equals(pos))
                 .map(Map.Entry::getKey)
                 .findFirst();
         owner.ifPresent(this::cancel);

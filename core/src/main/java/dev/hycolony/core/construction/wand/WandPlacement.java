@@ -24,8 +24,8 @@ import java.util.function.Function;
  * distance or footprint in the colony, hut rules, hut block in the inventory, then the block and the building at
  * level 0, with no work order.
  *
- * <p>Deviation from MC: a creative player goes through this same survival path, only without consuming the hut
- * block; Structurize's creative paste (CreativeBuildingStructureHandler) is out of scope.
+ * <p>A creative player may take this survival path too (Structurize lists SurvivalHandler beside Pretty), only
+ * without consuming the hut block; the creative paste is {@link WandPaste}.
  */
 final class WandPlacement {
     /** Outcome of {@link #confirm}. */
@@ -128,14 +128,9 @@ final class WandPlacement {
             return refused("hycolony.wand.missingHut");
         }
         BlockPos pos = s.anchor().orElseThrow();
-        Optional<BlockState> before = ports().blocks().get(pos);
-        breakAnchor(pos);
-        BlockState state = new BlockState(hutBlock.apply(type.hutBlockKey()), s.rotation());
-        if (!ports().blocks().place(pos, state, false)) {
-            if (!ports().blocks().get(pos).equals(before)) {
-                manager.huts().onRemoved(pos); // a hut broken at the anchor must not stay registered without its block
-            }
-            return refused("hycolony.wand.placeFailed");
+        Optional<Refused> failed = placeHutBlock(pos, type, s.rotation());
+        if (failed.isPresent()) {
+            return failed.get();
         }
         if (!creative) {
             ports().playerInventory().take(player, item, 1);
@@ -152,6 +147,23 @@ final class WandPlacement {
     }
 
     /**
+     * Breaks what stands at {@code pos} and places the hut block there, turned by {@code rotation}; the refusal if
+     * the block could not be placed (a hut broken meanwhile is then unregistered).
+     */
+    Optional<Refused> placeHutBlock(BlockPos pos, BuildingType type, int rotation) {
+        Optional<BlockState> before = ports().blocks().get(pos);
+        breakAnchor(pos);
+        BlockState state = new BlockState(hutBlock.apply(type.hutBlockKey()), rotation);
+        if (!ports().blocks().place(pos, state, false)) {
+            if (!ports().blocks().get(pos).equals(before)) {
+                manager.huts().onRemoved(pos); // a hut broken at the anchor must not stay registered without its block
+            }
+            return Optional.of(refused("hycolony.wand.placeFailed"));
+        }
+        return Optional.empty();
+    }
+
+    /**
      * MC SurvivalHandler.handle l.168 {@code world.destroyBlock(blockPos, true)}: breaks what stands at the anchor and
      * drops its items there.
      */
@@ -163,7 +175,7 @@ final class WandPlacement {
         return manager.context().ports();
     }
 
-    private static Refused refused(String key) {
+    static Refused refused(String key) {
         return new Refused(Msg.of(key));
     }
 }
