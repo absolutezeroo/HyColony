@@ -78,7 +78,7 @@ final class RuntimeBlockFactory {
     /**
      * Writes the PNG to a temp directory (created on first use), registers it as common asset
      * {@code Blocks/HyColony/DoTest/<name>.png}; {@code CommonAssetModule.addCommonAsset} sends it to every connected
-     * player. Clients use it only after the rebuild that {@link #registerBlockType} requests. Returns the asset name.
+     * player. Clients use it only after {@link #requestClientRebuild}. Returns the asset name.
      */
     String registerTexture(String name, byte[] png) {
         String assetName = TEXTURE_DIR + name + ".png";
@@ -104,8 +104,8 @@ final class RuntimeBlockFactory {
 
     /**
      * Loads BlockType {@code id}: a copy of {@link #SOURCE_BLOCK} with {@code texture}, without its states and
-     * connected-block rules (so it never turns into a vanilla corner), then asks every client to rebuild its common
-     * assets. {@code HytaleAssetStore.handleRemoveOrUpdate} broadcasts the {@code UpdateBlockTypes} packet.
+     * connected-block rules (so it never turns into a vanilla corner). {@code HytaleAssetStore.handleRemoveOrUpdate}
+     * broadcasts the {@code UpdateBlockTypes} packet.
      */
     void registerBlockType(String id, String texture) {
         BlockType source = BlockType.getAssetMap().getAsset(SOURCE_BLOCK);
@@ -117,8 +117,14 @@ final class RuntimeBlockFactory {
         if (BlockType.getAssetMap().getIndex(id) == Integer.MIN_VALUE) {
             throw new IllegalStateException("BlockType " + id + " was not loaded");
         }
-        // Seen in game: without a rebuild the texture stays missing until reconnect, and a rebuild sent before
-        // UpdateBlockTypes (alone or batched with the texture) does not help; only a rebuild after it does.
+    }
+
+    /**
+     * Asks every client to rebuild its common assets. Seen in game: without it the new texture stays missing until
+     * reconnect; sent before UpdateBlockTypes it does not help, sent after it but before the block reached the client
+     * it failed too, sent after the block was placed it worked 15 times out of 15.
+     */
+    static void requestClientRebuild() {
         Universe.get().broadcastPacketNoCache(new RequestCommonAssetsRebuild());
     }
 

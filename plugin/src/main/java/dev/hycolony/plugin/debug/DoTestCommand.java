@@ -36,6 +36,8 @@ import org.joml.Vector3d;
 public final class DoTestCommand extends AbstractPlayerCommand {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
     private static final int DISTANCE = 2;
+    /** Wait before the client rebuild, so the placed block has been sent first. */
+    private static final long REBUILD_DELAY_MS = 200;
 
     private final RuntimeBlockFactory factory;
     // Commands from different worlds run on different threads.
@@ -112,6 +114,10 @@ public final class DoTestCommand extends AbstractPlayerCommand {
         try {
             at.world().setBlock(at.x(), at.y(), at.z(), id);
             placed.add(at);
+            // Block changes reach clients during the ChunkStore tick (ChunkSystems), after this task: wait a few ticks
+            // so the rebuild arrives once the client has the block.
+            CompletableFuture.delayedExecutor(REBUILD_DELAY_MS, TimeUnit.MILLISECONDS)
+                    .execute(RuntimeBlockFactory::requestClientRebuild);
             long ms = (System.nanoTime() - start) / 1_000_000;
             LOG.at(Level.INFO).log("dotest: created %s at %d %d %d in %d ms", id, at.x(), at.y(), at.z(), ms);
             say(player, "hycolony.dotest.created", id, String.valueOf(ms));
