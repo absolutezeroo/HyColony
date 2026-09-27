@@ -32,6 +32,8 @@ import javax.annotation.Nonnull;
 
 public final class HyColonyPlugin extends JavaPlugin {
     private final Config<HyColonyConfig> config;
+    /** Kept for {@link #shutdown}: a reload must find our asset packs unregistered. */
+    private SubPlugins packs = SubPlugins.none();
 
     public HyColonyPlugin(@Nonnull JavaPluginInit init) {
         super(init);
@@ -49,7 +51,7 @@ public final class HyColonyPlugin extends JavaPlugin {
         });
         ColonyConfig colonyConfig = config.get().toCore();
         // Sub-plugin asset packs must be registered here, before LoadAssetEvent (plugin-b-api § 21.1).
-        SubPlugins packs = SubPlugins.load(this, config.get().subPlugins());
+        packs = SubPlugins.load(this, config.get().subPlugins());
         WorldRuntimes worlds = new WorldRuntimes(RuntimeSetup.create(colonyConfig, packs));
         IdMap ids = worlds.setup().ids();
 
@@ -128,6 +130,11 @@ public final class HyColonyPlugin extends JavaPlugin {
         });
 
         getLogger().at(Level.INFO).log("HyColony setup complete");
+    }
+
+    @Override
+    protected void shutdown() {
+        packs.unregisterAssets();
     }
 
     /** Runs one disconnect clean-up; a failure is logged and does not skip the next one. */

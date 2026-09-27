@@ -1,37 +1,44 @@
 package dev.hycolony.plugin.subplugin;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
+import dev.hycolony.core.CoreFeatures;
 import dev.hycolony.core.FeaturePack;
 import dev.hycolony.core.building.BuildingRegistry;
 import dev.hycolony.core.job.JobRegistry;
 import dev.hycolony.core.kernel.config.FeatureFlags;
 import dev.hycolony.core.kernel.config.JsonFragments;
+import dev.hycolony.plugin.IdMap;
+import dev.hycolony.plugin.prefab.PrefabStyles;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.logging.Level;
+import org.jspecify.annotations.Nullable;
 
 /**
- * The optional sub-plugins bundled in the jar ({@code subplugins/index.txt}), set up once in {@code setup()}: an
- * enabled pack ({@code HyColony.SubPlugins} in config.json, else its manifest's {@code EnabledByDefault}) has its
- * assets registered with Hytale, its data fragments merged into the core's files and its registrar run. A pack that
- * fails is logged SEVERE and skipped; HyColony keeps running. A disabled pack adds nothing: its ids are never checked.
+ * The optional sub-plugins bundled in the jar, set up once in {@code setup()}, in {@code Order}: an enabled pack
+ * ({@code HyColony.SubPlugins} in config.json, else its manifest's {@code EnabledByDefault}) has its fragments checked,
+ * its assets registered with Hytale, its fragments merged into the core's files and its registrar run. A pack that
+ * fails at any step is FAILED, logged SEVERE, and adds nothing more; HyColony keeps running. A disabled pack adds
+ * nothing: its ids are never checked. A missing asset id in an enabled pack's fragment still disables all of HyColony
+ * (IdMap.validate, once assets are loaded).
  *
  * <p>Translations: a pack's {@code Server/Languages/<locale>/hycolony.lang} keys join the core's, the first loaded
  * winning (plugin-b-api § 21.2), so a pack only adds keys and never redefines a core one.
  */
 public final class SubPlugins {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
-    private static final String ROOT = "/subplugins/";
+    private static final String ID_MAP = "id-map.json";
+    private static final String STYLES = "styles.json";
+    /** id-map.json merges key by key inside its sections (items, blocks...). */
+    private static final int ID_MAP_DEPTH = 1;
+    /** styles.json merges key by key inside a style and its building types; a level is defined once. */
+    private static final int STYLES_DEPTH = 2;
 
     /** How startup left a pack. */
     public enum State {
@@ -43,7 +50,16 @@ public final class SubPlugins {
     /** One bundled pack, for the selftest. */
     public record Status(String name, String version, State state) {}
 
-    private record Pack(SubPluginManifest manifest, State state) {}
+    /** {@code assetPackId}: the Hytale asset pack registered for it, if any. */
+    private record Pack(
+            String name,
+            SubPluginManifest manifest,
+            State state,
+            @Nullable String assetPackId) {
+        Pack failed() {
+            return new Pack(name, manifest, State.FAILED, assetPackId);
+        }
+    }
 
     private final List<Pack> packs;
     private int fragments;
@@ -52,138 +68,151 @@ public final class SubPlugins {
         this.packs = packs;
     }
 
+    /** No pack: what the plugin holds before its setup. */
+    public static SubPlugins none() {
+        return new SubPlugins(new ArrayList<>());
+    }
+
     /** Reads every bundled pack and registers the enabled ones' assets with Hytale. Call from setup() only. */
     public static SubPlugins load(JavaPlugin plugin, FeatureFlags flags) {
         List<Pack> packs = new ArrayList<>();
-        for (String name : index()) {
-            SubPluginManifest manifest = new SubPluginManifest(name, "?", false, null, null);
-            State state;
-            try {
-                manifest = readManifest(name);
-                state = flags.enabled(name, manifest.enabledByDefault())
-                        ? registerAssets(plugin, manifest)
-                        : State.DISABLED;
-            } catch (IOException | RuntimeException e) {
-                LOG.at(Level.SEVERE).withCause(e).log("HyColony sub-plugin %s could not be loaded: skipped", name);
-                state = State.FAILED;
-            }
-            LOG.at(Level.INFO).log("HyColony sub-plugin %s %s: %s", name, manifest.version(), state);
-            packs.add(new Pack(manifest, state));
+        try {
+            BundledPacks.names().forEach(name -> packs.add(load(plugin, flags, name)));
+        } catch (IOException | RuntimeException e) {
+            LOG.at(Level.SEVERE).withCause(e).log("HyColony: cannot read the sub-plugin index; no sub-plugin loaded");
         }
-        return new SubPlugins(List.copyOf(packs));
+        packs.sort(Comparator.comparingInt((Pack p) -> p.manifest().sortOrder()).thenComparing(Pack::name));
+        return new SubPlugins(packs);
     }
 
-    /**
-     * {@code hycolony/<file>} of the core, then each enabled pack's fragment of it, merged {@code depth} levels deep
-     * (see {@link JsonFragments}); every key defined twice is logged SEVERE and keeps its first definition.
-     */
-    public JsonObject merged(String file, int depth) {
-        JsonFragments merged = new JsonFragments(depth);
-        merged.add("HyColony", read("/hycolony/" + file).orElseThrow());
-        for (Pack pack : enabled()) {
-            String name = pack.manifest().name();
-            try {
-                read(ROOT + name + "/hycolony/" + file).ifPresent(fragment -> {
-                    fragments++;
-                    merged.add(name, fragment)
-                            .forEach(c -> LOG.at(Level.SEVERE).log(
-                                    "HyColony %s: %s is defined by %s and by %s; %s is kept",
-                                    file, c.path(), c.first(), c.second(), c.first()));
-                });
-            } catch (RuntimeException e) {
-                LOG.at(Level.SEVERE).withCause(e).log("HyColony sub-plugin %s: bad %s, not merged", name, file);
+    private static Pack load(JavaPlugin plugin, FeatureFlags flags, String name) {
+        Pack pack;
+        try {
+            SubPluginManifest manifest = BundledPacks.manifest(name);
+            if (flags.enabled(name, manifest.enabledByDefault())) {
+                checkFragments(name);
+                pack = registerAssets(plugin, name, manifest);
+            } else {
+                pack = new Pack(name, manifest, State.DISABLED, null);
             }
+        } catch (IOException | RuntimeException e) {
+            LOG.at(Level.SEVERE).withCause(e).log("HyColony sub-plugin %s could not be loaded: skipped", name);
+            pack = new Pack(name, SubPluginManifest.unreadable(name), State.FAILED, null);
+        }
+        LOG.at(Level.INFO).log(
+                "HyColony sub-plugin %s %s: %s", name, pack.manifest().versionOrUnknown(), pack.state());
+        return pack;
+    }
+
+    /** Reads each fragment alone with its typed reader, so a malformed one fails its pack before anything is merged. */
+    private static void checkFragments(String name) {
+        BundledPacks.fragment(name, ID_MAP).ifPresent(IdMap::of);
+        BundledPacks.fragment(name, STYLES).ifPresent(PrefabStyles::of);
+    }
+
+    /** ENABLED once its assets are registered, or at once for a pack without assets (data fragments only). */
+    private static Pack registerAssets(JavaPlugin plugin, String name, SubPluginManifest manifest) throws IOException {
+        try (InputStream zip = BundledPacks.zip(name)) {
+            if (zip == null) {
+                return new Pack(name, manifest, State.ENABLED, null);
+            }
+            String id = PackAssets.register(zip, name, manifest, plugin).orElse(null);
+            if (id == null) {
+                LOG.at(Level.SEVERE).log("HyColony sub-plugin %s: Hytale refused its asset pack", name);
+                return new Pack(name, manifest, State.FAILED, null);
+            }
+            return new Pack(name, manifest, State.ENABLED, id);
+        }
+    }
+
+    /** The core id-map merged with the enabled packs' fragments. */
+    public IdMap idMap() {
+        return IdMap.of(merged(ID_MAP, ID_MAP_DEPTH));
+    }
+
+    /** The core styles merged with the enabled packs' fragments; styles come in pack order. */
+    public PrefabStyles styles() {
+        return PrefabStyles.of(merged(STYLES, STYLES_DEPTH));
+    }
+
+    /** {@code hycolony/<file>} merged with each enabled pack's fragment; a key defined twice is logged SEVERE. */
+    private JsonObject merged(String file, int depth) {
+        JsonFragments merged = new JsonFragments(depth);
+        merged.add("HyColony", BundledPacks.json("/hycolony/" + file).orElseThrow());
+        for (Pack pack : enabled()) {
+            BundledPacks.fragment(pack.name(), file).ifPresent(fragment -> {
+                fragments++;
+                merged.add(pack.name(), fragment)
+                        .forEach(c -> LOG.at(Level.SEVERE).log(
+                                "HyColony %s: %s is defined by %s and by %s; %s is kept",
+                                file, c.path(), c.first(), c.second(), c.first()));
+            });
         }
         return merged.merged();
     }
 
-    /** Runs each enabled pack's {@code Registrar}; one that fails is logged SEVERE, the others still register. */
-    public void registerFeatures(BuildingRegistry buildings, JobRegistry jobs) {
+    /**
+     * Runs each enabled pack's {@code Registrar} through {@link CoreFeatures#registerPack}: its huts must be in
+     * {@code ids}. A pack that fails or throws registers nothing and becomes FAILED; the others still register.
+     */
+    public void registerFeatures(BuildingRegistry buildings, JobRegistry jobs, IdMap ids) {
         for (Pack pack : enabled()) {
             String registrar = pack.manifest().registrar();
             if (registrar == null) {
                 continue;
             }
+            List<String> problems;
             try {
                 FeaturePack features = Class.forName(registrar)
                         .asSubclass(FeaturePack.class)
                         .getDeclaredConstructor()
                         .newInstance();
-                features.register(buildings, jobs);
+                problems = CoreFeatures.registerPack(features, buildings, jobs, ids::hasHut);
             } catch (ReflectiveOperationException | RuntimeException | LinkageError e) {
-                LOG.at(Level.SEVERE).withCause(e).log(
-                        "HyColony sub-plugin %s: registrar %s failed",
-                        pack.manifest().name(), registrar);
+                problems = List.of(e.toString());
+            }
+            if (!problems.isEmpty()) {
+                problems.forEach(p -> LOG.at(Level.SEVERE).log(
+                        "HyColony sub-plugin %s: registrar %s registered nothing: %s", pack.name(), registrar, p));
+                packs.replaceAll(p -> p.name().equals(pack.name()) ? p.failed() : p);
             }
         }
     }
 
-    /** Every bundled pack, in index order. */
+    /**
+     * On a plugin unload (a reload), unregisters the asset packs registered at setup; a failure is logged. On a server
+     * shutdown they stay, as vanilla leaves every pack then.
+     */
+    public void unregisterAssets() {
+        if (HytaleServer.get().isShuttingDown()) {
+            return;
+        }
+        for (Pack pack : packs) {
+            String id = pack.assetPackId();
+            if (id != null) {
+                try {
+                    PackAssets.unregister(id);
+                } catch (RuntimeException e) {
+                    LOG.at(Level.SEVERE).withCause(e).log(
+                            "HyColony sub-plugin %s: cannot unregister %s", pack.name(), id);
+                }
+            }
+        }
+    }
+
+    /** Every bundled pack, in order. */
     public List<Status> statuses() {
         return packs.stream()
-                .map(p -> new Status(p.manifest().name(), p.manifest().version(), p.state()))
+                .map(p -> new Status(p.name(), p.manifest().versionOrUnknown(), p.state()))
                 .toList();
     }
 
-    /** Fragments merged by {@link #merged} so far, all files together. */
+    /** Fragments merged by {@link #idMap} and {@link #styles} so far, both files together. */
     public int fragmentsMerged() {
         return fragments;
     }
 
     private List<Pack> enabled() {
         return packs.stream().filter(p -> p.state() == State.ENABLED).toList();
-    }
-
-    /** ENABLED once its assets are registered, or at once for a pack without assets (data fragments only). */
-    private static State registerAssets(JavaPlugin plugin, SubPluginManifest manifest) throws IOException {
-        try (InputStream zip = SubPlugins.class.getResourceAsStream(ROOT + manifest.name() + ".zip")) {
-            if (zip == null) {
-                return State.ENABLED;
-            }
-            if (PackAssets.register(zip, manifest, plugin.getManifest(), plugin.getDataDirectory())) {
-                return State.ENABLED;
-            }
-            LOG.at(Level.SEVERE).log("HyColony sub-plugin %s: Hytale refused its asset pack", manifest.name());
-            return State.FAILED;
-        }
-    }
-
-    private static SubPluginManifest readManifest(String name) throws IOException {
-        try (InputStream in = SubPlugins.class.getResourceAsStream(ROOT + name + "/subplugin.json")) {
-            if (in == null) {
-                throw new IOException("no subplugin.json");
-            }
-            return new Gson().fromJson(new InputStreamReader(in, StandardCharsets.UTF_8), SubPluginManifest.class);
-        }
-    }
-
-    /** The bundled pack names; none when the index is missing. */
-    private static List<String> index() {
-        try (InputStream in = SubPlugins.class.getResourceAsStream(ROOT + "index.txt")) {
-            if (in == null) {
-                return List.of();
-            }
-            return new String(in.readAllBytes(), StandardCharsets.UTF_8)
-                    .lines()
-                    .map(String::strip)
-                    .filter(s -> !s.isEmpty())
-                    .toList();
-        } catch (IOException e) {
-            LOG.at(Level.SEVERE).withCause(e).log("HyColony: cannot read the sub-plugin index");
-            return List.of();
-        }
-    }
-
-    /** A classpath JSON object, or empty when absent; throws when it is not a JSON object. */
-    private static Optional<JsonObject> read(String path) {
-        try (InputStream in = SubPlugins.class.getResourceAsStream(path)) {
-            if (in == null) {
-                return Optional.empty();
-            }
-            return Optional.of(JsonParser.parseReader(new InputStreamReader(in, StandardCharsets.UTF_8))
-                    .getAsJsonObject());
-        } catch (IOException e) {
-            throw new UncheckedIOException("Cannot read " + path, e);
-        }
     }
 }

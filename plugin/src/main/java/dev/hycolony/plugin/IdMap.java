@@ -39,6 +39,11 @@ public final class IdMap {
         return new IdMap(new Gson().fromJson(json, Data.class));
     }
 
+    /** True when {@code key} has both a hut item and a hut block, as every registered building type needs. */
+    public boolean hasHut(String key) {
+        return data.items().containsKey(key) && data.blocks().containsKey(key);
+    }
+
     public String itemId(String key) {
         return require(data.items(), key);
     }

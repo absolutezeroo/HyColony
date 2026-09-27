@@ -6,7 +6,6 @@ import com.google.gson.reflect.TypeToken;
 import com.hypixel.hytale.server.core.prefab.PrefabRotation;
 import com.hypixel.hytale.server.core.prefab.selection.buffer.impl.IPrefabBuffer;
 import dev.hycolony.core.kernel.BlockPos;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -24,8 +23,6 @@ import javax.annotation.Nullable;
  * anchor is subtracted), unrotated. Absent: the default cell, see {@link #hutCell}.
  */
 public final class PrefabStyles {
-    static final String FIRST_STYLE = "outlander";
-
     /** {@code spawnerChests}: chest spawners become the style's empty chest (see HytaleBlueprintSource). */
     record Level(String prefab, @Nullable int[] hutOffset, boolean spawnerChests) {}
 
@@ -55,13 +52,9 @@ public final class PrefabStyles {
         return out;
     }
 
-    /** Style keys in file order, {@code outlander} first. */
+    /** Style keys in file order: the core's, then each sub-plugin's in its {@code Order}. */
     List<String> styles() {
-        List<String> out = new ArrayList<>(table.keySet());
-        if (out.remove(FIRST_STYLE)) {
-            out.addFirst(FIRST_STYLE);
-        }
-        return List.copyOf(out);
+        return List.copyOf(table.keySet());
     }
 
     /** The entry, or null when the style, type or level is unknown or the entry is malformed. */
