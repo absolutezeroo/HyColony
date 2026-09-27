@@ -119,18 +119,22 @@ public final class WandActions {
 
     /**
      * Places the hut (MC SurvivalHandler, see {@link WandPlacement}). A refusal is sent to the player and keeps the
-     * session, ghost and window (false); a success forgets them and closes the window.
+     * session, ghost and window (false); a success forgets them and closes the window, except when a town hall
+     * began founding a colony: the founding window has replaced ours and closing it would cancel the foundation.
      */
     public boolean confirm(UUID player, String playerName) {
         WandSession s = sessions.get(player);
-        if (placement.confirm(player, playerName, s) instanceof WandPlacement.Refused refused) {
+        WandPlacement.Result result = placement.confirm(player, playerName, s);
+        if (result instanceof WandPlacement.Refused refused) {
             manager.context().notifier().send(player, refused.reason());
             show(player, s);
             return false;
         }
         forget(player);
         sessions.put(player, WandSession.empty().withStyle(s.style()));
-        manager.context().ui().close(player);
+        if (!(result instanceof WandPlacement.FoundColony)) {
+            manager.context().ui().close(player);
+        }
         return true;
     }
 

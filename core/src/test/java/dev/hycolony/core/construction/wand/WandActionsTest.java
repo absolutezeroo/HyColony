@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyManager;
+import dev.hycolony.core.colony.ui.FoundColonyView;
 import dev.hycolony.core.colony.ui.WandView;
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.BlueprintSource;
@@ -248,5 +249,21 @@ class WandActionsTest {
         assertTrue(ghost().isEmpty());
         assertFalse(t.ui.shown.containsKey(alice));
         assertFalse(wand.open(alice, Optional.empty()));
+    }
+
+    @Test
+    void confirmingATownHallOutsideAColonyLeavesTheFoundingWindowOpen() {
+        UUID bob = UUID.randomUUID();
+        BlockPos far = new BlockPos(5000, 64, 0);
+        t.players.creative.add(bob);
+        // Like the plugin's FoundColonyPage.onDismiss: closing the founding window cancels the foundation.
+        t.ui.onClose = p -> manager.foundation().cancel(p);
+        wand.open(bob, Optional.of(far));
+        wand.selectStyle(bob, FakeBlueprints.STYLE);
+        wand.selectBuilding(bob, TOWN_HALL);
+        assertTrue(wand.confirm(bob, "Bob"));
+        assertEquals(Optional.of(far), manager.foundation().pendingPositionOf(bob));
+        assertInstanceOf(FoundColonyView.class, t.ui.shown.get(bob));
+        assertTrue(previews.of(bob).isEmpty());
     }
 }
