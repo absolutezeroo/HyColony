@@ -92,6 +92,18 @@ public final class BuildingPage extends ColonyPage {
         return this;
     }
 
+    /**
+     * For the core's live refresh: {@link #keepTabOf} plus the Build options sub-view and its chosen style, which an
+     * action's re-show resets.
+     */
+    public BuildingPage keepStateOf(@Nullable CustomUIPage previous) {
+        keepTabOf(previous);
+        if (previous instanceof BuildingPage p && p.view.pos().equals(view.pos())) {
+            main.keepStateOf(p.main);
+        }
+        return this;
+    }
+
     @Override
     public void build(
             @Nonnull Ref<EntityStore> ref,

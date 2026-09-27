@@ -18,6 +18,7 @@ import dev.hycolony.core.colony.ui.RequestsView;
 import dev.hycolony.core.colony.ui.TownHallView;
 import dev.hycolony.core.colony.ui.UiPort;
 import dev.hycolony.core.colony.ui.WandView;
+import dev.hycolony.core.colony.ui.WindowKey;
 import dev.hycolony.core.construction.wand.WandActions;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.plugin.IdMap;
@@ -35,7 +36,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /** Renders core view models with Hytale custom pages. World thread only. */
@@ -48,6 +48,7 @@ public final class HytaleUiPort implements UiPort {
     private final String townHallItemId;
     private final CitizenInventoryWindows citizenInventories;
     private final HutPickUp pickUp;
+    private final LiveWindows live = new LiveWindows();
     /** Players whose page Hytale is closing right now: close() must not close it a second time. */
     private final Set<UUID> closing = new HashSet<>();
 
@@ -107,27 +108,27 @@ public final class HytaleUiPort implements UiPort {
     }
 
     @Override
+    public boolean isShowing(UUID player, WindowKey window) {
+        return live.isShowing(player, window);
+    }
+
+    @Override
     public boolean refreshBuilding(UUID player, BuildingView view) {
-        return refresh(
+        return live.refresh(
                 player,
-                p -> p instanceof BuildingPage b && b.view().pos().equals(view.pos()),
-                buildingPage(player, view));
+                new WindowKey.Hut(view.pos()),
+                (pr, previous) -> new BuildingPage(pr, view, manager.get(), () -> pickUp.run(player, view))
+                        .keepStateOf(previous));
     }
 
     @Override
     public boolean refreshTownHall(UUID player, TownHallView view) {
-        return refresh(
-                player, p -> p instanceof TownHallPage t && t.view().colonyId() == view.colonyId(), townHallPage(view));
+        return live.refresh(player, new WindowKey.TownHall(view.colonyId()), townHallPage(view));
     }
 
     @Override
     public boolean refreshCitizen(UUID player, CitizenView view) {
-        return refresh(
-                player,
-                p -> p instanceof CitizenPage c
-                        && c.view().colonyId() == view.colonyId()
-                        && c.view().citizenId() == view.citizenId(),
-                citizenPage(view));
+        return live.refresh(player, new WindowKey.Citizen(view.colonyId(), view.citizenId()), citizenPage(view));
     }
 
     private BiFunction<PlayerRef, CustomUIPage, ColonyPage> townHallPage(TownHallView view) {
@@ -200,25 +201,5 @@ public final class HytaleUiPort implements UiPort {
         PageManager pages = store.getComponent(ref, Player.getComponentType()).getPageManager();
         CustomUIPage current = pages.getCustomPage();
         pages.openCustomPage(ref, store, page.apply(pr, current instanceof ColonyPage c ? c.live() : current));
-    }
-
-    /**
-     * Redraws in place the page open now if {@code same} accepts it; opens nothing. False when the player is gone, or
-     * has closed that window or opened another one (a vanilla page, the wand, a citizen inventory) since.
-     */
-    private boolean refresh(
-            UUID player, Predicate<ColonyPage> same, BiFunction<PlayerRef, CustomUIPage, ColonyPage> page) {
-        PlayerRef pr = Universe.get().getPlayer(player);
-        Ref<EntityStore> ref = pr == null ? null : pr.getReference();
-        if (ref == null || !ref.isValid()) {
-            return false;
-        }
-        Player p = ref.getStore().getComponent(ref, Player.getComponentType());
-        CustomUIPage current = p == null ? null : p.getPageManager().getCustomPage();
-        if (!(current instanceof ColonyPage open) || !same.test(open.live())) {
-            return false;
-        }
-        open.refreshWith(page.apply(pr, open.live()));
-        return true;
     }
 }

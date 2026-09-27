@@ -31,6 +31,11 @@ final class BuildingMainTab {
         this.pickup = new PickupPanel(manager, player, view);
     }
 
+    /** Takes over {@code previous}'s local state (the Build options sub-view), for a live refresh. */
+    void keepStateOf(BuildingMainTab previous) {
+        options.keepStateOf(previous.options);
+    }
+
     /** Fills the tab; {@code canOpenStorage} shows the Storage button. */
     void render(UICommandBuilder ui, UIEventBuilder events, boolean canOpenStorage) {
         ui.set("#TypeName.Text", ColonyPage.buildingName(view.typeId()));

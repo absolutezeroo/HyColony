@@ -32,6 +32,15 @@ final class BuildOptionsPanel {
         return open;
     }
 
+    /** Takes over {@code previous}'s open state and chosen style (if still offered), for a live refresh. */
+    void keepStateOf(BuildOptionsPanel previous) {
+        open = previous.open;
+        int kept = view.styles().indexOf(previous.style());
+        if (kept >= 0) {
+            styleIndex = kept;
+        }
+    }
+
     private String style() {
         return view.styles().isEmpty() ? view.style() : view.styles().get(styleIndex);
     }

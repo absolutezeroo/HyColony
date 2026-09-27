@@ -8,10 +8,13 @@ import dev.hycolony.core.colony.ui.RequestsView;
 import dev.hycolony.core.colony.ui.TownHallView;
 import dev.hycolony.core.colony.ui.UiPort;
 import dev.hycolony.core.colony.ui.WandView;
+import dev.hycolony.core.colony.ui.WindowKey;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -27,6 +30,10 @@ public final class FakeUi implements UiPort {
     public final List<OpenedInventory> openedInventories = new ArrayList<>();
     /** Views drawn in place by a live refresh, in order; a refresh never touches {@link #shown}'s keys. */
     public final List<Object> redrawn = new ArrayList<>();
+    /** isShowing calls so far. */
+    public int showingChecks;
+    /** Players whose isShowing throws, as a buggy adapter would. */
+    public final Set<UUID> failing = new HashSet<>();
     /** Runs inside close(), like Hytale calling the page's onDismiss before it forgets the page. */
     public Consumer<UUID> onClose = p -> {};
 
@@ -91,6 +98,25 @@ public final class FakeUi implements UiPort {
                 shown.get(player) instanceof CitizenView v
                         && v.colonyId() == view.colonyId()
                         && v.citizenId() == view.citizenId());
+    }
+
+    @Override
+    public boolean isShowing(UUID player, WindowKey window) {
+        showingChecks++;
+        if (failing.contains(player)) {
+            throw new IllegalStateException("failing fake window");
+        }
+        return window.equals(keyOf(shown.get(player)));
+    }
+
+    private static WindowKey keyOf(Object view) {
+        if (view instanceof BuildingView b) {
+            return new WindowKey.Hut(b.pos());
+        }
+        if (view instanceof TownHallView t) {
+            return new WindowKey.TownHall(t.colonyId());
+        }
+        return view instanceof CitizenView c ? new WindowKey.Citizen(c.colonyId(), c.citizenId()) : null;
     }
 
     /** Like Hytale: only the window still open is redrawn. */

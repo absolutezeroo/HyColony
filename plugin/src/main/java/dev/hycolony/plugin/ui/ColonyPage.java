@@ -86,8 +86,19 @@ public abstract class ColonyPage extends InteractiveCustomUIPage<ColonyPage.Act>
      * {@code openCustomPage}, the client gets a non-initial update (as a tab change), so the window is not reopened.
      */
     public final void refreshWith(ColonyPage fresh) {
+        boolean redraw = !live().showsInput();
         successor = fresh;
-        fresh.rebuild();
+        if (redraw) {
+            fresh.rebuild();
+        }
+    }
+
+    /**
+     * True while a text field is shown: a redraw would reset what the player is typing, so a live refresh only swaps
+     * the page answering events and the new content shows at the next redraw (a tab change or an action).
+     */
+    protected boolean showsInput() {
+        return false;
     }
 
     @Override

@@ -7,7 +7,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyManager;
+import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.colony.ui.BuildingView;
+import dev.hycolony.core.colony.ui.CitizenView;
 import dev.hycolony.core.colony.ui.TownHallView;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
 import dev.hycolony.core.kernel.BlockPos;
@@ -106,5 +108,71 @@ class LiveWindowRefreshTest {
         tickWindows(OpenWindows.UPDATE_SUBSCRIBERS_INTERVAL_TICKS);
 
         assertTrue(t.ui.redrawn.isEmpty());
+    }
+
+    @Test
+    void closedWindowIsForgottenEvenWhenItsViewNeverChanges() {
+        manager.windows().openBuilding(alice, pos);
+        t.ui.close(alice);
+
+        tickWindows(OpenWindows.UPDATE_SUBSCRIBERS_INTERVAL_TICKS);
+        int checks = t.ui.showingChecks;
+        tickWindows(OpenWindows.UPDATE_SUBSCRIBERS_INTERVAL_TICKS * 2);
+
+        assertEquals(1, checks);
+        assertEquals(checks, t.ui.showingChecks, "the closed window is no longer watched");
+    }
+
+    @Test
+    void openCitizenWindowIsRedrawnWhenTheCitizenChanges() {
+        manager.windows().openCitizen(alice, colony.id(), 1);
+        colony.citizens().get(1).orElseThrow().setName("Bea");
+
+        tickWindows(OpenWindows.UPDATE_SUBSCRIBERS_INTERVAL_TICKS);
+
+        assertEquals("Bea", ((CitizenView) t.ui.redrawn.get(0)).name());
+    }
+
+    @Test
+    void windowOfAPlayerWhoLostHutAccessIsDroppedNotRedrawn() {
+        UUID bob = UUID.randomUUID();
+        colony.permissions().setRank(bob, "Bob", Permissions.OFFICER);
+        manager.windows().openBuilding(bob, pos);
+        colony.permissions().setRank(bob, "Bob", Permissions.NEUTRAL);
+        colony.buildings().onColonyTick(colony);
+
+        tickWindows(OpenWindows.UPDATE_SUBSCRIBERS_INTERVAL_TICKS);
+        int checks = t.ui.showingChecks;
+        tickWindows(OpenWindows.UPDATE_SUBSCRIBERS_INTERVAL_TICKS);
+
+        assertTrue(t.ui.redrawn.isEmpty());
+        assertEquals(checks, t.ui.showingChecks, "dropped");
+    }
+
+    @Test
+    void windowOfADeletedColonyIsDroppedNotRedrawn() {
+        manager.windows().openTownHall(alice, colony.center());
+        assertTrue(manager.deleteColony(colony.id()));
+
+        tickWindows(OpenWindows.UPDATE_SUBSCRIBERS_INTERVAL_TICKS);
+        int checks = t.ui.showingChecks;
+        tickWindows(OpenWindows.UPDATE_SUBSCRIBERS_INTERVAL_TICKS);
+
+        assertTrue(t.ui.redrawn.isEmpty());
+        assertEquals(checks, t.ui.showingChecks, "dropped");
+    }
+
+    @Test
+    void aWindowThatFailsDoesNotStopTheOthers() {
+        UUID bob = UUID.randomUUID();
+        colony.permissions().setRank(bob, "Bob", Permissions.OFFICER);
+        manager.windows().openBuilding(bob, pos);
+        manager.windows().openBuilding(alice, pos);
+        t.ui.failing.add(bob);
+        colony.buildings().onColonyTick(colony);
+
+        tickWindows(OpenWindows.UPDATE_SUBSCRIBERS_INTERVAL_TICKS);
+
+        assertEquals(1, t.ui.redrawn.size(), "alice's window is redrawn despite bob's failure");
     }
 }

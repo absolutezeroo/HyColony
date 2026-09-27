@@ -74,6 +74,12 @@ public final class TownHallPage extends ColonyPage {
         return this;
     }
 
+    /** The Actions tab holds {@code #RenameInput}. */
+    @Override
+    protected boolean showsInput() {
+        return tab == Tab.ACTIONS;
+    }
+
     @Override
     public void build(
             @Nonnull Ref<EntityStore> ref,

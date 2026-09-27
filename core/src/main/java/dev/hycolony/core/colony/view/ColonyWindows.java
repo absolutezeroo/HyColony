@@ -9,6 +9,7 @@ import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.colony.ui.BuildingView;
 import dev.hycolony.core.colony.ui.CitizenView;
 import dev.hycolony.core.colony.ui.TownHallView;
+import dev.hycolony.core.colony.ui.WindowKey;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.port.Msg;
 import java.util.Optional;
@@ -26,7 +27,7 @@ public final class ColonyWindows {
     private final BuildingViews buildings;
     private final RequestViews requests;
     private final CitizenViews citizens;
-    private final OpenWindows open = new OpenWindows();
+    private final OpenWindows open;
 
     public ColonyWindows(ColonyManager manager) {
         this.manager = manager;
@@ -35,6 +36,7 @@ public final class ColonyWindows {
         this.buildings = new BuildingViews(ctx, new BuilderTabsViews(new BuilderResourcesViews(ctx)));
         this.requests = new RequestViews(ctx);
         this.citizens = new CitizenViews(ctx, townHall, requests);
+        this.open = new OpenWindows(ctx.ui());
     }
 
     public void openTownHall(UUID player, BlockPos hutPos) {
@@ -52,7 +54,7 @@ public final class ColonyWindows {
         ctx.ui().showCitizen(player, view);
         open.watch(
                 player,
-                view,
+                new OpenWindows.Shown<>(new WindowKey.Citizen(c.id(), citizenId), view),
                 () -> watchable(c.id(), player)
                         .flatMap(col -> col.citizens().get(citizenId).map(cd -> citizens.of(col, cd, player))),
                 ctx.ui()::refreshCitizen);
@@ -99,7 +101,7 @@ public final class ColonyWindows {
         ctx.ui().showTownHall(viewer, view);
         open.watch(
                 viewer,
-                view,
+                new OpenWindows.Shown<>(new WindowKey.TownHall(c.id()), view),
                 () -> watchable(c.id(), viewer).map(col -> townHall.of(col, viewer)),
                 ctx.ui()::refreshTownHall);
     }
@@ -114,7 +116,7 @@ public final class ColonyWindows {
         BlockPos pos = b.position();
         open.watch(
                 viewer,
-                view,
+                new OpenWindows.Shown<>(new WindowKey.Hut(pos), view),
                 () -> watchable(c.id(), viewer)
                         .flatMap(col -> col.buildings().at(pos).map(hut -> buildings.of(col, hut, viewer))),
                 ctx.ui()::refreshBuilding);

@@ -14,6 +14,9 @@ public interface UiPort {
 
     void showCitizen(UUID player, CitizenView view);
 
+    /** Whether {@code player} still has {@code window} open, and not another page in its place. */
+    boolean isShowing(UUID player, WindowKey window);
+
     /**
      * Redraws in place the window of this hut if {@code player} still has it open (MC building view sync); never
      * opens one. False when that window is closed or replaced by another.
