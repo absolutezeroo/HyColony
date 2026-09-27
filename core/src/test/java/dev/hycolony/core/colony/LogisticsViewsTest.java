@@ -138,6 +138,13 @@ class LogisticsViewsTest {
         assertEquals(1, pickups().size());
     }
 
+    @Test
+    void forcePickupIsRefusedOnAHutWithoutWorkers() {
+        assertFalse(manager.logistics().forcePickup(alice, warehouse.position()), "MC: worker huts only");
+        assertEquals(List.of(), pickups());
+        assertEquals(List.of(), t.notifier.sent);
+    }
+
     private List<Request> pickups() {
         return colony.requests().all().stream()
                 .filter(r -> r.requestable() instanceof Pickup)

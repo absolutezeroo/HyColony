@@ -6,6 +6,7 @@ import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.port.Msg;
 import dev.hycolony.core.logistics.pickup.PickupRequests;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -29,9 +30,7 @@ public final class LogisticsActions {
      * without MANAGE_HUTS or for a hut without workers (MC changes it only for a WorkerBuildingModule).
      */
     public boolean alterPickupPriority(UUID player, BlockPos hutPos, boolean up) {
-        ManagedHut h = ManagedHut.find(manager, player, hutPos)
-                .filter(m -> m.building().module(WorkerModule.class).isPresent())
-                .orElse(null);
+        ManagedHut h = workerHut(player, hutPos).orElse(null);
         if (h == null) {
             return false;
         }
@@ -43,10 +42,11 @@ public final class LogisticsActions {
 
     /**
      * MC ForcePickupMessage: asks a courier to empty the hut now ({@code createPickupRequest(64, true)}) and tells the
-     * player whether it was asked or one is already open. False without MANAGE_HUTS or when none was created.
+     * player whether it was asked or one is already open. False without MANAGE_HUTS, for a hut without workers (MC
+     * ForcePickupMessage needs a WorkerBuildingModule), or when none was created.
      */
     public boolean forcePickup(UUID player, BlockPos hutPos) {
-        ManagedHut h = ManagedHut.find(manager, player, hutPos).orElse(null);
+        ManagedHut h = workerHut(player, hutPos).orElse(null);
         if (h == null) {
             return false;
         }
@@ -59,5 +59,11 @@ public final class LogisticsActions {
         }
         windows.showBuilding(h.colony(), h.building(), player);
         return created;
+    }
+
+    /** The managed hut at {@code hutPos} if it has a {@link WorkerModule}; empty otherwise. */
+    private Optional<ManagedHut> workerHut(UUID player, BlockPos hutPos) {
+        return ManagedHut.find(manager, player, hutPos)
+                .filter(m -> m.building().module(WorkerModule.class).isPresent());
     }
 }
