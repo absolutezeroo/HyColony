@@ -1,8 +1,8 @@
 package dev.hycolony.core.colony.persistence;
 
 import static dev.hycolony.core.colony.persistence.JsonPositions.pos;
-import static dev.hycolony.core.colony.persistence.JsonPositions.readPos;
 import static dev.hycolony.core.colony.persistence.JsonPositions.requirePos;
+import static dev.hycolony.core.colony.persistence.JsonPositions.tryPos;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -188,7 +188,9 @@ public final class ColonySerializer {
         return work != null && c.buildings().at(work).isEmpty();
     }
 
+    /** Whether a kept unknown building sits at {@code pos}; a malformed saved position never matches (§ 5). */
     private static boolean keptUnknownAt(Colony c, BlockPos pos) {
-        return c.buildings().unknown().stream().anyMatch(raw -> pos.equals(readPos(raw.get("pos"))));
+        return c.buildings().unknown().stream()
+                .anyMatch(raw -> tryPos(raw.get("pos")).filter(pos::equals).isPresent());
     }
 }

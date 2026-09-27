@@ -101,6 +101,28 @@ class TolerantLoadTest {
     }
 
     @Test
+    void anUnknownHutWithAMalformedPositionDoesNotBreakTheLoad() throws IOException {
+        install("colony-v3-unknown-job.json");
+        Path file = dir.resolve("colony-1.json");
+        JsonObject json = JsonParser.parseString(Files.readString(file)).getAsJsonObject();
+        var buildings = json.getAsJsonArray("buildings");
+        for (String pos : List.of("\"garbage\"", "[1, 2, 3]", "{\"x\": \"a\", \"y\": 64, \"z\": 0}", "{\"x\": 8}")) {
+            JsonObject broken = new JsonObject();
+            broken.addProperty("type", "removed:hut");
+            broken.add("pos", JsonParser.parseString(pos));
+            buildings.add(broken);
+        }
+        buildings.add(buildings.remove(1)); // the valid unknown hut is searched last
+        Files.writeString(file, json.toString());
+
+        CitizenData d =
+                load(new TestContexts()).byId(1).orElseThrow().citizens().get(1).orElseThrow();
+
+        assertEquals(HUT, d.workBuilding());
+        assertTrue(d.unknownJob().isPresent());
+    }
+
+    @Test
     void anUnknownJobAtAKnownBuildingIsFreed() throws IOException {
         install("colony-v3-unknown-job.json");
         Path file = dir.resolve("colony-1.json");

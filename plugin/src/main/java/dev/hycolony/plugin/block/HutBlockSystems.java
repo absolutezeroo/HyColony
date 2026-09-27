@@ -119,7 +119,7 @@ public final class HutBlockSystems {
                         player.sendMessage(HytaleNotifier.toMessage(denied.reason()));
                     }
                     // The core only returns this for a town hall.
-                    case HutPlacement.FoundNewColony f ->
+                    case HutPlacement.FoundNewColony _ ->
                         m.foundation().begin(player.getUuid(), player.getUsername(), pos, rotation);
                     case HutPlacement.Allowed allowed -> m.huts().place(allowed.colony(), type.id(), pos, rotation);
                 }
