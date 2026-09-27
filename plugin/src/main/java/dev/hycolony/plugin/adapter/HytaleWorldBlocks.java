@@ -45,6 +45,9 @@ import org.jspecify.annotations.Nullable;
  * ({@code VariantRotation.None}) reads as rotation 0, like its blueprint entry. World thread only.
  */
 public final class HytaleWorldBlocks implements WorldBlocks {
+    /** A creative paste's settings: no block particles, no block sound. */
+    private static final int QUIET = SetBlockSettings.NO_SEND_PARTICLES | SetBlockSettings.NO_SEND_AUDIO;
+
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
     /** Pseudo-key prefix for fluids, shared with {@link HytaleItemCatalog}. */
     static final String FLUID_PREFIX = "~fluid:";
@@ -111,6 +114,20 @@ public final class HytaleWorldBlocks implements WorldBlocks {
 
     @Override
     public boolean place(BlockPos pos, BlockState state, boolean withContainer) {
+        return place(pos, state, SetBlockSettings.NONE);
+    }
+
+    /** Without the build particles (BlockOperations.setBlock skips them on NO_SEND_PARTICLES). */
+    @Override
+    public boolean placeQuietly(BlockPos pos, BlockState state, boolean withContainer) {
+        return place(pos, state, QUIET);
+    }
+
+    /**
+     * Places {@code state} with {@code settings}. {@code withContainer} (the blueprint's "has an ItemContainerBlock")
+     * needs no setting: the block entity is part of the block, so a chest gets its container, a bench its state.
+     */
+    private boolean place(BlockPos pos, BlockState state, int settings) {
         try {
             Ref<ChunkStore> sec = section(pos);
             if (sec == null) {
@@ -147,19 +164,8 @@ public final class HytaleWorldBlocks implements WorldBlocks {
                     (x, y, z, other, rot, filler) -> !isHut(other))) {
                 return false;
             }
-            // Always NONE: the block entity is part of the block (a chest gets its container, a bench its state),
-            // so withContainer (the blueprint's "has an ItemContainerBlock") needs no special setting here.
             BlockOperations.setBlock(
-                    world.getChunkStore(),
-                    sec,
-                    pos.x(),
-                    pos.y(),
-                    pos.z(),
-                    id,
-                    type,
-                    state.rotation(),
-                    0,
-                    SetBlockSettings.NONE);
+                    world.getChunkStore(), sec, pos.x(), pos.y(), pos.z(), id, type, state.rotation(), 0, settings);
             if (type.getMaterial() == BlockMaterial.Solid) {
                 FluidSection fluids = store.getComponent(sec, FluidSection.getComponentType());
                 if (fluids != null && fluids.getFluidId(pos.x(), pos.y(), pos.z()) != Fluid.EMPTY_ID) {
@@ -175,6 +181,16 @@ public final class HytaleWorldBlocks implements WorldBlocks {
 
     @Override
     public List<ItemAmount> breakBlock(BlockPos pos) {
+        return breakBlock(pos, SetBlockSettings.NO_DROP_ITEMS);
+    }
+
+    /** Without the break sound nor particles (BlockHarvestUtils.naturallyRemoveBlock, BlockOperations.setBlock). */
+    @Override
+    public List<ItemAmount> breakQuietly(BlockPos pos) {
+        return breakBlock(pos, SetBlockSettings.NO_DROP_ITEMS | QUIET);
+    }
+
+    private List<ItemAmount> breakBlock(BlockPos pos, int settings) {
         try {
             Ref<ChunkStore> sec = section(pos);
             if (sec == null) {
@@ -227,7 +243,7 @@ public final class HytaleWorldBlocks implements WorldBlocks {
                     0,
                     null,
                     null,
-                    SetBlockSettings.NO_DROP_ITEMS,
+                    settings,
                     sec,
                     world.getEntityStore().getStore(),
                     store);

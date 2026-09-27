@@ -59,10 +59,12 @@ class PasteQueueTest {
         assertTrue(queue.isEmpty());
     }
 
-    @Test
-    void clearsWhatThePlanDoesNotWantBeforePlacingSolidsThenDecorations() {
-        BlockPos stray = HUT.offset(1, 2, 1);
-        t.blocks.blocks.put(stray, FakeBlueprints.state(FakeBlueprints.DIRT));
+    /**
+     * Pastes the hut plan without its (1, 2, 1) corner, where the world has dirt, to its end; returns every changed
+     * position in order.
+     */
+    private List<BlockPos> pasteOverAStrayBlock() {
+        t.blocks.blocks.put(HUT.offset(1, 2, 1), FakeBlueprints.state(FakeBlueprints.DIRT));
         Blueprint hut = FakeBlueprints.hut(false);
         List<BlueprintEntry> entries = new ArrayList<>(hut.entries());
         entries.removeIf(e -> e.offset().equals(new BlockPos(1, 2, 1)));
@@ -72,11 +74,25 @@ class PasteQueueTest {
         for (int i = 0; i < HUT_BLOCKS; i++) {
             queue.tick();
         }
+        return changes;
+    }
+
+    @Test
+    void clearsWhatThePlanDoesNotWantBeforePlacingSolidsThenDecorations() {
+        BlockPos stray = HUT.offset(1, 2, 1);
+        List<BlockPos> changes = pasteOverAStrayBlock();
         assertEquals(stray, changes.get(0));
         assertFalse(t.blocks.blocks.containsKey(stray));
         // The torch (NON_SOLID) comes after every solid block.
         int torch = changes.indexOf(HUT.offset(0, 1, 0));
         assertEquals(changes.size() - 1, torch);
+    }
+
+    @Test
+    void everyBlockIsChangedQuietlyWithoutParticlesNorSound() {
+        List<BlockPos> changes = pasteOverAStrayBlock();
+        assertEquals(HUT_BLOCKS, changes.size());
+        assertEquals(changes, t.blocks.quiet);
     }
 
     @Test

@@ -14,8 +14,8 @@ import java.util.Optional;
  * The creative pastes still to place, in memory only (ST Manager.onWorldTick and PlaceStructureOperation): only the
  * head advances, by at most Structurize {@code maxOperationsPerTick} world changes per tick. A paste first breaks what
  * its plan leaves empty (ST CreativeStructureHandler.allowReplace, drops ignored), then places its solid blocks, then
- * its decorations and fluids, each bottom up. A placed block with a container joins the hut's building (MC
- * AbstractBuildingContainer.registerBlockPosition).
+ * its decorations and fluids, each bottom up, all quietly (no particles nor sound, as ST). A placed block with a
+ * container joins the hut's building (MC AbstractBuildingContainer.registerBlockPosition).
  *
  * <p>Deviation from MC: a pasted chest is empty, since our plans carry no container contents (ST
  * ContainerPlacementHandler pastes them); no entity phase, our prefabs have no entities.
@@ -78,7 +78,7 @@ final class PasteQueue {
         while (index < box.size()) {
             BlockPos pos = box.get(index++);
             if (plan.stateAt(pos) == null) {
-                blocks().breakBlock(pos); // creative: the drops are not kept
+                blocks().breakQuietly(pos); // creative: the drops are not kept
                 return true;
             }
         }
@@ -91,12 +91,12 @@ final class PasteQueue {
         if (index >= list.size()) {
             return false;
         }
+        BlockPos pos = (phase == SOLID ? plan.solidPositions() : plan.decoPositions()).get(index);
         BlueprintEntry e = list.get(index++);
-        if (plan.isDone(e, blocks())) {
+        if (blocks().get(pos).filter(e.state()::equals).isPresent()) {
             return true; // ST StructurePlacer: a block already matching is left as is (a chest keeps its items)
         }
-        BlockPos pos = plan.worldPos(e);
-        if (!blocks().place(pos, e.state(), e.hasContainer())) {
+        if (!blocks().placeQuietly(pos, e.state(), e.hasContainer())) {
             skipped(pos, e);
             return true;
         }

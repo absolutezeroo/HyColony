@@ -98,6 +98,16 @@ public record ConstructionPorts(
             }
 
             @Override
+            public boolean placeQuietly(BlockPos pos, BlockState state, boolean withContainer) {
+                return false;
+            }
+
+            @Override
+            public List<ItemAmount> breakQuietly(BlockPos pos) {
+                return List.of();
+            }
+
+            @Override
             public void drop(BlockPos pos, List<ItemAmount> items) {}
         };
         ContainerAccess containers = new ContainerAccess() {

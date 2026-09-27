@@ -26,6 +26,8 @@ public final class FakeWorldBlocks implements WorldBlocks {
     public int reads;
     /** Every successful place(), in call order. */
     public final List<BlockPos> placed = new ArrayList<>();
+    /** Every position changed through placeQuietly() or breakQuietly(), in call order. */
+    public final List<BlockPos> quiet = new ArrayList<>();
     /** Runs before every place() and breakBlock(), with the position (ordering checks). */
     public Consumer<BlockPos> beforeChange = p -> {};
 
@@ -59,6 +61,21 @@ public final class FakeWorldBlocks implements WorldBlocks {
             return List.of();
         }
         return drops.getOrDefault(pos, List.of());
+    }
+
+    @Override
+    public boolean placeQuietly(BlockPos pos, BlockState state, boolean withContainer) {
+        if (refusePlace) {
+            return false;
+        }
+        quiet.add(pos);
+        return place(pos, state, withContainer);
+    }
+
+    @Override
+    public List<ItemAmount> breakQuietly(BlockPos pos) {
+        quiet.add(pos);
+        return breakBlock(pos);
     }
 
     @Override
