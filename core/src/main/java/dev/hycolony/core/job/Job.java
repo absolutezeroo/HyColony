@@ -3,7 +3,9 @@ package dev.hycolony.core.job;
 import com.google.gson.JsonObject;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.BodyId;
+import java.util.OptionalInt;
 
 /** A citizen's occupation. Concrete jobs (builder, etc.) extend this from the construction task on. */
 public abstract class Job {
@@ -83,6 +85,17 @@ public abstract class Job {
 
     /** MC IJob.onRemoval: the job is being taken from its citizen. No-op by default. */
     public void onRemoval(Colony colony) {}
+
+    /**
+     * Uses worn off {@code tool} since the last one of its kind broke (MC ItemStack.getDamageValue); empty when this
+     * job does not wear its tools.
+     */
+    public OptionalInt toolUses(ItemKey tool) {
+        return OptionalInt.empty();
+    }
+
+    /** Sets the uses worn off {@code tool} (a worn one handed over); ignored when this job does not wear its tools. */
+    public void setToolUses(ItemKey tool, int uses) {}
 
     /** Also saves whether the citizen is working (MC CitizenData TAG_ACTIVE); the inactivity timer restarts unset. */
     public JsonObject write() {

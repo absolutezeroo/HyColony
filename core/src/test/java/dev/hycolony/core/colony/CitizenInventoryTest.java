@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
+import dev.hycolony.core.construction.builder.BuilderJob;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.Inventory;
 import dev.hycolony.core.kernel.item.ItemAmount;
@@ -20,12 +21,14 @@ import dev.hycolony.core.testing.FakeUi;
 import dev.hycolony.core.testing.TestContexts;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 class CitizenInventoryTest {
     private static final ItemKey PLANKS = new ItemKey("Wood_Planks");
     private static final ItemKey DIRT = new ItemKey("Dirt");
+    private static final ItemKey SHOVEL = new ItemKey("Tool_Shovel_Crude");
     private final TestContexts t = new TestContexts();
     private final ColonyManager manager = new ColonyManager(t.context());
     private final UUID alice = UUID.randomUUID();
@@ -189,5 +192,69 @@ class CitizenInventoryTest {
         playerSets(0, Optional.empty());
 
         assertTrue(colony.isDirty());
+    }
+
+    private OptionalDouble shovelCondition() {
+        return manager.citizenInventories().toolCondition(colony.id(), worker.id(), SHOVEL);
+    }
+
+    private void putShovel(int slot, double condition) {
+        worker.inventory().set(slot, Optional.of(new ItemAmount(SHOVEL, 1)));
+        manager.citizenInventories().toolPutIn(colony.id(), worker.id(), SHOVEL, condition);
+    }
+
+    @Test
+    void aWornToolPutInShowsTheSameWearBack() {
+        t.catalog.durability.put(SHOVEL, 4);
+        worker.setJob(new BuilderJob(worker));
+
+        putShovel(0, 0.5);
+
+        assertEquals(OptionalDouble.of(0.5), shovelCondition());
+    }
+
+    @Test
+    void aPartlyUsedToolCountsAsOneMoreUseSoItIsNeverRepaired() {
+        t.catalog.durability.put(SHOVEL, 4);
+        worker.setJob(new BuilderJob(worker));
+
+        putShovel(0, 0.6); // 1.6 uses worn
+
+        assertEquals(OptionalDouble.of(0.5), shovelCondition());
+    }
+
+    @Test
+    void aSecondToolOfTheSameKindKeepsTheWorstWear() {
+        t.catalog.durability.put(SHOVEL, 4);
+        worker.setJob(new BuilderJob(worker));
+        putShovel(0, 0.25);
+
+        putShovel(1, 1.0);
+
+        assertEquals(OptionalDouble.of(0.25), shovelCondition());
+    }
+
+    @Test
+    void aNewToolAloneStartsFresh() {
+        t.catalog.durability.put(SHOVEL, 4);
+        worker.setJob(new BuilderJob(worker));
+        putShovel(0, 0.25);
+        worker.inventory().set(0, Optional.empty());
+
+        putShovel(0, 1.0);
+
+        assertEquals(OptionalDouble.of(1.0), shovelCondition());
+    }
+
+    @Test
+    void noConditionWithoutToolWearingJobOrForAnUnbreakableTool() {
+        assertTrue(shovelCondition().isEmpty());
+
+        worker.setJob(new BuilderJob(worker));
+
+        assertTrue(shovelCondition().isEmpty()); // durability 0: unbreakable
+        assertTrue(manager.citizenInventories()
+                .toolCondition(colony.id(), 99, SHOVEL)
+                .isEmpty());
     }
 }

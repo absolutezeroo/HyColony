@@ -11,6 +11,7 @@ import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.BodyId;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.OptionalInt;
 
 /**
  * MineColonies JobBuilder. Its progress lives in the work order; it saves the wear of its tools, which the core
@@ -44,6 +45,20 @@ public final class BuilderJob extends Job {
         }
         toolUses.remove(tool);
         return true;
+    }
+
+    @Override
+    public OptionalInt toolUses(ItemKey tool) {
+        return OptionalInt.of(toolUses.getOrDefault(tool, 0));
+    }
+
+    @Override
+    public void setToolUses(ItemKey tool, int uses) {
+        if (uses > 0) {
+            toolUses.put(tool, uses);
+        } else {
+            toolUses.remove(tool);
+        }
     }
 
     @Override

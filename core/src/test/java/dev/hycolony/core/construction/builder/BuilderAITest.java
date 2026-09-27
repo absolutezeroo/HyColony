@@ -47,6 +47,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.BooleanSupplier;
@@ -915,7 +916,9 @@ class BuilderAITest {
         BuilderJob loaded = new BuilderJob(new CitizenData(7));
         loaded.read(job.write());
 
+        assertEquals(OptionalInt.of(2), loaded.toolUses(shovel));
         assertTrue(loaded.wear(shovel, 3)); // the third use breaks it
+        assertEquals(OptionalInt.of(0), loaded.toolUses(shovel));
         assertFalse(loaded.wear(shovel, 3)); // its replacement starts fresh
         assertFalse(job.wear(new ItemKey("unbreakable"), 0));
     }
