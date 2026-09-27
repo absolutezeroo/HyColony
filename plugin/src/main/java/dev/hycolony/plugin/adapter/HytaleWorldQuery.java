@@ -42,4 +42,10 @@ public final class HytaleWorldQuery implements WorldQuery {
             return Optional.empty();
         }
     }
+
+    /** Not wired yet (SP3a task 11 reads the weather): never rains, so the courier always works. */
+    @Override
+    public boolean isRainingAt(BlockPos pos) {
+        return false;
+    }
 }

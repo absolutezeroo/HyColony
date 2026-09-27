@@ -9,6 +9,8 @@ public final class FakeWorld implements WorldQuery {
     public boolean loaded = true;
     /** The world spawn; null when unknown. */
     public BlockPos spawn;
+    /** Rain or snow everywhere. */
+    public boolean raining;
 
     @Override
     public boolean isLoaded(BlockPos pos) {
@@ -18,5 +20,10 @@ public final class FakeWorld implements WorldQuery {
     @Override
     public Optional<BlockPos> spawnPoint(UUID player) {
         return Optional.ofNullable(spawn);
+    }
+
+    @Override
+    public boolean isRainingAt(BlockPos pos) {
+        return raining;
     }
 }

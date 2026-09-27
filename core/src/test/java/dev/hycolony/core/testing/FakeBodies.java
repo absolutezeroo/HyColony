@@ -25,6 +25,8 @@ public final class FakeBodies implements CitizenBodies {
         public ItemKey held;
         public BodyAnimation lastAnimation;
         public int animations;
+        /** The last walking speed factor set (1 = normal). */
+        public double speed = 1;
 
         Body(int colonyId, int citizenId, String name, Vec3 position) {
             this.colonyId = colonyId;
@@ -101,6 +103,14 @@ public final class FakeBodies implements CitizenBodies {
         teleports.add(target);
         b.position = target;
         b.status = NavStatus.IDLE;
+    }
+
+    @Override
+    public void setMovementSpeed(BodyId body, double factor) {
+        Body b = bodies.get(body);
+        if (b != null) {
+            b.speed = factor;
+        }
     }
 
     @Override

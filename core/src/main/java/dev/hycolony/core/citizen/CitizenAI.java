@@ -179,11 +179,15 @@ public final class CitizenAI {
         return !jobAI.canGoIdle();
     }
 
-    /** Forgets the job AI and its held item (MC resetAI clears the render metadata). */
+    /**
+     * Forgets the job AI and its held item (MC resetAI clears the render metadata), and its walking speed (MC
+     * BuildingDeliveryman removes the courier's speed modifier with the job; a job AI sets its own again).
+     */
     private void dropJobAI() {
         jobAI = null;
         aiJob = null;
         bodies.setHeldItem(body, Optional.empty());
+        bodies.setMovementSpeed(body, 1);
     }
 
     private void startJob(Job job) {

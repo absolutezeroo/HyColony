@@ -43,23 +43,10 @@ public final class DeliverymanJob extends Job implements CourierTaskQueue {
         super(TYPE, citizen);
     }
 
-    /** An AI that does nothing yet: the courier AI (MC {@code EntityAIWorkDeliveryman}) replaces it. */
+    /** MC {@code EntityAIWorkDeliveryman}. */
     @Override
     public JobAI createAI(Colony colony, BodyId body) {
-        return new JobAI() {
-            @Override
-            public void tick() {}
-
-            @Override
-            public String stateName() {
-                return "IDLE";
-            }
-
-            @Override
-            public boolean canBeInterrupted() {
-                return true;
-            }
-        };
+        return new DeliverymanAI(colony, this, body);
     }
 
     /** MC {@code getTaskQueue}: the courier's own tasks, head first, read-only. */
@@ -107,6 +94,29 @@ public final class DeliverymanJob extends Job implements CourierTaskQueue {
     /** The deliveries loaded for the delivery under way, read-only. */
     public Set<RequestToken> ongoingDeliveries() {
         return Collections.unmodifiableSet(ongoing);
+    }
+
+    /**
+     * The head of the courier's own queue, never pulled from the warehouse. Deviation from MC: the working states
+     * call {@code getCurrentTask}, which pulls when the queue is empty; here only START_WORKING (every 100 ticks)
+     * pulls, since a pull scores the whole warehouse queue. A working state finding its queue emptied (a cancel)
+     * restarts, as MC does when the pulled task is not the one it was doing.
+     */
+    Optional<Request> ownTask(Colony colony) {
+        return CourierTaskPicker.ownHead(colony, queue);
+    }
+
+    /** MC {@code getTaskListWithSameDestination}: see {@link CourierTasks#withSameDestination}. */
+    List<Request> tasksWithSameDestination(Colony colony, Request delivery) {
+        return CourierTasks.withSameDestination(colony, queue, delivery);
+    }
+
+    /**
+     * MC {@code finishRequest}, on the head of the courier's queue: a delivery resolves (or fails) every delivery
+     * loaded with it, a pickup only itself; a head whose request is gone is popped. See {@link CourierTasks#finish}.
+     */
+    public void finishRequest(Colony colony, boolean successful) {
+        CourierTasks.finish(colony, queue, ongoing, successful);
     }
 
     @Override

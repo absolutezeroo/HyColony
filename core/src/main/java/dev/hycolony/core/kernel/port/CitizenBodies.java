@@ -33,4 +33,10 @@ public interface CitizenBodies {
 
     /** Moves the body to a free spot at or near {@code target} at once (MC's stuck handler, last resort). */
     void teleport(BodyId body, Vec3 target);
+
+    /**
+     * Sets the body's walking speed as a factor of its normal speed (1 = normal; MC's MOVEMENT_SPEED attribute over
+     * its base 0.3). No effect on an unknown body.
+     */
+    void setMovementSpeed(BodyId body, double factor);
 }

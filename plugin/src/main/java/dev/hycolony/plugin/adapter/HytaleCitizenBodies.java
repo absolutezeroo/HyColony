@@ -185,6 +185,10 @@ public final class HytaleCitizenBodies implements CitizenBodies {
         }
     }
 
+    /** Not wired yet (SP3a task 11 finds the Hytale speed control): bodies keep their normal speed. */
+    @Override
+    public void setMovementSpeed(BodyId body, double factor) {}
+
     @Override
     public void despawn(BodyId body) {
         Ref<EntityStore> ref = ref(body);

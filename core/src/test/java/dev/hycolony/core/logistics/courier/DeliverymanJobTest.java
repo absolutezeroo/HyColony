@@ -330,4 +330,18 @@ class DeliverymanJobTest {
         assertEquals(Set.of(task), loaded.ongoingDeliveries());
         assertTrue(loaded.isWorking());
     }
+
+    @Test
+    void agedPrioritySurvivesSaveAndLoad() {
+        DeliverymanJob job = courier(0);
+        RequestToken farAway = delivery(far, 13, STONE);
+        RequestToken chosen = delivery(near, 13, STONE);
+        assertEquals(chosen, current(job));
+        assertEquals(14, priority(farAway));
+
+        Colony loaded = ColonySerializer.read(ColonySerializer.write(colony), t.context(), new TerritoryIndex());
+
+        Requestable aged = loaded.requests().get(farAway).orElseThrow().requestable();
+        assertEquals(14, ((Delivery) aged).priority());
+    }
 }

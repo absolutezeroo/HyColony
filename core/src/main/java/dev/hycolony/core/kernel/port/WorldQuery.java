@@ -10,4 +10,7 @@ public interface WorldQuery {
 
     /** Where {@code player} spawns in this world (MC Level.getSharedSpawnPos); empty if unknown (never throws). */
     Optional<BlockPos> spawnPoint(UUID player);
+
+    /** Whether it rains or snows at {@code pos} (MC Level.isRaining); false when unknown (never throws). */
+    boolean isRainingAt(BlockPos pos);
 }

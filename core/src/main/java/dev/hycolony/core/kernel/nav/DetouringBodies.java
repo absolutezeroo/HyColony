@@ -156,6 +156,11 @@ public final class DetouringBodies implements CitizenBodies {
     }
 
     @Override
+    public void setMovementSpeed(BodyId body, double factor) {
+        bodies.setMovementSpeed(body, factor);
+    }
+
+    @Override
     public void despawn(BodyId body) {
         forget(body);
         bodies.despawn(body);

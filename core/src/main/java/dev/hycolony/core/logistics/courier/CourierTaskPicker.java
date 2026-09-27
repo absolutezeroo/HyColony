@@ -52,7 +52,7 @@ final class CourierTaskPicker {
      * The head of the courier's own queue. Deviation from MC: a head whose request is gone (a stale token after a
      * load) is dropped; MC returns null for it, forever, as nothing else pops it.
      */
-    private static Optional<Request> ownHead(Colony colony, List<RequestToken> queue) {
+    static Optional<Request> ownHead(Colony colony, List<RequestToken> queue) {
         while (!queue.isEmpty()) {
             Optional<Request> head = colony.requests().get(queue.get(0));
             if (head.isPresent()) {

@@ -55,11 +55,20 @@ Toutes reprises de MineColonies ; les références `§` renvoient à la recherch
 
 - Rangements = conteneurs Hytale du plan (coffres) au lieu des étagères MC.
 - Le constructeur est aujourd'hui le seul ouvrier : il demande un ramassage quand sa hutte est pleine et après un dépôt, selon la règle générique `AbstractEntityAIBasic` (§ 0.1). Aucun autre producteur tant que SP3 n'en ajoute pas.
-- Pluie : dépend de la météo Hytale (à vérifier, voir plus bas) ; si le serveur ne l'expose pas, le livreur travaille toujours, écart documenté.
+- Pluie : le livreur ne travaille pas s'il pleut **ou neige** à la position de sa hutte (port `WorldQuery.isRainingAt`) ; MC teste une pluie globale au monde. Le réglage MC `workersAlwaysWorkInRain` n'est pas encore porté.
 - Outils gardés (`KeepToolsModule`) : le constructeur garde pioche, pelle et hache ; houe et cisailles n'existent pas dans `ToolType`.
 - Rangement (`WarehouseStorage`) : le 2e choix de MC (une étagère qui contient un objet « similaire », même onglet créatif) est sauté, les objets Hytale n'ont pas d'onglet créatif dans le cœur. Sans améliorations de stockage, un entrepôt de niveau 5 plein envoie toujours le message « amélioration maximale » de MC, jamais « payez un bloc d'émeraude ». Le premier message « entrepôt plein » n'est pas retardé : notre compteur de ticks repart de 0 au lancement du serveur (le temps de jeu de MC est sauvegardé).
 - Résolveurs de stock (`WarehouseStockResolver`) : un seul résolveur au lieu du couple générique / concret de MC, qui ne se distinguent que par la façon de compter (NBT, usure contre prédicat) ; `Deliverable.matches` couvre les deux. Pas de `StackList` (`INonExhaustiveDeliverable`) dans nos requêtes, donc le `leftOver` gardé vaut toujours 0 ; pas de `MinimumStack`, donc la règle « pas pour le stock minimum d'un autre entrepôt » n'a rien à tester. Les deux arrivent avec le stock minimum (backlog).
 - Choix de la tâche du livreur (`CourierTaskPicker`, MC `JobDeliveryman.getCurrentTask`) : un jeton en tête de la file du livreur dont la requête a disparu est retiré (MC le renvoie `null` indéfiniment) ; les jetons morts de la file de l'entrepôt sont retirés même quand aucune tâche n'est trouvée (MC ne les retire qu'avec une tâche) ; une source ou une cible inconnue compte pour une distance nulle au lieu de lever une exception. Le malus de −1000 d'une cible non chargée n'est pas porté : MC l'écrase par la priorité pour toute tâche de livreur, il ne s'applique donc jamais.
+- IA du livreur (`DeliverymanAI`, MC `EntityAIWorkDeliveryman`) :
+  - les états de travail (préparation, livraison, ramassage) ne lisent que la tête de la file propre du livreur ; seul START_WORKING (toutes les 100 ticks) tire une tâche de l'entrepôt (MC appelle `getCurrentTask` à chaque pas, qui tire aussi quand la file est vide ; un tirage note toute la file de l'entrepôt) ;
+  - `finishRequest` sur une livraison en tête sans rien de chargé règle la tête seule (MC ne règle rien et garde la tête pour toujours) ;
+  - pas d'interactions de chat (« pas d'entrepôt », « coffre plein »), pas de statut visible ni de sac à dos, pas de statistiques, pas de faim (`decreaseSaturationForContinuousAction`) : ces systèmes n'existent pas encore dans le cœur ;
+  - l'échange d'une pile quand la cible est pleine (`forceItemStackToItemHandler`) passe par le port de conteneurs, par objet et non par case : l'extraction peut prendre l'objet dans une autre case du même conteneur ; ce qui n'a pas pu être échangé est remis ;
+  - « objets de ses requêtes » de la cible (`isItemStackInRequest`) : toutes les requêtes ouvertes du bâtiment, pas seulement celles de ses citoyens, car notre constructeur demande ses matériaux au nom de la hutte ;
+  - ramassage : le parcours case par case porte sur les cases non vides des conteneurs de la hutte (hutte d'abord) ; l'indice reste en place quand la pile est partie entière ;
+  - vitesse : facteur de la vitesse de base donné au corps (`CitizenBodies.setMovementSpeed`), recalculé à chaque décision (MC `onLevelUp`) et remis à 1 quand l'IA de métier est abandonnée (MC retire le modificateur avec le métier) ;
+  - pas de test de dimension (`isReachableFromLocation`) : un seul monde.
 
 ## Architecture
 

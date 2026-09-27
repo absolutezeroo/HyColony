@@ -51,6 +51,30 @@ class CitizenAIWorkTest {
         assertEquals(CitizenState.WANDERING, ai.state()); // and resumes its errand
     }
 
+    @Test
+    void aWorkerLosingItsJobWalksAtNormalSpeedAgain() {
+        Colony c = new Colony(
+                t.context(),
+                new TerritoryIndex(),
+                new Colony.Founding(1, "T", new BlockPos(0, 64, 0), Permissions.createDefault(UUID.randomUUID(), "A")));
+        CitizenData d = new CitizenData(1);
+        c.citizens().restore(d);
+        BodyId body = t.bodies.existing(1, 1, new Vec3(0, 64, 0));
+        d.setJob(TestJobs.TYPE.factory().apply(d));
+        CitizenAI ai = new CitizenAI(c, d, body);
+        for (int i = 0; i < 30 && ai.state() != CitizenState.WORKING; i++) {
+            ai.tick();
+        }
+        t.bodies.setMovementSpeed(body, 1.5); // a courier's Agility bonus (MC JobDeliveryman.onLevelUp)
+
+        d.setJob(null);
+        for (int i = 0; i < 5 && ai.state() != CitizenState.IDLE; i++) {
+            ai.tick();
+        }
+
+        assertEquals(1.0, t.bodies.bodies.get(body).speed); // MC BuildingDeliveryman removes the modifier
+    }
+
     /** Work buildings the AIs of {@link BoundJob} were created for, one entry per job AI tick. */
     private static final List<BlockPos> TICKED_FOR = new ArrayList<>();
 
