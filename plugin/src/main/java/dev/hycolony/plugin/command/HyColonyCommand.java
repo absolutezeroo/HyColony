@@ -2,7 +2,6 @@ package dev.hycolony.plugin.command;
 
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
-import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
 import com.hypixel.hytale.server.core.command.system.arguments.system.RequiredArg;
@@ -27,25 +26,18 @@ import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.persist.FileColonyStorage;
-import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.Msg;
-import dev.hycolony.core.kernel.port.NavStatus;
 import dev.hycolony.plugin.IdMap;
 import dev.hycolony.plugin.WorldRuntime;
 import dev.hycolony.plugin.WorldRuntimes;
 import dev.hycolony.plugin.adapter.HytaleNotifier;
 import dev.hycolony.plugin.adapter.HytaleWorldBlocks;
+import dev.hycolony.plugin.command.LogisticsSelfTest.SelfTestReport;
 import dev.hycolony.plugin.subplugin.SubPlugins;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 import javax.annotation.Nonnull;
 import org.joml.Vector3d;
 
@@ -196,7 +188,6 @@ public final class HyColonyCommand extends AbstractCommandCollection {
 
     /** Exercises each port against the live server (spec § 4.5). Operators only. */
     static final class SelfTest extends AbstractPlayerCommand {
-        private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
         private final WorldRuntimes runtimes;
         private final IdMap ids;
@@ -217,85 +208,36 @@ public final class HyColonyCommand extends AbstractCommandCollection {
                 @Nonnull Ref<EntityStore> ref,
                 @Nonnull PlayerRef player,
                 @Nonnull World world) {
+            SelfTestReport out = (step, ok, detail) -> report(player, step, ok, detail);
             WorldRuntime rt = runtimes.of(world);
             List<String> idErrors = ids.validate();
-            report(player, "asset ids", idErrors.isEmpty(), String.join(", ", idErrors));
-            subPlugins(player, packs);
+            out.line("asset ids", idErrors.isEmpty(), String.join(", ", idErrors));
+            SubPluginsSelfTest.run(out, packs);
             if (rt == null) {
-                report(player, "runtime", false, "no HyColony runtime for this world");
+                out.line("runtime", false, "no HyColony runtime for this world");
                 return;
             }
+            BlockPos at = where(store, ref);
+            storage(out);
+            construction(player, rt, at, ids);
+            blockKeys(player, ids);
+            HutTypesSelfTest.run(out, rt, ids);
+            LogisticsSelfTest.run(out, rt, at);
+            BodySelfTest.run(out, rt, world, at);
+        }
 
+        /** A colony file written then read back in a temporary folder. */
+        private static void storage(SelfTestReport out) {
             try {
-                Path tmp = Files.createTempDirectory("hycolony-selftest");
-                FileColonyStorage storage = new FileColonyStorage(tmp);
+                FileColonyStorage storage = new FileColonyStorage(Files.createTempDirectory("hycolony-selftest"));
                 storage.save(1, "{\"ok\":true}");
-                report(
-                        player,
+                out.line(
                         "storage",
                         storage.load(1).map(o -> o.get("ok").getAsBoolean()).orElse(false),
                         "round trip");
             } catch (Exception e) {
-                report(player, "storage", false, e.toString());
+                out.line("storage", false, e.toString());
             }
-
-            construction(player, rt, where(store, ref), ids);
-            blockKeys(player, ids);
-            HutTypesSelfTest.run((step, ok, detail) -> report(player, step, ok, detail), rt, ids);
-            LogisticsSelfTest.run((step, ok, detail) -> report(player, step, ok, detail), rt, where(store, ref));
-
-            // Tag (-1, -1): if this body survives a crash, onBodyLoaded finds no colony -1 and despawns it.
-            Optional<BodyId> body = rt.bodies()
-                    .spawn(rt.manager().context().world(), where(store, ref).offset(2, 0, 0), -1, -1, "SelfTest");
-            report(player, "spawn", body.isPresent(), "spawnNPCWithColumnProbe");
-            body.ifPresent(b -> {
-                Vec3 start = rt.bodies().position(b).orElseThrow();
-                rt.bodies().moveTo(b, new Vec3(start.x() + 3, start.y(), start.z()));
-                long[] waited = {0};
-                boolean[] scheduleWarned = {false};
-                Runnable[] poll = new Runnable[1];
-                poll[0] = () -> {
-                    NavStatus s = rt.bodies().navStatus(b);
-                    waited[0] += 500;
-                    if (s == NavStatus.MOVING && waited[0] < 15_000) {
-                        scheduleLogged(world, poll[0], scheduleWarned);
-                        return;
-                    }
-                    report(player, "move", s == NavStatus.ARRIVED, s.name());
-                    rt.bodies().despawn(b);
-                };
-                scheduleLogged(world, poll[0], scheduleWarned);
-            });
-        }
-
-        /**
-         * Reschedules {@code task} 500 ms out, like the poll loop above, and watches the dispatch off the world
-         * thread so a failure is not silently dropped (CLAUDE.md sec 4): the first one logs WARNING, later calls
-         * with the same {@code warnedOnce} flag log FINE.
-         */
-        private static void scheduleLogged(World world, Runnable task, boolean[] warnedOnce) {
-            ScheduledFuture<?> future = world.scheduleAfter(task, 500, TimeUnit.MILLISECONDS);
-            var _ = CompletableFuture.runAsync(() -> {
-                try {
-                    future.get();
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                } catch (ExecutionException e) {
-                    Level level = warnedOnce[0] ? Level.FINE : Level.WARNING;
-                    warnedOnce[0] = true;
-                    LOG.at(level).withCause(e.getCause()).log("HyColony selftest: scheduleAfter dispatch failed");
-                }
-            });
-        }
-
-        /** One line per bundled sub-plugin (a disabled one is fine: the config chose it), then the fragment count. */
-        private static void subPlugins(PlayerRef player, SubPlugins packs) {
-            packs.statuses().forEach(p -> {
-                String state = p.state().name().toLowerCase(Locale.ROOT);
-                String step = "sub-plugin " + p.name() + " " + p.version() + " (" + state + ")";
-                report(player, step, p.state() != SubPlugins.State.FAILED, "see the server log");
-            });
-            report(player, "sub-plugin fragments: " + packs.fragmentsMerged() + " merged", true, "");
         }
 
         /**
