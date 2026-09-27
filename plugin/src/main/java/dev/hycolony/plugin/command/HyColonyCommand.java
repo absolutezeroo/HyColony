@@ -305,14 +305,15 @@ public final class HyColonyCommand extends AbstractCommandCollection {
         private static void construction(PlayerRef player, WorldRuntime rt, BlockPos at, IdMap ids) {
             ConstructionPorts ports = rt.manager().context().ports();
             try {
-                Optional<Blueprint> bp =
-                        ports.blueprints().load("outlander", ConstructionBuildingTypes.BUILDER.id(), 1, 0);
+                // Styles come from sub-plugins that may all be disabled: then there is nothing to load.
+                String style = ports.blueprints().styles().stream().findFirst().orElse("(no style)");
+                Optional<Blueprint> bp = ports.blueprints().load(style, ConstructionBuildingTypes.BUILDER.id(), 1, 0);
                 report(
                         player,
                         "blueprint",
                         bp.isPresent() && !bp.get().entries().isEmpty(),
                         bp.map(b -> b.key() + " (" + b.entries().size() + " blocks)")
-                                .orElse("outlander builder 1 missing"));
+                                .orElse(style + " builder 1 missing"));
 
                 BlockPos test = at.offset(0, 3, 0);
                 boolean air = ports.blocks()
@@ -323,7 +324,7 @@ public final class HyColonyCommand extends AbstractCommandCollection {
                     report(player, "blocks", false, "the cell 3 blocks above you must be loaded air");
                     return;
                 }
-                BlockState chest = new BlockState(new BlockKey(ids.blockId("blueprint.spawnerChest.outlander")), 0);
+                BlockState chest = new BlockState(new BlockKey(ids.blockId("selftest.chest")), 0);
                 boolean placed = ports.blocks().place(test, chest, true)
                         && ports.blocks()
                                 .get(test)

@@ -1,0 +1,124 @@
+{
+  "kweebec": {
+    "hycolony:townhall": {
+      "1": {
+        "prefab": "Npc/Kweebec/Redwood/Small_Plot/House/Kweebec_Redwood_Small_Plot_House_001.prefab.json",
+        "hutOffset": [0, 8, -1]
+      },
+      "2": {
+        "prefab": "Npc/Kweebec/Redwood/Small_Plot/House/Kweebec_Redwood_Small_Plot_House_002.prefab.json",
+        "hutOffset": [0, 8, -2]
+      },
+      "3": {
+        "prefab": "Npc/Kweebec/Redwood/Normal_Plot/House/Kweebec_Redwood_Normal_Plot_House_001.prefab.json",
+        "hutOffset": [0, 9, -5]
+      },
+      "4": {
+        "prefab": "Npc/Kweebec/Redwood/Normal_Plot/House/Kweebec_Redwood_Normal_Plot_House_002.prefab.json",
+        "hutOffset": [1, 10, -2]
+      },
+      "5": {
+        "prefab": "Npc/Kweebec/Redwood/Medium_House/Kweebec_Redwood_Medium_House_002.prefab.json",
+        "hutOffset": [2, 10, -5]
+      }
+    },
+    "hycolony:builder": {
+      "1": {
+        "prefab": "Npc/Kweebec/Redwood/Small_Plot/House/Kweebec_Redwood_Small_Plot_House_001.prefab.json",
+        "hutOffset": [0, 8, -1]
+      },
+      "2": {
+        "prefab": "Npc/Kweebec/Redwood/Small_Plot/House/Kweebec_Redwood_Small_Plot_House_002.prefab.json",
+        "hutOffset": [0, 8, -2]
+      },
+      "3": {
+        "prefab": "Npc/Kweebec/Redwood/Normal_Plot/House/Kweebec_Redwood_Normal_Plot_House_001.prefab.json",
+        "hutOffset": [0, 9, -5]
+      },
+      "4": {
+        "prefab": "Npc/Kweebec/Redwood/Normal_Plot/House/Kweebec_Redwood_Normal_Plot_House_002.prefab.json",
+        "hutOffset": [1, 10, -2]
+      },
+      "5": {
+        "prefab": "Npc/Kweebec/Redwood/Medium_House/Kweebec_Redwood_Medium_House_002.prefab.json",
+        "hutOffset": [2, 10, -5]
+      }
+    },
+    "hycolony:residence": {
+      "1": {
+        "prefab": "Npc/Kweebec/Redwood/Small_Plot/House/Kweebec_Redwood_Small_Plot_House_001.prefab.json",
+        "hutOffset": [0, 8, -1]
+      },
+      "2": {
+        "prefab": "Npc/Kweebec/Redwood/Small_Plot/House/Kweebec_Redwood_Small_Plot_House_002.prefab.json",
+        "hutOffset": [0, 8, -2]
+      },
+      "3": {
+        "prefab": "Npc/Kweebec/Redwood/Normal_Plot/House/Kweebec_Redwood_Normal_Plot_House_001.prefab.json",
+        "hutOffset": [0, 9, -5]
+      },
+      "4": {
+        "prefab": "Npc/Kweebec/Redwood/Normal_Plot/House/Kweebec_Redwood_Normal_Plot_House_002.prefab.json",
+        "hutOffset": [1, 10, -2]
+      },
+      "5": {
+        "prefab": "Npc/Kweebec/Redwood/Medium_House/Kweebec_Redwood_Medium_House_002.prefab.json",
+        "hutOffset": [2, 10, -5]
+      }
+    },
+    "hycolony:warehouse": {
+      "1": {
+        "prefab": "Npc/Kweebec/Autumn/Shops/Kweebec_Autumn_Shops_007.prefab.json",
+        "hutOffset": [-4, 9, 0],
+        "spawnerChests": true
+      },
+      "2": {
+        "prefab": "Npc/Kweebec/Redwood/Small_Plot/House/Kweebec_Redwood_Small_Plot_House_003.prefab.json",
+        "hutOffset": [2, 7, 1],
+        "spawnerChests": true
+      },
+      "3": {
+        "prefab": "Npc/Kweebec/Redwood/Normal_Plot/House/Kweebec_Redwood_Normal_Plot_House_001.prefab.json",
+        "hutOffset": [0, 9, -5],
+        "spawnerChests": true
+      },
+      "4": {
+        "prefab": "Npc/Kweebec/Oak/Houses_Small/Kweebec_Oak_Houses_Small_001.prefab.json",
+        "hutOffset": [1, 7, -1],
+        "spawnerChests": true
+      },
+      "5": {
+        "prefab": "Npc/Kweebec/Oak/Houses_Large/Kweebec_Oak_Houses_Large_002.prefab.json",
+        "hutOffset": [2, 8, 3],
+        "spawnerChests": true
+      }
+    },
+    "hycolony:deliveryman": {
+      "1": {
+        "prefab": "Npc/Kweebec/Oak/Shops/Kweebec_Oak_Shops_008.prefab.json",
+        "hutOffset": [1, 10, 1],
+        "spawnerChests": true
+      },
+      "2": {
+        "prefab": "Npc/Kweebec/Oak/Shops/Kweebec_Oak_Shops_002.prefab.json",
+        "hutOffset": [-2, 6, 1],
+        "spawnerChests": true
+      },
+      "3": {
+        "prefab": "Npc/Kweebec/Oak/Shops/Kweebec_Oak_Shops_005.prefab.json",
+        "hutOffset": [-3, 8, 0],
+        "spawnerChests": true
+      },
+      "4": {
+        "prefab": "Npc/Kweebec/Oak/Shops/Kweebec_Oak_Shops_003.prefab.json",
+        "hutOffset": [3, 6, 2],
+        "spawnerChests": true
+      },
+      "5": {
+        "prefab": "Npc/Kweebec/Oak/Shops/Kweebec_Oak_Shops_001.prefab.json",
+        "hutOffset": [1, 9, 2],
+        "spawnerChests": true
+      }
+    }
+  }
+}

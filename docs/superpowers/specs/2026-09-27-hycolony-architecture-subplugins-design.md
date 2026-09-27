@@ -41,6 +41,15 @@ Rendre l'ajout d'un métier, d'un bâtiment ou d'un pack de contenu **local** : 
    - Un pack désactivé laisse les sauvegardes lisibles (point 1).
 8. **Premier pack.** Les styles Outlander et Kweebec sortent en sous-plugins d'assets seuls (`Styles_Outlander`, `Styles_Kweebec`), activés par défaut. Le comportement en jeu est inchangé.
 
+### Notes de réalisation (points 7 et 8)
+
+- Source : `plugin/src/subplugins/<Nom>/` avec `subplugin.json` (`Name` = nom du dossier, vérifié au build ; `Version` ; `EnabledByDefault` ; `Description` et `Registrar` facultatifs), `Common/`, `Server/` et `hycolony/{id-map,styles}.json`. Le build (`plugin/build.gradle.kts`) met dans le jar `subplugins/index.txt`, `subplugins/<Nom>.zip` (seulement si le pack a des `Common/` ou `Server/`) et `subplugins/<Nom>/…` pour le manifeste et les fragments.
+- Au `setup()` : un pack activé (`HyColony.SubPlugins.<Nom>` s'il est booléen, sinon `EnabledByDefault`) voit son zip copié dans `<données du plugin>/packs/` puis enregistré sous `HyColony:HyColony_<Nom>` (le nom doit être `groupe:nom`, voir `plugin-b-api.md` § 21.1), sans dépendance dans son manifeste. Un échec est journalisé SEVERE et le pack ignoré. Un pack désactivé n'ajoute rien, ni assets ni fragments.
+- Fragments : fusion par `JsonFragments` (cœur), sur un niveau pour `id-map.json` (clés d'une section) et deux pour `styles.json` (style puis type de bâtiment). Une clé définie deux fois est journalisée SEVERE avec ses deux sources ; la première l'emporte.
+- `Registrar` : classe qui implémente `FeaturePack` (cœur), appelée après `CoreFeatures.register` sur le registre unique partagé par les mondes et les systèmes de huttes.
+- Traductions : un pack peut livrer son `hycolony.lang` ; les clés sont fusionnées et la première chargée gagne. Règle : un pack ajoute des clés, il n'en redéfinit jamais une du cœur (non vérifié par le build).
+- Point 8 : les deux styles n'ont aucun asset propre (les prefabs sont ceux de Hytale). Leurs packs ne contiennent que leur `styles.json` et la clé `blueprint.spawnerChest.<style>` de l'`id-map` ; ils n'enregistrent donc pas de pack d'assets. L'autotest utilise la clé `selftest.chest` du cœur et le premier style disponible.
+
 Hors portée : la défense, la recherche, les autres métiers de SP3, et l'accès multi-module (`modules(Class)`), prévu avant la défense et l'école.
 
 ## Principes

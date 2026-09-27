@@ -14,8 +14,7 @@
     "hut.residence": "HyColony_Hut_Residence",
     "hut.warehouse": "HyColony_Hut_Warehouse",
     "hut.deliveryman": "HyColony_Hut_Courier",
-    "blueprint.spawnerChest.outlander": "Furniture_Crude_Chest_Small",
-    "blueprint.spawnerChest.kweebec": "Furniture_Kweebec_Chest_Small",
+    "selftest.chest": "Furniture_Crude_Chest_Small",
     "selftest.stair_corner": "*Rock_Stone_Brick_Stairs_State_Definitions_Corner_Right",
     "selftest.door": "Furniture_Crude_Door",
     "selftest.door_open": "*Furniture_Crude_Door_State_Definitions_OpenDoorIn"
