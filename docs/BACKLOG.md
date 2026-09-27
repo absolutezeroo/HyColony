@@ -98,6 +98,7 @@ Les autres points de la relecture sont corrigés. Il reste :
   - onglet Stock : bouton de tri et recherche (MC `WindowHutAllInventory`) ;
   - annonce au joueur d'une livraison ou d'un ramassage qu'il détient faute de livreur (aujourd'hui seulement visibles dans le presse-papiers).
   - `keepFood` quand le système de faim existera : chaque hutte garde `niveau × 2` aliments, inventaire compris (MC `AbstractBuilding.keepFood`, `HutKeep`).
+  - `CitizenAI` en IDLE ne revérifie `shouldWork` que toutes les 20 ticks (MC : 10 ticks dans tous les états, `decideAiTask`).
 - **Entrepôt et livreurs : points mineurs reportés** (relecture finale de SP3a, 2026-09-27) :
   - `CourierTaskPicker` appelle `RequesterLocation.of` pour chaque entrée de la file (file × bâtiments, sans `SCAN_LIMIT`) ;
   - la tâche en cours (`ongoing`) d'un livreur n'est pas vidée quand il devient inactif (comme MC), sans que ce soit documenté ;
