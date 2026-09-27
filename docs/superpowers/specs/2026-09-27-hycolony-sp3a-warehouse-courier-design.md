@@ -1,0 +1,90 @@
+# HyColony SP3a : entrepôt et livreurs
+
+Conception validée avec l'utilisateur le 2026-09-27 (« tant que c'est comme MineColonies »). Recherche : `docs/research/sp3a-mc-logistics-lumberjack.md` (§ 0, 1, 2), source MineColonies `version/main` commit `6b3916a`. Bûcheron et mineur exclus (plants Hytale à fabriquer avec de l'essence de vie).
+
+## Objectif
+
+La colonie stocke ses objets dans un entrepôt et des livreurs les portent aux huttes qui les demandent (d'abord le constructeur), puis rapportent à l'entrepôt ce que les huttes n'ont pas à garder. Le joueur n'a plus à livrer lui-même.
+
+## Portée
+
+- **Dedans :** entrepôt (stock, résolveurs, rattachement des livreurs, rangement), hutte du livreur et son IA, requêtes `Delivery` et `Pickup`, priorité de ramassage par hutte, fenêtres correspondantes, objets et plans des deux huttes.
+- **Plus tard (backlog) :** stock minimum (`MinimumStockModule`), bouton « trier » (niveau 3), améliorations de stockage (niveau 5, `MAX_STORAGE_UPGRADE = 3`), bûcheron, mineur ou carrière.
+
+## Règles de jeu
+
+Toutes reprises de MineColonies ; les références `§` renvoient à la recherche.
+
+### Entrepôt (`BuildingWareHouse`, § 1)
+
+- Niveaux 1 à 5, pas d'employé, `canBeGathered = false`. Nombre par colonie non limité (MC actuel).
+- **Rangements** = le bloc de hutte + chaque conteneur du plan posé par le constructeur (`BlueprintEntry.hasContainer`), équivalent des étagères MC (`registerBlockPosition`). Capacité = somme des cases.
+- **Livreurs rattachés** (`CourierAssignmentModule`) : au plus `niveau × 2` ; à chaque tick de colonie, tout livreur sans entrepôt est rattaché si la place le permet ; un citoyen qui n'est plus livreur est détaché.
+- **Résolveurs de stock** (priorité **150**, entre la hutte 200 et le livreur 100) : ne servent jamais l'entrepôt lui-même ; comptent le stock de tous les entrepôts ; résolvent si `total ≥ count` ou `≥ minCount` ; sinon une sous-requête pour le manque (`copyWithCount(count − available)`) dont l'entrepôt est le demandeur. À la complétion : une `Delivery(case source → demandeur, priorité 13)` **par case source** (`getFollowupRequestForCompletion`). Métrique `max(dist/10, 1) + taille de la file`. Le `leftOver` des listes (`StackList`) est gardé.
+- **Rangement** (`dumpInventoryIntoWareHouse`, § 1.5) : pour chaque case du livreur, le premier rangement avec une case libre qui contient déjà l'objet, sinon un rangement vide, sinon celui qui a le plus de cases libres ; si aucun, message à la colonie (au plus toutes les 6 000 ticks, variante selon le niveau) et arrêt du rangement.
+
+### Requêtes (§ 2.2)
+
+- Priorités : `MAX_BUILDING_PRIORITY = 10`, `DEFAULT_DELIVERY_PRIORITY = 13`, `MAX_AGING_PRIORITY = 14`. `incrementPriorityDueToAging` : `min(14, p + 1)`.
+- `Delivery(début, cible, pile, priorité)` : début = case de rangement, cible = hutte qui reçoit.
+- `Pickup(priorité, jour, quantité)` : le demandeur est la hutte à vider ; `jour` = jour de colonie à partir duquel il est dû.
+- Résolveurs du livreur (priorité **100**, un de chaque par entrepôt) : acceptent si l'entrepôt existe et a des livreurs ; `resolve` ajoute le jeton à la **file de l'entrepôt** ; la requête reste en cours jusqu'à ce qu'un livreur la termine. Métrique livraison `max(dist/10, 1) + file`, ramassage `dist`.
+- Une livraison échouée passe par l'annulation standard (enfants frères annulés, parent réassigné), déjà en place dans `RequestManager`.
+
+### Livreur (`BuildingDeliveryman`, `JobDeliveryman`, `EntityAIWorkDeliveryman`, § 2.1, 2.4, 2.5)
+
+- Hutte niveaux 1 à 5, **1 livreur par hutte** ; compétences Agilité (principale) et Adaptabilité (secondaire).
+- **Vitesse** : `+ Agilité × 0,003` sur la base 0,3 (`BONUS_SPEED_PER_LEVEL`).
+- **Livraisons en parallèle** : `1 + Adaptabilité / 5`.
+- **Limite de ramassage** (niveau `L` de sa hutte) : si `L < 5`, plus rien dès que l'inventaire contient `≥ 2^(L−1) + 1` piles ; niveau 5 sans limite.
+- **Choix de la tâche** (modèle « pull », § 2.4) : sa propre file d'abord ; sinon la meilleure de la file de l'entrepôt selon `p = priorité ; −100 si ramassage pas encore dû ; + (taille − index) ; − ⌊√(manhattan(source, cible))⌋`, égalité au premier ; les entrées avant l'élue vieillissent de +1 ; celles de même cible la rejoignent jusqu'au parallèle maximal ; un ramassage passe en dernier.
+- **États et délais** : IDLE (1) → START_WORKING (100 : sans entrepôt, pas de travail + interaction « pas d'entrepôt ») → PREPARE_DELIVERY (5), DELIVERY (5), PICKUP (5, marche 20), DUMPING (20). Détails de `decide`, `prepareDelivery`, `deliver`, `pickup`, `dump` et `finishRequest` : § 2.5, repris tels quels, y compris l'échange d'une pile hors requête quand la cible est pleine (`forceItemStackToItemHandler`).
+- **XP** : +0,05 par ramassage, +1,5 par livraison.
+- **Pluie** : ne travaille pas sous la pluie (`canWorkingDuringRain = false`).
+- **Inactivité** : après 36 000 ticks sans travail, ses tâches sont annulées ; à la reprise, les requêtes de livraison et ramassage non assignées sont relancées.
+- Le livreur ne mange pas un objet qu'il livre ; il n'est pas soumis au dépôt générique des ouvriers.
+
+### Ramassages (§ 2.6)
+
+- Priorité de ramassage par hutte : défaut **5**, bornes **0 à 10**, ±1 dans la fenêtre ; **0 = jamais**.
+- `createPickupRequest(quantité, forcé)` : priorité `forcé ? 10 : prioritéHutte` ; au plus **une** demande de ramassage ouverte par hutte ; jour = `jourColonie + max(0, (10 − prioritéHutte) − quantité / 16)`.
+- Déclencheurs : le bouton « forcer un ramassage » (`createPickupRequest(64, true)`) ; hutte pleine (forcé) ; dépôt d'un ouvrier (non forcé).
+- Le livreur prend, case par case (1 case / 5 ticks), ce que la hutte n'a pas à garder (`buildingRequiresCertainAmountOfItem`) : les objets `keepX`, ceux des livraisons de ses requêtes en cours, les modules « objets requis ».
+
+## Écarts à MineColonies (à reporter dans la spec SP1+2 § 11)
+
+- Rangements = conteneurs Hytale du plan (coffres) au lieu des étagères MC.
+- Le constructeur est aujourd'hui le seul ouvrier : il demande un ramassage quand sa hutte est pleine et après un dépôt, selon la règle générique `AbstractEntityAIBasic` (§ 0.1). Aucun autre producteur tant que SP3 n'en ajoute pas.
+- Pluie : dépend de la météo Hytale (à vérifier, voir plus bas) ; si le serveur ne l'expose pas, le livreur travaille toujours, écart documenté.
+
+## Architecture
+
+- **Cœur**, nouveau domaine `logistics/` découpé par sous-domaine (15 fichiers au plus par paquet), seul le point d'entrée de chacun est public :
+  - `logistics/warehouse` : bâtiment, module de rattachement des livreurs, file de requêtes, résolveurs de stock (générique et concret), rangement ;
+  - `logistics/courier` : bâtiment, job, file du livreur, choix de la tâche, IA en états (collaborateurs séparés : préparation, livraison, ramassage, dépôt) ;
+  - `logistics/pickup` : priorité de ramassage par hutte, création des demandes, calcul de ce qu'une hutte garde ;
+  - `request/model` : `Delivery` et `Pickup` ;
+  - persistance des nouveaux champs par `MigrationChain` avec fixture de l'ancienne version.
+  - L'IA du livreur réutilise la marche, l'anti-blocage et l'évitement des dangers existants (`kernel/nav`).
+- **Plugin** :
+  - objets et recettes des huttes (recettes MC `blockhutwarehouse` et `blockhutdeliveryman` transposées en matériaux Hytale, table établie par la recherche du plan) ;
+  - plans dans `hycolony/styles.json` : prefabs vanilla contenant des conteneurs, obtenables en survie ; **liste validée par l'utilisateur** avant intégration ;
+  - fenêtres : entrepôt (livreurs rattachés, stock), hutte du livreur (onglet travail, liste de tâches), et sur chaque hutte les boutons ± de priorité de ramassage et « forcer un ramassage » ;
+  - traductions en-US et fr-FR ; `.ui` validés avec l'éditeur de l'utilisateur.
+- **Tests du cœur (TDD)** : chaque règle ci-dessus (résolveurs et métriques, livraisons par case source, rattachement `niveau × 2`, choix de la tâche et vieillissement, parallèle, limite de ramassage, jour et priorité des ramassages, une seule demande ouverte, ce qu'une hutte garde, rangement et message d'entrepôt plein, inactivité, pluie), plus une simulation de bout en bout : un constructeur demande des blocs, l'entrepôt les a, un livreur les apporte, le chantier avance.
+
+## À vérifier (recherche du plan, puis en jeu)
+
+- Météo Hytale lisible côté serveur (pluie à une position).
+- Prefabs utilisables pour l'entrepôt et la hutte du livreur, par style, avec coffres, obtenables.
+- Recettes MC exactes des deux huttes.
+
+## Tests en jeu (`docs/TESTING.md`)
+
+1. Poser un entrepôt et une hutte de livreur, les construire ; le livreur est embauché et rattaché.
+2. Mettre des blocs dans l'entrepôt ; lancer un chantier : le livreur les apporte au constructeur.
+3. Stock partiel : l'entrepôt livre ce qu'il a, le reste est demandé au joueur.
+4. Forcer un ramassage sur la hutte du constructeur : le livreur vide ce qu'elle n'a pas à garder et le range à l'entrepôt.
+5. Priorité de ramassage à 0 : aucun ramassage.
+6. Entrepôt plein : message à la colonie.
+7. Sous la pluie : le livreur ne travaille pas (si la météo est lisible).
