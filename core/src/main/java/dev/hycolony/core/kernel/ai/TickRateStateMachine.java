@@ -56,8 +56,11 @@ public class TickRateStateMachine<S extends IState> {
     public void removeTransition(TickingTransition<S> transition) {
         if (transition.getEventType() != null) {
             eventList(transition.getEventType()).removeIf(transition::equals);
-        } else {
-            transitionMap.get(transition.getState()).removeIf(transition::equals);
+            return;
+        }
+        List<TickingTransition<S>> ofState = transitionMap.get(transition.getState());
+        if (ofState != null) {
+            ofState.removeIf(transition::equals);
         }
     }
 
@@ -144,9 +147,11 @@ public class TickRateStateMachine<S extends IState> {
         currentStateTransitions = transitionMap.get(initState);
     }
 
-    /** Overrides the countdown of the transition currently executing. */
+    /** Overrides the countdown of the transition currently executing; nothing before any transition ran. */
     public void setCurrentDelay(int ticksToNext) {
-        executedTransition.setTicksToUpdate(ticksToNext);
+        if (executedTransition != null) {
+            executedTransition.setTicksToUpdate(ticksToNext);
+        }
     }
 
     public int getTickRate() {

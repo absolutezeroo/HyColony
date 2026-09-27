@@ -106,6 +106,20 @@ class TickRateStateMachineTest {
     }
 
     @Test
+    void setCurrentDelayBeforeAnyTransitionRanDoesNothing() {
+        var sm = machine();
+        sm.setCurrentDelay(5);
+        assertEquals(S.A, sm.getState());
+    }
+
+    @Test
+    void removingATransitionOfAStateWithoutTransitionsDoesNothing() {
+        var sm = machine();
+        sm.removeTransition(new AITarget<>(S.B, S.A, 1));
+        assertEquals(S.A, sm.getState());
+    }
+
+    @Test
     void missingTransitionsForNewStateReportsAndResets() {
         var sm = machine();
         sm.addTransition(new AITarget<>(S.A, S.EMPTY, 1));
