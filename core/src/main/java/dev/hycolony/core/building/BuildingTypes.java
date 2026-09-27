@@ -8,10 +8,8 @@ public final class BuildingTypes {
 
     private BuildingTypes() {}
 
-    /** A registry with the town hall; each feature (construction…) registers its own huts on top. */
-    public static BuildingRegistry defaults() {
-        BuildingRegistry registry = new BuildingRegistry();
+    /** Registers the town hall; the other features register their own huts through {@code CoreFeatures}. */
+    public static void register(BuildingRegistry registry) {
         registry.register(TOWN_HALL);
-        return registry;
     }
 }

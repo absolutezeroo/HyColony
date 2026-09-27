@@ -34,7 +34,8 @@ class BuildingManagerTest {
 
     @Test
     void registryFindsTownHallByIdAndHutKey() {
-        BuildingRegistry r = BuildingTypes.defaults();
+        BuildingRegistry r = new BuildingRegistry();
+        BuildingTypes.register(r);
         assertEquals(BuildingTypes.TOWN_HALL, r.byId("hycolony:townhall").orElseThrow());
         assertEquals(BuildingTypes.TOWN_HALL, r.byHutKey("hut.townhall").orElseThrow());
     }

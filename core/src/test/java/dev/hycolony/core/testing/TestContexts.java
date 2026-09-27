@@ -1,20 +1,17 @@
 package dev.hycolony.core.testing;
 
+import dev.hycolony.core.CoreFeatures;
 import dev.hycolony.core.building.BuildingRegistry;
 import dev.hycolony.core.building.BuildingType;
-import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.citizen.CitizenNames;
 import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.colony.ConstructionPorts;
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.BlueprintSource;
-import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
 import dev.hycolony.core.job.JobRegistry;
 import dev.hycolony.core.kernel.WorldKey;
 import dev.hycolony.core.kernel.config.ColonyConfig;
 import dev.hycolony.core.kernel.event.EventBus;
-import dev.hycolony.core.logistics.courier.DeliverymanHut;
-import dev.hycolony.core.logistics.warehouse.WarehouseBuilding;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -52,18 +49,15 @@ public final class TestContexts {
     public final List<BuildingType> extraBuildingTypes = new ArrayList<>();
 
     private BuildingRegistry buildings() {
-        BuildingRegistry r = BuildingTypes.defaults();
+        BuildingRegistry r = new BuildingRegistry();
+        CoreFeatures.register(r, new JobRegistry());
         extraBuildingTypes.forEach(r::register);
-        ConstructionBuildingTypes.register(r);
-        WarehouseBuilding.register(r);
-        DeliverymanHut.register(r);
         return r;
     }
 
     private static JobRegistry jobs() {
-        JobRegistry r = JobRegistry.defaults();
-        ConstructionBuildingTypes.register(r);
-        DeliverymanHut.register(r);
+        JobRegistry r = new JobRegistry();
+        CoreFeatures.register(new BuildingRegistry(), r);
         return r;
     }
 

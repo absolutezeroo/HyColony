@@ -2,14 +2,13 @@ package dev.hycolony.plugin;
 
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.universe.world.World;
+import dev.hycolony.core.CoreFeatures;
 import dev.hycolony.core.building.BuildingRegistry;
-import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.citizen.CitizenNames;
 import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.ConstructionPorts;
 import dev.hycolony.core.construction.goggles.BuildGoggles;
-import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
 import dev.hycolony.core.construction.wand.WandActions;
 import dev.hycolony.core.job.JobRegistry;
 import dev.hycolony.core.kernel.WorldKey;
@@ -20,8 +19,6 @@ import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.nav.DetouringBodies;
 import dev.hycolony.core.kernel.persist.FileColonyStorage;
 import dev.hycolony.core.kernel.persist.MigrationChain;
-import dev.hycolony.core.logistics.courier.DeliverymanHut;
-import dev.hycolony.core.logistics.warehouse.WarehouseBuilding;
 import dev.hycolony.plugin.adapter.HytaleBlocks;
 import dev.hycolony.plugin.adapter.HytaleCitizenBodies;
 import dev.hycolony.plugin.adapter.HytaleContainerAccess;
@@ -69,13 +66,9 @@ public final class WorldRuntime {
         this.blocks = new HytaleBlocks(world, catalog.stacks());
         ColonyManager[] self = new ColonyManager[1];
         WandActions[] wandSelf = new WandActions[1]; // the UI port needs it before it exists
-        JobRegistry jobs = JobRegistry.defaults();
-        ConstructionBuildingTypes.register(jobs);
-        DeliverymanHut.register(jobs);
-        BuildingRegistry buildings = BuildingTypes.defaults();
-        ConstructionBuildingTypes.register(buildings);
-        WarehouseBuilding.register(buildings);
-        DeliverymanHut.register(buildings);
+        JobRegistry jobs = new JobRegistry();
+        BuildingRegistry buildings = new BuildingRegistry();
+        CoreFeatures.register(buildings, jobs);
         HytaleWorldBlocks worldBlocks = new HytaleWorldBlocks(world, hutBlockIds, blocks);
         ColonyContext ctx = new ColonyContext(
                 new WorldKey(world.getName()),

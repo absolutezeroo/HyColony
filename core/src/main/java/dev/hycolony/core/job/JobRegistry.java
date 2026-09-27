@@ -1,6 +1,7 @@
 package dev.hycolony.core.job;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -17,8 +18,8 @@ public final class JobRegistry {
         return Optional.ofNullable(byId.get(id));
     }
 
-    /** Empty: the job package cannot see construction, which adds its jobs via ConstructionBuildingTypes.register. */
-    public static JobRegistry defaults() {
-        return new JobRegistry();
+    /** Every registered type, in registration order. */
+    public List<JobType> all() {
+        return List.copyOf(byId.values());
     }
 }

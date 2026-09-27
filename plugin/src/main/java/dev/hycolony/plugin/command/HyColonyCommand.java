@@ -237,6 +237,7 @@ public final class HyColonyCommand extends AbstractCommandCollection {
 
             construction(player, rt, where(store, ref), ids);
             blockKeys(player, ids);
+            HutTypesSelfTest.run((step, ok, detail) -> report(player, step, ok, detail), rt, ids);
             LogisticsSelfTest.run((step, ok, detail) -> report(player, step, ok, detail), rt, where(store, ref));
 
             // Tag (-1, -1): if this body survives a crash, onBodyLoaded finds no colony -1 and despawns it.
