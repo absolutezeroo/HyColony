@@ -283,7 +283,10 @@ public final class HyColonyCommand extends AbstractCommandCollection {
             });
         }
 
-        /** Blueprint load, then place / container round trip / break of a builder hut 3 blocks above the player. */
+        /**
+         * Blueprint load, then place / container round trip / break of a vanilla chest 3 blocks above the player. Not
+         * a hut: breakBlock leaves huts alone (only the hut systems remove them), so a hut would stay there.
+         */
         private static void construction(PlayerRef player, WorldRuntime rt, BlockPos at, IdMap ids) {
             ConstructionPorts ports = rt.manager().context().ports();
             try {
@@ -305,14 +308,13 @@ public final class HyColonyCommand extends AbstractCommandCollection {
                     report(player, "blocks", false, "the cell 3 blocks above you must be loaded air");
                     return;
                 }
-                BlockState hut =
-                        new BlockState(new BlockKey(ids.blockId(ConstructionBuildingTypes.BUILDER.hutBlockKey())), 0);
-                boolean placed = ports.blocks().place(test, hut, true)
+                BlockState chest = new BlockState(new BlockKey(ids.blockId("blueprint.spawnerChest.outlander")), 0);
+                boolean placed = ports.blocks().place(test, chest, true)
                         && ports.blocks()
                                 .get(test)
-                                .map(st -> st.key().equals(hut.key()))
+                                .map(st -> st.key().equals(chest.key()))
                                 .orElse(false);
-                report(player, "place", placed, "place " + hut.key().id());
+                report(player, "place", placed, "place " + chest.key().id());
                 if (!placed) {
                     return;
                 }
@@ -329,7 +331,7 @@ public final class HyColonyCommand extends AbstractCommandCollection {
                         .get(test)
                         .map(st -> ports.catalog().kind(st.key()) == BlockKind.AIR)
                         .orElse(false);
-                report(player, "break", gone, "drops " + drops);
+                report(player, "break", gone && !drops.isEmpty(), "drops " + drops);
             } catch (RuntimeException e) {
                 report(player, "construction", false, e.toString());
             }
