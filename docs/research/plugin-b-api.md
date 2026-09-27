@@ -494,6 +494,18 @@ Analyse complète : `docs/research/citizen-inventory-window.md`. Ce que l'implé
 - **`Window.equals`** compare classe, id, type et `PlayerRef` (`Window.java:251-266`) ; `WindowManager.getWindow(id)` rend `null` pour une fenêtre fermée et lève une exception pour l'id -1 (l. 272-279), posé seulement quand l'ouverture échoue (l. 104, 154).
 - **[in-game]** rendu de `Page.Bench` avec une seule `ContainerWindow` de 27 cases (titre, grille) ; retour visuel quand `cantAddToSlot` refuse un dépôt.
 
+## 17. Texture et `BlockType` créés à l'exécution (expérience `/hycolony dotest`)
+
+Expérience temporaire pour Domum Ornamentum (`docs/research/domum-ornamentum.md` B.6), code dans `plugin/debug/`.
+
+- **Lire une texture chargée** : `CommonAssetRegistry.getByName(nom)` (nom relatif à `Common/`, par exemple `Blocks/Structures/Roofs/Cloth_Roof_Textures/Tent_Blue.png`) rend le `CommonAsset` ou `null` (`server/core/asset/common/CommonAssetRegistry.java:168-172`) ; `getBlob()` rend un `CompletableFuture<byte[]>` (`CommonAsset.java`). Le nom est le chemin sous `Common/` (`CommonAssetModule.java:450, 472`).
+- **Ajouter une texture** : `CommonAssetModule.get().addCommonAsset(pack, asset)` enregistre l'asset, envoie une notification à tout l'univers, puis, s'il y a des joueurs, `sendAsset(asset, false)` : `AssetInitialize` + `AssetPart` + `AssetFinalize` diffusés, **sans** `RequestCommonAssetsRebuild` (`CommonAssetModule.java:187-221, 588-611`). `FileCommonAsset(Path, name, bytes)` calcule le hash depuis les octets et relit le fichier si la référence faible est perdue (`asset/FileCommonAsset.java`) : on écrit donc la PNG dans le dossier de données du plugin.
+- **Nom du pack du plugin** : `PluginIdentifier.toString()` = `Group:Name` (`common/plugin/PluginIdentifier.java:79-81`), nom sous lequel `PluginManager` enregistre le pack (`server/core/plugin/PluginManager.java:839-842`).
+- **Copier un `BlockType`** : constructeur de copie public `BlockType(BlockType)` (`server/core/asset/type/blocktype/config/BlockType.java:1019-1105`) ; ses champs (`id`, `customModelTexture`, `state`, `connectedBlockRuleSet`) sont `protected` sans mutateur (l. 841-927) : une sous-classe les change, comme `BlockType.EMPTY`/`DEBUG_MODEL` (l. 2295-2341). `clone(newKey)` (l. 2226-2236) ne change que l'id.
+- **Charger à chaud** : `BlockType.getAssetStore().loadAssets(packKey, List.of(bt), AssetUpdateQuery.DEFAULT)` (`assetstore/AssetStore.java:463-509`) attribue un nouvel index (`BlockTypeAssetMap.putAll0`, l. 137-195), puis `HytaleAssetStore.handleRemoveOrUpdate` diffuse `BlockTypePacketGenerator.generateUpdatePacket` (`server/core/asset/HytaleAssetStore.java:88-111`) : un `UpdateBlockTypes` `AddOrUpdate` avec `maxId` et les drapeaux de reconstruction de `RebuildCache.DEFAULT` (tous `true`, `AssetUpdateQuery.java`) (`BlockTypePacketGenerator.java:43-66`).
+- **Poser par id** : `World.setBlock(x, y, z, key)` (`IChunkAccessorSync.java:62-68`) lève `IllegalArgumentException` sur une clé inconnue (`WorldChunk.java:267-273`). Un id inconnu au chargement d'un tronçon devient un `BlockType` « Unknown » (`BlockType.getBlockIdOrUnknown`, l. 2242-2257).
+- **[in-game]** le client affiche-t-il le nouveau bloc sans reconnexion ; la texture arrive-t-elle avant la reconstruction de l'atlas (pas de `RequestCommonAssetsRebuild`) ; coût de la reconstruction répétée.
+
 ## Could not verify
 
 1. **Client rendering of item animations on NPCs** (`AnimationSlot.Action` with `"Block"/"Build"` or `"Pickaxe"/"Mine"` on `PlayerTestModel_V`) and whether they loop or play once. Only the server packet path is verified.

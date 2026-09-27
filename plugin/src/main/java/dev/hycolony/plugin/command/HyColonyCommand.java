@@ -34,6 +34,7 @@ import dev.hycolony.plugin.WorldRuntime;
 import dev.hycolony.plugin.WorldRuntimes;
 import dev.hycolony.plugin.adapter.HytaleNotifier;
 import dev.hycolony.plugin.adapter.HytaleWorldBlocks;
+import dev.hycolony.plugin.debug.DoTestCommand;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -44,8 +45,9 @@ import javax.annotation.Nonnull;
 import org.joml.Vector3d;
 
 /**
- * /hycolony info|rank|delete and selftest. Operators run them all (their group holds "*"); non-operators run info,
- * rank and delete only when config Commands allows it (MC canPlayerUse...Command), selftest never.
+ * /hycolony info|rank|delete, selftest and the temporary dotest. Operators run them all (their group holds "*");
+ * non-operators run info, rank and delete only when config Commands allows it (MC canPlayerUse...Command), selftest
+ * and dotest never.
  *
  * <p>Deviation from MC: a refused non-operator gets Hytale's own "no permission" answer instead of MC's "This command
  * is disabled in the config", since the config picks the command's permission group.
@@ -53,7 +55,12 @@ import org.joml.Vector3d;
 public final class HyColonyCommand extends AbstractCommandCollection {
     private static final String PLAYERS = "hytale:Adventurer";
 
-    public HyColonyCommand(WorldRuntimes runtimes, IdMap ids, ColonyConfig.Commands config) {
+    /**
+     * @param packKey the plugin's asset pack name, for the dotest experiment
+     * @param dataDir the plugin data folder, for the dotest experiment
+     */
+    public HyColonyCommand(
+            WorldRuntimes runtimes, IdMap ids, ColonyConfig.Commands config, String packKey, Path dataDir) {
         super("hycolony", "HyColony colony management");
         // No group on the collection: subcommands without one inherit it (putRecursivePermissionGroups).
         // Subcommands are dispatched before the collection's own permission is checked.
@@ -61,6 +68,8 @@ public final class HyColonyCommand extends AbstractCommandCollection {
         addSubCommand(new Rank(runtimes, config.canPlayerUseAddOfficerCommand()));
         addSubCommand(new Delete(runtimes, config.canPlayerUseDeleteColonyCommand()));
         addSubCommand(new SelfTest(runtimes, ids));
+        // Temporary Domum Ornamentum experiment: remove with the debug package after the in-game test.
+        addSubCommand(new DoTestCommand(packKey, dataDir));
     }
 
     /** Every player, or operators only: an empty group list leaves only the auto-generated node, held by "*". */

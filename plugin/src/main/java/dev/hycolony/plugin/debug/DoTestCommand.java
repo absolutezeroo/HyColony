@@ -1,0 +1,126 @@
+package dev.hycolony.plugin.debug;
+
+import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
+import com.hypixel.hytale.server.core.command.system.CommandContext;
+import com.hypixel.hytale.server.core.command.system.basecommands.AbstractPlayerCommand;
+import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
+import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
+import com.hypixel.hytale.server.core.universe.world.World;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import dev.hycolony.core.kernel.port.Msg;
+import dev.hycolony.plugin.adapter.HytaleNotifier;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import javax.annotation.Nonnull;
+import org.joml.Vector3d;
+
+/**
+ * /hycolony dotest [clear], operators only: creates a new texture and BlockType at runtime, places it 2 blocks in
+ * front of the player, and clears the placed blocks on {@code clear}.
+ *
+ * <p>Temporary experiment for the Domum Ornamentum port (docs/research/domum-ornamentum.md B.6): it answers whether a
+ * connected client renders a BlockType created at runtime without reconnecting. Remove it after the in-game test.
+ */
+public final class DoTestCommand extends AbstractPlayerCommand {
+    private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
+    private static final int DISTANCE = 2;
+
+    private final RuntimeBlockFactory factory;
+    private final List<Placed> placed = new ArrayList<>();
+    private int next = 1;
+
+    /**
+     * @param packKey the plugin's asset pack name ({@code getIdentifier().toString()})
+     * @param dataDir the plugin data folder
+     */
+    public DoTestCommand(String packKey, Path dataDir) {
+        super("dotest", "Runtime block type experiment (operators)");
+        this.factory = new RuntimeBlockFactory(packKey, dataDir);
+        setPermissionGroups(new String[0]);
+        addSubCommand(new Clear());
+    }
+
+    /** Runs the four steps on the world thread; a failure is logged SEVERE and reported with its step name. */
+    @Override
+    protected void execute(
+            @Nonnull CommandContext ctx,
+            @Nonnull Store<EntityStore> store,
+            @Nonnull Ref<EntityStore> ref,
+            @Nonnull PlayerRef player,
+            @Nonnull World world) {
+        int n = next++;
+        String id = "HyColony_DoTest_" + n;
+        String step = "compose";
+        try {
+            byte[] png = factory.composeTexture();
+            long start = System.nanoTime();
+            step = "texture";
+            String texture = factory.registerTexture("Test_" + n, png);
+            step = "blocktype";
+            factory.registerBlockType(id, texture);
+            step = "place";
+            Placed at = inFront(store, ref, world);
+            world.setBlock(at.x(), at.y(), at.z(), id);
+            placed.add(at);
+            long ms = (System.nanoTime() - start) / 1_000_000;
+            LOG.at(Level.INFO).log("dotest: created %s at %d %d %d in %d ms", id, at.x(), at.y(), at.z(), ms);
+            say(player, "hycolony.dotest.created", id, String.valueOf(ms));
+        } catch (RuntimeException e) {
+            LOG.at(Level.SEVERE).withCause(e).log("dotest failed at step %s for %s", step, id);
+            say(player, "hycolony.dotest.failed", step);
+        }
+    }
+
+    /** The feet-level cell {@link #DISTANCE} blocks along the player's view yaw (x = -sin, z = -cos, see HeadRotation). */
+    private static Placed inFront(Store<EntityStore> store, Ref<EntityStore> ref, World world) {
+        Vector3d p =
+                store.getComponent(ref, TransformComponent.getComponentType()).getPosition();
+        float yaw = store.getComponent(ref, HeadRotation.getComponentType())
+                .getRotation()
+                .yaw();
+        double x = p.x - Math.sin(yaw) * DISTANCE;
+        double z = p.z - Math.cos(yaw) * DISTANCE;
+        return new Placed(world, (int) Math.floor(x), (int) Math.floor(p.y), (int) Math.floor(z));
+    }
+
+    private static void say(PlayerRef player, String key, String... params) {
+        player.sendMessage(HytaleNotifier.toMessage(Msg.of(key, params)));
+    }
+
+    /** A block this command placed, kept only in memory. */
+    private record Placed(World world, int x, int y, int z) {}
+
+    /** Sets every recorded cell back to air on its own world thread, so no generated id stays in saved chunks. */
+    private final class Clear extends AbstractPlayerCommand {
+        Clear() {
+            super("clear", "Remove the blocks placed by dotest (operators)");
+            setPermissionGroups(new String[0]);
+        }
+
+        @Override
+        protected void execute(
+                @Nonnull CommandContext ctx,
+                @Nonnull Store<EntityStore> store,
+                @Nonnull Ref<EntityStore> ref,
+                @Nonnull PlayerRef player,
+                @Nonnull World world) {
+            int count = placed.size();
+            try {
+                for (Placed at : placed) {
+                    at.world().execute(() -> at.world().setBlock(at.x(), at.y(), at.z(), BlockType.EMPTY_KEY));
+                }
+                placed.clear();
+                say(player, "hycolony.dotest.cleared", String.valueOf(count));
+            } catch (RuntimeException e) {
+                LOG.at(Level.SEVERE).withCause(e).log("dotest clear failed");
+                say(player, "hycolony.dotest.failed", "clear");
+            }
+        }
+    }
+}
