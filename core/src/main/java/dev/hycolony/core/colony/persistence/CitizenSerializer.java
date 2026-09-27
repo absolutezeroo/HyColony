@@ -85,7 +85,7 @@ final class CitizenSerializer {
             job.read(jobJson);
             d.setJob(job);
         } else {
-            // Its pack may only be disabled: keep it verbatim, and the assignment, so re-enabling restores both.
+            // Its pack may only be disabled: keep it verbatim; heal keeps the assignment only with its kept hut.
             d.keepUnknownJob(jobJson);
         }
     }

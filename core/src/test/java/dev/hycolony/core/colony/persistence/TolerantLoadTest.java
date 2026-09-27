@@ -1,10 +1,12 @@
 package dev.hycolony.core.colony.persistence;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyManager;
@@ -17,13 +19,15 @@ import dev.hycolony.core.testing.TestJobs;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 /** A save written with content this build does not know (a disabled pack, an older version) loads without loss. */
 class TolerantLoadTest {
-    private static final BlockPos TOWN_HALL = new BlockPos(0, 64, 0);
+    private static final BlockPos HUT = new BlockPos(8, 64, 0);
+    private static final BuildingType TEST_HUT = new BuildingType("test:hut", "hut.test", 5, List.of());
 
     @TempDir
     Path dir;
@@ -62,6 +66,9 @@ class TolerantLoadTest {
         assertTrue(c.requests().get(token(2)).isEmpty(), "unknown type");
         assertTrue(c.requests().get(token(3)).isEmpty(), "child of a skipped request");
         assertTrue(c.requests().get(token(4)).isEmpty(), "unknown state");
+        assertTrue(c.requests().get(token(5)).isEmpty(), "readable parent of a skipped child");
+        assertTrue(c.requests().get(token(6)).isEmpty(), "unknown type, under a readable parent");
+        assertTrue(c.requests().get(token(7)).isEmpty(), "unknown tool type");
         assertEquals(1, c.requests().all().size());
     }
 
@@ -74,13 +81,42 @@ class TolerantLoadTest {
         Colony c = m.byId(1).orElseThrow();
         CitizenData d = c.citizens().get(1).orElseThrow();
         assertTrue(d.job().isEmpty(), "the job stays inactive while its type is unknown");
-        assertEquals(TOWN_HALL, d.workBuilding());
         c.markDirty();
         m.persistence().saveAll();
 
         JsonObject after = savedCitizen();
         assertEquals(before.get("job"), after.get("job"));
         assertEquals(before.get("work"), after.get("work"));
+    }
+
+    @Test
+    void anUnknownJobAtItsKeptUnknownHutKeepsTheAssignmentAndTheRawJob() throws IOException {
+        install("colony-v3-unknown-job.json");
+
+        CitizenData d =
+                load(new TestContexts()).byId(1).orElseThrow().citizens().get(1).orElseThrow();
+
+        assertEquals(HUT, d.workBuilding());
+        assertEquals(7, d.unknownJob().orElseThrow().get("actionsDone").getAsInt());
+    }
+
+    @Test
+    void anUnknownJobAtAKnownBuildingIsFreed() throws IOException {
+        install("colony-v3-unknown-job.json");
+        Path file = dir.resolve("colony-1.json");
+        JsonObject json = JsonParser.parseString(Files.readString(file)).getAsJsonObject();
+        JsonObject townHall = new JsonObject();
+        townHall.addProperty("x", 0);
+        townHall.addProperty("y", 64);
+        townHall.addProperty("z", 0);
+        json.getAsJsonArray("citizens").get(0).getAsJsonObject().add("work", townHall);
+        Files.writeString(file, json.toString());
+
+        CitizenData d =
+                load(new TestContexts()).byId(1).orElseThrow().citizens().get(1).orElseThrow();
+
+        assertNull(d.workBuilding(), "no unknown hut holds its job: the citizen is rehireable");
+        assertTrue(d.unknownJob().isEmpty());
     }
 
     @Test
@@ -92,10 +128,13 @@ class TolerantLoadTest {
 
         TestContexts enabled = new TestContexts();
         enabled.jobs.register(TestJobs.TYPE);
-        CitizenData d = load(enabled).byId(1).orElseThrow().citizens().get(1).orElseThrow();
+        enabled.extraBuildingTypes.add(TEST_HUT);
+        Colony c = load(enabled).byId(1).orElseThrow();
+        CitizenData d = c.citizens().get(1).orElseThrow();
 
         assertEquals(TestJobs.TYPE, d.job().orElseThrow().type());
         assertEquals(7, d.job().orElseThrow().write().get("actionsDone").getAsInt());
-        assertEquals(TOWN_HALL, d.workBuilding());
+        assertEquals(HUT, d.workBuilding());
+        assertTrue(c.buildings().at(HUT).isPresent(), "the hut came back with the job");
     }
 }

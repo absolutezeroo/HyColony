@@ -19,13 +19,15 @@
   "settings": {"autoHiring": true},
   "buildings": [
     {"type": "hycolony:townhall", "pos": {"x": 0, "y": 64, "z": 0}, "rotation": 0, "level": 0, "built": false,
+     "customName": "", "style": "", "modules": {}, "containers": [], "deconstructed": false},
+    {"type": "test:hut", "pos": {"x": 8, "y": 64, "z": 0}, "rotation": 0, "level": 1, "built": true,
      "customName": "", "style": "", "modules": {}, "containers": [], "deconstructed": false}
   ],
   "citizens": [
     {"id": 1, "name": "Aela K. Oakhart", "gender": "FEMALE", "child": false,
      "skills": {"Athletics": {"level": 3, "xp": 0.5}},
      "lastPosition": {"x": 1.5, "y": 64.0, "z": 2.5}, "respawnPosition": null,
-     "home": null, "work": {"x": 0, "y": 64, "z": 0}, "saturation": 60.0,
+     "home": null, "work": {"x": 8, "y": 64, "z": 0}, "saturation": 60.0,
      "inventory": [{"item": "hycolony:torch", "count": 4}],
      "job": {"type": "test:worker", "actionsDone": 7, "working": true, "fromAPack": {"level": 2}}}
   ],

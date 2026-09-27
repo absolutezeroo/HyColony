@@ -1,6 +1,7 @@
 package dev.hycolony.core.colony.persistence;
 
 import static dev.hycolony.core.colony.persistence.JsonPositions.pos;
+import static dev.hycolony.core.colony.persistence.JsonPositions.readPos;
 import static dev.hycolony.core.colony.persistence.JsonPositions.requirePos;
 
 import com.google.gson.JsonArray;
@@ -16,6 +17,7 @@ import dev.hycolony.core.colony.permission.PermissionsSerializer;
 import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.construction.workorder.WorkOrderSerializer;
 import dev.hycolony.core.job.WorkerModule;
+import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.persist.MigrationChain;
 import dev.hycolony.core.request.RequestSerializer;
 import java.util.ArrayList;
@@ -149,15 +151,12 @@ public final class ColonySerializer {
     /**
      * A save can reference what is gone (a building removed, or of a type no longer registered): its citizens are
      * freed (job dropped, rehireable) and its requests cancelled, so nothing waits forever. A hut's worker list
-     * keeps only citizens that exist and work there, so a hut never looks employed by nobody. A citizen whose job is
-     * unknown keeps its assignment: its hut is likely kept unknown too, and both come back with their pack.
+     * keeps only citizens that exist and work there, so a hut never looks employed by nobody.
      */
     private static boolean heal(Colony c) {
         boolean changed = false;
         for (CitizenData d : c.citizens().all()) {
-            if (d.workBuilding() != null
-                    && d.unknownJob().isEmpty()
-                    && c.buildings().at(d.workBuilding()).isEmpty()) {
+            if (isStale(c, d)) {
                 d.job().ifPresent(job -> job.onRemoval(c));
                 d.setJob(null);
                 d.setWorkBuilding(null);
@@ -175,5 +174,21 @@ public final class ColonySerializer {
             }
         }
         return c.requests().cancelOrphans() | changed;
+    }
+
+    /**
+     * Whether the citizen's assignment points to what is gone. An unknown job stays only with its hut kept unknown
+     * too, so both come back with their pack; anywhere else it frees the citizen, who would never work again.
+     */
+    private static boolean isStale(Colony c, CitizenData d) {
+        BlockPos work = d.workBuilding();
+        if (d.unknownJob().isPresent()) {
+            return work == null || !keptUnknownAt(c, work);
+        }
+        return work != null && c.buildings().at(work).isEmpty();
+    }
+
+    private static boolean keptUnknownAt(Colony c, BlockPos pos) {
+        return c.buildings().unknown().stream().anyMatch(raw -> pos.equals(readPos(raw.get("pos"))));
     }
 }

@@ -28,7 +28,18 @@
        "citizenId": -1, "blacklist": []},
       {"token": "00000000-0000-0000-0000-000000000004", "requester": "building:0,64,0",
        "requestable": {"type": "stack", "item": "Rock_Stone", "count": 2, "minCount": 2, "canBeResolvedByBuilding": true},
-       "state": "FUTURE_STATE", "children": [], "deliveries": [], "citizenId": -1, "blacklist": []}
+       "state": "FUTURE_STATE", "children": [], "deliveries": [], "citizenId": -1, "blacklist": []},
+      {"token": "00000000-0000-0000-0000-000000000005", "requester": "building:0,64,0",
+       "requestable": {"type": "stack", "item": "Wood_Log", "count": 2, "minCount": 2, "canBeResolvedByBuilding": true},
+       "state": "IN_PROGRESS", "children": ["00000000-0000-0000-0000-000000000006"], "deliveries": [],
+       "citizenId": -1, "blacklist": []},
+      {"token": "00000000-0000-0000-0000-000000000006", "requester": "resolver:retrying",
+       "requestable": {"type": "future:crafting", "recipe": "Plank"},
+       "state": "IN_PROGRESS", "parent": "00000000-0000-0000-0000-000000000005", "children": [], "deliveries": [],
+       "citizenId": -1, "blacklist": []},
+      {"token": "00000000-0000-0000-0000-000000000007", "requester": "building:0,64,0",
+       "requestable": {"type": "tool", "tool": "FUTURE_TOOL", "minLevel": 0, "maxLevel": 2},
+       "state": "IN_PROGRESS", "children": [], "deliveries": [], "citizenId": -1, "blacklist": []}
     ],
     "assignments": {
       "player": ["00000000-0000-0000-0000-000000000001"],

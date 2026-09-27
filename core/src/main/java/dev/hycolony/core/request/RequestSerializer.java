@@ -140,7 +140,7 @@ public final class RequestSerializer {
     }
 
     /** The saved request; empty when its type or state is unknown to this build. */
-    static Optional<Request> readRequest(JsonObject o) {
+    private static Optional<Request> readRequest(JsonObject o) {
         Optional<Requestable> requestable = RequestableJson.read(o.getAsJsonObject("requestable"));
         Optional<RequestState> state =
                 RequestableJson.enumOf(RequestState.values(), o.get("state").getAsString());

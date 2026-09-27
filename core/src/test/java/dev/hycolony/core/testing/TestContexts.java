@@ -1,6 +1,7 @@
 package dev.hycolony.core.testing;
 
 import dev.hycolony.core.building.BuildingRegistry;
+import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.citizen.CitizenNames;
 import dev.hycolony.core.colony.ColonyContext;
@@ -14,6 +15,7 @@ import dev.hycolony.core.kernel.config.ColonyConfig;
 import dev.hycolony.core.kernel.event.EventBus;
 import dev.hycolony.core.logistics.courier.DeliverymanHut;
 import dev.hycolony.core.logistics.warehouse.WarehouseBuilding;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -46,8 +48,12 @@ public final class TestContexts {
     public ColonyConfig config = ColonyConfig.defaults();
     public JobRegistry jobs = jobs();
 
-    private static BuildingRegistry buildings() {
+    /** Building types a test adds on top of the defaults, as a pack would. */
+    public final List<BuildingType> extraBuildingTypes = new ArrayList<>();
+
+    private BuildingRegistry buildings() {
         BuildingRegistry r = BuildingTypes.defaults();
+        extraBuildingTypes.forEach(r::register);
         ConstructionBuildingTypes.register(r);
         WarehouseBuilding.register(r);
         DeliverymanHut.register(r);
