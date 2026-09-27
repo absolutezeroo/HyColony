@@ -5,9 +5,12 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.citizen.Skill;
+import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.item.ItemAmount;
+import dev.hycolony.core.kernel.port.NavStatus;
 import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.request.model.StackRequest;
+import dev.hycolony.core.testing.FakeBodies;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -146,5 +149,31 @@ class CourierDeliveryTest extends CourierAITestBase {
         runUntil(() -> "DUMPING".equals(ai.stateName()));
 
         assertFalse(completed(stone));
+    }
+
+    @Test
+    void onTheWayToTheRackItKeepsItsTargetThenLoadsOnArrival() {
+        t.bodies.instant = false; // the walk lasts until the test moves the body
+        hire(5, 5); // 2 at once
+        put(RACK, STONE, 5);
+        put(OTHER_RACK, DIRT, 3);
+        delivery(RACK, STONE, 5);
+        delivery(OTHER_RACK, DIRT, 3);
+        FakeBodies.Body walker = t.bodies.bodies.get(body);
+        runUntil(() -> Vec3.center(RACK).equals(walker.target));
+
+        // were the task list worked out again, the stone would count as loaded and the dirt rack become the target
+        citizen.inventory().insert(new ItemAmount(STONE, 5), i -> 64);
+        run(50);
+        assertEquals("PREPARE_DELIVERY", ai.stateName());
+        assertEquals(Vec3.center(RACK), walker.target);
+        assertFalse(t.bodies.moves.contains(Vec3.center(OTHER_RACK)));
+
+        citizen.inventory().extract(STONE, 5);
+        walker.position = Vec3.center(RACK);
+        walker.status = NavStatus.ARRIVED;
+        runUntil(() -> carried(STONE) == 5);
+
+        assertEquals(0, stored(RACK, STONE));
     }
 }
