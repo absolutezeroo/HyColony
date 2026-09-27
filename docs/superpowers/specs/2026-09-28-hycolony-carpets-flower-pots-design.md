@@ -18,7 +18,7 @@ Ajouter le vrai tapis et le vrai pot de fleurs de Minecraft. Ce sont des blocs v
 ## Pot de fleurs
 
 - Un pot vide, craft de 3 briques, haut de 3/8 de bloc. Comme dans Minecraft Java, il se pose même au-dessus du vide.
-- Il accepte l'équivalent Hytale de toutes les plantes que Minecraft met en pot : fleurs, pousses d'arbre, champignons, fougère, buisson mort, cactus, bambou, etc. Le tableau exact « plante Hytale → état du pot » vit dans les données du pack. L'implémentation l'établit à partir des assets, et les plantes sans équivalent Hytale sont listées.
+- Il accepte l'équivalent Hytale de toutes les plantes que Minecraft met en pot : fleurs, pousses d'arbre, champignons, fougère, buisson mort, cactus, bambou, etc. Le tableau exact « plante Hytale → état du pot » vit dans les données du pack. L'implémentation l'établit à partir des assets, et les plantes sans équivalent Hytale sont listées : 121 plantes retenues, inventaire et exclusions dans `docs/research/carpets-flower-pots.md` § 6.
 - Comportement de Minecraft :
   - utiliser le pot vide avec une plante acceptée en main met la plante dans le pot et en retire une de la main (rien n'est consommé en créatif) ;
   - utiliser un pot garni la main vide, ou avec un objet qui n'est pas une plante acceptée, rend la plante ;

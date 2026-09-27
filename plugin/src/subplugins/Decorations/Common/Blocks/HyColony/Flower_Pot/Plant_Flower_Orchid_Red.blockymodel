@@ -1,0 +1,1369 @@
+{
+  "lod": "auto",
+  "nodes": [
+    {
+      "id": "1",
+      "name": "Origin",
+      "children": [
+        {
+          "id": "2",
+          "name": "Wall_North",
+          "children": [],
+          "position": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "orientation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "shape": {
+            "type": "box",
+            "offset": {
+              "x": 0,
+              "y": 6.0,
+              "z": -5.0
+            },
+            "stretch": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
+            "settings": {
+              "size": {
+                "x": 12,
+                "y": 12,
+                "z": 2
+              }
+            },
+            "visible": true,
+            "doubleSided": false,
+            "shadingMode": "flat",
+            "unwrapMode": "custom",
+            "textureLayout": {
+              "front": {
+                "offset": {
+                  "x": 0,
+                  "y": 32
+                },
+                "mirror": {
+                  "x": false,
+                  "y": false
+                },
+                "angle": 0
+              },
+              "back": {
+                "offset": {
+                  "x": 0,
+                  "y": 32
+                },
+                "mirror": {
+                  "x": false,
+                  "y": false
+                },
+                "angle": 0
+              },
+              "left": {
+                "offset": {
+                  "x": 0,
+                  "y": 32
+                },
+                "mirror": {
+                  "x": false,
+                  "y": false
+                },
+                "angle": 0
+              },
+              "right": {
+                "offset": {
+                  "x": 0,
+                  "y": 32
+                },
+                "mirror": {
+                  "x": false,
+                  "y": false
+                },
+                "angle": 0
+              },
+              "top": {
+                "offset": {
+                  "x": 0,
+                  "y": 32
+                },
+                "mirror": {
+                  "x": false,
+                  "y": false
+                },
+                "angle": 0
+              },
+              "bottom": {
+                "offset": {
+                  "x": 0,
+                  "y": 32
+                },
+                "mirror": {
+                  "x": false,
+                  "y": false
+                },
+                "angle": 0
+              }
+            }
+          }
+        },
+        {
+          "id": "3",
+          "name": "Wall_South",
+          "children": [],
+          "position": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "orientation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "shape": {
+            "type": "box",
+            "offset": {
+              "x": 0,
+              "y": 6.0,
+              "z": 5.0
+            },
+            "stretch": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
+            "settings": {
+              "size": {
+                "x": 12,
+                "y": 12,
+                "z": 2
+              }
+            },
+            "visible": true,
+            "doubleSided": false,
+            "shadingMode": "flat",
+            "unwrapMode": "custom",
+            "textureLayout": {
+              "front": {
+                "offset": {
+                  "x": 0,
+                  "y": 32
+                },
+                "mirror": {
+                  "x": false,
+                  "y": false
+                },
+                "angle": 0
+              },
+              "back": {
+                "offset": {
+                  "x": 0,
+                  "y": 32
+                },
+                "mirror": {
+                  "x": false,
+                  "y": false
+                },
+                "angle": 0
+              },
+              "left": {
+                "offset": {
+                  "x": 0,
+                  "y": 32
+                },
+                "mirror": {
+                  "x": false,
+                  "y": false
+                },
+                "angle": 0
+              },
+              "right": {
+                "offset": {
+                  "x": 0,
+                  "y": 32
+                },
+                "mirror": {
+                  "x": false,
+                  "y": false
+                },
+                "angle": 0
+              },
+              "top": {
+                "offset": {
+                  "x": 0,
+                  "y": 32
+                },
+                "mirror": {
+                  "x": false,
+                  "y": false
+                },
+                "angle": 0
+              },
+              "bottom": {
+                "offset": {
+                  "x": 0,
+                  "y": 32
+                },
+                "mirror": {
+                  "x": false,
+                  "y": false
+                },
+                "angle": 0
+              }
+            }
+          }
+        },
+        {
+          "id": "4",
+          "name": "Wall_West",
+          "children": [],
+          "position": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "orientation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "shape": {
+            "type": "box",
+            "offset": {
+              "x": -5.0,
+              "y": 6.0,
+              "z": 0
+            },
+            "stretch": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
+            "settings": {
+              "size": {
+                "x": 2,
+                "y": 12,
+                "z": 8
+              }
+            },
+            "visible": true,
+            "doubleSided": false,
+            "shadingMode": "flat",
+            "unwrapMode": "custom",
+            "textureLayout": {
+              "front": {
+                "offset": {
+                  "x": 0,
+                  "y": 32
+                },
+                "mirror": {
+                  "x": false,
+                  "y": false
+                },
+                "angle": 0
+              },
+              "back": {
+                "offset": {
+                  "x": 0,
+                  "y": 32
+                },
+                "mirror": {
+                  "x": false,
+                  "y": false
+                },
+                "angle": 0
+              },
+              "left": {
+                "offset": {
+                  "x": 0,
+                  "y": 32
+                },
+                "mirror": {
+                  "x": false,
+                  "y": false
+                },
+                "angle": 0
+              },
+              "right": {
+                "offset": {
+                  "x": 0,
+                  "y": 32
+                },
+                "mirror": {
+                  "x": false,
+                  "y": false
+                },
+                "angle": 0
+              },
+              "top": {
+                "offset": {
+                  "x": 0,
+                  "y": 32
+                },
+                "mirror": {
+                  "x": false,
+                  "y": false
+                },
+                "angle": 0
+              },
+              "bottom": {
+                "offset": {
+                  "x": 0,
+                  "y": 32
+                },
+                "mirror": {
+                  "x": false,
+                  "y": false
+                },
+                "angle": 0
+              }
+            }
+          }
+        },
+        {
+          "id": "5",
+          "name": "Wall_East",
+          "children": [],
+          "position": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "orientation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "shape": {
+            "type": "box",
+            "offset": {
+              "x": 5.0,
+              "y": 6.0,
+              "z": 0
+            },
+            "stretch": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
+            "settings": {
+              "size": {
+                "x": 2,
+                "y": 12,
+                "z": 8
+              }
+            },
+            "visible": true,
+            "doubleSided": false,
+            "shadingMode": "flat",
+            "unwrapMode": "custom",
+            "textureLayout": {
+              "front": {
+                "offset": {
+                  "x": 0,
+                  "y": 32
+                },
+                "mirror": {
+                  "x": false,
+                  "y": false
+                },
+                "angle": 0
+              },
+              "back": {
+                "offset": {
+                  "x": 0,
+                  "y": 32
+                },
+                "mirror": {
+                  "x": false,
+                  "y": false
+                },
+                "angle": 0
+              },
+              "left": {
+                "offset": {
+                  "x": 0,
+                  "y": 32
+                },
+                "mirror": {
+                  "x": false,
+                  "y": false
+                },
+                "angle": 0
+              },
+              "right": {
+                "offset": {
+                  "x": 0,
+                  "y": 32
+                },
+                "mirror": {
+                  "x": false,
+                  "y": false
+                },
+                "angle": 0
+              },
+              "top": {
+                "offset": {
+                  "x": 0,
+                  "y": 32
+                },
+                "mirror": {
+                  "x": false,
+                  "y": false
+                },
+                "angle": 0
+              },
+              "bottom": {
+                "offset": {
+                  "x": 0,
+                  "y": 32
+                },
+                "mirror": {
+                  "x": false,
+                  "y": false
+                },
+                "angle": 0
+              }
+            }
+          }
+        },
+        {
+          "id": "6",
+          "name": "Dirt",
+          "children": [],
+          "position": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "orientation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "shape": {
+            "type": "box",
+            "offset": {
+              "x": 0,
+              "y": 4.0,
+              "z": 0
+            },
+            "stretch": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
+            "settings": {
+              "size": {
+                "x": 8,
+                "y": 8,
+                "z": 8
+              }
+            },
+            "visible": true,
+            "doubleSided": false,
+            "shadingMode": "flat",
+            "unwrapMode": "custom",
+            "textureLayout": {
+              "front": {
+                "offset": {
+                  "x": 32,
+                  "y": 32
+                },
+                "mirror": {
+                  "x": false,
+                  "y": false
+                },
+                "angle": 0
+              },
+              "back": {
+                "offset": {
+                  "x": 32,
+                  "y": 32
+                },
+                "mirror": {
+                  "x": false,
+                  "y": false
+                },
+                "angle": 0
+              },
+              "left": {
+                "offset": {
+                  "x": 32,
+                  "y": 32
+                },
+                "mirror": {
+                  "x": false,
+                  "y": false
+                },
+                "angle": 0
+              },
+              "right": {
+                "offset": {
+                  "x": 32,
+                  "y": 32
+                },
+                "mirror": {
+                  "x": false,
+                  "y": false
+                },
+                "angle": 0
+              },
+              "top": {
+                "offset": {
+                  "x": 32,
+                  "y": 32
+                },
+                "mirror": {
+                  "x": false,
+                  "y": false
+                },
+                "angle": 0
+              },
+              "bottom": {
+                "offset": {
+                  "x": 32,
+                  "y": 32
+                },
+                "mirror": {
+                  "x": false,
+                  "y": false
+                },
+                "angle": 0
+              }
+            }
+          }
+        },
+        {
+          "id": "7",
+          "name": "Plant",
+          "children": [
+            {
+              "id": "8",
+              "name": "Stem",
+              "children": [],
+              "position": {
+                "x": 0.0,
+                "y": 6.824999999999999,
+                "z": 0.0
+              },
+              "orientation": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "shape": {
+                "type": "quad",
+                "offset": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "stretch": {
+                  "x": 0.5249999999999999,
+                  "y": 0.5249999999999999,
+                  "z": 0.5249999999999999
+                },
+                "settings": {
+                  "size": {
+                    "x": 22,
+                    "y": 26
+                  },
+                  "normal": "+Z"
+                },
+                "visible": true,
+                "doubleSided": true,
+                "shadingMode": "standard",
+                "unwrapMode": "custom",
+                "textureLayout": {
+                  "front": {
+                    "offset": {
+                      "x": 32,
+                      "y": 6
+                    },
+                    "mirror": {
+                      "x": false,
+                      "y": false
+                    },
+                    "angle": 0
+                  }
+                }
+              }
+            },
+            {
+              "id": "9",
+              "name": "base",
+              "position": {
+                "x": 0.21358837499999997,
+                "y": 12.621598499999998,
+                "z": 0.13109564999999998
+              },
+              "orientation": {
+                "x": 0.279763,
+                "y": 0.137332,
+                "z": 0.003865,
+                "w": 0.950188
+              },
+              "shape": {
+                "offset": {
+                  "x": 0.0,
+                  "y": 4.525938374999999,
+                  "z": -0.09398707499999998
+                },
+                "stretch": {
+                  "x": -0.4550810249999999,
+                  "y": 0.5249999999999999,
+                  "z": 0.5249999999999999
+                },
+                "textureLayout": {
+                  "front": {
+                    "offset": {
+                      "x": 11,
+                      "y": 14
+                    },
+                    "mirror": {
+                      "x": false,
+                      "y": false
+                    },
+                    "angle": 0
+                  }
+                },
+                "type": "quad",
+                "settings": {
+                  "size": {
+                    "x": 16,
+                    "y": 18
+                  },
+                  "normal": "+Z"
+                },
+                "unwrapMode": "custom",
+                "visible": true,
+                "doubleSided": true,
+                "shadingMode": "flat"
+              },
+              "children": [
+                {
+                  "id": "10",
+                  "name": "grass",
+                  "children": [
+                    {
+                      "id": "11",
+                      "name": "grass",
+                      "children": [],
+                      "position": {
+                        "x": 0.0,
+                        "y": 1.4174999999999998,
+                        "z": 0.0
+                      },
+                      "orientation": {
+                        "x": 0.472852,
+                        "y": 0,
+                        "z": 0,
+                        "w": 0.881142
+                      },
+                      "shape": {
+                        "offset": {
+                          "x": 0.0,
+                          "y": 2.5199999999999996,
+                          "z": 0.0
+                        },
+                        "stretch": {
+                          "x": 0.31499999999999995,
+                          "y": 0.31499999999999995,
+                          "z": 0.5249999999999999
+                        },
+                        "textureLayout": {
+                          "front": {
+                            "offset": {
+                              "x": 11,
+                              "y": 5
+                            },
+                            "mirror": {
+                              "x": true,
+                              "y": false
+                            },
+                            "angle": 0
+                          }
+                        },
+                        "type": "quad",
+                        "settings": {
+                          "size": {
+                            "x": 11,
+                            "y": 16
+                          },
+                          "normal": "+Z"
+                        },
+                        "unwrapMode": "custom",
+                        "visible": true,
+                        "doubleSided": true,
+                        "shadingMode": "flat"
+                      }
+                    }
+                  ],
+                  "position": {
+                    "x": -1.6113179249999996,
+                    "y": -3.1896794999999996,
+                    "z": -0.6045642749999999
+                  },
+                  "orientation": {
+                    "x": -0.020304,
+                    "y": 0.844895,
+                    "z": -0.43925,
+                    "w": -0.30463
+                  },
+                  "shape": {
+                    "offset": {
+                      "x": 0.0,
+                      "y": 1.4174999999999998,
+                      "z": 0.0
+                    },
+                    "stretch": {
+                      "x": 0.31499999999999995,
+                      "y": 0.31499999999999995,
+                      "z": 0.5249999999999999
+                    },
+                    "textureLayout": {
+                      "front": {
+                        "offset": {
+                          "x": 11,
+                          "y": 21
+                        },
+                        "mirror": {
+                          "x": true,
+                          "y": false
+                        },
+                        "angle": 0
+                      }
+                    },
+                    "type": "quad",
+                    "settings": {
+                      "size": {
+                        "x": 11,
+                        "y": 9
+                      },
+                      "normal": "+Z"
+                    },
+                    "unwrapMode": "custom",
+                    "visible": true,
+                    "doubleSided": true,
+                    "shadingMode": "flat"
+                  }
+                },
+                {
+                  "id": "12",
+                  "name": "base",
+                  "position": {
+                    "x": 0.0,
+                    "y": -3.6749999999999994,
+                    "z": 0.0
+                  },
+                  "orientation": {
+                    "w": 0.707107,
+                    "x": 0,
+                    "y": 0.707107,
+                    "z": 0
+                  },
+                  "shape": {
+                    "offset": {
+                      "x": 0.0,
+                      "y": 3.6749999999999994,
+                      "z": 0.0
+                    },
+                    "stretch": {
+                      "x": -0.4429619249999999,
+                      "y": 0.5249999999999999,
+                      "z": 0.5249999999999999
+                    },
+                    "textureLayout": {
+                      "front": {
+                        "offset": {
+                          "x": 11,
+                          "y": 14
+                        },
+                        "mirror": {
+                          "x": false,
+                          "y": false
+                        },
+                        "angle": 0
+                      }
+                    },
+                    "type": "quad",
+                    "settings": {
+                      "size": {
+                        "x": 16,
+                        "y": 18
+                      },
+                      "normal": "+Z"
+                    },
+                    "unwrapMode": "custom",
+                    "visible": true,
+                    "doubleSided": true,
+                    "shadingMode": "flat"
+                  },
+                  "children": []
+                },
+                {
+                  "id": "13",
+                  "name": "grass",
+                  "position": {
+                    "x": -0.09338174999999999,
+                    "y": -4.0188009749999996,
+                    "z": 0.8448814499999998
+                  },
+                  "orientation": {
+                    "x": 0.436605,
+                    "y": -0.123235,
+                    "z": 0.082463,
+                    "w": 0.887349
+                  },
+                  "shape": {
+                    "offset": {
+                      "x": 0.0,
+                      "y": 1.7849999999999997,
+                      "z": 0.0
+                    },
+                    "stretch": {
+                      "x": 0.41999999999999993,
+                      "y": 0.41999999999999993,
+                      "z": 0.5249999999999999
+                    },
+                    "textureLayout": {
+                      "front": {
+                        "offset": {
+                          "x": 11,
+                          "y": 21
+                        },
+                        "mirror": {
+                          "x": true,
+                          "y": false
+                        },
+                        "angle": 0
+                      }
+                    },
+                    "type": "quad",
+                    "settings": {
+                      "size": {
+                        "x": 11,
+                        "y": 9
+                      },
+                      "normal": "+Z"
+                    },
+                    "unwrapMode": "custom",
+                    "visible": true,
+                    "doubleSided": true,
+                    "shadingMode": "flat"
+                  },
+                  "children": [
+                    {
+                      "id": "14",
+                      "name": "grass",
+                      "position": {
+                        "x": 0.0,
+                        "y": 1.8899999999999997,
+                        "z": 0.0
+                      },
+                      "orientation": {
+                        "w": 0.947499,
+                        "x": 0.31976,
+                        "y": 0,
+                        "z": 0
+                      },
+                      "shape": {
+                        "offset": {
+                          "x": 0.0,
+                          "y": 3.3599999999999994,
+                          "z": 0.0
+                        },
+                        "stretch": {
+                          "x": 0.41999999999999993,
+                          "y": 0.41999999999999993,
+                          "z": 0.5249999999999999
+                        },
+                        "textureLayout": {
+                          "front": {
+                            "offset": {
+                              "x": 11,
+                              "y": 5
+                            },
+                            "mirror": {
+                              "x": true,
+                              "y": false
+                            },
+                            "angle": 0
+                          }
+                        },
+                        "type": "quad",
+                        "settings": {
+                          "size": {
+                            "x": 11,
+                            "y": 16
+                          },
+                          "normal": "+Z"
+                        },
+                        "unwrapMode": "custom",
+                        "visible": true,
+                        "doubleSided": true,
+                        "shadingMode": "flat"
+                      },
+                      "children": []
+                    }
+                  ]
+                },
+                {
+                  "id": "15",
+                  "name": "grass",
+                  "position": {
+                    "x": 0.3624830999999999,
+                    "y": -3.8693812499999996,
+                    "z": 1.2984447
+                  },
+                  "orientation": {
+                    "x": 0.32087,
+                    "y": 0.446714,
+                    "z": -0.175551,
+                    "w": 0.816499
+                  },
+                  "shape": {
+                    "offset": {
+                      "x": 0.0,
+                      "y": 1.7849999999999997,
+                      "z": 0.0
+                    },
+                    "stretch": {
+                      "x": 0.41999999999999993,
+                      "y": 0.41999999999999993,
+                      "z": 0.5249999999999999
+                    },
+                    "textureLayout": {
+                      "front": {
+                        "offset": {
+                          "x": 11,
+                          "y": 21
+                        },
+                        "mirror": {
+                          "x": true,
+                          "y": false
+                        },
+                        "angle": 0
+                      }
+                    },
+                    "type": "quad",
+                    "settings": {
+                      "size": {
+                        "x": 11,
+                        "y": 9
+                      },
+                      "normal": "+Z"
+                    },
+                    "unwrapMode": "custom",
+                    "visible": true,
+                    "doubleSided": true,
+                    "shadingMode": "flat"
+                  },
+                  "children": [
+                    {
+                      "id": "16",
+                      "name": "grass",
+                      "position": {
+                        "x": 0.0,
+                        "y": 1.8899999999999997,
+                        "z": 0.0
+                      },
+                      "orientation": {
+                        "x": 0.560942,
+                        "y": 0,
+                        "z": 0,
+                        "w": 0.827855
+                      },
+                      "shape": {
+                        "offset": {
+                          "x": 0.0,
+                          "y": 3.3599999999999994,
+                          "z": 0.0
+                        },
+                        "stretch": {
+                          "x": 0.41999999999999993,
+                          "y": 0.41999999999999993,
+                          "z": 0.5249999999999999
+                        },
+                        "textureLayout": {
+                          "front": {
+                            "offset": {
+                              "x": 11,
+                              "y": 5
+                            },
+                            "mirror": {
+                              "x": true,
+                              "y": false
+                            },
+                            "angle": 0
+                          }
+                        },
+                        "type": "quad",
+                        "settings": {
+                          "size": {
+                            "x": 11,
+                            "y": 16
+                          },
+                          "normal": "+Z"
+                        },
+                        "unwrapMode": "custom",
+                        "visible": true,
+                        "doubleSided": true,
+                        "shadingMode": "flat"
+                      },
+                      "children": []
+                    }
+                  ]
+                },
+                {
+                  "id": "17",
+                  "name": "grass",
+                  "position": {
+                    "x": -0.7547337,
+                    "y": -4.302809174999999,
+                    "z": 0.4853110499999999
+                  },
+                  "orientation": {
+                    "x": -0.262721,
+                    "y": 0.664174,
+                    "z": 0.308991,
+                    "w": 0.627993
+                  },
+                  "shape": {
+                    "offset": {
+                      "x": 0.0,
+                      "y": 1.7849999999999997,
+                      "z": 0.0
+                    },
+                    "stretch": {
+                      "x": 0.41999999999999993,
+                      "y": 0.41999999999999993,
+                      "z": 0.5249999999999999
+                    },
+                    "textureLayout": {
+                      "front": {
+                        "offset": {
+                          "x": 11,
+                          "y": 21
+                        },
+                        "mirror": {
+                          "x": true,
+                          "y": false
+                        },
+                        "angle": 0
+                      }
+                    },
+                    "type": "quad",
+                    "settings": {
+                      "size": {
+                        "x": 11,
+                        "y": 9
+                      },
+                      "normal": "+Z"
+                    },
+                    "unwrapMode": "custom",
+                    "visible": true,
+                    "doubleSided": true,
+                    "shadingMode": "flat"
+                  },
+                  "children": [
+                    {
+                      "id": "18",
+                      "name": "grass",
+                      "position": {
+                        "x": 0.0,
+                        "y": 1.8899999999999997,
+                        "z": 0.0
+                      },
+                      "orientation": {
+                        "x": -0.579681,
+                        "y": 0.010181,
+                        "z": 0.009257,
+                        "w": 0.814727
+                      },
+                      "shape": {
+                        "offset": {
+                          "x": 0.0,
+                          "y": 3.3599999999999994,
+                          "z": 0.0
+                        },
+                        "stretch": {
+                          "x": 0.41999999999999993,
+                          "y": 0.41999999999999993,
+                          "z": 0.5249999999999999
+                        },
+                        "textureLayout": {
+                          "front": {
+                            "offset": {
+                              "x": 11,
+                              "y": 5
+                            },
+                            "mirror": {
+                              "x": true,
+                              "y": false
+                            },
+                            "angle": 0
+                          }
+                        },
+                        "type": "quad",
+                        "settings": {
+                          "size": {
+                            "x": 11,
+                            "y": 16
+                          },
+                          "normal": "+Z"
+                        },
+                        "unwrapMode": "custom",
+                        "visible": true,
+                        "doubleSided": true,
+                        "shadingMode": "flat"
+                      },
+                      "children": []
+                    }
+                  ]
+                },
+                {
+                  "id": "19",
+                  "name": "grass",
+                  "position": {
+                    "x": 0.011178824999999998,
+                    "y": -4.225540199999999,
+                    "z": -0.15866654999999996
+                  },
+                  "orientation": {
+                    "x": 0.169302,
+                    "y": 0.853719,
+                    "z": -0.411577,
+                    "w": 0.270379
+                  },
+                  "shape": {
+                    "offset": {
+                      "x": 0.0,
+                      "y": 1.8899999999999997,
+                      "z": 0.0
+                    },
+                    "stretch": {
+                      "x": 0.41999999999999993,
+                      "y": 0.41999999999999993,
+                      "z": 0.5249999999999999
+                    },
+                    "textureLayout": {
+                      "front": {
+                        "offset": {
+                          "x": 11,
+                          "y": 21
+                        },
+                        "mirror": {
+                          "x": true,
+                          "y": false
+                        },
+                        "angle": 0
+                      }
+                    },
+                    "type": "quad",
+                    "settings": {
+                      "size": {
+                        "x": 11,
+                        "y": 9
+                      },
+                      "normal": "+Z"
+                    },
+                    "unwrapMode": "custom",
+                    "visible": true,
+                    "doubleSided": true,
+                    "shadingMode": "flat"
+                  },
+                  "children": [
+                    {
+                      "id": "20",
+                      "name": "grass",
+                      "position": {
+                        "x": 0.0,
+                        "y": 1.8899999999999997,
+                        "z": 0.0
+                      },
+                      "orientation": {
+                        "w": 0.944911,
+                        "x": 0.327328,
+                        "y": 0,
+                        "z": 0
+                      },
+                      "shape": {
+                        "offset": {
+                          "x": 0.0,
+                          "y": 3.3599999999999994,
+                          "z": 0.0
+                        },
+                        "stretch": {
+                          "x": 0.41999999999999993,
+                          "y": 0.41999999999999993,
+                          "z": 0.5249999999999999
+                        },
+                        "textureLayout": {
+                          "front": {
+                            "offset": {
+                              "x": 11,
+                              "y": 5
+                            },
+                            "mirror": {
+                              "x": true,
+                              "y": false
+                            },
+                            "angle": 0
+                          }
+                        },
+                        "type": "quad",
+                        "settings": {
+                          "size": {
+                            "x": 11,
+                            "y": 16
+                          },
+                          "normal": "+Z"
+                        },
+                        "unwrapMode": "custom",
+                        "visible": true,
+                        "doubleSided": true,
+                        "shadingMode": "flat"
+                      },
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "21",
+              "name": "Stem",
+              "children": [],
+              "position": {
+                "x": 0.0,
+                "y": 6.824999999999999,
+                "z": 0.0
+              },
+              "orientation": {
+                "x": 0,
+                "y": -0.737277,
+                "z": 0,
+                "w": 0.67559
+              },
+              "shape": {
+                "type": "quad",
+                "offset": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "stretch": {
+                  "x": 0.5249999999999999,
+                  "y": 0.5249999999999999,
+                  "z": 0.5249999999999999
+                },
+                "settings": {
+                  "size": {
+                    "x": 22,
+                    "y": 26
+                  },
+                  "normal": "+Z"
+                },
+                "visible": true,
+                "doubleSided": true,
+                "shadingMode": "standard",
+                "unwrapMode": "custom",
+                "textureLayout": {
+                  "front": {
+                    "offset": {
+                      "x": 32,
+                      "y": 6
+                    },
+                    "mirror": {
+                      "x": false,
+                      "y": false
+                    },
+                    "angle": 0
+                  }
+                }
+              }
+            }
+          ],
+          "position": {
+            "x": 0,
+            "y": 8,
+            "z": 0
+          },
+          "orientation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "shape": {
+            "type": "none",
+            "offset": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "stretch": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
+            "settings": {
+              "isPiece": false
+            },
+            "visible": true,
+            "doubleSided": false,
+            "shadingMode": "flat",
+            "unwrapMode": "custom",
+            "textureLayout": {}
+          }
+        }
+      ],
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "orientation": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 1
+      },
+      "shape": {
+        "type": "none",
+        "offset": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "stretch": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        },
+        "settings": {
+          "isPiece": false
+        },
+        "visible": true,
+        "doubleSided": false,
+        "shadingMode": "flat",
+        "unwrapMode": "custom",
+        "textureLayout": {}
+      }
+    }
+  ]
+}

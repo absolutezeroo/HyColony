@@ -106,3 +106,32 @@ Casse d'un pot garni : `Gathering` par état avec une `DropList` pot + plante (�
 4. Pot : quelles plantes (toutes les fleurs + pousses, ou une sélection) ? Posable sur le vide comme en Java, ou `Support.Down: Full` ?
 5. Art : modèles pot + plante générés au build (fusion automatique modèle/texture) ou faits à la main ?
 6. Accepter du code plugin pour le pot (voie B) ?
+
+## 6. Inventaire retenu pour le pot (implémentation, 2026-09-28)
+
+Liste exacte dans `tools/decorations/flower_pots.py` (`PLANTS`), reprise dans le fragment `plugin/src/subplugins/Decorations/hycolony/id-map.json` (section `flowerPots` : objet plante → bloc `*HyColony_Flower_Pot_State_Definitions_<plante>`). Liste MC Java de référence (`https://minecraft.wiki/w/Flower_Pot`) : fleurs d'un bloc, pousses, champignons rouge et brun, fougère, buisson mort, cactus, bambou, azalées, propagule de palétuvier, racines et champignons du Nether, eyeblossoms.
+
+**121 plantes Hytale retenues :**
+
+| Catégorie MC | Équivalent Hytale |
+|---|---|
+| Fleurs d'un bloc (pissenlit, coquelicot, tulipes…) | les 60 `Plant_Flower_*` hors `Plant_Flower_Water_*` : `Bushy_*` (11), `Common_*` (24), `Flax_*` (6), `Hemlock`, `Orchid_*` (9), `Poisoned_Orange`, `Tall_*` (8). Les « Tall » de Hytale tiennent dans un bloc, contrairement aux grandes fleurs MC (tournesol…) qui ne vont pas en pot. |
+| Pousses d'arbre (et bambou) | les 33 `Plant_Sapling_*`, dont `Plant_Sapling_Bamboo`. |
+| Champignons rouge et brun | 15 `Plant_Crop_Mushroom_*` posés au sol : `Boomshroom_Small`, `Cap_*` (5), `Common_*` (3), `Flatcap_*` (2), `Glowing_Blue/Green/Red/Violet` (leur `Light` est recopié dans l'état). |
+| Fougère | `Plant_Fern`, `Plant_Fern_Arid`, `Plant_Fern_Tall`. |
+| Buisson mort | `Plant_Bush_Dead`, `Plant_Bush_Dead_Twisted`. |
+| Cactus | `Plant_Cactus_1/2/3`, `Plant_Cactus_Ball_1`, `Plant_Cactus_Flat_1/2/3`, `Plant_Cactus_Flower`. |
+
+**Sans équivalent Hytale :** azalée et azalée fleurie (les `Plant_Bush_*` vivants sont des buissons génériques, plus proches du `bush` MC, qui ne va pas en pot), propagule de palétuvier, racines et champignons carmin et biscornus (Nether), eyeblossoms, rose de Wither, torchflower (ces fleurs particulières sont couvertes par la catégorie « fleurs » ci-dessus, sans correspondance une à une).
+
+**Plantes Hytale écartées :**
+
+- Modèle qui descend loin sous le sol et sortirait sous le pot : `Plant_Bush_Dead_Tall` (`Shrub.blockymodel`, y min -57 unités), `Plant_Crop_Mushroom_Glowing_Orange` et `_Purple` (`Mushroom_Balls.blockymodel`).
+- Fougères à texture grise teintée par le biome (`Plant_Fern_Forest`, `_Wet`, `_Wet_Big`, `_Winter` : `*_GS.png` + `BiomeTint`) : un état de bloc n'a qu'une teinte, qui colorerait aussi le pot. Géantes et troncs (`Plant_Fern_Giant`, `_Jungle`, `*_Trunk`) : plusieurs blocs.
+- Champignons muraux `Plant_Crop_Mushroom_Shelve_*`, grands `Boomshroom_Large`, nénuphars `Plant_Flower_Water_*`, herbes `Plant_Grass_*` (l'herbe ne va pas en pot dans MC), `Prototype_*` (qualité développeur).
+
+**Génération** (`python tools/decorations/generate.py`) : le modèle vanilla de la plante (plus haute variante pondérée de sa texture, `Tint` statique cuit dans la texture) est placé sur la terre du pot (y = 8 unités) et réduit uniformément par `min(0,75 × CustomModelScale, 24 / hauteur, 24 / largeur)` (MC `flower_pot_cross` : 16 px ramenés à 12). Les modèles « tapis » qui couvrent tout le bloc (`PATCHES`) sont ramenés à 16 unités de large. L'échelle multiplie `position`, `shape.offset` et `shape.stretch` de chaque nœud ; les UV restent en pixels de la texture, placée en (0, 0) de l'atlas, l'argile (`Clay_Smooth_Orange`) et la terre (`Soil_Dirt_Wet`) en dessous. **[in-game]** : que `stretch` ne s'applique qu'à la forme de son nœud (hypothèse tirée des modèles vanilla, où parent et enfant répètent leur miroir `-1`), et que les atlas non carrés (64×128…) s'affichent.
+
+**Pas d'outil de validation** : l'éditeur `Hytale UI Editor` de l'utilisateur ne traite que les `.ui`, pas les `.blockymodel`. Les modèles générés ont été vérifiés par un rendu isométrique de contrôle (hors dépôt) et doivent être vus en jeu.
+
+**Interaction (voie B)** : un `UseBlockEvent.Pre` **annulé** fait échouer `UseBlock` (`UseBlockInteraction.java:79-82`), ce qui déclenche le repli de l'objet tenu : `Block_Secondary` → `PlaceModeSelect` (pose la plante tenue à côté du pot), `Empty.Use` → `UseEntity` puis `BreakBlock` `Harvest`. Le système du pot **n'annule donc pas** l'événement : la racine `Simple` du pot s'exécute (état `Finished`, aucun repli). Un objet tenu reçoit `Use` de `UnarmedInteractions` `Empty` et, s'il a `PlayerAnimationsId: Block` (plantes), `Secondary` = `Block_Secondary` (`Item.java:1270-1285`, `InteractionContext.getRootInteractionId`, l. 626-660). Le pot déclare donc `Use` (touche d'interaction, main vide ou non) et `Secondary` (clic droit avec une plante).
