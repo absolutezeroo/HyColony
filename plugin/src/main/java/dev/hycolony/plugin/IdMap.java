@@ -6,6 +6,7 @@ import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
 import com.hypixel.hytale.server.core.asset.type.particle.config.ParticleSystem;
+import com.hypixel.hytale.server.core.modules.interaction.interaction.config.RootInteraction;
 import com.hypixel.hytale.server.npc.NPCPlugin;
 import dev.hycolony.core.citizen.Skill;
 import java.util.ArrayList;
@@ -27,7 +28,9 @@ public final class IdMap {
             List<String> fireworks,
             List<String> precipitationParticles,
             Map<String, String> speedEffects,
-            Map<String, Map<String, String>> flowerPots) {}
+            Map<String, Map<String, String>> flowerPots,
+            List<String> toggleableUseInteractions,
+            List<String> potionCategories) {}
 
     private final Data data;
 
@@ -84,6 +87,16 @@ public final class IdMap {
         return Map.copyOf(pots());
     }
 
+    /** Root interactions run by using a door or a gate (MC BlockTags.DOORS and FENCE_GATES: ACCESS_TOGGLEABLES). */
+    public Set<String> toggleableUseInteractions() {
+        return Set.copyOf(Objects.requireNonNullElse(data.toggleableUseInteractions(), List.of()));
+    }
+
+    /** Item categories of potions (MC PotionItem: THROW_POTION). Creative-library paths, not asset keys. */
+    public Set<String> potionCategories() {
+        return Set.copyOf(Objects.requireNonNullElse(data.potionCategories(), List.of()));
+    }
+
     /** Absent from an older id-map file: no precipitation particle (never rains). */
     private List<String> precipitation() {
         return Objects.requireNonNullElse(data.precipitationParticles(), List.of());
@@ -127,6 +140,11 @@ public final class IdMap {
             check(errors, "potted plant item", byId(List.copyOf(potted.keySet())), item);
             check(errors, "flower pot " + pot + " block", potted, block);
         });
+        check(
+                errors,
+                "toggleable use interaction",
+                byId(List.copyOf(toggleableUseInteractions())),
+                id -> RootInteraction.getAssetMap().getAsset(id) != null);
         check(errors, "npc role", data.npcRoles(), id -> NPCPlugin.get().hasRoleName(id));
         return errors;
     }

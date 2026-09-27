@@ -20,6 +20,8 @@
     "selftest.door_open": "*Furniture_Crude_Door_State_Definitions_OpenDoorIn"
   },
   "npcRoles": { "npc.citizen": "HyColony_Citizen" },
+  "toggleableUseInteractions": ["Door", "Door_Horizontal"],
+  "potionCategories": ["Items.Potions"],
   "precipitationParticles": ["Rain", "Rain_Light", "Rain_Heavy", "Snow_Light", "Snow_Heavy", "Snow_Storm"],
   "speedEffects": {
     "1.05": "HyColony_Speed_105",

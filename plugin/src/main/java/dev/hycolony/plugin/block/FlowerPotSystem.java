@@ -50,6 +50,9 @@ public final class FlowerPotSystem extends EntityEventSystem<EntityStore, UseBlo
             @Nonnull Store<EntityStore> store,
             @Nonnull CommandBuffer<EntityStore> buffer,
             @Nonnull UseBlockEvent.Pre event) {
+        if (event.isCancelled()) {
+            return; // refused by the colony protection
+        }
         try {
             FlowerPotBlocks.Pot pot = blocks.find(event.getBlockType().getId()).orElse(null);
             if (pot == null) {

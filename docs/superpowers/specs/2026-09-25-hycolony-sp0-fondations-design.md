@@ -171,7 +171,7 @@ C'est un portage fidèle de `BasicStateMachine` et `TickRateStateMachine` de Min
   - **Owner** : les actions d'Officer + EDIT_PERMISSIONS.
   - **Hostile** : HURT_CITIZEN, HURT_VISITOR, MAP_BORDER ; `isHostile`.
 - Un joueur inconnu de la colonie a le rang **Neutral**.
-- **Appliquées dans le sous-projet 0** : PLACE_BLOCKS, BREAK_BLOCKS, PLACE_HUTS, BREAK_HUTS, ACCESS_HUTS, OPEN_CONTAINER. Les autres actions sont modélisées et sauvegardées, et seront appliquées par les sous-projets qui les concernent.
+- **Appliquées dans le sous-projet 0** : PLACE_BLOCKS, BREAK_BLOCKS, PLACE_HUTS, BREAK_HUTS, ACCESS_HUTS, OPEN_CONTAINER. Les autres actions sont modélisées et sauvegardées, et seront appliquées par les sous-projets qui les concernent. Depuis le 2026-09-28, l'utilisation de tout bloc suit MC `ColonyPermissionEventHandler.on(PlayerInteractEvent)` (cœur `BlockUse`, plugin `BlockUseProtectionSystem`) : ACCESS_TOGGLEABLES pour les portes et barrières, puis RIGHTCLICK_BLOCK, OPEN_CONTAINER (conteneurs), RIGHTCLICK_ENTITY (blocs à entité), THROW_POTION (potion en main). *Écarts* : pas de blocs ni de positions libres (MC `freeBlocks`, `freePositions`, tag `colonyProtectionException`), faute de moyen de les déclarer ; pas d'outil de scan ; pas d'exception PvP.
 - La protection est désactivable par la config `Permissions.EnableColonyProtection` (vrai par défaut). Un joueur en créatif qui contourne les permissions (`Permissions.PermissionEventBypassMinPermLevel`, voir § 3.5) a les droits du rang opérateur de MineColonies.
 - Le propriétaire ou un rang `EDIT_PERMISSIONS` gère les membres via `/hycolony rank <joueur> <rang>`. La fenêtre de permissions viendra plus tard, car elle est lourde en UI. *Écart temporaire assumé par rapport à MineColonies.*
 

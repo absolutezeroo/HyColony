@@ -11,6 +11,7 @@ import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.building.ModuleProducer;
 import dev.hycolony.core.building.PersistentModule;
 import dev.hycolony.core.colony.permission.Action;
+import dev.hycolony.core.colony.permission.BlockUse;
 import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.colony.ui.FoundColonyView;
 import dev.hycolony.core.colony.ui.TownHallView;
@@ -187,6 +188,23 @@ class ColonyManagerTest {
         assertTrue(manager.isAllowed(bob, inside, Action.BREAK_BLOCKS));
         assertFalse(manager.administration()
                 .setRank(bob, c.id(), UUID.randomUUID(), "Eve", Permissions.OFFICER)); // no EDIT_PERMISSIONS
+    }
+
+    @Test
+    void usingABlockInAColonyFollowsTheUsersRank() {
+        Colony c = found(alice, "A", hall);
+        BlockPos inside = hall.offset(3, 0, 3);
+        BlockUse pot = new BlockUse(false, false, false, BlockUse.Held.NOTHING);
+        assertEquals(Optional.empty(), refusedUse(alice, inside, pot));
+        assertEquals(Optional.of(Action.RIGHTCLICK_BLOCK), refusedUse(bob, inside, pot));
+        assertEquals(Optional.empty(), refusedUse(bob, new BlockPos(9000, 64, 0), pot));
+        assertTrue(manager.administration().setRank(alice, c.id(), bob, "Bob", Permissions.OFFICER));
+        assertEquals(Optional.empty(), refusedUse(bob, inside, pot));
+    }
+
+    /** How the plugin asks: the rank's permissions at that spot, everything allowed outside colonies. */
+    private Optional<Action> refusedUse(UUID player, BlockPos pos, BlockUse use) {
+        return use.refused(action -> manager.isAllowed(player, pos, action), manager.protectionEnabled());
     }
 
     @Test
