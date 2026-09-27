@@ -12,6 +12,9 @@ import dev.hycolony.core.colony.ui.NeedsPlayerNotice;
 import dev.hycolony.core.colony.ui.RequestsView;
 import dev.hycolony.core.colony.ui.RequestsView.RequestRow;
 import dev.hycolony.core.request.model.Deliverable;
+import dev.hycolony.core.request.model.Delivery;
+import dev.hycolony.core.request.model.Pickup;
+import dev.hycolony.core.request.model.Requestable;
 import dev.hycolony.core.request.model.StackRequest;
 import dev.hycolony.core.request.model.ToolRequest;
 import java.util.List;
@@ -40,20 +43,32 @@ public final class RequestsPage extends ColonyPage {
             ui.set("#Empty.Text", Message.translation("hycolony.ui.requests.empty"));
         }
         for (int i = 0; i < rows.size(); i++) {
-            RequestRow r = rows.get(i);
-            String row = "#Requests[" + i + "]";
-            ui.append("#Requests", "Pages/HyColony/RequestRow.ui");
-            ui.set(row + " #Description.TextSpans", describe(r.requestable()));
-            ui.set(
-                    row + " #Info.TextSpans",
-                    Message.translation("hycolony.ui.requests.info")
-                            .param("p0", buildingName(r.requesterName()))
-                            .param("p1", String.valueOf(r.playerHas())));
-            if (r.playerHas() > 0) {
-                bind(events, row + " #FulfilButton", "fulfil", i);
-            } else {
-                ui.set(row + " #FulfilButton.Visible", false);
-            }
+            appendRow(ui, events, "#Requests", i, rows.get(i));
+        }
+    }
+
+    /**
+     * Appends request {@code r} as row {@code i} of {@code list}: a child sits under its parent, marked once per level
+     * (MC RequestTreeWindowModule indents it); "Supply" only where the core allows it.
+     */
+    public static void appendRow(UICommandBuilder ui, UIEventBuilder events, String list, int i, RequestRow r) {
+        String row = list + "[" + i + "]";
+        ui.append(list, "Pages/HyColony/RequestRow.ui");
+        Message description = describe(r.requestable());
+        for (int d = 0; d < r.depth(); d++) {
+            description = Message.translation("hycolony.ui.requests.child").param("p0", description);
+        }
+        ui.set(row + " #Description.TextSpans", description);
+        Message info = r.requestable() instanceof Deliverable
+                ? Message.translation("hycolony.ui.requests.info")
+                        .param("p0", buildingName(r.requesterName()))
+                        .param("p1", String.valueOf(r.playerHas()))
+                : Message.translation("hycolony.ui.requests.from").param("p0", buildingName(r.requesterName()));
+        ui.set(row + " #Info.TextSpans", info);
+        if (r.canSupply()) {
+            bind(events, row + " #FulfilButton", "fulfil", i);
+        } else {
+            ui.set(row + " #FulfilButton.Visible", false);
         }
     }
 
@@ -65,14 +80,22 @@ public final class RequestsPage extends ColonyPage {
                 .param("p2", describe(n.requestable()));
     }
 
-    /** "64 x Stone" or "Pickaxe (level 0 to 1)" or "Pickaxe (level 0 or higher)", in the player's language. */
-    public static Message describe(Deliverable d) {
-        return switch (d) {
+    /**
+     * "64 x Stone", "Pickaxe (level 0 to 1)", "Pickaxe (level 0 or higher)", "Delivery: 10 x Stone" or "Pickup" (MC
+     * StandardRequests short display strings), in the player's language.
+     */
+    public static Message describe(Requestable requestable) {
+        return switch (requestable) {
             case StackRequest s ->
                 Message.translation("hycolony.ui.requests.stack")
                         .param("p0", String.valueOf(s.count()))
                         .param("p1", itemName(s.item().id()));
             case ToolRequest t -> describeTool(t);
+            case Delivery d ->
+                Message.translation("hycolony.ui.requests.delivery")
+                        .param("p0", String.valueOf(d.stack().count()))
+                        .param("p1", itemName(d.stack().item().id()));
+            case Pickup _ -> Message.translation("hycolony.ui.requests.pickup");
         };
     }
 

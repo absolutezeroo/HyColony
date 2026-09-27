@@ -10,8 +10,8 @@ import dev.hycolony.core.colony.ui.RequestsView;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.request.Request;
-import dev.hycolony.core.request.model.Deliverable;
 import dev.hycolony.core.request.model.RequestState;
+import dev.hycolony.core.request.model.Requestable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -35,10 +35,10 @@ final class CitizenViews {
         List<RequestsView.RequestRow> open = new ArrayList<>();
         for (Request r : c.requests().all()) {
             if (r.citizenId() == d.id() && r.state().ordinal() < RequestState.COMPLETED.ordinal()) {
-                requests.row(c, r, owned).ifPresent(open::add);
+                requests.tree(c, r, 0, owned, open);
             }
         }
-        Optional<Deliverable> waitingFor = open.stream().findFirst().map(RequestsView.RequestRow::requestable);
+        Optional<Requestable> waitingFor = open.stream().findFirst().map(RequestsView.RequestRow::requestable);
         Optional<Building> work = Optional.ofNullable(d.workBuilding()).flatMap(c.buildings()::at);
         Optional<WorkerModule> worker = work.flatMap(b -> b.module(WorkerModule.class));
         List<Skill> jobSkills =

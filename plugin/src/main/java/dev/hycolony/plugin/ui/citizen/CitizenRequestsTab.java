@@ -30,20 +30,7 @@ final class CitizenRequestsTab {
             ui.set("#RequestsEmpty.Text", Message.translation("hycolony.ui.requests.empty"));
         }
         for (int i = 0; i < rows.size(); i++) {
-            RequestRow r = rows.get(i);
-            String row = "#Requests[" + i + "]";
-            ui.append("#Requests", "Pages/HyColony/RequestRow.ui");
-            ui.set(row + " #Description.TextSpans", RequestsPage.describe(r.requestable()));
-            ui.set(
-                    row + " #Info.TextSpans",
-                    Message.translation("hycolony.ui.requests.info")
-                            .param("p0", ColonyPage.buildingName(r.requesterName()))
-                            .param("p1", String.valueOf(r.playerHas())));
-            if (r.playerHas() > 0) {
-                ColonyPage.bind(events, row + " #FulfilButton", "fulfil", i);
-            } else {
-                ui.set(row + " #FulfilButton.Visible", false);
-            }
+            RequestsPage.appendRow(ui, events, "#Requests", i, rows.get(i));
         }
     }
 

@@ -3,6 +3,7 @@ package dev.hycolony.core.colony;
 import dev.hycolony.core.colony.action.CitizenInventoryActions;
 import dev.hycolony.core.colony.action.ColonyAdministration;
 import dev.hycolony.core.colony.action.HutActions;
+import dev.hycolony.core.colony.action.LogisticsActions;
 import dev.hycolony.core.colony.action.RequestActions;
 import dev.hycolony.core.colony.action.WorkOrderActions;
 import dev.hycolony.core.colony.permission.Action;
@@ -41,6 +42,7 @@ public final class ColonyManager {
     private final RequestActions requestActions;
     private final ColonyAdministration administration;
     private final CitizenInventoryActions citizenInventories;
+    private final LogisticsActions logistics;
 
     public ColonyManager(ColonyContext ctx) {
         this.ctx = ctx;
@@ -52,6 +54,7 @@ public final class ColonyManager {
         this.requestActions = new RequestActions(this);
         this.administration = new ColonyAdministration(this, windows);
         this.citizenInventories = new CitizenInventoryActions(this);
+        this.logistics = new LogisticsActions(this, windows);
     }
 
     public ColonyContext context() {
@@ -94,6 +97,11 @@ public final class ColonyManager {
     /** Opening a citizen's inventory and the player's moves in it. */
     public CitizenInventoryActions citizenInventories() {
         return citizenInventories;
+    }
+
+    /** A hut window's pickup priority and "force pickup" buttons. */
+    public LogisticsActions logistics() {
+        return logistics;
     }
 
     public Collection<Colony> all() {

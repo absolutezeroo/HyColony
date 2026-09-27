@@ -17,16 +17,18 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Builds a hut's window view: its level, workers, the citizens it may hire, its work order, the orders it allows and,
- * for a builder hut, its own tabs.
+ * Builds a hut's window view: its level, workers, the citizens it may hire, its work order, the orders it allows and
+ * the builder's, warehouse's or courier hut's own tabs.
  */
 final class BuildingViews {
     private final ColonyContext ctx;
     private final BuilderTabsViews builderTabs;
+    private final LogisticsViews logistics;
 
     BuildingViews(ColonyContext ctx, BuilderTabsViews builderTabs) {
         this.ctx = ctx;
         this.builderTabs = builderTabs;
+        this.logistics = new LogisticsViews(ctx);
     }
 
     BuildingView of(Colony c, Building b, UUID viewer) {
@@ -55,7 +57,10 @@ final class BuildingViews {
                 b.style(),
                 manage,
                 manage && b.canBePickedUp(),
-                builderTabs.of(c, b, viewer));
+                builderTabs.of(c, b, viewer),
+                LogisticsViews.pickupPriority(b),
+                logistics.warehouse(c, b),
+                LogisticsViews.courier(c, b));
     }
 
     private static List<BuildingView.WorkerRow> workers(Colony c, Optional<WorkerModule> w) {

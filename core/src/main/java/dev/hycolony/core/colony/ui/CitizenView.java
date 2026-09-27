@@ -5,7 +5,7 @@ import dev.hycolony.core.citizen.Skills;
 import dev.hycolony.core.colony.ui.RequestsView.RequestRow;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.port.Msg;
-import dev.hycolony.core.request.model.Deliverable;
+import dev.hycolony.core.request.model.Requestable;
 import java.util.List;
 import java.util.Optional;
 
@@ -13,9 +13,9 @@ import java.util.Optional;
  * MineColonies WindowCitizen. {@code activity} is an i18n key suffix: "waitingFor" (with {@code waitingFor}, the
  * first open request), else "working", "wandering", "idle" or "absent". {@code workBuilding} is a building type id or
  * custom name. {@code jobActivity} is the job AI's own line (e.g. the builder's stage, block and action). {@code
- * requests} are the citizen's open requests, each with what the viewer holds of it. {@code skills} lists the job's
- * primary and secondary skills first, then the rest in MineColonies order. {@code jobSkills} feeds the Job tab and is
- * empty for a citizen without a workplace.
+ * requests} are the citizen's open requests, each followed by its children (MC RequestTreeWindowModule), with what the
+ * viewer holds of it. {@code skills} lists the job's primary and secondary skills first, then the rest in MineColonies
+ * order. {@code jobSkills} feeds the Job tab and is empty for a citizen without a workplace.
  */
 public record CitizenView(
         int colonyId,
@@ -24,7 +24,7 @@ public record CitizenView(
         Optional<String> jobId,
         Optional<String> workBuilding,
         String activity,
-        Optional<Deliverable> waitingFor,
+        Optional<Requestable> waitingFor,
         Optional<Msg> jobActivity,
         List<SkillRow> skills,
         List<ItemAmount> inventory,

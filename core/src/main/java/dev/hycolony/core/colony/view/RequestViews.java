@@ -7,6 +7,7 @@ import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.colony.ui.RequestsView;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.core.logistics.warehouse.RequesterLocation;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.RequestManager;
 import dev.hycolony.core.request.model.Deliverable;
@@ -22,7 +23,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-/** Builds the clipboard's view (MC WindowClipBoard): the requests only a player can serve, nearest requester first. */
+/**
+ * Builds the clipboard's view (MC WindowClipBoard): the requests only a player can serve, nearest requester first, each
+ * followed by its children.
+ */
 final class RequestViews {
     private final ColonyContext ctx;
 
@@ -41,8 +45,8 @@ final class RequestViews {
                         .orElse(0L))
                 .thenComparing(r -> r.token().id()));
         Map<ItemKey, Integer> owned = ctx.ports().playerInventory().contents(player);
-        List<RequestsView.RequestRow> rows =
-                sorted.stream().flatMap(r -> row(c, r, owned).stream()).toList();
+        List<RequestsView.RequestRow> rows = new ArrayList<>();
+        sorted.forEach(r -> tree(c, r, 0, owned, rows));
         return new RequestsView(c.id(), rows);
     }
 
@@ -69,13 +73,24 @@ final class RequestViews {
     }
 
     /**
-     * A request as the player sees it: who asks, and how many matching items {@code owned} holds; empty for a request
-     * that is not for items, which a player cannot provide.
+     * MC RequestTreeWindowModule.constructTreeFromRequest: {@code r} at {@code depth}, then each of its children still
+     * known one level deeper, appended to {@code rows}; a request already listed is skipped (a tree walk never loops).
      */
-    Optional<RequestsView.RequestRow> row(Colony c, Request r, Map<ItemKey, Integer> owned) {
+    void tree(Colony c, Request r, int depth, Map<ItemKey, Integer> owned, List<RequestsView.RequestRow> rows) {
+        if (rows.stream().anyMatch(row -> row.token().equals(r.token()))) {
+            return;
+        }
+        rows.add(new RequestsView.RequestRow(r.token(), r.requestable(), requesterName(c, r), has(r, owned), depth));
+        for (RequestToken child : r.children()) {
+            c.requests().get(child).ifPresent(k -> tree(c, k, depth + 1, owned, rows));
+        }
+    }
+
+    /** How many of {@code owned} match {@code r}; 0 for a courier delivery or pickup, which a player cannot provide. */
+    private int has(Request r, Map<ItemKey, Integer> owned) {
         Deliverable d = r.deliverable().orElse(null);
         if (d == null) {
-            return Optional.empty();
+            return 0;
         }
         int has = 0;
         for (Map.Entry<ItemKey, Integer> e : owned.entrySet()) {
@@ -83,12 +98,20 @@ final class RequestViews {
                 has += e.getValue();
             }
         }
-        String requester = r.citizenId() != -1
-                ? c.citizens().get(r.citizenId()).map(CitizenData::name).orElse("")
-                : c.buildings()
-                        .byRequester(r.requester())
-                        .map(Building::displayName)
-                        .orElse(r.requester().value());
-        return Optional.of(new RequestsView.RequestRow(r.token(), d, requester, has));
+        return has;
+    }
+
+    /**
+     * MC getRequesterDisplayName: the citizen who asks, else the building, or the building whose resolver asks (a
+     * warehouse's delivery); else the raw requester id.
+     */
+    static String requesterName(Colony c, Request r) {
+        if (r.citizenId() != -1) {
+            return c.citizens().get(r.citizenId()).map(CitizenData::name).orElse("");
+        }
+        return RequesterLocation.of(c, r.requester())
+                .flatMap(c.buildings()::at)
+                .map(Building::displayName)
+                .orElse(r.requester().value());
     }
 }

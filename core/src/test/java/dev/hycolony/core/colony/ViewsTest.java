@@ -238,11 +238,12 @@ class ViewsTest {
         assertEquals(colony.id(), v.colonyId());
         // WindowClipBoard order: requester's distance to the player, then token.
         List<RequestsView.RequestRow> hallRows = new ArrayList<>(List.of(
-                new RequestsView.RequestRow(retried, new StackRequest(planks, 10, 10, true), "Bob", 7),
-                new RequestsView.RequestRow(atPlayer, new StackRequest(planks, 3, 3, true), hallHut.displayName(), 7)));
+                new RequestsView.RequestRow(retried, new StackRequest(planks, 10, 10, true), "Bob", 7, 0),
+                new RequestsView.RequestRow(
+                        atPlayer, new StackRequest(planks, 3, 3, true), hallHut.displayName(), 7, 0)));
         hallRows.sort(java.util.Comparator.comparing(r -> r.token().id()));
         List<RequestsView.RequestRow> expected = new ArrayList<>();
-        expected.add(new RequestsView.RequestRow(far, new StackRequest(planks, 1, 1, true), res.displayName(), 7));
+        expected.add(new RequestsView.RequestRow(far, new StackRequest(planks, 1, 1, true), res.displayName(), 7, 0));
         expected.addAll(hallRows);
         assertEquals(expected, v.rows());
     }
@@ -429,7 +430,7 @@ class ViewsTest {
                         .level());
         assertEquals(List.of(new ItemAmount(STONE_I, 3)), v.inventory());
         assertEquals(
-                List.of(new RequestsView.RequestRow(token, new StackRequest(PLANK_I, 4, 4, true), "Bob", 2)),
+                List.of(new RequestsView.RequestRow(token, new StackRequest(PLANK_I, 4, 4, true), "Bob", 2, 0)),
                 v.requests());
 
         assertTrue(manager.requestActions().fulfil(alice, colony.id(), token)); // the window's "Supply"
