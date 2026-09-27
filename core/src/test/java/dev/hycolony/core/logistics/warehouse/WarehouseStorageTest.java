@@ -123,4 +123,24 @@ class WarehouseStorageTest {
         assertEquals(List.of(Msg.of("hycolony.warehouse.full"), Msg.of("hycolony.warehouse.fullMax")), messages());
         assertEquals(owner, t.notifier.sent.get(0).player());
     }
+
+    @Test
+    void racksFillingMidDumpKeepTheRemainderInTheCourierInventory() {
+        t.containers.maxStack = 10;
+        rack(hut, 1, DIRT);
+        rack(rack1, 2, STONE); // 1 stone: 9 more on its stack, plus one free slot of 10
+        rack(rack2, 1, SAND);
+        Inventory inv = new Inventory(3);
+        inv.set(0, Optional.of(new ItemAmount(STONE, 25)));
+        inv.set(1, Optional.of(new ItemAmount(LOG, 5)));
+
+        store(inv);
+
+        assertEquals(20, in(rack1, STONE));
+        assertEquals(Optional.of(new ItemAmount(STONE, 6)), inv.slot(0));
+        assertEquals(Optional.of(new ItemAmount(LOG, 5)), inv.slot(1));
+        assertEquals(26, in(hut, STONE) + in(rack1, STONE) + in(rack2, STONE) + inv.count(STONE));
+        assertEquals(0, in(hut, LOG) + in(rack1, LOG) + in(rack2, LOG));
+        assertEquals(List.of(Msg.of("hycolony.warehouse.full")), messages());
+    }
 }

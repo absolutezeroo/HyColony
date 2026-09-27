@@ -16,7 +16,8 @@ import java.util.UUID;
 
 /**
  * Stores a courier's inventory into the warehouse racks (MC {@code TileEntityWareHouse.dumpInventoryIntoWareHouse}).
- * Holds only the time of the last "warehouse full" message, which MC does not save either.
+ * Holds only the time of the last "warehouse full" message, not saved: MC keeps it in the {@code TileEntityWareHouse}
+ * field {@code lastNotification}, which is never written to NBT.
  */
 public final class WarehouseStorage implements BuildingModule {
     /** MC Constants.TICKS_FIVE_MIN: the least time between two "warehouse full" messages. */

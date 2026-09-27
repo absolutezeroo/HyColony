@@ -61,7 +61,7 @@ public final class CourierAssignmentModule implements TickingModule, PersistentM
      */
     @Override
     public void onColonyTick(Colony colony, Building building) {
-        if (couriers.size() < maxCouriers(building) && canAutoHire(colony, building)) {
+        if (couriers.size() < maxCouriers(building) && hiringMode.canAutoHire(colony, building, false)) {
             for (CitizenData citizen : colony.citizens().all()) {
                 if (isCourier(citizen)
                         && couriers.size() < maxCouriers(building)
@@ -77,15 +77,6 @@ public final class CourierAssignmentModule implements TickingModule, PersistentM
                 .orElse(false))) {
             colony.markDirty();
         }
-    }
-
-    /** MC BuildingUtils.canAutoHire, with MC's default {@code canAssignCitizens} (built, level above 0). */
-    private boolean canAutoHire(Colony colony, Building building) {
-        boolean assignable = building.level() > 0 && building.isBuilt();
-        return assignable
-                && (hiringMode == HiringMode.AUTO
-                        || (hiringMode == HiringMode.DEFAULT
-                                && colony.settings().autoHiring()));
     }
 
     private static boolean isCourier(CitizenData citizen) {

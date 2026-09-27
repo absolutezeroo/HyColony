@@ -61,7 +61,7 @@ public final class WorkerModule implements PersistentModule, TickingModule, Buil
     }
 
     public boolean canAssignCitizens(Building b) {
-        return assignableAtLevel0 || (b.level() > 0 && b.isBuilt());
+        return HiringMode.canAssignCitizens(b, assignableAtLevel0);
     }
 
     /** Fails (returns false) when full, {@link #canAssignCitizens} is false, or the citizen is already employed. */
@@ -102,12 +102,7 @@ public final class WorkerModule implements PersistentModule, TickingModule, Buil
 
     @Override
     public void onColonyTick(Colony colony, Building building) {
-        if (workers.size() >= maxWorkers || !canAssignCitizens(building)) {
-            return;
-        }
-        boolean autoHire = hiringMode == HiringMode.AUTO
-                || (hiringMode == HiringMode.DEFAULT && colony.settings().autoHiring());
-        if (!autoHire) {
+        if (workers.size() >= maxWorkers || !hiringMode.canAutoHire(colony, building, assignableAtLevel0)) {
             return;
         }
         for (CitizenData citizen : colony.citizens().all()) {

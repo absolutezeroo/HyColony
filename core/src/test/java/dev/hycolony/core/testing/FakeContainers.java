@@ -11,11 +11,13 @@ import java.util.Map;
 
 /**
  * Containers keyed by block position; {@link #full} makes every insert fail. A position listed in {@link #slots} holds
- * that many slots, one per distinct item and each of unlimited size; any other position is unlimited.
+ * that many slots of at most {@link #maxStack} items each (unlimited by default, so one slot per distinct item) and an
+ * insert there can fit partly, like a real container; any other position is unlimited.
  */
 public final class FakeContainers implements ContainerAccess {
     public final Map<BlockPos, Map<ItemKey, Integer>> containers = new LinkedHashMap<>();
     public final Map<BlockPos, Integer> slots = new HashMap<>();
+    public int maxStack = Integer.MAX_VALUE;
     public boolean full;
 
     @Override
@@ -60,11 +62,11 @@ public final class FakeContainers implements ContainerAccess {
         }
         BlockPos pos = positions.get(0);
         Map<ItemKey, Integer> c = containers.computeIfAbsent(pos, p -> new LinkedHashMap<>());
-        if (!c.containsKey(amount.item()) && freeSlots(pos) <= 0) {
-            return amount;
+        int fits = slots.containsKey(pos) ? (int) Math.min(amount.count(), room(pos, amount.item())) : amount.count();
+        if (fits > 0) {
+            c.merge(amount.item(), fits, Integer::sum);
         }
-        c.merge(amount.item(), amount.count(), Integer::sum);
-        return null;
+        return fits == amount.count() ? null : amount.withCount(amount.count() - fits);
     }
 
     @Override
@@ -79,8 +81,20 @@ public final class FakeContainers implements ContainerAccess {
     @Override
     public int freeSlots(BlockPos container) {
         Integer capacity = slots.get(container);
-        return capacity == null
-                ? Integer.MAX_VALUE
-                : capacity - containers.getOrDefault(container, Map.of()).size();
+        if (capacity == null) {
+            return Integer.MAX_VALUE;
+        }
+        long used = 0;
+        for (int count : containers.getOrDefault(container, Map.of()).values()) {
+            used += (count + (long) maxStack - 1) / maxStack;
+        }
+        return (int) Math.max(0, capacity - used);
+    }
+
+    /** How many more of {@code item} fit at {@code pos}: the top of its last stack, then the free slots. */
+    private long room(BlockPos pos, ItemKey item) {
+        int have = containers.getOrDefault(pos, Map.of()).getOrDefault(item, 0);
+        long top = have == 0 ? 0 : ((have + (long) maxStack - 1) / maxStack) * maxStack - have;
+        return top + (long) freeSlots(pos) * maxStack;
     }
 }
