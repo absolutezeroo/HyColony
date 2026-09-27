@@ -7,7 +7,8 @@ it covers modules, class design, style, robustness, persistence, MineColonies fi
 ## Verify before every commit
 
     ./gradlew spotlessApply   # format (palantir-java-format, import order)
-    ./gradlew build           # core tests, plugin compile, spotlessCheck, PMD, checkFileSizes, checkSectionDividers
+    ./gradlew build           # core tests, plugin compile with Error Prone and NullAway, spotlessCheck, PMD,
+                              # checkFileSizes, checkSectionDividers
 
 The build must be green. Versioned git hooks enforce this: run `git config core.hooksPath .githooks` once per clone.
 

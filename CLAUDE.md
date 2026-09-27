@@ -6,7 +6,7 @@ HyColony porte MineColonies sur Hytale 0.6.8 (épinglé), **à l'identique** : m
 
 ## 1. Modules et dépendances
 
-- `core/` contient la logique du jeu en Java pur. **Aucun import `com.hypixel`** **[build : ArchitectureTest]**. Il ne dépend que du JDK et de Gson (compileOnly). Il est compilé en `--release 21`.
+- `core/` contient la logique du jeu en Java pur. **Aucun import `com.hypixel`** **[build : ArchitectureTest]**. Il ne dépend que du JDK, de Gson et de jspecify, ces deux derniers en `compileOnly` (jspecify n'apporte que des annotations). Il est compilé en Java 25, comme le plugin.
 - `plugin/` contient les adaptateurs Hytale et le pack d'assets. Il ne contient **pas** de règles de jeu : une décision de jeu prise dans le plugin est un bug.
 - Architecture ports & adaptateurs :
   - le cœur définit des ports (`kernel/port`, `construction/blueprint/BlueprintSource`, `colony/ui/UiPort`) ;
@@ -39,6 +39,7 @@ HyColony porte MineColonies sur Hytale 0.6.8 (épinglé), **à l'identique** : m
 - Le formatage est celui de palantir-java-format **[build : `spotlessCheck`]**. On lance `./gradlew spotlessApply` avant chaque commit.
 - Imports (Google Java Style) : un bloc d'imports statiques, une ligne vide, puis un bloc d'imports normaux, chacun trié dans l'ordre ASCII **[build : `spotlessCheck`]**.
 - Complexité, classes fourre-tout, code mort et code fragile sont vérifiés par PMD (`config/pmd/ruleset.xml`) **[build : `pmdMain`]**.
+- Le code emploie les fonctionnalités actuelles de Java 25 quand elles le rendent plus clair. Error Prone et NullAway tournent dans le build **[build]**.
 - Pas de commentaires séparateurs (`// ---- section ----`, bannières) : si une classe a besoin de sections, elle doit être découpée.
 - **Documentation du code** : chaque classe, et chaque méthode qui n'est pas un simple accesseur, a une Javadoc **courte et précise**. Elle dit ce que fait la méthode et ce qu'elle renvoie, en une à trois lignes, sans roman. Elle ajoute ses effets de bord (état modifié, message envoyé), ce qu'elle renvoie sur une entrée absente ou invalide, et sa source MineColonies s'il y en a une. Exemple : `/** Places the next planned block of the current stage; skips positions already correct. */`.
 - À l'intérieur des méthodes, un commentaire explique seulement le **pourquoi** (contrainte Hytale, règle de MineColonies, cas limite), jamais ce que le code dit déjà.
