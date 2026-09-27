@@ -41,10 +41,4 @@ final class LogisticsSelfTest {
         boolean raining = rt.manager().context().worldQuery().isRainingAt(at);
         report.line("weather (information only), raining or snowing here: " + raining, true, "");
     }
-
-    /** Where a selftest step writes its result. */
-    @FunctionalInterface
-    interface SelfTestReport {
-        void line(String step, boolean ok, String detail);
-    }
 }

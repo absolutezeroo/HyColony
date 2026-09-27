@@ -4,7 +4,6 @@ import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.construction.blueprint.BlueprintSource;
 import dev.hycolony.plugin.IdMap;
 import dev.hycolony.plugin.WorldRuntime;
-import dev.hycolony.plugin.command.LogisticsSelfTest.SelfTestReport;
 import java.util.ArrayList;
 import java.util.List;
 

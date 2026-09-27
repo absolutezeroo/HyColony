@@ -7,7 +7,6 @@ import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.NavStatus;
 import dev.hycolony.plugin.WorldRuntime;
-import dev.hycolony.plugin.command.LogisticsSelfTest.SelfTestReport;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;

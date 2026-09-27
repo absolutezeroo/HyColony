@@ -32,7 +32,6 @@ import dev.hycolony.plugin.WorldRuntime;
 import dev.hycolony.plugin.WorldRuntimes;
 import dev.hycolony.plugin.adapter.HytaleNotifier;
 import dev.hycolony.plugin.adapter.HytaleWorldBlocks;
-import dev.hycolony.plugin.command.LogisticsSelfTest.SelfTestReport;
 import dev.hycolony.plugin.subplugin.SubPlugins;
 import java.nio.file.Files;
 import java.util.List;

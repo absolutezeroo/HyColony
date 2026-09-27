@@ -1,6 +1,5 @@
 package dev.hycolony.plugin.command;
 
-import dev.hycolony.plugin.command.LogisticsSelfTest.SelfTestReport;
 import dev.hycolony.plugin.subplugin.SubPlugins;
 import java.util.Locale;
 

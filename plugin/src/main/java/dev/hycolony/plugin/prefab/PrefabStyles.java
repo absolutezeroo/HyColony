@@ -10,6 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nullable;
 
@@ -42,13 +43,14 @@ public final class PrefabStyles {
     /** Every distinct prefab path, in file order. */
     Set<String> prefabs() {
         Set<String> out = new LinkedHashSet<>();
-        table.values()
-                .forEach(types -> types.values()
-                        .forEach(levels -> levels.values().forEach(l -> {
-                            if (l != null && l.prefab() != null) {
-                                out.add(l.prefab());
-                            }
-                        })));
+        // Gson keeps a JSON null as a null value at any depth ({"kweebec": null}): skip it like a missing entry.
+        table.values().stream()
+                .filter(Objects::nonNull)
+                .flatMap(types -> types.values().stream())
+                .filter(Objects::nonNull)
+                .flatMap(levels -> levels.values().stream())
+                .filter(l -> l != null && l.prefab() != null)
+                .forEach(l -> out.add(l.prefab()));
         return out;
     }
 
