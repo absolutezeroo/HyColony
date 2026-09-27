@@ -134,3 +134,9 @@ Serveur arrêté pour chaque modification du fichier, puis relancé.
 76. **Colonie supprimée.** La fenêtre ouverte, un opérateur lance `/hycolony delete <id>` : la fenêtre se ferme, sans plantage du serveur ni du client.
 77. **Refus.** B (non membre, ou ami sans le droit de gérer les huttes) clique sur « Ouvrir l'inventaire » : message « Vous n'avez pas le droit de faire ça dans … », rien ne s'ouvre.
 78. **Outil usé.** A essaie de déposer une pioche entamée (durabilité pas pleine) ou un objet avec des données (sac rempli) : refusé, l'objet reste chez A. Une pioche neuve passe. Noter si le client montre le refus proprement (l'objet revient à sa place).
+
+## Blocs connectés (escaliers, toits, clôtures)
+
+79. **Escaliers et toit.** Le constructeur bâtit une hutte dont le prefab a des coins d'escalier (intérieurs et extérieurs) et un faîte de toit : chaque coin, chaque faîtière (`Topper`) et chaque toit creux (`Hollow`) est identique au prefab collé en créatif, jamais un escalier droit. Faire aussi le test sur une hutte tournée de 90°. `/hycolony selftest` affiche « block keys » OK.
+80. **Porte ouverte.** Pendant le chantier (avant la fin), A ouvre une porte déjà posée par le constructeur : le constructeur ne la casse pas et ne la repose pas, et la construction se termine.
+81. **Clôtures et murs.** Les coins, jonctions en T et croisements de clôtures ou de murets du prefab sont posés avec la bonne forme et la bonne orientation. Noter si un escalier posé ensuite par un joueur à côté d'un bâtiment fini change la forme d'un escalier du constructeur (limite connue, comme un prefab vanilla).

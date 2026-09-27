@@ -69,7 +69,6 @@ Les autres points de la relecture sont corrigés. Il reste :
 
 - **Documenter tout le code** : ajouter une Javadoc courte à chaque classe et à chaque méthode non triviale du cœur et du plugin (règle de CLAUDE.md § 3), puis la faire respecter par le build avec la règle PMD `CommentRequired` (classes, méthodes publiques et protégées). À lancer après les corrections de la relecture, pour éviter les conflits.
 - **Découpage du plugin** : lignes PMD restantes, `HytaleItemCatalog`, `BuildingPage`, `HytaleWorldBlocks`, etc.
-- **Escaliers, toits, clôtures et murs connectés** : poser la variante exacte du prefab (voir `docs/research/connected-blocks.md`, option a).
 - **Blocs impossibles à obtenir en survie dans les plans** : ramener le coût au drop du bloc, faire demander les graines pour les cultures, ajouter une table de remplacement par style, et un contrôle au démarrage et dans `selftest` (voir `docs/research/prefab-obtainability.md`).
   - Décision : Kweebec niveau 5 (séquoia géant) → garder ce prefab ou prendre une maison plus petite ?
   - Décision : Outlander niveau 1 → passer à `Tier0_006` ?
