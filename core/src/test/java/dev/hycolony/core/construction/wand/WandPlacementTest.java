@@ -144,6 +144,16 @@ class WandPlacementTest {
     }
 
     @Test
+    void townHallFoundedWithTheWandKeepsItsStyle() {
+        give(bob, TOWN_HALL_ITEM);
+        BlockPos far = new BlockPos(5000, 64, 0);
+        placement.confirm(bob, "Bob", session(far, TOWN_HALL));
+        Colony founded = manager.foundation().confirm(bob, "Rivendell II").orElseThrow();
+        Building townHall = founded.buildings().at(far).orElseThrow();
+        assertEquals(FakeBlueprints.STYLE, townHall.style());
+    }
+
+    @Test
     void wandNeedsOnlyManageHutsNotPlaceHuts() {
         colony.permissions().setRank(bob, "Bob", Permissions.OFFICER);
         colony.permissions().ranks().get(Permissions.OFFICER).remove(Action.PLACE_HUTS);

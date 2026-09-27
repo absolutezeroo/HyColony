@@ -1,5 +1,6 @@
 package dev.hycolony.core.colony;
 
+import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.colony.action.ColonyAdministration;
 import dev.hycolony.core.colony.action.HutActions;
@@ -17,7 +18,7 @@ import java.util.UUID;
  * colony) or cancel (the adapter removes the block).
  */
 public final class ColonyFoundation {
-    private record Pending(String playerName, BlockPos pos, int rotation) {}
+    private record Pending(String playerName, BlockPos pos, int rotation, String style) {}
 
     private final ColonyManager manager;
     private final HutActions huts;
@@ -28,8 +29,14 @@ public final class ColonyFoundation {
         this.huts = huts;
     }
 
+    /** Hand placement: no style chosen, so the town hall gets the pack's first one (MC default). */
     public void begin(UUID player, String playerName, BlockPos pos, int rotation) {
-        pending.put(player, new Pending(playerName, pos, rotation));
+        begin(player, playerName, pos, rotation, "");
+    }
+
+    /** Build tool placement: {@code style} is carried to the town hall once the colony is confirmed. */
+    public void begin(UUID player, String playerName, BlockPos pos, int rotation, String style) {
+        pending.put(player, new Pending(playerName, pos, rotation, style));
         manager.context().ui().showFoundColony(player, new FoundColonyView(playerName + "'s Colony"));
     }
 
@@ -63,6 +70,10 @@ public final class ColonyFoundation {
         colony.log().add("colonyCreated", colony.day(), name);
         ctx.bus().post(new ColonyEvents.ColonyCreated(colony));
         huts.place(colony, BuildingTypes.TOWN_HALL.id(), p.pos(), p.rotation());
+        if (!p.style().isEmpty()) {
+            Building townHall = colony.buildings().at(p.pos()).orElseThrow();
+            townHall.setStyle(p.style());
+        }
         ctx.notifier().send(player, Msg.of("hycolony.colony.created", name));
         manager.persistence().save(colony);
         return Optional.of(colony);

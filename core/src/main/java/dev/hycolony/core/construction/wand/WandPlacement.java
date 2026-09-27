@@ -119,7 +119,7 @@ final class WandPlacement {
             allowed.colony().markDirty();
             return new Placed(building);
         }
-        manager.foundation().begin(player, playerName, pos, s.rotation());
+        manager.foundation().begin(player, playerName, pos, s.rotation(), s.style());
         return new FoundColony();
     }
 

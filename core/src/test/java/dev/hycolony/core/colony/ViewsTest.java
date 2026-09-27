@@ -326,6 +326,16 @@ class ViewsTest {
     }
 
     @Test
+    void buildOfAHutPlacedWithAStyleUsesThatStyleByDefault() {
+        Building res = residence(0);
+        res.setStyle("kweebec");
+        assertEquals(Optional.empty(), manager.workOrders().order(alice, res.position(), WorkOrderType.BUILD, ""));
+        assertEquals(
+                "kweebec",
+                colony.work().byBuilding(res.position()).orElseThrow().style());
+    }
+
+    @Test
     void hireFireFromView() {
         Building hut = hut(ConstructionBuildingTypes.BUILDER, new BlockPos(30, 64, 0), 1);
         CitizenData ann = citizen(nextCitizen++, "Ann");
