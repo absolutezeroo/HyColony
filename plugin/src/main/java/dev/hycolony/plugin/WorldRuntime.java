@@ -124,6 +124,7 @@ public final class WorldRuntime {
             clock.advance();
             manager.tick();
             goggles.tick();
+            wand.tick();
             if (clock.currentTick() % autosaveTicks == 0) {
                 manager.persistence().saveDirty();
             }

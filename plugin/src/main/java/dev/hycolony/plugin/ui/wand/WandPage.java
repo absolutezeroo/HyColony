@@ -80,6 +80,8 @@ public final class WandPage extends ColonyPage {
         choices(ui, events, LEVELS, levels, view.level() - 1);
         ui.set("#Manipulator.Visible", view.manipulate());
         ui.set("#ConfirmButton.Visible", view.manipulate());
+        // ST AbstractBlueprintManipulationWindow.updatePlacementOptions: the paste options are for creative only.
+        ui.set("#PasteButton.Visible", view.manipulate() && view.creative());
         bind(events, "#CancelButton", "cancel");
         if (view.manipulate()) {
             ui.set(
@@ -87,9 +89,12 @@ public final class WandPage extends ColonyPage {
                     Message.translation("hycolony.ui.wand.rotation")
                             .param("p0", String.valueOf(view.rotation() * QUARTER_TURN_DEGREES)));
             MOVES.forEach(m -> bind(events, m.selector(), "move", m.dir().ordinal()));
-            bind(events, "#RotateRightButton", "rotateRight");
-            bind(events, "#RotateLeftButton", "rotateLeft");
+            bind(events, "#RotateRightButton", "rotate", 1); // index 1: clockwise
+            bind(events, "#RotateLeftButton", "rotate", 0);
             bind(events, "#ConfirmButton", "confirm");
+            if (view.creative()) {
+                bind(events, "#PasteButton", "paste");
+            }
         }
     }
 
@@ -144,9 +149,9 @@ public final class WandPage extends ColonyPage {
             case "hut" -> at(view.buildingTypeIds(), i).ifPresent(t -> wand.selectBuilding(player, t));
             case "level" -> wand.selectLevel(player, i + 1);
             case "move" -> at(List.of(WandActions.Dir.values()), i).ifPresent(d -> wand.move(player, d));
-            case "rotateRight" -> wand.rotate(player, true);
-            case "rotateLeft" -> wand.rotate(player, false);
+            case "rotate" -> wand.rotate(player, i == 1);
             case "confirm" -> wand.confirm(player, playerRef.getUsername());
+            case "paste" -> wand.paste(player, playerRef.getUsername());
             case "cancel" -> wand.cancel(player);
             default -> {
                 // A forged or stale action: the window stays as it is.

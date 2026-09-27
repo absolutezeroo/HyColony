@@ -37,6 +37,7 @@ ui.wand.down = Bas
 ui.wand.rotateLeft = Tourner à gauche
 ui.wand.rotateRight = Tourner à droite
 ui.wand.confirm = Valider
+ui.wand.paste = Coller
 ui.wand.cancel = Annuler
 ui.wand.tree = {p0} / {p1}
 ui.wand.rotation = Rotation : {p0}°
