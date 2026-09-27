@@ -21,6 +21,10 @@ public final class FakeUi implements UiPort {
     public record Notice(UUID player, NeedsPlayerNotice notice) {}
 
     public final List<Notice> notices = new ArrayList<>();
+
+    public record OpenedInventory(UUID player, int colonyId, int citizenId) {}
+
+    public final List<OpenedInventory> openedInventories = new ArrayList<>();
     /** Runs inside close(), like Hytale calling the page's onDismiss before it forgets the page. */
     public Consumer<UUID> onClose = p -> {};
 
@@ -52,6 +56,11 @@ public final class FakeUi implements UiPort {
     @Override
     public void showWand(UUID player, WandView view) {
         shown.put(player, view);
+    }
+
+    @Override
+    public void openCitizenInventory(UUID player, int colonyId, int citizenId) {
+        openedInventories.add(new OpenedInventory(player, colonyId, citizenId));
     }
 
     @Override

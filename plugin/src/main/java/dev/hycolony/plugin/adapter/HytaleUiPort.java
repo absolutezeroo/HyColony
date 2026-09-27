@@ -131,6 +131,10 @@ public final class HytaleUiPort implements UiPort {
         open(player, pr -> new WandPage(pr, view, manager.get(), wand.get(), ids));
     }
 
+    /** Not reachable yet: no button opens it until the container window lands. */
+    @Override
+    public void openCitizenInventory(UUID player, int colonyId, int citizenId) {}
+
     @Override
     public void notifyNeedsPlayer(UUID player, NeedsPlayerNotice notice) {
         PlayerRef pr = Universe.get().getPlayer(player);
