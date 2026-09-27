@@ -150,7 +150,7 @@ public record ConstructionPorts(
             }
 
             @Override
-            public List<ItemAmount> takeStacks(UUID player, ItemKey item, int max) {
+            public List<ItemAmount> takeStacks(UUID player, ItemKey item, int max, Predicate<ItemAmount> accept) {
                 return List.of();
             }
 

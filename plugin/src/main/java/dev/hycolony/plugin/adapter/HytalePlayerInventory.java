@@ -19,6 +19,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import org.jspecify.annotations.Nullable;
 
@@ -51,12 +52,12 @@ public final class HytalePlayerInventory implements PlayerInventory {
     }
 
     @Override
-    public List<ItemAmount> takeStacks(UUID player, ItemKey item, int max) {
+    public List<ItemAmount> takeStacks(UUID player, ItemKey item, int max, Predicate<ItemAmount> accept) {
         List<ItemAmount> out = new ArrayList<>();
         try {
             ItemContainer c = inventory(player);
             if (c != null) {
-                HytaleContainerAccess.takeBySlot(c, new HytaleContainerAccess.Take(item, max, _ -> true), stacks, out);
+                HytaleContainerAccess.takeBySlot(c, new HytaleContainerAccess.Take(item, max, accept), stacks, out);
             }
         } catch (RuntimeException e) {
             fail("take", e); // what was already taken stays taken: report it

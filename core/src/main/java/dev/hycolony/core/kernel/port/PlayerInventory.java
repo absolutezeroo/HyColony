@@ -5,6 +5,7 @@ import dev.hycolony.core.kernel.item.ItemKey;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Predicate;
 import org.jspecify.annotations.Nullable;
 
 public interface PlayerInventory {
@@ -17,8 +18,16 @@ public interface PlayerInventory {
                 .sum();
     }
 
-    /** Takes up to {@code max} of {@code item}; returns the stacks taken, each with its damage. */
-    List<ItemAmount> takeStacks(UUID player, ItemKey item, int max);
+    /** {@link #takeStacks(UUID, ItemKey, int, Predicate)} of any stack. */
+    default List<ItemAmount> takeStacks(UUID player, ItemKey item, int max) {
+        return takeStacks(player, item, max, _ -> true);
+    }
+
+    /**
+     * Takes up to {@code max} of {@code item} from the slots whose stack {@code accept}s; returns the stacks taken,
+     * each with its damage.
+     */
+    List<ItemAmount> takeStacks(UUID player, ItemKey item, int max, Predicate<ItemAmount> accept);
 
     /** Everything the player carries, in inventory order. */
     Map<ItemKey, Integer> contents(UUID player);

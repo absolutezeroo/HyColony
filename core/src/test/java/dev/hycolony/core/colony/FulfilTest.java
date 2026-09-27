@@ -72,6 +72,24 @@ class FulfilTest {
         assertEquals(0, t.playerInventory.count(alice, pick));
     }
 
+    /** MC: a broken tool no longer exists; the player's good shovel goes, the broken one stays with them. */
+    @Test
+    void aPlayerNeverSuppliesABrokenToolForAToolRequest() {
+        ItemKey shovel = new ItemKey("Tool_Shovel_Crude");
+        t.catalog.tools.put(shovel, new ToolInfo(ToolType.SHOVEL, 0, 1f));
+        t.catalog.durability.put(shovel, 150);
+        t.catalog.maxStacks.put(shovel, 1);
+        RequestToken token =
+                colony.requests().createAndAssign(hut, new ToolRequest(ToolType.SHOVEL, 0, 5), citizen.id());
+        t.playerInventory.give(alice, new ItemAmount(shovel, 1, 150));
+        t.playerInventory.give(alice, new ItemAmount(shovel, 1, 20));
+
+        assertTrue(manager.requestActions().fulfil(alice, colony.id(), token));
+
+        assertEquals(List.of(new ItemAmount(shovel, 1, 20)), citizen.inventory().contents());
+        assertEquals(List.of(new ItemAmount(shovel, 1, 150)), t.playerInventory.worn.get(alice));
+    }
+
     @Test
     void aWornToolAPlayerAddsToAHutKeepsItsWear() {
         ItemKey pick = new ItemKey("Tool_Pickaxe_Iron");
