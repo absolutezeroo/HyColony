@@ -105,6 +105,26 @@ public final class HytaleContainerAccess implements ContainerAccess {
         return out;
     }
 
+    @Override
+    public int freeSlots(BlockPos container) {
+        try {
+            ItemContainer c = container(container);
+            if (c == null) {
+                return 0;
+            }
+            int free = 0;
+            for (short s = 0; s < c.getCapacity(); s++) {
+                if (ItemStack.isEmpty(c.getItemStack(s))) {
+                    free++;
+                }
+            }
+            return free;
+        } catch (RuntimeException e) {
+            fail("freeSlots", e);
+            return 0;
+        }
+    }
+
     private ItemContainer container(BlockPos p) {
         ItemContainerBlock b =
                 BlockModule.getComponent(ItemContainerBlock.getComponentType(), world, p.x(), p.y(), p.z());

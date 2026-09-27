@@ -12,6 +12,7 @@ import dev.hycolony.core.job.JobRegistry;
 import dev.hycolony.core.kernel.WorldKey;
 import dev.hycolony.core.kernel.config.ColonyConfig;
 import dev.hycolony.core.kernel.event.EventBus;
+import dev.hycolony.core.logistics.warehouse.WarehouseBuilding;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -47,6 +48,7 @@ public final class TestContexts {
     private static BuildingRegistry buildings() {
         BuildingRegistry r = BuildingTypes.defaults();
         ConstructionBuildingTypes.register(r);
+        WarehouseBuilding.register(r);
         return r;
     }
 

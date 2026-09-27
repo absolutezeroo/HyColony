@@ -120,6 +120,11 @@ public record ConstructionPorts(
             public Map<ItemKey, Integer> contents(List<BlockPos> containers) {
                 return Map.of();
             }
+
+            @Override
+            public int freeSlots(BlockPos container) {
+                return 0;
+            }
         };
         PlayerInventory playerInventory = new PlayerInventory() {
             @Override

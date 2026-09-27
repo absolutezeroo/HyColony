@@ -15,4 +15,7 @@ public interface ContainerAccess {
     ItemAmount insert(List<BlockPos> containers, ItemAmount amount);
 
     Map<ItemKey, Integer> contents(List<BlockPos> containers);
+
+    /** Empty slots of the container at {@code container}; 0 when there is none or its chunk is not loaded. */
+    int freeSlots(BlockPos container);
 }

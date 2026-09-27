@@ -4,13 +4,18 @@ import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.ContainerAccess;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Unlimited-capacity containers, keyed by block position; {@link #full} makes every insert fail. */
+/**
+ * Containers keyed by block position; {@link #full} makes every insert fail. A position listed in {@link #slots} holds
+ * that many slots, one per distinct item and each of unlimited size; any other position is unlimited.
+ */
 public final class FakeContainers implements ContainerAccess {
     public final Map<BlockPos, Map<ItemKey, Integer>> containers = new LinkedHashMap<>();
+    public final Map<BlockPos, Integer> slots = new HashMap<>();
     public boolean full;
 
     @Override
@@ -53,7 +58,11 @@ public final class FakeContainers implements ContainerAccess {
         if (positions.isEmpty() || full) {
             return amount;
         }
-        Map<ItemKey, Integer> c = containers.computeIfAbsent(positions.get(0), p -> new LinkedHashMap<>());
+        BlockPos pos = positions.get(0);
+        Map<ItemKey, Integer> c = containers.computeIfAbsent(pos, p -> new LinkedHashMap<>());
+        if (!c.containsKey(amount.item()) && freeSlots(pos) <= 0) {
+            return amount;
+        }
         c.merge(amount.item(), amount.count(), Integer::sum);
         return null;
     }
@@ -65,5 +74,13 @@ public final class FakeContainers implements ContainerAccess {
             containers.getOrDefault(pos, Map.of()).forEach((k, v) -> total.merge(k, v, Integer::sum));
         }
         return total;
+    }
+
+    @Override
+    public int freeSlots(BlockPos container) {
+        Integer capacity = slots.get(container);
+        return capacity == null
+                ? Integer.MAX_VALUE
+                : capacity - containers.getOrDefault(container, Map.of()).size();
     }
 }

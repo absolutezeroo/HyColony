@@ -57,6 +57,7 @@ Toutes reprises de MineColonies ; les références `§` renvoient à la recherch
 - Le constructeur est aujourd'hui le seul ouvrier : il demande un ramassage quand sa hutte est pleine et après un dépôt, selon la règle générique `AbstractEntityAIBasic` (§ 0.1). Aucun autre producteur tant que SP3 n'en ajoute pas.
 - Pluie : dépend de la météo Hytale (à vérifier, voir plus bas) ; si le serveur ne l'expose pas, le livreur travaille toujours, écart documenté.
 - Outils gardés (`KeepToolsModule`) : le constructeur garde pioche, pelle et hache ; houe et cisailles n'existent pas dans `ToolType`.
+- Rangement (`WarehouseStorage`) : le 2e choix de MC (une étagère qui contient un objet « similaire », même onglet créatif) est sauté, les objets Hytale n'ont pas d'onglet créatif dans le cœur. Sans améliorations de stockage, un entrepôt de niveau 5 plein envoie toujours le message « amélioration maximale » de MC, jamais « payez un bloc d'émeraude ». Le premier message « entrepôt plein » n'est pas retardé : notre compteur de ticks repart de 0 au lancement du serveur (le temps de jeu de MC est sauvegardé).
 
 ## Architecture
 
