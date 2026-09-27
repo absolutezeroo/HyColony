@@ -26,9 +26,8 @@ import javax.annotation.Nonnull;
 import org.joml.Vector3d;
 
 /**
- * /hycolony dotest [--delay=ms] [clear], operators only: creates a new texture and BlockType at runtime, places it 2
- * blocks in front of the player, and clears the placed blocks on {@code clear}. {@code --delay} waits between the
- * texture and the BlockType, to probe a client-side race.
+ * /hycolony dotest [clear], operators only: creates a new texture and BlockType at runtime, places it 2 blocks in
+ * front of the player, and clears the placed blocks on {@code clear}.
  *
  * <p>Temporary experiment for the Domum Ornamentum port (docs/research/domum-ornamentum.md B.6): it answers whether a
  * connected client renders a BlockType created at runtime without reconnecting. Remove it after the in-game test.
@@ -36,21 +35,23 @@ import org.joml.Vector3d;
 public final class DoTestCommand extends AbstractPlayerCommand {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
     private static final int DISTANCE = 2;
-    /** Wait before the client rebuild, so the placed block has been sent first. */
-    private static final long REBUILD_DELAY_MS = 200;
 
     private final RuntimeBlockFactory factory;
     // Commands from different worlds run on different threads.
     private final Queue<Placed> placed = new ConcurrentLinkedQueue<>();
     private final AtomicInteger next = new AtomicInteger(1);
     private final DefaultArg<Integer> delayMs;
+    private final DefaultArg<Boolean> rebuildAfter;
 
     /** @param packKey the plugin's asset pack name ({@code getIdentifier().toString()}) */
     public DoTestCommand(String packKey) {
         super("dotest", "Runtime block type experiment (operators)");
         this.factory = new RuntimeBlockFactory(packKey);
-        // --delay=<ms> between the texture send and the BlockType load, to probe client-side ordering.
+        // --delay=<ms> between the texture and the BlockType, to test whether the client needs its rebuild finished.
         this.delayMs = withDefaultArg("delay", "Milliseconds between texture and block type", ArgTypes.INTEGER, 0, "0");
+        // --after=true sends the client rebuild request after the BlockType instead of after the texture.
+        this.rebuildAfter =
+                withDefaultArg("after", "Rebuild request after the block type", ArgTypes.BOOLEAN, false, "false");
         setPermissionGroups(new String[0]);
         addSubCommand(new Clear());
     }
@@ -69,11 +70,23 @@ public final class DoTestCommand extends AbstractPlayerCommand {
         int n = next.getAndIncrement();
         Placed at = inFront(store, ref, world);
         long start = System.nanoTime();
+        boolean after = ctx.get(rebuildAfter);
         // World.tick holds AssetRegistry.ASSET_LOCK's read lock and loadAssets needs its write lock: loading assets on
         // the world thread deadlocks it (a ReentrantReadWriteLock cannot upgrade).
-        CompletableFuture.supplyAsync(() -> createTexture(n, player))
+        CompletableFuture.supplyAsync(() -> {
+                    Optional<String> texture = createTexture(n, player);
+                    if (!after) {
+                        RuntimeBlockFactory.requestClientRebuild();
+                    }
+                    return texture;
+                })
                 .thenAcceptAsync(
-                        texture -> createBlock(n, texture, at, player, start),
+                        texture -> {
+                            createBlock(n, texture, at, player, start);
+                            if (after) {
+                                RuntimeBlockFactory.requestClientRebuild();
+                            }
+                        },
                         CompletableFuture.delayedExecutor(Math.max(0, ctx.get(delayMs)), TimeUnit.MILLISECONDS))
                 .whenComplete((v, t) -> {
                     if (t != null) {
@@ -114,10 +127,6 @@ public final class DoTestCommand extends AbstractPlayerCommand {
         try {
             at.world().setBlock(at.x(), at.y(), at.z(), id);
             placed.add(at);
-            // Block changes reach clients during the ChunkStore tick (ChunkSystems), after this task: wait a few ticks
-            // so the rebuild arrives once the client has the block.
-            CompletableFuture.delayedExecutor(REBUILD_DELAY_MS, TimeUnit.MILLISECONDS)
-                    .execute(RuntimeBlockFactory::requestClientRebuild);
             long ms = (System.nanoTime() - start) / 1_000_000;
             LOG.at(Level.INFO).log("dotest: created %s at %d %d %d in %d ms", id, at.x(), at.y(), at.z(), ms);
             say(player, "hycolony.dotest.created", id, String.valueOf(ms));

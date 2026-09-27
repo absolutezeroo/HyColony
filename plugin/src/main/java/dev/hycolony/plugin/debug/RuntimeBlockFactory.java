@@ -76,9 +76,9 @@ final class RuntimeBlockFactory {
     }
 
     /**
-     * Writes the PNG to a temp directory (created on first use), registers it as common asset
+     * Writes the PNG to a temp directory (created on first use) and registers it as common asset
      * {@code Blocks/HyColony/DoTest/<name>.png}; {@code CommonAssetModule.addCommonAsset} sends it to every connected
-     * player. Clients use it only after {@link #requestClientRebuild}. Returns the asset name.
+     * player (see {@link #requestClientRebuild}). Returns the asset name.
      */
     String registerTexture(String name, byte[] png) {
         String assetName = TEXTURE_DIR + name + ".png";
@@ -94,8 +94,8 @@ final class RuntimeBlockFactory {
             throw new UncheckedIOException(e);
         }
         FileCommonAsset asset = new FileCommonAsset(file, assetName, png);
-        // The asset holds its bytes by weak reference: keeping the blob reachable makes addCommonAsset send it now, on
-        // this thread, before the BlockType packet.
+        // The asset holds its bytes by weak reference: keeping the blob reachable makes sendAsset write the parts now,
+        // on this thread, so they cannot be overtaken by the rebuild request below.
         CompletableFuture<byte[]> blob = asset.getBlob();
         CommonAssetModule.get().addCommonAsset(packKey, asset);
         Reference.reachabilityFence(blob);
@@ -103,9 +103,17 @@ final class RuntimeBlockFactory {
     }
 
     /**
+     * Asks every client to rebuild its common assets. addCommonAsset sends files without this request, so clients
+     * never use them (seen in game: untextured block); vanilla's CommonAssetMonitorHandler sends it after reloads.
+     */
+    static void requestClientRebuild() {
+        Universe.get().broadcastPacketNoCache(new RequestCommonAssetsRebuild());
+    }
+
+    /**
      * Loads BlockType {@code id}: a copy of {@link #SOURCE_BLOCK} with {@code texture}, without its states and
-     * connected-block rules (so it never turns into a vanilla corner). {@code HytaleAssetStore.handleRemoveOrUpdate}
-     * broadcasts the {@code UpdateBlockTypes} packet.
+     * connected-block rules (so it never turns into a vanilla corner). The DEFAULT query rebuilds every client cache;
+     * {@code HytaleAssetStore.handleRemoveOrUpdate} broadcasts the {@code UpdateBlockTypes} packet.
      */
     void registerBlockType(String id, String texture) {
         BlockType source = BlockType.getAssetMap().getAsset(SOURCE_BLOCK);
@@ -117,15 +125,6 @@ final class RuntimeBlockFactory {
         if (BlockType.getAssetMap().getIndex(id) == Integer.MIN_VALUE) {
             throw new IllegalStateException("BlockType " + id + " was not loaded");
         }
-    }
-
-    /**
-     * Asks every client to rebuild its common assets. Seen in game: without it the new texture stays missing until
-     * reconnect; sent before UpdateBlockTypes it does not help, sent after it but before the block reached the client
-     * it failed too, sent after the block was placed it worked 15 times out of 15.
-     */
-    static void requestClientRebuild() {
-        Universe.get().broadcastPacketNoCache(new RequestCommonAssetsRebuild());
     }
 
     private static BufferedImage read(String name) {
