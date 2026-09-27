@@ -6,6 +6,7 @@ import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.colony.ui.NeedsPlayerNotice;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.request.Request;
+import dev.hycolony.core.request.model.Deliverable;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -22,7 +23,12 @@ final class NeedsPlayerAnnouncer {
         this.colony = colony;
     }
 
+    /** Tells the online owner and officers about {@code r}; a request that is not for items is not announced. */
     void announce(Request r) {
+        Deliverable wanted = r.deliverable().orElse(null);
+        if (wanted == null) {
+            return;
+        }
         Building b = colony.buildings().byRequester(r.requester()).orElse(null);
         Optional<CitizenData> citizen = r.citizenId() != -1
                 ? colony.citizens().get(r.citizenId())
@@ -34,7 +40,7 @@ final class NeedsPlayerAnnouncer {
                 ? citizen.map(CitizenData::name).orElse("")
                 : b != null ? b.displayName() : r.requester().value();
         String job = citizen.flatMap(CitizenData::job).map(j -> j.type().id()).orElse("");
-        NeedsPlayerNotice notice = new NeedsPlayerNotice(who, job, r.requestable());
+        NeedsPlayerNotice notice = new NeedsPlayerNotice(who, job, wanted);
         for (UUID p : ownerAndOfficers()) {
             if (colony.context().players().isOnline(p)) {
                 colony.context().ui().notifyNeedsPlayer(p, notice);

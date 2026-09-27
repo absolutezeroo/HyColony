@@ -9,6 +9,7 @@ import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.RequestManager;
+import dev.hycolony.core.request.model.Deliverable;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.request.resolver.PlayerResolver;
@@ -41,7 +42,7 @@ final class RequestViews {
                 .thenComparing(r -> r.token().id()));
         Map<ItemKey, Integer> owned = ctx.ports().playerInventory().contents(player);
         List<RequestsView.RequestRow> rows =
-                sorted.stream().map(r -> row(c, r, owned)).toList();
+                sorted.stream().flatMap(r -> row(c, r, owned).stream()).toList();
         return new RequestsView(c.id(), rows);
     }
 
@@ -67,11 +68,18 @@ final class RequestViews {
         return Optional.ofNullable(root);
     }
 
-    /** A request as the player sees it: who asks, and how many matching items {@code owned} holds. */
-    RequestsView.RequestRow row(Colony c, Request r, Map<ItemKey, Integer> owned) {
+    /**
+     * A request as the player sees it: who asks, and how many matching items {@code owned} holds; empty for a request
+     * that is not for items, which a player cannot provide.
+     */
+    Optional<RequestsView.RequestRow> row(Colony c, Request r, Map<ItemKey, Integer> owned) {
+        Deliverable d = r.deliverable().orElse(null);
+        if (d == null) {
+            return Optional.empty();
+        }
         int has = 0;
         for (Map.Entry<ItemKey, Integer> e : owned.entrySet()) {
-            if (r.requestable().matches(e.getKey(), ctx.ports().catalog())) {
+            if (d.matches(e.getKey(), ctx.ports().catalog())) {
                 has += e.getValue();
             }
         }
@@ -81,6 +89,6 @@ final class RequestViews {
                         .byRequester(r.requester())
                         .map(Building::displayName)
                         .orElse(r.requester().value());
-        return new RequestsView.RequestRow(r.token(), r.requestable(), requester, has);
+        return Optional.of(new RequestsView.RequestRow(r.token(), d, requester, has));
     }
 }

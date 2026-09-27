@@ -357,6 +357,13 @@ class PersistenceTest {
 
         assertEquals(1, reloaded.requests().all().size()); // the town hall's is kept
         assertEquals(
-                2, reloaded.requests().all().iterator().next().requestable().count());
+                2,
+                reloaded.requests()
+                        .all()
+                        .iterator()
+                        .next()
+                        .deliverable()
+                        .orElseThrow()
+                        .count());
     }
 }

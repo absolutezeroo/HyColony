@@ -15,6 +15,7 @@ import dev.hycolony.core.request.Requester;
 import dev.hycolony.core.request.Resolver;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequestToken;
+import dev.hycolony.core.request.model.Requestable;
 import dev.hycolony.core.request.model.RequesterId;
 import dev.hycolony.core.request.model.StackRequest;
 import dev.hycolony.core.testing.FakeCatalog;
@@ -152,5 +153,18 @@ class ResolversTest {
         assertEquals(List.of(new ItemAmount(PLANKS, 5)), r.deliveries());
         assertFalse(retrying.delays().containsKey(t));
         assertEquals("retrying", resolverOf(other), "not matched by the predicate");
+    }
+
+    @Test
+    void playerResolverNeverTakesANonDeliverable() {
+        Building a = hut(new BlockPos(0, 64, 0));
+        stock(a, 5);
+        Requestable notItems = () -> "not items";
+
+        RequestToken t = m.createAndAssign(a, notItems, -1);
+
+        assertFalse(new PlayerResolver(CENTER).handles(notItems));
+        assertEquals("none", resolverOf(t), "no built-in resolver takes a non-deliverable");
+        assertEquals(RequestState.REPORTED, m.get(t).orElseThrow().state());
     }
 }

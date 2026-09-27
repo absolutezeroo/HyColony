@@ -45,17 +45,17 @@ public final class RequestActions {
         if (c == null || !c.permissions().hasPermission(player, Action.ACCESS_HUTS)) {
             return false;
         }
-        Request req = c.requests().get(token).orElse(null);
-        if (req == null || req.state().ordinal() >= RequestState.COMPLETED.ordinal()) {
+        Request req = openItemRequest(c, token).orElse(null);
+        if (req == null) {
             return false;
         }
+        Deliverable wanted = req.deliverable().orElseThrow();
         ConstructionPorts ports = manager.context().ports();
-        Optional<ItemKey> item = itemFor(player, req.requestable());
+        Optional<ItemKey> item = itemFor(player, wanted);
         if (item.isEmpty()) {
             return false;
         }
-        int n = ports.playerInventory()
-                .take(player, item.get(), req.requestable().count());
+        int n = ports.playerInventory().take(player, item.get(), wanted.count());
         if (n <= 0) {
             return false;
         }
@@ -68,6 +68,14 @@ public final class RequestActions {
         c.requests().overrule(token, List.of(new ItemAmount(item.get(), moved)), citizen.isPresent());
         c.markDirty();
         return true;
+    }
+
+    /** The request if it is still open and asks for items; empty otherwise (a player only provides items). */
+    private static Optional<Request> openItemRequest(Colony c, RequestToken token) {
+        return c.requests()
+                .get(token)
+                .filter(r -> r.state().ordinal() < RequestState.COMPLETED.ordinal()
+                        && r.deliverable().isPresent());
     }
 
     /** The item a stack request names, else the first of the player's items that matches. */
@@ -137,8 +145,10 @@ public final class RequestActions {
             boolean stuck = resolver.equals(PlayerResolver.ID) || resolver.equals(RetryingResolver.ID);
             if (stuck
                     && r.state().ordinal() < RequestState.COMPLETED.ordinal()
-                    && r.requestable()
-                            .matches(stack.item(), manager.context().ports().catalog())) {
+                    && r.deliverable()
+                            .filter(d -> d.matches(
+                                    stack.item(), manager.context().ports().catalog()))
+                            .isPresent()) {
                 m.overrule(r.token(), List.of(stack));
                 return;
             }

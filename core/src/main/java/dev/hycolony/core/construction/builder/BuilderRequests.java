@@ -8,8 +8,8 @@ import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.RequestManager;
-import dev.hycolony.core.request.model.Deliverable;
 import dev.hycolony.core.request.model.RequestState;
+import dev.hycolony.core.request.model.Requestable;
 import dev.hycolony.core.request.model.StackRequest;
 import dev.hycolony.core.request.model.ToolRequest;
 import java.util.HashSet;
@@ -67,7 +67,7 @@ final class BuilderRequests {
         return out;
     }
 
-    private void request(Deliverable what) {
+    private void request(Requestable what) {
         requests().createAndAssign(hut, what, citizen.id());
     }
 

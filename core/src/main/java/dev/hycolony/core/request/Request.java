@@ -4,6 +4,7 @@ import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.request.model.Deliverable;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequestToken;
+import dev.hycolony.core.request.model.Requestable;
 import dev.hycolony.core.request.model.RequesterId;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,7 +17,7 @@ import java.util.Set;
 public final class Request {
     private final RequestToken token;
     private final RequesterId requester;
-    private final Deliverable requestable;
+    private final Requestable requestable;
     private int citizenId;
     private RequestState state = RequestState.CREATED;
     private RequestToken parent;
@@ -25,7 +26,7 @@ public final class Request {
     private Set<String> blacklist = Set.of();
     private boolean deliveredToCitizen;
 
-    Request(RequestToken token, RequesterId requester, Deliverable requestable, int citizenId) {
+    Request(RequestToken token, RequesterId requester, Requestable requestable, int citizenId) {
         this.token = Objects.requireNonNull(token, "token");
         this.requester = Objects.requireNonNull(requester, "requester");
         this.requestable = Objects.requireNonNull(requestable, "requestable");
@@ -40,8 +41,13 @@ public final class Request {
         return requester;
     }
 
-    public Deliverable requestable() {
+    public Requestable requestable() {
         return requestable;
+    }
+
+    /** The requestable when it is an item deliverable (count, matches); empty for a courier delivery or pickup. */
+    public Optional<Deliverable> deliverable() {
+        return requestable instanceof Deliverable d ? Optional.of(d) : Optional.empty();
     }
 
     public RequestState state() {

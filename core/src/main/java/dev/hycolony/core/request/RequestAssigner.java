@@ -1,8 +1,8 @@
 package dev.hycolony.core.request;
 
-import dev.hycolony.core.request.model.Deliverable;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequestToken;
+import dev.hycolony.core.request.model.Requestable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -67,14 +67,14 @@ final class RequestAssigner {
      */
     private Attempt challenge(Resolver r, Request req, Attempt best) {
         if (best == null) {
-            Optional<List<Deliverable>> result = r.attemptResolve(manager, req);
+            Optional<List<Requestable>> result = r.attemptResolve(manager, req);
             return result.isPresent() ? new Attempt(r, r.suitability(manager, req), createAll(r, result.get())) : null;
         }
         double metric = r.suitability(manager, req);
         if (metric >= best.metric()) {
             return best;
         }
-        Optional<List<Deliverable>> result = r.attemptResolve(manager, req);
+        Optional<List<Requestable>> result = r.attemptResolve(manager, req);
         if (result.isEmpty()) {
             return best;
         }
@@ -82,9 +82,9 @@ final class RequestAssigner {
         return new Attempt(r, metric, createAll(r, result.get()));
     }
 
-    List<RequestToken> createAll(Resolver requester, List<Deliverable> what) {
+    List<RequestToken> createAll(Resolver requester, List<Requestable> what) {
         List<RequestToken> tokens = new ArrayList<>(what.size());
-        for (Deliverable d : what) {
+        for (Requestable d : what) {
             tokens.add(store.create(requester.requesterId(), d, -1).token());
         }
         return tokens;

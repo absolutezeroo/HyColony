@@ -1,6 +1,6 @@
 package dev.hycolony.core.request;
 
-import dev.hycolony.core.request.model.Deliverable;
+import dev.hycolony.core.request.model.Requestable;
 import dev.hycolony.core.request.model.RequesterId;
 import java.util.List;
 import java.util.Optional;
@@ -17,7 +17,8 @@ public interface Resolver extends Requester {
 
     int priority();
 
-    boolean handles(Deliverable requestable);
+    /** Whether the manager offers this kind of requestable to the resolver at all (MC getRequestType). */
+    boolean handles(Requestable requestable);
 
     /**
      * Present when the resolver only ever serves this requester's requests (a building's own stock): the manager
@@ -30,11 +31,11 @@ public interface Resolver extends Requester {
     boolean canResolve(RequestManager m, Request r);
 
     /** Empty = cannot resolve; otherwise the children to create (possibly none). */
-    Optional<List<Deliverable>> attemptResolve(RequestManager m, Request r);
+    Optional<List<Requestable>> attemptResolve(RequestManager m, Request r);
 
     void resolve(RequestManager m, Request r);
 
-    default List<Deliverable> followups(RequestManager m, Request r) {
+    default List<Requestable> followups(RequestManager m, Request r) {
         return List.of();
     }
 

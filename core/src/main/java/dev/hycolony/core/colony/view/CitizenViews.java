@@ -35,7 +35,7 @@ final class CitizenViews {
         List<RequestsView.RequestRow> open = new ArrayList<>();
         for (Request r : c.requests().all()) {
             if (r.citizenId() == d.id() && r.state().ordinal() < RequestState.COMPLETED.ordinal()) {
-                open.add(requests.row(c, r, owned));
+                requests.row(c, r, owned).ifPresent(open::add);
             }
         }
         Optional<Deliverable> waitingFor = open.stream().findFirst().map(RequestsView.RequestRow::requestable);

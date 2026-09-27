@@ -290,7 +290,7 @@ class ConstructionSimulationTest {
     }
 
     private static int count(Request r) {
-        return r.requestable().count();
+        return r.deliverable().orElseThrow().count();
     }
 
     @Test

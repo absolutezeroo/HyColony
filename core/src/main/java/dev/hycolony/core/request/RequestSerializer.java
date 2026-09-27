@@ -11,6 +11,7 @@ import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.request.model.Deliverable;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequestToken;
+import dev.hycolony.core.request.model.Requestable;
 import dev.hycolony.core.request.model.RequesterId;
 import dev.hycolony.core.request.model.StackRequest;
 import dev.hycolony.core.request.model.ToolRequest;
@@ -168,9 +169,10 @@ public final class RequestSerializer {
         return r;
     }
 
-    private static JsonObject requestable(Deliverable d) {
+    /** Throws on a requestable with no saved form (none of the built-in ones). */
+    private static JsonObject requestable(Requestable r) {
         JsonObject o = new JsonObject();
-        switch (d) {
+        switch (r) {
             case StackRequest s -> {
                 o.addProperty("type", "stack");
                 o.addProperty("item", s.item().id());
@@ -184,6 +186,7 @@ public final class RequestSerializer {
                 o.addProperty("minLevel", t.minLevel());
                 o.addProperty("maxLevel", t.maxLevel());
             }
+            default -> throw new IllegalArgumentException("Unsaved requestable type: " + r.describe());
         }
         return o;
     }

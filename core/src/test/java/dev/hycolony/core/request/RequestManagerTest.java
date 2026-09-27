@@ -8,9 +8,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
-import dev.hycolony.core.request.model.Deliverable;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequestToken;
+import dev.hycolony.core.request.model.Requestable;
 import dev.hycolony.core.request.model.RequesterId;
 import dev.hycolony.core.request.model.StackRequest;
 import dev.hycolony.core.testing.FakeCatalog;
@@ -35,7 +35,7 @@ class RequestManagerTest {
         return new StackRequest(item, 4, 1, true);
     }
 
-    static Predicate<Deliverable> item(ItemKey... items) {
+    static Predicate<Requestable> item(ItemKey... items) {
         Set<ItemKey> set = Set.of(items);
         return d -> d instanceof StackRequest s && set.contains(s.item());
     }
@@ -105,9 +105,9 @@ class RequestManagerTest {
         boolean canResolve = true;
         boolean attemptSucceeds = true;
         boolean resolveImmediately = false;
-        List<Deliverable> children = List.of();
-        List<Deliverable> followups = List.of();
-        Predicate<Deliverable> handles = d -> true;
+        List<Requestable> children = List.of();
+        List<Requestable> followups = List.of();
+        Predicate<Requestable> handles = d -> true;
         RequesterId servesOnly;
         int canResolveCalls, attempts, ticks;
         final List<Request> assigned = new ArrayList<>();
@@ -133,7 +133,7 @@ class RequestManagerTest {
         }
 
         @Override
-        public boolean handles(Deliverable d) {
+        public boolean handles(Requestable d) {
             return handles.test(d);
         }
 
@@ -154,7 +154,7 @@ class RequestManagerTest {
         }
 
         @Override
-        public Optional<List<Deliverable>> attemptResolve(RequestManager mm, Request r) {
+        public Optional<List<Requestable>> attemptResolve(RequestManager mm, Request r) {
             attempts++;
             return attemptSucceeds ? Optional.of(children) : Optional.empty();
         }
@@ -169,7 +169,7 @@ class RequestManagerTest {
         }
 
         @Override
-        public List<Deliverable> followups(RequestManager mm, Request r) {
+        public List<Requestable> followups(RequestManager mm, Request r) {
             return followups;
         }
 

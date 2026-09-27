@@ -14,7 +14,4 @@ public sealed interface Deliverable extends Requestable permits StackRequest, To
     Deliverable withCount(int count);
 
     boolean canBeResolvedByBuilding();
-
-    /** Human readable, e.g. "64 x Wood_Oak_Trunk". */
-    String describe();
 }

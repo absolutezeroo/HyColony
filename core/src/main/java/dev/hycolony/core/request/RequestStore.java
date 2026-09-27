@@ -1,7 +1,7 @@
 package dev.hycolony.core.request;
 
-import dev.hycolony.core.request.model.Deliverable;
 import dev.hycolony.core.request.model.RequestToken;
+import dev.hycolony.core.request.model.Requestable;
 import dev.hycolony.core.request.model.RequesterId;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,7 +31,7 @@ final class RequestStore {
         creationListener = Objects.requireNonNull(listener, "listener");
     }
 
-    Request create(RequesterId requester, Deliverable what, int citizenId) {
+    Request create(RequesterId requester, Requestable what, int citizenId) {
         Request req = new Request(RequestToken.random(), requester, what, citizenId);
         requests.put(req.token(), req);
         byRequester.computeIfAbsent(requester, k -> new LinkedHashSet<>()).add(req.token());

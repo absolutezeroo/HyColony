@@ -1,9 +1,9 @@
 package dev.hycolony.core.request;
 
 import dev.hycolony.core.kernel.item.ItemAmount;
-import dev.hycolony.core.request.model.Deliverable;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequestToken;
+import dev.hycolony.core.request.model.Requestable;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -57,7 +57,7 @@ final class RequestTransitions {
 
     private void onResolved(Request req) {
         Resolver resolver = store.resolverOf(req.token());
-        List<Deliverable> followups = resolver == null ? List.of() : resolver.followups(manager, req);
+        List<Requestable> followups = resolver == null ? List.of() : resolver.followups(manager, req);
         req.setState(RequestState.FOLLOWUP_IN_PROGRESS);
         if (!followups.isEmpty()) {
             List<RequestToken> tokens = assigner.createAll(resolver, followups);

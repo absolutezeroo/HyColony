@@ -6,6 +6,7 @@ import dev.hycolony.core.request.RequestManager;
 import dev.hycolony.core.request.Resolver;
 import dev.hycolony.core.request.model.Deliverable;
 import dev.hycolony.core.request.model.RequestToken;
+import dev.hycolony.core.request.model.Requestable;
 import dev.hycolony.core.request.model.RequesterId;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -62,8 +63,8 @@ public final class PlayerResolver implements Resolver {
     }
 
     @Override
-    public boolean handles(Deliverable requestable) {
-        return true;
+    public boolean handles(Requestable requestable) {
+        return requestable instanceof Deliverable;
     }
 
     @Override
@@ -72,7 +73,7 @@ public final class PlayerResolver implements Resolver {
     }
 
     @Override
-    public Optional<List<Deliverable>> attemptResolve(RequestManager m, Request r) {
+    public Optional<List<Requestable>> attemptResolve(RequestManager m, Request r) {
         return Optional.of(List.of());
     }
 

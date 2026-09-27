@@ -2,9 +2,9 @@ package dev.hycolony.core.request;
 
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.port.ItemCatalog;
-import dev.hycolony.core.request.model.Deliverable;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequestToken;
+import dev.hycolony.core.request.model.Requestable;
 import dev.hycolony.core.request.model.RequesterId;
 import java.util.Collection;
 import java.util.List;
@@ -60,14 +60,14 @@ public final class RequestManager {
         }));
     }
 
-    public RequestToken createAndAssign(Requester requester, Deliverable what, int citizenId) {
+    public RequestToken createAndAssign(Requester requester, Requestable what, int citizenId) {
         Request req = store.create(requester.requesterId(), what, citizenId);
         queue.submit(() -> assigner.assignUnassigned(List.of(req.token()), Set.of()));
         return req.token();
     }
 
     /** A child created by a resolver for one of its requests; inherits the parent's blacklist. */
-    public RequestToken createChild(Resolver parentResolver, RequestToken parent, Deliverable what) {
+    public RequestToken createChild(Resolver parentResolver, RequestToken parent, Requestable what) {
         Request p = store.require(parent);
         Request child = store.create(parentResolver.requesterId(), what, -1);
         child.setParent(parent);

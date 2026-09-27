@@ -9,6 +9,7 @@ import dev.hycolony.core.request.RequestManager;
 import dev.hycolony.core.request.Resolver;
 import dev.hycolony.core.request.model.Deliverable;
 import dev.hycolony.core.request.model.RequestState;
+import dev.hycolony.core.request.model.Requestable;
 import dev.hycolony.core.request.model.RequesterId;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -45,8 +46,8 @@ public final class BuildingResolver implements Resolver {
     }
 
     @Override
-    public boolean handles(Deliverable requestable) {
-        return true;
+    public boolean handles(Requestable requestable) {
+        return requestable instanceof Deliverable;
     }
 
     @Override
@@ -55,7 +56,7 @@ public final class BuildingResolver implements Resolver {
     }
 
     @Override
-    public Optional<List<Deliverable>> attemptResolve(RequestManager m, Request r) {
+    public Optional<List<Requestable>> attemptResolve(RequestManager m, Request r) {
         return Optional.of(List.of());
     }
 
@@ -66,20 +67,22 @@ public final class BuildingResolver implements Resolver {
 
     @Override
     public boolean canResolve(RequestManager m, Request r) {
-        if (!r.requester().equals(building.requesterId()) || !r.requestable().canBeResolvedByBuilding()) {
+        Deliverable d = r.deliverable().orElse(null);
+        if (d == null || !r.requester().equals(building.requesterId()) || !d.canBeResolvedByBuilding()) {
             return false;
         }
         int total = 0;
-        for (int n : available(m, r).values()) {
+        for (int n : available(m, r, d).values()) {
             total += n;
         }
-        return total >= r.requestable().minCount();
+        return total >= d.minCount();
     }
 
     @Override
     public void resolve(RequestManager m, Request r) {
-        int left = r.requestable().count();
-        for (Map.Entry<ItemKey, Integer> e : available(m, r).entrySet()) {
+        Deliverable d = r.deliverable().orElseThrow(); // canResolve took only deliverables
+        int left = d.count();
+        for (Map.Entry<ItemKey, Integer> e : available(m, r, d).entrySet()) {
             if (left <= 0) {
                 break;
             }
@@ -91,8 +94,7 @@ public final class BuildingResolver implements Resolver {
     }
 
     /** Matching stock in the hut's containers, minus the deliveries of the building's other requests (until RECEIVED). */
-    private Map<ItemKey, Integer> available(RequestManager m, Request r) {
-        Deliverable d = r.requestable();
+    private Map<ItemKey, Integer> available(RequestManager m, Request r, Deliverable d) {
         Map<ItemKey, Integer> stock = new LinkedHashMap<>();
         containers.contents(building.containers()).forEach((item, n) -> {
             if (n > 0 && d.matches(item, m.catalog())) {

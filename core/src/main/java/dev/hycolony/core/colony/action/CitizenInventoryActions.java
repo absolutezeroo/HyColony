@@ -94,7 +94,9 @@ public final class CitizenInventoryActions {
         for (Request r : m.byRequester(work.requesterId())) {
             if (r.citizenId() == d.id()
                     && r.state() == RequestState.IN_PROGRESS
-                    && r.requestable().matches(stack.item(), m.catalog())) {
+                    && r.deliverable()
+                            .filter(wanted -> wanted.matches(stack.item(), m.catalog()))
+                            .isPresent()) {
                 m.overrule(r.token(), List.of(stack), true);
                 return;
             }
