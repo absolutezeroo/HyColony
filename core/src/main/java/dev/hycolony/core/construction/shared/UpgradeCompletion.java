@@ -1,6 +1,8 @@
 package dev.hycolony.core.construction.shared;
 
 import dev.hycolony.core.building.Building;
+import dev.hycolony.core.building.BuildingEventsModule;
+import dev.hycolony.core.building.BuildingModule;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyEvents;
 
@@ -13,7 +15,7 @@ public final class UpgradeCompletion {
 
     /**
      * Sets the level, marks the building built and not deconstructed, claims around it, celebrates when the level
-     * rose, posts {@link ColonyEvents.BuildingLevelChanged} and marks the colony dirty.
+     * rose, tells the building's event modules, posts {@link ColonyEvents.BuildingLevelChanged} and marks the colony dirty.
      */
     public static void reach(Colony colony, Building b, int level) {
         int oldLevel = b.level();
@@ -23,6 +25,11 @@ public final class UpgradeCompletion {
         colony.claimAround(b.position(), ClaimRadius.of(b.type().id(), level));
         if (level > oldLevel) {
             colony.context().ports().effects().celebrate(b.position());
+        }
+        for (BuildingModule module : b.modules().values()) {
+            if (module instanceof BuildingEventsModule events) {
+                events.onUpgradeComplete(colony, b, level);
+            }
         }
         colony.context().bus().post(new ColonyEvents.BuildingLevelChanged(colony, b, oldLevel, level));
         colony.markDirty();

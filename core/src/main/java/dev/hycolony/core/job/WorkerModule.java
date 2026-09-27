@@ -105,6 +105,15 @@ public final class WorkerModule implements PersistentModule, TickingModule, Buil
         c.markDirty();
     }
 
+    /** MC AbstractAssignedCitizenModule.onDestroyed: fires every worker of the removed hut. */
+    @Override
+    public void onRemoved(Colony colony, Building building) {
+        // Snapshot: fire() mutates workers, which this would otherwise iterate live.
+        for (int citizenId : List.copyOf(workers)) {
+            fire(colony, building, citizenId);
+        }
+    }
+
     /** MC WorkerBuildingModule.onColonyTick: auto-hires the first idle adult while there is room. */
     @Override
     public void onColonyTick(Colony colony, Building building) {
