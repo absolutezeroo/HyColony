@@ -104,7 +104,7 @@ class PersistenceTest {
     }
 
     @Test
-    void unknownJobOnLoadLeavesCitizenJobless() {
+    void unknownJobOnLoadLeavesCitizenJoblessButStillAssignedWithoutItsHut() {
         TestContexts t = new TestContexts();
         t.jobs.register(TestJobs.TYPE);
         Colony c = new Colony(
@@ -122,7 +122,7 @@ class PersistenceTest {
         Colony reloaded = ColonySerializer.read(json, new TestContexts().context(), new TerritoryIndex());
         CitizenData restored = reloaded.citizens().get(1).orElseThrow();
         assertTrue(restored.job().isEmpty());
-        assertNull(restored.workBuilding());
+        assertEquals(new BlockPos(5, 64, 5), restored.workBuilding()); // its hut may be a kept unknown one
     }
 
     @Test

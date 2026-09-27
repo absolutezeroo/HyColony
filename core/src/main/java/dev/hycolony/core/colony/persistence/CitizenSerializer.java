@@ -18,7 +18,7 @@ import dev.hycolony.core.job.JobType;
 import dev.hycolony.core.kernel.item.Inventory;
 import java.util.Optional;
 
-/** One citizen's {@link CitizenData} to and from JSON. */
+/** One citizen's {@link CitizenData} to and from JSON. An unknown job is kept verbatim, like unknown buildings. */
 final class CitizenSerializer {
     private CitizenSerializer() {}
 
@@ -42,7 +42,12 @@ final class CitizenSerializer {
         o.add("work", pos(d.workBuilding()));
         o.addProperty("saturation", d.saturation());
         o.add("inventory", d.inventory().write());
-        o.add("job", d.job().<JsonElement>map(Job::write).orElse(JsonNull.INSTANCE));
+        o.add(
+                "job",
+                d.job()
+                        .<JsonElement>map(Job::write)
+                        .or(() -> d.unknownJob().map(JsonElement.class::cast))
+                        .orElse(JsonNull.INSTANCE));
         return o;
     }
 
@@ -80,8 +85,8 @@ final class CitizenSerializer {
             job.read(jobJson);
             d.setJob(job);
         } else {
-            // The job type no longer exists: drop the stale work assignment so the citizen is re-hireable.
-            d.setWorkBuilding(null);
+            // Its pack may only be disabled: keep it verbatim, and the assignment, so re-enabling restores both.
+            d.keepUnknownJob(jobJson);
         }
     }
 }

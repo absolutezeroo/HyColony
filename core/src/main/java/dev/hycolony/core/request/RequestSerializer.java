@@ -5,18 +5,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
-import dev.hycolony.core.kernel.item.ToolType;
-import dev.hycolony.core.request.model.Delivery;
-import dev.hycolony.core.request.model.Pickup;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.request.model.Requestable;
 import dev.hycolony.core.request.model.RequesterId;
-import dev.hycolony.core.request.model.StackRequest;
-import dev.hycolony.core.request.model.ToolRequest;
 import dev.hycolony.core.request.resolver.PlayerResolver;
 import dev.hycolony.core.request.resolver.RetryingResolver;
 import java.util.ArrayList;
@@ -31,7 +25,8 @@ import java.util.UUID;
 
 /**
  * RequestManager <-> JSON: requests, assignments (resolverId -> tokens), retrying and player state. Read it after
- * the providers (buildings) re-registered; a request whose resolver is gone is reassigned instead of dropped.
+ * the providers (buildings) re-registered; a request whose resolver is gone is reassigned instead of dropped. A request
+ * of an unknown type or state is skipped with its whole family, so a disabled pack never locks the colony.
  */
 public final class RequestSerializer {
     private RequestSerializer() {}
@@ -62,9 +57,9 @@ public final class RequestSerializer {
         if (!o.has("requests")) {
             return; // schema v1 placeholder
         }
-        for (JsonElement el : o.getAsJsonArray("requests")) {
-            m.store().restore(readRequest(el.getAsJsonObject()));
-        }
+        SavedRequests.read(o.getAsJsonArray("requests"), RequestSerializer::readRequest)
+                .values()
+                .forEach(m.store()::restore);
 
         List<RequestToken> orphans = readAssignments(o.getAsJsonObject("assignments"), m);
 
@@ -118,7 +113,7 @@ public final class RequestSerializer {
         JsonObject o = new JsonObject();
         o.addProperty("token", r.token().id().toString());
         o.addProperty("requester", r.requester().value());
-        o.add("requestable", requestable(r.requestable()));
+        o.add("requestable", RequestableJson.write(r.requestable()));
         o.addProperty("state", r.state().name());
         o.add(
                 "parent",
@@ -144,13 +139,20 @@ public final class RequestSerializer {
         return o;
     }
 
-    private static Request readRequest(JsonObject o) {
+    /** The saved request; empty when its type or state is unknown to this build. */
+    static Optional<Request> readRequest(JsonObject o) {
+        Optional<Requestable> requestable = RequestableJson.read(o.getAsJsonObject("requestable"));
+        Optional<RequestState> state =
+                RequestableJson.enumOf(RequestState.values(), o.get("state").getAsString());
+        if (requestable.isEmpty() || state.isEmpty()) {
+            return Optional.empty();
+        }
         Request r = new Request(
                 token(o.get("token").getAsString()),
                 new RequesterId(o.get("requester").getAsString()),
-                readRequestable(o.getAsJsonObject("requestable")),
+                requestable.get(),
                 o.get("citizenId").getAsInt());
-        r.setState(RequestState.valueOf(o.get("state").getAsString()));
+        r.setState(state.get());
         JsonElement parent = o.get("parent");
         if (parent != null && !parent.isJsonNull()) {
             r.setParent(token(parent.getAsString()));
@@ -168,86 +170,7 @@ public final class RequestSerializer {
             blacklist.add(el.getAsString());
         }
         r.setBlacklist(blacklist);
-        return r;
-    }
-
-    /** Requestable's JSON form; exhaustive over the sealed hierarchy, so every kind is always saved. */
-    private static JsonObject requestable(Requestable r) {
-        JsonObject o = new JsonObject();
-        switch (r) {
-            case StackRequest s -> {
-                o.addProperty("type", "stack");
-                o.addProperty("item", s.item().id());
-                o.addProperty("count", s.count());
-                o.addProperty("minCount", s.minCount());
-                o.addProperty("canBeResolvedByBuilding", s.canBeResolvedByBuilding());
-            }
-            case ToolRequest t -> {
-                o.addProperty("type", "tool");
-                o.addProperty("tool", t.type().name());
-                o.addProperty("minLevel", t.minLevel());
-                o.addProperty("maxLevel", t.maxLevel());
-            }
-            case Delivery d -> {
-                o.addProperty("type", "delivery");
-                o.add("start", blockPos(d.start()));
-                o.addProperty("target", d.target().value());
-                o.addProperty("item", d.stack().item().id());
-                o.addProperty("count", d.stack().count());
-                o.addProperty("priority", d.priority());
-            }
-            case Pickup p -> {
-                o.addProperty("type", "pickup");
-                o.addProperty("priority", p.priority());
-                o.addProperty("day", p.day());
-                o.addProperty("quantity", p.quantity());
-            }
-        }
-        return o;
-    }
-
-    private static Requestable readRequestable(JsonObject o) {
-        String type = o.get("type").getAsString();
-        return switch (type) {
-            case "stack" ->
-                new StackRequest(
-                        new ItemKey(o.get("item").getAsString()),
-                        o.get("count").getAsInt(),
-                        o.get("minCount").getAsInt(),
-                        o.get("canBeResolvedByBuilding").getAsBoolean());
-            case "tool" ->
-                new ToolRequest(
-                        ToolType.valueOf(o.get("tool").getAsString()),
-                        o.get("minLevel").getAsInt(),
-                        o.get("maxLevel").getAsInt());
-            case "delivery" ->
-                new Delivery(
-                        blockPos(o.getAsJsonObject("start")),
-                        new RequesterId(o.get("target").getAsString()),
-                        new ItemAmount(
-                                new ItemKey(o.get("item").getAsString()),
-                                o.get("count").getAsInt()),
-                        o.get("priority").getAsInt());
-            case "pickup" ->
-                new Pickup(
-                        o.get("priority").getAsInt(),
-                        o.get("day").getAsInt(),
-                        o.get("quantity").getAsInt());
-            default -> throw new IllegalArgumentException("Unknown requestable type: " + type);
-        };
-    }
-
-    private static JsonObject blockPos(BlockPos p) {
-        JsonObject o = new JsonObject();
-        o.addProperty("x", p.x());
-        o.addProperty("y", p.y());
-        o.addProperty("z", p.z());
-        return o;
-    }
-
-    private static BlockPos blockPos(JsonObject o) {
-        return new BlockPos(
-                o.get("x").getAsInt(), o.get("y").getAsInt(), o.get("z").getAsInt());
+        return Optional.of(r);
     }
 
     private static RequestToken token(String s) {

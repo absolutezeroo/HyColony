@@ -1,5 +1,6 @@
 package dev.hycolony.core.citizen;
 
+import com.google.gson.JsonObject;
 import dev.hycolony.core.job.Job;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
@@ -24,6 +25,7 @@ public final class CitizenData {
     private double saturation = MAX_SATURATION;
     private Inventory inventory = new Inventory(INVENTORY_SLOTS);
     private @Nullable Job job;
+    private @Nullable JsonObject unknownJob;
 
     public CitizenData(int id) {
         this.id = id;
@@ -117,7 +119,20 @@ public final class CitizenData {
         return Optional.ofNullable(job);
     }
 
+    /** Sets or clears the job; either way a kept unknown job is dropped, the game having decided anew. */
     public void setJob(@Nullable Job job) {
         this.job = job;
+        this.unknownJob = null;
+    }
+
+    /** The saved job whose type is not registered (its pack disabled), kept verbatim to be written back. */
+    public Optional<JsonObject> unknownJob() {
+        return Optional.ofNullable(unknownJob);
+    }
+
+    /** Keeps a job this build cannot read; the citizen stays jobless, its work assignment untouched. */
+    public void keepUnknownJob(JsonObject raw) {
+        this.job = null;
+        this.unknownJob = raw;
     }
 }

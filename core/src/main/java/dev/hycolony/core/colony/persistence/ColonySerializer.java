@@ -149,12 +149,15 @@ public final class ColonySerializer {
     /**
      * A save can reference what is gone (a building removed, or of a type no longer registered): its citizens are
      * freed (job dropped, rehireable) and its requests cancelled, so nothing waits forever. A hut's worker list
-     * keeps only citizens that exist and work there, so a hut never looks employed by nobody.
+     * keeps only citizens that exist and work there, so a hut never looks employed by nobody. A citizen whose job is
+     * unknown keeps its assignment: its hut is likely kept unknown too, and both come back with their pack.
      */
     private static boolean heal(Colony c) {
         boolean changed = false;
         for (CitizenData d : c.citizens().all()) {
-            if (d.workBuilding() != null && c.buildings().at(d.workBuilding()).isEmpty()) {
+            if (d.workBuilding() != null
+                    && d.unknownJob().isEmpty()
+                    && c.buildings().at(d.workBuilding()).isEmpty()) {
                 d.job().ifPresent(job -> job.onRemoval(c));
                 d.setJob(null);
                 d.setWorkBuilding(null);
