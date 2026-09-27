@@ -10,7 +10,6 @@ import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.ui.WandView;
 import dev.hycolony.core.construction.wand.WandActions;
-import dev.hycolony.core.construction.wand.WandMoves;
 import dev.hycolony.plugin.IdMap;
 import dev.hycolony.plugin.ui.ColonyPage;
 import java.util.List;
@@ -28,14 +27,14 @@ import javax.annotation.Nonnull;
 public final class WandPage extends ColonyPage {
     /** The move buttons, their selector and direction; the event index is the direction's ordinal. */
     private static final List<Move> MOVES = List.of(
-            new Move("#ForwardButton", WandMoves.Dir.FORWARD),
-            new Move("#BackButton", WandMoves.Dir.BACK),
-            new Move("#LeftButton", WandMoves.Dir.LEFT),
-            new Move("#RightButton", WandMoves.Dir.RIGHT),
-            new Move("#UpButton", WandMoves.Dir.UP),
-            new Move("#DownButton", WandMoves.Dir.DOWN));
+            new Move("#ForwardButton", WandActions.Dir.FORWARD),
+            new Move("#BackButton", WandActions.Dir.BACK),
+            new Move("#LeftButton", WandActions.Dir.LEFT),
+            new Move("#RightButton", WandActions.Dir.RIGHT),
+            new Move("#UpButton", WandActions.Dir.UP),
+            new Move("#DownButton", WandActions.Dir.DOWN));
 
-    private record Move(String selector, WandMoves.Dir dir) {}
+    private record Move(String selector, WandActions.Dir dir) {}
 
     /** A row of choice buttons: its list group and the action its buttons send. */
     private record Choices(String list, String action) {}
@@ -97,6 +96,7 @@ public final class WandPage extends ColonyPage {
         }
     }
 
+    /** Appends hut row {@code i}: its hut block icon, name and a choose button, disabled on the chosen hut. */
     private void hutRow(UICommandBuilder ui, UIEventBuilder events, int i, String typeId) {
         String row = "#Huts[" + i + "]";
         ui.append("#Huts", "Pages/HyColony/WandHutRow.ui");
@@ -117,7 +117,7 @@ public final class WandPage extends ColonyPage {
             case "style" -> at(view.styles(), i).ifPresent(s -> wand.selectStyle(player, s));
             case "hut" -> at(view.buildingTypeIds(), i).ifPresent(t -> wand.selectBuilding(player, t));
             case "level" -> wand.selectLevel(player, i + 1);
-            case "move" -> at(List.of(WandMoves.Dir.values()), i).ifPresent(d -> wand.move(player, d));
+            case "move" -> at(List.of(WandActions.Dir.values()), i).ifPresent(d -> wand.move(player, d));
             case "rotateRight" -> wand.rotate(player, true);
             case "rotateLeft" -> wand.rotate(player, false);
             case "confirm" -> wand.confirm(player, playerRef.getUsername());

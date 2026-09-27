@@ -187,7 +187,7 @@ class WandActionsTest {
     void moveUsesThePlayerFacing() {
         chooseBuilder();
         t.players.setFacing(alice, 1);
-        assertTrue(wand.move(alice, WandMoves.Dir.FORWARD));
+        assertTrue(wand.move(alice, WandActions.Dir.FORWARD));
         assertEquals(spot.offset(1, 0, 0), ghost().orElseThrow().origin());
     }
 
@@ -205,7 +205,7 @@ class WandActionsTest {
         wand.open(alice, Optional.of(spot));
         wand.selectStyle(alice, FakeBlueprints.STYLE);
         assertFalse(view().manipulate());
-        assertFalse(wand.move(alice, WandMoves.Dir.UP));
+        assertFalse(wand.move(alice, WandActions.Dir.UP));
         wand.selectBuilding(alice, BUILDER);
         assertTrue(view().manipulate());
     }

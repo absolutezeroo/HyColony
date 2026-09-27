@@ -106,20 +106,33 @@ public final class HyColonyPlugin extends JavaPlugin {
             UUID uuid = e.getPlayerRef().getUuid();
             runtimes.all()
                     .forEach(rt -> rt.world().execute(() -> {
-                        rt.goggles().unequip(uuid);
-                        rt.wand().disconnect(uuid);
+                        safely("goggles", () -> rt.goggles().unequip(uuid));
+                        safely("wand", () -> rt.wand().disconnect(uuid));
                     }));
             runtimes.all()
                     .forEach(rt -> rt.world()
-                            .execute(() -> rt.manager()
-                                    .foundation()
-                                    .cancel(uuid)
-                                    .ifPresent(pos -> rt.blocks()
-                                            .removeWithDrop(
-                                                    pos, ids.blockId("hut.townhall"), ids.itemId("hut.townhall")))));
+                            .execute(() -> safely(
+                                    "foundation",
+                                    () -> rt.manager()
+                                            .foundation()
+                                            .cancel(uuid)
+                                            .ifPresent(pos -> rt.blocks()
+                                                    .removeWithDrop(
+                                                            pos,
+                                                            ids.blockId("hut.townhall"),
+                                                            ids.itemId("hut.townhall"))))));
         });
 
         getLogger().at(Level.INFO).log("HyColony setup complete");
+    }
+
+    /** Runs one disconnect clean-up; a failure is logged and does not skip the next one. */
+    private void safely(String what, Runnable cleanup) {
+        try {
+            cleanup.run();
+        } catch (RuntimeException ex) {
+            getLogger().at(Level.SEVERE).withCause(ex).log("HyColony: %s clean-up on disconnect failed", what);
+        }
     }
 
     private void validateIds() {

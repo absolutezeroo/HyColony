@@ -1,24 +1,15 @@
 package dev.hycolony.core.construction.wand;
 
+import dev.hycolony.core.construction.wand.WandActions.Dir;
 import dev.hycolony.core.kernel.BlockPos;
 
 /**
  * Pure geometry for moving and rotating a build tool anchor (ST AbstractBlueprintManipulationWindow, l.525-590):
  * forward/back/left/right move one block relative to the player's facing, up/down move on Y only, and rotation
- * is by quarter turns. Public only for {@link Dir}, which the plugin passes to {@link WandActions#move}.
+ * is by quarter turns.
  */
-public final class WandMoves {
+final class WandMoves {
     private WandMoves() {}
-
-    /** The six move buttons of Structurize's manipulation window. */
-    public enum Dir {
-        FORWARD,
-        BACK,
-        LEFT,
-        RIGHT,
-        UP,
-        DOWN
-    }
 
     /**
      * Moves {@code anchor} one block in {@code dir}, relative to {@code facing} (0 = north, 1 = east, 2 = south,

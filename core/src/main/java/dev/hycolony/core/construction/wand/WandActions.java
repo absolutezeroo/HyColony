@@ -19,6 +19,16 @@ import java.util.function.Function;
  * (nothing changes then). Sessions live in memory only.
  */
 public final class WandActions {
+    /** The six move buttons of Structurize's manipulation window (ST AbstractBlueprintManipulationWindow). */
+    public enum Dir {
+        FORWARD,
+        BACK,
+        LEFT,
+        RIGHT,
+        UP,
+        DOWN
+    }
+
     private final ColonyManager manager;
     private final Function<String, ItemKey> hutItem;
     private final WandSessions sessions = new WandSessions();
@@ -97,7 +107,7 @@ public final class WandActions {
     }
 
     /** Moves the anchor one block, relative to where the player faces now; false before a hut is chosen. */
-    public boolean move(UUID player, WandMoves.Dir dir) {
+    public boolean move(UUID player, Dir dir) {
         Optional<WandSession> s = manipulable(player);
         if (s.isEmpty()) {
             return false;
