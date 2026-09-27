@@ -33,17 +33,28 @@ public final class HutActions {
         this.windows = windows;
     }
 
-    /** Port of AbstractBlockHut.canPaste. */
+    /** Port of AbstractBlockHut.canPaste: PLACE_HUTS inside a colony, then {@link #checkHutRules}. */
     public HutPlacement checkPlacement(UUID player, BlockPos pos, String buildingTypeId) {
+        Optional<Colony> colony = manager.colonyAt(pos);
+        if (colony.isPresent() && !colony.get().permissions().hasPermission(player, Action.PLACE_HUTS)) {
+            return new HutPlacement.Denied(
+                    Msg.of("hycolony.permission.placeHuts", colony.get().name()));
+        }
+        return checkHutRules(player, pos, buildingTypeId);
+    }
+
+    /**
+     * The town hall and colony rules of {@link #checkPlacement}, without its permission check, for a caller that
+     * checks its own (MC SurvivalHandler checks MANAGE_HUTS only): one town hall per colony, the founding rules
+     * outside colonies, and no other hut outside a colony.
+     */
+    public HutPlacement checkHutRules(UUID player, BlockPos pos, String buildingTypeId) {
         boolean isTownHall = BuildingTypes.TOWN_HALL.id().equals(buildingTypeId);
         Optional<Colony> colony = manager.colonyAt(pos);
         if (colony.isEmpty()) {
             return checkOutsideColonies(player, pos, isTownHall);
         }
         Colony c = colony.get();
-        if (!c.permissions().hasPermission(player, Action.PLACE_HUTS)) {
-            return new HutPlacement.Denied(Msg.of("hycolony.permission.placeHuts", c.name()));
-        }
         if (isTownHall && c.buildings().townHall().isPresent()) {
             return new HutPlacement.Denied(Msg.of("hycolony.hut.townHallExists"));
         }

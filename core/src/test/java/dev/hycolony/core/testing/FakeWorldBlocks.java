@@ -17,6 +17,8 @@ public final class FakeWorldBlocks implements WorldBlocks {
     public final Map<BlockPos, List<ItemAmount>> drops = new LinkedHashMap<>();
 
     public boolean loaded = true;
+    /** When true, place() fails and changes nothing (a Hytale placement refused by a hitbox or unloaded chunk). */
+    public boolean refusePlace;
     /** How many times get() was called. */
     public int reads;
     /** Every successful place(), in call order. */
@@ -37,6 +39,9 @@ public final class FakeWorldBlocks implements WorldBlocks {
 
     @Override
     public boolean place(BlockPos pos, BlockState state, boolean withContainer) {
+        if (refusePlace) {
+            return false;
+        }
         beforeChange.accept(pos);
         blocks.put(pos, state);
         placed.add(pos);

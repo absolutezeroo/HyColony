@@ -8,6 +8,8 @@ import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyManager;
+import dev.hycolony.core.colony.permission.Action;
+import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.BlockKey;
@@ -139,5 +141,28 @@ class WandPlacementTest {
         assertTrue(t.blocks.blocks.containsKey(far));
         assertEquals(Optional.of(far), manager.foundation().pendingPositionOf(bob));
         assertEquals(0, t.playerInventory.count(bob, TOWN_HALL_ITEM));
+    }
+
+    @Test
+    void wandNeedsOnlyManageHutsNotPlaceHuts() {
+        colony.permissions().setRank(bob, "Bob", Permissions.OFFICER);
+        colony.permissions().ranks().get(Permissions.OFFICER).remove(Action.PLACE_HUTS);
+        give(bob, BUILDER_ITEM);
+        assertInstanceOf(WandPlacement.Placed.class, placement.confirm(bob, "Bob", session(spot, BUILDER)));
+    }
+
+    @Test
+    void refusesWithoutAnAnchor() {
+        WandSession s = WandSession.empty().withBuilding(BUILDER);
+        assertEquals("hycolony.wand.missingPos", refusal(placement.confirm(alice, "Alice", s)));
+    }
+
+    @Test
+    void refusesAndKeepsTheHutBlockWhenTheBlockCannotBePlaced() {
+        give(alice, BUILDER_ITEM);
+        t.blocks.refusePlace = true;
+        assertEquals("hycolony.wand.placeFailed", refusal(placement.confirm(alice, "Alice", session(spot, BUILDER))));
+        assertEquals(1, t.playerInventory.count(alice, BUILDER_ITEM));
+        assertTrue(colony.buildings().at(spot).isEmpty());
     }
 }

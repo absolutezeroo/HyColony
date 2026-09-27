@@ -68,7 +68,7 @@ final class WandPlacement {
         if (colony.isPresent() && !colony.get().permissions().hasPermission(player, Action.MANAGE_HUTS)) {
             return refused("hycolony.wand.noPermission");
         }
-        HutPlacement check = manager.huts().checkPlacement(player, pos, s.buildingTypeId());
+        HutPlacement check = manager.huts().checkHutRules(player, pos, s.buildingTypeId());
         if (check instanceof HutPlacement.Denied denied) {
             return new Refused(denied.reason());
         }
@@ -94,7 +94,10 @@ final class WandPlacement {
         return inside ? Optional.empty() : Optional.of(refused("hycolony.wand.outsideColony"));
     }
 
-    /** Steps 4 and 5: takes the hut block (survival only), places it, then registers the hut or begins founding. */
+    /**
+     * Steps 4 and 5: checks a survival player has the hut block, places it, and only then takes one, so nothing is
+     * consumed if placing fails; then registers the hut or begins founding.
+     */
     private Result place(UUID player, String playerName, WandSession s, BuildingType type, HutPlacement check) {
         ItemKey item = hutItem.apply(type.hutBlockKey());
         boolean creative = manager.context().players().isCreative(player);
