@@ -3,15 +3,21 @@ package dev.hycolony.core;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.have;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
 
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 import dev.hycolony.core.construction.builder.BuilderJob;
+import dev.hycolony.core.job.Job;
+import dev.hycolony.core.job.JobAI;
+import java.util.stream.Stream;
 
 @AnalyzeClasses(packages = "dev.hycolony.core", importOptions = ImportOption.DoNotIncludeTests.class)
 class ArchitectureTest {
@@ -84,4 +90,61 @@ class ArchitectureTest {
             .should()
             .dependOnClassesThat(resideInAPackage("dev.hycolony.core.construction.builder..")
                     .and(not(equivalentTo(BuilderJob.class))));
+
+    /** Buildings host workers through modules; jobs and logistics plug into them, never the reverse (spec § 6). */
+    @ArchTest
+    static final ArchRule buildingDependsOnNeitherJobNorLogistics = noClasses()
+            .that()
+            .resideInAPackage("dev.hycolony.core.building..")
+            .should()
+            .dependOnClassesThat()
+            .resideInAnyPackage("dev.hycolony.core.job..", "dev.hycolony.core.logistics..");
+
+    /** The colony root knows no logistics type: couriers and warehouses register from their own feature. */
+    @ArchTest
+    static final ArchRule colonyRootDoesNotDependOnLogistics = noClasses()
+            .that()
+            .resideInAPackage("dev.hycolony.core.colony")
+            .should()
+            .dependOnClassesThat()
+            .resideInAPackage("dev.hycolony.core.logistics..");
+
+    /** Views and persistence are the colony's outer layer: features never call back into them (spec § 6). */
+    @ArchTest
+    static final ArchRule featuresDoNotDependOnColonyViewOrPersistence = noClasses()
+            .that()
+            .resideInAnyPackage(
+                    "dev.hycolony.core.building..",
+                    "dev.hycolony.core.citizen..",
+                    "dev.hycolony.core.job..",
+                    "dev.hycolony.core.request..",
+                    "dev.hycolony.core.construction..",
+                    "dev.hycolony.core.logistics..")
+            .should()
+            .dependOnClassesThat()
+            .resideInAnyPackage("dev.hycolony.core.colony.view..", "dev.hycolony.core.colony.persistence..");
+
+    @ArchTest
+    static final ArchRule logisticsSubPackagesAreFreeOfCycles =
+            slices().matching("dev.hycolony.core.logistics.(*)..").should().beFreeOfCycles();
+
+    /** Like the construction root: an empty logistics root keeps the slice rule above complete. */
+    @ArchTest
+    static final ArchRule logisticsRootPackageIsEmpty =
+            noClasses().should().resideInAPackage("dev.hycolony.core.logistics");
+
+    /** Jobs and their AIs compose shared parts instead of stacking a hierarchy: depth 1 below Job and JobAI. */
+    @ArchTest
+    static final ArchRule noSubclassOfAJobOrJobAISubtype = noClasses()
+            .should(have(DescribedPredicate.describe(
+                    "a parent that is a strict subtype of Job or JobAI", ArchitectureTest::extendsAJobOrJobAISubtype)));
+
+    private static boolean extendsAJobOrJobAISubtype(JavaClass type) {
+        return Stream.concat(type.getRawSuperclass().stream(), type.getRawInterfaces().stream())
+                .anyMatch(parent -> isStrictSubtype(parent, Job.class) || isStrictSubtype(parent, JobAI.class));
+    }
+
+    private static boolean isStrictSubtype(JavaClass type, Class<?> root) {
+        return type.isAssignableTo(root) && !type.isEquivalentTo(root);
+    }
 }
