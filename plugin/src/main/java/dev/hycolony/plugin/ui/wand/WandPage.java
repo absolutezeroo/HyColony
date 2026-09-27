@@ -2,7 +2,6 @@ package dev.hycolony.plugin.ui.wand;
 
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
-import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
@@ -91,7 +90,8 @@ public final class WandPage extends ColonyPage {
         for (int i = 0; i < labels.size(); i++) {
             String button = row.list() + "[" + i + "]";
             ui.append(row.list(), "Pages/HyColony/TabButton.ui");
-            ui.set(button + ".Text", Message.raw(labels.get(i)));
+            // A raw Message on .Text disconnects the client ("couldn't set value"); a plain string is accepted.
+            ui.set(button + ".Text", labels.get(i));
             ui.set(button + ".Disabled", i == chosen);
             bind(events, button, row.action(), i);
         }
