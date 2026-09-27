@@ -61,6 +61,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
     private long nextId = 1;
     private boolean teleportWarned;
     private boolean speedWarned;
+    private boolean spawnWarned;
 
     public HytaleCitizenBodies(World world, String roleName, CitizenSpeed speed) {
         this.world = world;
@@ -118,6 +119,10 @@ public final class HytaleCitizenBodies implements CitizenBodies {
                             spawned[0] = ref;
                         });
         if (result != SpawnTestResult.TEST_OK || spawned[0] == null) {
+            // CLAUDE.md § 4: the reason (FAIL_NO_POSITION, FAIL_INVALID_POSITION...) is only known here.
+            LOG.at(spawnWarned ? Level.FINE : Level.WARNING).log(
+                    "HyColony: cannot spawn a citizen near %s: %s", near, result);
+            spawnWarned = true;
             return Optional.empty();
         }
         return Optional.of(track(spawned[0]));
