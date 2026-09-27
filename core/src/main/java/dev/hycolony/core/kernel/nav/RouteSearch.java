@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /** One {@link SafeRoute} search: a breadth-first walk over the columns between two points, then its shortcuts. */
 final class RouteSearch {
@@ -107,7 +108,8 @@ final class RouteSearch {
 
     private List<Vec3> trace(Map<Long, Long> parent, long start, long goal) {
         List<Vec3> cells = new ArrayList<>();
-        for (long c = goal; c != start; c = parent.get(c)) {
+        // Every reached cell was put with its parent, back to start (its own parent).
+        for (long c = goal; c != start; c = Objects.requireNonNull(parent.get(c), "unreached cell")) {
             cells.add(new Vec3(x(c) + 0.5, height(x(c), z(c)), z(c) + 0.5));
         }
         Collections.reverse(cells);

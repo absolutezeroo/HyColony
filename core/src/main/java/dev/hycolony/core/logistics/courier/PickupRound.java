@@ -7,6 +7,7 @@ import dev.hycolony.core.logistics.pickup.HutKeep;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.model.Pickup;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 
 /**
  * MC EntityAIWorkDeliveryman.pickup: empties a hut one slot per step of what it does not keep ({@link HutKeep}),
@@ -27,7 +28,7 @@ final class PickupRound {
      */
     private int slot;
     /** What the hut keeps, counted over this round (MC alreadyKept); null between rounds. */
-    private HutKeep keep;
+    private @Nullable HutKeep keep;
 
     PickupRound(CourierContext ctx) {
         this.ctx = ctx;
@@ -90,14 +91,16 @@ final class PickupRound {
         if (cannotHoldMoreItems() || ctx.inventory().freeSlots() <= 0) {
             return false;
         }
-        if (keep == null) {
-            keep = HutKeep.of(ctx.colony(), hut, false);
+        HutKeep rules = keep;
+        if (rules == null) {
+            rules = HutKeep.of(ctx.colony(), hut, false);
+            keep = rules;
         }
         int index = slot;
         for (BlockPos container : hut.containers()) {
             List<ItemAmount> stacks = ctx.containers().stacks(container);
             if (index < stacks.size()) {
-                take(container, stacks.get(index));
+                take(rules, container, stacks.get(index));
                 return false;
             }
             index -= stacks.size();
@@ -109,8 +112,8 @@ final class PickupRound {
      * Moves what the hut does not keep of {@code stack} into the inventory (what does not fit goes back). The next slot
      * comes next, unless the whole stack left: the listing only has non-empty slots, so the next one moved up.
      */
-    private void take(BlockPos container, ItemAmount stack) {
-        int amount = keep.removable(stack);
+    private void take(HutKeep rules, BlockPos container, ItemAmount stack) {
+        int amount = rules.removable(stack);
         int taken = amount > 0 ? ctx.containers().extract(List.of(container), stack.item(), amount) : 0;
         ItemAmount rest = taken > 0 ? ctx.inventory().insert(stack.withCount(taken), ctx.catalog()::maxStack) : null;
         if (rest != null) {

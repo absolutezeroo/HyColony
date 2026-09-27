@@ -20,6 +20,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Level;
 import org.joml.Vector3d;
+import org.jspecify.annotations.Nullable;
 
 public final class HytalePlayerDirectory implements PlayerDirectory {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
@@ -110,7 +111,7 @@ public final class HytalePlayerDirectory implements PlayerDirectory {
         warned = true;
     }
 
-    private Ref<EntityStore> refIn(UUID player) {
+    private @Nullable Ref<EntityStore> refIn(UUID player) {
         Optional<PlayerRef> pr = world.getPlayerRefs().stream()
                 .filter(p -> p.getUuid().equals(player))
                 .findFirst();

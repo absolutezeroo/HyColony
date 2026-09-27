@@ -2,6 +2,7 @@ package dev.hycolony.core.citizen;
 
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.random.RandomGenerator;
 
 /** Port of MineColonies' CitizenSkillHandler (level init + XP gain). */
@@ -32,11 +33,16 @@ public final class Skills {
     }
 
     public int level(Skill skill) {
-        return map.get(skill).level();
+        return data(skill).level();
     }
 
     public double experience(Skill skill) {
-        return map.get(skill).experience();
+        return data(skill).experience();
+    }
+
+    /** Every skill is mapped from creation ({@link #empty}, {@link #initRandom}) and never removed. */
+    private SkillData data(Skill skill) {
+        return Objects.requireNonNull(map.get(skill), "unmapped skill");
     }
 
     public Map<Skill, SkillData> view() {
@@ -52,7 +58,7 @@ public final class Skills {
      * level (0 and MAX_BUILDING_LEVEL when homeless). Returns true when the skill leveled up.
      */
     public boolean addXp(Skill skill, double xp, int homeLevel, int homeMaxLevel) {
-        SkillData data = map.get(skill);
+        SkillData data = data(skill);
         if (((homeLevel < homeMaxLevel || homeMaxLevel < MAX_BUILDING_LEVEL) && (homeLevel + 1) * 10 <= data.level())
                 || data.level() >= MAX_CITIZEN_LEVEL) {
             return false;
@@ -76,7 +82,7 @@ public final class Skills {
      * experience never goes negative.
      */
     public void removeXp(Skill skill, double xp) {
-        SkillData data = map.get(skill);
+        SkillData data = data(skill);
         double xpToRemove = xp;
         while (xpToRemove > 0) {
             if (data.experience() >= xpToRemove || data.level() <= 1) {

@@ -20,20 +20,23 @@ subprojects {
         toolchain.languageVersion.set(JavaLanguageVersion.of(rootProject.property("java_version").toString().toInt()))
     }
 
-    // Error Prone on main sources: its ERROR-level checks fail the build. NullAway stays at WARN until the core
-    // carries @Nullable annotations (its findings so far are map/Optional invariants it cannot see).
+    // Error Prone on main sources: its ERROR-level checks fail the build, NullAway (JSpecify mode) included. A value
+    // that may be null carries jspecify's @Nullable.
     apply(plugin = "net.ltgt.errorprone")
     dependencies {
         "errorprone"("com.google.errorprone:error_prone_core:2.50.0")
         "errorprone"("com.uber.nullaway:nullaway:0.14.2")
+        "compileOnly"("org.jspecify:jspecify:1.0.1")
     }
 
     tasks.withType<JavaCompile>().configureEach {
         options.encoding = "UTF-8"
+        options.compilerArgs.addAll(listOf("-Xmaxwarns", "10000"))
         options.errorprone {
             disableWarningsInGeneratedCode.set(true)
             option("NullAway:AnnotatedPackages", "dev.hycolony")
-            check("NullAway", CheckSeverity.WARN)
+            option("NullAway:JSpecifyMode", "true")
+            check("NullAway", CheckSeverity.ERROR)
         }
     }
     tasks.named<JavaCompile>("compileTestJava") { options.errorprone.enabled.set(false) }

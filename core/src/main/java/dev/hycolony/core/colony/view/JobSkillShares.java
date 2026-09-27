@@ -21,9 +21,11 @@ final class JobSkillShares {
         List<SkillShare> lines = new ArrayList<>(3);
         lines.add(new SkillShare(skill, percent(share)));
         // MC shows the dependency lines only when the skill has both (every skill but Intelligence).
-        if (skill.complementary() != null && skill.adverse() != null) {
-            lines.add(new SkillShare(skill.complementary(), percent(dependencyShare)));
-            lines.add(new SkillShare(skill.adverse(), -percent(dependencyShare)));
+        Skill complementary = skill.complementary();
+        Skill adverse = skill.adverse();
+        if (complementary != null && adverse != null) {
+            lines.add(new SkillShare(complementary, percent(dependencyShare)));
+            lines.add(new SkillShare(adverse, -percent(dependencyShare)));
         }
         return lines;
     }

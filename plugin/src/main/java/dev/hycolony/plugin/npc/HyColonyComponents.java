@@ -3,10 +3,15 @@ package dev.hycolony.plugin.npc;
 import com.hypixel.hytale.component.ComponentRegistryProxy;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import java.util.Objects;
+import org.jspecify.annotations.Nullable;
 
 public final class HyColonyComponents {
-    private static ComponentType<EntityStore, CitizenTag> citizenTag;
-    private static ComponentType<EntityStore, MoveTarget> moveTarget;
+    // Registered by the plugin's setup, before any system or adapter asks for them.
+    private static @Nullable ComponentType<EntityStore, CitizenTag> citizenTag;
+    private static @Nullable ComponentType<EntityStore, MoveTarget> moveTarget;
+
+    private static final String NOT_REGISTERED = "HyColony components not registered yet";
 
     private HyColonyComponents() {}
 
@@ -16,10 +21,10 @@ public final class HyColonyComponents {
     }
 
     public static ComponentType<EntityStore, CitizenTag> citizenTag() {
-        return citizenTag;
+        return Objects.requireNonNull(citizenTag, NOT_REGISTERED);
     }
 
     public static ComponentType<EntityStore, MoveTarget> moveTarget() {
-        return moveTarget;
+        return Objects.requireNonNull(moveTarget, NOT_REGISTERED);
     }
 }

@@ -43,8 +43,9 @@ public final class BuildGoggles {
 
     /** The player put the goggles on (or is read wearing them): every visible site is shown. Nothing if already on. */
     public void equip(UUID player) {
-        if (wearers.putIfAbsent(player, new HashMap<>()) == null) {
-            update(player);
+        Map<String, Shown> shown = new HashMap<>();
+        if (wearers.putIfAbsent(player, shown) == null) {
+            update(player, shown);
         }
     }
 
@@ -61,19 +62,18 @@ public final class BuildGoggles {
         if (ticks % CHECK_INTERVAL_TICKS != 0) {
             return;
         }
-        for (UUID player : new ArrayList<>(wearers.keySet())) {
-            update(player);
+        for (Map.Entry<UUID, Map<String, Shown>> wearer : new ArrayList<>(wearers.entrySet())) {
+            update(wearer.getKey(), wearer.getValue());
         }
     }
 
     /** Hides the sites gone out of view, shows the new ones and refreshes the old ones that changed. */
-    private void update(UUID player) {
+    private void update(UUID player, Map<String, Shown> shown) {
         Optional<BlockPos> pos = players.position(player);
         if (pos.isEmpty()) { // left the world: the plugin re-equips on the way back
             unequip(player);
             return;
         }
-        Map<String, Shown> shown = wearers.get(player);
         List<GogglesView.Site> sites = view.visible(pos.get());
         Set<String> ids = new HashSet<>();
         sites.forEach(s -> ids.add(s.id()));

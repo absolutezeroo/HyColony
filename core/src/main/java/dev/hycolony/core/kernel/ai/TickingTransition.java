@@ -2,6 +2,7 @@ package dev.hycolony.core.kernel.ai;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BooleanSupplier;
+import org.jspecify.annotations.Nullable;
 
 /** A transition evaluated every {@code tickRate} machine ticks. Port of MineColonies' TickingTransition. */
 public class TickingTransition<S extends IState> {
@@ -13,13 +14,14 @@ public class TickingTransition<S extends IState> {
     /** Spreads transitions across ticks. Shared by all worlds, hence atomic. */
     private static final AtomicInteger OFFSET_VARIANT = new AtomicInteger();
 
-    private final S state;
+    private final @Nullable S state;
     private final BooleanSupplier condition;
     private final IStateSupplier<S> nextState;
     private final int tickRate;
     private int ticksToUpdate;
 
-    protected TickingTransition(S state, BooleanSupplier condition, IStateSupplier<S> nextState, int tickRate) {
+    protected TickingTransition(
+            @Nullable S state, BooleanSupplier condition, IStateSupplier<S> nextState, int tickRate) {
         this.state = state;
         this.condition = condition;
         this.nextState = nextState;
@@ -33,12 +35,12 @@ public class TickingTransition<S extends IState> {
         OFFSET_VARIANT.set(0);
     }
 
-    public S getState() {
+    public @Nullable S getState() {
         return state;
     }
 
     /** Null for plain state transitions. */
-    public IStateEventType getEventType() {
+    public @Nullable IStateEventType getEventType() {
         return null;
     }
 
@@ -54,6 +56,7 @@ public class TickingTransition<S extends IState> {
         return condition.getAsBoolean();
     }
 
+    @Nullable
     S getNextState() {
         return nextState.get();
     }

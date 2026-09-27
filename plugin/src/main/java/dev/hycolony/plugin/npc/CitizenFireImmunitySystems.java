@@ -45,7 +45,7 @@ public final class CitizenFireImmunitySystems {
         private static final String IMMUNITY_FIRE_EFFECT_ID = "Immunity_Fire";
         private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
-        private EntityEffect immunityFire;
+        private @Nullable EntityEffect immunityFire;
         private boolean missingEffectWarned;
 
         @Override
@@ -83,6 +83,7 @@ public final class CitizenFireImmunitySystems {
             // The effect is saved with the entity itself; nothing to release here.
         }
 
+        @Nullable
         private EntityEffect resolveImmunityFire() {
             if (immunityFire == null) {
                 immunityFire = EntityEffect.getAssetMap().getAsset(IMMUNITY_FIRE_EFFECT_ID);

@@ -10,6 +10,7 @@ import dev.hycolony.core.kernel.port.WorldBlocks;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Where the builder stands to work on a block: MC EntityAIStructureBuilder.walkToConstructionSite's {@code workFrom},
@@ -104,7 +105,7 @@ final class WorkSpot {
      * also stops at a fluid 2 or more deep (a body does not stand at the bottom of a lake), and a buried column with
      * no fitting spot above returns {@code top} itself.
      */
-    private BlockPos ground(BlockPos top) {
+    private @Nullable BlockPos ground(BlockPos top) {
         return solid(top) ? groundAbove(top) : groundBelow(top);
     }
 
@@ -120,7 +121,7 @@ final class WorkSpot {
     }
 
     /** The spot on the first solid block below {@code top}, or the first fluid cell with fluid above it; else null. */
-    private BlockPos groundBelow(BlockPos top) {
+    private @Nullable BlockPos groundBelow(BlockPos top) {
         for (int i = 0; i <= GROUND_SCAN; i++) {
             BlockPos p = top.offset(0, -i, 0);
             if (fluid(p) && fluid(p.offset(0, 1, 0)) || solid(p.offset(0, -1, 0))) {

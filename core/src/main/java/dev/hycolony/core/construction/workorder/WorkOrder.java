@@ -3,6 +3,7 @@ package dev.hycolony.core.construction.workorder;
 import com.google.gson.JsonObject;
 import dev.hycolony.core.kernel.BlockPos;
 import java.util.Optional;
+import org.jspecify.annotations.Nullable;
 
 /** One build/upgrade/repair/remove job on a building. Port of MineColonies' WorkOrderBuilding. */
 public final class WorkOrder {
@@ -14,7 +15,7 @@ public final class WorkOrder {
     private final String style;
     private final int rotation;
     private int priority;
-    private BlockPos claimedBy;
+    private @Nullable BlockPos claimedBy;
     private Stage stage;
     private int progressIndex;
     private boolean free;

@@ -7,6 +7,7 @@ import dev.hycolony.core.kernel.port.CitizenBodies;
 import java.util.Optional;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The builder's walks (MC walkToBuilding / walkToConstructionSite) over a {@link BodyWalker}, plus its work spot. It
@@ -16,9 +17,9 @@ import java.util.function.Supplier;
 final class BuilderWalker {
     private final BodyWalker walker;
 
-    private WorkSpot.Spot workPos;
+    private WorkSpot.@Nullable Spot workPos;
     /** The block the work spot was already chosen again for, because it was out of reach from the first one. */
-    private BlockPos repickedFor;
+    private @Nullable BlockPos repickedFor;
 
     BuilderWalker(CitizenBodies bodies, BodyId body, LongSupplier clock) {
         this.walker = new BodyWalker(bodies, body, clock);

@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.jspecify.annotations.Nullable;
 
 /**
  * MC RequestHandler.assignRequestDefault: offers a request to its candidate resolvers, highest priority first, keeps
@@ -65,7 +66,7 @@ final class RequestAssigner {
      * {@code r}'s attempt when it is the first taker, or when it is strictly more suitable than {@code best} (whose
      * children are then cancelled); else {@code best}.
      */
-    private Attempt challenge(Resolver r, Request req, Attempt best) {
+    private @Nullable Attempt challenge(Resolver r, Request req, @Nullable Attempt best) {
         if (best == null) {
             Optional<List<Requestable>> result = r.attemptResolve(manager, req);
             return result.isPresent() ? new Attempt(r, r.suitability(manager, req), createAll(r, result.get())) : null;

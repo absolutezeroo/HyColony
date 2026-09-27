@@ -10,6 +10,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Precomputed, immutable work lists for one work order's plan. {@link #build} runs once per order;
@@ -123,7 +124,7 @@ public final class StructurePlan {
     }
 
     /** The planned state at a world position, or null where the plan has nothing (air). */
-    public BlockState stateAt(BlockPos worldPos) {
+    public @Nullable BlockState stateAt(BlockPos worldPos) {
         return stateAt.get(worldPos);
     }
 

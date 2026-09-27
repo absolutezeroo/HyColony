@@ -5,12 +5,13 @@ import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
+import org.jspecify.annotations.Nullable;
 
 /** Positions as JSON {@code {x, y, z}} objects; a null position is JSON null. */
 final class JsonPositions {
     private JsonPositions() {}
 
-    static JsonElement pos(BlockPos p) {
+    static JsonElement pos(@Nullable BlockPos p) {
         if (p == null) {
             return JsonNull.INSTANCE;
         }
@@ -21,7 +22,7 @@ final class JsonPositions {
         return o;
     }
 
-    static BlockPos readPos(JsonElement e) {
+    static @Nullable BlockPos readPos(@Nullable JsonElement e) {
         if (e == null || e.isJsonNull()) {
             return null;
         }
@@ -30,7 +31,16 @@ final class JsonPositions {
                 o.get("x").getAsInt(), o.get("y").getAsInt(), o.get("z").getAsInt());
     }
 
-    static JsonElement vec(Vec3 v) {
+    /** A position the save cannot do without; throws on JSON null or a missing key, like any missing required field. */
+    static BlockPos requirePos(@Nullable JsonElement e) {
+        BlockPos p = readPos(e);
+        if (p == null) {
+            throw new IllegalStateException("missing position");
+        }
+        return p;
+    }
+
+    static JsonElement vec(@Nullable Vec3 v) {
         if (v == null) {
             return JsonNull.INSTANCE;
         }
@@ -41,7 +51,7 @@ final class JsonPositions {
         return o;
     }
 
-    static Vec3 readVec(JsonElement e) {
+    static @Nullable Vec3 readVec(@Nullable JsonElement e) {
         if (e == null || e.isJsonNull()) {
             return null;
         }

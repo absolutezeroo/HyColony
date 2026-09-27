@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.jspecify.annotations.Nullable;
 
 /**
  * MC EntityAIWorkDeliveryman.prepareDelivery: loads, one per step, the deliveries going to the same place as the
@@ -21,9 +22,9 @@ final class DeliveryPreparation {
     /** What the deliveries already covered take from the inventory, per item (kept to spare an allocation). */
     private final Map<ItemKey, Integer> covered = new HashMap<>();
     /** The rack the courier walks to for the task {@link #walkingFor}; null once there. */
-    private BlockPos walkingTo;
+    private @Nullable BlockPos walkingTo;
 
-    private RequestToken walkingFor;
+    private @Nullable RequestToken walkingFor;
 
     DeliveryPreparation(CourierContext ctx) {
         this.ctx = ctx;

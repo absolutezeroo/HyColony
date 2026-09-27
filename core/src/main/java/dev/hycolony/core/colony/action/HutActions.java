@@ -145,8 +145,10 @@ public final class HutActions {
      */
     public boolean hire(UUID player, BlockPos hutPos, int citizenId) {
         ManagedHut h = ManagedHut.find(manager, player, hutPos).orElse(null);
-        WorkerModule w =
-                h == null ? null : h.building().module(WorkerModule.class).orElse(null);
+        if (h == null) {
+            return false;
+        }
+        WorkerModule w = h.building().module(WorkerModule.class).orElse(null);
         if (w == null) {
             return false;
         }
@@ -166,8 +168,10 @@ public final class HutActions {
      */
     public boolean fire(UUID player, BlockPos hutPos, int citizenId) {
         ManagedHut h = ManagedHut.find(manager, player, hutPos).orElse(null);
-        WorkerModule w =
-                h == null ? null : h.building().module(WorkerModule.class).orElse(null);
+        if (h == null) {
+            return false;
+        }
+        WorkerModule w = h.building().module(WorkerModule.class).orElse(null);
         if (w == null) {
             return false;
         }
@@ -181,8 +185,10 @@ public final class HutActions {
 
     public boolean setHiring(UUID player, BlockPos hutPos, HiringMode mode) {
         ManagedHut h = ManagedHut.find(manager, player, hutPos).orElse(null);
-        WorkerModule w =
-                h == null ? null : h.building().module(WorkerModule.class).orElse(null);
+        if (h == null) {
+            return false;
+        }
+        WorkerModule w = h.building().module(WorkerModule.class).orElse(null);
         if (w == null || mode == null) {
             return false;
         }
@@ -195,9 +201,11 @@ public final class HutActions {
     /** The builder hut's Settings tab (MC BuilderSettingsModule's mode setting); false for a hut without it. */
     public boolean setBuilderMode(UUID player, BlockPos hutPos, BuilderSettingsModule.Mode mode) {
         ManagedHut h = ManagedHut.find(manager, player, hutPos).orElse(null);
-        BuilderSettingsModule s = h == null
-                ? null
-                : h.building().module(BuilderSettingsModule.class).orElse(null);
+        if (h == null) {
+            return false;
+        }
+        BuilderSettingsModule s =
+                h.building().module(BuilderSettingsModule.class).orElse(null);
         if (s == null || mode == null) {
             return false;
         }

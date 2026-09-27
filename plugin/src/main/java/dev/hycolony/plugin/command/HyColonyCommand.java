@@ -142,7 +142,7 @@ public final class HyColonyCommand extends AbstractCommandCollection {
             WorldRuntime rt = runtimes.of(world);
             Optional<Colony> colony =
                     rt == null ? Optional.empty() : rt.manager().colonyAt(where(store, ref));
-            if (colony.isEmpty()) {
+            if (rt == null || colony.isEmpty()) {
                 say(player, "hycolony.cmd.noColony");
                 return;
             }
@@ -240,7 +240,8 @@ public final class HyColonyCommand extends AbstractCommandCollection {
             LogisticsSelfTest.run((step, ok, detail) -> report(player, step, ok, detail), rt, where(store, ref));
 
             // Tag (-1, -1): if this body survives a crash, onBodyLoaded finds no colony -1 and despawns it.
-            Optional<BodyId> body = rt.bodies().spawn(null, where(store, ref).offset(2, 0, 0), -1, -1, "SelfTest");
+            Optional<BodyId> body = rt.bodies()
+                    .spawn(rt.manager().context().world(), where(store, ref).offset(2, 0, 0), -1, -1, "SelfTest");
             report(player, "spawn", body.isPresent(), "spawnNPCWithColumnProbe");
             body.ifPresent(b -> {
                 Vec3 start = rt.bodies().position(b).orElseThrow();

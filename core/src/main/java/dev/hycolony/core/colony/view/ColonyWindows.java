@@ -47,7 +47,7 @@ public final class ColonyWindows {
     public void openCitizen(UUID player, int colonyId, int citizenId) {
         Colony c = manager.byId(colonyId).orElse(null);
         CitizenData d = c == null ? null : c.citizens().get(citizenId).orElse(null);
-        if (d == null || !canAccess(c, player)) {
+        if (c == null || d == null || !canAccess(c, player)) {
             return;
         }
         CitizenView view = citizens.of(c, d, player);
@@ -64,7 +64,7 @@ public final class ColonyWindows {
     public void openBuilding(UUID player, BlockPos hutPos) {
         Colony c = manager.colonyAt(hutPos).orElse(null);
         Building b = c == null ? null : c.buildings().at(hutPos).orElse(null);
-        if (b != null && canAccess(c, player)) {
+        if (c != null && b != null && canAccess(c, player)) {
             showBuilding(c, b, player);
         }
     }

@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -145,7 +146,9 @@ public final class Permissions {
 
     public Rank rankOf(UUID player) {
         Member member = members.get(player);
-        return member != null ? ranks.getOrDefault(member.rankId(), ranks.get(NEUTRAL)) : ranks.get(NEUTRAL);
+        // Every default rank exists: createDefault maps them all and PermissionsSerializer.read starts from them.
+        Rank neutral = Objects.requireNonNull(ranks.get(NEUTRAL), "neutral rank");
+        return member != null ? ranks.getOrDefault(member.rankId(), neutral) : neutral;
     }
 
     public boolean hasPermission(UUID player, Action action) {

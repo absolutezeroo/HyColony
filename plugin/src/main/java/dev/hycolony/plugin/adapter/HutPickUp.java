@@ -57,8 +57,10 @@ final class HutPickUp {
     private static void removeWithoutDrop(World world, BlockPos pos, String blockId) {
         ChunkStore cs = world.getChunkStore();
         Ref<ChunkStore> section = cs.getChunkSectionReferenceAtBlock(pos.x(), pos.y(), pos.z());
-        BlockSection blocks =
-                section == null ? null : cs.getStore().getComponent(section, BlockSection.getComponentType());
+        if (section == null) {
+            return;
+        }
+        BlockSection blocks = cs.getStore().getComponent(section, BlockSection.getComponentType());
         if (blocks == null) {
             return;
         }

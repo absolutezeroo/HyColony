@@ -1,7 +1,7 @@
 package dev.hycolony.core.colony.persistence;
 
 import static dev.hycolony.core.colony.persistence.JsonPositions.pos;
-import static dev.hycolony.core.colony.persistence.JsonPositions.readPos;
+import static dev.hycolony.core.colony.persistence.JsonPositions.requirePos;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -43,8 +43,8 @@ final class BuildingSerializer {
     }
 
     static Building read(JsonObject o, BuildingType type) {
-        Building b =
-                Building.create(type, readPos(o.get("pos")), o.get("rotation").getAsInt());
+        Building b = Building.create(
+                type, requirePos(o.get("pos")), o.get("rotation").getAsInt());
         b.setLevel(o.get("level").getAsInt());
         b.setBuilt(o.get("built").getAsBoolean());
         b.setCustomName(o.get("customName").getAsString());
@@ -57,7 +57,7 @@ final class BuildingSerializer {
         }
         if (o.has("containers")) {
             for (JsonElement el : o.getAsJsonArray("containers")) {
-                b.addContainer(readPos(el));
+                b.addContainer(requirePos(el));
             }
         }
         JsonObject modules = o.getAsJsonObject("modules");

@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.ToIntFunction;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The builder's items: its inventory and its hut's containers (MC AbstractEntityAIBasic dump, pickup and tool
@@ -154,7 +155,7 @@ final class BuilderStock {
     }
 
     /** Items that fit neither in the inventory nor in the hut: logged as {@code debrisLost}. */
-    private void lose(ItemAmount rest) {
+    private void lose(@Nullable ItemAmount rest) {
         if (rest != null) {
             colony.log().add("debrisLost", colony.day(), rest.item().id(), String.valueOf(rest.count()));
             LOG.log(
@@ -170,6 +171,7 @@ final class BuilderStock {
      * MC getMostEfficientTool: the lowest-level tool of {@code type} in the inventory within the hut's max equipment
      * level (the least powerful one that does the job). Null if none.
      */
+    @Nullable
     ItemKey toolInInventory(ToolType type) {
         ItemKey best = null;
         int bestLevel = Integer.MAX_VALUE;
@@ -187,6 +189,7 @@ final class BuilderStock {
     }
 
     /** A tool of {@code type} within the hut's max equipment level stored in the hut, or null. */
+    @Nullable
     ItemKey toolInHut(ToolType type) {
         for (ItemKey item : containers.contents(hut.containers()).keySet()) {
             ToolInfo info = catalog.tool(item).orElse(null);
@@ -197,7 +200,7 @@ final class BuilderStock {
         return null;
     }
 
-    float toolSpeed(ItemKey tool) {
+    float toolSpeed(@Nullable ItemKey tool) {
         return tool == null ? 1f : catalog.tool(tool).map(ToolInfo::speed).orElse(1f);
     }
 }

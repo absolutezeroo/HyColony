@@ -7,6 +7,7 @@ import dev.hycolony.core.kernel.port.CitizenBodies;
 import dev.hycolony.core.kernel.port.NavStatus;
 import java.util.Optional;
 import java.util.function.LongSupplier;
+import org.jspecify.annotations.Nullable;
 
 /**
  * One body's non-blocking walks (MC AbstractEntityAIBasic.walkToBuilding / walkToBlock), called again each AI step
@@ -21,9 +22,9 @@ public final class BodyWalker {
     private final BodyId body;
     private final LongSupplier clock;
     private final StuckHandler stuck = new StuckHandler();
-    private BlockPos navTarget;
+    private @Nullable BlockPos navTarget;
     /** A target whose walk ended (nav result or given up): the body works from where it stands. */
-    private BlockPos settled;
+    private @Nullable BlockPos settled;
 
     public BodyWalker(CitizenBodies bodies, BodyId body, LongSupplier clock) {
         this.bodies = bodies;
@@ -33,9 +34,10 @@ public final class BodyWalker {
 
     /** True while a walk is under way (for the citizen window). */
     public boolean walking() {
-        return navTarget != null
-                && !navTarget.equals(settled)
-                && bodies.position(body).map(p -> !within(p, navTarget)).orElse(false);
+        BlockPos target = navTarget;
+        return target != null
+                && !target.equals(settled)
+                && bodies.position(body).map(p -> !within(p, target)).orElse(false);
     }
 
     /** The body's block; empty while it has no body. */

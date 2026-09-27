@@ -8,6 +8,7 @@ import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import java.util.Map;
 import java.util.TreeMap;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A citizen's walking speed factor (MC MOVEMENT_SPEED over its base), applied as one of the infinite HyColony speed
@@ -21,7 +22,7 @@ import java.util.TreeMap;
 public final class CitizenSpeed {
     private final double[] factors;
     private final String[] ids;
-    private int[] indexes;
+    private int @Nullable [] indexes;
 
     /** {@code effects}: speed factor above 1 -> entity effect id. */
     public CitizenSpeed(Map<Double, String> effects) {
@@ -74,13 +75,14 @@ public final class CitizenSpeed {
      * the runtime's life: an asset hot-reload that renumbers or adds these effects is not supported (restart).
      */
     private int[] indexes() {
-        if (indexes == null) {
-            int[] out = new int[ids.length];
+        int[] known = indexes;
+        if (known == null) {
+            known = new int[ids.length];
             for (int i = 0; i < ids.length; i++) {
-                out[i] = EntityEffect.getAssetMap().getIndex(ids[i]);
+                known[i] = EntityEffect.getAssetMap().getIndex(ids[i]);
             }
-            indexes = out;
+            indexes = known;
         }
-        return indexes;
+        return known;
     }
 }

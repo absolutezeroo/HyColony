@@ -34,6 +34,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 import org.joml.Vector3i;
+import org.jspecify.annotations.Nullable;
 
 /**
  * WorldBlocks over the section API (cheat sheet § 1). Never loads a chunk, never throws. Fluids are reported as the
@@ -255,7 +256,7 @@ public final class HytaleWorldBlocks implements WorldBlocks {
         }
     }
 
-    private Ref<ChunkStore> section(BlockPos pos) {
+    private @Nullable Ref<ChunkStore> section(BlockPos pos) {
         Ref<ChunkStore> sec = world.getChunkStore().getChunkSectionReferenceAtBlock(pos.x(), pos.y(), pos.z());
         return sec != null && sec.isValid() ? sec : null;
     }

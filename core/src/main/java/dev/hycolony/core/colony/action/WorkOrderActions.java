@@ -15,6 +15,7 @@ import dev.hycolony.core.kernel.port.Msg;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
+import org.jspecify.annotations.Nullable;
 
 /**
  * What players do to work orders: order one from a hut's window, cancel it there, select or cancel one from a builder
@@ -37,7 +38,7 @@ public final class WorkOrderActions {
     public Optional<WorkOrderRefusal> order(UUID player, BlockPos hutPos, WorkOrderType type, String style) {
         Colony c = manager.colonyAt(hutPos).orElse(null);
         Building b = c == null ? null : c.buildings().at(hutPos).orElse(null);
-        if (b == null) {
+        if (c == null || b == null) {
             return Optional.of(WorkOrderRefusal.INVALID_TYPE); // the hut is gone
         }
         Either<WorkOrder, WorkOrderRefusal> r = c.work().request(player, hutPos, type, style, Optional.empty());
@@ -57,8 +58,10 @@ public final class WorkOrderActions {
     /** The hut window's Cancel button (MANAGE_HUTS). */
     public boolean cancel(UUID player, BlockPos hutPos) {
         ManagedHut h = ManagedHut.find(manager, player, hutPos).orElse(null);
-        Optional<WorkOrder> order =
-                h == null ? Optional.empty() : h.colony().work().byBuilding(hutPos);
+        if (h == null) {
+            return false;
+        }
+        Optional<WorkOrder> order = h.colony().work().byBuilding(hutPos);
         if (order.isEmpty()) {
             return false;
         }
@@ -131,7 +134,7 @@ public final class WorkOrderActions {
     }
 
     /** The colony if it holds the order and the player may manage its huts, else null. */
-    private Colony managedColony(UUID player, int colonyId, int orderId) {
+    private @Nullable Colony managedColony(UUID player, int colonyId, int orderId) {
         return manager.byId(colonyId)
                 .filter(c -> c.permissions().hasPermission(player, Action.MANAGE_HUTS)
                         && c.work().byId(orderId).isPresent())

@@ -16,6 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
+import org.jspecify.annotations.Nullable;
 
 /**
  * ContainerAccess over {@link ItemContainerBlock} (cheat sheet § 3). An unloaded chunk or a position without a
@@ -69,7 +70,7 @@ public final class HytaleContainerAccess implements ContainerAccess {
     }
 
     @Override
-    public ItemAmount insert(List<BlockPos> containers, ItemAmount amount) {
+    public @Nullable ItemAmount insert(List<BlockPos> containers, ItemAmount amount) {
         if (Item.getAssetMap().getAsset(amount.item().id()) == null) {
             return amount; // unknown item: nothing fits
         }
@@ -141,7 +142,7 @@ public final class HytaleContainerAccess implements ContainerAccess {
         return out;
     }
 
-    private ItemContainer container(BlockPos p) {
+    private @Nullable ItemContainer container(BlockPos p) {
         ItemContainerBlock b =
                 BlockModule.getComponent(ItemContainerBlock.getComponentType(), world, p.x(), p.y(), p.z());
         return b == null ? null : b.getItemContainer();
@@ -152,7 +153,7 @@ public final class HytaleContainerAccess implements ContainerAccess {
         int taken = 0;
         for (short s = 0; s < c.getCapacity() && taken < max; s++) {
             ItemStack st = c.getItemStack(s);
-            if (ItemStack.isEmpty(st) || !st.getItemId().equals(item.id())) {
+            if (st == null || ItemStack.isEmpty(st) || !st.getItemId().equals(item.id())) {
                 continue;
             }
             int n = Math.min(max - taken, st.getQuantity());
@@ -164,9 +165,9 @@ public final class HytaleContainerAccess implements ContainerAccess {
     }
 
     /** Adds {@code a} to {@code c}. Returns the remainder, or null if everything fit. */
-    static ItemAmount give(ItemContainer c, ItemAmount a) {
+    static @Nullable ItemAmount give(ItemContainer c, ItemAmount a) {
         ItemStack rem = c.addItemStack(new ItemStack(a.item().id(), a.count())).getRemainder();
-        return ItemStack.isEmpty(rem) ? null : a.withCount(rem.getQuantity());
+        return rem == null || ItemStack.isEmpty(rem) ? null : a.withCount(rem.getQuantity());
     }
 
     /** Merges {@code c}'s stacks into {@code out} by item id, in slot order. */

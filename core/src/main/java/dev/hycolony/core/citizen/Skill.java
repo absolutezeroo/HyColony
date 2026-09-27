@@ -1,6 +1,7 @@
 package dev.hycolony.core.citizen;
 
 import java.util.Map;
+import org.jspecify.annotations.Nullable;
 
 /** The 11 citizen skills, in MineColonies order. */
 public enum Skill {
@@ -43,12 +44,12 @@ public enum Skill {
             Knowledge, Creativity);
 
     /** Null for Intelligence. */
-    public Skill complementary() {
+    public @Nullable Skill complementary() {
         return COMPLEMENTARY.get(this);
     }
 
     /** Null for Intelligence. */
-    public Skill adverse() {
+    public @Nullable Skill adverse() {
         return ADVERSE.get(this);
     }
 }

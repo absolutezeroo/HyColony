@@ -1,6 +1,7 @@
 package dev.hycolony.core.kernel.nav;
 
 import dev.hycolony.core.kernel.Vec3;
+import org.jspecify.annotations.Nullable;
 
 /**
  * MineColonies PathingStuckHandler (as MinecoloniesAdvancedPathNavigate configures it for citizens: teleport on full
@@ -45,10 +46,10 @@ public final class StuckHandler {
     /** Ours: MC counts path nodes passed; a body that moved a block made progress. */
     static final double PROGRESS_DIST = 1;
 
-    private Vec3 destination;
+    private @Nullable Vec3 destination;
     private long startTick;
     private long lastCheck;
-    private Vec3 lastPos;
+    private @Nullable Vec3 lastPos;
     private long lastProgress;
     private int level;
     private boolean teleported;
@@ -77,29 +78,31 @@ public final class StuckHandler {
      * after {@link Action#GIVE_UP} until the next {@link #start}.
      */
     public Action check(Vec3 pos, long now) {
-        if (destination == null || now - lastCheck < CHECK_INTERVAL) {
+        Vec3 dest = destination;
+        if (dest == null || now - lastCheck < CHECK_INTERVAL) {
             return Action.NONE;
         }
         lastCheck = now;
-        if (now - (teleported ? teleportTick : startTick) > globalTimeout(pos)) {
+        if (now - (teleported ? teleportTick : startTick) > globalTimeout(pos, dest)) {
             return teleported ? giveUp() : teleport(pos, now);
         }
-        if (pos.distance(lastPos) >= PROGRESS_DIST) {
+        // lastPos is set with the destination (start); null would only mean no reference yet, i.e. progress.
+        if (lastPos == null || pos.distance(lastPos) >= PROGRESS_DIST) {
             lastPos = pos;
             lastProgress = now;
             level = 0;
             return Action.NONE;
         }
-        return escalate(pos, now);
+        return escalate(pos, now, dest);
     }
 
     /** No progress since the last check: repath, then teleport, then give up, each once its delay passed. */
-    private Action escalate(Vec3 pos, long now) {
+    private Action escalate(Vec3 pos, long now, Vec3 dest) {
         if (now - lastProgress < (level == 0 ? DELAY_BEFORE_ACTIONS : NEXT_ACTION_DELAY)) {
             return Action.NONE;
         }
         lastProgress = now;
-        if (pos.distance(destination) < MIN_TARGET_DIST || teleported) {
+        if (pos.distance(dest) < MIN_TARGET_DIST || teleported) {
             return giveUp();
         }
         return level++ == 0 ? Action.REPATH : teleport(pos, now);
@@ -122,10 +125,9 @@ public final class StuckHandler {
         return Action.TELEPORT;
     }
 
-    private long globalTimeout(Vec3 pos) {
-        long manhattan = Math.round(Math.abs(pos.x() - destination.x())
-                + Math.abs(pos.y() - destination.y())
-                + Math.abs(pos.z() - destination.z()));
+    private long globalTimeout(Vec3 pos, Vec3 dest) {
+        long manhattan =
+                Math.round(Math.abs(pos.x() - dest.x()) + Math.abs(pos.y() - dest.y()) + Math.abs(pos.z() - dest.z()));
         return Math.max(MIN_TP_DELAY, (long) TIME_PER_BLOCK * Math.max(MIN_DIST_FOR_TP, manhattan));
     }
 }

@@ -42,7 +42,7 @@ public final class GogglesSystems {
     /** Tells the world's goggles whether {@code player} wears {@code goggles} in the head slot of {@code armor}. */
     static void report(WorldRuntime rt, UUID player, ItemContainer armor, String goggles) {
         ItemStack head = armor.getItemStack(HEAD_SLOT);
-        if (!ItemStack.isEmpty(head) && goggles.equals(head.getItemId())) {
+        if (head != null && !ItemStack.isEmpty(head) && goggles.equals(head.getItemId())) {
             rt.goggles().equip(player);
         } else {
             rt.goggles().unequip(player);
@@ -54,7 +54,7 @@ public final class GogglesSystems {
         Ref<EntityStore> ref = e.getPlayerRef();
         World world = e.getPlayer().getWorld();
         WorldRuntime rt = runtimes.of(world);
-        if (rt == null) {
+        if (world == null || rt == null) {
             return;
         }
         world.execute(() -> {

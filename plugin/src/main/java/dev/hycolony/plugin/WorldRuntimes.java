@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
+import org.jspecify.annotations.Nullable;
 
 /** Registry of per-world runtimes (map is concurrent: worlds live on different threads). */
 public final class WorldRuntimes {
@@ -25,12 +26,16 @@ public final class WorldRuntimes {
         this.ids = ids;
     }
 
-    public WorldRuntime of(World world) {
+    /** The world's runtime; null for a null world or one without a runtime (not started, or removed). */
+    public @Nullable WorldRuntime of(@Nullable World world) {
         return world == null ? null : byWorld.get(world.getName());
     }
 
-    public void create(World world) {
-        byWorld.put(world.getName(), new WorldRuntime(world, config, ids, names, enabled));
+    /** Creates and returns the world's runtime, replacing any previous one. */
+    public WorldRuntime create(World world) {
+        WorldRuntime rt = new WorldRuntime(world, config, ids, names, enabled);
+        byWorld.put(world.getName(), rt);
+        return rt;
     }
 
     /**

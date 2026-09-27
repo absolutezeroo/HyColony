@@ -17,6 +17,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
+import org.jspecify.annotations.Nullable;
 
 /**
  * PlayerInventory over the player's hotbar then storage (cheat sheet § 4, {@code InventoryComponent.HOTBAR_FIRST}).
@@ -70,7 +71,7 @@ public final class HytalePlayerInventory implements PlayerInventory {
     }
 
     @Override
-    public ItemAmount give(UUID player, ItemAmount amount) {
+    public @Nullable ItemAmount give(UUID player, ItemAmount amount) {
         try {
             ItemContainer c = inventory(player);
             if (c == null || Item.getAssetMap().getAsset(amount.item().id()) == null) {
@@ -84,7 +85,7 @@ public final class HytalePlayerInventory implements PlayerInventory {
     }
 
     /** The player's hotbar + storage, or null if offline or not in this world. */
-    private ItemContainer inventory(UUID player) {
+    private @Nullable ItemContainer inventory(UUID player) {
         PlayerRef pr = Universe.get().getPlayer(player);
         Ref<EntityStore> ref = pr == null ? null : pr.getReference();
         Store<EntityStore> store = world.getEntityStore().getStore();

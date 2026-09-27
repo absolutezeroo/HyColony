@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A colony's requests, by token, with MC's data store indexes collapsed into maps: the requests of each requester,
@@ -40,6 +41,7 @@ final class RequestStore {
     }
 
     /** The request, or null once it is cleaned (the manager's internal, allocation-free lookup). */
+    @Nullable
     Request request(RequestToken token) {
         return requests.get(token);
     }
@@ -57,6 +59,7 @@ final class RequestStore {
     }
 
     /** The assigned resolver, or null. */
+    @Nullable
     Resolver resolverOf(RequestToken token) {
         return resolverOf.get(token);
     }
@@ -125,7 +128,7 @@ final class RequestStore {
         return set == null ? List.of() : new ArrayList<>(set);
     }
 
-    private List<Request> toRequests(Set<RequestToken> tokens) {
+    private List<Request> toRequests(@Nullable Set<RequestToken> tokens) {
         if (tokens == null) {
             return List.of();
         }

@@ -6,6 +6,7 @@ import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.item.Inventory;
 import dev.hycolony.core.kernel.item.ItemKey;
 import java.util.Optional;
+import org.jspecify.annotations.Nullable;
 
 /** Persistent citizen state. The in-world body is disposable and rebuilt from this. */
 public final class CitizenData {
@@ -17,13 +18,13 @@ public final class CitizenData {
     private Gender gender = Gender.MALE;
     private boolean child;
     private Skills skills = Skills.empty();
-    private Vec3 lastPosition;
-    private BlockPos respawnPosition;
-    private BlockPos homeBuilding;
-    private BlockPos workBuilding;
+    private @Nullable Vec3 lastPosition;
+    private @Nullable BlockPos respawnPosition;
+    private @Nullable BlockPos homeBuilding;
+    private @Nullable BlockPos workBuilding;
     private double saturation = MAX_SATURATION;
     private Inventory inventory = new Inventory(INVENTORY_SLOTS);
-    private Job job;
+    private @Nullable Job job;
 
     public CitizenData(int id) {
         this.id = id;
@@ -66,35 +67,35 @@ public final class CitizenData {
         this.skills = skills;
     }
 
-    public Vec3 lastPosition() {
+    public @Nullable Vec3 lastPosition() {
         return lastPosition;
     }
 
-    public void setLastPosition(Vec3 lastPosition) {
+    public void setLastPosition(@Nullable Vec3 lastPosition) {
         this.lastPosition = lastPosition;
     }
 
-    public BlockPos respawnPosition() {
+    public @Nullable BlockPos respawnPosition() {
         return respawnPosition;
     }
 
-    public void setRespawnPosition(BlockPos respawnPosition) {
+    public void setRespawnPosition(@Nullable BlockPos respawnPosition) {
         this.respawnPosition = respawnPosition;
     }
 
-    public BlockPos homeBuilding() {
+    public @Nullable BlockPos homeBuilding() {
         return homeBuilding;
     }
 
-    public void setHomeBuilding(BlockPos homeBuilding) {
+    public void setHomeBuilding(@Nullable BlockPos homeBuilding) {
         this.homeBuilding = homeBuilding;
     }
 
-    public BlockPos workBuilding() {
+    public @Nullable BlockPos workBuilding() {
         return workBuilding;
     }
 
-    public void setWorkBuilding(BlockPos workBuilding) {
+    public void setWorkBuilding(@Nullable BlockPos workBuilding) {
         this.workBuilding = workBuilding;
     }
 
@@ -129,7 +130,7 @@ public final class CitizenData {
         return Optional.ofNullable(job);
     }
 
-    public void setJob(Job job) {
+    public void setJob(@Nullable Job job) {
         this.job = job;
     }
 }

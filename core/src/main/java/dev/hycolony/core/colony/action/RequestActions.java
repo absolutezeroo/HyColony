@@ -21,6 +21,7 @@ import dev.hycolony.core.request.resolver.RetryingResolver;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.jspecify.annotations.Nullable;
 
 /**
  * What players do for the colony's requests: hand over what one asks for ("Fournir"), stock a hut ("Ajouter"), or
@@ -89,7 +90,7 @@ public final class RequestActions {
     }
 
     /** Into the citizen's inventory, else the requesting hut's containers; returns what did not fit (or null). */
-    private ItemAmount deliver(Colony c, Request req, Optional<CitizenData> citizen, ItemAmount taken) {
+    private @Nullable ItemAmount deliver(Colony c, Request req, Optional<CitizenData> citizen, ItemAmount taken) {
         ConstructionPorts ports = manager.context().ports();
         if (citizen.isPresent()) {
             return citizen.get().inventory().insert(taken, ports.catalog()::maxStack);
@@ -156,7 +157,7 @@ public final class RequestActions {
     }
 
     /** Returns {@code rest} to the player; returns its count (0 if none). */
-    private int giveBack(UUID player, ItemAmount rest) {
+    private int giveBack(UUID player, @Nullable ItemAmount rest) {
         if (rest == null) {
             return 0;
         }

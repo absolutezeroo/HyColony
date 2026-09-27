@@ -7,6 +7,7 @@ import dev.hycolony.core.kernel.port.ContainerAccess;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
+import org.jspecify.annotations.Nullable;
 
 /**
  * MC InventoryUtils.forceItemStackToItemHandler: an insert that makes room by swapping out an unneeded stack.
@@ -21,7 +22,8 @@ final class ForcedInsert {
      * that {@code keep} does not protect. Returns null when all went in, the swapped-out stack after a swap, or the
      * rest when no swap made room (the whole {@code stack} when nothing fitted), like the port's insert.
      */
-    static ItemAmount insert(CourierContext ctx, List<BlockPos> containers, ItemAmount stack, Predicate<ItemKey> keep) {
+    static @Nullable ItemAmount insert(
+            CourierContext ctx, List<BlockPos> containers, ItemAmount stack, Predicate<ItemKey> keep) {
         ItemAmount rest = ctx.containers().insert(containers, stack);
         if (rest == null) {
             return null;

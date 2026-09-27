@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
+import org.jspecify.annotations.Nullable;
 
 /**
  * ItemCatalog over the Hytale asset maps (cheat sheet § 2 and § 1 "Hardness"). Results are cached per key; the cache
@@ -208,7 +209,7 @@ public final class HytaleItemCatalog implements ItemCatalog {
                 harmful);
     }
 
-    private static ToolType toolType(String gather) {
+    private static @Nullable ToolType toolType(@Nullable String gather) {
         if (gather == null) {
             return null;
         }

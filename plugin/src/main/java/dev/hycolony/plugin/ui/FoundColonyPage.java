@@ -14,7 +14,9 @@ import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.colony.ui.FoundColonyView;
+import java.util.Objects;
 import javax.annotation.Nonnull;
+import org.jspecify.annotations.Nullable;
 
 public final class FoundColonyPage extends InteractiveCustomUIPage<FoundColonyPage.Data> {
     public static final class Data {
@@ -24,7 +26,11 @@ public final class FoundColonyPage extends InteractiveCustomUIPage<FoundColonyPa
                 .append(new KeyedCodec<>("@Name", Codec.STRING), (d, v) -> d.name = v, d -> d.name)
                 .add()
                 .build();
+
+        @Nullable
         String action;
+
+        @Nullable
         String name;
     }
 
@@ -66,7 +72,8 @@ public final class FoundColonyPage extends InteractiveCustomUIPage<FoundColonyPa
     public void handleDataEvent(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, @Nonnull Data data) {
         if ("confirm".equals(data.action)) {
             answered = true; // set first: a successful confirm closes the page, which calls onDismiss
-            answered = handler.confirm(data.name); // an invalid name keeps the foundation pending
+            answered = handler.confirm(
+                    Objects.requireNonNullElse(data.name, "")); // an invalid name keeps the foundation pending
         } else {
             answered = true;
             handler.cancel(false);

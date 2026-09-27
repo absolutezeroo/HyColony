@@ -72,9 +72,10 @@ public final class CitizenManager {
             data.job().ifPresent(job -> job.tickInactivity(colony));
         }
         for (Map.Entry<Integer, BodyId> e : bodies.entrySet()) {
-            ctx().bodies()
-                    .position(e.getValue())
-                    .ifPresent(p -> citizens.get(e.getKey()).setLastPosition(p));
+            CitizenData data = citizens.get(e.getKey());
+            if (data != null) {
+                ctx().bodies().position(e.getValue()).ifPresent(data::setLastPosition);
+            }
         }
         if (!bodies.isEmpty()) {
             colony.markDirty();
@@ -84,7 +85,8 @@ public final class CitizenManager {
     /** Every core tick: AI of citizens whose body is alive. */
     public void tickAi() {
         for (Map.Entry<Integer, CitizenAI> e : ais.entrySet()) {
-            if (ctx().bodies().isAlive(bodies.get(e.getKey()))) {
+            BodyId body = bodies.get(e.getKey());
+            if (body != null && ctx().bodies().isAlive(body)) {
                 e.getValue().tick();
             }
         }

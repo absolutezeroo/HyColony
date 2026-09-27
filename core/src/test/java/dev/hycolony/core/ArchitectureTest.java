@@ -22,7 +22,8 @@ class ArchitectureTest {
             .resideInAPackage("dev.hycolony.core.kernel..")
             .should()
             .onlyDependOnClassesThat()
-            .resideInAnyPackage("dev.hycolony.core.kernel..", "java..", "com.google.gson..");
+            .resideInAnyPackage(
+                    "dev.hycolony.core.kernel..", "java..", "com.google.gson..", "org.jspecify.annotations..");
 
     /** `request` knows neither buildings nor construction: they plug in via Requester/ResolverProvider (spec § 2). */
     @ArchTest

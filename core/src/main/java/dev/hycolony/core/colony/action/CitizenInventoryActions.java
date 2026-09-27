@@ -59,14 +59,16 @@ public final class CitizenInventoryActions {
      */
     public void onPlayerEdit(int colonyId, int citizenId, Inventory before) {
         Colony c = manager.byId(colonyId).orElse(null);
-        CitizenData d = c == null ? null : c.citizens().get(citizenId).orElse(null);
+        if (c == null) {
+            return;
+        }
+        CitizenData d = c.citizens().get(citizenId).orElse(null);
         if (d == null) {
             return;
         }
         c.markDirty();
-        Building work = d.workBuilding() == null
-                ? null
-                : c.buildings().at(d.workBuilding()).orElse(null);
+        Building work =
+                Optional.ofNullable(d.workBuilding()).flatMap(c.buildings()::at).orElse(null);
         if (work == null) {
             return;
         }
@@ -104,9 +106,10 @@ public final class CitizenInventoryActions {
                 .flatMap(c -> c.citizens().get(citizenId))
                 .map(CitizenData::inventory)
                 .orElse(null);
-        ItemKey tool = inv == null || slot < 0 || slot >= inv.size()
-                ? null
-                : inv.slot(slot).map(ItemAmount::item).orElse(null);
+        if (inv == null || slot < 0 || slot >= inv.size()) {
+            return OptionalDouble.empty();
+        }
+        ItemKey tool = inv.slot(slot).map(ItemAmount::item).orElse(null);
         if (tool == null) {
             return OptionalDouble.empty();
         }

@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A request tracked by the {@link RequestManager}; only the manager mutates it, except the courier aging of
@@ -25,7 +26,7 @@ public final class Request {
     private Requestable requestable;
     private int citizenId;
     private RequestState state = RequestState.CREATED;
-    private RequestToken parent;
+    private @Nullable RequestToken parent;
     private final List<RequestToken> children = new ArrayList<>();
     private final List<ItemAmount> deliveries = new ArrayList<>();
     private Set<String> blacklist = Set.of();
@@ -97,7 +98,7 @@ public final class Request {
         state = s;
     }
 
-    void setParent(RequestToken p) {
+    void setParent(@Nullable RequestToken p) {
         parent = p;
     }
 

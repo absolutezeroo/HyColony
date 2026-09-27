@@ -17,6 +17,7 @@ import dev.hycolony.core.kernel.port.NavStatus;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.random.RandomGenerator;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Top-level citizen AI: idle, wander, or work its job. Port of MC CitizenAI.calculateNextState, reduced to the work
@@ -52,11 +53,11 @@ public final class CitizenAI {
     private int idleTicksLeft;
     private int wanderTicks;
     private int workTicks;
-    private JobAI jobAI;
+    private @Nullable JobAI jobAI;
     /** The job and work building {@link #jobAI} was created for. */
-    private Job aiJob;
+    private @Nullable Job aiJob;
 
-    private BlockPos aiWorkBuilding;
+    private @Nullable BlockPos aiWorkBuilding;
 
     /** Starts at the idle state and at normal walking speed. */
     public CitizenAI(Colony colony, CitizenData data, BodyId body) {
@@ -95,7 +96,7 @@ public final class CitizenAI {
         machine.reset();
     }
 
-    private CitizenState idle() {
+    private @Nullable CitizenState idle() {
         if (shouldWork()) {
             return CitizenState.WORKING;
         }
@@ -140,7 +141,7 @@ public final class CitizenAI {
         return Optional.ofNullable(columnSafe);
     }
 
-    private CitizenState wander() {
+    private @Nullable CitizenState wander() {
         wanderTicks += 5;
         // MC re-decides every DECIDE_INTERVAL_TICKS in any state: a worker stopped by the rain resumes mid-walk.
         if (wanderTicks % DECIDE_INTERVAL_TICKS == 0 && shouldWork()) {
@@ -155,22 +156,23 @@ public final class CitizenAI {
         return null;
     }
 
-    private CitizenState work() {
+    private @Nullable CitizenState work() {
         Job job = data.job().orElse(null);
         if (job == null) {
             dropJobAI();
             return CitizenState.IDLE;
         }
-        if (!job.equals(aiJob) || !Objects.equals(data.workBuilding(), aiWorkBuilding)) {
-            startJob(job); // fired and hired again (elsewhere) between two ticks: bound to the new hut
+        JobAI ai = jobAI;
+        if (ai == null || !job.equals(aiJob) || !Objects.equals(data.workBuilding(), aiWorkBuilding)) {
+            ai = startJob(job); // fired and hired again (elsewhere) between two ticks: bound to the new hut
         }
         // MC re-decides every DECIDE_INTERVAL_TICKS, which also keeps the order lookup off the per-tick path.
-        if (++workTicks % DECIDE_INTERVAL_TICKS == 0 && (rainStopsWork() || jobAI.canGoIdle())) {
+        if (++workTicks % DECIDE_INTERVAL_TICKS == 0 && (rainStopsWork() || ai.canGoIdle())) {
             dropJobAI();
             idleTicksLeft = 0; // the next idle decision wanders, replacing the job's unfinished walk
             return CitizenState.IDLE;
         }
-        jobAI.tick();
+        ai.tick();
         return null;
     }
 
@@ -184,10 +186,11 @@ public final class CitizenAI {
         if (job == null || !bodies.isAlive(body) || rainStopsWork()) {
             return false;
         }
-        if (jobAI == null || !job.equals(aiJob) || !Objects.equals(data.workBuilding(), aiWorkBuilding)) {
-            startJob(job);
+        JobAI ai = jobAI;
+        if (ai == null || !job.equals(aiJob) || !Objects.equals(data.workBuilding(), aiWorkBuilding)) {
+            ai = startJob(job);
         }
-        return !jobAI.canGoIdle();
+        return !ai.canGoIdle();
     }
 
     /**
@@ -221,12 +224,14 @@ public final class CitizenAI {
         bodies.setMovementSpeed(body, 1);
     }
 
-    /** A fresh job AI, at normal speed: a courier hired for another job loses its Agility bonus (MC). */
-    private void startJob(Job job) {
+    /** A fresh job AI, now current, at normal speed: a courier hired for another job loses its Agility bonus (MC). */
+    private JobAI startJob(Job job) {
         bodies.setMovementSpeed(body, 1);
         aiJob = job;
         aiWorkBuilding = data.workBuilding();
-        jobAI = job.createAI(colony, body);
+        JobAI ai = job.createAI(colony, body);
+        jobAI = ai;
+        return ai;
     }
 
     private int nextIdle() {

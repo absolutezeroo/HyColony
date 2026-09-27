@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import org.joml.Vector3d;
+import org.jspecify.annotations.Nullable;
 
 /** CitizenBodies over Hytale NPCs. World thread only. */
 public final class HytaleCitizenBodies implements CitizenBodies {
@@ -91,7 +92,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
         return Optional.of(new BodyId(id));
     }
 
-    private Ref<EntityStore> ref(BodyId body) {
+    private @Nullable Ref<EntityStore> ref(BodyId body) {
         Ref<EntityStore> ref = refs.get(body.value());
         return ref != null && ref.isValid() ? ref : null;
     }
@@ -187,7 +188,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
     }
 
     /** The body's NPC role; null when the entity is not (or no longer) an NPC, or the NPC module is absent. */
-    private static Role role(Store<EntityStore> st, Ref<EntityStore> ref) {
+    private static @Nullable Role role(Store<EntityStore> st, Ref<EntityStore> ref) {
         ComponentType<EntityStore, NPCEntity> type = NPCEntity.getComponentType();
         NPCEntity npc = type == null ? null : st.getComponent(ref, type);
         return npc == null ? null : npc.getRole();

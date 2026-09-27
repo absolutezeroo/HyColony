@@ -59,10 +59,10 @@ final class RequestTransitions {
         Resolver resolver = store.resolverOf(req.token());
         List<Requestable> followups = resolver == null ? List.of() : resolver.followups(manager, req);
         req.setState(RequestState.FOLLOWUP_IN_PROGRESS);
-        if (!followups.isEmpty()) {
+        if (resolver != null && !followups.isEmpty()) {
             List<RequestToken> tokens = assigner.createAll(resolver, followups);
             for (RequestToken c : tokens) {
-                store.request(c).setParent(req.token());
+                store.require(c).setParent(req.token());
                 req.addChild(c);
             }
             assigner.assignUnassigned(tokens, Set.of());

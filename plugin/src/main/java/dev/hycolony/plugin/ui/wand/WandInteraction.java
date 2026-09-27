@@ -16,6 +16,7 @@ import dev.hycolony.plugin.WorldRuntimes;
 import java.util.Optional;
 import java.util.logging.Level;
 import javax.annotation.Nonnull;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The build tool's use (ST ItemBuildTool.useOn/use), registered as the {@code HyColony_Build_Tool} page of the item's
@@ -42,7 +43,7 @@ public final class WandInteraction implements OpenCustomUIInteraction.CustomPage
 
     /** Opens the window at the clicked block, or at the kept anchor on a click in the air; always null. */
     @Override
-    public CustomUIPage tryCreate(
+    public @Nullable CustomUIPage tryCreate(
             @Nonnull Ref<EntityStore> ref,
             @Nonnull ComponentAccessor<EntityStore> accessor,
             @Nonnull PlayerRef player,
@@ -62,7 +63,7 @@ public final class WandInteraction implements OpenCustomUIInteraction.CustomPage
      * The block above the clicked one. Deviation from MC: ST anchors on the clicked face; an OpenCustomUI interaction
      * does not wait for the client's data, so the face is not known and the top face is assumed.
      */
-    private static Optional<BlockPos> anchor(BlockPosition target) {
+    private static Optional<BlockPos> anchor(@Nullable BlockPosition target) {
         return target == null ? Optional.empty() : Optional.of(new BlockPos(target.x, target.y + 1, target.z));
     }
 }

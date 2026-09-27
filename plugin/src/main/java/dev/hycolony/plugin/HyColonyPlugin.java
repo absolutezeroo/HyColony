@@ -33,7 +33,6 @@ import javax.annotation.Nonnull;
 public final class HyColonyPlugin extends JavaPlugin {
     private final Config<HyColonyConfig> config;
     private final IdMap ids = IdMap.loadBundled();
-    private WorldRuntimes runtimes;
 
     public HyColonyPlugin(@Nonnull JavaPluginInit init) {
         super(init);
@@ -50,46 +49,45 @@ public final class HyColonyPlugin extends JavaPlugin {
             return null;
         });
         ColonyConfig colonyConfig = config.get().toCore();
-        runtimes = new WorldRuntimes(colonyConfig, ids);
+        WorldRuntimes worlds = new WorldRuntimes(colonyConfig, ids);
 
         HyColonyComponents.register(getEntityStoreRegistry());
         NPCPlugin.get().registerCoreComponentType("HyColonyTarget", BuilderSensorHyColonyTarget::new);
 
-        getEntityStoreRegistry().registerSystem(new ColonyTickSystem(runtimes));
-        getEntityStoreRegistry().registerSystem(new CitizenBodyLifecycleSystem(runtimes));
-        getEntityStoreRegistry().registerSystem(new HutBlockSystems.Place(runtimes, ids));
-        getEntityStoreRegistry().registerSystem(new HutBlockSystems.Break(runtimes, ids));
-        getEntityStoreRegistry().registerSystem(new HutBlockSystems.Use(runtimes, ids));
-        getEntityStoreRegistry().registerSystem(new CitizenUseSystem(runtimes));
+        getEntityStoreRegistry().registerSystem(new ColonyTickSystem(worlds));
+        getEntityStoreRegistry().registerSystem(new CitizenBodyLifecycleSystem(worlds));
+        getEntityStoreRegistry().registerSystem(new HutBlockSystems.Place(worlds, ids));
+        getEntityStoreRegistry().registerSystem(new HutBlockSystems.Break(worlds, ids));
+        getEntityStoreRegistry().registerSystem(new HutBlockSystems.Use(worlds, ids));
+        getEntityStoreRegistry().registerSystem(new CitizenUseSystem(worlds));
         getEntityStoreRegistry().registerSystem(new CitizenFireImmunitySystems.Grant());
         getEntityStoreRegistry().registerSystem(new CitizenFireImmunitySystems.Guard());
-        getEntityStoreRegistry().registerSystem(new ProtectionSystems.Place(runtimes, ids));
-        getEntityStoreRegistry().registerSystem(new ProtectionSystems.Break(runtimes, ids));
-        getEntityStoreRegistry().registerSystem(new ProtectionSystems.Use(runtimes, ids));
-        getEntityStoreRegistry().registerSystem(new ExplosionProtectionSystem(runtimes));
-        getEntityStoreRegistry().registerSystem(new GogglesSystems.ArmorChange(runtimes, ids.itemId("build_goggles")));
-        getEntityStoreRegistry().registerSystem(new GogglesSystems.Visibility(runtimes));
+        getEntityStoreRegistry().registerSystem(new ProtectionSystems.Place(worlds, ids));
+        getEntityStoreRegistry().registerSystem(new ProtectionSystems.Break(worlds, ids));
+        getEntityStoreRegistry().registerSystem(new ProtectionSystems.Use(worlds, ids));
+        getEntityStoreRegistry().registerSystem(new ExplosionProtectionSystem(worlds));
+        getEntityStoreRegistry().registerSystem(new GogglesSystems.ArmorChange(worlds, ids.itemId("build_goggles")));
+        getEntityStoreRegistry().registerSystem(new GogglesSystems.Visibility(worlds));
         getEventRegistry()
                 .registerGlobal(
                         PlayerReadyEvent.class,
-                        e -> GogglesSystems.onPlayerReady(runtimes, ids.itemId("build_goggles"), e));
-        WandInteraction.register(this, runtimes);
-        getCommandRegistry().registerCommand(new HyColonyCommand(runtimes, ids, colonyConfig.commands()));
+                        e -> GogglesSystems.onPlayerReady(worlds, ids.itemId("build_goggles"), e));
+        WandInteraction.register(this, worlds);
+        getCommandRegistry().registerCommand(new HyColonyCommand(worlds, ids, colonyConfig.commands()));
 
         // Assets (blocks, items, NPC roles) are all loaded once a world starts: validate ids there.
         // World.onStart dispatches this on the world thread: create the runtime inline, before any
         // chunk (and its citizen NPCs) loads, so CitizenBodyLifecycleSystem finds it.
         getEventRegistry().registerGlobal(StartWorldEvent.class, e -> {
             try {
-                validateIds();
+                validateIds(worlds);
                 HytaleBlueprintSource.prewarm(); // once, in the background: assets are loaded by now
-                runtimes.create(e.getWorld());
+                WorldRuntime created = worlds.create(e.getWorld());
                 getLogger()
                         .at(Level.INFO)
                         .log(
                                 "HyColony runtime ready for world '%s' (%d colonies loaded)",
-                                e.getWorld().getName(),
-                                runtimes.of(e.getWorld()).manager().all().size());
+                                e.getWorld().getName(), created.manager().all().size());
             } catch (RuntimeException ex) {
                 getLogger()
                         .at(Level.SEVERE)
@@ -102,18 +100,18 @@ public final class HyColonyPlugin extends JavaPlugin {
         // LAST: another listener may still cancel the removal, and then the runtime must stay.
         getEventRegistry().registerGlobal(EventPriority.LAST, RemoveWorldEvent.class, e -> {
             if (!e.isCancelled()) { // an EXCEPTIONAL removal always reports not cancelled
-                runtimes.remove(e.getWorld());
+                worlds.remove(e.getWorld());
             }
         });
-        getEventRegistry().register(ShutdownEvent.class, e -> runtimes.all().forEach(WorldRuntime::saveAll));
+        getEventRegistry().register(ShutdownEvent.class, e -> worlds.all().forEach(WorldRuntime::saveAll));
         getEventRegistry().register(PlayerDisconnectEvent.class, e -> {
             UUID uuid = e.getPlayerRef().getUuid();
-            runtimes.all()
+            worlds.all()
                     .forEach(rt -> rt.world().execute(() -> {
                         safely("goggles", () -> rt.goggles().unequip(uuid));
                         safely("wand", () -> rt.wand().disconnect(uuid));
                     }));
-            runtimes.all()
+            worlds.all()
                     .forEach(rt -> rt.world()
                             .execute(() -> safely(
                                     "foundation",
@@ -139,10 +137,10 @@ public final class HyColonyPlugin extends JavaPlugin {
         }
     }
 
-    private void validateIds() {
+    private void validateIds(WorldRuntimes worlds) {
         List<String> errors = ids.validate();
         if (errors.isEmpty()) {
-            runtimes.setEnabled(true);
+            worlds.setEnabled(true);
             return;
         }
         for (String error : errors) {
@@ -151,10 +149,6 @@ public final class HyColonyPlugin extends JavaPlugin {
         getLogger()
                 .at(Level.SEVERE)
                 .log("HyColony disabled: vital asset ids are missing (see above). Saves are untouched.");
-        runtimes.setEnabled(false);
-    }
-
-    public WorldRuntimes runtimes() {
-        return runtimes;
+        worlds.setEnabled(false);
     }
 }

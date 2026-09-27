@@ -9,6 +9,7 @@ import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.kernel.item.Inventory;
 import java.util.function.BooleanSupplier;
 import javax.annotation.Nonnull;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The container window on a citizen's inventory. Valid while the citizen exists, at any distance (MC
@@ -17,7 +18,7 @@ import javax.annotation.Nonnull;
 final class CitizenInventoryWindow extends ContainerWindow implements ValidatedWindow {
     private final CitizenData citizen;
     private final BooleanSupplier alive;
-    private Inventory seen;
+    private @Nullable Inventory seen;
     private long seenChanges;
 
     CitizenInventoryWindow(CitizenItemContainer container, CitizenData citizen, BooleanSupplier alive) {

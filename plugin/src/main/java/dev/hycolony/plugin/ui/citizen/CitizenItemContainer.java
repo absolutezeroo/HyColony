@@ -16,6 +16,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import javax.annotation.Nonnull;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A citizen's core inventory seen as a Hytale container: every slot read and write goes to the core, so the player and
@@ -48,12 +49,12 @@ final class CitizenItemContainer extends SimpleItemContainer {
     }
 
     @Override
-    protected ItemStack internal_getSlot(short slot) {
+    protected @Nullable ItemStack internal_getSlot(short slot) {
         Inventory inv = citizen.inventory();
         ItemAmount a = slot < inv.size() ? inv.slot(slot).orElse(null) : null;
         ItemStack cached = items[slot];
         if (a == null) {
-            items[slot] = null;
+            forget(slot);
             return null;
         }
         if (cached == null || !cached.getItemId().equals(a.item().id()) || cached.getQuantity() != a.count()) {
@@ -78,7 +79,7 @@ final class CitizenItemContainer extends SimpleItemContainer {
     }
 
     @Override
-    protected ItemStack internal_setSlot(short slot, ItemStack itemStack) {
+    protected @Nullable ItemStack internal_setSlot(short slot, ItemStack itemStack) {
         if (ItemStack.isEmpty(itemStack)) {
             return internal_removeSlot(slot);
         }
@@ -98,20 +99,27 @@ final class CitizenItemContainer extends SimpleItemContainer {
     }
 
     @Override
-    protected ItemStack internal_removeSlot(short slot) {
+    protected @Nullable ItemStack internal_removeSlot(short slot) {
         ItemStack previous = internal_getSlot(slot);
         Inventory inv = citizen.inventory();
         if (slot < inv.size()) {
             inv.set(slot, Optional.empty());
         }
-        items[slot] = null;
+        forget(slot);
         return previous;
+    }
+
+    /** Empties the cached stack of {@code slot}. */
+    // Hytale's SimpleItemContainer.items (unannotated) holds null for an empty slot: its own code writes null there.
+    @SuppressWarnings("NullAway")
+    private void forget(short slot) {
+        items[slot] = null;
     }
 
     @Nonnull
     @Override
     protected ClearTransaction internal_clear() {
-        ItemStack[] previous = new ItemStack[capacity];
+        @Nullable ItemStack[] previous = new @Nullable ItemStack[capacity];
         for (short i = 0; i < capacity; i++) {
             previous[i] = internal_removeSlot(i);
         }

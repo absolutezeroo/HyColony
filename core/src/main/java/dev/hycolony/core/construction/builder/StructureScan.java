@@ -56,7 +56,7 @@ final class StructureScan {
             case REMOVE -> world != null && mineable(world) && notAHut(pos);
             case CLEAR_LEFTOVERS ->
                 // The old floor (below the hut) stays, as CLEAR's box starts at the hut level: no trench around.
-                pos.y() >= site.order().buildingPos().y()
+                pos.y() >= site.loadedOrder().buildingPos().y()
                         && world != null
                         && world.equals(site.previousPlan().stateAt(pos))
                         && !world.equals(site.plan().stateAt(pos))

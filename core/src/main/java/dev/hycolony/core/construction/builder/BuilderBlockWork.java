@@ -11,6 +11,7 @@ import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.kernel.port.BodyAnimation;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Works the block the structure step chose: breaks it (MC doMining + mineBlock, with a tool when one is needed) or
@@ -23,7 +24,7 @@ final class BuilderBlockWork {
 
     private final BuilderContext ctx;
     private final BuilderGathering gathering;
-    private BlockPos mineTarget;
+    private @Nullable BlockPos mineTarget;
     private boolean mineDelayed;
 
     BuilderBlockWork(BuilderContext ctx, BuilderGathering gathering) {
@@ -32,6 +33,7 @@ final class BuilderBlockWork {
     }
 
     /** The position at {@code i} needs work: mine it first, or place its block once the item is at hand. */
+    @Nullable
     BuilderState work(Stage stage, int i) {
         BlockPos pos = ctx.site().positions(stage).get(i);
         if (stage == Stage.CLEAR
@@ -43,7 +45,7 @@ final class BuilderBlockWork {
         BlueprintEntry e = ctx.site().entry(stage, i);
         ItemKey item = ctx.catalog().itemForBlock(e.state().key()).orElse(null); // none: free to place
         if (item != null
-                && !ctx.site().order().free()
+                && !ctx.site().loadedOrder().free()
                 && ctx.stock().inventory().count(item) == 0) {
             return gathering.missing(item, i);
         }
@@ -66,15 +68,16 @@ final class BuilderBlockWork {
     }
 
     /** A tool if one is needed, a first pass that waits (the break delay), a second that breaks. */
+    @Nullable
     BuilderState mine() {
         WorkOrder order = ctx.site().order();
         boolean clearing = order != null && order.stage() == Stage.CLEAR;
-        BlockState state = stillToBreak(clearing);
-        if (state == null) {
+        BlockPos pos = mineTarget;
+        BlockState state = pos == null ? null : stillToBreak(pos, clearing);
+        if (pos == null || state == null) {
             mineTarget = null;
             return BuilderState.BUILDING_STEP;
         }
-        BlockPos pos = mineTarget;
         ToolType type = ctx.catalog().toolFor(state.key()).orElse(null);
         ItemKey tool = type == null ? null : ctx.stock().toolInInventory(type);
         if (type != null && tool == null) {
@@ -91,10 +94,9 @@ final class BuilderBlockWork {
         return BuilderState.BUILDING_STEP;
     }
 
-    /** The mine target's block while it still has to go (CLEAR also takes fluids), else null. */
-    private BlockState stillToBreak(boolean clearing) {
-        BlockState state =
-                mineTarget == null ? null : ctx.blocks().get(mineTarget).orElse(null);
+    /** The block at {@code pos} while it still has to go (CLEAR also takes fluids), else null. */
+    private @Nullable BlockState stillToBreak(BlockPos pos, boolean clearing) {
+        BlockState state = ctx.blocks().get(pos).orElse(null);
         if (state == null) {
             return null;
         }
@@ -102,7 +104,7 @@ final class BuilderBlockWork {
     }
 
     /** MC checkForNeededTool: the hut's, else a tool request. */
-    private BuilderState fetchTool(ToolType type) {
+    private @Nullable BuilderState fetchTool(ToolType type) {
         ItemKey inHut = ctx.stock().toolInHut(type);
         if (inHut == null) {
             ctx.requests().requestTool(type);
@@ -118,7 +120,7 @@ final class BuilderBlockWork {
         return BuilderState.INVENTORY_FULL;
     }
 
-    private void startBreaking(BlockPos pos, BlockState state, ItemKey tool) {
+    private void startBreaking(BlockPos pos, BlockState state, @Nullable ItemKey tool) {
         mineDelayed = true;
         ctx.gestures().lookAt(pos);
         ctx.gestures().hold(tool);
@@ -131,14 +133,14 @@ final class BuilderBlockWork {
                         BodyAnimation.MINE);
     }
 
-    private void breakBlock(BlockPos pos, BlockState state, ItemKey tool, boolean clearing) {
+    private void breakBlock(BlockPos pos, BlockState state, @Nullable ItemKey tool, boolean clearing) {
         mineDelayed = false;
         mineTarget = null;
         List<ItemAmount> drops = ctx.blocks().breakBlock(pos);
         if (clearing && ctx.catalog().kind(state.key()) == BlockKind.FLUID) {
             // Deviation from MC: one removal per fluid cell; a neighbouring source may flow back, and looping on it
             // would never end. Refill after CLEAR is left as is (SOLID overwrites it, decorations sit in it).
-            ctx.site().progress(Stage.CLEAR, ctx.site().order().progressIndex() + 1);
+            ctx.site().progress(Stage.CLEAR, ctx.site().loadedOrder().progressIndex() + 1);
         }
         // MC: a rack that leaves the world leaves its building's containers (TileEntityRack removal).
         ctx.colony().buildings().owningContainer(pos).ifPresent(b -> b.removeContainer(pos));
@@ -154,7 +156,7 @@ final class BuilderBlockWork {
         ctx.job().incrementActions();
     }
 
-    private void place(Stage stage, int i, BlockPos pos, BlueprintEntry e, ItemKey item) {
+    private void place(Stage stage, int i, BlockPos pos, BlueprintEntry e, @Nullable ItemKey item) {
         ctx.gestures().lookAt(pos); // MC BuildingStructureHandler.prePlacementLogic: faceBlock
         if (!ctx.blocks().place(pos, e.state(), e.hasContainer())) {
             LOG.log(
@@ -167,7 +169,7 @@ final class BuilderBlockWork {
             return;
         }
         if (item != null) {
-            if (!ctx.site().order().free()) {
+            if (!ctx.site().loadedOrder().free()) {
                 ctx.stock().inventory().extract(item, 1);
             }
             ctx.resources().onPlaced(item); // a free order still counts it, for the progress shown

@@ -7,6 +7,7 @@ import java.util.EnumSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The builder's current activity as one line for the citizen window (a diagnosis aid): e.g. "structure: block 102 -
@@ -30,7 +31,7 @@ final class BuilderActivity {
 
     private BuilderActivity() {}
 
-    static Msg describe(BuilderState state, WorkOrder order, boolean walking, ItemKey inHand) {
+    static Msg describe(BuilderState state, @Nullable WorkOrder order, boolean walking, @Nullable ItemKey inHand) {
         String key = "hycolony.ai.builder." + activity(state, order, walking);
         if (order == null || !AT_A_BLOCK.contains(state)) {
             return Msg.of(key);
@@ -42,10 +43,10 @@ final class BuilderActivity {
                 inHand == null ? "-" : inHand.id());
     }
 
-    private static String activity(BuilderState state, WorkOrder order, boolean walking) {
+    private static String activity(BuilderState state, @Nullable WorkOrder order, boolean walking) {
         if (order == null && (state == BuilderState.IDLE || state == BuilderState.START_WORKING)) {
             return "idle";
         }
-        return walking && AT_A_BLOCK.contains(state) ? "walking" : ACTIVITIES.get(state);
+        return walking && AT_A_BLOCK.contains(state) ? "walking" : ACTIVITIES.getOrDefault(state, "starting");
     }
 }

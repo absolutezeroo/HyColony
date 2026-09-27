@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Port of MineColonies' BasicStateMachine + TickRateStateMachine.
@@ -22,19 +23,23 @@ public class TickRateStateMachine<S extends IState> {
     private final List<TickingTransition<S>> events = new ArrayList<>();
     private final Deque<String> history = new ArrayDeque<>(HISTORY_SIZE);
     private final S initState;
+    /** The initial state's transitions: mapped at construction and never unmapped. */
+    private final List<TickingTransition<S>> initStateTransitions;
+
     private final Consumer<RuntimeException> exceptionHandler;
 
     private List<TickingTransition<S>> currentStateTransitions;
     private S state;
     private int tickRate = 1;
-    private TickingTransition<S> executedTransition;
+    private @Nullable TickingTransition<S> executedTransition;
 
     public TickRateStateMachine(S initialState, Consumer<RuntimeException> exceptionHandler) {
         this.initState = initialState;
         this.state = initialState;
         this.exceptionHandler = exceptionHandler;
-        this.currentStateTransitions = new ArrayList<>();
-        transitionMap.put(initialState, currentStateTransitions);
+        this.initStateTransitions = new ArrayList<>();
+        this.currentStateTransitions = initStateTransitions;
+        transitionMap.put(initialState, initStateTransitions);
     }
 
     public TickRateStateMachine(S initialState, Consumer<RuntimeException> exceptionHandler, int tickRate) {
@@ -43,19 +48,20 @@ public class TickRateStateMachine<S extends IState> {
     }
 
     public void addTransition(TickingTransition<S> transition) {
-        if (transition.getState() != null) {
-            transitionMap
-                    .computeIfAbsent(transition.getState(), _ -> new ArrayList<>())
-                    .add(transition);
+        S at = transition.getState();
+        if (at != null) {
+            transitionMap.computeIfAbsent(at, _ -> new ArrayList<>()).add(transition);
         }
-        if (transition.getEventType() != null) {
-            eventList(transition.getEventType()).add(transition);
+        IStateEventType type = transition.getEventType();
+        if (type != null) {
+            eventList(type).add(transition);
         }
     }
 
     public void removeTransition(TickingTransition<S> transition) {
-        if (transition.getEventType() != null) {
-            eventList(transition.getEventType()).removeIf(transition::equals);
+        IStateEventType type = transition.getEventType();
+        if (type != null) {
+            eventList(type).removeIf(transition::equals);
             return;
         }
         List<TickingTransition<S>> ofState = transitionMap.get(transition.getState());
@@ -123,8 +129,8 @@ public class TickRateStateMachine<S extends IState> {
             removeTransition(transition);
         }
         if (!newState.equals(state)) {
-            currentStateTransitions = transitionMap.get(newState);
-            if (currentStateTransitions == null || currentStateTransitions.isEmpty()) {
+            List<TickingTransition<S>> next = transitionMap.get(newState);
+            if (next == null || next.isEmpty()) {
                 exceptionHandler.accept(new IllegalStateException("Missing AI transition for state: " + newState));
                 reset();
                 return true;
@@ -133,6 +139,7 @@ public class TickRateStateMachine<S extends IState> {
                 history.removeFirst();
             }
             history.addLast(state + "->" + newState);
+            currentStateTransitions = next;
         }
         state = newState;
         return true;
@@ -144,7 +151,7 @@ public class TickRateStateMachine<S extends IState> {
 
     public void reset() {
         state = initState;
-        currentStateTransitions = transitionMap.get(initState);
+        currentStateTransitions = initStateTransitions;
     }
 
     /** Overrides the countdown of the transition currently executing; nothing before any transition ran. */

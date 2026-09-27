@@ -35,11 +35,13 @@ public final class JobXp {
     /** {@code xp} to the skill, {@code dependencyXp} to its complementary, and {@code dependencyXp} off its adverse. */
     private static void addWithDependencies(Skills skills, Skill skill, double xp, double dependencyXp, int homeLevel) {
         skills.addXp(skill, xp, homeLevel, Skills.MAX_BUILDING_LEVEL);
-        if (skill.complementary() != null) {
-            skills.addXp(skill.complementary(), dependencyXp, homeLevel, Skills.MAX_BUILDING_LEVEL);
+        Skill complementary = skill.complementary();
+        if (complementary != null) {
+            skills.addXp(complementary, dependencyXp, homeLevel, Skills.MAX_BUILDING_LEVEL);
         }
-        if (skill.adverse() != null) {
-            skills.removeXp(skill.adverse(), dependencyXp);
+        Skill adverse = skill.adverse();
+        if (adverse != null) {
+            skills.removeXp(adverse, dependencyXp);
         }
     }
 }

@@ -1,7 +1,7 @@
 package dev.hycolony.core.colony.persistence;
 
 import static dev.hycolony.core.colony.persistence.JsonPositions.pos;
-import static dev.hycolony.core.colony.persistence.JsonPositions.readPos;
+import static dev.hycolony.core.colony.persistence.JsonPositions.requirePos;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -68,7 +68,7 @@ public final class ColonySerializer {
                 new Colony.Founding(
                         o.get("id").getAsInt(),
                         o.get("name").getAsString(),
-                        readPos(o.getAsJsonObject("center")),
+                        requirePos(o.getAsJsonObject("center")),
                         PermissionsSerializer.read(o.getAsJsonObject("permissions"))));
         c.setDay(o.get("day").getAsInt());
         readSettings(o, c);

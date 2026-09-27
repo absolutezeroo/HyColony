@@ -9,6 +9,8 @@ import dev.hycolony.core.construction.workorder.Stage;
 import dev.hycolony.core.construction.workorder.WorkOrder;
 import dev.hycolony.core.kernel.BlockPos;
 import java.util.List;
+import java.util.Objects;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The structure one builder works on (MC AbstractEntityAIStructure's current structure): its order, plan and target
@@ -19,13 +21,15 @@ final class BuildSite {
     private final BuildingResourcesModule resources;
     private final WorkSpot spots;
 
-    // Null when no structure is loaded.
-    private WorkOrder order;
-    private StructurePlan plan;
-    /** An UPGRADE's previous level, whose leftovers {@link Stage#CLEAR_LEFTOVERS} mines. */
-    private StructurePlan previousPlan;
+    private static final String NOT_LOADED = "no structure loaded";
 
-    private Building target;
+    // Null when no structure is loaded: the accessors below but order() are only called once loaded().
+    private @Nullable WorkOrder order;
+    private @Nullable StructurePlan plan;
+    /** An UPGRADE's previous level, whose leftovers {@link Stage#CLEAR_LEFTOVERS} mines. */
+    private @Nullable StructurePlan previousPlan;
+
+    private @Nullable Building target;
     /** The walk over SOLID and DECORATE after the last stage ran for the loaded order. */
     private boolean finalCheckDone;
 
@@ -36,7 +40,7 @@ final class BuildSite {
     }
 
     /** {@code previous} is the plan of the level an UPGRADE replaces, null for other orders. */
-    void load(WorkOrder o, Building b, StructurePlan p, StructurePlan previous) {
+    void load(WorkOrder o, Building b, StructurePlan p, @Nullable StructurePlan previous) {
         order = o;
         target = b;
         plan = p;
@@ -57,21 +61,28 @@ final class BuildSite {
         return plan != null;
     }
 
+    /** The loaded order, null when none is. */
+    @Nullable
     WorkOrder order() {
         return order;
     }
 
+    /** The loaded order, for callers that only run once {@link #loaded()}. */
+    WorkOrder loadedOrder() {
+        return Objects.requireNonNull(order, NOT_LOADED);
+    }
+
     StructurePlan plan() {
-        return plan;
+        return Objects.requireNonNull(plan, NOT_LOADED);
     }
 
     /** The replaced level's plan; only called for positions of {@link Stage#CLEAR_LEFTOVERS}, never null there. */
     StructurePlan previousPlan() {
-        return previousPlan;
+        return Objects.requireNonNull(previousPlan, "no previous level");
     }
 
     Building target() {
-        return target;
+        return Objects.requireNonNull(target, NOT_LOADED);
     }
 
     boolean finalCheckDone() {
@@ -84,10 +95,10 @@ final class BuildSite {
 
     List<BlockPos> positions(Stage stage) {
         return switch (stage) {
-            case CLEAR -> plan.clearList();
-            case SOLID -> plan.solidPositions();
-            case DECORATE -> plan.decoPositions();
-            case REMOVE -> plan.removeList();
+            case CLEAR -> plan().clearList();
+            case SOLID -> plan().solidPositions();
+            case DECORATE -> plan().decoPositions();
+            case REMOVE -> plan().removeList();
             case CLEAR_LEFTOVERS -> previousPlan == null ? List.of() : previousPlan.removeList();
             case DONE -> List.of();
         };
@@ -95,12 +106,12 @@ final class BuildSite {
 
     /** The planned block at index {@code i} of SOLID or DECORATE. */
     BlueprintEntry entry(Stage stage, int i) {
-        return (stage == Stage.SOLID ? plan.solidList() : plan.decoList()).get(i);
+        return (stage == Stage.SOLID ? plan().solidList() : plan().decoList()).get(i);
     }
 
     /** Where the builder stands to work on {@code block}. */
     WorkSpot.Spot workSpot(BlockPos block) {
-        return spots.choose(block, order.buildingPos(), plan);
+        return spots.choose(block, loadedOrder().buildingPos(), plan());
     }
 
     void progress(Stage stage, int index) {

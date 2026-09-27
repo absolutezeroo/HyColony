@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Loads and saves the colonies of one world through its {@link ColonyStorage}. A colony whose file cannot be read is
@@ -21,7 +22,7 @@ public final class ColonyPersistence {
     private static final System.Logger LOG = System.getLogger(ColonyManager.class.getName());
 
     private final ColonyManager manager;
-    private ColonyStorage storage;
+    private @Nullable ColonyStorage storage;
     private MigrationChain migrations = MigrationChain.sp1();
     /** Ids whose file must never be touched (newer schema). */
     private final Set<Integer> lockedIds = new HashSet<>();
@@ -49,13 +50,14 @@ public final class ColonyPersistence {
 
     /** Loads every stored colony; does nothing before {@link #setStorage}. */
     public void loadAll() {
-        if (storage == null) {
+        ColonyStorage from = storage;
+        if (from == null) {
             return;
         }
         try {
-            manager.reserveId(storage.highestIdEverUsed());
-            for (int id : storage.colonyIds()) {
-                loadOne(id);
+            manager.reserveId(from.highestIdEverUsed());
+            for (int id : from.colonyIds()) {
+                loadOne(from, id);
             }
             // Second pass, once every initial square is claimed: a building never takes another colony's start.
             manager.all().forEach(this::claimBuildings);
@@ -69,16 +71,16 @@ public final class ColonyPersistence {
     }
 
     /** One colony's failure (corrupt file, I/O error, newer schema) must not stop the others from loading. */
-    private void loadOne(int id) {
+    private void loadOne(ColonyStorage from, int id) {
         try {
-            Optional<JsonObject> raw = storage.load(id);
+            Optional<JsonObject> raw = from.load(id);
             if (raw.isEmpty()) {
                 return;
             }
             JsonObject json = raw.get();
             int version = migrations.versionOf(json);
             if (version < migrations.current()) {
-                storage.backupVersion(id, version, json.toString());
+                from.backupVersion(id, version, json.toString());
             }
             json = migrations.migrate(json);
             Colony colony = ColonySerializer.read(json, manager.context(), manager.territory());

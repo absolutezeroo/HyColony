@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.ToIntFunction;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The builder hut's current order: its needs split into buckets (recomputed on every start, as MC recomputes them on
@@ -22,7 +23,7 @@ import java.util.function.ToIntFunction;
  * has nothing to save. Port of MC's BuildingResourcesModule.
  */
 public final class BuildingResourcesModule implements KeepsItems {
-    private WorkOrder order;
+    private @Nullable WorkOrder order;
     private NeededResources needs = NeededResources.empty();
     private List<Map<ItemKey, Integer>> buckets = List.of();
 

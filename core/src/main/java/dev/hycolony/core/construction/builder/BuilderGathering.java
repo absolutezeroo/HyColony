@@ -8,6 +8,7 @@ import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.model.RequestState;
 import java.util.List;
 import java.util.Set;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Brings the builder the materials of its build (MC GATHERING_REQUIRED_MATERIALS): the current bucket and the item
@@ -19,7 +20,7 @@ final class BuilderGathering {
 
     private final BuilderContext ctx;
     /** The item the last placement lacked. */
-    private ItemKey neededItem;
+    private @Nullable ItemKey neededItem;
 
     private int lastRecomputeIndex = -1;
 
@@ -45,7 +46,7 @@ final class BuilderGathering {
         if (!inBuckets && resources.needs().remaining().containsKey(item) && lastRecomputeIndex != index) {
             lastRecomputeIndex = index;
             resources.start(
-                    ctx.site().order(), NeededResources.compute(ctx.site().plan(), ctx.blocks(), ctx.catalog()));
+                    ctx.site().loadedOrder(), NeededResources.compute(ctx.site().plan(), ctx.blocks(), ctx.catalog()));
         }
         neededItem = item;
         return BuilderState.GATHERING_REQUIRED_MATERIALS;
@@ -55,6 +56,7 @@ final class BuilderGathering {
      * Fetches the current bucket (and the item needed now) from the hut, asks the building for what the current and
      * next buckets still miss (async), and makes the request for the item needed now sync.
      */
+    @Nullable
     BuilderState gather() {
         if (!ctx.site().loaded()) {
             return BuilderState.START_WORKING;
@@ -71,7 +73,7 @@ final class BuilderGathering {
             stock.dumpNow(); // the hut has it, the inventory has no room: dump rather than ask again
             return BuilderState.INVENTORY_FULL;
         }
-        Stage stage = ctx.site().order().stage();
+        Stage stage = ctx.site().loadedOrder().stage();
         if (stage != Stage.CLEAR && stage != Stage.REMOVE) { // never request while clearing or removing
             request(needed);
         }
@@ -86,7 +88,7 @@ final class BuilderGathering {
     }
 
     /** Requests what the current and next buckets miss (async), and the item needed now (sync). */
-    private void request(ItemKey needed) {
+    private void request(@Nullable ItemKey needed) {
         BuilderStock stock = ctx.stock();
         Set<ItemKey> requested = ctx.requests().requestedItems();
         ctx.resources()
@@ -102,6 +104,7 @@ final class BuilderGathering {
     }
 
     /** MC waitForRequests / lookForRequests: fetch every completed request at the hut, wait for the open ones. */
+    @Nullable
     BuilderState waitForRequests() {
         BuilderRequests requests = ctx.requests();
         List<Request> mine = requests.mine();

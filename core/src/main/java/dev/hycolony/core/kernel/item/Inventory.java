@@ -9,18 +9,19 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.ToIntFunction;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A fixed number of slots, each holding at most one {@link ItemAmount}. Items are keys and counts only: item
  * metadata (tool durability, a hut's level) does not travel through a citizen's inventory (known limitation, backlog).
  */
 public final class Inventory {
-    private final ItemAmount[] slots;
+    private final @Nullable ItemAmount[] slots;
     private long changes;
     private Consumer<ItemKey> onGone = _ -> {};
 
     public Inventory(int slots) {
-        this.slots = new ItemAmount[slots];
+        this.slots = new @Nullable ItemAmount[slots];
     }
 
     public int size() {
@@ -31,7 +32,7 @@ public final class Inventory {
      * Merges into existing stacks of the same item first (up to {@code maxStack}), then fills empty slots.
      * Returns the remainder that did not fit, or {@code null} if everything was inserted.
      */
-    public ItemAmount insert(ItemAmount amount, ToIntFunction<ItemKey> maxStack) {
+    public @Nullable ItemAmount insert(ItemAmount amount, ToIntFunction<ItemKey> maxStack) {
         Objects.requireNonNull(amount, "amount");
         int max = maxStack.applyAsInt(amount.item());
         int remaining = fillEmpty(amount.item(), merge(amount.item(), amount.count(), max), max);

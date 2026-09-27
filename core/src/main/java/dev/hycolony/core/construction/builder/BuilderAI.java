@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BooleanSupplier;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The builder's work AI. Port of MineColonies' AbstractEntityAIStructure, AbstractEntityAIStructureWithWorkOrder,
@@ -48,6 +49,7 @@ public final class BuilderAI implements JobAI {
     private int calls;
 
     /** Last exception the machine caught (tests assert there is none). */
+    @Nullable
     RuntimeException lastError;
 
     public BuilderAI(Colony colony, CitizenData citizen, BodyId body) {
@@ -115,7 +117,7 @@ public final class BuilderAI implements JobAI {
     /** MC EntityAIStructureBuilder.canGoIdle: true when its hut has no active work order (or is gone). */
     @Override
     public boolean canGoIdle() {
-        return ctx.hut() == null || claimedOrder().isEmpty();
+        return !ctx.hasHut() || claimedOrder().isEmpty();
     }
 
     private void onException(RuntimeException e) {
@@ -161,7 +163,7 @@ public final class BuilderAI implements JobAI {
         return ctx.stock().dumpDue(ctx.job().actionsDone());
     }
 
-    private BuilderState idle() {
+    private @Nullable BuilderState idle() {
         if (!ctx.walkToHut()) {
             return null;
         }
@@ -174,7 +176,7 @@ public final class BuilderAI implements JobAI {
         return BuilderState.START_WORKING;
     }
 
-    private BuilderState startWorking() {
+    private @Nullable BuilderState startWorking() {
         if (!ctx.walkToHut()) {
             return null;
         }
@@ -194,7 +196,7 @@ public final class BuilderAI implements JobAI {
         }
         Building b = ctx.colony().buildings().at(o.buildingPos()).orElse(null);
         Blueprint bp = b == null ? null : blueprint(o, b, o.blueprintLevel()).orElse(null);
-        if (bp == null) {
+        if (b == null || bp == null) {
             // MC handleSpecificCancelActions: an order that cannot be loaded is dropped.
             LOG.log(
                     System.Logger.Level.WARNING,
@@ -224,7 +226,7 @@ public final class BuilderAI implements JobAI {
      * The plan of the level an UPGRADE replaces (same style and rotation), whose leftovers CLEAR_LEFTOVERS mines;
      * null for other orders or when that blueprint is missing (nothing is then removed).
      */
-    private StructurePlan previousPlan(WorkOrder o, Building b) {
+    private @Nullable StructurePlan previousPlan(WorkOrder o, Building b) {
         if (o.type() != WorkOrderType.UPGRADE) {
             return null;
         }
@@ -237,7 +239,7 @@ public final class BuilderAI implements JobAI {
         return ctx.colony().work().claimedBy(ctx.hut().position());
     }
 
-    private BuilderState dumpInventory() {
+    private @Nullable BuilderState dumpInventory() {
         if (!ctx.walkToHut()) {
             return null;
         }
@@ -247,19 +249,19 @@ public final class BuilderAI implements JobAI {
     }
 
     /** One step: find the next position of the current stage that needs work, from the saved progress. */
-    private BuilderState structureStep() {
+    private @Nullable BuilderState structureStep() {
         if (!site.loaded()) {
             return BuilderState.START_WORKING;
         }
         if (dumpDue()) {
             return BuilderState.INVENTORY_FULL;
         }
-        Stage stage = site.order().stage();
+        Stage stage = site.loadedOrder().stage();
         if (stage == Stage.DONE) {
             return BuilderState.COMPLETE_BUILD;
         }
         int size = site.positions(stage).size();
-        int from = site.order().progressIndex();
+        int from = site.loadedOrder().progressIndex();
         int limit = (int) Math.min(size, (long) from + SCAN_LIMIT);
         int i = ctx.scan().firstNeedingWork(site, stage, from, limit);
         if (i >= limit) {
@@ -290,13 +292,12 @@ public final class BuilderAI implements JobAI {
 
     private BuilderState completeBuild() {
         WorkOrder o = site.order();
-        Building b = site.target();
         if (o == null
-                || !Objects.equals(ctx.colony().buildings().at(o.buildingPos()).orElse(null), b)) {
+                || !Objects.equals(ctx.colony().buildings().at(o.buildingPos()).orElse(null), site.target())) {
             resetStructure();
             return BuilderState.IDLE;
         }
-        ctx.colony().work().finish(o, b);
+        ctx.colony().work().finish(o, site.target());
         ctx.job().incrementActions();
         ctx.award(XP_EACH_BUILDING);
         // All builder requests are sync: leftovers (e.g. a next bucket no longer needed) would block it forever.

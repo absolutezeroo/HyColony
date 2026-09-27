@@ -7,6 +7,7 @@ import dev.hycolony.core.kernel.port.BodyAnimation;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.CitizenBodies;
 import java.util.Optional;
+import org.jspecify.annotations.Nullable;
 
 /**
  * What the builder visibly does while it works: the item in its hand, the block it faces, and the animation it
@@ -23,11 +24,11 @@ final class BuilderGestures {
     private final BodyId body;
 
     private int delay;
-    private BodyAnimation animation;
+    private @Nullable BodyAnimation animation;
     /** Game ticks since the animation last started. */
     private int sinceStroke;
     /** What the builder holds: the block it places or the tool it mines with (for the citizen window). */
-    private ItemKey inHand;
+    private @Nullable ItemKey inHand;
 
     BuilderGestures(CitizenBodies bodies, BodyId body) {
         this.bodies = bodies;
@@ -71,11 +72,12 @@ final class BuilderGestures {
         bodies.playAnimation(body, anim);
     }
 
-    void hold(ItemKey item) {
+    void hold(@Nullable ItemKey item) {
         inHand = item;
         bodies.setHeldItem(body, Optional.ofNullable(item));
     }
 
+    @Nullable
     ItemKey inHand() {
         return inHand;
     }

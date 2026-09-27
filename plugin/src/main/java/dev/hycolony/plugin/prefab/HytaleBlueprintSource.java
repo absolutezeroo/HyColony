@@ -25,6 +25,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Blueprints read from vanilla prefabs listed in {@code hycolony/styles.json}. Never throws: an unknown style/type/level,
@@ -201,7 +202,7 @@ public final class HytaleBlueprintSource implements BlueprintSource {
         return Optional.of(new Blueprint(entry.prefab(), List.copyOf(entries), min, max));
     }
 
-    private void warnOnce(String message, Throwable cause) {
+    private void warnOnce(String message, @Nullable Throwable cause) {
         if (warned.add(message)) {
             if (cause == null) {
                 LOG.at(Level.WARNING).log("HyColony blueprint: %s", message);

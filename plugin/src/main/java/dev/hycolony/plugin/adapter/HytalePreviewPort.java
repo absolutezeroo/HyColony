@@ -119,7 +119,7 @@ public final class HytalePreviewPort implements PreviewPort {
     private void remove(UUID player, String id) {
         Map<String, Ref<EntityStore>> mine = byPlayer.get(player);
         Ref<EntityStore> ref = mine == null ? null : mine.remove(id);
-        if (ref == null) {
+        if (mine == null || ref == null) {
             return;
         }
         owners.remove(ref);
