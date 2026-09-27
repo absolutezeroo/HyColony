@@ -76,7 +76,9 @@ public final class WarehouseStorage implements BuildingModule {
     /**
      * MC's full-warehouse message to the players receiving colony messages. Deviation from MC: storage upgrades are not
      * ported, so a max-level warehouse always gets MC's "max upgrade" text, never the "pay to upgrade the racks" one;
-     * and the first message is not delayed, since our tick counter restarts with the server (MC's game time does not).
+     * and the first message is never delayed. MC's is delayed only in the first {@link #TICKS_FIVE_MIN} ticks of a new
+     * world: its unsaved {@code lastNotification} starts at 0 against a saved game time, so after a restart it also
+     * sends at once.
      */
     private void notifyFull(Colony colony, Building warehouse) {
         long now = colony.context().clock().currentTick();
