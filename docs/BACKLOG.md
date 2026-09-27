@@ -73,10 +73,13 @@ Les autres points de la relecture sont corrigés. Il reste :
 - **Blocs impossibles à obtenir en survie dans les plans** : ramener le coût au drop du bloc, faire demander les graines pour les cultures, ajouter une table de remplacement par style, et un contrôle au démarrage et dans `selftest` (voir `docs/research/prefab-obtainability.md`).
   - Décision : Kweebec niveau 5 (séquoia géant) → garder ce prefab ou prendre une maison plus petite ?
   - Décision : Outlander niveau 1 → passer à `Tier0_006` ?
-- **Les PNJ ignorent le feu** : ils marchent dedans et brûlent. MineColonies évite le feu et la lave dans le calcul de chemin et fait fuir le citoyen blessé. Chercher le réglage d'évitement des blocs dangereux de Hytale (rôle du PNJ, contrôleur de déplacement).
 - **Fenêtres alignées sur le wiki MineColonies** (https://minecolonies.com/wiki/) : comparer chaque fenêtre à ses captures (disposition, onglets, boutons, ordre des infos), puis proposer une liste d'ajustements que l'utilisateur valide.
 
 ## Plus tard
+
+- **Touches clavier pour la baguette** (pas urgent, demandé par l'utilisateur) : Structurize déplace l'aperçu aux flèches. Deux pistes à tester en jeu : la liaison `KeyDown` d'une page (`CustomUIEventBindingType.KeyDown`, jamais utilisée en vanilla, contenu inconnu) et les touches d'interaction de l'objet (`Ability1-3`, `Use`, `Pick`) baguette en main, fenêtre fermée.
+- **Inventaire du citoyen, complément de pile** : dans Minecraft, un clic simple qui complète une pile passe par `Slot.set` et résout une requête ; seul Maj+clic ne le fait pas. Hytale ne distingue pas les deux : aujourd'hui aucun complément ne résout (à vérifier dans les sources vanilla de Minecraft avant de trancher).
+- **Inventaire du citoyen et mort** : quand un citoyen pourra mourir ou être retiré seul, fermer ses fenêtres d'inventaire ouvertes (aujourd'hui seulement sur `ColonyDeleted`).
 
 - **Baguette de construction, hors de la première version** (spec `2026-09-26-hycolony-build-tool-design.md`) :
   - décorations et ordres de décoration ;
