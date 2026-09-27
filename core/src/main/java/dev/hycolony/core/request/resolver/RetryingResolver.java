@@ -63,6 +63,7 @@ public final class RetryingResolver implements Resolver {
         return PRIORITY;
     }
 
+    /** Deliverables only (MC getRequestType = {@code IRetryable}): courier deliveries and pickups are not retried. */
     @Override
     public boolean handles(Requestable requestable) {
         return requestable instanceof Deliverable;

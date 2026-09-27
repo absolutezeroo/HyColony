@@ -132,7 +132,7 @@ final class WarehouseStockResolver implements Resolver {
     /** MC {@code getSuitabilityMetric}: {@code max(distance / 10, 1)} plus the warehouse's courier queue length. */
     @Override
     public double suitability(RequestManager m, Request r) {
-        Optional<BlockPos> from = requesterLocation(r.requester());
+        Optional<BlockPos> from = requesterLocation(colony, r.requester());
         if (from.isEmpty()) {
             return Double.MAX_VALUE;
         }
@@ -146,13 +146,16 @@ final class WarehouseStockResolver implements Resolver {
 
     /** An unknown requester counts as here: there is nowhere to deliver to. */
     private boolean isAtThisWarehouse(Request r) {
-        return requesterLocation(r.requester())
+        return requesterLocation(colony, r.requester())
                 .map(warehouse.position()::equals)
                 .orElse(true);
     }
 
-    /** MC {@code request.getRequester().getLocation()}: a building, or one of its resolvers asking for a child. */
-    private Optional<BlockPos> requesterLocation(RequesterId id) {
+    /**
+     * MC {@code request.getRequester().getLocation()}: a building, or one of its resolvers asking for a child; empty
+     * for an unknown requester.
+     */
+    static Optional<BlockPos> requesterLocation(Colony colony, RequesterId id) {
         for (Building building : colony.buildings().all()) {
             if (building.requesterId().equals(id)) {
                 return Optional.of(building.position());

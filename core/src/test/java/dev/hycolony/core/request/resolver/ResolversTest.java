@@ -157,15 +157,15 @@ class ResolversTest {
     }
 
     @Test
-    void playerResolverNeverTakesANonDeliverable() {
+    void playerResolverTakesADeliveryNoOtherResolverCarries() {
         Building a = hut(new BlockPos(0, 64, 0));
-        stock(a, 5);
         Requestable notItems = new Delivery(a.position(), a.requesterId(), new ItemAmount(PLANKS, 5), 13);
 
         RequestToken t = m.createAndAssign(a, notItems, -1);
 
-        assertFalse(new PlayerResolver(CENTER).handles(notItems));
-        assertEquals("none", resolverOf(t), "no built-in resolver takes a non-deliverable");
-        assertEquals(RequestState.REPORTED, m.get(t).orElseThrow().state());
+        // MC: the player resolver's type is IRequestable, the retrying one's IRetryable (deliverables only).
+        assertFalse(retrying.handles(notItems));
+        assertEquals("player", resolverOf(t));
+        assertEquals(RequestState.IN_PROGRESS, m.get(t).orElseThrow().state());
     }
 }

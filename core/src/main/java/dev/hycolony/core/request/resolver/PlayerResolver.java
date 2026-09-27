@@ -4,7 +4,6 @@ import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.RequestManager;
 import dev.hycolony.core.request.Resolver;
-import dev.hycolony.core.request.model.Deliverable;
 import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.request.model.Requestable;
 import dev.hycolony.core.request.model.RequesterId;
@@ -62,9 +61,13 @@ public final class PlayerResolver implements Resolver {
         return PRIORITY;
     }
 
+    /**
+     * Everything (MC getRequestType = {@code IRequestable}): a courier delivery or pickup that no warehouse can take
+     * waits here too, until a courier comes back to work and the colony update reassigns it.
+     */
     @Override
     public boolean handles(Requestable requestable) {
-        return requestable instanceof Deliverable;
+        return true;
     }
 
     @Override
