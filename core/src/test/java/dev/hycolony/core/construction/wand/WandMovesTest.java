@@ -27,6 +27,22 @@ class WandMovesTest {
     }
 
     @Test
+    void backIsOppositeOfForward() {
+        // North (facing 0): back is south (+Z), the direction opposite of north.
+        BlockPos moved = WandMoves.move(ORIGIN, WandMoves.Dir.BACK, 0);
+
+        assertEquals(new BlockPos(0, 64, 1), moved);
+    }
+
+    @Test
+    void rightIsClockwiseOfFacing() {
+        // North (facing 0): right is east (+X), the direction one quarter turn clockwise of north.
+        BlockPos moved = WandMoves.move(ORIGIN, WandMoves.Dir.RIGHT, 0);
+
+        assertEquals(new BlockPos(1, 64, 0), moved);
+    }
+
+    @Test
     void upAndDownMoveOnYOnly() {
         assertEquals(new BlockPos(0, 65, 0), WandMoves.move(ORIGIN, WandMoves.Dir.UP, 2));
         assertEquals(new BlockPos(0, 63, 0), WandMoves.move(ORIGIN, WandMoves.Dir.DOWN, 2));

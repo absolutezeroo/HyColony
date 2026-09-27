@@ -17,7 +17,9 @@ class WandSessionsTest {
 
     @Test
     void clearForgetsTheSession() {
-        sessions.put(alice, WandSession.empty().withStyle("classic"));
+        WandSession session = WandSession.empty().withStyle("classic");
+        sessions.put(alice, session);
+        assertEquals(session, sessions.get(alice));
 
         sessions.clear(alice);
 
