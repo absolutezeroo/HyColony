@@ -542,6 +542,16 @@ Chemins relatifs à `build/vineflower/hytale-server/com/hypixel/hytale/`. Recher
 - **Casse** : `naturallyRemoveBlock` sans `NO_SEND_AUDIO` (1024) ni `NO_SEND_PARTICLES` (4) joue déjà le son `Break` (`BlockHarvestUtils.java:636-646`), envoie les particules `Break` (`BlockOperations.java:71, 369-379`) et efface la santé (`removeBlock`, l. 1317).
 - **[in-game]** : affichage des éclats `Hit` envoyés par le serveur, correspondance santé → étape de fissure.
 
+## 20. Usure sur la pile (`plugin/item/HytaleStacks`)
+
+Chemins relatifs à `build/vineflower/hytale-server/com/hypixel/hytale/server/core/inventory/`. Recherche : `docs/research/builder-tools-durability-breaking.md` § A.
+
+- `ItemStack(String, int)` (`ItemStack.java:134` → l. 96) met `durability = maxDurability = getItem().getMaxDurability()`.
+- `withDurability(double)` (l. 369) renvoie une copie bornée à `[0, maxDurability]` ; `getDurability()` (l. 232), `getMaxDurability()` (l. 220).
+- `isUnbreakable()` = `maxDurability <= 0` (l. 192) ; `isBroken()` = `!isUnbreakable() && durability == 0` (l. 208).
+- `ItemContainer.removeItemStackFromSlot(short, int)` (`container/ItemContainer.java:277`) : la pile lue juste avant dans la case donne la durabilité de la part retirée.
+- **[in-game]** : un outil posé avec `withDurability` s'affiche et s'use côté joueur comme un outil vanilla usé.
+
 ## Could not verify
 
 1. **Client rendering of item animations on NPCs** (`AnimationSlot.Action` with `"Block"/"Build"` or `"Pickaxe"/"Mine"` on `PlayerTestModel_V`) and whether they loop or play once. Only the server packet path is verified.

@@ -45,7 +45,7 @@ En jeu, les critères de réussite sont :
 ## 3. Objets et inventaires (`core.item`)
 
 - `record ItemKey(String id)` : identifiant opaque. C'est l'identifiant d'objet Hytale, fourni par les adaptateurs.
-- `record ItemAmount(ItemKey item, int count)`, avec `count > 0`.
+- `record ItemAmount(ItemKey item, int count, int damage)`, avec `count > 0` et `damage >= 0` : l'usure d'un outil en usages (MC `ItemStack.getDamageValue`, 1 par bloc cassé), 0 pour le reste. Un outil s'empile par 1, donc son usure est la sienne, où qu'il aille (inventaire d'un citoyen, coffre de hutte, entrepôt, livreur, joueur). `Inventory` ne fusionne que des piles de même usure, n'écrit `"damage"` que s'il dépasse 0 et le relit à 0 s'il manque ; `Inventory.damage(slot, n, durabilité)` use une case et la vide quand l'outil casse (MC `damageInventoryItem`).
 - **`Inventory`** : un nombre fixe d'emplacements. Il fournit :
   - `insert(ItemAmount)` : renvoie le reste, et respecte `maxStack` via `ItemCatalog` ;
   - `extract(ItemKey, int max)` : renvoie ce qui a été retiré ;
@@ -205,7 +205,7 @@ C'est un portage des états de `AbstractEntityAIStructure` et `EntityAIStructure
   - pose : `15 × 10 / (skillPrimaire/2 + 10)` ;
   - casse : `500 × 0,85^(skillSecondaire/2) × dureté / vitesseOutil × 0,5`, avec la dureté via `ItemCatalog`.
 - **Outils** : pour une casse qui en exige un, il prend le meilleur outil adapté de son inventaire ou de la cabane, borné par le niveau max d'équipement de la cabane. **Niveau max = niveau de la cabane**, une simplification documentée. À défaut, il émet un `ToolRequest` et son statut passe à STUCK.
-  - L'usure est de 1 par casse, via `WorldBlocks`/`ItemCatalog` : l'adaptateur décrémente la durabilité, l'outil est retiré s'il casse.
+  - L'usure est de 1 par bloc cassé (MC `damageItemInHand`), sur la case que le bâtisseur tient (MC `setHeldItem(hand, slot)`) : la première case du meilleur outil. À sa durabilité (`ItemCatalog.durability`), l'outil casse et disparaît, sans message ; le bloc suivant redemande un outil. Les ports (`ContainerAccess.extractStacks`, `PlayerInventory.takeStacks`, `insert`, `stacks`, `breakBlock`, `drop`) portent l'usure dans les deux sens. Côté Hytale, `HytaleStacks` la convertit : un usage vaut `maxDurability / durability` points ; à la relecture, un usage entamé compte en entier, pour ne jamais réparer.
 - **Drops** : `WorldBlocks.breakBlock` renvoie les drops, **conteneurs compris**. Ils vont dans son inventaire, sauf les minerais pendant `CLEAR`, qui sont détruits.
 - **Fin de chantier** :
   - `level = cible`, `isBuilt = true` (pour REMOVE : `deconstructed = true`, niveau conservé) ;
@@ -264,7 +264,7 @@ C'est un portage des états de `AbstractEntityAIStructure` et `EntityAIStructure
   5. REMOVE retire les blocs ;
   6. **performances** : un plan de 20 000 blocs reste sous 2 ms par tick de colonie en moyenne.
 - **Persistance** :
-  - `schemaVersion` passe à **2** ;
+  - `schemaVersion` passe à **2** ; puis à **3** avec l'usure sur la pile : la migration v2→v3 reporte l'ancien compteur `toolUses` du bâtisseur (usages par identifiant d'outil) sur la dernière case qui contient cet outil, celle qu'une casse retirait, et supprime le compteur (fixture `colony-v2-tooluses.json`) ;
   - la migration v1 → v2 ajoute `requests`, `workOrders`, et les inventaires et métiers vides ;
   - la fixture v1 de SP0 doit se charger via la migration ;
   - une nouvelle fixture v2 est ajoutée.
@@ -324,7 +324,7 @@ Chaque écart porte un commentaire `Deviation from MC:` dans le code (CLAUDE.md 
 - **Citoyen en onglets** (`plugin/ui/citizen/CitizenPage`) : Principal, Requêtes, Inventaire, Métier (si le citoyen a un lieu de travail). Pas d'onglets Bonheur, Famille ni Debug. L'onglet Inventaire liste les objets et un bouton « Ouvrir l'inventaire » ouvre le conteneur (voir « Inventaire du citoyen » ci-dessous) ; MineColonies ouvre le conteneur dès le clic sur l'onglet. L'onglet Principal garde le métier, le lieu de travail et l'activité.
 - **Inventaire du citoyen** (`colony/action/CitizenInventoryActions`, `plugin/ui/citizen/CitizenItemContainer`) : comme `ContainerCitizenInventory`, le joueur (avec `MANAGE_HUTS`) et l'IA partagent le même inventaire, sans limite de distance. Écarts :
   - il s'ouvre même si le corps du citoyen n'est pas chargé (MineColonies a besoin de l'entité) : l'inventaire vit dans le cœur ;
-  - un objet avec des métadonnées est refusé, car le cœur ne garde que l'identifiant et le nombre. Un outil usé est accepté : son usure devient le compteur d'usages du métier pour ce type d'outil (`CitizenInventoryActions.toolPutIn`, arrondi vers plus d'usure, et la pire usure gardée si le citoyen en a un autre du même type), et la fenêtre montre ce compteur comme durabilité (au moins 1 tant que l'outil existe), sur la seule pile que le métier use : la dernière case qui contient cet outil, celle qu'une casse retire (`CitizenInventoryActions.slotCondition`). Les autres piles du même outil paraissent neuves. Le compteur revient à zéro dès que le citoyen n'a plus aucun outil de ce type, quel que soit le chemin de sortie (`Inventory.onGone`, branché par `CitizenData`) : l'outil suivant arrive neuf. Une fenêtre ouverte ne se rafraîchit pas sur la seule usure ; la rouvrir montre l'usure du moment. MineColonies garde l'usure sur la pile. Un citoyen dont le métier n'use pas d'outils refuse un outil usé, pour ne pas le réparer ;
+  - un objet avec des métadonnées est refusé, car le cœur ne garde que l'identifiant, le nombre et l'usure. Un outil usé est accepté, avec son usure, comme dans MineColonies ;
   - Hytale n'a pas d'appel « case posée » : une case vide qui reçoit une pile, ou dont l'objet change, pendant un déplacement du joueur compte comme une pose (`overruleNextOpenRequestOfCitizenWithStack`, avec la pile entière de la case, comme `Slot.set`). Une pile seulement complétée ne compte pas (MineColonies : `moveItemStackTo` la fait grossir et appelle `setChanged`). MineColonies appelle aussi `set` avec le reste d'une pile sortie par Maj+clic, ce qui ne résout rien ici ;
   - pas de repli « artisan » (enfants des tâches d'un `AbstractJobCrafter`) : il n'y a pas encore de métier d'artisan ;
   - pas de 4 cases d'armure ;
@@ -357,3 +357,5 @@ Chaque écart porte un commentaire `Deviation from MC:` dans le code (CLAUDE.md 
 - **Livreur** : pas d'interactions de chat, de faim, de sac à dos ni de statistiques ; vitesse par effet d'entité arrondie à 0,05 ; objets qui ne rentrent plus jetés au sol ; entrepôt plein : le livreur attend une action du joueur (exception assumée à CLAUDE.md § 4).
 - **Plans provisoires** : prefabs vanilla, générateurs de coffre remplacés par un coffre vide obtenable, pour ces deux huttes seulement.
 - **Fenêtres** : liste des livreurs de l'entrepôt en lecture seule, stock toujours trié par quantité, enfants des requêtes marqués « > » au lieu d'être décalés, tâche en cours encadrée de vert.
+- **Outil cassé par Hytale** : Hytale garde un outil cassé à 0 de durabilité (MineColonies le détruit). Le port garde la règle de MineColonies (l'outil disparaît à sa durabilité) ; un outil cassé qui arrive d'ailleurs (un joueur le donne) compte comme usé jusqu'au bout : le bâtisseur ne le prend ni ne le garde comme outil, et le range à sa hutte.
+- **Usure des objets que le cœur n'use pas** (armes, armures) : leur durabilité Hytale voyage aussi, à raison d'un « usage » par point, pour qu'aucun transfert ne les répare.
