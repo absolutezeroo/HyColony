@@ -50,9 +50,9 @@
 - [ ] Commit : `refactor(core): shared worker stock and tool requests (MC AbstractEntityAIBasic)`.
 
 ### Tâche 4 : enregistrement unique
-- [ ] `CoreFeatures.register(BuildingRegistry, JobRegistry, FeatureFlags)` déclare le cœur : hôtel de ville, constructeur, résidence, entrepôt, livreur. Ils ne sont pas désactivables.
+- [x] `CoreFeatures.register(BuildingRegistry, JobRegistry)` déclare le cœur : hôtel de ville, constructeur, résidence, entrepôt, livreur. Ils ne sont pas désactivables.
 - [ ] `WorldRuntime` et `TestContexts` l'appellent. `HutBlockSystems` construit sa liste de huttes depuis `BuildingRegistry.all()` : le commentaire « BuildingRegistry has no listing » est périmé.
-- [ ] `FeatureFlags` est lu depuis `config.json`, section `HyColony` (clé `SubPlugins` : nom → booléen), avec une lecture tolérante.
+- [x] ~~`FeatureFlags`~~ : reporté à la tâche 7, car aucune fonctionnalité du cœur n'est désactivable.
 - [ ] Autotest du plugin : chaque type enregistré a son objet de hutte dans `id-map` et au moins un plan.
 - [ ] Commit : `refactor: one place registers buildings and jobs`.
 
@@ -71,6 +71,8 @@
 ### Tâche 7 : mécanisme de sous-plugins
 - [ ] Vérifier dans vineflower `AssetModule.registerPack` et la façon dont un pack apporte `Common/`, `Server/` et les `.lang`. Vérifier aussi si deux packs peuvent fournir des clés du même fichier `hycolony.lang`. Noter tout dans `plugin-b-api.md`.
 - [ ] Ressources : `subplugins/<Nom>/` avec un manifeste (`Name`, `Version`, `EnabledByDefault`), `Common/` et `Server/`, et des fragments `id-map.json` / `styles.json` fusionnés dans ceux du cœur, avec un conflit de clé signalé au démarrage.
+- [ ] Un seul registre partagé : `HutBlockSystems` et `ProtectionSystems` lisent le registre de `WorldRuntime` au lieu d'un registre jetable (sinon, la hutte d'un pack n'est pas reconnue).
+- [ ] `FeatureFlags` est lu depuis `config.json`, section `HyColony` (clé `SubPlugins` : nom → booléen), avec une lecture tolérante.
 - [ ] Au démarrage : les packs activés (drapeau `SubPlugins`, sinon le défaut du manifeste) sont enregistrés auprès de Hytale, et leurs fragments auprès du plugin. Un pack peut fournir une classe d'enregistrement pour `CoreFeatures` ; ce ne sera utile qu'à partir de SP3, mais le point d'entrée doit exister et être testé.
 - [ ] Tests du cœur pour la fusion des fragments et les drapeaux ; autotest du plugin pour les packs chargés.
 - [ ] Commit(s) : `feat(plugin): optional sub-plugins`.
