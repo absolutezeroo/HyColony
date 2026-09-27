@@ -40,7 +40,7 @@ public final class WarehouseRequestQueue implements PersistentModule {
         for (JsonElement e : in.getAsJsonArray("requests")) {
             try {
                 tokens.add(new RequestToken(UUID.fromString(e.getAsString())));
-            } catch (IllegalArgumentException | UnsupportedOperationException | IllegalStateException ignored) {
+            } catch (IllegalArgumentException | UnsupportedOperationException | IllegalStateException _) {
                 // tolerant read (CLAUDE.md § 5)
             }
         }

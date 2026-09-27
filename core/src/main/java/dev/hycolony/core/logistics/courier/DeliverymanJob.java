@@ -190,7 +190,7 @@ public final class DeliverymanJob extends Job implements CourierTaskQueue {
         for (JsonElement e : o.getAsJsonArray(key)) {
             try {
                 into.add(new RequestToken(UUID.fromString(e.getAsString())));
-            } catch (IllegalArgumentException | UnsupportedOperationException | IllegalStateException ignored) {
+            } catch (IllegalArgumentException | UnsupportedOperationException | IllegalStateException _) {
                 // tolerant read (CLAUDE.md § 5)
             }
         }

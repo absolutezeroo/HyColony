@@ -39,7 +39,7 @@
     </rule>
 
     <!-- Error prone. -->
-    <rule ref="category/java/errorprone.xml/EmptyCatchBlock"><properties/></rule>
+    <rule ref="category/java/errorprone.xml/EmptyCatchBlock"><properties><property name="allowExceptionNameRegex" value="^(ignored|expected|_)$"/></properties></rule>
     <rule ref="category/java/errorprone.xml/AvoidCatchingNPE"><properties/></rule>
     <rule ref="category/java/errorprone.xml/AvoidCatchingThrowable"><properties/></rule>
     <rule ref="category/java/errorprone.xml/CompareObjectsWithEquals"><properties/></rule>

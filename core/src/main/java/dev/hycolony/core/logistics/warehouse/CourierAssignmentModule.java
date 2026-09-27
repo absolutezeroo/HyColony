@@ -102,7 +102,7 @@ public final class CourierAssignmentModule implements TickingModule, PersistentM
         if (in.has("hiringMode")) {
             try {
                 hiringMode = HiringMode.valueOf(in.get("hiringMode").getAsString());
-            } catch (IllegalArgumentException ignored) {
+            } catch (IllegalArgumentException _) {
                 // tolerant read (CLAUDE.md § 5)
             }
         }
