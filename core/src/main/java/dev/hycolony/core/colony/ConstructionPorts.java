@@ -125,6 +125,11 @@ public record ConstructionPorts(
             public int freeSlots(BlockPos container) {
                 return 0;
             }
+
+            @Override
+            public List<ItemAmount> stacks(BlockPos container) {
+                return List.of();
+            }
         };
         PlayerInventory playerInventory = new PlayerInventory() {
             @Override

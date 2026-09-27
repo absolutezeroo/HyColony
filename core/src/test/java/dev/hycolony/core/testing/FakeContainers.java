@@ -4,6 +4,7 @@ import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.ContainerAccess;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -89,6 +90,19 @@ public final class FakeContainers implements ContainerAccess {
             used += (count + (long) maxStack - 1) / maxStack;
         }
         return (int) Math.max(0, capacity - used);
+    }
+
+    /** One slot per item, split into stacks of {@link #maxStack} on the positions listed in {@link #slots}. */
+    @Override
+    public List<ItemAmount> stacks(BlockPos container) {
+        int size = slots.containsKey(container) ? maxStack : Integer.MAX_VALUE;
+        List<ItemAmount> out = new ArrayList<>();
+        containers.getOrDefault(container, Map.of()).forEach((item, count) -> {
+            for (int left = count; left > 0; left -= size) {
+                out.add(new ItemAmount(item, Math.min(left, size)));
+            }
+        });
+        return out;
     }
 
     /** How many more of {@code item} fit at {@code pos}: the top of its last stack, then the free slots. */

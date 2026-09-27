@@ -58,6 +58,7 @@ Toutes reprises de MineColonies ; les références `§` renvoient à la recherch
 - Pluie : dépend de la météo Hytale (à vérifier, voir plus bas) ; si le serveur ne l'expose pas, le livreur travaille toujours, écart documenté.
 - Outils gardés (`KeepToolsModule`) : le constructeur garde pioche, pelle et hache ; houe et cisailles n'existent pas dans `ToolType`.
 - Rangement (`WarehouseStorage`) : le 2e choix de MC (une étagère qui contient un objet « similaire », même onglet créatif) est sauté, les objets Hytale n'ont pas d'onglet créatif dans le cœur. Sans améliorations de stockage, un entrepôt de niveau 5 plein envoie toujours le message « amélioration maximale » de MC, jamais « payez un bloc d'émeraude ». Le premier message « entrepôt plein » n'est pas retardé : notre compteur de ticks repart de 0 au lancement du serveur (le temps de jeu de MC est sauvegardé).
+- Résolveurs de stock (`WarehouseStockResolver`) : un seul résolveur au lieu du couple générique / concret de MC, qui ne se distinguent que par la façon de compter (NBT, usure contre prédicat) ; `Deliverable.matches` couvre les deux. Pas de `StackList` (`INonExhaustiveDeliverable`) dans nos requêtes, donc le `leftOver` gardé vaut toujours 0 ; pas de `MinimumStack`, donc la règle « pas pour le stock minimum d'un autre entrepôt » n'a rien à tester. Les deux arrivent avec le stock minimum (backlog).
 
 ## Architecture
 

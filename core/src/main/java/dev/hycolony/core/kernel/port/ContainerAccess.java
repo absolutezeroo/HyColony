@@ -18,4 +18,10 @@ public interface ContainerAccess {
 
     /** Empty slots of the container at {@code container}; 0 when there is none or its chunk is not loaded. */
     int freeSlots(BlockPos container);
+
+    /**
+     * The non-empty slots of the container at {@code container}, in slot order; empty when there is none or its chunk
+     * is not loaded.
+     */
+    List<ItemAmount> stacks(BlockPos container);
 }

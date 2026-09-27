@@ -11,6 +11,7 @@ import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.ContainerAccess;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -123,6 +124,21 @@ public final class HytaleContainerAccess implements ContainerAccess {
             fail("freeSlots", e);
             return 0;
         }
+    }
+
+    @Override
+    public List<ItemAmount> stacks(BlockPos container) {
+        List<ItemAmount> out = new ArrayList<>();
+        try {
+            ItemContainer c = container(container);
+            if (c != null) {
+                c.forEach((slot, s) -> out.add(new ItemAmount(new ItemKey(s.getItemId()), s.getQuantity())));
+            }
+        } catch (RuntimeException e) {
+            fail("stacks", e);
+            return List.of();
+        }
+        return out;
     }
 
     private ItemContainer container(BlockPos p) {

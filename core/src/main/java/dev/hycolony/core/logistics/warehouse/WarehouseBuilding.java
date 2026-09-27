@@ -22,7 +22,8 @@ public final class WarehouseBuilding {
             List.of(
                     new ModuleProducer("couriers", CourierAssignmentModule::new),
                     new ModuleProducer("requestQueue", WarehouseRequestQueue::new),
-                    new ModuleProducer("storage", WarehouseStorage::new)));
+                    new ModuleProducer("storage", WarehouseStorage::new),
+                    new ModuleProducer("resolvers", WarehouseResolvers::new)));
 
     private WarehouseBuilding() {}
 

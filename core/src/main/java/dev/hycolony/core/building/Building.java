@@ -141,9 +141,15 @@ public final class Building implements Requester, ResolverProvider {
     public Map<String, BuildingModule> modules() {
         return Collections.unmodifiableMap(modules);
     }
-    /** Injected by the colony when the building is added; creates its {@link BuildingResolver}. */
-    public void attachContainers(ContainerAccess access) {
-        resolvers = List.of(new BuildingResolver(this, access));
+    /**
+     * Injected by the colony when the building is added: its {@link BuildingResolver}, then {@code extra} (those of
+     * its {@link CreatesResolvers} modules, MC {@code AbstractBuilding.createResolvers}).
+     */
+    public void attachResolvers(ContainerAccess access, List<Resolver> extra) {
+        List<Resolver> all = new ArrayList<>(extra.size() + 1);
+        all.add(new BuildingResolver(this, access));
+        all.addAll(extra);
+        resolvers = List.copyOf(all);
     }
 
     /** The hut block first, then the registered containers. */
