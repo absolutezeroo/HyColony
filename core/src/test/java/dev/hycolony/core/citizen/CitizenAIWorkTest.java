@@ -76,6 +76,22 @@ class CitizenAIWorkTest {
     }
 
     @Test
+    void aJoblessCitizenReloadedWithASpeedBonusWalksAtNormalSpeed() {
+        Colony c = new Colony(
+                t.context(),
+                new TerritoryIndex(),
+                new Colony.Founding(1, "T", new BlockPos(0, 64, 0), Permissions.createDefault(UUID.randomUUID(), "A")));
+        CitizenData d = new CitizenData(1);
+        c.citizens().restore(d);
+        BodyId body = t.bodies.existing(1, 1, new Vec3(0, 64, 0));
+        t.bodies.setMovementSpeed(body, 1.5); // kept by the body after a crash between save and job loss
+
+        new CitizenAI(c, d, body);
+
+        assertEquals(1.0, t.bodies.bodies.get(body).speed);
+    }
+
+    @Test
     void aRehiredWorkerStartsAtNormalSpeed() {
         Colony c = new Colony(
                 t.context(),

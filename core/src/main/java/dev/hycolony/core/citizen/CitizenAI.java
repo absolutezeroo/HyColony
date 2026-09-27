@@ -58,6 +58,7 @@ public final class CitizenAI {
 
     private BlockPos aiWorkBuilding;
 
+    /** Starts at the idle state and at normal walking speed. */
     public CitizenAI(Colony colony, CitizenData data, BodyId body) {
         this.colony = colony;
         this.data = data;
@@ -71,6 +72,9 @@ public final class CitizenAI {
         machine.addTransition(new AITarget<>(CitizenState.IDLE, (IStateSupplier<CitizenState>) this::idle, 20));
         machine.addTransition(new AITarget<>(CitizenState.WANDERING, (IStateSupplier<CitizenState>) this::wander, 5));
         machine.addTransition(new AITarget<>(CitizenState.WORKING, (IStateSupplier<CitizenState>) this::work, 1));
+        // A body can keep a job's speed across a crash (the Hytale effect is saved with the NPC); a job AI sets its
+        // own.
+        bodies.setMovementSpeed(body, 1);
     }
 
     public void tick() {
