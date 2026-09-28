@@ -32,7 +32,7 @@ final class HutTypesSelfTest {
     }
 
     /** IdMap throws on an unknown key; a selftest reports it instead. */
-    private static boolean mapped(Runnable lookup) {
+    static boolean mapped(Runnable lookup) {
         try {
             lookup.run();
             return true;
