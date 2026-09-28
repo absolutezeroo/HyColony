@@ -158,7 +158,10 @@ final class BuilderBlockWork {
             ctx.site().progress(Stage.CLEAR, ctx.site().loadedOrder().progressIndex() + 1);
         }
         // MC: a rack that leaves the world leaves its building's containers (TileEntityRack removal).
-        ctx.colony().buildings().owningContainer(pos).ifPresent(b -> b.removeContainer(pos));
+        ctx.colony()
+                .buildings()
+                .owningContainer(pos)
+                .ifPresent(b -> b.registeredBlocks().removeContainer(pos));
         if (!ctx.catalog().isOre(state.key())) { // MC EntityAIStructureBuilder.mineBlock: getDrops = !isOre
             ctx.stock().storeDrops(drops);
         }
@@ -189,7 +192,8 @@ final class BuilderBlockWork {
             ctx.resources().onPlaced(item); // a free order still counts it, for the progress shown
         }
         if (e.hasContainer()) {
-            ctx.site().target().addContainer(pos); // MC: racks the builder places become the building's containers
+            // MC: racks the builder places become the building's containers
+            ctx.site().target().registeredBlocks().addContainer(pos);
         }
         ctx.award(XP_PER_BLOCK);
         ctx.job().incrementActions();

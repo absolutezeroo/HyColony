@@ -95,7 +95,7 @@ class BuilderCleanupTest {
 
     private ColonyManager newManager() {
         ColonyManager m = new ColonyManager(t.context());
-        m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp2());
+        m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp3b());
         return m;
     }
 

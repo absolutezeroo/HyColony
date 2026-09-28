@@ -155,13 +155,13 @@ class WarehouseStockResolverTest {
         t.containers.maxStack = 64;
         Building w = warehouse(new BlockPos(10, 64, 0));
         BlockPos rack = new BlockPos(12, 64, 0);
-        w.addContainer(rack);
+        w.registeredBlocks().addContainer(rack);
         t.containers.slots.put(w.position(), 9);
         t.containers.slots.put(rack, 9);
         stock(w.position(), 100);
         stock(rack, 50);
         BlockPos untouched = new BlockPos(14, 64, 0);
-        w.addContainer(untouched);
+        w.registeredBlocks().addContainer(untouched);
         stock(untouched, 30);
         Building hut = hut(new BlockPos(0, 64, 0));
 

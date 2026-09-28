@@ -110,7 +110,7 @@ public final class WorldRuntime {
     /** Points the colonies' persistence at the world's save folder; reads them only when {@code enabled}. */
     private static void openStorage(ColonyManager manager, World world, boolean enabled) {
         manager.persistence()
-                .setStorage(new FileColonyStorage(world.getSavePath().resolve("hycolony")), MigrationChain.sp2());
+                .setStorage(new FileColonyStorage(world.getSavePath().resolve("hycolony")), MigrationChain.sp3b());
         if (enabled) {
             manager.persistence().loadAll(); // disabled (asset ids missing): leave the files alone
         }

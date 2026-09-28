@@ -42,8 +42,8 @@ class WarehouseStorageTest {
     WarehouseStorageTest() {
         warehouse.setLevel(1);
         warehouse.setBuilt(true);
-        warehouse.addContainer(rack1);
-        warehouse.addContainer(rack2);
+        warehouse.registeredBlocks().addContainer(rack1);
+        warehouse.registeredBlocks().addContainer(rack2);
         colony.buildings().add(warehouse);
     }
 

@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.citizen.CitizenData;
+import dev.hycolony.core.colony.persistence.ColonySerializer;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.persist.FileColonyStorage;
@@ -29,7 +30,7 @@ class SchemaV3MigrationTest {
             Files.write(dir.resolve("colony-1.json"), in.readAllBytes());
         }
         ColonyManager m = new ColonyManager(new TestContexts().context());
-        m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp2());
+        m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp3b());
 
         m.persistence().loadAll();
 
@@ -42,7 +43,7 @@ class SchemaV3MigrationTest {
                 d.inventory().slot(1));
         m.persistence().saveAll();
         String saved = Files.readString(dir.resolve("colony-1.json"));
-        assertTrue(saved.contains("\"schemaVersion\":3"), saved);
+        assertTrue(saved.contains("\"schemaVersion\":" + ColonySerializer.SCHEMA_VERSION), saved);
         assertFalse(saved.contains("toolUses"), saved);
     }
 }

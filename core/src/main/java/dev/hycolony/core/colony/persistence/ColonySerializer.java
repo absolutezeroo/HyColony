@@ -24,9 +24,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-/** Colony <-> JSON (schema 3). Unknown buildings/modules are kept verbatim. */
+/** Colony <-> JSON (schema 4). Unknown buildings/modules are kept verbatim. */
 public final class ColonySerializer {
-    public static final int SCHEMA_VERSION = 3;
+    public static final int SCHEMA_VERSION = 4;
 
     private ColonySerializer() {}
 

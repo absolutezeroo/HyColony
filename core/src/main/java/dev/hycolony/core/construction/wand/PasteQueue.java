@@ -103,7 +103,7 @@ final class PasteQueue {
         if (e.hasContainer()) {
             Optional<Colony> colony = manager.colonyAt(plan.hut());
             colony.flatMap(c -> c.buildings().at(plan.hut())).ifPresent(b -> {
-                b.addContainer(pos);
+                b.registeredBlocks().addContainer(pos);
                 colony.get().markDirty();
             });
         }

@@ -559,13 +559,13 @@ class BuilderAITest {
         t.catalog.kinds.put(chest, BlockKind.SOLID);
         blueprint = bp(List.of(new BlueprintEntry(new BlockPos(1, 0, 0), new BlockState(chest, 0), true)));
         t.blocks.blocks.put(at(1, 0, 0), new BlockState(chest, 0));
-        res.addContainer(at(1, 0, 0));
+        res.registeredBlocks().addContainer(at(1, 0, 0));
         WorkOrder o = order(res, WorkOrderType.REMOVE);
 
         tickUntil(() -> gone(o), 5000);
 
         assertFalse(t.blocks.blocks.containsKey(at(1, 0, 0)));
-        assertTrue(res.registeredContainers().isEmpty());
+        assertTrue(res.registeredBlocks().containers().isEmpty());
     }
 
     @Test

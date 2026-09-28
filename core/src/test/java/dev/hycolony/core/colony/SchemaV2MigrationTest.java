@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.citizen.CitizenData;
+import dev.hycolony.core.colony.persistence.ColonySerializer;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
@@ -22,7 +23,7 @@ class SchemaV2MigrationTest {
 
     private ColonyManager manager() {
         ColonyManager m = new ColonyManager(new TestContexts().context());
-        m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp2());
+        m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp3b());
         return m;
     }
 
@@ -38,7 +39,7 @@ class SchemaV2MigrationTest {
         m.persistence().saveAll();
 
         String saved = Files.readString(dir.resolve("colony-1.json"));
-        assertTrue(saved.contains("\"schemaVersion\":3"), saved);
+        assertTrue(saved.contains("\"schemaVersion\":" + ColonySerializer.SCHEMA_VERSION), saved);
         assertTrue(Files.exists(dir.resolve("colony-1.v1.json")));
         String backup = Files.readString(dir.resolve("colony-1.v1.json"));
         assertTrue(backup.contains("\"schemaVersion\":1"), backup);

@@ -106,7 +106,7 @@ class PasteQueueTest {
             queue.tick();
         }
         Building b = colony.buildings().at(HUT).orElseThrow();
-        assertTrue(b.registeredContainers().contains(HUT.offset(0, 2, 0)));
+        assertTrue(b.registeredBlocks().containers().contains(HUT.offset(0, 2, 0)));
     }
 
     @Test

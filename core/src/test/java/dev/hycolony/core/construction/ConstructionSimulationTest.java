@@ -157,7 +157,7 @@ class ConstructionSimulationTest {
 
     private ColonyManager newManager() {
         ColonyManager m = new ColonyManager(t.context());
-        m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp2());
+        m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp3b());
         return m;
     }
 
@@ -345,7 +345,7 @@ class ConstructionSimulationTest {
                 () -> "no request received: " + seen.values());
         assertTrue(fulfils > 0);
         assertTrue(colony.work().byBuilding(HUT).isEmpty());
-        assertTrue(hut.registeredContainers().contains(HUT.offset(0, 2, 0)), "the chest became a container");
+        assertTrue(hut.registeredBlocks().containers().contains(HUT.offset(0, 2, 0)), "the chest became a container");
         runUntil(() -> colony.requests().all().isEmpty(), 2000);
 
         manager.persistence().saveAll(); // the claims outlive a restart
@@ -538,7 +538,8 @@ class ConstructionSimulationTest {
             assertFalse(t.blocks.blocks.containsKey(p), p::toString);
         }
         assertEquals(state(HUT_BLOCK), t.blocks.blocks.get(HUT));
-        assertFalse(hut.registeredContainers().contains(HUT.offset(0, 2, 0)), "the removed chest is no container");
+        assertFalse(
+                hut.registeredBlocks().containers().contains(HUT.offset(0, 2, 0)), "the removed chest is no container");
         assertTrue(colony.work().byBuilding(HUT).isEmpty());
 
         CitizenData builder = worker(hut).orElseThrow();
