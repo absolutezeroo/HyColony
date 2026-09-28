@@ -95,9 +95,10 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
         follower.start();
     }
 
-    /** Stops following the slots; safe to call more than once. */
+    /** Stops following the slots and forgets the window (it closed or is closing); safe to call more than once. */
     void detach() {
         follower.stop();
+        window = null;
     }
 
     @Override
@@ -140,7 +141,8 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
                                     shape,
                                     setup.catalogs().materials().tags(),
                                     setup.registry(),
-                                    this::rebuild)));
+                                    // Up to 30 s later: redraw only if the player still looks at this page.
+                                    follower::redrawIfShown)));
                 default -> {
                     return;
                 }
@@ -149,14 +151,16 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
         });
     }
 
-    /** Another page replaced this one, or it was closed: stop following the slots and close their window too. */
+    /**
+     * Another page replaced this one, or it was closed: stop following the slots and close their window too, if the
+     * player still holds it (the client may have closed it first, or the block broke). Never throws.
+     */
     @Override
     public void onDismiss(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
-        detach();
         ContainerBlockWindow opened = window;
-        window = null;
+        detach();
         if (opened != null) {
-            opened.close(ref, store);
+            CutterOpener.closeIfOpen(ref, store, opened);
         }
         super.onDismiss(ref, store);
     }

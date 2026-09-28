@@ -60,6 +60,22 @@ final class CutterOpener {
     }
 
     /**
+     * Closes window if player still holds this very window (as CitizenInventoryWindows.isOpen checks): closing one
+     * the client or a broken block already closed would throw from WindowManager. A failure is logged, never thrown.
+     */
+    @SuppressWarnings("PMD.CompareObjectsWithEquals") // identity: a later window may reuse the id
+    static void closeIfOpen(Ref<EntityStore> player, Store<EntityStore> store, ContainerBlockWindow window) {
+        try {
+            Player holder = store.getComponent(player, Player.getComponentType());
+            if (player.isValid() && holder != null && holder.getWindowManager().getWindow(window.getId()) == window) {
+                window.close(player, store);
+            }
+        } catch (RuntimeException e) {
+            LOG.at(Level.WARNING).withCause(e).log("hyornament: could not close a cutter window");
+        }
+    }
+
+    /**
      * Opens page beside the cutter's slot window for player, unless it is already open for them; the block's window
      * list gets no lasting entry when opening fails or throws, or this player could never open this cutter again.
      */

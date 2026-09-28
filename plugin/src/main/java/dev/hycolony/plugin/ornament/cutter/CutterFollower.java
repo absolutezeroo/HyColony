@@ -34,7 +34,7 @@ final class CutterFollower {
 
     /** Starts following the slots (once the page and its window are open). */
     void start() {
-        registration = slots.registerChangeEvent(e -> PageEvents.guard(page.getClass(), this::follow));
+        registration = slots.registerChangeEvent(e -> PageEvents.guard(page.getClass(), this::redrawIfShown));
     }
 
     /** Stops following; safe to call more than once. */
@@ -46,8 +46,8 @@ final class CutterFollower {
         }
     }
 
-    /** Redraws while the player still looks at the page in this world, else stops. */
-    private void follow() {
+    /** Redraws while the player still looks at the page in this world, else stops (the listener and a late craft). */
+    void redrawIfShown() {
         Ref<EntityStore> ref = player.getReference();
         if (ref == null
                 || !ref.isValid()
