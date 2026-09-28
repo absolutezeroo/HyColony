@@ -19,7 +19,8 @@ import java.util.UUID;
  * A farmer hut's Fields tab (MC FarmFieldsModuleWindow): {@code owned} of {@code max}, the assignment mode and Request
  * Fertilizer buttons, then a row per field with its seed, distance, stage and Assign or Free. Assign and Free work in
  * manual mode only; a refused Assign is disabled with its reason as tooltip. The core checks MANAGE_HUTS and re-shows.
- * Locate highlights the whole field for the viewer, with a map marker, for a minute; a second click turns it off. Deviation from MC: a button added at the user's request.
+ * Locate highlights the whole field for the viewer, with a map marker, for a minute; a second click turns it off.
+ * Deviation from MC: Locate is a button added at the user's request.
  */
 final class FieldsTab implements HutTab {
     /** The field block's height (Hitboxes/Furniture/Scarecrow.json: 2.3), rounded up. */
