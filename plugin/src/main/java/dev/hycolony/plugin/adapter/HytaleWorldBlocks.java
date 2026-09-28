@@ -166,10 +166,7 @@ public final class HytaleWorldBlocks implements WorldBlocks {
             BlockOperations.setBlock(
                     world.getChunkStore(), sec, pos.x(), pos.y(), pos.z(), id, type, state.rotation(), 0, settings);
             if (type.getMaterial() == BlockMaterial.Solid) {
-                FluidSection fluids = store.getComponent(sec, FluidSection.getComponentType());
-                if (fluids != null && fluids.getFluidId(pos.x(), pos.y(), pos.z()) != Fluid.EMPTY_ID) {
-                    fluids.setFluid(pos.x(), pos.y(), pos.z(), Fluid.EMPTY_ID, (byte) 0);
-                }
+                clearFluid(store, sec, pos);
             }
             return blocks.get(pos.x(), pos.y(), pos.z()) == id;
         } catch (RuntimeException e) {
@@ -200,13 +197,9 @@ public final class HytaleWorldBlocks implements WorldBlocks {
             if (blocks == null) {
                 return List.of();
             }
-            int x = pos.x(), y = pos.y(), z = pos.z();
-            int id = blocks.get(x, y, z);
+            int id = blocks.get(pos.x(), pos.y(), pos.z());
             if (id == BlockType.EMPTY_ID) {
-                FluidSection fluids = store.getComponent(sec, FluidSection.getComponentType());
-                if (fluids != null && fluids.getFluidId(x, y, z) != Fluid.EMPTY_ID) {
-                    fluids.setFluid(x, y, z, Fluid.EMPTY_ID, (byte) 0); // a fluid drops nothing
-                }
+                clearFluid(store, sec, pos); // a fluid drops nothing
                 return List.of();
             }
             BlockType type = BlockType.getAssetMap().getAsset(id);
@@ -214,29 +207,21 @@ public final class HytaleWorldBlocks implements WorldBlocks {
                 return List.of(); // a hut (origin or filler cell) only goes through the hut systems
             }
             // A filler cell belongs to its origin block: the origin holds the container, and the whole block goes.
-            int filler = blocks.getFiller(x, y, z);
-            int ox = x - FillerBlockUtil.unpackX(filler),
-                    oy = y - FillerBlockUtil.unpackY(filler),
-                    oz = z - FillerBlockUtil.unpackZ(filler);
-            Ref<ChunkStore> originSec = filler == 0 ? sec : section(new BlockPos(ox, oy, oz));
+            int filler = blocks.getFiller(pos.x(), pos.y(), pos.z());
+            BlockPos origin = new BlockPos(
+                    pos.x() - FillerBlockUtil.unpackX(filler),
+                    pos.y() - FillerBlockUtil.unpackY(filler),
+                    pos.z() - FillerBlockUtil.unpackZ(filler));
+            Ref<ChunkStore> originSec = filler == 0 ? sec : section(origin);
             if (originSec == null) {
                 return List.of(); // origin unloaded: Hytale would not remove it either, so no drops (no duplication)
             }
             BlockSection originBlocks = store.getComponent(originSec, BlockSection.getComponentType());
             // An orphan filler (its origin is another block) is only cleared: it drops nothing.
-            boolean orphan = originBlocks == null || originBlocks.get(ox, oy, oz) != id;
-            List<ItemStack> out = new ArrayList<>();
-            if (!orphan) {
-                ItemContainerBlock container =
-                        BlockModule.getComponent(ItemContainerBlock.getComponentType(), world, ox, oy, oz);
-                if (container != null) {
-                    // Emptied before removal, else the removal system drops it on the ground. No filter: all of it.
-                    out.addAll(container.getItemContainer().dropAllItemStacks(false));
-                }
-                out.addAll(HytaleBlocks.drops(type));
-            }
+            boolean orphan = originBlocks == null || originBlocks.get(origin.x(), origin.y(), origin.z()) != id;
+            List<ItemStack> out = orphan ? List.of() : takeDrops(type, origin);
             BlockHarvestUtils.naturallyRemoveBlock(
-                    new Vector3i(x, y, z),
+                    new Vector3i(pos.x(), pos.y(), pos.z()),
                     type,
                     filler,
                     0,
@@ -246,16 +231,42 @@ public final class HytaleWorldBlocks implements WorldBlocks {
                     sec,
                     world.getEntityStore().getStore(),
                     store);
-            List<ItemAmount> amounts = new ArrayList<>(out.size());
-            for (ItemStack s : out) {
-                if (!ItemStack.isEmpty(s)) {
-                    amounts.add(drops.toAmount(s));
-                }
-            }
-            return amounts;
+            return toAmounts(out);
         } catch (RuntimeException e) {
             fail("breakBlock", pos, e);
             return List.of();
+        }
+    }
+
+    /** Empties the origin block's container and adds the block's own drops; the removal then drops nothing more. */
+    private List<ItemStack> takeDrops(BlockType type, BlockPos origin) {
+        List<ItemStack> out = new ArrayList<>();
+        ItemContainerBlock container = BlockModule.getComponent(
+                ItemContainerBlock.getComponentType(), world, origin.x(), origin.y(), origin.z());
+        if (container != null) {
+            // Emptied before removal, else the removal system drops it on the ground. No filter: all of it.
+            out.addAll(container.getItemContainer().dropAllItemStacks(false));
+        }
+        out.addAll(HytaleBlocks.drops(type));
+        return out;
+    }
+
+    /** Converts the non-empty {@code stacks} to amounts. */
+    private List<ItemAmount> toAmounts(List<ItemStack> stacks) {
+        List<ItemAmount> amounts = new ArrayList<>(stacks.size());
+        for (ItemStack s : stacks) {
+            if (!ItemStack.isEmpty(s)) {
+                amounts.add(drops.toAmount(s));
+            }
+        }
+        return amounts;
+    }
+
+    /** Removes the fluid at {@code pos}, if any. */
+    private static void clearFluid(Store<ChunkStore> store, Ref<ChunkStore> sec, BlockPos pos) {
+        FluidSection fluids = store.getComponent(sec, FluidSection.getComponentType());
+        if (fluids != null && fluids.getFluidId(pos.x(), pos.y(), pos.z()) != Fluid.EMPTY_ID) {
+            fluids.setFluid(pos.x(), pos.y(), pos.z(), Fluid.EMPTY_ID, (byte) 0);
         }
     }
 
