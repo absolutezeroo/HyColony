@@ -11,6 +11,44 @@ import java.util.UUID;
  * in {@code kernel/port}, like {@code BlueprintSource}. Never throws: anything unknown answers empty, 0 or false.
  */
 public interface RecipeCatalog {
+    /** A catalog that knows no recipe, item group nor bench: until the game's catalog is wired, and for tests. */
+    RecipeCatalog NONE = new RecipeCatalog() {
+        @Override
+        public List<Recipe> all() {
+            return List.of();
+        }
+
+        @Override
+        public Optional<Recipe> byHytaleId(String id) {
+            return Optional.empty();
+        }
+
+        @Override
+        public List<ItemKey> itemsOf(Ingredient ingredient) {
+            return List.of();
+        }
+
+        @Override
+        public List<ItemAmount> benchUpgradeCost(String benchId, int fromTier, int toTier) {
+            return List.of();
+        }
+
+        @Override
+        public Optional<ItemKey> benchItem(String benchId) {
+            return Optional.empty();
+        }
+
+        @Override
+        public List<String> benchCategories(String benchId) {
+            return List.of();
+        }
+
+        @Override
+        public boolean playerKnows(UUID player, String hytaleRecipeId) {
+            return false;
+        }
+    };
+
     /** Every Hytale {@code Crafting} and {@code Fieldcraft} recipe; processing benches are left out. */
     List<Recipe> all();
 

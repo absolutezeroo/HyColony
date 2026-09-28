@@ -8,6 +8,8 @@ import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.colony.ConstructionPorts;
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.BlueprintSource;
+import dev.hycolony.core.crafting.recipe.CraftingRules;
+import dev.hycolony.core.crafting.recipe.CraftingSetup;
 import dev.hycolony.core.job.JobRegistry;
 import dev.hycolony.core.kernel.WorldKey;
 import dev.hycolony.core.kernel.config.ColonyConfig;
@@ -31,6 +33,8 @@ public final class TestContexts {
     public final FakeContainers containers = new FakeContainers();
     public final FakePlayerInventory playerInventory = new FakePlayerInventory();
     public final FakeWorldEffects effects = new FakeWorldEffects();
+    public final FakeRecipeCatalog recipes = new FakeRecipeCatalog();
+    public CraftingRules craftingRules = CraftingRules.EMPTY;
     public BlueprintSource blueprints = new BlueprintSource() {
         @Override
         public Optional<Blueprint> load(String style, String buildingTypeId, int level, int rotation) {
@@ -76,6 +80,13 @@ public final class TestContexts {
                 CitizenNames.loadDefault(),
                 new Random(1234),
                 bus,
-                new ConstructionPorts(catalog, blocks, containers, playerInventory, blueprints, effects));
+                new ConstructionPorts(
+                        catalog,
+                        blocks,
+                        containers,
+                        playerInventory,
+                        blueprints,
+                        effects,
+                        new CraftingSetup(recipes, craftingRules)));
     }
 }

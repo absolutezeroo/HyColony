@@ -49,6 +49,7 @@ final class BuildingSerializer {
         return o;
     }
 
+    /** The registered benches as {@code {pos, bench, tier}} entries, in registration order. */
     private static JsonArray workstations(Building b) {
         JsonArray out = new JsonArray();
         b.registeredBlocks().workstations().forEach((p, w) -> {
