@@ -60,8 +60,7 @@ final class HutStorage {
         BlockSection blocks = cs.getStore().getComponent(section, BlockSection.getComponentType());
         BlockType type =
                 blocks == null ? null : BlockType.getAssetMap().getAsset(blocks.get(pos.x(), pos.y(), pos.z()));
-        Player playerComponent = store.getComponent(ref, Player.getComponentType());
-        if (type == null || playerComponent == null) {
+        if (type == null) {
             return;
         }
         ContainerBlockWindow window = new ContainerBlockWindow(
@@ -71,20 +70,23 @@ final class HutStorage {
                 blocks.getRotationIndex(pos.x(), pos.y(), pos.z()),
                 type,
                 container.getItemContainer());
-        show(ref, store, playerComponent, window, container.getWindows());
+        show(ref, store, world, window, container.getWindows());
     }
 
     /**
-     * Opens {@code window} unless this player already has it open; its close re-checks the hut's requests on the
-     * world thread.
+     * Opens {@code window} for this player, unless they have it open already or have no Player component; its close
+     * re-checks the hut's requests on the world thread.
      */
     private void show(
             Ref<EntityStore> ref,
             Store<EntityStore> store,
-            Player playerComponent,
+            World world,
             ContainerBlockWindow window,
             Map<UUID, ContainerBlockWindow> windows) {
-        World world = store.getExternalData().getWorld();
+        Player playerComponent = store.getComponent(ref, Player.getComponentType());
+        if (playerComponent == null) {
+            return;
+        }
         UUID player = playerRef.getUuid();
         if (windows.putIfAbsent(player, window) != null) {
             return; // already open
