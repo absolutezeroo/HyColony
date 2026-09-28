@@ -26,7 +26,7 @@ HyColony porte MineColonies sur Hytale 0.6.8 (épinglé), **à l'identique** : m
   - 5 paramètres par méthode au maximum (au-delà, un record).
 - Quand une classe grossit, on en **extrait des collaborateurs** dans la même modification, sans ajouter une méthode de plus. Exemples :
   - `ColonyManager` délègue aux actions par domaine (huttes, ordres, requêtes, fenêtres) ;
-  - `BuilderAI` délègue à `WorkerStock` (partagé par les métiers), `BuilderWalker`, `BuildCompletion`.
+  - `BuilderAI` délègue à `BuilderGathering`, `BuilderBlockWork`, `BuilderWalker` et `WorkerStock` (partagé par les métiers).
 - `*Manager` est réservé aux classes qui possèdent le cycle de vie d'une collection. Les autres classes portent un nom de rôle précis (`WorkOrderActions`, `CitizenViews`, `PathStuckHandler`…).
 - Visibilité : le moins possible (package-private par défaut). Les champs sont `final` sauf raison.
 - Les valeurs sont des `record`. Les absences s'expriment avec `Optional`, jamais un `null` renvoyé, sauf les « reste » des ports, documentés.
