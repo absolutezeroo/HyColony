@@ -29,7 +29,7 @@ Source : `docs/research/domum-ornamentum.md` § A.3 (cutter DO) et § B « 6. Ar
 ## Écarts avec DO
 
 - **×10 et Tout** : DO fabrique un par un ; ici, comme les établis vanilla, ×10 fabrique 10 fois et Tout autant que les emplacements le permettent (64 au plus en créatif, `CutterCraft.MAX_BATCH`). `Deviation from MC: the cutter window also offers x10 and All`.
-- **Aperçu** : l'icône de la variante n'existe qu'une fois la variante créée ; avant, l'aperçu montre l'icône du gabarit, avec la quantité. `Deviation from MC: the cutter previews the template's icon until the variant exists`.
+- **Aperçu** : dès que les emplacements forment une recette, les variantes de toutes les formes de l'onglet ouvert sont créées en un seul lot (création groupée DO-1, un seul scintillement). L'aperçu et les boutons de forme montrent alors les vraies icônes, comme la liste de sorties de DO. Pendant la création, ils montrent l'icône du gabarit. `Deviation from MC: the template's icon for the moment the variant takes to be created`.
 - **Second matériau facultatif** (porte ouvragée) : vide, il reprend le premier, comme DO-1 (`VariantRequests`). DO refuse un emplacement vide dans `matches` (A.3) : ici on accepte, comme le reste de DO-1.
 - **Recette de l'établi** : ingrédients transposés (troncs pour bûches), à l'établi `Workbench`.
 - **Groupe inconnu** : `SortedBlocks.sortGroups` de DO lève une exception sur un groupe sans index ; ici, un tel groupe va en fin, par id (`CutterOrder`). Aucun groupe du manifeste n'est dans ce cas.
