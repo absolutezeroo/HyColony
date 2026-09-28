@@ -1,0 +1,17 @@
+$C = "../../Common.ui";
+
+Group {
+  LayoutMode: Top;
+  Visible: false;
+
+  Label #RecipesCount {
+    Style: (RenderBold: true);
+    Anchor: (Bottom: 8);
+  }
+
+  Group #Recipes {
+    LayoutMode: TopScrolling;
+    ScrollbarStyle: $C.@DefaultScrollbarStyle;
+    Anchor: (Height: 400);
+  }
+}

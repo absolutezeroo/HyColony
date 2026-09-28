@@ -116,7 +116,8 @@ final class BenchIndex {
         return items.isEmpty() ? null : items.getFirst();
     }
 
-    private static int tierCount(Bench b) {
+    /** How many tier levels the bench declares ({@code TierLevels} length). */
+    static int tierCount(Bench b) {
         int n = 0;
         while (b.getTierLevel(n + 1) != null) {
             n++;
