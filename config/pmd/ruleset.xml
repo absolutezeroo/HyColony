@@ -27,9 +27,10 @@
     <rule ref="category/java/design.xml/ExcessiveParameterList">
         <properties><property name="minimum" value="6"/></properties>
     </rule>
-    <!-- CLAUDE.md § 2: 40 lines per method at most. PMD counts statements (NCSS), not lines: in this code base a
-         method runs about 1.35 lines per statement (blank lines, braces, wrapped calls), so 30 statements is the
-         40-line mark. Reported from 30 on (the rule reports ncss >= level). Class size is checkFileSizes' job. -->
+    <!-- CLAUDE.md § 2: 40 lines per method at most. PMD counts statements (NCSS), not lines, so this is only an
+         approximation that catches the worst cases: a method with long wrapped calls or lambdas can pass 40 lines
+         under 30 statements. The 40-line rule itself stays enforced by review. Reported from 30 on (ncss >= level).
+         Class size is checkFileSizes' job. -->
     <rule ref="category/java/design.xml/NcssCount">
         <properties>
             <property name="methodReportLevel" value="30"/>

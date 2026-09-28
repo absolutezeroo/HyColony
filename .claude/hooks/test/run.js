@@ -58,7 +58,7 @@ const FILE_CASES = [
     ["deny", "Write", { file_path: W(".claude/skills/port-mc/SKILL.md"), content: "x" }],
     ["deny", "Edit", { file_path: W("config/pmd/ruleset.xml"), old_string: "a", new_string: "b" }],
     ["deny", "Edit", { file_path: W("build.gradle.kts"), old_string: "val maxLines = 400", new_string: "val maxLines = 800" }],
-    ["deny", "Edit", { file_path: W("build.gradle.kts"), old_string: "isIgnoreFailures = false", new_string: "isIgnoreFailures = true" }],
+    ["deny", "Edit", { file_path: W("build.gradle.kts"), old_string: "doLast { checkPmdBaseline(report.get().asFile, projectPath) }", new_string: "" }],
     ["deny", "Write", { file_path: W("build.gradle.kts"), content: gradle.split("// CLAUDE.md §")[0] }],
     ["allow", "Edit", { file_path: W("build.gradle.kts"), old_string: 'version "8.10.3"', new_string: 'version "8.10.4"' }],
     ["allow", "Edit", { file_path: W("build.gradle.kts"), old_string: "val maxLines = 400", new_string: "val maxLines = 800" }, "unlocked"],

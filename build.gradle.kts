@@ -115,13 +115,28 @@ subprojects {
 val pmdRuleset = file("config/pmd/ruleset.xml")
 val pmdKnownViolations = file("config/pmd/known-violations.txt")
 
+val pmdProjectPaths = subprojects.map { it.projectDir.relativeTo(rootDir).invariantSeparatorsPath }
+
+fun elements(doc: org.w3c.dom.Document, tag: String): List<org.w3c.dom.Element> =
+    doc.getElementsByTagName(tag).let { nodes -> (0 until nodes.length).map { nodes.item(it) as org.w3c.dom.Element } }
+
 fun checkPmdBaseline(report: File, projectPath: String) {
-    val known = pmdKnownViolations.readLines().map { it.trim() }.filter { it.isNotEmpty() && !it.startsWith("#") }
-        .map { it.split(Regex("""\s+"""), 2) }.map { it[0] to it[1] }.filter { it.second.startsWith("$projectPath/") }
-        .toSet()
-    val files = javax.xml.parsers.DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(report)
-        .getElementsByTagName("file")
-    val found = (0 until files.length).map { files.item(it) as org.w3c.dom.Element }.flatMap { file ->
+    val entries = pmdKnownViolations.readLines().map { it.trim() }.filter { it.isNotEmpty() && !it.startsWith("#") }
+        .map { it.split(Regex("""\s+"""), 2) }.map { it[0] to it.getOrElse(1) { "" } }
+    val orphans = entries.filter { (_, path) -> pmdProjectPaths.none { path.startsWith("$it/") } }
+    if (orphans.isNotEmpty()) {
+        throw GradleException("$pmdKnownViolations lists files outside every subproject, remove the lines:\n" +
+            orphans.joinToString("\n") { "  ${it.first} ${it.second}" })
+    }
+    val known = entries.filter { it.second.startsWith("$projectPath/") }.toSet()
+    val doc = javax.xml.parsers.DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(report)
+    // A file PMD could not analyse, or a broken rule, reports nothing: fail rather than pass (or call a line stale).
+    val errors = elements(doc, "error").map { "  ${it.getAttribute("filename")}: ${it.getAttribute("msg")}" } +
+        elements(doc, "configerror").map { "  rule ${it.getAttribute("rule")}: ${it.getAttribute("msg")}" }
+    if (errors.isNotEmpty()) {
+        throw GradleException("PMD could not run every rule on every file:\n" + errors.joinToString("\n"))
+    }
+    val found = elements(doc, "file").flatMap { file ->
         val path = File(file.getAttribute("name")).relativeTo(rootDir).invariantSeparatorsPath
         val violations = file.getElementsByTagName("violation")
         (0 until violations.length).map { violations.item(it) as org.w3c.dom.Element }.map {
