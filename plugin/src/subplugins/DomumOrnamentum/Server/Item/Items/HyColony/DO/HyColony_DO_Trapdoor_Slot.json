@@ -1,0 +1,38 @@
+{
+  "TranslationProperties": {
+    "Name": "hycolony.item.do.trapdoor_slot.name"
+  },
+  "Icon": "Icons/Items/HyColony/DO/Trapdoor_Slot.png",
+  "Categories": [
+    "Blocks.Wood"
+  ],
+  "PlayerAnimationsId": "Block",
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Model",
+    "Opacity": "Transparent",
+    "CustomModel": "Blocks/HyColony/DO/Trapdoor_Slot.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "Blocks/HyColony/DO/Trapdoor_Slot.png",
+        "Weight": 1
+      }
+    ],
+    "VariantRotation": "NESW",
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "Woods"
+      }
+    },
+    "BlockParticleSetId": "Wood",
+    "ParticleColor": "#683e2e",
+    "BlockSoundSetId": "Wood",
+    "PhysicalMaterialId": "Wood"
+  },
+  "Tags": {
+    "Type": [
+      "Wood"
+    ]
+  },
+  "ItemSoundSetId": "ISS_Blocks_Wood"
+}

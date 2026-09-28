@@ -1,0 +1,38 @@
+{
+  "TranslationProperties": {
+    "Name": "hycolony.item.do.pillar_blockypillar_pillar_capital.name"
+  },
+  "Icon": "Icons/Items/HyColony/DO/Pillar_Blockypillar_Pillar_Capital.png",
+  "Categories": [
+    "Blocks.Wood"
+  ],
+  "PlayerAnimationsId": "Block",
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Model",
+    "Opacity": "Transparent",
+    "CustomModel": "Blocks/HyColony/DO/Pillar_Blockypillar_Pillar_Capital.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "Blocks/HyColony/DO/Pillar_Blockypillar_Pillar_Capital.png",
+        "Weight": 1
+      }
+    ],
+    "VariantRotation": "NESW",
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "Woods"
+      }
+    },
+    "BlockParticleSetId": "Wood",
+    "ParticleColor": "#683e2e",
+    "BlockSoundSetId": "Wood",
+    "PhysicalMaterialId": "Wood"
+  },
+  "Tags": {
+    "Type": [
+      "Wood"
+    ]
+  },
+  "ItemSoundSetId": "ISS_Blocks_Wood"
+}

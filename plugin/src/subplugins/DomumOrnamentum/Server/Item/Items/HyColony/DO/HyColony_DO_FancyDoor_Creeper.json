@@ -1,0 +1,39 @@
+{
+  "TranslationProperties": {
+    "Name": "hycolony.item.do.fancydoor_creeper.name"
+  },
+  "Icon": "Icons/Items/HyColony/DO/FancyDoor_Creeper.png",
+  "Categories": [
+    "Blocks.Wood"
+  ],
+  "PlayerAnimationsId": "Block",
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Model",
+    "Opacity": "Transparent",
+    "CustomModel": "Blocks/HyColony/DO/FancyDoor_Creeper.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "Blocks/HyColony/DO/FancyDoor_Creeper.png",
+        "Weight": 1
+      }
+    ],
+    "VariantRotation": "NESW",
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "Woods"
+      }
+    },
+    "BlockParticleSetId": "Wood",
+    "ParticleColor": "#683e2e",
+    "BlockSoundSetId": "Wood",
+    "PhysicalMaterialId": "Wood",
+    "HitboxType": "HyColony_DO_Door"
+  },
+  "Tags": {
+    "Type": [
+      "Wood"
+    ]
+  },
+  "ItemSoundSetId": "ISS_Blocks_Wood"
+}

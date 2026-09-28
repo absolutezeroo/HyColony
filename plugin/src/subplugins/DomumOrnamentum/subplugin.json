@@ -1,0 +1,7 @@
+{
+  "Name": "DomumOrnamentum",
+  "Version": "0.1.0",
+  "EnabledByDefault": false,
+  "Order": 90,
+  "Description": "Test bench (throwaway): every Domum Ornamentum shape in Darkwood/Lightwood."
+}

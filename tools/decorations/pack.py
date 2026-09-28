@@ -108,13 +108,13 @@ def save_png(image, path):
     image.save(path, optimize=True)
 
 
-def validate_pack(assets):
+def validate_pack(assets, pack=PACK):
     """Fails loudly on what Hytale would refuse in the pack's items: a Common path outside its root, of the wrong type
     or missing (from the pack and the vanilla assets), an unknown item, hitbox, sound or particle set, material,
     animation set, or crafting bench and category."""
     errors = []
-    items = {p.stem: p for p in (PACK / "Server/Item/Items").rglob("*.json")}
-    hitboxes = {p.stem for p in (PACK / "Server/Item/Block/Hitboxes").rglob("*.json")}
+    items = {p.stem: p for p in (pack / "Server/Item/Items").rglob("*.json")}
+    hitboxes = {p.stem for p in (pack / "Server/Item/Block/Hitboxes").rglob("*.json")}
 
     def vanilla(folder):
         return {n.rsplit("/", 1)[-1][:-5] for n in assets.names if n.startswith(folder) and n.endswith(".json")}
@@ -133,7 +133,7 @@ def validate_pack(assets):
     def common(path, roots, extension, where):
         if not path.startswith(roots) or not path.endswith(extension):
             errors.append(f"{where}: {path} must be a {extension} under {roots}")
-        elif not (PACK / "Common" / path).is_file() and not assets.has("Common/" + path):
+        elif not (pack / "Common" / path).is_file() and not assets.has("Common/" + path):
             errors.append(f"{where}: {path} does not exist")
 
     for name, path in sorted(items.items()):
@@ -151,7 +151,7 @@ def validate_pack(assets):
             if categories is None or not set(bench.get("Categories", [])) <= categories:
                 errors.append(f"{name}: no vanilla bench {bench}")
     if errors:
-        raise SystemExit("Invalid Decorations pack:\n  " + "\n  ".join(errors))
+        raise SystemExit(f"Invalid {pack.name} pack:\n  " + "\n  ".join(errors))
 
 
 def vanilla_benches(assets):
