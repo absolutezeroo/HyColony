@@ -1,6 +1,7 @@
 $C = "../../Common.ui";
 
-// The player's character panel, laid out as Hytale's own (client CharacterPanel.ui): character and armor. Textures under Native/ are copied from the Hytale client (see docs/native-ui-textures.md).
+// The player's character panel, laid out as Hytale's own (client CharacterPanel.ui): character and armor. Textures
+// under Native/ are copied from the Hytale client (see docs/native-ui-textures.md).
 
 @Slot = 74;
 @GridY = 50;
