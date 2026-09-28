@@ -2,17 +2,17 @@
   "TranslationProperties": {
     "Name": "hycolony.item.do.fancydoor_full.name"
   },
-  "Icon": "Icons/ItemsGenerated/Wood_Hardwood_Planks.png",
+  "Icon": "Icons/ItemsGenerated/HyColony/DO/HyColony_DO_FancyDoor_Full.png",
   "IconProperties": {
-    "Scale": 0.58823,
     "Rotation": [
       22.5,
       45,
       22.5
     ],
+    "Scale": 0.475,
     "Translation": [
       0,
-      -13.5
+      -28.2
     ]
   },
   "Categories": [

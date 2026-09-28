@@ -2,7 +2,7 @@
   "TranslationProperties": {
     "Name": "hycolony.item.do.panel_coffer.name"
   },
-  "Icon": "Icons/ItemsGenerated/Wood_Hardwood_Planks.png",
+  "Icon": "Icons/ItemsGenerated/HyColony/DO/HyColony_DO_Panel_Coffer.png",
   "IconProperties": {
     "Scale": 0.58823,
     "Rotation": [

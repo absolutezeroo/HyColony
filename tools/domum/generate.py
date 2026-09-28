@@ -18,6 +18,7 @@ import manifest  # noqa: E402
 import source  # noqa: E402
 import tabs  # noqa: E402
 import tags  # noqa: E402
+import validate  # noqa: E402
 from blocks import common, compat, door, pane, pillar, roof, static  # noqa: E402
 from families import FAMILIES  # noqa: E402
 from pack import ROOT, validate_pack, write_json  # noqa: E402
@@ -50,6 +51,7 @@ def run(pack, resources, assets):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text("\n".join(sorted(lines)) + "\n", encoding="utf-8", newline="\n")
     validate_pack(assets, pack)
+    validate.pack(ctx)
     return ctx
 
 

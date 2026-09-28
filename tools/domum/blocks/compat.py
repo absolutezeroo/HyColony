@@ -42,7 +42,7 @@ def generate(ctx, family):
     block_type = {**skeleton, **block_type}
     for state, path in states.items():
         block_type["State"]["Definitions"][state]["CustomModel"] = path
-    item = common.template(ctx, family, ident, (), block_type)
+    item = common.template(ctx, family, ident, (), block_type, vanilla_item.get("IconProperties"))
     # The item's own vanilla keys: its interactions (a slab's merge into a full block) and hand animations.
     item.update({k: vanilla_item[k] for k in ("Interactions", "PlayerAnimationsId") if k in vanilla_item})
     write_json(ctx.pack / common.ITEMS / (ident + ".json"), item)
@@ -122,6 +122,7 @@ def gate(ctx, family, ident, block_type):
     animation turns, hinged on its post."""
     props = {"facing": "north", "in_wall": "false", "open": "false"}
     model = faces.clean(assemble.state_model(ctx.root, family, family.blocks[0], props))
+    ctx.sources.append((f"{family.blocks[0]} {props}", model))
     parts = []
     for group, hinge, inside in GATE_LEAVES:
         leaf = [e for e in model["elements"] if inside(e)]

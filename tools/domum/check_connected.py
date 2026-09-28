@@ -105,7 +105,8 @@ def compat_uses_do_models_and_vanilla_shapes():
         ours = ctx.items["HyColony_DO_" + name]["BlockType"]
         theirs = ctx.assets.item(vanilla_id)["BlockType"]
         assert ours.get("ConnectedBlockRuleSet", {}).get("Type") == theirs.get("ConnectedBlockRuleSet", {}).get("Type")
-        assert ours.get("HitboxType") == theirs.get("HitboxType") and ours["VariantRotation"] == theirs["VariantRotation"]
+        assert ours.get("HitboxType") == theirs.get("HitboxType"), name
+        assert ours["VariantRotation"] == theirs["VariantRotation"], name
         states = ours.get("State", {}).get("Definitions", {})
         assert set(states) == set(theirs.get("State", {}).get("Definitions", {})), name
         for look in [ours] + [s for s in states.values() if "CustomModel" in s]:

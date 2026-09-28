@@ -31,7 +31,8 @@ def generate(ctx, family):
                  for shape, sides in SHAPES.items()}
         block_type = common.model_block_type(ctx, family, post["CustomModel"], post.get("HitboxType"), "NESW")
         block_type.update(common.connected(ident, TEMPLATE, "Post", looks))
-        common.template(ctx, family, ident, (block,), block_type)
+        # DO's item shows a straight pane, not the lone post.
+        common.template(ctx, family, ident, (block,), block_type, icon_model=ident + "_Straight")
     write_json(ctx.pack / common.TEMPLATES / (TEMPLATE + ".json"), common.neighbour_template(TAG, "Post", SHAPES))
 
 

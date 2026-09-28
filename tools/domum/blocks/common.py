@@ -5,9 +5,13 @@ import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from PIL import Image
+
 import assemble
 import convert
 import faces
+import icon
+import iconmap
 import names
 import pairs
 import tags
@@ -17,6 +21,8 @@ from pack import write_json
 MODELS = "Blocks/HyColony/DO/"
 HITBOXES = "Server/Item/Block/Hitboxes/HyColony/DO/"
 ITEMS = "Server/Item/Items/HyColony/DO/"
+ICONS = "Icons/ItemsGenerated/HyColony/DO/"
+ICON_MAPS = "hycolony/ornament/icons/"
 TEMPLATES = "Server/Item/CustomConnectedBlockTemplates/"
 LANGUAGES = ("en-US", "fr-FR")
 DEFAULT_ICON = {"Scale": 0.58823, "Rotation": [22.5, 45, 22.5], "Translation": [0, -13.5]}
@@ -39,6 +45,7 @@ class Context:
     shapes: list = field(default_factory=list)  # manifest entries, in generation order
     models: dict = field(default_factory=dict)  # template id -> .blockymodel content
     tab: dict = field(default_factory=dict)  # the creative tab JSON
+    sources: list = field(default_factory=list)  # (label, cleaned Minecraft model) of every converted state
 
 
 def defaults(ctx, family):
@@ -78,9 +85,11 @@ def hitbox(ctx, ident, model):
     return ident
 
 
-def template(ctx, family, ident, parts, block_type):
+def template(ctx, family, ident, parts, block_type, icon_properties=None, icon_model=None):
     """Registers the template item ident: block_type completed with the default material's sounds, particles and
-    gathering, the DO tab category, a name in both languages and a manifest entry."""
+    gathering, the DO tab category, a name in both languages, a manifest entry, and its icon map and icon drawn
+    from icon_model (a written model's name, its default model when None) with icon_properties (the vanilla block
+    icon camera by default)."""
     materials = defaults(ctx, family)
     material = ctx.assets.item(materials[0])
     vanilla = material.get("BlockType", {})
@@ -88,10 +97,11 @@ def template(ctx, family, ident, parts, block_type):
         if key in vanilla:
             block_type.setdefault(key, vanilla[key])
     key = names.lang_key(ident)
+    properties = icon_properties or DEFAULT_ICON
     item = {
         "TranslationProperties": {"Name": "hycolony." + key},
-        "Icon": material["Icon"],  # replaced by the rendered icon (iconmap)
-        "IconProperties": DEFAULT_ICON,
+        "Icon": _icon(ctx, family, ident, icon_model or ident, properties),
+        "IconProperties": properties,
         "Categories": ["DomumOrnamentum." + family.name],
         "PlayerAnimationsId": "Block",
         "BlockType": block_type,
@@ -107,6 +117,22 @@ def template(ctx, family, ident, parts, block_type):
         "cutterQuantity": family.cutter_quantity,
     })
     return item
+
+
+def _icon(ctx, family, ident, model, properties):
+    """Writes the icon map (a server resource) of the template ident, drawn from the written model named model, and
+    its icon painted with the template's layout texture; returns the icon's path."""
+    texture = layout_texture(ctx, family)
+    icon_map = iconmap.render(ctx.models[model], convert.layout_size(family), properties)
+    target = ctx.resources / ICON_MAPS / (ident[len(names.PREFIX):] + ".png")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    icon_map.save(target)
+    shipped = ctx.pack / "Common" / texture
+    layout = Image.open(shipped) if shipped.exists() else ctx.assets.image("Common/" + texture)
+    path = ICONS + ident + ".png"
+    (ctx.pack / "Common" / ICONS).mkdir(parents=True, exist_ok=True)
+    icon.from_map(icon_map, layout).save(ctx.pack / "Common" / path)
+    return path
 
 
 def model_block_type(ctx, family, model_path, hitbox_id, rotation):
@@ -128,6 +154,7 @@ def model_block_type(ctx, family, model_path, hitbox_id, rotation):
 def convert_state(ctx, family, block, props):
     """One DO state, cleaned and converted to the family's material layout."""
     model = faces.clean(faces.cap_ends(assemble.state_model(ctx.root, family, block, props)))
+    ctx.sources.append((f"{block} {props}", model))
     return model, convert.to_blockymodel(model, family)
 
 

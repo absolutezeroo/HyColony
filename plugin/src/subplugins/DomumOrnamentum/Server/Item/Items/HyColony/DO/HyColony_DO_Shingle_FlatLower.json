@@ -2,7 +2,7 @@
   "TranslationProperties": {
     "Name": "hycolony.item.do.shingle_flatlower.name"
   },
-  "Icon": "Icons/ItemsGenerated/Soil_Clay.png",
+  "Icon": "Icons/ItemsGenerated/HyColony/DO/HyColony_DO_Shingle_FlatLower.png",
   "IconProperties": {
     "Scale": 0.58823,
     "Rotation": [

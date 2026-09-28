@@ -51,6 +51,7 @@ def doors(ctx, family):
         model = _moved(assemble.prefixed(high, "u"), 16, 0)
         model = {"textures": {**low["textures"], **model["textures"]}, "elements": low["elements"] + model["elements"]}
         model = faces.clean(faces.cap_ends(_moved(model, 0, DOOR_SHIFT_Z)))
+        ctx.sources.append((f"{parts[0]} {props}", model))
         hinge = convert.hytale(DOOR_HINGE)
         _template(ctx, family, parts, "door", convert.to_blockymodel(model, family, GROUP, hinge))
 
@@ -63,6 +64,7 @@ def trapdoors(ctx, family):
         # DO facing=south turned by family.turn_y: the hinge on +Z.
         state = {"facing": "south", "half": "bottom", "open": "false", **props}
         model = faces.clean(faces.cap_ends(assemble.state_model(ctx.root, family, parts[0], state)))
+        ctx.sources.append((f"{parts[0]} {state}", model))
         hinge = convert.hytale(TRAPDOOR_HINGE)
         _template(ctx, family, parts, "trapdoor", convert.to_blockymodel(model, family, GROUP, hinge))
 
@@ -80,7 +82,7 @@ def _template(ctx, family, parts, kind, blockymodel):
         block_type["State"]["Definitions"]["OpenDoorOut"]["HitboxType"] = "HyColony_DO_Trapdoor_Open"
     else:
         block_type["ConnectedBlockRuleSet"]["TemplateShapeBlockPatterns"] = {"Default": ident}
-    common.template(ctx, family, ident, shown, block_type)
+    common.template(ctx, family, ident, shown, block_type, ctx.assets.item(VANILLA[kind])["IconProperties"])
 
 
 def _moved(model, dy, dz):
