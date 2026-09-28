@@ -162,6 +162,22 @@ allow Bash ./gradlew build
 allow Bash ./gradlew spotlessApply -q --offline
 allow Bash ./gradlew :core:test --tests '*WorkSpotTest*'
 allow Bash ./gradlew build -x runServer
+// runAllMods launches the workspace server (AzureDoom hytale-workspace): denied like runServer, abbreviations too.
+deny Bash ./gradlew runAllMods
+deny Bash ./gradlew :colony:runAllMods
+deny Bash ./gradlew -p spike runAllMods
+deny Bash ./gradlew rAM
+deny Bash ./gradlew runAll
+deny Bash ./gradlew runallmods
+deny Bash gradlew.bat runAllMods
+deny PowerShell .\gradlew runAllMods
+deny PowerShell Start-Process .\gradlew.bat -ArgumentList 'runAllMods'
+deny Bash ./gradlew stageAllModAssets && ./gradlew runAllMods
+allow Bash ./gradlew stageAllModAssets
+allow Bash ./gradlew -p spike stageAllModAssets
+allow Bash ./gradlew sAMA
+allow Bash ./gradlew build -x runAllMods
+allow Bash grep -rn runAllMods docs/
 // Reading guardrails is fine, even next to an unrelated redirect or write.
 allow Bash cat CLAUDE.md .githooks/pre-commit
 allow Bash git diff .claude/hooks/guard.js > /tmp/x.diff

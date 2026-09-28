@@ -14,7 +14,7 @@ The build must be green. Versioned git hooks enforce this: run `git config core.
 
 ## Never
 
-- Launch the Hytale server (`runServer`, `HytaleServer.jar`). The user runs it and tests in game.
+- Launch the Hytale server (`runServer`, `runAllMods`, `HytaleServer.jar`). The user runs it and tests in game.
 - `git add -A`, `git add .`, `git add -u`, `git commit -a`: stage explicit paths only.
 - `--no-verify` on commit or push (nor `-n` on commit), `git push --force`, or changing `core.hooksPath`.
 - Add a line to `gradle/file-size-allowlist.txt`, `gradle/package-size-allowlist.txt` or

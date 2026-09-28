@@ -114,7 +114,7 @@ Fichiers garde-fous (la même liste figure dans `AGENTS.md`, dans l'agent `hycol
   - `pre-push` refuse un arbre de travail non propre, puis lance `./gradlew build`.
 - Hook Claude Code (`.claude/hooks/guard.js`, déclaré dans `.claude/settings.json`, banc de test `node .claude/hooks/test/run.js`). Il découpe chaque commande en mots sans guillemets et ne juge que les commandes, options et fichiers écrits : un texte qui cite un chemin ou une option passe. Il refuse :
   - les indexations larges (`git add`/`stage` avec `-A`, `-u`, `.`, `:/`, `*`), `git commit -a`, `--no-verify` et `-n`, `git push` forcé, `--mirror`, `--delete` ou `:branche`, et tout changement de `core.hooksPath` (sauf vers `.githooks`), y compris par `.git/config` ;
-  - le lancement du serveur Hytale (tâche Gradle `runServer`, même abrégée, `HytaleServer.jar`, `Start-Process`) ;
+  - le lancement du serveur Hytale (tâches Gradle `runServer` et `runAllMods`, même abrégées, `HytaleServer.jar`, `Start-Process`) ;
   - l'ajout d'une entrée aux trois listes d'exceptions, qui ne se modifient qu'avec les outils Edit et Write ;
   - l'écriture et l'indexation de `.mcp.json`, `config.json`, `config.json.bak` et `.claude/settings.local.json` ;
   - l'écriture des fichiers garde-fous, sauf si l'utilisateur lance la session avec `HYCOLONY_GUARDRAILS_UNLOCKED=1`.

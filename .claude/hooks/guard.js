@@ -364,10 +364,13 @@ function checkPowerShell(args) {
     checkCommand(encoded ? Buffer.from(args[i + 1], "base64").toString("utf16le") : args.slice(i + 1).join(" "), true);
 }
 
+/** Gradle tasks that start a Hytale server: runServer (each mod) and runAllMods (the workspace, all mods at once). */
+const SERVER_TASKS = ["runServer", "runAllMods"];
+
 function checkServer(task) {
     const humps = task.match(/[A-Z]?[^A-Z]*/g).filter(Boolean);
     const camel = new RegExp("^" + humps.map((h) => h.replace(/[^\w]/g, "\\$&") + "[a-z0-9]*").join(""), "i");
-    if (task && camel.test("runServer")) deny("CLAUDE.md § 9.4: never launch the Hytale server; the user restarts it and tests in game.");
+    if (task && SERVER_TASKS.some((t) => camel.test(t))) deny("CLAUDE.md § 9.4: never launch the Hytale server; the user restarts it and tests in game.");
 }
 
 function checkGradle(args) {
