@@ -14,13 +14,17 @@ def pack(ctx):
     for ident, item in ctx.items.items():
         block_type = item["BlockType"]
         _patterns(ctx, ident, block_type.get("ConnectedBlockRuleSet", {}))
+        _template_exists(ctx, ident, block_type.get("ConnectedBlockRuleSet", {}))
         _rule_states(ident, block_type)
         _files(ctx, ident, item)
         name = item["TranslationProperties"]["Name"].removeprefix("hycolony.")
         assert all(name in known for known in keys.values()), (ident, "untranslated", name)
-    for child in ctx.tab.get("Children", []):
+    for entry in [ctx.tab] + ctx.tab.get("Children", []):
         for suffix in ("", "Active"):
-            assert (ctx.pack / "Common" / child["Icon"].replace(".png", suffix + ".png")).exists(), child
+            assert (ctx.pack / "Common" / entry["Icon"].replace(".png", suffix + ".png")).exists(), entry["Icon"]
+    for child in ctx.tab.get("Children", []):
+        name = child["Name"].removeprefix("hycolony.")
+        assert all(name in known for known in keys.values()), (child["Id"], "untranslated", name)
     for label, model in ctx.sources:
         assert not faces.overlapping_pairs(model), (label, "overlapping faces")
 
@@ -33,6 +37,14 @@ def _patterns(ctx, ident, rules):
             assert block.startswith(PREFIX) and block in ctx.items, (ident, shape, "names", target)
             if state:
                 assert state in ctx.items[block]["BlockType"]["State"]["Definitions"], (ident, shape, target)
+
+
+def _template_exists(ctx, ident, rules):
+    """The connection template a CustomTemplate rule set names is ours (written) or vanilla."""
+    template = rules.get("TemplateShapeAssetId")
+    if template:
+        path = common.TEMPLATES + template + ".json"
+        assert (ctx.pack / path).exists() or ctx.assets.has(path), (ident, "missing template", template)
 
 
 def _rule_states(ident, block_type):

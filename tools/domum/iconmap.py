@@ -78,12 +78,14 @@ def _view(rotation):
 
 
 def _axis(axis, degrees):
+    """The rotation matrix of degrees about axis ("x", "y" or "z")."""
     c, s = math.cos(math.radians(degrees)), math.sin(math.radians(degrees))
     return {"x": [[1, 0, 0], [0, c, -s], [0, s, c]], "y": [[c, 0, s], [0, 1, 0], [-s, 0, c]],
             "z": [[c, -s, 0], [s, c, 0], [0, 0, 1]]}[axis]
 
 
 def _apply(matrix, v):
+    """matrix times the vector v."""
     return tuple(sum(matrix[i][k] * v[k] for k in range(3)) for i in range(3))
 
 
@@ -175,5 +177,7 @@ def _fill(pixels, depth, corners, texels, code):
 
 
 def _code(value, span):
-    """A layout coordinate as a byte: floor(value * 256 / span), kept inside 0..255."""
+    """A layout coordinate as a byte: floor(value * 256 / span); the far edge (value == span) codes 255. A value
+    outside the layout is a layout bug and fails, instead of silently reading the edge."""
+    assert -1e-6 <= value <= span + 1e-6, ("layout read outside its texture", value, span)
     return max(0, min(255, math.floor(value * 256 / span)))
