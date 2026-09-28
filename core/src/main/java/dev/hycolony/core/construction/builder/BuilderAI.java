@@ -210,7 +210,7 @@ public final class BuilderAI implements JobAI {
         resetStructure();
         site.load(o, b, StructurePlan.build(bp, o.buildingPos(), ctx.catalog()), previousPlan(o, b));
         // Takes the order's saved stage and index: the order is the single owner of progress.
-        ctx.resources().start(o, NeededResources.compute(site.plan(), ctx.blocks(), ctx.catalog()));
+        ctx.resources().start(o, NeededResources.compute(site.plan(), ctx.blocks(), ctx.catalog(), ctx.recipes()));
         return BuilderState.BUILDING_STEP;
     }
 

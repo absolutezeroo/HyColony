@@ -1,6 +1,7 @@
 package dev.hycolony.core.construction.builder;
 
 import dev.hycolony.core.construction.blueprint.BlueprintEntry;
+import dev.hycolony.core.construction.resources.EntryCost;
 import dev.hycolony.core.construction.workorder.Stage;
 import dev.hycolony.core.construction.workorder.WorkOrder;
 import dev.hycolony.core.kernel.BlockPos;
@@ -9,14 +10,17 @@ import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolType;
+import dev.hycolony.core.kernel.item.Workstation;
 import dev.hycolony.core.kernel.port.BodyAnimation;
 import java.util.List;
+import java.util.Optional;
 import java.util.OptionalInt;
 import org.jspecify.annotations.Nullable;
 
 /**
  * Works the block the structure step chose: breaks it (MC doMining + mineBlock, with a tool when one is needed) or
- * places the planned block (MC EntityAIStructureBuilder.placeBlock).
+ * places the planned block with every item it costs (MC EntityAIStructureBuilder.placeBlock); a placed crafting bench
+ * gets its planned tier and joins the hut.
  */
 final class BuilderBlockWork {
     private static final System.Logger LOG = System.getLogger(BuilderAI.class.getName());
@@ -27,13 +31,18 @@ final class BuilderBlockWork {
     private final BuilderGathering gathering;
     private @Nullable BlockPos mineTarget;
     private boolean mineDelayed;
+    /** A refused bench tier is logged once as a warning, then at DEBUG. */
+    private boolean tierWarned;
 
     BuilderBlockWork(BuilderContext ctx, BuilderGathering gathering) {
         this.ctx = ctx;
         this.gathering = gathering;
     }
 
-    /** The position at {@code i} needs work: mine it first, or place its block once the item is at hand. */
+    /**
+     * The position at {@code i} needs work: mine it first, or place its block once every item it costs is at hand
+     * (MC hasListOfResInInvOrRequest); a free order places without items.
+     */
     @Nullable
     BuilderState work(Stage stage, int i) {
         BlockPos pos = ctx.site().positions(stage).get(i);
@@ -44,17 +53,26 @@ final class BuilderBlockWork {
             return startMining(pos);
         }
         BlueprintEntry e = ctx.site().entry(stage, i);
-        ItemKey item = ctx.catalog().itemForBlock(e.state().key()).orElse(null); // none: free to place
-        if (item != null
-                && !ctx.site().loadedOrder().free()
-                && ctx.stock().inventory().count(item) == 0) {
-            return gathering.missing(item, i);
+        List<ItemAmount> cost = EntryCost.of(e, ctx.catalog(), ctx.recipes()); // empty: free to place
+        Optional<ItemAmount> lacking = ctx.site().loadedOrder().free() ? Optional.empty() : lacking(cost);
+        if (lacking.isPresent()) {
+            return gathering.missing(lacking.get(), i);
         }
         if (!ctx.walkToWork(pos)) {
             return null;
         }
-        place(stage, i, pos, e, item);
+        place(stage, i, pos, e, cost);
         return null;
+    }
+
+    /** The first item of {@code cost} the inventory holds fewer of than asked; empty once all are at hand. */
+    private Optional<ItemAmount> lacking(List<ItemAmount> cost) {
+        for (ItemAmount a : cost) {
+            if (ctx.stock().inventory().count(a.item()) < a.count()) {
+                return Optional.of(a);
+            }
+        }
+        return Optional.empty();
     }
 
     private BuilderState startMining(BlockPos pos) {
@@ -157,11 +175,13 @@ final class BuilderBlockWork {
             // would never end. Refill after CLEAR is left as is (SOLID overwrites it, decorations sit in it).
             ctx.site().progress(Stage.CLEAR, ctx.site().loadedOrder().progressIndex() + 1);
         }
-        // MC: a rack that leaves the world leaves its building's containers (TileEntityRack removal).
+        // MC: a rack that leaves the world leaves its building's containers (TileEntityRack removal), and a bench its
+        // hut's benches (FurnaceUserModule.removeFromFurnaces once the furnace is gone).
         ctx.colony()
                 .buildings()
                 .owningContainer(pos)
                 .ifPresent(b -> b.registeredBlocks().removeContainer(pos));
+        ctx.colony().buildings().all().forEach(b -> b.registeredBlocks().removeWorkstation(pos));
         if (!ctx.catalog().isOre(state.key())) { // MC EntityAIStructureBuilder.mineBlock: getDrops = !isOre
             ctx.stock().storeDrops(drops);
         }
@@ -173,7 +193,7 @@ final class BuilderBlockWork {
         ctx.job().incrementActions();
     }
 
-    private void place(Stage stage, int i, BlockPos pos, BlueprintEntry e, @Nullable ItemKey item) {
+    private void place(Stage stage, int i, BlockPos pos, BlueprintEntry e, List<ItemAmount> cost) {
         ctx.gestures().lookAt(pos); // MC BuildingStructureHandler.prePlacementLogic: faceBlock
         if (!ctx.blocks().place(pos, e.state(), e.hasContainer())) {
             LOG.log(
@@ -185,22 +205,50 @@ final class BuilderBlockWork {
             ctx.site().progress(stage, i + 1);
             return;
         }
-        if (item != null) {
-            if (!ctx.site().loadedOrder().free()) {
-                ctx.stock().inventory().extract(item, 1);
-            }
-            ctx.resources().onPlaced(item); // a free order still counts it, for the progress shown
-        }
+        consume(cost);
         if (e.hasContainer()) {
             // MC: racks the builder places become the building's containers
             ctx.site().target().registeredBlocks().addContainer(pos);
         }
+        e.workstation().ifPresent(bench -> registerBench(pos, bench));
         ctx.award(XP_PER_BLOCK);
         ctx.job().incrementActions();
         ctx.site().progress(stage, i + 1);
-        ctx.gestures().hold(item);
+        ctx.gestures().hold(cost.isEmpty() ? null : cost.getFirst().item());
         ctx.gestures()
                 .startDelay(
                         BuilderTimings.placeDelay(ctx.citizen().skills().level(ctx.primary())), BodyAnimation.BUILD);
+    }
+
+    /** MC StructurePlacer consume + reduceNeededResources: every item of the cell, each unit counted as placed. */
+    private void consume(List<ItemAmount> cost) {
+        boolean free = ctx.site().loadedOrder().free();
+        for (ItemAmount a : cost) {
+            if (!free) {
+                ctx.stock().inventory().extract(a.item(), a.count());
+            }
+            for (int unit = 0; unit < a.count(); unit++) {
+                ctx.resources().onPlaced(a.item()); // a free order still counts it, for the progress shown
+            }
+        }
+    }
+
+    /**
+     * Gives the placed bench its planned tier, then registers it with the target hut (MC triggerSuccess ->
+     * registerBlockPosition). The hut keeps the planned tier even if the world refused it: the builder paid for it.
+     *
+     * <p>Deviation from MC: MC blocks have no tier; Hytale benches do (SP3b-1 spec, deviations 2 and 3).
+     */
+    private void registerBench(BlockPos pos, Workstation bench) {
+        if (!ctx.blocks().setBenchTier(pos, bench.tier())) {
+            LOG.log(
+                    tierWarned ? System.Logger.Level.DEBUG : System.Logger.Level.WARNING,
+                    "Builder {0}: could not set the bench at {1} to tier {2}; the hut registers it at that tier",
+                    ctx.citizen().name(),
+                    pos,
+                    bench.tier());
+            tierWarned = true;
+        }
+        ctx.site().target().registeredBlocks().addWorkstation(pos, bench);
     }
 }

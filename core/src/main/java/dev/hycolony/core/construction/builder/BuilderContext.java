@@ -6,6 +6,7 @@ import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.construction.resources.BuildingResourcesModule;
+import dev.hycolony.core.crafting.recipe.RecipeCatalog;
 import dev.hycolony.core.job.Job;
 import dev.hycolony.core.job.JobXp;
 import dev.hycolony.core.job.WorkerModule;
@@ -133,6 +134,11 @@ record BuilderContext(
     @Override
     public ToolRequests tools() {
         return Objects.requireNonNull(tools, NO_HUT);
+    }
+
+    /** The Hytale recipes and benches, for what a plan's bench costs. */
+    RecipeCatalog recipes() {
+        return colony.context().ports().crafting().catalog();
     }
 
     boolean walkToHut() {

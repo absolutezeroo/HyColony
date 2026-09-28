@@ -220,6 +220,9 @@ Lecture tolérante : clé absente = vide, entrée invalide ignorée et journalis
 1. **Apprentissage par liste.** On apprend une recette en la choisissant dans l'onglet Recettes, pas en la posant dans une grille, car Hytale n'a pas de grille de fabrication.
 2. **Compatibilité par table et niveau de table.** Une recette Hytale demande une table, des catégories et un niveau. La hutte ne connaît que les tables de son plan, posées par le constructeur, avec leur niveau. C'est l'équivalent des « intermediate blocks » de MC (`Blocks.FURNACE`…), étendu aux niveaux de Hytale.
 3. **Coût des tables de niveau N.** Le constructeur demande aussi les matériaux de montée de niveau de Hytale. MC ne connaît pas les niveaux de table.
+   - La case coûte l'objet de la table (`benchItem`), à défaut l'objet de son bloc, sinon rien, plus `benchUpgradeCost(table, 1, N)`. Chaque unité compte dans les paquets du constructeur, qui attend d'avoir tous ces objets avant de poser la table (`EntryCost`).
+   - La hutte enregistre la table au niveau de son plan même si le monde refuse ce niveau (`setBenchTier` faux, journalisé) : le constructeur l'a payé, et la fabrication ne dépend que du niveau enregistré.
+   - Un collage créatif pose la table à son niveau et l'enregistre, sans coût.
 4. **`KnowledgeRequired`.** Une recette que Hytale réserve aux joueurs qui l'ont apprise ne peut être apprise à la hutte que par un joueur qui la connaît.
 5. **Filtre par métier dans `crafting.json`.** Il remplace les tags `crafterProduct` de MC et se fonde sur les tables et catégories Hytale.
 6. **Ingrédients par type de ressource ou tag.** Ils sont demandés par une `StackList`. Dans MC, la grille fige l'objet exact au moment de l'apprentissage. Un tel ingrédient est « réductible » par l'amélioration si tous les objets qu'il accepte sont listés dans `reduceable.ingredients`.
