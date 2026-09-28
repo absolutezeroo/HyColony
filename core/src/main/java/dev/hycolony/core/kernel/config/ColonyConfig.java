@@ -86,17 +86,11 @@ public record ColonyConfig(
      *     Deviation from MC: MC has this as a hard-coded constant, Constants.BUILDER_INF_RESOURECES (false), not as a
      *     config option
      * @param creativeOperatorFreeBuilds orders made by an operator in creative mode are free
-     * @param cutterCraftSeconds how long one craft at the architect's cutter takes, from 0 (instant, as Domum
-     *     Ornamentum's cutter) to 10. Deviation from MC: DO crafts at once; Hytale's benches take their recipes' time
      */
     public record HyColony(
-            int autosaveIntervalMinutes,
-            boolean builderInfiniteResources,
-            boolean creativeOperatorFreeBuilds,
-            double cutterCraftSeconds) {
+            int autosaveIntervalMinutes, boolean builderInfiniteResources, boolean creativeOperatorFreeBuilds) {
         public HyColony {
             autosaveIntervalMinutes = Math.clamp(autosaveIntervalMinutes, 1, 60);
-            cutterCraftSeconds = Math.clamp(cutterCraftSeconds, 0.0, 10.0);
         }
     }
 
@@ -120,7 +114,7 @@ public record ColonyConfig(
                 new Permissions(true, Explosions.DAMAGE_ENTITIES, 2),
                 new Commands(true, true, false),
                 new Client(50),
-                new HyColony(5, false, true, 0.5),
+                new HyColony(5, false, true),
                 new Structurize(1000));
     }
 }

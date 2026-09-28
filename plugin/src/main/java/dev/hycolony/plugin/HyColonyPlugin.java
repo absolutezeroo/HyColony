@@ -10,10 +10,10 @@ import com.hypixel.hytale.server.core.universe.world.events.RemoveWorldEvent;
 import com.hypixel.hytale.server.core.universe.world.events.StartWorldEvent;
 import com.hypixel.hytale.server.core.util.Config;
 import com.hypixel.hytale.server.npc.NPCPlugin;
+import dev.hyblockui.api.ConfigQuarantine;
 import dev.hycolony.core.kernel.config.ColonyConfig;
 import dev.hycolony.plugin.block.BlockSystems;
 import dev.hycolony.plugin.command.HyColonyCommand;
-import dev.hycolony.plugin.config.ConfigQuarantine;
 import dev.hycolony.plugin.config.HyColonyConfig;
 import dev.hycolony.plugin.goggles.GogglesSystems;
 import dev.hycolony.plugin.npc.BuilderSensorHyColonyTarget;
@@ -21,7 +21,6 @@ import dev.hycolony.plugin.npc.CitizenBodyLifecycleSystem;
 import dev.hycolony.plugin.npc.CitizenFireImmunitySystems;
 import dev.hycolony.plugin.npc.CitizenUseSystem;
 import dev.hycolony.plugin.npc.HyColonyComponents;
-import dev.hycolony.plugin.ornament.Ornaments;
 import dev.hycolony.plugin.prefab.HytaleBlueprintSource;
 import dev.hycolony.plugin.subplugin.SubPlugins;
 import dev.hycolony.plugin.ui.highlight.GlowingBlock;
@@ -38,7 +37,8 @@ public final class HyColonyPlugin extends JavaPlugin {
     public HyColonyPlugin(@Nonnull JavaPluginInit init) {
         super(init);
         // Before withConfig: preLoad decodes the file and a malformed one would abort the whole server start.
-        ConfigQuarantine.moveAsideIfUnreadable(getDataDirectory().resolve("config.json"), HyColonyConfig.CODEC);
+        ConfigQuarantine.moveAsideIfUnreadable(
+                "HyColony", getDataDirectory().resolve("config.json"), HyColonyConfig.CODEC);
         this.config = withConfig("config", HyColonyConfig.CODEC);
     }
 
@@ -62,7 +62,6 @@ public final class HyColonyPlugin extends JavaPlugin {
         WandInteraction.register(this, worlds);
         getCommandRegistry().registerCommand(new HyColonyCommand(worlds, ids, colonyConfig.commands(), packs));
         registerWorldEvents(worlds);
-        Ornaments.register(this, ids, colonyConfig.hycolony().cutterCraftSeconds());
         getEventRegistry().register(PlayerDisconnectEvent.class, e -> onDisconnect(worlds, ids, e));
 
         getLogger().at(Level.INFO).log("HyColony setup complete");

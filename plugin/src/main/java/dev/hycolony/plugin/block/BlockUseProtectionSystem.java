@@ -3,6 +3,9 @@ package dev.hycolony.plugin.block;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.component.dependency.Dependency;
+import com.hypixel.hytale.component.dependency.Order;
+import com.hypixel.hytale.component.dependency.SystemDependency;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.EntityEventSystem;
 import com.hypixel.hytale.logger.HytaleLogger;
@@ -19,6 +22,7 @@ import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.plugin.IdMap;
 import dev.hycolony.plugin.WorldRuntime;
 import dev.hycolony.plugin.WorldRuntimes;
+import dev.hydomum.plugin.api.HyDomumSystems;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
@@ -32,6 +36,9 @@ import javax.annotation.Nonnull;
  */
 public final class BlockUseProtectionSystem extends EntityEventSystem<EntityStore, UseBlockEvent.Pre> {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
+    /** Before HyDomum's cutter, so that the cutter sees a refused use already cancelled. */
+    private static final Set<Dependency<EntityStore>> DEPENDENCIES =
+            Set.of(new SystemDependency<>(Order.BEFORE, HyDomumSystems.cutterUse()));
 
     private final WorldRuntimes runtimes;
     private final Set<String> hutBlockIds;
@@ -42,6 +49,11 @@ public final class BlockUseProtectionSystem extends EntityEventSystem<EntityStor
         this.runtimes = runtimes;
         this.hutBlockIds = HutBlockSystems.byBlockId(runtimes.setup()).keySet();
         this.uses = new BlockUses(ids);
+    }
+
+    @Override
+    public Set<Dependency<EntityStore>> getDependencies() {
+        return DEPENDENCIES;
     }
 
     @Override

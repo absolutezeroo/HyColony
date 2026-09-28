@@ -55,11 +55,7 @@ class FreeWorkOrderTest {
                 D.permissions(),
                 D.commands(),
                 D.client(),
-                new ColonyConfig.HyColony(
-                        D.hycolony().autosaveIntervalMinutes(),
-                        infinite,
-                        creativeOps,
-                        D.hycolony().cutterCraftSeconds()),
+                new ColonyConfig.HyColony(D.hycolony().autosaveIntervalMinutes(), infinite, creativeOps),
                 D.structurize());
     }
 
