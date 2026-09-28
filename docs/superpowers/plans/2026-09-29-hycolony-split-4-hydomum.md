@@ -156,7 +156,7 @@ class ArchitectureTest {
 }
 ```
 
-Avec un cœur vide, ArchUnit échoue sur « rule … was applied to no classes » : ajouter dans le test `@AnalyzeClasses` … et, si l'échec apparaît, le noter ; il disparaît à la tâche 2, qui y met les classes. Si c'est bloquant pour le build de cette tâche, ajouter `archRule.failOnEmptyShould=false` dans `domum/core/src/test/resources/archunit.properties`.
+**Fait à l'exécution :** avec un cœur vide, ArchUnit échoue (« rule … was applied to no classes »). Plutôt que de désactiver `failOnEmptyShould`, ce test est **reporté à la tâche 2, étape 4**, qui l'ajoute avec les classes du cœur.
 
 - [ ] **Étape 2 : HyColony exige HyDomum**
 
@@ -282,6 +282,8 @@ for f in $T/cutter/*.java; do git mv $f $DT/core/cutter/; done
 sed -i 's/^package dev\.hycolony\.core\.ornament;/package dev.hydomum.core;/; s/^package dev\.hycolony\.core\.ornament\.cutter;/package dev.hydomum.core.cutter;/' $DC/core/*.java $DC/core/cutter/*.java $DT/core/*.java $DT/core/cutter/*.java
 sed -i 's/^package dev\.hycolony\.core\.ornament;/package dev.hydomum.api;/' $DC/api/*.java
 ```
+
+Ajouter `domum/core/src/test/java/dev/hydomum/ArchitectureTest.java`, tel qu'écrit à la tâche 1, étape 1 (reporté ici).
 
 Puis les imports, dans le cœur et le plugin (encore dans HyColony à ce stade) :
 

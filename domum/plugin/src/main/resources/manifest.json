@@ -1,0 +1,26 @@
+{
+    "Group": "HyColony",
+    "Name": "hydomum",
+    "Version": "0.1.0",
+    "Description": "Domum Ornamentum for Hytale: architect's blocks in any materials, cut at the architect's cutter.",
+    "Authors": [
+        {
+            "Name": "Ctuto"
+        }
+    ],
+    "Website": "https://github.com/ldtteam/minecolonies",
+    "ServerVersion": ">=0.6.8 <0.7.0",
+    "Dependencies": {
+        "Hytale:AssetModule": "*",
+        "HyColony:hyblockui": "=0.1.0"
+    },
+    "OptionalDependencies": {
+        
+    },
+    "DisabledByDefault": false,
+    "Main": "dev.hydomum.plugin.HyDomumPlugin",
+    "IncludesAssetPack": true,
+    "UpdateChecker": {
+        "CurseForge": ""
+    }
+}

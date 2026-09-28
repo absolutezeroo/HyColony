@@ -14,7 +14,8 @@
     "Dependencies": {
         "Hytale:AssetModule": "*",
         "Hytale:NPC": "*",
-        "HyColony:hyblockui": "=0.1.0"
+        "HyColony:hyblockui": "=0.1.0",
+        "HyColony:hydomum": "=0.1.0"
     },
     "OptionalDependencies": {
         

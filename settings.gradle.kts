@@ -15,4 +15,7 @@ plugins {
 }
 
 rootProject.name = "HyColony"
-include(":core", ":plugin", ":blockui")
+include(":core", ":plugin", ":blockui", ":domum-core", ":domum-plugin")
+// Unique project names (gradle/gradle#847: two ":core" projects would be confused in dependency resolution).
+project(":domum-core").projectDir = file("domum/core")
+project(":domum-plugin").projectDir = file("domum/plugin")
