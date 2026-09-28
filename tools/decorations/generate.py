@@ -1,9 +1,9 @@
-"""Generates the Decorations sub-plugin's derived assets from the vanilla Hytale 0.6.8 assets zip.
+"""Generates the Decorations sub-plugin's derived assets from the vanilla assets zip of the pinned Hytale version.
 
 Run once, then commit the outputs (plugin/src/subplugins/Decorations/): the build never runs it. Re-run it after
 changing a table below. Needs Python 3.10+ and Pillow.
 
-    python tools/decorations/generate.py [path/to/release-0.6.8-Assets.zip]
+    python tools/decorations/generate.py [path/to/Assets.zip]
 
 Writes, for each wool colour, the carpet item and its generated icon, then the flower pots (flower_pots.py):
 one item per clay colour with a state per pottable plant, the shared models, one atlas and icon per colour, the
@@ -16,9 +16,7 @@ from pathlib import Path
 from PIL import Image
 
 import flower_pots
-from pack import ICON_SIZE, PACK, Assets, draw_box, save_png, validate_pack, write_json
-
-DEFAULT_ZIP = Path.home() / ".gradle" / "caches" / "hytale-assets" / "release-0.6.8-Assets.zip"
+from pack import GRADLE_ASSETS, ICON_SIZE, PACK, Assets, draw_box, save_png, validate_pack, write_json
 
 # The 20 Hytale wool colours: Cloth_Block_Wool_<C>, texture BlockTextures/Cloth_<C>.png.
 WOOL_COLOURS = [
@@ -77,7 +75,7 @@ def carpet_item(colour, wool, texture_path):
 
 
 def main():
-    assets = Assets(Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_ZIP)
+    assets = Assets(Path(sys.argv[1]) if len(sys.argv) > 1 else GRADLE_ASSETS)
     carpets(assets)
     flower_pots.generate(assets)
     validate_pack(assets)

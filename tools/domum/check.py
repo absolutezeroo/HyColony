@@ -1,6 +1,6 @@
 """Self-check of the Domum Ornamentum generator: python tools/domum/check.py (exits non-zero on failure). Tests on
 real DO data call source.fetch(), which downloads DO's pinned commit once into build/domum-cache/ (network needed
-on the first run only); tests on vanilla assets read the Hytale 0.6.8 assets zip (tags.open_assets)."""
+on the first run only); tests on vanilla assets read the pinned Hytale version's assets zip (tags.open_assets)."""
 
 import check_assemble
 import check_connected

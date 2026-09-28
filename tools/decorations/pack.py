@@ -12,6 +12,20 @@ PACK = ROOT / "plugin" / "src" / "subplugins" / "Decorations"
 ICON_SIZE = 64
 
 
+def _gradle_property(name):
+    for line in (ROOT / "gradle.properties").read_text(encoding="utf-8").splitlines():
+        key, sep, value = line.partition("=")
+        if sep and key.strip() == name:
+            return value.strip()
+    raise KeyError(name)
+
+
+# The assets zip the Gradle plugin caches for the pinned Hytale version (downloadAssetsZip), so a version bump in
+# gradle.properties needs no edit here.
+GRADLE_ASSETS = (Path.home() / ".gradle" / "caches" / "hytale-assets"
+                 / f"{_gradle_property('patchline')}-{_gradle_property('hytale_version')}-Assets.zip")
+
+
 # Hytale's CommonAssetValidator roots (plugin-b-api § 23): a path outside them, or missing, stops the whole server.
 ICON_ROOTS = ("Icons/ItemsGenerated/", "Icons/Items/")
 MODEL_ROOTS = ("Blocks/", "Items/", "Resources/", "NPC/", "VFX/", "Consumable/")

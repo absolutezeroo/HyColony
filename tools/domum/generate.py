@@ -6,7 +6,7 @@ do1-design.md).
 Run by hand, then commit the outputs (in the HyDomum mod's resources, domum/plugin/src/main/resources): the
 build never runs it. Downloads DO's pinned commit once into build/domum-cache/. Needs Python 3.10+ and Pillow.
 
-    python tools/domum/generate.py [path/to/release-0.6.8-Assets.zip]
+    python tools/domum/generate.py [path/to/Assets.zip]
 """
 
 import shutil

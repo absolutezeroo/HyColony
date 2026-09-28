@@ -13,9 +13,7 @@ import sys
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parents[1] / "decorations"))
-from pack import ROOT, Assets  # noqa: E402
-
-GRADLE_ASSETS = Path.home() / ".gradle" / "caches" / "hytale-assets" / "release-0.6.8-Assets.zip"
+from pack import GRADLE_ASSETS, ROOT, Assets  # noqa: E402
 
 # Hytale block groups standing for DO's tag groups, as regular expressions over vanilla item ids.
 GROUPS = {
@@ -57,11 +55,12 @@ TAG_GROUPS = {
 }
 
 def open_assets(path=None):
-    """The vanilla assets zip: path, else $HYTALE_ASSETS, else server/Assets.zip, else the Gradle cache copy."""
-    for candidate in (path, os.environ.get("HYTALE_ASSETS"), ROOT / "server" / "Assets.zip", GRADLE_ASSETS):
+    """The vanilla assets zip: path, else $HYTALE_ASSETS, else the Gradle cache copy of the pinned version, else
+    server/Assets.zip (a local server may lag behind the pinned version)."""
+    for candidate in (path, os.environ.get("HYTALE_ASSETS"), GRADLE_ASSETS, ROOT / "server" / "Assets.zip"):
         if candidate and Path(candidate).exists():
             return Assets(candidate)
-    raise FileNotFoundError("Hytale 0.6.8 assets zip not found")
+    raise FileNotFoundError(f"Hytale assets zip not found: {GRADLE_ASSETS}")
 
 
 def texture(assets, block_id):
