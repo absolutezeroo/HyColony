@@ -1,8 +1,14 @@
-"""Self-check of the converter, offline: python tools/domum/check.py (exits non-zero on failure)."""
+"""Self-check of the converter and the Domum Ornamentum family table, offline: python tools/domum/check.py (exits
+non-zero on failure)."""
 
+import tempfile
+from pathlib import Path
+
+import convert
+import source
+from convert import Converter, check_atlas
+from families import FAMILIES, material
 from PIL import Image
-
-from convert import Converter, check_atlas, material
 
 # timber_frame/framed_spec's centre box, one frame beam turned 22.5 degrees and a flat, double-sided pane.
 MODEL = {
@@ -18,7 +24,8 @@ MODEL = {
 }
 
 
-def main():
+def converter_matches_reference_geometry():
+    """The converter's units, pivots, face correspondence and uv handling on a hand-built model (banc bd451ec)."""
     planks = {"dark": Image.new("RGBA", (32, 32), (60, 30, 20, 255)),
               "light": Image.new("RGBA", (32, 32), (200, 170, 140, 255))}
     nodes, atlas, _ = Converter(planks).convert(MODEL)
@@ -32,9 +39,44 @@ def main():
     assert abs(nodes[1]["orientation"]["z"] - 0.19509) < 1e-4
     assert pane["type"] == "quad" and pane["settings"] == {"size": {"x": 32, "y": 32}, "normal": "+Z"}
     assert pane["doubleSided"]
-    assert material(MODEL["textures"], "#1") == "dark" and material(MODEL["textures"], "#centre") == "light"
+    assert convert.material(MODEL["textures"], "#1") == "dark"
+    assert convert.material(MODEL["textures"], "#centre") == "light"
     check_atlas("check", nodes, atlas)
     assert atlas.width & (atlas.width - 1) == 0 and atlas.height & (atlas.height - 1) == 0
+
+
+def families_cover_the_spec():
+    """DO-1's family table matches the design's family list, and leaves out what it explicitly excludes."""
+    names = {f.name for f in FAMILIES}
+    assert names == {"TimberFrame", "Shingle", "ShingleSlab", "Pillar", "Post", "Panel", "Door", "FancyDoor",
+                      "Trapdoor", "FancyTrapdoor", "PaperWall", "Fence", "FenceGate", "Wall", "Stairs", "Slab",
+                      "AllBrick"}, names
+    # Framed Light block ids all end with "_light" (out of DO-1 scope); AllBrick's "light_brick" and
+    # "light_brick_stair" start with "light" instead, so endswith (not a plain substring test) tells them apart.
+    assert not any("dynamic" in b or b.endswith("light") for f in FAMILIES for b in f.blocks)
+
+
+def material_follows_component_order():
+    """The first DO component is Darkwood, another known component is Lightwood, matching the design's rule."""
+    timber = next(f for f in FAMILIES if f.name == "TimberFrame")
+    assert material(timber, timber.components[0]) == "dark"
+    assert material(timber, timber.components[1]) == "light"
+    post = next(f for f in FAMILIES if f.name == "Post")
+    assert len(post.components) == 1 and material(post, "anything/else") == "dark"
+
+
+def partial_cache_is_refetched(tmp):
+    """A cache missing its .complete marker (Review Focus 4: an interrupted download) is never trusted."""
+    (tmp / "models").mkdir(parents=True)
+    assert not source.is_complete(tmp)
+
+
+def main():
+    converter_matches_reference_geometry()
+    families_cover_the_spec()
+    material_follows_component_order()
+    with tempfile.TemporaryDirectory() as tmp:
+        partial_cache_is_refetched(Path(tmp))
     print("tools/domum check: OK")
 
 
