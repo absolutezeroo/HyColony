@@ -22,8 +22,10 @@ import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.crafting.module.CraftingHut;
+import dev.hycolony.core.crafting.recipe.BenchRequirement;
 import dev.hycolony.core.crafting.recipe.Ingredient;
 import dev.hycolony.core.crafting.recipe.Recipe;
+import dev.hycolony.core.crafting.recipe.RecipeSource;
 import dev.hycolony.core.crafting.task.CraftingTasks;
 import dev.hycolony.core.job.JobAI;
 import dev.hycolony.core.job.JobXp;
@@ -251,6 +253,31 @@ class CraftingWorkTest {
         assertEquals(0, lucky.job().actionsDone());
         assertEquals(RequestState.FOLLOWUP_IN_PROGRESS, task.state(), "finished, its seed on its way to the asker");
         assertEquals(List.of(new ItemAmount(SEEDS, 1)), task.deliveries());
+    }
+
+    @Test
+    void crafterDumpsTheToolItsRecipeMakes() {
+        Recipe hatchet = new Recipe(
+                List.of(new Ingredient.OfItem(ESSENCE, 2)),
+                new ItemAmount(AXE, 1),
+                List.of(),
+                new BenchRequirement("Farmingbench", List.of("Seeds"), 1),
+                Optional.empty(),
+                new RecipeSource.Hytale(AXE.id()),
+                false);
+        CrafterRig smith = new CrafterRig(hatchet);
+        smith.t.catalog.tools.put(AXE, new ToolInfo(ToolType.AXE, 1, 1f));
+        smith.stock(ESSENCE, 2);
+        Request task = smith.task(smith.ask(AXE, 1));
+        assertEquals(CRAFT, smith.toCraft());
+        assertEquals(INVENTORY_FULL, until(smith.work::craft, CRAFT));
+        assertEquals(1, smith.carried(AXE));
+
+        assertEquals(IDLE, until(smith.work::dump, INVENTORY_FULL));
+
+        assertEquals(0, smith.carried(AXE), "MC keepX: the test crafter's hut keeps no tool in the inventory");
+        assertEquals(1, smith.inHut(AXE), "in the hut, for the courier to deliver");
+        assertEquals(List.of(new ItemAmount(AXE, 1)), task.deliveries());
     }
 
     @Test

@@ -12,7 +12,6 @@ import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.model.Crafting;
 import dev.hycolony.core.request.model.RequestState;
-import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
 import org.jspecify.annotations.Nullable;
@@ -292,14 +291,15 @@ public final class CraftingWork {
     }
 
     /**
-     * MC dumpInventory then afterDump: at the hut, stores what the crafter carries (asking a courier only when
-     * {@link #isAfterDumpPickupAllowed}), its actions start again from 0.
+     * MC dumpInventory then afterDump: at the hut, stores what the crafter carries but what its hut keeps in a worker's
+     * inventory (MC keepX: a crafted tool leaves unless the hut keeps its type), asking a courier only when
+     * {@link #isAfterDumpPickupAllowed}; its actions start again from 0.
      */
     public CraftingStep dump() {
         if (!ctx.walkToHut()) {
             return CraftingStep.INVENTORY_FULL;
         }
-        ctx.stock().dump(Map.of(), isAfterDumpPickupAllowed());
+        ctx.stock().dumpKeepingHutRules(isAfterDumpPickupAllowed());
         ctx.job().clearActions();
         return afterDump();
     }

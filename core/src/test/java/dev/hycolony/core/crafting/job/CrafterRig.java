@@ -112,7 +112,12 @@ final class CrafterRig {
 
     /** The other hut asks for {@code count} seeds; returns its request. */
     Request ask(int count) {
-        return m().get(m().createAndAssign(other, new StackRequest(SEEDS, count, count, true), -1))
+        return ask(SEEDS, count);
+    }
+
+    /** The other hut asks for {@code count} of {@code item}; returns its request. */
+    Request ask(ItemKey item, int count) {
+        return m().get(m().createAndAssign(other, new StackRequest(item, count, count, true), -1))
                 .orElseThrow();
     }
 

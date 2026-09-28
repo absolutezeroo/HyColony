@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.building.Building;
+import dev.hycolony.core.building.BuildingType;
+import dev.hycolony.core.building.ModuleProducer;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyManager;
@@ -14,7 +16,9 @@ import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolInfo;
 import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.logistics.courier.DeliverymanHut;
+import dev.hycolony.core.logistics.pickup.KeepToolsModule;
 import dev.hycolony.core.testing.TestContexts;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -29,9 +33,11 @@ class WorkerStockTest {
     private static final ItemKey PICK = new ItemKey("pickaxe");
     private static final ItemKey IRON_PICK = new ItemKey("iron_pickaxe");
     private static final ItemKey DIAMOND_PICK = new ItemKey("diamond_pickaxe");
+    private static final ItemKey AXE = new ItemKey("axe");
 
     private final TestContexts t = new TestContexts();
     private final CitizenData citizen = new CitizenData(1);
+    private final Colony colony;
     private final Building hut;
     private final WorkerStock stock;
 
@@ -39,7 +45,7 @@ class WorkerStockTest {
         UUID alice = UUID.randomUUID();
         ColonyManager manager = new ColonyManager(t.context());
         manager.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
-        Colony colony = manager.foundation().confirm(alice, "A").orElseThrow();
+        colony = manager.foundation().confirm(alice, "A").orElseThrow();
         manager.huts().place(colony, DeliverymanHut.TYPE_ID, HUT, 0);
         hut = colony.buildings().at(HUT).orElseThrow();
         colony.citizens().restore(citizen);
@@ -76,5 +82,34 @@ class WorkerStockTest {
         assertEquals(5, citizen.inventory().count(LOG));
         assertEquals(1, citizen.inventory().count(PICK));
         assertEquals(List.of(new ItemAmount(LOG, 15), new ItemAmount(IRON_PICK, 1)), t.containers.stacks(HUT));
+    }
+
+    @Test
+    void aDumpByTheHutsKeepRulesKeepsOnlyWhatTheyKeepInTheInventory() {
+        BlockPos keeperPos = new BlockPos(30, 64, 0);
+        Building keeper = Building.create(
+                new BuildingType(
+                        "test:keeper",
+                        "hut.keeper",
+                        1,
+                        List.of(new ModuleProducer(
+                                "keepTools", () -> new KeepToolsModule(EnumSet.of(ToolType.PICKAXE))))),
+                keeperPos,
+                0);
+        colony.buildings().add(keeper);
+        WorkerStock keeperStock = new WorkerStock(colony, citizen, keeper, 32);
+        t.catalog.tools.put(AXE, new ToolInfo(ToolType.AXE, 1, 1f));
+        citizen.inventory().insert(new ItemAmount(LOG, 20), k -> 64);
+        citizen.inventory().set(1, Optional.of(new ItemAmount(PICK, 1)));
+        citizen.inventory().set(2, Optional.of(new ItemAmount(IRON_PICK, 1)));
+        citizen.inventory().set(3, Optional.of(new ItemAmount(AXE, 1)));
+
+        keeperStock.dumpKeepingHutRules(true);
+
+        assertEquals(1, citizen.inventory().count(PICK), "MC keepX (1, true): one pickaxe stays");
+        assertEquals(
+                List.of(new ItemAmount(LOG, 20), new ItemAmount(IRON_PICK, 1), new ItemAmount(AXE, 1)),
+                t.containers.stacks(keeperPos),
+                "no keep rule for logs or axes: they go, whatever the builder keeps");
     }
 }

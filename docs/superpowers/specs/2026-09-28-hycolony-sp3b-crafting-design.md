@@ -165,6 +165,7 @@ Toutes reprises de MineColonies sauf les écarts listés plus bas. Chaque classe
     - si `craftCounter ≥ maxCraftingCount` : `incrementActionsDone(1)`, amélioration de la recette, `count / 2` d'expérience (MC `finalizeCraftingTask`), puis `INVENTORY_FULL` ;
     - sinon, si l'outil s'est cassé : échec ;
     - sinon, `progress = 0`, puis `GET_RECIPE`.
+  - **Vidage** (MC `dumpOneMoreSlot`, `WorkerStock.dumpKeepingHutRules`) : l'artisan ne garde que ce que sa hutte garde dans l'inventaire d'un ouvrier, les entrées `keepX` marquées vraies (par exemple un `KeepToolsModule`, comme la houe et la hache du fermier de MC). Les réservations du module de fabrication ne comptent que pour les étagères. Un outil fabriqué part donc dans la hutte, pour sa livraison, sauf si la hutte garde ce type d'outil. La règle du constructeur (un outil de chaque type) ne s'applique pas.
   - **Après le vidage** (`afterDump`) :
     - si les compteurs sont à 0 avec une requête en cours, la requête passe en `finishRequest(true)`, et l'artisan gagne encore `count / 2` d'expérience (comme MC, deux fois par tâche) ;
     - chaque sortie secondaire accumulée part à l'entrepôt le plus proche : une `Delivery` par pile, priorité `MAX_BUILDING_PRIORITY = 10`.
