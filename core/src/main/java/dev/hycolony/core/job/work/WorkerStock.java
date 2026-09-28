@@ -111,27 +111,24 @@ public final class WorkerStock {
      * a courier to empty the hut ({@link PickupRequests#afterDump}).
      */
     public void dump(Map<ItemKey, Integer> keep) {
-        dump(keep, true);
-    }
-
-    /**
-     * {@link #dump(Map)}; {@code pickupAllowed} false (MC isAfterDumpPickupAllowed) asks for no courier unless the hut
-     * is full.
-     */
-    public void dump(Map<ItemKey, Integer> keep, boolean pickupAllowed) {
-        dump(toolsAnd(keep), pickupAllowed);
+        dump(toolsAnd(keep), true);
     }
 
     /**
      * MC dumpOneMoreSlot's own rule: stores everything but what the hut's keep rules keep in a worker's inventory
      * (MC buildingRequiresCertainAmountOfItem with {@code inventory} true, {@link HutKeep}): only its {@code keepX}
-     * entries marked so, a tool among them only if the hut lists its type. Otherwise as {@link #dump(Map, boolean)}.
+     * entries marked so, a tool among them only if the hut lists its type. Otherwise as {@link #dump(Map)}, but
+     * {@code pickupAllowed} false (MC isAfterDumpPickupAllowed) asks for no courier unless the hut is full.
      */
     public void dumpKeepingHutRules(boolean pickupAllowed) {
         HutKeep keep = HutKeep.of(colony, hut, true);
         dump(a -> a.count() - keep.removable(a), pickupAllowed);
     }
 
+    /**
+     * Stores all but what {@code keptOf} keeps of each stack, sets the retry delay of the next full-inventory dump,
+     * then asks for a courier as {@link PickupRequests#afterDump} decides with {@code pickupAllowed}.
+     */
     private void dump(ToIntFunction<ItemAmount> keptOf, boolean pickupAllowed) {
         int before = carried();
         boolean stored = storeAll(keptOf);

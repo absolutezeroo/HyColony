@@ -50,8 +50,12 @@ final class RecipeCompatibility {
     static boolean compatible(Colony colony, Building hut, String jobId, Recipe recipe) {
         CraftingSetup crafting = colony.context().ports().crafting();
         return RecipeMatching.everyIngredientHasItems(recipe, crafting.catalog())
-                && benchPresent(hut, recipe, crafting.catalog())
-                && crafting.rules().allows(jobId, recipe);
+                && hutAndJobAllow(crafting, hut, jobId, recipe);
+    }
+
+    /** {@link #compatible}'s MC part: the hut has the recipe's bench and the job's rules allow it. */
+    private static boolean hutAndJobAllow(CraftingSetup crafting, Building hut, String jobId, Recipe recipe) {
+        return benchPresent(hut, recipe, crafting.catalog()) && crafting.rules().allows(jobId, recipe);
     }
 
     /**
@@ -74,16 +78,17 @@ final class RecipeCompatibility {
      */
     static boolean stillValid(Colony colony, Building hut, String jobId, RecipeId id) {
         Optional<Recipe> recipe = colony.recipes().get(id);
-        RecipeCatalog catalog = colony.context().ports().crafting().catalog();
-        if (recipe.isEmpty() || !RecipeMatching.everyIngredientHasItems(recipe.get(), catalog)) {
+        CraftingSetup crafting = colony.context().ports().crafting();
+        if (recipe.isEmpty() || !RecipeMatching.everyIngredientHasItems(recipe.get(), crafting.catalog())) {
             return false;
         }
-        List<CustomRecipe> custom = colony.context().ports().crafting().rules().custom(jobId);
+        List<CustomRecipe> custom = crafting.rules().custom(jobId);
         if (recipe.get().source() instanceof RecipeSource.Custom(String customId)
                 && custom.stream().noneMatch(c -> c.id().equals(customId))) {
             return false;
         }
-        return compatible(colony, hut, jobId, recipe.get()) || isPreTaught(colony, recipe.get(), custom);
+        // The ingredients were checked above: compatible() would check them again.
+        return hutAndJobAllow(crafting, hut, jobId, recipe.get()) || isPreTaught(colony, recipe.get(), custom);
     }
 
     /** MC isPreTaughtRecipe: a custom recipe of the job makes the same item, as many of it. */
