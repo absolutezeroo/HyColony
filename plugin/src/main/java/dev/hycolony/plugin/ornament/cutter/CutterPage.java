@@ -25,6 +25,7 @@ import dev.hycolony.plugin.inventory.PlayerSection;
 import dev.hycolony.plugin.inventory.ReturningContainerWindow;
 import dev.hycolony.plugin.ornament.registry.OrnamentVariantRegistry;
 import dev.hycolony.plugin.ui.PageEvents;
+import dev.hycolony.plugin.ui.UiSounds;
 import java.util.UUID;
 import javax.annotation.Nonnull;
 import org.jspecify.annotations.Nullable;
@@ -69,17 +70,13 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
     }
 
     /**
-     * What the window works on: its world, the ornaments, the players' last groups, and how long a craft takes in
-     * milliseconds (HyColony.CutterCraftSeconds; 0 crafts at once, as DO).
+     * What the window works on: its world, the shared cutter settings (ornaments, players' last groups, craft time in
+     * milliseconds from HyColony.CutterCraftSeconds, sounds), and the loaded catalogs.
      */
-    record Setup(
-            World world,
-            OrnamentVariantRegistry registry,
-            OrnamentVariantRegistry.Catalogs catalogs,
-            CutterGroupMemory memory,
-            long craftMillis) {}
+    record Setup(World world, CutterSettings settings, OrnamentVariantRegistry.Catalogs catalogs) {}
 
     private final Setup setup;
+
     private final UUID player;
     private final CutterActions actions;
     private final CutterSlots slots;
@@ -95,25 +92,25 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
         this.actions = new CutterActions(
                 CutterCatalog.of(setup.catalogs().shapes()),
                 setup.catalogs().materials().tags());
-        actions.selectGroup(setup.memory().group(player));
+        actions.selectGroup(setup.settings().memory().group(player));
         this.slots = new CutterSlots(actions::accepts);
         // Nothing once the slots' window has closed: the page is gone or the player is leaving.
         this.redraw = new PageRedraw(
                 setup.world(), this::redrawIfShown, () -> !slots.window().isClosed());
         this.previews = new CutterPreviewVariants(
                 setup.world(),
-                setup.registry(),
+                setup.settings().registry(),
                 redraw::soon,
                 () -> !slots.window().isClosed());
         this.crafts = new CutterCraftClicks(
                 setup,
                 actions,
                 slots,
-                setup.craftMillis() <= 0
+                setup.settings().craftMillis() <= 0
                         ? null
                         : new CutterCraftQueue(
                                 setup.world(),
-                                setup.craftMillis(),
+                                setup.settings().craftMillis(),
                                 () -> !slots.window().isClosed(),
                                 this::showProgress),
                 redraw::soon);
@@ -154,7 +151,7 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
             switch (act.action) {
                 case "group" -> {
                     actions.selectGroup(act.index);
-                    setup.memory().remember(player, actions.group());
+                    setup.settings().memory().remember(player, actions.group());
                 }
                 case "shape" -> actions.selectShape(act.index);
                 case InventoryGrids.DROP_ACTION -> {
@@ -173,7 +170,10 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
         });
     }
 
-    /** Stops following the inventory and closes the slots' window, which gives their content back. Never throws. */
+    /**
+     * Stops following the inventory, closes the slots' window, which gives their content back, and plays the close
+     * sound. Never throws.
+     */
     @Override
     public void onDismiss(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
         InventoryWatch current = watch;
@@ -182,6 +182,7 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
             current.stop();
         }
         slots.window().closeIfOpen(ref, store);
+        UiSounds.play(playerRef, setup.settings().closeSound()); // as a bench's LocalCloseSoundEventId
         super.onDismiss(ref, store);
     }
 

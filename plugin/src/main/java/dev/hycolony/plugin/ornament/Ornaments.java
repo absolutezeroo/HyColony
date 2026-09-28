@@ -10,6 +10,7 @@ import dev.hycolony.core.ornament.OrnamentShape;
 import dev.hycolony.core.ornament.ShapeCatalog;
 import dev.hycolony.plugin.IdMap;
 import dev.hycolony.plugin.ornament.cutter.CutterGroupMemory;
+import dev.hycolony.plugin.ornament.cutter.CutterSettings;
 import dev.hycolony.plugin.ornament.cutter.CutterSystem;
 import dev.hycolony.plugin.ornament.debug.OrnamentCommand;
 import dev.hycolony.plugin.ornament.persistence.VariantStore;
@@ -61,7 +62,12 @@ public final class Ornaments {
         plugin.getCommandRegistry().registerCommand(new OrnamentCommand(ornaments));
         CutterGroupMemory groups = new CutterGroupMemory();
         plugin.getEntityStoreRegistry()
-                .registerSystem(new CutterSystem(ornaments, groups, Math.round(cutterCraftSeconds * 1000)));
+                .registerSystem(new CutterSystem(new CutterSettings(
+                        ornaments,
+                        groups,
+                        Math.round(cutterCraftSeconds * 1000),
+                        ids.sound("cutter.open"),
+                        ids.sound("cutter.close"))));
         plugin.getEventRegistry()
                 .register(
                         PlayerDisconnectEvent.class,

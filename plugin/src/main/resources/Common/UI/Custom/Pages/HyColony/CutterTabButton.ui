@@ -6,7 +6,12 @@ Button #TabButton {
   Style: (
     Default: (Background: "../../Common/Tab.png"),
     Hovered: (Background: "../../Common/Tab.png"),
-    Pressed: (Background: "../../Common/Tab.png")
+    Pressed: (Background: "../../Common/Tab.png"),
+    // The client's tab sounds (Sounds.ui @DefaultTabNavigation), the tab sound copied beside this page.
+    Sounds: (
+      Activate: (SoundPath: "Sounds/DefaultTabActivate.ogg", Volume: -2, MinPitch: -0.2, MaxPitch: 0.2),
+      MouseHover: (SoundPath: "../../Sounds/ButtonsLightHover.ogg", Volume: 6)
+    )
   );
   TextTooltipStyle: $C.@DefaultTextTooltipStyle;
 

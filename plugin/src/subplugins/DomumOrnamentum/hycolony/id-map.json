@@ -1,4 +1,8 @@
 {
+  "sounds": {
+    "cutter.open": "SFX_Workbench_Open",
+    "cutter.close": "SFX_Workbench_Close"
+  },
   "ornamentTags": {
     "timber_frames_frame": [
       "Cloth_Block_Wool_Black",

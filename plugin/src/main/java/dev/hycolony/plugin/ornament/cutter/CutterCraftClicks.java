@@ -72,7 +72,7 @@ final class CutterCraftClicks {
                                 shape,
                                 slots,
                                 setup.catalogs().materials().tags(),
-                                setup.registry(),
+                                setup.settings().registry(),
                                 crafts,
                                 done)),
                         () -> done.accept(false));

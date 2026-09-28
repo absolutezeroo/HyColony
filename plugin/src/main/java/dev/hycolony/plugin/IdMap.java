@@ -37,7 +37,8 @@ public final class IdMap {
             List<String> potions,
             Map<String, List<String>> ornamentTags,
             FarmingIds farming,
-            @Nullable String highlightEffect) {}
+            @Nullable String highlightEffect,
+            @Nullable Map<String, String> sounds) {}
 
     private final Data data;
 
@@ -53,6 +54,12 @@ public final class IdMap {
     /** The entity effect that makes a highlighted block glow (a vanilla ModelVFX effect); empty when not set. */
     public Optional<String> highlightEffect() {
         return Optional.ofNullable(data.highlightEffect());
+    }
+
+    /** The sound event of {@code key} (sounds section, e.g. cutter.open); empty when not mapped. */
+    public Optional<String> sound(String key) {
+        return Optional.ofNullable(Objects.requireNonNullElse(data.sounds(), Map.<String, String>of())
+                .get(key));
     }
 
     /** True when {@code key} has both a hut item and a hut block, as every registered building type needs. */
@@ -181,6 +188,11 @@ public final class IdMap {
                 id -> RootInteraction.getAssetMap().getAsset(id) != null);
         check(errors, "potion item", byId(potionList()), item);
         check(errors, "npc role", data.npcRoles(), id -> NPCPlugin.get().hasRoleName(id));
+        check(
+                errors,
+                "sound event",
+                Objects.requireNonNullElse(data.sounds(), Map.of()),
+                id -> SoundEvent.getAssetMap().getIndex(id) != Integer.MIN_VALUE);
         check(
                 errors,
                 "entity effect",

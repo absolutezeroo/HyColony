@@ -2,6 +2,8 @@ $C = "../../Common.ui";
 
 $C.@SmallSecondaryTextButton #TabButton {
   @Text = "";
+  // The client's tab sound (Sounds.ui @DefaultTabNavigation), copied beside this page.
+  @Sounds = (Activate: (SoundPath: "Sounds/DefaultTabActivate.ogg", Volume: -2, MinPitch: -0.2, MaxPitch: 0.2));
   Anchor: (Width: 150, Height: 30, Right: 4);
   TextTooltipStyle: $C.@DefaultTextTooltipStyle;
 }

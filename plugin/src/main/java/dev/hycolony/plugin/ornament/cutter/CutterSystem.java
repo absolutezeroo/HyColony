@@ -13,7 +13,6 @@ import com.hypixel.hytale.server.core.event.events.ecs.UseBlockEvent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.plugin.block.BlockUseProtectionSystem;
-import dev.hycolony.plugin.ornament.registry.OrnamentVariantRegistry;
 import java.util.Set;
 import java.util.logging.Level;
 import javax.annotation.Nonnull;
@@ -31,16 +30,12 @@ public final class CutterSystem extends EntityEventSystem<EntityStore, UseBlockE
     private final Set<Dependency<EntityStore>> dependencies =
             Set.of(new SystemDependency<>(Order.AFTER, BlockUseProtectionSystem.class));
 
-    private final OrnamentVariantRegistry registry;
-    private final CutterGroupMemory memory;
-    private final long craftMillis;
+    private final CutterSettings settings;
 
-    /** Opens windows on registry's ornaments, remembering groups in memory; a craft takes craftMillis (0: at once). */
-    public CutterSystem(OrnamentVariantRegistry registry, CutterGroupMemory memory, long craftMillis) {
+    /** Opens windows with {@code settings}: the ornaments, the remembered groups, the craft time, the sounds. */
+    public CutterSystem(CutterSettings settings) {
         super(UseBlockEvent.Pre.class);
-        this.registry = registry;
-        this.memory = memory;
-        this.craftMillis = craftMillis;
+        this.settings = settings;
     }
 
     @Override
@@ -64,8 +59,7 @@ public final class CutterSystem extends EntityEventSystem<EntityStore, UseBlockE
             return;
         }
         try {
-            CutterOpener.open(
-                    store.getExternalData().getWorld(), chunk.getReferenceTo(index), registry, memory, craftMillis);
+            CutterOpener.open(store.getExternalData().getWorld(), chunk.getReferenceTo(index), settings);
         } catch (RuntimeException e) {
             event.setCancelled(true);
             LOG.at(Level.SEVERE).withCause(e).log("HyColony cutter use failed at %s", event.getTargetBlock());
