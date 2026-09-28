@@ -18,6 +18,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.function.Supplier;
+import java.util.random.RandomGenerator;
 
 /** A fully faked colony context. Fields are public so tests can steer the fakes. */
 public final class TestContexts {
@@ -48,6 +50,8 @@ public final class TestContexts {
     };
     public ColonyConfig config = ColonyConfig.defaults();
     public JobRegistry jobs = jobs();
+    /** The random source of each context; seeded, so a run replays the same draws. */
+    public Supplier<RandomGenerator> random = () -> new Random(1234);
 
     /** Building types a test adds on top of the defaults, as a pack would. */
     public final List<BuildingType> extraBuildingTypes = new ArrayList<>();
@@ -79,7 +83,7 @@ public final class TestContexts {
                 buildings(),
                 jobs,
                 CitizenNames.loadDefault(),
-                new Random(1234),
+                random.get(),
                 bus,
                 new ConstructionPorts(
                         catalog,

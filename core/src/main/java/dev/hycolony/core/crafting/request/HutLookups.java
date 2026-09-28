@@ -2,39 +2,16 @@ package dev.hycolony.core.crafting.request;
 
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingModule;
-import dev.hycolony.core.crafting.module.CraftingModule;
-import dev.hycolony.core.crafting.recipe.RecipeId;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.request.Resolver;
 import dev.hycolony.core.request.model.RequesterId;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
-/** What the crafting resolvers look up in their hut (MC AbstractBuilding and the requester's location). */
+/**
+ * What the crafting resolvers look up in their hut (MC AbstractBuilding and the requester's location), besides its
+ * crafting modules ({@link dev.hycolony.core.crafting.module.CraftingModules}).
+ */
 final class HutLookups {
     private HutLookups() {}
-
-    /** MC getModulesByType(ICraftingBuildingModule.class): the hut's crafting modules, in module order. */
-    static List<CraftingModule> craftingModules(Building hut) {
-        List<CraftingModule> out = new ArrayList<>();
-        for (BuildingModule module : hut.modules().values()) {
-            if (module instanceof CraftingModule crafting) {
-                out.add(crafting);
-            }
-        }
-        return out;
-    }
-
-    /** MC AbstractBuilding.getCraftingModuleForRecipe: the first crafting module of the hut holding the recipe. */
-    static Optional<CraftingModule> moduleHolding(Building hut, RecipeId id) {
-        for (CraftingModule module : craftingModules(hut)) {
-            if (module.holdsRecipe(id)) {
-                return Optional.of(module);
-            }
-        }
-        return Optional.empty();
-    }
 
     /** MC AbstractCraftingRequestResolver.hasModuleForJob: a worker module of the hut for this job has a worker. */
     static boolean employs(Building hut, String jobId) {

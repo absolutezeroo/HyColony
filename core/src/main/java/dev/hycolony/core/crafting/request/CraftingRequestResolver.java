@@ -3,6 +3,7 @@ package dev.hycolony.core.crafting.request;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.crafting.module.CraftingModule;
+import dev.hycolony.core.crafting.module.CraftingModules;
 import dev.hycolony.core.crafting.module.RecipeChoice;
 import dev.hycolony.core.crafting.module.RecipeChoice.Chosen;
 import dev.hycolony.core.crafting.recipe.Ingredient;
@@ -96,7 +97,7 @@ final class CraftingRequestResolver implements Resolver {
         if (hut.level() <= 0 || !HutLookups.employs(hut, jobId) || CraftingCycles.createsCycle(m, r, asked, r)) {
             return false;
         }
-        for (CraftingModule module : HutLookups.craftingModules(hut)) {
+        for (CraftingModule module : CraftingModules.of(hut)) {
             Optional<Recipe> recipe = firstRecipe(m, module, asked).map(Chosen::recipe);
             if (recipe.isPresent() && mayUse(recipe.get()) && !ingredientsCycle(m, r, asked, recipe.get())) {
                 return true;
@@ -131,7 +132,7 @@ final class CraftingRequestResolver implements Resolver {
     @Override
     public Optional<List<Requestable>> attemptResolve(RequestManager m, Request r) {
         Deliverable asked = r.deliverable().orElseThrow(); // handles() takes deliverables only
-        for (CraftingModule module : HutLookups.craftingModules(hut)) {
+        for (CraftingModule module : CraftingModules.of(hut)) {
             Optional<Chosen> chosen = firstRecipe(m, module, asked);
             if (chosen.isPresent()) {
                 return Optional.of(List.<Requestable>copyOf(

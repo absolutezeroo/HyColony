@@ -41,19 +41,20 @@ public final class PickupRequests {
 
     /**
      * The pickup a worker's dump into {@code hut} asks for (MC {@code AbstractEntityAIBasic.dumpInventory}): forced
-     * when the hut is full ({@link #isFull}), else unforced when {@code dumped > 0}; nothing at pickup priority 0.
+     * when the hut is full ({@link #isFull}), else unforced when {@code dumped > 0} and {@code allowed} (MC
+     * {@code isAfterDumpPickupAllowed}); nothing at pickup priority 0.
      *
      * <p>Deviation from MC: our dump stores the whole inventory in one pass, so fullness is checked once after it.
      * MC checks it before each slot; a hut filled by the very last slot then gets an unforced pickup, here a forced
      * one. No "inventory full chest" chat line (no interaction system yet).
      */
-    public static void afterDump(Colony colony, Building hut, int dumped) {
+    public static void afterDump(Colony colony, Building hut, int dumped, boolean allowed) {
         if (hut.pickupPriority().value() <= 0) {
             return;
         }
         if (isFull(colony, hut)) {
             createPickupRequest(colony, hut, dumped, true);
-        } else if (dumped > 0) {
+        } else if (dumped > 0 && allowed) {
             createPickupRequest(colony, hut, dumped, false);
         }
     }

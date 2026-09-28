@@ -8,6 +8,8 @@ import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.crafting.job.Crafter;
 import dev.hycolony.core.crafting.job.CraftingTasks;
+import dev.hycolony.core.crafting.job.CraftingWork;
+import dev.hycolony.core.crafting.job.CraftingWorkContext;
 import dev.hycolony.core.crafting.module.CraftingModule;
 import dev.hycolony.core.job.Job;
 import dev.hycolony.core.job.JobAI;
@@ -43,7 +45,7 @@ public final class TestCrafters {
                         new ModuleProducer("crafting", () -> new CraftingModule(ID, many))));
     }
 
-    /** The crafter job; its AI stands idle until the crafting AI steps exist. */
+    /** The crafter job, whose AI is a {@link TestCrafterAI}. */
     public static final class TestCrafterJob extends Job implements Crafter {
         private final CraftingTasks tasks = new CraftingTasks();
 
@@ -56,22 +58,12 @@ public final class TestCrafters {
             return tasks;
         }
 
+        /** The crafting AI of {@link TestCrafterAI}; without a hut, one that only goes idle. */
         @Override
         public JobAI createAI(Colony colony, BodyId body) {
-            return new JobAI() {
-                @Override
-                public void tick() {}
-
-                @Override
-                public String stateName() {
-                    return "idle";
-                }
-
-                @Override
-                public boolean canBeInterrupted() {
-                    return true;
-                }
-            };
+            return CraftingWorkContext.of(colony, this, body)
+                    .<JobAI>map(ctx -> new TestCrafterAI(new CraftingWork(ctx)))
+                    .orElseGet(NoHut::new);
         }
 
         /** MC AbstractJobCrafter.onRemoval: the crafter's tasks fail, their parents go back to the request system. */
@@ -93,6 +85,27 @@ public final class TestCrafters {
             if (in.get("crafting") instanceof JsonObject crafting) {
                 tasks.read(crafting);
             }
+        }
+    }
+
+    /** The AI of a crafter without a hut: it never works (MC's AI then waits for a building). */
+    private static final class NoHut implements JobAI {
+        @Override
+        public void tick() {}
+
+        @Override
+        public String stateName() {
+            return "IDLE";
+        }
+
+        @Override
+        public boolean canBeInterrupted() {
+            return true;
+        }
+
+        @Override
+        public boolean canGoIdle() {
+            return true;
         }
     }
 }

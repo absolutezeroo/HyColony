@@ -109,10 +109,18 @@ public final class WorkerStock {
      * a courier to empty the hut ({@link PickupRequests#afterDump}).
      */
     public void dump(Map<ItemKey, Integer> keep) {
+        dump(keep, true);
+    }
+
+    /**
+     * {@link #dump(Map)}; {@code pickupAllowed} false (MC isAfterDumpPickupAllowed) asks for no courier unless the hut
+     * is full, e.g. while a crafter's task is under way.
+     */
+    public void dump(Map<ItemKey, Integer> keep, boolean pickupAllowed) {
         int before = carried();
         boolean stored = storeAll(keep);
         dumpRetryAt = stored && !inventory().isFull() ? 0 : DUMP_RETRY_ACTIONS;
-        PickupRequests.afterDump(colony, hut, before - carried());
+        PickupRequests.afterDump(colony, hut, before - carried(), pickupAllowed);
     }
 
     private int carried() {

@@ -137,15 +137,15 @@ Toutes reprises de MineColonies sauf les écarts listés plus bas. Chaque classe
   - Les méthodes suivent MC : `currentTask` (retire en tête les jetons morts), `finishRequest(ok)`, `onTaskBeingScheduled`, `onTaskBeingResolved` et `onTaskDeletion`.
   - Au retrait de l'employé, toutes ses tâches passent en FAILED.
   - Bug MC corrigé : `deserializeNBT` relit `maxCraftingCount` et `craftCounter` dans `progress`. On lit chaque clé dans son champ (écart documenté).
-- **`CraftingWork`** (composant de l'IA) : chaque méthode d'étape renvoie un `CraftingStep` (`IDLE`, `START_WORKING`, `GET_RECIPE`, `QUERY_ITEMS`, `GATHERING_REQUIRED_MATERIALS`, `CRAFT`, `INVENTORY_FULL`). L'IA concrète l'associe à ses propres états et à ses délais. Délais en ticks, `STANDARD_DELAY = 5`, `HIT_DELAY = 10`, `TICKS_SECOND = 20`.
-  - `IDLE` → `START_WORKING` si `hasWorkToDo` (vérifié toutes les 20 ticks). Sinon l'artisan flâne dans la hutte (`canGoIdle`). Les places assises et debout de MC sont hors portée.
+- **`CraftingWork`** (composant de l'IA) : chaque méthode d'étape renvoie un `CraftingStep` (`IDLE`, `START_WORKING`, `GET_RECIPE`, `QUERY_ITEMS`, `GATHERING_REQUIRED_MATERIALS`, `CRAFT`, `INVENTORY_FULL`, `NEEDS_ITEM`). L'IA concrète l'associe à ses propres états et à ses délais. Délais en ticks, `STANDARD_DELAY = 5`, `HIT_DELAY = 10`, `TICKS_SECOND = 20`. Le modèle est l'IA de test `TestCrafterAI`, que le fermier suivra : les cibles de MC `AbstractEntityAICrafting`, plus celles de `AbstractEntityAIBasic` pour le vidage (`INVENTORY_FULL` toutes les 20 ticks, déclenché toutes les 100 ticks) et l'attente d'une requête (`NEEDS_ITEM` toutes les 40 ticks, déclenché toutes les 20 ticks).
+  - `IDLE` → `START_WORKING` si `hasWorkToDo` (vérifié toutes les 20 ticks). Sinon, sans rien à vider, l'artisan laisse la main à la flânerie du citoyen (`canGoIdle`). Les places assises et debout de MC sont hors portée.
   - `START_WORKING` (`decide`, toutes les 5 ticks) :
     - aller à la hutte ;
     - si `actionsDone ≥ getActionsDoneUntilDumping()` (1 par défaut), attendre le vidage ;
     - sinon `getNextCraftingState` : `INVENTORY_FULL` si plus de 3 cases étrangères à la recette (une seule fois par recette), puis `QUERY_ITEMS` si une recette est en cours, sinon `GET_RECIPE`.
   - `GET_RECIPE` : à reprendre ligne à ligne de MC.
     - Il n'y a pas de module ou pas de recette réalisable → `finishRequest(false)`, puis `START_WORKING`.
-    - L'outil requis manque → la requête d'outil passe par `ToolRequests`, puis `finishRequest(false)`.
+    - L'outil requis manque, dans l'inventaire comme dans la hutte → la requête d'outil passe par `ToolRequests`, puis `finishRequest(false)`. Cette requête est celle du citoyen : l'artisan l'attend en `NEEDS_ITEM`, puis prend l'outil livré à la hutte (`SyncRequests`, partagé avec le constructeur).
     - Sinon, calcul de `maxCraftingCount` et `craftCounter` à partir de ce que l'artisan a déjà et de ce qui est disponible, puis `QUERY_ITEMS`.
   - `QUERY_ITEMS` (`checkForItems`) :
     - un ingrédient manque dans l'inventaire mais se trouve dans la hutte → `GATHERING_REQUIRED_MATERIALS` (le transfert existe déjà dans `WorkerStock`) ;
@@ -153,18 +153,18 @@ Toutes reprises de MineColonies sauf les écarts listés plus bas. Chaque classe
     - sinon → `CRAFT`.
   - `CRAFT` (toutes les 10 ticks) :
     - aller à la table de la recette (la première table enregistrée qui correspond), ou au bloc de hutte pour une recette sans table ;
-    - `progress + 1` et un coup sur le bloc (animation, particules et son par `WorldEffects`) ;
-    - si la requête a été annulée ou a échoué, on abandonne ;
+    - `progress + 1` et un coup sur le bloc (l'outil ou un ingrédient en main, animation, particules et son par `WorldEffects`) ;
+    - si la requête a été annulée ou a échoué, ou n'est plus en tête de file, on abandonne : un vidage suit ;
     - à `progress ≥ 10 / min(compétence de vitesse / 2 + 1, 50) × 3` (division entière, comme MC), la recette est exécutée.
   - **Exécution** (`executeCraftingAction`) :
     - les ingrédients sont consommés dans l'inventaire de l'artisan ;
     - les sorties y sont ajoutées : la principale va aux `deliveries` de la requête, les secondaires à `secondaryOutputs` ;
     - `craftCounter + 1`, et l'outil perd 1 de durabilité ;
-    - si `craftCounter ≥ maxCraftingCount` : `incrementActionsDone(1)`, amélioration de la recette, puis `INVENTORY_FULL` ;
+    - si `craftCounter ≥ maxCraftingCount` : `incrementActionsDone(1)`, amélioration de la recette, `count / 2` d'expérience (MC `finalizeCraftingTask`), puis `INVENTORY_FULL` ;
     - sinon, si l'outil s'est cassé : échec ;
     - sinon, `progress = 0`, puis `GET_RECIPE`.
   - **Après le vidage** (`afterDump`) :
-    - si les compteurs sont à 0 avec une requête en cours, la requête passe en `finishRequest(true)`, et l'artisan gagne `count / 2` d'expérience ;
+    - si les compteurs sont à 0 avec une requête en cours, la requête passe en `finishRequest(true)`, et l'artisan gagne encore `count / 2` d'expérience (comme MC, deux fois par tâche) ;
     - chaque sortie secondaire accumulée part à l'entrepôt le plus proche : une `Delivery` par pile, priorité `MAX_BUILDING_PRIORITY = 10`.
   - `isAfterDumpPickupAllowed` = pas de requête en cours.
 - La compétence de vitesse et la compétence d'amélioration sont celles du `WorkerModule` : principale et secondaire par défaut, comme MC `CraftingWorkerBuildingModule`.
@@ -225,7 +225,7 @@ Lecture tolérante : clé absente = vide, entrée invalide ignorée et journalis
 6. **Ingrédients par type de ressource ou tag.** Ils sont demandés par une `StackList`. Dans MC, la grille fige l'objet exact au moment de l'apprentissage. Un tel ingrédient est « réductible » par l'amélioration si tous les objets qu'il accepte sont listés dans `reduceable.ingredients`.
 7. **Recherche absente.** Les effets `RECIPES` et `CITIZEN_INV_SLOTS` valent 0, et `RECIPE_MODE` reste sur `PRIORITY`.
 8. **Bug MC corrigé :** `AbstractJobCrafter.deserializeNBT` range trois clés dans `progress`.
-9. **Pas de places assises ni debout** pour l'artisan inactif : il flâne dans la hutte.
+9. **Pas de places assises ni debout** pour l'artisan inactif : sans tâche ni vidage en attente, il laisse la main à la flânerie du citoyen (`canGoIdle`), comme le fermier de MC.
 10. **Résolveurs privés créés par le module de fabrication**, pas par chaque `WorkerModule`, pour que `job` ne dépende pas de `crafting`. Ils sont enregistrés après les publics, comme chez le fermier de MC, qui liste son module de fabrication avant ses employés : à priorité et distance égales, le premier enregistré l'emporte. Chez MC, cet ordre suit les modules de chaque hutte.
 11. **Composants au lieu d'héritage :** `CraftingTasks` et `CraftingWork` remplacent `AbstractJobCrafter` et `AbstractEntityAICrafting` (règle d'`ArchitectureTest`). Le comportement est le même.
 12. **Une recette qui n'est plus valable n'est plus choisie** (`getFirstRecipe`, `getFirstFulfillableRecipe`), mais reste dans la liste : sa table a disparu, le métier ne peut plus l'apprendre, ou c'est une recette maison retirée de `crafting.json`. MC ne la retire qu'au rafraîchissement de sa vue (`serializeToView`), avec le même test : une recette qui fait la même sortie qu'une recette maison du métier (`isPreTaughtRecipe`) reste valable.
@@ -247,6 +247,10 @@ Lecture tolérante : clé absente = vide, entrée invalide ignorée et journalis
 22. **Demandeur inconnu** (sa hutte a disparu) : le résolveur de fabrication le juge le plus loin possible. MC garde la position sauvegardée du demandeur.
 23. **Réservations sans exclusion.** Le stock que la hutte sert à ses propres requêtes (`BuildingResolver`) ne déduit pas les réservations de ses artisans : `building` ne dépend pas de `crafting`. MC les déduit dans `BuildingRequestResolver`, en excluant la tâche dont la requête descend (`reservedStacksExcluding(request)`). Les réservations servent ici au choix d'une recette réalisable et au « à garder ».
 24. **Place vérifiée exactement quand l'artisan fabrique** (`RecipeExecution.craftOnce`) : l'exécution est d'abord jouée sur une copie de son inventaire, et rien ne change si une sortie ne tient pas. MC estime la place par le nombre de cases libres (`checkForFreeSpace`) et peut consommer les ingrédients d'une sortie qui ne trouve ensuite aucune case : elle est perdue. La fabrication immédiate du résolveur privé, dans la hutte, garde l'estimation de MC (les conteneurs ne se copient pas).
+25. **L'artisan travaille à la table de la recette** : il y marche et la frappe, ou frappe le bloc de hutte pour une recette sans table. MC marche vers un emplacement « work » du schéma et frappe le bloc de hutte. Il tient un seul objet (l'outil, sinon un ingrédient) : MC remplit les deux mains.
+26. **Tâche abandonnée sans reste** (`CraftingWork.abandon`). Une tâche qui quitte la tête de file en pleine fabrication (annulée, échouée, finie ailleurs) est abandonnée comme une tâche annulée de MC : compteurs remis à 0 et vidage. MC ne l'abandonne que si la requête est encore là : sinon il poursuit la tâche suivante avec la recette et les compteurs de l'ancienne, ou s'arrête sans vider si la file est vide. De même, une tâche échouée faute de module n'est jamais suivie de sa recette.
+27. **Ingrédients pris en une fois** : l'artisan prend l'ingrédient qui manque dans tous les conteneurs de la hutte à la fois (`WorkerStock.take`, comme le constructeur). MC marche d'un coffre à l'autre.
+28. **Sorties d'une tâche regroupées à la fin** : l'artisan ajoute la sortie de chaque exécution comme une pile à part, et les piles sont regroupées en piles pleines quand la tâche est finie (`CraftingProductionResolver.followups`). MC les regroupe à chaque ajout (`AbstractRequest.addDelivery`). Le livreur reçoit dans les deux cas une livraison par pile pleine.
 
 ## Architecture
 
@@ -258,12 +262,14 @@ Lecture tolérante : clé absente = vide, entrée invalide ignorée et journalis
     - `RecipeMatching` : la correspondance d'un ingrédient avec un objet ;
     - `CraftingRules` : la lecture de `crafting.json` et le filtre des métiers ;
     - `CraftingSetup(RecipeCatalog, CraftingRules)`, que `ConstructionPorts` reçoit ;
-  - `crafting/module` : `CraftingModule` (état et liste), `RecipeCompatibility`, `CustomRecipes`, `RecipeImprovement`, `RecipeReservations` ;
+  - `crafting/module` : `CraftingModule` (état et liste), `CraftingModules` (les modules d'une hutte), `RecipeCompatibility`, `CustomRecipes`, `RecipeImprovement`, `RecipeReservations` ;
   - `crafting/request` : `CraftingResolvers` (le point d'entrée, que le module appelle), `CraftingRequestResolver`, `CraftingProductionResolver`, `CraftingBatches` (découpage en lots), `CraftingCycles`, `IngredientRequests` (la requête d'un ingrédient) et `HutLookups` (modules, employés et demandeurs de la hutte) ;
   - `crafting/job` :
     - `Crafter`, `CraftingTasks`, `CraftingWork`, `CraftingStep` ;
-    - `CraftingProgress` : le calcul de `maxCraftingCount` et de la durée ;
-    - `RecipeExecution` : consommer et produire dans un `Inventory` ;
+    - `CraftingWorkContext` : l'artisan, sa hutte et les pièces partagées de `job/work` (`WorkerStock`, `ToolRequests`, `SyncRequests`) ;
+    - `CraftingProgress` : la durée d'une exécution ; `RecipeCounts` : le calcul de `maxCraftingCount` et des ingrédients qui manquent ;
+    - `RecipeExecution` : consommer et produire dans un `Inventory` ; `CraftingRun` : une exécution de l'artisan (`executeCraftingAction`) ;
+    - `CrafterHands` (la marche vers la table et les coups) et `CraftedOutputs` (où vont les sorties) ;
   - `colony/ui/tab/RecipesView` (record) et `colony/action/CraftingActions` ;
   - `kernel/item/Workstation(String benchId, int tier)` : `building` ne peut dépendre ni de `construction` ni de `crafting` ;
   - `request/model/StackList` et `request/model/Crafting`. `Requestable` et `Deliverable` sont scellés dans ce paquet, et `request` ne doit pas dépendre de `crafting` : `Crafting` porte donc un `String recipeId`.

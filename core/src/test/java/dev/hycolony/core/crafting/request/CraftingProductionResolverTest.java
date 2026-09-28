@@ -180,6 +180,25 @@ class CraftingProductionResolverTest {
         assertEquals(Delivery.DEFAULT_DELIVERY_PRIORITY, delivery.priority());
     }
 
+    /** MC AbstractRequest.addDelivery merges what the crafter adds run by run: the requester gets full stacks. */
+    @Test
+    void runsAddedOneByOneAreDeliveredInFullStacks() {
+        CitizenData crafter = rig.benchSeedsWithACrafter();
+        rig.stock(ESSENCE, 200);
+        Request parent = rig.ask(rig.other, SEEDS, 70, 70);
+        Request task = rig.task(parent);
+        for (int run = 0; run < 70; run++) {
+            m().addDelivery(task.token(), new ItemAmount(SEEDS, 1));
+        }
+
+        tasksOf(crafter).finishRequest(rig.h.colony, true);
+
+        assertEquals(List.of(new ItemAmount(SEEDS, 64), new ItemAmount(SEEDS, 6)), parent.deliveries());
+        assertEquals(
+                List.of(new ItemAmount(SEEDS, 64), new ItemAmount(SEEDS, 6)),
+                rig.children(task).stream().map(d -> ((Delivery) d).stack()).toList());
+    }
+
     @Test
     void finishedTaskForTheSameHutNeedsNoDelivery() {
         CitizenData crafter = rig.benchSeedsWithACrafter();

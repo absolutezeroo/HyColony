@@ -30,7 +30,7 @@ public final class CraftingHut {
                 {"bench": "Farmingbench", "categories": ["*"]},
                 {"bench": "Fieldcraft", "categories": ["*"]}]}}}""".formatted(JOB);
 
-    public final TestContexts t = new TestContexts();
+    public final TestContexts t;
     public final UUID owner = UUID.randomUUID();
     public final Colony colony;
     public final Building hut;
@@ -48,6 +48,12 @@ public final class CraftingHut {
 
     /** With {@code rules} as {@code crafting.json}, a hut of {@code type} (a {@link TestCrafters#hut} variant). */
     public CraftingHut(String rules, BuildingType type) {
+        this(new TestContexts(), rules, type);
+    }
+
+    /** As {@link #CraftingHut(String, BuildingType)}, in a colony made from {@code t}, whose fakes the test set. */
+    public CraftingHut(TestContexts t, String rules, BuildingType type) {
+        this.t = t;
         t.craftingRules = CraftingRules.parse(JsonParser.parseString(rules).getAsJsonObject(), w -> {});
         colony = new Colony(
                 t.context(),

@@ -3,8 +3,8 @@ package dev.hycolony.core.construction.builder;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.job.work.SyncRequests;
 import dev.hycolony.core.job.work.WorkerStock;
-import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.RequestManager;
@@ -18,20 +18,20 @@ import java.util.Set;
 /**
  * The builder's requests (MC AbstractEntityAIBasic request helpers). Every request is filed under the builder hut.
  * Bucket requests are the building's (citizen -1, async: they never block); the request for the item needed right now
- * carries the citizen's id (sync: the builder waits for it in NEEDS_ITEM). Deliveries are picked up from the hut
- * through {@link WorkerStock}; tools are asked by {@link dev.hycolony.core.job.work.ToolRequests}.
+ * carries the citizen's id (sync: the builder waits for it in NEEDS_ITEM), and is picked up from the hut through
+ * {@link SyncRequests}, as every worker's; tools are asked by {@link dev.hycolony.core.job.work.ToolRequests}.
  */
 final class BuilderRequests {
     private final Colony colony;
     private final CitizenData citizen;
     private final Building hut;
-    private final WorkerStock stock;
+    private final SyncRequests sync;
 
     BuilderRequests(Colony colony, CitizenData citizen, Building hut, WorkerStock stock) {
         this.colony = colony;
         this.citizen = citizen;
         this.hut = hut;
-        this.stock = stock;
+        this.sync = new SyncRequests(colony, citizen, hut, stock);
     }
 
     private RequestManager requests() {
@@ -40,19 +40,12 @@ final class BuilderRequests {
 
     /** This builder's own (sync) requests: those of the hut that carry its citizen's id. */
     List<Request> mine() {
-        return requests().byRequester(hut.requesterId()).stream()
-                .filter(r -> r.citizenId() == citizen.id())
-                .toList();
+        return sync.mine();
     }
 
     /** Any live request of this builder, open or completed but not yet picked up. */
     boolean hasSyncRequests() {
-        for (Request r : requests().byRequester(hut.requesterId())) {
-            if (r.citizenId() == citizen.id()) {
-                return true;
-            }
-        }
-        return false;
+        return sync.pending();
     }
 
     /** Items with a live stack request of the hut. */
@@ -106,39 +99,13 @@ final class BuilderRequests {
         }
     }
 
-    /**
-     * MC checkForToolOrWeapon / lookForRequests, run while the builder waits: an open request of this builder that its
-     * hut can now serve (a tool of the right type and level, or the full stack, beyond what other requests reserved)
-     * goes to the hut's own resolver, which completes it with the hut's items for {@link #pickUp}. Covers what reached
-     * the hut without a container event (hopper, restart, another player's window).
-     */
+    /** See {@link SyncRequests#claimOpenFromHut}. */
     void claimOpenFromHut() {
-        requests()
-                .onColonyUpdate(r -> r.requester().equals(hut.requesterId())
-                        && r.citizenId() == citizen.id()
-                        && r.state().isBefore(RequestState.COMPLETED)
-                        && hut.resolvers().stream().anyMatch(res -> res.canResolve(requests(), r)));
+        sync.claimOpenFromHut();
     }
 
-    /**
-     * Takes a completed request's deliveries from the hut, then RECEIVED. Deliveries handed to the citizen (the
-     * player's "Fournir") are already in the inventory: nothing is taken. A delivery the hut no longer holds is asked
-     * again.
-     */
+    /** See {@link SyncRequests#pickUp}. */
     void pickUp(Request r) {
-        for (ItemAmount d : r.deliveredToCitizen() ? List.<ItemAmount>of() : r.deliveries()) {
-            int there =
-                    Math.min(d.count(), stock.hutCount(d.item())); // what does not fit stays in the hut, still there
-            stock.take(d.item(), there);
-            int missing = d.count() - there;
-            if (missing > 0) {
-                request(
-                        r.requestable() instanceof StackRequest s
-                                ? new StackRequest(
-                                        s.item(), missing, Math.min(s.minCount(), missing), s.canBeResolvedByBuilding())
-                                : r.requestable());
-            }
-        }
-        requests().updateState(r.token(), RequestState.RECEIVED);
+        sync.pickUp(r);
     }
 }

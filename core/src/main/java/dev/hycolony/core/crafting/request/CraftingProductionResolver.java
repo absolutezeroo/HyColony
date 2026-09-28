@@ -6,10 +6,12 @@ import dev.hycolony.core.crafting.job.Crafter;
 import dev.hycolony.core.crafting.job.Crafters;
 import dev.hycolony.core.crafting.job.RecipeExecution;
 import dev.hycolony.core.crafting.module.CraftingModule;
+import dev.hycolony.core.crafting.module.CraftingModules;
 import dev.hycolony.core.crafting.recipe.Recipe;
 import dev.hycolony.core.crafting.recipe.RecipeId;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemAmount;
+import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.RequestManager;
 import dev.hycolony.core.request.Resolver;
@@ -19,7 +21,9 @@ import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.Requestable;
 import dev.hycolony.core.request.model.RequesterId;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -85,7 +89,7 @@ final class CraftingProductionResolver implements Resolver {
     @Override
     public Optional<List<Requestable>> attemptResolve(RequestManager m, Request r) {
         Crafting task = (Crafting) r.requestable(); // handles() takes crafting tasks only
-        Optional<CraftingModule> module = HutLookups.moduleHolding(hut, new RecipeId(task.recipeId()));
+        Optional<CraftingModule> module = CraftingModules.holding(hut, new RecipeId(task.recipeId()));
         if (module.isEmpty() || !canBuildingCraft()) {
             return Optional.empty();
         }
@@ -153,7 +157,7 @@ final class CraftingProductionResolver implements Resolver {
         Crafting task = (Crafting) r.requestable();
         RecipeId recipeId = new RecipeId(task.recipeId());
         Optional<Recipe> recipe = colony.recipes().get(recipeId);
-        if (recipe.isEmpty() || HutLookups.moduleHolding(hut, recipeId).isEmpty()) {
+        if (recipe.isEmpty() || CraftingModules.holding(hut, recipeId).isEmpty()) {
             m.updateState(r.token(), RequestState.FAILED);
             return;
         }
@@ -178,13 +182,34 @@ final class CraftingProductionResolver implements Resolver {
         if (parent.isEmpty() || HutLookups.isAt(hut, parent.get().requester())) {
             return List.of();
         }
-        List<Requestable> deliveries = new ArrayList<>(r.deliveries().size());
-        for (ItemAmount stack : r.deliveries()) {
+        List<ItemAmount> stacks = fullStacks(r.deliveries(), m.catalog());
+        List<Requestable> deliveries = new ArrayList<>(stacks.size());
+        for (ItemAmount stack : stacks) {
             m.addDelivery(parent.get().token(), stack);
             deliveries.add(
                     new Delivery(hut.position(), parent.get().requester(), stack, Delivery.DEFAULT_DELIVERY_PRIORITY));
         }
         return deliveries;
+    }
+
+    /**
+     * MC AbstractRequest.addDelivery's merge (InventoryUtils.processItemStackListAndMerge): the stacks of one item and
+     * damage summed, then split into full stacks, in the order each item came first. Deviation from MC: the crafter
+     * adds each run's output as a stack of its own, merged here once the task is done; MC merges at each run.
+     */
+    private static List<ItemAmount> fullStacks(List<ItemAmount> stacks, ItemCatalog catalog) {
+        Map<ItemAmount, Integer> totals = new LinkedHashMap<>();
+        for (ItemAmount stack : stacks) {
+            totals.merge(stack.withCount(1), stack.count(), Integer::sum);
+        }
+        List<ItemAmount> out = new ArrayList<>(totals.size());
+        totals.forEach((one, total) -> {
+            int max = Math.max(1, catalog.maxStack(one.item()));
+            for (int left = total; left > 0; left -= max) {
+                out.add(one.withCount(Math.min(max, left)));
+            }
+        });
+        return out;
     }
 
     /** MC onAssignedRequestCancelled (public): the task leaves its crafter's lists. */
