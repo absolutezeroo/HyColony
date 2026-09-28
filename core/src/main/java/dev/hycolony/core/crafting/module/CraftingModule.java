@@ -4,8 +4,10 @@ import com.google.gson.JsonObject;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.CreatesResolvers;
 import dev.hycolony.core.building.PersistentModule;
+import dev.hycolony.core.building.ProvidesTab;
 import dev.hycolony.core.building.TickingModule;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.ui.tab.ModuleTab;
 import dev.hycolony.core.crafting.recipe.Recipe;
 import dev.hycolony.core.crafting.recipe.RecipeId;
 import dev.hycolony.core.crafting.recipe.RecipeSource;
@@ -15,8 +17,10 @@ import dev.hycolony.core.logistics.pickup.KeepRule;
 import dev.hycolony.core.logistics.pickup.KeepsItems;
 import dev.hycolony.core.request.Resolver;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A hut's crafting module (MC AbstractCraftingBuildingModule): the recipes it learnt, by id in the colony registry, in
@@ -26,7 +30,8 @@ import java.util.UUID;
  * is not ported, so its {@code RECIPES} effect is 0. A bad index or a recipe missing from the list changes nothing,
  * where MC throws or clears the list.
  */
-public final class CraftingModule implements PersistentModule, TickingModule, CreatesResolvers, KeepsItems {
+public final class CraftingModule
+        implements PersistentModule, TickingModule, CreatesResolvers, KeepsItems, ProvidesTab {
     /** MC AbstractCraftingBuildingModule.EXTRA_RECIPE_MULTIPLIER. */
     static final int EXTRA_RECIPE_MULTIPLIER = 5;
 
@@ -37,7 +42,12 @@ public final class CraftingModule implements PersistentModule, TickingModule, Cr
         /** MC isRecipeCompatibleWithCraftingModule is false, or the registry does not know the recipe. */
         INCOMPATIBLE,
         /** A Hytale recipe reserved to the players who learnt it, and the teaching player did not. */
-        UNKNOWN_TO_PLAYER
+        UNKNOWN_TO_PLAYER;
+
+        /** The lang key the Recipes tab shows for this refusal: {@code hycolony.ui.recipes.refused.<name>}. */
+        public String langKey() {
+            return "hycolony.ui.recipes.refused." + name().toLowerCase(Locale.ROOT);
+        }
     }
 
     private final String jobId;
@@ -99,14 +109,18 @@ public final class CraftingModule implements PersistentModule, TickingModule, Cr
 
     /** MC canRecipeBeAdded: why {@code player} may not teach the hut the recipe; empty if they may. */
     public Optional<LearnRefusal> canLearn(Colony colony, Building hut, RecipeId id, UUID player) {
+        return refusal(colony, hut, colony.recipes().get(id).orElse(null), player);
+    }
+
+    /** {@link #canLearn} for a recipe the registry may not know yet; a null recipe is unknown, so INCOMPATIBLE. */
+    Optional<LearnRefusal> refusal(Colony colony, Building hut, @Nullable Recipe recipe, UUID player) {
         if (maxRecipes(hut) <= activeRecipes(colony)) {
             return Optional.of(LearnRefusal.FULL);
         }
-        Optional<Recipe> recipe = colony.recipes().get(id);
-        if (recipe.isEmpty() || !RecipeCompatibility.compatible(colony, hut, jobId, recipe.get())) {
+        if (recipe == null || !RecipeCompatibility.compatible(colony, hut, jobId, recipe)) {
             return Optional.of(LearnRefusal.INCOMPATIBLE);
         }
-        if (!RecipeCompatibility.knownBy(colony, recipe.get(), player)) {
+        if (!RecipeCompatibility.knownBy(colony, recipe, player)) {
             return Optional.of(LearnRefusal.UNKNOWN_TO_PLAYER);
         }
         return Optional.empty();
@@ -172,13 +186,16 @@ public final class CraftingModule implements PersistentModule, TickingModule, Cr
 
     /**
      * MC switchOrder: a full move sends the recipe at {@code i} to the top if {@code i > j}, else to the bottom;
-     * otherwise swaps {@code i} and {@code j}. Deviation from MC: an index outside the list changes nothing, where MC
-     * throws on a full move; a full move marks the colony dirty too (MC's saves do not depend on it).
+     * otherwise swaps {@code i} and {@code j}; returns false for an index outside the list. Deviation from MC: such an
+     * index changes nothing, where MC throws on a full move; a full move marks the colony dirty too (MC's saves do not
+     * depend on it).
      */
-    public void switchOrder(Colony colony, int i, int j, boolean fullMove) {
-        if (list.move(i, j, fullMove)) {
-            colony.markDirty();
+    public boolean switchOrder(Colony colony, int i, int j, boolean fullMove) {
+        if (!list.move(i, j, fullMove)) {
+            return false;
         }
+        colony.markDirty();
+        return true;
     }
 
     /**
@@ -199,6 +216,12 @@ public final class CraftingModule implements PersistentModule, TickingModule, Cr
     @Override
     public List<KeepRule> keepRules(Colony colony, Building building) {
         return RecipeReservations.keepRules(colony, building, this);
+    }
+
+    /** MC serializeToView feeding CraftingModuleView: the hut window's Recipes tab ({@link RecipesTab}). */
+    @Override
+    public ModuleTab tab(Colony colony, Building building, UUID viewer) {
+        return RecipesTab.of(colony, building, this, viewer);
     }
 
     /** MC onColonyTick: grants and withdraws the custom recipes of the hut's level ({@link CustomRecipes#check}). */

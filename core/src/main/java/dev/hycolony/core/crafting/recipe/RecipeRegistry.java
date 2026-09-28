@@ -52,7 +52,7 @@ public final class RecipeRegistry {
             return known;
         }
         RecipeId id = switch (recipe.source()) {
-            case RecipeSource.Hytale(String hytaleId) -> new RecipeId(RecipeJson.HYTALE + hytaleId);
+            case RecipeSource.Hytale(String hytaleId) -> RecipeId.hytale(hytaleId);
             case RecipeSource.Custom(String customId) -> new RecipeId(RecipeJson.CUSTOM + customId);
             case RecipeSource.Improved() -> new RecipeId(IMPROVED_ID + nextImproved++);
         };

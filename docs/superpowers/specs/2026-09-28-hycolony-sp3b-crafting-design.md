@@ -235,7 +235,7 @@ Lecture tolérante : clé absente = vide, entrée invalide ignorée et journalis
 13. **Identifiants de recettes lisibles** (`hytale:`, `custom:`, `improved:<n>`) au lieu de jetons aléatoires. Une recette dont le nom est déjà pris par un autre contenu de même source (le jeu ou `crafting.json` l'a changée) remplace l'ancienne sous ce nom. MC l'ajoute sous un nouveau jeton, puis `checkForWorkerSpecificRecipes` l'échange.
 14. **Toutes les recettes du registre sont sauvegardées.** MC ne sauvegarde que celles utilisées depuis le démarrage du serveur (`usedRecipes`). La croissance reste bornée : une recette améliorée ne peut l'être qu'un nombre fini de fois.
 15. **Le nombre minimum d'une requête de fabrication est sauvegardé.** MC `PublicCrafting.serialize` l'oublie : une tâche rechargée demande alors son nombre complet.
-16. **Affichage d'une `StackList`** : « 8 x Tronc de chêne (ou équivalent) », avec le premier objet accepté. MC affiche sa description, une clé de traduction ; un type de ressource ou un tag Hytale n'a pas de nom traduit connu du plugin.
+16. **Affichage d'une `StackList`** : « 8 x Tronc de chêne (ou équivalent) », avec le premier objet accepté. MC affiche sa description, une clé de traduction ; un type de ressource ou un tag Hytale n'a pas de nom traduit connu du plugin. L'onglet Recettes affiche de même un ingrédient par type ou tag (`RecipesView.IngredientLine`).
 17. **Robustesse du module de fabrication.**
     - Un index hors de la liste (`toggle`, `switchOrder`) ne change rien ; MC lève une exception.
     - Retirer une recette absente de la liste ne change rien ; MC vide toute la liste.
@@ -254,6 +254,8 @@ Lecture tolérante : clé absente = vide, entrée invalide ignorée et journalis
 26. **Tâche abandonnée sans reste** (`CraftingWork.abandon`). Une tâche qui quitte la tête de file en pleine fabrication (annulée, échouée, finie ailleurs) est abandonnée comme une tâche annulée de MC : compteurs remis à 0 et vidage. MC ne l'abandonne que si la requête est encore là : sinon il poursuit la tâche suivante avec la recette et les compteurs de l'ancienne, ou s'arrête sans vider si la file est vide. De même, une tâche échouée faute de module n'est jamais suivie de sa recette.
 27. **Ingrédients pris en une fois** : l'artisan prend l'ingrédient qui manque dans tous les conteneurs de la hutte à la fois (`WorkerStock.take`, comme le constructeur). MC marche d'un coffre à l'autre.
 28. **Sorties d'une tâche regroupées à la fin** : l'artisan ajoute la sortie de chaque exécution comme une pile à part, et les piles sont regroupées en piles pleines quand la tâche est finie (`CraftingProductionResolver.followups`). MC les regroupe à chaque ajout (`AbstractRequest.addDelivery`). Le livreur reçoit dans les deux cas une livraison par pile pleine.
+29. **Une recette maison ne peut pas être retirée** (`RecipeEdits.remove`). Chez MC, le bouton Retirer d'une recette intégrée est grisé, mais Ctrl le débloque pour « réinitialiser » une recette cassée, que le tick suivant de la colonie redonne. Ici, l'identifiant d'une recette maison suit son contenu (écart 13) : elle ne peut pas être cassée.
+30. **Retour de l'apprentissage** (`CraftingActions.learn`). Un refus nomme son motif (hutte pleine, recette incompatible, recette inconnue du joueur) ; MC nomme la hutte et les deux motifs possibles. Les boutons de l'onglet ne jouent pas les sons de succès et d'erreur de MC.
 
 ## Architecture
 

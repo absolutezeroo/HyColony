@@ -35,6 +35,16 @@ class RecipeRegistryTest {
     }
 
     @Test
+    void hytaleRecipeIdNamesTheGameRecipe() {
+        RecipeId wheat = RecipeId.hytale("Plant_Seeds_Wheat");
+
+        assertEquals(new RecipeId("hytale:Plant_Seeds_Wheat"), wheat);
+        assertEquals(Optional.of("Plant_Seeds_Wheat"), wheat.hytaleId());
+        assertEquals(Optional.empty(), new RecipeId("custom:farmer_wheat_seeds").hytaleId());
+        assertEquals(Optional.empty(), new RecipeId("improved:1").hytaleId());
+    }
+
+    @Test
     void improvedRecipesGetIncreasingIds() {
         RecipeRegistry reg = new RecipeRegistry();
         RecipeId a = reg.checkOrAdd(RecipeFixtures.improved("A"));
