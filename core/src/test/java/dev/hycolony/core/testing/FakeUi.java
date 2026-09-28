@@ -2,6 +2,7 @@ package dev.hycolony.core.testing;
 
 import dev.hycolony.core.colony.ui.BuildingView;
 import dev.hycolony.core.colony.ui.CitizenView;
+import dev.hycolony.core.colony.ui.FieldView;
 import dev.hycolony.core.colony.ui.FoundColonyView;
 import dev.hycolony.core.colony.ui.NeedsPlayerNotice;
 import dev.hycolony.core.colony.ui.RequestsView;
@@ -59,6 +60,11 @@ public final class FakeUi implements UiPort {
 
     @Override
     public void showCitizen(UUID player, CitizenView view) {
+        shown.put(player, view);
+    }
+
+    @Override
+    public void showField(UUID player, FieldView view) {
         shown.put(player, view);
     }
 

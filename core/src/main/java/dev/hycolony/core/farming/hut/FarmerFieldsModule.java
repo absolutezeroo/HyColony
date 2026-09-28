@@ -4,8 +4,10 @@ import com.google.gson.JsonObject;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingEventsModule;
 import dev.hycolony.core.building.PersistentModule;
+import dev.hycolony.core.building.ProvidesTab;
 import dev.hycolony.core.building.TickingModule;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.ui.tab.ModuleTab;
 import dev.hycolony.core.farming.field.FarmField;
 import dev.hycolony.core.farming.field.FieldRegistry;
 import dev.hycolony.core.logistics.pickup.KeepRule;
@@ -13,12 +15,14 @@ import dev.hycolony.core.logistics.pickup.KeepsItems;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * The fields a farmer hut works (MC BuildingFarmer.FarmerFieldsModule over BuildingExtensionsModule): at most its
  * level of them, claimed one per colony tick unless assigned by hand, and the one to work next.
  */
-public final class FarmerFieldsModule implements PersistentModule, TickingModule, BuildingEventsModule, KeepsItems {
+public final class FarmerFieldsModule
+        implements PersistentModule, TickingModule, BuildingEventsModule, KeepsItems, ProvidesTab {
     /** MC getRequiredItemsAndAmount: 64 of each owned field's seed stay with the farmer. */
     public static final int SEEDS_KEPT = 64;
 
@@ -120,6 +124,15 @@ public final class FarmerFieldsModule implements PersistentModule, TickingModule
             f.seed().ifPresent(seed -> rules.add(new KeepRule(seed::equals, SEEDS_KEPT, true)));
         }
         return rules;
+    }
+
+    /** MC FarmerFieldsModuleView: the Fields tab, with the hut's Request Fertilizer setting. */
+    @Override
+    public ModuleTab tab(Colony colony, Building building, UUID viewer) {
+        boolean fertilize = building.module(FarmerSettingsModule.class)
+                .map(FarmerSettingsModule::fertilize)
+                .orElse(true);
+        return FieldsTab.of(colony, building, this, fertilize, viewer);
     }
 
     @Override

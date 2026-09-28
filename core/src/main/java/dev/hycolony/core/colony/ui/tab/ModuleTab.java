@@ -11,4 +11,5 @@ public sealed interface ModuleTab
                 CourierAssignmentView,
                 WarehouseTasksView,
                 CourierTasksView,
-                RecipesView {}
+                RecipesView,
+                FieldsView {}

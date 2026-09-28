@@ -6,6 +6,7 @@ import dev.hycolony.core.colony.ui.tab.BuilderResourcesView;
 import dev.hycolony.core.colony.ui.tab.BuilderSettingsView;
 import dev.hycolony.core.colony.ui.tab.CourierAssignmentView;
 import dev.hycolony.core.colony.ui.tab.CourierTasksView;
+import dev.hycolony.core.colony.ui.tab.FieldsView;
 import dev.hycolony.core.colony.ui.tab.ModuleTab;
 import dev.hycolony.core.colony.ui.tab.RecipesView;
 import dev.hycolony.core.colony.ui.tab.WarehouseTasksView;
@@ -36,6 +37,7 @@ public final class HutTabs {
             case CourierAssignmentView c -> Optional.of(new WarehouseCouriersTab(c));
             case WarehouseTasksView w -> Optional.of(new WarehouseTasksTab(w.queue()));
             case CourierTasksView c -> Optional.of(new CourierTasksTab(c));
+            case FieldsView _ -> Optional.empty(); // its tab comes with SP3b-2 Task 13
             case RecipesView r -> Optional.of(new RecipesTab(manager, player, view.pos(), r, view.canManage()));
         };
     }

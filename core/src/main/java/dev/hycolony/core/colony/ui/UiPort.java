@@ -29,6 +29,9 @@ public interface UiPort {
     /** {@link #refreshBuilding} for this citizen's window. */
     boolean refreshCitizen(UUID player, CitizenView view);
 
+    /** A field block's window (MC WindowField); re-shown after every button. */
+    void showField(UUID player, FieldView view);
+
     /** The build tool window; re-shown after every button. */
     void showWand(UUID player, WandView view);
 

@@ -12,6 +12,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.ui.BuildingView;
 import dev.hycolony.core.colony.ui.CitizenView;
+import dev.hycolony.core.colony.ui.FieldView;
 import dev.hycolony.core.colony.ui.FoundColonyView;
 import dev.hycolony.core.colony.ui.NeedsPlayerNotice;
 import dev.hycolony.core.colony.ui.RequestsView;
@@ -153,6 +154,10 @@ public final class HytaleUiPort implements UiPort {
     public void showCitizen(UUID player, CitizenView view) {
         open(player, citizenPage(view));
     }
+
+    /** Until the field page exists (SP3b-2 Task 13): nothing is shown. */
+    @Override
+    public void showField(UUID player, FieldView view) {}
 
     @Override
     public void showWand(UUID player, WandView view) {
