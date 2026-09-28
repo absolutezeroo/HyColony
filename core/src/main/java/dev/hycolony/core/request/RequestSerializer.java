@@ -53,13 +53,13 @@ public final class RequestSerializer {
         return o;
     }
 
-    public static void read(JsonObject o, RequestManager m) {
+    /** Restores the saved requests into {@code m}; true when broken request links were dropped (rewrite the save). */
+    public static boolean read(JsonObject o, RequestManager m) {
         if (!o.has("requests")) {
-            return; // schema v1 placeholder
+            return false; // schema v1 placeholder
         }
-        SavedRequests.read(o.getAsJsonArray("requests"), RequestSerializer::readRequest)
-                .values()
-                .forEach(m.store()::restore);
+        SavedRequests.Loaded loaded = SavedRequests.read(o.getAsJsonArray("requests"), RequestSerializer::readRequest);
+        loaded.requests().values().forEach(m.store()::restore);
 
         List<RequestToken> orphans = readAssignments(o.getAsJsonObject("assignments"), m);
 
@@ -79,6 +79,7 @@ public final class RequestSerializer {
         player(m).ifPresent(p -> m.assignedTo(PlayerResolver.ID).forEach(p::restore));
 
         orphans.forEach(m::reassignLoaded);
+        return loaded.repaired();
     }
 
     /** Restores the assignments whose resolver still exists; returns the open requests whose resolver is gone. */

@@ -78,12 +78,10 @@ public final class ColonySerializer {
             c.citizens().restore(CitizenSerializer.read(el.getAsJsonObject(), ctx));
         }
         // After the buildings: they re-registered as resolver providers.
-        if (o.has("requests")) {
-            RequestSerializer.read(o.getAsJsonObject("requests"), c.requests());
-        }
+        boolean repaired = o.has("requests") && RequestSerializer.read(o.getAsJsonObject("requests"), c.requests());
         readWorkOrders(o, c);
         readEventLog(o.getAsJsonArray("eventLog"), c.log());
-        boolean healed = heal(c);
+        boolean healed = heal(c) || repaired;
         c.clearDirty();
         if (healed) {
             c.markDirty(); // write the healed state at the next save instead of healing on every load
