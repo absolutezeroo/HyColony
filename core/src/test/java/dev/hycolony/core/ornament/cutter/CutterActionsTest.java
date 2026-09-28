@@ -78,45 +78,25 @@ class CutterActionsTest {
     }
 
     @Test
-    void selectionFollowsGroupAndShapeChoices() {
-        assertEquals(new CutterActions.Selection(0, 0), actions.selection());
+    void groupFollowsTheOpenTab() {
+        assertEquals(0, actions.group());
         actions.selectGroup(2);
-        assertEquals(new CutterActions.Selection(2, 0), actions.selection());
+        assertEquals(2, actions.group());
         actions.selectShape(1);
-        assertEquals(new CutterActions.Selection(2, 1), actions.selection());
-        actions.selectGroup(1);
-        assertEquals(new CutterActions.Selection(1, 0), actions.selection());
+        assertEquals(2, actions.group());
+        actions.selectGroup(9);
+        actions.selectGroup(-1);
+        assertEquals(2, actions.group());
     }
 
     @Test
-    void restoringASelectionReopensItsGroupAndShape() {
+    void reopeningOnTheRememberedGroupChoosesItsFirstShape() {
         actions.selectGroup(2);
         actions.selectShape(1);
         CutterActions reopened = freshCutter();
-        reopened.restore(actions.selection());
-        assertEquals("Shingle_Flat", reopened.shape().orElseThrow().id());
+        reopened.selectGroup(actions.group());
         assertEquals(List.of("cshingle"), openTabs(reopened));
-        assertEquals(new CutterActions.Selection(2, 1), reopened.selection());
-    }
-
-    @Test
-    void restoringAStaleShapeFallsBackToTheGroupsFirstShape() {
-        actions.selectGroup(1);
-        actions.restore(new CutterActions.Selection(2, 5));
-        assertEquals("Shingle", actions.shape().orElseThrow().id());
-        assertEquals(new CutterActions.Selection(2, 0), actions.selection());
-        actions.restore(new CutterActions.Selection(2, -1));
-        assertEquals("Shingle", actions.shape().orElseThrow().id());
-    }
-
-    @Test
-    void restoringAGroupOutOfRangeChangesNothing() {
-        actions.selectGroup(2);
-        actions.selectShape(1);
-        actions.restore(new CutterActions.Selection(9, 0));
-        actions.restore(new CutterActions.Selection(-1, 0));
-        assertEquals(new CutterActions.Selection(2, 1), actions.selection());
-        assertEquals("Shingle_Flat", actions.shape().orElseThrow().id());
+        assertEquals("Shingle", reopened.shape().orElseThrow().id());
     }
 
     @Test

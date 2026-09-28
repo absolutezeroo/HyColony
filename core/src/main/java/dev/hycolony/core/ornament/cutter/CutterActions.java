@@ -33,29 +33,13 @@ public final class CutterActions {
         this.tags = tags;
     }
 
-    /** The open group's index and its chosen shape's index, kept to reopen the window where the player left it. */
-    public record Selection(int group, int shape) {}
-
-    /** The current selection. */
-    public Selection selection() {
-        return new Selection(group, shape);
-    }
-
     /**
-     * Reopens a saved selection (MC DO ArchitectsCutterScreen groupIndexCache/variantIndexCache, re-clicked in
-     * renderBg): its group when in range, then its shape, or the group's first shape when that is out of range; a group
-     * out of range changes nothing.
-     *
-     * <p>Deviation from MC: DO never resets its variant cache, and a stale index leaves the output empty; here it falls
-     * back to the group's first shape. DO's renderBg also re-clicks the group first, which already picks its first
-     * variant, so its variant cache is skipped on a normal reopening; here the saved shape is restored.
+     * The open group's index. The plugin keeps it per player and replays it through selectGroup on reopening, which
+     * chooses the group's first shape (MC DO ArchitectsCutterScreen groupIndexCache, replayed in renderBg through
+     * clickMenuButton, which takes variant {@code get(0)}).
      */
-    public void restore(Selection saved) {
-        if (saved.group() < 0 || saved.group() >= catalog.groups().size()) {
-            return;
-        }
-        selectGroup(saved.group());
-        selectShape(saved.shape());
+    public int group() {
+        return group;
     }
 
     /** Opens the group at index (and its first shape); an index out of range changes nothing. */
