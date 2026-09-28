@@ -38,7 +38,6 @@ Sujet volontairement mis en pause par l'utilisateur, faute de problème constat�
 
 - Si le chunk de l'entité d'aperçu se décharge, l'aperçu disparaît et n'est recréé qu'au prochain changement de blocs.
 - Aucun test ne couvre le cas « colonie la plus proche » (`GogglesView.nearest`), quand le joueur est hors de toute colonie.
-- `docs/TESTING.md` contient une section SP1+2 en double (points 13 à 18 répétés).
 
 ## Garde-fous : relecture du 2026-09-26 (3e passe)
 
