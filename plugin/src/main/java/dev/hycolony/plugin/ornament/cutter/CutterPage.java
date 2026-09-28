@@ -5,12 +5,12 @@ import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
-import com.hypixel.hytale.event.EventRegistration;
 import com.hypixel.hytale.protocol.packets.interface_.CustomPageLifetime;
 import com.hypixel.hytale.protocol.packets.interface_.CustomUIEventBindingType;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
 import com.hypixel.hytale.server.core.entity.entities.player.pages.InteractiveCustomUIPage;
+import com.hypixel.hytale.server.core.entity.entities.player.windows.ContainerBlockWindow;
 import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
 import com.hypixel.hytale.server.core.ui.builder.EventData;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
@@ -28,6 +28,7 @@ import dev.hycolony.plugin.ui.PageEvents;
 import java.util.List;
 import java.util.UUID;
 import javax.annotation.Nonnull;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The architect's cutter window (MC DO ArchitectsCutterScreen): group tabs, the group's shapes, a label per slot and
@@ -69,7 +70,8 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
     private final Setup setup;
     private final UUID player;
     private final CutterActions actions;
-    private final EventRegistration<?, ?> onChange;
+    private final CutterFollower follower;
+    private @Nullable ContainerBlockWindow window;
 
     CutterPage(PlayerRef playerRef, Setup setup) {
         super(playerRef, CustomPageLifetime.CanDismiss, Act.CODEC);
@@ -79,8 +81,23 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
                 CutterCatalog.of(setup.catalogs().shapes()),
                 setup.catalogs().materials().tags());
         actions.selectGroup(setup.memory().group(player));
-        // The preview follows the slots; players move items on the world thread.
-        this.onChange = setup.slots().registerChangeEvent(e -> rebuild());
+        this.follower = new CutterFollower(playerRef, setup.world(), setup.slots(), this, this::rebuild);
+    }
+
+    /** The player this window belongs to. */
+    UUID player() {
+        return player;
+    }
+
+    /** Called once the page and its window are open: the preview then follows the slots (CutterFollower). */
+    void attach(ContainerBlockWindow opened) {
+        this.window = opened;
+        follower.start();
+    }
+
+    /** Stops following the slots; safe to call more than once. */
+    void detach() {
+        follower.stop();
     }
 
     @Override
@@ -132,12 +149,19 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
         });
     }
 
+    /** Another page replaced this one, or it was closed: stop following the slots and close their window too. */
     @Override
     public void onDismiss(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
-        onChange.unregister();
+        detach();
+        ContainerBlockWindow opened = window;
+        window = null;
+        if (opened != null) {
+            opened.close(ref, store);
+        }
         super.onDismiss(ref, store);
     }
 
+    /** One tab button per group, the open one disabled. */
     private static void tabs(UICommandBuilder ui, UIEventBuilder events, List<CutterView.Tab> tabs) {
         for (int i = 0; i < tabs.size(); i++) {
             String button = "#TabButtons[" + i + "]";
@@ -148,6 +172,7 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
         }
     }
 
+    /** One icon button per shape of the open group, the chosen one disabled and named. */
     private static void shapes(UICommandBuilder ui, UIEventBuilder events, List<CutterView.ShapeButton> shapes) {
         for (int i = 0; i < shapes.size(); i++) {
             CutterView.ShapeButton shape = shapes.get(i);
@@ -173,7 +198,10 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
                 // Deviation from MC: the template's icon until the variant exists (its icon is painted on creation).
                 boolean exists = Item.getAssetMap().getAsset(ready.itemId()) != null;
                 ui.set("#Preview.ItemId", exists ? ready.itemId() : ready.templateKey());
-                ui.set("#PreviewText.Text", Message.raw("x " + ready.quantity()));
+                ui.set(
+                        "#PreviewText.Text",
+                        Message.translation("hycolony.ornament.cutter.quantity")
+                                .param("p0", String.valueOf(ready.quantity())));
             }
             case CutterView.Refused refused -> {
                 ui.set("#Preview.Visible", false);
@@ -187,11 +215,13 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
         bind(events, "#CraftButton", "craft", -1);
     }
 
-    private static Message itemName(String itemId) {
+    /** The item's translated name; its id when it is not loaded. */
+    static Message itemName(String itemId) {
         Item item = Item.getAssetMap().getAsset(itemId);
         return item == null ? Message.raw(itemId) : item.getTranslationMessage();
     }
 
+    /** Binds a button's click to an action and its list index. */
     private static void bind(UIEventBuilder events, String selector, String action, int index) {
         events.addEventBinding(
                 CustomUIEventBindingType.Activating,

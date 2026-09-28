@@ -41,8 +41,8 @@ Source : `docs/research/domum-ornamentum.md` § A.3 (cutter DO) et § B « 6. Ar
 
 - **`CutterCatalog`** : groupes et formes dans l'ordre de `SortedBlocks` de DO (index par groupe et par forme, repris dans `CutterOrder`) ; construit depuis `ShapeCatalog` (DO-1). Un groupe sans forme est absent. Une forme sans index DO va en fin de son groupe, dans l'ordre du manifeste.
 - **`CutterCraft`** : `check(OrnamentShape shape, List<SlotContent> slots, MaterialTags tags)` → `Ready(VariantKey key, int quantity, List<Integer> consumed)` ou `Refused(String reasonKey, int slot, Set<String> allowed)`. `SlotContent` = id d'objet (ou vide) et quantité. S'appuie sur `VariantRequests.check` ; un emplacement au-delà du nombre de matériaux de la forme est ignoré et n'est pas consommé.
-- **`CutterView`** (record immuable, CLAUDE.md § 7) : onglets (clé de nom, sélectionné), formes du groupe (id, clé de nom, chemin d'icône du gabarit, sélectionnée), étiquettes des emplacements, aperçu (`Empty`, `Ready` avec quantité, `Refused` avec clé de raison et paramètres).
-- **`CutterActions`** : `selectGroup`, `selectShape`, `view(slots)` ; changer de groupe choisit sa première forme. La fabrication elle-même est orchestrée par le plugin (elle attend le moteur de variantes).
+- **`CutterView`** (record immuable, CLAUDE.md § 7) : onglets (groupe, clé de nom, sélectionné), formes du groupe (`ShapeButton(shapeId, templateKey, selected)` : la page montre l'icône et le nom de l'objet gabarit), étiquettes des emplacements, aperçu (`Empty`, `Ready` avec l'id de la variante, la clé du gabarit et la quantité, `Refused` avec clé de raison et paramètres).
+- **`CutterActions`** : `selectGroup`, `selectShape`, `group()` (l'onglet ouvert), `view(slots)` ; changer de groupe choisit sa première forme. Le plugin garde le dernier onglet de chaque joueur (`CutterGroupMemory`, en mémoire, oublié à la déconnexion). `CutterCraft.check(..., boolean creative)` ne retire rien pour un joueur en créatif. La fabrication elle-même est orchestrée par le plugin (elle attend le moteur de variantes).
 
 ### Plugin (`plugin/.../ornament/cutter`)
 

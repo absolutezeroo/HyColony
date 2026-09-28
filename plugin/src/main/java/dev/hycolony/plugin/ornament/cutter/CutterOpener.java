@@ -53,18 +53,36 @@ final class CutterOpener {
                     "hyornament: cutter at %s has no container", pos);
             return;
         }
-        ItemContainerBlock box = cutter.get().box();
-        ContainerBlockWindow window = cutter.get().window();
-        UUID uuid = playerRef.getUuid();
-        if (box.getWindows().putIfAbsent(uuid, window) != null) {
-            return; // this player already has it open
-        }
         CutterPage page = new CutterPage(
-                playerRef, new CutterPage.Setup(world, box.getItemContainer(), registry, catalogs.get(), memory));
-        if (playerComponent.getPageManager().openCustomPageWithWindows(player, store, page, window)) {
-            window.registerCloseEvent(e -> box.getWindows().remove(uuid, window));
-        } else {
-            box.getWindows().remove(uuid, window);
+                playerRef,
+                new CutterPage.Setup(world, cutter.get().box().getItemContainer(), registry, catalogs.get(), memory));
+        show(playerComponent, player, cutter.get(), page);
+    }
+
+    /**
+     * Opens page beside the cutter's slot window for player, unless it is already open for them; the block's window
+     * list gets no lasting entry when opening fails or throws, or this player could never open this cutter again.
+     */
+    private static void show(Player shown, Ref<EntityStore> player, CutterBlock cutter, CutterPage page) {
+        ItemContainerBlock box = cutter.box();
+        ContainerBlockWindow window = cutter.window();
+        UUID uuid = page.player();
+        if (box.getWindows().putIfAbsent(uuid, window) != null) {
+            return;
         }
+        try {
+            if (!shown.getPageManager().openCustomPageWithWindows(player, player.getStore(), page, window)) {
+                box.getWindows().remove(uuid, window);
+                return;
+            }
+        } catch (RuntimeException e) {
+            box.getWindows().remove(uuid, window);
+            throw e;
+        }
+        window.registerCloseEvent(e -> {
+            box.getWindows().remove(uuid, window);
+            page.detach();
+        });
+        page.attach(window);
     }
 }

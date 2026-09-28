@@ -5,7 +5,6 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.protocol.GameMode;
 import com.hypixel.hytale.server.core.Message;
-import com.hypixel.hytale.server.core.asset.type.item.config.Item;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.inventory.InventoryComponent;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
@@ -96,7 +95,7 @@ final class CutterCrafting {
                 new ItemStack(item, ready.quantity()));
         player.sendMessage(Message.translation("hycolony.ornament.cutter.crafted")
                 .param("p0", String.valueOf(ready.quantity()))
-                .param("p1", itemName(item)));
+                .param("p1", CutterPage.itemName(item)));
         request.redraw().run();
     }
 
@@ -110,19 +109,25 @@ final class CutterCrafting {
                 return false;
             }
             ItemStackSlotTransaction removal = slots.removeItemStackFromSlot((short) slot, 1);
+            ItemStack output = removal.getOutput();
             if (!removal.succeeded()) {
                 giveBack(slots, consumed, taken);
                 return false;
             }
-            taken.add(new ItemStack(before.getItemId(), 1));
+            taken.add(output == null || output.isEmpty() ? new ItemStack(before.getItemId(), 1) : output);
         }
         return true;
     }
 
-    /** Puts each taken item back in the slot it came from. */
+    /** Puts each taken item back in the slot it came from; one that does not fit is logged (lost). */
     private static void giveBack(ItemContainer slots, List<Integer> consumed, List<ItemStack> taken) {
         for (int i = 0; i < taken.size(); i++) {
-            slots.addItemStackToSlot(consumed.get(i).shortValue(), taken.get(i));
+            if (!slots.addItemStackToSlot(consumed.get(i).shortValue(), taken.get(i))
+                    .succeeded()) {
+                LOG.at(Level.SEVERE).log(
+                        "hyornament: cutter could not give back %s",
+                        taken.get(i).getItemId());
+            }
         }
     }
 
@@ -132,11 +137,7 @@ final class CutterCrafting {
         return player != null && player.getGameMode() == GameMode.Creative;
     }
 
-    private static Message itemName(String itemId) {
-        Item item = Item.getAssetMap().getAsset(itemId);
-        return item == null ? Message.raw(itemId) : item.getTranslationMessage();
-    }
-
+    /** Sends a translated message to player. */
     private static void say(PlayerRef player, String key, String... params) {
         player.sendMessage(HytaleNotifier.toMessage(Msg.of(key, params)));
     }

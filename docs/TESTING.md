@@ -253,3 +253,5 @@ Fabrication des blocs Domum Ornamentum par le joueur (spec `docs/superpowers/spe
 154. **Deux joueurs** sur le même établi : ils voient les mêmes emplacements ; deux clics sur un seul jeu de matériaux (1 de chaque) ne fabriquent qu'une fois.
 155. **Casse et redémarrage.** Casser l'établi plein : les matériaux tombent au sol. Inventaire plein : les objets fabriqués tombent aux pieds du joueur. Redémarrer avec des matériaux dans l'établi : ils y sont toujours.
 156. **Pack coupé.** `"DomumOrnamentum": false` : l'établi n'existe plus, aucun plantage.
+157. **Fenêtre remplacée.** Ouvrir l'établi, puis ouvrir une fenêtre HyColony (la baguette, ou une hutte à côté) : la fenêtre de l'établi et ses emplacements se ferment ; rouvrir l'établi fonctionne. Pendant qu'un second joueur déplace des objets dans l'établi, la fenêtre HyColony du premier n'est ni remplacée ni abîmée.
+158. **Départ pendant l'ouverture.** Le joueur A ouvre l'établi puis se déconnecte (ou change de monde) ; le joueur B pose et retire des matériaux dans l'établi : aucune erreur au journal. A revient : il rouvre l'établi normalement.

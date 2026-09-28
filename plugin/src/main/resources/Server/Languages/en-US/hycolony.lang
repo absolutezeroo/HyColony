@@ -97,6 +97,7 @@ ornament.cutter.slot.slab_materials = Material
 ornament.cutter.slot.all_brick_materials = Material
 ornament.cutter.craft = Craft
 ornament.cutter.placeMaterials = Place the materials in the slots.
+ornament.cutter.quantity = x {p0}
 ornament.cutter.emptySlot = Material {p0} is missing.
 ornament.cutter.badMaterial = Material #{p0} is not accepted here. Accepted: {p1}
 ornament.cutter.changed = The materials changed, nothing was crafted.
