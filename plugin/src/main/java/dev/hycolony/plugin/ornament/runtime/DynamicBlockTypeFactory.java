@@ -1,13 +1,17 @@
 package dev.hycolony.plugin.ornament.runtime;
 
 import com.hypixel.hytale.codec.ExtraInfo;
+import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.StateData;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
+import com.hypixel.hytale.server.core.modules.interaction.interaction.UnarmedInteractions;
 import com.hypixel.hytale.server.core.universe.world.connectedblocks.ConnectedBlockRuleSet;
 import dev.hycolony.core.ornament.VariantKey;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -154,13 +158,34 @@ public final class DynamicBlockTypeFactory {
             if (icon != null) {
                 this.icon = icon;
             }
-            // An interaction written inside the template item (a slab's merge into a full block) is a contained asset
-            // ("*<template>_..."): it matches the template's block and places the template's state, so a variant
-            // would merge into, and turn into, the template. Named vanilla interactions (Block_Secondary) are kept.
+            this.interactions = interactions(template);
+        }
+
+        /**
+         * template's interactions without those written inside the template item (a slab's merge into a full block,
+         * a contained asset "*<template>_..."): they match the template's block and place its state, so a variant
+         * would merge into, and turn into, the template. Each one dropped falls back as Item.processConfig does at
+         * decode time, which a copy skips: the item's unarmed interactions (its PlayerAnimationsId), then "Empty"
+         * (for a slab: Secondary = Block_Secondary, which places the block).
+         */
+        private static Map<InteractionType, String> interactions(Item template) {
             String own = "*" + template.getId();
-            this.interactions = template.getInteractions().entrySet().stream()
-                    .filter(e -> !e.getValue().startsWith(own))
-                    .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue));
+            Map<InteractionType, String> kept = new EnumMap<>(InteractionType.class);
+            template.getInteractions().forEach((type, root) -> {
+                if (!root.startsWith(own)) {
+                    kept.put(type, root);
+                }
+            });
+            for (String unarmed :
+                    new String[] {template.getPlayerAnimationsId(), UnarmedInteractions.DEFAULT_UNARMED_ID}) {
+                UnarmedInteractions fallback = unarmed == null
+                        ? null
+                        : UnarmedInteractions.getAssetMap().getAsset(unarmed);
+                if (fallback != null) {
+                    fallback.getInteractions().forEach(kept::putIfAbsent);
+                }
+            }
+            return Collections.unmodifiableMap(kept);
         }
     }
 }

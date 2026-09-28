@@ -643,6 +643,13 @@ Chemins relatifs à `build/vineflower/hytale-server/com/hypixel/hytale/server/co
 - `BlockType.getItem()` (l. 1368) : l'objet du bloc, ou `null` ; `Item.getIcon()` (`item/config/Item.java:1071`) : chemin `Common/` de son icône.
 - Recherche par clé : `BlockType.getAssetMap().getAsset(String)` (`assetstore/map/DefaultAssetMap.java:59`), `null` si absente.
 
+## 25. Copier un `Item` : interactions déjà traitées (`plugin/ornament/runtime/DynamicBlockTypeFactory.VariantItem`)
+
+Chemins relatifs à `build/vineflower/hytale-server/com/hypixel/hytale/server/core/`.
+
+- Le constructeur de copie `Item(Item other)` reprend `other.interactions` tel quel (`asset/type/item/config/Item.java:715`) : la table **déjà traitée** par `processConfig` (l. 1257-1286), qui a complété au décodage chaque type absent par les interactions « à mains nues » de l'objet (`UnarmedInteractions` de son `PlayerAnimationsId`), puis par celles de `"Empty"` (`putIfAbsent`).
+- Une interaction écrite dans le JSON de l'objet devient un asset contenu nommé `"*" + clé + "_" + chemin` (`assetstore/AssetExtraInfo.java:42`). Retirer une entrée de la copie ne rétablit donc pas le repli : il faut le refaire (`modules/interaction/interaction/UnarmedInteractions.getAssetMap()`, `DEFAULT_UNARMED_ID = "Empty"`). Pour un bloc, le repli `Block` donne `Secondary = Block_Secondary`, qui pose le bloc ; `Empty` n'a pas de `Secondary`.
+
 ## Could not verify
 
 1. **Client rendering of item animations on NPCs** (`AnimationSlot.Action` with `"Block"/"Build"` or `"Pickaxe"/"Mine"` on `PlayerTestModel_V`) and whether they loop or play once. Only the server packet path is verified.
