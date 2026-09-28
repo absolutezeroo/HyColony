@@ -5,7 +5,7 @@ $C = "../../Common.ui";
 
 @Slot = 74;
 @GridY = 50;
-@GridStyle = (SlotSize: @Slot, SlotIconSize: 64, SlotSpacing: 2, SlotBackground: "Native/Slot.png");
+@GridStyle = (SlotSize: @Slot, SlotIconSize: 64, SlotSpacing: 2, SlotBackground: "Native/Slot.png", DurabilityBar: "../../Common/ProgressBarFill.png", DurabilityBarBackground: "../../Common/ProgressBar.png", DurabilityBarAnchor: (Left: 8, Right: 8, Bottom: 5, Height: 4), DurabilityBarColorStart: #d64a3a, DurabilityBarColorEnd: #5fcf4f);
 @ArmorIcon = Group {
   @Row = 0;
 

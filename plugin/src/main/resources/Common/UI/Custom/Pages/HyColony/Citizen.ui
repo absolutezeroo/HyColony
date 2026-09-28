@@ -87,7 +87,7 @@ $C.@PageOverlay {
             AreItemsDraggable: true;
             DisplayItemQuantity: true;
             RenderItemQualityBackground: true;
-            Style: (SlotSize: 74, SlotIconSize: 64, SlotSpacing: 2, SlotBackground: "Native/Slot.png");
+            Style: (SlotSize: 74, SlotIconSize: 64, SlotSpacing: 2, SlotBackground: "Native/Slot.png", DurabilityBar: "../../Common/ProgressBarFill.png", DurabilityBarBackground: "../../Common/ProgressBar.png", DurabilityBarAnchor: (Left: 8, Right: 8, Bottom: 5, Height: 4), DurabilityBarColorStart: #d64a3a, DurabilityBarColorEnd: #5fcf4f);
             Padding: 2;
           }
         }
