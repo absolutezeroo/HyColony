@@ -113,24 +113,31 @@ def default_props_pick_the_blocks_own_default_state():
 
 
 def oriented_families_face_minus_z():
-    """A facing=north state faces Hytale's front (-Z, Stairs.blockymodel's high side): every shingle slope's
-    high edge sits on the -Z half, and a closed door is a thin panel across X, thin along Z (the vanilla Crude
-    door's hitbox spans X). Doors' hinge side and their position in the block are Task 8's (recentred there)."""
+    """A facing=north state faces Hytale's front: every shingle slope's high edge sits well inside the -Z half
+    (Stairs.blockymodel); a closed door is thin along Z and swings open on its west (-X) hinge, the Crude door's;
+    an open trapdoor or panel stands on its -Z hinge, the Crude trapdoor's. A 90 or 180 degree error fails."""
     root = source.fetch()
+
+    def points(family, block, props):
+        return [p for e in assemble.state_model(root, family, block, props)["elements"]
+                for p in assemble.world_points(e)]
+
+    def extent(ps, axis):
+        return min(p[axis] for p in ps), max(p[axis] for p in ps)
+
     for family in FAMILIES:
         for block in family.blocks:
             if family.name == "Shingle":
-                points = [p for e in assemble.state_model(root, family, block, {})["elements"]
-                          for p in assemble.world_points(e)]
-                top = max(p[1] for p in points)
-                high_z = [p[2] for p in points if p[1] > top - 3]
-                assert sum(high_z) / len(high_z) < 8, (block, sum(high_z) / len(high_z))
+                ps = points(family, block, {})
+                top = max(p[1] for p in ps)
+                high_z = [p[2] for p in ps if p[1] > top - 3]
+                assert sum(high_z) / len(high_z) < 7.7, (block, sum(high_z) / len(high_z))
             elif family.mechanism == "door":
-                points = [p for e in assemble.state_model(root, family, block, {})["elements"]
-                          for p in assemble.world_points(e)]
-                extent = [max(p[i] for p in points) - min(p[i] for p in points) for i in range(3)]
-                assert extent[2] < 5 < extent[0], (block, extent)
-
+                closed = points(family, block, {})
+                assert extent(closed, 2)[1] - extent(closed, 2)[0] < 5 < extent(closed, 0)[1] - extent(closed, 0)[0]
+                assert extent(points(family, block, {"open": "true"}), 0)[1] < 8, block
+            elif family.turn_y:
+                assert extent(points(family, block, {"open": "true"}), 2)[1] < 8, block
 
 def coplanar_overlap_is_removed():
     a = {"from": [0, 0, 0], "to": [16, 16, 1], "faces": {"north": {"uv": [0, 0, 16, 16], "texture": "#a"}}}

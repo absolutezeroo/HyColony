@@ -30,6 +30,9 @@ class Family:
     slot_tags: tuple[str, ...] = ()  # DO tag of each component's slot, in component order (tags.TAG_GROUPS)
     optional_second: bool = False  # DO lets the second slot stay empty: it then repeats the first material
     cutter_quantity: int = 1  # items per architect's cutter craft (A.3, DO-gen recipes/*.json)
+    # Extra turn after assembly, degrees about y. A DO trapdoor facing=north hinges on +Z (its open state stands at
+    # z 13..16), a vanilla Hytale trapdoor on -Z (Crude Trapdoor.blockymodel: hinge pivots at z -14): 180.
+    turn_y: int = 0
 
 
 FAMILIES = (
@@ -88,6 +91,7 @@ FAMILIES = (
         components=("block/oak_planks",),
         mechanism="static",
         slot_tags=("trapdoors_materials",), cutter_quantity=4,
+        turn_y=180,
     ),
     Family(
         name="Door",
@@ -115,6 +119,7 @@ FAMILIES = (
         components=("block/oak_planks",),
         mechanism="trapdoor",
         slot_tags=("trapdoors_materials",),
+        turn_y=180,
     ),
     Family(
         name="FancyTrapdoor",
@@ -124,6 +129,7 @@ FAMILIES = (
         components=("block/oak_planks", "block/acacia_planks"),
         mechanism="trapdoor",
         slot_tags=("fancy_trapdoors_materials", "fancy_trapdoors_materials"), cutter_quantity=2,
+        turn_y=180,
     ),
     Family(
         name="PaperWall",

@@ -193,8 +193,9 @@ def state_model(root, family, block_id, props):
     """One DO block's blockstate state assembled into MC-format geometry: the selected variant or merged
     multipart parts, each rotated by its own baked x then y around PIVOT. The state keeps that rotation: a
     facing=north state already faces Hytale's front (-Z), as Minecraft renders it (Minecraft's north is -Z
-    too). A property missing from props takes the block's own default value (see parts()). family is kept for
-    callers' symmetry and error messages.
+    too), except for a family whose hinge convention differs from Hytale's: it is then turned by family.turn_y
+    (trapdoors and panels, see families.py). A property missing from props takes the block's own default value
+    (see parts()).
 
     A selected part with "uvlock": true (DO uses it for e.g. trapdoors, panels, pillar columns) keeps its
     texture world-aligned: rotate_x/rotate_y then recompute that part's uv instead of carrying the
@@ -210,7 +211,7 @@ def state_model(root, family, block_id, props):
         part = _prefixed(model, f"e{index}_")
         merged["textures"].update(part["textures"])
         merged["elements"].extend(part["elements"])
-    return merged
+    return rotate_y(merged, family.turn_y)
 
 
 def _prefixed(model, prefix):
