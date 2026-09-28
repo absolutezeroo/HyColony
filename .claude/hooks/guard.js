@@ -25,6 +25,10 @@ const PROTECTED = [
     [".claude/settings.local.json", LOCAL],
     ["plugin/src/main/resources/config.json", LOCAL],
     ["plugin/src/main/resources/config.json.bak", LOCAL],
+    ["blockui/src/main/resources/config.json", LOCAL],
+    ["blockui/src/main/resources/config.json.bak", LOCAL],
+    ["domum/plugin/src/main/resources/config.json", LOCAL],
+    ["domum/plugin/src/main/resources/config.json.bak", LOCAL],
     [".git/config", LOCAL],
     [".githooks/", GUARD],
     [".claude/hooks/", GUARD],
@@ -35,10 +39,11 @@ const PROTECTED = [
     ["claude.md", GUARD],
     ["build.gradle.kts", GUARD],
     ["config/pmd/ruleset.xml", GUARD],
+    ["build-logic/", GUARD],
 ];
 // Inline code (node -e, python -c, [IO.File]::…) cannot be parsed: a protected name next to a write call is enough.
 const MENTION_ALWAYS = /size-allowlist\.txt|known-violations\.txt|\.mcp\.json|settings\.local\.json|resources\/config\.json|config\.json\.bak|\.git\/config/;
-const MENTION_GUARD = /\.githooks|\.claude\/(hooks|agents|skills|settings\.json)|agents\.md|claude\.md|build\.gradle\.kts|pmd\/ruleset\.xml/;
+const MENTION_GUARD = /\.githooks|\.claude\/(hooks|agents|skills|settings\.json)|agents\.md|claude\.md|build\.gradle\.kts|build-logic|pmd\/ruleset\.xml/;
 const WRITE_CALL = /write|append|delete|unlink|\brm|rename|copy|truncate|chmod|symlink|mkdir|remove|move|replace|open\s*\(|set-content|out-file|>/;
 const ASK_USER = "Ask the user: guardrail changes need their explicit approval (CLAUDE.md § 10).";
 

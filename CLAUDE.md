@@ -99,7 +99,7 @@ HyColony porte MineColonies sur Hytale 0.6.8 (épinglé), **à l'identique** : m
 
 Ces garde-fous rendent les erreurs difficiles à commettre par inadvertance, plutôt que seulement interdites. Ils arrêtent un agent qui dérive par erreur, pas un adversaire déterminé. **Toute modification d'un garde-fou demande l'accord explicite de l'utilisateur.**
 
-Fichiers garde-fous (la même liste figure dans `AGENTS.md`, dans l'agent `hycolony-implementer` et dans `.claude/hooks/guard.js`) : `CLAUDE.md`, `AGENTS.md`, `.claude/agents/`, `.claude/skills/`, `.claude/hooks/`, `.claude/settings.json`, `.githooks/`, `config/pmd/ruleset.xml` et les contrôles du `build.gradle.kts` racine (à partir de son premier commentaire `// CLAUDE.md §`).
+Fichiers garde-fous (la même liste figure dans `AGENTS.md`, dans l'agent `hycolony-implementer` et dans `.claude/hooks/guard.js`) : `CLAUDE.md`, `AGENTS.md`, `.claude/agents/`, `.claude/skills/`, `.claude/hooks/`, `.claude/settings.json`, `.githooks/`, `build-logic/`, `config/pmd/ruleset.xml` et les contrôles du `build.gradle.kts` racine (à partir de son premier commentaire `// CLAUDE.md §`).
 
 - `AGENTS.md` : résumé pour les autres outils (Codex, Cursor, Copilot…). Il renvoie ici sans dupliquer les règles.
 - Agents (`.claude/agents/`) :
@@ -109,7 +109,7 @@ Fichiers garde-fous (la même liste figure dans `AGENTS.md`, dans l'agent `hycol
   - `hycolony-researcher` vérifie les faits et n'écrit que dans `docs/research/` (imposé par un hook de son frontmatter).
 - Skills (`.claude/skills/`) : `port-mc`, `hytale-api` et `add-lang-key`.
 - Hooks git versionnés (`.githooks/`), activés une fois par clone avec `git config core.hooksPath .githooks` :
-  - `pre-commit` lance `spotlessCheck checkFileSizes checkSectionDividers` si un fichier `.java`, `.kts`, `gradle.properties`, `gradle/` ou `config/` est indexé. Il refuse un fichier indexé qui a aussi des modifications non indexées, car Gradle vérifie l'arbre de travail ;
+  - `pre-commit` lance `spotlessCheck checkFileSizes checkSectionDividers` si un fichier `.java`, `.kts`, `.kt`, `gradle.properties`, `gradle/`, `config/` ou `build-logic/` est indexé. Il refuse un fichier indexé qui a aussi des modifications non indexées, car Gradle vérifie l'arbre de travail ;
   - `commit-msg` impose `type(scope): description`, y compris derrière `fixup!`/`squash!`, et n'accepte `Merge` et `Revert` que dans les formats de git ;
   - `pre-push` refuse un arbre de travail non propre, puis lance `./gradlew build`.
 - Hook Claude Code (`.claude/hooks/guard.js`, déclaré dans `.claude/settings.json`, banc de test `node .claude/hooks/test/run.js`). Il découpe chaque commande en mots sans guillemets et ne juge que les commandes, options et fichiers écrits : un texte qui cite un chemin ou une option passe. Il refuse :

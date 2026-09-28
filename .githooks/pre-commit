@@ -1,7 +1,7 @@
 #!/bin/sh
 # Fast gate (CLAUDE.md § 3, § 8): formatting, file/package sizes, section dividers.
 # Skipped when no staged file can affect these checks (docs-only commits stay instant).
-relevant=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(java|kts)$|^gradle/|^config/|(^|/)gradle\.properties$')
+relevant=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(java|kts|kt)$|^gradle/|^config/|^build-logic/|(^|/)gradle\.properties$')
 if [ -z "$relevant" ]; then
     exit 0
 fi

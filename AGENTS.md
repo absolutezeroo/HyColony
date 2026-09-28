@@ -21,8 +21,8 @@ The build must be green. Versioned git hooks enforce this: run `git config core.
   `config/pmd/known-violations.txt`: these lists only shrink.
 - Write or commit `.mcp.json`, `config.json`, `config.json.bak` or `.claude/settings.local.json` (local settings).
 - Edit the guardrails without the user's explicit approval: `CLAUDE.md`, `AGENTS.md`, `.claude/agents/`,
-  `.claude/skills/`, `.claude/hooks/`, `.claude/settings.json`, `.githooks/`, `config/pmd/ruleset.xml` and the checks
-  of the root `build.gradle.kts` (CLAUDE.md § 10).
+  `.claude/skills/`, `.claude/hooks/`, `.claude/settings.json`, `.githooks/`, `build-logic/`, `config/pmd/ruleset.xml`
+  and the checks of the root `build.gradle.kts` (CLAUDE.md § 10).
 
 Commit messages: `type(scope): description` in English, type in feat|fix|refactor|test|docs|build|style|chore|perf.
 

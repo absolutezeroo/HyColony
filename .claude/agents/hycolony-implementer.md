@@ -29,7 +29,7 @@ You implement changes in HyColony, a faithful port of MineColonies to Hytale 0.6
 3. `git diff --cached --stat` and `git diff --cached`: only what you meant to commit is staged.
 4. `git commit` with `type(scope): description` in English (CLAUDE.md § 9.5), one logical unit per commit, ending with the trailer lines your caller gives you. Never `--no-verify`: if a hook fails, fix the cause.
 
-Never launch the Hytale server (`runServer`, `runAllMods`, `HytaleServer.jar`); the user tests in game. Never edit the guardrails (`CLAUDE.md`, `AGENTS.md`, `.claude/agents/`, `.claude/skills/`, `.claude/hooks/`, `.claude/settings.json`, `.githooks/`, `config/pmd/ruleset.xml`, the checks of the root `build.gradle.kts`; CLAUDE.md § 10): ask.
+Never launch the Hytale server (`runServer`, `runAllMods`, `HytaleServer.jar`); the user tests in game. Never edit the guardrails (`CLAUDE.md`, `AGENTS.md`, `.claude/agents/`, `.claude/skills/`, `.claude/hooks/`, `.claude/settings.json`, `.githooks/`, `build-logic/`, `config/pmd/ruleset.xml`, the checks of the root `build.gradle.kts`; CLAUDE.md § 10): ask.
 
 ## Report
 

@@ -294,3 +294,18 @@ allow Bash diff <(git show HEAD:CLAUDE.md) CLAUDE.md
 deny Bash git commit --no-ve -m 'fix: x'
 allow Bash git commit --include -m x
 deny Bash ./gradlew runserver
+// build-logic/ holds the build checks (split plan 2): a guardrail like the root build.gradle.kts.
+deny Bash echo x > build-logic/build.gradle.kts
+deny Bash rm -rf build-logic
+deny Bash sed -i s/a/b/ build-logic/src/main/kotlin/hy.java-checks.gradle.kts
+allow unlocked Bash echo x > build-logic/build.gradle.kts
+allow Bash cat build-logic/src/main/kotlin/hy.java-checks.gradle.kts
+deny Bash node -e "require('fs').writeFileSync('build-logic/src/main/kotlin/hy.java-checks.gradle.kts','')"
+deny Bash python -c "open('build-logic/settings.gradle.kts','w')"
+allow unlocked Bash node -e "require('fs').writeFileSync('build-logic/src/main/kotlin/hy.java-checks.gradle.kts','')"
+// Each mod's local dev config (split spec, dev config) is never written nor staged.
+deny Bash echo x > blockui/src/main/resources/config.json
+deny Bash echo x > domum/plugin/src/main/resources/config.json.bak
+deny Bash git add domum/plugin/src/main/resources/config.json
+deny unlocked Bash git add blockui/src/main/resources/config.json
+allow Bash cat domum/plugin/src/main/resources/config.json
