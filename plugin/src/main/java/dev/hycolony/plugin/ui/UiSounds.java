@@ -8,9 +8,14 @@ import com.hypixel.hytale.server.core.universe.world.SoundUtil;
 import java.util.Optional;
 import java.util.logging.Level;
 
-/** Interface sounds heard by one player, as a bench window plays its open sound (CraftingWindow). Never throws. */
+/**
+ * Interface sounds heard by one player, as a bench window plays its open sound (CraftingWindow). Never throws: the
+ * first failure is a WARNING, the next ones FINE. World thread.
+ */
 public final class UiSounds {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
+
+    private static boolean warned;
 
     private UiSounds() {}
 
@@ -20,11 +25,12 @@ public final class UiSounds {
             int sound = soundEventId
                     .map(id -> SoundEvent.getAssetMap().getIndex(id))
                     .orElse(Integer.MIN_VALUE);
-            if (sound != Integer.MIN_VALUE && sound != 0) {
+            if (sound != Integer.MIN_VALUE) {
                 SoundUtil.playSoundEvent2dToPlayer(player, sound, SoundCategory.UI);
             }
         } catch (RuntimeException e) {
-            LOG.at(Level.FINE).withCause(e).log("HyColony UI sound %s failed", soundEventId);
+            LOG.at(warned ? Level.FINE : Level.WARNING).withCause(e).log("HyColony UI sound %s failed", soundEventId);
+            warned = true;
         }
     }
 }

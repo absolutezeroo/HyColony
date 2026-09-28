@@ -164,9 +164,13 @@ public final class IdMap {
     public List<String> validate() {
         List<String> errors = new ArrayList<>();
         Predicate<String> item = id -> Item.getAssetMap().getAsset(id) != null;
+        Predicate<String> block = id -> BlockType.getAssetMap().getIndex(id) != Integer.MIN_VALUE;
         Predicate<String> particle = id -> ParticleSystem.getAssetMap().getAsset(id) != null;
+        Predicate<String> effect = id -> EntityEffect.getAssetMap().getAsset(id) != null;
+        Predicate<String> sound = id -> SoundEvent.getAssetMap().getIndex(id) != Integer.MIN_VALUE;
+        Predicate<String> interaction = id -> RootInteraction.getAssetMap().getAsset(id) != null;
         check(errors, "item", data.items(), item);
-        check(errors, "block", data.blocks(), id -> BlockType.getAssetMap().getIndex(id) != Integer.MIN_VALUE);
+        check(errors, "block", data.blocks(), block);
         Map<String, String> icons = new LinkedHashMap<>();
         for (Skill skill : Skill.values()) {
             icons.put(skill.name(), data.skillIcons().get(skill.name()));
@@ -174,35 +178,18 @@ public final class IdMap {
         check(errors, "skill icon", icons, item);
         check(errors, "particle system", byId(data.fireworks()), particle);
         check(errors, "precipitation particle system", byId(precipitation()), particle);
-        check(errors, "speed effect", speeds(), id -> EntityEffect.getAssetMap().getAsset(id) != null);
-        Predicate<String> block = id -> BlockType.getAssetMap().getIndex(id) != Integer.MIN_VALUE;
+        check(errors, "speed effect", speeds(), effect);
         check(errors, "flower pot item", byId(List.copyOf(pots().keySet())), item.and(block));
         pots().forEach((pot, potted) -> {
             check(errors, "potted plant item", byId(List.copyOf(potted.keySet())), item);
             check(errors, "flower pot " + pot + " block", potted, block);
         });
-        check(
-                errors,
-                "toggleable use interaction",
-                byId(List.copyOf(toggleableUseInteractions())),
-                id -> RootInteraction.getAssetMap().getAsset(id) != null);
+        check(errors, "toggleable use interaction", byId(List.copyOf(toggleableUseInteractions())), interaction);
         check(errors, "potion item", byId(potionList()), item);
         check(errors, "npc role", data.npcRoles(), id -> NPCPlugin.get().hasRoleName(id));
-        check(
-                errors,
-                "sound event",
-                Objects.requireNonNullElse(data.sounds(), Map.of()),
-                id -> SoundEvent.getAssetMap().getIndex(id) != Integer.MIN_VALUE);
-        check(
-                errors,
-                "entity effect",
-                byId(highlightEffect().stream().toList()),
-                id -> EntityEffect.getAssetMap().getAsset(id) != null);
-        check(
-                errors,
-                "sound event",
-                byId(farming().tillSoundEvent().stream().toList()),
-                id -> SoundEvent.getAssetMap().getIndex(id) != Integer.MIN_VALUE);
+        check(errors, "sound event", Objects.requireNonNullElse(data.sounds(), Map.of()), sound);
+        check(errors, "sound event", byId(farming().tillSoundEvent().stream().toList()), sound);
+        check(errors, "entity effect", byId(highlightEffect().stream().toList()), effect);
         return errors;
     }
 
