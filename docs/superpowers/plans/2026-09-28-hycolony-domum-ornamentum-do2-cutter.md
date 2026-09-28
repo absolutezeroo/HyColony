@@ -94,6 +94,10 @@
 4. **The DO pack is off, or the catalogs are not loaded yet.** Using the block sends `hycolony.ornament.failed` (`load`) and nothing else (Task 4).
 5. **Bad slot contents.** An empty required slot or a material outside the tag is refused, and nothing is consumed; junk in slot 2 of a 1-material shape is ignored and kept (Task 1 tests).
 
+## Redesign after the first in-game test (supersedes the container parts below)
+
+The client does not show a container window beside a custom page: the block's 2 slots never appeared. The cutter has no container any more. The window, laid out like Hytale's benches, lists the player's inventory materials that the selected slot accepts. A click puts one in the slot, and crafting takes the materials from the inventory (`CutterInventory`), with x10 and All. The spec's « En jeu », « Écarts » and « Architecture » sections describe the result; `CutterBlock`, `CutterSlots`, `CutterFollower` and the `ItemContainerBlock` of `cutter.py` are gone.
+
 ## Amendments from the Task 1-2 reviews (apply them in Tasks 4-7)
 
 Tasks 1 and 2 are done and reviewed on the branch; their committed code differs from the code blocks below, and **the committed code wins**:
