@@ -9,6 +9,7 @@ import dev.hycolony.core.kernel.item.BlockKind;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolType;
+import dev.hycolony.core.kernel.port.BodyAnimation;
 import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.core.kernel.port.WorldBlocks;
 import java.util.List;
@@ -57,6 +58,7 @@ final class FieldPass {
             if (!ctx.walker().walkTo(column.offset(0, 1, 0), CELL_RANGE)) {
                 return state;
             }
+            ctx.holdHoe();
             if (!workCell(state, field, column)) {
                 return FarmerState.PREPARING;
             }
@@ -107,6 +109,8 @@ final class FieldPass {
         if (!farming().till(surface)) {
             return;
         }
+        ctx.swing(BodyAnimation.TILL);
+        ctx.colony().context().ports().effects().tilled(surface);
         didWork = true;
         ItemKey tool =
                 ctx.stock().inventory().slot(hoe.getAsInt()).orElseThrow().item();
@@ -137,6 +141,8 @@ final class FieldPass {
      */
     private void harvest(BlockPos surface) {
         BlockPos crop = surface.offset(0, 1, 0);
+        ctx.swing(BodyAnimation.MINE);
+        ctx.colony().context().ports().effects().blockHit(crop, 1f);
         List<ItemAmount> drops = farming().harvest(crop);
         if (drops.isEmpty() && farming().crop(crop) == CropState.MATURE) {
             return;

@@ -6,6 +6,7 @@ import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
 import com.hypixel.hytale.server.core.asset.type.particle.config.ParticleSystem;
+import com.hypixel.hytale.server.core.asset.type.soundevent.config.SoundEvent;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.RootInteraction;
 import com.hypixel.hytale.server.npc.NPCPlugin;
 import dev.hycolony.core.citizen.Skill;
@@ -172,6 +173,11 @@ public final class IdMap {
                 id -> RootInteraction.getAssetMap().getAsset(id) != null);
         check(errors, "potion item", byId(potionList()), item);
         check(errors, "npc role", data.npcRoles(), id -> NPCPlugin.get().hasRoleName(id));
+        check(
+                errors,
+                "sound event",
+                byId(List.of(farming().tillSoundEvent())),
+                id -> SoundEvent.getAssetMap().getIndex(id) != Integer.MIN_VALUE);
         return errors;
     }
 

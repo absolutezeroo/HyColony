@@ -13,4 +13,7 @@ public interface WorldEffects {
      * delay; the block itself stays in place.
      */
     void blockHit(BlockPos pos, float progress);
+
+    /** The sound of {@code soil} tilled by a hoe, as a player's till plays it. */
+    void tilled(BlockPos soil);
 }

@@ -10,7 +10,9 @@ import dev.hycolony.core.farming.field.FieldStage;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.item.ItemAmount;
+import dev.hycolony.core.kernel.port.BodyAnimation;
 import dev.hycolony.core.request.model.ToolRequest;
+import dev.hycolony.core.testing.FakeBodies;
 import dev.hycolony.core.testing.farming.FakeFarming;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -234,5 +236,33 @@ class FieldPassTest extends FarmerTestBase {
 
         assertTrue(t.farming.crops.isEmpty());
         assertEquals(8, job.actionsDone(), "MC mineBlock: the block broke");
+    }
+
+    @Test
+    void farmerTillsWithTheHoeInHandLikeAPlayer() {
+        field(true);
+        give(HOE, 1);
+        settings().setFertilize(false);
+
+        pass(FarmerState.FARMER_HOE);
+
+        FakeBodies.Body b = t.bodies.bodies.get(body);
+        assertEquals(HOE, b.held, "MC workAtField equips the hoe");
+        assertEquals(BodyAnimation.TILL, b.lastAnimation, "MC hoeIfAble swings");
+        assertEquals(8, b.animations);
+        assertEquals(cells(), t.effects.tilled, "the till sound of each cell");
+    }
+
+    @Test
+    void harvestIsAStrokeOnTheCrop() {
+        plantedField(FakeFarming.WHEAT_SEEDS);
+        give(HOE, 1);
+
+        pass(FarmerState.FARMER_HARVEST);
+
+        FakeBodies.Body b = t.bodies.bodies.get(body);
+        assertEquals(HOE, b.held);
+        assertEquals(BodyAnimation.MINE, b.lastAnimation, "MC mineBlock with the hoe");
+        assertEquals(cells().stream().map(c -> c.offset(0, 1, 0)).toList(), t.effects.hits);
     }
 }

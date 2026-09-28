@@ -8,6 +8,7 @@ import com.hypixel.hytale.protocol.BlockSoundEvent;
 import com.hypixel.hytale.protocol.SoundCategory;
 import com.hypixel.hytale.server.core.asset.type.blocksound.config.BlockSoundSet;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
+import com.hypixel.hytale.server.core.asset.type.soundevent.config.SoundEvent;
 import com.hypixel.hytale.server.core.modules.blockhealth.BlockHealth;
 import com.hypixel.hytale.server.core.modules.blockhealth.BlockHealthChunk;
 import com.hypixel.hytale.server.core.modules.blockhealth.BlockHealthModule;
@@ -26,7 +27,7 @@ import org.joml.Vector3d;
 import org.joml.Vector3i;
 
 /**
- * Vanilla firework particle systems and block hit feedback, sent to the nearby players. World thread only; never
+ * Vanilla firework particle systems, block hit feedback and the till sound, sent to the nearby players. World thread only; never
  * throws (first failure WARNING, then FINE).
  */
 public final class HytaleWorldEffects implements WorldEffects {
@@ -40,11 +41,13 @@ public final class HytaleWorldEffects implements WorldEffects {
 
     private final World world;
     private final List<String> fireworks;
+    private final String tillSound;
     private boolean warned;
 
-    public HytaleWorldEffects(World world, List<String> fireworks) {
+    public HytaleWorldEffects(World world, List<String> fireworks, String tillSound) {
         this.world = world;
         this.fireworks = fireworks;
+        this.tillSound = tillSound;
     }
 
     /**
@@ -109,6 +112,27 @@ public final class HytaleWorldEffects implements WorldEffects {
             crack(chunks, sec, pos, progress);
         } catch (RuntimeException e) {
             LOG.at(warned ? Level.FINE : Level.WARNING).withCause(e).log("HyColony block hit failed at %s", pos);
+            warned = true;
+        }
+    }
+
+    /** The till sound at the soil's centre, as ChangeBlockInteraction plays Hoe_Till's WorldSoundEventId. */
+    @Override
+    public void tilled(BlockPos soil) {
+        try {
+            int sound = SoundEvent.getAssetMap().getIndex(tillSound);
+            if (sound == Integer.MIN_VALUE) {
+                return;
+            }
+            SoundUtil.playSoundEvent3d(
+                    sound,
+                    SoundCategory.SFX,
+                    soil.x() + 0.5,
+                    soil.y() + 0.5,
+                    soil.z() + 0.5,
+                    world.getEntityStore().getStore());
+        } catch (RuntimeException e) {
+            LOG.at(warned ? Level.FINE : Level.WARNING).withCause(e).log("HyColony till sound failed at %s", soil);
             warned = true;
         }
     }

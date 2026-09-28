@@ -111,6 +111,7 @@
     ],
     "tilled": "Soil_Dirt_Tilled",
     "fertilizer": "Tool_Fertilizer",
+    "tillSound": "SFX_Hoe_T1_Till",
     "hoes": { "Tool_Hoe_Crude": 0, "Tool_Hoe_Copper": 1, "Tool_Hoe_Iron": 2, "Tool_Hoe_Thorium": 3 },
     "fieldBarriers": [
       "Build_Black_Fence", "Build_GreyDark_Fence", "Build_GreyLight_Fence", "Build_Grey_Fence", "Build_White_Fence",

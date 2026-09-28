@@ -10,9 +10,14 @@ import dev.hycolony.core.job.JobXp;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.job.work.ToolRequests;
 import dev.hycolony.core.job.work.WorkerStock;
+import dev.hycolony.core.kernel.item.ItemAmount;
+import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.kernel.nav.BodyWalker;
+import dev.hycolony.core.kernel.port.BodyAnimation;
 import dev.hycolony.core.kernel.port.BodyId;
 import java.util.Optional;
+import java.util.OptionalInt;
 
 /**
  * What the farmer's {@link FarmWork} works with (MC EntityAIWorkFarmer's worker, job and building): its hut and the
@@ -27,7 +32,8 @@ record FarmWorkContext(
         WorkerModule workers,
         WorkerStock stock,
         ToolRequests tools,
-        BodyWalker walker) {
+        BodyWalker walker,
+        BodyId body) {
     /** MC MAX_BLOCKS_MINED: the actions after which the farmer empties its inventory at the hut. */
     static final int ACTIONS_UNTIL_DUMP = 64;
 
@@ -56,7 +62,8 @@ record FarmWorkContext(
                 workers.get(),
                 stock,
                 new ToolRequests(colony, citizen, hut),
-                new BodyWalker(colony.context().bodies(), body, colony.context().clock()::currentTick)));
+                new BodyWalker(colony.context().bodies(), body, colony.context().clock()::currentTick),
+                body));
     }
 
     CitizenData citizen() {
@@ -65,6 +72,20 @@ record FarmWorkContext(
 
     FarmingAccess farming() {
         return colony.context().ports().farming();
+    }
+
+    /** MC equipHoe: the inventory's hoe in the main hand, nothing without one. */
+    void holdHoe() {
+        OptionalInt hoe = stock.toolInInventory(ToolType.HOE);
+        Optional<ItemKey> item = hoe.isEmpty()
+                ? Optional.empty()
+                : stock.inventory().slot(hoe.getAsInt()).map(ItemAmount::item);
+        colony.context().bodies().setHeldItem(body, item);
+    }
+
+    /** MC swing: one stroke of {@code animation}. */
+    void swing(BodyAnimation animation) {
+        colony.context().bodies().playAnimation(body, animation);
     }
 
     /** MC walkToBuilding: true once at the hut. */

@@ -264,6 +264,8 @@ public final class HytaleCitizenBodies implements CitizenBodies {
         switch (animation) {
             case BUILD -> AnimationUtils.playAnimation(ref, AnimationSlot.Action, "Block", "Build", store());
             case MINE -> AnimationUtils.playAnimation(ref, AnimationSlot.Action, "Pickaxe", "Mine", store());
+            // The hoe's own animation set (Server/Item/Animations/Hoe.json), as Hoe_Till plays it for a player
+            case TILL -> AnimationUtils.playAnimation(ref, AnimationSlot.Action, "Hoe", "Till", store());
         }
     }
 
