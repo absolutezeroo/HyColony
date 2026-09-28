@@ -1,7 +1,7 @@
 $C = "../../Common.ui";
 
-// The player's character panel, laid out as Hytale's own (client CharacterPanel.ui): character, armor, utility slot
-// and stats. Textures under Native/ are copied from the Hytale client (see docs/native-ui-textures.md).
+// The player's character panel, laid out as Hytale's own (client CharacterPanel.ui): character, armor and utility
+// slots. Textures under Native/ are copied from the Hytale client (see docs/native-ui-textures.md).
 
 @Slot = 74;
 @GridY = 50;
@@ -15,7 +15,7 @@ $C = "../../Common.ui";
 };
 
 $C.@DecoratedContainer #PlayerCharacterPanel {
-  Anchor: (Width: 410, Height: 720);
+  Anchor: (Width: 410, Height: 560);
 
   #Title {
     $C.@Title #PlayerName {
@@ -54,7 +54,6 @@ $C.@DecoratedContainer #PlayerCharacterPanel {
       @ArmorIcon #ArmorIconHands { @Row = 2; Background: "Native/ArmorSlotIconHands.png"; }
       @ArmorIcon #ArmorIconLegs { @Row = 3; Background: "Native/ArmorSlotIconLegs.png"; }
 
-
       // All 4 utility slots (PlayerSystems gives the player 4), where the client shows only the active one: with
       // ItemStacks a grid shows every slot of its section, and hiding some would hide the items in them.
       ItemGrid #PlayerUtility {
@@ -64,98 +63,6 @@ $C.@DecoratedContainer #PlayerCharacterPanel {
         RenderItemQualityBackground: true;
         Style: @SpecialStyle;
         Padding: 2;
-      }
-    }
-
-    Group #PlayerStats {
-      LayoutMode: Top;
-      Anchor: (Height: 135, Top: 35);
-      Padding: (Horizontal: 10);
-      Background: (TexturePath: "../../Common/ContainerPanelPatch.png", Border: 4);
-
-      Label {
-        Anchor: (Top: 8);
-        Style: (TextColor: #878e9c, FontSize: 14, RenderBold: true, RenderUppercase: true);
-        Text: %hycolony.ui.inventory.stats;
-      }
-
-      Group {
-        LayoutMode: Left;
-        Anchor: (Height: 50, Top: 0);
-
-        Group {
-          Anchor: (Width: 35, Height: 35);
-          Background: "Native/CharacterPanelStatIconBackground.png";
-
-          Group { Background: "Native/CharacterPanelStatIconHealth.png"; }
-        }
-
-        Group {
-          LayoutMode: Middle;
-          FlexWeight: 1;
-          Padding: (Left: 10);
-
-          Label { Style: (TextColor: #878e9c, FontSize: 11); Text: %hycolony.ui.inventory.health; }
-          Label #StatHealth { Style: (TextColor: #b4c8c9, FontSize: 14, RenderBold: true); }
-        }
-
-        Group {
-          Anchor: (Width: 35, Height: 35);
-          Background: "Native/CharacterPanelStatIconBackground.png";
-
-          Group { Background: "Native/CharacterPanelStatIconStamina.png"; }
-        }
-
-        Group {
-          LayoutMode: Middle;
-          FlexWeight: 1;
-          Padding: (Left: 10);
-
-          Label { Style: (TextColor: #878e9c, FontSize: 11); Text: %hycolony.ui.inventory.stamina; }
-          Label #StatStamina { Style: (TextColor: #b4c8c9, FontSize: 14, RenderBold: true); }
-        }
-      }
-
-      Group {
-        Anchor: (Height: 2);
-        Background: #c1c9d3(0.07);
-      }
-
-      Group {
-        LayoutMode: Left;
-        Anchor: (Height: 50);
-
-        Group {
-          Anchor: (Width: 35, Height: 35);
-          Background: "Native/CharacterPanelStatIconBackground.png";
-
-          Group { Background: "Native/CharacterPanelStatIconMana.png"; }
-        }
-
-        Group {
-          LayoutMode: Middle;
-          FlexWeight: 1;
-          Padding: (Left: 10);
-
-          Label { Style: (TextColor: #878e9c, FontSize: 11); Text: %hycolony.ui.inventory.mana; }
-          Label #StatMana { Style: (TextColor: #b4c8c9, FontSize: 14, RenderBold: true); }
-        }
-
-        Group {
-          Anchor: (Width: 35, Height: 35);
-          Background: "Native/CharacterPanelStatIconBackground.png";
-
-          Group { Background: "Native/CharacterPanelStatIconArmor.png"; }
-        }
-
-        Group {
-          LayoutMode: Middle;
-          FlexWeight: 1;
-          Padding: (Left: 10);
-
-          Label { Style: (TextColor: #878e9c, FontSize: 11); Text: %hycolony.ui.inventory.defense; }
-          Label #StatDefense { Style: (TextColor: #b4c8c9, FontSize: 14, RenderBold: true); }
-        }
       }
     }
   }

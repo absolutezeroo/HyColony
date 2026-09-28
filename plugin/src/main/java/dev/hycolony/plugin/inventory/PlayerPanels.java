@@ -2,7 +2,6 @@ package dev.hycolony.plugin.inventory;
 
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
-import com.hypixel.hytale.server.core.inventory.InventoryComponent;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
@@ -12,7 +11,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 /**
  * Draws the player's own panels into a custom page, as Hytale's inventory shows them: the character panel (name,
- * character, armor, utility slot, stats) and the storage panel (storage and hotbar, with the active slot). Their
+ * character, armor and utility slots) and the storage panel (storage and hotbar). Their
  * grids are draggable (InventoryGrids).
  */
 public final class PlayerPanels {
@@ -21,7 +20,6 @@ public final class PlayerPanels {
     private static final String[] ARMOR_ICONS = {
         "#ArmorIconHead", "#ArmorIconChest", "#ArmorIconHands", "#ArmorIconLegs"
     };
-    private static final int HOTBAR_SLOTS = 9;
 
     private PlayerPanels() {}
 
@@ -47,14 +45,9 @@ public final class PlayerPanels {
                 host + " #PlayerUtility",
                 PlayerSection.UTILITY,
                 PlayerSection.UTILITY.container(store, player));
-        PlayerStats stats = PlayerStats.of(store, player);
-        ui.set(host + " #StatHealth.Text", stats.health());
-        ui.set(host + " #StatStamina.Text", stats.stamina());
-        ui.set(host + " #StatMana.Text", stats.mana());
-        ui.set(host + " #StatDefense.Text", stats.defense());
     }
 
-    /** Appends the storage panel into host and fills it for player, framing their active hotbar slot. */
+    /** Appends the storage panel into host and fills it for player. */
     public static void drawStorage(
             UICommandBuilder ui,
             UIEventBuilder events,
@@ -74,11 +67,6 @@ public final class PlayerPanels {
                 host + " #PlayerHotbar",
                 PlayerSection.HOTBAR,
                 PlayerSection.HOTBAR.container(store, player));
-        InventoryComponent.Hotbar hotbar = store.getComponent(player, InventoryComponent.Hotbar.getComponentType());
-        int active = hotbar == null ? -1 : hotbar.getActiveSlot();
-        for (int i = 0; i < HOTBAR_SLOTS; i++) {
-            ui.set(host + " #HotbarActive" + i + ".Visible", i == active);
-        }
     }
 
     private static boolean empty(ItemContainer container, short slot) {
