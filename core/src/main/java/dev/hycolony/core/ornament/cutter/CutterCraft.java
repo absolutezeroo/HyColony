@@ -5,7 +5,9 @@ import dev.hycolony.core.ornament.OrnamentShape;
 import dev.hycolony.core.ornament.VariantKey;
 import dev.hycolony.core.ornament.VariantRequests;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -19,6 +21,8 @@ import java.util.Set;
  */
 public final class CutterCraft {
     static final String EMPTY_SLOT = "hycolony.ornament.cutter.emptySlot";
+    /** Most crafts one click makes when nothing limits it (a creative player's All). */
+    public static final int MAX_BATCH = 64;
 
     private CutterCraft() {}
 
@@ -69,6 +73,24 @@ public final class CutterCraft {
             case VariantRequests.Accepted accepted -> new Ready(accepted.key(), quantity(shape), consumed);
             case VariantRequests.Refused refused -> new Refused(refused.reasonKey(), refused.slot(), refused.allowed());
         };
+    }
+
+    /**
+     * How many times ready can be crafted from inventory (item id -> count held): the scarcest material over what one
+     * craft takes of it (a material in two slots counts twice); {@link #MAX_BATCH} when nothing is consumed (creative).
+     *
+     * <p>Deviation from MC: DO crafts one at a time; the cutter window also offers x10 and All, as Hytale's benches.
+     */
+    public static int maxCrafts(Ready ready, Map<String, Integer> inventory) {
+        if (ready.consumed().isEmpty()) {
+            return MAX_BATCH;
+        }
+        Map<String, Integer> need = new HashMap<>();
+        ready.consumed().forEach(slot -> need.merge(ready.key().materials().get(slot), 1, Integer::sum));
+        return need.entrySet().stream()
+                .mapToInt(e -> inventory.getOrDefault(e.getKey(), 0) / e.getValue())
+                .min()
+                .orElse(0);
     }
 
     /** How many one craft gives: at least one per material (MC DO ArchitectsCutterRecipe.assemble). */

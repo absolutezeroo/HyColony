@@ -1,5 +1,5 @@
-"""The architect's cutter block (MC DO ArchitectsCutterBlock): a bench whose 2 container slots hold the materials
-the plugin's cutter window crafts with. It wears the vanilla builder's bench, Hytale's own architect bench.
+"""The architect's cutter block (MC DO ArchitectsCutterBlock): a bench opening the plugin's cutter window, which
+crafts with the player's own materials as Hytale's benches do (so it holds no container). It wears the vanilla builder's bench, Hytale's own architect bench.
 
 Deviation from MC: DO's recipe (1 iron ingot, 3 stone slabs, 3 logs; DO-gen recipes/architectscutter.json) is made
 at Hytale's Workbench, logs as any trunk (Wood_Trunk resource type)."""
@@ -19,7 +19,6 @@ def generate(ctx):
     """Writes the cutter item and its names."""
     bench = ctx.assets.item("Bench_Builders")
     block = {key: bench["BlockType"][key] for key in BENCH_KEYS}
-    block["BlockEntity"] = {"Components": {"ItemContainerBlock": {"Capacity": 2}}}
     # A no-op Use: the plugin's CutterSystem opens the window.
     block["Interactions"] = {"Use": {"Interactions": [{"Type": "Simple"}]}}
     item = {

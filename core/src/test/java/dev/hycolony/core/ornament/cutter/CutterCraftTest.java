@@ -114,6 +114,17 @@ class CutterCraftTest {
     }
 
     @Test
+    void maxCraftsIsLimitedByTheScarcestMaterialCountedPerCraft() {
+        var ready = (CutterCraft.Ready) CutterCraft.check(frame, List.of(one(OAK), one(STONE)), TAGS);
+        assertEquals(3, CutterCraft.maxCrafts(ready, Map.of(OAK, 3, STONE, 7)));
+        assertEquals(0, CutterCraft.maxCrafts(ready, Map.of(OAK, 3)));
+        var fancy = (CutterCraft.Ready) CutterCraft.check(fancyDoor, List.of(one(OAK), one(OAK)), TAGS);
+        assertEquals(2, CutterCraft.maxCrafts(fancy, Map.of(OAK, 5)), "the same material in both slots counts twice");
+        var creative = (CutterCraft.Ready) CutterCraft.check(frame, List.of(one(OAK), one(STONE)), TAGS, true);
+        assertEquals(CutterCraft.MAX_BATCH, CutterCraft.maxCrafts(creative, Map.of()));
+    }
+
+    @Test
     void creativePlayerCraftsWithoutConsumingTheMaterials() {
         var ready = (CutterCraft.Ready) CutterCraft.check(frame, List.of(one(OAK), one(STONE)), TAGS, true);
         assertEquals(List.of(), ready.consumed());

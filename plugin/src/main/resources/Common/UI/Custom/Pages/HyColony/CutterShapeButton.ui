@@ -2,10 +2,11 @@ $C = "../../Common.ui";
 
 Button #ShapeButton {
   LayoutMode: Center;
-  Anchor: (Width: 52, Height: 52, Right: 4, Bottom: 4);
+  Anchor: (Width: 54, Height: 54, Right: 4, Bottom: 4);
   Style: $C.@SecondaryButtonStyle;
+  TextTooltipStyle: $C.@DefaultTextTooltipStyle;
 
   ItemIcon #Icon {
-    Anchor: (Width: 40, Height: 40);
+    Anchor: (Width: 42, Height: 42);
   }
 }

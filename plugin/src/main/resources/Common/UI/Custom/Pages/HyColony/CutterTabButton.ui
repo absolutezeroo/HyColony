@@ -1,0 +1,22 @@
+$C = "../../Common.ui";
+
+Button #TabButton {
+  LayoutMode: Center;
+  Anchor: (Width: 70, Height: 56, Right: 4);
+  Style: (
+    Default: (Background: "../../Common/Tab.png"),
+    Hovered: (Background: "../../Common/Tab.png"),
+    Pressed: (Background: "../../Common/Tab.png")
+  );
+  TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+
+  Group #Selected {
+    Anchor: (Width: 70, Height: 56);
+    Background: "../../Common/TabSelectedOverlay.png";
+    Visible: false;
+  }
+
+  ItemIcon #Icon {
+    Anchor: (Width: 38, Height: 38);
+  }
+}

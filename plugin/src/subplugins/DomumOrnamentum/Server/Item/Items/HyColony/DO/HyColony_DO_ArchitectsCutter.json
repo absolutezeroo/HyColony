@@ -74,13 +74,6 @@
         }
       ]
     },
-    "BlockEntity": {
-      "Components": {
-        "ItemContainerBlock": {
-          "Capacity": 2
-        }
-      }
-    },
     "Interactions": {
       "Use": {
         "Interactions": [

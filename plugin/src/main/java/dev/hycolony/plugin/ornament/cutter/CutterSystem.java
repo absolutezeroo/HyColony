@@ -61,12 +61,7 @@ public final class CutterSystem extends EntityEventSystem<EntityStore, UseBlockE
             return;
         }
         try {
-            CutterOpener.open(
-                    store.getExternalData().getWorld(),
-                    chunk.getReferenceTo(index),
-                    event.getTargetBlock(),
-                    registry,
-                    memory);
+            CutterOpener.open(store.getExternalData().getWorld(), chunk.getReferenceTo(index), registry, memory);
         } catch (RuntimeException e) {
             event.setCancelled(true);
             LOG.at(Level.SEVERE).withCause(e).log("HyColony cutter use failed at %s", event.getTargetBlock());

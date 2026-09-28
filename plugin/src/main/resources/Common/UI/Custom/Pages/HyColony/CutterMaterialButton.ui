@@ -1,0 +1,16 @@
+$C = "../../Common.ui";
+
+Button #MaterialButton {
+  Anchor: (Width: 56, Height: 56, Right: 4, Bottom: 4);
+  Style: $C.@SecondaryButtonStyle;
+  TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+
+  ItemIcon #Icon {
+    Anchor: (Width: 40, Height: 40, Left: 8, Top: 6);
+  }
+
+  Label #Count {
+    Anchor: (Right: 4, Bottom: 2, Width: 40, Height: 18);
+    Style: (FontSize: 13, RenderBold: true, TextColor: #ffffff, HorizontalAlignment: End);
+  }
+}
