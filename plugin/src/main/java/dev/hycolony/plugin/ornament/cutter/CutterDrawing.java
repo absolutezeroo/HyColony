@@ -23,7 +23,7 @@ final class CutterDrawing {
      */
     static void draw(UICommandBuilder ui, UIEventBuilder events, CutterView view, boolean preparing) {
         tabs(ui, events, view.tabs());
-        shapes(ui, events, view.shapes());
+        shapes(ui, events, view.shapes(), preparing);
         slotLabels(ui, view.slotLabelKeys());
         preview(ui, events, view.preview(), preparing);
     }
@@ -45,15 +45,21 @@ final class CutterDrawing {
     }
 
     /**
-     * One icon button per shape of the open group, in the slots' materials once their variant exists, the chosen one
-     * disabled and named above the slots.
+     * One icon button per shape of the open group, in the slots' materials once their variant exists (a spinner while
+     * preparing it), the chosen one disabled and named above the slots.
      */
-    private static void shapes(UICommandBuilder ui, UIEventBuilder events, List<CutterView.ShapeButton> shapes) {
+    private static void shapes(
+            UICommandBuilder ui, UIEventBuilder events, List<CutterView.ShapeButton> shapes, boolean preparing) {
         for (int i = 0; i < shapes.size(); i++) {
             CutterView.ShapeButton shape = shapes.get(i);
             String button = "#Shapes[" + i + "]";
             ui.append("#Shapes", PAGES + "CutterShapeButton.ui");
             ui.set(button + " #Icon.ItemId", shownItem(shape.itemId(), shape.templateKey()));
+            boolean waits = preparing
+                    && !shape.itemId().equals(shape.templateKey())
+                    && Item.getAssetMap().getAsset(shape.itemId()) == null;
+            ui.set(button + " #Icon.Visible", !waits);
+            ui.set(button + " #Spinner.Visible", waits);
             ui.set(button + ".TooltipText", itemName(shape.templateKey()));
             ui.set(button + ".Disabled", shape.selected());
             bind(events, button, "shape", i);
