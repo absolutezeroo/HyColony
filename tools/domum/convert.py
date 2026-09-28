@@ -1,40 +1,65 @@
-"""One Minecraft block model (Blockbench cuboids) -> blockymodel nodes and the model's own atlas.
+"""One assembled Domum Ornamentum state (Minecraft cuboids) -> a blockymodel reading the shape's material layout.
 
-Axes and faces follow Blockbench's Hytale exporter (JannisX11/hytale-blockbench-plugin, src/blockymodel.ts): the same
-x/y/z as Minecraft, north -> back, south -> front, west -> left, east -> right, up -> top, down -> bottom. A block is
-x, z in [-16, 16] and y in [0, 32] (vanilla Carpet/Slope models), 2 units per Minecraft pixel. Each face's picture is
-baked into the atlas already cropped, flipped and turned as Minecraft shows it, so every face reads its atlas cell
-with no mirror and angle 0.
+Like DO, which retextures each component's placeholder sprite with the chosen material (A.2), every face reads its
+component's tile of a fixed layout: 32x32 for a one-material shape (the material's own texture), 64x32 for two
+(component 1 in x 0..32, component 2 in x 32..64). No picture is baked: the runtime swaps the texture.
+
+Axes follow Blockbench's Hytale exporter (JannisX11/hytale-blockbench-plugin, src/blockymodel.ts): Minecraft's x/y/z,
+north -> back, south -> front, west -> left, east -> right, up -> top, down -> bottom. A block is x, z in [-16, 16] and
+y in [0, 32], 2 units per Minecraft pixel; a material texture has 32 texels per block, so a face reads one texel per
+unit. A face wider than a tile would read the next one: its box is built at most 32 units per axis and stretched
+back (shape "stretch", as vanilla models change texel density). Texture offsets follow the layout rule verified on
+vanilla models (tools/decorations/models.py face_rects): the offset is the pivot, the mirror flips the face's
+rectangle over it, then the angle turns it about it.
 """
 
 import math
 import sys
 from pathlib import Path
 
-from PIL import Image
-
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "decorations"))
-from models import empty_shape, face_rects, node, walk, xyz  # noqa: E402
-from assemble import default_uv
+from models import empty_shape, node, walk, xyz  # noqa: E402
+
+from assemble import default_uv  # noqa: E402
 
 UNITS = 2  # blockymodel units per Minecraft pixel
-TEXELS = 2  # plank texture pixels per Minecraft uv unit (a 32 px texture over uv 0..16)
+TILE = 32  # texels of one material tile (one block face)
 FACES = {"north": "back", "south": "front", "west": "left", "east": "right", "up": "top", "down": "bottom"}
 AXES = {"x": (1, 0, 0), "y": (0, 1, 0), "z": (0, 0, 1)}
-# The frame component of every two-material DO block, and the only material of the others, is textured
-# block/oak_planks in the source models: it becomes Darkwood, every other slot Lightwood.
-FRAME_TEXTURES = ("block/oak_planks", "minecraft:block/oak_planks")
-# Minecraft's clockwise uv rotation -> PIL transpose.
-TURNS = {90: Image.Transpose.ROTATE_270, 180: Image.Transpose.ROTATE_180, 270: Image.Transpose.ROTATE_90}
+_TURN = {0: lambda x, y: (x, y), 90: lambda x, y: (-y, x), 180: lambda x, y: (-x, -y), 270: lambda x, y: (y, -x)}
 
 
-def material(textures, ref):
-    """'dark' for the frame slot or the frame's texture, 'light' for anything else (unresolved slots included)."""
-    slot, seen = ref.lstrip("#"), set()
-    while slot in textures and textures[slot].startswith("#") and slot not in seen:
-        seen.add(slot)
-        slot = textures[slot].lstrip("#")
-    return "dark" if slot == "frame" or textures.get(slot) in FRAME_TEXTURES else "light"
+def layout_size(family):
+    """(width, height) of the texture the family's models read: one tile per material slot."""
+    return (TILE * len(family.components), TILE)
+
+
+def component_index(family, textures, ref):
+    """0 or 1: the material slot of a face's texture reference, followed through the model's "#name" aliases to
+    its placeholder texture (with or without the minecraft: namespace). A one-material family always reads tile 0;
+    an unknown placeholder of a two-material family reads the second slot, DO's centre."""
+    if len(family.components) == 1:
+        return 0
+    value, seen = ref, set()
+    while value.startswith("#") and value not in seen:
+        seen.add(value)
+        value = textures.get(value[1:], "")
+    value = value.removeprefix("minecraft:")
+    known = [c.removeprefix("minecraft:") for c in family.components]
+    return known.index(value) if value in known else 1
+
+
+def to_blockymodel(model, family, group=None):
+    """The .blockymodel content of model: one node per element with a positive area face, each face reading its
+    component's tile; the nodes sit under a node named group (a door's "Door") when given."""
+    nodes = [n for i, e in enumerate(model["elements"])
+             if (n := _element(model["textures"], e, "E" + str(i), family)) is not None]
+    if group:
+        nodes = [node(group, (0, 0, 0), empty_shape(), nodes)]
+    root = node("Origin", (0, 0, 0), empty_shape(), nodes)
+    for index, n in enumerate(walk([root]), start=1):
+        n["id"] = str(index)
+    return {"lod": "auto", "nodes": [root]}
 
 
 def face_size(direction, size):
@@ -42,27 +67,6 @@ def face_size(direction, size):
     sx, sy, sz = size
     return {"north": (sx, sy), "south": (sx, sy), "west": (sz, sy), "east": (sz, sy),
             "up": (sx, sz), "down": (sx, sz)}[direction]
-
-
-def face_image(tiled, uv, rotation, width, height):
-    """The face's picture, width x height units rounded up: uv of the texture (tiled 3 x 3 so that uv past 0..16
-    wraps), flipped when uv runs backwards, then turned clockwise by rotation."""
-    turned = rotation in (90, 270)
-    span_w, span_h = (height, width) if turned else (width, height)
-    out = (max(1, math.ceil(span_w - 1e-6)), max(1, math.ceil(span_h - 1e-6)))
-    side = tiled.size[0] // 3
-    u0, v0, u1, v1 = (c * TEXELS + side for c in uv)
-    data = ((u1 - u0) / span_w, 0, u0, 0, (v1 - v0) / span_h, v0)
-    image = tiled.transform(out, Image.Transform.AFFINE, data, resample=Image.Resampling.NEAREST)
-    return image.transpose(TURNS[rotation]) if rotation in TURNS else image
-
-
-def tile(texture):
-    tiled = Image.new("RGBA", (texture.width * 3, texture.height * 3))
-    for i in range(3):
-        for j in range(3):
-            tiled.paste(texture, (i * texture.width, j * texture.height))
-    return tiled
 
 
 def hytale(point):
@@ -78,112 +82,65 @@ def orientation(rotation):
     return (axis[0] * math.sin(half), axis[1] * math.sin(half), axis[2] * math.sin(half), math.cos(half))
 
 
-class Converter:
-    """Converts one model: collects each face's picture, then packs them into its atlas."""
+def _element(textures, element, name, family):
+    low, high = element["from"], element["to"]
+    real = tuple((high[i] - low[i]) * UNITS for i in range(3))
+    size = tuple(min(s, TILE) for s in real)
+    stretch = tuple(r / s if s > 0 else 1 for r, s in zip(real, size))
+    faces = {d: f for d, f in element["faces"].items() if all(v > 0 for v in face_size(d, real))}
+    if not faces or sum(1 for s in real if s <= 0) > 1:
+        return None
+    layouts = {d: _layout(textures, f, d, low, high, size, family) for d, f in faces.items()}
+    centre = hytale([(low[i] + high[i]) / 2 for i in range(3)])
+    rotation = element.get("rotation")
+    pivot = hytale(rotation["origin"]) if rotation else centre
+    shape = _shape(size, layouts)
+    shape["offset"] = xyz(tuple(c - p for c, p in zip(centre, pivot)))
+    shape["stretch"] = xyz(stretch)
+    result = node(name, pivot, shape)
+    q = orientation(rotation)
+    result["orientation"] = {"x": q[0], "y": q[1], "z": q[2], "w": q[3]}
+    return result
 
-    def __init__(self, planks):
-        self.planks = {k: tile(v) for k, v in planks.items()}
-        self.images = []  # (image, [texture layouts reading it])
 
-    def convert(self, model):
-        """(nodes, atlas, faces): the blockymodel nodes, their atlas and, per element, its box (position,
-        orientation, offset, size) and {direction: picture} for the icon."""
-        nodes, faces = [], []
-        for index, element in enumerate(model["elements"]):
-            converted = self.element(model["textures"], element, "E" + str(index))
-            if converted:
-                nodes.append(converted[0])
-                faces.append(converted[1])
-        atlas = self.pack()
-        return nodes, atlas, faces
-
-    def element(self, textures, element, name):
-        low, high = element["from"], element["to"]
-        size = tuple((high[i] - low[i]) * UNITS for i in range(3))
-        pictures = {}
-        for direction, face in element["faces"].items():
-            width, height = face_size(direction, size)
-            if width <= 0 or height <= 0:
-                continue
-            uv = face.get("uv") or default_uv(direction, low, high)
-            texture = self.planks[material(textures, face.get("texture", ""))]
-            pictures[direction] = face_image(texture, uv, face.get("rotation", 0), width, height)
-        if not pictures or sum(1 for s in size if s <= 0) > 1:
-            return None
-        centre = hytale([(low[i] + high[i]) / 2 for i in range(3)])
-        rotation = element.get("rotation")
-        pivot = hytale(rotation["origin"]) if rotation else centre
-        offset = tuple(c - p for c, p in zip(centre, pivot))
-        shape = self.shape(size, pictures)
-        shape["offset"] = xyz(offset)
-        result = node(name, pivot, shape)
-        q = orientation(rotation)
-        result["orientation"] = {"x": q[0], "y": q[1], "z": q[2], "w": q[3]}
-        return result, {"position": pivot, "orientation": q, "offset": offset, "size": size, "faces": pictures}
-
-    def shape(self, size, pictures):
-        """A box, or a quad for a flat element (Blockbench's exporter does the same): facing the side it shows,
-        double-sided when Minecraft textures both of its sides."""
-        shape = empty_shape()
-        shape.update({"type": "box", "settings": {"size": xyz(size)}, "shadingMode": "standard"})
-        flat = next((axis for axis, s in zip("xyz", size) if s <= 0), None)
-        if flat is None:
-            shape["textureLayout"] = {FACES[d]: self.layout(p) for d, p in pictures.items()}
-            return shape
-        positive, negative = {"x": ("east", "west"), "y": ("up", "down"), "z": ("south", "north")}[flat]
-        shown = positive if positive in pictures else negative
-        sx, sy, sz = size
-        shape["type"] = "quad"
-        shape["settings"] = {"size": {"x": sz if flat == "x" else sx, "y": sz if flat == "y" else sy},
-                             "normal": ("+" if shown == positive else "-") + flat.upper()}
-        shape["doubleSided"] = positive in pictures and negative in pictures
-        shape["textureLayout"] = {"front": self.layout(pictures[shown])}
+def _shape(size, layouts):
+    """A box, or a quad for a flat element (Blockbench's exporter does the same): facing the side it shows,
+    double-sided when Minecraft textures both of its sides."""
+    shape = empty_shape()
+    shape.update({"type": "box", "settings": {"size": xyz(size)}, "shadingMode": "standard"})
+    flat = next((axis for axis, s in zip("xyz", size) if s <= 0), None)
+    if flat is None:
+        shape["textureLayout"] = {FACES[d]: layout for d, layout in layouts.items()}
         return shape
-
-    def layout(self, picture):
-        face = {"offset": {"x": 0, "y": 0}, "mirror": {"x": False, "y": False}, "angle": 0}
-        for image, users in self.images:
-            if image.size == picture.size and image.tobytes() == picture.tobytes():
-                users.append(face)
-                return face
-        self.images.append((picture, [face]))
-        return face
-
-    def pack(self):
-        """Shelf-packs the distinct pictures, tallest first, into a power-of-two atlas; points each face at its
-        picture."""
-        area = sum(i.width * i.height for i, _ in self.images)
-        width = power_of_two(max([32, math.isqrt(area) + 1] + [i.width for i, _ in self.images]))
-        x = y = shelf = 0
-        placed = []
-        for image, users in sorted(self.images, key=lambda e: (-e[0].height, -e[0].width)):
-            if x + image.width > width:
-                x, y, shelf = 0, y + shelf, 0
-            placed.append((image, x, y))
-            for face in users:
-                face["offset"] = {"x": x, "y": y}
-            x += image.width
-            shelf = max(shelf, image.height)
-        atlas = Image.new("RGBA", (width, power_of_two(max(1, y + shelf))), (0, 0, 0, 0))
-        for image, px, py in placed:
-            atlas.paste(image, (px, py))
-        return atlas
+    positive, negative = {"x": ("east", "west"), "y": ("up", "down"), "z": ("south", "north")}[flat]
+    shown = positive if positive in layouts else negative
+    sx, sy, sz = size
+    shape["type"] = "quad"
+    shape["settings"] = {"size": {"x": sz if flat == "x" else sx, "y": sz if flat == "y" else sy},
+                         "normal": ("+" if shown == positive else "-") + flat.upper()}
+    shape["doubleSided"] = positive in layouts and negative in layouts
+    shape["textureLayout"] = {"front": layouts[shown]}
+    return shape
 
 
-def power_of_two(n):
-    return 1 << (n - 1).bit_length()
+def _layout(textures, face, direction, low, high, size, family):
+    """The face's textureLayout entry: Minecraft's uv origin (mirrored when the uv runs backwards, turned by the
+    face's rotation) read inside the component's tile, moved inward when it would cross the tile's edge."""
+    u0, v0, u1, v1 = face.get("uv") or default_uv(direction, low, high)
+    angle = face.get("rotation", 0) % 360
+    mirror_x, mirror_y = u1 < u0, v1 < v0
+    width, height = face_size(direction, size)
+    w, h = (-width if mirror_x else width), (-height if mirror_y else height)
+    corners = [_TURN[angle](x, y) for x in (0, w) for y in (0, h)]
+    min_x, min_y = min(c[0] for c in corners), min(c[1] for c in corners)
+    span_x, span_y = max(c[0] for c in corners) - min_x, max(c[1] for c in corners) - min_y
+    left = _inside(min(u0, u1) * UNITS % TILE, span_x)
+    top = _inside(min(v0, v1) * UNITS % TILE, span_y)
+    tile_x = TILE * component_index(family, textures, face.get("texture", ""))
+    return {"offset": {"x": round(tile_x + left - min_x), "y": round(top - min_y)},
+            "mirror": {"x": mirror_x, "y": mirror_y}, "angle": angle}
 
 
-def check_atlas(name, nodes, atlas):
-    """Fails on a face reading outside its atlas: Hytale would show another face's picture, or nothing."""
-    for node_name, u0, v0, u1, v1 in face_rects(nodes):
-        if u0 < 0 or v0 < 0 or u1 > atlas.width or v1 > atlas.height:
-            raise SystemExit(f"{name}: face of {node_name} reads ({u0}, {v0})-({u1}, {v1}) outside {atlas.size}")
-
-
-def model_root(nodes):
-    """The model file's content: an Origin group holding the nodes, ids numbered from 1."""
-    root = node("Origin", (0, 0, 0), empty_shape(), nodes)
-    for index, n in enumerate(walk([root]), start=1):
-        n["id"] = str(index)
-    return {"lod": "auto", "nodes": [root]}
+def _inside(start, span):
+    """start, a whole texel, moved back so start..start+span stays within one tile (span is at most TILE)."""
+    return max(0, min(math.floor(start), TILE - math.ceil(span)))

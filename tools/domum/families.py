@@ -199,17 +199,3 @@ FAMILIES = (
     ),
 )
 
-
-def material(family, texture):
-    """The material slot of a component's placeholder texture: 'dark' for the family's first (frame) component,
-    'light' for another of its known components, and 'dark' for an unknown texture unless the family has more
-    than one component, in which case it is 'light'.
-
-    MC/DO: `MateriallyTexturedBakedModel` retextures each placeholder sprite by component (A.2); this mirrors it
-    for a fixed Darkwood (1st component) / Lightwood (rest) pair instead of a player-chosen material.
-    """
-    if texture == family.components[0]:
-        return "dark"
-    if texture in family.components:
-        return "light"
-    return "dark" if len(family.components) == 1 else "light"
