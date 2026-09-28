@@ -54,7 +54,7 @@ class CutterActionsTest {
         assertEquals("Slab", view.shapes().getFirst().shapeId());
         assertEquals("HyColony_DO_Slab", view.shapes().getFirst().templateKey());
         assertTrue(view.shapes().getFirst().selected());
-        assertEquals(List.of("hycolony.ornament.cutter.slot.slab_materials"), view.slotLabelKeys());
+        assertEquals(List.of(new CutterView.Slot("hycolony.ornament.cutter.slot.slab_materials", false)), view.slots());
         assertInstanceOf(CutterView.Empty.class, view.preview());
     }
 
@@ -65,7 +65,7 @@ class CutterActionsTest {
         assertEquals("Shingle_Flat", actions.shape().orElseThrow().id());
         actions.selectGroup(1);
         assertEquals("TimberFrame_Plain", actions.shape().orElseThrow().id());
-        assertEquals(2, actions.view(List.of()).slotLabelKeys().size());
+        assertEquals(2, actions.view(List.of()).slots().size());
     }
 
     @Test
@@ -152,6 +152,19 @@ class CutterActionsTest {
     }
 
     @Test
+    void aSlotIsReadyWhenItHoldsAMaterialItsTagAccepts() {
+        actions.selectGroup(1);
+        assertEquals(List.of(true, true), ready(actions.view(List.of(one(OAK), one(STONE)))));
+        assertEquals(List.of(false, true), ready(actions.view(List.of(one(STONE), one(STONE)))));
+        assertEquals(List.of(true, false), ready(actions.view(List.of(one(OAK), SlotContent.EMPTY))));
+        assertEquals(List.of(false, false), ready(actions.view(List.of())));
+    }
+
+    private static List<Boolean> ready(CutterView view) {
+        return view.slots().stream().map(CutterView.Slot::ready).toList();
+    }
+
+    @Test
     void aSlotAcceptsOnlyItsTagForTheChosenShape() {
         actions.selectGroup(1);
         assertTrue(actions.accepts(0, OAK));
@@ -204,7 +217,7 @@ class CutterActionsTest {
         assertTrue(cutter.shape().isEmpty());
         assertTrue(view.tabs().isEmpty());
         assertTrue(view.shapes().isEmpty());
-        assertTrue(view.slotLabelKeys().isEmpty());
+        assertTrue(view.slots().isEmpty());
         assertInstanceOf(CutterView.Empty.class, view.preview());
     }
 }

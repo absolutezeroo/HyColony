@@ -18,13 +18,13 @@ final class CutterDrawing {
     private CutterDrawing() {}
 
     /**
-     * Draws view: tabs, shapes, the slots' labels, and the preview with the craft buttons; preparing shows a spinner
-     * in place of a previewed variant that does not exist yet.
+     * Draws view: tabs, shapes, the slots (named, green once ready), and the preview with the craft buttons; preparing
+     * shows a spinner in place of a previewed variant that does not exist yet.
      */
     static void draw(UICommandBuilder ui, UIEventBuilder events, CutterView view, boolean preparing) {
         tabs(ui, events, view.tabs());
         shapes(ui, events, view.shapes(), preparing);
-        slotLabels(ui, view.slotLabelKeys());
+        slots(ui, view.slots());
         preview(ui, events, view.preview(), preparing);
     }
 
@@ -69,12 +69,20 @@ final class CutterDrawing {
         }
     }
 
-    /** Names each material slot the chosen shape uses (« Cadre », « Centre »…); a slot it does not use is unnamed. */
-    private static void slotLabels(UICommandBuilder ui, List<String> keys) {
+    /**
+     * Names each material slot the chosen shape uses (« Cadre », « Centre »…) and turns it green with its check once it
+     * holds a material its tag accepts; a slot the shape does not use is unnamed and grey.
+     */
+    private static void slots(UICommandBuilder ui, List<CutterView.Slot> slots) {
         for (int i = 0; i < CutterSlots.COUNT; i++) {
-            // An empty text, not a hidden label: a hidden one leaves the layout and shifts the other under slot 2.
-            if (i < keys.size()) {
-                ui.set("#SlotLabel" + i + ".Text", Message.translation(keys.get(i)));
+            boolean used = i < slots.size();
+            boolean ready = used && slots.get(i).ready();
+            ui.set("#SlotOk" + i + ".Visible", ready);
+            ui.set("#SlotBg" + i + ".Visible", !ready);
+            if (used) {
+                ui.set(
+                        "#SlotLabel" + i + ".Text",
+                        Message.translation(slots.get(i).labelKey()));
             } else {
                 ui.set("#SlotLabel" + i + ".Text", "");
             }

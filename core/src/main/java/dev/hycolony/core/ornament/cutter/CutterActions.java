@@ -103,13 +103,14 @@ public final class CutterActions {
                         i == shape))
                 .toList();
         Optional<OrnamentShape> chosen = shape();
-        List<String> labels = chosen.map(s -> s.slotTags().stream()
-                        .map(tag -> "hycolony.ornament.cutter.slot." + tag)
+        List<CutterView.Slot> slotViews = chosen.map(s -> IntStream.range(0, s.slotCount())
+                        .mapToObj(i -> new CutterView.Slot(
+                                "hycolony.ornament.cutter.slot." + s.slotTags().get(i), ready(s, slots, i)))
                         .toList())
                 .orElse(List.of());
         CutterView.Preview preview =
                 chosen.map(s -> preview(s, slots, creative)).orElseGet(CutterView.Empty::new);
-        return new CutterView(tabs, buttons, labels, preview);
+        return new CutterView(tabs, buttons, slotViews, preview);
     }
 
     /**
@@ -118,6 +119,13 @@ public final class CutterActions {
      */
     public List<VariantKey> groupVariants(List<SlotContent> slots) {
         return shapes().stream().flatMap(s -> variant(s, slots).stream()).toList();
+    }
+
+    /** Whether slot i of slots holds a material shape's tag for it accepts. */
+    private boolean ready(OrnamentShape shape, List<SlotContent> slots, int i) {
+        return i < slots.size()
+                && !slots.get(i).isEmpty()
+                && tags.accepts(shape.slotTags().get(i), slots.get(i).itemId());
     }
 
     /** The variant slots make for shape, ignoring creative mode; empty when the recipe is refused. */

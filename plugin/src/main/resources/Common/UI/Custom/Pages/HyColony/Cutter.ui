@@ -1,8 +1,6 @@
 $C = "../../Common.ui";
 $Sounds = "../../Sounds.ui";
 
-@SlotStyle = (SlotSize: 74, SlotIconSize: 64, SlotSpacing: 12, SlotBackground: "Native/Slot.png");
-
 $C.@PageOverlay {
   LayoutMode: Middle;
 
@@ -21,7 +19,7 @@ $C.@PageOverlay {
       Anchor: (Width: 715, Left: 38);
 
       $C.@Container {
-        Anchor: (Width: 715, Height: 440);
+        Anchor: (Width: 715, Height: 480);
 
         #Title {
           $C.@Title {
@@ -39,7 +37,7 @@ $C.@PageOverlay {
 
           Group {
             LayoutMode: Left;
-            Anchor: (Height: 320);
+            Anchor: (Height: 360);
 
             Group {
               LayoutMode: Top;
@@ -70,72 +68,110 @@ $C.@PageOverlay {
               }
 
               Group {
-                LayoutMode: Center;
-                Anchor: (Height: 80, Top: 6);
+                LayoutMode: Left;
+                Anchor: (Height: 200, Top: 4);
 
-                ItemGrid #CutterSlots {
-                  Anchor: (Width: 164, Height: 78);
-                  RenderItemQualityBackground: true;
-                  Padding: 2;
-                  SlotsPerRow: 2;
-                  AreItemsDraggable: true;
-                  DisplayItemQuantity: true;
-                  Style: @SlotStyle;
+                // The ingredients, as the client's crafting panels show them: a slot turns green with its check once
+                // it holds a material its tag accepts. Placed absolutely: the backgrounds sit under the grid's slots.
+                Group {
+                  Anchor: (Width: 84, Height: 200);
+
+                  Group #SlotBg0 {
+                    Anchor: (Width: 72, Height: 72, Left: 3, Top: 3);
+                    Background: (TexturePath: "Native/IngredientSlot.png", Border: 24);
+                  }
+
+                  Group #SlotOk0 {
+                    Anchor: (Width: 72, Height: 72, Left: 3, Top: 3);
+                    Background: (TexturePath: "Native/IngredientSlotValid.png", Border: 24);
+                    Visible: false;
+                  }
+
+                  Group #SlotBg1 {
+                    Anchor: (Width: 72, Height: 72, Left: 3, Top: 101);
+                    Background: (TexturePath: "Native/IngredientSlot.png", Border: 24);
+                  }
+
+                  Group #SlotOk1 {
+                    Anchor: (Width: 72, Height: 72, Left: 3, Top: 101);
+                    Background: (TexturePath: "Native/IngredientSlotValid.png", Border: 24);
+                    Visible: false;
+                  }
+
+                  ItemGrid #CutterSlots {
+                    Anchor: (Width: 78, Height: 176, Left: 0, Top: 0);
+                    SlotsPerRow: 1;
+                    AreItemsDraggable: true;
+                    DisplayItemQuantity: true;
+                    RenderItemQualityBackground: false;
+                    Style: (SlotSize: 72, SlotIconSize: 60, SlotSpacing: 26);
+                    Padding: 3;
+                  }
+
+                  Label #SlotLabel0 {
+                    Anchor: (Width: 78, Height: 20, Left: 0, Top: 76);
+                    Style: (FontSize: 12, TextColor: #819395, HorizontalAlignment: Center);
+                  }
+
+                  Label #SlotLabel1 {
+                    Anchor: (Width: 78, Height: 20, Left: 0, Top: 174);
+                    Style: (FontSize: 12, TextColor: #819395, HorizontalAlignment: Center);
+                  }
+                }
+
+                Group {
+                  LayoutMode: Top;
+                  FlexWeight: 1;
+
+                  Group {
+                    LayoutMode: Center;
+                    Anchor: (Height: 170);
+
+                    // The variant turning in 3D, as the client's bench preview (ItemPreviewComponent).
+                    ItemPreviewComponent #Preview {
+                      Anchor: (Width: 180, Height: 170);
+                    }
+
+                    // While the previewed variant is being created (vanilla Common.ui spinner).
+                    $C.@DefaultSpinner #PreviewSpinner {
+                      Visible: false;
+                    }
+                  }
+
+                  Label #PreviewText {
+                    Anchor: (Height: 30);
+                    Style: (TextColor: #ffffff, Wrap: true, HorizontalAlignment: Center, VerticalAlignment: Center);
+                  }
                 }
               }
 
               Group {
-                LayoutMode: Center;
-                Anchor: (Height: 22);
-
-                Label #SlotLabel0 {
-                  Anchor: (Width: 86);
-                  Style: (FontSize: 13, TextColor: #96a9be, HorizontalAlignment: Center);
-                }
-
-                Label #SlotLabel1 {
-                  Anchor: (Width: 86);
-                  Style: (FontSize: 13, TextColor: #96a9be, HorizontalAlignment: Center);
-                }
+                Anchor: (Height: 4, Top: 6);
+                Background: (TexturePath: "Native/ProgressBar.png", Border: 2);
               }
 
-              Group {
-                LayoutMode: Center;
-                Anchor: (Height: 80, Top: 4);
-
-                ItemIcon #Preview {
-                  Anchor: (Width: 72, Height: 72);
-                }
-
-                // While the previewed variant is being created (vanilla Common.ui spinner).
-                $C.@DefaultSpinner #PreviewSpinner {
-                  Visible: false;
-                }
-              }
-
-              Label #PreviewText {
-                Anchor: (Height: 40);
-                Style: (TextColor: #ffffff, Wrap: true, HorizontalAlignment: Center, VerticalAlignment: Center);
+              $C.@TextButton #CraftButton {
+                @Text = %hycolony.ornament.cutter.craft;
+                @Sounds = $Sounds.@SaveSettings;
+                Anchor: (Height: 44, Top: 8);
               }
 
               Group {
                 LayoutMode: Left;
-                Anchor: (Height: 44, Top: 6);
+                Anchor: (Height: 32, Top: 6);
 
-                $C.@TextButton #CraftButton {
-                  @Text = %hycolony.ornament.cutter.craft;
-                  @Sounds = $Sounds.@SaveSettings;
+                $C.@SmallSecondaryTextButton #Craft10Button {
+                  @Text = %hycolony.ornament.cutter.craft10;
                   FlexWeight: 1;
                 }
 
-                $C.@SecondaryTextButton #Craft10Button {
-                  @Text = %hycolony.ornament.cutter.craft10;
-                  Anchor: (Width: 90, Left: 6);
+                Group {
+                  Anchor: (Width: 5);
                 }
 
-                $C.@SecondaryTextButton #CraftAllButton {
+                $C.@SmallSecondaryTextButton #CraftAllButton {
                   @Text = %hycolony.ornament.cutter.craftAll;
-                  Anchor: (Width: 90, Left: 6);
+                  FlexWeight: 1;
                 }
               }
             }

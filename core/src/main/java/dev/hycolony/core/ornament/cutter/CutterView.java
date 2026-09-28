@@ -4,13 +4,13 @@ import java.util.List;
 
 /**
  * What the cutter window shows (MC DO ArchitectsCutterScreen, laid out as Hytale's crafting benches): the group
- * tabs, the group's shapes, a label per material slot of the chosen shape and the preview of what crafting gives.
+ * tabs, the group's shapes, each material slot of the chosen shape and the preview of what crafting gives.
  */
-public record CutterView(List<Tab> tabs, List<ShapeButton> shapes, List<String> slotLabelKeys, Preview preview) {
+public record CutterView(List<Tab> tabs, List<ShapeButton> shapes, List<Slot> slots, Preview preview) {
     public CutterView {
         tabs = List.copyOf(tabs);
         shapes = List.copyOf(shapes);
-        slotLabelKeys = List.copyOf(slotLabelKeys);
+        slots = List.copyOf(slots);
     }
 
     /** A group tab: its id, its name key, the item shown as its icon (its first shape's template), whether open. */
@@ -21,6 +21,12 @@ public record CutterView(List<Tab> tabs, List<ShapeButton> shapes, List<String> 
      * (it may not exist yet: show the template's icon then), or its template when they make none.
      */
     public record ShapeButton(String shapeId, String templateKey, String itemId, boolean selected) {}
+
+    /**
+     * A material slot of the chosen shape: its label key, and whether it holds a material its tag accepts (MC DO
+     * ArchitectsCutterContainer input slot {@code mayPlace}), which the window shows as a ready ingredient.
+     */
+    public record Slot(String labelKey, boolean ready) {}
 
     /** What crafting gives now. */
     public sealed interface Preview permits Empty, Ready, Refused {}
