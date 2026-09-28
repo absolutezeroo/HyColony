@@ -239,6 +239,7 @@ def flipped_uv_mirrors_pixels():
 
 - Produces : `tabs.generate(ctx)` : `Server/Item/Category/CreativeLibrary/DomumOrnamentum.json` (forme de `Blocks.json` vanilla, `Order` 4), un enfant par famille dans l'ordre des groupes du cutter, icônes `Icons/ItemCategories/DomumOrnamentum*.png` et `*Active.png`, clés `hycolony.category.do.<famille>` en en-US et fr-FR.
 - Produces : fragment `plugin/src/subplugins/DomumOrnamentum/hycolony/id-map.json` : `{"ornamentTags": TAGS}`.
+- **Remplacé depuis (2026-09-28, commit e2ec22ce)** : l'onglet n'a plus qu'un enfant, `All`, avec tous les gabarits (choix de l'utilisateur, voir la spec DO-1 § onglet), et le fragment id-map porte aussi `sounds` (sons de la découpeuse lus sur `Bench_Builders`). Ne pas revenir à un enfant par famille.
 - Colombage dynamique : aucun gabarit. Commentaire dans `families.py` : `# Deviation from MC: no dynamic timber frame; MineColonies' builder requests it as framed (DoBlockPlacementHandler).`
 
 - [ ] **Step 1 : tests qui échouent** :
