@@ -26,12 +26,13 @@ public final class ToolRequests {
     }
 
     /**
-     * One ToolRequest(type, 0, hut max equipment level) unless one of that type is live (MC checkForToolOrWeapon:
-     * {@code Tool(type, TOOL_LEVEL_WOOD_OR_GOLD, max(maxEquip, min))}; min is 0, so the max is maxEquip).
+     * One ToolRequest(type, 0, hut max equipment level) unless the citizen already has one of that type, open or
+     * completed (MC checkForToolOrWeapon: {@code Tool(type, TOOL_LEVEL_WOOD_OR_GOLD, max(maxEquip, min))}; min is 0,
+     * so the max is maxEquip). Another worker's request of the hut does not count, as in MC.
      */
     public void requestTool(ToolType type) {
         for (Request r : colony.requests().byRequester(hut.requesterId())) {
-            if (r.requestable() instanceof ToolRequest t && t.type() == type) {
+            if (r.citizenId() == citizen.id() && r.requestable() instanceof ToolRequest t && t.type() == type) {
                 return;
             }
         }

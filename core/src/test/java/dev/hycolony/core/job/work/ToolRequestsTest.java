@@ -54,6 +54,23 @@ class ToolRequestsTest {
         assertEquals(citizen.id(), r.citizenId());
     }
 
+    /** Simulation: with two crafters at one hut, the second never asked and its tasks failed in a loop. */
+    @Test
+    void eachWorkerOfTheHutAsksForItsOwnTool() {
+        CitizenData second = new CitizenData(2);
+        colony.citizens().restore(second);
+        ToolRequests secondTools = new ToolRequests(colony, second, hut);
+
+        tools.requestTool(ToolType.PICKAXE);
+        secondTools.requestTool(ToolType.PICKAXE);
+        secondTools.requestTool(ToolType.PICKAXE);
+
+        assertEquals(
+                List.of(citizen.id(), second.id()),
+                toolRequests().stream().map(Request::citizenId).toList(),
+                "MC looks at the citizen's own requests only");
+    }
+
     @Test
     void anotherToolTypeIsRequestedToo() {
         tools.requestTool(ToolType.PICKAXE);
