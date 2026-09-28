@@ -16,6 +16,7 @@ import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.port.WorldBlocks;
+import dev.hycolony.plugin.block.BenchTiers;
 import dev.hycolony.plugin.block.HytaleBlockBreaker;
 import dev.hycolony.plugin.block.HytaleBlockStates;
 import dev.hycolony.plugin.block.HytaleSections;
@@ -206,14 +207,15 @@ public final class HytaleWorldBlocks implements WorldBlocks {
         }
     }
 
-    /**
-     * Not applied yet: always false, the port's failure value, so the core registers the bench at its planned tier
-     * without it. SP3b-1 Task 16 sets {@code BenchBlock}'s tier level and its {@code Tier<N>} state once both are
-     * verified in the decompiled sources.
-     */
+    /** See {@link BenchTiers#set}; false if the chunk is unloaded, the block is no bench, or Hytale fails. */
     @Override
     public boolean setBenchTier(BlockPos pos, int tier) {
-        return false;
+        try {
+            return BenchTiers.set(world, pos, tier);
+        } catch (RuntimeException e) {
+            fail("setBenchTier", pos, e);
+            return false;
+        }
     }
 
     private @Nullable Ref<ChunkStore> section(BlockPos pos) {

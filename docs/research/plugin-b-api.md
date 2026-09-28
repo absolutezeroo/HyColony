@@ -650,6 +650,38 @@ Chemins relatifs à `build/vineflower/hytale-server/com/hypixel/hytale/server/co
 - Le constructeur de copie `Item(Item other)` reprend `other.interactions` tel quel (`asset/type/item/config/Item.java:715`) : la table **déjà traitée** par `processConfig` (l. 1257-1286), qui a complété au décodage chaque type absent par les interactions « à mains nues » de l'objet (`UnarmedInteractions` de son `PlayerAnimationsId`), puis par celles de `"Empty"` (`putIfAbsent`).
 - Une interaction écrite dans le JSON de l'objet devient un asset contenu nommé `"*" + clé + "_" + chemin` (`assetstore/AssetExtraInfo.java:42`). Retirer une entrée de la copie ne rétablit donc pas le repli : il faut le refaire (`modules/interaction/interaction/UnarmedInteractions.getAssetMap()`, `DEFAULT_UNARMED_ID = "Empty"`). Pour un bloc, le repli `Block` donne `Secondary = Block_Secondary`, qui pose le bloc ; `Empty` n'a pas de `Secondary`.
 
+## 26. Recettes et tables (`plugin/crafting/`, `block/BenchTiers`, `prefab/PrefabCells`)
+
+Vérifié dans les sources décompilées de 0.6.8 et dans `Assets.zip`, le 2026-09-28.
+
+- **Recettes** : `CraftingRecipe.getAssetMap().getAssetMap()` (`server/core/asset/type/item/config/CraftingRecipe.java`). La carte contient aussi les recettes déclarées dans un objet (`Item.Recipe`), avec l'identifiant `<objet>_Recipe_Generated_0` (`Item.java:1337-1352`). Accesseurs :
+  - `getInput()` et `getOutputs()` renvoient des `MaterialQuantity[]` ;
+  - `getPrimaryOutput()` peut être null pour un fichier de `Server/Item/Recipes` ; `processConfig` recopie alors la sortie principale dans `outputs` ;
+  - `getBenchRequirement()` renvoie un **tableau** de `protocol.BenchRequirement` (`type`, `id`, `categories`, `requiredTierLevel`) ;
+  - `isKnowledgeRequired()`.
+- **Plusieurs tables pour une recette** : c'est le cas de 28 recettes sur 1 984. HyColony garde la première exigence de type `BenchType.Crafting` (`Fieldcraft` compris). Les types `Processing`, `DiagramCrafting` et `StructuralCrafting` sont hors portée.
+- **Ingrédients** (`MaterialQuantity`) :
+  - `getItemId()`, `getResourceTypeId()`, `getQuantity()` ;
+  - un tag n'est exposé que par `getTagIndex()`, sans getter pour son nom (`AssetRegistry.getOrCreateTagIndex`). Un seul `ItemTag` apparaît dans toutes les recettes de 0.6.8 : HyColony écarte cette recette.
+  - Correspondance d'un type de ressource : l'objet liste le type dans `Item.getResourceTypes()` (`ItemContainer.getMatchingResourceType`). Les 1 304 déclarations de 0.6.8 ont toutes `Quantity: 1`.
+- **Recettes connues d'un joueur** : `Player.getPlayerConfigData().getKnownRecipes()`, un ensemble d'**identifiants d'objet de sortie principale**, pas de recettes (`CraftingManager.isValidBenchForRecipe`, l. 452-466).
+- **Tables** : `BlockType.getBench()`, avec `getType()` (`protocol.BenchType`) et `getId()`.
+  - Catégories : `CraftingBench.getCategories()[i].getId()`.
+  - Niveaux : `Bench.getTierLevel(t)` lit `TierLevels[t - 1]`, et `getUpgradeRequirement(t).getInput()` donne le coût pour passer du niveau `t` à `t + 1` (`Bench.java:140-147`, `CraftingManager.finishTierUpgrade`).
+  - Plusieurs blocs partagent un identifiant de table : `Bench_Farming` (7 niveaux, catégories `Farming`, `Seeds`, `Saplings`, `Essence`, `Planters`, `Decorative`) et `Bench_Trough` (0 niveau, catégorie `All`) sont tous deux `Farmingbench`.
+  - Les montées de niveau de l'établi de fermier demandent des **types de ressource** (`Wood_Softwood_Trunk` × 5, puis `Wood_Lightwood_Trunk` × 10, etc.).
+- **Niveau d'une table dans un prefab** : le composant `BenchBlock` du holder de la case porte `TierLevel` et `UpgradeItems` (`builtin/crafting/component/BenchBlock.java`, vu dans `Server/Prefabs/Cave/Klops/...`). Sans composant, le niveau vaut 1.
+- **Monter une table posée** : on reproduit la fin de `CraftingManager.finishTierUpgrade` (l. 790-866) :
+  1. `BlockModule.getBlockEntity(store, section, x, y, z)` ;
+  2. les composants `BenchBlock` et `BlockModule.BlockStateInfo` ;
+  3. `setTierLevel(n)` ;
+  4. `BlockOperations.setBlockInteractionState(chunkStore, section, x, y, z, BenchBlock.getBaseBlockType(type), bench.getTierStateName(), true)` ;
+  5. `info.markNeedsSaving()`.
+- **[in-game]** Restent à voir en jeu :
+  - l'aspect `Tier<N>` d'une table posée par le constructeur ;
+  - l'ouverture de cette table par un joueur au bon niveau ;
+  - le nombre de recettes que journalise `Recipe catalog: %d craftable recipes`.
+
 ## Could not verify
 
 1. **Client rendering of item animations on NPCs** (`AnimationSlot.Action` with `"Block"/"Build"` or `"Pickaxe"/"Mine"` on `PlayerTestModel_V`) and whether they loop or play once. Only the server packet path is verified.
