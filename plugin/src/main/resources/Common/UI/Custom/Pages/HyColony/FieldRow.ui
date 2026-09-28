@@ -30,6 +30,13 @@ Group {
       }
     }
 
+    $C.@SecondaryTextButton #LocateButton {
+      Anchor: (Width: 120, Height: 32, Right: 6);
+      Text: %hycolony.ui.fields.locate;
+      TooltipText: %hycolony.ui.fields.locate.tooltip;
+      TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+    }
+
     $C.@SecondaryTextButton #AssignButton {
       Anchor: (Width: 130, Height: 32);
       Text: "";

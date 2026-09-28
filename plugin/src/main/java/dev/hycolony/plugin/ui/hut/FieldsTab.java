@@ -7,6 +7,7 @@ import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.action.FieldActions;
 import dev.hycolony.core.colony.ui.tab.FieldsView;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.plugin.ui.BlockHighlight;
 import dev.hycolony.plugin.ui.ColonyPage;
 import java.util.Locale;
 import java.util.UUID;
@@ -15,6 +16,7 @@ import java.util.UUID;
  * A farmer hut's Fields tab (MC FarmFieldsModuleWindow): {@code owned} of {@code max}, the assignment mode and Request
  * Fertilizer buttons, then a row per field with its seed, distance, stage and Assign or Free. Assign and Free work in
  * manual mode only; a refused Assign is disabled with its reason as tooltip. The core checks MANAGE_HUTS and re-shows.
+ * Locate highlights the field block for the viewer (an addition: MC's window has no such button).
  */
 final class FieldsTab implements HutTab {
     private final ColonyManager manager;
@@ -88,6 +90,7 @@ final class FieldsTab implements HutTab {
                     Message.join(stageLine, Message.raw(" - "), Message.translation("hycolony.ui.fields.doneToday"));
         }
         ui.set(sel + " #Stage.TextSpans", stageLine);
+        ColonyPage.bind(events, sel + " #LocateButton", "fieldLocate", i);
         String button = sel + " #AssignButton";
         ui.set(
                 button + ".Text",
@@ -110,7 +113,15 @@ final class FieldsTab implements HutTab {
             case "fieldsMode" -> actions.toggleMode(player, hut);
             case "fieldsFertilize" -> actions.toggleFertilize(player, hut);
             case "fieldAssign" -> assignOrFree(actions, act.index());
+            case "fieldLocate" -> locate(act.index());
             default -> {} // BuildingPage offers every action to every tab
+        }
+    }
+
+    /** Highlights the row's field block for the viewer, to find it in a large colony; an unknown row does nothing. */
+    private void locate(int index) {
+        if (index >= 0 && index < fields.rows().size()) {
+            BlockHighlight.show(player, fields.rows().get(index).field());
         }
     }
 

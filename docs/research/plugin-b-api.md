@@ -727,6 +727,8 @@ Vérifié dans les sources décompilées et dans `Assets.zip` le 2026-09-28. Com
   - les mêmes sons pour les 4 houes (T1).
 - HyColony joue `AnimationUtils.playAnimation(ref, AnimationSlot.Action, "Hoe", "Till", store)` (`HytaleCitizenBodies`, `BodyAnimation.TILL`) et le son de l'id-map `farming.tillSound` (`HytaleWorldEffects.tilled`). **[in-game]**
 
+**Mettre un bloc en surbrillance pour un joueur.** Le paquet `DisplayDebug` (`protocol/packets/player/DisplayDebug.java`, id 114) dessine une forme (`DebugShape` : Sphere, Cylinder, Cone, Cube, Frustum, Sector, Disc, Donut) placée par une matrice 4×4 (`Matrix4dUtil.asFloatData`), avec une couleur, une durée en secondes, des drapeaux (`DebugUtils.FLAG_FADE` = 1, `FLAG_NO_WIREFRAME` = 2, `FLAG_NO_SOLID` = 4) et une opacité. `DebugUtils.add` l'envoie à tous les joueurs du monde ; `PlayerRef.getPacketHandler().write(packet)` l'envoie à un seul. HyColony s'en sert pour « Localiser » un champ (`plugin/ui/BlockHighlight`). **[in-game]** : rendu hors mode développeur, visibilité à travers les blocs.
+
 **Barre de durabilité d'une `ItemGrid`.** Le schéma de l'éditeur UI donne à `ItemGridStyle` : `DurabilityBar` (UIPath), `DurabilityBarBackground` (PatchStyle ou chaîne), `DurabilityBarAnchor`, `DurabilityBarColorStart`, `DurabilityBarColorEnd` ; les piles portent `Durability` et `MaxDurability`. Aucune `.ui` vanilla ne s'en sert (l'inventaire du joueur est natif). Sans ces propriétés, la grille ne dessine pas de barre. HyColony les renseigne avec `Common/ProgressBarFill.png` et `Common/ProgressBar.png` (grilles du citoyen et du joueur). **[in-game]**
 
 ## 28. Mods multiples (essai du 2026-09-28)
