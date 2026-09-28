@@ -2,12 +2,17 @@
 almost in) the same plane and overlapping z-fight, and pillar ends that DO leaves open because a neighbour
 hides them (docs/research/domum-ornamentum.md B.9, points 1 and 4). Works on assembled MC-format models
 ({"textures", "elements"}); elements with an inner tilt are left alone, their faces are not axis-aligned.
+
+Deviation from MC: DO's geometry is drawn as authored in Minecraft; here near-coplanar backings are moved back by
+MIN_GAP_PX, fully hidden faces dropped and open pillar ends closed, because Hytale z-fights and shows the holes.
 """
 
 import copy
 
+import assemble
+
 MIN_GAP_PX = 0.05  # Minecraft pixels between two parallel overlapping faces (0.1 Hytale unit)
-EPSILON = 1e-6
+EPSILON = 1e-6  # tolerance on Minecraft pixels (positions) and square pixels (areas)
 
 # direction -> (normal axis, the element bound holding its plane: 0 = from, 1 = to, outward sign, rect axes)
 _PLANES = {
@@ -69,13 +74,15 @@ def _resolve(elements, i, j, direction):
 
 
 def cap_ends(model):
-    """model with the up/down face added to every axis-aligned element touching the block's top (y = 16) or
-    bottom (y = 0) without one, textured like its first side face, at Minecraft's default uv. Added caps that
-    overlap in one plane (blockpillar's eight blades) become a single lid over their combined bounds."""
+    """model with the up/down face added to every element touching the block's top (y = 16) or bottom (y = 0)
+    without one, textured like its first side face, at Minecraft's default uv. Only upright elements count: no tilt,
+    or a tilt about y, which keeps the element's height. Added caps that overlap in one plane (blockpillar's blades,
+    tilted about y) become a single lid over their combined real footprint."""
     result = copy.deepcopy(model)
     lids = {}
     for index, element in enumerate(result["elements"]):
-        if element.get("rotation", {}).get("angle") or not element["faces"]:
+        rotation = element.get("rotation") or {}
+        if (rotation.get("angle") and rotation.get("axis") != "y") or not element["faces"]:
             continue
         side = next(iter(element["faces"].values()))
         for direction, y_bound, y in (("up", "to", 16), ("down", "from", 0)):
@@ -87,7 +94,7 @@ def cap_ends(model):
 
 
 def _add_caps(elements, direction, caps):
-    rects = [_rect(elements[i], (0, 2)) for i, _ in caps]
+    rects = [_footprint(elements[i]) for i, _ in caps]
     shared = len(caps) > 1 and all(_overlap(a, b) > EPSILON for a in rects for b in rects if a is not b)
     if not shared:
         for index, texture in caps:
@@ -97,6 +104,13 @@ def _add_caps(elements, direction, caps):
     low = [min(r[0] for r in rects), y, min(r[1] for r in rects)]
     high = [max(r[2] for r in rects), y, max(r[3] for r in rects)]
     elements.append({"from": low, "to": high, "faces": {direction: {"texture": caps[0][1]}}})
+
+
+def _footprint(element):
+    """(x0, z0, x1, z1): the element's real extent seen from above, its tilt about y included."""
+    points = assemble.world_points(element)
+    xs, zs = [p[0] for p in points], [p[2] for p in points]
+    return (min(xs), min(zs), max(xs), max(zs))
 
 
 def _faces(elements):
