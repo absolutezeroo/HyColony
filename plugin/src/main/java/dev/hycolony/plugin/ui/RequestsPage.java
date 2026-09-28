@@ -109,16 +109,13 @@ public final class RequestsPage extends ColonyPage {
     }
 
     /**
-     * Deviation from MC: the first accepted item stands for the list, where MC shows its description, a translation
-     * key; the description (a resource type or tag id) only shows when no item is accepted.
+     * Deviation from MC: the first accepted item (a StackList accepts at least one) stands for the list, where MC shows
+     * its description, a translation key.
      */
     private static Message describeStackList(StackList l) {
-        Message item = l.accepted().isEmpty()
-                ? Message.raw(l.description())
-                : itemName(l.accepted().getFirst().id());
         return Message.translation("hycolony.ui.requests.stackList")
                 .param("p0", String.valueOf(l.count()))
-                .param("p1", item);
+                .param("p1", itemName(l.accepted().getFirst().id()));
     }
 
     /** A max-level hut asks for any tool level (MC TOOL_LEVEL_MAXIMUM): "level 0 or higher", not "0 to 2147483647". */
