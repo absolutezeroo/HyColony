@@ -50,7 +50,7 @@ final class CraftingRun {
         tasks.setCraftCounter(tasks.craftCounter() + 1);
         boolean broke = toolSlot.isPresent() && wear(toolSlot.getAsInt());
         if (tasks.craftCounter() >= tasks.maxCraftingCount()) {
-            ctx.job().incrementActions();
+            ctx.job().incrementActions(ctx.stock().actionsUntilDump()); // MC getActionRewardForCraftingSuccess
             improve(recipe);
             return Outcome.DONE;
         }

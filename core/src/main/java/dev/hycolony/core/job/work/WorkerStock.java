@@ -93,6 +93,11 @@ public final class WorkerStock {
         return landed;
     }
 
+    /** MC getActionsDoneUntilDumping: the actions after which the worker dumps. */
+    public int actionsUntilDump() {
+        return actionsUntilDump;
+    }
+
     /** A dump every {@code actionsUntilDump} actions, or once the inventory is full and the retry delay passed. */
     public boolean dumpDue(int actionsDone) {
         return actionsDone >= actionsUntilDump || (inventory().isFull() && actionsDone >= dumpRetryAt);

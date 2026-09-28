@@ -30,6 +30,10 @@ public final class CraftingWork {
     /** MC Constants.TICKS_SECOND: the rate of the idle, gathering and dump steps. */
     public static final int TICKS_SECOND = 20;
     /** MC AbstractEntityAICrafting.getActionsDoneUntilDumping: a crafter dumps after each task done or failed. */
+    /**
+     * MC getActionsDoneUntilDumping and getActionRewardForCraftingSuccess of AbstractEntityAICrafting: 1, so a crafter
+     * dumps after each task. A crafter that overrides both (the farmer: 64) passes its own to CraftingWorkContext.
+     */
     public static final int ACTIONS_UNTIL_DUMP = 1;
 
     private final CraftingWorkContext ctx;
@@ -64,7 +68,7 @@ public final class CraftingWork {
         if (!hasWorkToDo()) {
             return CraftingStep.IDLE;
         }
-        if (!ctx.walkToHut() || ctx.job().actionsDone() >= ACTIONS_UNTIL_DUMP) {
+        if (!ctx.walkToHut() || ctx.job().actionsDone() >= ctx.stock().actionsUntilDump()) {
             return CraftingStep.START_WORKING;
         }
         return nextCraftingState();
@@ -133,7 +137,7 @@ public final class CraftingWork {
     private CraftingStep failTask() {
         currentRecipe = null;
         ctx.tasks().finishRequest(ctx.colony(), false);
-        ctx.job().incrementActions();
+        ctx.job().incrementActions(ctx.stock().actionsUntilDump()); // MC getActionRewardForCraftingSuccess
         return CraftingStep.START_WORKING;
     }
 
@@ -244,7 +248,7 @@ public final class CraftingWork {
     private CraftingStep abandon() {
         currentRequest = null;
         currentRecipe = null;
-        ctx.job().incrementActions();
+        ctx.job().incrementActions(ctx.stock().actionsUntilDump()); // MC getActionRewardForCraftingSuccess
         resetValues();
         return CraftingStep.START_WORKING;
     }

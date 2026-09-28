@@ -52,6 +52,15 @@ public record CraftingWorkContext(
      * worker module for the job (the first one if none matches); empty without a hut or a worker module there.
      */
     public static <J extends Job & Crafter> Optional<CraftingWorkContext> of(Colony colony, J job, BodyId body) {
+        return of(colony, job, body, CraftingWork.ACTIONS_UNTIL_DUMP);
+    }
+
+    /**
+     * The same, for a crafter that dumps every {@code actionsUntilDump} actions and earns as many per finished or
+     * failed task (MC getActionsDoneUntilDumping and getActionRewardForCraftingSuccess, 64 for the farmer).
+     */
+    public static <J extends Job & Crafter> Optional<CraftingWorkContext> of(
+            Colony colony, J job, BodyId body, int actionsUntilDump) {
         Building hut = Optional.ofNullable(job.citizen().workBuilding())
                 .flatMap(colony.buildings()::at)
                 .orElse(null);
@@ -60,7 +69,7 @@ public record CraftingWorkContext(
             return Optional.empty();
         }
         CitizenData citizen = job.citizen();
-        WorkerStock stock = new WorkerStock(colony, citizen, hut, CraftingWork.ACTIONS_UNTIL_DUMP);
+        WorkerStock stock = new WorkerStock(colony, citizen, hut, actionsUntilDump);
         return Optional.of(new CraftingWorkContext(
                 colony,
                 job,

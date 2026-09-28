@@ -39,6 +39,11 @@ public abstract class Job {
         actionsDone++;
     }
 
+    /** MC incrementActionsDone(n). */
+    public void incrementActions(int n) {
+        actionsDone += n;
+    }
+
     public void clearActions() {
         actionsDone = 0;
     }
