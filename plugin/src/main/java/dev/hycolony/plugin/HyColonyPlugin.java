@@ -24,6 +24,7 @@ import dev.hycolony.plugin.npc.HyColonyComponents;
 import dev.hycolony.plugin.ornament.Ornaments;
 import dev.hycolony.plugin.prefab.HytaleBlueprintSource;
 import dev.hycolony.plugin.subplugin.SubPlugins;
+import dev.hycolony.plugin.ui.highlight.GlowingBlock;
 import dev.hycolony.plugin.ui.wand.WandInteraction;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -53,6 +54,7 @@ public final class HyColonyPlugin extends JavaPlugin {
         packs = SubPlugins.load(this, config.get().subPlugins());
         WorldRuntimes worlds = new WorldRuntimes(RuntimeSetup.create(colonyConfig, packs));
         IdMap ids = worlds.setup().ids();
+        GlowingBlock.useEffect(ids.highlightEffect());
 
         HyColonyComponents.register(getEntityStoreRegistry());
         NPCPlugin.get().registerCoreComponentType("HyColonyTarget", BuilderSensorHyColonyTarget::new);

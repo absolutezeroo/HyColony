@@ -6,12 +6,10 @@ import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.action.FieldActions;
 import dev.hycolony.core.colony.ui.tab.FieldsView;
-import dev.hycolony.core.farming.field.FieldRadii;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.plugin.ui.ColonyPage;
 import dev.hycolony.plugin.ui.highlight.Highlight;
 import dev.hycolony.plugin.ui.highlight.Highlights;
-import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -19,15 +17,10 @@ import java.util.UUID;
  * A farmer hut's Fields tab (MC FarmFieldsModuleWindow): {@code owned} of {@code max}, the assignment mode and Request
  * Fertilizer buttons, then a row per field with its seed, distance, stage and Assign or Free. Assign and Free work in
  * manual mode only; a refused Assign is disabled with its reason as tooltip. The core checks MANAGE_HUTS and re-shows.
- * Locate highlights the whole field for the viewer, with a map marker, for a minute; a second click turns it off.
+ * Locate makes the field block glow, with a map marker for the viewer, for a minute; a second click turns it off.
  * Deviation from MC: Locate is a button added at the user's request.
  */
 final class FieldsTab implements HutTab {
-    /** The field block's height (Hitboxes/Furniture/Scarecrow.json: 2.3), rounded up. */
-    private static final double FIELD_BLOCK_HEIGHT = 2.4;
-    /** The highlight's beam above the field block, in blocks. */
-    private static final double BEAM_LENGTH = 48;
-
     private final ColonyManager manager;
     private final UUID player;
     private final BlockPos hut;
@@ -147,28 +140,9 @@ final class FieldsTab implements HutTab {
         }
     }
 
-    /**
-     * A field as highlighted: its block (the scarecrow, {@link #FIELD_BLOCK_HEIGHT} high), the outline of its cells
-     * (west to east, north (-z) to south, soil and crop layers) and a beam above.
-     */
+    /** A field as highlighted: its block glows, a "Field" marker on the map. */
     private static Highlight highlight(FieldsView.Row row) {
-        BlockPos p = row.field();
-        FieldRadii r = row.radii();
-        Highlight.Box cells = new Highlight.Box(
-                p.x() + 0.5 + (r.east() - r.west()) / 2.0,
-                p.y(),
-                p.z() + 0.5 + (r.south() - r.north()) / 2.0,
-                r.west() + r.east() + 1,
-                2,
-                r.north() + r.south() + 1,
-                Highlight.Style.OUTLINE);
-        return new Highlight(
-                p,
-                List.of(
-                        Highlight.around(p, FIELD_BLOCK_HEIGHT),
-                        cells,
-                        Highlight.beam(p, p.y() + FIELD_BLOCK_HEIGHT, BEAM_LENGTH)),
-                Message.translation("hycolony.ui.fields.marker"));
+        return new Highlight(row.field(), Message.translation("hycolony.ui.fields.marker"));
     }
 
     /** Frees the row's field if the hut owns it, else assigns it; an unknown row does nothing. */

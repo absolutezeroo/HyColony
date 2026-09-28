@@ -60,6 +60,7 @@
     "2.00": "HyColony_Speed_200"
   },
   "fireworks": ["Firework_Mix2", "Firework_Mix3", "Firework_Mix4"],
+  "highlightEffect": "Drop_Legendary",
   "skillIcons": {
     "Athletics": "Armor_Leather_Light_Legs",
     "Dexterity": "Weapon_Daggers_Iron",

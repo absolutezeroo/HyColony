@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.colony.ui.tab.FieldsView;
 import dev.hycolony.core.farming.field.FarmField;
-import dev.hycolony.core.farming.field.FieldRadii;
 import dev.hycolony.core.kernel.BlockPos;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -47,14 +46,5 @@ class FieldsTabTest {
     private static FieldsView.Row row(FarmerColony c) {
         FieldsView view = (FieldsView) c.fields().tab(c.colony, c.hut, UUID.randomUUID());
         return view.rows().getFirst();
-    }
-
-    @Test
-    void rowCarriesTheFieldRadiiToHighlightIt() {
-        FarmerColony c = new FarmerColony(1);
-        FarmField f = c.field(3, true);
-        f.setRadii(new FieldRadii(2, 3, 4, 1));
-
-        assertEquals(new FieldRadii(2, 3, 4, 1), row(c).radii());
     }
 }

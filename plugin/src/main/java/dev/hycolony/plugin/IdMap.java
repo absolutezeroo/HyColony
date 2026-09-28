@@ -17,8 +17,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
+import org.jspecify.annotations.Nullable;
 
 /** Logical keys -> Hytale asset ids. The only place asset ids live (spec § 4.3). */
 public final class IdMap {
@@ -34,7 +36,8 @@ public final class IdMap {
             List<String> toggleableUseInteractions,
             List<String> potions,
             Map<String, List<String>> ornamentTags,
-            FarmingIds farming) {}
+            FarmingIds farming,
+            @Nullable String highlightEffect) {}
 
     private final Data data;
 
@@ -45,6 +48,11 @@ public final class IdMap {
     /** The id-map read from {@code json}: the core's hycolony/id-map.json merged with the enabled packs' fragments. */
     public static IdMap of(JsonObject json) {
         return new IdMap(new Gson().fromJson(json, Data.class));
+    }
+
+    /** The entity effect that makes a highlighted block glow (a vanilla ModelVFX effect); empty when not set. */
+    public Optional<String> highlightEffect() {
+        return Optional.ofNullable(data.highlightEffect());
     }
 
     /** True when {@code key} has both a hut item and a hut block, as every registered building type needs. */
@@ -173,6 +181,11 @@ public final class IdMap {
                 id -> RootInteraction.getAssetMap().getAsset(id) != null);
         check(errors, "potion item", byId(potionList()), item);
         check(errors, "npc role", data.npcRoles(), id -> NPCPlugin.get().hasRoleName(id));
+        check(
+                errors,
+                "entity effect",
+                byId(highlightEffect().stream().toList()),
+                id -> EntityEffect.getAssetMap().getAsset(id) != null);
         check(
                 errors,
                 "sound event",

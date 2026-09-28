@@ -1,6 +1,5 @@
 package dev.hycolony.core.colony.ui.tab;
 
-import dev.hycolony.core.farming.field.FieldRadii;
 import dev.hycolony.core.farming.field.FieldStage;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemKey;
@@ -20,8 +19,7 @@ public record FieldsView(boolean manual, int owned, int max, boolean fertilize, 
     /**
      * One field: its seed, its distance to the hut and short direction key ({@code hycolony.ui.direction.*}), its
      * stage, whether the hut owns it, the lang key of why it cannot be assigned, if so, and whether it got its pass
-     * today (the farmer comes back tomorrow), and its radii (to highlight it). Deviation from MC: the day mark is an
-     * addition, MC shows nothing.
+     * today (the farmer comes back tomorrow). Deviation from MC: that last mark is an addition, MC shows nothing.
      */
     public record Row(
             BlockPos field,
@@ -31,6 +29,5 @@ public record FieldsView(boolean manual, int owned, int max, boolean fertilize, 
             FieldStage stage,
             boolean owned,
             Optional<String> refusal,
-            boolean doneToday,
-            FieldRadii radii) {}
+            boolean doneToday) {}
 }
