@@ -40,6 +40,11 @@ final class FieldChoice {
         return next;
     }
 
+    /** True when {@code pos} got its pass on {@code today} and is not being worked any more. */
+    boolean doneToday(BlockPos pos, int today) {
+        return !pos.equals(current) && Integer.valueOf(today).equals(checked.get(pos));
+    }
+
     /** The day {@code f} last got a pass; only called on checked fields. */
     private int day(FarmField f) {
         return checked.getOrDefault(f.pos(), Integer.MAX_VALUE);

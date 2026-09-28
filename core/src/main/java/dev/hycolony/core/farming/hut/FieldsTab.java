@@ -46,7 +46,8 @@ final class FieldsTab {
                 direction(hut.position(), f.pos()),
                 f.stage(),
                 f.isTaken(),
-                f.isTaken() || module.canAssign(c, hut, f) ? Optional.empty() : Optional.of(refusal(c, hut, module)));
+                f.isTaken() || module.canAssign(c, hut, f) ? Optional.empty() : Optional.of(refusal(c, hut, module)),
+                f.isTaken() && module.doneToday(c, f));
     }
 
     /** MC FarmFieldsModuleWindow tooltips: the field count reached, else no seed set. */

@@ -68,6 +68,8 @@ final class FarmWork {
         }
         Optional<FarmField> field = ctx.fields().fieldToWorkOn(ctx.colony(), ctx.hut());
         if (field.isEmpty()) {
+            // Deviation from MC: says why the farmer waits (every field had its pass today); MC shows nothing.
+            status = Optional.of(Msg.of("hycolony.farmer.fieldsDoneToday"));
             return FarmerState.IDLE;
         }
         if (ctx.tools().missing(ToolType.HOE, ctx.stock(), ctx::walkToHut)) {

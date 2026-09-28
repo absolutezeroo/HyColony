@@ -82,7 +82,12 @@ final class FieldsTab implements HutTab {
         String stage = r.seed().isEmpty()
                 ? "hycolony.ui.fields.noseed"
                 : "hycolony.ui.fields.stage." + r.stage().name().toLowerCase(Locale.ROOT);
-        ui.set(sel + " #Stage.Text", Message.translation(stage));
+        Message stageLine = Message.translation(stage);
+        if (r.doneToday()) {
+            stageLine =
+                    Message.join(stageLine, Message.raw(" - "), Message.translation("hycolony.ui.fields.doneToday"));
+        }
+        ui.set(sel + " #Stage.TextSpans", stageLine);
         String button = sel + " #AssignButton";
         ui.set(
                 button + ".Text",

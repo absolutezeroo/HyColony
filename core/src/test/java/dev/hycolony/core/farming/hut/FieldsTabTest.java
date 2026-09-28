@@ -1,8 +1,13 @@
 package dev.hycolony.core.farming.hut;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.hycolony.core.colony.ui.tab.FieldsView;
+import dev.hycolony.core.farming.field.FarmField;
 import dev.hycolony.core.kernel.BlockPos;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 /** The distance and short direction of a Fields tab row (MC "Distance: 5m NE"), north being -z. */
@@ -22,5 +27,24 @@ class FieldsTabTest {
     @Test
     void distanceIsTheWholeEuclideanDistance() {
         assertEquals(5, FieldsTab.distance(HUT, new BlockPos(3, 64, 4)));
+    }
+
+    @Test
+    void fieldWorkedTodayIsMarkedUntilTheNextDay() {
+        FarmerColony c = new FarmerColony(1);
+        FarmField f = c.field(3, true);
+        c.fields().assign(c.colony, c.hut, f);
+        c.setDay(1);
+        c.fields().fieldToWorkOn(c.colony, c.hut);
+        c.fields().resetCurrentField(c.colony); // its pass is over
+
+        assertTrue(row(c).doneToday(), "back tomorrow");
+        c.setDay(2);
+        assertFalse(row(c).doneToday());
+    }
+
+    private static FieldsView.Row row(FarmerColony c) {
+        FieldsView view = (FieldsView) c.fields().tab(c.colony, c.hut, UUID.randomUUID());
+        return view.rows().getFirst();
     }
 }

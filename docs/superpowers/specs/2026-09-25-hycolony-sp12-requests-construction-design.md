@@ -415,3 +415,4 @@ Chaque écart porte un commentaire `Deviation from MC:` dans le code (CLAUDE.md 
 - **Engrais pris pendant la préparation** (`farming/job/FarmWork.fertilizerReady`), sans l'état `GATHERING_REQUIRED_MATERIALS`.
 - **Requêtes de graines et d'engrais au nom de la hutte** (`farming/job/FarmWork.askOnce`) : le fermier n'attend pas la livraison et reprend les objets à la hutte, sans l'état `NEEDS_ITEM`.
 - **Ni faim ni case sautée pour la citrouille et le melon** (`farming/job/FieldPass.plant`) : pas de saturation dépensée au labour et à la plantation, et pas de case laissée libre pour le fruit (la citrouille de Hytale n'a pas de tige).
+- **Champ fait pour la journée signalé** (`farming/hut/FieldsTab`, `farming/job/FarmWork.prepare`, ajout demandé) : l'onglet Champs et le statut du fermier disent qu'un champ a eu son passage du jour et qu'il y retourne demain ; MineColonies ne l'affiche pas.

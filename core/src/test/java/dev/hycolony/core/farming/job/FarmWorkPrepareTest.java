@@ -223,4 +223,19 @@ class FarmWorkPrepareTest extends FarmerTestBase {
         assertTrue(colony.registries().fields().get(FIELD).isEmpty());
         assertTrue(colony.isDirty());
     }
+
+    @Test
+    void fieldsDoneForTodaySayWhyTheFarmerWaits() {
+        field(true);
+        give(HOE, 1);
+        settings().setFertilize(false);
+        colony.setDay(1);
+        fields().fieldToWorkOn(colony, hut);
+        fields().resetCurrentField(colony);
+
+        assertEquals(FarmerState.IDLE, work.prepare());
+
+        assertEquals(
+                "hycolony.farmer.fieldsDoneToday", work.status().orElseThrow().key());
+    }
 }

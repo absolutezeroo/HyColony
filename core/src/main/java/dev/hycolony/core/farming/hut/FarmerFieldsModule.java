@@ -87,6 +87,13 @@ public final class FarmerFieldsModule
         return picked;
     }
 
+    /**
+     * True when {@code f} got its pass today: the farmer comes back to it the next colony day (MC getExtensionToWorkOn).
+     */
+    public boolean doneToday(Colony c, FarmField f) {
+        return choice.doneToday(f.pos(), c.day());
+    }
+
     /** MC getCurrentExtension. */
     public Optional<FarmField> currentField(Colony c, Building b) {
         return choice.current(c.registries().fields(), b.position());

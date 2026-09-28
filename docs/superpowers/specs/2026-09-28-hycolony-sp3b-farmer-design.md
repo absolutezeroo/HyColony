@@ -268,6 +268,7 @@ Il vit dans `farming` (et non `kernel/port`, déjà à 15 fichiers), comme `Reci
 11. **Engrais pris à la hutte pendant la préparation**, sans passer par `GATHERING_REQUIRED_MATERIALS`.
 12. **Requêtes de graines et d'engrais au nom de la hutte**, pas du citoyen : le fermier n'attend pas la livraison et reprend les objets dans la hutte à la préparation suivante, sans l'état `NEEDS_ITEM` de MC.
 13. **Pas de faim ni de case sautée pour la citrouille et le melon** : les citoyens ne mangent pas encore (pas de saturation dépensée au labour et à la plantation), et la citrouille de Hytale n'a pas de tige, donc pas de case laissée libre pour son fruit.
+14. **Champ fait pour la journée signalé** (ajout demandé par l'utilisateur) : l'onglet Champs marque « fait aujourd'hui, reprend demain » sur un champ qui a eu son passage du jour, et le fermier dit dans la fenêtre du citoyen que ses champs sont faits pour aujourd'hui. MC travaille aussi chaque champ une fois par jour de colonie, mais ne l'affiche pas.
 
 ## Architecture
 
