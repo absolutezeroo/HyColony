@@ -6,11 +6,14 @@ HyColony porte MineColonies sur Hytale 0.6.8 (épinglé), **à l'identique** : m
 
 ## 1. Modules et dépendances
 
-- `core/` contient la logique du jeu en Java pur. **Aucun import `com.hypixel`** **[build : ArchitectureTest]**. Il ne dépend que du JDK, de Gson et de jspecify, ces deux derniers en `compileOnly` (jspecify n'apporte que des annotations). Il est compilé en Java 25, comme le plugin.
-- `plugin/` contient les adaptateurs Hytale et le pack d'assets. Il ne contient **pas** de règles de jeu : une décision de jeu prise dans le plugin est un bug.
+- **Trois mods**, avec des dépendances dans un seul sens : HyBlockUI (`blockui/`, la bibliothèque d'interface) ← HyDomum (`domum/core`, `domum/plugin`, le portage de Domum Ornamentum) ← HyColony (`core/`, `plugin/`). Spec : `docs/superpowers/specs/2026-09-28-hycolony-split-hydomum-hyblockui-design.md`.
+- Chaque cœur (`core/`, `domum/core/`) contient la logique du jeu en Java pur. **Aucun import `com.hypixel`** **[build : ArchitectureTest]**. Il ne dépend que du JDK, de Gson et de jspecify, ces deux derniers en `compileOnly` (jspecify n'apporte que des annotations). Il est compilé en Java 25, comme les plugins.
+- Chaque plugin (`plugin/`, `domum/plugin/`, `blockui/`) contient les adaptateurs Hytale et le pack d'assets de son mod. Il ne contient **pas** de règles de jeu : une décision de jeu prise dans un plugin est un bug.
+- Un mod ne voit d'un autre que ses paquets `api` (`dev.hyblockui.api` ; `dev.hydomum.api`, `dev.hydomum.plugin.api`) **[build : `checkModApis`]**, en `compileOnly` : il n'embarque jamais un autre mod. Tout projet applique `hy.java-core` ou `hy.hytale-mod` (`build-logic/`) **[build]**.
+- Le serveur de dev (`runAllMods`) met tous les mods sur un même classpath : il ne vérifie ni l'isolation des classes ni une dépendance absente. Ces cas se vérifient avec les jars de production dans un `mods/` (`docs/research/plugin-b-api.md` § 28).
 - Architecture ports & adaptateurs :
   - le cœur définit des ports (`kernel/port`, `construction/blueprint/BlueprintSource`, `colony/ui/UiPort`) ;
-  - le plugin les implémente (préfixe `Hytale*`) ;
+  - le plugin de son mod les implémente (préfixe `Hytale*`) ;
   - les tests les simulent (préfixe `Fake*`, dans `core/src/test/.../testing`).
 - **Un paquet contient au plus 15 fichiers** **[build : `checkFileSizes`]**. Au-delà, on crée des sous-paquets par sous-domaine : par exemple `construction/blueprint`, `construction/workorder`, `construction/builder`, `construction/resources`, ou `colony/territory`, `colony/permission`, `colony/view`. Un sous-paquet regroupe ce qui change ensemble. Seul le point d'entrée du sous-domaine est `public`, le reste reste package-private autant que possible.
 - Les paquets du cœur sont découpés **par fonctionnalité** (`colony`, `building`, `citizen`, `request`, `job`, `construction`…), pas par couche. `kernel` ne dépend d'aucun autre paquet **[build]**.
@@ -63,24 +66,24 @@ HyColony porte MineColonies sur Hytale 0.6.8 (épinglé), **à l'identique** : m
 ## 6. Fidélité à MineColonies
 
 - Chaque système porté cite sa source MineColonies dans sa Javadoc (`MC EntityAIStructureBuilder.placeBlock`).
-- Constantes et formules reprises telles quelles, en ticks (le cœur tourne à 20 ticks/s).
+- Constantes et formules reprises telles quelles, en ticks (chaque cœur tourne à 20 ticks/s).
 - Un écart (contrainte Hytale, bug de MC corrigé, ajout demandé) porte un commentaire `Deviation from MC: …` et figure dans la spec du sous-projet.
 - Référence : `github.com/ldtteam/minecolonies`, branche `version/main`, et les analyses de `docs/research/`.
 
 ## 7. Textes et fenêtres
 
-- Tout texte vu par un joueur passe par une clé de traduction présente dans **en-US et fr-FR** (`plugin/src/main/resources/Server/Languages/*/hycolony.lang`), avec des paramètres `{p0}`, `{p1}`…
+- Tout texte vu par un joueur passe par une clé de traduction présente dans **en-US et fr-FR**, dans le `.lang` du mod qui l'affiche (`hycolony.lang`, `hydomum.lang`, `hyblockui.lang` sous `Server/Languages/*/` ; les noms de blocs générés, `hydomum_blocks.lang`, sont écrits par `tools/domum`), avec des paramètres `{p0}`, `{p1}`…
 - Une traduction imbriquée dans une autre (`param(key, Message)`) s'affiche sur `.TextSpans`, **jamais** sur `.Text`. Sur un bouton : une clé complète par variante.
 - Les fenêtres affichent des **vues** du cœur (records immuables). Chaque bouton appelle une action du cœur, qui vérifie les permissions puis ré-affiche la vue. Les fichiers `.ui` copient les motifs vanilla (voir les `.ui` des assets).
-- Les identifiants d'assets Hytale ne vivent que dans `hycolony/id-map.json`. Les plans de bâtiments sont dans `hycolony/styles.json`.
+- Les identifiants d'assets Hytale ne vivent que dans l'id-map de chaque mod (`hycolony/id-map.json`, `hydomum/id-map.json`). Les plans de bâtiments sont dans `hycolony/styles.json`.
 
 ## 8. Tests
 
 - **TDD** : le test qui échoue d'abord, puis le code. Tout changement de comportement du cœur a un test. Tout bug corrigé a le test qui le reproduit.
 - Noms de tests : phrases en camelCase (`waitingBuilderTakesToolPlacedInHutAndResumes`).
-- `./gradlew build` **vert avant chaque commit** : tests du cœur, compilation du plugin, `checkFileSizes`, `spotlessCheck` et PMD. Le build échoue sur une erreur de formatage, une violation PMD ou un fichier trop long.
+- `./gradlew build` **vert avant chaque commit** : tests des cœurs, compilation des plugins, `checkFileSizes`, `spotlessCheck` et PMD. Le build échoue sur une erreur de formatage, une violation PMD ou un fichier trop long.
 - Les trois listes d'exceptions `gradle/file-size-allowlist.txt`, `gradle/package-size-allowlist.txt` et `config/pmd/known-violations.txt` ne peuvent que **rétrécir** : on retire une ligne quand le fichier ou le paquet est découpé ou nettoyé, on n'en ajoute jamais.
-- Le plugin n'a pas de tests unitaires. Il est vérifié par `/hycolony selftest` et `docs/TESTING.md`, que l'utilisateur déroule en jeu.
+- Les plugins n'ont pas de tests unitaires. Ils sont vérifiés par `/hycolony selftest` et `docs/TESTING.md`, que l'utilisateur déroule en jeu.
 
 ## 9. Processus
 

@@ -1,5 +1,7 @@
 # Établi de l'architecte (Domum Ornamentum DO-2a) Implementation Plan
 
+> Depuis le plan 4 de la séparation en trois mods (spec `docs/superpowers/specs/2026-09-28-hycolony-split-hydomum-hyblockui-design.md`), ce code vit dans le mod HyDomum : chemins et noms renommés (`domum/`, `HyDomum_*`, `/hydomum`, `universe/hydomum/`, `HyDomum.CutterCraftSeconds`). Le texte ci-dessous garde les noms de l'époque.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** a player-built block, the architect's cutter, whose window crafts any Domum Ornamentum variant from 1 or 2 materials, creating the variant at runtime with the DO-1 engine.

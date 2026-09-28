@@ -1,5 +1,7 @@
 # Domum Ornamentum : analyse et faisabilité sur Hytale 0.6.8
 
+> Depuis le plan 4 de la séparation en trois mods (spec `docs/superpowers/specs/2026-09-28-hycolony-split-hydomum-hyblockui-design.md`), ce code vit dans le mod HyDomum : `domum/core`, `domum/plugin`, pack `domum/plugin/src/main/resources`, blocs `HyDomum_*`, commande `/hydomum`, données `universe/hydomum/`. Les journaux datés ci-dessous gardent les noms de l'époque (`HyColony_DO_*`, `/hyornament`, sous-plugin).
+
 Recherche seule, rien n'est implémenté. Question : faut-il porter Domum Ornamentum (DO), et comment ?
 
 ## Sources
@@ -525,11 +527,11 @@ Nouvelle piste, différente de B.6 : **aucun asset commun n'est ajouté**. La va
 
 #### État final (DO-1, 2026-09-28)
 
-Le prototype est devenu le moteur générique de DO-1 (`plugin/ornament`) : les formes viennent du manifeste généré (`hycolony/ornament/shapes.json`), les matériaux des tags DO (`ornamentTags` du fragment d'id-map, lus sur les `BlockType` vanilla par `MaterialCatalog`), les icônes des cartes d'icône générées au build (`hycolony/ornament/icons/<forme>.png`, lues par `IconMap`). Les réglages vérifiés en jeu ci-dessus sont fixés dans le code : envoi double avec les drapeaux sur le second, `TEXTURES` seulement quand une nouvelle texture de paire est générée, inscription silencieuse des PNG, `UpdateItems` avec `updateIcons`. Les variantes demandées ensemble sont créées en un seul lot. Les gabarits `HyColony_Ornament_*` du prototype sont supprimés. Vérifications en jeu : `docs/TESTING.md`, section « Sous-plugin Domum Ornamentum (DO-1) ».
+Le prototype est devenu le moteur générique de DO-1 (aujourd'hui `domum/plugin`) : les formes viennent du manifeste généré (`hydomum/shapes.json`), les matériaux des tags DO (`ornamentTags` de `hydomum/id-map.json`, lus sur les `BlockType` vanilla par `MaterialCatalog`), les icônes des cartes d'icône générées au build (`hydomum/icons/<forme>.png`, lues par `IconMap`). Les réglages vérifiés en jeu ci-dessus sont fixés dans le code : envoi double avec les drapeaux sur le second, `TEXTURES` seulement quand une nouvelle texture de paire est générée, inscription silencieuse des PNG, `UpdateItems` avec `updateIcons`. Les variantes demandées ensemble sont créées en un seul lot. Les gabarits `HyColony_Ornament_*` du prototype sont supprimés. Vérifications en jeu : `docs/TESTING.md`, section « HyDomum : blocs d'architecte (DO-1) ».
 
 #### DO-2a (2026-09-28)
 
-L'établi de l'architecte est porté pour le joueur : bloc `HyColony_DO_ArchitectsCutter` à 2 emplacements, fenêtre et fabrication qui crée la variante à la demande (spec `docs/superpowers/specs/2026-09-28-hycolony-domum-ornamentum-do2-cutter-design.md`, plan `docs/superpowers/plans/2026-09-28-hycolony-domum-ornamentum-do2-cutter.md`). La fabrication par les artisans de la colonie reste à faire (DO-2b).
+L'établi de l'architecte est porté pour le joueur : bloc `HyDomum_ArchitectsCutter` (à l'époque `HyColony_DO_ArchitectsCutter`) à 2 emplacements, fenêtre et fabrication qui crée la variante à la demande (spec `docs/superpowers/specs/2026-09-28-hycolony-domum-ornamentum-do2-cutter-design.md`, plan `docs/superpowers/plans/2026-09-28-hycolony-domum-ornamentum-do2-cutter.md`). La fabrication par les artisans de la colonie reste à faire (DO-2b).
 
 ## Synthèse
 

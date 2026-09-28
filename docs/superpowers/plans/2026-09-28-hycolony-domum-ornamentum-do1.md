@@ -1,5 +1,7 @@
 # Domum Ornamentum DO-1 « les blocs » : plan d'implémentation (v2)
 
+> Depuis le plan 4 de la séparation en trois mods (spec `docs/superpowers/specs/2026-09-28-hycolony-split-hydomum-hyblockui-design.md`), ce code vit dans le mod HyDomum : chemins et noms renommés (`domum/`, `HyDomum_*`, `/hydomum`, `universe/hydomum/`, `HyDomum.CutterCraftSeconds`). Le texte ci-dessous garde les noms de l'époque.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal :** chaque forme DO de DO-1 existe comme gabarit (modèle DO converti, états, connexions, onglet créatif), et n'importe quelle combinaison de matériaux permise par les tags devient à l'exécution un bloc complet (états, objet, icône), comme dans DO.

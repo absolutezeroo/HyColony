@@ -1,5 +1,7 @@
 # HyColony : établi de l'architecte (Domum Ornamentum DO-2a)
 
+> Depuis le plan 4 de la séparation en trois mods (spec `docs/superpowers/specs/2026-09-28-hycolony-split-hydomum-hyblockui-design.md`), ce code vit dans le mod HyDomum : chemins et noms renommés (`domum/`, `HyDomum_*`, `/hydomum`, `universe/hydomum/`, `HyDomum.CutterCraftSeconds`). Le texte ci-dessous garde les noms de l'époque.
+
 Sous-projet de Domum Ornamentum. DO-1 (spec `2026-09-28-hycolony-domum-ornamentum-do1-design.md`) livre les formes DO et crée leurs variantes de matériaux à l'exécution, mais on ne les obtient que par `/hyornament give`. DO-2a les rend **fabricables par le joueur**, comme l'Architect's Cutter de DO. La fabrication par les artisans de la colonie (DO-2b) viendra après.
 
 Source : `docs/research/domum-ornamentum.md` § A.3 (cutter DO) et § B « 6. Architect's Cutter » ; DO au commit épinglé `82729d6c9dc0499b256b36b4506d0d9ef20e8aec` (`ldtteam/Domum-Ornamentum`).

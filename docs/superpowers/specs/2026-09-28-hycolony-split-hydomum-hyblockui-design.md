@@ -268,6 +268,18 @@ La CI (`.github/workflows/gradle.yml`) ne se déclenche que sur `main`, une bran
 - `docs/TESTING.md` est réécrit pour la partie DO.
 - Les specs et plans de DO renvoient à celle-ci pour les nouveaux chemins et noms.
 
+## Écarts décidés au plan 4
+
+Décidés en écrivant et en exécutant `docs/superpowers/plans/2026-09-29-hycolony-split-4-hydomum.md` :
+
+1. **Noms des blocs générés** dans `hydomum_blocks.lang` (clés `hydomum_blocks.item.do.*`), les textes écrits à la main dans `hydomum.lang` (`hydomum.ornament.*`). Le générateur réécrit son fichier `.lang` en entier. Un sous-dossier de langue aurait donné le préfixe `hydomum.blocks`, mais `I18nModule.getPrefix` (l. 356-364) remplace `File.separatorChar` : dans un jar lu sous Windows, le `/` resterait dans la clé.
+2. **Le générateur n'efface que ce qu'il génère** (`generate.py`, `GENERATED` et `GENERATED_FILES`) : le pack est maintenant les ressources du mod, avec les `.ui` de l'établi, `hydomum.lang` et `manifest.json`.
+3. **`hydomum/id-map.json`** (`sounds`, `ornamentTags`) plutôt que `hydomum/tags.json` : les deux sons de l'établi en font partie. `IdMap` de HyColony perd `ornamentTags` et `sound()`, que seul l'établi utilisait.
+4. **API de HyDomum** : `dev.hydomum.api` contient `VariantKey`, `OrnamentShape`, `MaterialTags` et `ShapeCatalog` (`VariantKey.parse` en prend un) ; `dev.hydomum.plugin.api` n'expose que `OrnamentVariant` et `HyDomumSystems`. Le registre reste interne tant que DO-2b n'en a pas besoin, et `:core` et `:plugin` ne dépendent pas de `:domum-core`.
+5. **`ConfigQuarantine` et `UiSounds`** sont dans HyBlockUI (`dev.hyblockui.api`), partagés par HyColony et HyDomum ; `ConfigQuarantine` reçoit le nom du mod.
+6. **Contrôle des assets** : `CheckPackAssets`, une tâche de `build-logic` que chaque mod déclare pour ses packs (HyColony : ses sous-packs ; HyDomum : son pack, avant `processResources`). Le pack principal de HyColony n'est toujours pas contrôlé.
+7. **`Ornaments` devient `ShapeManifest`** (la lecture du manifeste des formes) ; le reste du branchement est dans `HyDomumPlugin.setup`, qui enregistre l'établi en premier et sans condition.
+
 ## Hors de ce projet
 
 - Le kit « établi » générique.

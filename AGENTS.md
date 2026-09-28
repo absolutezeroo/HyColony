@@ -4,6 +4,11 @@ HyColony ports MineColonies to Hytale 0.6.8. **`CLAUDE.md` is the single source 
 full before writing or reviewing anything; this file only adds what tools need to know first. (CLAUDE.md is in French:
 it covers modules, class design, style, robustness, persistence, MineColonies fidelity, texts, tests and process.)
 
+## Three mods
+
+HyBlockUI (`blockui/`, UI library) ← HyDomum (`domum/core`, `domum/plugin`) ← HyColony (`core/`, `plugin/`), in one
+direction only. Each core is pure Java; a mod reaches another only through its `api` packages. Details: CLAUDE.md § 1.
+
 ## Verify before every commit
 
     ./gradlew spotlessApply   # format (palantir-java-format, import order)

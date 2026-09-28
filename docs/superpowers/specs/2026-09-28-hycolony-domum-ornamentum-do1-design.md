@@ -1,5 +1,7 @@
 # HyColony : Domum Ornamentum, DO-1 « les blocs »
 
+> Depuis le plan 4 de la séparation en trois mods (spec `docs/superpowers/specs/2026-09-28-hycolony-split-hydomum-hyblockui-design.md`), ce code vit dans le mod HyDomum : chemins et noms renommés (`domum/`, `HyDomum_*`, `/hydomum`, `universe/hydomum/`, `HyDomum.CutterCraftSeconds`). Le texte ci-dessous garde les noms de l'époque.
+
 Version 2 du 2026-09-28. Elle remplace la version 1 du même jour, qui générait au build un bloc par combinaison de matériaux : le prototype `/hyornament` a montré en jeu qu'on peut faire **comme DO**, en créant les combinaisons à l'exécution (`docs/research/domum-ornamentum.md` B.11). Faits vérifiés : B.5 à B.11 du même document. Mécanisme de packs : `docs/superpowers/specs/2026-09-27-hycolony-architecture-subplugins-design.md` § 7.
 
 ## Objectif et découpage

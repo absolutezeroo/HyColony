@@ -649,7 +649,7 @@ Chemins relatifs à `build/vineflower/hytale-server/com/hypixel/hytale/server/co
   - `ANIMATION_ITEM_BLOCK` (`BlockType` l. 229, `Item` l. 224, 251).
 - **Un asset invalide dans un pack immuable arrête tout le serveur** : un pack enregistré depuis un `.zip` ou un `.jar` est immuable (`asset/AssetModule.java:444-448`). `AssetRegistryLoader.loadAssets0` passe alors `shouldFail = assetPack.isImmutable() && !IGNORE_BROKEN_MODS` (`asset/AssetRegistryLoader.java:240-241`) et, au moindre asset en échec, `event.failed(shouldFail, "Mod … failed to load…")` (l. 310-315). `HytaleServer` voit `LoadAssetEvent.isShouldShutdown()` et arrête le serveur (« Asset validation FAILED », `HytaleServer.java:355-364`). Nos sous-plugins sont des zips : une icône hors racine ou un fichier manquant ne désactive pas seulement le pack, il empêche le serveur de démarrer. D'où les contrôles du générateur (`tools/decorations/pack.py`) et du build (`checkSubpluginAssets`).
 
-## 24. Textures et icône d'un bloc vanilla (`plugin/ornament/runtime/MaterialCatalog`)
+## 24. Textures et icône d'un bloc vanilla (`domum/plugin/…/runtime/MaterialCatalog`)
 
 Chemins relatifs à `build/vineflower/hytale-server/com/hypixel/hytale/server/core/asset/type/`.
 
@@ -659,7 +659,7 @@ Chemins relatifs à `build/vineflower/hytale-server/com/hypixel/hytale/server/co
 - `BlockType.getItem()` (l. 1368) : l'objet du bloc, ou `null` ; `Item.getIcon()` (`item/config/Item.java:1071`) : chemin `Common/` de son icône.
 - Recherche par clé : `BlockType.getAssetMap().getAsset(String)` (`assetstore/map/DefaultAssetMap.java:59`), `null` si absente.
 
-## 25. Copier un `Item` : interactions déjà traitées (`plugin/ornament/runtime/DynamicBlockTypeFactory.VariantItem`)
+## 25. Copier un `Item` : interactions déjà traitées (`domum/plugin/…/runtime/DynamicBlockTypeFactory.VariantItem`)
 
 Chemins relatifs à `build/vineflower/hytale-server/com/hypixel/hytale/server/core/`.
 
