@@ -65,9 +65,7 @@ public final class ColonyFoundation {
         if (validated.isEmpty()) {
             return Optional.empty();
         }
-        String name = validated.get();
-        TownHall hall = p.hall();
-        HutPlacement check = huts.checkPlacement(player, hall.pos(), BuildingTypes.TOWN_HALL.id());
+        HutPlacement check = huts.checkPlacement(player, p.hall().pos(), BuildingTypes.TOWN_HALL.id());
         if (check instanceof HutPlacement.Denied(var reason)) {
             // Same as a cancel; the adapter sees pendingPositionOf go empty and removes the block.
             cancel(player);
@@ -75,6 +73,12 @@ public final class ColonyFoundation {
             return Optional.empty();
         }
         pending.remove(player);
+        return Optional.of(found(player, p, validated.get()));
+    }
+
+    /** Creates, registers and saves the colony named {@code name} around the pending town hall {@code p}. */
+    private Colony found(UUID player, Pending p, String name) {
+        TownHall hall = p.hall();
         ColonyContext ctx = manager.context();
         ctx.ui().close(player);
         Colony colony = new Colony(
@@ -95,7 +99,7 @@ public final class ColonyFoundation {
         }
         ctx.notifier().send(player, Msg.of("hycolony.colony.created", name));
         manager.persistence().save(colony);
-        return Optional.of(colony);
+        return colony;
     }
 
     /** Returns where the unconfirmed town hall stands, so the adapter can remove it. */
