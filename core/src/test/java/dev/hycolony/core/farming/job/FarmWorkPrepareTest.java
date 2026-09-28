@@ -3,10 +3,14 @@ package dev.hycolony.core.farming.job;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.farming.CropState;
 import dev.hycolony.core.farming.field.FarmField;
+import dev.hycolony.core.farming.field.FieldRadii;
 import dev.hycolony.core.farming.field.FieldStage;
+import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.request.model.ToolRequest;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 /** MC EntityAIWorkFarmer.prepareForFarming and canGoPlanting. */
@@ -179,5 +183,44 @@ class FarmWorkPrepareTest extends FarmerTestBase {
 
         var o = fields().walk().offset().orElseThrow();
         assertEquals(cells().get(5), FIELD.offset(o[0], -1, o[1]), "MC nextValidCell goes on from workingOffset");
+    }
+
+    @Test
+    void fieldBrokenWhileAwayMakesTheNextFieldStartFromItsFirstCell() {
+        field(true);
+        give(HOE, 1);
+        settings().setFertilize(false);
+        work.prepare();
+        work.workAtField(FarmerState.FARMER_HOE);
+        work.workAtField(FarmerState.FARMER_HOE); // mid-pass on the first field, then away (a dump)
+        BlockPos other = FIELD.offset(10, 0, 0);
+        colony.registries().fields().add(other);
+        FarmField b = colony.registries().fields().get(other).orElseThrow();
+        b.setRadii(new FieldRadii(1, 1, 1, 1));
+        b.setSeed(Optional.of(SEEDS));
+        b.setOwner(Optional.of(HUT));
+        b.nextStage();
+        give(SEEDS, 8);
+
+        colony.registries().fields().remove(FIELD);
+
+        assertEquals(FarmerState.FARMER_PLANT, work.prepare());
+        assertTrue(fields().walk().offset().isEmpty(), "the planting pass starts from the first cell");
+    }
+
+    @Test
+    void fieldCleanedAwayMarksTheColonyToSave() {
+        field(true);
+        t.farming.fieldBlocks.clear(); // the field block is gone
+        t.players.online.put(OWNER, HUT); // keeps the colony active
+        colony.clearDirty();
+
+        for (int i = 0; i <= 2 * Colony.SLOW_TICK; i++) { // the colony turns ACTIVE first
+            t.clock.tick++;
+            colony.tick();
+        }
+
+        assertTrue(colony.registries().fields().get(FIELD).isEmpty());
+        assertTrue(colony.isDirty());
     }
 }

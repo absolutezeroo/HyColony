@@ -45,6 +45,11 @@ final class FieldChoice {
         return checked.getOrDefault(f.pos(), Integer.MAX_VALUE);
     }
 
+    /** The position of the last field made current, whether or not it still exists. */
+    Optional<BlockPos> currentPos() {
+        return Optional.ofNullable(current);
+    }
+
     /** The current field, if it still exists among the hut's fields. */
     Optional<FarmField> current(FieldRegistry fields, BlockPos hut) {
         return fields.ownedBy(hut).stream().filter(f -> f.pos().equals(current)).findFirst();

@@ -29,7 +29,10 @@ final class FarmWork {
     private final FieldScan scan;
     private final FieldPass pass;
     private int skippedState;
-    /** MC didWork set by prepareForFarming on the fourth skip: the next pass leaves its field whatever it did. */
+    /**
+     * MC didWork set by prepareForFarming on the fourth skip: the next pass to end leaves its field whatever it did,
+     * even a pass days later on another field (MC keeps didWork on the AI the same way).
+     */
     private boolean forceLeave;
 
     private int delay;
@@ -98,7 +101,10 @@ final class FarmWork {
         }
     }
 
-    /** MC workAtField's end: a pass that worked, or the fourth pass in a row that did not, leaves the field. */
+    /**
+     * MC workAtField's end: a pass that worked, one ending after four skipped stages ({@link #forceLeave}), or the
+     * fourth pass in a row that did not work, leaves the field.
+     */
     void endPass(boolean didWork) {
         boolean leave = didWork || forceLeave;
         forceLeave = false;

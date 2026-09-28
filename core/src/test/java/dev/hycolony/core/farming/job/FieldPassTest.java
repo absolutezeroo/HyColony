@@ -158,6 +158,7 @@ class FieldPassTest extends FarmerTestBase {
         colony.registries().fields().remove(FIELD);
 
         assertEquals(FarmerState.IDLE, work.workAtField(FarmerState.FARMER_HOE));
+        fields().fieldToWorkOn(colony, hut);
         assertTrue(fields().walk().offset().isEmpty(), "the next field starts from its first cell");
     }
 
@@ -171,6 +172,7 @@ class FieldPassTest extends FarmerTestBase {
         work.workAtField(FarmerState.FARMER_HOE);
 
         fields().free(colony, hut, f);
+        fields().fieldToWorkOn(colony, hut);
 
         assertTrue(fields().walk().offset().isEmpty(), "the next field starts from its first cell");
     }

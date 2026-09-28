@@ -54,7 +54,10 @@ public final class BodyWalker {
         return walkTo(to, true);
     }
 
-    /** {@link #walkTo(BlockPos)}, already arrived when within {@code range} blocks of {@code to}. */
+    /**
+     * {@link #walkTo(BlockPos)}, already arrived when within {@code range} blocks of {@code to}. A walk started before
+     * is not stopped then: the body may finish it, which only shows.
+     */
     public boolean walkTo(BlockPos to, int range) {
         Vec3 p = bodies.position(body).orElse(null);
         return (p != null && p.distance(Vec3.center(to)) <= range) || walkTo(to);

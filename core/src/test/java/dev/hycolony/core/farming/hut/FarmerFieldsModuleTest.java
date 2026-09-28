@@ -200,4 +200,19 @@ class FarmerFieldsModuleTest {
         assertFalse(back.fertilize());
         assertTrue(fresh.fertilize(), "an unreadable value keeps the default");
     }
+
+    @Test
+    void walkCellOutsideTheSpiralReadsAsNoPass() {
+        FarmerColony c = new FarmerColony(1);
+        c.fields().walk().advance(FieldRadii.defaults());
+        JsonObject saved = new JsonObject();
+        c.fields().write(saved);
+        saved.addProperty("cell", Integer.MAX_VALUE);
+
+        FarmerFieldsModule back = new FarmerFieldsModule();
+        back.read(saved);
+
+        assertTrue(back.walk().offset().isEmpty());
+        assertTrue(back.walk().advance(FieldRadii.defaults()), "the next pass starts from the first cell");
+    }
 }

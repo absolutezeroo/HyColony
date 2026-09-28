@@ -79,6 +79,10 @@ public final class FieldWalk {
     void read(JsonObject in) {
         OptionalInt savedCell = FieldJson.integer(in.get("cell"));
         cell = savedCell.orElse(-1);
+        if (cell < -1 || cell > FieldCells.LARGEST_CELL) {
+            cell = -1; // corrupted: counting on from it would overflow the spiral
+            savedCell = OptionalInt.empty();
+        }
         offset = savedCell.isPresent() && in.get("workingOffset") instanceof JsonArray o && o.size() == 2
                 ? readOffset(o)
                 : null;

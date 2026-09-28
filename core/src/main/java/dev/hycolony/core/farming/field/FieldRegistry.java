@@ -50,7 +50,8 @@ public final class FieldRegistry {
 
     /**
      * MC cleanUpBuildings, every colony slow tick: a field whose position is loaded and is outside the colony, or whose
-     * field block is gone, is removed. An unloaded field is kept, whatever the other tests say. True if a field was removed.
+     * field block is gone, is removed. An unloaded field is kept, whatever the other tests say. True if a field was
+     * removed.
      */
     public boolean cleanUp(Predicate<BlockPos> loaded, Predicate<BlockPos> inColony, Predicate<BlockPos> isFieldBlock) {
         return fields.values()

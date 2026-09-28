@@ -94,4 +94,16 @@ class FarmFieldTest {
 
         assertEquals(FieldRadii.defaults(), FarmField.read(o).orElseThrow().radii());
     }
+
+    @Test
+    void radiiOverTheBudgetWithoutANegativeSideAreRepaired() {
+        JsonObject o = new FarmField(POS).write();
+        JsonArray radii = new JsonArray();
+        for (int r : new int[] {20, 20, 0, 5}) {
+            radii.add(r);
+        }
+        o.add("radii", radii);
+
+        assertEquals(FieldRadii.defaults(), FarmField.read(o).orElseThrow().radii());
+    }
 }

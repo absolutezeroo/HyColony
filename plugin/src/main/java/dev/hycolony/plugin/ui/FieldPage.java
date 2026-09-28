@@ -18,8 +18,8 @@ import javax.annotation.Nonnull;
 
 /**
  * A field block's window (MC WindowField): its farmer, its seed, a button per side showing that side's size, and the
- * seeds to pick from. A side button grows the side by one, past what the budget allows back to 1; each button goes to the core,
- * which checks MANAGE_HUTS and shows the window again. Without MANAGE_HUTS the buttons are disabled.
+ * seeds to pick from. A side button grows the side by one, past what the budget allows back to 1; each button goes to
+ * the core, which checks MANAGE_HUTS and shows the window again. Without MANAGE_HUTS the buttons are disabled.
  *
  * <p>Deviation from MC: the seed is picked from a list instead of an inventory slot.
  */

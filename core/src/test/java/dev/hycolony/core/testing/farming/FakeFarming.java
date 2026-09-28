@@ -16,13 +16,13 @@ import java.util.Set;
  * gone once harvested, an eternal one ({@code _Eternal} seed) goes back to growing. Tests steer it through its fields.
  */
 public final class FakeFarming implements FarmingAccess {
-    /** What a harvest gives: one wheat and three essence, unless a test changes it. */
-    public List<ItemAmount> harvestDrops = List.of(new ItemAmount(WHEAT, 1), new ItemAmount(ESSENCE, 3));
-
     public static final ItemKey WHEAT_SEEDS = new ItemKey("Plant_Seeds_Wheat");
     public static final ItemKey WHEAT = new ItemKey("Plant_Crop_Wheat_Item");
     public static final ItemKey ESSENCE = new ItemKey("Ingredient_Life_Essence");
     public static final ItemKey FERTILIZER = new ItemKey("Tool_Fertilizer");
+
+    /** What a harvest gives: one wheat and three essence, unless a test changes it. */
+    public List<ItemAmount> harvestDrops = List.of(new ItemAmount(WHEAT, 1), new ItemAmount(ESSENCE, 3));
 
     public final Set<BlockPos> tillable = new HashSet<>();
     public final Set<BlockPos> tilled = new HashSet<>();

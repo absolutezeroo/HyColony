@@ -11,6 +11,7 @@ import dev.hycolony.core.colony.ui.tab.ModuleTab;
 import dev.hycolony.core.farming.field.FarmField;
 import dev.hycolony.core.farming.field.FieldJson;
 import dev.hycolony.core.farming.field.FieldRegistry;
+import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.logistics.pickup.KeepRule;
 import dev.hycolony.core.logistics.pickup.KeepsItems;
 import java.util.ArrayList;
@@ -61,7 +62,7 @@ public final class FarmerFieldsModule
         return true;
     }
 
-    /** MC freeExtension: the field is free again, and no longer current; a pass on it is dropped. */
+    /** MC freeExtension: the field is free again, and no longer current. */
     public void free(Colony c, Building b, FarmField f) {
         if (f.owner().filter(b.position()::equals).isEmpty()) {
             return;
@@ -69,14 +70,21 @@ public final class FarmerFieldsModule
         f.setOwner(Optional.empty());
         if (choice.current(c.registries().fields(), b.position()).isEmpty()) {
             choice.reset(c.day());
-            walk.reset();
         }
         c.markDirty();
     }
 
-    /** MC getExtensionToWorkOn. */
+    /**
+     * MC getExtensionToWorkOn. A field other than the last current one (that one broken, freed or done) starts its
+     * pass from its first cell; with no field, no pass is in progress.
+     */
     public Optional<FarmField> fieldToWorkOn(Colony c, Building b) {
-        return choice.pick(c.registries().fields(), b.position(), c.day());
+        Optional<BlockPos> before = choice.currentPos();
+        Optional<FarmField> picked = choice.pick(c.registries().fields(), b.position(), c.day());
+        if (picked.isEmpty() || !picked.map(FarmField::pos).equals(before)) {
+            walk.reset();
+        }
+        return picked;
     }
 
     /** MC getCurrentExtension. */
