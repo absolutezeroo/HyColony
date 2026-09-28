@@ -49,9 +49,8 @@ class Context:
 
 
 def defaults(ctx, family):
-    """DO's default material of each of the family's slots, as Hytale block ids."""
-    return [tags.default_material(tag, component, ctx.tags) for tag, component in zip(family.slot_tags,
-                                                                                         family.components)]
+    """DO's default material of each of the family's slots, as Hytale block ids its tags accept."""
+    return [tags.default_material(tag, block, ctx.tags) for tag, block in zip(family.slot_tags, family.defaults)]
 
 
 def layout_texture(ctx, family):

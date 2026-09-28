@@ -22,16 +22,16 @@
   "BlockType": {
     "Material": "Solid",
     "DrawType": "Model",
-    "Opacity": "Solid",
+    "Opacity": "Transparent",
     "CustomModel": "Blocks/HyColony/DO/Shingle_Flat.blockymodel",
     "CustomModelTexture": [
       {
-        "Texture": "Blocks/HyColony/DO/Pairs/Soil_Clay__Wood_Hardwood_Planks.png",
+        "Texture": "Blocks/HyColony/DO/Pairs/Soil_Clay_Brick__Wood_Hardwood_Planks.png",
         "Weight": 1
       }
     ],
     "VariantRotation": "UpDownNESW",
-    "HitboxType": "Stairs_Shallow",
+    "HitboxType": "HyColony_DO_Shingle_Flat",
     "Supporting": {
       "Down": [
         {}
@@ -59,13 +59,13 @@
           "State": "Inverted_Corner_Right"
         }
       },
-      "MaterialName": "HyColony_DO_Shingle_Flat"
+      "MaterialName": "HyColonyDoShingle"
     },
     "State": {
       "Definitions": {
         "Corner_Left": {
           "CustomModel": "Blocks/HyColony/DO/Shingle_Flat_Corner_Left.blockymodel",
-          "HitboxType": "Roof_Corner_Shallow_Left",
+          "HitboxType": "HyColony_DO_Shingle_Flat_Corner_Left",
           "FlipType": "Orthogonal",
           "Supporting": {
             "Down": [
@@ -75,7 +75,7 @@
         },
         "Corner_Right": {
           "CustomModel": "Blocks/HyColony/DO/Shingle_Flat_Corner_Right.blockymodel",
-          "HitboxType": "Roof_Corner_Shallow_Right",
+          "HitboxType": "HyColony_DO_Shingle_Flat_Corner_Right",
           "FlipType": "OrthogonalInverse",
           "Supporting": {
             "Down": [
@@ -85,7 +85,7 @@
         },
         "Inverted_Corner_Left": {
           "CustomModel": "Blocks/HyColony/DO/Shingle_Flat_Inverted_Corner_Left.blockymodel",
-          "HitboxType": "Roof_Corner_Shallow_Inverted_Left",
+          "HitboxType": "HyColony_DO_Shingle_Flat_Inverted_Corner_Left",
           "FlipType": "Orthogonal",
           "Supporting": {
             "Down": [
@@ -95,7 +95,7 @@
         },
         "Inverted_Corner_Right": {
           "CustomModel": "Blocks/HyColony/DO/Shingle_Flat_Inverted_Corner_Right.blockymodel",
-          "HitboxType": "Roof_Corner_Shallow_Inverted_Right",
+          "HitboxType": "HyColony_DO_Shingle_Flat_Inverted_Corner_Right",
           "FlipType": "OrthogonalInverse",
           "Supporting": {
             "Down": [
@@ -107,13 +107,13 @@
     },
     "Gathering": {
       "Breaking": {
-        "GatherType": "Soils"
+        "GatherType": "Rocks"
       }
     },
     "BlockParticleSetId": "Stone",
-    "ParticleColor": "#be7f51",
-    "BlockSoundSetId": "Dirt",
-    "PhysicalMaterialId": "Dirt"
+    "ParticleColor": "#6c4727",
+    "BlockSoundSetId": "Stone",
+    "PhysicalMaterialId": "Stone"
   },
   "ItemSoundSetId": "ISS_Blocks_Soft"
 }

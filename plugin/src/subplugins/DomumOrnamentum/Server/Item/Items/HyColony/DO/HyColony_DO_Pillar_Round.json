@@ -26,7 +26,7 @@
     "CustomModel": "Blocks/HyColony/DO/Pillar_Round.blockymodel",
     "CustomModelTexture": [
       {
-        "Texture": "BlockTextures/Wood_Hardwood_Planks_Side.png",
+        "Texture": "BlockTextures/Rock_Stone_Brick.png",
         "Weight": 1
       }
     ],
@@ -60,13 +60,13 @@
     },
     "Gathering": {
       "Breaking": {
-        "GatherType": "Woods"
+        "GatherType": "Rocks"
       }
     },
-    "BlockParticleSetId": "Wood",
-    "ParticleColor": "#693e2a",
-    "BlockSoundSetId": "Wood",
-    "PhysicalMaterialId": "Wood"
+    "BlockParticleSetId": "Stone",
+    "ParticleColor": "#737055",
+    "BlockSoundSetId": "Stone",
+    "PhysicalMaterialId": "Stone"
   },
-  "ItemSoundSetId": "ISS_Blocks_Wood"
+  "ItemSoundSetId": "ISS_Blocks_Stone"
 }

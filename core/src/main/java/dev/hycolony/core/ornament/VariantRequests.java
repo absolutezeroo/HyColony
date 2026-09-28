@@ -7,6 +7,9 @@ import java.util.Set;
 /**
  * Checks a request for a shape in given materials against DO's slot tags (MC DO {@code MateriallyTexturedBlockManager}
  * accepts a component only from its tag); an optional second slot left out repeats the first.
+ *
+ * <p>Deviation from MC: DO leaves an absent optional component unretextured (it shows its placeholder texture); a
+ * Hytale variant needs a material for every tile of its layout, so the first is used.
  */
 public final class VariantRequests {
     static final String BAD_COUNT = "hycolony.ornament.badCount";

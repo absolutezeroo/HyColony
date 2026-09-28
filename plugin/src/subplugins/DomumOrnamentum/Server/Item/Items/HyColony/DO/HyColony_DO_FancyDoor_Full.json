@@ -26,7 +26,7 @@
     "CustomModel": "Blocks/HyColony/DO/FancyDoor_Full.blockymodel",
     "CustomModelTexture": [
       {
-        "Texture": "Blocks/HyColony/DO/Pairs/Wood_Hardwood_Planks__Wood_Redwood_Planks.png",
+        "Texture": "Blocks/HyColony/DO/Pairs/Wood_Softwood_Planks__Metal_Copper.png",
         "Weight": 1
       }
     ],
@@ -80,7 +80,7 @@
       }
     },
     "BlockParticleSetId": "Wood",
-    "ParticleColor": "#693e2a",
+    "ParticleColor": "#65482d",
     "BlockSoundSetId": "Wood",
     "PhysicalMaterialId": "Wood"
   },

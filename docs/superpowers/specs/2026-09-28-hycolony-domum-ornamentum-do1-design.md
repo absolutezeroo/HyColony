@@ -39,13 +39,13 @@ Porter Domum Ornamentum (DO) **avec son vrai fonctionnement** : un type de bloc 
 
 | Famille DO | Matériaux | Comportement dans Hytale (B.10) |
 |---|---|---|
-| Colombage (10 motifs) | 2 | Blocs orientables (`VariantRotation`) |
+| Colombage (10 motifs) | 2 | Les 4 motifs orientés (côté encadré, porte haute ou basse, côté horizontal) dans les 6 directions (`DoublePipe`), les 6 symétriques jamais tournés, comme DO |
 | Bardeaux (5 pentes) | 2 | Droit, coins intérieurs et extérieurs par la règle `Roof` (`Regular` seul) ; à l'envers par `UpDownNESW` |
 | Demi-bardeau | 2 | 6 formes selon les voisins, gabarit de connexion à nous (d'après `ShingleSlabBlock.java:163-257`) |
 | Pilier (3) | 1 | `base`, `column`, `capital`, `full_pillar` selon les piliers dessus et dessous |
 | Poteau (6 types) | 1 | Un bloc par type, orientable |
-| Panneau (15 motifs) | 1 | Fixe, collision fine |
-| Porte, porte ouvragée | 1 / 2 (le 2ᵉ facultatif : absent, il reprend le 1ᵉʳ) | Mécanique de porte vanilla (`Use: Door`, états d'ouverture, 2 blocs de haut, portes doubles, charnière par rotation de 180°) |
+| Panneau (15 motifs) | 1 | Au sol, au plafond ou contre un mur (`DoublePipe`, comme `AbstractPanelBlockTrapdoor`), collision fine |
+| Porte, porte ouvragée | 1 / 2 (le 2ᵉ facultatif : absent, il reprend le 1ᵉʳ ; écart, voir plus bas) | Mécanique de porte vanilla (`Use: Door`, états d'ouverture, 2 blocs de haut, portes doubles, charnière par rotation de 180°) |
 | Trappe, trappe ouvragée | 1 / 2 | `Use: Door_Horizontal`, s'ouvrent, en haut ou en bas du bloc |
 | Mur de papier (2) | 2 | Connexion de vitre, gabarit à nous |
 | Clôture, portillon, muret, escalier, dalle | 1 | Modèles DO convertis, connexions et formes vanilla |
@@ -99,6 +99,11 @@ Porter Domum Ornamentum (DO) **avec son vrai fonctionnement** : un type de bloc 
 - **Dalle variante** : l'interaction qui fusionne deux dalles est un asset contenu de l'objet gabarit, qui vise le bloc du gabarit ; la variante ne la reprend pas. Une dalle variante se pose donc sans fusionner, ni avec une autre variante ni avec le gabarit (une interaction par variante serait à créer à l'exécution).
 - **Clôture variante** : le motif `Gate` de la clôture nomme le portillon gabarit ; une clôture variante ne se relie qu'à lui (et aux clôtures et murets, par leur tag).
 - **Icônes** : la carte d'icône suit la caméra des icônes vanilla, ajustée sur leurs silhouettes (cube, demi-bloc, escalier) ; un modèle qui sort du cadre (trappe posée au sol, pente raide) est recentré ou réduit. Le mur de papier prend l'icône de sa forme droite, comme l'objet DO.
+- **Matériaux par défaut** : ceux de DO (troisième argument de chaque `SimpleRetexturableComponent`), transposés : chêne → `Wood_Hardwood_Planks`, sapin → `Wood_Softwood_Planks`, bois écorcé → `Wood_Stripped_Deco`, terre cuite blanche → `Soil_Clay_Smooth_White`, brique DO → `Soil_Clay_Brick`, briques de pierre → `Rock_Stone_Brick`, cuivre → `Metal_Copper`, quartz → `Rock_Quartzite`.
+- **Verre** : Hytale 0.6.8 n'a pas de bloc de verre ; le centre du mur de papier (verre dans DO) prend la laine blanche par défaut, et aucun tag n'a de verre. `Deviation from MC: no glass material`.
+- **Second matériau facultatif absent** : DO laisse la texture de remplacement du composant ; ici le premier matériau est repris, car une variante lit une tuile par emplacement. `Deviation from MC: an absent optional material repeats the first`.
+- **Porte recentrée** : la porte fermée est au milieu du bloc, pas contre son bord comme dans DO, parce que l'animation et les boîtes de collision des portes vanilla sont centrées. `Deviation from MC: door leaf centred in its block`.
+- **Bardeaux** : deux bardeaux font un coin quelle que soit leur pente, comme DO (`DOStairBlock.isStairs`).
 - Rafraîchir la liste des assets d'un joueur qui se connecte passe par réflexion (champ privé de `CommonAssetModule`, version épinglée 0.6.8), à revérifier à chaque montée de version.
 - Colombage dynamique, lumières encadrées, briques DO : voir « Hors DO-1 ».
 

@@ -26,7 +26,7 @@
     "CustomModel": "Blocks/HyColony/DO/PaperWall.blockymodel",
     "CustomModelTexture": [
       {
-        "Texture": "Blocks/HyColony/DO/Pairs/Wood_Hardwood_Planks__Wood_Darkwood_Planks.png",
+        "Texture": "Blocks/HyColony/DO/Pairs/Wood_Stripped_Deco__Cloth_Block_Wool_White.png",
         "Weight": 1
       }
     ],
@@ -69,12 +69,16 @@
       }
     },
     "Gathering": {
+      "Physics": {
+        "ItemId": "Wood_Stripped_Deco"
+      },
       "Breaking": {
+        "ItemId": "Wood_Stripped_Deco",
         "GatherType": "Woods"
       }
     },
     "BlockParticleSetId": "Wood",
-    "ParticleColor": "#693e2a",
+    "ParticleColor": "#633625",
     "BlockSoundSetId": "Wood",
     "PhysicalMaterialId": "Wood"
   },

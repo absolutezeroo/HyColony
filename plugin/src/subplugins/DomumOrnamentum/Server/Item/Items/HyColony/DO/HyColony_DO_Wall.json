@@ -25,7 +25,7 @@
     "CustomModel": "Blocks/HyColony/DO/Wall.blockymodel",
     "CustomModelTexture": [
       {
-        "Texture": "BlockTextures/Rock_Stone_Brick.png",
+        "Texture": "BlockTextures/Stripped_Log_Side.png",
         "Weight": 1
       }
     ],
@@ -89,14 +89,18 @@
       }
     },
     "Gathering": {
+      "Physics": {
+        "ItemId": "Wood_Stripped_Deco"
+      },
       "Breaking": {
-        "GatherType": "Rocks"
+        "ItemId": "Wood_Stripped_Deco",
+        "GatherType": "Woods"
       }
     },
-    "BlockParticleSetId": "Stone",
-    "ParticleColor": "#737055",
-    "BlockSoundSetId": "Stone",
-    "PhysicalMaterialId": "Stone"
+    "BlockParticleSetId": "Wood",
+    "ParticleColor": "#633625",
+    "BlockSoundSetId": "Wood",
+    "PhysicalMaterialId": "Wood"
   },
-  "ItemSoundSetId": "ISS_Blocks_Stone"
+  "ItemSoundSetId": "ISS_Blocks_Wood"
 }

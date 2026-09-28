@@ -26,19 +26,23 @@
     "CustomModel": "Blocks/HyColony/DO/Panel_Full.blockymodel",
     "CustomModelTexture": [
       {
-        "Texture": "BlockTextures/Wood_Hardwood_Planks_Side.png",
+        "Texture": "BlockTextures/Stripped_Log_Side.png",
         "Weight": 1
       }
     ],
-    "VariantRotation": "NESW",
+    "VariantRotation": "DoublePipe",
     "HitboxType": "HyColony_DO_Panel_Full",
     "Gathering": {
+      "Physics": {
+        "ItemId": "Wood_Stripped_Deco"
+      },
       "Breaking": {
+        "ItemId": "Wood_Stripped_Deco",
         "GatherType": "Woods"
       }
     },
     "BlockParticleSetId": "Wood",
-    "ParticleColor": "#693e2a",
+    "ParticleColor": "#633625",
     "BlockSoundSetId": "Wood",
     "PhysicalMaterialId": "Wood"
   },

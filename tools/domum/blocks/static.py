@@ -6,9 +6,13 @@ import names
 import source
 from blocks import common
 
-# Family -> VariantRotation. A post points along any axis (DO facing: 6 directions), like a vanilla pipe; the rest
-# turn to face the player like vanilla roofs and trapdoors.
-ROTATIONS = {"Post": "Pipe"}
+# Family -> VariantRotation. A post points along any axis (DO facing: 6 directions), like a vanilla pipe. A panel
+# lies on the floor, under the ceiling or stands against a wall (AbstractPanelBlockTrapdoor): Hytale's half-block
+# rotation (DoublePipe: none, pitch 180, pitch 90 in 4 yaws) gives those six.
+ROTATIONS = {"Post": "Pipe", "Panel": "DoublePipe"}
+# Timber frames whose pattern points somewhere (DO TimberFrameBlock: FACING, 6 ways, the model drawn facing up):
+# the same six through DoublePipe, from the up-facing model. DO draws the others the same whatever the facing.
+DIRECTED_FRAMES = ("side_framed", "up_gated", "down_gated", "side_framed_horizontal")
 
 
 def variants(ctx, family):
@@ -29,9 +33,18 @@ def generate(ctx, family):
     for parts, props in variants(ctx, family):
         shown = parts if len(family.blocks) > 1 else parts[1:]
         ident = names.template_id(family, shown)
+        rotation, props = _placement(family, parts[0], props)
         model, blockymodel = common.convert_state(ctx, family, parts[0], props)
         model_path = common.write_model(ctx, ident, blockymodel)
         hitbox_id = common.hitbox(ctx, ident, model)
-        rotation = ROTATIONS.get(family.name, "NESW")
         block_type = common.model_block_type(ctx, family, model_path, hitbox_id, rotation)
         common.template(ctx, family, ident, shown, block_type)
+
+
+def _placement(family, block, props):
+    """(VariantRotation, DO state props) of a template: a timber frame is unturned, or facing up when directed."""
+    if family.name != "TimberFrame":
+        return ROTATIONS.get(family.name, "NESW"), props
+    if block in DIRECTED_FRAMES:
+        return "DoublePipe", {**props, "facing": "up"}
+    return "None", props

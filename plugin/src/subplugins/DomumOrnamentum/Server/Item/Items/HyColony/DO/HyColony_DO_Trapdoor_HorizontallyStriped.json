@@ -26,7 +26,7 @@
     "CustomModel": "Blocks/HyColony/DO/Trapdoor_HorizontallyStriped.blockymodel",
     "CustomModelTexture": [
       {
-        "Texture": "BlockTextures/Wood_Hardwood_Planks_Side.png",
+        "Texture": "BlockTextures/Stripped_Log_Side.png",
         "Weight": 1
       }
     ],
@@ -54,12 +54,16 @@
     "InteractionHint": "server.interactionHints.openDoor",
     "SoundOcclusionOpacity": 2.0,
     "Gathering": {
+      "Physics": {
+        "ItemId": "Wood_Stripped_Deco"
+      },
       "Breaking": {
+        "ItemId": "Wood_Stripped_Deco",
         "GatherType": "Woods"
       }
     },
     "BlockParticleSetId": "Wood",
-    "ParticleColor": "#693e2a",
+    "ParticleColor": "#633625",
     "BlockSoundSetId": "Wood",
     "PhysicalMaterialId": "Wood"
   },

@@ -29,12 +29,13 @@ def every_tag_lists_real_cubes():
 
 
 def every_slot_has_a_tag_and_its_default():
-    """Each family's slots name a DO tag, and DO's default material of each component belongs to that tag."""
+    """Each family's slots name a DO tag, and DO's default material of each slot (families.defaults) belongs to it."""
     built = tags.build(tags.open_assets())
     for family in FAMILIES:
         assert 1 <= len(family.slot_tags) <= 2 and len(family.slot_tags) == len(family.components), family.name
-        for tag, component in zip(family.slot_tags, family.components):
-            assert tags.default_material(tag, component, built) in built[tag], (family.name, tag, component)
+        assert len(family.defaults) == len(family.slot_tags), family.name
+        for tag, block in zip(family.slot_tags, family.defaults):
+            assert tags.default_material(tag, block, built) == block, (family.name, tag, block)
 
 
 def pair_texture_is_both_materials_side_by_side(tmp):

@@ -44,7 +44,7 @@ def static_templates_live_in_the_do_tab():
 def two_material_templates_read_their_default_pair():
     ctx = generate_into_temp()
     texture = ctx.items["HyColony_DO_TimberFrame_Framed"]["BlockType"]["CustomModelTexture"][0]["Texture"]
-    assert texture == "Blocks/HyColony/DO/Pairs/Wood_Hardwood_Planks__Wood_Darkwood_Planks.png", texture
+    assert texture == "Blocks/HyColony/DO/Pairs/Wood_Hardwood_Planks__Soil_Clay_Smooth_White.png", texture
     assert (ctx.pack / "Common" / texture).exists()
 
 
@@ -77,9 +77,10 @@ def shingle_rules_name_states_only():
         assert set(shingle["State"]["Definitions"]) == {"Corner_Left", "Corner_Right",
                                                         "Inverted_Corner_Left", "Inverted_Corner_Right"}
         assert shingle["VariantRotation"] == "UpDownNESW"
+    # DO forms corners between any two shingles (DOStairBlock.isStairs: any DOStairBlock, whatever its slope).
     material_names = {ctx.items[i]["BlockType"]["ConnectedBlockRuleSet"]["MaterialName"] for i in ctx.items
                       if i.startswith("HyColony_DO_Shingle") and "Slab" not in i}
-    assert len(material_names) == 5, material_names
+    assert len(material_names) == 1, material_names
 
 
 def shingle_slab_template_has_six_shapes():
@@ -94,6 +95,35 @@ def shingle_slab_template_has_six_shapes():
     rules = template["Shapes"]["Curved"]["PatternsToMatchAnyOf"][0]["RulesToMatch"]
     included = {(r["Position"]["X"], r["Position"]["Z"]) for r in rules if r["IncludeOrExclude"] == "Include"}
     assert included == {(0, 1), (1, 0)}, included
+
+
+def shingle_hitboxes_stay_in_their_block():
+    """A DO slope fits one block (unlike Hytale's 2-block shallow and steep roofs): every shingle state collides
+    inside its block, rising from low to high like the model."""
+    ctx = generate_into_temp()
+    hitboxes = ctx.pack / "Server/Item/Block/Hitboxes/HyColony/DO"
+    for ident, item in ctx.items.items():
+        if not ident.startswith("HyColony_DO_Shingle") or "Slab" in ident:
+            continue
+        block = item["BlockType"]
+        for name in [block["HitboxType"]] + [s["HitboxType"] for s in block["State"]["Definitions"].values()]:
+            boxes = json.loads((hitboxes / (name + ".json")).read_text(encoding="utf-8"))["Boxes"]
+            for box in boxes:
+                assert all(0 <= box["Min"][a] <= box["Max"][a] <= 1 for a in "XYZ"), (name, box)
+            assert len({box["Max"]["Y"] for box in boxes}) > 1, name
+
+
+def placement_follows_do():
+    """DO turns a timber frame only when its pattern has a direction (TimberFrameBlock: FACING, 6 ways), and a panel
+    lies on the floor, under the ceiling or against a wall (AbstractPanelBlockTrapdoor): Hytale's half-block
+    rotation (DoublePipe) gives exactly these; a symmetric frame is never turned."""
+    ctx = generate_into_temp()
+    rotation = {i: item["BlockType"]["VariantRotation"] for i, item in ctx.items.items()}
+    for ident in ("HyColony_DO_TimberFrame_SideFramed", "HyColony_DO_TimberFrame_UpGated",
+                  "HyColony_DO_TimberFrame_DownGated", "HyColony_DO_TimberFrame_SideFramedHorizontal"):
+        assert rotation[ident] == "DoublePipe", ident
+    assert rotation["HyColony_DO_TimberFrame_Plain"] == rotation["HyColony_DO_TimberFrame_OneCrossedLr"] == "None"
+    assert all(rotation[i] == "DoublePipe" for i in rotation if i.startswith("HyColony_DO_Panel_"))
 
 
 def every_generated_model_reads_one_tile():
@@ -182,5 +212,7 @@ def run():
     shingle_rules_name_states_only()
     shingle_slab_template_has_six_shapes()
     every_generated_model_reads_one_tile()
+    placement_follows_do()
+    shingle_hitboxes_stay_in_their_block()
     door_copies_vanilla_mechanics()
     trapdoor_opens_like_vanilla()

@@ -3,7 +3,8 @@
 The vanilla door and trapdoor animations (Blocks/Animations/Door/Door_Open_In.blockyanim,
 Trapdoor/Trapdoor_Open.blockyanim) turn a node named "Door"; our models put their elements under it, placed on the
 hinge. A door is one block drawing both DO halves, recentred in depth and hinged on its -X edge like the vanilla
-Crude door (DO's sits against the block's south side); a right-hinged door is the vanilla double-door rule turning
+Crude door (Deviation from MC: DO's closed door sits against the block's side; the vanilla door animations and
+hitboxes are built around a centred leaf); a right-hinged door is the vanilla double-door rule turning
 it 180 degrees.
 
 A trapdoor is DO's bottom half hinged on its +Z edge: placed on the floor (no pitch, as stairs), the vanilla

@@ -20,14 +20,17 @@ GRADLE_ASSETS = Path.home() / ".gradle" / "caches" / "hytale-assets" / "release-
 # Hytale block groups standing for DO's tag groups, as regular expressions over vanilla item ids.
 GROUPS = {
     "planks": r"Wood_[A-Za-z]+_Planks",
+    # #minecraft:logs: full trunks and the stripped log block.
+    "logs": r"Wood_[A-Za-z]+_Trunk_Full|Wood_Stripped_Deco",
     "stone": r"Rock_(?!Crystal|Ice|Bedrock)[A-Za-z]+(_Cobble)?",
     "sandstone": r"Rock_Sandstone[A-Za-z_]*",
     "dirt": r"Soil_(Dirt|Grass)(_[A-Za-z]+)*",
     "leaves": r"Soil_Leaves(_Full)?",
     "clay": r"Soil_Clay",
-    # #domum_ornamentum:default: worked building blocks of every kind.
+    # #domum_ornamentum:default: worked building blocks of every kind, logs included (DO-gen default.json holds
+    # #minecraft:logs and #forge:glass; Hytale 0.6.8 has no glass block).
     "default": r"Rock_(?!Crystal|Ice|Bedrock)[A-Za-z_]+|Soil_Clay[A-Za-z_0-9]*|Cloth_Block_Wool_[A-Za-z_]+"
-               r"|Metal_[A-Za-z_]+|Wood_[A-Za-z]+_(Decorative|Ornate)",
+               r"|Metal_[A-Za-z_]+|Wood_[A-Za-z]+_(Decorative|Ornate)|Wood_[A-Za-z]+_Trunk_Full|Wood_Stripped_Deco",
 }
 
 # DO tag -> the groups whose union it is (DO-gen tags/blocks/<tag>.json). Kept as DO lists them even where a group
@@ -45,24 +48,14 @@ TAG_GROUPS = {
     "doors_materials": ("default", "planks"),
     "fancy_doors_materials": ("default", "planks"),
     "fancy_trapdoors_materials": ("default", "planks"),
-    # Deviation from MC: DO's fence tags hold #domum_ornamentum:default only, which lacks the fence's own default
-    # material (oak planks, FenceBlock.COMPONENTS); planks are added so the default fence is valid.
-    "fence_materials": ("default", "planks"),
-    "fence_gate_materials": ("default", "planks"),
-    "wall_materials": ("default", "stone", "sandstone"),
-    "stairs_materials": ("default", "stone", "sandstone"),
-    "slab_materials": ("default", "stone", "sandstone"),
-    "all_brick_materials": ("default", "stone", "sandstone"),
+    "fence_materials": ("default",),
+    "fence_gate_materials": ("default",),
+    # The compat tags list DO's groups and single blocks; their single stones fall inside "default" here.
+    "wall_materials": ("default", "planks"),
+    "stairs_materials": ("default", "dirt", "leaves"),
+    "slab_materials": ("default", "planks", "dirt", "leaves"),
+    "all_brick_materials": ("default", "stone"),
 }
-
-# DO component placeholder texture -> the Hytale block standing for DO's default material in that slot.
-DEFAULT_MATERIALS = {
-    "block/oak_planks": "Wood_Hardwood_Planks",
-    "block/dark_oak_planks": "Wood_Darkwood_Planks",
-    "block/acacia_planks": "Wood_Redwood_Planks",
-    "block/clay": "Soil_Clay",
-}
-
 
 def open_assets(path=None):
     """The vanilla assets zip: path, else $HYTALE_ASSETS, else server/Assets.zip, else the Gradle cache copy."""
@@ -79,7 +72,9 @@ def texture(assets, block_id):
     textures = block_type.get("Textures")
     if block_type.get("DrawType", "Cube") != "Cube" or not textures:
         raise ValueError(f"{block_id} is not a textured cube")
-    if block_type.get("State") or block_type.get("ConnectedBlockRuleSet"):
+    # A full trunk connects to leaves and branches, but as a material only its bark texture counts.
+    trunk = re.fullmatch(r"Wood_[A-Za-z]+_Trunk_Full", block_id)
+    if not trunk and (block_type.get("State") or block_type.get("ConnectedBlockRuleSet")):
         raise ValueError(f"{block_id} has states or connections")
     first = textures[0]
     sides = {first.get(side) for side in ("North", "South", "East", "West")} - {None}
@@ -121,18 +116,9 @@ def build(assets):
     return {tag: sorted(set().union(*(groups[g] for g in names))) for tag, names in TAG_GROUPS.items()}
 
 
-# Default material of DO's stone-only compat tags, whose models draw with an oak placeholder they do not accept.
-STONE_DEFAULT = "Rock_Stone_Brick"
-STONE_ONLY_TAGS = ("wall_materials", "stairs_materials", "slab_materials", "all_brick_materials")
-
-
-def default_material(tag, component, built):
-    """The Hytale block standing for DO's default material of a slot: its placeholder texture's block when the
-    slot's tag (built by build()) accepts it, STONE_DEFAULT for a stone-only tag; ValueError otherwise (a tag that
-    lost its own default is a broken group, not a case to paper over)."""
-    block = DEFAULT_MATERIALS[component]
-    if block in built[tag]:
-        return block
-    if tag in STONE_ONLY_TAGS:
-        return STONE_DEFAULT
-    raise ValueError(f"{tag} does not accept its default {block}")
+def default_material(tag, block, built):
+    """block, a family's DO default material, when the slot's tag (built by build()) accepts it; ValueError
+    otherwise (a tag that lost its own default is a broken group, not a case to paper over)."""
+    if block not in built[tag]:
+        raise ValueError(f"{tag} does not accept its default {block}")
+    return block

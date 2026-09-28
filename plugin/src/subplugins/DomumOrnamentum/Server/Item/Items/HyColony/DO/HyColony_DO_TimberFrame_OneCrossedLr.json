@@ -26,11 +26,11 @@
     "CustomModel": "Blocks/HyColony/DO/TimberFrame_OneCrossedLr.blockymodel",
     "CustomModelTexture": [
       {
-        "Texture": "Blocks/HyColony/DO/Pairs/Wood_Hardwood_Planks__Wood_Darkwood_Planks.png",
+        "Texture": "Blocks/HyColony/DO/Pairs/Wood_Hardwood_Planks__Soil_Clay_Smooth_White.png",
         "Weight": 1
       }
     ],
-    "VariantRotation": "NESW",
+    "VariantRotation": "None",
     "Gathering": {
       "Breaking": {
         "GatherType": "Woods"

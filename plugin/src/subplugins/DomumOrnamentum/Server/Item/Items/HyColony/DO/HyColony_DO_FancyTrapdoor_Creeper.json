@@ -26,7 +26,7 @@
     "CustomModel": "Blocks/HyColony/DO/FancyTrapdoor_Creeper.blockymodel",
     "CustomModelTexture": [
       {
-        "Texture": "Blocks/HyColony/DO/Pairs/Wood_Hardwood_Planks__Wood_Redwood_Planks.png",
+        "Texture": "Blocks/HyColony/DO/Pairs/Wood_Stripped_Deco__Rock_Quartzite.png",
         "Weight": 1
       }
     ],
@@ -54,12 +54,16 @@
     "InteractionHint": "server.interactionHints.openDoor",
     "SoundOcclusionOpacity": 2.0,
     "Gathering": {
+      "Physics": {
+        "ItemId": "Wood_Stripped_Deco"
+      },
       "Breaking": {
+        "ItemId": "Wood_Stripped_Deco",
         "GatherType": "Woods"
       }
     },
     "BlockParticleSetId": "Wood",
-    "ParticleColor": "#693e2a",
+    "ParticleColor": "#633625",
     "BlockSoundSetId": "Wood",
     "PhysicalMaterialId": "Wood"
   },

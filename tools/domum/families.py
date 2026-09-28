@@ -28,6 +28,9 @@ class Family:
     components: tuple[str, ...]
     mechanism: str
     slot_tags: tuple[str, ...] = ()  # DO tag of each component's slot, in component order (tags.TAG_GROUPS)
+    # DO's default material of each component (SimpleRetexturableComponent's third argument) as the Hytale block
+    # standing for it; the template draws with these.
+    defaults: tuple[str, ...] = ()
     optional_second: bool = False  # DO lets the second slot stay empty: it then repeats the first material
     cutter_quantity: int = 1  # items per architect's cutter craft (A.3, DO-gen recipes/*.json)
     # Extra turn after assembly, degrees about y. A DO trapdoor facing=north hinges on +Z (its open state stands at
@@ -46,6 +49,8 @@ FAMILIES = (
         components=("block/oak_planks", "block/dark_oak_planks"),
         mechanism="static",
         slot_tags=("timber_frames_frame", "timber_frames_center"), cutter_quantity=4,
+        # DO default: OAK_PLANKS + WHITE_TERRACOTTA.
+        defaults=("Wood_Hardwood_Planks", "Soil_Clay_Smooth_White"),
     ),
     Family(
         name="Shingle",
@@ -55,6 +60,8 @@ FAMILIES = (
         components=("block/clay", "block/oak_planks"),
         mechanism="roof",
         slot_tags=("shingles_roof", "shingles_support"), cutter_quantity=4,
+        # DO default: brick_extra (DO's base brick) + OAK_PLANKS.
+        defaults=("Soil_Clay_Brick", "Wood_Hardwood_Planks"),
     ),
     Family(
         name="ShingleSlab",
@@ -64,6 +71,8 @@ FAMILIES = (
         components=("block/oak_planks", "block/dark_oak_planks"),
         mechanism="shingle_slab",
         slot_tags=("shingles_roof", "shingles_support"), cutter_quantity=4,
+        # DO default: brick_extra + OAK_PLANKS.
+        defaults=("Soil_Clay_Brick", "Wood_Hardwood_Planks"),
     ),
     Family(
         name="Pillar",
@@ -73,6 +82,8 @@ FAMILIES = (
         components=("block/oak_planks",),
         mechanism="pillar",
         slot_tags=("pillar_materials",),
+        # DO default: STONE_BRICKS.
+        defaults=("Rock_Stone_Brick",),
     ),
     Family(
         name="Post",
@@ -82,6 +93,8 @@ FAMILIES = (
         components=("block/oak_planks",),
         mechanism="static",
         slot_tags=("post_materials",),
+        # DO default: OAK_PLANKS.
+        defaults=("Wood_Hardwood_Planks",),
     ),
     Family(
         name="Panel",
@@ -91,6 +104,8 @@ FAMILIES = (
         components=("block/oak_planks",),
         mechanism="static",
         slot_tags=("trapdoors_materials",), cutter_quantity=4,
+        # DO default: STRIPPED_OAK_WOOD.
+        defaults=("Wood_Stripped_Deco",),
         turn_y=180,
     ),
     Family(
@@ -101,6 +116,8 @@ FAMILIES = (
         components=("block/oak_planks",),
         mechanism="door",
         slot_tags=("doors_materials",),
+        # DO default: STRIPPED_OAK_WOOD.
+        defaults=("Wood_Stripped_Deco",),
     ),
     Family(
         name="FancyDoor",
@@ -110,6 +127,8 @@ FAMILIES = (
         components=("block/oak_planks", "block/acacia_planks"),
         mechanism="door",
         slot_tags=("fancy_doors_materials", "fancy_doors_materials"), optional_second=True, cutter_quantity=2,
+        # DO default: SPRUCE_PLANKS + COPPER_BLOCK.
+        defaults=("Wood_Softwood_Planks", "Metal_Copper"),
     ),
     Family(
         name="Trapdoor",
@@ -119,6 +138,8 @@ FAMILIES = (
         components=("block/oak_planks",),
         mechanism="trapdoor",
         slot_tags=("trapdoors_materials",),
+        # DO default: STRIPPED_JUNGLE_WOOD.
+        defaults=("Wood_Stripped_Deco",),
         turn_y=180,
     ),
     Family(
@@ -129,6 +150,8 @@ FAMILIES = (
         components=("block/oak_planks", "block/acacia_planks"),
         mechanism="trapdoor",
         slot_tags=("fancy_trapdoors_materials", "fancy_trapdoors_materials"), cutter_quantity=2,
+        # DO default: STRIPPED_OAK_WOOD + QUARTZ_BLOCK.
+        defaults=("Wood_Stripped_Deco", "Rock_Quartzite"),
         turn_y=180,
     ),
     Family(
@@ -139,6 +162,9 @@ FAMILIES = (
         components=("block/oak_planks", "block/dark_oak_planks"),
         mechanism="pane",
         slot_tags=("paper_wall_frame", "paper_wall_center"), cutter_quantity=6,
+        # DO default: STRIPPED_SPRUCE_WOOD + GLASS. Deviation from MC: Hytale 0.6.8 has no glass block, so the
+        # centre defaults to white wool (paper-like) and no pane takes glass.
+        defaults=("Wood_Stripped_Deco", "Cloth_Block_Wool_White"),
     ),
     Family(
         name="Fence",
@@ -148,6 +174,8 @@ FAMILIES = (
         components=("block/oak_planks",),
         mechanism="vanilla",
         slot_tags=("fence_materials",),
+        # DO default: STRIPPED_OAK_WOOD.
+        defaults=("Wood_Stripped_Deco",),
     ),
     Family(
         name="FenceGate",
@@ -157,6 +185,8 @@ FAMILIES = (
         components=("block/oak_planks",),
         mechanism="vanilla",
         slot_tags=("fence_gate_materials",),
+        # DO default: STRIPPED_OAK_WOOD.
+        defaults=("Wood_Stripped_Deco",),
     ),
     Family(
         name="Wall",
@@ -166,6 +196,8 @@ FAMILIES = (
         components=("block/oak_planks",),
         mechanism="vanilla",
         slot_tags=("wall_materials",),
+        # DO default: STRIPPED_OAK_WOOD.
+        defaults=("Wood_Stripped_Deco",),
     ),
     Family(
         name="Stairs",
@@ -175,6 +207,8 @@ FAMILIES = (
         components=("block/oak_planks",),
         mechanism="vanilla",
         slot_tags=("stairs_materials",),
+        # DO default: STRIPPED_OAK_WOOD.
+        defaults=("Wood_Stripped_Deco",),
     ),
     Family(
         name="Slab",
@@ -184,6 +218,8 @@ FAMILIES = (
         components=("block/oak_planks",),
         mechanism="vanilla",
         slot_tags=("slab_materials",), cutter_quantity=2,
+        # DO default: STRIPPED_OAK_WOOD.
+        defaults=("Wood_Stripped_Deco",),
     ),
     Family(
         name="AllBrick",
@@ -193,6 +229,8 @@ FAMILIES = (
         components=("block/oak_planks",),
         mechanism="static",
         slot_tags=("all_brick_materials",),
+        # DO default: POLISHED_ANDESITE (no andesite in 0.6.8: stone bricks).
+        defaults=("Rock_Stone_Brick",),
     ),
     Family(
         name="AllBrickStair",
@@ -202,6 +240,8 @@ FAMILIES = (
         components=("block/oak_planks",),
         mechanism="static",
         slot_tags=("all_brick_materials",),
+        # DO default: POLISHED_ANDESITE (no andesite in 0.6.8: stone bricks).
+        defaults=("Rock_Stone_Brick",),
     ),
 )
 
