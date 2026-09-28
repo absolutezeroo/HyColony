@@ -5,6 +5,7 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.protocol.GameMode;
 import com.hypixel.hytale.server.core.Message;
+import com.hypixel.hytale.server.core.asset.type.item.config.Item;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
@@ -92,12 +93,16 @@ final class CutterCrafting {
             say(player, "hycolony.ornament.cutter.changed");
             return;
         }
+        String item = ready.key().blockTypeKey();
+        if (Item.getAssetMap().getAsset(item) == null) { // created but not loaded: take nothing rather than lose it
+            say(player, "hycolony.ornament.failed", "create");
+            return;
+        }
         int crafts = Math.min(request.crafts(), CutterCraft.maxCrafts(ready, slots));
         if (crafts <= 0 || !request.slots().take(ready.consumed(), crafts)) {
             say(player, "hycolony.ornament.cutter.changed");
             return;
         }
-        String item = ready.key().blockTypeKey();
         PlayerItems.give(store, request.player(), item, ready.quantity() * crafts);
         player.sendMessage(Message.translation("hycolony.ornament.cutter.crafted")
                 .param("p0", String.valueOf(ready.quantity() * crafts))

@@ -3,8 +3,8 @@ package dev.hycolony.core.ornament.cutter;
 import java.util.List;
 
 /**
- * What the cutter window shows (MC DO ArchitectsCutterScreen, laid out as Hytale's crafting benches): the group tabs, the group's shapes, a label per
- * material slot of the chosen shape and the preview of what crafting gives.
+ * What the cutter window shows (MC DO ArchitectsCutterScreen, laid out as Hytale's crafting benches): the group
+ * tabs, the group's shapes, a label per material slot of the chosen shape and the preview of what crafting gives.
  */
 public record CutterView(List<Tab> tabs, List<ShapeButton> shapes, List<String> slotLabelKeys, Preview preview) {
     public CutterView {

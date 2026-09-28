@@ -21,6 +21,7 @@ public final class ReturningContainerWindow extends ContainerWindow {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
     private final SimpleItemContainer container;
+    private boolean closed;
 
     /** A window on container, whose content goes back to the player on close. */
     public ReturningContainerWindow(SimpleItemContainer container) {
@@ -31,6 +32,7 @@ public final class ReturningContainerWindow extends ContainerWindow {
     @Override
     public void onClose0(@Nonnull Ref<EntityStore> ref, @Nonnull ComponentAccessor<EntityStore> accessor) {
         super.onClose0(ref, accessor);
+        closed = true;
         SimpleItemContainer.addOrDropItemStacks(
                 accessor,
                 ref,
@@ -38,12 +40,17 @@ public final class ReturningContainerWindow extends ContainerWindow {
                 container.dropAllItemStacks(false));
     }
 
+    /** Whether this window was closed (its content already went back to the player). */
+    public boolean isClosed() {
+        return closed;
+    }
+
     /**
      * Closes this window if player still holds this very window: closing one the client already closed would throw
      * from WindowManager. A failure is logged, never thrown.
      */
-    @SuppressWarnings({"PMD.CompareObjectsWithEquals", "ReferenceEquality"
-    }) // identity: a later window may reuse the id
+    // Identity, not equals: a later window may reuse the id.
+    @SuppressWarnings({"PMD.CompareObjectsWithEquals", "ReferenceEquality"})
     public void closeIfOpen(Ref<EntityStore> player, ComponentAccessor<EntityStore> accessor) {
         try {
             Player holder = accessor.getComponent(player, Player.getComponentType());

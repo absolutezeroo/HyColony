@@ -77,6 +77,7 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
     private final CutterActions actions;
     private final CutterSlots slots;
     private @Nullable InventoryWatch watch;
+    private boolean redrawPending;
 
     CutterPage(PlayerRef playerRef, Setup setup) {
         super(playerRef, CustomPageLifetime.CanDismiss, Act.CODEC);
@@ -101,7 +102,7 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
             @Nonnull UIEventBuilder events,
             @Nonnull Store<EntityStore> store) {
         if (watch == null) {
-            watch = InventoryWatch.start(store, ref, this::redrawIfShown, slots.container());
+            watch = InventoryWatch.start(store, ref, this::redrawSoon, slots.container());
         }
         ui.append("Pages/HyColony/Cutter.ui");
         CutterDrawing.draw(ui, events, actions.view(slots.contents(), CutterCrafting.creative(store, ref)));
@@ -119,7 +120,11 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
                     setup.memory().remember(player, actions.group());
                 }
                 case "shape" -> actions.selectShape(act.index);
-                case InventoryGrids.DROP_ACTION -> drop(ref, store, act.drop);
+                case InventoryGrids.DROP_ACTION -> {
+                    // No redraw here: the move changes the containers, and the watch redraws once.
+                    drop(ref, store, act.drop);
+                    return;
+                }
                 case "craft" -> craft(ref, 1);
                 case "craft10" -> craft(ref, BATCH);
                 case "craftAll" -> craft(ref, Integer.MAX_VALUE);
@@ -164,11 +169,33 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
                         setup.registry(),
                         crafts,
                         // Up to 30 s later: redraw only if the player still looks at this page.
-                        this::redrawIfShown)));
+                        this::redrawSoon)));
+    }
+
+    /**
+     * Redraws once, later on the world thread, however many changes come before (a craft or a drop changes several
+     * containers); nothing once the slots' window has closed (the page is gone or the player is leaving).
+     */
+    private void redrawSoon() {
+        if (redrawPending || slots.window().isClosed()) {
+            return;
+        }
+        redrawPending = true;
+        try {
+            setup.world().execute(() -> {
+                redrawPending = false;
+                PageEvents.guard(getClass(), this::redrawIfShown);
+            });
+        } catch (RuntimeException e) { // the world no longer takes tasks (stopping): nothing to redraw
+            redrawPending = false;
+        }
     }
 
     /** Redraws while the player still looks at this page in this world; otherwise does nothing. */
     private void redrawIfShown() {
+        if (slots.window().isClosed()) {
+            return;
+        }
         Ref<EntityStore> ref = playerRef.getReference();
         if (ref == null
                 || !ref.isValid()
