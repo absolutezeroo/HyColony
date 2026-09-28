@@ -5,10 +5,11 @@ source of the project rules.** Read it in full before writing or reviewing anyth
 need to know first. (CLAUDE.md is in French: it covers modules, class design, style, robustness, persistence,
 MineColonies fidelity, texts, tests and process.)
 
-## Three mods
+## Four mods
 
-HyBlockUI (`blockui/`, UI library) ← HyDomum (`domum/core`, `domum/plugin`) ← HyColony (`core/`, `plugin/`), in one
-direction only. Each core is pure Java; a mod reaches another only through its `api` packages. Details: CLAUDE.md § 1.
+HyBlockUI (`blockui/`, UI library) ← HyDomum (`domum/core`, `domum/plugin`) ← HyColony (`core/`, `plugin/`) →
+HyVanilla (`vanilla/core`, `vanilla/plugin`, Minecraft's vanilla blocks), in one direction only. Each core is pure
+Java; a mod reaches another only through its `api` packages. Details: CLAUDE.md § 1.
 
 ## Verify before every commit
 

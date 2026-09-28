@@ -1,6 +1,6 @@
 ---
 name: hycolony-implementer
-description: Implements an approved HyColony change (feature, port, fix, refactor) in the mods' cores and plugins (core/, plugin/, domum/core/, domum/plugin/, blockui/), test-first, and commits it. Use once the design is validated by the user (CLAUDE.md § 9). Give it the spec/plan or the validated design and the exact scope.
+description: Implements an approved HyColony change (feature, port, fix, refactor) in the mods' cores and plugins (core/, plugin/, domum/core/, domum/plugin/, vanilla/core/, vanilla/plugin/, blockui/), test-first, and commits it. Use once the design is validated by the user (CLAUDE.md § 9). Give it the spec/plan or the validated design and the exact scope.
 tools: Read, Grep, Glob, Bash, Edit, Write, WebFetch, Skill
 model: inherit
 ---

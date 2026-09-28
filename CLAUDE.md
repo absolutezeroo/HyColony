@@ -6,10 +6,10 @@ HyColony porte MineColonies sur Hytale 0.7.0-pre.4 (Update 7, épinglé dans `gr
 
 ## 1. Modules et dépendances
 
-- **Trois mods**, avec des dépendances dans un seul sens : HyBlockUI (`blockui/`, la bibliothèque d'interface) ← HyDomum (`domum/core`, `domum/plugin`, le portage de Domum Ornamentum) ← HyColony (`core/`, `plugin/`). Spec : `docs/superpowers/specs/2026-09-28-hycolony-split-hydomum-hyblockui-design.md`.
-- Chaque cœur (`core/`, `domum/core/`) contient la logique du jeu en Java pur. **Aucun import `com.hypixel`** **[build : ArchitectureTest]**. Il ne dépend que du JDK, de Gson et de jspecify, ces deux derniers en `compileOnly` (jspecify n'apporte que des annotations). Il est compilé en Java 25, comme les plugins.
-- Chaque plugin (`plugin/`, `domum/plugin/`, `blockui/`) contient les adaptateurs Hytale et le pack d'assets de son mod. Il ne contient **pas** de règles de jeu : une décision de jeu prise dans un plugin est un bug.
-- Un mod ne voit d'un autre que ses paquets `api` (`dev.hyblockui.api` ; `dev.hydomum.api`, `dev.hydomum.plugin.api`) **[build : `checkModApis`]**, en `compileOnly` : il n'embarque jamais un autre mod. Tout projet applique `hy.java-core` ou `hy.hytale-mod` (`build-logic/`) **[build]**.
+- **Quatre mods**, avec des dépendances dans un seul sens : HyBlockUI (`blockui/`, la bibliothèque d'interface) ← HyDomum (`domum/core`, `domum/plugin`, le portage de Domum Ornamentum) ← HyColony (`core/`, `plugin/`) → HyVanilla (`vanilla/core`, `vanilla/plugin`, les blocs vanilla de Minecraft absents de Hytale), qui ne dépend d'aucun autre. Specs : `docs/superpowers/specs/2026-09-28-hycolony-split-hydomum-hyblockui-design.md`, `docs/superpowers/specs/2026-09-29-hyvanilla-design.md`.
+- Chaque cœur (`core/`, `domum/core/`, `vanilla/core/`) contient la logique du jeu en Java pur. **Aucun import `com.hypixel`** **[build : ArchitectureTest]**. Il ne dépend que du JDK, de Gson et de jspecify, ces deux derniers en `compileOnly` (jspecify n'apporte que des annotations). Il est compilé en Java 25, comme les plugins.
+- Chaque plugin (`plugin/`, `domum/plugin/`, `vanilla/plugin/`, `blockui/`) contient les adaptateurs Hytale et le pack d'assets de son mod. Il ne contient **pas** de règles de jeu : une décision de jeu prise dans un plugin est un bug.
+- Un mod ne voit d'un autre que ses paquets `api` (`dev.hyblockui.api` ; `dev.hydomum.api`, `dev.hydomum.plugin.api` ; `dev.hyvanilla.api`, `dev.hyvanilla.plugin.api`) **[build : `checkModApis`]**, en `compileOnly` : il n'embarque jamais un autre mod. Tout projet applique `hy.java-core` ou `hy.hytale-mod` (`build-logic/`) **[build]**.
 - Le serveur de dev (`runAllMods`) met tous les mods sur un même classpath : il ne vérifie ni l'isolation des classes ni une dépendance absente. Ces cas se vérifient avec les jars de production dans un `mods/` (`docs/research/plugin-b-api.md` § 28).
 - Architecture ports & adaptateurs :
   - le cœur définit des ports (`kernel/port`, `construction/blueprint/BlueprintSource`, `colony/ui/UiPort`) ;
@@ -72,10 +72,10 @@ HyColony porte MineColonies sur Hytale 0.7.0-pre.4 (Update 7, épinglé dans `gr
 
 ## 7. Textes et fenêtres
 
-- Tout texte vu par un joueur passe par une clé de traduction présente dans **en-US et fr-FR**, dans le `.lang` du mod qui l'affiche (`hycolony.lang`, `hydomum.lang`, `hyblockui.lang` sous `Server/Languages/*/` ; les noms de blocs générés, `hydomum_blocks.lang`, sont écrits par `tools/domum`), avec des paramètres `{p0}`, `{p1}`…
+- Tout texte vu par un joueur passe par une clé de traduction présente dans **en-US et fr-FR**, dans le `.lang` du mod qui l'affiche (`hycolony.lang`, `hydomum.lang`, `hyvanilla.lang`, `hyblockui.lang` sous `Server/Languages/*/` ; les noms de blocs générés, `hydomum_blocks.lang`, sont écrits par `tools/domum`), avec des paramètres `{p0}`, `{p1}`…
 - Une traduction imbriquée dans une autre (`param(key, Message)`) s'affiche sur `.TextSpans`, **jamais** sur `.Text`. Sur un bouton : une clé complète par variante.
 - Les fenêtres affichent des **vues** du cœur (records immuables). Chaque bouton appelle une action du cœur, qui vérifie les permissions puis ré-affiche la vue. Les fichiers `.ui` copient les motifs vanilla (voir les `.ui` des assets).
-- Les identifiants d'assets Hytale ne vivent que dans l'id-map de chaque mod (`hycolony/id-map.json`, `hydomum/id-map.json`). Les plans de bâtiments sont dans `hycolony/styles.json`.
+- Les identifiants d'assets Hytale ne vivent que dans l'id-map de chaque mod (`hycolony/id-map.json`, `hydomum/id-map.json`, `hyvanilla/id-map.json`). Les plans de bâtiments sont dans `hycolony/styles.json`.
 
 ## 8. Tests
 
