@@ -53,7 +53,7 @@ Par couleur, un item `HyColony_Carpet_<C>` dans le pack :
 - `Common/Blocks/HyColony/Carpet.blockymodel` : copie de `Cloth_Roof_Horizontal.blockymodel` (boîte `32×2×32`, offset y=1) avec des UV remappés sur une texture 32×32 (le layout vanilla pointe en (32,46) dans une texture 128×224).
 - `BlockType` : `DrawType: Model`, `Opacity: Transparent`, `CustomModel` ci-dessus, `CustomModelTexture: BlockTextures/Cloth_<C>.png` (textures vanilla réutilisées, comme les demi-dalles), `HitboxType: Block_Flat` (ou un `Server/Item/Block/Hitboxes/HyColony/Carpet.json` à 0,0625), `Support.Down: [{FaceType: Full}]`, sons `Cloth`, `PhysicalMaterialId: Wool`.
 - Recette `Cloth_Block_Wool_<C>` ×2 → `OutputQuantity: 3`, établi `Furniture_Bench`/`Furniture_Textiles`.
-- Clé de langue `server.items.HyColony_Carpet_<C>.name` en en-US et fr-FR, icône.
+- Clé de langue `server.items.HyColony_Carpet_<C>.name` en en-US et fr-FR, icône. Implémentation : icône générée par `tools/decorations/generate.py` (plaque 32×2×32 en perspective, texture de la laine), `Common/Icons/Items/HyColony/Carpet_<C>.png` (racine imposée `Icons/Items`, voir `plugin-b-api.md` § 23) ; l'icône vanilla de la laine, un cube, a été essayée puis écartée par l'utilisateur.
 
 Alternative à une seule texture : texture grise + `Tint` par item (précédent `Plant_Moss_Rug_Green`, `"Tint": ["#84b338"]`), avec `Parent` commun (précédent `Plant_Moss_Rug_Pink` → `"Parent": "Plant_Moss_Rug_Green"`).
 
