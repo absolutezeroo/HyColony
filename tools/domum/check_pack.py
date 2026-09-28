@@ -133,6 +133,12 @@ def placement_follows_do():
         assert rotation[ident] == "DoublePipe", ident
     assert rotation["HyColony_DO_TimberFrame_Plain"] == rotation["HyColony_DO_TimberFrame_OneCrossedLr"] == "None"
     assert all(rotation[i] == "DoublePipe" for i in rotation if i.startswith("HyColony_DO_Panel_"))
+    # The directed frames draw DO's unturned facing=up model; the symmetric ones any facing (DO draws them alike).
+    frames = {label.split(" ", 1)[0]: label for label, _ in ctx.sources}
+    for block in ("side_framed", "up_gated", "down_gated", "side_framed_horizontal"):
+        assert "'facing': 'up'" in frames[block], frames[block]
+    for block in ("plain", "one_crossed_lr"):
+        assert "facing" not in frames[block], frames[block]
 
 
 def every_generated_model_reads_one_tile():

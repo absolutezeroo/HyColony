@@ -71,7 +71,7 @@ def texture(assets, block_id):
     textures = block_type.get("Textures")
     if block_type.get("DrawType", "Cube") != "Cube" or not textures:
         raise ValueError(f"{block_id} is not a textured cube")
-    # A full trunk connects to leaves and branches, but as a material only its bark texture counts.
+    # A full trunk inherits its parent's Stripped/Farming states, but as a material only its bark texture counts.
     trunk = re.fullmatch(r"Wood_[A-Za-z]+_Trunk_Full", block_id)
     if not trunk and (block_type.get("State") or block_type.get("ConnectedBlockRuleSet")):
         raise ValueError(f"{block_id} has states or connections")
