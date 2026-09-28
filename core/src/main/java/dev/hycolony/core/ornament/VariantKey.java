@@ -27,11 +27,15 @@ public record VariantKey(OrnamentShape shape, List<String> materials) {
         return shape.id() + ID_SEPARATOR + String.join(ID_SEPARATOR, materials);
     }
 
-    /** The key a saved id names; empty when its shape is not in catalog or its material count is wrong. */
+    /**
+     * The key a saved id names (its shape found case ignored, then named as the catalog spells it); empty when the
+     * shape is not in catalog, the material count is wrong or a material is blank.
+     */
     public static Optional<VariantKey> parse(String id, ShapeCatalog catalog) {
         List<String> parts = Arrays.asList(id.split(Pattern.quote(ID_SEPARATOR), -1));
         return catalog.shape(parts.getFirst())
                 .filter(shape -> parts.size() - 1 == shape.slotCount())
+                .filter(shape -> parts.stream().noneMatch(String::isBlank))
                 .map(shape -> new VariantKey(shape, parts.subList(1, parts.size())));
     }
 }

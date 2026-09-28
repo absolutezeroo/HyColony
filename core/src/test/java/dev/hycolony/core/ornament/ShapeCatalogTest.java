@@ -41,6 +41,19 @@ class ShapeCatalogTest {
     }
 
     @Test
+    void shapesOutOfBoundsOrRepeatedAreSkipped() {
+        ShapeCatalog catalog = ShapeCatalog.parse("""
+                {"schemaVersion": 1, "shapes": [
+                  {"id": "A", "template": "T", "group": "g", "slots": ["a"], "cutterQuantity": 1},
+                  {"id": "a", "template": "T2", "group": "g", "slots": ["a"], "cutterQuantity": 1},
+                  {"id": "Three", "template": "T", "group": "g", "slots": ["a", "b", "c"], "cutterQuantity": 1},
+                  {"id": "Zero", "template": "T", "group": "g", "slots": ["a"], "cutterQuantity": 0}
+                ]}""");
+        assertEquals(1, catalog.all().size());
+        assertEquals("T", catalog.shape("A").orElseThrow().templateKey());
+    }
+
+    @Test
     void materialTagsAcceptTheirMaterialsOnly() {
         MaterialTags tags = new MaterialTags(Map.of("roof", Set.of("Rock_Stone_Brick")));
         assertTrue(tags.accepts("roof", "Rock_Stone_Brick"));

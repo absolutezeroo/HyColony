@@ -14,7 +14,8 @@ import java.util.Optional;
  * The saved list of every variant ever created ({@code {"schemaVersion":1,"variants":[<VariantKey#id()>...]}}),
  * recreated at boot before chunks load: a chunk saves a block by its key. Nothing is dropped: an id no shape reads
  * any more and a non-text entry (raw JSON in {@code foreign}) are written back as they were; a file of a newer
- * schema is {@code readOnly}.
+ * schema is {@code readOnly}. A repeated id is read once. The prototype's bare array (version 0) is read in place:
+ * this small list has no {@code MigrationChain} of its own.
  */
 public record SavedVariants(List<String> ids, List<String> foreign, boolean readOnly) {
     static final int SCHEMA_VERSION = 1;
@@ -45,7 +46,9 @@ public record SavedVariants(List<String> ids, List<String> foreign, boolean read
             List<String> foreign = new ArrayList<>();
             for (JsonElement entry : entries(root)) {
                 if (entry instanceof JsonPrimitive text && text.isString()) {
-                    ids.add(text.getAsString());
+                    if (!ids.contains(text.getAsString())) {
+                        ids.add(text.getAsString());
+                    }
                 } else {
                     foreign.add(entry.toString());
                 }

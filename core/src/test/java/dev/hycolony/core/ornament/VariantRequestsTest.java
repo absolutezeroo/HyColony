@@ -51,6 +51,23 @@ class VariantRequestsTest {
     }
 
     @Test
+    void emptyRequestIsRefusedEvenWithAnOptionalSecond() {
+        OrnamentShape single = new OrnamentShape("One", "HyColony_DO_One", "g", List.of("fancy"), true, 1);
+        assertEquals(
+                "hycolony.ornament.badCount",
+                ((VariantRequests.Refused) VariantRequests.check(single, List.of(), tags)).reasonKey());
+        assertEquals(
+                "hycolony.ornament.badCount",
+                ((VariantRequests.Refused) VariantRequests.check(fancyDoor, List.of(), tags)).reasonKey());
+    }
+
+    @Test
+    void refusedSecondSlotIsNamed() {
+        var refused = (VariantRequests.Refused) VariantRequests.check(fancyDoor, List.of(PLANKS, STONE), tags);
+        assertEquals(1, refused.slot());
+    }
+
+    @Test
     void idReadsBackToTheSameKey() {
         ShapeCatalog catalog = ShapeCatalog.parse("""
                 {"schemaVersion": 1, "shapes": [{"id": "Shingle", "template": "HyColony_DO_Shingle",
@@ -60,5 +77,6 @@ class VariantRequestsTest {
         assertEquals("HyColony_DO_Shingle__Rock_Stone_Brick__Wood_Hardwood_Planks", key.blockTypeKey());
         assertEquals(Optional.empty(), VariantKey.parse("Gone|X", catalog));
         assertTrue(VariantKey.parse("Shingle|OnlyOne", catalog).isEmpty());
+        assertTrue(VariantKey.parse("Shingle||Wood_Hardwood_Planks", catalog).isEmpty());
     }
 }

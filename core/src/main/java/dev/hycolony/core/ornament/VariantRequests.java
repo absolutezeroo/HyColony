@@ -30,7 +30,7 @@ public final class VariantRequests {
     /** Accepts materials for shape when there is one per slot (or one for an optional second) and each fits. */
     public static Result check(OrnamentShape shape, List<String> materials, MaterialTags tags) {
         List<String> filled = new ArrayList<>(materials);
-        if (shape.optionalSecond() && filled.size() == shape.slotCount() - 1) {
+        if (shape.optionalSecond() && !filled.isEmpty() && filled.size() == shape.slotCount() - 1) {
             filled.add(filled.getFirst());
         }
         if (filled.size() != shape.slotCount() || filled.isEmpty()) {

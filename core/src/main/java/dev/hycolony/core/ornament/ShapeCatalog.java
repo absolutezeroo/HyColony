@@ -7,10 +7,12 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -18,6 +20,8 @@ import java.util.stream.Collectors;
 public final class ShapeCatalog {
     /** Manifest format this code reads; a newer one gives an empty catalog rather than a wrong one. */
     static final int SCHEMA_VERSION = 1;
+    /** DO blocks have one or two material components. */
+    private static final int MAX_SLOTS = 2;
 
     private final List<OrnamentShape> shapes;
     private final Map<String, OrnamentShape> byId;
@@ -42,8 +46,12 @@ public final class ShapeCatalog {
                 return new ShapeCatalog(List.of());
             }
             List<OrnamentShape> shapes = new ArrayList<>();
+            Set<String> seen = new HashSet<>();
             for (JsonElement entry : entries) {
-                shape(entry).ifPresent(shapes::add);
+                // A repeated id keeps its first shape, as shape(id) does.
+                shape(entry)
+                        .filter(s -> seen.add(s.id().toLowerCase(Locale.ROOT)))
+                        .ifPresent(shapes::add);
             }
             return new ShapeCatalog(shapes);
         } catch (JsonParseException | IllegalStateException | UnsupportedOperationException e) {
@@ -60,7 +68,10 @@ public final class ShapeCatalog {
         return shapes;
     }
 
-    /** One manifest entry, or empty when its id, template, group or slots are missing or malformed. */
+    /**
+     * One manifest entry, or empty when its id, template, group or slots are missing or malformed, or its cutter
+     * quantity is below 1 (absent: 1, one item per craft).
+     */
     private static Optional<OrnamentShape> shape(JsonElement entry) {
         if (!(entry instanceof JsonObject object)) {
             return Optional.empty();
@@ -69,20 +80,21 @@ public final class ShapeCatalog {
         Optional<String> id = string(object, "id");
         Optional<String> template = string(object, "template");
         Optional<String> group = string(object, "group");
-        if (tags.isEmpty() || id.isEmpty() || template.isEmpty() || group.isEmpty()) {
+        int cutterQuantity = intOr(object, "cutterQuantity", 1);
+        if (tags.isEmpty() || id.isEmpty() || template.isEmpty() || group.isEmpty() || cutterQuantity < 1) {
             return Optional.empty();
         }
         boolean optionalSecond = primitive(object, "optionalSecond")
                 .filter(JsonPrimitive::isBoolean)
                 .map(JsonPrimitive::getAsBoolean)
                 .orElse(false);
-        return Optional.of(new OrnamentShape(
-                id.get(), template.get(), group.get(), tags.get(), optionalSecond, intOr(object, "cutterQuantity", 1)));
+        return Optional.of(
+                new OrnamentShape(id.get(), template.get(), group.get(), tags.get(), optionalSecond, cutterQuantity));
     }
 
-    /** The entry's slot tags, or empty when there are none or one is not a string. */
+    /** The entry's slot tags, or empty when there are none, more than DO's two, or one is not a string. */
     private static Optional<List<String>> slotTags(JsonObject object) {
-        if (!(object.get("slots") instanceof JsonArray slots) || slots.isEmpty()) {
+        if (!(object.get("slots") instanceof JsonArray slots) || slots.isEmpty() || slots.size() > MAX_SLOTS) {
             return Optional.empty();
         }
         List<String> tags = new ArrayList<>();

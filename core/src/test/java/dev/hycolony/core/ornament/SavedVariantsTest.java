@@ -38,6 +38,18 @@ class SavedVariantsTest {
     }
 
     @Test
+    void duplicateIdsAreReadOnce() {
+        assertEquals(List.of("A|x"), SavedVariants.parse("[\"A|x\", \"A|x\"]").ids());
+    }
+
+    @Test
+    void readOnlyListStaysReadOnly() {
+        assertTrue(SavedVariants.parse("{\"schemaVersion\":2,\"variants\":[]}")
+                .with("A|x")
+                .readOnly());
+    }
+
+    @Test
     void unreadableFileIsRejected() {
         assertThrows(IllegalArgumentException.class, () -> SavedVariants.parse("{broken"));
         assertThrows(IllegalArgumentException.class, () -> SavedVariants.parse("{\"schemaVersion\":1}"));
