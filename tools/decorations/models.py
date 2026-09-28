@@ -52,6 +52,10 @@ def shift_uvs(nodes, du, dv):
             face["offset"] = {"x": face["offset"]["x"] + du, "y": face["offset"]["y"] + dv}
 
 
+# A face's angle -> how it turns a texture-space point about the face's pivot (vanilla textureLayout rule).
+TURNS = {0: lambda x, y: (x, y), 90: lambda x, y: (-y, x), 180: lambda x, y: (-x, -y), 270: lambda x, y: (y, -x)}
+
+
 def face_rects(nodes):
     """(node name, u0, v0, u1, v1): the texture area each face reads. The offset is the pivot: mirroring flips the
     face's rectangle over it, then the angle turns it about it (as vanilla models lay out rotated faces)."""
@@ -68,8 +72,7 @@ def face_rects(nodes):
             mirror = face.get("mirror", {})
             w = -w if mirror.get("x") else w
             h = -h if mirror.get("y") else h
-            turn = {0: lambda x, y: (x, y), 90: lambda x, y: (-y, x), 180: lambda x, y: (-x, -y),
-                    270: lambda x, y: (y, -x)}[face.get("angle", 0) % 360]
+            turn = TURNS[face.get("angle", 0) % 360]
             corners = [turn(x, y) for x in (0, w) for y in (0, h)]
             u, v = face["offset"]["x"], face["offset"]["y"]
             yield (n.get("name"), u + min(c[0] for c in corners), v + min(c[1] for c in corners),

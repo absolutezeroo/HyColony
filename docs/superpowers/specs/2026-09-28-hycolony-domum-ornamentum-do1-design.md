@@ -90,6 +90,7 @@ Porter Domum Ornamentum (DO) **avec son vrai fonctionnement** : un type de bloc 
 ## Limites connues et écarts
 
 - Un scintillement à la première utilisation d'une paire de matériaux ; un court gel à la création d'une variante (icône).
+- **Échelle des textures** : une face lit un texel par unité depuis l'origine de son uv. Minecraft, lui, étire le rectangle uv sur la face ; ici, un uv plus large ou plus étroit que la face montre le matériau à son échelle naturelle. `Deviation from MC: uv span not stretched over the face`. Pour un matériau uniforme, seul le motif est décalé.
 - **Nom des objets** : un objet porte le nom de sa forme (« Colombage encadré »). Hytale ne passe pas de paramètre à un nom d'objet ; afficher les matériaux dans le nom demanderait une clé de traduction par combinaison. `Deviation from MC: materials are not shown in the item name`. À réexaminer si un autre moyen apparaît.
 - Rafraîchir la liste des assets d'un joueur qui se connecte passe par réflexion (champ privé de `CommonAssetModule`, version épinglée 0.6.8), à revérifier à chaque montée de version.
 - Colombage dynamique, lumières encadrées, briques DO : voir « Hors DO-1 ».

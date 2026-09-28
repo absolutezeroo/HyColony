@@ -11,6 +11,10 @@ unit. A face wider than a tile would read the next one: its box is built at most
 back (shape "stretch", as vanilla models change texel density). Texture offsets follow the layout rule verified on
 vanilla models (tools/decorations/models.py face_rects): the offset is the pivot, the mirror flips the face's
 rectangle over it, then the angle turns it about it.
+
+Deviation from MC: Minecraft stretches a face's uv rectangle over the face; here a face reads one texel per unit
+from its uv origin, so a uv span that differs from the face's size (a timber beam's uv 16..0 over a 12 px face) shows
+the material at its natural scale instead. For a uniform material texture this only shifts the pattern.
 """
 
 import math
@@ -18,7 +22,7 @@ import sys
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parents[1] / "decorations"))
-from models import empty_shape, node, walk, xyz  # noqa: E402
+from models import TURNS, empty_shape, node, walk, xyz  # noqa: E402
 
 from assemble import default_uv  # noqa: E402
 
@@ -26,7 +30,6 @@ UNITS = 2  # blockymodel units per Minecraft pixel
 TILE = 32  # texels of one material tile (one block face)
 FACES = {"north": "back", "south": "front", "west": "left", "east": "right", "up": "top", "down": "bottom"}
 AXES = {"x": (1, 0, 0), "y": (0, 1, 0), "z": (0, 0, 1)}
-_TURN = {0: lambda x, y: (x, y), 90: lambda x, y: (-y, x), 180: lambda x, y: (-x, -y), 270: lambda x, y: (y, -x)}
 
 
 def layout_size(family):
@@ -90,7 +93,7 @@ def _element(textures, element, name, family):
     faces = {d: f for d, f in element["faces"].items() if all(v > 0 for v in face_size(d, real))}
     if not faces or sum(1 for s in real if s <= 0) > 1:
         return None
-    layouts = {d: _layout(textures, f, d, low, high, size, family) for d, f in faces.items()}
+    layouts = {d: _layout((textures, f), d, (low, high), size, family) for d, f in faces.items()}
     centre = hytale([(low[i] + high[i]) / 2 for i in range(3)])
     rotation = element.get("rotation")
     pivot = hytale(rotation["origin"]) if rotation else centre
@@ -123,22 +126,36 @@ def _shape(size, layouts):
     return shape
 
 
-def _layout(textures, face, direction, low, high, size, family):
+def _layout(reference, direction, bounds, size, family):
     """The face's textureLayout entry: Minecraft's uv origin (mirrored when the uv runs backwards, turned by the
-    face's rotation) read inside the component's tile, moved inward when it would cross the tile's edge."""
-    u0, v0, u1, v1 = face.get("uv") or default_uv(direction, low, high)
+    face's rotation) read inside the component's tile, moved inward when it would cross the tile's edge.
+    reference = (the model's textures, the face), bounds = the element's (from, to)."""
+    textures, face = reference
+    u0, v0, u1, v1 = face.get("uv") or default_uv(direction, *bounds)
     angle = face.get("rotation", 0) % 360
     mirror_x, mirror_y = u1 < u0, v1 < v0
     width, height = face_size(direction, size)
     w, h = (-width if mirror_x else width), (-height if mirror_y else height)
-    corners = [_TURN[angle](x, y) for x in (0, w) for y in (0, h)]
+    corners = [TURNS[angle](x, y) for x in (0, w) for y in (0, h)]
     min_x, min_y = min(c[0] for c in corners), min(c[1] for c in corners)
     span_x, span_y = max(c[0] for c in corners) - min_x, max(c[1] for c in corners) - min_y
     left = _inside(min(u0, u1) * UNITS % TILE, span_x)
     top = _inside(min(v0, v1) * UNITS % TILE, span_y)
     tile_x = TILE * component_index(family, textures, face.get("texture", ""))
-    return {"offset": {"x": round(tile_x + left - min_x), "y": round(top - min_y)},
+    return {"offset": {"x": _snap(tile_x + left - min_x, min_x, span_x, tile_x),
+                       "y": _snap(top - min_y, min_y, span_y, 0)},
             "mirror": {"x": mirror_x, "y": mirror_y}, "angle": angle}
+
+
+def _snap(offset, low, span, tile_start):
+    """offset rounded to a whole texel, then nudged so the rectangle it reads (offset + low .. + span, fractional
+    when DO's 0.001 px nudges make a size fractional) stays inside its tile."""
+    snapped = round(offset)
+    if snapped + low < tile_start:
+        snapped += math.ceil(tile_start - (snapped + low))
+    if snapped + low + span > tile_start + TILE:
+        snapped -= math.ceil(snapped + low + span - tile_start - TILE)
+    return snapped
 
 
 def _inside(start, span):
