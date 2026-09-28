@@ -8,9 +8,8 @@ Ce dossier ne contient que ces copies, rien d'autre. On n'ajoute une texture que
 
 | Fichier | Sert à |
 |---|---|
-| `Slot`, `SlotSelected` | cases d'inventaire, case active de la barre rapide |
+| `Slot` | cases d'inventaire |
 | `SpecialSlot` | cases utilitaires du panneau personnage |
 | `CharacterBackground` | fond du personnage |
 | `ArmorSlotIconHead`, `Chest`, `Hands`, `Legs` | silhouettes des cases d'armure vides |
-| `CharacterPanelStatIconBackground`, `Health`, `Stamina`, `Mana`, `Armor` | icônes des stats |
 | `SlotInputBindingBackground` | badges 1 à 9 de la barre rapide |
