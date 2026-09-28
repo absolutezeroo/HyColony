@@ -66,10 +66,10 @@ class BlockUseTest {
     }
 
     @Test
-    void foodOrAnEmptyHandNeedNothingMore() {
+    void anyOtherItemOrAnEmptyHandNeedNothingMore() {
         assertEquals(
                 Optional.empty(),
-                refused(new BlockUse(false, false, false, Held.FOOD), Set.of(Action.RIGHTCLICK_BLOCK), true));
+                refused(new BlockUse(false, false, false, Held.OTHER), Set.of(Action.RIGHTCLICK_BLOCK), true));
         assertEquals(
                 Optional.empty(),
                 refused(new BlockUse(false, false, false, Held.NOTHING), Set.of(Action.RIGHTCLICK_BLOCK), true));

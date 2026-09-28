@@ -40,9 +40,6 @@ final class BlockUses {
         if (stack == null || stack.isEmpty()) {
             return BlockUse.Held.NOTHING;
         }
-        if (potions.contains(stack.getItemId())) {
-            return BlockUse.Held.POTION;
-        }
-        return stack.getItem().isConsumable() ? BlockUse.Held.FOOD : BlockUse.Held.OTHER;
+        return potions.contains(stack.getItemId()) ? BlockUse.Held.POTION : BlockUse.Held.OTHER;
     }
 }

@@ -19,11 +19,12 @@ import java.util.function.Predicate;
  * @param held what the player holds
  */
 public record BlockUse(boolean toggleable, boolean container, boolean blockEntity, Held held) {
-    /** The held item, as far as the rule cares. */
+    /**
+     * The held item, as far as the rule cares. MC's {@code stack.isEdible()} return only skips the potion and scan
+     * tool checks, which food never matches, so food is {@link #OTHER}.
+     */
     public enum Held {
         NOTHING,
-        /** Minecraft ItemStack.isEdible. */
-        FOOD,
         /** Minecraft PotionItem. */
         POTION,
         OTHER
