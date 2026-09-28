@@ -101,7 +101,7 @@ Toutes reprises de MineColonies sauf les écarts listés plus bas. Chaque classe
 ### Requêtes et résolveurs
 
 - **`Crafting(ItemKey stack, int count, int minCount, String recipeId, boolean isPublic)`** : un seul record pour `PublicCrafting` et `PrivateCrafting`. `count` est un nombre d'**exécutions** de la recette. L'égalité suit MC : `count`, `minCount` et `stack`, sans la recette.
-- **`StackList(List<ItemKey> accepted, int count, int minCount)`** (MC `StackList`) : un `Deliverable` qui accepte l'un des objets. Il sert aux ingrédients par type de ressource ou tag.
+- **`StackList(List<ItemKey> accepted, String description, int count, int minCount)`** (MC `StackList`) : un `Deliverable` qui accepte l'un des objets. Il sert aux ingrédients par type de ressource ou tag, que `description` nomme. L'égalité suit MC : les mêmes objets acceptés, dans n'importe quel ordre, sans les quantités ni la description.
 - **Résolveur de fabrication**, public et privé (MC `PublicWorkerCraftingRequestResolver` et `PrivateWorkerCraftingRequestResolver`). Les deux sont créés par le module de fabrication. MC crée les privés dans chaque `WorkerBuildingModule`, mais `job` ne doit pas dépendre de `crafting`. Écart sans effet : les recettes sans table viennent de toute façon d'un module de fabrication.
   Le résolveur :
   - priorité **125** (MC `CONST_CRAFTING_RESOLVER_PRIORITY`) ;
@@ -229,6 +229,8 @@ Lecture tolérante : clé absente = vide, entrée invalide ignorée et journalis
 12. **Une recette dont la table a disparu n'est plus choisie**, mais reste dans la liste. MC ne la retire qu'au rafraîchissement de sa vue.
 13. **Identifiants de recettes lisibles** (`hytale:`, `custom:`, `improved:<n>`) au lieu de jetons aléatoires. Une recette dont le nom est déjà pris par un autre contenu de même source (le jeu ou `crafting.json` l'a changée) remplace l'ancienne sous ce nom. MC l'ajoute sous un nouveau jeton, puis `checkForWorkerSpecificRecipes` l'échange.
 14. **Toutes les recettes du registre sont sauvegardées.** MC ne sauvegarde que celles utilisées depuis le démarrage du serveur (`usedRecipes`). La croissance reste bornée : une recette améliorée ne peut l'être qu'un nombre fini de fois.
+15. **Le nombre minimum d'une requête de fabrication est sauvegardé.** MC `PublicCrafting.serialize` l'oublie : une tâche rechargée demande alors son nombre complet.
+16. **Affichage d'une `StackList`** : « 8 x Tronc de chêne (ou équivalent) », avec le premier objet accepté. MC affiche sa description, une clé de traduction ; un type de ressource ou un tag Hytale n'a pas de nom traduit connu du plugin.
 
 ## Architecture
 

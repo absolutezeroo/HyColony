@@ -3,13 +3,16 @@ package dev.hycolony.core.request;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolInfo;
 import dev.hycolony.core.kernel.item.ToolType;
+import dev.hycolony.core.request.model.Crafting;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequestToken;
+import dev.hycolony.core.request.model.RequesterId;
 import dev.hycolony.core.request.model.StackRequest;
 import dev.hycolony.core.request.model.ToolRequest;
 import dev.hycolony.core.testing.FakeCatalog;
@@ -79,6 +82,17 @@ class RequestModelTest {
                 "FAILED");
         assertEquals(
                 expected, Arrays.stream(RequestState.values()).map(Enum::name).toList());
+    }
+
+    @Test
+    void agingLeavesACraftingTaskUnchanged() {
+        Crafting task = new Crafting(new ItemKey("Plant_Seeds_Wheat"), 3, 1, "hytale:Plant_Seeds_Wheat", true);
+        Request r = new Request(RequestToken.random(), new RequesterId("crafting:test"), task, -1);
+
+        r.incrementPriorityDueToAging();
+
+        assertSame(task, r.requestable(), "MC: only courier tasks age");
+        assertTrue(r.deliverable().isEmpty(), "a crafting task brings no items by itself");
     }
 
     @Test

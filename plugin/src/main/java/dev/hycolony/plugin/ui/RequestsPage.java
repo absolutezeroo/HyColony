@@ -11,10 +11,12 @@ import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.ui.NeedsPlayerNotice;
 import dev.hycolony.core.colony.ui.RequestsView;
 import dev.hycolony.core.colony.ui.RequestsView.RequestRow;
+import dev.hycolony.core.request.model.Crafting;
 import dev.hycolony.core.request.model.Deliverable;
 import dev.hycolony.core.request.model.Delivery;
 import dev.hycolony.core.request.model.Pickup;
 import dev.hycolony.core.request.model.Requestable;
+import dev.hycolony.core.request.model.StackList;
 import dev.hycolony.core.request.model.StackRequest;
 import dev.hycolony.core.request.model.ToolRequest;
 import java.util.List;
@@ -81,8 +83,9 @@ public final class RequestsPage extends ColonyPage {
     }
 
     /**
-     * "64 x Stone", "Pickaxe (level 0 to 1)", "Pickaxe (level 0 or higher)", "Delivery: 10 x Stone" or "Pickup" (MC
-     * StandardRequests short display strings), in the player's language.
+     * "64 x Stone", "Pickaxe (level 0 to 1)", "Pickaxe (level 0 or higher)", "Delivery: 10 x Stone", "Pickup", "8 x Oak
+     * Trunk (or equivalent)" or "3 x Recipe: Wheat Seeds" (MC StandardRequests short display strings), in the player's
+     * language.
      */
     public static Message describe(Requestable requestable) {
         return switch (requestable) {
@@ -96,7 +99,26 @@ public final class RequestsPage extends ColonyPage {
                         .param("p0", String.valueOf(d.stack().count()))
                         .param("p1", itemName(d.stack().item().id()));
             case Pickup _ -> Message.translation("hycolony.ui.requests.pickup");
+            case StackList l -> describeStackList(l);
+            // MC AbstractCraftingRequest.getShortDisplayString shows the minimum count.
+            case Crafting c ->
+                Message.translation("hycolony.ui.requests.crafting")
+                        .param("p0", String.valueOf(c.minCount()))
+                        .param("p1", itemName(c.stack().id()));
         };
+    }
+
+    /**
+     * Deviation from MC: the first accepted item stands for the list, where MC shows its description, a translation
+     * key; the description (a resource type or tag id) only shows when no item is accepted.
+     */
+    private static Message describeStackList(StackList l) {
+        Message item = l.accepted().isEmpty()
+                ? Message.raw(l.description())
+                : itemName(l.accepted().getFirst().id());
+        return Message.translation("hycolony.ui.requests.stackList")
+                .param("p0", String.valueOf(l.count()))
+                .param("p1", item);
     }
 
     /** A max-level hut asks for any tool level (MC TOOL_LEVEL_MAXIMUM): "level 0 or higher", not "0 to 2147483647". */

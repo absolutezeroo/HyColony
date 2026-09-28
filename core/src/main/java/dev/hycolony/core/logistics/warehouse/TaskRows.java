@@ -4,6 +4,7 @@ import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ui.tab.TaskRow;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.request.Request;
+import dev.hycolony.core.request.model.Crafting;
 import dev.hycolony.core.request.model.Deliverable;
 import dev.hycolony.core.request.model.Delivery;
 import dev.hycolony.core.request.model.Pickup;
@@ -59,7 +60,7 @@ public final class TaskRows {
         return switch (r.requestable()) {
             case Delivery d -> d.priority();
             case Pickup p -> p.priority();
-            case Deliverable _ -> 0;
+            case Deliverable _, Crafting _ -> 0;
         };
     }
 }

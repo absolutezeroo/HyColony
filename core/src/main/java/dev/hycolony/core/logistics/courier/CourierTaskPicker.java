@@ -7,6 +7,7 @@ import dev.hycolony.core.logistics.warehouse.CourierAssignmentModule;
 import dev.hycolony.core.logistics.warehouse.RequesterLocation;
 import dev.hycolony.core.logistics.warehouse.WarehouseRequestQueue;
 import dev.hycolony.core.request.Request;
+import dev.hycolony.core.request.model.Crafting;
 import dev.hycolony.core.request.model.Deliverable;
 import dev.hycolony.core.request.model.Delivery;
 import dev.hycolony.core.request.model.Pickup;
@@ -145,7 +146,7 @@ final class CourierTaskPicker {
         int priority = switch (r.requestable()) {
             case Delivery d -> d.priority();
             case Pickup p -> p.day() > colony.day() ? p.priority() - NOT_DUE_MALUS : p.priority();
-            case Deliverable _ -> 1;
+            case Deliverable _, Crafting _ -> 1;
         };
         priority += shared.size() - index;
         return priority - distanceMalus(r);
@@ -170,7 +171,7 @@ final class CourierTaskPicker {
         return switch (r.requestable()) {
             case Delivery d -> Optional.of(d.start());
             case Pickup _ -> Optional.of(warehouse);
-            case Deliverable _ -> Optional.empty();
+            case Deliverable _, Crafting _ -> Optional.empty();
         };
     }
 
@@ -179,7 +180,7 @@ final class CourierTaskPicker {
         return switch (r.requestable()) {
             case Delivery d -> RequesterLocation.of(colony, d.target());
             case Pickup _ -> RequesterLocation.of(colony, r.requester());
-            case Deliverable _ -> Optional.empty();
+            case Deliverable _, Crafting _ -> Optional.empty();
         };
     }
 }
