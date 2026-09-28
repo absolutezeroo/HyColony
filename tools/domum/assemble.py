@@ -216,8 +216,8 @@ def state_model(root, family, block_id, props):
 
 
 def prefixed(model, prefix):
-    """One part's model with every local texture placeholder ("#key") renamed under prefix, so several
-    multipart pieces merged by state_model never share a placeholder name."""
+    """A model with every local texture placeholder ("#key") renamed under prefix, so models merged into one
+    (state_model's multipart pieces, a door's two halves) never share a placeholder name."""
 
     def renamed(ref):
         return "#" + prefix + ref[1:] if ref.startswith("#") else ref
