@@ -83,8 +83,12 @@ class WandPasteTest {
         runQueue();
         assertTrue(colony.work().ordered().isEmpty());
         assertEquals(FakeBlueprints.state(FakeBlueprints.GLASS), t.blocks.blocks.get(spot.offset(1, 1, 0)));
-        assertTrue(
-                colony.buildings().at(spot).orElseThrow().registeredContainers().contains(spot.offset(0, 2, 0)));
+        assertTrue(colony.buildings()
+                .at(spot)
+                .orElseThrow()
+                .registeredBlocks()
+                .containers()
+                .contains(spot.offset(0, 2, 0)));
     }
 
     @Test

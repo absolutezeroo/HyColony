@@ -2,6 +2,8 @@ package dev.hycolony.core.construction.resources;
 
 import dev.hycolony.core.construction.blueprint.BlueprintEntry;
 import dev.hycolony.core.construction.blueprint.StructurePlan;
+import dev.hycolony.core.crafting.recipe.RecipeCatalog;
+import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.core.kernel.port.WorldBlocks;
@@ -10,12 +12,12 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.ToIntFunction;
 
 /**
  * Items still needed to finish a plan (SOLID then DECO, plan order). Port of MC's neededResources. The placement
- * sequence (one item per not-done entry) is what the buckets are cut from, as MC's requestMaterials does.
+ * sequence (one element per unit of item a not-done entry costs) is what the buckets are cut from, as MC's
+ * requestMaterials does.
  */
 public final class NeededResources {
     private final List<ItemKey> sequence;
@@ -37,12 +39,22 @@ public final class NeededResources {
         return new NeededResources(List.of(), new LinkedHashMap<>(), 0, _ -> 64);
     }
 
-    /** One item per not-yet-done entry that has an item to place it with. */
-    public static NeededResources compute(StructurePlan plan, WorldBlocks world, ItemCatalog catalog) {
+    /**
+     * Every unit of every item a not-yet-done entry costs ({@link EntryCost}), so a bench with its upgrades weighs in
+     * the buckets for all it asks.
+     */
+    public static NeededResources compute(
+            StructurePlan plan, WorldBlocks world, ItemCatalog catalog, RecipeCatalog recipes) {
         List<ItemKey> seq =
                 new ArrayList<>(plan.solidList().size() + plan.decoList().size());
-        collect(plan.solidList(), plan, world, catalog, seq);
-        collect(plan.decoList(), plan, world, catalog, seq);
+        for (List<BlueprintEntry> entries : List.of(plan.solidList(), plan.decoList())) {
+            for (BlueprintEntry e : entries) {
+                List<ItemAmount> cost = EntryCost.of(e, catalog, recipes);
+                if (!cost.isEmpty() && !plan.isDone(e, world)) {
+                    cost.forEach(a -> seq.addAll(Collections.nCopies(a.count(), a.item())));
+                }
+            }
+        }
         Map<ItemKey, Integer> counts = new LinkedHashMap<>();
         for (ItemKey item : seq) {
             counts.merge(item, 1, Integer::sum);
@@ -50,21 +62,7 @@ public final class NeededResources {
         return new NeededResources(seq, counts, seq.size(), catalog::maxStack);
     }
 
-    private static void collect(
-            List<BlueprintEntry> entries,
-            StructurePlan plan,
-            WorldBlocks world,
-            ItemCatalog catalog,
-            List<ItemKey> out) {
-        for (BlueprintEntry e : entries) {
-            Optional<ItemKey> item = catalog.itemForBlock(e.state().key());
-            if (item.isPresent() && !plan.isDone(e, world)) {
-                out.add(item.get());
-            }
-        }
-    }
-
-    /** Read-only placement order at compute time: one item per not-done entry. Not reduced by {@link #reduce}. */
+    /** Read-only placement order at compute time: one element per unit of item. Not reduced by {@link #reduce}. */
     public List<ItemKey> sequence() {
         return sequence;
     }

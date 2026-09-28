@@ -7,13 +7,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import dev.hycolony.core.building.BuildingRegistry;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.building.BuildingTypes;
+import dev.hycolony.core.building.ModuleProducer;
 import dev.hycolony.core.construction.builder.BuilderJob;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
+import dev.hycolony.core.crafting.module.CraftingModule;
+import dev.hycolony.core.crafting.request.CraftingResolvers;
 import dev.hycolony.core.job.JobRegistry;
 import dev.hycolony.core.job.JobType;
 import dev.hycolony.core.logistics.courier.DeliverymanHut;
 import dev.hycolony.core.logistics.courier.DeliverymanJob;
 import dev.hycolony.core.logistics.warehouse.WarehouseBuilding;
+import dev.hycolony.core.testing.crafting.TestCrafters;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -41,6 +46,30 @@ class CoreFeaturesTest {
                         DeliverymanHut.TYPE),
                 buildings.all());
         assertEquals(List.of(BuilderJob.TYPE, DeliverymanJob.TYPE), jobs.all());
+    }
+
+    /**
+     * The crafting module creates no resolvers (see {@link CraftingModule}): a hut type that forgets its
+     * {@link CraftingResolvers} module takes no crafting request, so its crafters never craft.
+     */
+    @Test
+    void everyHutTypeWithACraftingModuleDeclaresItsCraftingResolvers() {
+        CoreFeatures.register(buildings, jobs);
+        List<BuildingType> types = new ArrayList<>(buildings.all());
+        types.add(TestCrafters.HUT);
+
+        assertEquals(List.of(), withoutCraftingResolvers(types));
+    }
+
+    @Test
+    void aHutTypeWithACraftingModuleButNoCraftingResolversIsCaught() {
+        BuildingType forgetful = new BuildingType(
+                "pack:forgetful",
+                "hut.forgetful",
+                5,
+                List.of(new ModuleProducer("crafting", () -> new CraftingModule("pack:crafter", true))));
+
+        assertEquals(List.of(forgetful.id()), withoutCraftingResolvers(List.of(forgetful, TestCrafters.HUT, FARM)));
     }
 
     @Test
@@ -123,5 +152,18 @@ class CoreFeaturesTest {
         assertEquals(List.of("job type " + BuilderJob.TYPE.id() + " is already registered"), problems);
         assertEquals(BuilderJob.TYPE, jobs.byId(BuilderJob.TYPE.id()).orElseThrow());
         assertTrue(buildings.byId(FARM.id()).isEmpty());
+    }
+
+    /** The ids of the {@code types} that produce a {@link CraftingModule} but no {@link CraftingResolvers} module. */
+    private static List<String> withoutCraftingResolvers(List<BuildingType> types) {
+        return types.stream()
+                .filter(t -> produces(t, CraftingModule.class) && !produces(t, CraftingResolvers.class))
+                .map(BuildingType::id)
+                .toList();
+    }
+
+    private static boolean produces(BuildingType type, Class<?> module) {
+        return type.modules().stream()
+                .anyMatch(p -> module.isInstance(p.factory().get()));
     }
 }

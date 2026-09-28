@@ -5,6 +5,7 @@ import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.construction.blueprint.BlueprintEntry;
 import dev.hycolony.core.construction.blueprint.StructurePlan;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.item.Workstation;
 import dev.hycolony.core.kernel.port.WorldBlocks;
 import java.util.ArrayDeque;
 import java.util.List;
@@ -15,10 +16,11 @@ import java.util.Optional;
  * head advances, by at most Structurize {@code maxOperationsPerTick} world changes per tick. A paste first breaks what
  * its plan leaves empty (ST CreativeStructureHandler.allowReplace, drops ignored), then places its solid blocks, then
  * its decorations and fluids, each bottom up, all quietly (no particles nor sound, as ST). A placed block with a
- * container joins the hut's building (MC AbstractBuildingContainer.registerBlockPosition).
+ * container, or a crafting bench, joins the hut's building (MC AbstractBuildingContainer.registerBlockPosition).
  *
  * <p>Deviation from MC: a pasted chest is empty, since our plans carry no container contents (ST
- * ContainerPlacementHandler pastes them); no entity phase, our prefabs have no entities.
+ * ContainerPlacementHandler pastes them); no entity phase, our prefabs have no entities. A pasted bench gets its
+ * planned Hytale tier for free, as a creative paste costs nothing (SP3b-1 spec, deviation 3).
  */
 final class PasteQueue {
     private static final System.Logger LOG = System.getLogger(PasteQueue.class.getName());
@@ -97,28 +99,46 @@ final class PasteQueue {
             return true; // ST StructurePlacer: a block already matching is left as is (a chest keeps its items)
         }
         if (!blocks().placeQuietly(pos, e.state(), e.hasContainer())) {
-            skipped(pos, e);
+            // An unloaded section or a refused block: skipped, never retried, so a paste always ends.
+            warn("Paste: failed to place {0} at {1}; skipped", e.state().key().id(), pos);
             return true;
         }
-        if (e.hasContainer()) {
-            Optional<Colony> colony = manager.colonyAt(plan.hut());
-            colony.flatMap(c -> c.buildings().at(plan.hut())).ifPresent(b -> {
-                b.addContainer(pos);
-                colony.get().markDirty();
-            });
-        }
+        placed(plan, pos, e);
         return true;
     }
 
-    /** An unloaded section or a refused block: skipped, never retried, so a paste always ends. */
-    private void skipped(BlockPos pos, BlueprintEntry e) {
-        System.Logger.Level level = warned ? System.Logger.Level.DEBUG : System.Logger.Level.WARNING;
+    /** A placed bench gets its planned tier; a placed container or bench joins the hut's building. */
+    private void placed(StructurePlan plan, BlockPos pos, BlueprintEntry e) {
+        Optional<Workstation> bench = e.workstation();
+        if (bench.isPresent() && !blocks().setBenchTier(pos, bench.get().tier())) {
+            warn(
+                    "Paste: could not set the bench at {0} to tier {1}",
+                    pos, bench.get().tier());
+        }
+        if (e.hasContainer() || bench.isPresent()) {
+            register(plan, pos, e);
+        }
+    }
+
+    /**
+     * The placed container or bench joins the hut's building, if the paste is a hut of a colony (MC
+     * CreativeBuildingStructureHandler.triggerSuccess -> registerBlockPosition). A bench keeps its planned tier.
+     */
+    private void register(StructurePlan plan, BlockPos pos, BlueprintEntry e) {
+        Optional<Colony> colony = manager.colonyAt(plan.hut());
+        colony.flatMap(c -> c.buildings().at(plan.hut())).ifPresent(b -> {
+            if (e.hasContainer()) {
+                b.registeredBlocks().addContainer(pos);
+            }
+            e.workstation().ifPresent(bench -> b.registeredBlocks().addWorkstation(pos, bench));
+            colony.get().markDirty();
+        });
+    }
+
+    /** Logs a paste problem: the first one as a warning, the next ones at DEBUG. */
+    private void warn(String message, Object... params) {
+        LOG.log(warned ? System.Logger.Level.DEBUG : System.Logger.Level.WARNING, message, params);
         warned = true;
-        LOG.log(
-                level,
-                "Paste: failed to place {0} at {1}; skipped",
-                e.state().key().id(),
-                pos);
     }
 
     private WorldBlocks blocks() {

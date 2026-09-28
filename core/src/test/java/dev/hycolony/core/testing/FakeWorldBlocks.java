@@ -30,6 +30,10 @@ public final class FakeWorldBlocks implements WorldBlocks {
     public final List<BlockPos> quiet = new ArrayList<>();
     /** Runs before every place() and breakBlock(), with the position (ordering checks). */
     public Consumer<BlockPos> beforeChange = p -> {};
+    /** Tiers given by setBenchTier(), by position; a block placed or broken there drops its entry. */
+    public final Map<BlockPos, Integer> benchTiers = new LinkedHashMap<>();
+    /** When true, setBenchTier() fails and changes nothing (the block there is no bench for Hytale). */
+    public boolean refuseBenchTier;
 
     @Override
     public boolean isLoaded(BlockPos pos) {
@@ -49,6 +53,7 @@ public final class FakeWorldBlocks implements WorldBlocks {
         }
         beforeChange.accept(pos);
         blocks.put(pos, state);
+        benchTiers.remove(pos);
         placed.add(pos);
         return true;
     }
@@ -56,6 +61,7 @@ public final class FakeWorldBlocks implements WorldBlocks {
     @Override
     public List<ItemAmount> breakBlock(BlockPos pos) {
         beforeChange.accept(pos);
+        benchTiers.remove(pos);
         BlockState removed = blocks.remove(pos);
         if (removed == null) {
             return List.of();
@@ -76,6 +82,16 @@ public final class FakeWorldBlocks implements WorldBlocks {
     public List<ItemAmount> breakQuietly(BlockPos pos) {
         quiet.add(pos);
         return breakBlock(pos);
+    }
+
+    /** False when refused, unloaded or with no block at {@code pos}; this fake takes any block for a bench. */
+    @Override
+    public boolean setBenchTier(BlockPos pos, int tier) {
+        if (refuseBenchTier || !loaded || !blocks.containsKey(pos)) {
+            return false;
+        }
+        benchTiers.put(pos, tier);
+        return true;
     }
 
     @Override

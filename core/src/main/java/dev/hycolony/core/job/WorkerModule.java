@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingEventsModule;
+import dev.hycolony.core.building.BuildingModule;
 import dev.hycolony.core.building.PersistentModule;
 import dev.hycolony.core.building.TickingModule;
 import dev.hycolony.core.citizen.CitizenData;
@@ -86,7 +87,11 @@ public final class WorkerModule implements PersistentModule, TickingModule, Buil
         return HiringMode.canAssignCitizens(b, assignableAtLevel0);
     }
 
-    /** Fails (returns false) when full, {@link #canAssignCitizens} is false, or the citizen is already employed. */
+    /**
+     * MC assignCitizen: gives the citizen this job at {@code b}, marks the colony dirty and tells the hut's
+     * {@link HiringListener} modules (MC onAssignment); fails (returns false) when full, {@link #canAssignCitizens} is
+     * false, or the citizen is already employed.
+     */
     public boolean hire(Colony c, Building b, CitizenData citizen) {
         if (workers.size() >= maxWorkers
                 || !canAssignCitizens(b)
@@ -98,6 +103,11 @@ public final class WorkerModule implements PersistentModule, TickingModule, Buil
         citizen.setWorkBuilding(b.position());
         workers.add(citizen.id());
         c.markDirty();
+        for (BuildingModule module : b.modules().values()) {
+            if (module instanceof HiringListener listener) {
+                listener.onWorkerHired(c, b);
+            }
+        }
         return true;
     }
 

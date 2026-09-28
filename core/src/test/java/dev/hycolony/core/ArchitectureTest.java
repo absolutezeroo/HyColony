@@ -35,9 +35,12 @@ class ArchitectureTest {
             .resideInAnyPackage(
                     "dev.hycolony.core.kernel..", "java..", "com.google.gson..", "org.jspecify.annotations..");
 
-    /** `request` knows neither buildings nor construction: they plug in via Requester/ResolverProvider (spec § 2). */
+    /**
+     * `request` knows neither buildings nor construction: they plug in via Requester/ResolverProvider (spec § 2). A
+     * crafting task names its recipe by id for the same reason (SP3b-1 spec).
+     */
     @ArchTest
-    static final ArchRule requestDoesNotDependOnColonyBuildingConstructionJobOrCitizen = noClasses()
+    static final ArchRule requestDoesNotDependOnColonyBuildingConstructionJobCitizenOrCrafting = noClasses()
             .that()
             .resideInAPackage("dev.hycolony.core.request..")
             .should()
@@ -47,7 +50,8 @@ class ArchitectureTest {
                     "dev.hycolony.core.building..",
                     "dev.hycolony.core.construction..",
                     "dev.hycolony.core.job..",
-                    "dev.hycolony.core.citizen..");
+                    "dev.hycolony.core.citizen..",
+                    "dev.hycolony.core.crafting..");
 
     @ArchTest
     static final ArchRule jobDoesNotDependOnConstruction = noClasses()
@@ -58,17 +62,60 @@ class ArchitectureTest {
             .resideInAPackage("dev.hycolony.core.construction..");
 
     /**
-     * Buildings host the other features through modules: construction, jobs and logistics depend on buildings, never
-     * the reverse (spec § 6). Construction hut types are registered by the composition root, like its jobs.
+     * Buildings host the other features through modules: construction, jobs, logistics and crafting depend on
+     * buildings, never the reverse (spec § 6). Construction hut types are registered by the composition root, like its
+     * jobs.
      */
     @ArchTest
-    static final ArchRule buildingDependsOnNeitherConstructionJobNorLogistics = noClasses()
+    static final ArchRule buildingDependsOnNeitherConstructionJobLogisticsNorCrafting = noClasses()
             .that()
             .resideInAPackage("dev.hycolony.core.building..")
             .should()
             .dependOnClassesThat()
             .resideInAnyPackage(
-                    "dev.hycolony.core.construction..", "dev.hycolony.core.job..", "dev.hycolony.core.logistics..");
+                    "dev.hycolony.core.construction..",
+                    "dev.hycolony.core.job..",
+                    "dev.hycolony.core.logistics..",
+                    "dev.hycolony.core.crafting..");
+
+    /** Crafting sits beside construction and below the colony's player actions, views and saves (SP3b-1 spec). */
+    @ArchTest
+    static final ArchRule craftingDependsOnNeitherConstructionNorColonyActionsViewsOrPersistence = noClasses()
+            .that()
+            .resideInAPackage("dev.hycolony.core.crafting..")
+            .should()
+            .dependOnClassesThat()
+            .resideInAnyPackage(
+                    "dev.hycolony.core.construction..",
+                    "dev.hycolony.core.colony.action..",
+                    "dev.hycolony.core.colony.view..",
+                    "dev.hycolony.core.colony.persistence..");
+
+    /**
+     * The crafting sub-packages form no dependency cycle: recipes and the crafters' task state at the bottom, then the
+     * hut's module, the crafter's AI, and the resolvers on top (SP3b-1 spec).
+     */
+    @ArchTest
+    static final ArchRule craftingSubPackagesAreFreeOfCycles =
+            slices().matching("dev.hycolony.core.crafting.(*)..").should().beFreeOfCycles();
+
+    /** Like the construction root: an empty crafting root keeps the slice rule above complete. */
+    @ArchTest
+    static final ArchRule craftingRootPackageIsEmpty =
+            noClasses().should().resideInAPackage("dev.hycolony.core.crafting");
+
+    /** A crafter's task state is read by the module, the AI and the resolvers: it depends on none of them. */
+    @ArchTest
+    static final ArchRule craftingTaskDependsOnNoOtherCraftingPackage = noClasses()
+            .that()
+            .resideInAPackage("dev.hycolony.core.crafting.task..")
+            .should()
+            .dependOnClassesThat()
+            .resideInAnyPackage(
+                    "dev.hycolony.core.crafting.recipe..",
+                    "dev.hycolony.core.crafting.module..",
+                    "dev.hycolony.core.crafting.job..",
+                    "dev.hycolony.core.crafting.request..");
 
     /** The construction sub-packages form no dependency cycle. */
     @ArchTest

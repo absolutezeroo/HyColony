@@ -1,16 +1,23 @@
 package dev.hycolony.core.request;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolType;
+import dev.hycolony.core.request.model.Crafting;
 import dev.hycolony.core.request.model.Delivery;
 import dev.hycolony.core.request.model.Pickup;
 import dev.hycolony.core.request.model.Requestable;
 import dev.hycolony.core.request.model.RequesterId;
+import dev.hycolony.core.request.model.StackList;
 import dev.hycolony.core.request.model.StackRequest;
 import dev.hycolony.core.request.model.ToolRequest;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /** One {@link Requestable} to and from JSON, by its {@code type}; a type this build does not know reads as empty. */
@@ -48,8 +55,30 @@ final class RequestableJson {
                 o.addProperty("day", p.day());
                 o.addProperty("quantity", p.quantity());
             }
+            case StackList l -> writeStackList(o, l);
+            case Crafting c -> writeCrafting(o, c);
         }
         return o;
+    }
+
+    private static void writeStackList(JsonObject o, StackList l) {
+        o.addProperty("type", "stackList");
+        JsonArray accepted = new JsonArray();
+        l.accepted().forEach(item -> accepted.add(item.id()));
+        o.add("accepted", accepted);
+        o.addProperty("description", l.description());
+        o.addProperty("count", l.count());
+        o.addProperty("minCount", l.minCount());
+    }
+
+    /** Deviation from MC: the minimum count is saved too, where MC PublicCrafting.serialize drops it. */
+    private static void writeCrafting(JsonObject o, Crafting c) {
+        o.addProperty("type", "crafting");
+        o.addProperty("item", c.stack().id());
+        o.addProperty("count", c.count());
+        o.addProperty("minCount", c.minCount());
+        o.addProperty("recipe", c.recipeId());
+        o.addProperty("public", c.isPublic());
     }
 
     /** The saved requestable; empty for a type (or tool type) this build does not know. */
@@ -80,8 +109,40 @@ final class RequestableJson {
                         o.get("priority").getAsInt(),
                         o.get("day").getAsInt(),
                         o.get("quantity").getAsInt()));
+            case "stackList" -> readStackList(o);
+            case "crafting" -> readCrafting(o);
             default -> Optional.empty();
         };
+    }
+
+    /** Empty without accepted items ({@link StackList} accepts one at least); a missing description reads as none. */
+    private static Optional<Requestable> readStackList(JsonObject o) {
+        if (!(o.get("accepted") instanceof JsonArray saved) || saved.isEmpty()) {
+            return Optional.empty();
+        }
+        List<ItemKey> accepted = new ArrayList<>(saved.size());
+        for (JsonElement item : saved) {
+            accepted.add(new ItemKey(item.getAsString()));
+        }
+        String description = o.get("description") instanceof JsonPrimitive d ? d.getAsString() : "";
+        return Optional.of(new StackList(
+                accepted,
+                description,
+                o.get("count").getAsInt(),
+                o.get("minCount").getAsInt()));
+    }
+
+    /** Empty without its recipe. */
+    private static Optional<Requestable> readCrafting(JsonObject o) {
+        if (!(o.get("recipe") instanceof JsonPrimitive recipe)) {
+            return Optional.empty();
+        }
+        return Optional.of(new Crafting(
+                new ItemKey(o.get("item").getAsString()),
+                o.get("count").getAsInt(),
+                o.get("minCount").getAsInt(),
+                recipe.getAsString(),
+                o.get("public").getAsBoolean()));
     }
 
     /** The constant named {@code name} among {@code values}; empty for a name this build does not know. */

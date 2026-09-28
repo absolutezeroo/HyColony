@@ -185,7 +185,7 @@ class FulfilTest {
     void requestsAndContainersSurviveColonySave() {
         RequestToken token = request(10, 1);
         BlockPos chest = new BlockPos(2, 64, 0);
-        hut.addContainer(chest);
+        hut.registeredBlocks().addContainer(chest);
 
         Colony loaded = ColonySerializer.read(ColonySerializer.write(colony), t.context(), new TerritoryIndex());
 

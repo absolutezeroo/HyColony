@@ -3,14 +3,18 @@ package dev.hycolony.plugin.prefab;
 import com.hypixel.hytale.builtin.blockspawner.BlockSpawnerEntry;
 import com.hypixel.hytale.builtin.blockspawner.BlockSpawnerTable;
 import com.hypixel.hytale.builtin.blockspawner.state.BlockSpawner;
+import com.hypixel.hytale.builtin.crafting.component.BenchBlock;
 import com.hypixel.hytale.component.Holder;
+import com.hypixel.hytale.protocol.BenchType;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.VariantRotation;
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.bench.Bench;
 import com.hypixel.hytale.server.core.asset.type.fluid.Fluid;
 import com.hypixel.hytale.server.core.modules.block.components.ItemContainerBlock;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockState;
+import dev.hycolony.core.kernel.item.Workstation;
 import dev.hycolony.plugin.block.HytaleBlockStates;
 import java.util.Optional;
 import javax.annotation.Nullable;
@@ -26,8 +30,8 @@ final class PrefabCells {
     private static final String SPAWNER = "Block_Spawner_Block";
     private static final String FLUID_PREFIX = "~fluid:";
 
-    /** A blueprint state and whether it holds items. */
-    record Resolved(BlockState state, boolean container) {}
+    /** A blueprint state, whether it holds items, and the crafting bench it is (with the prefab's tier), if any. */
+    record Resolved(BlockState state, boolean container, Optional<Workstation> workstation) {}
 
     private PrefabCells() {}
 
@@ -49,14 +53,28 @@ final class PrefabCells {
         if (id.equals(SPAWNER) && chest != null && isChestSpawner(holder)) {
             id = chest;
         }
-        return block(id, rotation);
+        return block(id, rotation).map(r -> new Resolved(r.state(), r.container(), workstation(type, holder)));
+    }
+
+    /**
+     * The cell's crafting bench: its bench id and the prefab's {@code BenchBlock.TierLevel} (1 when the cell stores
+     * none). Only {@code Crafting} benches; processing, diagram and structural benches are out of SP3b-1's scope.
+     */
+    private static Optional<Workstation> workstation(BlockType type, @Nullable Holder<ChunkStore> holder) {
+        Bench bench = type.getBench();
+        if (bench == null || bench.getType() != BenchType.Crafting || bench.getId() == null) {
+            return Optional.empty();
+        }
+        BenchBlock stored = holder == null ? null : holder.getComponent(BenchBlock.getComponentType());
+        return Optional.of(new Workstation(bench.getId(), Math.max(1, stored == null ? 1 : stored.getTierLevel())));
     }
 
     private static Optional<Resolved> fluid(int fluidId) {
         Fluid fluid = fluidId == 0 ? null : Fluid.getAssetMap().getAsset(fluidId);
         return fluid == null
                 ? Optional.empty()
-                : Optional.of(new Resolved(new BlockState(new BlockKey(FLUID_PREFIX + fluid.getId()), 0), false));
+                : Optional.of(new Resolved(
+                        new BlockState(new BlockKey(FLUID_PREFIX + fluid.getId()), 0), false, Optional.empty()));
     }
 
     /** A block that cannot rotate gets rotation 0: the prefab buffer adds the yaw to every block. */
@@ -66,7 +84,7 @@ final class PrefabCells {
             return Optional.empty();
         }
         int rot = type.getVariantRotation() == VariantRotation.None ? 0 : rotation;
-        return Optional.of(new Resolved(new BlockState(new BlockKey(id), rot), hasContainer(type)));
+        return Optional.of(new Resolved(new BlockState(new BlockKey(id), rot), hasContainer(type), Optional.empty()));
     }
 
     /** Whether one of the spawner's table entries is a block with an item container (a loot chest spawner). */

@@ -11,6 +11,7 @@ import dev.hycolony.core.kernel.item.ToolInfo;
 import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.kernel.port.ContainerAccess;
 import dev.hycolony.core.kernel.port.ItemCatalog;
+import dev.hycolony.core.logistics.pickup.HutKeep;
 import dev.hycolony.core.logistics.pickup.PickupRequests;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -103,16 +104,36 @@ public final class WorkerStock {
     }
 
     /**
-     * Stores everything in the hut but (MC keepX) the {@code keep} amounts and one tool per type, not a worn-out one.
+     * The builder's dump (its MC keepX): stores everything in the hut but the {@code keep} amounts and one tool per
+     * type, not a worn-out one.
      * When the hut could not take it all (what could be stored is stored, the rest stays), or nothing was left to
      * store, the next full-inventory dump waits {@link #DUMP_RETRY_ACTIONS} instead of bouncing back at once. Then asks
      * a courier to empty the hut ({@link PickupRequests#afterDump}).
      */
     public void dump(Map<ItemKey, Integer> keep) {
+        dump(toolsAnd(keep), true);
+    }
+
+    /**
+     * MC dumpOneMoreSlot's own rule: stores everything but what the hut's keep rules keep in a worker's inventory
+     * (MC buildingRequiresCertainAmountOfItem with {@code inventory} true, {@link HutKeep}): only its {@code keepX}
+     * entries marked so, a tool among them only if the hut lists its type. Otherwise as {@link #dump(Map)}, but
+     * {@code pickupAllowed} false (MC isAfterDumpPickupAllowed) asks for no courier unless the hut is full.
+     */
+    public void dumpKeepingHutRules(boolean pickupAllowed) {
+        HutKeep keep = HutKeep.of(colony, hut, true);
+        dump(a -> a.count() - keep.removable(a), pickupAllowed);
+    }
+
+    /**
+     * Stores all but what {@code keptOf} keeps of each stack, sets the retry delay of the next full-inventory dump,
+     * then asks for a courier as {@link PickupRequests#afterDump} decides with {@code pickupAllowed}.
+     */
+    private void dump(ToIntFunction<ItemAmount> keptOf, boolean pickupAllowed) {
         int before = carried();
-        boolean stored = storeAll(keep);
+        boolean stored = storeAll(keptOf);
         dumpRetryAt = stored && !inventory().isFull() ? 0 : DUMP_RETRY_ACTIONS;
-        PickupRequests.afterDump(colony, hut, before - carried());
+        PickupRequests.afterDump(colony, hut, before - carried(), pickupAllowed);
     }
 
     private int carried() {
@@ -123,22 +144,33 @@ public final class WorkerStock {
         return total;
     }
 
-    /** Stores slot by slot, so each stack goes with its own damage. */
-    private boolean storeAll(Map<ItemKey, Integer> keep) {
-        List<BlockPos> hc = hut.containers();
+    /**
+     * The builder's keep rule for one dump pass: the first unworn tool of each type stays whole, then up to the
+     * {@code keep} amounts; stateful, like MC's {@code alreadyKept}.
+     */
+    private ToIntFunction<ItemAmount> toolsAnd(Map<ItemKey, Integer> keep) {
         Map<ItemKey, Integer> keepLeft = new HashMap<>(keep);
         Set<ToolType> toolKept = EnumSet.noneOf(ToolType.class);
+        return a -> {
+            ToolInfo tool = catalog.tool(a.item()).orElse(null);
+            if (tool != null && !catalog.wornOut(a) && toolKept.add(tool.type())) {
+                return a.count();
+            }
+            int kept = Math.min(a.count(), keepLeft.getOrDefault(a.item(), 0));
+            keepLeft.computeIfPresent(a.item(), (_, n) -> n - kept);
+            return kept;
+        };
+    }
+
+    /** Stores slot by slot, so each stack goes with its own damage, all but what {@code keptOf} keeps of it. */
+    private boolean storeAll(ToIntFunction<ItemAmount> keptOf) {
+        List<BlockPos> hc = hut.containers();
         for (int i = 0; i < inventory().size(); i++) {
             ItemAmount a = inventory().slot(i).orElse(null);
             if (a == null) {
                 continue;
             }
-            ToolInfo tool = catalog.tool(a.item()).orElse(null);
-            if (tool != null && !catalog.wornOut(a) && toolKept.add(tool.type())) {
-                continue;
-            }
-            int kept = Math.min(a.count(), keepLeft.getOrDefault(a.item(), 0));
-            keepLeft.computeIfPresent(a.item(), (_, n) -> n - kept);
+            int kept = keptOf.applyAsInt(a);
             if (kept < a.count() && !store(i, a, kept, hc)) {
                 return false;
             }

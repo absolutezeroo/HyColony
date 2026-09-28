@@ -6,6 +6,7 @@ import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.colony.territory.ClaimCell;
 import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.construction.workorder.WorkManager;
+import dev.hycolony.core.crafting.recipe.RecipeRegistry;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.ai.AITarget;
 import dev.hycolony.core.kernel.ai.IStateSupplier;
@@ -17,7 +18,6 @@ import dev.hycolony.core.request.resolver.PlayerResolver;
 import dev.hycolony.core.request.resolver.RetryingResolver;
 import java.util.Optional;
 import java.util.OptionalInt;
-import java.util.UUID;
 
 /** One colony. Ticked 20 times per second on its world thread. */
 public final class Colony {
@@ -46,6 +46,7 @@ public final class Colony {
     private final CitizenNameplates nameplates = new CitizenNameplates(this);
     private final ColonySettings settings = new ColonySettings();
     private final EventLog log = new EventLog();
+    private final RecipeRegistry recipes = new RecipeRegistry();
     private final TickRateStateMachine<ColonyState> machine;
     private int day;
     private boolean wasDaytime;
@@ -73,9 +74,9 @@ public final class Colony {
 
     /** The colony's periodic work: the state update in every state, the rest only while ACTIVE. */
     private void registerTicks() {
+        IStateSupplier<ColonyState> activity = () -> ColonyState.of(this);
         for (ColonyState s : ColonyState.values()) {
-            machine.addTransition(
-                    new AITarget<>(s, (IStateSupplier<ColonyState>) this::updateState, UPDATE_STATE_INTERVAL));
+            machine.addTransition(new AITarget<>(s, activity, UPDATE_STATE_INTERVAL));
         }
         machine.addTransition(AITarget.every(ColonyState.ACTIVE, citizens::tickData, CITIZEN_DATA_INTERVAL));
         machine.addTransition(AITarget.every(ColonyState.ACTIVE, this::checkDayTime, DAYTIME_INTERVAL));
@@ -104,24 +105,6 @@ public final class Colony {
     private void onException(RuntimeException e) {
         LOG.log(System.Logger.Level.ERROR, "Colony " + id + " (" + name + ") failed, suspending for 5 minutes", e);
         suspendedUntilTick = ctx.clock().currentTick() + EXCEPTION_SUSPEND_TICKS;
-    }
-
-    /** MineColonies-equivalent activity rule (spec § 3.2). */
-    private ColonyState updateState() {
-        boolean playerInside = false;
-        boolean memberOnline = false;
-        for (UUID player : ctx.players().onlineIn(ctx.world())) {
-            if (ctx.players().position(player).map(this::contains).orElse(false)) {
-                playerInside = true;
-            }
-            if (permissions.isMember(player)) {
-                memberOnline = true;
-            }
-        }
-        if (playerInside || (memberOnline && ctx.worldQuery().isLoaded(center))) {
-            return ColonyState.ACTIVE;
-        }
-        return memberOnline ? ColonyState.UNLOADED : ColonyState.INACTIVE;
     }
 
     private void checkDayTime() {
@@ -211,6 +194,11 @@ public final class Colony {
 
     public EventLog log() {
         return log;
+    }
+
+    /** The recipes the colony's huts learnt or improved (MC IColonyManager.getRecipeManager, per colony here). */
+    public RecipeRegistry recipes() {
+        return recipes;
     }
 
     public int day() {

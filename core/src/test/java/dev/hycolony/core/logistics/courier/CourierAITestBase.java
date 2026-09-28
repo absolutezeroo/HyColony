@@ -57,8 +57,8 @@ abstract class CourierAITestBase {
 
     CourierAITestBase() {
         m.setCreationListener(r -> made.put(r.token(), r));
-        warehouse.addContainer(RACK);
-        warehouse.addContainer(OTHER_RACK);
+        warehouse.registeredBlocks().addContainer(RACK);
+        warehouse.registeredBlocks().addContainer(OTHER_RACK);
         t.bodies.instant = true;
     }
 

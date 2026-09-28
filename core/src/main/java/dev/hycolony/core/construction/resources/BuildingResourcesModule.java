@@ -8,7 +8,6 @@ import dev.hycolony.core.construction.workorder.Stage;
 import dev.hycolony.core.construction.workorder.WorkOrder;
 import dev.hycolony.core.kernel.item.Inventory;
 import dev.hycolony.core.kernel.item.ItemKey;
-import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.core.logistics.pickup.KeepRule;
 import dev.hycolony.core.logistics.pickup.KeepsItems;
 import java.util.ArrayList;
@@ -85,7 +84,7 @@ public final class BuildingResourcesModule implements KeepsItems, ProvidesTab {
      * {@code AbstractBuildingStructureBuilder.getRequiredItemsAndAmount}).
      */
     @Override
-    public List<KeepRule> keepRules(Building building, ItemCatalog catalog) {
+    public List<KeepRule> keepRules(Colony colony, Building building) {
         List<KeepRule> out = new ArrayList<>(needs.remaining().size());
         needs.remaining().forEach((item, n) -> out.add(new KeepRule(item::equals, n, true)));
         return out;

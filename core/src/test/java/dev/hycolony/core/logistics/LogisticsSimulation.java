@@ -122,7 +122,7 @@ abstract class LogisticsSimulation {
 
     ColonyManager newManager() {
         ColonyManager m = new ColonyManager(t.context());
-        m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp2());
+        m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp3b());
         return m;
     }
 
@@ -148,7 +148,7 @@ abstract class LogisticsSimulation {
     /** The warehouse (its rack stocked with {@code stock}) and the courier hut, the courier hired and attached. */
     Building openWarehouse(Map<ItemKey, Integer> stock) {
         Building warehouse = builtHut(WarehouseBuilding.TYPE_ID, WAREHOUSE);
-        warehouse.addContainer(RACK);
+        warehouse.registeredBlocks().addContainer(RACK);
         t.containers.containers.put(RACK, new LinkedHashMap<>(stock));
         Building courierHut = builtHut(DeliverymanHut.TYPE_ID, COURIER_HUT);
         runUntil(() -> worker(courierHut).isPresent() && !couriers(warehouse).isEmpty(), 20_000);

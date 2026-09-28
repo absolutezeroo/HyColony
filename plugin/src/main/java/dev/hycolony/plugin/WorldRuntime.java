@@ -8,6 +8,7 @@ import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.ConstructionPorts;
 import dev.hycolony.core.construction.goggles.BuildGoggles;
 import dev.hycolony.core.construction.wand.WandActions;
+import dev.hycolony.core.crafting.recipe.CraftingSetup;
 import dev.hycolony.core.kernel.WorldKey;
 import dev.hycolony.core.kernel.config.ColonyConfig;
 import dev.hycolony.core.kernel.event.EventBus;
@@ -30,6 +31,7 @@ import dev.hycolony.plugin.adapter.HytaleWorldBlocks;
 import dev.hycolony.plugin.adapter.HytaleWorldEffects;
 import dev.hycolony.plugin.adapter.HytaleWorldQuery;
 import dev.hycolony.plugin.block.HutBlockSystems;
+import dev.hycolony.plugin.crafting.HytaleRecipeCatalog;
 import dev.hycolony.plugin.npc.CitizenSpeed;
 import dev.hycolony.plugin.prefab.HytaleBlueprintSource;
 import java.util.Random;
@@ -104,13 +106,15 @@ public final class WorldRuntime {
                 new HytaleContainerAccess(world, catalog.stacks()),
                 new HytalePlayerInventory(world, catalog.stacks()),
                 new HytaleBlueprintSource(ids, setup.styles()),
-                new HytaleWorldEffects(world, ids.fireworks()));
+                new HytaleWorldEffects(world, ids.fireworks()),
+                // Read here, before openStorage loads the colonies: a load drops every learnt recipe it does not know.
+                new CraftingSetup(HytaleRecipeCatalog.load(), setup.craftingRules()));
     }
 
     /** Points the colonies' persistence at the world's save folder; reads them only when {@code enabled}. */
     private static void openStorage(ColonyManager manager, World world, boolean enabled) {
         manager.persistence()
-                .setStorage(new FileColonyStorage(world.getSavePath().resolve("hycolony")), MigrationChain.sp2());
+                .setStorage(new FileColonyStorage(world.getSavePath().resolve("hycolony")), MigrationChain.sp3b());
         if (enabled) {
             manager.persistence().loadAll(); // disabled (asset ids missing): leave the files alone
         }

@@ -249,7 +249,7 @@ class BuilderHutTabsTest {
         StructurePlan plan = StructurePlan.build(bp, order.buildingPos(), t.catalog);
         builder.module(BuildingResourcesModule.class)
                 .orElseThrow()
-                .start(order, NeededResources.compute(plan, t.blocks, t.catalog));
+                .start(order, NeededResources.compute(plan, t.blocks, t.catalog, t.recipes));
     }
 
     @Test

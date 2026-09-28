@@ -70,7 +70,7 @@ public final class BuildingManager {
         }
         // ponytail: scans a few buildings x few containers; index it if colonies grow large.
         return buildings.values().stream()
-                .filter(b -> b.registeredContainers().contains(pos))
+                .filter(b -> b.registeredBlocks().containers().contains(pos))
                 .findFirst();
     }
 

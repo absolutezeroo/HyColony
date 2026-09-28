@@ -13,6 +13,7 @@ import dev.hycolony.core.construction.blueprint.BlueprintEntry;
 import dev.hycolony.core.construction.blueprint.BlueprintSource;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.BlockState;
+import dev.hycolony.core.kernel.item.Workstation;
 import dev.hycolony.plugin.IdMap;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -64,7 +65,7 @@ public final class HytaleBlueprintSource implements BlueprintSource {
     private static final String SPAWNER_CHEST_KEY = "blueprint.spawnerChest.";
 
     /** A rotated, anchor-relative prefab cell. */
-    private record Cell(int x, int y, int z, BlockState state, boolean container) {}
+    private record Cell(int x, int y, int z, BlockState state, boolean container, Optional<Workstation> workstation) {}
 
     private static final AtomicBoolean PREWARMED = new AtomicBoolean();
 
@@ -184,7 +185,7 @@ public final class HytaleBlueprintSource implements BlueprintSource {
                     PrefabCells.resolve(blockId, holder, rotation, fluidId, chest)
                             .ifPresent(c -> {
                                 lowestY[0] = Math.min(lowestY[0], y);
-                                cells.add(new Cell(x, y, z, c.state(), c.container()));
+                                cells.add(new Cell(x, y, z, c.state(), c.container(), c.workstation()));
                             });
                 },
                 null,
@@ -199,7 +200,7 @@ public final class HytaleBlueprintSource implements BlueprintSource {
         for (Cell c : cells) {
             BlockPos offset = PrefabStyles.relative(c.x(), c.y(), c.z(), hut);
             if (offset.y() >= FLOOR_Y && (offset.x() != 0 || offset.y() != 0 || offset.z() != 0)) {
-                entries.add(new BlueprintEntry(offset, c.state(), c.container()));
+                entries.add(new BlueprintEntry(offset, c.state(), c.container(), c.workstation()));
             }
         }
         return entries;

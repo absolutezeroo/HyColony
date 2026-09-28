@@ -1,6 +1,7 @@
 package dev.hycolony.core.logistics.pickup;
 
 import dev.hycolony.core.building.Building;
+import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.kernel.port.ItemCatalog;
 import java.util.List;
@@ -19,7 +20,8 @@ public final class KeepToolsModule implements KeepsItems {
     }
 
     @Override
-    public List<KeepRule> keepRules(Building building, ItemCatalog catalog) {
+    public List<KeepRule> keepRules(Colony colony, Building building) {
+        ItemCatalog catalog = colony.context().ports().catalog();
         return types.stream()
                 .map(type -> new KeepRule(
                         item -> catalog.tool(item)

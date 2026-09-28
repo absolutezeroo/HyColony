@@ -51,8 +51,8 @@ class CourierTasksTest {
         colony.buildings().add(warehouse);
         BlockPos rackA = new BlockPos(1, 64, 0);
         BlockPos rackB = new BlockPos(2, 64, 0);
-        warehouse.addContainer(rackA);
-        warehouse.addContainer(rackB);
+        warehouse.registeredBlocks().addContainer(rackA);
+        warehouse.registeredBlocks().addContainer(rackB);
 
         Building target = Building.create(ConstructionBuildingTypes.RESIDENCE, new BlockPos(10, 64, 0), 0);
         colony.buildings().add(target);

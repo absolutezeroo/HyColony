@@ -23,7 +23,7 @@ public final class ColonyPersistence {
 
     private final ColonyManager manager;
     private @Nullable ColonyStorage storage;
-    private MigrationChain migrations = MigrationChain.sp2();
+    private MigrationChain migrations = MigrationChain.sp3b();
     /** Ids whose file must never be touched (newer schema). */
     private final Set<Integer> lockedIds = new HashSet<>();
     /** Set once listing the storage fails: saves are refused and founding is denied until restart. */
@@ -84,8 +84,12 @@ public final class ColonyPersistence {
             }
             json = migrations.migrate(json);
             Colony colony = ColonySerializer.read(json, manager.context(), manager.territory());
+            // A save the read repaired stays dirty, so the healed state is written (CLAUDE.md § 5).
+            boolean healed = colony.isDirty();
             manager.register(colony);
-            colony.clearDirty();
+            if (!healed) {
+                colony.clearDirty();
+            }
         } catch (SchemaTooNewException e) {
             lockedIds.add(id);
             LOG.log(System.Logger.Level.ERROR, "Colony " + id + " was saved by a newer HyColony; not loaded", e);

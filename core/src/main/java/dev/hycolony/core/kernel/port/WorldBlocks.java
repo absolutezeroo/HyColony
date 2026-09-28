@@ -28,4 +28,10 @@ public interface WorldBlocks {
 
     /** Drops {@code items}, with their damage, at {@code pos} like a broken block's drops; nothing if unloaded. */
     void drop(BlockPos pos, List<ItemAmount> items);
+
+    /**
+     * Sets the crafting bench at {@code pos} to {@code tier} (Hytale {@code BenchBlock} tier level and its
+     * {@code Tier<N>} block state). False if the chunk is not loaded or the block there is no bench.
+     */
+    boolean setBenchTier(BlockPos pos, int tier);
 }

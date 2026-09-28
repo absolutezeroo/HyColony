@@ -1,0 +1,65 @@
+$C = "../../Common.ui";
+
+Group {
+  LayoutMode: Left;
+  Anchor: (Height: 64, Bottom: 4);
+  Background: #1a2530;
+  Padding: 2;
+
+  Group {
+    LayoutMode: Left;
+    FlexWeight: 1;
+    Background: #1c2835;
+    Padding: (Horizontal: 8);
+
+    ItemIcon #Icon {
+      Anchor: (Width: 32, Height: 32);
+    }
+
+    Group {
+      LayoutMode: Top;
+      FlexWeight: 1;
+      Padding: (Horizontal: 8);
+
+      Label #Title {
+        Style: (RenderBold: true);
+      }
+
+      Group #Inputs {
+        LayoutMode: Left;
+        Anchor: (Height: 22);
+      }
+
+      Label #Note {
+        Style: (TextColor: #94a7bb);
+      }
+    }
+
+    $C.@SecondaryTextButton #Up {
+      Anchor: (Width: 70, Height: 30);
+      Text: %hycolony.ui.recipes.up;
+    }
+
+    $C.@SecondaryTextButton #Down {
+      Anchor: (Width: 70, Height: 30);
+      Text: %hycolony.ui.recipes.down;
+    }
+
+    $C.@SecondaryTextButton #Toggle {
+      Anchor: (Width: 100, Height: 30);
+      Text: "";
+      TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+    }
+
+    $C.@SecondaryTextButton #Remove {
+      Anchor: (Width: 100, Height: 30);
+      Text: %hycolony.ui.recipes.remove;
+    }
+
+    $C.@SecondaryTextButton #Learn {
+      Anchor: (Width: 120, Height: 30);
+      Text: %hycolony.ui.recipes.learn;
+      TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+    }
+  }
+}

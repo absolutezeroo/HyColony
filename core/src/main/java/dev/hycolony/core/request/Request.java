@@ -1,6 +1,7 @@
 package dev.hycolony.core.request;
 
 import dev.hycolony.core.kernel.item.ItemAmount;
+import dev.hycolony.core.request.model.Crafting;
 import dev.hycolony.core.request.model.Deliverable;
 import dev.hycolony.core.request.model.Delivery;
 import dev.hycolony.core.request.model.Pickup;
@@ -60,10 +61,11 @@ public final class Request {
             case Delivery d -> d.withAgedPriority();
             case Pickup p -> p.withAgedPriority();
             case Deliverable deliverable -> deliverable;
+            case Crafting crafting -> crafting;
         };
     }
 
-    /** The requestable when it is an item deliverable (count, matches); empty for a courier delivery or pickup. */
+    /** The requestable when it is an item deliverable (count, matches); empty for a courier task or a crafting task. */
     public Optional<Deliverable> deliverable() {
         return requestable instanceof Deliverable d ? Optional.of(d) : Optional.empty();
     }

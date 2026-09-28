@@ -40,7 +40,7 @@ class TolerantLoadTest {
 
     private ColonyManager load(TestContexts t) {
         ColonyManager m = new ColonyManager(t.context());
-        m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp2());
+        m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp3b());
         m.persistence().loadAll();
         return m;
     }

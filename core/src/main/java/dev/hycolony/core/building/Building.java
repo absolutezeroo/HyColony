@@ -13,7 +13,6 @@ import dev.hycolony.core.request.model.RequesterId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -39,8 +38,7 @@ public final class Building implements Requester, ResolverProvider {
     private final Map<String, BuildingModule> modules = new LinkedHashMap<>();
     private final Map<String, JsonObject> unknownModules = new LinkedHashMap<>();
     private final RequesterId requesterId;
-    /** Registered containers, besides the hut block itself. */
-    private final Set<BlockPos> containers = new LinkedHashSet<>();
+    private final RegisteredBlocks registeredBlocks;
 
     private List<Resolver> resolvers = List.of();
 
@@ -49,6 +47,7 @@ public final class Building implements Requester, ResolverProvider {
         this.position = position;
         this.rotation = rotation;
         this.requesterId = new RequesterId("building:" + position.x() + "," + position.y() + "," + position.z());
+        this.registeredBlocks = new RegisteredBlocks(position);
     }
 
     /** New building at level 0 with one fresh instance of each module of its type. */
@@ -155,24 +154,16 @@ public final class Building implements Requester, ResolverProvider {
 
     /** The hut block first, then the registered containers. */
     public List<BlockPos> containers() {
-        List<BlockPos> out = new ArrayList<>(containers.size() + 1);
+        Set<BlockPos> registered = registeredBlocks.containers();
+        List<BlockPos> out = new ArrayList<>(registered.size() + 1);
         out.add(position);
-        out.addAll(containers);
+        out.addAll(registered);
         return out;
     }
 
-    public Set<BlockPos> registeredContainers() {
-        return Collections.unmodifiableSet(containers);
-    }
-
-    public void addContainer(BlockPos pos) {
-        if (!pos.equals(position)) {
-            containers.add(pos);
-        }
-    }
-
-    public void removeContainer(BlockPos pos) {
-        containers.remove(pos);
+    /** The containers and crafting benches of its plan this hut registered once placed. */
+    public RegisteredBlocks registeredBlocks() {
+        return registeredBlocks;
     }
 
     @Override

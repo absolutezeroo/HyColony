@@ -16,6 +16,7 @@ import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.port.WorldBlocks;
+import dev.hycolony.plugin.block.BenchTiers;
 import dev.hycolony.plugin.block.HytaleBlockBreaker;
 import dev.hycolony.plugin.block.HytaleBlockStates;
 import dev.hycolony.plugin.block.HytaleSections;
@@ -203,6 +204,17 @@ public final class HytaleWorldBlocks implements WorldBlocks {
             }
         } catch (RuntimeException e) {
             fail("drop", pos, e);
+        }
+    }
+
+    /** See {@link BenchTiers#set}; false if the chunk is unloaded, the block is no bench, or Hytale fails. */
+    @Override
+    public boolean setBenchTier(BlockPos pos, int tier) {
+        try {
+            return BenchTiers.set(world, pos, tier);
+        } catch (RuntimeException e) {
+            fail("setBenchTier", pos, e);
+            return false;
         }
     }
 

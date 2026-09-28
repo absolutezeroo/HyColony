@@ -13,10 +13,15 @@ import dev.hycolony.core.construction.blueprint.StructurePlan;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.config.ColonyConfig;
+import dev.hycolony.core.kernel.item.ItemAmount;
+import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.core.kernel.item.Workstation;
 import dev.hycolony.core.testing.FakeBlueprints;
 import dev.hycolony.core.testing.TestContexts;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
@@ -106,7 +111,42 @@ class PasteQueueTest {
             queue.tick();
         }
         Building b = colony.buildings().at(HUT).orElseThrow();
-        assertTrue(b.registeredContainers().contains(HUT.offset(0, 2, 0)));
+        assertTrue(b.registeredBlocks().containers().contains(HUT.offset(0, 2, 0)));
+    }
+
+    @Test
+    void pastedBenchJoinsTheHutForFree() {
+        UUID alice = UUID.randomUUID();
+        manager.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
+        Colony colony = manager.foundation().confirm(alice, "Rivendell").orElseThrow();
+        manager.huts().place(colony, ConstructionBuildingTypes.BUILDER.id(), HUT, 0);
+        t.recipes.upgradeCosts.put("Farmingbench:2", List.of(new ItemAmount(new ItemKey("Ingredient_A"), 5)));
+        Workstation bench = new Workstation("Farmingbench", 2);
+        BlueprintEntry e = new BlueprintEntry(
+                new BlockPos(1, 0, 0), FakeBlueprints.state(FakeBlueprints.PLANKS), false, Optional.of(bench));
+        paste(new Blueprint("bench", List.of(e), new BlockPos(0, 0, 0), new BlockPos(1, 0, 0)));
+
+        queue.tick();
+
+        BlockPos at = HUT.offset(1, 0, 0);
+        assertEquals(2, t.blocks.benchTiers.get(at));
+        assertEquals(
+                Map.of(at, bench),
+                colony.buildings().at(HUT).orElseThrow().registeredBlocks().workstations());
+        assertTrue(colony.requests().all().isEmpty());
+    }
+
+    @Test
+    void pastedBenchOutsideAnyColonyStillGetsItsTier() {
+        Workstation bench = new Workstation("Farmingbench", 3);
+        BlueprintEntry e = new BlueprintEntry(
+                new BlockPos(1, 0, 0), FakeBlueprints.state(FakeBlueprints.PLANKS), false, Optional.of(bench));
+        paste(new Blueprint("bench", List.of(e), new BlockPos(0, 0, 0), new BlockPos(1, 0, 0)));
+
+        queue.tick();
+
+        assertEquals(3, t.blocks.benchTiers.get(HUT.offset(1, 0, 0)));
+        assertTrue(queue.isEmpty());
     }
 
     @Test

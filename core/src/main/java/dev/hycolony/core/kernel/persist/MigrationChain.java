@@ -27,12 +27,17 @@ public final class MigrationChain {
     }
 
     /**
-     * SP2: schema 3. Schema 2 added citizen inventory/job, colony requests/workOrders/settings, building containers;
-     * schema 3 moved a tool's wear from the job's per-item counter onto the stack.
+     * SP3b: schema 4. Schema 2 added citizen inventory/job, colony requests/workOrders/settings, building containers;
+     * schema 3 moved a tool's wear from the job's per-item counter onto the stack; schema 4 added the huts' plan
+     * benches and the colony's recipe registry.
      */
-    public static MigrationChain sp2() {
+    public static MigrationChain sp3b() {
         return new MigrationChain(
-                3, List.of(new Migration(1, MigrationChain::v1ToV2), new Migration(2, MigrationChain::v2ToV3)));
+                4,
+                List.of(
+                        new Migration(1, MigrationChain::v1ToV2),
+                        new Migration(2, MigrationChain::v2ToV3),
+                        new Migration(3, MigrationChain::v3ToV4)));
     }
 
     private static JsonObject v1ToV2(JsonObject doc) {
@@ -72,6 +77,17 @@ public final class MigrationChain {
                             .ifPresent(slot ->
                                     slot.addProperty("damage", e.getValue().getAsInt())));
         }
+        return doc;
+    }
+
+    /** No hut has registered a bench of its plan yet, and the colony has learnt no recipe. */
+    private static JsonObject v3ToV4(JsonObject doc) {
+        for (JsonElement el : doc.getAsJsonArray("buildings")) {
+            if (el.isJsonObject()) {
+                el.getAsJsonObject().add("workstations", new JsonArray());
+            }
+        }
+        doc.add("recipes", new JsonObject());
         return doc;
     }
 

@@ -7,6 +7,7 @@ import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import dev.hycolony.core.CoreFeatures;
 import dev.hycolony.core.FeaturePack;
 import dev.hycolony.core.building.BuildingRegistry;
+import dev.hycolony.core.crafting.recipe.CraftingRules;
 import dev.hycolony.core.job.JobRegistry;
 import dev.hycolony.core.kernel.config.FeatureFlags;
 import dev.hycolony.core.kernel.config.JsonFragments;
@@ -39,10 +40,13 @@ public final class SubPlugins {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
     private static final String ID_MAP = "id-map.json";
     private static final String STYLES = "styles.json";
+    private static final String CRAFTING = "crafting.json";
     /** id-map.json merges key by key inside its sections (items, blocks...). */
     private static final int ID_MAP_DEPTH = 1;
     /** styles.json merges key by key inside a style and its building types; a level is defined once. */
     private static final int STYLES_DEPTH = 2;
+    /** crafting.json merges job by job, then key by key inside a job (allow, custom...); its reduceable lists join. */
+    private static final int CRAFTING_DEPTH = 2;
 
     /** How startup left a pack. */
     public enum State {
@@ -112,6 +116,8 @@ public final class SubPlugins {
     private static void checkFragments(String name) {
         BundledPacks.fragment(name, ID_MAP).ifPresent(IdMap::of);
         BundledPacks.fragment(name, STYLES).ifPresent(PrefabStyles::of);
+        // CraftingRules skips a bad entry itself (logged once merged): only a file that is not a JSON object fails.
+        BundledPacks.fragment(name, CRAFTING);
     }
 
     /** ENABLED once its assets are registered, or at once for a pack without assets (data fragments only). */
@@ -137,6 +143,15 @@ public final class SubPlugins {
     /** The core styles merged with the enabled packs' fragments; styles come in pack order. */
     public PrefabStyles styles() {
         return PrefabStyles.of(merged(STYLES, STYLES_DEPTH));
+    }
+
+    /**
+     * The core crafting rules merged with the enabled packs' fragments. Each invalid entry is skipped and logged as a
+     * WARNING, once per call: call it once, at setup.
+     */
+    public CraftingRules craftingRules() {
+        return CraftingRules.parse(
+                merged(CRAFTING, CRAFTING_DEPTH), warning -> LOG.at(Level.WARNING).log("HyColony %s", warning));
     }
 
     /** {@code hycolony/<file>} merged with each enabled pack's fragment; a key defined twice is logged SEVERE. */
@@ -211,7 +226,7 @@ public final class SubPlugins {
                 .toList();
     }
 
-    /** Fragments merged by {@link #idMap} and {@link #styles} so far, both files together. */
+    /** Fragments merged by {@link #idMap}, {@link #styles} and {@link #craftingRules} so far, all files together. */
     public int fragmentsMerged() {
         return fragments;
     }
