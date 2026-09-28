@@ -9,7 +9,6 @@ import dev.hycolony.core.colony.ConstructionPorts;
 import dev.hycolony.core.construction.goggles.BuildGoggles;
 import dev.hycolony.core.construction.wand.WandActions;
 import dev.hycolony.core.crafting.recipe.CraftingSetup;
-import dev.hycolony.core.farming.FarmingAccess;
 import dev.hycolony.core.kernel.WorldKey;
 import dev.hycolony.core.kernel.config.ColonyConfig;
 import dev.hycolony.core.kernel.event.EventBus;
@@ -33,6 +32,7 @@ import dev.hycolony.plugin.adapter.HytaleWorldEffects;
 import dev.hycolony.plugin.adapter.HytaleWorldQuery;
 import dev.hycolony.plugin.block.HutBlockSystems;
 import dev.hycolony.plugin.crafting.HytaleRecipeCatalog;
+import dev.hycolony.plugin.farming.HytaleFarming;
 import dev.hycolony.plugin.npc.CitizenSpeed;
 import dev.hycolony.plugin.prefab.HytaleBlueprintSource;
 import java.util.Random;
@@ -64,7 +64,8 @@ public final class WorldRuntime {
         this.clock = new HytaleGameClock(world);
         this.bodies = new HytaleCitizenBodies(world, ids.npcRole("npc.citizen"), new CitizenSpeed(ids.speedEffects()));
         Set<String> hutBlockIds = HutBlockSystems.byBlockId(setup).keySet(); // the builder never breaks these
-        HytaleItemCatalog catalog = new HytaleItemCatalog(hutBlockIds);
+        HytaleItemCatalog catalog =
+                new HytaleItemCatalog(hutBlockIds, ids.farming().hoeLevels());
         this.blocks = new HytaleBlocks(world, catalog.stacks());
         ColonyManager[] self = new ColonyManager[1];
         WandActions[] wandSelf = new WandActions[1]; // the UI port needs it before it exists
@@ -110,7 +111,7 @@ public final class WorldRuntime {
                 new HytaleWorldEffects(world, ids.fireworks()),
                 // Read here, before openStorage loads the colonies: a load drops every learnt recipe it does not know.
                 new CraftingSetup(HytaleRecipeCatalog.load(), setup.craftingRules()),
-                FarmingAccess.NONE); // SP3b-2 Task 10 wires HytaleFarming
+                new HytaleFarming(world, worldBlocks, ids.farming(), ids.fieldBlockId()));
     }
 
     /** Points the colonies' persistence at the world's save folder; reads them only when {@code enabled}. */

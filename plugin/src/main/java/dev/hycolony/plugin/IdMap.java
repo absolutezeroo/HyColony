@@ -9,6 +9,7 @@ import com.hypixel.hytale.server.core.asset.type.particle.config.ParticleSystem;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.RootInteraction;
 import com.hypixel.hytale.server.npc.NPCPlugin;
 import dev.hycolony.core.citizen.Skill;
+import dev.hycolony.plugin.farming.FarmingIds;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -31,7 +32,8 @@ public final class IdMap {
             Map<String, Map<String, String>> flowerPots,
             List<String> toggleableUseInteractions,
             List<String> potions,
-            Map<String, List<String>> ornamentTags) {}
+            Map<String, List<String>> ornamentTags,
+            FarmingIds farming) {}
 
     private final Data data;
 
@@ -99,6 +101,16 @@ public final class IdMap {
     /** Root interactions run by using a door or a gate (MC BlockTags.DOORS and FENCE_GATES: ACCESS_TOGGLEABLES). */
     public Set<String> toggleableUseInteractions() {
         return Set.copyOf(Objects.requireNonNullElse(data.toggleableUseInteractions(), List.of()));
+    }
+
+    /** The farming section: seeds and crops, soils, fertilizer, hoes, field barriers; none in an older file. */
+    public FarmingIds farming() {
+        return Objects.requireNonNullElse(data.farming(), FarmingIds.NONE);
+    }
+
+    /** The field block's id, empty until the id-map has one ({@code block.field}). */
+    public String fieldBlockId() {
+        return data.blocks().getOrDefault("block.field", "");
     }
 
     /** Every potion item, drunk or thrown (Minecraft PotionItem, which MC checks for THROW_POTION). */

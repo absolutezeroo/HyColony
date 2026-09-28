@@ -70,12 +70,16 @@ public final class HytaleItemCatalog implements ItemCatalog {
     private final Map<BlockKey, BlockInfo> blocks = new HashMap<>();
     private final Map<ItemKey, ItemInfo> items = new HashMap<>();
     private final Set<String> hutBlockIds;
+    /** The id-map's hoes and their tool level: Hytale hoes have no tool spec to map (they till by interaction). */
+    private final Map<String, Integer> hoeLevels;
+
     private final HytaleStacks stacks = new HytaleStacks(this::durability);
     private boolean warned;
 
-    /** {@code hutBlockIds}: the id-map's hut block ids. */
-    public HytaleItemCatalog(Set<String> hutBlockIds) {
+    /** {@code hutBlockIds}: the id-map's hut block ids; {@code hoeLevels}: its hoes and their tool level. */
+    public HytaleItemCatalog(Set<String> hutBlockIds, Map<String, Integer> hoeLevels) {
         this.hutBlockIds = Set.copyOf(hutBlockIds);
+        this.hoeLevels = Map.copyOf(hoeLevels);
     }
 
     /** The stack conversion that turns a tool's damage into Hytale durability with this catalog's durabilities. */
@@ -164,7 +168,7 @@ public final class HytaleItemCatalog implements ItemCatalog {
         ItemInfo info = items.get(key);
         if (info == null) {
             try {
-                info = computeItem(key.id());
+                info = hoeLevels.containsKey(key.id()) ? computeHoe(key.id()) : computeItem(key.id());
             } catch (RuntimeException e) {
                 fail(key.id(), e);
                 info = UNKNOWN_ITEM;
@@ -233,6 +237,21 @@ public final class HytaleItemCatalog implements ItemCatalog {
             case "Soils" -> ToolType.SHOVEL;
             default -> null;
         };
+    }
+
+    /**
+     * A hoe: tool type HOE at its id-map level, speed 1, and one use per tilled block (Hoe_Till's
+     * AdjustHeldItemDurability -1), so its uses are its max durability.
+     */
+    private ItemInfo computeHoe(String id) {
+        Item item = Item.getAssetMap().getAsset(id);
+        if (item == null) {
+            return UNKNOWN_ITEM;
+        }
+        return new ItemInfo(
+                Math.max(1, item.getMaxStack()),
+                Optional.of(new ToolInfo(ToolType.HOE, hoeLevels.getOrDefault(id, 0), 1f)),
+                (int) item.getMaxDurability());
     }
 
     private static ItemInfo computeItem(String id) {

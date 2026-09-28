@@ -697,6 +697,29 @@ Vérifié dans les sources décompilées de 0.6.8 et dans `Assets.zip`, le 2026-
   - l'ouverture de cette table par un joueur au bon niveau ;
   - le nombre de recettes que journalise `Recipe catalog: %d craftable recipes`.
 
+## 27. Agriculture du fermier (`plugin/farming/`)
+
+Vérifié dans les sources décompilées et dans `Assets.zip` le 2026-09-28. Complète `sp3b-hytale-farming.md` § 4.
+
+- **Graine → bloc de culture** :
+  - la graine ne porte pas son bloc directement. Il est dans `InteractionVars.SeedId.Interactions[0].BlockTypeToPlace` de son asset (`Plant_Seeds_Wheat` → `Plant_Crop_Wheat_Block`) ;
+  - HyColony liste explicitement les 28 couples (14 cultures, normales et éternelles) dans l'id-map, section `farming.seeds` ;
+  - les plants d'arbres, les herbes sauvages, les potions de test et le tournesol ont aussi un `SeedId`, mais ne sont pas des graines de champ.
+- **Labour et plantation** : `WorldBlocks.place` pose le bloc avec `SetBlockSettings.NONE`, sans le bit 2. Le composant de bloc (`TilledSoil`, `FarmingBlock`) est donc cloné, et le sol se dégrade et la culture pousse comme ceux d'un joueur (§ 4 de la recherche). **[in-game]**
+- **Stade d'une culture** : `HytaleWorldBlocks.get` rend le bloc de base, quel que soit le stade. Pour le stade exact, on lit l'identifiant dans `BlockSection.get` puis `BlockType.getAssetMap().getAsset(id)`. La culture est mûre si `getGathering().isHarvestable()` (`BlockGathering.java:108`) ; seul `StageFinal` déclare une récolte.
+- **Récolte** :
+  - les drops viennent de `BlockHarvestUtils.getDrops(type, 1, harvest.getItemId(), harvest.getDropListId())` (`BlockHarvestUtils.java:817`, `HarvestingDropType` l. 49 et 53) ;
+  - le bloc est ensuite cassé par `WorldBlocks.breakBlock` (`NO_DROP_ITEMS`), dont les drops sont ignorés ;
+  - une culture éternelle est reposée à son premier stade. Écart : Hytale la renvoie à `Stage1` par `FarmingUtil.harvest`, un peu plus loin.
+- **Engrais** : `BlockModule.getComponent(TilledSoilBlock.getComponentType(), world, x, y, z)`, puis `setFertilized(true)`, puis `BlockSection.setTicking(x, y, z, true)` sur le sol et sur le bloc au-dessus (`FertilizeSoilInteraction.java:120-140`).
+- **Houes** : `Tool_Hoe_*` n'ont pas de `ItemTool` exploitable (elles labourent par l'interaction `Hoe_Till`). L'id-map leur donne un niveau (`farming.hoes` : Crude 0, Copper 1, Iron 2, Thorium 3), et leurs usages valent `Item.getMaxDurability()`, puisque le labour coûte 1 de durabilité par bloc.
+- **Barrières de champ** : 74 blocs, ceux dont l'identifiant finit par `_Fence` ou `_Fence_Gate`, et les murets de pierre `Rock_*_Wall`. Seuls 5 blocs portent le tag `SubType=Fence`. Liste dans `farming.fieldBarriers`.
+- **[in-game]** Restent à voir en jeu :
+  - la pousse d'une culture posée par le fermier ;
+  - la maturité lue au stade final ;
+  - les drops de récolte dans l'inventaire du fermier ;
+  - l'aspect « engraissé » d'une case.
+
 ## Could not verify
 
 1. **Client rendering of item animations on NPCs** (`AnimationSlot.Action` with `"Block"/"Build"` or `"Pickaxe"/"Mine"` on `PlayerTestModel_V`) and whether they loop or play once. Only the server packet path is verified.
