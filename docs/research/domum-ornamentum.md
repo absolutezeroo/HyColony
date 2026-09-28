@@ -490,6 +490,19 @@ Nouvelle piste, différente de B.6 : **aucun asset commun n'est ajouté**. La va
   - Joueur qui se connecte après la création : **vérifié en jeu (2026-09-28)** par une reconnexion. Les icônes sont là, donc l'invalidation par réflexion de la liste des assets requis fonctionne.
 - **Redémarrages (vérifié en jeu le 2026-09-28, à chaque version du prototype)** : les blocs posés restent, et les objets de l'inventaire gardent leur icône, sans « Unknown ». Les variantes enregistrées sont recréées pendant `LoadAssetEvent` (priorité 64), avant le chargement des tronçons.
 
+**Textures composées : deux matériaux sur un même modèle** (bardeau, 2026-09-28) :
+- **Problème** : Hytale ne donne qu'une texture à un modèle. `CubeWithModel` ne couvre donc que les formes dont un matériau remplit un cube (colombages). Les bardeaux (couverture et support, tous deux sur la pente), les murs de papier et les portes ou trappes ouvragées ont besoin d'**une texture par combinaison**. Aucun bloc DO n'a plus de 2 matériaux (A.1).
+- **Prototype** : `OrnamentShape.SHINGLE` réutilise le modèle vanilla `Blocks/Structures/Roofs/Slope_Hay.blockymodel`, sans nouveau modèle.
+  - `runtime/VariantTextureComposer` part de la texture vanilla `Slope_Hay_Textures/Softwood.png` (64×128). Chaque pixel opaque prend le pixel correspondant de la texture de bloc du matériau, répétée : la couverture (1ᵉʳ matériau) dans la zone 56×32 en haut à gauche, le support (2ᵉ matériau) ailleurs.
+  - Cette zone est lue à l'œil sur la texture vanilla ; elle est approximative. Les UV du modèle ne se projettent pas simplement sur la texture 64×128 (échelle non élucidée).
+  - La texture est publiée comme les icônes (`runtime/VariantAssets` : PNG sur disque, inscription silencieuse, `sendAsset(asset, false)`), **avant** le `UpdateBlockTypes` qui la nomme.
+- **Résultat en jeu (2026-09-28)** :
+  - avec `--rebuild=none`, le bloc n'est pas rose, mais il montre une **autre région de l'atlas**. Hypothèse (client fermé) : sans ce drapeau, le client ne place pas la nouvelle texture dans son atlas de textures de bloc ;
+  - avec `--rebuild=editor` (`updateBlockTextures`, `updateModels`, `updateModelTextures`), la texture est **correcte**, sans `RequestCommonAssetsRebuild`, et les variantes fausses créées avant sont corrigées du même coup (atlas reconstruit).
+- Depuis, une forme composée utilise d'office le mode `textures` (`updateBlockTextures` seul) quand `--rebuild` vaut `none`. **Vérifié en jeu (2026-09-28)** : ce drapeau seul suffit.
+- Coût : chaque reconstruction de l'atlas fait **scintiller l'écran une fois**. Avec le double envoi, les deux paquets portaient le drapeau, d'où deux scintillements. Désormais, le 1ᵉʳ paquet part sans drapeau et seul le 2ᵉ le porte : que le client garde l'un ou l'autre, il ne reconstruit qu'une fois. **Vérifié en jeu : un seul scintillement.** L'`Item` part sans drapeau de reconstruction (sauf `updateIcons` pour une icône générée).
+- À la création d'une variante composée neuve, le prix est donc un scintillement. Plusieurs créations regroupées dans un seul paquet n'en feraient qu'un (à prévoir pour l'établi de l'architecte).
+
 **Protocole de test en jeu** (à dérouler sur des combinaisons neuves, résultats à reporter ici) :
 1. `/hyornament test oak stone` : les objets arrivent avec leur icône générée, et posés, ils montrent le cadre en bois sur de la pierre, sans scintillement.
 2. `/hyornament test birch plaster`, puis une 3ᵉ et une 4ᵉ variante : même question (l'essai du 27/09 cassait dès la 2ᵉ ou la 3ᵉ).
