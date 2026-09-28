@@ -18,6 +18,7 @@ import dev.hycolony.plugin.adapter.HytaleNotifier;
 import dev.hycolony.plugin.inventory.PlayerItems;
 import dev.hycolony.plugin.ornament.registry.OrnamentVariantRegistry;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import org.jspecify.annotations.Nullable;
 
@@ -33,8 +34,8 @@ final class CutterCrafting {
     private CutterCrafting() {}
 
     /**
-     * One click: where, who, the shape, the player's cutter slots, the tags, the registry, how many crafts were asked
-     * (capped by what the slots allow), and the page redraw to run afterwards if it is still shown.
+     * One craft request: where, who, the shape, the player's cutter slots, the tags, the registry, how many crafts
+     * were asked (capped by what the slots allow), and done, told on the world thread whether it crafted.
      */
     record Request(
             World world,
@@ -44,14 +45,15 @@ final class CutterCrafting {
             MaterialTags tags,
             OrnamentVariantRegistry registry,
             int crafts,
-            Runnable redraw) {}
+            Consumer<Boolean> done) {}
 
     /** Starts crafting; call it on the world thread. The variant is never awaited here. */
     static void craft(Request request) {
         CutterCraft.Result first =
                 CutterCraft.check(request.shape(), request.slots().contents(), request.tags());
         if (!(first instanceof CutterCraft.Ready ready)) {
-            return; // the craft buttons are disabled while the preview is not ready
+            request.done().accept(false); // the craft buttons are disabled while the preview is not ready
+            return;
         }
         var _ = request.registry().request(List.of(ready.key())).whenComplete((variants, error) -> {
             try {
@@ -69,21 +71,26 @@ final class CutterCrafting {
         return component != null && component.getGameMode() == GameMode.Creative;
     }
 
-    /** On the world thread, once the variant exists (or failed): check again, take, give. */
+    /** On the world thread, once the variant exists (or failed): crafts, then tells done whether it did. */
     private static void finish(Request request, CutterCraft.Ready asked, @Nullable Throwable error) {
+        request.done().accept(craftNow(request, asked, error));
+    }
+
+    /** Checks again, takes, gives; true when it crafted. */
+    private static boolean craftNow(Request request, CutterCraft.Ready asked, @Nullable Throwable error) {
         if (!request.player().isValid()) {
-            return; // the player left: their slots went back to them with the window, the variant stays
+            return false; // the player left: their slots went back to them with the window, the variant stays
         }
         Store<EntityStore> store = request.player().getStore();
         PlayerRef player = store.getComponent(request.player(), PlayerRef.getComponentType());
         if (player == null) {
-            return;
+            return false;
         }
         if (error != null) {
             LOG.at(Level.SEVERE).withCause(error).log(
                     "hyornament: cutter could not create %s", asked.key().id());
             say(player, "hycolony.ornament.failed", "create");
-            return;
+            return false;
         }
         var slots = request.slots().contents();
         CutterCraft.Result now =
@@ -91,23 +98,23 @@ final class CutterCrafting {
         if (!(now instanceof CutterCraft.Ready ready)
                 || !ready.key().blockTypeKey().equals(asked.key().blockTypeKey())) {
             say(player, "hycolony.ornament.cutter.changed");
-            return;
+            return false;
         }
         String item = ready.key().blockTypeKey();
         if (Item.getAssetMap().getAsset(item) == null) { // created but not loaded: take nothing rather than lose it
             say(player, "hycolony.ornament.failed", "create");
-            return;
+            return false;
         }
         int crafts = Math.min(request.crafts(), CutterCraft.maxCrafts(ready, slots));
         if (crafts <= 0 || !request.slots().take(ready.consumed(), crafts)) {
             say(player, "hycolony.ornament.cutter.changed");
-            return;
+            return false;
         }
         PlayerItems.give(store, request.player(), item, ready.quantity() * crafts);
         player.sendMessage(Message.translation("hycolony.ornament.cutter.crafted")
                 .param("p0", String.valueOf(ready.quantity() * crafts))
                 .param("p1", CutterDrawing.itemName(item)));
-        request.redraw().run();
+        return true;
     }
 
     /** Sends a translated message to player. */

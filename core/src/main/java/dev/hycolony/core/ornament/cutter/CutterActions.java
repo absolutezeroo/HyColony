@@ -105,7 +105,7 @@ public final class CutterActions {
         Optional<OrnamentShape> chosen = shape();
         List<CutterView.Slot> slotViews = chosen.map(s -> IntStream.range(0, s.slotCount())
                         .mapToObj(i -> new CutterView.Slot(
-                                "hycolony.ornament.cutter.slot." + s.slotTags().get(i), ready(s, slots, i)))
+                                "hycolony.ornament.cutter.slot." + s.slotTags().get(i), state(s, slots, i)))
                         .toList())
                 .orElse(List.of());
         CutterView.Preview preview =
@@ -121,10 +121,26 @@ public final class CutterActions {
         return shapes().stream().flatMap(s -> variant(s, slots).stream()).toList();
     }
 
+    /**
+     * Slot i's state: ready with an accepted material; missing once anything is placed in the shape's slots, unless
+     * it is an empty optional second slot (which repeats the first, CutterCraft); empty otherwise.
+     */
+    private CutterView.SlotState state(OrnamentShape shape, List<SlotContent> slots, int i) {
+        if (ready(shape, slots, i)) {
+            return CutterView.SlotState.READY;
+        }
+        boolean started = IntStream.range(0, shape.slotCount()).anyMatch(k -> filled(slots, k));
+        boolean optionalEmpty = i > 0 && shape.optionalSecond() && i == shape.slotCount() - 1 && !filled(slots, i);
+        return started && !optionalEmpty ? CutterView.SlotState.MISSING : CutterView.SlotState.EMPTY;
+    }
+
+    private static boolean filled(List<SlotContent> slots, int i) {
+        return i < slots.size() && !slots.get(i).isEmpty();
+    }
+
     /** Whether slot i of slots holds a material shape's tag for it accepts. */
     private boolean ready(OrnamentShape shape, List<SlotContent> slots, int i) {
-        return i < slots.size()
-                && !slots.get(i).isEmpty()
+        return filled(slots, i)
                 && tags.accepts(shape.slotTags().get(i), slots.get(i).itemId());
     }
 

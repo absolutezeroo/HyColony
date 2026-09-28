@@ -3,6 +3,9 @@ package dev.hycolony.core.ornament.cutter;
 import static dev.hycolony.core.ornament.cutter.CutterCraftTest.OAK;
 import static dev.hycolony.core.ornament.cutter.CutterCraftTest.STONE;
 import static dev.hycolony.core.ornament.cutter.CutterCraftTest.one;
+import static dev.hycolony.core.ornament.cutter.CutterView.SlotState.EMPTY;
+import static dev.hycolony.core.ornament.cutter.CutterView.SlotState.MISSING;
+import static dev.hycolony.core.ornament.cutter.CutterView.SlotState.READY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -54,7 +57,10 @@ class CutterActionsTest {
         assertEquals("Slab", view.shapes().getFirst().shapeId());
         assertEquals("HyColony_DO_Slab", view.shapes().getFirst().templateKey());
         assertTrue(view.shapes().getFirst().selected());
-        assertEquals(List.of(new CutterView.Slot("hycolony.ornament.cutter.slot.slab_materials", false)), view.slots());
+        assertEquals(
+                List.of(new CutterView.Slot(
+                        "hycolony.ornament.cutter.slot.slab_materials", CutterView.SlotState.EMPTY)),
+                view.slots());
         assertInstanceOf(CutterView.Empty.class, view.preview());
     }
 
@@ -152,16 +158,26 @@ class CutterActionsTest {
     }
 
     @Test
-    void aSlotIsReadyWhenItHoldsAMaterialItsTagAccepts() {
+    void aSlotIsReadyWithAnAcceptedMaterialAndMissingOnceTheOtherIsFilled() {
         actions.selectGroup(1);
-        assertEquals(List.of(true, true), ready(actions.view(List.of(one(OAK), one(STONE)))));
-        assertEquals(List.of(false, true), ready(actions.view(List.of(one(STONE), one(STONE)))));
-        assertEquals(List.of(true, false), ready(actions.view(List.of(one(OAK), SlotContent.EMPTY))));
-        assertEquals(List.of(false, false), ready(actions.view(List.of())));
+        assertEquals(List.of(READY, READY), states(actions.view(List.of(one(OAK), one(STONE)))));
+        assertEquals(List.of(MISSING, READY), states(actions.view(List.of(one(STONE), one(STONE)))));
+        assertEquals(List.of(READY, MISSING), states(actions.view(List.of(one(OAK), SlotContent.EMPTY))));
+        assertEquals(List.of(EMPTY, EMPTY), states(actions.view(List.of())), "nothing placed yet: nothing missing");
     }
 
-    private static List<Boolean> ready(CutterView view) {
-        return view.slots().stream().map(CutterView.Slot::ready).toList();
+    @Test
+    void anEmptyOptionalSecondSlotIsNeverMissing() {
+        var cutter = new CutterActions(CutterCatalog.of(ShapeCatalog.parse("""
+                        {"schemaVersion": 1, "shapes": [
+                          {"id": "FancyDoor_Full", "template": "HyColony_DO_FancyDoor_Full", "group": "ddoor",
+                           "slots": ["timber_frames_frame", "timber_frames_frame"], "optionalSecond": true}
+                        ]}""")), TAGS);
+        assertEquals(List.of(READY, EMPTY), states(cutter.view(List.of(one(OAK), SlotContent.EMPTY))));
+    }
+
+    private static List<CutterView.SlotState> states(CutterView view) {
+        return view.slots().stream().map(CutterView.Slot::state).toList();
     }
 
     @Test

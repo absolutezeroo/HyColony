@@ -15,8 +15,13 @@ import java.util.Optional;
 final class CutterOpener {
     private CutterOpener() {}
 
-    /** Opens the window for player; tells them when the ornaments are not loaded yet. */
-    static void open(World world, Ref<EntityStore> player, OrnamentVariantRegistry registry, CutterGroupMemory memory) {
+    /** Opens the window for player, a craft taking craftMillis; tells them when the ornaments are not loaded yet. */
+    static void open(
+            World world,
+            Ref<EntityStore> player,
+            OrnamentVariantRegistry registry,
+            CutterGroupMemory memory,
+            long craftMillis) {
         Store<EntityStore> store = player.getStore();
         PlayerRef playerRef = store.getComponent(player, PlayerRef.getComponentType());
         Player playerComponent = store.getComponent(player, Player.getComponentType());
@@ -28,7 +33,8 @@ final class CutterOpener {
             playerRef.sendMessage(HytaleNotifier.toMessage(Msg.of("hycolony.ornament.failed", "load")));
             return;
         }
-        CutterPage page = new CutterPage(playerRef, new CutterPage.Setup(world, registry, catalogs.get(), memory));
+        CutterPage page =
+                new CutterPage(playerRef, new CutterPage.Setup(world, registry, catalogs.get(), memory, craftMillis));
         // The slots are a real container window, so the client drags items into them natively (CutterSlots).
         playerComponent.getPageManager().openCustomPageWithWindows(player, store, page, page.slotsWindow());
     }

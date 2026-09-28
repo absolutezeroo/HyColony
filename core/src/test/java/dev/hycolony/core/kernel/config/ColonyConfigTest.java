@@ -9,7 +9,14 @@ import org.junit.jupiter.api.Test;
 class ColonyConfigTest {
     @Test
     void autosaveIntervalIsClampedToAtLeastOneMinute() {
-        assertEquals(1, new ColonyConfig.HyColony(0, false, true).autosaveIntervalMinutes());
+        assertEquals(1, new ColonyConfig.HyColony(0, false, true, 0.5).autosaveIntervalMinutes());
+    }
+
+    @Test
+    void cutterCraftTimeIsBetweenInstantAndTenSecondsAndHalfASecondByDefault() {
+        assertEquals(0.0, new ColonyConfig.HyColony(5, false, true, -1).cutterCraftSeconds());
+        assertEquals(10.0, new ColonyConfig.HyColony(5, false, true, 99).cutterCraftSeconds());
+        assertEquals(0.5, ColonyConfig.defaults().hycolony().cutterCraftSeconds());
     }
 
     @Test

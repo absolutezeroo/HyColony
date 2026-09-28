@@ -36,8 +36,11 @@ public final class Ornaments {
 
     private Ornaments() {}
 
-    /** Registers the command and the boot-time load on {@code plugin}; call it from {@code setup}. */
-    public static void register(JavaPlugin plugin, IdMap ids) {
+    /**
+     * Registers the command, the cutter and the boot-time load on {@code plugin}, with one cutter craft taking
+     * cutterCraftSeconds (HyColony.CutterCraftSeconds); call it from {@code setup}.
+     */
+    public static void register(JavaPlugin plugin, IdMap ids, double cutterCraftSeconds) {
         if (ids.ornamentTags().isEmpty()) {
             return;
         }
@@ -57,7 +60,8 @@ public final class Ornaments {
         });
         plugin.getCommandRegistry().registerCommand(new OrnamentCommand(ornaments));
         CutterGroupMemory groups = new CutterGroupMemory();
-        plugin.getEntityStoreRegistry().registerSystem(new CutterSystem(ornaments, groups));
+        plugin.getEntityStoreRegistry()
+                .registerSystem(new CutterSystem(ornaments, groups, Math.round(cutterCraftSeconds * 1000)));
         plugin.getEventRegistry()
                 .register(
                         PlayerDisconnectEvent.class,

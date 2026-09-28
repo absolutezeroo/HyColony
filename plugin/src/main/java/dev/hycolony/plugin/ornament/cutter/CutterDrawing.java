@@ -18,14 +18,20 @@ final class CutterDrawing {
     private CutterDrawing() {}
 
     /**
-     * Draws view: tabs, shapes, the slots (named, green once ready), and the preview with the craft buttons; preparing
-     * shows a spinner in place of a previewed variant that does not exist yet.
+     * Draws view: tabs, shapes, the slots (named, green once ready, red when missing), and the preview with the craft
+     * buttons; preparing shows a spinner in place of a previewed variant that does not exist yet, and busy (crafts
+     * queued) keeps the craft buttons waiting.
      */
-    static void draw(UICommandBuilder ui, UIEventBuilder events, CutterView view, boolean preparing) {
+    static void draw(UICommandBuilder ui, UIEventBuilder events, CutterView view, boolean preparing, boolean busy) {
         tabs(ui, events, view.tabs());
         shapes(ui, events, view.shapes(), preparing);
         slots(ui, view.slots());
         preview(ui, events, view.preview(), preparing);
+        if (busy) {
+            ui.set("#CraftButton.Disabled", true);
+            ui.set("#Craft10Button.Disabled", true);
+            ui.set("#CraftAllButton.Disabled", true);
+        }
     }
 
     /** One icon tab per group, the open one marked and named above the shapes. */
@@ -70,15 +76,16 @@ final class CutterDrawing {
     }
 
     /**
-     * Names each material slot the chosen shape uses (« Cadre », « Centre »…) and turns it green with its check once it
-     * holds a material its tag accepts; a slot the shape does not use is unnamed and grey.
+     * Names each material slot the chosen shape uses (« Cadre », « Centre »…) and colours it as its state: green with
+     * its check once ready, red when missing, grey otherwise; a slot the shape does not use is unnamed and grey.
      */
     private static void slots(UICommandBuilder ui, List<CutterView.Slot> slots) {
         for (int i = 0; i < CutterSlots.COUNT; i++) {
+            CutterView.SlotState state = i < slots.size() ? slots.get(i).state() : CutterView.SlotState.EMPTY;
             boolean used = i < slots.size();
-            boolean ready = used && slots.get(i).ready();
-            ui.set("#SlotOk" + i + ".Visible", ready);
-            ui.set("#SlotBg" + i + ".Visible", !ready);
+            ui.set("#SlotOk" + i + ".Visible", state == CutterView.SlotState.READY);
+            ui.set("#SlotBg" + i + ".Visible", state != CutterView.SlotState.READY);
+            ui.set("#SlotBad" + i + ".Visible", state == CutterView.SlotState.MISSING);
             if (used) {
                 ui.set(
                         "#SlotLabel" + i + ".Text",

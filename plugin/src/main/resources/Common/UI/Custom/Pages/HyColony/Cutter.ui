@@ -81,6 +81,13 @@ $C.@PageOverlay {
                     Background: (TexturePath: "Native/IngredientSlot.png", Border: 24);
                   }
 
+                  // A slot the recipe still needs, as the client's invalid ingredient colour (#D13B3B).
+                  Group #SlotBad0 {
+                    Anchor: (Width: 72, Height: 72, Left: 3, Top: 3);
+                    Background: #D13B3B(0.35);
+                    Visible: false;
+                  }
+
                   Group #SlotOk0 {
                     Anchor: (Width: 72, Height: 72, Left: 3, Top: 3);
                     Background: (TexturePath: "Native/IngredientSlotValid.png", Border: 24);
@@ -90,6 +97,13 @@ $C.@PageOverlay {
                   Group #SlotBg1 {
                     Anchor: (Width: 72, Height: 72, Left: 3, Top: 101);
                     Background: (TexturePath: "Native/IngredientSlot.png", Border: 24);
+                  }
+
+                  // A slot the recipe still needs, as the client's invalid ingredient colour (#D13B3B).
+                  Group #SlotBad1 {
+                    Anchor: (Width: 72, Height: 72, Left: 3, Top: 101);
+                    Background: #D13B3B(0.35);
+                    Visible: false;
                   }
 
                   Group #SlotOk1 {
@@ -145,9 +159,10 @@ $C.@PageOverlay {
                 }
               }
 
-              Group {
-                Anchor: (Height: 4, Top: 6);
-                Background: (TexturePath: "Native/ProgressBar.png", Border: 2);
+              // Fills while a craft takes its time (HyColony.CutterCraftSeconds), as the client's bench bar.
+              $C.@ProgressBar #CraftProgress {
+                Anchor: (Height: 6, Top: 6);
+                Value: 0;
               }
 
               $C.@TextButton #CraftButton {

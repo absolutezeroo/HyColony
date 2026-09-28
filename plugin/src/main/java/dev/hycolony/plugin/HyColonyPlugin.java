@@ -60,7 +60,7 @@ public final class HyColonyPlugin extends JavaPlugin {
         WandInteraction.register(this, worlds);
         getCommandRegistry().registerCommand(new HyColonyCommand(worlds, ids, colonyConfig.commands(), packs));
         registerWorldEvents(worlds);
-        Ornaments.register(this, ids);
+        Ornaments.register(this, ids, colonyConfig.hycolony().cutterCraftSeconds());
         getEventRegistry().register(PlayerDisconnectEvent.class, e -> onDisconnect(worlds, ids, e));
 
         getLogger().at(Level.INFO).log("HyColony setup complete");

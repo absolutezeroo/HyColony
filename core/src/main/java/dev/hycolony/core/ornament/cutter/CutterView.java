@@ -22,11 +22,18 @@ public record CutterView(List<Tab> tabs, List<ShapeButton> shapes, List<Slot> sl
      */
     public record ShapeButton(String shapeId, String templateKey, String itemId, boolean selected) {}
 
-    /**
-     * A material slot of the chosen shape: its label key, and whether it holds a material its tag accepts (MC DO
-     * ArchitectsCutterContainer input slot {@code mayPlace}), which the window shows as a ready ingredient.
-     */
-    public record Slot(String labelKey, boolean ready) {}
+    /** A material slot of the chosen shape: its label key and its state, which the window shows by colour. */
+    public record Slot(String labelKey, SlotState state) {}
+
+    /** How a material slot stands. */
+    public enum SlotState {
+        /** Nothing placed in the shape's slots yet, or an empty optional second slot. */
+        EMPTY,
+        /** It holds a material its tag accepts (MC DO ArchitectsCutterContainer input slot {@code mayPlace}). */
+        READY,
+        /** Something is placed elsewhere, and this slot the recipe needs is empty or holds a refused material. */
+        MISSING
+    }
 
     /** What crafting gives now. */
     public sealed interface Preview permits Empty, Ready, Refused {}
