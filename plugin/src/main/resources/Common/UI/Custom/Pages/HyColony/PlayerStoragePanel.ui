@@ -26,6 +26,7 @@ $C.@Container #PlayerStoragePanel {
   #Title {
     $C.@Title {
       @Text = %hycolony.ui.inventory.title;
+      @Alignment = Start;
     }
   }
 

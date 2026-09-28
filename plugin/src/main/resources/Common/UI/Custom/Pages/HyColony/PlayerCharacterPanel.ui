@@ -1,12 +1,10 @@
 $C = "../../Common.ui";
 
-// The player's character panel, laid out as Hytale's own (client CharacterPanel.ui): character, armor and utility
-// slots. Textures under Native/ are copied from the Hytale client (see docs/native-ui-textures.md).
+// The player's character panel, laid out as Hytale's own (client CharacterPanel.ui): character and armor. Textures under Native/ are copied from the Hytale client (see docs/native-ui-textures.md).
 
 @Slot = 74;
 @GridY = 50;
 @GridStyle = (SlotSize: @Slot, SlotIconSize: 64, SlotSpacing: 2, SlotBackground: "Native/Slot.png");
-@SpecialStyle = (SlotSize: @Slot, SlotIconSize: 64, SlotSpacing: 2, SlotBackground: "Native/SpecialSlot.png");
 @ArmorIcon = Group {
   @Row = 0;
 
@@ -54,17 +52,6 @@ $C.@DecoratedContainer #PlayerCharacterPanel {
       @ArmorIcon #ArmorIconChest { @Row = 1; Background: "Native/ArmorSlotIconChest.png"; }
       @ArmorIcon #ArmorIconHands { @Row = 2; Background: "Native/ArmorSlotIconHands.png"; }
       @ArmorIcon #ArmorIconLegs { @Row = 3; Background: "Native/ArmorSlotIconLegs.png"; }
-
-      // All 4 utility slots (PlayerSystems gives the player 4), where the client shows only the active one: with
-      // ItemStacks a grid shows every slot of its section, and hiding some would hide the items in them.
-      ItemGrid #PlayerUtility {
-        Anchor: (Width: 306, Height: 78, Left: 35, Bottom: 0);
-        SlotsPerRow: 4;
-        AreItemsDraggable: true;
-        RenderItemQualityBackground: true;
-        Style: @SpecialStyle;
-        Padding: 2;
-      }
     }
   }
 }

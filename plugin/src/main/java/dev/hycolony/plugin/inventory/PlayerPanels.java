@@ -11,7 +11,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 /**
  * Draws the player's own panels into a custom page, as Hytale's inventory shows them: the character panel (name,
- * character, armor and utility slots) and the storage panel (storage and hotbar). Their
+ * character and armor) and the storage panel (storage and hotbar). Their
  * grids are draggable (InventoryGrids).
  */
 public final class PlayerPanels {
@@ -39,12 +39,6 @@ public final class PlayerPanels {
         for (short i = 0; i < ARMOR_ICONS.length; i++) {
             ui.set(host + " " + ARMOR_ICONS[i] + ".Visible", i >= armor.getCapacity() || empty(armor, i));
         }
-        InventoryGrids.drawPlayerGrid(
-                ui,
-                events,
-                host + " #PlayerUtility",
-                PlayerSection.UTILITY,
-                PlayerSection.UTILITY.container(store, player));
     }
 
     /** Appends the storage panel into host and fills it for player. */

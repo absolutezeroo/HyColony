@@ -14,8 +14,7 @@ import java.util.Optional;
 public enum PlayerSection {
     STORAGE(InventoryComponent.STORAGE_SECTION_ID, "storage"),
     HOTBAR(InventoryComponent.HOTBAR_SECTION_ID, "hotbar"),
-    ARMOR(InventoryComponent.ARMOR_SECTION_ID, "armor"),
-    UTILITY(InventoryComponent.UTILITY_SECTION_ID, "utility");
+    ARMOR(InventoryComponent.ARMOR_SECTION_ID, "armor");
 
     private final int id;
     private final String grid;
