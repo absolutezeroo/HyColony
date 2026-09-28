@@ -1,41 +1,40 @@
-"""The "Domum Ornamentum" creative tab: one child per family, in DO's cutter group order (A.3), each with an icon
-pair X.png / XActive.png under Icons/ItemCategories (a missing category icon stops the server)."""
+"""The "Domum Ornamentum" creative tab: every template in one list, as DO's single creative tab in Minecraft, with an
+icon pair X.png / XActive.png under Icons/ItemCategories (a missing category icon stops the server). Hytale's
+creative library shows a tab's children, so the one list is the tab's only child."""
 
 from PIL import Image
 
-import names
-from blocks.common import LANGUAGES
-from families import FAMILIES
+from blocks.common import DO_TAB_LIST, LANGUAGES
 from pack import write_json
 
 TAB = "Server/Item/Category/CreativeLibrary/DomumOrnamentum.json"
 ICONS = "Icons/ItemCategories/DomumOrnamentum"
 TAB_ICON_SIZE = 88  # pixels, as vanilla tab icons (Natural.png)
 CHILD_ICON_SIZE = 48  # pixels, as vanilla category icons (Blocks.png)
+ALL = DO_TAB_LIST
+TAB_NAME = "Domum Ornamentum"  # the mod's name, the same in every language
 
 
 def generate(ctx):
-    """Writes the tab, its icons and names; returns the tab JSON. Only families with a template appear."""
-    used = [f for f in sorted(FAMILIES, key=lambda f: f.group) if any(
-        i["Categories"] == ["DomumOrnamentum." + f.name] for i in ctx.items.values())]
+    """Writes the tab, its icons and name; returns the tab JSON. Without any template the tab has no child."""
     children = []
-    for family in used:
-        icon = f"{ICONS}_{family.name}.png"
-        _icon_pair(ctx, icon, _first_icon(ctx, family), CHILD_ICON_SIZE)
-        key = "category.do." + family.name.lower()
-        children.append({"Id": family.name, "Name": "hycolony." + key, "Icon": icon})
-        for language, name in zip(LANGUAGES, names.FAMILY_NAMES[family.name]):
-            ctx.lang[language].append(f"{key} = {name}")
+    if ctx.items:
+        first = _first_icon(ctx)
+        icon = f"{ICONS}_{ALL}.png"
+        _icon_pair(ctx, icon, first, CHILD_ICON_SIZE)
+        _icon_pair(ctx, ICONS + ".png", first, TAB_ICON_SIZE)
+        key = "category.do." + ALL.lower()
+        children.append({"Id": ALL, "Name": "hycolony." + key, "Icon": icon})
+        for language in LANGUAGES:
+            ctx.lang[language].append(f"{key} = {TAB_NAME}")
     tab = {"Icon": ICONS + ".png", "Order": 4, "Children": children}
-    if used:
-        _icon_pair(ctx, ICONS + ".png", _first_icon(ctx, used[0]), TAB_ICON_SIZE)
     write_json(ctx.pack / TAB, tab)
     return tab
 
 
-def _first_icon(ctx, family):
-    """The icon of the family's first template, as an image."""
-    item = next(i for i in ctx.items.values() if i["Categories"] == ["DomumOrnamentum." + family.name])
+def _first_icon(ctx):
+    """The icon of the first template generated, as an image."""
+    item = next(iter(ctx.items.values()))
     path = ctx.pack / "Common" / item["Icon"]
     return Image.open(path).convert("RGBA") if path.exists() else ctx.assets.image("Common/" + item["Icon"])
 
@@ -47,4 +46,3 @@ def _icon_pair(ctx, path, image, size):
         out = ctx.pack / "Common" / target
         out.parent.mkdir(parents=True, exist_ok=True)
         resized.save(out)
-

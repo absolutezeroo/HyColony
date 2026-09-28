@@ -46,7 +46,7 @@ def run(pack, resources, assets):
     cutter.generate(ctx)
     manifest.write(ctx)
     ctx.tab = tabs.generate(ctx)
-    write_json(pack / "hycolony" / "id-map.json", {"ornamentTags": ctx.tags})
+    write_json(pack / "hycolony" / "id-map.json", {"sounds": ctx.sounds, "ornamentTags": ctx.tags})
     for language, lines in ctx.lang.items():
         path = pack / "Server" / "Languages" / language / "hycolony.lang"
         path.parent.mkdir(parents=True, exist_ok=True)

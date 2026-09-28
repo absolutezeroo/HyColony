@@ -30,10 +30,11 @@ def manifest_lists_every_template_with_its_slots():
 
 
 def static_templates_live_in_the_do_tab():
-    """Every template sits in the DO tab only; an open shape (a panel) has its own hitbox and is Transparent, a full
-    block (a timber frame) keeps Hytale's full box and is Solid."""
+    """Every template sits in the DO tab's single list, as DO's one creative tab; an open shape (a panel) has its own
+    hitbox and is Transparent, a full block (a timber frame) keeps Hytale's full box and is Solid."""
     ctx = generate_into_temp()
-    assert all(item["Categories"][0].startswith("DomumOrnamentum.") for item in ctx.items.values())
+    assert [child["Id"] for child in ctx.tab["Children"]] == ["All"], ctx.tab["Children"]
+    assert all(item["Categories"] == ["DomumOrnamentum.All"] for item in ctx.items.values())
     panel = ctx.items["HyColony_DO_Panel_Full"]["BlockType"]
     assert panel["HitboxType"] == "HyColony_DO_Panel_Full" and panel["Opacity"] == "Transparent"
     frame = ctx.items["HyColony_DO_TimberFrame_Plain"]["BlockType"]
@@ -232,9 +233,18 @@ def cutter_is_a_bench_without_container():
     assert item["Recipe"]["BenchRequirement"][0]["Id"] == "Workbench"
 
 
+def cutter_sounds_are_the_builder_bench_ones():
+    """The id-map fragment gives the cutter window the vanilla builder bench's open and close sounds."""
+    ctx = generate_into_temp()
+    fragment = json.loads((ctx.pack / "hycolony/id-map.json").read_text(encoding="utf-8"))
+    assert fragment["sounds"] == {"cutter.open": "SFX_Workbench_Open", "cutter.close": "SFX_Workbench_Close"}
+    assert fragment["ornamentTags"]
+
+
 def run():
     """Runs this module's checks; an AssertionError names the failing case."""
     manifest_lists_every_template_with_its_slots()
+    cutter_sounds_are_the_builder_bench_ones()
     static_templates_live_in_the_do_tab()
     two_material_templates_read_their_default_pair()
     every_category_has_both_icons()

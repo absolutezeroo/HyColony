@@ -75,7 +75,7 @@ Porter Domum Ornamentum (DO) **avec son vrai fonctionnement** : un type de bloc 
 
 ## Onglet créatif
 
-- Un onglet « Domum Ornamentum », une sous-catégorie par famille, dans l'ordre des groupes du cutter DO (A.3). Il contient **les gabarits** : chaque forme avec ses matériaux par défaut, comme l'onglet de DO.
+- Un onglet « Domum Ornamentum » qui contient **tous les gabarits dans une seule liste**, comme l'onglet unique de DO dans Minecraft (choix de l'utilisateur, 2026-09-28 : une sous-catégorie par famille ne servait à rien). La bibliothèque créative de Hytale affiche les enfants d'un onglet : la liste est donc son unique enfant, `DomumOrnamentum.All`. Il contient **les gabarits** : chaque forme avec ses matériaux par défaut. Les matériaux créés à l'exécution n'y apparaissent pas.
 - Icônes d'onglet en paire `X.png` / `XActive.png` sous `Icons/ItemCategories`, vérifiées au build (une icône manquante arrête le serveur).
 - Libellés en en-US et fr-FR.
 

@@ -16,9 +16,13 @@ BENCH_KEYS = ("Material", "DrawType", "Opacity", "CustomModel", "CustomModelText
 
 
 def generate(ctx):
-    """Writes the cutter item and its names."""
+    """Writes the cutter item and its names, and records the builder bench's window sounds for the id-map."""
     bench = ctx.assets.item("Bench_Builders")
     block = {key: bench["BlockType"][key] for key in BENCH_KEYS}
+    # The window is the plugin's, so it plays the bench's own open and close sounds itself (id-map sounds).
+    config = bench["BlockType"]["Bench"]
+    ctx.sounds["cutter.open"] = config["LocalOpenSoundEventId"]
+    ctx.sounds["cutter.close"] = config["LocalCloseSoundEventId"]
     # A no-op Use: the plugin's CutterSystem opens the window.
     block["Interactions"] = {"Use": {"Interactions": [{"Type": "Simple"}]}}
     item = {

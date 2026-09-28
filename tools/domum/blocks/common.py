@@ -18,6 +18,9 @@ import tags
 from flower_pots import rounded
 from pack import write_json
 
+# The DO creative tab's single list (every template, as DO's one creative tab); tabs.py names it.
+DO_TAB_LIST = "All"
+
 MODELS = "Blocks/HyColony/DO/"
 HITBOXES = "Server/Item/Block/Hitboxes/HyColony/DO/"
 ITEMS = "Server/Item/Items/HyColony/DO/"
@@ -46,6 +49,7 @@ class Context:
     models: dict = field(default_factory=dict)  # template id -> .blockymodel content
     tab: dict = field(default_factory=dict)  # the creative tab JSON
     sources: list = field(default_factory=list)  # (label, cleaned Minecraft model) of every converted state
+    sounds: dict = field(default_factory=dict)  # id-map sounds section: key -> sound event
 
 
 def defaults(ctx, family):
@@ -101,7 +105,7 @@ def template(ctx, family, ident, parts, block_type, icon_properties=None, icon_m
         "TranslationProperties": {"Name": "hycolony." + key},
         "Icon": _icon(ctx, family, ident, icon_model or ident, properties),
         "IconProperties": properties,
-        "Categories": ["DomumOrnamentum." + family.name],
+        "Categories": ["DomumOrnamentum." + DO_TAB_LIST],
         "PlayerAnimationsId": "Block",
         "BlockType": block_type,
         "ItemSoundSetId": material.get("ItemSoundSetId", "ISS_Blocks_Wood"),
