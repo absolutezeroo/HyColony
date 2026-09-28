@@ -36,8 +36,12 @@ final class CitizenInventoryPanel {
         this.redraw = new PageRedraw(world, () -> owner.run(), () -> true);
         window.onChange(redraw::soon);
         window.registerCloseEvent(e -> {
-            closed = true;
-            redraw.soon(); // the page leaves the tab
+            // A closed window has nothing left to follow; the page is told only when it did not close it itself.
+            stopWatch();
+            if (!closed) {
+                closed = true;
+                redraw.soon(); // the page leaves the tab
+            }
         });
     }
 
@@ -82,11 +86,16 @@ final class CitizenInventoryPanel {
     /** Stops following and closes the window if the player still holds it. Never throws. */
     void close(Ref<EntityStore> player, Store<EntityStore> store) {
         closed = true;
+        stopWatch();
+        HeldWindows.closeIfHeld(player, store, window);
+    }
+
+    /** Stops following the player's inventory; safe to call more than once. */
+    void stopWatch() {
         InventoryWatch current = watch;
         watch = null;
         if (current != null) {
             current.stop();
         }
-        HeldWindows.closeIfHeld(player, store, window);
     }
 }

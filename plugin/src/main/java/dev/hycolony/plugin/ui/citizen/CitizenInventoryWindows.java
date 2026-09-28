@@ -11,6 +11,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.ColonyEvents;
 import dev.hycolony.core.colony.ColonyManager;
+import dev.hycolony.plugin.inventory.HeldWindows;
 import dev.hycolony.plugin.item.HytaleStacks;
 import dev.hycolony.plugin.ui.ColonyPage;
 import java.util.ArrayList;
@@ -123,7 +124,7 @@ public final class CitizenInventoryWindows {
                 continue;
             }
             try {
-                if (isOpen(o)) {
+                if (HeldWindows.holds(o.player(), o.player().getStore(), o.window())) {
                     o.window().close(o.player(), o.player().getStore()); // its close event forgets it
                 }
             } catch (RuntimeException e) {
@@ -133,22 +134,8 @@ public final class CitizenInventoryWindows {
         }
     }
 
-    /**
-     * Whether the player's window manager still holds this very window: {@code Window.equals} only compares id, type
-     * and player, which a later window may share.
-     */
-    @SuppressWarnings("PMD.CompareObjectsWithEquals")
-    private static boolean isOpen(Open o) {
-        if (!o.player().isValid()) {
-            return false;
-        }
-        Player playerComponent = o.player().getStore().getComponent(o.player(), Player.getComponentType());
-        return playerComponent != null
-                && playerComponent.getWindowManager().getWindow(o.window().getId()) == o.window();
-    }
-
     /** Drops the entry of this very window, if still listed. */
-    @SuppressWarnings("PMD.CompareObjectsWithEquals") // identity: see isOpen
+    @SuppressWarnings("PMD.CompareObjectsWithEquals") // identity: a later window may share id, type and player
     private void forget(CitizenInventoryWindow window) {
         open.removeIf(o -> o.window() == window);
     }

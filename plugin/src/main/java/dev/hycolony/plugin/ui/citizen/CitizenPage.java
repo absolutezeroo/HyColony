@@ -88,7 +88,11 @@ public final class CitizenPage extends ColonyPage {
             if (inventory != null) {
                 inventory.attach(this::redrawIfShown);
             }
-            if (tab == Tab.INVENTORY && (inventory == null || !inventory.isOpen())) {
+            if (inventory != null && !inventory.isOpen()) { // its window closed: nothing left to show
+                inventory.stopWatch();
+                inventory = null;
+            }
+            if (tab == Tab.INVENTORY && inventory == null) {
                 tab = Tab.MAIN;
             }
         }
@@ -183,7 +187,10 @@ public final class CitizenPage extends ColonyPage {
     @SuppressWarnings({"PMD.CompareObjectsWithEquals", "ReferenceEquality"})
     private void redrawIfShown() {
         Ref<EntityStore> ref = playerRef.getReference();
-        if (ref == null || !ref.isValid()) {
+        // The redraw runs on the world the window opened in; a player gone to another world is not drawn from here.
+        if (ref == null
+                || !ref.isValid()
+                || !ref.getStore().getExternalData().getWorld().isInThread()) {
             return;
         }
         Player shown = ref.getStore().getComponent(ref, Player.getComponentType());
