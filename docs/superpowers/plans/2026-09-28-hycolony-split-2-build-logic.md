@@ -37,7 +37,7 @@
 
 ## Écart à la spec, décidé en écrivant ce plan
 
-La spec demandait de rediriger la sortie de `decompileServerJar` vers `build/vineflower` à la racine. Ce n'est pas faisable proprement : le plugin AzureDoom capture ce chemin dans une variable et la réutilise dans deux autres tâches (`HytaleIdeSourceConfigurer.groovy` l. 33, 64, 92-93 et 168). Changer seulement `outputDirectory` les désynchroniserait. Les sources décompilées de référence restent donc `build/vineflower/hytale-server` à la racine, qui existe déjà et ne change pas tant que Hytale reste épinglé en 0.6.8. Si ce dossier manque, on lance `./gradlew :plugin:decompileServerJar`, qui écrit `plugin/build/vineflower/hytale-server`. La tâche 4 écrit cet écart dans la spec.
+La spec demandait de rediriger la sortie de `decompileServerJar` vers `build/vineflower` à la racine. Ce n'est pas faisable proprement : le plugin AzureDoom capture ce chemin dans une variable et la réutilise dans deux autres tâches (`HytaleIdeSourceConfigurer.groovy` l. 34, 64, 92-93 et 168). Changer seulement `outputDirectory` les désynchroniserait. Les sources décompilées de référence restent donc `build/vineflower/hytale-server` à la racine, qui existe déjà et ne change pas tant que Hytale reste épinglé en 0.6.8. Si ce dossier manque, on lance `./gradlew :plugin:decompileServerJar`, qui écrit `plugin/build/vineflower/hytale-server`. La tâche 4 écrit cet écart dans la spec.
 
 ## Fichiers
 
@@ -757,7 +757,7 @@ EOF
 
 Dans la spec, § « Organisation », puce `hy.workspace`, remplacer la phrase qui commence par « Pour des sources décompilées uniques, aucun réglage du plugin ne suffit » et la suivante par :
 
-« Sources décompilées : la redirection prévue n'est pas faite. Le plugin AzureDoom réutilise le chemin `build/vineflower/hytale-server` de chaque projet dans trois tâches (`HytaleIdeSourceConfigurer.groovy` l. 33, 64, 92-93, 168) ; n'en rediriger qu'une les désynchroniserait. La référence reste `build/vineflower/hytale-server` à la racine, déjà présente et figée tant que Hytale est épinglé en 0.6.8 ; à défaut, `./gradlew :plugin:decompileServerJar` l'écrit dans `plugin/build/vineflower/hytale-server`. »
+« Sources décompilées : la redirection prévue n'est pas faite. Le plugin AzureDoom réutilise le chemin `build/vineflower/hytale-server` de chaque projet dans trois tâches (`HytaleIdeSourceConfigurer.groovy` l. 34, 64, 92-93, 168) ; n'en rediriger qu'une les désynchroniserait. La référence reste `build/vineflower/hytale-server` à la racine, déjà présente et figée tant que Hytale est épinglé en 0.6.8 ; à défaut, `./gradlew :plugin:decompileServerJar` l'écrit dans `plugin/build/vineflower/hytale-server`. »
 
 - [ ] **Étape 2 : relecture et commit**
 

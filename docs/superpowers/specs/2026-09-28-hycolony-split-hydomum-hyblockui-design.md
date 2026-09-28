@@ -106,7 +106,10 @@ HyColony/                    racine : conventions hy.workspace, catalogue gradle
   - `build-logic` a `hytale-gradle-plugin` en dépendance, épinglé en **1.0.51** (aujourd'hui `1.+`). Le workspace et les mods partagent donc le même classpath, ce dont `HytaleWorkspacePlugin` a besoin (il fait `getByType(HytaleExtension)` sur chaque sous-projet).
   - Il n'applique **que** `com.azuredoom.hytale-workspace` à la racine. Y appliquer `hytale-tools` ferait de la racine un faux mod, avec le plugin `java`, un manifeste réécrit, un jar et un `runServer` (`HytaleRunTaskRegistrar:23-25`).
   - Il fixe `hostProject = ':plugin'`.
-  - Pour des sources décompilées uniques, aucun réglage du plugin ne suffit : `decompiledServerDir` est codé dans le `build/` de chaque projet (`HytaleIdeSourceConfigurer:34`). Le plan 2 redirige la sortie de `decompileServerJar` du projet hôte vers `build/vineflower` à la racine, celui que citent CLAUDE.md et le skill `hytale-api`. Il désactive la tâche dans les autres projets.
+  - Sources décompilées : la redirection prévue n'est pas faite (décidé au plan 2).
+    - Le plugin AzureDoom réutilise le chemin `build/vineflower/hytale-server` de chaque projet dans trois tâches (`HytaleIdeSourceConfigurer.groovy` l. 34, 64, 92-93, 168). N'en rediriger qu'une les désynchroniserait.
+    - La référence reste `build/vineflower/hytale-server` à la racine, celle que citent CLAUDE.md et le skill `hytale-api`. Elle est déjà présente et reste figée tant que Hytale est épinglé en 0.6.8.
+    - Si elle manque, `./gradlew :plugin:decompileServerJar` l'écrit dans `plugin/build/vineflower/hytale-server`.
 - **`hy.java-core`**, pour les cœurs purs :
   - Java 25, Gson et jspecify en `compileOnly` ;
   - Error Prone et NullAway, avec `AnnotatedPackages = dev.hycolony,dev.hydomum,dev.hyblockui` ;
