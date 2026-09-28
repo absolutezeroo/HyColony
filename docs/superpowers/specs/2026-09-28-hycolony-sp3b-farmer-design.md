@@ -243,6 +243,8 @@ Un port ne lève jamais d'exception. Ses méthodes :
 - `List<ItemAmount> harvest(BlockPos)` : les drops de récolte, puis la case vide pour une culture normale, ou le retour au `Stage1` pour une éternelle (H § 3.4) ;
 - `boolean isFieldBarrier(BlockPos)` ;
 - `List<ItemKey> seeds()` : les graines de culture, triées.
+- `boolean isFieldBlock(BlockPos)` : le bloc « Champ » est à cette position (pour le nettoyage) ;
+- `ItemKey fertilizerItem()` : l'objet engrais (`Tool_Fertilizer`, depuis l'id-map).
 
 Il vit dans `farming` (et non `kernel/port`, déjà à 15 fichiers), comme `RecipeCatalog`. `ConstructionPorts` le reçoit.
 
@@ -284,7 +286,8 @@ Il vit dans `farming` (et non `kernel/port`, déjà à 15 fichiers), comme `Reci
   - `ColonySerializer.heal` : un propriétaire disparu est libéré ;
   - `ConstructionPorts` : ajout de `farming` ;
   - `CoreFeatures` : enregistrement du type et du métier ;
-  - `BuildingManager.remove` : libère les champs, par un écouteur, puisque `building` ne peut pas dépendre de `farming`.
+  - `FarmerFieldsModule` implémente `BuildingEventsModule` : son `onRemoved` libère les champs de la hutte, comme `WorkerModule` renvoie ses travailleurs ;
+  - `ToolType` gagne `HOE` (le plugin reconnaît les `Tool_Hoe_*`).
 - **Plugin :**
   - `HytaleFarming` : le port ;
   - `block/FieldBlockSystems` : pose, casse et utilisation du bloc Champ, sur le modèle de `HutBlockSystems` et `FlowerPotSystem` ;
