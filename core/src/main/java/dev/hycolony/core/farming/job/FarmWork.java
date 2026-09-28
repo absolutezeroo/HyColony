@@ -16,7 +16,7 @@ import java.util.function.Function;
 
 /**
  * The farming steps of the farmer's AI (MC EntityAIWorkFarmer prepareForFarming and canGoPlanting); the pass over a
- * field is FieldPass. Each step returns the next state.
+ * field is {@link FieldPass}. Each step returns the next state.
  */
 final class FarmWork {
     /** MC: a field stage with nothing to do is skipped; after this many skips in a row the field is left for today. */
@@ -27,7 +27,10 @@ final class FarmWork {
 
     private final FarmWorkContext ctx;
     private final FieldScan scan;
+    private final FieldPass pass;
     private int skippedState;
+    private int delay;
+    private boolean dumpRequested;
     private Optional<Msg> status = Optional.empty();
 
     FarmWork(FarmWorkContext ctx) {
@@ -36,6 +39,7 @@ final class FarmWork {
                 ctx.colony().context().ports().blocks(),
                 ctx.colony().context().ports().catalog(),
                 ctx.farming());
+        this.pass = new FieldPass(ctx, scan, this);
     }
 
     /** Why the farmer does not work, for the citizen window (MC's blocking interaction); empty while it works. */
@@ -90,9 +94,47 @@ final class FarmWork {
         }
     }
 
-    /** A pass did some work: the skips start again from zero. */
-    void worked() {
-        skippedState = 0;
+    /** MC workAtField's end: a pass that worked, or the fourth pass in a row that did not, leaves the field. */
+    void endPass(boolean didWork) {
+        if (didWork || ++skippedState >= MAX_SKIPS) {
+            ctx.fields().resetCurrentField(ctx.colony());
+            skippedState = 0;
+        }
+    }
+
+    /** MC workAtField, every 5 ticks: see {@link FieldPass}. */
+    FarmerState workAtField(FarmerState state) {
+        return pass.work(state);
+    }
+
+    /** MC setDelay: the ticks to wait before the next step. */
+    int delay() {
+        return delay;
+    }
+
+    void setDelay(int ticks) {
+        delay = ticks;
+    }
+
+    /** MC's waiting event: counts {@code elapsed} ticks off the delay; true while some remain. */
+    boolean waiting(int elapsed) {
+        if (delay <= 0) {
+            return false;
+        }
+        delay -= elapsed;
+        return true;
+    }
+
+    /** MC shouldDumpInventory: set at the end of every pass. */
+    void requestDump() {
+        dumpRequested = true;
+    }
+
+    /** MC wantInventoryDumped: true once after each pass, then false until the next. */
+    boolean consumeDumpRequest() {
+        boolean was = dumpRequested;
+        dumpRequested = false;
+        return was;
     }
 
     /**
