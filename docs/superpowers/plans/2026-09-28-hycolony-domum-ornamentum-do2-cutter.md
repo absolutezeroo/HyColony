@@ -86,7 +86,7 @@
 2. **Two players click Fabriquer on one set of materials.** At most one craft consumes it: every consume re-validates on the world thread, then checks each removal's `succeeded()` (Task 6).
 3. **The client does not draw the container slots next to a custom page.** The user reports it at the first step of the new TESTING section. The fallback (a page with slot buttons taking materials from the player's inventory) goes to the spec, not built now.
 4. **The DO pack is off, or the catalogs are not loaded yet.** Using the block sends `hycolony.ornament.failed` (`load`) and nothing else (Task 4).
-5. **Bad slot contents.** An empty required slot or a material outside the tag is refused, and so is junk in slot 2 of a 1-material shape; nothing is consumed (Task 1 tests).
+5. **Bad slot contents.** An empty required slot or a material outside the tag is refused, and nothing is consumed; junk in slot 2 of a 1-material shape is ignored and kept (Task 1 tests).
 
 ---
 
@@ -1182,7 +1182,7 @@ cd plugin/src/main/resources/Server/Languages && diff <(grep -o '^[^=#]*' en-US/
 - [ ] **Step 2: `docs/TESTING.md`**: a section « Établi de l'architecte (DO-2a) » after the DO-1 section, numbered from its last step + 1. Pack on: `"SubPlugins": {"DomumOrnamentum": true}`. Steps:
   1. **Emplacements visibles.** Clic sur l'établi posé : la fenêtre s'ouvre, et les 2 emplacements de l'établi s'affichent à côté de l'inventaire. **Si les emplacements ne s'affichent pas, s'arrêter et le signaler.**
   2. **Fabriquer l'établi** au `Workbench` (catégorie Crafting) : 1 lingot de fer, 3 dalles de pierre, 3 troncs. Le poser : il est tourné vers le joueur et ressemble à l'établi de construction vanilla.
-  3. **Onglets et formes.** Les onglets suivent l'ordre vanilla, colombages, bardeaux, portes, trappes, panneaux, piliers, vitres encadrées, poteaux. Chaque forme a son icône, et le nom de la forme choisie s'affiche.
+  3. **Onglets et formes.** Les onglets suivent l'ordre vanilla, colombages, bardeaux, trappes, portes, panneaux, vitres encadrées, piliers, poteaux. Chaque forme a son icône, et le nom de la forme choisie s'affiche.
   4. **Fabrications.**
      - Colombage (planches + terre cuite blanche) : 4 objets.
      - Bardeau : 4.

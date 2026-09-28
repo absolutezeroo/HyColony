@@ -14,11 +14,11 @@ Source : `docs/research/domum-ornamentum.md` § A.3 (cutter DO) et § B « 6. Ar
 
 - **L'établi** : bloc et objet `HyColony_DO_ArchitectsCutter`, dans le pack DO (`plugin/src/subplugins/DomumOrnamentum`). Recette DO (`DO-gen: recipes/architectscutter.json` : 1 lingot de fer, 3 dalles de pierre, 3 bûches) transposée à l'établi de base Hytale (`Workbench`) : 1 lingot de fer, 3 dalles de pierre, 3 troncs (tout bois). Il se pose tourné vers le joueur (`NESW`), se casse et se ramasse comme un établi vanilla.
 - **La fenêtre**, d'après `ArchitectsCutterScreen` de DO :
-  - des **onglets de groupes**, dans l'ordre du cutter DO (tri sur l'id de groupe du manifeste : `avanilla`, `btimberframe`, `cshingle`, `ddoor`, `etrapdoor`, `fpanel`, `gpillar`, `hpaperwall`, `kpost` ; les groupes sans forme en DO-1, `ilight` et `jbrick`, n'apparaissent pas) ;
-  - la **grille des formes** du groupe choisi, chacune avec l'icône et le nom de son gabarit ;
+  - des **onglets de groupes**, dans l'ordre du cutter DO (`SortedBlocks` : `avanilla`, `btimberframe`, `cshingle`, `etrapdoor`, `ddoor`, `fpanel`, `hpaperwall`, `gpillar`, `kpost` ; les groupes sans forme en DO-1, `ilight` et `jbrick`, n'apparaissent pas) ;
+  - la **grille des formes** du groupe choisi, chacune avec l'icône et le nom de son gabarit, dans l'ordre de l'index DO de chaque forme (`SortedBlocks`) ; les vitres encadrées, sans index DO, sont en fin, dans l'ordre du manifeste ;
   - **2 emplacements de matériaux** (1 pour une forme à un matériau), chacun avec son étiquette (« Cadre », « Centre », « Toit », « Support », « Matériau »…) ;
   - l'**aperçu** : l'icône de la variante et la quantité produite, ou la raison d'un refus.
-- **Fabriquer** : le cœur vérifie les matériaux contre les tags DO (`VariantRequests`, DO-1), la variante est créée si elle n'existe pas (un scintillement au plus pour une nouvelle paire), puis **1** de chaque matériau requis est retiré (`ArchitectsCutterRecipe`, `remove(1)`) et la quantité DO est donnée au joueur : colombages, bardeaux, demi-bardeau 4 ; murs de papier 6 ; porte et trappe ouvragées 2 ; panneaux 4 ; dalle 2 ; le reste 1 (`cutterQuantity` du manifeste, déjà généré). Inventaire plein : le reste tombe aux pieds du joueur.
+- **Fabriquer** : le cœur vérifie les matériaux contre les tags DO (`VariantRequests`, DO-1), la variante est créée si elle n'existe pas (un scintillement au plus pour une nouvelle paire), puis **1** de chaque matériau requis est retiré (`ArchitectsCutterContainer`, `onTake`, `remove(1)`) et la quantité DO est donnée au joueur : colombages, bardeaux, demi-bardeau 4 ; murs de papier 6 ; porte et trappe ouvragées 2 ; panneaux 4 ; dalle 2 ; le reste 1 (`cutterQuantity` du manifeste, déjà généré). Comme `ArchitectsCutterRecipe.assemble`, la quantité donnée est `max(nombre de matériaux, cutterQuantity)`. Inventaire plein : le reste tombe aux pieds du joueur.
 - **Refus sans rien consommer** : un matériau hors tag (message avec l'emplacement et des matériaux acceptés, comme `/hyornament give`), un emplacement requis vide.
 - **Emplacements du bloc** : les matériaux posés restent dans l'établi quand on ferme la fenêtre, gardés au rechargement du monde, et tombent au sol quand on casse l'établi, comme un établi vanilla. Deux joueurs sur le même établi partagent ses emplacements.
 
@@ -28,12 +28,13 @@ Source : `docs/research/domum-ornamentum.md` § A.3 (cutter DO) et § B « 6. Ar
 - **Aperçu** : l'icône de la variante n'existe qu'une fois la variante créée ; avant, l'aperçu montre l'icône du gabarit, avec la quantité. `Deviation from MC: the cutter previews the template's icon until the variant exists`.
 - **Second matériau facultatif** (porte ouvragée) : vide, il reprend le premier, comme DO-1 (`VariantRequests`). DO refuse un emplacement vide dans `matches` (A.3) : ici on accepte, comme le reste de DO-1.
 - **Recette de l'établi** : ingrédients transposés (troncs pour bûches), à l'établi `Workbench`.
+- **Groupe inconnu** : `SortedBlocks.sortGroups` de DO lève une exception sur un groupe sans index ; ici, un tel groupe va en fin, par id (`CutterOrder`). Aucun groupe du manifeste n'est dans ce cas.
 
 ## Architecture
 
 ### Cœur (`core/.../ornament/cutter`, Java pur, testé)
 
-- **`CutterCatalog`** : groupes triés par id, formes de chaque groupe dans l'ordre du manifeste ; construit depuis `ShapeCatalog` (DO-1). Un groupe sans forme est absent.
+- **`CutterCatalog`** : groupes et formes dans l'ordre de `SortedBlocks` de DO (index par groupe et par forme, repris dans `CutterOrder`) ; construit depuis `ShapeCatalog` (DO-1). Un groupe sans forme est absent. Une forme sans index DO va en fin de son groupe, dans l'ordre du manifeste.
 - **`CutterCraft`** : `check(OrnamentShape shape, List<SlotContent> slots, MaterialTags tags)` → `Ready(VariantKey key, int quantity, List<Integer> consumed)` ou `Refused(String reasonKey, int slot, Set<String> allowed)`. `SlotContent` = id d'objet (ou vide) et quantité. S'appuie sur `VariantRequests.check` ; un emplacement au-delà du nombre de matériaux de la forme est ignoré et n'est pas consommé.
 - **`CutterView`** (record immuable, CLAUDE.md § 7) : onglets (clé de nom, sélectionné), formes du groupe (id, clé de nom, chemin d'icône du gabarit, sélectionnée), étiquettes des emplacements, aperçu (`Empty`, `Ready` avec quantité, `Refused` avec clé de raison et paramètres).
 - **`CutterActions`** : `selectGroup`, `selectShape`, `view(slots)` ; changer de groupe choisit sa première forme. La fabrication elle-même est orchestrée par le plugin (elle attend le moteur de variantes).
