@@ -45,8 +45,8 @@ Toutes reprises de MC, sauf les écarts listés plus bas. Chaque classe portée 
 
 - Type `hycolony:farmer`, niveaux 1 à 5. Objet et bloc de hutte : `HyColony_Hut_Farmer` (clé d'id-map `hut.farmer`), sur le modèle des huttes existantes (`HyColony_Hut_Courier.json`).
 - **Modules, dans cet ordre :**
-  1. `WorkerModule(FarmerJob.TYPE, Stamina, Athletics, 1, false)` : 1 fermier, pas de travail sous la pluie (MC `FARMER_CRAFT`) ;
-  2. `CraftingModule("hycolony:farmer", true)` (MC `FARMER_WORK`) ;
+  1. `CraftingModule("hycolony:farmer", true)` (MC `FARMER_WORK`) ;
+  2. `WorkerModule(FarmerJob.TYPE, Stamina, Athletics, 1, false)` : 1 fermier, pas de travail sous la pluie (MC `FARMER_CRAFT`) ;
   3. `FarmerFieldsModule` ;
   4. `FarmerSettingsModule` : `fertilize` vaut `true` par défaut.
 - **Niveau 0** : le fermier reste en préparation, bloqué (MC § 3.3, étape 1).
@@ -125,7 +125,7 @@ Toutes reprises de MC, sauf les écarts listés plus bas. Chaque classe portée 
 1. Hutte absente ou de niveau < 1 → bloqué.
 2. **Engrais**, en place de l'étape compost de MC (écart 1) :
    - aucun `Tool_Fertilizer` utilisable (pas usé, `ItemCatalog.wornOut`) ni dans la hutte ni dans l'inventaire, réglage activé, et pas de requête d'engrais ouverte → une `StackRequest(Tool_Fertilizer, 1, 1)` ;
-   - un engrais dans la hutte mais pas dans l'inventaire → `GATHERING_REQUIRED_MATERIALS` pour 1 engrais.
+   - un engrais dans la hutte mais pas dans l'inventaire → le fermier va le prendre à la hutte, sans quitter la préparation (écart 11).
 3. Aucun champ possédé → bloqué, avec le message « Placez d'autres champs pour me faire travailler » (MC `entity.farmer.nofreefields`, par le mécanisme de message existant), puis `IDLE`.
 4. Champ à travailler absent → `IDLE`.
 5. Houe manquante → `ToolRequests.requestTool(HOE)`, bloqué.
@@ -168,7 +168,7 @@ Toutes reprises de MC, sauf les écarts listés plus bas. Chaque classe portée 
   - la surface n'est pas labourable (les 16 sols de H § 2.1) ;
   - ou elle est **déjà labourée**.
 - **Labourer** :
-  - casser le bloc au-dessus s'il est remplaçable : +1 action et +0,05 XP s'il n'est pas vide ;
+  - casser le bloc au-dessus, son butin tombe au sol, sans action ni XP (écart 10) ;
   - `till(surface)` par le port ;
   - 1 de durabilité à la houe ;
   - `didWork`.
@@ -264,6 +264,10 @@ Il vit dans `farming` (et non `kernel/port`, déjà à 15 fichiers), comme `Reci
 7. **Graines fabriquées par la hutte.** Une culture Hytale mûre ne rend pas sa graine (H § 0). Le fermier redemande des graines, que sa propre fabrication résout avec l'essence récoltée. Ses recettes de graines sont intégrées selon le niveau de sa table.
 8. **Maturité et pousse de Hytale.** Les cultures poussent au temps (48 minutes réelles environ), sans lumière ni eau obligatoire. Le fermier ne fait que lire la maturité.
 9. **Pas de recherche** (doublement de récolte, etc.) tant que l'université n'existe pas.
+10. **Bloc au-dessus d'une case à labourer.** Tout bloc est traité comme les plantes remplaçables de MC : cassé, butin au sol, sans action ni XP. MC mine un bloc non remplaçable (fleur, torche) dans l'inventaire, avec +1 action et +0,05 XP ; le cœur n'a pas d'indicateur « remplaçable ».
+11. **Engrais pris à la hutte pendant la préparation**, sans passer par `GATHERING_REQUIRED_MATERIALS`.
+12. **Requêtes de graines et d'engrais au nom de la hutte**, pas du citoyen : le fermier n'attend pas la livraison et reprend les objets dans la hutte à la préparation suivante, sans l'état `NEEDS_ITEM` de MC.
+13. **Pas de faim ni de case sautée pour la citrouille et le melon** : les citoyens ne mangent pas encore (pas de saturation dépensée au labour et à la plantation), et la citrouille de Hytale n'a pas de tige, donc pas de case laissée libre pour son fruit.
 
 ## Architecture
 

@@ -411,3 +411,7 @@ Chaque écart porte un commentaire `Deviation from MC:` dans le code (CLAUDE.md 
 - **Graines fabriquées par la hutte** (`hycolony/crafting.json`) : une culture mûre de Hytale ne rend pas sa graine. Le fermier redemande ses graines, que sa propre fabrication résout avec l'essence récoltée ; ses recettes de graines sont intégrées selon le niveau de sa table.
 - **Maturité et pousse de Hytale** (`plugin/farming/HytaleFarming`) : les cultures poussent au temps, sans lumière ni eau obligatoire, et le fermier ne fait que lire la maturité. Une culture éternelle récoltée repart de sa première étape, là où la récolte de Hytale la renvoie à `Stage1`.
 - **Pas de recherche** (doublement de récolte, etc.) tant que l'université n'existe pas.
+- **Bloc au-dessus d'une case à labourer** (`farming/job/FieldPass.hoe`) : tout bloc est cassé comme une plante remplaçable, butin au sol, sans action ni XP ; MineColonies mine un bloc non remplaçable (fleur, torche) dans l'inventaire (+1 action, +0,05 XP).
+- **Engrais pris pendant la préparation** (`farming/job/FarmWork.fertilizerReady`), sans l'état `GATHERING_REQUIRED_MATERIALS`.
+- **Requêtes de graines et d'engrais au nom de la hutte** (`farming/job/FarmWork.askOnce`) : le fermier n'attend pas la livraison et reprend les objets à la hutte, sans l'état `NEEDS_ITEM`.
+- **Ni faim ni case sautée pour la citrouille et le melon** (`farming/job/FieldPass.plant`) : pas de saturation dépensée au labour et à la plantation, et pas de case laissée libre pour le fruit (la citrouille de Hytale n'a pas de tige).
