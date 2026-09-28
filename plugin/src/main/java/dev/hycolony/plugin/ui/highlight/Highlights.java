@@ -42,7 +42,8 @@ public final class Highlights {
         World world = entity.getStore().getExternalData().getWorld();
         Active previous = ACTIVE.remove(player);
         if (previous != null) {
-            previous.glow().ifPresent(g -> GlowingBlock.remove(world, g));
+            World glowWorld = Universe.get().getWorld(previous.world()); // it may have been asked in another world
+            previous.glow().ifPresent(g -> GlowingBlock.remove(glowWorld == null ? world : glowWorld, g));
             if (previous.highlight().anchor().equals(h.anchor()) && previous.until() >= System.currentTimeMillis()) {
                 return; // the same one again: turned off
             }

@@ -15,19 +15,16 @@ import com.hypixel.hytale.server.core.entity.entities.BlockEntity;
 import com.hypixel.hytale.server.core.modules.entity.DespawnComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.EntityScaleComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.Intangible;
+import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.physics.component.Velocity;
 import com.hypixel.hytale.server.core.modules.time.TimeResource;
 import com.hypixel.hytale.server.core.universe.world.World;
-import com.hypixel.hytale.server.core.universe.world.chunk.section.BlockSection;
-import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.kernel.BlockPos;
-import dev.hycolony.plugin.block.HytaleSections;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Level;
 import org.joml.Vector3d;
-import org.jspecify.annotations.Nullable;
 
 /**
  * A glowing copy of a block: a block entity of the same block, a little larger, intangible and still, carrying the
@@ -53,13 +50,18 @@ public final class GlowingBlock {
     /** Spawns the glowing copy of the block at {@code pos} for {@code millis}; its uuid, empty on air or a failure. */
     static Optional<UUID> spawn(World world, BlockPos pos, long millis) {
         try {
-            BlockType type = typeAt(world, pos);
-            if (type == null) {
+            PlacedBlock block = PlacedBlock.at(world, pos);
+            if (block == null) {
                 return Optional.empty();
             }
             Store<EntityStore> store = world.getEntityStore().getStore();
             TimeResource time = store.getResource(TimeResource.getResourceType());
-            Holder<EntityStore> holder = BlockEntity.assembleDefaultBlockEntity(time, type.getId(), centre(pos, type));
+            Vector3d centre = centre(pos, block.type());
+            Holder<EntityStore> holder =
+                    BlockEntity.assembleDefaultBlockEntity(time, block.type().getId(), centre);
+            // Turned as the real block (its VariantRotation), as CarriedBlock turns a dropped block's entity.
+            holder.putComponent(
+                    TransformComponent.getComponentType(), new TransformComponent(centre, block.rotation()));
             holder.putComponent(
                     DespawnComponent.getComponentType(), DespawnComponent.despawnInMilliseconds(time, millis));
             holder.removeComponent(Velocity.getComponentType()); // no physics pushing it out of the real block
@@ -78,13 +80,17 @@ public final class GlowingBlock {
 
     /** Removes the copy {@code id} if it is still there. */
     static void remove(World world, UUID id) {
-        Store<EntityStore> store = world.getEntityStore().getStore();
-        world.execute(() -> {
-            Ref<EntityStore> ref = store.getExternalData().getRefFromUUID(id);
-            if (ref != null && ref.isValid()) {
-                store.removeEntity(ref, RemoveReason.REMOVE);
-            }
-        });
+        try {
+            Store<EntityStore> store = world.getEntityStore().getStore();
+            world.execute(() -> {
+                Ref<EntityStore> ref = store.getExternalData().getRefFromUUID(id);
+                if (ref != null && ref.isValid()) {
+                    store.removeEntity(ref, RemoveReason.REMOVE);
+                }
+            });
+        } catch (RuntimeException e) {
+            LOG.at(Level.WARNING).withCause(e).log("HyColony highlight: cannot remove the glow %s", id);
+        }
     }
 
     private static void add(Store<EntityStore> store, Holder<EntityStore> holder) {
@@ -104,14 +110,5 @@ public final class GlowingBlock {
         BlockBoundingBoxes boxes = BlockBoundingBoxes.getAssetMap().getAsset(type.getHitboxTypeIndex());
         double height = boxes == null ? 1 : boxes.get(0).getBoundingBox().height();
         return new Vector3d(pos.x() + 0.5, pos.y() + height / 2, pos.z() + 0.5);
-    }
-
-    private static @Nullable BlockType typeAt(World world, BlockPos pos) {
-        Ref<ChunkStore> section = HytaleSections.section(world, pos);
-        BlockSection blocks = section == null
-                ? null
-                : world.getChunkStore().getStore().getComponent(section, BlockSection.getComponentType());
-        int id = blocks == null ? BlockType.EMPTY_ID : blocks.get(pos.x(), pos.y(), pos.z());
-        return id == BlockType.EMPTY_ID ? null : BlockType.getAssetMap().getAsset(id);
     }
 }
