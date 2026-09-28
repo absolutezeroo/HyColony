@@ -82,4 +82,34 @@ class CutterCraftTest {
         assertInstanceOf(
                 CutterCraft.Refused.class, CutterCraft.check(frame, List.of(one(OAK), SlotContent.EMPTY), TAGS));
     }
+
+    @Test
+    void quantityIsAtLeastTheMaterialCountAsInDo() {
+        OrnamentShape two = new OrnamentShape("Two", "HyColony_DO_Two", "g", List.of("frame", "centre"), false, 1);
+        var ready = (CutterCraft.Ready) CutterCraft.check(two, List.of(one(OAK), one(STONE)), TAGS);
+        assertEquals(2, ready.quantity());
+    }
+
+    @Test
+    void oneMaterialShapeOfQuantityOneGivesOne() {
+        OrnamentShape single = new OrnamentShape("One", "HyColony_DO_One", "g", List.of("slab"), false, 1);
+        var ready = (CutterCraft.Ready) CutterCraft.check(single, List.of(one(STONE)), TAGS);
+        assertEquals(1, ready.quantity());
+    }
+
+    @Test
+    void emptyFirstSlotIsRefusedEvenWhenTheShapeCallsItOptional() {
+        OrnamentShape odd = new OrnamentShape("Odd", "HyColony_DO_Odd", "g", List.of("slab"), true, 1);
+        var refused = (CutterCraft.Refused) CutterCraft.check(odd, List.of(SlotContent.EMPTY), TAGS);
+        assertEquals("hycolony.ornament.cutter.emptySlot", refused.reasonKey());
+        assertEquals(0, refused.slot());
+    }
+
+    @Test
+    void itemWithNoQuantityCountsAsEmpty() {
+        var refused =
+                (CutterCraft.Refused) CutterCraft.check(frame, List.of(one(OAK), new SlotContent(STONE, 0)), TAGS);
+        assertEquals("hycolony.ornament.cutter.emptySlot", refused.reasonKey());
+        assertEquals(1, refused.slot());
+    }
 }

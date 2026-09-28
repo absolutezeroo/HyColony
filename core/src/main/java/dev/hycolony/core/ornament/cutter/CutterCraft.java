@@ -10,8 +10,9 @@ import java.util.Set;
 
 /**
  * The architect's cutter recipe (MC DO ArchitectsCutterRecipe): each slot of the shape must hold a material of its
- * tag; crafting gives the shape's cutter quantity and takes 1 from each slot used (remove(1)). Slots past the shape's
- * material count are ignored and kept.
+ * tag, and crafting gives the shape's cutter quantity, at least one per material. Taking the result removes 1 from
+ * each slot used (MC DO ArchitectsCutterContainer output slot {@code onTake}, {@code remove(1)}); slots past the
+ * shape's material count are ignored and kept.
  *
  * <p>Deviation from MC: an empty optional second slot is accepted and repeats the first (DO-1 VariantRequests); DO's
  * matches() refuses it.
@@ -45,7 +46,8 @@ public final class CutterCraft {
         for (int slot = 0; slot < shape.slotCount(); slot++) {
             SlotContent content = slot < slots.size() ? slots.get(slot) : SlotContent.EMPTY;
             if (content.isEmpty()) {
-                if (shape.optionalSecond() && slot == shape.slotCount() - 1) {
+                // DO's first component is never optional, whatever a malformed manifest entry says.
+                if (slot > 0 && shape.optionalSecond() && slot == shape.slotCount() - 1) {
                     continue;
                 }
                 return new Refused(
@@ -55,8 +57,13 @@ public final class CutterCraft {
             consumed.add(slot);
         }
         return switch (VariantRequests.check(shape, materials, tags)) {
-            case VariantRequests.Accepted accepted -> new Ready(accepted.key(), shape.cutterQuantity(), consumed);
+            case VariantRequests.Accepted accepted -> new Ready(accepted.key(), quantity(shape), consumed);
             case VariantRequests.Refused refused -> new Refused(refused.reasonKey(), refused.slot(), refused.allowed());
         };
+    }
+
+    /** How many one craft gives: at least one per material (MC DO ArchitectsCutterRecipe.assemble). */
+    private static int quantity(OrnamentShape shape) {
+        return Math.max(shape.slotCount(), shape.cutterQuantity());
     }
 }
