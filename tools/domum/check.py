@@ -1,5 +1,6 @@
-"""Self-check of the converter and the Domum Ornamentum family table, offline: python tools/domum/check.py (exits
-non-zero on failure)."""
+"""Self-check of the Domum Ornamentum generator: python tools/domum/check.py (exits non-zero on failure). Tests on
+real DO data call source.fetch(), which downloads DO's pinned commit once into build/domum-cache/ (network needed
+on the first run only)."""
 
 import tempfile
 from pathlib import Path
@@ -223,12 +224,30 @@ def clean_resolves_every_do_default_state():
             assert faces.overlapping_pairs(model) == [], block
 
 
+def multipart_or_condition_matches_any_branch():
+    state = {"multipart": [{"when": {"OR": [{"north": "true"}, {"south": "true"}]}, "apply": {"model": "p/side"}}]}
+    assert [p["model"] for p in assemble.parts(state, {"north": "false", "south": "true"})] == ["p/side"]
+    assert assemble.parts(state, {"north": "false", "south": "false"}) == []
+
+
+def inner_tilt_follows_a_model_turn():
+    """rotate_y carries an element's own tilt: a 22.5 degree tilt about z becomes -22.5 about x after a
+    90 degree turn (Minecraft's z axis maps onto -x), its origin turned with the element."""
+    model = {"textures": {}, "elements": [{"from": [2, 14, 15], "to": [14, 16, 16], "faces": {},
+             "rotation": {"angle": 22.5, "axis": "z", "origin": [8, 8, 10]}}]}
+    rotation = assemble.rotate_y(model, 90)["elements"][0]["rotation"]
+    assert rotation["axis"] == "x" and rotation["angle"] == -22.5, rotation
+    assert rotation["origin"] == [6, 8, 8], rotation
+
+
 def main():
     converter_matches_reference_geometry()
     families_cover_the_spec()
     material_follows_component_order()
     rotate_y_turns_north_face_to_east()
     multipart_keeps_matching_parts_only()
+    multipart_or_condition_matches_any_branch()
+    inner_tilt_follows_a_model_turn()
     uvlock_recomputes_uv_from_rotated_bounds()
     state_model_assembles_real_do_data()
     uvlock_families_assemble_without_error()

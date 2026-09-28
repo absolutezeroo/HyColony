@@ -15,6 +15,7 @@ from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "decorations"))
 from models import empty_shape, face_rects, node, walk, xyz  # noqa: E402
+from assemble import default_uv
 
 UNITS = 2  # blockymodel units per Minecraft pixel
 TEXELS = 2  # plank texture pixels per Minecraft uv unit (a 32 px texture over uv 0..16)
@@ -41,14 +42,6 @@ def face_size(direction, size):
     sx, sy, sz = size
     return {"north": (sx, sy), "south": (sx, sy), "west": (sz, sy), "east": (sz, sy),
             "up": (sx, sz), "down": (sx, sz)}[direction]
-
-
-def default_uv(direction, low, high):
-    """Minecraft's uv for a face that declares none: the element's own position on the face."""
-    (x1, y1, z1), (x2, y2, z2) = low, high
-    return {"north": (16 - x2, 16 - y2, 16 - x1, 16 - y1), "south": (x1, 16 - y2, x2, 16 - y1),
-            "west": (z1, 16 - y2, z2, 16 - y1), "east": (16 - z2, 16 - y2, 16 - z1, 16 - y1),
-            "up": (x1, z1, x2, z2), "down": (x1, 16 - z2, x2, 16 - z1)}[direction]
 
 
 def face_image(tiled, uv, rotation, width, height):

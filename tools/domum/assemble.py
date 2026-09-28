@@ -64,8 +64,7 @@ def _possible_values(state):
     values = {}
     if "multipart" in state:
         for entry in state["multipart"]:
-            for key, value in (entry.get("when") or {}).items():
-                values.setdefault(key, set()).update(value.split("|"))
+            _collect_when(entry.get("when") or {}, values)
         return values
     for key_str in state["variants"]:
         for pair in key_str.split(","):
@@ -76,6 +75,15 @@ def _possible_values(state):
     return values
 
 
+def _collect_when(when, values):
+    for key, value in when.items():
+        if key in ("OR", "AND"):
+            for condition in value:
+                _collect_when(condition, values)
+        else:
+            values.setdefault(key, set()).update(str(value).split("|"))
+
+
 def _default_value(key, possible):
     for candidate in _PREFERRED.get(key, ()):
         if candidate in possible:
@@ -84,7 +92,15 @@ def _default_value(key, possible):
 
 
 def _when_matches(when, props):
-    return not when or all(props.get(key) in value.split("|") for key, value in when.items())
+    """Minecraft's multipart condition (MC MultiPart / KeyValueCondition): no condition matches everything; an
+    "OR" or "AND" key holds a list of conditions; otherwise every property must take one of its "a|b" values."""
+    if not when:
+        return True
+    if "OR" in when:
+        return any(_when_matches(c, props) for c in when["OR"])
+    if "AND" in when:
+        return all(_when_matches(c, props) for c in when["AND"])
+    return all(props.get(key) in str(value).split("|") for key, value in when.items())
 
 
 def rotate_y(model, degrees, uvlock=False):
@@ -125,7 +141,7 @@ def _rotate_element(element, k, axis, face_map, uvlock):
     for direction, face in element["faces"].items():
         new_direction = face_map.get(direction, direction)
         if uvlock and k:
-            face = {**face, "uv": list(_default_uv(new_direction, new_from, new_to))}
+            face = {**face, "uv": list(default_uv(new_direction, new_from, new_to))}
         faces[new_direction] = face
     result = {**element, "from": new_from, "to": new_to, "faces": faces}
     if "rotation" in element:
@@ -133,10 +149,10 @@ def _rotate_element(element, k, axis, face_map, uvlock):
     return result
 
 
-def _default_uv(direction, low, high):
-    """Minecraft's uv for a face that declares none: the element's own position on the face. Reused by
-    uvlock (_rotate_element) to keep a texture world-aligned after a rotation; kept local, matching
-    convert.py's own default_uv, so assemble.py does not depend on convert.py."""
+def default_uv(direction, low, high):
+    """Minecraft's uv for a face that declares none: the element's own position on the face (MC
+    BlockElement.uvsByFace). Used by uvlock (_rotate_element) to keep a texture world-aligned after a rotation,
+    and by convert.py for faces without uv."""
     (x1, y1, z1), (x2, y2, z2) = low, high
     return {
         "north": (16 - x2, 16 - y2, 16 - x1, 16 - y1),

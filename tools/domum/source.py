@@ -13,6 +13,7 @@ MODEL_PATH = "src/main/resources/assets/domum_ornamentum/models/block/"
 # the actual geometry; that wrapper's own "parent" points back to the matching "_spec" file under MODEL_PATH.
 GENERATED_MODEL_PATH = "src/datagen/generated/domum_ornamentum/assets/domum_ornamentum/models/block/"
 BLOCKSTATE_PATH = "src/datagen/generated/domum_ornamentum/assets/domum_ornamentum/blockstates/"
+TIMEOUT_S = 30  # seconds per GitHub request: a stalled download fails instead of hanging
 CACHE = Path(__file__).resolve().parents[2] / "build" / "domum-cache" / COMMIT
 DO_PARENT = "domum_ornamentum:block/"
 
@@ -36,7 +37,7 @@ def fetch():
     if is_complete(CACHE):
         return CACHE
     tree_url = f"https://api.github.com/repos/{REPO}/git/trees/{COMMIT}?recursive=1"
-    tree = json.loads(urllib.request.urlopen(tree_url).read())
+    tree = json.loads(urllib.request.urlopen(tree_url, timeout=TIMEOUT_S).read())
     for entry in tree["tree"]:
         path = entry["path"]
         if path.startswith(MODEL_PATH) and path.endswith(".json"):
@@ -52,7 +53,7 @@ def fetch():
 def _download(repo_path, target):
     target.parent.mkdir(parents=True, exist_ok=True)
     raw = f"https://raw.githubusercontent.com/{REPO}/{COMMIT}/{repo_path}"
-    target.write_bytes(urllib.request.urlopen(raw).read())
+    target.write_bytes(urllib.request.urlopen(raw, timeout=TIMEOUT_S).read())
 
 
 def blockstate(root, block_id):
