@@ -140,6 +140,7 @@ La section client `pathfinding` est vide (CC:34).
 | `AutosaveIntervalMinutes` | 5 | 1-60 | **ajout HyColony** (MC sauvegarde avec le monde Minecraft) | oui, `plugin:WorldRuntime.java:98` |
 | `BuilderInfiniteResources` | false | - | voir remarque | oui, `core:construction/workorder/WorkManager.java:118` |
 | `CreativeOperatorFreeBuilds` | true | - | **ajout HyColony**, écart documenté (`WorkManager.java:110-114`) | oui, `WorkManager.java:119` |
+| `CutterCraftSeconds` | 0.5 | 0-10 | **ajout HyColony** : durée d'une fabrication à l'établi de l'architecte (Domum Ornamentum fabrique d'un coup ; 0 retrouve ce comportement) | oui, `plugin:ornament/cutter/CutterCraftQueue.java` |
 
 Remarque sur `BuilderInfiniteResources` : sur `version/main`, ce n'est **pas** une option de configuration MC. C'est un champ statique non final `Constants.BUILDER_INF_RESOURECES = false` (`api/util/constant/Constants.java:189`), lu par `AbstractEntityAIStructureWithWorkOrder.java:198` et `BuildingStructureHandler.java:290`, et jamais affecté ailleurs dans `src/`. La Javadoc HyColony qui dit « MC builderInfiniteResources » (`ColonyConfig.java:12`, `WorkManager.java:110`) désigne une ancienne option ; l'exposer est donc un écart à signaler (`Deviation from MC:`).
 
@@ -232,7 +233,8 @@ Vérifié (clone MC `6b3916a1`) : ce ne sont pas des écarts. `BuilderStock.ACTI
   "HyColony": {
     "AutosaveIntervalMinutes": 5,
     "BuilderInfiniteResources": false,
-    "CreativeOperatorFreeBuilds": true
+    "CreativeOperatorFreeBuilds": true,
+    "CutterCraftSeconds": 0.5
   }
 }
 ```
