@@ -16,6 +16,7 @@ import dev.hycolony.core.kernel.config.ColonyConfig;
 import dev.hycolony.core.kernel.event.EventBus;
 import dev.hycolony.core.testing.crafting.FakeRecipeCatalog;
 import dev.hycolony.core.testing.crafting.TestCrafters;
+import dev.hycolony.core.testing.farming.FakeFarming;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -25,6 +26,7 @@ import java.util.random.RandomGenerator;
 
 /** A fully faked colony context. Fields are public so tests can steer the fakes. */
 public final class TestContexts {
+    public final FakeFarming farming = new FakeFarming();
     public final FakeClock clock = new FakeClock();
     public final FakeBodies bodies = new FakeBodies();
     public final FakeWorld world = new FakeWorld();
@@ -94,6 +96,7 @@ public final class TestContexts {
                         playerInventory,
                         blueprints,
                         effects,
-                        new CraftingSetup(recipes, craftingRules)));
+                        new CraftingSetup(recipes, craftingRules),
+                        farming));
     }
 }

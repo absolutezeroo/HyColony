@@ -256,7 +256,7 @@ public final class HytaleItemCatalog implements ItemCatalog {
         String gather = switch (type) {
             case PICKAXE -> "Rocks";
             case AXE -> "Woods";
-            case SHOVEL -> "Soils";
+            case SHOVEL, HOE -> "Soils";
         };
         ItemToolSpec spec = null;
         if (tool.getSpecs() != null) {

@@ -9,6 +9,7 @@ import dev.hycolony.core.colony.ConstructionPorts;
 import dev.hycolony.core.construction.goggles.BuildGoggles;
 import dev.hycolony.core.construction.wand.WandActions;
 import dev.hycolony.core.crafting.recipe.CraftingSetup;
+import dev.hycolony.core.farming.FarmingAccess;
 import dev.hycolony.core.kernel.WorldKey;
 import dev.hycolony.core.kernel.config.ColonyConfig;
 import dev.hycolony.core.kernel.event.EventBus;
@@ -108,7 +109,8 @@ public final class WorldRuntime {
                 new HytaleBlueprintSource(ids, setup.styles()),
                 new HytaleWorldEffects(world, ids.fireworks()),
                 // Read here, before openStorage loads the colonies: a load drops every learnt recipe it does not know.
-                new CraftingSetup(HytaleRecipeCatalog.load(), setup.craftingRules()));
+                new CraftingSetup(HytaleRecipeCatalog.load(), setup.craftingRules()),
+                FarmingAccess.NONE); // SP3b-2 Task 10 wires HytaleFarming
     }
 
     /** Points the colonies' persistence at the world's save folder; reads them only when {@code enabled}. */
