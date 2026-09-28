@@ -164,6 +164,243 @@ D'après les noms de `zip: Server/Item/Items/**` et la liste des catégories de 
 | Briques DO, blocs « extra » | Briques `Rock_*_Brick` (16 roches), `Soil_Clay_*`, laine colorée | Moyenne (teintes différentes) |
 | Tapis flottant, tonneau | `Furniture_Royal_Magic_Carpet`, `Furniture_*_Barrel` (non craftables, voir `prefab-obtainability.md`) | Faible |
 
+### B.9 Banc d'essai du 2026-09-28 : défauts et causes
+
+Banc : commit `bd451ec`, générateur `tools/domum/`, sous-plugin `plugin/src/subplugins/DomumOrnamentum/`, modèles DO du commit `82729d6` (cache `build/domum-cache/`). Blockstates DO lus sur `raw.githubusercontent.com/ldtteam/Domum-Ornamentum/82729d6…/src/datagen/generated/domum_ornamentum/assets/domum_ornamentum/blockstates/*.json` (abrégé `DO bs:`). Les chemins `G:` sont relatifs à `plugin/src/subplugins/DomumOrnamentum/Common/Blocks/HyColony/DO/`, `zip:` renvoie à l'archive d'assets 0.6.8. Défauts signalés en jeu par l'utilisateur.
+
+**Cause commune.** Le générateur convertit **chaque fichier de modèle DO en un objet statique**. Or un bloc DO est **assemblé par son blockstate** : pièces multipart, forme choisie selon les voisins, rotation par `facing`, moitié haute ou basse. Il prend aussi un **matériau par composant**. Le générateur ne reprend rien de cela (`tools/domum/source.py:49-66`, `generate.py:44-51`). La plupart des défauts en découlent.
+
+1. **Textures qui scintillent : faces coplanaires qui se chevauchent (z-fighting), présentes dans la géométrie DO.**
+   - Preuve : j'ai projeté toutes les faces de chaque `.blockymodel` généré dans le repère du bloc, avec l'orientation de chaque nœud, puis intersecté les polygones de même plan et de même sens.
+     - **23 modèles** ont des faces exactement coplanaires qui se recouvrent avec une **image différente** : tous les bardeaux (`Shingle_*`, `ShingleSlab_One_Way`/`_Top`), `Barrel_*` (72 à 84 paires), `TimberFrame_Dynamic_Timberframe` (143), `FancyTrapdoor_Creeper`, `Trapdoor_Horizontal_Bars`/`_Vertical_Bars`.
+     - **34 modèles** ont des faces parallèles à moins de 0,2 unité l'une de l'autre, qui se recouvrent. Cela vient des décalages de 0,01 px du modèle DO (0,02 unité), par exemple les poutres du colombage à `z = 0.01…0.99` devant le centre (`timber_frame/double_crossed_spec.json`, éléments 1 à 5). C'est aussi le cas des `AllBrick_*`, des `FramedLight_*`, des portes et des bardeaux.
+   - Le convertisseur recopie la géométrie telle quelle (`convert.py:107-129`) : ces recouvrements viennent de DO. Ce qui est **[in-game]**, c'est de savoir pourquoi Minecraft les masque (précision de profondeur ? mêmes texels ?) et Hytale non.
+   - Les bardeaux DO débordent aussi du bloc : `z` de -4 à 20 px (`shingle/straight_spec.json`). Deux bardeaux voisins superposent donc des éléments identiques, avec les mêmes UV (vérifié sur la paire `[0.82,3.29,16]` / `[0.82,3.29,-4]`).
+   - `Opacity: "Transparent"` (`generate.py:75`) n'est **pas** la cause démontrée : 901 objets vanilla `DrawType: Model` l'utilisent (établis, meubles, portes). En revanche, les blocs de structure vanilla (toits `Wood_Softwood_Roof`, piliers `Rock_Stone_Brick_Pillar_*`) ne déclarent pas d'`Opacity` et restent donc à `Solid`, la valeur par défaut (`H: server/core/asset/type/blocktype/config/BlockType.java:875`).
+   - Correctif : au moment de la conversion, supprimer ou fusionner les faces de même plan et de même sens qui se recouvrent, et pousser de ≥ 0,1 unité les faces presque coplanaires, ou retirer la face cachée. Essayer aussi `Solid` sur les formes de structure **[in-game]**.
+2. **Icônes fausses.** `tools/domum/icon.py` est un rendu isométrique maison : vue depuis +X+Y+Z (`VIEW`, l.23), faces arrière écartées (l.33), tri du peintre sur le centre des faces (l.43, l.66). Il reproduit fidèlement les défauts du modèle, et en ajoute :
+   - les bardeaux montrent leur dos (point 9) ;
+   - un pilier sans dessus apparaît ouvert (point 4) ;
+   - les pièces de mur de papier ne sont que des points ou des lattes (point 3) ;
+   - le centre des lumières est en bois (point 7) ;
+   - le tri par centre de face se trompe sur les formes imbriquées (`ShingleSlab_*`) ;
+   - le cadrage « remplir la boîte » (`MARGIN`) agrandit un poteau fin autant qu'un cube.
+
+   Vanilla ne dessine pas ses icônes à la main. `Icons/ItemsGenerated/*.png` (64×64) est produit par **l'éditeur d'assets du client**, avec la caméra `IconProperties` : bloc par défaut `Scale 0.58823`, `Translation (0, -13.5)`, `Rotation (22.5, 45, 22.5)` (`H: builtin/asseteditor/AssetSpecificFunctionality.java:537-585`). Le champ `Icon` porte `UIEditor.Icon("Icons/ItemsGenerated/{assetId}.png", 64, 64)` et `UIRebuildCaches(ITEM_ICONS)` (`H: server/core/asset/type/item/config/Item.java:99-103`). Le serveur ne sait pas rendre une icône : la génération par l'éditeur d'assets en jeu reste à essayer **[in-game]**. Correctif côté script : corriger d'abord les modèles (points 1, 3, 4, 8), puis garder `icon.py` ou passer par l'éditeur d'assets.
+3. **Murs de papier (`paperwall`, `tiledpaperwall`) cassés : ce sont des pièces de multipart converties une à une.**
+   - `DO bs: blockpaperwall.json` assemble toujours `blockpaperwall_post`, plus, pour chacune des 4 directions, `…_side_<dir>` si la direction est reliée ou `…_side_off_<dir>` sinon (`uvlock: true`). C'est une vitre MC (`AbstractBlockPane`).
+   - La pièce `post` seule ne contient que deux cubes de 2×1×2 px, en bas et en haut (`paperwall/blockpaperwall_post_spec.json`). Chaque `side_off` est une face de 2×14 px, d'épaisseur nulle, sur un côté du poteau (`[7,1,7]→[9,15,7]`). Le convertisseur en fait un quad simple face (`convert.py:140-148`).
+   - Le générateur en a fait **9 + 5 objets séparés** (`PaperWall_Post`, `PaperWall_Side_*`, `PaperWall_Side_Off_*`, `TiledPaperWall_*`), dont aucun n'est un bloc complet.
+   - Correctif : composer les pièces avant la conversion. Au minimum : poteau + 4 `side_off` (isolé), et poteau + `side_north` + `side_south` (droit). Pour la connexion, passer par un `ConnectedBlockRuleSet` à états, comme les murs de village (`connected-blocks.md`).
+4. **Piliers sans dessus ni dessous : DO omet les faces qu'un voisin cache.**
+   - `DO bs: squarepillar.json` choisit `pillar_column`, `pillar_base`, `pillar_capital` ou `full_pillar` selon les piliers au-dessus et en dessous (`PillarBlock.getStateForPlacement` / `updateShape`, `…/block/decorative/PillarBlock.java:143-154, 254-268` de DO).
+   - Le fût n'a donc **aucune face `up`/`down`** : `squarepillar_pillar_column_spec.json` n'a que N/E/S/O, et les 8 éléments de `blockpillar_pillar_column_spec.json` n'ont que des faces latérales. `base` et `capital` n'ont pas de face à l'extrémité du fût (compte des faces : `up 3 / down 1` et `up 1 / down 3`).
+   - Le convertisseur n'écrit que les faces présentes (`convert.py:111-117, 138`), et Hytale ne dessine pas une face absente de `textureLayout`. C'est l'usage vanilla : 3 116 boîtes sur 7 306 des `Common/Blocks/**.blockymodel` ont moins de 6 faces. Les `Full_Pillar` sont fermés : le trou ne touche que `Column`, `Base` et `Capital`.
+   - Vanilla ferme toujours les bouts exposés. `Pillar_Middle.blockymodel` est une seule boîte 26×32×26 avec ses 6 faces. `Pillar_Base.blockymodel` a le haut de son fût (`Top1` : pas de `bottom`, mais un `top`). Ce sont deux objets distincts, sans règle de connexion (`VariantRotation: DoublePipe`) (`zip: Common/Blocks/Structures/Pillars/`, `Server/Item/Items/Rock/Stone/Rock_Stone_Brick_Pillar_*.json`).
+   - Correctif : ajouter les faces de bout manquantes, avec la texture et l'UV par défaut de l'élément. Attention à `blockpillar` : ses 8 lames se superposent en un 16-gone. Des dessus par lame seraient coplanaires, donc z-fighting (point 1). Il faut un seul couvercle.
+5. **Portes qui ne s'ouvrent pas** (attendu). Ce qu'exige une porte vanilla (`zip: Server/Item/Items/Furniture/Crude/Furniture_Crude_Door.json`) :
+   - `IsDoor: true`, `Interactions.Use: "Door"`, `HitboxType: "Door"` ;
+   - des états `OpenDoorIn` / `OpenDoorOut` / `CloseDoorIn` / `CloseDoorOut` / `DoorBlocked`, avec `CustomModelAnimation` `Blocks/Animations/Door/Door_*.blockyanim`, `HitboxType` et `InteractionHitboxType` `Door_Open_*` ;
+   - `ConnectedBlockRuleSet` `CustomTemplate` / `DoorConnectedBlockTemplate` (portes doubles), `VariantRotation: NESW`.
+
+   Les animations visent des **noms de nœuds**. `Door_Open_In.blockyanim` anime `Door`, `Door2`, `Door-Knob`… et le nœud `Door` du modèle vanilla a sa position sur la charnière (`x = -16`, `z = 0`, porte centrée en Z, `Common/Blocks/Decorative_Sets/Crude/Door.blockymodel`). La porte DO convertie est à plat le long de X = 0…3 px (orientation « est » de MC) et ses nœuds s'appellent `E0…En`. Il faut regrouper ses éléments sous un nœud `Door` pivoté sur la charnière et la réorienter (point 8).
+
+   Trappe vanilla : états `OpenDoorOut` / `CloseDoorOut`, animations `Trapdoor_*.blockyanim` sur le nœud `Door`, hitbox `Trapdoor` (Y 0,8…1). Le modèle est **en haut du bloc** (Y 26…35,7 unités, charnière à `z = -15`). Nos trappes et panneaux n'ont pas de `HitboxType` : leur collision est celle d'un cube plein (`generate.py:85-86`, porte seule).
+6. **Établi de l'architecte présent** : `source.shapes` parcourt tout le cache (`rglob`, `source.py:53`) et retient `architectscutter.json` (racine, avec `elements`). `names.py:5` lui donne même un nom (`"": ("Cutter", …)`), d'où `HyColony_DO_Cutter`. Correctif : ignorer le dossier racine (`folder == ""`).
+7. **Lumières encadrées sans lumière.**
+   - Dans DO, le centre est un composant de matériau à part, `FRAMED_LIGHT_CENTER`, par défaut `block/glowstone`. Le bloc émet `lightLevel(state -> 15)` quel que soit le matériau (`…/block/decorative/FramedLightBlock.java:73, 87-95` de DO).
+   - `convert.material` range tout ce qui n'est pas le cadre dans `light` (Lightwood) (`convert.py:23-36`) : le centre devient du bois. `item()` n'écrit aucun `Light` (`generate.py:67-86`).
+   - Vanilla : `BlockType.Light` (`ColorLight`, `H: BlockType.java:245-252`), par exemple `"Light": {"Color": "#a72"}` et `CubeShadingMode: "Fullbright"` (`Build_Lightsource_Orange.json`), ou `{"Radius": 0, "Color": "#dca"}` (`Deco_Lantern.json`). Côté modèle, `shadingMode: "fullbright"` par forme existe (217 formes vanilla, par exemple `Furnace_Simple.blockymodel`).
+   - Correctif : un troisième matériau « lumière » (texture claire), `shadingMode: "fullbright"` sur les éléments `#centre`, et `Light` sur le `BlockType`. Le rendu est **[in-game]**.
+8. **Orientation à la pose incohérente : chaque famille DO a son orientation brute, et le générateur applique la même `VariantRotation: NESW` sans correction** (`generate.py:78`).
+   - Orientation brute DO (variante sans `y` dans `DO bs:`) :
+     - bardeaux : `facing=east` (`shingle.json` : `east → y 360`, `north → y 270`), côté haut en +X (`shingle/straight_spec.json` : mur `[14,2,0]→[16,14,16]`) ;
+     - portes : `facing=east` (`vanilla_doors_compat.json` : `east` sans `y`, `north → y 270`) ;
+     - trappes et panneaux : `facing=south` (`vanilla_trapdoors_compat.json`, `fancy_trapdoors.json`, `panel.json` : `south → y 360`, `north → y 180`).
+   - Orientation brute vanilla : **côté haut en -Z** (`back`). J'ai mesuré sur les coins : `Stairs.blockymodel` (marche haute `z = -8`) et `Slope_Hay.blockymodel` (points les plus hauts à `z = -16`). La trappe vanilla a sa charnière en -Z, la porte est centrée en Z. Les toits sont en `NESW`, les escaliers en `UpDownNESW` (`H: VariantRotation.java:94-119`).
+   - Nos bardeaux sont donc tournés de 90° par rapport aux toits vanilla, et les trappes de 180°. Les trappes ne gèrent pas non plus la moitié haute : DO `half=top` fait `x=180`, et la trappe vanilla est en haut du bloc. Les objets symétriques (colombages, panneaux pleins) masquent l'écart, d'où l'impression d'incohérence.
+   - La rotation choisie à la pose vient du client (`BlockRotation` du paquet, `H: server/core/modules/interaction/BlockPlaceUtils.java:144`). Je n'ai pas vérifié en jeu quel lacet correspond à `None` **[in-game]**.
+   - Correctif : lors de la conversion, appliquer la rotation `y` de la variante `facing=north` du blockstate de la famille (bardeaux et portes `y 270`, trappes et panneaux `y 180`). On obtient ainsi l'orientation vanilla (haut ou charnière en -Z). Prévoir `UpDownNESW` ou un état « haut » pour les trappes et les bardeaux inversés.
+9. **Icônes des bardeaux vues de dos** : même cause que le point 8. `icon.py` regarde depuis +X+Z (`VIEW = (1,1,1)`, `iso()` « seen from +x +z »), et le bardeau brut a son côté haut en +X. On voit donc le mur arrière et le dessous. Dans ce repère, un escalier orienté comme vanilla (haut en -Z) montre sa face avant. Corriger l'orientation au point 8 corrige aussi l'icône, sans toucher à `VIEW`.
+
+### B.10 Mécanismes Hytale pour chaque comportement DO
+
+Recherche du 2026-09-28. Question : pour chaque comportement de DO, quel mécanisme natif de Hytale 0.6.8 fait la même chose, et peut-on le produire **en assets seuls** (générés au build, B.6) ou faut-il **du code de plugin** ? Sources DO au commit `82729d6`, abréviation `DO bs:` comme en B.9. Les chemins `H:` partent de `com/hypixel/hytale/`, les chemins `zip:` sont dans `release-0.6.8-Assets.zip`.
+
+Rappel commun : une forme ou un état Hytale est un `BlockType` distinct (`State.Definitions`, `connected-blocks.md` § 1), et la texture est fixée par `BlockType` (B.5). Chaque forme ci-dessous se multiplie donc par le nombre de combinaisons de matériaux générées.
+
+#### 1. Portes et trappes (y compris ouvragées)
+
+- **DO** :
+  - `vanilla_doors_compat` et `fancy_door` ont `facing`, `half`, `hinge`, `open`, `type` (`DO bs: vanilla_doors_compat.json`, 128 variantes ; `fancy_door.json`, 64). Les classes héritent de la porte MC (`DO: block/vanilla/DoorBlock.java:49`, `block/decorative/FancyDoorBlock.java:51`) ;
+  - les trappes ont `facing`, `half` (`bottom`/`top`), `open`, `type` (`DO bs: vanilla_trapdoors_compat.json`, 240 parties).
+- **Hytale** : ce qu'exige une porte vanilla est en B.9 point 5. Les mécanismes :
+  - **ouverture** : `DoorInteraction` passe à `CLOSED` si la porte est ouverte, sinon à `OPENED_OUT` si le joueur est devant, sinon à `OPENED_IN` (`H: server/core/modules/interaction/interaction/config/server/DoorInteraction.java:359-366`). Noms d'états : `H: server/core/modules/interaction/DoorBlockUtils.java:31-34`, plus `DoorBlocked` (`DoorInteraction.java:67`) ;
+  - **porte de deux blocs** : la boîte `Door` fait 1 × **2** × 0,2 (`zip: Server/Item/Block/Hitboxes/Furniture/Door/Door.json`, `Max.Y = 2`). `BlockOperations.setBlock` pose seul les blocs `filler` d'après la boîte (`H: server/core/universe/world/chunk/BlockOperations.java:104-107`, `FillerBlockUtil.setFillerBlocksAt`). Il n'y a pas de propriété `half` : un seul `BlockType` couvre les deux blocs ;
+  - **portes doubles** : `DoorInteraction.checkForDoubleDoor` ouvre aussi la porte voisine tournée de 180° (`DoorInteraction.java:70-90, 233-268`). À la pose, `DoorConnectedBlockTemplate` tourne de 180° une porte posée à côté d'une autre (`"YawToApplyAddReplacedBlockType": "OneEighty"`, `zip: Server/Item/CustomConnectedBlockTemplates/DoorConnectedBlockTemplate.json`) ;
+  - **charnière** : pas de propriété. La porte vanilla est centrée dans l'épaisseur (`Min.Z = 0.4`, `Max.Z = 0.6`). Une rotation de 180° la garde donc dans le même plan et met la charnière de l'autre côté : `hinge=right` de MC correspond à une porte tournée de 180°. Condition : le modèle DO doit être recentré en Z (B.9 point 5). Le rendu reste **[in-game]** ;
+  - **trappes** : `"Use": "Door_Horizontal"` (`zip: Server/Item/Interactions/Door/Door_Horizontal.json`, `"Horizontal": true`), états `OpenDoorOut`/`CloseDoorOut`, boîtes `Trapdoor` et `Trapdoor_Open`. Les 15 trappes vanilla sont toutes en `VariantRotation: NESW` : il n'existe **pas de trappe en bas du bloc**. Pour `half=bottom`, deux voies en assets : `UpDownNESW` (retournement par tangage, animation retournée **[in-game]**), ou un second `BlockType` `_Bottom` avec une boîte à Y 0…0,2 et ses propres états ;
+  - **panneau** (`panel`, trappe fixe) : le même modèle, sans `Interactions.Use`.
+- **Verdict : assets seuls.**
+
+#### 2. Clôtures, portillons, murets, murs de papier
+
+- **DO** :
+  - clôture : `north/east/south/west` (`DO bs: vanilla_fence_compat.json`) ;
+  - muret : `up`, plus `low`/`tall` par côté (`vanilla_wall_compat.json`) ;
+  - portillon : `facing`, `in_wall`, `open` (`vanilla_fence_gate_compat.json`) ;
+  - mur de papier : `north/east/south/west` (`blockpaperwall.json`). C'est une vitre : `AbstractBlockPane` étend `IronBarsBlock` (`DO: block/AbstractBlockPane.java:11`).
+- **Hytale** : `ConnectedBlockRuleSet` `CustomTemplate` + `WallConnectedBlockTemplate`, que 76 objets vanilla utilisent.
+  - Formes : `Straight` (défaut), `Corner`, `T_Junction`, `Cross_Junction`, `Gate`. Chacune choisit aussi la **rotation** (`"AllowedPatternTransformations": {"IsCardinallyRotatable": true}`).
+  - Exemple : `zip: Server/Item/Items/Wood/Softwood/Wood_Softwood_Fence.json`, avec les états `Corner`, `T`, `Cross`.
+  - Une règle de gabarit teste sur le voisin des `FaceTags`, des `Shapes`, des `BlockTypes` ou des `BlockTypeLists` (`H: server/core/universe/world/connectedblocks/ConnectedBlockPatternRule.java:24-60`).
+  - Le portillon est une porte (`"Use": "Door"`, états de porte, `zip: .../Wood_Softwood_Fence_Gate.json`), déclarée comme forme `Gate` du gabarit.
+- **Écarts de forme** :
+  - le gabarit vanilla n'a ni « bout » (1 voisin) ni « poteau seul » (0 voisin) : ces cas tombent sur `Straight`. Pour la vitre MC (demi-vitre au bout), il faut un **gabarit à nous** avec deux formes de plus. C'est un asset : store `Item/CustomConnectedBlockTemplates` (`H: .../connectedblocks/ConnectedBlocksModule.java:66`) ;
+  - `in_wall` (portillon abaissé entre deux murets) n'a pas d'équivalent. Une forme de gabarit dédiée est possible en principe ; son effet sur les états de porte est **[in-game]**.
+- **Verdict : assets seuls.**
+
+#### 3. Bardeaux (formes d'escalier)
+
+- **DO** : `facing`, `half` (`bottom`/`top`), `shape` (`straight`, `inner_left`, `inner_right`, `outer_left`, `outer_right`) (`DO bs: shingle.json`). Ces propriétés viennent de l'escalier MC (`DO: block/AbstractBlockStairs.java:9`). La forme se calcule d'après les voisins, comme pour un escalier vanilla.
+- **Hytale** : `ConnectedBlockRuleSet` `Roof` (`zip: Server/Item/Items/Wood/Softwood/Wood_Softwood_Roof.json`).
+  - `Regular` porte les 5 formes : `Straight` (= `default`), `Corner_Left/Right` (extérieur) et `Inverted_Corner_Left/Right` (intérieur). Chacune est un état avec son modèle et sa boîte.
+  - `StairConnectedBlockRuleSet` choisit la forme d'après les voisins de même `MaterialName`, à la pose et quand un voisin change (`connected-blocks.md` § 1-2).
+  - `Hollow` et `Topper` sont **facultatifs** : seul `Regular` est obligatoire (`H: .../connectedblocks/builtin/RoofConnectedBlockRuleSet.java:42-47`). On peut les omettre pour coller à DO.
+- **Moitié haute** : `VariantRotation: UpDownNESW`, soit 4 lacets × tangage 0 ou 180° (`H: server/core/asset/type/blocktype/config/VariantRotation.java:105-142`). 78 escaliers vanilla l'utilisent, ainsi que des toits `Shallow` et `Steep`. La rotation vient du client (`clientState.blockRotation`, `H: .../interaction/config/client/PlaceBlockInteraction.java:122`).
+- **Pentes** : DO en a 5 (`shingle`, `_flat`, `_flat_lower`, `_steep`, `_steep_lower`), Hytale a les modèles `Roof`, `Roof_Shallow`, `Roof_Steep` et `Roof_Flat`. Les versions `_lower` n'ont pas de modèle vanilla. Il faut soit les convertir depuis DO (B.9), soit les produire.
+- **Verdict : assets seuls.**
+
+#### 4. Demi-bardeau, pilier, poteau, colombage dynamique
+
+- **Demi-bardeau** (`DO bs: shingle_slab.json` : `facing` × `shape`).
+  - DO : `ShingleSlabBlock.getSlabShape` compte les voisins horizontaux qui sont des `ShingleSlabBlock`, tous matériaux confondus (`DO: block/decorative/ShingleSlabBlock.java:163-257`). Il est appelé à la pose et à chaque changement de voisin (l.102-124). Résultat selon le nombre de voisins :
+    - 0 → `top` ;
+    - 1 → `one_way`, tourné vers le voisin ;
+    - 2 opposés → `two_way` ;
+    - 2 en angle → `curved` ;
+    - 3 → `three_way` ;
+    - 4 → `four_way`.
+  - Hytale : même logique qu'une clôture. Il faut un gabarit `CustomTemplate` à nous, à 6 formes (`Top`, `One_Way`, `Two_Way`, `Curved`, `Three_Way`, `Four_Way`), avec `IsCardinallyRotatable`. Pour que tous les demi-bardeaux se relient quel que soit leur matériau : un `FaceTags` commun à tous les blocs générés et `ConnectsToOtherMaterials: true` (`H: .../connectedblocks/CustomConnectedBlockTemplateAsset.java:53`).
+  - **Assets seuls.**
+- **Pilier** (`DO bs: blockpillar.json` : `column` = `pillar_base`, `pillar_capital`, `pillar_column`, `full_pillar`).
+  - DO : `PillarBlock` regarde le bloc au-dessus et au-dessous (`getBlock() == this`, même famille, tout matériau) (`DO: block/decorative/PillarBlock.java:143-155, 254-283`) :
+    - pilier au-dessus seulement → `pillar_base` ;
+    - pilier au-dessous seulement → `pillar_capital` ;
+    - les deux → `pillar_column`.
+  - Bug de DO : sans voisin, le résultat de `blockState.setValue(COLUMN, FULL_PILLAR)` est jeté (l.270). L'état par défaut est déjà `FULL_PILLAR` (l.85), donc le résultat reste juste.
+  - Hytale : `zip: Server/Item/CustomConnectedBlockTemplates/PillarConnectedBlockTemplate.json` fait la même chose en vertical, avec le `FaceTags` `PillarConnection`. Formes : `Base` (défaut, pilier au-dessus), `Base_Inverted` (pilier au-dessous), `Middle` (les deux).
+  - Aucun objet vanilla ne l'utilise : les piliers `Rock_*_Brick_Pillar_*` n'ont pas de règle (B.9 point 4).
+  - Il faut une copie à 4 formes, avec en plus `Full` (ni dessus ni dessous).
+  - **Assets seuls.**
+- **Poteau** (`DO bs: post.json` : `type` × `facing` 6 directions × `conditional`).
+  - `type` vient de l'objet (`DO: block/decorative/PostBlock.java:61, 126`) : il faut un `BlockType` par type.
+  - `facing` se traduit par la `VariantRotation` (`Pipe`, `DoublePipe` ou `All`).
+  - **Assets seuls.**
+- **Colombage dynamique** (`DO bs: dynamic_timberframe.json` : une seule variante).
+  - Le motif n'est pas un état. L'entité de bloc garde 14 booléens de voisins : 6 faces et 8 diagonales verticales (`DO: block/decorative/DynamicTimberFrameBlock.java:76-91`). Elle **retexture chaque face par morceau** (`entity/block/DynamicTimberFrameBlockEntity.java:271-470`).
+  - Hytale n'a pas de retexture par bloc (B.5). Il faudrait un `BlockType` par combinaison de voisins (jusqu'à 2^14) et par matériaux. **Ni les assets ni le code ne le rendent fidèlement.**
+  - Rappel A.4 : le constructeur MC demande de toute façon ce bloc sous la forme `framed`. Écart probable : pas de colombage dynamique, ou seulement quelques motifs fixes.
+
+#### 5. Lumière encadrée
+
+- **DO** : 7 blocs, avec une lumière **fixe de 15**, quel que soit le centre (`DO: block/decorative/FramedLightBlock.java:73`). Centres valides : `glowstone`, `sea_lantern`, `ochre_froglight`, `pearlescent_froglight`, `verdant_froglight`, `shroomlight` (`DO-gen: tags/blocks/framed_light_center.json`). La lumière de bloc MC n'a pas de couleur.
+- **Hytale** : le champ `Light` du `BlockType` vaut `{"Color": "#rgb", "Radius": n}` (B.9 point 7 ; codec `COLOR_LIGHT`, `H: server/core/codec/ProtocolCodecs.java:59-69`).
+  - Chaque chiffre de `#rgb` est un niveau de 0 à 15 par canal. En `#rrggbb`, chaque valeur est divisée par 17 (`H: server/core/asset/util/ColorParseUtil.java:354-363`).
+  - Exemples : `Build_Lightsource_White` = `#eee` sur un bloc `Cube` ; `Deco_Lantern` = `#dca`, `Radius: 0`.
+  - Équivalent fidèle d'un niveau 15 sans couleur : `"Color": "#fff"`. Une teinte par centre serait un écart.
+- **Verdict : assets seuls.**
+
+#### 6. Architect's Cutter
+
+- **DO** (A.3) : on choisit un groupe, puis une variante, puis on pose 1 ou 2 matériaux ; la sortie est calculée.
+- **Établis Hytale** : 4 types (`H: protocol/BenchType.java` : `Crafting`, `Processing`, `DiagramCrafting`, `StructuralCrafting`).
+- **`StructuralCrafting`** (`Bench_Builders`, `zip: Server/Item/Items/Bench/Bench_Builders.json`) :
+  - **un seul** emplacement d'entrée (`H: builtin/crafting/window/StructuralCraftingWindow.java:59`) ;
+  - au plus **64** sorties (l.44, 62) ;
+  - seulement les recettes à **un ingrédient** (`inputMaterials.size() == 1`, l.311) ;
+  - sorties triées dans l'ordre des `Categories` de l'établi (l.84-111).
+
+  Il convient aux familles DO à un matériau : pilier, poteau, panneau, porte, trappe, clôture, portillon, muret, escalier, dalle, « all brick ». Cela fait environ 50 variantes par matériau, sous la limite de 64. Il **ne convient pas** aux familles à deux matériaux.
+- **`DiagramCrafting`** (`H: builtin/crafting/window/DiagramCraftingWindow.java`) : **le plus proche du cutter**.
+  - L'établi déclare des catégories : `CraftingBench.BenchCategory` avec `Id`, `Name`, `Icon`, `ItemCategories` (`H: server/core/asset/type/blocktype/config/bench/CraftingBench.java:17-70`).
+  - Chaque catégorie a des sous-catégories : `BenchItemCategory` avec `Id`, `Name`, `Icon`, `Diagram` (svg), `Slots`, `SpecialSlot` (l.119-140).
+  - Le joueur choisit la catégorie et la sous-catégorie (`UpdateCategoryAction`, `DiagramCraftingWindow.java:127-134`). La fenêtre ouvre alors 1 emplacement principal et `Slots` emplacements secondaires (l.211).
+  - Elle cherche les recettes de l'établi rangées sous `"<catégorie>.<sous-catégorie>"` (l.360). Leurs ingrédients doivent correspondre **dans l'ordre** aux emplacements (l.293-318).
+  - La sortie n'apparaît que si **une seule** recette correspond (l.260-266).
+  - Correspondance avec DO : groupe = catégorie, variante = sous-catégorie, `Slots: 1` = les 2 emplacements du cutter. Il faut une recette générée par combinaison, dont la sortie est l'objet généré et dont `OutputQuantity` reprend les quantités de A.3.
+  - **Réserves** :
+    - aucun établi `DiagramCrafting` vanilla n'a de recette. Seul `Bench_Armory` déclare ce type, sans recette pour le fabriquer ni objet qui le vise. L'affichage côté client n'a donc jamais été vu : **[in-game]** ;
+    - un seul objet par clic (`queueCraft(..., 1, ...)`, l.150) ;
+    - une recette « à connaître » s'apprend au premier craft (l.161).
+- **`Crafting`** (`Bench_Furniture`) : des onglets `Categories` avec icône (`Icons/CraftingCategories/...`, validateur `ICON_CRAFTING`, `CraftingBench.java:64`). Les recettes y ont plusieurs ingrédients, pris dans l'inventaire, sans emplacements dédiés. C'est un repli sûr, déjà utilisé en vanilla, mais il liste toutes les combinaisons.
+- **Ingrédients** : un `ItemId` exact ou un `ResourceTypeId` (`H: builtin/crafting/component/CraftingManager.java:670-690`). La sortie est un objet distinct par combinaison (B.7) : il faut donc **une recette par combinaison**.
+- **Verdict : assets seuls** pour un cutter fondé sur `DiagramCrafting` (un établi et des recettes générées), sous réserve du test en jeu. Une fenêtre de plugin ne sert que dans deux cas : si `DiagramCrafting` s'affiche mal chez le client, ou pour reproduire la liste « toutes les variantes » de DO avec l'aperçu de la sortie avant de poser les matériaux.
+
+#### 7. Orientation à la pose et boîtes de collision
+
+- **Orientation** : la `VariantRotation` du `BlockType` (`None`, `Wall`, `UpDown`, `Pipe`, `DoublePipe`, `NESW`, `UpDownNESW`, `All` ; `H: server/core/asset/type/blocktype/config/VariantRotation.java:9-150`).
+  - Nombre d'objets vanilla : `NESW` 523, `UpDownNESW` 236, `DoublePipe` 128, `Wall` 75, `Pipe` 58, `UpDown` 44.
+  - Les coins de toit déclarent aussi un `FlipType` (`Orthogonal`, `OrthogonalInverse`).
+  - L'orientation brute des modèles DO est en B.9 point 8.
+- **Boîtes** : un `HitboxType` par `BlockType` et par état (`zip: Server/Item/Block/Hitboxes/**`).
+  - Les toits n'ont **pas de pente physique** : leurs boîtes sont **en marches**. `Stairs` = une dalle basse et un demi-bloc arrière, soit 2 boîtes (`zip: .../Hitboxes/Structure/Stairs/Stairs.json`). Les coins ont leurs propres boîtes (`Roofs/Roof_Corner_Left.json`, `Stairs_Inverted_Corner_*`), ainsi que `Stairs_Shallow`, `Stairs_Steep` et `Stairs_Thin`.
+  - Les bardeaux DO ont eux aussi la collision d'un escalier MC (ils héritent de `StairBlock`). Le comportement est donc le même : on monte une marche. La hauteur de marche que le joueur franchit sans sauter est **[in-game]**.
+  - Le demi-bardeau DO a une boîte de dalle de 16 × 8 × 16 px (`ShingleSlabBlock.java:150-153`). Son équivalent Hytale est `Block_Half` (`zip: .../Hitboxes/Block/Block_Half.json`).
+- **Verdict : assets seuls.**
+
+#### 8. Icônes
+
+- `Item.Icon` est un chemin PNG sous `Icons/ItemsGenerated` ou `Icons/Items` (validateur `ICON_ITEM`, `H: server/core/asset/common/CommonAssetValidator.java:25`). Le fichier doit exister (l.103-111). Sinon la validation échoue, et le serveur s'arrête si le pack est immuable (`plugin-b-api.md` § 23).
+- Un `Icon` **absent** (`null`) passe le validateur (`CommonAssetValidator.java:82`). Le client ne reçoit alors que `IconProperties` (`H: protocol/ItemBase.java:38-40`). Sait-il dessiner l'icône à partir du modèle ? C'est **[in-game]**, et on ne peut pas le vérifier côté serveur.
+- **Tous** les blocs vanilla sans `Parent` ont une icône PNG : le scan de `zip: Server/Item/Items/**` ne trouve aucune exception. Toits et portes utilisent `Icons/ItemsGenerated/<id>.png`, produite par l'éditeur d'assets à partir de `IconProperties` (B.9 point 2).
+- **Verdict : il faut des PNG**, une par objet généré, rendue par le générateur ou par l'éditeur d'assets.
+
+#### 9. Onglets de l'inventaire créatif
+
+- **Assets** : fichiers `Server/Item/Category/CreativeLibrary/*.json`, store `ItemCategory` au chemin `Item/Category/CreativeLibrary` (`H: server/core/asset/AssetRegistryLoader.java:542-551`). La clé est le nom du fichier.
+  - Vanilla a 4 onglets de premier niveau : `Blocks` (`Order` 0), `Furniture` (1), `Items` (2) et `Tool` (3).
+  - Chaque onglet a une `Icon` et un `Order`, **sans `Name`**, et des `Children`.
+  - Un enfant a un `Id`, un `Name` (clé de traduction), une `Icon` et, en option, des `SubCategories` (`Id`, `Name`, `Description`, `Order`). Exemple : `zip: Server/Item/Category/CreativeLibrary/Blocks.json`, enfant `Wood` avec les sous-catégories `BlockSets` et `Trees`.
+  - Champs du codec : `Id`, `Name`, `Icon`, `InfoDisplayMode` (défaut `Tooltip`), `Order`, `SubCategories`, `Children` (`H: server/core/asset/type/item/config/ItemCategory.java:38-65, 188-212`).
+- **Objet** : `"Categories": ["Blocks.Wood"]` désigne l'onglet puis l'enfant, et `"SubCategory": "BlockSets"` l'en-tête dans l'enfant (`Wood_Softwood_Roof.json` ; `H: server/core/asset/type/item/config/Item.java:104-120`).
+- **Icônes** : validateur `ICON_ITEM_CATEGORIES`, qui exige une PNG sous `Icons/ItemCategories` (`CommonAssetValidator.java:26`, `ItemCategory.java:42-43`). Il s'applique aussi aux `Children`, qui ont le même codec.
+  - Les onglets vanilla ont une paire d'icônes `X.png` / `XActive.png` (`zip: Common/Icons/ItemCategories/Natural.png` et `NaturalActive.png`, `FurnitureActive.png`, `ItemsActive.png`, `EditorActive.png`).
+  - Le client utilise probablement `…Active.png` pour l'onglet sélectionné **[in-game]**. Il faut donc fournir les deux.
+- **Ajout par un pack** : un fichier `Server/Item/Category/CreativeLibrary/DomumOrnamentum.json` dans notre pack ajoute une clé de plus au même store. Le paquet `UpdateItemCategories` envoie toutes les catégories (`H: server/core/asset/type/item/ItemCategoryPacketGenerator.java`).
+  - Structure proposée : un onglet `DomumOrnamentum` (`Order` 4) ;
+  - un enfant par groupe du cutter : `Timberframe`, `Shingle`, `Door`, `Trapdoor`, `Panel`, `Pillar`, `Paperwall`, `Light`, `Brick`, `Post`, `Vanilla` ;
+  - des `SubCategories` par forme ou par matériau.
+
+  L'affichage d'un 5ᵉ onglet (sa place, son libellé sans `Name`) est **[in-game]**.
+- **Robustesse** :
+  - une catégorie **inconnue** dans `Item.Categories` n'arrête rien. Son validateur est `addValidatorLate` (`Item.java:110`), et les validateurs tardifs sont sautés au chargement (`H: codec/builder/BuilderField.java:248`). Les objets HyColony utilisent d'ailleurs déjà `"Workbench_Crafting"`, qui n'est pas une catégorie créative ;
+  - en revanche, une **icône manquante ou hors racine** dans un asset `ItemCategory` fait échouer la validation (`CommonAssetValidator.java:93-111`). Pour un pack immuable, le serveur s'arrête (`plugin-b-api.md` § 23). Le build doit vérifier ces icônes, comme `checkSubpluginAssets` le fait déjà.
+- **Verdict : assets seuls.**
+
+#### Récapitulatif
+
+| Comportement DO | Mécanisme Hytale | Assets seuls ? |
+|---|---|---|
+| Porte, trappe : ouverture, 2 blocs, portes doubles | `Interactions.Use: Door` / `Door_Horizontal`, états `OpenDoorIn/Out`, boîte de 2 de haut (fillers), `DoorConnectedBlockTemplate` | Oui. Charnière = rotation de 180°. Trappe du bas : `UpDownNESW` ou bloc `_Bottom` **[in-game]** |
+| Clôture, muret, portillon, mur de papier | `CustomTemplate` + `WallConnectedBlockTemplate`, ou un gabarit à nous pour les bouts de vitre | Oui |
+| Bardeaux (5 formes, haut ou bas) | `Roof` (`Regular` seul, sans `Hollow`/`Topper`), `UpDownNESW` | Oui (plus les modèles des pentes `_lower`) |
+| Demi-bardeau (6 formes) | gabarit `CustomTemplate` à nous : 6 formes, `IsCardinallyRotatable` | Oui |
+| Pilier (4 formes) | copie de `PillarConnectedBlockTemplate` avec une forme `Full` en plus | Oui |
+| Poteau | un `BlockType` par type, `VariantRotation` | Oui |
+| Colombage dynamique | aucun (la retexture par face est impossible) | Non portable fidèlement (écart) |
+| Lumière encadrée | `Light: {"Color": "#fff"}` | Oui |
+| Cutter | `DiagramCrafting` (catégorie = groupe, sous-catégorie = variante, `Slots: 1`) ; `StructuralCrafting` pour un seul matériau | Oui, **[in-game]** pour `DiagramCrafting` ; plugin en repli seulement |
+| Rotation, boîtes | `VariantRotation`, `HitboxType` par état (marches, pas de pente) | Oui |
+| Icônes | PNG obligatoires (`Icons/ItemsGenerated` ou `Icons/Items`) | Oui (PNG générées) |
+| Onglet créatif DO | `Server/Item/Category/CreativeLibrary/DomumOrnamentum.json` et les `Categories` des objets | Oui ; icônes `X`/`XActive` vérifiées au build |
+
+**Aucun comportement n'exige de code de plugin**, à deux exceptions près :
+- le colombage dynamique, que ni les assets ni le code ne peuvent rendre ;
+- une fenêtre de cutter sur mesure, si `DiagramCrafting` ne fonctionne pas en jeu.
+
+Le vrai coût est combinatoire. Chaque forme × état × combinaison de matériaux devient un `BlockType`, avec sa texture composée, son icône et sa recette.
+
 ## Synthèse
 
 **Verdict.** Un portage **fidèle** de DO est **impossible** sur Hytale 0.6.8. Le cœur de DO est un matériau choisi par bloc posé et rendu par retexture côté client. Or le client Hytale ne reçoit par bloc qu'un id, une rotation et un filler (B.5). Chaque combinaison devrait devenir un `BlockType` distinct, avec texture composée et icône.

@@ -108,7 +108,12 @@ Les autres points de la relecture sont corrigés. Il reste :
   - `LogisticsViews.forRequester` remonte les parents sans garde contre un cycle ;
   - nom d'objet : repli sur le `Message` brut quand la traduction manque (`itemName`) ;
   - constante de cadre dupliquée dans les fenêtres de logistique du plugin.
-- **Domum Ornamentum** (mis en pause par l'utilisateur le 2026-09-27) : impossible à l'identique en 0.6.8, car le client ne reçoit qu'un id par bloc. La génération en cours de partie n'est pas fiable (seuls les 1 ou 2 premiers blocs de chaque session s'affichent sans reconnexion). La piste retenue pour plus tard est un **générateur au build** : un vrai `BlockType`, une PNG composée, une icône et une recette par combinaison, dans le pack du plugin. Il faut d'abord compter les matériaux Hytale et les familles DO réutilisables. Voir `docs/research/domum-ornamentum.md`.
+- **Domum Ornamentum** : repris le 2026-09-28 par un générateur au build, en trois sous-projets. DO-1 (les blocs, spec `docs/superpowers/specs/2026-09-28-hycolony-domum-ornamentum-do1-design.md`) est en cours ; restent :
+  - DO-2, le cutter : établi de l'architecte, recettes, liste des matériaux par emplacement ;
+  - DO-3, le lien avec MineColonies : blocs DO dans les plans, requêtes du constructeur, artisans ;
+  - lumières encadrées : Hytale n'a pas de bloc lumineux plein comme la glowstone pour le centre ;
+  - briques DO et blocs « extra » : textures DO 16 px à redessiner en 32 px ;
+  - tonneaux et tapis flottants DO.
 - **Modes de construction** (spirale, de l'extérieur vers l'intérieur…), débloqués par la recherche (université).
 - **Apparences aléatoires des citoyens.**
 - **Hôtel de ville disparu** sans être cassé par un joueur : aujourd'hui il ne peut plus être reposé, il faut passer par `/hycolony delete`.
