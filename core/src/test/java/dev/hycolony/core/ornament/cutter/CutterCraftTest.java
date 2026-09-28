@@ -112,4 +112,13 @@ class CutterCraftTest {
         assertEquals("hycolony.ornament.cutter.emptySlot", refused.reasonKey());
         assertEquals(1, refused.slot());
     }
+
+    @Test
+    void creativePlayerCraftsWithoutConsumingTheMaterials() {
+        var ready = (CutterCraft.Ready) CutterCraft.check(frame, List.of(one(OAK), one(STONE)), TAGS, true);
+        assertEquals(List.of(), ready.consumed());
+        assertEquals(4, ready.quantity());
+        assertInstanceOf(
+                CutterCraft.Refused.class, CutterCraft.check(frame, List.of(one(OAK), SlotContent.EMPTY), TAGS, true));
+    }
 }

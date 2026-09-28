@@ -39,6 +39,15 @@ public final class CutterCraft {
         }
     }
 
+    /**
+     * As {@link #check(OrnamentShape, List, MaterialTags)}, for a player who may be in creative mode: then nothing
+     * is consumed (MC DO ArchitectsCutterContainer output slot {@code onTake}: {@code !thePlayer.isCreative()}).
+     */
+    public static Result check(OrnamentShape shape, List<SlotContent> slots, MaterialTags tags, boolean creative) {
+        Result result = check(shape, slots, tags);
+        return creative && result instanceof Ready ready ? new Ready(ready.key(), ready.quantity(), List.of()) : result;
+    }
+
     /** Checks slots (the cutter's, in order; missing ones count as empty) for shape against tags. */
     public static Result check(OrnamentShape shape, List<SlotContent> slots, MaterialTags tags) {
         List<String> materials = new ArrayList<>();
