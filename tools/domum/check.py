@@ -152,6 +152,26 @@ def default_props_pick_the_blocks_own_default_state():
     assert implicit == explicit
 
 
+def oriented_families_face_minus_z():
+    """A facing=north state faces Hytale's front (-Z, Stairs.blockymodel's high side): every shingle slope's
+    high edge sits on the -Z half, and a closed door is a thin panel across X, thin along Z (the vanilla Crude
+    door's hitbox spans X). Doors' hinge side and their position in the block are Task 8's (recentred there)."""
+    root = source.fetch()
+    for family in FAMILIES:
+        for block in family.blocks:
+            if family.name == "Shingle":
+                points = [p for e in assemble.state_model(root, family, block, {})["elements"]
+                          for p in assemble.world_points(e)]
+                top = max(p[1] for p in points)
+                high_z = [p[2] for p in points if p[1] > top - 3]
+                assert sum(high_z) / len(high_z) < 8, (block, sum(high_z) / len(high_z))
+            elif family.mechanism == "door":
+                points = [p for e in assemble.state_model(root, family, block, {})["elements"]
+                          for p in assemble.world_points(e)]
+                extent = [max(p[i] for p in points) - min(p[i] for p in points) for i in range(3)]
+                assert extent[2] < 5 < extent[0], (block, extent)
+
+
 def main():
     converter_matches_reference_geometry()
     families_cover_the_spec()
@@ -162,6 +182,7 @@ def main():
     state_model_assembles_real_do_data()
     uvlock_families_assemble_without_error()
     default_props_pick_the_blocks_own_default_state()
+    oriented_families_face_minus_z()
     with tempfile.TemporaryDirectory() as tmp:
         partial_cache_is_refetched(Path(tmp))
     print("tools/domum check: OK")

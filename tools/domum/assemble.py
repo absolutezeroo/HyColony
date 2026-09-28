@@ -8,6 +8,8 @@ conversion (convert.py, faces.py) sees the block as Minecraft renders it, not on
 (docs/research/domum-ornamentum.md B.9, "cause commune").
 """
 
+import math
+
 import source
 
 PIVOT = 8  # block centre, in Minecraft pixels; every 90-degree model rotation turns around it
@@ -173,9 +175,10 @@ def _rotate_inner(rotation, k, axis):
 
 def state_model(root, family, block_id, props):
     """One DO block's blockstate state assembled into MC-format geometry: the selected variant or merged
-    multipart parts, each rotated by its own baked x then y around PIVOT, then turned by -family.base_y so
-    the family's own facing=north reference lines up with Hytale's front (-Z). A property missing from
-    props takes the block's own default value (see parts()).
+    multipart parts, each rotated by its own baked x then y around PIVOT. The state keeps that rotation: a
+    facing=north state already faces Hytale's front (-Z), as Minecraft renders it (Minecraft's north is -Z
+    too). A property missing from props takes the block's own default value (see parts()). family is kept for
+    callers' symmetry and error messages.
 
     A selected part with "uvlock": true (DO uses it for e.g. trapdoors, panels, pillar columns) keeps its
     texture world-aligned: rotate_x/rotate_y then recompute that part's uv instead of carrying the
@@ -191,7 +194,7 @@ def state_model(root, family, block_id, props):
         part = _prefixed(model, f"e{index}_")
         merged["textures"].update(part["textures"])
         merged["elements"].extend(part["elements"])
-    return rotate_y(merged, -family.base_y)
+    return merged
 
 
 def _prefixed(model, prefix):
@@ -207,3 +210,29 @@ def _prefixed(model, prefix):
         faces = {d: {**face, "texture": renamed(face["texture"])} for d, face in element["faces"].items()}
         elements.append({**element, "faces": faces})
     return {"textures": textures, "elements": elements}
+
+
+def world_points(element):
+    """The 8 corners of element in block space, after its own inner tilt ("rotation": axis, angle, origin) as
+    Minecraft applies it; used to measure a model's real shape (a slope's high side, a hitbox)."""
+    corners = [[x, y, z] for x in (element["from"][0], element["to"][0])
+               for y in (element["from"][1], element["to"][1])
+               for z in (element["from"][2], element["to"][2])]
+    rotation = element.get("rotation")
+    if not rotation or not rotation.get("angle"):
+        return corners
+    axis = "xyz".index(rotation["axis"])
+    j, k = [i for i in range(3) if i != axis]
+    angle = math.radians(rotation["angle"])
+    # Minecraft turns counter-clockwise about +x and +z but clockwise about +y (FaceBakery.rotateVertexBy).
+    sign = -1 if axis == 1 else 1
+    cos, sin = math.cos(angle), math.sin(angle) * sign
+    origin = rotation["origin"]
+    turned = []
+    for point in corners:
+        u, v = point[j] - origin[j], point[k] - origin[k]
+        point = list(point)
+        point[j] = origin[j] + u * cos - v * sin
+        point[k] = origin[k] + u * sin + v * cos
+        turned.append(point)
+    return turned
