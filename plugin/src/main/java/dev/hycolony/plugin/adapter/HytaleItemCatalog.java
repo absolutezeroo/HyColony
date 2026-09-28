@@ -15,6 +15,7 @@ import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolInfo;
 import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.kernel.port.ItemCatalog;
+import dev.hycolony.plugin.block.HytaleBlockStates;
 import dev.hycolony.plugin.item.HytaleStacks;
 import java.util.HashMap;
 import java.util.Map;
@@ -113,11 +114,11 @@ public final class HytaleItemCatalog implements ItemCatalog {
     @Override
     public boolean isHarmful(BlockKey block) {
         String id = block.id();
-        if (!id.startsWith(HytaleWorldBlocks.FLUID_PREFIX)) {
+        if (!id.startsWith(HytaleBlockStates.FLUID_PREFIX)) {
             return block(block).harmful();
         }
         try {
-            Fluid fluid = Fluid.getAssetMap().getAsset(id.substring(HytaleWorldBlocks.FLUID_PREFIX.length()));
+            Fluid fluid = Fluid.getAssetMap().getAsset(id.substring(HytaleBlockStates.FLUID_PREFIX.length()));
             return fluid == null || fluid.getDamageToEntities() > 0 || fluid.isTrigger();
         } catch (RuntimeException e) {
             fail(id, e);
@@ -174,7 +175,7 @@ public final class HytaleItemCatalog implements ItemCatalog {
     }
 
     private BlockInfo computeBlock(String id) {
-        if (id.startsWith(HytaleWorldBlocks.FLUID_PREFIX)) {
+        if (id.startsWith(HytaleBlockStates.FLUID_PREFIX)) {
             return FLUID;
         }
         if (BlockType.EMPTY_KEY.equals(id)) {

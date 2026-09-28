@@ -11,7 +11,7 @@ import com.hypixel.hytale.server.core.modules.block.components.ItemContainerBloc
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockState;
-import dev.hycolony.plugin.adapter.HytaleWorldBlocks;
+import dev.hycolony.plugin.block.HytaleBlockStates;
 import java.util.Optional;
 import javax.annotation.Nullable;
 
@@ -45,7 +45,7 @@ final class PrefabCells {
         if (type == null) {
             return Optional.empty();
         }
-        String id = HytaleWorldBlocks.blockKey(type);
+        String id = HytaleBlockStates.blockKey(type);
         if (id.equals(SPAWNER) && chest != null && isChestSpawner(holder)) {
             id = chest;
         }

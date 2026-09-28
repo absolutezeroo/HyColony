@@ -76,12 +76,12 @@ public final class HytaleBlocks {
     }
 
     /** {@code s} as a core stack, with the damage its durability shows. */
-    ItemAmount toAmount(ItemStack s) {
+    public ItemAmount toAmount(ItemStack s) {
         return stacks.toAmount(s);
     }
 
     /** What a player gets with the right tool: breaking drops, else soft drops, else the block's own item. */
-    static List<ItemStack> drops(BlockType type) {
+    public static List<ItemStack> drops(BlockType type) {
         BlockGathering g = type.getGathering();
         BlockBreakingDropType breaking = g == null ? null : g.getBreaking();
         if (breaking != null) {

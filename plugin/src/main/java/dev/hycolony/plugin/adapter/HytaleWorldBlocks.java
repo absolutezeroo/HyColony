@@ -5,40 +5,30 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.protocol.BlockMaterial;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
-import com.hypixel.hytale.server.core.asset.type.blocktype.config.VariantRotation;
 import com.hypixel.hytale.server.core.asset.type.fluid.Fluid;
-import com.hypixel.hytale.server.core.inventory.ItemStack;
-import com.hypixel.hytale.server.core.modules.block.BlockModule;
-import com.hypixel.hytale.server.core.modules.block.components.ItemContainerBlock;
-import com.hypixel.hytale.server.core.modules.interaction.BlockHarvestUtils;
 import com.hypixel.hytale.server.core.universe.world.SetBlockSettings;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.BlockOperations;
 import com.hypixel.hytale.server.core.universe.world.chunk.section.BlockSection;
 import com.hypixel.hytale.server.core.universe.world.chunk.section.FluidSection;
-import com.hypixel.hytale.server.core.universe.world.connectedblocks.ConnectedBlockRuleSet;
-import com.hypixel.hytale.server.core.universe.world.connectedblocks.CustomTemplateConnectedBlockRuleSet;
-import com.hypixel.hytale.server.core.universe.world.connectedblocks.builtin.StairLikeConnectedBlockRuleSet;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
-import com.hypixel.hytale.server.core.util.FillerBlockUtil;
 import dev.hycolony.core.kernel.BlockPos;
-import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.port.WorldBlocks;
-import java.util.ArrayList;
-import java.util.Arrays;
+import dev.hycolony.plugin.block.HytaleBlockBreaker;
+import dev.hycolony.plugin.block.HytaleBlockStates;
+import dev.hycolony.plugin.block.HytaleSections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
-import org.joml.Vector3i;
 import org.jspecify.annotations.Nullable;
 
 /**
  * WorldBlocks over the section API (cheat sheet § 1). Never loads a chunk, never throws. Fluids are reported as the
  * pseudo-key {@code ~fluid:<FluidId>}; state variants ({@code *…}) are reported as their base block, except
- * connected-block shapes ({@link #blockKey}). A filler cell holds its origin's block id and rotation
+ * connected-block shapes ({@link HytaleBlockStates#blockKey}). A filler cell holds its origin's block id and rotation
  * ({@code FillerBlockUtil.setFillerBlocksAt}), so it reports the origin's
  * key: a hut's filler cells read as the hut, which the catalog calls UNBREAKABLE. A block that cannot rotate
  * ({@code VariantRotation.None}) reads as rotation 0, like its blueprint entry. World thread only.
@@ -48,18 +38,15 @@ public final class HytaleWorldBlocks implements WorldBlocks {
     private static final int QUIET = SetBlockSettings.NO_SEND_PARTICLES | SetBlockSettings.NO_SEND_AUDIO;
 
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
-    /** Pseudo-key prefix for fluids, shared with {@link HytaleItemCatalog}. */
-    static final String FLUID_PREFIX = "~fluid:";
-
-    private static final int ROTATIONS = 64; // RotationTuple.VALUES.length
+    private static final String FLUID_PREFIX = HytaleBlockStates.FLUID_PREFIX;
 
     private final World world;
     private final Set<String> hutBlockIds;
     private final HytaleBlocks drops;
-    /** {@code get} is hot: one Optional per (block runtime id, rotation index), built once. */
-    private Optional<BlockState>[][] blockCache = newCache(1024);
+    private final HytaleBlockBreaker breaker;
+    /** {@code get} is hot: the id to state translation is cached there. */
+    private final HytaleBlockStates states = new HytaleBlockStates();
 
-    private Optional<BlockState>[] fluidCache = newRow(64);
     private boolean warned;
 
     /** {@code hutBlockIds}: the id-map's hut block ids; never broken nor built over. */
@@ -67,6 +54,7 @@ public final class HytaleWorldBlocks implements WorldBlocks {
         this.world = world;
         this.hutBlockIds = Set.copyOf(hutBlockIds);
         this.drops = drops;
+        this.breaker = new HytaleBlockBreaker(world, drops, this::isHut);
     }
 
     private boolean isHut(BlockType type) {
@@ -101,10 +89,10 @@ public final class HytaleWorldBlocks implements WorldBlocks {
                 FluidSection fluids = store.getComponent(sec, FluidSection.getComponentType());
                 int fluid = fluids == null ? 0 : fluids.getFluidId(pos.x(), pos.y(), pos.z());
                 if (fluid != Fluid.EMPTY_ID) {
-                    return fluidState(fluid);
+                    return states.fluid(fluid);
                 }
             }
-            return blockState(id, blocks.getRotationIndex(pos.x(), pos.y(), pos.z()));
+            return states.block(id, blocks.getRotationIndex(pos.x(), pos.y(), pos.z()));
         } catch (RuntimeException e) {
             fail("get", pos, e);
             return Optional.empty();
@@ -166,7 +154,7 @@ public final class HytaleWorldBlocks implements WorldBlocks {
             BlockOperations.setBlock(
                     world.getChunkStore(), sec, pos.x(), pos.y(), pos.z(), id, type, state.rotation(), 0, settings);
             if (type.getMaterial() == BlockMaterial.Solid) {
-                clearFluid(store, sec, pos);
+                HytaleSections.clearFluid(store, sec, pos);
             }
             return blocks.get(pos.x(), pos.y(), pos.z()) == id;
         } catch (RuntimeException e) {
@@ -188,85 +176,10 @@ public final class HytaleWorldBlocks implements WorldBlocks {
 
     private List<ItemAmount> breakBlock(BlockPos pos, int settings) {
         try {
-            Ref<ChunkStore> sec = section(pos);
-            if (sec == null) {
-                return List.of();
-            }
-            Store<ChunkStore> store = world.getChunkStore().getStore();
-            BlockSection blocks = store.getComponent(sec, BlockSection.getComponentType());
-            if (blocks == null) {
-                return List.of();
-            }
-            int id = blocks.get(pos.x(), pos.y(), pos.z());
-            if (id == BlockType.EMPTY_ID) {
-                clearFluid(store, sec, pos); // a fluid drops nothing
-                return List.of();
-            }
-            BlockType type = BlockType.getAssetMap().getAsset(id);
-            if (type == null || type == BlockType.EMPTY || isHut(type)) {
-                return List.of(); // a hut (origin or filler cell) only goes through the hut systems
-            }
-            // A filler cell belongs to its origin block: the origin holds the container, and the whole block goes.
-            int filler = blocks.getFiller(pos.x(), pos.y(), pos.z());
-            BlockPos origin = new BlockPos(
-                    pos.x() - FillerBlockUtil.unpackX(filler),
-                    pos.y() - FillerBlockUtil.unpackY(filler),
-                    pos.z() - FillerBlockUtil.unpackZ(filler));
-            Ref<ChunkStore> originSec = filler == 0 ? sec : section(origin);
-            if (originSec == null) {
-                return List.of(); // origin unloaded: Hytale would not remove it either, so no drops (no duplication)
-            }
-            BlockSection originBlocks = store.getComponent(originSec, BlockSection.getComponentType());
-            // An orphan filler (its origin is another block) is only cleared: it drops nothing.
-            boolean orphan = originBlocks == null || originBlocks.get(origin.x(), origin.y(), origin.z()) != id;
-            List<ItemStack> out = orphan ? List.of() : takeDrops(type, origin);
-            BlockHarvestUtils.naturallyRemoveBlock(
-                    new Vector3i(pos.x(), pos.y(), pos.z()),
-                    type,
-                    filler,
-                    0,
-                    null,
-                    null,
-                    settings,
-                    sec,
-                    world.getEntityStore().getStore(),
-                    store);
-            return toAmounts(out);
+            return breaker.breakBlock(pos, settings);
         } catch (RuntimeException e) {
             fail("breakBlock", pos, e);
             return List.of();
-        }
-    }
-
-    /** Empties the origin block's container and adds the block's own drops; the removal then drops nothing more. */
-    private List<ItemStack> takeDrops(BlockType type, BlockPos origin) {
-        List<ItemStack> out = new ArrayList<>();
-        ItemContainerBlock container = BlockModule.getComponent(
-                ItemContainerBlock.getComponentType(), world, origin.x(), origin.y(), origin.z());
-        if (container != null) {
-            // Emptied before removal, else the removal system drops it on the ground. No filter: all of it.
-            out.addAll(container.getItemContainer().dropAllItemStacks(false));
-        }
-        out.addAll(HytaleBlocks.drops(type));
-        return out;
-    }
-
-    /** Converts the non-empty {@code stacks} to amounts. */
-    private List<ItemAmount> toAmounts(List<ItemStack> stacks) {
-        List<ItemAmount> amounts = new ArrayList<>(stacks.size());
-        for (ItemStack s : stacks) {
-            if (!ItemStack.isEmpty(s)) {
-                amounts.add(drops.toAmount(s));
-            }
-        }
-        return amounts;
-    }
-
-    /** Removes the fluid at {@code pos}, if any. */
-    private static void clearFluid(Store<ChunkStore> store, Ref<ChunkStore> sec, BlockPos pos) {
-        FluidSection fluids = store.getComponent(sec, FluidSection.getComponentType());
-        if (fluids != null && fluids.getFluidId(pos.x(), pos.y(), pos.z()) != Fluid.EMPTY_ID) {
-            fluids.setFluid(pos.x(), pos.y(), pos.z(), Fluid.EMPTY_ID, (byte) 0);
         }
     }
 
@@ -283,82 +196,7 @@ public final class HytaleWorldBlocks implements WorldBlocks {
     }
 
     private @Nullable Ref<ChunkStore> section(BlockPos pos) {
-        Ref<ChunkStore> sec = world.getChunkStore().getChunkSectionReferenceAtBlock(pos.x(), pos.y(), pos.z());
-        return sec != null && sec.isValid() ? sec : null;
-    }
-
-    private Optional<BlockState> blockState(int id, int rotation) {
-        if (id < 0 || rotation < 0 || rotation >= ROTATIONS) {
-            return Optional.empty();
-        }
-        if (id >= blockCache.length) {
-            blockCache = Arrays.copyOf(blockCache, Math.max(id + 1, blockCache.length * 2));
-        }
-        Optional<BlockState>[] byRotation = blockCache[id];
-        if (byRotation == null) {
-            byRotation = blockCache[id] = newRow(ROTATIONS);
-        }
-        Optional<BlockState> cached = byRotation[rotation];
-        if (cached == null) {
-            BlockType type = BlockType.getAssetMap().getAsset(id);
-            if (type == null) {
-                return Optional.empty(); // not cached: the asset may appear later
-            }
-            String key = blockKey(type);
-            // A block that cannot rotate still stores the index it was placed with (a prefab adds its yaw to every
-            // block): reported as 0 so it matches its blueprint entry and natural terrain.
-            int r = type.getVariantRotation() == VariantRotation.None ? 0 : rotation;
-            cached = byRotation[rotation] = Optional.of(new BlockState(new BlockKey(key), r));
-        }
-        return cached;
-    }
-
-    /**
-     * The key the builder places and compares: a connected-block shape state (stair or roof corner, roof Topper,
-     * fence Corner/T/Cross) keeps its variant id, as vanilla prefab pasting writes it; any other state variant
-     * ({@code *…}, e.g. an open door or chest) is its base block, so a player's interaction is not rebuilt.
-     */
-    public static String blockKey(BlockType type) {
-        String id = type.getId();
-        String base = type.getDefaultStateKey();
-        if (!id.startsWith("*") || base == null) {
-            return id;
-        }
-        ConnectedBlockRuleSet rules = type.getConnectedBlockRuleSet();
-        if (rules instanceof StairLikeConnectedBlockRuleSet) {
-            return id; // every stair and roof state is a shape
-        }
-        if (rules instanceof CustomTemplateConnectedBlockRuleSet template
-                && !template.getShapesForBlockType(BlockType.getAssetMap().getIndex(id))
-                        .isEmpty()) {
-            return id;
-        }
-        return base;
-    }
-
-    private Optional<BlockState> fluidState(int fluid) {
-        if (fluid >= fluidCache.length) {
-            fluidCache = Arrays.copyOf(fluidCache, Math.max(fluid + 1, fluidCache.length * 2));
-        }
-        Optional<BlockState> cached = fluidCache[fluid];
-        if (cached == null) {
-            Fluid f = Fluid.getAssetMap().getAsset(fluid);
-            if (f == null) {
-                return Optional.empty();
-            }
-            cached = fluidCache[fluid] = Optional.of(new BlockState(new BlockKey(FLUID_PREFIX + f.getId()), 0));
-        }
-        return cached;
-    }
-
-    @SuppressWarnings("unchecked")
-    private static Optional<BlockState>[][] newCache(int size) {
-        return new Optional[size][];
-    }
-
-    @SuppressWarnings("unchecked")
-    private static Optional<BlockState>[] newRow(int size) {
-        return new Optional[size];
+        return HytaleSections.section(world, pos);
     }
 
     private void fail(String op, BlockPos pos, RuntimeException e) {

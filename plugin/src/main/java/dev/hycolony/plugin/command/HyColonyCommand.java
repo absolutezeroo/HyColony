@@ -31,7 +31,7 @@ import dev.hycolony.plugin.IdMap;
 import dev.hycolony.plugin.WorldRuntime;
 import dev.hycolony.plugin.WorldRuntimes;
 import dev.hycolony.plugin.adapter.HytaleNotifier;
-import dev.hycolony.plugin.adapter.HytaleWorldBlocks;
+import dev.hycolony.plugin.block.HytaleBlockStates;
 import dev.hycolony.plugin.subplugin.SubPlugins;
 import java.nio.file.Files;
 import java.util.List;
@@ -302,8 +302,8 @@ public final class HyColonyCommand extends AbstractCommandCollection {
             BlockType doorType = BlockType.getAssetMap().getAsset(door);
             boolean ok = cornerType != null
                     && doorType != null
-                    && corner.equals(HytaleWorldBlocks.blockKey(cornerType))
-                    && ids.blockId("selftest.door").equals(HytaleWorldBlocks.blockKey(doorType));
+                    && corner.equals(HytaleBlockStates.blockKey(cornerType))
+                    && ids.blockId("selftest.door").equals(HytaleBlockStates.blockKey(doorType));
             report(player, "block keys", ok, corner + " kept, " + door + " normalized");
         }
 
