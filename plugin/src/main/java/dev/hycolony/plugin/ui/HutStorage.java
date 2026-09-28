@@ -60,8 +60,8 @@ final class HutStorage {
         BlockSection blocks = cs.getStore().getComponent(section, BlockSection.getComponentType());
         BlockType type =
                 blocks == null ? null : BlockType.getAssetMap().getAsset(blocks.get(pos.x(), pos.y(), pos.z()));
-        if (type == null) {
-            return;
+        if (type == null || type.getItem() == null) {
+            return; // ContainerBlockWindow reads the block's item id
         }
         ContainerBlockWindow window = new ContainerBlockWindow(
                 pos.x(),
