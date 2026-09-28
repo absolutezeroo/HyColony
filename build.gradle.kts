@@ -120,6 +120,25 @@ val pmdProjectPaths = subprojects.map { it.projectDir.relativeTo(rootDir).invari
 fun elements(doc: org.w3c.dom.Document, tag: String): List<org.w3c.dom.Element> =
     doc.getElementsByTagName(tag).let { nodes -> (0 until nodes.length).map { nodes.item(it) as org.w3c.dom.Element } }
 
+// PMD logs a ruleset it cannot load and then writes an empty report, which would pass: load it here and fail instead.
+fun checkPmdRulesetLoads(classpath: Set<File>) {
+    // PMD alone, but on Gradle's SLF4J API: the pmd configuration relies on Gradle for it.
+    val urls = classpath.map { it.toURI().toURL() }.toTypedArray()
+    object : java.net.URLClassLoader(urls, ClassLoader.getPlatformClassLoader()) {
+        override fun loadClass(name: String, resolve: Boolean): Class<*> =
+            if (name.startsWith("org.slf4j.")) Project::class.java.classLoader.loadClass(name)
+            else super.loadClass(name, resolve)
+    }.use { loader ->
+            val rulesetLoader = loader.loadClass("net.sourceforge.pmd.lang.rule.RuleSetLoader")
+            try {
+                rulesetLoader.getMethod("loadFromResource", String::class.java)
+                    .invoke(rulesetLoader.getConstructor().newInstance(), pmdRuleset.absolutePath)
+            } catch (e: java.lang.reflect.InvocationTargetException) {
+                throw GradleException("PMD cannot load $pmdRuleset: ${e.cause?.message}", e.cause)
+            }
+        }
+}
+
 fun checkPmdBaseline(report: File, projectPath: String) {
     val entries = pmdKnownViolations.readLines().map { it.trim() }.filter { it.isNotEmpty() && !it.startsWith("#") }
         .map { it.split(Regex("""\s+"""), 2) }.map { it[0] to it.getOrElse(1) { "" } }
@@ -169,6 +188,8 @@ subprojects {
         reports.xml.required = true
         val report = reports.xml.outputLocation
         val projectPath = projectDir.relativeTo(rootDir).invariantSeparatorsPath
+        val pmdClasspath = configurations.named("pmd")
+        doLast { checkPmdRulesetLoads(pmdClasspath.get().files) }
         doLast { checkPmdBaseline(report.get().asFile, projectPath) }
     }
 }
