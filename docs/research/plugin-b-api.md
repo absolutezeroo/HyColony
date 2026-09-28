@@ -729,6 +729,52 @@ Vérifié dans les sources décompilées et dans `Assets.zip` le 2026-09-28. Com
 
 **Barre de durabilité d'une `ItemGrid`.** Le schéma de l'éditeur UI donne à `ItemGridStyle` : `DurabilityBar` (UIPath), `DurabilityBarBackground` (PatchStyle ou chaîne), `DurabilityBarAnchor`, `DurabilityBarColorStart`, `DurabilityBarColorEnd` ; les piles portent `Durability` et `MaxDurability`. Aucune `.ui` vanilla ne s'en sert (l'inventaire du joueur est natif). Sans ces propriétés, la grille ne dessine pas de barre. HyColony les renseigne avec `Common/ProgressBarFill.png` et `Common/ProgressBar.png` (grilles du citoyen et du joueur). **[in-game]**
 
+## 28. Mods multiples (essai du 2026-09-28)
+
+Trois mods jetables, `HyColony:spikeui` ← `spikedomum` ← `spikecolony`, ont été construits par le workspace AzureDoom 1.0.51 et lancés en dev (`runAllMods`) puis en production (jars dans `mods/`). Ce sont les résultats du plan 1 de `specs/2026-09-28-hycolony-split-hydomum-hyblockui-design.md`. Les observations brutes sont dans `spike/RESULTS.md`, sur la branche `spike/multi-mod`.
+
+### 28.1 Build et manifeste
+- **Plugin Gradle.** À la racine, `id("com.azuredoom.hytale-tools") version "1.0.51" apply false`, puis `apply(plugin = "com.azuredoom.hytale-workspace")` : les deux plugins viennent du même jar, chargé une seule fois.
+- **Identité.** Surcharger `modId` et `mainClass` dans chaque module suffit : aucune erreur « Duplicate workspace plugin identifier ».
+- **Description et auteurs.** `Description` et `Authors` ne sont pas surchargés et viennent du `gradle.properties` racine : chaque mod doit fixer `modDescription` et `modCredits`.
+- **Version des dépendances.** Une version exacte, `"HyColony:spikeui": "0.1.0"`, passe `validateManifest` et le chargement.
+- **Contenu des jars.** Chaque jar ne contient que son paquet, son `manifest.json` et son pack. Deux choses l'assurent :
+  - `bundleAssetEditorRuntime = false` retire `asseteditor/**` ;
+  - le `compileOnly` entre mods n'embarque rien.
+- **`config.json` dans les ressources.** Un `config.json` placé dans `src/main/resources` **est embarqué dans le jar** : il faut l'exclure.
+- **Ordre de chargement.** Les dépendances se chargent en premier, en dev comme en production : `spikeui`, puis `spikedomum`, puis `spikecolony`.
+
+### 28.2 Classes
+- **En production**, chaque jar a son propre `PluginClassLoader`. Une classe d'API n'existe qu'en **un seul exemplaire** : `SpikeUi` a le même chargeur et le même `identityHashCode`, vu des trois mods. Les appels entre mods passent par le chargeur pont (§ « Faits vérifiés » de la spec).
+- **En dev** (`runAllMods`), un seul chargeur, `AppClassLoader`, sert pour tout. Le dev ne vérifie donc pas l'isolation.
+
+### 28.3 Assets entre packs (vérifié en jeu, en dev et en production)
+
+Toutes les références suivantes fonctionnent :
+- **Modèle `.ui`.** Un `.ui` inclut le modèle d'un autre pack par chemin relatif : `$B = "../SpikeUI/Box.ui";` puis `$B.@Box {}`.
+- **Texture dans le modèle.** Ce modèle se sert d'une texture relative à **son propre** dossier (`"Tex.png"`), et elle s'affiche.
+- **Texture d'un autre pack.** Elle est référencée par chemin relatif (`"../SpikeUI/Tex.png"`). Le fichier est nommé `Tex@2x.png`, comme les textures natives.
+- **`.ui` ajouté par le serveur.** Le serveur ajoute le `.ui` d'un autre pack : `ui.append("#Host", "Pages/SpikeUI/Panel.ui")`.
+- **Traduction.** Une clé d'un autre mod s'écrit `%spikeui.hello` : le préfixe est le nom du fichier `spikeui.lang`.
+
+### 28.4 Dépendance manquante (production)
+
+Un mod **qui a un pack** et dont une dépendance manque **arrête tout le serveur**.
+- **Le plugin est refusé proprement.** Le journal indique « SEVERE [PluginManager] Failed to load 'HyColony:spikecolony' because the dependency 'HyColony:spikedomum' could not be found! », et les autres mods se chargent.
+- **Son pack d'assets reste enregistré.** « Loaded pack: HyColony:spikecolony from SpikeColony-0.1.0.jar » : le pack a le même manifeste que le plugin.
+- **Le calcul de l'ordre des packs échoue.** `AssetModule.loadAllAssetPacks` lève « IllegalStateException: Failed to calculate asset pack load order », causée par « ModLoadOrderException: Missing required dependencies: HyColony:spikecolony requires: [HyColony:spikedomum] » (`Mod.calculateLoadOrder`).
+- **Le serveur s'arrête.** « Shutting down... 'client.disconnection.shutdownReason.crash.startFailed' ».
+
+Pour HyColony, qui a un pack : sans HyDomum, le serveur ne démarre pas, et le journal nomme la dépendance manquante.
+
+### 28.5 Config et données
+- **Staging en dev.** `stageAllModAssets` recrée `run/mods/HyColony_<nom>/` à chaque lancement. Sous Windows, chaque fichier est un **lien dur** vers les ressources et les classes, pas un lien symbolique.
+- **Packs en dev.** Les packs du classpath passent en premier : « Asset pack … already registered (CLASSPATH), skipping MODS ». Pour les mods dont le pack est sur le classpath, les assets et les traductions sont donc lus **directement dans `src/main/resources`**. Un mod sans ressources sur le classpath est lu depuis `run/mods/HyColony_<nom>` : c'est le cas de `spikedomum`.
+- **Config en dev.** Un `config.json` dans les ressources, lié en dur, **est lu** au démarrage (`Counter` 100 → 101). La première écriture du mod le **remplace** par un fichier neuf, et l'ancien lien devient `config.json.bak`. C'est le comportement de `BsonUtil.writeDocumentSync`, qui **remplace** le fichier. Le fichier des ressources ne change donc pas, et le lancement suivant repart de sa valeur.
+- **Écriture sur place.** Une écriture **sur place**, par exemple `Files.write` sur un fichier existant, traverse le lien dur et modifie les ressources. Ce cas se déduit du fonctionnement d'un lien dur ; l'essai ne l'a pas testé.
+- **Données en dev.** Ce qu'un mod écrit dans `run/mods/<mod>/` est perdu à chaque lancement. `run/universe/` survit.
+- **En production.** Rien n'est effacé : `mods/HyColony_<nom>/config.json` et les données persistent d'un lancement à l'autre. Un mod qui n'écrit rien n'a pas de dossier.
+
 ## Could not verify
 
 1. **Client rendering of item animations on NPCs** (`AnimationSlot.Action` with `"Block"/"Build"` or `"Pickaxe"/"Mine"` on `PlayerTestModel_V`) and whether they loop or play once. Only the server packet path is verified.

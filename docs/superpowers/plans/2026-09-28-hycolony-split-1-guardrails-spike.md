@@ -47,7 +47,7 @@ Tâches 2 à 4 (sur `spike/multi-mod`, jetable) :
 - Créer `spike/RESULTS.md` : les observations brutes, remplies au fil des tâches 3 et 4.
 
 Tâche 5 (sur `sp0-foundations`) :
-- Modifier `docs/research/plugin-b-api.md` : nouvelle section `## 27. Mods multiples`, avant `## Could not verify`.
+- Modifier `docs/research/plugin-b-api.md` : nouvelle section `## 28. Mods multiples`, avant `## Could not verify`.
 - Modifier la spec, § « Config et données en dev » : la solution retenue.
 
 `spike/run/` et `spike/*/build/` sont déjà ignorés (`.gitignore` : `run/`, `build/`). `spike/domum/src/main/resources/config.json` (tâche 3) ne l'est pas : il n'est **jamais** indexé.
@@ -833,7 +833,7 @@ EOF
 ### Tâche 5 : résultats dans la recherche, décision dans la spec
 
 **Files :**
-- Modify : `docs/research/plugin-b-api.md` (nouvelle section `## 27. Mods multiples`, juste avant `## Could not verify`)
+- Modify : `docs/research/plugin-b-api.md` (nouvelle section `## 28. Mods multiples`, juste avant `## Could not verify`)
 - Modify : `docs/superpowers/specs/2026-09-28-hycolony-split-hydomum-hyblockui-design.md`, § « Config et données en dev »
 
 - [ ] **Étape 1 : revenir sur la branche de travail**
@@ -843,22 +843,24 @@ git switch sp0-foundations
 git show spike/multi-mod:spike/RESULTS.md
 ```
 
-- [ ] **Étape 2 : écrire `## 27. Mods multiples`**
+- [ ] **Étape 2 : écrire `## 28. Mods multiples`**
+
+Numérotation finale dans le document : 28.1 build et manifeste, 28.2 classes (production et dev), 28.3 assets entre packs, 28.4 dépendance manquante, 28.5 config et données. La liste ci-dessous est celle prévue avant l'essai.
 
 Reprendre de `RESULTS.md` ce qui est vérifié, chaque point avec sa source (fichier et ligne du serveur ou du plugin Gradle, ou « vérifié en jeu le <date> ») :
-- 27.1 Manifeste : `Dependencies` avec une version exacte (`0.1.0` accepté ou non), ordre de chargement, identité par module (`modId` surchargé, dossier `mods/HyColony_<nom>`) ;
-- 27.2 Classes en production : loader de chaque jar, une seule copie d'une API partagée, jars sans `asseteditor` ;
-- 27.3 Classes en dev : ce que `runAllMods` change (classpath commun) ;
-- 27.4 Assets entre packs : modèle `.ui` inclus, texture relative, `.ui` ajouté par le serveur, clé de traduction (et sa forme exacte) ;
-- 27.5 Dépendance manquante : message exact, comportement du serveur ;
-- 27.6 Config et données en dev : ce que le staging efface, ce que fait l'écriture sur un lien.
+- 28.1 Manifeste : `Dependencies` avec une version exacte (`0.1.0` accepté ou non), ordre de chargement, identité par module (`modId` surchargé, dossier `mods/HyColony_<nom>`) ;
+- 28.2 Classes en production : loader de chaque jar, une seule copie d'une API partagée, jars sans `asseteditor` ;
+- 28.3 Classes en dev : ce que `runAllMods` change (classpath commun) ;
+- 28.4 Assets entre packs : modèle `.ui` inclus, texture relative, `.ui` ajouté par le serveur, clé de traduction (et sa forme exacte) ;
+- 28.5 Dépendance manquante : message exact, comportement du serveur ;
+- 28.6 Config et données en dev : ce que le staging efface, ce que fait l'écriture sur un lien.
 
 Un point qui a échoué est écrit comme tel, avec l'erreur exacte, et le contournement s'il a été trouvé (ne jamais conclure « impossible » sans avoir essayé les variantes, cf. mémoire du projet).
 
 - [ ] **Étape 3 : écrire la décision dans la spec**
 
 Dans § « Config et données en dev », remplacer la phrase « Le plan 1 vérifie ce que ça fait … Il retient ensuite une solution et l'écrit dans cette spec avant le plan 2. Les pistes, dans l'ordre : » et la liste des trois pistes par :
-- ce que l'essai a montré (renvoi à `plugin-b-api.md` § 27.6) ;
+- ce que l'essai a montré (renvoi à `plugin-b-api.md` § 28.5) ;
 - **la solution retenue**, choisie ainsi :
   - si l'étape 5 de la tâche 3 montre que `run/universe/` survit et que seul `run/mods/<mod>/` est effacé : piste 3, une tâche de dev (dans `build-logic`, plan 2) qui recopie `<module>/run-config/config.json` (ignoré par git) vers `run/mods/HyColony_<nom>/config.json` **après** `stageAllModAssets` et avant `runAllMods` ; ce que le mod réécrit pendant la partie est perdu au lancement suivant, c'est accepté et écrit ;
   - si le lien de la piste 1 a été lu **et** que l'écriture n'a pas cassé le démarrage : piste 1 suffit (lecture seule), avec la même mise en garde ;
@@ -869,7 +871,7 @@ Mettre aussi à jour, s'ils ont été contredits : § « Faits vérifiés » (or
 
 - [ ] **Étape 4 : relecture indépendante**
 
-Lancer `hycolony-reviewer` sur les changements non commités : « les résultats de l'essai (spike/RESULTS.md sur la branche spike/multi-mod) sont fidèlement reportés dans plugin-b-api.md § 27, avec leurs sources ; la spec retient une solution de config de dev justifiée par ces résultats ; aucune affirmation non vérifiée ». Corriger, faire relire les corrections.
+Lancer `hycolony-reviewer` sur les changements non commités : « les résultats de l'essai (spike/RESULTS.md sur la branche spike/multi-mod) sont fidèlement reportés dans plugin-b-api.md § 28, avec leurs sources ; la spec retient une solution de config de dev justifiée par ces résultats ; aucune affirmation non vérifiée ». Corriger, faire relire les corrections.
 
 - [ ] **Étape 5 : commit**
 

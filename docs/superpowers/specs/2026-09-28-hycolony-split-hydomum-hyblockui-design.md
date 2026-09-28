@@ -35,6 +35,7 @@ La première version de cette spec (5a2f204) a été relue par un agent indépen
 - Le manifeste a trois champs de dépendance : `Dependencies`, `OptionalDependencies` (`Groupe:Nom` → plage de versions) et `LoadBefore` (`Mod.java:84`).
 - Une dépendance est chargée avant le mod qui en dépend. Il refuse de démarrer si elle manque ou si sa version ne convient pas (`PluginManager.java` l. 482-512, 1190-1196).
 - Une dépendance circulaire bloque le chargement (`Mod.java:171`, `CYCLIC_DEPENDENCY`).
+- Vérifié en production (plan 1, `plugin-b-api.md` § 28.4) : quand la dépendance d'un mod **qui a un pack** manque, le plugin est refusé proprement, mais son pack reste enregistré. `AssetModule` échoue alors à ordonner les packs, et **tout le serveur s'arrête**.
 
 **Chargement des classes, en production.** Un jar placé dans `mods/` reçoit un `PluginClassLoader` « ThirdParty » avec `childFirst = false` (`PluginManager.java:593`). Ce chargeur cherche une classe dans cet ordre :
 1. les classes du serveur (`PluginClassLoader.java:95`) ;
@@ -113,7 +114,7 @@ HyColony/                    racine : conventions hy.workspace, catalogue gradle
   - les tailles de fichiers et de paquets, les séparateurs de section ;
   - un `ArchitectureTest` : aucun import `com.hypixel`.
 - **`hy.hytale-mod`**, pour les mods :
-  - `hytale-tools` avec l'identité du mod en surcharge (`modId`, `mainClass`, `manifestDependencies` avec leurs plages de versions) ;
+  - `hytale-tools` avec l'identité du mod en surcharge (`modId`, `mainClass`, `manifestDependencies` avec leurs versions, `modDescription`, `modCredits` : sans surcharge, la description et les auteurs viennent du `gradle.properties` racine, § 28.1) ;
   - un jar qui embarque **seulement son propre cœur**, sans `asseteditor` (`bundleAssetEditorRuntime = false`), sans `config.json`, `config.json.bak` ni `packs/**` ;
   - les autres mods en `compileOnly` ;
   - le contrôle des assets du pack (voir plus bas) ;
@@ -180,12 +181,26 @@ Ce qui reste dans HyColony : tout le reste (colonie, citoyens, huttes, requêtes
 ## Config et données en dev (corrige B7)
 
 - **En production**, chaque mod garde sa config dans son dossier de données (`mods/HyColony_<nom>/config.json`), et les variantes de HyDomum dans `universe/hydomum/`.
-- **En dev**, `runAllMods` efface `run/mods/HyColony_<nom>` à chaque lancement. Le plan 1 vérifie ce que ça fait à la config écrite par un mod, et au lien vers un `config.json` des ressources (celui de HyColony est aujourd'hui dans `plugin/src/main/resources`, ignoré par git). Il retient ensuite une solution et l'écrit dans cette spec avant le plan 2. Les pistes, dans l'ordre :
-  1. le `config.json` de chaque mod dans ses propres ressources, ignoré par git. Le lien ne survit **pas** à une écriture : `BsonUtil.writeDocumentSync` (l. 268-285) écrit un `.tmp`, déplace l'ancien fichier (le lien) vers `.bak`, puis met le `.tmp` à sa place, et `HyColonyPlugin.setup` sauvegarde à chaque démarrage. Les ressources ne servent donc qu'en **lecture**, et ce que le mod écrit est perdu au staging suivant. Le plan 1 le vérifie ;
-  2. `hostProject` avec les `runServer` par module ;
-  3. une tâche de dev qui recopie les configs après le staging.
+- **En dev**, `runAllMods` recrée `run/mods/HyColony_<nom>` à chaque lancement, en liens durs vers les ressources et les classes. L'essai du plan 1 l'a vérifié (`plugin-b-api.md` § 28.5) :
+  - un `config.json` placé dans les ressources du mod est **lu** au démarrage ;
+  - la première écriture du mod remplace le lien, et le fichier des ressources ne change pas ;
+  - ce que le mod écrit dans `run/mods/<mod>/` est perdu au lancement suivant ;
+  - `run/universe/` survit.
+- **Solution retenue** : la piste 1, un `config.json` dans les ressources de chaque mod.
+  - **Emplacements** : `blockui/src/main/resources/config.json`, `domum/plugin/src/main/resources/config.json` et `plugin/src/main/resources/config.json`, tous ignorés par git.
+  - **Fonctionnement** : on règle ce fichier **à la main**, et le mod le relit à chaque lancement. Aucun code n'est nécessaire.
+  - **Changement par rapport à aujourd'hui** : `plugin/run/mods/HyColony_hycolony` est un **lien symbolique vers tout** `plugin/src/main/resources`. Le mod y réécrit donc sa config, avec les clés ajoutées à leur valeur par défaut, et son `.bak`. Avec les liens durs de `runAllMods`, ça ne se produit plus.
+    - Les valeurs par défaut ajoutées par le mod ne reviennent plus dans les ressources : c'est accepté.
+    - Une nouvelle clé se recopie à la main depuis `run/mods/HyColony_<nom>/config.json`.
+  - **Écart au plan 1** : sa règle (tâche 5, étape 3) aurait choisi la piste 3, une tâche qui recopie une config gardée hors des ressources après le staging. Les deux pistes ont le même effet en dev, et la piste 3 coûte une tâche Gradle de plus.
+    - Le seul avantage propre de la piste 3 serait une config jamais embarquée dans le jar, ni liée en dur. Il disparaît parce que `hy.hytale-mod` exclut `config.json` et `config.json.bak` du jar : l'essai a montré qu'un `config.json` des ressources y serait embarqué.
+  - **Une écriture sur place traverse le lien dur** (`plugin-b-api.md` § 28.5). `PackAssets.extract` réécrit ainsi `<dossier du mod>/packs/<nom>.zip` avec `Files.write` (`PackAssets.java:54`). Le plan 2 fait donc trois choses avant de passer à `runAllMods` :
+    - il supprime `plugin/src/main/resources/packs/` et `plugin/src/main/resources/config.json.bak`, deux fichiers locaux écrits par l'ancien lien symbolique, pour qu'aucun zip des ressources ne soit lié en dur ;
+    - il retire l'entrée `packs/` de `.gitignore` ;
+    - il corrige le commentaire de `.gitignore` « via the mods/ symlink ». `guard.js` ne cite pas `packs/`.
+  - **`ConfigQuarantine` en dev** : un `config.json` illisible dans les ressources est mis de côté dans `run/mods/…`, pas dans les ressources. Le mod repart donc des valeurs par défaut à chaque lancement tant que le fichier des ressources n'est pas réparé. Le plan 2 adapte le point 59 de `docs/TESTING.md` : on casse le `config.json` des ressources, le `.broken-<date>` et le fichier neuf apparaissent dans `run/mods/HyColony_hycolony/`, puis on répare le fichier des ressources.
 - **Le dossier du serveur de dev** passe de `plugin/run` à `run/` à la racine. Il faut en reprendre les mondes (`universe/`) et les permissions. La config de HyColony, elle, n'est pas dans `plugin/run`. Le plan dit précisément quoi déplacer.
-- **Chemins protégés** : `guard.js` et `.gitignore` doivent protéger les nouveaux chemins de config (`blockui/…`, `domum/plugin/…`, `run/mods/*/config.json`), comme aujourd'hui `plugin/src/main/resources/config.json`. `guard.js` ne compare aujourd'hui que des chemins exacts et des préfixes de dossier : un motif demande une nouvelle règle de correspondance, testée dans son banc.
+- **Chemins protégés** : `guard.js` et `.gitignore` protègent `blockui/src/main/resources/config.json` et `domum/plugin/src/main/resources/config.json` (avec leurs `.bak`), comme aujourd'hui `plugin/src/main/resources/config.json`. Ce sont des chemins exacts, que `guard.js` sait déjà comparer. `run/mods/*/config.json` n'a pas besoin de protection, puisque le staging l'écrase à chaque lancement.
 
 ## Garde-fous (accord explicite de l'utilisateur, session `HYCOLONY_GUARDRAILS_UNLOCKED=1`)
 
@@ -216,7 +231,7 @@ Chaque étape de chaque plan compile seule : build vert, relecture indépendante
    - `guard.js` bloque `runAllMods`.
    - Puis un **essai jetable** : trois mods minimaux dans une branche d'essai. On vérifie :
      - en **dev** (`runAllMods`) : le chargement, un `.ui` d'un mod qui en inclut un d'un autre, **une texture d'un autre pack** (I5), la config et les données après un second lancement (B7) ;
-     - en **production** : les trois jars dans le `mods/` d'un serveur, sans classpath de dev. On y vérifie l'appel de classe entre mods, l'échec propre d'un mod dont la dépendance manque, et l'absence de classes en double (B2).
+     - en **production** : les trois jars dans le `mods/` d'un serveur, sans classpath de dev. On y vérifie l'appel de classe entre mods, le comportement quand une dépendance manque (constaté : arrêt de tout le serveur, `plugin-b-api.md` § 28.4), et l'absence de classes en double (B2).
 
      C'est l'utilisateur qui lance les serveurs.
    - Les résultats sont écrits dans `plugin-b-api.md`, et la spec est ajustée si besoin.
@@ -239,7 +254,7 @@ La CI (`.github/workflows/gradle.yml`) ne se déclenche que sur `main`, une bran
 - **Build et générateur.** `./gradlew build` construit et vérifie les trois mods. `python tools/domum/check.py` passe.
 - **En jeu** : la section DO de `docs/TESTING.md` (points 133 à 162) est **réécrite** pour HyDomum : `/hydomum`, plus de `SubPlugins`, `universe/hydomum` (corrige I8). Une nouvelle section couvre :
   - en dev, les trois mods chargés sans SEVERE ;
-  - en production, les trois jars ensemble, puis HyDomum seul (établi et `/hydomum`), puis HyColony sans HyDomum : Hytale refuse de le démarrer, avec son message de dépendance manquante ;
+  - en production, les trois jars ensemble, puis HyDomum seul (établi et `/hydomum`), puis HyColony sans HyDomum : **le serveur entier ne démarre pas**. Le pack de HyColony reste enregistré et fait échouer l'ordre des packs (`crash.startFailed`), et le journal nomme la dépendance manquante (`plugin-b-api.md` § 28.4). Même arrêt pour HyDomum sans HyBlockUI, puisque HyDomum a un pack. La documentation d'installation dit d'installer les trois jars ensemble ;
   - HyColony comme avant : fenêtres, onglet Inventaire du citoyen, protection de l'établi dans une colonie.
 
 ## Documentation
