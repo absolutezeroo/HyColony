@@ -1,5 +1,4 @@
-pluginManagement {
-    includeBuild("build-logic")
+dependencyResolutionManagement {
     repositories {
         gradlePluginPortal()
         mavenCentral()
@@ -10,9 +9,4 @@ pluginManagement {
     }
 }
 
-plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
-}
-
-rootProject.name = "HyColony"
-include(":core", ":plugin")
+rootProject.name = "build-logic"

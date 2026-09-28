@@ -587,7 +587,7 @@ hytaleTools {
     manifestOptionalDependencies = property("manifest_opt_dependencies").toString()
 }
 
-tasks.named<Jar>("jar") { archiveBaseName.set(property("mod_name").toString()) }
+tasks.named<Jar>("jar") { archiveBaseName.set(project.property("mod_name").toString()) }
 ```
 
 et supprimer, à la fin du fichier, les trois lignes devenues inutiles (l'exclusion est dans la convention) :

@@ -1,0 +1,223 @@
+import net.ltgt.gradle.errorprone.CheckSeverity
+import net.ltgt.gradle.errorprone.errorprone
+
+// CLAUDE.md §§ 1-3, 8: the checks every Java project of the workspace runs, applied through hy.java-core or
+// hy.hytale-mod. They check what the root build.gradle.kts checked before build-logic, project by project.
+plugins {
+    java
+    pmd
+    id("com.diffplug.spotless")
+    id("net.ltgt.errorprone")
+}
+
+group = providers.gradleProperty("group").get()
+version = providers.gradleProperty("version").get()
+
+repositories { mavenCentral() }
+
+java { toolchain.languageVersion.set(JavaLanguageVersion.of(providers.gradleProperty("java_version").get().toInt())) }
+
+val libs = the<VersionCatalogsExtension>().named("libs")
+
+// Error Prone on main sources: its ERROR-level checks fail the build, NullAway (JSpecify mode) included. A value
+// that may be null carries jspecify's @Nullable.
+dependencies {
+    "errorprone"("com.google.errorprone:error_prone_core:2.50.0")
+    "errorprone"("com.uber.nullaway:nullaway:0.14.2")
+    "compileOnly"(libs.findLibrary("jspecify").get())
+}
+
+tasks.withType<JavaCompile>().configureEach {
+    options.encoding = "UTF-8"
+    options.compilerArgs.addAll(listOf("-Xmaxwarns", "10000"))
+    options.errorprone {
+        disableWarningsInGeneratedCode.set(true)
+        option("NullAway:AnnotatedPackages", "dev.hycolony,dev.hydomum,dev.hyblockui")
+        option("NullAway:JSpecifyMode", "true")
+        check("NullAway", CheckSeverity.ERROR)
+    }
+}
+tasks.named<JavaCompile>("compileTestJava") { options.errorprone.enabled.set(false) }
+tasks.withType<Javadoc>().configureEach {
+    (options as StandardJavadocDocletOptions).addStringOption("Xdoclint:-missing", "-quiet")
+}
+
+val root: File = rootDir
+
+// CLAUDE.md § 2: no source file over 400 lines; § 1: no package over 15 files. The allowlists only shrink.
+val checkFileSizes by tasks.registering {
+    group = "verification"
+    description = "Fails when a main source file exceeds the size limit of CLAUDE.md"
+    val maxLines = 400
+    val maxFilesPerPackage = 15
+    val allowlist = rootProject.file("gradle/file-size-allowlist.txt")
+    val packageAllowlist = rootProject.file("gradle/package-size-allowlist.txt")
+    val sources = fileTree("src/main/java") { include("**/*.java") }
+    inputs.files(sources, allowlist, packageAllowlist)
+    doLast {
+        fun entries(file: File) = file.readLines().map { it.trim() }.filter { it.isNotEmpty() && !it.startsWith("#") }.toSet()
+        val allowed = entries(allowlist)
+        val tooBig = sources.files
+            .map { it.relativeTo(root).invariantSeparatorsPath to it.readLines().size }
+            .filter { (path, lines) -> lines > maxLines && path !in allowed }
+        val allowedPackages = entries(packageAllowlist)
+        val crowded = sources.files.groupBy { it.parentFile.relativeTo(root).invariantSeparatorsPath }
+            .filter { (dir, files) -> files.size > maxFilesPerPackage && dir !in allowedPackages }
+        if (crowded.isNotEmpty()) {
+            throw GradleException("Packages over $maxFilesPerPackage files (CLAUDE.md § 1), split them into sub-packages:\n" +
+                crowded.entries.joinToString("\n") { (dir, files) -> "  $dir: ${files.size}" })
+        }
+        if (tooBig.isNotEmpty()) {
+            throw GradleException("Files over $maxLines lines (CLAUDE.md § 2), split them:\n" +
+                tooBig.joinToString("\n") { (path, lines) -> "  $path: $lines" })
+        }
+    }
+}
+
+// CLAUDE.md § 3: no section-divider comments ("// ---- section ----", "/* ---- */", or a " * ----" line in a block):
+// a class that needs sections must be split.
+val checkSectionDividers by tasks.registering {
+    group = "verification"
+    description = "Fails when a Java source file contains a section-divider comment"
+    val divider = Regex("""^\s*(//|/\*+|\*)\s*[-=*]{3,}""")
+    val sources = fileTree("src") { include("*/java/**/*.java") }
+    inputs.files(sources)
+    doLast {
+        val found = sources.files.sortedBy { it.path }.flatMap { file ->
+            file.readLines().withIndex().filter { divider.containsMatchIn(it.value) }
+                .map { "  ${file.relativeTo(root).invariantSeparatorsPath}:${it.index + 1}: ${it.value.trim()}" }
+        }
+        if (found.isNotEmpty()) {
+            throw GradleException("Section-divider comments (CLAUDE.md § 3), remove them or split the class:\n" +
+                found.joinToString("\n"))
+        }
+    }
+}
+
+// CLAUDE.md § 1 (split spec, mods' APIs): a mod reaches another mod only through that mod's api packages. A fully
+// qualified name written without an import escapes this check; the style's explicit imports make that rare.
+val modApis = mapOf(
+    "dev.hyblockui." to listOf("dev.hyblockui.api."),
+    "dev.hydomum." to listOf("dev.hydomum.api.", "dev.hydomum.plugin.api."),
+    "dev.hycolony." to emptyList(),
+)
+// The mod this project belongs to: its Maven group (dev.hycolony, dev.hydomum or dev.hyblockui), read when the task
+// runs, since a module's build script sets its group after this convention is applied.
+val ownMod = provider { "${project.group}." }
+val checkModApis by tasks.registering {
+    group = "verification"
+    description = "Fails when a source file imports another mod outside that mod's api packages"
+    val sources = fileTree("src") { include("*/java/**/*.java") }
+    inputs.files(sources)
+    doLast {
+        val own = ownMod.get()
+        val import = Regex("""^\s*import\s+(?:static\s+)?([\w.]+)""")
+        val found = sources.files.sortedBy { it.path }.flatMap { file ->
+            file.readLines().withIndex().mapNotNull { (i, line) ->
+                val name = import.find(line)?.groupValues?.get(1) ?: return@mapNotNull null
+                val mod = modApis.keys.firstOrNull { name.startsWith(it) } ?: return@mapNotNull null
+                if (mod == own || modApis.getValue(mod).any { name.startsWith(it) }) null
+                else "  ${file.relativeTo(root).invariantSeparatorsPath}:${i + 1}: $name"
+            }
+        }
+        if (found.isNotEmpty()) {
+            throw GradleException("Imports of another mod outside its api packages (CLAUDE.md § 1):\n" +
+                found.joinToString("\n"))
+        }
+    }
+}
+
+tasks.named("check") { dependsOn(checkFileSizes, checkSectionDividers, checkModApis) }
+
+// CLAUDE.md § 3: formatting is checked by spotlessCheck (part of check). JSON, .ui and .lang are left alone.
+spotless {
+    java {
+        palantirJavaFormat("2.99.0")
+        removeUnusedImports()
+        importOrder("""\#""", "") // Google Java Style: statics, blank line, the rest.
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+}
+
+// PMD on main sources. PMD has no baseline: config/pmd/known-violations.txt lists "Rule path" pairs whose violations
+// are tolerated. pmdMain reads its XML report and fails on any other violation, and on a pair that no longer matches
+// a violation, so the list is forced to shrink (CLAUDE.md § 8).
+val pmdRuleset = rootProject.file("config/pmd/ruleset.xml")
+val pmdKnownViolations = rootProject.file("config/pmd/known-violations.txt")
+val pmdProjectPaths = rootProject.subprojects.map { it.projectDir.relativeTo(root).invariantSeparatorsPath }
+
+fun elements(doc: org.w3c.dom.Document, tag: String): List<org.w3c.dom.Element> =
+    doc.getElementsByTagName(tag).let { nodes -> (0 until nodes.length).map { nodes.item(it) as org.w3c.dom.Element } }
+
+// PMD logs a ruleset it cannot load and then writes an empty report, which would pass: load it here and fail instead.
+fun checkPmdRulesetLoads(classpath: Set<File>) {
+    // PMD alone, but on Gradle's SLF4J API: the pmd configuration relies on Gradle for it.
+    val urls = classpath.map { it.toURI().toURL() }.toTypedArray()
+    object : java.net.URLClassLoader(urls, ClassLoader.getPlatformClassLoader()) {
+        override fun loadClass(name: String, resolve: Boolean): Class<*> =
+            if (name.startsWith("org.slf4j.")) Project::class.java.classLoader.loadClass(name)
+            else super.loadClass(name, resolve)
+    }.use { loader ->
+        val rulesetLoader = loader.loadClass("net.sourceforge.pmd.lang.rule.RuleSetLoader")
+        try {
+            rulesetLoader.getMethod("loadFromResource", String::class.java)
+                .invoke(rulesetLoader.getConstructor().newInstance(), pmdRuleset.absolutePath)
+        } catch (e: java.lang.reflect.InvocationTargetException) {
+            throw GradleException("PMD cannot load $pmdRuleset: ${e.cause?.message}", e.cause)
+        }
+    }
+}
+
+fun checkPmdBaseline(report: File, projectPath: String) {
+    val entries = pmdKnownViolations.readLines().map { it.trim() }.filter { it.isNotEmpty() && !it.startsWith("#") }
+        .map { it.split(Regex("""\s+"""), 2) }.map { it[0] to it.getOrElse(1) { "" } }
+    val orphans = entries.filter { (_, path) -> pmdProjectPaths.none { path.startsWith("$it/") } }
+    if (orphans.isNotEmpty()) {
+        throw GradleException("$pmdKnownViolations lists files outside every subproject, remove the lines:\n" +
+            orphans.joinToString("\n") { "  ${it.first} ${it.second}" })
+    }
+    val known = entries.filter { it.second.startsWith("$projectPath/") }.toSet()
+    val doc = javax.xml.parsers.DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(report)
+    // A file PMD could not analyse, or a broken rule, reports nothing: fail rather than pass (or call a line stale).
+    val errors = elements(doc, "error").map { "  ${it.getAttribute("filename")}: ${it.getAttribute("msg")}" } +
+        elements(doc, "configerror").map { "  rule ${it.getAttribute("rule")}: ${it.getAttribute("msg")}" }
+    if (errors.isNotEmpty()) {
+        throw GradleException("PMD could not run every rule on every file:\n" + errors.joinToString("\n"))
+    }
+    val found = elements(doc, "file").flatMap { file ->
+        val path = File(file.getAttribute("name")).relativeTo(root).invariantSeparatorsPath
+        val violations = file.getElementsByTagName("violation")
+        (0 until violations.length).map { violations.item(it) as org.w3c.dom.Element }.map {
+            Triple(it.getAttribute("rule") to path, it.getAttribute("beginline"), it.textContent.trim())
+        }
+    }
+    val unknown = found.filter { it.first !in known }
+    val stale = known - found.map { it.first }.toSet()
+    if (unknown.isNotEmpty()) {
+        throw GradleException("PMD violations (config/pmd/ruleset.xml), fix them:\n" +
+            unknown.joinToString("\n") { (key, line, message) -> "  ${key.second}:$line ${key.first}: $message" })
+    }
+    if (stale.isNotEmpty()) {
+        throw GradleException("$pmdKnownViolations lists violations that are gone (CLAUDE.md § 8), remove the lines:\n" +
+            stale.sortedBy { "${it.first} ${it.second}" }.joinToString("\n") { "  ${it.first} ${it.second}" })
+    }
+}
+
+pmd {
+    toolVersion = "7.28.0"
+    ruleSets = emptyList()
+    ruleSetConfig = resources.text.fromFile(pmdRuleset)
+    isConsoleOutput = false
+    isIgnoreFailures = true // checkPmdBaseline decides
+}
+tasks.named("pmdTest") { enabled = false }
+tasks.named<Pmd>("pmdMain") {
+    inputs.files(pmdRuleset, pmdKnownViolations)
+    reports.xml.required = true
+    val report = reports.xml.outputLocation
+    val projectPath = projectDir.relativeTo(root).invariantSeparatorsPath
+    val pmdClasspath = configurations.named("pmd")
+    doLast { checkPmdRulesetLoads(pmdClasspath.get().files) }
+    doLast { checkPmdBaseline(report.get().asFile, projectPath) }
+}

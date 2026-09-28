@@ -1,44 +1,21 @@
-plugins {
-    java
-    id("com.azuredoom.hytale-tools") version "1.+"
-}
-
-// Les classes du core sont copiées dans le jar du plugin : un seul jar à déployer.
-val bundled: Configuration by configurations.creating
+plugins { id("hy.hytale-mod") }
 
 dependencies {
-    implementation(project(":core"))
+    // The pure core ships inside the plugin's jar: one jar to deploy.
     bundled(project(":core"))
-    compileOnly("com.google.code.gson:gson:2.11.0")
+    compileOnly(libs.gson)
 }
 
 hytaleTools {
-    javaVersion = property("java_version").toString().toInt()
-    hytaleVersion = property("hytale_version").toString()
-    manifestServerVersion = property("manifestServerVersion").toString()
-    manifestGroup = property("manifest_group").toString()
     modId = property("mod_id").toString()
-    modDescription = property("mod_description").toString()
-    modUrl = property("mod_url").toString()
     mainClass = property("main_class").toString()
+    modDescription = property("mod_description").toString()
     modCredits = property("mod_author").toString()
     manifestDependencies = property("manifest_dependencies").toString()
     manifestOptionalDependencies = property("manifest_opt_dependencies").toString()
-    curseforgeId = property("curseforgeID").toString()
-    disabledByDefault = property("disabled_by_default").toString().toBoolean()
-    includesPack = property("includes_pack").toString().toBoolean()
-    patchline = property("patchline").toString()
-    injectServerJavadocsIntoSources = property("injectServerJavadocsIntoSources").toString().toBoolean()
-    generateAssetsBinary = property("generateAssetsBinary").toString().toBoolean()
 }
 
-tasks.named<Jar>("jar") {
-    archiveBaseName.set(project.property("mod_name").toString())
-    archiveVersion.set(project.property("version").toString())
-    dependsOn(bundled)
-    from({ bundled.filter { it.name.endsWith(".jar") }.map { zipTree(it) } })
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-}
+tasks.named<Jar>("jar") { archiveBaseName.set(project.property("mod_name").toString()) }
 
 // Optional sub-plugins (spec 2026-09-27 § 7): each src/subplugins/<Name>/ becomes, on the classpath,
 // subplugins/<Name>.zip (its Common/ and Server/, an asset pack registered at setup when enabled),
@@ -126,6 +103,5 @@ subpluginResources { dependsOn(checkSubpluginAssets) }
 sourceSets.main { resources.srcDir(subpluginResources) }
 // runServer puts the resources' source dirs on its classpath without building them.
 tasks.matching { it.name == "prepareRunServer" }.configureEach { dependsOn(subpluginResources) }
-// In dev, the plugin data directory is src/main/resources (linked as the run asset pack): keep the pack zips that
-// setup() extracts there out of the jar.
-tasks.processResources { exclude("packs/**") }
+// The workspace's staging links every resource dir of the mod, the generated sub-plugins included.
+rootProject.tasks.matching { it.name == "stageAllModAssets" }.configureEach { dependsOn(subpluginResources) }
