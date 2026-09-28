@@ -1,4 +1,4 @@
-package dev.hycolony.core.crafting.job;
+package dev.hycolony.core.crafting.task;
 
 /**
  * A job that crafts for its hut's crafting module (MC AbstractJobCrafter). Deviation from MC: not a {@code Job}

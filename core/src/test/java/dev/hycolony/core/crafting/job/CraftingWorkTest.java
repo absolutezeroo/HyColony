@@ -24,6 +24,7 @@ import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.crafting.module.CraftingHut;
 import dev.hycolony.core.crafting.recipe.Ingredient;
 import dev.hycolony.core.crafting.recipe.Recipe;
+import dev.hycolony.core.crafting.task.CraftingTasks;
 import dev.hycolony.core.job.JobAI;
 import dev.hycolony.core.job.JobXp;
 import dev.hycolony.core.kernel.BlockPos;

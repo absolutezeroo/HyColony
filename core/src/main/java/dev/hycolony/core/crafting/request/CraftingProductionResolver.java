@@ -2,13 +2,13 @@ package dev.hycolony.core.crafting.request;
 
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.colony.Colony;
-import dev.hycolony.core.crafting.job.Crafter;
-import dev.hycolony.core.crafting.job.Crafters;
 import dev.hycolony.core.crafting.job.RecipeExecution;
 import dev.hycolony.core.crafting.module.CraftingModule;
 import dev.hycolony.core.crafting.module.CraftingModules;
 import dev.hycolony.core.crafting.recipe.Recipe;
 import dev.hycolony.core.crafting.recipe.RecipeId;
+import dev.hycolony.core.crafting.task.Crafter;
+import dev.hycolony.core.crafting.task.Crafters;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.port.ItemCatalog;

@@ -103,7 +103,7 @@ Toutes reprises de MineColonies sauf les écarts listés plus bas. Chaque classe
 
 - **`Crafting(ItemKey stack, int count, int minCount, String recipeId, boolean isPublic)`** : un seul record pour `PublicCrafting` et `PrivateCrafting`. `count` est un nombre d'**exécutions** de la recette. L'égalité suit MC : `count`, `minCount` et `stack`, sans la recette.
 - **`StackList(List<ItemKey> accepted, String description, int count, int minCount)`** (MC `StackList`) : un `Deliverable` qui accepte l'un des objets. La liste n'est jamais vide. Il sert aux ingrédients par type de ressource ou tag, que `description` nomme. L'égalité suit MC : les mêmes objets acceptés, dans n'importe quel ordre, sans les quantités ni la description.
-- **Résolveur de fabrication**, public et privé (MC `PublicWorkerCraftingRequestResolver` et `PrivateWorkerCraftingRequestResolver`). Les deux sont créés par le module de fabrication. MC crée les privés dans chaque `WorkerBuildingModule`, mais `job` ne doit pas dépendre de `crafting`. Écart sans effet : les recettes sans table viennent de toute façon d'un module de fabrication.
+- **Résolveur de fabrication**, public et privé (MC `PublicWorkerCraftingRequestResolver` et `PrivateWorkerCraftingRequestResolver`). Les deux sont créés par le module `CraftingResolvers`, que le type de hutte déclare à côté de ses modules de fabrication (voir « Architecture »), pour chacun d'eux. MC crée les publics dans le module de fabrication et les privés dans chaque `WorkerBuildingModule`, mais `job` ne doit pas dépendre de `crafting`. Écart sans effet : les recettes sans table viennent de toute façon d'un module de fabrication.
   Le résolveur :
   - priorité **125** (MC `CONST_CRAFTING_RESOLVER_PRIORITY`) ;
   - gère les `Deliverable` ;
@@ -230,7 +230,7 @@ Lecture tolérante : clé absente = vide, entrée invalide ignorée et journalis
 7. **Recherche absente.** Les effets `RECIPES` et `CITIZEN_INV_SLOTS` valent 0, et `RECIPE_MODE` reste sur `PRIORITY`.
 8. **Bug MC corrigé :** `AbstractJobCrafter.deserializeNBT` range trois clés dans `progress`.
 9. **Pas de places assises ni debout** pour l'artisan inactif : sans tâche ni vidage en attente, il laisse la main à la flânerie du citoyen (`canGoIdle`), comme le fermier de MC.
-10. **Résolveurs privés créés par le module de fabrication**, pas par chaque `WorkerModule`, pour que `job` ne dépende pas de `crafting`. Ils sont enregistrés après les publics, comme chez le fermier de MC, qui liste son module de fabrication avant ses employés : à priorité et distance égales, le premier enregistré l'emporte. Chez MC, cet ordre suit les modules de chaque hutte.
+10. **Résolveurs privés créés avec ceux du module de fabrication** (module `CraftingResolvers`), pas par chaque `WorkerModule`, pour que `job` ne dépende pas de `crafting`. Ils sont enregistrés après les publics, comme chez le fermier de MC, qui liste son module de fabrication avant ses employés : à priorité et distance égales, le premier enregistré l'emporte. Chez MC, cet ordre suit les modules de chaque hutte.
 11. **Composants au lieu d'héritage :** `CraftingTasks` et `CraftingWork` remplacent `AbstractJobCrafter` et `AbstractEntityAICrafting` (règle d'`ArchitectureTest`). Le comportement est le même.
 12. **Une recette qui n'est plus valable n'est plus choisie** (`getFirstRecipe`, `getFirstFulfillableRecipe`), mais reste dans la liste : sa table a disparu, le métier ne peut plus l'apprendre, c'est une recette maison retirée de `crafting.json`, ou un de ses ingrédients ne correspond plus à aucun objet. MC ne la retire qu'au rafraîchissement de sa vue (`serializeToView`), avec le même test : une recette qui fait la même sortie qu'une recette maison du métier (`isPreTaughtRecipe`) reste valable, sauf ici si un de ses ingrédients ne correspond plus à aucun objet (écart 6).
 13. **Identifiants de recettes lisibles** (`hytale:`, `custom:`, `improved:<n>`) au lieu de jetons aléatoires. Une recette dont le nom est déjà pris par un autre contenu de même source (le jeu ou `crafting.json` l'a changée) remplace l'ancienne sous ce nom. MC l'ajoute sous un nouveau jeton, puis `checkForWorkerSpecificRecipes` l'échange.
@@ -269,10 +269,11 @@ Lecture tolérante : clé absente = vide, entrée invalide ignorée et journalis
     - `RecipeMatching` : la correspondance d'un ingrédient avec un objet ;
     - `CraftingRules` : la lecture de `crafting.json` et le filtre des métiers ;
     - `CraftingSetup(RecipeCatalog, CraftingRules)`, que `ConstructionPorts` reçoit ;
+  - `crafting/task` : l'état des tâches d'un artisan, lu par le module, l'IA et les résolveurs : `Crafter`, `CraftingTasks` et `Crafters` (les artisans d'une hutte ou d'une colonie). Il ne dépend d'aucun autre sous-paquet de `crafting` ;
   - `crafting/module` : `CraftingModule` (état et liste), `CraftingModules` (les modules d'une hutte), `RecipeCompatibility`, `CustomRecipes`, `RecipeImprovement`, `RecipeReservations` ;
-  - `crafting/request` : `CraftingResolvers` (le point d'entrée, que le module appelle), `CraftingRequestResolver`, `CraftingProductionResolver`, `CraftingBatches` (découpage en lots), `CraftingCycles`, `IngredientRequests` (la requête d'un ingrédient) et `HutLookups` (modules, employés et demandeurs de la hutte) ;
+  - `crafting/request` : `CraftingResolvers` (le point d'entrée : un module de hutte qui crée les résolveurs de chaque module de fabrication), `CraftingRequestResolver`, `CraftingProductionResolver`, `CraftingBatches` (découpage en lots), `CraftingCycles`, `IngredientRequests` (la requête d'un ingrédient) et `HutLookups` (modules, employés et demandeurs de la hutte) ;
   - `crafting/job` :
-    - `Crafter`, `CraftingTasks`, `CraftingWork`, `CraftingStep` ;
+    - `CraftingWork`, `CraftingStep` ;
     - `CraftingWorkContext` : l'artisan, sa hutte et les pièces partagées de `job/work` (`WorkerStock`, `ToolRequests`, `SyncRequests`) ;
     - `CraftingProgress` : la durée d'une exécution ; `RecipeCounts` : le calcul de `maxCraftingCount` et des ingrédients qui manquent ;
     - `RecipeExecution` : consommer et produire dans un `Inventory` ; `CraftingRun` : une exécution de l'artisan (`executeCraftingAction`) ;
@@ -280,6 +281,9 @@ Lecture tolérante : clé absente = vide, entrée invalide ignorée et journalis
   - `colony/ui/tab/RecipesView` (record) et `colony/action/CraftingActions` ;
   - `kernel/item/Workstation(String benchId, int tier)` : `building` ne peut dépendre ni de `construction` ni de `crafting` ;
   - `request/model/StackList` et `request/model/Crafting`. `Requestable` et `Deliverable` sont scellés dans ce paquet, et `request` ne doit pas dépendre de `crafting` : `Crafting` porte donc un `String recipeId`.
+- **Sous-paquets sans cycle** (`ArchitectureTest`) : `recipe` et `task` en bas, puis `module`, puis `job` (l'IA), et `request` (les résolveurs) en haut ; `task` ne dépend d'aucun autre sous-paquet de `crafting`. Pour cela :
+  - l'état des tâches d'un artisan (`task`) est sorti de `job`, car le module lit les tâches pour ses réservations ;
+  - le module de fabrication ne crée pas ses résolveurs, contrairement à MC (`AbstractCraftingBuildingModule` est un `ICreatesResolversModule`). Le type de hutte d'un artisan déclare un module `CraftingResolvers` après ses modules de fabrication, comme l'entrepôt déclare `WarehouseResolvers`. Ce module crée, pour chaque module de fabrication de la hutte et dans leur ordre, ses résolveurs publics puis privés (écart 10). Écart sans effet en jeu ; un type de hutte qui l'oublie n'a aucun résolveur de fabrication (le modèle est `testing/crafting/TestCrafters.hut`).
 - **`Colony`** garde le `RecipeRegistry` en champ (accès `recipes()`). Le paquet `colony` a déjà 15 fichiers : aucun fichier n'y est ajouté.
 - **Existant modifié :**
   - `BlueprintEntry` (+ `workstation`) ;

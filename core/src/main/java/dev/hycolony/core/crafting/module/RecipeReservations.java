@@ -2,13 +2,13 @@ package dev.hycolony.core.crafting.module;
 
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.colony.Colony;
-import dev.hycolony.core.crafting.job.Crafter;
-import dev.hycolony.core.crafting.job.Crafters;
 import dev.hycolony.core.crafting.recipe.Ingredient;
 import dev.hycolony.core.crafting.recipe.Recipe;
 import dev.hycolony.core.crafting.recipe.RecipeCatalog;
 import dev.hycolony.core.crafting.recipe.RecipeId;
 import dev.hycolony.core.crafting.recipe.RecipeMatching;
+import dev.hycolony.core.crafting.task.Crafter;
+import dev.hycolony.core.crafting.task.Crafters;
 import dev.hycolony.core.logistics.pickup.KeepRule;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.model.Crafting;

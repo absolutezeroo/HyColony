@@ -4,6 +4,7 @@ import dev.hycolony.core.crafting.module.CraftingModules;
 import dev.hycolony.core.crafting.module.RecipeChoice.Chosen;
 import dev.hycolony.core.crafting.module.RecipeImprovement;
 import dev.hycolony.core.crafting.module.RecipeImprovement.Crafted;
+import dev.hycolony.core.crafting.task.CraftingTasks;
 import dev.hycolony.core.kernel.item.Inventory;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.request.Request;

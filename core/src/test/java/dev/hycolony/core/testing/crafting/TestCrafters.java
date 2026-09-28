@@ -6,11 +6,12 @@ import dev.hycolony.core.building.ModuleProducer;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.colony.Colony;
-import dev.hycolony.core.crafting.job.Crafter;
-import dev.hycolony.core.crafting.job.CraftingTasks;
 import dev.hycolony.core.crafting.job.CraftingWork;
 import dev.hycolony.core.crafting.job.CraftingWorkContext;
 import dev.hycolony.core.crafting.module.CraftingModule;
+import dev.hycolony.core.crafting.request.CraftingResolvers;
+import dev.hycolony.core.crafting.task.Crafter;
+import dev.hycolony.core.crafting.task.CraftingTasks;
 import dev.hycolony.core.job.Job;
 import dev.hycolony.core.job.JobAI;
 import dev.hycolony.core.job.JobType;
@@ -32,7 +33,8 @@ public final class TestCrafters {
 
     /**
      * The crafter hut with {@code places} crafter places; {@code many}: MC canLearnManyRecipes, false for a
-     * SimpleCraftingModule.
+     * SimpleCraftingModule. Its crafting resolvers come from a {@link CraftingResolvers} module, as a concrete crafter
+     * hut declares them.
      */
     public static BuildingType hut(boolean many, int places) {
         return new BuildingType(
@@ -42,7 +44,8 @@ public final class TestCrafters {
                 List.of(
                         new ModuleProducer(
                                 "worker", () -> new WorkerModule(JOB, Skill.Dexterity, Skill.Knowledge, places, false)),
-                        new ModuleProducer("crafting", () -> new CraftingModule(ID, many))));
+                        new ModuleProducer("crafting", () -> new CraftingModule(ID, many)),
+                        new ModuleProducer("craftingResolvers", CraftingResolvers::new)));
     }
 
     /** The crafter job, whose AI is a {@link TestCrafterAI}. */

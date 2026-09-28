@@ -2,6 +2,7 @@ package dev.hycolony.core.crafting.job;
 
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.crafting.recipe.Recipe;
+import dev.hycolony.core.crafting.task.CraftingTasks;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;

@@ -20,7 +20,7 @@ import java.util.Optional;
  * {@code mustExist}, which no job uses yet. MC's multi-output recipes, and the clean-up of the classic recipes one
  * replaces, have no Hytale counterpart.
  */
-public final class CustomRecipes {
+final class CustomRecipes {
     private static final System.Logger LOG = System.getLogger(CustomRecipes.class.getName());
 
     private CustomRecipes() {}
@@ -33,7 +33,7 @@ public final class CustomRecipes {
      * at the end of the list while the hut level is within its bounds and no duplicate is listed, and removes it
      * otherwise. A custom recipe naming a Hytale recipe the game does not have is skipped.
      */
-    public static void check(Colony colony, Building hut, CraftingModule module) {
+    static void check(Colony colony, Building hut, CraftingModule module) {
         CraftingSetup crafting = colony.context().ports().crafting();
         for (CustomRecipe custom : crafting.rules().custom(module.jobId())) {
             Optional<Recipe> hytale = crafting.catalog().byHytaleId(custom.hytaleRecipe());

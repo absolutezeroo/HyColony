@@ -1,4 +1,4 @@
-package dev.hycolony.core.crafting.job;
+package dev.hycolony.core.crafting.task;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;

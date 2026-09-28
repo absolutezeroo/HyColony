@@ -91,6 +91,32 @@ class ArchitectureTest {
                     "dev.hycolony.core.colony.view..",
                     "dev.hycolony.core.colony.persistence..");
 
+    /**
+     * The crafting sub-packages form no dependency cycle: recipes and the crafters' task state at the bottom, then the
+     * hut's module, the crafter's AI, and the resolvers on top (SP3b-1 spec).
+     */
+    @ArchTest
+    static final ArchRule craftingSubPackagesAreFreeOfCycles =
+            slices().matching("dev.hycolony.core.crafting.(*)..").should().beFreeOfCycles();
+
+    /** Like the construction root: an empty crafting root keeps the slice rule above complete. */
+    @ArchTest
+    static final ArchRule craftingRootPackageIsEmpty =
+            noClasses().should().resideInAPackage("dev.hycolony.core.crafting");
+
+    /** A crafter's task state is read by the module, the AI and the resolvers: it depends on none of them. */
+    @ArchTest
+    static final ArchRule craftingTaskDependsOnNoOtherCraftingPackage = noClasses()
+            .that()
+            .resideInAPackage("dev.hycolony.core.crafting.task..")
+            .should()
+            .dependOnClassesThat()
+            .resideInAnyPackage(
+                    "dev.hycolony.core.crafting.recipe..",
+                    "dev.hycolony.core.crafting.module..",
+                    "dev.hycolony.core.crafting.job..",
+                    "dev.hycolony.core.crafting.request..");
+
     /** The construction sub-packages form no dependency cycle. */
     @ArchTest
     static final ArchRule constructionSubPackagesAreFreeOfCycles =

@@ -1,4 +1,4 @@
-package dev.hycolony.core.crafting.job;
+package dev.hycolony.core.crafting.task;
 
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingModule;

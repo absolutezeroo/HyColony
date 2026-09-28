@@ -7,6 +7,7 @@ import dev.hycolony.core.crafting.module.RecipeChoice.Chosen;
 import dev.hycolony.core.crafting.module.RecipeChoice.FulfillQuery;
 import dev.hycolony.core.crafting.recipe.Recipe;
 import dev.hycolony.core.crafting.recipe.RecipeId;
+import dev.hycolony.core.crafting.task.CraftingTasks;
 import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.model.Crafting;

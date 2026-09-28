@@ -10,6 +10,7 @@ import dev.hycolony.core.crafting.recipe.Recipe;
 import dev.hycolony.core.crafting.recipe.RecipeFixtures;
 import dev.hycolony.core.crafting.recipe.RecipeId;
 import dev.hycolony.core.crafting.recipe.RecipeSource;
+import dev.hycolony.core.crafting.task.CraftingTasks;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.item.ItemAmount;

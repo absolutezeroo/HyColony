@@ -1,4 +1,4 @@
-package dev.hycolony.core.crafting.job;
+package dev.hycolony.core.crafting.task;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;

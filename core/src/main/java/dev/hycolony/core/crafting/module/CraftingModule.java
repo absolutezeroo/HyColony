@@ -2,7 +2,6 @@ package dev.hycolony.core.crafting.module;
 
 import com.google.gson.JsonObject;
 import dev.hycolony.core.building.Building;
-import dev.hycolony.core.building.CreatesResolvers;
 import dev.hycolony.core.building.PersistentModule;
 import dev.hycolony.core.building.ProvidesTab;
 import dev.hycolony.core.building.TickingModule;
@@ -11,11 +10,9 @@ import dev.hycolony.core.colony.ui.tab.ModuleTab;
 import dev.hycolony.core.crafting.recipe.Recipe;
 import dev.hycolony.core.crafting.recipe.RecipeId;
 import dev.hycolony.core.crafting.recipe.RecipeSource;
-import dev.hycolony.core.crafting.request.CraftingResolvers;
 import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.core.logistics.pickup.KeepRule;
 import dev.hycolony.core.logistics.pickup.KeepsItems;
-import dev.hycolony.core.request.Resolver;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -29,10 +26,11 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>Deviation from MC: a recipe is taught by choosing it in the recipes tab, not by laying it out in a grid; research
  * is not ported, so its {@code RECIPES} effect is 0. A bad index or a recipe missing from the list changes nothing,
- * where MC throws or clears the list.
+ * where MC throws or clears the list. The module creates no resolvers, where MC's does (createResolvers): the hut type
+ * declares a {@code crafting.request.CraftingResolvers} module beside it, so that this package does not depend on the
+ * resolvers'; a hut without crafting module has no private crafting, which no MC job without one uses.
  */
-public final class CraftingModule
-        implements PersistentModule, TickingModule, CreatesResolvers, KeepsItems, ProvidesTab {
+public final class CraftingModule implements PersistentModule, TickingModule, KeepsItems, ProvidesTab {
     /** MC AbstractCraftingBuildingModule.EXTRA_RECIPE_MULTIPLIER. */
     static final int EXTRA_RECIPE_MULTIPLIER = 5;
 
@@ -197,17 +195,6 @@ public final class CraftingModule
         }
         colony.markDirty();
         return true;
-    }
-
-    /**
-     * MC createResolvers: the hut's crafting resolvers ({@link CraftingResolvers}), for requests and for production,
-     * public then private. Deviation from MC: the private ones come from here, where MC's WorkerBuildingModule makes
-     * them, so that {@code job} does not depend on {@code crafting}; a hut without crafting module has no private
-     * crafting, which no MC job without one uses.
-     */
-    @Override
-    public List<Resolver> createResolvers(Colony colony, Building building) {
-        return CraftingResolvers.of(colony, building, jobId);
     }
 
     /**

@@ -25,7 +25,7 @@ import java.util.random.RandomGenerator;
  */
 public final class RecipeImprovement {
     /** MC BASE_CHANCE: percent per run crafted and per level of the improvement skill. */
-    public static final double BASE_CHANCE = 0.0625;
+    static final double BASE_CHANCE = 0.0625;
 
     /** MC's cap on the chance, in percent. */
     static final double MAX_CHANCE = 5.0;
