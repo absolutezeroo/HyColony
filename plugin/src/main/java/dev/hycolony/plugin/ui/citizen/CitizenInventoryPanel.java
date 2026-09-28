@@ -83,11 +83,11 @@ final class CitizenInventoryPanel {
         PlayerSection.byGrid(drop.grid()).ifPresent(part -> InventoryMoves.apply(player, store, drop, part.id()));
     }
 
-    /** Stops following and closes the window if the player still holds it. Never throws. */
-    void close(Ref<EntityStore> player, Store<EntityStore> store) {
+    /** Stops following and closes the window a task later if the player still holds it then. Never throws. */
+    void close(Ref<EntityStore> player) {
         closed = true;
         stopWatch();
-        HeldWindows.closeIfHeld(player, store, window);
+        HeldWindows.closeLater(player, window);
     }
 
     /** Stops following the player's inventory; safe to call more than once. */

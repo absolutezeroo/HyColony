@@ -181,7 +181,7 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
         if (current != null) {
             current.stop();
         }
-        slots.window().closeIfOpen(ref, store);
+        slots.window().closeLater(ref);
         UiSounds.play(playerRef, setup.settings().closeSound()); // as a bench's LocalCloseSoundEventId
         super.onDismiss(ref, store);
     }

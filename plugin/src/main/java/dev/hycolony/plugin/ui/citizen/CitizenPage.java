@@ -133,7 +133,7 @@ public final class CitizenPage extends ColonyPage {
     public void handleDataEvent(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, @Nonnull Act act) {
         if ("tab".equals(act.action())) {
             if (act.index() >= 0 && act.index() < tabs.size()) {
-                select(ref, store, tabs.get(act.index()));
+                select(ref, tabs.get(act.index()));
             }
             return;
         }
@@ -150,7 +150,7 @@ public final class CitizenPage extends ColonyPage {
     @Override
     public void onDismiss(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
         if (live() instanceof CitizenPage p) {
-            p.leaveInventory(ref, store);
+            p.leaveInventory(ref);
         }
         super.onDismiss(ref, store);
     }
@@ -159,26 +159,26 @@ public final class CitizenPage extends ColonyPage {
      * Shows next. The Inventory tab asks the core, which checks the permission and then reopens this window with the
      * citizen's container (CitizenInventoryWindows); leaving it closes the container.
      */
-    private void select(Ref<EntityStore> ref, Store<EntityStore> store, Tab next) {
+    private void select(Ref<EntityStore> ref, Tab next) {
         if (inventory != null && !inventory.isOpen()) { // its window closed meanwhile: open a new one
-            leaveInventory(ref, store);
+            leaveInventory(ref);
         }
         if (next == Tab.INVENTORY && inventory == null) {
             manager.citizenInventories().open(player, view.colonyId(), view.citizenId());
             return;
         }
         if (next != Tab.INVENTORY) {
-            leaveInventory(ref, store);
+            leaveInventory(ref);
         }
         tab = next;
         rebuild();
     }
 
-    private void leaveInventory(Ref<EntityStore> ref, Store<EntityStore> store) {
+    private void leaveInventory(Ref<EntityStore> ref) {
         CitizenInventoryPanel current = inventory;
         inventory = null;
         if (current != null) {
-            current.close(ref, store);
+            current.close(ref);
         }
     }
 
@@ -203,7 +203,7 @@ public final class CitizenPage extends ColonyPage {
             return;
         }
         if (inventory != null && !inventory.isOpen()) {
-            leaveInventory(ref, ref.getStore());
+            leaveInventory(ref);
             tab = Tab.MAIN;
         }
         rebuild();

@@ -40,8 +40,8 @@ public final class ReturningContainerWindow extends ContainerWindow {
         return closed;
     }
 
-    /** Closes this window if player still holds it (HeldWindows.closeIfHeld). Never throws. */
-    public void closeIfOpen(Ref<EntityStore> player, ComponentAccessor<EntityStore> accessor) {
-        HeldWindows.closeIfHeld(player, accessor, this);
+    /** Closes this window at the world's next task if player still holds it then (HeldWindows.closeLater). */
+    public void closeLater(Ref<EntityStore> player) {
+        HeldWindows.closeLater(player, this);
     }
 }
