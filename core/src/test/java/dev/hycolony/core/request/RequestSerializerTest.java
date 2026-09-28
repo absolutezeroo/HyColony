@@ -51,7 +51,7 @@ class RequestSerializerTest {
         World() {
             m.registerBuiltIn(player);
             m.registerBuiltIn(retrying);
-            hut.attachResolvers(containers, List.of());
+            hut.attachResolvers(containers, List.of(), (r, item) -> 0);
             registry.put(hut.requesterId(), hut);
             m.onProviderAdded(hut);
         }

@@ -138,8 +138,8 @@ class RequestManagerTest {
         }
 
         @Override
-        public Optional<RequesterId> servesOnly() {
-            return Optional.ofNullable(servesOnly);
+        public Set<RequesterId> servesOnly() {
+            return servesOnly == null ? Set.of() : Set.of(servesOnly);
         }
 
         @Override

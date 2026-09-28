@@ -87,6 +87,21 @@ class CraftingProductionResolverTest {
         assertEquals(List.of(), tasksOf(crafter).taskQueue());
     }
 
+    /**
+     * MC BuildingRequestResolver serves every request made at its building's location, its crafting resolvers' ones
+     * included: an ingredient short of the task's full count, but in the crafter hut for its minimum, comes from there.
+     */
+    @Test
+    void ingredientShortInTheCrafterHutIsTakenFromIt() {
+        CitizenData crafter = rig.benchSeedsWithACrafter();
+        rig.stock(ESSENCE, 12);
+
+        Request task = rig.task(rig.ask(rig.other, SEEDS, 10, 4));
+
+        assertEquals(List.of(), task.children(), "the essence request, served by the hut, is done");
+        assertEquals(List.of(task.token()), tasksOf(crafter).taskQueue(), "so the crafter has it to make");
+    }
+
     @Test
     void resourceTypeIngredientIsRequestedAsAStackList() {
         ItemKey oak = new ItemKey("Wood_Oak_Trunk");

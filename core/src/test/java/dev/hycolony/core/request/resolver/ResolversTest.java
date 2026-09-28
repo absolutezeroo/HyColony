@@ -42,7 +42,7 @@ class ResolversTest {
 
     private Building hut(BlockPos pos) {
         Building b = Building.create(BuildingTypes.TOWN_HALL, pos, 0);
-        b.attachResolvers(containers, List.of());
+        b.attachResolvers(containers, List.of(), (r, item) -> 0);
         registry.put(b.requesterId(), b);
         m.onProviderAdded(b);
         return b;

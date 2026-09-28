@@ -39,8 +39,13 @@ final class ResolverRegistry {
         checkRegistrable(r);
         resolversById.put(r.resolverId(), r);
         insertByPriority(resolvers, r);
-        Optional<RequesterId> only = r.servesOnly();
-        insertByPriority(only.isEmpty() ? shared : ownResolvers.computeIfAbsent(only.get(), _ -> new ArrayList<>()), r);
+        Set<RequesterId> only = r.servesOnly();
+        if (only.isEmpty()) {
+            insertByPriority(shared, r);
+        }
+        for (RequesterId requester : only) {
+            insertByPriority(ownResolvers.computeIfAbsent(requester, _ -> new ArrayList<>()), r);
+        }
         resolversByRequesterId.put(r.requesterId(), r);
     }
 
@@ -93,12 +98,12 @@ final class ResolverRegistry {
         for (Resolver r : list) {
             resolvers.remove(r);
             shared.remove(r);
-            r.servesOnly().ifPresent(only -> {
+            for (RequesterId only : r.servesOnly()) {
                 List<Resolver> own = ownResolvers.get(only);
                 if (own != null && own.remove(r) && own.isEmpty()) {
                     ownResolvers.remove(only);
                 }
-            });
+            }
             resolversById.remove(r.resolverId());
             resolversByRequesterId.remove(r.requesterId(), r);
         }

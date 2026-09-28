@@ -5,6 +5,7 @@ import dev.hycolony.core.building.BuildingEventsModule;
 import dev.hycolony.core.building.BuildingManager;
 import dev.hycolony.core.building.BuildingModule;
 import dev.hycolony.core.building.CreatesResolvers;
+import dev.hycolony.core.crafting.module.RecipeReservations;
 import dev.hycolony.core.request.Resolver;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +26,10 @@ final class ColonyBuildingListener implements BuildingManager.Listener {
                 extra.addAll(creator.createResolvers(colony, building));
             }
         }
-        building.attachResolvers(colony.context().ports().containers(), extra);
+        building.attachResolvers(
+                colony.context().ports().containers(),
+                extra,
+                (request, item) -> RecipeReservations.reservedFor(colony, building, request, item));
         colony.requests().onProviderAdded(building);
     }
 

@@ -2,6 +2,7 @@ package dev.hycolony.core.building;
 
 import com.google.gson.JsonObject;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.ContainerAccess;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.RequestManager;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.ToIntBiFunction;
 
 public final class Building implements Requester, ResolverProvider {
     /** MC IBuilding.WOOD_HUT_LEVEL: up to this hut level the worker gets {@link #BASIC_TOOL_LEVEL} tools. */
@@ -145,9 +147,10 @@ public final class Building implements Requester, ResolverProvider {
      * Injected by the colony when the building is added: its {@link BuildingResolver}, then {@code extra} (those of
      * its {@link CreatesResolvers} modules, MC {@code AbstractBuilding.createResolvers}).
      */
-    public void attachResolvers(ContainerAccess access, List<Resolver> extra) {
+    public void attachResolvers(
+            ContainerAccess access, List<Resolver> extra, ToIntBiFunction<Request, ItemKey> reserved) {
         List<Resolver> all = new ArrayList<>(extra.size() + 1);
-        all.add(new BuildingResolver(this, access));
+        all.add(new BuildingResolver(this, access, reserved));
         all.addAll(extra);
         resolvers = List.copyOf(all);
     }

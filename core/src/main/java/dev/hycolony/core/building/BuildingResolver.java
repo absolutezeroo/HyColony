@@ -11,10 +11,13 @@ import dev.hycolony.core.request.model.Deliverable;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.Requestable;
 import dev.hycolony.core.request.model.RequesterId;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.ToIntBiFunction;
 
 /**
  * MineColonies BuildingRequestResolver: a building serves its own requests from its hut's containers. The items
@@ -25,12 +28,16 @@ public final class BuildingResolver implements Resolver {
 
     private final Building building;
     private final ContainerAccess containers;
+    /** MC reservedStacksExcluding: how many of an item the building holds back from a request (crafting tasks). */
+    private final ToIntBiFunction<Request, ItemKey> reserved;
+
     private final String id;
     private final RequesterId requesterId;
 
-    public BuildingResolver(Building building, ContainerAccess containers) {
+    public BuildingResolver(Building building, ContainerAccess containers, ToIntBiFunction<Request, ItemKey> reserved) {
         this.building = building;
         this.containers = containers;
+        this.reserved = reserved;
         this.id = building.requesterId().value();
         this.requesterId = new RequesterId("resolver:" + id);
     }
@@ -50,9 +57,16 @@ public final class BuildingResolver implements Resolver {
         return requestable instanceof Deliverable;
     }
 
+    /**
+     * MC BuildingRequestResolver serves the requests made at its building's location: the building's own, and those
+     * its other resolvers make (a crafting task's ingredients).
+     */
     @Override
-    public Optional<RequesterId> servesOnly() {
-        return Optional.of(building.requesterId());
+    public Set<RequesterId> servesOnly() {
+        Set<RequesterId> served = new HashSet<>();
+        served.add(building.requesterId());
+        building.resolvers().forEach(r -> served.add(r.requesterId()));
+        return served;
     }
 
     @Override
@@ -68,7 +82,7 @@ public final class BuildingResolver implements Resolver {
     @Override
     public boolean canResolve(RequestManager m, Request r) {
         Deliverable d = r.deliverable().orElse(null);
-        if (d == null || !r.requester().equals(building.requesterId()) || !d.canBeResolvedByBuilding()) {
+        if (d == null || !servesOnly().contains(r.requester()) || !d.canBeResolvedByBuilding()) {
             return false;
         }
         int total = 0;
@@ -99,14 +113,23 @@ public final class BuildingResolver implements Resolver {
      */
     private Map<ItemKey, Integer> available(RequestManager m, Request r, Deliverable d) {
         Map<ItemKey, Integer> stock = matching(m, d);
-        for (Request other : m.byRequester(building.requesterId())) {
-            if (!other.equals(r)) {
-                for (ItemAmount a : other.deliveries()) {
-                    stock.computeIfPresent(a.item(), (_, n) -> n > a.count() ? n - a.count() : null);
+        stock.replaceAll((item, n) -> n - reserved.applyAsInt(r, item));
+        stock.values().removeIf(n -> n <= 0);
+        for (RequesterId requester : servesOnly()) {
+            for (Request other : m.byRequester(requester)) {
+                if (!other.equals(r)) {
+                    withoutDeliveries(stock, other);
                 }
             }
         }
         return stock;
+    }
+
+    /** Takes {@code other}'s deliveries off {@code stock}: those items are the other request's. */
+    private static void withoutDeliveries(Map<ItemKey, Integer> stock, Request other) {
+        for (ItemAmount a : other.deliveries()) {
+            stock.computeIfPresent(a.item(), (_, n) -> n > a.count() ? n - a.count() : null);
+        }
     }
 
     /** The hut's stacks that match {@code d}, by item (a worn-out tool never does). */

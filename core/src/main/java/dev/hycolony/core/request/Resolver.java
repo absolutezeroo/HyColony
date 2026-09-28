@@ -4,6 +4,7 @@ import dev.hycolony.core.request.model.Requestable;
 import dev.hycolony.core.request.model.RequesterId;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 
 /**
@@ -21,11 +22,11 @@ public interface Resolver extends Requester {
     boolean handles(Requestable requestable);
 
     /**
-     * Present when the resolver only ever serves this requester's requests (a building's own stock): the manager
-     * then offers it those alone, found by requester, instead of offering it every request.
+     * Non-empty when the resolver only ever serves these requesters' requests (a building's own stock, for the building
+     * and its other resolvers): the manager then offers it those alone, found by requester, instead of every request.
      */
-    default Optional<RequesterId> servesOnly() {
-        return Optional.empty();
+    default Set<RequesterId> servesOnly() {
+        return Set.of();
     }
 
     boolean canResolve(RequestManager m, Request r);

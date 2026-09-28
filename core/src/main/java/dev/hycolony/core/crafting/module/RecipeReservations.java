@@ -9,30 +9,32 @@ import dev.hycolony.core.crafting.recipe.RecipeId;
 import dev.hycolony.core.crafting.recipe.RecipeMatching;
 import dev.hycolony.core.crafting.task.Crafter;
 import dev.hycolony.core.crafting.task.Crafters;
+import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.logistics.pickup.KeepRule;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.model.Crafting;
 import dev.hycolony.core.request.model.RequestToken;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * What a hut holds back for the crafting tasks its crafters are waiting on or about to make (MC
  * AbstractCraftingBuildingModule reservedStacksExcluding and getRequiredItemsAndAmount, over
  * getPendingRequestQueueExcluding).
  *
- * <p>Deviation from MC: no request is ever excluded. MC excludes one for its BuildingRequestResolver, which takes the
- * reservations off the stock a hut hands to its own requests; ours ({@code building.BuildingResolver}) cannot see the
- * crafting modules, as {@code building} does not depend on {@code crafting}.
+ * <p>The building resolver ({@code building.BuildingResolver}), which cannot see the crafting modules, gets
+ * {@link #reservedFor} through the colony.
  */
 public final class RecipeReservations {
     private RecipeReservations() {}
 
     /** A task of the hut's crafters: its recipe and how many runs of it. */
-    private record Pending(Recipe recipe, int runs) {}
+    private record Pending(RequestToken token, Recipe recipe, int runs) {}
 
     /**
      * MC reservedStacks: each ingredient of the pending tasks times their runs, summed by ingredient at amount 1 (MC's
@@ -40,6 +42,34 @@ public final class RecipeReservations {
      */
     public static Map<Ingredient, Integer> reserved(Colony colony, Building hut, CraftingModule module) {
         return reserved(pending(colony, hut, module));
+    }
+
+    /**
+     * MC AbstractBuilding.reservedStacksExcluding for the building resolver: how many of {@code item} the pending tasks
+     * of {@code hut}'s crafting modules hold back, but the tasks {@code excluded} descends from (MC anyChildRequestIs:
+     * a task's own ingredients are not held back from it).
+     */
+    public static int reservedFor(Colony colony, Building hut, Request excluded, ItemKey item) {
+        Set<RequestToken> ancestors = new HashSet<>();
+        for (Optional<RequestToken> p = excluded.parent(); p.isPresent(); ) {
+            ancestors.add(p.get());
+            p = colony.requests().get(p.get()).flatMap(Request::parent);
+        }
+        RecipeCatalog catalog = colony.context().ports().crafting().catalog();
+        int total = 0;
+        for (var module : hut.modules().values()) {
+            if (module instanceof CraftingModule crafting) {
+                List<Pending> tasks = pending(colony, hut, crafting).stream()
+                        .filter(t -> !ancestors.contains(t.token()))
+                        .toList();
+                for (Map.Entry<Ingredient, Integer> e : reserved(tasks).entrySet()) {
+                    if (RecipeMatching.accepts(e.getKey(), item, catalog)) {
+                        total += e.getValue();
+                    }
+                }
+            }
+        }
+        return total;
     }
 
     private static Map<Ingredient, Integer> reserved(List<Pending> tasks) {
@@ -92,7 +122,7 @@ public final class RecipeReservations {
         if (colony.requests().get(token).map(Request::requestable).orElse(null) instanceof Crafting task) {
             RecipeId id = new RecipeId(task.recipeId());
             if (module.holdsRecipe(id)) {
-                return colony.registries().recipes().get(id).map(recipe -> new Pending(recipe, task.count()));
+                return colony.registries().recipes().get(id).map(recipe -> new Pending(token, recipe, task.count()));
             }
         }
         return Optional.empty();
