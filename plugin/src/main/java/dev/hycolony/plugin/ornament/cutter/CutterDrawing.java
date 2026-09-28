@@ -41,13 +41,16 @@ final class CutterDrawing {
         }
     }
 
-    /** One icon button per shape of the open group, the chosen one disabled and named above the slots. */
+    /**
+     * One icon button per shape of the open group, in the slots' materials once their variant exists, the chosen one
+     * disabled and named above the slots.
+     */
     private static void shapes(UICommandBuilder ui, UIEventBuilder events, List<CutterView.ShapeButton> shapes) {
         for (int i = 0; i < shapes.size(); i++) {
             CutterView.ShapeButton shape = shapes.get(i);
             String button = "#Shapes[" + i + "]";
             ui.append("#Shapes", PAGES + "CutterShapeButton.ui");
-            ui.set(button + " #Icon.ItemId", shape.templateKey());
+            ui.set(button + " #Icon.ItemId", shownItem(shape.itemId(), shape.templateKey()));
             ui.set(button + ".TooltipText", itemName(shape.templateKey()));
             ui.set(button + ".Disabled", shape.selected());
             bind(events, button, "shape", i);
@@ -78,9 +81,9 @@ final class CutterDrawing {
                 ui.set("#PreviewText.Text", Message.translation("hycolony.ornament.cutter.placeMaterials"));
             }
             case CutterView.Ready ready -> {
-                // Deviation from MC: the template's icon until the variant exists (its icon is painted on creation).
-                boolean exists = Item.getAssetMap().getAsset(ready.itemId()) != null;
-                ui.set("#Preview.ItemId", exists ? ready.itemId() : ready.templateKey());
+                // Deviation from MC: the template's icon for the moment the variant takes to be created
+                // (CutterPreviewVariants asks for it as soon as the slots make a valid recipe).
+                ui.set("#Preview.ItemId", shownItem(ready.itemId(), ready.templateKey()));
                 ui.set(
                         "#PreviewText.Text",
                         Message.translation("hycolony.ornament.cutter.quantity")
@@ -100,6 +103,11 @@ final class CutterDrawing {
         bind(events, "#CraftButton", "craft", -1);
         bind(events, "#Craft10Button", "craft10", -1);
         bind(events, "#CraftAllButton", "craftAll", -1);
+    }
+
+    /** itemId when it exists (a variant is created on demand), else templateKey. */
+    private static String shownItem(String itemId, String templateKey) {
+        return Item.getAssetMap().getAsset(itemId) != null ? itemId : templateKey;
     }
 
     /** The item's translated name; its id when it is not loaded. */

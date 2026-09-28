@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.ornament.MaterialTags;
 import dev.hycolony.core.ornament.ShapeCatalog;
+import dev.hycolony.core.ornament.VariantKey;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -124,6 +125,30 @@ class CutterActionsTest {
         assertEquals(
                 CutterCraft.MAX_BATCH,
                 ((CutterView.Ready) actions.view(slots, true).preview()).maxCrafts());
+    }
+
+    @Test
+    void shapesShowTheVariantTheSlotsMakeOrTheirTemplate() {
+        actions.selectGroup(1);
+        assertEquals(
+                "HyColony_DO_TimberFrame_Plain",
+                actions.view(List.of()).shapes().getFirst().itemId());
+        assertEquals(
+                "HyColony_DO_TimberFrame_Plain__Wood_Hardwood_Planks__Rock_Stone_Brick",
+                actions.view(List.of(one(OAK), one(STONE))).shapes().getFirst().itemId());
+    }
+
+    @Test
+    void groupVariantsAreTheOpenGroupsShapesTheSlotsMake() {
+        actions.selectGroup(2);
+        assertEquals(List.of(), actions.groupVariants(List.of(one(OAK), one(STONE))), "shingles refuse these");
+        actions.selectGroup(1);
+        assertEquals(
+                List.of("HyColony_DO_TimberFrame_Plain__Wood_Hardwood_Planks__Rock_Stone_Brick"),
+                actions.groupVariants(List.of(one(OAK), one(STONE))).stream()
+                        .map(VariantKey::blockTypeKey)
+                        .toList());
+        assertEquals(List.of(), actions.groupVariants(List.of()));
     }
 
     @Test

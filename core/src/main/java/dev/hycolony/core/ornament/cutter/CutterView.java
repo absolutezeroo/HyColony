@@ -16,8 +16,11 @@ public record CutterView(List<Tab> tabs, List<ShapeButton> shapes, List<String> 
     /** A group tab: its id, its name key, the item shown as its icon (its first shape's template), whether open. */
     public record Tab(String group, String nameKey, String iconKey, boolean selected) {}
 
-    /** A shape button: shown with its template item's icon and name. */
-    public record ShapeButton(String shapeId, String templateKey, boolean selected) {}
+    /**
+     * A shape button: named after its template item, shown with itemId's icon, the variant the slots make for it
+     * (it may not exist yet: show the template's icon then), or its template when they make none.
+     */
+    public record ShapeButton(String shapeId, String templateKey, String itemId, boolean selected) {}
 
     /** What crafting gives now. */
     public sealed interface Preview permits Empty, Ready, Refused {}

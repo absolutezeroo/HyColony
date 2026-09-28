@@ -81,6 +81,7 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
     private final CutterSlots slots;
     private @Nullable InventoryWatch watch;
     private final PageRedraw redraw;
+    private final CutterPreviewVariants previews;
 
     CutterPage(PlayerRef playerRef, Setup setup) {
         super(playerRef, CustomPageLifetime.CanDismiss, Act.CODEC);
@@ -94,6 +95,7 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
         // Nothing once the slots' window has closed: the page is gone or the player is leaving.
         this.redraw = new PageRedraw(
                 setup.world(), this::redrawIfShown, () -> !slots.window().isClosed());
+        this.previews = new CutterPreviewVariants(setup.world(), setup.registry(), redraw::soon);
     }
 
     /** The slots' window, to open with this page. */
@@ -112,6 +114,7 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
         }
         ui.append("Pages/HyColony/Cutter.ui");
         CutterDrawing.draw(ui, events, actions.view(slots.contents(), CutterCrafting.creative(store, ref)));
+        previews.prepare(actions.groupVariants(slots.contents()));
         InventoryGrids.drawContainer(
                 ui, events, SLOTS_GRID, slots.container(), slots.window().getId());
         PlayerPanels.drawCharacter(ui, events, "#Character", store, ref);

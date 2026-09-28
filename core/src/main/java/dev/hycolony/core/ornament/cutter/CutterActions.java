@@ -2,6 +2,7 @@ package dev.hycolony.core.ornament.cutter;
 
 import dev.hycolony.core.ornament.MaterialTags;
 import dev.hycolony.core.ornament.OrnamentShape;
+import dev.hycolony.core.ornament.VariantKey;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -94,7 +95,12 @@ public final class CutterActions {
         List<OrnamentShape> shapes = shapes();
         List<CutterView.ShapeButton> buttons = IntStream.range(0, shapes.size())
                 .mapToObj(i -> new CutterView.ShapeButton(
-                        shapes.get(i).id(), shapes.get(i).templateKey(), i == shape))
+                        shapes.get(i).id(),
+                        shapes.get(i).templateKey(),
+                        variant(shapes.get(i), slots)
+                                .map(VariantKey::blockTypeKey)
+                                .orElse(shapes.get(i).templateKey()),
+                        i == shape))
                 .toList();
         Optional<OrnamentShape> chosen = shape();
         List<String> labels = chosen.map(s -> s.slotTags().stream()
@@ -104,6 +110,21 @@ public final class CutterActions {
         CutterView.Preview preview =
                 chosen.map(s -> preview(s, slots, creative)).orElseGet(CutterView.Empty::new);
         return new CutterView(tabs, buttons, labels, preview);
+    }
+
+    /**
+     * The variants slots make for the open group's shapes, in the group's order: what the window shows, to create in
+     * one batch (a single asset rebuild, DO-1 grouped creation). Empty when the slots make none.
+     */
+    public List<VariantKey> groupVariants(List<SlotContent> slots) {
+        return shapes().stream().flatMap(s -> variant(s, slots).stream()).toList();
+    }
+
+    /** The variant slots make for shape, ignoring creative mode; empty when the recipe is refused. */
+    private Optional<VariantKey> variant(OrnamentShape shape, List<SlotContent> slots) {
+        return CutterCraft.check(shape, slots, tags) instanceof CutterCraft.Ready ready
+                ? Optional.of(ready.key())
+                : Optional.empty();
     }
 
     /** The open group's shapes; empty when the catalog has no group. */
