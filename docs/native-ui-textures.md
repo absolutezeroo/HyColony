@@ -9,7 +9,6 @@ Ce dossier ne contient que ces copies, rien d'autre. On n'ajoute une texture que
 | Fichier | Sert à |
 |---|---|
 | `Slot` | cases d'inventaire |
-| `SpecialSlot` | cases utilitaires du panneau personnage |
 | `CharacterBackground` | fond du personnage |
 | `ArmorSlotIconHead`, `Chest`, `Hands`, `Legs` | silhouettes des cases d'armure vides |
 | `SlotInputBindingBackground` | badges 1 à 9 de la barre rapide |
