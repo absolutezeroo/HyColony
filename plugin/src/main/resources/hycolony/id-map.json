@@ -5,6 +5,8 @@
     "hut.residence": "HyColony_Hut_Residence",
     "hut.warehouse": "HyColony_Hut_Warehouse",
     "hut.deliveryman": "HyColony_Hut_Courier",
+    "hut.farmer": "HyColony_Hut_Farmer",
+    "block.field": "HyColony_Field",
     "build_goggles": "HyColony_Build_Goggles",
     "build_tool": "HyColony_Build_Tool"
   },
@@ -14,6 +16,8 @@
     "hut.residence": "HyColony_Hut_Residence",
     "hut.warehouse": "HyColony_Hut_Warehouse",
     "hut.deliveryman": "HyColony_Hut_Courier",
+    "hut.farmer": "HyColony_Hut_Farmer",
+    "block.field": "HyColony_Field",
     "selftest.chest": "Furniture_Crude_Chest_Small",
     "selftest.stair_corner": "*Rock_Stone_Brick_Stairs_State_Definitions_Corner_Right",
     "selftest.door": "Furniture_Crude_Door",

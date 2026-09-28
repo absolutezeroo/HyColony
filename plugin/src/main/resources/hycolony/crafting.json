@@ -1,5 +1,23 @@
 {
-  "jobs": {},
+  "jobs": {
+    "hycolony:farmer": {
+      "allow": [ { "bench": "Farmingbench", "categories": ["Seeds", "Essence"] } ],
+      "includeItems": [],
+      "excludeItems": [],
+      "custom": [
+        { "id": "farmer_seeds_wheat", "hytaleRecipe": "Plant_Seeds_Wheat_Recipe_Generated_0", "minBuildingLevel": 1, "maxBuildingLevel": 5 },
+        { "id": "farmer_seeds_lettuce", "hytaleRecipe": "Plant_Seeds_Lettuce_Recipe_Generated_0", "minBuildingLevel": 1, "maxBuildingLevel": 5 },
+        { "id": "farmer_seeds_carrot", "hytaleRecipe": "Plant_Seeds_Carrot_Recipe_Generated_0", "minBuildingLevel": 2, "maxBuildingLevel": 5 },
+        { "id": "farmer_seeds_corn", "hytaleRecipe": "Plant_Seeds_Corn_Recipe_Generated_0", "minBuildingLevel": 2, "maxBuildingLevel": 5 },
+        { "id": "farmer_seeds_cauliflower", "hytaleRecipe": "Plant_Seeds_Cauliflower_Recipe_Generated_0", "minBuildingLevel": 3, "maxBuildingLevel": 5 },
+        { "id": "farmer_seeds_turnip", "hytaleRecipe": "Plant_Seeds_Turnip_Recipe_Generated_0", "minBuildingLevel": 3, "maxBuildingLevel": 5 },
+        { "id": "farmer_seeds_aubergine", "hytaleRecipe": "Plant_Seeds_Aubergine_Recipe_Generated_0", "minBuildingLevel": 4, "maxBuildingLevel": 5 },
+        { "id": "farmer_seeds_pumpkin", "hytaleRecipe": "Plant_Seeds_Pumpkin_Recipe_Generated_0", "minBuildingLevel": 4, "maxBuildingLevel": 5 },
+        { "id": "farmer_seeds_tomato", "hytaleRecipe": "Plant_Seeds_Tomato_Recipe_Generated_0", "minBuildingLevel": 5, "maxBuildingLevel": 5 },
+        { "id": "farmer_seeds_chilli", "hytaleRecipe": "Plant_Seeds_Chilli_Recipe_Generated_0", "minBuildingLevel": 5, "maxBuildingLevel": 5 }
+      ]
+    }
+  },
   "reduceable": {
     "ingredients": [],
     "excludedProducts": []

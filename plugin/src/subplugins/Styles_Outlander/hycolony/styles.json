@@ -119,6 +119,33 @@
         "hutOffset": [-2, 62, 21],
         "spawnerChests": true
       }
+    },
+    "hycolony:farmer": {
+      "1": {
+        "prefab": "HyColony/Farmer/Outlander_L1.prefab.json",
+        "hutOffset": [-1, 15, -1],
+        "spawnerChests": true
+      },
+      "2": {
+        "prefab": "HyColony/Farmer/Outlander_L2.prefab.json",
+        "hutOffset": [1, 15, -2],
+        "spawnerChests": true
+      },
+      "3": {
+        "prefab": "HyColony/Farmer/Outlander_L3.prefab.json",
+        "hutOffset": [-2, 6, 1],
+        "spawnerChests": true
+      },
+      "4": {
+        "prefab": "HyColony/Farmer/Outlander_L4.prefab.json",
+        "hutOffset": [1, 6, 0],
+        "spawnerChests": true
+      },
+      "5": {
+        "prefab": "HyColony/Farmer/Outlander_L5.prefab.json",
+        "hutOffset": [-2, 62, 21],
+        "spawnerChests": true
+      }
     }
   }
 }
