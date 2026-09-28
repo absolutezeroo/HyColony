@@ -22,7 +22,8 @@ public final class InventoryDrop {
 
     /**
      * Adds the drop's keys to a page's event codec, whose events hold an InventoryDrop reached through drop: Grid,
-     * SlotIndex, SourceInventorySectionId, SourceSlotId and ItemStackQuantity (the keys Hytale 0.6.8 sends).
+     * SlotIndex, SourceInventorySectionId, SourceSlotId and ItemStackQuantity (the keys Hytale sends, unchanged in
+     * 0.7.0).
      */
     public static <T> BuilderCodec.Builder<T> appendTo(BuilderCodec.Builder<T> codec, Function<T, InventoryDrop> drop) {
         return codec.append(

@@ -9,7 +9,7 @@
         }
     ],
     "Website": "https://github.com/ldtteam/minecolonies",
-    "ServerVersion": ">=0.6.8 <0.7.0",
+    "ServerVersion": ">=0.7.0-pre.4 <0.8.0",
     "Dependencies": {
         "Hytale:AssetModule": "*",
         "HyColony:hyblockui": "=0.1.0"

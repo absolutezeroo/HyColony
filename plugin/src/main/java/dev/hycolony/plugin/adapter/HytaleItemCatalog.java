@@ -30,8 +30,8 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>Hytale has no hardness and no MineColonies tool levels, so these are mapped:
  * <ul>
- *   <li>tool type from the block's {@code GatherType}: Rocks, VolcanicRocks, Ore* → PICKAXE; Woods, SoftWoods → AXE;
- *       Soils → SHOVEL; anything else needs no tool;</li>
+ *   <li>tool type from the block's {@code GatherType}: Rocks, VolcanicRocks, GoblinMetal, Ore* → PICKAXE; Woods,
+ *       SoftWoods → AXE; Soils → SHOVEL; anything else needs no tool;</li>
  *   <li>tool level = {@code max(0, Quality - 1)} of the tool's spec for its own gather type (pickaxe → Rocks,
  *       axe → Woods, shovel → Soils). Vanilla pickaxes start at Quality 1 (Wood, Crude, Scrap → level 0; Copper 1;
  *       Iron 2; Cobalt, Thorium 3; Adamantite 4; Mithril, Onyxium 5); hatchets and shovels have no Quality, so they
@@ -229,10 +229,12 @@ public final class HytaleItemCatalog implements ItemCatalog {
         if (gather == null) {
             return null;
         }
-        if (gather.equals("Rocks") || gather.equals("VolcanicRocks") || gather.startsWith("Ore")) {
+        if (gather.startsWith("Ore")) {
             return ToolType.PICKAXE;
         }
         return switch (gather) {
+            // Not "Metals": every U7 tool lists it IsIncorrect (power 0.001), so no tool is the right one.
+            case "Rocks", "VolcanicRocks", "GoblinMetal" -> ToolType.PICKAXE;
             case "Woods", "SoftWoods" -> ToolType.AXE;
             case "Soils" -> ToolType.SHOVEL;
             default -> null;

@@ -11,6 +11,7 @@ import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.modules.interaction.BlockHarvestUtils;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.section.BlockSection;
+import com.hypixel.hytale.server.core.universe.world.chunk.section.ChunkSection;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemAmount;
@@ -92,8 +93,10 @@ final class FarmBlocks {
         Ref<ChunkStore> section = HytaleSections.section(world, pos);
         Store<ChunkStore> store = world.getChunkStore().getStore();
         BlockSection blocks = section == null ? null : store.getComponent(section, BlockSection.getComponentType());
-        if (blocks != null) {
-            blocks.setTicking(pos.x(), pos.y(), pos.z(), true);
+        ChunkSection chunk = section == null ? null : store.getComponent(section, ChunkSection.getComponentType());
+        // Saved like BlockOperations.setTicking does, so the tick survives a chunk unload.
+        if (blocks != null && blocks.setTicking(pos.x(), pos.y(), pos.z(), true) && chunk != null) {
+            chunk.markNeedsSaving();
         }
     }
 }

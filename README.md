@@ -10,7 +10,7 @@ Colony management for Hytale, recreating MineColonies' systems. Found a colony w
 - sub-project 0 (foundations & colony) is done: Town Hall, citizens, permissions, persistence;
 - sub-projects 1+2 (requests & construction) are implemented: builder and residence huts, hiring, work orders, a builder that clears, builds, decorates and deconstructs from vanilla Outlander/Kweebec prefabs, material requests and the building, resources, requests and work order windows. In-game testing: `docs/TESTING.md` items 13+.
 
-- Server: Hytale 0.6.8 (see `docs/UPGRADING.md`)
+- Server: Hytale 0.7.0-pre.4, Update 7 (see `docs/UPGRADING.md`)
 - License: GPL-3.0. Game mechanics are ported from [MineColonies](https://github.com/ldtteam/minecolonies) (GPL-3.0); no MineColonies assets are used.
 
 ## Build

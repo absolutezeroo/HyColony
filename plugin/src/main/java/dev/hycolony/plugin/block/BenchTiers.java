@@ -10,11 +10,13 @@ import com.hypixel.hytale.server.core.universe.world.chunk.BlockOperations;
 import com.hypixel.hytale.server.core.universe.world.chunk.section.BlockSection;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import dev.hycolony.core.kernel.BlockPos;
+import org.joml.Vector3i;
 
 /**
  * Raises a placed bench to a tier the way a player's upgrade ends (CraftingManager.finishTierUpgrade): the
- * {@code BenchBlock} tier level, the {@code Tier<N>} interaction state on its base block, and a save mark. No upgrade
- * items are stored in the bench: breaking it gives back the bench only (plugin-b-api § « Recettes et tables »).
+ * {@code BenchBlock} tier level, the {@code Tier<N>} interaction state on its base block, a save mark and the tier
+ * listeners (augment blocks). No upgrade items are stored in the bench: breaking it gives back the bench only
+ * (plugin-b-api § « Recettes et tables »).
  */
 public final class BenchTiers {
     private BenchTiers() {}
@@ -50,6 +52,7 @@ public final class BenchTiers {
                 bench.getTierStateName(),
                 true);
         info.markNeedsSaving();
+        BenchBlock.notifyTierUpgraded(world, new Vector3i(pos.x(), pos.y(), pos.z()), tier);
         return true;
     }
 }

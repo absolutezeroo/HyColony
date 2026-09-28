@@ -12,8 +12,8 @@ import javax.annotation.Nonnull;
 /**
  * The world map marker of a player's highlight ({@link Highlights}), as the game's own providers add theirs
  * (SpawnMarkerProvider): whatever the distance, in the world it was asked in, while it lasts. Called on the world map
- * thread. The player is known by Player.getPlayerRef, deprecated but kept in the pinned 0.6.8 (the provider gets no
- * other handle on it).
+ * thread. The player is known by Player.getPlayerRef, marked for removal but still what vanilla providers call in
+ * 0.7.0 (the provider gets no other handle on it; Entity.getUuid is marked for removal too).
  */
 public final class HighlightMarkers implements WorldMapManager.MarkerProvider {
     /** The provider's key in a world's map manager. */

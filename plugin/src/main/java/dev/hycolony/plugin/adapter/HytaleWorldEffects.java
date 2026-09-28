@@ -9,9 +9,7 @@ import com.hypixel.hytale.protocol.SoundCategory;
 import com.hypixel.hytale.server.core.asset.type.blocksound.config.BlockSoundSet;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.soundevent.config.SoundEvent;
-import com.hypixel.hytale.server.core.modules.blockhealth.BlockHealth;
-import com.hypixel.hytale.server.core.modules.blockhealth.BlockHealthChunk;
-import com.hypixel.hytale.server.core.modules.blockhealth.BlockHealthModule;
+import com.hypixel.hytale.server.core.modules.blockhealth.BlockHealthSection;
 import com.hypixel.hytale.server.core.modules.time.TimeResource;
 import com.hypixel.hytale.server.core.universe.world.ParticleUtil;
 import com.hypixel.hytale.server.core.universe.world.SoundUtil;
@@ -25,7 +23,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import org.joml.Vector3d;
-import org.joml.Vector3i;
 
 /**
  * Vanilla firework particle systems, block hit feedback and the till sound, sent to the nearby players. World thread
@@ -142,28 +139,24 @@ public final class HytaleWorldEffects implements WorldEffects {
     }
 
     /**
-     * Lowers the block's shared health to {@code 1 - progress} (never below {@link #MIN_HEALTH}), which shows the
-     * cracks to every player with the chunk. BlockHealthModule heals it 5 s after the last hit, so an abandoned block
-     * mends; naturallyRemoveBlock clears it on the break.
+     * Lowers the block's shared health to {@code 1 - progress} (never below {@link #MIN_HEALTH}, since damage to 0
+     * drops the entry), as BlockHarvestUtils damages a section's health; BlockHealthSystems replicates the cracks to
+     * the players with the section. The block regenerates 5 s after the last hit, so an abandoned block mends.
      */
     private void crack(Store<ChunkStore> chunks, Ref<ChunkStore> sec, BlockPos pos, float progress) {
         ChunkSection section = chunks.getComponent(sec, ChunkSection.getComponentType());
         if (section == null) {
             return;
         }
-        BlockHealthChunk health = chunks.getComponent(
-                section.getChunkColumnReference(), BlockHealthModule.get().getBlockHealthChunkComponentType());
+        BlockHealthSection health = chunks.getComponent(sec, BlockHealthSection.getComponentType());
         if (health == null) {
             return;
         }
-        // A new key each time: the chunk keeps it in its map.
-        Vector3i at = new Vector3i(pos.x(), pos.y(), pos.z());
-        BlockHealth now = health.getBlockHealthMap().get(at);
-        float current = now == null ? 1f : now.getHealth();
-        float damage = current - Math.max(MIN_HEALTH, 1f - progress);
+        float damage = health.getHealth(pos.x(), pos.y(), pos.z()) - Math.max(MIN_HEALTH, 1f - progress);
         if (damage > 0) {
             TimeResource time = world.getEntityStore().getStore().getResource(TimeResource.getResourceType());
-            health.damageBlock(time.getNow(), world, at, damage);
+            health.damage(pos.x(), pos.y(), pos.z(), damage, time.getNow());
+            section.markNeedsSaving();
         }
     }
 }

@@ -4,10 +4,11 @@ import com.hypixel.hytale.builtin.weather.resources.WeatherResource;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.util.ChunkUtil;
+import com.hypixel.hytale.math.vector.Transform;
 import com.hypixel.hytale.protocol.WeatherParticle;
 import com.hypixel.hytale.server.core.asset.type.weather.config.Weather;
 import com.hypixel.hytale.server.core.universe.world.World;
-import com.hypixel.hytale.server.core.universe.world.chunk.BlockChunk;
+import com.hypixel.hytale.server.core.universe.world.chunk.section.EnvironmentSection;
 import com.hypixel.hytale.server.core.universe.world.spawn.ISpawnProvider;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import dev.hycolony.core.kernel.BlockPos;
@@ -37,7 +38,11 @@ public final class HytaleWorldQuery implements WorldQuery {
         return world.getChunkStore().getChunkReference(ChunkUtil.indexChunkFromBlock(pos.x(), pos.z())) != null;
     }
 
-    /** The world config's spawn provider, which may give each player their own spawn (IndividualSpawnProvider). */
+    /**
+     * The world config's spawn provider, which may give each player their own spawn (IndividualSpawnProvider). Never
+     * blocks the world thread: while the answer is pending (FitToHeightMap loading the column to fit Y), the provider's
+     * single base point stands in, Y unfitted (the core reads X and Z only); empty if it has several.
+     */
     @Override
     public Optional<BlockPos> spawnPoint(UUID player) {
         try {
@@ -45,7 +50,15 @@ public final class HytaleWorldQuery implements WorldQuery {
             if (provider == null) {
                 return Optional.empty();
             }
-            Vector3d p = provider.getSpawnPoint(world, player).getPosition();
+            Transform spawn = provider.getSpawnPointAsync(world, player).getNow(null);
+            if (spawn == null) {
+                Transform[] base = provider.getSpawnPoints();
+                if (base.length != 1) {
+                    return Optional.empty();
+                }
+                spawn = base[0];
+            }
+            Vector3d p = spawn.getPosition();
             return Optional.of(new BlockPos((int) Math.floor(p.x), (int) Math.floor(p.y), (int) Math.floor(p.z)));
         } catch (RuntimeException e) {
             LOG.at(warned ? Level.FINE : Level.WARNING).withCause(e).log("WorldQuery.spawnPoint failed");
@@ -69,15 +82,14 @@ public final class HytaleWorldQuery implements WorldQuery {
             WeatherResource weather = world.getEntityStore().getStore().getResource(WeatherResource.getResourceType());
             int index = weather.getForcedWeatherIndex();
             if (index == 0) {
-                Ref<ChunkStore> chunk =
-                        world.getChunkStore().getChunkReference(ChunkUtil.indexChunkFromBlock(pos.x(), pos.z()));
-                BlockChunk blocks = chunk == null
+                Ref<ChunkStore> sec = world.getChunkStore().getChunkSectionReferenceAtBlock(pos.x(), pos.y(), pos.z());
+                EnvironmentSection env = sec == null
                         ? null
-                        : world.getChunkStore().getStore().getComponent(chunk, BlockChunk.getComponentType());
-                if (blocks == null) {
+                        : world.getChunkStore().getStore().getComponent(sec, EnvironmentSection.getComponentType());
+                if (env == null) {
                     return false;
                 }
-                index = weather.getWeatherIndexForEnvironment(blocks.getEnvironment(pos.x(), pos.y(), pos.z()));
+                index = weather.getWeatherIndexForEnvironment(env.get(pos.x(), pos.y(), pos.z()));
             }
             Weather asset = Weather.getAssetMap().getAsset(index);
             WeatherParticle particle = asset == null ? null : asset.getParticle();
