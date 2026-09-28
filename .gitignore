@@ -20,3 +20,6 @@ plugin/src/main/resources/packs/
 # Claude Code local settings (per machine, never committed)
 .claude/settings.local.json
 __pycache__/
+
+# Hytale writes a binary cache next to each loaded prefab; it would hide a later fix of the JSON
+*.lpf

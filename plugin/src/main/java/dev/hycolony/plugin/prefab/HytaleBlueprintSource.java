@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import org.jspecify.annotations.Nullable;
 
@@ -96,8 +97,12 @@ public final class HytaleBlueprintSource implements BlueprintSource {
                     for (String prefab : styles.prefabs()) {
                         try {
                             Path path = PrefabStore.get().findAssetPrefabPath(prefab);
-                            if (path != null) {
-                                PrefabBufferUtil.getCached(path);
+                            if (path != null
+                                    && getCached(
+                                                    path,
+                                                    e -> LOG.at(Level.WARNING).withCause(e).log(
+                                                            "HyColony blueprint: cannot pre-load %s", prefab))
+                                            .isPresent()) {
                                 n++;
                             }
                         } catch (RuntimeException e) {
@@ -137,17 +142,22 @@ public final class HytaleBlueprintSource implements BlueprintSource {
         });
     }
 
-    /**
-     * The prefab's buffer; empty (logged once) when Hytale cannot load it. PrefabBufferUtil reports a malformed or
-     * missing prefab as {@code java.lang.Error}, and may sneak-throw an IOException; JVM errors are not caught.
-     */
+    /** The prefab's buffer; empty (logged once) when Hytale cannot load it. */
     private Optional<IPrefabBuffer> buffer(Path path, String prefab) {
+        return getCached(path, e -> warnOnce("cannot load prefab " + prefab, e));
+    }
+
+    /**
+     * PrefabBufferUtil.getCached; empty, after {@code onFailure}, when it fails. It reports a malformed or missing
+     * prefab as {@code java.lang.Error} and may sneak-throw an IOException; JVM errors are not caught.
+     */
+    private static Optional<IPrefabBuffer> getCached(Path path, Consumer<Throwable> onFailure) {
         try {
             return Optional.of(PrefabBufferUtil.getCached(path));
         } catch (VirtualMachineError e) {
             throw e;
         } catch (Exception | Error e) {
-            warnOnce("cannot load prefab " + prefab, e);
+            onFailure.accept(e);
             return Optional.empty();
         }
     }
