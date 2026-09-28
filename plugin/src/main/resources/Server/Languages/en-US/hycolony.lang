@@ -297,7 +297,6 @@ ui.job.builder = Builder
 ui.job.deliveryman = Courier
 ui.job.farmer = Farmer
 ui.job.none = no job
-ui.inventory.title = Inventory
 ui.citizen.title = Citizen
 ui.citizen.job = Job: {p0}
 ui.citizen.workplace = Workplace: {p0}

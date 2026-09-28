@@ -39,12 +39,12 @@ Group {
 
       Group #LocateIcon {
         Anchor: (Width: 20, Height: 20);
-        Background: "Native/BlockIcon.png";
+        Background: "../HyBlockUI/Native/BlockIcon.png";
       }
 
       Group #LocateIconOn {
         Anchor: (Width: 20, Height: 20);
-        Background: "Native/BlockIconSelected.png";
+        Background: "../HyBlockUI/Native/BlockIconSelected.png";
         Visible: false;
       }
     }

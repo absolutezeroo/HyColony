@@ -327,7 +327,7 @@ public void playAnimation(BodyId body, BodyAnimation a) {
   - **Glisser** : le client dessine le glisser, puis envoie un événement `Dropped` sur la grille d'arrivée, qui doit être liée à `CustomUIEventBindingType.Dropped`.
     - Clés reçues : `SlotIndex`, `SourceInventorySectionId`, `SourceSlotId`, `SourceItemGridIndex`, `ItemStackId`, `ItemStackQuantity`, `PressedMouseButton`, plus les données de la liaison.
     - Le client **ne déplace rien** : le serveur appelle `InventoryUtils.moveItem(ref, fromSection, fromSlot, quantity, toSection, toSlot, store)`, comme `InventoryPacketHandler.handle(MoveItemStack)`. `moveItem` respecte les filtres de case du conteneur d'arrivée (`setSlotFilter(FilterActionType.ADD, …)`).
-    - Brique réutilisable : `plugin/inventory` (`InventoryGrids`, `InventoryDrop`, `InventoryMoves`, `InventoryWatch`, `ReturningContainerWindow`).
+    - Brique réutilisable : le mod HyBlockUI, `blockui/…/dev/hyblockui/api` (`InventoryGrids`, `InventoryDrop`, `InventoryMoves`, `InventoryWatch`, `ReturningContainerWindow`).
   - **Événements de souris sur une grille.** Le client refuse de lier `Activating`, `RightClicking`, `DoubleClicking`, `MouseButtonReleased` et `DragCancelled` à une `ItemGrid` (« Failed to Apply CustomUi Binding », déconnexion). Il accepte les types `Slot*` et `Dropped`.
   - **Avatar** : `CharacterPreviewComponent` dans une page personnalisée montre le personnage du joueur (vérifié en jeu).
   - **Contenu rendu à la fermeture.** À la déconnexion, `WindowManager.closeAllWindows` appelle `onClose0` : c'est là qu'on rend le contenu d'une fenêtre au joueur (`ReturningContainerWindow`, comme `StructuralCraftingWindow.onClose0`).

@@ -1,6 +1,8 @@
 # Checklist de test en jeu — SP0, SP1+2
 
 Serveur de dev : `./gradlew runAllMods` (dossier `run/` à la racine ; la config de HyColony est `plugin/src/main/resources/config.json`, relue à chaque lancement : ce que le serveur réécrit dans `run/mods/HyColony_hycolony/` est perdu au lancement suivant). Il faut deux comptes : A (propriétaire) et B (étranger).
+HyColony dépend du mod HyBlockUI. En dev, `runAllMods` charge les deux. En production, déposer `HyBlockUI-*.jar` et `HyColony-*.jar` ensemble dans `mods/` : sans HyBlockUI, le serveur entier ne démarre pas (`docs/research/plugin-b-api.md` § 28.4).
+
 Pour obtenir les objets : `/give HyColony_TownHall`, `/give HyColony_Hut_Builder`, `/give HyColony_Hut_Residence`.
 
 1. **Fondation.** A pose l'hôtel de ville, la fenêtre « Fonder une colonie » s'ouvre, A saisit le nom « Test » puis clique sur Fonder.

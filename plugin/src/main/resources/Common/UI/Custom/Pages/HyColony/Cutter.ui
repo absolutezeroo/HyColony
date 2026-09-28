@@ -78,37 +78,37 @@ $C.@PageOverlay {
 
                   Group #SlotBg0 {
                     Anchor: (Width: 72, Height: 72, Left: 3, Top: 3);
-                    Background: (TexturePath: "Native/IngredientSlot.png", Border: 24);
+                    Background: (TexturePath: "../HyBlockUI/Native/IngredientSlot.png", Border: 24);
                   }
 
                   // A slot the recipe still needs: the client's invalid slot (DiagramCraftingPanel SlotPatchInvalid).
                   Group #SlotBad0 {
                     Anchor: (Width: 72, Height: 72, Left: 3, Top: 3);
-                    Background: (TexturePath: "Native/DiagramCraftingSlotInvalid.png", Border: 24);
+                    Background: (TexturePath: "../HyBlockUI/Native/DiagramCraftingSlotInvalid.png", Border: 24);
                     Visible: false;
                   }
 
                   Group #SlotOk0 {
                     Anchor: (Width: 72, Height: 72, Left: 3, Top: 3);
-                    Background: (TexturePath: "Native/IngredientSlotValid.png", Border: 24);
+                    Background: (TexturePath: "../HyBlockUI/Native/IngredientSlotValid.png", Border: 24);
                     Visible: false;
                   }
 
                   Group #SlotBg1 {
                     Anchor: (Width: 72, Height: 72, Left: 3, Top: 101);
-                    Background: (TexturePath: "Native/IngredientSlot.png", Border: 24);
+                    Background: (TexturePath: "../HyBlockUI/Native/IngredientSlot.png", Border: 24);
                   }
 
                   // A slot the recipe still needs: the client's invalid slot (DiagramCraftingPanel SlotPatchInvalid).
                   Group #SlotBad1 {
                     Anchor: (Width: 72, Height: 72, Left: 3, Top: 101);
-                    Background: (TexturePath: "Native/DiagramCraftingSlotInvalid.png", Border: 24);
+                    Background: (TexturePath: "../HyBlockUI/Native/DiagramCraftingSlotInvalid.png", Border: 24);
                     Visible: false;
                   }
 
                   Group #SlotOk1 {
                     Anchor: (Width: 72, Height: 72, Left: 3, Top: 101);
-                    Background: (TexturePath: "Native/IngredientSlotValid.png", Border: 24);
+                    Background: (TexturePath: "../HyBlockUI/Native/IngredientSlotValid.png", Border: 24);
                     Visible: false;
                   }
 

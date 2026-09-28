@@ -44,7 +44,7 @@ Group {
 
       Group {
         Anchor: (Width: 12, Height: 7);
-        Background: "Native/AltDropdownCaretUp.png";
+        Background: "../HyBlockUI/Native/AltDropdownCaretUp.png";
       }
     }
 
@@ -56,7 +56,7 @@ Group {
 
       Group {
         Anchor: (Width: 12, Height: 7);
-        Background: "Native/AltDropdownCaretDown.png";
+        Background: "../HyBlockUI/Native/AltDropdownCaretDown.png";
       }
     }
 
@@ -75,7 +75,7 @@ Group {
 
       Group {
         Anchor: (Width: 12, Height: 12);
-        Background: "Native/ItemSlotSelectorEmptyIcon.png";
+        Background: "../HyBlockUI/Native/ItemSlotSelectorEmptyIcon.png";
       }
     }
 

@@ -15,8 +15,8 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
  * grids are draggable (InventoryGrids).
  */
 public final class PlayerPanels {
-    private static final String CHARACTER = "Pages/HyColony/PlayerCharacterPanel.ui";
-    private static final String STORAGE = "Pages/HyColony/PlayerStoragePanel.ui";
+    private static final String CHARACTER = "Pages/HyBlockUI/PlayerCharacterPanel.ui";
+    private static final String STORAGE = "Pages/HyBlockUI/PlayerStoragePanel.ui";
     private static final String[] ARMOR_ICONS = {
         "#ArmorIconHead", "#ArmorIconChest", "#ArmorIconHands", "#ArmorIconLegs"
     };
