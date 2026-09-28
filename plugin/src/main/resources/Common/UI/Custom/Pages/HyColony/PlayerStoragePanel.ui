@@ -6,7 +6,7 @@ $C = "../../Common.ui";
 
 @Slot = 74;
 @Cell = 76;
-@GridStyle = (SlotSize: @Slot, SlotIconSize: 64, SlotSpacing: 2, SlotBackground: "Native/Slot.png", DurabilityBar: "../../Common/ProgressBarFill.png", DurabilityBarBackground: "../../Common/ProgressBar.png", DurabilityBarAnchor: (Left: 8, Right: 8, Bottom: 5, Height: 4), DurabilityBarColorStart: #d64a3a, DurabilityBarColorEnd: #5fcf4f);
+@GridStyle = (SlotSize: @Slot, SlotIconSize: 64, SlotSpacing: 2, SlotBackground: "Native/Slot.png");
 @Badge = Group {
   @Text = "";
 
