@@ -62,6 +62,7 @@ public final class TestContexts {
     private static JobRegistry jobs() {
         JobRegistry r = new JobRegistry();
         CoreFeatures.register(new BuildingRegistry(), r);
+        r.register(TestCrafters.JOB);
         return r;
     }
 

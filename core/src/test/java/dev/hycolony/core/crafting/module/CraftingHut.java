@@ -5,9 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.gson.JsonParser;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingType;
-import dev.hycolony.core.building.ModuleProducer;
 import dev.hycolony.core.citizen.CitizenData;
-import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.colony.territory.TerritoryIndex;
@@ -18,16 +16,15 @@ import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.Workstation;
 import dev.hycolony.core.testing.TestContexts;
-import dev.hycolony.core.testing.TestJobs;
-import java.util.List;
+import dev.hycolony.core.testing.TestCrafters;
 import java.util.UUID;
 
 /**
- * A level-1 test hut with a worker module and a crafting module for {@link #JOB}, in a colony whose {@code
- * crafting.json} lets that job learn every Farmingbench and Fieldcraft recipe.
+ * A level-1 test crafter hut ({@link TestCrafters}), in a colony whose {@code crafting.json} lets its job learn every
+ * Farmingbench and Fieldcraft recipe.
  */
 public final class CraftingHut {
-    public static final String JOB = TestJobs.TYPE.id();
+    public static final String JOB = TestCrafters.JOB.id();
     public static final String RULES = """
             {"jobs": {"%s": {"allow": [
                 {"bench": "Farmingbench", "categories": ["*"]},
@@ -46,28 +43,21 @@ public final class CraftingHut {
 
     /** With {@code rules} as {@code crafting.json}; {@code many}: MC canLearnManyRecipes. */
     public CraftingHut(String rules, boolean many) {
+        this(rules, TestCrafters.hut(many, 1));
+    }
+
+    /** With {@code rules} as {@code crafting.json}, a hut of {@code type} (a {@link TestCrafters#hut} variant). */
+    public CraftingHut(String rules, BuildingType type) {
         t.craftingRules = CraftingRules.parse(JsonParser.parseString(rules).getAsJsonObject(), w -> {});
         colony = new Colony(
                 t.context(),
                 new TerritoryIndex(),
                 new Colony.Founding(1, "T", new BlockPos(0, 64, 0), Permissions.createDefault(owner, "Owner")));
-        hut = Building.create(type(many), new BlockPos(10, 64, 0), 0);
+        hut = Building.create(type, new BlockPos(10, 64, 0), 0);
         hut.setLevel(1);
         hut.setBuilt(true);
         colony.buildings().add(hut);
         module = hut.module(CraftingModule.class).orElseThrow();
-    }
-
-    private static BuildingType type(boolean many) {
-        return new BuildingType(
-                "test:crafter",
-                "hut.test",
-                5,
-                List.of(
-                        new ModuleProducer(
-                                "worker",
-                                () -> new WorkerModule(TestJobs.TYPE, Skill.Dexterity, Skill.Knowledge, 1, false)),
-                        new ModuleProducer("crafting", () -> new CraftingModule(JOB, many))));
     }
 
     /** Registers the bench as placed by the builder from the hut's plan. */

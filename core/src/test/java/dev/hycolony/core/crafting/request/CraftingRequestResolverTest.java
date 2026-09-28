@@ -22,10 +22,8 @@ import dev.hycolony.core.request.RequestManager;
 import dev.hycolony.core.request.Resolver;
 import dev.hycolony.core.request.model.Crafting;
 import dev.hycolony.core.request.model.RequestToken;
-import dev.hycolony.core.request.model.Requestable;
 import dev.hycolony.core.request.model.StackRequest;
 import dev.hycolony.core.request.resolver.RetryingResolver;
-import dev.hycolony.core.testing.FakeResolver;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -94,13 +92,16 @@ class CraftingRequestResolverTest {
 
     @Test
     void craftingHutOffersPublicThenPrivateResolvers() {
-        List<String> ids = h.hut.resolvers().stream().map(Resolver::resolverId).toList();
+        List<Resolver> resolvers = h.hut.resolvers();
 
-        assertEquals(3, ids.size());
-        assertTrue(h.hut.resolvers().getFirst() instanceof BuildingResolver);
-        assertEquals(resolver(true).resolverId(), ids.get(1), "MC: the farmer's crafting module comes first");
-        assertEquals(resolver(false).resolverId(), ids.get(2));
+        assertEquals(5, resolvers.size());
+        assertTrue(resolvers.getFirst() instanceof BuildingResolver);
+        assertEquals(resolver(true), resolvers.get(1), "MC: the farmer's crafting module comes first");
+        assertTrue(resolvers.get(2) instanceof CraftingProductionResolver p && p.isPublic());
+        assertEquals(resolver(false), resolvers.get(3));
+        assertTrue(resolvers.get(4) instanceof CraftingProductionResolver p && !p.isPublic());
         assertEquals(CraftingRequestResolver.PRIORITY, resolver(true).priority());
+        assertEquals(CraftingProductionResolver.PRIORITY, resolvers.get(2).priority());
     }
 
     @Test
@@ -213,7 +214,6 @@ class CraftingRequestResolverTest {
         h.teach(byHand("X_From_Y", List.of(new Ingredient.OfItem(y, 2)), x));
         h.teach(byHand("Y_From_X", List.of(new Ingredient.OfItem(x, 2)), y));
         h.hire();
-        m().registerBuiltIn(new IngredientAsker());
 
         Request request = ask(other, x, 10);
 
@@ -231,39 +231,5 @@ class CraftingRequestResolverTest {
 
         assertEquals(5.0, resolver(true).suitability(m(), ask(other, SEEDS, 10)));
         assertEquals(0.0, resolver(true).suitability(m(), ask(h.hut, SEEDS, 10)));
-    }
-
-    /** Asks for the ingredients of each crafting task, as the production resolver will (MC createRequestsForRecipe). */
-    private final class IngredientAsker extends FakeResolver {
-        IngredientAsker() {
-            super("test:ingredients", 100);
-        }
-
-        @Override
-        public boolean handles(Requestable requestable) {
-            return requestable instanceof Crafting;
-        }
-
-        @Override
-        public boolean canResolve(RequestManager manager, Request r) {
-            return true;
-        }
-
-        @Override
-        public Optional<List<Requestable>> attemptResolve(RequestManager manager, Request r) {
-            Crafting task = (Crafting) r.requestable();
-            Recipe recipe =
-                    h.colony.recipes().get(new RecipeId(task.recipeId())).orElseThrow();
-            List<Requestable> asked = new ArrayList<>();
-            for (Ingredient in : recipe.cleanedInput()) {
-                Ingredient.OfItem item = (Ingredient.OfItem) in;
-                asked.add(
-                        new StackRequest(item.item(), in.amount() * task.count(), in.amount() * task.minCount(), true));
-            }
-            return Optional.of(asked);
-        }
-
-        @Override
-        public void resolve(RequestManager manager, Request r) {}
     }
 }

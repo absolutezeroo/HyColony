@@ -11,6 +11,8 @@ import dev.hycolony.core.crafting.recipe.RecipeId;
 import dev.hycolony.core.crafting.recipe.RecipeSource;
 import dev.hycolony.core.crafting.request.CraftingResolvers;
 import dev.hycolony.core.kernel.port.ItemCatalog;
+import dev.hycolony.core.logistics.pickup.KeepRule;
+import dev.hycolony.core.logistics.pickup.KeepsItems;
 import dev.hycolony.core.request.Resolver;
 import java.util.List;
 import java.util.Optional;
@@ -24,7 +26,7 @@ import java.util.UUID;
  * is not ported, so its {@code RECIPES} effect is 0. A bad index or a recipe missing from the list changes nothing,
  * where MC throws or clears the list.
  */
-public final class CraftingModule implements PersistentModule, TickingModule, CreatesResolvers {
+public final class CraftingModule implements PersistentModule, TickingModule, CreatesResolvers, KeepsItems {
     /** MC AbstractCraftingBuildingModule.EXTRA_RECIPE_MULTIPLIER. */
     static final int EXTRA_RECIPE_MULTIPLIER = 5;
 
@@ -60,6 +62,14 @@ public final class CraftingModule implements PersistentModule, TickingModule, Cr
 
     public boolean isDisabled(RecipeId id) {
         return list.isDisabled(id);
+    }
+
+    /**
+     * MC holdsRecipe: the recipe is listed and enabled. MC also matches the single-output form of a listed multi-output
+     * recipe; Hytale has none.
+     */
+    public boolean holdsRecipe(RecipeId id) {
+        return list.ids().contains(id) && !list.isDisabled(id);
     }
 
     /** Whether the recipe is a custom one: granted by the hut level, not counted in the maximum, not removable. */
@@ -172,13 +182,23 @@ public final class CraftingModule implements PersistentModule, TickingModule, Cr
     }
 
     /**
-     * MC createResolvers: the hut's crafting resolvers ({@link CraftingResolvers}). Deviation from MC: the private ones
-     * come from here, where MC's WorkerBuildingModule makes them, so that {@code job} does not depend on
-     * {@code crafting}; a hut without crafting module has no private crafting, which no MC job without one uses.
+     * MC createResolvers: the hut's crafting resolvers ({@link CraftingResolvers}), for requests and for production,
+     * public then private. Deviation from MC: the private ones come from here, where MC's WorkerBuildingModule makes
+     * them, so that {@code job} does not depend on {@code crafting}; a hut without crafting module has no private
+     * crafting, which no MC job without one uses.
      */
     @Override
     public List<Resolver> createResolvers(Colony colony, Building building) {
         return CraftingResolvers.of(colony, building, jobId);
+    }
+
+    /**
+     * MC getRequiredItemsAndAmount: the ingredients and outputs of the crafters' pending tasks stay in the hut's racks
+     * ({@link RecipeReservations#keepRules}).
+     */
+    @Override
+    public List<KeepRule> keepRules(Colony colony, Building building) {
+        return RecipeReservations.keepRules(colony, building, this);
     }
 
     /** MC onColonyTick: grants and withdraws the custom recipes of the hut's level ({@link CustomRecipes#check}). */

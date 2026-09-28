@@ -116,12 +116,14 @@ Toutes reprises de MineColonies sauf les écarts listés plus bas. Chaque classe
   - `suitability` : la distance entre le demandeur et la hutte.
 - **Résolveur de production**, public et privé (MC `AbstractCraftingProductionResolver`) :
   - ne gère que les `Crafting` de sa propre hutte, avec le même `isPublic` ;
+  - priorité 100 (MC `CONST_DEFAULT_RESOLVER_PRIORITY`), adéquation 0 ;
   - `attemptResolve` :
-    - si la recette est déjà réalisable, il n'y a pas d'enfant ;
-    - sinon, un enfant par ingrédient : `StackRequest`, ou `StackList` pour un type ou un tag, pour `amount × count` (`minCount = amount × minCount`), ou `amount` seulement pour un outil ou une sortie secondaire ;
-  - public, à l'assignation : la tâche va à l'artisan de la hutte le moins chargé (file + assignées, MC `onAssignedToThisResolverForBuilding`). Sans artisan, la requête est annulée ;
-  - public, `resolve` : la tâche passe de « assignée » à la file (`onTaskBeingResolved`). La requête reste en cours tant que l'artisan ne l'a pas finie ;
-  - privé, `resolve` : fabrique **tout de suite** `count` fois dans les conteneurs de la hutte (`fullFillRecipe`), puis RESOLVED (MC `PrivateWorkerCraftingProductionResolver`) ;
+    - aucun module de la hutte ne tient la recette de la tâche (`getCraftingModuleForRecipe`), ou, pour le public, la hutte n'a pas d'artisan de ce métier (`canBuildingCraftStack`) : il ne la prend pas. La tâche attend alors un autre résolveur (le joueur), sans jamais être annulée puis redemandée en boucle ;
+    - si la recette est déjà réalisable, réservations des autres tâches déduites (`considerReservation`), il n'y a pas d'enfant ;
+    - sinon, un enfant par ingrédient de la première recette du module pour cette sortie : `StackRequest`, ou `StackList` pour un type ou un tag, pour `amount × count` (`minCount = amount × minCount`), ou `amount` seulement pour un outil ou une sortie secondaire ;
+  - public, à l'assignation : la tâche va à l'artisan de la hutte le moins chargé (file + assignées, le premier à égalité, MC `onAssignedToThisResolverForBuilding`). Sans artisan, rien (MC appelle son `onAssignedRequestBeingCancelled`, vide) ;
+  - public, `resolve` : la tâche passe de « assignée » à la file (`onTaskBeingResolved`). La requête reste en cours tant que l'artisan ne l'a pas finie. Si aucun artisan ne la tient plus, elle est annulée : son parent est réassigné ;
+  - privé, `resolve` : fabrique **tout de suite** `count` fois dans la hutte (`fullFillRecipe` : ses conteneurs puis l'inventaire de ses employés, MC `getHandlers`), puis RESOLVED ; FAILED si la recette ou le module qui la tient a disparu (MC `PrivateWorkerCraftingProductionResolver`) ;
   - suites (`followups`) du public : si le parent vient d'une autre hutte, une `Delivery(hutte → demandeur du parent, priorité 13)` par pile livrée. Rien s'il vient de la même hutte ;
   - annulation ou complétion : la tâche est retirée de la file de l'artisan (`onTaskDeletion`).
 
@@ -243,6 +245,7 @@ Lecture tolérante : clé absente = vide, entrée invalide ignorée et journalis
     - `finishRequest` retire une tête morte, et `cancelAll` saute une tâche déjà emportée par l'échec d'un lot frère ; MC lève une exception sur un jeton inconnu.
 21. **Lot d'une seule exécution trop grande.** Si une seule exécution de la recette ne tient pas dans l'inventaire, les lots font une exécution. Chez MC, la taille de lot tombe à 0 et le découpage ne s'arrête plus.
 22. **Demandeur inconnu** (sa hutte a disparu) : le résolveur de fabrication le juge le plus loin possible. MC garde la position sauvegardée du demandeur.
+23. **Réservations sans exclusion.** Le stock que la hutte sert à ses propres requêtes (`BuildingResolver`) ne déduit pas les réservations de ses artisans : `building` ne dépend pas de `crafting`. MC les déduit dans `BuildingRequestResolver`, en excluant la tâche dont la requête descend (`reservedStacksExcluding(request)`). Les réservations servent ici au choix d'une recette réalisable et au « à garder ».
 
 ## Architecture
 

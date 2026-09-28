@@ -43,7 +43,7 @@ public final class HutKeep {
         ItemCatalog catalog = colony.context().ports().catalog();
         for (var module : building.modules().values()) {
             if (module instanceof KeepsItems keeps) {
-                for (KeepRule rule : keeps.keepRules(building, catalog)) {
+                for (KeepRule rule : keeps.keepRules(colony, building)) {
                     if (!inventory || rule.inventory()) {
                         rules.add(rule);
                     }

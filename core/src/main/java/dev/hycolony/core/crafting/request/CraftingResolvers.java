@@ -15,10 +15,15 @@ import java.util.List;
 public final class CraftingResolvers {
     private CraftingResolvers() {}
 
-    /** The public, then the private crafting request resolvers of {@code hut}, for {@code jobId}'s crafters. */
+    /**
+     * The public crafting request and production resolvers of {@code hut}, then the private ones, for {@code jobId}'s
+     * crafters (MC's order within each module).
+     */
     public static List<Resolver> of(Colony colony, Building hut, String jobId) {
         return List.of(
                 new CraftingRequestResolver(colony, hut, jobId, true),
-                new CraftingRequestResolver(colony, hut, jobId, false));
+                new CraftingProductionResolver(colony, hut, jobId, true),
+                new CraftingRequestResolver(colony, hut, jobId, false),
+                new CraftingProductionResolver(colony, hut, jobId, false));
     }
 }

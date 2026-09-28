@@ -156,7 +156,7 @@ class RecipeImprovementTest {
                         h.owner,
                         Msg.of(
                                 "hycolony.crafting.improved.0",
-                                "%hycolony.ui.job.worker",
+                                "%hycolony.ui.job.crafter",
                                 "Plant_Seeds_Wheat",
                                 "Ingredient_Life_Essence",
                                 "Ada"))),

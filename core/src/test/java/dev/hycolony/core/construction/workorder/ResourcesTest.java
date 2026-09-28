@@ -5,6 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.building.Building;
+import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.permission.Permissions;
+import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.BlueprintEntry;
 import dev.hycolony.core.construction.blueprint.StructurePlan;
@@ -22,12 +25,14 @@ import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.logistics.pickup.KeepRule;
 import dev.hycolony.core.testing.FakeCatalog;
 import dev.hycolony.core.testing.FakeWorldBlocks;
+import dev.hycolony.core.testing.TestContexts;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 /** In the work order package: it drives orders through their package-private lifecycle (creation, release). */
@@ -299,7 +304,12 @@ class ResourcesTest {
         BuildingResourcesModule m = hut.module(BuildingResourcesModule.class).orElseThrow();
         m.start(order(1), NeededResources.compute(row(c, List.of(STONE, STONE, PLANK)), new FakeWorldBlocks(), c));
 
-        List<KeepRule> rules = m.keepRules(hut, c);
+        Colony colony = new Colony(
+                new TestContexts().context(),
+                new TerritoryIndex(),
+                new Colony.Founding(1, "T", HUT, Permissions.createDefault(UUID.randomUUID(), "O")));
+
+        List<KeepRule> rules = m.keepRules(colony, hut);
 
         KeepRule stone = rules.stream()
                 .filter(r -> r.matches().test(STONE_I))
