@@ -156,6 +156,21 @@ class FieldPassTest extends FarmerTestBase {
         colony.registries().fields().remove(FIELD);
 
         assertEquals(FarmerState.IDLE, work.workAtField(FarmerState.FARMER_HOE));
+        assertTrue(fields().walk().offset().isEmpty(), "the next field starts from its first cell");
+    }
+
+    @Test
+    void fieldFreedMidPassResetsTheWalk() {
+        FarmField f = field(true);
+        give(HOE, 1);
+        settings().setFertilize(false);
+        work.prepare();
+        work.workAtField(FarmerState.FARMER_HOE);
+        work.workAtField(FarmerState.FARMER_HOE);
+
+        fields().free(colony, hut, f);
+
+        assertTrue(fields().walk().offset().isEmpty(), "the next field starts from its first cell");
     }
 
     /** Prepares, then runs {@code state}'s pass to its end (or to PREPARING); returns the state it ended on. */

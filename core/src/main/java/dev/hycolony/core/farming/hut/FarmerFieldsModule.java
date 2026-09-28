@@ -60,7 +60,7 @@ public final class FarmerFieldsModule
         return true;
     }
 
-    /** MC freeExtension: the field is free again, and no longer current. */
+    /** MC freeExtension: the field is free again, and no longer current; a pass on it is dropped. */
     public void free(Colony c, Building b, FarmField f) {
         if (f.owner().filter(b.position()::equals).isEmpty()) {
             return;
@@ -68,6 +68,7 @@ public final class FarmerFieldsModule
         f.setOwner(Optional.empty());
         if (choice.current(c.registries().fields(), b.position()).isEmpty()) {
             choice.reset(c.day());
+            walk.reset();
         }
         c.markDirty();
     }

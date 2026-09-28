@@ -43,7 +43,8 @@ final class FieldPass {
     FarmerState work(FarmerState state) {
         Optional<FarmField> current = ctx.fields().currentField(ctx.colony(), ctx.hut());
         if (current.isEmpty()) {
-            return FarmerState.IDLE; // the field was broken or freed
+            ctx.fields().walk().reset(); // the field was broken: the next one starts from its first cell
+            return FarmerState.IDLE;
         }
         FarmField field = current.get();
         FieldWalk walk = ctx.fields().walk();
