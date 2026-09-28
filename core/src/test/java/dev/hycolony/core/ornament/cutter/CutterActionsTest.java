@@ -26,7 +26,18 @@ class CutterActionsTest {
             "slab_materials",
             Set.of(STONE)));
 
-    private final CutterActions actions = new CutterActions(CutterCatalog.of(CutterCatalogTest.SHAPES), TAGS);
+    private final CutterActions actions = freshCutter();
+
+    private static CutterActions freshCutter() {
+        return new CutterActions(CutterCatalog.of(CutterCatalogTest.SHAPES), TAGS);
+    }
+
+    private static List<String> openTabs(CutterActions cutter) {
+        return cutter.view(List.of()).tabs().stream()
+                .filter(CutterView.Tab::selected)
+                .map(CutterView.Tab::group)
+                .toList();
+    }
 
     @Test
     void startsOnTheFirstGroupAndItsFirstShape() {
@@ -45,16 +56,67 @@ class CutterActionsTest {
     }
 
     @Test
-    void selectingAGroupPicksItsFirstShapeAndBadIndexesChangeNothing() {
+    void selectingAGroupPicksItsFirstShape() {
         actions.selectGroup(2);
         actions.selectShape(1);
         assertEquals("Shingle_Flat", actions.shape().orElseThrow().id());
         actions.selectGroup(1);
         assertEquals("TimberFrame_Plain", actions.shape().orElseThrow().id());
-        actions.selectGroup(9);
-        actions.selectShape(-1);
-        assertEquals("TimberFrame_Plain", actions.shape().orElseThrow().id());
         assertEquals(2, actions.view(List.of()).slotLabelKeys().size());
+    }
+
+    @Test
+    void badIndexesKeepTheChosenGroupAndShape() {
+        actions.selectGroup(2);
+        actions.selectShape(1);
+        actions.selectGroup(-1);
+        actions.selectGroup(9);
+        actions.selectShape(2);
+        actions.selectShape(-1);
+        assertEquals("Shingle_Flat", actions.shape().orElseThrow().id());
+        assertEquals(List.of("cshingle"), openTabs(actions));
+    }
+
+    @Test
+    void selectionFollowsGroupAndShapeChoices() {
+        assertEquals(new CutterActions.Selection(0, 0), actions.selection());
+        actions.selectGroup(2);
+        assertEquals(new CutterActions.Selection(2, 0), actions.selection());
+        actions.selectShape(1);
+        assertEquals(new CutterActions.Selection(2, 1), actions.selection());
+        actions.selectGroup(1);
+        assertEquals(new CutterActions.Selection(1, 0), actions.selection());
+    }
+
+    @Test
+    void restoringASelectionReopensItsGroupAndShape() {
+        actions.selectGroup(2);
+        actions.selectShape(1);
+        CutterActions reopened = freshCutter();
+        reopened.restore(actions.selection());
+        assertEquals("Shingle_Flat", reopened.shape().orElseThrow().id());
+        assertEquals(List.of("cshingle"), openTabs(reopened));
+        assertEquals(new CutterActions.Selection(2, 1), reopened.selection());
+    }
+
+    @Test
+    void restoringAStaleShapeFallsBackToTheGroupsFirstShape() {
+        actions.selectGroup(1);
+        actions.restore(new CutterActions.Selection(2, 5));
+        assertEquals("Shingle", actions.shape().orElseThrow().id());
+        assertEquals(new CutterActions.Selection(2, 0), actions.selection());
+        actions.restore(new CutterActions.Selection(2, -1));
+        assertEquals("Shingle", actions.shape().orElseThrow().id());
+    }
+
+    @Test
+    void restoringAGroupOutOfRangeChangesNothing() {
+        actions.selectGroup(2);
+        actions.selectShape(1);
+        actions.restore(new CutterActions.Selection(9, 0));
+        actions.restore(new CutterActions.Selection(-1, 0));
+        assertEquals(new CutterActions.Selection(2, 1), actions.selection());
+        assertEquals("Shingle_Flat", actions.shape().orElseThrow().id());
     }
 
     @Test
