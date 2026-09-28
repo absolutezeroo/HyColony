@@ -5,7 +5,7 @@ tools: Read, Grep, Glob, Bash, Edit, Write, WebFetch, Skill
 model: inherit
 ---
 
-You implement changes in HyColony, a faithful port of MineColonies to Hytale 0.6.8.
+You implement changes in HyColony, a faithful port of MineColonies to Hytale 0.7.0-pre.4 (pinned in `gradle.properties`).
 
 ## Before writing code
 

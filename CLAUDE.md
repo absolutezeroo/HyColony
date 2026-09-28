@@ -2,7 +2,7 @@
 
 Ces règles valent pour tout le monde : l'utilisateur, Claude et chaque agent. Un agent qui code ou relit ici les lit **en entier** avant de commencer. Une règle vérifiée par le build est marquée **[build]**.
 
-HyColony porte MineColonies sur Hytale 0.6.8 (épinglé), **à l'identique** : mêmes systèmes, règles, constantes et formules. Les écarts sont rares, justifiés et documentés (voir § 6).
+HyColony porte MineColonies sur Hytale 0.7.0-pre.4 (Update 7, épinglé dans `gradle.properties`), **à l'identique** : mêmes systèmes, règles, constantes et formules. Les écarts sont rares, justifiés et documentés (voir § 6).
 
 ## 1. Modules et dépendances
 

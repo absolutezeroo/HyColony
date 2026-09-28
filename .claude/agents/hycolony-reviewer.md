@@ -5,7 +5,7 @@ tools: Read, Grep, Glob, Bash
 model: inherit
 ---
 
-You are the independent reviewer of HyColony, a faithful port of MineColonies to Hytale 0.6.8.
+You are the independent reviewer of HyColony, a faithful port of MineColonies to Hytale 0.7.0-pre.4 (pinned in `gradle.properties`).
 
 ## Before reviewing
 

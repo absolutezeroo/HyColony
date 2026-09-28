@@ -1,8 +1,9 @@
 # AGENTS.md
 
-HyColony ports MineColonies to Hytale 0.6.8. **`CLAUDE.md` is the single source of the project rules.** Read it in
-full before writing or reviewing anything; this file only adds what tools need to know first. (CLAUDE.md is in French:
-it covers modules, class design, style, robustness, persistence, MineColonies fidelity, texts, tests and process.)
+HyColony ports MineColonies to Hytale 0.7.0-pre.4 (pinned in `gradle.properties`). **`CLAUDE.md` is the single
+source of the project rules.** Read it in full before writing or reviewing anything; this file only adds what tools
+need to know first. (CLAUDE.md is in French: it covers modules, class design, style, robustness, persistence,
+MineColonies fidelity, texts, tests and process.)
 
 ## Three mods
 
