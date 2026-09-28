@@ -9,8 +9,10 @@ import dev.hycolony.core.request.model.Delivery;
 import dev.hycolony.core.request.model.Pickup;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequestToken;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /** The rows of a courier task list (MC WindowHutRequestTaskModule), for the warehouse and courier hut tabs. */
 public final class TaskRows {
@@ -32,16 +34,19 @@ public final class TaskRows {
 
     /**
      * MC WindowHutRequestTaskModule: climbs the parents while they ask from the same place as {@code r}, and names the
-     * requester of the one reached; empty without a parent.
+     * requester of the one reached; empty without a parent. Stops before a request already visited, since a corrupted
+     * save can link parents in a cycle.
      */
     private static Optional<String> forRequester(Colony c, Request r) {
         Request parent = r.parent().flatMap(c.requests()::get).orElse(null);
         Optional<BlockPos> here = RequesterLocation.of(c, r.requester());
+        Set<RequestToken> visited = new HashSet<>(List.of(r.token()));
         while (parent != null
+                && visited.add(parent.token())
                 && parent.parent().isPresent()
                 && RequesterLocation.of(c, parent.requester()).equals(here)) {
             Request up = c.requests().get(parent.parent().get()).orElse(null);
-            if (up == null) {
+            if (up == null || visited.contains(up.token())) {
                 break;
             }
             parent = up;

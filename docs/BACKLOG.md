@@ -105,7 +105,6 @@ Les autres points de la relecture sont corrigés. Il reste :
   - Javadoc à compléter : `tokens()` de la file, onglet Stock (`LogisticsViews.stock`) ;
   - tests : le message « entrepôt plein » n'est suivi que sur 2000 ticks ; les simulations d'échec ne vérifient la conservation des objets que pour `PLANKS` ;
   - plugin : les gestionnaires « fournir » de `RequestsPage` ne revérifient pas `canSupply` ;
-  - `LogisticsViews.forRequester` remonte les parents sans garde contre un cycle ;
   - nom d'objet : repli sur le `Message` brut quand la traduction manque (`itemName`) ;
   - constante de cadre dupliquée dans les fenêtres de logistique du plugin.
 - **Domum Ornamentum** : repris le 2026-09-28 par un générateur au build, en trois sous-projets. DO-1 (les blocs, spec `docs/superpowers/specs/2026-09-28-hycolony-domum-ornamentum-do1-design.md`) est en cours ; restent :
