@@ -3,19 +3,14 @@ package dev.hycolony.core.ornament.cutter;
 import dev.hycolony.core.ornament.MaterialTags;
 import dev.hycolony.core.ornament.OrnamentShape;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
 /**
- * One player's cutter window state: the open group and the chosen shape (MC DO ArchitectsCutterContainer
- * clickMenuButton, called by ArchitectsCutterScreen), the material chosen for each slot and the slot the next chosen
- * material fills. Opening a group chooses its first shape; chosen materials stay across shapes.
- *
- * <p>Deviation from MC: DO's slots hold the blocks the player puts in them; here, as in Hytale's crafting benches,
- * the player picks materials from their inventory and crafting takes them from it.
+ * One player's cutter window state: the open group and the chosen shape (MC DO
+ * ArchitectsCutterContainer.clickMenuButton, called by ArchitectsCutterScreen), and the view they give with the slots'
+ * contents. Opening a group chooses its first shape.
  */
 public final class CutterActions {
     /** Accepted materials listed at most in a refusal: a stone tag holds hundreds. */
@@ -27,21 +22,15 @@ public final class CutterActions {
     /** The same refusal worded for the cutter's preview, with the same parameters. */
     private static final String BAD_MATERIAL = "hycolony.ornament.cutter.badMaterial";
 
-    /** DO's cutter has as many input slots as the largest component count (ArchitectsCutterContainer). */
-    private static final int MAX_SLOTS = 2;
-
     private final CutterCatalog catalog;
     private final MaterialTags tags;
-    private final String[] chosen = new String[MAX_SLOTS];
     private int group;
     private int shape;
-    private int slot;
 
     /** A window open on catalog's first group and its first shape, checking materials against tags. */
     public CutterActions(CutterCatalog catalog, MaterialTags tags) {
         this.catalog = catalog;
         this.tags = tags;
-        Arrays.fill(chosen, "");
     }
 
     /**
@@ -58,7 +47,6 @@ public final class CutterActions {
         if (index >= 0 && index < catalog.groups().size()) {
             group = index;
             shape = 0;
-            slot = Math.max(0, Math.min(slot, slotCount() - 1));
         }
     }
 
@@ -66,27 +54,7 @@ public final class CutterActions {
     public void selectShape(int index) {
         if (index >= 0 && index < shapes().size()) {
             shape = index;
-            slot = Math.max(0, Math.min(slot, slotCount() - 1));
         }
-    }
-
-    /** Makes the slot at index the one the next chosen material fills; an index out of range changes nothing. */
-    public void selectSlot(int index) {
-        if (index >= 0 && index < slotCount()) {
-            slot = index;
-        }
-    }
-
-    /** Puts itemId in the selected slot, then selects the shape's next empty slot, if any. */
-    public void choose(String itemId) {
-        if (shape().isEmpty()) {
-            return;
-        }
-        chosen[slot] = itemId;
-        IntStream.range(0, slotCount())
-                .filter(i -> chosen[i].isEmpty())
-                .findFirst()
-                .ifPresent(i -> slot = i);
     }
 
     /** The chosen shape; empty when the catalog has none. */
@@ -95,17 +63,26 @@ public final class CutterActions {
         return shape < shapes.size() ? Optional.of(shapes.get(shape)) : Optional.empty();
     }
 
-    /** The chosen materials as recipe slots, each holding what inventory (item id -> count) has of it. */
-    public List<SlotContent> slots(Map<String, Integer> inventory) {
-        return IntStream.range(0, slotCount())
-                .mapToObj(i -> chosen[i].isEmpty()
-                        ? SlotContent.EMPTY
-                        : new SlotContent(chosen[i], inventory.getOrDefault(chosen[i], 0)))
-                .toList();
+    /**
+     * Whether the chosen shape's slot at index takes itemId (MC DO ArchitectsCutterContainer input slot
+     * {@code mayPlace}); false for a slot the shape does not have, or without a shape.
+     */
+    public boolean accepts(int slot, String itemId) {
+        return shape().filter(s -> slot >= 0 && slot < s.slotCount())
+                .map(s -> tags.accepts(s.slotTags().get(slot), itemId))
+                .orElse(false);
     }
 
-    /** The window for a player holding inventory (item id -> count). */
-    public CutterView view(Map<String, Integer> inventory) {
+    /** As {@link #view(List, boolean)} for a player who is not in creative mode. */
+    public CutterView view(List<SlotContent> slots) {
+        return view(slots, false);
+    }
+
+    /**
+     * The window for these slot contents (the cutter's, in order; missing ones count as empty), for a player in
+     * creative mode or not (then crafting takes nothing).
+     */
+    public CutterView view(List<SlotContent> slots, boolean creative) {
         List<String> groups = catalog.groups();
         List<CutterView.Tab> tabs = IntStream.range(0, groups.size())
                 .mapToObj(i -> new CutterView.Tab(
@@ -119,9 +96,14 @@ public final class CutterActions {
                 .mapToObj(i -> new CutterView.ShapeButton(
                         shapes.get(i).id(), shapes.get(i).templateKey(), i == shape))
                 .toList();
-        return shape().map(s -> new CutterView(
-                        tabs, buttons, slotViews(s, inventory), materials(s, inventory), preview(s, inventory)))
-                .orElseGet(() -> new CutterView(tabs, buttons, List.of(), List.of(), new CutterView.Empty()));
+        Optional<OrnamentShape> chosen = shape();
+        List<String> labels = chosen.map(s -> s.slotTags().stream()
+                        .map(tag -> "hycolony.ornament.cutter.slot." + tag)
+                        .toList())
+                .orElse(List.of());
+        CutterView.Preview preview =
+                chosen.map(s -> preview(s, slots, creative)).orElseGet(CutterView.Empty::new);
+        return new CutterView(tabs, buttons, labels, preview);
     }
 
     /** The open group's shapes; empty when the catalog has no group. */
@@ -130,58 +112,25 @@ public final class CutterActions {
         return groups.isEmpty() ? List.of() : catalog.shapes(groups.get(group));
     }
 
-    private int slotCount() {
-        return shape().map(OrnamentShape::slotCount).orElse(0);
-    }
-
-    /** Each slot of shape: its label, its material, how many the player has and how many one craft takes. */
-    private List<CutterView.Slot> slotViews(OrnamentShape shape, Map<String, Integer> inventory) {
-        return IntStream.range(0, shape.slotCount())
-                .mapToObj(i -> new CutterView.Slot(
-                        "hycolony.ornament.cutter.slot." + shape.slotTags().get(i),
-                        chosen[i],
-                        chosen[i].isEmpty() ? 0 : inventory.getOrDefault(chosen[i], 0),
-                        need(shape, chosen[i]),
-                        i == slot))
-                .toList();
-    }
-
-    /** How many of itemId one craft of shape takes: one per slot holding it, at least one. */
-    private int need(OrnamentShape shape, String itemId) {
-        long uses = IntStream.range(0, shape.slotCount())
-                .filter(i -> !itemId.isEmpty() && itemId.equals(chosen[i]))
-                .count();
-        return (int) Math.max(1, uses);
-    }
-
-    /** The player's materials the selected slot accepts, by id. */
-    private List<CutterView.Material> materials(OrnamentShape shape, Map<String, Integer> inventory) {
-        String tag = shape.slotTags().get(slot);
-        return inventory.entrySet().stream()
-                .filter(e -> e.getValue() > 0 && tags.accepts(tag, e.getKey()))
-                .map(e -> new CutterView.Material(e.getKey(), e.getValue()))
-                .sorted((a, b) -> a.itemId().compareTo(b.itemId()))
-                .toList();
-    }
-
     /**
-     * Empty while no material is chosen, else the recipe's answer for what the player holds.
+     * Empty while the shape's slots are all empty, else the recipe's answer.
      *
-     * <p>Deviation from MC: DO's input slots refuse a block outside their tag ({@code mayPlace}) and its output slot
-     * just stays empty on a mismatch; here the preview says why nothing can be crafted.
+     * <p>Deviation from MC: a material placed for one shape stays in its slot when the player picks another shape
+     * whose tag refuses it; DO's output slot then just stays empty, here the preview says why nothing can be crafted.
      */
-    private CutterView.Preview preview(OrnamentShape shape, Map<String, Integer> inventory) {
-        boolean none = IntStream.range(0, shape.slotCount()).allMatch(i -> chosen[i].isEmpty());
-        if (none) {
+    private CutterView.Preview preview(OrnamentShape shape, List<SlotContent> slots, boolean creative) {
+        boolean empty = IntStream.range(0, shape.slotCount())
+                .allMatch(i -> i >= slots.size() || slots.get(i).isEmpty());
+        if (empty) {
             return new CutterView.Empty();
         }
-        return switch (CutterCraft.check(shape, slots(inventory), tags)) {
+        return switch (CutterCraft.check(shape, slots, tags, creative)) {
             case CutterCraft.Ready ready ->
                 new CutterView.Ready(
                         ready.key().blockTypeKey(),
                         shape.templateKey(),
                         ready.quantity(),
-                        CutterCraft.maxCrafts(ready, inventory));
+                        CutterCraft.maxCrafts(ready, slots));
             case CutterCraft.Refused refused ->
                 new CutterView.Refused(previewKey(refused.reasonKey()), params(shape, refused));
         };

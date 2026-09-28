@@ -1,0 +1,39 @@
+$C = "../../Common.ui";
+
+@GridStyle = (SlotSize: 50, SlotIconSize: 42, SlotSpacing: 2, SlotBackground: "../../Common/BlockSelectorSlotBackground.png");
+
+Group #PlayerPanel {
+  LayoutMode: Left;
+  Anchor: (Height: 300);
+
+  CharacterPreviewComponent #PlayerCharacter {
+    Anchor: (Width: 220, Height: 290);
+  }
+
+  Group {
+    LayoutMode: Top;
+    Padding: (Left: 10);
+
+    Label {
+      Anchor: (Height: 28);
+      Style: (RenderBold: true, FontSize: 15, TextColor: #afc2c3, VerticalAlignment: Center);
+      Text: %hycolony.ui.inventory.title;
+    }
+
+    ItemGrid #PlayerStorage {
+      Anchor: (Width: 470, Height: 210);
+      SlotsPerRow: 9;
+      AreItemsDraggable: true;
+      DisplayItemQuantity: true;
+      Style: @GridStyle;
+    }
+
+    ItemGrid #PlayerHotbar {
+      Anchor: (Width: 470, Height: 54, Top: 8);
+      SlotsPerRow: 9;
+      AreItemsDraggable: true;
+      DisplayItemQuantity: true;
+      Style: @GridStyle;
+    }
+  }
+}

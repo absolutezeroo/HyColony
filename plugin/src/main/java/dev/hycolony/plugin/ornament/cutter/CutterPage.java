@@ -15,35 +15,46 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.ornament.cutter.CutterActions;
 import dev.hycolony.core.ornament.cutter.CutterCatalog;
-import dev.hycolony.core.ornament.cutter.CutterView;
+import dev.hycolony.plugin.inventory.InventoryDrop;
+import dev.hycolony.plugin.inventory.InventoryGrids;
+import dev.hycolony.plugin.inventory.InventoryMoves;
+import dev.hycolony.plugin.inventory.InventoryWatch;
+import dev.hycolony.plugin.inventory.ReturningContainerWindow;
 import dev.hycolony.plugin.ornament.registry.OrnamentVariantRegistry;
 import dev.hycolony.plugin.ui.PageEvents;
-import java.util.Map;
 import java.util.UUID;
 import javax.annotation.Nonnull;
+import org.jspecify.annotations.Nullable;
 
 /**
- * The architect's cutter window (MC DO ArchitectsCutterScreen), laid out as Hytale's crafting benches: the core's
- * {@link CutterView} for what the player holds, drawn by {@link CutterDrawing} and redrawn after every action. It opens
- * on the player's last group. World thread.
+ * The architect's cutter window (MC DO ArchitectsCutterScreen), laid out as Hytale's crafting benches: tabs, shapes,
+ * the player's 2 material slots and the preview above, their character and inventory below, which they drag materials
+ * from. Redrawn from the core's view after every action and whenever the slots or the inventory change; it opens on
+ * the player's last group. World thread.
  */
 final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
     /** Crafts one x10 click asks for (Hytale's benches' x10). */
     private static final int BATCH = 10;
 
-    /** A button's event: its action and list index, as ColonyPage.Act. */
+    /** The slot grid's selector, also its grid name in drop events. */
+    static final String SLOTS_GRID = "#CutterSlots";
+
+    /** A button's event: its action and list index, as ColonyPage.Act, or an inventory drop. */
     static final class Act {
-        static final BuilderCodec<Act> CODEC = BuilderCodec.builder(Act.class, Act::new)
-                .append(new KeyedCodec<>("Action", Codec.STRING), (d, v) -> d.action = v, d -> d.action)
-                .add()
-                .append(
-                        new KeyedCodec<>("Index", Codec.STRING),
-                        (d, v) -> d.index = parse(v),
-                        d -> String.valueOf(d.index))
-                .add()
+        static final BuilderCodec<Act> CODEC = InventoryDrop.appendTo(
+                        BuilderCodec.builder(Act.class, Act::new)
+                                .append(new KeyedCodec<>("Action", Codec.STRING), (d, v) -> d.action = v, d -> d.action)
+                                .add()
+                                .append(
+                                        new KeyedCodec<>("Index", Codec.STRING),
+                                        (d, v) -> d.index = parse(v),
+                                        d -> String.valueOf(d.index))
+                                .add(),
+                        d -> d.drop)
                 .build();
         String action = "";
         int index = -1;
+        final InventoryDrop drop = new InventoryDrop();
 
         private static int parse(String s) {
             try {
@@ -64,6 +75,8 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
     private final Setup setup;
     private final UUID player;
     private final CutterActions actions;
+    private final CutterSlots slots;
+    private @Nullable InventoryWatch watch;
 
     CutterPage(PlayerRef playerRef, Setup setup) {
         super(playerRef, CustomPageLifetime.CanDismiss, Act.CODEC);
@@ -73,6 +86,12 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
                 CutterCatalog.of(setup.catalogs().shapes()),
                 setup.catalogs().materials().tags());
         actions.selectGroup(setup.memory().group(player));
+        this.slots = new CutterSlots(actions::accepts);
+    }
+
+    /** The slots' window, to open with this page. */
+    ReturningContainerWindow slotsWindow() {
+        return slots.window();
     }
 
     @Override
@@ -81,8 +100,14 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
             @Nonnull UICommandBuilder ui,
             @Nonnull UIEventBuilder events,
             @Nonnull Store<EntityStore> store) {
+        if (watch == null) {
+            watch = InventoryWatch.start(store, ref, this::redrawIfShown, slots.container());
+        }
         ui.append("Pages/HyColony/Cutter.ui");
-        CutterDrawing.draw(ui, events, actions.view(CutterInventory.counts(store, ref)));
+        CutterDrawing.draw(ui, events, actions.view(slots.contents(), CutterCrafting.creative(store, ref)));
+        InventoryGrids.drawContainer(
+                ui, events, SLOTS_GRID, slots.container(), slots.window().getId());
+        InventoryGrids.drawPlayer(ui, events, "#Inventory", store, ref);
     }
 
     @Override
@@ -94,11 +119,10 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
                     setup.memory().remember(player, actions.group());
                 }
                 case "shape" -> actions.selectShape(act.index);
-                case "slot" -> actions.selectSlot(act.index);
-                case "material" -> choose(ref, store, act.index);
-                case "craft" -> craft(ref, store, 1);
-                case "craft10" -> craft(ref, store, BATCH);
-                case "craftAll" -> craft(ref, store, Integer.MAX_VALUE);
+                case InventoryGrids.DROP_ACTION -> drop(ref, store, act.drop);
+                case "craft" -> craft(ref, 1);
+                case "craft10" -> craft(ref, BATCH);
+                case "craftAll" -> craft(ref, Integer.MAX_VALUE);
                 default -> {
                     return;
                 }
@@ -107,25 +131,35 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
         });
     }
 
-    /** Puts the index-th material listed (what the player holds now) in the selected slot; a stale index does nothing. */
-    private void choose(Ref<EntityStore> ref, Store<EntityStore> store, int index) {
-        var materials = actions.view(CutterInventory.counts(store, ref)).materials();
-        if (index >= 0 && index < materials.size()) {
-            actions.choose(materials.get(index).itemId());
+    /** Stops following the inventory and closes the slots' window, which gives their content back. Never throws. */
+    @Override
+    public void onDismiss(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
+        InventoryWatch current = watch;
+        watch = null;
+        if (current != null) {
+            current.stop();
         }
+        slots.window().closeIfOpen(ref, store);
+        super.onDismiss(ref, store);
     }
 
-    /** Asks for up to crafts crafts of the chosen shape; CutterCrafting caps them by what the player holds. */
-    private void craft(Ref<EntityStore> ref, Store<EntityStore> store, int crafts) {
-        Map<String, Integer> inventory = CutterInventory.counts(store, ref);
+    /** Moves what the player dropped on the slot grid or their own grids; a drop elsewhere does nothing. */
+    private void drop(Ref<EntityStore> ref, Store<EntityStore> store, InventoryDrop drop) {
+        if (SLOTS_GRID.equals(drop.grid())) {
+            InventoryMoves.apply(ref, store, drop, slots.window().getId());
+            return;
+        }
+        InventoryGrids.playerSection(drop.grid()).ifPresent(section -> InventoryMoves.apply(ref, store, drop, section));
+    }
+
+    /** Asks for up to crafts crafts of the chosen shape; CutterCrafting caps them by what the slots hold. */
+    private void craft(Ref<EntityStore> ref, int crafts) {
         actions.shape()
                 .ifPresent(shape -> CutterCrafting.craft(new CutterCrafting.Request(
                         setup.world(),
                         ref,
                         shape,
-                        actions.slots(inventory).stream()
-                                .map(slot -> slot.isEmpty() ? "" : slot.itemId())
-                                .toList(),
+                        slots,
                         setup.catalogs().materials().tags(),
                         setup.registry(),
                         crafts,
@@ -133,7 +167,7 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
                         this::redrawIfShown)));
     }
 
-    /** Redraws while the player still looks at this page in this world (a late craft); otherwise does nothing. */
+    /** Redraws while the player still looks at this page in this world; otherwise does nothing. */
     private void redrawIfShown() {
         Ref<EntityStore> ref = playerRef.getReference();
         if (ref == null

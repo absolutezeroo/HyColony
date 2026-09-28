@@ -17,13 +17,12 @@ final class CutterDrawing {
 
     private CutterDrawing() {}
 
-    /** Draws view: tabs, shapes, slots, preview with the craft buttons, and the player's materials. */
+    /** Draws view: tabs, shapes, the slots' labels, and the preview with the craft buttons. */
     static void draw(UICommandBuilder ui, UIEventBuilder events, CutterView view) {
         tabs(ui, events, view.tabs());
         shapes(ui, events, view.shapes());
-        slots(ui, events, view.slots());
+        slotLabels(ui, view.slotLabelKeys());
         preview(ui, events, view.preview());
-        materials(ui, events, view.materials());
     }
 
     /** One icon tab per group, the open one marked and named above the shapes. */
@@ -58,24 +57,14 @@ final class CutterDrawing {
         }
     }
 
-    /** One row per material slot: its chosen material, label and have / need; the selected one disabled. */
-    private static void slots(UICommandBuilder ui, UIEventBuilder events, List<CutterView.Slot> slots) {
-        for (int i = 0; i < slots.size(); i++) {
-            CutterView.Slot slot = slots.get(i);
-            String row = "#Slots[" + i + "]";
-            ui.append("#Slots", PAGES + "CutterSlotButton.ui");
-            ui.set(row + " #Icon.Visible", !slot.itemId().isEmpty());
-            if (!slot.itemId().isEmpty()) {
-                ui.set(row + " #Icon.ItemId", slot.itemId());
+    /** Names each material slot the chosen shape uses (« Cadre », « Centre »…); a slot it does not use is unnamed. */
+    private static void slotLabels(UICommandBuilder ui, List<String> keys) {
+        for (int i = 0; i < CutterSlots.COUNT; i++) {
+            boolean used = i < keys.size();
+            ui.set("#SlotLabel" + i + ".Visible", used);
+            if (used) {
+                ui.set("#SlotLabel" + i + ".Text", Message.translation(keys.get(i)));
             }
-            ui.set(row + " #Label.Text", Message.translation(slot.labelKey()));
-            ui.set(
-                    row + " #Count.Text",
-                    Message.translation("hycolony.ornament.cutter.have")
-                            .param("p0", String.valueOf(slot.have()))
-                            .param("p1", String.valueOf(slot.need())));
-            ui.set(row + ".Disabled", slot.selected());
-            bind(events, row, "slot", i);
         }
     }
 
@@ -110,20 +99,6 @@ final class CutterDrawing {
         bind(events, "#CraftButton", "craft", -1);
         bind(events, "#Craft10Button", "craft10", -1);
         bind(events, "#CraftAllButton", "craftAll", -1);
-    }
-
-    /** The player's materials the selected slot accepts, each with how many they hold. */
-    private static void materials(UICommandBuilder ui, UIEventBuilder events, List<CutterView.Material> materials) {
-        ui.set("#NoMaterials.Visible", materials.isEmpty());
-        for (int i = 0; i < materials.size(); i++) {
-            CutterView.Material material = materials.get(i);
-            String button = "#Materials[" + i + "]";
-            ui.append("#Materials", PAGES + "CutterMaterialButton.ui");
-            ui.set(button + " #Icon.ItemId", material.itemId());
-            ui.set(button + " #Count.Text", String.valueOf(material.count()));
-            ui.set(button + ".TooltipText", itemName(material.itemId()));
-            bind(events, button, "material", i);
-        }
     }
 
     /** The item's translated name; its id when it is not loaded. */

@@ -1,11 +1,13 @@
 $C = "../../Common.ui";
 $Sounds = "../../Sounds.ui";
 
+@SlotStyle = (SlotSize: 64, SlotIconSize: 56, SlotSpacing: 8, SlotBackground: "../../Common/BlockSelectorSlotBackground.png");
+
 $C.@PageOverlay {
   LayoutMode: Middle;
 
   $C.@Container {
-    Anchor: (Width: 900, Height: 700);
+    Anchor: (Width: 1000, Height: 880);
 
     #Title {
       $C.@Title {
@@ -23,11 +25,11 @@ $C.@PageOverlay {
 
       Group {
         LayoutMode: Left;
-        FlexWeight: 1;
+        Anchor: (Height: 400);
 
         Group {
           LayoutMode: Top;
-          Anchor: (Width: 470);
+          Anchor: (Width: 480);
 
           Label #GroupName {
             Anchor: (Height: 32);
@@ -53,22 +55,45 @@ $C.@PageOverlay {
             Style: (RenderBold: true, FontSize: 15, TextColor: #afc2c3, VerticalAlignment: Center);
           }
 
-          Group #Slots {
-            LayoutMode: Top;
-            Padding: (Top: 6);
+          Group {
+            LayoutMode: Center;
+            Anchor: (Height: 72, Top: 6);
+
+            ItemGrid #CutterSlots {
+              Anchor: (Width: 136, Height: 64);
+              SlotsPerRow: 2;
+              AreItemsDraggable: true;
+              DisplayItemQuantity: true;
+              Style: @SlotStyle;
+            }
           }
 
           Group {
             LayoutMode: Center;
-            Anchor: (Height: 110, Top: 6);
+            Anchor: (Height: 22);
+
+            Label #SlotLabel0 {
+              Anchor: (Width: 72);
+              Style: (FontSize: 13, TextColor: #96a9be, HorizontalAlignment: Center);
+            }
+
+            Label #SlotLabel1 {
+              Anchor: (Width: 72);
+              Style: (FontSize: 13, TextColor: #96a9be, HorizontalAlignment: Center);
+            }
+          }
+
+          Group {
+            LayoutMode: Center;
+            Anchor: (Height: 100, Top: 6);
 
             ItemIcon #Preview {
-              Anchor: (Width: 96, Height: 96);
+              Anchor: (Width: 88, Height: 88);
             }
           }
 
           Label #PreviewText {
-            Anchor: (Height: 60);
+            Anchor: (Height: 50);
             Style: (TextColor: #ffffff, Wrap: true, HorizontalAlignment: Center, VerticalAlignment: Center);
           }
 
@@ -95,22 +120,9 @@ $C.@PageOverlay {
         }
       }
 
-      Label {
-        Anchor: (Height: 32, Top: 8);
-        Style: (RenderBold: true, FontSize: 15, TextColor: #afc2c3, VerticalAlignment: Center);
-        Text: %hycolony.ornament.cutter.materials;
-      }
-
-      Label #NoMaterials {
-        Anchor: (Height: 24, Top: 6);
-        Style: (TextColor: #96a9be);
-        Text: %hycolony.ornament.cutter.noMaterials;
-      }
-
-      Group #Materials {
-        LayoutMode: LeftCenterWrap;
-        Anchor: (Height: 124);
-        Padding: (Top: 6);
+      Group #Inventory {
+        LayoutMode: Top;
+        Anchor: (Top: 10);
       }
     }
   }

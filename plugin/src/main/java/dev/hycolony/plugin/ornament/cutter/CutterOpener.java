@@ -11,7 +11,7 @@ import dev.hycolony.plugin.adapter.HytaleNotifier;
 import dev.hycolony.plugin.ornament.registry.OrnamentVariantRegistry;
 import java.util.Optional;
 
-/** Opens the cutter window for a player who used a cutter block. World thread. */
+/** Opens the cutter window, with the player's material slots, for a player who used a cutter block. World thread. */
 final class CutterOpener {
     private CutterOpener() {}
 
@@ -28,11 +28,8 @@ final class CutterOpener {
             playerRef.sendMessage(HytaleNotifier.toMessage(Msg.of("hycolony.ornament.failed", "load")));
             return;
         }
-        playerComponent
-                .getPageManager()
-                .openCustomPage(
-                        player,
-                        store,
-                        new CutterPage(playerRef, new CutterPage.Setup(world, registry, catalogs.get(), memory)));
+        CutterPage page = new CutterPage(playerRef, new CutterPage.Setup(world, registry, catalogs.get(), memory));
+        // The slots are a real container window, so the client drags items into them natively (CutterSlots).
+        playerComponent.getPageManager().openCustomPageWithWindows(player, store, page, page.slotsWindow());
     }
 }

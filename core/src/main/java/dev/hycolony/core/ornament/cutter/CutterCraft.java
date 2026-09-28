@@ -5,9 +5,7 @@ import dev.hycolony.core.ornament.OrnamentShape;
 import dev.hycolony.core.ornament.VariantKey;
 import dev.hycolony.core.ornament.VariantRequests;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -76,19 +74,17 @@ public final class CutterCraft {
     }
 
     /**
-     * How many times ready can be crafted from inventory (item id -> count held): the scarcest material over what one
-     * craft takes of it (a material in two slots counts twice); {@link #MAX_BATCH} when nothing is consumed (creative).
+     * How many times ready can be crafted from slots (the cutter's, in order): each consumed slot gives 1 per craft
+     * from its own stack, so the smallest one limits; {@link #MAX_BATCH} when nothing is consumed (creative).
      *
      * <p>Deviation from MC: DO crafts one at a time; the cutter window also offers x10 and All, as Hytale's benches.
      */
-    public static int maxCrafts(Ready ready, Map<String, Integer> inventory) {
+    public static int maxCrafts(Ready ready, List<SlotContent> slots) {
         if (ready.consumed().isEmpty()) {
             return MAX_BATCH;
         }
-        Map<String, Integer> need = new HashMap<>();
-        ready.consumed().forEach(slot -> need.merge(ready.key().materials().get(slot), 1, Integer::sum));
-        return need.entrySet().stream()
-                .mapToInt(e -> inventory.getOrDefault(e.getKey(), 0) / e.getValue())
+        return ready.consumed().stream()
+                .mapToInt(slot -> slot < slots.size() ? slots.get(slot).quantity() : 0)
                 .min()
                 .orElse(0);
     }
