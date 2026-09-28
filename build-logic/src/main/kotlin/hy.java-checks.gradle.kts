@@ -32,7 +32,7 @@ tasks.withType<JavaCompile>().configureEach {
     options.compilerArgs.addAll(listOf("-Xmaxwarns", "10000"))
     options.errorprone {
         disableWarningsInGeneratedCode.set(true)
-        option("NullAway:AnnotatedPackages", "dev.hycolony,dev.hydomum,dev.hyblockui")
+        option("NullAway:AnnotatedPackages", "dev.hycolony,dev.hydomum,dev.hyblockui,dev.hyvanilla")
         option("NullAway:JSpecifyMode", "true")
         check("NullAway", CheckSeverity.ERROR)
     }
@@ -99,10 +99,11 @@ val checkSectionDividers by tasks.registering {
 val modApis = mapOf(
     "dev.hyblockui." to listOf("dev.hyblockui.api."),
     "dev.hydomum." to listOf("dev.hydomum.api.", "dev.hydomum.plugin.api."),
+    "dev.hyvanilla." to listOf("dev.hyvanilla.api.", "dev.hyvanilla.plugin.api."),
     "dev.hycolony." to emptyList(),
 )
-// The mod this project belongs to: its Maven group (dev.hycolony, dev.hydomum or dev.hyblockui), read when the task
-// runs, since a module's build script sets its group after this convention is applied.
+// The mod this project belongs to: its Maven group (dev.hycolony, dev.hydomum, dev.hyblockui or dev.hyvanilla), read
+// when the task runs, since a module's build script sets its group after this convention is applied.
 val ownMod = provider { "${project.group}." }
 val checkModApis by tasks.registering {
     group = "verification"
