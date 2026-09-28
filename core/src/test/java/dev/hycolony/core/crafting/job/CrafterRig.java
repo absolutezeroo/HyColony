@@ -59,6 +59,15 @@ final class CrafterRig {
 
     /** {@code learnt} taught to the hut, in a colony made from {@code t}, under {@code rules} as crafting.json. */
     CrafterRig(TestContexts t, String rules, Recipe learnt) {
+        this(t, rules, learnt, CraftingWork.ACTIONS_UNTIL_DUMP);
+    }
+
+    /** The seed recipe taught, for a crafter dumping every {@code actionsUntilDump} actions (the farmer: 64). */
+    CrafterRig(int actionsUntilDump) {
+        this(new TestContexts(), CraftingHut.RULES, seeds(List.of(), Optional.empty()), actionsUntilDump);
+    }
+
+    private CrafterRig(TestContexts t, String rules, Recipe learnt, int actionsUntilDump) {
         this.t = t;
         h = new CraftingHut(t, rules, TestCrafters.HUT);
         t.bodies.instant = true;
@@ -67,7 +76,8 @@ final class CrafterRig {
         recipe = h.teach(learnt);
         crafter = h.hire();
         body = t.bodies.existing(1, crafter.id(), Vec3.center(h.hut.position()));
-        work = new CraftingWork(CraftingWorkContext.of(h.colony, job(), body).orElseThrow());
+        work = new CraftingWork(
+                CraftingWorkContext.of(h.colony, job(), body, actionsUntilDump).orElseThrow());
     }
 
     /** The Farmingbench recipe making 1 seed of 2 essence, giving {@code back} too, with {@code tool}. */

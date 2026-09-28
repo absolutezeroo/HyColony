@@ -29,7 +29,6 @@ public final class CraftingWork {
     public static final int HIT_DELAY = 10;
     /** MC Constants.TICKS_SECOND: the rate of the idle, gathering and dump steps. */
     public static final int TICKS_SECOND = 20;
-    /** MC AbstractEntityAICrafting.getActionsDoneUntilDumping: a crafter dumps after each task done or failed. */
     /**
      * MC getActionsDoneUntilDumping and getActionRewardForCraftingSuccess of AbstractEntityAICrafting: 1, so a crafter
      * dumps after each task. A crafter that overrides both (the farmer: 64) passes its own to CraftingWorkContext.

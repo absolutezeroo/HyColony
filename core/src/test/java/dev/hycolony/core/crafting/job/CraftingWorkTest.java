@@ -71,6 +71,30 @@ class CraftingWorkTest {
     }
 
     @Test
+    void crafterDumpingEvery64ActionsEarns64ForAFailedTask() {
+        CrafterRig farmer = new CrafterRig(64);
+        farmer.stock(ESSENCE, 20);
+        farmer.task(farmer.ask(10));
+        farmer.h.module.toggle(farmer.h.colony, 0);
+
+        assertEquals(START_WORKING, farmer.toRecipe());
+
+        assertEquals(64, farmer.job().actionsDone(), "MC getActionRewardForCraftingSuccess: it dumps at once");
+    }
+
+    @Test
+    void crafterDumpingEvery64ActionsEarns64ForAFinishedTask() {
+        CrafterRig farmer = new CrafterRig(64);
+        farmer.stock(ESSENCE, 2);
+        farmer.task(farmer.ask(1));
+        assertEquals(CRAFT, farmer.toCraft());
+
+        assertEquals(INVENTORY_FULL, until(farmer.work::craft, CRAFT));
+
+        assertEquals(64, farmer.job().actionsDone());
+    }
+
+    @Test
     void missingToolRequestsItAndFailsTheTask() {
         CrafterRig axe = new CrafterRig(seeds(List.of(), Optional.of(ToolType.AXE)));
         axe.stock(ESSENCE, 20);
