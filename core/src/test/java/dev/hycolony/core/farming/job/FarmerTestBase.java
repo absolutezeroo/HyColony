@@ -44,11 +44,11 @@ abstract class FarmerTestBase {
     static final ItemKey FERTILIZER = FakeFarming.FERTILIZER;
     static final BlockKey DIRT = new BlockKey("Soil_Dirt");
 
-    final TestContexts t = new TestContexts();
+    static final UUID OWNER = UUID.randomUUID();
+
+    final TestContexts t = contexts();
     final Colony colony = new Colony(
-            t.context(),
-            new TerritoryIndex(),
-            new Colony.Founding(1, "T", HUT, Permissions.createDefault(UUID.randomUUID(), "A")));
+            t.context(), new TerritoryIndex(), new Colony.Founding(1, "T", HUT, Permissions.createDefault(OWNER, "A")));
     final Building hut = Building.create(FarmerHut.TYPE, HUT, 0);
     final CitizenData citizen = new CitizenData(1);
     FarmerJob job;
@@ -59,6 +59,7 @@ abstract class FarmerTestBase {
         hut.setLevel(1);
         hut.setBuilt(true);
         colony.buildings().add(hut);
+        colony.claimAround(HUT, 1); // the field lies in the colony, or its slow tick cleans it away
         t.bodies.instant = true;
         t.catalog.tools.put(HOE, new ToolInfo(ToolType.HOE, 0, 1f));
         t.catalog.durability.put(HOE, 100);
@@ -71,6 +72,11 @@ abstract class FarmerTestBase {
         job = (FarmerJob) citizen.job().orElseThrow();
         body = t.bodies.existing(1, 1, Vec3.center(HUT));
         work = new FarmWork(FarmWorkContext.of(colony, job, body).orElseThrow());
+    }
+
+    /** The fakes the colony is built on; a test changes them here when its colony needs it from the start. */
+    TestContexts contexts() {
+        return new TestContexts();
     }
 
     FarmerFieldsModule fields() {
