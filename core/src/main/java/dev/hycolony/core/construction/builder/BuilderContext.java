@@ -1,6 +1,7 @@
 package dev.hycolony.core.construction.builder;
 
 import dev.hycolony.core.building.Building;
+import dev.hycolony.core.building.BuildingModule;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.colony.Colony;
@@ -56,10 +57,8 @@ record BuilderContext(
         CitizenBodies bodies = colony.context().bodies();
         WorldBlocks blocks = colony.context().ports().blocks();
         ItemCatalog catalog = colony.context().ports().catalog();
-        BuildingResourcesModule resources =
-                hut == null ? null : hut.module(BuildingResourcesModule.class).orElse(null);
-        WorkerModule worker =
-                hut == null ? null : hut.module(WorkerModule.class).orElse(null);
+        BuildingResourcesModule resources = module(hut, BuildingResourcesModule.class);
+        WorkerModule worker = module(hut, WorkerModule.class);
         WorkerStock stock = null;
         BuilderRequests requests = null;
         ToolRequests tools = null;
@@ -89,6 +88,11 @@ record BuilderContext(
                 new StructureScan(colony, blocks, catalog),
                 worker == null ? Skill.Adaptability : worker.primary(),
                 worker == null ? Skill.Athletics : worker.secondary());
+    }
+
+    /** {@code hut}'s module of {@code type}; null without a hut or without that module. */
+    private static <T extends BuildingModule> @Nullable T module(@Nullable Building hut, Class<T> type) {
+        return hut == null ? null : hut.module(type).orElse(null);
     }
 
     /** False for a builder without a hut, whose AI never runs. */
