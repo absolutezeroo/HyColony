@@ -14,7 +14,6 @@ import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.action.FieldActions;
 import dev.hycolony.core.colony.ui.FieldView;
 import dev.hycolony.core.kernel.item.ItemKey;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import javax.annotation.Nonnull;
@@ -22,16 +21,14 @@ import javax.annotation.Nonnull;
 /**
  * The seed list the field window opens (MC WindowSelectRes from WindowField): the game's crop seeds, filtered as the
  * player types in the search field by their name in the player's language or their id. Picking one sets the field's
- * seed; the core then shows the field window again.
+ * seed; the core then shows the field window again, as Back does (MC WindowSelectRes cancel).
  */
 public final class SeedPickerPage extends ColonyPage {
     private static final String LIST = "#Seeds";
 
     private final FieldView view;
-    /** The seeds the list shows now, in its order: a row's index points here. */
-    private final List<ItemKey> shown = new ArrayList<>();
 
-    public SeedPickerPage(PlayerRef playerRef, FieldView view, ColonyManager manager) {
+    SeedPickerPage(PlayerRef playerRef, FieldView view, ColonyManager manager) {
         super(playerRef, manager);
         this.view = view;
     }
@@ -49,27 +46,22 @@ public final class SeedPickerPage extends ColonyPage {
                 "#SearchInput",
                 EventData.of("Action", "search").append("@Name", "#SearchInput.Value"),
                 false);
+        bind(events, "#CancelButton", "back");
         fill(ui, events, "");
-    }
-
-    /** The typed text is kept by the client: the list alone is redrawn. */
-    @Override
-    protected boolean showsInput() {
-        return true;
     }
 
     /** Clears the list and appends the seeds matching {@code query}, or the "no match" line. */
     private void fill(UICommandBuilder ui, UIEventBuilder events, String query) {
         ui.clear(LIST);
-        shown.clear();
         List<String> terms = List.of(query.trim().toLowerCase(Locale.ROOT).split("\\s+"));
-        for (ItemKey seed : view.seeds()) {
+        int lines = 0;
+        for (int i = 0; i < view.seeds().size(); i++) {
+            ItemKey seed = view.seeds().get(i);
             if (matches(seed, terms)) {
-                row(ui, events, shown.size(), seed);
-                shown.add(seed);
+                row(ui, events, new Row(lines++, i), seed);
             }
         }
-        ui.set("#SeedsEmpty.Visible", shown.isEmpty());
+        ui.set("#SeedsEmpty.Visible", lines == 0);
     }
 
     /** True when each term is in the seed's name, in the player's language, or in its id. */
@@ -86,29 +78,43 @@ public final class SeedPickerPage extends ColonyPage {
         return name == null ? seed.id() : name;
     }
 
+    /**
+     * A list row: its line in the list and the seed's index in the view. Its event carries the view's index, which a
+     * later keystroke does not change, so a click on a row the client still shows picks that row's seed.
+     */
+    private record Row(int line, int seed) {}
+
     /** One seed; its Select button is disabled for the field's current seed or a viewer who may not manage. */
-    private void row(UICommandBuilder ui, UIEventBuilder events, int i, ItemKey seed) {
-        String row = LIST + "[" + i + "]";
+    private void row(UICommandBuilder ui, UIEventBuilder events, Row r, ItemKey seed) {
+        String row = LIST + "[" + r.line() + "]";
         ui.append(LIST, "Pages/HyColony/FieldSeedRow.ui");
         ui.set(row + " #Icon.ItemId", seed.id());
         ui.set(row + " #Name.TextSpans", itemName(seed.id()));
         if (view.canManage() && !view.seed().map(seed::equals).orElse(false)) {
-            bind(events, row + " #Select", "seed", i);
+            bind(events, row + " #Select", "seed", r.seed());
         } else {
             ui.set(row + " #Select.Disabled", true);
         }
     }
 
-    /** A keystroke redraws the list; a pick goes to the core, which shows the field window again. */
+    /** A keystroke redraws the list; a pick or Back goes to the core, which shows the field window again. */
     @Override
     public void handleDataEvent(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, @Nonnull Act act) {
-        if (act.action().equals("search")) {
-            UICommandBuilder ui = new UICommandBuilder();
-            UIEventBuilder events = new UIEventBuilder();
-            fill(ui, events, act.name());
-            sendUpdate(ui, events, false);
-        } else if (act.action().equals("seed") && act.index() >= 0 && act.index() < shown.size()) {
-            new FieldActions(manager).setSeed(player, view.pos(), shown.get(act.index()));
+        FieldActions fields = new FieldActions(manager);
+        switch (act.action()) {
+            case "search" -> {
+                UICommandBuilder ui = new UICommandBuilder();
+                UIEventBuilder events = new UIEventBuilder();
+                fill(ui, events, act.name());
+                sendUpdate(ui, events, false);
+            }
+            case "seed" -> {
+                if (act.index() >= 0 && act.index() < view.seeds().size()) {
+                    fields.setSeed(player, view.pos(), view.seeds().get(act.index()));
+                }
+            }
+            case "back" -> fields.open(player, view.pos());
+            default -> {}
         }
     }
 }

@@ -17,7 +17,7 @@ import org.joml.Vector3f;
  */
 public final class BlockHighlight {
     /** How long the highlight stays, in seconds. */
-    static final float SECONDS = 30f;
+    private static final float SECONDS = 30f;
 
     private static final Vector3f COLOR = new Vector3f(1f, 0.78f, 0.2f);
     private static final float OPACITY = 0.45f;

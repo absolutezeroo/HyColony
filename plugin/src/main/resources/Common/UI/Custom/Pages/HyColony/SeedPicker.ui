@@ -33,8 +33,17 @@ $C.@PageOverlay {
         ScrollbarStyle: $C.@DefaultScrollbarStyle;
         FlexWeight: 1;
       }
+
+      // As MC WindowSelectRes' cancel: back to the field window.
+      Group {
+        LayoutMode: Center;
+        Anchor: (Top: 10);
+
+        $C.@SecondaryTextButton #CancelButton {
+          @Anchor = (Width: 200);
+          Text: %hycolony.ui.field.back;
+        }
+      }
     }
   }
 }
-
-$C.@BackButton {}
