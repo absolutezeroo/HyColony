@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import dev.hycolony.core.kernel.config.JsonFragments;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import java.util.ArrayList;
@@ -116,6 +117,30 @@ class CraftingRulesTest {
                 CraftingRules.parse(json("{\"jobs\":{\"farmer\":{\"allow\":[{\"categories\":[]}]}}}"), warnings::add);
         assertEquals(1, warnings.size());
         assertFalse(r.allows("farmer", RecipeFixtures.at("Farmingbench", "Seeds", "Plant_Seeds_Corn")));
+    }
+
+    @Test
+    void subPluginFragmentAddsJobsAndKeysButNeverRedefinesOne() {
+        // As the plugin merges crafting.json (SubPlugins.CRAFTING_DEPTH): job by job, then key by key in a job.
+        JsonFragments file = new JsonFragments(2);
+        file.add("HyColony", json("""
+            {"jobs":{"farmer":{"allow":[{"bench":"Farmingbench","categories":["*"]}]}},
+             "reduceable":{"ingredients":["Ingredient_Life_Essence"],"excludedProducts":[]}}
+            """));
+
+        List<JsonFragments.Conflict> conflicts = file.add("Pack", json("""
+            {"jobs":{"farmer":{"allow":[],"includeItems":["Food_Bread"]},
+                     "baker":{"allow":[{"bench":"Cookingbench","categories":["*"]}]}},
+             "reduceable":{"ingredients":["Rock_Stone"]}}
+            """));
+        CraftingRules merged = CraftingRules.parse(file.merged(), w -> fail(w));
+
+        assertEquals(List.of(new JsonFragments.Conflict("jobs/farmer/allow", "HyColony", "Pack")), conflicts);
+        assertTrue(merged.allows("farmer", RecipeFixtures.at("Farmingbench", "Seeds", "Plant_Seeds_Corn")));
+        assertTrue(merged.allows("farmer", RecipeFixtures.at("Cookingbench", "Bread", "Food_Bread")));
+        assertTrue(merged.allows("baker", RecipeFixtures.at("Cookingbench", "Pie", "Food_Pie_Apple")));
+        assertTrue(merged.isReduceable(RecipeFixtures.ESSENCE));
+        assertTrue(merged.isReduceable(new ItemKey("Rock_Stone")));
     }
 
     @Test

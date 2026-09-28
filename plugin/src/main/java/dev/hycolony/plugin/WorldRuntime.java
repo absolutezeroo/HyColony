@@ -8,7 +8,6 @@ import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.ConstructionPorts;
 import dev.hycolony.core.construction.goggles.BuildGoggles;
 import dev.hycolony.core.construction.wand.WandActions;
-import dev.hycolony.core.crafting.recipe.CraftingRules;
 import dev.hycolony.core.crafting.recipe.CraftingSetup;
 import dev.hycolony.core.crafting.recipe.RecipeCatalog;
 import dev.hycolony.core.kernel.WorldKey;
@@ -108,8 +107,9 @@ public final class WorldRuntime {
                 new HytalePlayerInventory(world, catalog.stacks()),
                 new HytaleBlueprintSource(ids, setup.styles()),
                 new HytaleWorldEffects(world, ids.fireworks()),
-                // No crafting until the Hytale recipe catalog and crafting.json are wired (SP3b-1 plan, Task 16).
-                new CraftingSetup(RecipeCatalog.NONE, CraftingRules.EMPTY));
+                // No Hytale recipe until HytaleRecipeCatalog exists (SP3b-1 plan, Task 16), so no hut learns any. It
+                // must know the game's recipes when openStorage loads: a load drops every learnt one it does not know.
+                new CraftingSetup(RecipeCatalog.NONE, setup.craftingRules()));
     }
 
     /** Points the colonies' persistence at the world's save folder; reads them only when {@code enabled}. */

@@ -9,10 +9,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * One data file ({@code id-map.json}, {@code styles.json}) merged from the core copy and each enabled sub-plugin's
- * fragment, in the order they are added. Objects merge key by key down to {@code depth} levels (id-map: 1, its
- * sections; styles: 2, style then building type); below that, a key already defined is a conflict that the first
- * source keeps. Lists at a merged level are joined, each value kept once.
+ * One data file ({@code id-map.json}, {@code styles.json}, {@code crafting.json}) merged from the core copy and each
+ * enabled sub-plugin's fragment, in the order they are added. Objects merge key by key down to {@code depth} levels
+ * (id-map: 1, its sections; styles: 2, style then building type; crafting: 2, job then key); below that, a key already
+ * defined is a conflict that the first source keeps. Lists at a merged level are joined, each value kept once.
  */
 public final class JsonFragments {
     /** {@code path} (keys joined by {@code /}) was defined by {@code first}, which keeps it, then by {@code second}. */
