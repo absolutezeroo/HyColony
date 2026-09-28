@@ -50,10 +50,11 @@ public final class GlowingBlock {
     /** Spawns the glowing copy of the block at {@code pos} for {@code millis}; its uuid, empty on air or a failure. */
     static Optional<UUID> spawn(World world, BlockPos pos, long millis) {
         try {
-            PlacedBlock block = PlacedBlock.at(world, pos);
-            if (block == null) {
+            Optional<PlacedBlock> placed = PlacedBlock.at(world, pos);
+            if (placed.isEmpty()) {
                 return Optional.empty();
             }
+            PlacedBlock block = placed.get();
             Store<EntityStore> store = world.getEntityStore().getStore();
             TimeResource time = store.getResource(TimeResource.getResourceType());
             Vector3d centre = centre(pos, block.type());

@@ -9,12 +9,12 @@ import com.hypixel.hytale.server.core.universe.world.chunk.section.BlockSection;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.plugin.block.HytaleSections;
-import org.jspecify.annotations.Nullable;
+import java.util.Optional;
 
 /** A block as placed in the world: its type and its turn (VariantRotation). World thread. */
 record PlacedBlock(BlockType type, RotationTuple turn) {
-    /** The block at {@code pos}; null for air or an unloaded chunk. */
-    static @Nullable PlacedBlock at(World world, BlockPos pos) {
+    /** The block at {@code pos}; empty for air or an unloaded chunk. */
+    static Optional<PlacedBlock> at(World world, BlockPos pos) {
         Ref<ChunkStore> section = HytaleSections.section(world, pos);
         BlockSection blocks = section == null
                 ? null
@@ -23,14 +23,17 @@ record PlacedBlock(BlockType type, RotationTuple turn) {
         BlockType type =
                 id == BlockType.EMPTY_ID ? null : BlockType.getAssetMap().getAsset(id);
         return blocks == null || type == null
-                ? null
-                : new PlacedBlock(type, blocks.getRotation(pos.x(), pos.y(), pos.z()));
+                ? Optional.empty()
+                : Optional.of(new PlacedBlock(type, blocks.getRotation(pos.x(), pos.y(), pos.z())));
     }
 
-    /** The turn as an entity rotation (Rotation.java builds its Rotation3f the same way). */
+    /**
+     * The turn as a block entity's rotation: a block's yaw is half a turn from its entity's (FallingBlock
+     * generateFallingBlock adds PI, FallingBlockTickingSystem takes it off).
+     */
     Rotation3f rotation() {
-        return new Rotation3f(
-                (float) turn.pitch().getRadians(), (float) turn.yaw().getRadians(), (float)
-                        turn.roll().getRadians());
+        float pitch = (float) turn.pitch().getRadians();
+        float yaw = (float) (turn.yaw().getRadians() + Math.PI);
+        return new Rotation3f(pitch, yaw, (float) turn.roll().getRadians());
     }
 }
