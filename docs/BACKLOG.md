@@ -113,6 +113,9 @@ Les autres points de la relecture sont corrigés. Il reste :
   - briques DO et blocs « extra » : textures DO 16 px à redessiner en 32 px ;
   - tonneaux et tapis flottants DO.
 - **Modes de construction** (spirale, de l'extérieur vers l'intérieur…), débloqués par la recherche (université).
+- **Fermier, suites** (SP3b-2) :
+  - les citoyens ne mangent ni les graines des champs ni le blé : à revoir avec la nourriture (SP4) ;
+  - la lanterne de l'épouvantail : le bloc Champ n'a pas de moitié haute ni de lumière.
 - **Apparences aléatoires des citoyens.**
 - **Hôtel de ville disparu** sans être cassé par un joueur : aujourd'hui il ne peut plus être reposé, il faut passer par `/hycolony delete`.
 - **Outlander niveau 5** : bâti à flanc de colline, son plancher peut flotter sur un terrain en pente.
