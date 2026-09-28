@@ -17,12 +17,15 @@ final class CutterDrawing {
 
     private CutterDrawing() {}
 
-    /** Draws view: tabs, shapes, the slots' labels, and the preview with the craft buttons. */
-    static void draw(UICommandBuilder ui, UIEventBuilder events, CutterView view) {
+    /**
+     * Draws view: tabs, shapes, the slots' labels, and the preview with the craft buttons; preparing shows a spinner
+     * in place of a previewed variant that does not exist yet.
+     */
+    static void draw(UICommandBuilder ui, UIEventBuilder events, CutterView view, boolean preparing) {
         tabs(ui, events, view.tabs());
         shapes(ui, events, view.shapes());
         slotLabels(ui, view.slotLabelKeys());
-        preview(ui, events, view.preview());
+        preview(ui, events, view.preview(), preparing);
     }
 
     /** One icon tab per group, the open one marked and named above the shapes. */
@@ -73,7 +76,8 @@ final class CutterDrawing {
     }
 
     /** The preview icon and text, and the craft buttons, each enabled only when that many crafts are possible. */
-    private static void preview(UICommandBuilder ui, UIEventBuilder events, CutterView.Preview preview) {
+    private static void preview(
+            UICommandBuilder ui, UIEventBuilder events, CutterView.Preview preview, boolean preparing) {
         int max = preview instanceof CutterView.Ready ready ? ready.maxCrafts() : 0;
         switch (preview) {
             case CutterView.Empty _ -> {
@@ -81,8 +85,11 @@ final class CutterDrawing {
                 ui.set("#PreviewText.Text", Message.translation("hycolony.ornament.cutter.placeMaterials"));
             }
             case CutterView.Ready ready -> {
-                // Deviation from MC: the template's icon for the moment the variant takes to be created
-                // (CutterPreviewVariants asks for it as soon as the slots make a valid recipe).
+                // Deviation from MC: a spinner, then the template's icon if creating fails, for the moment the
+                // variant takes to be created (CutterPreviewVariants asks for it once the slots stay unchanged).
+                boolean waits = preparing && Item.getAssetMap().getAsset(ready.itemId()) == null;
+                ui.set("#Preview.Visible", !waits);
+                ui.set("#PreviewSpinner.Visible", waits);
                 ui.set("#Preview.ItemId", shownItem(ready.itemId(), ready.templateKey()));
                 ui.set(
                         "#PreviewText.Text",

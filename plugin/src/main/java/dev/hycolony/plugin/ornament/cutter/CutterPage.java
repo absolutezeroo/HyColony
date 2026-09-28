@@ -113,8 +113,9 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
             watch = InventoryWatch.start(store, ref, redraw::soon, slots.container());
         }
         ui.append("Pages/HyColony/Cutter.ui");
-        CutterDrawing.draw(ui, events, actions.view(slots.contents(), CutterCrafting.creative(store, ref)));
-        previews.prepare(actions.groupVariants(slots.contents()));
+        previews.prepare(actions.groupVariants(slots.contents())); // first: the preview shows whether it waits
+        CutterDrawing.draw(
+                ui, events, actions.view(slots.contents(), CutterCrafting.creative(store, ref)), previews.preparing());
         InventoryGrids.drawContainer(
                 ui, events, SLOTS_GRID, slots.container(), slots.window().getId());
         PlayerPanels.drawCharacter(ui, events, "#Character", store, ref);
