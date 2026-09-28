@@ -1,0 +1,37 @@
+{
+  "TranslationProperties": {
+    "Name": "hycolony.item.ornament.shingle.name"
+  },
+  "MaxStack": 100,
+  "Icon": "Icons/ItemsGenerated/Wood_Softwood_Roof.png",
+  "PlayerAnimationsId": "Block",
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Model",
+    "CustomModel": "Blocks/Structures/Roofs/Slope_Hay.blockymodel",
+    "CustomModelTexture": [
+      { "Texture": "Blocks/Structures/Roofs/Slope_Hay_Textures/Softwood.png", "Weight": 1 }
+    ],
+    "HitboxType": "Stairs",
+    "Flags": {},
+    "Gathering": {
+      "Breaking": { "GatherType": "Woods" }
+    },
+    "VariantRotation": "NESW",
+    "BlockParticleSetId": "Wood",
+    "Supporting": {
+      "Down": [ {} ],
+      "North": [ {} ]
+    },
+    "ParticleColor": "#65482d",
+    "BlockSoundSetId": "Wood",
+    "PhysicalMaterialId": "Wood",
+    "TextureComputedColor": "#7F5633"
+  },
+  "IconProperties": {
+    "Scale": 0.45,
+    "Rotation": [22.5, 45, 22.5],
+    "Translation": [0, -19.7]
+  },
+  "ItemSoundSetId": "ISS_Blocks_Wood"
+}

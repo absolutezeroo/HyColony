@@ -27,9 +27,10 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 
 /**
- * /hyornament test &lt;primary&gt; &lt;secondary&gt; [--rebuild=none|editor|all] [--twice=true|false]
- * [--icon=generated|material|none] [--notify=true|false] [--iconrefresh=true|false], operators only: gets the timber
- * frame variant from the registry (created at runtime on first request) and gives the player a stack of its item.
+ * /hyornament test &lt;primary&gt; &lt;secondary&gt; [--rebuild=none|textures|editor|all] [--twice=true|false]
+ * [--shape=timber_frame|shingle] [--icon=generated|material|none] [--notify=true|false] [--iconrefresh=true|false],
+ * operators only: gets the variant from the registry (created at runtime on first request) and gives the player a
+ * stack of its item.
  *
  * <p>Experiment for Domum Ornamentum (docs/research/domum-ornamentum.md B.11): does a client render a BlockType added
  * at runtime from an already loaded model and textures, without {@code RequestCommonAssetsRebuild}?
@@ -56,6 +57,7 @@ public final class OrnamentCommand extends AbstractCommandCollection {
         private final DefaultArg<String> rebuildArg;
         private final DefaultArg<Boolean> twiceArg;
         private final DefaultArg<String> iconArg;
+        private final DefaultArg<String> shapeArg;
         private final DefaultArg<Boolean> notifyArg;
         private final DefaultArg<Boolean> iconRefreshArg;
 
@@ -65,11 +67,14 @@ public final class OrnamentCommand extends AbstractCommandCollection {
             this.primary = withRequiredArg("primary", "Frame material", ArgTypes.STRING);
             this.secondary = withRequiredArg("secondary", "Fill material", ArgTypes.STRING);
             // Which client caches UpdateBlockTypes asks to rebuild when the variant is new (in-game experiment).
-            this.rebuildArg = withDefaultArg("rebuild", "none|editor|all", ArgTypes.STRING, "none", "none");
+            this.rebuildArg = withDefaultArg("rebuild", "none|textures|editor|all", ArgTypes.STRING, "none", "none");
             // --twice=false sends UpdateBlockTypes once, to compare with the double-send workaround.
             this.twiceArg = withDefaultArg("twice", "Send UpdateBlockTypes twice", ArgTypes.BOOLEAN, true, "true");
             // --icon=material|none keeps a vanilla icon or none, to compare with the variant's generated icon.
             this.iconArg = withDefaultArg("icon", "generated|material|none", ArgTypes.STRING, "generated", "generated");
+            // --shape=shingle tests a composed shape (one generated model texture per variant).
+            this.shapeArg =
+                    withDefaultArg("shape", "timber_frame|shingle", ArgTypes.STRING, "timber_frame", "timber_frame");
             // --notify=true registers a generated icon through addCommonAsset, with its "asset created" notification;
             // the silent default works in game (2026-09-28).
             this.notifyArg = withDefaultArg("notify", "Asset notification", ArgTypes.BOOLEAN, false, "false");
@@ -91,11 +96,22 @@ public final class OrnamentCommand extends AbstractCommandCollection {
             Optional<OrnamentMaterial> frame = material(ctx.get(primary), player);
             Optional<OrnamentMaterial> fill = material(ctx.get(secondary), player);
             Optional<Rebuild> mode = rebuild(ctx.get(rebuildArg), player);
-            Optional<OrnamentVariantRegistry.Icon> icon = icon(ctx.get(iconArg), player);
-            if (frame.isEmpty() || fill.isEmpty() || mode.isEmpty() || icon.isEmpty()) {
+            Optional<OrnamentVariantRegistry.Icon> icon =
+                    named(OrnamentVariantRegistry.Icon.values(), ctx.get(iconArg));
+            Optional<OrnamentShape> shape = named(OrnamentShape.values(), ctx.get(shapeArg));
+            if (icon.isEmpty() || shape.isEmpty()) {
+                say(
+                        player,
+                        "hycolony.ornament.badOption",
+                        ctx.get(iconArg) + " / " + ctx.get(shapeArg),
+                        names(OrnamentVariantRegistry.Icon.values()),
+                        names(OrnamentShape.values()));
                 return;
             }
-            VariantKey key = new VariantKey(OrnamentShape.TIMBER_FRAME, frame.get(), fill.get());
+            if (frame.isEmpty() || fill.isEmpty() || mode.isEmpty()) {
+                return;
+            }
+            VariantKey key = new VariantKey(shape.get(), frame.get(), fill.get());
             VariantGift to = new VariantGift(player, ref);
             long start = System.nanoTime();
             OrnamentVariantRegistry.Creation creation = new OrnamentVariantRegistry.Creation(
@@ -132,25 +148,25 @@ public final class OrnamentCommand extends AbstractCommandCollection {
                     .filter(r -> r.name().equalsIgnoreCase(name))
                     .findFirst();
             if (mode.isEmpty()) {
-                String names = Arrays.stream(Rebuild.values()).map(Test::lower).collect(Collectors.joining(", "));
-                say(player, "hycolony.ornament.badRebuild", name, names);
+                say(player, "hycolony.ornament.badRebuild", name, names(Rebuild.values()));
             }
             return mode;
         }
 
-        /** The icon mode named {@code name}; when unknown, tells the player the valid names and returns empty. */
-        private static Optional<OrnamentVariantRegistry.Icon> icon(String name, PlayerRef player) {
-            Optional<OrnamentVariantRegistry.Icon> icon = Arrays.stream(OrnamentVariantRegistry.Icon.values())
-                    .filter(i -> i.name().equalsIgnoreCase(name))
+        /** The constant of {@code values} named {@code name}, case-insensitive; empty when unknown. */
+        private static <E extends Enum<E>> Optional<E> named(E[] values, String name) {
+            return Arrays.stream(values)
+                    .filter(v -> v.name().equalsIgnoreCase(name))
                     .findFirst();
-            if (icon.isEmpty()) {
-                say(player, "hycolony.ornament.badIcon", name, "generated, material, none");
-            }
-            return icon;
         }
 
-        private static String lower(Rebuild mode) {
-            return mode.name().toLowerCase(Locale.ROOT);
+        private static String lower(Enum<?> value) {
+            return value.name().toLowerCase(Locale.ROOT);
+        }
+
+        /** Every name of {@code values} in lower case, comma-separated, for help messages. */
+        private static String names(Enum<?>[] values) {
+            return Arrays.stream(values).map(Test::lower).collect(Collectors.joining(", "));
         }
     }
 }

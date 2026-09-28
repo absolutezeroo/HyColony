@@ -29,6 +29,11 @@ public final class BlockTypeSynchronizer {
         /** No flag, as vanilla registers its "Unknown" placeholder blocks ({@code BlockType.getBlockIdOrUnknown}). */
         NONE,
         /**
+         * Block textures only: the client rebuilds its block texture atlas, which a new model texture needs (without
+         * it, a composed variant shows the wrong atlas region; in game 2026-09-28).
+         */
+        TEXTURES,
+        /**
          * The Asset Editor's flags for the edited fields ({@code UIRebuildCaches} of DrawType, Textures,
          * CustomModel, CustomModelTexture in {@code BlockType.CODEC}): block textures, models, model textures.
          */
@@ -40,6 +45,7 @@ public final class BlockTypeSynchronizer {
         AssetUpdateQuery.RebuildCache cache() {
             return switch (this) {
                 case NONE -> AssetUpdateQuery.RebuildCache.NO_REBUILD;
+                case TEXTURES -> new AssetUpdateQuery.RebuildCache(true, false, false, false, false, false);
                 case EDITOR -> new AssetUpdateQuery.RebuildCache(true, true, true, false, false, false);
                 case ALL -> AssetUpdateQuery.RebuildCache.DEFAULT;
             };
@@ -54,15 +60,18 @@ public final class BlockTypeSynchronizer {
     }
 
     /**
-     * Loads {@code types} into the store and broadcasts them with {@code rebuild}'s flags, a second time when
-     * {@code twice}. Returns nothing: read the ids back from {@code BlockType.getAssetMap()}. Throws
+     * Loads {@code types} into the store and broadcasts them with {@code rebuild}'s flags. When {@code twice}, the
+     * first packet carries no flag and a second copy carries them: each flag makes the client rebuild a cache (the
+     * block atlas flickers once per rebuild, in game 2026-09-28), and whichever packet the client keeps, the flags
+     * come last. Returns nothing: read the ids back from {@code BlockType.getAssetMap()}. Throws
      * {@link IllegalStateException} when a type did not load.
      */
     public void register(List<BlockType> types, Rebuild rebuild, boolean twice) {
         BlockTypeAssetMap<String, BlockType> map = BlockType.getAssetMap();
         int maxIdBefore = map.getNextIndex();
         long start = System.nanoTime();
-        BlockType.getAssetStore().loadAssets(packKey, types, new AssetUpdateQuery(rebuild.cache()));
+        Rebuild first = twice ? Rebuild.NONE : rebuild;
+        BlockType.getAssetStore().loadAssets(packKey, types, new AssetUpdateQuery(first.cache()));
         long micros = (System.nanoTime() - start) / 1_000;
         for (BlockType type : types) {
             int id = map.getIndex(type.getId());
@@ -73,7 +82,7 @@ public final class BlockTypeSynchronizer {
         }
         LOG.at(Level.INFO).log(
                 "hyornament: UpdateBlockTypes AddOrUpdate of %d type(s), maxId %d -> %d, %s, in %d us",
-                types.size(), maxIdBefore, map.getNextIndex(), rebuild.cache(), micros);
+                types.size(), maxIdBefore, map.getNextIndex(), first.cache(), micros);
         if (twice) {
             try {
                 resend(types, rebuild, map);
@@ -123,6 +132,7 @@ public final class BlockTypeSynchronizer {
                         cache.isModelTextures(),
                         cache.isModels(),
                         cache.isMapGeometry()));
-        LOG.at(Level.INFO).log("hyornament: UpdateBlockTypes sent a second time for %d type(s)", types.size());
+        LOG.at(Level.INFO).log(
+                "hyornament: UpdateBlockTypes sent a second time for %d type(s), %s", types.size(), cache);
     }
 }

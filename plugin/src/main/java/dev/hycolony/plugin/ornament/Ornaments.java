@@ -7,7 +7,7 @@ import dev.hycolony.plugin.ornament.debug.OrnamentCommand;
 import dev.hycolony.plugin.ornament.persistence.VariantStore;
 import dev.hycolony.plugin.ornament.registry.OrnamentVariantRegistry;
 import dev.hycolony.plugin.ornament.runtime.BlockTypeSynchronizer;
-import dev.hycolony.plugin.ornament.runtime.VariantIconPublisher;
+import dev.hycolony.plugin.ornament.runtime.VariantAssets;
 import java.nio.file.Path;
 import java.util.logging.Level;
 
@@ -25,7 +25,7 @@ public final class Ornaments {
         OrnamentVariantRegistry ornaments = new OrnamentVariantRegistry(
                 new BlockTypeSynchronizer(plugin.getIdentifier().toString()),
                 new VariantStore(HYCOLONY_DIR.resolve("ornament-variants.json")),
-                new VariantIconPublisher(plugin.getIdentifier().toString(), HYCOLONY_DIR.resolve("ornament-icons")));
+                new VariantAssets(plugin.getIdentifier().toString(), HYCOLONY_DIR.resolve("ornament-assets")));
         // LOAD_LATE: after AssetModule has loaded the BlockType store (templates included); on the boot thread,
         // which holds no asset lock, before plugins start and worlds load chunks.
         plugin.getEventRegistry().register(LoadAssetEvent.PRIORITY_LOAD_LATE, LoadAssetEvent.class, e -> {

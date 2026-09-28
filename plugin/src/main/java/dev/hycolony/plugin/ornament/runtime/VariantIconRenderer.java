@@ -1,7 +1,5 @@
 package dev.hycolony.plugin.ornament.runtime;
 
-import com.hypixel.hytale.server.core.asset.common.CommonAsset;
-import com.hypixel.hytale.server.core.asset.common.CommonAssetRegistry;
 import dev.hycolony.plugin.ornament.api.VariantKey;
 import java.awt.AlphaComposite;
 import java.awt.Color;
@@ -11,11 +9,6 @@ import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import javax.imageio.ImageIO;
 
 /**
  * Draws a variant's 64x64 inventory icon from the textures the client already has: the fill texture on the three
@@ -29,8 +22,8 @@ import javax.imageio.ImageIO;
 final class VariantIconRenderer {
     /** Icon width and height, in pixels (vanilla ItemsGenerated icons are 64x64). */
     static final int SIZE = 64;
-    /** Texture size, in pixels, of one block face. */
-    private static final int FACE = 32;
+
+    private static final int FACE = Textures.FACE;
     /** Frame beam width on a face, in texture pixels (TimberFrame.blockymodel beams are 4 units wide). */
     private static final int BEAM = 4;
 
@@ -44,8 +37,9 @@ final class VariantIconRenderer {
 
     /** PNG bytes of {@code key}'s icon; throws when a texture is missing or unreadable. */
     byte[] render(VariantKey key) {
-        BufferedImage face =
-                frameOnFill(read(key.primary().texture()), read(key.secondary().texture()));
+        BufferedImage face = frameOnFill(
+                Textures.face(Textures.read(key.primary().texture())),
+                Textures.face(Textures.read(key.secondary().texture())));
         BufferedImage icon = new BufferedImage(SIZE, SIZE, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = icon.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
@@ -53,27 +47,18 @@ final class VariantIconRenderer {
         draw(g, face, LEFT, LEFT_SHADE);
         draw(g, face, RIGHT, RIGHT_SHADE);
         g.dispose();
-        try (ByteArrayOutputStream bytes = new ByteArrayOutputStream()) {
-            ImageIO.write(icon, "png", bytes);
-            return bytes.toByteArray();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        return Textures.png(icon);
     }
 
     /** One 32x32 face: the fill, with a {@link #BEAM} px border cut from the frame texture. */
     private static BufferedImage frameOnFill(BufferedImage frame, BufferedImage fill) {
-        BufferedImage frame32 = new BufferedImage(FACE, FACE, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D f = frame32.createGraphics();
-        f.drawImage(frame, 0, 0, FACE, FACE, null);
-        f.dispose();
         BufferedImage face = new BufferedImage(FACE, FACE, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = face.createGraphics();
-        g.drawImage(fill, 0, 0, FACE, FACE, null);
-        strip(g, frame32, new Rectangle(0, 0, FACE, BEAM));
-        strip(g, frame32, new Rectangle(0, FACE - BEAM, FACE, BEAM));
-        strip(g, frame32, new Rectangle(0, 0, BEAM, FACE));
-        strip(g, frame32, new Rectangle(FACE - BEAM, 0, BEAM, FACE));
+        g.drawImage(fill, 0, 0, null);
+        strip(g, frame, new Rectangle(0, 0, FACE, BEAM));
+        strip(g, frame, new Rectangle(0, FACE - BEAM, FACE, BEAM));
+        strip(g, frame, new Rectangle(0, 0, BEAM, FACE));
+        strip(g, frame, new Rectangle(FACE - BEAM, 0, BEAM, FACE));
         g.dispose();
         return face;
     }
@@ -106,23 +91,5 @@ final class VariantIconRenderer {
                 (double) (y.y - o.y) / FACE,
                 o.x,
                 o.y);
-    }
-
-    /** The loaded common texture {@code name}; throws {@link IllegalStateException} when missing or unreadable. */
-    private static BufferedImage read(String name) {
-        CommonAsset asset = CommonAssetRegistry.getByName(name);
-        if (asset == null) {
-            throw new IllegalStateException("missing texture " + name);
-        }
-        try {
-            BufferedImage image =
-                    ImageIO.read(new ByteArrayInputStream(asset.getBlob().join()));
-            if (image == null) {
-                throw new IllegalStateException("unreadable texture " + name);
-            }
-            return image;
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
     }
 }

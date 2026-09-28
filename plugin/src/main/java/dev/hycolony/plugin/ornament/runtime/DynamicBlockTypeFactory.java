@@ -13,13 +13,26 @@ import org.jspecify.annotations.Nullable;
  * {@link BlockTypeSynchronizer} registers them.
  *
  * <p>The block copy keeps the template's model, hitbox, sounds and gathering, so every variant reuses the one
- * {@code .blockymodel} the client already has, and only textures and icons already known to the client.
+ * {@code .blockymodel} the client already has; its textures are vanilla ones, except a composed shape's generated
+ * texture, sent to clients before the block.
  */
 public final class DynamicBlockTypeFactory {
-    /** The variant's BlockType, not yet registered; throws {@link IllegalStateException} without the template. */
-    public BlockType create(VariantKey key) {
-        return new VariantBlockType(
-                template(BlockType.getAssetMap().getAsset(key.shape().templateKey()), key), key);
+    /**
+     * The variant's BlockType, not yet registered: a cube + model shape takes the primary texture on its model and
+     * the secondary on its cube; a composed shape takes {@code composedTexture} on its model (required then). Throws
+     * {@link IllegalStateException} without the template or the composed texture.
+     */
+    public BlockType create(VariantKey key, @Nullable String composedTexture) {
+        BlockType template =
+                template(BlockType.getAssetMap().getAsset(key.shape().templateKey()), key);
+        if (key.shape().layoutTexture().isEmpty()) {
+            return new VariantBlockType(
+                    template, key, key.primary().texture(), key.secondary().texture());
+        }
+        if (composedTexture == null) {
+            throw new IllegalStateException(key.id() + " needs its composed texture");
+        }
+        return new VariantBlockType(template, key, composedTexture, null);
     }
 
     /**
@@ -46,16 +59,15 @@ public final class DynamicBlockTypeFactory {
      * {@code data}, vanilla finds no item, so {@link #getItem} names the variant's own.
      */
     private static final class VariantBlockType extends BlockType {
-        VariantBlockType(BlockType template, VariantKey key) {
+        /** @param cubeTexture the cube's texture, or null to keep the template's (a composed shape has no cube) */
+        VariantBlockType(BlockType template, VariantKey key, String modelTexture, @Nullable String cubeTexture) {
             super(template);
             this.data = null;
             this.id = key.blockTypeKey();
-            this.customModelTexture = new CustomModelTexture[] {
-                new CustomModelTexture(key.primary().texture(), 1)
-            };
-            this.textures = new BlockTypeTextures[] {
-                new BlockTypeTextures(key.secondary().texture())
-            };
+            this.customModelTexture = new CustomModelTexture[] {new CustomModelTexture(modelTexture, 1)};
+            if (cubeTexture != null) {
+                this.textures = new BlockTypeTextures[] {new BlockTypeTextures(cubeTexture)};
+            }
             this.state = null;
             this.connectedBlockRuleSet = null;
         }

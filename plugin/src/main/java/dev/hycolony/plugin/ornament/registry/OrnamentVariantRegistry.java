@@ -3,12 +3,13 @@ package dev.hycolony.plugin.ornament.registry;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
+import dev.hycolony.plugin.ornament.api.OrnamentShape;
 import dev.hycolony.plugin.ornament.api.OrnamentVariant;
 import dev.hycolony.plugin.ornament.api.VariantKey;
 import dev.hycolony.plugin.ornament.persistence.VariantStore;
 import dev.hycolony.plugin.ornament.runtime.BlockTypeSynchronizer;
 import dev.hycolony.plugin.ornament.runtime.DynamicBlockTypeFactory;
-import dev.hycolony.plugin.ornament.runtime.VariantIconPublisher;
+import dev.hycolony.plugin.ornament.runtime.VariantAssets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -31,16 +32,16 @@ public final class OrnamentVariantRegistry {
     private final DynamicBlockTypeFactory factory = new DynamicBlockTypeFactory();
     private final BlockTypeSynchronizer synchronizer;
     private final VariantStore store;
-    private final VariantIconPublisher icons;
+    private final VariantAssets assets;
 
     /**
      * @param store the saved variants, extended by each creation
-     * @param icons renders and publishes each variant's own icon
+     * @param assets generates each variant's own icon and composed texture
      */
-    public OrnamentVariantRegistry(BlockTypeSynchronizer synchronizer, VariantStore store, VariantIconPublisher icons) {
+    public OrnamentVariantRegistry(BlockTypeSynchronizer synchronizer, VariantStore store, VariantAssets assets) {
         this.synchronizer = synchronizer;
         this.store = store;
-        this.icons = icons;
+        this.assets = assets;
     }
 
     /** Which inventory icon a new variant's item gets. */
@@ -100,11 +101,11 @@ public final class OrnamentVariantRegistry {
         List<VariantKey> keys = new ArrayList<>();
         for (VariantKey key : store.load()) {
             try {
-                BlockType type = factory.create(key);
+                BlockType type = factory.create(key, composedTexture(key, false));
                 items.add(factory.createItem(key, icon(key, Icon.GENERATED, false)));
                 types.add(type);
                 keys.add(key);
-            } catch (RuntimeException e) {
+            } catch (RuntimeException | LinkageError | java.awt.AWTError e) { // AWT may lack native libraries
                 LOG.at(Level.SEVERE).withCause(e).log("hyornament: cannot restore %s", key.id());
             }
         }
@@ -120,31 +121,45 @@ public final class OrnamentVariantRegistry {
 
     /** Builds, registers and records {@code key}'s BlockType, then its Item; runs on a creation thread. */
     private OrnamentVariant create(VariantKey key, Creation creation) {
+        // Every new file goes out before the packets naming it: model texture, then block; icon, then item.
+        BlockType type = factory.create(key, composedTexture(key, creation.announce()));
         String icon = icon(key, creation.icon(), creation.announce());
         Item item = factory.createItem(key, icon);
-        synchronizer.register(List.of(factory.create(key)), creation.rebuild(), creation.twice());
+        // A new model texture only shows once clients rebuild their block texture atlas (in game 2026-09-28).
+        BlockTypeSynchronizer.Rebuild rebuild =
+                key.shape().layoutTexture().isPresent() && creation.rebuild() == BlockTypeSynchronizer.Rebuild.NONE
+                        ? BlockTypeSynchronizer.Rebuild.TEXTURES
+                        : creation.rebuild();
+        synchronizer.register(List.of(type), rebuild, creation.twice());
         // A new icon file may need clients to refresh their item icons; vanilla icons never do.
         boolean refresh = creation.icon() == Icon.GENERATED && creation.iconRefresh();
-        synchronizer.registerItems(List.of(item), creation.rebuild(), refresh);
+        // The block's packet already rebuilt the atlas; another rebuild from the item would flicker once more.
+        synchronizer.registerItems(List.of(item), BlockTypeSynchronizer.Rebuild.NONE, refresh);
         store.add(key);
         return variant(key);
     }
 
-    /** {@code key}'s item icon for {@code mode}; a GENERATED icon that fails is logged and becomes MATERIAL. */
-    private @Nullable String icon(VariantKey key, Icon mode, boolean notify) {
-        return switch (mode) {
-            case MATERIAL -> key.secondary().icon();
-            case NONE -> null;
-            case GENERATED -> {
-                try {
-                    yield icons.publish(key, notify);
-                } catch (RuntimeException | LinkageError | java.awt.AWTError e) { // AWT may lack native libraries
-                    LOG.at(Level.SEVERE).withCause(e).log(
-                            "hyornament: icon of %s failed, using its material's", key.id());
-                    yield key.secondary().icon();
-                }
+    /** {@code key}'s generated model texture for a composed shape, null for a cube + model one; throws on failure. */
+    private @Nullable String composedTexture(VariantKey key, boolean announce) {
+        return key.shape().layoutTexture().isPresent() ? assets.modelTexture(key, announce) : null;
+    }
+
+    /**
+     * {@code key}'s item icon for {@code mode}; a GENERATED icon that fails is logged and becomes MATERIAL. Only the
+     * timber frame has an icon painter: other shapes get MATERIAL for GENERATED.
+     */
+    private @Nullable String icon(VariantKey key, Icon mode, boolean announce) {
+        if (mode == Icon.NONE) {
+            return null;
+        }
+        if (mode == Icon.GENERATED && key.shape() == OrnamentShape.TIMBER_FRAME) {
+            try {
+                return assets.icon(key, announce);
+            } catch (RuntimeException | LinkageError | java.awt.AWTError e) { // AWT may lack native libraries
+                LOG.at(Level.SEVERE).withCause(e).log("hyornament: icon of %s failed, using its material's", key.id());
             }
-        };
+        }
+        return key.secondary().icon();
     }
 
     private static OrnamentVariant variant(VariantKey key) {
