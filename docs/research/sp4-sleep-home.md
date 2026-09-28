@@ -186,7 +186,7 @@ Heure : le premier `decideAiTask` où `dayTime % 24000 <= 10600`, donc à 0 (6 h
 - **Objets lits** (`zip:Server/Item/Items/Furniture/*/…_Bed.json`) : `Furniture_Ancient_Bed`, `Crude`, `Desert`, `Feran`, `Frozen_Castle`, `Royal_Magic`, `Human_Ruins`, `Jungle`, `Kweebec`, `Lumberjack`, `Tavern`, `Temple_Dark`, `Temple_Emerald`, `Temple_Light`, `Village`.
 - Chacun a dans `BlockType` :
   - un tableau `Beds` avec **un seul** point de couchage, par exemple `{"Offset": {"X": 0.4, "Y": 0.4, "Z": 1.0}, "Yaw": 0}` (Crude : `-0.1, -0.4, 0.8` ; Royal_Magic : `0.9, 0.4, 1.5`) ;
-  - `Interactions.Use = [{"Type": "Bed"}]` ;
+  - `Interactions.Use = [{"Type": "Bed"}]` en 0.6.8. **Depuis Update 7 (0.7.0)**, tous les lits pointent sur une interaction racine partagée `Block_Bed` (`Server/Item/RootInteractions/Block/Block_Bed.json`, tag `Type=Bed`) : voir `update-7/b-assets.md`. La détection par `getBeds()` reste valable ;
   - `BlockEntity.Components.RespawnBlock` ;
   - `VariantRotation: "NESW"`.
 
