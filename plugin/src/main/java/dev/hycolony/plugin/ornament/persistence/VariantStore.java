@@ -1,10 +1,7 @@
 package dev.hycolony.plugin.ornament.persistence;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.hypixel.hytale.logger.HytaleLogger;
+import dev.hycolony.core.ornament.SavedVariants;
 import dev.hycolony.plugin.ornament.api.VariantKey;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -12,32 +9,23 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.logging.Level;
 
 /**
- * The variants ever created, kept as {@code {"schemaVersion":1,"variants":[<VariantKey#id()>...]}} so they are
- * registered again at boot, before any chunk that holds one loads. Chunks save a block by its key: without this, a
- * variant block reloads as Hytale's "Unknown" block.
+ * Reads and writes the saved variant list ({@link SavedVariants}, the format) so variants are registered again at
+ * boot, before any chunk that holds one loads. Chunks save a block by its key: without this, a variant block
+ * reloads as Hytale's "Unknown" block.
  *
- * <p>Nothing is ever dropped: an entry it cannot read (material since renamed) is written back as it was, and an
- * unreadable file is moved aside to {@code .corrupt} before the next write, and a file of a newer schema is left
- * untouched.
+ * <p>Writes go to a {@code .tmp} file moved over the old one; an unreadable file is moved aside to {@code .corrupt}
+ * before the next write; a file of a newer schema is never rewritten.
  */
 public final class VariantStore {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
-    private static final int SCHEMA_VERSION = 1;
 
     private final Path file;
-    /** Every text entry of the file, parsable or not, in file order. */
-    private final Set<String> ids = new LinkedHashSet<>();
-    /** Non-text entries, written back as they were. */
-    private final List<JsonElement> foreign = new ArrayList<>();
-    /** Set when the file comes from a newer schema: it is then never rewritten. */
-    private boolean readOnly;
+    private SavedVariants saved = SavedVariants.empty();
 
     /** @param file the JSON file, created on the first {@link #add} */
     public VariantStore(Path file) {
@@ -50,34 +38,23 @@ public final class VariantStore {
      * schema is logged SEVERE, returns empty and is never rewritten.
      */
     public synchronized List<VariantKey> load() {
-        ids.clear();
-        foreign.clear();
-        readOnly = false;
+        saved = SavedVariants.empty();
         if (!Files.exists(file)) {
             return List.of();
         }
         try {
-            JsonElement root = JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8));
-            if (version(root) > SCHEMA_VERSION) {
-                // Written by a newer HyColony: neither read it as v1 nor overwrite it.
-                LOG.at(Level.SEVERE).log("hyornament: %s is from a newer version, left untouched", file);
-                readOnly = true;
-                return List.of();
-            }
-            for (JsonElement e : entries(root)) {
-                if (e.isJsonPrimitive()) {
-                    ids.add(e.getAsString());
-                } else {
-                    foreign.add(e);
-                }
-            }
+            saved = SavedVariants.parse(Files.readString(file, StandardCharsets.UTF_8));
         } catch (IOException | RuntimeException e) {
             LOG.at(Level.SEVERE).withCause(e).log("hyornament: could not read %s, no variant restored", file);
             moveAside();
             return List.of();
         }
+        if (saved.readOnly()) {
+            LOG.at(Level.SEVERE).log("hyornament: %s is from a newer version, left untouched", file);
+            return List.of();
+        }
         List<VariantKey> keys = new ArrayList<>();
-        for (String id : ids) {
+        for (String id : saved.ids()) {
             Optional<VariantKey> key = VariantKey.parse(id);
             key.ifPresentOrElse(
                     keys::add, () -> LOG.at(Level.WARNING).log("hyornament: unknown variant %s kept in %s", id, file));
@@ -87,41 +64,23 @@ public final class VariantStore {
 
     /** Records {@code key} and rewrites the file when it is new; a write failure is logged, not thrown. */
     public synchronized void add(VariantKey key) {
-        if (!ids.add(key.id())) {
+        SavedVariants more = saved.with(key.id());
+        if (more.equals(saved)) {
             return;
         }
-        if (readOnly) {
+        saved = more;
+        if (saved.readOnly()) {
             LOG.at(Level.WARNING).log("hyornament: %s not saved, %s is read-only", key.id(), file);
             return;
         }
-        JsonArray variants = new JsonArray();
-        ids.forEach(variants::add);
-        foreign.forEach(variants::add);
-        JsonObject root = new JsonObject();
-        root.addProperty("schemaVersion", SCHEMA_VERSION);
-        root.add("variants", variants);
         try {
             Files.createDirectories(file.getParent());
             Path tmp = file.resolveSibling(file.getFileName() + ".tmp");
-            Files.writeString(tmp, root.toString(), StandardCharsets.UTF_8);
+            Files.writeString(tmp, saved.toJson(), StandardCharsets.UTF_8);
             Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
         } catch (IOException | RuntimeException e) {
             LOG.at(Level.SEVERE).withCause(e).log("hyornament: could not save %s", file);
         }
-    }
-
-    /** The file's {@code schemaVersion}; 0 for the bare-array format. */
-    private static int version(JsonElement root) {
-        return root.isJsonObject() && root.getAsJsonObject().has("schemaVersion")
-                ? root.getAsJsonObject().get("schemaVersion").getAsInt()
-                : 0;
-    }
-
-    /** The entry array of either format (versioned object, or bare array); throws on anything else. */
-    private static JsonArray entries(JsonElement root) {
-        return root.isJsonArray()
-                ? root.getAsJsonArray()
-                : root.getAsJsonObject().getAsJsonArray("variants");
     }
 
     /** Renames the unreadable file so the next {@link #add} cannot overwrite what it held. */
