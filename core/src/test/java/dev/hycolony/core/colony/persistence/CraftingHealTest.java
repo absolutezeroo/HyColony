@@ -9,6 +9,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.crafting.job.Crafter;
 import dev.hycolony.core.crafting.job.CraftingTasks;
@@ -18,12 +19,17 @@ import dev.hycolony.core.crafting.recipe.Recipe;
 import dev.hycolony.core.crafting.recipe.RecipeFixtures;
 import dev.hycolony.core.crafting.recipe.RecipeId;
 import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.core.kernel.persist.FileColonyStorage;
+import dev.hycolony.core.kernel.persist.MigrationChain;
 import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.request.model.StackRequest;
 import dev.hycolony.core.testing.TestContexts;
 import dev.hycolony.core.testing.TestCrafters;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /** The load repairs the crafting state a save left dangling, and marks the colony to rewrite (CLAUDE.md § 5). */
 class CraftingHealTest {
@@ -31,6 +37,9 @@ class CraftingHealTest {
     private static final Recipe BERRY = RecipeFixtures.fieldcraft("Seeds", "Plant_Seeds_Berry");
 
     private final CraftingHut h = new CraftingHut(contexts(), CraftingHut.RULES, TestCrafters.HUT);
+
+    @TempDir
+    Path dir;
 
     CraftingHealTest() {
         h.t.recipes.add(WHEAT).add(BERRY);
@@ -125,6 +134,41 @@ class CraftingHealTest {
         assertEquals(1, module(loaded).recipes().size());
         assertEquals(List.of(live), tasks(loaded, crafter.id()).assignedTasks());
         assertFalse(loaded.isDirty());
+    }
+
+    /** Simulation: the autosave never wrote the healed state, so every load healed the same save again. */
+    @Test
+    void colonyHealedByTheStorageLoadIsRewrittenAtTheNextSave() throws IOException {
+        h.teach(WHEAT);
+        store(h.colony);
+
+        Colony loaded = loadAll(contexts(BERRY)); // a game update took the wheat recipe away
+
+        assertEquals(List.of(), module(loaded).recipes());
+        assertTrue(loaded.isDirty(), "the healed state is written at the next save");
+    }
+
+    @Test
+    void soundColonyLoadedFromTheStorageIsNotRewritten() throws IOException {
+        h.teach(WHEAT);
+        store(h.colony);
+
+        Colony loaded = loadAll(contexts(WHEAT, BERRY));
+
+        assertEquals(1, module(loaded).recipes().size());
+        assertFalse(loaded.isDirty());
+    }
+
+    private void store(Colony c) throws IOException {
+        new FileColonyStorage(dir).save(c.id(), ColonySerializer.write(c).toString());
+    }
+
+    /** The colony read back by the real load of a world ({@link ColonyManager}'s persistence). */
+    private Colony loadAll(TestContexts t) {
+        ColonyManager m = new ColonyManager(t.context());
+        m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp3b());
+        m.persistence().loadAll();
+        return m.byId(h.colony.id()).orElseThrow();
     }
 
     private static JsonObject savedModule(JsonObject colony) {

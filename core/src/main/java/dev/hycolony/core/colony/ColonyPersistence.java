@@ -84,8 +84,12 @@ public final class ColonyPersistence {
             }
             json = migrations.migrate(json);
             Colony colony = ColonySerializer.read(json, manager.context(), manager.territory());
+            // A save the read repaired stays dirty, so the healed state is written (CLAUDE.md § 5).
+            boolean healed = colony.isDirty();
             manager.register(colony);
-            colony.clearDirty();
+            if (!healed) {
+                colony.clearDirty();
+            }
         } catch (SchemaTooNewException e) {
             lockedIds.add(id);
             LOG.log(System.Logger.Level.ERROR, "Colony " + id + " was saved by a newer HyColony; not loaded", e);
