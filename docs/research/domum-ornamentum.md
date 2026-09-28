@@ -527,6 +527,10 @@ Nouvelle piste, différente de B.6 : **aucun asset commun n'est ajouté**. La va
 
 Le prototype est devenu le moteur générique de DO-1 (`plugin/ornament`) : les formes viennent du manifeste généré (`hycolony/ornament/shapes.json`), les matériaux des tags DO (`ornamentTags` du fragment d'id-map, lus sur les `BlockType` vanilla par `MaterialCatalog`), les icônes des cartes d'icône générées au build (`hycolony/ornament/icons/<forme>.png`, lues par `IconMap`). Les réglages vérifiés en jeu ci-dessus sont fixés dans le code : envoi double avec les drapeaux sur le second, `TEXTURES` seulement quand une nouvelle texture de paire est générée, inscription silencieuse des PNG, `UpdateItems` avec `updateIcons`. Les variantes demandées ensemble sont créées en un seul lot. Les gabarits `HyColony_Ornament_*` du prototype sont supprimés. Vérifications en jeu : `docs/TESTING.md`, section « Sous-plugin Domum Ornamentum (DO-1) ».
 
+#### DO-2a (2026-09-28)
+
+L'établi de l'architecte est porté pour le joueur : bloc `HyColony_DO_ArchitectsCutter` à 2 emplacements, fenêtre et fabrication qui crée la variante à la demande (spec `docs/superpowers/specs/2026-09-28-hycolony-domum-ornamentum-do2-cutter-design.md`, plan `docs/superpowers/plans/2026-09-28-hycolony-domum-ornamentum-do2-cutter.md`). La fabrication par les artisans de la colonie reste à faire (DO-2b).
+
 ## Synthèse
 
 **Verdict.** Un portage **fidèle** de DO est **impossible** sur Hytale 0.6.8. Le cœur de DO est un matériau choisi par bloc posé et rendu par retexture côté client. Or le client Hytale ne reçoit par bloc qu'un id, une rotation et un filler (B.5). Chaque combinaison devrait devenir un `BlockType` distinct, avec texture composée et icône.

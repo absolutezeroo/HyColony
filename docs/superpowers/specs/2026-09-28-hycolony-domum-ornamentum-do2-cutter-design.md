@@ -19,6 +19,8 @@ Source : `docs/research/domum-ornamentum.md` § A.3 (cutter DO) et § B « 6. Ar
   - **2 emplacements de matériaux** (1 pour une forme à un matériau), chacun avec son étiquette (« Cadre », « Centre », « Toit », « Support », « Matériau »…) ;
   - l'**aperçu** : l'icône de la variante et la quantité produite, ou la raison d'un refus.
 - **Fabriquer** : le cœur vérifie les matériaux contre les tags DO (`VariantRequests`, DO-1), la variante est créée si elle n'existe pas (un scintillement au plus pour une nouvelle paire), puis **1** de chaque matériau requis est retiré (`ArchitectsCutterContainer`, `onTake`, `remove(1)`) et la quantité DO est donnée au joueur : colombages, bardeaux, demi-bardeau 4 ; murs de papier 6 ; porte et trappe ouvragées 2 ; panneaux 4 ; dalle 2 ; le reste 1 (`cutterQuantity` du manifeste, déjà généré). Comme `ArchitectsCutterRecipe.assemble`, la quantité donnée est `max(nombre de matériaux, cutterQuantity)`. Inventaire plein : le reste tombe aux pieds du joueur.
+- **Mode créatif** : rien n'est retiré des emplacements, comme DO (`ArchitectsCutterContainer`, `onTake`, `!thePlayer.isCreative()`).
+- **Dernier onglet** : l'établi rouvre sur le dernier onglet du joueur, sur sa première forme, comme DO (`ArchitectsCutterScreen.groupIndexCache`) ; oublié à la déconnexion (écart, plus bas).
 - **Refus sans rien consommer** : un matériau hors tag (message avec l'emplacement et des matériaux acceptés, comme `/hyornament give`), un emplacement requis vide.
 - **Emplacements du bloc** : les matériaux posés restent dans l'établi quand on ferme la fenêtre, gardés au rechargement du monde, et tombent au sol quand on casse l'établi, comme un établi vanilla. Deux joueurs sur le même établi partagent ses emplacements.
 
@@ -29,6 +31,9 @@ Source : `docs/research/domum-ornamentum.md` § A.3 (cutter DO) et § B « 6. Ar
 - **Second matériau facultatif** (porte ouvragée) : vide, il reprend le premier, comme DO-1 (`VariantRequests`). DO refuse un emplacement vide dans `matches` (A.3) : ici on accepte, comme le reste de DO-1.
 - **Recette de l'établi** : ingrédients transposés (troncs pour bûches), à l'établi `Workbench`.
 - **Groupe inconnu** : `SortedBlocks.sortGroups` de DO lève une exception sur un groupe sans index ; ici, un tel groupe va en fin, par id (`CutterOrder`). Aucun groupe du manifeste n'est dans ce cas.
+- **Aperçu d'un refus** : un matériau hors tag entre dans l'emplacement et l'aperçu explique le refus ; dans DO, `mayPlace` (l.114-124) le refuse à l'entrée et la sortie reste vide. `Deviation from MC: out-of-tag materials enter the slot and the preview explains the refusal`.
+- **Emplacements du bloc** : les matériaux restent dans l'établi, persistent et sont partagés entre joueurs ; l'établi DO n'a pas d'entité de bloc, ses emplacements sont propres à chaque joueur et rendus à la fermeture (`ArchitectsCutterContainer.removed` → `clearContainer`, l.362-366). `Deviation from MC: the cutter keeps its materials in the block`.
+- **Dernier onglet** : oublié à la déconnexion du joueur ; DO le garde jusqu'à la fermeture du client, que le serveur ne voit pas (`CutterGroupMemory`).
 
 ## Architecture
 
