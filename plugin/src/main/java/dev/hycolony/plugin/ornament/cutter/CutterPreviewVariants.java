@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BooleanSupplier;
 import java.util.logging.Level;
 
 /**
@@ -29,16 +30,18 @@ final class CutterPreviewVariants {
     private final World world;
     private final OrnamentVariantRegistry registry;
     private final Runnable redraw;
+    private final BooleanSupplier open;
     private final Set<String> asked = new HashSet<>();
     private List<VariantKey> waiting = List.of();
     private int generation;
     private int inFlight;
 
-    /** Asks registry for previewed variants, then runs redraw on world's thread. */
-    CutterPreviewVariants(World world, OrnamentVariantRegistry registry, Runnable redraw) {
+    /** Asks registry for previewed variants while open holds, then runs redraw on world's thread. */
+    CutterPreviewVariants(World world, OrnamentVariantRegistry registry, Runnable redraw, BooleanSupplier open) {
         this.world = world;
         this.registry = registry;
         this.redraw = redraw;
+        this.open = open;
     }
 
     /**
@@ -66,9 +69,12 @@ final class CutterPreviewVariants {
         return !waiting.isEmpty() || inFlight > 0;
     }
 
-    /** Asks for the waiting keys in one batch, unless other slots came since they were scheduled. */
+    /**
+     * Asks for the waiting keys in one batch, unless other slots came since they were scheduled or the window closed
+     * meanwhile (its materials went back: nothing was chosen).
+     */
     private void request(int scheduled) {
-        if (scheduled != generation || waiting.isEmpty()) {
+        if (scheduled != generation || waiting.isEmpty() || !open.getAsBoolean()) {
             return;
         }
         List<VariantKey> batch = waiting;

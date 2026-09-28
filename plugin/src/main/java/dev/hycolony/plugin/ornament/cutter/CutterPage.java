@@ -95,7 +95,11 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
         // Nothing once the slots' window has closed: the page is gone or the player is leaving.
         this.redraw = new PageRedraw(
                 setup.world(), this::redrawIfShown, () -> !slots.window().isClosed());
-        this.previews = new CutterPreviewVariants(setup.world(), setup.registry(), redraw::soon);
+        this.previews = new CutterPreviewVariants(
+                setup.world(),
+                setup.registry(),
+                redraw::soon,
+                () -> !slots.window().isClosed());
     }
 
     /** The slots' window, to open with this page. */
