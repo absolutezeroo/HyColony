@@ -24,6 +24,7 @@ public final class FarmerFieldsModule implements PersistentModule, TickingModule
 
     private boolean assignManually;
     private final FieldChoice choice = new FieldChoice();
+    private final FieldWalk walk = new FieldWalk();
 
     /** MC shouldAssignManually; false (automatic) by default. */
     public boolean assignManually() {
@@ -77,6 +78,11 @@ public final class FarmerFieldsModule implements PersistentModule, TickingModule
         return choice.current(c.registries().fields(), b.position());
     }
 
+    /** Where the farmer is in its pass over the current field. */
+    public FieldWalk walk() {
+        return walk;
+    }
+
     /** MC resetCurrentExtension: the current field is done for today. */
     public void resetCurrentField(Colony c) {
         choice.reset(c.day());
@@ -120,11 +126,13 @@ public final class FarmerFieldsModule implements PersistentModule, TickingModule
     public void write(JsonObject out) {
         out.addProperty("assignManually", assignManually);
         choice.write(out);
+        walk.write(out);
     }
 
     @Override
     public void read(JsonObject in) {
         assignManually = in.has("assignManually") && in.get("assignManually").getAsBoolean();
         choice.read(in);
+        walk.read(in);
     }
 }
