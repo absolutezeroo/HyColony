@@ -11,6 +11,7 @@ import dev.hycolony.core.crafting.recipe.Ingredient;
 import dev.hycolony.core.crafting.recipe.Recipe;
 import dev.hycolony.core.crafting.recipe.RecipeFixtures;
 import dev.hycolony.core.crafting.recipe.RecipeSource;
+import dev.hycolony.core.kernel.item.Inventory;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import java.util.LinkedHashMap;
@@ -39,6 +40,18 @@ class RecipeExecutionTest {
         return h.t.containers.count(h.hut.containers(), item);
     }
 
+    private Optional<List<ItemAmount>> craftOnce(Recipe recipe, Inventory inventory) {
+        return RecipeExecution.craftOnce(recipe, inventory, h.t.recipes, h.t.catalog);
+    }
+
+    private static Inventory holding(int slots, ItemAmount... stacks) {
+        Inventory inventory = new Inventory(slots);
+        for (ItemAmount stack : stacks) {
+            inventory.insert(stack, _ -> 64);
+        }
+        return inventory;
+    }
+
     private boolean craftInHut(Recipe recipe) {
         return RecipeExecution.craftInHut(h.colony, h.hut, recipe);
     }
@@ -53,6 +66,71 @@ class RecipeExecutionTest {
                 Optional.empty(),
                 new RecipeSource.Hytale("Seeds_And_Bucket"),
                 false);
+    }
+
+    @Test
+    void craftOnceConsumesInputsAndAddsOutputs() {
+        Inventory inventory = holding(27, new ItemAmount(ESSENCE, 5));
+
+        assertEquals(Optional.of(List.of(new ItemAmount(SEEDS, 1))), craftOnce(SEEDS_BY_HAND, inventory));
+
+        assertEquals(3, inventory.count(ESSENCE));
+        assertEquals(1, inventory.count(SEEDS));
+    }
+
+    @Test
+    void craftOnceChangesNothingWhenAnInputIsMissing() {
+        Inventory inventory = holding(27, new ItemAmount(ESSENCE, 1));
+
+        assertEquals(Optional.empty(), craftOnce(SEEDS_BY_HAND, inventory));
+
+        assertEquals(1, inventory.count(ESSENCE));
+        assertEquals(0, inventory.count(SEEDS));
+    }
+
+    @Test
+    void craftOnceTakesAnyItemOfAResourceType() {
+        ItemKey oak = new ItemKey("Wood_Oak_Trunk");
+        ItemKey birch = new ItemKey("Wood_Birch_Trunk");
+        ItemKey planks = new ItemKey("Wood_Planks");
+        h.t.recipes.resourceType("Wood_Trunk", oak, birch);
+        Recipe recipe = new Recipe(
+                List.of(new Ingredient.OfResourceType("Wood_Trunk", 2)),
+                new ItemAmount(planks, 4),
+                List.of(),
+                new BenchRequirement(BenchRequirement.FIELDCRAFT, List.of("Basic"), 0),
+                Optional.empty(),
+                new RecipeSource.Hytale("Planks"),
+                false);
+        Inventory inventory = holding(27, new ItemAmount(oak, 1), new ItemAmount(birch, 3));
+
+        assertEquals(Optional.of(List.of(new ItemAmount(planks, 4))), craftOnce(recipe, inventory));
+
+        assertEquals(0, inventory.count(oak));
+        assertEquals(2, inventory.count(birch));
+        assertEquals(4, inventory.count(planks));
+    }
+
+    @Test
+    void secondaryOutputIsReturnedToo() {
+        Inventory inventory = holding(27, new ItemAmount(ESSENCE, 2));
+
+        assertEquals(
+                Optional.of(List.of(new ItemAmount(SEEDS, 1), new ItemAmount(BUCKET, 1))),
+                craftOnce(seedsGivingABucket(), inventory));
+
+        assertEquals(1, inventory.count(BUCKET));
+    }
+
+    /** Deviation from MC: its slot estimate would take the essence and lose the seed, which has no slot. */
+    @Test
+    void craftOnceChangesNothingWhenAnOutputDoesNotFit() {
+        Inventory inventory = holding(1, new ItemAmount(ESSENCE, 64));
+
+        assertEquals(Optional.empty(), craftOnce(SEEDS_BY_HAND, inventory));
+
+        assertEquals(64, inventory.count(ESSENCE));
+        assertEquals(0, inventory.count(SEEDS));
     }
 
     @Test

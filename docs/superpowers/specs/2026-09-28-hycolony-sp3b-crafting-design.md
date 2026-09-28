@@ -246,6 +246,7 @@ Lecture tolérante : clé absente = vide, entrée invalide ignorée et journalis
 21. **Lot d'une seule exécution trop grande.** Si une seule exécution de la recette ne tient pas dans l'inventaire, les lots font une exécution. Chez MC, la taille de lot tombe à 0 et le découpage ne s'arrête plus.
 22. **Demandeur inconnu** (sa hutte a disparu) : le résolveur de fabrication le juge le plus loin possible. MC garde la position sauvegardée du demandeur.
 23. **Réservations sans exclusion.** Le stock que la hutte sert à ses propres requêtes (`BuildingResolver`) ne déduit pas les réservations de ses artisans : `building` ne dépend pas de `crafting`. MC les déduit dans `BuildingRequestResolver`, en excluant la tâche dont la requête descend (`reservedStacksExcluding(request)`). Les réservations servent ici au choix d'une recette réalisable et au « à garder ».
+24. **Place vérifiée exactement quand l'artisan fabrique** (`RecipeExecution.craftOnce`) : l'exécution est d'abord jouée sur une copie de son inventaire, et rien ne change si une sortie ne tient pas. MC estime la place par le nombre de cases libres (`checkForFreeSpace`) et peut consommer les ingrédients d'une sortie qui ne trouve ensuite aucune case : elle est perdue. La fabrication immédiate du résolveur privé, dans la hutte, garde l'estimation de MC (les conteneurs ne se copient pas).
 
 ## Architecture
 

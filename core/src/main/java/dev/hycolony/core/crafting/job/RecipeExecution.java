@@ -9,15 +9,18 @@ import dev.hycolony.core.crafting.recipe.Ingredient;
 import dev.hycolony.core.crafting.recipe.Recipe;
 import dev.hycolony.core.crafting.recipe.RecipeCatalog;
 import dev.hycolony.core.crafting.recipe.RecipeMatching;
+import dev.hycolony.core.kernel.item.Inventory;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.core.kernel.port.ItemCatalog;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Makes one run of a recipe with real items (MC RecipeStorage.fullfillRecipeAndCopy): takes its ingredients, then puts
  * its primary and secondary outputs in their place. A required tool is not an ingredient here: the crafter wears it
- * apart.
+ * down separately.
  */
 public final class RecipeExecution {
     private static final System.Logger LOG = System.getLogger(RecipeExecution.class.getName());
@@ -56,6 +59,28 @@ public final class RecipeExecution {
                     lost.item().id());
         }
         return true;
+    }
+
+    /**
+     * MC RecipeStorage.fullfillRecipeAndCopy with the crafter's inventory (AbstractEntityAICrafting
+     * .executeCraftingAction): takes one run's ingredients, adds its outputs and returns them, primary first; empty,
+     * nothing changed, if an ingredient is missing or an output does not fit. Deviation from MC: room is checked
+     * exactly, on a copy of the inventory; MC estimates it from the free slots, and may then take the ingredients of
+     * an output that finds no slot, which is lost.
+     */
+    public static Optional<List<ItemAmount>> craftOnce(
+            Recipe recipe, Inventory inventory, RecipeCatalog recipes, ItemCatalog items) {
+        if (!runOn(recipe, new RunStock.InventoryStock(inventory.copy(), items::maxStack), recipes)) {
+            return Optional.empty();
+        }
+        runOn(recipe, new RunStock.InventoryStock(inventory, items::maxStack), recipes); // the copy just succeeded
+        return Optional.of(outputs(recipe));
+    }
+
+    /** One run on {@code stock} alone: false if an ingredient ran short or an output did not fit, the stock changed. */
+    private static boolean runOn(Recipe recipe, RunStock stock, RecipeCatalog catalog) {
+        List<RunStock> stocks = List.of(stock);
+        return takeInputs(recipe, stocks, catalog) && putOutputs(recipe, stocks).isEmpty();
     }
 
     /** What one run gives: its primary output, then its secondary outputs. */
