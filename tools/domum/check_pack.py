@@ -77,6 +77,9 @@ def shingle_rules_name_states_only():
         assert set(shingle["State"]["Definitions"]) == {"Corner_Left", "Corner_Right",
                                                         "Inverted_Corner_Left", "Inverted_Corner_Right"}
         assert shingle["VariantRotation"] == "UpDownNESW"
+    material_names = {ctx.items[i]["BlockType"]["ConnectedBlockRuleSet"]["MaterialName"] for i in ctx.items
+                      if i.startswith("HyColony_DO_Shingle") and "Slab" not in i}
+    assert len(material_names) == 5, material_names
 
 
 def shingle_slab_template_has_six_shapes():

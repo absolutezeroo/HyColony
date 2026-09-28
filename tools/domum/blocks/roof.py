@@ -12,7 +12,6 @@ import names
 from blocks import common
 from pack import write_json
 
-MATERIAL_NAME = "HyColonyDoShingle"
 # Hytale roof corner state -> DO stair shape drawing it (a vanilla roof "Corner" is an outer corner).
 CORNERS = {
     "Corner_Left": "outer_left",
@@ -63,7 +62,8 @@ def shingles(ctx, family):
             "ConnectedBlockRuleSet": {
                 "Type": "Roof",
                 "Regular": {"Straight": {"State": "default"}, **{s: {"State": s} for s in CORNERS}},
-                "MaterialName": MATERIAL_NAME,
+                # Only the same slope forms a corner with it, as vanilla gives each pitch its own name.
+                "MaterialName": ident,
             },
             "State": {"Definitions": definitions},
         })
