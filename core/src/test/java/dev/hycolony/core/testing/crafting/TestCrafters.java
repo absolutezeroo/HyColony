@@ -1,4 +1,4 @@
-package dev.hycolony.core.testing;
+package dev.hycolony.core.testing.crafting;
 
 import com.google.gson.JsonObject;
 import dev.hycolony.core.building.BuildingType;

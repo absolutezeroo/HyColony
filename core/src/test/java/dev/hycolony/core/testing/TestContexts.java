@@ -14,6 +14,8 @@ import dev.hycolony.core.job.JobRegistry;
 import dev.hycolony.core.kernel.WorldKey;
 import dev.hycolony.core.kernel.config.ColonyConfig;
 import dev.hycolony.core.kernel.event.EventBus;
+import dev.hycolony.core.testing.crafting.FakeRecipeCatalog;
+import dev.hycolony.core.testing.crafting.TestCrafters;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;

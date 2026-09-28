@@ -9,7 +9,7 @@ import com.google.gson.JsonParser;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolType;
-import dev.hycolony.core.testing.FakeRecipeCatalog;
+import dev.hycolony.core.testing.crafting.FakeRecipeCatalog;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;

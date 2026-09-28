@@ -16,7 +16,7 @@ import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.Workstation;
 import dev.hycolony.core.testing.TestContexts;
-import dev.hycolony.core.testing.TestCrafters;
+import dev.hycolony.core.testing.crafting.TestCrafters;
 import java.util.UUID;
 
 /**

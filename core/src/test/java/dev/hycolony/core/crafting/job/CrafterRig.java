@@ -20,7 +20,7 @@ import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.RequestManager;
 import dev.hycolony.core.request.model.StackRequest;
 import dev.hycolony.core.testing.TestContexts;
-import dev.hycolony.core.testing.TestCrafters;
+import dev.hycolony.core.testing.crafting.TestCrafters;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;

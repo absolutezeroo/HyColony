@@ -1,4 +1,4 @@
-package dev.hycolony.core.testing;
+package dev.hycolony.core.testing.crafting;
 
 import dev.hycolony.core.crafting.recipe.Ingredient;
 import dev.hycolony.core.crafting.recipe.Recipe;

@@ -22,7 +22,7 @@ import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.port.Msg;
 import dev.hycolony.core.testing.FakeNotifier;
 import dev.hycolony.core.testing.TestContexts;
-import dev.hycolony.core.testing.TestCrafters;
+import dev.hycolony.core.testing.crafting.TestCrafters;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;

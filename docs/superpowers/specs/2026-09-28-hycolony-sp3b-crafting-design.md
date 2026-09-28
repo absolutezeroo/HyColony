@@ -292,7 +292,7 @@ Lecture tolérante : clé absente = vide, entrée invalide ignorée et journalis
   - `PrefabCells` lit `BenchBlock` ;
   - la pose d'une table avec son niveau ;
   - l'onglet Recettes (`.ui` sur le modèle vanilla), son contrôleur et les clés de langue.
-- **Tests :** `FakeRecipeCatalog`, dans `core/src/test/.../testing`.
+- **Tests :** `FakeRecipeCatalog`, `TestCrafters` et `TestCrafterAI`, dans `core/src/test/.../testing/crafting`.
 
 ## Test
 

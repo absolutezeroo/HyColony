@@ -11,7 +11,7 @@ import dev.hycolony.core.request.model.Requestable;
 import dev.hycolony.core.request.model.StackList;
 import dev.hycolony.core.request.model.StackRequest;
 import dev.hycolony.core.testing.FakeCatalog;
-import dev.hycolony.core.testing.FakeResolver;
+import dev.hycolony.core.testing.request.FakeResolver;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;

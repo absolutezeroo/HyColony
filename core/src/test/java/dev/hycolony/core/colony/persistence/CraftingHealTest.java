@@ -24,7 +24,7 @@ import dev.hycolony.core.kernel.persist.MigrationChain;
 import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.request.model.StackRequest;
 import dev.hycolony.core.testing.TestContexts;
-import dev.hycolony.core.testing.TestCrafters;
+import dev.hycolony.core.testing.crafting.TestCrafters;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;

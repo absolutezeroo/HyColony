@@ -14,7 +14,7 @@ import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.request.model.Crafting;
 import dev.hycolony.core.testing.FakeCatalog;
-import dev.hycolony.core.testing.FakeRecipeCatalog;
+import dev.hycolony.core.testing.crafting.FakeRecipeCatalog;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;

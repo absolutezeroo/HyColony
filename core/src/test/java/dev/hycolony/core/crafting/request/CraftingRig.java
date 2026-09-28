@@ -15,7 +15,7 @@ import dev.hycolony.core.request.Resolver;
 import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.request.model.Requestable;
 import dev.hycolony.core.request.model.StackRequest;
-import dev.hycolony.core.testing.TestCrafters;
+import dev.hycolony.core.testing.crafting.TestCrafters;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;

@@ -1,4 +1,4 @@
-package dev.hycolony.core.testing;
+package dev.hycolony.core.testing.request;
 
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.request.Request;
