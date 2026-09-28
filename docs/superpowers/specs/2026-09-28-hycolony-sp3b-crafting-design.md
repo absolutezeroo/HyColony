@@ -49,7 +49,9 @@ Toutes reprises de MineColonies sauf les écarts listés plus bas. Chaque classe
   Chacun a une quantité. `cleanedInput` regroupe les ingrédients identiques (MC `getCleanedInput`).
 - **`RecipeRegistry`** (MC `StandardRecipeManager`) est propre à la colonie et persisté.
   - Il associe `RecipeId` à `Recipe`. Une recette Hytale a pour identifiant `hytale:<id Hytale>`.
-  - `checkOrAdd(recipe)` renvoie l'identifiant existant pour une recette égale (mêmes entrées, sorties, table et outil), sinon en crée un. Une recette améliorée reçoit `improved:<n>`, avec `n` croissant.
+  - `checkOrAdd(recipe)` renvoie l'identifiant existant pour une recette égale, sinon en crée un. Une recette maison reçoit `custom:<id>`, une recette améliorée `improved:<n>`, avec `n` croissant.
+  - « Égale » suit MC `RecipeStorage.equals` : mêmes entrées, sorties, table et outil, **et même `recipeSource`**. Dans MC, une recette maison a pour source son identifiant, une recette apprise à la main ou améliorée n'en a pas. Une recette maison ne partage donc jamais l'identifiant d'une recette apprise de même contenu (`checkForWorkerSpecificRecipes` en dépend), alors qu'une recette apprise et une recette améliorée de même contenu le partagent.
+  - Une recette Hytale est sauvegardée par son seul identifiant et relue dans le catalogue ; une recette maison ou améliorée est sauvegardée en entier.
   - Au chargement, une recette Hytale disparue du catalogue (mise à jour du jeu) est retirée des modules qui l'ont apprise (`ColonySerializer.heal`).
 - **Port `RecipeCatalog`** (plugin `HytaleRecipeCatalog`) :
   - `all()` : les recettes Hytale `Crafting` et `Fieldcraft`. Les recettes `Processing`, `DiagramCrafting` et `StructuralCrafting` sont exclues (hors portée) ;
@@ -225,6 +227,8 @@ Lecture tolérante : clé absente = vide, entrée invalide ignorée et journalis
 10. **Résolveurs privés créés par le module de fabrication**, pas par chaque `WorkerModule`, pour que `job` ne dépende pas de `crafting`.
 11. **Composants au lieu d'héritage :** `CraftingTasks` et `CraftingWork` remplacent `AbstractJobCrafter` et `AbstractEntityAICrafting` (règle d'`ArchitectureTest`). Le comportement est le même.
 12. **Une recette dont la table a disparu n'est plus choisie**, mais reste dans la liste. MC ne la retire qu'au rafraîchissement de sa vue.
+13. **Identifiants de recettes lisibles** (`hytale:`, `custom:`, `improved:<n>`) au lieu de jetons aléatoires. Une recette dont le nom est déjà pris par un autre contenu de même source (le jeu ou `crafting.json` l'a changée) remplace l'ancienne sous ce nom. MC l'ajoute sous un nouveau jeton, puis `checkForWorkerSpecificRecipes` l'échange.
+14. **Toutes les recettes du registre sont sauvegardées.** MC ne sauvegarde que celles utilisées depuis le démarrage du serveur (`usedRecipes`). La croissance reste bornée : une recette améliorée ne peut l'être qu'un nombre fini de fois.
 
 ## Architecture
 

@@ -50,13 +50,22 @@ public record Recipe(
 
     /**
      * MC RecipeStorage.equals: same cleaned input, outputs, bench and tool. Deviation from MC: the source is ignored,
-     * where MC also compares {@code recipeSource}; the registry gives one id to one content (spec, RecipeRegistry).
+     * where MC also compares {@code recipeSource}; {@link RecipeRegistry} adds it back to find a recipe's id.
      */
     public boolean sameContentAs(Recipe other) {
-        return cleanedInput().equals(other.cleanedInput())
-                && primaryOutput.equals(other.primaryOutput)
-                && secondaryOutputs.equals(other.secondaryOutputs)
-                && bench.equals(other.bench)
-                && requiredTool.equals(other.requiredTool);
+        return content().equals(other.content());
     }
+
+    /** What {@link #sameContentAs} compares, as one value a map can key on (MC RecipeStorage.hashCode). */
+    Content content() {
+        return new Content(cleanedInput(), primaryOutput, secondaryOutputs, bench, requiredTool);
+    }
+
+    /** A recipe's content without its source and knowledge flag. */
+    record Content(
+            List<Ingredient> cleanedInput,
+            ItemAmount primaryOutput,
+            List<ItemAmount> secondaryOutputs,
+            BenchRequirement bench,
+            Optional<ToolType> requiredTool) {}
 }

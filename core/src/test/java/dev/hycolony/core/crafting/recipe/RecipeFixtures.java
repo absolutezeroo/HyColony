@@ -21,6 +21,30 @@ public final class RecipeFixtures {
         return make(new BenchRequirement(BenchRequirement.FIELDCRAFT, List.of(category), 0), output);
     }
 
+    /** A recipe a crafter improved (no source), made by hand: 1 life essence makes 1 {@code output}. */
+    public static Recipe improved(String output) {
+        return new Recipe(
+                List.of(new Ingredient.OfItem(ESSENCE, 1)),
+                new ItemAmount(new ItemKey(output), 1),
+                List.of(),
+                new BenchRequirement(BenchRequirement.FIELDCRAFT, List.of(), 0),
+                Optional.empty(),
+                new RecipeSource.Improved(),
+                false);
+    }
+
+    /** {@code recipe} with another source, same content. */
+    public static Recipe from(Recipe recipe, RecipeSource source) {
+        return new Recipe(
+                recipe.inputs(),
+                recipe.primaryOutput(),
+                recipe.secondaryOutputs(),
+                recipe.bench(),
+                recipe.requiredTool(),
+                source,
+                recipe.knowledgeRequired());
+    }
+
     private static Recipe make(BenchRequirement bench, String output) {
         return new Recipe(
                 List.of(new Ingredient.OfItem(ESSENCE, 2)),

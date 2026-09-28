@@ -28,6 +28,8 @@ import java.util.Optional;
 public final class ColonySerializer {
     public static final int SCHEMA_VERSION = 4;
 
+    private static final System.Logger LOG = System.getLogger(ColonySerializer.class.getName());
+
     private ColonySerializer() {}
 
     public static JsonObject write(Colony c) {
@@ -42,6 +44,7 @@ public final class ColonySerializer {
         o.add("requests", RequestSerializer.write(c.requests()));
         o.add("workOrders", WorkOrderSerializer.write(c.work()));
         o.addProperty("workOrderTopId", c.work().topId());
+        o.add("recipes", c.recipes().write());
         JsonObject settings = new JsonObject();
         settings.addProperty("autoHiring", c.settings().autoHiring());
         o.add("settings", settings);
@@ -73,6 +76,10 @@ public final class ColonySerializer {
                         PermissionsSerializer.read(o.getAsJsonObject("permissions"))));
         c.setDay(o.get("day").getAsInt());
         readSettings(o, c);
+        // Before the buildings: their crafting modules name recipes by their id in the registry.
+        if (o.get("recipes") instanceof JsonObject recipes) {
+            c.recipes().read(recipes, ctx.ports().crafting().catalog(), w -> LOG.log(System.Logger.Level.WARNING, w));
+        }
         readBuildings(o.getAsJsonArray("buildings"), c, ctx);
         for (JsonElement el : o.getAsJsonArray("citizens")) {
             c.citizens().restore(CitizenSerializer.read(el.getAsJsonObject(), ctx));
