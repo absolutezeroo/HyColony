@@ -324,18 +324,23 @@ Lecture tolérante : clé absente = vide, entrée invalide ignorée et journalis
 - La pose d'un bloc avec son composant `BenchBlock` au bon niveau, sans le bit 2 de `setBlock` (voir `sp3b-hytale-farming.md` § 4).
 - Où lire `KnowledgeRequired` et les recettes connues d'un joueur.
 
-## État à la fin de SP3b-1 (session cloud)
+## État à la fin de SP3b-1
 
-SP3b-1 a été codé dans une session sans le jar du serveur Hytale (dépôt `maven.hytale.com` inaccessible) ni les sources décompilées (`build/vineflower/hytale-server`). Le cœur est fait et testé (Tasks 1 à 15), ainsi que `crafting.json` et sa fusion avec les sous-plugins (Task 16, partie données).
+Le cœur (Tasks 1 à 15) et `crafting.json` ont été codés par une session cloud, sans le jar du serveur. Le reste du plugin a été fait ensuite en local, le 2026-09-28, avec `./gradlew build` vert :
+- `HytaleRecipeCatalog` et `RecipeConversion` sont lus avant le chargement des colonies (`WorldRuntime.constructionPorts`) ;
+- `PrefabCells` lit `BenchBlock.TierLevel` ;
+- `HytaleWorldBlocks.setBenchTier` passe par `block/BenchTiers` ;
+- l'onglet Recettes (`ui/hut/RecipesTab`) ;
+- la ligne « recettes » de `/hycolony selftest`.
 
-**`./gradlew build` n'a jamais tourné sur le plugin dans cette branche.** Seuls `:core:build`, `:plugin:spotlessCheck`, `checkFileSizes` et `checkSectionDividers` ont été lancés. Des fichiers Java du plugin ont été modifiés sans être compilés : `RuntimeSetup`, `WorldRuntime`, `subplugin/SubPlugins`, `adapter/HytaleWorldBlocks`, `ui/RequestsPage` et `ui/hut/HutTabs`. L'utilisateur lance donc d'abord `./gradlew build` en local, avant tout test en jeu.
+L'API est notée dans `plugin-b-api.md` § 26. Les `.ui` passent l'analyseur de l'éditeur UI sans diagnostic.
 
-Il reste le travail qui demande l'API Hytale. Chaque API est à vérifier avec le skill `hytale-api`, puis à noter dans `docs/research/plugin-b-api.md` (section « Recettes et tables », Task 16, étape 1) :
-- **`HytaleRecipeCatalog` et `RecipeConversion`** (Task 16). Le plugin passe aujourd'hui `RecipeCatalog.NONE` : aucune recette n'est apprenable. Le catalogue doit connaître les recettes du jeu **avant** `ColonyPersistence.loadAll` (`WorldRuntime.openStorage`). Sinon, chaque chargement retire toutes les recettes Hytale apprises (`RecipeRegistry.read`, puis `CraftingHeal`), et la sauvegarde suivante les efface pour de bon.
-- **`PrefabCells` qui lit `BenchBlock`** (Task 16). `Resolved` gagne `Optional<Workstation>`, que `HytaleBlueprintSource` passe à `BlueprintEntry`. Aujourd'hui, aucun plan n'a de table : le constructeur n'en paie ni n'en enregistre aucune.
-- **`HytaleWorldBlocks.setBenchTier`** (Task 16). Il renvoie toujours faux : la hutte enregistre la table au niveau du plan, mais la table du monde garde son niveau, avec un WARNING par constructeur.
-- **Onglet Recettes** (Task 17) : `RecipesTab.java`, `RecipesTab.ui` et `RecipeRow.ui`. `HutTabs` renvoie `Optional.empty()` pour `RecipesView`, donc l'onglet ne s'affiche pas. Ses clés de langue existent déjà en en-US et en fr-FR.
-- **Ligne « recettes » de `/hycolony selftest`** (Task 18, étape 1).
+Écarts ajoutés par le plugin, en plus de ceux listés plus haut :
+- une recette que plusieurs tables fabriquent (28 en 0.6.8) ne garde que sa première table `Crafting` ;
+- la seule recette qui demande un tag d'objet est écartée ;
+- une montée de niveau de table qui demande un type de ressource (celles de l'établi de fermier) coûte le premier objet de ce type, par ordre alphabétique ;
+- les catégories d'un identifiant de table partagé par plusieurs blocs (`Bench_Farming` et `Bench_Trough`) sont réunies ;
+- Monter et Descendre déplacent d'une ligne : Hytale n'a pas d'événement pour le Maj-clic de MC.
 
 Limites connues, hors de ces tâches :
 - une table que le plan suivant garde à la même place, avec un niveau plus haut, n'est pas remontée de niveau : le constructeur ne repose pas une case dont le bloc est déjà le bon ;
