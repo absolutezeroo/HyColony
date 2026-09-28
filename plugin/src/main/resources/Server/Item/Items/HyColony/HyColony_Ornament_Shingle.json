@@ -26,6 +26,45 @@
     "ParticleColor": "#65482d",
     "BlockSoundSetId": "Wood",
     "PhysicalMaterialId": "Wood",
+    "ConnectedBlockRuleSet": {
+      "Type": "Roof",
+      "Regular": {
+        "Straight": { "State": "default" },
+        "Corner_Right": { "State": "Corner_Right" },
+        "Corner_Left": { "State": "Corner_Left" },
+        "Inverted_Corner_Right": { "State": "Inverted_Corner_Right" },
+        "Inverted_Corner_Left": { "State": "Inverted_Corner_Left" }
+      },
+      "MaterialName": "HyColonyShingle"
+    },
+    "State": {
+      "Definitions": {
+        "Corner_Right": {
+          "CustomModel": "Blocks/Structures/Roofs/Corner_Hay_Right.blockymodel",
+          "HitboxType": "Roof_Corner_Right",
+          "FlipType": "OrthogonalInverse",
+          "Supporting": { "Down": [ {} ] }
+        },
+        "Corner_Left": {
+          "CustomModel": "Blocks/Structures/Roofs/Corner_Hay_Left.blockymodel",
+          "HitboxType": "Roof_Corner_Left",
+          "FlipType": "Orthogonal",
+          "Supporting": { "Down": [ {} ] }
+        },
+        "Inverted_Corner_Right": {
+          "CustomModel": "Blocks/Structures/Roofs/Corner_Hay_Inverted_Right.blockymodel",
+          "HitboxType": "Stairs_Inverted_Corner_Right",
+          "FlipType": "OrthogonalInverse",
+          "Supporting": { "Down": [ {} ] }
+        },
+        "Inverted_Corner_Left": {
+          "CustomModel": "Blocks/Structures/Roofs/Corner_Hay_Inverted_Left.blockymodel",
+          "HitboxType": "Stairs_Inverted_Corner_Left",
+          "FlipType": "Orthogonal",
+          "Supporting": { "Down": [ {} ] }
+        }
+      }
+    },
     "TextureComputedColor": "#7F5633"
   },
   "IconProperties": {

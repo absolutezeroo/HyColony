@@ -101,9 +101,9 @@ public final class OrnamentVariantRegistry {
         List<VariantKey> keys = new ArrayList<>();
         for (VariantKey key : store.load()) {
             try {
-                BlockType type = factory.create(key, composedTexture(key, false));
+                List<BlockType> family = factory.create(key, composedTexture(key, false));
                 items.add(factory.createItem(key, icon(key, Icon.GENERATED, false)));
-                types.add(type);
+                types.addAll(family);
                 keys.add(key);
             } catch (RuntimeException | LinkageError | java.awt.AWTError e) { // AWT may lack native libraries
                 LOG.at(Level.SEVERE).withCause(e).log("hyornament: cannot restore %s", key.id());
@@ -122,7 +122,7 @@ public final class OrnamentVariantRegistry {
     /** Builds, registers and records {@code key}'s BlockType, then its Item; runs on a creation thread. */
     private OrnamentVariant create(VariantKey key, Creation creation) {
         // Every new file goes out before the packets naming it: model texture, then block; icon, then item.
-        BlockType type = factory.create(key, composedTexture(key, creation.announce()));
+        List<BlockType> family = factory.create(key, composedTexture(key, creation.announce()));
         String icon = icon(key, creation.icon(), creation.announce());
         Item item = factory.createItem(key, icon);
         // A new model texture only shows once clients rebuild their block texture atlas (in game 2026-09-28).
@@ -130,7 +130,7 @@ public final class OrnamentVariantRegistry {
                 key.shape().layoutTexture().isPresent() && creation.rebuild() == BlockTypeSynchronizer.Rebuild.NONE
                         ? BlockTypeSynchronizer.Rebuild.TEXTURES
                         : creation.rebuild();
-        synchronizer.register(List.of(type), rebuild, creation.twice());
+        synchronizer.register(family, rebuild, creation.twice());
         // A new icon file may need clients to refresh their item icons; vanilla icons never do.
         boolean refresh = creation.icon() == Icon.GENERATED && creation.iconRefresh();
         // The block's packet already rebuilt the atlas; another rebuild from the item would flicker once more.
