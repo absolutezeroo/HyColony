@@ -81,10 +81,10 @@ $C.@PageOverlay {
                     Background: (TexturePath: "Native/IngredientSlot.png", Border: 24);
                   }
 
-                  // A slot the recipe still needs, as the client's invalid ingredient colour (#D13B3B).
+                  // A slot the recipe still needs: the client's invalid slot (DiagramCraftingPanel SlotPatchInvalid).
                   Group #SlotBad0 {
                     Anchor: (Width: 72, Height: 72, Left: 3, Top: 3);
-                    Background: #D13B3B(0.35);
+                    Background: (TexturePath: "Native/DiagramCraftingSlotInvalid.png", Border: 24);
                     Visible: false;
                   }
 
@@ -99,10 +99,10 @@ $C.@PageOverlay {
                     Background: (TexturePath: "Native/IngredientSlot.png", Border: 24);
                   }
 
-                  // A slot the recipe still needs, as the client's invalid ingredient colour (#D13B3B).
+                  // A slot the recipe still needs: the client's invalid slot (DiagramCraftingPanel SlotPatchInvalid).
                   Group #SlotBad1 {
                     Anchor: (Width: 72, Height: 72, Left: 3, Top: 101);
-                    Background: #D13B3B(0.35);
+                    Background: (TexturePath: "Native/DiagramCraftingSlotInvalid.png", Border: 24);
                     Visible: false;
                   }
 
