@@ -6,7 +6,7 @@
     <description>
         Curated rules backing CLAUDE.md (class size, complexity, dead code, error-prone code).
         No style rules: formatting is Spotless' job.
-        Every rule keeps a properties element: the build injects the known-violations.txt baseline into it.
+        The build checks the report against config/pmd/known-violations.txt (root build.gradle.kts).
     </description>
 
     <!-- Design: classes that grow into catch-alls (CLAUDE.md § 2). -->

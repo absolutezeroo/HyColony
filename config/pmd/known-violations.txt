@@ -1,8 +1,7 @@
 # PMD baseline: violations that existed when PMD was added (CLAUDE.md § 8).
-# One "Rule path" pair per line; the rule is suppressed for the whole top-level type of that file.
-# This list may only shrink: remove a line once its file is cleaned or split. Never add one.
+# One "Rule path" pair per line; that rule's violations in that file are tolerated.
+# This list may only shrink: a line that matches no violation fails the build, so remove it. Never add one.
 CognitiveComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleItemCatalog.java
-CognitiveComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleWorldBlocks.java
 CompareObjectsWithEquals plugin/src/main/java/dev/hycolony/plugin/adapter/HytalePlayerInventory.java
 CouplingBetweenObjects core/src/main/java/dev/hycolony/core/request/RequestManager.java
 CouplingBetweenObjects plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleCitizenBodies.java
@@ -15,9 +14,7 @@ CyclomaticComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleWorl
 ExcessiveImports plugin/src/main/java/dev/hycolony/plugin/WorldRuntime.java
 ExcessiveImports plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleCitizenBodies.java
 ExcessiveImports plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleUiPort.java
-ExcessiveImports plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleWorldBlocks.java
 ExcessiveImports plugin/src/main/java/dev/hycolony/plugin/command/HyColonyCommand.java
 GodClass plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleCitizenBodies.java
 GodClass plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleItemCatalog.java
-GodClass plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleWorldBlocks.java
 NPathComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleItemCatalog.java

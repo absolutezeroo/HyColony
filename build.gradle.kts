@@ -109,36 +109,51 @@ subprojects {
     }
 }
 
-// PMD on main sources. PMD has no baseline: config/pmd/known-violations.txt lists "Rule path" pairs
-// that are suppressed (violationSuppressXPath on the file's top-level type). This list may only shrink.
+// PMD on main sources. PMD has no baseline: config/pmd/known-violations.txt lists "Rule path" pairs whose violations
+// are tolerated. pmdMain reads its XML report and fails on any other violation, and on a pair that no longer matches
+// a violation, so the list is forced to shrink (CLAUDE.md § 8).
 val pmdRuleset = file("config/pmd/ruleset.xml")
 val pmdKnownViolations = file("config/pmd/known-violations.txt")
 
-fun pmdRulesetWithBaseline(): String {
-    val entries = pmdKnownViolations.readLines().map { it.trim() }.filter { it.isNotEmpty() && !it.startsWith("#") }
-    var ruleset = pmdRuleset.readText()
-    entries.map { it.split(Regex("""\s+"""), 2) }.groupBy({ it[0] }, { it[1] }).forEach { (rule, paths) ->
-        val matches = paths.joinToString(" or ") { path ->
-            val type = path.substringAfter("/src/main/java/").removeSuffix(".java")
-            "(@PackageName='${type.substringBeforeLast('/').replace('/', '.')}' and */@SimpleName='${type.substringAfterLast('/')}')"
+fun checkPmdBaseline(report: File, projectPath: String) {
+    val known = pmdKnownViolations.readLines().map { it.trim() }.filter { it.isNotEmpty() && !it.startsWith("#") }
+        .map { it.split(Regex("""\s+"""), 2) }.map { it[0] to it[1] }.filter { it.second.startsWith("$projectPath/") }
+        .toSet()
+    val files = javax.xml.parsers.DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(report)
+        .getElementsByTagName("file")
+    val found = (0 until files.length).map { files.item(it) as org.w3c.dom.Element }.flatMap { file ->
+        val path = File(file.getAttribute("name")).relativeTo(rootDir).invariantSeparatorsPath
+        val violations = file.getElementsByTagName("violation")
+        (0 until violations.length).map { violations.item(it) as org.w3c.dom.Element }.map {
+            Triple(it.getAttribute("rule") to path, it.getAttribute("beginline"), it.textContent.trim())
         }
-        val property = "<property name=\"violationSuppressXPath\" value=\"/CompilationUnit[$matches]\"/>"
-        val anchor = Regex("""(ref="category/java/\w+\.xml/$rule">\s*<properties)(/?)>""")
-        val found = anchor.find(ruleset) ?: throw GradleException("$pmdKnownViolations: rule $rule is not in $pmdRuleset")
-        val closing = if (found.groupValues[2] == "/") "</properties>" else ""
-        ruleset = ruleset.replaceRange(found.range, "${found.groupValues[1]}>$property$closing")
     }
-    return ruleset
+    val unknown = found.filter { it.first !in known }
+    val stale = known - found.map { it.first }.toSet()
+    if (unknown.isNotEmpty()) {
+        throw GradleException("PMD violations (config/pmd/ruleset.xml), fix them:\n" +
+            unknown.joinToString("\n") { (key, line, message) -> "  ${key.second}:$line ${key.first}: $message" })
+    }
+    if (stale.isNotEmpty()) {
+        throw GradleException("$pmdKnownViolations lists violations that are gone (CLAUDE.md § 8), remove the lines:\n" +
+            stale.sortedBy { "${it.first} ${it.second}" }.joinToString("\n") { "  ${it.first} ${it.second}" })
+    }
 }
 
 subprojects {
     extensions.configure<PmdExtension> {
         toolVersion = "7.28.0"
         ruleSets = emptyList()
-        ruleSetConfig = resources.text.fromString(pmdRulesetWithBaseline())
-        isConsoleOutput = true
-        isIgnoreFailures = false
+        ruleSetConfig = resources.text.fromFile(pmdRuleset)
+        isConsoleOutput = false
+        isIgnoreFailures = true // checkPmdBaseline decides
     }
     tasks.named("pmdTest") { enabled = false }
-    tasks.withType<Pmd>().configureEach { inputs.files(pmdRuleset, pmdKnownViolations) }
+    tasks.named<Pmd>("pmdMain") {
+        inputs.files(pmdRuleset, pmdKnownViolations)
+        reports.xml.required = true
+        val report = reports.xml.outputLocation
+        val projectPath = projectDir.relativeTo(rootDir).invariantSeparatorsPath
+        doLast { checkPmdBaseline(report.get().asFile, projectPath) }
+    }
 }
