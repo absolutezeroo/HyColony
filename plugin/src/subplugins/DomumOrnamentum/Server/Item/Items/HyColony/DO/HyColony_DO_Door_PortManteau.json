@@ -1,0 +1,88 @@
+{
+  "TranslationProperties": {
+    "Name": "hycolony.item.do.door_portmanteau.name"
+  },
+  "Icon": "Icons/ItemsGenerated/Wood_Hardwood_Planks.png",
+  "IconProperties": {
+    "Scale": 0.58823,
+    "Rotation": [
+      22.5,
+      45,
+      22.5
+    ],
+    "Translation": [
+      0,
+      -13.5
+    ]
+  },
+  "Categories": [
+    "DomumOrnamentum.Door"
+  ],
+  "PlayerAnimationsId": "Block",
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Model",
+    "Opacity": "Transparent",
+    "CustomModel": "Blocks/HyColony/DO/Door_PortManteau.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "BlockTextures/Wood_Hardwood_Planks_Side.png",
+        "Weight": 1
+      }
+    ],
+    "VariantRotation": "NESW",
+    "HitboxType": "Door",
+    "State": {
+      "Definitions": {
+        "CloseDoorIn": {
+          "InteractionSoundEventId": "SFX_Door_Crude_Close",
+          "CustomModelAnimation": "Blocks/Animations/Door/Door_Close_In.blockyanim"
+        },
+        "CloseDoorOut": {
+          "InteractionSoundEventId": "SFX_Door_Crude_Close",
+          "CustomModelAnimation": "Blocks/Animations/Door/Door_Close_Out.blockyanim"
+        },
+        "DoorBlocked": {},
+        "OpenDoorIn": {
+          "SoundOcclusionOpacity": 0.0,
+          "HitboxType": "Door_Open_In",
+          "InteractionHitboxType": "Door_Open_In_Interaction",
+          "InteractionSoundEventId": "SFX_Door_Crude_Open",
+          "CustomModelAnimation": "Blocks/Animations/Door/Door_Open_In.blockyanim",
+          "InteractionHint": "server.interactionHints.closeDoor"
+        },
+        "OpenDoorOut": {
+          "SoundOcclusionOpacity": 0.0,
+          "HitboxType": "Door_Open_Out",
+          "InteractionHitboxType": "Door_Open_Out_Interaction",
+          "InteractionSoundEventId": "SFX_Door_Crude_Open",
+          "CustomModelAnimation": "Blocks/Animations/Door/Door_Open_Out.blockyanim",
+          "InteractionHint": "server.interactionHints.closeDoor"
+        }
+      }
+    },
+    "ConnectedBlockRuleSet": {
+      "Type": "CustomTemplate",
+      "TemplateShapeAssetId": "DoorConnectedBlockTemplate",
+      "TemplateShapeBlockPatterns": {
+        "Default": "HyColony_DO_Door_PortManteau"
+      }
+    },
+    "IsDoor": true,
+    "Interactions": {
+      "Use": "Door"
+    },
+    "InteractionHint": "server.interactionHints.openDoor",
+    "SoundOcclusionOpacity": 2.0,
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "Woods"
+      }
+    },
+    "BlockParticleSetId": "Wood",
+    "ParticleColor": "#693e2a",
+    "BlockSoundSetId": "Wood",
+    "PhysicalMaterialId": "Wood"
+  },
+  "ItemSoundSetId": "ISS_Blocks_Wood"
+}

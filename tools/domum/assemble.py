@@ -209,13 +209,13 @@ def state_model(root, family, block_id, props):
         name = apply["model"].removeprefix(source.DO_PARENT)
         raw = source.load(root, name)
         model = rotate_y(rotate_x(raw, apply.get("x", 0), uvlock), apply.get("y", 0), uvlock)
-        part = _prefixed(model, f"e{index}_")
+        part = prefixed(model, f"e{index}_")
         merged["textures"].update(part["textures"])
         merged["elements"].extend(part["elements"])
     return rotate_y(merged, family.turn_y)
 
 
-def _prefixed(model, prefix):
+def prefixed(model, prefix):
     """One part's model with every local texture placeholder ("#key") renamed under prefix, so several
     multipart pieces merged by state_model never share a placeholder name."""
 

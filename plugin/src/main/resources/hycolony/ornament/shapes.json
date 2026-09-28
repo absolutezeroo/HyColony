@@ -386,6 +386,240 @@
       ],
       "optionalSecond": false,
       "cutterQuantity": 4
+    },
+    {
+      "id": "Door_Full",
+      "template": "HyColony_DO_Door_Full",
+      "group": "ddoor",
+      "slots": [
+        "doors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Door_PortManteau",
+      "template": "HyColony_DO_Door_PortManteau",
+      "group": "ddoor",
+      "slots": [
+        "doors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Door_VerticallyStriped",
+      "template": "HyColony_DO_Door_VerticallyStriped",
+      "group": "ddoor",
+      "slots": [
+        "doors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Door_Waffle",
+      "template": "HyColony_DO_Door_Waffle",
+      "group": "ddoor",
+      "slots": [
+        "doors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "FancyDoor_Creeper",
+      "template": "HyColony_DO_FancyDoor_Creeper",
+      "group": "ddoor",
+      "slots": [
+        "fancy_doors_materials",
+        "fancy_doors_materials"
+      ],
+      "optionalSecond": true,
+      "cutterQuantity": 2
+    },
+    {
+      "id": "FancyDoor_Full",
+      "template": "HyColony_DO_FancyDoor_Full",
+      "group": "ddoor",
+      "slots": [
+        "fancy_doors_materials",
+        "fancy_doors_materials"
+      ],
+      "optionalSecond": true,
+      "cutterQuantity": 2
+    },
+    {
+      "id": "Trapdoor_Boss",
+      "template": "HyColony_DO_Trapdoor_Boss",
+      "group": "etrapdoor",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Trapdoor_Coffer",
+      "template": "HyColony_DO_Trapdoor_Coffer",
+      "group": "etrapdoor",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Trapdoor_Full",
+      "template": "HyColony_DO_Trapdoor_Full",
+      "group": "etrapdoor",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Trapdoor_HorizontalBars",
+      "template": "HyColony_DO_Trapdoor_HorizontalBars",
+      "group": "etrapdoor",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Trapdoor_HorizontallySquigglyStriped",
+      "template": "HyColony_DO_Trapdoor_HorizontallySquigglyStriped",
+      "group": "etrapdoor",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Trapdoor_HorizontallyStriped",
+      "template": "HyColony_DO_Trapdoor_HorizontallyStriped",
+      "group": "etrapdoor",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Trapdoor_Moulding",
+      "template": "HyColony_DO_Trapdoor_Moulding",
+      "group": "etrapdoor",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Trapdoor_PortManteau",
+      "template": "HyColony_DO_Trapdoor_PortManteau",
+      "group": "etrapdoor",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Trapdoor_Porthole",
+      "template": "HyColony_DO_Trapdoor_Porthole",
+      "group": "etrapdoor",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Trapdoor_Roundel",
+      "template": "HyColony_DO_Trapdoor_Roundel",
+      "group": "etrapdoor",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Trapdoor_Slot",
+      "template": "HyColony_DO_Trapdoor_Slot",
+      "group": "etrapdoor",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Trapdoor_VerticalBars",
+      "template": "HyColony_DO_Trapdoor_VerticalBars",
+      "group": "etrapdoor",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Trapdoor_VerticallySquigglyStriped",
+      "template": "HyColony_DO_Trapdoor_VerticallySquigglyStriped",
+      "group": "etrapdoor",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Trapdoor_VerticallyStriped",
+      "template": "HyColony_DO_Trapdoor_VerticallyStriped",
+      "group": "etrapdoor",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Trapdoor_Waffle",
+      "template": "HyColony_DO_Trapdoor_Waffle",
+      "group": "etrapdoor",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "FancyTrapdoor_Creeper",
+      "template": "HyColony_DO_FancyTrapdoor_Creeper",
+      "group": "etrapdoor",
+      "slots": [
+        "fancy_trapdoors_materials",
+        "fancy_trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 2
+    },
+    {
+      "id": "FancyTrapdoor_Full",
+      "template": "HyColony_DO_FancyTrapdoor_Full",
+      "group": "etrapdoor",
+      "slots": [
+        "fancy_trapdoors_materials",
+        "fancy_trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 2
     }
   ]
 }

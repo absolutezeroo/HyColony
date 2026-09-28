@@ -18,6 +18,26 @@
       "Icon": "Icons/ItemCategories/DomumOrnamentum_ShingleSlab.png"
     },
     {
+      "Id": "Door",
+      "Name": "hycolony.category.do.door",
+      "Icon": "Icons/ItemCategories/DomumOrnamentum_Door.png"
+    },
+    {
+      "Id": "FancyDoor",
+      "Name": "hycolony.category.do.fancydoor",
+      "Icon": "Icons/ItemCategories/DomumOrnamentum_FancyDoor.png"
+    },
+    {
+      "Id": "Trapdoor",
+      "Name": "hycolony.category.do.trapdoor",
+      "Icon": "Icons/ItemCategories/DomumOrnamentum_Trapdoor.png"
+    },
+    {
+      "Id": "FancyTrapdoor",
+      "Name": "hycolony.category.do.fancytrapdoor",
+      "Icon": "Icons/ItemCategories/DomumOrnamentum_FancyTrapdoor.png"
+    },
+    {
       "Id": "Panel",
       "Name": "hycolony.category.do.panel",
       "Icon": "Icons/ItemCategories/DomumOrnamentum_Panel.png"

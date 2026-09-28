@@ -52,13 +52,16 @@ def component_index(family, textures, ref):
     return known.index(value) if value in known else 1
 
 
-def to_blockymodel(model, family, group=None):
+def to_blockymodel(model, family, group=None, pivot=(0, 0, 0)):
     """The .blockymodel content of model: one node per element with a positive area face, each face reading its
-    component's tile; the nodes sit under a node named group (a door's "Door") when given."""
+    component's tile; the nodes sit under a node named group standing at pivot (units) when given, the node a
+    vanilla door animation turns about its hinge."""
     nodes = [n for i, e in enumerate(model["elements"])
              if (n := _element(model["textures"], e, "E" + str(i), family)) is not None]
     if group:
-        nodes = [node(group, (0, 0, 0), empty_shape(), nodes)]
+        for n in nodes:
+            n["position"] = {k: v - p for (k, v), p in zip(n["position"].items(), pivot)}
+        nodes = [node(group, pivot, empty_shape(), nodes)]
     root = node("Origin", (0, 0, 0), empty_shape(), nodes)
     for index, n in enumerate(walk([root]), start=1):
         n["id"] = str(index)

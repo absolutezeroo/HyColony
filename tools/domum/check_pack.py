@@ -109,6 +109,45 @@ def every_generated_model_reads_one_tile():
                 assert (u0 + 1e-6) // 32 == (u1 - 1e-6) // 32, (name, node, u0, u1)
 
 
+def door_node(model):
+    """The node the vanilla door and trapdoor animations turn ("Door" in Door_Open_In and Trapdoor_Open)."""
+    from models import walk
+
+    return next(n for n in walk(model["nodes"]) if n["name"] == "Door")
+
+
+def door_copies_vanilla_mechanics():
+    """A door is two blocks tall, centred in its block like the vanilla door, hinged on its -X edge under the node
+    the vanilla animations turn, with the vanilla door's states, hitboxes and double-door rule."""
+    from models import bounds
+
+    ctx = generate_into_temp()
+    vanilla = ctx.assets.item("Furniture_Crude_Door")["BlockType"]
+    door = ctx.items["HyColony_DO_Door_Full"]["BlockType"]
+    assert door["HitboxType"] == vanilla["HitboxType"] == "Door" and door["IsDoor"]
+    assert door["State"] == vanilla["State"] and door["Interactions"] == vanilla["Interactions"]
+    assert door["ConnectedBlockRuleSet"]["TemplateShapeBlockPatterns"] == {"Default": "HyColony_DO_Door_Full"}
+    hinge = door_node(ctx.models["HyColony_DO_Door_Full"])
+    assert hinge["position"] == {"x": -16, "y": 0, "z": 0}, hinge["position"]
+    low, high = bounds(ctx.models["HyColony_DO_Door_Full"]["nodes"])
+    assert low[1] == 0 and high[1] == 64 and abs(low[2] + high[2]) < 1e-6, (low, high)
+    assert "HyColony_DO_FancyDoor_Creeper" in ctx.items
+
+
+def trapdoor_opens_like_vanilla():
+    """A trapdoor closes at the top of its block and turns about its -Z edge, like the vanilla trapdoor; placed on
+    the floor, it is the same block upside down."""
+    ctx = generate_into_temp()
+    vanilla = ctx.assets.item("Furniture_Crude_Trapdoor")["BlockType"]
+    trapdoor = ctx.items["HyColony_DO_Trapdoor_Full"]["BlockType"]
+    assert trapdoor["State"] == vanilla["State"] and trapdoor["HitboxType"] == "Trapdoor"
+    assert trapdoor["VariantRotation"] == "UpDownNESW"
+    hinge = door_node(ctx.models["HyColony_DO_Trapdoor_Full"])
+    assert hinge["position"] == {"x": 0, "y": 29, "z": -13}, hinge["position"]
+    assert len([i for i in ctx.items if i.startswith("HyColony_DO_Trapdoor_")]) == 15
+    assert len([i for i in ctx.items if i.startswith("HyColony_DO_FancyTrapdoor_")]) == 2
+
+
 def run():
     """Runs this module's checks; an AssertionError names the failing case."""
     manifest_lists_every_template_with_its_slots()
@@ -119,3 +158,5 @@ def run():
     shingle_rules_name_states_only()
     shingle_slab_template_has_six_shapes()
     every_generated_model_reads_one_tile()
+    door_copies_vanilla_mechanics()
+    trapdoor_opens_like_vanilla()

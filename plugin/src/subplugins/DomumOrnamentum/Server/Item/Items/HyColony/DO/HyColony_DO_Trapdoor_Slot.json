@@ -1,0 +1,67 @@
+{
+  "TranslationProperties": {
+    "Name": "hycolony.item.do.trapdoor_slot.name"
+  },
+  "Icon": "Icons/ItemsGenerated/Wood_Hardwood_Planks.png",
+  "IconProperties": {
+    "Scale": 0.58823,
+    "Rotation": [
+      22.5,
+      45,
+      22.5
+    ],
+    "Translation": [
+      0,
+      -13.5
+    ]
+  },
+  "Categories": [
+    "DomumOrnamentum.Trapdoor"
+  ],
+  "PlayerAnimationsId": "Block",
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Model",
+    "Opacity": "Transparent",
+    "CustomModel": "Blocks/HyColony/DO/Trapdoor_Slot.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "BlockTextures/Wood_Hardwood_Planks_Side.png",
+        "Weight": 1
+      }
+    ],
+    "VariantRotation": "UpDownNESW",
+    "HitboxType": "Trapdoor",
+    "State": {
+      "Definitions": {
+        "CloseDoorOut": {
+          "InteractionSoundEventId": "SFX_Door_Crude_Close",
+          "CustomModelAnimation": "Blocks/Animations/Trapdoor/Trapdoor_Close.blockyanim"
+        },
+        "OpenDoorOut": {
+          "SoundOcclusionOpacity": 0.0,
+          "HitboxType": "Trapdoor_Open",
+          "InteractionSoundEventId": "SFX_Door_Crude_Open",
+          "CustomModelAnimation": "Blocks/Animations/Trapdoor/Trapdoor_Open.blockyanim",
+          "InteractionHint": "server.interactionHints.closeDoor"
+        }
+      }
+    },
+    "IsDoor": true,
+    "Interactions": {
+      "Use": "Door_Horizontal"
+    },
+    "InteractionHint": "server.interactionHints.openDoor",
+    "SoundOcclusionOpacity": 2.0,
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "Woods"
+      }
+    },
+    "BlockParticleSetId": "Wood",
+    "ParticleColor": "#693e2a",
+    "BlockSoundSetId": "Wood",
+    "PhysicalMaterialId": "Wood"
+  },
+  "ItemSoundSetId": "ISS_Blocks_Wood"
+}
