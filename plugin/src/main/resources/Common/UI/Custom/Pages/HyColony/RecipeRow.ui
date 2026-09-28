@@ -35,14 +35,31 @@ Group {
       }
     }
 
-    $C.@SecondaryTextButton #Up {
-      Anchor: (Width: 70, Height: 30);
-      Text: %hycolony.ui.recipes.up;
+    // Up and Down: the client's dropdown carets on a square secondary button, the action as tooltip.
+    $C.@SecondaryButton #Up {
+      @Width = 30;
+      Anchor: (Height: 30, Right: 4);
+      LayoutMode: Middle;
+      TooltipText: %hycolony.ui.recipes.up;
+      TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+
+      Group {
+        Anchor: (Width: 12, Height: 7);
+        Background: "Native/AltDropdownCaretUp.png";
+      }
     }
 
-    $C.@SecondaryTextButton #Down {
-      Anchor: (Width: 70, Height: 30);
-      Text: %hycolony.ui.recipes.down;
+    $C.@SecondaryButton #Down {
+      @Width = 30;
+      Anchor: (Height: 30, Right: 4);
+      LayoutMode: Middle;
+      TooltipText: %hycolony.ui.recipes.down;
+      TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+
+      Group {
+        Anchor: (Width: 12, Height: 7);
+        Background: "Native/AltDropdownCaretDown.png";
+      }
     }
 
     $C.@SecondaryTextButton #Toggle {
@@ -51,9 +68,17 @@ Group {
       TextTooltipStyle: $C.@DefaultTextTooltipStyle;
     }
 
-    $C.@SecondaryTextButton #Remove {
-      Anchor: (Width: 100, Height: 30);
-      Text: %hycolony.ui.recipes.remove;
+    // Remove: the client's round close button (Container.ui), the action as tooltip.
+    Button #Remove {
+      Anchor: (Width: 30, Height: 30, Left: 4);
+      TooltipText: %hycolony.ui.recipes.remove;
+      TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+      Style: (
+        Default: (Background: "Native/ContainerCloseButton.png"),
+        Hovered: (Background: "Native/ContainerCloseButtonHovered.png"),
+        Pressed: (Background: "Native/ContainerCloseButtonPressed.png"),
+        Disabled: (Background: "Native/ContainerCloseButton.png")
+      );
     }
 
     $C.@SecondaryTextButton #Learn {
