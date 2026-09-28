@@ -101,4 +101,35 @@ class RecipeTest {
         assertTrue(new BenchRequirement(BenchRequirement.FIELDCRAFT, List.of("Tools"), 0).isFieldcraft());
         assertFalse(new BenchRequirement("Farmingbench", List.of(), 1).isFieldcraft());
     }
+
+    @Test
+    void withSourceKeepsTheContent() {
+        Recipe a = recipe(List.of(new Ingredient.OfItem(ESSENCE, 2)));
+        Recipe custom = a.withSource(new RecipeSource.Custom("gift"));
+
+        assertEquals(new RecipeSource.Custom("gift"), custom.source());
+        assertTrue(custom.sameContentAs(a));
+    }
+
+    @Test
+    void improvedWithTakesTheNewInputsAndNoSource() {
+        Recipe a = new Recipe(
+                List.of(new Ingredient.OfItem(ESSENCE, 2)),
+                new ItemAmount(SEED, 1),
+                List.of(new ItemAmount(FIBRE, 1)),
+                new BenchRequirement("Farmingbench", List.of("Seeds"), 1),
+                Optional.of(ToolType.AXE),
+                new RecipeSource.Hytale("Plant_Seeds_Wheat"),
+                true);
+
+        Recipe improved = a.improvedWith(List.of(new Ingredient.OfItem(ESSENCE, 1)));
+
+        assertEquals(List.of(new Ingredient.OfItem(ESSENCE, 1)), improved.inputs());
+        assertEquals(new RecipeSource.Improved(), improved.source());
+        assertEquals(a.primaryOutput(), improved.primaryOutput());
+        assertEquals(a.secondaryOutputs(), improved.secondaryOutputs());
+        assertEquals(a.bench(), improved.bench());
+        assertEquals(a.requiredTool(), improved.requiredTool());
+        assertTrue(improved.knowledgeRequired());
+    }
 }

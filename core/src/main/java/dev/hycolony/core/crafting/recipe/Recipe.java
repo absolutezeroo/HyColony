@@ -48,6 +48,26 @@ public record Recipe(
         return List.copyOf(items);
     }
 
+    /** The same recipe from another source (MC RecipeStorage.builder(recipe).withRecipeId). */
+    public Recipe withSource(RecipeSource newSource) {
+        return new Recipe(inputs, primaryOutput, secondaryOutputs, bench, requiredTool, newSource, knowledgeRequired);
+    }
+
+    /**
+     * MC improveRecipe's {@code RecipeStorage.builder(recipe).withInputs(newInputs).withRecipeId(null)}: the same
+     * recipe with {@code newInputs}, as a crafter improved it.
+     */
+    public Recipe improvedWith(List<Ingredient> newInputs) {
+        return new Recipe(
+                newInputs,
+                primaryOutput,
+                secondaryOutputs,
+                bench,
+                requiredTool,
+                new RecipeSource.Improved(),
+                knowledgeRequired);
+    }
+
     /**
      * MC RecipeStorage.equals: same cleaned input, outputs, bench and tool. Deviation from MC: the source is ignored,
      * where MC also compares {@code recipeSource}; {@link RecipeRegistry} adds it back to find a recipe's id.

@@ -3,6 +3,7 @@ package dev.hycolony.core.crafting.module;
 import com.google.gson.JsonObject;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.PersistentModule;
+import dev.hycolony.core.building.TickingModule;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.crafting.recipe.Recipe;
 import dev.hycolony.core.crafting.recipe.RecipeId;
@@ -20,7 +21,7 @@ import java.util.UUID;
  * is not ported, so its {@code RECIPES} effect is 0. A bad index or a recipe missing from the list changes nothing,
  * where MC throws or clears the list.
  */
-public final class CraftingModule implements PersistentModule {
+public final class CraftingModule implements PersistentModule, TickingModule {
     /** MC AbstractCraftingBuildingModule.EXTRA_RECIPE_MULTIPLIER. */
     static final int EXTRA_RECIPE_MULTIPLIER = 5;
 
@@ -165,6 +166,12 @@ public final class CraftingModule implements PersistentModule {
         if (list.move(i, j, fullMove)) {
             colony.markDirty();
         }
+    }
+
+    /** MC onColonyTick: grants and withdraws the custom recipes of the hut's level ({@link CustomRecipes#check}). */
+    @Override
+    public void onColonyTick(Colony colony, Building building) {
+        CustomRecipes.check(colony, building, this);
     }
 
     /** MC addRecipeToList: adds the recipe first or last, unless already listed; does not mark the colony dirty. */

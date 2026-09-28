@@ -88,14 +88,14 @@ Toutes reprises de MineColonies sauf les écarts listés plus bas. Chaque classe
   - `crafting.json` en déclare, par métier, avec `minBuildingLevel` et `maxBuildingLevel` ;
   - une recette valide pour la hutte est ajoutée si elle manque ;
   - une recette qui ne l'est plus est retirée ;
-  - la règle MC du doublon « amélioré » s'applique : même sortie et mêmes objets d'entrée = doublon.
+  - la règle MC du doublon « amélioré » s'applique : même sortie et mêmes objets d'entrée, quelles que soient leurs quantités, font un doublon. Devant un doublon, la recette maison n'est pas ajoutée, qu'il s'agisse de sa version améliorée ou d'une recette apprise à la main ; seule une recette maison de même source dont le contenu a changé est remplacée.
 - **Choix d'une recette** (`getFirstRecipe`) : la première recette active dont la sortie principale correspond, dans l'ordre de la liste. MC compare aussi les sorties « alternatives » de ses recettes à sorties multiples, dont une seule sort à chaque exécution ; Hytale n'en a pas. Une sortie secondaire (un seau rendu) n'est jamais comparée, comme dans MC.
 - **Recette réalisable** (`getFirstFulfillableRecipe(pred, count, considerReservation)`) : il faut assez d'ingrédients dans l'inventaire des employés et les conteneurs de la hutte (`canFullFillRecipe`). Un outil ou une sortie secondaire utilisée comme ingrédient ne compte qu'une fois, pas `× qty`.
 - **Réservations** (`reservedStacksExcluding`) : ce sont les ingrédients des tâches en file et assignées de ses artisans. Ils rejoignent le « à garder » de la hutte (`getRequiredItemsAndAmount`), ingrédients **et** sortie, pour que les livreurs ne les emportent pas.
 - **Amélioration** (`improveRecipe(recipe, count, citizen)`, après chaque tâche terminée) :
   - chance = `min(5,0 ; 0,0625 × count + 0,0625 × niveau de la compétence d'amélioration)` en pourcentage, contre un tirage `random × 100` ;
   - si la sortie n'est pas exclue, chaque ingrédient de quantité > 1 marqué « réductible » (`crafting.json`) perd 1 ;
-  - la recette améliorée remplace l'ancienne à la même place ;
+  - la recette améliorée remplace l'ancienne à la même place, si la hutte peut la tenir (`isRecipeCompatibleWithCraftingModule`) ;
   - un message aléatoire parmi 3 est envoyé à la colonie (`RECIPE_IMPROVED` + 0..2).
 
 ### Requêtes et résolveurs
@@ -220,7 +220,7 @@ Lecture tolérante : clé absente = vide, entrée invalide ignorée et journalis
 3. **Coût des tables de niveau N.** Le constructeur demande aussi les matériaux de montée de niveau de Hytale. MC ne connaît pas les niveaux de table.
 4. **`KnowledgeRequired`.** Une recette que Hytale réserve aux joueurs qui l'ont apprise ne peut être apprise à la hutte que par un joueur qui la connaît.
 5. **Filtre par métier dans `crafting.json`.** Il remplace les tags `crafterProduct` de MC et se fonde sur les tables et catégories Hytale.
-6. **Ingrédients par type de ressource ou tag.** Ils sont demandés par une `StackList`. Dans MC, la grille fige l'objet exact au moment de l'apprentissage.
+6. **Ingrédients par type de ressource ou tag.** Ils sont demandés par une `StackList`. Dans MC, la grille fige l'objet exact au moment de l'apprentissage. Un tel ingrédient est « réductible » par l'amélioration si tous les objets qu'il accepte sont listés dans `reduceable.ingredients`.
 7. **Recherche absente.** Les effets `RECIPES` et `CITIZEN_INV_SLOTS` valent 0, et `RECIPE_MODE` reste sur `PRIORITY`.
 8. **Bug MC corrigé :** `AbstractJobCrafter.deserializeNBT` range trois clés dans `progress`.
 9. **Pas de places assises ni debout** pour l'artisan inactif : il flâne dans la hutte.
@@ -236,6 +236,8 @@ Lecture tolérante : clé absente = vide, entrée invalide ignorée et journalis
     - Retirer une recette absente de la liste ne change rien ; MC vide toute la liste.
     - Remplacer une recette par une autre déjà listée retire la première ; MC liste alors la seconde deux fois.
     - Un déplacement complet (`fullMove`) marque aussi la colonie à sauvegarder. Chez MC, seul l'échange le fait, mais ses sauvegardes n'en dépendent pas.
+18. **Recettes maison réduites.** Ni recherche requise ou exclue (la recherche n'est pas portée), ni `mustExist`, dont aucun métier n'a besoin pour l'instant. Les doublons sont comparés comme des ensembles d'objets : MC trie les deux listes par un hachage de l'objet et de sa quantité avant de les comparer deux à deux, ce qui peut manquer un doublon aux quantités différentes.
+19. **Message d'amélioration :** la sortie et l'ingrédient réduit sont nommés par leur identifiant Hytale, le cœur ne connaissant pas leur nom traduit. MC affiche leur nom (`getHoverName`).
 
 ## Architecture
 
