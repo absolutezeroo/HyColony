@@ -37,7 +37,7 @@ public final class HutTabs {
             case CourierAssignmentView c -> Optional.of(new WarehouseCouriersTab(c));
             case WarehouseTasksView w -> Optional.of(new WarehouseTasksTab(w.queue()));
             case CourierTasksView c -> Optional.of(new CourierTasksTab(c));
-            case FieldsView _ -> Optional.empty(); // its tab comes with SP3b-2 Task 13
+            case FieldsView f -> Optional.of(new FieldsTab(manager, player, view.pos(), f));
             case RecipesView r -> Optional.of(new RecipesTab(manager, player, view.pos(), r, view.canManage()));
         };
     }

@@ -357,6 +357,7 @@ ui.field.farmer = Fermier : {p0}
 ui.field.farmer.none = Fermier : personne
 ui.field.seed = Choisir la graine
 ui.field.seed.none = Aucune graine
+ui.field.select = Choisir
 ui.field.radius.north = Taille du champ vers le nord
 ui.field.radius.south = Taille du champ vers le sud
 ui.field.radius.west = Taille du champ vers l'ouest

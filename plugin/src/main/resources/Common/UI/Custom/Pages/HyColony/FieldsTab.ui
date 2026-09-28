@@ -1,0 +1,38 @@
+$C = "../../Common.ui";
+
+Group {
+  LayoutMode: Top;
+  Visible: false;
+
+  Label #FieldsCount {
+    Style: (RenderBold: true);
+    Anchor: (Bottom: 6);
+  }
+
+  Group {
+    LayoutMode: Left;
+    Anchor: (Height: 36, Bottom: 8);
+
+    $C.@SecondaryTextButton #ModeButton {
+      Anchor: (Width: 280, Height: 32, Right: 8);
+      Text: "";
+    }
+
+    $C.@SecondaryTextButton #FertilizeButton {
+      Anchor: (Width: 280, Height: 32);
+      Text: "";
+    }
+  }
+
+  Label #FieldsEmpty {
+    Style: (TextColor: #94a7bb);
+    Anchor: (Bottom: 10);
+    Visible: false;
+  }
+
+  Group #Fields {
+    LayoutMode: TopScrolling;
+    ScrollbarStyle: $C.@DefaultScrollbarStyle;
+    Anchor: (Height: 340);
+  }
+}

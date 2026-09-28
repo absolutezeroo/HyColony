@@ -25,6 +25,7 @@ import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.plugin.IdMap;
 import dev.hycolony.plugin.ui.BuildingPage;
 import dev.hycolony.plugin.ui.ColonyPage;
+import dev.hycolony.plugin.ui.FieldPage;
 import dev.hycolony.plugin.ui.FoundColonyPage;
 import dev.hycolony.plugin.ui.RequestsPage;
 import dev.hycolony.plugin.ui.citizen.CitizenInventoryWindows;
@@ -155,9 +156,11 @@ public final class HytaleUiPort implements UiPort {
         open(player, citizenPage(view));
     }
 
-    /** Until the field page exists (SP3b-2 Task 13): nothing is shown. */
+    /** Opens the field block's window (MC WindowField). */
     @Override
-    public void showField(UUID player, FieldView view) {}
+    public void showField(UUID player, FieldView view) {
+        open(player, pr -> new FieldPage(pr, view, manager.get()));
+    }
 
     @Override
     public void showWand(UUID player, WandView view) {
