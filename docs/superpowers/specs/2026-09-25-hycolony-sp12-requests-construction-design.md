@@ -350,7 +350,7 @@ Chaque écart porte un commentaire `Deviation from MC:` dans le code (CLAUDE.md 
   - les coffres collés sont vides : nos plans remplacent les coffres des prefabs par un coffre vide, MineColonies collerait leur contenu ;
   - pas d'annuler/refaire ni de phase des entités.
 
-**Entrepôt et livreurs** (`logistics/`, `colony/view/LogisticsViews`, `plugin/ui/logistics`, spec `2026-09-27-hycolony-sp3a-warehouse-courier-design.md`, section « Écarts » : liste complète)
+**Entrepôt et livreurs** (`logistics/`, onglets fournis par leurs modules via `ProvidesTab` et `TaskRows`, `colony/view/BuildingViews.stock`, `plugin/ui/hut`, `plugin/ui/logistics/PickupPanel`, spec `2026-09-27-hycolony-sp3a-warehouse-courier-design.md`, section « Écarts » : liste complète)
 - **Rangements** : les coffres Hytale posés par le constructeur remplacent les étagères MC ; pas de 2e choix « objet similaire » (onglet créatif) ; pas d'amélioration de stockage.
 - **Résolveurs de stock** : un seul résolveur au lieu du couple générique / concret ; pas de `StackList` ni de stock minimum.
 - **Pluie** : un ouvrier s'arrête s'il pleut **ou neige** à la position de sa hutte (MC : pluie globale) ; le constructeur aussi, comme MC.

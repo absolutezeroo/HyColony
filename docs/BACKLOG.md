@@ -102,7 +102,7 @@ Les autres points de la relecture sont corrigés. Il reste :
 - **Entrepôt et livreurs : points mineurs reportés** (relecture finale de SP3a, 2026-09-27) :
   - `CourierTaskPicker` appelle `RequesterLocation.of` pour chaque entrée de la file (file × bâtiments, sans `SCAN_LIMIT`) ;
   - la tâche en cours (`ongoing`) d'un livreur n'est pas vidée quand il devient inactif (comme MC), sans que ce soit documenté ;
-  - Javadoc à compléter : `tokens()` de la file, onglet Stock (`LogisticsViews.stock`) ;
+  - Javadoc à compléter : `tokens()` de la file, bouton Stock (`BuildingViews.stock`) ;
   - tests : le message « entrepôt plein » n'est suivi que sur 2000 ticks ; les simulations d'échec ne vérifient la conservation des objets que pour `PLANKS` ;
   - plugin : les gestionnaires « fournir » de `RequestsPage` ne revérifient pas `canSupply` ;
   - nom d'objet : repli sur le `Message` brut quand la traduction manque (`itemName`) ;
