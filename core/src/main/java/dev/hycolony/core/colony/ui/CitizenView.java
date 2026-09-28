@@ -3,7 +3,6 @@ package dev.hycolony.core.colony.ui;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.citizen.Skills;
 import dev.hycolony.core.colony.ui.RequestsView.RequestRow;
-import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.port.Msg;
 import dev.hycolony.core.request.model.Requestable;
 import java.util.List;
@@ -27,12 +26,10 @@ public record CitizenView(
         Optional<Requestable> waitingFor,
         Optional<Msg> jobActivity,
         List<SkillRow> skills,
-        List<ItemAmount> inventory,
         List<RequestRow> requests,
         Optional<JobSkills> jobSkills) {
     public CitizenView {
         skills = List.copyOf(skills);
-        inventory = List.copyOf(inventory);
         requests = List.copyOf(requests);
     }
 

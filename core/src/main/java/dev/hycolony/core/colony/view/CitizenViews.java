@@ -53,7 +53,6 @@ final class CitizenViews {
                 waitingFor,
                 c.citizens().jobActivity(d.id()),
                 SkillRows.of(d.skills(), jobSkills),
-                d.inventory().contents(),
                 open,
                 worker.map(w -> JobSkillShares.of(w.primary(), w.secondary())));
     }
