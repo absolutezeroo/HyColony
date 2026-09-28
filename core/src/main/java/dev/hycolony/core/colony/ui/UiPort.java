@@ -33,8 +33,9 @@ public interface UiPort {
     void showWand(UUID player, WandView view);
 
     /**
-     * The citizen's own inventory as a container window, live on its core inventory (MC ContainerCitizenInventory).
-     * The caller has checked the permission; a player or citizen gone by now is ignored.
+     * The citizen's own inventory as a container window, live on its core inventory (MC ContainerCitizenInventory),
+     * shown in the citizen window's Inventory tab. The caller has checked the permission; a player or citizen gone by
+     * now is ignored.
      */
     void openCitizenInventory(UUID player, int colonyId, int citizenId);
 

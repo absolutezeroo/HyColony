@@ -16,6 +16,7 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.construction.workorder.WorkOrderType;
+import dev.hycolony.plugin.inventory.InventoryDrop;
 import java.util.Locale;
 import java.util.UUID;
 import javax.annotation.Nonnull;
@@ -29,21 +30,25 @@ import javax.annotation.Nullable;
  */
 public abstract class ColonyPage extends InteractiveCustomUIPage<ColonyPage.Act> {
     public static final class Act {
-        static final BuilderCodec<Act> CODEC = BuilderCodec.builder(Act.class, Act::new)
-                .append(new KeyedCodec<>("Action", Codec.STRING), (d, v) -> d.action = v, d -> d.action)
-                .add()
-                .append(
-                        new KeyedCodec<>("Index", Codec.STRING),
-                        (d, v) -> d.index = parse(v),
-                        d -> String.valueOf(d.index))
-                .add()
-                .append(new KeyedCodec<>("@Name", Codec.STRING), (d, v) -> d.name = v, d -> d.name)
-                .add()
+        static final BuilderCodec<Act> CODEC = InventoryDrop.appendTo(
+                        BuilderCodec.builder(Act.class, Act::new)
+                                .append(new KeyedCodec<>("Action", Codec.STRING), (d, v) -> d.action = v, d -> d.action)
+                                .add()
+                                .append(
+                                        new KeyedCodec<>("Index", Codec.STRING),
+                                        (d, v) -> d.index = parse(v),
+                                        d -> String.valueOf(d.index))
+                                .add()
+                                .append(new KeyedCodec<>("@Name", Codec.STRING), (d, v) -> d.name = v, d -> d.name)
+                                .add(),
+                        d -> d.drop)
                 .build();
         String action = "";
         int index = -1;
         /** A text field's value, sent as {@code @Name}; empty when the event carries none. */
         String name = "";
+        /** An item dropped on one of the window's inventory grids (InventoryGrids); empty for other events. */
+        final InventoryDrop drop = new InventoryDrop();
 
         public String action() {
             return action;
@@ -55,6 +60,10 @@ public abstract class ColonyPage extends InteractiveCustomUIPage<ColonyPage.Act>
 
         public String name() {
             return name;
+        }
+
+        public InventoryDrop drop() {
+            return drop;
         }
 
         private static int parse(String s) {

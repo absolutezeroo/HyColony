@@ -19,6 +19,7 @@ import dev.hycolony.plugin.inventory.InventoryDrop;
 import dev.hycolony.plugin.inventory.InventoryGrids;
 import dev.hycolony.plugin.inventory.InventoryMoves;
 import dev.hycolony.plugin.inventory.InventoryWatch;
+import dev.hycolony.plugin.inventory.PageRedraw;
 import dev.hycolony.plugin.inventory.PlayerPanels;
 import dev.hycolony.plugin.inventory.PlayerSection;
 import dev.hycolony.plugin.inventory.ReturningContainerWindow;
@@ -79,7 +80,7 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
     private final CutterActions actions;
     private final CutterSlots slots;
     private @Nullable InventoryWatch watch;
-    private boolean redrawPending;
+    private final PageRedraw redraw;
 
     CutterPage(PlayerRef playerRef, Setup setup) {
         super(playerRef, CustomPageLifetime.CanDismiss, Act.CODEC);
@@ -90,6 +91,9 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
                 setup.catalogs().materials().tags());
         actions.selectGroup(setup.memory().group(player));
         this.slots = new CutterSlots(actions::accepts);
+        // Nothing once the slots' window has closed: the page is gone or the player is leaving.
+        this.redraw = new PageRedraw(
+                setup.world(), this::redrawIfShown, () -> !slots.window().isClosed());
     }
 
     /** The slots' window, to open with this page. */
@@ -104,7 +108,7 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
             @Nonnull UIEventBuilder events,
             @Nonnull Store<EntityStore> store) {
         if (watch == null) {
-            watch = InventoryWatch.start(store, ref, this::redrawSoon, slots.container());
+            watch = InventoryWatch.start(store, ref, redraw::soon, slots.container());
         }
         ui.append("Pages/HyColony/Cutter.ui");
         CutterDrawing.draw(ui, events, actions.view(slots.contents(), CutterCrafting.creative(store, ref)));
@@ -172,26 +176,7 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
                         setup.registry(),
                         crafts,
                         // Up to 30 s later: redraw only if the player still looks at this page.
-                        this::redrawSoon)));
-    }
-
-    /**
-     * Redraws once, later on the world thread, however many changes come before (a craft or a drop changes several
-     * containers); nothing once the slots' window has closed (the page is gone or the player is leaving).
-     */
-    private void redrawSoon() {
-        if (redrawPending || slots.window().isClosed()) {
-            return;
-        }
-        redrawPending = true;
-        try {
-            setup.world().execute(() -> {
-                redrawPending = false;
-                PageEvents.guard(getClass(), this::redrawIfShown);
-            });
-        } catch (RuntimeException e) { // the world no longer takes tasks (stopping): nothing to redraw
-            redrawPending = false;
-        }
+                        redraw::soon)));
     }
 
     /** Redraws while the player still looks at this page in this world; otherwise does nothing. */
