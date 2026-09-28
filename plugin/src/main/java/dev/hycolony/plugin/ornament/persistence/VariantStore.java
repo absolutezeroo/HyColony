@@ -2,15 +2,14 @@ package dev.hycolony.plugin.ornament.persistence;
 
 import com.hypixel.hytale.logger.HytaleLogger;
 import dev.hycolony.core.ornament.SavedVariants;
-import dev.hycolony.plugin.ornament.api.VariantKey;
+import dev.hycolony.core.ornament.ShapeCatalog;
+import dev.hycolony.core.ornament.VariantKey;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.logging.Level;
 
 /**
@@ -33,11 +32,11 @@ public final class VariantStore {
     }
 
     /**
-     * Reads the file and returns the entries it can read; a missing file is empty. An unknown entry is logged and
-     * kept for rewriting; an unreadable file is logged SEVERE and renamed to {@code .corrupt}; a file of a newer
+     * Reads the file and returns the entries shapes can read; a missing file is empty. An unknown entry is logged
+     * and kept for rewriting; an unreadable file is logged SEVERE and renamed to {@code .corrupt}; a file of a newer
      * schema is logged SEVERE, returns empty and is never rewritten.
      */
-    public synchronized List<VariantKey> load() {
+    public synchronized List<VariantKey> load(ShapeCatalog shapes) {
         saved = SavedVariants.empty();
         if (!Files.exists(file)) {
             return List.of();
@@ -53,11 +52,11 @@ public final class VariantStore {
             LOG.at(Level.SEVERE).log("hyornament: %s is from a newer version, left untouched", file);
             return List.of();
         }
-        List<VariantKey> keys = new ArrayList<>();
-        for (String id : saved.ids()) {
-            Optional<VariantKey> key = VariantKey.parse(id);
-            key.ifPresentOrElse(
-                    keys::add, () -> LOG.at(Level.WARNING).log("hyornament: unknown variant %s kept in %s", id, file));
+        List<VariantKey> keys = saved.keys(shapes);
+        if (keys.size() < saved.ids().size()) {
+            LOG.at(Level.WARNING).log(
+                    "hyornament: %d saved variant(s) name no known shape, kept in %s",
+                    saved.ids().size() - keys.size(), file);
         }
         return keys;
     }

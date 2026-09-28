@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /** The shapes of the generated manifest ({@code hycolony/ornament/shapes.json}), looked up by id. */
@@ -66,6 +67,11 @@ public final class ShapeCatalog {
 
     public List<OrnamentShape> all() {
         return shapes;
+    }
+
+    /** This catalog without the shapes keep refuses (the plugin drops shapes whose template is not loaded). */
+    public ShapeCatalog retain(Predicate<OrnamentShape> keep) {
+        return new ShapeCatalog(shapes.stream().filter(keep).toList());
     }
 
     /**

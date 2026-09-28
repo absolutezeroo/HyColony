@@ -1,7 +1,6 @@
 package dev.hycolony.plugin.ornament.runtime;
 
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
-import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockTypeTextures;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.CustomModelTexture;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.StateData;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
@@ -10,7 +9,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * One BlockType of a variant, its main block or one of its states: a copy of the matching template block with the
- * variant's textures, state table and connection rules.
+ * variant's layout texture, state table and connection rules.
  *
  * <p>BlockType's fields are protected with no setters: a subclass is the only way to set them without decoding
  * JSON. {@code data} is dropped: kept, it would make every load re-read the template's contained assets under our
@@ -18,9 +17,6 @@ import org.jspecify.annotations.Nullable;
  * vanilla finds neither the item nor the default state, so both are answered here from the family's main key.
  */
 final class VariantBlockType extends BlockType {
-    /** The variant's textures: model always, cube only for a cube + model shape. */
-    record Look(String modelTexture, @Nullable String cubeTexture) {}
-
     /**
      * What a variant's blocks share: the main block's key (its item and default state), the state table and one copy
      * of the connection rules, which cache the family's block ids (ConnectedBlocksModule.onBlockTypesChanged).
@@ -32,15 +28,12 @@ final class VariantBlockType extends BlockType {
 
     private final String mainKey;
 
-    VariantBlockType(BlockType template, String id, Look look, Family family) {
+    VariantBlockType(BlockType template, String id, String modelTexture, Family family) {
         super(template);
         this.data = null;
         this.id = id;
         this.mainKey = family.mainKey();
-        this.customModelTexture = new CustomModelTexture[] {new CustomModelTexture(look.modelTexture(), 1)};
-        if (look.cubeTexture() != null) {
-            this.textures = new BlockTypeTextures[] {new BlockTypeTextures(look.cubeTexture())};
-        }
+        this.customModelTexture = new CustomModelTexture[] {new CustomModelTexture(modelTexture, 1)};
         this.state = family.states();
         this.connectedBlockRuleSet = family.rules();
     }

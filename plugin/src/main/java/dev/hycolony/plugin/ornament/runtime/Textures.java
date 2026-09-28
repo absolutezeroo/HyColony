@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import javax.imageio.ImageIO;
 
-/** Image helpers shared by the generated icons and textures: read a loaded texture, fit it to a face, write PNG. */
+/** Image helpers of the generated textures and icons: read a loaded texture, fit it to a face, pair two, write PNG. */
 final class Textures {
     /** Texture size, in pixels, of one block face. */
     static final int FACE = 32;
@@ -42,6 +42,16 @@ final class Textures {
         g.drawImage(texture, 0, 0, FACE, FACE, null);
         g.dispose();
         return face;
+    }
+
+    /** The two-material layout: first's face on the left, second's on the right (2 x {@link #FACE} by FACE). */
+    static BufferedImage pair(BufferedImage first, BufferedImage second) {
+        BufferedImage pair = new BufferedImage(2 * FACE, FACE, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = pair.createGraphics();
+        g.drawImage(face(first), 0, 0, null);
+        g.drawImage(face(second), FACE, 0, null);
+        g.dispose();
+        return pair;
     }
 
     /** {@code image} as PNG bytes. */

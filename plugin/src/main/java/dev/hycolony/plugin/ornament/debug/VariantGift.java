@@ -11,7 +11,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.plugin.ornament.api.OrnamentVariant;
 import java.util.logging.Level;
 
-/** Who a /hyornament test gives its variant to: a stack of the variant's item, on the world thread. */
+/** Who a /hyornament give hands its variant to: a stack of the variant's item, on the world thread. */
 record VariantGift(PlayerRef player, Ref<EntityStore> ref) {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
     private static final int GIVEN = 16;
@@ -20,7 +20,7 @@ record VariantGift(PlayerRef player, Ref<EntityStore> ref) {
      * Gives {@link #GIVEN} of the variant's item (dropped at the feet when the inventory is full) and reports whether
      * the variant was created or reused; skipped when the player left meanwhile, a failure is logged and reported.
      */
-    void give(OrnamentVariant variant, boolean created, long ms, String mode) {
+    void give(OrnamentVariant variant, boolean created, long ms) {
         String key = variant.key().blockTypeKey();
         if (!ref.isValid()) {
             return;
@@ -35,11 +35,10 @@ record VariantGift(PlayerRef player, Ref<EntityStore> ref) {
             LOG.at(Level.INFO).log(
                     "hyornament: gave %d %s (id %d), %s after %d ms",
                     GIVEN, key, variant.blockId(), created ? "created" : "reused", ms);
-            String id = String.valueOf(variant.blockId());
             if (created) {
-                OrnamentCommand.say(player, "hycolony.ornament.created", key, id, String.valueOf(ms), mode);
+                OrnamentCommand.say(player, "hycolony.ornament.created", key, String.valueOf(ms));
             } else {
-                OrnamentCommand.say(player, "hycolony.ornament.reused", key, id);
+                OrnamentCommand.say(player, "hycolony.ornament.reused", key);
             }
             OrnamentCommand.say(player, "hycolony.ornament.given", String.valueOf(GIVEN), key);
         } catch (RuntimeException e) {

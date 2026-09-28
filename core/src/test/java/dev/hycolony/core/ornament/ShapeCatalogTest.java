@@ -54,6 +54,13 @@ class ShapeCatalogTest {
     }
 
     @Test
+    void retainedCatalogDropsTheOtherShapes() {
+        ShapeCatalog catalog = ShapeCatalog.parse(JSON).retain(shape -> false);
+        assertTrue(catalog.all().isEmpty());
+        assertTrue(catalog.shape("Shingle").isEmpty());
+    }
+
+    @Test
     void materialTagsAcceptTheirMaterialsOnly() {
         MaterialTags tags = new MaterialTags(Map.of("roof", Set.of("Rock_Stone_Brick")));
         assertTrue(tags.accepts("roof", "Rock_Stone_Brick"));
