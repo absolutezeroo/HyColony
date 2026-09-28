@@ -4,6 +4,7 @@ non-zero on failure)."""
 import tempfile
 from pathlib import Path
 
+import assemble
 import convert
 import source
 from convert import Converter, check_atlas
@@ -73,10 +74,37 @@ def partial_cache_is_refetched(tmp):
     assert not source.is_complete(tmp)
 
 
+def rotate_y_turns_north_face_to_east():
+    """assemble.rotate_y matches Minecraft's y rotation direction: clockwise from above, north -> east."""
+    model = {
+        "textures": {},
+        "elements": [
+            {"from": [0, 0, 0], "to": [16, 16, 2], "faces": {"north": {"uv": [0, 0, 16, 16], "texture": "#a"}}}
+        ],
+    }
+    element = assemble.rotate_y(model, 90)["elements"][0]
+    assert element["from"] == [14, 0, 0] and element["to"] == [16, 16, 16], element
+    assert set(element["faces"]) == {"east"}
+
+
+def multipart_keeps_matching_parts_only():
+    """assemble.parts keeps every unconditional part plus the parts whose "when" matches props."""
+    state = {
+        "multipart": [
+            {"apply": {"model": "p/post"}},
+            {"when": {"north": "true"}, "apply": {"model": "p/side"}},
+            {"when": {"north": "false|none"}, "apply": {"model": "p/side_off"}},
+        ]
+    }
+    assert [p["model"] for p in assemble.parts(state, {"north": "false"})] == ["p/post", "p/side_off"]
+
+
 def main():
     converter_matches_reference_geometry()
     families_cover_the_spec()
     material_follows_component_order()
+    rotate_y_turns_north_face_to_east()
+    multipart_keeps_matching_parts_only()
     with tempfile.TemporaryDirectory() as tmp:
         partial_cache_is_refetched(Path(tmp))
     print("tools/domum check: OK")
