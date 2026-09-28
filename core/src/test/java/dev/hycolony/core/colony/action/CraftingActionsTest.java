@@ -96,7 +96,7 @@ class CraftingActionsTest {
         assertFalse(crafting.learn(carol, HUT, WHEAT_ID.value()));
 
         assertEquals(List.of(), module.recipes());
-        assertTrue(colony.recipes().idOf(WHEAT).isEmpty());
+        assertTrue(colony.registries().recipes().idOf(WHEAT).isEmpty());
         assertEquals(List.of(), t.notifier.sent);
         assertFalse(t.ui.shown.containsKey(carol));
     }
@@ -122,7 +122,7 @@ class CraftingActionsTest {
         assertFalse(crafting.learn(alice, HUT, WHEAT_ID.value()));
 
         assertEquals(10, module.recipes().size());
-        assertTrue(colony.recipes().idOf(WHEAT).isEmpty(), "a refused recipe is not registered");
+        assertTrue(colony.registries().recipes().idOf(WHEAT).isEmpty(), "a refused recipe is not registered");
         assertEquals(
                 List.of(Msg.of("hycolony.crafting.learnRefused", "%hycolony.ui.recipes.refused.full")), messages());
         assertEquals(10, shownTab(alice).active());

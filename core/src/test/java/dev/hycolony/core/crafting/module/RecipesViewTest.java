@@ -76,7 +76,7 @@ class RecipesViewTest {
                 ids(v.learnable()),
                 "by output id; the Anvil recipe needs a bench the hut does not have");
         assertTrue(v.learnable().stream().allMatch(l -> l.refusal().isEmpty()));
-        assertTrue(h.colony.recipes().idOf(WHEAT).isEmpty(), "showing the tab registers nothing");
+        assertTrue(h.colony.registries().recipes().idOf(WHEAT).isEmpty(), "showing the tab registers nothing");
     }
 
     @Test

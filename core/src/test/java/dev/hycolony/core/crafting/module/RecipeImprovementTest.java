@@ -77,7 +77,11 @@ class RecipeImprovementTest {
     }
 
     private Recipe listed(int index) {
-        return h.colony.recipes().get(h.module.recipes().get(index)).orElseThrow();
+        return h.colony
+                .registries()
+                .recipes()
+                .get(h.module.recipes().get(index))
+                .orElseThrow();
     }
 
     @Test
@@ -118,7 +122,11 @@ class RecipeImprovementTest {
         improve(excluded, id, LUCKY);
 
         assertEquals(List.of(id), excluded.module.recipes());
-        assertTrue(excluded.colony.recipes().get(new RecipeId("improved:1")).isEmpty());
+        assertTrue(excluded.colony
+                .registries()
+                .recipes()
+                .get(new RecipeId("improved:1"))
+                .isEmpty());
     }
 
     @Test
@@ -128,7 +136,8 @@ class RecipeImprovementTest {
         improve(h, id, LUCKY);
 
         assertEquals(List.of(id), h.module.recipes());
-        assertTrue(h.colony.recipes().get(new RecipeId("improved:1")).isEmpty());
+        assertTrue(
+                h.colony.registries().recipes().get(new RecipeId("improved:1")).isEmpty());
     }
 
     @Test
@@ -192,7 +201,13 @@ class RecipeImprovementTest {
 
         improve(benchHut, id, LUCKY);
 
-        assertTrue(benchHut.colony.recipes().get(new RecipeId("improved:1")).isPresent(), "registered, as in MC");
+        assertTrue(
+                benchHut.colony
+                        .registries()
+                        .recipes()
+                        .get(new RecipeId("improved:1"))
+                        .isPresent(),
+                "registered, as in MC");
         assertEquals(List.of(id), benchHut.module.recipes(), "MC: isRecipeCompatibleWithCraftingModule(token)");
     }
 }

@@ -107,7 +107,8 @@ public final class RecipeChoice {
         if (module.isDisabled(id)) {
             return Optional.empty();
         }
-        return colony.recipes()
+        return colony.registries()
+                .recipes()
                 .get(id)
                 .filter(r -> output.test(r.primaryOutput().item()))
                 .filter(r -> RecipeCompatibility.stillValid(colony, hut, module.jobId(), id))

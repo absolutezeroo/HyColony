@@ -77,7 +77,7 @@ final class RecipeCompatibility {
      * even a pre-taught recipe needs an item for each ingredient.
      */
     static boolean stillValid(Colony colony, Building hut, String jobId, RecipeId id) {
-        Optional<Recipe> recipe = colony.recipes().get(id);
+        Optional<Recipe> recipe = colony.registries().recipes().get(id);
         CraftingSetup crafting = colony.context().ports().crafting();
         if (recipe.isEmpty() || !RecipeMatching.everyIngredientHasItems(recipe.get(), crafting.catalog())) {
             return false;

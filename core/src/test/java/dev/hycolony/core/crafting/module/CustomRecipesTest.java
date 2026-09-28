@@ -66,7 +66,7 @@ class CustomRecipesTest {
 
         assertEquals(List.of(taught, CUSTOM), h.module.recipes());
         assertTrue(h.module.isCustom(h.colony, CUSTOM));
-        assertTrue(h.colony.recipes().get(CUSTOM).orElseThrow().sameContentAs(HYTALE));
+        assertTrue(h.colony.registries().recipes().get(CUSTOM).orElseThrow().sameContentAs(HYTALE));
         assertTrue(h.colony.isDirty());
     }
 
@@ -145,7 +145,7 @@ class CustomRecipesTest {
         check();
 
         assertEquals(List.of(), h.module.recipes());
-        assertTrue(h.colony.recipes().get(CUSTOM).isEmpty());
+        assertTrue(h.colony.registries().recipes().get(CUSTOM).isEmpty());
     }
 
     @Test

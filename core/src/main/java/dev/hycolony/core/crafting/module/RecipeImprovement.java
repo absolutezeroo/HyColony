@@ -55,7 +55,7 @@ public final class RecipeImprovement {
 
     /** {@link #improve(Colony, Building, CraftingModule, Crafted)} with a given random source. */
     static void improve(Colony colony, Building hut, CraftingModule module, Crafted crafted, RandomGenerator random) {
-        Optional<Recipe> found = colony.recipes().get(crafted.recipe());
+        Optional<Recipe> found = colony.registries().recipes().get(crafted.recipe());
         if (found.isEmpty()) {
             return;
         }
@@ -75,7 +75,7 @@ public final class RecipeImprovement {
             return;
         }
         Recipe improved = recipe.improvedWith(reduction.get().inputs());
-        RecipeId id = colony.recipes().checkOrAdd(improved);
+        RecipeId id = colony.registries().recipes().checkOrAdd(improved);
         colony.markDirty();
         if (RecipeCompatibility.compatible(colony, hut, module.jobId(), improved)) {
             module.replaceRecipe(colony, crafted.recipe(), id);

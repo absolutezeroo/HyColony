@@ -27,17 +27,18 @@ public final class MigrationChain {
     }
 
     /**
-     * SP3b: schema 4. Schema 2 added citizen inventory/job, colony requests/workOrders/settings, building containers;
+     * SP3b: schema 5. Schema 2 added citizen inventory/job, colony requests/workOrders/settings, building containers;
      * schema 3 moved a tool's wear from the job's per-item counter onto the stack; schema 4 added the huts' plan
-     * benches and the colony's recipe registry.
+     * benches and the colony's recipe registry; schema 5 the colony's fields.
      */
     public static MigrationChain sp3b() {
         return new MigrationChain(
-                4,
+                5,
                 List.of(
                         new Migration(1, MigrationChain::v1ToV2),
                         new Migration(2, MigrationChain::v2ToV3),
-                        new Migration(3, MigrationChain::v3ToV4)));
+                        new Migration(3, MigrationChain::v3ToV4),
+                        new Migration(4, MigrationChain::v4ToV5)));
     }
 
     private static JsonObject v1ToV2(JsonObject doc) {
@@ -88,6 +89,12 @@ public final class MigrationChain {
             }
         }
         doc.add("recipes", new JsonObject());
+        return doc;
+    }
+
+    /** Schema 5 (SP3b-2): the colony keeps its fields, none in an older save. */
+    private static JsonObject v4ToV5(JsonObject doc) {
+        doc.add("fields", new JsonArray());
         return doc;
     }
 

@@ -28,7 +28,8 @@ final class CraftingHeal {
         boolean changed = false;
         for (Building b : c.buildings().all()) {
             for (CraftingModule module : CraftingModules.of(b)) {
-                changed |= module.retainRecipes(id -> c.recipes().get(id).isPresent());
+                changed |= module.retainRecipes(
+                        id -> c.registries().recipes().get(id).isPresent());
             }
         }
         for (CitizenData d : c.citizens().all()) {

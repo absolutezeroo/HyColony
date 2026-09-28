@@ -3,10 +3,10 @@ package dev.hycolony.core.colony;
 import dev.hycolony.core.building.BuildingManager;
 import dev.hycolony.core.citizen.CitizenManager;
 import dev.hycolony.core.colony.permission.Permissions;
+import dev.hycolony.core.colony.registry.ColonyRegistries;
 import dev.hycolony.core.colony.territory.ClaimCell;
 import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.construction.workorder.WorkManager;
-import dev.hycolony.core.crafting.recipe.RecipeRegistry;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.ai.AITarget;
 import dev.hycolony.core.kernel.ai.IStateSupplier;
@@ -46,7 +46,7 @@ public final class Colony {
     private final CitizenNameplates nameplates = new CitizenNameplates(this);
     private final ColonySettings settings = new ColonySettings();
     private final EventLog log = new EventLog();
-    private final RecipeRegistry recipes = new RecipeRegistry();
+    private final ColonyRegistries registries = new ColonyRegistries();
     private final TickRateStateMachine<ColonyState> machine;
     private int day;
     private boolean wasDaytime;
@@ -122,6 +122,9 @@ public final class Colony {
     private void slowTick() {
         buildings.onColonyTick(this);
         citizens.onColonyTick();
+        registries
+                .fields()
+                .cleanUp(ctx.worldQuery()::isLoaded, this::contains, ctx.ports().farming()::isFieldBlock);
     }
 
     private Optional<Requester> requester(RequesterId id) {
@@ -196,9 +199,9 @@ public final class Colony {
         return log;
     }
 
-    /** The recipes the colony's huts learnt or improved (MC IColonyManager.getRecipeManager, per colony here). */
-    public RecipeRegistry recipes() {
-        return recipes;
+    /** The colony-wide registries: learnt recipes and fields. */
+    public ColonyRegistries registries() {
+        return registries;
     }
 
     public int day() {

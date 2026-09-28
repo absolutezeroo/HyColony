@@ -42,18 +42,18 @@ class ColonyRecipesSaveTest {
         first.recipes.add(WHEAT);
         ColonyManager m = load(first);
         Colony c = m.byId(1).orElseThrow();
-        RecipeId wheat = c.recipes().checkOrAdd(WHEAT);
-        RecipeId improved = c.recipes().checkOrAdd(RecipeFixtures.improved("Plant_Seeds_Corn"));
+        RecipeId wheat = c.registries().recipes().checkOrAdd(WHEAT);
+        RecipeId improved = c.registries().recipes().checkOrAdd(RecipeFixtures.improved("Plant_Seeds_Corn"));
         m.persistence().saveAll();
 
         TestContexts second = new TestContexts();
         second.recipes.add(WHEAT);
         Colony r = load(second).byId(1).orElseThrow();
 
-        assertEquals(Optional.of(WHEAT), r.recipes().get(wheat));
+        assertEquals(Optional.of(WHEAT), r.registries().recipes().get(wheat));
         assertEquals(
                 Optional.of(RecipeFixtures.improved("Plant_Seeds_Corn")),
-                r.recipes().get(improved));
+                r.registries().recipes().get(improved));
     }
 
     @Test
@@ -64,7 +64,7 @@ class ColonyRecipesSaveTest {
 
         Colony c = load(new TestContexts()).byId(1).orElseThrow();
 
-        assertTrue(c.recipes().idOf(WHEAT).isEmpty());
-        assertEquals(new RecipeId("improved:1"), c.recipes().checkOrAdd(RecipeFixtures.improved("A")));
+        assertTrue(c.registries().recipes().idOf(WHEAT).isEmpty());
+        assertEquals(new RecipeId("improved:1"), c.registries().recipes().checkOrAdd(RecipeFixtures.improved("A")));
     }
 }

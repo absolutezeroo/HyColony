@@ -84,7 +84,8 @@ public final class CraftingModule implements PersistentModule, TickingModule, Ke
 
     /** Whether the recipe is a custom one: granted by the hut level, not counted in the maximum, not removable. */
     public boolean isCustom(Colony colony, RecipeId id) {
-        return colony.recipes()
+        return colony.registries()
+                .recipes()
                 .get(id)
                 .map(r -> r.source() instanceof RecipeSource.Custom)
                 .orElse(false);
@@ -103,13 +104,13 @@ public final class CraftingModule implements PersistentModule, TickingModule, Ke
     public int activeRecipes(Colony colony) {
         return (int) list.ids().stream()
                 .filter(id -> !list.isDisabled(id))
-                .filter(id -> colony.recipes().get(id).isPresent() && !isCustom(colony, id))
+                .filter(id -> colony.registries().recipes().get(id).isPresent() && !isCustom(colony, id))
                 .count();
     }
 
     /** MC canRecipeBeAdded: why {@code player} may not teach the hut the recipe; empty if they may. */
     public Optional<LearnRefusal> canLearn(Colony colony, Building hut, RecipeId id, UUID player) {
-        return refusal(colony, hut, colony.recipes().get(id).orElse(null), player);
+        return refusal(colony, hut, colony.registries().recipes().get(id).orElse(null), player);
     }
 
     /** {@link #canLearn} for a recipe the registry may not know yet; a null recipe is unknown, so INCOMPATIBLE. */
@@ -148,7 +149,8 @@ public final class CraftingModule implements PersistentModule, TickingModule, Ke
      */
     public void handleRecipeUpdate(Colony colony, RecipeId id) {
         ItemCatalog items = colony.requests().catalog();
-        colony.recipes()
+        colony.registries()
+                .recipes()
                 .get(id)
                 .ifPresent(recipe -> colony.requests()
                         .onColonyUpdate(request -> request.deliverable()

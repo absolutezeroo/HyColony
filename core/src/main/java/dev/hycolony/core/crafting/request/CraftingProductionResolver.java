@@ -156,7 +156,7 @@ final class CraftingProductionResolver implements Resolver {
     private void craftNow(RequestManager m, Request r) {
         Crafting task = (Crafting) r.requestable();
         RecipeId recipeId = new RecipeId(task.recipeId());
-        Optional<Recipe> recipe = colony.recipes().get(recipeId);
+        Optional<Recipe> recipe = colony.registries().recipes().get(recipeId);
         if (recipe.isEmpty() || CraftingModules.holding(hut, recipeId).isEmpty()) {
             m.updateState(r.token(), RequestState.FAILED);
             return;

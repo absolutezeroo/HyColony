@@ -92,7 +92,7 @@ public final class RecipeReservations {
         if (colony.requests().get(token).map(Request::requestable).orElse(null) instanceof Crafting task) {
             RecipeId id = new RecipeId(task.recipeId());
             if (module.holdsRecipe(id)) {
-                return colony.recipes().get(id).map(recipe -> new Pending(recipe, task.count()));
+                return colony.registries().recipes().get(id).map(recipe -> new Pending(recipe, task.count()));
             }
         }
         return Optional.empty();

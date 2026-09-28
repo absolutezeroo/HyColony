@@ -70,7 +70,7 @@ class RecipeChoiceTest {
         assertEquals(Optional.of(byHand), first(WHEAT_SEEDS));
         Chosen chosen = RecipeChoice.firstRecipe(h.colony, h.hut, h.module, is(WHEAT_SEEDS))
                 .orElseThrow();
-        assertEquals(h.colony.recipes().get(byHand), Optional.of(chosen.recipe()));
+        assertEquals(h.colony.registries().recipes().get(byHand), Optional.of(chosen.recipe()));
 
         h.module.toggle(h.colony, 0);
         assertEquals(Optional.of(atBench), first(WHEAT_SEEDS));
@@ -196,8 +196,8 @@ class RecipeChoiceTest {
 
         assertEquals(Optional.of(id), fulfillable(WHEAT_SEEDS, FulfillQuery.of(1)));
         assertFalse(RecipeChoice.canFullFill(
-                h.colony, h.hut, h.colony.recipes().get(id).orElseThrow(), FulfillQuery.of(2)));
+                h.colony, h.hut, h.colony.registries().recipes().get(id).orElseThrow(), FulfillQuery.of(2)));
         assertTrue(RecipeChoice.canFullFill(
-                h.colony, h.hut, h.colony.recipes().get(id).orElseThrow(), FulfillQuery.of(1)));
+                h.colony, h.hut, h.colony.registries().recipes().get(id).orElseThrow(), FulfillQuery.of(1)));
     }
 }

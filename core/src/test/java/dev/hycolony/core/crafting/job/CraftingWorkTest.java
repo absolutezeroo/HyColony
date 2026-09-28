@@ -198,6 +198,7 @@ class CraftingWorkTest {
         assertEquals(1, lucky.job().actionsDone());
         Recipe listed = lucky.h
                 .colony
+                .registries()
                 .recipes()
                 .get(lucky.h.module.recipes().getFirst())
                 .orElseThrow();

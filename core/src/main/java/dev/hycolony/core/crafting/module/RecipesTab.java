@@ -45,7 +45,8 @@ final class RecipesTab {
         RecipeCatalog catalog = colony.context().ports().crafting().catalog();
         List<Line> out = new ArrayList<>();
         for (RecipeId id : module.recipes()) {
-            colony.recipes()
+            colony.registries()
+                    .recipes()
                     .get(id)
                     .ifPresent(r -> out.add(new Line(
                             id.value(),
@@ -73,7 +74,7 @@ final class RecipesTab {
             if (!(r.source() instanceof RecipeSource.Hytale(String hytaleId))) {
                 continue;
             }
-            RecipeId id = colony.recipes().idOf(r).orElseGet(() -> RecipeId.hytale(hytaleId));
+            RecipeId id = colony.registries().recipes().idOf(r).orElseGet(() -> RecipeId.hytale(hytaleId));
             if (module.recipes().contains(id) || !RecipeCompatibility.compatible(colony, hut, module.jobId(), r)) {
                 continue;
             }

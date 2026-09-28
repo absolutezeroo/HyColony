@@ -27,12 +27,12 @@ public final class RecipeEdits {
             Colony colony, Building hut, CraftingModule module, RecipeId id, UUID player) {
         RecipeCatalog catalog = colony.context().ports().crafting().catalog();
         Optional<Recipe> recipe =
-                colony.recipes().get(id).or(() -> id.hytaleId().flatMap(catalog::byHytaleId));
+                colony.registries().recipes().get(id).or(() -> id.hytaleId().flatMap(catalog::byHytaleId));
         Optional<LearnRefusal> refused = module.refusal(colony, hut, recipe.orElse(null), player);
         if (refused.isPresent() || recipe.isEmpty()) {
             return refused;
         }
-        RecipeId registered = colony.recipes().checkOrAdd(recipe.get());
+        RecipeId registered = colony.registries().recipes().checkOrAdd(recipe.get());
         return module.learn(colony, hut, registered, player)
                 ? Optional.empty()
                 : module.canLearn(colony, hut, registered, player);

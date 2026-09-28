@@ -23,10 +23,11 @@ import dev.hycolony.core.request.RequestSerializer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /** Colony <-> JSON (schema 4). Unknown buildings/modules are kept verbatim. */
 public final class ColonySerializer {
-    public static final int SCHEMA_VERSION = 4;
+    public static final int SCHEMA_VERSION = 5;
 
     private static final System.Logger LOG = System.getLogger(ColonySerializer.class.getName());
 
@@ -44,7 +45,8 @@ public final class ColonySerializer {
         o.add("requests", RequestSerializer.write(c.requests()));
         o.add("workOrders", WorkOrderSerializer.write(c.work()));
         o.addProperty("workOrderTopId", c.work().topId());
-        o.add("recipes", c.recipes().write());
+        o.add("recipes", c.registries().recipes().write());
+        o.add("fields", c.registries().fields().write());
         JsonObject settings = new JsonObject();
         settings.addProperty("autoHiring", c.settings().autoHiring());
         o.add("settings", settings);
@@ -78,9 +80,14 @@ public final class ColonySerializer {
         readSettings(o, c);
         // Before the buildings: their crafting modules name recipes by their id in the registry.
         if (o.get("recipes") instanceof JsonObject recipes) {
-            c.recipes().read(recipes, ctx.ports().crafting().catalog(), w -> LOG.log(System.Logger.Level.WARNING, w));
+            c.registries()
+                    .recipes()
+                    .read(recipes, ctx.ports().crafting().catalog(), w -> LOG.log(System.Logger.Level.WARNING, w));
         }
         readBuildings(o.getAsJsonArray("buildings"), c, ctx);
+        if (o.get("fields") instanceof JsonArray fields) {
+            c.registries().fields().load(fields);
+        }
         for (JsonElement el : o.getAsJsonArray("citizens")) {
             c.citizens().restore(CitizenSerializer.read(el.getAsJsonObject(), ctx));
         }
@@ -180,6 +187,10 @@ public final class ColonySerializer {
             }
         }
         changed |= c.requests().cancelOrphans();
+        changed |= c.registries()
+                .fields()
+                .freeOwnersNotIn(
+                        c.buildings().all().stream().map(Building::position).collect(Collectors.toSet()));
         return CraftingHeal.heal(c) || changed;
     }
 

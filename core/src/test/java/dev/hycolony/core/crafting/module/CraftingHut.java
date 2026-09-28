@@ -75,7 +75,7 @@ public final class CraftingHut {
 
     /** The recipe's id in the colony registry, as the recipes tab finds it. */
     public RecipeId register(Recipe recipe) {
-        return colony.recipes().checkOrAdd(recipe);
+        return colony.registries().recipes().checkOrAdd(recipe);
     }
 
     /** Registers the recipe and has the colony owner teach it to the hut; fails the test if refused. */

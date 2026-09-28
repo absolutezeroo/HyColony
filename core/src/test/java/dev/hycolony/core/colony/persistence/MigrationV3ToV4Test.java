@@ -48,7 +48,7 @@ class MigrationV3ToV4Test {
         }
         m.persistence().saveAll();
         String saved = Files.readString(dir.resolve("colony-1.json"));
-        assertTrue(saved.contains("\"schemaVersion\":4"), saved);
+        assertTrue(saved.contains("\"schemaVersion\":" + ColonySerializer.SCHEMA_VERSION), saved);
     }
 
     @Test
@@ -57,7 +57,9 @@ class MigrationV3ToV4Test {
 
         JsonObject migrated = MigrationChain.sp3b().migrate(doc);
 
-        assertEquals(4, migrated.get(MigrationChain.VERSION_KEY).getAsInt());
+        assertEquals(
+                ColonySerializer.SCHEMA_VERSION,
+                migrated.get(MigrationChain.VERSION_KEY).getAsInt());
         for (JsonElement b : migrated.getAsJsonArray("buildings")) {
             assertTrue(b.getAsJsonObject().getAsJsonArray("workstations").isEmpty());
         }

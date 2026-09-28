@@ -176,7 +176,8 @@ class CraftingScenarioTest {
         Building residence = building(ConstructionBuildingTypes.RESIDENCE, new BlockPos(10, 64, 0), 1);
         Building crafterHut = building(TestCrafters.HUT, new BlockPos(30, 64, 0), 1);
         crafterHut.registeredBlocks().addWorkstation(new BlockPos(31, 64, 0), new Workstation("Farmingbench", 1));
-        RecipeId seeds = colony.recipes().checkOrAdd(RecipeFixtures.at("Farmingbench", "Seeds", SEEDS.id()));
+        RecipeId seeds =
+                colony.registries().recipes().checkOrAdd(RecipeFixtures.at("Farmingbench", "Seeds", SEEDS.id()));
         assertTrue(crafterHut.module(CraftingModule.class).orElseThrow().learn(colony, crafterHut, seeds, owner));
         hire(courierHut, COURIER);
         colony.buildings().onColonyTick(colony); // attaches the courier to the warehouse

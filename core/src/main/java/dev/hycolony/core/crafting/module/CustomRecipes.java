@@ -46,7 +46,7 @@ final class CustomRecipes {
                 continue;
             }
             Recipe recipe = hytale.get().withSource(new RecipeSource.Custom(custom.id()));
-            RecipeId id = colony.recipes().checkOrAdd(recipe);
+            RecipeId id = colony.registries().recipes().checkOrAdd(recipe);
             if (isValidFor(custom, hut)) {
                 grant(colony, module, id, recipe);
             } else if (module.recipes().contains(id)) {
@@ -87,7 +87,7 @@ final class CustomRecipes {
             if (listed.equals(id)) {
                 return Optional.of(new Duplicate(listed, false));
             }
-            Optional<Recipe> storage = colony.recipes().get(listed);
+            Optional<Recipe> storage = colony.registries().recipes().get(listed);
             if (storage.isPresent()
                     && RecipeCompatibility.sameOutput(storage.get(), recipe)
                     && sameItems(storage.get().cleanedInput(), recipe.cleanedInput())) {
