@@ -1,150 +1,255 @@
 # Séparer HyColony en trois mods : HyBlockUI, HyDomum, HyColony
 
-Aujourd'hui, Domum Ornamentum (DO) et la bibliothèque d'interface vivent dans HyColony :
-- le cœur DO est dans `core/ornament` ;
-- son adaptateur Hytale est dans `plugin/ornament` ;
-- ses blocs forment un sous-pack désactivable ;
-- le kit d'inventaire est dans `plugin/inventory`.
+Aujourd'hui, deux blocs qui n'appartiennent pas à HyColony vivent dans son code :
+- **Domum Ornamentum (DO)** :
+  - le cœur est dans `core/ornament` ;
+  - l'adaptateur Hytale est dans `plugin/ornament` ;
+  - les blocs forment un sous-pack désactivable ;
+  - les variantes sont stockées dans `universe/hycolony/`.
+- **Le kit d'interface d'inventaire** : il est dans `plugin/inventory`.
 
 Ce projet les sort en **mods séparés**, dans le même dépôt, comme l'écosystème d'origine : MineColonies dépend de Domum Ornamentum et de BlockUI, qui sont des mods à part ([gradle.properties de MineColonies](https://github.com/ldtteam/minecolonies/blob/version/main/gradle.properties), [gradle.properties de Structurize](https://github.com/ldtteam/Structurize/blob/version/main/gradle.properties)).
 
+La première version de cette spec (5a2f204) a été relue par un agent indépendant. Cette version corrige les 12 points bloquants et les 10 points importants de cette relecture.
+
 ## Décisions (validées avec l'utilisateur)
 
-- **Trois mods, trois jars.**
-  - **HyBlockUI** : la bibliothèque d'interface, comme BlockUI chez ldtteam.
-  - **HyDomum** : le portage de Domum Ornamentum.
-  - **HyColony**.
-  - Les dépendances vont **dans un seul sens** : HyBlockUI ← HyDomum ← HyColony. HyDomum ignore HyColony, et HyBlockUI ignore les deux autres.
-- **Tout renommer**, sans migration, puisque rien n'est publié :
-  - les blocs `HyColony_DO_*` deviennent `HyDomum_*` ;
-  - les clés `hycolony.ornament.*` deviennent `hydomum.*` ;
-  - les clés d'interface d'inventaire deviennent `hyblockui.*` ;
-  - la commande `/hyornament` devient `/hydomum`.
+- **Trois mods, trois jars**, avec des dépendances **dans un seul sens** : HyBlockUI ← HyDomum ← HyColony.
+  - **HyBlockUI** est la bibliothèque d'interface, comme BlockUI.
+  - **HyDomum** est le portage de Domum Ornamentum.
+  - **HyColony** est le mod de colonie.
 
-  Les blocs DO posés dans les mondes de test et les variantes sauvegardées ne sont pas repris.
+  HyDomum ignore HyColony ; HyBlockUI ignore les deux.
+- **HyDomum devient obligatoire pour HyColony**, comme Domum Ornamentum l'est pour MineColonies. Le sous-pack DO, désactivé par défaut aujourd'hui, disparaît.
+- **Un seul groupe, `HyColony`**, comme le nom d'équipe `ldtteam`. Le workspace impose en effet un groupe commun à tous les mods (`HytaleWorkspacePlugin`). Les identifiants sont donc `HyColony:hyblockui`, `HyColony:hydomum` et `HyColony:hycolony`, et les dossiers de données `mods/HyColony_<nom>` (`PendingLoadJavaPlugin.java:58`).
+- **Tout renommer, sans migration**, puisque rien n'est publié (liste complète plus bas). Les blocs DO posés dans les mondes de test et les variantes sauvegardées ne sont pas repris.
+- **Exception à CLAUDE.md § 3, accordée par l'utilisateur** : la clé `HyColony.CutterCraftSeconds`, ajoutée le 2026-09-28 et jamais publiée, passe dans la config de HyDomum sans que l'ancienne clé reste lisible.
 - **Un seul dépôt, plusieurs modules Gradle**, avec les mêmes garde-fous partout.
-- **Une base solide avant de refaire l'établi en kit générique** : le kit « établi » générique vient après, dans HyBlockUI.
+- **Quatre plans** au lieu d'un (voir « Plans »). Le kit « établi » générique vient après, dans HyBlockUI.
 
 ## Faits vérifiés (sources)
 
-- **Dépendances entre mods** : le manifeste a `Dependencies` et `OptionalDependencies` (`Groupe:Nom` → plage de versions), et aussi `LoadBefore` ([doctale](https://doctale.dev/getting-started/plugin-manifest/), [wiki technique](https://wiki.hytaleservers.host/Plugin_Manifest)).
-  - `PluginManager` charge une dépendance avant le mod qui en dépend, et refuse de démarrer si elle manque ou si sa version ne convient pas (`server/core/plugin/PluginManager.java` l. 482-512, 1190-1196).
-  - Une dépendance circulaire bloque le chargement ([ticket](https://github.com/realBritakee/hytale-template-plugin/issues/21)).
-- **Chargement des classes** : chaque jar de mod a son `PluginClassLoader` « ThirdParty » (`childFirst = false`, `PluginManager.java` l. 593). Il cherche d'abord dans les classes du serveur, puis dans son propre jar, puis, par le chargeur « pont », dans ses `Dependencies` et `OptionalDependencies` (`PluginClassLoader.java` l. 83-130, `PluginManager.java` l. 1263-1285).
-  - Conséquence : un mod ne doit **jamais embarquer** une copie d'un autre mod. Il utiliserait sa copie, et les classes seraient en double. Il compile contre lui, sans l'embarquer.
-- **`Main` obligatoire** : tout jar de mod est chargé comme `JavaPlugin` depuis la classe `Main` du manifeste (`PendingLoadJavaPlugin.java` l. 55-62). HyBlockUI a donc une classe principale minimale.
-- **Plugin Gradle AzureDoom 1.0.51** (celui qu'on utilise, sources en cache) : il existe un plugin racine `com.azuredoom.hytale-workspace`, qui fixe la version Hytale, le patchline et le groupe du manifeste de chaque mod (`HytaleWorkspacePlugin.groovy`).
-  - Ses tâches `stageAllModAssets` et `runAllMods` déposent tous les mods dans **`run/mods` à la racine** et lancent **un seul serveur** avec tous les mods (`HytaleWorkspaceTaskRegistrar.groovy` l. 61-141).
-  - `requiredDependency` ajoute une dépendance au classpath, mais n'écrit pas le manifeste. C'est la propriété `manifestDependencies` qui l'écrit.
-  - Sources : [dépôt du plugin](https://github.com/AzureDoom/Hytale-Gradle-Plugin), [générateur de modèles multi-mods](https://github.com/cookieukw/Hytale-Mod-Template-Generator).
-- **Bonnes pratiques Gradle** :
+### Serveur Hytale 0.6.8 (sources décompilées)
+
+**Dépendances entre mods.**
+- Le manifeste a trois champs de dépendance : `Dependencies`, `OptionalDependencies` (`Groupe:Nom` → plage de versions) et `LoadBefore` (`Mod.java:84`).
+- Une dépendance est chargée avant le mod qui en dépend. Il refuse de démarrer si elle manque ou si sa version ne convient pas (`PluginManager.java` l. 482-512, 1190-1196).
+- Une dépendance circulaire bloque le chargement (`Mod.java:171`, `CYCLIC_DEPENDENCY`).
+
+**Chargement des classes, en production.** Un jar placé dans `mods/` reçoit un `PluginClassLoader` « ThirdParty » avec `childFirst = false` (`PluginManager.java:593`). Ce chargeur cherche une classe dans cet ordre :
+1. les classes du serveur (`PluginClassLoader.java:95`) ;
+2. son propre jar ;
+3. le chargeur « pont », qui essaie d'abord les `Dependencies` puis les `OptionalDependencies`, et **en dernier recours tous les plugins chargés** (`PluginManager.java` l. 1263-1295).
+
+Conséquence : un mod ne doit **jamais embarquer** une copie d'un autre mod. Il utiliserait sa copie, et les classes seraient en double. Il compile contre lui sans l'embarquer.
+
+**Chargement des classes, en dev.** Le serveur de dev ne charge pas comme la production. `runAllMods` met les classes et les ressources de **tous** les mods du workspace sur le classpath de la JVM. Les mods deviennent alors des plugins du classpath (`PluginManager.java` l. 679-686), avec `childFirst = true` (l. 237), et le chargeur du serveur voit tout.
+
+Le dev ne vérifie donc ni l'isolation entre mods, ni l'absence de copie embarquée, ni le cas « dépendance absente ». Ces points se vérifient avec les **jars de production** dans le `mods/` d'un serveur.
+
+**Classe `Main` obligatoire.** Tout jar de mod est chargé comme `JavaPlugin` depuis sa classe `Main` (`PendingLoadJavaPlugin.java` l. 55-62). `ValidateManifestTask` refuse aussi une `Main` vide.
+
+**Ordre des systèmes.** `SystemDependency` désigne un système **par sa classe** (`SystemDependency.java`). Un système qui doit tourner avant un autre doit donc pouvoir référencer la classe de cet autre.
+
+### Plugin Gradle AzureDoom 1.0.51
+
+C'est celui qu'on utilise ; ses sources sont en cache et c'est la dernière version sur maven.azuredoom.com.
+
+**Le workspace.**
+- Le plugin racine `com.azuredoom.hytale-workspace` fixe la version Hytale, le patchline et le **groupe** de chaque mod.
+- `stageAllModAssets` et `runAllMods` travaillent dans **`run/` à la racine** et lancent **un seul serveur**.
+- À chaque lancement, `stageAllModAssets` **supprime** le dossier `run/mods/<Groupe_Nom>` de chaque mod (`StageAllModAssetsTask.groovy` l. 216-217), puis le recrée en liens vers ses ressources et ses classes (l. 220-224). Ce que le mod écrit à côté de ces liens (config, packs extraits) est donc perdu au lancement suivant.
+- Le serveur hôte vaut par défaut le premier projet dans l'ordre alphabétique, sauf si `hostProject` est fixé.
+
+**L'identité et le manifeste de chaque mod.**
+- `HytaleExtensionDefaults` lit `mod_id`, `main_class` et `manifest_dependencies` dans le `gradle.properties` **racine** (l. 376-383). Sans surcharge par module, les trois mods auraient le même identifiant, et le workspace échouerait sur « Duplicate workspace plugin identifier ».
+- `requiredDependency` ajoute une dépendance au classpath mais n'écrit pas le manifeste. C'est `manifestDependencies` qui l'écrit.
+- `updatePluginManifest` réécrit un `manifest.json`, suivi par git, dans chaque module.
+
+**Ce que chaque module reçoit.**
+- Chaque module garde son propre `runServer` et son propre `run/`.
+- Chaque module décompile le serveur dans son propre `build/` (`HytaleIdeSourceConfigurer:34`).
+- Chaque module embarque `com/azuredoom/hytale/asseteditor/**` (`hytaleBundledRuntime`), sauf si `bundleAssetEditorRuntime = false`.
+
+**Le chargement du plugin Gradle.** `HytaleWorkspacePlugin` appelle `getByType(HytaleExtension)` sur chaque sous-projet. Le workspace et `hytale-tools` doivent donc venir du **même** classpath Gradle.
+
+### Gradle
+
+- **Deux projets de même nom** (`:core` et `:domum:core`) sont confondus dans la résolution des dépendances ([gradle/gradle#847](https://github.com/gradle/gradle/issues/847), toujours ouvert ; le wrapper est en 9.5.1). Il faut des noms de projet uniques.
+- **Bonnes pratiques** :
   - un build inclus `build-logic` avec des plugins de convention, plutôt que `buildSrc` ;
-  - un catalogue de versions `gradle/libs.versions.toml` ;
-  - les plugins de contrôle (Spotless, PMD, Error Prone) déclarés comme dépendances du build `build-logic` puis appliqués par les conventions.
+  - un catalogue de versions ;
+  - les plugins de contrôle déclarés comme dépendances de `build-logic` puis appliqués par les conventions.
 
   Sources : [structuration des builds](https://docs.gradle.org/current/userguide/best_practices_structuring_builds.html), [bonnes pratiques générales](https://docs.gradle.org/current/userguide/best_practices_general.html), [projets multi-modules](https://docs.gradle.org/current/userguide/multi_project_builds_intermediate.html), [ticket Spotless #747](https://github.com/diffplug/spotless/issues/747).
-- **API d'un mod bibliothèque** : un mod expose une API distincte de son implémentation, comme DO avec son jar d'API ([Forge : dépendances](https://docs.minecraftforge.net/en/fg-5.x/dependencies/)). En Gradle : `implementation` par défaut, `api` seulement pour ce qui est exposé ([forum Gradle](https://discuss.gradle.org/t/best-practice-for-api-vs-implementation-in-multi-module-project/30519)).
+- `hytale-tools` déclare des dépôts dans chaque projet (`HytaleRepositoryConfigurer`). On ne peut donc pas imposer `FAIL_ON_PROJECT_REPOS`.
+
+### Écosystème
+
+Un mod bibliothèque expose une API distincte de son implémentation, comme DO avec son jar d'API ([Forge : dépendances](https://docs.minecraftforge.net/en/fg-5.x/dependencies/)).
 
 ## Organisation
 
 ```
-HyColony/                   racine : com.azuredoom.hytale-workspace, gradle/libs.versions.toml
-├── build-logic/            build inclus : plugins de convention hy.java-core et hy.hytale-mod
-├── blockui/                mod HyBlockUI (dev.hyblockui), sans cœur de jeu
-├── domum/core/             HyDomum, cœur Java pur (dev.hydomum.core), testé
-├── domum/plugin/           mod HyDomum (dev.hydomum.plugin, API dev.hydomum.api)
-├── core/                   HyColony, cœur Java pur (dev.hycolony.core)
-└── plugin/                 mod HyColony (dev.hycolony.plugin)
+HyColony/                    racine : conventions hy.workspace, catalogue gradle/libs.versions.toml
+├── build-logic/             build inclus : hy.workspace, hy.java-core, hy.hytale-mod (protégé)
+├── blockui/                 projet :blockui        mod HyColony:hyblockui (dev.hyblockui)
+├── domum/core/              projet :domum-core     cœur Java pur de HyDomum (dev.hydomum.core)
+├── domum/plugin/            projet :domum-plugin   mod HyColony:hydomum (dev.hydomum.plugin)
+├── core/                    projet :core           cœur Java pur de HyColony (dev.hycolony.core)
+└── plugin/                  projet :plugin         mod HyColony:hycolony (dev.hycolony.plugin)
 ```
 
-- **`hy.java-core`** (cœurs purs) :
-  - Java 25, Gson et jspecify en `compileOnly`, Error Prone et NullAway, PMD (`config/pmd/ruleset.xml`), Spotless (palantir) ;
-  - tailles de fichiers et de paquets, séparateurs de section ;
+- **Noms de projet uniques.** Les chemins Gradle sont `:domum-core` et `:domum-plugin` (`projectDir = file("domum/core")`), ce qui corrige B1. Chaque mod a aussi son groupe Maven : `dev.hyblockui`, `dev.hydomum` et `dev.hycolony`.
+- **`hy.workspace`**, appliqué à la racine :
+  - il applique `com.azuredoom.hytale-workspace` et `hytale-tools`, chargés depuis `build-logic` par le même classpath ;
+  - il épingle le plugin en **1.0.51** (aujourd'hui `1.+`) ;
+  - il fixe `hostProject = ':plugin'` et un dossier de sources décompilées unique, `build/vineflower` à la racine, celui que citent CLAUDE.md et le skill `hytale-api`.
+- **`hy.java-core`**, pour les cœurs purs :
+  - Java 25, Gson et jspecify en `compileOnly` ;
+  - Error Prone et NullAway, avec `AnnotatedPackages = dev.hycolony,dev.hydomum,dev.hyblockui` ;
+  - PMD (`config/pmd/ruleset.xml`) et Spotless (palantir) ;
+  - les tailles de fichiers et de paquets, les séparateurs de section ;
   - un `ArchitectureTest` : aucun import `com.hypixel`.
-- **`hy.hytale-mod`** (mods) :
-  - `com.azuredoom.hytale-tools` et le manifeste (dépendances écrites dans `manifestDependencies`) ;
-  - un jar qui embarque **seulement son propre cœur** ;
+- **`hy.hytale-mod`**, pour les mods :
+  - `hytale-tools` avec l'identité du mod en surcharge (`modId`, `mainClass`, `manifestDependencies` avec leurs plages de versions) ;
+  - un jar qui embarque **seulement son propre cœur**, sans `asseteditor` (`bundleAssetEditorRuntime = false`), sans `config.json`, `config.json.bak` ni `packs/**` ;
   - les autres mods en `compileOnly` ;
-  - les mêmes contrôles que ci-dessus.
-- **Paquet `api`** : chaque mod expose une API, et c'est tout ce que les autres mods ont le droit d'utiliser.
-  - HyDomum : `dev.hydomum.api`, qui contient le registre des variantes, `VariantKey` et `OrnamentVariant` (l'actuel `ornament/api` en est l'embryon).
-  - HyBlockUI : `dev.hyblockui.api`, qui contient les grilles, les dépôts, le suivi, les panneaux du joueur, `PageEvents`, `PageRedraw`, `HeldWindows`, `ReturningContainerWindow`, `PlayerItems` et la traduction avec paramètres.
-  - Un test d'architecture vérifie que HyColony n'importe que les paquets `api` de ses dépendances, et HyDomum que celui de HyBlockUI.
+  - le contrôle des assets du pack (voir plus bas) ;
+  - les mêmes contrôles de code que ci-dessus.
+- **Versions** : les versions des outils de contrôle (PMD, Error Prone, NullAway, palantir, Spotless) vivent dans `build-logic/`, qui est protégé. Le catalogue ne contient que les bibliothèques (Gson, jspecify, JUnit).
+
+## Identité de chaque mod
+
+| Mod | Identifiant | `Main` | `Dependencies` | Données |
+|---|---|---|---|---|
+| HyBlockUI | `HyColony:hyblockui` | `dev.hyblockui.HyBlockUIPlugin` (minimale) | `Hytale:AssetModule` | `mods/HyColony_hyblockui` |
+| HyDomum | `HyColony:hydomum` | `dev.hydomum.plugin.HyDomumPlugin` | `Hytale:AssetModule`, `HyColony:hyblockui` | `mods/HyColony_hydomum` (config) et `universe/hydomum/` (variantes, qui suivent les mondes, comme aujourd'hui `universe/hycolony/`) |
+| HyColony | `HyColony:hycolony` | `dev.hycolony.plugin.HyColonyPlugin` | `Hytale:AssetModule`, `Hytale:NPC`, `HyColony:hyblockui`, `HyColony:hydomum` | inchangé |
+
+Les versions des trois mods restent alignées (0.1.0), et chaque dépendance entre mods demande la même version exacte.
+
+## API des mods
+
+Chaque mod expose un paquet `api`. Seul ce paquet est visible des autres mods.
+
+- **HyBlockUI** : `dev.hyblockui.api`. Il contient les grilles, les dépôts, le suivi, les panneaux du joueur, `PageEvents`, `PageRedraw`, `HeldWindows`, `ReturningContainerWindow`, `PlayerItems`, et la traduction avec paramètres qui remplace `Msg` et `HytaleNotifier` pour HyDomum.
+- **HyDomum**, en deux parties :
+  - `dev.hydomum.api`, **Java pur**, dans `domum/core` : `VariantKey`, `OrnamentShape`, `MaterialTags` et ce dont les règles de jeu auront besoin. Le cœur de HyColony pourra s'en servir pour DO-2b, parce que c'est du Java pur (corrige B3).
+  - `dev.hydomum.plugin.api`, dans `domum/plugin` : le registre des variantes, `OrnamentVariant`, et `HyDomumSystems`, qui expose la classe du système d'utilisation de l'établi. HyColony déclare ainsi sa protection **avant** ce système sans importer de classe interne (corrige B4).
+- **Dépendances Gradle** :
+  - `:core` → `:domum-core` en `compileOnly` et `testImplementation` ;
+  - `:plugin` → `:domum-plugin` et `:blockui` en `compileOnly` ;
+  - `:domum-plugin` → `:blockui` en `compileOnly`.
+
+  À l'exécution, ces classes viennent des jars des dépendances.
+- **Le contrôle des imports entre mods** est une tâche Gradle, `checkModApis` dans `hy.hytale-mod` (dans `build-logic`, protégé), branchée sur `check`. Elle lit les `import` des sources de chaque module et échoue sur tout import d'un autre mod hors de son paquet `api`. Ce n'est pas un test unitaire : le plugin n'en a toujours pas (CLAUDE.md § 8). Corrige B12.
 
 ## Ce qui va où
 
 | Aujourd'hui | Demain |
 |---|---|
-| `core/src/.../core/ornament/**` et ses tests | `domum/core` (`dev.hydomum.core`), déplacé tel quel |
-| `plugin/src/.../plugin/ornament/**` | `domum/plugin` (`dev.hydomum.plugin` ; `Ornaments` devient `HyDomumPlugin`, la classe principale) |
-| `plugin/src/subplugins/DomumOrnamentum/` (sous-pack désactivable) | le pack d'assets du mod HyDomum ; le sous-pack disparaît. `tools/domum` écrit dans `domum/plugin/src/main/resources` |
+| `core/src/.../core/ornament/**` et ses 6 tests | `domum/core` : `dev.hydomum.core` pour l'interne, `dev.hydomum.api` pour ce qui est exposé |
+| `plugin/src/.../plugin/ornament/**` | `domum/plugin` (`dev.hydomum.plugin`, API `dev.hydomum.plugin.api`) ; `Ornaments` devient `HyDomumPlugin` |
+| `plugin/src/subplugins/DomumOrnamentum/` | le pack d'assets du mod HyDomum (`domum/plugin/src/main/resources`). **Le sous-pack disparaît dans le même plan** (corrige I9) |
 | `IdMap.ornamentTags` (dans `hycolony/id-map.json`) | `hydomum/tags.json`, lu par HyDomum ; `IdMap` perd le champ |
-| `HyColony.CutterCraftSeconds` (`ColonyConfig.HyColony`) | la config de HyDomum (`CutterCraftSeconds`, 0,5 par défaut, bornée de 0 à 10, bornes appliquées par son cœur) ; `ColonyConfig` perd le champ |
-| `mods/HyColony/ornament-variants.json` et `ornament-assets/` | le dossier de données de HyDomum (nouveaux noms, sans migration) |
+| `HyColony.CutterCraftSeconds` (`ColonyConfig.HyColony`) | la config de HyDomum, `CutterCraftSeconds` : 0,5 par défaut, bornée de 0 à 10 par un record du cœur HyDomum. `ColonyConfig` perd le champ, et `ColonyConfigTest` et `FreeWorkOrderTest` sont adaptés. Une clé restée dans un ancien `config.json` de HyColony est ignorée : le plan vérifie que `ConfigQuarantine` ne met pas le fichier de côté pour autant |
+| `universe/hycolony/ornament-variants.json` et `ornament-assets/` | `universe/hydomum/` (sans migration) |
 | `plugin/src/.../plugin/inventory/**`, `ui/PageEvents` | `blockui` (`dev.hyblockui.api`) |
-| `Pages/HyColony/PlayerCharacterPanel.ui`, `PlayerStoragePanel.ui`, `Native/**` | `Pages/HyBlockUI/` dans le pack de HyBlockUI ; `ui.inventory.title` passe dans `hyblockui.lang` |
+| `.ui` de l'inventaire et `Native/**` | `Pages/HyBlockUI/` dans le pack de HyBlockUI. `ui.inventory.title` passe dans `hyblockui.lang`, et chaque mod a sa propre racine de ressources (`hyblockui/`, `hydomum/`, `hycolony/`), pour éviter qu'une ressource en masque une autre en dev (corrige I6) |
 | `Pages/HyColony/Cutter*.ui` | `Pages/HyDomum/` |
-| `Msg` et `HytaleNotifier` utilisés par l'établi | l'utilitaire de traduction avec paramètres de HyBlockUI |
-| `CutterSystem` après `BlockUseProtectionSystem` | le système de protection de HyColony se déclare **avant** celui de l'établi de HyDomum |
+| `Citizen.ui` (qui reste dans HyColony) | fait référence aux panneaux et aux textures de `Pages/HyBlockUI/` |
+| `Msg` et `HytaleNotifier` dans l'établi **et** dans `OrnamentCommand` | la traduction avec paramètres de HyBlockUI |
+| `CutterSystem` après `BlockUseProtectionSystem` | `BlockUseProtectionSystem` (HyColony) se déclare `BEFORE` la classe publiée par `HyDomumSystems` |
 
-Ce qui reste dans HyColony : tout le reste (colonie, citoyens, huttes, requêtes, construction, baguette). HyColony s'appuie sur `dev.hyblockui.api` pour ses fenêtres (onglet Inventaire du citoyen, `ColonyPage`) et déclare HyDomum et HyBlockUI dans son manifeste. DO-2b, les artisans qui fabriquent des blocs DO, passera par `dev.hydomum.api`.
+**Renommages complets** (corrige I4) :
+- les blocs, objets et chemins d'assets : `HyColony_DO_*` → `HyDomum_*`, `Blocks/HyColony/DO/` → `Blocks/HyDomum/`, `Icons/ItemsGenerated/HyColony` → `Icons/ItemsGenerated/HyDomum` ;
+- les données du générateur : `hycolony/ornament/shapes.json` et `icons/` → `hydomum/` ;
+- les traductions : les 45 clés `ornament.*` de `hycolony.lang` et les clés `hycolony.item.do.*` du sous-pack passent dans `hydomum.lang` (en-US et fr-FR) ;
+- la commande : `/hyornament` → `/hydomum` ;
+- le générateur `tools/domum` : ses identifiants écrits en dur dans `check_*.py`. Le plan **exécute** `python tools/domum/generate.py` et `check.py`, que le build Gradle ne lance pas.
+
+**Contrôle des assets de chaque pack** (corrige B11) : `checkSubpluginAssets` protège aujourd'hui les sous-packs contre un asset invalide, qui arrêterait tout le serveur (`plugin-b-api.md` § 23). Ce contrôle passe dans `hy.hytale-mod` et s'applique au pack de chaque mod, avec son propre espace de noms. Les sous-packs restants de HyColony (Décorations, styles) gardent le leur.
+
+Ce qui reste dans HyColony : tout le reste (colonie, citoyens, huttes, requêtes, construction, baguette, sous-packs Décorations et styles).
+
+## Config et données en dev (corrige B7)
+
+- **En production**, chaque mod garde sa config dans son dossier de données (`mods/HyColony_<nom>/config.json`), et les variantes de HyDomum dans `universe/hydomum/`.
+- **En dev**, `runAllMods` efface `run/mods/HyColony_<nom>` à chaque lancement. Le plan 1 vérifie ce que ça fait à la config écrite par un mod, et au lien vers un `config.json` des ressources (celui de HyColony est aujourd'hui dans `plugin/src/main/resources`, ignoré par git). Il retient ensuite une solution et l'écrit dans cette spec avant le plan 2. Les pistes, dans l'ordre :
+  1. le `config.json` de chaque mod dans ses propres ressources, ignoré par git, et que le lien fait survivre ;
+  2. `hostProject` avec les `runServer` par module ;
+  3. une tâche de dev qui recopie les configs après le staging.
+- **Le dossier du serveur de dev** passe de `plugin/run` à `run/` à la racine. Il faut en reprendre les mondes (`universe/`) et les permissions. La config de HyColony, elle, n'est pas dans `plugin/run`. Le plan dit précisément quoi déplacer.
+- **Chemins protégés** : `guard.js` et `.gitignore` doivent protéger les nouveaux chemins de config (`blockui/…`, `domum/plugin/…`, `run/mods/**/config.json`), comme aujourd'hui `plugin/src/main/resources/config.json`.
 
 ## Garde-fous (accord explicite de l'utilisateur, session `HYCOLONY_GUARDRAILS_UNLOCKED=1`)
 
-- Les contrôles du `build.gradle.kts` racine passent dans `build-logic/`, sans changer ce qu'ils vérifient : ils s'appliquent désormais à chaque module.
-- `build-logic/` rejoint la liste des fichiers protégés dans trois fichiers qui la recopient : `CLAUDE.md` (§ 10), `AGENTS.md` et `.claude/hooks/guard.js`. Le banc de test du hook couvre ce nouveau chemin.
-- `guard.js` refuse aussi `runAllMods` (et `stageAllModAssets` lancé pour exécuter), au même titre que `runServer`.
-- `CLAUDE.md` décrit :
-  - les modules ;
+**Avant tout** (plan 1, première étape, corrige B5) : `guard.js` et son banc de test refusent `runAllMods`. Ils le font sous toutes ses formes, y compris abrégées, comme `runServer`. `stageAllModAssets` reste permis, puisqu'il ne lance rien.
+
+**Dans le plan 2**, les contrôles quittent le `build.gradle.kts` racine pour `build-logic/`, sans changer ce qu'ils vérifient.
+- **Aucun module ne peut échapper aux contrôles** (corrige B6) : le `build.gradle.kts` racine, qui reste protégé, vérifie que **chaque** sous-projet applique `hy.java-core` ou `hy.hytale-mod`, et échoue sinon.
+- **Listes à mettre à jour.** `build-logic/` rejoint la liste des fichiers protégés partout où elle est recopiée :
+  - CLAUDE.md § 10 et `AGENTS.md` ;
+  - `.claude/hooks/guard.js` et son banc de test ;
+  - `.claude/agents/hycolony-implementer.md`, qui nomme aussi `runServer`.
+
+  Les agents et les skills qui citent `plugin/src`, `hycolony.lang` ou `build/vineflower` sont mis à jour (`add-lang-key`, `hytale-api`, `port-mc`, les agents relecteur et chercheur).
+- **Hooks git.** `.githooks/pre-commit` surveille aussi `build-logic/**`, y compris les `.kt` si des conventions sont écrites en classes.
+- **Listes d'exceptions** (corrige I2) : aucune entrée ne bouge. Les allowlists sont vides, et les violations PMD connues portent sur des fichiers qui restent en place. Une ligne peut seulement disparaître. Réécrire un chemin compterait comme une entrée nouvelle, ce que `guard.js` refuse même en session déverrouillée.
+- **`CLAUDE.md`** décrit :
+  - les cinq projets et leurs identifiants ;
   - « un cœur Java pur par mod, sans `com.hypixel` » ;
   - les dépendances dans un seul sens ;
-  - la règle des paquets `api`.
-- Les listes d'exceptions (`gradle/*allowlist.txt`, `config/pmd/known-violations.txt`) sont reprises avec leurs chemins mis à jour, sans nouvelle entrée.
+  - la règle des paquets `api` et `checkModApis` ;
+  - la vérification en production avec les jars.
 
-## Serveur de dev
+## Plans (corrige I11)
 
-`runAllMods` travaille dans `run/` **à la racine**. L'utilisateur déplace une fois ce qu'il veut garder de `plugin/run` : mondes, `config.json`, permissions. Le plan lui dit quoi déplacer. Comme toujours, c'est l'utilisateur qui lance le serveur, jamais Claude.
+Chaque étape de chaque plan compile seule : build vert, relecture indépendante, commit. Les `manifest.json` réécrits par `updatePluginManifest` sont commités avec l'étape qui les change (M6).
 
-## Étapes
+1. **Garde-fous et essai**, dans une session déverrouillée.
+   - `guard.js` bloque `runAllMods`.
+   - Puis un **essai jetable** : trois mods minimaux dans une branche d'essai. On vérifie :
+     - en **dev** (`runAllMods`) : le chargement, un `.ui` d'un mod qui en inclut un d'un autre, **une texture d'un autre pack** (I5), la config et les données après un second lancement (B7) ;
+     - en **production** : les trois jars dans le `mods/` d'un serveur, sans classpath de dev. On y vérifie l'appel de classe entre mods, l'échec propre d'un mod dont la dépendance manque, et l'absence de classes en double (B2).
 
-Chaque étape compile seule : build vert, relecture indépendante, commit.
+     C'est l'utilisateur qui lance les serveurs.
+   - Les résultats sont écrits dans `plugin-b-api.md`, et la spec est ajustée si besoin.
+2. **`build-logic`**, dans une session déverrouillée : conventions, catalogue, workspace, noms de projet, contrôles déplacés et contrôle d'application des conventions. `core` et `plugin` y passent sans changer de comportement.
+3. **HyBlockUI** : le module inventaire, `PageEvents`, les panneaux, la traduction, les `.ui` et les textures y déménagent. HyColony en dépend.
+4. **HyDomum et nettoyage** :
+   - le cœur (avec son API pure), le plugin, le pack et le générateur déménagent ;
+   - la config, les tags et les données suivent, avec `/hydomum` ;
+   - les renommages sont appliqués, et le sous-pack est supprimé dans la même étape ;
+   - la protection passe par `HyDomumSystems` ;
+   - `IdMap` et `ColonyConfig` sont nettoyés ;
+   - les docs sont mises à jour, puis toute la branche est relue.
 
-1. **Essai en jeu, jetable** : trois mods minimaux avec `runAllMods`. On vérifie :
-   - l'ordre de chargement ;
-   - l'appel d'une classe de HyBlockUI depuis HyDomum ;
-   - un `.ui` d'un mod qui en inclut un d'un autre ;
-   - les trois packs d'assets actifs.
-
-   Si un point bloque, on revoit la conception avant de déplacer quoi que ce soit.
-2. **`build-logic` et garde-fous**, dans une session déverrouillée : catalogue de versions, workspace, conventions, contrôles déplacés. `core` et `plugin` y passent sans changer de comportement.
-3. **HyBlockUI** : le module inventaire, `PageEvents`, les panneaux, les `.ui` et les textures natives y déménagent, et HyColony en dépend.
-4. **HyDomum** :
-   - le cœur, le plugin, le pack et le générateur y déménagent ;
-   - la config, les tags, les données et `/hydomum` suivent ;
-   - on applique les renommages et on inverse l'ordre de la protection.
-5. **Nettoyage de HyColony** (`IdMap`, `ColonyConfig`, sous-pack DO), puis les docs et une relecture de toute la branche.
+La CI (`.github/workflows/gradle.yml`) ne se déclenche que sur `main`, une branche qui n'existe pas. Elle est hors de ce projet, mais le plan 2 le signale à l'utilisateur.
 
 ## Tests et vérifications
 
-- **Tests existants** : les tests de `core/ornament` partent avec leur code, et le reste des tests de HyColony ne change pas.
-- **Tests d'architecture** : chaque cœur a son `ArchitectureTest`. Des tests vérifient aussi que les imports entre mods ne passent que par les paquets `api`.
-- **Build** : `./gradlew build` construit et vérifie les trois mods.
-- **En jeu** (`docs/TESTING.md`, nouvelle section) :
-  - les trois mods chargés sans SEVERE ;
-  - HyDomum seul, sans HyColony, fonctionne : établi et `/hydomum` ;
-  - HyColony avec ses deux dépendances fonctionne comme avant : fenêtres, onglet Inventaire du citoyen, protection de l'établi dans une colonie ;
-  - sans HyDomum, HyColony refuse de démarrer, avec le message de dépendance manquante de Hytale.
+- **Tests du cœur.** Ceux de `core/ornament` partent avec leur code. `ColonyConfigTest` et `FreeWorkOrderTest` perdent `cutterCraftSeconds`, et le cœur de HyDomum reçoit le test de sa config.
+- **Contrôles du build.** Chaque cœur a son `ArchitectureTest`. `checkModApis` contrôle les imports entre mods, et le build racine vérifie que chaque projet applique sa convention.
+- **Build et générateur.** `./gradlew build` construit et vérifie les trois mods. `python tools/domum/check.py` passe.
+- **En jeu** : la section DO de `docs/TESTING.md` (points 133 à 162) est **réécrite** pour HyDomum : `/hydomum`, plus de `SubPlugins`, `universe/hydomum` (corrige I8). Une nouvelle section couvre :
+  - en dev, les trois mods chargés sans SEVERE ;
+  - en production, les trois jars ensemble, puis HyDomum seul (établi et `/hydomum`), puis HyColony sans HyDomum : Hytale refuse de le démarrer, avec son message de dépendance manquante ;
+  - HyColony comme avant : fenêtres, onglet Inventaire du citoyen, protection de l'établi dans une colonie.
 
 ## Documentation
 
-- `CLAUDE.md` et `AGENTS.md` (garde-fous) sont mis à jour.
-- `docs/research/plugin-b-api.md` reçoit une section « Mods multiples » : manifeste, chargeurs de classes, `Main`, workspace.
+- `CLAUDE.md`, `AGENTS.md`, les agents et les skills sont mis à jour (voir « Garde-fous »).
+- `docs/research/plugin-b-api.md` reçoit une section « Mods multiples » : manifeste, les deux modes de chargement des classes (dev et production), `Main`, workspace et staging.
 - `docs/native-ui-textures.md` suit les textures dans HyBlockUI.
-- Les specs et plans existants de DO renvoient à cette spec pour les nouveaux chemins et noms.
+- `docs/TESTING.md` est réécrit pour la partie DO.
+- Les specs et plans de DO renvoient à celle-ci pour les nouveaux chemins et noms.
 
 ## Hors de ce projet
 
-- Le kit « établi » générique (onglets, recettes, ingrédients, aperçu, file de fabrication) dans HyBlockUI.
+- Le kit « établi » générique.
 - Séparer Structurize (baguette, plans).
 - Des dépôts séparés.
 - Une migration des mondes de test.
+- La CI.
