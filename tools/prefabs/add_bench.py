@@ -39,12 +39,15 @@ def bench_cell(blocks, hut):
 
 
 def with_bench(prefab, hut, tier):
-    """A copy of the prefab with the bench at tier {@code tier} added; raises if no cell fits."""
+    """A copy of the prefab with the bench at tier {@code tier} added, in place of an Empty entry on its cell; raises
+    if no cell fits."""
     cell = bench_cell(prefab["blocks"], hut)
     if cell is None:
         raise ValueError(f"no free floor cell near the hut {hut}")
     out = copy.deepcopy(prefab)
     x, y, z = cell
+    # An explicit Empty entry may stand on the cell: Hytale refuses two blocks at one position.
+    out["blocks"] = [b for b in out["blocks"] if (b["x"], b["y"], b["z"]) != cell]
     out["blocks"].append({"x": x, "y": y, "z": z, "name": BENCH,
                           "components": {"Components": {"BenchBlock": {"TierLevel": tier, "UpgradeItems": []}}}})
     return out

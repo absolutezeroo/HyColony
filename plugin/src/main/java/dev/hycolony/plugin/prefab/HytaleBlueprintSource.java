@@ -137,13 +137,32 @@ public final class HytaleBlueprintSource implements BlueprintSource {
         });
     }
 
+    /**
+     * The prefab's buffer; empty (logged once) when Hytale cannot load it. PrefabBufferUtil reports a malformed or
+     * missing prefab as {@code java.lang.Error}, and may sneak-throw an IOException; JVM errors are not caught.
+     */
+    private Optional<IPrefabBuffer> buffer(Path path, String prefab) {
+        try {
+            return Optional.of(PrefabBufferUtil.getCached(path));
+        } catch (VirtualMachineError e) {
+            throw e;
+        } catch (Exception | Error e) {
+            warnOnce("cannot load prefab " + prefab, e);
+            return Optional.empty();
+        }
+    }
+
     private Optional<Blueprint> read(String style, PrefabStyles.Level entry, PrefabRotation r) {
         Path path = PrefabStore.get().findAssetPrefabPath(entry.prefab());
         if (path == null) {
             warnOnce("prefab not found: " + entry.prefab(), null);
             return Optional.empty();
         }
-        IPrefabBuffer buf = PrefabBufferUtil.getCached(path);
+        Optional<IPrefabBuffer> loaded = buffer(path, entry.prefab());
+        if (loaded.isEmpty()) {
+            return Optional.empty();
+        }
+        IPrefabBuffer buf = loaded.get();
 
         // Pass 1: rotated, anchor-relative cells. The hut cell is only known afterwards (default = lowest layer).
         String chest = entry.spawnerChests() ? ids.blockId(SPAWNER_CHEST_KEY + style) : null;

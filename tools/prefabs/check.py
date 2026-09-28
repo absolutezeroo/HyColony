@@ -30,6 +30,12 @@ class BenchCellTest(unittest.TestCase):
         self.assertEqual(3, bench["components"]["Components"]["BenchBlock"]["TierLevel"])
         self.assertEqual(1, len(prefab["blocks"]), "the source prefab is left untouched")
 
+    def test_bench_replaces_an_empty_block_entry_on_its_cell(self):
+        prefab = {"blocks": [block(1, 0, 1), block(1, 1, 1, "Empty")]}
+        out = with_bench(prefab, (0, 1, 0), 1)
+        at_cell = [b["name"] for b in out["blocks"] if (b["x"], b["y"], b["z"]) == (1, 1, 1)]
+        self.assertEqual(["Bench_Farming"], at_cell, "Hytale refuses two blocks at one position")
+
     def test_no_room_raises(self):
         with self.assertRaises(ValueError):
             with_bench({"blocks": []}, (0, 1, 0), 1)
