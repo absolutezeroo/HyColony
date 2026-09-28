@@ -1,5 +1,6 @@
 package dev.hycolony.plugin.ornament.runtime;
 
+import com.hypixel.hytale.assetstore.AssetExtraInfo;
 import com.hypixel.hytale.codec.ExtraInfo;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockGathering;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
@@ -34,9 +35,12 @@ final class VariantBlockType extends BlockType {
             String templateKey) {}
 
     private final String mainKey;
+    /** The template's asset data, answered by {@link #getData()} only; the {@code data} field stays null. */
+    private final AssetExtraInfo.@Nullable Data templateData;
 
     VariantBlockType(BlockType template, String id, String modelTexture, Family family) {
         super(template);
+        this.templateData = template.getData();
         this.data = null;
         this.id = id;
         this.mainKey = family.mainKey();
@@ -64,6 +68,18 @@ final class VariantBlockType extends BlockType {
         }
         breaking.put("ItemId", new BsonString(family.mainKey()));
         return BlockGathering.CODEC.decode(gathering, new ExtraInfo());
+    }
+
+    /**
+     * The template's asset data, for the readers that only test or read its tags: vanilla switches a block's
+     * interaction state (a door opening) only when {@code getData()} is not null (BlockOperations.
+     * setBlockInteractionState, WorldChunk.setBlockInteractionState), so without it a created door played its sound
+     * and stayed shut; connection and condition checks read the template's tags. The asset store, the item and the
+     * packet read the {@code data} field (BlockType.CODEC, getItem, toPacket), which stays null.
+     */
+    @Override
+    public AssetExtraInfo.@Nullable Data getData() {
+        return templateData;
     }
 
     /** The variant's item (the main block's key), which breaking any of its blocks drops; null until registered. */
