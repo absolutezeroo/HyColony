@@ -96,7 +96,7 @@
 
 ## Redesign after the first in-game test (supersedes the container parts below)
 
-The client does not show a container window beside a custom page: the block's 2 slots never appeared. The cutter has no container any more. The window, laid out like Hytale's benches, lists the player's inventory materials that the selected slot accepts. A click puts one in the slot, and crafting takes the materials from the inventory (`CutterInventory`), with x10 and All. The spec's « En jeu », « Écarts » and « Architecture » sections describe the result; `CutterBlock`, `CutterSlots`, `CutterFollower` and the `ItemContainerBlock` of `cutter.py` are gone.
+The client does not draw a window beside a custom page by itself: the block's 2 slots never appeared. After in-game spikes, the cutter block has no container. Each player gets 2 slots in a container window opened with the page (`openCustomPageWithWindows`). The page shows them, with the player's inventory, as ItemGrids filled through `ItemStacks`, which the client lets the player drag between natively; drops are carried out by `InventoryUtils.moveItem`. The reusable parts live in `plugin/inventory`. The window is laid out like Hytale's benches, with x10 and All. See the spec (« En jeu », « Écarts », « Architecture ») and `docs/research/plugin-b-api.md` § 7. `CutterBlock`, `CutterFollower`, `CutterInventory` and the `ItemContainerBlock` of `cutter.py` are gone.
 
 ## Amendments from the Task 1-2 reviews (apply them in Tasks 4-7)
 
