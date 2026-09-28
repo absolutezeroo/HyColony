@@ -1,0 +1,65 @@
+{
+  "TranslationProperties": {
+    "Name": "hyvanilla.item.carpet.red.name"
+  },
+  "Icon": "Icons/Items/HyVanilla/Carpet_Red.png",
+  "Categories": [
+    "Blocks.Cloth"
+  ],
+  "Recipe": {
+    "Input": [
+      {
+        "ItemId": "Cloth_Block_Wool_Red",
+        "Quantity": 2
+      }
+    ],
+    "OutputQuantity": 3,
+    "BenchRequirement": [
+      {
+        "Type": "Crafting",
+        "Id": "Furniture_Bench",
+        "Categories": [
+          "Furniture_Textiles"
+        ]
+      }
+    ]
+  },
+  "PlayerAnimationsId": "Block",
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Model",
+    "Opacity": "Transparent",
+    "CustomModel": "Blocks/HyVanilla/Carpet.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "BlockTextures/Cloth_Red.png",
+        "Weight": 1
+      }
+    ],
+    "HitboxType": "Block_Flat",
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "SoftBlocks",
+        "ItemId": "HyVanilla_Carpet_Red"
+      }
+    },
+    "Support": {
+      "Down": [
+        {
+          "FaceType": "Full"
+        }
+      ]
+    },
+    "BlockParticleSetId": "Dust",
+    "ParticleColor": "#863930",
+    "BlockSoundSetId": "Cloth",
+    "PhysicalMaterialId": "Wool",
+    "TextureComputedColor": "#86392F"
+  },
+  "Tags": {
+    "Type": [
+      "Cloth"
+    ]
+  },
+  "ItemSoundSetId": "ISS_Items_Cloth"
+}

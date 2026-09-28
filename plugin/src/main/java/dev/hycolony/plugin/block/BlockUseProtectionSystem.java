@@ -23,6 +23,7 @@ import dev.hycolony.plugin.IdMap;
 import dev.hycolony.plugin.WorldRuntime;
 import dev.hycolony.plugin.WorldRuntimes;
 import dev.hydomum.plugin.api.HyDomumSystems;
+import dev.hyvanilla.plugin.api.HyVanillaSystems;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
@@ -36,9 +37,10 @@ import javax.annotation.Nonnull;
  */
 public final class BlockUseProtectionSystem extends EntityEventSystem<EntityStore, UseBlockEvent.Pre> {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
-    /** Before HyDomum's cutter, so that the cutter sees a refused use already cancelled. */
-    private static final Set<Dependency<EntityStore>> DEPENDENCIES =
-            Set.of(new SystemDependency<>(Order.BEFORE, HyDomumSystems.cutterUse()));
+    /** Before HyDomum's cutter and HyVanilla's flower pot, so that they see a refused use already cancelled. */
+    private static final Set<Dependency<EntityStore>> DEPENDENCIES = Set.of(
+            new SystemDependency<>(Order.BEFORE, HyDomumSystems.cutterUse()),
+            new SystemDependency<>(Order.BEFORE, HyVanillaSystems.flowerPotUse()));
 
     private final WorldRuntimes runtimes;
     private final Set<String> hutBlockIds;

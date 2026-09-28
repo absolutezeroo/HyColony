@@ -1,5 +1,7 @@
 # Tapis et pots de fleurs « comme Minecraft »
 
+> **Depuis le 2026-09-29**, ces blocs vivent dans le mod HyVanilla (`docs/superpowers/specs/2026-09-29-hyvanilla-design.md`) : ids `HyVanilla_*` au lieu de `HyColony_*`, assets sous `vanilla/plugin/src/main/resources/…/HyVanilla/`, générateur `tools/vanilla/`. Le texte ci-dessous garde les noms de l'époque.
+
 Recherche du 2026-09-28, avant toute conception. Abréviations :
 
 - `Z:` = entrée de `release-0.6.8-Assets.zip` (`$USERPROFILE/.gradle/caches/hytale-assets/`).
@@ -109,7 +111,7 @@ Casse d'un pot garni : `Gathering` par état avec une `DropList` pot + plante (�
 
 ## 6. Inventaire retenu pour le pot (implémentation, 2026-09-28)
 
-Liste exacte dans `tools/decorations/flower_pots.py` (`PLANTS`), reprise dans le fragment `plugin/src/subplugins/Decorations/hycolony/id-map.json` (section `flowerPots` : pot → objet plante → bloc `*HyColony_Flower_Pot_<C>_State_Definitions_<plante>`). Liste MC Java de référence (`https://minecraft.wiki/w/Flower_Pot`) : fleurs d'un bloc, pousses, champignons rouge et brun, fougère, buisson mort, cactus, bambou, azalées, propagule de palétuvier, racines et champignons du Nether, eyeblossoms.
+Liste exacte dans `tools/vanilla/flower_pots.py` (`PLANTS`), reprise dans `vanilla/plugin/src/main/resources/hyvanilla/id-map.json` (section `flowerPots` : pot → objet plante → bloc `*HyVanilla_Flower_Pot_<C>_State_Definitions_<plante>`). Liste MC Java de référence (`https://minecraft.wiki/w/Flower_Pot`) : fleurs d'un bloc, pousses, champignons rouge et brun, fougère, buisson mort, cactus, bambou, azalées, propagule de palétuvier, racines et champignons du Nether, eyeblossoms.
 
 **121 plantes Hytale retenues :**
 

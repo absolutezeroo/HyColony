@@ -12,7 +12,7 @@ import re
 import sys
 from pathlib import Path
 
-sys.path.append(str(Path(__file__).resolve().parents[1] / "decorations"))
+sys.path.append(str(Path(__file__).resolve().parents[1] / "vanilla"))
 from pack import GRADLE_ASSETS, ROOT, Assets  # noqa: E402
 
 # Hytale block groups standing for DO's tag groups, as regular expressions over vanilla item ids.

@@ -1,0 +1,25 @@
+{
+    "Group": "HyColony",
+    "Name": "hyvanilla",
+    "Version": "0.1.0",
+    "Description": "Minecraft's vanilla blocks that Hytale lacks: carpets and flower pots.",
+    "Authors": [
+        {
+            "Name": "Ctuto"
+        }
+    ],
+    "Website": "https://github.com/ldtteam/minecolonies",
+    "ServerVersion": ">=0.7.0-pre.4 <0.8.0",
+    "Dependencies": {
+        "Hytale:AssetModule": "*"
+    },
+    "OptionalDependencies": {
+        
+    },
+    "DisabledByDefault": false,
+    "Main": "dev.hyvanilla.plugin.HyVanillaPlugin",
+    "IncludesAssetPack": true,
+    "UpdateChecker": {
+        "CurseForge": ""
+    }
+}

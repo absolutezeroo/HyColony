@@ -9,7 +9,7 @@ north -> back, south -> front, west -> left, east -> right, up -> top, down -> b
 y in [0, 32], 2 units per Minecraft pixel; a material texture has 32 texels per block, so a face reads one texel per
 unit. A face wider than a tile would read the next one: its box is built at most 32 units per axis and stretched
 back (shape "stretch", as vanilla models change texel density). Texture offsets follow the layout rule verified on
-vanilla models (tools/decorations/models.py face_rects): the offset is the pivot, the mirror flips the face's
+vanilla models (tools/vanilla/models.py face_rects): the offset is the pivot, the mirror flips the face's
 rectangle over it, then the angle turns it about it.
 
 Deviation from MC: Minecraft stretches a face's uv rectangle over the face; here a face reads one texel per unit
@@ -21,7 +21,7 @@ import math
 import sys
 from pathlib import Path
 
-sys.path.append(str(Path(__file__).resolve().parents[1] / "decorations"))
+sys.path.append(str(Path(__file__).resolve().parents[1] / "vanilla"))
 from models import TURNS, empty_shape, node, walk, xyz  # noqa: E402
 
 from assemble import default_uv  # noqa: E402

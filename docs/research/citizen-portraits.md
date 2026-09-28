@@ -119,7 +119,7 @@ Géométrie : le visage est un **quad plat** 30×28 à l'avant de la tête (`zip
    - **[in-game]** : rendu sur notre rôle.
 2. **Portraits : option (b), préréglages pré-rendus.**
    - L'apparence d'un citoyen est un **id de préréglage** tiré dans un catalogue fini (par exemple 32 par genre), défini dans un fichier de données du plugin (skin complet + PNG de tête).
-   - Un script de build (`tools/portraits/`, comme `tools/decorations/`) projette les `.blockymodel` de face, applique les tables de dégradé et écrit un PNG par préréglage dans `Common/UI/Custom/HyColony/Portraits/`.
+   - Un script de build (`tools/portraits/`, comme `tools/vanilla/`) projette les `.blockymodel` de face, applique les tables de dégradé et écrit un PNG par préréglage dans `Common/UI/Custom/HyColony/Portraits/`.
    - L'UI : une `AssetImage` par ligne, `ui.set(sel + " #Portrait.AssetPath", "UI/Custom/HyColony/Portraits/<id>.png")`, avec `FallbackTexturePath` sur une silhouette.
    - Même moteur que (a), dix fois moins d'images, la profondeur correcte, aucun empilement à l'exécution, et un seul `set` par ligne.
    - (a) reste possible plus tard si l'on veut des skins entièrement aléatoires.

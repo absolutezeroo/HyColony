@@ -162,8 +162,7 @@ class ArchitectureTest {
                     "dev.hycolony.core.job..",
                     "dev.hycolony.core.request..",
                     "dev.hycolony.core.construction..",
-                    "dev.hycolony.core.logistics..",
-                    "dev.hycolony.core.decoration..")
+                    "dev.hycolony.core.logistics..")
             .should()
             .dependOnClassesThat()
             .resideInAnyPackage("dev.hycolony.core.colony.view..", "dev.hycolony.core.colony.persistence..");
@@ -181,8 +180,7 @@ class ArchitectureTest {
                     "dev.hycolony.core.job..",
                     "dev.hycolony.core.request..",
                     "dev.hycolony.core.construction..",
-                    "dev.hycolony.core.logistics..",
-                    "dev.hycolony.core.decoration..")
+                    "dev.hycolony.core.logistics..")
             .and()
             .resideOutsideOfPackage("dev.hycolony.core.construction.wand..")
             .should()

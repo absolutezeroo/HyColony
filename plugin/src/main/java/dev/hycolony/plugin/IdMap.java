@@ -32,7 +32,6 @@ public final class IdMap {
             List<String> fireworks,
             List<String> precipitationParticles,
             Map<String, String> speedEffects,
-            Map<String, Map<String, String>> flowerPots,
             List<String> toggleableUseInteractions,
             List<String> potions,
             FarmingIds farming,
@@ -93,11 +92,6 @@ public final class IdMap {
         return Map.copyOf(out);
     }
 
-    /** Flower pot (item and empty block) -> plant item -> that pot's block holding it; none when Decorations is off. */
-    public Map<String, Map<String, String>> flowerPots() {
-        return Map.copyOf(pots());
-    }
-
     /** Root interactions run by using a door or a gate (MC BlockTags.DOORS and FENCE_GATES: ACCESS_TOGGLEABLES). */
     public Set<String> toggleableUseInteractions() {
         return Set.copyOf(Objects.requireNonNullElse(data.toggleableUseInteractions(), List.of()));
@@ -132,10 +126,6 @@ public final class IdMap {
         return Objects.requireNonNullElse(data.speedEffects(), Map.of());
     }
 
-    private Map<String, Map<String, String>> pots() {
-        return Objects.requireNonNullElse(data.flowerPots(), Map.of());
-    }
-
     private static String require(Map<String, String> map, String key) {
         String id = map.get(key);
         if (id == null) {
@@ -163,11 +153,6 @@ public final class IdMap {
         check(errors, "particle system", byId(data.fireworks()), particle);
         check(errors, "precipitation particle system", byId(precipitation()), particle);
         check(errors, "speed effect", speeds(), effect);
-        check(errors, "flower pot item", byId(List.copyOf(pots().keySet())), item.and(block));
-        pots().forEach((pot, potted) -> {
-            check(errors, "potted plant item", byId(List.copyOf(potted.keySet())), item);
-            check(errors, "flower pot " + pot + " block", potted, block);
-        });
         check(errors, "toggleable use interaction", byId(List.copyOf(toggleableUseInteractions())), interaction);
         check(errors, "potion item", byId(potionList()), item);
         check(errors, "npc role", data.npcRoles(), id -> NPCPlugin.get().hasRoleName(id));
