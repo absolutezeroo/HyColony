@@ -6,6 +6,7 @@ from pathlib import Path
 
 import assemble
 import convert
+import faces
 import source
 from convert import Converter, check_atlas
 from families import FAMILIES, material
@@ -172,6 +173,56 @@ def oriented_families_face_minus_z():
                 assert extent[2] < 5 < extent[0], (block, extent)
 
 
+def coplanar_overlap_is_removed():
+    a = {"from": [0, 0, 0], "to": [16, 16, 1], "faces": {"north": {"uv": [0, 0, 16, 16], "texture": "#a"}}}
+    b = {"from": [4, 4, 0], "to": [12, 12, 1], "faces": {"north": {"uv": [0, 0, 8, 8], "texture": "#b"}}}
+    cleaned = faces.clean({"textures": {}, "elements": [a, b]})
+    assert faces.overlapping_pairs(cleaned) == []
+    # The small face is a detail on the big one (DO's timber beams): it stays in front, the backing moves back.
+    assert "north" in cleaned["elements"][1]["faces"]
+    assert cleaned["elements"][0]["from"][2] == faces.MIN_GAP_PX
+
+
+def near_coplanar_backing_moves_behind_its_detail():
+    beam = {"from": [0, 0, 0.01], "to": [16, 2, 1], "faces": {"north": {"texture": "#frame"}}}
+    centre = {"from": [1, 0, 0.02], "to": [15, 16, 15], "faces": {"north": {"texture": "#centre"}}}
+    cleaned = faces.clean({"textures": {}, "elements": [beam, centre]})
+    assert faces.overlapping_pairs(cleaned) == []
+    assert abs(cleaned["elements"][1]["from"][2] - (0.01 + faces.MIN_GAP_PX)) < 1e-9
+    assert cleaned["elements"][0]["from"][2] == 0.01
+
+
+def fully_hidden_face_is_dropped():
+    front = {"from": [0, 0, 0], "to": [16, 16, 1], "faces": {"north": {"texture": "#a"}}}
+    back = {"from": [4, 4, 0.02], "to": [12, 12, 1], "faces": {"north": {"texture": "#b"}}}
+    cleaned = faces.clean({"textures": {}, "elements": [front, back]})
+    assert "north" not in cleaned["elements"][1]["faces"]
+
+
+def pillar_column_is_capped():
+    root = source.fetch()
+    pillar = next(f for f in FAMILIES if f.name == "Pillar")
+    for block in pillar.blocks:
+        model = faces.cap_ends(assemble.state_model(root, pillar, block, {"column": "pillar_column"}))
+        tops = [e for e in model["elements"] if e["to"][1] == 16 and "up" in e["faces"]]
+        bottoms = [e for e in model["elements"] if e["from"][1] == 0 and "down" in e["faces"]]
+        assert tops and bottoms, block
+        # blockpillar's eight overlapping blades get one lid each way, never eight coplanar caps.
+        assert faces.overlapping_pairs(model) == [] or block != "blockpillar", faces.overlapping_pairs(model)
+
+
+def clean_resolves_every_do_default_state():
+    """faces.clean leaves no z-fighting pair in any DO-1 block's default state (compat families, whose geometry
+    comes from Minecraft's vanilla templates, are Task 10's)."""
+    root = source.fetch()
+    for family in FAMILIES:
+        if family.mechanism == "vanilla" or family.name == "AllBrickStair":
+            continue
+        for block in family.blocks:
+            model = faces.clean(faces.cap_ends(assemble.state_model(root, family, block, {})))
+            assert faces.overlapping_pairs(model) == [], block
+
+
 def main():
     converter_matches_reference_geometry()
     families_cover_the_spec()
@@ -183,6 +234,11 @@ def main():
     uvlock_families_assemble_without_error()
     default_props_pick_the_blocks_own_default_state()
     oriented_families_face_minus_z()
+    coplanar_overlap_is_removed()
+    near_coplanar_backing_moves_behind_its_detail()
+    fully_hidden_face_is_dropped()
+    pillar_column_is_capped()
+    clean_resolves_every_do_default_state()
     with tempfile.TemporaryDirectory() as tmp:
         partial_cache_is_refetched(Path(tmp))
     print("tools/domum check: OK")
