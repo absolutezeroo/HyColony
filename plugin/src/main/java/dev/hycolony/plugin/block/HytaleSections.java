@@ -13,7 +13,10 @@ import org.jspecify.annotations.Nullable;
 public final class HytaleSections {
     private HytaleSections() {}
 
-    /** The loaded section holding {@code pos}; null when its chunk is not loaded. */
+    /**
+     * The loaded section holding {@code pos}; null when its chunk is not loaded. Null rather than Optional: every
+     * block read and write goes through here, so it allocates nothing.
+     */
     public static @Nullable Ref<ChunkStore> section(World world, BlockPos pos) {
         Ref<ChunkStore> sec = world.getChunkStore().getChunkSectionReferenceAtBlock(pos.x(), pos.y(), pos.z());
         return sec != null && sec.isValid() ? sec : null;

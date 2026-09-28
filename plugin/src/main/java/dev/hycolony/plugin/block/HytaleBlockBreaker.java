@@ -61,16 +61,19 @@ public final class HytaleBlockBreaker {
         }
         // A filler cell belongs to its origin block: the origin holds the container, and the whole block goes.
         int filler = blocks.getFiller(pos.x(), pos.y(), pos.z());
-        BlockPos origin = new BlockPos(
-                pos.x() - FillerBlockUtil.unpackX(filler),
-                pos.y() - FillerBlockUtil.unpackY(filler),
-                pos.z() - FillerBlockUtil.unpackZ(filler));
+        BlockPos origin = originOf(pos, filler);
         Ref<ChunkStore> originSec = filler == 0 ? sec : section(world, origin);
         if (originSec == null) {
             return List.of(); // origin unloaded: Hytale would not remove it either, so no drops (no duplication)
         }
         // An orphan filler (its origin is another block) is only cleared: it drops nothing.
         List<ItemStack> out = holds(store, originSec, origin, id) ? takeDrops(type, origin) : List.of();
+        remove(pos, type, filler, settings, sec);
+        return toAmounts(out);
+    }
+
+    /** Removes the block (the whole of it from a filler cell) the way a player's break does, without drops. */
+    private void remove(BlockPos pos, BlockType type, int filler, int settings, Ref<ChunkStore> sec) {
         BlockHarvestUtils.naturallyRemoveBlock(
                 new Vector3i(pos.x(), pos.y(), pos.z()),
                 type,
@@ -81,11 +84,21 @@ public final class HytaleBlockBreaker {
                 settings,
                 sec,
                 world.getEntityStore().getStore(),
-                store);
-        return toAmounts(out);
+                world.getChunkStore().getStore());
     }
 
-    /** The type of block {@code id}; null when unknown, empty or a hut. */
+    /** The origin block of the cell at {@code pos} whose filler offset is {@code filler} (0: the cell itself). */
+    private static BlockPos originOf(BlockPos pos, int filler) {
+        return new BlockPos(
+                pos.x() - FillerBlockUtil.unpackX(filler),
+                pos.y() - FillerBlockUtil.unpackY(filler),
+                pos.z() - FillerBlockUtil.unpackZ(filler));
+    }
+
+    /**
+     * The type of block {@code id}; null when unknown, empty or a hut. Null rather than Optional: every citizen
+     * break goes through here, so it allocates nothing.
+     */
     private @Nullable BlockType breakable(int id) {
         BlockType type = BlockType.getAssetMap().getAsset(id);
         if (type == null || type == BlockType.EMPTY || isHut.test(type)) {

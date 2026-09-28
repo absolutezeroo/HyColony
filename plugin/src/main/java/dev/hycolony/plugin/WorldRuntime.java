@@ -80,13 +80,7 @@ public final class WorldRuntime {
                 names,
                 new Random(),
                 new EventBus(),
-                new ConstructionPorts(
-                        catalog,
-                        worldBlocks,
-                        new HytaleContainerAccess(world, catalog.stacks()),
-                        new HytalePlayerInventory(world, catalog.stacks()),
-                        new HytaleBlueprintSource(ids, setup.styles()),
-                        new HytaleWorldEffects(world, ids.fireworks())));
+                constructionPorts(world, setup, catalog, worldBlocks));
         this.manager = new ColonyManager(ctx);
         self[0] = manager;
         this.previews = new HytalePreviewPort(world);
@@ -94,14 +88,32 @@ public final class WorldRuntime {
         this.wand =
                 new WandActions(manager, previews, k -> new ItemKey(ids.itemId(k)), k -> new BlockKey(ids.blockId(k)));
         wandSelf[0] = wand;
+        openStorage(manager, world, enabled);
+        this.loaded = enabled;
+        this.enabled = enabled;
+        this.autosaveTicks = config.hycolony().autosaveIntervalMinutes() * 60L * 20L;
+    }
+
+    /** The construction adapters of {@code world}. */
+    private static ConstructionPorts constructionPorts(
+            World world, RuntimeSetup setup, HytaleItemCatalog catalog, HytaleWorldBlocks worldBlocks) {
+        IdMap ids = setup.ids();
+        return new ConstructionPorts(
+                catalog,
+                worldBlocks,
+                new HytaleContainerAccess(world, catalog.stacks()),
+                new HytalePlayerInventory(world, catalog.stacks()),
+                new HytaleBlueprintSource(ids, setup.styles()),
+                new HytaleWorldEffects(world, ids.fireworks()));
+    }
+
+    /** Points the colonies' persistence at the world's save folder; reads them only when {@code enabled}. */
+    private static void openStorage(ColonyManager manager, World world, boolean enabled) {
         manager.persistence()
                 .setStorage(new FileColonyStorage(world.getSavePath().resolve("hycolony")), MigrationChain.sp2());
         if (enabled) {
             manager.persistence().loadAll(); // disabled (asset ids missing): leave the files alone
         }
-        this.loaded = enabled;
-        this.enabled = enabled;
-        this.autosaveTicks = config.hycolony().autosaveIntervalMinutes() * 60L * 20L;
     }
 
     /** One core tick (1/20 s). */

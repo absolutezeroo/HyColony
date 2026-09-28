@@ -201,20 +201,24 @@ public final class HytaleItemCatalog implements ItemCatalog {
             return new BlockInfo(BlockKind.UNBREAKABLE, itemKey, false, Optional.empty(), 1f, harmful);
         }
         BlockKind kind = type.getMaterial() == BlockMaterial.Empty ? BlockKind.NON_SOLID : BlockKind.SOLID;
-        float hardness = MIN_HARDNESS; // soft or harvest-only blocks break in one hit
-        if (gather != null) {
-            ItemToolSpec unarmed = ItemToolSpec.getAssetMap().getAsset(gather);
-            hardness = unarmed == null || unarmed.getPower() <= 0
-                    ? 1f
-                    : Math.clamp(MIN_HARDNESS / unarmed.getPower(), MIN_HARDNESS, MAX_HARDNESS);
-        }
         return new BlockInfo(
                 kind,
                 itemKey,
                 gather != null && gather.startsWith("Ore"),
                 Optional.ofNullable(toolType(gather)),
-                hardness,
+                hardness(gather),
                 harmful);
+    }
+
+    /** The block's hardness from its gather type's unarmed power; soft or harvest-only blocks break in one hit. */
+    private static float hardness(@Nullable String gather) {
+        if (gather == null) {
+            return MIN_HARDNESS;
+        }
+        ItemToolSpec unarmed = ItemToolSpec.getAssetMap().getAsset(gather);
+        return unarmed == null || unarmed.getPower() <= 0
+                ? 1f
+                : Math.clamp(MIN_HARDNESS / unarmed.getPower(), MIN_HARDNESS, MAX_HARDNESS);
     }
 
     private static @Nullable ToolType toolType(@Nullable String gather) {

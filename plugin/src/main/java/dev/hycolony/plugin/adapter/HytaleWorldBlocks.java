@@ -123,13 +123,7 @@ public final class HytaleWorldBlocks implements WorldBlocks {
             Store<ChunkStore> store = world.getChunkStore().getStore();
             String key = state.key().id();
             if (key.startsWith(FLUID_PREFIX)) {
-                Fluid fluid = Fluid.getAssetMap().getAsset(key.substring(FLUID_PREFIX.length()));
-                if (fluid == null || fluid == Fluid.EMPTY) {
-                    return false;
-                }
-                store.ensureAndGetComponent(sec, FluidSection.getComponentType())
-                        .setFluid(pos.x(), pos.y(), pos.z(), fluid, (byte) fluid.getMaxFluidLevel());
-                return true;
+                return placeFluid(store, sec, pos, key.substring(FLUID_PREFIX.length()));
             }
             int id = BlockType.getAssetMap().getIndex(key);
             BlockType type =
@@ -138,17 +132,7 @@ public final class HytaleWorldBlocks implements WorldBlocks {
             if (type == null || blocks == null) {
                 return false;
             }
-            // The builder mined the spot first, so leftovers are replaced, except a hut (a multi-cell block's hitbox
-            // may reach one). The check also fails if part of the hitbox is in an unloaded section.
-            if (!BlockOperations.testPlaceBlock(
-                    store,
-                    blocks,
-                    pos.x(),
-                    pos.y(),
-                    pos.z(),
-                    type,
-                    state.rotation(),
-                    (x, y, z, other, rot, filler) -> !isHut(other))) {
+            if (!fits(store, blocks, pos, type, state.rotation())) {
                 return false;
             }
             BlockOperations.setBlock(
@@ -161,6 +145,33 @@ public final class HytaleWorldBlocks implements WorldBlocks {
             fail("place", pos, e);
             return false;
         }
+    }
+
+    /**
+     * Whether {@code type} fits at {@code pos}. The builder mined the spot first, so leftovers are replaced, except a
+     * hut (a multi-cell block's hitbox may reach one). Also false if part of the hitbox is in an unloaded section.
+     */
+    private boolean fits(Store<ChunkStore> store, BlockSection blocks, BlockPos pos, BlockType type, int rotation) {
+        return BlockOperations.testPlaceBlock(
+                store,
+                blocks,
+                pos.x(),
+                pos.y(),
+                pos.z(),
+                type,
+                rotation,
+                (x, y, z, other, rot, filler) -> !isHut(other));
+    }
+
+    /** Fills {@code pos} with fluid {@code fluidId} at its full level; false for an unknown or empty fluid. */
+    private static boolean placeFluid(Store<ChunkStore> store, Ref<ChunkStore> sec, BlockPos pos, String fluidId) {
+        Fluid fluid = Fluid.getAssetMap().getAsset(fluidId);
+        if (fluid == null || fluid == Fluid.EMPTY) {
+            return false;
+        }
+        store.ensureAndGetComponent(sec, FluidSection.getComponentType())
+                .setFluid(pos.x(), pos.y(), pos.z(), fluid, (byte) fluid.getMaxFluidLevel());
+        return true;
     }
 
     @Override

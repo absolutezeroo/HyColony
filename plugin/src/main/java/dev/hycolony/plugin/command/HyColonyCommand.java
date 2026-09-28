@@ -246,16 +246,7 @@ public final class HyColonyCommand extends AbstractCommandCollection {
         private static void construction(PlayerRef player, WorldRuntime rt, BlockPos at, IdMap ids) {
             ConstructionPorts ports = rt.manager().context().ports();
             try {
-                // Styles come from sub-plugins that may all be disabled: then there is nothing to load.
-                String style = ports.blueprints().styles().stream().findFirst().orElse("(no style)");
-                Optional<Blueprint> bp = ports.blueprints().load(style, ConstructionBuildingTypes.BUILDER.id(), 1, 0);
-                report(
-                        player,
-                        "blueprint",
-                        bp.isPresent() && !bp.get().entries().isEmpty(),
-                        bp.map(b -> b.key() + " (" + b.entries().size() + " blocks)")
-                                .orElse(style + " builder 1 missing"));
-
+                blueprint(player, ports);
                 BlockPos test = at.offset(0, 3, 0);
                 boolean air = ports.blocks()
                         .get(test)
@@ -275,23 +266,41 @@ public final class HyColonyCommand extends AbstractCommandCollection {
                 if (!placed) {
                     return;
                 }
-                List<BlockPos> box = List.of(test);
-                ItemKey item = new ItemKey(ids.itemId(ConstructionBuildingTypes.BUILDER.hutBlockKey()));
-                ItemAmount rest = ports.containers().insert(box, new ItemAmount(item, 1));
-                boolean roundTrip = rest == null
-                        && ports.containers().count(box, item) == 1
-                        && ports.containers().extract(box, item, 1) == 1
-                        && ports.containers().count(box, item) == 0;
-                report(player, "container", roundTrip, "insert / count / extract");
-                List<ItemAmount> drops = ports.blocks().breakBlock(test);
-                boolean gone = ports.blocks()
-                        .get(test)
-                        .map(st -> ports.catalog().kind(st.key()) == BlockKind.AIR)
-                        .orElse(false);
-                report(player, "break", gone && !drops.isEmpty(), "drops " + drops);
+                containerThenBreak(player, ports, test, ids);
             } catch (RuntimeException e) {
                 report(player, "construction", false, e.toString());
             }
+        }
+
+        /** Loads the first style's level 1 builder hut. */
+        private static void blueprint(PlayerRef player, ConstructionPorts ports) {
+            // Styles come from sub-plugins that may all be disabled: then there is nothing to load.
+            String style = ports.blueprints().styles().stream().findFirst().orElse("(no style)");
+            Optional<Blueprint> bp = ports.blueprints().load(style, ConstructionBuildingTypes.BUILDER.id(), 1, 0);
+            report(
+                    player,
+                    "blueprint",
+                    bp.isPresent() && !bp.get().entries().isEmpty(),
+                    bp.map(b -> b.key() + " (" + b.entries().size() + " blocks)")
+                            .orElse(style + " builder 1 missing"));
+        }
+
+        /** Container round trip in the chest placed at {@code test}, then its break and drops. */
+        private static void containerThenBreak(PlayerRef player, ConstructionPorts ports, BlockPos test, IdMap ids) {
+            List<BlockPos> box = List.of(test);
+            ItemKey item = new ItemKey(ids.itemId(ConstructionBuildingTypes.BUILDER.hutBlockKey()));
+            ItemAmount rest = ports.containers().insert(box, new ItemAmount(item, 1));
+            boolean roundTrip = rest == null
+                    && ports.containers().count(box, item) == 1
+                    && ports.containers().extract(box, item, 1) == 1
+                    && ports.containers().count(box, item) == 0;
+            report(player, "container", roundTrip, "insert / count / extract");
+            List<ItemAmount> drops = ports.blocks().breakBlock(test);
+            boolean gone = ports.blocks()
+                    .get(test)
+                    .map(st -> ports.catalog().kind(st.key()) == BlockKind.AIR)
+                    .orElse(false);
+            report(player, "break", gone && !drops.isEmpty(), "drops " + drops);
         }
 
         /** A stair corner keeps its variant id through blockKey; an open door reads as its base block. */

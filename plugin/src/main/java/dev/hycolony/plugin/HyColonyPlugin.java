@@ -55,7 +55,17 @@ public final class HyColonyPlugin extends JavaPlugin {
 
         HyColonyComponents.register(getEntityStoreRegistry());
         NPCPlugin.get().registerCoreComponentType("HyColonyTarget", BuilderSensorHyColonyTarget::new);
+        registerSystems(worlds, ids);
+        WandInteraction.register(this, worlds);
+        getCommandRegistry().registerCommand(new HyColonyCommand(worlds, ids, colonyConfig.commands(), packs));
+        registerWorldEvents(worlds);
+        getEventRegistry().register(PlayerDisconnectEvent.class, e -> onDisconnect(worlds, ids, e));
 
+        getLogger().at(Level.INFO).log("HyColony setup complete");
+    }
+
+    /** Registers the entity systems and the goggles' player-ready hook, in their original order. */
+    private void registerSystems(WorldRuntimes worlds, IdMap ids) {
         getEntityStoreRegistry().registerSystem(new ColonyTickSystem(worlds));
         getEntityStoreRegistry().registerSystem(new CitizenBodyLifecycleSystem(worlds));
         BlockSystems.register(getEntityStoreRegistry(), worlds, ids, packs.isEnabled(BlockSystems.FLOWER_POT_PACK));
@@ -68,31 +78,14 @@ public final class HyColonyPlugin extends JavaPlugin {
                 .registerGlobal(
                         PlayerReadyEvent.class,
                         e -> GogglesSystems.onPlayerReady(worlds, ids.itemId("build_goggles"), e));
-        WandInteraction.register(this, worlds);
-        getCommandRegistry().registerCommand(new HyColonyCommand(worlds, ids, colonyConfig.commands(), packs));
+    }
 
+    /** Creates a runtime when a world starts, drops it when the world goes, and saves every one on shutdown. */
+    private void registerWorldEvents(WorldRuntimes worlds) {
         // Assets (blocks, items, NPC roles) are all loaded once a world starts: validate ids there.
         // World.onStart dispatches this on the world thread: create the runtime inline, before any
         // chunk (and its citizen NPCs) loads, so CitizenBodyLifecycleSystem finds it.
-        getEventRegistry().registerGlobal(StartWorldEvent.class, e -> {
-            try {
-                worlds.enableIfIdsValid();
-                HytaleBlueprintSource.prewarm(worlds.setup().styles()); // once, in the background: assets are loaded
-                WorldRuntime created = worlds.create(e.getWorld());
-                getLogger()
-                        .at(Level.INFO)
-                        .log(
-                                "HyColony runtime ready for world '%s' (%d colonies loaded)",
-                                e.getWorld().getName(), created.manager().all().size());
-            } catch (RuntimeException ex) {
-                getLogger()
-                        .at(Level.SEVERE)
-                        .withCause(ex)
-                        .log(
-                                "HyColony failed to start for world '%s'",
-                                e.getWorld().getName());
-            }
-        });
+        getEventRegistry().registerGlobal(StartWorldEvent.class, e -> onWorldStart(worlds, e));
         // LAST: another listener may still cancel the removal, and then the runtime must stay.
         getEventRegistry().registerGlobal(EventPriority.LAST, RemoveWorldEvent.class, e -> {
             if (!e.isCancelled()) { // an EXCEPTIONAL removal always reports not cancelled
@@ -100,28 +93,47 @@ public final class HyColonyPlugin extends JavaPlugin {
             }
         });
         getEventRegistry().register(ShutdownEvent.class, e -> worlds.all().forEach(WorldRuntime::saveAll));
-        getEventRegistry().register(PlayerDisconnectEvent.class, e -> {
-            UUID uuid = e.getPlayerRef().getUuid();
-            worlds.all()
-                    .forEach(rt -> rt.world().execute(() -> {
-                        safely("goggles", () -> rt.goggles().unequip(uuid));
-                        safely("wand", () -> rt.wand().disconnect(uuid));
-                    }));
-            worlds.all()
-                    .forEach(rt -> rt.world()
-                            .execute(() -> safely(
-                                    "foundation",
-                                    () -> rt.manager()
-                                            .foundation()
-                                            .cancel(uuid)
-                                            .ifPresent(pos -> rt.blocks()
-                                                    .removeWithDrop(
-                                                            pos,
-                                                            ids.blockId("hut.townhall"),
-                                                            ids.itemId("hut.townhall"))))));
-        });
+    }
 
-        getLogger().at(Level.INFO).log("HyColony setup complete");
+    /** Validates the ids and creates the world's runtime; a failure is logged SEVERE, never thrown. */
+    private void onWorldStart(WorldRuntimes worlds, StartWorldEvent e) {
+        try {
+            worlds.enableIfIdsValid();
+            HytaleBlueprintSource.prewarm(worlds.setup().styles()); // once, in the background: assets are loaded
+            WorldRuntime created = worlds.create(e.getWorld());
+            getLogger()
+                    .at(Level.INFO)
+                    .log(
+                            "HyColony runtime ready for world '%s' (%d colonies loaded)",
+                            e.getWorld().getName(), created.manager().all().size());
+        } catch (RuntimeException ex) {
+            getLogger()
+                    .at(Level.SEVERE)
+                    .withCause(ex)
+                    .log("HyColony failed to start for world '%s'", e.getWorld().getName());
+        }
+    }
+
+    /** On each world's thread: takes off the leaver's goggles and wand, and cancels their unconfirmed town hall. */
+    private void onDisconnect(WorldRuntimes worlds, IdMap ids, PlayerDisconnectEvent e) {
+        UUID uuid = e.getPlayerRef().getUuid();
+        worlds.all()
+                .forEach(rt -> rt.world().execute(() -> {
+                    safely("goggles", () -> rt.goggles().unequip(uuid));
+                    safely("wand", () -> rt.wand().disconnect(uuid));
+                }));
+        worlds.all()
+                .forEach(rt -> rt.world()
+                        .execute(() -> safely(
+                                "foundation",
+                                () -> rt.manager()
+                                        .foundation()
+                                        .cancel(uuid)
+                                        .ifPresent(pos -> rt.blocks()
+                                                .removeWithDrop(
+                                                        pos,
+                                                        ids.blockId("hut.townhall"),
+                                                        ids.itemId("hut.townhall"))))));
     }
 
     @Override

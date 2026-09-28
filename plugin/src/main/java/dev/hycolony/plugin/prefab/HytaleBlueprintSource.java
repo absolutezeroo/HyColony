@@ -147,6 +147,23 @@ public final class HytaleBlueprintSource implements BlueprintSource {
         // Pass 1: rotated, anchor-relative cells. The hut cell is only known afterwards (default = lowest layer).
         String chest = entry.spawnerChests() ? ids.blockId(SPAWNER_CHEST_KEY + style) : null;
         List<Cell> cells = new ArrayList<>();
+        int lowestY = readCells(buf, r, chest, cells);
+        if (cells.isEmpty()) {
+            warnOnce("prefab has no blocks: " + entry.prefab(), null);
+            return Optional.empty();
+        }
+
+        // Pass 2: the unrotated hut cell, turned like the entries, then everything made hut-relative.
+        BlockPos hut = PrefabStyles.rotate(r, PrefabStyles.hutCell(entry.hutOffset(), buf, lowestY));
+        List<BlueprintEntry> entries = hutRelative(cells, hut);
+        BlockPos low = PrefabStyles.relative(buf.getMinX(r), buf.getMinY(), buf.getMinZ(r), hut);
+        BlockPos min = new BlockPos(low.x(), Math.max(low.y(), FLOOR_Y + 1), low.z());
+        BlockPos max = PrefabStyles.relative(buf.getMaxX(r), buf.getMaxY(), buf.getMaxZ(r), hut);
+        return Optional.of(new Blueprint(entry.prefab(), List.copyOf(entries), min, max));
+    }
+
+    /** Adds the prefab's non-filler cells, rotated by {@code r}, to {@code cells}; returns their lowest y. */
+    private static int readCells(IPrefabBuffer buf, PrefabRotation r, @Nullable String chest, List<Cell> cells) {
         int[] lowestY = {Integer.MAX_VALUE};
         buf.forEach(
                 IPrefabBuffer.iterateAllColumns(),
@@ -173,13 +190,11 @@ public final class HytaleBlueprintSource implements BlueprintSource {
                 null,
                 null,
                 new PrefabBufferCall(new Random(0), r));
-        if (cells.isEmpty()) {
-            warnOnce("prefab has no blocks: " + entry.prefab(), null);
-            return Optional.empty();
-        }
+        return lowestY[0];
+    }
 
-        // Pass 2: the unrotated hut cell, turned like the entries, then everything made hut-relative.
-        BlockPos hut = PrefabStyles.rotate(r, PrefabStyles.hutCell(entry.hutOffset(), buf, lowestY[0]));
+    /** The cells as entries relative to {@code hut}, without the hut cell itself nor anything below the floor. */
+    private static List<BlueprintEntry> hutRelative(List<Cell> cells, BlockPos hut) {
         List<BlueprintEntry> entries = new ArrayList<>(cells.size());
         for (Cell c : cells) {
             BlockPos offset = PrefabStyles.relative(c.x(), c.y(), c.z(), hut);
@@ -187,10 +202,7 @@ public final class HytaleBlueprintSource implements BlueprintSource {
                 entries.add(new BlueprintEntry(offset, c.state(), c.container()));
             }
         }
-        BlockPos low = PrefabStyles.relative(buf.getMinX(r), buf.getMinY(), buf.getMinZ(r), hut);
-        BlockPos min = new BlockPos(low.x(), Math.max(low.y(), FLOOR_Y + 1), low.z());
-        BlockPos max = PrefabStyles.relative(buf.getMaxX(r), buf.getMaxY(), buf.getMaxZ(r), hut);
-        return Optional.of(new Blueprint(entry.prefab(), List.copyOf(entries), min, max));
+        return entries;
     }
 
     private void warnOnce(String message, @Nullable Throwable cause) {

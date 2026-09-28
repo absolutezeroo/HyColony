@@ -10,7 +10,6 @@ CouplingBetweenObjects plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleUi
 CouplingBetweenObjects plugin/src/main/java/dev/hycolony/plugin/command/HyColonyCommand.java
 CyclomaticComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleCitizenBodies.java
 CyclomaticComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleItemCatalog.java
-CyclomaticComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleWorldBlocks.java
 ExcessiveImports plugin/src/main/java/dev/hycolony/plugin/WorldRuntime.java
 ExcessiveImports plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleCitizenBodies.java
 ExcessiveImports plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleUiPort.java
