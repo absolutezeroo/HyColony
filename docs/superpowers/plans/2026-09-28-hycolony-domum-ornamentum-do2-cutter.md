@@ -14,6 +14,12 @@
 
 - **Task 3 is LOCAL**: it needs the Hytale assets zip (OAuth-only, `%USERPROFILE%/.gradle/caches/hytale-assets/release-0.6.8-Assets.zip`) to run `tools/domum/generate.py` / `check.py`. The user's local session does it **before** the cloud hand-off; its commit is on the branch when the cloud starts. A cloud session never edits `tools/domum` nor `plugin/src/subplugins/DomumOrnamentum`.
 - **Tasks 1, 2, 4-7 run in the cloud**: they need only `./gradlew build` (the Hytale server jar resolves from Maven without auth). To read Hytale API sources, run `./gradlew decompileServerJar injectServerJavadocsIntoDecompiledSources` once; they land in `build/vineflower/hytale-server/`. Every Hytale call below was checked there (0.6.8); if a signature differs, stop and report instead of guessing.
+- **Cloud environment setup** (found on the first cloud run), in this order:
+  - `git config core.hooksPath .githooks` (CLAUDE.md § 10, once per clone) ;
+  - the network must allow `maven.hytale.com` (Hytale server jar) and `maven.azuredoom.com` (hytale-tools runtime); the hytale-tools plugin also adds other mod repositories (`HytaleRepositoryConfigurer`: `maven.hytale-mods.dev`, `maven.hytalemodding.dev`, `repo.helpch.at`, and a resolver on `api.modtale.net`); a blocked one may still fail a resolution. Without them `:plugin` neither compiles nor decompiles, and the `pre-push` hook (`./gradlew build`) refuses every push. **If `./gradlew decompileServerJar` cannot fetch the server jar, stop and tell the user**: never commit `plugin/` code that has not compiled, nor a Hytale call not checked in `build/vineflower` (CLAUDE.md § 1) ;
+  - Gradle and the `hytale-tools` plugin need a Java 25 JVM, and foojay's downloads are blocked: `apt-get install -y openjdk-25-jdk-headless`, then `org.gradle.java.home=/usr/lib/jvm/java-25-openjdk-amd64` in `~/.gradle/gradle.properties` ;
+  - `gradlew` is checked in without its executable bit (`100644`), so the hooks cannot run `./gradlew`: locally, `chmod +x gradlew` and `git config core.fileMode false`. The lasting fix, a separate `build: gradlew is executable` commit (`git update-index --chmod=+x gradlew`), is outside DO-2a: propose it to the user ;
+  - Maven Central sometimes answers 429: run the command again.
 - **Never launch the Hytale server** (no `runServer`, no `HytaleServer.jar`): the user tests in game once the branch is done.
 
 ## Global Constraints
@@ -87,6 +93,33 @@
 3. **The client does not draw the container slots next to a custom page.** The user reports it at the first step of the new TESTING section. The fallback (a page with slot buttons taking materials from the player's inventory) goes to the spec, not built now.
 4. **The DO pack is off, or the catalogs are not loaded yet.** Using the block sends `hycolony.ornament.failed` (`load`) and nothing else (Task 4).
 5. **Bad slot contents.** An empty required slot or a material outside the tag is refused, and nothing is consumed; junk in slot 2 of a 1-material shape is ignored and kept (Task 1 tests).
+
+## Amendments from the Task 1-2 reviews (apply them in Tasks 4-7)
+
+Tasks 1 and 2 are done and reviewed on the branch; their committed code differs from the code blocks below, and **the committed code wins**:
+- `CutterCatalog` orders groups and shapes by DO's `SortedBlocks` indexes (`CutterOrder`), not by id: tabs are avanilla, btimberframe, cshingle, etrapdoor, ddoor, fpanel, hpaperwall, gpillar, kpost.
+- `CutterCraft` gives `max(slotCount, cutterQuantity)` (DO `ArchitectsCutterRecipe.assemble`).
+- `CutterActions` previews a `hycolony.ornament.badMaterial` refusal under the key `hycolony.ornament.cutter.badMaterial` (same params, no `[hyornament]` prefix). It has a public `int group()`: the open group's index.
+
+What Tasks 4-7 must add:
+- **Tasks 4-5, last group remembered (MC DO `ArchitectsCutterScreen.groupIndexCache`)**:
+  - DO: the cutter reopens on the player's last group, with that group's first shape: `renderBg` (l.94-98) replays `clickMenuButton(groupIndexCache)`, which takes variant `get(0)` (`ArchitectsCutterContainer` l.201). `variantIndexCache` (Screen l.71, l.100-107, l.349) is then never replayed, since the variant is already set: **do not remember the shape** (commit `85240b2` removed that on purpose). The cache is a client static: per player, for every cutter, until the client quits.
+  - Here: a `CutterGroupMemory` (plugin, `ornament/cutter`, a role name, not `*Manager`) holds a `ConcurrentHashMap<UUID, Integer>` (worlds have their own threads), in memory only. `Ornaments.register` creates it, forgets a player on `PlayerDisconnectEvent` (`e.getPlayerRef().getUuid()`, as `HyColonyPlugin.onDisconnect`), and hands it to `new CutterSystem(ornaments, memory)`, then to `CutterOpener.open(...)` (5 parameters at most) and to `CutterPage`. Its Javadoc carries `Deviation from MC: forgotten when the player disconnects; DO's client static lives until the client quits, which the server cannot see.`
+  - `CutterPage`'s constructor would reach 6 parameters: it takes `PlayerRef` and a record `CutterPage.Setup(World world, ItemContainer slots, OrnamentVariantRegistry registry, OrnamentVariantRegistry.Catalogs catalogs, CutterGroupMemory memory)` (CLAUDE.md § 2).
+  - On opening: `actions.selectGroup(memory.group(uuid))` (0 when unknown); after each `group` action: `memory.remember(uuid, actions.group())`.
+- **Task 6, creative mode (open question for the user, ask before Task 6)**: DO takes nothing in creative mode (`ArchitectsCutterContainer.onTake`, l.152, `!thePlayer.isCreative()`).
+  - If ported, the rule lives in the core, test first: e.g. `CutterCraft.check(shape, slots, tags, boolean creative)` gives an empty `consumed` for a creative player (test `creativePlayerCraftsWithoutConsumingTheMaterials`). The plugin only reads the game mode, as `adapter/HytalePlayerDirectory` does (`player.getGameMode() == GameMode.Creative`), and Task 7 gains a TESTING step « en créatif, rien n'est retiré ».
+  - If not, it goes under the spec's « Écarts avec DO ».
+- **Task 7, key**: `ornament.cutter.badMaterial` is now in the table below.
+- **Task 7, TESTING step 3** gains: « Choisir l'onglet Bardeaux et une autre forme que la première, fermer, rouvrir, puis ouvrir un autre établi : l'onglet Bardeaux est ouvert, sur sa première forme. Se déconnecter et revenir : l'établi rouvre sur Vanilla. »
+- **Task 7, spec** (written in French, as the spec):
+  - « Écarts avec DO » gains:
+    - the preview explains a refusal: DO's `mayPlace` (l.114-124) keeps a block outside the tag out of the slot, and its output stays empty;
+    - the materials stay in the block, persist and are shared: DO's cutter has no block entity, and its slots are per player and given back on close (`ArchitectsCutterContainer.removed` → `clearContainer`, l.362-366);
+    - creative mode, unless ported;
+    - the last group is forgotten when the player disconnects; DO keeps it until the client quits.
+  - § En jeu: the window reopens on the player's last group, on its first shape, as DO; the memory is forgotten on disconnect (a deviation, above).
+  - § Architecture: `ShapeButton(shapeId, templateKey, selected)` (not a name key nor an icon path), and `CutterActions.group()` with the per-player `CutterGroupMemory`.
 
 ---
 
@@ -1172,6 +1205,7 @@ git commit -m "feat(plugin): Domum Ornamentum architect's cutter crafts variants
 | `ornament.cutter.craft` | Craft | Fabriquer |
 | `ornament.cutter.placeMaterials` | Place the materials in the slots. | Posez les matériaux dans les emplacements. |
 | `ornament.cutter.emptySlot` | Material {p0} is missing. | Il manque le matériau {p0}. |
+| `ornament.cutter.badMaterial` | Material #{p0} is not accepted here. Accepted: {p1} | Le matériau n° {p0} n'est pas accepté ici. Acceptés : {p1} |
 | `ornament.cutter.changed` | The materials changed, nothing was crafted. | Les matériaux ont changé, rien n'a été fabriqué. |
 | `ornament.cutter.crafted` | {p0} x {p1} crafted. | {p0} × {p1} fabriqué(s). |
 
