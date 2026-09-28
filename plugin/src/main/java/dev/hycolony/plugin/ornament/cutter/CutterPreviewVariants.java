@@ -33,7 +33,7 @@ final class CutterPreviewVariants {
 
     /**
      * Requests, in one batch (a single asset rebuild), those of keys that neither exist nor were asked already; the
-     * page is redrawn once they exist. A failure leaves the template's icons.
+     * page is redrawn once the batch ends; a variant that failed keeps its template's icon.
      */
     void prepare(List<VariantKey> keys) {
         List<VariantKey> missing = keys.stream()
@@ -44,9 +44,8 @@ final class CutterPreviewVariants {
             return;
         }
         var _ = registry.request(missing).whenComplete((variants, error) -> {
-            if (error != null) { // the craft asks again and reports it; here the template's icons just stay
-                LOG.at(Level.FINE).withCause(error).log("hyornament: cutter previews not created");
-                return;
+            if (error != null) { // the craft asks again and reports it; the batch's others may exist: redraw anyway
+                LOG.at(Level.FINE).withCause(error).log("hyornament: cutter previews not all created");
             }
             try {
                 world.execute(redraw);

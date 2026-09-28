@@ -67,7 +67,7 @@ final class CitizenInventoryPanel {
             String host,
             Store<EntityStore> store,
             Ref<EntityStore> player) {
-        if (watch == null) {
+        if (watch == null && !closed) { // a closed window has nothing to follow
             watch = InventoryWatch.start(store, player, redraw::soon);
         }
         InventoryGrids.drawContainer(ui, events, GRID, window.getItemContainer(), window.getId());

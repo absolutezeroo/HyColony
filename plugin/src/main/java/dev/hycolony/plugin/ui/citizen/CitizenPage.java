@@ -160,6 +160,9 @@ public final class CitizenPage extends ColonyPage {
      * citizen's container (CitizenInventoryWindows); leaving it closes the container.
      */
     private void select(Ref<EntityStore> ref, Store<EntityStore> store, Tab next) {
+        if (inventory != null && !inventory.isOpen()) { // its window closed meanwhile: open a new one
+            leaveInventory(ref, store);
+        }
         if (next == Tab.INVENTORY && inventory == null) {
             manager.citizenInventories().open(player, view.colonyId(), view.citizenId());
             return;
