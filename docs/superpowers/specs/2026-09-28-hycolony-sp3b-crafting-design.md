@@ -238,6 +238,9 @@ Lecture tolérante : clé absente = vide, entrée invalide ignorée et journalis
     - Un déplacement complet (`fullMove`) marque aussi la colonie à sauvegarder. Chez MC, seul l'échange le fait, mais ses sauvegardes n'en dépendent pas.
 18. **Recettes maison réduites.** Ni recherche requise ou exclue (la recherche n'est pas portée), ni `mustExist`, dont aucun métier n'a besoin pour l'instant. Les doublons sont comparés comme des ensembles d'objets : MC trie les deux listes par un hachage de l'objet et de sa quantité avant de les comparer deux à deux, ce qui peut manquer un doublon aux quantités différentes.
 19. **Message d'amélioration :** la sortie et l'ingrédient réduit sont nommés par leur identifiant Hytale, le cœur ne connaissant pas leur nom traduit. MC affiche leur nom (`getHoverName`).
+20. **File de l'artisan sans jeton bloquant** (`CraftingTasks`). Un jeton dont la requête a disparu ne bloque jamais :
+    - `currentTask` s'arrête sur une file vidée de ses jetons morts ; MC boucle alors sans fin ;
+    - `finishRequest` retire une tête morte, et `cancelAll` saute une tâche déjà emportée par l'échec d'un lot frère ; MC lève une exception sur un jeton inconnu.
 
 ## Architecture
 
