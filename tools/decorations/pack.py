@@ -36,8 +36,10 @@ class Assets:
 
     def item(self, item_id):
         """The item JSON with its Parent chain merged (BlockType merged key by key, like the codec's inheritance)."""
-        path = next(n for n in self.zip.namelist()
-                    if n.startswith("Server/Item/Items/") and n.endswith("/" + item_id + ".json"))
+        if not hasattr(self, "_items"):
+            self._items = {n.rsplit("/", 1)[1][:-5]: n for n in self.names
+                           if n.startswith("Server/Item/Items/") and n.endswith(".json")}
+        path = self._items[item_id]
         data = self.json(path)
         parent = data.get("Parent")
         if not parent:
