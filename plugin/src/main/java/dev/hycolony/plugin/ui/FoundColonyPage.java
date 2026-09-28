@@ -68,17 +68,26 @@ public final class FoundColonyPage extends InteractiveCustomUIPage<FoundColonyPa
                 CustomUIEventBindingType.Activating, "#CancelButton", new EventData().append("Action", "cancel"));
     }
 
+    /** A failure is logged, never thrown into Hytale's PageManager (see {@link PageEvents}). */
+    @Override
+    public void handleDataEvent(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, String rawData) {
+        PageEvents.guard(getClass(), () -> super.handleDataEvent(ref, store, rawData));
+    }
+
     @Override
     public void handleDataEvent(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, @Nonnull Data data) {
-        if ("confirm".equals(data.action)) {
-            answered = true; // set first: a successful confirm closes the page, which calls onDismiss
-            answered = handler.confirm(
-                    Objects.requireNonNullElse(data.name, "")); // an invalid name keeps the foundation pending
-        } else {
-            answered = true;
-            handler.cancel(false);
+        try {
+            if ("confirm".equals(data.action)) {
+                answered = true; // set first: a successful confirm closes the page, which calls onDismiss
+                answered = handler.confirm(
+                        Objects.requireNonNullElse(data.name, "")); // an invalid name keeps the foundation pending
+            } else {
+                answered = true;
+                handler.cancel(false);
+            }
+        } finally {
+            sendUpdate(new UICommandBuilder(), false); // required, even after a failure: else the client stays loading
         }
-        sendUpdate(new UICommandBuilder(), false); // required: otherwise the client stays in a loading state
     }
 
     @Override

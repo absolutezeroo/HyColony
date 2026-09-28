@@ -103,13 +103,16 @@ public abstract class ColonyPage extends InteractiveCustomUIPage<ColonyPage.Act>
         return false;
     }
 
+    /** Every HyColony window event enters here: routed to the live page, a failure is logged, never thrown. */
     @Override
     public void handleDataEvent(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, String rawData) {
-        if (successor == null) {
-            super.handleDataEvent(ref, store, rawData);
-        } else {
-            successor.handleDataEvent(ref, store, rawData);
-        }
+        PageEvents.guard(getClass(), () -> {
+            if (successor == null) {
+                super.handleDataEvent(ref, store, rawData);
+            } else {
+                successor.handleDataEvent(ref, store, rawData);
+            }
+        });
     }
 
     public static void bind(UIEventBuilder events, String selector, String action) {
