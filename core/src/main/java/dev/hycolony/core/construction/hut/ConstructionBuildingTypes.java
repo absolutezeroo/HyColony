@@ -28,7 +28,9 @@ public final class ConstructionBuildingTypes {
                     new ModuleProducer("resources", BuildingResourcesModule::new),
                     new ModuleProducer("builderSettings", BuilderSettingsModule::new),
                     new ModuleProducer("workOrderList", WorkOrderListModule::new),
-                    new ModuleProducer("keepTools", () -> new KeepToolsModule(EnumSet.allOf(ToolType.class)))));
+                    new ModuleProducer(
+                            "keepTools",
+                            () -> new KeepToolsModule(EnumSet.of(ToolType.PICKAXE, ToolType.AXE, ToolType.SHOVEL)))));
 
     public static final BuildingType RESIDENCE = new BuildingType(
             "hycolony:residence", "hut.residence", 5, List.of(new ModuleProducer("living", LivingModule::new)));

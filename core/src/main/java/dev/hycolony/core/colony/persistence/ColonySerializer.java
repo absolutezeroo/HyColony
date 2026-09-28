@@ -16,6 +16,7 @@ import dev.hycolony.core.colony.EventLog;
 import dev.hycolony.core.colony.permission.PermissionsSerializer;
 import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.construction.workorder.WorkOrderSerializer;
+import dev.hycolony.core.farming.hut.FarmerFieldsModule;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.persist.MigrationChain;
@@ -189,8 +190,10 @@ public final class ColonySerializer {
         changed |= c.requests().cancelOrphans();
         changed |= c.registries()
                 .fields()
-                .freeOwnersNotIn(
-                        c.buildings().all().stream().map(Building::position).collect(Collectors.toSet()));
+                .freeOwnersNotIn(c.buildings().all().stream()
+                        .filter(b -> b.module(FarmerFieldsModule.class).isPresent())
+                        .map(Building::position)
+                        .collect(Collectors.toSet()));
         return CraftingHeal.heal(c) || changed;
     }
 

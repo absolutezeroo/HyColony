@@ -4,6 +4,7 @@ import dev.hycolony.core.building.BuildingRegistry;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
+import dev.hycolony.core.farming.hut.FarmerHut;
 import dev.hycolony.core.job.JobRegistry;
 import dev.hycolony.core.logistics.courier.DeliverymanHut;
 import dev.hycolony.core.logistics.warehouse.WarehouseBuilding;
@@ -18,7 +19,7 @@ import java.util.function.Predicate;
 public final class CoreFeatures {
     private CoreFeatures() {}
 
-    /** Registers the town hall, construction (builder, residence) and logistics (warehouse, courier) types. */
+    /** Registers the town hall, construction (builder, residence), logistics (warehouse, courier) and farming (farmer) types. */
     public static void register(BuildingRegistry buildings, JobRegistry jobs) {
         BuildingTypes.register(buildings);
         ConstructionBuildingTypes.register(buildings);
@@ -26,6 +27,8 @@ public final class CoreFeatures {
         WarehouseBuilding.register(buildings);
         DeliverymanHut.register(buildings);
         DeliverymanHut.register(jobs);
+        FarmerHut.register(buildings);
+        FarmerHut.register(jobs);
     }
 
     /**

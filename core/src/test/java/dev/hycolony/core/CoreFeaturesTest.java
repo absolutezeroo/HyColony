@@ -12,6 +12,8 @@ import dev.hycolony.core.construction.builder.BuilderJob;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
 import dev.hycolony.core.crafting.module.CraftingModule;
 import dev.hycolony.core.crafting.request.CraftingResolvers;
+import dev.hycolony.core.farming.hut.FarmerHut;
+import dev.hycolony.core.farming.job.FarmerJob;
 import dev.hycolony.core.job.JobRegistry;
 import dev.hycolony.core.job.JobType;
 import dev.hycolony.core.logistics.courier.DeliverymanHut;
@@ -43,9 +45,10 @@ class CoreFeaturesTest {
                         ConstructionBuildingTypes.BUILDER,
                         ConstructionBuildingTypes.RESIDENCE,
                         WarehouseBuilding.TYPE,
-                        DeliverymanHut.TYPE),
+                        DeliverymanHut.TYPE,
+                        FarmerHut.TYPE),
                 buildings.all());
-        assertEquals(List.of(BuilderJob.TYPE, DeliverymanJob.TYPE), jobs.all());
+        assertEquals(List.of(BuilderJob.TYPE, DeliverymanJob.TYPE, FarmerJob.TYPE), jobs.all());
     }
 
     /**
