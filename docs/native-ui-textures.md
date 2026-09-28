@@ -12,3 +12,5 @@ Ce dossier ne contient que ces copies, rien d'autre. On n'ajoute une texture que
 | `CharacterBackground` | fond du personnage |
 | `ArmorSlotIconHead`, `Chest`, `Hands`, `Legs` | silhouettes des cases d'armure vides |
 | `SlotInputBindingBackground` | badges 1 à 9 de la barre rapide |
+| `IngredientSlot`, `IngredientSlotValid` | emplacements de l'établi : gris, puis vert avec coche une fois bien remplis |
+| `ProgressBar` | barre au-dessus du bouton Fabriquer |
