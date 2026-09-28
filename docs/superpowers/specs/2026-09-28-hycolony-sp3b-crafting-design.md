@@ -38,7 +38,7 @@ Toutes reprises de MineColonies sauf les écarts listés plus bas. Chaque classe
   - `List<Ingredient> inputs` ;
   - `ItemAmount primaryOutput` ;
   - `List<ItemAmount> secondaryOutputs` : les autres sorties Hytale, par exemple un seau rendu ;
-  - `Optional<BenchRequirement> bench` : `benchId`, `categories`, `requiredTier`. Vide pour une recette `Fieldcraft` (sans table) ;
+  - `BenchRequirement bench` : `benchId`, `categories`, `requiredTier`. Pour une recette sans table, `benchId` vaut `Fieldcraft` : elle se fait à la main et garde ses catégories ;
   - `Optional<ToolType> requiredTool` ;
   - `RecipeSource source` : `HYTALE(recipeId Hytale)`, `CUSTOM(id)` ou `IMPROVED`.
 - `Ingredient` vaut l'un de :
@@ -98,9 +98,10 @@ Toutes reprises de MineColonies sauf les écarts listés plus bas. Chaque classe
 
 ### Requêtes et résolveurs
 
-- **`Crafting(ItemKey stack, int count, int minCount, RecipeId recipe, boolean isPublic)`** : un seul record pour `PublicCrafting` et `PrivateCrafting`. `count` est un nombre d'**exécutions** de la recette. L'égalité suit MC : `count`, `minCount` et `stack`, sans la recette.
+- **`Crafting(ItemKey stack, int count, int minCount, String recipeId, boolean isPublic)`** : un seul record pour `PublicCrafting` et `PrivateCrafting`. `count` est un nombre d'**exécutions** de la recette. L'égalité suit MC : `count`, `minCount` et `stack`, sans la recette.
 - **`StackList(List<ItemKey> accepted, int count, int minCount)`** (MC `StackList`) : un `Deliverable` qui accepte l'un des objets. Il sert aux ingrédients par type de ressource ou tag.
-- **Résolveur de fabrication**, public (module de fabrication) et privé (chaque `WorkerModule`, MC `PrivateWorkerCraftingRequestResolver`) :
+- **Résolveur de fabrication**, public et privé (MC `PublicWorkerCraftingRequestResolver` et `PrivateWorkerCraftingRequestResolver`). Les deux sont créés par le module de fabrication. MC crée les privés dans chaque `WorkerBuildingModule`, mais `job` ne doit pas dépendre de `crafting`. Écart sans effet : les recettes sans table viennent de toute façon d'un module de fabrication.
+  Le résolveur :
   - priorité **125** (MC `CONST_CRAFTING_RESOLVER_PRIORITY`) ;
   - gère les `Deliverable` ;
   - `canResolve` : le public accepte tout demandeur, le privé seulement sa propre hutte. Il faut en plus :
@@ -124,11 +125,15 @@ Toutes reprises de MineColonies sauf les écarts listés plus bas. Chaque classe
 
 ### Artisan (MC `AbstractJobCrafter`, `AbstractEntityAICrafting`)
 
-- **`CrafterJob`** (abstrait, hérite de `Job`) : `taskQueue` (liste de jetons), `assignedTasks`, `maxCraftingCount`, `craftCounter`, `progress` et `secondaryOutputs` (objet → quantité), tous persistés.
+- **Composition, pas d'héritage.** `ArchitectureTest` interdit d'hériter d'un sous-type de `Job` ou de `JobAI`. Le socle MC (`AbstractJobCrafter`, `AbstractEntityAICrafting`) devient donc un ensemble de composants qu'un métier concret possède :
+  - `CraftingTasks` : l'état ;
+  - l'interface `Crafter { CraftingTasks craftingTasks(); }`, qui n'est pas un sous-type de `Job` ;
+  - `CraftingWork` : les étapes de l'IA, qui renvoient un `CraftingStep`.
+- **`CraftingTasks`** : `taskQueue` (liste de jetons), `assignedTasks`, `maxCraftingCount`, `craftCounter`, `progress` et `secondaryOutputs` (objet → quantité), tous persistés.
   - Les méthodes suivent MC : `currentTask` (retire en tête les jetons morts), `finishRequest(ok)`, `onTaskBeingScheduled`, `onTaskBeingResolved` et `onTaskDeletion`.
   - Au retrait de l'employé, toutes ses tâches passent en FAILED.
   - Bug MC corrigé : `deserializeNBT` relit `maxCraftingCount` et `craftCounter` dans `progress`. On lit chaque clé dans son champ (écart documenté).
-- **`CraftingAI`** (abstrait, machine d'états) : délais en ticks, `STANDARD_DELAY = 5`, `HIT_DELAY = 10`, `TICKS_SECOND = 20`.
+- **`CraftingWork`** (composant de l'IA) : chaque méthode d'étape renvoie un `CraftingStep` (`IDLE`, `START_WORKING`, `GET_RECIPE`, `QUERY_ITEMS`, `GATHERING_REQUIRED_MATERIALS`, `CRAFT`, `INVENTORY_FULL`). L'IA concrète l'associe à ses propres états et à ses délais. Délais en ticks, `STANDARD_DELAY = 5`, `HIT_DELAY = 10`, `TICKS_SECOND = 20`.
   - `IDLE` → `START_WORKING` si `hasWorkToDo` (vérifié toutes les 20 ticks). Sinon l'artisan flâne dans la hutte (`canGoIdle`). Les places assises et debout de MC sont hors portée.
   - `START_WORKING` (`decide`, toutes les 5 ticks) :
     - aller à la hutte ;
@@ -217,22 +222,34 @@ Lecture tolérante : clé absente = vide, entrée invalide ignorée et journalis
 7. **Recherche absente.** Les effets `RECIPES` et `CITIZEN_INV_SLOTS` valent 0, et `RECIPE_MODE` reste sur `PRIORITY`.
 8. **Bug MC corrigé :** `AbstractJobCrafter.deserializeNBT` range trois clés dans `progress`.
 9. **Pas de places assises ni debout** pour l'artisan inactif : il flâne dans la hutte.
+10. **Résolveurs privés créés par le module de fabrication**, pas par chaque `WorkerModule`, pour que `job` ne dépende pas de `crafting`.
+11. **Composants au lieu d'héritage :** `CraftingTasks` et `CraftingWork` remplacent `AbstractJobCrafter` et `AbstractEntityAICrafting` (règle d'`ArchitectureTest`). Le comportement est le même.
+12. **Une recette dont la table a disparu n'est plus choisie**, mais reste dans la liste. MC ne la retire qu'au rafraîchissement de sa vue.
 
 ## Architecture
 
-- **Cœur**, paquet `crafting`, au plus 15 fichiers par sous-paquet, classes courtes :
-  - `crafting/recipe` : `Recipe`, `RecipeId`, `Ingredient`, `BenchRequirement`, `RecipeSource`, `RecipeRegistry`, `RecipeMatching` (correspondance d'un ingrédient avec un objet par le catalogue), `CraftingRules` (lecture de `crafting.json` et filtre des métiers) ;
+- **Cœur**, nouveau paquet racine `crafting`, au plus 15 fichiers par sous-paquet, classes courtes. Il dépend de `kernel`, `request`, `building`, `citizen` et `job`, jamais de `construction`, `colony.action`, `colony.view` ni `colony.persistence` :
+  - `crafting/recipe` :
+    - `Recipe`, `RecipeId`, `Ingredient`, `BenchRequirement`, `RecipeSource` ;
+    - `RecipeCatalog`, le port. Il vit ici, comme `BlueprintSource`, parce que `kernel/port` a déjà 15 fichiers ;
+    - `RecipeRegistry` ;
+    - `RecipeMatching` : la correspondance d'un ingrédient avec un objet ;
+    - `CraftingRules` : la lecture de `crafting.json` et le filtre des métiers ;
+    - `CraftingSetup(RecipeCatalog, CraftingRules)`, que `ConstructionPorts` reçoit ;
   - `crafting/module` : `CraftingModule` (état et liste), `RecipeCompatibility`, `CustomRecipes`, `RecipeImprovement`, `RecipeReservations` ;
-  - `crafting/request` : `Crafting`, `CraftingRequestResolver`, `CraftingProductionResolver`, `CraftingBatches` (découpage en lots), `CraftingCycles` ;
-  - `crafting/job` : `CrafterJob`, `CraftingAI`, `CraftingProgress` (calcul de `maxCraftingCount` et de la durée), `RecipeExecution` (consommer et produire dans un `Inventory`) ;
-  - `crafting/ui` ou `colony/ui/tab` : la vue `RecipesView` (record) et `CraftingActions` ;
-  - `kernel/port/RecipeCatalog`, le nouveau port ;
-  - `request/model/StackList`.
+  - `crafting/request` : `CraftingRequestResolver`, `CraftingProductionResolver`, `CraftingBatches` (découpage en lots), `CraftingCycles` ;
+  - `crafting/job` :
+    - `Crafter`, `CraftingTasks`, `CraftingWork`, `CraftingStep` ;
+    - `CraftingProgress` : le calcul de `maxCraftingCount` et de la durée ;
+    - `RecipeExecution` : consommer et produire dans un `Inventory` ;
+  - `colony/ui/tab/RecipesView` (record) et `colony/action/CraftingActions` ;
+  - `kernel/item/Workstation(String benchId, int tier)` : `building` ne peut dépendre ni de `construction` ni de `crafting` ;
+  - `request/model/StackList` et `request/model/Crafting`. `Requestable` et `Deliverable` sont scellés dans ce paquet, et `request` ne doit pas dépendre de `crafting` : `Crafting` porte donc un `String recipeId`.
+- **`Colony`** garde le `RecipeRegistry` en champ (accès `recipes()`). Le paquet `colony` a déjà 15 fichiers : aucun fichier n'y est ajouté.
 - **Existant modifié :**
   - `BlueprintEntry` (+ `workstation`) ;
   - `Building` (+ tables enregistrées) ;
   - le calcul des ressources du chantier (+ coût des niveaux) ;
-  - `WorkerModule` (+ résolveurs privés) ;
   - `RequestableJson` (+ `crafting` et `stackList`) ;
   - `ColonySerializer` et `MigrationChain` (schéma +1, avec une fixture de l'ancienne version) ;
   - `ColonySerializer.heal` (recettes disparues, tables perdues).
