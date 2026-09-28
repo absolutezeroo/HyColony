@@ -4,9 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.testing.FakeRecipeCatalog;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 class RecipeMatchingTest {
@@ -54,5 +56,21 @@ class RecipeMatchingTest {
         catalog.resourceType("Wood_Trunk", OAK, BIRCH);
         assertEquals(
                 List.of(OAK, BIRCH), RecipeMatching.items(new Ingredient.OfResourceType("Wood_Trunk", 1), catalog));
+    }
+
+    @Test
+    void ingredientGivenBackAsASecondaryOutputIsNeededOnce() {
+        ItemKey bucket = new ItemKey("Container_Bucket");
+        Recipe recipe = new Recipe(
+                List.of(new Ingredient.OfItem(bucket, 1), new Ingredient.OfItem(OAK, 2)),
+                new ItemAmount(STONE, 1),
+                List.of(new ItemAmount(bucket, 1)),
+                new BenchRequirement(BenchRequirement.FIELDCRAFT, List.of(), 0),
+                Optional.empty(),
+                new RecipeSource.Hytale("Stone"),
+                false);
+
+        assertTrue(RecipeMatching.givenBack(recipe, new Ingredient.OfItem(bucket, 1), catalog));
+        assertFalse(RecipeMatching.givenBack(recipe, new Ingredient.OfItem(OAK, 2), catalog));
     }
 }

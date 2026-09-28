@@ -1,5 +1,6 @@
 package dev.hycolony.core.crafting.recipe;
 
+import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import java.util.List;
 
@@ -24,5 +25,18 @@ public final class RecipeMatching {
             return List.of(of.item());
         }
         return catalog.itemsOf(ingredient);
+    }
+
+    /**
+     * Whether a run of {@code recipe} gives {@code ingredient} back as a secondary output (a bucket), so a batch of
+     * runs needs it once (MC's crafting tools and secondary outputs, compareItemStackListIgnoreStackSize).
+     */
+    public static boolean givenBack(Recipe recipe, Ingredient ingredient, RecipeCatalog catalog) {
+        for (ItemAmount out : recipe.secondaryOutputs()) {
+            if (accepts(ingredient, out.item(), catalog)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

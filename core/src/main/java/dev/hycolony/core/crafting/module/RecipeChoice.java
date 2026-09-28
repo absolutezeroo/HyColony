@@ -8,7 +8,6 @@ import dev.hycolony.core.crafting.recipe.Recipe;
 import dev.hycolony.core.crafting.recipe.RecipeCatalog;
 import dev.hycolony.core.crafting.recipe.RecipeId;
 import dev.hycolony.core.crafting.recipe.RecipeMatching;
-import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.ContainerAccess;
 import java.util.List;
@@ -94,7 +93,7 @@ public final class RecipeChoice {
                     available += worker.inventory().count(item);
                 }
             }
-            int needed = givenBack(recipe, in, catalog) ? in.amount() : in.amount() * query.count();
+            int needed = RecipeMatching.givenBack(recipe, in, catalog) ? in.amount() : in.amount() * query.count();
             if (available < needed + query.reserved().getOrDefault(in.withAmount(1), 0)) {
                 return false;
             }
@@ -113,15 +112,5 @@ public final class RecipeChoice {
                 .filter(r -> output.test(r.primaryOutput().item()))
                 .filter(r -> RecipeCompatibility.stillValid(colony, hut, module.jobId(), id))
                 .map(r -> new Chosen(id, r));
-    }
-
-    /** MC canFulfillItemStorage: whether a run gives the ingredient back (MC crafting tools and secondary outputs). */
-    private static boolean givenBack(Recipe recipe, Ingredient in, RecipeCatalog catalog) {
-        for (ItemAmount out : recipe.secondaryOutputs()) {
-            if (RecipeMatching.accepts(in, out.item(), catalog)) {
-                return true;
-            }
-        }
-        return false;
     }
 }

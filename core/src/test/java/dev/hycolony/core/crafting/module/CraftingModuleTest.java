@@ -199,7 +199,9 @@ class CraftingModuleTest {
 
         h.teach(RecipeFixtures.fieldcraft("Seeds", "Plant_Seeds_Wheat"));
 
-        assertEquals(PlayerResolver.ID, resolverOf(wheat), "MC handleRecipeUpdate: onColonyUpdate on its output");
+        assertTrue(
+                resolverOf(wheat).startsWith("crafting:public:"),
+                "MC handleRecipeUpdate: onColonyUpdate on its output, which the hut can now craft");
         assertEquals(RetryingResolver.ID, resolverOf(other));
     }
 

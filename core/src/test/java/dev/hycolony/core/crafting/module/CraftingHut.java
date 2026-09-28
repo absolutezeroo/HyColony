@@ -26,26 +26,26 @@ import java.util.UUID;
  * A level-1 test hut with a worker module and a crafting module for {@link #JOB}, in a colony whose {@code
  * crafting.json} lets that job learn every Farmingbench and Fieldcraft recipe.
  */
-final class CraftingHut {
-    static final String JOB = TestJobs.TYPE.id();
-    static final String RULES = """
+public final class CraftingHut {
+    public static final String JOB = TestJobs.TYPE.id();
+    public static final String RULES = """
             {"jobs": {"%s": {"allow": [
                 {"bench": "Farmingbench", "categories": ["*"]},
                 {"bench": "Fieldcraft", "categories": ["*"]}]}}}""".formatted(JOB);
 
-    final TestContexts t = new TestContexts();
-    final UUID owner = UUID.randomUUID();
-    final Colony colony;
-    final Building hut;
-    final CraftingModule module;
+    public final TestContexts t = new TestContexts();
+    public final UUID owner = UUID.randomUUID();
+    public final Colony colony;
+    public final Building hut;
+    public final CraftingModule module;
     private int benches;
 
-    CraftingHut() {
+    public CraftingHut() {
         this(RULES, true);
     }
 
     /** With {@code rules} as {@code crafting.json}; {@code many}: MC canLearnManyRecipes. */
-    CraftingHut(String rules, boolean many) {
+    public CraftingHut(String rules, boolean many) {
         t.craftingRules = CraftingRules.parse(JsonParser.parseString(rules).getAsJsonObject(), w -> {});
         colony = new Colony(
                 t.context(),
@@ -71,26 +71,26 @@ final class CraftingHut {
     }
 
     /** Registers the bench as placed by the builder from the hut's plan. */
-    BlockPos bench(String benchId, int tier) {
+    public BlockPos bench(String benchId, int tier) {
         BlockPos pos = new BlockPos(11, 64, benches++);
         hut.registeredBlocks().addWorkstation(pos, new Workstation(benchId, tier));
         return pos;
     }
 
     /** The recipe's id in the colony registry, as the recipes tab finds it. */
-    RecipeId register(Recipe recipe) {
+    public RecipeId register(Recipe recipe) {
         return colony.recipes().checkOrAdd(recipe);
     }
 
     /** Registers the recipe and has the colony owner teach it to the hut; fails the test if refused. */
-    RecipeId teach(Recipe recipe) {
+    public RecipeId teach(Recipe recipe) {
         RecipeId id = register(recipe);
         assertTrue(module.learn(colony, hut, id, owner), "refused: " + module.canLearn(colony, hut, id, owner));
         return id;
     }
 
     /** Hires a new citizen at the hut. */
-    CitizenData hire() {
+    public CitizenData hire() {
         CitizenData citizen = new CitizenData(colony.citizens().all().size() + 1);
         colony.citizens().restore(citizen);
         assertTrue(hut.module(WorkerModule.class).orElseThrow().hire(colony, hut, citizen));

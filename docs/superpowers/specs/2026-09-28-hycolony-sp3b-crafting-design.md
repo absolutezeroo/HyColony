@@ -224,7 +224,7 @@ Lecture tolérante : clé absente = vide, entrée invalide ignorée et journalis
 7. **Recherche absente.** Les effets `RECIPES` et `CITIZEN_INV_SLOTS` valent 0, et `RECIPE_MODE` reste sur `PRIORITY`.
 8. **Bug MC corrigé :** `AbstractJobCrafter.deserializeNBT` range trois clés dans `progress`.
 9. **Pas de places assises ni debout** pour l'artisan inactif : il flâne dans la hutte.
-10. **Résolveurs privés créés par le module de fabrication**, pas par chaque `WorkerModule`, pour que `job` ne dépende pas de `crafting`.
+10. **Résolveurs privés créés par le module de fabrication**, pas par chaque `WorkerModule`, pour que `job` ne dépende pas de `crafting`. Ils sont enregistrés après les publics, comme chez le fermier de MC, qui liste son module de fabrication avant ses employés : à priorité et distance égales, le premier enregistré l'emporte. Chez MC, cet ordre suit les modules de chaque hutte.
 11. **Composants au lieu d'héritage :** `CraftingTasks` et `CraftingWork` remplacent `AbstractJobCrafter` et `AbstractEntityAICrafting` (règle d'`ArchitectureTest`). Le comportement est le même.
 12. **Une recette qui n'est plus valable n'est plus choisie** (`getFirstRecipe`, `getFirstFulfillableRecipe`), mais reste dans la liste : sa table a disparu, le métier ne peut plus l'apprendre, ou c'est une recette maison retirée de `crafting.json`. MC ne la retire qu'au rafraîchissement de sa vue (`serializeToView`), avec le même test : une recette qui fait la même sortie qu'une recette maison du métier (`isPreTaughtRecipe`) reste valable.
 13. **Identifiants de recettes lisibles** (`hytale:`, `custom:`, `improved:<n>`) au lieu de jetons aléatoires. Une recette dont le nom est déjà pris par un autre contenu de même source (le jeu ou `crafting.json` l'a changée) remplace l'ancienne sous ce nom. MC l'ajoute sous un nouveau jeton, puis `checkForWorkerSpecificRecipes` l'échange.
@@ -241,10 +241,12 @@ Lecture tolérante : clé absente = vide, entrée invalide ignorée et journalis
 20. **File de l'artisan sans jeton bloquant** (`CraftingTasks`). Un jeton dont la requête a disparu ne bloque jamais :
     - `currentTask` s'arrête sur une file vidée de ses jetons morts ; MC boucle alors sans fin ;
     - `finishRequest` retire une tête morte, et `cancelAll` saute une tâche déjà emportée par l'échec d'un lot frère ; MC lève une exception sur un jeton inconnu.
+21. **Lot d'une seule exécution trop grande.** Si une seule exécution de la recette ne tient pas dans l'inventaire, les lots font une exécution. Chez MC, la taille de lot tombe à 0 et le découpage ne s'arrête plus.
+22. **Demandeur inconnu** (sa hutte a disparu) : le résolveur de fabrication le juge le plus loin possible. MC garde la position sauvegardée du demandeur.
 
 ## Architecture
 
-- **Cœur**, nouveau paquet racine `crafting`, au plus 15 fichiers par sous-paquet, classes courtes. Il dépend de `kernel`, `request`, `building`, `citizen` et `job`, jamais de `construction`, `colony.action`, `colony.view` ni `colony.persistence` :
+- **Cœur**, nouveau paquet racine `crafting`, au plus 15 fichiers par sous-paquet, classes courtes. Il dépend de `kernel`, `request`, `building`, `citizen`, `job`, `colony` et `logistics` (la position d'un demandeur, `RequesterLocation`), jamais de `construction`, `colony.action`, `colony.view` ni `colony.persistence` :
   - `crafting/recipe` :
     - `Recipe`, `RecipeId`, `Ingredient`, `BenchRequirement`, `RecipeSource` ;
     - `RecipeCatalog`, le port. Il vit ici, comme `BlueprintSource`, parce que `kernel/port` a déjà 15 fichiers ;
@@ -253,7 +255,7 @@ Lecture tolérante : clé absente = vide, entrée invalide ignorée et journalis
     - `CraftingRules` : la lecture de `crafting.json` et le filtre des métiers ;
     - `CraftingSetup(RecipeCatalog, CraftingRules)`, que `ConstructionPorts` reçoit ;
   - `crafting/module` : `CraftingModule` (état et liste), `RecipeCompatibility`, `CustomRecipes`, `RecipeImprovement`, `RecipeReservations` ;
-  - `crafting/request` : `CraftingRequestResolver`, `CraftingProductionResolver`, `CraftingBatches` (découpage en lots), `CraftingCycles` ;
+  - `crafting/request` : `CraftingResolvers` (le point d'entrée, que le module appelle), `CraftingRequestResolver`, `CraftingProductionResolver`, `CraftingBatches` (découpage en lots), `CraftingCycles`, `IngredientRequests` (la requête d'un ingrédient) et `HutLookups` (modules, employés et demandeurs de la hutte) ;
   - `crafting/job` :
     - `Crafter`, `CraftingTasks`, `CraftingWork`, `CraftingStep` ;
     - `CraftingProgress` : le calcul de `maxCraftingCount` et de la durée ;
