@@ -503,6 +503,17 @@ Nouvelle piste, différente de B.6 : **aucun asset commun n'est ajouté**. La va
 - Coût : chaque reconstruction de l'atlas fait **scintiller l'écran une fois**. Avec le double envoi, les deux paquets portaient le drapeau, d'où deux scintillements. Désormais, le 1ᵉʳ paquet part sans drapeau et seul le 2ᵉ le porte : que le client garde l'un ou l'autre, il ne reconstruit qu'une fois. **Vérifié en jeu : un seul scintillement.** L'`Item` part sans drapeau de reconstruction (sauf `updateIcons` pour une icône générée).
 - À la création d'une variante composée neuve, le prix est donc un scintillement. Plusieurs créations regroupées dans un seul paquet n'en feraient qu'un (à prévoir pour l'établi de l'architecte).
 
+**États et règles de connexion d'une variante** (coins de bardeau, 2026-09-28) :
+- Côté serveur, un état n'est que des données. `StateData` associe chaque nom d'état à la clé de son `BlockType`, et vanilla ne la remplit qu'en décodant `State.Definitions`. La clé d'un état est `*<clé>_State_Definitions_<état>` (`StateData.generateBlockKey`), celle que les tronçons enregistrent. `BlockType.toPacket` envoie au client la table état → id, plus `default` (l. 1330-1336).
+- `StateData` n'est pas `final`, son constructeur est `protected`, et ses lecteurs (`getBlockForState`, `getStateForBlock`, `getStateNames`, `toPacket`) sont redéfinissables. Idem pour `BlockType.getDefaultStateKey()`. `runtime/VariantStateData` fournit donc la table d'une variante.
+- `DynamicBlockTypeFactory.create` crée le bloc principal et **un bloc par état du gabarit** (copie de `template.getBlockForState(état)`). Tous partagent la table d'états et **une copie de la règle de connexion**, comme vanilla partage une règle par famille (`appendInherited` et `INJECT_PARENT`). La famille entière est enregistrée en un seul `loadAssets`, à la création comme au démarrage.
+- **Pièges** :
+  - une règle met en cache les ids de son bloc (`updateCachedBlockTypes`, appelé par `ConnectedBlocksModule.onBlockTypesChanged`). Partager celle du gabarit ferait pointer l'un vers l'autre : chaque variante en reçoit une copie, faite par un aller-retour de `ConnectedBlockRuleSet.CODEC` ;
+  - **`ConnectedBlockOutput.resolve` écrit la clé qu'il a résolue dans son champ `Block`**. La copie encodée nommait donc les coins du gabarit : vu en jeu, le coin d'une variante devenait un coin du gabarit, en paille. La copie retire donc `Block` de chaque sortie qui déclare un `State` ;
+  - le premier `UpdateBlockTypes` est construit avant que `LoadedAssetsEvent` résolve la règle (`AssetStore.loadAssets0`), avec des ids à -1, et ce paquet reste en cache. `VariantBlockType.toPacket` reconstruit donc la règle à chaque envoi. Le double envoi porte ainsi la bonne règle ; sans lui (`--twice=false`), le client garde -1 jusqu'à reconnexion, mais le serveur, qui calcule les connexions, reste juste.
+- Tous les bardeaux partagent le `MaterialName` `HyColonyShingle` : ils se relient quel que soit leur matériau, comme dans DO.
+- **Vérifié en jeu (2026-09-28)** : deux bardeaux posés en angle forment un coin aux textures de la variante.
+
 **Protocole de test en jeu** (à dérouler sur des combinaisons neuves, résultats à reporter ici) :
 1. `/hyornament test oak stone` : les objets arrivent avec leur icône générée, et posés, ils montrent le cadre en bois sur de la pierre, sans scintillement.
 2. `/hyornament test birch plaster`, puis une 3ᵉ et une 4ᵉ variante : même question (l'essai du 27/09 cassait dès la 2ᵉ ou la 3ᵉ).
