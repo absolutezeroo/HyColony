@@ -99,7 +99,11 @@ final class CutterDrawing {
     /** The preview icon and text, and the craft buttons, each enabled only when that many crafts are possible. */
     private static void preview(
             UICommandBuilder ui, UIEventBuilder events, CutterView.Preview preview, boolean preparing) {
-        int max = preview instanceof CutterView.Ready ready ? ready.maxCrafts() : 0;
+        // While the previewed variant is being prepared, the craft buttons wait for it too.
+        int max = preview instanceof CutterView.Ready ready
+                        && !(preparing && Item.getAssetMap().getAsset(ready.itemId()) == null)
+                ? ready.maxCrafts()
+                : 0;
         switch (preview) {
             case CutterView.Empty _ -> {
                 ui.set("#Preview.Visible", false);
