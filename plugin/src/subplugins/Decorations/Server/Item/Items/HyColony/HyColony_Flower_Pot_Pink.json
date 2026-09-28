@@ -3296,6 +3296,9 @@
                 }
               }
             }
+          },
+          "Light": {
+            "Color": "#158"
           }
         },
         "Plant_Crop_Mushroom_Common_Brown": {
@@ -3362,7 +3365,7 @@
             }
           },
           "Light": {
-            "Color": "#ba4"
+            "Color": "#981"
           }
         },
         "Plant_Crop_Mushroom_Flatcap_Blue": {
