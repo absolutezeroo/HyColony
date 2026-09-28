@@ -217,6 +217,21 @@ def trapdoor_opens_like_vanilla():
     assert len([i for i in ctx.items if i.startswith("HyColony_DO_FancyTrapdoor_")]) == 2
 
 
+def cutter_is_a_two_slot_bench():
+    """The architect's cutter: the vanilla builder's bench look, 2 container slots, a plain Use the plugin handles,
+    crafted at the Workbench from DO's recipe (1 iron ingot, 3 stone slabs, 3 logs)."""
+    ctx = generate_into_temp()
+    path = ctx.pack / "Server/Item/Items/HyColony/DO/HyColony_DO_ArchitectsCutter.json"
+    item = json.loads(path.read_text(encoding="utf-8"))
+    block = item["BlockType"]
+    assert block["BlockEntity"]["Components"]["ItemContainerBlock"]["Capacity"] == 2
+    assert block["Interactions"]["Use"] == {"Interactions": [{"Type": "Simple"}]}
+    assert block["CustomModel"] == "Blocks/Benches/Builder.blockymodel"
+    inputs = {i.get("ItemId") or i["ResourceTypeId"]: i["Quantity"] for i in item["Recipe"]["Input"]}
+    assert inputs == {"Ingredient_Bar_Iron": 1, "Rock_Stone_Half": 3, "Wood_Trunk": 3}
+    assert item["Recipe"]["BenchRequirement"][0]["Id"] == "Workbench"
+
+
 def run():
     """Runs this module's checks; an AssertionError names the failing case."""
     manifest_lists_every_template_with_its_slots()
@@ -231,3 +246,4 @@ def run():
     shingle_hitboxes_are_dos()
     door_copies_vanilla_mechanics()
     trapdoor_opens_like_vanilla()
+    cutter_is_a_two_slot_bench()

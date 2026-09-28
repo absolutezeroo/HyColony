@@ -19,7 +19,7 @@ import source  # noqa: E402
 import tabs  # noqa: E402
 import tags  # noqa: E402
 import validate  # noqa: E402
-from blocks import common, compat, door, pane, pillar, roof, static  # noqa: E402
+from blocks import common, compat, cutter, door, pane, pillar, roof, static  # noqa: E402
 from families import FAMILIES  # noqa: E402
 from pack import ROOT, validate_pack, write_json  # noqa: E402
 
@@ -43,6 +43,7 @@ def run(pack, resources, assets):
         # runtime would have to compose the overlay (spec, "Hors DO-1").
         if generator and not family.name.startswith("AllBrick"):
             generator(ctx, family)
+    cutter.generate(ctx)
     manifest.write(ctx)
     ctx.tab = tabs.generate(ctx)
     write_json(pack / "hycolony" / "id-map.json", {"ornamentTags": ctx.tags})

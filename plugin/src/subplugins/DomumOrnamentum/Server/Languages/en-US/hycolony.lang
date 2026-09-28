@@ -14,6 +14,7 @@ category.do.stairs = Stairs
 category.do.timberframe = Timber frame
 category.do.trapdoor = Trapdoor
 category.do.wall = Wall
+item.do.architectscutter.name = Architect's cutter
 item.do.door_full.name = Door (full)
 item.do.door_portmanteau.name = Door (port manteau)
 item.do.door_verticallystriped.name = Door (vertically striped)

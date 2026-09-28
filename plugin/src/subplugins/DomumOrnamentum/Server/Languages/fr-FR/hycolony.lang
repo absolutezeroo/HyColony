@@ -14,6 +14,7 @@ category.do.stairs = Escalier
 category.do.timberframe = Colombage
 category.do.trapdoor = Trappe
 category.do.wall = Muret
+item.do.architectscutter.name = Établi de l'architecte
 item.do.door_full.name = Porte (plein)
 item.do.door_portmanteau.name = Porte (portemanteau)
 item.do.door_verticallystriped.name = Porte (rayé verticalement)
