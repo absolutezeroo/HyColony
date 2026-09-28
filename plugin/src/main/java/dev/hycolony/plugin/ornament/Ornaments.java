@@ -68,6 +68,7 @@ public final class Ornaments {
         }
     }
 
+    /** Whether shape's template block is loaded; logs a warning when not. */
     private static boolean loaded(OrnamentShape shape) {
         if (BlockType.getAssetMap().getAsset(shape.templateKey()) != null) {
             return true;

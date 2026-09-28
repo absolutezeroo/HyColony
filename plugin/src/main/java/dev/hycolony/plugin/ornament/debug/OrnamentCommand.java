@@ -99,6 +99,10 @@ public final class OrnamentCommand extends AbstractCommandCollection {
             }
         }
 
+        /**
+         * Requests key's variant off the world thread, then hands it over on it; a failed creation or a stopping
+         * world is logged and reported to the player.
+         */
         private void give(PlayerRef player, Ref<EntityStore> ref, World world, VariantKey key) {
             boolean created = !registry.known(key);
             long start = System.nanoTime();
@@ -122,7 +126,9 @@ public final class OrnamentCommand extends AbstractCommandCollection {
         /** Tells why the request is refused: the count a shape takes, or the slot and some materials it accepts. */
         private static void refuse(PlayerRef player, OrnamentShape shape, VariantRequests.Refused refused) {
             if (refused.slot() < 0) {
-                say(player, refused.reasonKey(), shape.id(), String.valueOf(shape.slotCount()));
+                // An optional second slot may be left out: one or two materials.
+                String count = shape.optionalSecond() ? "1-" + shape.slotCount() : String.valueOf(shape.slotCount());
+                say(player, refused.reasonKey(), shape.id(), count);
                 return;
             }
             String allowed = refused.allowed().stream().sorted().limit(LISTED).collect(Collectors.joining(", "));

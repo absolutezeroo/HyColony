@@ -45,16 +45,8 @@
           "Gathering": {
             "Breaking": {
               "GatherType": "Rocks",
-              "DropList": {
-                "Container": {
-                  "Type": "Single",
-                  "Item": {
-                    "ItemId": "HyColony_DO_Slab",
-                    "QuantityMax": 2,
-                    "QuantityMin": 2
-                  }
-                }
-              }
+              "ItemId": "HyColony_DO_Slab",
+              "Quantity": 2
             }
           },
           "Supporting": {

@@ -105,14 +105,17 @@ def stairs(ctx, family, ident, block_type):
 
 def slab(ctx, family, ident, block_type):
     """A bottom slab; its vanilla "Block" state (two slabs merged) becomes DO's double slab, a model like the rest,
-    gathered as the default material."""
+    gathered as the default material, giving two slabs back."""
     block = block_type["State"]["Definitions"]["Block"]
     block.pop("Textures", None)
     block["DrawType"] = "Model"
     material = ctx.assets.item(common.defaults(ctx, family)[0])["BlockType"]
-    gather_type = material.get("Gathering", {}).get("Breaking", {}).get("GatherType")
-    if gather_type:
-        block["Gathering"]["Breaking"]["GatherType"] = gather_type
+    breaking = block["Gathering"]["Breaking"]
+    breaking["GatherType"] = material.get("Gathering", {}).get("Breaking", {}).get("GatherType", breaking["GatherType"])
+    # Two slabs back as ItemId + Quantity (vanilla roofs do the same), not the vanilla contained DropList: a runtime
+    # variant renames a plain ItemId to its own item, it cannot rewrite a contained asset.
+    del breaking["DropList"]
+    breaking.update({"ItemId": ident, "Quantity": 2})
     return _model(ctx, family, ident, {"type": "bottom"}), {"Block": _model(ctx, family, ident + "_Block",
                                                                              {"type": "double"})}
 

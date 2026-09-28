@@ -58,6 +58,9 @@ class ShapeCatalogTest {
         ShapeCatalog catalog = ShapeCatalog.parse(JSON).retain(shape -> false);
         assertTrue(catalog.all().isEmpty());
         assertTrue(catalog.shape("Shingle").isEmpty());
+        ShapeCatalog kept = ShapeCatalog.parse(JSON).retain(shape -> shape.id().equals("Shingle"));
+        assertEquals(1, kept.all().size());
+        assertTrue(kept.shape("shingle").isPresent());
     }
 
     @Test

@@ -1,10 +1,15 @@
 package dev.hycolony.plugin.ornament.runtime;
 
+import com.hypixel.hytale.codec.ExtraInfo;
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockGathering;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.CustomModelTexture;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.StateData;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
 import com.hypixel.hytale.server.core.universe.world.connectedblocks.ConnectedBlockRuleSet;
+import org.bson.BsonDocument;
+import org.bson.BsonString;
+import org.bson.BsonValue;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -18,13 +23,15 @@ import org.jspecify.annotations.Nullable;
  */
 final class VariantBlockType extends BlockType {
     /**
-     * What a variant's blocks share: the main block's key (its item and default state), the state table and one copy
-     * of the connection rules, which cache the family's block ids (ConnectedBlocksModule.onBlockTypesChanged).
+     * What a variant's blocks share: the main block's key (its item and default state), the state table, one copy
+     * of the connection rules, which cache the family's block ids (ConnectedBlocksModule.onBlockTypesChanged), and
+     * the template's key, which a copied state's gathering may name.
      */
     record Family(
             String mainKey,
             @Nullable StateData states,
-            @Nullable ConnectedBlockRuleSet rules) {}
+            @Nullable ConnectedBlockRuleSet rules,
+            String templateKey) {}
 
     private final String mainKey;
 
@@ -36,6 +43,27 @@ final class VariantBlockType extends BlockType {
         this.customModelTexture = new CustomModelTexture[] {new CustomModelTexture(modelTexture, 1)};
         this.state = family.states();
         this.connectedBlockRuleSet = family.rules();
+        this.gathering = gathering(template.getGathering(), family);
+    }
+
+    /**
+     * template's gathering with the item it gives back renamed from the template's to the variant's (a wall corner
+     * or a double slab names its template item, which a variant must not give); the template's own when it names
+     * no item. A codec round trip: the fields are protected.
+     */
+    private static @Nullable BlockGathering gathering(@Nullable BlockGathering template, Family family) {
+        if (template == null) {
+            return null;
+        }
+        BsonValue encoded = BlockGathering.CODEC.encode(template, new ExtraInfo());
+        if (!(encoded instanceof BsonDocument gathering)
+                || !(gathering.get("Breaking") instanceof BsonDocument breaking)
+                || !(breaking.get("ItemId") instanceof BsonString item)
+                || !item.getValue().equals(family.templateKey())) {
+            return template;
+        }
+        breaking.put("ItemId", new BsonString(family.mainKey()));
+        return BlockGathering.CODEC.decode(gathering, new ExtraInfo());
     }
 
     /** The variant's item (the main block's key), which breaking any of its blocks drops; null until registered. */

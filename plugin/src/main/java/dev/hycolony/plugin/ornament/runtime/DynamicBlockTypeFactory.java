@@ -25,7 +25,10 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>The block copies keep the template's models, hitboxes, sounds and gathering, so every variant reuses the
  * {@code .blockymodel}s the client already has; only the texture its models read changes (MC DO retextures the same
- * model, {@code MateriallyTexturedBakedModel}).
+ * model, {@code MateriallyTexturedBakedModel}), and the item a state gives back becomes the variant's.
+ *
+ * <p>Deviation from MC: a variant sounds and breaks like its template (its shape's default material): DO takes
+ * them from the chosen material.
  */
 public final class DynamicBlockTypeFactory {
     private static final String PATTERNS = "TemplateShapeBlockPatterns";
@@ -47,7 +50,8 @@ public final class DynamicBlockTypeFactory {
         VariantBlockType.Family family = new VariantBlockType.Family(
                 mainKey,
                 stateKeys.isEmpty() ? null : new VariantStateData(stateKeys),
-                copy(template.getConnectedBlockRuleSet(), templateKey, mainKey));
+                copy(template.getConnectedBlockRuleSet(), templateKey, mainKey),
+                templateKey);
         List<BlockType> blocks = new ArrayList<>();
         blocks.add(new VariantBlockType(template, mainKey, modelTexture, family));
         stateKeys.forEach((state, stateKey) -> blocks.add(
@@ -74,8 +78,8 @@ public final class DynamicBlockTypeFactory {
      * A copy of the template's connection rules, by a codec round trip: a rule set caches its own block's state ids
      * ({@code updateCachedBlockTypes}), so a shared instance would point the template at the variant, or back. The
      * template's own keys in a connection template's patterns become the variant's (its main block and its states);
-     * other blocks, the template shape, face tags and material name stay shared, so variants of one shape join
-     * across materials as in DO.
+     * other blocks (a fence's gate pattern names the template gate), the template shape, face tags and material
+     * name stay shared, so variants of one shape join across materials as in DO.
      */
     private static @Nullable ConnectedBlockRuleSet copy(
             @Nullable ConnectedBlockRuleSet rules, String templateKey, String mainKey) {
@@ -90,13 +94,21 @@ public final class DynamicBlockTypeFactory {
         return ConnectedBlockRuleSet.CODEC.decode(encoded, new ExtraInfo());
     }
 
-    /** targets (comma-separated block keys) with templateKey and its states renamed to mainKey's. */
+    /**
+     * targets (comma-separated block keys, each maybe weighted as {@code BlockPattern} encodes several:
+     * {@code 100.0%key}) with templateKey and its states renamed to mainKey's, weights kept.
+     */
     private static String renamed(BsonValue targets, String templateKey, String mainKey) {
         String state = "*" + templateKey + STATE;
         return Arrays.stream(targets.asString().getValue().split(","))
-                .map(t -> t.equals(templateKey)
-                        ? mainKey
-                        : t.startsWith(state) ? "*" + mainKey + STATE + t.substring(state.length()) : t)
+                .map(target -> {
+                    int weight = target.lastIndexOf('%') + 1;
+                    String block = target.substring(weight);
+                    String renamed = block.equals(templateKey)
+                            ? mainKey
+                            : block.startsWith(state) ? "*" + mainKey + STATE + block.substring(state.length()) : block;
+                    return target.substring(0, weight) + renamed;
+                })
                 .collect(Collectors.joining(","));
     }
 
@@ -126,9 +138,12 @@ public final class DynamicBlockTypeFactory {
     }
 
     /**
-     * Item's fields are protected too, and the template's {@code data} is dropped for the same reason. The name is
-     * the template's. Item's copy constructor skips quality, reticle, durability, fuel, glider, music and container
-     * settings: the template item must not use them.
+     * Item's fields are protected too, and the template's {@code data} is dropped for the same reason. Item's copy
+     * constructor skips quality, reticle, durability, fuel, glider, music and container settings: the template item
+     * must not use them.
+     *
+     * <p>Deviation from MC: the name is the template's (the shape's), without the materials DO shows: a Hytale item
+     * name takes no parameter.
      */
     private static final class VariantItem extends Item {
         VariantItem(Item template, VariantKey key, @Nullable String icon) {

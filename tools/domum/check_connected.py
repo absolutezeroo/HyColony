@@ -117,6 +117,9 @@ def compat_uses_do_models_and_vanilla_shapes():
     assert hinges["Door"] == {"x": -14, "y": 0, "z": 0} and hinges["Door2"] == {"x": 14, "y": 0, "z": 0}, hinges
     block = ctx.items["HyColony_DO_Slab"]["BlockType"]["State"]["Definitions"]["Block"]
     assert block["DrawType"] == "Model" and "Textures" not in block
+    # Two slabs back, named by ItemId (a string a runtime variant renames), not a contained DropList asset.
+    breaking = block["Gathering"]["Breaking"]
+    assert breaking["ItemId"] == "HyColony_DO_Slab" and breaking["Quantity"] == 2 and "DropList" not in breaking
     # A slab clicked on its top becomes the Block state: the item's vanilla interaction, matching our slab.
     merge = ctx.items["HyColony_DO_Slab"]["Interactions"]["Secondary"]["Interactions"][0]
     assert merge["Parent"] == "Half_Block" and merge["Matchers"][0]["Block"]["Id"] == "HyColony_DO_Slab", merge

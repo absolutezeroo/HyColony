@@ -65,7 +65,8 @@ public final class OrnamentVariantRegistry {
     /**
      * The variants of keys, in order: cached ones as they are, the others created together off the calling thread
      * (safe from a world thread) and broadcast. Fails when a key fails or before {@link #start}; a failed key is
-     * forgotten, so it can be retried.
+     * forgotten, so it can be retried. A timeout only fails the answer: a slow creation that ends later still
+     * registers and saves its variants, and asking again then reuses them.
      */
     public CompletableFuture<List<OrnamentVariant>> request(List<VariantKey> keys) {
         List<VariantKey> fresh = new ArrayList<>();
@@ -146,6 +147,7 @@ public final class OrnamentVariantRegistry {
         return variant(key);
     }
 
+    /** key's registered variant, with the block id clients know it by. */
     private static OrnamentVariant variant(VariantKey key) {
         return new OrnamentVariant(key, BlockType.getAssetMap().getIndex(key.blockTypeKey()));
     }
