@@ -26,9 +26,11 @@ public final class ShapeCatalog {
 
     private final List<OrnamentShape> shapes;
     private final Map<String, OrnamentShape> byId;
+    private final int skipped;
 
-    private ShapeCatalog(List<OrnamentShape> shapes) {
+    private ShapeCatalog(List<OrnamentShape> shapes, int skipped) {
         this.shapes = List.copyOf(shapes);
+        this.skipped = skipped;
         this.byId = shapes.stream()
                 .collect(Collectors.toUnmodifiableMap(
                         s -> s.id().toLowerCase(Locale.ROOT), Function.identity(), (a, b) -> a));
@@ -39,12 +41,12 @@ public final class ShapeCatalog {
         try {
             JsonElement root = JsonParser.parseString(json);
             if (!root.isJsonObject()) {
-                return new ShapeCatalog(List.of());
+                return new ShapeCatalog(List.of(), 0);
             }
             JsonObject object = root.getAsJsonObject();
             if (intOr(object, "schemaVersion", SCHEMA_VERSION) > SCHEMA_VERSION
                     || !(object.get("shapes") instanceof JsonArray entries)) {
-                return new ShapeCatalog(List.of());
+                return new ShapeCatalog(List.of(), 0);
             }
             List<OrnamentShape> shapes = new ArrayList<>();
             Set<String> seen = new HashSet<>();
@@ -54,9 +56,9 @@ public final class ShapeCatalog {
                         .filter(s -> seen.add(s.id().toLowerCase(Locale.ROOT)))
                         .ifPresent(shapes::add);
             }
-            return new ShapeCatalog(shapes);
+            return new ShapeCatalog(shapes, entries.size() - shapes.size());
         } catch (JsonParseException | IllegalStateException | UnsupportedOperationException e) {
-            return new ShapeCatalog(List.of());
+            return new ShapeCatalog(List.of(), 0);
         }
     }
 
@@ -69,9 +71,14 @@ public final class ShapeCatalog {
         return shapes;
     }
 
+    /** How many manifest entries parse left out (incomplete, out of bounds or repeated): 0 for a sound manifest. */
+    public int skipped() {
+        return skipped;
+    }
+
     /** This catalog without the shapes keep refuses (the plugin drops shapes whose template is not loaded). */
     public ShapeCatalog retain(Predicate<OrnamentShape> keep) {
-        return new ShapeCatalog(shapes.stream().filter(keep).toList());
+        return new ShapeCatalog(shapes.stream().filter(keep).toList(), skipped);
     }
 
     /**

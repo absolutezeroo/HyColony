@@ -140,7 +140,7 @@ public final class DynamicBlockTypeFactory {
     /**
      * Item's fields are protected too, and the template's {@code data} is dropped for the same reason. Item's copy
      * constructor skips quality, reticle, durability, fuel, glider, music and container settings: the template item
-     * must not use them.
+     * must not use them. Interactions defined inside the template item are dropped: they name the template's block.
      *
      * <p>Deviation from MC: the name is the template's (the shape's), without the materials DO shows: a Hytale item
      * name takes no parameter.
@@ -154,6 +154,13 @@ public final class DynamicBlockTypeFactory {
             if (icon != null) {
                 this.icon = icon;
             }
+            // An interaction written inside the template item (a slab's merge into a full block) is a contained asset
+            // ("*<template>_..."): it matches the template's block and places the template's state, so a variant
+            // would merge into, and turn into, the template. Named vanilla interactions (Block_Secondary) are kept.
+            String own = "*" + template.getId();
+            this.interactions = template.getInteractions().entrySet().stream()
+                    .filter(e -> !e.getValue().startsWith(own))
+                    .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue));
         }
     }
 }

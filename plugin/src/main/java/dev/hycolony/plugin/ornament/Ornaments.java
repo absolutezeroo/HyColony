@@ -55,14 +55,23 @@ public final class Ornaments {
         plugin.getCommandRegistry().registerCommand(new OrnamentCommand(ornaments));
     }
 
-    /** The shape manifest, without the shapes whose template block is not loaded (each logged). */
+    /**
+     * The shape manifest, without the shapes whose template block is not loaded (each logged); an unreadable entry or
+     * an empty manifest is logged too.
+     */
     private static ShapeCatalog shapes() {
         try (InputStream in = Ornaments.class.getResourceAsStream(SHAPES)) {
             if (in == null) {
                 throw new IllegalStateException("missing " + SHAPES);
             }
-            return ShapeCatalog.parse(new String(in.readAllBytes(), StandardCharsets.UTF_8))
-                    .retain(Ornaments::loaded);
+            ShapeCatalog catalog = ShapeCatalog.parse(new String(in.readAllBytes(), StandardCharsets.UTF_8));
+            if (catalog.skipped() > 0 || catalog.all().isEmpty()) {
+                // The generator and ShapeCatalog disagree on the manifest: shapes (and saved variants) go missing.
+                LOG.at(Level.WARNING).log(
+                        "hyornament: %s: %d shape(s) read, %d entry(ies) unreadable",
+                        SHAPES, catalog.all().size(), catalog.skipped());
+            }
+            return catalog.retain(Ornaments::loaded);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

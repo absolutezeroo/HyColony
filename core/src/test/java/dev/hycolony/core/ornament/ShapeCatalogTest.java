@@ -25,6 +25,7 @@ class ShapeCatalogTest {
         assertEquals("HyColony_DO_Shingle", shingle.templateKey());
         assertEquals(2, shingle.slotCount());
         assertEquals(4, shingle.cutterQuantity());
+        assertEquals(2, catalog.skipped());
     }
 
     @Test

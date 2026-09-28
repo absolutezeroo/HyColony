@@ -49,17 +49,17 @@ Porter Domum Ornamentum (DO) **avec son vrai fonctionnement** : un type de bloc 
 | Trappe, trappe ouvragée | 1 / 2 | `Use: Door_Horizontal`, s'ouvrent, en haut ou en bas du bloc |
 | Mur de papier (2) | 2 | Connexion de vitre, gabarit à nous |
 | Clôture, portillon, muret, escalier, dalle | 1 | Modèles DO convertis, connexions et formes vanilla |
-| « All brick » et son escalier | 1 | Bloc plein, escalier |
 
 **Hors DO-1** :
 - **Colombage dynamique** : impossible à rendre (14 voisins, texture par face, B.10 § 4). `Deviation from MC: no dynamic timber frame, placed and requested as framed`, comme le constructeur MC le demande déjà (A.4).
 - **Lumières encadrées** : pas de bloc lumineux plein Hytale pour le centre. Reporté.
 - **Briques et blocs « extra » DO** (sans matériau) : textures 16 px à redessiner. Reportés.
+- **« All brick » et son escalier** : un cube du matériau sous une texture de briques fixe (composite forge). Le moteur de variantes ne compose que des matériaux ; il faudrait lui apprendre cette surcouche. Reportés (DO-1b).
 
 ## Variantes à l'exécution
 
 - Une variante = (forme, 1 ou 2 matériaux). Chaque matériau doit appartenir au tag de son emplacement, sinon la demande est refusée.
-- **Clé** : `HyColony_DO_<Forme>_<Matériau1>[_<Matériau2>]`, stable (les tronçons enregistrent les blocs par clé). Les états suivent la règle vanilla : `*<clé>_State_Definitions_<état>`.
+- **Clé** : `<gabarit>__<Matériau1>[__<Matériau2>]` (par exemple `HyColony_DO_TimberFrame_Framed__Wood_Softwood_Planks__Rock_Stone_Brick`), stable (les tronçons enregistrent les blocs par clé). Elle est sauvegardée sous l'id `<forme>|<Matériau1>[|<Matériau2>]`. Les états suivent la règle vanilla : `*<clé>_State_Definitions_<état>`.
 - **Création** (prototype, B.11) : copie du gabarit et de chacun de ses états, avec la texture de la variante, une table d'états construite en code (`VariantStateData`) et une copie des règles de connexion sans les clés résolues du gabarit. L'objet est une copie de l'objet gabarit, avec `blockId` = la variante ; casser n'importe quel état rend cet objet.
 - **Cache** : une variante n'est créée qu'une fois, même demandée plusieurs fois pendant sa création.
 - **Création groupée** : l'API accepte plusieurs variantes d'un coup (un seul `loadAssets`, donc un seul scintillement). DO-2 s'en servira.
@@ -81,7 +81,7 @@ Porter Domum Ornamentum (DO) **avec son vrai fonctionnement** : un type de bloc 
 
 ## Organisation du code
 
-- **Générateur** `tools/domum/` (Python, lancé à la main, sorties commitées) : sources DO au commit épinglé, assemblage des états, nettoyage des faces, conversion vers la disposition 32 / 64 × 32, gabarits, cartes d'icône, onglet, plus un manifeste des formes (id, gabarit, nombre de matériaux, tags des emplacements, matériaux par défaut, groupe du cutter, quantité DO pour DO-2).
+- **Générateur** `tools/domum/` (Python, lancé à la main, sorties commitées) : sources DO au commit épinglé, assemblage des états, nettoyage des faces, conversion vers la disposition 32 / 64 × 32, gabarits, cartes d'icône, onglet, plus un manifeste des formes (id, gabarit, groupe du cutter, tags des emplacements, second emplacement facultatif, quantité DO pour DO-2 ; les matériaux par défaut sont dans les gabarits).
 - **Pack d'assets** : le sous-plugin `DomumOrnamentum` (modèles, gabarits, onglet), **désactivé par défaut** jusqu'au test en jeu.
 - **Cœur** (`core`, paquet `ornament`, Java pur, testé) : formes et emplacements lus du manifeste, tags, validation d'une demande, clé de variante, format de persistance et sa migration.
 - **Plugin** (paquet `ornament`, issu du prototype) : catalogue des matériaux (textures lues dans les `BlockType`), fabrique des variantes et de leurs états, textures de paire, icônes, publication des assets, synchronisation, restauration au démarrage, commande `/hyornament` (opérateurs). Il n'est actif que si le pack est activé.
@@ -94,10 +94,9 @@ Porter Domum Ornamentum (DO) **avec son vrai fonctionnement** : un type de bloc 
 - **Trappe** : posée au sol (sans tangage, comme un escalier), c'est la moitié basse de DO, charnière en +Z, que l'animation vanilla ouvre vers le haut. Retournée (`UpDownNESW`, tangage de 180°), c'est la moitié haute, charnière en -Z : la trappe Crude vanilla. L'animation vanilla ne tourne que dans un sens : la charnière d'une trappe accrochée en haut est donc du côté opposé à celle d'une trappe au sol, alors que Minecraft garde le même côté. `Deviation from MC: hanging trapdoor hinge on the opposite side`. À confirmer en jeu (pose au sol, au plafond, sur la moitié haute et basse d'une face).
 - **Mur de papier** : il ne se relie qu'aux autres murs de papier. Une vitre Minecraft se relie aussi à toute face pleine, ce qu'un gabarit de connexion Hytale ne sait pas exprimer. `Deviation from MC: paper walls join paper walls only`.
 - **Clôture, portillon, muret** : ils se relient par le gabarit vanilla (`WallConnectedBlockTemplate`, tag `FenceConnection`), donc aux clôtures, murets et portillons, vanilla compris, jamais à une face pleine comme dans Minecraft. Seuls, ils gardent la forme vanilla droite (bras est et ouest) au lieu du poteau seul de Minecraft. Les murets n'ont ni côté haut (`tall`) ni poteau levé par le bloc du dessus. Un portillon voisin d'un muret n'est pas abaissé (`in_wall`). `Deviation from MC: fences and walls join and stand by the vanilla template`.
-- **« All brick » et son escalier** : un cube du matériau recouvert d'une texture de briques fixe (composite forge). Le moteur de variantes doit savoir composer cette surcouche : ils sont générés après le moteur générique (Tâche 16), pas avec les autres familles.
 - **Nom des objets** : un objet porte le nom de sa forme (« Colombage encadré »). Hytale ne passe pas de paramètre à un nom d'objet ; afficher les matériaux dans le nom demanderait une clé de traduction par combinaison. `Deviation from MC: materials are not shown in the item name`. À réexaminer si un autre moyen apparaît.
 - **Variante et matériau** : une variante garde les sons, les particules et l'outil de récolte du matériau par défaut de sa forme (ceux du gabarit) ; seule la texture change. `Deviation from MC: a variant sounds and breaks like its template`.
-- **Dalle variante** : l'interaction qui fusionne deux dalles vise le bloc du gabarit ; une dalle variante ne fusionne donc pas (une interaction par variante serait à créer à l'exécution).
+- **Dalle variante** : l'interaction qui fusionne deux dalles est un asset contenu de l'objet gabarit, qui vise le bloc du gabarit ; la variante ne la reprend pas. Une dalle variante se pose donc sans fusionner, ni avec une autre variante ni avec le gabarit (une interaction par variante serait à créer à l'exécution).
 - **Clôture variante** : le motif `Gate` de la clôture nomme le portillon gabarit ; une clôture variante ne se relie qu'à lui (et aux clôtures et murets, par leur tag).
 - **Icônes** : la carte d'icône suit la caméra des icônes vanilla, ajustée sur leurs silhouettes (cube, demi-bloc, escalier) ; un modèle qui sort du cadre (trappe posée au sol, pente raide) est recentré ou réduit. Le mur de papier prend l'icône de sa forme droite, comme l'objet DO.
 - Rafraîchir la liste des assets d'un joueur qui se connecte passe par réflexion (champ privé de `CommonAssetModule`, version épinglée 0.6.8), à revérifier à chaque montée de version.
