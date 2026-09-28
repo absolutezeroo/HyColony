@@ -401,6 +401,103 @@ Rappel commun : une forme ou un état Hytale est un `BlockType` distinct (`State
 
 Le vrai coût est combinatoire. Chaque forme × état × combinaison de matériaux devient un `BlockType`, avec sa texture composée, son icône et sa recette.
 
+### B.11 Variantes à l'exécution sans nouvelle texture (prototype `/hyornament`, 2026-09-28)
+
+Nouvelle piste, différente de B.6 : **aucun asset commun n'est ajouté**. La variante réutilise un modèle et des textures que le client a déjà. Seul un `BlockType` est créé. Sources : `H:` = `build/vineflower/hytale-server/com/hypixel/hytale/`, `zip:` = assets 0.6.8.
+
+**Deux matériaux dans un bloc sans composer de PNG : `DrawType.CubeWithModel`.**
+- `DrawType` vaut `Empty`, `GizmoCube`, `Cube`, `Model` ou `CubeWithModel` (`H: protocol/DrawType.java`). En `CubeWithModel`, le client dessine le cube (`Textures`, 6 faces) **et** le modèle (`CustomModel` + `CustomModelTexture`). Ce sont deux textures indépendantes.
+- 18 blocs vanilla l'utilisent : 17 minerais et `Rock_Volcanic_Cracked_Incandescent`. Par exemple `Ore_Copper_Stone` = cube `BlockTextures/Rock_Stone.png` + modèle `Resources/Ores/Ore_Large.blockymodel` texturé `Resources/Ores/Ore_Textures/Copper.png` (`zip: Server/Item/Items/Ore/Copper/Ore_Copper_Stone.json`).
+- Une texture de cube sert aussi de texture de modèle : 376 objets vanilla ont un `CustomModelTexture` en `BlockTextures/*.png` (par exemple `Build_Black_Half` = `Base_Shapes/HalfBlock.blockymodel` + `BlockTextures/Dev_Black_Top.png`). Les textures de bloc font 32×32 px, un bloc fait 32 unités de modèle.
+- Donc `TimberFrame(Oak, Stone)` = cube `Rock_Stone_Brick.png` (remplissage) + modèle unique `Blocks/HyColony/Ornament/TimberFrame.blockymodel` (12 poutres d'arête) texturé `Wood_Hardwood_Planks.png` (cadre). **Un seul `.blockymodel`, zéro PNG créée, zéro texture dupliquée.**
+- Limite : c'est **une texture pour tout le modèle et une pour le cube** (6 faces au plus). Un 3ᵉ matériau, ou deux matériaux sur un même modèle, reste impossible sans PNG composée (B.5).
+
+**Ce que fait l'Asset Editor pour un `BlockType`.**
+- Il applique les commandes JSON, puis `jsonTypeHandler.loadAssetFromDocument(..., new AssetUpdateQuery(rebuildCacheBuilder.build()), ...)` (`H: builtin/asseteditor/AssetEditorPlugin.java:1226-1256`). Les drapeaux viennent des métadonnées `UIRebuildCaches` des champs modifiés. Par défaut (`AssetStoreTypeHandler.getDefaultUpdateQuery`, l. 93-127), ce sont ceux du schéma.
+- Drapeaux déclarés dans `BlockType.CODEC` (`H: server/core/asset/type/blocktype/config/BlockType.java`) :
+  - `DrawType` : `MODELS`, `BLOCK_TEXTURES`, `MODEL_TEXTURES` (l. 132) ;
+  - `Textures` : `MODELS`, `BLOCK_TEXTURES` (l. 142) ;
+  - `CustomModelTexture` : `MODELS`, `BLOCK_TEXTURES` (l. 169) ;
+  - `CustomModel` : `MODELS` (l. 179).
+- **Il n'envoie jamais `RequestCommonAssetsRebuild` pour un `BlockType`.** Seul le gestionnaire des fichiers communs le fait (`CommonAssetTypeHandler.java:56-61, 103` : `commonAssetsRebuild = true`). Le drapeau `commonAssetsRebuild` de `RebuildCache` n'est lu nulle part ailleurs.
+- Le paquet : `BlockTypePacketGenerator.generateUpdatePacket` (`H: server/core/asset/type/blocktype/BlockTypePacketGenerator.java:43-66`) = `UpdateBlockTypes` `AddOrUpdate`, `maxId = getNextIndex()`, les seuls types chargés (`index -> toPacket()`), et les 4 drapeaux `updateBlockTextures`, `updateModelTextures`, `updateModels`, `updateMapGeometry` pris de la requête. `ItemPacketGenerator` lit `itemIcons` pour `UpdateItems.updateIcons`.
+- **Précédent vanilla d'ajout à chaud sans reconstruction** : `BlockType.getBlockIdOrUnknown` (l. 2242-2257) charge un bloc « Unknown » sous une clé inconnue avec `AssetUpdateQuery.DEFAULT_NO_REBUILD` (tous les drapeaux à `false`).
+
+**Ids, joueurs, persistance.**
+- Id : `BlockTypeAssetMap.putAll0` (`H: assetstore/map/BlockTypeAssetMap.java:137-195`) donne `nextIndex++` à une clé nouvelle et garde l'index d'une clé connue. Les ids ne valent que pour la session : les tronçons s'enregistrent **par clé** (`BlockSection.deserialize`, `H: server/core/universe/world/chunk/section/BlockSection.java:851-890`, clé → `getBlockIdOrUnknown`). Je n'ai trouvé aucune limite du nombre de `BlockType` (B.6) : l'id est un `int`.
+- Joueur connecté : `HytaleAssetStore.handleRemoveOrUpdate` (`H: server/core/asset/HytaleAssetStore.java:88-111`) diffuse le paquet à tout l'univers et remet à zéro `cachedInitPackets`.
+- Joueur qui arrive plus tard : il reçoit le paquet `Init` refait depuis toute la table, variantes comprises (`sendAssets`, l. 113-125). Il n'a donc besoin d'aucune mise à jour à chaud **[in-game]**.
+- `loadAssets` par code n'envoie **pas** de notification d'asset : `sendReloadedNotification` n'est appelé que par la surveillance de fichiers (l. 278-285).
+- Redémarrage : un tronçon qui contient une clé inconnue la charge en « Unknown » (bloc rose), sous **cette clé**. Si la variante est chargée plus tard sous la même clé, elle remplace l'« Unknown » au même index (`AddOrUpdate`). Le prototype recrée les variantes enregistrées (`universe/hycolony/ornament-variants.json`) pendant `LoadAssetEvent` à la priorité `PRIORITY_LOAD_LATE` (64) : après le chargement des registres (`AssetModule`, -16), sur le fil de démarrage, avant le démarrage des plugins et des mondes (`H: server/core/HytaleServer.java:342-395`).
+- Verrou : la création se fait hors du thread du monde (`plugin-b-api.md` § 17).
+
+**Prototype** (`plugin/.../ornament/`) :
+- modèle `Common/Blocks/HyColony/Ornament/TimberFrame.blockymodel` et gabarit `HyColony_Ornament_TimberFrame` (`CubeWithModel`), chargés au démarrage, donc connus du client ;
+- `/hyornament test <cadre> <remplissage> [--rebuild=none|editor|all] [--twice=true|false] [--icon=generated|material|none] [--notify=true|false] [--iconrefresh=true|false]` (opérateurs). La commande a d'abord posé le bloc devant le joueur ; elle donne maintenant 16 objets de la variante. Toutes les options ne valent que pour une combinaison **nouvelle** : le cache ne tient compte que de `VariantKey`, et une icône déjà publiée garde son mode de `--notify`. `--rebuild` choisit les drapeaux de `UpdateBlockTypes` :
+  - `none` (défaut) : aucun drapeau, comme l'« Unknown » vanilla ;
+  - `editor` : les drapeaux de l'éditeur (textures de bloc, modèles, textures de modèle) ;
+  - `all` : tous les drapeaux, comme l'essai du 27/09 ;
+  - matériaux : `oak`, `birch`, `spruce`, `redwood`, `stone`, `plaster`, `clay`, `sandstone`, dans les deux emplacements (64 combinaisons, donc assez d'essais sans redémarrer) ;
+- cache `VariantKey` → future du `BlockType` (`OrnamentVariantRegistry`) : une deuxième demande identique réutilise le même bloc, même pendant sa création.
+
+**Résultat en jeu (2026-09-28, `--rebuild=none`, un seul envoi)** :
+- Une variante nouvelle s'affiche **sans reconnexion, sans `RequestCommonAssetsRebuild`, sans scintillement**. Sauf une exception : **la première de chaque connexion** reste rose et noire.
+- Poser un bloc à côté ne la répare pas. La variante suivante, et toutes les autres, sont correctes.
+- Après une reconnexion, le bloc rose s'affiche bien (le type arrive alors dans le paquet `Init`), et les anciennes variantes aussi. Mais la première variante **nouvelle** après la reconnexion est de nouveau rose.
+- Hypothèse (client fermé, déduite des observations) : le client rate le premier `UpdateBlockTypes` `AddOrUpdate` reçu à chaud par une connexion ; le type envoyé serait correct, puisque le même type s'affiche une fois reçu dans `Init` **[in-game]**.
+- Contournement : envoyer deux fois le même paquet (`--twice=true` par défaut, `--twice=false` pour comparer). **Vérifié en jeu le 2026-09-28** : avec le double envoi, la première variante de la connexion s'affiche aussi correctement, et le témoin `--twice=false` après reconnexion reste rose ; toutes les variantes créées à chaud s'affichent sans reconnexion ni scintillement.
+
+**Objets des variantes** (ajoutés au prototype après le test du double envoi) :
+- `Item` n'expose que des champs `protected` : la variante est une sous-classe de l'objet gabarit, avec `data = null` (même piège que § 17), `id` = `blockId` = la clé de la variante, et comme icône l'icône vanilla du matériau de remplissage (`Icons/ItemsGenerated/*.png`, déjà connue du client). `Item.toPacket` tolère `data` null (`H: server/core/asset/type/item/config/Item.java:898`), de même que les lecteurs de tags (`InternalContainerUtilTag.java:94-156`).
+- Ordre obligatoire : le `BlockType` d'abord, puis l'`Item`. `Item.toPacket` envoie `blockId` = l'index du bloc, et `getIndexOrDefault(blockId, 1)` donnerait le bloc 1 si le bloc n'était pas encore chargé (l. 773-777). Ensuite, `Item.getAssetStore().loadAssets` envoie `UpdateItems` `AddOrUpdate` (`ItemPacketGenerator.generateUpdatePacket` : `updateModels` = textures de bloc ou modèles, `updateIcons` = icônes, tous à `false` ici).
+- Côté bloc : `BlockType.getItem()` n'est pas `final`. La variante la redéfinit pour rendre son propre objet, ce qui fait que la casser le donne (`BlockHarvestUtils.getDrops`, l. 817-821). Elle redéfinit aussi `toPacket` pour que `packet.item` nomme cet objet, même si le paquet a été construit avant l'enregistrement de l'objet (le paquet est mis en cache).
+- `/hyornament test` donne 16 objets de la variante, jetés aux pieds du joueur si son inventaire est plein. **Vérifié en jeu (2026-09-28)** : l'objet en main et le bloc posé ont les bonnes textures, et casser le bloc rend l'objet.
+- Limites :
+  - toutes les variantes portent le nom du gabarit (`translationProperties` copié) ;
+  - le constructeur de copie d'`Item` (l. 677-728) ne recopie ni la qualité, ni le réticule, ni la durabilité, ni le carburant, ni le planeur, ni la musique, ni les réglages de conteneur. L'objet gabarit ne doit donc pas les utiliser ;
+  - deux lecteurs lèvent une `NullPointerException` sur un objet sans `data` : `TagFilter.test` (`inventory/container/filter/TagFilter.java:15`) et `InternalContainerUtilTag.testRemoveTagFromSlot` (l. 138). Aucun des deux n'est appelé hors du paquet des inventaires ;
+  - le paquet `UpdateItems` n'est envoyé qu'une fois. S'il subit le même défaut du client que les blocs, l'icône ou l'objet tenu de la première variante d'une connexion manquera **[in-game]**.
+- `--icon=none` crée l'objet **sans** `Icon` (le client reçoit seulement les `IconProperties` vanilla copiées du gabarit). Côté serveur, rien ne lit `Item.getIcon()`. Résultat ci-dessous : un « ? ».
+- Reste à vérifier en jeu **[in-game]** : après un redémarrage, les blocs posés et les objets de l'inventaire sont-ils toujours corrects ?
+
+**Icônes des variantes** (2026-09-28) :
+- Un objet **sans** `Icon` s'affiche avec un « ? » dans l'inventaire (vérifié en jeu, `--icon=none`) : le client ne dessine pas l'icône à partir du modèle et d'`IconProperties`. Question de B.10 § 8 tranchée.
+- **Hytale n'a pas de générateur d'icônes côté serveur.**
+  - Les PNG `Icons/ItemsGenerated/*` sont dessinées par le client de l'Asset Editor, puis téléversées. Le serveur ne fait que les enregistrer : `CommonAssetTypeHandler.loadAsset` crée un `FileCommonAsset` et appelle `CommonAssetRegistry.addCommonAsset` (`H: builtin/asseteditor/assettypehandler/CommonAssetTypeHandler.java:35-44`). La requête par défaut d'un asset commun demande `commonAssetsRebuild` (l. 100-106).
+  - `AssetEditorUpdateModelPreview` envoie le `Model` ou le `BlockType` à dessiner **par le client** (`H: protocol/packets/asseteditor/AssetEditorUpdateModelPreview.java:25-29`).
+  - Aucune classe du serveur ne dessine d'image : pas de `renderIcon`, de générateur, ni d'autre référence à `ItemsGenerated` que le validateur et `Item.CODEC`.
+- **Solution du prototype** : dessiner nous-mêmes un PNG 64×64 (`runtime/VariantIconRenderer`).
+  - C'est un cube isométrique : les 3 faces visibles portent la texture de remplissage, avec une bordure de 4 px tirée de la texture du cadre.
+  - La géométrie est mesurée sur l'icône vanilla `Rock_Stone_Brick` : sommet en (32, 2), côtés en x = 5 et x = 59, bas en (32, 62). Les faces gauche et droite sont assombries.
+  - Les textures sont lues dans le registre (`CommonAssetRegistry.getByName(...).getBlob()`).
+  - Ce n'est pas un moteur de rendu `.blockymodel` : chaque forme aura son propre dessin.
+- **Envoi ciblé** (`runtime/VariantIconPublisher`) :
+  - le PNG est écrit dans `universe/hycolony/ornament-icons/`, puis enveloppé dans un `FileCommonAsset` sous le nom `Icons/ItemsGenerated/<clé>.png` ;
+  - `CommonAssetModule.addCommonAsset(pack, asset, false)` l'enregistre, invalide la liste des assets requis à la connexion, puis `sendAsset(asset, false)` envoie **ce seul fichier** (`AssetInitialize`, `AssetPart`, `AssetFinalize`) **sans** `RequestCommonAssetsRebuild` (`H: server/core/asset/common/CommonAssetModule.java:187-221, 588-611`). Effet de bord : une notification « asset créé » s'affiche chez les joueurs connectés (l. 203-208) ;
+  - ensuite, l'`Item` est chargé avec `itemIcons = true`, ce qui envoie `UpdateItems.updateIcons = true` (`ItemPacketGenerator.java:44`) ;
+  - le cache par `VariantKey` garantit qu'une icône n'est dessinée qu'une fois par démarrage ;
+  - au démarrage, les icônes des variantes enregistrées sont redessinées et enregistrées avant toute connexion, puis envoyées avec les autres assets.
+- Ne pas toucher à `universe/hycolony/ornament-icons/` pendant que le serveur tourne : quand la référence faible vers les octets est perdue, `FileCommonAsset` relit le fichier (`FileCommonAsset.java:30-32`). Un fichier supprimé ferait échouer le téléchargement des assets d'un joueur qui se connecte.
+- `/hyornament test` prend `--icon=generated` (défaut), `material` (icône vanilla du remplissage) ou `none`. Si le rendu échoue, l'objet prend l'icône du matériau.
+- **Vérifié en jeu (2026-09-28)** : l'icône générée apparaît chez le joueur déjà connecté, sans reconnexion ni scintillement. Deux défauts restent : la notification « asset créé » et un petit freeze de quelques millisecondes.
+- Essais pour les supprimer (`/hyornament test`, sur une combinaison neuve) :
+  - `--iconrefresh=false` : l'`Item` part sans `updateIcons`. Le client charge-t-il quand même l'icône par son chemin, et le freeze disparaît-il ? **[in-game]**
+  - `--notify=false` : l'asset est ajouté par `CommonAssetRegistry.addCommonAsset`, puis `sendAsset(asset, false)` l'envoie aux joueurs connectés, sans `addCommonAsset`, donc sans notification. Aucune méthode publique n'invalide la liste des assets requis à la connexion (`CommonAssetModule.assets`, privée, invalidée seulement l. 125, 214, 490, 765). Le prototype l'invalide **par réflexion** (version épinglée 0.6.8) ; si ça échoue, un avertissement est journalisé, et les joueurs qui se connectent avant le prochain redémarrage n'ont pas l'icône. **[in-game]** : pas de notification, et un 2ᵉ joueur qui se connecte ensuite voit l'icône.
+- Depuis cet essai, `/hyornament test` ne pose plus de bloc : il donne seulement les objets.
+- **Résultats en jeu (2026-09-28)** :
+  - `--notify=false` : l'icône apparaît, sans notification. C'est devenu le défaut.
+  - `--iconrefresh=false` : l'icône **n'apparaît pas**. Le client ne prend en compte une nouvelle icône qu'avec `UpdateItems.updateIcons = true`, et le petit freeze de quelques millisecondes est le prix de ce rafraîchissement ; l'utilisateur le juge négligeable.
+  - Reste à voir en jeu **[in-game]** : un joueur qui se connecte après la création voit-il l'icône, puisque la liste des assets requis est invalidée par réflexion ?
+
+**Protocole de test en jeu** (à dérouler sur des combinaisons neuves, résultats à reporter ici) :
+1. `/hyornament test oak stone` : les objets arrivent avec leur icône générée, et posés, ils montrent le cadre en bois sur de la pierre, sans scintillement.
+2. `/hyornament test birch plaster`, puis une 3ᵉ et une 4ᵉ variante : même question (l'essai du 27/09 cassait dès la 2ᵉ ou la 3ᵉ).
+3. `/hyornament test oak stone` à nouveau : le message dit « réutilisé », avec le même id.
+4. Un 2ᵉ joueur qui se connecte ensuite voit-il les variantes et leurs icônes ?
+5. Redémarrer le serveur : les blocs posés et les objets sont-ils toujours corrects, sans « Unknown » dans le journal ?
+- Attendu, pas un défaut : une variante garde les particules, les sons et la couleur de carte du gabarit en pierre.
+- Les messages `hyornament:` du journal donnent chaque étape : cache, clé, id attribué, `maxId` avant et après, drapeaux et durée.
+
 ## Synthèse
 
 **Verdict.** Un portage **fidèle** de DO est **impossible** sur Hytale 0.6.8. Le cœur de DO est un matériau choisi par bloc posé et rendu par retexture côté client. Or le client Hytale ne reçoit par bloc qu'un id, une rotation et un filler (B.5). Chaque combinaison devrait devenir un `BlockType` distinct, avec texture composée et icône.
