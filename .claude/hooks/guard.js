@@ -42,8 +42,10 @@ const PROTECTED = [
     ["build-logic/", GUARD],
 ];
 // Inline code (node -e, python -c, [IO.File]::…) cannot be parsed: a protected name next to a write call is enough.
+// A guardrail name counts only where code would write it as a path, right after a quote or a path separator (or as
+// os.path.join's '.claude', 'hooks', or PowerShell's unquoted Join-Path $root CLAUDE.md), so prose in a string that cites CLAUDE.md, even as Markdown `CLAUDE.md`, passes.
 const MENTION_ALWAYS = /size-allowlist\.txt|known-violations\.txt|\.mcp\.json|settings\.local\.json|resources\/config\.json|config\.json\.bak|\.git\/config/;
-const MENTION_GUARD = /\.githooks|\.claude\/(hooks|agents|skills|settings\.json)|agents\.md|claude\.md|build\.gradle\.kts|build-logic|pmd\/ruleset\.xml/;
+const MENTION_GUARD = /(^|['"/]|join-path\s+\S+\s+)(\.githooks|\.claude(\/|['"],\s*['"])(hooks|agents|skills|settings\.json)|agents\.md|claude\.md|build\.gradle\.kts|build-logic|pmd\/ruleset\.xml)/;
 const WRITE_CALL = /write|append|delete|unlink|\brm|rename|copy|truncate|chmod|symlink|mkdir|remove|move|replace|open\s*\(|set-content|out-file|>/;
 const ASK_USER = "Ask the user: guardrail changes need their explicit approval (CLAUDE.md § 10).";
 
@@ -313,9 +315,16 @@ function checkSegment(seg, ps) {
         seg.bodies.forEach((b) => checkCommand(b, false));
     } else if (name === "pwsh" || name === "powershell") checkPowerShell(args);
     else if (["eval", "iex", "invoke-expression"].includes(name)) checkCommand(args.join(" "), ps);
-    else if (name === "cmd") checkCommand(args.filter((a) => !/^\/[a-z]$/i.test(a)).join(" "), false);
+    // Git Bash turns cmd's /c into //c.
+    else if (name === "cmd") checkCommand(args.filter((a) => !/^\/\/?[a-z]$/i.test(a)).join(" "), false);
     else if (["start-process", "saps", "start"].includes(name)) {
-        const launched = args.flatMap((a) => a.split(",")).filter((a) => a && !/^-(filepath|argumentlist|wait|nonewwindow|passthru|workingdirectory|windowstyle|verb)$/i.test(a));
+        // -FilePath may come after -ArgumentList: the program goes first. -ArgumentList is often one string or an @(...)
+        // array: split it into words.
+        const file = args.findIndex((a) => /^-filepath$/i.test(a));
+        const ordered = file >= 0 && args[file + 1] !== undefined
+            ? [args[file + 1], ...args.filter((_, n) => n !== file && n !== file + 1)]
+            : args;
+        const launched = ordered.flatMap((a) => a.replace(/^@\(|\)$/g, "").split(/[,\s]+/)).filter((a) => a && !/^-(filepath|argumentlist|wait|nonewwindow|passthru|workingdirectory|windowstyle|verb)$/i.test(a));
         checkSegment({ words: launched, targets: [], bodies: [] }, ps);
     }
 }
@@ -385,8 +394,20 @@ function checkGradle(args) {
     }
 }
 
+const SERVER_JAR = /server[^/]*\.jar$/i;
+const HYTALE_MAIN = /com[./]hypixel[./]hytale[./]\w*main\b/i;
+
+/**
+ * Denies java when any word names a server jar, Hytale's main class (also as a -m module/class) or an @argfile. The one
+ * exception: -jar runs another jar (the first .jar word after it, options may come between), so a server jar after
+ * that one is only its input (a decompiler's); the words up to that jar are still judged.
+ */
 function checkJava(args) {
-    if (args.some((a) => /server[^/]*\.jar$/i.test(norm(a)))) {
+    const words = args.flatMap((a) => a.split(/\s+/)).filter(Boolean);
+    const jar = words.indexOf("-jar");
+    const run = jar < 0 ? -1 : words.findIndex((w, n) => n > jar && /\.jar$/i.test(w));
+    const other = run >= 0 && !SERVER_JAR.test(norm(words[run]));
+    if ((other ? words.slice(0, run + 1) : words).some((a) => SERVER_JAR.test(norm(a)) || HYTALE_MAIN.test(a) || a.startsWith("@"))) {
         deny("CLAUDE.md § 9.4: never launch the Hytale server; the user restarts it and tests in game.");
     }
 }

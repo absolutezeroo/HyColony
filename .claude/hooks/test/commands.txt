@@ -139,6 +139,33 @@ deny Bash java -Xmx4G -jar "server/HytaleServer.jar"
 deny Bash cd server && java -jar HytaleServer.jar --assets x
 deny Bash java -jar ./run/HytaleServer.jar
 deny Bash java -cp server/HytaleServer.jar com.hypixel.hytale.Main
+deny Bash java -cp "lib/a.jar;server/HytaleServer.jar" com.hypixel.hytale.LateMain --assets x
+deny Bash java -Xmx2G -jar Server-0.7.0-pre.4.jar
+allow Bash java -jar vineflower.jar -log=ERROR --only=com/hypixel/ Server-0.7.0-pre.4.jar src/
+allow Bash java -jar tools/vineflower.jar server/HytaleServer.jar out/
+deny Bash java -jar tools/vineflower.jar server/HytaleServer.jar out/ && java -jar server/HytaleServer.jar
+deny PowerShell Start-Process java -ArgumentList '-jar HytaleServer.jar'
+deny PowerShell Start-Process java -ArgumentList '-Xmx4G -jar HytaleServer.jar'
+deny PowerShell Start-Process -FilePath java -ArgumentList @('-jar','HytaleServer.jar')
+deny PowerShell Start-Process -FilePath "java" -ArgumentList "-jar server\HytaleServer.jar --assets x"
+deny Bash java --enable-native-access ALL-UNNAMED -jar HytaleServer.jar
+deny Bash java --add-opens java.base/java.lang=ALL-UNNAMED -jar HytaleServer.jar
+deny Bash java --add-modules ALL-SYSTEM -jar HytaleServer.jar
+deny Bash java -p server -m com.hypixel.hytale/com.hypixel.hytale.Main
+deny Bash java --module=com.hypixel.hytale/com.hypixel.hytale.Main
+deny Bash java -cp HytaleServer.jar com/hypixel/hytale/Main
+deny Bash java @server-args.txt
+deny Bash cmd //c "java -jar HytaleServer.jar"
+deny Bash java -cp HytaleServer.jar com.hypixel.hytale.Main -jar x.jar
+deny Bash java -jar -Xmx4G HytaleServer.jar
+deny Bash java -jar --enable-native-access ALL-UNNAMED HytaleServer.jar
+allow Bash java -jar -Xmx2G tools/vineflower.jar HytaleServer.jar out/
+deny PowerShell Start-Process -ArgumentList '-jar HytaleServer.jar' -FilePath java
+deny Bash cd config && python -c "open('pmd/ruleset.xml','w')"
+deny PowerShell [IO.File]::WriteAllText((Join-Path $root CLAUDE.md), 'x')
+allow Bash python - <<'EOF'<NL>open('notes.md','w').write('see `CLAUDE.md` section 10')<NL>EOF
+deny Bash python -c "import os; os.remove(os.path.join('.claude', 'settings.json'))"
+deny Bash python -c "import os; open(os.path.join(root, '.claude', 'hooks', 'guard.js'), 'w')"
 deny Bash cmd /c "gradlew :plugin:runServer"
 deny PowerShell Start-Process java -ArgumentList '-jar','HytaleServer.jar'
 deny PowerShell Start-Process .\gradlew.bat -ArgumentList ':plugin:runServer'
@@ -218,6 +245,11 @@ deny Bash git update-index --chmod=-x .githooks/pre-commit
 deny Bash git checkout -- .
 deny Bash python -c "open('.claude/settings.json','w')"
 deny Bash python3 - <<'EOF'<NL>open('.claude/settings.json', 'w').write('{}')<NL>EOF
+allow Bash python - <<'EOF'<NL>open('notes.md','w').write('Guardrail files (CLAUDE.md, AGENTS.md, agents, skills) need the unlock')<NL>EOF
+deny Bash python - <<'EOF'<NL>open('CLAUDE.md','w').write('x')<NL>EOF
+deny Bash python -c "import pathlib; (pathlib.Path('.') / 'AGENTS.md').write_text('x')"
+deny Bash node -e "require('fs').writeFileSync(root + '/claude.md', 'x')"
+deny Bash python -c "open(r'.claude\hooks\guard.js','w')"
 deny Bash cd .githooks && echo '' > pre-commit
 deny Bash cd .claude && echo '{}' > settings.json
 deny Bash cd core && rm ../.githooks/pre-commit
