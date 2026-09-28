@@ -296,4 +296,4 @@ Spec `docs/superpowers/specs/2026-09-28-hycolony-sp3b-farmer-design.md`. Deux co
 182. **Casser le champ.** Le champ quitte l'onglet et le fermier passe au suivant. Aucune erreur au journal.
 183. **Retirer la hutte.** Ses champs redeviennent libres tout de suite, et une autre hutte de fermier peut les prendre. Après un redémarrage, les champs, leur graine, leurs rayons et leur propriétaire sont restaurés.
 184. **Ancienne sauvegarde (schéma 4).** Un monde sauvé après SP3b-1 se charge ; `colony-N.v4.json` est gardé à côté, et `colony-N.json` contient `"schemaVersion":5` et `"fields": []`.
-185. **Fabrication.** Dérouler ensuite les points 159 à 172 avec la hutte du fermier.
+185. **Fabrication.** Dérouler ensuite les points 159 à 172 de la section « Fabrication (SP3b-1) » avec la hutte du fermier.
