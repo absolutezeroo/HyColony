@@ -420,7 +420,16 @@ class ViewsTest {
     }
 
     @Test
-    void citizenWindowShowsJobHutActivitySkillsInventoryAndOpenRequests() {
+    void citizenViewIgnoresInventoryChangesWhichItsInventoryTabShowsLive() {
+        manager.windows().openCitizen(alice, colony.id(), bobTheBuilder.id());
+        CitizenView before = (CitizenView) t.ui.shown.get(alice);
+        bobTheBuilder.inventory().insert(new ItemAmount(STONE_I, 3), t.catalog::maxStack);
+        manager.windows().openCitizen(alice, colony.id(), bobTheBuilder.id());
+        assertEquals(before, t.ui.shown.get(alice), "no live refresh of the whole window for an inventory change");
+    }
+
+    @Test
+    void citizenWindowShowsJobHutActivitySkillsAndOpenRequests() {
         bobTheBuilder.skills().set(Skill.Knowledge, 7, 0);
         bobTheBuilder.inventory().insert(new ItemAmount(STONE_I, 3), t.catalog::maxStack);
         RequestToken token =
@@ -446,7 +455,6 @@ class ViewsTest {
                         .findFirst()
                         .orElseThrow()
                         .level());
-        assertEquals(List.of(new ItemAmount(STONE_I, 3)), v.inventory());
         assertEquals(
                 List.of(new RequestsView.RequestRow(token, new StackRequest(PLANK_I, 4, 4, true), "Bob", 2, 0)),
                 v.requests());

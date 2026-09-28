@@ -29,6 +29,11 @@ final class HyColonySection {
                     (s, v) -> s.creativeOperatorFreeBuilds = v,
                     s -> s.creativeOperatorFreeBuilds)
             .add()
+            .append(
+                    new KeyedCodec<>("CutterCraftSeconds", Codec.DOUBLE),
+                    (s, v) -> s.cutterCraftSeconds = v,
+                    s -> s.cutterCraftSeconds)
+            .add()
             .append(new KeyedCodec<>("SubPlugins", Codec.BSON_DOCUMENT), (s, v) -> s.subPlugins = v, s -> s.subPlugins)
             .add()
             .build();
@@ -39,11 +44,13 @@ final class HyColonySection {
     int autosaveIntervalMinutes = DEFAULTS.autosaveIntervalMinutes();
     boolean builderInfiniteResources = DEFAULTS.builderInfiniteResources();
     boolean creativeOperatorFreeBuilds = DEFAULTS.creativeOperatorFreeBuilds();
+    double cutterCraftSeconds = DEFAULTS.cutterCraftSeconds();
     /** Sub-plugin name -> enabled; kept as read (unknown names and bad values included) so a save never loses one. */
     BsonDocument subPlugins = new BsonDocument();
 
     ColonyConfig.HyColony toCore() {
-        return new ColonyConfig.HyColony(autosaveIntervalMinutes, builderInfiniteResources, creativeOperatorFreeBuilds);
+        return new ColonyConfig.HyColony(
+                autosaveIntervalMinutes, builderInfiniteResources, creativeOperatorFreeBuilds, cutterCraftSeconds);
     }
 
     /** The {@code SubPlugins} switches; a value that is not a boolean is passed as is, so the pack keeps its default. */

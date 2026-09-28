@@ -3,6 +3,9 @@ package dev.hycolony.core.ornament.cutter;
 import static dev.hycolony.core.ornament.cutter.CutterCraftTest.OAK;
 import static dev.hycolony.core.ornament.cutter.CutterCraftTest.STONE;
 import static dev.hycolony.core.ornament.cutter.CutterCraftTest.one;
+import static dev.hycolony.core.ornament.cutter.CutterView.SlotState.EMPTY;
+import static dev.hycolony.core.ornament.cutter.CutterView.SlotState.MISSING;
+import static dev.hycolony.core.ornament.cutter.CutterView.SlotState.READY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -10,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.ornament.MaterialTags;
 import dev.hycolony.core.ornament.ShapeCatalog;
+import dev.hycolony.core.ornament.VariantKey;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -53,7 +57,10 @@ class CutterActionsTest {
         assertEquals("Slab", view.shapes().getFirst().shapeId());
         assertEquals("HyColony_DO_Slab", view.shapes().getFirst().templateKey());
         assertTrue(view.shapes().getFirst().selected());
-        assertEquals(List.of("hycolony.ornament.cutter.slot.slab_materials"), view.slotLabelKeys());
+        assertEquals(
+                List.of(new CutterView.Slot(
+                        "hycolony.ornament.cutter.slot.slab_materials", CutterView.SlotState.EMPTY)),
+                view.slots());
         assertInstanceOf(CutterView.Empty.class, view.preview());
     }
 
@@ -64,7 +71,7 @@ class CutterActionsTest {
         assertEquals("Shingle_Flat", actions.shape().orElseThrow().id());
         actions.selectGroup(1);
         assertEquals("TimberFrame_Plain", actions.shape().orElseThrow().id());
-        assertEquals(2, actions.view(List.of()).slotLabelKeys().size());
+        assertEquals(2, actions.view(List.of()).slots().size());
     }
 
     @Test
@@ -127,6 +134,53 @@ class CutterActionsTest {
     }
 
     @Test
+    void shapesShowTheVariantTheSlotsMakeOrTheirTemplate() {
+        actions.selectGroup(1);
+        assertEquals(
+                "HyColony_DO_TimberFrame_Plain",
+                actions.view(List.of()).shapes().getFirst().itemId());
+        assertEquals(
+                "HyColony_DO_TimberFrame_Plain__Wood_Hardwood_Planks__Rock_Stone_Brick",
+                actions.view(List.of(one(OAK), one(STONE))).shapes().getFirst().itemId());
+    }
+
+    @Test
+    void groupVariantsAreTheOpenGroupsShapesTheSlotsMake() {
+        actions.selectGroup(2);
+        assertEquals(List.of(), actions.groupVariants(List.of(one(OAK), one(STONE))), "shingles refuse these");
+        actions.selectGroup(1);
+        assertEquals(
+                List.of("HyColony_DO_TimberFrame_Plain__Wood_Hardwood_Planks__Rock_Stone_Brick"),
+                actions.groupVariants(List.of(one(OAK), one(STONE))).stream()
+                        .map(VariantKey::blockTypeKey)
+                        .toList());
+        assertEquals(List.of(), actions.groupVariants(List.of()));
+    }
+
+    @Test
+    void aSlotIsReadyWithAnAcceptedMaterialAndMissingOnceTheOtherIsFilled() {
+        actions.selectGroup(1);
+        assertEquals(List.of(READY, READY), states(actions.view(List.of(one(OAK), one(STONE)))));
+        assertEquals(List.of(MISSING, READY), states(actions.view(List.of(one(STONE), one(STONE)))));
+        assertEquals(List.of(READY, MISSING), states(actions.view(List.of(one(OAK), SlotContent.EMPTY))));
+        assertEquals(List.of(EMPTY, EMPTY), states(actions.view(List.of())), "nothing placed yet: nothing missing");
+    }
+
+    @Test
+    void anEmptyOptionalSecondSlotIsNeverMissing() {
+        var cutter = new CutterActions(CutterCatalog.of(ShapeCatalog.parse("""
+                        {"schemaVersion": 1, "shapes": [
+                          {"id": "FancyDoor_Full", "template": "HyColony_DO_FancyDoor_Full", "group": "ddoor",
+                           "slots": ["timber_frames_frame", "timber_frames_frame"], "optionalSecond": true}
+                        ]}""")), TAGS);
+        assertEquals(List.of(READY, EMPTY), states(cutter.view(List.of(one(OAK), SlotContent.EMPTY))));
+    }
+
+    private static List<CutterView.SlotState> states(CutterView view) {
+        return view.slots().stream().map(CutterView.Slot::state).toList();
+    }
+
+    @Test
     void aSlotAcceptsOnlyItsTagForTheChosenShape() {
         actions.selectGroup(1);
         assertTrue(actions.accepts(0, OAK));
@@ -179,7 +233,7 @@ class CutterActionsTest {
         assertTrue(cutter.shape().isEmpty());
         assertTrue(view.tabs().isEmpty());
         assertTrue(view.shapes().isEmpty());
-        assertTrue(view.slotLabelKeys().isEmpty());
+        assertTrue(view.slots().isEmpty());
         assertInstanceOf(CutterView.Empty.class, view.preview());
     }
 }

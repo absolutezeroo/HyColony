@@ -3,21 +3,24 @@ package dev.hycolony.plugin.ui.citizen;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.protocol.packets.interface_.Page;
 import com.hypixel.hytale.server.core.entity.entities.Player;
+import com.hypixel.hytale.server.core.entity.entities.player.pages.PageManager;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.ColonyEvents;
 import dev.hycolony.core.colony.ColonyManager;
+import dev.hycolony.plugin.inventory.HeldWindows;
 import dev.hycolony.plugin.item.HytaleStacks;
+import dev.hycolony.plugin.ui.ColonyPage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import java.util.logging.Level;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The citizen inventory windows open in one world: opens them, and closes them when their citizen is gone. World
@@ -37,8 +40,9 @@ public final class CitizenInventoryWindows {
     }
 
     /**
-     * Opens the container like vanilla {@code /inv see} (a Bench page with one ContainerWindow). The core checked the
-     * permission; an offline player or a gone citizen is ignored.
+     * Shows the container in the citizen's window, on its Inventory tab: the window is reopened with the container
+     * beside it (PageManager.openCustomPageWithWindows). The core checked the permission; an offline player, a gone
+     * citizen, or a player not looking at that citizen's window is ignored.
      */
     public void open(UUID player, int colonyId, int citizenId) {
         PlayerRef pr = Universe.get().getPlayer(player);
@@ -47,15 +51,44 @@ public final class CitizenInventoryWindows {
                 .byId(colonyId)
                 .flatMap(c -> c.citizens().get(citizenId))
                 .orElse(null);
-        if (ref == null || !ref.isValid() || citizen == null) {
+        if (pr == null || ref == null || !ref.isValid() || citizen == null) {
             return;
         }
         Store<EntityStore> store = ref.getStore();
-        Player playerComponent = store.getComponent(ref, Player.getComponentType());
-        if (playerComponent == null) {
+        Shown shown = shownWindow(store, ref, colonyId, citizenId);
+        if (shown == null) {
             return;
         }
         subscribeOnce();
+        CitizenInventoryWindow window = newWindow(colonyId, citizenId, citizen);
+        CitizenInventoryPanel panel =
+                new CitizenInventoryPanel(store.getExternalData().getWorld(), window);
+        if (shown.pages().openCustomPageWithWindows(ref, store, shown.page().withInventory(pr, panel), window)) {
+            open.add(new Open(ref, colonyId, window));
+            window.registerCloseEvent(e -> forget(window));
+        }
+    }
+
+    /** The player's pages and the citizen window they look at. */
+    private record Shown(PageManager pages, CitizenPage page) {}
+
+    /** The citizen window the player looks at, if it is that citizen's; null otherwise. */
+    private static @Nullable Shown shownWindow(
+            Store<EntityStore> store, Ref<EntityStore> ref, int colonyId, int citizenId) {
+        Player playerComponent = store.getComponent(ref, Player.getComponentType());
+        if (playerComponent == null) {
+            return null;
+        }
+        PageManager pages = playerComponent.getPageManager();
+        return pages.getCustomPage() instanceof ColonyPage colonyPage
+                        && colonyPage.live() instanceof CitizenPage page
+                        && page.shows(colonyId, citizenId)
+                ? new Shown(pages, page)
+                : null;
+    }
+
+    /** A window on the citizen's inventory, valid while the citizen exists; the client gets its state on open. */
+    private CitizenInventoryWindow newWindow(int colonyId, int citizenId, CitizenData citizen) {
         // Read on moves only, never per tick.
         BooleanSupplier alive = () -> manager.get()
                 .byId(colonyId)
@@ -69,10 +102,7 @@ public final class CitizenInventoryWindows {
                 new HytaleStacks(manager.get().context().ports().catalog()::durability));
         CitizenInventoryWindow window = new CitizenInventoryWindow(container, citizen, alive);
         window.coreChanged(); // the client gets the current state on open, no need to send it twice
-        if (playerComponent.getPageManager().setPageWithWindows(ref, store, Page.Bench, true, window)) {
-            open.add(new Open(ref, colonyId, window));
-            window.registerCloseEvent(e -> forget(window));
-        }
+        return window;
     }
 
     /** Citizens only leave with their colony (no death yet), so its deletion is when their windows close. */
@@ -94,7 +124,7 @@ public final class CitizenInventoryWindows {
                 continue;
             }
             try {
-                if (isOpen(o)) {
+                if (HeldWindows.holds(o.player(), o.player().getStore(), o.window())) {
                     o.window().close(o.player(), o.player().getStore()); // its close event forgets it
                 }
             } catch (RuntimeException e) {
@@ -104,22 +134,8 @@ public final class CitizenInventoryWindows {
         }
     }
 
-    /**
-     * Whether the player's window manager still holds this very window: {@code Window.equals} only compares id, type
-     * and player, which a later window may share.
-     */
-    @SuppressWarnings("PMD.CompareObjectsWithEquals")
-    private static boolean isOpen(Open o) {
-        if (!o.player().isValid()) {
-            return false;
-        }
-        Player playerComponent = o.player().getStore().getComponent(o.player(), Player.getComponentType());
-        return playerComponent != null
-                && playerComponent.getWindowManager().getWindow(o.window().getId()) == o.window();
-    }
-
     /** Drops the entry of this very window, if still listed. */
-    @SuppressWarnings("PMD.CompareObjectsWithEquals") // identity: see isOpen
+    @SuppressWarnings("PMD.CompareObjectsWithEquals") // identity: a later window may share id, type and player
     private void forget(CitizenInventoryWindow window) {
         open.removeIf(o -> o.window() == window);
     }

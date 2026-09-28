@@ -33,11 +33,14 @@ public final class CutterSystem extends EntityEventSystem<EntityStore, UseBlockE
 
     private final OrnamentVariantRegistry registry;
     private final CutterGroupMemory memory;
+    private final long craftMillis;
 
-    public CutterSystem(OrnamentVariantRegistry registry, CutterGroupMemory memory) {
+    /** Opens windows on registry's ornaments, remembering groups in memory; a craft takes craftMillis (0: at once). */
+    public CutterSystem(OrnamentVariantRegistry registry, CutterGroupMemory memory, long craftMillis) {
         super(UseBlockEvent.Pre.class);
         this.registry = registry;
         this.memory = memory;
+        this.craftMillis = craftMillis;
     }
 
     @Override
@@ -61,7 +64,8 @@ public final class CutterSystem extends EntityEventSystem<EntityStore, UseBlockE
             return;
         }
         try {
-            CutterOpener.open(store.getExternalData().getWorld(), chunk.getReferenceTo(index), registry, memory);
+            CutterOpener.open(
+                    store.getExternalData().getWorld(), chunk.getReferenceTo(index), registry, memory, craftMillis);
         } catch (RuntimeException e) {
             event.setCancelled(true);
             LOG.at(Level.SEVERE).withCause(e).log("HyColony cutter use failed at %s", event.getTargetBlock());

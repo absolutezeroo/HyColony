@@ -17,12 +17,21 @@ final class CutterDrawing {
 
     private CutterDrawing() {}
 
-    /** Draws view: tabs, shapes, the slots' labels, and the preview with the craft buttons. */
-    static void draw(UICommandBuilder ui, UIEventBuilder events, CutterView view) {
+    /**
+     * Draws view: tabs, shapes, the slots (named, green once ready, red when missing), and the preview with the craft
+     * buttons; preparing shows a spinner in place of a previewed variant that does not exist yet, and busy (crafts
+     * queued) keeps the craft buttons waiting.
+     */
+    static void draw(UICommandBuilder ui, UIEventBuilder events, CutterView view, boolean preparing, boolean busy) {
         tabs(ui, events, view.tabs());
-        shapes(ui, events, view.shapes());
-        slotLabels(ui, view.slotLabelKeys());
-        preview(ui, events, view.preview());
+        shapes(ui, events, view.shapes(), preparing);
+        slots(ui, view.slots());
+        preview(ui, events, view.preview(), preparing);
+        if (busy) {
+            ui.set("#CraftButton.Disabled", true);
+            ui.set("#Craft10Button.Disabled", true);
+            ui.set("#CraftAllButton.Disabled", true);
+        }
     }
 
     /** One icon tab per group, the open one marked and named above the shapes. */
@@ -41,13 +50,22 @@ final class CutterDrawing {
         }
     }
 
-    /** One icon button per shape of the open group, the chosen one disabled and named above the slots. */
-    private static void shapes(UICommandBuilder ui, UIEventBuilder events, List<CutterView.ShapeButton> shapes) {
+    /**
+     * One icon button per shape of the open group, in the slots' materials once their variant exists (a spinner while
+     * preparing it), the chosen one disabled and named above the slots.
+     */
+    private static void shapes(
+            UICommandBuilder ui, UIEventBuilder events, List<CutterView.ShapeButton> shapes, boolean preparing) {
         for (int i = 0; i < shapes.size(); i++) {
             CutterView.ShapeButton shape = shapes.get(i);
             String button = "#Shapes[" + i + "]";
             ui.append("#Shapes", PAGES + "CutterShapeButton.ui");
-            ui.set(button + " #Icon.ItemId", shape.templateKey());
+            ui.set(button + " #Icon.ItemId", shownItem(shape.itemId(), shape.templateKey()));
+            boolean waits = preparing
+                    && !shape.itemId().equals(shape.templateKey())
+                    && Item.getAssetMap().getAsset(shape.itemId()) == null;
+            ui.set(button + " #Icon.Visible", !waits);
+            ui.set(button + " #Spinner.Visible", waits);
             ui.set(button + ".TooltipText", itemName(shape.templateKey()));
             ui.set(button + ".Disabled", shape.selected());
             bind(events, button, "shape", i);
@@ -57,12 +75,21 @@ final class CutterDrawing {
         }
     }
 
-    /** Names each material slot the chosen shape uses (« Cadre », « Centre »…); a slot it does not use is unnamed. */
-    private static void slotLabels(UICommandBuilder ui, List<String> keys) {
+    /**
+     * Names each material slot the chosen shape uses (« Cadre », « Centre »…) and colours it as its state: green with
+     * its check once ready, red when missing, grey otherwise; a slot the shape does not use is unnamed and grey.
+     */
+    private static void slots(UICommandBuilder ui, List<CutterView.Slot> slots) {
         for (int i = 0; i < CutterSlots.COUNT; i++) {
-            // An empty text, not a hidden label: a hidden one leaves the layout and shifts the other under slot 2.
-            if (i < keys.size()) {
-                ui.set("#SlotLabel" + i + ".Text", Message.translation(keys.get(i)));
+            CutterView.SlotState state = i < slots.size() ? slots.get(i).state() : CutterView.SlotState.EMPTY;
+            boolean used = i < slots.size();
+            ui.set("#SlotOk" + i + ".Visible", state == CutterView.SlotState.READY);
+            ui.set("#SlotBg" + i + ".Visible", state != CutterView.SlotState.READY);
+            ui.set("#SlotBad" + i + ".Visible", state == CutterView.SlotState.MISSING);
+            if (used) {
+                ui.set(
+                        "#SlotLabel" + i + ".Text",
+                        Message.translation(slots.get(i).labelKey()));
             } else {
                 ui.set("#SlotLabel" + i + ".Text", "");
             }
@@ -70,17 +97,25 @@ final class CutterDrawing {
     }
 
     /** The preview icon and text, and the craft buttons, each enabled only when that many crafts are possible. */
-    private static void preview(UICommandBuilder ui, UIEventBuilder events, CutterView.Preview preview) {
-        int max = preview instanceof CutterView.Ready ready ? ready.maxCrafts() : 0;
+    private static void preview(
+            UICommandBuilder ui, UIEventBuilder events, CutterView.Preview preview, boolean preparing) {
+        // While the previewed variant is being prepared, the craft buttons wait for it too.
+        int max = preview instanceof CutterView.Ready ready
+                        && !(preparing && Item.getAssetMap().getAsset(ready.itemId()) == null)
+                ? ready.maxCrafts()
+                : 0;
         switch (preview) {
             case CutterView.Empty _ -> {
                 ui.set("#Preview.Visible", false);
                 ui.set("#PreviewText.Text", Message.translation("hycolony.ornament.cutter.placeMaterials"));
             }
             case CutterView.Ready ready -> {
-                // Deviation from MC: the template's icon until the variant exists (its icon is painted on creation).
-                boolean exists = Item.getAssetMap().getAsset(ready.itemId()) != null;
-                ui.set("#Preview.ItemId", exists ? ready.itemId() : ready.templateKey());
+                // Deviation from MC: a spinner, then the template's icon if creating fails, for the moment the
+                // variant takes to be created (CutterPreviewVariants asks for it once the slots stay unchanged).
+                boolean waits = preparing && Item.getAssetMap().getAsset(ready.itemId()) == null;
+                ui.set("#Preview.Visible", !waits);
+                ui.set("#PreviewSpinner.Visible", waits);
+                ui.set("#Preview.ItemId", shownItem(ready.itemId(), ready.templateKey()));
                 ui.set(
                         "#PreviewText.Text",
                         Message.translation("hycolony.ornament.cutter.quantity")
@@ -100,6 +135,11 @@ final class CutterDrawing {
         bind(events, "#CraftButton", "craft", -1);
         bind(events, "#Craft10Button", "craft10", -1);
         bind(events, "#CraftAllButton", "craftAll", -1);
+    }
+
+    /** itemId when it exists (a variant is created on demand), else templateKey. */
+    private static String shownItem(String itemId, String templateKey) {
+        return Item.getAssetMap().getAsset(itemId) != null ? itemId : templateKey;
     }
 
     /** The item's translated name; its id when it is not loaded. */

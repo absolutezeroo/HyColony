@@ -19,6 +19,7 @@ import dev.hycolony.plugin.inventory.InventoryDrop;
 import dev.hycolony.plugin.inventory.InventoryGrids;
 import dev.hycolony.plugin.inventory.InventoryMoves;
 import dev.hycolony.plugin.inventory.InventoryWatch;
+import dev.hycolony.plugin.inventory.PageRedraw;
 import dev.hycolony.plugin.inventory.PlayerPanels;
 import dev.hycolony.plugin.inventory.PlayerSection;
 import dev.hycolony.plugin.inventory.ReturningContainerWindow;
@@ -67,19 +68,25 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
         }
     }
 
-    /** What the window works on: its world, the ornaments and the players' last groups. */
+    /**
+     * What the window works on: its world, the ornaments, the players' last groups, and how long a craft takes in
+     * milliseconds (HyColony.CutterCraftSeconds; 0 crafts at once, as DO).
+     */
     record Setup(
             World world,
             OrnamentVariantRegistry registry,
             OrnamentVariantRegistry.Catalogs catalogs,
-            CutterGroupMemory memory) {}
+            CutterGroupMemory memory,
+            long craftMillis) {}
 
     private final Setup setup;
     private final UUID player;
     private final CutterActions actions;
     private final CutterSlots slots;
     private @Nullable InventoryWatch watch;
-    private boolean redrawPending;
+    private final PageRedraw redraw;
+    private final CutterPreviewVariants previews;
+    private final CutterCraftClicks crafts;
 
     CutterPage(PlayerRef playerRef, Setup setup) {
         super(playerRef, CustomPageLifetime.CanDismiss, Act.CODEC);
@@ -90,6 +97,26 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
                 setup.catalogs().materials().tags());
         actions.selectGroup(setup.memory().group(player));
         this.slots = new CutterSlots(actions::accepts);
+        // Nothing once the slots' window has closed: the page is gone or the player is leaving.
+        this.redraw = new PageRedraw(
+                setup.world(), this::redrawIfShown, () -> !slots.window().isClosed());
+        this.previews = new CutterPreviewVariants(
+                setup.world(),
+                setup.registry(),
+                redraw::soon,
+                () -> !slots.window().isClosed());
+        this.crafts = new CutterCraftClicks(
+                setup,
+                actions,
+                slots,
+                setup.craftMillis() <= 0
+                        ? null
+                        : new CutterCraftQueue(
+                                setup.world(),
+                                setup.craftMillis(),
+                                () -> !slots.window().isClosed(),
+                                this::showProgress),
+                redraw::soon);
     }
 
     /** The slots' window, to open with this page. */
@@ -104,10 +131,17 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
             @Nonnull UIEventBuilder events,
             @Nonnull Store<EntityStore> store) {
         if (watch == null) {
-            watch = InventoryWatch.start(store, ref, this::redrawSoon, slots.container());
+            watch = InventoryWatch.start(store, ref, redraw::soon, slots.container());
         }
         ui.append("Pages/HyColony/Cutter.ui");
-        CutterDrawing.draw(ui, events, actions.view(slots.contents(), CutterCrafting.creative(store, ref)));
+        previews.prepare(actions.groupVariants(slots.contents())); // first: the preview shows whether it waits
+        CutterDrawing.draw(
+                ui,
+                events,
+                actions.view(slots.contents(), CutterCrafting.creative(store, ref)),
+                previews.preparing(),
+                crafts.busy());
+        ui.set("#CraftProgress.Value", (float) crafts.progress()); // a redraw mid-craft keeps the bar where it is
         InventoryGrids.drawContainer(
                 ui, events, SLOTS_GRID, slots.container(), slots.window().getId());
         PlayerPanels.drawCharacter(ui, events, "#Character", store, ref);
@@ -128,9 +162,9 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
                     drop(ref, store, act.drop);
                     return;
                 }
-                case "craft" -> craft(ref, 1);
-                case "craft10" -> craft(ref, BATCH);
-                case "craftAll" -> craft(ref, Integer.MAX_VALUE);
+                case "craft" -> crafts.craft(ref, store, 1);
+                case "craft10" -> crafts.craft(ref, store, BATCH);
+                case "craftAll" -> crafts.craft(ref, store, Integer.MAX_VALUE);
                 default -> {
                     return;
                 }
@@ -160,54 +194,34 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
         PlayerSection.byGrid(drop.grid()).ifPresent(part -> InventoryMoves.apply(ref, store, drop, part.id()));
     }
 
-    /** Asks for up to crafts crafts of the chosen shape; CutterCrafting caps them by what the slots hold. */
-    private void craft(Ref<EntityStore> ref, int crafts) {
-        actions.shape()
-                .ifPresent(shape -> CutterCrafting.craft(new CutterCrafting.Request(
-                        setup.world(),
-                        ref,
-                        shape,
-                        slots,
-                        setup.catalogs().materials().tags(),
-                        setup.registry(),
-                        crafts,
-                        // Up to 30 s later: redraw only if the player still looks at this page.
-                        this::redrawSoon)));
-    }
-
-    /**
-     * Redraws once, later on the world thread, however many changes come before (a craft or a drop changes several
-     * containers); nothing once the slots' window has closed (the page is gone or the player is leaving).
-     */
-    private void redrawSoon() {
-        if (redrawPending || slots.window().isClosed()) {
-            return;
-        }
-        redrawPending = true;
-        try {
-            setup.world().execute(() -> {
-                redrawPending = false;
-                PageEvents.guard(getClass(), this::redrawIfShown);
-            });
-        } catch (RuntimeException e) { // the world no longer takes tasks (stopping): nothing to redraw
-            redrawPending = false;
+    /** Moves the craft bar to progress (0-1) in place, without redrawing the page, while it is shown. */
+    private void showProgress(double progress) {
+        if (isShown()) {
+            UICommandBuilder ui = new UICommandBuilder();
+            ui.set("#CraftProgress.Value", (float) progress);
+            sendUpdate(ui, false);
         }
     }
 
     /** Redraws while the player still looks at this page in this world; otherwise does nothing. */
     private void redrawIfShown() {
+        if (isShown()) {
+            rebuild();
+        }
+    }
+
+    /** Whether the player still looks at this page, in this world, with its slots open. */
+    private boolean isShown() {
         if (slots.window().isClosed()) {
-            return;
+            return false;
         }
         Ref<EntityStore> ref = playerRef.getReference();
         if (ref == null
                 || !ref.isValid()
                 || !setup.world().equals(ref.getStore().getExternalData().getWorld())) {
-            return;
+            return false;
         }
         Player shown = ref.getStore().getComponent(ref, Player.getComponentType());
-        if (shown != null && equals(shown.getPageManager().getCustomPage())) {
-            rebuild();
-        }
+        return shown != null && equals(shown.getPageManager().getCustomPage());
     }
 }

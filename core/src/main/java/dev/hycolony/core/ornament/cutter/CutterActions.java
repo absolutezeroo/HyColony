@@ -2,6 +2,7 @@ package dev.hycolony.core.ornament.cutter;
 
 import dev.hycolony.core.ornament.MaterialTags;
 import dev.hycolony.core.ornament.OrnamentShape;
+import dev.hycolony.core.ornament.VariantKey;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -94,16 +95,60 @@ public final class CutterActions {
         List<OrnamentShape> shapes = shapes();
         List<CutterView.ShapeButton> buttons = IntStream.range(0, shapes.size())
                 .mapToObj(i -> new CutterView.ShapeButton(
-                        shapes.get(i).id(), shapes.get(i).templateKey(), i == shape))
+                        shapes.get(i).id(),
+                        shapes.get(i).templateKey(),
+                        variant(shapes.get(i), slots)
+                                .map(VariantKey::blockTypeKey)
+                                .orElse(shapes.get(i).templateKey()),
+                        i == shape))
                 .toList();
         Optional<OrnamentShape> chosen = shape();
-        List<String> labels = chosen.map(s -> s.slotTags().stream()
-                        .map(tag -> "hycolony.ornament.cutter.slot." + tag)
+        List<CutterView.Slot> slotViews = chosen.map(s -> IntStream.range(0, s.slotCount())
+                        .mapToObj(i -> new CutterView.Slot(
+                                "hycolony.ornament.cutter.slot." + s.slotTags().get(i), state(s, slots, i)))
                         .toList())
                 .orElse(List.of());
         CutterView.Preview preview =
                 chosen.map(s -> preview(s, slots, creative)).orElseGet(CutterView.Empty::new);
-        return new CutterView(tabs, buttons, labels, preview);
+        return new CutterView(tabs, buttons, slotViews, preview);
+    }
+
+    /**
+     * The variants slots make for the open group's shapes, in the group's order: what the window shows, to create in
+     * one batch (a single asset rebuild, DO-1 grouped creation). Empty when the slots make none.
+     */
+    public List<VariantKey> groupVariants(List<SlotContent> slots) {
+        return shapes().stream().flatMap(s -> variant(s, slots).stream()).toList();
+    }
+
+    /**
+     * Slot i's state: ready with an accepted material; missing once anything is placed in the shape's slots, unless
+     * it is an empty optional second slot (which repeats the first, CutterCraft); empty otherwise.
+     */
+    private CutterView.SlotState state(OrnamentShape shape, List<SlotContent> slots, int i) {
+        if (ready(shape, slots, i)) {
+            return CutterView.SlotState.READY;
+        }
+        boolean started = IntStream.range(0, shape.slotCount()).anyMatch(k -> filled(slots, k));
+        boolean optionalEmpty = i > 0 && shape.optionalSecond() && i == shape.slotCount() - 1 && !filled(slots, i);
+        return started && !optionalEmpty ? CutterView.SlotState.MISSING : CutterView.SlotState.EMPTY;
+    }
+
+    private static boolean filled(List<SlotContent> slots, int i) {
+        return i < slots.size() && !slots.get(i).isEmpty();
+    }
+
+    /** Whether slot i of slots holds a material shape's tag for it accepts. */
+    private boolean ready(OrnamentShape shape, List<SlotContent> slots, int i) {
+        return filled(slots, i)
+                && tags.accepts(shape.slotTags().get(i), slots.get(i).itemId());
+    }
+
+    /** The variant slots make for shape, ignoring creative mode; empty when the recipe is refused. */
+    private Optional<VariantKey> variant(OrnamentShape shape, List<SlotContent> slots) {
+        return CutterCraft.check(shape, slots, tags) instanceof CutterCraft.Ready ready
+                ? Optional.of(ready.key())
+                : Optional.empty();
     }
 
     /** The open group's shapes; empty when the catalog has no group. */

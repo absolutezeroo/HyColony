@@ -9,4 +9,9 @@ Button #ShapeButton {
   ItemIcon #Icon {
     Anchor: (Width: 42, Height: 42);
   }
+
+  // While this shape's variant in the slots' materials is being created (vanilla Common.ui spinner).
+  $C.@DefaultSpinner #Spinner {
+    Visible: false;
+  }
 }

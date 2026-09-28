@@ -4,20 +4,36 @@ import java.util.List;
 
 /**
  * What the cutter window shows (MC DO ArchitectsCutterScreen, laid out as Hytale's crafting benches): the group
- * tabs, the group's shapes, a label per material slot of the chosen shape and the preview of what crafting gives.
+ * tabs, the group's shapes, each material slot of the chosen shape and the preview of what crafting gives.
  */
-public record CutterView(List<Tab> tabs, List<ShapeButton> shapes, List<String> slotLabelKeys, Preview preview) {
+public record CutterView(List<Tab> tabs, List<ShapeButton> shapes, List<Slot> slots, Preview preview) {
     public CutterView {
         tabs = List.copyOf(tabs);
         shapes = List.copyOf(shapes);
-        slotLabelKeys = List.copyOf(slotLabelKeys);
+        slots = List.copyOf(slots);
     }
 
     /** A group tab: its id, its name key, the item shown as its icon (its first shape's template), whether open. */
     public record Tab(String group, String nameKey, String iconKey, boolean selected) {}
 
-    /** A shape button: shown with its template item's icon and name. */
-    public record ShapeButton(String shapeId, String templateKey, boolean selected) {}
+    /**
+     * A shape button: named after its template item, shown with itemId's icon, the variant the slots make for it
+     * (it may not exist yet: show the template's icon then), or its template when they make none.
+     */
+    public record ShapeButton(String shapeId, String templateKey, String itemId, boolean selected) {}
+
+    /** A material slot of the chosen shape: its label key and its state, which the window shows by colour. */
+    public record Slot(String labelKey, SlotState state) {}
+
+    /** How a material slot stands. */
+    public enum SlotState {
+        /** Nothing placed in the shape's slots yet, or an empty optional second slot. */
+        EMPTY,
+        /** It holds a material its tag accepts (MC DO ArchitectsCutterContainer input slot {@code mayPlace}). */
+        READY,
+        /** Something is placed elsewhere, and this slot the recipe needs is empty or holds a refused material. */
+        MISSING
+    }
 
     /** What crafting gives now. */
     public sealed interface Preview permits Empty, Ready, Refused {}
