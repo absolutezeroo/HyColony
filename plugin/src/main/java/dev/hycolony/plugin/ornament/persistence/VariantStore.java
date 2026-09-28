@@ -61,15 +61,21 @@ public final class VariantStore {
         return keys;
     }
 
-    /** Records {@code key} and rewrites the file when it is new; a write failure is logged, not thrown. */
-    public synchronized void add(VariantKey key) {
-        SavedVariants more = saved.with(key.id());
+    /** Records {@code keys} and rewrites the file once when one is new; a write failure is logged, not thrown. */
+    public synchronized void add(List<VariantKey> keys) {
+        int before = saved.ids().size();
+        SavedVariants more = saved;
+        for (VariantKey key : keys) {
+            more = more.with(key.id());
+        }
         if (more.equals(saved)) {
             return;
         }
         saved = more;
         if (saved.readOnly()) {
-            LOG.at(Level.WARNING).log("hyornament: %s not saved, %s is read-only", key.id(), file);
+            LOG.at(Level.WARNING).log(
+                    "hyornament: %d new variant(s) not saved, %s is read-only",
+                    saved.ids().size() - before, file);
             return;
         }
         try {

@@ -1,10 +1,12 @@
 package dev.hycolony.plugin.ornament.runtime;
 
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.Optional;
+import java.util.zip.CRC32;
 import javax.imageio.ImageIO;
 
 /**
@@ -16,9 +18,16 @@ public final class IconMap {
     private static final String FOLDER = "/hycolony/ornament/icons/";
 
     private final BufferedImage map;
+    private final long crc;
 
-    private IconMap(BufferedImage map) {
+    private IconMap(BufferedImage map, long crc) {
         this.map = map;
+        this.crc = crc;
+    }
+
+    /** The CRC-32 of the map's PNG: an icon painted through it is out of date once it changes. */
+    long crc() {
+        return crc;
     }
 
     /** The icon map of shapeId, a plugin resource; empty when absent. Throws when present but unreadable. */
@@ -27,11 +36,14 @@ public final class IconMap {
             if (in == null) {
                 return Optional.empty();
             }
-            BufferedImage map = ImageIO.read(in);
+            byte[] png = in.readAllBytes();
+            BufferedImage map = ImageIO.read(new ByteArrayInputStream(png));
             if (map == null) {
                 throw new IllegalStateException("unreadable icon map " + shapeId);
             }
-            return Optional.of(new IconMap(map));
+            CRC32 crc = new CRC32();
+            crc.update(png);
+            return Optional.of(new IconMap(map, crc.getValue()));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

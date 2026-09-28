@@ -78,7 +78,7 @@ public final class BlockTypeSynchronizer {
             if (id == Integer.MIN_VALUE) {
                 throw new IllegalStateException("BlockType " + type.getId() + " was not loaded");
             }
-            LOG.at(Level.INFO).log("hyornament: registered %s as block id %d", type.getId(), id);
+            LOG.at(Level.FINE).log("hyornament: registered %s as block id %d", type.getId(), id);
         }
         LOG.at(Level.INFO).log(
                 "hyornament: UpdateBlockTypes AddOrUpdate of %d type(s), maxId %d -> %d, %s, in %d us",

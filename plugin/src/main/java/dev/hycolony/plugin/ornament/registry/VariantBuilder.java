@@ -10,7 +10,9 @@ import dev.hycolony.plugin.ornament.runtime.MaterialCatalog;
 import dev.hycolony.plugin.ornament.runtime.VariantAssets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import org.jspecify.annotations.Nullable;
 
@@ -23,8 +25,10 @@ final class VariantBuilder {
 
     private final DynamicBlockTypeFactory factory = new DynamicBlockTypeFactory();
     private final VariantAssets assets;
+    // Plugin resources, fixed while the server runs; batches may build concurrently.
+    private final Map<String, Optional<IconMap>> iconMaps = new ConcurrentHashMap<>();
 
-    /** A batch: its BlockTypes and Items, the keys built, and whether a pair texture was generated. */
+    /** A batch: its BlockTypes and Items, the keys built, and whether a pair texture was newly registered. */
     record Built(List<BlockType> types, List<Item> items, List<VariantKey> done, boolean newTexture) {}
 
     VariantBuilder(VariantAssets assets) {
@@ -66,7 +70,7 @@ final class VariantBuilder {
     /** key's icon painted through its shape's icon map; null (the template's icon) when it cannot be. */
     private @Nullable String icon(VariantKey key, String layoutTexture) {
         try {
-            Optional<IconMap> map = IconMap.load(key.shape().id());
+            Optional<IconMap> map = iconMaps.computeIfAbsent(key.shape().id(), IconMap::load);
             if (map.isPresent()) {
                 return assets.icon(key, map.get(), layoutTexture);
             }

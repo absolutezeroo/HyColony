@@ -17,15 +17,19 @@ final class Textures {
 
     private Textures() {}
 
-    /** The loaded common texture {@code name}; throws {@link IllegalStateException} when missing or unreadable. */
-    static BufferedImage read(String name) {
+    /** The bytes of the loaded common texture {@code name}; throws {@link IllegalStateException} when missing. */
+    static byte[] bytes(String name) {
         CommonAsset asset = CommonAssetRegistry.getByName(name);
         if (asset == null) {
             throw new IllegalStateException("missing texture " + name);
         }
+        return asset.getBlob().join();
+    }
+
+    /** The texture {@code name} decoded from png; throws {@link IllegalStateException} when unreadable. */
+    static BufferedImage decode(String name, byte[] png) {
         try {
-            BufferedImage image =
-                    ImageIO.read(new ByteArrayInputStream(asset.getBlob().join()));
+            BufferedImage image = ImageIO.read(new ByteArrayInputStream(png));
             if (image == null) {
                 throw new IllegalStateException("unreadable texture " + name);
             }

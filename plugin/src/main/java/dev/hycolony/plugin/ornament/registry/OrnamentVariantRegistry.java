@@ -111,10 +111,12 @@ public final class OrnamentVariantRegistry {
         if (saved.isEmpty()) {
             return;
         }
+        long start = System.nanoTime();
         Batch batch = create(saved, true);
         batch.done().forEach(k -> variants.put(k, CompletableFuture.completedFuture(variant(k))));
         LOG.at(Level.INFO).log(
-                "hyornament: restored %d saved variant(s)", batch.done().size());
+                "hyornament: restored %d saved variant(s) in %d ms",
+                batch.done().size(), (System.nanoTime() - start) / 1_000_000);
     }
 
     /**
@@ -133,7 +135,7 @@ public final class OrnamentVariantRegistry {
             synchronizer.register(built.types(), built.newTexture() && !boot ? Rebuild.TEXTURES : Rebuild.NONE, !boot);
             synchronizer.registerItems(built.items(), Rebuild.NONE, !boot);
             if (!boot) {
-                built.done().forEach(store::add);
+                store.add(built.done());
             }
         }
         return new Batch(built.done());
