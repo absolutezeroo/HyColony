@@ -170,6 +170,21 @@ class CraftingWorkTest {
         assertEquals(QUERY_ITEMS, rig.work.getRecipe(), "once per recipe, even if the dump left them");
     }
 
+    /** MC WorkerUtil.isPartOfRecipe knows the grid's tools and the secondary outputs, not the recipe's required tool. */
+    @Test
+    void toolTheRecipeRequiresCountsAsAnOtherItem() {
+        CrafterRig axe = new CrafterRig(seeds(List.of(), Optional.of(ToolType.AXE)));
+        axe.t.catalog.tools.put(AXE, new ToolInfo(ToolType.AXE, 1, 1f));
+        for (String other : List.of("Rock_Stone", "Soil_Dirt", "Wood_Oak_Trunk")) {
+            axe.crafter.inventory().insert(new ItemAmount(new ItemKey(other), 1), _ -> 64);
+        }
+        axe.crafter.inventory().insert(new ItemAmount(AXE, 1), _ -> 1);
+        axe.stock(ESSENCE, 20);
+        axe.task(axe.ask(10));
+
+        assertEquals(INVENTORY_FULL, axe.toRecipe(), "3 slots of other items and the axe: more than 3");
+    }
+
     @Test
     void ingredientNowhereForgetsTheRecipe() {
         rig.stock(ESSENCE, 20);

@@ -7,7 +7,6 @@ import dev.hycolony.core.crafting.recipe.RecipeMatching;
 import dev.hycolony.core.job.work.WorkerStock;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
-import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.core.request.model.Crafting;
 import java.util.Optional;
 
@@ -28,12 +27,10 @@ final class RecipeCounts {
 
     private final WorkerStock stock;
     private final RecipeCatalog recipes;
-    private final ItemCatalog items;
 
-    RecipeCounts(WorkerStock stock, RecipeCatalog recipes, ItemCatalog items) {
+    RecipeCounts(WorkerStock stock, RecipeCatalog recipes) {
         this.stock = stock;
         this.recipes = recipes;
-        this.items = items;
     }
 
     /**
@@ -103,18 +100,13 @@ final class RecipeCounts {
     }
 
     /**
-     * MC WorkerUtil.isPartOfRecipe: the recipe's output, a secondary output, its tool (MC's crafting tools) or one of
-     * its ingredients.
+     * MC WorkerUtil.isPartOfRecipe: the recipe's output, a secondary output or one of its ingredients. MC's crafting
+     * tools are grid items the run gives back, so here ingredients given back as secondary outputs; the recipe's
+     * required tool is not part of it, as in MC.
      */
     private boolean isPartOf(Recipe recipe, ItemKey item) {
         if (recipe.primaryOutput().item().equals(item)
                 || recipe.secondaryOutputs().stream().anyMatch(out -> out.item().equals(item))) {
-            return true;
-        }
-        if (recipe.requiredTool().isPresent()
-                && items.tool(item)
-                        .map(t -> t.type() == recipe.requiredTool().get())
-                        .orElse(false)) {
             return true;
         }
         return recipe.cleanedInput().stream().anyMatch(in -> RecipeMatching.accepts(in, item, recipes));

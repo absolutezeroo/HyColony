@@ -48,7 +48,7 @@ public final class CraftingWork {
 
     public CraftingWork(CraftingWorkContext ctx) {
         this.ctx = ctx;
-        this.counts = new RecipeCounts(ctx.stock(), ctx.recipes(), ctx.items());
+        this.counts = new RecipeCounts(ctx.stock(), ctx.recipes());
         this.hands = new CrafterHands(ctx);
         this.outputs = new CraftedOutputs(ctx);
         this.run = new CraftingRun(ctx, outputs);
