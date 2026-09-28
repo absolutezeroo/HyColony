@@ -180,10 +180,19 @@ FAMILIES = (
     Family(
         name="AllBrick",
         group="jbrick",
-        blocks=("light_brick", "dark_brick", "light_brick_stair", "dark_brick_stair"),
-        # AllBrickBlock.COMPONENTS / AllBrickStairBlock.COMPONENTS: single slot (all_brick_materials).
+        blocks=("light_brick", "dark_brick"),
+        # AllBrickBlock.COMPONENTS: single slot (all_brick_materials).
         components=("block/oak_planks",),
-        base_y=0,  # the plain block has no facing property; its stair follows the same convention as Stairs
+        base_y=0,  # DO bs: light_brick.json has no facing property (a single unconditional variant)
+        mechanism="static",
+    ),
+    Family(
+        name="AllBrickStair",
+        group="jbrick",
+        blocks=("light_brick_stair", "dark_brick_stair"),
+        # AllBrickStairBlock.COMPONENTS: single slot (all_brick_materials), same as AllBrick.
+        components=("block/oak_planks",),
+        base_y=270,  # DO bs: light_brick_stair.json, shape=straight half=bottom facing=north
         mechanism="static",
     ),
 )

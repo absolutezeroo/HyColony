@@ -50,9 +50,10 @@ def families_cover_the_spec():
     names = {f.name for f in FAMILIES}
     assert names == {"TimberFrame", "Shingle", "ShingleSlab", "Pillar", "Post", "Panel", "Door", "FancyDoor",
                       "Trapdoor", "FancyTrapdoor", "PaperWall", "Fence", "FenceGate", "Wall", "Stairs", "Slab",
-                      "AllBrick"}, names
+                      "AllBrick", "AllBrickStair"}, names
     # Framed Light block ids all end with "_light" (out of DO-1 scope); AllBrick's "light_brick" and
-    # "light_brick_stair" start with "light" instead, so endswith (not a plain substring test) tells them apart.
+    # AllBrickStair's "light_brick_stair" start with "light" instead, so endswith (not a plain substring test)
+    # tells them apart.
     assert not any("dynamic" in b or b.endswith("light") for f in FAMILIES for b in f.blocks)
 
 
@@ -61,6 +62,7 @@ def material_follows_component_order():
     timber = next(f for f in FAMILIES if f.name == "TimberFrame")
     assert material(timber, timber.components[0]) == "dark"
     assert material(timber, timber.components[1]) == "light"
+    assert material(timber, "unknown/tex") == "light"
     post = next(f for f in FAMILIES if f.name == "Post")
     assert len(post.components) == 1 and material(post, "anything/else") == "dark"
 
