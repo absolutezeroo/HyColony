@@ -13,7 +13,8 @@
     "IncludesAssetPack": true,
     "Dependencies": {
         "Hytale:AssetModule": "*",
-        "Hytale:NPC": "*"
+        "Hytale:NPC": "*",
+        "HyColony:hyblockui": "=0.1.0"
     },
     "OptionalDependencies": {
         

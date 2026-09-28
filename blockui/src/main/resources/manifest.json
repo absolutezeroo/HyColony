@@ -1,0 +1,25 @@
+{
+    "Group": "HyColony",
+    "Name": "hyblockui",
+    "Version": "0.1.0",
+    "Description": "Inventory windows for Hytale mods: native-looking grids, drag and drop, the player's panels.",
+    "Authors": [
+        {
+            "Name": "Ctuto"
+        }
+    ],
+    "Website": "https://github.com/ldtteam/minecolonies",
+    "ServerVersion": ">=0.6.8 <0.7.0",
+    "Dependencies": {
+        "Hytale:AssetModule": "*"
+    },
+    "OptionalDependencies": {
+        
+    },
+    "DisabledByDefault": false,
+    "Main": "dev.hyblockui.HyBlockUIPlugin",
+    "IncludesAssetPack": true,
+    "UpdateChecker": {
+        "CurseForge": ""
+    }
+}

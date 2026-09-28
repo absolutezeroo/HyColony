@@ -15,4 +15,4 @@ plugins {
 }
 
 rootProject.name = "HyColony"
-include(":core", ":plugin")
+include(":core", ":plugin", ":blockui")

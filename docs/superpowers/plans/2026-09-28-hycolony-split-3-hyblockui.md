@@ -19,7 +19,7 @@
 
 ## Contraintes globales
 
-- Identité : `HyColony:hyblockui`, `Main` = `dev.hyblockui.HyBlockUIPlugin`, `Dependencies` = `Hytale:AssetModule`, version 0.1.0. HyColony ajoute `HyColony:hyblockui=0.1.0` à ses `Dependencies`.
+- Identité : `HyColony:hyblockui`, `Main` = `dev.hyblockui.HyBlockUIPlugin`, `Dependencies` = `Hytale:AssetModule`, version 0.1.0. HyColony ajoute `HyColony:hyblockui==0.1.0` à ses `Dependencies`.
 - Un mod n'embarque jamais un autre mod : `:plugin` → `:blockui` en `compileOnly`, jamais `bundled`.
 - HyColony n'importe que `dev.hyblockui.api.*` (`checkModApis`).
 - Rien ne change pour le joueur : mêmes fenêtres, mêmes textures, même titre « Inventaire ». Aucune règle de jeu ne bouge (tout ce qui déménage est du plugin).
@@ -110,7 +110,7 @@ public final class HyBlockUIPlugin extends JavaPlugin {
 
 `plugin/build.gradle.kts`, bloc `dependencies` : ajouter `compileOnly(project(":blockui"))` sous `bundled(project(":core"))`, avec le commentaire `// Another mod: compiled against, never shipped (plugin-b-api.md § 28.2).`
 
-`gradle.properties` : `manifest_dependencies = Hytale:AssetModule=*,Hytale:NPC=*` devient `manifest_dependencies = Hytale:AssetModule=*,Hytale:NPC=*,HyColony:hyblockui=0.1.0`.
+`gradle.properties` : `manifest_dependencies = Hytale:AssetModule=*,Hytale:NPC=*` devient `manifest_dependencies = Hytale:AssetModule=*,Hytale:NPC=*,HyColony:hyblockui==0.1.0`.
 
 - [ ] **Étape 3 : build et manifestes**
 
@@ -123,7 +123,7 @@ git diff plugin/src/main/resources/manifest.json
 unzip -l blockui/build/libs/HyBlockUI-0.1.0.jar | awk '{print $4}' | grep -v '/$'
 ```
 
-Attendu : le manifeste de HyBlockUI a `"Group": "HyColony"`, `"Name": "hyblockui"`, `"Main": "dev.hyblockui.HyBlockUIPlugin"`, `Dependencies` `Hytale:AssetModule`, sa description ; celui de HyColony gagne `"HyColony:hyblockui": "0.1.0"`. Le jar contient `HyBlockUIPlugin.class` et `manifest.json`, rien d'autre.
+Attendu : le manifeste de HyBlockUI a `"Group": "HyColony"`, `"Name": "hyblockui"`, `"Main": "dev.hyblockui.HyBlockUIPlugin"`, `Dependencies` `Hytale:AssetModule`, sa description ; celui de HyColony gagne `"HyColony:hyblockui": "=0.1.0"`. Le jar contient `HyBlockUIPlugin.class` et `manifest.json`, rien d'autre.
 
 Si `manifest.json` de HyBlockUI contient `"IncludesAssetPack": true` alors que le mod n'a pas encore d'assets, c'est attendu (la convention lit `includes_pack = true`) : la tâche 3 lui en donne.
 

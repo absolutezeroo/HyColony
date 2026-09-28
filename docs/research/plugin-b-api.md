@@ -742,7 +742,7 @@ Trois mods jetables, `HyColony:spikeui` ← `spikedomum` ← `spikecolony`, ont 
 - **Plugin Gradle.** À la racine, `id("com.azuredoom.hytale-tools") version "1.0.51" apply false`, puis `apply(plugin = "com.azuredoom.hytale-workspace")` : les deux plugins viennent du même jar, chargé une seule fois.
 - **Identité.** Surcharger `modId` et `mainClass` dans chaque module suffit : aucune erreur « Duplicate workspace plugin identifier ».
 - **Description et auteurs.** `Description` et `Authors` ne sont pas surchargés et viennent du `gradle.properties` racine : chaque mod doit fixer `modDescription` et `modCredits`.
-- **Version des dépendances.** Une version exacte, `"HyColony:spikeui": "0.1.0"`, passe `validateManifest` et le chargement.
+- **Version des dépendances.** `"HyColony:spikeui": "0.1.0"` passe `validateManifest` et le chargement, mais **ce n'est pas une version exacte**. Une version nue dont le patch vaut 0 est une plage : ici `>=0.1.0 <0.2.0` (`SemverRange.fromString`, l. 173-209). Une version nue dont le patch n'est pas nul est refusée, avec un message qui conseille `=`. La version exacte s'écrit `"=0.1.0"`, soit `Groupe:Nom==0.1.0` dans `manifest_dependencies` (`ManifestUtils.parseDepMap` coupe sur le premier `=`).
 - **Contenu des jars.** Chaque jar ne contient que son paquet, son `manifest.json` et son pack. Deux choses l'assurent :
   - `bundleAssetEditorRuntime = false` retire `asseteditor/**` ;
   - le `compileOnly` entre mods n'embarque rien.

@@ -132,7 +132,7 @@ HyColony/                    racine : conventions hy.workspace, catalogue gradle
 | HyDomum | `HyColony:hydomum` | `dev.hydomum.plugin.HyDomumPlugin` | `Hytale:AssetModule`, `HyColony:hyblockui` | `mods/HyColony_hydomum` (config) et `universe/hydomum/` (variantes, qui suivent les mondes, comme aujourd'hui `universe/hycolony/`) |
 | HyColony | `HyColony:hycolony` | `dev.hycolony.plugin.HyColonyPlugin` | `Hytale:AssetModule`, `Hytale:NPC`, `HyColony:hyblockui`, `HyColony:hydomum` | inchangé |
 
-Les versions des trois mods restent alignées (0.1.0), et chaque dépendance entre mods demande la même version exacte.
+Les versions des trois mods restent alignées (0.1.0), et chaque dépendance entre mods demande la même version exacte. Elle s'écrit `=0.1.0` dans le manifeste, soit `Groupe:Nom==0.1.0` dans `manifest_dependencies` : `0.1.0` nu serait la plage `>=0.1.0 <0.2.0` (`plugin-b-api.md` § 28.1).
 
 ## API des mods
 
