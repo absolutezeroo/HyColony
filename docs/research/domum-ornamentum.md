@@ -458,7 +458,7 @@ Nouvelle piste, différente de B.6 : **aucun asset commun n'est ajouté**. La va
   - deux lecteurs lèvent une `NullPointerException` sur un objet sans `data` : `TagFilter.test` (`inventory/container/filter/TagFilter.java:15`) et `InternalContainerUtilTag.testRemoveTagFromSlot` (l. 138). Aucun des deux n'est appelé hors du paquet des inventaires ;
   - le paquet `UpdateItems` n'est envoyé qu'une fois. S'il subit le même défaut du client que les blocs, l'icône ou l'objet tenu de la première variante d'une connexion manquera **[in-game]**.
 - `--icon=none` crée l'objet **sans** `Icon` (le client reçoit seulement les `IconProperties` vanilla copiées du gabarit). Côté serveur, rien ne lit `Item.getIcon()`. Résultat ci-dessous : un « ? ».
-- Reste à vérifier en jeu **[in-game]** : après un redémarrage, les blocs posés et les objets de l'inventaire sont-ils toujours corrects ?
+- Après un redémarrage, les blocs posés et les objets de l'inventaire restent corrects (vérifié en jeu le 2026-09-28).
 
 **Icônes des variantes** (2026-09-28) :
 - Un objet **sans** `Icon` s'affiche avec un « ? » dans l'inventaire (vérifié en jeu, `--icon=none`) : le client ne dessine pas l'icône à partir du modèle et d'`IconProperties`. Question de B.10 § 8 tranchée.
@@ -487,7 +487,8 @@ Nouvelle piste, différente de B.6 : **aucun asset commun n'est ajouté**. La va
 - **Résultats en jeu (2026-09-28)** :
   - `--notify=false` : l'icône apparaît, sans notification. C'est devenu le défaut.
   - `--iconrefresh=false` : l'icône **n'apparaît pas**. Le client ne prend en compte une nouvelle icône qu'avec `UpdateItems.updateIcons = true`, et le petit freeze de quelques millisecondes est le prix de ce rafraîchissement ; l'utilisateur le juge négligeable.
-  - Reste à voir en jeu **[in-game]** : un joueur qui se connecte après la création voit-il l'icône, puisque la liste des assets requis est invalidée par réflexion ?
+  - Joueur qui se connecte après la création : **vérifié en jeu (2026-09-28)** par une reconnexion. Les icônes sont là, donc l'invalidation par réflexion de la liste des assets requis fonctionne.
+- **Redémarrages (vérifié en jeu le 2026-09-28, à chaque version du prototype)** : les blocs posés restent, et les objets de l'inventaire gardent leur icône, sans « Unknown ». Les variantes enregistrées sont recréées pendant `LoadAssetEvent` (priorité 64), avant le chargement des tronçons.
 
 **Protocole de test en jeu** (à dérouler sur des combinaisons neuves, résultats à reporter ici) :
 1. `/hyornament test oak stone` : les objets arrivent avec leur icône générée, et posés, ils montrent le cadre en bois sur de la pierre, sans scintillement.
