@@ -34,8 +34,8 @@ public final class TaskRows {
 
     /**
      * MC WindowHutRequestTaskModule: climbs the parents while they ask from the same place as {@code r}, and names the
-     * requester of the one reached; empty without a parent. Stops before a request already visited, since a corrupted
-     * save can link parents in a cycle.
+     * requester of the one reached; empty without a parent. Stops before a request already visited: loading already
+     * drops parent cycles ({@code SavedRequests}), so this is only a cheap safety net.
      */
     private static Optional<String> forRequester(Colony c, Request r) {
         Request parent = r.parent().flatMap(c.requests()::get).orElse(null);
