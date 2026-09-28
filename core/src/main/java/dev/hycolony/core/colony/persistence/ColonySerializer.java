@@ -171,7 +171,7 @@ public final class ColonySerializer {
                                 .orElse(false));
             }
         }
-        return c.requests().cancelOrphans() | changed;
+        return c.requests().cancelOrphans() || changed;
     }
 
     /**

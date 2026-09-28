@@ -124,7 +124,7 @@ final class WorkSpot {
     private @Nullable BlockPos groundBelow(BlockPos top) {
         for (int i = 0; i <= GROUND_SCAN; i++) {
             BlockPos p = top.offset(0, -i, 0);
-            if (fluid(p) && fluid(p.offset(0, 1, 0)) || solid(p.offset(0, -1, 0))) {
+            if ((fluid(p) && fluid(p.offset(0, 1, 0))) || solid(p.offset(0, -1, 0))) {
                 return p;
             }
         }

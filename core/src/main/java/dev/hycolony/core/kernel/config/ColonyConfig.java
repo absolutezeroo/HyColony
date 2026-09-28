@@ -13,13 +13,15 @@ public record ColonyConfig(
         HyColony hycolony,
         Structurize structurize) {
 
-    /** MC ServerConfiguration, section gameplay. */
-    public record Gameplay(
-            int initialCitizenAmount,
-            /** Read by nothing yet: MC only caps immigration and births (housing), and forces the initial spawn. */
-            int maxCitizenPerColony,
-            /** MC workersalwaysworkinrain: rain never stops a worker (CitizenAI.shouldWorkWhileRaining). */
-            boolean workersAlwaysWorkInRain) {
+    /**
+     * MC ServerConfiguration, section gameplay.
+     *
+     * @param maxCitizenPerColony read by nothing yet: MC only caps immigration and births (housing), and forces the
+     *     initial spawn
+     * @param workersAlwaysWorkInRain MC workersalwaysworkinrain: rain never stops a worker
+     *     (CitizenAI.shouldWorkWhileRaining)
+     */
+    public record Gameplay(int initialCitizenAmount, int maxCitizenPerColony, boolean workersAlwaysWorkInRain) {
         public Gameplay {
             initialCitizenAmount = Math.clamp(initialCitizenAmount, 1, 10);
             maxCitizenPerColony = Math.clamp(maxCitizenPerColony, 25, 500);
@@ -42,11 +44,15 @@ public record ColonyConfig(
         }
     }
 
-    /** MC ServerConfiguration, section permissions. */
+    /**
+     * MC ServerConfiguration, section permissions.
+     *
+     * @param permissionEventBypassMinPermLevel MC operator level 0-4; see ColonyManager.isAllowed for its Hytale
+     *     meaning
+     */
     public record Permissions(
             boolean enableColonyProtection,
             Explosions turnOffExplosionsInColonies,
-            /** MC operator level 0-4; see ColonyManager.isAllowed for its Hytale meaning. */
             int permissionEventBypassMinPermLevel) {
         public Permissions {
             turnOffExplosionsInColonies =
@@ -72,17 +78,17 @@ public record ColonyConfig(
         }
     }
 
-    /** HyColony's own options: none of them is a MineColonies config option. */
+    /**
+     * HyColony's own options: none of them is a MineColonies config option.
+     *
+     * @param autosaveIntervalMinutes colonies are saved every that many minutes (MC saves with the Minecraft world)
+     * @param builderInfiniteResources builders need no resources: every build, upgrade and repair order is free.
+     *     Deviation from MC: MC has this as a hard-coded constant, Constants.BUILDER_INF_RESOURECES (false), not as a
+     *     config option
+     * @param creativeOperatorFreeBuilds orders made by an operator in creative mode are free
+     */
     public record HyColony(
-            /** Colonies are saved every that many minutes (MC saves with the Minecraft world). */
-            int autosaveIntervalMinutes,
-            /**
-             * Builders need no resources: every build, upgrade and repair order is free. Deviation from MC: MC has
-             * this as a hard-coded constant, Constants.BUILDER_INF_RESOURECES (false), not as a config option.
-             */
-            boolean builderInfiniteResources,
-            /** Orders made by an operator in creative mode are free. */
-            boolean creativeOperatorFreeBuilds) {
+            int autosaveIntervalMinutes, boolean builderInfiniteResources, boolean creativeOperatorFreeBuilds) {
         public HyColony {
             autosaveIntervalMinutes = Math.clamp(autosaveIntervalMinutes, 1, 60);
         }

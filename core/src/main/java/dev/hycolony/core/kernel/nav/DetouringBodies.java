@@ -110,7 +110,7 @@ public final class DetouringBodies implements CitizenBodies {
         long x = (long) Math.floor(p.x());
         long y = (long) Math.floor(p.y());
         long z = (long) Math.floor(p.z());
-        return (x & 0x3FFFFFFL) << 38 | (z & 0x3FFFFFFL) << 12 | y & 0xFFFL;
+        return (x & 0x3FFFFFFL) << 38 | (z & 0x3FFFFFFL) << 12 | (y & 0xFFFL);
     }
 
     /** Walks a new safe route from {@code here} to the walk's target; past {@link #MAX_REPLANS}, the next leg as is. */

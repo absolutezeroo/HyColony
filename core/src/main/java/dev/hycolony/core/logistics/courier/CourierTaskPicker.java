@@ -162,7 +162,7 @@ final class CourierTaskPicker {
         BlockPos b = to.get();
         long manhattan =
                 Math.abs((long) a.x() - b.x()) + Math.abs((long) a.y() - b.y()) + Math.abs((long) a.z() - b.z());
-        return (int) Math.sqrt(manhattan);
+        return (int) Math.sqrt((double) manhattan);
     }
 
     /** MC {@code getSource}: a delivery's rack; the warehouse for a pickup, which runs the other way. */

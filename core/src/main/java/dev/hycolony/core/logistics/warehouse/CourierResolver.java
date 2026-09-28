@@ -98,7 +98,7 @@ final class CourierResolver implements Resolver {
         if (from.isEmpty()) {
             return Double.MAX_VALUE;
         }
-        int distance = (int) Math.sqrt(from.get().distSq(warehouse.position()));
+        int distance = (int) Math.sqrt((double) from.get().distSq(warehouse.position()));
         return type == Pickup.class ? distance : Math.max(distance / 10, 1) + queue().size();
     }
 

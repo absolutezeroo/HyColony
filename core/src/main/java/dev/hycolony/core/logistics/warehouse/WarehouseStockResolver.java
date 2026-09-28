@@ -138,7 +138,7 @@ final class WarehouseStockResolver implements Resolver {
         if (from.isEmpty()) {
             return Double.MAX_VALUE;
         }
-        int distance = (int) Math.sqrt(from.get().distSq(warehouse.position()));
+        int distance = (int) Math.sqrt((double) from.get().distSq(warehouse.position()));
         int queue = warehouse
                 .module(WarehouseRequestQueue.class)
                 .map(q -> q.tokens().size())

@@ -118,7 +118,7 @@ final class RouteSearch {
 
     /** The start's and target's own columns never count: the body is already in one, and targets are checked. */
     private boolean dangerous(int x, int z) {
-        if (x == floor(from.x()) && z == floor(from.z()) || x == floor(to.x()) && z == floor(to.z())) {
+        if ((x == floor(from.x()) && z == floor(from.z())) || (x == floor(to.x()) && z == floor(to.z()))) {
             return false;
         }
         return dangerous.computeIfAbsent(
@@ -146,7 +146,7 @@ final class RouteSearch {
     }
 
     private static long key(int x, int z) {
-        return (long) x << 32 | z & 0xFFFFFFFFL;
+        return (long) x << 32 | (z & 0xFFFFFFFFL);
     }
 
     private static int x(long key) {
