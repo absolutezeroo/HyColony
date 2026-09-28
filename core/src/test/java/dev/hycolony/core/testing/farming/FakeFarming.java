@@ -16,6 +16,9 @@ import java.util.Set;
  * gone once harvested, an eternal one ({@code _Eternal} seed) goes back to growing. Tests steer it through its fields.
  */
 public final class FakeFarming implements FarmingAccess {
+    /** What a harvest gives: one wheat and three essence, unless a test changes it. */
+    public List<ItemAmount> harvestDrops = List.of(new ItemAmount(WHEAT, 1), new ItemAmount(ESSENCE, 3));
+
     public static final ItemKey WHEAT_SEEDS = new ItemKey("Plant_Seeds_Wheat");
     public static final ItemKey WHEAT = new ItemKey("Plant_Crop_Wheat_Item");
     public static final ItemKey ESSENCE = new ItemKey("Ingredient_Life_Essence");
@@ -75,7 +78,7 @@ public final class FakeFarming implements FarmingAccess {
         return true;
     }
 
-    /** One wheat and three essence per mature crop, whatever the seed. */
+    /** {@link #harvestDrops} per mature crop, whatever the seed. */
     @Override
     public List<ItemAmount> harvest(BlockPos pos) {
         if (crop(pos) != CropState.MATURE) {
@@ -87,7 +90,7 @@ public final class FakeFarming implements FarmingAccess {
             crops.remove(pos);
             cropState.remove(pos);
         }
-        return List.of(new ItemAmount(WHEAT, 1), new ItemAmount(ESSENCE, 3));
+        return harvestDrops;
     }
 
     @Override

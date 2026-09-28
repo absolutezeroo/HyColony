@@ -140,4 +140,44 @@ class FarmWorkPrepareTest extends FarmerTestBase {
         assertTrue(fields().currentField(colony, hut).isEmpty());
         assertTrue(fields().fieldToWorkOn(colony, hut).isEmpty(), "done for today");
     }
+
+    @Test
+    void fourSkipsMakeTheNextPassLeaveItsField() {
+        field(true);
+        colony.setDay(1);
+        for (int i = 0; i < FarmWork.MAX_SKIPS; i++) {
+            work.skipped();
+        }
+        colony.setDay(2);
+        assertTrue(fields().fieldToWorkOn(colony, hut).isPresent());
+
+        work.endPass(false);
+
+        assertTrue(fields().fieldToWorkOn(colony, hut).isEmpty(), "MC prepareForFarming sets didWork on the 4th skip");
+    }
+
+    @Test
+    void preparingAgainResumesAfterTheCellInProgress() {
+        FarmField f = field(true);
+        give(HOE, 1);
+        settings().setFertilize(false);
+        f.nextStage();
+        f.nextStage();
+        for (int i : new int[] {1, 5}) {
+            var cell = cells().get(i);
+            t.farming.tillable.remove(cell);
+            t.farming.tilled.add(cell);
+            t.farming.plant(cell.offset(0, 1, 0), SEEDS);
+            t.farming.cropState.put(cell.offset(0, 1, 0), CropState.MATURE);
+        }
+        fields().fieldToWorkOn(colony, hut);
+        for (int i = 0; i < 3; i++) {
+            fields().walk().advance(f.radii()); // mid-pass, past cell 1 (MC: a dump cut the pass)
+        }
+
+        assertEquals(FarmerState.FARMER_HARVEST, work.prepare());
+
+        var o = fields().walk().offset().orElseThrow();
+        assertEquals(cells().get(5), FIELD.offset(o[0], -1, o[1]), "MC nextValidCell goes on from workingOffset");
+    }
 }

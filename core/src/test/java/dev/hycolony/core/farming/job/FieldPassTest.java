@@ -8,9 +8,11 @@ import dev.hycolony.core.farming.CropState;
 import dev.hycolony.core.farming.field.FarmField;
 import dev.hycolony.core.farming.field.FieldStage;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.request.model.ToolRequest;
 import dev.hycolony.core.testing.farming.FakeFarming;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /** MC EntityAIWorkFarmer.workAtField, hoeIfAble, tryToPlant and harvestIfAble, plus the Hytale fertilizer. */
@@ -204,5 +206,31 @@ class FieldPassTest extends FarmerTestBase {
             t.farming.cropState.put(cell.offset(0, 1, 0), CropState.MATURE);
         }
         return f;
+    }
+
+    @Test
+    void cellWithinFourBlocksIsWorkedWithoutWalking() {
+        field(true);
+        give(HOE, 1);
+        settings().setFertilize(false);
+        t.bodies.frozen = true;
+        t.bodies.bodies.get(body).position = Vec3.center(FIELD.offset(-2, 0, 1));
+        assertEquals(FarmerState.FARMER_HOE, work.prepare());
+
+        work.workAtField(FarmerState.FARMER_HOE);
+
+        assertTrue(t.farming.tilled.contains(cells().get(0)), "MC walkToSafePos: within 4 blocks");
+        assertTrue(t.bodies.moves.isEmpty());
+    }
+
+    @Test
+    void harvestWithoutDropsStillCounts() {
+        plantedField(FakeFarming.WHEAT_SEEDS);
+        t.farming.harvestDrops = List.of();
+
+        pass(FarmerState.FARMER_HARVEST);
+
+        assertTrue(t.farming.crops.isEmpty());
+        assertEquals(8, job.actionsDone(), "MC mineBlock: the block broke");
     }
 }

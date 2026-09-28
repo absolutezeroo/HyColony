@@ -29,6 +29,9 @@ final class FarmWork {
     private final FieldScan scan;
     private final FieldPass pass;
     private int skippedState;
+    /** MC didWork set by prepareForFarming on the fourth skip: the next pass leaves its field whatever it did. */
+    private boolean forceLeave;
+
     private int delay;
     private boolean dumpRequested;
     private Optional<Msg> status = Optional.empty();
@@ -90,13 +93,16 @@ final class FarmWork {
     void skipped() {
         if (++skippedState >= MAX_SKIPS) {
             skippedState = 0;
+            forceLeave = true;
             ctx.fields().resetCurrentField(ctx.colony());
         }
     }
 
     /** MC workAtField's end: a pass that worked, or the fourth pass in a row that did not, leaves the field. */
     void endPass(boolean didWork) {
-        if (didWork || ++skippedState >= MAX_SKIPS) {
+        boolean leave = didWork || forceLeave;
+        forceLeave = false;
+        if (leave || ++skippedState >= MAX_SKIPS) {
             ctx.fields().resetCurrentField(ctx.colony());
             skippedState = 0;
         }
@@ -138,12 +144,11 @@ final class FarmWork {
     }
 
     /**
-     * MC checkIfShouldExecute: walks the field's cells from the start until one passes {@code test} and stays on it;
-     * false when none does.
+     * MC checkIfShouldExecute: walks the field's cells on from the one in progress (from the first when none is) until
+     * one passes {@code test} and stays on it; false when none does.
      */
     boolean shouldExecute(FarmField field, Function<BlockPos, Optional<BlockPos>> test) {
         FieldWalk walk = ctx.fields().walk();
-        walk.reset();
         while (walk.advance(field.radii())) {
             int[] o = walk.offset().orElseThrow();
             if (test.apply(field.pos().offset(o[0], -1, o[1])).isPresent()) {
@@ -178,6 +183,7 @@ final class FarmWork {
     /**
      * MC prepareForFarming's compost step, with Hytale's fertilizer tool (deviation 1 of the SP3b-2 spec): none
      * anywhere → one request while the setting is on; one in the hut but none carried → fetch it. False while fetching.
+     * Deviation from MC: fetched while PREPARING, where MC goes through GATHERING_REQUIRED_MATERIALS.
      */
     private boolean fertilizerReady() {
         ItemKey fertilizer = ctx.farming().fertilizerItem();
@@ -212,7 +218,8 @@ final class FarmWork {
 
     /**
      * MC checkIfRequestForItemExistOrCreateAsync: a hut request for {@code item} unless one is already open or
-     * completed. Filed for the hut, not the citizen, so that the farmer does not wait for it (MC's async request).
+     * completed. Deviation from MC: filed for the hut, not the citizen, so that the farmer does not wait for it (MC's
+     * async request); what is delivered is taken from the hut at the next preparation, without MC's NEEDS_ITEM.
      */
     private void askOnce(ItemKey item, int count) {
         for (Request r : ctx.colony().requests().byRequester(ctx.hut().requesterId())) {

@@ -54,6 +54,12 @@ public final class BodyWalker {
         return walkTo(to, true);
     }
 
+    /** {@link #walkTo(BlockPos)}, already arrived when within {@code range} blocks of {@code to}. */
+    public boolean walkTo(BlockPos to, int range) {
+        Vec3 p = bodies.position(body).orElse(null);
+        return (p != null && p.distance(Vec3.center(to)) <= range) || walkTo(to);
+    }
+
     /** {@link #walkTo(BlockPos)}; the stuck handler teleports to {@code to} only when {@code teleportAllowed}. */
     public boolean walkTo(BlockPos to, boolean teleportAllowed) {
         Vec3 p = bodies.position(body).orElse(null);

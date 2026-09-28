@@ -1,5 +1,6 @@
 package dev.hycolony.core.farming.job;
 
+import dev.hycolony.core.farming.CropState;
 import dev.hycolony.core.farming.FarmingAccess;
 import dev.hycolony.core.farming.field.FarmField;
 import dev.hycolony.core.farming.hut.FieldWalk;
@@ -28,6 +29,9 @@ final class FieldPass {
     /** MC DEFAULT_DELAY: ticks after a cell, shortened by the primary skill. */
     static final int DEFAULT_DELAY = 40;
 
+    /** MC walkToSafePos: the farmer works a cell from up to 4 blocks away. */
+    static final int CELL_RANGE = 4;
+
     private final FarmWorkContext ctx;
     private final FieldScan scan;
     private final FarmWork work;
@@ -51,7 +55,7 @@ final class FieldPass {
         Optional<int[]> offset = walk.offset();
         if (offset.isPresent()) {
             BlockPos column = field.pos().offset(offset.get()[0], -1, offset.get()[1]);
-            if (!ctx.walker().walkTo(column.offset(0, 1, 0))) {
+            if (!ctx.walker().walkTo(column.offset(0, 1, 0), CELL_RANGE)) {
                 return state;
             }
             if (!workCell(state, field, column)) {
@@ -86,7 +90,9 @@ final class FieldPass {
 
     /**
      * MC hoeIfAble: without a hoe the cell is skipped (and one is asked for); otherwise the plant on the cell is broken
-     * (its drops fall, as MC's destroyBlock), the soil tilled, the hoe worn by one, then the fertilizer.
+     * (its drops fall, as MC's destroyBlock), the soil tilled, the hoe worn by one, then the fertilizer. Deviation from
+     * MC: any block on the cell is handled like MC's replaceable plants, without action nor XP, where MC mines a
+     * non-replaceable one (flower, torch) into the inventory: the core has no "replaceable" flag.
      */
     private void hoe(BlockPos surface) {
         OptionalInt hoe = ctx.stock().toolInInventory(ToolType.HOE);
@@ -109,7 +115,10 @@ final class FieldPass {
         fertilize(surface);
     }
 
-    /** MC tryToPlant / plantCrop: false when the seed ran out; the seed's crop placed, one seed used. */
+    /**
+     * MC tryToPlant / plantCrop: false when the seed ran out; the seed's crop placed, one seed used. Deviation from MC:
+     * no melon/pumpkin gap (Hytale's pumpkin has no stem) and no saturation spent (citizens do not eat yet).
+     */
     private boolean plant(FarmField field, BlockPos surface) {
         Optional<ItemKey> seed = field.seed();
         if (seed.isEmpty() || ctx.stock().inventory().count(seed.get()) <= 0) {
@@ -123,10 +132,14 @@ final class FieldPass {
         return true;
     }
 
-    /** MC harvestIfAble / mineBlock: the harvest drops go to the inventory; one action, the block's and harvest XP. */
+    /**
+     * MC harvestIfAble / mineBlock: the harvest drops go to the inventory; one action, the block's and harvest XP, even
+     * without drops. Nothing when the crop is still mature (the harvest failed).
+     */
     private void harvest(BlockPos surface) {
-        List<ItemAmount> drops = farming().harvest(surface.offset(0, 1, 0));
-        if (drops.isEmpty()) {
+        BlockPos crop = surface.offset(0, 1, 0);
+        List<ItemAmount> drops = farming().harvest(crop);
+        if (drops.isEmpty() && farming().crop(crop) == CropState.MATURE) {
             return;
         }
         ctx.stock().storeDrops(drops);
