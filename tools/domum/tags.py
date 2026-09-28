@@ -22,15 +22,16 @@ GROUPS = {
     "planks": r"Wood_[A-Za-z]+_Planks",
     "stone": r"Rock_(?!Crystal|Ice|Bedrock)[A-Za-z]+(_Cobble)?",
     "sandstone": r"Rock_Sandstone[A-Za-z_]*",
-    "dirt": r"Soil_(Dirt|Grass)(_[A-Za-z]+)?",
-    "leaves": r"Soil_Leaves",
+    "dirt": r"Soil_(Dirt|Grass)(_[A-Za-z]+)*",
+    "leaves": r"Soil_Leaves(_Full)?",
     "clay": r"Soil_Clay",
     # #domum_ornamentum:default: worked building blocks of every kind.
     "default": r"Rock_(?!Crystal|Ice|Bedrock)[A-Za-z_]+|Soil_Clay[A-Za-z_0-9]*|Cloth_Block_Wool_[A-Za-z_]+"
                r"|Metal_[A-Za-z_]+|Wood_[A-Za-z]+_(Decorative|Ornate)",
 }
 
-# DO tag -> the groups whose union it is (DO-gen tags/blocks/<tag>.json).
+# DO tag -> the groups whose union it is (DO-gen tags/blocks/<tag>.json). Kept as DO lists them even where a group
+# adds nothing today ("stone" and "sandstone" fall inside "default" for 0.6.8's blocks).
 TAG_GROUPS = {
     "timber_frames_frame": ("default", "planks", "stone"),
     "timber_frames_center": ("default", "planks", "stone", "sandstone", "dirt"),
@@ -81,13 +82,16 @@ def texture(assets, block_id):
     if block_type.get("State") or block_type.get("ConnectedBlockRuleSet"):
         raise ValueError(f"{block_id} has states or connections")
     first = textures[0]
-    path = first.get("North") or first.get("Sides") or first.get("All")
+    sides = {first.get(side) for side in ("North", "South", "East", "West")} - {None}
+    if len(sides) > 1:
+        raise ValueError(f"{block_id} has different side textures (a corner or ornate block, not a material)")
+    path = sides.pop() if sides else first.get("Sides") or first.get("All")
     if not path or not path.startswith("BlockTextures/"):
         raise ValueError(f"{block_id} has no side texture")
     return path
 
 
-_CUBES = {}  # assets zip path -> cubes(), which reads every vanilla item (about a minute)
+_CUBES = {}  # assets zip path -> cubes(), which reads every vanilla item (about a second)
 
 
 def cubes(assets):
@@ -117,13 +121,18 @@ def build(assets):
     return {tag: sorted(set().union(*(groups[g] for g in names))) for tag, names in TAG_GROUPS.items()}
 
 
-# Default material of a slot whose model placeholder is not one of its tag's materials: DO's stone-only compat
-# families (walls, stairs, slabs, all brick) draw their model with an oak placeholder but only accept stones.
+# Default material of DO's stone-only compat tags, whose models draw with an oak placeholder they do not accept.
 STONE_DEFAULT = "Rock_Stone_Brick"
+STONE_ONLY_TAGS = ("wall_materials", "stairs_materials", "slab_materials", "all_brick_materials")
 
 
 def default_material(tag, component, built):
     """The Hytale block standing for DO's default material of a slot: its placeholder texture's block when the
-    slot's tag (built by build()) accepts it, else STONE_DEFAULT."""
+    slot's tag (built by build()) accepts it, STONE_DEFAULT for a stone-only tag; ValueError otherwise (a tag that
+    lost its own default is a broken group, not a case to paper over)."""
     block = DEFAULT_MATERIALS[component]
-    return block if block in built[tag] else STONE_DEFAULT
+    if block in built[tag]:
+        return block
+    if tag in STONE_ONLY_TAGS:
+        return STONE_DEFAULT
+    raise ValueError(f"{tag} does not accept its default {block}")

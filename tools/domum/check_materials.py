@@ -19,6 +19,13 @@ def every_tag_lists_real_cubes():
         for block in blocks:
             assert tags.texture(assets, block).startswith("BlockTextures/"), (tag, block)
     assert "Wood_Hardwood_Planks" in built["shingles_support"] and "Soil_Dirt" not in built["shingles_support"]
+    # A corner or ornate block shows several textures: it is not a material.
+    assert all("Cobble_Corner" not in b and "Iridescent_Processed_Ornate" not in b for b in built["shingles_roof"])
+    try:
+        tags.texture(assets, "Rock_Stone_Cobble_Corner")
+        raise AssertionError("a block with different side textures must be refused")
+    except ValueError:
+        pass
 
 
 def every_slot_has_a_tag_and_its_default():
