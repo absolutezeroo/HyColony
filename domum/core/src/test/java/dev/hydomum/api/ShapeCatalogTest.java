@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 class ShapeCatalogTest {
     private static final String JSON = """
             {"schemaVersion": 1, "shapes": [
-              {"id": "Shingle", "template": "HyColony_DO_Shingle", "group": "cshingle",
+              {"id": "Shingle", "template": "HyDomum_Shingle", "group": "cshingle",
                "slots": ["shingles_roof", "shingles_support"], "optionalSecond": false, "cutterQuantity": 4},
               {"id": "Broken"},
               42
@@ -22,7 +22,7 @@ class ShapeCatalogTest {
         ShapeCatalog catalog = ShapeCatalog.parse(JSON);
         assertEquals(1, catalog.all().size());
         OrnamentShape shingle = catalog.shape("shingle").orElseThrow();
-        assertEquals("HyColony_DO_Shingle", shingle.templateKey());
+        assertEquals("HyDomum_Shingle", shingle.templateKey());
         assertEquals(2, shingle.slotCount());
         assertEquals(4, shingle.cutterQuantity());
         assertEquals(2, catalog.skipped());

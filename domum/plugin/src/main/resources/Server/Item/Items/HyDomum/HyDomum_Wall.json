@@ -1,0 +1,106 @@
+{
+  "TranslationProperties": {
+    "Name": "hydomum_blocks.item.do.wall.name"
+  },
+  "Icon": "Icons/ItemsGenerated/HyDomum/HyDomum_Wall.png",
+  "IconProperties": {
+    "Scale": 0.58823,
+    "Rotation": [
+      22.5,
+      45,
+      22.5
+    ],
+    "Translation": [
+      0,
+      -13.5
+    ]
+  },
+  "Categories": [
+    "HyDomum.All"
+  ],
+  "PlayerAnimationsId": "Block",
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Model",
+    "CustomModel": "Blocks/HyDomum/Wall.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "BlockTextures/Stripped_Log_Side.png",
+        "Weight": 1
+      }
+    ],
+    "VariantRotation": "Wall",
+    "Opacity": "Transparent",
+    "HitboxType": "Fence",
+    "Supporting": {
+      "Down": [
+        {
+          "FaceType": "Wall"
+        }
+      ],
+      "Up": [
+        {
+          "FaceType": "Wall"
+        }
+      ]
+    },
+    "State": {
+      "Definitions": {
+        "Corner": {
+          "CustomModel": "Blocks/HyDomum/Wall_Corner.blockymodel",
+          "HitboxType": "Fence_Corner",
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "FlipType": "OrthogonalInverse"
+        },
+        "T": {
+          "CustomModel": "Blocks/HyDomum/Wall_T.blockymodel",
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "FlipType": "Symmetric"
+        },
+        "Cross": {
+          "CustomModel": "Blocks/HyDomum/Wall_Cross.blockymodel",
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          }
+        }
+      }
+    },
+    "ConnectedBlockRuleSet": {
+      "Type": "CustomTemplate",
+      "TemplateShapeAssetId": "WallConnectedBlockTemplate",
+      "TemplateShapeBlockPatterns": {
+        "Straight": "HyDomum_Wall",
+        "Corner": "*HyDomum_Wall_State_Definitions_Corner",
+        "T_Junction": "*HyDomum_Wall_State_Definitions_T",
+        "Cross_Junction": "*HyDomum_Wall_State_Definitions_Cross"
+      }
+    },
+    "Gathering": {
+      "Physics": {
+        "ItemId": "Wood_Stripped_Deco"
+      },
+      "Breaking": {
+        "ItemId": "Wood_Stripped_Deco",
+        "GatherType": "Woods"
+      }
+    },
+    "BlockParticleSetId": "Wood",
+    "ParticleColor": "#633625",
+    "BlockSoundSetId": "Wood",
+    "PhysicalMaterialId": "Wood"
+  },
+  "ItemSoundSetId": "ISS_Blocks_Wood"
+}

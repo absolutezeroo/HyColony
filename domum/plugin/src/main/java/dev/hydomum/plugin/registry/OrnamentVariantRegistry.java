@@ -85,7 +85,7 @@ public final class OrnamentVariantRegistry {
             }));
         }
         if (!fresh.isEmpty()) {
-            LOG.at(Level.INFO).log("hyornament: creating %d variant(s)", fresh.size());
+            LOG.at(Level.INFO).log("hydomum: creating %d variant(s)", fresh.size());
             // No state may wait forever (CLAUDE.md § 4): a stuck creation fails and can be retried.
             var _ = CompletableFuture.supplyAsync(() -> create(fresh, false))
                     .orTimeout(CREATE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
@@ -115,7 +115,7 @@ public final class OrnamentVariantRegistry {
         Batch batch = create(saved, true);
         batch.done().forEach(k -> variants.put(k, CompletableFuture.completedFuture(variant(k))));
         LOG.at(Level.INFO).log(
-                "hyornament: restored %d saved variant(s) in %d ms",
+                "hydomum: restored %d saved variant(s) in %d ms",
                 batch.done().size(), (System.nanoTime() - start) / 1_000_000);
     }
 

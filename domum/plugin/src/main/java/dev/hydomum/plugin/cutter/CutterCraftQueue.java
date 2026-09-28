@@ -85,7 +85,7 @@ final class CutterCraftQueue {
             try {
                 world.execute(() -> tick(scheduled));
             } catch (RuntimeException e) { // the world no longer takes tasks (stopping): the queue just ends
-                LOG.at(Level.FINE).log("hyornament: cutter craft queue dropped");
+                LOG.at(Level.FINE).log("hydomum: cutter craft queue dropped");
             }
         });
     }

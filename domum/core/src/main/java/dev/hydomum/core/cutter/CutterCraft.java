@@ -18,7 +18,7 @@ import java.util.Set;
  * matches() refuses it.
  */
 public final class CutterCraft {
-    static final String EMPTY_SLOT = "hycolony.ornament.cutter.emptySlot";
+    static final String EMPTY_SLOT = "hydomum.ornament.cutter.emptySlot";
     /** Most crafts one click makes when nothing limits it (a creative player's All). */
     public static final int MAX_BATCH = 64;
 

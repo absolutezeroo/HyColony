@@ -17,9 +17,9 @@ class VariantRequestsTest {
     private static final String STONE = "Rock_Stone_Brick";
     private static final String PLANKS = "Wood_Hardwood_Planks";
     private final OrnamentShape shingle =
-            new OrnamentShape("Shingle", "HyColony_DO_Shingle", "cshingle", List.of("roof", "support"), false, 4);
-    private final OrnamentShape fancyDoor = new OrnamentShape(
-            "FancyDoor_Full", "HyColony_DO_FancyDoor_Full", "ddoor", List.of("fancy", "fancy"), true, 2);
+            new OrnamentShape("Shingle", "HyDomum_Shingle", "cshingle", List.of("roof", "support"), false, 4);
+    private final OrnamentShape fancyDoor =
+            new OrnamentShape("FancyDoor_Full", "HyDomum_FancyDoor_Full", "ddoor", List.of("fancy", "fancy"), true, 2);
     private final MaterialTags tags =
             new MaterialTags(Map.of("roof", Set.of(STONE), "support", Set.of(PLANKS), "fancy", Set.of(PLANKS)));
 
@@ -27,7 +27,7 @@ class VariantRequestsTest {
     void acceptedRequestGivesAStableKey() {
         var result = VariantRequests.check(shingle, List.of(STONE, PLANKS), tags);
         VariantKey key = ((VariantRequests.Accepted) result).key();
-        assertEquals("HyColony_DO_Shingle__Rock_Stone_Brick__Wood_Hardwood_Planks", key.blockTypeKey());
+        assertEquals("HyDomum_Shingle__Rock_Stone_Brick__Wood_Hardwood_Planks", key.blockTypeKey());
         assertEquals("Shingle|Rock_Stone_Brick|Wood_Hardwood_Planks", key.id());
     }
 
@@ -35,7 +35,7 @@ class VariantRequestsTest {
     void requestOutsideTheTagIsRefused() {
         var result = VariantRequests.check(shingle, List.of("Soil_Dirt", PLANKS), tags);
         var refused = (VariantRequests.Refused) result;
-        assertEquals("hycolony.ornament.badMaterial", refused.reasonKey());
+        assertEquals("hydomum.ornament.badMaterial", refused.reasonKey());
         assertEquals(0, refused.slot());
         assertEquals(Set.of(STONE), refused.allowed());
     }
@@ -51,17 +51,17 @@ class VariantRequestsTest {
     @Test
     void wrongMaterialCountIsRefused() {
         var result = VariantRequests.check(shingle, List.of(STONE), tags);
-        assertEquals("hycolony.ornament.badCount", ((VariantRequests.Refused) result).reasonKey());
+        assertEquals("hydomum.ornament.badCount", ((VariantRequests.Refused) result).reasonKey());
     }
 
     @Test
     void emptyRequestIsRefusedEvenWithAnOptionalSecond() {
-        OrnamentShape single = new OrnamentShape("One", "HyColony_DO_One", "g", List.of("fancy"), true, 1);
+        OrnamentShape single = new OrnamentShape("One", "HyDomum_One", "g", List.of("fancy"), true, 1);
         assertEquals(
-                "hycolony.ornament.badCount",
+                "hydomum.ornament.badCount",
                 ((VariantRequests.Refused) VariantRequests.check(single, List.of(), tags)).reasonKey());
         assertEquals(
-                "hycolony.ornament.badCount",
+                "hydomum.ornament.badCount",
                 ((VariantRequests.Refused) VariantRequests.check(fancyDoor, List.of(), tags)).reasonKey());
     }
 
@@ -74,11 +74,11 @@ class VariantRequestsTest {
     @Test
     void idReadsBackToTheSameKey() {
         ShapeCatalog catalog = ShapeCatalog.parse("""
-                {"schemaVersion": 1, "shapes": [{"id": "Shingle", "template": "HyColony_DO_Shingle",
+                {"schemaVersion": 1, "shapes": [{"id": "Shingle", "template": "HyDomum_Shingle",
                  "group": "cshingle", "slots": ["roof", "support"], "optionalSecond": false, "cutterQuantity": 4}]}""");
         VariantKey key = VariantKey.parse("Shingle|Rock_Stone_Brick|Wood_Hardwood_Planks", catalog)
                 .orElseThrow();
-        assertEquals("HyColony_DO_Shingle__Rock_Stone_Brick__Wood_Hardwood_Planks", key.blockTypeKey());
+        assertEquals("HyDomum_Shingle__Rock_Stone_Brick__Wood_Hardwood_Planks", key.blockTypeKey());
         assertEquals(Optional.empty(), VariantKey.parse("Gone|X", catalog));
         assertTrue(VariantKey.parse("Shingle|OnlyOne", catalog).isEmpty());
         assertTrue(VariantKey.parse("Shingle||Wood_Hardwood_Planks", catalog).isEmpty());

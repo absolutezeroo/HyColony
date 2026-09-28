@@ -19,7 +19,7 @@ import javax.annotation.Nonnull;
 public final class CutterSystem extends EntityEventSystem<EntityStore, UseBlockEvent.Pre> {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
     /** The cutter block's key (tools/domum/blocks/cutter.py IDENT). */
-    static final String CUTTER = "HyColony_DO_ArchitectsCutter";
+    static final String CUTTER = "HyDomum_ArchitectsCutter";
 
     private final CutterSettings settings;
 

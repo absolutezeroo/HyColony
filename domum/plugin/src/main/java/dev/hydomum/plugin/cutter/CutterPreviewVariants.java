@@ -83,7 +83,7 @@ final class CutterPreviewVariants {
         inFlight++;
         var _ = registry.request(batch).whenComplete((variants, error) -> {
             if (error != null) { // the craft asks again and reports it; the batch's others may exist: redraw anyway
-                LOG.at(Level.FINE).withCause(error).log("hyornament: cutter previews not all created");
+                LOG.at(Level.FINE).withCause(error).log("hydomum: cutter previews not all created");
             }
             onWorld(() -> {
                 inFlight--;
@@ -97,7 +97,7 @@ final class CutterPreviewVariants {
         try {
             world.execute(task);
         } catch (RuntimeException e) { // the world no longer takes tasks (stopping): nothing to show
-            LOG.at(Level.FINE).log("hyornament: cutter preview task dropped");
+            LOG.at(Level.FINE).log("hydomum: cutter preview task dropped");
         }
     }
 }

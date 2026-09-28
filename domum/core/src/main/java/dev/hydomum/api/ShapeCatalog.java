@@ -17,7 +17,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-/** The shapes of the generated manifest ({@code hycolony/ornament/shapes.json}), looked up by id. */
+/** The shapes of the generated manifest ({@code hydomum/shapes.json}), looked up by id. */
 public final class ShapeCatalog {
     /** Manifest format this code reads; a newer one gives an empty catalog rather than a wrong one. */
     static final int SCHEMA_VERSION = 1;

@@ -41,7 +41,7 @@ def every_slot_has_a_tag_and_its_default():
 def pair_texture_is_both_materials_side_by_side(tmp):
     assets = tags.open_assets()
     path = pairs.write(tmp, assets, "Wood_Hardwood_Planks", "Rock_Stone_Brick")
-    assert path == "Blocks/HyColony/DO/Pairs/Wood_Hardwood_Planks__Rock_Stone_Brick.png"
+    assert path == "Blocks/HyDomum/Pairs/Wood_Hardwood_Planks__Rock_Stone_Brick.png"
     image = Image.open(tmp / "Common" / path)
     assert image.size == (64, 32)
     for x0, block in ((0, "Wood_Hardwood_Planks"), (32, "Rock_Stone_Brick")):

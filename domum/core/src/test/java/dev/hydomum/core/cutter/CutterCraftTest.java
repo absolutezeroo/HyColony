@@ -16,13 +16,12 @@ class CutterCraftTest {
     static final MaterialTags TAGS = new MaterialTags(
             Map.of("frame", Set.of(OAK), "centre", Set.of(STONE), "fancy", Set.of(OAK), "slab", Set.of(STONE)));
     private final OrnamentShape frame = new OrnamentShape(
-            "TimberFrame_Plain", "HyColony_DO_TimberFrame_Plain", "btimberframe", List.of("frame", "centre"), false, 4);
+            "TimberFrame_Plain", "HyDomum_TimberFrame_Plain", "btimberframe", List.of("frame", "centre"), false, 4);
     private final OrnamentShape paperWall =
-            new OrnamentShape("PaperWall", "HyColony_DO_PaperWall", "hpaperwall", List.of("frame", "centre"), false, 6);
-    private final OrnamentShape fancyDoor = new OrnamentShape(
-            "FancyDoor_Full", "HyColony_DO_FancyDoor_Full", "ddoor", List.of("fancy", "fancy"), true, 2);
-    private final OrnamentShape slab =
-            new OrnamentShape("Slab", "HyColony_DO_Slab", "avanilla", List.of("slab"), false, 2);
+            new OrnamentShape("PaperWall", "HyDomum_PaperWall", "hpaperwall", List.of("frame", "centre"), false, 6);
+    private final OrnamentShape fancyDoor =
+            new OrnamentShape("FancyDoor_Full", "HyDomum_FancyDoor_Full", "ddoor", List.of("fancy", "fancy"), true, 2);
+    private final OrnamentShape slab = new OrnamentShape("Slab", "HyDomum_Slab", "avanilla", List.of("slab"), false, 2);
 
     static SlotContent one(String id) {
         return new SlotContent(id, 1);
@@ -32,7 +31,7 @@ class CutterCraftTest {
     void validMaterialsGiveDosQuantityAndConsumeOneOfEachRequiredSlot() {
         var ready = (CutterCraft.Ready) CutterCraft.check(frame, List.of(one(OAK), one(STONE)), TAGS);
         assertEquals(
-                "HyColony_DO_TimberFrame_Plain__Wood_Hardwood_Planks__Rock_Stone_Brick",
+                "HyDomum_TimberFrame_Plain__Wood_Hardwood_Planks__Rock_Stone_Brick",
                 ready.key().blockTypeKey());
         assertEquals(4, ready.quantity());
         assertEquals(List.of(0, 1), ready.consumed());
@@ -43,7 +42,7 @@ class CutterCraftTest {
     @Test
     void emptyRequiredSlotIsRefusedAndNamed() {
         var refused = (CutterCraft.Refused) CutterCraft.check(frame, List.of(one(OAK), SlotContent.EMPTY), TAGS);
-        assertEquals("hycolony.ornament.cutter.emptySlot", refused.reasonKey());
+        assertEquals("hydomum.ornament.cutter.emptySlot", refused.reasonKey());
         assertEquals(1, refused.slot());
         assertEquals(Set.of(STONE), refused.allowed());
     }
@@ -51,7 +50,7 @@ class CutterCraftTest {
     @Test
     void materialOutsideTheTagIsRefusedWithItsSlot() {
         var refused = (CutterCraft.Refused) CutterCraft.check(frame, List.of(one(STONE), one(STONE)), TAGS);
-        assertEquals("hycolony.ornament.badMaterial", refused.reasonKey());
+        assertEquals("hydomum.ornament.badMaterial", refused.reasonKey());
         assertEquals(0, refused.slot());
         assertEquals(Set.of(OAK), refused.allowed());
     }
@@ -85,23 +84,23 @@ class CutterCraftTest {
 
     @Test
     void quantityIsAtLeastTheMaterialCountAsInDo() {
-        OrnamentShape two = new OrnamentShape("Two", "HyColony_DO_Two", "g", List.of("frame", "centre"), false, 1);
+        OrnamentShape two = new OrnamentShape("Two", "HyDomum_Two", "g", List.of("frame", "centre"), false, 1);
         var ready = (CutterCraft.Ready) CutterCraft.check(two, List.of(one(OAK), one(STONE)), TAGS);
         assertEquals(2, ready.quantity());
     }
 
     @Test
     void oneMaterialShapeOfQuantityOneGivesOne() {
-        OrnamentShape single = new OrnamentShape("One", "HyColony_DO_One", "g", List.of("slab"), false, 1);
+        OrnamentShape single = new OrnamentShape("One", "HyDomum_One", "g", List.of("slab"), false, 1);
         var ready = (CutterCraft.Ready) CutterCraft.check(single, List.of(one(STONE)), TAGS);
         assertEquals(1, ready.quantity());
     }
 
     @Test
     void emptyFirstSlotIsRefusedEvenWhenTheShapeCallsItOptional() {
-        OrnamentShape odd = new OrnamentShape("Odd", "HyColony_DO_Odd", "g", List.of("slab"), true, 1);
+        OrnamentShape odd = new OrnamentShape("Odd", "HyDomum_Odd", "g", List.of("slab"), true, 1);
         var refused = (CutterCraft.Refused) CutterCraft.check(odd, List.of(SlotContent.EMPTY), TAGS);
-        assertEquals("hycolony.ornament.cutter.emptySlot", refused.reasonKey());
+        assertEquals("hydomum.ornament.cutter.emptySlot", refused.reasonKey());
         assertEquals(0, refused.slot());
     }
 
@@ -109,7 +108,7 @@ class CutterCraftTest {
     void itemWithNoQuantityCountsAsEmpty() {
         var refused =
                 (CutterCraft.Refused) CutterCraft.check(frame, List.of(one(OAK), new SlotContent(STONE, 0)), TAGS);
-        assertEquals("hycolony.ornament.cutter.emptySlot", refused.reasonKey());
+        assertEquals("hydomum.ornament.cutter.emptySlot", refused.reasonKey());
         assertEquals(1, refused.slot());
     }
 

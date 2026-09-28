@@ -3,7 +3,7 @@ one template block per shape with its states, rotation, hitbox and connections, 
 tab; the materials themselves are chosen at runtime (docs/superpowers/specs/2026-09-28-hycolony-domum-ornamentum-
 do1-design.md).
 
-Run by hand, then commit the outputs (the DomumOrnamentum pack and plugin/src/main/resources/hycolony/ornament/): the
+Run by hand, then commit the outputs (in the HyDomum mod's resources, domum/plugin/src/main/resources): the
 build never runs it. Downloads DO's pinned commit once into build/domum-cache/. Needs Python 3.10+ and Pillow.
 
     python tools/domum/generate.py [path/to/release-0.6.8-Assets.zip]
@@ -23,19 +23,35 @@ from blocks import common, compat, cutter, door, pane, pillar, roof, static  # n
 from families import FAMILIES  # noqa: E402
 from pack import ROOT, validate_pack, write_json  # noqa: E402
 
-PACK = ROOT / "plugin" / "src" / "subplugins" / "DomumOrnamentum"
-RESOURCES = ROOT / "plugin" / "src" / "main" / "resources"
+PACK = ROOT / "domum" / "plugin" / "src" / "main" / "resources"
+RESOURCES = PACK
 # Mechanism -> the module writing its templates.
 GENERATORS = {"static": static.generate, "roof": roof.shingles, "shingle_slab": roof.shingle_slab,
               "door": door.doors, "trapdoor": door.trapdoors, "pillar": pillar.generate, "pane": pane.generate,
               "vanilla": compat.generate}
 
 
+# What the generator owns inside the mod's resources; the rest (the cutter's .ui, hydomum.lang, manifest.json) is
+# written by hand and must survive a regeneration.
+GENERATED = ("Common/Blocks/HyDomum", "Common/Icons/ItemsGenerated/HyDomum", "Server/Item/Block/Hitboxes/HyDomum",
+             "Server/Item/CustomConnectedBlockTemplates", "Server/Item/Items/HyDomum", "hydomum")
+GENERATED_FILES = ("Common/Icons/ItemCategories/HyDomum*.png", "Server/Item/Category/CreativeLibrary/HyDomum.json",
+                   "Server/Languages/*/hydomum_blocks.lang")
+
+
+def clear(pack):
+    """Removes what a previous run generated in pack, and nothing else."""
+    for generated in GENERATED:
+        shutil.rmtree(pack / generated, ignore_errors=True)
+    for pattern in GENERATED_FILES:
+        for path in pack.glob(pattern):
+            path.unlink()
+
+
 def run(pack, resources, assets):
     """Regenerates everything into pack and resources; returns the Context. Fails on an invalid pack."""
-    for generated in ("Common", "Server"):
-        shutil.rmtree(pack / generated, ignore_errors=True)
-    shutil.rmtree(resources / "hycolony" / "ornament", ignore_errors=True)
+    clear(pack)
+    shutil.rmtree(resources / "hydomum", ignore_errors=True)
     ctx = common.Context(assets, source.fetch(), pack, resources, tags.build(assets))
     for family in FAMILIES:
         generator = GENERATORS.get(family.mechanism)
@@ -46,9 +62,9 @@ def run(pack, resources, assets):
     cutter.generate(ctx)
     manifest.write(ctx)
     ctx.tab = tabs.generate(ctx)
-    write_json(pack / "hycolony" / "id-map.json", {"sounds": ctx.sounds, "ornamentTags": ctx.tags})
+    write_json(pack / "hydomum" / "id-map.json", {"sounds": ctx.sounds, "ornamentTags": ctx.tags})
     for language, lines in ctx.lang.items():
-        path = pack / "Server" / "Languages" / language / "hycolony.lang"
+        path = pack / "Server" / "Languages" / language / "hydomum_blocks.lang"
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text("\n".join(sorted(lines)) + "\n", encoding="utf-8", newline="\n")
     validate_pack(assets, pack)

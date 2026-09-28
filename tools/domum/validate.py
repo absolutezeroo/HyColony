@@ -4,7 +4,7 @@ is ours, every file it needs was written, every name is translated, and no two f
 import faces
 from blocks import common
 
-PREFIX = "HyColony_DO_"
+PREFIX = "HyDomum_"
 STATE = "_State_Definitions_"
 
 
@@ -17,13 +17,13 @@ def pack(ctx):
         _template_exists(ctx, ident, block_type.get("ConnectedBlockRuleSet", {}))
         _rule_states(ident, block_type)
         _files(ctx, ident, item)
-        name = item["TranslationProperties"]["Name"].removeprefix("hycolony.")
+        name = item["TranslationProperties"]["Name"].removeprefix("hydomum_blocks.")
         assert all(name in known for known in keys.values()), (ident, "untranslated", name)
     for entry in [ctx.tab] + ctx.tab.get("Children", []):
         for suffix in ("", "Active"):
             assert (ctx.pack / "Common" / entry["Icon"].replace(".png", suffix + ".png")).exists(), entry["Icon"]
     for child in ctx.tab.get("Children", []):
-        name = child["Name"].removeprefix("hycolony.")
+        name = child["Name"].removeprefix("hydomum_blocks.")
         assert all(name in known for known in keys.values()), (child["Id"], "untranslated", name)
     for label, model in ctx.sources:
         assert not faces.overlapping_pairs(model), (label, "overlapping faces")

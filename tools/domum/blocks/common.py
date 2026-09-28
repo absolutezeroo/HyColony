@@ -21,11 +21,11 @@ from pack import write_json
 # The DO creative tab's single list (every template, as DO's one creative tab); tabs.py names it.
 DO_TAB_LIST = "All"
 
-MODELS = "Blocks/HyColony/DO/"
-HITBOXES = "Server/Item/Block/Hitboxes/HyColony/DO/"
-ITEMS = "Server/Item/Items/HyColony/DO/"
-ICONS = "Icons/ItemsGenerated/HyColony/DO/"
-ICON_MAPS = "hycolony/ornament/icons/"
+MODELS = "Blocks/HyDomum/"
+HITBOXES = "Server/Item/Block/Hitboxes/HyDomum/"
+ITEMS = "Server/Item/Items/HyDomum/"
+ICONS = "Icons/ItemsGenerated/HyDomum/"
+ICON_MAPS = "hydomum/icons/"
 TEMPLATES = "Server/Item/CustomConnectedBlockTemplates/"
 LANGUAGES = ("en-US", "fr-FR")
 DEFAULT_ICON = {"Scale": 0.58823, "Rotation": [22.5, 45, 22.5], "Translation": [0, -13.5]}
@@ -102,10 +102,10 @@ def template(ctx, family, ident, parts, block_type, icon_properties=None, icon_m
     key = names.lang_key(ident)
     properties = icon_properties or DEFAULT_ICON
     item = {
-        "TranslationProperties": {"Name": "hycolony." + key},
+        "TranslationProperties": {"Name": "hydomum_blocks." + key},
         "Icon": _icon(ctx, family, ident, icon_model or ident, properties),
         "IconProperties": properties,
-        "Categories": ["DomumOrnamentum." + DO_TAB_LIST],
+        "Categories": ["HyDomum." + DO_TAB_LIST],
         "PlayerAnimationsId": "Block",
         "BlockType": block_type,
         "ItemSoundSetId": material.get("ItemSoundSetId", "ISS_Blocks_Wood"),

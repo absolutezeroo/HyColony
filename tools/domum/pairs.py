@@ -11,7 +11,7 @@ FACE = 32
 
 def pair_path(first, second):
     """Common asset path of the pair texture."""
-    return f"Blocks/HyColony/DO/Pairs/{first}__{second}.png"
+    return f"Blocks/HyDomum/Pairs/{first}__{second}.png"
 
 
 def image(assets, first, second):

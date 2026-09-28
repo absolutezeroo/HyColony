@@ -12,7 +12,7 @@ import names
 from blocks import common
 from pack import write_json
 
-MATERIAL_NAME = "HyColonyDoShingle"
+MATERIAL_NAME = "HyDomumShingle"
 # Hytale roof corner state -> DO stair shape drawing it (a vanilla roof "Corner" is an outer corner).
 CORNERS = {
     "Corner_Left": "outer_left",
@@ -28,13 +28,13 @@ FLIPS = {"Corner_Left": "Orthogonal", "Corner_Right": "OrthogonalInverse",
 _STAIRS = {"default": "Stairs", "Corner_Left": "Stairs_Corner_Left", "Corner_Right": "Stairs_Corner_Right",
            "Inverted_Corner_Left": "Stairs_Inverted_Corner_Left",
            "Inverted_Corner_Right": "Stairs_Inverted_Corner_Right"}
-STEEP_LOWER_HITBOX = "HyColony_DO_Shingle_SteepLower_Half"
+STEEP_LOWER_HITBOX = "HyDomum_Shingle_SteepLower_Half"
 HITBOXES = {"shingle": _STAIRS, "shingle_flat": _STAIRS, "shingle_steep": _STAIRS,
             "shingle_flat_lower": dict.fromkeys(_STAIRS, "Block_Half"),
             "shingle_steep_lower": dict.fromkeys(_STAIRS, STEEP_LOWER_HITBOX)}
 
-SLAB_TEMPLATE = "HyColony_DO_ShingleSlabConnectedBlockTemplate"
-SLAB_TAG = "HyColonyDoShingleSlab"
+SLAB_TEMPLATE = "HyDomum_ShingleSlabConnectedBlockTemplate"
+SLAB_TAG = "HyDomumShingleSlab"
 # Shape -> the neighbours (north, south, east, west) that make it with DO's facing=north, the state we draw
 # (ShingleSlabBlock.getSlabShape: one_way faces its neighbour; two_way north+south; curved south+east faces north;
 # three_way north+east+west). Hytale turns each pattern and the block together (IsCardinallyRotatable).

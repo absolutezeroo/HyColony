@@ -22,7 +22,7 @@ def generate_into_temp():
 
 def manifest_lists_every_template_with_its_slots():
     ctx = generate_into_temp()
-    manifest = json.loads((ctx.resources / "hycolony/ornament/shapes.json").read_text(encoding="utf-8"))
+    manifest = json.loads((ctx.resources / "hydomum/shapes.json").read_text(encoding="utf-8"))
     assert manifest["schemaVersion"] == 1 and manifest["shapes"]
     for shape in manifest["shapes"]:
         assert shape["template"] in ctx.items, shape
@@ -34,18 +34,18 @@ def static_templates_live_in_the_do_tab():
     hitbox and is Transparent, a full block (a timber frame) keeps Hytale's full box and is Solid."""
     ctx = generate_into_temp()
     assert [child["Id"] for child in ctx.tab["Children"]] == ["All"], ctx.tab["Children"]
-    assert all(item["Categories"] == ["DomumOrnamentum.All"] for item in ctx.items.values())
-    panel = ctx.items["HyColony_DO_Panel_Full"]["BlockType"]
-    assert panel["HitboxType"] == "HyColony_DO_Panel_Full" and panel["Opacity"] == "Transparent"
-    frame = ctx.items["HyColony_DO_TimberFrame_Plain"]["BlockType"]
+    assert all(item["Categories"] == ["HyDomum.All"] for item in ctx.items.values())
+    panel = ctx.items["HyDomum_Panel_Full"]["BlockType"]
+    assert panel["HitboxType"] == "HyDomum_Panel_Full" and panel["Opacity"] == "Transparent"
+    frame = ctx.items["HyDomum_TimberFrame_Plain"]["BlockType"]
     assert "HitboxType" not in frame and frame["Opacity"] == "Solid", frame
-    assert len([i for i in ctx.items if i.startswith("HyColony_DO_TimberFrame_")]) == 10
+    assert len([i for i in ctx.items if i.startswith("HyDomum_TimberFrame_")]) == 10
 
 
 def two_material_templates_read_their_default_pair():
     ctx = generate_into_temp()
-    texture = ctx.items["HyColony_DO_TimberFrame_Framed"]["BlockType"]["CustomModelTexture"][0]["Texture"]
-    assert texture == "Blocks/HyColony/DO/Pairs/Wood_Hardwood_Planks__Soil_Clay_Smooth_White.png", texture
+    texture = ctx.items["HyDomum_TimberFrame_Framed"]["BlockType"]["CustomModelTexture"][0]["Texture"]
+    assert texture == "Blocks/HyDomum/Pairs/Wood_Hardwood_Planks__Soil_Clay_Smooth_White.png", texture
     assert (ctx.pack / "Common" / texture).exists()
 
 
@@ -62,15 +62,15 @@ def every_name_is_in_both_languages():
     keys = {language: {line.split(" = ")[0] for line in lines} for language, lines in ctx.lang.items()}
     assert keys["en-US"] == keys["fr-FR"]
     for item in ctx.items.values():
-        assert item["TranslationProperties"]["Name"].removeprefix("hycolony.") in keys["en-US"], item
+        assert item["TranslationProperties"]["Name"].removeprefix("hydomum_blocks.") in keys["en-US"], item
 
 
 def shingle_rules_name_states_only():
     """Every slope is a vanilla-style roof whose rules name states only (a runtime copy resolves its own), with the
     four corner states and an upside-down placement."""
     ctx = generate_into_temp()
-    for ident in ("HyColony_DO_Shingle", "HyColony_DO_Shingle_Flat", "HyColony_DO_Shingle_FlatLower",
-                  "HyColony_DO_Shingle_Steep", "HyColony_DO_Shingle_SteepLower"):
+    for ident in ("HyDomum_Shingle", "HyDomum_Shingle_Flat", "HyDomum_Shingle_FlatLower",
+                  "HyDomum_Shingle_Steep", "HyDomum_Shingle_SteepLower"):
         shingle = ctx.items[ident]["BlockType"]
         rules = shingle["ConnectedBlockRuleSet"]
         assert rules["Type"] == "Roof" and set(rules) == {"Type", "Regular", "MaterialName"}, ident
@@ -80,18 +80,18 @@ def shingle_rules_name_states_only():
         assert shingle["VariantRotation"] == "UpDownNESW"
     # DO forms corners between any two shingles (DOStairBlock.isStairs: any DOStairBlock, whatever its slope).
     material_names = {ctx.items[i]["BlockType"]["ConnectedBlockRuleSet"]["MaterialName"] for i in ctx.items
-                      if i.startswith("HyColony_DO_Shingle") and "Slab" not in i}
+                      if i.startswith("HyDomum_Shingle") and "Slab" not in i}
     assert len(material_names) == 1, material_names
 
 
 def shingle_slab_template_has_six_shapes():
     ctx = generate_into_temp()
-    path = ctx.pack / "Server/Item/CustomConnectedBlockTemplates/HyColony_DO_ShingleSlabConnectedBlockTemplate.json"
+    path = ctx.pack / "Server/Item/CustomConnectedBlockTemplates/HyDomum_ShingleSlabConnectedBlockTemplate.json"
     template = json.loads(path.read_text(encoding="utf-8"))
     assert set(template["Shapes"]) == {"Single", "One_Way", "Two_Way", "Curved", "Three_Way", "Four_Way"}
-    slab = ctx.items["HyColony_DO_ShingleSlab"]["BlockType"]
+    slab = ctx.items["HyDomum_ShingleSlab"]["BlockType"]
     patterns = slab["ConnectedBlockRuleSet"]["TemplateShapeBlockPatterns"]
-    assert set(patterns) == set(template["Shapes"]) and patterns["Single"] == "HyColony_DO_ShingleSlab"
+    assert set(patterns) == set(template["Shapes"]) and patterns["Single"] == "HyDomum_ShingleSlab"
     # Curved: south and east neighbours, nothing north or west (DO's facing=north curved slab).
     rules = template["Shapes"]["Curved"]["PatternsToMatchAnyOf"][0]["RulesToMatch"]
     included = {(r["Position"]["X"], r["Position"]["Z"]) for r in rules if r["IncludeOrExclude"] == "Include"}
@@ -106,12 +106,12 @@ def shingle_hitboxes_are_dos():
     stairs = {"default": "Stairs", "Corner_Left": "Stairs_Corner_Left", "Corner_Right": "Stairs_Corner_Right",
               "Inverted_Corner_Left": "Stairs_Inverted_Corner_Left",
               "Inverted_Corner_Right": "Stairs_Inverted_Corner_Right"}
-    for ident in ("HyColony_DO_Shingle", "HyColony_DO_Shingle_Flat", "HyColony_DO_Shingle_Steep"):
+    for ident in ("HyDomum_Shingle", "HyDomum_Shingle_Flat", "HyDomum_Shingle_Steep"):
         assert shingle_hitboxes(ctx, ident) == stairs, ident
-    assert set(shingle_hitboxes(ctx, "HyColony_DO_Shingle_FlatLower").values()) == {"Block_Half"}
-    steep_lower = set(shingle_hitboxes(ctx, "HyColony_DO_Shingle_SteepLower").values())
+    assert set(shingle_hitboxes(ctx, "HyDomum_Shingle_FlatLower").values()) == {"Block_Half"}
+    steep_lower = set(shingle_hitboxes(ctx, "HyDomum_Shingle_SteepLower").values())
     assert len(steep_lower) == 1
-    path = ctx.pack / "Server/Item/Block/Hitboxes/HyColony/DO" / (steep_lower.pop() + ".json")
+    path = ctx.pack / "Server/Item/Block/Hitboxes/HyDomum" / (steep_lower.pop() + ".json")
     assert json.loads(path.read_text(encoding="utf-8"))["Boxes"] == [
         {"Min": {"X": 0, "Y": 0, "Z": 0}, "Max": {"X": 1, "Y": 1, "Z": 0.5}}]
 
@@ -129,11 +129,11 @@ def placement_follows_do():
     rotation (DoublePipe) gives exactly these; a symmetric frame is never turned."""
     ctx = generate_into_temp()
     rotation = {i: item["BlockType"]["VariantRotation"] for i, item in ctx.items.items()}
-    for ident in ("HyColony_DO_TimberFrame_SideFramed", "HyColony_DO_TimberFrame_UpGated",
-                  "HyColony_DO_TimberFrame_DownGated", "HyColony_DO_TimberFrame_SideFramedHorizontal"):
+    for ident in ("HyDomum_TimberFrame_SideFramed", "HyDomum_TimberFrame_UpGated",
+                  "HyDomum_TimberFrame_DownGated", "HyDomum_TimberFrame_SideFramedHorizontal"):
         assert rotation[ident] == "DoublePipe", ident
-    assert rotation["HyColony_DO_TimberFrame_Plain"] == rotation["HyColony_DO_TimberFrame_OneCrossedLr"] == "None"
-    assert all(rotation[i] == "DoublePipe" for i in rotation if i.startswith("HyColony_DO_Panel_"))
+    assert rotation["HyDomum_TimberFrame_Plain"] == rotation["HyDomum_TimberFrame_OneCrossedLr"] == "None"
+    assert all(rotation[i] == "DoublePipe" for i in rotation if i.startswith("HyDomum_Panel_"))
     # The directed frames draw DO's unturned facing=up model; the symmetric ones any facing (DO draws them alike).
     frames = {label.split(" ", 1)[0]: label for label, _ in ctx.sources}
     for block in ("side_framed", "up_gated", "down_gated", "side_framed_horizontal"):
@@ -185,17 +185,17 @@ def door_copies_vanilla_mechanics():
 
     ctx = generate_into_temp()
     vanilla = ctx.assets.item("Furniture_Crude_Door")["BlockType"]
-    door = ctx.items["HyColony_DO_Door_Full"]["BlockType"]
+    door = ctx.items["HyDomum_Door_Full"]["BlockType"]
     assert door["HitboxType"] == vanilla["HitboxType"] == "Door" and door["IsDoor"] and door["Opacity"] == "Transparent"
     assert door["State"] == vanilla["State"] and door["Interactions"] == vanilla["Interactions"]
-    assert door["ConnectedBlockRuleSet"]["TemplateShapeBlockPatterns"] == {"Default": "HyColony_DO_Door_Full"}
-    low, high = bounds(ctx.models["HyColony_DO_Door_Full"]["nodes"])
+    assert door["ConnectedBlockRuleSet"]["TemplateShapeBlockPatterns"] == {"Default": "HyDomum_Door_Full"}
+    low, high = bounds(ctx.models["HyDomum_Door_Full"]["nodes"])
     assert (low[0], low[1], high[0], high[1]) == (-16, 0, 16, 64) and abs(low[2] + high[2]) < 1e-6, (low, high)
-    low, high = opened_bounds(ctx, "HyColony_DO_Door_Full", "Door/Door_Open_In.blockyanim")
+    low, high = opened_bounds(ctx, "HyDomum_Door_Full", "Door/Door_Open_In.blockyanim")
     # Like the vanilla door (hinge x -16, z 0), the open leaf stands half its thickness outside the block.
     assert -20.5 < low[0] and high[0] < -11 and -0.5 < low[2] and 31 < high[2] < 33, (low, high)
-    assert len([i for i in ctx.items if i.startswith("HyColony_DO_Door_")]) == 4
-    assert len([i for i in ctx.items if i.startswith("HyColony_DO_FancyDoor_")]) == 2
+    assert len([i for i in ctx.items if i.startswith("HyDomum_Door_")]) == 4
+    assert len([i for i in ctx.items if i.startswith("HyDomum_FancyDoor_")]) == 2
 
 
 def trapdoor_opens_like_vanilla():
@@ -205,24 +205,24 @@ def trapdoor_opens_like_vanilla():
 
     ctx = generate_into_temp()
     vanilla = ctx.assets.item("Furniture_Crude_Trapdoor")["BlockType"]
-    trapdoor = ctx.items["HyColony_DO_Trapdoor_Full"]["BlockType"]
+    trapdoor = ctx.items["HyDomum_Trapdoor_Full"]["BlockType"]
     assert set(trapdoor["State"]["Definitions"]) == set(vanilla["State"]["Definitions"])
     assert trapdoor["Interactions"] == vanilla["Interactions"] and trapdoor["VariantRotation"] == "UpDownNESW"
-    assert trapdoor["Opacity"] == "Transparent" and trapdoor["HitboxType"] == "HyColony_DO_Trapdoor"
-    low, high = bounds(ctx.models["HyColony_DO_Trapdoor_Full"]["nodes"])
+    assert trapdoor["Opacity"] == "Transparent" and trapdoor["HitboxType"] == "HyDomum_Trapdoor"
+    low, high = bounds(ctx.models["HyDomum_Trapdoor_Full"]["nodes"])
     assert (low[1], high[1], low[2], high[2]) == (0, 6, -16, 16), (low, high)
-    low, high = opened_bounds(ctx, "HyColony_DO_Trapdoor_Full", "Trapdoor/Trapdoor_Open.blockyanim")
+    low, high = opened_bounds(ctx, "HyDomum_Trapdoor_Full", "Trapdoor/Trapdoor_Open.blockyanim")
     assert abs(low[1]) < 0.5 and abs(high[1] - 32) < 0.5 and abs(low[2] - 10) < 0.5 and abs(high[2] - 16) < 0.5, (
         low, high)
-    assert len([i for i in ctx.items if i.startswith("HyColony_DO_Trapdoor_")]) == 15
-    assert len([i for i in ctx.items if i.startswith("HyColony_DO_FancyTrapdoor_")]) == 2
+    assert len([i for i in ctx.items if i.startswith("HyDomum_Trapdoor_")]) == 15
+    assert len([i for i in ctx.items if i.startswith("HyDomum_FancyTrapdoor_")]) == 2
 
 
 def cutter_is_a_bench_without_container():
     """The architect's cutter: the vanilla builder's bench look, no container, a plain Use the plugin handles,
     crafted at the Workbench from DO's recipe (1 iron ingot, 3 stone slabs, 3 logs)."""
     ctx = generate_into_temp()
-    path = ctx.pack / "Server/Item/Items/HyColony/DO/HyColony_DO_ArchitectsCutter.json"
+    path = ctx.pack / "Server/Item/Items/HyDomum/HyDomum_ArchitectsCutter.json"
     item = json.loads(path.read_text(encoding="utf-8"))
     block = item["BlockType"]
     assert "BlockEntity" not in block
@@ -236,7 +236,7 @@ def cutter_is_a_bench_without_container():
 def cutter_sounds_are_the_builder_bench_ones():
     """The id-map fragment gives the cutter window the vanilla builder bench's open and close sounds."""
     ctx = generate_into_temp()
-    fragment = json.loads((ctx.pack / "hycolony/id-map.json").read_text(encoding="utf-8"))
+    fragment = json.loads((ctx.pack / "hydomum/id-map.json").read_text(encoding="utf-8"))
     assert fragment["sounds"] == {"cutter.open": "SFX_Workbench_Open", "cutter.close": "SFX_Workbench_Close"}
     assert fragment["ornamentTags"]
 

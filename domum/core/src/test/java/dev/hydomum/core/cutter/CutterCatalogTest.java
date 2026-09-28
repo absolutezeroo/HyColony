@@ -11,35 +11,35 @@ import org.junit.jupiter.api.Test;
 class CutterCatalogTest {
     static final ShapeCatalog SHAPES = ShapeCatalog.parse("""
             {"schemaVersion": 1, "shapes": [
-              {"id": "Shingle", "template": "HyColony_DO_Shingle", "group": "cshingle",
+              {"id": "Shingle", "template": "HyDomum_Shingle", "group": "cshingle",
                "slots": ["shingles_roof", "shingles_support"], "cutterQuantity": 4},
-              {"id": "TimberFrame_Plain", "template": "HyColony_DO_TimberFrame_Plain", "group": "btimberframe",
+              {"id": "TimberFrame_Plain", "template": "HyDomum_TimberFrame_Plain", "group": "btimberframe",
                "slots": ["timber_frames_frame", "timber_frames_center"], "cutterQuantity": 4},
-              {"id": "Shingle_Flat", "template": "HyColony_DO_Shingle_Flat", "group": "cshingle",
+              {"id": "Shingle_Flat", "template": "HyDomum_Shingle_Flat", "group": "cshingle",
                "slots": ["shingles_roof", "shingles_support"], "cutterQuantity": 4},
-              {"id": "Slab", "template": "HyColony_DO_Slab", "group": "avanilla",
+              {"id": "Slab", "template": "HyDomum_Slab", "group": "avanilla",
                "slots": ["slab_materials"], "cutterQuantity": 2}
             ]}""");
 
     /** Listed out of DO's order on purpose: sorting by id, or keeping this order, would both be wrong. */
     static final ShapeCatalog DO_ORDER = ShapeCatalog.parse("""
             {"schemaVersion": 1, "shapes": [
-              {"id": "Custom", "template": "HyColony_DO_Custom", "group": "zzother", "slots": ["m"]},
-              {"id": "Custom2", "template": "HyColony_DO_Custom2", "group": "aacustom", "slots": ["m"]},
-              {"id": "Door_Full", "template": "HyColony_DO_Door_Full", "group": "ddoor", "slots": ["m"]},
-              {"id": "Trapdoor_Waffle", "template": "HyColony_DO_Trapdoor_Waffle", "group": "etrapdoor",
+              {"id": "Custom", "template": "HyDomum_Custom", "group": "zzother", "slots": ["m"]},
+              {"id": "Custom2", "template": "HyDomum_Custom2", "group": "aacustom", "slots": ["m"]},
+              {"id": "Door_Full", "template": "HyDomum_Door_Full", "group": "ddoor", "slots": ["m"]},
+              {"id": "Trapdoor_Waffle", "template": "HyDomum_Trapdoor_Waffle", "group": "etrapdoor",
                "slots": ["m"]},
-              {"id": "Mystery", "template": "HyColony_DO_Mystery", "group": "avanilla", "slots": ["m"]},
-              {"id": "Fence", "template": "HyColony_DO_Fence", "group": "avanilla", "slots": ["m"]},
-              {"id": "Slab", "template": "HyColony_DO_Slab", "group": "avanilla", "slots": ["m"]},
-              {"id": "Stairs", "template": "HyColony_DO_Stairs", "group": "avanilla", "slots": ["m"]},
-              {"id": "TimberFrame_Plain", "template": "HyColony_DO_TimberFrame_Plain", "group": "btimberframe",
+              {"id": "Mystery", "template": "HyDomum_Mystery", "group": "avanilla", "slots": ["m"]},
+              {"id": "Fence", "template": "HyDomum_Fence", "group": "avanilla", "slots": ["m"]},
+              {"id": "Slab", "template": "HyDomum_Slab", "group": "avanilla", "slots": ["m"]},
+              {"id": "Stairs", "template": "HyDomum_Stairs", "group": "avanilla", "slots": ["m"]},
+              {"id": "TimberFrame_Plain", "template": "HyDomum_TimberFrame_Plain", "group": "btimberframe",
                "slots": ["m"]},
-              {"id": "TimberFrame_Framed", "template": "HyColony_DO_TimberFrame_Framed", "group": "btimberframe",
+              {"id": "TimberFrame_Framed", "template": "HyDomum_TimberFrame_Framed", "group": "btimberframe",
                "slots": ["m"]},
-              {"id": "PaperWall_Tiled", "template": "HyColony_DO_PaperWall_Tiled", "group": "hpaperwall",
+              {"id": "PaperWall_Tiled", "template": "HyDomum_PaperWall_Tiled", "group": "hpaperwall",
                "slots": ["m"]},
-              {"id": "PaperWall", "template": "HyColony_DO_PaperWall", "group": "hpaperwall", "slots": ["m"]}
+              {"id": "PaperWall", "template": "HyDomum_PaperWall", "group": "hpaperwall", "slots": ["m"]}
             ]}""");
 
     private static List<String> ids(CutterCatalog catalog, String group) {

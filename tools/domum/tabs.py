@@ -7,8 +7,8 @@ from PIL import Image
 from blocks.common import DO_TAB_LIST, LANGUAGES
 from pack import write_json
 
-TAB = "Server/Item/Category/CreativeLibrary/DomumOrnamentum.json"
-ICONS = "Icons/ItemCategories/DomumOrnamentum"
+TAB = "Server/Item/Category/CreativeLibrary/HyDomum.json"
+ICONS = "Icons/ItemCategories/HyDomum"
 TAB_ICON_SIZE = 88  # pixels, as vanilla tab icons (Natural.png)
 CHILD_ICON_SIZE = 48  # pixels, as vanilla category icons (Blocks.png)
 ALL = DO_TAB_LIST
@@ -24,7 +24,7 @@ def generate(ctx):
         _icon_pair(ctx, icon, first, CHILD_ICON_SIZE)
         _icon_pair(ctx, ICONS + ".png", first, TAB_ICON_SIZE)
         key = "category.do." + ALL.lower()
-        children.append({"Id": ALL, "Name": "hycolony." + key, "Icon": icon})
+        children.append({"Id": ALL, "Name": "hydomum_blocks." + key, "Icon": icon})
         for language in LANGUAGES:
             ctx.lang[language].append(f"{key} = {TAB_NAME}")
     tab = {"Icon": ICONS + ".png", "Order": 4, "Children": children}

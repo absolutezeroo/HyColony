@@ -130,7 +130,7 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
         if (watch == null) {
             watch = InventoryWatch.start(store, ref, redraw::soon, slots.container());
         }
-        ui.append("Pages/HyColony/Cutter.ui");
+        ui.append("Pages/HyDomum/Cutter.ui");
         previews.prepare(actions.groupVariants(slots.contents())); // first: the preview shows whether it waits
         CutterDrawing.draw(
                 ui,

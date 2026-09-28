@@ -17,11 +17,11 @@ public final class CutterActions {
     /** Accepted materials listed at most in a refusal: a stone tag holds hundreds. */
     static final int LISTED = 12;
 
-    /** DO-1's refusal of a material outside its slot's tag; its text starts with the /hyornament command prefix. */
-    private static final String COMMAND_BAD_MATERIAL = "hycolony.ornament.badMaterial";
+    /** DO-1's refusal of a material outside its slot's tag; its text starts with the /hydomum command prefix. */
+    private static final String COMMAND_BAD_MATERIAL = "hydomum.ornament.badMaterial";
 
     /** The same refusal worded for the cutter's preview, with the same parameters. */
-    private static final String BAD_MATERIAL = "hycolony.ornament.cutter.badMaterial";
+    private static final String BAD_MATERIAL = "hydomum.ornament.cutter.badMaterial";
 
     private final CutterCatalog catalog;
     private final MaterialTags tags;
@@ -88,7 +88,7 @@ public final class CutterActions {
         List<CutterView.Tab> tabs = IntStream.range(0, groups.size())
                 .mapToObj(i -> new CutterView.Tab(
                         groups.get(i),
-                        "hycolony.ornament.cutter.group." + groups.get(i),
+                        "hydomum.ornament.cutter.group." + groups.get(i),
                         catalog.shapes(groups.get(i)).getFirst().templateKey(),
                         i == group))
                 .toList();
@@ -105,7 +105,7 @@ public final class CutterActions {
         Optional<OrnamentShape> chosen = shape();
         List<CutterView.Slot> slotViews = chosen.map(s -> IntStream.range(0, s.slotCount())
                         .mapToObj(i -> new CutterView.Slot(
-                                "hycolony.ornament.cutter.slot." + s.slotTags().get(i), state(s, slots, i)))
+                                "hydomum.ornament.cutter.slot." + s.slotTags().get(i), state(s, slots, i)))
                         .toList())
                 .orElse(List.of());
         CutterView.Preview preview =

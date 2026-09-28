@@ -49,7 +49,7 @@ def pillar_has_four_closed_shapes():
     property; every shape, the open-ended column included, is closed at both ends."""
     ctx = generate_into_temp()
     tags = set()
-    for ident in ("HyColony_DO_Pillar_Round", "HyColony_DO_Pillar_Voxel", "HyColony_DO_Pillar_Square"):
+    for ident in ("HyDomum_Pillar_Round", "HyDomum_Pillar_Voxel", "HyDomum_Pillar_Square"):
         block = ctx.items[ident]["BlockType"]
         rules = block["ConnectedBlockRuleSet"]
         shapes = template(ctx, rules["TemplateShapeAssetId"])
@@ -77,20 +77,20 @@ def paper_wall_connects_to_its_neighbours():
     """A paper wall is a post alone, then an end, straight run, corner, T or cross by its paper wall neighbours;
     an arm reaches toward each neighbour of its pattern, and every shape collides as it looks."""
     ctx = generate_into_temp()
-    shapes = template(ctx, "HyColony_DO_PaneConnectedBlockTemplate")
+    shapes = template(ctx, "HyDomum_PaneConnectedBlockTemplate")
     assert set(shapes["Shapes"]) == {"Post", "End", "Straight", "Corner", "T_Junction", "Cross_Junction"}
-    walls = [i for i in ctx.items if i.startswith("HyColony_DO_PaperWall")]
-    assert sorted(walls) == ["HyColony_DO_PaperWall", "HyColony_DO_PaperWall_Tiled"], walls
+    walls = [i for i in ctx.items if i.startswith("HyDomum_PaperWall")]
+    assert sorted(walls) == ["HyDomum_PaperWall", "HyDomum_PaperWall_Tiled"], walls
     for ident in walls:
         rules = ctx.items[ident]["BlockType"]["ConnectedBlockRuleSet"]
-        assert rules["TemplateShapeAssetId"] == "HyColony_DO_PaneConnectedBlockTemplate", ident
+        assert rules["TemplateShapeAssetId"] == "HyDomum_PaneConnectedBlockTemplate", ident
         assert set(rules["TemplateShapeBlockPatterns"]) == set(shapes["Shapes"]), ident
         every_state_declares_its_hitbox(ctx, ident)
     end = shapes["Shapes"]["End"]["PatternsToMatchAnyOf"][0]["RulesToMatch"]
     assert [r["Position"] for r in end if r["IncludeOrExclude"] == "Include"] == [{"X": 0, "Y": 0, "Z": -1}]
-    low, high = bounds(ctx.models["HyColony_DO_PaperWall_End"]["nodes"])
+    low, high = bounds(ctx.models["HyDomum_PaperWall_End"]["nodes"])
     assert low[2] == -16 and high[2] < 4, (low, high)
-    cross = ctx.items["HyColony_DO_PaperWall"]["BlockType"]["State"]["Definitions"]["Cross_Junction"]
+    cross = ctx.items["HyDomum_PaperWall"]["BlockType"]["State"]["Definitions"]["Cross_Junction"]
     boxes = hitbox(ctx, cross["HitboxType"])
     assert min(b["Min"]["X"] for b in boxes) == 0 and max(b["Max"]["Z"] for b in boxes) == 1, boxes
 
@@ -102,7 +102,7 @@ def compat_uses_do_models_and_vanilla_shapes():
 
     ctx = generate_into_temp()
     for name, vanilla_id in compat.VANILLA.items():
-        ours = ctx.items["HyColony_DO_" + name]["BlockType"]
+        ours = ctx.items["HyDomum_" + name]["BlockType"]
         theirs = ctx.assets.item(vanilla_id)["BlockType"]
         assert ours.get("ConnectedBlockRuleSet", {}).get("Type") == theirs.get("ConnectedBlockRuleSet", {}).get("Type")
         assert ours.get("HitboxType") == theirs.get("HitboxType"), name
@@ -110,19 +110,19 @@ def compat_uses_do_models_and_vanilla_shapes():
         states = ours.get("State", {}).get("Definitions", {})
         assert set(states) == set(theirs.get("State", {}).get("Definitions", {})), name
         for look in [ours] + [s for s in states.values() if "CustomModel" in s]:
-            assert look["CustomModel"].startswith("Blocks/HyColony/DO/"), name
+            assert look["CustomModel"].startswith("Blocks/HyDomum/"), name
         assert not any(v in json.dumps(ours) for v in compat.VANILLA.values()), name
     # Each leaf hangs on its post: the door animations turn "Door" and "Door2" opposite ways, to the same side.
-    hinges = {n["name"]: n["position"] for n in walk(ctx.models["HyColony_DO_FenceGate"]["nodes"])}
+    hinges = {n["name"]: n["position"] for n in walk(ctx.models["HyDomum_FenceGate"]["nodes"])}
     assert hinges["Door"] == {"x": -14, "y": 0, "z": 0} and hinges["Door2"] == {"x": 14, "y": 0, "z": 0}, hinges
-    block = ctx.items["HyColony_DO_Slab"]["BlockType"]["State"]["Definitions"]["Block"]
+    block = ctx.items["HyDomum_Slab"]["BlockType"]["State"]["Definitions"]["Block"]
     assert block["DrawType"] == "Model" and "Textures" not in block
     # Two slabs back, named by ItemId (a string a runtime variant renames), not a contained DropList asset.
     breaking = block["Gathering"]["Breaking"]
-    assert breaking["ItemId"] == "HyColony_DO_Slab" and breaking["Quantity"] == 2 and "DropList" not in breaking
+    assert breaking["ItemId"] == "HyDomum_Slab" and breaking["Quantity"] == 2 and "DropList" not in breaking
     # A slab clicked on its top becomes the Block state: the item's vanilla interaction, matching our slab.
-    merge = ctx.items["HyColony_DO_Slab"]["Interactions"]["Secondary"]["Interactions"][0]
-    assert merge["Parent"] == "Half_Block" and merge["Matchers"][0]["Block"]["Id"] == "HyColony_DO_Slab", merge
+    merge = ctx.items["HyDomum_Slab"]["Interactions"]["Secondary"]["Interactions"][0]
+    assert merge["Parent"] == "Half_Block" and merge["Matchers"][0]["Block"]["Id"] == "HyDomum_Slab", merge
 
 
 def wall_post_rises_like_minecraft():
@@ -133,8 +133,8 @@ def wall_post_rises_like_minecraft():
         low, high = bounds(ctx.models[name]["nodes"])
         return high[1] > 29
 
-    assert not has_post("HyColony_DO_Wall") and not has_post("HyColony_DO_Wall_Cross")
-    assert has_post("HyColony_DO_Wall_Corner") and has_post("HyColony_DO_Wall_T")
+    assert not has_post("HyDomum_Wall") and not has_post("HyDomum_Wall_Cross")
+    assert has_post("HyDomum_Wall_Corner") and has_post("HyDomum_Wall_T")
 
 
 def run():

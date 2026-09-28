@@ -7,7 +7,7 @@ at Hytale's Workbench, logs as any trunk (Wood_Trunk resource type)."""
 from blocks import common
 from pack import write_json
 
-IDENT = "HyColony_DO_ArchitectsCutter"
+IDENT = "HyDomum_ArchitectsCutter"
 NAME_KEY = "item.do.architectscutter.name"
 NAMES = {"en-US": "Architect's cutter", "fr-FR": "Établi de l'architecte"}
 # The vanilla bench keys the cutter keeps: its look, collision, rotation, sounds and how it breaks.
@@ -26,7 +26,7 @@ def generate(ctx):
     # A no-op Use: the plugin's CutterSystem opens the window.
     block["Interactions"] = {"Use": {"Interactions": [{"Type": "Simple"}]}}
     item = {
-        "TranslationProperties": {"Name": "hycolony." + NAME_KEY},
+        "TranslationProperties": {"Name": "hydomum_blocks." + NAME_KEY},
         "Icon": bench["Icon"],
         "IconProperties": bench["IconProperties"],
         "Categories": ["Furniture.Benches"],

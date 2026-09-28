@@ -51,15 +51,13 @@ class CutterActionsTest {
                 List.of(true, false, false),
                 view.tabs().stream().map(CutterView.Tab::selected).toList());
         assertEquals(
-                "hycolony.ornament.cutter.group.avanilla",
-                view.tabs().getFirst().nameKey());
-        assertEquals("HyColony_DO_Slab", view.tabs().getFirst().iconKey());
+                "hydomum.ornament.cutter.group.avanilla", view.tabs().getFirst().nameKey());
+        assertEquals("HyDomum_Slab", view.tabs().getFirst().iconKey());
         assertEquals("Slab", view.shapes().getFirst().shapeId());
-        assertEquals("HyColony_DO_Slab", view.shapes().getFirst().templateKey());
+        assertEquals("HyDomum_Slab", view.shapes().getFirst().templateKey());
         assertTrue(view.shapes().getFirst().selected());
         assertEquals(
-                List.of(new CutterView.Slot(
-                        "hycolony.ornament.cutter.slot.slab_materials", CutterView.SlotState.EMPTY)),
+                List.of(new CutterView.Slot("hydomum.ornament.cutter.slot.slab_materials", CutterView.SlotState.EMPTY)),
                 view.slots());
         assertInstanceOf(CutterView.Empty.class, view.preview());
     }
@@ -113,13 +111,13 @@ class CutterActionsTest {
         actions.selectGroup(1);
         var ready =
                 (CutterView.Ready) actions.view(List.of(one(OAK), one(STONE))).preview();
-        assertEquals("HyColony_DO_TimberFrame_Plain__Wood_Hardwood_Planks__Rock_Stone_Brick", ready.itemId());
-        assertEquals("HyColony_DO_TimberFrame_Plain", ready.templateKey());
+        assertEquals("HyDomum_TimberFrame_Plain__Wood_Hardwood_Planks__Rock_Stone_Brick", ready.itemId());
+        assertEquals("HyDomum_TimberFrame_Plain", ready.templateKey());
         assertEquals(4, ready.quantity());
         assertEquals(1, ready.maxCrafts());
         var refused = (CutterView.Refused)
                 actions.view(List.of(one(OAK), SlotContent.EMPTY)).preview();
-        assertEquals("hycolony.ornament.cutter.emptySlot", refused.reasonKey());
+        assertEquals("hydomum.ornament.cutter.emptySlot", refused.reasonKey());
         assertEquals(List.of("2"), refused.params());
     }
 
@@ -137,10 +135,10 @@ class CutterActionsTest {
     void shapesShowTheVariantTheSlotsMakeOrTheirTemplate() {
         actions.selectGroup(1);
         assertEquals(
-                "HyColony_DO_TimberFrame_Plain",
+                "HyDomum_TimberFrame_Plain",
                 actions.view(List.of()).shapes().getFirst().itemId());
         assertEquals(
-                "HyColony_DO_TimberFrame_Plain__Wood_Hardwood_Planks__Rock_Stone_Brick",
+                "HyDomum_TimberFrame_Plain__Wood_Hardwood_Planks__Rock_Stone_Brick",
                 actions.view(List.of(one(OAK), one(STONE))).shapes().getFirst().itemId());
     }
 
@@ -150,7 +148,7 @@ class CutterActionsTest {
         assertEquals(List.of(), actions.groupVariants(List.of(one(OAK), one(STONE))), "shingles refuse these");
         actions.selectGroup(1);
         assertEquals(
-                List.of("HyColony_DO_TimberFrame_Plain__Wood_Hardwood_Planks__Rock_Stone_Brick"),
+                List.of("HyDomum_TimberFrame_Plain__Wood_Hardwood_Planks__Rock_Stone_Brick"),
                 actions.groupVariants(List.of(one(OAK), one(STONE))).stream()
                         .map(VariantKey::blockTypeKey)
                         .toList());
@@ -170,7 +168,7 @@ class CutterActionsTest {
     void anEmptyOptionalSecondSlotIsNeverMissing() {
         var cutter = new CutterActions(CutterCatalog.of(ShapeCatalog.parse("""
                         {"schemaVersion": 1, "shapes": [
-                          {"id": "FancyDoor_Full", "template": "HyColony_DO_FancyDoor_Full", "group": "ddoor",
+                          {"id": "FancyDoor_Full", "template": "HyDomum_FancyDoor_Full", "group": "ddoor",
                            "slots": ["timber_frames_frame", "timber_frames_frame"], "optionalSecond": true}
                         ]}""")), TAGS);
         assertEquals(List.of(READY, EMPTY), states(cutter.view(List.of(one(OAK), SlotContent.EMPTY))));
@@ -199,7 +197,7 @@ class CutterActionsTest {
         actions.selectGroup(1);
         var refused = (CutterView.Refused)
                 actions.view(List.of(one(STONE), one(STONE))).preview();
-        assertEquals("hycolony.ornament.cutter.badMaterial", refused.reasonKey());
+        assertEquals("hydomum.ornament.cutter.badMaterial", refused.reasonKey());
         assertEquals(List.of("1", OAK), refused.params());
     }
 

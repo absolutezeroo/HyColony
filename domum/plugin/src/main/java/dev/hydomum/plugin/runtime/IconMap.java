@@ -15,7 +15,7 @@ import javax.imageio.ImageIO;
  * (A). Painting a variant's icon is then a lookup in its layout texture: no 3D rendering at runtime.
  */
 public final class IconMap {
-    private static final String FOLDER = "/hycolony/ornament/icons/";
+    private static final String FOLDER = "/hydomum/icons/";
 
     private final BufferedImage map;
     private final long crc;

@@ -36,7 +36,7 @@ import java.util.zip.CRC32;
 public final class VariantAssets {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
     /** Where pair textures live; tools/domum/pairs.py writes the pack's own under the same names. */
-    private static final String PAIRS = "Blocks/HyColony/DO/Pairs/";
+    private static final String PAIRS = "Blocks/HyDomum/Pairs/";
     /** Bump when Textures or IconMap draw differently: PNGs kept on disk by older code are then redrawn. */
     private static final long DRAWING_VERSION = 1;
 
@@ -164,7 +164,7 @@ public final class VariantAssets {
             Reference.reachabilityFence(blob);
         }
         LOG.at(Level.FINE).log(
-                "hyornament: asset %s (%d bytes) registered in %d us",
+                "hydomum: asset %s (%d bytes) registered in %d us",
                 name, png.length, (System.nanoTime() - start) / 1_000);
         return name;
     }
@@ -176,7 +176,7 @@ public final class VariantAssets {
     private void registerSilently(FileCommonAsset asset) {
         CommonAssetRegistry.AddCommonAssetResult result = CommonAssetRegistry.addCommonAsset(packKey, asset);
         if (!result.getActiveAsset().equals(result.getNewPackAsset())) {
-            LOG.at(Level.WARNING).log("hyornament: %s hidden by another pack's asset", asset.getName());
+            LOG.at(Level.WARNING).log("hydomum: %s hidden by another pack's asset", asset.getName());
             return;
         }
         refreshRequiredAssets();
@@ -196,7 +196,7 @@ public final class VariantAssets {
             field.setAccessible(true);
             ((CachedSupplier<?>) field.get(CommonAssetModule.get())).invalidate();
         } catch (ReflectiveOperationException | RuntimeException e) {
-            LOG.at(Level.WARNING).withCause(e).log("hyornament: joining players will lack new assets until restart");
+            LOG.at(Level.WARNING).withCause(e).log("hydomum: joining players will lack new assets until restart");
         }
     }
 }

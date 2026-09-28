@@ -50,7 +50,7 @@ final class VariantBuilder {
                 done.add(key);
                 newTexture |= texture.created();
             } catch (RuntimeException | LinkageError | java.awt.AWTError e) { // AWT may lack native libraries
-                LOG.at(Level.SEVERE).withCause(e).log("hyornament: cannot create %s", key.id());
+                LOG.at(Level.SEVERE).withCause(e).log("hydomum: cannot create %s", key.id());
             }
         }
         return new Built(types, items, done, newTexture);
@@ -75,10 +75,10 @@ final class VariantBuilder {
                 return assets.icon(key, map.get(), layoutTexture);
             }
             LOG.at(Level.WARNING).log(
-                    "hyornament: no icon map for %s, template icon kept",
+                    "hydomum: no icon map for %s, template icon kept",
                     key.shape().id());
         } catch (RuntimeException | LinkageError | java.awt.AWTError e) { // AWT may lack native libraries
-            LOG.at(Level.SEVERE).withCause(e).log("hyornament: icon of %s failed, template icon kept", key.id());
+            LOG.at(Level.SEVERE).withCause(e).log("hydomum: icon of %s failed, template icon kept", key.id());
         }
         return null;
     }

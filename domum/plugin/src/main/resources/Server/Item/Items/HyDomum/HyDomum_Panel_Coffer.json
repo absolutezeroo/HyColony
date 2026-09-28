@@ -1,0 +1,50 @@
+{
+  "TranslationProperties": {
+    "Name": "hydomum_blocks.item.do.panel_coffer.name"
+  },
+  "Icon": "Icons/ItemsGenerated/HyDomum/HyDomum_Panel_Coffer.png",
+  "IconProperties": {
+    "Scale": 0.58823,
+    "Rotation": [
+      22.5,
+      45,
+      22.5
+    ],
+    "Translation": [
+      0,
+      -13.5
+    ]
+  },
+  "Categories": [
+    "HyDomum.All"
+  ],
+  "PlayerAnimationsId": "Block",
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Model",
+    "Opacity": "Transparent",
+    "CustomModel": "Blocks/HyDomum/Panel_Coffer.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "BlockTextures/Stripped_Log_Side.png",
+        "Weight": 1
+      }
+    ],
+    "VariantRotation": "DoublePipe",
+    "HitboxType": "HyDomum_Panel_Coffer",
+    "Gathering": {
+      "Physics": {
+        "ItemId": "Wood_Stripped_Deco"
+      },
+      "Breaking": {
+        "ItemId": "Wood_Stripped_Deco",
+        "GatherType": "Woods"
+      }
+    },
+    "BlockParticleSetId": "Wood",
+    "ParticleColor": "#633625",
+    "BlockSoundSetId": "Wood",
+    "PhysicalMaterialId": "Wood"
+  },
+  "ItemSoundSetId": "ISS_Blocks_Wood"
+}

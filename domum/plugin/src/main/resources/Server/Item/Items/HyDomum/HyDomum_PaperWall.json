@@ -1,0 +1,86 @@
+{
+  "TranslationProperties": {
+    "Name": "hydomum_blocks.item.do.paperwall.name"
+  },
+  "Icon": "Icons/ItemsGenerated/HyDomum/HyDomum_PaperWall.png",
+  "IconProperties": {
+    "Scale": 0.58823,
+    "Rotation": [
+      22.5,
+      45,
+      22.5
+    ],
+    "Translation": [
+      0,
+      -13.5
+    ]
+  },
+  "Categories": [
+    "HyDomum.All"
+  ],
+  "PlayerAnimationsId": "Block",
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Model",
+    "Opacity": "Transparent",
+    "CustomModel": "Blocks/HyDomum/PaperWall.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "Blocks/HyDomum/Pairs/Wood_Stripped_Deco__Cloth_Block_Wool_White.png",
+        "Weight": 1
+      }
+    ],
+    "VariantRotation": "NESW",
+    "HitboxType": "HyDomum_PaperWall",
+    "ConnectedBlockRuleSet": {
+      "Type": "CustomTemplate",
+      "TemplateShapeAssetId": "HyDomum_PaneConnectedBlockTemplate",
+      "TemplateShapeBlockPatterns": {
+        "Post": "HyDomum_PaperWall",
+        "End": "*HyDomum_PaperWall_State_Definitions_End",
+        "Straight": "*HyDomum_PaperWall_State_Definitions_Straight",
+        "Corner": "*HyDomum_PaperWall_State_Definitions_Corner",
+        "T_Junction": "*HyDomum_PaperWall_State_Definitions_T_Junction",
+        "Cross_Junction": "*HyDomum_PaperWall_State_Definitions_Cross_Junction"
+      }
+    },
+    "State": {
+      "Definitions": {
+        "End": {
+          "CustomModel": "Blocks/HyDomum/PaperWall_End.blockymodel",
+          "HitboxType": "HyDomum_PaperWall_End"
+        },
+        "Straight": {
+          "CustomModel": "Blocks/HyDomum/PaperWall_Straight.blockymodel",
+          "HitboxType": "HyDomum_PaperWall_Straight"
+        },
+        "Corner": {
+          "CustomModel": "Blocks/HyDomum/PaperWall_Corner.blockymodel",
+          "HitboxType": "HyDomum_PaperWall_Corner"
+        },
+        "T_Junction": {
+          "CustomModel": "Blocks/HyDomum/PaperWall_T_Junction.blockymodel",
+          "HitboxType": "HyDomum_PaperWall_T_Junction"
+        },
+        "Cross_Junction": {
+          "CustomModel": "Blocks/HyDomum/PaperWall_Cross_Junction.blockymodel",
+          "HitboxType": "Full"
+        }
+      }
+    },
+    "Gathering": {
+      "Physics": {
+        "ItemId": "Wood_Stripped_Deco"
+      },
+      "Breaking": {
+        "ItemId": "Wood_Stripped_Deco",
+        "GatherType": "Woods"
+      }
+    },
+    "BlockParticleSetId": "Wood",
+    "ParticleColor": "#633625",
+    "BlockSoundSetId": "Wood",
+    "PhysicalMaterialId": "Wood"
+  },
+  "ItemSoundSetId": "ISS_Blocks_Wood"
+}

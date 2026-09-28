@@ -1,0 +1,413 @@
+{
+  "ConnectsToOtherMaterials": true,
+  "DefaultShape": "Single",
+  "Shapes": {
+    "Single": {
+      "FaceTags": {
+        "North": [
+          "HyDomumShingleSlab"
+        ],
+        "South": [
+          "HyDomumShingleSlab"
+        ],
+        "East": [
+          "HyDomumShingleSlab"
+        ],
+        "West": [
+          "HyDomumShingleSlab"
+        ]
+      },
+      "PatternsToMatchAnyOf": []
+    },
+    "One_Way": {
+      "FaceTags": {
+        "North": [
+          "HyDomumShingleSlab"
+        ],
+        "South": [
+          "HyDomumShingleSlab"
+        ],
+        "East": [
+          "HyDomumShingleSlab"
+        ],
+        "West": [
+          "HyDomumShingleSlab"
+        ]
+      },
+      "PatternsToMatchAnyOf": [
+        {
+          "Type": "Custom",
+          "AllowedPatternTransformations": {
+            "IsCardinallyRotatable": true
+          },
+          "RulesToMatch": [
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": -1
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "South": [
+                  "HyDomumShingleSlab"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": 1
+              },
+              "IncludeOrExclude": "Exclude",
+              "FaceTags": {
+                "North": [
+                  "HyDomumShingleSlab"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Exclude",
+              "FaceTags": {
+                "West": [
+                  "HyDomumShingleSlab"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": -1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Exclude",
+              "FaceTags": {
+                "East": [
+                  "HyDomumShingleSlab"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "Two_Way": {
+      "FaceTags": {
+        "North": [
+          "HyDomumShingleSlab"
+        ],
+        "South": [
+          "HyDomumShingleSlab"
+        ],
+        "East": [
+          "HyDomumShingleSlab"
+        ],
+        "West": [
+          "HyDomumShingleSlab"
+        ]
+      },
+      "PatternsToMatchAnyOf": [
+        {
+          "Type": "Custom",
+          "AllowedPatternTransformations": {
+            "IsCardinallyRotatable": true
+          },
+          "RulesToMatch": [
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": -1
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "South": [
+                  "HyDomumShingleSlab"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": 1
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "North": [
+                  "HyDomumShingleSlab"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Exclude",
+              "FaceTags": {
+                "West": [
+                  "HyDomumShingleSlab"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": -1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Exclude",
+              "FaceTags": {
+                "East": [
+                  "HyDomumShingleSlab"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "Curved": {
+      "FaceTags": {
+        "North": [
+          "HyDomumShingleSlab"
+        ],
+        "South": [
+          "HyDomumShingleSlab"
+        ],
+        "East": [
+          "HyDomumShingleSlab"
+        ],
+        "West": [
+          "HyDomumShingleSlab"
+        ]
+      },
+      "PatternsToMatchAnyOf": [
+        {
+          "Type": "Custom",
+          "AllowedPatternTransformations": {
+            "IsCardinallyRotatable": true
+          },
+          "RulesToMatch": [
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": -1
+              },
+              "IncludeOrExclude": "Exclude",
+              "FaceTags": {
+                "South": [
+                  "HyDomumShingleSlab"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": 1
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "North": [
+                  "HyDomumShingleSlab"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "West": [
+                  "HyDomumShingleSlab"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": -1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Exclude",
+              "FaceTags": {
+                "East": [
+                  "HyDomumShingleSlab"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "Three_Way": {
+      "FaceTags": {
+        "North": [
+          "HyDomumShingleSlab"
+        ],
+        "South": [
+          "HyDomumShingleSlab"
+        ],
+        "East": [
+          "HyDomumShingleSlab"
+        ],
+        "West": [
+          "HyDomumShingleSlab"
+        ]
+      },
+      "PatternsToMatchAnyOf": [
+        {
+          "Type": "Custom",
+          "AllowedPatternTransformations": {
+            "IsCardinallyRotatable": true
+          },
+          "RulesToMatch": [
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": -1
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "South": [
+                  "HyDomumShingleSlab"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": 1
+              },
+              "IncludeOrExclude": "Exclude",
+              "FaceTags": {
+                "North": [
+                  "HyDomumShingleSlab"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "West": [
+                  "HyDomumShingleSlab"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": -1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "East": [
+                  "HyDomumShingleSlab"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "Four_Way": {
+      "FaceTags": {
+        "North": [
+          "HyDomumShingleSlab"
+        ],
+        "South": [
+          "HyDomumShingleSlab"
+        ],
+        "East": [
+          "HyDomumShingleSlab"
+        ],
+        "West": [
+          "HyDomumShingleSlab"
+        ]
+      },
+      "PatternsToMatchAnyOf": [
+        {
+          "Type": "Custom",
+          "AllowedPatternTransformations": {
+            "IsCardinallyRotatable": true
+          },
+          "RulesToMatch": [
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": -1
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "South": [
+                  "HyDomumShingleSlab"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": 1
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "North": [
+                  "HyDomumShingleSlab"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "West": [
+                  "HyDomumShingleSlab"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": -1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "East": [
+                  "HyDomumShingleSlab"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

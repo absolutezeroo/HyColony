@@ -1,0 +1,46 @@
+{
+  "TranslationProperties": {
+    "Name": "hydomum_blocks.item.do.post_quad.name"
+  },
+  "Icon": "Icons/ItemsGenerated/HyDomum/HyDomum_Post_Quad.png",
+  "IconProperties": {
+    "Scale": 0.58823,
+    "Rotation": [
+      22.5,
+      45,
+      22.5
+    ],
+    "Translation": [
+      0,
+      -13.5
+    ]
+  },
+  "Categories": [
+    "HyDomum.All"
+  ],
+  "PlayerAnimationsId": "Block",
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Model",
+    "Opacity": "Transparent",
+    "CustomModel": "Blocks/HyDomum/Post_Quad.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "BlockTextures/Wood_Hardwood_Planks_Side.png",
+        "Weight": 1
+      }
+    ],
+    "VariantRotation": "Pipe",
+    "HitboxType": "HyDomum_Post_Quad",
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "Woods"
+      }
+    },
+    "BlockParticleSetId": "Wood",
+    "ParticleColor": "#693e2a",
+    "BlockSoundSetId": "Wood",
+    "PhysicalMaterialId": "Wood"
+  },
+  "ItemSoundSetId": "ISS_Blocks_Wood"
+}

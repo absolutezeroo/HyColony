@@ -1,6 +1,6 @@
 """Template ids and English/French names of the Domum Ornamentum shapes, after DO's en_us.json."""
 
-PREFIX = "HyColony_DO_"
+PREFIX = "HyDomum_"
 
 # Family -> (English, French).
 FAMILY_NAMES = {
@@ -86,14 +86,14 @@ ID_PARTS = {"shingle_flat": "Flat", "shingle_flat_lower": "FlatLower", "shingle_
 
 
 def template_id(family, parts):
-    """HyColony_DO_<Family>[_<Part>...]: parts are the DO block id and/or type value that name the variant, those
+    """HyDomum_<Family>[_<Part>...]: parts are the DO block id and/or type value that name the variant, those
     with an empty English name (the family's plain block) left out."""
     named = [ID_PARTS.get(p) or camel(p) for p in parts if VARIANTS[p][0]]
     return PREFIX + "_".join([family.name] + named)
 
 
 def lang_key(ident):
-    """The item's translation key inside hycolony.lang (the item refers to it prefixed with hycolony.)."""
+    """The item's translation key inside hydomum_blocks.lang (the item refers to it prefixed with hydomum_blocks.)."""
     return "item.do." + ident[len(PREFIX):].lower() + ".name"
 
 

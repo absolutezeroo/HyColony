@@ -1,0 +1,11 @@
+{
+  "Icon": "Icons/ItemCategories/HyDomum.png",
+  "Order": 4,
+  "Children": [
+    {
+      "Id": "All",
+      "Name": "hydomum_blocks.category.do.all",
+      "Icon": "Icons/ItemCategories/HyDomum_All.png"
+    }
+  ]
+}

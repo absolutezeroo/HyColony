@@ -1,0 +1,77 @@
+{
+  "TranslationProperties": {
+    "Name": "hydomum_blocks.item.do.shingleslab.name"
+  },
+  "Icon": "Icons/ItemsGenerated/HyDomum/HyDomum_ShingleSlab.png",
+  "IconProperties": {
+    "Scale": 0.58823,
+    "Rotation": [
+      22.5,
+      45,
+      22.5
+    ],
+    "Translation": [
+      0,
+      -13.5
+    ]
+  },
+  "Categories": [
+    "HyDomum.All"
+  ],
+  "PlayerAnimationsId": "Block",
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Model",
+    "Opacity": "Transparent",
+    "CustomModel": "Blocks/HyDomum/ShingleSlab.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "Blocks/HyDomum/Pairs/Soil_Clay_Brick__Wood_Hardwood_Planks.png",
+        "Weight": 1
+      }
+    ],
+    "VariantRotation": "NESW",
+    "HitboxType": "Block_Half",
+    "ConnectedBlockRuleSet": {
+      "Type": "CustomTemplate",
+      "TemplateShapeAssetId": "HyDomum_ShingleSlabConnectedBlockTemplate",
+      "TemplateShapeBlockPatterns": {
+        "Single": "HyDomum_ShingleSlab",
+        "One_Way": "*HyDomum_ShingleSlab_State_Definitions_One_Way",
+        "Two_Way": "*HyDomum_ShingleSlab_State_Definitions_Two_Way",
+        "Curved": "*HyDomum_ShingleSlab_State_Definitions_Curved",
+        "Three_Way": "*HyDomum_ShingleSlab_State_Definitions_Three_Way",
+        "Four_Way": "*HyDomum_ShingleSlab_State_Definitions_Four_Way"
+      }
+    },
+    "State": {
+      "Definitions": {
+        "One_Way": {
+          "CustomModel": "Blocks/HyDomum/ShingleSlab_One_Way.blockymodel"
+        },
+        "Two_Way": {
+          "CustomModel": "Blocks/HyDomum/ShingleSlab_Two_Way.blockymodel"
+        },
+        "Curved": {
+          "CustomModel": "Blocks/HyDomum/ShingleSlab_Curved.blockymodel"
+        },
+        "Three_Way": {
+          "CustomModel": "Blocks/HyDomum/ShingleSlab_Three_Way.blockymodel"
+        },
+        "Four_Way": {
+          "CustomModel": "Blocks/HyDomum/ShingleSlab_Four_Way.blockymodel"
+        }
+      }
+    },
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "Rocks"
+      }
+    },
+    "BlockParticleSetId": "Stone",
+    "ParticleColor": "#6c4727",
+    "BlockSoundSetId": "Stone",
+    "PhysicalMaterialId": "Stone"
+  },
+  "ItemSoundSetId": "ISS_Blocks_Soft"
+}

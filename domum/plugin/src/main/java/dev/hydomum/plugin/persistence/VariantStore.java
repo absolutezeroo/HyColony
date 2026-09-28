@@ -44,18 +44,18 @@ public final class VariantStore {
         try {
             saved = SavedVariants.parse(Files.readString(file, StandardCharsets.UTF_8));
         } catch (IOException | RuntimeException e) {
-            LOG.at(Level.SEVERE).withCause(e).log("hyornament: could not read %s, no variant restored", file);
+            LOG.at(Level.SEVERE).withCause(e).log("hydomum: could not read %s, no variant restored", file);
             moveAside();
             return List.of();
         }
         if (saved.readOnly()) {
-            LOG.at(Level.SEVERE).log("hyornament: %s is from a newer version, left untouched", file);
+            LOG.at(Level.SEVERE).log("hydomum: %s is from a newer version, left untouched", file);
             return List.of();
         }
         List<VariantKey> keys = saved.keys(shapes);
         if (keys.size() < saved.ids().size()) {
             LOG.at(Level.WARNING).log(
-                    "hyornament: %d saved variant(s) name no known shape, kept in %s",
+                    "hydomum: %d saved variant(s) name no known shape, kept in %s",
                     saved.ids().size() - keys.size(), file);
         }
         return keys;
@@ -74,7 +74,7 @@ public final class VariantStore {
         saved = more;
         if (saved.readOnly()) {
             LOG.at(Level.WARNING).log(
-                    "hyornament: %d new variant(s) not saved, %s is read-only",
+                    "hydomum: %d new variant(s) not saved, %s is read-only",
                     saved.ids().size() - before, file);
             return;
         }
@@ -84,7 +84,7 @@ public final class VariantStore {
             Files.writeString(tmp, saved.toJson(), StandardCharsets.UTF_8);
             Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
         } catch (IOException | RuntimeException e) {
-            LOG.at(Level.SEVERE).withCause(e).log("hyornament: could not save %s", file);
+            LOG.at(Level.SEVERE).withCause(e).log("hydomum: could not save %s", file);
         }
     }
 
@@ -93,7 +93,7 @@ public final class VariantStore {
         try {
             Files.move(file, file.resolveSibling(file.getFileName() + ".corrupt"), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
-            LOG.at(Level.SEVERE).withCause(e).log("hyornament: could not move %s aside", file);
+            LOG.at(Level.SEVERE).withCause(e).log("hydomum: could not move %s aside", file);
         }
     }
 }

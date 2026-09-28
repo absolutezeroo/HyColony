@@ -60,46 +60,10 @@ val subpluginResources by tasks.registering(Sync::class) {
 
 // Hytale shuts the whole server down when a zip pack holds an invalid asset (docs/research/plugin-b-api.md § 23): check
 // the items' Common paths against CommonAssetValidator's roots, and that the pack's own (HyColony) files exist.
-val checkSubpluginAssets by tasks.registering {
-    val src = subpluginsSrc.asFile
-    val stamp = layout.buildDirectory.file("tmp/checkSubpluginAssets.stamp")
-    inputs.dir(src)
-    outputs.file(stamp)
-    doLast {
-        val model = ".blockymodel" to listOf("Blocks/", "Items/", "Resources/", "NPC/", "VFX/", "Consumable/")
-        val texture = ".png" to listOf("Blocks/", "BlockTextures/", "Items/", "NPC/", "Resources/", "VFX/")
-        // Item.Icon, Model, Texture; BlockType.CustomModel, CustomModelTexture[].Texture, Textures[].<face>.
-        val rules = mapOf("Icon" to (".png" to listOf("Icons/ItemsGenerated/", "Icons/Items/")), "Model" to model,
-            "CustomModel" to model, "Texture" to texture) +
-            listOf("All", "Sides", "Top", "Bottom", "UpDown", "North", "South", "East", "West").associateWith { texture }
-        val errors = mutableListOf<String>()
-        fun walk(pack: File, item: String, node: Any?) {
-            when (node) {
-                is Map<*, *> -> node.forEach { (key, value) ->
-                    val rule = rules[key]
-                    if (rule != null && value is String) {
-                        val (extension, allowed) = rule
-                        if (allowed.none { value.startsWith(it) } || !value.endsWith(extension)) {
-                            errors += "$item: $key $value is not a $extension under $allowed"
-                        }
-                        if (value.contains("/HyColony/") && !File(pack, "Common/$value").isFile) {
-                            errors += "$item: $key $value does not exist"
-                        }
-                    } else {
-                        walk(pack, item, value)
-                    }
-                }
-                is List<*> -> node.forEach { walk(pack, item, it) }
-            }
-        }
-        src.listFiles { f -> f.isDirectory }.orEmpty().forEach { pack ->
-            File(pack, "Server/Item/Items").walkTopDown().filter { it.extension == "json" }.forEach {
-                walk(pack, it.name, groovy.json.JsonSlurper().parse(it))
-            }
-        }
-        if (errors.isNotEmpty()) throw GradleException(errors.joinToString("\n"))
-        stamp.get().asFile.writeText("ok\n")
-    }
+val checkSubpluginAssets by tasks.registering(CheckPackAssets::class) {
+    packs.from(subpluginNames.map { subpluginsSrc.dir(it) })
+    namespace.set("HyColony")
+    stamp.set(layout.buildDirectory.file("tmp/checkSubpluginAssets.stamp"))
 }
 subpluginResources { dependsOn(checkSubpluginAssets) }
 

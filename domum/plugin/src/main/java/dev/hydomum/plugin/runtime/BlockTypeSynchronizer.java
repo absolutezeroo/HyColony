@@ -78,16 +78,16 @@ public final class BlockTypeSynchronizer {
             if (id == Integer.MIN_VALUE) {
                 throw new IllegalStateException("BlockType " + type.getId() + " was not loaded");
             }
-            LOG.at(Level.FINE).log("hyornament: registered %s as block id %d", type.getId(), id);
+            LOG.at(Level.FINE).log("hydomum: registered %s as block id %d", type.getId(), id);
         }
         LOG.at(Level.INFO).log(
-                "hyornament: UpdateBlockTypes AddOrUpdate of %d type(s), maxId %d -> %d, %s, in %d us",
+                "hydomum: UpdateBlockTypes AddOrUpdate of %d type(s), maxId %d -> %d, %s, in %d us",
                 types.size(), maxIdBefore, map.getNextIndex(), first.cache(), micros);
         if (twice) {
             try {
                 resend(types, rebuild, map);
             } catch (RuntimeException e) { // optional workaround: the types are already registered and sent once
-                LOG.at(Level.SEVERE).withCause(e).log("hyornament: second UpdateBlockTypes failed");
+                LOG.at(Level.SEVERE).withCause(e).log("hydomum: second UpdateBlockTypes failed");
             }
         }
     }
@@ -108,8 +108,7 @@ public final class BlockTypeSynchronizer {
                 throw new IllegalStateException("Item " + item.getId() + " was not loaded");
             }
         }
-        LOG.at(Level.INFO).log(
-                "hyornament: UpdateItems AddOrUpdate of %d item(s), updateIcons=%b", items.size(), icons);
+        LOG.at(Level.INFO).log("hydomum: UpdateItems AddOrUpdate of %d item(s), updateIcons=%b", items.size(), icons);
     }
 
     /**
@@ -132,7 +131,6 @@ public final class BlockTypeSynchronizer {
                         cache.isModelTextures(),
                         cache.isModels(),
                         cache.isMapGeometry()));
-        LOG.at(Level.INFO).log(
-                "hyornament: UpdateBlockTypes sent a second time for %d type(s), %s", types.size(), cache);
+        LOG.at(Level.INFO).log("hydomum: UpdateBlockTypes sent a second time for %d type(s), %s", types.size(), cache);
     }
 }

@@ -1,0 +1,146 @@
+{
+  "ConnectsToOtherMaterials": true,
+  "DefaultShape": "Full",
+  "Shapes": {
+    "Base": {
+      "FaceTags": {
+        "Up": [
+          "HyDomum_Pillar_Round"
+        ],
+        "Down": [
+          "HyDomum_Pillar_Round"
+        ]
+      },
+      "PatternsToMatchAnyOf": [
+        {
+          "Type": "Custom",
+          "RulesToMatch": [
+            {
+              "Position": {
+                "X": 0,
+                "Y": 1,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "Down": [
+                  "HyDomum_Pillar_Round"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 0,
+                "Y": -1,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Exclude",
+              "FaceTags": {
+                "Up": [
+                  "HyDomum_Pillar_Round"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "Base_Inverted": {
+      "FaceTags": {
+        "Up": [
+          "HyDomum_Pillar_Round"
+        ],
+        "Down": [
+          "HyDomum_Pillar_Round"
+        ]
+      },
+      "PatternsToMatchAnyOf": [
+        {
+          "Type": "Custom",
+          "RulesToMatch": [
+            {
+              "Position": {
+                "X": 0,
+                "Y": -1,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "Up": [
+                  "HyDomum_Pillar_Round"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 0,
+                "Y": 1,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Exclude",
+              "FaceTags": {
+                "Down": [
+                  "HyDomum_Pillar_Round"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "Middle": {
+      "FaceTags": {
+        "Up": [
+          "HyDomum_Pillar_Round"
+        ],
+        "Down": [
+          "HyDomum_Pillar_Round"
+        ]
+      },
+      "PatternsToMatchAnyOf": [
+        {
+          "Type": "Custom",
+          "RulesToMatch": [
+            {
+              "Position": {
+                "X": 0,
+                "Y": 1,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "Down": [
+                  "HyDomum_Pillar_Round"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 0,
+                "Y": -1,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "Up": [
+                  "HyDomum_Pillar_Round"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "Full": {
+      "FaceTags": {
+        "Up": [
+          "HyDomum_Pillar_Round"
+        ],
+        "Down": [
+          "HyDomum_Pillar_Round"
+        ]
+      },
+      "PatternsToMatchAnyOf": []
+    }
+  }
+}

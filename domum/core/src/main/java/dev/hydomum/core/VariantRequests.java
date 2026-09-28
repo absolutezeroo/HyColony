@@ -15,8 +15,8 @@ import java.util.Set;
  * Hytale variant needs a material for every tile of its layout, so the first is used.
  */
 public final class VariantRequests {
-    static final String BAD_COUNT = "hycolony.ornament.badCount";
-    static final String BAD_MATERIAL = "hycolony.ornament.badMaterial";
+    static final String BAD_COUNT = "hydomum.ornament.badCount";
+    static final String BAD_MATERIAL = "hydomum.ornament.badMaterial";
 
     private VariantRequests() {}
 

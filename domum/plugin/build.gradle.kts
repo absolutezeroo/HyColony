@@ -21,3 +21,14 @@ hytaleTools {
 }
 
 tasks.named<Jar>("jar") { archiveBaseName.set("HyDomum") }
+
+// Hytale shuts the whole server down when a pack holds an invalid asset: check HyDomum's own before it ships.
+val checkPackAssets by tasks.registering(CheckPackAssets::class) {
+    packs.from(layout.projectDirectory.dir("src/main/resources"))
+    namespace.set("HyDomum")
+    stamp.set(layout.buildDirectory.file("tmp/checkPackAssets.stamp"))
+    // The pack is the mod's resources, where hytale-tools writes manifest.json.
+    mustRunAfter("createManifestIfMissing", "updatePluginManifest")
+}
+// Before anything packs or serves the resources (jar, runAllMods), as the sub-packs' check ran before their zips.
+tasks.named("processResources") { dependsOn(checkPackAssets) }

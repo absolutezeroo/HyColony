@@ -27,7 +27,7 @@ final class CutterOpener {
         Optional<OrnamentVariantRegistry.Catalogs> catalogs =
                 settings.registry().catalogs();
         if (catalogs.isEmpty()) {
-            playerRef.sendMessage(Texts.translated("hycolony.ornament.failed", List.of("load")));
+            playerRef.sendMessage(Texts.translated("hydomum.ornament.failed", List.of("load")));
             return;
         }
         CutterPage page = new CutterPage(playerRef, new CutterPage.Setup(world, settings, catalogs.get()));

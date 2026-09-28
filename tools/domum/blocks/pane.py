@@ -9,8 +9,8 @@ import names
 from blocks import common
 from pack import write_json
 
-TEMPLATE = "HyColony_DO_PaneConnectedBlockTemplate"
-TAG = "HyColonyDoPane"
+TEMPLATE = "HyDomum_PaneConnectedBlockTemplate"
+TAG = "HyDomumPane"
 # Shape -> the neighbours that make it with the pattern facing north (common.neighbour_template).
 SHAPES = {
     "End": {"north"},

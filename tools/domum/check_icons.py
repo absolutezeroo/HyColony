@@ -46,7 +46,7 @@ def icon_reads_the_coded_texel():
 def cube_icon_matches_the_vanilla_camera():
     """A full block's icon covers the same pixels as a vanilla block icon (same camera and framing)."""
     ctx = generate_into_temp()
-    ours = Image.open(ctx.pack / "Common" / ctx.items["HyColony_DO_TimberFrame_Plain"]["Icon"]).getchannel("A")
+    ours = Image.open(ctx.pack / "Common" / ctx.items["HyDomum_TimberFrame_Plain"]["Icon"]).getchannel("A")
     theirs = ctx.assets.image("Common/" + ctx.assets.item("Wood_Softwood_Planks")["Icon"]).getchannel("A")
     both = sum(1 for a, b in zip(pixels(ours), pixels(theirs)) if a and b)
     either = sum(1 for a, b in zip(pixels(ours), pixels(theirs)) if a or b)
@@ -102,8 +102,8 @@ def rejected(ctx, change):
 def validation_rejects_broken_templates():
     """A foreign id, a missing state, a missing own hitbox, an untranslated name or a missing template each fail."""
     ctx = generate_into_temp()
-    door = "HyColony_DO_Door_Full"
-    slab = "HyColony_DO_ShingleSlab"
+    door = "HyDomum_Door_Full"
+    slab = "HyDomum_ShingleSlab"
 
     def foreign(items):
         rules = items[door]["BlockType"]["ConnectedBlockRuleSet"]
@@ -113,13 +113,13 @@ def validation_rejects_broken_templates():
         del items[slab]["BlockType"]["State"]["Definitions"]["Curved"]
 
     def hitbox(items):
-        items["HyColony_DO_Panel_Full"]["BlockType"]["HitboxType"] = "HyColony_DO_Nothing"
+        items["HyDomum_Panel_Full"]["BlockType"]["HitboxType"] = "HyDomum_Nothing"
 
     def untranslated(items):
-        items[door]["TranslationProperties"]["Name"] = "hycolony.item.do.nothing.name"
+        items[door]["TranslationProperties"]["Name"] = "hydomum_blocks.item.do.nothing.name"
 
     def template(items):
-        items[slab]["BlockType"]["ConnectedBlockRuleSet"]["TemplateShapeAssetId"] = "HyColony_DO_Nothing"
+        items[slab]["BlockType"]["ConnectedBlockRuleSet"]["TemplateShapeAssetId"] = "HyDomum_Nothing"
 
     for change, word in ((foreign, "names"), (state, "Curved"), (hitbox, "missing hitbox"),
                          (untranslated, "untranslated"), (template, "template")):

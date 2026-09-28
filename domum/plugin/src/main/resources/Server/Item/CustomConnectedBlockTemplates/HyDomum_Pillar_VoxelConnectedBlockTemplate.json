@@ -1,0 +1,146 @@
+{
+  "ConnectsToOtherMaterials": true,
+  "DefaultShape": "Full",
+  "Shapes": {
+    "Base": {
+      "FaceTags": {
+        "Up": [
+          "HyDomum_Pillar_Voxel"
+        ],
+        "Down": [
+          "HyDomum_Pillar_Voxel"
+        ]
+      },
+      "PatternsToMatchAnyOf": [
+        {
+          "Type": "Custom",
+          "RulesToMatch": [
+            {
+              "Position": {
+                "X": 0,
+                "Y": 1,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "Down": [
+                  "HyDomum_Pillar_Voxel"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 0,
+                "Y": -1,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Exclude",
+              "FaceTags": {
+                "Up": [
+                  "HyDomum_Pillar_Voxel"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "Base_Inverted": {
+      "FaceTags": {
+        "Up": [
+          "HyDomum_Pillar_Voxel"
+        ],
+        "Down": [
+          "HyDomum_Pillar_Voxel"
+        ]
+      },
+      "PatternsToMatchAnyOf": [
+        {
+          "Type": "Custom",
+          "RulesToMatch": [
+            {
+              "Position": {
+                "X": 0,
+                "Y": -1,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "Up": [
+                  "HyDomum_Pillar_Voxel"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 0,
+                "Y": 1,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Exclude",
+              "FaceTags": {
+                "Down": [
+                  "HyDomum_Pillar_Voxel"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "Middle": {
+      "FaceTags": {
+        "Up": [
+          "HyDomum_Pillar_Voxel"
+        ],
+        "Down": [
+          "HyDomum_Pillar_Voxel"
+        ]
+      },
+      "PatternsToMatchAnyOf": [
+        {
+          "Type": "Custom",
+          "RulesToMatch": [
+            {
+              "Position": {
+                "X": 0,
+                "Y": 1,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "Down": [
+                  "HyDomum_Pillar_Voxel"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 0,
+                "Y": -1,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "Up": [
+                  "HyDomum_Pillar_Voxel"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "Full": {
+      "FaceTags": {
+        "Up": [
+          "HyDomum_Pillar_Voxel"
+        ],
+        "Down": [
+          "HyDomum_Pillar_Voxel"
+        ]
+      },
+      "PatternsToMatchAnyOf": []
+    }
+  }
+}

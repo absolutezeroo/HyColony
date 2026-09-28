@@ -1,0 +1,93 @@
+{
+  "TranslationProperties": {
+    "Name": "hydomum_blocks.item.do.fence.name"
+  },
+  "Icon": "Icons/ItemsGenerated/HyDomum/HyDomum_Fence.png",
+  "IconProperties": {
+    "Scale": 0.63,
+    "Rotation": [
+      22.5,
+      45,
+      22.5
+    ],
+    "Translation": [
+      0,
+      -16.7
+    ]
+  },
+  "Categories": [
+    "HyDomum.All"
+  ],
+  "PlayerAnimationsId": "Item",
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Model",
+    "CustomModel": "Blocks/HyDomum/Fence.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "BlockTextures/Stripped_Log_Side.png",
+        "Weight": 1
+      }
+    ],
+    "VariantRotation": "NESW",
+    "Opacity": "Transparent",
+    "HitboxType": "Fence_Thin",
+    "Supporting": {
+      "Down": [
+        {
+          "FaceType": "Fence"
+        }
+      ],
+      "Up": [
+        {
+          "FaceType": "Fence"
+        }
+      ]
+    },
+    "State": {
+      "Definitions": {
+        "Corner": {
+          "CustomModel": "Blocks/HyDomum/Fence_Corner.blockymodel",
+          "HitboxType": "Fence_Corner_Thin",
+          "FlipType": "OrthogonalInverse"
+        },
+        "T": {
+          "CustomModel": "Blocks/HyDomum/Fence_T.blockymodel",
+          "FlipType": "Symmetric"
+        },
+        "Cross": {
+          "CustomModel": "Blocks/HyDomum/Fence_Cross.blockymodel"
+        }
+      }
+    },
+    "ConnectedBlockRuleSet": {
+      "Type": "CustomTemplate",
+      "TemplateShapeAssetId": "WallConnectedBlockTemplate",
+      "TemplateShapeBlockPatterns": {
+        "Straight": "HyDomum_Fence",
+        "Corner": "*HyDomum_Fence_State_Definitions_Corner",
+        "Gate": "HyDomum_FenceGate",
+        "T_Junction": "*HyDomum_Fence_State_Definitions_T",
+        "Cross_Junction": "*HyDomum_Fence_State_Definitions_Cross"
+      }
+    },
+    "Gathering": {
+      "Physics": {
+        "ItemId": "Wood_Stripped_Deco"
+      },
+      "Breaking": {
+        "ItemId": "Wood_Stripped_Deco",
+        "GatherType": "Woods"
+      }
+    },
+    "BlockParticleSetId": "Wood",
+    "ParticleColor": "#633625",
+    "BlockSoundSetId": "Wood",
+    "PhysicalMaterialId": "Wood"
+  },
+  "ItemSoundSetId": "ISS_Blocks_Wood",
+  "Interactions": {
+    "Primary": "Block_Primary",
+    "Secondary": "Block_Secondary"
+  }
+}

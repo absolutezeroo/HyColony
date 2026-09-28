@@ -38,8 +38,8 @@ DOOR_HINGE = (0, 0, 8)
 TRAPDOOR_HINGE = (8, 1.5, 14.5)
 # The floor trapdoor's own boxes (block units): the vanilla Trapdoor ones fit the hanging trapdoor only.
 TRAPDOOR_BOXES = {
-    "HyColony_DO_Trapdoor": {"Min": {"X": 0, "Y": 0, "Z": 0}, "Max": {"X": 1, "Y": 0.1875, "Z": 1}},
-    "HyColony_DO_Trapdoor_Open": {"Min": {"X": 0, "Y": 0, "Z": 0.8125}, "Max": {"X": 1, "Y": 1, "Z": 1}},
+    "HyDomum_Trapdoor": {"Min": {"X": 0, "Y": 0, "Z": 0}, "Max": {"X": 1, "Y": 0.1875, "Z": 1}},
+    "HyDomum_Trapdoor_Open": {"Min": {"X": 0, "Y": 0, "Z": 0.8125}, "Max": {"X": 1, "Y": 1, "Z": 1}},
 }
 
 
@@ -79,8 +79,8 @@ def _template(ctx, family, parts, kind, blockymodel):
     block_type = common.model_block_type(ctx, family, common.write_model(ctx, ident, blockymodel), None, rotation)
     block_type.update({key: copy.deepcopy(vanilla[key]) for key in MECHANICS if key in vanilla})
     if kind == "trapdoor":
-        block_type["HitboxType"] = "HyColony_DO_Trapdoor"
-        block_type["State"]["Definitions"]["OpenDoorOut"]["HitboxType"] = "HyColony_DO_Trapdoor_Open"
+        block_type["HitboxType"] = "HyDomum_Trapdoor"
+        block_type["State"]["Definitions"]["OpenDoorOut"]["HitboxType"] = "HyDomum_Trapdoor_Open"
     else:
         block_type["ConnectedBlockRuleSet"]["TemplateShapeBlockPatterns"] = {"Default": ident}
     common.template(ctx, family, ident, shown, block_type, ctx.assets.item(VANILLA[kind])["IconProperties"])

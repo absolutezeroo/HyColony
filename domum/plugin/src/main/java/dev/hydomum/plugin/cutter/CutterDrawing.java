@@ -12,7 +12,7 @@ import java.util.List;
 
 /** Draws a {@link CutterView} into Cutter.ui and binds its buttons to CutterPage's actions. */
 final class CutterDrawing {
-    private static final String PAGES = "Pages/HyColony/";
+    private static final String PAGES = "Pages/HyDomum/";
 
     private CutterDrawing() {}
 
@@ -106,7 +106,7 @@ final class CutterDrawing {
         switch (preview) {
             case CutterView.Empty _ -> {
                 ui.set("#Preview.Visible", false);
-                ui.set("#PreviewText.Text", Message.translation("hycolony.ornament.cutter.placeMaterials"));
+                ui.set("#PreviewText.Text", Message.translation("hydomum.ornament.cutter.placeMaterials"));
             }
             case CutterView.Ready ready -> {
                 // Deviation from MC: a spinner, then the template's icon if creating fails, for the moment the
@@ -117,7 +117,7 @@ final class CutterDrawing {
                 ui.set("#Preview.ItemId", shownItem(ready.itemId(), ready.templateKey()));
                 ui.set(
                         "#PreviewText.Text",
-                        Message.translation("hycolony.ornament.cutter.quantity")
+                        Message.translation("hydomum.ornament.cutter.quantity")
                                 .param("p0", String.valueOf(ready.quantity())));
             }
             case CutterView.Refused refused -> {

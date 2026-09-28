@@ -1,7 +1,0 @@
-{
-  "Name": "DomumOrnamentum",
-  "Version": "0.2.0",
-  "EnabledByDefault": false,
-  "Order": 90,
-  "Description": "Domum Ornamentum blocks (DO-1): every shape, materials chosen at runtime."
-}

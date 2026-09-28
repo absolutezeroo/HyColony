@@ -58,7 +58,7 @@ public final class MaterialCatalog {
         BlockType block = BlockType.getAssetMap().getAsset(blockId);
         BlockTypeTextures[] faces = block == null ? null : block.getTextures();
         if (block == null || block.getDrawType() != DrawType.Cube || faces == null || faces.length == 0) {
-            LOG.at(Level.WARNING).log("hyornament: tagged material %s is not a loaded cube block, left out", blockId);
+            LOG.at(Level.WARNING).log("hydomum: tagged material %s is not a loaded cube block, left out", blockId);
             return;
         }
         textures.put(blockId, faces[0].getNorth());

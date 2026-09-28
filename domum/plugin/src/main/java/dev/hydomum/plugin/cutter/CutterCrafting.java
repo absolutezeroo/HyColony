@@ -59,7 +59,7 @@ final class CutterCrafting {
                 request.world().execute(() -> finish(request, ready, error));
             } catch (RuntimeException e) { // the world no longer takes tasks (stopping): nothing was taken
                 LOG.at(Level.SEVERE).withCause(e).log(
-                        "hyornament: cutter craft of %s dropped", ready.key().id());
+                        "hydomum: cutter craft of %s dropped", ready.key().id());
             }
         });
     }
@@ -77,7 +77,7 @@ final class CutterCrafting {
             crafted = craftNow(request, asked, error);
         } catch (RuntimeException e) { // done must still hear it, or a queue would wait forever
             LOG.at(Level.SEVERE).withCause(e).log(
-                    "hyornament: cutter craft of %s failed", asked.key().id());
+                    "hydomum: cutter craft of %s failed", asked.key().id());
         }
         request.done().accept(crafted);
     }
@@ -94,8 +94,8 @@ final class CutterCrafting {
         }
         if (error != null) {
             LOG.at(Level.SEVERE).withCause(error).log(
-                    "hyornament: cutter could not create %s", asked.key().id());
-            say(player, "hycolony.ornament.failed", "create");
+                    "hydomum: cutter could not create %s", asked.key().id());
+            say(player, "hydomum.ornament.failed", "create");
             return false;
         }
         var slots = request.slots().contents();
@@ -103,21 +103,21 @@ final class CutterCrafting {
                 CutterCraft.check(request.shape(), slots, request.tags(), creative(store, request.player()));
         if (!(now instanceof CutterCraft.Ready ready)
                 || !ready.key().blockTypeKey().equals(asked.key().blockTypeKey())) {
-            say(player, "hycolony.ornament.cutter.changed");
+            say(player, "hydomum.ornament.cutter.changed");
             return false;
         }
         String item = ready.key().blockTypeKey();
         if (Item.getAssetMap().getAsset(item) == null) { // created but not loaded: take nothing rather than lose it
-            say(player, "hycolony.ornament.failed", "create");
+            say(player, "hydomum.ornament.failed", "create");
             return false;
         }
         int crafts = Math.min(request.crafts(), CutterCraft.maxCrafts(ready, slots));
         if (crafts <= 0 || !request.slots().take(ready.consumed(), crafts)) {
-            say(player, "hycolony.ornament.cutter.changed");
+            say(player, "hydomum.ornament.cutter.changed");
             return false;
         }
         PlayerItems.give(store, request.player(), item, ready.quantity() * crafts);
-        player.sendMessage(Message.translation("hycolony.ornament.cutter.crafted")
+        player.sendMessage(Message.translation("hydomum.ornament.cutter.crafted")
                 .param("p0", String.valueOf(ready.quantity() * crafts))
                 .param("p1", CutterDrawing.itemName(item)));
         return true;

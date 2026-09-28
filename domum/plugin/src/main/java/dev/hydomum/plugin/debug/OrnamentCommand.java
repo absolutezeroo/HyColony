@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 
 /**
- * /hyornament give &lt;shape&gt; &lt;material&gt; [--second &lt;material&gt;] and /hyornament shapes, operators
+ * /hydomum give &lt;shape&gt; &lt;material&gt; [--second &lt;material&gt;] and /hydomum shapes, operators
  * only: any Domum Ornamentum variant, created at runtime on first request, checked against DO's material tags.
  */
 public final class OrnamentCommand extends AbstractCommandCollection {
@@ -35,7 +35,7 @@ public final class OrnamentCommand extends AbstractCommandCollection {
 
     /** @param registry where variants are created and cached */
     public OrnamentCommand(OrnamentVariantRegistry registry) {
-        super("hyornament", "Domum Ornamentum variants (operators)");
+        super("hydomum", "Domum Ornamentum variants (operators)");
         setPermissionGroups(new String[0]);
         addSubCommand(new Give(registry));
         addSubCommand(new Shapes(registry));
@@ -50,7 +50,7 @@ public final class OrnamentCommand extends AbstractCommandCollection {
     private static Optional<OrnamentVariantRegistry.Catalogs> catalogs(OrnamentVariantRegistry registry, PlayerRef p) {
         Optional<OrnamentVariantRegistry.Catalogs> catalogs = registry.catalogs();
         if (catalogs.isEmpty()) {
-            say(p, "hycolony.ornament.failed", "load");
+            say(p, "hydomum.ornament.failed", "load");
         }
         return catalogs;
     }
@@ -64,7 +64,7 @@ public final class OrnamentCommand extends AbstractCommandCollection {
         Give(OrnamentVariantRegistry registry) {
             super("give", "Give a Domum Ornamentum shape in chosen materials (operators)");
             this.registry = registry;
-            this.shapeArg = withRequiredArg("shape", "Shape id (/hyornament shapes)", ArgTypes.STRING);
+            this.shapeArg = withRequiredArg("shape", "Shape id (/hydomum shapes)", ArgTypes.STRING);
             this.firstArg = withRequiredArg("material", "First material (block id)", ArgTypes.STRING);
             this.secondArg = withOptionalArg("second", "Second material (block id)", ArgTypes.STRING);
             setPermissionGroups(new String[0]);
@@ -84,7 +84,7 @@ public final class OrnamentCommand extends AbstractCommandCollection {
             }
             Optional<OrnamentShape> shape = catalogs.get().shapes().shape(ctx.get(shapeArg));
             if (shape.isEmpty()) {
-                say(player, "hycolony.ornament.unknownShape", ctx.get(shapeArg));
+                say(player, "hydomum.ornament.unknownShape", ctx.get(shapeArg));
                 return;
             }
             List<String> materials = new ArrayList<>(List.of(ctx.get(firstArg)));
@@ -108,16 +108,16 @@ public final class OrnamentCommand extends AbstractCommandCollection {
             VariantGift to = new VariantGift(player, ref);
             var _ = registry.request(List.of(key)).whenComplete((variants, error) -> {
                 if (error != null) {
-                    LOG.at(Level.SEVERE).withCause(error).log("hyornament: creating %s failed", key.id());
-                    say(player, "hycolony.ornament.failed", "create");
+                    LOG.at(Level.SEVERE).withCause(error).log("hydomum: creating %s failed", key.id());
+                    say(player, "hydomum.ornament.failed", "create");
                     return;
                 }
                 long ms = (System.nanoTime() - start) / 1_000_000;
                 try {
                     world.execute(() -> to.give(variants.getFirst(), created, ms));
                 } catch (RuntimeException e) { // the world no longer takes tasks (stopping)
-                    LOG.at(Level.SEVERE).withCause(e).log("hyornament: cannot queue giving %s", key.id());
-                    say(player, "hycolony.ornament.failed", "give");
+                    LOG.at(Level.SEVERE).withCause(e).log("hydomum: cannot queue giving %s", key.id());
+                    say(player, "hydomum.ornament.failed", "give");
                 }
             });
         }
@@ -158,7 +158,7 @@ public final class OrnamentCommand extends AbstractCommandCollection {
                             .all()
                             .forEach(shape -> say(
                                     player,
-                                    "hycolony.ornament.shapes",
+                                    "hydomum.ornament.shapes",
                                     shape.id(),
                                     String.join(" + ", shape.slotTags()))));
         }

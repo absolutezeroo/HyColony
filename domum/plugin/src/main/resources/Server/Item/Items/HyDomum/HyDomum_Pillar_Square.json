@@ -1,0 +1,72 @@
+{
+  "TranslationProperties": {
+    "Name": "hydomum_blocks.item.do.pillar_square.name"
+  },
+  "Icon": "Icons/ItemsGenerated/HyDomum/HyDomum_Pillar_Square.png",
+  "IconProperties": {
+    "Scale": 0.58823,
+    "Rotation": [
+      22.5,
+      45,
+      22.5
+    ],
+    "Translation": [
+      0,
+      -13.5
+    ]
+  },
+  "Categories": [
+    "HyDomum.All"
+  ],
+  "PlayerAnimationsId": "Block",
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Model",
+    "Opacity": "Transparent",
+    "CustomModel": "Blocks/HyDomum/Pillar_Square.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "BlockTextures/Rock_Stone_Brick.png",
+        "Weight": 1
+      }
+    ],
+    "VariantRotation": "None",
+    "HitboxType": "Full",
+    "ConnectedBlockRuleSet": {
+      "Type": "CustomTemplate",
+      "TemplateShapeAssetId": "HyDomum_Pillar_SquareConnectedBlockTemplate",
+      "TemplateShapeBlockPatterns": {
+        "Full": "HyDomum_Pillar_Square",
+        "Base": "*HyDomum_Pillar_Square_State_Definitions_Base",
+        "Base_Inverted": "*HyDomum_Pillar_Square_State_Definitions_Base_Inverted",
+        "Middle": "*HyDomum_Pillar_Square_State_Definitions_Middle"
+      }
+    },
+    "State": {
+      "Definitions": {
+        "Base": {
+          "CustomModel": "Blocks/HyDomum/Pillar_Square_Base.blockymodel",
+          "HitboxType": "Full"
+        },
+        "Base_Inverted": {
+          "CustomModel": "Blocks/HyDomum/Pillar_Square_Base_Inverted.blockymodel",
+          "HitboxType": "Full"
+        },
+        "Middle": {
+          "CustomModel": "Blocks/HyDomum/Pillar_Square_Middle.blockymodel",
+          "HitboxType": "HyDomum_Pillar_Square_Middle"
+        }
+      }
+    },
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "Rocks"
+      }
+    },
+    "BlockParticleSetId": "Stone",
+    "ParticleColor": "#737055",
+    "BlockSoundSetId": "Stone",
+    "PhysicalMaterialId": "Stone"
+  },
+  "ItemSoundSetId": "ISS_Blocks_Stone"
+}

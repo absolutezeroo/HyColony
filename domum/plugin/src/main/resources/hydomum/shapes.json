@@ -1,0 +1,727 @@
+{
+  "schemaVersion": 1,
+  "shapes": [
+    {
+      "id": "TimberFrame_Plain",
+      "template": "HyDomum_TimberFrame_Plain",
+      "group": "btimberframe",
+      "slots": [
+        "timber_frames_frame",
+        "timber_frames_center"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "TimberFrame_DoubleCrossed",
+      "template": "HyDomum_TimberFrame_DoubleCrossed",
+      "group": "btimberframe",
+      "slots": [
+        "timber_frames_frame",
+        "timber_frames_center"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "TimberFrame_Framed",
+      "template": "HyDomum_TimberFrame_Framed",
+      "group": "btimberframe",
+      "slots": [
+        "timber_frames_frame",
+        "timber_frames_center"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "TimberFrame_SideFramed",
+      "template": "HyDomum_TimberFrame_SideFramed",
+      "group": "btimberframe",
+      "slots": [
+        "timber_frames_frame",
+        "timber_frames_center"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "TimberFrame_UpGated",
+      "template": "HyDomum_TimberFrame_UpGated",
+      "group": "btimberframe",
+      "slots": [
+        "timber_frames_frame",
+        "timber_frames_center"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "TimberFrame_DownGated",
+      "template": "HyDomum_TimberFrame_DownGated",
+      "group": "btimberframe",
+      "slots": [
+        "timber_frames_frame",
+        "timber_frames_center"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "TimberFrame_OneCrossedLr",
+      "template": "HyDomum_TimberFrame_OneCrossedLr",
+      "group": "btimberframe",
+      "slots": [
+        "timber_frames_frame",
+        "timber_frames_center"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "TimberFrame_OneCrossedRl",
+      "template": "HyDomum_TimberFrame_OneCrossedRl",
+      "group": "btimberframe",
+      "slots": [
+        "timber_frames_frame",
+        "timber_frames_center"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "TimberFrame_HorizontalPlain",
+      "template": "HyDomum_TimberFrame_HorizontalPlain",
+      "group": "btimberframe",
+      "slots": [
+        "timber_frames_frame",
+        "timber_frames_center"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "TimberFrame_SideFramedHorizontal",
+      "template": "HyDomum_TimberFrame_SideFramedHorizontal",
+      "group": "btimberframe",
+      "slots": [
+        "timber_frames_frame",
+        "timber_frames_center"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "Shingle",
+      "template": "HyDomum_Shingle",
+      "group": "cshingle",
+      "slots": [
+        "shingles_roof",
+        "shingles_support"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "Shingle_Flat",
+      "template": "HyDomum_Shingle_Flat",
+      "group": "cshingle",
+      "slots": [
+        "shingles_roof",
+        "shingles_support"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "Shingle_FlatLower",
+      "template": "HyDomum_Shingle_FlatLower",
+      "group": "cshingle",
+      "slots": [
+        "shingles_roof",
+        "shingles_support"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "Shingle_Steep",
+      "template": "HyDomum_Shingle_Steep",
+      "group": "cshingle",
+      "slots": [
+        "shingles_roof",
+        "shingles_support"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "Shingle_SteepLower",
+      "template": "HyDomum_Shingle_SteepLower",
+      "group": "cshingle",
+      "slots": [
+        "shingles_roof",
+        "shingles_support"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "ShingleSlab",
+      "template": "HyDomum_ShingleSlab",
+      "group": "cshingle",
+      "slots": [
+        "shingles_roof",
+        "shingles_support"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "Pillar_Round",
+      "template": "HyDomum_Pillar_Round",
+      "group": "gpillar",
+      "slots": [
+        "pillar_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Pillar_Voxel",
+      "template": "HyDomum_Pillar_Voxel",
+      "group": "gpillar",
+      "slots": [
+        "pillar_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Pillar_Square",
+      "template": "HyDomum_Pillar_Square",
+      "group": "gpillar",
+      "slots": [
+        "pillar_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Post_Double",
+      "template": "HyDomum_Post_Double",
+      "group": "kpost",
+      "slots": [
+        "post_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Post_Heavy",
+      "template": "HyDomum_Post_Heavy",
+      "group": "kpost",
+      "slots": [
+        "post_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Post_Pinched",
+      "template": "HyDomum_Post_Pinched",
+      "group": "kpost",
+      "slots": [
+        "post_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Post_Plain",
+      "template": "HyDomum_Post_Plain",
+      "group": "kpost",
+      "slots": [
+        "post_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Post_Quad",
+      "template": "HyDomum_Post_Quad",
+      "group": "kpost",
+      "slots": [
+        "post_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Post_Turned",
+      "template": "HyDomum_Post_Turned",
+      "group": "kpost",
+      "slots": [
+        "post_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Panel_Boss",
+      "template": "HyDomum_Panel_Boss",
+      "group": "fpanel",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "Panel_Coffer",
+      "template": "HyDomum_Panel_Coffer",
+      "group": "fpanel",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "Panel_Full",
+      "template": "HyDomum_Panel_Full",
+      "group": "fpanel",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "Panel_HorizontalBars",
+      "template": "HyDomum_Panel_HorizontalBars",
+      "group": "fpanel",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "Panel_HorizontallySquigglyStriped",
+      "template": "HyDomum_Panel_HorizontallySquigglyStriped",
+      "group": "fpanel",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "Panel_HorizontallyStriped",
+      "template": "HyDomum_Panel_HorizontallyStriped",
+      "group": "fpanel",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "Panel_Moulding",
+      "template": "HyDomum_Panel_Moulding",
+      "group": "fpanel",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "Panel_PortManteau",
+      "template": "HyDomum_Panel_PortManteau",
+      "group": "fpanel",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "Panel_Porthole",
+      "template": "HyDomum_Panel_Porthole",
+      "group": "fpanel",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "Panel_Roundel",
+      "template": "HyDomum_Panel_Roundel",
+      "group": "fpanel",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "Panel_Slot",
+      "template": "HyDomum_Panel_Slot",
+      "group": "fpanel",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "Panel_VerticalBars",
+      "template": "HyDomum_Panel_VerticalBars",
+      "group": "fpanel",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "Panel_VerticallySquigglyStriped",
+      "template": "HyDomum_Panel_VerticallySquigglyStriped",
+      "group": "fpanel",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "Panel_VerticallyStriped",
+      "template": "HyDomum_Panel_VerticallyStriped",
+      "group": "fpanel",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "Panel_Waffle",
+      "template": "HyDomum_Panel_Waffle",
+      "group": "fpanel",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "Door_Full",
+      "template": "HyDomum_Door_Full",
+      "group": "ddoor",
+      "slots": [
+        "doors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Door_PortManteau",
+      "template": "HyDomum_Door_PortManteau",
+      "group": "ddoor",
+      "slots": [
+        "doors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Door_VerticallyStriped",
+      "template": "HyDomum_Door_VerticallyStriped",
+      "group": "ddoor",
+      "slots": [
+        "doors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Door_Waffle",
+      "template": "HyDomum_Door_Waffle",
+      "group": "ddoor",
+      "slots": [
+        "doors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "FancyDoor_Creeper",
+      "template": "HyDomum_FancyDoor_Creeper",
+      "group": "ddoor",
+      "slots": [
+        "fancy_doors_materials",
+        "fancy_doors_materials"
+      ],
+      "optionalSecond": true,
+      "cutterQuantity": 2
+    },
+    {
+      "id": "FancyDoor_Full",
+      "template": "HyDomum_FancyDoor_Full",
+      "group": "ddoor",
+      "slots": [
+        "fancy_doors_materials",
+        "fancy_doors_materials"
+      ],
+      "optionalSecond": true,
+      "cutterQuantity": 2
+    },
+    {
+      "id": "Trapdoor_Boss",
+      "template": "HyDomum_Trapdoor_Boss",
+      "group": "etrapdoor",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Trapdoor_Coffer",
+      "template": "HyDomum_Trapdoor_Coffer",
+      "group": "etrapdoor",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Trapdoor_Full",
+      "template": "HyDomum_Trapdoor_Full",
+      "group": "etrapdoor",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Trapdoor_HorizontalBars",
+      "template": "HyDomum_Trapdoor_HorizontalBars",
+      "group": "etrapdoor",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Trapdoor_HorizontallySquigglyStriped",
+      "template": "HyDomum_Trapdoor_HorizontallySquigglyStriped",
+      "group": "etrapdoor",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Trapdoor_HorizontallyStriped",
+      "template": "HyDomum_Trapdoor_HorizontallyStriped",
+      "group": "etrapdoor",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Trapdoor_Moulding",
+      "template": "HyDomum_Trapdoor_Moulding",
+      "group": "etrapdoor",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Trapdoor_PortManteau",
+      "template": "HyDomum_Trapdoor_PortManteau",
+      "group": "etrapdoor",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Trapdoor_Porthole",
+      "template": "HyDomum_Trapdoor_Porthole",
+      "group": "etrapdoor",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Trapdoor_Roundel",
+      "template": "HyDomum_Trapdoor_Roundel",
+      "group": "etrapdoor",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Trapdoor_Slot",
+      "template": "HyDomum_Trapdoor_Slot",
+      "group": "etrapdoor",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Trapdoor_VerticalBars",
+      "template": "HyDomum_Trapdoor_VerticalBars",
+      "group": "etrapdoor",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Trapdoor_VerticallySquigglyStriped",
+      "template": "HyDomum_Trapdoor_VerticallySquigglyStriped",
+      "group": "etrapdoor",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Trapdoor_VerticallyStriped",
+      "template": "HyDomum_Trapdoor_VerticallyStriped",
+      "group": "etrapdoor",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Trapdoor_Waffle",
+      "template": "HyDomum_Trapdoor_Waffle",
+      "group": "etrapdoor",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "FancyTrapdoor_Creeper",
+      "template": "HyDomum_FancyTrapdoor_Creeper",
+      "group": "etrapdoor",
+      "slots": [
+        "fancy_trapdoors_materials",
+        "fancy_trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 2
+    },
+    {
+      "id": "FancyTrapdoor_Full",
+      "template": "HyDomum_FancyTrapdoor_Full",
+      "group": "etrapdoor",
+      "slots": [
+        "fancy_trapdoors_materials",
+        "fancy_trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 2
+    },
+    {
+      "id": "PaperWall",
+      "template": "HyDomum_PaperWall",
+      "group": "hpaperwall",
+      "slots": [
+        "paper_wall_frame",
+        "paper_wall_center"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 6
+    },
+    {
+      "id": "PaperWall_Tiled",
+      "template": "HyDomum_PaperWall_Tiled",
+      "group": "hpaperwall",
+      "slots": [
+        "paper_wall_frame",
+        "paper_wall_center"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 6
+    },
+    {
+      "id": "Fence",
+      "template": "HyDomum_Fence",
+      "group": "avanilla",
+      "slots": [
+        "fence_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "FenceGate",
+      "template": "HyDomum_FenceGate",
+      "group": "avanilla",
+      "slots": [
+        "fence_gate_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Wall",
+      "template": "HyDomum_Wall",
+      "group": "avanilla",
+      "slots": [
+        "wall_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Stairs",
+      "template": "HyDomum_Stairs",
+      "group": "avanilla",
+      "slots": [
+        "stairs_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Slab",
+      "template": "HyDomum_Slab",
+      "group": "avanilla",
+      "slots": [
+        "slab_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 2
+    }
+  ]
+}

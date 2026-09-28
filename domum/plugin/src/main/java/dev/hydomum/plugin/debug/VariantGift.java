@@ -11,7 +11,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hydomum.plugin.api.OrnamentVariant;
 import java.util.logging.Level;
 
-/** Who a /hyornament give hands its variant to: a stack of the variant's item, on the world thread. */
+/** Who a /hydomum give hands its variant to: a stack of the variant's item, on the world thread. */
 record VariantGift(PlayerRef player, Ref<EntityStore> ref) {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
     private static final int GIVEN = 16;
@@ -33,17 +33,17 @@ record VariantGift(PlayerRef player, Ref<EntityStore> ref) {
                     InventoryComponent.getCombined(store, ref, InventoryComponent.HOTBAR_FIRST),
                     new ItemStack(key, GIVEN));
             LOG.at(Level.INFO).log(
-                    "hyornament: gave %d %s (id %d), %s after %d ms",
+                    "hydomum: gave %d %s (id %d), %s after %d ms",
                     GIVEN, key, variant.blockId(), created ? "created" : "reused", ms);
             if (created) {
-                OrnamentCommand.say(player, "hycolony.ornament.created", key, String.valueOf(ms));
+                OrnamentCommand.say(player, "hydomum.ornament.created", key, String.valueOf(ms));
             } else {
-                OrnamentCommand.say(player, "hycolony.ornament.reused", key);
+                OrnamentCommand.say(player, "hydomum.ornament.reused", key);
             }
-            OrnamentCommand.say(player, "hycolony.ornament.given", String.valueOf(GIVEN), key);
+            OrnamentCommand.say(player, "hydomum.ornament.given", String.valueOf(GIVEN), key);
         } catch (RuntimeException e) {
-            LOG.at(Level.SEVERE).withCause(e).log("hyornament: giving %s failed", key);
-            OrnamentCommand.say(player, "hycolony.ornament.failed", "give");
+            LOG.at(Level.SEVERE).withCause(e).log("hydomum: giving %s failed", key);
+            OrnamentCommand.say(player, "hydomum.ornament.failed", "give");
         }
     }
 }
