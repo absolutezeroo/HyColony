@@ -20,8 +20,6 @@ GRADLE_ASSETS = Path.home() / ".gradle" / "caches" / "hytale-assets" / "release-
 # Hytale block groups standing for DO's tag groups, as regular expressions over vanilla item ids.
 GROUPS = {
     "planks": r"Wood_[A-Za-z]+_Planks",
-    # #minecraft:logs: full trunks and the stripped log block.
-    "logs": r"Wood_[A-Za-z]+_Trunk_Full|Wood_Stripped_Deco",
     "stone": r"Rock_(?!Crystal|Ice|Bedrock)[A-Za-z]+(_Cobble)?",
     "sandstone": r"Rock_Sandstone[A-Za-z_]*",
     "dirt": r"Soil_(Dirt|Grass)(_[A-Za-z]+)*",
@@ -50,7 +48,8 @@ TAG_GROUPS = {
     "fancy_trapdoors_materials": ("default", "planks"),
     "fence_materials": ("default",),
     "fence_gate_materials": ("default",),
-    # The compat tags list DO's groups and single blocks; their single stones fall inside "default" here.
+    # Deviation from MC: DO's wall and stairs tags list single blocks and groups without #domum_ornamentum:default
+    # (no plain stone, cobble or stone bricks); here they start from "default", so they also take those stones.
     "wall_materials": ("default", "planks"),
     "stairs_materials": ("default", "dirt", "leaves"),
     "slab_materials": ("default", "planks", "dirt", "leaves"),

@@ -31,7 +31,7 @@
       }
     ],
     "VariantRotation": "UpDownNESW",
-    "HitboxType": "HyColony_DO_Shingle_FlatLower",
+    "HitboxType": "Block_Half",
     "Supporting": {
       "Down": [
         {}
@@ -65,7 +65,7 @@
       "Definitions": {
         "Corner_Left": {
           "CustomModel": "Blocks/HyColony/DO/Shingle_FlatLower_Corner_Left.blockymodel",
-          "HitboxType": "HyColony_DO_Shingle_FlatLower_Corner_Left",
+          "HitboxType": "Block_Half",
           "FlipType": "Orthogonal",
           "Supporting": {
             "Down": [
@@ -75,7 +75,7 @@
         },
         "Corner_Right": {
           "CustomModel": "Blocks/HyColony/DO/Shingle_FlatLower_Corner_Right.blockymodel",
-          "HitboxType": "HyColony_DO_Shingle_FlatLower_Corner_Right",
+          "HitboxType": "Block_Half",
           "FlipType": "OrthogonalInverse",
           "Supporting": {
             "Down": [
@@ -85,7 +85,7 @@
         },
         "Inverted_Corner_Left": {
           "CustomModel": "Blocks/HyColony/DO/Shingle_FlatLower_Inverted_Corner_Left.blockymodel",
-          "HitboxType": "HyColony_DO_Shingle_FlatLower_Inverted_Corner_Left",
+          "HitboxType": "Block_Half",
           "FlipType": "Orthogonal",
           "Supporting": {
             "Down": [
@@ -95,7 +95,7 @@
         },
         "Inverted_Corner_Right": {
           "CustomModel": "Blocks/HyColony/DO/Shingle_FlatLower_Inverted_Corner_Right.blockymodel",
-          "HitboxType": "HyColony_DO_Shingle_FlatLower_Inverted_Corner_Right",
+          "HitboxType": "Block_Half",
           "FlipType": "OrthogonalInverse",
           "Supporting": {
             "Down": [

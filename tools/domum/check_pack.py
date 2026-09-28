@@ -97,20 +97,29 @@ def shingle_slab_template_has_six_shapes():
     assert included == {(0, 1), (1, 0)}, included
 
 
-def shingle_hitboxes_stay_in_their_block():
-    """A DO slope fits one block (unlike Hytale's 2-block shallow and steep roofs): every shingle state collides
-    inside its block, rising from low to high like the model."""
+def shingle_hitboxes_are_dos():
+    """A shingle collides as DO's (ShingleBlock.getShape): a one-block stair, corners included, for the normal, flat
+    and steep slopes (vanilla's Stairs hitboxes, not the two-block roof ones); a bottom half for the flat lower one;
+    the north half for the steep lower one."""
     ctx = generate_into_temp()
-    hitboxes = ctx.pack / "Server/Item/Block/Hitboxes/HyColony/DO"
-    for ident, item in ctx.items.items():
-        if not ident.startswith("HyColony_DO_Shingle") or "Slab" in ident:
-            continue
-        block = item["BlockType"]
-        for name in [block["HitboxType"]] + [s["HitboxType"] for s in block["State"]["Definitions"].values()]:
-            boxes = json.loads((hitboxes / (name + ".json")).read_text(encoding="utf-8"))["Boxes"]
-            for box in boxes:
-                assert all(0 <= box["Min"][a] <= box["Max"][a] <= 1 for a in "XYZ"), (name, box)
-            assert len({box["Max"]["Y"] for box in boxes}) > 1, name
+    stairs = {"default": "Stairs", "Corner_Left": "Stairs_Corner_Left", "Corner_Right": "Stairs_Corner_Right",
+              "Inverted_Corner_Left": "Stairs_Inverted_Corner_Left",
+              "Inverted_Corner_Right": "Stairs_Inverted_Corner_Right"}
+    for ident in ("HyColony_DO_Shingle", "HyColony_DO_Shingle_Flat", "HyColony_DO_Shingle_Steep"):
+        assert shingle_hitboxes(ctx, ident) == stairs, ident
+    assert set(shingle_hitboxes(ctx, "HyColony_DO_Shingle_FlatLower").values()) == {"Block_Half"}
+    steep_lower = set(shingle_hitboxes(ctx, "HyColony_DO_Shingle_SteepLower").values())
+    assert len(steep_lower) == 1
+    path = ctx.pack / "Server/Item/Block/Hitboxes/HyColony/DO" / (steep_lower.pop() + ".json")
+    assert json.loads(path.read_text(encoding="utf-8"))["Boxes"] == [
+        {"Min": {"X": 0, "Y": 0, "Z": 0}, "Max": {"X": 1, "Y": 1, "Z": 0.5}}]
+
+
+def shingle_hitboxes(ctx, ident):
+    """State ("default" for the block itself) -> HitboxType of a shingle template."""
+    block = ctx.items[ident]["BlockType"]
+    return {"default": block["HitboxType"],
+            **{state: look["HitboxType"] for state, look in block["State"]["Definitions"].items()}}
 
 
 def placement_follows_do():
@@ -213,6 +222,6 @@ def run():
     shingle_slab_template_has_six_shapes()
     every_generated_model_reads_one_tile()
     placement_follows_do()
-    shingle_hitboxes_stay_in_their_block()
+    shingle_hitboxes_are_dos()
     door_copies_vanilla_mechanics()
     trapdoor_opens_like_vanilla()

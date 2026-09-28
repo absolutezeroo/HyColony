@@ -8,7 +8,6 @@ A shingle slab takes one of six shapes from how many shingle slabs surround it a
 (DO ShingleSlabBlock.getSlabShape): our own connected-block template, one pattern per shape, rotated by Hytale.
 """
 
-import hitboxes
 import names
 from blocks import common
 from pack import write_json
@@ -23,6 +22,17 @@ CORNERS = {
 }
 FLIPS = {"Corner_Left": "Orthogonal", "Corner_Right": "OrthogonalInverse",
          "Inverted_Corner_Left": "Orthogonal", "Inverted_Corner_Right": "OrthogonalInverse"}
+# DO's collision shapes (ShingleBlock.getShape): the normal, flat and steep slopes are one-block stairs, corners
+# included (DOStairBlock, as Minecraft's stairs: vanilla Hytale's Stairs hitboxes); the flat lower one a bottom half
+# (BOTTOM_AABB); the steep lower one the half toward its facing (NORTH_AABB), whatever its corner shape.
+_STAIRS = {"default": "Stairs", "Corner_Left": "Stairs_Corner_Left", "Corner_Right": "Stairs_Corner_Right",
+           "Inverted_Corner_Left": "Stairs_Inverted_Corner_Left",
+           "Inverted_Corner_Right": "Stairs_Inverted_Corner_Right"}
+STEEP_LOWER_HITBOX = "HyColony_DO_Shingle_SteepLower_Half"
+HITBOXES = {"shingle": _STAIRS, "shingle_flat": _STAIRS, "shingle_steep": _STAIRS,
+            "shingle_flat_lower": dict.fromkeys(_STAIRS, "Block_Half"),
+            "shingle_steep_lower": dict.fromkeys(_STAIRS, STEEP_LOWER_HITBOX)}
+
 SLAB_TEMPLATE = "HyColony_DO_ShingleSlabConnectedBlockTemplate"
 SLAB_TAG = "HyColonyDoShingleSlab"
 # Shape -> the neighbours (north, south, east, west) that make it with DO's facing=north, the state we draw
@@ -38,16 +48,18 @@ SLAB_SHAPES = {
 
 
 def shingles(ctx, family):
-    """One template per DO slope: straight block plus its four corner states, each colliding as its own model
-    (a DO slope fits one block; Hytale's shallow and steep roof hitboxes span two)."""
+    """One template per DO slope: straight block plus its four corner states, each colliding as DO's shape."""
+    write_json(ctx.pack / common.HITBOXES / (STEEP_LOWER_HITBOX + ".json"),
+               {"Boxes": [{"Min": {"X": 0, "Y": 0, "Z": 0}, "Max": {"X": 1, "Y": 1, "Z": 0.5}}]})
     for block in family.blocks:
         ident = names.template_id(family, (block,))
-        straight = _look(ctx, family, ident, block, "straight")
-        definitions = {state: {**_look(ctx, family, ident + "_" + state, block, shape), "FlipType": FLIPS[state],
+        hitboxes = HITBOXES[block]
+        straight = _model(ctx, family, ident, "", block, {"shape": "straight"})
+        definitions = {state: {"CustomModel": _model(ctx, family, ident, "_" + state, block, {"shape": shape}),
+                               "HitboxType": hitboxes[state], "FlipType": FLIPS[state],
                                "Supporting": {"Down": [{}]}}
                        for state, shape in CORNERS.items()}
-        block_type = common.model_block_type(ctx, family, straight["CustomModel"], straight["HitboxType"],
-                                             "UpDownNESW")
+        block_type = common.model_block_type(ctx, family, straight, hitboxes["default"], "UpDownNESW")
         block_type.update({
             "Supporting": {"Down": [{}], "North": [{}]},
             "ConnectedBlockRuleSet": {
@@ -60,13 +72,6 @@ def shingles(ctx, family):
             "State": {"Definitions": definitions},
         })
         common.template(ctx, family, ident, (block,), block_type)
-
-
-def _look(ctx, family, name, block, shape):
-    """The CustomModel and stepped HitboxType of one slope shape (facing north, bottom half), both written."""
-    model, blockymodel = common.convert_state(ctx, family, block, {"facing": "north", "half": "bottom", "shape": shape})
-    write_json(ctx.pack / common.HITBOXES / (name + ".json"), {"Boxes": hitboxes.stepped(model)})
-    return {"CustomModel": common.write_model(ctx, name, blockymodel), "HitboxType": name}
 
 
 def shingle_slab(ctx, family):

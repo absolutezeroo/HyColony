@@ -9,6 +9,9 @@ from blocks import common
 # Family -> VariantRotation. A post points along any axis (DO facing: 6 directions), like a vanilla pipe. A panel
 # lies on the floor, under the ceiling or stands against a wall (AbstractPanelBlockTrapdoor): Hytale's half-block
 # rotation (DoublePipe: none, pitch 180, pitch 90 in 4 yaws) gives those six.
+# Deviation from MC: DO also turns a floor or ceiling panel toward the player and a standing post about its axis
+# (FACING); no Hytale rotation set has both the wall placements and those turns, and DO's click zones (0.2 / 0.8)
+# that pick the half are not reproduced.
 ROTATIONS = {"Post": "Pipe", "Panel": "DoublePipe"}
 # Timber frames whose pattern points somewhere (DO TimberFrameBlock: FACING, 6 ways, the model drawn facing up):
 # the same six through DoublePipe, from the up-facing model. DO draws the others the same whatever the facing.
