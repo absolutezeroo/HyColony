@@ -1,4 +1,4 @@
-package dev.hycolony.plugin.ui;
+package dev.hycolony.plugin.ui.field;
 
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
@@ -12,6 +12,7 @@ import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.action.FieldActions;
 import dev.hycolony.core.colony.ui.FieldView;
 import dev.hycolony.core.farming.field.FieldRadii.Direction;
+import dev.hycolony.plugin.ui.ColonyPage;
 import java.util.Locale;
 import javax.annotation.Nonnull;
 

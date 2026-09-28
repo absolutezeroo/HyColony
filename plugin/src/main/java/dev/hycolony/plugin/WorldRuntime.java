@@ -35,6 +35,7 @@ import dev.hycolony.plugin.crafting.HytaleRecipeCatalog;
 import dev.hycolony.plugin.farming.HytaleFarming;
 import dev.hycolony.plugin.npc.CitizenSpeed;
 import dev.hycolony.plugin.prefab.HytaleBlueprintSource;
+import dev.hycolony.plugin.ui.highlight.HighlightMarkers;
 import java.util.Random;
 import java.util.Set;
 import java.util.logging.Level;
@@ -59,6 +60,7 @@ public final class WorldRuntime {
 
     WorldRuntime(World world, RuntimeSetup setup, CitizenNames names, boolean enabled) {
         this.world = world;
+        world.getWorldMapManager().addMarkerProvider(HighlightMarkers.KEY, new HighlightMarkers());
         ColonyConfig config = setup.config();
         IdMap ids = setup.ids();
         this.clock = new HytaleGameClock(world);

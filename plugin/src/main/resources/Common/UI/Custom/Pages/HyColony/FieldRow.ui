@@ -30,11 +30,23 @@ Group {
       }
     }
 
-    $C.@SecondaryTextButton #LocateButton {
-      Anchor: (Width: 120, Height: 32, Right: 6);
-      Text: %hycolony.ui.fields.locate;
+    // Locate: the client's block icon, its selected variant while the highlight lasts.
+    $C.@SecondaryButton #LocateButton {
+      Anchor: (Width: 32, Height: 32, Right: 6);
+      LayoutMode: Middle;
       TooltipText: %hycolony.ui.fields.locate.tooltip;
       TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+
+      Group #LocateIcon {
+        Anchor: (Width: 20, Height: 20);
+        Background: "Native/BlockIcon.png";
+      }
+
+      Group #LocateIconOn {
+        Anchor: (Width: 20, Height: 20);
+        Background: "Native/BlockIconSelected.png";
+        Visible: false;
+      }
     }
 
     $C.@SecondaryTextButton #AssignButton {
