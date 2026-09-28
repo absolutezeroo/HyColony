@@ -21,6 +21,7 @@ import dev.hycolony.plugin.npc.CitizenBodyLifecycleSystem;
 import dev.hycolony.plugin.npc.CitizenFireImmunitySystems;
 import dev.hycolony.plugin.npc.CitizenUseSystem;
 import dev.hycolony.plugin.npc.HyColonyComponents;
+import dev.hycolony.plugin.ornament.Ornaments;
 import dev.hycolony.plugin.prefab.HytaleBlueprintSource;
 import dev.hycolony.plugin.subplugin.SubPlugins;
 import dev.hycolony.plugin.ui.wand.WandInteraction;
@@ -59,6 +60,7 @@ public final class HyColonyPlugin extends JavaPlugin {
         WandInteraction.register(this, worlds);
         getCommandRegistry().registerCommand(new HyColonyCommand(worlds, ids, colonyConfig.commands(), packs));
         registerWorldEvents(worlds);
+        Ornaments.register(this);
         getEventRegistry().register(PlayerDisconnectEvent.class, e -> onDisconnect(worlds, ids, e));
 
         getLogger().at(Level.INFO).log("HyColony setup complete");

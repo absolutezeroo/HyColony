@@ -1,0 +1,35 @@
+{
+  "TranslationProperties": {
+    "Name": "hycolony.item.ornament.timberframe.name"
+  },
+  "MaxStack": 100,
+  "Icon": "Icons/ItemsGenerated/Rock_Stone_Brick.png",
+  "PlayerAnimationsId": "Block",
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "CubeWithModel",
+    "Group": "Stone",
+    "Flags": {},
+    "Gathering": {
+      "Breaking": { "GatherType": "Rocks" }
+    },
+    "BlockParticleSetId": "Stone",
+    "Textures": [
+      { "All": "BlockTextures/Rock_Stone_Brick.png", "Weight": 1 }
+    ],
+    "CustomModel": "Blocks/HyColony/Ornament/TimberFrame.blockymodel",
+    "CustomModelTexture": [
+      { "Texture": "BlockTextures/Wood_Hardwood_Planks.png", "Weight": 1 }
+    ],
+    "ParticleColor": "#737055",
+    "BlockSoundSetId": "Stone",
+    "PhysicalMaterialId": "Stone",
+    "TextureComputedColor": "#64634D"
+  },
+  "IconProperties": {
+    "Scale": 0.58823,
+    "Rotation": [22.5, 45, 22.5],
+    "Translation": [0, -13.5]
+  },
+  "ItemSoundSetId": "ISS_Blocks_Stone"
+}
