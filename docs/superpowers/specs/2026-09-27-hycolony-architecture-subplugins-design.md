@@ -30,7 +30,7 @@ Rendre l'ajout d'un métier, d'un bâtiment ou d'un pack de contenu **local** : 
 
    Il n'y a pas de règle « `job` ne dépend pas de `logistics` » : `WorkerStock.dump` demande un ramassage juste après le dépôt, comme MC `AbstractEntityAIBasic.dumpInventory` appelle `building.createPickupRequest`. La logistique est une fonctionnalité du cœur, qu'on ne peut pas désactiver.
 
-   Les règles qui touchent des garde-fous (PMD `NcssCount`, échec sur une exception PMD inutilisée) attendent une session déverrouillée.
+   Les règles qui touchent des garde-fous sont en place : PMD `NcssCount` (2850eac), échec sur une exception PMD périmée (c79e340, 360a018) et sur un ruleset que PMD ne peut pas charger (2f6c152).
 7. **Sous-plugins.**
    - Un dossier `subplugins/<Nom>/` dans les ressources contient :
      - un manifeste (nom, version, activé par défaut) ;
@@ -56,7 +56,7 @@ Rendre l'ajout d'un métier, d'un bâtiment ou d'un pack de contenu **local** : 
 - Fragments : fusion par `JsonFragments` (cœur), sur un niveau pour `id-map.json` (clés d'une section) et deux pour `styles.json` (style puis type de bâtiment). Une clé définie deux fois est journalisée SEVERE avec ses deux sources ; la première l'emporte.
 - Rechargement du plugin : `shutdown()` désenregistre les packs d'assets enregistrés au démarrage, comme `PluginManager.unregisterAssetPackIfNeeded` le fait pour le pack du plugin (sous le verrou d'assets déjà pris par le déchargement), sauf à l'arrêt du serveur, où vanilla laisse tous les packs. Les traductions restent (l'écouteur vanilla est vide).
 - Traductions : un pack peut livrer son `hycolony.lang` ; les clés sont fusionnées et la première chargée gagne. Règle : un pack ajoute des clés, il n'en redéfinit jamais une du cœur (non vérifié par le build).
-- Point 8 : les deux styles n'ont aucun asset propre (les prefabs sont ceux de Hytale). Leurs packs ne contiennent que leur `styles.json` et la clé `blueprint.spawnerChest.<style>` de l'`id-map` ; ils n'enregistrent donc pas de pack d'assets. L'autotest utilise la clé `selftest.chest` du cœur et le premier style disponible. Le chemin `registerPack` ne sera donc exercé que par le premier pack qui aura des assets `Common/` ou `Server/`.
+- Point 8 : les deux styles n'ont aucun asset propre (les prefabs sont ceux de Hytale). Leurs packs ne contiennent que leur `styles.json` et la clé `blueprint.spawnerChest.<style>` de l'`id-map` ; ils n'enregistrent donc pas de pack d'assets. L'autotest utilise la clé `selftest.chest` du cœur et le premier style disponible. Le chemin `registerPack` est exercé par le pack Decorations (tapis et pots de fleurs), le premier à livrer des assets `Common/` et `Server/`.
 
 Hors portée : la défense, la recherche, les autres métiers de SP3, et l'accès multi-module (`modules(Class)`), prévu avant la défense et l'école.
 
