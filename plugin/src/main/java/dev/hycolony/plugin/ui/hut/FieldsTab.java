@@ -19,7 +19,7 @@ import java.util.UUID;
  * A farmer hut's Fields tab (MC FarmFieldsModuleWindow): {@code owned} of {@code max}, the assignment mode and Request
  * Fertilizer buttons, then a row per field with its seed, distance, stage and Assign or Free. Assign and Free work in
  * manual mode only; a refused Assign is disabled with its reason as tooltip. The core checks MANAGE_HUTS and re-shows.
- * Locate highlights the field block for the viewer. Deviation from MC: a button added at the user's request.
+ * Locate highlights the whole field for the viewer, with a map marker, for a minute; a second click turns it off. Deviation from MC: a button added at the user's request.
  */
 final class FieldsTab implements HutTab {
     /** The field block's height (Hitboxes/Furniture/Scarecrow.json: 2.3), rounded up. */
@@ -130,9 +130,15 @@ final class FieldsTab implements HutTab {
         }
     }
 
+    /** Locate changes the icon of its row only: nothing in the core, so the page redraws itself. */
+    @Override
+    public boolean redraws(ColonyPage.Act act) {
+        return act.action().equals("fieldLocate");
+    }
+
     /**
      * Highlights the row's field for the viewer, or turns the highlight off, to find it in a large colony; an unknown
-     * row does nothing. The icon shows the new state at the window's next redraw.
+     * row does nothing.
      */
     private void locate(int index) {
         if (index >= 0 && index < fields.rows().size()) {

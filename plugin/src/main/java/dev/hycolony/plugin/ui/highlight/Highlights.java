@@ -17,11 +17,15 @@ import org.joml.Vector3f;
 /**
  * The highlights players asked for, one at a time each, for {@link #MILLIS}: its boxes drawn with the game's debug
  * shapes (DebugUtils.add, sent to that player only) and its map marker ({@link HighlightMarkers}), which walls do not
- * hide. Read by the world map thread, hence the concurrent map.
+ * hide. Turning one off, or showing another, clears every debug shape of the player (ClearDebugShapes has no
+ * target), which HyColony uses for nothing else. Read by the world map thread, hence the concurrent map.
  */
 public final class Highlights {
+    /** How long a highlight lasts, in milliseconds. */
     private static final long MILLIS = 60_000;
+    /** The shapes' colour: gold. */
     private static final Vector3f COLOR = new Vector3f(1f, 0.78f, 0.2f);
+    /** The solid shapes' opacity. */
     private static final float OPACITY = 0.45f;
     /** DebugUtils.FLAG_FADE: the shape fades out at its end. */
     private static final byte FADE = 1;
@@ -50,7 +54,9 @@ public final class Highlights {
             ref.getPacketHandler().write(new ClearDebugShapes());
             return;
         }
-        ACTIVE.put(player, new Active(h, world, System.currentTimeMillis() + MILLIS));
+        if (ACTIVE.put(player, new Active(h, world, System.currentTimeMillis() + MILLIS)) != null) {
+            ref.getPacketHandler().write(new ClearDebugShapes()); // the previous highlight's shapes
+        }
         for (Highlight.Box b : h.boxes()) {
             send(ref, b);
         }

@@ -20,4 +20,12 @@ public interface HutTab {
 
     /** Runs {@code act} if it is one of this tab's buttons; the core re-shows the window. */
     default void handle(ColonyPage.Act act) {}
+
+    /**
+     * True when {@code act} changed what this tab shows without going through the core (which re-shows the window
+     * itself), so the page must redraw.
+     */
+    default boolean redraws(ColonyPage.Act act) {
+        return false;
+    }
 }

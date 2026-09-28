@@ -113,6 +113,9 @@ public final class BuildingPage extends ColonyPage {
                     rebuild();
                 }
                 moduleTabs.forEach(t -> t.handle(act));
+                if (moduleTabs.stream().anyMatch(t -> t.redraws(act))) {
+                    rebuild();
+                }
             }
         }
     }
