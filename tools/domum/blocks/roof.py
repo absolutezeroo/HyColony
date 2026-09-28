@@ -44,9 +44,6 @@ SLAB_SHAPES = {
     "Three_Way": ("three_way", {"north", "east", "west"}),
     "Four_Way": ("four_way", {"north", "south", "east", "west"}),
 }
-# Neighbour -> (its offset, the face of it that touches us).
-_SIDES = {"north": ((0, 0, -1), "South"), "south": ((0, 0, 1), "North"),
-          "east": ((1, 0, 0), "West"), "west": ((-1, 0, 0), "East")}
 
 
 def shingles(ctx, family):
@@ -82,33 +79,12 @@ def shingle_slab(ctx, family):
     definitions = {shape: {"CustomModel": _model(ctx, family, ident, "_" + shape, block, {"shape": do_shape})}
                    for shape, (do_shape, _) in SLAB_SHAPES.items()}
     block_type = common.model_block_type(ctx, family, top, None, "NESW")
-    block_type.update({
-        "HitboxType": "Block_Half",
-        "Opacity": "Transparent",
-        "ConnectedBlockRuleSet": {
-            "Type": "CustomTemplate",
-            "TemplateShapeAssetId": SLAB_TEMPLATE,
-            "TemplateShapeBlockPatterns": {"Single": ident, **{
-                shape: f"*{ident}_State_Definitions_{shape}" for shape in SLAB_SHAPES}},
-        },
-        "State": {"Definitions": definitions},
-    })
+    block_type.update({"HitboxType": "Block_Half", "Opacity": "Transparent",
+                       **common.connected(ident, SLAB_TEMPLATE, "Single", definitions)})
     common.template(ctx, family, ident, (), block_type)
-    write_json(ctx.pack / "Server/Item/CustomConnectedBlockTemplates" / (SLAB_TEMPLATE + ".json"), slab_template())
-
-
-def slab_template():
-    """The connected-block template: every shape carries the slab tag on its four sides; a shape matches when
-    exactly its neighbours (and no other side) are shingle slabs."""
-    tags = {side.capitalize(): [SLAB_TAG] for side in _SIDES}
-    shapes = {"Single": {"FaceTags": tags, "PatternsToMatchAnyOf": []}}
-    for shape, (_, present) in SLAB_SHAPES.items():
-        rules = [{"Position": dict(zip("XYZ", offset)), "IncludeOrExclude": "Include" if side in present else "Exclude",
-                  "FaceTags": {face: [SLAB_TAG]}} for side, (offset, face) in _SIDES.items()]
-        shapes[shape] = {"FaceTags": tags, "PatternsToMatchAnyOf": [{
-            "Type": "Custom", "AllowedPatternTransformations": {"IsCardinallyRotatable": True},
-            "RulesToMatch": rules}]}
-    return {"ConnectsToOtherMaterials": True, "DefaultShape": "Single", "Shapes": shapes}
+    shapes = {shape: present for shape, (_, present) in SLAB_SHAPES.items()}
+    write_json(ctx.pack / common.TEMPLATES / (SLAB_TEMPLATE + ".json"),
+               common.neighbour_template(SLAB_TAG, "Single", shapes))
 
 
 def _model(ctx, family, ident, suffix, block, props):

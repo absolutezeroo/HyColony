@@ -1,0 +1,413 @@
+{
+  "ConnectsToOtherMaterials": true,
+  "DefaultShape": "Post",
+  "Shapes": {
+    "Post": {
+      "FaceTags": {
+        "North": [
+          "HyColonyDoPane"
+        ],
+        "South": [
+          "HyColonyDoPane"
+        ],
+        "East": [
+          "HyColonyDoPane"
+        ],
+        "West": [
+          "HyColonyDoPane"
+        ]
+      },
+      "PatternsToMatchAnyOf": []
+    },
+    "End": {
+      "FaceTags": {
+        "North": [
+          "HyColonyDoPane"
+        ],
+        "South": [
+          "HyColonyDoPane"
+        ],
+        "East": [
+          "HyColonyDoPane"
+        ],
+        "West": [
+          "HyColonyDoPane"
+        ]
+      },
+      "PatternsToMatchAnyOf": [
+        {
+          "Type": "Custom",
+          "AllowedPatternTransformations": {
+            "IsCardinallyRotatable": true
+          },
+          "RulesToMatch": [
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": -1
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "South": [
+                  "HyColonyDoPane"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": 1
+              },
+              "IncludeOrExclude": "Exclude",
+              "FaceTags": {
+                "North": [
+                  "HyColonyDoPane"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Exclude",
+              "FaceTags": {
+                "West": [
+                  "HyColonyDoPane"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": -1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Exclude",
+              "FaceTags": {
+                "East": [
+                  "HyColonyDoPane"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "Straight": {
+      "FaceTags": {
+        "North": [
+          "HyColonyDoPane"
+        ],
+        "South": [
+          "HyColonyDoPane"
+        ],
+        "East": [
+          "HyColonyDoPane"
+        ],
+        "West": [
+          "HyColonyDoPane"
+        ]
+      },
+      "PatternsToMatchAnyOf": [
+        {
+          "Type": "Custom",
+          "AllowedPatternTransformations": {
+            "IsCardinallyRotatable": true
+          },
+          "RulesToMatch": [
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": -1
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "South": [
+                  "HyColonyDoPane"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": 1
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "North": [
+                  "HyColonyDoPane"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Exclude",
+              "FaceTags": {
+                "West": [
+                  "HyColonyDoPane"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": -1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Exclude",
+              "FaceTags": {
+                "East": [
+                  "HyColonyDoPane"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "Corner": {
+      "FaceTags": {
+        "North": [
+          "HyColonyDoPane"
+        ],
+        "South": [
+          "HyColonyDoPane"
+        ],
+        "East": [
+          "HyColonyDoPane"
+        ],
+        "West": [
+          "HyColonyDoPane"
+        ]
+      },
+      "PatternsToMatchAnyOf": [
+        {
+          "Type": "Custom",
+          "AllowedPatternTransformations": {
+            "IsCardinallyRotatable": true
+          },
+          "RulesToMatch": [
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": -1
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "South": [
+                  "HyColonyDoPane"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": 1
+              },
+              "IncludeOrExclude": "Exclude",
+              "FaceTags": {
+                "North": [
+                  "HyColonyDoPane"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "West": [
+                  "HyColonyDoPane"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": -1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Exclude",
+              "FaceTags": {
+                "East": [
+                  "HyColonyDoPane"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "T_Junction": {
+      "FaceTags": {
+        "North": [
+          "HyColonyDoPane"
+        ],
+        "South": [
+          "HyColonyDoPane"
+        ],
+        "East": [
+          "HyColonyDoPane"
+        ],
+        "West": [
+          "HyColonyDoPane"
+        ]
+      },
+      "PatternsToMatchAnyOf": [
+        {
+          "Type": "Custom",
+          "AllowedPatternTransformations": {
+            "IsCardinallyRotatable": true
+          },
+          "RulesToMatch": [
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": -1
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "South": [
+                  "HyColonyDoPane"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": 1
+              },
+              "IncludeOrExclude": "Exclude",
+              "FaceTags": {
+                "North": [
+                  "HyColonyDoPane"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "West": [
+                  "HyColonyDoPane"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": -1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "East": [
+                  "HyColonyDoPane"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "Cross_Junction": {
+      "FaceTags": {
+        "North": [
+          "HyColonyDoPane"
+        ],
+        "South": [
+          "HyColonyDoPane"
+        ],
+        "East": [
+          "HyColonyDoPane"
+        ],
+        "West": [
+          "HyColonyDoPane"
+        ]
+      },
+      "PatternsToMatchAnyOf": [
+        {
+          "Type": "Custom",
+          "AllowedPatternTransformations": {
+            "IsCardinallyRotatable": true
+          },
+          "RulesToMatch": [
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": -1
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "South": [
+                  "HyColonyDoPane"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": 1
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "North": [
+                  "HyColonyDoPane"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "West": [
+                  "HyColonyDoPane"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": -1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "East": [
+                  "HyColonyDoPane"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

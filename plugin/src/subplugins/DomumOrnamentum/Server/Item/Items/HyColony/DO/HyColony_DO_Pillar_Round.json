@@ -1,0 +1,69 @@
+{
+  "TranslationProperties": {
+    "Name": "hycolony.item.do.pillar_round.name"
+  },
+  "Icon": "Icons/ItemsGenerated/Wood_Hardwood_Planks.png",
+  "IconProperties": {
+    "Scale": 0.58823,
+    "Rotation": [
+      22.5,
+      45,
+      22.5
+    ],
+    "Translation": [
+      0,
+      -13.5
+    ]
+  },
+  "Categories": [
+    "DomumOrnamentum.Pillar"
+  ],
+  "PlayerAnimationsId": "Block",
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Model",
+    "Opacity": "Transparent",
+    "CustomModel": "Blocks/HyColony/DO/Pillar_Round.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "BlockTextures/Wood_Hardwood_Planks_Side.png",
+        "Weight": 1
+      }
+    ],
+    "VariantRotation": "None",
+    "ConnectedBlockRuleSet": {
+      "Type": "CustomTemplate",
+      "TemplateShapeAssetId": "HyColony_DO_PillarConnectedBlockTemplate",
+      "TemplateShapeBlockPatterns": {
+        "Full": "HyColony_DO_Pillar_Round",
+        "Base": "*HyColony_DO_Pillar_Round_State_Definitions_Base",
+        "Base_Inverted": "*HyColony_DO_Pillar_Round_State_Definitions_Base_Inverted",
+        "Middle": "*HyColony_DO_Pillar_Round_State_Definitions_Middle"
+      }
+    },
+    "State": {
+      "Definitions": {
+        "Base": {
+          "CustomModel": "Blocks/HyColony/DO/Pillar_Round_Base.blockymodel"
+        },
+        "Base_Inverted": {
+          "CustomModel": "Blocks/HyColony/DO/Pillar_Round_Base_Inverted.blockymodel"
+        },
+        "Middle": {
+          "CustomModel": "Blocks/HyColony/DO/Pillar_Round_Middle.blockymodel",
+          "HitboxType": "HyColony_DO_Pillar_Round_Middle"
+        }
+      }
+    },
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "Woods"
+      }
+    },
+    "BlockParticleSetId": "Wood",
+    "ParticleColor": "#693e2a",
+    "BlockSoundSetId": "Wood",
+    "PhysicalMaterialId": "Wood"
+  },
+  "ItemSoundSetId": "ISS_Blocks_Wood"
+}

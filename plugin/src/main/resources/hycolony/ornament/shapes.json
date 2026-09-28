@@ -178,6 +178,36 @@
       "cutterQuantity": 4
     },
     {
+      "id": "Pillar_Round",
+      "template": "HyColony_DO_Pillar_Round",
+      "group": "gpillar",
+      "slots": [
+        "pillar_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Pillar_Voxel",
+      "template": "HyColony_DO_Pillar_Voxel",
+      "group": "gpillar",
+      "slots": [
+        "pillar_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Pillar_Square",
+      "template": "HyColony_DO_Pillar_Square",
+      "group": "gpillar",
+      "slots": [
+        "pillar_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
       "id": "Post_Double",
       "template": "HyColony_DO_Post_Double",
       "group": "kpost",
@@ -620,6 +650,28 @@
       ],
       "optionalSecond": false,
       "cutterQuantity": 2
+    },
+    {
+      "id": "PaperWall",
+      "template": "HyColony_DO_PaperWall",
+      "group": "hpaperwall",
+      "slots": [
+        "paper_wall_frame",
+        "paper_wall_center"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 6
+    },
+    {
+      "id": "PaperWall_Tiled",
+      "template": "HyColony_DO_PaperWall_Tiled",
+      "group": "hpaperwall",
+      "slots": [
+        "paper_wall_frame",
+        "paper_wall_center"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 6
     }
   ]
 }

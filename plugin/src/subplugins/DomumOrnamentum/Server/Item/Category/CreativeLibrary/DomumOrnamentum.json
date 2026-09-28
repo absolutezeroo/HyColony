@@ -43,6 +43,16 @@
       "Icon": "Icons/ItemCategories/DomumOrnamentum_Panel.png"
     },
     {
+      "Id": "Pillar",
+      "Name": "hycolony.category.do.pillar",
+      "Icon": "Icons/ItemCategories/DomumOrnamentum_Pillar.png"
+    },
+    {
+      "Id": "PaperWall",
+      "Name": "hycolony.category.do.paperwall",
+      "Icon": "Icons/ItemCategories/DomumOrnamentum_PaperWall.png"
+    },
+    {
       "Id": "Post",
       "Name": "hycolony.category.do.post",
       "Icon": "Icons/ItemCategories/DomumOrnamentum_Post.png"

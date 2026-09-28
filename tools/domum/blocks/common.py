@@ -17,8 +17,12 @@ from pack import write_json
 MODELS = "Blocks/HyColony/DO/"
 HITBOXES = "Server/Item/Block/Hitboxes/HyColony/DO/"
 ITEMS = "Server/Item/Items/HyColony/DO/"
+TEMPLATES = "Server/Item/CustomConnectedBlockTemplates/"
 LANGUAGES = ("en-US", "fr-FR")
 DEFAULT_ICON = {"Scale": 0.58823, "Rotation": [22.5, 45, 22.5], "Translation": [0, -13.5]}
+# Horizontal neighbour -> (its offset, the face of it that touches us).
+SIDES = {"north": ((0, 0, -1), "South"), "south": ((0, 0, 1), "North"),
+         "east": ((1, 0, 0), "West"), "west": ((-1, 0, 0), "East")}
 
 
 @dataclass
@@ -125,3 +129,41 @@ def convert_state(ctx, family, block, props):
     """One DO state, cleaned and converted to the family's material layout."""
     model = faces.clean(faces.cap_ends(assemble.state_model(ctx.root, family, block, props)))
     return model, convert.to_blockymodel(model, family)
+
+
+def connected(ident, template_id, default, states):
+    """The ConnectedBlockRuleSet and State of a CustomTemplate block: its default shape is the block itself, every
+    other shape the state of the same name (states: shape -> state definition). The patterns name the template's
+    own keys; a runtime variant rewrites them to its own."""
+    patterns = {default: ident, **{shape: f"*{ident}_State_Definitions_{shape}" for shape in states}}
+    return {
+        "ConnectedBlockRuleSet": {"Type": "CustomTemplate", "TemplateShapeAssetId": template_id,
+                                  "TemplateShapeBlockPatterns": patterns},
+        "State": {"Definitions": states},
+    }
+
+
+def neighbour_template(tag, default, shapes):
+    """A connected-block template choosing a shape from the horizontal neighbours carrying tag: shapes maps each
+    shape to the sides ("north"...) that must be such neighbours, every other side must not; turned in the four
+    directions with the block. default is the shape with no match. Every shape shows tag on its four sides."""
+    face_tags = {side.capitalize(): [tag] for side in SIDES}
+    result = {default: {"FaceTags": face_tags, "PatternsToMatchAnyOf": []}}
+    for shape, present in shapes.items():
+        rules = [{"Position": dict(zip("XYZ", offset)), "IncludeOrExclude": "Include" if side in present else "Exclude",
+                  "FaceTags": {face: [tag]}} for side, (offset, face) in SIDES.items()]
+        result[shape] = {"FaceTags": face_tags, "PatternsToMatchAnyOf": [{
+            "Type": "Custom", "AllowedPatternTransformations": {"IsCardinallyRotatable": True},
+            "RulesToMatch": rules}]}
+    return {"ConnectsToOtherMaterials": True, "DefaultShape": default, "Shapes": result}
+
+
+def look(ctx, family, name, block, props):
+    """Writes the model of one DO state under name, and its hitbox unless it fills the block; returns the
+    CustomModel (and HitboxType) keys of a BlockType or state drawing it."""
+    model, blockymodel = convert_state(ctx, family, block, props)
+    result = {"CustomModel": write_model(ctx, name, blockymodel)}
+    hitbox_id = hitbox(ctx, name, model)
+    if hitbox_id:
+        result["HitboxType"] = hitbox_id
+    return result

@@ -1,0 +1,81 @@
+{
+  "TranslationProperties": {
+    "Name": "hycolony.item.do.paperwall.name"
+  },
+  "Icon": "Icons/ItemsGenerated/Wood_Hardwood_Planks.png",
+  "IconProperties": {
+    "Scale": 0.58823,
+    "Rotation": [
+      22.5,
+      45,
+      22.5
+    ],
+    "Translation": [
+      0,
+      -13.5
+    ]
+  },
+  "Categories": [
+    "DomumOrnamentum.PaperWall"
+  ],
+  "PlayerAnimationsId": "Block",
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Model",
+    "Opacity": "Transparent",
+    "CustomModel": "Blocks/HyColony/DO/PaperWall.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "Blocks/HyColony/DO/Pairs/Wood_Hardwood_Planks__Wood_Darkwood_Planks.png",
+        "Weight": 1
+      }
+    ],
+    "VariantRotation": "NESW",
+    "HitboxType": "HyColony_DO_PaperWall",
+    "ConnectedBlockRuleSet": {
+      "Type": "CustomTemplate",
+      "TemplateShapeAssetId": "HyColony_DO_PaneConnectedBlockTemplate",
+      "TemplateShapeBlockPatterns": {
+        "Post": "HyColony_DO_PaperWall",
+        "End": "*HyColony_DO_PaperWall_State_Definitions_End",
+        "Straight": "*HyColony_DO_PaperWall_State_Definitions_Straight",
+        "Corner": "*HyColony_DO_PaperWall_State_Definitions_Corner",
+        "T_Junction": "*HyColony_DO_PaperWall_State_Definitions_T_Junction",
+        "Cross_Junction": "*HyColony_DO_PaperWall_State_Definitions_Cross_Junction"
+      }
+    },
+    "State": {
+      "Definitions": {
+        "End": {
+          "CustomModel": "Blocks/HyColony/DO/PaperWall_End.blockymodel",
+          "HitboxType": "HyColony_DO_PaperWall_End"
+        },
+        "Straight": {
+          "CustomModel": "Blocks/HyColony/DO/PaperWall_Straight.blockymodel",
+          "HitboxType": "HyColony_DO_PaperWall_Straight"
+        },
+        "Corner": {
+          "CustomModel": "Blocks/HyColony/DO/PaperWall_Corner.blockymodel",
+          "HitboxType": "HyColony_DO_PaperWall_Corner"
+        },
+        "T_Junction": {
+          "CustomModel": "Blocks/HyColony/DO/PaperWall_T_Junction.blockymodel",
+          "HitboxType": "HyColony_DO_PaperWall_T_Junction"
+        },
+        "Cross_Junction": {
+          "CustomModel": "Blocks/HyColony/DO/PaperWall_Cross_Junction.blockymodel"
+        }
+      }
+    },
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "Woods"
+      }
+    },
+    "BlockParticleSetId": "Wood",
+    "ParticleColor": "#693e2a",
+    "BlockSoundSetId": "Wood",
+    "PhysicalMaterialId": "Wood"
+  },
+  "ItemSoundSetId": "ISS_Blocks_Wood"
+}
