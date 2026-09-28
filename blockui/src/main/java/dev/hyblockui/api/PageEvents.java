@@ -1,4 +1,4 @@
-package dev.hycolony.plugin.ui;
+package dev.hyblockui.api;
 
 import com.hypixel.hytale.logger.HytaleLogger;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -21,7 +21,7 @@ public final class PageEvents {
             handler.run();
         } catch (RuntimeException e) {
             LOG.at(WARNED.getAndSet(true) ? Level.FINE : Level.SEVERE).withCause(e).log(
-                    "HyColony window %s: an action failed", page.getSimpleName());
+                    "Window %s: an action failed", page.getSimpleName());
         }
     }
 }

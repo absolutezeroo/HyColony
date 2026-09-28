@@ -1,4 +1,4 @@
-package dev.hycolony.plugin.inventory;
+package dev.hyblockui.api;
 
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Ref;

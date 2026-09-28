@@ -6,14 +6,14 @@ import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import dev.hycolony.plugin.inventory.HeldWindows;
-import dev.hycolony.plugin.inventory.InventoryDrop;
-import dev.hycolony.plugin.inventory.InventoryGrids;
-import dev.hycolony.plugin.inventory.InventoryMoves;
-import dev.hycolony.plugin.inventory.InventoryWatch;
-import dev.hycolony.plugin.inventory.PageRedraw;
-import dev.hycolony.plugin.inventory.PlayerPanels;
-import dev.hycolony.plugin.inventory.PlayerSection;
+import dev.hyblockui.api.HeldWindows;
+import dev.hyblockui.api.InventoryDrop;
+import dev.hyblockui.api.InventoryGrids;
+import dev.hyblockui.api.InventoryMoves;
+import dev.hyblockui.api.InventoryWatch;
+import dev.hyblockui.api.PageRedraw;
+import dev.hyblockui.api.PlayerPanels;
+import dev.hyblockui.api.PlayerSection;
 import org.jspecify.annotations.Nullable;
 
 /**

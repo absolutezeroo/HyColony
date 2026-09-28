@@ -1,4 +1,4 @@
-package dev.hycolony.plugin.inventory;
+package dev.hyblockui.api;
 
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
@@ -31,7 +31,7 @@ public final class PlayerItems {
                         InventoryComponent.getCombined(store, player, InventoryComponent.HOTBAR_FIRST),
                         new ItemStack(itemId, Math.min(stackSize, left)));
             } catch (RuntimeException e) {
-                LOG.at(Level.SEVERE).withCause(e).log("hycolony: could not give %s x%d", itemId, left);
+                LOG.at(Level.SEVERE).withCause(e).log("hyblockui: could not give %s x%d", itemId, left);
                 return;
             }
         }

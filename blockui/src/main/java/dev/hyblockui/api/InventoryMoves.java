@@ -1,4 +1,4 @@
-package dev.hycolony.plugin.inventory;
+package dev.hyblockui.api;
 
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
@@ -37,7 +37,7 @@ public final class InventoryMoves {
             }
         } catch (RuntimeException e) {
             LOG.at(WARNED.getAndSet(true) ? Level.FINE : Level.WARNING).withCause(e).log(
-                    "hycolony: inventory drop on %s failed", drop.grid());
+                    "hyblockui: inventory drop on %s failed", drop.grid());
         }
     }
 

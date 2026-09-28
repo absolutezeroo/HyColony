@@ -1,4 +1,4 @@
-package dev.hycolony.plugin.inventory;
+package dev.hyblockui.api;
 
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.Ref;
@@ -39,7 +39,7 @@ public final class HeldWindows {
                 window.close(player, accessor);
             }
         } catch (RuntimeException e) {
-            LOG.at(Level.WARNING).withCause(e).log("hycolony: could not close a page's window");
+            LOG.at(Level.WARNING).withCause(e).log("hyblockui: could not close a page's window");
         }
     }
 
@@ -57,7 +57,7 @@ public final class HeldWindows {
             Store<EntityStore> store = player.getStore();
             store.getExternalData().getWorld().execute(() -> closeIfHeld(player, store, window));
         } catch (RuntimeException e) {
-            LOG.at(Level.WARNING).withCause(e).log("hycolony: could not close a page's window");
+            LOG.at(Level.WARNING).withCause(e).log("hyblockui: could not close a page's window");
         }
     }
 }

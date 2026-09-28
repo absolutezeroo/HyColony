@@ -1,4 +1,4 @@
-package dev.hycolony.plugin.inventory;
+package dev.hyblockui.api;
 
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;

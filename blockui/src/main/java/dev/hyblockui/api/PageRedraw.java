@@ -1,4 +1,4 @@
-package dev.hycolony.plugin.inventory;
+package dev.hyblockui.api;
 
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.universe.world.World;
@@ -44,7 +44,7 @@ public final class PageRedraw {
                 redraw.run();
             }
         } catch (RuntimeException e) {
-            LOG.at(Level.SEVERE).withCause(e).log("hycolony: a page redraw failed");
+            LOG.at(Level.SEVERE).withCause(e).log("hyblockui: a page redraw failed");
         }
     }
 }
