@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.hycolony.core.kernel.item.ItemKey;
@@ -61,6 +62,15 @@ class RequestableJsonCraftingTest {
     void stackListWithoutItsItemsIsNotRead() {
         JsonObject saved = RequestableJson.write(new StackList(List.of(new ItemKey("A")), "x", 1, 1));
         saved.remove("accepted");
+
+        assertTrue(RequestableJson.read(saved).isEmpty());
+    }
+
+    /** An older build asked for a tag of no item this way; its family is dropped and asked again. */
+    @Test
+    void stackListAcceptingNoItemIsNotRead() {
+        JsonObject saved = RequestableJson.write(new StackList(List.of(new ItemKey("A")), "x", 1, 1));
+        saved.add("accepted", new JsonArray());
 
         assertTrue(RequestableJson.read(saved).isEmpty());
     }

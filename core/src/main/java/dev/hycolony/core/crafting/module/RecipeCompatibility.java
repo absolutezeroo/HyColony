@@ -8,6 +8,7 @@ import dev.hycolony.core.crafting.recipe.CraftingSetup;
 import dev.hycolony.core.crafting.recipe.Recipe;
 import dev.hycolony.core.crafting.recipe.RecipeCatalog;
 import dev.hycolony.core.crafting.recipe.RecipeId;
+import dev.hycolony.core.crafting.recipe.RecipeMatching;
 import dev.hycolony.core.crafting.recipe.RecipeSource;
 import java.util.List;
 import java.util.Optional;
@@ -17,7 +18,9 @@ import java.util.UUID;
  * Whether a hut's crafting module may hold a recipe (MC AbstractCraftingBuildingModule.isRecipeCompatible and the
  * crafter's own override, e.g. BuildingFarmer.CraftingModule: the intermediate block, then the {@code crafterProduct}
  * tags). Deviation from MC: the intermediate block becomes a bench of the hut's plan, with Hytale's categories and tier,
- * and the tags become the job's filter in {@code crafting.json}.
+ * and the tags become the job's filter in {@code crafting.json}. Deviation from MC: a recipe with a resource type or tag
+ * ingredient the catalog lists no item for is neither compatible nor valid, as its ingredient requests would wait
+ * forever; MC recipes name an exact item.
  */
 final class RecipeCompatibility {
     private RecipeCompatibility() {}
@@ -40,10 +43,15 @@ final class RecipeCompatibility {
                 .anyMatch(w -> w.benchId().equals(needed.benchId()) && w.tier() >= needed.requiredTier());
     }
 
-    /** MC isRecipeCompatibleWithCraftingModule: the hut has its bench and the job may learn it. */
+    /**
+     * MC isRecipeCompatibleWithCraftingModule: the hut has its bench and the job may learn it; and, a deviation from
+     * MC, some item answers each of its ingredients ({@link RecipeMatching#everyIngredientHasItems}).
+     */
     static boolean compatible(Colony colony, Building hut, String jobId, Recipe recipe) {
         CraftingSetup crafting = colony.context().ports().crafting();
-        return benchPresent(hut, recipe, crafting.catalog()) && crafting.rules().allows(jobId, recipe);
+        return RecipeMatching.everyIngredientHasItems(recipe, crafting.catalog())
+                && benchPresent(hut, recipe, crafting.catalog())
+                && crafting.rules().allows(jobId, recipe);
     }
 
     /**
@@ -61,11 +69,13 @@ final class RecipeCompatibility {
     /**
      * MC AbstractCraftingBuildingModule.serializeToView's test to keep a listed recipe: it is still in the registry,
      * a custom one is still in {@code crafting.json}, and it is compatible or pre-taught. Deviation from MC: a recipe
-     * failing it is no longer chosen but stays listed, where MC drops it from the list when its view is refreshed.
+     * failing it is no longer chosen but stays listed, where MC drops it from the list when its view is refreshed; and
+     * even a pre-taught recipe needs an item for each ingredient.
      */
     static boolean stillValid(Colony colony, Building hut, String jobId, RecipeId id) {
         Optional<Recipe> recipe = colony.recipes().get(id);
-        if (recipe.isEmpty()) {
+        RecipeCatalog catalog = colony.context().ports().crafting().catalog();
+        if (recipe.isEmpty() || !RecipeMatching.everyIngredientHasItems(recipe.get(), catalog)) {
             return false;
         }
         List<CustomRecipe> custom = colony.context().ports().crafting().rules().custom(jobId);

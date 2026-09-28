@@ -22,6 +22,7 @@ import dev.hycolony.core.request.RequestManager;
 import dev.hycolony.core.request.Resolver;
 import dev.hycolony.core.request.model.Crafting;
 import dev.hycolony.core.request.model.RequestToken;
+import dev.hycolony.core.request.model.StackList;
 import dev.hycolony.core.request.model.StackRequest;
 import dev.hycolony.core.request.resolver.RetryingResolver;
 import java.util.ArrayList;
@@ -191,6 +192,21 @@ class CraftingRequestResolverTest {
 
         assertFalse(resolver(true).canResolve(m(), request));
         assertEquals(Optional.empty(), resolver(true).attemptResolve(m(), request));
+    }
+
+    /** Simulation: a tag of no item was asked as an empty StackList, which nobody could ever serve. */
+    @Test
+    void recipeWhoseIngredientNoLongerHasAnyItemIsLeftToOthers() {
+        h.t.recipes.tag("Type=Essence", RecipeFixtures.ESSENCE);
+        h.teach(byHand("Seeds_By_Tag", List.of(new Ingredient.OfTag("Type=Essence", 2)), SEEDS));
+        h.hire();
+        h.t.recipes.tags.remove("Type=Essence"); // a game update
+
+        Request request = ask(other, SEEDS, 10);
+
+        assertFalse(resolver(true).canResolve(m(), request));
+        assertEquals(RetryingResolver.ID, resolverOf(request));
+        assertTrue(m().all().stream().noneMatch(r -> r.requestable() instanceof StackList));
     }
 
     /** Review focus 4: X made from X is refused at once, without looping. */

@@ -9,7 +9,8 @@ import dev.hycolony.core.request.model.StackRequest;
 /**
  * What the crafting resolvers ask for a recipe ingredient (MC {@code new Stack(ingredient.getItemStack(), count,
  * minCount)}). Deviation from MC: an ingredient given by resource type or tag is asked as a {@link StackList} of its
- * items, described by the type or tag id; MC recipes name an exact item.
+ * items, described by the type or tag id; MC recipes name an exact item. Its recipe comes from {@code RecipeChoice},
+ * which skips a recipe with an ingredient no item answers, so that list is never empty.
  */
 final class IngredientRequests {
     private IngredientRequests() {}

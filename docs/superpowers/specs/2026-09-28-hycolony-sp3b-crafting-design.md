@@ -75,10 +75,11 @@ Toutes reprises de MineColonies sauf les écarts listés plus bas. Chaque classe
 - **Maximum :** `getMaxRecipes() = (int) (2^niveau × (1 + effet RECIPES = 0) × (canLearnManyRecipes ? 5 : 1))`.
   - `canLearnManyRecipes` est vrai par défaut et faux pour un module « simple » (MC `SimpleCraftingModule`).
   - Seules les recettes actives **et apprises à la main** comptent : une recette « maison » ne compte pas (`getActiveRecipes`).
-- **Compatibilité** (`isRecipeCompatible`) : la recette est compatible si les trois conditions suivantes sont vraies.
+- **Compatibilité** (`isRecipeCompatible`) : la recette est compatible si les quatre conditions suivantes sont vraies.
   1. Si elle a une table, la hutte a une table enregistrée avec le même `benchId`, des catégories qui contiennent celles de la recette, et un niveau ≥ `requiredTier`. Une recette sans table est toujours apprenable, comme la grille 2×2 de MC.
   2. Elle passe le filtre du métier dans `crafting.json`.
   3. Si `KnowledgeRequired`, le joueur qui l'apprend la connaît (voir les écarts).
+  4. Chaque ingrédient donné par type de ressource ou tag correspond à au moins un objet du catalogue (voir les écarts).
 - **Apprendre** (`addRecipe`) : si c'est compatible et qu'il reste de la place, la recette est ajoutée en fin de liste et marquée à réécrire, puis on réveille les requêtes de la colonie que sa sortie peut servir (`handleRecipeUpdate` = `onColonyUpdate` sur les `Deliverable` qui correspondent).
 - **Retirer, activer/désactiver, réordonner :**
   - `removeRecipe`, `toggle` et `switchOrder(i, j, fullMove)` suivent MC à l'identique ;
@@ -101,7 +102,7 @@ Toutes reprises de MineColonies sauf les écarts listés plus bas. Chaque classe
 ### Requêtes et résolveurs
 
 - **`Crafting(ItemKey stack, int count, int minCount, String recipeId, boolean isPublic)`** : un seul record pour `PublicCrafting` et `PrivateCrafting`. `count` est un nombre d'**exécutions** de la recette. L'égalité suit MC : `count`, `minCount` et `stack`, sans la recette.
-- **`StackList(List<ItemKey> accepted, String description, int count, int minCount)`** (MC `StackList`) : un `Deliverable` qui accepte l'un des objets. Il sert aux ingrédients par type de ressource ou tag, que `description` nomme. L'égalité suit MC : les mêmes objets acceptés, dans n'importe quel ordre, sans les quantités ni la description.
+- **`StackList(List<ItemKey> accepted, String description, int count, int minCount)`** (MC `StackList`) : un `Deliverable` qui accepte l'un des objets. La liste n'est jamais vide. Il sert aux ingrédients par type de ressource ou tag, que `description` nomme. L'égalité suit MC : les mêmes objets acceptés, dans n'importe quel ordre, sans les quantités ni la description.
 - **Résolveur de fabrication**, public et privé (MC `PublicWorkerCraftingRequestResolver` et `PrivateWorkerCraftingRequestResolver`). Les deux sont créés par le module de fabrication. MC crée les privés dans chaque `WorkerBuildingModule`, mais `job` ne doit pas dépendre de `crafting`. Écart sans effet : les recettes sans table viennent de toute façon d'un module de fabrication.
   Le résolveur :
   - priorité **125** (MC `CONST_CRAFTING_RESOLVER_PRIORITY`) ;
@@ -225,13 +226,13 @@ Lecture tolérante : clé absente = vide, entrée invalide ignorée et journalis
    - Un collage créatif pose la table à son niveau et l'enregistre, sans coût.
 4. **`KnowledgeRequired`.** Une recette que Hytale réserve aux joueurs qui l'ont apprise ne peut être apprise à la hutte que par un joueur qui la connaît.
 5. **Filtre par métier dans `crafting.json`.** Il remplace les tags `crafterProduct` de MC et se fonde sur les tables et catégories Hytale.
-6. **Ingrédients par type de ressource ou tag.** Ils sont demandés par une `StackList`. Dans MC, la grille fige l'objet exact au moment de l'apprentissage. Un tel ingrédient est « réductible » par l'amélioration si tous les objets qu'il accepte sont listés dans `reduceable.ingredients`.
+6. **Ingrédients par type de ressource ou tag.** Ils sont demandés par une `StackList`. Dans MC, la grille fige l'objet exact au moment de l'apprentissage. Un tel ingrédient est « réductible » par l'amélioration si tous les objets qu'il accepte sont listés dans `reduceable.ingredients`. Une recette dont un tel ingrédient ne correspond à aucun objet du catalogue (type ou tag vide, ou mise à jour du jeu) n'est ni apprenable ni choisie : personne ne pourrait apporter l'ingrédient, et sa requête attendrait pour toujours. Une `StackList` accepte donc toujours au moins un objet, et une `StackList` vide sauvegardée par une version antérieure n'est pas relue.
 7. **Recherche absente.** Les effets `RECIPES` et `CITIZEN_INV_SLOTS` valent 0, et `RECIPE_MODE` reste sur `PRIORITY`.
 8. **Bug MC corrigé :** `AbstractJobCrafter.deserializeNBT` range trois clés dans `progress`.
 9. **Pas de places assises ni debout** pour l'artisan inactif : sans tâche ni vidage en attente, il laisse la main à la flânerie du citoyen (`canGoIdle`), comme le fermier de MC.
 10. **Résolveurs privés créés par le module de fabrication**, pas par chaque `WorkerModule`, pour que `job` ne dépende pas de `crafting`. Ils sont enregistrés après les publics, comme chez le fermier de MC, qui liste son module de fabrication avant ses employés : à priorité et distance égales, le premier enregistré l'emporte. Chez MC, cet ordre suit les modules de chaque hutte.
 11. **Composants au lieu d'héritage :** `CraftingTasks` et `CraftingWork` remplacent `AbstractJobCrafter` et `AbstractEntityAICrafting` (règle d'`ArchitectureTest`). Le comportement est le même.
-12. **Une recette qui n'est plus valable n'est plus choisie** (`getFirstRecipe`, `getFirstFulfillableRecipe`), mais reste dans la liste : sa table a disparu, le métier ne peut plus l'apprendre, ou c'est une recette maison retirée de `crafting.json`. MC ne la retire qu'au rafraîchissement de sa vue (`serializeToView`), avec le même test : une recette qui fait la même sortie qu'une recette maison du métier (`isPreTaughtRecipe`) reste valable.
+12. **Une recette qui n'est plus valable n'est plus choisie** (`getFirstRecipe`, `getFirstFulfillableRecipe`), mais reste dans la liste : sa table a disparu, le métier ne peut plus l'apprendre, c'est une recette maison retirée de `crafting.json`, ou un de ses ingrédients ne correspond plus à aucun objet. MC ne la retire qu'au rafraîchissement de sa vue (`serializeToView`), avec le même test : une recette qui fait la même sortie qu'une recette maison du métier (`isPreTaughtRecipe`) reste valable, sauf ici si un de ses ingrédients ne correspond plus à aucun objet (écart 6).
 13. **Identifiants de recettes lisibles** (`hytale:`, `custom:`, `improved:<n>`) au lieu de jetons aléatoires. Une recette dont le nom est déjà pris par un autre contenu de même source (le jeu ou `crafting.json` l'a changée) remplace l'ancienne sous ce nom. MC l'ajoute sous un nouveau jeton, puis `checkForWorkerSpecificRecipes` l'échange.
 14. **Toutes les recettes du registre sont sauvegardées.** MC ne sauvegarde que celles utilisées depuis le démarrage du serveur (`usedRecipes`). La croissance reste bornée : une recette améliorée ne peut l'être qu'un nombre fini de fois.
 15. **Le nombre minimum d'une requête de fabrication est sauvegardé.** MC `PublicCrafting.serialize` l'oublie : une tâche rechargée demande alors son nombre complet.

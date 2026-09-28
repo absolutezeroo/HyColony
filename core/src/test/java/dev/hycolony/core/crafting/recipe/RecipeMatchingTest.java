@@ -59,6 +59,28 @@ class RecipeMatchingTest {
     }
 
     @Test
+    void recipeHasItemsForEveryIngredientOnlyIfTheCatalogListsSomeForEachTypeAndTag() {
+        catalog.resourceType("Wood_Trunk", OAK, BIRCH);
+        Recipe trunks =
+                byHand(List.of(new Ingredient.OfItem(STONE, 1), new Ingredient.OfResourceType("Wood_Trunk", 2)));
+        Recipe gone = byHand(List.of(new Ingredient.OfItem(STONE, 1), new Ingredient.OfTag("Gone", 1)));
+
+        assertTrue(RecipeMatching.everyIngredientHasItems(trunks, catalog));
+        assertFalse(RecipeMatching.everyIngredientHasItems(gone, catalog), "nobody could bring a tag of no item");
+    }
+
+    private static Recipe byHand(List<Ingredient> inputs) {
+        return new Recipe(
+                inputs,
+                new ItemAmount(new ItemKey("Planks"), 1),
+                List.of(),
+                new BenchRequirement(BenchRequirement.FIELDCRAFT, List.of(), 0),
+                Optional.empty(),
+                new RecipeSource.Hytale("Planks"),
+                false);
+    }
+
+    @Test
     void ingredientGivenBackAsASecondaryOutputIsNeededOnce() {
         ItemKey bucket = new ItemKey("Container_Bucket");
         Recipe recipe = new Recipe(

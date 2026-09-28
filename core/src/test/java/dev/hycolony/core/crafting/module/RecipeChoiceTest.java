@@ -116,6 +116,27 @@ class RecipeChoiceTest {
                 "MC serializeToView keeps a pre-taught recipe");
     }
 
+    /** A game update left a tag of the recipe with no item: even a pre-taught recipe is no longer chosen. */
+    @Test
+    void recipeWhoseIngredientNoLongerHasAnyItemIsNoLongerChosen() {
+        CraftingHut gifted = new CraftingHut("""
+                {"jobs": {"%s": {"custom": [{"id": "gift", "hytaleRecipe": "Hand_Plant_Seeds_Wheat"}]}}}""".formatted(CraftingHut.JOB), true);
+        Recipe hytale = recipe(List.of(new Ingredient.OfTag("Type=Essence", 2)), WHEAT_SEEDS, List.of());
+        gifted.t.recipes.add(hytale).tag("Type=Essence", RecipeFixtures.ESSENCE);
+        RecipeId custom = gifted.register(RecipeFixtures.from(hytale, new RecipeSource.Custom("gift")));
+        gifted.module.addRecipeToList(custom, false);
+        Predicate<ItemKey> seeds = is(WHEAT_SEEDS);
+        assertEquals(
+                Optional.of(custom),
+                RecipeChoice.firstRecipe(gifted.colony, gifted.hut, gifted.module, seeds)
+                        .map(Chosen::id));
+
+        gifted.t.recipes.tags.remove("Type=Essence");
+
+        assertEquals(Optional.empty(), RecipeChoice.firstRecipe(gifted.colony, gifted.hut, gifted.module, seeds));
+        assertEquals(List.of(custom), gifted.module.recipes(), "kept in the list, as any recipe no longer valid");
+    }
+
     @Test
     void customRecipeDroppedFromCraftingJsonIsNoLongerChosen() {
         RecipeId custom = h.register(RecipeFixtures.from(

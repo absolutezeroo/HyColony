@@ -28,6 +28,19 @@ public final class RecipeMatching {
     }
 
     /**
+     * Whether {@link #items} lists at least one item for each ingredient of {@code recipe}; false when the catalog
+     * knows no item of one of its resource types or tags, so that nobody could bring it.
+     */
+    public static boolean everyIngredientHasItems(Recipe recipe, RecipeCatalog catalog) {
+        for (Ingredient in : recipe.inputs()) {
+            if (items(in, catalog).isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Whether a run of {@code recipe} gives {@code ingredient} back as a secondary output (a bucket), so a batch of
      * runs needs it once (MC's crafting tools and secondary outputs, compareItemStackListIgnoreStackSize).
      */

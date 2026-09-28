@@ -3,6 +3,7 @@ package dev.hycolony.core.request.model;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.kernel.item.ItemKey;
@@ -25,6 +26,11 @@ class StackListTest {
         assertFalse(trunks.matches(STONE, catalog));
         assertTrue(trunks.canBeResolvedByBuilding());
         assertEquals("8 x type:Wood_Trunk", trunks.describe());
+    }
+
+    @Test
+    void acceptsAtLeastOneItem() {
+        assertThrows(IllegalArgumentException.class, () -> new StackList(List.of(), "type:Gone", 1, 1));
     }
 
     @Test

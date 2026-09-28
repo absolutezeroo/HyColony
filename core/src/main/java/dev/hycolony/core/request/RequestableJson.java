@@ -115,9 +115,9 @@ final class RequestableJson {
         };
     }
 
-    /** Empty without its accepted items; a missing description reads as none. */
+    /** Empty without accepted items ({@link StackList} accepts one at least); a missing description reads as none. */
     private static Optional<Requestable> readStackList(JsonObject o) {
-        if (!(o.get("accepted") instanceof JsonArray saved)) {
+        if (!(o.get("accepted") instanceof JsonArray saved) || saved.isEmpty()) {
             return Optional.empty();
         }
         List<ItemKey> accepted = new ArrayList<>(saved.size());

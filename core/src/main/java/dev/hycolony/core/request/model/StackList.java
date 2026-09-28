@@ -9,11 +9,15 @@ import java.util.Objects;
 /**
  * MC StackList: {@code count} items, any of {@code accepted}; asked for a recipe ingredient given by Hytale resource
  * type or tag. {@code description} names what is asked (MC description). MC's meta, NBT and ore dictionary matching,
- * result and left-over are not ported: a Hytale item is its id, and the type or tag is already listed out.
+ * result and left-over are not ported: a Hytale item is its id, and the type or tag is already listed out. Deviation
+ * from MC: it accepts at least one item, as nobody could serve an empty one; MC does not check.
  */
 public record StackList(List<ItemKey> accepted, String description, int count, int minCount) implements Deliverable {
     public StackList {
         accepted = List.copyOf(accepted);
+        if (accepted.isEmpty()) {
+            throw new IllegalArgumentException("a StackList accepts at least one item: " + description);
+        }
         Objects.requireNonNull(description, "description");
     }
 

@@ -27,6 +27,21 @@ class RecipesViewTest {
     private static final Recipe WHEAT = RecipeFixtures.at("Farmingbench", "Seeds", "Plant_Seeds_Wheat");
     private static final Recipe CORN = RecipeFixtures.at("Farmingbench", "Seeds", "Plant_Seeds_Corn");
     private static final Recipe BERRY = RecipeFixtures.fieldcraft("Basic", "Plant_Seeds_Berry");
+    private static final ItemKey OAK = new ItemKey("Wood_Oak_Trunk");
+    private static final ItemKey FIBRE = new ItemKey("Ingredient_Fibre");
+    /** Wood trunks by type, essence twice and fibre by tag, at the Farmingbench with an axe. */
+    private static final Recipe PLANKS = new Recipe(
+            List.of(
+                    new Ingredient.OfResourceType("Wood_Trunk", 2),
+                    new Ingredient.OfItem(RecipeFixtures.ESSENCE, 1),
+                    new Ingredient.OfTag("Fibre", 1),
+                    new Ingredient.OfItem(RecipeFixtures.ESSENCE, 1)),
+            new ItemAmount(new ItemKey("Wood_Planks"), 4),
+            List.of(),
+            new BenchRequirement("Farmingbench", List.of("Seeds"), 1),
+            Optional.of(ToolType.AXE),
+            new RecipeSource.Hytale("Planks"),
+            false);
 
     private final CraftingHut h = new CraftingHut();
 
@@ -134,35 +149,36 @@ class RecipesViewTest {
 
     @Test
     void lineShowsWhatOneRunMakesAndTakesWithItsBenchAndTool() {
-        ItemKey oak = new ItemKey("Wood_Oak_Trunk");
-        h.t.recipes.resourceType("Wood_Trunk", oak, new ItemKey("Wood_Birch_Trunk"));
-        h.t.recipes.tag("Fibre", new ItemKey("Ingredient_Fibre"));
-        Recipe planks = new Recipe(
-                List.of(
-                        new Ingredient.OfResourceType("Wood_Trunk", 2),
-                        new Ingredient.OfItem(RecipeFixtures.ESSENCE, 1),
-                        new Ingredient.OfTag("Unknown_Tag", 1),
-                        new Ingredient.OfItem(RecipeFixtures.ESSENCE, 1)),
-                new ItemAmount(new ItemKey("Wood_Planks"), 4),
-                List.of(),
-                new BenchRequirement("Farmingbench", List.of("Seeds"), 1),
-                Optional.of(ToolType.AXE),
-                new RecipeSource.Hytale("Planks"),
-                false);
-        h.t.recipes.add(planks);
+        h.t.recipes.resourceType("Wood_Trunk", OAK, new ItemKey("Wood_Birch_Trunk"));
+        h.t.recipes.tag("Fibre", FIBRE);
+        h.t.recipes.add(PLANKS);
 
         Line line = view().learnable().getFirst();
 
         assertEquals(new ItemAmount(new ItemKey("Wood_Planks"), 4), line.output());
         assertEquals(
                 List.of(
-                        new IngredientLine(new ItemAmount(oak, 2), true),
-                        new IngredientLine(new ItemAmount(new ItemKey("Unknown_Tag"), 1), true),
+                        new IngredientLine(new ItemAmount(OAK, 2), true),
+                        new IngredientLine(new ItemAmount(FIBRE, 1), true),
                         new IngredientLine(new ItemAmount(RecipeFixtures.ESSENCE, 2), false)),
                 line.inputs(),
-                "cleaned input; a type or tag shows its first item, or its id when the game lists none");
+                "cleaned input; a type or tag shows its first item");
         assertEquals(Optional.of("Farmingbench"), line.bench());
         assertEquals(Optional.of(ToolType.AXE), line.tool());
+    }
+
+    /** A game update left a tag with no item: the learnt recipe, no longer valid, stays listed with the tag's id. */
+    @Test
+    void learnedLineShowsTheIdOfATagTheGameNoLongerLists() {
+        h.t.recipes.resourceType("Wood_Trunk", OAK);
+        h.t.recipes.tag("Fibre", FIBRE);
+        h.teach(PLANKS);
+
+        h.t.recipes.tags.remove("Fibre");
+
+        assertEquals(
+                new IngredientLine(new ItemAmount(new ItemKey("Fibre"), 1), true),
+                view().learned().getFirst().inputs().get(1));
     }
 
     @Test

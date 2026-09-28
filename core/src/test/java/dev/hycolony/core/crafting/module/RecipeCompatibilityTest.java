@@ -6,9 +6,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.crafting.module.CraftingModule.LearnRefusal;
 import dev.hycolony.core.crafting.recipe.BenchRequirement;
+import dev.hycolony.core.crafting.recipe.Ingredient;
 import dev.hycolony.core.crafting.recipe.Recipe;
 import dev.hycolony.core.crafting.recipe.RecipeFixtures;
 import dev.hycolony.core.crafting.recipe.RecipeId;
+import dev.hycolony.core.crafting.recipe.RecipeSource;
+import dev.hycolony.core.kernel.item.ItemAmount;
+import dev.hycolony.core.kernel.item.ItemKey;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -82,6 +86,24 @@ class RecipeCompatibilityTest {
         assertTrue(h.hut.registeredBlocks().workstations().isEmpty());
 
         assertEquals(Optional.empty(), canLearn(RecipeFixtures.fieldcraft("Basic", "Torch")));
+    }
+
+    /** Deviation from MC: nobody could bring an ingredient no item answers, so its requests would wait forever. */
+    @Test
+    void recipeWithAnIngredientNoItemAnswersIsIncompatible() {
+        Recipe byTag = new Recipe(
+                List.of(new Ingredient.OfTag("Type=Essence", 2)),
+                new ItemAmount(new ItemKey("Plant_Seeds_Wheat"), 1),
+                List.of(),
+                new BenchRequirement(BenchRequirement.FIELDCRAFT, List.of("Seeds"), 0),
+                Optional.empty(),
+                new RecipeSource.Hytale("Seeds_By_Tag"),
+                false);
+
+        assertEquals(Optional.of(LearnRefusal.INCOMPATIBLE), canLearn(byTag));
+
+        h.t.recipes.tag("Type=Essence", RecipeFixtures.ESSENCE);
+        assertEquals(Optional.empty(), canLearn(byTag));
     }
 
     @Test
