@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -97,6 +98,12 @@ final class RecipeList {
             ids.set(index, newId);
         }
         return true;
+    }
+
+    /** Keeps the ids {@code keep} accepts and the disabled marks of the ids still listed; returns whether any went. */
+    boolean retain(Predicate<RecipeId> keep) {
+        boolean changed = ids.removeIf(keep.negate());
+        return disabled.removeIf(id -> !ids.contains(id)) || changed;
     }
 
     void write(JsonObject out) {

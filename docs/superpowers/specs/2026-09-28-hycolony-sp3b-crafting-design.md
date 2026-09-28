@@ -245,7 +245,8 @@ Lecture tolérante : clé absente = vide, entrée invalide ignorée et journalis
 19. **Message d'amélioration :** la sortie et l'ingrédient réduit sont nommés par leur identifiant Hytale, le cœur ne connaissant pas leur nom traduit. MC affiche leur nom (`getHoverName`).
 20. **File de l'artisan sans jeton bloquant** (`CraftingTasks`). Un jeton dont la requête a disparu ne bloque jamais :
     - `currentTask` s'arrête sur une file vidée de ses jetons morts ; MC boucle alors sans fin ;
-    - `finishRequest` retire une tête morte, et `cancelAll` saute une tâche déjà emportée par l'échec d'un lot frère ; MC lève une exception sur un jeton inconnu.
+    - `finishRequest` retire une tête morte, et `cancelAll` saute une tâche déjà emportée par l'échec d'un lot frère ; MC lève une exception sur un jeton inconnu ;
+    - le chargement retire les jetons morts de la file et des tâches assignées (`CraftingHeal`) ; MC les garde, et une tâche assignée morte compterait pour toujours dans la charge de l'artisan.
 21. **Lot d'une seule exécution trop grande.** Si une seule exécution de la recette ne tient pas dans l'inventaire, les lots font une exécution. Chez MC, la taille de lot tombe à 0 et le découpage ne s'arrête plus.
 22. **Demandeur inconnu** (sa hutte a disparu) : le résolveur de fabrication le juge le plus loin possible. MC garde la position sauvegardée du demandeur.
 23. **Réservations sans exclusion.** Le stock que la hutte sert à ses propres requêtes (`BuildingResolver`) ne déduit pas les réservations de ses artisans : `building` ne dépend pas de `crafting`. MC les déduit dans `BuildingRequestResolver`, en excluant la tâche dont la requête descend (`reservedStacksExcluding(request)`). Les réservations servent ici au choix d'une recette réalisable et au « à garder ».
@@ -285,7 +286,7 @@ Lecture tolérante : clé absente = vide, entrée invalide ignorée et journalis
   - le calcul des ressources du chantier (+ coût des niveaux) ;
   - `RequestableJson` (+ `crafting` et `stackList`) ;
   - `ColonySerializer` et `MigrationChain` (schéma +1, avec une fixture de l'ancienne version) ;
-  - `ColonySerializer.heal` (recettes disparues, tables perdues).
+  - `ColonySerializer.heal`, par `CraftingHeal` : les recettes apprises que le registre a perdues et les tâches d'artisan dont la requête a disparu. Les tables enregistrées ne sont pas vérifiées : le chargement n'a pas accès au monde, où un chunk non chargé ressemble à une table absente.
 - **Plugin :**
   - `HytaleRecipeCatalog`, construit à partir de `CraftingRecipe.getAssetMap()`, des types de ressources, des tags et de `Bench.getTierLevel(...).UpgradeRequirement`. Chaque API est à vérifier dans `build/vineflower/hytale-server` et à noter dans `docs/research/plugin-b-api.md` ;
   - `PrefabCells` lit `BenchBlock` ;

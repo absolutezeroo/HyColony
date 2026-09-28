@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.gson.JsonParser;
 import dev.hycolony.core.crafting.recipe.RecipeId;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -22,6 +23,33 @@ class RecipeListTest {
 
         assertFalse(list.add(A, true));
         assertEquals(List.of(B, A), list.ids());
+    }
+
+    @Test
+    void retainDropsRejectedIdsWithTheirDisabledMarks() {
+        list.add(A, false);
+        list.add(B, false);
+        list.add(C, false);
+        list.toggle(B);
+        list.toggle(C);
+
+        assertTrue(list.retain(id -> !id.equals(B)));
+
+        assertEquals(List.of(A, C), list.ids());
+        assertFalse(list.isDisabled(B));
+        assertTrue(list.isDisabled(C));
+        assertFalse(list.retain(id -> true), "nothing left to drop");
+    }
+
+    @Test
+    void retainForgetsASavedDisabledMarkOfAnUnlistedId() {
+        list.read(JsonParser.parseString("{\"recipes\": [\"hytale:A\"], \"disabled\": [\"hytale:B\"]}")
+                .getAsJsonObject());
+
+        assertTrue(list.retain(id -> true));
+
+        assertFalse(list.isDisabled(B));
+        assertEquals(List.of(A), list.ids());
     }
 
     @Test

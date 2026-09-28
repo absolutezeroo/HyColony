@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Predicate;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -244,6 +245,15 @@ public final class CraftingModule
         if (list.replace(oldId, newId)) {
             colony.markDirty();
         }
+    }
+
+    /**
+     * MC serializeToView's removal of a listed recipe the manager lost, done by the load's repair: keeps the recipes
+     * {@code keep} accepts and forgets the others with their disabled mark; returns whether any went. Does not mark the
+     * colony dirty, the caller does.
+     */
+    public boolean retainRecipes(Predicate<RecipeId> keep) {
+        return list.retain(keep);
     }
 
     @Override

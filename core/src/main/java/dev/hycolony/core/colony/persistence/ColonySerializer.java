@@ -156,7 +156,8 @@ public final class ColonySerializer {
     /**
      * A save can reference what is gone (a building removed, or of a type no longer registered): its citizens are
      * freed (job dropped, rehireable) and its requests cancelled, so nothing waits forever. A hut's worker list
-     * keeps only citizens that exist and work there, so a hut never looks employed by nobody.
+     * keeps only citizens that exist and work there, so a hut never looks employed by nobody. Last, the crafting
+     * state is repaired ({@link CraftingHeal}), once the orphan requests are gone.
      */
     private static boolean heal(Colony c) {
         boolean changed = false;
@@ -178,7 +179,8 @@ public final class ColonySerializer {
                                 .orElse(false));
             }
         }
-        return c.requests().cancelOrphans() || changed;
+        changed |= c.requests().cancelOrphans();
+        return CraftingHeal.heal(c) || changed;
     }
 
     /**
