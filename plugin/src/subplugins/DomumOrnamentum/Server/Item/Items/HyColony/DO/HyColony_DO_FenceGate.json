@@ -93,5 +93,9 @@
     "BlockSoundSetId": "Wood",
     "PhysicalMaterialId": "Wood"
   },
-  "ItemSoundSetId": "ISS_Blocks_Wood"
+  "ItemSoundSetId": "ISS_Blocks_Wood",
+  "Interactions": {
+    "Primary": "Block_Primary",
+    "Secondary": "Block_Secondary"
+  }
 }

@@ -2,8 +2,10 @@
 states, hitboxes and interactions, each look drawn by DO's model of the matching shape (Minecraft's templates,
 minecraft.py), every vanilla id renamed to ours.
 
-Deviation from MC: a gate next to a wall is not lowered (Minecraft's in_wall) and a slab placed into a slab becomes
-the vanilla "Block" state; a fence or wall joins by the vanilla template, fences and walls only.
+Deviation from MC: fences and walls join by the vanilla template (FenceConnection), so to fences, walls and gates,
+vanilla ones included, never to a solid face; alone, they keep the vanilla Straight shape (arms east and west)
+instead of Minecraft's lone post; walls have no tall sides and no post raised by the block above; a gate next to
+a wall is not lowered (Minecraft's in_wall).
 """
 
 import json
@@ -15,6 +17,7 @@ import names
 from blocks import common, roof
 from families import FAMILIES
 from models import walk
+from pack import write_json
 
 VANILLA = {"Fence": "Wood_Softwood_Fence", "FenceGate": "Wood_Softwood_Fence_Gate", "Wall": "Rock_Stone_Brick_Wall",
            "Stairs": "Wood_Softwood_Stairs", "Slab": "Wood_Softwood_Planks_Half"}
@@ -31,19 +34,22 @@ GATE_LEAVES = (("Door", (1, 0, 8), lambda e: 2 <= e["from"][0] and e["to"][0] <=
 def generate(ctx, family):
     """The family's one template: the vanilla mechanics with every look replaced by a DO model."""
     ident = names.template_id(family, ())
-    vanilla = ctx.assets.item(VANILLA[family.name])["BlockType"]
-    block_type = {k: v for k, v in _renamed(vanilla).items() if k not in MATERIAL_KEYS}
+    vanilla_item = _renamed(ctx.assets.item(VANILLA[family.name]))
+    block_type = {k: v for k, v in vanilla_item["BlockType"].items() if k not in MATERIAL_KEYS}
     default, states = LOOKS[family.name](ctx, family, ident, block_type)
     skeleton = common.model_block_type(ctx, family, default, None, block_type["VariantRotation"])
     del skeleton["Opacity"]  # the vanilla block's own, when it has one
     block_type = {**skeleton, **block_type}
     for state, path in states.items():
         block_type["State"]["Definitions"][state]["CustomModel"] = path
-    common.template(ctx, family, ident, (), block_type)
+    item = common.template(ctx, family, ident, (), block_type)
+    # The item's own vanilla keys: its interactions (a slab's merge into a full block) and hand animations.
+    item.update({k: vanilla_item[k] for k in ("Interactions", "PlayerAnimationsId") if k in vanilla_item})
+    write_json(ctx.pack / common.ITEMS / (ident + ".json"), item)
 
 
 def _renamed(vanilla):
-    """A copy of a vanilla BlockType with every vanilla compat id renamed to our template's; longest first, so the
+    """A copy of a vanilla item with every vanilla compat id renamed to our template's; longest first, so the
     gate's id is renamed before the fence's it starts with."""
     ours = {f.name: names.template_id(f, ()) for f in FAMILIES if f.name in VANILLA}
     text = json.dumps(vanilla)
@@ -74,15 +80,17 @@ def _connected(ctx, family, ident, block_type, arms):
 
 
 def fence(ctx, family, ident, block_type):
+    """A fence's arms reach the sides of each template shape."""
     return _connected(ctx, family, ident, block_type,
                       lambda sides: {s: "true" if s in sides else "false" for s in common.SIDES})
 
 
 def wall(ctx, family, ident, block_type):
-    """A wall's arms are low; its post shows unless it runs straight (Minecraft's up)."""
+    """A wall's arms are low; its post rises when alone or when an arm lacks its opposite (Minecraft's
+    WallBlock.shouldRaisePost, no block above): not on a straight run or a cross."""
     def arms(sides):
-        straight = sides in ({"east", "west"}, {"north", "south"})
-        return {"up": "false" if straight else "true", **{s: "low" if s in sides else "none" for s in common.SIDES}}
+        up = not sides or ("north" in sides) != ("south" in sides) or ("east" in sides) != ("west" in sides)
+        return {"up": "true" if up else "false", **{s: "low" if s in sides else "none" for s in common.SIDES}}
 
     return _connected(ctx, family, ident, block_type, arms)
 

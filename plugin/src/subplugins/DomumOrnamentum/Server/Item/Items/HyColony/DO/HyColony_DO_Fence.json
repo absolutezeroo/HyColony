@@ -18,7 +18,7 @@
   "Categories": [
     "DomumOrnamentum.Fence"
   ],
-  "PlayerAnimationsId": "Block",
+  "PlayerAnimationsId": "Item",
   "BlockType": {
     "Material": "Solid",
     "DrawType": "Model",
@@ -81,5 +81,9 @@
     "BlockSoundSetId": "Wood",
     "PhysicalMaterialId": "Wood"
   },
-  "ItemSoundSetId": "ISS_Blocks_Wood"
+  "ItemSoundSetId": "ISS_Blocks_Wood",
+  "Interactions": {
+    "Primary": "Block_Primary",
+    "Secondary": "Block_Secondary"
+  }
 }

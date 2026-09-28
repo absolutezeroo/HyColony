@@ -99,7 +99,6 @@ def compat_uses_do_models_and_vanilla_shapes():
     """Fences, gates, walls, stairs and slabs keep their vanilla equivalent's rules, states and hitboxes, draw every
     state with a DO model and name our blocks only; the gate's leaves hang on the nodes the door animation turns."""
     from blocks import compat
-    from models import walk
 
     ctx = generate_into_temp()
     for name, vanilla_id in compat.VANILLA.items():
@@ -117,6 +116,21 @@ def compat_uses_do_models_and_vanilla_shapes():
     assert hinges["Door"] == {"x": -14, "y": 0, "z": 0} and hinges["Door2"] == {"x": 14, "y": 0, "z": 0}, hinges
     block = ctx.items["HyColony_DO_Slab"]["BlockType"]["State"]["Definitions"]["Block"]
     assert block["DrawType"] == "Model" and "Textures" not in block
+    # A slab clicked on its top becomes the Block state: the item's vanilla interaction, matching our slab.
+    merge = ctx.items["HyColony_DO_Slab"]["Interactions"]["Secondary"]["Interactions"][0]
+    assert merge["Parent"] == "Half_Block" and merge["Matchers"][0]["Block"]["Id"] == "HyColony_DO_Slab", merge
+
+
+def wall_post_rises_like_minecraft():
+    """Minecraft's WallBlock.shouldRaisePost: no post on a straight run or a cross, a post on a corner or a T."""
+    ctx = generate_into_temp()
+
+    def has_post(name):
+        low, high = bounds(ctx.models[name]["nodes"])
+        return high[1] > 29
+
+    assert not has_post("HyColony_DO_Wall") and not has_post("HyColony_DO_Wall_Cross")
+    assert has_post("HyColony_DO_Wall_Corner") and has_post("HyColony_DO_Wall_T")
 
 
 def run():
@@ -124,3 +138,4 @@ def run():
     pillar_has_four_closed_shapes()
     paper_wall_connects_to_its_neighbours()
     compat_uses_do_models_and_vanilla_shapes()
+    wall_post_rises_like_minecraft()

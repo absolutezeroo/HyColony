@@ -1,7 +1,9 @@
 """The Minecraft block model templates Domum Ornamentum's vanilla-compatible blocks inherit (fence, fence gate,
 wall, stairs, slab, cube): their cuboids, written from Minecraft's own templates, since DO ships only the child
 models naming them as parent (e.g. fence/fence_post_spec -> block/fence_post). Faces carry no uv: the default uv of
-their position applies, as in the templates. source.load merges them like DO-internal parents.
+their position applies; where Minecraft's own uv differs (the underside of a fence or wall arm), a uniform
+material's pattern is only shifted. source.load merges them like DO-internal parents; a template missing here is
+an error.
 """
 
 ALL = ("down", "up", "north", "south", "west", "east")
@@ -48,8 +50,11 @@ TEMPLATES = {
 
 def template(parent):
     """The template named by a model's parent (with or without the minecraft: namespace), as a model with no
-    textures of its own; None when it is not one of TEMPLATES."""
-    elements = TEMPLATES.get(parent.removeprefix("minecraft:"))
+    textures of its own; None for a vanilla parent without geometry (block/block); an unknown block/template_*
+    parent fails."""
+    name = parent.removeprefix("minecraft:")
+    elements = TEMPLATES.get(name)
     if elements is None:
+        assert "template_" not in name, "Minecraft template missing from minecraft.TEMPLATES: " + parent
         return None
     return {"textures": {}, "elements": [{**e, "faces": {d: dict(f) for d, f in e["faces"].items()}} for e in elements]}

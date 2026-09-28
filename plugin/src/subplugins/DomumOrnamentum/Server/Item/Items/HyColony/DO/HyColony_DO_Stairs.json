@@ -18,7 +18,7 @@
   "Categories": [
     "DomumOrnamentum.Stairs"
   ],
-  "PlayerAnimationsId": "Block",
+  "PlayerAnimationsId": "Item",
   "BlockType": {
     "Material": "Solid",
     "DrawType": "Model",
@@ -127,5 +127,9 @@
     "BlockSoundSetId": "Stone",
     "PhysicalMaterialId": "Stone"
   },
-  "ItemSoundSetId": "ISS_Blocks_Stone"
+  "ItemSoundSetId": "ISS_Blocks_Stone",
+  "Interactions": {
+    "Primary": "Block_Primary",
+    "Secondary": "Block_Secondary"
+  }
 }
