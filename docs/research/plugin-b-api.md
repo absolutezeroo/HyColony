@@ -633,6 +633,16 @@ Chemins relatifs à `build/vineflower/hytale-server/com/hypixel/hytale/server/co
   - `ANIMATION_ITEM_BLOCK` (`BlockType` l. 229, `Item` l. 224, 251).
 - **Un asset invalide dans un pack immuable arrête tout le serveur** : un pack enregistré depuis un `.zip` ou un `.jar` est immuable (`asset/AssetModule.java:444-448`). `AssetRegistryLoader.loadAssets0` passe alors `shouldFail = assetPack.isImmutable() && !IGNORE_BROKEN_MODS` (`asset/AssetRegistryLoader.java:240-241`) et, au moindre asset en échec, `event.failed(shouldFail, "Mod … failed to load…")` (l. 310-315). `HytaleServer` voit `LoadAssetEvent.isShouldShutdown()` et arrête le serveur (« Asset validation FAILED », `HytaleServer.java:355-364`). Nos sous-plugins sont des zips : une icône hors racine ou un fichier manquant ne désactive pas seulement le pack, il empêche le serveur de démarrer. D'où les contrôles du générateur (`tools/decorations/pack.py`) et du build (`checkSubpluginAssets`).
 
+## 24. Textures et icône d'un bloc vanilla (`plugin/ornament/runtime/MaterialCatalog`)
+
+Chemins relatifs à `build/vineflower/hytale-server/com/hypixel/hytale/server/core/asset/type/`.
+
+- `BlockType.getTextures()` (`blocktype/config/BlockType.java:1483`) renvoie `BlockTypeTextures[]`, une entrée par variante pondérée (`Weight`) ; vide ou `null` pour un bloc sans `Textures`.
+- `BlockTypeTextures.getNorth()`/`getSouth()`/`getEast()`/`getWest()`/`getUp()`/`getDown()` (`blocktype/config/BlockTypeTextures.java:119-139`) : chemin `Common/` de la texture de chaque face (`isUniform()` l. 155 : les six identiques).
+- `BlockType.getDrawType()` (l. 1536) : `com.hypixel.hytale.protocol.DrawType` (`Cube`, `CubeWithModel`, `Model`…).
+- `BlockType.getItem()` (l. 1368) : l'objet du bloc, ou `null` ; `Item.getIcon()` (`item/config/Item.java:1071`) : chemin `Common/` de son icône.
+- Recherche par clé : `BlockType.getAssetMap().getAsset(String)` (`assetstore/map/DefaultAssetMap.java:59`), `null` si absente.
+
 ## Could not verify
 
 1. **Client rendering of item animations on NPCs** (`AnimationSlot.Action` with `"Block"/"Build"` or `"Pickaxe"/"Mine"` on `PlayerTestModel_V`) and whether they loop or play once. Only the server packet path is verified.
