@@ -27,6 +27,15 @@
     <rule ref="category/java/design.xml/ExcessiveParameterList">
         <properties><property name="minimum" value="6"/></properties>
     </rule>
+    <!-- CLAUDE.md § 2: 40 lines per method at most. PMD counts statements (NCSS), not lines: in this code base a
+         method runs about 1.35 lines per statement (blank lines, braces, wrapped calls), so 30 statements is the
+         40-line mark. Reported from 30 on (the rule reports ncss >= level). Class size is checkFileSizes' job. -->
+    <rule ref="category/java/design.xml/NcssCount">
+        <properties>
+            <property name="methodReportLevel" value="30"/>
+            <property name="classReportLevel" value="100000"/>
+        </properties>
+    </rule>
     <!-- The default XPath already skips getters and setters. -->
     <rule ref="category/java/design.xml/TooManyMethods">
         <properties><property name="maxmethods" value="25"/></properties>
