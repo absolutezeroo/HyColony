@@ -14,8 +14,9 @@ $C = "../../Common.ui";
   Anchor: (Width: 64, Height: 64, Left: 7, Top: @GridY + 7 + 76 * @Row);
 };
 
+// Tall enough for the character background, which hangs 50 px below its group as in the client's panel.
 $C.@DecoratedContainer #PlayerCharacterPanel {
-  Anchor: (Width: 410, Height: 560);
+  Anchor: (Width: 410, Height: 604);
 
   #Title {
     $C.@Title #PlayerName {
