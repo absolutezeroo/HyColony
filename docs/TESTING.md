@@ -1,6 +1,6 @@
 # Checklist de test en jeu — SP0, SP1+2
 
-Serveur de dev : `./gradlew :plugin:runServer`. Il faut deux comptes : A (propriétaire) et B (étranger).
+Serveur de dev : `./gradlew runAllMods` (dossier `run/` à la racine ; la config de HyColony est `plugin/src/main/resources/config.json`, relue à chaque lancement : ce que le serveur réécrit dans `run/mods/HyColony_hycolony/` est perdu au lancement suivant). Il faut deux comptes : A (propriétaire) et B (étranger).
 Pour obtenir les objets : `/give HyColony_TownHall`, `/give HyColony_Hut_Builder`, `/give HyColony_Hut_Residence`.
 
 1. **Fondation.** A pose l'hôtel de ville, la fenêtre « Fonder une colonie » s'ouvre, A saisit le nom « Test » puis clique sur Fonder.
@@ -97,19 +97,19 @@ Avant de commencer : un hôtel de ville posé **avant** cette version n'a pas de
 42. **Visibilité.** B, sans lunettes, près du même chantier : il ne voit aucun fantôme. Si B porte aussi des lunettes, chacun voit le sien et pas celui de l'autre (pas de fantôme en double).
 43. **Retrait.** A retire les lunettes : tous ses fantômes disparaissent. A se déconnecte avec les lunettes puis revient : les fantômes réapparaissent.
 
-## Configuration (`mods/<group>_HyColony/config.json`)
+## Configuration
 
-Serveur arrêté pour chaque modification du fichier, puis relancé.
+En dev, on modifie `plugin/src/main/resources/config.json` (voir la ligne 3) ; ce que le serveur réécrit va dans `run/mods/HyColony_hycolony/config.json`. En production, le fichier est `mods/HyColony_hycolony/config.json`. Serveur arrêté pour chaque modification du fichier, puis relancé.
 
-53. **Ancienne config plate.** Remplacer `config.json` par l'ancien format :
+53. **Ancienne config plate.** Remplacer le `config.json` des ressources par l'ancien format :
     `{"InitialCitizenAmount": 6, "MaxColonySize": 30, "EnableColonyProtection": false, "AutosaveIntervalMinutes": 10, "BuilderInfiniteResources": true, "CreativeOperatorFreeBuilds": false}`.
-    Relancer. Attendu : le fichier est réécrit en sections `Gameplay`, `Claims`, `Permissions`, `Commands`, `Client`, `HyColony`, sans aucune clé plate ; il garde les valeurs (`Gameplay.InitialCitizenAmount` 6, `Claims.MaxColonySize` 30, `Permissions.EnableColonyProtection` false, `HyColony.AutosaveIntervalMinutes` 10, `HyColony.BuilderInfiniteResources` true, `HyColony.CreativeOperatorFreeBuilds` false) ; les autres clés ont leur défaut (`Claims.MaxDistanceFromWorldSpawn` 30000, `Client.BuildGoggleRange` 50…). En jeu, B casse un bloc dans la colonie de A (protection coupée). Relancer une seconde fois : valeurs inchangées. Remettre ensuite la config par défaut (supprimer le fichier).
+    Relancer. Attendu : `run/mods/HyColony_hycolony/config.json` est réécrit en sections `Gameplay`, `Claims`, `Permissions`, `Commands`, `Client`, `HyColony`, sans aucune clé plate (le fichier des ressources reste plat et est re-migré à chaque lancement) ; il garde les valeurs (`Gameplay.InitialCitizenAmount` 6, `Claims.MaxColonySize` 30, `Permissions.EnableColonyProtection` false, `HyColony.AutosaveIntervalMinutes` 10, `HyColony.BuilderInfiniteResources` true, `HyColony.CreativeOperatorFreeBuilds` false) ; les autres clés ont leur défaut (`Claims.MaxDistanceFromWorldSpawn` 30000, `Client.BuildGoggleRange` 50…). En jeu, B casse un bloc dans la colonie de A (protection coupée). Relancer une seconde fois : valeurs inchangées. Remettre ensuite la config par défaut (supprimer le `config.json` des ressources).
 54. **Portée des lunettes.** `Client.BuildGoggleRange: 10` : le fantôme du point 40 disparaît dès que A est à plus de 10 blocs de la hutte et revient en deçà.
 55. **Contournement opérateur.** B, opérateur (`/op`) en Créatif, casse et pose des blocs et ouvre un coffre dans la colonie de A. En Survie, il est refusé. Avec `Permissions.PermissionEventBypassMinPermLevel: 0`, B non opérateur en Créatif passe aussi. B ne peut toujours pas changer les rangs (`/hycolony rank`).
 56. **Explosions.** Faire exploser un explosif (bombe, bloc explosif) au bord de la colonie de A : les blocs dans la colonie restent intacts, ceux hors colonie sont détruits. Avec `Permissions.TurnOffExplosionsInColonies: "DAMAGE_EVERYTHING"`, les blocs de la colonie sont détruits aussi. Noter l'allure du souffle (il s'arrête aux blocs protégés) et si une explosion non liée (feu, chute de bloc) est touchée. Les joueurs et PNJ restent blessés dans tous les cas (écart connu).
 57. **Distance au point d'apparition.** `Claims.MinDistanceFromWorldSpawn: 1000` : A pose un hôtel de ville près du point d'apparition, refusé avec « … d'au moins N blocs » (N = ce qui manque). `Claims.MaxDistanceFromWorldSpawn: 1000` : un hôtel de ville à plus de 1000 blocs est refusé avec « Rebroussons chemin d'au moins N blocs ».
 58. **Commandes.** Par défaut, B (non opérateur) lance `/hycolony info` : ça marche ; `/hycolony delete 1` : refusé par Hytale. Avec `Commands.CanPlayerUseShowColonyInfoCommand: false`, `info` est refusé à B mais pas à un opérateur. Avec `Commands.CanPlayerUseDeleteColonyCommand: true`, B (sans rang) lance `/hycolony delete 1` : « Impossible de supprimer la colonie. », la colonie reste ; A (propriétaire) supprime la sienne.
-59. **Config illisible.** Remplacer le contenu de `config.json` par `Le{`, puis relancer. Attendu : le serveur démarre ; le journal montre un SEVERE « HyColony: … config.json is not valid (…) ; moved to … config.json.broken-<date> » ; le fichier `config.json.broken-<date>` contient `Le{` ; un `config.json` neuf, valide, aux valeurs par défaut, est écrit. Refaire avec `{"Gameplay": 5}` puis avec un fichier vide : même résultat. Supprimer ensuite les fichiers `.broken-*`.
+59. **Config illisible.** Remplacer le contenu de `plugin/src/main/resources/config.json` par `Le{`, puis relancer. Attendu : le serveur démarre ; le journal montre un SEVERE « HyColony: … config.json is not valid (…) ; moved to … config.json.broken-<date> » ; le fichier `config.json.broken-<date>` contient `Le{` ; un `config.json` neuf, valide, aux valeurs par défaut, est écrit. Refaire avec `{"Gameplay": 5}` puis avec un fichier vide : même résultat. Le `.broken-<date>` et le fichier neuf sont dans `run/mods/HyColony_hycolony/` ; le fichier des ressources reste cassé, et chaque lancement repart des valeurs par défaut tant qu'il n'est pas réparé. Remettre ensuite le `config.json` des ressources en état.
 
 ## Baguette de construction
 

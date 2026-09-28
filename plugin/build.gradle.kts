@@ -103,5 +103,6 @@ subpluginResources { dependsOn(checkSubpluginAssets) }
 sourceSets.main { resources.srcDir(subpluginResources) }
 // runServer puts the resources' source dirs on its classpath without building them.
 tasks.matching { it.name == "prepareRunServer" }.configureEach { dependsOn(subpluginResources) }
-// The workspace's staging links every resource dir of the mod, the generated sub-plugins included.
+// runAllMods puts every resource dir of the mod on its classpath, the generated sub-plugins included; its staging
+// only links src/main/resources. processResources already builds them; this keeps the staging explicit about it.
 rootProject.tasks.matching { it.name == "stageAllModAssets" }.configureEach { dependsOn(subpluginResources) }

@@ -5,7 +5,7 @@
 3. `./gradlew build --refresh-dependencies`, puis `./gradlew decompileServerJar injectServerJavadocsIntoDecompiledSources`.
 4. Corriger les erreurs de compilation **dans `plugin/` uniquement**. Le core ne doit pas bouger.
 5. `./gradlew :core:test`.
-6. `./gradlew :plugin:runServer`. Les logs doivent contenir `HyColony runtime ready for world` et aucune ligne `missing asset id`.
+6. `./gradlew runAllMods`. Les logs doivent contenir `HyColony runtime ready for world` et aucune ligne `missing asset id`.
 7. En jeu : `/hycolony selftest` doit afficher uniquement des lignes `[OK]`.
 8. Charger une sauvegarde de la version précédente (copier un monde de test existant).
 9. Dérouler `docs/TESTING.md`.

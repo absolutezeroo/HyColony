@@ -12,11 +12,13 @@ run/
 .vscode
 .superpowers/
 /server/
-# Dev server writes the plugin config into resources via the mods/ symlink
+# Each mod's local dev config: runAllMods hard-links it into run/mods/ and reads it (split spec, dev config)
 plugin/src/main/resources/config.json
 plugin/src/main/resources/config.json.bak
-# ... and the sub-plugin asset zips it extracts there
-plugin/src/main/resources/packs/
+blockui/src/main/resources/config.json
+blockui/src/main/resources/config.json.bak
+domum/plugin/src/main/resources/config.json
+domum/plugin/src/main/resources/config.json.bak
 # Claude Code local settings (per machine, never committed)
 .claude/settings.local.json
 __pycache__/

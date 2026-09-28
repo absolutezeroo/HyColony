@@ -21,7 +21,7 @@ After cloning, enable the versioned git hooks once (format, sizes, commit messag
 
     ./gradlew build              # core tests + plugin jar (plugin/build/libs/HyColony-*.jar)
     ./gradlew setupHytaleDev     # once: download assets (Hytale login)
-    ./gradlew :plugin:runServer  # local dev server
+    ./gradlew runAllMods         # local dev server (run/)
 
 ## Commands
 
