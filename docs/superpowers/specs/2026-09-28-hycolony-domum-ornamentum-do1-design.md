@@ -1,113 +1,102 @@
 # HyColony : Domum Ornamentum, DO-1 « les blocs »
 
-Validé avec l'utilisateur le 2026-09-28. Faits vérifiés : `docs/research/domum-ornamentum.md`, en particulier B.9 (défauts du banc d'essai et leurs causes) et B.10 (mécanismes Hytale pour chaque comportement DO). Mécanisme de packs : `docs/superpowers/specs/2026-09-27-hycolony-architecture-subplugins-design.md` § 7.
+Version 2 du 2026-09-28. Elle remplace la version 1 du même jour, qui générait au build un bloc par combinaison de matériaux : le prototype `/hyornament` a montré en jeu qu'on peut faire **comme DO**, en créant les combinaisons à l'exécution (`docs/research/domum-ornamentum.md` B.11). Faits vérifiés : B.5 à B.11 du même document. Mécanisme de packs : `docs/superpowers/specs/2026-09-27-hycolony-architecture-subplugins-design.md` § 7.
 
 ## Objectif et découpage
 
-Porter Domum Ornamentum (DO) **avec son vrai fonctionnement**, et non seulement ses formes. Le banc d'essai `bd451ec` a montré que convertir chaque fichier de modèle en un bloc figé ne suffit pas : un bloc DO est assemblé par son **blockstate** (pièces multipart, forme selon les voisins, rotation, moitié haute ou basse, un matériau par composant).
-
-Le portage est découpé en trois sous-projets, chacun avec sa spec, son plan et son test en jeu :
+Porter Domum Ornamentum (DO) **avec son vrai fonctionnement** : un type de bloc par forme, des matériaux choisis au moment de fabriquer, n'importe quelle combinaison permise par les tags DO, sans liste fermée générée d'avance.
 
 | # | Sous-projet | Contenu |
 |---|---|---|
-| **DO-1** | **Les blocs** (ce document) | Toutes les familles avec leur comportement, un seul jeu de matériaux, onglet créatif |
-| DO-2 | Le cutter | Établi de l'architecte, recettes et quantités DO, liste des matériaux par emplacement, génération de toutes les combinaisons |
-| DO-3 | Le lien avec MineColonies | Blocs DO dans les plans, requêtes du constructeur, artisans qui fabriquent au cutter |
+| **DO-1** | **Les blocs** (ce document) | Formes DO converties au build, variantes de matériaux créées à l'exécution, onglet créatif, commande de débogage |
+| DO-2 | L'établi de l'architecte | Fabrication d'une variante à partir de 1 ou 2 matériaux, quantités DO (A.3) |
+| DO-3 | Le lien avec MineColonies | Blocs DO dans les plans, requêtes du constructeur, artisans du cutter |
 
-DO-1 remplace le banc d'essai. Tout se fait **en assets**, générés d'avance : le cœur Java n'est pas touché.
+## Principe : la géométrie au build, les matériaux à l'exécution
 
-## Matériaux
+- **Au build** (générateur `tools/domum/`, sorties commitées) : tout ce qui ne dépend **pas** des matériaux. Les modèles DO convertis (un par forme et par état), un bloc gabarit par forme avec ses états, sa rotation, ses boîtes, ses règles de connexion et ses interactions, une carte d'icône par forme, l'onglet créatif. Quelques centaines de fichiers, pas des milliers.
+- **À l'exécution** (plugin, paquet `ornament`) : tout ce qui dépend des matériaux. Une combinaison demandée crée ses `BlockType` (le bloc et tous ses états), son objet, son icône et, pour deux matériaux, une texture composée. Mécanisme prouvé en jeu (B.11) :
+  - `BlockType.getAssetStore().loadAssets` hors du thread du monde, puis `UpdateBlockTypes` `AddOrUpdate` **envoyé deux fois** (le client rate le premier de chaque connexion), les drapeaux de reconstruction portés par le second seulement ;
+  - jamais de `RequestCommonAssetsRebuild`.
 
-- Un seul jeu : **Darkwood** pour le 1ᵉʳ composant, **Lightwood** pour le 2ᵉ. Les textures sont les planches des objets `Wood_Darkwood_*` et `Wood_Lightwood_*` du zip vanilla.
-- L'emplacement se déduit du **composant DO**, comme dans DO : l'id d'un composant est la texture « placeholder » du modèle source (A.2). L'ordre des composants est celui de la classe du bloc (`SimpleRetexturableComponent`, tableau A.1).
-- Une famille à un seul composant sort en Darkwood.
+## Matériaux et tags
 
-## Familles
+- Comme DO, chaque emplacement de matériau d'une forme accepte un **tag** : `timber_frames_frame`, `timber_frames_center`, `shingles_roof`, `shingles_support`, `paper_wall_frame`, `paper_wall_center`, `pillar_materials`, `post_materials`, `trapdoors_materials`, `doors_materials`, `fancy_doors_materials`, `fancy_trapdoors_materials`, `fence_materials`, `fence_gate_materials`, `wall_materials`, `stairs_materials`, `slab_materials`, `all_brick_materials` (A.1).
+- Les tags vivent dans `hycolony/id-map.json` (section `ornamentTags`) et listent des **ids de blocs Hytale** : `"shingles_roof": ["Rock_Stone_Brick", "Wood_Hardwood_Planks", …]`. Les listes reprennent l'esprit des tags DO (planches et bûches pour un cadre, pierres, briques, argiles, laines pour un centre…), avec les blocs Hytale équivalents.
+- **Texture d'un matériau** : lue dans le `BlockType` vanilla au démarrage, jamais codée en dur. On prend la texture des faces latérales du cube (`Textures`). Un id inconnu, ou un bloc qui n'est pas un cube texturé, est journalisé en WARNING et écarté.
+- **Matériaux par défaut** de chaque forme (ceux de DO, transposés) : ce sont ceux du gabarit et de l'onglet créatif.
 
-| Famille DO | Blocs | Comportement dans Hytale |
+## Géométrie : modèles DO convertis
+
+- Le générateur convertit les modèles DO de chaque forme et de chaque état retenu (la conversion et les corrections de rendu de la version 1 restent valables : orientation de base par famille, faces superposées supprimées, faces presque coplanaires écartées, faces de bout ajoutées, B.9).
+- **Disposition de texture** (clé du portage) : DO remplace, dans ses modèles, la texture de chaque composant par celle du matériau choisi (A.2). Le générateur fait correspondre ces textures à une disposition fixe :
+  - **forme à 1 matériau** : le modèle lit une texture de bloc **32 × 32**. La variante prend directement la texture du matériau : aucune nouvelle PNG, aucun scintillement ;
+  - **forme à 2 matériaux** : le modèle lit une texture **64 × 32**, le composant 1 dans la moitié gauche, le composant 2 dans la moitié droite. La texture de la variante est **les deux textures de matériaux côte à côte**.
+  - Les UV DO (sprites 16 px) sont mis à l'échelle de 32 px par bloc.
+- **Texture de paire** : elle ne dépend que de la paire de matériaux, pas de la forme. `chêne + pierre` sert aux 10 colombages, aux 5 bardeaux, etc. Elle est générée une fois par paire et publiée comme dans le prototype (PNG sur disque, inscription silencieuse, envoi de ce seul fichier), puis la variante part avec `updateBlockTextures`. **Coût connu : un scintillement à la première utilisation d'une paire** (reconstruction de l'atlas du client), aucun pour une paire déjà connue.
+
+## Familles de DO-1
+
+| Famille DO | Matériaux | Comportement dans Hytale (B.10) |
 |---|---|---|
-| Colombage (`TimberFrameType`) | 10 motifs | Blocs orientables (`VariantRotation`) |
-| Colombage dynamique | 0 | **Non porté** : il devient le colombage `framed`. `Deviation from MC: no dynamic timber frame, placed and requested as framed` : c'est déjà ainsi que le constructeur MC le demande (`DoBlockPlacementHandler`, A.4). Rendu impossible en 0.6.8 (14 voisins, texture par face, B.10) |
-| Bardeaux | 5 pentes | Droit, coin intérieur, coin extérieur par la règle de connexion `Roof` des toits vanilla ; à l'envers par `UpDownNESW` |
-| Demi-bardeau | 1 | Les 6 formes (`top`, `one_way`, `two_way`, `three_way`, `four_way`, `curved`) selon les voisins, par un gabarit de connexion écrit d'après `ShingleSlabBlock.java:163-257` |
-| Pilier | 3 | `base`, `column`, `capital`, `full_pillar` selon les piliers au-dessus et en dessous, par `PillarConnectedBlockTemplate` complété de `Full`. Faces de bout fermées |
-| Poteau | 6 types | Un bloc par type, orientable |
-| Panneau | 15 motifs | Fixe, collision fine |
-| Porte, porte ouvragée | 4 + 2 | Mécanique de porte vanilla : `Use: Door`, états `OpenDoorIn/Out`, `CloseDoorIn/Out`, `DoorBlocked`, animations `Door_*`, 2 blocs de haut, portes doubles par `DoorConnectedBlockTemplate`, charnière droite par rotation de 180° |
-| Trappe, trappe ouvragée | 15 + 2 | `Use: Door_Horizontal`, s'ouvrent ; posées en haut ou en bas du bloc (`UpDownNESW` ou un bloc `_Bottom`, à trancher au plan d'après B.10) |
-| Mur de papier, mur de papier carrelé | 2 | Connexion de vitre : poteau seul, bouts, droit, coins, par un gabarit propre (store `Item/CustomConnectedBlockTemplates`) |
-| Clôture, portillon, muret, escalier, dalle (« compat vanilla ») | 5 | DO les dessine avec la géométrie vanilla de MC : on prend les **modèles Hytale vanilla** équivalents, retexturés, avec leurs connexions et formes vanilla |
-| « All brick » et son escalier | 4 | Blocs pleins ; l'escalier suit l'escalier vanilla |
+| Colombage (10 motifs) | 2 | Blocs orientables (`VariantRotation`) |
+| Bardeaux (5 pentes) | 2 | Droit, coins intérieurs et extérieurs par la règle `Roof` (`Regular` seul) ; à l'envers par `UpDownNESW` |
+| Demi-bardeau | 2 | 6 formes selon les voisins, gabarit de connexion à nous (d'après `ShingleSlabBlock.java:163-257`) |
+| Pilier (3) | 1 | `base`, `column`, `capital`, `full_pillar` selon les piliers dessus et dessous |
+| Poteau (6 types) | 1 | Un bloc par type, orientable |
+| Panneau (15 motifs) | 1 | Fixe, collision fine |
+| Porte, porte ouvragée | 1 / 2 (le 2ᵉ facultatif : absent, il reprend le 1ᵉʳ) | Mécanique de porte vanilla (`Use: Door`, états d'ouverture, 2 blocs de haut, portes doubles, charnière par rotation de 180°) |
+| Trappe, trappe ouvragée | 1 / 2 | `Use: Door_Horizontal`, s'ouvrent, en haut ou en bas du bloc |
+| Mur de papier (2) | 2 | Connexion de vitre, gabarit à nous |
+| Clôture, portillon, muret, escalier, dalle | 1 | Modèles DO convertis, connexions et formes vanilla |
+| « All brick » et son escalier | 1 | Bloc plein, escalier |
 
-### Hors DO-1
+**Hors DO-1** :
+- **Colombage dynamique** : impossible à rendre (14 voisins, texture par face, B.10 § 4). `Deviation from MC: no dynamic timber frame, placed and requested as framed`, comme le constructeur MC le demande déjà (A.4).
+- **Lumières encadrées** : pas de bloc lumineux plein Hytale pour le centre. Reporté.
+- **Briques et blocs « extra » DO** (sans matériau) : textures 16 px à redessiner. Reportés.
 
-- **Lumières encadrées** : Hytale n'a pas de bloc lumineux plein comme la glowstone pour le centre, qui est obligatoirement une lampe dans DO (`framed_light_center`). Reporté (BACKLOG).
-- **Briques DO et blocs « extra »** : de simples cubes, mais leurs textures DO (16 px) seraient à redessiner en 32 px. Reporté (BACKLOG).
-- Tonneaux et tapis flottants DO, cutter et recettes (DO-2), lien avec MineColonies (DO-3).
+## Variantes à l'exécution
 
-## Qualité de rendu, pour tous les blocs
+- Une variante = (forme, 1 ou 2 matériaux). Chaque matériau doit appartenir au tag de son emplacement, sinon la demande est refusée.
+- **Clé** : `HyColony_DO_<Forme>_<Matériau1>[_<Matériau2>]`, stable (les tronçons enregistrent les blocs par clé). Les états suivent la règle vanilla : `*<clé>_State_Definitions_<état>`.
+- **Création** (prototype, B.11) : copie du gabarit et de chacun de ses états, avec la texture de la variante, une table d'états construite en code (`VariantStateData`) et une copie des règles de connexion sans les clés résolues du gabarit. L'objet est une copie de l'objet gabarit, avec `blockId` = la variante ; casser n'importe quel état rend cet objet.
+- **Cache** : une variante n'est créée qu'une fois, même demandée plusieurs fois pendant sa création.
+- **Création groupée** : l'API accepte plusieurs variantes d'un coup (un seul `loadAssets`, donc un seul scintillement). DO-2 s'en servira.
+- **Persistance** : les variantes créées sont notées (JSON versionné, `schemaVersion`) et recréées au démarrage pendant `LoadAssetEvent` (priorité 64), avant le chargement des tronçons, avec leurs textures de paire et leurs icônes.
+- **Thread** : jamais `loadAssets` sur un thread de monde (verrou `ASSET_LOCK`, `plugin-b-api.md` § 17).
 
-Chaque point corrige un défaut du banc (B.9) :
+## Icônes
 
-- **Orientation** : chaque famille DO a son orientation de base (bardeaux et portes vers l'est, trappes et panneaux vers le sud). La conversion applique la rotation de la variante `facing=north` de la famille, pour ramener le modèle à l'orientation de base de Hytale (côté haut en -Z, mesuré sur `Stairs.blockymodel` et `Slope_Hay.blockymodel`).
-- **Plus de scintillement** : on supprime une face cachée par une face superposée dans le même plan, et on écarte d'au moins 0,1 unité deux faces presque dans le même plan (les décalages de 0,01 px de DO). Les bardeaux débordent du bloc (z de -4 à 20 px) : un débordement recouvert par un voisin ne doit pas scintiller (à vérifier en jeu). `Opacity` suit le vanilla de la forme équivalente (toits et piliers vanilla : `Solid`).
-- **Faces de bout** : on ajoute les faces que DO omet parce qu'un voisin les cache, dès que la forme peut se retrouver sans ce voisin (bouts de pilier). Pour `blockpillar`, un seul couvercle, pas un par lame.
-- **Collisions** : une hitbox qui suit la forme (panneaux, trappes, poteaux, murs de papier, portes). Bardeaux en marches, comme les toits vanilla.
-- **Icônes** : des PNG 64×64, obligatoires (`ICON_ITEM`, B.10 § 8). Elles sont rendues depuis le **modèle final orienté**, avec la caméra des icônes vanilla (`IconProperties` par défaut : `Scale 0.58823`, `Rotation 22.5/45/22.5`), un tri des faces correct pour les formes imbriquées et un cadrage selon la taille réelle du modèle.
+- Hytale n'a pas de rendu d'icône côté serveur, et un objet sans icône s'affiche « ? » (B.11).
+- **Carte d'icône** : pour chaque forme, le générateur dessine une fois, au build, l'icône du modèle vu avec la caméra vanilla (`IconProperties` par défaut). Au lieu de couleurs, chaque pixel note **où lire dans la disposition de texture** (u, v) et **son ombrage**. La carte est une ressource du serveur, jamais envoyée au client.
+- **À l'exécution**, l'icône d'une variante se remplit en lisant les textures de ses matériaux à travers la carte : pas de rendu 3D à l'exécution, et chaque forme a sa vraie icône.
+- Publication comme dans le prototype (inscription silencieuse, puis `UpdateItems` avec `updateIcons`). Coût connu : un court gel (quelques millisecondes) à la création d'une variante.
 
 ## Onglet créatif
 
-- Un onglet « Domum Ornamentum » dans le store `Item/Category/CreativeLibrary`, avec une sous-catégorie par famille, dans l'ordre des groupes du cutter DO (`avanilla`, `btimberframe`, `cshingle`, `ddoor`, `etrapdoor`, `fpanel`, `gpillar`, `hpaperwall`, `kpost`…, A.3).
-- Les icônes de l'onglet et des sous-catégories vont sous `Icons/ItemCategories`, en paire `X.png` / `XActive.png` comme le vanilla. Une icône de catégorie manquante arrête le serveur : le générateur et le build la vérifient.
-- Plus aucun objet DO dans les catégories vanilla.
+- Un onglet « Domum Ornamentum », une sous-catégorie par famille, dans l'ordre des groupes du cutter DO (A.3). Il contient **les gabarits** : chaque forme avec ses matériaux par défaut, comme l'onglet de DO.
+- Icônes d'onglet en paire `X.png` / `XActive.png` sous `Icons/ItemCategories`, vérifiées au build (une icône manquante arrête le serveur).
 - Libellés en en-US et fr-FR.
 
-## Générateur
+## Organisation du code
 
-`tools/domum/`, en Python, lancé à la main, sorties commitées (comme `tools/decorations`). Il est **piloté par les blockstates DO**, et non plus par les fichiers de modèles.
+- **Générateur** `tools/domum/` (Python, lancé à la main, sorties commitées) : sources DO au commit épinglé, assemblage des états, nettoyage des faces, conversion vers la disposition 32 / 64 × 32, gabarits, cartes d'icône, onglet, plus un manifeste des formes (id, gabarit, nombre de matériaux, tags des emplacements, matériaux par défaut, groupe du cutter, quantité DO pour DO-2).
+- **Pack d'assets** : le sous-plugin `DomumOrnamentum` (modèles, gabarits, onglet), **désactivé par défaut** jusqu'au test en jeu.
+- **Cœur** (`core`, paquet `ornament`, Java pur, testé) : formes et emplacements lus du manifeste, tags, validation d'une demande, clé de variante, format de persistance et sa migration.
+- **Plugin** (paquet `ornament`, issu du prototype) : catalogue des matériaux (textures lues dans les `BlockType`), fabrique des variantes et de leurs états, textures de paire, icônes, publication des assets, synchronisation, restauration au démarrage, commande `/hyornament` (opérateurs). Il n'est actif que si le pack est activé.
+- Le prototype actuel (`OrnamentShape`, `OrnamentMaterial` codés en dur, découpe « à l'œil » du bardeau, dessin d'icône du colombage) est remplacé par ce système.
 
-| Module | Rôle |
-|---|---|
-| `source` | Télécharge au commit épinglé (`82729d6`) les blockstates, les modèles et les composants DO ; cache dans `build/domum-cache/` |
-| `assemble` | Pour chaque état retenu d'un blockstate : assemble les pièces multipart, applique la rotation de base de la famille |
-| `faces` | Nettoie la géométrie : faces superposées, faces presque dans le même plan, faces de bout |
-| `convert` | Produit le `.blockymodel` et son atlas (code du banc, jugé correct à la relecture : unités, pivots, correspondance des faces, uv inversés et tournés) |
-| `blocks` | Écrit par famille le `BlockType` : états, règle de connexion, `VariantRotation`, hitbox, interactions |
-| `icons` | Rendu des icônes (voir ci-dessus) |
-| `tabs` | Onglet, sous-catégories, leurs icônes, et les traductions en-US et fr-FR |
+## Limites connues et écarts
 
-Les helpers partagés restent dans `tools/decorations/pack.py` et `models.py` (sa docstring est mise à jour : ils servent aux deux générateurs).
-
-Le sous-plugin `plugin/src/subplugins/DomumOrnamentum/` remplace le contenu du banc et reste **désactivé par défaut** (`EnabledByDefault: false`) jusqu'au test en jeu. Pas d'entrée dans `id-map.json` (DO-3).
+- Un scintillement à la première utilisation d'une paire de matériaux ; un court gel à la création d'une variante (icône).
+- **Nom des objets** : un objet porte le nom de sa forme (« Colombage encadré »). Hytale ne passe pas de paramètre à un nom d'objet ; afficher les matériaux dans le nom demanderait une clé de traduction par combinaison. `Deviation from MC: materials are not shown in the item name`. À réexaminer si un autre moyen apparaît.
+- Rafraîchir la liste des assets d'un joueur qui se connecte passe par réflexion (champ privé de `CommonAssetModule`, version épinglée 0.6.8), à revérifier à chaque montée de version.
+- Colombage dynamique, lumières encadrées, briques DO : voir « Hors DO-1 ».
 
 ## Contrôles et tests
 
-Un asset invalide dans un pack zip arrête le serveur : les contrôles hors ligne sont obligatoires.
-
-- **Au bout de chaque génération** : `validate_pack`, puis :
-  - chaque état référencé existe ;
-  - chaque gabarit de connexion pointe vers des blocs existants ;
-  - chaque icône, catégorie, hitbox et clé de traduction existe ;
-  - chaque face lit dans son atlas.
-- **`python tools/domum/check.py`**, à assertions :
-  - au pixel près : miroir d'un uv inversé, rotation de 90° ;
-  - orientation : le côté haut d'un bardeau en -Z ;
-  - plus aucune paire de faces superposées dans aucun modèle ;
-  - bouts de pilier fermés ;
-  - une porte a ses états complets et un nœud `Door` à la charnière.
-- `./gradlew build` vert (`checkSubpluginAssets` couvre le pack).
-- Relectures : `hycolony-reviewer` et `mc-fidelity-checker`.
-- Le cœur Java n'est pas touché : pas de test Java.
-
-## À vérifier en jeu
-
-Une étape est ajoutée à `docs/TESTING.md` :
-
-- activation par `"SubPlugins": {"DomumOrnamentum": true}`, démarrage sans SEVERE ;
-- l'onglet « Domum Ornamentum » et ses sous-catégories s'affichent, avec leurs libellés (5ᵉ onglet : jamais vu en vanilla) ;
-- chaque famille se pose dans le bon sens, dans les 4 directions, et les formes à l'envers ;
-- portes : ouverture, porte double, charnière, 2 blocs de haut, hitbox sur le battant ; trappes : ouverture, en haut et en bas ;
-- bardeaux : coins intérieurs et extérieurs, hauteur de marche franchissable ;
-- demi-bardeau, pilier, murs de papier, clôtures, murets : les formes suivent les voisins ;
-- aucun scintillement, aucun trou ;
-- icônes vues de face, lisibles.
+- **Générateur** : `validate_pack` et `python tools/domum/check.py` (orientation, uv au pixel près, faces superposées, bouts de pilier, états de porte, chaque carte d'icône lit dans sa disposition).
+- **Cœur** : tests JUnit d'abord (TDD) pour les tags, la validation, les clés, la persistance et sa migration.
+- `./gradlew build` vert ; relectures `hycolony-reviewer` et `mc-fidelity-checker`.
+- **En jeu** (`docs/TESTING.md`) : activation du pack sans SEVERE ; onglet et libellés ; chaque famille posée dans les 4 directions, avec ses formes selon les voisins ; portes et trappes qui s'ouvrent ; variantes créées par `/hyornament` avec la bonne texture, la bonne icône et l'objet rendu à la casse ; un seul scintillement par nouvelle paire ; tout tient après un redémarrage et une reconnexion.
