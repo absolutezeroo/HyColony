@@ -17,8 +17,11 @@ import java.util.logging.Level;
  * World thread.
  */
 final class CutterCraftQueue {
-    /** How often the progress bar moves, in milliseconds. */
-    static final long TICK_MILLIS = 100;
+    /**
+     * How often the progress bar moves, in milliseconds: each move is a page update the client must acknowledge
+     * before the page takes clicks again, so not too often for a distant server.
+     */
+    static final long TICK_MILLIS = 250;
 
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
@@ -30,6 +33,7 @@ final class CutterCraftQueue {
     private int remaining;
     private long startedAt;
     private int generation;
+    private double shown;
 
     /** A queue in world whose crafts take craftMillis each while open holds, showing 0-1 through progress. */
     CutterCraftQueue(World world, long craftMillis, BooleanSupplier open, DoubleConsumer progress) {
@@ -37,6 +41,11 @@ final class CutterCraftQueue {
         this.craftMillis = craftMillis;
         this.open = open;
         this.progress = progress;
+    }
+
+    /** The craft under way's progress, 0-1: a redrawn page shows it again. */
+    double progress() {
+        return shown;
     }
 
     /** Whether crafts are queued: the craft buttons wait meanwhile. */
@@ -61,7 +70,7 @@ final class CutterCraftQueue {
     void cancel() {
         remaining = 0;
         generation++;
-        progress.accept(0);
+        show(0);
     }
 
     private void next() {
@@ -89,7 +98,7 @@ final class CutterCraftQueue {
             return;
         }
         double done = Math.min(1.0, (System.currentTimeMillis() - startedAt) / (double) craftMillis);
-        progress.accept(done);
+        show(done);
         if (done < 1.0) {
             schedule(scheduled);
             return;
@@ -102,8 +111,13 @@ final class CutterCraftQueue {
             if (remaining > 0) {
                 next();
             } else {
-                progress.accept(0);
+                show(0);
             }
         });
+    }
+
+    private void show(double value) {
+        shown = value;
+        progress.accept(value);
     }
 }

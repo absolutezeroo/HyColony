@@ -141,6 +141,7 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
                 actions.view(slots.contents(), CutterCrafting.creative(store, ref)),
                 previews.preparing(),
                 crafts.busy());
+        ui.set("#CraftProgress.Value", (float) crafts.progress()); // a redraw mid-craft keeps the bar where it is
         InventoryGrids.drawContainer(
                 ui, events, SLOTS_GRID, slots.container(), slots.window().getId());
         PlayerPanels.drawCharacter(ui, events, "#Character", store, ref);

@@ -38,7 +38,7 @@ final class CutterCraftClicks {
         return queue != null && queue.busy();
     }
 
-    /** Crafts up to crafts times what the slots allow now (Integer.MAX_VALUE: All). */
+    /** Crafts up to crafts times what the slots allow now (Integer.MAX_VALUE: All); the click's redraw shows it. */
     void craft(Ref<EntityStore> ref, Store<EntityStore> store, int crafts) {
         if (queue == null) {
             request(ref, crafts, ok -> redraw.run());
@@ -55,7 +55,11 @@ final class CutterCraftClicks {
                     done.accept(ok);
                     redraw.run();
                 }));
-        redraw.run(); // the buttons wait
+    }
+
+    /** The queued craft's progress (0-1), 0 when crafting is instant. */
+    double progress() {
+        return queue == null ? 0 : queue.progress();
     }
 
     /** Asks CutterCrafting for crafts crafts of the chosen shape; done hears whether it crafted. */

@@ -73,7 +73,14 @@ final class CutterCrafting {
 
     /** On the world thread, once the variant exists (or failed): crafts, then tells done whether it did. */
     private static void finish(Request request, CutterCraft.Ready asked, @Nullable Throwable error) {
-        request.done().accept(craftNow(request, asked, error));
+        boolean crafted = false;
+        try {
+            crafted = craftNow(request, asked, error);
+        } catch (RuntimeException e) { // done must still hear it, or a queue would wait forever
+            LOG.at(Level.SEVERE).withCause(e).log(
+                    "hyornament: cutter craft of %s failed", asked.key().id());
+        }
+        request.done().accept(crafted);
     }
 
     /** Checks again, takes, gives; true when it crafted. */
