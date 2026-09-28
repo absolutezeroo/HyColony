@@ -1,0 +1,413 @@
+{
+  "ConnectsToOtherMaterials": true,
+  "DefaultShape": "Single",
+  "Shapes": {
+    "Single": {
+      "FaceTags": {
+        "North": [
+          "HyColonyDoShingleSlab"
+        ],
+        "South": [
+          "HyColonyDoShingleSlab"
+        ],
+        "East": [
+          "HyColonyDoShingleSlab"
+        ],
+        "West": [
+          "HyColonyDoShingleSlab"
+        ]
+      },
+      "PatternsToMatchAnyOf": []
+    },
+    "One_Way": {
+      "FaceTags": {
+        "North": [
+          "HyColonyDoShingleSlab"
+        ],
+        "South": [
+          "HyColonyDoShingleSlab"
+        ],
+        "East": [
+          "HyColonyDoShingleSlab"
+        ],
+        "West": [
+          "HyColonyDoShingleSlab"
+        ]
+      },
+      "PatternsToMatchAnyOf": [
+        {
+          "Type": "Custom",
+          "AllowedPatternTransformations": {
+            "IsCardinallyRotatable": true
+          },
+          "RulesToMatch": [
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": -1
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "South": [
+                  "HyColonyDoShingleSlab"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": 1
+              },
+              "IncludeOrExclude": "Exclude",
+              "FaceTags": {
+                "North": [
+                  "HyColonyDoShingleSlab"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Exclude",
+              "FaceTags": {
+                "West": [
+                  "HyColonyDoShingleSlab"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": -1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Exclude",
+              "FaceTags": {
+                "East": [
+                  "HyColonyDoShingleSlab"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "Two_Way": {
+      "FaceTags": {
+        "North": [
+          "HyColonyDoShingleSlab"
+        ],
+        "South": [
+          "HyColonyDoShingleSlab"
+        ],
+        "East": [
+          "HyColonyDoShingleSlab"
+        ],
+        "West": [
+          "HyColonyDoShingleSlab"
+        ]
+      },
+      "PatternsToMatchAnyOf": [
+        {
+          "Type": "Custom",
+          "AllowedPatternTransformations": {
+            "IsCardinallyRotatable": true
+          },
+          "RulesToMatch": [
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": -1
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "South": [
+                  "HyColonyDoShingleSlab"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": 1
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "North": [
+                  "HyColonyDoShingleSlab"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Exclude",
+              "FaceTags": {
+                "West": [
+                  "HyColonyDoShingleSlab"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": -1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Exclude",
+              "FaceTags": {
+                "East": [
+                  "HyColonyDoShingleSlab"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "Curved": {
+      "FaceTags": {
+        "North": [
+          "HyColonyDoShingleSlab"
+        ],
+        "South": [
+          "HyColonyDoShingleSlab"
+        ],
+        "East": [
+          "HyColonyDoShingleSlab"
+        ],
+        "West": [
+          "HyColonyDoShingleSlab"
+        ]
+      },
+      "PatternsToMatchAnyOf": [
+        {
+          "Type": "Custom",
+          "AllowedPatternTransformations": {
+            "IsCardinallyRotatable": true
+          },
+          "RulesToMatch": [
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": -1
+              },
+              "IncludeOrExclude": "Exclude",
+              "FaceTags": {
+                "South": [
+                  "HyColonyDoShingleSlab"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": 1
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "North": [
+                  "HyColonyDoShingleSlab"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "West": [
+                  "HyColonyDoShingleSlab"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": -1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Exclude",
+              "FaceTags": {
+                "East": [
+                  "HyColonyDoShingleSlab"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "Three_Way": {
+      "FaceTags": {
+        "North": [
+          "HyColonyDoShingleSlab"
+        ],
+        "South": [
+          "HyColonyDoShingleSlab"
+        ],
+        "East": [
+          "HyColonyDoShingleSlab"
+        ],
+        "West": [
+          "HyColonyDoShingleSlab"
+        ]
+      },
+      "PatternsToMatchAnyOf": [
+        {
+          "Type": "Custom",
+          "AllowedPatternTransformations": {
+            "IsCardinallyRotatable": true
+          },
+          "RulesToMatch": [
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": -1
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "South": [
+                  "HyColonyDoShingleSlab"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": 1
+              },
+              "IncludeOrExclude": "Exclude",
+              "FaceTags": {
+                "North": [
+                  "HyColonyDoShingleSlab"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "West": [
+                  "HyColonyDoShingleSlab"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": -1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "East": [
+                  "HyColonyDoShingleSlab"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "Four_Way": {
+      "FaceTags": {
+        "North": [
+          "HyColonyDoShingleSlab"
+        ],
+        "South": [
+          "HyColonyDoShingleSlab"
+        ],
+        "East": [
+          "HyColonyDoShingleSlab"
+        ],
+        "West": [
+          "HyColonyDoShingleSlab"
+        ]
+      },
+      "PatternsToMatchAnyOf": [
+        {
+          "Type": "Custom",
+          "AllowedPatternTransformations": {
+            "IsCardinallyRotatable": true
+          },
+          "RulesToMatch": [
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": -1
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "South": [
+                  "HyColonyDoShingleSlab"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": 1
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "North": [
+                  "HyColonyDoShingleSlab"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "West": [
+                  "HyColonyDoShingleSlab"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": -1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "East": [
+                  "HyColonyDoShingleSlab"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -79,10 +79,16 @@ def camel(word):
     return "".join(part.capitalize() for part in word.split("_"))
 
 
+# DO id -> its id part when the family name already says the rest (shingle_flat -> Shingle_Flat).
+ID_PARTS = {"shingle_flat": "Flat", "shingle_flat_lower": "FlatLower", "shingle_steep": "Steep",
+            "shingle_steep_lower": "SteepLower", "blockpillar": "Round", "blockypillar": "Voxel",
+            "squarepillar": "Square", "blocktiledpaperwall": "Tiled"}
+
+
 def template_id(family, parts):
     """HyColony_DO_<Family>[_<Part>...]: parts are the DO block id and/or type value that name the variant, those
     with an empty English name (the family's plain block) left out."""
-    named = [camel(p) for p in parts if VARIANTS[p][0]]
+    named = [ID_PARTS.get(p) or camel(p) for p in parts if VARIANTS[p][0]]
     return PREFIX + "_".join([family.name] + named)
 
 

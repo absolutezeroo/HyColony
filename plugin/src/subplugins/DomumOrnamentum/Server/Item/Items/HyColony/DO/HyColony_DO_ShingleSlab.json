@@ -1,0 +1,77 @@
+{
+  "TranslationProperties": {
+    "Name": "hycolony.item.do.shingleslab.name"
+  },
+  "Icon": "Icons/ItemsGenerated/Wood_Hardwood_Planks.png",
+  "IconProperties": {
+    "Scale": 0.58823,
+    "Rotation": [
+      22.5,
+      45,
+      22.5
+    ],
+    "Translation": [
+      0,
+      -13.5
+    ]
+  },
+  "Categories": [
+    "DomumOrnamentum.ShingleSlab"
+  ],
+  "PlayerAnimationsId": "Block",
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Model",
+    "Opacity": "Transparent",
+    "CustomModel": "Blocks/HyColony/DO/ShingleSlab.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "Blocks/HyColony/DO/Pairs/Wood_Hardwood_Planks__Wood_Darkwood_Planks.png",
+        "Weight": 1
+      }
+    ],
+    "VariantRotation": "NESW",
+    "HitboxType": "Block_Half",
+    "ConnectedBlockRuleSet": {
+      "Type": "CustomTemplate",
+      "TemplateShapeAssetId": "HyColony_DO_ShingleSlabConnectedBlockTemplate",
+      "TemplateShapeBlockPatterns": {
+        "Single": "HyColony_DO_ShingleSlab",
+        "One_Way": "*HyColony_DO_ShingleSlab_State_Definitions_One_Way",
+        "Two_Way": "*HyColony_DO_ShingleSlab_State_Definitions_Two_Way",
+        "Curved": "*HyColony_DO_ShingleSlab_State_Definitions_Curved",
+        "Three_Way": "*HyColony_DO_ShingleSlab_State_Definitions_Three_Way",
+        "Four_Way": "*HyColony_DO_ShingleSlab_State_Definitions_Four_Way"
+      }
+    },
+    "State": {
+      "Definitions": {
+        "One_Way": {
+          "CustomModel": "Blocks/HyColony/DO/ShingleSlab_One_Way.blockymodel"
+        },
+        "Two_Way": {
+          "CustomModel": "Blocks/HyColony/DO/ShingleSlab_Two_Way.blockymodel"
+        },
+        "Curved": {
+          "CustomModel": "Blocks/HyColony/DO/ShingleSlab_Curved.blockymodel"
+        },
+        "Three_Way": {
+          "CustomModel": "Blocks/HyColony/DO/ShingleSlab_Three_Way.blockymodel"
+        },
+        "Four_Way": {
+          "CustomModel": "Blocks/HyColony/DO/ShingleSlab_Four_Way.blockymodel"
+        }
+      }
+    },
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "Woods"
+      }
+    },
+    "BlockParticleSetId": "Wood",
+    "ParticleColor": "#693e2a",
+    "BlockSoundSetId": "Wood",
+    "PhysicalMaterialId": "Wood"
+  },
+  "ItemSoundSetId": "ISS_Blocks_Wood"
+}

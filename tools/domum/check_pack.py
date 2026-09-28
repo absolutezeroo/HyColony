@@ -64,6 +64,51 @@ def every_name_is_in_both_languages():
         assert item["TranslationProperties"]["Name"].removeprefix("hycolony.") in keys["en-US"], item
 
 
+def shingle_rules_name_states_only():
+    """Every slope is a vanilla-style roof whose rules name states only (a runtime copy resolves its own), with the
+    four corner states and an upside-down placement."""
+    ctx = generate_into_temp()
+    for ident in ("HyColony_DO_Shingle", "HyColony_DO_Shingle_Flat", "HyColony_DO_Shingle_FlatLower",
+                  "HyColony_DO_Shingle_Steep", "HyColony_DO_Shingle_SteepLower"):
+        shingle = ctx.items[ident]["BlockType"]
+        rules = shingle["ConnectedBlockRuleSet"]
+        assert rules["Type"] == "Roof" and set(rules) == {"Type", "Regular", "MaterialName"}, ident
+        assert all("State" in o and "Block" not in o for o in rules["Regular"].values()), ident
+        assert set(shingle["State"]["Definitions"]) == {"Corner_Left", "Corner_Right",
+                                                        "Inverted_Corner_Left", "Inverted_Corner_Right"}
+        assert shingle["VariantRotation"] == "UpDownNESW"
+
+
+def shingle_slab_template_has_six_shapes():
+    ctx = generate_into_temp()
+    path = ctx.pack / "Server/Item/CustomConnectedBlockTemplates/HyColony_DO_ShingleSlabConnectedBlockTemplate.json"
+    template = json.loads(path.read_text(encoding="utf-8"))
+    assert set(template["Shapes"]) == {"Single", "One_Way", "Two_Way", "Curved", "Three_Way", "Four_Way"}
+    slab = ctx.items["HyColony_DO_ShingleSlab"]["BlockType"]
+    patterns = slab["ConnectedBlockRuleSet"]["TemplateShapeBlockPatterns"]
+    assert set(patterns) == set(template["Shapes"]) and patterns["Single"] == "HyColony_DO_ShingleSlab"
+    # Curved: south and east neighbours, nothing north or west (DO's facing=north curved slab).
+    rules = template["Shapes"]["Curved"]["PatternsToMatchAnyOf"][0]["RulesToMatch"]
+    included = {(r["Position"]["X"], r["Position"]["Z"]) for r in rules if r["IncludeOrExclude"] == "Include"}
+    assert included == {(0, 1), (1, 0)}, included
+
+
+def every_generated_model_reads_one_tile():
+    """Every model written (all states included) reads inside its layout and never across two material tiles."""
+    from models import face_rects
+
+    ctx = generate_into_temp()
+    for ident, item in ctx.items.items():
+        texture = item["BlockType"]["CustomModelTexture"][0]["Texture"]
+        width = 64 if "/Pairs/" in texture else 32
+        for name, model in ctx.models.items():
+            if name != ident and not name.startswith(ident + "_"):
+                continue
+            for node, u0, v0, u1, v1 in face_rects(model["nodes"]):
+                assert -1e-6 <= u0 and u1 <= width + 1e-6 and -1e-6 <= v0 and v1 <= 32 + 1e-6, (name, node)
+                assert (u0 + 1e-6) // 32 == (u1 - 1e-6) // 32, (name, node, u0, u1)
+
+
 def run():
     """Runs this module's checks; an AssertionError names the failing case."""
     manifest_lists_every_template_with_its_slots()
@@ -71,3 +116,6 @@ def run():
     two_material_templates_read_their_default_pair()
     every_category_has_both_icons()
     every_name_is_in_both_languages()
+    shingle_rules_name_states_only()
+    shingle_slab_template_has_six_shapes()
+    every_generated_model_reads_one_tile()

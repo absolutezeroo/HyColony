@@ -8,6 +8,16 @@
       "Icon": "Icons/ItemCategories/DomumOrnamentum_TimberFrame.png"
     },
     {
+      "Id": "Shingle",
+      "Name": "hycolony.category.do.shingle",
+      "Icon": "Icons/ItemCategories/DomumOrnamentum_Shingle.png"
+    },
+    {
+      "Id": "ShingleSlab",
+      "Name": "hycolony.category.do.shingleslab",
+      "Icon": "Icons/ItemCategories/DomumOrnamentum_ShingleSlab.png"
+    },
+    {
       "Id": "Panel",
       "Name": "hycolony.category.do.panel",
       "Icon": "Icons/ItemCategories/DomumOrnamentum_Panel.png"
