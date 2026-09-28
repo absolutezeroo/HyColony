@@ -1,0 +1,62 @@
+$C = "../../Common.ui";
+$Sounds = "../../Sounds.ui";
+
+$C.@Container {
+  Anchor: (Right: 50, Top: 120, Width: 560, Height: 520);
+
+  #Title {
+    $C.@Title {
+      @Text = %hycolony.ornament.cutter.title;
+    }
+  }
+
+  #Content {
+    LayoutMode: Top;
+
+    Group #TabButtons {
+      LayoutMode: LeftCenterWrap;
+      Anchor: (Bottom: 8);
+    }
+
+    Group #Shapes {
+      LayoutMode: LeftCenterWrap;
+      FlexWeight: 1;
+    }
+
+    Label #ShapeName {
+      Style: (RenderBold: true, TextColor: #ffffff);
+      Anchor: (Height: 24, Top: 6);
+    }
+
+    Label #Slot0 {
+      Style: (TextColor: #94a7bb);
+      Anchor: (Height: 20);
+    }
+
+    Label #Slot1 {
+      Style: (TextColor: #94a7bb);
+      Anchor: (Height: 20);
+    }
+
+    Group {
+      LayoutMode: Left;
+      Anchor: (Height: 48, Top: 8);
+
+      ItemIcon #Preview {
+        Anchor: (Width: 40, Height: 40);
+      }
+
+      Label #PreviewText {
+        FlexWeight: 1;
+        Padding: (Horizontal: 8);
+        Style: (TextColor: #ffffff, Wrap: true, VerticalAlignment: Center);
+      }
+
+      $C.@TextButton #CraftButton {
+        @Text = %hycolony.ornament.cutter.craft;
+        @Sounds = $Sounds.@SaveSettings;
+        Anchor: (Width: 140, Height: 36);
+      }
+    }
+  }
+}

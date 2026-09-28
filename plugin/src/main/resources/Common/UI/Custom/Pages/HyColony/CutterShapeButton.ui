@@ -1,0 +1,11 @@
+$C = "../../Common.ui";
+
+Button #ShapeButton {
+  LayoutMode: Center;
+  Anchor: (Width: 52, Height: 52, Right: 4, Bottom: 4);
+  Style: $C.@SecondaryButtonStyle;
+
+  ItemIcon #Icon {
+    Anchor: (Width: 40, Height: 40);
+  }
+}

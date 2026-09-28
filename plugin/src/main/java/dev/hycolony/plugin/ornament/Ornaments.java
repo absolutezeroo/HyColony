@@ -4,10 +4,13 @@ import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.Constants;
 import com.hypixel.hytale.server.core.asset.LoadAssetEvent;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
+import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import dev.hycolony.core.ornament.OrnamentShape;
 import dev.hycolony.core.ornament.ShapeCatalog;
 import dev.hycolony.plugin.IdMap;
+import dev.hycolony.plugin.ornament.cutter.CutterGroupMemory;
+import dev.hycolony.plugin.ornament.cutter.CutterSystem;
 import dev.hycolony.plugin.ornament.debug.OrnamentCommand;
 import dev.hycolony.plugin.ornament.persistence.VariantStore;
 import dev.hycolony.plugin.ornament.registry.OrnamentVariantRegistry;
@@ -53,6 +56,12 @@ public final class Ornaments {
             }
         });
         plugin.getCommandRegistry().registerCommand(new OrnamentCommand(ornaments));
+        CutterGroupMemory groups = new CutterGroupMemory();
+        plugin.getEntityStoreRegistry().registerSystem(new CutterSystem(ornaments, groups));
+        plugin.getEventRegistry()
+                .register(
+                        PlayerDisconnectEvent.class,
+                        e -> groups.forget(e.getPlayerRef().getUuid()));
     }
 
     /**
