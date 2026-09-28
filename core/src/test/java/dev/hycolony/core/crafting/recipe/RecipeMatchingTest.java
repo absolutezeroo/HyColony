@@ -1,10 +1,12 @@
 package dev.hycolony.core.crafting.recipe;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.testing.FakeRecipeCatalog;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class RecipeMatchingTest {
@@ -40,5 +42,17 @@ class RecipeMatchingTest {
     @Test
     void unknownResourceTypeAcceptsNothing() {
         assertFalse(RecipeMatching.accepts(new Ingredient.OfResourceType("Gone", 1), OAK, catalog));
+    }
+
+    @Test
+    void itemsOfAnItemIngredientIsThatItemEvenUnknownToTheCatalog() {
+        assertEquals(List.of(OAK), RecipeMatching.items(new Ingredient.OfItem(OAK, 3), RecipeCatalog.NONE));
+    }
+
+    @Test
+    void itemsOfAResourceTypeAreTheCatalogs() {
+        catalog.resourceType("Wood_Trunk", OAK, BIRCH);
+        assertEquals(
+                List.of(OAK, BIRCH), RecipeMatching.items(new Ingredient.OfResourceType("Wood_Trunk", 1), catalog));
     }
 }

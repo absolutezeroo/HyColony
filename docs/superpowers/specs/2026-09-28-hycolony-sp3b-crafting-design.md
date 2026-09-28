@@ -89,7 +89,7 @@ Toutes reprises de MineColonies sauf les écarts listés plus bas. Chaque classe
   - une recette valide pour la hutte est ajoutée si elle manque ;
   - une recette qui ne l'est plus est retirée ;
   - la règle MC du doublon « amélioré » s'applique : même sortie et mêmes objets d'entrée = doublon.
-- **Choix d'une recette** (`getFirstRecipe`) : la première recette active dont la sortie principale ou secondaire correspond, dans l'ordre de la liste.
+- **Choix d'une recette** (`getFirstRecipe`) : la première recette active dont la sortie principale correspond, dans l'ordre de la liste. MC compare aussi les sorties « alternatives » de ses recettes à sorties multiples, dont une seule sort à chaque exécution ; Hytale n'en a pas. Une sortie secondaire (un seau rendu) n'est jamais comparée, comme dans MC.
 - **Recette réalisable** (`getFirstFulfillableRecipe(pred, count, considerReservation)`) : il faut assez d'ingrédients dans l'inventaire des employés et les conteneurs de la hutte (`canFullFillRecipe`). Un outil ou une sortie secondaire utilisée comme ingrédient ne compte qu'une fois, pas `× qty`.
 - **Réservations** (`reservedStacksExcluding`) : ce sont les ingrédients des tâches en file et assignées de ses artisans. Ils rejoignent le « à garder » de la hutte (`getRequiredItemsAndAmount`), ingrédients **et** sortie, pour que les livreurs ne les emportent pas.
 - **Amélioration** (`improveRecipe(recipe, count, citizen)`, après chaque tâche terminée) :
@@ -226,11 +226,16 @@ Lecture tolérante : clé absente = vide, entrée invalide ignorée et journalis
 9. **Pas de places assises ni debout** pour l'artisan inactif : il flâne dans la hutte.
 10. **Résolveurs privés créés par le module de fabrication**, pas par chaque `WorkerModule`, pour que `job` ne dépende pas de `crafting`.
 11. **Composants au lieu d'héritage :** `CraftingTasks` et `CraftingWork` remplacent `AbstractJobCrafter` et `AbstractEntityAICrafting` (règle d'`ArchitectureTest`). Le comportement est le même.
-12. **Une recette dont la table a disparu n'est plus choisie**, mais reste dans la liste. MC ne la retire qu'au rafraîchissement de sa vue.
+12. **Une recette qui n'est plus valable n'est plus choisie** (`getFirstRecipe`, `getFirstFulfillableRecipe`), mais reste dans la liste : sa table a disparu, le métier ne peut plus l'apprendre, ou c'est une recette maison retirée de `crafting.json`. MC ne la retire qu'au rafraîchissement de sa vue (`serializeToView`), avec le même test : une recette qui fait la même sortie qu'une recette maison du métier (`isPreTaughtRecipe`) reste valable.
 13. **Identifiants de recettes lisibles** (`hytale:`, `custom:`, `improved:<n>`) au lieu de jetons aléatoires. Une recette dont le nom est déjà pris par un autre contenu de même source (le jeu ou `crafting.json` l'a changée) remplace l'ancienne sous ce nom. MC l'ajoute sous un nouveau jeton, puis `checkForWorkerSpecificRecipes` l'échange.
 14. **Toutes les recettes du registre sont sauvegardées.** MC ne sauvegarde que celles utilisées depuis le démarrage du serveur (`usedRecipes`). La croissance reste bornée : une recette améliorée ne peut l'être qu'un nombre fini de fois.
 15. **Le nombre minimum d'une requête de fabrication est sauvegardé.** MC `PublicCrafting.serialize` l'oublie : une tâche rechargée demande alors son nombre complet.
 16. **Affichage d'une `StackList`** : « 8 x Tronc de chêne (ou équivalent) », avec le premier objet accepté. MC affiche sa description, une clé de traduction ; un type de ressource ou un tag Hytale n'a pas de nom traduit connu du plugin.
+17. **Robustesse du module de fabrication.**
+    - Un index hors de la liste (`toggle`, `switchOrder`) ne change rien ; MC lève une exception.
+    - Retirer une recette absente de la liste ne change rien ; MC vide toute la liste.
+    - Remplacer une recette par une autre déjà listée retire la première ; MC liste alors la seconde deux fois.
+    - Un déplacement complet (`fullMove`) marque aussi la colonie à sauvegarder. Chez MC, seul l'échange le fait, mais ses sauvegardes n'en dépendent pas.
 
 ## Architecture
 
