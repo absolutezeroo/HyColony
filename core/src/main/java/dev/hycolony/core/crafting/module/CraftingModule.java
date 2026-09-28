@@ -10,6 +10,7 @@ import dev.hycolony.core.colony.ui.tab.ModuleTab;
 import dev.hycolony.core.crafting.recipe.Recipe;
 import dev.hycolony.core.crafting.recipe.RecipeId;
 import dev.hycolony.core.crafting.recipe.RecipeSource;
+import dev.hycolony.core.job.HiringListener;
 import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.core.logistics.pickup.KeepRule;
 import dev.hycolony.core.logistics.pickup.KeepsItems;
@@ -30,7 +31,7 @@ import org.jspecify.annotations.Nullable;
  * declares a {@code crafting.request.CraftingResolvers} module beside it, so that this package does not depend on the
  * resolvers'; a hut without crafting module has no private crafting, which no MC job without one uses.
  */
-public final class CraftingModule implements PersistentModule, TickingModule, KeepsItems, ProvidesTab {
+public final class CraftingModule implements PersistentModule, TickingModule, KeepsItems, ProvidesTab, HiringListener {
     /** MC AbstractCraftingBuildingModule.EXTRA_RECIPE_MULTIPLIER. */
     static final int EXTRA_RECIPE_MULTIPLIER = 5;
 
@@ -153,6 +154,19 @@ public final class CraftingModule implements PersistentModule, TickingModule, Ke
                         .onColonyUpdate(request -> request.deliverable()
                                 .map(d -> d.matches(recipe.primaryOutput(), items))
                                 .orElse(false)));
+    }
+
+    /**
+     * MC updateWorkerAvailableForRecipes, from WorkerBuildingModule.onAssignment: the hut has a new worker, so the
+     * requests each enabled recipe's output answers are offered again ({@link #handleRecipeUpdate}).
+     */
+    @Override
+    public void onWorkerHired(Colony colony, Building building) {
+        for (RecipeId id : list.ids()) {
+            if (!list.isDisabled(id)) {
+                handleRecipeUpdate(colony, id);
+            }
+        }
     }
 
     /**

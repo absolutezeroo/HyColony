@@ -81,6 +81,7 @@ Toutes reprises de MineColonies sauf les écarts listés plus bas. Chaque classe
   3. Si `KnowledgeRequired`, le joueur qui l'apprend la connaît (voir les écarts).
   4. Chaque ingrédient donné par type de ressource ou tag correspond à au moins un objet du catalogue (voir les écarts).
 - **Apprendre** (`addRecipe`) : si c'est compatible et qu'il reste de la place, la recette est ajoutée en fin de liste et marquée à réécrire, puis on réveille les requêtes de la colonie que sa sortie peut servir (`handleRecipeUpdate` = `onColonyUpdate` sur les `Deliverable` qui correspondent).
+- **Embauche** (MC `updateWorkerAvailableForRecipes`, appelé par `WorkerBuildingModule.onAssignment`) : quand un module d'employés de la hutte embauche un citoyen, chaque recette active réveille les requêtes que sa sortie peut servir. Une recette apprise quand la hutte n'avait pas d'employé sert ainsi dès l'embauche. `job` ne dépendant pas de `crafting`, `WorkerModule.hire` prévient les modules de la hutte qui implémentent `job/HiringListener`.
 - **Retirer, activer/désactiver, réordonner :**
   - `removeRecipe`, `toggle` et `switchOrder(i, j, fullMove)` suivent MC à l'identique ;
   - `fullMove` envoie en tête (si `i > j`) ou en queue ;
@@ -288,6 +289,7 @@ Lecture tolérante : clé absente = vide, entrée invalide ignorée et journalis
 - **Existant modifié :**
   - `BlueprintEntry` (+ `workstation`) ;
   - `Building` (+ tables enregistrées) ;
+  - `WorkerModule.hire` prévient les modules `job/HiringListener` de la hutte (MC `onAssignment`), que `CraftingModule` implémente ;
   - le calcul des ressources du chantier (+ coût des niveaux) ;
   - `RequestableJson` (+ `crafting` et `stackList`) ;
   - `ColonySerializer` et `MigrationChain` (schéma +1, avec une fixture de l'ancienne version) ;

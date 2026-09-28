@@ -217,6 +217,26 @@ class CraftingModuleTest {
     }
 
     @Test
+    void hiringCrafterReoffersRequestsItsRecipesAnswer() {
+        h.teach(RecipeFixtures.fieldcraft("Seeds", "Plant_Seeds_Wheat"));
+        h.teach(RecipeFixtures.fieldcraft("Basic", "Other"));
+        h.module.toggle(h.colony, 1);
+        RequestToken wheat = h.colony
+                .requests()
+                .createAndAssign(h.hut, new StackRequest(new ItemKey("Plant_Seeds_Wheat"), 10, 10, true), -1);
+        RequestToken other =
+                h.colony.requests().createAndAssign(h.hut, new StackRequest(new ItemKey("Other"), 1, 1, true), -1);
+        assertEquals(RetryingResolver.ID, resolverOf(wheat));
+
+        h.hire();
+
+        assertTrue(
+                resolverOf(wheat).startsWith("crafting:public:"),
+                "MC WorkerBuildingModule.onAssignment: updateWorkerAvailableForRecipes wakes its outputs' requests");
+        assertEquals(RetryingResolver.ID, resolverOf(other), "MC skips the disabled recipes");
+    }
+
+    @Test
     void enablingARecipeAgainWakesRequestsForItsOutput() {
         h.teach(RecipeFixtures.fieldcraft("Seeds", "Plant_Seeds_Wheat"));
         h.module.toggle(h.colony, 0);
