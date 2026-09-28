@@ -5,6 +5,7 @@ import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.EntityEventSystem;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.event.events.ecs.BreakBlockEvent;
 import com.hypixel.hytale.server.core.event.events.ecs.PlaceBlockEvent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
@@ -16,6 +17,7 @@ import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.plugin.WorldRuntime;
 import dev.hycolony.plugin.WorldRuntimes;
 import java.util.Set;
+import java.util.logging.Level;
 import javax.annotation.Nonnull;
 
 /**
@@ -23,6 +25,8 @@ import javax.annotation.Nonnull;
  * blocks are handled by HutBlockSystems.
  */
 public final class ProtectionSystems {
+    private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
+
     private ProtectionSystems() {}
 
     /** True (and the player is told) when the action must be refused. */
@@ -62,17 +66,23 @@ public final class ProtectionSystems {
                 @Nonnull Store<EntityStore> store,
                 @Nonnull CommandBuffer<EntityStore> buffer,
                 @Nonnull PlaceBlockEvent event) {
-            if (event.getItemInHand() != null
-                    && hutItemIds.contains(event.getItemInHand().getItemId())) {
-                return;
-            }
-            if (deny(
-                    runtimes,
-                    store,
-                    HutBlockSystems.player(index, chunk, store),
-                    HutBlockSystems.pos(event.getTargetBlock()),
-                    Action.PLACE_BLOCKS)) {
+            try {
+                if (event.getItemInHand() != null
+                        && hutItemIds.contains(event.getItemInHand().getItemId())) {
+                    return;
+                }
+                if (deny(
+                        runtimes,
+                        store,
+                        HutBlockSystems.player(index, chunk, store),
+                        HutBlockSystems.pos(event.getTargetBlock()),
+                        Action.PLACE_BLOCKS)) {
+                    event.setCancelled(true);
+                }
+            } catch (RuntimeException e) {
+                // A failing check must not let the placement through.
                 event.setCancelled(true);
+                LOG.at(Level.SEVERE).withCause(e).log("HyColony place check failed at %s", event.getTargetBlock());
             }
         }
     }
@@ -99,16 +109,22 @@ public final class ProtectionSystems {
                 @Nonnull Store<EntityStore> store,
                 @Nonnull CommandBuffer<EntityStore> buffer,
                 @Nonnull BreakBlockEvent event) {
-            if (hutBlockIds.contains(event.getBlockType().getId())) {
-                return;
-            }
-            if (deny(
-                    runtimes,
-                    store,
-                    HutBlockSystems.player(index, chunk, store),
-                    HutBlockSystems.pos(event.getTargetBlock()),
-                    Action.BREAK_BLOCKS)) {
+            try {
+                if (hutBlockIds.contains(event.getBlockType().getId())) {
+                    return;
+                }
+                if (deny(
+                        runtimes,
+                        store,
+                        HutBlockSystems.player(index, chunk, store),
+                        HutBlockSystems.pos(event.getTargetBlock()),
+                        Action.BREAK_BLOCKS)) {
+                    event.setCancelled(true);
+                }
+            } catch (RuntimeException e) {
+                // A failing check must not let the break through.
                 event.setCancelled(true);
+                LOG.at(Level.SEVERE).withCause(e).log("HyColony break check failed at %s", event.getTargetBlock());
             }
         }
     }
