@@ -107,14 +107,11 @@ final class RecipesTab implements HutTab {
             String sel = group + "[" + i + "]";
             ui.append(group, "Pages/HyColony/RecipeInput.ui");
             ui.set(sel + " #Icon.ItemId", in.shown().item().id());
-            String count = "x" + in.shown().count();
-            if (in.orEquivalent()) {
-                ui.set(
-                        sel + " #Count.TextSpans",
-                        Message.translation("hycolony.ui.recipes.inputAny").param("p0", count));
-            } else {
-                ui.set(sel + " #Count.Text", count);
-            }
+            String key = in.orEquivalent() ? "hycolony.ui.recipes.inputAny" : "hycolony.ui.recipes.input";
+            ui.set(
+                    sel + " #Count.Text",
+                    Message.translation(key)
+                            .param("p0", String.valueOf(in.shown().count())));
         }
     }
 
@@ -192,18 +189,24 @@ final class RecipesTab implements HutTab {
     /** Learn takes a learnable row; the others a learnt row. The core re-shows the window. */
     @Override
     public void handle(ColonyPage.Act act) {
-        List<RecipesView.Line> rows = act.action().equals("recipeLearn") ? recipes.learnable() : recipes.learned();
-        int i = act.index();
-        if (i < 0 || i >= rows.size()) {
-            return;
+        if (!act.action().startsWith("recipe")) {
+            return; // BuildingPage offers every action to every tab
         }
+        List<RecipesView.Line> rows = act.action().equals("recipeLearn") ? recipes.learnable() : recipes.learned();
+        if (act.index() >= 0 && act.index() < rows.size()) {
+            run(act.action(), rows.get(act.index()), act.index());
+        }
+    }
+
+    /** Sends {@code action} for the row {@code line} at {@code index} to the core. */
+    private void run(String action, RecipesView.Line line, int index) {
         CraftingActions crafting = new CraftingActions(manager);
-        switch (act.action()) {
-            case "recipeLearn" -> crafting.learn(player, hut, rows.get(i).recipeId());
-            case "recipeRemove" -> crafting.remove(player, hut, rows.get(i).recipeId());
-            case "recipeToggle" -> crafting.toggle(player, hut, i);
-            case "recipeUp" -> crafting.move(player, hut, i, true, false);
-            case "recipeDown" -> crafting.move(player, hut, i, false, false);
+        switch (action) {
+            case "recipeLearn" -> crafting.learn(player, hut, line.recipeId());
+            case "recipeRemove" -> crafting.remove(player, hut, line.recipeId());
+            case "recipeToggle" -> crafting.toggle(player, hut, index);
+            case "recipeUp" -> crafting.move(player, hut, index, true, false);
+            case "recipeDown" -> crafting.move(player, hut, index, false, false);
             default -> {}
         }
     }

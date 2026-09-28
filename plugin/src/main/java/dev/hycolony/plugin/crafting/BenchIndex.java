@@ -36,11 +36,17 @@ final class BenchIndex {
     static BenchIndex load() {
         Map<String, Set<String>> cats = new HashMap<>();
         Map<String, Bench> tiered = new HashMap<>();
+        SkippedAssets skipped = new SkippedAssets("block type");
         for (BlockType type : BlockType.getAssetMap().getAssetMap().values()) {
-            Bench bench = craftingBench(type);
-            if (bench != null) {
-                cats.computeIfAbsent(bench.getId(), _ -> new LinkedHashSet<>()).addAll(categoryIds(bench));
-                tiered.merge(bench.getId(), bench, (a, b) -> tierCount(b) > tierCount(a) ? b : a);
+            try {
+                Bench bench = craftingBench(type);
+                if (bench != null) {
+                    cats.computeIfAbsent(bench.getId(), _ -> new LinkedHashSet<>())
+                            .addAll(categoryIds(bench));
+                    tiered.merge(bench.getId(), bench, (a, b) -> tierCount(b) > tierCount(a) ? b : a);
+                }
+            } catch (RuntimeException e) {
+                skipped.skip(type == null ? "?" : type.getId(), e);
             }
         }
         Map<String, List<String>> frozen = new HashMap<>();

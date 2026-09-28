@@ -6,6 +6,7 @@ import com.hypixel.hytale.server.core.asset.type.blocktype.config.bench.Bench;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The block, and so the item, that shows a bench id to players: a recipe names its bench by id ({@code Farmingbench}),
@@ -13,14 +14,15 @@ import java.util.Optional;
  * id, the one with the most tier levels wins, as in {@link BenchIndex}. Read once, lazily, on the world thread.
  */
 public final class BenchItems {
-    private static volatile Map<String, String> byBench = Map.of();
+    /** Null until first read; an empty map means the game has no crafting bench, and is not read again. */
+    private static volatile @Nullable Map<String, String> byBench;
 
     private BenchItems() {}
 
     /** The item id of the block that shows {@code benchId}; empty if no crafting bench has that id. */
     public static Optional<String> of(String benchId) {
         Map<String, String> map = byBench;
-        if (map.isEmpty()) {
+        if (map == null) {
             map = load();
             byBench = map;
         }

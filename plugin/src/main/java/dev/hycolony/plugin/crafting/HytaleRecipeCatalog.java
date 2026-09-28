@@ -23,12 +23,14 @@ public final class HytaleRecipeCatalog implements RecipeCatalog {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
     private final Map<String, Recipe> recipes;
+    private final List<Recipe> all;
     private final ResourceTypeIndex resourceTypes;
     private final BenchIndex benches;
     private boolean warned;
 
     private HytaleRecipeCatalog(Map<String, Recipe> recipes, ResourceTypeIndex resourceTypes, BenchIndex benches) {
         this.recipes = recipes;
+        this.all = List.copyOf(recipes.values());
         this.resourceTypes = resourceTypes;
         this.benches = benches;
     }
@@ -37,9 +39,14 @@ public final class HytaleRecipeCatalog implements RecipeCatalog {
     public static RecipeCatalog load() {
         try {
             Map<String, Recipe> recipes = new TreeMap<>();
+            SkippedAssets skipped = new SkippedAssets("recipe");
             for (CraftingRecipe r : CraftingRecipe.getAssetMap().getAssetMap().values()) {
-                if (r != null && r.getId() != null) {
-                    RecipeConversion.convert(r).ifPresent(recipe -> recipes.put(r.getId(), recipe));
+                try {
+                    if (r != null && r.getId() != null) {
+                        RecipeConversion.convert(r).ifPresent(recipe -> recipes.put(r.getId(), recipe));
+                    }
+                } catch (RuntimeException e) {
+                    skipped.skip(r == null ? "?" : r.getId(), e);
                 }
             }
             HytaleRecipeCatalog catalog = new HytaleRecipeCatalog(recipes, ResourceTypeIndex.load(), BenchIndex.load());
@@ -53,7 +60,7 @@ public final class HytaleRecipeCatalog implements RecipeCatalog {
 
     @Override
     public List<Recipe> all() {
-        return List.copyOf(recipes.values());
+        return all;
     }
 
     @Override

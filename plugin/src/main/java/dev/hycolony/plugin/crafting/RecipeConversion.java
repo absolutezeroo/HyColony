@@ -12,6 +12,7 @@ import dev.hycolony.core.kernel.item.ItemKey;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import org.jspecify.annotations.Nullable;
 
@@ -33,7 +34,11 @@ final class RecipeConversion {
         com.hypixel.hytale.protocol.@Nullable BenchRequirement bench = craftingBench(r);
         Optional<List<Ingredient>> inputs = inputs(r.getInput());
         MaterialQuantity primary = primaryOutput(r);
-        if (bench == null || inputs.isEmpty() || primary == null || primary.getItemId() == null) {
+        if (bench == null
+                || inputs.isEmpty()
+                || primary == null
+                || primary.getItemId() == null
+                || primary.getQuantity() <= 0) {
             return Optional.empty();
         }
         return Optional.of(new Recipe(
@@ -42,7 +47,11 @@ final class RecipeConversion {
                 secondaryOutputs(r.getOutputs(), primary.getItemId()),
                 new BenchRequirement(
                         bench.id,
-                        bench.categories == null ? List.of() : List.of(bench.categories),
+                        bench.categories == null
+                                ? List.of()
+                                : Arrays.stream(bench.categories)
+                                        .filter(Objects::nonNull)
+                                        .toList(),
                         Math.max(0, bench.requiredTierLevel)),
                 Optional.empty(),
                 new RecipeSource.Hytale(r.getId()),
