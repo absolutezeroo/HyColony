@@ -18,10 +18,11 @@ import java.util.logging.Level;
  */
 final class CutterCraftQueue {
     /**
-     * How often the progress bar moves, in milliseconds: each move is a page update the client must acknowledge
-     * before the page takes clicks again, so not too often for a distant server.
+     * How often the progress bar moves, in milliseconds: 20 moves a second read as a smooth fill (a custom ProgressBar
+     * has no client-side animation, unlike a bench's own bar). Each move is a page update the client acknowledges
+     * before the page takes clicks again; the craft buttons wait during a craft anyway.
      */
-    static final long TICK_MILLIS = 250;
+    static final long TICK_MILLIS = 50;
 
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
