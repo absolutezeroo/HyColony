@@ -176,7 +176,7 @@ public final class IdMap {
         check(
                 errors,
                 "sound event",
-                byId(List.of(farming().tillSoundEvent())),
+                byId(farming().tillSoundEvent().stream().toList()),
                 id -> SoundEvent.getAssetMap().getIndex(id) != Integer.MIN_VALUE);
         return errors;
     }

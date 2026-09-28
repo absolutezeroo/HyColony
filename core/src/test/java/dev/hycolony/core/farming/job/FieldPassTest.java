@@ -265,4 +265,18 @@ class FieldPassTest extends FarmerTestBase {
         assertEquals(BodyAnimation.MINE, b.lastAnimation, "MC mineBlock with the hoe");
         assertEquals(cells().stream().map(c -> c.offset(0, 1, 0)).toList(), t.effects.hits);
     }
+
+    @Test
+    void hoeBrokenOnTheLastCellLeavesTheHandEmpty() {
+        field(true);
+        give(HOE, 1);
+        settings().setFertilize(false);
+        int uses = t.catalog.durability(HOE);
+        citizen.inventory().damage(0, uses - 8, uses); // the hoe, alone in slot 0: 8 uses left
+
+        pass(FarmerState.FARMER_HOE);
+
+        assertEquals(0, carried(HOE), "worn out on the eighth cell");
+        assertEquals(null, t.bodies.bodies.get(body).held);
+    }
 }

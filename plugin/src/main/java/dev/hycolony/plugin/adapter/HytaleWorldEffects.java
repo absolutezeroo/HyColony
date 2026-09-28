@@ -22,13 +22,14 @@ import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.port.WorldEffects;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 import org.joml.Vector3d;
 import org.joml.Vector3i;
 
 /**
- * Vanilla firework particle systems, block hit feedback and the till sound, sent to the nearby players. World thread only; never
- * throws (first failure WARNING, then FINE).
+ * Vanilla firework particle systems, block hit feedback and the till sound, sent to the nearby players. World thread
+ * only; never throws (first failure WARNING, then FINE).
  */
 public final class HytaleWorldEffects implements WorldEffects {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
@@ -41,10 +42,10 @@ public final class HytaleWorldEffects implements WorldEffects {
 
     private final World world;
     private final List<String> fireworks;
-    private final String tillSound;
+    private final Optional<String> tillSound;
     private boolean warned;
 
-    public HytaleWorldEffects(World world, List<String> fireworks, String tillSound) {
+    public HytaleWorldEffects(World world, List<String> fireworks, Optional<String> tillSound) {
         this.world = world;
         this.fireworks = fireworks;
         this.tillSound = tillSound;
@@ -116,11 +117,14 @@ public final class HytaleWorldEffects implements WorldEffects {
         }
     }
 
-    /** The till sound at the soil's centre, as ChangeBlockInteraction plays Hoe_Till's WorldSoundEventId. */
+    /**
+     * The till sound at the soil's centre, as ChangeBlockInteraction plays Hoe_Till's WorldSoundEventId; nothing when
+     * the id-map names none or the game does not know it.
+     */
     @Override
     public void tilled(BlockPos soil) {
         try {
-            int sound = SoundEvent.getAssetMap().getIndex(tillSound);
+            int sound = tillSound.map(SoundEvent.getAssetMap()::getIndex).orElse(Integer.MIN_VALUE);
             if (sound == Integer.MIN_VALUE) {
                 return;
             }

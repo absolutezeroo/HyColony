@@ -91,7 +91,8 @@ final class FieldPass {
 
     /**
      * MC hoeIfAble: without a hoe the cell is skipped (and one is asked for); otherwise the plant on the cell is broken
-     * (its drops fall, as MC's destroyBlock), the soil tilled, the hoe worn by one, then the fertilizer. Deviation from
+     * (its drops fall, as MC's destroyBlock), the soil tilled with a stroke and the till sound, the hoe worn by one,
+     * then the fertilizer. Deviation from
      * MC: any block on the cell is handled like MC's replaceable plants, without action nor XP, where MC mines a
      * non-replaceable one (flower, torch) into the inventory: the core has no "replaceable" flag.
      */
@@ -114,7 +115,9 @@ final class FieldPass {
         didWork = true;
         ItemKey tool =
                 ctx.stock().inventory().slot(hoe.getAsInt()).orElseThrow().item();
-        ctx.stock().inventory().damage(hoe.getAsInt(), 1, catalog().durability(tool));
+        if (ctx.stock().inventory().damage(hoe.getAsInt(), 1, catalog().durability(tool))) {
+            ctx.holdHoe(); // worn out: another hoe, or an empty hand
+        }
         fertilize(surface);
     }
 
@@ -136,8 +139,9 @@ final class FieldPass {
     }
 
     /**
-     * MC harvestIfAble / mineBlock: the harvest drops go to the inventory; one action, the block's and harvest XP, even
-     * without drops. Nothing when the crop is still mature (the harvest failed).
+     * MC harvestIfAble / mineBlock: a stroke on the crop (MC swings while mining), then the harvest drops go to the
+     * inventory; one action, the block's and harvest XP, even without drops. Nothing more when the crop is still
+     * mature (the harvest failed).
      */
     private void harvest(BlockPos surface) {
         BlockPos crop = surface.offset(0, 1, 0);

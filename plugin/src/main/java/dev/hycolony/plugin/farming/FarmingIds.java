@@ -3,13 +3,13 @@ package dev.hycolony.plugin.farming;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The {@code farming} section of the id-map (sp3b-hytale-farming § 2-3): crop seed → crop block, the soils a hoe tills,
- * the tilled soil, the fertilizer tool, the hoes with their tool level, the blocks that keep a cell out of a field, and
- * the till sound.
- * Absent from an older id-map: nothing farms.
+ * The {@code farming} section of the id-map (sp3b-hytale-farming § 2-3): crop seed → crop block, the soils a hoe
+ * tills, the tilled soil, the fertilizer tool, the hoes with their tool level, the blocks that keep a cell out of a
+ * field, and the till sound. Absent from an older id-map: nothing farms.
  */
 public record FarmingIds(
         @Nullable Map<String, String> seeds,
@@ -43,9 +43,9 @@ public record FarmingIds(
         return Objects.requireNonNullElse(hoes, Map.of());
     }
 
-    /** The sound event of a hoe tilling (vanilla Hoe_Till's WorldSoundEventId). */
-    public String tillSoundEvent() {
-        return Objects.requireNonNullElse(tillSound, "SFX_Hoe_T1_Till");
+    /** The sound event of a hoe tilling (vanilla Hoe_Till's WorldSoundEventId); empty when the id-map has none. */
+    public Optional<String> tillSoundEvent() {
+        return Optional.ofNullable(tillSound);
     }
 
     public List<String> barriers() {
