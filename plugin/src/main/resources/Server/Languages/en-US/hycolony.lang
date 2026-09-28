@@ -357,6 +357,7 @@ ui.field.farmer.none = Farmer: No one
 ui.field.seed = Pick seed
 ui.field.seed.none = No seed
 ui.field.select = Select
+ui.field.seed.noMatch = No seed matches your search.
 ui.field.radius.north = Northward field size
 ui.field.radius.south = Southward field size
 ui.field.radius.west = Westward field size

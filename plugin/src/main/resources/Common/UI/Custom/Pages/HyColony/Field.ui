@@ -74,16 +74,9 @@ $C.@PageOverlay {
         }
       }
 
-      Label #PickLabel {
+      $C.@SecondaryTextButton #PickSeed {
+        Anchor: (Height: 36);
         Text: %hycolony.ui.field.seed;
-        Style: (RenderBold: true, TextColor: #94a7bb);
-        Anchor: (Bottom: 6);
-      }
-
-      Group #Seeds {
-        LayoutMode: TopScrolling;
-        ScrollbarStyle: $C.@DefaultScrollbarStyle;
-        Anchor: (Height: 220);
       }
     }
   }

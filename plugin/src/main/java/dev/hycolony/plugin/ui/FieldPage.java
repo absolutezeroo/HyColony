@@ -3,6 +3,7 @@ package dev.hycolony.plugin.ui;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.Message;
+import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
@@ -11,17 +12,17 @@ import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.action.FieldActions;
 import dev.hycolony.core.colony.ui.FieldView;
 import dev.hycolony.core.farming.field.FieldRadii.Direction;
-import dev.hycolony.core.kernel.item.ItemKey;
-import java.util.List;
 import java.util.Locale;
 import javax.annotation.Nonnull;
 
 /**
- * A field block's window (MC WindowField): its farmer, its seed, a button per side showing that side's size, and the
- * seeds to pick from. A side button grows the side by one, past what the budget allows back to 1; each button goes to
- * the core, which checks MANAGE_HUTS and shows the window again. Without MANAGE_HUTS the buttons are disabled.
+ * A field block's window (MC WindowField): its farmer, its seed, a button per side showing that side's size, and Pick
+ * seed, which opens the seed list ({@link SeedPickerPage}). A side button grows the side by one, past what the budget
+ * allows back to 1; each button goes to the core, which checks MANAGE_HUTS and shows the window again. Without
+ * MANAGE_HUTS the buttons are disabled.
  *
- * <p>Deviation from MC: the seed is picked from a list instead of an inventory slot.
+ * <p>Deviation from MC: the seed is picked from the game's crop seeds, where MC's list shows the seeds the player
+ * holds or the colony knows.
  */
 public final class FieldPage extends ColonyPage {
     private final FieldView view;
@@ -53,9 +54,10 @@ public final class FieldPage extends ColonyPage {
         for (Direction dir : Direction.values()) {
             radiusButton(ui, events, dir);
         }
-        List<ItemKey> seeds = view.seeds();
-        for (int i = 0; i < seeds.size(); i++) {
-            seedRow(ui, events, i, seeds.get(i));
+        if (view.canManage()) {
+            bind(events, "#PickSeed", "pick");
+        } else {
+            ui.set("#PickSeed.Disabled", true);
         }
     }
 
@@ -72,26 +74,16 @@ public final class FieldPage extends ColonyPage {
         }
     }
 
-    /** One seed of the list; its Select button is disabled for the current seed or a viewer who may not manage. */
-    private void seedRow(UICommandBuilder ui, UIEventBuilder events, int i, ItemKey seed) {
-        String row = "#Seeds[" + i + "]";
-        ui.append("#Seeds", "Pages/HyColony/FieldSeedRow.ui");
-        ui.set(row + " #Icon.ItemId", seed.id());
-        ui.set(row + " #Name.TextSpans", itemName(seed.id()));
-        if (view.canManage() && !view.seed().map(seed::equals).orElse(false)) {
-            bind(events, row + " #Select", "seed", i);
-        } else {
-            ui.set(row + " #Select.Disabled", true);
-        }
-    }
-
-    /** Sends the picked seed or side to the core, which re-shows the window. */
+    /** Pick seed opens the seed list (MC WindowSelectRes); a side goes to the core, which re-shows the window. */
     @Override
     public void handleDataEvent(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, @Nonnull Act act) {
         FieldActions fields = new FieldActions(manager);
         int i = act.index();
-        if (act.action().equals("seed") && i >= 0 && i < view.seeds().size()) {
-            fields.setSeed(player, view.pos(), view.seeds().get(i));
+        if (act.action().equals("pick") && view.canManage()) {
+            Player p = store.getComponent(ref, Player.getComponentType());
+            if (p != null) {
+                p.getPageManager().openCustomPage(ref, store, new SeedPickerPage(playerRef, view, manager));
+            }
         } else if (act.action().equals("radius") && i >= 0 && i < Direction.values().length) {
             fields.cycleRadius(player, view.pos(), Direction.values()[i]);
         }
