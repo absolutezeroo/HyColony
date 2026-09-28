@@ -15,10 +15,10 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.colony.ColonyManager;
+import dev.hycolony.core.colony.ColonyRefusal;
 import dev.hycolony.core.colony.HutPlacement;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.kernel.BlockPos;
-import dev.hycolony.core.kernel.port.Msg;
 import dev.hycolony.plugin.RuntimeSetup;
 import dev.hycolony.plugin.WorldRuntime;
 import dev.hycolony.plugin.WorldRuntimes;
@@ -157,8 +157,7 @@ public final class HutBlockSystems {
                 }
                 if (m.colonyAt(pos).isPresent() && !m.isAllowed(player.getUuid(), pos, Action.BREAK_HUTS)) {
                     event.setCancelled(true);
-                    player.sendMessage(HytaleNotifier.toMessage(Msg.of(
-                            "hycolony.permission.denied", m.colonyAt(pos).get().name())));
+                    ColonyRefusal.tell(m.colonyAt(pos).get(), player.getUuid());
                     return;
                 }
                 m.huts().onRemoved(pos);

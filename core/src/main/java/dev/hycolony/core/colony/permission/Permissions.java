@@ -42,12 +42,19 @@ public final class Permissions {
     private String ownerName;
     private final Map<Integer, Rank> ranks;
     private final Map<UUID, Member> members;
+    /** Not saved: who was told of a refusal lately, for this colony only (MC has one event handler per colony). */
+    private final DenialNotices denials = new DenialNotices();
 
     private Permissions(UUID owner, String ownerName, Map<Integer, Rank> ranks, Map<UUID, Member> members) {
         this.owner = owner;
         this.ownerName = ownerName;
         this.ranks = ranks;
         this.members = members;
+    }
+
+    /** When this colony tells a refused player again; see {@link DenialNotices}. */
+    public DenialNotices denials() {
+        return denials;
     }
 
     public static Permissions createDefault(UUID owner, String ownerName) {

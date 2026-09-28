@@ -12,6 +12,7 @@ import dev.hycolony.core.building.ModuleProducer;
 import dev.hycolony.core.building.PersistentModule;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.colony.permission.BlockUse;
+import dev.hycolony.core.colony.permission.DenialNotices;
 import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.colony.ui.FoundColonyView;
 import dev.hycolony.core.colony.ui.TownHallView;
@@ -207,6 +208,23 @@ class ColonyManagerTest {
         found(alice, "A", hall);
         BlockUse door = new BlockUse(true, false, false, BlockUse.Held.NOTHING);
         assertEquals(Optional.empty(), refusedUse(bob, hall.offset(3, 0, 3), door));
+    }
+
+    @Test
+    void aRefusedPlayerIsToldOnceEveryTenSecondsPerColony() {
+        Colony a = found(alice, "A", hall);
+        Colony b = found(UUID.randomUUID(), "B", new BlockPos(5000, 64, 0));
+        int before = t.notifier.sent.size();
+        t.clock.tick = 1000;
+        ColonyRefusal.tell(a, bob);
+        ColonyRefusal.tell(a, bob);
+        ColonyRefusal.tell(b, bob);
+        assertEquals(before + 2, t.notifier.sent.size());
+        assertEquals(
+                "hycolony.permission.denied", t.notifier.sent.getLast().msg().key());
+        t.clock.tick = 1001 + DenialNotices.INTERVAL_TICKS;
+        ColonyRefusal.tell(a, bob);
+        assertEquals(before + 3, t.notifier.sent.size());
     }
 
     /** How the plugin asks: the rank's permissions at that spot, everything allowed outside colonies. */

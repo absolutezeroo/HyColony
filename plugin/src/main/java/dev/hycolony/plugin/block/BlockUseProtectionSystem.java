@@ -13,6 +13,7 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyManager;
+import dev.hycolony.core.colony.ColonyRefusal;
 import dev.hycolony.core.colony.permission.BlockUse;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.plugin.IdMap;
@@ -33,14 +34,12 @@ public final class BlockUseProtectionSystem extends EntityEventSystem<EntityStor
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
     private final WorldRuntimes runtimes;
-    private final ColonyRefusals refusals;
     private final Set<String> hutBlockIds;
     private final BlockUses uses;
 
-    public BlockUseProtectionSystem(ProtectionSystems.Check check, IdMap ids) {
+    public BlockUseProtectionSystem(WorldRuntimes runtimes, IdMap ids) {
         super(UseBlockEvent.Pre.class);
-        this.runtimes = check.runtimes();
-        this.refusals = check.refusals();
+        this.runtimes = runtimes;
         this.hutBlockIds = HutBlockSystems.byBlockId(runtimes.setup()).keySet();
         this.uses = new BlockUses(ids);
     }
@@ -78,7 +77,7 @@ public final class BlockUseProtectionSystem extends EntityEventSystem<EntityStor
             if (use.refused(action -> manager.isAllowed(player.getUuid(), pos, action), manager.protectionEnabled())
                     .isPresent()) {
                 event.setCancelled(true);
-                refusals.tell(rt, player, colony.get().name());
+                ColonyRefusal.tell(colony.get(), player.getUuid());
             }
         } catch (RuntimeException e) {
             // A failing check must not let the use through.

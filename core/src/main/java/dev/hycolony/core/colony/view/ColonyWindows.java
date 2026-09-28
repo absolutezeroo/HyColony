@@ -5,13 +5,13 @@ import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.colony.ColonyManager;
+import dev.hycolony.core.colony.ColonyRefusal;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.colony.ui.BuildingView;
 import dev.hycolony.core.colony.ui.CitizenView;
 import dev.hycolony.core.colony.ui.TownHallView;
 import dev.hycolony.core.colony.ui.WindowKey;
 import dev.hycolony.core.kernel.BlockPos;
-import dev.hycolony.core.kernel.port.Msg;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -137,7 +137,7 @@ public final class ColonyWindows {
         if (c.permissions().hasPermission(player, Action.ACCESS_HUTS)) {
             return true;
         }
-        ctx.notifier().send(player, Msg.of("hycolony.permission.denied", c.name()));
+        ColonyRefusal.tell(c, player);
         return false;
     }
 }

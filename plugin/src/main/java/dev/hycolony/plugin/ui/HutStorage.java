@@ -14,6 +14,7 @@ import com.hypixel.hytale.server.core.universe.world.chunk.section.BlockSection;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.colony.ColonyManager;
+import dev.hycolony.core.colony.ColonyRefusal;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.port.Msg;
@@ -44,7 +45,7 @@ final class HutStorage {
      */
     void open(Ref<EntityStore> ref, Store<EntityStore> store) {
         if (!mayOpen()) { // checked again: ranks may have changed since the page was built
-            manager.colonyAt(pos).ifPresent(c -> tell(Msg.of("hycolony.permission.denied", c.name())));
+            manager.colonyAt(pos).ifPresent(c -> ColonyRefusal.tell(c, playerRef.getUuid()));
             return;
         }
         World world = store.getExternalData().getWorld();

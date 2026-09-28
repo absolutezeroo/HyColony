@@ -10,6 +10,7 @@ import com.hypixel.hytale.server.core.event.events.ecs.PlaceBlockEvent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.colony.ColonyManager;
+import dev.hycolony.core.colony.ColonyRefusal;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.plugin.WorldRuntime;
@@ -25,8 +26,9 @@ public final class ProtectionSystems {
     private ProtectionSystems() {}
 
     /** True (and the player is told) when the action must be refused. */
-    private static boolean deny(Check check, Store<EntityStore> store, PlayerRef player, BlockPos pos, Action action) {
-        WorldRuntime rt = check.runtimes().of(store.getExternalData().getWorld());
+    private static boolean deny(
+            WorldRuntimes runtimes, Store<EntityStore> store, PlayerRef player, BlockPos pos, Action action) {
+        WorldRuntime rt = runtimes.of(store.getExternalData().getWorld());
         if (rt == null || !rt.enabled() || player == null) {
             return false;
         }
@@ -34,21 +36,18 @@ public final class ProtectionSystems {
         if (!m.protectionEnabled() || m.isAllowed(player.getUuid(), pos, action)) {
             return false;
         }
-        check.refusals().tell(rt, player, m.colonyAt(pos).get().name());
+        ColonyRefusal.tell(m.colonyAt(pos).get(), player.getUuid());
         return true;
     }
 
-    /** What a protection system checks with: the world runtimes and the shared denial messages. */
-    public record Check(WorldRuntimes runtimes, ColonyRefusals refusals) {}
-
     public static final class Place extends EntityEventSystem<EntityStore, PlaceBlockEvent> {
-        private final Check check;
+        private final WorldRuntimes runtimes;
         private final Set<String> hutItemIds;
 
-        public Place(Check check) {
+        public Place(WorldRuntimes runtimes) {
             super(PlaceBlockEvent.class);
-            this.check = check;
-            this.hutItemIds = HutBlockSystems.byItemId(check.runtimes().setup()).keySet();
+            this.runtimes = runtimes;
+            this.hutItemIds = HutBlockSystems.byItemId(runtimes.setup()).keySet();
         }
 
         @Override
@@ -68,7 +67,7 @@ public final class ProtectionSystems {
                 return;
             }
             if (deny(
-                    check,
+                    runtimes,
                     store,
                     HutBlockSystems.player(index, chunk, store),
                     HutBlockSystems.pos(event.getTargetBlock()),
@@ -79,14 +78,13 @@ public final class ProtectionSystems {
     }
 
     public static final class Break extends EntityEventSystem<EntityStore, BreakBlockEvent> {
-        private final Check check;
+        private final WorldRuntimes runtimes;
         private final Set<String> hutBlockIds;
 
-        public Break(Check check) {
+        public Break(WorldRuntimes runtimes) {
             super(BreakBlockEvent.class);
-            this.check = check;
-            this.hutBlockIds =
-                    HutBlockSystems.byBlockId(check.runtimes().setup()).keySet();
+            this.runtimes = runtimes;
+            this.hutBlockIds = HutBlockSystems.byBlockId(runtimes.setup()).keySet();
         }
 
         @Override
@@ -105,7 +103,7 @@ public final class ProtectionSystems {
                 return;
             }
             if (deny(
-                    check,
+                    runtimes,
                     store,
                     HutBlockSystems.player(index, chunk, store),
                     HutBlockSystems.pos(event.getTargetBlock()),
