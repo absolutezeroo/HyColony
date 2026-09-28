@@ -38,7 +38,7 @@ class FieldRegistryTest {
     @Test
     void cleanUpDropsAFieldOutsideTheColony() {
         FieldRegistry r = registry();
-        r.cleanUp(p -> true, p -> !p.equals(A), p -> true);
+        assertTrue(r.cleanUp(p -> true, p -> !p.equals(A), p -> true), "a change to save");
         assertEquals(List.of(B), positions(r));
     }
 
@@ -52,7 +52,7 @@ class FieldRegistryTest {
     @Test
     void cleanUpKeepsAnUnloadedField() {
         FieldRegistry r = registry();
-        r.cleanUp(p -> false, p -> false, p -> false);
+        assertFalse(r.cleanUp(p -> false, p -> false, p -> false), "nothing to save");
         assertEquals(List.of(A, B), positions(r));
     }
 

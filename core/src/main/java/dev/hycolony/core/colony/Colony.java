@@ -122,9 +122,11 @@ public final class Colony {
     private void slowTick() {
         buildings.onColonyTick(this);
         citizens.onColonyTick();
-        registries
+        if (registries
                 .fields()
-                .cleanUp(ctx.worldQuery()::isLoaded, this::contains, ctx.ports().farming()::isFieldBlock);
+                .cleanUp(ctx.worldQuery()::isLoaded, this::contains, ctx.ports().farming()::isFieldBlock)) {
+            markDirty();
+        }
     }
 
     private Optional<Requester> requester(RequesterId id) {

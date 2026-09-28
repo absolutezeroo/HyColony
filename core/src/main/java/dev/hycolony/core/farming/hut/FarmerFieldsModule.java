@@ -9,6 +9,7 @@ import dev.hycolony.core.building.TickingModule;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ui.tab.ModuleTab;
 import dev.hycolony.core.farming.field.FarmField;
+import dev.hycolony.core.farming.field.FieldJson;
 import dev.hycolony.core.farming.field.FieldRegistry;
 import dev.hycolony.core.logistics.pickup.KeepRule;
 import dev.hycolony.core.logistics.pickup.KeepsItems;
@@ -145,7 +146,7 @@ public final class FarmerFieldsModule
 
     @Override
     public void read(JsonObject in) {
-        assignManually = in.has("assignManually") && in.get("assignManually").getAsBoolean();
+        assignManually = FieldJson.bool(in.get("assignManually")).orElse(false);
         choice.read(in);
         walk.read(in);
     }

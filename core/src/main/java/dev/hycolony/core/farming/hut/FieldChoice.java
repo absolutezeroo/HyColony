@@ -4,12 +4,14 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.hycolony.core.farming.field.FarmField;
+import dev.hycolony.core.farming.field.FieldJson;
 import dev.hycolony.core.farming.field.FieldRegistry;
 import dev.hycolony.core.kernel.BlockPos;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalInt;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -75,13 +77,15 @@ final class FieldChoice {
     }
 
     void read(JsonObject in) {
-        current = readPos(in.get("current")).orElse(null);
+        current = FieldJson.pos(in.get("current")).orElse(null);
         checked.clear();
         if (in.get("checked") instanceof JsonArray list) {
             for (JsonElement el : list) {
-                if (el instanceof JsonObject e && e.has("day")) {
-                    readPos(e.get("pos"))
-                            .ifPresent(p -> checked.put(p, e.get("day").getAsInt()));
+                if (el instanceof JsonObject e) {
+                    OptionalInt day = FieldJson.integer(e.get("day"));
+                    FieldJson.pos(e.get("pos"))
+                            .filter(p -> day.isPresent())
+                            .ifPresent(p -> checked.put(p, day.getAsInt()));
                 }
             }
         }
@@ -93,12 +97,5 @@ final class FieldChoice {
         a.add(p.y());
         a.add(p.z());
         return a;
-    }
-
-    private static Optional<BlockPos> readPos(@Nullable JsonElement el) {
-        return el instanceof JsonArray a && a.size() == 3
-                ? Optional.of(new BlockPos(
-                        a.get(0).getAsInt(), a.get(1).getAsInt(), a.get(2).getAsInt()))
-                : Optional.empty();
     }
 }

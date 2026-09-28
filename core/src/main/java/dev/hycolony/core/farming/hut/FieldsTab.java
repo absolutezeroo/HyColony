@@ -58,7 +58,7 @@ final class FieldsTab {
 
     /** MC BlockPosUtil.getDistance: the whole Euclidean distance. */
     static int distance(BlockPos a, BlockPos b) {
-        return (int) Math.sqrt(a.distSq(b));
+        return (int) Math.sqrt((double) a.distSq(b));
     }
 
     /** The short direction from {@code from} to {@code to}, north being -z. */

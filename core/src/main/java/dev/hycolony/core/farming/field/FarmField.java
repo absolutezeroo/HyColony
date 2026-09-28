@@ -7,6 +7,8 @@ import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemKey;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalInt;
+import org.jspecify.annotations.Nullable;
 
 /**
  * One field of the colony (MC FarmField): the field block's position, the farmer hut that owns it, the seed it grows,
@@ -84,22 +86,16 @@ public final class FarmField {
 
     /** The saved field; empty without a readable position. Other keys fall back to a new field's values. */
     public static Optional<FarmField> read(JsonObject in) {
-        Optional<BlockPos> pos = readPos(in.get("pos"));
+        Optional<BlockPos> pos = FieldJson.pos(in.get("pos"));
         if (pos.isEmpty()) {
             return Optional.empty();
         }
         FarmField f = new FarmField(pos.get());
-        f.owner = readPos(in.get("owner"));
+        f.owner = FieldJson.pos(in.get("owner"));
         if (in.has("seed") && in.get("seed").isJsonPrimitive()) {
             f.seed = Optional.of(new ItemKey(in.get("seed").getAsString()));
         }
-        if (in.get("radii") instanceof JsonArray r && r.size() == 4) {
-            f.radii = new FieldRadii(
-                    r.get(0).getAsInt(),
-                    r.get(1).getAsInt(),
-                    r.get(2).getAsInt(),
-                    r.get(3).getAsInt());
-        }
+        f.radii = readRadii(in.get("radii"));
         f.stage = readStage(in.get("stage"));
         return Optional.of(f);
     }
@@ -123,10 +119,23 @@ public final class FarmField {
         return a;
     }
 
-    private static Optional<BlockPos> readPos(JsonElement el) {
-        return el instanceof JsonArray a && a.size() == 3
-                ? Optional.of(new BlockPos(
-                        a.get(0).getAsInt(), a.get(1).getAsInt(), a.get(2).getAsInt()))
-                : Optional.empty();
+    /** Four numbers, none negative, within the budget of {@link FieldRadii#MAX_RANGE}; else the defaults. */
+    private static FieldRadii readRadii(@Nullable JsonElement el) {
+        if (!(el instanceof JsonArray r) || r.size() != 4) {
+            return FieldRadii.defaults();
+        }
+        int[] sides = new int[4];
+        int sum = 0;
+        for (int i = 0; i < 4; i++) {
+            OptionalInt side = FieldJson.integer(r.get(i));
+            if (side.isEmpty() || side.getAsInt() < 0) {
+                return FieldRadii.defaults();
+            }
+            sides[i] = side.getAsInt();
+            sum += sides[i];
+        }
+        return sum > FieldRadii.MAX_RANGE
+                ? FieldRadii.defaults()
+                : new FieldRadii(sides[0], sides[1], sides[2], sides[3]);
     }
 }

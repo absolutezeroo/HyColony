@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.PersistentModule;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.farming.field.FieldJson;
 import dev.hycolony.core.logistics.pickup.KeepRule;
 import dev.hycolony.core.logistics.pickup.KeepsItems;
 import java.util.List;
@@ -39,6 +40,6 @@ public final class FarmerSettingsModule implements PersistentModule, KeepsItems 
 
     @Override
     public void read(JsonObject in) {
-        fertilize = !in.has("fertilize") || in.get("fertilize").getAsBoolean();
+        fertilize = FieldJson.bool(in.get("fertilize")).orElse(true);
     }
 }

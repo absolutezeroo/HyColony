@@ -3,6 +3,7 @@ package dev.hycolony.core.farming.hut;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import dev.hycolony.core.farming.field.FieldCells;
+import dev.hycolony.core.farming.field.FieldJson;
 import dev.hycolony.core.farming.field.FieldRadii;
 import dev.hycolony.core.kernel.BlockPos;
 import java.util.Optional;
@@ -76,13 +77,18 @@ public final class FieldWalk {
     }
 
     void read(JsonObject in) {
-        cell = in.has("cell") ? in.get("cell").getAsInt() : -1;
-        offset = in.get("workingOffset") instanceof JsonArray o && o.size() == 2
-                ? new int[] {o.get(0).getAsInt(), o.get(1).getAsInt()}
+        OptionalInt savedCell = FieldJson.integer(in.get("cell"));
+        cell = savedCell.orElse(-1);
+        offset = savedCell.isPresent() && in.get("workingOffset") instanceof JsonArray o && o.size() == 2
+                ? readOffset(o)
                 : null;
-        prevPos = in.get("prevPos") instanceof JsonArray p && p.size() == 3
-                ? new BlockPos(
-                        p.get(0).getAsInt(), p.get(1).getAsInt(), p.get(2).getAsInt())
-                : null;
+        prevPos = FieldJson.pos(in.get("prevPos")).orElse(null);
+    }
+
+    /** A saved {x, z} offset; null if either is not a number. */
+    private static int @Nullable [] readOffset(JsonArray o) {
+        OptionalInt x = FieldJson.integer(o.get(0));
+        OptionalInt z = FieldJson.integer(o.get(1));
+        return x.isPresent() && z.isPresent() ? new int[] {x.getAsInt(), z.getAsInt()} : null;
     }
 }
