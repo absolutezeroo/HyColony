@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 /**
  * The materials Domum Ornamentum variants can take: the DO tags of the id-map, each block read from the loaded
@@ -36,16 +37,14 @@ public final class MaterialCatalog {
     public static MaterialCatalog load(Map<String, List<String>> tagged) {
         Map<String, String> textures = new HashMap<>();
         Map<String, String> icons = new HashMap<>();
+        // Each block once, however many tags name it: one warning per bad block.
+        Set<String> materials = new LinkedHashSet<>();
+        tagged.values().forEach(materials::addAll);
+        materials.forEach(blockId -> read(blockId, textures, icons));
         Map<String, Set<String>> kept = new HashMap<>();
-        for (Map.Entry<String, List<String>> tag : tagged.entrySet()) {
-            Set<String> blocks = new LinkedHashSet<>();
-            for (String blockId : tag.getValue()) {
-                if (textures.containsKey(blockId) || read(blockId, textures, icons)) {
-                    blocks.add(blockId);
-                }
-            }
-            kept.put(tag.getKey(), blocks);
-        }
+        tagged.forEach((tag, blocks) -> kept.put(
+                tag,
+                blocks.stream().filter(textures::containsKey).collect(Collectors.toCollection(LinkedHashSet::new))));
         return new MaterialCatalog(new MaterialTags(kept), textures, icons);
     }
 
@@ -63,19 +62,18 @@ public final class MaterialCatalog {
         return Optional.ofNullable(icons.get(blockId));
     }
 
-    /** Records blockId's texture (and icon) when it is a loaded cube; false, with a warning, otherwise. */
-    private static boolean read(String blockId, Map<String, String> textures, Map<String, String> icons) {
+    /** Records blockId's texture (and icon) when it is a loaded cube; logs a warning otherwise. */
+    private static void read(String blockId, Map<String, String> textures, Map<String, String> icons) {
         BlockType block = BlockType.getAssetMap().getAsset(blockId);
         BlockTypeTextures[] faces = block == null ? null : block.getTextures();
         if (block == null || block.getDrawType() != DrawType.Cube || faces == null || faces.length == 0) {
             LOG.at(Level.WARNING).log("hyornament: tagged material %s is not a loaded cube block, left out", blockId);
-            return false;
+            return;
         }
         textures.put(blockId, faces[0].getNorth());
         Item item = block.getItem();
         if (item != null && item.getIcon() != null) {
             icons.put(blockId, item.getIcon());
         }
-        return true;
     }
 }

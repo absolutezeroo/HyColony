@@ -88,7 +88,7 @@ public final class IdMap {
      * pack is off.
      */
     public Map<String, List<String>> ornamentTags() {
-        return Objects.requireNonNullElse(data.ornamentTags(), Map.of());
+        return Map.copyOf(Objects.requireNonNullElse(data.ornamentTags(), Map.of()));
     }
 
     /** Flower pot (item and empty block) -> plant item -> that pot's block holding it; none when Decorations is off. */
