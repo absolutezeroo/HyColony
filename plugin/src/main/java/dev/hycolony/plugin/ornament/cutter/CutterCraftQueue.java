@@ -20,8 +20,8 @@ final class CutterCraftQueue {
     /**
      * How often the progress bar moves, in milliseconds: 10 moves a second read as a smooth fill (a custom ProgressBar
      * has no client-side animation, unlike a bench's own bar). The trade-off: the page's clicks (tabs, drops) are
-     * dropped while an update awaits the client's acknowledgement (PageManager.handleEvent), about ping / TICK_MILLIS of
-     * them during a craft; shorter would lose nearly all of them on a distant server.
+     * dropped while an update awaits the client's acknowledgement (PageManager.handleEvent), about ping / TICK_MILLIS
+     * of them during a craft; shorter would lose nearly all of them on a distant server.
      */
     static final long TICK_MILLIS = 100;
 
