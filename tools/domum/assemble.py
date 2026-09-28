@@ -85,39 +85,65 @@ def _when_matches(when, props):
     return not when or all(props.get(key) in value.split("|") for key, value in when.items())
 
 
-def rotate_y(model, degrees):
+def rotate_y(model, degrees, uvlock=False):
     """Turns every element (and its own inner tilt) by degrees (a multiple of 90) around the block's
     vertical axis through PIVOT: Minecraft's "y" model rotation, clockwise viewed from above
-    (north -> east). Face keys follow the turn; up/down faces and every uv are unchanged."""
-    return _rotate(model, degrees, axis=1)
+    (north -> east). Face keys follow the turn; up/down faces are unchanged. uv is unchanged unless
+    uvlock and degrees actually rotate the model, in which case every face's uv is recomputed (see
+    _rotate_element) so its texture stays aligned to the world instead of spinning with the block."""
+    return _rotate(model, degrees, axis=1, uvlock=uvlock)
 
 
-def rotate_x(model, degrees):
+def rotate_x(model, degrees, uvlock=False):
     """Turns every element the same way as rotate_y, around the block's east-west axis (Minecraft's "x"
-    model rotation): up -> north -> down -> south at +90. East/west faces and every uv are unchanged."""
-    return _rotate(model, degrees, axis=0)
+    model rotation): up -> north -> down -> south at +90. East/west faces are unchanged; uvlock behaves
+    as in rotate_y."""
+    return _rotate(model, degrees, axis=0, uvlock=uvlock)
 
 
-def _rotate(model, degrees, axis):
+def _rotate(model, degrees, axis, uvlock):
     k = (degrees // 90) % 4
     cycle = _Y_FACES if axis == 1 else _X_FACES
     face_map = {cycle[i]: cycle[(i + k) % 4] for i in range(4)}
-    elements = [_rotate_element(e, k, axis, face_map) for e in model["elements"]]
+    elements = [_rotate_element(e, k, axis, face_map, uvlock) for e in model["elements"]]
     return {"textures": model["textures"], "elements": elements}
 
 
-def _rotate_element(element, k, axis, face_map):
+def _rotate_element(element, k, axis, face_map, uvlock):
+    """One element turned k times: from/to recomputed as the new bounding corners, faces relabelled by
+    face_map. With uvlock and k != 0 (an actual rotation, MC: FaceBakery's uvlock recompute), every face's
+    uv is replaced by Minecraft's default uv for its new direction at the new bounds, so a texture that
+    would otherwise spin with the block stays aligned to the world; without uvlock (or at k == 0, no
+    rotation to compensate for) every uv is left exactly as authored."""
     low = _rotate_point(element["from"], k, axis)
     high = _rotate_point(element["to"], k, axis)
-    result = {
-        **element,
-        "from": [min(low[i], high[i]) for i in range(3)],
-        "to": [max(low[i], high[i]) for i in range(3)],
-        "faces": {face_map.get(d, d): face for d, face in element["faces"].items()},
-    }
+    new_from = [min(low[i], high[i]) for i in range(3)]
+    new_to = [max(low[i], high[i]) for i in range(3)]
+    faces = {}
+    for direction, face in element["faces"].items():
+        new_direction = face_map.get(direction, direction)
+        if uvlock and k:
+            face = {**face, "uv": list(_default_uv(new_direction, new_from, new_to))}
+        faces[new_direction] = face
+    result = {**element, "from": new_from, "to": new_to, "faces": faces}
     if "rotation" in element:
         result["rotation"] = _rotate_inner(element["rotation"], k, axis)
     return result
+
+
+def _default_uv(direction, low, high):
+    """Minecraft's uv for a face that declares none: the element's own position on the face. Reused by
+    uvlock (_rotate_element) to keep a texture world-aligned after a rotation; kept local, matching
+    convert.py's own default_uv, so assemble.py does not depend on convert.py."""
+    (x1, y1, z1), (x2, y2, z2) = low, high
+    return {
+        "north": (16 - x2, 16 - y2, 16 - x1, 16 - y1),
+        "south": (x1, 16 - y2, x2, 16 - y1),
+        "west": (z1, 16 - y2, z2, 16 - y1),
+        "east": (16 - z2, 16 - y2, 16 - z1, 16 - y1),
+        "up": (x1, z1, x2, z2),
+        "down": (x1, 16 - z2, x2, 16 - z1),
+    }[direction]
 
 
 def _rotate_point(point, k, axis):
@@ -151,17 +177,17 @@ def state_model(root, family, block_id, props):
     the family's own facing=north reference lines up with Hytale's front (-Z). A property missing from
     props takes the block's own default value (see parts()).
 
-    Raises ValueError if a selected part needs uvlock (Minecraft's texture-locked rotation): DO's own
-    blockstates use it for a few families (e.g. trapdoors, panels) whose rotation this module does not
-    yet reproduce.
+    A selected part with "uvlock": true (DO uses it for e.g. trapdoors, panels, pillar columns) keeps its
+    texture world-aligned: rotate_x/rotate_y then recompute that part's uv instead of carrying the
+    authored uv along with the rotated geometry.
     """
     state = source.blockstate(root, block_id)
     merged = {"textures": {}, "elements": []}
     for index, apply in enumerate(parts(state, props)):
-        if apply.get("uvlock"):
-            raise ValueError(f"uvlock not supported: {block_id}")
+        uvlock = bool(apply.get("uvlock"))
         name = apply["model"].removeprefix(source.DO_PARENT)
-        model = rotate_y(rotate_x(source.load(root, name), apply.get("x", 0)), apply.get("y", 0))
+        raw = source.load(root, name)
+        model = rotate_y(rotate_x(raw, apply.get("x", 0), uvlock), apply.get("y", 0), uvlock)
         part = _prefixed(model, f"e{index}_")
         merged["textures"].update(part["textures"])
         merged["elements"].extend(part["elements"])

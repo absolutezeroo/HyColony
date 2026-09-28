@@ -99,12 +99,69 @@ def multipart_keeps_matching_parts_only():
     assert [p["model"] for p in assemble.parts(state, {"north": "false"})] == ["p/post", "p/side_off"]
 
 
+def uvlock_recomputes_uv_from_rotated_bounds():
+    """rotate_y with uvlock replaces a rotated face's uv by Minecraft's default uv of its new bounds, but
+    leaves it untouched when degrees is 0 (no rotation to compensate for)."""
+    model = {
+        "textures": {},
+        "elements": [{"from": [2, 14, 4], "to": [10, 16, 12], "faces": {"up": {"uv": [0, 0, 16, 16], "texture": "#a"}}}],
+    }
+    turned = assemble.rotate_y(model, 90, uvlock=True)["elements"][0]
+    assert turned["from"] == [4, 14, 2] and turned["to"] == [12, 16, 10], turned
+    assert turned["faces"]["up"]["uv"] == [4, 2, 12, 10], turned["faces"]["up"]
+
+    still = assemble.rotate_y(model, 0, uvlock=True)["elements"][0]
+    assert still["faces"]["up"]["uv"] == [0, 0, 16, 16], still["faces"]["up"]
+
+
+def state_model_assembles_real_do_data():
+    """state_model resolves both DO model roots (source.fetch(): hand-authored "_spec" models and the
+    datagen-generated thin wrappers a blockstate's own "model" field references) for families whose
+    default state needs no uvlock."""
+    root = source.fetch()
+    for family_name, block_id in (("TimberFrame", "plain"), ("Shingle", "shingle"), ("Door", "vanilla_doors_compat")):
+        family = next(f for f in FAMILIES if f.name == family_name)
+        model = assemble.state_model(root, family, block_id, {})
+        assert model["elements"], family_name
+
+
+def uvlock_families_assemble_without_error():
+    """Trapdoor, Panel (their default state) and Pillar's column shape all select a uvlock DO part in
+    real data; state_model recomputes their uv instead of raising."""
+    root = source.fetch()
+    cases = (
+        ("Trapdoor", "vanilla_trapdoors_compat", {}),
+        ("Panel", "panel", {}),
+        ("Pillar", "blockpillar", {"column": "pillar_column"}),
+    )
+    for family_name, block_id, props in cases:
+        family = next(f for f in FAMILIES if f.name == family_name)
+        model = assemble.state_model(root, family, block_id, props)
+        assert model["elements"], family_name
+
+
+def default_props_pick_the_blocks_own_default_state():
+    """A property missing from props resolves to the block's own default (facing=north, half=bottom for
+    the stair-style spelling): state_model with props={} matches calling with those defaults spelled out."""
+    root = source.fetch()
+    shingle = next(f for f in FAMILIES if f.name == "Shingle")
+    implicit = assemble.state_model(root, shingle, "shingle", {})
+    explicit = assemble.state_model(
+        root, shingle, "shingle", {"facing": "north", "half": "bottom", "shape": "straight"}
+    )
+    assert implicit == explicit
+
+
 def main():
     converter_matches_reference_geometry()
     families_cover_the_spec()
     material_follows_component_order()
     rotate_y_turns_north_face_to_east()
     multipart_keeps_matching_parts_only()
+    uvlock_recomputes_uv_from_rotated_bounds()
+    state_model_assembles_real_do_data()
+    uvlock_families_assemble_without_error()
+    default_props_pick_the_blocks_own_default_state()
     with tempfile.TemporaryDirectory() as tmp:
         partial_cache_is_refetched(Path(tmp))
     print("tools/domum check: OK")
