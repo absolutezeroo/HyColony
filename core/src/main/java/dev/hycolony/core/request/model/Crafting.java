@@ -8,8 +8,10 @@ import java.util.Objects;
  * the recipe {@code recipeId} (an id of the colony's recipe registry) making {@code stack}, at least {@code minCount}.
  * Not a {@link Deliverable}: no stock resolver serves it, and a courier never carries it.
  *
- * <p>MC AbstractCrafting.equals compares the stack, count and minimum count only: two tasks for the same output and
- * counts are equal whatever their recipe, public or private.
+ * <p>Deviation from MC: two tasks for the same item and counts are equal, whatever their recipe, public or private.
+ * MC AbstractCrafting.equals compares the stack, count and minimum count, but the stack through ItemStack.equals,
+ * which Minecraft 1.20.1 does not override: two MC tasks are equal only when they share one ItemStack. No effect in
+ * game: no rule compares two tasks.
  */
 public record Crafting(ItemKey stack, int count, int minCount, String recipeId, boolean isPublic)
         implements Requestable {

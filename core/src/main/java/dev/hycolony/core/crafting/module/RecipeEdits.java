@@ -19,8 +19,9 @@ public final class RecipeEdits {
 
     /**
      * MC AddRemoveRecipeMessage, adding: the recipe known under {@code id}, or else the game's recipe a
-     * {@code hytale:<id>} names, is registered (MC checkOrAddRecipe) then learnt; returns the refusal otherwise,
-     * registering nothing.
+     * {@code hytale:<id>} names, is registered (MC checkOrAddRecipe) then learnt; returns the refusal otherwise.
+     * Deviation from MC: a refused recipe is not registered, where MC registers it before trying; every registered
+     * recipe is saved here ({@code RecipeRegistry}), so it would stay in the save with no hut holding it.
      */
     public static Optional<LearnRefusal> learn(
             Colony colony, Building hut, CraftingModule module, RecipeId id, UUID player) {
@@ -71,7 +72,8 @@ public final class RecipeEdits {
 
     /**
      * MC WindowListRecipes shows a disabled recipe's Enable button for a custom recipe, or while the hut has room: FULL
-     * for a disabled taught recipe of a full hut; empty otherwise. MC's server does not check it.
+     * for a disabled taught recipe of a full hut; empty otherwise. Deviation from MC: the server checks it too, where
+     * MC's ToggleRecipeMessage enables whatever it is sent, so a stale window cannot take the hut past its maximum.
      */
     static Optional<LearnRefusal> enableRefusal(Colony colony, Building hut, CraftingModule module, RecipeId id) {
         boolean hidden = module.isDisabled(id)

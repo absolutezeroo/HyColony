@@ -24,9 +24,9 @@ import java.util.Optional;
  *
  * <p>Deviation from MC: one resolver instead of {@code WarehouseRequestResolver} and
  * {@code WarehouseConcreteRequestResolver}. MC splits them only to count concrete stacks (NBT, damage) apart from
- * predicates; {@link Deliverable#matches} covers both here. We have no {@code StackList}
- * ({@code INonExhaustiveDeliverable}), so the {@code leftOver} MC keeps is always 0, and no {@code MinimumStack}, so
- * the "not for another warehouse's minimum stock" rule has nothing to test.
+ * predicates; {@link Deliverable#matches} covers both here. Our {@code StackList} carries no {@code leftOver} (MC
+ * {@code INonExhaustiveDeliverable}), so the {@code leftOver} MC keeps is always 0, and we have no
+ * {@code MinimumStack}, so the "not for another warehouse's minimum stock" rule has nothing to test.
  */
 final class WarehouseStockResolver implements Resolver {
     /** MC {@code CONST_WAREHOUSE_RESOLVER_PRIORITY}: after the hut's own stock (200), before the couriers (100). */

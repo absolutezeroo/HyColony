@@ -306,7 +306,9 @@ public final class CraftingWork {
 
     /**
      * MC afterDump: a task whose runs are all made is finished (RESOLVED, its items then go to the requester), for
-     * half its runs as experience; the secondary outputs go to the nearest warehouse; then IDLE.
+     * half its runs as experience; the secondary outputs go to the nearest warehouse; then IDLE. Deviation from MC: the
+     * task is finished only while it is still the head of the queue, which {@code finishRequest} finishes; MC finishes
+     * the head whenever its current request is in progress, even when that head is another task.
      */
     public CraftingStep afterDump() {
         CraftingTasks tasks = ctx.tasks();

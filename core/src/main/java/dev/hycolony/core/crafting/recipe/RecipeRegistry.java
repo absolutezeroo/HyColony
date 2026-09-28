@@ -10,13 +10,17 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
- * The recipes a colony knows, by id (MC StandardRecipeManager, global in MC, one per colony here and saved with it).
+ * The recipes a colony knows, by id (MC StandardRecipeManager).
  *
  * <p>A recipe is found again by its content and its MC {@code recipeSource}, as MC RecipeStorage.equals compares both.
  * MC's recipeSource of a {@link RecipeSource.Custom} recipe is its {@code crafting.json} id (MC CustomRecipe); a
  * {@link RecipeSource.Hytale} recipe, taught by a player, and a {@link RecipeSource.Improved} one have none (MC
  * AddRemoveRecipeMessage sets none, improveRecipe sets it to null). So a custom recipe never shares the id of a taught
  * recipe of the same content, which MC checkForWorkerSpecificRecipes relies on, while a taught and an improved one do.
+ *
+ * <p>Deviation from MC: one registry per colony, saved with it, where MC's is global to the server; a colony loads
+ * from its own save, and recipes are found again by content, so each colony gets the same ids but its own
+ * {@code improved:<n>} count.
  *
  * <p>Deviation from MC: ids are names ({@code hytale:<Hytale id>}, {@code custom:<id>}, {@code improved:<n>}) rather
  * than random tokens, so a Hytale recipe is saved by its id and read again from the game. A recipe whose name is taken
