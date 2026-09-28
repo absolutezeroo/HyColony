@@ -57,21 +57,22 @@ QUADRANTS = {(0, 0): (255, 0, 0, 255), (1, 0): (0, 255, 0, 255), (0, 1): (0, 0, 
 
 
 def faces_read_their_texture_the_right_way_up():
-    """A cube reading a four-colour texture: on its front face (+Z) and its top face the corner of the texture each
-    point reads is the one the face's layout rule puts there (texture x along +X, y down the front, y toward +Z on
-    the top)."""
+    """A cube reading a four-colour texture: on the faces the icon camera shows (front +Z, left -X, top) the corner
+    of the texture each point reads is the one the face's layout rule puts there (texture x along +X on the front
+    and top, along +Z on the left; y down the sides, toward +Z on the top)."""
     layout = Image.new("RGBA", (32, 32))
     for (qx, qy), colour in QUADRANTS.items():
         layout.paste(colour, (qx * 16, qy * 16, qx * 16 + 16, qy * 16 + 16))
     shape = empty_shape()
     shape.update({"type": "box", "settings": {"size": {"x": 32, "y": 32, "z": 32}},
                   "textureLayout": {side: {"offset": {"x": 0, "y": 0}, "mirror": {}, "angle": 0}
-                                    for side in ("front", "right", "top")}})
+                                    for side in ("front", "left", "top")}})
     model = {"nodes": [node("Cube", (0, 16, 0), shape)]}
     painted = icon.from_map(iconmap.render(model, (32, 32), DEFAULT_ICON), layout)
     # (world point, texture quadrant it must read)
     for point, quadrant in (((-10, 26, 16), (0, 0)), ((10, 6, 16), (1, 1)), ((-10, 32, -10), (0, 0)),
-                            ((10, 32, 10), (1, 1)), ((10, 32, -10), (1, 0))):
+                            ((10, 32, 10), (1, 1)), ((10, 32, -10), (1, 0)), ((-16, 26, -10), (0, 0)),
+                            ((-16, 6, 10), (1, 1))):
         x, y = screen(point)
         colour = painted.getpixel((x, y))
         expected = QUADRANTS[quadrant]
