@@ -68,10 +68,19 @@ public final class FoundColonyPage extends InteractiveCustomUIPage<FoundColonyPa
                 CustomUIEventBindingType.Activating, "#CancelButton", new EventData().append("Action", "cancel"));
     }
 
-    /** A failure is logged, never thrown into Hytale's PageManager (see {@link PageEvents}). */
+    /**
+     * A failure is logged, never thrown into Hytale's PageManager (see {@link PageEvents}); the update is sent even
+     * then, an undecodable event included, since the page locks the client until it gets one.
+     */
     @Override
     public void handleDataEvent(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, String rawData) {
-        PageEvents.guard(getClass(), () -> super.handleDataEvent(ref, store, rawData));
+        PageEvents.guard(getClass(), () -> {
+            try {
+                super.handleDataEvent(ref, store, rawData);
+            } finally {
+                sendUpdate(new UICommandBuilder(), false);
+            }
+        });
     }
 
     @Override
@@ -85,16 +94,19 @@ public final class FoundColonyPage extends InteractiveCustomUIPage<FoundColonyPa
                 answered = true;
                 handler.cancel(false);
             }
-        } finally {
-            sendUpdate(new UICommandBuilder(), false); // required, even after a failure: else the client stays loading
+        } catch (RuntimeException e) {
+            answered = false; // unanswered after a failure: closing the window still cancels the foundation
+            throw e;
         }
     }
 
     @Override
     public void onDismiss(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
-        if (!answered) {
-            answered = true; // set first: cancelling closes the page, which calls onDismiss again
-            handler.cancel(true); // closing the window = cancel (spec § 4.2)
-        }
+        PageEvents.guard(getClass(), () -> {
+            if (!answered) {
+                answered = true; // set first: cancelling closes the page, which calls onDismiss again
+                handler.cancel(true); // closing the window = cancel (spec § 4.2)
+            }
+        });
     }
 }
