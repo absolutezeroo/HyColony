@@ -1,0 +1,170 @@
+$C = "../../Common.ui";
+
+// The player's character panel, laid out as Hytale's own (client CharacterPanel.ui): character, armor, utility slot
+// and stats. Textures under Native/ are copied from the Hytale client (see docs/native-ui-textures.md).
+
+@Slot = 74;
+@GridY = 50;
+@GridStyle = (SlotSize: @Slot, SlotIconSize: 64, SlotSpacing: 2, SlotBackground: "Native/Slot.png");
+@SpecialStyle = (SlotSize: @Slot, SlotIconSize: 64, SlotSpacing: 2, SlotBackground: "Native/SpecialSlot.png");
+@ArmorIcon = Group {
+  @Row = 0;
+
+  HitTestVisible: false;
+  Anchor: (Width: 64, Height: 64, Left: 7, Top: @GridY + 7 + 76 * @Row);
+};
+
+$C.@DecoratedContainer #PlayerCharacterPanel {
+  Anchor: (Width: 410, Height: 720);
+
+  #Title {
+    $C.@Title #PlayerName {
+      @Text = "";
+    }
+  }
+
+  #Content {
+    LayoutMode: Top;
+
+    Group {
+      Anchor: (Height: 490, Top: -8);
+
+      Group {
+        Anchor: (Width: 376, Height: 396, Bottom: -50);
+        Background: "Native/CharacterBackground.png";
+      }
+
+      CharacterPreviewComponent #PlayerCharacter {
+        Anchor: (Height: 365, Top: 0, Left: -8, Right: -8);
+        Padding: (Left: 78, Right: 78);
+      }
+
+      ItemGrid #PlayerArmor {
+        Anchor: (Width: 78, Height: 310, Left: 0, Top: @GridY);
+        SlotsPerRow: 1;
+        AreItemsDraggable: true;
+        RenderItemQualityBackground: true;
+        Style: @GridStyle;
+        Padding: 2;
+      }
+
+      // Drawn over the armor grid, shown only on an empty slot, as the client does; clicks go through.
+      @ArmorIcon #ArmorIconHead { @Row = 0; Background: "Native/ArmorSlotIconHead.png"; }
+      @ArmorIcon #ArmorIconChest { @Row = 1; Background: "Native/ArmorSlotIconChest.png"; }
+      @ArmorIcon #ArmorIconHands { @Row = 2; Background: "Native/ArmorSlotIconHands.png"; }
+      @ArmorIcon #ArmorIconLegs { @Row = 3; Background: "Native/ArmorSlotIconLegs.png"; }
+
+
+      Group {
+        Anchor: (Width: @Slot, Height: @Slot, Bottom: 2, Left: 73);
+        Background: "Native/SpecialSlotTemporary.png";
+      }
+
+      ItemGrid #PlayerUtility {
+        Anchor: (Width: 76, Height: 78, Left: 152, Bottom: 0);
+        SlotsPerRow: 1;
+        AreItemsDraggable: true;
+        RenderItemQualityBackground: true;
+        Style: @SpecialStyle;
+        Padding: 2;
+      }
+
+      Group {
+        Anchor: (Width: @Slot, Height: @Slot, Bottom: 2, Left: 235);
+        Background: "Native/SpecialSlotTemporary.png";
+      }
+    }
+
+    Group #PlayerStats {
+      LayoutMode: Top;
+      Anchor: (Height: 135, Top: 35);
+      Padding: (Horizontal: 10);
+      Background: (TexturePath: "../../Common/ContainerPanelPatch.png", Border: 4);
+
+      Label {
+        Anchor: (Top: 8);
+        Style: (TextColor: #878e9c, FontSize: 14, RenderBold: true, RenderUppercase: true);
+        Text: %hycolony.ui.inventory.stats;
+      }
+
+      Group {
+        LayoutMode: Left;
+        Anchor: (Height: 50, Top: 0);
+
+        Group {
+          Anchor: (Width: 35, Height: 35);
+          Background: "Native/CharacterPanelStatIconBackground.png";
+
+          Group { Background: "Native/CharacterPanelStatIconHealth.png"; }
+        }
+
+        Group {
+          LayoutMode: Middle;
+          FlexWeight: 1;
+          Padding: (Left: 10);
+
+          Label { Style: (TextColor: #878e9c, FontSize: 11); Text: %hycolony.ui.inventory.health; }
+          Label #StatHealth { Style: (TextColor: #b4c8c9, FontSize: 14, RenderBold: true); }
+        }
+
+        Group {
+          Anchor: (Width: 35, Height: 35);
+          Background: "Native/CharacterPanelStatIconBackground.png";
+
+          Group { Background: "Native/CharacterPanelStatIconStamina.png"; }
+        }
+
+        Group {
+          LayoutMode: Middle;
+          FlexWeight: 1;
+          Padding: (Left: 10);
+
+          Label { Style: (TextColor: #878e9c, FontSize: 11); Text: %hycolony.ui.inventory.stamina; }
+          Label #StatStamina { Style: (TextColor: #b4c8c9, FontSize: 14, RenderBold: true); }
+        }
+      }
+
+      Group {
+        Anchor: (Height: 2);
+        Background: #c1c9d3(0.07);
+      }
+
+      Group {
+        LayoutMode: Left;
+        Anchor: (Height: 50);
+
+        Group {
+          Anchor: (Width: 35, Height: 35);
+          Background: "Native/CharacterPanelStatIconBackground.png";
+
+          Group { Background: "Native/CharacterPanelStatIconMana.png"; }
+        }
+
+        Group {
+          LayoutMode: Middle;
+          FlexWeight: 1;
+          Padding: (Left: 10);
+
+          Label { Style: (TextColor: #878e9c, FontSize: 11); Text: %hycolony.ui.inventory.mana; }
+          Label #StatMana { Style: (TextColor: #b4c8c9, FontSize: 14, RenderBold: true); }
+        }
+
+        Group {
+          Anchor: (Width: 35, Height: 35);
+          Background: "Native/CharacterPanelStatIconBackground.png";
+
+          Group { Background: "Native/CharacterPanelStatIconArmor.png"; }
+        }
+
+        Group {
+          LayoutMode: Middle;
+          FlexWeight: 1;
+          Padding: (Left: 10);
+
+          Label { Style: (TextColor: #878e9c, FontSize: 11); Text: %hycolony.ui.inventory.defense; }
+          Label #StatDefense { Style: (TextColor: #b4c8c9, FontSize: 14, RenderBold: true); }
+        }
+      }
+    }
+  }
+}

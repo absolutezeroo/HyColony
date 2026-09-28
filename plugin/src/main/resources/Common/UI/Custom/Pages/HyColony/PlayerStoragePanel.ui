@@ -1,0 +1,180 @@
+$C = "../../Common.ui";
+
+// The player's storage and hotbar, laid out as Hytale's own (client StoragePanel.ui): 74 px slots, the hotbar under
+// the storage with its 1-9 badges and the active slot framed. Textures under Native/ come from the Hytale client
+// (see docs/native-ui-textures.md).
+
+@Slot = 74;
+@Cell = 76;
+@GridStyle = (SlotSize: @Slot, SlotIconSize: 64, SlotSpacing: 2, SlotBackground: "Native/Slot.png");
+@Badge = Group {
+  @Text = "";
+
+  Anchor: (Width: @Cell);
+
+  Label {
+    Anchor: (Width: 22, Height: 22, Left: 6, Top: 6);
+    Background: (TexturePath: "Native/SlotInputBindingBackground.png", Border: 4);
+    Style: (RenderBold: true, Alignment: Center, TextColor: #ffffe6, FontSize: 12);
+    Text: @Text;
+  }
+};
+
+$C.@Container #PlayerStoragePanel {
+  Anchor: (Width: 715);
+
+  #Title {
+    $C.@Title {
+      @Text = %hycolony.ui.inventory.title;
+    }
+  }
+
+  #Content {
+    LayoutMode: Top;
+
+    ItemGrid #PlayerStorage {
+      Anchor: (Width: 686, Height: 306);
+      SlotsPerRow: 9;
+      AreItemsDraggable: true;
+      DisplayItemQuantity: true;
+      RenderItemQualityBackground: true;
+      Style: @GridStyle;
+      Padding: 2;
+    }
+
+    Group {
+      Anchor: (Width: 686, Height: 78, Top: 8);
+
+      ItemGrid #PlayerHotbar {
+        Anchor: (Width: 686, Height: 78);
+        SlotsPerRow: 9;
+        AreItemsDraggable: true;
+        DisplayItemQuantity: true;
+        RenderItemQualityBackground: true;
+        Style: @GridStyle;
+        Padding: 2;
+      }
+
+      Group {
+        LayoutMode: Left;
+        HitTestVisible: false;
+        Anchor: (Height: @Slot, Top: 2, Left: 2);
+
+        // A hidden element leaves the layout: the cell stays, only its frame is toggled.
+        Group {
+          Anchor: (Width: @Cell, Height: @Slot);
+
+          Group #HotbarActive0 {
+            Anchor: (Width: @Slot, Height: @Slot, Left: 0);
+            Visible: false;
+            Background: "Native/SlotSelected.png";
+          }
+        }
+
+        // A hidden element leaves the layout: the cell stays, only its frame is toggled.
+        Group {
+          Anchor: (Width: @Cell, Height: @Slot);
+
+          Group #HotbarActive1 {
+            Anchor: (Width: @Slot, Height: @Slot, Left: 0);
+            Visible: false;
+            Background: "Native/SlotSelected.png";
+          }
+        }
+
+        // A hidden element leaves the layout: the cell stays, only its frame is toggled.
+        Group {
+          Anchor: (Width: @Cell, Height: @Slot);
+
+          Group #HotbarActive2 {
+            Anchor: (Width: @Slot, Height: @Slot, Left: 0);
+            Visible: false;
+            Background: "Native/SlotSelected.png";
+          }
+        }
+
+        // A hidden element leaves the layout: the cell stays, only its frame is toggled.
+        Group {
+          Anchor: (Width: @Cell, Height: @Slot);
+
+          Group #HotbarActive3 {
+            Anchor: (Width: @Slot, Height: @Slot, Left: 0);
+            Visible: false;
+            Background: "Native/SlotSelected.png";
+          }
+        }
+
+        // A hidden element leaves the layout: the cell stays, only its frame is toggled.
+        Group {
+          Anchor: (Width: @Cell, Height: @Slot);
+
+          Group #HotbarActive4 {
+            Anchor: (Width: @Slot, Height: @Slot, Left: 0);
+            Visible: false;
+            Background: "Native/SlotSelected.png";
+          }
+        }
+
+        // A hidden element leaves the layout: the cell stays, only its frame is toggled.
+        Group {
+          Anchor: (Width: @Cell, Height: @Slot);
+
+          Group #HotbarActive5 {
+            Anchor: (Width: @Slot, Height: @Slot, Left: 0);
+            Visible: false;
+            Background: "Native/SlotSelected.png";
+          }
+        }
+
+        // A hidden element leaves the layout: the cell stays, only its frame is toggled.
+        Group {
+          Anchor: (Width: @Cell, Height: @Slot);
+
+          Group #HotbarActive6 {
+            Anchor: (Width: @Slot, Height: @Slot, Left: 0);
+            Visible: false;
+            Background: "Native/SlotSelected.png";
+          }
+        }
+
+        // A hidden element leaves the layout: the cell stays, only its frame is toggled.
+        Group {
+          Anchor: (Width: @Cell, Height: @Slot);
+
+          Group #HotbarActive7 {
+            Anchor: (Width: @Slot, Height: @Slot, Left: 0);
+            Visible: false;
+            Background: "Native/SlotSelected.png";
+          }
+        }
+
+        // A hidden element leaves the layout: the cell stays, only its frame is toggled.
+        Group {
+          Anchor: (Width: @Cell, Height: @Slot);
+
+          Group #HotbarActive8 {
+            Anchor: (Width: @Slot, Height: @Slot, Left: 0);
+            Visible: false;
+            Background: "Native/SlotSelected.png";
+          }
+        }
+      }
+
+      Group {
+        LayoutMode: Left;
+        HitTestVisible: false;
+        Anchor: (Height: 40, Top: 0, Left: 2);
+
+        @Badge { @Text = "1"; }
+        @Badge { @Text = "2"; }
+        @Badge { @Text = "3"; }
+        @Badge { @Text = "4"; }
+        @Badge { @Text = "5"; }
+        @Badge { @Text = "6"; }
+        @Badge { @Text = "7"; }
+        @Badge { @Text = "8"; }
+        @Badge { @Text = "9"; }
+      }
+    }
+  }
+}

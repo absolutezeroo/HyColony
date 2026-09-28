@@ -60,10 +60,11 @@ final class CutterDrawing {
     /** Names each material slot the chosen shape uses (« Cadre », « Centre »…); a slot it does not use is unnamed. */
     private static void slotLabels(UICommandBuilder ui, List<String> keys) {
         for (int i = 0; i < CutterSlots.COUNT; i++) {
-            boolean used = i < keys.size();
-            ui.set("#SlotLabel" + i + ".Visible", used);
-            if (used) {
+            // An empty text, not a hidden label: a hidden one leaves the layout and shifts the other under slot 2.
+            if (i < keys.size()) {
                 ui.set("#SlotLabel" + i + ".Text", Message.translation(keys.get(i)));
+            } else {
+                ui.set("#SlotLabel" + i + ".Text", "");
             }
         }
     }

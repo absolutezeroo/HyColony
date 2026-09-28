@@ -1,13 +1,24 @@
 $C = "../../Common.ui";
 $Sounds = "../../Sounds.ui";
 
-@SlotStyle = (SlotSize: 64, SlotIconSize: 56, SlotSpacing: 8, SlotBackground: "../../Common/BlockSelectorSlotBackground.png");
+@SlotStyle = (SlotSize: 74, SlotIconSize: 64, SlotSpacing: 12, SlotBackground: "Native/Slot.png");
 
 $C.@PageOverlay {
   LayoutMode: Middle;
 
+  Group {
+    LayoutMode: Left;
+
+    Group #Character {
+      Anchor: (Width: 410);
+    }
+
+    Group {
+      LayoutMode: Top;
+      Anchor: (Width: 715, Left: 38);
+
   $C.@Container {
-    Anchor: (Width: 1000, Height: 880);
+    Anchor: (Width: 715, Height: 440);
 
     #Title {
       $C.@Title {
@@ -25,11 +36,11 @@ $C.@PageOverlay {
 
       Group {
         LayoutMode: Left;
-        Anchor: (Height: 400);
+        Anchor: (Height: 320);
 
         Group {
           LayoutMode: Top;
-          Anchor: (Width: 480);
+          Anchor: (Width: 330);
 
           Label #GroupName {
             Anchor: (Height: 32);
@@ -57,10 +68,12 @@ $C.@PageOverlay {
 
           Group {
             LayoutMode: Center;
-            Anchor: (Height: 72, Top: 6);
+            Anchor: (Height: 80, Top: 6);
 
             ItemGrid #CutterSlots {
-              Anchor: (Width: 136, Height: 64);
+              Anchor: (Width: 164, Height: 78);
+              RenderItemQualityBackground: true;
+              Padding: 2;
               SlotsPerRow: 2;
               AreItemsDraggable: true;
               DisplayItemQuantity: true;
@@ -73,27 +86,27 @@ $C.@PageOverlay {
             Anchor: (Height: 22);
 
             Label #SlotLabel0 {
-              Anchor: (Width: 72);
+              Anchor: (Width: 86);
               Style: (FontSize: 13, TextColor: #96a9be, HorizontalAlignment: Center);
             }
 
             Label #SlotLabel1 {
-              Anchor: (Width: 72);
+              Anchor: (Width: 86);
               Style: (FontSize: 13, TextColor: #96a9be, HorizontalAlignment: Center);
             }
           }
 
           Group {
             LayoutMode: Center;
-            Anchor: (Height: 100, Top: 6);
+            Anchor: (Height: 80, Top: 4);
 
             ItemIcon #Preview {
-              Anchor: (Width: 88, Height: 88);
+              Anchor: (Width: 72, Height: 72);
             }
           }
 
           Label #PreviewText {
-            Anchor: (Height: 50);
+            Anchor: (Height: 40);
             Style: (TextColor: #ffffff, Wrap: true, HorizontalAlignment: Center, VerticalAlignment: Center);
           }
 
@@ -119,10 +132,11 @@ $C.@PageOverlay {
           }
         }
       }
+    }
+  }
 
-      Group #Inventory {
-        LayoutMode: Top;
-        Anchor: (Top: 10);
+      Group #Storage {
+        Anchor: (Top: 8);
       }
     }
   }

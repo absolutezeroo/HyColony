@@ -1,7 +1,7 @@
 $C = "../../Common.ui";
 
+// Children are placed absolutely: in a layout, the selection overlay would push the icon aside.
 Button #TabButton {
-  LayoutMode: Center;
   Anchor: (Width: 70, Height: 56, Right: 4);
   Style: (
     Default: (Background: "../../Common/Tab.png"),
@@ -17,6 +17,6 @@ Button #TabButton {
   }
 
   ItemIcon #Icon {
-    Anchor: (Width: 38, Height: 38);
+    Anchor: (Width: 38, Height: 38, Left: 16, Top: 9);
   }
 }

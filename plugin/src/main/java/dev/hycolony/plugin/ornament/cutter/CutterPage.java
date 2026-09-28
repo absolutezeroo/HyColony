@@ -19,6 +19,8 @@ import dev.hycolony.plugin.inventory.InventoryDrop;
 import dev.hycolony.plugin.inventory.InventoryGrids;
 import dev.hycolony.plugin.inventory.InventoryMoves;
 import dev.hycolony.plugin.inventory.InventoryWatch;
+import dev.hycolony.plugin.inventory.PlayerPanels;
+import dev.hycolony.plugin.inventory.PlayerSection;
 import dev.hycolony.plugin.inventory.ReturningContainerWindow;
 import dev.hycolony.plugin.ornament.registry.OrnamentVariantRegistry;
 import dev.hycolony.plugin.ui.PageEvents;
@@ -108,7 +110,8 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
         CutterDrawing.draw(ui, events, actions.view(slots.contents(), CutterCrafting.creative(store, ref)));
         InventoryGrids.drawContainer(
                 ui, events, SLOTS_GRID, slots.container(), slots.window().getId());
-        InventoryGrids.drawPlayer(ui, events, "#Inventory", store, ref);
+        PlayerPanels.drawCharacter(ui, events, "#Character", store, ref);
+        PlayerPanels.drawStorage(ui, events, "#Storage", store, ref);
     }
 
     @Override
@@ -154,7 +157,7 @@ final class CutterPage extends InteractiveCustomUIPage<CutterPage.Act> {
             InventoryMoves.apply(ref, store, drop, slots.window().getId());
             return;
         }
-        InventoryGrids.playerSection(drop.grid()).ifPresent(section -> InventoryMoves.apply(ref, store, drop, section));
+        PlayerSection.byGrid(drop.grid()).ifPresent(part -> InventoryMoves.apply(ref, store, drop, part.id()));
     }
 
     /** Asks for up to crafts crafts of the chosen shape; CutterCrafting caps them by what the slots hold. */

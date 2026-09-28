@@ -18,11 +18,16 @@ public final class InventoryWatch {
 
     private InventoryWatch() {}
 
-    /** Starts following player's inventory and others; onChange runs on the thread that changed them. */
+    /**
+     * Starts following player's inventory (hotbar, storage, armor, utility) and others; onChange runs on the thread
+     * that changed them.
+     */
     public static InventoryWatch start(
             Store<EntityStore> store, Ref<EntityStore> player, Runnable onChange, ItemContainer... others) {
         InventoryWatch watch = new InventoryWatch();
         watch.follow(InventoryComponent.getCombined(store, player, InventoryComponent.HOTBAR_FIRST), onChange);
+        watch.follow(PlayerSection.ARMOR.container(store, player), onChange);
+        watch.follow(PlayerSection.UTILITY.container(store, player), onChange);
         for (ItemContainer other : others) {
             watch.follow(other, onChange);
         }

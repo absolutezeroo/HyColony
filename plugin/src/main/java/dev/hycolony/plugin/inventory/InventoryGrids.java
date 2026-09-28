@@ -1,17 +1,11 @@
 package dev.hycolony.plugin.inventory;
 
-import com.hypixel.hytale.component.ComponentType;
-import com.hypixel.hytale.component.Ref;
-import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.protocol.packets.interface_.CustomUIEventBindingType;
-import com.hypixel.hytale.server.core.inventory.InventoryComponent;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
 import com.hypixel.hytale.server.core.ui.builder.EventData;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
-import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import java.util.OptionalInt;
 
 /**
  * Draws item grids in a custom page that the client lets the player drag from and drop on, as in its own inventory
@@ -20,35 +14,10 @@ import java.util.OptionalInt;
  * which InventoryMoves carries out.
  */
 public final class InventoryGrids {
-    /** The player's storage grid, as named in drop events. */
-    public static final String STORAGE = "storage";
-
-    /** The player's hotbar grid, as named in drop events. */
-    public static final String HOTBAR = "hotbar";
-
     /** The event data action that every drop sends; pages route it to InventoryMoves. */
     public static final String DROP_ACTION = "inventoryDrop";
 
-    private static final int STORAGE_SECTION = InventoryComponent.STORAGE_SECTION_ID;
-    private static final int HOTBAR_SECTION = InventoryComponent.HOTBAR_SECTION_ID;
-    private static final String PANEL = "Pages/HyColony/InventoryPanel.ui";
-
     private InventoryGrids() {}
-
-    /**
-     * Appends the player panel (their character, storage and hotbar) into host, fills it from the player's inventory
-     * and sends the grids' drops as action events.
-     */
-    public static void drawPlayer(
-            UICommandBuilder ui, UIEventBuilder events, String host, Store<EntityStore> store, Ref<EntityStore> ref) {
-        ui.append(host, PANEL);
-        String storage = host + " #PlayerStorage";
-        fill(ui, storage, playerStacks(store, ref, STORAGE_SECTION), STORAGE_SECTION);
-        bindDrop(events, storage, STORAGE);
-        String hotbar = host + " #PlayerHotbar";
-        fill(ui, hotbar, playerStacks(store, ref, HOTBAR_SECTION), HOTBAR_SECTION);
-        bindDrop(events, hotbar, HOTBAR);
-    }
 
     /**
      * Fills the grid at selector with container, open as section (a window id); its drops are sent with the selector
@@ -56,30 +25,20 @@ public final class InventoryGrids {
      */
     public static void drawContainer(
             UICommandBuilder ui, UIEventBuilder events, String selector, ItemContainer container, int section) {
-        fill(ui, selector, stacks(container), section);
+        fill(ui, selector, container, section);
         bindDrop(events, selector, selector);
     }
 
-    /** The player section a grid drawn by drawPlayer stands for; empty for any other grid. */
-    public static OptionalInt playerSection(String grid) {
-        return switch (grid) {
-            case STORAGE -> OptionalInt.of(STORAGE_SECTION);
-            case HOTBAR -> OptionalInt.of(HOTBAR_SECTION);
-            default -> OptionalInt.empty();
-        };
+    /** Fills the grid at selector with part of the player's inventory, held in container. */
+    static void drawPlayerGrid(
+            UICommandBuilder ui, UIEventBuilder events, String selector, PlayerSection part, ItemContainer container) {
+        fill(ui, selector, container, part.id());
+        bindDrop(events, selector, part.grid());
     }
 
-    /** Every slot of the player's inventory part section; none when the player has no such part. */
-    private static ItemStack[] playerStacks(Store<EntityStore> store, Ref<EntityStore> ref, int section) {
-        ComponentType<EntityStore, ? extends InventoryComponent> type =
-                InventoryComponent.getComponentTypeById(section);
-        InventoryComponent component = type == null ? null : store.getComponent(ref, type);
-        return component == null ? new ItemStack[0] : stacks(component.getInventory());
-    }
-
-    private static void fill(UICommandBuilder ui, String selector, ItemStack[] stacks, int section) {
+    private static void fill(UICommandBuilder ui, String selector, ItemContainer container, int section) {
         ui.set(selector + ".InventorySectionId", section);
-        ui.set(selector + ".ItemStacks", stacks);
+        ui.set(selector + ".ItemStacks", stacks(container));
     }
 
     /** Binds Dropped (the only drag event the client applies to an ItemGrid that this needs). */
