@@ -1,0 +1,325 @@
+{
+  "schemaVersion": 1,
+  "shapes": [
+    {
+      "id": "TimberFrame_Plain",
+      "template": "HyColony_DO_TimberFrame_Plain",
+      "group": "btimberframe",
+      "slots": [
+        "timber_frames_frame",
+        "timber_frames_center"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "TimberFrame_DoubleCrossed",
+      "template": "HyColony_DO_TimberFrame_DoubleCrossed",
+      "group": "btimberframe",
+      "slots": [
+        "timber_frames_frame",
+        "timber_frames_center"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "TimberFrame_Framed",
+      "template": "HyColony_DO_TimberFrame_Framed",
+      "group": "btimberframe",
+      "slots": [
+        "timber_frames_frame",
+        "timber_frames_center"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "TimberFrame_SideFramed",
+      "template": "HyColony_DO_TimberFrame_SideFramed",
+      "group": "btimberframe",
+      "slots": [
+        "timber_frames_frame",
+        "timber_frames_center"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "TimberFrame_UpGated",
+      "template": "HyColony_DO_TimberFrame_UpGated",
+      "group": "btimberframe",
+      "slots": [
+        "timber_frames_frame",
+        "timber_frames_center"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "TimberFrame_DownGated",
+      "template": "HyColony_DO_TimberFrame_DownGated",
+      "group": "btimberframe",
+      "slots": [
+        "timber_frames_frame",
+        "timber_frames_center"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "TimberFrame_OneCrossedLr",
+      "template": "HyColony_DO_TimberFrame_OneCrossedLr",
+      "group": "btimberframe",
+      "slots": [
+        "timber_frames_frame",
+        "timber_frames_center"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "TimberFrame_OneCrossedRl",
+      "template": "HyColony_DO_TimberFrame_OneCrossedRl",
+      "group": "btimberframe",
+      "slots": [
+        "timber_frames_frame",
+        "timber_frames_center"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "TimberFrame_HorizontalPlain",
+      "template": "HyColony_DO_TimberFrame_HorizontalPlain",
+      "group": "btimberframe",
+      "slots": [
+        "timber_frames_frame",
+        "timber_frames_center"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "TimberFrame_SideFramedHorizontal",
+      "template": "HyColony_DO_TimberFrame_SideFramedHorizontal",
+      "group": "btimberframe",
+      "slots": [
+        "timber_frames_frame",
+        "timber_frames_center"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "Post_Double",
+      "template": "HyColony_DO_Post_Double",
+      "group": "kpost",
+      "slots": [
+        "post_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Post_Heavy",
+      "template": "HyColony_DO_Post_Heavy",
+      "group": "kpost",
+      "slots": [
+        "post_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Post_Pinched",
+      "template": "HyColony_DO_Post_Pinched",
+      "group": "kpost",
+      "slots": [
+        "post_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Post_Plain",
+      "template": "HyColony_DO_Post_Plain",
+      "group": "kpost",
+      "slots": [
+        "post_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Post_Quad",
+      "template": "HyColony_DO_Post_Quad",
+      "group": "kpost",
+      "slots": [
+        "post_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Post_Turned",
+      "template": "HyColony_DO_Post_Turned",
+      "group": "kpost",
+      "slots": [
+        "post_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Panel_Boss",
+      "template": "HyColony_DO_Panel_Boss",
+      "group": "fpanel",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "Panel_Coffer",
+      "template": "HyColony_DO_Panel_Coffer",
+      "group": "fpanel",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "Panel_Full",
+      "template": "HyColony_DO_Panel_Full",
+      "group": "fpanel",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "Panel_HorizontalBars",
+      "template": "HyColony_DO_Panel_HorizontalBars",
+      "group": "fpanel",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "Panel_HorizontallySquigglyStriped",
+      "template": "HyColony_DO_Panel_HorizontallySquigglyStriped",
+      "group": "fpanel",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "Panel_HorizontallyStriped",
+      "template": "HyColony_DO_Panel_HorizontallyStriped",
+      "group": "fpanel",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "Panel_Moulding",
+      "template": "HyColony_DO_Panel_Moulding",
+      "group": "fpanel",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "Panel_PortManteau",
+      "template": "HyColony_DO_Panel_PortManteau",
+      "group": "fpanel",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "Panel_Porthole",
+      "template": "HyColony_DO_Panel_Porthole",
+      "group": "fpanel",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "Panel_Roundel",
+      "template": "HyColony_DO_Panel_Roundel",
+      "group": "fpanel",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "Panel_Slot",
+      "template": "HyColony_DO_Panel_Slot",
+      "group": "fpanel",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "Panel_VerticalBars",
+      "template": "HyColony_DO_Panel_VerticalBars",
+      "group": "fpanel",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "Panel_VerticallySquigglyStriped",
+      "template": "HyColony_DO_Panel_VerticallySquigglyStriped",
+      "group": "fpanel",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "Panel_VerticallyStriped",
+      "template": "HyColony_DO_Panel_VerticallyStriped",
+      "group": "fpanel",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    },
+    {
+      "id": "Panel_Waffle",
+      "template": "HyColony_DO_Panel_Waffle",
+      "group": "fpanel",
+      "slots": [
+        "trapdoors_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 4
+    }
+  ]
+}

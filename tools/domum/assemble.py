@@ -49,7 +49,7 @@ def parts(state, props):
     them). A property missing from props takes the block's own default value (see _PREFERRED); a "when"
     value may be "a|b" to match either.
     """
-    possible = _possible_values(state)
+    possible = property_values(state)
     resolved = dict(props)
     for key, values in possible.items():
         resolved.setdefault(key, _default_value(key, values))
@@ -59,8 +59,9 @@ def parts(state, props):
     return [state["variants"][key]]
 
 
-def _possible_values(state):
-    """Every value seen for each property across this blockstate's "when" clauses or variant keys."""
+def property_values(state):
+    """Every value each property of a blockstate can take ({property: set}), from its "when" clauses or variant
+    keys."""
     values = {}
     if "multipart" in state:
         for entry in state["multipart"]:

@@ -142,7 +142,8 @@ def oriented_families_face_minus_z():
                 assert sum(high_z) / len(high_z) < 7.7, (block, sum(high_z) / len(high_z))
             elif family.mechanism == "door":
                 closed = points(family, block, {})
-                assert extent(closed, 2)[1] - extent(closed, 2)[0] < 5 < extent(closed, 0)[1] - extent(closed, 0)[0]
+                thin, wide = extent(closed, 2)[1] - extent(closed, 2)[0], extent(closed, 0)[1] - extent(closed, 0)[0]
+                assert thin < 5 < wide, (block, thin, wide)
                 assert extent(points(family, block, {"open": "true"}), 0)[1] < 8, block
             elif family.turn_y:
                 assert extent(points(family, block, {"open": "true"}), 2)[1] < 8, block

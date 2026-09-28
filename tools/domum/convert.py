@@ -17,7 +17,7 @@ import math
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "decorations"))
+sys.path.append(str(Path(__file__).resolve().parents[1] / "decorations"))
 from models import empty_shape, node, walk, xyz  # noqa: E402
 
 from assemble import default_uv  # noqa: E402

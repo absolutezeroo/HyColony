@@ -2,19 +2,31 @@
   "TranslationProperties": {
     "Name": "hycolony.item.do.timberframe_framed.name"
   },
-  "Icon": "Icons/Items/HyColony/DO/TimberFrame_Framed.png",
+  "Icon": "Icons/ItemsGenerated/Wood_Hardwood_Planks.png",
+  "IconProperties": {
+    "Scale": 0.58823,
+    "Rotation": [
+      22.5,
+      45,
+      22.5
+    ],
+    "Translation": [
+      0,
+      -13.5
+    ]
+  },
   "Categories": [
-    "Blocks.Wood"
+    "DomumOrnamentum.TimberFrame"
   ],
   "PlayerAnimationsId": "Block",
   "BlockType": {
     "Material": "Solid",
     "DrawType": "Model",
-    "Opacity": "Transparent",
+    "Opacity": "Solid",
     "CustomModel": "Blocks/HyColony/DO/TimberFrame_Framed.blockymodel",
     "CustomModelTexture": [
       {
-        "Texture": "Blocks/HyColony/DO/TimberFrame_Framed.png",
+        "Texture": "Blocks/HyColony/DO/Pairs/Wood_Hardwood_Planks__Wood_Darkwood_Planks.png",
         "Weight": 1
       }
     ],
@@ -25,14 +37,9 @@
       }
     },
     "BlockParticleSetId": "Wood",
-    "ParticleColor": "#683e2e",
+    "ParticleColor": "#693e2a",
     "BlockSoundSetId": "Wood",
     "PhysicalMaterialId": "Wood"
-  },
-  "Tags": {
-    "Type": [
-      "Wood"
-    ]
   },
   "ItemSoundSetId": "ISS_Blocks_Wood"
 }

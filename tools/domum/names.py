@@ -1,39 +1,50 @@
-"""Item ids and English/French names of the test bench's shapes, after Domum Ornamentum's en_us.json."""
+"""Template ids and English/French names of the Domum Ornamentum shapes, after DO's en_us.json."""
 
-# Model folder -> (id part, English, French, prefix dropped from the model's file name).
-FAMILIES = {
-    "": ("Cutter", "Architect's cutter", "Établi de l'architecte", ""),
-    "allbrick": ("AllBrick", "All-brick", "Tout-brique", ""),
-    "barrel_dec": ("Barrel", "Barrel", "Tonneau", "barreldeco_"),
-    "door": ("Door", "Door", "Porte", "door_"),
-    "door/fancy": ("FancyDoor", "Fancy door", "Porte ouvragée", "door_"),
-    "framed_light": ("FramedLight", "Framed light", "Lumière encadrée", ""),
-    "panel": ("Panel", "Panel", "Panneau", "panel_"),
-    "paperwall": ("PaperWall", "Framed pane", "Vitre encadrée", "blockpaperwall_"),
-    "tiledpaperwall": ("TiledPaperWall", "Tiled pane", "Vitre carrelée", "blockpaperwall_"),
-    "pillar": ("Pillar", "Pillar", "Pilier", ""),
-    "post": ("Post", "Post", "Poteau", "post_"),
-    "shingle": ("Shingle", "Shingle", "Bardeau", ""),
-    "shingle_slab": ("ShingleSlab", "Shingle slab", "Demi-bardeau", "shingle_slab_"),
-    "timber_frame": ("TimberFrame", "Timber frame", "Colombage", ""),
-    "trapdoor": ("Trapdoor", "Trapdoor", "Trappe", "trapdoor_"),
-    "trapdoor/fancy": ("FancyTrapdoor", "Fancy trapdoor", "Trappe ouvragée", "trapdoor_"),
+PREFIX = "HyColony_DO_"
+
+# Family -> (English, French).
+FAMILY_NAMES = {
+    "TimberFrame": ("Timber frame", "Colombage"),
+    "Shingle": ("Shingle", "Bardeau"),
+    "ShingleSlab": ("Shingle slab", "Demi-bardeau"),
+    "Pillar": ("Pillar", "Pilier"),
+    "Post": ("Post", "Poteau"),
+    "Panel": ("Panel", "Panneau"),
+    "Door": ("Door", "Porte"),
+    "FancyDoor": ("Fancy door", "Porte ouvragée"),
+    "Trapdoor": ("Trapdoor", "Trappe"),
+    "FancyTrapdoor": ("Fancy trapdoor", "Trappe ouvragée"),
+    "PaperWall": ("Framed pane", "Vitre encadrée"),
+    "Fence": ("Fence", "Clôture"),
+    "FenceGate": ("Fence gate", "Portillon"),
+    "Wall": ("Wall", "Muret"),
+    "Stairs": ("Stairs", "Escalier"),
+    "Slab": ("Slab", "Dalle"),
+    "AllBrick": ("All-brick", "Tout-brique"),
+    "AllBrickStair": ("All-brick stairs", "Escalier tout-brique"),
 }
 
-# Variant (file name without the family prefix and _spec) -> (English, French).
+# DO block id or type value -> (English, French).
 VARIANTS = {
-    "architectscutter": ("", ""),
-    "block": ("base block", "bloc de base"),
-    "dark_brick": ("dark", "sombre"),
-    "dark_brick_stair": ("dark, stairs", "sombre, escalier"),
-    "dark_brick_stair_inner": ("dark, inner stairs", "sombre, escalier intérieur"),
-    "dark_brick_stair_outer": ("dark, outer stairs", "sombre, escalier extérieur"),
+    "plain": ("plain", "simple"),
+    "double_crossed": ("double crossed", "double croix"),
+    "framed": ("framed", "encadré"),
+    "side_framed": ("side", "côté"),
+    "up_gated": ("up gate", "porte haute"),
+    "down_gated": ("down gate", "porte basse"),
+    "one_crossed_lr": ("left right crossed", "croix gauche-droite"),
+    "one_crossed_rl": ("right left crossed", "croix droite-gauche"),
+    "horizontal_plain": ("plain horizontal", "simple horizontal"),
+    "side_framed_horizontal": ("side horizontal", "côté horizontal"),
     "light_brick": ("light", "clair"),
-    "light_brick_stair": ("light, stairs", "clair, escalier"),
-    "light_brick_stair_inner": ("light, inner stairs", "clair, escalier intérieur"),
-    "light_brick_stair_outer": ("light, outer stairs", "clair, escalier extérieur"),
-    "onside": ("laying", "couché"),
-    "standing": ("standing", "debout"),
+    "dark_brick": ("dark", "sombre"),
+    "light_brick_stair": ("light", "clair"),
+    "dark_brick_stair": ("dark", "sombre"),
+    "double": ("double", "double"),
+    "heavy": ("heavy", "massif"),
+    "pinched": ("pinched", "pincé"),
+    "quad": ("quad", "quadruple"),
+    "turned": ("turned", "tourné"),
     "full": ("full", "plein"),
     "creeper": ("creeper", "creeper"),
     "port_manteau": ("port manteau", "portemanteau"),
@@ -50,94 +61,41 @@ VARIANTS = {
     "porthole": ("porthole", "hublot"),
     "roundel": ("roundel", "médaillon"),
     "slot": ("slot", "fente"),
-    "center_light": ("center", "centre"),
-    "crossed_light": ("crossed", "croisée"),
-    "fancy_light": ("fancy", "ouvragée"),
-    "four_light": ("four panes", "quatre carreaux"),
-    "framed_light": ("framed", "encadrée"),
-    "horizontal_light": ("horizontal", "horizontale"),
-    "vertical_light": ("vertical", "verticale"),
-    "post": ("post", "poteau"),
-    "side_north": ("side, north", "côté, nord"),
-    "side_south": ("side, south", "côté, sud"),
-    "side_east": ("side, east", "côté, est"),
-    "side_west": ("side, west", "côté, ouest"),
-    "side_off_north": ("open side, north", "côté ouvert, nord"),
-    "side_off_south": ("open side, south", "côté ouvert, sud"),
-    "side_off_east": ("open side, east", "côté ouvert, est"),
-    "side_off_west": ("open side, west", "côté ouvert, ouest"),
-    "blockpillar_full_pillar": ("round, full", "rond, complet"),
-    "blockpillar_pillar_base": ("round, base", "rond, base"),
-    "blockpillar_pillar_capital": ("round, capital", "rond, chapiteau"),
-    "blockpillar_pillar_column": ("round, column", "rond, fût"),
-    "blockypillar_full_pillar": ("voxel, full", "voxel, complet"),
-    "blockypillar_pillar_base": ("voxel, base", "voxel, base"),
-    "blockypillar_pillar_capital": ("voxel, capital", "voxel, chapiteau"),
-    "blockypillar_pillar_column": ("voxel, column", "voxel, fût"),
-    "squarepillar_full_pillar": ("square, full", "carré, complet"),
-    "squarepillar_pillar_base": ("square, base", "carré, base"),
-    "squarepillar_pillar_capital": ("square, capital", "carré, chapiteau"),
-    "squarepillar_pillar_column": ("square, column", "carré, fût"),
-    "double": ("double", "double"),
-    "heavy": ("heavy", "massif"),
-    "pinched": ("pinched", "pincé"),
-    "plain": ("plain", "simple"),
-    "quad": ("quad", "quadruple"),
-    "turned": ("turned", "tourné"),
-    "straight": ("straight", "droit"),
-    "concave": ("concave", "concave"),
-    "convex": ("convex", "convexe"),
-    "flat_straight": ("flat, straight", "plat, droit"),
-    "flat_concave": ("flat, concave", "plat, concave"),
-    "flat_convex": ("flat, convex", "plat, convexe"),
-    "flat_lower_straight": ("flat lower, straight", "plat bas, droit"),
-    "flat_lower_concave": ("flat lower, concave", "plat bas, concave"),
-    "flat_lower_convex": ("flat lower, convex", "plat bas, convexe"),
-    "steep_straight": ("steep, straight", "raide, droit"),
-    "steep_concave": ("steep, concave", "raide, concave"),
-    "steep_convex": ("steep, convex", "raide, convexe"),
-    "steep_lower_straight": ("steep lower, straight", "raide bas, droit"),
-    "steep_lower_concave": ("steep lower, concave", "raide bas, concave"),
-    "steep_lower_convex": ("steep lower, convex", "raide bas, convexe"),
-    "top": ("top", "sommet"),
-    "curved": ("curved", "courbe"),
-    "one_way": ("one way", "une voie"),
-    "two_way": ("two way", "deux voies"),
-    "three_way": ("three way", "trois voies"),
-    "four_way": ("four way", "quatre voies"),
-    "double_crossed": ("double crossed", "double croix"),
-    "down_gated": ("down gate", "porte basse"),
-    "up_gated": ("up gate", "porte haute"),
-    "dynamic_timberframe": ("dynamic", "dynamique"),
-    "dynamic_timberframe_item": ("dynamic, item", "dynamique, objet"),
-    "framed": ("framed", "encadré"),
-    "horizontal_plain": ("plain horizontal", "simple horizontal"),
-    "one_crossed_lr": ("left right crossed", "croix gauche-droite"),
-    "one_crossed_rl": ("right left crossed", "croix droite-gauche"),
-    "side_framed": ("side", "côté"),
-    "side_framed_horizontal": ("side horizontal", "côté horizontal"),
+    "shingle": ("", ""),
+    "shingle_flat": ("flat", "plat"),
+    "shingle_flat_lower": ("flat lower", "plat bas"),
+    "shingle_steep": ("steep", "raide"),
+    "shingle_steep_lower": ("steep lower", "raide bas"),
+    "blockpillar": ("round", "rond"),
+    "blockypillar": ("voxel", "voxel"),
+    "squarepillar": ("square", "carré"),
+    "blockpaperwall": ("", ""),
+    "blocktiledpaperwall": ("tiled", "carrelée"),
 }
 
 
-def variant_key(folder, stem):
-    prefix = FAMILIES[folder][3]
-    stem = stem.removesuffix("_spec")
-    return stem[len(prefix):] if prefix and stem.startswith(prefix) else stem
+def camel(word):
+    """DO snake_case -> CamelCase (framed -> Framed, one_crossed_lr -> OneCrossedLr)."""
+    return "".join(part.capitalize() for part in word.split("_"))
 
 
-def item_id(folder, stem):
-    """HyColony_DO_<Family>[_<Variant>], the variant's words capitalised."""
-    variant = variant_key(folder, stem)
-    words = "_".join(w.capitalize() for w in variant.split("_")) if VARIANTS[variant][0] else ""
-    return "HyColony_DO_" + FAMILIES[folder][0] + ("_" + words if words else "")
+def template_id(family, parts):
+    """HyColony_DO_<Family>[_<Part>...]: parts are the DO block id and/or type value that name the variant, those
+    with an empty English name (the family's plain block) left out."""
+    named = [camel(p) for p in parts if VARIANTS[p][0]]
+    return PREFIX + "_".join([family.name] + named)
 
 
-def lang_key(folder, stem):
-    return "item.do." + item_id(folder, stem)[len("HyColony_DO_"):].lower() + ".name"
+def lang_key(ident):
+    """The item's translation key inside hycolony.lang (the item refers to it prefixed with hycolony.)."""
+    return "item.do." + ident[len(PREFIX):].lower() + ".name"
 
 
-def names(folder, stem):
-    """(English, French): 'Family (variant)', or the family alone."""
-    family = FAMILIES[folder]
-    variant = VARIANTS[variant_key(folder, stem)]
-    return tuple(f"{family[i]} ({variant[i - 1]})" if variant[i - 1] else family[i] for i in (1, 2))
+def names(family, parts):
+    """(English, French): 'Family (variant, variant)', or the family alone."""
+    words = [VARIANTS[p] for p in parts if VARIANTS[p][0]]
+    result = []
+    for i in (0, 1):
+        base = FAMILY_NAMES[family.name][i]
+        result.append(f"{base} ({', '.join(w[i] for w in words)})" if words else base)
+    return tuple(result)

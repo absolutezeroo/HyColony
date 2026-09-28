@@ -5,7 +5,7 @@ from pathlib import Path
 
 from PIL import Image
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "decorations"))
+sys.path.append(str(Path(__file__).resolve().parents[1] / "decorations"))
 from models import add, rotate  # noqa: E402
 from pack import ICON_SIZE, draw_face, iso  # noqa: E402
 

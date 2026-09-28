@@ -2,9 +2,21 @@
   "TranslationProperties": {
     "Name": "hycolony.item.do.panel_roundel.name"
   },
-  "Icon": "Icons/Items/HyColony/DO/Panel_Roundel.png",
+  "Icon": "Icons/ItemsGenerated/Wood_Hardwood_Planks.png",
+  "IconProperties": {
+    "Scale": 0.58823,
+    "Rotation": [
+      22.5,
+      45,
+      22.5
+    ],
+    "Translation": [
+      0,
+      -13.5
+    ]
+  },
   "Categories": [
-    "Blocks.Wood"
+    "DomumOrnamentum.Panel"
   ],
   "PlayerAnimationsId": "Block",
   "BlockType": {
@@ -14,25 +26,21 @@
     "CustomModel": "Blocks/HyColony/DO/Panel_Roundel.blockymodel",
     "CustomModelTexture": [
       {
-        "Texture": "Blocks/HyColony/DO/Panel_Roundel.png",
+        "Texture": "BlockTextures/Wood_Hardwood_Planks_Side.png",
         "Weight": 1
       }
     ],
     "VariantRotation": "NESW",
+    "HitboxType": "HyColony_DO_Panel_Roundel",
     "Gathering": {
       "Breaking": {
         "GatherType": "Woods"
       }
     },
     "BlockParticleSetId": "Wood",
-    "ParticleColor": "#683e2e",
+    "ParticleColor": "#693e2a",
     "BlockSoundSetId": "Wood",
     "PhysicalMaterialId": "Wood"
-  },
-  "Tags": {
-    "Type": [
-      "Wood"
-    ]
   },
   "ItemSoundSetId": "ISS_Blocks_Wood"
 }

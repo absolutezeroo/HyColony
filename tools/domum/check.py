@@ -6,10 +6,11 @@ import check_assemble
 import check_convert
 import check_faces
 import check_materials
+import check_pack
 
 
 def main():
-    for module in (check_assemble, check_faces, check_materials, check_convert):
+    for module in (check_assemble, check_faces, check_materials, check_convert, check_pack):
         module.run()
     print("tools/domum check: OK")
 
