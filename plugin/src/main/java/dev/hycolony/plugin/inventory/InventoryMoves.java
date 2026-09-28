@@ -3,10 +3,14 @@ package dev.hycolony.plugin.inventory;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.protocol.packets.inventory.SetActiveSlot;
+import com.hypixel.hytale.server.core.event.events.ecs.InventoryActiveSlotRequestEvent;
+import com.hypixel.hytale.server.core.inventory.InventoryComponent;
 import com.hypixel.hytale.server.core.inventory.InventoryUtils;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
 import com.hypixel.hytale.server.core.modules.entity.component.PreventInventoryAccess;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -14,7 +18,8 @@ import java.util.logging.Level;
 /**
  * Carries out a drop on a custom page's inventory grid, as Hytale's MoveItemStack packet handler does
  * (InventoryPacketHandler.handle): InventoryUtils.moveItem between two sections (negative: the player's inventory
- * parts, others: open windows), which honours the target container's slot filters. World thread.
+ * parts, others: open windows), which honours the target container's slot filters, then, for an item put in a
+ * utility slot from elsewhere, that slot made active. World thread.
  */
 public final class InventoryMoves {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
@@ -33,10 +38,35 @@ public final class InventoryMoves {
             if (quantity > 0) {
                 InventoryUtils.moveItem(
                         player, drop.fromSection, drop.fromSlot, quantity, toSection, drop.toSlot, store);
+                if (toSection == InventoryComponent.UTILITY_SECTION_ID && drop.fromSection != toSection) {
+                    activate(player, store, drop.toSlot.byteValue());
+                }
             }
         } catch (RuntimeException e) {
             LOG.at(WARNED.getAndSet(true) ? Level.FINE : Level.WARNING).withCause(e).log(
                     "hycolony: inventory drop on %s failed", drop.grid());
+        }
+    }
+
+    /**
+     * Makes the utility slot an item was just put in the active one, as the native handler does after such a move:
+     * a cancellable InventoryActiveSlotRequestEvent, then the new slot set and sent to the client.
+     */
+    private static void activate(Ref<EntityStore> player, Store<EntityStore> store, byte slot) {
+        int section = InventoryComponent.UTILITY_SECTION_ID;
+        byte current = InventoryUtils.getActiveSlot(player, section, store);
+        if (current == slot) {
+            return;
+        }
+        InventoryActiveSlotRequestEvent event = new InventoryActiveSlotRequestEvent(section, current, slot, true);
+        store.invoke(player, event);
+        if (event.isCancelled() || event.getNewSlot() == current) {
+            return;
+        }
+        InventoryUtils.setActiveSlot(player, section, event.getNewSlot(), store);
+        PlayerRef ref = store.getComponent(player, PlayerRef.getComponentType());
+        if (ref != null) {
+            ref.getPacketHandler().writeNoCache(new SetActiveSlot(section, event.getNewSlot()));
         }
     }
 

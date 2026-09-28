@@ -6,8 +6,10 @@ $Sounds = "../../Sounds.ui";
 $C.@PageOverlay {
   LayoutMode: Middle;
 
+  // A fixed width, or the row spans the screen and its panels start at its left edge instead of centring.
   Group {
     LayoutMode: Left;
+    Anchor: (Width: 1163);
 
     Group #Character {
       Anchor: (Width: 410);
@@ -17,123 +19,123 @@ $C.@PageOverlay {
       LayoutMode: Top;
       Anchor: (Width: 715, Left: 38);
 
-  $C.@Container {
-    Anchor: (Width: 715, Height: 440);
+      $C.@Container {
+        Anchor: (Width: 715, Height: 440);
 
-    #Title {
-      $C.@Title {
-        @Text = %hycolony.ornament.cutter.title;
-      }
-    }
-
-    #Content {
-      LayoutMode: Top;
-
-      Group #TabButtons {
-        LayoutMode: Left;
-        Anchor: (Height: 58, Bottom: 6);
-      }
-
-      Group {
-        LayoutMode: Left;
-        Anchor: (Height: 320);
-
-        Group {
-          LayoutMode: Top;
-          Anchor: (Width: 330);
-
-          Label #GroupName {
-            Anchor: (Height: 32);
-            Style: (RenderBold: true, FontSize: 15, TextColor: #afc2c3, VerticalAlignment: Center);
-          }
-
-          Group #Shapes {
-            LayoutMode: LeftCenterWrap;
-            FlexWeight: 1;
-            Padding: (Top: 6);
+        #Title {
+          $C.@Title {
+            @Text = %hycolony.ornament.cutter.title;
           }
         }
 
-        $C.@VerticalSeparator {}
-
-        Group {
+        #Content {
           LayoutMode: Top;
-          FlexWeight: 1;
-          Padding: (Left: 10);
 
-          Label #ShapeName {
-            Anchor: (Height: 32);
-            Style: (RenderBold: true, FontSize: 15, TextColor: #afc2c3, VerticalAlignment: Center);
-          }
-
-          Group {
-            LayoutMode: Center;
-            Anchor: (Height: 80, Top: 6);
-
-            ItemGrid #CutterSlots {
-              Anchor: (Width: 164, Height: 78);
-              RenderItemQualityBackground: true;
-              Padding: 2;
-              SlotsPerRow: 2;
-              AreItemsDraggable: true;
-              DisplayItemQuantity: true;
-              Style: @SlotStyle;
-            }
-          }
-
-          Group {
-            LayoutMode: Center;
-            Anchor: (Height: 22);
-
-            Label #SlotLabel0 {
-              Anchor: (Width: 86);
-              Style: (FontSize: 13, TextColor: #96a9be, HorizontalAlignment: Center);
-            }
-
-            Label #SlotLabel1 {
-              Anchor: (Width: 86);
-              Style: (FontSize: 13, TextColor: #96a9be, HorizontalAlignment: Center);
-            }
-          }
-
-          Group {
-            LayoutMode: Center;
-            Anchor: (Height: 80, Top: 4);
-
-            ItemIcon #Preview {
-              Anchor: (Width: 72, Height: 72);
-            }
-          }
-
-          Label #PreviewText {
-            Anchor: (Height: 40);
-            Style: (TextColor: #ffffff, Wrap: true, HorizontalAlignment: Center, VerticalAlignment: Center);
+          Group #TabButtons {
+            LayoutMode: Left;
+            Anchor: (Height: 58, Bottom: 6);
           }
 
           Group {
             LayoutMode: Left;
-            Anchor: (Height: 44, Top: 6);
+            Anchor: (Height: 320);
 
-            $C.@TextButton #CraftButton {
-              @Text = %hycolony.ornament.cutter.craft;
-              @Sounds = $Sounds.@SaveSettings;
+            Group {
+              LayoutMode: Top;
+              Anchor: (Width: 330);
+
+              Label #GroupName {
+                Anchor: (Height: 32);
+                Style: (RenderBold: true, FontSize: 15, TextColor: #afc2c3, VerticalAlignment: Center);
+              }
+
+              Group #Shapes {
+                LayoutMode: LeftCenterWrap;
+                FlexWeight: 1;
+                Padding: (Top: 6);
+              }
+            }
+
+            $C.@VerticalSeparator {}
+
+            Group {
+              LayoutMode: Top;
               FlexWeight: 1;
-            }
+              Padding: (Left: 10);
 
-            $C.@SecondaryTextButton #Craft10Button {
-              @Text = %hycolony.ornament.cutter.craft10;
-              Anchor: (Width: 90, Left: 6);
-            }
+              Label #ShapeName {
+                Anchor: (Height: 32);
+                Style: (RenderBold: true, FontSize: 15, TextColor: #afc2c3, VerticalAlignment: Center);
+              }
 
-            $C.@SecondaryTextButton #CraftAllButton {
-              @Text = %hycolony.ornament.cutter.craftAll;
-              Anchor: (Width: 90, Left: 6);
+              Group {
+                LayoutMode: Center;
+                Anchor: (Height: 80, Top: 6);
+
+                ItemGrid #CutterSlots {
+                  Anchor: (Width: 164, Height: 78);
+                  RenderItemQualityBackground: true;
+                  Padding: 2;
+                  SlotsPerRow: 2;
+                  AreItemsDraggable: true;
+                  DisplayItemQuantity: true;
+                  Style: @SlotStyle;
+                }
+              }
+
+              Group {
+                LayoutMode: Center;
+                Anchor: (Height: 22);
+
+                Label #SlotLabel0 {
+                  Anchor: (Width: 86);
+                  Style: (FontSize: 13, TextColor: #96a9be, HorizontalAlignment: Center);
+                }
+
+                Label #SlotLabel1 {
+                  Anchor: (Width: 86);
+                  Style: (FontSize: 13, TextColor: #96a9be, HorizontalAlignment: Center);
+                }
+              }
+
+              Group {
+                LayoutMode: Center;
+                Anchor: (Height: 80, Top: 4);
+
+                ItemIcon #Preview {
+                  Anchor: (Width: 72, Height: 72);
+                }
+              }
+
+              Label #PreviewText {
+                Anchor: (Height: 40);
+                Style: (TextColor: #ffffff, Wrap: true, HorizontalAlignment: Center, VerticalAlignment: Center);
+              }
+
+              Group {
+                LayoutMode: Left;
+                Anchor: (Height: 44, Top: 6);
+
+                $C.@TextButton #CraftButton {
+                  @Text = %hycolony.ornament.cutter.craft;
+                  @Sounds = $Sounds.@SaveSettings;
+                  FlexWeight: 1;
+                }
+
+                $C.@SecondaryTextButton #Craft10Button {
+                  @Text = %hycolony.ornament.cutter.craft10;
+                  Anchor: (Width: 90, Left: 6);
+                }
+
+                $C.@SecondaryTextButton #CraftAllButton {
+                  @Text = %hycolony.ornament.cutter.craftAll;
+                  Anchor: (Width: 90, Left: 6);
+                }
+              }
             }
           }
         }
       }
-    }
-  }
 
       Group #Storage {
         Anchor: (Top: 8);

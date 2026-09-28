@@ -30,7 +30,7 @@ $C.@DecoratedContainer #PlayerCharacterPanel {
       Anchor: (Height: 490, Top: -8);
 
       Group {
-        Anchor: (Width: 376, Height: 396, Bottom: -50);
+        Anchor: (Width: 420, Height: 396, Bottom: -50);
         Background: "Native/CharacterBackground.png";
       }
 
@@ -55,23 +55,15 @@ $C.@DecoratedContainer #PlayerCharacterPanel {
       @ArmorIcon #ArmorIconLegs { @Row = 3; Background: "Native/ArmorSlotIconLegs.png"; }
 
 
-      Group {
-        Anchor: (Width: @Slot, Height: @Slot, Bottom: 2, Left: 73);
-        Background: "Native/SpecialSlotTemporary.png";
-      }
-
+      // All 4 utility slots (PlayerSystems gives the player 4), where the client shows only the active one: with
+      // ItemStacks a grid shows every slot of its section, and hiding some would hide the items in them.
       ItemGrid #PlayerUtility {
-        Anchor: (Width: 76, Height: 78, Left: 152, Bottom: 0);
-        SlotsPerRow: 1;
+        Anchor: (Width: 306, Height: 78, Left: 35, Bottom: 0);
+        SlotsPerRow: 4;
         AreItemsDraggable: true;
         RenderItemQualityBackground: true;
         Style: @SpecialStyle;
         Padding: 2;
-      }
-
-      Group {
-        Anchor: (Width: @Slot, Height: @Slot, Bottom: 2, Left: 235);
-        Background: "Native/SpecialSlotTemporary.png";
       }
     }
 

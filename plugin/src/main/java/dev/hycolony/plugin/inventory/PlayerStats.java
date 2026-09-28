@@ -16,7 +16,10 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
  * the armor's physical damage reduction in percent (DamageSystems.ArmorDamageReduction, the reduction damage gets).
  */
 record PlayerStats(String health, String stamina, String mana, String defense) {
-    /** player's stats now; "0/0" for a stat they lack. */
+    /**
+     * The player's stats now; "0/0" for a stat they lack. Read when the page draws, so they follow the inventory's
+     * changes, not damage taken while the page is open.
+     */
     static PlayerStats of(Store<EntityStore> store, Ref<EntityStore> player) {
         EntityStatMap stats = store.getComponent(player, EntityStatMap.getComponentType());
         return new PlayerStats(
@@ -27,7 +30,8 @@ record PlayerStats(String health, String stamina, String mana, String defense) {
     }
 
     private static String pair(EntityStatMap stats, int index) {
-        EntityStatValue value = stats == null ? null : stats.get(index);
+        // A stat missing from the assets has a negative index, which EntityStatMap.get does not check.
+        EntityStatValue value = stats == null || index < 0 ? null : stats.get(index);
         return value == null ? "0/0" : Math.round(value.get()) + "/" + Math.round(value.getMax());
     }
 
@@ -38,7 +42,7 @@ record PlayerStats(String health, String stamina, String mana, String defense) {
                         PlayerSection.ARMOR.container(store, player),
                         ItemUtils.canApplyItemStackPenalties(player, store),
                         store.getComponent(player, EffectControllerComponent.getComponentType()))
-                .get(DamageCause.PHYSICAL);
+                .get(DamageCause.getAssetMap().getAsset("Physical"));
         return modifiers == null ? 0 : Math.round(modifiers.multiplierModifier * 100);
     }
 }
