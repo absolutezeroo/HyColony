@@ -3,10 +3,10 @@ real DO data call source.fetch(), which downloads DO's pinned commit once into b
 on the first run only); tests on vanilla assets read the Hytale 0.6.8 assets zip (tags.open_assets)."""
 
 import check_assemble
+import check_connected
 import check_convert
 import check_faces
 import check_materials
-import check_connected
 import check_pack
 
 

@@ -123,7 +123,8 @@ def validate_pack(assets, pack=PACK):
 
     known = {
         "ItemId": set(items) | vanilla("Server/Item/Items/"),
-        "HitboxType": hitboxes | vanilla("Server/Item/Block/Hitboxes/"),
+        # "Full" is built in, not an asset (BlockBoundingBoxes.DEFAULT, the unit box).
+        "HitboxType": hitboxes | vanilla("Server/Item/Block/Hitboxes/") | {"Full"},
         "BlockSoundSetId": vanilla("Server/Item/Block/Sounds/"),
         "BlockParticleSetId": vanilla("Server/Item/Block/Particles/"),
         "PhysicalMaterialId": vanilla("Server/Item/Block/PhysicalMaterials/"),

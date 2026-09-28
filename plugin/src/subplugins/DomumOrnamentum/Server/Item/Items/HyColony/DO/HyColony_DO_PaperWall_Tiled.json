@@ -63,7 +63,8 @@
           "HitboxType": "HyColony_DO_PaperWall_Tiled_T_Junction"
         },
         "Cross_Junction": {
-          "CustomModel": "Blocks/HyColony/DO/PaperWall_Tiled_Cross_Junction.blockymodel"
+          "CustomModel": "Blocks/HyColony/DO/PaperWall_Tiled_Cross_Junction.blockymodel",
+          "HitboxType": "Full"
         }
       }
     },

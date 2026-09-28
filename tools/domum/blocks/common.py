@@ -160,10 +160,7 @@ def neighbour_template(tag, default, shapes):
 
 def look(ctx, family, name, block, props):
     """Writes the model of one DO state under name, and its hitbox unless it fills the block; returns the
-    CustomModel (and HitboxType) keys of a BlockType or state drawing it."""
+    CustomModel and HitboxType keys of a BlockType or state drawing it. The HitboxType is always named ("Full",
+    Hytale's default, for a full block): a state naming none inherits its block's."""
     model, blockymodel = convert_state(ctx, family, block, props)
-    result = {"CustomModel": write_model(ctx, name, blockymodel)}
-    hitbox_id = hitbox(ctx, name, model)
-    if hitbox_id:
-        result["HitboxType"] = hitbox_id
-    return result
+    return {"CustomModel": write_model(ctx, name, blockymodel), "HitboxType": hitbox(ctx, name, model) or "Full"}

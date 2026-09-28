@@ -5,10 +5,10 @@
     "Base": {
       "FaceTags": {
         "Up": [
-          "PillarConnection"
+          "HyColony_DO_Pillar_Voxel"
         ],
         "Down": [
-          "PillarConnection"
+          "HyColony_DO_Pillar_Voxel"
         ]
       },
       "PatternsToMatchAnyOf": [
@@ -24,7 +24,7 @@
               "IncludeOrExclude": "Include",
               "FaceTags": {
                 "Down": [
-                  "PillarConnection"
+                  "HyColony_DO_Pillar_Voxel"
                 ]
               }
             },
@@ -37,7 +37,7 @@
               "IncludeOrExclude": "Exclude",
               "FaceTags": {
                 "Up": [
-                  "PillarConnection"
+                  "HyColony_DO_Pillar_Voxel"
                 ]
               }
             }
@@ -48,10 +48,10 @@
     "Base_Inverted": {
       "FaceTags": {
         "Up": [
-          "PillarConnection"
+          "HyColony_DO_Pillar_Voxel"
         ],
         "Down": [
-          "PillarConnection"
+          "HyColony_DO_Pillar_Voxel"
         ]
       },
       "PatternsToMatchAnyOf": [
@@ -67,7 +67,7 @@
               "IncludeOrExclude": "Include",
               "FaceTags": {
                 "Up": [
-                  "PillarConnection"
+                  "HyColony_DO_Pillar_Voxel"
                 ]
               }
             },
@@ -80,7 +80,7 @@
               "IncludeOrExclude": "Exclude",
               "FaceTags": {
                 "Down": [
-                  "PillarConnection"
+                  "HyColony_DO_Pillar_Voxel"
                 ]
               }
             }
@@ -91,10 +91,10 @@
     "Middle": {
       "FaceTags": {
         "Up": [
-          "PillarConnection"
+          "HyColony_DO_Pillar_Voxel"
         ],
         "Down": [
-          "PillarConnection"
+          "HyColony_DO_Pillar_Voxel"
         ]
       },
       "PatternsToMatchAnyOf": [
@@ -110,7 +110,7 @@
               "IncludeOrExclude": "Include",
               "FaceTags": {
                 "Down": [
-                  "PillarConnection"
+                  "HyColony_DO_Pillar_Voxel"
                 ]
               }
             },
@@ -123,7 +123,7 @@
               "IncludeOrExclude": "Include",
               "FaceTags": {
                 "Up": [
-                  "PillarConnection"
+                  "HyColony_DO_Pillar_Voxel"
                 ]
               }
             }
@@ -134,10 +134,10 @@
     "Full": {
       "FaceTags": {
         "Up": [
-          "PillarConnection"
+          "HyColony_DO_Pillar_Voxel"
         ],
         "Down": [
-          "PillarConnection"
+          "HyColony_DO_Pillar_Voxel"
         ]
       },
       "PatternsToMatchAnyOf": []

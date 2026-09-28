@@ -31,9 +31,10 @@
       }
     ],
     "VariantRotation": "None",
+    "HitboxType": "Full",
     "ConnectedBlockRuleSet": {
       "Type": "CustomTemplate",
-      "TemplateShapeAssetId": "HyColony_DO_PillarConnectedBlockTemplate",
+      "TemplateShapeAssetId": "HyColony_DO_Pillar_SquareConnectedBlockTemplate",
       "TemplateShapeBlockPatterns": {
         "Full": "HyColony_DO_Pillar_Square",
         "Base": "*HyColony_DO_Pillar_Square_State_Definitions_Base",
@@ -44,10 +45,12 @@
     "State": {
       "Definitions": {
         "Base": {
-          "CustomModel": "Blocks/HyColony/DO/Pillar_Square_Base.blockymodel"
+          "CustomModel": "Blocks/HyColony/DO/Pillar_Square_Base.blockymodel",
+          "HitboxType": "Full"
         },
         "Base_Inverted": {
-          "CustomModel": "Blocks/HyColony/DO/Pillar_Square_Base_Inverted.blockymodel"
+          "CustomModel": "Blocks/HyColony/DO/Pillar_Square_Base_Inverted.blockymodel",
+          "HitboxType": "Full"
         },
         "Middle": {
           "CustomModel": "Blocks/HyColony/DO/Pillar_Square_Middle.blockymodel",
