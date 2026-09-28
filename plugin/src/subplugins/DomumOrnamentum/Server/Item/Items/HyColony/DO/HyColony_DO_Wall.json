@@ -1,0 +1,102 @@
+{
+  "TranslationProperties": {
+    "Name": "hycolony.item.do.wall.name"
+  },
+  "Icon": "Icons/ItemsGenerated/Rock_Stone_Brick.png",
+  "IconProperties": {
+    "Scale": 0.58823,
+    "Rotation": [
+      22.5,
+      45,
+      22.5
+    ],
+    "Translation": [
+      0,
+      -13.5
+    ]
+  },
+  "Categories": [
+    "DomumOrnamentum.Wall"
+  ],
+  "PlayerAnimationsId": "Block",
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Model",
+    "CustomModel": "Blocks/HyColony/DO/Wall.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "BlockTextures/Rock_Stone_Brick.png",
+        "Weight": 1
+      }
+    ],
+    "VariantRotation": "Wall",
+    "Opacity": "Transparent",
+    "HitboxType": "Fence",
+    "Supporting": {
+      "Down": [
+        {
+          "FaceType": "Wall"
+        }
+      ],
+      "Up": [
+        {
+          "FaceType": "Wall"
+        }
+      ]
+    },
+    "State": {
+      "Definitions": {
+        "Corner": {
+          "CustomModel": "Blocks/HyColony/DO/Wall_Corner.blockymodel",
+          "HitboxType": "Fence_Corner",
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyColony_DO_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "FlipType": "OrthogonalInverse"
+        },
+        "T": {
+          "CustomModel": "Blocks/HyColony/DO/Wall_T.blockymodel",
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyColony_DO_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "FlipType": "Symmetric"
+        },
+        "Cross": {
+          "CustomModel": "Blocks/HyColony/DO/Wall_Cross.blockymodel",
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyColony_DO_Wall",
+              "GatherType": "Rocks"
+            }
+          }
+        }
+      }
+    },
+    "ConnectedBlockRuleSet": {
+      "Type": "CustomTemplate",
+      "TemplateShapeAssetId": "WallConnectedBlockTemplate",
+      "TemplateShapeBlockPatterns": {
+        "Straight": "HyColony_DO_Wall",
+        "Corner": "*HyColony_DO_Wall_State_Definitions_Corner",
+        "T_Junction": "*HyColony_DO_Wall_State_Definitions_T",
+        "Cross_Junction": "*HyColony_DO_Wall_State_Definitions_Cross"
+      }
+    },
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "Rocks"
+      }
+    },
+    "BlockParticleSetId": "Stone",
+    "ParticleColor": "#737055",
+    "BlockSoundSetId": "Stone",
+    "PhysicalMaterialId": "Stone"
+  },
+  "ItemSoundSetId": "ISS_Blocks_Stone"
+}

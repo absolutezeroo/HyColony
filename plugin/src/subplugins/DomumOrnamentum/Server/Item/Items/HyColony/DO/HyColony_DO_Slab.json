@@ -1,0 +1,80 @@
+{
+  "TranslationProperties": {
+    "Name": "hycolony.item.do.slab.name"
+  },
+  "Icon": "Icons/ItemsGenerated/Rock_Stone_Brick.png",
+  "IconProperties": {
+    "Scale": 0.58823,
+    "Rotation": [
+      22.5,
+      45,
+      22.5
+    ],
+    "Translation": [
+      0,
+      -13.5
+    ]
+  },
+  "Categories": [
+    "DomumOrnamentum.Slab"
+  ],
+  "PlayerAnimationsId": "Block",
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Model",
+    "CustomModel": "Blocks/HyColony/DO/Slab.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "BlockTextures/Rock_Stone_Brick.png",
+        "Weight": 1
+      }
+    ],
+    "VariantRotation": "DoublePipe",
+    "HitboxType": "Block_Half",
+    "Supporting": {
+      "Down": [
+        {}
+      ]
+    },
+    "State": {
+      "Definitions": {
+        "Block": {
+          "Material": "Solid",
+          "DrawType": "Model",
+          "HitboxType": "Full",
+          "Gathering": {
+            "Breaking": {
+              "GatherType": "Rocks",
+              "DropList": {
+                "Container": {
+                  "Type": "Single",
+                  "Item": {
+                    "ItemId": "HyColony_DO_Slab",
+                    "QuantityMax": 2,
+                    "QuantityMin": 2
+                  }
+                }
+              }
+            }
+          },
+          "Supporting": {
+            "BlockSides": [
+              {}
+            ]
+          },
+          "CustomModel": "Blocks/HyColony/DO/Slab_Block.blockymodel"
+        }
+      }
+    },
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "Rocks"
+      }
+    },
+    "BlockParticleSetId": "Stone",
+    "ParticleColor": "#737055",
+    "BlockSoundSetId": "Stone",
+    "PhysicalMaterialId": "Stone"
+  },
+  "ItemSoundSetId": "ISS_Blocks_Stone"
+}

@@ -5,6 +5,8 @@ import json
 import urllib.request
 from pathlib import Path
 
+import minecraft
+
 COMMIT = "82729d6c9dc0499b256b36b4506d0d9ef20e8aec"  # version/latest, 2026-08-30 (docs/research/domum-ornamentum.md)
 REPO = "ldtteam/Domum-Ornamentum"
 MODEL_PATH = "src/main/resources/assets/domum_ornamentum/models/block/"
@@ -60,16 +62,17 @@ def blockstate(root, block_id):
 def load(root, name):
     """The model root/models/name.json (falling back to root/models-generated/name.json, the thin
     per-state wrapper a blockstate's own "model" field names) with its DO-internal parents merged: the
-    child's textures win, and its elements replace the parent's (Minecraft's rule). Vanilla parents
-    (block/block, cube_all...) carry no DO geometry."""
+    child's textures win, and its elements replace the parent's (Minecraft's rule). A Minecraft template parent
+    (block/fence_post, block/stairs...) brings minecraft.TEMPLATES' cuboids; other vanilla parents (block/block)
+    carry no geometry."""
     path = root / "models" / (name + ".json")
     if not path.exists():
         path = root / "models-generated" / (name + ".json")
     model = json.loads(path.read_text(encoding="utf-8"))
     parent = model.get("parent", "")
-    if not parent.startswith(DO_PARENT):
+    base = load(root, parent[len(DO_PARENT):]) if parent.startswith(DO_PARENT) else minecraft.template(parent)
+    if base is None:
         return {"textures": model.get("textures", {}), "elements": model.get("elements", [])}
-    base = load(root, parent[len(DO_PARENT):])
     return {"textures": {**base["textures"], **model.get("textures", {})},
             "elements": model.get("elements") or base["elements"]}
 

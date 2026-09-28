@@ -1,0 +1,97 @@
+{
+  "TranslationProperties": {
+    "Name": "hycolony.item.do.fencegate.name"
+  },
+  "Icon": "Icons/ItemsGenerated/Wood_Hardwood_Planks.png",
+  "IconProperties": {
+    "Scale": 0.58823,
+    "Rotation": [
+      22.5,
+      45,
+      22.5
+    ],
+    "Translation": [
+      0,
+      -13.5
+    ]
+  },
+  "Categories": [
+    "DomumOrnamentum.FenceGate"
+  ],
+  "PlayerAnimationsId": "Block",
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Model",
+    "CustomModel": "Blocks/HyColony/DO/FenceGate.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "BlockTextures/Wood_Hardwood_Planks_Side.png",
+        "Weight": 1
+      }
+    ],
+    "VariantRotation": "NESW",
+    "HitboxType": "Fence_Gate",
+    "Opacity": "Transparent",
+    "State": {
+      "Definitions": {
+        "CloseDoorIn": {
+          "InteractionSoundEventId": "SFX_Door_Desert_Close",
+          "CustomModelAnimation": "Blocks/Animations/Door/Door_Close_In.blockyanim"
+        },
+        "CloseDoorOut": {
+          "InteractionSoundEventId": "SFX_Door_Desert_Close",
+          "CustomModelAnimation": "Blocks/Animations/Door/Door_Close_Out.blockyanim"
+        },
+        "DoorBlocked": {},
+        "OpenDoorIn": {
+          "HitboxType": "Fence_Gate_Open_In",
+          "InteractionHitboxType": "Fence_Gate_Open_In_Interaction",
+          "InteractionSoundEventId": "SFX_Door_Desert_Open",
+          "CustomModelAnimation": "Blocks/Animations/Door/Door_Open_In.blockyanim",
+          "InteractionHint": "server.interactionHints.closeDoor"
+        },
+        "OpenDoorOut": {
+          "HitboxType": "Fence_Gate_Open_Out",
+          "InteractionHitboxType": "Fence_Gate_Open_Out_Interaction",
+          "InteractionSoundEventId": "SFX_Door_Desert_Open",
+          "CustomModelAnimation": "Blocks/Animations/Door/Door_Open_Out.blockyanim",
+          "InteractionHint": "server.interactionHints.closeDoor"
+        }
+      }
+    },
+    "InteractionHint": "server.interactionHints.openDoor",
+    "IsDoor": true,
+    "Interactions": {
+      "Use": "Door"
+    },
+    "Supporting": {
+      "Up": [
+        {
+          "FaceType": "Fence"
+        }
+      ],
+      "Down": [
+        {
+          "FaceType": "Fence"
+        }
+      ]
+    },
+    "ConnectedBlockRuleSet": {
+      "Type": "CustomTemplate",
+      "TemplateShapeBlockPatterns": {
+        "Gate": "HyColony_DO_FenceGate,*HyColony_DO_FenceGate_State_Definitions_OpenDoorIn,*HyColony_DO_FenceGate_State_Definitions_OpenDoorOut,*HyColony_DO_FenceGate_State_Definitions_CloseDoorIn,*HyColony_DO_FenceGate_State_Definitions_CloseDoorOut,*HyColony_DO_FenceGate_State_Definitions_DoorBlocked"
+      },
+      "TemplateShapeAssetId": "WallConnectedBlockTemplate"
+    },
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "Woods"
+      }
+    },
+    "BlockParticleSetId": "Wood",
+    "ParticleColor": "#693e2a",
+    "BlockSoundSetId": "Wood",
+    "PhysicalMaterialId": "Wood"
+  },
+  "ItemSoundSetId": "ISS_Blocks_Wood"
+}

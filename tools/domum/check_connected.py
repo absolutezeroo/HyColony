@@ -1,4 +1,5 @@
-"""Checks of the Domum Ornamentum shapes chosen by their neighbours (run by check.py): pillars and paper walls."""
+"""Checks of the Domum Ornamentum shapes chosen by their neighbours (run by check.py): pillars, paper walls and the
+vanilla-compatible families."""
 
 import json
 
@@ -94,7 +95,32 @@ def paper_wall_connects_to_its_neighbours():
     assert min(b["Min"]["X"] for b in boxes) == 0 and max(b["Max"]["Z"] for b in boxes) == 1, boxes
 
 
+def compat_uses_do_models_and_vanilla_shapes():
+    """Fences, gates, walls, stairs and slabs keep their vanilla equivalent's rules, states and hitboxes, draw every
+    state with a DO model and name our blocks only; the gate's leaves hang on the nodes the door animation turns."""
+    from blocks import compat
+    from models import walk
+
+    ctx = generate_into_temp()
+    for name, vanilla_id in compat.VANILLA.items():
+        ours = ctx.items["HyColony_DO_" + name]["BlockType"]
+        theirs = ctx.assets.item(vanilla_id)["BlockType"]
+        assert ours.get("ConnectedBlockRuleSet", {}).get("Type") == theirs.get("ConnectedBlockRuleSet", {}).get("Type")
+        assert ours.get("HitboxType") == theirs.get("HitboxType") and ours["VariantRotation"] == theirs["VariantRotation"]
+        states = ours.get("State", {}).get("Definitions", {})
+        assert set(states) == set(theirs.get("State", {}).get("Definitions", {})), name
+        for look in [ours] + [s for s in states.values() if "CustomModel" in s]:
+            assert look["CustomModel"].startswith("Blocks/HyColony/DO/"), name
+        assert not any(v in json.dumps(ours) for v in compat.VANILLA.values()), name
+    # Each leaf hangs on its post: the door animations turn "Door" and "Door2" opposite ways, to the same side.
+    hinges = {n["name"]: n["position"] for n in walk(ctx.models["HyColony_DO_FenceGate"]["nodes"])}
+    assert hinges["Door"] == {"x": -14, "y": 0, "z": 0} and hinges["Door2"] == {"x": 14, "y": 0, "z": 0}, hinges
+    block = ctx.items["HyColony_DO_Slab"]["BlockType"]["State"]["Definitions"]["Block"]
+    assert block["DrawType"] == "Model" and "Textures" not in block
+
+
 def run():
     """Runs this module's checks; an AssertionError names the failing case."""
     pillar_has_four_closed_shapes()
     paper_wall_connects_to_its_neighbours()
+    compat_uses_do_models_and_vanilla_shapes()

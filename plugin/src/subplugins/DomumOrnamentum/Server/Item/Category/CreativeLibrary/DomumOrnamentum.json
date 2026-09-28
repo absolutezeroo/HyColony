@@ -3,6 +3,31 @@
   "Order": 4,
   "Children": [
     {
+      "Id": "Fence",
+      "Name": "hycolony.category.do.fence",
+      "Icon": "Icons/ItemCategories/DomumOrnamentum_Fence.png"
+    },
+    {
+      "Id": "FenceGate",
+      "Name": "hycolony.category.do.fencegate",
+      "Icon": "Icons/ItemCategories/DomumOrnamentum_FenceGate.png"
+    },
+    {
+      "Id": "Wall",
+      "Name": "hycolony.category.do.wall",
+      "Icon": "Icons/ItemCategories/DomumOrnamentum_Wall.png"
+    },
+    {
+      "Id": "Stairs",
+      "Name": "hycolony.category.do.stairs",
+      "Icon": "Icons/ItemCategories/DomumOrnamentum_Stairs.png"
+    },
+    {
+      "Id": "Slab",
+      "Name": "hycolony.category.do.slab",
+      "Icon": "Icons/ItemCategories/DomumOrnamentum_Slab.png"
+    },
+    {
       "Id": "TimberFrame",
       "Name": "hycolony.category.do.timberframe",
       "Icon": "Icons/ItemCategories/DomumOrnamentum_TimberFrame.png"

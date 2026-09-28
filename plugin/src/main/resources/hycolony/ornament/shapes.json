@@ -672,6 +672,56 @@
       ],
       "optionalSecond": false,
       "cutterQuantity": 6
+    },
+    {
+      "id": "Fence",
+      "template": "HyColony_DO_Fence",
+      "group": "avanilla",
+      "slots": [
+        "fence_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "FenceGate",
+      "template": "HyColony_DO_FenceGate",
+      "group": "avanilla",
+      "slots": [
+        "fence_gate_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Wall",
+      "template": "HyColony_DO_Wall",
+      "group": "avanilla",
+      "slots": [
+        "wall_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Stairs",
+      "template": "HyColony_DO_Stairs",
+      "group": "avanilla",
+      "slots": [
+        "stairs_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 1
+    },
+    {
+      "id": "Slab",
+      "template": "HyColony_DO_Slab",
+      "group": "avanilla",
+      "slots": [
+        "slab_materials"
+      ],
+      "optionalSecond": false,
+      "cutterQuantity": 2
     }
   ]
 }
