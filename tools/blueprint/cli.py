@@ -100,8 +100,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--ids", help="liste d'IDs Hytale valides, un par ligne (remplace la liste fournie)")
     ap.add_argument("--no-upstream", action="store_true", help="désactive la table de secours HytalesHub")
     ap.add_argument("--sans-blocs-editeur", action="store_true",
-                    help="omet air et substitutions au lieu de les traduire en Empty / HyColony_Placeholder_Solid|Fluid / "
-                         "Editor_Anchor")
+                    help="omet air et substitutions au lieu de les traduire en Empty / "
+                         "HyColony_Placeholder_Solid|Fluid / Editor_Anchor")
     ap.add_argument("--domum-materiaux", action="store_true",
                     help="blocs Domum avec leurs matériaux (<gabarit>__<m1>__<m2>) ; demande que HyDomum sache créer "
                          "ces matériaux au chargement d'un prefab (DO-3). Par défaut : le gabarit HyDomum")
