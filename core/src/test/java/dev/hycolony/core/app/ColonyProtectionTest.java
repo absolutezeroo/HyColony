@@ -1,10 +1,9 @@
-package dev.hycolony.core.colony;
+package dev.hycolony.core.app;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.colony.permission.BlockUse;
 import dev.hycolony.core.kernel.BlockPos;

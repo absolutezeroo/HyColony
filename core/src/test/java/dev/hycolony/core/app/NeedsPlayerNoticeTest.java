@@ -1,11 +1,11 @@
-package dev.hycolony.core.colony;
+package dev.hycolony.core.app;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.app.ui.NeedsPlayerNotice;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
+import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemKey;

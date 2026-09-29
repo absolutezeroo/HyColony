@@ -129,7 +129,8 @@ public final class Building implements Requester, ResolverProvider {
 
     /**
      * The highest tool level this hut's worker may use (MC {@code IBuilding.getMaxEquipmentLevel}): 1 at level 0
-     * ({@code BASIC_TOOL_LEVEL}), the hut level up to its max, then unlimited ({@link ToolRequest#ANY_LEVEL}, MC TOOL_LEVEL_MAXIMUM).
+     * ({@code BASIC_TOOL_LEVEL}), the hut level up to its max, then unlimited ({@link ToolRequest#ANY_LEVEL}, MC
+     * TOOL_LEVEL_MAXIMUM).
      */
     public int maxEquipmentLevel() {
         if (level >= type.maxLevel()) {

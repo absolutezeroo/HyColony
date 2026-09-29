@@ -1,11 +1,10 @@
-package dev.hycolony.core.colony;
+package dev.hycolony.core.app.persistence;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.app.ColonyManager;
-import dev.hycolony.core.app.persistence.ColonySerializer;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;

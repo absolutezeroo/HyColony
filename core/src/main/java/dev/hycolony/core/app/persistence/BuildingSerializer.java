@@ -67,7 +67,7 @@ final class BuildingSerializer {
         return out;
     }
 
-    /** The saved building at its position (which the caller checked); a missing optional key takes its default (§ 5). */
+    /** The saved building at its (checked) position; a missing optional key takes its default (§ 5). */
     static Building read(JsonObject o, BuildingType type) {
         Building b = Building.create(type, requirePos(o.get("pos")), intOr(o.get("rotation"), 0));
         b.setLevel(intOr(o.get("level"), 0));

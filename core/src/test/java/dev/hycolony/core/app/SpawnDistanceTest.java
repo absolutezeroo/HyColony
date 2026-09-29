@@ -1,10 +1,8 @@
-package dev.hycolony.core.colony;
+package dev.hycolony.core.app;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
-import dev.hycolony.core.app.ColonyManager;
-import dev.hycolony.core.app.HutPlacement;
 import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.config.ColonyConfig;

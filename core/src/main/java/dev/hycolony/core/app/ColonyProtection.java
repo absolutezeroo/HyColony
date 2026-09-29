@@ -44,7 +44,10 @@ public final class ColonyProtection {
         return !enabled() || isAllowed(player, pos, action);
     }
 
-    /** MC checkEventCancelation: true when protection refuses {@code action} to {@code player} at {@code pos}, then told. */
+    /**
+     * MC checkEventCancelation: true when protection refuses {@code action} to {@code player} at {@code pos}; the
+     * player is then told.
+     */
     public boolean refuses(UUID player, BlockPos pos, Action action) {
         if (allows(player, pos, action)) {
             return false;

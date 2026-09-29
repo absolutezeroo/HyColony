@@ -1,4 +1,4 @@
-package dev.hycolony.core.colony;
+package dev.hycolony.core.app;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -6,14 +6,14 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.gson.JsonObject;
-import dev.hycolony.core.app.ColonyManager;
-import dev.hycolony.core.app.HutPlacement;
 import dev.hycolony.core.app.ui.FoundColonyView;
 import dev.hycolony.core.app.ui.TownHallView;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.building.module.ModuleProducer;
 import dev.hycolony.core.building.module.PersistentModule;
+import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.ColonyRefusal;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.colony.permission.BlockUse;
 import dev.hycolony.core.colony.permission.DenialNotices;
