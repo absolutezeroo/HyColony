@@ -90,7 +90,8 @@ def an_anchor_that_is_not_the_hut_is_reported():
 
 
 def the_trace_keeps_written_placeholders():
-    bp = _bp({(1, 0, 0): {"Name": "structurize:blockfluidsubstitution"}})
+    # Air is left out: its rule is always "air -> Empty", and it would be most of the trace.
+    bp = _bp({(1, 0, 0): {"Name": "structurize:blockfluidsubstitution"}, (2, 0, 0): {"Name": "minecraft:air"}})
     assert [t["cible"] for t in Converter().convert(bp).trace()] == [FLUID]
 
 

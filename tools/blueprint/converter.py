@@ -362,4 +362,5 @@ class Result:
             "rotation": c.mapping.rotation,
             "regle": c.mapping.rule,
             "notes": c.mapping.notes,
-        } for c in self.cells if c.mapping.rule != "placeholder"]  # les cases omises n'apportent rien
+            # Les cases omises et l'air (toujours « air -> Empty ») n'apportent rien et noieraient la trace.
+        } for c in self.cells if c.mapping.rule != "placeholder" and c.source.get("Name") != "minecraft:air"]
