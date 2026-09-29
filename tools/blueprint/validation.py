@@ -9,12 +9,14 @@ Sources des IDs, fusionnées :
 - à défaut, data/hytale-block-ids.txt : liste de HytalesHubConverter (janvier 2026), en retard
   sur le jeu (elle connaissait Hay_Bale et Ore_Cobalt_Stone, absents de 0.7.0-pre.4).
 - data/extra-block-ids.txt    : IDs validés en jeu mais absents de cette liste.
-- --ids FICHIER               : ta propre liste (remplace la liste HytalesHub).
+- --ids FICHIER               : ta propre liste (remplace les assets épinglés et la liste HytalesHub).
 - les blocs du mod HyVanilla (hyvanilla.item_ids, lus dans ses assets).
 - les gabarits du mod HyDomum et les matériaux qu'il accepte (générés depuis les assets du jeu épinglé).
 """
 from __future__ import annotations
 
+import json
+import os
 import zipfile
 from collections import Counter
 from functools import lru_cache
@@ -45,18 +47,35 @@ def pinned_assets_zip() -> Path | None:
             props[key.strip()] = value.strip()
     if "hytale_version" not in props or "patchline" not in props:
         return None
-    zip_path = (Path.home() / ".gradle" / "caches" / "hytale-assets"
-                / f"{props['patchline']}-{props['hytale_version']}-Assets.zip")
+    gradle_home = Path(os.environ.get("GRADLE_USER_HOME") or Path.home() / ".gradle")
+    zip_path = gradle_home / "caches" / "hytale-assets" / f"{props['patchline']}-{props['hytale_version']}-Assets.zip"
     return zip_path if zip_path.exists() else None
 
 
 @lru_cache(maxsize=1)
 def _asset_ids(zip_path: Path) -> frozenset[str]:
-    """Les objets du jeu (Server/Item/Items/**/*.json, blocs compris) et le bloc Empty."""
+    """Les blocs du jeu : les objets de Server/Item/Items qui ont un `BlockType`, à eux ou hérité de leur `Parent`
+    (Item.java ne crée un bloc que depuis cette clé), et le bloc Empty. Un objet seul (Ore_Cobalt, le minerai
+    ramassé) n'en est pas un."""
+    items: dict[str, dict] = {}
     with zipfile.ZipFile(zip_path) as z:
-        ids = {PurePosixPath(n).stem for n in z.namelist()
-               if n.startswith("Server/Item/Items/") and n.endswith(".json")}
-    return frozenset(ids | {"Empty"})
+        for n in z.namelist():
+            if n.startswith("Server/Item/Items/") and n.endswith(".json"):
+                try:
+                    items[PurePosixPath(n).stem] = json.loads(z.read(n).decode("utf-8-sig"))
+                except (ValueError, UnicodeDecodeError):
+                    continue
+
+    def has_block(item_id: str) -> bool:
+        seen = set()
+        while item_id in items and item_id not in seen:  # une chaîne de Parent en boucle : pas de bloc
+            seen.add(item_id)
+            if "BlockType" in items[item_id]:
+                return True
+            item_id = items[item_id].get("Parent", "")
+        return False
+
+    return frozenset({i for i in items if has_block(i)} | {"Empty"})
 
 
 def load_known_ids(custom: str | Path | None = None) -> tuple[set[str], str]:

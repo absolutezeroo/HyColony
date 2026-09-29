@@ -108,8 +108,13 @@ def validation_uses_the_pinned_game_assets():
         print("  (pas de zip d'assets épinglé : vérification sautée)")
         return
     known, src = load_known_ids()
-    assert "Ingredient_Hay" in known and "Ore_Cobalt" in known, src
-    assert "Hay_Bale" not in known and "Ore_Cobalt_Stone" not in known, src
+    assert "Ingredient_Hay" in known and "Ore_Cobalt_Slate" in known, src
+    # Ore_Cobalt is the mined item, with no BlockType: not a block the game can place.
+    assert "Hay_Bale" not in known and "Ore_Cobalt_Stone" not in known and "Ore_Cobalt" not in known, src
+    ores = ["minecraft:coal_ore", "minecraft:deepslate_coal_ore", "minecraft:lapis_ore", "minecraft:redstone_ore",
+            "minecraft:emerald_ore"]
+    cells, _ = _convert({(i, 0, 0): n for i, n in enumerate(ores)})
+    assert all(target in known for target, _ in cells.values()), cells
 
 
 def the_anchor_is_structurizes_primary_offset():
