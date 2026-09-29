@@ -18,8 +18,6 @@ public final class BuilderJob extends Job {
 
     @Override
     public JobAI createAI(Colony colony, BodyId body) {
-        return BuilderContext.of(colony, citizen(), body)
-                .<JobAI>map(BuilderAI::new)
-                .orElseGet(IdleAI::new);
+        return BuilderContext.of(colony, this, body).<JobAI>map(BuilderAI::new).orElseGet(IdleAI::new);
     }
 }

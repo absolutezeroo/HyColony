@@ -48,15 +48,15 @@ final class FarmerAI implements JobAI {
         craft(FarmerState.NEEDS_ITEM, crafting::waitForRequests, NEEDS_ITEM_RATE);
         craft(FarmerState.GATHERING_REQUIRED_MATERIALS, crafting::gather, CraftingWork.TICKS_SECOND);
         // MC: the farmer's hasWorkToDo is always true, so IDLE always moves on.
-        state(FarmerState.IDLE, () -> FarmerState.START_WORKING, CraftingWork.TICKS_SECOND);
-        state(FarmerState.START_WORKING, this::decide, CraftingWork.STANDARD_DELAY);
+        target(FarmerState.IDLE, () -> FarmerState.START_WORKING, CraftingWork.TICKS_SECOND);
+        target(FarmerState.START_WORKING, this::decide, CraftingWork.STANDARD_DELAY);
         craft(FarmerState.QUERY_ITEMS, crafting::queryItems, CraftingWork.STANDARD_DELAY);
         craft(FarmerState.GET_RECIPE, crafting::getRecipe, CraftingWork.STANDARD_DELAY);
         craft(FarmerState.CRAFT, crafting::craft, CraftingWork.HIT_DELAY);
-        state(FarmerState.PREPARING, farm::prepare, PREPARING_RATE);
+        target(FarmerState.PREPARING, farm::prepare, PREPARING_RATE);
         for (FarmerState field :
                 new FarmerState[] {FarmerState.FARMER_HOE, FarmerState.FARMER_PLANT, FarmerState.FARMER_HARVEST}) {
-            state(field, () -> farm.workAtField(field), CraftingWork.STANDARD_DELAY);
+            target(field, () -> farm.workAtField(field), CraftingWork.STANDARD_DELAY);
         }
     }
 
@@ -64,12 +64,12 @@ final class FarmerAI implements JobAI {
         machine.event(type, when, () -> then, rate);
     }
 
-    private void state(FarmerState s, IStateSupplier<FarmerState> action, int rate) {
+    private void target(FarmerState s, IStateSupplier<FarmerState> action, int rate) {
         machine.target(s, action, rate);
     }
 
     private void craft(FarmerState s, Supplier<CraftingStep> step, int rate) {
-        state(s, () -> FarmerState.of(step.get()), rate);
+        target(s, () -> FarmerState.of(step.get()), rate);
     }
 
     /**

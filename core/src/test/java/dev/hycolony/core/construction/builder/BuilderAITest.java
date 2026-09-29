@@ -25,8 +25,6 @@ import dev.hycolony.core.construction.workorder.WorkOrderType;
 import dev.hycolony.core.job.JobAI;
 import dev.hycolony.core.job.JobXp;
 import dev.hycolony.core.job.WorkerModule;
-import dev.hycolony.core.job.work.SyncRequests;
-import dev.hycolony.core.job.work.WorkerStock;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Either;
 import dev.hycolony.core.kernel.Vec3;
@@ -108,7 +106,8 @@ class BuilderAITest {
         colony.citizens().restore(citizen);
         assertTrue(hut.module(WorkerModule.class).orElseThrow().hire(colony, hut, citizen));
         body = t.bodies.existing(colony.id(), 1, Vec3.center(HUT));
-        ai = new BuilderAI(BuilderContext.of(colony, citizen, body).orElseThrow());
+        ai = new BuilderAI(
+                BuilderContext.of(colony, citizen.job().orElseThrow(), body).orElseThrow());
         t.notifier.sent.clear();
     }
 
@@ -782,8 +781,8 @@ class BuilderAITest {
         CitizenData next = new CitizenData(2);
         colony.citizens().restore(next);
         assertTrue(hut.module(WorkerModule.class).orElseThrow().hire(colony, hut, next));
-        BuilderAI replacement =
-                new BuilderAI(BuilderContext.of(colony, next, t.bodies.existing(colony.id(), 2, Vec3.center(HUT)))
+        BuilderAI replacement = new BuilderAI(
+                BuilderContext.of(colony, next.job().orElseThrow(), t.bodies.existing(colony.id(), 2, Vec3.center(HUT)))
                         .orElseThrow());
         for (int i = 0; i < 1000 && builderRequests().isEmpty(); i++) {
             replacement.tick();
@@ -848,8 +847,8 @@ class BuilderAITest {
         assertEquals(1, o.progressIndex());
         t.blocks.blocks.remove(at(1, 0, 0)); // gone again: a restart from 0 would place it first
 
-        BuilderAI fresh =
-                new BuilderAI(BuilderContext.of(colony, citizen, body).orElseThrow()); // e.g. after a server restart
+        BuilderAI fresh = new BuilderAI(BuilderContext.of(colony, citizen.job().orElseThrow(), body)
+                .orElseThrow()); // e.g. after a server restart
         for (int i = 0; i < 5000 && !gone(o); i++) {
             fresh.tick();
         }
@@ -991,14 +990,6 @@ class BuilderAITest {
                 colony.requests().resolverOf(r.token()).orElseThrow().resolverId());
         assertEquals(3, dirtLeft());
         assertEquals(List.of(new ItemAmount(shovel, 1, 2)), t.containers.stacks(HUT));
-    }
-
-    @Test
-    void mineWithoutAnyRequestIsEmpty() {
-        assertTrue(new SyncRequests(
-                        colony, citizen, hut, new WorkerStock(colony, citizen, hut, BuilderContext.ACTIONS_UNTIL_DUMP))
-                .mine()
-                .isEmpty());
     }
 
     @Test

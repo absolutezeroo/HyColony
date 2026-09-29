@@ -45,16 +45,16 @@ final class DeliverymanAI implements JobAI {
                 () -> "courier " + ctx.citizen().name(),
                 () -> ctx.delay().waiting(WorkerMachine.MACHINE_RATE),
                 ctx.delay()::set);
-        state(CourierState.IDLE, () -> CourierState.START_WORKING, 1);
+        target(CourierState.IDLE, () -> CourierState.START_WORKING, 1);
         machine.target(CourierState.START_WORKING, this::checkIfExecute, this::decide, DECISION_DELAY);
-        state(CourierState.PREPARE_DELIVERY, preparation::prepare, STANDARD_DELAY);
-        state(CourierState.DELIVERY, drop::deliver, STANDARD_DELAY);
-        state(CourierState.PICKUP, pickup::pickup, STANDARD_DELAY);
-        state(CourierState.DUMPING, this::dump, DUMP_DELAY);
+        target(CourierState.PREPARE_DELIVERY, preparation::prepare, STANDARD_DELAY);
+        target(CourierState.DELIVERY, drop::deliver, STANDARD_DELAY);
+        target(CourierState.PICKUP, pickup::pickup, STANDARD_DELAY);
+        target(CourierState.DUMPING, this::dump, DUMP_DELAY);
         applySpeed();
     }
 
-    private void state(CourierState s, IStateSupplier<CourierState> action, int rate) {
+    private void target(CourierState s, IStateSupplier<CourierState> action, int rate) {
         machine.target(s, action, rate);
     }
 

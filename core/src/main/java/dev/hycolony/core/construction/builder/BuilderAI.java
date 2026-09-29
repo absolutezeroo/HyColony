@@ -45,22 +45,22 @@ public final class BuilderAI implements JobAI {
         event(AIBlockingEventType.AI_BLOCKING, this::needsItem, () -> BuilderState.NEEDS_ITEM, 20);
         event(AIBlockingEventType.STATE_BLOCKING, this::orderLost, this::dropOrder, 1);
         event(AIBlockingEventType.STATE_BLOCKING, this::inventoryNeedsDump, () -> BuilderState.INVENTORY_FULL, 100);
-        state(BuilderState.IDLE, this::idle, 10);
-        state(BuilderState.START_WORKING, this::startWorking, 20);
-        state(BuilderState.LOAD_STRUCTURE, this::loadStructure, 5);
-        state(BuilderState.GATHERING_REQUIRED_MATERIALS, gathering::gather, 20);
-        state(BuilderState.NEEDS_ITEM, gathering::waitForRequests, 40);
-        state(BuilderState.BUILDING_STEP, this::structureStep, 5);
-        state(BuilderState.MINE_BLOCK, blockWork::mine, 10);
-        state(BuilderState.INVENTORY_FULL, this::dumpInventory, 20);
-        state(BuilderState.COMPLETE_BUILD, this::completeBuild, 5);
+        target(BuilderState.IDLE, this::idle, 10);
+        target(BuilderState.START_WORKING, this::startWorking, 20);
+        target(BuilderState.LOAD_STRUCTURE, this::loadStructure, 5);
+        target(BuilderState.GATHERING_REQUIRED_MATERIALS, gathering::gather, 20);
+        target(BuilderState.NEEDS_ITEM, gathering::waitForRequests, 40);
+        target(BuilderState.BUILDING_STEP, this::structureStep, 5);
+        target(BuilderState.MINE_BLOCK, blockWork::mine, 10);
+        target(BuilderState.INVENTORY_FULL, this::dumpInventory, 20);
+        target(BuilderState.COMPLETE_BUILD, this::completeBuild, 5);
     }
 
     private void event(AIBlockingEventType type, BooleanSupplier when, IStateSupplier<BuilderState> then, int rate) {
         machine.event(type, when, then, rate);
     }
 
-    private void state(BuilderState s, IStateSupplier<BuilderState> action, int rate) {
+    private void target(BuilderState s, IStateSupplier<BuilderState> action, int rate) {
         machine.target(s, action, rate);
     }
 

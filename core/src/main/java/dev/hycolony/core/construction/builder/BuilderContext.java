@@ -50,17 +50,16 @@ record BuilderContext(
     static final int ACTIONS_UNTIL_DUMP = 4096;
 
     /**
-     * The context of {@code citizen}'s builder AI at the hut it works at; empty without a job, that hut or the hut's
-     * resources module (its job then gets an {@code IdleAI}).
+     * The context of {@code job}'s AI at the hut its citizen works at; empty without that hut or the hut's resources
+     * module (the job then gets an {@code IdleAI}).
      */
-    static Optional<BuilderContext> of(Colony colony, CitizenData citizen, BodyId body) {
-        Optional<Job> job = citizen.job();
-        Optional<Building> hut = job.flatMap(j -> j.hut(colony));
+    static Optional<BuilderContext> of(Colony colony, Job job, BodyId body) {
+        Optional<Building> hut = job.hut(colony);
         Optional<BuildingResourcesModule> resources = hut.flatMap(h -> h.module(BuildingResourcesModule.class));
-        if (job.isEmpty() || hut.isEmpty() || resources.isEmpty()) {
+        if (hut.isEmpty() || resources.isEmpty()) {
             return Optional.empty();
         }
-        return Optional.of(at(colony, job.get(), hut.get(), resources.get(), body));
+        return Optional.of(at(colony, job, hut.get(), resources.get(), body));
     }
 
     private static BuilderContext at(
