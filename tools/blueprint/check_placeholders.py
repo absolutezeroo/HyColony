@@ -111,6 +111,9 @@ def validation_uses_the_pinned_game_assets():
     assert "Ingredient_Hay" in known and "Ore_Cobalt_Slate" in known, src
     # Ore_Cobalt is the mined item, with no BlockType: not a block the game can place.
     assert "Hay_Bale" not in known and "Ore_Cobalt_Stone" not in known and "Ore_Cobalt" not in known, src
+    # A child item without its own BlockType places its parent's block: no block has its id (Item.processConfig).
+    assert "Food_Fish_Raw_Rare" not in known, src
+    assert {"HyColony_Placeholder_Solid", "HyColony_Placeholder_Fluid"} <= known, src
     ores = ["minecraft:coal_ore", "minecraft:deepslate_coal_ore", "minecraft:lapis_ore", "minecraft:redstone_ore",
             "minecraft:emerald_ore"]
     cells, _ = _convert({(i, 0, 0): n for i, n in enumerate(ores)})

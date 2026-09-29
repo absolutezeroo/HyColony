@@ -54,28 +54,25 @@ def pinned_assets_zip() -> Path | None:
 
 @lru_cache(maxsize=1)
 def _asset_ids(zip_path: Path) -> frozenset[str]:
-    """Les blocs du jeu : les objets de Server/Item/Items qui ont un `BlockType`, à eux ou hérité de leur `Parent`
-    (Item.java ne crée un bloc que depuis cette clé), et le bloc Empty. Un objet seul (Ore_Cobalt, le minerai
-    ramassé) n'en est pas un."""
-    items: dict[str, dict] = {}
+    """Les blocs du jeu : les objets de Server/Item/Items qui ont leur propre clé `BlockType`, et le bloc Empty.
+    Item.processConfig ne crée un bloc que pour eux ; un enfant sans cette clé pose le bloc de son parent, et un objet
+    seul (Ore_Cobalt, le minerai ramassé) n'en pose aucun."""
+    ids = {"Empty"}
     with zipfile.ZipFile(zip_path) as z:
         for n in z.namelist():
             if n.startswith("Server/Item/Items/") and n.endswith(".json"):
                 try:
-                    items[PurePosixPath(n).stem] = json.loads(z.read(n).decode("utf-8-sig"))
+                    if "BlockType" in json.loads(z.read(n).decode("utf-8-sig")):
+                        ids.add(PurePosixPath(n).stem)
                 except (ValueError, UnicodeDecodeError):
                     continue
+    return frozenset(ids)
 
-    def has_block(item_id: str) -> bool:
-        seen = set()
-        while item_id in items and item_id not in seen:  # une chaîne de Parent en boucle : pas de bloc
-            seen.add(item_id)
-            if "BlockType" in items[item_id]:
-                return True
-            item_id = items[item_id].get("Parent", "")
-        return False
 
-    return frozenset({i for i in items if has_block(i)} | {"Empty"})
+def _mod_block_ids() -> set[str]:
+    """Les blocs du mod HyColony (blocs de dev des plans), lus dans ses assets."""
+    folder = REPO / "plugin" / "src" / "main" / "resources" / "Server" / "Item" / "Items" / "HyColony"
+    return {p.stem for p in folder.glob("*.json")} if folder.is_dir() else set()
 
 
 def load_known_ids(custom: str | Path | None = None) -> tuple[set[str], str]:
@@ -93,6 +90,7 @@ def load_known_ids(custom: str | Path | None = None) -> tuple[set[str], str]:
     ids |= domum.template_ids()
     from . import hyvanilla  # noqa: PLC0415
     ids |= hyvanilla.item_ids()
+    ids |= _mod_block_ids()
     ids |= set().union(*domum.slot_tags().values()) if domum.slot_tags() else set()  # matériaux vérifiés par HyDomum
     return ids, src
 
