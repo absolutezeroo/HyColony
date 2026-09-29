@@ -12,7 +12,7 @@ from .model import Mapping, fluid, place, skip
 # (tapis, leviers, accoudoirs de chaise…). Les moitiés absorbées par un
 # modèle multi-cases (tête de lit, haut de porte, 2e case d'un grand coffre)
 # ne reçoivent PAS de vide forcé : il pourrait effacer le modèle.
-_EMPTY_AFTER_SKIP = {"removed", "chair", "upstream"}
+_EMPTY_AFTER_SKIP = {"removed", "chair", "upstream", "fluid_flowing"}
 
 # Blocs de dev du mod HyColony (plugin/.../Server/Item/Items/HyColony).
 PLACEHOLDER_SOLID = "HyColony_Placeholder_Solid"

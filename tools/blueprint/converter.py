@@ -362,4 +362,4 @@ class Result:
             "rotation": c.mapping.rotation,
             "regle": c.mapping.rule,
             "notes": c.mapping.notes,
-        } for c in self.cells if not T.is_placeholder(c.source.get("Name", ""))]
+        } for c in self.cells if c.mapping.rule != "placeholder"]  # les cases omises n'apportent rien

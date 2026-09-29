@@ -101,6 +101,17 @@ def _find_anchor(root: dict, grid: dict[Pos, dict]) -> tuple[Pos, str]:
     return (0, 0, 0), "aucune (0,0,0)"
 
 
+def anchor_warnings(grid: dict[Pos, dict], anchor: Pos) -> list[str]:
+    """L'avertissement d'un plan qui a une hutte ailleurs qu'à son ancre ; vide sinon."""
+    def hut(e: dict) -> bool:
+        return e.get("Name", "").startswith("minecolonies:blockhut")
+
+    if hut(grid.get(anchor, {})) or not any(hut(e) for e in grid.values()):
+        return []
+    return ["L'ancre n'est pas un bloc de hutte : dans styles.json, donner le hutOffset de la hutte, sinon HyColony "
+            "met la hutte à l'ancre."]
+
+
 def load_blueprint(path: str | Path) -> Blueprint:
     path = Path(path)
     root = nbt.load(path)
@@ -121,11 +132,7 @@ def load_blueprint(path: str | Path) -> Blueprint:
 
     anchor, method = _find_anchor(root, grid)
     bp = Blueprint(path, (sx, sy, sz), grid, root.get("tile_entities", []) or [], anchor, method)
-    if not grid.get(anchor, {}).get("Name", "").startswith("minecolonies:blockhut") and any(
-            e.get("Name", "").startswith("minecolonies:blockhut") for e in grid.values()):
-        bp.warnings.append(
-            "L'ancre n'est pas un bloc de hutte : dans styles.json, donner le hutOffset de la hutte, sinon HyColony "
-            "met la hutte à l'ancre.")
+    bp.warnings.extend(anchor_warnings(grid, anchor))
     if method.startswith("aucune"):
         bp.warnings.append(
             "Aucune ancre de hutte trouvée : l'origine du prefab est le coin (0,0,0) du blueprint. "
