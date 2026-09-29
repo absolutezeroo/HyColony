@@ -31,6 +31,26 @@
       }
     ],
     "VariantRotation": "DoublePipe",
+    "Supporting": {
+      "Up": [
+        {}
+      ],
+      "Down": [
+        {}
+      ],
+      "North": [
+        {}
+      ],
+      "South": [
+        {}
+      ],
+      "East": [
+        {}
+      ],
+      "West": [
+        {}
+      ]
+    },
     "Gathering": {
       "Breaking": {
         "GatherType": "Woods"

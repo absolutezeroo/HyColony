@@ -41,6 +41,8 @@ def generate(ctx, family):
         model_path = common.write_model(ctx, ident, blockymodel)
         hitbox_id = common.hitbox(ctx, ident, model)
         block_type = common.model_block_type(ctx, family, model_path, hitbox_id, rotation)
+        if hitbox_id is None:  # a full block (timber frame): it holds up what is placed against it
+            block_type["Supporting"] = common.full_supporting()
         common.template(ctx, family, ident, shown, block_type)
 
 

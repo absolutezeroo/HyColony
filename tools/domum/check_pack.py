@@ -7,6 +7,7 @@ from pathlib import Path
 
 import generate
 import tags
+from blocks import common
 
 _RUN = {}
 
@@ -39,6 +40,10 @@ def static_templates_live_in_the_do_tab():
     assert panel["HitboxType"] == "HyDomum_Panel_Full" and panel["Opacity"] == "Transparent"
     frame = ctx.items["HyDomum_TimberFrame_Plain"]["BlockType"]
     assert "HitboxType" not in frame and frame["Opacity"] == "Solid", frame
+    # A Model block offers no supporting face unless it says so (BlockType.java: only a solid Cube or CubeWithModel
+    # gets all six by default), so without them nothing (torch, lantern) could stand on a timber frame.
+    assert frame["Supporting"] == {face: [{}] for face in common.ALL_FACES}, frame.get("Supporting")
+    assert "Supporting" not in panel, panel
     assert len([i for i in ctx.items if i.startswith("HyDomum_TimberFrame_")]) == 10
 
 

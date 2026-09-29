@@ -149,6 +149,16 @@ def _icon(ctx, family, ident, model, properties):
     return path
 
 
+# Hytale's six block faces. A supporting face written {} is a "Full" one (BlockFaceSupport's default FaceType).
+ALL_FACES = ("Up", "Down", "North", "South", "East", "West")
+
+
+def full_supporting():
+    """The Supporting of a full block: every face Full, as Hytale gives a solid Cube by itself (BlockType.java) but
+    never a Model block, which otherwise holds nothing up (no torch, lantern, rail...)."""
+    return {face: [{}] for face in ALL_FACES}
+
+
 def model_block_type(ctx, family, model_path, hitbox_id, rotation):
     """The Model BlockType skeleton of a template: its model, the layout texture, rotation and hitbox; Solid for a
     full block (like vanilla structure blocks), Transparent for an open shape."""
