@@ -1,12 +1,11 @@
-package dev.hycolony.core.colony.registry;
+package dev.hycolony.core.colony;
 
 import dev.hycolony.core.crafting.recipe.RecipeRegistry;
 import dev.hycolony.core.farming.field.FieldRegistry;
 
 /**
  * The colony-wide registries its features keep (MC IColonyManager.getRecipeManager, per colony here, and
- * RegisteredStructureManager's building extensions): the recipes its huts learnt, and its fields. Grouped so that
- * {@code Colony} stays within its size limits.
+ * RegisteredStructureManager's building extensions): the recipes its huts learnt, and its fields.
  */
 public final class ColonyRegistries {
     private final RecipeRegistry recipes = new RecipeRegistry();
