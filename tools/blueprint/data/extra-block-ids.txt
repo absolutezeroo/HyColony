@@ -2,8 +2,6 @@
 # HytalesHubConverter de janvier 2026 (contenu plus récent).
 # Ajoute ici tout ID que tu as vérifié en jeu.
 Metal_Iron_Pipe_Large_Mouthpiece
-# Confirmé en jeu par l'utilisateur (plus récent que la liste de janvier 2026)
-Hay_Bale
 
 # Blocs de dev du mod HyColony (plugin/src/main/resources/Server/Item/Items/HyColony).
 HyColony_Placeholder_Solid

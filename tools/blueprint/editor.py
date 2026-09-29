@@ -10,7 +10,7 @@ from .model import Mapping, fluid, place, skip
 
 # Cases retirées volontairement qui doivent rester vides dans le bâtiment
 # (tapis, leviers, accoudoirs de chaise…). Les moitiés absorbées par un
-# modèle multi-cases (tête de lit, haut de porte, 2e case d'un grand coffre)
+# modèle multi-cases (pied de lit, haut de porte, 2e case d'un grand coffre)
 # ne reçoivent PAS de vide forcé : il pourrait effacer le modèle.
 _EMPTY_AFTER_SKIP = {"removed", "chair", "upstream", "fluid_flowing"}
 

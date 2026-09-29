@@ -218,8 +218,9 @@ FAMILY = {
     "minecraft:lantern": f.lantern,
     "minecraft:rail": f.rail,
     "domum_ornamentum:panel": f.domum_panel,
-    # Botte de foin : axe conservé comme un tronc (20 couchées sur 40 dans le pack testé).
-    "minecraft:hay_block": f.chain("Hay_Bale", "botte de foin -> Hay_Bale"),
+    # Botte de foin : le cube de foin Hytale ne tourne pas (pas de VariantRotation), elle reste debout.
+    "minecraft:hay_block": lambda p: place("Ingredient_Hay", 0, "botte de foin -> Ingredient_Hay (posée debout)",
+                                           rule="simple"),
 }
 
 # ---------------------------------------------------------------------------

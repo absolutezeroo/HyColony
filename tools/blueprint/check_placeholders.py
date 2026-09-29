@@ -95,6 +95,12 @@ def the_trace_keeps_written_placeholders():
     assert [t["cible"] for t in Converter().convert(bp).trace()] == [FLUID]
 
 
+def hay_block_is_hytales_hay_cube():
+    # Hay_Bale does not exist (0.6.8 nor 0.7.0-pre.4): Ingredient_Hay is the hay cube, which cannot rotate.
+    cells, _ = _convert({(1, 0, 0): "minecraft:hay_block"})
+    assert cells[(1, 0, 0)] == ("Ingredient_Hay", None), cells
+
+
 def the_anchor_is_structurizes_primary_offset():
     # barracks: the first colonybuilding tile entity is a tower, the primary offset is the barracks hut.
     root = {"tile_entities": [{"id": "minecolonies:colonybuilding", "x": 5, "y": 1, "z": 5}],
@@ -114,6 +120,7 @@ def run():
     without_editor_blocks_every_substitution_is_left_out()
     an_anchor_that_is_not_the_hut_is_reported()
     the_trace_keeps_written_placeholders()
+    hay_block_is_hytales_hay_cube()
     the_anchor_is_structurizes_primary_offset()
     print("blueprint placeholders check: OK")
 

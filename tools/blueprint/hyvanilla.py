@@ -38,7 +38,8 @@ FLOWER_POT = "HyVanilla_Flower_Pot_Orange"
 # Les autres (champignons et racines du Nether, azalées, rose de Wither, acacia, chêne noir…) restent un pot vide.
 POTTED_PLANTS = {
     "oak_sapling": "Plant_Sapling_Oak", "birch_sapling": "Plant_Sapling_Birch",
-    "spruce_sapling": "Plant_Sapling_Spruce", "jungle_sapling": "Plant_Sapling_Jungle", "bamboo": "Plant_Sapling_Bamboo", "fern": "Plant_Fern",
+    "spruce_sapling": "Plant_Sapling_Spruce", "jungle_sapling": "Plant_Sapling_Jungle",
+    "bamboo": "Plant_Sapling_Bamboo", "fern": "Plant_Fern",
     "dead_bush": "Plant_Bush_Dead", "cactus": "Plant_Cactus_1", "red_mushroom": "Plant_Crop_Mushroom_Cap_Red",
     "brown_mushroom": "Plant_Crop_Mushroom_Cap_Brown", "blue_orchid": "Plant_Flower_Orchid_Blue",
 }

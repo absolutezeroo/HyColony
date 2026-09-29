@@ -40,9 +40,8 @@ def a_potted_flower_keeps_its_flower():
 
 
 def potted_saplings_ferns_and_mushrooms_keep_their_plant():
-    # The MC plants the converter has no block rule for, but HyVanilla has a pot state for.
-    for name, plant in (("oak_sapling", "Plant_Sapling_Oak"), ("fern", "Plant_Fern"),
-                        ("red_mushroom", "Plant_Crop_Mushroom_Cap_Red"), ("blue_orchid", "Plant_Flower_Orchid_Blue")):
+    # The MC plants the converter has no block rule for, but HyVanilla has a pot state for: all of them exist.
+    for name, plant in hyvanilla.POTTED_PLANTS.items():
         (m,) = _targets([f"minecraft:potted_{name}"])
         assert m.target == f"*HyVanilla_Flower_Pot_Orange_State_Definitions_{plant}", (name, m)
 
