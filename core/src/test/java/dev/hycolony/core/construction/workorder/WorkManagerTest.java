@@ -7,13 +7,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import dev.hycolony.core.app.ColonyManager;
+import dev.hycolony.core.app.persistence.ColonySerializer;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyEvents;
-import dev.hycolony.core.colony.ColonyManager;
-import dev.hycolony.core.colony.persistence.ColonySerializer;
 import dev.hycolony.core.colony.territory.ClaimCell;
 import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.construction.blueprint.Blueprint;
@@ -59,7 +59,7 @@ class WorkManagerTest {
                 return List.of("medieval", "desert");
             }
         };
-        manager = new ColonyManager(t.context());
+        manager = t.manager();
         manager.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
         colony = manager.foundation().confirm(alice, "A").orElseThrow();
         t.notifier.sent.clear();

@@ -4,8 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.hycolony.core.app.ColonyManager;
+import dev.hycolony.core.app.persistence.ColonySerializer;
 import dev.hycolony.core.citizen.CitizenData;
-import dev.hycolony.core.colony.persistence.ColonySerializer;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.persist.FileColonyStorage;
@@ -29,7 +30,7 @@ class SchemaV3MigrationTest {
         try (var in = getClass().getResourceAsStream("/fixtures/colony-v2-tooluses.json")) {
             Files.write(dir.resolve("colony-1.json"), in.readAllBytes());
         }
-        ColonyManager m = new ColonyManager(new TestContexts().context());
+        ColonyManager m = new TestContexts().manager();
         m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp3b());
 
         m.persistence().loadAll();

@@ -78,18 +78,17 @@ class ArchitectureTest {
                     "dev.hycolony.core.logistics..",
                     "dev.hycolony.core.crafting..");
 
-    /** Crafting sits beside construction and below the colony's player actions, views and saves (SP3b-1 spec). */
+    /**
+     * Crafting sits beside construction (SP3b-1 spec); like every feature, it stays below the player actions, windows
+     * and saves of {@code app} ({@link FeatureDependenciesTest}).
+     */
     @ArchTest
-    static final ArchRule craftingDependsOnNeitherConstructionNorColonyActionsViewsOrPersistence = noClasses()
+    static final ArchRule craftingDoesNotDependOnConstruction = noClasses()
             .that()
             .resideInAPackage("dev.hycolony.core.crafting..")
             .should()
             .dependOnClassesThat()
-            .resideInAnyPackage(
-                    "dev.hycolony.core.construction..",
-                    "dev.hycolony.core.colony.action..",
-                    "dev.hycolony.core.colony.view..",
-                    "dev.hycolony.core.colony.persistence..");
+            .resideInAPackage("dev.hycolony.core.construction..");
 
     /**
      * The crafting sub-packages form no dependency cycle: recipes and the crafters' task state at the bottom, then the
@@ -151,41 +150,6 @@ class ArchitectureTest {
             .should()
             .dependOnClassesThat()
             .resideInAPackage("dev.hycolony.core.logistics..");
-
-    /** Views and persistence are the colony's outer layer: features never call back into them (spec § 6). */
-    @ArchTest
-    static final ArchRule featuresDoNotDependOnColonyViewOrPersistence = noClasses()
-            .that()
-            .resideInAnyPackage(
-                    "dev.hycolony.core.building..",
-                    "dev.hycolony.core.citizen..",
-                    "dev.hycolony.core.job..",
-                    "dev.hycolony.core.request..",
-                    "dev.hycolony.core.construction..",
-                    "dev.hycolony.core.logistics..")
-            .should()
-            .dependOnClassesThat()
-            .resideInAnyPackage("dev.hycolony.core.colony.view..", "dev.hycolony.core.colony.persistence..");
-
-    /**
-     * Player actions sit above the features. The one exception, {@code construction.wand}, is itself a player action
-     * (like {@code colony.action}) that places huts through {@code HutActions}.
-     */
-    @ArchTest
-    static final ArchRule featuresDoNotDependOnColonyActions = noClasses()
-            .that()
-            .resideInAnyPackage(
-                    "dev.hycolony.core.building..",
-                    "dev.hycolony.core.citizen..",
-                    "dev.hycolony.core.job..",
-                    "dev.hycolony.core.request..",
-                    "dev.hycolony.core.construction..",
-                    "dev.hycolony.core.logistics..")
-            .and()
-            .resideOutsideOfPackage("dev.hycolony.core.construction.wand..")
-            .should()
-            .dependOnClassesThat()
-            .resideInAPackage("dev.hycolony.core.colony.action..");
 
     /** The logistics sub-packages (courier, pickup, warehouse) form no dependency cycle. */
     @ArchTest

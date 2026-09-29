@@ -17,16 +17,16 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.hycolony.core.app.ColonyManager;
+import dev.hycolony.core.app.HutPlacement;
+import dev.hycolony.core.app.ui.BuildingView;
+import dev.hycolony.core.app.ui.RequestsView;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.colony.Colony;
-import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.EventLog;
-import dev.hycolony.core.colony.HutPlacement;
-import dev.hycolony.core.colony.ui.BuildingView;
-import dev.hycolony.core.colony.ui.RequestsView;
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.BlueprintEntry;
 import dev.hycolony.core.construction.blueprint.StructurePlan;
@@ -156,7 +156,7 @@ class ConstructionSimulationTest {
     }
 
     private ColonyManager newManager() {
-        ColonyManager m = new ColonyManager(t.context());
+        ColonyManager m = t.manager();
         m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp3b());
         return m;
     }

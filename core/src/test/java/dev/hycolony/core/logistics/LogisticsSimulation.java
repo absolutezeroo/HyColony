@@ -7,12 +7,12 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.hycolony.core.app.ColonyManager;
+import dev.hycolony.core.app.HutPlacement;
+import dev.hycolony.core.app.ui.RequestsView;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
-import dev.hycolony.core.colony.ColonyManager;
-import dev.hycolony.core.colony.HutPlacement;
-import dev.hycolony.core.colony.ui.RequestsView;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
 import dev.hycolony.core.construction.workorder.WorkOrderType;
 import dev.hycolony.core.job.WorkerModule;
@@ -121,7 +121,7 @@ abstract class LogisticsSimulation {
     }
 
     ColonyManager newManager() {
-        ColonyManager m = new ColonyManager(t.context());
+        ColonyManager m = t.manager();
         m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp3b());
         return m;
     }

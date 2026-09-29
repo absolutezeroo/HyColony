@@ -5,16 +5,17 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import dev.hycolony.core.app.ColonyManager;
+import dev.hycolony.core.app.ui.BuildingView;
+import dev.hycolony.core.app.ui.CitizenView;
+import dev.hycolony.core.app.ui.RequestsView;
+import dev.hycolony.core.app.ui.TownHallView;
+import dev.hycolony.core.app.ui.WorkOrdersView;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.colony.permission.Permissions;
-import dev.hycolony.core.colony.ui.BuildingView;
-import dev.hycolony.core.colony.ui.CitizenView;
-import dev.hycolony.core.colony.ui.RequestsView;
-import dev.hycolony.core.colony.ui.TownHallView;
-import dev.hycolony.core.colony.ui.WorkOrdersView;
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.BlueprintEntry;
 import dev.hycolony.core.construction.blueprint.BlueprintSource;
@@ -81,7 +82,7 @@ class ViewsTest {
                 return List.of("medieval", "desert");
             }
         };
-        manager = new ColonyManager(t.context());
+        manager = t.manager();
         manager.foundation().begin(alice, "Alice", hall, 0);
         colony = manager.foundation().confirm(alice, "A").orElseThrow();
         assertTrue(manager.administration().setRank(alice, colony.id(), carol, "Carol", Permissions.FRIEND));

@@ -6,6 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.gson.JsonObject;
+import dev.hycolony.core.app.ColonyManager;
+import dev.hycolony.core.app.HutPlacement;
+import dev.hycolony.core.app.ui.FoundColonyView;
+import dev.hycolony.core.app.ui.TownHallView;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.building.module.ModuleProducer;
@@ -14,8 +18,6 @@ import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.colony.permission.BlockUse;
 import dev.hycolony.core.colony.permission.DenialNotices;
 import dev.hycolony.core.colony.permission.Permissions;
-import dev.hycolony.core.colony.ui.FoundColonyView;
-import dev.hycolony.core.colony.ui.TownHallView;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.persist.ColonyStorage;
@@ -32,7 +34,7 @@ import org.junit.jupiter.api.Test;
 
 class ColonyManagerTest {
     private final TestContexts t = new TestContexts();
-    private final ColonyManager manager = new ColonyManager(t.context());
+    private final ColonyManager manager = t.manager();
     private final UUID alice = UUID.randomUUID();
     private final UUID bob = UUID.randomUUID();
     private final BlockPos hall = new BlockPos(0, 64, 0);

@@ -2,6 +2,7 @@ package dev.hycolony.core.colony;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.kernel.BlockPos;
@@ -22,7 +23,7 @@ class CitizenNameplatesTest {
     private static final ItemKey PLANKS_I = new ItemKey("Wood_Planks");
     private static final StackRequest PLANKS = new StackRequest(PLANKS_I, 4, 4, true);
     private final TestContexts t = new TestContexts();
-    private final ColonyManager manager = new ColonyManager(t.context());
+    private final ColonyManager manager = t.manager();
     private final UUID alice = UUID.randomUUID();
     private final BlockPos hall = new BlockPos(0, 64, 0);
     private final Colony colony;

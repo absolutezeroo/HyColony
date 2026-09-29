@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.config.ColonyConfig;
@@ -31,7 +32,7 @@ class ColonyProtectionTest {
         ColonyConfig d = ColonyConfig.defaults();
         t.config = new ColonyConfig(
                 d.gameplay(), d.claims(), permissions, d.commands(), d.client(), d.hycolony(), d.structurize());
-        ColonyManager manager = new ColonyManager(t.context());
+        ColonyManager manager = t.manager();
         manager.foundation().begin(alice, "Alice", hall, 0);
         manager.foundation().confirm(alice, "A").orElseThrow();
         return manager;

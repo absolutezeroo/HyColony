@@ -2,8 +2,8 @@ package dev.hycolony.plugin.ui.citizen;
 
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
-import dev.hycolony.core.colony.ui.CitizenView;
-import dev.hycolony.core.colony.ui.CitizenView.SkillRow;
+import dev.hycolony.core.app.ui.CitizenView;
+import dev.hycolony.core.app.ui.CitizenView.SkillRow;
 import dev.hycolony.plugin.adapter.HytaleNotifier;
 import dev.hycolony.plugin.ui.ColonyPage;
 import dev.hycolony.plugin.ui.RequestsPage;

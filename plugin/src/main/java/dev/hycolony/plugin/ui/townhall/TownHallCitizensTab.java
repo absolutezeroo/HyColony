@@ -2,7 +2,7 @@ package dev.hycolony.plugin.ui.townhall;
 
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
-import dev.hycolony.core.colony.ui.CitizenRow;
+import dev.hycolony.core.app.ui.CitizenRow;
 import java.util.List;
 
 /**

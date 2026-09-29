@@ -2,8 +2,8 @@ package dev.hycolony.plugin.ui.citizen;
 
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
-import dev.hycolony.core.colony.ui.CitizenView.JobSkills;
-import dev.hycolony.core.colony.ui.CitizenView.SkillShare;
+import dev.hycolony.core.app.ui.CitizenView.JobSkills;
+import dev.hycolony.core.app.ui.CitizenView.SkillShare;
 import dev.hycolony.plugin.IdMap;
 import dev.hycolony.plugin.ui.ColonyPage;
 import java.util.List;

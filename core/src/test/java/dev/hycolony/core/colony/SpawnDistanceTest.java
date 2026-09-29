@@ -3,6 +3,8 @@ package dev.hycolony.core.colony;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
+import dev.hycolony.core.app.ColonyManager;
+import dev.hycolony.core.app.HutPlacement;
 import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.config.ColonyConfig;
@@ -32,7 +34,7 @@ class SpawnDistanceTest {
                 d.hycolony(),
                 d.structurize());
         t.world.spawn = new BlockPos(0, 100, 0);
-        return new ColonyManager(t.context());
+        return t.manager();
     }
 
     private Msg refusal(ColonyManager manager, BlockPos pos) {

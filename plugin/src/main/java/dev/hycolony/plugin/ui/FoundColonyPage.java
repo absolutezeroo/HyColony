@@ -14,7 +14,7 @@ import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hyblockui.api.PageEvents;
-import dev.hycolony.core.colony.ui.FoundColonyView;
+import dev.hycolony.core.app.ui.FoundColonyView;
 import java.util.Objects;
 import javax.annotation.Nonnull;
 import org.jspecify.annotations.Nullable;

@@ -16,7 +16,7 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hyblockui.api.InventoryDrop;
 import dev.hyblockui.api.PageEvents;
-import dev.hycolony.core.colony.ColonyManager;
+import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.construction.workorder.WorkOrderType;
 import java.util.Locale;
 import java.util.UUID;

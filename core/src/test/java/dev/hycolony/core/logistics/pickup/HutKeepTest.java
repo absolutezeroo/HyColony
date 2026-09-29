@@ -2,9 +2,9 @@ package dev.hycolony.core.logistics.pickup;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.colony.Colony;
-import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemAmount;
@@ -29,7 +29,7 @@ class HutKeepTest {
     private final Building builderHut;
 
     HutKeepTest() {
-        ColonyManager manager = new ColonyManager(t.context());
+        ColonyManager manager = t.manager();
         UUID alice = UUID.randomUUID();
         manager.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
         colony = manager.foundation().confirm(alice, "A").orElseThrow();

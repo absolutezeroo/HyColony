@@ -21,7 +21,7 @@ import org.jspecify.annotations.Nullable;
 /**
  * The build tool's use (ST ItemBuildTool.useOn/use), registered as the {@code HyColony_Build_Tool} page of the item's
  * {@code OpenCustomUI} interaction. It never returns a page itself: {@link
- * dev.hycolony.core.construction.wand.WandActions#open} shows the window through the UI port, or refuses. World
+ * dev.hycolony.core.app.wand.WandActions#open} shows the window through the UI port, or refuses. World
  * thread (interaction tick).
  */
 public final class WandInteraction implements OpenCustomUIInteraction.CustomPageSupplier {

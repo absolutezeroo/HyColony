@@ -1,8 +1,8 @@
 package dev.hycolony.plugin.ui.hut;
 
+import dev.hycolony.core.app.ColonyManager;
+import dev.hycolony.core.app.ui.BuildingView;
 import dev.hycolony.core.building.module.ModuleTab;
-import dev.hycolony.core.colony.ColonyManager;
-import dev.hycolony.core.colony.ui.BuildingView;
 import dev.hycolony.core.construction.hut.WorkOrderListView;
 import dev.hycolony.core.construction.resources.BuilderResourcesView;
 import dev.hycolony.core.construction.shared.BuilderSettingsView;

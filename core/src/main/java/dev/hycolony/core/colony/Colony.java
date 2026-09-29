@@ -62,9 +62,7 @@ public final class Colony {
         this.permissions = founding.permissions();
         this.requests = new RequestManager(this::requester, ctx.ports().catalog());
         this.buildings = new BuildingManager(new ColonyBuildingListener(this));
-        PlayerResolver playerResolver = new PlayerResolver(center);
-        playerResolver.setOnNeedsPlayer(new NeedsPlayerAnnouncer(this)::announce);
-        requests.registerBuiltIn(playerResolver);
+        requests.registerBuiltIn(new PlayerResolver(center));
         requests.registerBuiltIn(new RetryingResolver(center));
         this.citizens = new CitizenManager(this);
         this.wasDaytime = ctx.clock().isDaytime();

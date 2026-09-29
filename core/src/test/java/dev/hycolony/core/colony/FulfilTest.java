@@ -5,9 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.gson.JsonObject;
+import dev.hycolony.core.app.ColonyManager;
+import dev.hycolony.core.app.persistence.ColonySerializer;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
-import dev.hycolony.core.colony.persistence.ColonySerializer;
 import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemAmount;
@@ -31,7 +32,7 @@ import org.junit.jupiter.api.Test;
 class FulfilTest {
     private static final ItemKey PLANKS = new ItemKey("Wood_Planks");
     private final TestContexts t = new TestContexts();
-    private final ColonyManager manager = new ColonyManager(t.context());
+    private final ColonyManager manager = t.manager();
     private final UUID alice = UUID.randomUUID();
     private final UUID bob = UUID.randomUUID();
     private final BlockPos hall = new BlockPos(0, 64, 0);

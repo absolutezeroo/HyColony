@@ -1,6 +1,7 @@
 package dev.hycolony.core.testing;
 
 import dev.hycolony.core.CoreFeatures;
+import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.building.BuildingRegistry;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.citizen.CitizenNames;
@@ -74,6 +75,11 @@ public final class TestContexts {
         return r;
     }
 
+    /** A colony manager on {@link #context()}, its windows opening in {@link #ui}. */
+    public ColonyManager manager() {
+        return new ColonyManager(context(), ui);
+    }
+
     public ColonyContext context() {
         return new ColonyContext(
                 new WorldKey("world"),
@@ -82,7 +88,6 @@ public final class TestContexts {
                 bodies,
                 world,
                 notifier,
-                ui,
                 players,
                 buildings(),
                 jobs,

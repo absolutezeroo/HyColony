@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.kernel.BlockPos;
@@ -31,7 +32,7 @@ class CitizenInventoryTest {
     private static final ItemKey DIRT = new ItemKey("Dirt");
     private static final ItemKey SHOVEL = new ItemKey("Tool_Shovel_Crude");
     private final TestContexts t = new TestContexts();
-    private final ColonyManager manager = new ColonyManager(t.context());
+    private final ColonyManager manager = t.manager();
     private final UUID alice = UUID.randomUUID();
     private final UUID bob = UUID.randomUUID();
     private final BlockPos hall = new BlockPos(0, 64, 0);

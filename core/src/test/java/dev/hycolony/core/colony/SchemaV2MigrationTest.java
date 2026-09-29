@@ -3,8 +3,9 @@ package dev.hycolony.core.colony;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.hycolony.core.app.ColonyManager;
+import dev.hycolony.core.app.persistence.ColonySerializer;
 import dev.hycolony.core.citizen.CitizenData;
-import dev.hycolony.core.colony.persistence.ColonySerializer;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
@@ -22,7 +23,7 @@ class SchemaV2MigrationTest {
     Path dir;
 
     private ColonyManager manager() {
-        ColonyManager m = new ColonyManager(new TestContexts().context());
+        ColonyManager m = new TestContexts().manager();
         m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp3b());
         return m;
     }

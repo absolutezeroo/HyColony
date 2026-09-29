@@ -4,10 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.hycolony.core.app.ColonyManager;
+import dev.hycolony.core.app.persistence.ColonySerializer;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.colony.Colony;
-import dev.hycolony.core.colony.ColonyManager;
-import dev.hycolony.core.colony.persistence.ColonySerializer;
 import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.request.Request;
@@ -24,7 +24,7 @@ class PickupRequestsTest {
     private final Building hut;
 
     PickupRequestsTest() {
-        ColonyManager manager = new ColonyManager(t.context());
+        ColonyManager manager = t.manager();
         UUID alice = UUID.randomUUID();
         manager.foundation().begin(alice, "Alice", hall, 0);
         colony = manager.foundation().confirm(alice, "A").orElseThrow();

@@ -8,7 +8,7 @@ import com.hypixel.hytale.server.core.entity.entities.player.pages.CustomUIPage;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import dev.hycolony.core.colony.ui.WindowKey;
+import dev.hycolony.core.app.ui.WindowKey;
 import dev.hycolony.plugin.ui.BuildingPage;
 import dev.hycolony.plugin.ui.ColonyPage;
 import dev.hycolony.plugin.ui.citizen.CitizenPage;

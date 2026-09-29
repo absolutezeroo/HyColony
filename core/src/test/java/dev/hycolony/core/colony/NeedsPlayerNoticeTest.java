@@ -2,10 +2,11 @@ package dev.hycolony.core.colony;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import dev.hycolony.core.app.ColonyManager;
+import dev.hycolony.core.app.ui.NeedsPlayerNotice;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.permission.Permissions;
-import dev.hycolony.core.colony.ui.NeedsPlayerNotice;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.request.model.RequestToken;
@@ -22,7 +23,7 @@ import org.junit.jupiter.api.Test;
 class NeedsPlayerNoticeTest {
     private static final StackRequest PLANKS = new StackRequest(new ItemKey("Wood_Planks"), 4, 4, true);
     private final TestContexts t = new TestContexts();
-    private final ColonyManager manager = new ColonyManager(t.context());
+    private final ColonyManager manager = t.manager();
     private final UUID alice = UUID.randomUUID(); // owner
     private final UUID bob = UUID.randomUUID(); // officer
     private final UUID carol = UUID.randomUUID(); // friend

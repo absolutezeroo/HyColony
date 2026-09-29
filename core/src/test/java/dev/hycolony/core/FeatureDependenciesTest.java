@@ -8,8 +8,9 @@ import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 
 /**
- * The dependencies allowed between the core's top-level packages. Today's matrix is frozen: every feature but kernel
- * and request still sits in one cycle through {@code colony}. Like the allowlists of CLAUDE.md § 8, it may only
+ * The dependencies allowed between the core's top-level packages. The application layer ({@code app}: the players'
+ * actions, windows and saves) is used by no other package. Today's matrix is frozen: every feature but kernel and
+ * request still sits in one cycle through {@code colony}. Like the allowlists of CLAUDE.md § 8, it may only
  * shrink: remove an edge once the code no longer needs it, never add one.
  */
 @AnalyzeClasses(packages = "dev.hycolony.core", importOptions = ImportOption.DoNotIncludeTests.class)
@@ -21,6 +22,8 @@ class FeatureDependenciesTest {
             .ensureAllClassesAreContainedInArchitecture()
             .layer("root")
             .definedBy("dev.hycolony.core")
+            .layer("app")
+            .definedBy("dev.hycolony.core.app..")
             .layer("building")
             .definedBy("dev.hycolony.core.building..")
             .layer("citizen")
@@ -43,6 +46,8 @@ class FeatureDependenciesTest {
             .definedBy("dev.hycolony.core.request..")
             .whereLayer("root")
             .mayNotBeAccessedByAnyLayer()
+            .whereLayer("app")
+            .mayNotBeAccessedByAnyLayer()
             .whereLayer("kernel")
             .mayNotAccessAnyLayer()
             .whereLayer("request")
@@ -63,13 +68,5 @@ class FeatureDependenciesTest {
             .mayOnlyAccessLayers("building", "citizen", "colony", "crafting", "job", "kernel", "logistics", "request")
             .whereLayer("colony")
             .mayOnlyAccessLayers(
-                    "building",
-                    "citizen",
-                    "construction",
-                    "crafting",
-                    "farming",
-                    "job",
-                    "kernel",
-                    "logistics",
-                    "request");
+                    "building", "citizen", "construction", "crafting", "farming", "job", "kernel", "request");
 }

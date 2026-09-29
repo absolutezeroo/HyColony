@@ -2,9 +2,9 @@ package dev.hycolony.core.construction.workorder;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.colony.Colony;
-import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.port.Msg;
@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 class BuildCompletionTest {
     private static final BlockPos RES = new BlockPos(20, 64, 0);
     private final TestContexts t = new TestContexts();
-    private final ColonyManager manager = new ColonyManager(t.context());
+    private final ColonyManager manager = t.manager();
     private final UUID alice = UUID.randomUUID();
     private final Colony colony;
 

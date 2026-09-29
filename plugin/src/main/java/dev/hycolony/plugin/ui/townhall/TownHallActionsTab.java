@@ -5,8 +5,8 @@ import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.ui.builder.EventData;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
-import dev.hycolony.core.colony.ColonyManager;
-import dev.hycolony.core.colony.ui.TownHallView;
+import dev.hycolony.core.app.ColonyManager;
+import dev.hycolony.core.app.ui.TownHallView;
 import dev.hycolony.plugin.ui.ColonyPage;
 import java.util.UUID;
 

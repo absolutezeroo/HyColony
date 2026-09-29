@@ -2,12 +2,12 @@ package dev.hycolony.plugin;
 
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.universe.world.World;
+import dev.hycolony.core.app.ColonyManager;
+import dev.hycolony.core.app.goggles.BuildGoggles;
+import dev.hycolony.core.app.wand.WandActions;
 import dev.hycolony.core.citizen.CitizenNames;
 import dev.hycolony.core.colony.ColonyContext;
-import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.ConstructionPorts;
-import dev.hycolony.core.construction.goggles.BuildGoggles;
-import dev.hycolony.core.construction.wand.WandActions;
 import dev.hycolony.core.crafting.recipe.CraftingSetup;
 import dev.hycolony.core.kernel.WorldKey;
 import dev.hycolony.core.kernel.config.ColonyConfig;
@@ -79,7 +79,6 @@ public final class WorldRuntime {
                 new DetouringBodies(bodies, worldBlocks, catalog), // Hytale's nav walks through fire
                 new HytaleWorldQuery(world, ids.precipitationParticles()),
                 new HytaleNotifier(),
-                new HytaleUiPort(() -> self[0], () -> wandSelf[0], blocks, ids),
                 new HytalePlayerDirectory(world),
                 setup.buildings(),
                 setup.jobs(),
@@ -87,7 +86,7 @@ public final class WorldRuntime {
                 new Random(),
                 new EventBus(),
                 constructionPorts(world, setup, catalog, worldBlocks));
-        this.manager = new ColonyManager(ctx);
+        this.manager = new ColonyManager(ctx, new HytaleUiPort(() -> self[0], () -> wandSelf[0], blocks, ids));
         self[0] = manager;
         this.previews = new HytalePreviewPort(world);
         this.goggles = new BuildGoggles(manager, previews);

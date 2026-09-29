@@ -3,6 +3,7 @@ package dev.hycolony.core.colony;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.testing.TestContexts;
@@ -12,7 +13,7 @@ import org.junit.jupiter.api.Test;
 /** MC CommandDeleteColony (IMCColonyOfficerCommand): an operator or a manager of the colony deletes it. */
 class DeleteColonyTest {
     private final TestContexts t = new TestContexts();
-    private final ColonyManager manager = new ColonyManager(t.context());
+    private final ColonyManager manager = t.manager();
     private final UUID alice = UUID.randomUUID();
     private final UUID bob = UUID.randomUUID();
     private final Colony colony;

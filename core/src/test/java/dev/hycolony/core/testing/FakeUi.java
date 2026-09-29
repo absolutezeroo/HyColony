@@ -1,15 +1,15 @@
 package dev.hycolony.core.testing;
 
-import dev.hycolony.core.colony.ui.BuildingView;
-import dev.hycolony.core.colony.ui.CitizenView;
-import dev.hycolony.core.colony.ui.FieldView;
-import dev.hycolony.core.colony.ui.FoundColonyView;
-import dev.hycolony.core.colony.ui.NeedsPlayerNotice;
-import dev.hycolony.core.colony.ui.RequestsView;
-import dev.hycolony.core.colony.ui.TownHallView;
-import dev.hycolony.core.colony.ui.UiPort;
-import dev.hycolony.core.colony.ui.WandView;
-import dev.hycolony.core.colony.ui.WindowKey;
+import dev.hycolony.core.app.ui.BuildingView;
+import dev.hycolony.core.app.ui.CitizenView;
+import dev.hycolony.core.app.ui.FieldView;
+import dev.hycolony.core.app.ui.FoundColonyView;
+import dev.hycolony.core.app.ui.NeedsPlayerNotice;
+import dev.hycolony.core.app.ui.RequestsView;
+import dev.hycolony.core.app.ui.TownHallView;
+import dev.hycolony.core.app.ui.UiPort;
+import dev.hycolony.core.app.ui.WandView;
+import dev.hycolony.core.app.ui.WindowKey;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;

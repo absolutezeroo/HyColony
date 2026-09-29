@@ -3,7 +3,7 @@ package dev.hycolony.plugin.ui.hut;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
-import dev.hycolony.core.colony.ColonyManager;
+import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.construction.shared.BuilderSettingsModule.Mode;
 import dev.hycolony.core.construction.shared.BuilderSettingsView;
 import dev.hycolony.core.kernel.BlockPos;

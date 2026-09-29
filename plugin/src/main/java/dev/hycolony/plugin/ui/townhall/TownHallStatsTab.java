@@ -2,8 +2,8 @@ package dev.hycolony.plugin.ui.townhall;
 
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
-import dev.hycolony.core.colony.ui.TownHallView.JobCount;
-import dev.hycolony.core.colony.ui.TownHallView.Stats;
+import dev.hycolony.core.app.ui.TownHallView.JobCount;
+import dev.hycolony.core.app.ui.TownHallView.Stats;
 import dev.hycolony.plugin.ui.ColonyPage;
 
 /**

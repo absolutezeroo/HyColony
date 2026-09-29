@@ -3,14 +3,15 @@ package dev.hycolony.core.colony;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.hycolony.core.app.ColonyManager;
+import dev.hycolony.core.app.ui.CitizenView;
+import dev.hycolony.core.app.ui.TownHallView;
+import dev.hycolony.core.app.ui.TownHallView.JobCount;
+import dev.hycolony.core.app.ui.TownHallView.Stats;
+import dev.hycolony.core.app.ui.WorkOrdersView;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
-import dev.hycolony.core.colony.ui.CitizenView;
-import dev.hycolony.core.colony.ui.TownHallView;
-import dev.hycolony.core.colony.ui.TownHallView.JobCount;
-import dev.hycolony.core.colony.ui.TownHallView.Stats;
-import dev.hycolony.core.colony.ui.WorkOrdersView;
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.BlueprintEntry;
 import dev.hycolony.core.construction.blueprint.BlueprintSource;
@@ -47,7 +48,7 @@ class WindowTabsTest {
                 return List.of("medieval");
             }
         };
-        manager = new ColonyManager(t.context());
+        manager = t.manager();
         manager.foundation().begin(alice, "Alice", hall, 0);
         colony = manager.foundation().confirm(alice, "A").orElseThrow();
     }

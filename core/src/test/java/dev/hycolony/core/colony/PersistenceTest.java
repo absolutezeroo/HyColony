@@ -8,11 +8,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import dev.hycolony.core.app.ColonyManager;
+import dev.hycolony.core.app.persistence.ColonySerializer;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.colony.permission.Permissions;
-import dev.hycolony.core.colony.persistence.ColonySerializer;
 import dev.hycolony.core.colony.territory.ClaimCell;
 import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.construction.builder.BuilderJob;
@@ -45,7 +46,7 @@ class PersistenceTest {
     private final UUID bob = UUID.randomUUID();
 
     private ColonyManager manager(TestContexts t) {
-        ColonyManager m = new ColonyManager(t.context());
+        ColonyManager m = t.manager();
         m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp3b());
         return m;
     }
@@ -255,7 +256,7 @@ class PersistenceTest {
         Colony b = m.foundation().confirm(bob, "B").orElseThrow();
         m.persistence().saveAll();
 
-        ColonyManager reloaded = new ColonyManager(new TestContexts().context());
+        ColonyManager reloaded = new TestContexts().manager();
         reloaded.persistence().setStorage(new FlakyStorage(dir, a.id()), MigrationChain.sp3b());
         reloaded.persistence().loadAll();
 
