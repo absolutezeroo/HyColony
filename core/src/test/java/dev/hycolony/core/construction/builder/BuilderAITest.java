@@ -3,7 +3,6 @@ package dev.hycolony.core.construction.builder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.building.Building;
@@ -119,7 +118,7 @@ class BuilderAITest {
         for (int i = 0; i < 20; i++) {
             idle.tick();
         }
-        assertNull(idle.lastError);
+        assertTrue(idle.lastError().isEmpty());
         assertTrue(idle.canGoIdle());
     }
 
@@ -173,7 +172,7 @@ class BuilderAITest {
             step();
         }
         assertTrue(done.getAsBoolean(), () -> "not reached; state " + ai.stateName());
-        assertNull(ai.lastError);
+        assertTrue(ai.lastError().isEmpty());
     }
 
     private boolean gone(WorkOrder o) {
@@ -202,7 +201,7 @@ class BuilderAITest {
         assertEquals("IDLE", ai.stateName());
         assertEquals(0, resources().orderId());
         assertTrue(t.bodies.moves.isEmpty()); // already at its hut
-        assertNull(ai.lastError);
+        assertTrue(ai.lastError().isEmpty());
     }
 
     @Test
@@ -335,7 +334,7 @@ class BuilderAITest {
         assertEquals(citizen.id(), a18.citizenId()); // needed now: sync
         assertEquals(-1, b13.citizenId()); // bucket request: the building's, async
         assertEquals("NEEDS_ITEM", ai.stateName());
-        assertNull(ai.lastError);
+        assertTrue(ai.lastError().isEmpty());
     }
 
     @Test
@@ -375,7 +374,7 @@ class BuilderAITest {
         }
 
         assertTrue(gone(o));
-        assertNull(ai.lastError);
+        assertTrue(ai.lastError().isEmpty());
         assertEquals(List.of(at(1, 0, 0), at(2, 0, 0)), t.blocks.placed);
         assertEquals(1, citizen.inventory().count(STONE_I)); // never used
         assertEquals(3, t.containers.count(List.of(HUT), STONE_I)); // never fetched
@@ -436,7 +435,7 @@ class BuilderAITest {
 
         tick(10_000);
 
-        assertNull(ai.lastError);
+        assertTrue(ai.lastError().isEmpty());
         long mined = n
                 - t.blocks.blocks.values().stream()
                         .filter(b -> b.key().equals(DIRT))
@@ -653,7 +652,7 @@ class BuilderAITest {
         assertEquals("IDLE", ai.stateName());
         assertEquals(0, resources().orderId());
         assertTrue(builderRequests().isEmpty());
-        assertNull(ai.lastError);
+        assertTrue(ai.lastError().isEmpty());
     }
 
     /** Buckets [A x18], [A x18], [B x4]; then a player places every A block: the next need, B, is in no bucket. */

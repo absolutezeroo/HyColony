@@ -137,7 +137,7 @@ class BuilderPlaceholdersTest {
             ai.tick();
         }
         assertTrue(done.getAsBoolean(), () -> "not finished; state " + ai.stateName());
-        assertNull(ai.lastError);
+        assertTrue(ai.lastError().isEmpty());
     }
 
     private BlockState world(int dx, int dy, int dz) {

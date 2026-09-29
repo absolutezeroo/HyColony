@@ -6,6 +6,7 @@ import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.job.JobXp;
 import dev.hycolony.core.job.WorkerModule;
+import dev.hycolony.core.job.work.WorkDelay;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.Inventory;
 import dev.hycolony.core.kernel.item.ItemAmount;
@@ -32,7 +33,7 @@ final class CourierContext {
     private final DeliverymanJob job;
     private final BodyId body;
     private final BodyWalker walker;
-    private int delay;
+    private final WorkDelay delay = new WorkDelay();
     private boolean warnedLost;
 
     CourierContext(Colony colony, DeliverymanJob job, BodyId body) {
@@ -91,18 +92,9 @@ final class CourierContext {
         return walker.walkTo(pos);
     }
 
-    /** MC setDelay: the AI does nothing for {@code ticks}. */
-    void setDelay(int ticks) {
-        delay = ticks;
-    }
-
-    /** MC waitingForSomething: true while a delay runs, which then shrinks by {@code elapsed} ticks. */
-    boolean waiting(int elapsed) {
-        if (delay <= 0) {
-            return false;
-        }
-        delay -= elapsed;
-        return true;
+    /** MC setDelay: the ticks the courier waits before its next step. */
+    WorkDelay delay() {
+        return delay;
     }
 
     /**

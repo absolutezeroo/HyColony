@@ -129,11 +129,11 @@ class FieldPassTest extends FarmerTestBase {
         settings().setFertilize(false);
         work.prepare();
 
-        for (int i = 0; i < 10 && work.delay() == 0; i++) {
+        for (int i = 0; i < 10 && work.delay().remaining() == 0; i++) {
             work.workAtField(FarmerState.FARMER_HOE); // walks to the cell, then works it
         }
 
-        assertEquals(35, work.delay()); // max(1, 40 - 10 / 2)
+        assertEquals(35, work.delay().remaining()); // max(1, 40 - 10 / 2)
     }
 
     @Test

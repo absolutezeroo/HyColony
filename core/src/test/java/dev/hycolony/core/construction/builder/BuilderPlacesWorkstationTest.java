@@ -2,7 +2,6 @@ package dev.hycolony.core.construction.builder;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.building.Building;
@@ -121,7 +120,7 @@ class BuilderPlacesWorkstationTest {
             ai.tick();
         }
         assertTrue(done.getAsBoolean(), () -> "not reached; state " + ai.stateName());
-        assertNull(ai.lastError);
+        assertTrue(ai.lastError().isEmpty());
     }
 
     private void tick(int n) {

@@ -66,7 +66,7 @@ final class FieldPass {
                 return FarmerState.PREPARING;
             }
             walk.setPrevPos(Optional.of(column));
-            work.setDelay(levelDelay());
+            work.delay().set(levelDelay());
         }
         if (!walk.advance(field.radii())) {
             endPass(field, walk);

@@ -1,6 +1,8 @@
 package dev.hycolony.core.construction.builder;
 
+import dev.hycolony.core.job.work.WorkDelay;
 import dev.hycolony.core.job.work.WorkerHands;
+import dev.hycolony.core.job.work.WorkerMachine;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.BodyAnimation;
@@ -27,8 +29,8 @@ final class BuilderGestures {
     private final BodyId body;
     private final WorkerHands hands;
     private final WorldEffects effects;
+    private final WorkDelay delay = new WorkDelay();
 
-    private int delay;
     /** The whole break delay, in game ticks, of the block being mined. */
     private int total;
     /** The block being mined (MC currentWorkingLocation); null while placing or pausing. */
@@ -56,17 +58,15 @@ final class BuilderGestures {
      * Mine stroke only once the previous one has finished ({@link #MINE_ANIMATION_TICKS}).
      */
     boolean waiting() {
-        if (delay <= 0) {
+        if (!delay.waiting(WorkerMachine.MACHINE_RATE)) {
             return false;
         }
-        sinceStroke += BuilderAI.MACHINE_RATE;
+        sinceStroke += WorkerMachine.MACHINE_RATE;
         if (animation == BodyAnimation.MINE && sinceStroke >= MINE_ANIMATION_TICKS) {
             hands.swing(animation);
             sinceStroke = 0;
         }
-        delay -= BuilderAI.MACHINE_RATE;
-        if (delay <= 0) {
-            delay = 0;
+        if (delay.remaining() == 0) {
             animation = null;
         }
         hitTarget();
@@ -82,16 +82,16 @@ final class BuilderGestures {
         if (bodies.position(body)
                 .filter(p -> p.toBlockPos().distSq(at) < (long) RANGE_FOR_DELAY * RANGE_FOR_DELAY)
                 .isPresent()) {
-            effects.blockHit(at, 1f - (float) delay / total);
+            effects.blockHit(at, 1f - (float) delay.remaining() / total);
         }
-        if (delay == 0) {
+        if (delay.remaining() == 0) {
             target = null; // MC clearWorkTarget
         }
     }
 
     /** Waits {@code ticks} (the animation, if any, keeps playing). */
     void pause(int ticks) {
-        delay = ticks;
+        delay.set(ticks);
         target = null;
     }
 
@@ -104,7 +104,7 @@ final class BuilderGestures {
 
     void startDelay(int ticks, BodyAnimation anim) {
         target = null;
-        delay = ticks;
+        delay.set(ticks);
         animation = anim;
         sinceStroke = 0;
         hands.swing(anim);

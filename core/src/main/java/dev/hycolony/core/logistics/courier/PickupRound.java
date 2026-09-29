@@ -39,7 +39,7 @@ final class PickupRound {
      * when the courier can carry no more; a vanished hut fails the pickup.
      */
     CourierState pickup() {
-        ctx.setDelay(CourierContext.WALK_DELAY);
+        ctx.delay().set(CourierContext.WALK_DELAY);
         Request task = ctx.task().filter(r -> r.requestable() instanceof Pickup).orElse(null);
         if (task == null) {
             reset(); // the round was for another task (cancelled): its keep rules belong to that hut
@@ -70,7 +70,7 @@ final class PickupRound {
             reset();
             return CourierState.DUMPING;
         }
-        ctx.setDelay(SLOT_DELAY);
+        ctx.delay().set(SLOT_DELAY);
         return CourierState.PICKUP;
     }
 

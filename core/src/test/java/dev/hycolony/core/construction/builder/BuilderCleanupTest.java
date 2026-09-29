@@ -137,7 +137,7 @@ class BuilderCleanupTest {
             ai.tick();
         }
         assertTrue(done.getAsBoolean(), () -> "not reached; state " + ai.stateName());
-        assertNull(ai.lastError);
+        assertTrue(ai.lastError().isEmpty());
     }
 
     private boolean finished() {

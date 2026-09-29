@@ -5,11 +5,8 @@ import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.job.JobAI;
 import dev.hycolony.core.job.WorkerModule;
-import dev.hycolony.core.kernel.ai.AIBlockingEventType;
-import dev.hycolony.core.kernel.ai.AIEventTarget;
-import dev.hycolony.core.kernel.ai.AITarget;
+import dev.hycolony.core.job.work.WorkerMachine;
 import dev.hycolony.core.kernel.ai.IStateSupplier;
-import dev.hycolony.core.kernel.ai.TickRateStateMachine;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.logistics.warehouse.WarehouseStorage;
 import dev.hycolony.core.request.Request;
@@ -23,10 +20,6 @@ import java.util.Optional;
  * JobDeliveryman from inventoryNeedsDump).
  */
 final class DeliverymanAI implements JobAI {
-    private static final System.Logger LOG = System.getLogger(DeliverymanAI.class.getName());
-
-    /** MC ENTITY_AI_TICKRATE: the machine runs every 5 game ticks and counts 5 per run. */
-    static final int MACHINE_RATE = 5;
     /** MC DECISION_DELAY: ticks between two decisions in START_WORKING. */
     static final int DECISION_DELAY = 100;
     /** MC STANDARD_DELAY and PICKUP_DELAY. */
@@ -38,11 +31,8 @@ final class DeliverymanAI implements JobAI {
     /** MC JobDeliveryman.BONUS_SPEED_PER_LEVEL, per level of the hut's primary skill (Agility). */
     static final double BONUS_SPEED_PER_LEVEL = 0.003;
 
-    private static final int EXCEPTION_DELAY = 100;
-
     private final CourierContext ctx;
-    private final TickRateStateMachine<CourierState> machine;
-    private int calls;
+    private final WorkerMachine<CourierState> machine;
     private double speed = -1;
 
     DeliverymanAI(Colony colony, DeliverymanJob job, BodyId body) {
@@ -50,12 +40,13 @@ final class DeliverymanAI implements JobAI {
         DeliveryPreparation preparation = new DeliveryPreparation(ctx);
         DeliveryDrop drop = new DeliveryDrop(ctx);
         PickupRound pickup = new PickupRound(ctx);
-        this.machine = new TickRateStateMachine<>(CourierState.IDLE, this::onException, MACHINE_RATE);
-        machine.addTransition(new AIEventTarget<>(
-                AIBlockingEventType.AI_BLOCKING, () -> ctx.waiting(MACHINE_RATE), machine::getState, MACHINE_RATE));
+        this.machine = new WorkerMachine<>(
+                CourierState.IDLE,
+                () -> "courier " + ctx.citizen().name(),
+                () -> ctx.delay().waiting(WorkerMachine.MACHINE_RATE),
+                ctx.delay()::set);
         state(CourierState.IDLE, () -> CourierState.START_WORKING, 1);
-        machine.addTransition(
-                new AITarget<>(CourierState.START_WORKING, this::checkIfExecute, this::decide, DECISION_DELAY));
+        machine.state(CourierState.START_WORKING, this::checkIfExecute, this::decide, DECISION_DELAY);
         state(CourierState.PREPARE_DELIVERY, preparation::prepare, STANDARD_DELAY);
         state(CourierState.DELIVERY, drop::deliver, STANDARD_DELAY);
         state(CourierState.PICKUP, pickup::pickup, STANDARD_DELAY);
@@ -64,27 +55,23 @@ final class DeliverymanAI implements JobAI {
     }
 
     private void state(CourierState s, IStateSupplier<CourierState> action, int rate) {
-        machine.addTransition(new AITarget<>(s, action, rate));
+        machine.state(s, action, rate);
     }
 
     @Override
     public void tick() {
-        if (++calls < MACHINE_RATE) {
-            return;
-        }
-        calls = 0;
         machine.tick();
     }
 
     @Override
     public String stateName() {
-        return machine.getState().name();
+        return machine.state().name();
     }
 
     /** MC isOkayToEat of each registered target. */
     @Override
     public boolean canBeInterrupted() {
-        return switch (machine.getState()) {
+        return switch (machine.state()) {
             case DELIVERY, DUMPING -> false;
             default -> true;
         };
@@ -94,15 +81,6 @@ final class DeliverymanAI implements JobAI {
     @Override
     public boolean canGoIdle() {
         return ctx.hut().isEmpty();
-    }
-
-    private void onException(RuntimeException e) {
-        LOG.log(
-                System.Logger.Level.WARNING,
-                "Courier AI failed for " + ctx.citizen().name(),
-                e);
-        machine.reset();
-        ctx.setDelay(EXCEPTION_DELAY);
     }
 
     /**
@@ -129,7 +107,7 @@ final class DeliverymanAI implements JobAI {
         if (task.isEmpty()) {
             Building warehouse = ctx.warehouse().orElse(null);
             if (warehouse == null || !ctx.walkTo(warehouse.position())) {
-                ctx.setDelay(CourierContext.WALK_DELAY);
+                ctx.delay().set(CourierContext.WALK_DELAY);
                 return CourierState.START_WORKING;
             }
             return empty ? CourierState.START_WORKING : CourierState.DUMPING;
@@ -147,7 +125,7 @@ final class DeliverymanAI implements JobAI {
             return CourierState.START_WORKING;
         }
         if (!ctx.walkTo(warehouse.position())) {
-            ctx.setDelay(CourierContext.WALK_DELAY);
+            ctx.delay().set(CourierContext.WALK_DELAY);
             return CourierState.DUMPING;
         }
         warehouse

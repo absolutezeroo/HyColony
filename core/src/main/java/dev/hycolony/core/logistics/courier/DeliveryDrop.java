@@ -45,7 +45,7 @@ final class DeliveryDrop {
             return CourierState.START_WORKING;
         }
         if (!ctx.walkTo(target.position())) {
-            ctx.setDelay(CourierContext.WALK_DELAY);
+            ctx.delay().set(CourierContext.WALK_DELAY);
             return CourierState.DELIVERY;
         }
         Set<ItemKey> items = new HashSet<>();

@@ -3,6 +3,7 @@ package dev.hycolony.core.farming.job;
 import dev.hycolony.core.farming.field.FarmField;
 import dev.hycolony.core.farming.field.FieldStage;
 import dev.hycolony.core.farming.hut.FieldWalk;
+import dev.hycolony.core.job.work.WorkDelay;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
@@ -35,7 +36,7 @@ final class FarmWork {
      */
     private boolean forceLeave;
 
-    private int delay;
+    private final WorkDelay delay = new WorkDelay();
     private boolean dumpRequested;
     private Optional<Msg> status = Optional.empty();
 
@@ -121,22 +122,9 @@ final class FarmWork {
         return pass.work(state);
     }
 
-    /** MC setDelay: the ticks to wait before the next step. */
-    int delay() {
+    /** MC setDelay: the ticks the farmer waits before its next step. */
+    WorkDelay delay() {
         return delay;
-    }
-
-    void setDelay(int ticks) {
-        delay = ticks;
-    }
-
-    /** MC's waiting event: counts {@code elapsed} ticks off the delay; true while some remain. */
-    boolean waiting(int elapsed) {
-        if (delay <= 0) {
-            return false;
-        }
-        delay -= elapsed;
-        return true;
     }
 
     /** MC shouldDumpInventory: set at the end of every pass. */

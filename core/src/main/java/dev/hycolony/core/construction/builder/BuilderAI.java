@@ -1,20 +1,13 @@
 package dev.hycolony.core.construction.builder;
 
-import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
-import dev.hycolony.core.construction.blueprint.Blueprint;
-import dev.hycolony.core.construction.blueprint.StructurePlan;
-import dev.hycolony.core.construction.resources.NeededResources;
 import dev.hycolony.core.construction.workorder.Stage;
 import dev.hycolony.core.construction.workorder.WorkOrder;
-import dev.hycolony.core.construction.workorder.WorkOrderType;
 import dev.hycolony.core.job.JobAI;
+import dev.hycolony.core.job.work.WorkerMachine;
 import dev.hycolony.core.kernel.ai.AIBlockingEventType;
-import dev.hycolony.core.kernel.ai.AIEventTarget;
-import dev.hycolony.core.kernel.ai.AITarget;
 import dev.hycolony.core.kernel.ai.IStateSupplier;
-import dev.hycolony.core.kernel.ai.TickRateStateMachine;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.Msg;
 import java.util.Map;
@@ -27,39 +20,31 @@ import org.jspecify.annotations.Nullable;
  * The builder's work AI. Port of MineColonies' AbstractEntityAIStructure, AbstractEntityAIStructureWithWorkOrder,
  * EntityAIStructureBuilder and the dump / NEEDS_ITEM parts of AbstractEntityAIBasic. The plan is built once per
  * order (on load); each step scans at most {@link #SCAN_LIMIT} positions from the order's saved progress. The steps
- * delegate the block work to {@link BuilderBlockWork} and the materials to {@link BuilderGathering}.
+ * delegate the block work to {@link BuilderBlockWork}, the materials to {@link BuilderGathering} and the loading of an
+ * order to {@link StructureLoader}.
  */
 public final class BuilderAI implements JobAI {
-    private static final System.Logger LOG = System.getLogger(BuilderAI.class.getName());
-
-    /** MC ENTITY_AI_TICKRATE: the machine runs every 5 game ticks and counts 5 per run. */
-    static final int MACHINE_RATE = 5;
-
     static final int SCAN_LIMIT = 10_000;
     static final double XP_EACH_BUILDING = 8;
-
-    private static final int EXCEPTION_DELAY = 100;
 
     private final BuilderContext ctx;
     private final BuildSite site;
     private final BuilderBlockWork blockWork;
     private final BuilderGathering gathering;
-    private final TickRateStateMachine<BuilderState> machine;
-
-    private int calls;
-
-    /** Last exception the machine caught (tests assert there is none). */
-    @Nullable
-    RuntimeException lastError;
+    private final StructureLoader loader;
+    private final WorkerMachine<BuilderState> machine;
 
     public BuilderAI(Colony colony, CitizenData citizen, BodyId body) {
         this.ctx = BuilderContext.of(colony, citizen, body);
         this.site = ctx.site();
         this.gathering = new BuilderGathering(ctx);
         this.blockWork = new BuilderBlockWork(ctx, gathering);
-        this.machine = new TickRateStateMachine<>(BuilderState.IDLE, this::onException, MACHINE_RATE);
-
-        event(AIBlockingEventType.AI_BLOCKING, ctx.gestures()::waiting, machine::getState, MACHINE_RATE);
+        this.loader = new StructureLoader(ctx);
+        this.machine = new WorkerMachine<>(
+                BuilderState.IDLE,
+                () -> "builder " + ctx.citizen().name(),
+                ctx.gestures()::waiting,
+                ctx.gestures()::pause);
         event(AIBlockingEventType.AI_BLOCKING, this::needsItem, () -> BuilderState.NEEDS_ITEM, 20);
         event(AIBlockingEventType.STATE_BLOCKING, this::orderLost, this::dropOrder, 1);
         event(AIBlockingEventType.STATE_BLOCKING, this::inventoryNeedsDump, () -> BuilderState.INVENTORY_FULL, 100);
@@ -75,31 +60,34 @@ public final class BuilderAI implements JobAI {
     }
 
     private void event(AIBlockingEventType type, BooleanSupplier when, IStateSupplier<BuilderState> then, int rate) {
-        machine.addTransition(new AIEventTarget<>(type, when, then, rate));
+        machine.event(type, when, then, rate);
     }
 
     private void state(BuilderState s, IStateSupplier<BuilderState> action, int rate) {
-        machine.addTransition(new AITarget<>(s, action, rate));
+        machine.state(s, action, rate);
     }
 
     @Override
     public void tick() {
-        if (!ctx.canRun() || ++calls < MACHINE_RATE) {
-            return;
+        if (ctx.canRun()) {
+            machine.tick();
         }
-        calls = 0;
-        machine.tick();
     }
 
     @Override
     public String stateName() {
-        return machine.getState().name();
+        return machine.state().name();
+    }
+
+    /** The last exception the AI caught; empty while none did (the tests assert so). */
+    Optional<RuntimeException> lastError() {
+        return machine.lastError();
     }
 
     @Override
     public Optional<Msg> describe() {
         return Optional.of(BuilderActivity.describe(
-                machine.getState(),
+                machine.state(),
                 site.order(),
                 ctx.walker().walking(),
                 ctx.gestures().inHand()));
@@ -108,7 +96,7 @@ public final class BuilderAI implements JobAI {
     /** MC isOkayToEat. */
     @Override
     public boolean canBeInterrupted() {
-        return switch (machine.getState()) {
+        return switch (machine.state()) {
             case IDLE, START_WORKING, NEEDS_ITEM, GATHERING_REQUIRED_MATERIALS -> true;
             default -> false;
         };
@@ -120,19 +108,9 @@ public final class BuilderAI implements JobAI {
         return !ctx.hasHut() || claimedOrder().isEmpty();
     }
 
-    private void onException(RuntimeException e) {
-        LOG.log(
-                System.Logger.Level.WARNING,
-                "Builder AI failed for " + ctx.citizen().name(),
-                e);
-        lastError = e;
-        machine.reset();
-        ctx.gestures().pause(EXCEPTION_DELAY);
-    }
-
     /** MC checkIfNeedsItem: an open or completed sync request sends the builder to wait for / fetch it. */
     private boolean needsItem() {
-        BuilderState s = machine.getState();
+        BuilderState s = machine.state();
         return s != BuilderState.INVENTORY_FULL
                 && s != BuilderState.NEEDS_ITEM
                 && s != BuilderState.COMPLETE_BUILD
@@ -156,7 +134,7 @@ public final class BuilderAI implements JobAI {
     }
 
     private boolean inventoryNeedsDump() {
-        return machine.getState() != BuilderState.INVENTORY_FULL && dumpDue();
+        return machine.state() != BuilderState.INVENTORY_FULL && dumpDue();
     }
 
     private boolean dumpDue() {
@@ -190,49 +168,8 @@ public final class BuilderAI implements JobAI {
 
     private BuilderState loadStructure() {
         WorkOrder o = claimedOrder().orElse(null);
-        if (o == null) {
-            resetStructure();
-            return BuilderState.IDLE;
-        }
-        Building b = ctx.colony().buildings().at(o.buildingPos()).orElse(null);
-        Blueprint bp = b == null ? null : blueprint(o, b, o.blueprintLevel()).orElse(null);
-        if (b == null || bp == null) {
-            // MC handleSpecificCancelActions: an order that cannot be loaded is dropped.
-            LOG.log(
-                    System.Logger.Level.WARNING,
-                    "No blueprint for work order {0} at {1}; removing it",
-                    o.id(),
-                    o.buildingPos());
-            ctx.colony().work().cancel(o.id());
-            resetStructure();
-            return BuilderState.IDLE;
-        }
         resetStructure();
-        site.load(o, b, ctx.planFor(bp, o.buildingPos()), previousPlan(o, b));
-        // Takes the order's saved stage and index: the order is the single owner of progress.
-        ctx.resources().start(o, NeededResources.compute(site.plan(), ctx.blocks(), ctx.catalog(), ctx.recipes()));
-        return BuilderState.BUILDING_STEP;
-    }
-
-    private Optional<Blueprint> blueprint(WorkOrder o, Building b, int level) {
-        return ctx.colony()
-                .context()
-                .ports()
-                .blueprints()
-                .load(o.style(), b.type().id(), level, o.rotation());
-    }
-
-    /**
-     * The plan of the level an UPGRADE replaces (same style and rotation), whose leftovers CLEAR_LEFTOVERS mines;
-     * null for other orders or when that blueprint is missing (nothing is then removed).
-     */
-    private @Nullable StructurePlan previousPlan(WorkOrder o, Building b) {
-        if (o.type() != WorkOrderType.UPGRADE) {
-            return null;
-        }
-        return blueprint(o, b, o.blueprintLevel() - 1)
-                .map(old -> StructurePlan.build(old, o.buildingPos(), ctx.catalog()))
-                .orElse(null);
+        return o != null && loader.load(o) ? BuilderState.BUILDING_STEP : BuilderState.IDLE;
     }
 
     private Optional<WorkOrder> claimedOrder() {
