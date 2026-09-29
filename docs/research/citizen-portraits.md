@@ -14,7 +14,7 @@ Rappel : un aperçu 3D d'une entité donnée dans une fenêtre est impossible en
 
 - **Tous les citoyens sont identiques.** Le rôle `plugin/src/main/resources/Server/NPC/Roles/HyColony/HyColony_Citizen.json` l. 3 donne `"Appearance": "PlayerTestModel_V"`. Ce modèle (`zip:Server/Models/Human/PlayerTestModel_V.json`) a `"Parent": "Player"` et des `DefaultAttachments` figés : coupe `Morning` `BrownDark`, visage `Face.png` teinte de peau `03`, yeux `Greyscale.png`, jean bleu, t-shirt bleu, bottes, bouche `Mouth1`, oreilles `Ears1`, sourcils `Medium` `BrownDark`.
 - `HytaleCitizenBodies.spawn` (`plugin/.../adapter/HytaleCitizenBodies.java` l. 102-120) appelle `spawnNPCWithColumnProbe` sans modèle ni skin. Il n'ajoute que `CitizenTag`, `MoveTarget` et le nom affiché.
-- `CitizenData` (`core/.../citizen/CitizenData.java` l. 16-28) ne stocke **aucune apparence**. Seul `gender` existe (tiré dans `CitizenManager` l. 115-127), et il ne sert qu'au nom et à `CitizenRow` (`core/.../colony/ui/CitizenRow.java` l. 6). Il n'a aucun effet visuel.
+- `CitizenData` (`core/.../citizen/CitizenData.java` l. 16-28) ne stocke **aucune apparence**. Seul `gender` existe (tiré dans `CitizenManager` l. 115-127), et il ne sert qu'au nom et à `CitizenRow` (`core/.../app/ui/CitizenRow.java` l. 6). Il n'a aucun effet visuel.
 
 ### 1.1 MineColonies varie l'apparence
 

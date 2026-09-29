@@ -74,7 +74,7 @@ core/src/main/java/dev/hycolony/core/
                       WorkOrderType, WorkManager, WorkOrderRefusal, ClaimRadius, NeededResources,
                       Buckets, BuildingResourcesModule, BuilderJob, BuilderAI, BuilderState,
                       BuilderTimings, LivingModule, ConstructionBuildingTypes
-  colony/ui/          BuildingView, BuilderResourcesView, RequestsView, WorkOrdersView (+ UiPort ajouts)
+  app/ui/          BuildingView, BuilderResourcesView, RequestsView, WorkOrdersView (+ UiPort ajouts)
 core/src/test/java/dev/hycolony/core/testing/  FakeCatalog, FakeWorldBlocks, FakeContainers,
                       FakePlayerInventory, FakeBlueprints (+ TestContexts étendu)
 ```
@@ -726,7 +726,7 @@ public final class BuilderTimings {
 ### Task 10 : modèles de vue et actions de la colonie
 
 **Files :**
-- Create : `colony/ui/{BuildingView,BuilderResourcesView,RequestsView,WorkOrdersView}.java`
+- Create : `app/ui/{BuildingView,BuilderResourcesView,RequestsView,WorkOrdersView}.java`
 - Modify : `app/ui/UiPort` (`showBuilding`, `showBuilderResources`, `showRequests`, `showWorkOrders`), `FakeUi`, `plugin/.../HytaleUiPort` (implémentations **temporaires** qui envoient un message « à venir » ; les vraies fenêtres arrivent en partie B), `ColonyManager`
 - Test : `colony/ViewsTest.java`
 

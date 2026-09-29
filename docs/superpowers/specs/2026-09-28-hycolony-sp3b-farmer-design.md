@@ -284,7 +284,7 @@ Il vit dans `farming` (et non `kernel/port`, déjà à 15 fichiers), comme `Reci
     - `FarmerJob`, `FarmerAI`, `FarmerState` ;
     - `FarmWork` (les étapes agricoles), `FieldScan` (surface et tests de case), `FieldPass` (le passage d'une case) ;
   - `colony/action/FieldActions` (fenêtre du champ, onglet Champs) ;
-  - `colony/ui/FieldView` et `colony/ui/tab/FieldsView` ;
+  - `app/ui/FieldView` et `farming/hut/FieldsView` ;
   - `UiPort.showField`.
 - **Existant modifié :**
   - `Colony` : le registre en champ, accès `fields()`, sans nouveau fichier dans `colony` ;

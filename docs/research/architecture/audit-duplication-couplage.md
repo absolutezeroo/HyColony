@@ -107,7 +107,7 @@ préexistants modifiés à la main** — ce second chiffre mesure le coût struc
 | `core/colony/ColonyManager.java` | enregistrer `LogisticsActions` |
 | `core/job/Job.java`, `job/WorkerModule.java` | hook générique |
 | `core/request/Request.java` | nouveaux types de requêtes |
-| `colony/ui/{Building,Citizen,Requests}View.java` + `colony/view/*Views.java` | agrégateurs de vues |
+| `app/ui/{Building,Citizen,Requests}View.java` + `colony/view/*Views.java` | agrégateurs de vues |
 | `kernel/port/{WorldQuery,CitizenBodies}.java`, `kernel/nav/DetouringBodies.java` | ports étendus |
 | `plugin/WorldRuntime.java` | câblage du monde |
 | `plugin/IdMap.java`, `resources/hycolony/{id-map,styles}.json` | identifiants d'assets Hytale |

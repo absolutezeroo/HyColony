@@ -287,7 +287,7 @@ Lecture tolérante : clé absente = vide, entrée invalide ignorée et journalis
     - `CraftingProgress` : la durée d'une exécution ; `RecipeCounts` : le calcul de `maxCraftingCount` et des ingrédients qui manquent ;
     - `RecipeExecution` : consommer et produire dans un `Inventory` ; `CraftingRun` : une exécution de l'artisan (`executeCraftingAction`) ;
     - `CrafterHands` (la marche vers la table et les coups) et `CraftedOutputs` (où vont les sorties) ;
-  - `colony/ui/tab/RecipesView` (record) et `colony/action/CraftingActions` ;
+  - `crafting/module/RecipesView` (record) et `colony/action/CraftingActions` ;
   - `kernel/item/Workstation(String benchId, int tier)` : `building` ne peut dépendre ni de `construction` ni de `crafting` ;
   - `request/model/StackList` et `request/model/Crafting`. `Requestable` et `Deliverable` sont scellés dans ce paquet, et `request` ne doit pas dépendre de `crafting` : `Crafting` porte donc un `String recipeId`.
 - **Sous-paquets sans cycle** (`ArchitectureTest`) : `recipe` et `task` en bas, puis `module`, puis `job` (l'IA), et `request` (les résolveurs) en haut ; `task` ne dépend d'aucun autre sous-paquet de `crafting`. Pour cela :

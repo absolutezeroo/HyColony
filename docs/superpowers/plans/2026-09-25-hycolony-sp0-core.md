@@ -2313,7 +2313,7 @@ Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>"
 ### Task 8 : ports, contexte, journal et `Colony` (machine d'état, jour/nuit)
 
 **Files :**
-- Create : `core/src/main/java/dev/hycolony/core/kernel/port/{GameClock,BodyId,NavStatus,CitizenBodies,WorldQuery,Notifier,Msg,PlayerDirectory}.java`, `colony/ui/{UiPort,FoundColonyView,TownHallView,CitizenRow}.java`, `colony/{ColonyState,ColonyContext,EventLog,ColonyEvents,Colony}.java`
+- Create : `core/src/main/java/dev/hycolony/core/kernel/port/{GameClock,BodyId,NavStatus,CitizenBodies,WorldQuery,Notifier,Msg,PlayerDirectory}.java`, `app/ui/{UiPort,FoundColonyView,TownHallView,CitizenRow}.java`, `colony/{ColonyState,ColonyContext,EventLog,ColonyEvents,Colony}.java`
 - Create (test) : `core/src/test/java/dev/hycolony/core/testing/{FakeClock,FakeBodies,FakeWorld,FakeNotifier,FakePlayers,FakeUi,TestContexts}.java`
 - Test : `core/src/test/java/dev/hycolony/core/colony/ColonyTest.java`
 - Note : `Colony` crée un `CitizenManager`. La Task 8 crée donc une **version minimale** de `citizen/CitizenManager.java`, que la Task 9 complète.
@@ -2463,7 +2463,7 @@ public interface PlayerDirectory {
 }
 ```
 
-`colony/ui/FoundColonyView.java` :
+`app/ui/FoundColonyView.java` :
 
 ```java
 package dev.hycolony.core.colony.ui;
@@ -2471,7 +2471,7 @@ package dev.hycolony.core.colony.ui;
 public record FoundColonyView(String suggestedName) {}
 ```
 
-`colony/ui/CitizenRow.java` :
+`app/ui/CitizenRow.java` :
 
 ```java
 package dev.hycolony.core.colony.ui;
@@ -2482,7 +2482,7 @@ import dev.hycolony.core.citizen.Gender;
 public record CitizenRow(String name, Gender gender, String status) {}
 ```
 
-`colony/ui/TownHallView.java` :
+`app/ui/TownHallView.java` :
 
 ```java
 package dev.hycolony.core.colony.ui;

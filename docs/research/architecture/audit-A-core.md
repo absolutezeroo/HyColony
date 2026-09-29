@@ -164,7 +164,7 @@ Fichiers qu'un `LumberjackJob` + `LumberjackAI` + hutte devrait modifier **aujou
 2. `plugin/block/HutBlockSystems.java:39-45` : la liste `HUT_TYPES`. Le commentaire « BuildingRegistry has no listing » est **périmé**, car `BuildingRegistry.all()` existe (`building/BuildingRegistry.java:22`).
 3. `id-map.json`, `styles.json`, `hycolony.lang` en en-US et fr-FR.
 4. Onglets propres (réglages de replantation, liste de pousses, zone) :
-   - `colony/ui/BuildingView.java`, un `Optional<…Tabs>` de plus : il en a déjà 3 (l. `builder`, `warehouse`, `courier`) ;
+   - `app/ui/BuildingView.java`, un `Optional<…Tabs>` de plus : il en a déjà 3 (l. `builder`, `warehouse`, `courier`) ;
    - `colony/view/BuildingViews.java` ;
    - `plugin/ui/BuildingPage.java:71-77, 116-122` ;
    - `Building.ui`.

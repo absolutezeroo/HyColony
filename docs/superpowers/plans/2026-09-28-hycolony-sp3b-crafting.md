@@ -97,7 +97,7 @@
 | `crafting/job/RecipeExecution.java` | consommer les entrées, produire les sorties dans un `Inventory` |
 | `request/model/StackList.java` | Deliverable « l'un de ces objets » (MC `StackList`) |
 | `request/model/Crafting.java` | Requestable de tâche de fabrication |
-| `colony/ui/tab/RecipesView.java` | vue de l'onglet Recettes |
+| `crafting/module/RecipesView.java` | vue de l'onglet Recettes |
 | `colony/action/CraftingActions.java` | apprendre, retirer, activer, déplacer |
 
 **Cœur, modifiés :**
@@ -110,7 +110,7 @@
 - `job/WorkerModule.java` (+ résolveurs privés, `CreatesResolvers`) ;
 - `construction/resources/NeededResources.java`, `construction/builder/BuilderBlockWork.java`, `construction/wand/PasteQueue.java` ;
 - `kernel/port/WorldBlocks.java` (+ `setBenchTier`) ;
-- `colony/ui/tab/ModuleTab.java` ;
+- `building/module/ModuleTab.java` ;
 - `colony/ColonyManager.java` (+ `crafting()`) ;
 - `colony/persistence/ColonySerializer.java` (`heal`).
 
@@ -935,9 +935,9 @@ Le record de contexte a 10 champs. C'est un record, pas une méthode, donc la r�
 ### Task 14 : onglet Recettes (vue et actions du cœur)
 
 **Fichiers :**
-- Créer : `colony/ui/tab/RecipesView.java`, `colony/action/CraftingActions.java`.
+- Créer : `crafting/module/RecipesView.java`, `colony/action/CraftingActions.java`.
 - Modifier :
-  - `colony/ui/tab/ModuleTab.java` (`permits ..., RecipesView`) ;
+  - `building/module/ModuleTab.java` (`permits ..., RecipesView`) ;
   - `CraftingModule` implémente `ProvidesTab` ;
   - `colony/ColonyManager.java` : `public CraftingActions crafting()`, construit comme `workOrders()`.
 - Tester : `colony/action/CraftingActionsTest.java`, `crafting/module/RecipesViewTest.java`.
