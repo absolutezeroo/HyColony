@@ -51,10 +51,13 @@ def pumpkins_and_mossy_walls_of_the_farmer_are_converted():
         cell = {"Name": f"minecraft:{name}", "Properties": {"facing": "north"}}
         m = _mappings({(4, 0, 4): cell})[(4, 0, 4)]
         assert (m.target, m.rotation) == (target, 2), (name, m)
+    # Plant_Crop_Pumpkin_Block is a growing crop (seeds, needs soil); the pumpkin itself is the Item's block.
     m = _mappings({(4, 0, 4): {"Name": "minecraft:pumpkin"}})[(4, 0, 4)]
-    assert m.target == "Plant_Crop_Pumpkin_Block", m
+    assert m.target == "Plant_Crop_Pumpkin_Item", m
     m = _mappings({(4, 0, 4): {"Name": "minecraft:mossy_stone_brick_wall"}})[(4, 0, 4)]
     assert m.rule == "wall" and m.target.startswith("Rock_Stone_Brick_"), m  # an isolated post becomes a beam
+    m = _mappings({(4, 0, 4): {"Name": "minecraft:mossy_cobblestone_wall"}})[(4, 0, 4)]
+    assert m.rule == "wall" and m.target.startswith("Rock_Stone_Cobble_"), m
 
 
 def tools_are_not_blocks():
