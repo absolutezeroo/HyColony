@@ -153,7 +153,7 @@ Heure : le premier `decideAiTask` où `dayTime % 24000 <= 10600`, donc à 0 (6 h
 |---|---|---|
 | Pas de perte de saturation la nuit **ni** pendant le sommeil (`!level().isNight() && !isAsleep()`) | `EntityCitizen.decreaseIdleSaturation`, l. ~1977 | **oui, la faim** (SP faim) |
 | Modificateur de bonheur `SLEPTTONIGHT` : poids 1.5, remis à zéro à chaque arrivée au lit, paliers `(0, 2.0) (2, 1.6) (3, 1.0)` jours | `EntityAISleep`, l. 213 ; `CitizenHappinessHandler`, l. 80 | **oui, le bonheur** |
-| `leisureTime = 0` à l'endormissement | `CitizenData.setAsleep` | le loisir n'est pas porté (déviation déjà notée dans `CitizenAI`) |
+| `leisureTime = 0` à l'endormissement | `CitizenData.setAsleep` | non : le loisir est porté (`CitizenData.tickLeisure`), à remettre à zéro avec le sommeil |
 | Soin : **aucun bonus lié au sommeil**. `checkHeal` toutes les 100 ticks (`HEAL_CITIZENS_AFTER`) dépend seulement de la saturation | `EntityCitizen.java:885-910` | — |
 | Immunité à l'étouffement (`IN_WALL`) pendant le sommeil, pas de poussée entre entités, pas de rebond | `EntityCitizen`, l. 1293, 1514, 1913 | non (utile si la pose enfonce le modèle dans le lit) |
 | Objet tenu retiré | `trySleep` | non (`bodies.setHeldItem(body, empty)`) |
@@ -285,7 +285,7 @@ Aux niveaux 2, 3 et 5, il y a moins de lits que d'habitants. Les citoyens en tro
 
 - faim (saturation arrêtée la nuit, `EATING`) : pas de système de faim ;
 - bonheur (`SLEPTTONIGHT`, `homelessness`) : pas de système de bonheur ;
-- maladie et hôpital, raids (`SLEEP` pendant un raid), deuil, loisir : non portés ;
+- maladie et hôpital, raids (`SLEEP` pendant un raid), deuil : non portés ;
 - taverne comme repli : pas de taverne ;
 - plaintes « pas de garde » : pas de gardes ;
 - règle des mineurs sous terre : pas de mineur ;
