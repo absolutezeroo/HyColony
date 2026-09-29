@@ -64,6 +64,23 @@ Les autres points de la relecture sont corrigés. Il reste :
   - le commit d811903 ajoute `.mcp.json`, qui contient un chemin propre à la machine et un paquet `npx` sans version figée.
 - **Exception PMD `CouplingBetweenObjects` sur `RequestManager`** : 25 pour une limite de 20 après les coupes (`PUBLIC_STATES` dans `RequestTransitions`, annulations en masse dans `RequestCanceller`, `Objects` retiré). L'exception reste : c'est la seule porte d'entrée publique du système de requêtes.
 
+## Audit du code du 2026-09-29 : reste à faire
+
+Les corrections de l'audit sont commitées : bugs, socle des métiers (`job/work`), couche `app`, protection de colonie, règles des onglets, lectures tolérantes, garde des ports du plugin. `FeatureDependenciesTest` fige les dépendances entre paquets de premier niveau : la matrice ne peut que rétrécir. Le cycle restant passe par `Colony`, que toutes les fonctionnalités tiennent, comme `IColony` dans MC. Restent :
+
+- **Garde-fous, avec l'accord de l'utilisateur (session déverrouillée)** :
+  - `CLAUDE.md` § 1 cite encore `colony/ui/UiPort` et l'exemple `colony/view`, devenus `app/ui/UiPort` et `app/view` ;
+  - lancer les contrôles Python des outils dans le hook `pre-push` : aucun ne tourne aujourd'hui (`tools/domum/check.py` a besoin des assets et du réseau, il ne peut pas tourner sur la CI) ;
+  - longueur des lignes : environ 55 lignes dépassent 120 colonnes (Javadoc, commentaires, chaînes de test). palantir ne les recoupe pas et aucune règle ne le vérifie.
+- **Constructeur, outil manquant** : `BuilderBlockWork.fetchTool` ne suit pas l'ordre de `ToolRequests.missing` (la hutte d'abord, vidage quand l'inventaire est plein). À comparer à MC (`checkForToolOrWeapon`, `holdEfficientTool`) avant de les unifier.
+- **Plugin** :
+  - découper les classes fourre-tout tolérées par PMD : `HytaleCitizenBodies` (références, navigation, gestes), `HytaleItemCatalog` (faits des blocs, faits des outils), `HyColonyCommand` (une classe par sous-commande), `HytaleUiPort` ;
+  - le retrait du bloc d'une fondation d'hôtel de ville abandonnée est décidé dans `HytaleUiPort` (quand `pendingPositionOf` devient vide) : à remonter dans le cœur par un port des blocs de huttes ;
+  - `RequestsPage` et `CitizenRequestsTab` choisissent la fenêtre à ré-afficher après « Fournir » ;
+  - identifiants d'assets hors des id-maps (`Immunity_Fire`, `Physical`, les types de récolte, `Soil_Dirt_Tilled`, `Tool_Fertilizer`, `Block_Spawner_Block`) et descriptions des commandes en anglais brut.
+- **HyDomum** : les règles du cutter (plafond de fabrications, prise dans les emplacements, file de fabrication) sont dans `domum/plugin`, sans test ; les remonter dans `domum/core`. Reporté tant qu'une autre session travaille sur HyDomum.
+- **Outils Python** : une seule recherche d'`Assets.zip` (trois copies, dont une sur `release/latest` au lieu de la version épinglée), un paquet `tools/common` au lieu des `sys.path.append`, les racines du validateur d'assets en un seul endroit (Python et Kotlin divergent déjà).
+
 ## En cours ou prochain
 
 - **Documenter tout le code** : ajouter une Javadoc courte à chaque classe et à chaque méthode non triviale du cœur et du plugin (règle de CLAUDE.md § 3), puis la faire respecter par le build avec la règle PMD `CommentRequired` (classes, méthodes publiques et protégées). À lancer après les corrections de la relecture, pour éviter les conflits.
