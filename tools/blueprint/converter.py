@@ -25,7 +25,8 @@ from . import tables as T
 from .blueprint import Blueprint, load_blueprint
 from .detectors import is_bed, is_normal_door, is_wall_sign, run_detectors
 from .geometry import DIR, OPPOSITE, Pos, sub, yaw_for
-from .model import Mapping, fluid, place, skip, unmapped
+from .editor import editor_block, fluid_rule
+from .model import Mapping, place, skip, unmapped
 
 DATA = Path(__file__).resolve().parent / "data"
 UPSTREAM_CSV = DATA / "default-block-overrides.csv"
@@ -226,45 +227,6 @@ class Options:
     domum_materials: bool = False
 
 
-# Cases retirées volontairement qui doivent rester vides dans le bâtiment
-# (tapis, leviers, accoudoirs de chaise…). Les moitiés absorbées par un
-# modèle multi-cases (tête de lit, haut de porte, 2e case d'un grand coffre)
-# ne reçoivent PAS de vide forcé : il pourrait effacer le modèle.
-_EMPTY_AFTER_SKIP = {"removed", "chair", "upstream"}
-
-# Blocs de dev du mod HyColony (plugin/.../Server/Item/Items/HyColony).
-PLACEHOLDER_SOLID = "HyColony_Placeholder_Solid"
-PLACEHOLDER_FLUID = "HyColony_Placeholder_Fluid"
-# Fluides Minecraft -> fluide Hytale du tableau `fluids` (niveau 1 : une source, comme les prefabs vanilla).
-FLUIDS = {"minecraft:water": "Water_Source", "minecraft:lava": "Lava_Source"}
-
-
-def editor_block(bp: Blueprint, pos: Pos, name: str, m: Mapping) -> Mapping:
-    """Équivalents Hytale des blocs spéciaux MineColonies / Structurize (docs/research/structurize-placeholders.md).
-
-    minecraft:air, blocktagsubstitution -> Empty                      (vide forcé)
-    structurize:blocksolidsubstitution  -> HyColony_Placeholder_Solid (bloc de remplissage si le sol n'est pas plein)
-    structurize:blockfluidsubstitution  -> HyColony_Placeholder_Fluid (eau si ni fluide ni bloc plein)
-    structurize:blocksubstitution       -> rien                       (terrain laissé intact)
-    bloc de hutte à l'ancre             -> Editor_Anchor              (l'ancre survit à l'éditeur de prefabs)
-    Le niveau de styles.json doit porter "minecolonies": true pour que HyColony lise ces blocs.
-    """
-    if name == "minecraft:air":
-        return place("Empty", 0, "air du blueprint -> vide forcé", rule="editor_empty")
-    if name == "structurize:blocktagsubstitution":
-        # Sans bloc de remplacement (le cas des plans medievaloak), Structurize le traite comme de l'air.
-        return place("Empty", 0, "substitution à étiquettes -> vide forcé", rule="editor_empty")
-    if name == "structurize:blocksolidsubstitution":
-        return place(PLACEHOLDER_SOLID, 0, "substitution pleine -> substitut solide", rule="editor_solid")
-    if name == "structurize:blockfluidsubstitution":
-        return place(PLACEHOLDER_FLUID, 0, "substitution de fluide -> substitut de fluide", rule="editor_fluid")
-    if pos == bp.anchor and name.startswith("minecolonies:blockhut"):
-        return place("Editor_Anchor", 0, f"{name} -> Editor Anchor", rule="editor_anchor")
-    if m.skip and m.rule in _EMPTY_AFTER_SKIP:
-        return place("Empty", 0, m.notes[0] if m.notes else "retiré -> vide forcé", rule="editor_empty")
-    return m
-
-
 @dataclass
 class Cell:
     pos: Pos
@@ -296,8 +258,9 @@ class Converter:
         m = always_empty(name, p)
         if m:
             return m
-        if name in FLUIDS:
-            return fluid(FLUIDS[name], f"{name} -> fluide {FLUIDS[name]}")
+        m = fluid_rule(name, p)
+        if m:
+            return m
         if name.startswith(domum.PREFIX):
             m = domum.rule(bp, pos, name, p, self.options.domum_materials)
             if m:
@@ -395,6 +358,7 @@ class Result:
             "source": c.source.get("Name", ""),
             "proprietes": c.source.get("Properties") or {},
             "cible": c.mapping.target,
+            "fluide": c.mapping.fluid,
             "rotation": c.mapping.rotation,
             "regle": c.mapping.rule,
             "notes": c.mapping.notes,

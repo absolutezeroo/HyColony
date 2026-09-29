@@ -26,6 +26,8 @@ PLACEHOLDERS = {
     "minecraft:air",
     "structurize:blocksubstitution",
     "structurize:blocksolidsubstitution",
+    "structurize:blockfluidsubstitution",
+    "structurize:blocktagsubstitution",
 }
 # Tout `minecolonies:blockhut*` est un marqueur de hutte (métadonnée) : géré
 # par motif dans is_placeholder(), plus besoin d'ajouter chaque hutte.

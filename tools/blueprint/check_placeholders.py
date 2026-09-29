@@ -53,6 +53,15 @@ def water_and_lava_go_to_the_fluids_array():
                                                                           (2, "Lava_Source", 1)}, prefab
 
 
+def flowing_water_is_not_a_source():
+    # A source only where MC has one (level 0): a flowing cell becomes a permanent source that floods (the review
+    # found 12 on the edge of small_crossroads3); Hytale's flow rebuilds it from the sources.
+    bp = _bp({(1, 0, 0): {"Name": "minecraft:water", "Properties": {"level": "3"}},
+              (2, 0, 0): {"Name": "minecraft:water", "Properties": {"level": "0"}}})
+    prefab = Converter().convert(bp).prefab()
+    assert [(f["x"], f["name"]) for f in prefab.get("fluids", [])] == [(2, "Water_Source")], prefab
+
+
 def the_anchor_is_structurizes_primary_offset():
     # barracks: the first colonybuilding tile entity is a tower, the primary offset is the barracks hut.
     root = {"tile_entities": [{"id": "minecolonies:colonybuilding", "x": 5, "y": 1, "z": 5}],
@@ -67,6 +76,7 @@ def run():
     plain_substitution_writes_nothing()
     tag_substitution_without_replacement_is_air()
     water_and_lava_go_to_the_fluids_array()
+    flowing_water_is_not_a_source()
     the_anchor_is_structurizes_primary_offset()
     print("blueprint placeholders check: OK")
 

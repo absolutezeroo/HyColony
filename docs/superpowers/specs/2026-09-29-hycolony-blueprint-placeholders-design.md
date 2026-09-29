@@ -15,7 +15,7 @@ Les plans MineColonies convertis (`tools/blueprint`) se construisent comme dans 
   - dans le cœur : CLEAR limitée aux cases du plan, remplissage, fluide, coût du remplissage ;
   - le réglage « bloc de remplissage » de la hutte du bâtisseur (terre par défaut), son onglet et son sélecteur ;
   - le convertisseur : nouveaux blocs, fluides dans `fluids`, ancre sur `primary_offset`.
-- **Hors portée** (lots suivants) : étapes `CLEAR_WATER`, `CLEAR_NON_SOLIDS`, `WEAK_SOLID` ; points de passage (`blockwaypoint`, 24 cases) ; `decorationcontroller` gratuit (46 cases) ; tours de caserne gratuites.
+- **Hors portée** (lots suivants) : blocs `waterlogged` (250 cases : le convertisseur n'écrit pas leur eau, et le plan HyColony n'a qu'un état par case) ; étapes `CLEAR_WATER`, `CLEAR_NON_SOLIDS`, `WEAK_SOLID` ; points de passage (`blockwaypoint`, 24 cases) ; `decorationcontroller` gratuit (46 cases) ; tours de caserne gratuites.
 
 ## Règles de jeu (fidèles à MC, R § 1-2)
 

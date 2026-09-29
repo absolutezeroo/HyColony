@@ -121,6 +121,11 @@ def load_blueprint(path: str | Path) -> Blueprint:
 
     anchor, method = _find_anchor(root, grid)
     bp = Blueprint(path, (sx, sy, sz), grid, root.get("tile_entities", []) or [], anchor, method)
+    if not grid.get(anchor, {}).get("Name", "").startswith("minecolonies:blockhut") and any(
+            e.get("Name", "").startswith("minecolonies:blockhut") for e in grid.values()):
+        bp.warnings.append(
+            "L'ancre n'est pas un bloc de hutte : dans styles.json, donner le hutOffset de la hutte, sinon HyColony "
+            "met la hutte à l'ancre.")
     if method.startswith("aucune"):
         bp.warnings.append(
             "Aucune ancre de hutte trouvée : l'origine du prefab est le coin (0,0,0) du blueprint. "
