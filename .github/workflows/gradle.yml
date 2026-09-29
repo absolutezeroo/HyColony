@@ -1,9 +1,6 @@
 name: Verifying Everything Compiles
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+# Every branch: origin has no "main", the working branch is sp0-foundations.
+on: [ push, pull_request ]
 jobs:
   build:
     runs-on: ubuntu-latest
