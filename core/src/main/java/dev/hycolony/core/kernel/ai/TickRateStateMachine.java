@@ -30,21 +30,22 @@ public class TickRateStateMachine<S extends IState> {
 
     private List<TickingTransition<S>> currentStateTransitions;
     private S state;
-    private int tickRate = 1;
+    private final int tickRate;
     private @Nullable TickingTransition<S> executedTransition;
 
     public TickRateStateMachine(S initialState, Consumer<RuntimeException> exceptionHandler) {
+        this(initialState, exceptionHandler, 1);
+    }
+
+    /** A machine whose every tick counts {@code tickRate} ticks off its transitions' countdowns. */
+    public TickRateStateMachine(S initialState, Consumer<RuntimeException> exceptionHandler, int tickRate) {
         this.initState = initialState;
         this.state = initialState;
         this.exceptionHandler = exceptionHandler;
         this.initStateTransitions = new ArrayList<>();
         this.currentStateTransitions = initStateTransitions;
-        transitionMap.put(initialState, initStateTransitions);
-    }
-
-    public TickRateStateMachine(S initialState, Consumer<RuntimeException> exceptionHandler, int tickRate) {
-        this(initialState, exceptionHandler);
         this.tickRate = tickRate;
+        transitionMap.put(initialState, initStateTransitions);
     }
 
     public void addTransition(TickingTransition<S> transition) {

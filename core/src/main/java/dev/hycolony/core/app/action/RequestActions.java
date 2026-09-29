@@ -106,7 +106,7 @@ public final class RequestActions {
      * "Ajouter": moves min(wanted, owned) from the player into the hut's containers, then overrules the first open
      * request of that building held by the player or retrying resolver for that item, with the stacks moved that are
      * not worn out (a broken tool closes nothing, MC destroyed it), and shows the hut's window again. Returns how many
-     * moved; nothing happens (0) outside a colony, without the hut or without ACCESS_HUTS.
+     * moved; nothing happens (0) outside a colony, without the hut, without ACCESS_HUTS or for nothing wanted.
      */
     public int addToHut(UUID player, BlockPos hutPos, ItemKey item, int wanted) {
         Colony c = manager.colonyAt(hutPos).orElse(null);
