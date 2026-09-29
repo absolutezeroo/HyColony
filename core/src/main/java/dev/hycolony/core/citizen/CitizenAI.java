@@ -21,9 +21,8 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Top-level citizen AI: idle, wander, or work its job. Port of MC CitizenAI.calculateNextState, reduced to the work
- * decision: the citizen works only when its job AI cannot go idle ({@link JobAI#canGoIdle}) and the rain does not stop
- * it ({@link #rainStopsWork}). Deviation from MC: no leisure time yet (no leisure system), so a worker with work
- * never takes a break.
+ * decision: the citizen works only when its job AI cannot go idle ({@link JobAI#canGoIdle}), it is not on a leisure
+ * break ({@link #onBreak}) and the rain does not stop it ({@link #rainStopsWork}).
  */
 public final class CitizenAI {
     private static final System.Logger LOG = System.getLogger(CitizenAI.class.getName());
@@ -167,7 +166,7 @@ public final class CitizenAI {
             ai = startJob(job); // fired and hired again (elsewhere) between two ticks: bound to the new hut
         }
         // MC re-decides every DECIDE_INTERVAL_TICKS, which also keeps the order lookup off the per-tick path.
-        if (++workTicks % DECIDE_INTERVAL_TICKS == 0 && (rainStopsWork() || ai.canGoIdle())) {
+        if (++workTicks % DECIDE_INTERVAL_TICKS == 0 && (rainStopsWork() || ai.canGoIdle() || onBreak(ai))) {
             dropJobAI();
             idleTicksLeft = 0; // the next idle decision wanders, replacing the job's unfinished walk
             return CitizenState.IDLE;
@@ -177,9 +176,9 @@ public final class CitizenAI {
     }
 
     /**
-     * MC calculateNextState: work only when the rain does not stop it ({@link #rainStopsWork}, checked first as in MC)
-     * and the job AI cannot go idle. Asks a fresh job AI, which then starts from its first state like MC's resetAI on
-     * entering WORK.
+     * MC calculateNextState: work only when the rain does not stop it ({@link #rainStopsWork}, checked first as in MC),
+     * the job AI cannot go idle and the citizen is not on a break ({@link #onBreak}). Asks a fresh job AI, which then
+     * starts from its first state like MC's resetAI on entering WORK.
      */
     private boolean shouldWork() {
         Job job = data.job().orElse(null);
@@ -190,7 +189,15 @@ public final class CitizenAI {
         if (ai == null || !job.equals(aiJob) || !Objects.equals(data.workBuilding(), aiWorkBuilding)) {
             ai = startJob(job);
         }
-        return !ai.canGoIdle();
+        return !ai.canGoIdle() && !onBreak(ai);
+    }
+
+    /**
+     * MC calculateNextState: a citizen on leisure ({@link CitizenData#leisureTime}) idles, unless its job AI cannot be
+     * interrupted right now.
+     */
+    private boolean onBreak(JobAI ai) {
+        return data.leisureTime() > 0 && ai.canBeInterrupted();
     }
 
     /**

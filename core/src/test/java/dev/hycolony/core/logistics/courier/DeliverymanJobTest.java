@@ -17,6 +17,7 @@ import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.item.Inventory;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
@@ -247,6 +248,7 @@ class DeliverymanJobTest {
     @Test
     void inactivityCancelsTasks() {
         DeliverymanJob job = courier(0);
+        colony.citizens().onBodyLoaded(t.bodies.existing(1, 1, new Vec3(0, 64, 0)), 1);
         job.setWorking(colony, true);
         RequestToken task = delivery(near, 13, STONE);
         assertEquals(task, current(job));
@@ -262,6 +264,21 @@ class DeliverymanJobTest {
 
         assertTrue(job.taskQueue().isEmpty());
         assertTrue(m.get(task).isEmpty());
+    }
+
+    @Test
+    void inactivityIsNotCountedWithoutALiveBody() {
+        DeliverymanJob job = courier(0);
+        job.setWorking(colony, true);
+        RequestToken task = delivery(near, 13, STONE);
+        assertEquals(task, current(job));
+        job.setWorking(colony, false);
+
+        for (int i = 0; i < DeliverymanJob.INACTIVITY_LIMIT; i++) {
+            colony.citizens().tickData();
+        }
+
+        assertEquals(List.of(task), job.taskQueue(), "MC CitizenData.update: nothing without a live entity");
     }
 
     @Test

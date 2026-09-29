@@ -49,6 +49,7 @@ final class CitizenSerializer {
         o.add("home", pos(d.homeBuilding()));
         o.add("work", pos(d.workBuilding()));
         o.addProperty("saturation", d.saturation());
+        o.addProperty("leisureTime", d.leisureTime());
         o.add("inventory", d.inventory().write());
         o.add(
                 "job",
@@ -81,6 +82,8 @@ final class CitizenSerializer {
         d.setHomeBuilding(readPos(o.get("home")));
         d.setWorkBuilding(readPos(o.get("work")));
         d.setSaturation(doubleOr(o.get("saturation"), d.saturation()));
+        // Deviation from MC: capped at one break, so an edited save cannot keep a worker on a break forever.
+        d.setLeisureTime(Math.min(intOr(o.get("leisureTime"), 0), CitizenData.LEISURE_TICKS));
         d.setInventory(Inventory.read(arrayOr(o.get("inventory")), CitizenData.INVENTORY_SLOTS));
         if (o.get("job") instanceof JsonObject job) {
             readJob(job, d, ctx);

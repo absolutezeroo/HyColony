@@ -62,24 +62,34 @@ public final class CitizenManager {
         citizens.put(data.id(), data);
     }
 
-    /** Every 60 ticks while ACTIVE: record positions and count job inactivity (MC CitizenData.update). */
+    /**
+     * Every 60 ticks while ACTIVE, for each citizen whose body is alive (MC CitizenData.update does nothing without a
+     * live entity): records its position, counts its job's inactivity and its leisure time.
+     */
     public void tickData() {
         if (failNextTick) {
             failNextTick = false;
             throw new IllegalStateException("test failure");
         }
-        for (CitizenData data : citizens.values()) {
-            data.job().ifPresent(job -> job.tickInactivity(colony));
-        }
         for (Map.Entry<Integer, BodyId> e : bodies.entrySet()) {
             CitizenData data = citizens.get(e.getKey());
-            if (data != null) {
+            if (data != null && ctx().bodies().isAlive(e.getValue())) {
                 ctx().bodies().position(e.getValue()).ifPresent(data::setLastPosition);
+                data.job().ifPresent(job -> job.tickInactivity(colony));
+                data.tickLeisure(Colony.CITIZEN_DATA_INTERVAL, homeLevel(data), ctx().random());
             }
         }
         if (!bodies.isEmpty()) {
             colony.markDirty();
         }
+    }
+
+    /** The level of the citizen's home; 1 without one (MC CitizenData.update). */
+    private int homeLevel(CitizenData data) {
+        BlockPos home = data.homeBuilding();
+        return home == null
+                ? 1
+                : colony.buildings().at(home).map(Building::level).orElse(1);
     }
 
     /** Every core tick: AI of citizens whose body is alive. */

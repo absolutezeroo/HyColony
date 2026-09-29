@@ -6,12 +6,17 @@ import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.item.Inventory;
 import java.util.Optional;
+import java.util.random.RandomGenerator;
 import org.jspecify.annotations.Nullable;
 
 /** Persistent citizen state. The in-world body is disposable and rebuilt from this. */
 public final class CitizenData {
     public static final double MAX_SATURATION = 60;
     public static final int INVENTORY_SLOTS = 27;
+    /** MC CitizenData.update: a leisure break lasts 3 minutes, in ticks. */
+    public static final int LEISURE_TICKS = 20 * 60 * 3;
+
+    private static final int TICKS_SECOND = 20;
 
     private final int id;
     private String name = "";
@@ -23,6 +28,7 @@ public final class CitizenData {
     private @Nullable BlockPos homeBuilding;
     private @Nullable BlockPos workBuilding;
     private double saturation = MAX_SATURATION;
+    private int leisureTime;
     private Inventory inventory = new Inventory(INVENTORY_SLOTS);
     private @Nullable Job job;
     private @Nullable JsonObject unknownJob;
@@ -105,6 +111,33 @@ public final class CitizenData {
 
     public void setSaturation(double saturation) {
         this.saturation = saturation;
+    }
+
+    /** Ticks of leisure left; 0 or less when not on a break. */
+    public int leisureTime() {
+        return leisureTime;
+    }
+
+    public void setLeisureTime(int leisureTime) {
+        this.leisureTime = leisureTime;
+    }
+
+    /**
+     * Counts a running break down by {@code elapsed} ticks, else starts one ({@link #LEISURE_TICKS}) with a chance of
+     * 1 in 1200 x (120 / home level) / {@code elapsed}: one break every 120 / home level minutes on average. MC
+     * CitizenData.update (leisure part). Deviation from MC: no reset when the citizen falls asleep (setAsleep), as
+     * there is no sleep yet.
+     */
+    void tickLeisure(int elapsed, int homeLevel, RandomGenerator random) {
+        if (leisureTime > 0) {
+            leisureTime -= elapsed;
+            return;
+        }
+        // Deviation from MC: a home not built yet (level 0) counts as level 1, where MC's bound would overflow.
+        int level = Math.max(1, homeLevel);
+        if (random.nextInt(TICKS_SECOND * 60 * (int) (60 / (level / 2.0)) / elapsed) <= 0) {
+            leisureTime = LEISURE_TICKS;
+        }
     }
 
     public Inventory inventory() {

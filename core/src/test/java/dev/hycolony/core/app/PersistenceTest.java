@@ -62,6 +62,7 @@ class PersistenceTest {
             c.citizens().onColonyTick();
         }
         c.setDay(7);
+        c.citizens().all().iterator().next().setLeisureTime(1234);
         m.persistence().saveAll();
 
         ColonyManager reloaded = manager(new TestContexts());
@@ -77,6 +78,7 @@ class PersistenceTest {
         CitizenData b = r.citizens().all().iterator().next();
         assertEquals(a.name(), b.name());
         assertEquals(a.skills().level(Skill.Focus), b.skills().level(Skill.Focus));
+        assertEquals(1234, b.leisureTime());
         assertEquals(c.log().entries(), r.log().entries());
         assertTrue(reloaded.colonyAt(new BlockPos(10, 64, 10)).isPresent()); // territory rebuilt
     }

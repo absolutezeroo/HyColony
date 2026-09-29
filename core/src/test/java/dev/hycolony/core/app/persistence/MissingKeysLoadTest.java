@@ -118,7 +118,17 @@ class MissingKeysLoadTest {
         Colony c = saveEditAndLoad(json -> {
             for (JsonElement e : json.getAsJsonArray("citizens")) {
                 JsonObject citizen = e.getAsJsonObject();
-                List.of("name", "gender", "child", "skills", "saturation", "inventory", "home", "work", "job")
+                List.of(
+                                "name",
+                                "gender",
+                                "child",
+                                "skills",
+                                "saturation",
+                                "leisureTime",
+                                "inventory",
+                                "home",
+                                "work",
+                                "job")
                         .forEach(citizen::remove);
                 citizen.addProperty("lastPosition", "nowhere");
             }
@@ -127,7 +137,19 @@ class MissingKeysLoadTest {
         assertEquals(4, c.citizens().all().size());
         CitizenData d = c.citizens().all().iterator().next();
         assertEquals("", d.name());
+        assertEquals(0, d.leisureTime());
         assertTrue(d.inventory().contents().isEmpty());
+    }
+
+    @Test
+    void leisureLongerThanOneBreakLoadsAsOneBreak() throws IOException {
+        Colony c = saveEditAndLoad(json -> firstCitizen(json).addProperty("leisureTime", 1_000_000_000));
+
+        int longest = c.citizens().all().stream()
+                .mapToInt(CitizenData::leisureTime)
+                .max()
+                .orElseThrow();
+        assertEquals(CitizenData.LEISURE_TICKS, longest, "an edited save cannot keep a worker on a break forever");
     }
 
     @Test
