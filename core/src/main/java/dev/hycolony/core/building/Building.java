@@ -14,6 +14,7 @@ import dev.hycolony.core.request.Resolver;
 import dev.hycolony.core.request.ResolverProvider;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequesterId;
+import dev.hycolony.core.request.model.ToolRequest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -28,8 +29,6 @@ public final class Building implements Requester, ResolverProvider {
     private static final int WOOD_HUT_LEVEL = 0;
     /** MC EquipmentLevelConstants.BASIC_TOOL_LEVEL (stone). */
     private static final int BASIC_TOOL_LEVEL = 1;
-    /** MC EquipmentLevelConstants.TOOL_LEVEL_MAXIMUM: any tool level. */
-    private static final int TOOL_LEVEL_MAXIMUM = Integer.MAX_VALUE;
 
     private final BuildingType type;
     private final BlockPos position;
@@ -130,11 +129,11 @@ public final class Building implements Requester, ResolverProvider {
 
     /**
      * The highest tool level this hut's worker may use (MC {@code IBuilding.getMaxEquipmentLevel}): 1 at level 0
-     * ({@code BASIC_TOOL_LEVEL}), the hut level up to its max, then unlimited ({@code TOOL_LEVEL_MAXIMUM}).
+     * ({@code BASIC_TOOL_LEVEL}), the hut level up to its max, then unlimited ({@link ToolRequest#ANY_LEVEL}, MC TOOL_LEVEL_MAXIMUM).
      */
     public int maxEquipmentLevel() {
         if (level >= type.maxLevel()) {
-            return TOOL_LEVEL_MAXIMUM;
+            return ToolRequest.ANY_LEVEL;
         }
         return level <= WOOD_HUT_LEVEL ? BASIC_TOOL_LEVEL : level - WOOD_HUT_LEVEL;
     }

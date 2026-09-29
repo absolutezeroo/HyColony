@@ -92,11 +92,13 @@ final class RequestableJson {
                         s.item(),
                         s.count(),
                         SavedJson.intOr(o.get("minCount"), s.count()),
-                        SavedJson.boolOr(o.get("canBeResolvedByBuilding"), false)));
+                        SavedJson.boolOr(o.get("canBeResolvedByBuilding"), true)));
             case "tool" ->
                 SavedJson.enumOf(ToolType.class, o.get("tool"))
                         .map(t -> new ToolRequest(
-                                t, SavedJson.intOr(o.get("minLevel"), 0), SavedJson.intOr(o.get("maxLevel"), 0)));
+                                t,
+                                SavedJson.intOr(o.get("minLevel"), 0),
+                                SavedJson.intOr(o.get("maxLevel"), ToolRequest.ANY_LEVEL)));
             case "delivery" -> readDelivery(o);
             case "pickup" ->
                 Optional.of(new Pickup(
@@ -127,7 +129,7 @@ final class RequestableJson {
                 start.get(),
                 new RequesterId(SavedJson.stringOr(o.get("target"), "")),
                 stack.get(),
-                SavedJson.intOr(o.get("priority"), 0)));
+                SavedJson.intOr(o.get("priority"), Delivery.DEFAULT_DELIVERY_PRIORITY)));
     }
 
     /** Empty without accepted items ({@link StackList} accepts one at least); a missing description reads as none. */

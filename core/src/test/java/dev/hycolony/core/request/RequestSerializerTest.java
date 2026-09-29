@@ -1,6 +1,7 @@
 package dev.hycolony.core.request;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.gson.Gson;
@@ -32,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 class RequestSerializerTest {
@@ -196,6 +198,22 @@ class RequestSerializerTest {
     }
 
     @Test
+    void reportedRequestWithoutResolverIsTriedAgainWithoutRewritingTheSave() {
+        World w = new World();
+        RequestToken t = w.m.createAndAssign(w.hut, new StackRequest(PLANKS, 4, 4, true), Request.NO_CITIZEN);
+        JsonObject json = roundTrip(RequestSerializer.write(w.m));
+        json.getAsJsonArray("requests").get(0).getAsJsonObject().addProperty("state", "REPORTED");
+        json.add("assignments", new JsonObject());
+        json.add("player", new JsonArray());
+
+        containers.containers.computeIfAbsent(HUT, p -> new HashMap<>()).put(PLANKS, 10);
+        World l = new World();
+        assertFalse(RequestSerializer.read(json, l.m), "REPORTED without a resolver is a legitimate state");
+
+        assertEquals("building:0,64,0", l.resolverOf(t));
+    }
+
+    @Test
     void malformedSavedRequestIsLeftOutAndMissingValuesTakeTheirDefault() {
         World w = new World();
         RequestToken t = w.m.createAndAssign(w.hut, new StackRequest(PLANKS, 4, 4, true), 3);
@@ -205,7 +223,7 @@ class RequestSerializerTest {
         JsonObject noToken = saved.deepCopy();
         noToken.remove("token");
         JsonObject noCount = saved.deepCopy();
-        noCount.addProperty("token", new java.util.UUID(0, 9).toString());
+        noCount.addProperty("token", new UUID(0, 9).toString());
         noCount.getAsJsonObject("requestable").remove("count");
         requests.add(noToken);
         requests.add(noCount);

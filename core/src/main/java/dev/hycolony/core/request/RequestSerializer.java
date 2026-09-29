@@ -86,20 +86,21 @@ public final class RequestSerializer {
     }
 
     /**
-     * Adds to {@code orphans} the open requests that no saved assignment names (an unreadable or missing entry, § 5),
-     * which would otherwise wait forever without a resolver; true when there was one.
+     * Adds to {@code orphans} the open requests that no saved assignment names, which would otherwise wait forever
+     * without a resolver. True when one had been assigned (an unreadable or missing entry, § 5, repaired): a request
+     * still REPORTED is legitimately unassigned (RequestAssigner) and only tried again.
      */
     private static boolean addUnassigned(RequestManager m, List<RequestToken> orphans) {
-        boolean found = false;
+        boolean lost = false;
         for (Request r : m.all()) {
             if (r.state().isBefore(RequestState.COMPLETED)
                     && !m.store().isAssigned(r.token())
                     && !orphans.contains(r.token())) {
                 orphans.add(r.token());
-                found = true;
+                lost |= !r.state().isBefore(RequestState.ASSIGNED);
             }
         }
-        return found;
+        return lost;
     }
 
     /** Restores the assignments whose resolver still exists; returns the open requests whose resolver is gone. */

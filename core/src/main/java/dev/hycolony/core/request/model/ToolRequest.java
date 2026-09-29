@@ -7,6 +7,9 @@ import java.util.Objects;
 
 /** A single tool of {@code type} with a level in [minLevel, maxLevel]. */
 public record ToolRequest(ToolType type, int minLevel, int maxLevel) implements Deliverable {
+    /** MC EquipmentLevelConstants.TOOL_LEVEL_MAXIMUM: any tool level. */
+    public static final int ANY_LEVEL = Integer.MAX_VALUE;
+
     public ToolRequest {
         Objects.requireNonNull(type, "type");
     }
