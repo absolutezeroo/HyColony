@@ -209,8 +209,8 @@ FAMILY = {
     "minecraft:ladder": f.wall_backed("Furniture_Village_Ladder"),
     # Orientés comme la source
     # Petit coffre : yaw direct, validé en jeu dans les 4 orientations (retest).
-    "minecraft:chest": f.facing("Furniture_Crude_Chest_Small", "coffre -> petit coffre natif"),
-    "minecraft:ender_chest": f.facing("Furniture_Crude_Chest_Small", "coffre de l'Ender -> petit coffre natif"),
+    "minecraft:chest": f.chest("Furniture_Crude_Chest_Small", "coffre -> petit coffre natif"),
+    "minecraft:ender_chest": f.chest("Furniture_Crude_Chest_Small", "coffre de l'Ender -> petit coffre natif"),
     "minecraft:hopper": f.facing("Metal_Iron_Pipe_Large_Mouthpiece", "entonnoir -> embout de tuyau"),
     "minecraft:campfire": f.facing("Bench_Campfire"),
     # Divers

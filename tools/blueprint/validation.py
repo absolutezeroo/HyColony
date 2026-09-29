@@ -70,9 +70,11 @@ def _asset_ids(zip_path: Path) -> frozenset[str]:
 
 
 def _mod_block_ids() -> set[str]:
-    """Les blocs du mod HyColony (blocs de dev des plans), lus dans ses assets."""
+    """Les blocs du mod HyColony (huttes, champ, blocs de dev des plans), lus dans ses assets ; pas ses outils."""
     folder = REPO / "plugin" / "src" / "main" / "resources" / "Server" / "Item" / "Items" / "HyColony"
-    return {p.stem for p in folder.glob("*.json")} if folder.is_dir() else set()
+    if not folder.is_dir():
+        return set()
+    return {p.stem for p in folder.glob("*.json") if "BlockType" in json.loads(p.read_text(encoding="utf-8-sig"))}
 
 
 def load_known_ids(custom: str | Path | None = None) -> tuple[set[str], str]:

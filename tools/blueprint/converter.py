@@ -87,7 +87,8 @@ def wall_torch(bp: Blueprint, pos: Pos, p: dict) -> Mapping:
 
 
 def bookshelf(bp: Blueprint, pos: Pos, p: dict) -> Mapping:
-    """Devine le mur d'appui : voisin plein avec du vide en face."""
+    """Devine le mur d'appui : voisin plein avec du vide en face. À égalité (une rangée de bibliothèques qui fait
+    elle-même le mur, du vide des deux côtés), la face ouverte va vers la hutte, donc vers l'intérieur."""
     best = None
     for d, off in DIR.items():
         n = bp.name_at((pos[0] + off[0], pos[1] + off[1], pos[2] + off[2]))
@@ -96,10 +97,11 @@ def bookshelf(bp: Blueprint, pos: Pos, p: dict) -> Mapping:
         score = 4 if n in T.FULL_SUPPORT_SOURCE else (1 if n and not T.is_placeholder(n) else 0)
         if on is None or T.is_placeholder(on):
             score += 3
-        cand = (score, d)
+        inward = oo[0] * (bp.anchor[0] - pos[0]) + oo[2] * (bp.anchor[2] - pos[2])
+        cand = (score, inward, d)
         if best is None or cand > best:
             best = cand
-    score, d = best
+    score, _, d = best
     return place("Furniture_Village_Bookcase", yaw_for({"facing": d}),
                  f"bibliothèque -> Village Bookcase, mur déduit : {d} (score {score})", rule="bookshelf")
 

@@ -244,6 +244,18 @@ def facing(target: str, note: str | None = None):
     return rule
 
 
+# Les coffres Crude (petit et grand) regardent à l'opposé de leur lacet : calibré en jeu sur le grand coffre
+# (detectors.LARGE_CHEST_YAW_OFFSET), même modèle pour le petit (couvercle et charnière du même côté).
+CHEST_YAW_OFFSET = 2
+
+
+def chest(target: str, note: str | None = None):
+    """Coffre Crude qui regarde comme la source (facing Minecraft = face avant)."""
+    def rule(p: dict) -> Mapping:
+        return place(target, (yaw_for(p) + CHEST_YAW_OFFSET) % 4, note, rule="chest")
+    return rule
+
+
 def wall_backed(target: str, note: str | None = None):
     """Modèle adossé à un mur, facing Minecraft = côté visible."""
     def rule(p: dict) -> Mapping:

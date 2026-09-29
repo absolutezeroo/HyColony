@@ -164,7 +164,8 @@ def detect_racks(bp: Blueprint, out: Detection) -> None:
     # 2) Racks simples : deux racks voisins forment un grand coffre.
 
     def small(p: Pos) -> None:
-        out.claims[p] = place("Furniture_Crude_Chest_Small", yaw_for(racks[p].get("Properties") or {}),
+        yaw = (yaw_for(racks[p].get("Properties") or {}) + LARGE_CHEST_YAW_OFFSET) % 4  # même modèle Crude
+        out.claims[p] = place("Furniture_Crude_Chest_Small", yaw,
                               "rack isolé -> petit coffre natif (18 cases)", rule="rack")
 
     large = smalls = 0
