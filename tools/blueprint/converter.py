@@ -24,7 +24,7 @@ from . import families as fam
 from . import hyvanilla
 from . import tables as T
 from .blueprint import Blueprint, load_blueprint
-from .detectors import is_bed, is_normal_door, is_wall_sign, run_detectors
+from .detectors import is_normal_door, is_wall_sign, run_detectors
 from .geometry import DIR, OPPOSITE, Pos, sub, yaw_for
 from .editor import editor_block, fluid_rule
 from .model import Mapping, place, skip, unmapped
@@ -64,10 +64,6 @@ def always_empty(name: str, p: dict) -> Mapping | None:
         return skip(f"retiré volontairement : {T.REMOVED[name]}", rule="removed")
     if name.startswith("minecraft:") and name.endswith("_wall_banner"):
         return skip("bannière murale retirée", rule="removed")
-    # Les lits Hytale ne correspondent pas à ceux de Minecraft : on les
-    # retire, tu les poses toi-même en jeu.
-    if is_bed(name):
-        return skip("lit retiré : à poser en jeu", rule="removed")
     if is_normal_door(name) and p.get("half") == "upper":
         return skip("moitié haute de porte : la porte Hytale occupe déjà cette case", rule="door")
     return None
@@ -195,7 +191,7 @@ def pattern_rule(bp: Blueprint, pos: Pos, name: str, p: dict) -> Mapping | None:
     clay = T.colored_clay(name)
     if clay:
         return place(clay[0], 0, clay[1], rule="clay")
-    m = hyvanilla.rule(name)
+    m = hyvanilla.rule(name, p)
     if m:
         return m
     if name == "minecraft:glass_pane" or name.endswith("_stained_glass_pane"):

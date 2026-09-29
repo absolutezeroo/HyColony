@@ -1,4 +1,4 @@
-"""Tapis et pots de fleurs Minecraft -> blocs du mod HyVanilla (vanilla/plugin).
+"""Tapis, pots de fleurs et lits Minecraft -> blocs du mod HyVanilla (vanilla/plugin).
 
 Les identifiants viennent du mod lui-même, jamais écrits à la main :
 - vanilla/.../Server/Item/Items/HyVanilla/*.json : les blocs du mod ;
@@ -6,7 +6,11 @@ Les identifiants viennent du mod lui-même, jamais écrits à la main :
 
 Couleurs : Hytale a 20 laines (11 teintes, 9 en `_Light`) et pas les 16 de Minecraft
 (docs/research/carpets-flower-pots.md § 1) ; les couleurs absentes prennent la plus proche par le nom.
-Le pot de Minecraft est en terre cuite : le pot HyVanilla en argile lisse orange (« marron », tools/vanilla/flower_pots.py).
+Le pot de Minecraft est en terre cuite : le pot HyVanilla en argile lisse orange (« marron »,
+tools/vanilla/flower_pots.py).
+Lits : le lit HyVanilla (1×2) a sa tête sur la case d'origine et s'étend vers +Z au lacet 0
+(Server/Item/Block/Hitboxes/HyVanilla/HyVanilla_Bed.json), soit un lit Minecraft facing=north ; il se pose sur la
+case « head », tourné comme le facing, et le jeu recrée la case du pied.
 """
 from __future__ import annotations
 
@@ -14,13 +18,14 @@ import json
 from functools import lru_cache
 from pathlib import Path
 
-from .model import Mapping, place
+from .geometry import yaw_for
+from .model import Mapping, place, skip
 
 REPO = Path(__file__).resolve().parents[2]
 RESOURCES = REPO / "vanilla" / "plugin" / "src" / "main" / "resources"
 UPSTREAM_CSV = Path(__file__).resolve().parent / "data" / "default-block-overrides.csv"
 
-# Couleur Minecraft -> suffixe de HyVanilla_Carpet_<suffixe>.
+# Couleur Minecraft -> suffixe de HyVanilla_Carpet_<suffixe> et HyVanilla_Bed_<suffixe> (mêmes 20 laines).
 CARPET_COLORS = {
     "white": "White", "orange": "Orange", "magenta": "Purple_Light", "light_blue": "Blue_Light",
     "yellow": "Yellow", "lime": "Green_Light", "pink": "Pink", "gray": "Gray", "light_gray": "Gray_Light",
@@ -55,15 +60,25 @@ def _plants() -> dict[str, str]:
     return load_mapping_csv(UPSTREAM_CSV)
 
 
-def rule(name: str) -> Mapping | None:
-    """Le bloc HyVanilla d'un tapis ou d'un pot de fleurs Minecraft ; None pour les autres blocs."""
-    if name.startswith("minecraft:") and name.endswith("_carpet"):
-        color = name[len("minecraft:"):-len("_carpet")]
-        if color not in CARPET_COLORS:
-            return None
-        target = f"HyVanilla_Carpet_{CARPET_COLORS[color]}"
-        note = f"tapis {color} -> {target}" + (" (couleur la plus proche)" if color in APPROXIMATED else "")
-        return place(target, 0, note, rule="hyvanilla")
+def _colored(name: str, kind: str) -> tuple[str, str] | None:
+    """(couleur Minecraft, suffixe HyVanilla) d'un `minecraft:<couleur>_<kind>` ; None sinon."""
+    if not (name.startswith("minecraft:") and name.endswith(f"_{kind}")):
+        return None
+    color = name[len("minecraft:"):-len(kind) - 1]
+    return (color, CARPET_COLORS[color]) if color in CARPET_COLORS else None
+
+
+def rule(name: str, p: dict) -> Mapping | None:
+    """Le bloc HyVanilla d'un tapis, d'un pot de fleurs ou d'un lit Minecraft ; None pour les autres blocs."""
+    for kind, prefix in (("carpet", "HyVanilla_Carpet"), ("bed", "HyVanilla_Bed")):
+        colored = _colored(name, kind)
+        if colored is None:
+            continue
+        if kind == "bed" and p.get("part") == "foot":
+            return skip("pied de lit : le lit HyVanilla occupe déjà cette case", rule="bed")
+        target = f"{prefix}_{colored[1]}"
+        note = f"{name} -> {target}" + (" (couleur la plus proche)" if colored[0] in APPROXIMATED else "")
+        return place(target, yaw_for(p) if kind == "bed" else 0, note, rule="hyvanilla")
     if name == "minecraft:flower_pot":
         return place(FLOWER_POT, 0, f"pot de fleurs -> {FLOWER_POT}", rule="hyvanilla")
     if name.startswith("minecraft:potted_"):

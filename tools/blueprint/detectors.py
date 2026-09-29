@@ -38,10 +38,6 @@ def is_normal_door(name: str) -> bool:
     return name.startswith("minecraft:") and name.endswith("_door") and not name.endswith("_trapdoor")
 
 
-def is_bed(name: str) -> bool:
-    return name.startswith("minecraft:") and name.endswith("_bed")
-
-
 @dataclass
 class Detection:
     claims: dict[Pos, Mapping] = field(default_factory=dict)
