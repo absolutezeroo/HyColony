@@ -23,7 +23,6 @@ public final class FakeRecipeCatalog implements RecipeCatalog {
     /** Cost of reaching a tier from the one below, keyed {@code bench + ":" + tier}. */
     public final Map<String, List<ItemAmount>> upgradeCosts = new HashMap<>();
 
-    public final Map<String, ItemKey> benchItems = new HashMap<>();
     /** A bench's own categories; a bench absent here accepts every category. */
     public final Map<String, List<String>> benchCategories = new HashMap<>();
     /** Hytale recipe ids each player knows. */
@@ -76,11 +75,6 @@ public final class FakeRecipeCatalog implements RecipeCatalog {
         List<ItemAmount> out = new ArrayList<>();
         sum.forEach((item, count) -> out.add(new ItemAmount(item, count)));
         return out;
-    }
-
-    @Override
-    public Optional<ItemKey> benchItem(String benchId) {
-        return Optional.ofNullable(benchItems.get(benchId));
     }
 
     @Override

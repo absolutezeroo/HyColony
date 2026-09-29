@@ -36,7 +36,8 @@ public final class EntryCost {
         }
         Workstation bench = e.workstation().get();
         Map<ItemKey, Integer> sum = new LinkedHashMap<>();
-        recipes.benchItem(bench.benchId()).or(() -> blockItem).ifPresent(item -> sum.put(item, 1));
+        // The plan's block item places the bench: several blocks share a bench id (Bench_Farming, Bench_Trough).
+        blockItem.ifPresent(item -> sum.put(item, 1));
         for (ItemAmount a : recipes.benchUpgradeCost(bench.benchId(), FRESH_BENCH_TIER, bench.tier())) {
             sum.merge(a.item(), a.count(), Integer::sum);
         }

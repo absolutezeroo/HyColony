@@ -34,11 +34,6 @@ public interface RecipeCatalog {
         }
 
         @Override
-        public Optional<ItemKey> benchItem(String benchId) {
-            return Optional.empty();
-        }
-
-        @Override
         public List<String> benchCategories(String benchId) {
             return List.of();
         }
@@ -63,9 +58,6 @@ public interface RecipeCatalog {
      * of each tier above {@code fromTier}; empty if none or unknown.
      */
     List<ItemAmount> benchUpgradeCost(String benchId, int fromTier, int toTier);
-
-    /** The item that places this bench. */
-    Optional<ItemKey> benchItem(String benchId);
 
     /** The bench's own categories; empty = it accepts every category. */
     List<String> benchCategories(String benchId);

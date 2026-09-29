@@ -28,9 +28,8 @@ class NeededResourcesWorkstationTest {
     /** What the recipe catalog names as the bench's item. */
     private static final ItemKey BENCH_I = new ItemKey("Bench_Farming_Item");
     /** What the item catalog says places the bench block: only used when the bench's own item is unknown. */
-    private static final ItemKey BLOCK_I = new ItemKey("Bench_Farming_Block_Item");
-
     private static final ItemKey STONE_I = new ItemKey("Rock_Stone_Item");
+
     private static final ItemKey A = new ItemKey("Ingredient_A");
     private static final ItemKey B = new ItemKey("Ingredient_B");
 
@@ -38,9 +37,8 @@ class NeededResourcesWorkstationTest {
     private final FakeRecipeCatalog recipes = new FakeRecipeCatalog();
 
     NeededResourcesWorkstationTest() {
-        items.itemForBlock.put(BENCH, BLOCK_I);
+        items.itemForBlock.put(BENCH, BENCH_I);
         items.itemForBlock.put(STONE, STONE_I);
-        recipes.benchItems.put(FARMING, BENCH_I);
         recipes.upgradeCosts.put(FARMING + ":2", List.of(new ItemAmount(A, 5)));
         recipes.upgradeCosts.put(FARMING + ":3", List.of(new ItemAmount(B, 8)));
     }
@@ -84,15 +82,7 @@ class NeededResourcesWorkstationTest {
     }
 
     @Test
-    void benchOfUnknownItemCostsTheItemOfItsBlock() {
-        recipes.benchItems.clear();
-
-        assertEquals(List.of(new ItemAmount(BLOCK_I, 1), new ItemAmount(A, 5)), EntryCost.of(bench(2), items, recipes));
-    }
-
-    @Test
     void benchWithoutAnyKnownItemCostsOnlyItsUpgrades() {
-        recipes.benchItems.clear();
         items.itemForBlock.clear();
 
         assertEquals(List.of(new ItemAmount(A, 5)), EntryCost.of(bench(2), items, recipes));

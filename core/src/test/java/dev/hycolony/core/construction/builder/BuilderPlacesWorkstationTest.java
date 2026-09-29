@@ -74,7 +74,6 @@ class BuilderPlacesWorkstationTest {
         };
         t.catalog.kinds.put(BENCH, BlockKind.SOLID);
         t.catalog.itemForBlock.put(BENCH, BENCH_I);
-        t.recipes.benchItems.put(FARMING, BENCH_I);
         t.recipes.upgradeCosts.put(FARMING + ":2", List.of(new ItemAmount(A, 5)));
         t.recipes.upgradeCosts.put(FARMING + ":3", List.of(new ItemAmount(B, 8)));
 

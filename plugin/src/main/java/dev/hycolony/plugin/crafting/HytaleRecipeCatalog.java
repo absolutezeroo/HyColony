@@ -88,15 +88,6 @@ public final class HytaleRecipeCatalog implements RecipeCatalog {
         }
     }
 
-    /**
-     * Always empty: several blocks share a bench id ({@code Bench_Farming}, {@code Bench_Trough}), so the plan's own
-     * block item is the bench's item (EntryCost falls back to it).
-     */
-    @Override
-    public Optional<ItemKey> benchItem(String benchId) {
-        return Optional.empty();
-    }
-
     @Override
     public List<String> benchCategories(String benchId) {
         return benches.categories(benchId);
