@@ -845,6 +845,13 @@ Sources U7 (0.7.0-pre.4). Contexte : `docs/research/structurize-placeholders.md`
 - **Fluide d'eau** : l'asset fluide `Water_Source` existe (`Server/Item/Block/Fluids/Water_Source.json`), ainsi que `Water` et `Water_Finite`.
 - **Blocs éditeur** : `Editor_Empty` est un cube transparent, `Quality: Technical`, `Categories: ["Tool.PrefabEditing"]`, `SubCategory: "PrefabBlocks"`, `Group: "@Tech"`, sans `Material` (`Server/Item/Items/Editor/Editor_Empty.json`). Nos deux blocs de substitution reprennent ce modèle. Leur rendu et leur place dans le menu créatif sont **[in-game]**.
 
+## 33. Faces d'appui d'un bloc (`Supporting`) : un bloc `Model` n'en a aucune (2026-09-29)
+
+- `BlockType.processConfig` (`server/core/asset/type/blocktype/config/BlockType.java:1969-1975`) : sans clé `Supporting`, un bloc reçoit les six faces pleines (`ALL_SUPPORTING_FACES`) **seulement** s'il est `DrawType` `Cube`, `CubeWithModel` ou `GizmoCube` **et** `Material: Solid`. Tout autre bloc, dont un `Model` plein, reçoit une map vide : rien ne tient dessus ni contre lui (torche, lanterne, torche murale). Symptôme vu en jeu sur les colombages HyDomum.
+- Format JSON (`MergedEnumMapCodec`, noms en CamelCase) : `"Supporting": {"Up": [{}], "Down": [{}], "North": [{}], "South": [{}], "East": [{}], "West": [{}]}`. Une entrée `{}` vaut `FaceType: "Full"` (valeur par défaut de `BlockFaceSupport`), sans `Filler`.
+- La rotation garde le `FaceType` (`getSupporting(rotationIndex)`) ; un `BlockType` copié (`super(template)`, variantes HyDomum) recopie `supporting`. Les définitions d'état héritent du `Supporting` du bloc : un état plus étroit doit déclarer le sien. Modèle vanilla : `Rock_Stone_Brick_Pillar_Middle` ne déclare que `Up` et `Down`.
+- À appliquer à tout futur bloc `Model` plein (HyDomum, HyVanilla…).
+
 ## Could not verify
 
 1. **Client rendering of item animations on NPCs** (`AnimationSlot.Action` with `"Block"/"Build"` or `"Pickaxe"/"Mine"` on `PlayerTestModel_V`) and whether they loop or play once. Only the server packet path is verified.

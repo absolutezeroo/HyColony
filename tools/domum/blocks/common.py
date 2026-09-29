@@ -154,8 +154,9 @@ ALL_FACES = ("Up", "Down", "North", "South", "East", "West")
 
 
 def full_supporting():
-    """The Supporting of a full block: every face Full, as Hytale gives a solid Cube by itself (BlockType.java) but
-    never a Model block, which otherwise holds nothing up (no torch, lantern, rail...)."""
+    """The Supporting of a full block: every face Full, as Hytale gives by itself to a Solid Cube, CubeWithModel or
+    GizmoCube (BlockType.processConfig) but never to a Model block, which otherwise holds nothing up (torch,
+    lantern...)."""
     return {face: [{}] for face in ALL_FACES}
 
 

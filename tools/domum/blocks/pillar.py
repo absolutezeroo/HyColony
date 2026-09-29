@@ -22,9 +22,13 @@ def generate(ctx, family):
         looks = {shape: common.look(ctx, family, ident + ("" if shape == "Full" else "_" + shape), block,
                                     {"column": column}) for shape, column in COLUMNS.items()}
         full = looks.pop("Full")
+        # As Hytale's pillars (Rock_Stone_Brick_Pillar_Middle): a column's middle piece holds up only its ends; the
+        # full shapes (lone pillar, foot, capital) every face, given by the template and inherited by their states.
+        looks["Middle"]["Supporting"] = {"Up": [{}], "Down": [{}]}
         template = ident + "ConnectedBlockTemplate"
         block_type = common.model_block_type(ctx, family, full["CustomModel"], full["HitboxType"], "None")
-        block_type.update({"Opacity": "Transparent", **common.connected(ident, template, "Full", looks)})
+        block_type.update({"Opacity": "Transparent", "Supporting": common.full_supporting(),
+                           **common.connected(ident, template, "Full", looks)})
         common.template(ctx, family, ident, (block,), block_type)
         write_json(ctx.pack / common.TEMPLATES / (template + ".json"), connection_template(ctx.assets, ident))
 

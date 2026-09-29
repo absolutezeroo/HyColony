@@ -42,8 +42,16 @@ def static_templates_live_in_the_do_tab():
     assert "HitboxType" not in frame and frame["Opacity"] == "Solid", frame
     # A Model block offers no supporting face unless it says so (BlockType.java: only a solid Cube or CubeWithModel
     # gets all six by default), so without them nothing (torch, lantern) could stand on a timber frame.
-    assert frame["Supporting"] == {face: [{}] for face in common.ALL_FACES}, frame.get("Supporting")
+    for ident, item in ctx.items.items():
+        if ident.startswith("HyDomum_TimberFrame_"):
+            assert item["BlockType"]["Supporting"] == common.full_supporting(), ident
     assert "Supporting" not in panel, panel
+    # Pillars as Hytale's own (Rock_Stone_Brick_Pillar_*): the full shapes hold up every face, a middle piece of a
+    # column only up and down (its states inherit the template's Supporting, so Middle states its own).
+    pillar = ctx.items["HyDomum_Pillar_Square"]["BlockType"]
+    assert pillar["Supporting"] == common.full_supporting(), pillar.get("Supporting")
+    middle = pillar["State"]["Definitions"]["Middle"]
+    assert middle["Supporting"] == {"Up": [{}], "Down": [{}]}, middle.get("Supporting")
     assert len([i for i in ctx.items if i.startswith("HyDomum_TimberFrame_")]) == 10
 
 

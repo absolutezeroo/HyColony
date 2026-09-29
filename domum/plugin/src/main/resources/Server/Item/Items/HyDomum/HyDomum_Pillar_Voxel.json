@@ -32,6 +32,26 @@
     ],
     "VariantRotation": "None",
     "HitboxType": "Full",
+    "Supporting": {
+      "Up": [
+        {}
+      ],
+      "Down": [
+        {}
+      ],
+      "North": [
+        {}
+      ],
+      "South": [
+        {}
+      ],
+      "East": [
+        {}
+      ],
+      "West": [
+        {}
+      ]
+    },
     "ConnectedBlockRuleSet": {
       "Type": "CustomTemplate",
       "TemplateShapeAssetId": "HyDomum_Pillar_VoxelConnectedBlockTemplate",
@@ -54,7 +74,15 @@
         },
         "Middle": {
           "CustomModel": "Blocks/HyDomum/Pillar_Voxel_Middle.blockymodel",
-          "HitboxType": "HyDomum_Pillar_Voxel_Middle"
+          "HitboxType": "HyDomum_Pillar_Voxel_Middle",
+          "Supporting": {
+            "Up": [
+              {}
+            ],
+            "Down": [
+              {}
+            ]
+          }
         }
       }
     },

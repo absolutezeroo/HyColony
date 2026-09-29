@@ -32,6 +32,26 @@
     ],
     "VariantRotation": "None",
     "HitboxType": "Full",
+    "Supporting": {
+      "Up": [
+        {}
+      ],
+      "Down": [
+        {}
+      ],
+      "North": [
+        {}
+      ],
+      "South": [
+        {}
+      ],
+      "East": [
+        {}
+      ],
+      "West": [
+        {}
+      ]
+    },
     "ConnectedBlockRuleSet": {
       "Type": "CustomTemplate",
       "TemplateShapeAssetId": "HyDomum_Pillar_RoundConnectedBlockTemplate",
@@ -54,7 +74,15 @@
         },
         "Middle": {
           "CustomModel": "Blocks/HyDomum/Pillar_Round_Middle.blockymodel",
-          "HitboxType": "HyDomum_Pillar_Round_Middle"
+          "HitboxType": "HyDomum_Pillar_Round_Middle",
+          "Supporting": {
+            "Up": [
+              {}
+            ],
+            "Down": [
+              {}
+            ]
+          }
         }
       }
     },
