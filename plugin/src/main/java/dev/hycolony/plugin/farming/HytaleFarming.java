@@ -140,7 +140,7 @@ public final class HytaleFarming implements FarmingAccess {
 
     /** The base block id at {@code pos} (a crop's stage is its crop), empty for air or an unloaded chunk. */
     private Optional<String> key(BlockPos pos) {
-        return blocks.get(pos).map(s -> s.key().id());
+        return blocks.get(pos).map(s -> s.key().id()).filter(id -> !BlockType.EMPTY_KEY.equals(id));
     }
 
     private static BlockState state(String blockId) {
