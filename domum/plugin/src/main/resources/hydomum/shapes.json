@@ -10,7 +10,15 @@
         "timber_frames_center"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 4
+      "cutterQuantity": 4,
+      "source": {
+        "block": "domum_ornamentum:plain",
+        "type": null
+      },
+      "components": [
+        "minecraft:block/oak_planks",
+        "minecraft:block/dark_oak_planks"
+      ]
     },
     {
       "id": "TimberFrame_DoubleCrossed",
@@ -21,7 +29,15 @@
         "timber_frames_center"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 4
+      "cutterQuantity": 4,
+      "source": {
+        "block": "domum_ornamentum:double_crossed",
+        "type": null
+      },
+      "components": [
+        "minecraft:block/oak_planks",
+        "minecraft:block/dark_oak_planks"
+      ]
     },
     {
       "id": "TimberFrame_Framed",
@@ -32,7 +48,15 @@
         "timber_frames_center"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 4
+      "cutterQuantity": 4,
+      "source": {
+        "block": "domum_ornamentum:framed",
+        "type": null
+      },
+      "components": [
+        "minecraft:block/oak_planks",
+        "minecraft:block/dark_oak_planks"
+      ]
     },
     {
       "id": "TimberFrame_SideFramed",
@@ -43,7 +67,15 @@
         "timber_frames_center"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 4
+      "cutterQuantity": 4,
+      "source": {
+        "block": "domum_ornamentum:side_framed",
+        "type": null
+      },
+      "components": [
+        "minecraft:block/oak_planks",
+        "minecraft:block/dark_oak_planks"
+      ]
     },
     {
       "id": "TimberFrame_UpGated",
@@ -54,7 +86,15 @@
         "timber_frames_center"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 4
+      "cutterQuantity": 4,
+      "source": {
+        "block": "domum_ornamentum:up_gated",
+        "type": null
+      },
+      "components": [
+        "minecraft:block/oak_planks",
+        "minecraft:block/dark_oak_planks"
+      ]
     },
     {
       "id": "TimberFrame_DownGated",
@@ -65,7 +105,15 @@
         "timber_frames_center"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 4
+      "cutterQuantity": 4,
+      "source": {
+        "block": "domum_ornamentum:down_gated",
+        "type": null
+      },
+      "components": [
+        "minecraft:block/oak_planks",
+        "minecraft:block/dark_oak_planks"
+      ]
     },
     {
       "id": "TimberFrame_OneCrossedLr",
@@ -76,7 +124,15 @@
         "timber_frames_center"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 4
+      "cutterQuantity": 4,
+      "source": {
+        "block": "domum_ornamentum:one_crossed_lr",
+        "type": null
+      },
+      "components": [
+        "minecraft:block/oak_planks",
+        "minecraft:block/dark_oak_planks"
+      ]
     },
     {
       "id": "TimberFrame_OneCrossedRl",
@@ -87,7 +143,15 @@
         "timber_frames_center"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 4
+      "cutterQuantity": 4,
+      "source": {
+        "block": "domum_ornamentum:one_crossed_rl",
+        "type": null
+      },
+      "components": [
+        "minecraft:block/oak_planks",
+        "minecraft:block/dark_oak_planks"
+      ]
     },
     {
       "id": "TimberFrame_HorizontalPlain",
@@ -98,7 +162,15 @@
         "timber_frames_center"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 4
+      "cutterQuantity": 4,
+      "source": {
+        "block": "domum_ornamentum:horizontal_plain",
+        "type": null
+      },
+      "components": [
+        "minecraft:block/oak_planks",
+        "minecraft:block/dark_oak_planks"
+      ]
     },
     {
       "id": "TimberFrame_SideFramedHorizontal",
@@ -109,7 +181,15 @@
         "timber_frames_center"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 4
+      "cutterQuantity": 4,
+      "source": {
+        "block": "domum_ornamentum:side_framed_horizontal",
+        "type": null
+      },
+      "components": [
+        "minecraft:block/oak_planks",
+        "minecraft:block/dark_oak_planks"
+      ]
     },
     {
       "id": "Shingle",
@@ -120,7 +200,15 @@
         "shingles_support"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 4
+      "cutterQuantity": 4,
+      "source": {
+        "block": "domum_ornamentum:shingle",
+        "type": null
+      },
+      "components": [
+        "minecraft:block/clay",
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Shingle_Flat",
@@ -131,7 +219,15 @@
         "shingles_support"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 4
+      "cutterQuantity": 4,
+      "source": {
+        "block": "domum_ornamentum:shingle_flat",
+        "type": null
+      },
+      "components": [
+        "minecraft:block/clay",
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Shingle_FlatLower",
@@ -142,7 +238,15 @@
         "shingles_support"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 4
+      "cutterQuantity": 4,
+      "source": {
+        "block": "domum_ornamentum:shingle_flat_lower",
+        "type": null
+      },
+      "components": [
+        "minecraft:block/clay",
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Shingle_Steep",
@@ -153,7 +257,15 @@
         "shingles_support"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 4
+      "cutterQuantity": 4,
+      "source": {
+        "block": "domum_ornamentum:shingle_steep",
+        "type": null
+      },
+      "components": [
+        "minecraft:block/clay",
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Shingle_SteepLower",
@@ -164,7 +276,15 @@
         "shingles_support"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 4
+      "cutterQuantity": 4,
+      "source": {
+        "block": "domum_ornamentum:shingle_steep_lower",
+        "type": null
+      },
+      "components": [
+        "minecraft:block/clay",
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "ShingleSlab",
@@ -175,7 +295,15 @@
         "shingles_support"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 4
+      "cutterQuantity": 4,
+      "source": {
+        "block": "domum_ornamentum:shingle_slab",
+        "type": null
+      },
+      "components": [
+        "minecraft:block/oak_planks",
+        "minecraft:block/dark_oak_planks"
+      ]
     },
     {
       "id": "Pillar_Round",
@@ -185,7 +313,14 @@
         "pillar_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 1
+      "cutterQuantity": 1,
+      "source": {
+        "block": "domum_ornamentum:blockpillar",
+        "type": null
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Pillar_Voxel",
@@ -195,7 +330,14 @@
         "pillar_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 1
+      "cutterQuantity": 1,
+      "source": {
+        "block": "domum_ornamentum:blockypillar",
+        "type": null
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Pillar_Square",
@@ -205,7 +347,14 @@
         "pillar_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 1
+      "cutterQuantity": 1,
+      "source": {
+        "block": "domum_ornamentum:squarepillar",
+        "type": null
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Post_Double",
@@ -215,7 +364,14 @@
         "post_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 1
+      "cutterQuantity": 1,
+      "source": {
+        "block": "domum_ornamentum:post",
+        "type": "double"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Post_Heavy",
@@ -225,7 +381,14 @@
         "post_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 1
+      "cutterQuantity": 1,
+      "source": {
+        "block": "domum_ornamentum:post",
+        "type": "heavy"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Post_Pinched",
@@ -235,7 +398,14 @@
         "post_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 1
+      "cutterQuantity": 1,
+      "source": {
+        "block": "domum_ornamentum:post",
+        "type": "pinched"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Post_Plain",
@@ -245,7 +415,14 @@
         "post_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 1
+      "cutterQuantity": 1,
+      "source": {
+        "block": "domum_ornamentum:post",
+        "type": "plain"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Post_Quad",
@@ -255,7 +432,14 @@
         "post_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 1
+      "cutterQuantity": 1,
+      "source": {
+        "block": "domum_ornamentum:post",
+        "type": "quad"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Post_Turned",
@@ -265,7 +449,14 @@
         "post_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 1
+      "cutterQuantity": 1,
+      "source": {
+        "block": "domum_ornamentum:post",
+        "type": "turned"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Panel_Boss",
@@ -275,7 +466,14 @@
         "trapdoors_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 4
+      "cutterQuantity": 4,
+      "source": {
+        "block": "domum_ornamentum:panel",
+        "type": "boss"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Panel_Coffer",
@@ -285,7 +483,14 @@
         "trapdoors_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 4
+      "cutterQuantity": 4,
+      "source": {
+        "block": "domum_ornamentum:panel",
+        "type": "coffer"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Panel_Full",
@@ -295,7 +500,14 @@
         "trapdoors_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 4
+      "cutterQuantity": 4,
+      "source": {
+        "block": "domum_ornamentum:panel",
+        "type": "full"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Panel_HorizontalBars",
@@ -305,7 +517,14 @@
         "trapdoors_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 4
+      "cutterQuantity": 4,
+      "source": {
+        "block": "domum_ornamentum:panel",
+        "type": "horizontal_bars"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Panel_HorizontallySquigglyStriped",
@@ -315,7 +534,14 @@
         "trapdoors_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 4
+      "cutterQuantity": 4,
+      "source": {
+        "block": "domum_ornamentum:panel",
+        "type": "horizontally_squiggly_striped"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Panel_HorizontallyStriped",
@@ -325,7 +551,14 @@
         "trapdoors_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 4
+      "cutterQuantity": 4,
+      "source": {
+        "block": "domum_ornamentum:panel",
+        "type": "horizontally_striped"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Panel_Moulding",
@@ -335,7 +568,14 @@
         "trapdoors_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 4
+      "cutterQuantity": 4,
+      "source": {
+        "block": "domum_ornamentum:panel",
+        "type": "moulding"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Panel_PortManteau",
@@ -345,7 +585,14 @@
         "trapdoors_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 4
+      "cutterQuantity": 4,
+      "source": {
+        "block": "domum_ornamentum:panel",
+        "type": "port_manteau"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Panel_Porthole",
@@ -355,7 +602,14 @@
         "trapdoors_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 4
+      "cutterQuantity": 4,
+      "source": {
+        "block": "domum_ornamentum:panel",
+        "type": "porthole"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Panel_Roundel",
@@ -365,7 +619,14 @@
         "trapdoors_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 4
+      "cutterQuantity": 4,
+      "source": {
+        "block": "domum_ornamentum:panel",
+        "type": "roundel"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Panel_Slot",
@@ -375,7 +636,14 @@
         "trapdoors_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 4
+      "cutterQuantity": 4,
+      "source": {
+        "block": "domum_ornamentum:panel",
+        "type": "slot"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Panel_VerticalBars",
@@ -385,7 +653,14 @@
         "trapdoors_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 4
+      "cutterQuantity": 4,
+      "source": {
+        "block": "domum_ornamentum:panel",
+        "type": "vertical_bars"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Panel_VerticallySquigglyStriped",
@@ -395,7 +670,14 @@
         "trapdoors_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 4
+      "cutterQuantity": 4,
+      "source": {
+        "block": "domum_ornamentum:panel",
+        "type": "vertically_squiggly_striped"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Panel_VerticallyStriped",
@@ -405,7 +687,14 @@
         "trapdoors_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 4
+      "cutterQuantity": 4,
+      "source": {
+        "block": "domum_ornamentum:panel",
+        "type": "vertically_striped"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Panel_Waffle",
@@ -415,7 +704,14 @@
         "trapdoors_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 4
+      "cutterQuantity": 4,
+      "source": {
+        "block": "domum_ornamentum:panel",
+        "type": "waffle"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Door_Full",
@@ -425,7 +721,14 @@
         "doors_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 1
+      "cutterQuantity": 1,
+      "source": {
+        "block": "domum_ornamentum:vanilla_doors_compat",
+        "type": "full"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Door_PortManteau",
@@ -435,7 +738,14 @@
         "doors_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 1
+      "cutterQuantity": 1,
+      "source": {
+        "block": "domum_ornamentum:vanilla_doors_compat",
+        "type": "port_manteau"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Door_VerticallyStriped",
@@ -445,7 +755,14 @@
         "doors_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 1
+      "cutterQuantity": 1,
+      "source": {
+        "block": "domum_ornamentum:vanilla_doors_compat",
+        "type": "vertically_striped"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Door_Waffle",
@@ -455,7 +772,14 @@
         "doors_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 1
+      "cutterQuantity": 1,
+      "source": {
+        "block": "domum_ornamentum:vanilla_doors_compat",
+        "type": "waffle"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "FancyDoor_Creeper",
@@ -466,7 +790,15 @@
         "fancy_doors_materials"
       ],
       "optionalSecond": true,
-      "cutterQuantity": 2
+      "cutterQuantity": 2,
+      "source": {
+        "block": "domum_ornamentum:fancy_door",
+        "type": "creeper"
+      },
+      "components": [
+        "minecraft:block/oak_planks",
+        "minecraft:block/acacia_planks"
+      ]
     },
     {
       "id": "FancyDoor_Full",
@@ -477,7 +809,15 @@
         "fancy_doors_materials"
       ],
       "optionalSecond": true,
-      "cutterQuantity": 2
+      "cutterQuantity": 2,
+      "source": {
+        "block": "domum_ornamentum:fancy_door",
+        "type": "full"
+      },
+      "components": [
+        "minecraft:block/oak_planks",
+        "minecraft:block/acacia_planks"
+      ]
     },
     {
       "id": "Trapdoor_Boss",
@@ -487,7 +827,14 @@
         "trapdoors_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 1
+      "cutterQuantity": 1,
+      "source": {
+        "block": "domum_ornamentum:vanilla_trapdoors_compat",
+        "type": "boss"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Trapdoor_Coffer",
@@ -497,7 +844,14 @@
         "trapdoors_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 1
+      "cutterQuantity": 1,
+      "source": {
+        "block": "domum_ornamentum:vanilla_trapdoors_compat",
+        "type": "coffer"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Trapdoor_Full",
@@ -507,7 +861,14 @@
         "trapdoors_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 1
+      "cutterQuantity": 1,
+      "source": {
+        "block": "domum_ornamentum:vanilla_trapdoors_compat",
+        "type": "full"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Trapdoor_HorizontalBars",
@@ -517,7 +878,14 @@
         "trapdoors_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 1
+      "cutterQuantity": 1,
+      "source": {
+        "block": "domum_ornamentum:vanilla_trapdoors_compat",
+        "type": "horizontal_bars"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Trapdoor_HorizontallySquigglyStriped",
@@ -527,7 +895,14 @@
         "trapdoors_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 1
+      "cutterQuantity": 1,
+      "source": {
+        "block": "domum_ornamentum:vanilla_trapdoors_compat",
+        "type": "horizontally_squiggly_striped"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Trapdoor_HorizontallyStriped",
@@ -537,7 +912,14 @@
         "trapdoors_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 1
+      "cutterQuantity": 1,
+      "source": {
+        "block": "domum_ornamentum:vanilla_trapdoors_compat",
+        "type": "horizontally_striped"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Trapdoor_Moulding",
@@ -547,7 +929,14 @@
         "trapdoors_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 1
+      "cutterQuantity": 1,
+      "source": {
+        "block": "domum_ornamentum:vanilla_trapdoors_compat",
+        "type": "moulding"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Trapdoor_PortManteau",
@@ -557,7 +946,14 @@
         "trapdoors_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 1
+      "cutterQuantity": 1,
+      "source": {
+        "block": "domum_ornamentum:vanilla_trapdoors_compat",
+        "type": "port_manteau"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Trapdoor_Porthole",
@@ -567,7 +963,14 @@
         "trapdoors_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 1
+      "cutterQuantity": 1,
+      "source": {
+        "block": "domum_ornamentum:vanilla_trapdoors_compat",
+        "type": "porthole"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Trapdoor_Roundel",
@@ -577,7 +980,14 @@
         "trapdoors_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 1
+      "cutterQuantity": 1,
+      "source": {
+        "block": "domum_ornamentum:vanilla_trapdoors_compat",
+        "type": "roundel"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Trapdoor_Slot",
@@ -587,7 +997,14 @@
         "trapdoors_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 1
+      "cutterQuantity": 1,
+      "source": {
+        "block": "domum_ornamentum:vanilla_trapdoors_compat",
+        "type": "slot"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Trapdoor_VerticalBars",
@@ -597,7 +1014,14 @@
         "trapdoors_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 1
+      "cutterQuantity": 1,
+      "source": {
+        "block": "domum_ornamentum:vanilla_trapdoors_compat",
+        "type": "vertical_bars"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Trapdoor_VerticallySquigglyStriped",
@@ -607,7 +1031,14 @@
         "trapdoors_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 1
+      "cutterQuantity": 1,
+      "source": {
+        "block": "domum_ornamentum:vanilla_trapdoors_compat",
+        "type": "vertically_squiggly_striped"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Trapdoor_VerticallyStriped",
@@ -617,7 +1048,14 @@
         "trapdoors_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 1
+      "cutterQuantity": 1,
+      "source": {
+        "block": "domum_ornamentum:vanilla_trapdoors_compat",
+        "type": "vertically_striped"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Trapdoor_Waffle",
@@ -627,7 +1065,14 @@
         "trapdoors_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 1
+      "cutterQuantity": 1,
+      "source": {
+        "block": "domum_ornamentum:vanilla_trapdoors_compat",
+        "type": "waffle"
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "FancyTrapdoor_Creeper",
@@ -638,7 +1083,15 @@
         "fancy_trapdoors_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 2
+      "cutterQuantity": 2,
+      "source": {
+        "block": "domum_ornamentum:fancy_trapdoors",
+        "type": "creeper"
+      },
+      "components": [
+        "minecraft:block/oak_planks",
+        "minecraft:block/acacia_planks"
+      ]
     },
     {
       "id": "FancyTrapdoor_Full",
@@ -649,7 +1102,15 @@
         "fancy_trapdoors_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 2
+      "cutterQuantity": 2,
+      "source": {
+        "block": "domum_ornamentum:fancy_trapdoors",
+        "type": "full"
+      },
+      "components": [
+        "minecraft:block/oak_planks",
+        "minecraft:block/acacia_planks"
+      ]
     },
     {
       "id": "PaperWall",
@@ -660,7 +1121,15 @@
         "paper_wall_center"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 6
+      "cutterQuantity": 6,
+      "source": {
+        "block": "domum_ornamentum:blockpaperwall",
+        "type": null
+      },
+      "components": [
+        "minecraft:block/oak_planks",
+        "minecraft:block/dark_oak_planks"
+      ]
     },
     {
       "id": "PaperWall_Tiled",
@@ -671,7 +1140,15 @@
         "paper_wall_center"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 6
+      "cutterQuantity": 6,
+      "source": {
+        "block": "domum_ornamentum:blocktiledpaperwall",
+        "type": null
+      },
+      "components": [
+        "minecraft:block/oak_planks",
+        "minecraft:block/dark_oak_planks"
+      ]
     },
     {
       "id": "Fence",
@@ -681,7 +1158,14 @@
         "fence_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 1
+      "cutterQuantity": 1,
+      "source": {
+        "block": "domum_ornamentum:vanilla_fence_compat",
+        "type": null
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "FenceGate",
@@ -691,7 +1175,14 @@
         "fence_gate_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 1
+      "cutterQuantity": 1,
+      "source": {
+        "block": "domum_ornamentum:vanilla_fence_gate_compat",
+        "type": null
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Wall",
@@ -701,7 +1192,14 @@
         "wall_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 1
+      "cutterQuantity": 1,
+      "source": {
+        "block": "domum_ornamentum:vanilla_wall_compat",
+        "type": null
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Stairs",
@@ -711,7 +1209,14 @@
         "stairs_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 1
+      "cutterQuantity": 1,
+      "source": {
+        "block": "domum_ornamentum:vanilla_stairs_compat",
+        "type": null
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     },
     {
       "id": "Slab",
@@ -721,7 +1226,14 @@
         "slab_materials"
       ],
       "optionalSecond": false,
-      "cutterQuantity": 2
+      "cutterQuantity": 2,
+      "source": {
+        "block": "domum_ornamentum:vanilla_slab_compat",
+        "type": null
+      },
+      "components": [
+        "minecraft:block/oak_planks"
+      ]
     }
   ]
 }

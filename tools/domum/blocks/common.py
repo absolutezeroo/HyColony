@@ -118,8 +118,19 @@ def template(ctx, family, ident, parts, block_type, icon_properties=None, icon_m
         "id": ident[len(names.PREFIX):], "template": ident, "group": family.group,
         "slots": list(family.slot_tags), "optionalSecond": family.optional_second,
         "cutterQuantity": family.cutter_quantity,
+        "source": _source(family, parts),
+        # DO's textureData keys of the slots, in slot order (DO spells them with the minecraft: namespace).
+        "components": [c if ":" in c else "minecraft:" + c for c in family.components],
     })
     return item
+
+
+def _source(family, parts):
+    """The DO block and "type" value the template stands for: parts name them, else the family's only block."""
+    blocks = [p for p in parts if p in family.blocks]
+    others = [p for p in parts if p not in family.blocks]
+    block = blocks[0] if blocks else family.blocks[0]
+    return {"block": "domum_ornamentum:" + block, "type": others[0] if others else None}
 
 
 def _icon(ctx, family, ident, model, properties):

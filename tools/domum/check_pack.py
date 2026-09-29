@@ -241,9 +241,25 @@ def cutter_sounds_are_the_builder_bench_ones():
     assert fragment["ornamentTags"]
 
 
+def manifest_names_each_template_do_source():
+    """Each shape names the DO block (and type) it comes from and the textureData keys of its slots, for the
+    blueprint converter (tools/blueprint)."""
+    ctx = generate_into_temp()
+    manifest = json.loads((ctx.resources / "hydomum/shapes.json").read_text(encoding="utf-8"))
+    by_id = {shape["id"]: shape for shape in manifest["shapes"]}
+    assert by_id["TimberFrame_Plain"]["source"] == {"block": "domum_ornamentum:plain", "type": None}
+    assert by_id["TimberFrame_Plain"]["components"] == ["minecraft:block/oak_planks", "minecraft:block/dark_oak_planks"]
+    assert by_id["Door_Full"]["source"] == {"block": "domum_ornamentum:vanilla_doors_compat", "type": "full"}
+    assert by_id["Stairs"]["source"] == {"block": "domum_ornamentum:vanilla_stairs_compat", "type": None}
+    for shape in manifest["shapes"]:
+        assert shape["source"]["block"].startswith("domum_ornamentum:"), shape
+        assert len(shape["components"]) == len(shape["slots"]), shape
+
+
 def run():
     """Runs this module's checks; an AssertionError names the failing case."""
     manifest_lists_every_template_with_its_slots()
+    manifest_names_each_template_do_source()
     cutter_sounds_are_the_builder_bench_ones()
     static_templates_live_in_the_do_tab()
     two_material_templates_read_their_default_pair()
