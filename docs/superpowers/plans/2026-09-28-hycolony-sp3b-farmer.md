@@ -59,7 +59,7 @@ Une session sans le jar s'arrête après la Task 9 et le dit dans son résumé.
 
 **Fichiers :**
 - Créer : `farming/FarmingAccess.java`, `farming/CropState.java` ; `core/src/test/java/dev/hycolony/core/testing/farming/FakeFarming.java`.
-- Modifier : `kernel/item/ToolType.java` (+ `HOE`), `colony/ConstructionPorts.java` (+ `FarmingAccess farming`), `testing/TestContexts.java` (`public FakeFarming farming`), et **chaque** `new ConstructionPorts` du plugin avec `FarmingAccess.NONE` provisoire (`grep -rn "new ConstructionPorts" core plugin`).
+- Modifier : `kernel/item/ToolType.java` (+ `HOE`), `colony/GamePorts.java` (+ `FarmingAccess farming`), `testing/TestContexts.java` (`public FakeFarming farming`), et **chaque** `new GamePorts` du plugin avec `FarmingAccess.NONE` provisoire (`grep -rn "new GamePorts" core plugin`).
 - Tester : `testing/farming/FakeFarmingTest.java`, qui teste le fake lui-même, dont les règles serviront partout.
 
 **Interfaces produites :**
@@ -153,10 +153,10 @@ public final class FieldCells {                                    // MC EntityA
 - Créer : `farming/field/FieldRegistry.java`.
 - Modifier :
   - `colony/Colony.java` : champ `private final FieldRegistry fields = new FieldRegistry();` et `fields()` ;
-  - `colony/persistence/ColonySerializer.java` : `SCHEMA_VERSION = 5`, écrit et lit `"fields"` ;
+  - `app/persistence/ColonySerializer.java` : `SCHEMA_VERSION = 5`, écrit et lit `"fields"` ;
   - `kernel/persist/MigrationChain.java` : `sp3b2()`, avec `v4ToV5` qui ajoute `"fields": []` ;
   - le tick lent de la colonie : il appelle `fields().cleanUp(colony)` toutes les 500 ticks, au même endroit que le tick des bâtiments.
-- Tester : `farming/field/FieldRegistryTest.java`, `colony/persistence/MigrationV4ToV5Test.java`, fixture `colony-v4-fields.json` (copie d'une fixture v4 existante, ou d'une sortie du sérialiseur v4).
+- Tester : `farming/field/FieldRegistryTest.java`, `app/persistence/MigrationV4ToV5Test.java`, fixture `colony-v4-fields.json` (copie d'une fixture v4 existante, ou d'une sortie du sérialiseur v4).
 
 **Interfaces :**
 
@@ -364,7 +364,7 @@ Il porte MC `workAtField`, `hoeIfAble`, `tryToPlant`, `harvestIfAble` (MC § 3.4
 
 **Fichiers :**
 - Créer ou compléter : `farming/job/FarmerJob.java`, `farming/job/FarmerAI.java`.
-- Tester : `farming/job/FarmerAITest.java`, `farming/FarmerScenarioTest.java`.
+- Tester : `farming/job/FarmerAITest.java`, `farming/job/FarmerScenarioTest.java`.
 
 **`FarmerJob extends Job implements Crafter`** :
 - il possède un `CraftingTasks`, persisté sous `"crafting"` (comme `TestCrafterJob`) ;
@@ -398,12 +398,12 @@ Il porte MC `workAtField`, `hoeIfAble`, `tryToPlant`, `harvestIfAble` (MC § 3.4
 ### Task 9 : vues et actions (fenêtre du champ, onglet Champs)
 
 **Fichiers :**
-- Créer : `app/ui/FieldView.java`, `farming/hut/FieldsView.java`, `colony/action/FieldActions.java`.
+- Créer : `app/ui/FieldView.java`, `farming/hut/FieldsView.java`, `app/action/FieldActions.java`.
 - Modifier :
   - `app/ui/UiPort.java` (+ `void showField(UUID player, FieldView view)`) et `testing/FakeUi.java` ;
   - `building/module/ModuleTab.java` (+ `FieldsView`) ;
   - `FarmerFieldsModule` (`tab`).
-- Tester : `colony/action/FieldActionsTest.java`.
+- Tester : `app/action/FieldActionsTest.java`.
 
 **Interfaces :**
 

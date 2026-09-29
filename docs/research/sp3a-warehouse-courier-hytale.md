@@ -236,7 +236,7 @@ La progression est faible : 156 → 241 blocs. Comme autre choix pour le niveau 
   - l. 138 `public void addContainer(BlockPos pos)`, qui ignore la position de la hutte ;
   - l. 144 `public void removeContainer(BlockPos pos)`.
 - `core/.../building/BuildingManager.java` l. 64-73 : `public Optional<Building> owningContainer(BlockPos pos)` renvoie la hutte à cette position, sinon parcourt les `registeredContainers()` (parcours linéaire, marqué `ponytail`).
-- Persistance : `core/.../colony/persistence/BuildingSerializer.java` l. 38 (écriture de `registeredContainers()`) et l. 56 (`b.addContainer(readPos(el))`).
+- Persistance : `core/.../app/persistence/BuildingSerializer.java` l. 38 (écriture de `registeredContainers()`) et l. 56 (`b.addContainer(readPos(el))`).
 - Branchement : `core/.../colony/ColonyBuildingListener.java` l. 19, `building.attachContainers(colony.context().ports().containers())`.
 - Port `core/.../kernel/port/ContainerAccess.java` :
 

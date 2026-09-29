@@ -67,7 +67,7 @@ Chez nous, 20 appels à `module(WorkerModule.class)` supposent un module unique.
 - **Correctif minimal :**
   - ajouter `Building.modules(Class<T>)` (une `List`) et `module(Class<T>, Predicate<T>)`, comme MC ;
   - ajouter `WorkerModule.of(Building, JobType)` et remplacer les appels qui partent d'un citoyen ;
-  - pour une identité exacte, rendre `ModuleProducer` générique (`ModuleProducer<T>`, `building/ModuleProducer.java:6`) et le réutiliser comme clé typée : `building.module(DeliverymanHut.WORKER)` lit directement `modules.get(key)`. Aucun nouveau type n'est nécessaire.
+  - pour une identité exacte, rendre `ModuleProducer` générique (`ModuleProducer<T>`, `building/module/ModuleProducer.java:6`) et le réutiliser comme clé typée : `building.module(DeliverymanHut.WORKER)` lit directement `modules.get(key)`. Aucun nouveau type n'est nécessaire.
 - **Garde-fou :** un test ArchUnit (`callMethod`) interdit `Building.module(WorkerModule.class)` hors de `WorkerModule.of`.
 
 **Coût par tick : faux problème.** Chaque appel crée un stream sur 1 à 5 modules. Le chemin fréquent, `CitizenAI.shouldWork` via `rainStopsWork`, tourne toutes les 10 à 20 ticks par citoyen. `BuildingManager.onColonyTick` (l. 91-97) utilise une boucle, sans stream, toutes les 500 ticks. Il n'y a rien à optimiser avant une mesure.
@@ -80,7 +80,7 @@ Chez nous, 20 appels à `module(WorkerModule.class)` supposent un module unique.
 
 ## 4. `TickingModule`
 
-`TickingModule` (`building/TickingModule.java:7-12`) déclare deux méthodes. Les **deux seules implémentations** laissent vide la version à un argument : `WorkerModule.java:109-110` et `CourierAssignmentModule.java:55-56`. Seul `BuildingManagerTest.java:23` l'utilise.
+`TickingModule` (`building/module/TickingModule.java:7-12`) déclare deux méthodes. Les **deux seules implémentations** laissent vide la version à un argument : `WorkerModule.java:109-110` et `CourierAssignmentModule.java:55-56`. Seul `BuildingManagerTest.java:23` l'utilise.
 - **Correctif :** ne garder qu'une méthode abstraite, `onColonyTick(Colony colony, Building building)`, qui correspond à MC `ITickingModule.onColonyTick(IColony)` (le module MC connaît déjà son bâtiment). Appliquer la même signature à `BuildingEventsModule`.
 - **Quand :** maintenant, en même temps que le § 3.2. Le diff est de 3 fichiers.
 
@@ -128,7 +128,7 @@ Tous ces cas sont vrais aujourd'hui. Il faut les **figer maintenant**, au coût 
 
 ## 6. `ColonyContext`
 
-`ColonyContext` (`colony/ColonyContext.java:18-32`) est un record immuable de 14 champs typés, dont `ConstructionPorts` qui en regroupe 6 (`colony/ConstructionPorts.java:25-31`). Il n'y a ni recherche par clé ni par type : **ce n'est pas un service locator au sens strict**. C'est un objet de contexte construit à la main.
+`ColonyContext` (`colony/ColonyContext.java:18-32`) est un record immuable de 14 champs typés, dont `ConstructionPorts` qui en regroupe 6 (`colony/GamePorts.java:25-31`). Il n'y a ni recherche par clé ni par type : **ce n'est pas un service locator au sens strict**. C'est un objet de contexte construit à la main.
 
 La dérive existe pourtant. 36 classes appellent `context()`. Celles qui y puisent le plus de services différents :
 
@@ -165,10 +165,10 @@ Fichiers qu'un `LumberjackJob` + `LumberjackAI` + hutte devrait modifier **aujou
 3. `id-map.json`, `styles.json`, `hycolony.lang` en en-US et fr-FR.
 4. Onglets propres (réglages de replantation, liste de pousses, zone) :
    - `app/ui/BuildingView.java`, un `Optional<…Tabs>` de plus : il en a déjà 3 (l. `builder`, `warehouse`, `courier`) ;
-   - `colony/view/BuildingViews.java` ;
+   - `app/view/BuildingViews.java` ;
    - `plugin/ui/BuildingPage.java:71-77, 116-122` ;
    - `Building.ui`.
-5. Actions de réglage : `colony/action/HutActions.java`, sur le modèle de `setBuilderMode` (l. 202-208, où `colony.action` importe `BuilderSettingsModule`), ou `LogisticsActions` + un champ dans `ColonyManager` (l. 45).
+5. Actions de réglage : `app/action/HutActions.java`, sur le modèle de `setBuilderMode` (l. 202-208, où `colony.action` importe `BuilderSettingsModule`), ou `LogisticsActions` + un champ dans `ColonyManager` (l. 45).
 6. Détection des arbres : `kernel/port/ItemCatalog`, `HytaleItemCatalog`, `FakeCatalog`, **et** `ConstructionPorts.unavailable()`.
 7. Outils et dépôt : `BuilderStock`/`BuilderRequests` (§ 1.1), soit extraits, soit recopiés.
 8. Autotest : `HyColonyCommand`, ou un `LumberjackSelfTest` sur le modèle de `LogisticsSelfTest`.

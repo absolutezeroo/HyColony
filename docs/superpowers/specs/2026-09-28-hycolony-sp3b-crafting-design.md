@@ -277,7 +277,7 @@ Lecture tolérante : clé absente = vide, entrée invalide ignorée et journalis
     - `RecipeRegistry` ;
     - `RecipeMatching` : la correspondance d'un ingrédient avec un objet ;
     - `CraftingRules` : la lecture de `crafting.json` et le filtre des métiers ;
-    - `CraftingSetup(RecipeCatalog, CraftingRules)`, que `ConstructionPorts` reçoit ;
+    - `CraftingSetup(RecipeCatalog, CraftingRules)`, que `GamePorts` reçoit ;
   - `crafting/task` : l'état des tâches d'un artisan, lu par le module, l'IA et les résolveurs : `Crafter`, `CraftingTasks` et `Crafters` (les artisans d'une hutte ou d'une colonie). Il ne dépend d'aucun autre sous-paquet de `crafting` ;
   - `crafting/module` : `CraftingModule` (état et liste), `CraftingModules` (les modules d'une hutte), `RecipeCompatibility`, `CustomRecipes`, `RecipeImprovement`, `RecipeReservations` ;
   - `crafting/request` : `CraftingResolvers` (le point d'entrée : un module de hutte qui crée les résolveurs de chaque module de fabrication), `CraftingRequestResolver`, `CraftingProductionResolver`, `CraftingBatches` (découpage en lots), `CraftingCycles`, `IngredientRequests` (la requête d'un ingrédient) et `HutLookups` (modules, employés et demandeurs de la hutte) ;
@@ -287,7 +287,7 @@ Lecture tolérante : clé absente = vide, entrée invalide ignorée et journalis
     - `CraftingProgress` : la durée d'une exécution ; `RecipeCounts` : le calcul de `maxCraftingCount` et des ingrédients qui manquent ;
     - `RecipeExecution` : consommer et produire dans un `Inventory` ; `CraftingRun` : une exécution de l'artisan (`executeCraftingAction`) ;
     - `CrafterHands` (la marche vers la table et les coups) et `CraftedOutputs` (où vont les sorties) ;
-  - `crafting/module/RecipesView` (record) et `colony/action/CraftingActions` ;
+  - `crafting/module/RecipesView` (record) et `app/action/CraftingActions` ;
   - `kernel/item/Workstation(String benchId, int tier)` : `building` ne peut dépendre ni de `construction` ni de `crafting` ;
   - `request/model/StackList` et `request/model/Crafting`. `Requestable` et `Deliverable` sont scellés dans ce paquet, et `request` ne doit pas dépendre de `crafting` : `Crafting` porte donc un `String recipeId`.
 - **Sous-paquets sans cycle** (`ArchitectureTest`) : `recipe` et `task` en bas, puis `module`, puis `job` (l'IA), et `request` (les résolveurs) en haut ; `task` ne dépend d'aucun autre sous-paquet de `crafting`. Pour cela :

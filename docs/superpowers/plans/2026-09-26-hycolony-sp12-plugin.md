@@ -102,7 +102,7 @@
 
 ### Task B7 : branchement, selftest, documentation
 
-**Files :** Modify `WorldRuntime` (vrais ports à la place de `ConstructionPorts.unavailable()`), `HyColonyCommand` (selftest étendu : charger un plan outlander niveau 1, poser puis casser un bloc de test à côté du joueur, aller-retour d'un objet dans un conteneur temporaire), `docs/TESTING.md` (items 13+ : cabane de constructeur, embauche, commande BUILD, livraisons, construction visible, redémarrage en plein chantier, retrait, stockage, ramassage), `README.md`, `docs/UPGRADING.md` (API instables : `BlockOperations.setBlock`, `PrefabBufferCall`), amendement du spec SP0 § 2.4 (écritures synchrones conservées).
+**Files :** Modify `WorldRuntime` (vrais ports à la place de `GamePorts.unavailable()`), `HyColonyCommand` (selftest étendu : charger un plan outlander niveau 1, poser puis casser un bloc de test à côté du joueur, aller-retour d'un objet dans un conteneur temporaire), `docs/TESTING.md` (items 13+ : cabane de constructeur, embauche, commande BUILD, livraisons, construction visible, redémarrage en plein chantier, retrait, stockage, ramassage), `README.md`, `docs/UPGRADING.md` (API instables : `BlockOperations.setBlock`, `PrefabBufferCall`), amendement du spec SP0 § 2.4 (écritures synchrones conservées).
 
 - [ ] `./gradlew build` vert, commit `feat(plugin): wire construction ports, extended selftest, testing checklist`.
 

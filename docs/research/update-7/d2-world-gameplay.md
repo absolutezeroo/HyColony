@@ -35,7 +35,7 @@ Tout ce qui n'est vérifié que dans le code, sans essai en jeu, est marqué **[
 
 ### B2. Point d'apparition (`WorldQuery.spawnPoint`) : `ISpawnProvider` devient asynchrone
 
-- Notre code : `plugin/.../adapter/HytaleWorldQuery.java:48` appelle `provider.getSpawnPoint(world, player)` (« cannot find symbol »). Appelant : `core/.../colony/action/HutActions.java:96-113` (MC `CreateColonyMessage`, distance 2D au spawn).
+- Notre code : `plugin/.../adapter/HytaleWorldQuery.java:48` appelle `provider.getSpawnPoint(world, player)` (« cannot find symbol »). Appelant : `core/.../app/action/HutActions.java:96-113` (MC `CreateColonyMessage`, distance 2D au spawn).
 - Preuve U7 : `server/core/universe/world/spawn/ISpawnProvider.java` ne déclare plus que `CompletableFuture<Transform> getSpawnPointAsync(World, UUID)`. `GlobalSpawnProvider:36` et `IndividualSpawnProvider:45` rendent un futur déjà complété. `FitToHeightMapSpawnProvider` ne recale Y que si Y vaut la sentinelle `Integer.MIN_VALUE` et compose alors avec `getChunkReferenceAsync(..., 32)`.
 - Correctif : `Transform t = provider.getSpawnPointAsync(world, player).getNow(null);`, puis `Optional.empty()` si le futur n'est pas encore complet. Seuls X et Z servent (distance 2D), et le recalage ne touche que Y. Ne **jamais** faire `join()` : on est sur le thread du monde, et le futur peut attendre un chargement de chunk sur ce même thread.
 

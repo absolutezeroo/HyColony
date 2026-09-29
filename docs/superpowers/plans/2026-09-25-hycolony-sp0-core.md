@@ -59,13 +59,13 @@ core/src/main/java/dev/hycolony/core/
              Notifier.java, Msg.java, PlayerDirectory.java
   kernel/persist/ColonyStorage.java, FileColonyStorage.java, Migration.java, MigrationChain.java,
                 SchemaTooNewException.java
-  colony/Action.java, Rank.java, Permissions.java
-  colony/ClaimCell.java, TerritoryIndex.java
+  colony/permission/Action.java, Rank.java, Permissions.java
+  colony/territory/ClaimCell.java, TerritoryIndex.java
   colony/ColonyState.java, Colony.java, ColonyContext.java, ColonyManager.java, HutPlacement.java
   colony/EventLog.java, ColonyEvents.java
-  colony/ColonySerializer.java
+  app/persistence/ColonySerializer.java
   app/ui/UiPort.java, FoundColonyView.java, TownHallView.java, CitizenRow.java
-  building/BuildingModule.java, PersistentModule.java, TickingModule.java, BuildingEventsModule.java,
+  building/module/BuildingModule.java, PersistentModule.java, TickingModule.java, BuildingEventsModule.java,
            ModuleProducer.java, BuildingType.java, BuildingRegistry.java, BuildingTypes.java,
            Building.java, BuildingManager.java
   citizen/Skill.java, SkillData.java, Skills.java, Experience.java, Gender.java,
@@ -1501,8 +1501,8 @@ Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>"
 Portage de `Action` (indices de bit **exacts** de MineColonies) et des rangs par défaut de `Permissions` (même cascade de permissions).
 
 **Files :**
-- Create : `core/src/main/java/dev/hycolony/core/colony/{Action,Rank,Permissions}.java`
-- Test : `core/src/test/java/dev/hycolony/core/colony/PermissionsTest.java`
+- Create : `core/src/main/java/dev/hycolony/core/colony/permission/{Action,Rank,Permissions}.java`
+- Test : `core/src/test/java/dev/hycolony/core/colony/permission/PermissionsTest.java`
 
 **Interfaces :**
 - Produces :
@@ -1512,7 +1512,7 @@ Portage de `Action` (indices de bit **exacts** de MineColonies) et des rangs par
 
 - [ ] **Step 1 : écrire les tests qui échouent**
 
-`core/src/test/java/dev/hycolony/core/colony/PermissionsTest.java` :
+`core/src/test/java/dev/hycolony/core/colony/permission/PermissionsTest.java` :
 
 ```java
 package dev.hycolony.core.colony;
@@ -1589,7 +1589,7 @@ Attendu : erreur de compilation.
 
 - [ ] **Step 3 : implémenter**
 
-`colony/Action.java` :
+`colony/permission/Action.java` :
 
 ```java
 package dev.hycolony.core.colony;
@@ -1636,7 +1636,7 @@ public enum Action {
 }
 ```
 
-`colony/Rank.java` :
+`colony/permission/Rank.java` :
 
 ```java
 package dev.hycolony.core.colony;
@@ -1673,7 +1673,7 @@ public final class Rank {
 }
 ```
 
-`colony/Permissions.java` :
+`colony/permission/Permissions.java` :
 
 ```java
 package dev.hycolony.core.colony;
@@ -1808,8 +1808,8 @@ Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>"
 ### Task 6 : territoire (cellules de claim)
 
 **Files :**
-- Create : `core/src/main/java/dev/hycolony/core/colony/{ClaimCell,TerritoryIndex}.java`
-- Test : `core/src/test/java/dev/hycolony/core/colony/TerritoryIndexTest.java`
+- Create : `core/src/main/java/dev/hycolony/core/colony/territory/{ClaimCell,TerritoryIndex}.java`
+- Test : `core/src/test/java/dev/hycolony/core/colony/territory/TerritoryIndexTest.java`
 
 **Interfaces :**
 - Produces :
@@ -1818,7 +1818,7 @@ Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>"
 
 - [ ] **Step 1 : écrire les tests qui échouent**
 
-`core/src/test/java/dev/hycolony/core/colony/TerritoryIndexTest.java` :
+`core/src/test/java/dev/hycolony/core/colony/territory/TerritoryIndexTest.java` :
 
 ```java
 package dev.hycolony.core.colony;
@@ -1882,7 +1882,7 @@ Attendu : erreur de compilation.
 
 - [ ] **Step 3 : implémenter**
 
-`colony/ClaimCell.java` :
+`colony/territory/ClaimCell.java` :
 
 ```java
 package dev.hycolony.core.colony;
@@ -1899,7 +1899,7 @@ public record ClaimCell(int x, int z) {
 }
 ```
 
-`colony/TerritoryIndex.java` :
+`colony/territory/TerritoryIndex.java` :
 
 ```java
 package dev.hycolony.core.colony;
@@ -2054,7 +2054,7 @@ Attendu : erreur de compilation.
 
 - [ ] **Step 3 : implémenter**
 
-`building/BuildingModule.java` :
+`building/module/BuildingModule.java` :
 
 ```java
 package dev.hycolony.core.building;
@@ -2063,7 +2063,7 @@ package dev.hycolony.core.building;
 public interface BuildingModule {}
 ```
 
-`building/PersistentModule.java` :
+`building/module/PersistentModule.java` :
 
 ```java
 package dev.hycolony.core.building;
@@ -2077,7 +2077,7 @@ public interface PersistentModule extends BuildingModule {
 }
 ```
 
-`building/TickingModule.java` :
+`building/module/TickingModule.java` :
 
 ```java
 package dev.hycolony.core.building;
@@ -2088,7 +2088,7 @@ public interface TickingModule extends BuildingModule {
 }
 ```
 
-`building/BuildingEventsModule.java` :
+`building/module/BuildingEventsModule.java` :
 
 ```java
 package dev.hycolony.core.building;
@@ -2101,7 +2101,7 @@ public interface BuildingEventsModule extends BuildingModule {
 }
 ```
 
-`building/ModuleProducer.java` :
+`building/module/ModuleProducer.java` :
 
 ```java
 package dev.hycolony.core.building;
@@ -2466,7 +2466,7 @@ public interface PlayerDirectory {
 `app/ui/FoundColonyView.java` :
 
 ```java
-package dev.hycolony.core.colony.ui;
+package dev.hycolony.core.app.ui;
 
 public record FoundColonyView(String suggestedName) {}
 ```
@@ -2474,7 +2474,7 @@ public record FoundColonyView(String suggestedName) {}
 `app/ui/CitizenRow.java` :
 
 ```java
-package dev.hycolony.core.colony.ui;
+package dev.hycolony.core.app.ui;
 
 import dev.hycolony.core.citizen.Gender;
 
@@ -2485,7 +2485,7 @@ public record CitizenRow(String name, Gender gender, String status) {}
 `app/ui/TownHallView.java` :
 
 ```java
-package dev.hycolony.core.colony.ui;
+package dev.hycolony.core.app.ui;
 
 import java.util.List;
 
@@ -2500,7 +2500,7 @@ public record TownHallView(int colonyId, String colonyName, String ownerName, in
 `app/ui/UiPort.java` :
 
 ```java
-package dev.hycolony.core.colony.ui;
+package dev.hycolony.core.app.ui;
 
 import java.util.UUID;
 
@@ -2662,9 +2662,9 @@ public final class FakePlayers implements PlayerDirectory {
 ```java
 package dev.hycolony.core.testing;
 
-import dev.hycolony.core.colony.ui.FoundColonyView;
-import dev.hycolony.core.colony.ui.TownHallView;
-import dev.hycolony.core.colony.ui.UiPort;
+import dev.hycolony.core.app.ui.FoundColonyView;
+import dev.hycolony.core.app.ui.TownHallView;
+import dev.hycolony.core.app.ui.UiPort;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -2842,7 +2842,7 @@ package dev.hycolony.core.colony;
 
 import dev.hycolony.core.building.BuildingRegistry;
 import dev.hycolony.core.citizen.CitizenNames;
-import dev.hycolony.core.colony.ui.UiPort;
+import dev.hycolony.core.app.ui.UiPort;
 import dev.hycolony.core.kernel.WorldKey;
 import dev.hycolony.core.kernel.config.ColonyConfig;
 import dev.hycolony.core.kernel.event.EventBus;
@@ -3154,10 +3154,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingTypes;
-import dev.hycolony.core.colony.ClaimCell;
+import dev.hycolony.core.colony.territory.ClaimCell;
 import dev.hycolony.core.colony.Colony;
-import dev.hycolony.core.colony.Permissions;
-import dev.hycolony.core.colony.TerritoryIndex;
+import dev.hycolony.core.colony.permission.Permissions;
+import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.port.BodyId;
@@ -3292,8 +3292,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.colony.Colony;
-import dev.hycolony.core.colony.Permissions;
-import dev.hycolony.core.colony.TerritoryIndex;
+import dev.hycolony.core.colony.permission.Permissions;
+import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.port.BodyId;
@@ -3676,8 +3676,8 @@ Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>"
 Portage des règles de `AbstractBlockHut.canPaste` et de la fondation (`ColonyManager.createColony`), telles que décrites dans la spec § 3.2.
 
 **Files :**
-- Create : `core/src/main/java/dev/hycolony/core/colony/{HutPlacement,ColonyManager}.java`
-- Test : `core/src/test/java/dev/hycolony/core/colony/ColonyManagerTest.java`
+- Create : `core/src/main/java/dev/hycolony/core/app/{HutPlacement,ColonyManager}.java`
+- Test : `core/src/test/java/dev/hycolony/core/app/ColonyManagerTest.java`
 
 **Interfaces :**
 - Consumes : tout ce qui précède.
@@ -3694,7 +3694,7 @@ Portage des règles de `AbstractBlockHut.canPaste` et de la fondation (`ColonyMa
 
 - [ ] **Step 1 : écrire les tests qui échouent**
 
-`core/src/test/java/dev/hycolony/core/colony/ColonyManagerTest.java` :
+`core/src/test/java/dev/hycolony/core/app/ColonyManagerTest.java` :
 
 ```java
 package dev.hycolony.core.colony;
@@ -3705,8 +3705,8 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.building.BuildingTypes;
-import dev.hycolony.core.colony.ui.FoundColonyView;
-import dev.hycolony.core.colony.ui.TownHallView;
+import dev.hycolony.core.app.ui.FoundColonyView;
+import dev.hycolony.core.app.ui.TownHallView;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.port.BodyId;
@@ -3858,7 +3858,7 @@ Attendu : erreur de compilation.
 
 - [ ] **Step 3 : implémenter**
 
-`colony/HutPlacement.java` :
+`app/HutPlacement.java` :
 
 ```java
 package dev.hycolony.core.colony;
@@ -3877,7 +3877,7 @@ public sealed interface HutPlacement {
 }
 ```
 
-`colony/ColonyManager.java` :
+`app/ColonyManager.java` :
 
 ```java
 package dev.hycolony.core.colony;
@@ -3886,9 +3886,9 @@ import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.citizen.CitizenData;
-import dev.hycolony.core.colony.ui.CitizenRow;
-import dev.hycolony.core.colony.ui.FoundColonyView;
-import dev.hycolony.core.colony.ui.TownHallView;
+import dev.hycolony.core.app.ui.CitizenRow;
+import dev.hycolony.core.app.ui.FoundColonyView;
+import dev.hycolony.core.app.ui.TownHallView;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.Msg;
@@ -4152,9 +4152,9 @@ Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>"
 ### Task 11 : persistance (sérialisation, migrations, fichiers atomiques)
 
 **Files :**
-- Create : `core/src/main/java/dev/hycolony/core/kernel/persist/{ColonyStorage,FileColonyStorage,Migration,MigrationChain,SchemaTooNewException}.java`, `core/src/main/java/dev/hycolony/core/colony/ColonySerializer.java`
-- Modify : `core/src/main/java/dev/hycolony/core/colony/ColonyManager.java` (ajout de `loadAll`, `saveDirty`, `saveAll`, `setStorage`, plus l'archivage dans `deleteColony`)
-- Test : `core/src/test/java/dev/hycolony/core/kernel/persist/{FileColonyStorageTest,MigrationChainTest}.java`, `core/src/test/java/dev/hycolony/core/colony/PersistenceTest.java`, et la fixture `core/src/test/resources/fixtures/colony-v1.json`
+- Create : `core/src/main/java/dev/hycolony/core/kernel/persist/{ColonyStorage,FileColonyStorage,Migration,MigrationChain,SchemaTooNewException}.java`, `core/src/main/java/dev/hycolony/core/app/persistence/ColonySerializer.java`
+- Modify : `core/src/main/java/dev/hycolony/core/app/ColonyManager.java` (ajout de `loadAll`, `saveDirty`, `saveAll`, `setStorage`, plus l'archivage dans `deleteColony`)
+- Test : `core/src/test/java/dev/hycolony/core/kernel/persist/{FileColonyStorageTest,MigrationChainTest}.java`, `core/src/test/java/dev/hycolony/core/app/PersistenceTest.java`, et la fixture `core/src/test/resources/fixtures/colony-v1.json`
 
 **Interfaces :**
 - Produces :
@@ -4278,7 +4278,7 @@ class MigrationChainTest {
 }
 ```
 
-`core/src/test/java/dev/hycolony/core/colony/PersistenceTest.java` :
+`core/src/test/java/dev/hycolony/core/app/PersistenceTest.java` :
 
 ```java
 package dev.hycolony.core.colony;
@@ -4697,7 +4697,7 @@ public final class MigrationChain {
 
 Pour la restauration, le sérialiseur a besoin de trois accès package-private supplémentaires : `Permissions.restore` (déjà prévu en Task 5), `Building.unknownModules()` (public) et `Rank` (public).
 
-`colony/ColonySerializer.java` :
+`app/persistence/ColonySerializer.java` :
 
 ```java
 package dev.hycolony.core.colony;
@@ -4707,9 +4707,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import dev.hycolony.core.building.Building;
-import dev.hycolony.core.building.BuildingModule;
+import dev.hycolony.core.building.module.BuildingModule;
 import dev.hycolony.core.building.BuildingType;
-import dev.hycolony.core.building.PersistentModule;
+import dev.hycolony.core.building.module.PersistentModule;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Gender;
 import dev.hycolony.core.citizen.Skill;
@@ -4975,7 +4975,7 @@ public final class ColonySerializer {
 
 - [ ] **Step 5 : brancher la persistance dans `ColonyManager`**
 
-Ajouter les champs et méthodes suivants à `colony/ColonyManager.java`, avec les imports `dev.hycolony.core.kernel.persist.*`, `com.google.gson.JsonObject`, `java.io.IOException`, `java.util.HashSet` et `java.util.Set` :
+Ajouter les champs et méthodes suivants à `app/ColonyManager.java`, avec les imports `dev.hycolony.core.kernel.persist.*`, `com.google.gson.JsonObject`, `java.io.IOException`, `java.util.HashSet` et `java.util.Set` :
 
 ```java
     private static final System.Logger LOG = System.getLogger(ColonyManager.class.getName());

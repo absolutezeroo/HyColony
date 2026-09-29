@@ -378,7 +378,7 @@ Il n'existe ni `CreativeRawStructureHandler` ni gestionnaire créatif dans `core
 1. Un seul bouton « Coller » (Pretty). Complete est omis, car nos prefabs n'ont pas de substituts : c'est un **écart**, à documenter. Complete porté à l'identique poserait seulement des blocs, sans enregistrer la hutte : on obtiendrait une hutte morte.
 2. On applique le **niveau choisi**, qui est l'intention de MC (voir l'incertitude en C.2).
 
-**Cœur** (`construction/wand`, 6 fichiers aujourd'hui, 15 au plus) :
+**Cœur** (`app/wand`, 6 fichiers aujourd'hui, 15 au plus) :
 - `WandView` reçoit un champ `boolean creative`, que `WandActions.show` remplit avec `players().isCreative(player)`.
 - `WandActions.paste(UUID player, String playerName)` refuse (renvoie `false`, rien ne change) si le joueur n'est pas en créatif au moment du clic. Chez MC, la liste est filtrée côté client ; notre fenêtre est côté serveur, donc le test s'y fait. Sinon, il délègue à une nouvelle classe `WandPaste` (package-private), qui suit `AbstractBlockHut.setup` et `canPaste` :
   - si une colonie couvre l'ancre, il faut la permission **`PLACE_HUTS`** (`Action.PLACE_HUTS` existe, niveau 2), sinon c'est un refus ;

@@ -133,10 +133,10 @@ La section client `pathfinding` est vide (CC:34).
 |---|---|---|---|---|
 | `InitialCitizenAmount` | 4 | 1-10 | MC `initialcitizenamount` | oui, `core:citizen/CitizenManager.java:100,139` |
 | `MaxCitizenPerColony` | 250 | 25-500 | MC `maxcitizenpercolony` | **non** : aucun lecteur dans `core/` ni `plugin/` (le logement n'est pas porté) |
-| `InitialColonySize` | 4 | 1-15 | MC `initialColonySize` | oui, `core:colony/action/HutActions.java:68`, `core:colony/ColonyManager.java:166` |
+| `InitialColonySize` | 4 | 1-15 | MC `initialColonySize` | oui, `core:app/action/HutActions.java:68`, `core:app/ColonyManager.java:166` |
 | `MinColonyDistance` | 8 | 1-200 | MC `minColonyDistance` | oui, `HutActions.java:68` |
-| `MaxColonySize` | 20 | 1-250 | MC `maxColonySize` | oui, `core:colony/Colony.java:158`, `core:colony/ColonyPersistence.java:108` |
-| `EnableColonyProtection` | true | - | MC `enablecolonyprotection` | oui, `core:colony/ColonyManager.java:109` |
+| `MaxColonySize` | 20 | 1-250 | MC `maxColonySize` | oui, `core:colony/Colony.java:158`, `core:app/ColonyPersistence.java:108` |
+| `EnableColonyProtection` | true | - | MC `enablecolonyprotection` | oui, `core:app/ColonyProtection.enabled` |
 | `AutosaveIntervalMinutes` | 5 | 1-60 | **ajout HyColony** (MC sauvegarde avec le monde Minecraft) | oui, `plugin:WorldRuntime.java:98` |
 | `BuilderInfiniteResources` | false | - | voir remarque | oui, `core:construction/workorder/WorkManager.java:118` |
 | `CreativeOperatorFreeBuilds` | true | - | **ajout HyColony**, écart documenté (`WorkManager.java:110-114`) | oui, `WorkManager.java:119` |
@@ -167,7 +167,7 @@ Les clés Hytale doivent commencer par une majuscule (`codec/KeyedCodec.java:32`
 | commands `canplayerusedeletecolonycommand` = false | en dur : `delete` réservé aux opérateurs (`HyColonyCommand.java:155`) | `Commands.CanPlayerUseDeleteColonyCommand` | bool |
 | requestSystem `creativeresolve` = false | **absente** (`core:request/resolver/PlayerResolver.java`) | `RequestSystem.CreativeResolve` | bool |
 | requestsystem (commun) `enabledebuglogging` = false | **absente** | `RequestSystem.EnableDebugLogging` | bool |
-| client `buildgogglerange` = 50 | **en dur** : `core:construction/goggles/GogglesView.java:31`, `RANGE_SQ = 50L * 50L` | `Client.BuildGoggleRange` | 1-250. Écart : option client chez MC, réglage serveur chez nous (pas de config cliente pour un plugin Hytale) |
+| client `buildgogglerange` = 50 | **en dur** : `core:app/goggles/GogglesView.java:31`, `RANGE_SQ = 50L * 50L` | `Client.BuildGoggleRange` | 1-250. Écart : option client chez MC, réglage serveur chez nous (pas de config cliente pour un plugin Hytale) |
 
 Les trois commandes gardent aujourd'hui les défauts de MC ; les exposer ne change rien tant que l'opérateur ne touche pas au fichier.
 
@@ -265,9 +265,9 @@ Tout ce comportement est vérifié dans les sources seulement **[in-game]** : à
 
 | Option | Branchement |
 |---|---|
-| `Client.BuildGoggleRange` | `core:construction/goggles/GogglesView.java` (remplace `RANGE_SQ`) |
+| `Client.BuildGoggleRange` | `core:app/goggles/GogglesView.java` (remplace `RANGE_SQ`) |
 | `Gameplay.MaxCitizenPerColony` | **non lue**, conforme à MC : MC ne plafonne que l'immigration et les naissances (`CitizenManager.spawnCitizenOnPosition`, `force = false`) ; l'apparition initiale, seule apparition de HyColony, passe `force = true` (`CitizenManager.java:630`) et est bornée par `InitialCitizenAmount` (≤ 10 < 25) |
-| `Permissions.PermissionEventBypassMinPermLevel` | `core:colony/ColonyManager.isAllowed` (protection) ; 0 = tout joueur en créatif, 1-4 = opérateur en créatif |
-| `Permissions.TurnOffExplosionsInColonies` | `core:colony/ColonyManager.explosionSparesBlock` et `plugin:block/ExplosionProtectionSystem` ; blocs seulement (voir `plugin-b-api.md` § 13) |
-| `Claims.Min/MaxDistanceFromWorldSpawn` | `core:colony/action/HutActions.spawnDistanceRefusal` |
+| `Permissions.PermissionEventBypassMinPermLevel` | `core:app/ColonyProtection.isAllowed` (protection) ; 0 = tout joueur en créatif, 1-4 = opérateur en créatif |
+| `Permissions.TurnOffExplosionsInColonies` | `core:app/ColonyProtection.explosionSparesBlock` et `plugin:block/ExplosionProtectionSystem` ; blocs seulement (voir `plugin-b-api.md` § 13) |
+| `Claims.Min/MaxDistanceFromWorldSpawn` | `core:app/action/HutActions.spawnDistanceRefusal` |
 | `Commands.*` | `plugin:command/HyColonyCommand` (groupe de permission) ; `delete` passe par `ColonyAdministration.delete` (opérateur ou gestionnaire de la colonie) |

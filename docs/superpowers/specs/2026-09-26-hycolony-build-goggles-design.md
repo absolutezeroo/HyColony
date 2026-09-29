@@ -25,7 +25,7 @@ Un joueur qui porte les lunettes voit, en fantôme, **ce qui reste à construire
 
 ## Architecture
 
-- **Cœur** (`construction/goggles` ou un paquet équivalent, dans la limite de 15 fichiers) :
+- **Cœur** (`app/goggles` ou un paquet équivalent, dans la limite de 15 fichiers) :
   - `GogglesView` calcule, pour un joueur et sa position, la liste des chantiers visibles : `(ordre, position de la hutte, blocs restants, BlockPos → BlockState)`. Il s'appuie sur `StructurePlan` et `WorldBlocks`, avec un parcours borné.
   - Un service de rafraîchissement suit, par joueur porteur, les aperçus affichés et décide quand les recréer (palier de 100 ticks, blocs posés, entrée et sortie de zone, fin d'ordre).
   - Un nouveau **port** `PreviewPort` (dans `kernel/port`) : `show(UUID player, String id, BlockPos origin, List<Block>)`, `hide(UUID player, String id)` et `hideAll(UUID player)`.

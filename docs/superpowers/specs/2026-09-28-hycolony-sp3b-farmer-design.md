@@ -246,7 +246,7 @@ Un port ne lève jamais d'exception. Ses méthodes :
 - `boolean isFieldBlock(BlockPos)` : le bloc « Champ » est à cette position (pour le nettoyage) ;
 - `ItemKey fertilizerItem()` : l'objet engrais (`Tool_Fertilizer`, depuis l'id-map).
 
-Il vit dans `farming` (et non `kernel/port`, déjà à 15 fichiers), comme `RecipeCatalog`. `ConstructionPorts` le reçoit.
+Il vit dans `farming` (et non `kernel/port`, déjà à 15 fichiers), comme `RecipeCatalog`. `GamePorts` le reçoit.
 
 ## Écarts à MineColonies
 
@@ -283,14 +283,14 @@ Il vit dans `farming` (et non `kernel/port`, déjà à 15 fichiers), comme `Reci
   - `farming/job` :
     - `FarmerJob`, `FarmerAI`, `FarmerState` ;
     - `FarmWork` (les étapes agricoles), `FieldScan` (surface et tests de case), `FieldPass` (le passage d'une case) ;
-  - `colony/action/FieldActions` (fenêtre du champ, onglet Champs) ;
+  - `app/action/FieldActions` (fenêtre du champ, onglet Champs) ;
   - `app/ui/FieldView` et `farming/hut/FieldsView` ;
   - `UiPort.showField`.
 - **Existant modifié :**
   - `Colony` : le registre en champ, accès `fields()`, sans nouveau fichier dans `colony` ;
   - `ColonySerializer` et `MigrationChain` : schéma 5, avec `"fields": []` et une fixture v4 ;
   - `ColonySerializer.heal` : un propriétaire disparu est libéré ;
-  - `ConstructionPorts` : ajout de `farming` ;
+  - `GamePorts` : ajout de `farming` ;
   - `CoreFeatures` : enregistrement du type et du métier ;
   - `FarmerFieldsModule` implémente `BuildingEventsModule` : son `onRemoved` libère les champs de la hutte, comme `WorkerModule` renvoie ses travailleurs ;
   - `ToolType` gagne `HOE` (le plugin reconnaît les `Tool_Hoe_*`).

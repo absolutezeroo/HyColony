@@ -103,11 +103,11 @@ préexistants modifiés à la main** — ce second chiffre mesure le coût struc
 | Fichier | Rôle |
 |---|---|
 | `core/citizen/CitizenManager.java`, `CitizenAI.java` | brancher le job dans le cycle de vie / l'IA |
-| `core/colony/persistence/ColonySerializer.java` | (dé)sérialisation du job |
-| `core/colony/ColonyManager.java` | enregistrer `LogisticsActions` |
+| `core/app/persistence/ColonySerializer.java` | (dé)sérialisation du job |
+| `core/app/ColonyManager.java` | enregistrer `LogisticsActions` |
 | `core/job/Job.java`, `job/WorkerModule.java` | hook générique |
 | `core/request/Request.java` | nouveaux types de requêtes |
-| `app/ui/{Building,Citizen,Requests}View.java` + `colony/view/*Views.java` | agrégateurs de vues |
+| `app/ui/{Building,Citizen,Requests}View.java` + `app/view/*Views.java` | agrégateurs de vues |
 | `kernel/port/{WorldQuery,CitizenBodies}.java`, `kernel/nav/DetouringBodies.java` | ports étendus |
 | `plugin/WorldRuntime.java` | câblage du monde |
 | `plugin/IdMap.java`, `resources/hycolony/{id-map,styles}.json` | identifiants d'assets Hytale |

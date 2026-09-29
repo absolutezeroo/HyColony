@@ -37,7 +37,7 @@
 ### Tâche 2 : API des bâtiments et code mort
 - [x] `TickingModule` : une seule méthode, `onColonyTick(Colony, Building)`. Mettre à jour les implémentations et les tests.
 - [x] `BuildingEventsModule` : l'appeler au retrait et à la fin d'amélioration, là où MC `AbstractBuilding` le fait (lignes citées dans l'audit A § 3). MC n'a pas d'événement de pose : `onPlaced` est retiré. `ColonyBuildingListener` délègue au module au lieu de tester `instanceof WorkerModule`. Tests par événement.
-- [x] Supprimer `ConstructionPorts.unavailable()` et les lignes périmées de `BuildingPage` dans `config/pmd/known-violations.txt`, avec l'outil Edit uniquement. `pmdMain` doit rester vert.
+- [x] Supprimer `GamePorts.unavailable()` et les lignes périmées de `BuildingPage` dans `config/pmd/known-violations.txt`, avec l'outil Edit uniquement. `pmdMain` doit rester vert.
 - [x] Commits : `refactor(core): one colony tick method for modules`, `feat(core): building events reach their modules (MC AbstractBuilding)`, `refactor: remove dead code`.
 
 ### Tâche 3 : socle commun des ouvriers

@@ -49,7 +49,7 @@ if (damage > 0) {
 
 ### A2. Point d'apparition : `ISpawnProvider.getSpawnPoint` devenu asynchrone
 
-- **Chez nous** : `plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleWorldQuery.java:48` (`spawnPoint`), erreur `javac`. Appelé par le cœur dans `core/.../colony/action/HutActions.java:97` (`spawnDistanceRefusal`, sur le thread du monde, pendant la pose d'une hutte). Seuls x et z servent.
+- **Chez nous** : `plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleWorldQuery.java:48` (`spawnPoint`), erreur `javac`. Appelé par le cœur dans `core/.../app/action/HutActions.java:97` (`spawnDistanceRefusal`, sur le thread du monde, pendant la pose d'une hutte). Seuls x et z servent.
 - **Preuve U7** : `server/core/universe/world/spawn/ISpawnProvider.java:20-28` : les deux `getSpawnPoint` sont retirés (ainsi que `getSpawnPoint(Entity)`, déjà `forRemoval` en 0.6.8). À la place, `CompletableFuture<Transform> getSpawnPointAsync(World, UUID)` (abstraite) et `getSpawnPointAsync(Ref, ComponentAccessor)` (par défaut).
   - `GlobalSpawnProvider.java:36-37` et `IndividualSpawnProvider.java:45-46` rendent un `completedFuture`.
   - `FitToHeightMapSpawnProvider.java:41-50` enchaîne sur le fournisseur interne et, seulement si le y vaut la sentinelle `Integer.MIN_VALUE` (l. 52-54 ; N [325]), sur `chunkStore.getChunkReferenceAsync(index, 32)`. C'est le fournisseur par défaut d'un monde généré (`server/core/universe/world/worldgen/IWorldGen.java:26`, `new FitToHeightMapSpawnProvider(new IndividualSpawnProvider(...))`).

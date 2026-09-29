@@ -7,7 +7,7 @@
 **Architecture :** on garde le même découpage ports et adaptateurs que SP0. On ajoute :
 - les packages `kernel.item`, `request`, `job` et `construction` ;
 - de nouveaux ports : `ItemCatalog`, `WorldBlocks`, `ContainerAccess`, `PlayerInventory` (dans `kernel.port`) et `BlueprintSource` (dans `construction`) ;
-- `ColonyContext` gagne un champ `ConstructionPorts`, avec une implémentation « indisponible » pour que le plugin compile tant que la partie B n'est pas faite.
+- `ColonyContext` gagne un champ `GamePorts`, avec une implémentation « indisponible » pour que le plugin compile tant que la partie B n'est pas faite.
 
 **Tech Stack :** Java 21 (bytecode du core), JUnit 5, ArchUnit, Gson (`compileOnly`).
 
@@ -46,7 +46,7 @@
   - les commits se terminent par une ligne vide, puis `Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>`, puis `Claude-Session: https://claude.ai/code/session_01J1tBHr3AzU7e8M4iYw6H5c` ;
   - on ajoute les fichiers avec `git add <chemins>`, jamais `git add -A` ;
   - `.mcp.json` n'est jamais touché.
-- **Tests** : `./gradlew :core:test`. Le plugin doit **toujours compiler** (`./gradlew :plugin:compileJava`) : si une tâche change `ColonyContext` ou un port, elle met à jour `plugin/.../WorldRuntime.java` avec `ConstructionPorts.unavailable()`.
+- **Tests** : `./gradlew :core:test`. Le plugin doit **toujours compiler** (`./gradlew :plugin:compileJava`) : si une tâche change `ColonyContext` ou un port, elle met à jour `plugin/.../WorldRuntime.java` avec `GamePorts.unavailable()`.
 
 ## Review Focus
 
@@ -64,7 +64,7 @@
 core/src/main/java/dev/hycolony/core/
   kernel/item/        ItemKey, ItemAmount, BlockKey, BlockState, BlockKind, ToolType, ToolInfo, Inventory
   kernel/port/        ItemCatalog, WorldBlocks, ContainerAccess, PlayerInventory (ajouts)
-  colony/             ConstructionPorts (+ modifs ColonyContext, Colony, ColonyManager, ColonySerializer)
+  colony/             GamePorts (+ modifs ColonyContext, Colony, ColonyManager, ColonySerializer)
   request/            RequestToken, Requestable, Deliverable, StackRequest, ToolRequest, RequestState,
                       RequesterId, Requester, Request, Resolver, ResolverProvider, RequesterRegistry,
                       RequestManager, RequestSerializer
@@ -84,9 +84,9 @@ core/src/test/java/dev/hycolony/core/testing/  FakeCatalog, FakeWorldBlocks, Fak
 ### Task 1 : objets, inventaires, ports de construction, schéma v2
 
 **Files :**
-- Create : `kernel/item/{ItemKey,ItemAmount,BlockKey,BlockState,BlockKind,ToolType,ToolInfo,Inventory}.java`, `kernel/port/{ItemCatalog,WorldBlocks,ContainerAccess,PlayerInventory}.java`, `colony/ConstructionPorts.java`
-- Create (test) : `testing/{FakeCatalog,FakeWorldBlocks,FakeContainers,FakePlayerInventory}.java`, `kernel/item/InventoryTest.java`, `colony/SchemaV2MigrationTest.java`, fixture `src/test/resources/fixtures/colony-v2.json`
-- Modify : `CitizenData` (+ `Inventory inventory`, 27 emplacements), `ColonyContext` (+ `ConstructionPorts ports` en **dernier** champ), `TestContexts`, `ColonySerializer` (inventaire du citoyen et `schemaVersion` 2), `MigrationChain` (une méthode `sp1()` avec la migration 1 → 2), `ColonyManager` (utilise `MigrationChain.sp1()` par défaut), `plugin/.../WorldRuntime.java` (passe `ConstructionPorts.unavailable()` et `MigrationChain.sp1()`), `ArchitectureTest` (règles de § 2 de la spec)
+- Create : `kernel/item/{ItemKey,ItemAmount,BlockKey,BlockState,BlockKind,ToolType,ToolInfo,Inventory}.java`, `kernel/port/{ItemCatalog,WorldBlocks,ContainerAccess,PlayerInventory}.java`, `colony/GamePorts.java`
+- Create (test) : `testing/{FakeCatalog,FakeWorldBlocks,FakeContainers,FakePlayerInventory}.java`, `kernel/item/InventoryTest.java`, `app/persistence/SchemaV2MigrationTest.java`, fixture `src/test/resources/fixtures/colony-v2.json`
+- Modify : `CitizenData` (+ `Inventory inventory`, 27 emplacements), `ColonyContext` (+ `GamePorts ports` en **dernier** champ), `TestContexts`, `ColonySerializer` (inventaire du citoyen et `schemaVersion` 2), `MigrationChain` (une méthode `sp1()` avec la migration 1 → 2), `ColonyManager` (utilise `MigrationChain.sp1()` par défaut), `plugin/.../WorldRuntime.java` (passe `GamePorts.unavailable()` et `MigrationChain.sp1()`), `ArchitectureTest` (règles de § 2 de la spec)
 
 **Interfaces (produites) :**
 
@@ -140,13 +140,13 @@ public interface PlayerInventory {
     ItemAmount give(UUID player, ItemAmount amount);      // remainder or null
 }
 package dev.hycolony.core.colony;
-public record ConstructionPorts(ItemCatalog catalog, WorldBlocks blocks, ContainerAccess containers,
+public record GamePorts(ItemCatalog catalog, WorldBlocks blocks, ContainerAccess containers,
                                 PlayerInventory playerInventory, BlueprintSource blueprints) {
-    public static ConstructionPorts unavailable(); // every method: empty/0/false/remainder=input; blueprints.load -> empty
+    public static GamePorts unavailable(); // every method: empty/0/false/remainder=input; blueprints.load -> empty
 }
 ```
 
-`BlueprintSource` est créé dans cette tâche en tant qu'interface seule (`construction/BlueprintSource.java`), avec le record `Blueprint` minimal défini en tâche 6. Pour que la tâche 1 compile, on crée maintenant `construction/Blueprint.java` et `construction/BlueprintEntry.java` avec exactement les signatures de la tâche 6.
+`BlueprintSource` est créé dans cette tâche en tant qu'interface seule (`construction/blueprint/BlueprintSource.java`), avec le record `Blueprint` minimal défini en tâche 6. Pour que la tâche 1 compile, on crée maintenant `construction/blueprint/Blueprint.java` et `construction/blueprint/BlueprintEntry.java` avec exactement les signatures de la tâche 6.
 
 **Comportement :**
 - `Inventory.insert` complète d'abord les piles existantes du même objet (jusqu'à `maxStack`), puis remplit les emplacements vides.
@@ -325,7 +325,7 @@ public final class RequestManager {
 **Files :**
 - Create : `request/resolver/{RetryingResolver,PlayerResolver}.java`, `building/BuildingResolver.java` (dans `building`, car `request` ne doit pas dépendre de `building`), `request/RequestSerializer.java`
 - Modify : `Colony` (champ `RequestManager requests`, créé dans le constructeur avec `PlayerResolver` et `RetryingResolver` enregistrés, plus un tick toutes les **11** ticks en ACTIVE), `Building` (implémente `Requester` et `ResolverProvider` : `requesterId = "building:x,y,z"`, `location = position`, `resolvers = [new BuildingResolver(this, containers)]`, la `ContainerAccess` étant injectée par `Colony` à l'ajout du bâtiment, `containers()` qui renvoie `List<BlockPos>` avec la position de la cabane, puis les conteneurs enregistrés), `BuildingManager` (`add`/`remove` appellent `onProviderAdded`/`onProviderRemoved` via un listener fourni par `Colony`), `ColonyManager` (`fulfil`, `addToHut`, `onContainerChanged`), `ColonySerializer` (requêtes)
-- Test : `request/resolver/ResolversTest.java`, `request/RequestSerializerTest.java`, `colony/FulfilTest.java`
+- Test : `request/resolver/ResolversTest.java`, `request/RequestSerializerTest.java`, `app/action/FulfilTest.java`
 
 **Interfaces :**
 
@@ -464,7 +464,7 @@ public final class JobXp { public static void award(CitizenData c, Skill primary
 **Files :**
 - Create : `construction/{Blueprint,BlueprintEntry,BlueprintSource,StructurePlan,Stage,ClaimRadius,LivingModule,ConstructionBuildingTypes}.java`
 - Modify : `Building` (`List<BlockPos> containers`, `deconstructed`, `registerContainer`), `BuildingTypes.defaults()` (enregistre `builder` et `residence` via `ConstructionBuildingTypes`), `TerritoryIndex` (`claimSquareBounded(colonyId, ClaimCell center, int radius, ClaimCell colonyCenter, int maxSize)`)
-- Test : `construction/StructurePlanTest.java`, `construction/ClaimRadiusTest.java`
+- Test : `construction/blueprint/StructurePlanTest.java`, `construction/shared/ClaimRadiusTest.java`
 
 **Interfaces :**
 
@@ -518,9 +518,9 @@ public final class ConstructionBuildingTypes {
 ### Task 7 : ordres de travail et `WorkManager`
 
 **Files :**
-- Create : `construction/{WorkOrder,WorkOrderType,WorkManager,WorkOrderRefusal}.java`
+- Create : `construction/workorder/{WorkOrder,WorkOrderType,WorkManager,WorkOrderRefusal}.java`
 - Modify : `Colony` (champ `WorkManager work`, tick toutes les **20** ticks en ACTIVE), `ColonySerializer` (`workOrders`), `ColonyManager` (`requestWorkOrder`, `moveWorkOrder`, `deleteWorkOrder`), `BuildingManager` (au retrait d'une cabane de constructeur : libère ses ordres et annule ses requêtes)
-- Test : `construction/WorkManagerTest.java`
+- Test : `construction/workorder/WorkManagerTest.java`
 
 **Interfaces :**
 
@@ -591,9 +591,9 @@ public sealed interface Either<L, R> { record Left<L,R>(L value) implements Eith
 ### Task 8 : besoins, seaux, module de ressources
 
 **Files :**
-- Create : `construction/{NeededResources,Buckets,BuildingResourcesModule}.java`
+- Create : `construction/resources/{NeededResources,Buckets,BuildingResourcesModule}.java`
 - Modify : `ConstructionBuildingTypes.BUILDER` (+ module `resources`)
-- Test : `construction/ResourcesTest.java`
+- Test : `construction/workorder/ResourcesTest.java`
 
 **Interfaces :**
 
@@ -641,9 +641,9 @@ public final class BuildingResourcesModule implements PersistentModule {
 C'est le portage de `MC/core/entity/ai/workers/AbstractEntityAIStructure.java`, `AbstractEntityAIStructureWithWorkOrder.java`, `builder/EntityAIStructureBuilder.java` et `AbstractEntityAIBasic.java` (vidage, `NEEDS_ITEM`). Il faut lire ces fichiers et l'analyse, § 6-7. Modèle d'implémentation recommandé : opus.
 
 **Files :**
-- Create : `construction/{BuilderJob,BuilderAI,BuilderState,BuilderTimings}.java`
+- Create : `construction/builder/{BuilderJob,BuilderAI,BuilderState,BuilderTimings}.java`
 - Modify : `kernel/port/CitizenBodies` (ajoute `setHeldItem(BodyId, Optional<ItemKey>)` et `playAnimation(BodyId, BodyAnimation)`, avec `enum BodyAnimation { BUILD, MINE }` dans `kernel/port`), `FakeBodies`, `plugin/.../HytaleCitizenBodies` (implémentations **no-op minimales**, les vraies arrivent en partie B), `ColonyEvents` (`BuildingLevelChanged(Colony, Building, int oldLevel, int newLevel)`)
-- Test : `construction/BuilderAITest.java`, `construction/BuilderTimingsTest.java`
+- Test : `construction/builder/BuilderAITest.java`, `construction/builder/BuilderTimingsTest.java`
 
 **Interfaces :**
 
@@ -728,7 +728,7 @@ public final class BuilderTimings {
 **Files :**
 - Create : `app/ui/{BuildingView,BuilderResourcesView,RequestsView,WorkOrdersView}.java`
 - Modify : `app/ui/UiPort` (`showBuilding`, `showBuilderResources`, `showRequests`, `showWorkOrders`), `FakeUi`, `plugin/.../HytaleUiPort` (implémentations **temporaires** qui envoient un message « à venir » ; les vraies fenêtres arrivent en partie B), `ColonyManager`
-- Test : `colony/ViewsTest.java`
+- Test : `app/view/ViewsTest.java`
 
 **Interfaces :**
 

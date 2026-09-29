@@ -4,7 +4,7 @@
 
 **But :** poser une hutte comme avec le Build Tool de Structurize : choisir un style, une hutte et un niveau, voir le fantôme, le déplacer et le tourner, puis valider (`SurvivalHandler` de MineColonies).
 
-**Architecture :** un nouveau paquet du cœur, `construction/wand` :
+**Architecture :** un nouveau paquet du cœur, `app/wand` :
 - l'état par joueur (`WandSessions`) ;
 - les déplacements (`WandMoves`) ;
 - la validation (`WandPlacement`), qui porte `SurvivalHandler` ;
@@ -55,8 +55,8 @@ Le fantôme passe par le `PreviewPort` des lunettes. Côté plugin : l'objet, av
 ### Tâche 2 : session et déplacements (cœur)
 
 **Fichiers :**
-- Créer : `core/src/main/java/dev/hycolony/core/construction/wand/WandSession.java`, `WandSessions.java`, `WandMoves.java`
-- Tests : `core/src/test/java/dev/hycolony/core/construction/wand/WandMovesTest.java`, `WandSessionsTest.java`
+- Créer : `core/src/main/java/dev/hycolony/core/app/wand/WandSession.java`, `WandSessions.java`, `WandMoves.java`
+- Tests : `core/src/test/java/dev/hycolony/core/app/wand/WandMovesTest.java`, `WandSessionsTest.java`
 
 **Interfaces :**
 - `record WandSession(Optional<BlockPos> anchor, String style, String buildingTypeId, int level, int rotation)`.
@@ -85,10 +85,10 @@ Le fantôme passe par le `PreviewPort` des lunettes. Côté plugin : l'objet, av
 ### Tâche 3 : validation (port de `SurvivalHandler`)
 
 **Fichiers :**
-- Créer : `core/src/main/java/dev/hycolony/core/construction/wand/WandPlacement.java`
-- Test : `core/src/test/java/dev/hycolony/core/construction/wand/WandPlacementTest.java`
+- Créer : `core/src/main/java/dev/hycolony/core/app/wand/WandPlacement.java`
+- Test : `core/src/test/java/dev/hycolony/core/app/wand/WandPlacementTest.java`
 - À lire d'abord :
-  - `colony/action/HutActions.java` (`checkPlacement`, `place`) ;
+  - `app/action/HutActions.java` (`checkPlacement`, `place`) ;
   - le démarrage d'une fondation, `foundation().begin`, et son appel dans `plugin/.../block/HutBlockSystems.java` ;
   - `WorkOrderValidation` : la vérification « emprise dans la colonie » (`isWorkOrderWithinColony`), à réutiliser ou à extraire, sans la dupliquer.
 
@@ -119,10 +119,10 @@ Le fantôme passe par le `PreviewPort` des lunettes. Côté plugin : l'objet, av
 ### Tâche 4 : actions, vue et aperçu
 
 **Fichiers :**
-- Créer : `core/src/main/java/dev/hycolony/core/construction/wand/WandActions.java` (public, le point d'entrée).
+- Créer : `core/src/main/java/dev/hycolony/core/app/wand/WandActions.java` (public, le point d'entrée).
 - Créer la vue `WandView` (record), au même endroit que les autres vues de `UiPort` : `app/ui`. Si `ArchitectureTest` refuse la dépendance, la mettre là où il l'accepte et le noter.
 - Modifier : `app/ui/UiPort.java`, avec `void showWand(UUID player, WandView view);`, et `FakeUi`.
-- Test : `core/src/test/java/dev/hycolony/core/construction/wand/WandActionsTest.java`
+- Test : `core/src/test/java/dev/hycolony/core/app/wand/WandActionsTest.java`
 
 **Interfaces :**
 - `record WandView(List<String> styles, List<String> buildingTypeIds, int maxLevel, String style, String buildingTypeId, int level, int rotation, boolean manipulate)`.
@@ -160,7 +160,7 @@ Le fantôme passe par le `PreviewPort` des lunettes. Côté plugin : l'objet, av
 ### Tâche 5 : le style choisi est gardé à la construction
 
 **Fichiers :**
-- À lire : `colony/action/WorkOrderActions.order(UUID, BlockPos, WorkOrderType, String style)` et l'endroit où la fenêtre de la hutte fournit `style`.
+- À lire : `app/action/WorkOrderActions.order(UUID, BlockPos, WorkOrderType, String style)` et l'endroit où la fenêtre de la hutte fournit `style`.
 - Modifier : l'appelant ou `WorkOrderValidation.resolveStyle`, au plus petit endroit correct.
 - Test : dans le test existant de `WorkOrderActions` ou de `WorkOrderValidation`.
 
@@ -207,6 +207,6 @@ Le fantôme passe par le `PreviewPort` des lunettes. Côté plugin : l'objet, av
 
 ### Tâche 7 : relecture
 
-- [ ] Une relecture `hycolony-reviewer` sur tout l'intervalle de commits, et un `mc-fidelity-checker` sur `construction/wand` face à `ST AbstractBlueprintManipulationWindow`, `ST WindowExtendedBuildTool` et `MC SurvivalHandler`.
+- [ ] Une relecture `hycolony-reviewer` sur tout l'intervalle de commits, et un `mc-fidelity-checker` sur `app/wand` face à `ST AbstractBlueprintManipulationWindow`, `ST WindowExtendedBuildTool` et `MC SurvivalHandler`.
 - [ ] Corriger seulement les vraies erreurs. Les cas rares vont dans `docs/BACKLOG.md`. Les corrections sont relues une fois.
 - [ ] Feu vert à l'utilisateur pour les tests en jeu.

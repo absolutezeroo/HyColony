@@ -75,7 +75,7 @@ Port de Structurize `BlueprintPlacementHandling` et de MineColonies `AbstractBlo
 
 ## Architecture
 
-- **Cœur**, paquet `construction/wand` (15 fichiers au plus). Seul `WandActions` est public.
+- **Cœur**, paquet `app/wand` (15 fichiers au plus). Seul `WandActions` est public.
   - `WandSession` (record) : style, type de hutte, niveau, ancre, rotation.
   - `WandSessions` : cycle de vie des sessions par joueur (créer, lire, effacer, vider à la déconnexion).
   - `WandActions` : une méthode par bouton. Chacune met la session à jour, rafraîchit l'aperçu et ré-affiche la vue ; elle renvoie `false` sur une entrée invalide.

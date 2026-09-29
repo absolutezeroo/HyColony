@@ -88,8 +88,8 @@
 | `crafting/request/CraftingProductionResolver.java` | `Crafting` → ingrédients, tâche confiée à l'artisan |
 | `crafting/request/CraftingBatches.java` | découpage en lots (MC `createRequestsForRecipe`) |
 | `crafting/request/CraftingCycles.java` | `createsCraftingCycle` |
-| `crafting/job/Crafter.java` | interface : `CraftingTasks craftingTasks()` |
-| `crafting/job/CraftingTasks.java` | l'état persisté de MC `AbstractJobCrafter` |
+| `crafting/task/Crafter.java` | interface : `CraftingTasks craftingTasks()` |
+| `crafting/task/CraftingTasks.java` | l'état persisté de MC `AbstractJobCrafter` |
 | `crafting/job/CraftingStep.java` | enum des étapes |
 | `crafting/job/CraftingWork.java` | les étapes de MC `AbstractEntityAICrafting` |
 | `crafting/job/CraftingWorkContext.java` | record des collaborateurs de `CraftingWork` |
@@ -98,21 +98,21 @@
 | `request/model/StackList.java` | Deliverable « l'un de ces objets » (MC `StackList`) |
 | `request/model/Crafting.java` | Requestable de tâche de fabrication |
 | `crafting/module/RecipesView.java` | vue de l'onglet Recettes |
-| `colony/action/CraftingActions.java` | apprendre, retirer, activer, déplacer |
+| `app/action/CraftingActions.java` | apprendre, retirer, activer, déplacer |
 
 **Cœur, modifiés :**
 - `construction/blueprint/BlueprintEntry.java` (+ `workstation`) ;
 - `building/Building.java` (+ tables) ;
-- `colony/persistence/BuildingSerializer.java`, `colony/persistence/ColonySerializer.java` ;
+- `app/persistence/BuildingSerializer.java`, `app/persistence/ColonySerializer.java` ;
 - `kernel/persist/MigrationChain.java` ;
-- `colony/Colony.java` (+ `recipes()`), `colony/ConstructionPorts.java` (+ `crafting`) ;
+- `colony/Colony.java` (+ `recipes()`), `colony/GamePorts.java` (+ `crafting`) ;
 - `request/model/Requestable.java`, `request/model/Deliverable.java`, `request/Request.java`, `request/RequestableJson.java` ;
 - `job/WorkerModule.java` (+ résolveurs privés, `CreatesResolvers`) ;
-- `construction/resources/NeededResources.java`, `construction/builder/BuilderBlockWork.java`, `construction/wand/PasteQueue.java` ;
+- `construction/resources/NeededResources.java`, `construction/builder/BuilderBlockWork.java`, `app/wand/PasteQueue.java` ;
 - `kernel/port/WorldBlocks.java` (+ `setBenchTier`) ;
 - `building/module/ModuleTab.java` ;
-- `colony/ColonyManager.java` (+ `crafting()`) ;
-- `colony/persistence/ColonySerializer.java` (`heal`).
+- `app/ColonyManager.java` (+ `crafting()`) ;
+- `app/persistence/ColonySerializer.java` (`heal`).
 
 **Tests** (`core/src/test/java/dev/hycolony/core/`) :
 - `testing/FakeRecipeCatalog.java` ;
@@ -143,8 +143,8 @@
 
 **Fichiers :**
 - Créer : `core/src/main/java/dev/hycolony/core/kernel/item/Workstation.java`
-- Modifier : `construction/blueprint/BlueprintEntry.java`, `building/Building.java`, `colony/persistence/BuildingSerializer.java`, `kernel/persist/MigrationChain.java`, `colony/persistence/ColonySerializer.java` (`SCHEMA_VERSION = 4`, `MigrationChain.sp3b()`)
-- Tester : `core/src/test/java/dev/hycolony/core/building/BuildingWorkstationsTest.java`, `colony/persistence/MigrationV3ToV4Test.java`, fixture `core/src/test/resources/fixtures/colony-v3-crafting.json` (copie de `colony-v3-unknown-job.json`)
+- Modifier : `construction/blueprint/BlueprintEntry.java`, `building/Building.java`, `app/persistence/BuildingSerializer.java`, `kernel/persist/MigrationChain.java`, `app/persistence/ColonySerializer.java` (`SCHEMA_VERSION = 4`, `MigrationChain.sp3b()`)
+- Tester : `core/src/test/java/dev/hycolony/core/building/BuildingWorkstationsTest.java`, `app/persistence/MigrationV3ToV4Test.java`, fixture `core/src/test/resources/fixtures/colony-v3-crafting.json` (copie de `colony-v3-unknown-job.json`)
 
 **Interfaces :**
 - Produit :
@@ -179,12 +179,12 @@ class BuildingWorkstationsTest {
     @Test
     void workstationsSurviveSaveAndLoad() {
         // Use BuildingSerializer.write / read exactly like the existing containers round-trip test in
-        // colony/persistence (find it with: grep -rn "containers" core/src/test/java/dev/hycolony/core/colony/persistence).
+        // app/persistence (find it with: grep -rn "containers" core/src/test/java/dev/hycolony/core/app/persistence).
     }
 }
 ```
 
-Écris le troisième test en copiant l'aller-retour existant des `containers` dans `core/src/test/java/dev/hycolony/core/colony/persistence/` et en remplaçant `addContainer` par `addWorkstation(BENCH, new Workstation("Farmingbench", 3))`. Ajoute aussi `MigrationV3ToV4Test.v3ColonyLoadsWithNoWorkstationsAndNoRecipes` : il charge `fixtures/colony-v3-crafting.json` par `ColonySerializer` et vérifie que chaque bâtiment a `workstations()` vide.
+Écris le troisième test en copiant l'aller-retour existant des `containers` dans `core/src/test/java/dev/hycolony/core/app/persistence/` et en remplaçant `addContainer` par `addWorkstation(BENCH, new Workstation("Farmingbench", 3))`. Ajoute aussi `MigrationV3ToV4Test.v3ColonyLoadsWithNoWorkstationsAndNoRecipes` : il charge `fixtures/colony-v3-crafting.json` par `ColonySerializer` et vérifie que chaque bâtiment a `workstations()` vide.
 
 - [ ] **Step 2 : lancer** `./gradlew :core:test --tests '*BuildingWorkstationsTest' --tests '*MigrationV3ToV4Test'` → ÉCHEC (compilation).
 - [ ] **Step 3 : implémenter.**
@@ -216,7 +216,7 @@ Dans `Building`, ajoute `private final Map<BlockPos, Workstation> workstations =
 
 ```bash
 ./gradlew spotlessApply build
-git add core/src/main/java/dev/hycolony/core/kernel/item/Workstation.java core/src/main/java/dev/hycolony/core/construction/blueprint/BlueprintEntry.java core/src/main/java/dev/hycolony/core/building/Building.java core/src/main/java/dev/hycolony/core/colony/persistence/BuildingSerializer.java core/src/main/java/dev/hycolony/core/colony/persistence/ColonySerializer.java core/src/main/java/dev/hycolony/core/kernel/persist/MigrationChain.java core/src/test/java/dev/hycolony/core/building/BuildingWorkstationsTest.java core/src/test/java/dev/hycolony/core/colony/persistence/MigrationV3ToV4Test.java core/src/test/resources/fixtures/colony-v3-crafting.json
+git add core/src/main/java/dev/hycolony/core/kernel/item/Workstation.java core/src/main/java/dev/hycolony/core/construction/blueprint/BlueprintEntry.java core/src/main/java/dev/hycolony/core/building/Building.java core/src/main/java/dev/hycolony/core/app/persistence/BuildingSerializer.java core/src/main/java/dev/hycolony/core/app/persistence/ColonySerializer.java core/src/main/java/dev/hycolony/core/kernel/persist/MigrationChain.java core/src/test/java/dev/hycolony/core/building/BuildingWorkstationsTest.java core/src/test/java/dev/hycolony/core/app/persistence/MigrationV3ToV4Test.java core/src/test/resources/fixtures/colony-v3-crafting.json
 git commit -m "feat(core): huts register the crafting benches of their plan, with their tier"
 ```
 
@@ -334,7 +334,7 @@ class RecipeMatchingTest {
 
 **Fichiers :**
 - Créer : `crafting/recipe/CraftingRules.java`, `crafting/recipe/CraftingSetup.java`.
-- Modifier : `colony/ConstructionPorts.java` (+ `CraftingSetup crafting`), `testing/TestContexts.java` (`public FakeRecipeCatalog recipes`, `public CraftingRules craftingRules = CraftingRules.EMPTY`), puis **chaque** construction de `ConstructionPorts` dans le plugin (trouve-les avec `grep -rn "new ConstructionPorts" plugin core`). Dans le plugin, passe provisoirement `new CraftingSetup(RecipeCatalog.NONE, CraftingRules.EMPTY)` ; la Task 16 branchera le vrai catalogue.
+- Modifier : `colony/GamePorts.java` (+ `CraftingSetup crafting`), `testing/TestContexts.java` (`public FakeRecipeCatalog recipes`, `public CraftingRules craftingRules = CraftingRules.EMPTY`), puis **chaque** construction de `GamePorts` dans le plugin (trouve-les avec `grep -rn "new GamePorts" plugin core`). Dans le plugin, passe provisoirement `new CraftingSetup(RecipeCatalog.NONE, CraftingRules.EMPTY)` ; la Task 16 branchera le vrai catalogue.
 - Tester : `crafting/recipe/CraftingRulesTest.java`.
 
 **Interfaces :**
@@ -420,7 +420,7 @@ Une recette `Fieldcraft`, faite à la main, garde ainsi ses catégories. `Recipe
     - des `categories` qui valent `["*"]` ou contiennent toutes les catégories de la recette ;
     - une sortie qui n'est pas dans `excludeItems`.
   - Méthodes ≤ 40 lignes : sépare `parseJob` et `parseAllow`.
-- [ ] **Step 4 : lancer** `./gradlew :core:test` → vert (les tests existants compilent avec le nouveau `ConstructionPorts`).
+- [ ] **Step 4 : lancer** `./gradlew :core:test` → vert (les tests existants compilent avec le nouveau `GamePorts`).
 - [ ] **Step 5 : commit** `feat(core): crafting.json rules per job (MC crafterProduct tags)`.
 
 ---
@@ -429,7 +429,7 @@ Une recette `Fieldcraft`, faite à la main, garde ainsi ses catégories. `Recipe
 
 **Fichiers :**
 - Créer : `crafting/recipe/RecipeRegistry.java`.
-- Modifier : `colony/Colony.java` (champ `private final RecipeRegistry recipes = new RecipeRegistry();`, accès `recipes()`), `colony/persistence/ColonySerializer.java` (écrit et lit `"recipes"`).
+- Modifier : `colony/Colony.java` (champ `private final RecipeRegistry recipes = new RecipeRegistry();`, accès `recipes()`), `app/persistence/ColonySerializer.java` (écrit et lit `"recipes"`).
 - Tester : `crafting/recipe/RecipeRegistryTest.java`.
 
 **Interfaces :**
@@ -552,7 +552,7 @@ public record Crafting(ItemKey stack, int count, int minCount, String recipeId, 
 **Interfaces :**
 - Consomme :
   - `Colony.recipes()` ;
-  - `ConstructionPorts.crafting()` ;
+  - `GamePorts.crafting()` ;
   - `Building.workstations()`, `level()` ;
   - `WorkerModule.job().id()`.
 - Produit :
@@ -657,8 +657,8 @@ Pour le hasard, `TestContexts` utilise `new Random(1234)`. Soit tu passes au tes
 ### Task 8 : état de l'artisan (`CraftingTasks`)
 
 **Fichiers :**
-- Créer : `crafting/job/Crafter.java`, `crafting/job/CraftingTasks.java`.
-- Tester : `crafting/job/CraftingTasksTest.java`.
+- Créer : `crafting/task/Crafter.java`, `crafting/task/CraftingTasks.java`.
+- Tester : `crafting/task/CraftingTasksTest.java`.
 
 **Interfaces :**
 - Produit :
@@ -913,7 +913,7 @@ Le record de contexte a 10 champs. C'est un record, pas une méthode, donc la r�
 - Modifier :
   - `construction/resources/NeededResources.java` : une case avec `workstation` coûte l'objet de la table, plus `benchUpgradeCost(bench, 1, tier)` ;
   - `construction/builder/BuilderBlockWork.java` : il vérifie **tous** les objets de la case, les consomme tous à la pose, appelle `setBenchTier`, puis enregistre la table ;
-  - `construction/wand/PasteQueue.java` : il enregistre la table et règle son niveau, sans coût (collage créatif) ;
+  - `app/wand/PasteQueue.java` : il enregistre la table et règle son niveau, sans coût (collage créatif) ;
   - `kernel/port/WorldBlocks.java` : `boolean setBenchTier(BlockPos pos, int tier)`. Un port ne lève jamais d'exception : bloc absent ou pas une table = `false` ;
   - `testing/FakeWorldBlocks.java`.
 - Tester : `construction/resources/NeededResourcesWorkstationTest.java`, `construction/builder/BuilderPlacesWorkstationTest.java`.
@@ -935,12 +935,12 @@ Le record de contexte a 10 champs. C'est un record, pas une méthode, donc la r�
 ### Task 14 : onglet Recettes (vue et actions du cœur)
 
 **Fichiers :**
-- Créer : `crafting/module/RecipesView.java`, `colony/action/CraftingActions.java`.
+- Créer : `crafting/module/RecipesView.java`, `app/action/CraftingActions.java`.
 - Modifier :
   - `building/module/ModuleTab.java` (`permits ..., RecipesView`) ;
   - `CraftingModule` implémente `ProvidesTab` ;
-  - `colony/ColonyManager.java` : `public CraftingActions crafting()`, construit comme `workOrders()`.
-- Tester : `colony/action/CraftingActionsTest.java`, `crafting/module/RecipesViewTest.java`.
+  - `app/ColonyManager.java` : `public CraftingActions crafting()`, construit comme `workOrders()`.
+- Tester : `app/action/CraftingActionsTest.java`, `crafting/module/RecipesViewTest.java`.
 
 **Interfaces :**
 - Produit :
@@ -976,8 +976,8 @@ Les apprenables sont triées par identifiant de sortie : le nom affiché est tra
 ### Task 15 : réparation au chargement
 
 **Fichiers :**
-- Modifier : `colony/persistence/ColonySerializer.java` (`heal`).
-- Tester : `colony/persistence/CraftingHealTest.java`.
+- Modifier : `app/persistence/ColonySerializer.java` (`heal`).
+- Tester : `app/persistence/CraftingHealTest.java`.
 - [ ] **Step 1 : tests qui échouent** :
   - `learnedRecipeMissingFromTheRegistryIsRemoved` : l'identifiant est dans le module mais pas dans le registre ;
   - `tasksOfUnknownRequestsAreDropped` : un jeton de `CraftingTasks` sans requête ;
