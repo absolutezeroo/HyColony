@@ -1,8 +1,11 @@
 """Vérifications de domum.py : python -m blueprint.check_domum (depuis tools/). Une AssertionError nomme le cas."""
 from __future__ import annotations
 
+import json
+
 from . import domum
 from . import families as fam
+from .geometry import rot_index
 
 
 class _Bp:
@@ -71,8 +74,69 @@ def every_material_is_accepted_somewhere():
     assert not bad, bad
 
 
+def directed_timber_frame_points_its_pattern():
+    # DoublePipe from the model drawn facing up: pitch 90 points it south at yaw 0 (Rotation.rotateX), yaw turns it.
+    expected = {"up": 0, "down": rot_index(0, 2, 0), "south": rot_index(0, 1, 0), "east": rot_index(1, 1, 0),
+                "north": rot_index(2, 1, 0), "west": rot_index(3, 1, 0)}
+    for facing, rotation in expected.items():
+        m = _rule("domum_ornamentum:side_framed", {"facing": facing})
+        assert m.target == "HyDomum_TimberFrame_SideFramed" and m.rotation == rotation, (facing, m)
+    assert _rule("domum_ornamentum:plain", {"facing": "west"}).rotation == 0
+
+
+def floor_trapdoor_keeps_dos_hinge_side():
+    # Template at rotation 0 = DO facing=north, hinged on +Z (tools/domum/blocks/door.py).
+    m = _rule("domum_ornamentum:fancy_trapdoors", {"type": "full", "facing": "east", "half": "bottom"})
+    assert m.target == "HyDomum_FancyTrapdoor_Full" and m.rotation == rot_index(3, 0, 0), m
+
+
+def ceiling_trapdoor_is_flipped_and_turned_back():
+    # Pitch 180 moves the hinge to -Z: yaw 180 puts it back on DO's side, as for stairs.
+    m = _rule("domum_ornamentum:vanilla_trapdoors_compat",
+              {"type": "horizontally_squiggly_striped", "facing": "north", "half": "top"})
+    assert m.rotation == rot_index(2, 2, 0), m
+    opened = _rule("domum_ornamentum:vanilla_trapdoors_compat",
+                   {"type": "horizontally_squiggly_striped", "facing": "north", "half": "top", "open": "true"})
+    assert opened.target.endswith("_State_Definitions_OpenDoorOut"), opened
+
+
+def isolated_fence_post_is_not_called_a_beam():
+    m = _rule("domum_ornamentum:vanilla_fence_compat", {})
+    assert m.target == "HyDomum_Fence" and not any("poutre" in n for n in m.notes), m
+
+
+def every_state_emitted_exists_in_its_template():
+    items = domum.RESOURCES.parent / "Server" / "Item" / "Items" / "HyDomum"
+
+    def states(template):
+        block = json.loads((items / (template + ".json")).read_text(encoding="utf-8"))["BlockType"]
+        return set(block.get("State", {}).get("Definitions", {}))
+
+    for shape in domum.shapes().values():
+        sid, have = shape["id"], states(shape["template"])
+        wanted = set()
+        if sid == "Stairs" or (sid.startswith("Shingle") and not sid.startswith("ShingleSlab")):
+            wanted = set(fam._STAIR_STATE.values()) | set(fam._STAIR_STATE_FLIP.values())
+        elif sid == "ShingleSlab":
+            wanted = set(domum.SHINGLE_SLAB_STATES.values())
+        elif sid == "Slab":
+            wanted = {"Block"}
+        elif sid.startswith("Pillar_"):
+            wanted = set(domum.PILLAR_STATES.values())
+        elif sid == "FenceGate" or sid.startswith(("Trapdoor_", "FancyTrapdoor_")):
+            wanted = {"OpenDoorOut"}
+        elif sid in ("Fence", "Wall"):
+            wanted = {"Corner"}
+        assert wanted <= have, (sid, wanted - have)
+
+
 def run():
     shingle_follows_the_stairs_adapter()
+    directed_timber_frame_points_its_pattern()
+    floor_trapdoor_keeps_dos_hinge_side()
+    ceiling_trapdoor_is_flipped_and_turned_back()
+    isolated_fence_post_is_not_called_a_beam()
+    every_state_emitted_exists_in_its_template()
     timber_frame_takes_its_two_materials()
     template_mode_keeps_the_default_materials()
     an_old_component_key_takes_the_remaining_entry()

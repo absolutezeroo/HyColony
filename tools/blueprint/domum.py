@@ -6,9 +6,11 @@ Les données viennent du générateur HyDomum (tools/domum), jamais écrites à 
 - domum/.../hydomum/id-map.json (`ornamentTags`) : les blocs Hytale que chaque emplacement accepte ;
 - data/domum-materials.csv : chaque matériau Minecraft (ou « extra » Domum) -> bloc Hytale.
 
-Rotation : les blocs « compat » de HyDomum (escalier, dalle, clôture, muret, portillon, porte, trappe) ont les
-rotations et les états des blocs vanilla (vérifié par tools/domum/check_connected.py), donc les adaptateurs de
-families.py s'appliquent tels quels ; les bardeaux suivent les escaliers ; les colombages ne tournent pas.
+Rotation : les blocs « compat » de HyDomum (escalier, dalle, clôture, muret, portillon, porte) ont les rotations et
+les états des blocs vanilla (vérifié par tools/domum/check_connected.py), donc les adaptateurs de families.py
+s'appliquent tels quels ; les bardeaux suivent les escaliers. Les colombages à motif orienté tournent en DoublePipe
+depuis leur modèle dessiné vers le haut, les autres ne tournent pas ; les trappes gardent le côté de charnière de
+Domum (tools/domum/blocks/door.py).
 
 Deux modes :
 - gabarit (défaut) : la forme dans ses matériaux par défaut, affichable tout de suite ;
@@ -23,7 +25,7 @@ from functools import lru_cache
 from pathlib import Path
 
 from . import families as fam
-from .geometry import prop_true, wall_outward_yaw, yaw_for
+from .geometry import prop_true, rot_index, yaw_for
 from .model import Mapping, place, skip
 
 REPO = Path(__file__).resolve().parents[2]
@@ -34,6 +36,13 @@ KEY_SEPARATOR = "__"
 
 # Propriété `column` des piliers Domum -> état HyDomum ; `full_pillar` garde le gabarit.
 PILLAR_STATES = {"pillar_base": "Base", "pillar_column": "Middle", "pillar_capital": "Base_Inverted"}
+# Colombages à motif orienté : HyDomum les dessine `facing=up` et les tourne en DoublePipe (tools/domum/blocks/
+# static.py, DIRECTED_FRAMES). Pitch 90 pointe le haut du modèle vers le sud au lacet 0 (Rotation.rotateX : y -> z),
+# puis chaque lacet le tourne d'un quart (sud -> est -> nord -> ouest).
+DIRECTED_FRAME_ROTATIONS = {"up": 0, "down": rot_index(0, 2, 0), "south": rot_index(0, 1, 0),
+                            "east": rot_index(1, 1, 0), "north": rot_index(2, 1, 0), "west": rot_index(3, 1, 0)}
+DIRECTED_FRAMES = ("TimberFrame_SideFramed", "TimberFrame_UpGated", "TimberFrame_DownGated",
+                   "TimberFrame_SideFramedHorizontal")
 # Propriété `shape` des demi-bardeaux -> état HyDomum ; `top` garde le gabarit.
 SHINGLE_SLAB_STATES = {"one_way": "One_Way", "two_way": "Two_Way", "three_way": "Three_Way",
                        "four_way": "Four_Way", "curved": "Curved"}
@@ -72,6 +81,7 @@ def template_ids() -> set[str]:
 
 
 def shape_for(name: str, p: dict) -> dict | None:
+    """La forme HyDomum d'un bloc Domum et de son `type` (celui-ci d'abord, puis le bloc seul) ; None sinon."""
     table = shapes()
     return table.get((name, p.get("type"))) or table.get((name, None))
 
@@ -127,6 +137,7 @@ def rule(bp, pos, name: str, p: dict, with_materials: bool) -> Mapping | None:
 
 
 def _state(base: str, state: str) -> str:
+    """La clé d'un état de bloc Hytale (`*<bloc>_State_Definitions_<état>`), gabarit ou variante."""
     return f"*{base}_State_Definitions_{state}"
 
 
@@ -141,10 +152,15 @@ def _shaped(shape_id: str, base: str, p: dict) -> Mapping | None:
         if p.get("type") == "double":
             return place(_state(base, "Block"), 0, rule="slab")
         return fam.slab(base)(p)
-    if shape_id == "Fence":
-        return fam.fence(base, beam=base)(p)
-    if shape_id == "Wall":
-        return fam.wall(base, beam=base)(p)
+    if shape_id in ("Fence", "Wall"):
+        # HyDomum n'a pas de poutre : un poteau isolé reste une clôture (ou un muret) droite.
+        target, rotation, note = fam._connected(base, _state(base, "Corner"),
+                                                fam._connections(p, wall_style=shape_id == "Wall"),
+                                                t_uses_main_axis=shape_id == "Wall")
+        m = place(target, rotation, rule=shape_id.lower())
+        if note:
+            m.notes.append(note)
+        return m
     if shape_id == "FenceGate":
         return place(_state(base, "OpenDoorOut") if prop_true(p, "open") else base, yaw_for(p), rule="fence_gate")
     if shape_id.startswith(("Door_", "FancyDoor_")):
@@ -155,14 +171,16 @@ def _shaped(shape_id: str, base: str, p: dict) -> Mapping | None:
             m.notes.append("porte ouverte posée fermée")
         return m
     if shape_id.startswith(("Trapdoor_", "FancyTrapdoor_")):
-        # Même convention que la trappe vanilla (families.trapdoor) : le générateur a tourné le modèle DO de 180°.
-        m = place(_state(base, "OpenDoorOut") if prop_true(p, "open") else base, wall_outward_yaw(p), rule="trapdoor")
-        if p.get("half") == "top":
-            m.notes.append("trappe en haut de case approximée")
-        return m
+        # Gabarit au lacet 0 = trappe Domum facing=north posée au sol, charnière en +Z. En haut de case, le pitch 180
+        # passe la charnière en -Z : un demi-tour de lacet la remet du côté de Domum, comme pour les escaliers.
+        yaw = yaw_for(p)
+        rotation = rot_index((yaw + 2) % 4, 2, 0) if p.get("half") == "top" else rot_index(yaw, 0, 0)
+        return place(_state(base, "OpenDoorOut") if prop_true(p, "open") else base, rotation, rule="trapdoor")
     if shape_id.startswith("Pillar_"):
         state = PILLAR_STATES.get(p.get("column", ""))
         return place(_state(base, state) if state else base, 0, rule="pillar")
+    if shape_id in DIRECTED_FRAMES:
+        return place(base, DIRECTED_FRAME_ROTATIONS.get(p.get("facing", "up"), 0), rule="timber_frame")
     if shape_id.startswith("TimberFrame_"):
         return place(base, 0, rule="timber_frame")
     # Panneaux, cloisons de papier, poteaux : rotation HyDomum pas encore vérifiée, règles existantes.
