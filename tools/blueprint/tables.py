@@ -227,6 +227,8 @@ FAMILY = {
     # d'appui : rien ne tient dessus, et elle-même tient sur une face pleine.
     "minecraft:pumpkin": lambda p: place("Plant_Crop_Pumpkin_Item", 0, "citrouille -> citrouille posée",
                                          rule="simple"),
+    "minecraft:melon": lambda p: place("Plant_Crop_Pumpkin_Item", 0, "pastèque -> citrouille posée (pas de pastèque "
+                                       "dans Hytale)", rule="simple"),
     "minecraft:jack_o_lantern": f.front_south("Deco_Halloween_Pumpkin_Scary",
                                               "citrouille-lanterne -> citrouille sculptée"),
     "minecraft:carved_pumpkin": f.front_south("Deco_Halloween_Pumpkin_Cute",
