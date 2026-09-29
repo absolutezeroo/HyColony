@@ -835,6 +835,16 @@ Recherche du 2026-09-29, détail et preuves dans `docs/research/update-7/a-java-
 - **Lumière** : `sunlightFactor = clamp(sin(2π × (t − demi-nuit) / jour) + 0.2, 0, 1)` (l. 271-273). Il fait donc déjà un peu clair avant le lever.
 - **HyColony** : `HytaleGameClock.isDaytime` utilise `isScaledDayTimeWithinRange(0.25, 0.75)`, bornes incluses (`MathUtil.within`). C'est corrigé le 2026-09-29 : avant, il faisait jour de 6 h à 20 h, 1 h 12 après le vrai lever et jusqu'à 48 minutes après le vrai coucher.
 
+## 32. Prefabs MineColonies : cases vides, bon sol, liste des blocs (2026-09-29)
+
+Sources U7 (0.7.0-pre.4). Contexte : `docs/research/structurize-placeholders.md`.
+
+- **`Empty` explicite dans un prefab** : `BsonPrefabBufferDeserializer` crée une entrée pour chaque bloc du tableau `blocks`, `Empty` compris (`builder.newBlockEntry(y)`), et `PrefabBuffer.forEach` les rend toutes, avec `blockId == 0` (`BlockType.EMPTY_ID`), sans filtre (`prefab/selection/buffer/impl/PrefabBuffer.java:670-720`). Une case absente du fichier n'est jamais visitée. Une entrée `fluids` sans bloc crée elle aussi une entrée (`blockId` 0, `fluidId` du fluide).
+- **Forme d'un bloc** : `BlockType.getDrawType()` rend `Empty`, `GizmoCube`, `Cube`, `Model` ou `CubeWithModel` (`protocol/DrawType.java`), et `getMaterial()` rend `Empty` ou `Solid`. Assets : les feuilles sont `DrawType: Model`, `Group: Leaves` (`Server/Item/Items/Plant/Leaves/*.json`). Les minerais sont `CubeWithModel`. `Soil_Dirt_Tilled` hérite de `Template_Soil`. L'état `Full` d'une demi-dalle est un `Cube` alors que sa base est un `Model` : il faut juger l'état par son propre `BlockType`, qui est un asset à part entière (`*X_State_Definitions_Y`).
+- **Tous les blocs** : `BlockType.getAssetMap().getAssetMap()` est une `Map<String, BlockType>`, comme l'utilisent `TriggerVolumesPlugin` et `ArgTypes`.
+- **Fluide d'eau** : l'asset fluide `Water_Source` existe (`Server/Item/Block/Fluids/Water_Source.json`), ainsi que `Water` et `Water_Finite`.
+- **Blocs éditeur** : `Editor_Empty` est un cube transparent, `Quality: Technical`, `Categories: ["Tool.PrefabEditing"]`, `SubCategory: "PrefabBlocks"`, `Group: "@Tech"`, sans `Material` (`Server/Item/Items/Editor/Editor_Empty.json`). Nos deux blocs de substitution reprennent ce modèle. Leur rendu et leur place dans le menu créatif sont **[in-game]**.
+
 ## Could not verify
 
 1. **Client rendering of item animations on NPCs** (`AnimationSlot.Action` with `"Block"/"Build"` or `"Pickaxe"/"Mine"` on `PlayerTestModel_V`) and whether they loop or play once. Only the server packet path is verified.

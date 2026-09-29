@@ -21,7 +21,10 @@
     "selftest.chest": "Furniture_Crude_Chest_Small",
     "selftest.stair_corner": "*Rock_Stone_Brick_Stairs_State_Definitions_Corner_Right",
     "selftest.door": "Furniture_Crude_Door",
-    "selftest.door_open": "*Furniture_Crude_Door_State_Definitions_OpenDoorIn"
+    "selftest.door_open": "*Furniture_Crude_Door_State_Definitions_OpenDoorIn",
+    "blueprint.placeholder.solid": "HyColony_Placeholder_Solid",
+    "blueprint.placeholder.fluid": "HyColony_Placeholder_Fluid",
+    "blueprint.fillBlock": "Soil_Dirt"
   },
   "npcRoles": { "npc.citizen": "HyColony_Citizen" },
   "toggleableUseInteractions": ["Door"],
@@ -61,6 +64,7 @@
   },
   "fireworks": ["Firework_Mix2", "Firework_Mix3", "Firework_Mix4"],
   "highlightEffect": "Drop_Legendary",
+  "placeholderFluid": "Water_Source",
   "skillIcons": {
     "Athletics": "Armor_Leather_Light_Legs",
     "Dexterity": "Weapon_Daggers_Iron",

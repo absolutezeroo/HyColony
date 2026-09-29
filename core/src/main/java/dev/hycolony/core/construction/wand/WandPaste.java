@@ -9,6 +9,7 @@ import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.StructurePlan;
 import dev.hycolony.core.construction.shared.UpgradeCompletion;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.port.ItemCatalog;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -17,9 +18,9 @@ import java.util.UUID;
  * and canPaste, CreativeBuildingStructureHandler): no footprint check, no hut block taken, no work order, no log nor
  * completion message. The hut stands at once, built at the chosen level; its blocks follow over the next ticks.
  *
- * <p>Deviation from MC: no "Complete" paste, since our prefabs carry no substitution blocks and both would place the
- * same blocks. The town hall rules include the founding distance checks at paste time, where MC only checks them
- * when the colony is created.
+ * <p>Deviation from MC: no "Complete" paste, which would place a MineColonies plan's placeholder blocks themselves:
+ * a structure-editing need that Hytale's prefab editor covers. The town hall rules include the founding distance
+ * checks at paste time, where MC only checks them when the colony is created.
  */
 final class WandPaste {
     private final ColonyManager manager;
@@ -59,7 +60,7 @@ final class WandPaste {
         if (failed.isPresent()) {
             return failed.get();
         }
-        queue.add(StructurePlan.build(bp.get(), pos, manager.context().ports().catalog()));
+        queue.add(plan(bp.get(), pos));
         if (check instanceof HutPlacement.Allowed(var colony)) {
             manager.huts().place(colony, type.get().id(), pos, s.rotation());
             Building building = colony.buildings().at(pos).orElseThrow();
@@ -72,5 +73,19 @@ final class WandPaste {
         manager.foundation()
                 .begin(player, playerName, new ColonyFoundation.TownHall(pos, s.rotation(), s.style(), s.level()));
         return new WandPlacement.FoundColony();
+    }
+
+    /**
+     * The paste's plan; its fill cells get the source's default fill block. Deviation from MC: ST
+     * CreativeStructureHandler picks the world generator's block there (BlockUtils.getSubstitutionBlockAtWorld).
+     */
+    private StructurePlan plan(Blueprint bp, BlockPos pos) {
+        ItemCatalog catalog = manager.context().ports().catalog();
+        return manager.context()
+                .ports()
+                .blueprints()
+                .defaultFillBlock()
+                .map(block -> StructurePlan.build(bp, pos, catalog, block))
+                .orElseGet(() -> StructurePlan.build(bp, pos, catalog));
     }
 }

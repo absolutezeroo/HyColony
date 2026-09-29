@@ -19,6 +19,12 @@ public interface ItemCatalog {
     boolean isOre(BlockKey block);
 
     /**
+     * Whether a placeholder fill cell may keep this block (Structurize BlockUtils.isGoodFloorBlock): a full solid cube
+     * that is not foliage, or tilled soil; false for anything else.
+     */
+    boolean isGoodFloor(BlockKey block);
+
+    /**
      * Whether a body in or on this block is hurt: a harmful fluid (lava, fire) or a block that damages or burns on
      * contact (campfire, brazier, cactus). MC PathfindingUtils.isDangerous; false for anything else.
      */

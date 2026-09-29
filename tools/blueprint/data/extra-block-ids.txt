@@ -23,3 +23,6 @@ HyVanilla_Carpet_Brown
 HyVanilla_Carpet_Green
 HyVanilla_Carpet_Red
 HyVanilla_Carpet_Black
+# Blocs de dev du mod HyColony (plugin/src/main/resources/Server/Item/Items/HyColony).
+HyColony_Placeholder_Solid
+HyColony_Placeholder_Fluid

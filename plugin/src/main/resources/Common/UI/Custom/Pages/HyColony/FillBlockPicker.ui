@@ -11,7 +11,7 @@ $C.@PageOverlay {
         LayoutMode: Left;
 
         $C.@Title {
-          @Text = %hycolony.ui.field.seed;
+          @Text = %hycolony.ui.builder.fillBlock.pick;
         }
       }
 
@@ -23,7 +23,7 @@ $C.@PageOverlay {
       LayoutMode: Top;
 
       Label #ItemsEmpty {
-        Text: %hycolony.ui.field.seed.noMatch;
+        Text: %hycolony.ui.builder.fillBlock.noMatch;
         Style: (TextColor: #94a7bb);
         Visible: false;
       }
@@ -34,14 +34,14 @@ $C.@PageOverlay {
         FlexWeight: 1;
       }
 
-      // As MC WindowSelectRes' cancel: back to the field window.
+      // As MC WindowSelectRes' cancel: back to the builder hut window.
       Group {
         LayoutMode: Center;
         Anchor: (Top: 10);
 
         $C.@SecondaryTextButton #CancelButton {
           @Anchor = (Width: 200);
-          Text: %hycolony.ui.field.back;
+          Text: %hycolony.ui.builder.fillBlock.back;
         }
       }
     }

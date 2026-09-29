@@ -79,6 +79,10 @@ def _primary_offset(root: dict) -> Pos | None:
 def _find_anchor(root: dict, grid: dict[Pos, dict]) -> tuple[Pos, str]:
     tes = [te for te in root.get("tile_entities", []) or [] if isinstance(te, dict)]
 
+    # 0) L'ancre de Structurize, celle que MineColonies utilise (la caserne, pas sa première tour).
+    po = _primary_offset(root)
+    if po is not None:
+        return po, "optional_data primary_offset (Structurize)"
     # 1) Entrepôt : tile entity dédiée, puis bloc de hutte.
     for te in tes:
         if te.get("id") == "minecolonies:warehouse":
@@ -90,15 +94,22 @@ def _find_anchor(root: dict, grid: dict[Pos, dict]) -> tuple[Pos, str]:
     for te in tes:
         if te.get("id") == "minecolonies:colonybuilding":
             return _te_pos(te), "tile entity minecolonies:colonybuilding"
-    # 3) Offset principal enregistré par Structurize.
-    po = _primary_offset(root)
-    if po is not None:
-        return po, "optional_data primary_offset (Structurize)"
-    # 4) N'importe quel bloc de hutte.
+    # 3) N'importe quel bloc de hutte.
     for pos, e in grid.items():
         if is_placeholder(e.get("Name", "")) and e.get("Name", "").startswith("minecolonies:blockhut"):
             return pos, f"bloc {e['Name']}"
     return (0, 0, 0), "aucune (0,0,0)"
+
+
+def anchor_warnings(grid: dict[Pos, dict], anchor: Pos) -> list[str]:
+    """L'avertissement d'un plan qui a une hutte ailleurs qu'à son ancre ; vide sinon."""
+    def hut(e: dict) -> bool:
+        return e.get("Name", "").startswith("minecolonies:blockhut")
+
+    if hut(grid.get(anchor, {})) or not any(hut(e) for e in grid.values()):
+        return []
+    return ["L'ancre n'est pas un bloc de hutte : dans styles.json, donner le hutOffset de la hutte, sinon HyColony "
+            "met la hutte à l'ancre."]
 
 
 def load_blueprint(path: str | Path) -> Blueprint:
@@ -121,6 +132,7 @@ def load_blueprint(path: str | Path) -> Blueprint:
 
     anchor, method = _find_anchor(root, grid)
     bp = Blueprint(path, (sx, sy, sz), grid, root.get("tile_entities", []) or [], anchor, method)
+    bp.warnings.extend(anchor_warnings(grid, anchor))
     if method.startswith("aucune"):
         bp.warnings.append(
             "Aucune ancre de hutte trouvée : l'origine du prefab est le coin (0,0,0) du blueprint. "

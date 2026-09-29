@@ -1,0 +1,34 @@
+{
+  "TranslationProperties": {
+    "Name": "hycolony.item.placeholderFluid.name",
+    "Description": "hycolony.item.placeholderFluid.description"
+  },
+  "Icon": "Icons/ItemsGenerated/HyColony_Placeholder_Fluid.png",
+  "Quality": "Technical",
+  "Categories": [
+    "Tool.PrefabEditing"
+  ],
+  "SubCategory": "PrefabBlocks",
+  "BlockType": {
+    "DrawType": "Cube",
+    "RequiresAlphaBlending": true,
+    "Opacity": "Transparent",
+    "Group": "@Tech",
+    "Flags": {},
+    "BlockParticleSetId": "Stone",
+    "CubeShadingMode": "Flat",
+    "Textures": [
+      {
+        "All": "BlockTextures/HyColony/Placeholder_Fluid.png"
+      }
+    ],
+    "TextureComputedColor": "#346EDC"
+  },
+  "PlayerAnimationsId": "Block",
+  "Tags": {
+    "Type": [
+      "Editor"
+    ]
+  },
+  "ItemSoundSetId": "ISS_Blocks_Stone"
+}

@@ -25,6 +25,7 @@ from . import tables as T
 from .blueprint import Blueprint, load_blueprint
 from .detectors import is_bed, is_normal_door, is_wall_sign, run_detectors
 from .geometry import DIR, OPPOSITE, Pos, sub, yaw_for
+from .editor import editor_block, fluid_rule
 from .model import Mapping, place, skip, unmapped
 
 DATA = Path(__file__).resolve().parent / "data"
@@ -226,32 +227,6 @@ class Options:
     domum_materials: bool = False
 
 
-# Cases retirées volontairement qui doivent rester vides dans le bâtiment
-# (tapis, leviers, accoudoirs de chaise…). Les moitiés absorbées par un
-# modèle multi-cases (tête de lit, haut de porte, 2e case d'un grand coffre)
-# ne reçoivent PAS de vide forcé : il pourrait effacer le modèle.
-_EMPTY_AFTER_SKIP = {"removed", "chair", "upstream"}
-
-
-def editor_block(bp: Blueprint, pos: Pos, name: str, m: Mapping) -> Mapping:
-    """Équivalents Hytale des blocs spéciaux MineColonies / Structurize.
-
-    minecraft:air                     -> Empty         (vide forcé : le collage creuse)
-    structurize:blocksolidsubstitution-> Editor_Block  (« terrain plein ici si vide »)
-    structurize:blocksubstitution     -> rien          (terrain laissé intact)
-    bloc de hutte à l'ancre           -> Editor_Anchor (l'ancre survit à l'éditeur de prefabs)
-    """
-    if name == "minecraft:air":
-        return place("Empty", 0, "air du blueprint -> vide forcé", rule="editor_empty")
-    if name == "structurize:blocksolidsubstitution":
-        return place("Editor_Block", 0, "substitution pleine -> Editor Block", rule="editor_solid")
-    if pos == bp.anchor and name.startswith("minecolonies:blockhut"):
-        return place("Editor_Anchor", 0, f"{name} -> Editor Anchor", rule="editor_anchor")
-    if m.skip and m.rule in _EMPTY_AFTER_SKIP:
-        return place("Empty", 0, m.notes[0] if m.notes else "retiré -> vide forcé", rule="editor_empty")
-    return m
-
-
 @dataclass
 class Cell:
     pos: Pos
@@ -281,6 +256,9 @@ class Converter:
 
     def _resolve_rules(self, bp: Blueprint, pos: Pos, name: str, p: dict) -> Mapping:
         m = always_empty(name, p)
+        if m:
+            return m
+        m = fluid_rule(name, p)
         if m:
             return m
         if name.startswith(domum.PREFIX):
@@ -363,7 +341,12 @@ class Result:
                 b["components"] = comps
             blocks.append(b)
         blocks.sort(key=lambda b: (b["x"], b["z"], b["y"]))
-        return {"version": 8, "blockIdVersion": 3, "anchorX": 0, "anchorY": 0, "anchorZ": 0, "blocks": blocks}
+        prefab = {"version": 8, "blockIdVersion": 3, "anchorX": 0, "anchorY": 0, "anchorZ": 0, "blocks": blocks}
+        fluids = [{"x": c.pos[0] - ax, "y": c.pos[1] - ay, "z": c.pos[2] - az, "name": c.mapping.fluid, "level": 1}
+                  for c in self.cells if c.mapping.fluid]
+        if fluids:
+            prefab["fluids"] = sorted(fluids, key=lambda f: (f["x"], f["z"], f["y"]))
+        return prefab
 
     def unmapped(self) -> Counter:
         return Counter(c.source.get("Name", "") for c in self.cells if c.mapping.unmapped)
@@ -375,7 +358,9 @@ class Result:
             "source": c.source.get("Name", ""),
             "proprietes": c.source.get("Properties") or {},
             "cible": c.mapping.target,
+            "fluide": c.mapping.fluid,
             "rotation": c.mapping.rotation,
             "regle": c.mapping.rule,
             "notes": c.mapping.notes,
-        } for c in self.cells if not T.is_placeholder(c.source.get("Name", ""))]
+            # Les cases omises et l'air (toujours « air -> Empty ») n'apportent rien et noieraient la trace.
+        } for c in self.cells if c.mapping.rule != "placeholder" and c.source.get("Name") != "minecraft:air"]

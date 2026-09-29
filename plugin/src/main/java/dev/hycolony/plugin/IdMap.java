@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
+import com.hypixel.hytale.server.core.asset.type.fluid.Fluid;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
 import com.hypixel.hytale.server.core.asset.type.particle.config.ParticleSystem;
 import com.hypixel.hytale.server.core.asset.type.soundevent.config.SoundEvent;
@@ -35,7 +36,8 @@ public final class IdMap {
             List<String> toggleableUseInteractions,
             List<String> potions,
             FarmingIds farming,
-            @Nullable String highlightEffect) {}
+            @Nullable String highlightEffect,
+            @Nullable String placeholderFluid) {}
 
     private final Data data;
 
@@ -51,6 +53,12 @@ public final class IdMap {
     /** The entity effect that makes a highlighted block glow (a vanilla ModelVFX effect); empty when not set. */
     public Optional<String> highlightEffect() {
         return Optional.ofNullable(data.highlightEffect());
+    }
+
+    /** The fluid a blueprint's fluid placeholder gets (MC: the dimension's fluid); "" when the file has none. */
+    public String placeholderFluid() {
+        // No default id here (asset ids live in the id-map only): a missing key fails validate().
+        return Objects.requireNonNullElse(data.placeholderFluid(), "");
     }
 
     /** True when {@code key} has both a hut item and a hut block, as every registered building type needs. */
@@ -158,6 +166,11 @@ public final class IdMap {
         check(errors, "npc role", data.npcRoles(), id -> NPCPlugin.get().hasRoleName(id));
         check(errors, "sound event", byId(farming().tillSoundEvent().stream().toList()), sound);
         check(errors, "entity effect", byId(highlightEffect().stream().toList()), effect);
+        check(
+                errors,
+                "fluid",
+                byId(List.of(placeholderFluid())),
+                id -> Fluid.getAssetMap().getAsset(id) != null);
         return errors;
     }
 

@@ -12,13 +12,15 @@ import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.action.FieldActions;
 import dev.hycolony.core.colony.ui.FieldView;
 import dev.hycolony.core.farming.field.FieldRadii.Direction;
+import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.plugin.ui.ColonyPage;
+import dev.hycolony.plugin.ui.ItemPickerPage;
 import java.util.Locale;
 import javax.annotation.Nonnull;
 
 /**
  * A field block's window (MC WindowField): its farmer, its seed, a button per side showing that side's size, and Pick
- * seed, which opens the seed list ({@link SeedPickerPage}). A side button grows the side by one, past what the budget
+ * seed, which opens the seed list ({@link ItemPickerPage}). A side button grows the side by one, past what the budget
  * allows back to 1; each button goes to the core, which checks MANAGE_HUTS and shows the window again. Without
  * MANAGE_HUTS the buttons are disabled.
  *
@@ -75,6 +77,17 @@ public final class FieldPage extends ColonyPage {
         }
     }
 
+    /** The game's crop seeds; a pick sets the field's seed, Back shows the field window again. */
+    private ItemPickerPage.Picker seeds(FieldActions fields) {
+        return new ItemPickerPage.Picker(
+                "Pages/HyColony/SeedPicker.ui",
+                view.seeds().stream().map(ItemKey::id).toList(),
+                view.seed().map(ItemKey::id),
+                view.canManage(),
+                i -> fields.setSeed(player, view.pos(), view.seeds().get(i)),
+                () -> fields.open(player, view.pos()));
+    }
+
     /** Pick seed opens the seed list (MC WindowSelectRes); a side goes to the core, which re-shows the window. */
     @Override
     public void handleDataEvent(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, @Nonnull Act act) {
@@ -83,7 +96,7 @@ public final class FieldPage extends ColonyPage {
         if (act.action().equals("pick") && view.canManage()) {
             Player p = store.getComponent(ref, Player.getComponentType());
             if (p != null) {
-                p.getPageManager().openCustomPage(ref, store, new SeedPickerPage(playerRef, view, manager));
+                p.getPageManager().openCustomPage(ref, store, new ItemPickerPage(playerRef, manager, seeds(fields)));
             }
         } else if (act.action().equals("radius") && i >= 0 && i < Direction.values().length) {
             fields.cycleRadius(player, view.pos(), Direction.values()[i]);

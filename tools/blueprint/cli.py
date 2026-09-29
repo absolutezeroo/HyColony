@@ -25,6 +25,7 @@ def build_report(res: Result, known: set[str], known_src: str) -> dict:
     bp = res.blueprint
     prefab_blocks = [c for c in res.cells if c.mapping.target]
     targets = Counter(c.mapping.target for c in prefab_blocks)
+    fluids = Counter(c.mapping.fluid for c in res.cells if c.mapping.fluid)
     notes = Counter(n for c in res.cells for n in c.mapping.notes if c.mapping.rule != "placeholder")
     upstream_used = Counter(f"{c.source.get('Name')} -> {c.mapping.target}"
                             for c in res.cells if c.mapping.rule == "upstream" and c.mapping.target)
@@ -48,6 +49,7 @@ def build_report(res: Result, known: set[str], known_src: str) -> dict:
             "refuses_car_directionnels": dict(upstream_deferred.most_common()),
         },
         "cibles": dict(targets.most_common()),
+        "fluides": dict(fluids.most_common()),
         "notes": dict(notes.most_common()),
     }
 
@@ -98,7 +100,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--ids", help="liste d'IDs Hytale valides, un par ligne (remplace la liste fournie)")
     ap.add_argument("--no-upstream", action="store_true", help="désactive la table de secours HytalesHub")
     ap.add_argument("--sans-blocs-editeur", action="store_true",
-                    help="omet air et substitutions au lieu de les traduire en Empty / Editor_Block / Editor_Anchor")
+                    help="omet air et substitutions au lieu de les traduire en Empty / "
+                         "HyColony_Placeholder_Solid|Fluid / Editor_Anchor")
     ap.add_argument("--domum-materiaux", action="store_true",
                     help="blocs Domum avec leurs matériaux (<gabarit>__<m1>__<m2>) ; demande que HyDomum sache créer "
                          "ces matériaux au chargement d'un prefab (DO-3). Par défaut : le gabarit HyDomum")

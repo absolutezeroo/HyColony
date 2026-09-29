@@ -109,7 +109,7 @@ public final class WorldRuntime {
                 worldBlocks,
                 new HytaleContainerAccess(world, catalog.stacks()),
                 new HytalePlayerInventory(world, catalog.stacks()),
-                new HytaleBlueprintSource(ids, setup.styles()),
+                new HytaleBlueprintSource(ids, setup.styles(), catalog),
                 new HytaleWorldEffects(world, ids.fireworks(), ids.farming().tillSoundEvent()),
                 // Read here, before openStorage loads the colonies: a load drops every learnt recipe it does not know.
                 new CraftingSetup(HytaleRecipeCatalog.load(), setup.craftingRules()),
