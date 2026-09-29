@@ -28,9 +28,10 @@ Ajouter le lit de Minecraft à HyVanilla : 1 bloc de large, 2 de long, 9/16 de h
   - comme dans Minecraft : 1×2 blocs, le dessus du matelas à 9/16, un oreiller en laine blanche (20 unités) à la tête et la couverture de la couleur sur le reste ;
   - *écart avec MC*, demandé par l'utilisateur pour aller avec les meubles de Hytale :
     - à la place des quatre pieds, une tête de lit (épaisseur 4, hauteur 28) et un pied de lit (épaisseur 4, hauteur 22) en planches ;
-    - un socle en planches (hauteur 4 à 8) porte le matelas (8 à 18).
+    - un socle en planches (hauteur 4 à 8) porte le matelas (8 à 18) ;
+    - un coussin en relief (24×4×12, en laine blanche) est posé sur le drap blanc, à 2 unités de la tête de lit.
   - La géométrie est la nôtre. Le pack Better Beds (CC BY-NC-SA 4.0), montré par l'utilisateur, n'a servi que d'idée : sa licence est incompatible avec la GPL, et rien n'en est repris.
-- **Hitbox** `HyVanilla_Bed` : le matelas (X 0-1, Y 0-9/16, Z 0-2), la tête de lit (Z 0-1/8, Y 0-7/8) et le pied de lit (Z 15/8-2, Y 0-11/16).
+- **Hitbox** `HyVanilla_Bed` : le matelas (X 0-1, Y 0-9/16, Z 0-2), la tête de lit (Z 0-1/8, Y 0-7/8) le pied de lit (Z 15/8-2, Y 0-11/16) et le coussin (X 1/8-7/8, Z 3/16-9/16, Y 0-11/16).
 - **Textures** : un seul modèle, et une texture 128×128 générée par couleur. Elle assemble la laine de la couleur et les planches `Wood_Softwood_Planks_Top`, chacune répétée 2×2, puis la laine blanche. Aucun dessin n'est à créer. `beds.py` échoue si une face lit hors de sa zone.
 - **Comportement du lit vanilla de Hytale** : même `Use`, `Primary` et `RespawnBlock` que `Furniture_Village_Bed`. Le joueur dort et le lit devient son point de réapparition. Les citoyens (SP4) reconnaissent un lit par `getBeds()`.
   - *Écart avec MC* : le sommeil suit les règles de Hytale (propriétaire du `RespawnBlock`, passage de la nuit), pas celles de Minecraft. MineColonies n'y touche pas.
