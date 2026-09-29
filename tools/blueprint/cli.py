@@ -12,13 +12,20 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-from . import __version__
+from . import __version__, domum
 from .converter import Converter, Options, Result, load_mapping_csv
 from .validation import load_known_ids, unknown_targets
 
 SUFFIX_PREFAB = ".prefab.json"
 SUFFIX_REPORT = ".report.json"
 SUFFIX_TRACE = ".trace.json"
+
+
+def register_hydomum_variants(variants_file: str | None, prefabs: list[Path]) -> None:
+    """Avec --variantes-hydomum : ajoute au variants.json de HyDomum les variantes que nomment ces prefabs."""
+    if variants_file:
+        n = domum.register_from_prefabs(prefabs, Path(variants_file))
+        print(f"Variantes HyDomum ajoutées à {variants_file} : {n}")
 
 
 def build_report(res: Result, known: set[str], known_src: str) -> dict:
@@ -103,8 +110,11 @@ def main(argv: list[str] | None = None) -> int:
                     help="omet air et substitutions au lieu de les traduire en Empty / "
                          "HyColony_Placeholder_Solid|Fluid / Editor_Anchor")
     ap.add_argument("--domum-materiaux", action="store_true",
-                    help="blocs Domum avec leurs matériaux (<gabarit>__<m1>__<m2>) ; demande que HyDomum sache créer "
-                         "ces matériaux au chargement d'un prefab (DO-3). Par défaut : le gabarit HyDomum")
+                    help="blocs Domum avec leurs matériaux (<gabarit>__<m1>__<m2>) ; HyDomum doit connaître ces "
+                         "variantes (voir --variantes-hydomum). Par défaut : le gabarit HyDomum")
+    ap.add_argument("--variantes-hydomum", metavar="FICHIER",
+                    help="implique --domum-materiaux ; ajoute les variantes des prefabs écrits au variants.json de "
+                         "HyDomum (universe/hydomum/variants.json du serveur), qui les crée au démarrage")
     ap.add_argument("--trace", action="store_true", help="écrit aussi, pour chaque case, la règle appliquée")
     ap.add_argument("--strict", action="store_true", help="code de sortie 1 s'il reste des non mappés ou des IDs inconnus")
     ap.add_argument("--version", action="version", version=f"blueprint2hytale {__version__}")
@@ -124,7 +134,7 @@ def main(argv: list[str] | None = None) -> int:
 
     options = Options(use_upstream_csv=not args.no_upstream, editor_blocks=not args.sans_blocs_editeur,
                       overrides=load_mapping_csv(args.overrides) if args.overrides else {},
-                      domum_materials=args.domum_materiaux)
+                      domum_materials=args.domum_materiaux or bool(args.variantes_hydomum))
     conv = Converter(options)
     known, known_src = load_known_ids(args.ids)
     problems = 0
@@ -144,6 +154,7 @@ def main(argv: list[str] | None = None) -> int:
         for t, n in report["ids_inconnus"].items():
             print(f"     ? ID inconnu : {t} x{n}")
         print(f"  -> {prefab_path}")
+        register_hydomum_variants(args.variantes_hydomum, [prefab_path])
         problems = bool(report["non_mappes"] or report["ids_inconnus"])
         return 1 if args.strict and problems else 0
 
@@ -198,5 +209,6 @@ def main(argv: list[str] | None = None) -> int:
         for t, n in all_unknown.most_common(15):
             print(f"  {n:>6}  {t}")
     print(f"\nRésumé : {out_dir / 'resume.json'}")
+    register_hydomum_variants(args.variantes_hydomum, list(out_dir.rglob("*" + SUFFIX_PREFAB)))
     problems += bool(all_unmapped or all_unknown)
     return 1 if (args.strict and problems) else 0

@@ -80,6 +80,42 @@ def template_ids() -> set[str]:
     return {s["template"] for s in shapes().values()}
 
 
+def variant_ids(targets) -> set[str]:
+    """Les variantes HyDomum que nomment ces cibles, au format de son variants.json (VariantKey.id :
+    `<forme>|<matériau 1>|<matériau 2>`) ; les gabarits seuls et les autres blocs n'en donnent aucune."""
+    shape_of = {s["template"]: s["id"] for s in shapes().values()}
+    out = set()
+    for target in targets:
+        base = target.lstrip("*").split("_State_Definitions_")[0]
+        template, _, rest = base.partition(KEY_SEPARATOR)
+        if rest and template in shape_of:
+            out.add("|".join([shape_of[template], *rest.split(KEY_SEPARATOR)]))
+    return out
+
+
+def register_variants(path: Path, ids: set[str]) -> int:
+    """Ajoute à la fin du variants.json de HyDomum (créé au besoin) les variantes absentes, sans rien retirer ; HyDomum
+    les crée au démarrage, avant les chunks et les prefabs (VariantStore). Renvoie le nombre d'ajouts."""
+    data = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {"schemaVersion": 1, "variants": []}
+    if isinstance(data, list):  # l'ancien format de SavedVariants : la liste seule
+        data = {"schemaVersion": 1, "variants": data}
+    if data.get("schemaVersion", 1) > 1:
+        raise ValueError(f"{path} vient d'une version plus récente de HyDomum : non modifié")
+    saved = data.setdefault("variants", [])
+    new = sorted(ids - set(saved))
+    if new:
+        saved.extend(new)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(data, separators=(",", ":")), encoding="utf-8")
+    return len(new)
+
+
+def register_from_prefabs(prefabs, variants_file: Path) -> int:
+    """Enregistre dans le variants.json de HyDomum les variantes que nomment ces fichiers .prefab.json."""
+    names = (b["name"] for p in prefabs for b in json.loads(Path(p).read_text(encoding="utf-8"))["blocks"])
+    return register_variants(Path(variants_file), variant_ids(names))
+
+
 def shape_for(name: str, p: dict) -> dict | None:
     """La forme HyDomum d'un bloc Domum et de son `type` (celui-ci d'abord, puis le bloc seul) ; None sinon."""
     table = shapes()

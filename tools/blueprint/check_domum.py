@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import json
+import tempfile
+from pathlib import Path
 
 from . import domum
 from . import families as fam
@@ -130,6 +132,24 @@ def every_state_emitted_exists_in_its_template():
         assert wanted <= have, (sid, wanted - have)
 
 
+def variant_ids_name_shape_and_materials():
+    # HyDomum saves a variant as VariantKey.id(): "<shape id>|<material 1>|<material 2>".
+    target = "*HyDomum_TimberFrame_Plain__Wood_Hardwood_Planks__Soil_Clay_Smooth_White_State_Definitions_X"
+    assert domum.variant_ids([target, "HyDomum_Stairs", "Rock_Stone"]) == {
+        "TimberFrame_Plain|Wood_Hardwood_Planks|Soil_Clay_Smooth_White"}
+
+
+def registering_variants_keeps_the_saved_ones(tmp: Path):
+    path = tmp / "variants.json"
+    path.write_text(json.dumps({"schemaVersion": 1, "variants": ["Stairs|Rock_Stone"]}), encoding="utf-8")
+    added = domum.register_variants(path, {"Slab|Rock_Stone", "Stairs|Rock_Stone"})
+    assert added == 1, added
+    assert json.loads(path.read_text(encoding="utf-8"))["variants"] == ["Stairs|Rock_Stone", "Slab|Rock_Stone"]
+    fresh = tmp / "new" / "variants.json"
+    assert domum.register_variants(fresh, {"Slab|Rock_Stone"}) == 1
+    assert json.loads(fresh.read_text(encoding="utf-8")) == {"schemaVersion": 1, "variants": ["Slab|Rock_Stone"]}
+
+
 def run():
     shingle_follows_the_stairs_adapter()
     directed_timber_frame_points_its_pattern()
@@ -145,6 +165,9 @@ def run():
     pillar_base_takes_its_state()
     a_domum_brick_block_becomes_its_hytale_block()
     every_material_is_accepted_somewhere()
+    variant_ids_name_shape_and_materials()
+    with tempfile.TemporaryDirectory() as tmp:
+        registering_variants_keeps_the_saved_ones(Path(tmp))
     print("blueprint domum check: OK")
 
 
