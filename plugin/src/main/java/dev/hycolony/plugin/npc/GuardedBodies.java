@@ -16,7 +16,9 @@ import java.util.logging.Level;
 /**
  * The citizen bodies port as the core sees it: a port never throws (CLAUDE.md § 4). A call the Hytale adapter fails
  * (a body whose entity lost a component, a store asserting its thread) answers nothing, false or a failed walk; the
- * first failure is logged as a WARNING, the next ones FINE, so a colony tick never throws on a body.
+ * first failure is logged as a WARNING, the next ones FINE, so a colony tick never throws on a body. Two fallbacks have
+ * a cost, acceptable because the adapter's isAlive and position only read a map and a component: a failed isAlive
+ * would respawn a body that still exists, and a failed position keeps a walk from ending until it answers again.
  */
 public final class GuardedBodies implements CitizenBodies {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();

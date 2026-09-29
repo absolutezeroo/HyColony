@@ -9,8 +9,10 @@ import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.RefSystem;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.plugin.WorldRuntime;
 import dev.hycolony.plugin.WorldRuntimes;
+import java.util.Optional;
 import java.util.logging.Level;
 import javax.annotation.Nonnull;
 
@@ -60,9 +62,13 @@ public final class CitizenBodyLifecycleSystem extends RefSystem<EntityStore> {
             @Nonnull CommandBuffer<EntityStore> buffer) {
         try {
             WorldRuntime rt = runtimes.of(store.getExternalData().getWorld());
+            if (rt == null) {
+                return;
+            }
+            Optional<BodyId> body = rt.bodies().untrack(ref); // always, or its entry would stay behind
             CitizenTag tag = store.getComponent(ref, HyColonyComponents.citizenTag());
-            if (rt != null && tag != null) {
-                rt.bodies().untrack(ref).ifPresent(id -> rt.manager().onBodyUnloaded(id, tag.colonyId()));
+            if (tag != null) {
+                body.ifPresent(id -> rt.manager().onBodyUnloaded(id, tag.colonyId()));
             }
         } catch (RuntimeException e) {
             LOG.at(Level.SEVERE).withCause(e).log("HyColony: unbinding a citizen body failed");
