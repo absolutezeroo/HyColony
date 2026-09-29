@@ -68,11 +68,7 @@ public final class FieldWalk {
             out.add("workingOffset", o);
         }
         if (prevPos != null) {
-            JsonArray p = new JsonArray();
-            p.add(prevPos.x());
-            p.add(prevPos.y());
-            p.add(prevPos.z());
-            out.add("prevPos", p);
+            out.add("prevPos", FieldJson.pos(prevPos));
         }
     }
 

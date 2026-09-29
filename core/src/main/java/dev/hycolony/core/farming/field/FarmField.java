@@ -71,8 +71,8 @@ public final class FarmField {
     /** MC serializeNBT: position, owner, seed, radii (S, W, N, E) and stage. */
     public JsonObject write() {
         JsonObject o = new JsonObject();
-        o.add("pos", pos(pos));
-        owner.ifPresent(h -> o.add("owner", pos(h)));
+        o.add("pos", FieldJson.pos(pos));
+        owner.ifPresent(h -> o.add("owner", FieldJson.pos(h)));
         seed.ifPresent(s -> o.addProperty("seed", s.id()));
         JsonArray r = new JsonArray();
         r.add(radii.south());
@@ -109,14 +109,6 @@ public final class FarmField {
         } catch (IllegalArgumentException e) {
             return FieldStage.EMPTY;
         }
-    }
-
-    private static JsonArray pos(BlockPos p) {
-        JsonArray a = new JsonArray();
-        a.add(p.x());
-        a.add(p.y());
-        a.add(p.z());
-        return a;
     }
 
     /** Four numbers, none negative, within the budget of {@link FieldRadii#MAX_RANGE}; else the defaults. */

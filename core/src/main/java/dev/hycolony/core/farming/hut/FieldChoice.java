@@ -74,12 +74,12 @@ final class FieldChoice {
      */
     void write(JsonObject out) {
         if (current != null) {
-            out.add("current", pos(current));
+            out.add("current", FieldJson.pos(current));
         }
         JsonArray list = new JsonArray();
         checked.forEach((pos, day) -> {
             JsonObject e = new JsonObject();
-            e.add("pos", pos(pos));
+            e.add("pos", FieldJson.pos(pos));
             e.addProperty("day", day);
             list.add(e);
         });
@@ -99,13 +99,5 @@ final class FieldChoice {
                 }
             }
         }
-    }
-
-    private static JsonArray pos(BlockPos p) {
-        JsonArray a = new JsonArray();
-        a.add(p.x());
-        a.add(p.y());
-        a.add(p.z());
-        return a;
     }
 }

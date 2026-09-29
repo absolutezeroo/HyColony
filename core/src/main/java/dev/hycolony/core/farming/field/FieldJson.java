@@ -22,6 +22,15 @@ public final class FieldJson {
         return el instanceof JsonPrimitive p && p.isBoolean() ? Optional.of(p.getAsBoolean()) : Optional.empty();
     }
 
+    /** {@code p} saved as {@code [x, y, z]}. */
+    public static JsonArray pos(BlockPos p) {
+        JsonArray a = new JsonArray();
+        a.add(p.x());
+        a.add(p.y());
+        a.add(p.z());
+        return a;
+    }
+
     /** A position saved as {@code [x, y, z]}, empty if absent or malformed. */
     public static Optional<BlockPos> pos(@Nullable JsonElement el) {
         if (!(el instanceof JsonArray a) || a.size() != 3) {
