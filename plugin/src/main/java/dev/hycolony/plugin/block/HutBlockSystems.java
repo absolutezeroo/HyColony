@@ -15,9 +15,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.colony.ColonyManager;
-import dev.hycolony.core.colony.ColonyRefusal;
 import dev.hycolony.core.colony.HutPlacement;
-import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.plugin.RuntimeSetup;
 import dev.hycolony.plugin.WorldRuntime;
@@ -150,17 +148,9 @@ public final class HutBlockSystems {
                 if (rt == null || !rt.enabled() || player == null) {
                     return;
                 }
-                ColonyManager m = rt.manager();
-                BlockPos pos = pos(event.getTargetBlock());
-                if (m.foundation().cancelAt(pos).isPresent()) {
-                    return; // an unconfirmed town hall (anyone's): its foundation is cancelled, normal drop
-                }
-                if (m.colonyAt(pos).isPresent() && !m.isAllowed(player.getUuid(), pos, Action.BREAK_HUTS)) {
+                if (!rt.manager().huts().breakBy(player.getUuid(), pos(event.getTargetBlock()))) {
                     event.setCancelled(true);
-                    ColonyRefusal.tell(m.colonyAt(pos).get(), player.getUuid());
-                    return;
                 }
-                m.huts().onRemoved(pos);
             } catch (RuntimeException e) {
                 event.setCancelled(true);
                 failed("break", event.getTargetBlock(), e);

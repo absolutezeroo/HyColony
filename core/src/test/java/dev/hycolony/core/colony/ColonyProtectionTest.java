@@ -1,5 +1,6 @@
 package dev.hycolony.core.colony;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -11,7 +12,10 @@ import dev.hycolony.core.testing.TestContexts;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
-/** The creative operator bypass (MC Permissions.hasPermission) and explosions (MC TurnOffExplosionsInColonies). */
+/**
+ * The creative operator bypass (MC Permissions.hasPermission), breaking a hut (MC ColonyPermissionEventHandler) and
+ * explosions (MC TurnOffExplosionsInColonies).
+ */
 class ColonyProtectionTest {
     private final TestContexts t = new TestContexts();
     private final UUID alice = UUID.randomUUID();
@@ -61,6 +65,26 @@ class ColonyProtectionTest {
         t.players.creative.add(bob);
 
         assertTrue(manager.isAllowed(bob, inside, Action.PLACE_BLOCKS));
+    }
+
+    @Test
+    void strangerCannotBreakAHutAndIsTold() {
+        ColonyManager manager = start(2);
+
+        assertFalse(manager.huts().breakBy(bob, hall));
+
+        assertTrue(manager.colonyAt(hall).orElseThrow().buildings().townHall().isPresent());
+        assertEquals(
+                "hycolony.permission.denied", t.notifier.sent.getLast().msg().key());
+    }
+
+    @Test
+    void withoutColonyProtectionAnyPlayerBreaksAHut() {
+        ColonyManager manager = start(new ColonyConfig.Permissions(false, Explosions.DAMAGE_ENTITIES, 2));
+
+        assertTrue(manager.huts().breakBy(bob, hall));
+
+        assertTrue(manager.colonyAt(hall).orElseThrow().buildings().townHall().isEmpty(), "MC: building.destroy()");
     }
 
     @Test

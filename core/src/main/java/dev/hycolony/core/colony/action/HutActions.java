@@ -8,6 +8,7 @@ import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.colony.ColonyEvents;
 import dev.hycolony.core.colony.ColonyManager;
+import dev.hycolony.core.colony.ColonyRefusal;
 import dev.hycolony.core.colony.HutPlacement;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.colony.view.ColonyWindows;
@@ -128,6 +129,24 @@ public final class HutActions {
 
     public void onRemoved(BlockPos pos) {
         manager.colonyAt(pos).ifPresent(c -> remove(c, pos));
+    }
+
+    /**
+     * A player breaks the hut block at {@code pos} (MC ColonyPermissionEventHandler.on(BreakEvent), hut part): an
+     * unconfirmed town hall only cancels its foundation; with colony protection off the hut is removed whoever breaks
+     * it; else a player without BREAK_HUTS is told and nothing changes. Returns false when the break is refused.
+     */
+    public boolean breakBy(UUID player, BlockPos pos) {
+        if (manager.foundation().cancelAt(pos).isPresent()) {
+            return true;
+        }
+        Optional<Colony> colony = manager.colonyAt(pos);
+        if (manager.protectionEnabled() && colony.isPresent() && !manager.isAllowed(player, pos, Action.BREAK_HUTS)) {
+            ColonyRefusal.tell(colony.get(), player);
+            return false;
+        }
+        onRemoved(pos);
+        return true;
     }
 
     private void remove(Colony c, BlockPos pos) {
