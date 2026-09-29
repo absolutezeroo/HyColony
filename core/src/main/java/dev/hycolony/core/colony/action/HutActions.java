@@ -15,6 +15,7 @@ import dev.hycolony.core.construction.shared.BuilderSettingsModule;
 import dev.hycolony.core.job.HiringMode;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.port.Msg;
 import java.util.Optional;
 import java.util.UUID;
@@ -210,6 +211,27 @@ public final class HutActions {
             return false;
         }
         s.setMode(mode);
+        h.colony().markDirty();
+        windows.showBuilding(h.colony(), h.building(), player);
+        return true;
+    }
+
+    /**
+     * The builder hut's fill block (MC BUILDER_SETTINGS fillblock), one of the source's choices; false for another
+     * block, a hut without the setting or a player who may not manage it.
+     */
+    public boolean setFillBlock(UUID player, BlockPos hutPos, BlockKey block) {
+        ManagedHut h = ManagedHut.find(manager, player, hutPos).orElse(null);
+        if (h == null
+                || !manager.context().ports().blueprints().fillBlockChoices().contains(block)) {
+            return false;
+        }
+        BuilderSettingsModule s =
+                h.building().module(BuilderSettingsModule.class).orElse(null);
+        if (s == null) {
+            return false;
+        }
+        s.setFillBlock(block);
         h.colony().markDirty();
         windows.showBuilding(h.colony(), h.building(), player);
         return true;

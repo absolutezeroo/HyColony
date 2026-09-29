@@ -2,6 +2,7 @@ package dev.hycolony.plugin.adapter;
 
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.protocol.BlockMaterial;
+import com.hypixel.hytale.protocol.DrawType;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockBreakingDropType;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockGathering;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
@@ -105,6 +106,30 @@ public final class HytaleItemCatalog implements ItemCatalog {
     @Override
     public boolean isOre(BlockKey block) {
         return block(block).ore();
+    }
+
+    /**
+     * A solid block drawn as a full cube ({@code DrawType.Cube}), leaves excluded (Structurize
+     * {@code unsuitable_solid_for_placeholder}): vanilla leaves are models of group {@code Leaves}, and tilled soil is
+     * a cube ({@code Template_Soil}), as Structurize's {@code good_solid_for_placeholder} wants. A state variant is
+     * judged by its base block; an unknown block or a fluid is no good floor.
+     */
+    @Override
+    public boolean isGoodFloor(BlockKey block) {
+        try {
+            BlockType type = BlockType.getAssetMap().getAsset(block.id());
+            if (type != null && block.id().startsWith("*") && type.getDefaultStateKey() != null) {
+                type = BlockType.getAssetMap().getAsset(type.getDefaultStateKey());
+            }
+            return type != null
+                    && !type.isUnknown()
+                    && type.getMaterial() == BlockMaterial.Solid
+                    && type.getDrawType() == DrawType.Cube
+                    && !"Leaves".equals(type.getGroup());
+        } catch (RuntimeException e) {
+            fail(block.id(), e);
+            return false;
+        }
     }
 
     /**

@@ -9,6 +9,7 @@ import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.StructurePlan;
 import dev.hycolony.core.construction.shared.UpgradeCompletion;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.port.ItemCatalog;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -59,7 +60,7 @@ final class WandPaste {
         if (failed.isPresent()) {
             return failed.get();
         }
-        queue.add(StructurePlan.build(bp.get(), pos, manager.context().ports().catalog()));
+        queue.add(plan(bp.get(), pos));
         if (check instanceof HutPlacement.Allowed(var colony)) {
             manager.huts().place(colony, type.get().id(), pos, s.rotation());
             Building building = colony.buildings().at(pos).orElseThrow();
@@ -72,5 +73,19 @@ final class WandPaste {
         manager.foundation()
                 .begin(player, playerName, new ColonyFoundation.TownHall(pos, s.rotation(), s.style(), s.level()));
         return new WandPlacement.FoundColony();
+    }
+
+    /**
+     * The paste's plan; its fill cells get the source's default fill block. Deviation from MC: ST
+     * CreativeStructureHandler picks the world generator's block there (BlockUtils.getSubstitutionBlockAtWorld).
+     */
+    private StructurePlan plan(Blueprint bp, BlockPos pos) {
+        ItemCatalog catalog = manager.context().ports().catalog();
+        return manager.context()
+                .ports()
+                .blueprints()
+                .defaultFillBlock()
+                .map(block -> StructurePlan.build(bp, pos, catalog, block))
+                .orElseGet(() -> StructurePlan.build(bp, pos, catalog));
     }
 }

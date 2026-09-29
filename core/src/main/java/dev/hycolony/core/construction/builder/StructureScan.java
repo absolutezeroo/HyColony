@@ -51,8 +51,7 @@ final class StructureScan {
     private boolean needsWork(BuildSite site, Stage stage, int i, BlockPos pos) {
         BlockState world = blocks.get(pos).orElse(null);
         return switch (stage) {
-            case CLEAR ->
-                world != null && clearable(world) && !world.equals(site.plan().stateAt(pos)) && notAHut(pos);
+            case CLEAR -> world != null && clears(site, pos, world) && notAHut(pos);
             case REMOVE -> world != null && mineable(world) && notAHut(pos);
             case CLEAR_LEFTOVERS ->
                 // The old floor (below the hut) stays, as CLEAR's box starts at the hut level: no trench around.
@@ -68,11 +67,22 @@ final class StructureScan {
                 boolean open = site.finalCheckDone()
                         ? world == null || catalog.kind(world.key()) == BlockKind.AIR
                         : world == null || catalog.kind(world.key()) != BlockKind.UNBREAKABLE;
-                yield !e.state().equals(world)
+                yield !site.plan().satisfied(e, world, catalog)
                         && open
                         && notAHut(pos); // MC IBuilderUndestroyable: a colony hut is never built over
             }
         };
+    }
+
+    /**
+     * Whether CLEAR takes {@code world} away: a block the plan does not want; under a fill cell, a block that is no
+     * good floor, never a fluid (MC SolidSubstitutionPlacementHandler, AbstractEntityAIStructure.skipClearing).
+     */
+    private boolean clears(BuildSite site, BlockPos pos, BlockState world) {
+        if (site.plan().isFill(pos)) {
+            return mineable(world) && !catalog.isGoodFloor(world.key());
+        }
+        return clearable(world) && !world.equals(site.plan().stateAt(pos));
     }
 
     /** Air, fluids and unbreakable blocks are never mined. */

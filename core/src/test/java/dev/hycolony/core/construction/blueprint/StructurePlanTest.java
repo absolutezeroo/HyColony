@@ -109,19 +109,19 @@ class StructurePlanTest {
         StructurePlan plan = StructurePlan.build(bp, HUT, catalog);
 
         // Not loaded/placed yet.
-        assertFalse(plan.isDone(e, world));
+        assertFalse(plan.isDone(e, world, catalog));
 
         // Same key, different rotation: not done.
         world.blocks.put(HUT, new BlockState(STONE, 0));
-        assertFalse(plan.isDone(e, world));
+        assertFalse(plan.isDone(e, world, catalog));
 
         // Different key, same rotation: not done.
         world.blocks.put(HUT, new BlockState(PLANK, 1));
-        assertFalse(plan.isDone(e, world));
+        assertFalse(plan.isDone(e, world, catalog));
 
         // Same key and rotation: done.
         world.blocks.put(HUT, new BlockState(STONE, 1));
-        assertTrue(plan.isDone(e, world));
+        assertTrue(plan.isDone(e, world, catalog));
     }
 
     @Test

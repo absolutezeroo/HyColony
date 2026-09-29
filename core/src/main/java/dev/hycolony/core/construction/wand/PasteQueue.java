@@ -95,7 +95,8 @@ final class PasteQueue {
         }
         BlockPos pos = (phase == SOLID ? plan.solidPositions() : plan.decoPositions()).get(index);
         BlueprintEntry e = list.get(index++);
-        if (blocks().get(pos).filter(e.state()::equals).isPresent()) {
+        if (plan.satisfied(
+                e, blocks().get(pos).orElse(null), manager.context().ports().catalog())) {
             return true; // ST StructurePlacer: a block already matching is left as is (a chest keeps its items)
         }
         if (!blocks().placeQuietly(pos, e.state(), e.hasContainer())) {

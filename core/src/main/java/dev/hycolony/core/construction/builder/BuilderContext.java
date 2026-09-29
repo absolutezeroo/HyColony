@@ -5,7 +5,10 @@ import dev.hycolony.core.building.BuildingModule;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.construction.blueprint.Blueprint;
+import dev.hycolony.core.construction.blueprint.StructurePlan;
 import dev.hycolony.core.construction.resources.BuildingResourcesModule;
+import dev.hycolony.core.construction.shared.BuilderSettingsModule;
 import dev.hycolony.core.crafting.recipe.RecipeCatalog;
 import dev.hycolony.core.job.Job;
 import dev.hycolony.core.job.JobXp;
@@ -94,6 +97,18 @@ record BuilderContext(
     /** {@code hut}'s module of {@code type}; null without a hut or without that module. */
     private static <T extends BuildingModule> @Nullable T module(@Nullable Building hut, Class<T> type) {
         return hut == null ? null : hut.module(type).orElse(null);
+    }
+
+    /**
+     * The plan of {@code bp} at {@code at}, whose fill cells get the hut's fill block, else the blueprint source's
+     * default (MC AbstractEntityAIStructure.getSolidSubstitution); without either they get none.
+     */
+    StructurePlan planFor(Blueprint bp, BlockPos at) {
+        return hut().module(BuilderSettingsModule.class)
+                .flatMap(BuilderSettingsModule::fillBlock)
+                .or(() -> colony.context().ports().blueprints().defaultFillBlock())
+                .map(block -> StructurePlan.build(bp, at, catalog, block))
+                .orElseGet(() -> StructurePlan.build(bp, at, catalog));
     }
 
     /** False for a builder without a hut, whose AI never runs. */
