@@ -1,13 +1,12 @@
 package dev.hycolony.core.logistics.courier;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.job.Job;
 import dev.hycolony.core.job.JobAI;
 import dev.hycolony.core.job.JobType;
+import dev.hycolony.core.job.TaskQueues;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.logistics.warehouse.CourierAssignmentModule;
@@ -18,13 +17,11 @@ import dev.hycolony.core.request.model.Pickup;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequestToken;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * MC {@code JobDeliveryman}: the courier's own task queue and the deliveries it is carrying, both saved (MC keeps them
@@ -103,7 +100,7 @@ public final class DeliverymanJob extends Job implements CourierTaskQueue {
      * restarts, as MC does when the pulled task is not the one it was doing.
      */
     Optional<Request> ownTask(Colony colony) {
-        return CourierTaskPicker.ownHead(colony, queue);
+        return TaskQueues.head(colony, queue);
     }
 
     /** MC {@code getTaskListWithSameDestination}: see {@link CourierTasks#withSameDestination}. */
@@ -163,36 +160,17 @@ public final class DeliverymanJob extends Job implements CourierTaskQueue {
     @Override
     public JsonObject write() {
         JsonObject o = super.write();
-        o.add("queue", tokens(queue));
-        o.add("ongoing", tokens(ongoing));
+        o.add("queue", RequestToken.toJson(queue));
+        o.add("ongoing", RequestToken.toJson(ongoing));
         return o;
     }
 
     @Override
     public void read(JsonObject o) {
         super.read(o);
-        readTokens(o, "queue", queue);
-        readTokens(o, "ongoing", ongoing);
-    }
-
-    private static JsonArray tokens(Collection<RequestToken> tokens) {
-        JsonArray arr = new JsonArray();
-        tokens.forEach(t -> arr.add(t.id().toString()));
-        return arr;
-    }
-
-    /** A token that is not a UUID is dropped: the request it named cannot be found anyway. */
-    private static void readTokens(JsonObject o, String key, Collection<RequestToken> into) {
-        into.clear();
-        if (!o.has(key) || !o.get(key).isJsonArray()) {
-            return;
-        }
-        for (JsonElement e : o.getAsJsonArray(key)) {
-            try {
-                into.add(new RequestToken(UUID.fromString(e.getAsString())));
-            } catch (IllegalArgumentException | UnsupportedOperationException | IllegalStateException _) {
-                // tolerant read (CLAUDE.md § 5)
-            }
-        }
+        queue.clear();
+        queue.addAll(RequestToken.fromJson(o.get("queue")));
+        ongoing.clear();
+        ongoing.addAll(RequestToken.fromJson(o.get("ongoing")));
     }
 }

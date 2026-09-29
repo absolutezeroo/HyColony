@@ -2,6 +2,7 @@ package dev.hycolony.core.logistics.courier;
 
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.job.TaskQueues;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.logistics.warehouse.CourierAssignmentModule;
 import dev.hycolony.core.logistics.warehouse.RequesterLocation;
@@ -40,7 +41,9 @@ final class CourierTaskPicker {
 
     /** The courier's current task, pulled from its warehouse when its own queue is empty; empty if none. */
     static Optional<Request> currentTask(Colony colony, DeliverymanJob job) {
-        Optional<Request> own = ownHead(colony, job.mutableQueue());
+        // Deviation from MC: a head whose request is gone (a stale token after a load) is dropped; MC returns null
+        // for it, forever, as nothing else pops it.
+        Optional<Request> own = TaskQueues.head(colony, job.mutableQueue());
         if (own.isPresent()) {
             return own;
         }
@@ -48,22 +51,6 @@ final class CourierTaskPicker {
                 CourierAssignmentModule.warehouseOf(colony, job.citizen().id());
         return warehouse.flatMap(w -> w.module(WarehouseRequestQueue.class)
                 .flatMap(q -> new CourierTaskPicker(colony, job, w.position(), q.tokens()).pull()));
-    }
-
-    /**
-     * The head of the courier's own queue. Deviation from MC: a head whose request is gone (a stale token after a
-     * load) is dropped; MC returns null for it, forever, as nothing else pops it.
-     */
-    static Optional<Request> ownHead(Colony colony, List<RequestToken> queue) {
-        while (!queue.isEmpty()) {
-            Optional<Request> head = colony.requests().get(queue.getFirst());
-            if (head.isPresent()) {
-                return head;
-            }
-            queue.removeFirst();
-            colony.markDirty();
-        }
-        return Optional.empty();
     }
 
     /**

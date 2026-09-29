@@ -5,20 +5,18 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.job.TaskQueues;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.persist.SavedJson;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequestToken;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
-import org.jspecify.annotations.Nullable;
 
 /**
  * A crafter's state (MC AbstractJobCrafter): its task queue, the tasks scheduled for it whose ingredients are still on
@@ -69,15 +67,7 @@ public final class CraftingTasks {
      * the colony dirty); empty if the queue ends empty.
      */
     public Optional<Request> currentTask(Colony colony) {
-        while (!queue.isEmpty()) {
-            Optional<Request> head = colony.requests().get(queue.getFirst());
-            if (head.isPresent()) {
-                return head;
-            }
-            queue.removeFirst();
-            colony.markDirty();
-        }
-        return Optional.empty();
+        return TaskQueues.head(colony, queue);
     }
 
     /**
@@ -166,8 +156,8 @@ public final class CraftingTasks {
     /** MC serializeNBT, with the two task lists MC saves in its data store. */
     public JsonObject write() {
         JsonObject out = new JsonObject();
-        out.add(QUEUE, tokens(queue));
-        out.add(ASSIGNED, tokens(assigned));
+        out.add(QUEUE, RequestToken.toJson(queue));
+        out.add(ASSIGNED, RequestToken.toJson(assigned));
         out.addProperty(PROGRESS, progress);
         out.addProperty(MAX_COUNTER, maxCraftingCount);
         out.addProperty(CRAFT_COUNTER, craftCounter);
@@ -187,8 +177,10 @@ public final class CraftingTasks {
      * Deviation from MC: each counter is read into its own field, where MC reads all three into {@code progress}.
      */
     public void read(JsonObject in) {
-        readTokens(in.get(QUEUE), queue);
-        readTokens(in.get(ASSIGNED), assigned);
+        queue.clear();
+        queue.addAll(RequestToken.fromJson(in.get(QUEUE)));
+        assigned.clear();
+        assigned.addAll(RequestToken.fromJson(in.get(ASSIGNED)));
         progress = SavedJson.intOr(in.get(PROGRESS), 0);
         maxCraftingCount = SavedJson.intOr(in.get(MAX_COUNTER), 0);
         craftCounter = SavedJson.intOr(in.get(CRAFT_COUNTER), 0);
@@ -201,29 +193,6 @@ public final class CraftingTasks {
                         && SavedJson.intOr(stack.get("count"), 0) > 0) {
                     secondaryOutputs.merge(
                             new ItemKey(item.getAsString()), SavedJson.intOr(stack.get("count"), 0), Integer::sum);
-                }
-            }
-        }
-    }
-
-    private static JsonArray tokens(Collection<RequestToken> tokens) {
-        JsonArray out = new JsonArray();
-        tokens.forEach(t -> out.add(t.id().toString()));
-        return out;
-    }
-
-    /** A token that is not a UUID is dropped: the request it named cannot be found anyway. */
-    private static void readTokens(@Nullable JsonElement saved, List<RequestToken> into) {
-        into.clear();
-        if (!(saved instanceof JsonArray array)) {
-            return;
-        }
-        for (JsonElement e : array) {
-            if (e instanceof JsonPrimitive p && p.isString()) {
-                try {
-                    into.add(new RequestToken(UUID.fromString(p.getAsString())));
-                } catch (IllegalArgumentException _) {
-                    // tolerant read (CLAUDE.md § 5)
                 }
             }
         }

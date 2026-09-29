@@ -14,7 +14,6 @@ import dev.hycolony.core.request.model.RequesterId;
 import dev.hycolony.core.request.resolver.PlayerResolver;
 import dev.hycolony.core.request.resolver.RetryingResolver;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -38,7 +37,7 @@ public final class RequestSerializer {
         o.add("requests", requests);
 
         JsonObject assignments = new JsonObject();
-        m.store().assignments().forEach((id, tokens) -> assignments.add(id, tokens(tokens)));
+        m.store().assignments().forEach((id, tokens) -> assignments.add(id, RequestToken.toJson(tokens)));
         o.add("assignments", assignments);
 
         retrying(m).ifPresent(r -> {
@@ -49,7 +48,9 @@ public final class RequestSerializer {
         });
         player(m)
                 .ifPresent(p -> o.add(
-                        "player", tokens(p.open().stream().map(Request::token).toList())));
+                        "player",
+                        RequestToken.toJson(
+                                p.open().stream().map(Request::token).toList())));
         return o;
     }
 
@@ -87,7 +88,7 @@ public final class RequestSerializer {
         List<RequestToken> orphans = new ArrayList<>();
         for (String resolverId : assignments.keySet()) {
             Optional<Resolver> resolver = m.resolver(resolverId);
-            for (RequestToken t : readTokens(assignments.getAsJsonArray(resolverId))) {
+            for (RequestToken t : RequestToken.fromJson(assignments.get(resolverId))) {
                 Optional<Request> req = m.get(t);
                 if (req.isEmpty()) {
                     continue;
@@ -121,7 +122,7 @@ public final class RequestSerializer {
                 r.parent()
                         .<JsonElement>map(p -> new JsonPrimitive(p.id().toString()))
                         .orElse(JsonNull.INSTANCE));
-        o.add("children", tokens(r.children()));
+        o.add("children", RequestToken.toJson(r.children()));
         JsonArray deliveries = new JsonArray();
         for (ItemAmount a : r.deliveries()) {
             JsonObject d = new JsonObject();
@@ -158,7 +159,7 @@ public final class RequestSerializer {
         if (parent != null && !parent.isJsonNull()) {
             r.setParent(token(parent.getAsString()));
         }
-        readTokens(o.getAsJsonArray("children")).forEach(r::addChild);
+        RequestToken.fromJson(o.get("children")).forEach(r::addChild);
         for (JsonElement el : o.getAsJsonArray("deliveries")) {
             JsonObject d = el.getAsJsonObject();
             r.addDelivery(new ItemAmount(
@@ -176,20 +177,6 @@ public final class RequestSerializer {
 
     private static RequestToken token(String s) {
         return new RequestToken(UUID.fromString(s));
-    }
-
-    private static JsonArray tokens(Collection<RequestToken> tokens) {
-        JsonArray a = new JsonArray();
-        tokens.forEach(t -> a.add(t.id().toString()));
-        return a;
-    }
-
-    private static List<RequestToken> readTokens(JsonArray a) {
-        List<RequestToken> out = new ArrayList<>(a.size());
-        for (JsonElement el : a) {
-            out.add(token(el.getAsString()));
-        }
-        return out;
     }
 
     private static JsonObject counts(Map<RequestToken, Integer> map, Set<RequestToken> keys) {

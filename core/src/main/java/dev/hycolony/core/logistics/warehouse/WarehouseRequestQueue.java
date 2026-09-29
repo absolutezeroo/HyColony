@@ -1,7 +1,5 @@
 package dev.hycolony.core.logistics.warehouse;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.PersistentModule;
@@ -30,25 +28,14 @@ public final class WarehouseRequestQueue implements PersistentModule, ProvidesTa
 
     @Override
     public void write(JsonObject out) {
-        JsonArray arr = new JsonArray();
-        tokens.forEach(t -> arr.add(t.id().toString()));
-        out.add("requests", arr);
+        out.add("requests", RequestToken.toJson(tokens));
     }
 
-    /** A token that is not a UUID is dropped: the request it named cannot be found anyway. */
+    /** See {@link RequestToken#fromJson}: a token that is not a UUID is dropped. */
     @Override
     public void read(JsonObject in) {
         tokens.clear();
-        if (!in.has("requests")) {
-            return;
-        }
-        for (JsonElement e : in.getAsJsonArray("requests")) {
-            try {
-                tokens.add(new RequestToken(UUID.fromString(e.getAsString())));
-            } catch (IllegalArgumentException | UnsupportedOperationException | IllegalStateException _) {
-                // tolerant read (CLAUDE.md § 5)
-            }
-        }
+        tokens.addAll(RequestToken.fromJson(in.get("requests")));
     }
 
     /** The warehouse's Tasks tab (MC WarehouseRequestTaskModuleView). */
