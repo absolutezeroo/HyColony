@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import org.jspecify.annotations.Nullable;
 
@@ -27,6 +28,18 @@ public record RequestToken(UUID id) {
         return out;
     }
 
+    /** The token saved as {@code saved}; empty unless it is a UUID string (CLAUDE.md § 5). */
+    public static Optional<RequestToken> parse(@Nullable JsonElement saved) {
+        if (saved instanceof JsonPrimitive p && p.isString()) {
+            try {
+                return Optional.of(new RequestToken(UUID.fromString(p.getAsString())));
+            } catch (IllegalArgumentException _) {
+                // tolerant read (CLAUDE.md § 5)
+            }
+        }
+        return Optional.empty();
+    }
+
     /**
      * The tokens of a saved array, in order; an entry that is not a UUID string is dropped (the request it named
      * cannot be found anyway), and anything but an array reads as none (CLAUDE.md § 5).
@@ -37,13 +50,7 @@ public record RequestToken(UUID id) {
             return out;
         }
         for (JsonElement e : array) {
-            if (e instanceof JsonPrimitive p && p.isString()) {
-                try {
-                    out.add(new RequestToken(UUID.fromString(p.getAsString())));
-                } catch (IllegalArgumentException _) {
-                    // tolerant read (CLAUDE.md § 5)
-                }
-            }
+            parse(e).ifPresent(out::add);
         }
         return out;
     }

@@ -3,11 +3,11 @@ package dev.hycolony.core.request;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolType;
+import dev.hycolony.core.kernel.persist.SavedJson;
 import dev.hycolony.core.request.model.Crafting;
 import dev.hycolony.core.request.model.Delivery;
 import dev.hycolony.core.request.model.Pickup;
@@ -81,38 +81,53 @@ final class RequestableJson {
         o.addProperty("public", c.isPublic());
     }
 
-    /** The saved requestable; empty for a type (or tool type) this build does not know. */
+    /**
+     * The saved requestable; empty for a type (or tool type) this build does not know, or when the item or positive
+     * count it asks for cannot be read (§ 5). A missing optional value takes its default.
+     */
     static Optional<Requestable> read(JsonObject o) {
-        return switch (o.get("type").getAsString()) {
+        return switch (SavedJson.stringOr(o.get("type"), "")) {
             case "stack" ->
-                Optional.of(new StackRequest(
-                        new ItemKey(o.get("item").getAsString()),
-                        o.get("count").getAsInt(),
-                        o.get("minCount").getAsInt(),
-                        o.get("canBeResolvedByBuilding").getAsBoolean()));
+                stack(o).map(s -> new StackRequest(
+                        s.item(),
+                        s.count(),
+                        SavedJson.intOr(o.get("minCount"), s.count()),
+                        SavedJson.boolOr(o.get("canBeResolvedByBuilding"), false)));
             case "tool" ->
-                enumOf(ToolType.values(), o.get("tool").getAsString())
+                SavedJson.enumOf(ToolType.class, o.get("tool"))
                         .map(t -> new ToolRequest(
-                                t,
-                                o.get("minLevel").getAsInt(),
-                                o.get("maxLevel").getAsInt()));
-            case "delivery" ->
-                Optional.of(new Delivery(
-                        blockPos(o.getAsJsonObject("start")),
-                        new RequesterId(o.get("target").getAsString()),
-                        new ItemAmount(
-                                new ItemKey(o.get("item").getAsString()),
-                                o.get("count").getAsInt()),
-                        o.get("priority").getAsInt()));
+                                t, SavedJson.intOr(o.get("minLevel"), 0), SavedJson.intOr(o.get("maxLevel"), 0)));
+            case "delivery" -> readDelivery(o);
             case "pickup" ->
                 Optional.of(new Pickup(
-                        o.get("priority").getAsInt(),
-                        o.get("day").getAsInt(),
-                        o.get("quantity").getAsInt()));
+                        SavedJson.intOr(o.get("priority"), 0),
+                        SavedJson.intOr(o.get("day"), 0),
+                        SavedJson.intOr(o.get("quantity"), 0)));
             case "stackList" -> readStackList(o);
             case "crafting" -> readCrafting(o);
             default -> Optional.empty();
         };
+    }
+
+    /** The saved {@code item} and {@code count}; empty without an item or a positive count. */
+    private static Optional<ItemAmount> stack(JsonObject o) {
+        String item = SavedJson.stringOr(o.get("item"), "");
+        int count = SavedJson.intOr(o.get("count"), 0);
+        return item.isEmpty() || count <= 0 ? Optional.empty() : Optional.of(new ItemAmount(new ItemKey(item), count));
+    }
+
+    /** Empty without its start position or its stack. */
+    private static Optional<Requestable> readDelivery(JsonObject o) {
+        Optional<BlockPos> start = SavedJson.tryPos(o.get("start"));
+        Optional<ItemAmount> stack = stack(o);
+        if (start.isEmpty() || stack.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(new Delivery(
+                start.get(),
+                new RequesterId(SavedJson.stringOr(o.get("target"), "")),
+                stack.get(),
+                SavedJson.intOr(o.get("priority"), 0)));
     }
 
     /** Empty without accepted items ({@link StackList} accepts one at least); a missing description reads as none. */
@@ -122,37 +137,33 @@ final class RequestableJson {
         }
         List<ItemKey> accepted = new ArrayList<>(saved.size());
         for (JsonElement item : saved) {
-            accepted.add(new ItemKey(item.getAsString()));
+            String id = SavedJson.stringOr(item, "");
+            if (!id.isEmpty()) {
+                accepted.add(new ItemKey(id));
+            }
         }
-        String description = o.get("description") instanceof JsonPrimitive d ? d.getAsString() : "";
+        if (accepted.isEmpty()) {
+            return Optional.empty();
+        }
         return Optional.of(new StackList(
                 accepted,
-                description,
-                o.get("count").getAsInt(),
-                o.get("minCount").getAsInt()));
+                SavedJson.stringOr(o.get("description"), ""),
+                SavedJson.intOr(o.get("count"), 1),
+                SavedJson.intOr(o.get("minCount"), 1)));
     }
 
     /** Empty without its recipe. */
     private static Optional<Requestable> readCrafting(JsonObject o) {
-        if (!(o.get("recipe") instanceof JsonPrimitive recipe)) {
+        String recipe = SavedJson.stringOr(o.get("recipe"), "");
+        if (recipe.isEmpty()) {
             return Optional.empty();
         }
-        return Optional.of(new Crafting(
-                new ItemKey(o.get("item").getAsString()),
-                o.get("count").getAsInt(),
-                o.get("minCount").getAsInt(),
-                recipe.getAsString(),
-                o.get("public").getAsBoolean()));
-    }
-
-    /** The constant named {@code name} among {@code values}; empty for a name this build does not know. */
-    static <E extends Enum<E>> Optional<E> enumOf(E[] values, String name) {
-        for (E value : values) {
-            if (value.name().equals(name)) {
-                return Optional.of(value);
-            }
-        }
-        return Optional.empty();
+        return stack(o).map(s -> new Crafting(
+                s.item(),
+                s.count(),
+                SavedJson.intOr(o.get("minCount"), s.count()),
+                recipe,
+                SavedJson.boolOr(o.get("public"), false)));
     }
 
     private static JsonObject blockPos(BlockPos p) {
@@ -161,10 +172,5 @@ final class RequestableJson {
         o.addProperty("y", p.y());
         o.addProperty("z", p.z());
         return o;
-    }
-
-    private static BlockPos blockPos(JsonObject o) {
-        return new BlockPos(
-                o.get("x").getAsInt(), o.get("y").getAsInt(), o.get("z").getAsInt());
     }
 }

@@ -176,6 +176,52 @@ class RequestSerializerTest {
     }
 
     @Test
+    void openRequestWithAnUnreadableAssignmentIsReassignedAndTheSaveRewritten() {
+        World w = new World();
+        RequestToken t = w.m.createAndAssign(w.hut, new StackRequest(PLANKS, 4, 4, true), Request.NO_CITIZEN);
+        w.m.onColonyUpdate(r -> true);
+        JsonObject json = roundTrip(RequestSerializer.write(w.m));
+        JsonArray garbage = new JsonArray();
+        garbage.add("garbage");
+        JsonObject assignments = new JsonObject();
+        assignments.add("player", garbage);
+        json.add("assignments", assignments);
+        json.add("player", new JsonArray());
+
+        containers.containers.computeIfAbsent(HUT, p -> new HashMap<>()).put(PLANKS, 10);
+        World l = new World();
+        assertTrue(RequestSerializer.read(json, l.m));
+
+        assertEquals("building:0,64,0", l.resolverOf(t), "an open request without a resolver would wait forever");
+    }
+
+    @Test
+    void malformedSavedRequestIsLeftOutAndMissingValuesTakeTheirDefault() {
+        World w = new World();
+        RequestToken t = w.m.createAndAssign(w.hut, new StackRequest(PLANKS, 4, 4, true), 3);
+        JsonObject json = roundTrip(RequestSerializer.write(w.m));
+        JsonArray requests = json.getAsJsonArray("requests");
+        JsonObject saved = requests.get(0).getAsJsonObject();
+        JsonObject noToken = saved.deepCopy();
+        noToken.remove("token");
+        JsonObject noCount = saved.deepCopy();
+        noCount.addProperty("token", new java.util.UUID(0, 9).toString());
+        noCount.getAsJsonObject("requestable").remove("count");
+        requests.add(noToken);
+        requests.add(noCount);
+        saved.addProperty("deliveries", "none");
+        saved.addProperty("blacklist", 3);
+        saved.remove("citizenId");
+        json.addProperty("retrying", "none");
+
+        World l = new World();
+        RequestSerializer.read(json, l.m);
+
+        assertEquals(1, l.m.all().size());
+        assertEquals(Request.NO_CITIZEN, l.m.get(t).orElseThrow().citizenId());
+    }
+
+    @Test
     void inconsistentSaveIsHealedOnLoad() {
         World w = new World();
         containers.containers.computeIfAbsent(HUT, p -> new HashMap<>()).put(PLANKS, 4);

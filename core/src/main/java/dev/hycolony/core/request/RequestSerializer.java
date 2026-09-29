@@ -7,6 +7,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.core.kernel.persist.SavedJson;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.request.model.Requestable;
@@ -20,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * RequestManager <-> JSON: requests, assignments (resolverId -> tokens), retrying and player state. Read it after
@@ -59,15 +59,17 @@ public final class RequestSerializer {
         if (!o.has("requests")) {
             return false; // schema v1 placeholder
         }
-        SavedRequests.Loaded loaded = SavedRequests.read(o.getAsJsonArray("requests"), RequestSerializer::readRequest);
+        SavedRequests.Loaded loaded =
+                SavedRequests.read(SavedJson.arrayOr(o.get("requests")), RequestSerializer::readRequest);
         loaded.requests().values().forEach(m.store()::restore);
 
-        List<RequestToken> orphans = readAssignments(o.getAsJsonObject("assignments"), m);
+        List<RequestToken> orphans = readAssignments(SavedJson.objectOr(o.get("assignments")), m);
+        boolean unassigned = addUnassigned(m, orphans);
 
         // Membership comes from the assignments; the saved resolver state only supplies the numbers.
-        JsonObject ro = o.has("retrying") ? o.getAsJsonObject("retrying") : new JsonObject();
-        Map<RequestToken, Integer> savedDelays = readCounts(ro.getAsJsonObject("delays"));
-        Map<RequestToken, Integer> savedTries = readCounts(ro.getAsJsonObject("tries"));
+        JsonObject ro = SavedJson.objectOr(o.get("retrying"));
+        Map<RequestToken, Integer> savedDelays = readCounts(SavedJson.objectOr(ro.get("delays")));
+        Map<RequestToken, Integer> savedTries = readCounts(SavedJson.objectOr(ro.get("tries")));
         retrying(m).ifPresent(r -> {
             Map<RequestToken, Integer> delays = new LinkedHashMap<>();
             Map<RequestToken, Integer> tries = new LinkedHashMap<>();
@@ -80,7 +82,24 @@ public final class RequestSerializer {
         player(m).ifPresent(p -> m.assignedTo(PlayerResolver.ID).forEach(p::restore));
 
         orphans.forEach(m::reassignLoaded);
-        return loaded.repaired();
+        return loaded.repaired() || unassigned;
+    }
+
+    /**
+     * Adds to {@code orphans} the open requests that no saved assignment names (an unreadable or missing entry, § 5),
+     * which would otherwise wait forever without a resolver; true when there was one.
+     */
+    private static boolean addUnassigned(RequestManager m, List<RequestToken> orphans) {
+        boolean found = false;
+        for (Request r : m.all()) {
+            if (r.state().isBefore(RequestState.COMPLETED)
+                    && !m.store().isAssigned(r.token())
+                    && !orphans.contains(r.token())) {
+                orphans.add(r.token());
+                found = true;
+            }
+        }
+        return found;
     }
 
     /** Restores the assignments whose resolver still exists; returns the open requests whose resolver is gone. */
@@ -141,42 +160,55 @@ public final class RequestSerializer {
         return o;
     }
 
-    /** The saved request; empty when its type or state is unknown to this build. */
+    /**
+     * The saved request; empty when its token, what it asks for or its state cannot be read, or is unknown to this
+     * build. A missing optional value takes its default (§ 5); a malformed parent or child link is repaired by
+     * {@link SavedRequests}.
+     */
     private static Optional<Request> readRequest(JsonObject o) {
-        Optional<Requestable> requestable = RequestableJson.read(o.getAsJsonObject("requestable"));
-        Optional<RequestState> state =
-                RequestableJson.enumOf(RequestState.values(), o.get("state").getAsString());
-        if (requestable.isEmpty() || state.isEmpty()) {
+        Optional<RequestToken> token = RequestToken.parse(o.get("token"));
+        Optional<Requestable> requestable =
+                o.get("requestable") instanceof JsonObject saved ? RequestableJson.read(saved) : Optional.empty();
+        Optional<RequestState> state = SavedJson.enumOf(RequestState.class, o.get("state"));
+        if (token.isEmpty() || requestable.isEmpty() || state.isEmpty()) {
             return Optional.empty();
         }
         Request r = new Request(
-                token(o.get("token").getAsString()),
-                new RequesterId(o.get("requester").getAsString()),
+                token.get(),
+                new RequesterId(SavedJson.stringOr(o.get("requester"), "")),
                 requestable.get(),
-                o.get("citizenId").getAsInt());
+                SavedJson.intOr(o.get("citizenId"), Request.NO_CITIZEN));
         r.setState(state.get());
-        JsonElement parent = o.get("parent");
-        if (parent != null && !parent.isJsonNull()) {
-            r.setParent(token(parent.getAsString()));
-        }
+        RequestToken.parse(o.get("parent")).ifPresent(r::setParent);
         RequestToken.fromJson(o.get("children")).forEach(r::addChild);
-        for (JsonElement el : o.getAsJsonArray("deliveries")) {
-            JsonObject d = el.getAsJsonObject();
-            r.addDelivery(new ItemAmount(
-                    new ItemKey(d.get("item").getAsString()), d.get("count").getAsInt()));
-        }
-        r.setDeliveredToCitizen(
-                o.has("deliveredToCitizen") && o.get("deliveredToCitizen").getAsBoolean());
-        Set<String> blacklist = new HashSet<>();
-        for (JsonElement el : o.getAsJsonArray("blacklist")) {
-            blacklist.add(el.getAsString());
-        }
-        r.setBlacklist(blacklist);
+        readDeliveries(SavedJson.arrayOr(o.get("deliveries")), r);
+        r.setDeliveredToCitizen(SavedJson.boolOr(o.get("deliveredToCitizen"), false));
+        r.setBlacklist(readBlacklist(SavedJson.arrayOr(o.get("blacklist"))));
         return Optional.of(r);
     }
 
-    private static RequestToken token(String s) {
-        return new RequestToken(UUID.fromString(s));
+    /** Adds the saved deliveries to {@code r}; one without an item or a positive count is dropped. */
+    private static void readDeliveries(JsonArray saved, Request r) {
+        for (JsonElement el : saved) {
+            JsonObject d = SavedJson.objectOr(el);
+            String item = SavedJson.stringOr(d.get("item"), "");
+            int count = SavedJson.intOr(d.get("count"), 0);
+            if (!item.isEmpty() && count > 0) {
+                r.addDelivery(new ItemAmount(new ItemKey(item), count));
+            }
+        }
+    }
+
+    /** The saved resolver ids; an entry that is not a string is dropped. */
+    private static Set<String> readBlacklist(JsonArray saved) {
+        Set<String> blacklist = new HashSet<>();
+        for (JsonElement el : saved) {
+            String resolver = SavedJson.stringOr(el, "");
+            if (!resolver.isEmpty()) {
+                blacklist.add(resolver);
+            }
+        }
+        return blacklist;
     }
 
     private static JsonObject counts(Map<RequestToken, Integer> map, Set<RequestToken> keys) {
@@ -189,11 +221,13 @@ public final class RequestSerializer {
         return o;
     }
 
+    /** Saved counts by token; an entry whose key is not a token or whose value is not a number is dropped. */
     private static Map<RequestToken, Integer> readCounts(JsonObject o) {
         Map<RequestToken, Integer> out = new LinkedHashMap<>();
-        if (o != null) {
-            for (String key : o.keySet()) {
-                out.put(token(key), o.get(key).getAsInt());
+        for (String key : o.keySet()) {
+            Optional<RequestToken> token = RequestToken.parse(new JsonPrimitive(key));
+            if (token.isPresent() && o.get(key) instanceof JsonPrimitive n && n.isNumber()) {
+                out.put(token.get(), n.getAsInt());
             }
         }
         return out;

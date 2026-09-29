@@ -35,15 +35,15 @@ final class SavedRequests {
     static Loaded read(JsonArray requests, Function<JsonObject, Optional<Request>> reader) {
         Map<RequestToken, Request> loaded = new LinkedHashMap<>();
         for (JsonElement el : requests) {
-            JsonObject saved = el.getAsJsonObject();
+            JsonObject saved = el instanceof JsonObject o ? o : new JsonObject();
             reader.apply(saved)
                     .ifPresentOrElse(
                             r -> loaded.put(r.token(), r),
                             () -> LOG.log(
                                     System.Logger.Level.WARNING,
-                                    "Saved request {0} skipped: unknown type or state ({1}, {2})",
-                                    saved.get("token").getAsString(),
-                                    saved.getAsJsonObject("requestable").get("type"),
+                                    "Saved request {0} skipped: unreadable, or of an unknown type or state ({1}, {2})",
+                                    saved.get("token"),
+                                    saved.get("requestable"),
                                     saved.get("state")));
         }
         // A dropped request breaks its own parent and children; each pass drops one or more, or is the last.
