@@ -334,3 +334,4 @@ Spec `docs/superpowers/specs/2026-09-29-hycolony-blueprint-placeholders-design.m
 194. **Démolition.** Démolir un bâtiment MineColonies : ses blocs partent, la terre de remplissage et les blocs sur les cases de fluide restent.
 195. **Styles Hytale inchangés.** Une hutte Outlander ou Kweebec se construit comme avant : pas de fondations sous le sol, pas de fossé autour. La baguette colle aussi un plan MineColonies (bon sol gardé, trous comblés de terre, eau posée).
 196. **Liste des graines.** La fenêtre du champ, « Choisir une graine », fonctionne comme avant (même liste, recherche, « Retour au champ »).
+197. **Bloc de dev dans un prefab Hytale.** Dans l'éditeur de prefabs, poser un « Substitut solide » dans un prefab Outlander utilisé par une hutte (sans `"minecolonies": true`), sauvegarder, reconstruire : le constructeur ne pose pas le substitut et ne le demande pas ; la construction se termine.

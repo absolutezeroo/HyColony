@@ -26,10 +26,10 @@ final class PrefabReading {
     private static final int FLOOR_Y = -1;
 
     /**
-     * What cells turn into: {@code chest} replaces a chest spawner (null: none), {@code placeholders} marks a
-     * MineColonies level (null: a Hytale prefab), whose fluid cells get {@code fluid}.
+     * What cells turn into: {@code chest} replaces a chest spawner (null: none); the {@code placeholders} blocks are
+     * markers of a {@code minecolonies} level, whose fluid cells get {@code fluid}, and skipped elsewhere.
      */
-    record Rules(@Nullable String chest, PrefabCells.@Nullable Placeholders placeholders, String fluid) {}
+    record Rules(@Nullable String chest, PrefabCells.Placeholders placeholders, boolean minecolonies, String fluid) {}
 
     /** A rotated, anchor-relative prefab cell. */
     private record Cell(int x, int y, int z, BlockState state, boolean container, Optional<Workstation> workstation) {}
@@ -45,7 +45,7 @@ final class PrefabReading {
         if (cells.blocks().isEmpty() && cells.marks().isEmpty()) {
             return Optional.empty();
         }
-        boolean mc = rules.placeholders() != null;
+        boolean mc = rules.minecolonies();
         // The unrotated hut cell, turned like the entries: a MineColonies level's default is the anchor.
         int[] hutCell = mc && entry.hutOffset() == null
                 ? new int[3]
@@ -81,13 +81,13 @@ final class PrefabReading {
                     if (filler != 0) {
                         return;
                     }
-                    PrefabCells.Placeholders placeholders = rules.placeholders();
-                    Optional<PrefabCells.Marker> marker = placeholders == null
-                            ? Optional.empty()
-                            : PrefabCells.marker(blockId, fluidId, placeholders);
-                    if (marker.isPresent()) {
+                    Optional<PrefabCells.Marker> marker = PrefabCells.marker(blockId, fluidId, rules.placeholders());
+                    if (marker.isPresent() && rules.minecolonies()) {
                         marks.add(new PrefabMarkers.Cell(x, y, z, marker.get()));
                         return;
+                    }
+                    if (marker.isPresent() && marker.get() != PrefabCells.Marker.AIR) {
+                        return; // a dev block in a Hytale prefab: nothing to build
                     }
                     PrefabCells.resolve(blockId, holder, rotation, fluidId, rules.chest())
                             .ifPresent(c -> {

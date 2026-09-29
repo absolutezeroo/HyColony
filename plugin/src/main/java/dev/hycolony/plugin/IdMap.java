@@ -55,9 +55,10 @@ public final class IdMap {
         return Optional.ofNullable(data.highlightEffect());
     }
 
-    /** The fluid a blueprint's fluid placeholder gets (MC: the dimension's fluid); water when the file has none. */
+    /** The fluid a blueprint's fluid placeholder gets (MC: the dimension's fluid); "" when the file has none. */
     public String placeholderFluid() {
-        return Objects.requireNonNullElse(data.placeholderFluid(), "Water_Source");
+        // No default id here (asset ids live in the id-map only): a missing key fails validate().
+        return Objects.requireNonNullElse(data.placeholderFluid(), "");
     }
 
     /** True when {@code key} has both a hut item and a hut block, as every registered building type needs. */

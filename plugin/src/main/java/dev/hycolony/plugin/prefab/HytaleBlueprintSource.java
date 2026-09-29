@@ -52,8 +52,8 @@ import org.jspecify.annotations.Nullable;
  * instead (docs/research/structurize-placeholders.md): every layer is kept, the hut is at the prefab's anchor unless
  * {@code hutOffset} says otherwise, and the blueprint carries {@link BlueprintMarkers}: an explicit {@code Empty}
  * (no fluid) is air to clear, and the id-map's placeholder blocks ({@code blueprint.placeholder.solid|fluid}) are fill
- * and fluid cells, the fluid being {@code placeholderFluid}. Elsewhere the placeholder blocks are skipped like any
- * {@code Editor_*} block would be: they have no item to place.
+ * and fluid cells, the fluid being {@code placeholderFluid}. Elsewhere the placeholder blocks are skipped, like the
+ * {@code Editor_*} blocks.
  *
  * <p>{@link #prewarm(PrefabStyles)} parses the prefabs off the world thread at startup; a later load then reads the cached
  * buffer. Results are cached per (style, type, level, rotation).
@@ -192,11 +192,9 @@ public final class HytaleBlueprintSource implements BlueprintSource {
     /** How the cells of {@code entry} are read: its chest spawners, and its placeholders if it is a MC level. */
     private PrefabReading.Rules rules(String style, PrefabStyles.Level entry) {
         String chest = entry.spawnerChests() ? ids.blockId(SPAWNER_CHEST_KEY + style) : null;
-        PrefabCells.Placeholders placeholders = entry.minecolonies()
-                ? new PrefabCells.Placeholders(
-                        ids.blockId("blueprint.placeholder.solid"), ids.blockId("blueprint.placeholder.fluid"))
-                : null;
-        return new PrefabReading.Rules(chest, placeholders, ids.placeholderFluid());
+        PrefabCells.Placeholders placeholders = new PrefabCells.Placeholders(
+                ids.blockId("blueprint.placeholder.solid"), ids.blockId("blueprint.placeholder.fluid"));
+        return new PrefabReading.Rules(chest, placeholders, entry.minecolonies(), ids.placeholderFluid());
     }
 
     private void warnOnce(String message, @Nullable Throwable cause) {
