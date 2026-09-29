@@ -39,6 +39,14 @@ def a_potted_flower_keeps_its_flower():
     assert m.target == "*HyVanilla_Flower_Pot_Orange_State_Definitions_Plant_Flower_Common_Red", m
 
 
+def potted_saplings_ferns_and_mushrooms_keep_their_plant():
+    # The MC plants the converter has no block rule for, but HyVanilla has a pot state for.
+    for name, plant in (("oak_sapling", "Plant_Sapling_Oak"), ("fern", "Plant_Fern"),
+                        ("red_mushroom", "Plant_Crop_Mushroom_Cap_Red"), ("blue_orchid", "Plant_Flower_Orchid_Blue")):
+        (m,) = _targets([f"minecraft:potted_{name}"])
+        assert m.target == f"*HyVanilla_Flower_Pot_Orange_State_Definitions_{plant}", (name, m)
+
+
 def a_potted_plant_without_equivalent_is_an_empty_pot():
     (m,) = _targets(["minecraft:potted_crimson_fungus"])
     assert m.target == "HyVanilla_Flower_Pot_Orange" and any("non conservée" in n for n in m.notes), m
@@ -71,6 +79,7 @@ def run():
     every_carpet_is_a_real_hyvanilla_carpet()
     an_empty_flower_pot_is_the_terracotta_pot()
     a_potted_flower_keeps_its_flower()
+    potted_saplings_ferns_and_mushrooms_keep_their_plant()
     a_potted_plant_without_equivalent_is_an_empty_pot()
     a_bed_is_placed_on_its_head_cell_turned_like_minecraft()
     a_bed_foot_is_left_to_the_head()

@@ -23,7 +23,6 @@ from .model import Mapping, place, skip
 
 REPO = Path(__file__).resolve().parents[2]
 RESOURCES = REPO / "vanilla" / "plugin" / "src" / "main" / "resources"
-UPSTREAM_CSV = Path(__file__).resolve().parent / "data" / "default-block-overrides.csv"
 
 # Couleur Minecraft -> suffixe de HyVanilla_Carpet_<suffixe> et HyVanilla_Bed_<suffixe> (mêmes 20 laines).
 CARPET_COLORS = {
@@ -35,6 +34,14 @@ CARPET_COLORS = {
 # Couleurs sans laine Hytale de ce nom : note dans le rapport.
 APPROXIMATED = {"magenta", "light_blue", "lime", "brown"}
 FLOWER_POT = "HyVanilla_Flower_Pot_Orange"
+# Plantes en pot que la table HytalesHub ne traduit pas, mais que HyVanilla sait mettre en pot (id-map `flowerPots`).
+# Les autres (champignons et racines du Nether, azalées, rose de Wither, acacia, chêne noir…) restent un pot vide.
+POTTED_PLANTS = {
+    "oak_sapling": "Plant_Sapling_Oak", "birch_sapling": "Plant_Sapling_Birch",
+    "spruce_sapling": "Plant_Sapling_Spruce", "jungle_sapling": "Plant_Sapling_Jungle", "bamboo": "Plant_Sapling_Bamboo", "fern": "Plant_Fern",
+    "dead_bush": "Plant_Bush_Dead", "cactus": "Plant_Cactus_1", "red_mushroom": "Plant_Crop_Mushroom_Cap_Red",
+    "brown_mushroom": "Plant_Crop_Mushroom_Cap_Brown", "blue_orchid": "Plant_Flower_Orchid_Blue",
+}
 
 
 @lru_cache(maxsize=1)
@@ -56,7 +63,7 @@ def pot_states() -> dict[str, str]:
 @lru_cache(maxsize=1)
 def _plants() -> dict[str, str]:
     """Plante Minecraft -> objet plante Hytale, d'après la table HytalesHub (minecraft:poppy -> Plant_Flower_...)."""
-    from .converter import load_mapping_csv  # noqa: PLC0415 (import circulaire au chargement)
+    from .converter import UPSTREAM_CSV, load_mapping_csv  # noqa: PLC0415 (import circulaire au chargement)
     return load_mapping_csv(UPSTREAM_CSV)
 
 
@@ -83,7 +90,7 @@ def rule(name: str, p: dict) -> Mapping | None:
         return place(FLOWER_POT, 0, f"pot de fleurs -> {FLOWER_POT}", rule="hyvanilla")
     if name.startswith("minecraft:potted_"):
         plant = name.split("potted_", 1)[1]
-        state = pot_states().get(_plants().get(f"minecraft:{plant}", ""))
+        state = pot_states().get(POTTED_PLANTS.get(plant) or _plants().get(f"minecraft:{plant}", ""))
         if state:
             return place(state, 0, f"{name} -> {state}", rule="hyvanilla")
         return place(FLOWER_POT, 0, f"{name} -> {FLOWER_POT}, plante {plant} non conservée (pas en pot HyVanilla)",
