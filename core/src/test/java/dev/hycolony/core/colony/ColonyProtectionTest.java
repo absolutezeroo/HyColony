@@ -79,6 +79,35 @@ class ColonyProtectionTest {
     }
 
     @Test
+    void memberWithBreakHutsBreaksAHut() {
+        ColonyManager manager = start(2);
+
+        assertTrue(manager.huts().breakBy(alice, hall));
+
+        assertTrue(manager.colonyAt(hall).orElseThrow().buildings().townHall().isEmpty());
+    }
+
+    @Test
+    void breakingAnUnconfirmedTownHallCancelsItsFoundation() {
+        ColonyManager manager = start(2);
+        BlockPos far = new BlockPos(5000, 64, 0);
+        manager.foundation().begin(bob, "Bob", far, 0);
+
+        assertTrue(manager.huts().breakBy(alice, far));
+
+        assertTrue(manager.foundation().pendingPositionOf(bob).isEmpty());
+    }
+
+    @Test
+    void hutBlockWithoutItsBuildingBreaksUnchecked() {
+        ColonyManager manager = start(2);
+
+        assertTrue(manager.huts().breakBy(bob, inside), "MC: no building there, the event goes through");
+
+        assertTrue(t.notifier.sent.stream().noneMatch(s -> s.player().equals(bob)));
+    }
+
+    @Test
     void withoutColonyProtectionAnyPlayerBreaksAHut() {
         ColonyManager manager = start(new ColonyConfig.Permissions(false, Explosions.DAMAGE_ENTITIES, 2));
 

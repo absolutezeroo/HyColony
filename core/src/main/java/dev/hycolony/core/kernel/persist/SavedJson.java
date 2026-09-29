@@ -61,6 +61,7 @@ public final class SavedJson {
         return Optional.empty();
     }
 
+    /** {@code p} as an {@code {x, y, z}} object; JSON null for a null position. */
     public static JsonElement pos(@Nullable BlockPos p) {
         if (p == null) {
             return JsonNull.INSTANCE;
@@ -91,6 +92,7 @@ public final class SavedJson {
         return tryPos(e).orElseThrow(() -> new IllegalStateException("missing position"));
     }
 
+    /** {@code v} as an {@code {x, y, z}} object; JSON null for a null vector. */
     public static JsonElement vec(@Nullable Vec3 v) {
         if (v == null) {
             return JsonNull.INSTANCE;

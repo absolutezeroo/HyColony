@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonParser;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -63,6 +64,18 @@ class InventoryTest {
         Inventory restored = Inventory.read(json, 3);
         assertEquals(3, restored.size());
         assertEquals(inv.contents(), restored.contents());
+    }
+
+    @Test
+    void savedSlotWithoutItemOrPositiveCountStaysEmpty() {
+        JsonArray json = JsonParser.parseString("""
+                [{"count": 3}, {"item": "hycolony:stone", "count": 0}, "garbage", {"item": "hycolony:dirt"},
+                 {"item": "hycolony:sand", "count": 2, "damage": "worn"}]
+                """).getAsJsonArray();
+
+        Inventory restored = Inventory.read(json, 5);
+
+        assertEquals(List.of(new ItemAmount(SAND, 2)), restored.contents());
     }
 
     @Test

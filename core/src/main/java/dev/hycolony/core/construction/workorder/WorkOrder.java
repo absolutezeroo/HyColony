@@ -174,10 +174,10 @@ public final class WorkOrder {
         Optional<WorkOrderType> type = SavedJson.enumOf(WorkOrderType.class, o.get("type"));
         Optional<Stage> stage = SavedJson.enumOf(Stage.class, o.get("stage"));
         Optional<BlockPos> pos = SavedJson.tryPos(o.get("pos"));
-        int id = SavedJson.intOr(o.get("id"), -1);
+        int id = SavedJson.intOr(o.get("id"), 0); // ids start at 1: 0 means no order
         int targetLevel = SavedJson.intOr(o.get("targetLevel"), -1);
         String style = SavedJson.stringOr(o.get("style"), "");
-        if (type.isEmpty() || stage.isEmpty() || pos.isEmpty() || id < 0 || targetLevel < 0) {
+        if (type.isEmpty() || stage.isEmpty() || pos.isEmpty() || id <= 0 || targetLevel < 0) {
             return Optional.empty();
         }
         WorkOrder w = new WorkOrder(

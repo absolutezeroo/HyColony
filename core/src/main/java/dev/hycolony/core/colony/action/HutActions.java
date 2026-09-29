@@ -133,14 +133,16 @@ public final class HutActions {
 
     /**
      * A player breaks the hut block at {@code pos} (MC ColonyPermissionEventHandler.on(BreakEvent), hut part): an
-     * unconfirmed town hall only cancels its foundation; with colony protection off the hut is removed whoever breaks
-     * it; else a player without BREAK_HUTS is told and nothing changes. Returns false when the break is refused.
+     * unconfirmed town hall only cancels its foundation; a hut block without its building, or any hut while colony
+     * protection is off, breaks whoever breaks it; else a player without BREAK_HUTS is told and nothing changes.
+     * Returns false when the break is refused.
      */
     public boolean breakBy(UUID player, BlockPos pos) {
         if (manager.foundation().cancelAt(pos).isPresent()) {
             return true;
         }
-        Optional<Colony> colony = manager.colonyAt(pos);
+        Optional<Colony> colony =
+                manager.colonyAt(pos).filter(c -> c.buildings().at(pos).isPresent());
         if (manager.protectionEnabled() && colony.isPresent() && !manager.isAllowed(player, pos, Action.BREAK_HUTS)) {
             ColonyRefusal.tell(colony.get(), player);
             return false;

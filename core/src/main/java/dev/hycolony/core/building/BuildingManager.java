@@ -98,7 +98,10 @@ public final class BuildingManager {
         }
     }
 
-    /** Saved buildings whose type is not registered anymore: kept and written back untouched. */
+    /**
+     * Saved buildings this build cannot load (a type not registered anymore, or an unreadable position): kept and
+     * written back untouched.
+     */
     public void keepUnknown(JsonObject raw) {
         unknown.add(raw);
     }

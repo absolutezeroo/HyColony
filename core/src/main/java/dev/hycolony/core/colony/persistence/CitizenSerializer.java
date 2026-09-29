@@ -15,6 +15,7 @@ import static dev.hycolony.core.kernel.persist.SavedJson.vec;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Gender;
 import dev.hycolony.core.citizen.Skill;
@@ -58,9 +59,12 @@ final class CitizenSerializer {
         return o;
     }
 
-    /** The saved citizen; a missing optional key takes its default (§ 5), a missing id throws. */
-    static CitizenData read(JsonObject o, ColonyContext ctx) {
-        CitizenData d = new CitizenData(o.get("id").getAsInt());
+    /** The saved citizen; empty without an id, a missing optional key takes its default (§ 5). */
+    static Optional<CitizenData> read(JsonObject o, ColonyContext ctx) {
+        if (!(o.get("id") instanceof JsonPrimitive id && id.isNumber())) {
+            return Optional.empty();
+        }
+        CitizenData d = new CitizenData(id.getAsInt());
         d.setName(stringOr(o.get("name"), ""));
         d.setGender(enumOf(Gender.class, o.get("gender")).orElse(Gender.MALE)); // MC: not female unless saved so
         d.setChild(boolOr(o.get("child"), false));
@@ -81,7 +85,7 @@ final class CitizenSerializer {
         if (o.get("job") instanceof JsonObject job) {
             readJob(job, d, ctx);
         }
-        return d;
+        return Optional.of(d);
     }
 
     private static void readJob(JsonObject jobJson, CitizenData d, ColonyContext ctx) {

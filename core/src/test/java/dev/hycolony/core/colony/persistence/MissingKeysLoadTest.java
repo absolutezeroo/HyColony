@@ -2,6 +2,7 @@ package dev.hycolony.core.colony.persistence;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.gson.JsonArray;
@@ -17,6 +18,7 @@ import dev.hycolony.core.construction.workorder.WorkOrder;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.persist.FileColonyStorage;
 import dev.hycolony.core.kernel.persist.MigrationChain;
+import dev.hycolony.core.kernel.persist.SavedJson;
 import dev.hycolony.core.testing.TestContexts;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -34,6 +36,9 @@ class MissingKeysLoadTest {
 
     @TempDir
     Path dir;
+
+    /** The manager {@link #saveEditAndLoad} loaded the colony with. */
+    private ColonyManager reloaded;
 
     private ColonyManager manager() {
         ColonyManager m = new ColonyManager(new TestContexts().context());
@@ -54,7 +59,7 @@ class MissingKeysLoadTest {
         JsonObject json = JsonParser.parseString(Files.readString(file)).getAsJsonObject();
         edit.accept(json);
         Files.writeString(file, json.toString());
-        ColonyManager reloaded = manager();
+        reloaded = manager();
         reloaded.persistence().loadAll();
         return reloaded.byId(c.id()).orElseThrow(() -> new AssertionError("the colony did not load"));
     }
@@ -126,6 +131,63 @@ class MissingKeysLoadTest {
     }
 
     @Test
+    void workerWithAnUnreadableWorkBuildingLosesItsJob() throws IOException {
+        Colony c = saveEditAndLoad(json -> {
+            JsonObject citizen = firstCitizen(json);
+            JsonObject job = new JsonObject();
+            job.addProperty("type", "hycolony:builder");
+            job.addProperty("actionsDone", "many");
+            citizen.add("job", job);
+            citizen.addProperty("work", "garbage");
+        });
+
+        CitizenData d = c.citizens().all().iterator().next();
+        assertTrue(d.job().isEmpty(), "a job without its work building would keep the citizen idle forever");
+        assertNull(d.workBuilding());
+        assertTrue(c.isDirty());
+    }
+
+    @Test
+    void citizenWithAWorkBuildingButNoJobIsFreed() throws IOException {
+        Colony c = saveEditAndLoad(json -> firstCitizen(json).add("work", SavedJson.pos(CENTER)));
+
+        assertNull(c.citizens().all().iterator().next().workBuilding());
+    }
+
+    @Test
+    void citizenWithoutAnIdIsLeftOutAndTheColonyRewritten() throws IOException {
+        Colony c = saveEditAndLoad(json -> firstCitizen(json).remove("id"));
+
+        assertEquals(3, c.citizens().all().size());
+        assertTrue(c.isDirty());
+    }
+
+    @Test
+    void knownBuildingWithAnUnreadablePositionIsKeptAndWrittenBackUnchanged() throws IOException {
+        JsonObject broken = new JsonObject();
+        broken.addProperty("type", "hycolony:builder");
+        broken.addProperty("pos", "garbage");
+        Colony c = saveEditAndLoad(json -> json.getAsJsonArray("buildings").add(broken));
+
+        assertEquals(1, c.buildings().all().size());
+        c.markDirty();
+        reloaded.persistence().saveAll();
+        JsonObject saved = JsonParser.parseString(Files.readString(dir.resolve("colony-" + c.id() + ".json")))
+                .getAsJsonObject();
+        assertTrue(saved.getAsJsonArray("buildings").contains(broken));
+    }
+
+    @Test
+    void settingsAndRequestsOfAnotherTypeLoad() throws IOException {
+        Colony c = saveEditAndLoad(json -> {
+            json.addProperty("settings", 3);
+            json.addProperty("requests", "none");
+        });
+
+        assertTrue(c.requests().all().isEmpty());
+    }
+
+    @Test
     void workOrderOfUnknownTypeOrStageIsSkippedAndTheColonyRewritten() throws IOException {
         Colony c = saveEditAndLoad(json -> {
             JsonArray orders = new JsonArray();
@@ -135,11 +197,16 @@ class MissingKeysLoadTest {
             JsonObject noPos = workOrder(4, "BUILD", "CLEAR");
             noPos.remove("pos");
             orders.add(noPos);
+            orders.add(workOrder(0, "BUILD", "CLEAR")); // ids start at 1: 0 means no order
             json.add("workOrders", orders);
         });
 
         assertEquals(List.of(1), c.work().ordered().stream().map(WorkOrder::id).toList());
         assertTrue(c.isDirty(), "the skipped orders are left out of the next save");
+    }
+
+    private static JsonObject firstCitizen(JsonObject json) {
+        return json.getAsJsonArray("citizens").get(0).getAsJsonObject();
     }
 
     private static JsonObject workOrder(int id, String type, String stage) {

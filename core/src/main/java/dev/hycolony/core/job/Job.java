@@ -3,6 +3,7 @@ package dev.hycolony.core.job;
 import com.google.gson.JsonObject;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.kernel.persist.SavedJson;
 import dev.hycolony.core.kernel.port.BodyId;
 
 /** A citizen's occupation. Concrete jobs (builder, etc.) extend this from the construction task on. */
@@ -98,8 +99,9 @@ public abstract class Job {
         return o;
     }
 
+    /** Reads what {@link #write} saved; a missing or malformed value takes its default (§ 5). */
     public void read(JsonObject o) {
-        actionsDone = o.has("actionsDone") ? o.get("actionsDone").getAsInt() : 0;
-        working = o.has("working") && o.get("working").getAsBoolean();
+        actionsDone = SavedJson.intOr(o.get("actionsDone"), 0);
+        working = SavedJson.boolOr(o.get("working"), false);
     }
 }

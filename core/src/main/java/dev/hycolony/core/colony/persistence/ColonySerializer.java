@@ -1,7 +1,9 @@
 package dev.hycolony.core.colony.persistence;
 
 import static dev.hycolony.core.kernel.persist.SavedJson.arrayOr;
+import static dev.hycolony.core.kernel.persist.SavedJson.boolOr;
 import static dev.hycolony.core.kernel.persist.SavedJson.intOr;
+import static dev.hycolony.core.kernel.persist.SavedJson.objectOr;
 import static dev.hycolony.core.kernel.persist.SavedJson.pos;
 import static dev.hycolony.core.kernel.persist.SavedJson.requirePos;
 import static dev.hycolony.core.kernel.persist.SavedJson.stringOr;
@@ -96,13 +98,9 @@ public final class ColonySerializer {
         if (o.get("fields") instanceof JsonArray fields) {
             c.registries().fields().load(fields);
         }
-        for (JsonElement el : arrayOr(o.get("citizens"))) {
-            if (el instanceof JsonObject citizen) {
-                c.citizens().restore(CitizenSerializer.read(citizen, ctx));
-            }
-        }
+        boolean repaired = readCitizens(arrayOr(o.get("citizens")), c, ctx);
         // After the buildings: they re-registered as resolver providers.
-        boolean repaired = o.has("requests") && RequestSerializer.read(o.getAsJsonObject("requests"), c.requests());
+        repaired |= o.get("requests") instanceof JsonObject requests && RequestSerializer.read(requests, c.requests());
         repaired |= readWorkOrders(o, c);
         readEventLog(arrayOr(o.get("eventLog")), c.log());
         boolean healed = heal(c) || repaired;
@@ -114,12 +112,24 @@ public final class ColonySerializer {
     }
 
     private static void readSettings(JsonObject o, Colony c) {
-        if (o.has("settings")) {
-            JsonObject settings = o.getAsJsonObject("settings");
-            if (settings.has("autoHiring")) {
-                c.settings().setAutoHiring(settings.get("autoHiring").getAsBoolean());
+        JsonObject settings = objectOr(o.get("settings"));
+        c.settings()
+                .setAutoHiring(boolOr(settings.get("autoHiring"), c.settings().autoHiring()));
+    }
+
+    /** The saved citizens; true when one without an id was left out, so that the next save drops it. */
+    private static boolean readCitizens(JsonArray citizens, Colony c, ColonyContext ctx) {
+        boolean skipped = false;
+        for (JsonElement el : citizens) {
+            Optional<CitizenData> citizen =
+                    el instanceof JsonObject saved ? CitizenSerializer.read(saved, ctx) : Optional.empty();
+            citizen.ifPresent(c.citizens()::restore);
+            if (citizen.isEmpty()) {
+                LOG.log(System.Logger.Level.WARNING, "Saved citizen skipped, no id: {0}", el);
+                skipped = true;
             }
         }
+        return skipped;
     }
 
     /** The saved buildings; one of a type this build does not know, or without a position, is kept verbatim. */
@@ -212,13 +222,18 @@ public final class ColonySerializer {
     }
 
     /**
-     * Whether the citizen's assignment points to what is gone. An unknown job stays only with its hut kept unknown
-     * too, so both come back with their pack; anywhere else it frees the citizen, who would never work again.
+     * Whether the citizen's assignment is broken, which would keep it idle forever: a job and a work building always
+     * come together ({@code WorkerModule.hire}), so one without the other frees it (a malformed save, § 5), as does a
+     * work building that is gone. An unknown job stays only with its hut kept unknown too, so both come back with
+     * their pack.
      */
     private static boolean isStale(Colony c, CitizenData d) {
         BlockPos work = d.workBuilding();
         if (d.unknownJob().isPresent()) {
             return work == null || !keptUnknownAt(c, work);
+        }
+        if (d.job().isPresent() != (work != null)) {
+            return true;
         }
         return work != null && c.buildings().at(work).isEmpty();
     }
