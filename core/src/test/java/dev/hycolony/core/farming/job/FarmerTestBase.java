@@ -8,6 +8,7 @@ import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.colony.territory.TerritoryIndex;
+import dev.hycolony.core.crafting.job.CraftingWorkContext;
 import dev.hycolony.core.farming.field.FarmField;
 import dev.hycolony.core.farming.field.FieldRadii;
 import dev.hycolony.core.farming.hut.FarmerFieldsModule;
@@ -71,7 +72,9 @@ abstract class FarmerTestBase {
         colony.buildings().onColonyTick(colony);
         job = (FarmerJob) citizen.job().orElseThrow();
         body = t.bodies.existing(1, 1, Vec3.center(HUT));
-        work = new FarmWork(FarmWorkContext.of(colony, job, body).orElseThrow());
+        CraftingWorkContext crafting = CraftingWorkContext.of(colony, job, body, FarmWorkContext.ACTIONS_UNTIL_DUMP)
+                .orElseThrow();
+        work = new FarmWork(FarmWorkContext.of(crafting, job).orElseThrow());
     }
 
     /** The fakes the colony is built on; a test changes them here when its colony needs it from the start. */

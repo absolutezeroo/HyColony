@@ -3,6 +3,7 @@ package dev.hycolony.core.farming.job;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.crafting.job.CraftingWorkContext;
 import dev.hycolony.core.farming.FarmingAccess;
 import dev.hycolony.core.farming.hut.FarmerFieldsModule;
 import dev.hycolony.core.farming.hut.FarmerSettingsModule;
@@ -12,7 +13,6 @@ import dev.hycolony.core.job.work.ToolRequests;
 import dev.hycolony.core.job.work.WorkerHands;
 import dev.hycolony.core.job.work.WorkerStock;
 import dev.hycolony.core.kernel.nav.BodyWalker;
-import dev.hycolony.core.kernel.port.BodyId;
 import java.util.Optional;
 
 /**
@@ -33,22 +33,20 @@ record FarmWorkContext(
     /** MC MAX_BLOCKS_MINED: the actions after which the farmer empties its inventory at the hut. */
     static final int ACTIONS_UNTIL_DUMP = 64;
 
-    /** The context of {@code job}'s farm work at its hut; empty without a hut or without the farmer modules there. */
-    static Optional<FarmWorkContext> of(Colony colony, FarmerJob job, BodyId body) {
-        Building hut = Optional.ofNullable(job.citizen().workBuilding())
-                .flatMap(colony.buildings()::at)
-                .orElse(null);
-        if (hut == null) {
-            return Optional.empty();
-        }
+    /**
+     * The context of {@code job}'s farm work at the hut of its crafting work, sharing that work's items, tool requests
+     * and walks (one body, one walker: two would each trust the other's nav status); empty without the farmer modules
+     * there.
+     */
+    static Optional<FarmWorkContext> of(CraftingWorkContext crafting, FarmerJob job) {
+        Building hut = crafting.hut();
         Optional<FarmerFieldsModule> fields = hut.module(FarmerFieldsModule.class);
         Optional<FarmerSettingsModule> settings = hut.module(FarmerSettingsModule.class);
         Optional<WorkerModule> workers = hut.module(WorkerModule.class);
         if (fields.isEmpty() || settings.isEmpty() || workers.isEmpty()) {
             return Optional.empty();
         }
-        CitizenData citizen = job.citizen();
-        WorkerStock stock = new WorkerStock(colony, citizen, hut, ACTIONS_UNTIL_DUMP);
+        Colony colony = crafting.colony();
         return Optional.of(new FarmWorkContext(
                 colony,
                 job,
@@ -56,10 +54,10 @@ record FarmWorkContext(
                 fields.get(),
                 settings.get(),
                 workers.get(),
-                stock,
-                new ToolRequests(colony, citizen, hut),
-                new BodyWalker(colony.context().bodies(), body, colony.context().clock()::currentTick),
-                new WorkerHands(colony.context().bodies(), body)));
+                crafting.stock(),
+                crafting.tools(),
+                crafting.walker(),
+                new WorkerHands(colony.context().bodies(), crafting.body())));
     }
 
     CitizenData citizen() {

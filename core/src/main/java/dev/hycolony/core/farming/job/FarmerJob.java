@@ -11,7 +11,6 @@ import dev.hycolony.core.job.Job;
 import dev.hycolony.core.job.JobAI;
 import dev.hycolony.core.job.JobType;
 import dev.hycolony.core.kernel.port.BodyId;
-import java.util.Optional;
 
 /**
  * MC JobFarmer, an AbstractJobCrafter: it owns its crafting tasks (saved with it) and fails them when taken away (MC
@@ -34,13 +33,10 @@ public final class FarmerJob extends Job implements Crafter {
     /** MC EntityAIWorkFarmer; without a hut or its farmer modules, an AI that only lets the citizen idle. */
     @Override
     public JobAI createAI(Colony colony, BodyId body) {
-        Optional<CraftingWorkContext> crafting =
-                CraftingWorkContext.of(colony, this, body, FarmWorkContext.ACTIONS_UNTIL_DUMP);
-        Optional<FarmWorkContext> farm = FarmWorkContext.of(colony, this, body);
-        if (crafting.isEmpty() || farm.isEmpty()) {
-            return new NoHut();
-        }
-        return new FarmerAI(new CraftingWork(crafting.get()), farm.get());
+        return CraftingWorkContext.of(colony, this, body, FarmWorkContext.ACTIONS_UNTIL_DUMP)
+                .flatMap(crafting -> FarmWorkContext.of(crafting, this)
+                        .<JobAI>map(farm -> new FarmerAI(new CraftingWork(crafting), farm)))
+                .orElseGet(NoHut::new);
     }
 
     /** The AI of a farmer without a hut: it never works (MC's AI then waits for a building). */
