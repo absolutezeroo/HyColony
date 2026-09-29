@@ -18,8 +18,8 @@ import java.util.UUID;
  * and canPaste, CreativeBuildingStructureHandler): no footprint check, no hut block taken, no work order, no log nor
  * completion message. The hut stands at once, built at the chosen level; its blocks follow over the next ticks.
  *
- * <p>Deviation from MC: no "Complete" paste, which would place a MineColonies plan's placeholder blocks themselves: a
- * structure-editing need that Hytale's prefab editor covers. The town hall rules include the founding distance checks at paste time, where MC only checks them
+ * <p>Deviation from MC: no "Complete" paste, which would place a MineColonies plan's placeholder blocks themselves:
+ * a structure-editing need that Hytale's prefab editor covers. The town hall rules include the founding distance checks at paste time, where MC only checks them
  * when the colony is created.
  */
 final class WandPaste {

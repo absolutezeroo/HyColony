@@ -44,6 +44,8 @@ Le bâtisseur MC pose toujours en mode *fancy*. Chaque case du plan est de l'un 
 6. **Collage à la baguette** : il remplit avec le bloc de remplissage par défaut, où Structurize (`CreativeStructureHandler`) prend le bloc du générateur du monde.
 7. **Bloc de remplissage figé** au chargement de l'ordre (plan et ressources) ; MC relit `getSolidSubstitution` à chaque pose. Un bloc sauvegardé qui n'est plus proposé revient au défaut.
 8. **CLEAR retire aussi les fluides** sous l'air et sous les blocs prévus (écart antérieur : HyColony n'a pas d'étape `CLEAR_WATER`).
+9. **`CLEAR_NON_SOLIDS` après DECORATE** : pour un plan MineColonies, `CLEAR_LEFTOVERS` joue son rôle (les blocs des cases d'air, à chaque ordre), mais après DECORATE et sans toucher aux fluides : une amélioration n'a pas de CLEAR, et l'eau revenue sur une case d'air reste jusqu'au portage de `CLEAR_WATER`.
+10. **Hors mode MC**, un bloc de dev présent dans un prefab Hytale est ignoré (ni posé ni demandé).
 
 ## Conception
 

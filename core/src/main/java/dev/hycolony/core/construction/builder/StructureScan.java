@@ -56,7 +56,8 @@ final class StructureScan {
             case REMOVE -> world != null && mineable(world) && notAHut(pos);
             case CLEAR_LEFTOVERS ->
                 site.plan().hasMarkers()
-                        ? world != null && clearable(world) && notAHut(pos)
+                        // Blocks only: mining never takes a fluid, and the fluid CLEAR removed may flow back.
+                        ? world != null && mineable(world) && notAHut(pos)
                         // The old floor (below the hut) stays, as CLEAR's box starts at the hut level: no trench.
                         : pos.y() >= site.loadedOrder().buildingPos().y()
                                 && world != null

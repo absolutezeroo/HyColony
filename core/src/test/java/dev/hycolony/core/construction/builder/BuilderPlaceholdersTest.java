@@ -174,7 +174,29 @@ class BuilderPlaceholdersTest {
         assertEquals(new BlockState(STONE, 0), world(1, -1, 0), "a good floor under a fill cell stays");
         assertEquals(new BlockState(STONE, 0), world(3, 0, 0), "a solid block on a fluid cell stays");
         assertEquals(new BlockState(STONE, 0), world(4, 1, 0), "an absent cell keeps what is there");
-        assertEquals(16, citizen.inventory().count(DIRT_I) + 1, "only the hole at (2,-1,0) was filled");
+        assertEquals(15, citizen.inventory().count(DIRT_I), "only the hole at (2,-1,0) was filled");
+    }
+
+    @Test
+    void waterOnAnAirCellDoesNotStallAnUpgrade() {
+        builtPlainLevelThenMineColoniesLevel();
+        t.blocks.blocks.put(RES.offset(2, 0, 0), WATER); // an UPGRADE has no CLEAR: this water is still there
+
+        run(WorkOrderType.UPGRADE); // asserts the order finishes
+
+        assertEquals(WATER, world(2, 0, 0), "fluids are left to MC CLEAR_WATER, not ported");
+    }
+
+    @Test
+    void fluidCellKeepsAnotherFluid() {
+        mineColoniesPlan();
+        BlockState lava = new BlockState(new BlockKey("~fluid:Lava_Source"), 0);
+        t.catalog.kinds.put(lava.key(), BlockKind.FLUID);
+        t.blocks.blocks.put(RES.offset(3, 0, 0), lava);
+
+        build();
+
+        assertEquals(lava, world(3, 0, 0));
     }
 
     @Test
