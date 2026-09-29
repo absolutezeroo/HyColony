@@ -12,7 +12,7 @@ HyColony porte MineColonies sur Hytale 0.7.0-pre.4 (Update 7, épinglé dans `gr
 - Un mod ne voit d'un autre que ses paquets `api` (`dev.hyblockui.api` ; `dev.hydomum.api`, `dev.hydomum.plugin.api` ; `dev.hyvanilla.api`, `dev.hyvanilla.plugin.api`) **[build : `checkModApis`]**, en `compileOnly` : il n'embarque jamais un autre mod. Tout projet applique `hy.java-core` ou `hy.hytale-mod` (`build-logic/`) **[build]**.
 - Le serveur de dev (`runAllMods`) met tous les mods sur un même classpath : il ne vérifie ni l'isolation des classes ni une dépendance absente. Ces cas se vérifient avec les jars de production dans un `mods/` (`docs/research/plugin-b-api.md` § 28).
 - Architecture ports & adaptateurs :
-  - le cœur définit des ports (`kernel/port`, `construction/blueprint/BlueprintSource`, `colony/ui/UiPort`) ;
+  - le cœur définit des ports (`kernel/port`, `construction/blueprint/BlueprintSource`, `app/ui/UiPort`) ;
   - le plugin de son mod les implémente (préfixe `Hytale*`) ;
   - les tests les simulent (préfixe `Fake*`, dans `core/src/test/.../testing`).
 - **Un paquet contient au plus 15 fichiers** **[build : `checkFileSizes`]**. Au-delà, on crée des sous-paquets par sous-domaine : par exemple `construction/blueprint`, `construction/workorder`, `construction/builder`, `construction/resources`, ou `colony/territory`, `colony/permission`, `colony/view`. Un sous-paquet regroupe ce qui change ensemble. Seul le point d'entrée du sous-domaine est `public`, le reste reste package-private autant que possible.

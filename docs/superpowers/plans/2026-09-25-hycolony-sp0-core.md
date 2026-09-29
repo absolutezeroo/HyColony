@@ -64,7 +64,7 @@ core/src/main/java/dev/hycolony/core/
   colony/ColonyState.java, Colony.java, ColonyContext.java, ColonyManager.java, HutPlacement.java
   colony/EventLog.java, ColonyEvents.java
   colony/ColonySerializer.java
-  colony/ui/UiPort.java, FoundColonyView.java, TownHallView.java, CitizenRow.java
+  app/ui/UiPort.java, FoundColonyView.java, TownHallView.java, CitizenRow.java
   building/BuildingModule.java, PersistentModule.java, TickingModule.java, BuildingEventsModule.java,
            ModuleProducer.java, BuildingType.java, BuildingRegistry.java, BuildingTypes.java,
            Building.java, BuildingManager.java
@@ -2497,7 +2497,7 @@ public record TownHallView(int colonyId, String colonyName, String ownerName, in
 }
 ```
 
-`colony/ui/UiPort.java` :
+`app/ui/UiPort.java` :
 
 ```java
 package dev.hycolony.core.colony.ui;

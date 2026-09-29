@@ -400,7 +400,7 @@ Il porte MC `workAtField`, `hoeIfAble`, `tryToPlant`, `harvestIfAble` (MC § 3.4
 **Fichiers :**
 - Créer : `colony/ui/FieldView.java`, `colony/ui/tab/FieldsView.java`, `colony/action/FieldActions.java`.
 - Modifier :
-  - `colony/ui/UiPort.java` (+ `void showField(UUID player, FieldView view)`) et `testing/FakeUi.java` ;
+  - `app/ui/UiPort.java` (+ `void showField(UUID player, FieldView view)`) et `testing/FakeUi.java` ;
   - `colony/ui/tab/ModuleTab.java` (+ `FieldsView`) ;
   - `FarmerFieldsModule` (`tab`).
 - Tester : `colony/action/FieldActionsTest.java`.

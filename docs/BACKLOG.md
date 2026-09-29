@@ -69,7 +69,7 @@ Les autres points de la relecture sont corrigés. Il reste :
 Les corrections de l'audit sont commitées : bugs, socle des métiers (`job/work`), couche `app`, protection de colonie, règles des onglets, lectures tolérantes, garde des ports du plugin. `FeatureDependenciesTest` fige les dépendances entre paquets de premier niveau : la matrice ne peut que rétrécir. Le cycle restant passe par `Colony`, que toutes les fonctionnalités tiennent, comme `IColony` dans MC. Restent :
 
 - **Garde-fous, avec l'accord de l'utilisateur (session déverrouillée)** :
-  - `CLAUDE.md` § 1 cite encore `colony/ui/UiPort` et l'exemple `colony/view`, devenus `app/ui/UiPort` et `app/view` ;
+  - `CLAUDE.md` § 1 cite encore l'exemple de sous-paquet `colony/view`, devenu `app/view` ;
   - lancer les contrôles Python des outils dans le hook `pre-push` : aucun ne tourne aujourd'hui (`tools/domum/check.py` a besoin des assets et du réseau, il ne peut pas tourner sur la CI) ;
   - longueur des lignes : environ 55 lignes dépassent 120 colonnes (Javadoc, commentaires, chaînes de test). palantir ne les recoupe pas et aucune règle ne le vérifie.
 - **Constructeur, outil manquant** : `BuilderBlockWork.fetchTool` ne suit pas l'ordre de `ToolRequests.missing` (la hutte d'abord, vidage quand l'inventaire est plein). À comparer à MC (`checkForToolOrWeapon`, `holdEfficientTool`) avant de les unifier.

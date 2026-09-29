@@ -727,7 +727,7 @@ public final class BuilderTimings {
 
 **Files :**
 - Create : `colony/ui/{BuildingView,BuilderResourcesView,RequestsView,WorkOrdersView}.java`
-- Modify : `colony/ui/UiPort` (`showBuilding`, `showBuilderResources`, `showRequests`, `showWorkOrders`), `FakeUi`, `plugin/.../HytaleUiPort` (implémentations **temporaires** qui envoient un message « à venir » ; les vraies fenêtres arrivent en partie B), `ColonyManager`
+- Modify : `app/ui/UiPort` (`showBuilding`, `showBuilderResources`, `showRequests`, `showWorkOrders`), `FakeUi`, `plugin/.../HytaleUiPort` (implémentations **temporaires** qui envoient un message « à venir » ; les vraies fenêtres arrivent en partie B), `ColonyManager`
 - Test : `colony/ViewsTest.java`
 
 **Interfaces :**

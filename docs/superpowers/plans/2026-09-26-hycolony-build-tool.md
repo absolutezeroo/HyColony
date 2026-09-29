@@ -121,7 +121,7 @@ Le fantôme passe par le `PreviewPort` des lunettes. Côté plugin : l'objet, av
 **Fichiers :**
 - Créer : `core/src/main/java/dev/hycolony/core/construction/wand/WandActions.java` (public, le point d'entrée).
 - Créer la vue `WandView` (record), au même endroit que les autres vues de `UiPort` : `colony/ui`. Si `ArchitectureTest` refuse la dépendance, la mettre là où il l'accepte et le noter.
-- Modifier : `colony/ui/UiPort.java`, avec `void showWand(UUID player, WandView view);`, et `FakeUi`.
+- Modifier : `app/ui/UiPort.java`, avec `void showWand(UUID player, WandView view);`, et `FakeUi`.
 - Test : `core/src/test/java/dev/hycolony/core/construction/wand/WandActionsTest.java`
 
 **Interfaces :**
