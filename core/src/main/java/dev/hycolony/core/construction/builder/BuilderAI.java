@@ -1,14 +1,11 @@
 package dev.hycolony.core.construction.builder;
 
-import dev.hycolony.core.citizen.CitizenData;
-import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.construction.workorder.Stage;
 import dev.hycolony.core.construction.workorder.WorkOrder;
 import dev.hycolony.core.job.JobAI;
 import dev.hycolony.core.job.work.WorkerMachine;
 import dev.hycolony.core.kernel.ai.AIBlockingEventType;
 import dev.hycolony.core.kernel.ai.IStateSupplier;
-import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.Msg;
 import java.util.Map;
 import java.util.Objects;
@@ -34,8 +31,8 @@ public final class BuilderAI implements JobAI {
     private final StructureLoader loader;
     private final WorkerMachine<BuilderState> machine;
 
-    public BuilderAI(Colony colony, CitizenData citizen, BodyId body) {
-        this.ctx = BuilderContext.of(colony, citizen, body);
+    BuilderAI(BuilderContext ctx) {
+        this.ctx = ctx;
         this.site = ctx.site();
         this.gathering = new BuilderGathering(ctx);
         this.blockWork = new BuilderBlockWork(ctx, gathering);
@@ -69,9 +66,7 @@ public final class BuilderAI implements JobAI {
 
     @Override
     public void tick() {
-        if (ctx.canRun()) {
-            machine.tick();
-        }
+        machine.tick();
     }
 
     @Override
@@ -102,10 +97,10 @@ public final class BuilderAI implements JobAI {
         };
     }
 
-    /** MC EntityAIStructureBuilder.canGoIdle: true when its hut has no active work order (or is gone). */
+    /** MC EntityAIStructureBuilder.canGoIdle: true when its hut has no active work order. */
     @Override
     public boolean canGoIdle() {
-        return !ctx.hasHut() || claimedOrder().isEmpty();
+        return claimedOrder().isEmpty();
     }
 
     /** MC checkIfNeedsItem: an open or completed sync request sends the builder to wait for / fetch it. */

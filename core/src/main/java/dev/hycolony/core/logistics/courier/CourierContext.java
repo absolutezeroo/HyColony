@@ -74,7 +74,7 @@ final class CourierContext {
 
     /** The courier's hut; empty once it is gone. */
     Optional<Building> hut() {
-        return Optional.ofNullable(citizen().workBuilding()).flatMap(colony.buildings()::at);
+        return job.hut(colony);
     }
 
     /** MC JobDeliveryman.findWareHouse: the warehouse the courier is attached to. */
@@ -128,15 +128,11 @@ final class CourierContext {
         Optional<WorkerModule> work = hut.flatMap(h -> h.module(WorkerModule.class));
         Skill primary = work.map(WorkerModule::primary).orElse(Skill.Agility);
         Skill secondary = work.map(WorkerModule::secondary).orElse(Skill.Adaptability);
-        int homeLevel = Optional.ofNullable(citizen().homeBuilding())
-                .flatMap(colony.buildings()::at)
-                .map(Building::level)
-                .orElse(0);
         JobXp.award(
                 citizen(),
                 primary,
                 secondary,
                 xp,
-                new JobXp.Levels(hut.map(Building::level).orElse(0), homeLevel));
+                JobXp.levels(colony, citizen(), hut.map(Building::level).orElse(0)));
     }
 }

@@ -1,10 +1,12 @@
 package dev.hycolony.core.job;
 
 import com.google.gson.JsonObject;
+import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.kernel.persist.SavedJson;
 import dev.hycolony.core.kernel.port.BodyId;
+import java.util.Optional;
 
 /** A citizen's occupation. Concrete jobs (builder, etc.) extend this from the construction task on. */
 public abstract class Job {
@@ -31,6 +33,11 @@ public abstract class Job {
     }
 
     public abstract JobAI createAI(Colony colony, BodyId body);
+
+    /** The hut its citizen works at in {@code colony}; empty without one, or once it is gone. */
+    public Optional<Building> hut(Colony colony) {
+        return Optional.ofNullable(citizen.workBuilding()).flatMap(colony.buildings()::at);
+    }
 
     public int actionsDone() {
         return actionsDone;

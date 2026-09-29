@@ -2,6 +2,7 @@ package dev.hycolony.core.construction.builder;
 
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.job.IdleAI;
 import dev.hycolony.core.job.Job;
 import dev.hycolony.core.job.JobAI;
 import dev.hycolony.core.job.JobType;
@@ -17,6 +18,8 @@ public final class BuilderJob extends Job {
 
     @Override
     public JobAI createAI(Colony colony, BodyId body) {
-        return new BuilderAI(colony, citizen(), body);
+        return BuilderContext.of(colony, citizen(), body)
+                .<JobAI>map(BuilderAI::new)
+                .orElseGet(IdleAI::new);
     }
 }

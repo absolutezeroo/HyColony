@@ -61,9 +61,7 @@ public record CraftingWorkContext(
      */
     public static <J extends Job & Crafter> Optional<CraftingWorkContext> of(
             Colony colony, J job, BodyId body, int actionsUntilDump) {
-        Building hut = Optional.ofNullable(job.citizen().workBuilding())
-                .flatMap(colony.buildings()::at)
-                .orElse(null);
+        Building hut = job.hut(colony).orElse(null);
         Optional<WorkerModule> workers = hut == null ? Optional.empty() : workerModule(hut, job);
         if (hut == null || workers.isEmpty()) {
             return Optional.empty();
@@ -120,10 +118,6 @@ public record CraftingWorkContext(
 
     /** MC CitizenExperienceHandler.addExperience, split between the worker module's primary and secondary skills. */
     void award(double xp) {
-        int homeLevel = Optional.ofNullable(citizen().homeBuilding())
-                .flatMap(colony.buildings()::at)
-                .map(Building::level)
-                .orElse(0);
-        JobXp.award(citizen(), skills.primary(), skills.secondary(), xp, new JobXp.Levels(hut.level(), homeLevel));
+        JobXp.award(citizen(), skills.primary(), skills.secondary(), xp, JobXp.levels(colony, citizen(), hut.level()));
     }
 }

@@ -1,7 +1,6 @@
 package dev.hycolony.core.construction.builder;
 
 import dev.hycolony.core.building.Building;
-import dev.hycolony.core.building.BuildingModule;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.colony.Colony;
@@ -21,27 +20,23 @@ import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.CitizenBodies;
 import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.core.kernel.port.WorldBlocks;
-import java.util.Objects;
 import java.util.Optional;
-import org.jspecify.annotations.Nullable;
 
 /**
  * What one builder's AI and its steps share (MC AbstractEntityAIBasic's worker, job and building): the builder, its
- * hut, and the collaborators that hold its items, requests, walks, gestures and structure. {@code hut}, {@code job},
- * {@code stock}, {@code requests}, {@code tools} and {@code resources} are null for a builder without a hut, whose AI
- * never runs: their accessors are only called while it runs ({@link #hasHut()} tells).
+ * hut, and the collaborators that hold its items, requests, walks, gestures and structure.
  */
 record BuilderContext(
         Colony colony,
         CitizenData citizen,
-        @Nullable Building hut,
-        @Nullable Job job,
+        Building hut,
+        Job job,
         WorldBlocks blocks,
         ItemCatalog catalog,
-        @Nullable BuildingResourcesModule resources,
-        @Nullable WorkerStock stock,
-        @Nullable BuilderRequests requests,
-        @Nullable ToolRequests tools,
+        BuildingResourcesModule resources,
+        WorkerStock stock,
+        BuilderRequests requests,
+        ToolRequests tools,
         BuilderWalker walker,
         BuilderGestures gestures,
         BuildSite site,
@@ -49,55 +44,48 @@ record BuilderContext(
         Skill primary,
         Skill secondary) {
 
-    private static final String NO_HUT = "builder without a hut";
-
     /** MC EntityAIStructureBuilder.ACTIONS_UNTIL_DUMP (the builder's own, not CitizenConstants' 32 for others). */
     static final int ACTIONS_UNTIL_DUMP = 4096;
 
-    /** The context of {@code citizen}'s builder AI, around the hut it works at (if any). */
-    static BuilderContext of(Colony colony, CitizenData citizen, BodyId body) {
-        Building hut = Optional.ofNullable(citizen.workBuilding())
-                .flatMap(colony.buildings()::at)
-                .orElse(null);
+    /**
+     * The context of {@code citizen}'s builder AI at the hut it works at; empty without a job, that hut or the hut's
+     * resources module (its job then gets an {@code IdleAI}).
+     */
+    static Optional<BuilderContext> of(Colony colony, CitizenData citizen, BodyId body) {
+        Optional<Job> job = citizen.job();
+        Optional<Building> hut = job.flatMap(j -> j.hut(colony));
+        Optional<BuildingResourcesModule> resources = hut.flatMap(h -> h.module(BuildingResourcesModule.class));
+        if (job.isEmpty() || hut.isEmpty() || resources.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(at(colony, job.get(), hut.get(), resources.get(), body));
+    }
+
+    private static BuilderContext at(
+            Colony colony, Job job, Building hut, BuildingResourcesModule resources, BodyId body) {
+        CitizenData citizen = job.citizen();
         CitizenBodies bodies = colony.context().bodies();
         WorldBlocks blocks = colony.context().ports().blocks();
         ItemCatalog catalog = colony.context().ports().catalog();
-        BuildingResourcesModule resources = module(hut, BuildingResourcesModule.class);
-        WorkerModule worker = module(hut, WorkerModule.class);
-        WorkerStock stock = null;
-        BuilderRequests requests = null;
-        ToolRequests tools = null;
-        if (hut != null) {
-            stock = new WorkerStock(colony, citizen, hut, ACTIONS_UNTIL_DUMP);
-            requests = new BuilderRequests(colony, citizen, hut, stock);
-            tools = new ToolRequests(colony, citizen, hut);
-        }
+        Optional<WorkerModule> worker = hut.module(WorkerModule.class);
+        WorkerStock stock = new WorkerStock(colony, citizen, hut, ACTIONS_UNTIL_DUMP);
         return new BuilderContext(
                 colony,
                 citizen,
                 hut,
-                citizen.job().orElse(null),
+                job,
                 blocks,
                 catalog,
                 resources,
                 stock,
-                requests,
-                tools,
+                new BuilderRequests(colony, citizen, hut, stock),
+                new ToolRequests(colony, citizen, hut),
                 new BuilderWalker(bodies, body, colony.context().clock()::currentTick),
                 new BuilderGestures(bodies, body, colony.context().ports().effects()),
-                // Without a hut the AI never runs: the site gets a detached module it never touches.
-                new BuildSite(
-                        colony,
-                        resources == null ? new BuildingResourcesModule() : resources,
-                        new WorkSpot(blocks, catalog)),
+                new BuildSite(colony, resources, new WorkSpot(blocks, catalog)),
                 new StructureScan(colony, blocks, catalog),
-                worker == null ? Skill.Adaptability : worker.primary(),
-                worker == null ? Skill.Athletics : worker.secondary());
-    }
-
-    /** {@code hut}'s module of {@code type}; null without a hut or without that module. */
-    private static <T extends BuildingModule> @Nullable T module(@Nullable Building hut, Class<T> type) {
-        return hut == null ? null : hut.module(type).orElse(null);
+                worker.map(WorkerModule::primary).orElse(Skill.Adaptability),
+                worker.map(WorkerModule::secondary).orElse(Skill.Athletics));
     }
 
     /**
@@ -106,51 +94,11 @@ record BuilderContext(
      */
     StructurePlan planFor(Blueprint bp, BlockPos at) {
         BlueprintSource blueprints = colony.context().ports().blueprints();
-        return hut().module(BuilderSettingsModule.class)
+        return hut.module(BuilderSettingsModule.class)
                 .flatMap(s -> s.fillBlock(blueprints))
                 .or(blueprints::defaultFillBlock)
                 .map(block -> StructurePlan.build(bp, at, catalog, block))
                 .orElseGet(() -> StructurePlan.build(bp, at, catalog));
-    }
-
-    /** False for a builder without a hut, whose AI never runs. */
-    boolean hasHut() {
-        return hut != null;
-    }
-
-    /** True when the AI can run: a hut with its resources module, and a job. */
-    boolean canRun() {
-        return hut != null && resources != null && job != null;
-    }
-
-    @Override
-    public Building hut() {
-        return Objects.requireNonNull(hut, NO_HUT);
-    }
-
-    @Override
-    public Job job() {
-        return Objects.requireNonNull(job, NO_HUT);
-    }
-
-    @Override
-    public BuildingResourcesModule resources() {
-        return Objects.requireNonNull(resources, NO_HUT);
-    }
-
-    @Override
-    public WorkerStock stock() {
-        return Objects.requireNonNull(stock, NO_HUT);
-    }
-
-    @Override
-    public BuilderRequests requests() {
-        return Objects.requireNonNull(requests, NO_HUT);
-    }
-
-    @Override
-    public ToolRequests tools() {
-        return Objects.requireNonNull(tools, NO_HUT);
     }
 
     /** The Hytale recipes and benches, for what a plan's bench costs. */
@@ -159,7 +107,7 @@ record BuilderContext(
     }
 
     boolean walkToHut() {
-        return walker.walkTo(hut().position());
+        return walker.walkTo(hut.position());
     }
 
     /** Walks to where the builder stands to work on {@code block} (MC walkToConstructionSite). */
@@ -169,10 +117,6 @@ record BuilderContext(
 
     /** The builder's job experience for one action (MC CitizenExperienceHandler.addExperience). */
     void award(double xp) {
-        int homeLevel = Optional.ofNullable(citizen.homeBuilding())
-                .flatMap(colony.buildings()::at)
-                .map(Building::level)
-                .orElse(0);
-        JobXp.award(citizen, primary, secondary, xp, new JobXp.Levels(hut().level(), homeLevel));
+        JobXp.award(citizen, primary, secondary, xp, JobXp.levels(colony, citizen, hut.level()));
     }
 }

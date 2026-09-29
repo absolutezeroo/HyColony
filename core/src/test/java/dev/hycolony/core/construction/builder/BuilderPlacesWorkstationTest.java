@@ -85,7 +85,8 @@ class BuilderPlacesWorkstationTest {
         citizen = new CitizenData(1);
         colony.citizens().restore(citizen);
         assertTrue(builderHut.module(WorkerModule.class).orElseThrow().hire(colony, builderHut, citizen));
-        ai = new BuilderAI(colony, citizen, t.bodies.existing(colony.id(), 1, Vec3.center(HUT)));
+        ai = new BuilderAI(BuilderContext.of(colony, citizen, t.bodies.existing(colony.id(), 1, Vec3.center(HUT)))
+                .orElseThrow());
     }
 
     private Building hut(String type, BlockPos pos, int level) {

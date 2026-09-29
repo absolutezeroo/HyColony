@@ -1,8 +1,11 @@
 package dev.hycolony.core.job;
 
+import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.citizen.Skills;
+import dev.hycolony.core.colony.Colony;
+import java.util.Optional;
 
 /** Port of MineColonies' CitizenExperienceHandler.addExperience skill split. */
 public final class JobXp {
@@ -19,6 +22,15 @@ public final class JobXp {
     public record Levels(int work, int home) {}
 
     private JobXp() {}
+
+    /** The levels of {@code c}'s work building ({@code workLevel}) and of its home in {@code colony}. */
+    public static Levels levels(Colony colony, CitizenData c, int workLevel) {
+        int home = Optional.ofNullable(c.homeBuilding())
+                .flatMap(colony.buildings()::at)
+                .map(Building::level)
+                .orElse(0);
+        return new Levels(workLevel, home);
+    }
 
     public static void award(CitizenData c, Skill primary, Skill secondary, double xp, Levels levels) {
         if (c.saturation() <= 0) {

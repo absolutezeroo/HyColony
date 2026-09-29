@@ -102,7 +102,7 @@ class BuilderPlaceholdersTest {
         colony.citizens().restore(citizen);
         assertTrue(hut.module(WorkerModule.class).orElseThrow().hire(colony, hut, citizen));
         BodyId body = t.bodies.existing(colony.id(), 1, Vec3.center(HUT));
-        ai = new BuilderAI(colony, citizen, body);
+        ai = new BuilderAI(BuilderContext.of(colony, citizen, body).orElseThrow());
         citizen.inventory().insert(new ItemAmount(STONE_I, 16), t.catalog::maxStack);
         citizen.inventory().insert(new ItemAmount(DIRT_I, 16), t.catalog::maxStack);
         citizen.inventory().insert(new ItemAmount(GRAVEL_I, 16), t.catalog::maxStack);

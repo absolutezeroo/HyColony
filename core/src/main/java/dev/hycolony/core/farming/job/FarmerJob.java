@@ -7,6 +7,7 @@ import dev.hycolony.core.crafting.job.CraftingWork;
 import dev.hycolony.core.crafting.job.CraftingWorkContext;
 import dev.hycolony.core.crafting.task.Crafter;
 import dev.hycolony.core.crafting.task.CraftingTasks;
+import dev.hycolony.core.job.IdleAI;
 import dev.hycolony.core.job.Job;
 import dev.hycolony.core.job.JobAI;
 import dev.hycolony.core.job.JobType;
@@ -30,34 +31,13 @@ public final class FarmerJob extends Job implements Crafter {
         return tasks;
     }
 
-    /** MC EntityAIWorkFarmer; without a hut or its farmer modules, an AI that only lets the citizen idle. */
+    /** MC EntityAIWorkFarmer; without a hut or its farmer modules, an {@link IdleAI}. */
     @Override
     public JobAI createAI(Colony colony, BodyId body) {
         return CraftingWorkContext.of(colony, this, body, FarmWorkContext.ACTIONS_UNTIL_DUMP)
                 .flatMap(crafting -> FarmWorkContext.of(crafting, this)
                         .<JobAI>map(farm -> new FarmerAI(new CraftingWork(crafting), farm)))
-                .orElseGet(NoHut::new);
-    }
-
-    /** The AI of a farmer without a hut: it never works (MC's AI then waits for a building). */
-    private static final class NoHut implements JobAI {
-        @Override
-        public void tick() {}
-
-        @Override
-        public String stateName() {
-            return "IDLE";
-        }
-
-        @Override
-        public boolean canBeInterrupted() {
-            return true;
-        }
-
-        @Override
-        public boolean canGoIdle() {
-            return true;
-        }
+                .orElseGet(IdleAI::new);
     }
 
     /** MC AbstractJobCrafter.onRemoval. */

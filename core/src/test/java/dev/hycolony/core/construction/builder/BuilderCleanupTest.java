@@ -89,7 +89,7 @@ class BuilderCleanupTest {
         colony.citizens().restore(citizen);
         assertTrue(hut.module(WorkerModule.class).orElseThrow().hire(colony, hut, citizen));
         body = t.bodies.existing(colony.id(), 1, Vec3.center(HUT));
-        ai = new BuilderAI(colony, citizen, body);
+        ai = new BuilderAI(BuilderContext.of(colony, citizen, body).orElseThrow());
         citizen.inventory().insert(new ItemAmount(STONE_I, 16), t.catalog::maxStack);
     }
 
@@ -115,7 +115,7 @@ class BuilderCleanupTest {
         manager.persistence().loadAll();
         colony = manager.byId(id).orElseThrow();
         citizen = colony.citizens().get(1).orElseThrow();
-        ai = new BuilderAI(colony, citizen, body);
+        ai = new BuilderAI(BuilderContext.of(colony, citizen, body).orElseThrow());
     }
 
     private static Blueprint bp(BlockPos max, BlueprintEntry... entries) {

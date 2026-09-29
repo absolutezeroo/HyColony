@@ -75,10 +75,7 @@ record FarmWorkContext(
 
     /** MC CitizenExperienceHandler.addExperience, split between the hut's primary and secondary skills. */
     void award(double xp) {
-        int homeLevel = Optional.ofNullable(citizen().homeBuilding())
-                .flatMap(colony.buildings()::at)
-                .map(Building::level)
-                .orElse(0);
-        JobXp.award(citizen(), workers.primary(), workers.secondary(), xp, new JobXp.Levels(hut.level(), homeLevel));
+        JobXp.award(
+                citizen(), workers.primary(), workers.secondary(), xp, JobXp.levels(colony, citizen(), hut.level()));
     }
 }
