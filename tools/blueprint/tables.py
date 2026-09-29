@@ -201,6 +201,8 @@ FAMILY = {
     "minecraft:cobblestone_wall": f.wall("Rock_Stone_Cobble_Wall"),
     "minecraft:stone_brick_wall": f.wall("Rock_Stone_Brick_Wall"),
     "minecraft:andesite_wall": f.wall("Rock_Stone_Brick_Wall", "mur d'andésite approximé en brique de pierre"),
+    "minecraft:mossy_stone_brick_wall": f.wall("Rock_Stone_Brick_Wall", "muret moussu approximé en brique de pierre"),
+    "minecraft:mossy_cobblestone_wall": f.wall("Rock_Stone_Cobble_Wall", "muret moussu approximé en pavé"),
     "minecraft:brick_wall": f.wall("Soil_Clay_Brick_Wall"),
     # minecraft:oak_fence : règle contextuelle (voisins réels), voir converter.fence_in_context.
     "minecraft:oak_fence_gate": f.fence_gate,
@@ -220,6 +222,13 @@ FAMILY = {
     "minecraft:rail": f.rail,
     "domum_ornamentum:panel": f.domum_panel,
     # Botte de foin : le cube de foin Hytale ne tourne pas (pas de VariantRotation), elle reste debout.
+    # Citrouilles : le bloc de culture, et les citrouilles décoratives d'Halloween (qui éclairent) pour les sculptées.
+    "minecraft:pumpkin": lambda p: place("Plant_Crop_Pumpkin_Block", 0, "citrouille -> bloc de citrouille",
+                                         rule="simple"),
+    "minecraft:jack_o_lantern": f.front_south("Deco_Halloween_Pumpkin_Scary",
+                                              "citrouille-lanterne -> citrouille sculptée"),
+    "minecraft:carved_pumpkin": f.front_south("Deco_Halloween_Pumpkin_Cute",
+                                              "citrouille sculptée -> citrouille décorative (éclaire, pas MC)"),
     "minecraft:hay_block": lambda p: place("Ingredient_Hay", 0, "botte de foin -> Ingredient_Hay (posée debout)",
                                            rule="simple"),
 }

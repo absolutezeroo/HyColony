@@ -34,7 +34,7 @@ GAP = 6        # largeur des allées
 MARGIN = 6     # bordure autour de la plateforme
 SUBST_RATIO = 0.6
 
-TYPE_ORDER = ["townhall", "warehouse", "builder", "deliveryman", "residence", "tavern", "lumberjack"]
+TYPE_ORDER = ["townhall", "warehouse", "builder", "deliveryman", "residence", "tavern", "lumberjack", "farmer"]
 
 
 def _is_substitution(name: str) -> bool:

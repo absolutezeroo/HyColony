@@ -256,6 +256,14 @@ def chest(target: str, note: str | None = None):
     return rule
 
 
+def front_south(target: str, note: str | None = None):
+    """Modèle dont la face avant est sa face « front » de blockymodel, +Z (sud) à la rotation 0 (citrouille sculptée) :
+    il regarde comme le facing Minecraft avec un demi-tour."""
+    def rule(p: dict) -> Mapping:
+        return place(target, (yaw_for(p) + 2) % 4, note, rule="front_south")
+    return rule
+
+
 def wall_backed(target: str, note: str | None = None):
     """Modèle adossé à un mur, facing Minecraft = côté visible."""
     def rule(p: dict) -> Mapping:
