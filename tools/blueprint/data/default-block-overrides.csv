@@ -102,7 +102,7 @@ minecraft:chain,Deco_Iron_Chains
 minecraft:chest,Furniture_Crude_Chest_Small
 minecraft:chiseled_bookshelf,Furniture_Bookshelf_Single
 minecraft:coal_block,Rock_Magma_Cooled
-minecraft:coal_ore,Ore_Cobalt_Stone
+minecraft:coal_ore,Ore_Cobalt
 minecraft:coarse_dirt,Soil_Dirt_Dry
 minecraft:cobbled_deepslate,Rock_Basalt_Cobble
 minecraft:cobbled_deepslate_slab,Rock_Basalt_Cobble_Half
@@ -141,7 +141,7 @@ minecraft:dead_tube_coral_fan,Plant_Coral_Model_Grey
 minecraft:decorated_pot,Furniture_Ancient_Pot
 minecraft:deepslate,Rock_Basalt
 minecraft:deepslate_bricks,Rock_Basalt_Brick
-minecraft:deepslate_coal_ore,Ore_Cobalt_Stone
+minecraft:deepslate_coal_ore,Ore_Cobalt
 minecraft:deepslate_tile_slab,Rock_Basalt_Brick_Smooth_Half
 minecraft:deepslate_tile_stairs,Rock_Basalt_Brick_Stairs
 minecraft:deepslate_tile_wall,Rock_Basalt_Brick_Wall
@@ -218,7 +218,7 @@ minecraft:jungle_stairs,Wood_Tropicalwood_Stairs
 minecraft:jungle_wall_sign,Furniture_Crude_Sign
 minecraft:kelp,Plant_Reeds_Marsh
 minecraft:lapis_block,Rock_Runic_Blue_Brick
-minecraft:lapis_ore,Ore_Cobalt_Stone
+minecraft:lapis_ore,Ore_Cobalt
 minecraft:large_amethyst_bud,Rock_Crystal_Purple_Large
 minecraft:lava,Fluid_Lava
 minecraft:lectern,Furniture_Crude_Table
@@ -353,7 +353,7 @@ minecraft:red_stained_glass,Glass_Block
 minecraft:red_terracotta,Soil_Clay_Red
 minecraft:red_tulip,Plant_Flower_Common_Red
 minecraft:redstone_lamp,Rock_Crystal_Yellow_Block
-minecraft:redstone_ore,Ore_Adamantite_Stone
+minecraft:redstone_ore,Ore_Adamantite
 minecraft:redstone_torch,Rock_Crystal_Red_Block
 minecraft:repeater,Cloth_Block_Wool_Green
 minecraft:sand,Soil_Sand

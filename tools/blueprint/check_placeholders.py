@@ -101,6 +101,17 @@ def hay_block_is_hytales_hay_cube():
     assert cells[(1, 0, 0)] == ("Ingredient_Hay", None), cells
 
 
+def validation_uses_the_pinned_game_assets():
+    # The HytalesHub list (January 2026) knew Hay_Bale and Ore_Cobalt_Stone, which the pinned game does not have.
+    from .validation import load_known_ids, pinned_assets_zip
+    if pinned_assets_zip() is None:
+        print("  (pas de zip d'assets épinglé : vérification sautée)")
+        return
+    known, src = load_known_ids()
+    assert "Ingredient_Hay" in known and "Ore_Cobalt" in known, src
+    assert "Hay_Bale" not in known and "Ore_Cobalt_Stone" not in known, src
+
+
 def the_anchor_is_structurizes_primary_offset():
     # barracks: the first colonybuilding tile entity is a tower, the primary offset is the barracks hut.
     root = {"tile_entities": [{"id": "minecolonies:colonybuilding", "x": 5, "y": 1, "z": 5}],
@@ -121,6 +132,7 @@ def run():
     an_anchor_that_is_not_the_hut_is_reported()
     the_trace_keeps_written_placeholders()
     hay_block_is_hytales_hay_cube()
+    validation_uses_the_pinned_game_assets()
     the_anchor_is_structurizes_primary_offset()
     print("blueprint placeholders check: OK")
 
