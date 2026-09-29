@@ -99,6 +99,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--no-upstream", action="store_true", help="désactive la table de secours HytalesHub")
     ap.add_argument("--sans-blocs-editeur", action="store_true",
                     help="omet air et substitutions au lieu de les traduire en Empty / Editor_Block / Editor_Anchor")
+    ap.add_argument("--domum-materiaux", action="store_true",
+                    help="blocs Domum avec leurs matériaux (<gabarit>__<m1>__<m2>) ; demande que HyDomum sache créer "
+                         "ces matériaux au chargement d'un prefab (DO-3). Par défaut : le gabarit HyDomum")
     ap.add_argument("--trace", action="store_true", help="écrit aussi, pour chaque case, la règle appliquée")
     ap.add_argument("--strict", action="store_true", help="code de sortie 1 s'il reste des non mappés ou des IDs inconnus")
     ap.add_argument("--version", action="version", version=f"blueprint2hytale {__version__}")
@@ -117,7 +120,8 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     options = Options(use_upstream_csv=not args.no_upstream, editor_blocks=not args.sans_blocs_editeur,
-                      overrides=load_mapping_csv(args.overrides) if args.overrides else {})
+                      overrides=load_mapping_csv(args.overrides) if args.overrides else {},
+                      domum_materials=args.domum_materiaux)
     conv = Converter(options)
     known, known_src = load_known_ids(args.ids)
     problems = 0

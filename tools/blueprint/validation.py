@@ -8,6 +8,7 @@ Sources des IDs, fusionnées :
                                 Elle peut être en retard sur ta version du jeu.
 - data/extra-block-ids.txt    : IDs validés en jeu mais absents de cette liste.
 - --ids FICHIER               : ta propre liste (remplace la liste HytalesHub).
+- les gabarits du mod HyDomum et les matériaux qu'il accepte (générés depuis les assets du jeu épinglé).
 """
 from __future__ import annotations
 
@@ -34,12 +35,16 @@ def load_known_ids(custom: str | Path | None = None) -> tuple[set[str], str]:
     extra = DATA / "extra-block-ids.txt"
     if extra.exists():
         ids |= _read_ids(extra)
+    from . import domum  # noqa: PLC0415 (validation reste utilisable sans le mod HyDomum)
+    ids |= domum.template_ids()
+    ids |= set().union(*domum.slot_tags().values()) if domum.slot_tags() else set()  # matériaux vérifiés par HyDomum
     return ids, src
 
 
 def base_id(target: str) -> str:
-    """`*Wood_Hardwood_Stairs_State_Definitions_Corner_Left` -> `Wood_Hardwood_Stairs`."""
-    return target.lstrip("*").split("_State_Definitions_", 1)[0]
+    """`*Wood_Hardwood_Stairs_State_Definitions_Corner_Left` -> `Wood_Hardwood_Stairs` ; un bloc HyDomum dans
+    ses matériaux (`HyDomum_Stairs__Rock_Stone`) -> son gabarit."""
+    return target.lstrip("*").split("_State_Definitions_", 1)[0].split("__", 1)[0]
 
 
 def unknown_targets(targets: Counter, known: set[str]) -> dict[str, int]:

@@ -5,7 +5,7 @@ Ordre de résolution d'une case (le premier qui répond gagne) :
   1. Assemblages détectés (chaises, racks, doubles portes, doubles coffres)
   2. Cases toujours vides (air, marqueurs de hutte, détails retirés, lits…)
   3. Règles contextuelles (torche murale, bibliothèque, bloc de verre)
-  4. Tables : FAMILY (directionnels) puis SIMPLE (non directionnels)
+  4. Blocs Domum portés par HyDomum (domum.py), puis tables : FAMILY (directionnels) puis SIMPLE
   5. Motifs (panneaux, portes, trappes, couleurs, tapis et pots HyVanilla, vitres…)
   6. Table de secours HytalesHub (uniquement blocs non directionnels)
   7. Sinon : non mappé (listé dans le rapport)
@@ -19,6 +19,7 @@ from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from . import domum
 from . import families as fam
 from . import tables as T
 from .blueprint import Blueprint, load_blueprint
@@ -220,6 +221,9 @@ class Options:
     # Traduit les blocs spéciaux MineColonies en blocs éditeur Hytale (voir
     # editor_block()). False = comportement V32 : ces cases sont omises.
     editor_blocks: bool = True
+    # Blocs Domum : True = nom complet avec les matériaux (<gabarit>__<m1>__<m2>, demande DO-3 côté HyDomum),
+    # False = le gabarit HyDomum dans ses matériaux par défaut.
+    domum_materials: bool = False
 
 
 # Cases retirées volontairement qui doivent rester vides dans le bâtiment
@@ -279,6 +283,10 @@ class Converter:
         m = always_empty(name, p)
         if m:
             return m
+        if name.startswith(domum.PREFIX):
+            m = domum.rule(bp, pos, name, p, self.options.domum_materials)
+            if m:
+                return m
         if name in CONTEXTUAL:
             m = CONTEXTUAL[name](bp, pos, p)
         elif name in T.FAMILY:

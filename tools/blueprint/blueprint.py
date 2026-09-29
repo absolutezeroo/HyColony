@@ -18,6 +18,7 @@ class Blueprint:
     anchor: Pos
     anchor_method: str
     warnings: list[str] = field(default_factory=list)
+    _te_by_pos: dict[Pos, dict] | None = field(default=None, repr=False)
 
     @property
     def name(self) -> str:
@@ -29,6 +30,13 @@ class Blueprint:
     def name_at(self, pos: Pos) -> str | None:
         e = self.grid.get(pos)
         return e.get("Name") if e else None
+
+    def tile_entity_at(self, pos: Pos) -> dict | None:
+        """L'entité de bloc de la case (matériaux Domum, contenu de coffre…), ou None."""
+        if self._te_by_pos is None:
+            self._te_by_pos = {_te_pos(te): te for te in self.tile_entities
+                               if isinstance(te, dict) and all(k in te for k in "xyz")}
+        return self._te_by_pos.get(pos)
 
 
 def _unpack_indices(ints: list[int], volume: int) -> list[int]:
