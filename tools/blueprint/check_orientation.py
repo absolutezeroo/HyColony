@@ -29,16 +29,31 @@ def a_bookshelf_wall_opens_towards_the_inside():
     grid = {(x, 0, 2): {"Name": "minecraft:bookshelf"} for x in (3, 4, 5)}
     grid[(4, 0, 6)] = {"Name": "minecolonies:blockhutbuilder"}
     m = _mappings(grid, anchor=(4, 0, 6))
-    assert m[(4, 0, 2)].rotation == 0, m[(4, 0, 2)]
+    assert [m[(x, 0, 2)].rotation for x in (3, 4, 5)] == [0, 0, 0], [m[(x, 0, 2)] for x in (3, 4, 5)]
     grid = {(x, 0, 6): {"Name": "minecraft:bookshelf"} for x in (3, 4, 5)}
     grid[(4, 0, 2)] = {"Name": "minecolonies:blockhutbuilder"}
     m = _mappings(grid, anchor=(4, 0, 2))
-    assert m[(4, 0, 6)].rotation == 2, m[(4, 0, 6)]
+    assert [m[(x, 0, 6)].rotation for x in (3, 4, 5)] == [2, 2, 2], [m[(x, 0, 6)] for x in (3, 4, 5)]
+
+
+def a_lone_rack_faces_like_a_chest():
+    # A MineColonies rack faces its placer like a chest (BlockMinecoloniesRack.getStateForPlacement): same offset.
+    rack = {"Name": "minecolonies:blockminecoloniesrack", "Properties": {"facing": "north", "variant": "blockrackempty"}}
+    m = _mappings({(4, 0, 4): rack})
+    assert (m[(4, 0, 4)].target, m[(4, 0, 4)].rotation) == ("Furniture_Crude_Chest_Small", 2), m[(4, 0, 4)]
+
+
+def tools_are_not_blocks():
+    from .validation import load_known_ids
+    known, _ = load_known_ids()
+    assert "HyColony_Build_Tool" not in known and "HyColony_Placeholder_Solid" in known
 
 
 def run():
     a_single_chest_faces_like_minecraft()
     a_bookshelf_wall_opens_towards_the_inside()
+    a_lone_rack_faces_like_a_chest()
+    tools_are_not_blocks()
     print("blueprint orientation check: OK")
 
 

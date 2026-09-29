@@ -208,7 +208,8 @@ FAMILY = {
     # Adossés au mur
     "minecraft:ladder": f.wall_backed("Furniture_Village_Ladder"),
     # Orientés comme la source
-    # Petit coffre : yaw direct, validé en jeu dans les 4 orientations (retest).
+    # Petit coffre : sa face avant (loquet) est en +Z à la rotation 0 comme le grand coffre (Chest_Small.blockymodel,
+    # Chest_Open.blockyanim), d'où le demi-tour de families.CHEST_YAW_OFFSET. À confirmer en jeu à côté d'un grand.
     "minecraft:chest": f.chest("Furniture_Crude_Chest_Small", "coffre -> petit coffre natif"),
     "minecraft:ender_chest": f.chest("Furniture_Crude_Chest_Small", "coffre de l'Ender -> petit coffre natif"),
     "minecraft:hopper": f.facing("Metal_Iron_Pipe_Large_Mouthpiece", "entonnoir -> embout de tuyau"),

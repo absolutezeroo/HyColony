@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from . import families as fam
 from .blueprint import Blueprint
 from .geometry import (DIR, FACING_TO_YAW, HORIZ, LOCAL_X_OFFSET, Pos,
                        add, yaw_for)
@@ -164,7 +165,7 @@ def detect_racks(bp: Blueprint, out: Detection) -> None:
     # 2) Racks simples : deux racks voisins forment un grand coffre.
 
     def small(p: Pos) -> None:
-        yaw = (yaw_for(racks[p].get("Properties") or {}) + LARGE_CHEST_YAW_OFFSET) % 4  # même modèle Crude
+        yaw = (yaw_for(racks[p].get("Properties") or {}) + fam.CHEST_YAW_OFFSET) % 4  # face vers le poseur
         out.claims[p] = place("Furniture_Crude_Chest_Small", yaw,
                               "rack isolé -> petit coffre natif (18 cases)", rule="rack")
 

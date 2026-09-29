@@ -88,13 +88,18 @@ def wall_torch(bp: Blueprint, pos: Pos, p: dict) -> Mapping:
 
 def bookshelf(bp: Blueprint, pos: Pos, p: dict) -> Mapping:
     """Devine le mur d'appui : voisin plein avec du vide en face. À égalité (une rangée de bibliothèques qui fait
-    elle-même le mur, du vide des deux côtés), la face ouverte va vers la hutte, donc vers l'intérieur."""
+    elle-même le mur, du vide des deux côtés), la face ouverte va vers la hutte, donc vers l'intérieur (heuristique :
+    une cloison entre deux pièces peut se tromper). Une bibliothèque voisine n'est pas un mur d'appui : c'est la
+    rangée elle-même, sinon les deux bouts de la rangée tourneraient de côté."""
     best = None
     for d, off in DIR.items():
         n = bp.name_at((pos[0] + off[0], pos[1] + off[1], pos[2] + off[2]))
         oo = DIR[OPPOSITE[d]]
         on = bp.name_at((pos[0] + oo[0], pos[1] + oo[1], pos[2] + oo[2]))
-        score = 4 if n in T.FULL_SUPPORT_SOURCE else (1 if n and not T.is_placeholder(n) else 0)
+        if n == "minecraft:bookshelf":
+            score = 0
+        else:
+            score = 4 if n in T.FULL_SUPPORT_SOURCE else (1 if n and not T.is_placeholder(n) else 0)
         if on is None or T.is_placeholder(on):
             score += 3
         inward = oo[0] * (bp.anchor[0] - pos[0]) + oo[2] * (bp.anchor[2] - pos[2])
