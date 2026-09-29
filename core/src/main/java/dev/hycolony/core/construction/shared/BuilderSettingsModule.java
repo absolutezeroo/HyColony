@@ -20,7 +20,12 @@ import org.jspecify.annotations.Nullable;
 public final class BuilderSettingsModule implements PersistentModule, ProvidesTab {
     public enum Mode {
         AUTO,
-        MANUAL
+        MANUAL;
+
+        /** The other mode: the Settings tab's button switches automatic and manual (MC's mode setting). */
+        public Mode next() {
+            return this == AUTO ? MANUAL : AUTO;
+        }
     }
 
     private Mode mode = Mode.AUTO;

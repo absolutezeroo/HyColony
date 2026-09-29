@@ -73,7 +73,7 @@ final class BuilderOrdersTab implements HutTab {
 
     private void button(
             UICommandBuilder ui, UIEventBuilder events, String button, WorkOrderListView.OrderLine o, int i) {
-        if (!canManage || (!o.claimedHere() && !tabs.manual())) {
+        if (!canManage || !tabs.selectable(o)) {
             ui.set(button + ".Visible", false);
             return;
         }

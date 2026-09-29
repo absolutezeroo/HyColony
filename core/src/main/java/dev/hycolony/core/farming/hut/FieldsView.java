@@ -17,6 +17,11 @@ public record FieldsView(boolean manual, int owned, int max, boolean fertilize, 
         rows = List.copyOf(rows);
     }
 
+    /** Whether the player may assign or free fields: a manager, in manual mode (MC FarmFieldsModuleWindow). */
+    public boolean canAssign() {
+        return canManage && manual;
+    }
+
     /**
      * One field: its seed, its distance to the hut and short direction key ({@code hycolony.ui.direction.*}), its
      * stage, whether the hut owns it, the lang key of why it cannot be assigned, if so, and whether it got its pass

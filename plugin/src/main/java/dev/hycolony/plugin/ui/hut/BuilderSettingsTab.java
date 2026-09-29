@@ -4,7 +4,6 @@ import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import dev.hycolony.core.app.ColonyManager;
-import dev.hycolony.core.construction.shared.BuilderSettingsModule.Mode;
 import dev.hycolony.core.construction.shared.BuilderSettingsView;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.BlockKey;
@@ -69,8 +68,7 @@ final class BuilderSettingsTab implements HutTab {
     @Override
     public void handle(ColonyPage.Act act) {
         if ("mode".equals(act.action())) {
-            Mode next = view.mode() == Mode.AUTO ? Mode.MANUAL : Mode.AUTO;
-            manager.huts().setBuilderMode(player, hut, next);
+            manager.huts().setBuilderMode(player, hut, view.mode().next());
         }
     }
 

@@ -38,6 +38,11 @@ public record RecipesView(int active, int max, List<Line> learned, List<Line> le
         public Line {
             inputs = List.copyOf(inputs);
         }
+
+        /** MC: a learnt recipe has a Remove button unless the hut level granted it. */
+        public boolean removable() {
+            return !custom;
+        }
     }
 
     /**

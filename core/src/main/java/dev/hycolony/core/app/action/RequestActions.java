@@ -130,6 +130,7 @@ public final class RequestActions {
         if (moved > 0) {
             c.markDirty();
         }
+        manager.windows().openBuilding(player, hutPos);
         return moved;
     }
 

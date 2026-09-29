@@ -5,7 +5,6 @@ import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.app.ui.BuildingView;
-import dev.hycolony.core.job.HiringMode;
 import dev.hycolony.plugin.ui.logistics.PickupPanel;
 import java.util.List;
 import java.util.Locale;
@@ -149,13 +148,7 @@ final class BuildingMainTab {
         int i = act.index;
         switch (act.action) {
             case "cancel" -> manager.workOrders().cancel(player, view.pos());
-            case "hiring" ->
-                view.hiringMode()
-                        .ifPresent(m -> manager.huts()
-                                .setHiring(
-                                        player,
-                                        view.pos(),
-                                        HiringMode.values()[(m.ordinal() + 1) % HiringMode.values().length]));
+            case "hiring" -> view.hiringMode().ifPresent(m -> manager.huts().setHiring(player, view.pos(), m.next()));
             case "fire" -> {
                 if (i >= 0 && i < view.workers().size()) {
                     manager.huts()

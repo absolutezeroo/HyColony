@@ -139,7 +139,7 @@ final class RecipesTab implements HutTab {
         }
         bindOrHide(ui, events, index > 0, new Bind(sel + " #Up", "recipeUp", index));
         bindOrHide(ui, events, index < recipes.learned().size() - 1, new Bind(sel + " #Down", "recipeDown", index));
-        bindOrHide(ui, events, !line.custom(), new Bind(sel + " #Remove", "recipeRemove", index));
+        bindOrHide(ui, events, line.removable(), new Bind(sel + " #Remove", "recipeRemove", index));
         ui.set(
                 sel + " #Toggle.Text",
                 Message.translation(line.disabled() ? "hycolony.ui.recipes.enable" : "hycolony.ui.recipes.disable"));

@@ -71,10 +71,7 @@ final class BuilderResourcesTab implements HutTab {
             for (String label : new String[] {" #Name", " #Missing", " #Count"}) {
                 ui.set(row + label + ".Style.TextColor", color);
             }
-            // MC disables the button in DONT_HAVE and NOT_NEEDED.
-            boolean canAdd = r.status() == BuilderResourcesView.Status.NEED_MORE
-                    || r.status() == BuilderResourcesView.Status.HAVE_ENOUGH;
-            if (canAdd) {
+            if (r.status().canAdd()) {
                 ColonyPage.bind(events, row + " #AddButton", "add", i);
             } else {
                 ui.set(row + " #AddButton.Disabled", true);
@@ -112,15 +109,14 @@ final class BuilderResourcesTab implements HutTab {
         }
     }
 
-    /** Add: the player's items go into the hut (MC TransferItemsRequestMessage), then the window is shown again. */
+    /** Add: the player's items go into the hut (MC TransferItemsRequestMessage); the core shows the window again. */
     @Override
     public void handle(ColonyPage.Act act) {
         if ("add".equals(act.action())
                 && act.index() >= 0
                 && act.index() < view.rows().size()) {
             ResourceRow r = view.rows().get(act.index());
-            manager.requestActions().addToHut(player, hut, r.item(), r.needed() - r.available());
-            manager.windows().openBuilding(player, hut); // addToHut does not re-show
+            manager.requestActions().addToHut(player, hut, r.item(), r.missing());
         }
     }
 }

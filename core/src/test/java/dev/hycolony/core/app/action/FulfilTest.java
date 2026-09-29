@@ -166,6 +166,16 @@ class FulfilTest {
         assertEquals(List.of(new ItemAmount(PLANKS, 6)), get(token).deliveries());
     }
 
+    @Test
+    void addToHutShowsTheHutAgain() {
+        t.playerInventory.give(alice, new ItemAmount(PLANKS, 1));
+        t.ui.shown.clear();
+
+        manager.requestActions().addToHut(alice, hall, PLANKS, 1);
+
+        assertTrue(t.ui.shown.containsKey(alice), "the player sees what the hut now holds");
+    }
+
     /** MC: a broken tool no longer exists, so adding one to the hut closes no tool request. */
     @Test
     void addingABrokenToolToTheHutNeverClosesAToolRequest() {

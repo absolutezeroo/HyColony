@@ -28,12 +28,22 @@ public record BuilderResourcesView(List<ResourceRow> rows, Optional<Header> head
             }
             return playerHas < needed - available ? NEED_MORE : HAVE_ENOUGH;
         }
+
+        /** MC WindowBuilderResModule: the Add button works only while the player has some of what is missing. */
+        public boolean canAdd() {
+            return this == NEED_MORE || this == HAVE_ENOUGH;
+        }
     }
 
     public record ResourceRow(ItemKey item, int needed, int available, int playerHas, Status status) {
         /** BuildingBuilderResource.getMissingFromPlayer: negative when the player's items would not be enough. */
         public int missingFromPlayer() {
             return playerHas + available - needed;
+        }
+
+        /** What the hut still lacks, which Add asks the player for (MC TransferItemsRequestMessage). */
+        public int missing() {
+            return needed - available;
         }
     }
 

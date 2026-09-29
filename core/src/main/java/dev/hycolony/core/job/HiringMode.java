@@ -10,6 +10,12 @@ public enum HiringMode {
     MANUAL,
     LOCKED;
 
+    /** The mode after this one, back to the first after the last (MC's hiring mode button cycles them in order). */
+    public HiringMode next() {
+        HiringMode[] all = values();
+        return all[(ordinal() + 1) % all.length];
+    }
+
     /**
      * MC {@code AbstractBuilding.canAssignCitizens}: built and above level 0, or always for a building that allows level
      * 0 (MC {@code BuildingBuilder} overrides it to true).

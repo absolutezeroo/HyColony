@@ -29,4 +29,9 @@ public record WorkOrderListView(List<OrderLine> orders, boolean manual) implemen
     public WorkOrderListView {
         orders = List.copyOf(orders);
     }
+
+    /** Whether {@code line} has a button: Cancel for the order claimed here, Select only in MANUAL mode. */
+    public boolean selectable(OrderLine line) {
+        return line.claimedHere() || manual;
+    }
 }

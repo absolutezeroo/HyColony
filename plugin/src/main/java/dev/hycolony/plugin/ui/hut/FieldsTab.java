@@ -101,7 +101,7 @@ final class FieldsTab implements HutTab {
         ui.set(
                 button + ".Text",
                 Message.translation(r.owned() ? "hycolony.ui.fields.free" : "hycolony.ui.fields.assign"));
-        if (!fields.canManage() || !fields.manual()) {
+        if (!fields.canAssign()) {
             ui.set(button + ".Disabled", true);
         } else if (r.refusal().isPresent()) {
             ui.set(button + ".Disabled", true);
