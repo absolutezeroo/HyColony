@@ -19,13 +19,18 @@ import javax.annotation.Nullable;
  * running server ({@link PrefabRotation} is a plain enum, {@link IPrefabBuffer} only read through its getters).
  *
  * <p>Format: {@code { style: { buildingTypeId: { level: { "prefab": "<path under Server/Prefabs>", "hutOffset": [x,y,z],
- * "spawnerChests": true } } } }}; {@code spawnerChests} is optional (false).
+ * "spawnerChests": true, "minecolonies": true } } } }}; {@code spawnerChests} and {@code minecolonies} are optional
+ * (false).
  * {@code hutOffset} is in the prefab file's own coordinates (the x/y/z written in the {@code .prefab.json}, before the
- * anchor is subtracted), unrotated. Absent: the default cell, see {@link #hutCell}.
+ * anchor is subtracted), unrotated. Absent: the default cell, see {@link #hutCell}; for a {@code minecolonies} level,
+ * the prefab's anchor, where the converter puts the hut.
  */
 public final class PrefabStyles {
-    /** {@code spawnerChests}: chest spawners become the style's empty chest (see HytaleBlueprintSource). */
-    record Level(String prefab, @Nullable int[] hutOffset, boolean spawnerChests) {}
+    /**
+     * {@code spawnerChests}: chest spawners become the style's empty chest; {@code minecolonies}: a blueprint converted
+     * from MineColonies, read with Structurize's semantics (see HytaleBlueprintSource).
+     */
+    record Level(String prefab, @Nullable int[] hutOffset, boolean spawnerChests, boolean minecolonies) {}
 
     private final Map<String, Map<String, Map<String, Level>>> table;
 

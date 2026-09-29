@@ -19,4 +19,35 @@ Group {
       FlexWeight: 2;
     }
   }
+
+  // MC BUILDER_SETTINGS fillblock: what the builder fills a MineColonies plan's solid placeholders with.
+  Group {
+    LayoutMode: Left;
+    Anchor: (Height: 44);
+
+    Label {
+      Text: %hycolony.ui.builder.fillBlock;
+      Style: (RenderBold: true, RenderUppercase: true, TextColor: #94a7bb);
+      FlexWeight: 1;
+    }
+
+    Group {
+      LayoutMode: Left;
+      FlexWeight: 2;
+
+      ItemIcon #FillIcon {
+        Anchor: (Width: 32, Height: 32);
+      }
+
+      Label #FillName {
+        FlexWeight: 1;
+        Padding: (Horizontal: 8);
+      }
+
+      $C.@SecondaryTextButton #FillButton {
+        Anchor: (Width: 130);
+        Text: %hycolony.ui.builder.fillBlock.choose;
+      }
+    }
+  }
 }

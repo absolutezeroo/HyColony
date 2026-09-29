@@ -1,26 +1,20 @@
 package dev.hycolony.plugin.prefab;
 
-import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.prefab.PrefabRotation;
 import com.hypixel.hytale.server.core.prefab.PrefabStore;
-import com.hypixel.hytale.server.core.prefab.selection.buffer.PrefabBufferCall;
 import com.hypixel.hytale.server.core.prefab.selection.buffer.PrefabBufferUtil;
 import com.hypixel.hytale.server.core.prefab.selection.buffer.impl.IPrefabBuffer;
-import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import dev.hycolony.core.construction.blueprint.Blueprint;
-import dev.hycolony.core.construction.blueprint.BlueprintEntry;
+import dev.hycolony.core.construction.blueprint.BlueprintMarkers;
 import dev.hycolony.core.construction.blueprint.BlueprintSource;
-import dev.hycolony.core.kernel.BlockPos;
-import dev.hycolony.core.kernel.item.BlockState;
-import dev.hycolony.core.kernel.item.Workstation;
+import dev.hycolony.core.kernel.item.BlockKey;
+import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.plugin.IdMap;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -54,31 +48,47 @@ import org.jspecify.annotations.Nullable;
  * higher, at the hut's level: floor cells the prefab leaves absent keep their ground instead of becoming a ditch,
  * and the floor entries are still placed (SOLID mines a differing ground block first).
  *
+ * <p>MineColonies levels ({@code "minecolonies": true}, converted by tools/blueprint) keep Structurize's semantics
+ * instead (docs/research/structurize-placeholders.md): every layer is kept, the hut is at the prefab's anchor unless
+ * {@code hutOffset} says otherwise, and the blueprint carries {@link BlueprintMarkers}: an explicit {@code Empty}
+ * (no fluid) is air to clear, and the id-map's placeholder blocks ({@code blueprint.placeholder.solid|fluid}) are fill
+ * and fluid cells, the fluid being {@code placeholderFluid}. Elsewhere the placeholder blocks are skipped like any
+ * {@code Editor_*} block would be: they have no item to place.
+ *
  * <p>{@link #prewarm(PrefabStyles)} parses the prefabs off the world thread at startup; a later load then reads the cached
  * buffer. Results are cached per (style, type, level, rotation).
  */
 public final class HytaleBlueprintSource implements BlueprintSource {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
-    /** Hut-relative y of the floor the hut stands on: nothing below it is part of the blueprint. */
-    private static final int FLOOR_Y = -1;
-
     /** id-map block key prefix of the style's empty chest that replaces a chest spawner. */
     private static final String SPAWNER_CHEST_KEY = "blueprint.spawnerChest.";
 
-    /** A rotated, anchor-relative prefab cell. */
-    private record Cell(int x, int y, int z, BlockState state, boolean container, Optional<Workstation> workstation) {}
+    private static final String FILL_BLOCK_KEY = "blueprint.fillBlock";
 
     private static final AtomicBoolean PREWARMED = new AtomicBoolean();
 
     private final PrefabStyles styles;
     private final IdMap ids;
+    private final FillBlocks fillBlocks;
     private final Map<String, Optional<Blueprint>> cache = new ConcurrentHashMap<>();
     private final Set<String> warned = ConcurrentHashMap.newKeySet();
 
-    /** Blueprints of {@code styles}, whose spawner chests come from {@code ids}. */
-    public HytaleBlueprintSource(IdMap ids, PrefabStyles styles) {
+    /** Blueprints of {@code styles}, whose spawner chests and placeholders come from {@code ids}. */
+    public HytaleBlueprintSource(IdMap ids, PrefabStyles styles, ItemCatalog catalog) {
         this.styles = styles;
         this.ids = ids;
+        this.fillBlocks = new FillBlocks(catalog);
+    }
+
+    /** The id-map's {@code blueprint.fillBlock} (dirt, MC's default fillblock). */
+    @Override
+    public Optional<BlockKey> defaultFillBlock() {
+        return Optional.of(new BlockKey(ids.blockId(FILL_BLOCK_KEY)));
+    }
+
+    @Override
+    public List<BlockKey> fillBlockChoices() {
+        return fillBlocks.choices();
     }
 
     /**
@@ -172,67 +182,21 @@ public final class HytaleBlueprintSource implements BlueprintSource {
         if (loaded.isEmpty()) {
             return Optional.empty();
         }
-        IPrefabBuffer buf = loaded.get();
-
-        // Pass 1: rotated, anchor-relative cells. The hut cell is only known afterwards (default = lowest layer).
-        String chest = entry.spawnerChests() ? ids.blockId(SPAWNER_CHEST_KEY + style) : null;
-        List<Cell> cells = new ArrayList<>();
-        int lowestY = readCells(buf, r, chest, cells);
-        if (cells.isEmpty()) {
+        Optional<Blueprint> bp = PrefabReading.blueprint(loaded.get(), r, entry, rules(style, entry));
+        if (bp.isEmpty()) {
             warnOnce("prefab has no blocks: " + entry.prefab(), null);
-            return Optional.empty();
         }
-
-        // Pass 2: the unrotated hut cell, turned like the entries, then everything made hut-relative.
-        BlockPos hut = PrefabStyles.rotate(r, PrefabStyles.hutCell(entry.hutOffset(), buf, lowestY));
-        List<BlueprintEntry> entries = hutRelative(cells, hut);
-        BlockPos low = PrefabStyles.relative(buf.getMinX(r), buf.getMinY(), buf.getMinZ(r), hut);
-        BlockPos min = new BlockPos(low.x(), Math.max(low.y(), FLOOR_Y + 1), low.z());
-        BlockPos max = PrefabStyles.relative(buf.getMaxX(r), buf.getMaxY(), buf.getMaxZ(r), hut);
-        return Optional.of(new Blueprint(entry.prefab(), List.copyOf(entries), min, max));
+        return bp;
     }
 
-    /** Adds the prefab's non-filler cells, rotated by {@code r}, to {@code cells}; returns their lowest y. */
-    private static int readCells(IPrefabBuffer buf, PrefabRotation r, @Nullable String chest, List<Cell> cells) {
-        int[] lowestY = {Integer.MAX_VALUE};
-        buf.forEach(
-                IPrefabBuffer.iterateAllColumns(),
-                (int x,
-                        int y,
-                        int z,
-                        int blockId,
-                        Holder<ChunkStore> holder,
-                        int support,
-                        int rotation,
-                        int filler,
-                        PrefabBufferCall call,
-                        int fluidId,
-                        int fluidLevel) -> {
-                    if (filler != 0) {
-                        return;
-                    }
-                    PrefabCells.resolve(blockId, holder, rotation, fluidId, chest)
-                            .ifPresent(c -> {
-                                lowestY[0] = Math.min(lowestY[0], y);
-                                cells.add(new Cell(x, y, z, c.state(), c.container(), c.workstation()));
-                            });
-                },
-                null,
-                null,
-                new PrefabBufferCall(new Random(0), r));
-        return lowestY[0];
-    }
-
-    /** The cells as entries relative to {@code hut}, without the hut cell itself nor anything below the floor. */
-    private static List<BlueprintEntry> hutRelative(List<Cell> cells, BlockPos hut) {
-        List<BlueprintEntry> entries = new ArrayList<>(cells.size());
-        for (Cell c : cells) {
-            BlockPos offset = PrefabStyles.relative(c.x(), c.y(), c.z(), hut);
-            if (offset.y() >= FLOOR_Y && (offset.x() != 0 || offset.y() != 0 || offset.z() != 0)) {
-                entries.add(new BlueprintEntry(offset, c.state(), c.container(), c.workstation()));
-            }
-        }
-        return entries;
+    /** How the cells of {@code entry} are read: its chest spawners, and its placeholders if it is a MC level. */
+    private PrefabReading.Rules rules(String style, PrefabStyles.Level entry) {
+        String chest = entry.spawnerChests() ? ids.blockId(SPAWNER_CHEST_KEY + style) : null;
+        PrefabCells.Placeholders placeholders = entry.minecolonies()
+                ? new PrefabCells.Placeholders(
+                        ids.blockId("blueprint.placeholder.solid"), ids.blockId("blueprint.placeholder.fluid"))
+                : null;
+        return new PrefabReading.Rules(chest, placeholders, ids.placeholderFluid());
     }
 
     private void warnOnce(String message, @Nullable Throwable cause) {

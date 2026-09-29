@@ -31,7 +31,7 @@ public final class HutTabs {
         return switch (tab) {
             case BuilderResourcesView r -> Optional.of(new BuilderResourcesTab(manager, player, view.pos(), r));
             case BuilderSettingsView s ->
-                Optional.of(new BuilderSettingsTab(manager, player, view.pos(), s.mode(), view.canManage()));
+                Optional.of(new BuilderSettingsTab(manager, player, view.pos(), s, view.canManage()));
             case WorkOrderListView o ->
                 Optional.of(new BuilderOrdersTab(manager, player, view.pos(), o, view.canManage()));
             case CourierAssignmentView c -> Optional.of(new WarehouseCouriersTab(c));

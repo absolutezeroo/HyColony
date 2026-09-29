@@ -33,6 +33,33 @@ final class PrefabCells {
     /** A blueprint state, whether it holds items, and the crafting bench it is (with the prefab's tier), if any. */
     record Resolved(BlockState state, boolean container, Optional<Workstation> workstation) {}
 
+    /**
+     * A MineColonies placeholder cell (docs/research/structurize-placeholders.md § 2): an explicit {@code Empty}
+     * (minecraft:air, cleared), a solid placeholder (blocksolidsubstitution, filled) or a fluid placeholder
+     * (blockfluidsubstitution, flooded).
+     */
+    enum Marker {
+        AIR,
+        FILL,
+        FLUID
+    }
+
+    /** The two placeholder block ids of the id-map. */
+    record Placeholders(String solid, String fluid) {}
+
+    /** The cell's marker in a MineColonies blueprint; empty for a block, a fluid-only cell or anything else. */
+    static Optional<Marker> marker(int blockId, int fluidId, Placeholders ids) {
+        if (blockId == BlockType.EMPTY_ID) {
+            return fluidId == 0 ? Optional.of(Marker.AIR) : Optional.empty();
+        }
+        BlockType type = BlockType.getAssetMap().getAsset(blockId);
+        String id = type == null ? "" : type.getId();
+        if (id.equals(ids.solid())) {
+            return Optional.of(Marker.FILL);
+        }
+        return id.equals(ids.fluid()) ? Optional.of(Marker.FLUID) : Optional.empty();
+    }
+
     private PrefabCells() {}
 
     /**

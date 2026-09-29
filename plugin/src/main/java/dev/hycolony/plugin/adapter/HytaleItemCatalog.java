@@ -70,6 +70,7 @@ public final class HytaleItemCatalog implements ItemCatalog {
 
     private final Map<BlockKey, BlockInfo> blocks = new HashMap<>();
     private final Map<ItemKey, ItemInfo> items = new HashMap<>();
+    private final Map<BlockKey, Boolean> goodFloors = new HashMap<>();
     private final Set<String> hutBlockIds;
     /** The id-map's hoes and their tool level: Hytale hoes have no tool spec to map (they till by interaction). */
     private final Map<String, Integer> hoeLevels;
@@ -109,27 +110,30 @@ public final class HytaleItemCatalog implements ItemCatalog {
     }
 
     /**
-     * A solid block drawn as a full cube ({@code DrawType.Cube}), leaves excluded (Structurize
-     * {@code unsuitable_solid_for_placeholder}): vanilla leaves are models of group {@code Leaves}, and tilled soil is
-     * a cube ({@code Template_Soil}), as Structurize's {@code good_solid_for_placeholder} wants. A state variant is
-     * judged by its base block; an unknown block or a fluid is no good floor.
+     * A solid block drawn as a full cube ({@code Cube}, or {@code CubeWithModel} as ores are), leaves excluded
+     * (Structurize {@code unsuitable_solid_for_placeholder}): vanilla leaves are models of group {@code Leaves}, and
+     * tilled soil is a cube ({@code Template_Soil}), as Structurize's {@code good_solid_for_placeholder} wants. A state
+     * variant is judged by its own block type (a slab's {@code Full} state is a cube); an unknown block or a fluid is
+     * no good floor. Cached per key.
+     *
+     * <p>Deviation from MC: Structurize tests the collision shape ({@code isGoodFullBlock}); Hytale has no such shape
+     * on the server, so the draw type and material stand for it.
      */
     @Override
     public boolean isGoodFloor(BlockKey block) {
-        try {
-            BlockType type = BlockType.getAssetMap().getAsset(block.id());
-            if (type != null && block.id().startsWith("*") && type.getDefaultStateKey() != null) {
-                type = BlockType.getAssetMap().getAsset(type.getDefaultStateKey());
+        return goodFloors.computeIfAbsent(block, k -> {
+            try {
+                BlockType type = BlockType.getAssetMap().getAsset(k.id());
+                return type != null
+                        && !type.isUnknown()
+                        && type.getMaterial() == BlockMaterial.Solid
+                        && (type.getDrawType() == DrawType.Cube || type.getDrawType() == DrawType.CubeWithModel)
+                        && !"Leaves".equals(type.getGroup());
+            } catch (RuntimeException e) {
+                fail(k.id(), e);
+                return false;
             }
-            return type != null
-                    && !type.isUnknown()
-                    && type.getMaterial() == BlockMaterial.Solid
-                    && type.getDrawType() == DrawType.Cube
-                    && !"Leaves".equals(type.getGroup());
-        } catch (RuntimeException e) {
-            fail(block.id(), e);
-            return false;
-        }
+        });
     }
 
     /**

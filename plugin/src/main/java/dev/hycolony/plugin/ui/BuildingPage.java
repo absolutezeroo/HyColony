@@ -2,6 +2,7 @@ package dev.hycolony.plugin.ui;
 
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.entity.entities.player.pages.CustomUIPage;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
@@ -113,10 +114,22 @@ public final class BuildingPage extends ColonyPage {
                     rebuild();
                 }
                 moduleTabs.forEach(t -> t.handle(act));
+                moduleTabs.stream()
+                        .flatMap(t -> t.picker(act).stream())
+                        .findFirst()
+                        .ifPresent(picker -> openPicker(ref, store, picker));
                 if (moduleTabs.stream().anyMatch(t -> t.redraws(act))) {
                     rebuild();
                 }
             }
+        }
+    }
+
+    /** Replaces this window with a tab's item list (MC WindowSelectRes); an offline player gets nothing. */
+    private void openPicker(Ref<EntityStore> ref, Store<EntityStore> store, ItemPickerPage.Picker picker) {
+        Player p = store.getComponent(ref, Player.getComponentType());
+        if (p != null) {
+            p.getPageManager().openCustomPage(ref, store, new ItemPickerPage(playerRef, manager, picker));
         }
     }
 }
