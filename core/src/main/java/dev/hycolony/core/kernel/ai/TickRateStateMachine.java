@@ -161,14 +161,6 @@ public class TickRateStateMachine<S extends IState> {
         }
     }
 
-    public int getTickRate() {
-        return tickRate;
-    }
-
-    public void setTickRate(int tickRate) {
-        this.tickRate = tickRate;
-    }
-
     public List<String> history() {
         return List.copyOf(history);
     }

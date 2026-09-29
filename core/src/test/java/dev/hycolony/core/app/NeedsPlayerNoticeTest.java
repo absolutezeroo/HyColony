@@ -9,16 +9,20 @@ import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.core.kernel.persist.FileColonyStorage;
+import dev.hycolony.core.kernel.persist.MigrationChain;
 import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.request.model.StackRequest;
 import dev.hycolony.core.request.resolver.PlayerResolver;
 import dev.hycolony.core.request.resolver.RetryingResolver;
 import dev.hycolony.core.testing.FakeUi;
 import dev.hycolony.core.testing.TestContexts;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class NeedsPlayerNoticeTest {
     private static final StackRequest PLANKS = new StackRequest(new ItemKey("Wood_Planks"), 4, 4, true);
@@ -66,6 +70,24 @@ class NeedsPlayerNoticeTest {
         colony.requests().reassign(token, Set.of(PlayerResolver.ID)); // retried...
         toPlayer(token); // ...and back to the player
         assertEquals(2, t.ui.notices.size(), "announced once per request");
+    }
+
+    @Test
+    void requestAlreadyWithThePlayerIsNotAnnouncedAgainWhenTheColonyLoads(@TempDir Path dir) {
+        manager.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp3b());
+        toPlayer(colony.requests().createAndAssign(hut, PLANKS, 1));
+        colony.markDirty();
+        manager.persistence().saveAll();
+        TestContexts loading = new TestContexts();
+        loading.players.online.put(alice, hall);
+        ColonyManager reloaded = loading.manager();
+        reloaded.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp3b());
+
+        reloaded.persistence().loadAll();
+
+        assertEquals(
+                1, reloaded.byId(colony.id()).orElseThrow().requests().all().size());
+        assertEquals(List.of(), loading.ui.notices, "its officers were told before the save");
     }
 
     @Test
