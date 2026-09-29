@@ -1,7 +1,7 @@
 package dev.hycolony.plugin.adapter;
 
 import com.hypixel.hytale.component.Ref;
-import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.protocol.packets.interface_.Page;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.entity.entities.player.pages.CustomUIPage;
@@ -39,9 +39,16 @@ import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.logging.Level;
+import org.jspecify.annotations.Nullable;
 
-/** Renders core view models with Hytale custom pages. World thread only. */
+/**
+ * Renders core view models with Hytale custom pages. World thread only: a player in another world, or without a
+ * Player component, gets no page; a page that fails to open is logged (WARNING once, then FINE), never thrown (§ 4).
+ */
 public final class HytaleUiPort implements UiPort {
+    private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
+
     private final Supplier<ColonyManager> manager;
     private final Supplier<WandActions> wand;
     private final HytaleBlocks blocks;
@@ -53,6 +60,8 @@ public final class HytaleUiPort implements UiPort {
     private final LiveWindows live = new LiveWindows();
     /** Players whose page Hytale is closing right now: close() must not close it a second time. */
     private final Set<UUID> closing = new HashSet<>();
+
+    private boolean warned;
 
     public HytaleUiPort(Supplier<ColonyManager> manager, Supplier<WandActions> wand, HytaleBlocks blocks, IdMap ids) {
         this.manager = manager;
@@ -187,11 +196,10 @@ public final class HytaleUiPort implements UiPort {
         }
         PlayerRef pr = Universe.get().getPlayer(player);
         Ref<EntityStore> ref = pr == null ? null : pr.getReference();
-        if (ref == null || !ref.isValid()) {
-            return; // disconnected or not in a world
+        Player p = playerHere(ref);
+        if (ref != null && p != null) {
+            guarded("close", () -> p.getPageManager().setPage(ref, ref.getStore(), Page.None));
         }
-        Store<EntityStore> store = ref.getStore();
-        store.getComponent(ref, Player.getComponentType()).getPageManager().setPage(ref, store, Page.None);
     }
 
     private void open(UUID player, Function<PlayerRef, CustomUIPage> page) {
@@ -202,12 +210,37 @@ public final class HytaleUiPort implements UiPort {
     private void open(UUID player, BiFunction<PlayerRef, CustomUIPage, ? extends CustomUIPage> page) {
         PlayerRef pr = Universe.get().getPlayer(player);
         Ref<EntityStore> ref = pr == null ? null : pr.getReference();
-        if (ref == null || !ref.isValid()) {
+        Player p = playerHere(ref);
+        if (pr == null || ref == null || p == null) {
             return;
         }
-        Store<EntityStore> store = ref.getStore();
-        PageManager pages = store.getComponent(ref, Player.getComponentType()).getPageManager();
+        PageManager pages = p.getPageManager();
         CustomUIPage current = pages.getCustomPage();
-        pages.openCustomPage(ref, store, page.apply(pr, current instanceof ColonyPage c ? c.live() : current));
+        guarded(
+                "open",
+                () -> pages.openCustomPage(
+                        ref, ref.getStore(), page.apply(pr, current instanceof ColonyPage c ? c.live() : current)));
+    }
+
+    /**
+     * The Player component behind {@code ref}; null when disconnected, not in a world, in another world (its store
+     * asserts its own thread, as LiveWindows checks) or without one.
+     */
+    private static @Nullable Player playerHere(@Nullable Ref<EntityStore> ref) {
+        if (ref == null
+                || !ref.isValid()
+                || !ref.getStore().getExternalData().getWorld().isInThread()) {
+            return null;
+        }
+        return ref.getStore().getComponent(ref, Player.getComponentType());
+    }
+
+    private void guarded(String op, Runnable call) {
+        try {
+            call.run();
+        } catch (RuntimeException e) {
+            LOG.at(warned ? Level.FINE : Level.WARNING).withCause(e).log("HyColony: window %s failed", op);
+            warned = true;
+        }
     }
 }

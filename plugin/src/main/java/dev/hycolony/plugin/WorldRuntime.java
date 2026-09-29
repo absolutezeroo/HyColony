@@ -34,6 +34,7 @@ import dev.hycolony.plugin.block.HutBlockSystems;
 import dev.hycolony.plugin.crafting.HytaleRecipeCatalog;
 import dev.hycolony.plugin.farming.HytaleFarming;
 import dev.hycolony.plugin.npc.CitizenSpeed;
+import dev.hycolony.plugin.npc.GuardedBodies;
 import dev.hycolony.plugin.prefab.HytaleBlueprintSource;
 import dev.hycolony.plugin.ui.highlight.HighlightMarkers;
 import java.util.Random;
@@ -76,7 +77,7 @@ public final class WorldRuntime {
                 new WorldKey(world.getName()),
                 config,
                 clock,
-                new DetouringBodies(bodies, worldBlocks, catalog), // Hytale's nav walks through fire
+                new DetouringBodies(new GuardedBodies(bodies), worldBlocks, catalog), // Hytale's nav walks through fire
                 new HytaleWorldQuery(world, ids.precipitationParticles()),
                 new HytaleNotifier(),
                 new HytalePlayerDirectory(world),

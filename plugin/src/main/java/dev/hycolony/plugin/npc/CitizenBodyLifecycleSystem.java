@@ -7,13 +7,20 @@ import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.RefSystem;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.plugin.WorldRuntime;
 import dev.hycolony.plugin.WorldRuntimes;
+import java.util.logging.Level;
 import javax.annotation.Nonnull;
 
-/** Binds citizen NPCs loaded from chunks to the core; unbinds on unload. */
+/**
+ * Binds citizen NPCs loaded from chunks to the core; unbinds on unload. It runs inside Hytale's chunk load and unload:
+ * a failure is logged SEVERE and never thrown into them (CLAUDE.md § 4).
+ */
 public final class CitizenBodyLifecycleSystem extends RefSystem<EntityStore> {
+    private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
+
     private final WorldRuntimes runtimes;
 
     public CitizenBodyLifecycleSystem(WorldRuntimes runtimes) {
@@ -34,12 +41,15 @@ public final class CitizenBodyLifecycleSystem extends RefSystem<EntityStore> {
         if (reason != AddReason.LOAD) {
             return; // freshly spawned bodies are bound by HytaleCitizenBodies.spawn
         }
-        WorldRuntime rt = runtimes.of(store.getExternalData().getWorld());
-        if (rt == null || !rt.enabled()) {
-            return;
+        try {
+            WorldRuntime rt = runtimes.of(store.getExternalData().getWorld());
+            CitizenTag tag = store.getComponent(ref, HyColonyComponents.citizenTag());
+            if (rt != null && rt.enabled() && tag != null) {
+                rt.manager().onBodyLoaded(rt.bodies().track(ref), tag.colonyId(), tag.citizenId());
+            }
+        } catch (RuntimeException e) {
+            LOG.at(Level.SEVERE).withCause(e).log("HyColony: binding a loaded citizen body failed");
         }
-        CitizenTag tag = store.getComponent(ref, HyColonyComponents.citizenTag());
-        rt.manager().onBodyLoaded(rt.bodies().track(ref), tag.colonyId(), tag.citizenId());
     }
 
     @Override
@@ -48,11 +58,14 @@ public final class CitizenBodyLifecycleSystem extends RefSystem<EntityStore> {
             @Nonnull RemoveReason reason,
             @Nonnull Store<EntityStore> store,
             @Nonnull CommandBuffer<EntityStore> buffer) {
-        WorldRuntime rt = runtimes.of(store.getExternalData().getWorld());
-        if (rt == null) {
-            return;
+        try {
+            WorldRuntime rt = runtimes.of(store.getExternalData().getWorld());
+            CitizenTag tag = store.getComponent(ref, HyColonyComponents.citizenTag());
+            if (rt != null && tag != null) {
+                rt.bodies().untrack(ref).ifPresent(id -> rt.manager().onBodyUnloaded(id, tag.colonyId()));
+            }
+        } catch (RuntimeException e) {
+            LOG.at(Level.SEVERE).withCause(e).log("HyColony: unbinding a citizen body failed");
         }
-        CitizenTag tag = store.getComponent(ref, HyColonyComponents.citizenTag());
-        rt.bodies().untrack(ref).ifPresent(id -> rt.manager().onBodyUnloaded(id, tag.colonyId()));
     }
 }
