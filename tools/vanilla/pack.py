@@ -144,8 +144,15 @@ def validate_pack(assets, pack=PACK):
         "PhysicalMaterialId": vanilla("Server/Item/Block/PhysicalMaterials/"),
         "ItemSoundSetId": vanilla("Server/Audio/ItemSounds/"),
         "PlayerAnimationsId": vanilla("Server/Item/Animations/"),
+        "ResourceTypeId": vanilla("Server/Item/ResourceTypes/"),
     }
     benches = vanilla_benches(assets)
+
+    def check_recipe(name, recipe):
+        for bench in recipe.get("BenchRequirement", []):
+            categories = benches.get((bench["Id"], bench["Type"]))
+            if categories is None or not set(bench.get("Categories", [])) <= categories:
+                errors.append(f"{name}: no vanilla bench {bench}")
 
     def common(path, roots, extension, where):
         if not path.startswith(roots) or not path.endswith(extension):
@@ -163,10 +170,14 @@ def validate_pack(assets, pack=PACK):
                 common(value, TEXTURE_ROOTS, ".png", name)
             elif key in known and value not in known[key]:
                 errors.append(f"{name}: unknown {key} {value}")
-        for bench in data.get("Recipe", {}).get("BenchRequirement", []):
-            categories = benches.get((bench["Id"], bench["Type"]))
-            if categories is None or not set(bench.get("Categories", [])) <= categories:
-                errors.append(f"{name}: no vanilla bench {bench}")
+        check_recipe(name, data.get("Recipe", {}))
+    # Standalone recipes (Server/Item/Recipes, an item holds only one Recipe): known items, resources and benches.
+    for path in sorted((pack / "Server/Item/Recipes").rglob("*.json")):
+        data = json.loads(path.read_text(encoding="utf-8"))
+        for key, value in walk_json(data):
+            if key in known and value not in known[key]:
+                errors.append(f"{path.stem}: unknown {key} {value}")
+        check_recipe(path.stem, data)
     if errors:
         raise SystemExit(f"Invalid {pack.name} pack:\n  " + "\n  ".join(errors))
 

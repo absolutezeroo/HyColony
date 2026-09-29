@@ -7,7 +7,8 @@ changing a table below. Needs Python 3.10+ and Pillow.
 
 Writes, for each wool colour, the carpet item and its generated icon, then the flower pots (flower_pots.py):
 one item per clay colour with a state per pottable plant, the shared models, one atlas and icon per colour, the
-hitbox and the pack's id-map fragment (spec 2026-09-28 carpets and flower pots).
+hitbox and the pack's id-map fragment (spec 2026-09-28 carpets and flower pots), then the beds (beds.py, spec
+2026-09-29 HyVanilla beds).
 """
 
 import sys
@@ -15,6 +16,7 @@ from pathlib import Path
 
 from PIL import Image
 
+import beds
 import flower_pots
 from pack import GRADLE_ASSETS, ICON_SIZE, PACK, Assets, draw_box, save_png, validate_pack, write_json
 
@@ -78,6 +80,7 @@ def main():
     assets = Assets(Path(sys.argv[1]) if len(sys.argv) > 1 else GRADLE_ASSETS)
     carpets(assets)
     flower_pots.generate(assets)
+    beds.generate(assets, WOOL_COLOURS)
     validate_pack(assets)
 
 

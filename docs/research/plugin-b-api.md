@@ -673,6 +673,7 @@ Vérifié dans les sources décompilées de 0.6.8 et dans `Assets.zip`, le 2026-
 - **Recettes** : `CraftingRecipe.getAssetMap().getAssetMap()` (`server/core/asset/type/item/config/CraftingRecipe.java`). La carte contient aussi les recettes déclarées dans un objet (`Item.Recipe`), avec l'identifiant `<objet>_Recipe_Generated_0` (`Item.java:1337-1352`). Accesseurs :
   - `getInput()` et `getOutputs()` renvoient des `MaterialQuantity[]` ;
   - `getPrimaryOutput()` peut être null pour un fichier de `Server/Item/Recipes` ; `processConfig` recopie alors la sortie principale dans `outputs` ;
+  - recettes autonomes `Server/Item/Recipes/**/<Id>.json` (identifiant = nom du fichier, seule `Input` est obligatoire, `AssetRegistryLoader.java:634-643`) : le jeu en livre environ 400 (`Salvage/**`, type `Processing`). HyVanilla y met la recoloration des lits (type `Crafting`, 2026-09-29) ;
   - `getBenchRequirement()` renvoie un **tableau** de `protocol.BenchRequirement` (`type`, `id`, `categories`, `requiredTierLevel`) ;
   - `isKnowledgeRequired()`.
 - **Plusieurs tables pour une recette** : c'est le cas de 28 recettes sur 1 984. HyColony garde la première exigence de type `BenchType.Crafting` (`Fieldcraft` compris). Les types `Processing`, `DiagramCrafting` et `StructuralCrafting` sont hors portée.

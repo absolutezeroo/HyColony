@@ -1,0 +1,31 @@
+{
+  "Input": [
+    {
+      "ItemId": "Plant_Petals_Green",
+      "Quantity": 1
+    },
+    {
+      "ItemId": "HyVanilla_Bed_White",
+      "Quantity": 1
+    }
+  ],
+  "Output": [
+    {
+      "ItemId": "HyVanilla_Bed_Green",
+      "Quantity": 1
+    }
+  ],
+  "PrimaryOutput": {
+    "ItemId": "HyVanilla_Bed_Green",
+    "Quantity": 1
+  },
+  "BenchRequirement": [
+    {
+      "Type": "Crafting",
+      "Id": "Furniture_Bench",
+      "Categories": [
+        "Furniture_Beds"
+      ]
+    }
+  ]
+}

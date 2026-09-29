@@ -1,0 +1,89 @@
+{
+  "TranslationProperties": {
+    "Name": "hyvanilla.item.bed.gray.name"
+  },
+  "Icon": "Icons/Items/HyVanilla/Bed_Gray.png",
+  "Categories": [
+    "Furniture.Beds"
+  ],
+  "Recipe": {
+    "Input": [
+      {
+        "ItemId": "Cloth_Block_Wool_Gray",
+        "Quantity": 3
+      },
+      {
+        "ResourceTypeId": "Wood_Planks",
+        "Quantity": 3
+      }
+    ],
+    "BenchRequirement": [
+      {
+        "Type": "Crafting",
+        "Id": "Furniture_Bench",
+        "Categories": [
+          "Furniture_Beds"
+        ]
+      }
+    ]
+  },
+  "PlayerAnimationsId": "Block",
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Model",
+    "Opacity": "Transparent",
+    "CustomModel": "Blocks/HyVanilla/Bed.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "Blocks/HyVanilla/Bed/Gray.png",
+        "Weight": 1
+      }
+    ],
+    "HitboxType": "HyVanilla_Bed",
+    "VariantRotation": "NESW",
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "SoftBlocks",
+        "ItemId": "HyVanilla_Bed_Gray"
+      }
+    },
+    "Beds": [
+      {
+        "Offset": {
+          "X": -0.1,
+          "Y": 0.1,
+          "Z": 0.8
+        },
+        "Yaw": 0
+      }
+    ],
+    "Interactions": {
+      "Use": "Block_Bed",
+      "Primary": "Check_Can_Break_Respawn"
+    },
+    "Support": {
+      "Down": [
+        {
+          "FaceType": "Full"
+        }
+      ]
+    },
+    "BlockEntity": {
+      "Components": {
+        "RespawnBlock": {}
+      }
+    },
+    "BlockParticleSetId": "Dust",
+    "ParticleColor": "#494646",
+    "BlockSoundSetId": "Cloth",
+    "PhysicalMaterialId": "Wool",
+    "TextureComputedColor": "#343434"
+  },
+  "Tags": {
+    "Type": [
+      "Furniture"
+    ]
+  },
+  "ItemSoundSetId": "ISS_Items_Cloth",
+  "MaxStack": 1
+}
