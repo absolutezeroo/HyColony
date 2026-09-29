@@ -16,6 +16,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import org.jspecify.annotations.Nullable;
 
 /** MineColonies StandardPlayerRequestResolver: the last resort, waits for a player to provide the items. */
 public final class PlayerResolver implements Resolver {
@@ -29,7 +30,7 @@ public final class PlayerResolver implements Resolver {
     /** Requests already announced: a request coming back after a retry is not announced again. */
     private final Set<RequestToken> announced = new HashSet<>();
 
-    private Consumer<Request> onNeedsPlayer = _ -> {};
+    private @Nullable Consumer<Request> onNeedsPlayer;
 
     public PlayerResolver(BlockPos location) {
         this.location = location;
@@ -40,9 +41,13 @@ public final class PlayerResolver implements Resolver {
         return List.copyOf(open.values());
     }
 
-    /** Called once per request, the first time it reaches the player (the colony tells its officers). */
+    /**
+     * Called once per request, the first time it reaches the player (the colony tells its officers). A request that
+     * reached the player before anyone listened (a colony still loading) is announced now.
+     */
     public void setOnNeedsPlayer(Consumer<Request> listener) {
         onNeedsPlayer = listener;
+        List.copyOf(open.values()).forEach(this::announce);
     }
 
     /** Persistence only. A restored request was announced before the save. */
@@ -84,8 +89,14 @@ public final class PlayerResolver implements Resolver {
     public void resolve(RequestManager m, Request r) {
         open.put(r.token(), r);
         announced.removeIf(t -> m.get(t).isEmpty()); // finished requests
-        if (announced.add(r.token())) {
-            onNeedsPlayer.accept(r);
+        announce(r);
+    }
+
+    /** Tells the listener about {@code r} once; not before a listener is set. */
+    private void announce(Request r) {
+        Consumer<Request> listener = onNeedsPlayer;
+        if (listener != null && announced.add(r.token())) {
+            listener.accept(r);
         }
     }
 

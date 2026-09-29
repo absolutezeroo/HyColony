@@ -21,6 +21,7 @@ import dev.hycolony.core.request.model.RequesterId;
 import dev.hycolony.core.request.model.StackRequest;
 import dev.hycolony.core.testing.FakeCatalog;
 import dev.hycolony.core.testing.FakeContainers;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -154,6 +155,21 @@ class ResolversTest {
         assertEquals(List.of(new ItemAmount(PLANKS, 5)), r.deliveries());
         assertFalse(retrying.delays().containsKey(t));
         assertEquals("retrying", resolverOf(other), "not matched by the predicate");
+    }
+
+    @Test
+    void requestReachingThePlayerBeforeAnyListenerIsAnnouncedOnceOneListens() {
+        PlayerResolver player =
+                m.resolver(PlayerResolver.ID).map(PlayerResolver.class::cast).orElseThrow();
+        Building a = hut(new BlockPos(0, 64, 0));
+        RequestToken t = m.createAndAssign(
+                a, new Delivery(a.position(), a.requesterId(), new ItemAmount(PLANKS, 5), 13), Request.NO_CITIZEN);
+        List<RequestToken> announced = new ArrayList<>();
+
+        player.setOnNeedsPlayer(r -> announced.add(r.token())); // e.g. a colony loaded before it is registered
+        player.setOnNeedsPlayer(r -> announced.add(r.token()));
+
+        assertEquals(List.of(t), announced);
     }
 
     @Test
