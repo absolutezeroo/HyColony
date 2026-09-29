@@ -184,11 +184,11 @@ class ColonyManagerTest {
     void protectionFollowsPermissions() {
         Colony c = found(alice, "A", hall);
         BlockPos inside = hall.offset(3, 0, 3);
-        assertTrue(manager.isAllowed(alice, inside, Action.BREAK_BLOCKS));
-        assertFalse(manager.isAllowed(bob, inside, Action.BREAK_BLOCKS));
-        assertTrue(manager.isAllowed(bob, new BlockPos(9000, 64, 0), Action.BREAK_BLOCKS));
+        assertTrue(manager.protection().isAllowed(alice, inside, Action.BREAK_BLOCKS));
+        assertFalse(manager.protection().isAllowed(bob, inside, Action.BREAK_BLOCKS));
+        assertTrue(manager.protection().isAllowed(bob, new BlockPos(9000, 64, 0), Action.BREAK_BLOCKS));
         assertTrue(manager.administration().setRank(alice, c.id(), bob, "Bob", Permissions.OFFICER));
-        assertTrue(manager.isAllowed(bob, inside, Action.BREAK_BLOCKS));
+        assertTrue(manager.protection().isAllowed(bob, inside, Action.BREAK_BLOCKS));
         assertFalse(manager.administration()
                 .setRank(bob, c.id(), UUID.randomUUID(), "Eve", Permissions.OFFICER)); // no EDIT_PERMISSIONS
     }
@@ -231,7 +231,9 @@ class ColonyManagerTest {
 
     /** How the plugin asks: the rank's permissions at that spot, everything allowed outside colonies. */
     private Optional<Action> refusedUse(UUID player, BlockPos pos, BlockUse use) {
-        return use.refused(action -> manager.isAllowed(player, pos, action), manager.protectionEnabled());
+        return use.refused(
+                action -> manager.protection().isAllowed(player, pos, action),
+                manager.protection().enabled());
     }
 
     @Test

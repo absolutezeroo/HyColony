@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.colony.permission.Action;
+import dev.hycolony.core.colony.permission.BlockUse;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.config.ColonyConfig;
 import dev.hycolony.core.kernel.config.Explosions;
@@ -44,20 +45,20 @@ class ColonyProtectionTest {
         t.players.operators.add(bob);
         t.players.creative.add(bob);
 
-        assertTrue(manager.isAllowed(bob, inside, Action.BREAK_BLOCKS));
-        assertTrue(manager.isAllowed(bob, inside, Action.OPEN_CONTAINER));
-        assertFalse(manager.isAllowed(bob, inside, Action.EDIT_PERMISSIONS)); // not in MC's OP_RANK
+        assertTrue(manager.protection().isAllowed(bob, inside, Action.BREAK_BLOCKS));
+        assertTrue(manager.protection().isAllowed(bob, inside, Action.OPEN_CONTAINER));
+        assertFalse(manager.protection().isAllowed(bob, inside, Action.EDIT_PERMISSIONS)); // not in MC's OP_RANK
     }
 
     @Test
     void operatorOutOfCreativeAndCreativeNonOperatorDoNotBypass() {
         ColonyManager manager = start(2);
         t.players.operators.add(bob);
-        assertFalse(manager.isAllowed(bob, inside, Action.BREAK_BLOCKS));
+        assertFalse(manager.protection().isAllowed(bob, inside, Action.BREAK_BLOCKS));
 
         t.players.operators.clear();
         t.players.creative.add(bob);
-        assertFalse(manager.isAllowed(bob, inside, Action.BREAK_BLOCKS));
+        assertFalse(manager.protection().isAllowed(bob, inside, Action.BREAK_BLOCKS));
     }
 
     @Test
@@ -65,7 +66,35 @@ class ColonyProtectionTest {
         ColonyManager manager = start(0);
         t.players.creative.add(bob);
 
-        assertTrue(manager.isAllowed(bob, inside, Action.PLACE_BLOCKS));
+        assertTrue(manager.protection().isAllowed(bob, inside, Action.PLACE_BLOCKS));
+    }
+
+    @Test
+    void protectionRefusesAStrangersActionAndTellsHim() {
+        ColonyManager manager = start(2);
+
+        assertTrue(manager.protection().refuses(bob, inside, Action.BREAK_BLOCKS));
+
+        assertEquals(
+                "hycolony.permission.denied", t.notifier.sent.getLast().msg().key());
+        assertFalse(manager.protection().refuses(alice, inside, Action.BREAK_BLOCKS));
+    }
+
+    @Test
+    void withoutColonyProtectionNoActionIsRefused() {
+        ColonyManager manager = start(new ColonyConfig.Permissions(false, Explosions.DAMAGE_ENTITIES, 2));
+
+        assertFalse(manager.protection().refuses(bob, inside, Action.BREAK_BLOCKS));
+        assertTrue(manager.protection().allows(bob, inside, Action.OPEN_CONTAINER));
+    }
+
+    @Test
+    void strangerOpeningAChestInsideTheColonyIsRefused() {
+        ColonyManager manager = start(2);
+        BlockUse chest = new BlockUse(false, true, false, BlockUse.Held.NOTHING);
+
+        assertTrue(manager.protection().refuses(bob, inside, chest));
+        assertFalse(manager.protection().refuses(bob, new BlockPos(9000, 64, 0), chest), "outside any colony");
     }
 
     @Test
@@ -120,10 +149,10 @@ class ColonyProtectionTest {
     @Test
     void explosionsSpareColonyBlocksUnlessDamageEverything() {
         ColonyManager manager = start(new ColonyConfig.Permissions(false, Explosions.DAMAGE_ENTITIES, 2));
-        assertTrue(manager.explosionSparesBlock(inside)); // regardless of EnableColonyProtection, like MC
-        assertFalse(manager.explosionSparesBlock(new BlockPos(9000, 64, 0)));
+        assertTrue(manager.protection().explosionSparesBlock(inside)); // regardless of EnableColonyProtection, like MC
+        assertFalse(manager.protection().explosionSparesBlock(new BlockPos(9000, 64, 0)));
 
         manager = start(new ColonyConfig.Permissions(true, Explosions.DAMAGE_EVERYTHING, 2));
-        assertFalse(manager.explosionSparesBlock(inside));
+        assertFalse(manager.protection().explosionSparesBlock(inside));
     }
 }

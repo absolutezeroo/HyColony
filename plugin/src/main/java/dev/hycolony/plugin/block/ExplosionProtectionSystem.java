@@ -40,7 +40,7 @@ public final class ExplosionProtectionSystem extends WorldEventSystem<EntityStor
             WorldRuntime rt = runtimes.of(store.getExternalData().getWorld());
             if (rt != null
                     && rt.enabled()
-                    && rt.manager().explosionSparesBlock(HutBlockSystems.pos(event.getTargetBlock()))) {
+                    && rt.manager().protection().explosionSparesBlock(HutBlockSystems.pos(event.getTargetBlock()))) {
                 event.setCancelled(true);
             }
         } catch (RuntimeException e) {

@@ -15,8 +15,6 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.app.ColonyManager;
-import dev.hycolony.core.colony.Colony;
-import dev.hycolony.core.colony.ColonyRefusal;
 import dev.hycolony.core.colony.permission.BlockUse;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.plugin.IdMap;
@@ -24,7 +22,6 @@ import dev.hycolony.plugin.WorldRuntime;
 import dev.hycolony.plugin.WorldRuntimes;
 import dev.hydomum.plugin.api.HyDomumSystems;
 import dev.hyvanilla.plugin.api.HyVanillaSystems;
-import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 import javax.annotation.Nonnull;
@@ -83,15 +80,11 @@ public final class BlockUseProtectionSystem extends EntityEventSystem<EntityStor
                 return;
             }
             ColonyManager manager = rt.manager();
-            Optional<Colony> colony = manager.colonyAt(pos);
-            if (colony.isEmpty()) {
-                return;
+            if (manager.colonyAt(pos).isEmpty()) {
+                return; // outside colonies, not even the use is read
             }
-            BlockUse use = uses.of(world, event);
-            if (use.refused(action -> manager.isAllowed(player.getUuid(), pos, action), manager.protectionEnabled())
-                    .isPresent()) {
+            if (manager.protection().refuses(player.getUuid(), pos, uses.of(world, event))) {
                 event.setCancelled(true);
-                ColonyRefusal.tell(colony.get(), player.getUuid());
             }
         } catch (RuntimeException e) {
             // A failing check must not let the use through.

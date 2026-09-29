@@ -11,12 +11,9 @@ import dev.hycolony.core.app.view.ColonyWindows;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.colony.ColonyEvents;
-import dev.hycolony.core.colony.permission.Action;
-import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.colony.territory.ClaimCell;
 import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.kernel.BlockPos;
-import dev.hycolony.core.kernel.config.Explosions;
 import dev.hycolony.core.kernel.port.BodyId;
 import java.util.Collection;
 import java.util.Collections;
@@ -47,6 +44,7 @@ public final class ColonyManager {
     private final ColonyAdministration administration;
     private final CitizenInventoryActions citizenInventories;
     private final LogisticsActions logistics;
+    private final ColonyProtection protection = new ColonyProtection(this);
 
     /** The colonies of the world {@code ctx} describes, whose windows open through {@code ui}. */
     public ColonyManager(ColonyContext ctx, UiPort ui) {
@@ -109,6 +107,11 @@ public final class ColonyManager {
         return logistics;
     }
 
+    /** What players may do inside the colonies. */
+    public ColonyProtection protection() {
+        return protection;
+    }
+
     public Collection<Colony> all() {
         return Collections.unmodifiableCollection(colonies.values());
     }
@@ -126,43 +129,6 @@ public final class ColonyManager {
         return colonies.values().stream()
                 .filter(c -> c.permissions().owner().equals(player))
                 .findFirst();
-    }
-
-    public boolean protectionEnabled() {
-        return ctx.config().permissions().enableColonyProtection();
-    }
-
-    /**
-     * Whether {@code player} may do {@code action} at {@code pos}; outside any colony everything is allowed. MC
-     * Permissions.hasPermission(Player, Action): the player's rank, else the operator rank if they bypass.
-     */
-    public boolean isAllowed(UUID player, BlockPos pos, Action action) {
-        return colonyAt(pos)
-                .map(c -> c.permissions().hasPermission(player, action)
-                        || (bypassesPermissions(player) && Permissions.operatorRankHas(action)))
-                .orElse(true);
-    }
-
-    /**
-     * Whether an explosion must leave the block at {@code pos} intact: inside a colony, unless the config is
-     * DAMAGE_EVERYTHING. MC ColonyPermissionEventHandler.on(ExplosionEvent.Detonate), block part; like MC it ignores
-     * EnableColonyProtection.
-     */
-    public boolean explosionSparesBlock(BlockPos pos) {
-        return ctx.config().permissions().turnOffExplosionsInColonies() != Explosions.DAMAGE_EVERYTHING
-                && colonyAt(pos).isPresent();
-    }
-
-    /**
-     * MC: a player in creative with at least operator level {@code PermissionEventBypassMinPermLevel}.
-     *
-     * <p>Deviation from MC: Hytale has no operator levels. Level 0 (MC: every player) lets any creative player
-     * through; levels 1 to 4 need a Hytale operator in creative.
-     */
-    private boolean bypassesPermissions(UUID player) {
-        return ctx.config().permissions().permissionEventBypassMinPermLevel() == 0
-                ? ctx.players().isCreative(player)
-                : ctx.players().isCreativeOperator(player);
     }
 
     public void tick() {

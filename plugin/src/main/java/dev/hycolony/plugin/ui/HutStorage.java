@@ -14,7 +14,6 @@ import com.hypixel.hytale.server.core.universe.world.chunk.section.BlockSection;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.app.ColonyManager;
-import dev.hycolony.core.colony.ColonyRefusal;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.port.Msg;
@@ -36,7 +35,7 @@ final class HutStorage {
 
     /** OPEN_CONTAINER, as for any chest in the colony (ProtectionSystems' check): the button is hidden without it. */
     boolean mayOpen() {
-        return !manager.protectionEnabled() || manager.isAllowed(playerRef.getUuid(), pos, Action.OPEN_CONTAINER);
+        return manager.protection().allows(playerRef.getUuid(), pos, Action.OPEN_CONTAINER);
     }
 
     /**
@@ -44,9 +43,8 @@ final class HutStorage {
      * (or it never opens again) and the core re-checks the building's stuck requests.
      */
     void open(Ref<EntityStore> ref, Store<EntityStore> store) {
-        if (!mayOpen()) { // checked again: ranks may have changed since the page was built
-            manager.colonyAt(pos).ifPresent(c -> ColonyRefusal.tell(c, playerRef.getUuid()));
-            return;
+        if (manager.protection().refuses(playerRef.getUuid(), pos, Action.OPEN_CONTAINER)) {
+            return; // checked again: ranks may have changed since the page was built
         }
         World world = store.getExternalData().getWorld();
         ChunkStore cs = world.getChunkStore();

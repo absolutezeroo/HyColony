@@ -10,8 +10,6 @@ import com.hypixel.hytale.server.core.event.events.ecs.BreakBlockEvent;
 import com.hypixel.hytale.server.core.event.events.ecs.PlaceBlockEvent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import dev.hycolony.core.app.ColonyManager;
-import dev.hycolony.core.colony.ColonyRefusal;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.plugin.WorldRuntime;
@@ -36,12 +34,7 @@ public final class ProtectionSystems {
         if (rt == null || !rt.enabled() || player == null) {
             return false;
         }
-        ColonyManager m = rt.manager();
-        if (!m.protectionEnabled() || m.isAllowed(player.getUuid(), pos, action)) {
-            return false;
-        }
-        ColonyRefusal.tell(m.colonyAt(pos).get(), player.getUuid());
-        return true;
+        return rt.manager().protection().refuses(player.getUuid(), pos, action);
     }
 
     public static final class Place extends EntityEventSystem<EntityStore, PlaceBlockEvent> {

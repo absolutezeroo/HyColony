@@ -10,7 +10,6 @@ import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.colony.ColonyEvents;
-import dev.hycolony.core.colony.ColonyRefusal;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.construction.shared.BuilderSettingsModule;
 import dev.hycolony.core.job.HiringMode;
@@ -141,10 +140,10 @@ public final class HutActions {
         if (manager.foundation().cancelAt(pos).isPresent()) {
             return true;
         }
-        Optional<Colony> colony =
-                manager.colonyAt(pos).filter(c -> c.buildings().at(pos).isPresent());
-        if (manager.protectionEnabled() && colony.isPresent() && !manager.isAllowed(player, pos, Action.BREAK_HUTS)) {
-            ColonyRefusal.tell(colony.get(), player);
+        boolean hasBuilding = manager.colonyAt(pos)
+                .filter(c -> c.buildings().at(pos).isPresent())
+                .isPresent();
+        if (hasBuilding && manager.protection().refuses(player, pos, Action.BREAK_HUTS)) {
             return false;
         }
         onRemoved(pos);
