@@ -52,7 +52,7 @@ final class DeliveryPreparation {
             return CourierState.DELIVERY;
         }
         Delivery delivery = (Delivery) next.task().requestable();
-        if (!ctx.walkTo(delivery.start())) {
+        if (!ctx.walkToSafePos(delivery.start())) {
             walkingTo = delivery.start();
             walkingFor = task.token();
             return CourierState.PREPARE_DELIVERY;
@@ -65,7 +65,7 @@ final class DeliveryPreparation {
 
     /** True while the walk started for {@code task} goes on; forgets it once over (or for another task). */
     private boolean stillWalking(Request task) {
-        if (walkingTo != null && task.token().equals(walkingFor) && !ctx.walkTo(walkingTo)) {
+        if (walkingTo != null && task.token().equals(walkingFor) && !ctx.walkToSafePos(walkingTo)) {
             return true;
         }
         walkingTo = null;

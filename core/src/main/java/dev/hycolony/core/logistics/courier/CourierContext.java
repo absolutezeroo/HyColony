@@ -3,6 +3,7 @@ package dev.hycolony.core.logistics.courier;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
+import dev.hycolony.core.colony.BlockApproach;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.job.JobXp;
 import dev.hycolony.core.job.WorkerModule;
@@ -33,6 +34,7 @@ final class CourierContext {
     private final DeliverymanJob job;
     private final BodyId body;
     private final BodyWalker walker;
+    private final BlockApproach approach;
     private final WorkDelay delay = new WorkDelay();
     private boolean warnedLost;
 
@@ -42,6 +44,7 @@ final class CourierContext {
         this.body = body;
         this.walker =
                 new BodyWalker(colony.context().bodies(), body, colony.context().clock()::currentTick);
+        this.approach = new BlockApproach(colony.context().ports(), walker);
     }
 
     Colony colony() {
@@ -87,9 +90,14 @@ final class CourierContext {
         return job.ownTask(colony);
     }
 
-    /** MC walkToBuilding / walkToSafePos: true once there (or once the walk ended anyway). */
-    boolean walkTo(BlockPos pos) {
-        return walker.walkTo(pos);
+    /** MC walkToSafePos: true once beside the block at {@code pos} ({@link BlockApproach}). */
+    boolean walkToSafePos(BlockPos pos) {
+        return approach.walkToSafePos(pos);
+    }
+
+    /** MC walkToBuilding: true once beside the hut block of {@code building} ({@link BlockApproach}). */
+    boolean walkToBuilding(Building building) {
+        return approach.walkToBuilding(building);
     }
 
     /** MC setDelay: the ticks the courier waits before its next step. */

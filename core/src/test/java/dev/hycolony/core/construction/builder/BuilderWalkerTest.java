@@ -7,6 +7,7 @@ import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.testing.FakeBodies;
+import dev.hycolony.core.testing.TestContexts;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -17,7 +18,8 @@ class BuilderWalkerTest {
     private final FakeBodies bodies = new FakeBodies();
     private final BodyId body = bodies.existing(1, 1, Vec3.center(new BlockPos(0, 1, 0)));
     private long now;
-    private final BuilderWalker walker = new BuilderWalker(bodies, body, () -> now);
+    private final BuilderWalker walker = new BuilderWalker(
+            bodies, body, () -> now, new TestContexts().context().ports());
 
     BuilderWalkerTest() {
         bodies.frozen = true; // moveTo never moves the body, navStatus stays MOVING

@@ -55,7 +55,7 @@ final class PickupRound {
             ctx.job().finishRequest(ctx.colony(), false);
             return CourierState.START_WORKING;
         }
-        if (!ctx.walkTo(hut.position())) {
+        if (!ctx.walkToBuilding(hut)) {
             return CourierState.PICKUP;
         }
         if (pickupFromBuilding(hut)) {

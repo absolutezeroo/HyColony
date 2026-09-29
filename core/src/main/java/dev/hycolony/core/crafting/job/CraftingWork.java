@@ -299,7 +299,7 @@ public final class CraftingWork {
      * {@link #isAfterDumpPickupAllowed}; its actions start again from 0.
      */
     public CraftingStep dump() {
-        if (!ctx.walkToHut()) {
+        if (!ctx.walkToWorkPos(ctx.hut().position())) {
             return CraftingStep.INVENTORY_FULL;
         }
         ctx.stock().dumpKeepingHutRules(isAfterDumpPickupAllowed());
@@ -358,7 +358,7 @@ public final class CraftingWork {
         if (!ctx.requests().pending()) {
             return CraftingStep.IDLE;
         }
-        if (!ctx.walkToHut()) {
+        if (!ctx.walkToWorkPos(ctx.hut().position())) {
             return CraftingStep.NEEDS_ITEM;
         }
         return ctx.requests().receiveAtHut() ? CraftingStep.NEEDS_ITEM : CraftingStep.IDLE;

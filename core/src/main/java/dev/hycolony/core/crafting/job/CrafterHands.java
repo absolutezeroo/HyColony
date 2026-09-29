@@ -31,9 +31,10 @@ final class CrafterHands {
         this.hands = new WorkerHands(ctx.colony().context().bodies(), ctx.body());
     }
 
-    /** MC walkToTaggedWorkPos: true once at the block the recipe is made at. */
+    /** MC walkToTaggedWorkPos: true once at the recipe's bench, or at the hut (walkToBuilding) without one. */
     boolean walkToWork(Recipe recipe) {
-        return ctx.walker().walkTo(workBlock(recipe));
+        BlockPos at = workBlock(recipe);
+        return at.equals(ctx.hut().position()) ? ctx.walkToHut() : ctx.walkToWorkPos(at);
     }
 
     /**

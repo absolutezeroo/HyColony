@@ -106,7 +106,7 @@ final class DeliverymanAI implements JobAI {
         boolean empty = ctx.inventory().freeSlots() == ctx.inventory().size();
         if (task.isEmpty()) {
             Building warehouse = ctx.warehouse().orElse(null);
-            if (warehouse == null || !ctx.walkTo(warehouse.position())) {
+            if (warehouse == null || !ctx.walkToBuilding(warehouse)) {
                 ctx.delay().set(CourierContext.WALK_DELAY);
                 return CourierState.START_WORKING;
             }
@@ -124,7 +124,7 @@ final class DeliverymanAI implements JobAI {
         if (warehouse == null) {
             return CourierState.START_WORKING;
         }
-        if (!ctx.walkTo(warehouse.position())) {
+        if (!ctx.walkToBuilding(warehouse)) {
             ctx.delay().set(CourierContext.WALK_DELAY);
             return CourierState.DUMPING;
         }

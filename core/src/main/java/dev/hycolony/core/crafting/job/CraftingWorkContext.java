@@ -4,6 +4,7 @@ import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.module.BuildingModule;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
+import dev.hycolony.core.colony.BlockApproach;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.crafting.recipe.RecipeCatalog;
 import dev.hycolony.core.crafting.task.Crafter;
@@ -14,6 +15,7 @@ import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.job.work.SyncRequests;
 import dev.hycolony.core.job.work.ToolRequests;
 import dev.hycolony.core.job.work.WorkerStock;
+import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.nav.BodyWalker;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.ItemCatalog;
@@ -33,6 +35,7 @@ public record CraftingWorkContext(
         ToolRequests tools,
         SyncRequests requests,
         BodyWalker walker,
+        BlockApproach approach,
         CraftingSkills skills) {
 
     /**
@@ -68,6 +71,8 @@ public record CraftingWorkContext(
         }
         CitizenData citizen = job.citizen();
         WorkerStock stock = new WorkerStock(colony, citizen, hut, actionsUntilDump);
+        BodyWalker walker =
+                new BodyWalker(colony.context().bodies(), body, colony.context().clock()::currentTick);
         return Optional.of(new CraftingWorkContext(
                 colony,
                 job,
@@ -77,7 +82,8 @@ public record CraftingWorkContext(
                 stock,
                 new ToolRequests(colony, citizen, hut),
                 new SyncRequests(colony, citizen, hut, stock),
-                new BodyWalker(colony.context().bodies(), body, colony.context().clock()::currentTick),
+                walker,
+                new BlockApproach(colony.context().ports(), walker),
                 CraftingSkills.of(workers.get())));
     }
 
@@ -111,9 +117,14 @@ public record CraftingWorkContext(
         return colony.context().ports().catalog();
     }
 
-    /** MC walkToBuilding: true once at the hut (or once the walk ended anyway). */
+    /** MC walkToBuilding: true once beside the hut block ({@link BlockApproach}). */
     boolean walkToHut() {
-        return walker.walkTo(hut.position());
+        return approach.walkToBuilding(hut);
+    }
+
+    /** MC walkToWorkPos: true once within {@link BlockApproach#WORK_IN_BUILDING_REACH} of {@code pos} in the hut. */
+    boolean walkToWorkPos(BlockPos pos) {
+        return approach.walkToPosInBuilding(pos, hut, BlockApproach.WORK_IN_BUILDING_REACH);
     }
 
     /** MC CitizenExperienceHandler.addExperience, split between the worker module's primary and secondary skills. */

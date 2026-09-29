@@ -126,7 +126,7 @@ final class BuilderGathering {
         if (!ctx.sync().pending()) {
             return BuilderState.START_WORKING;
         }
-        if (!ctx.walkToHut()) {
+        if (!ctx.walkToWorkPos(ctx.hut().position())) {
             return null;
         }
         ctx.requests().receiveCompletedBuildingRequests();

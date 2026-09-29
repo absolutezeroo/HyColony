@@ -81,7 +81,9 @@ class BuilderAITest {
         t.blueprints = new BlueprintSource() {
             @Override
             public Optional<Blueprint> load(String style, String buildingTypeId, int level, int rotation) {
-                loads.add(style + "/" + buildingTypeId + "/" + level);
+                if (!buildingTypeId.equals(ConstructionBuildingTypes.BUILDER.id())) {
+                    loads.add(style + "/" + buildingTypeId + "/" + level); // not the walks to the hut (BlockApproach)
+                }
                 return Optional.ofNullable(blueprint);
             }
 

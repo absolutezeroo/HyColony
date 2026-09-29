@@ -172,7 +172,7 @@ public final class BuilderAI implements JobAI {
     }
 
     private @Nullable BuilderState dumpInventory() {
-        if (!ctx.walkToHut()) {
+        if (!ctx.walkToWorkPos(ctx.hut().position())) {
             return null;
         }
         ctx.stock().dump(ctx.resources().currentBucket().orElse(Map.of()));

@@ -44,7 +44,7 @@ final class DeliveryDrop {
             ctx.job().finishRequest(ctx.colony(), true);
             return CourierState.START_WORKING;
         }
-        if (!ctx.walkTo(target.position())) {
+        if (!ctx.walkToBuilding(target)) {
             ctx.delay().set(CourierContext.WALK_DELAY);
             return CourierState.DELIVERY;
         }

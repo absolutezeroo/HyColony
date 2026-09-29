@@ -2,6 +2,7 @@ package dev.hycolony.core.farming.job;
 
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
+import dev.hycolony.core.colony.BlockApproach;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.crafting.job.CraftingWorkContext;
 import dev.hycolony.core.farming.FarmingAccess;
@@ -29,6 +30,7 @@ record FarmWorkContext(
         WorkerStock stock,
         ToolRequests tools,
         BodyWalker walker,
+        BlockApproach approach,
         WorkerHands hands) {
     /** MC MAX_BLOCKS_MINED: the actions after which the farmer empties its inventory at the hut. */
     static final int ACTIONS_UNTIL_DUMP = 64;
@@ -57,6 +59,7 @@ record FarmWorkContext(
                 crafting.stock(),
                 crafting.tools(),
                 crafting.walker(),
+                crafting.approach(),
                 new WorkerHands(colony.context().bodies(), crafting.body())));
     }
 
@@ -68,9 +71,9 @@ record FarmWorkContext(
         return colony.context().ports().farming();
     }
 
-    /** MC walkToBuilding: true once at the hut. */
+    /** MC walkToBuilding: true once beside the hut block ({@link BlockApproach}). */
     boolean walkToHut() {
-        return walker.walkTo(hut.position());
+        return approach.walkToBuilding(hut);
     }
 
     /** MC CitizenExperienceHandler.addExperience, split between the hut's primary and secondary skills. */

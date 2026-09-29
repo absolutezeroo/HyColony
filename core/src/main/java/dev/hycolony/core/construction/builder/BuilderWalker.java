@@ -1,5 +1,8 @@
 package dev.hycolony.core.construction.builder;
 
+import dev.hycolony.core.building.Building;
+import dev.hycolony.core.colony.BlockApproach;
+import dev.hycolony.core.colony.GamePorts;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.nav.BodyWalker;
 import dev.hycolony.core.kernel.port.BodyId;
@@ -16,13 +19,15 @@ import org.jspecify.annotations.Nullable;
  */
 final class BuilderWalker {
     private final BodyWalker walker;
+    private final BlockApproach approach;
 
     private WorkSpot.@Nullable Spot workPos;
     /** The block the work spot was already chosen again for, because it was out of reach from the first one. */
     private @Nullable BlockPos repickedFor;
 
-    BuilderWalker(CitizenBodies bodies, BodyId body, LongSupplier clock) {
+    BuilderWalker(CitizenBodies bodies, BodyId body, LongSupplier clock, GamePorts ports) {
         this.walker = new BodyWalker(bodies, body, clock);
+        this.approach = new BlockApproach(ports, walker);
     }
 
     void forgetWorkPos() {
@@ -60,8 +65,13 @@ final class BuilderWalker {
         return walker.walkTo(workPos.pos(), workPos.verified());
     }
 
-    /** {@link BodyWalker#walkTo(BlockPos)}. */
-    boolean walkTo(BlockPos to) {
-        return walker.walkTo(to);
+    /** MC walkToBuilding: true once beside the hut block ({@link BlockApproach}). */
+    boolean walkToBuilding(Building hut) {
+        return approach.walkToBuilding(hut);
+    }
+
+    /** MC walkToWorkPos: true once within {@link BlockApproach#WORK_IN_BUILDING_REACH} of {@code pos} in the hut. */
+    boolean walkToPosInBuilding(BlockPos pos, Building hut) {
+        return approach.walkToPosInBuilding(pos, hut, BlockApproach.WORK_IN_BUILDING_REACH);
     }
 }

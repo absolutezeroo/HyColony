@@ -82,7 +82,11 @@ record BuilderContext(
                 new BuilderRequests(colony, citizen, hut),
                 new SyncRequests(colony, citizen, hut, stock),
                 new ToolRequests(colony, citizen, hut),
-                new BuilderWalker(bodies, body, colony.context().clock()::currentTick),
+                new BuilderWalker(
+                        bodies,
+                        body,
+                        colony.context().clock()::currentTick,
+                        colony.context().ports()),
                 new BuilderGestures(bodies, body, colony.context().ports().effects()),
                 new BuildSite(colony, resources, new WorkSpot(blocks, catalog)),
                 new StructureScan(colony, blocks, catalog),
@@ -108,8 +112,14 @@ record BuilderContext(
         return colony.context().ports().crafting().catalog();
     }
 
+    /** MC walkToBuilding: true once beside the hut block. */
     boolean walkToHut() {
-        return walker.walkTo(hut.position());
+        return walker.walkToBuilding(hut);
+    }
+
+    /** MC walkToWorkPos: true once within 7 blocks of {@code pos} in the hut, where the builder dumps and fetches. */
+    boolean walkToWorkPos(BlockPos pos) {
+        return walker.walkToPosInBuilding(pos, hut);
     }
 
     /** Walks to where the builder stands to work on {@code block} (MC walkToConstructionSite). */
