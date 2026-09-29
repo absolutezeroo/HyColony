@@ -1,7 +1,7 @@
 package dev.hycolony.core.construction.builder;
 
+import dev.hycolony.core.job.work.WorkerHands;
 import dev.hycolony.core.kernel.BlockPos;
-import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.BodyAnimation;
 import dev.hycolony.core.kernel.port.BodyId;
@@ -25,6 +25,7 @@ final class BuilderGestures {
 
     private final CitizenBodies bodies;
     private final BodyId body;
+    private final WorkerHands hands;
     private final WorldEffects effects;
 
     private int delay;
@@ -42,6 +43,7 @@ final class BuilderGestures {
     BuilderGestures(CitizenBodies bodies, BodyId body, WorldEffects effects) {
         this.bodies = bodies;
         this.body = body;
+        this.hands = new WorkerHands(bodies, body);
         this.effects = effects;
     }
 
@@ -59,7 +61,7 @@ final class BuilderGestures {
         }
         sinceStroke += BuilderAI.MACHINE_RATE;
         if (animation == BodyAnimation.MINE && sinceStroke >= MINE_ANIMATION_TICKS) {
-            bodies.playAnimation(body, animation);
+            hands.swing(animation);
             sinceStroke = 0;
         }
         delay -= BuilderAI.MACHINE_RATE;
@@ -105,12 +107,12 @@ final class BuilderGestures {
         delay = ticks;
         animation = anim;
         sinceStroke = 0;
-        bodies.playAnimation(body, anim);
+        hands.swing(anim);
     }
 
     void hold(@Nullable ItemKey item) {
         inHand = item;
-        bodies.setHeldItem(body, Optional.ofNullable(item));
+        hands.hold(Optional.ofNullable(item));
     }
 
     @Nullable
@@ -119,6 +121,6 @@ final class BuilderGestures {
     }
 
     void lookAt(BlockPos pos) {
-        bodies.lookAt(body, Vec3.middle(pos));
+        hands.face(pos);
     }
 }

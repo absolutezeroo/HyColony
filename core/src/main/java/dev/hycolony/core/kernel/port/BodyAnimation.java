@@ -5,5 +5,7 @@ public enum BodyAnimation {
     BUILD,
     MINE,
     /** A hoe tilling the soil (the player's Till). */
-    TILL
+    TILL,
+    /** A seed placed by hand (the player's seed placing). */
+    PLANT
 }

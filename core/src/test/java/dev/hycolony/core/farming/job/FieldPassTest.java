@@ -72,6 +72,7 @@ class FieldPassTest extends FarmerTestBase {
 
         assertEquals(FarmerState.PREPARING, state);
         assertEquals(1, t.farming.crops.size());
+        assertEquals(HOE, t.bodies.bodies.get(body).held, "no seed bag shown once the seeds ran out");
     }
 
     @Test
@@ -251,6 +252,36 @@ class FieldPassTest extends FarmerTestBase {
         assertEquals(BodyAnimation.TILL, b.lastAnimation, "MC hoeIfAble swings");
         assertEquals(8, b.animations);
         assertEquals(cells(), t.effects.tilled, "the till sound of each cell");
+        assertEquals(cells().stream().map(Vec3::middle).toList(), t.bodies.looks, "faces each soil it tills");
+    }
+
+    @Test
+    void farmerSowsWithTheSeedInHandLikeAPlayer() {
+        tilledField();
+        give(SEEDS, 8);
+
+        pass(FarmerState.FARMER_PLANT);
+
+        FakeBodies.Body b = t.bodies.bodies.get(body);
+        List<BlockPos> crops = cells().stream().map(c -> c.offset(0, 1, 0)).toList();
+        assertEquals(SEEDS, b.held, "Hytale's seed bag in hand");
+        assertEquals(BodyAnimation.PLANT, b.lastAnimation);
+        assertEquals(8, b.animations);
+        assertEquals(crops.stream().map(Vec3::middle).toList(), t.bodies.looks, "faces each crop it sows");
+        assertEquals(crops, t.effects.placed, "the placing sound of each crop");
+    }
+
+    @Test
+    void plantingRefusedByTheWorldKeepsTheSeedAndMovesOn() {
+        tilledField();
+        give(SEEDS, 8);
+        t.farming.refusePlant = true;
+
+        assertEquals(FarmerState.IDLE, pass(FarmerState.FARMER_PLANT));
+
+        assertEquals(8, carried(SEEDS));
+        assertTrue(t.effects.placed.isEmpty());
+        assertEquals(0, t.bodies.bodies.get(body).animations);
     }
 
     @Test
@@ -263,7 +294,9 @@ class FieldPassTest extends FarmerTestBase {
         FakeBodies.Body b = t.bodies.bodies.get(body);
         assertEquals(HOE, b.held);
         assertEquals(BodyAnimation.MINE, b.lastAnimation, "MC mineBlock with the hoe");
-        assertEquals(cells().stream().map(c -> c.offset(0, 1, 0)).toList(), t.effects.hits);
+        List<BlockPos> crops = cells().stream().map(c -> c.offset(0, 1, 0)).toList();
+        assertEquals(crops, t.effects.hits);
+        assertEquals(crops.stream().map(Vec3::middle).toList(), t.bodies.looks, "MC hitBlockWithToolInHand looks");
     }
 
     @Test

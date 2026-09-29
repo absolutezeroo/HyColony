@@ -34,6 +34,9 @@ public final class FakeFarming implements FarmingAccess {
 
     public final Map<BlockPos, CropState> cropState = new HashMap<>();
 
+    /** When true, plant() fails and changes nothing (a Hytale placement refused on a cell that looked free). */
+    public boolean refusePlant;
+
     @Override
     public boolean isTillable(BlockPos pos) {
         return tillable.contains(pos);
@@ -70,7 +73,7 @@ public final class FakeFarming implements FarmingAccess {
 
     @Override
     public boolean plant(BlockPos pos, ItemKey seed) {
-        if (crops.containsKey(pos)) {
+        if (refusePlant || crops.containsKey(pos)) {
             return false;
         }
         crops.put(pos, seed);

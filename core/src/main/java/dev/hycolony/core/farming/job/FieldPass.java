@@ -21,6 +21,8 @@ import java.util.OptionalInt;
  * tryToPlant and harvestIfAble), plus Hytale's fertilizer on each tilled cell (deviation 1 of the SP3b-2 spec).
  */
 final class FieldPass {
+    private static final System.Logger LOG = System.getLogger(FieldPass.class.getName());
+
     /** MC XP_PER_BLOCK, given by mineBlock for a block broken. */
     static final double XP_PER_BLOCK = 0.05;
 
@@ -37,6 +39,7 @@ final class FieldPass {
     private final FieldScan scan;
     private final FarmWork work;
     private boolean didWork;
+    private boolean warned;
 
     FieldPass(FarmWorkContext ctx, FieldScan scan, FarmWork work) {
         this.ctx = ctx;
@@ -58,7 +61,7 @@ final class FieldPass {
             if (!ctx.walker().walkTo(column.offset(0, 1, 0), CELL_RANGE)) {
                 return state;
             }
-            ctx.holdHoe();
+            holdTool(state, field);
             if (!workCell(state, field, column)) {
                 return FarmerState.PREPARING;
             }
@@ -70,6 +73,20 @@ final class FieldPass {
             return FarmerState.IDLE;
         }
         return state;
+    }
+
+    /**
+     * MC equipHoe, for every stage. Deviation from MC (asked for): the seed bag is held while planting and carried, as
+     * a Hytale player sows with the seed in hand.
+     */
+    private void holdTool(FarmerState state, FarmField field) {
+        Optional<ItemKey> seed =
+                field.seed().filter(s -> ctx.stock().inventory().count(s) > 0);
+        if (state == FarmerState.FARMER_PLANT && seed.isPresent()) {
+            ctx.hands().hold(seed);
+        } else {
+            ctx.hands().holdTool(ctx.stock(), ToolType.HOE);
+        }
     }
 
     /** The cell's work for {@code state}; false only when the seed ran out (MC tryToPlant false → PREPARING). */
@@ -90,11 +107,11 @@ final class FieldPass {
     }
 
     /**
-     * MC hoeIfAble: without a hoe the cell is skipped (and one is asked for); otherwise the plant on the cell is broken
-     * (its drops fall, as MC's destroyBlock), the soil tilled with a stroke and the till sound, the hoe worn by one,
-     * then the fertilizer. Deviation from
-     * MC: any block on the cell is handled like MC's replaceable plants, without action nor XP, where MC mines a
-     * non-replaceable one (flower, torch) into the inventory: the core has no "replaceable" flag.
+     * MC hoeIfAble: without a hoe the cell is skipped (and one is asked for); otherwise, facing the soil (a deviation
+     * asked for: MC only looks at a plant it mines there), the plant on the cell is broken (its drops fall, as MC's
+     * destroyBlock), the soil tilled with a stroke and the till sound, the hoe worn by one, then the fertilizer.
+     * Deviation from MC: any block on the cell is handled like MC's replaceable plants, without action nor XP, where MC
+     * mines a non-replaceable one (flower, torch) into the inventory: the core has no "replaceable" flag.
      */
     private void hoe(BlockPos surface) {
         OptionalInt hoe = ctx.stock().toolInInventory(ToolType.HOE);
@@ -102,6 +119,7 @@ final class FieldPass {
             ctx.tools().requestTool(ToolType.HOE);
             return;
         }
+        ctx.hands().face(surface);
         BlockPos above = surface.offset(0, 1, 0);
         WorldBlocks world = ctx.colony().context().ports().blocks();
         if (world.get(above).map(s -> catalog().kind(s.key()) != BlockKind.AIR).orElse(false)) {
@@ -110,20 +128,22 @@ final class FieldPass {
         if (!farming().till(surface)) {
             return;
         }
-        ctx.swing(BodyAnimation.TILL);
+        ctx.hands().swing(BodyAnimation.TILL);
         ctx.colony().context().ports().effects().tilled(surface);
         didWork = true;
         ItemKey tool =
                 ctx.stock().inventory().slot(hoe.getAsInt()).orElseThrow().item();
         if (ctx.stock().inventory().damage(hoe.getAsInt(), 1, catalog().durability(tool))) {
-            ctx.holdHoe(); // worn out: another hoe, or an empty hand
+            ctx.hands().holdTool(ctx.stock(), ToolType.HOE); // worn out: another hoe, or an empty hand
         }
         fertilize(surface);
     }
 
     /**
      * MC tryToPlant / plantCrop: false when the seed ran out; the seed's crop placed, one seed used. Deviation from MC:
-     * no melon/pumpkin gap (Hytale's pumpkin has no stem) and no saturation spent (citizens do not eat yet).
+     * no melon/pumpkin gap (Hytale's pumpkin has no stem) and no saturation spent (citizens do not eat yet); asked
+     * for, the farmer faces the cell, plays the seed-placing gesture and the crop's placing sound, as a Hytale player
+     * sows (MC's crop just appears). A cell the world refuses keeps its seed and logs a warning, once per farmer AI.
      */
     private boolean plant(FarmField field, BlockPos surface) {
         Optional<ItemKey> seed = field.seed();
@@ -131,21 +151,32 @@ final class FieldPass {
             return false;
         }
         fertilize(surface);
-        if (farming().plant(surface.offset(0, 1, 0), seed.get())) {
-            ctx.stock().inventory().extract(seed.get(), 1);
-            didWork = true;
+        BlockPos crop = surface.offset(0, 1, 0);
+        ctx.hands().face(crop);
+        if (!farming().plant(crop, seed.get())) {
+            // The scan found the cell free: a refusal here is an adapter bug, which would leave the field unsown.
+            LOG.log(
+                    warned ? System.Logger.Level.DEBUG : System.Logger.Level.WARNING,
+                    "Farmer could not plant at " + crop);
+            warned = true;
+            return true;
         }
+        ctx.hands().swing(BodyAnimation.PLANT);
+        ctx.colony().context().ports().effects().blockPlaced(crop);
+        ctx.stock().inventory().extract(seed.get(), 1);
+        didWork = true;
         return true;
     }
 
     /**
-     * MC harvestIfAble / mineBlock: a stroke on the crop (MC swings while mining), then the harvest drops go to the
-     * inventory; one action, the block's and harvest XP, even without drops. Nothing more when the crop is still
-     * mature (the harvest failed).
+     * MC harvestIfAble / mineBlock: facing the crop, a stroke on it (MC hitBlockWithToolInHand looks at it and swings),
+     * then the harvest drops go to the inventory; one action, the block's and harvest XP, even without drops. Nothing
+     * more when the crop is still mature (the harvest failed).
      */
     private void harvest(BlockPos surface) {
         BlockPos crop = surface.offset(0, 1, 0);
-        ctx.swing(BodyAnimation.MINE);
+        ctx.hands().face(crop);
+        ctx.hands().swing(BodyAnimation.MINE);
         ctx.colony().context().ports().effects().blockHit(crop, 1f);
         List<ItemAmount> drops = farming().harvest(crop);
         if (drops.isEmpty() && farming().crop(crop) == CropState.MATURE) {

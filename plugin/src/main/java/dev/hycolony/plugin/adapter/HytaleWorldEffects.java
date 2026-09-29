@@ -23,10 +23,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import org.joml.Vector3d;
+import org.jspecify.annotations.Nullable;
 
 /**
- * Vanilla firework particle systems, block hit feedback and the till sound, sent to the nearby players. World thread
- * only; never throws (first failure WARNING, then FINE).
+ * Vanilla firework particle systems, block hit feedback, the till sound and block placing sounds, sent to the nearby
+ * players. World thread only; never throws (first failure WARNING, then FINE).
  */
 public final class HytaleWorldEffects implements WorldEffects {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
@@ -83,35 +84,67 @@ public final class HytaleWorldEffects implements WorldEffects {
     @Override
     public void blockHit(BlockPos pos, float progress) {
         try {
-            Ref<ChunkStore> sec = world.getChunkStore().getChunkSectionReferenceAtBlock(pos.x(), pos.y(), pos.z());
-            if (sec == null || !sec.isValid()) {
-                return;
-            }
-            Store<ChunkStore> chunks = world.getChunkStore().getStore();
-            BlockSection blocks = chunks.getComponent(sec, BlockSection.getComponentType());
-            int id = blocks == null ? 0 : blocks.get(pos.x(), pos.y(), pos.z());
+            int id = blockId(pos);
             BlockType type = BlockType.getAssetMap().getAsset(id);
             if (id == 0 || type == null) {
                 return;
             }
-            double x = pos.x() + 0.5, y = pos.y() + 0.5, z = pos.z() + 0.5;
-            BlockSoundSet sounds = BlockSoundSet.getAssetMap().getAsset(type.getBlockSoundSetIndex());
-            if (sounds != null) {
-                int sound = sounds.getSoundEventIndices().getOrDefault(BlockSoundEvent.Hit, 0);
-                SoundUtil.playSoundEvent3d(
-                        sound,
-                        SoundCategory.SFX,
-                        x,
-                        y,
-                        z,
-                        world.getEntityStore().getStore());
-            }
-            world.getNotificationHandler().sendBlockParticle(x, y, z, id, BlockParticleEvent.Hit);
-            crack(chunks, sec, pos, progress);
+            playBlockSound(pos, type, BlockSoundEvent.Hit);
+            world.getNotificationHandler()
+                    .sendBlockParticle(pos.x() + 0.5, pos.y() + 0.5, pos.z() + 0.5, id, BlockParticleEvent.Hit);
+            crack(pos, progress);
         } catch (RuntimeException e) {
             LOG.at(warned ? Level.FINE : Level.WARNING).withCause(e).log("HyColony block hit failed at %s", pos);
             warned = true;
         }
+    }
+
+    /**
+     * The block's own Build sound (a crop's is the seeds' SFX_Seeds_Place), as a player's placing plays it; the
+     * placing itself already sent the Build particles. No-op on an unloaded or empty block.
+     */
+    @Override
+    public void blockPlaced(BlockPos pos) {
+        try {
+            int id = blockId(pos);
+            BlockType type = BlockType.getAssetMap().getAsset(id);
+            if (id != 0 && type != null) {
+                playBlockSound(pos, type, BlockSoundEvent.Build);
+            }
+        } catch (RuntimeException e) {
+            LOG.at(warned ? Level.FINE : Level.WARNING).withCause(e).log("HyColony place sound failed at %s", pos);
+            warned = true;
+        }
+    }
+
+    /** The block id at {@code pos}; 0 (empty) on an unloaded section. */
+    private int blockId(BlockPos pos) {
+        Ref<ChunkStore> sec = section(pos);
+        BlockSection blocks = sec == null
+                ? null
+                : world.getChunkStore().getStore().getComponent(sec, BlockSection.getComponentType());
+        return blocks == null ? 0 : blocks.get(pos.x(), pos.y(), pos.z());
+    }
+
+    /** The loaded section holding {@code pos}; null when it is not loaded. */
+    private @Nullable Ref<ChunkStore> section(BlockPos pos) {
+        Ref<ChunkStore> sec = world.getChunkStore().getChunkSectionReferenceAtBlock(pos.x(), pos.y(), pos.z());
+        return sec == null || !sec.isValid() ? null : sec;
+    }
+
+    /** {@code event} of the block's sound set at the block's centre; nothing when the set has none. */
+    private void playBlockSound(BlockPos pos, BlockType type, BlockSoundEvent event) {
+        BlockSoundSet sounds = BlockSoundSet.getAssetMap().getAsset(type.getBlockSoundSetIndex());
+        if (sounds == null) {
+            return;
+        }
+        SoundUtil.playSoundEvent3d(
+                sounds.getSoundEventIndices().getOrDefault(event, 0),
+                SoundCategory.SFX,
+                pos.x() + 0.5,
+                pos.y() + 0.5,
+                pos.z() + 0.5,
+                world.getEntityStore().getStore());
     }
 
     /**
@@ -143,7 +176,12 @@ public final class HytaleWorldEffects implements WorldEffects {
      * drops the entry), as BlockHarvestUtils damages a section's health; BlockHealthSystems replicates the cracks to
      * the players with the section. The block regenerates 5 s after the last hit, so an abandoned block mends.
      */
-    private void crack(Store<ChunkStore> chunks, Ref<ChunkStore> sec, BlockPos pos, float progress) {
+    private void crack(BlockPos pos, float progress) {
+        Ref<ChunkStore> sec = section(pos);
+        if (sec == null) {
+            return;
+        }
+        Store<ChunkStore> chunks = world.getChunkStore().getStore();
         ChunkSection section = chunks.getComponent(sec, ChunkSection.getComponentType());
         if (section == null) {
             return;

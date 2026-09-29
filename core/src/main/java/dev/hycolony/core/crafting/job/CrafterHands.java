@@ -4,13 +4,12 @@ import dev.hycolony.core.crafting.recipe.BenchRequirement;
 import dev.hycolony.core.crafting.recipe.Ingredient;
 import dev.hycolony.core.crafting.recipe.Recipe;
 import dev.hycolony.core.crafting.recipe.RecipeMatching;
+import dev.hycolony.core.job.work.WorkerHands;
 import dev.hycolony.core.kernel.BlockPos;
-import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.Workstation;
 import dev.hycolony.core.kernel.port.BodyAnimation;
-import dev.hycolony.core.kernel.port.CitizenBodies;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -25,11 +24,11 @@ import java.util.OptionalInt;
  */
 final class CrafterHands {
     private final CraftingWorkContext ctx;
-    private final CitizenBodies bodies;
+    private final WorkerHands hands;
 
     CrafterHands(CraftingWorkContext ctx) {
         this.ctx = ctx;
-        this.bodies = ctx.colony().context().bodies();
+        this.hands = new WorkerHands(ctx.colony().context().bodies(), ctx.body());
     }
 
     /** MC walkToTaggedWorkPos: true once at the block the recipe is made at. */
@@ -47,15 +46,15 @@ final class CrafterHands {
         Optional<ItemKey> tool = toolSlot.isPresent()
                 ? ctx.stock().inventory().slot(toolSlot.getAsInt()).map(ItemAmount::item)
                 : Optional.empty();
-        bodies.setHeldItem(ctx.body(), tool.or(() -> anIngredient(recipe)));
-        bodies.lookAt(ctx.body(), Vec3.middle(at));
-        bodies.playAnimation(ctx.body(), BodyAnimation.BUILD);
+        hands.hold(tool.or(() -> anIngredient(recipe)));
+        hands.face(at);
+        hands.swing(BodyAnimation.BUILD);
         ctx.colony().context().ports().effects().blockHit(at, done);
     }
 
     /** MC resetValues: empty hands. */
     void clear() {
-        bodies.setHeldItem(ctx.body(), Optional.empty());
+        hands.hold(Optional.empty());
     }
 
     /** The first bench the hut registered with the recipe's bench id and at least its tier; else the hut block. */

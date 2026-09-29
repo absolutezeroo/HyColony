@@ -10,6 +10,7 @@ public final class FakeWorldEffects implements WorldEffects {
     public final List<BlockPos> hits = new ArrayList<>();
     public final List<Float> hitProgress = new ArrayList<>();
     public final List<BlockPos> tilled = new ArrayList<>();
+    public final List<BlockPos> placed = new ArrayList<>();
 
     @Override
     public void celebrate(BlockPos hut) {
@@ -25,5 +26,10 @@ public final class FakeWorldEffects implements WorldEffects {
     @Override
     public void tilled(BlockPos soil) {
         tilled.add(soil);
+    }
+
+    @Override
+    public void blockPlaced(BlockPos pos) {
+        placed.add(pos);
     }
 }

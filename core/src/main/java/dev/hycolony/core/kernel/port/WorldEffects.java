@@ -16,4 +16,7 @@ public interface WorldEffects {
 
     /** The sound of {@code soil} tilled by a hoe, as a player's till plays it. */
     void tilled(BlockPos soil);
+
+    /** The placing sound of the block now at {@code pos}, as a player's placing plays it. */
+    void blockPlaced(BlockPos pos);
 }

@@ -266,6 +266,8 @@ public final class HytaleCitizenBodies implements CitizenBodies {
             case MINE -> AnimationUtils.playAnimation(ref, AnimationSlot.Action, "Pickaxe", "Mine", store());
             // The hoe's own animation set (Server/Item/Animations/Hoe.json), as Hoe_Till plays it for a player
             case TILL -> AnimationUtils.playAnimation(ref, AnimationSlot.Action, "Hoe", "Till", store());
+            // The seeds' animation set (Template_Seeds PlayerAnimationsId), as Seed_Place plays it for a player
+            case PLANT -> AnimationUtils.playAnimation(ref, AnimationSlot.Action, "Item", "Interact", store());
         }
     }
 
