@@ -3,7 +3,7 @@ package dev.hycolony.core.construction.resources;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
-import dev.hycolony.core.colony.ConstructionPorts;
+import dev.hycolony.core.colony.GamePorts;
 import dev.hycolony.core.construction.resources.BuilderResourcesView.ResourceRow;
 import dev.hycolony.core.construction.workorder.Stage;
 import dev.hycolony.core.construction.workorder.WorkOrder;
@@ -48,7 +48,7 @@ final class BuilderResourcesViews {
         if (order.isPresent() && m.orderId() == order.get().id() && !order.get().free()) {
             Optional<Inventory> inv = WorkerModule.firstWorker(c, hut).map(CitizenData::inventory);
             List<BlockPos> containers = hut.containers();
-            ConstructionPorts ports = c.context().ports();
+            GamePorts ports = c.context().ports();
             m.needs()
                     .remaining()
                     .forEach((item, needed) -> rows.add(row(

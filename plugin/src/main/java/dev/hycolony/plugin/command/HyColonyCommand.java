@@ -13,7 +13,7 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.colony.Colony;
-import dev.hycolony.core.colony.ConstructionPorts;
+import dev.hycolony.core.colony.GamePorts;
 import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
@@ -246,7 +246,7 @@ public final class HyColonyCommand extends AbstractCommandCollection {
          * a hut: breakBlock leaves huts alone (only the hut systems remove them), so a hut would stay there.
          */
         private static void construction(PlayerRef player, WorldRuntime rt, BlockPos at, IdMap ids) {
-            ConstructionPorts ports = rt.manager().context().ports();
+            GamePorts ports = rt.manager().context().ports();
             try {
                 blueprint(player, ports);
                 BlockPos test = at.offset(0, 3, 0);
@@ -275,7 +275,7 @@ public final class HyColonyCommand extends AbstractCommandCollection {
         }
 
         /** Loads the first style's level 1 builder hut. */
-        private static void blueprint(PlayerRef player, ConstructionPorts ports) {
+        private static void blueprint(PlayerRef player, GamePorts ports) {
             // Styles come from sub-plugins that may all be disabled: then there is nothing to load.
             String style = ports.blueprints().styles().stream().findFirst().orElse("(no style)");
             Optional<Blueprint> bp = ports.blueprints().load(style, ConstructionBuildingTypes.BUILDER.id(), 1, 0);
@@ -288,7 +288,7 @@ public final class HyColonyCommand extends AbstractCommandCollection {
         }
 
         /** Container round trip in the chest placed at {@code test}, then its break and drops. */
-        private static void containerThenBreak(PlayerRef player, ConstructionPorts ports, BlockPos test, IdMap ids) {
+        private static void containerThenBreak(PlayerRef player, GamePorts ports, BlockPos test, IdMap ids) {
             List<BlockPos> box = List.of(test);
             ItemKey item = new ItemKey(ids.itemId(ConstructionBuildingTypes.BUILDER.hutBlockKey()));
             ItemAmount rest = ports.containers().insert(box, new ItemAmount(item, 1));

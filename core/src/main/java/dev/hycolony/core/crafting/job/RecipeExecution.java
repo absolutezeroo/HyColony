@@ -3,7 +3,7 @@ package dev.hycolony.core.crafting.job;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
-import dev.hycolony.core.colony.ConstructionPorts;
+import dev.hycolony.core.colony.GamePorts;
 import dev.hycolony.core.crafting.module.AssignedCitizens;
 import dev.hycolony.core.crafting.recipe.Ingredient;
 import dev.hycolony.core.crafting.recipe.Recipe;
@@ -39,7 +39,7 @@ public final class RecipeExecution {
         if (workers.isEmpty()) {
             return false;
         }
-        ConstructionPorts ports = colony.context().ports();
+        GamePorts ports = colony.context().ports();
         List<RunStock> stocks = new ArrayList<>(workers.size() + 1);
         stocks.add(new RunStock.RackStock(hut.containers(), ports.containers()));
         for (CitizenData worker : workers) {

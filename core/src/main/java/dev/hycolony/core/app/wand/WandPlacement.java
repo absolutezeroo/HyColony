@@ -6,7 +6,7 @@ import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.colony.Colony;
-import dev.hycolony.core.colony.ConstructionPorts;
+import dev.hycolony.core.colony.GamePorts;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.colony.territory.ClaimCell;
 import dev.hycolony.core.construction.blueprint.Blueprint;
@@ -171,7 +171,7 @@ final class WandPlacement {
         ports().blocks().drop(pos, ports().blocks().breakBlock(pos));
     }
 
-    private ConstructionPorts ports() {
+    private GamePorts ports() {
         return manager.context().ports();
     }
 

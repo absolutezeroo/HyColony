@@ -10,10 +10,11 @@ import dev.hycolony.core.kernel.port.WorldBlocks;
 import dev.hycolony.core.kernel.port.WorldEffects;
 
 /**
- * Ports the construction system needs, the crafting setup (recipe catalog and {@code crafting.json} rules) and the
- * farming port, kept here because {@code colony} and {@code ColonyContext} have no room left.
+ * The game content and world the features work on, one adapter each: items, blocks, containers, the player's
+ * inventory, blueprints, block effects, the crafting setup (recipe catalog and {@code crafting.json} rules) and the
+ * crops and soil of farming. The colony's own ports (bodies, clock, notices, players) sit in {@link ColonyContext}.
  */
-public record ConstructionPorts(
+public record GamePorts(
         ItemCatalog catalog,
         WorldBlocks blocks,
         ContainerAccess containers,

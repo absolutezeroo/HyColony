@@ -27,4 +27,4 @@ public record ColonyContext(
         CitizenNames names,
         RandomGenerator random,
         EventBus bus,
-        ConstructionPorts ports) {}
+        GamePorts ports) {}

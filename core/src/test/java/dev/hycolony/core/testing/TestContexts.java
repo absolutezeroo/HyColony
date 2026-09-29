@@ -6,7 +6,7 @@ import dev.hycolony.core.building.BuildingRegistry;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.citizen.CitizenNames;
 import dev.hycolony.core.colony.ColonyContext;
-import dev.hycolony.core.colony.ConstructionPorts;
+import dev.hycolony.core.colony.GamePorts;
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.BlueprintSource;
 import dev.hycolony.core.crafting.recipe.CraftingRules;
@@ -94,7 +94,7 @@ public final class TestContexts {
                 CitizenNames.loadDefault(),
                 random.get(),
                 bus,
-                new ConstructionPorts(
+                new GamePorts(
                         catalog,
                         blocks,
                         containers,

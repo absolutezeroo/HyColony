@@ -4,7 +4,7 @@ import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
-import dev.hycolony.core.colony.ConstructionPorts;
+import dev.hycolony.core.colony.GamePorts;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemAmount;
@@ -51,7 +51,7 @@ public final class RequestActions {
             return false;
         }
         Deliverable wanted = req.deliverable().orElseThrow();
-        ConstructionPorts ports = manager.context().ports();
+        GamePorts ports = manager.context().ports();
         Optional<ItemKey> item = itemFor(player, wanted);
         if (item.isEmpty()) {
             return false;
@@ -84,7 +84,7 @@ public final class RequestActions {
 
     /** The item a stack request names, else the first of the player's items that matches. */
     private Optional<ItemKey> itemFor(UUID player, Deliverable wanted) {
-        ConstructionPorts ports = manager.context().ports();
+        GamePorts ports = manager.context().ports();
         return wanted instanceof StackRequest s
                 ? Optional.of(s.item())
                 : ports.playerInventory().contents(player).keySet().stream()
@@ -94,7 +94,7 @@ public final class RequestActions {
 
     /** Into the citizen's inventory, else the requesting hut's containers; returns what did not fit (or null). */
     private @Nullable ItemAmount deliver(Colony c, Request req, Optional<CitizenData> citizen, ItemAmount taken) {
-        ConstructionPorts ports = manager.context().ports();
+        GamePorts ports = manager.context().ports();
         if (citizen.isPresent()) {
             return citizen.get().inventory().insert(taken, ports.catalog()::maxStack);
         }
@@ -116,7 +116,7 @@ public final class RequestActions {
         if (b == null) {
             return 0;
         }
-        ConstructionPorts ports = manager.context().ports();
+        GamePorts ports = manager.context().ports();
         int moved = 0;
         int usable = 0;
         for (ItemAmount stack : ports.playerInventory().takeStacks(player, item, wanted)) {
