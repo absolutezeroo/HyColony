@@ -178,7 +178,7 @@ Heure : le premier `decideAiTask` où `dayTime % 24000 <= 10600`, donc à 0 (6 h
   - `Sleep.WakeUpHour: 4.79` ;
   - `Sleep.AllowedSleepHoursRange: [19.5, 4.79]`.
 - `getGameDateTime()` renvoie un `LocalDateTime` (l. 310). `isDayTimeWithinRange(min, max)` travaille sur `getDayProgress()` (l. 517).
-- **HyColony aujourd'hui** : `HytaleGameClock.isDaytime()` renvoie `6 <= hour < 20` (`plugin/.../adapter/HytaleGameClock.java:9-34`). Le commentaire dit « verify at dawn/dusk in game ». Ces bornes **ne correspondent pas** au lever (04:48) ni au coucher (19:12) calculés par `WorldTimeResource`. **[in-game]** Il reste à confirmer ce que voit le joueur.
+- **HyColony** : `HytaleGameClock.isDaytime()` utilise `isScaledDayTimeWithinRange(0.25, 0.75)`, soit exactement le lever (04:48) et le coucher (19:12) de `WorldTimeResource` (corrigé le 2026-09-29, `plugin-b-api.md` § 31). Avant, il testait `6 <= hour < 20`.
 - Les joueurs peuvent sauter la nuit : `UpdateWorldSlumberSystem` fait avancer l'heure via `timeResource.setGameTime(wakeUpTime, …)` (`HY/builtin/beds/sleep/systems/world/UpdateWorldSlumberSystem.java:48-73`). Il ne touche qu'aux entités `PlayerSomnolence`, donc pas aux PNJ.
 
 ### B.2 Lits

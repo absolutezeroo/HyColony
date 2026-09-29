@@ -824,6 +824,17 @@ Recherche du 2026-09-29, détail et preuves dans `docs/research/update-7/a-java-
 - **Manifestes** : `">=0.6.8 <0.7.0"` ne couvre pas `0.7.0-pre.4`, à cause de la règle des pré-versions de `SemverRange` (`common/semver/SemverRange.java:44-62`). Le serveur avertit et continue. La forme qui convient est `">=0.7.0-pre.4 <0.8.0"`.
 - Sans changement pour nous : fenêtres et pages (`CustomUIPage`, `InteractiveCustomUIPage`, `PageManager`, `WindowManager`, `UICommandBuilder`, `UIEventBuilder`), `ItemContainer`, `BlockSection` et `BlockOperations.setBlock` (même signature), commandes, codecs, événements ECS. Les systèmes ne voient que les entités racines par défaut (`QuerySystem.getHierarchyScope()` = `ROOT`), et aucune entité n'a de parent, ni chez nous ni dans le vanilla.
 
+## 31. Jour et nuit (0.7.0-pre.4, vérifié le 2026-09-29)
+
+- **Heures fixes de l'horloge de jeu** : le jour occupe 60 % des 24 heures de jeu (`WorldTimeResource.DAYTIME_PORTION_PERCENTAGE = 0.6F`, `server/core/modules/time/WorldTimeResource.java:45-48`).
+  - `NIGHTTIME_SECONDS` = 34 560 s de jeu.
+  - `SUNRISE_SECONDS = NIGHTTIME_SECONDS / 2` = 17 280 s, soit **4 h 48**.
+  - Coucher = `SUNRISE_SECONDS + DAYTIME_SECONDS` = 69 120 s, soit **19 h 12**.
+- **Durée réelle** : 1 728 s réelles de jour et 1 152 s de nuit par défaut (`Server/GameplayConfigs/Default.json:89-90` de l'archive 0.7.0-pre.4 ; le défaut Java de `asset/type/gameplay/WorldConfig.java:119-120` est de 1 151 s), soit 48 minutes par jour. Chaque monde peut les changer (`WorldConfig.DaytimeDurationSeconds`, `universe/world/World.java:586-588`). L'horloge de jeu avance à un rythme différent le jour et la nuit, pour que les heures de lever et de coucher restent fixes (`WorldTimeResource.java:119-136`).
+- **Test prêt à l'emploi** : `isScaledDayTimeWithinRange(min, max)` (l. 603) compare `scaledTime`, qui vaut 0,25 au lever et 0,75 au coucher (`updateScaledTime`, l. 276-285). Le jour est donc `isScaledDayTimeWithinRange(0.25, 0.75)`.
+- **Lumière** : `sunlightFactor = clamp(sin(2π × (t − demi-nuit) / jour) + 0.2, 0, 1)` (l. 271-273). Il fait donc déjà un peu clair avant le lever.
+- **HyColony** : `HytaleGameClock.isDaytime` utilise `isScaledDayTimeWithinRange(0.25, 0.75)`, bornes incluses (`MathUtil.within`). C'est corrigé le 2026-09-29 : avant, il faisait jour de 6 h à 20 h, 1 h 12 après le vrai lever et jusqu'à 48 minutes après le vrai coucher.
+
 ## Could not verify
 
 1. **Client rendering of item animations on NPCs** (`AnimationSlot.Action` with `"Block"/"Build"` or `"Pickaxe"/"Mine"` on `PlayerTestModel_V`) and whether they loop or play once. Only the server packet path is verified.

@@ -16,8 +16,7 @@ Pour obtenir les objets : `/give HyColony_TownHall`, `/give HyColony_Hut_Builder
 5. **Protection.** B essaie de casser ou de poser un bloc dans la colonie, et d'ouvrir un coffre : refusé, avec un message.
    A lance `/hycolony rank B officer` : B peut alors le faire.
 6. **Fenêtre.** Un clic droit sur l'hôtel de ville ouvre l'onglet Accueil : le nom, le propriétaire et le jour ; l'onglet Citoyens liste les citoyens. A renomme la colonie : le nouveau nom s'affiche, toujours sur l'onglet Accueil.
-7. **Jour/nuit.** Lancer `/hycolony info` avant et après une aube : le jour augmente de 1.
-   Si l'aube réelle ne correspond pas, ajuster `HytaleGameClock.DAY_START_HOUR` et `NIGHT_START_HOUR`.
+7. **Jour/nuit.** Lancer `/hycolony info` juste avant et juste après le lever du soleil (4 h 48 de jeu) : le jour augmente de 1 au lever, pas une ou deux minutes plus tard.
 8. **Selftest.** En opérateur, `/hycolony selftest`, debout avec de l'air au-dessus de la tête : toutes les lignes sont `[OK]` (ids, stockage, `blueprint`, `place`, `container`, `break`, une ligne `hut type <id>` par type de bâtiment enregistré : hôtel de ville, constructeur, résidence, entrepôt, livreur, `spawn`, `move`). Un `[KO] hut type` nomme la clé absente de `id-map.json` ou l'absence de plan de niveau 1.
 9. **Fichiers.** `<sauvegarde du monde>/hycolony/colony-1.json` existe et contient `"schemaVersion":2` (une sauvegarde SP0 en version 1 est migrée au chargement).
 10. **Échap.** A pose un hôtel de ville hors colonie, puis ferme la fenêtre « Fonder une colonie » avec Échap.

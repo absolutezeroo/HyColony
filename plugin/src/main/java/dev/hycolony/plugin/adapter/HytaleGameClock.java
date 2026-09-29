@@ -6,8 +6,11 @@ import dev.hycolony.core.kernel.port.GameClock;
 
 /** Core tick counter (advanced by ColonyTickSystem) + Hytale day/night. */
 public final class HytaleGameClock implements GameClock {
-    /** Daytime window in game hours. Hytale day = 60% of 24h; verify at dawn/dusk in game (docs/TESTING.md). */
-    static final int DAY_START_HOUR = 6, NIGHT_START_HOUR = 20;
+    /** WorldTimeResource's scaled time (a fraction of the day) at sunrise, 4:48, whatever the world's day length. */
+    private static final double SUNRISE_SCALED_TIME = 0.25;
+
+    /** WorldTimeResource's scaled time at sunset, 19:12. */
+    private static final double SUNSET_SCALED_TIME = 0.75;
 
     private final World world;
     private long tick;
@@ -25,10 +28,10 @@ public final class HytaleGameClock implements GameClock {
         return tick;
     }
 
+    /** MC world.isDay(): between Hytale's sunrise and sunset, both included. */
     @Override
     public boolean isDaytime() {
         WorldTimeResource time = world.getEntityStore().getStore().getResource(WorldTimeResource.getResourceType());
-        int hour = time.getGameDateTime().getHour();
-        return hour >= DAY_START_HOUR && hour < NIGHT_START_HOUR;
+        return time.isScaledDayTimeWithinRange(SUNRISE_SCALED_TIME, SUNSET_SCALED_TIME);
     }
 }
