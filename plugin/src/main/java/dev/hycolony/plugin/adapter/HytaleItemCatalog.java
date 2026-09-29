@@ -14,6 +14,7 @@ import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockKind;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolInfo;
+import dev.hycolony.core.kernel.item.ToolScale;
 import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.plugin.block.HytaleBlockStates;
@@ -48,8 +49,6 @@ import org.jspecify.annotations.Nullable;
  */
 public final class HytaleItemCatalog implements ItemCatalog {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
-    private static final float MIN_HARDNESS = 0.05f;
-    private static final float MAX_HARDNESS = 3f; // ponytail: heuristic, replace by a table if balance is off
     private static final BlockInfo UNKNOWN_BLOCK =
             new BlockInfo(BlockKind.UNBREAKABLE, Optional.empty(), false, Optional.empty(), 1f, false);
     private static final BlockInfo FLUID =
@@ -243,15 +242,13 @@ public final class HytaleItemCatalog implements ItemCatalog {
                 harmful);
     }
 
-    /** The block's hardness from its gather type's unarmed power; soft or harvest-only blocks break in one hit. */
+    /** The block's hardness from its gather type's unarmed power ({@link ToolScale#hardness}). */
     private static float hardness(@Nullable String gather) {
         if (gather == null) {
-            return MIN_HARDNESS;
+            return ToolScale.MIN_HARDNESS;
         }
         ItemToolSpec unarmed = ItemToolSpec.getAssetMap().getAsset(gather);
-        return unarmed == null || unarmed.getPower() <= 0
-                ? 1f
-                : Math.clamp(MIN_HARDNESS / unarmed.getPower(), MIN_HARDNESS, MAX_HARDNESS);
+        return ToolScale.hardness(unarmed == null ? 0f : unarmed.getPower());
     }
 
     private static @Nullable ToolType toolType(@Nullable String gather) {
@@ -319,12 +316,12 @@ public final class HytaleItemCatalog implements ItemCatalog {
         }
         ItemToolSpec unarmed = ItemToolSpec.getAssetMap().getAsset(gather);
         float power = spec == null ? 0f : spec.getPower();
-        float speed = power <= 0 ? 1f : unarmed == null || unarmed.getPower() <= 0 ? power : power / unarmed.getPower();
-        int level = spec == null ? 0 : Math.max(0, spec.getQuality() - 1);
+        float speed = ToolScale.speed(power, unarmed == null ? 0f : unarmed.getPower());
+        int level = spec == null ? 0 : ToolScale.level(spec.getQuality());
         return new ItemInfo(maxStack, Optional.of(new ToolInfo(type, level, speed)), durability(item, tool, power));
     }
 
-    /** Blocks of the tool's own gather type mined before it breaks; 0 = unbreakable. */
+    /** Blocks of the tool's own gather type mined before it breaks ({@link ToolScale#uses}); 0 = unbreakable. */
     private static int durability(Item item, ItemTool tool, float power) {
         double max = item.getMaxDurability();
         double loss = item.getDurabilityLossOnHit(); // Hytale's fallback when no block set matches
@@ -335,11 +332,7 @@ public final class HytaleItemCatalog implements ItemCatalog {
                 loss = Math.max(loss, t.getDurabilityLossOnHit());
             }
         }
-        if (max <= 0 || loss <= 0) {
-            return 0;
-        }
-        double hitsPerBlock = power > 0 ? Math.ceil(1 / power) : 1;
-        return Math.max(1, (int) (max / (loss * hitsPerBlock)));
+        return ToolScale.uses(max, loss, power);
     }
 
     private void fail(String id, RuntimeException e) {
