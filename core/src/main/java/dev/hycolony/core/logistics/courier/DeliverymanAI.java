@@ -46,7 +46,7 @@ final class DeliverymanAI implements JobAI {
                 () -> ctx.delay().waiting(WorkerMachine.MACHINE_RATE),
                 ctx.delay()::set);
         state(CourierState.IDLE, () -> CourierState.START_WORKING, 1);
-        machine.state(CourierState.START_WORKING, this::checkIfExecute, this::decide, DECISION_DELAY);
+        machine.target(CourierState.START_WORKING, this::checkIfExecute, this::decide, DECISION_DELAY);
         state(CourierState.PREPARE_DELIVERY, preparation::prepare, STANDARD_DELAY);
         state(CourierState.DELIVERY, drop::deliver, STANDARD_DELAY);
         state(CourierState.PICKUP, pickup::pickup, STANDARD_DELAY);
@@ -55,7 +55,7 @@ final class DeliverymanAI implements JobAI {
     }
 
     private void state(CourierState s, IStateSupplier<CourierState> action, int rate) {
-        machine.state(s, action, rate);
+        machine.target(s, action, rate);
     }
 
     @Override

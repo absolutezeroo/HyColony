@@ -65,7 +65,7 @@ final class FarmerAI implements JobAI {
     }
 
     private void state(FarmerState s, IStateSupplier<FarmerState> action, int rate) {
-        machine.state(s, action, rate);
+        machine.target(s, action, rate);
     }
 
     private void craft(FarmerState s, Supplier<CraftingStep> step, int rate) {

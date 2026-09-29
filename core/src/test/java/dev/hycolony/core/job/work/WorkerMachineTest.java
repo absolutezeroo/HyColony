@@ -26,8 +26,8 @@ class WorkerMachineTest {
 
     @Test
     void machineRunsOnceEveryMachineRateGameTicks() {
-        machine.state(Step.FIRST, () -> Step.SECOND, 1);
-        machine.state(Step.SECOND, () -> Step.THIRD, 1);
+        machine.target(Step.FIRST, () -> Step.SECOND, 1);
+        machine.target(Step.SECOND, () -> Step.THIRD, 1);
 
         tick(WorkerMachine.MACHINE_RATE - 1);
         assertEquals(Step.FIRST, machine.state());
@@ -37,8 +37,8 @@ class WorkerMachineTest {
 
     @Test
     void machineStaysInItsStateWhileTheWorkerWaits() {
-        machine.state(Step.FIRST, () -> Step.SECOND, 1);
-        machine.state(Step.SECOND, () -> null, 1);
+        machine.target(Step.FIRST, () -> Step.SECOND, 1);
+        machine.target(Step.SECOND, () -> null, 1);
         delay.set(2 * WorkerMachine.MACHINE_RATE);
 
         tick(2 * WorkerMachine.MACHINE_RATE);
@@ -49,8 +49,8 @@ class WorkerMachineTest {
 
     @Test
     void exceptionResetsTheMachineAndPausesTheWorker() {
-        machine.state(Step.FIRST, () -> Step.SECOND, 1);
-        machine.state(
+        machine.target(Step.FIRST, () -> Step.SECOND, 1);
+        machine.target(
                 Step.SECOND,
                 () -> {
                     throw new IllegalStateException("broken step");

@@ -61,7 +61,7 @@ public final class BuilderAI implements JobAI {
     }
 
     private void state(BuilderState s, IStateSupplier<BuilderState> action, int rate) {
-        machine.state(s, action, rate);
+        machine.target(s, action, rate);
     }
 
     @Override

@@ -18,6 +18,7 @@ class FeatureDependenciesTest {
     @ArchTest
     static final ArchRule topLevelPackagesUseOnlyTheirKnownDependencies = layeredArchitecture()
             .consideringOnlyDependenciesInLayers()
+            .ensureAllClassesAreContainedInArchitecture()
             .layer("root")
             .definedBy("dev.hycolony.core")
             .layer("building")

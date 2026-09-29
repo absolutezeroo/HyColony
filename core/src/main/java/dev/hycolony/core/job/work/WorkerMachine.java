@@ -47,12 +47,12 @@ public final class WorkerMachine<S extends IState> {
     }
 
     /** A target of {@code state}: every {@code rate} ticks, {@code action} gives the next state (null: stay). */
-    public void state(S state, IStateSupplier<S> action, int rate) {
+    public void target(S state, IStateSupplier<S> action, int rate) {
         machine.addTransition(new AITarget<>(state, action, rate));
     }
 
     /** A target of {@code state} that runs {@code action} only when {@code when} holds. */
-    public void state(S state, BooleanSupplier when, IStateSupplier<S> action, int rate) {
+    public void target(S state, BooleanSupplier when, IStateSupplier<S> action, int rate) {
         machine.addTransition(new AITarget<>(state, when, action, rate));
     }
 
