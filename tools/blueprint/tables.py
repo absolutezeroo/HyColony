@@ -313,31 +313,6 @@ def colored_clay(name: str):
     return target, f"{block} -> {target}"
 
 
-# ---------------------------------------------------------------------------
-# Blocs du mod HyVanilla
-# ---------------------------------------------------------------------------
-
-# Préfixe des blocs du mod : c'est la seule ligne à changer si le mod change.
-MOD_PREFIX = "HyVanilla"
-
-MOD_FLOWER_POT = f"{MOD_PREFIX}_Flower_Pot"
-
-# Couleur Minecraft -> suffixe de {MOD_PREFIX}_Carpet_{couleur}.
-MOD_CARPET_COLORS = {
-    "white": "White", "orange": "Orange", "magenta": "Magenta", "light_blue": "Light_Blue",
-    "yellow": "Yellow", "lime": "Lime", "pink": "Pink", "gray": "Gray", "light_gray": "Light_Gray",
-    "cyan": "Cyan", "purple": "Purple", "blue": "Blue", "brown": "Brown", "green": "Green",
-    "red": "Red", "black": "Black",
-}
-
-
-def mod_carpet(name: str) -> str | None:
-    if not (name.startswith("minecraft:") and name.endswith("_carpet")):
-        return None
-    color = MOD_CARPET_COLORS.get(name[len("minecraft:"):-len("_carpet")])
-    return f"{MOD_PREFIX}_Carpet_{color}" if color else None
-
-
 # Blocs colorés d'autres mods (même suffixes) : approximation en brique d'argile.
 MODDED_COLORED_SUFFIXES = ("_wool", "_carpet", "_terracotta", "_concrete", "_concrete_powder")
 

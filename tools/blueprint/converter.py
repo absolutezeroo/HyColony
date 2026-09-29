@@ -21,6 +21,7 @@ from pathlib import Path
 
 from . import domum
 from . import families as fam
+from . import hyvanilla
 from . import tables as T
 from .blueprint import Blueprint, load_blueprint
 from .detectors import is_bed, is_normal_door, is_wall_sign, run_detectors
@@ -194,14 +195,9 @@ def pattern_rule(bp: Blueprint, pos: Pos, name: str, p: dict) -> Mapping | None:
     clay = T.colored_clay(name)
     if clay:
         return place(clay[0], 0, clay[1], rule="clay")
-    carpet = T.mod_carpet(name)
-    if carpet:
-        return place(carpet, 0, f"tapis -> {carpet} (mod {T.MOD_PREFIX})", rule="mod")
-    if name == "minecraft:flower_pot" or name.startswith("minecraft:potted_"):
-        note = f"pot de fleurs -> {T.MOD_FLOWER_POT} (mod {T.MOD_PREFIX})"
-        if name != "minecraft:flower_pot":
-            note += f", plante {name.split('potted_', 1)[1]} non conservée"
-        return place(T.MOD_FLOWER_POT, 0, note, rule="mod")
+    m = hyvanilla.rule(name)
+    if m:
+        return m
     if name == "minecraft:glass_pane" or name.endswith("_stained_glass_pane"):
         return fam.glass_pane(p)
     if name == "minecraft:glass" or name.endswith("_stained_glass"):

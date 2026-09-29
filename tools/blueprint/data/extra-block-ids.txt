@@ -5,24 +5,6 @@ Metal_Iron_Pipe_Large_Mouthpiece
 # Confirmé en jeu par l'utilisateur (plus récent que la liste de janvier 2026)
 Hay_Bale
 
-# Mod HyVanilla (blocs ajoutés par l'utilisateur)
-HyVanilla_Flower_Pot
-HyVanilla_Carpet_White
-HyVanilla_Carpet_Orange
-HyVanilla_Carpet_Magenta
-HyVanilla_Carpet_Light_Blue
-HyVanilla_Carpet_Yellow
-HyVanilla_Carpet_Lime
-HyVanilla_Carpet_Pink
-HyVanilla_Carpet_Gray
-HyVanilla_Carpet_Light_Gray
-HyVanilla_Carpet_Cyan
-HyVanilla_Carpet_Purple
-HyVanilla_Carpet_Blue
-HyVanilla_Carpet_Brown
-HyVanilla_Carpet_Green
-HyVanilla_Carpet_Red
-HyVanilla_Carpet_Black
 # Blocs de dev du mod HyColony (plugin/src/main/resources/Server/Item/Items/HyColony).
 HyColony_Placeholder_Solid
 HyColony_Placeholder_Fluid

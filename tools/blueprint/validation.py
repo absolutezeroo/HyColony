@@ -8,6 +8,7 @@ Sources des IDs, fusionnées :
                                 Elle peut être en retard sur ta version du jeu.
 - data/extra-block-ids.txt    : IDs validés en jeu mais absents de cette liste.
 - --ids FICHIER               : ta propre liste (remplace la liste HytalesHub).
+- les blocs du mod HyVanilla (hyvanilla.item_ids, lus dans ses assets).
 - les gabarits du mod HyDomum et les matériaux qu'il accepte (générés depuis les assets du jeu épinglé).
 """
 from __future__ import annotations
@@ -37,6 +38,8 @@ def load_known_ids(custom: str | Path | None = None) -> tuple[set[str], str]:
         ids |= _read_ids(extra)
     from . import domum  # noqa: PLC0415 (validation reste utilisable sans le mod HyDomum)
     ids |= domum.template_ids()
+    from . import hyvanilla  # noqa: PLC0415
+    ids |= hyvanilla.item_ids()
     ids |= set().union(*domum.slot_tags().values()) if domum.slot_tags() else set()  # matériaux vérifiés par HyDomum
     return ids, src
 
