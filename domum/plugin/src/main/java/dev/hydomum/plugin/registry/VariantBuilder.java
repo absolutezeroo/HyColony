@@ -9,9 +9,11 @@ import dev.hydomum.plugin.runtime.IconMap;
 import dev.hydomum.plugin.runtime.MaterialCatalog;
 import dev.hydomum.plugin.runtime.VariantAssets;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import org.jspecify.annotations.Nullable;
@@ -28,8 +30,8 @@ final class VariantBuilder {
     // Plugin resources, fixed while the server runs; batches may build concurrently.
     private final Map<String, Optional<IconMap>> iconMaps = new ConcurrentHashMap<>();
 
-    /** A batch: its BlockTypes and Items, the keys built, and whether a pair texture was newly registered. */
-    record Built(List<BlockType> types, List<Item> items, List<VariantKey> done, boolean newTexture) {}
+    /** A batch: its BlockTypes and Items, the keys built, and the textures and icons they name. */
+    record Built(List<BlockType> types, List<Item> items, List<VariantKey> done, Set<String> assetNames) {}
 
     VariantBuilder(VariantAssets assets) {
         this.assets = assets;
@@ -40,29 +42,33 @@ final class VariantBuilder {
         List<BlockType> types = new ArrayList<>();
         List<Item> items = new ArrayList<>();
         List<VariantKey> done = new ArrayList<>();
-        boolean newTexture = false;
+        Set<String> assetNames = new HashSet<>();
         for (VariantKey key : keys) {
             try {
-                VariantAssets.Published texture = layoutTexture(key, materials);
-                List<BlockType> family = factory.create(key, texture.name());
-                items.add(factory.createItem(key, icon(key, texture.name())));
+                String texture = layoutTexture(key, materials);
+                List<BlockType> family = factory.create(key, texture);
+                String icon = icon(key, texture);
+                items.add(factory.createItem(key, icon));
                 types.addAll(family);
                 done.add(key);
-                newTexture |= texture.created();
+                assetNames.add(texture);
+                if (icon != null) {
+                    assetNames.add(icon);
+                }
             } catch (RuntimeException | LinkageError | java.awt.AWTError e) { // AWT may lack native libraries
                 LOG.at(Level.SEVERE).withCause(e).log("hydomum: cannot create %s", key.id());
             }
         }
-        return new Built(types, items, done, newTexture);
+        return new Built(types, items, done, assetNames);
     }
 
     /** The texture key's models read: its material's own, or the pair texture of its two materials. */
-    private VariantAssets.Published layoutTexture(VariantKey key, MaterialCatalog materials) {
+    private String layoutTexture(VariantKey key, MaterialCatalog materials) {
         List<String> textures = key.materials().stream()
                 .map(m -> materials.texture(m).orElseThrow(() -> new IllegalStateException("not a material: " + m)))
                 .toList();
         if (textures.size() == 1) {
-            return new VariantAssets.Published(textures.getFirst(), false);
+            return textures.getFirst();
         }
         return assets.pairTexture(key.materials().get(0), key.materials().get(1), textures.get(0), textures.get(1));
     }

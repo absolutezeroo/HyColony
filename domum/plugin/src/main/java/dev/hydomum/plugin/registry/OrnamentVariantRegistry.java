@@ -7,7 +7,6 @@ import dev.hydomum.api.VariantKey;
 import dev.hydomum.plugin.api.OrnamentVariant;
 import dev.hydomum.plugin.persistence.VariantStore;
 import dev.hydomum.plugin.runtime.BlockTypeSynchronizer;
-import dev.hydomum.plugin.runtime.BlockTypeSynchronizer.Rebuild;
 import dev.hydomum.plugin.runtime.MaterialCatalog;
 import dev.hydomum.plugin.runtime.VariantAssets;
 import java.util.ArrayList;
@@ -39,6 +38,7 @@ public final class OrnamentVariantRegistry {
     private final Map<VariantKey, CompletableFuture<OrnamentVariant>> variants = new ConcurrentHashMap<>();
     private final BlockTypeSynchronizer synchronizer;
     private final VariantStore store;
+    private final VariantAssets assets;
     private final VariantBuilder builder;
     private volatile @Nullable Catalogs catalogs;
 
@@ -49,6 +49,7 @@ public final class OrnamentVariantRegistry {
     public OrnamentVariantRegistry(BlockTypeSynchronizer synchronizer, VariantStore store, VariantAssets assets) {
         this.synchronizer = synchronizer;
         this.store = store;
+        this.assets = assets;
         this.builder = new VariantBuilder(assets);
     }
 
@@ -120,10 +121,10 @@ public final class OrnamentVariantRegistry {
     }
 
     /**
-     * Builds and registers keys' blocks (textures first), then their items, and records them. At boot nothing is
-     * sent (no player yet: blocks and items reach clients in their Init packets); otherwise UpdateBlockTypes goes
-     * twice (the client misses the first runtime one), with an atlas rebuild only when a pair texture is new, and
-     * UpdateItems asks clients to refresh their icons (in game 2026-09-28).
+     * Builds keys' blocks and items (their new PNGs registered, not sent), registers them in the stores, then
+     * publishes the PNGs they name that were not sent yet, and saves the keys in the {@link VariantStore}. At boot
+     * nothing is sent (no player yet: assets, blocks and items reach clients when they join); otherwise
+     * UpdateBlockTypes goes twice (the client misses the first runtime one).
      */
     private Batch create(List<VariantKey> keys, boolean boot) {
         Catalogs loaded = catalogs;
@@ -132,9 +133,12 @@ public final class OrnamentVariantRegistry {
         }
         VariantBuilder.Built built = builder.build(keys, loaded.materials());
         if (!built.types().isEmpty()) {
-            synchronizer.register(built.types(), built.newTexture() && !boot ? Rebuild.TEXTURES : Rebuild.NONE, !boot);
-            synchronizer.registerItems(built.items(), Rebuild.NONE, !boot);
+            synchronizer.register(built.types(), !boot);
+            synchronizer.registerItems(built.items());
+            // Taken once the stores hold this batch: a key that failed before keeps its PNGs for its retry.
+            VariantAssets.Unsent unsent = assets.takeUnsent(built.assetNames());
             if (!boot) {
+                synchronizer.publish(built.types(), built.items(), unsent);
                 store.add(built.done());
             }
         }

@@ -3,54 +3,38 @@ package dev.hydomum.plugin.runtime;
 import com.hypixel.hytale.assetstore.AssetUpdateQuery;
 import com.hypixel.hytale.assetstore.map.BlockTypeAssetMap;
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.protocol.ItemBase;
 import com.hypixel.hytale.protocol.UpdateType;
 import com.hypixel.hytale.protocol.packets.assets.UpdateBlockTypes;
+import com.hypixel.hytale.protocol.packets.assets.UpdateItems;
+import com.hypixel.hytale.server.core.asset.common.CommonAsset;
+import com.hypixel.hytale.server.core.asset.common.CommonAssetModule;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
 import com.hypixel.hytale.server.core.universe.Universe;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
 /**
- * Registers runtime BlockTypes in Hytale's BlockType store, which gives each a new block id and broadcasts one
- * {@code UpdateBlockTypes} (AddOrUpdate, only these types) to connected players. It never sends
- * {@code RequestCommonAssetsRebuild}: no common asset (texture, model) is added.
+ * Registers runtime BlockTypes and Items in Hytale's stores, then publishes a batch's new common assets (PNGs) to
+ * connected players. The stores load first and their packets carry no client rebuild flag; the new PNGs go next;
+ * the flags that make clients read them come last, in their own packets (the sequencing of Frames'
+ * DynamicAssetReloader, with targeted flags instead of its {@code RequestCommonAssetsRebuild}, which is never sent).
  *
  * <p>Must not run on a world thread: {@code World.tick} holds the read lock of {@code AssetRegistry.ASSET_LOCK} and
  * {@code AssetStore.loadAssets} takes its write lock, which deadlocks (docs/research/plugin-b-api.md § 17).
  */
 public final class BlockTypeSynchronizer {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
-
-    /** Client caches the {@code UpdateBlockTypes} packet asks to rebuild (its four {@code update*} flags). */
-    public enum Rebuild {
-        /** No flag, as vanilla registers its "Unknown" placeholder blocks ({@code BlockType.getBlockIdOrUnknown}). */
-        NONE,
-        /**
-         * Block textures only: the client rebuilds its block texture atlas, which a new model texture needs (without
-         * it, a composed variant shows the wrong atlas region; in game 2026-09-28).
-         */
-        TEXTURES,
-        /**
-         * The Asset Editor's flags for the edited fields ({@code UIRebuildCaches} of DrawType, Textures,
-         * CustomModel, CustomModelTexture in {@code BlockType.CODEC}): block textures, models, model textures.
-         */
-        EDITOR,
-        /** Every flag, as a plain {@code loadAssets} (the 2026-09-27 experiment). */
-        ALL;
-
-        /** The store query flags of this mode. */
-        AssetUpdateQuery.RebuildCache cache() {
-            return switch (this) {
-                case NONE -> AssetUpdateQuery.RebuildCache.NO_REBUILD;
-                case TEXTURES -> new AssetUpdateQuery.RebuildCache(true, false, false, false, false, false);
-                case EDITOR -> new AssetUpdateQuery.RebuildCache(true, true, true, false, false, false);
-                case ALL -> AssetUpdateQuery.RebuildCache.DEFAULT;
-            };
-        }
-    }
+    /**
+     * Block textures only: the client rebuilds its block texture atlas, which a new model texture needs (without it,
+     * a composed variant shows the wrong atlas region; in game 2026-09-28).
+     */
+    private static final AssetUpdateQuery.RebuildCache BLOCK_TEXTURES =
+            new AssetUpdateQuery.RebuildCache(true, false, false, false, false, false);
 
     private final String packKey;
 
@@ -60,18 +44,16 @@ public final class BlockTypeSynchronizer {
     }
 
     /**
-     * Loads {@code types} into the store and broadcasts them with {@code rebuild}'s flags. When {@code twice}, the
-     * first packet carries no flag and a second copy carries them: each flag makes the client rebuild a cache (the
-     * block atlas flickers once per rebuild, in game 2026-09-28), and whichever packet the client keeps, the flags
-     * come last. Returns nothing: read the ids back from {@code BlockType.getAssetMap()}. Throws
-     * {@link IllegalStateException} when a type did not load.
+     * Loads {@code types} into the store, which gives each a block id and broadcasts one {@code UpdateBlockTypes}
+     * AddOrUpdate without rebuild flag (as vanilla registers its "Unknown" blocks). When {@code twice}, a second copy
+     * follows: a client misses the first runtime one of its connection. Read the ids back from
+     * {@code BlockType.getAssetMap()}. Throws {@link IllegalStateException} when a type did not load.
      */
-    public void register(List<BlockType> types, Rebuild rebuild, boolean twice) {
+    public void register(List<BlockType> types, boolean twice) {
         BlockTypeAssetMap<String, BlockType> map = BlockType.getAssetMap();
         int maxIdBefore = map.getNextIndex();
         long start = System.nanoTime();
-        Rebuild first = twice ? Rebuild.NONE : rebuild;
-        BlockType.getAssetStore().loadAssets(packKey, types, new AssetUpdateQuery(first.cache()));
+        BlockType.getAssetStore().loadAssets(packKey, types, AssetUpdateQuery.DEFAULT_NO_REBUILD);
         long micros = (System.nanoTime() - start) / 1_000;
         for (BlockType type : types) {
             int id = map.getIndex(type.getId());
@@ -81,11 +63,11 @@ public final class BlockTypeSynchronizer {
             LOG.at(Level.FINE).log("hydomum: registered %s as block id %d", type.getId(), id);
         }
         LOG.at(Level.INFO).log(
-                "hydomum: UpdateBlockTypes AddOrUpdate of %d type(s), maxId %d -> %d, %s, in %d us",
-                types.size(), maxIdBefore, map.getNextIndex(), first.cache(), micros);
+                "hydomum: UpdateBlockTypes AddOrUpdate of %d type(s), maxId %d -> %d, in %d us",
+                types.size(), maxIdBefore, map.getNextIndex(), micros);
         if (twice) {
             try {
-                resend(types, rebuild, map);
+                broadcastTypes(types, AssetUpdateQuery.RebuildCache.NO_REBUILD);
             } catch (RuntimeException e) { // optional workaround: the types are already registered and sent once
                 LOG.at(Level.SEVERE).withCause(e).log("hydomum: second UpdateBlockTypes failed");
             }
@@ -93,35 +75,58 @@ public final class BlockTypeSynchronizer {
     }
 
     /**
-     * Loads {@code items} into the Item store, which broadcasts one {@code UpdateItems} AddOrUpdate with
-     * {@code rebuild}'s flags, plus {@code updateIcons} when {@code icons} (an item names a new icon file). Register
-     * their blocks first: an item's packet carries its block's id. Throws {@link IllegalStateException} when an item
-     * did not load.
+     * Loads {@code items} into the Item store, which broadcasts one {@code UpdateItems} AddOrUpdate without rebuild
+     * flag. Register their blocks first: an item's packet carries its block's id. Throws
+     * {@link IllegalStateException} when an item did not load.
      */
-    public void registerItems(List<Item> items, Rebuild rebuild, boolean icons) {
-        AssetUpdateQuery.RebuildCache c = rebuild.cache();
-        AssetUpdateQuery.RebuildCache cache = new AssetUpdateQuery.RebuildCache(
-                c.isBlockTextures(), c.isModels(), c.isModelTextures(), c.isMapGeometry(), icons, false);
-        Item.getAssetStore().loadAssets(packKey, items, new AssetUpdateQuery(cache));
+    public void registerItems(List<Item> items) {
+        Item.getAssetStore().loadAssets(packKey, items, AssetUpdateQuery.DEFAULT_NO_REBUILD);
         for (Item item : items) {
             if (Item.getAssetMap().getAsset(item.getId()) == null) {
                 throw new IllegalStateException("Item " + item.getId() + " was not loaded");
             }
         }
-        LOG.at(Level.INFO).log("hydomum: UpdateItems AddOrUpdate of %d item(s), updateIcons=%b", items.size(), icons);
+        LOG.at(Level.INFO).log("hydomum: UpdateItems AddOrUpdate of %d item(s)", items.size());
     }
 
     /**
-     * Broadcasts the same AddOrUpdate packet {@code loadAssets} just sent. Seen in game (2026-09-28): a client
-     * renders the type of the first runtime {@code UpdateBlockTypes} of its connection pink and black until it
-     * reconnects, while the following ones render; the second copy is the workaround under test.
+     * Sends connected players the unsent PNGs a registered batch names, then asks them to read them: the batch's
+     * {@code types} again with {@code updateBlockTextures} when a texture is new (the client rebuilds its whole
+     * atlas), its {@code items} again with {@code updateIcons} when an icon is new. Sends nothing without new PNG, or
+     * without player: joining players download them with the required assets. A failure is logged: clients lack the
+     * new PNGs until they reconnect.
      */
-    private static void resend(List<BlockType> types, Rebuild rebuild, BlockTypeAssetMap<String, BlockType> map) {
+    public void publish(List<BlockType> types, List<Item> items, VariantAssets.Unsent unsent) {
+        List<CommonAsset> textures = unsent.textures();
+        List<CommonAsset> icons = unsent.icons();
+        if ((textures.isEmpty() && icons.isEmpty()) || Universe.get().getPlayerCount() == 0) {
+            return;
+        }
+        try {
+            List<CommonAsset> assets = new ArrayList<>(textures);
+            assets.addAll(icons);
+            CommonAssetModule.get().sendAssets(assets, false);
+            if (!textures.isEmpty()) {
+                broadcastTypes(types, BLOCK_TEXTURES);
+            }
+            if (!icons.isEmpty()) {
+                broadcastItemIcons(items);
+            }
+            LOG.at(Level.INFO).log(
+                    "hydomum: published %d texture(s) and %d icon(s), then their rebuild flags",
+                    textures.size(), icons.size());
+        } catch (RuntimeException e) {
+            LOG.at(Level.SEVERE).withCause(e).log("hydomum: new assets not sent, clients need to reconnect");
+        }
+    }
+
+    /** Broadcasts an {@code UpdateBlockTypes} AddOrUpdate of the registered types with {@code cache}'s flags. */
+    private static void broadcastTypes(List<BlockType> types, AssetUpdateQuery.RebuildCache cache) {
+        BlockTypeAssetMap<String, BlockType> map = BlockType.getAssetMap();
         Map<Integer, com.hypixel.hytale.protocol.BlockType> packets = new HashMap<>();
         for (BlockType type : types) {
             packets.put(map.getIndex(type.getId()), type.toPacket());
         }
-        AssetUpdateQuery.RebuildCache cache = rebuild.cache();
         Universe.get()
                 .broadcastPacketNoCache(new UpdateBlockTypes(
                         UpdateType.AddOrUpdate,
@@ -131,6 +136,18 @@ public final class BlockTypeSynchronizer {
                         cache.isModelTextures(),
                         cache.isModels(),
                         cache.isMapGeometry()));
-        LOG.at(Level.INFO).log("hydomum: UpdateBlockTypes sent a second time for %d type(s), %s", types.size(), cache);
+        LOG.at(Level.INFO).log("hydomum: UpdateBlockTypes sent again for %d type(s), %s", types.size(), cache);
+    }
+
+    /**
+     * Broadcasts an {@code UpdateItems} AddOrUpdate of {@code items} with {@code updateIcons}: without it, a client
+     * ignores a new icon (in game 2026-09-28).
+     */
+    private static void broadcastItemIcons(List<Item> items) {
+        Map<String, ItemBase> packets = new HashMap<>();
+        for (Item item : items) {
+            packets.put(item.getId(), item.toPacket());
+        }
+        Universe.get().broadcastPacketNoCache(new UpdateItems(UpdateType.AddOrUpdate, packets, null, false, true));
     }
 }

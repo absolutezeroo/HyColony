@@ -154,7 +154,7 @@ Changements de fil U7 qui imposent un client U7 mais ne touchent aucun de nos pa
 - `AssetEditor*` (N [334]) ;
 - `UpdateBlockDamage(s)` pour les fissures, désormais envoyés par le serveur (voir A1).
 
-Un client qui demande un asset inconnu est maintenant déconnecté au lieu de provoquer une `NullPointerException` (`CommonAssetModule.java:527-531`). À garder en tête pour HyDomum : `registerSilently` doit rester enregistré avant tout envoi. **[in-game]**
+Un client qui demande un asset inconnu est maintenant déconnecté au lieu de provoquer une `NullPointerException` (`CommonAssetModule.java:527-531`). À garder en tête pour HyDomum : `VariantAssets.register` doit inscrire la PNG avant tout envoi (`BlockTypeSynchronizer.publish`). **[in-game]**
 
 ## Ce qui reste incertain
 

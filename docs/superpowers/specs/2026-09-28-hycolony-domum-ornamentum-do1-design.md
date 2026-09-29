@@ -35,7 +35,7 @@ Porter Domum Ornamentum (DO) **avec son vrai fonctionnement** : un type de bloc 
   - **forme à 1 matériau** : le modèle lit une texture de bloc **32 × 32**. La variante prend directement la texture du matériau : aucune nouvelle PNG, aucun scintillement ;
   - **forme à 2 matériaux** : le modèle lit une texture **64 × 32**, le composant 1 dans la moitié gauche, le composant 2 dans la moitié droite. La texture de la variante est **les deux textures de matériaux côte à côte**.
   - Les UV DO (sprites 16 px) sont mis à l'échelle de 32 px par bloc.
-- **Texture de paire** : elle ne dépend que de la paire de matériaux, pas de la forme. `chêne + pierre` sert aux 10 colombages, aux 5 bardeaux, etc. Elle est générée une fois par paire et publiée comme dans le prototype (PNG sur disque, inscription silencieuse, envoi de ce seul fichier), puis la variante part avec `updateBlockTextures`. **Coût connu : un scintillement à la première utilisation d'une paire** (reconstruction de l'atlas du client), aucun pour une paire déjà connue.
+- **Texture de paire** : elle ne dépend que de la paire de matériaux, pas de la forme. `chêne + pierre` sert aux 10 colombages, aux 5 bardeaux, etc. Elle est générée une fois par paire (PNG sur disque) et inscrite silencieusement, sans envoi. Une fois les `BlockType` et `Item` du lot chargés sans drapeau, les PNG neuves partent aux joueurs connectés, puis un `UpdateBlockTypes` avec `updateBlockTextures` (`docs/research/domum-ornamentum.md`, « Séquencement des PNG neuves »). **Coût connu : un scintillement à la première utilisation d'une paire** (reconstruction de l'atlas du client), aucun pour une paire déjà connue.
 
 ## Familles de DO-1
 

@@ -2,22 +2,24 @@ package dev.hydomum.plugin.runtime;
 
 import com.hypixel.hytale.function.supplier.CachedSupplier;
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.server.core.asset.common.CommonAsset;
 import com.hypixel.hytale.server.core.asset.common.CommonAssetModule;
 import com.hypixel.hytale.server.core.asset.common.CommonAssetRegistry;
 import com.hypixel.hytale.server.core.asset.common.asset.FileCommonAsset;
-import com.hypixel.hytale.server.core.universe.Universe;
 import dev.hydomum.api.VariantKey;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.lang.ref.Reference;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -26,10 +28,10 @@ import java.util.zip.CRC32;
 /**
  * The PNGs a variant needs beyond vanilla ones: the texture of a two-material pair (unless the pack ships it) and
  * its inventory icon. Each is generated once per asset name and inputs, kept on disk (reused at the next boot) and
- * registered as a common asset without notification: this one file goes to connected players
- * ({@code sendAsset(asset, false)}, no {@code RequestCommonAssetsRebuild}) and joins the assets a joining player
- * downloads, whose private cached list is refreshed by reflection (pinned 0.6.8). Must run off world threads (it
- * reads textures and writes files).
+ * registered as a common asset without notification or send: it joins the assets a joining player downloads, whose
+ * private cached list is refreshed by reflection, and waits until a batch that names it is registered in the stores
+ * and takes it ({@link #takeUnsent}) for {@link BlockTypeSynchronizer#publish}. Must run off world threads (it reads
+ * textures and writes files).
  *
  * <p>ponytail: PNGs of older fingerprints stay on disk, unread; add a sweep of the folder if it ever grows large.
  */
@@ -47,12 +49,14 @@ public final class VariantAssets {
     // Loaded textures never change while the server runs.
     private final Map<String, byte[]> sources = new ConcurrentHashMap<>();
     private final Map<String, BufferedImage> images = new ConcurrentHashMap<>();
+    // Registered, not yet sent to connected players, by name: a key that fails keeps its PNGs until it is retried,
+    // and of two batches naming one PNG, only the first to take it sends it and its rebuild flag.
+    // ponytail: a key never retried keeps its entry until restart (one per name); sweep them if that ever matters.
+    private final Map<String, CommonAsset> unsentTextures = new ConcurrentHashMap<>();
+    private final Map<String, CommonAsset> unsentIcons = new ConcurrentHashMap<>();
 
-    /**
-     * A texture's asset name and whether this call registered it, drawn or reused from disk (clients then rebuild
-     * their block atlas).
-     */
-    public record Published(String name, boolean created) {}
+    /** Registered pair textures and icons that connected players do not have yet. */
+    public record Unsent(List<CommonAsset> textures, List<CommonAsset> icons) {}
 
     /**
      * @param packKey the plugin's asset pack name ({@code Group:Name})
@@ -68,31 +72,54 @@ public final class VariantAssets {
      * when the pack or an earlier call has it, else registered from disk or generated. Throws when a texture is
      * unreadable.
      */
-    public Published pairTexture(String first, String second, String tex1, String tex2) {
+    public String pairTexture(String first, String second, String tex1, String tex2) {
         String name = PAIRS + first + "__" + second + ".png";
         if (CommonAssetRegistry.getByName(name) != null) {
-            return new Published(name, false);
+            return name;
         }
-        return publish(name, fingerprint(0, source(tex1), source(tex2)), () -> Textures.pair(image(tex1), image(tex2)));
+        return registerOnce(
+                name,
+                fingerprint(0, source(tex1), source(tex2)),
+                () -> Textures.pair(image(tex1), image(tex2)),
+                unsentTextures);
     }
 
     /** The common asset name of key's icon, painted through map from its layout texture; throws on failure. */
     public String icon(VariantKey key, IconMap map, String layoutTexture) {
-        return publish(
-                        "Icons/ItemsGenerated/" + key.blockTypeKey() + ".png",
-                        fingerprint(map.crc(), source(layoutTexture)),
-                        () -> map.sample(image(layoutTexture)))
-                .name();
+        return registerOnce(
+                "Icons/ItemsGenerated/" + key.blockTypeKey() + ".png",
+                fingerprint(map.crc(), source(layoutTexture)),
+                () -> map.sample(image(layoutTexture)),
+                unsentIcons);
     }
 
-    /** {@code name}, registered on the first call only; created tells whether this call registered it. */
-    private Published publish(String name, long fingerprint, Supplier<BufferedImage> image) {
-        boolean[] created = {false};
-        String registered = published.computeIfAbsent(name, n -> {
-            created[0] = true;
-            return register(n, stored(n, fingerprint, image));
+    /**
+     * Takes the registered PNGs among {@code names} that were not sent yet; a name taken once is never returned
+     * again. Call it once the stores hold the batch that uses these names, so that a batch failing before keeps them.
+     */
+    public Unsent takeUnsent(Collection<String> names) {
+        return new Unsent(take(unsentTextures, names), take(unsentIcons, names));
+    }
+
+    /** The assets of {@code names} in unsent, removed from it. */
+    private static List<CommonAsset> take(Map<String, CommonAsset> unsent, Collection<String> names) {
+        List<CommonAsset> taken = new ArrayList<>();
+        for (String name : names) {
+            CommonAsset asset = unsent.remove(name);
+            if (asset != null) {
+                taken.add(asset);
+            }
+        }
+        return taken;
+    }
+
+    /** {@code name}, registered on the first call only, whose asset then waits in {@code unsent}. */
+    private String registerOnce(
+            String name, long fingerprint, Supplier<BufferedImage> image, Map<String, CommonAsset> unsent) {
+        return published.computeIfAbsent(name, n -> {
+            register(n, stored(n, fingerprint, image)).ifPresent(a -> unsent.put(n, a));
+            return n;
         });
-        return new Published(registered, created[0]);
     }
 
     /**
@@ -151,38 +178,25 @@ public final class VariantAssets {
         return crc.getValue();
     }
 
-    private String register(String name, Path file) {
+    /**
+     * What {@code addCommonAsset} does for a new asset, minus its universe-wide notification and its send: registry
+     * and joining players' list. Returns the asset, or empty when another pack's asset of that name hides it.
+     */
+    private Optional<CommonAsset> register(String name, Path file) {
         long start = System.nanoTime();
         byte[] png = readAll(file);
+        // The asset holds its bytes by weak reference and rereads the file once they are collected.
         FileCommonAsset asset = new FileCommonAsset(file, name, png);
-        // The asset holds its bytes by weak reference: keeping the blob reachable makes sendAsset write the parts
-        // now, on this thread, before the packet that names the asset.
-        CompletableFuture<byte[]> blob = asset.getBlob();
-        try {
-            registerSilently(asset);
-        } finally {
-            Reference.reachabilityFence(blob);
+        CommonAssetRegistry.AddCommonAssetResult result = CommonAssetRegistry.addCommonAsset(packKey, asset);
+        if (!result.getActiveAsset().equals(result.getNewPackAsset())) {
+            LOG.at(Level.WARNING).log("hydomum: %s hidden by another pack's asset", name);
+            return Optional.empty();
         }
+        refreshRequiredAssets();
         LOG.at(Level.FINE).log(
                 "hydomum: asset %s (%d bytes) registered in %d us",
                 name, png.length, (System.nanoTime() - start) / 1_000);
-        return name;
-    }
-
-    /**
-     * What {@code addCommonAsset} does for a new asset, minus its universe-wide notification: registry, joining
-     * players' list, and this one file to connected players without {@code RequestCommonAssetsRebuild}.
-     */
-    private void registerSilently(FileCommonAsset asset) {
-        CommonAssetRegistry.AddCommonAssetResult result = CommonAssetRegistry.addCommonAsset(packKey, asset);
-        if (!result.getActiveAsset().equals(result.getNewPackAsset())) {
-            LOG.at(Level.WARNING).log("hydomum: %s hidden by another pack's asset", asset.getName());
-            return;
-        }
-        refreshRequiredAssets();
-        if (Universe.get().getPlayerCount() > 0) {
-            CommonAssetModule.get().sendAsset(asset, false);
-        }
+        return Optional.of(asset);
     }
 
     /**

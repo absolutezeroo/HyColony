@@ -497,7 +497,7 @@ Nouvelle piste, différente de B.6 : **aucun asset commun n'est ajouté**. La va
 - **Prototype** : `OrnamentShape.SHINGLE` réutilise le modèle vanilla `Blocks/Structures/Roofs/Slope_Hay.blockymodel`, sans nouveau modèle.
   - `runtime/VariantTextureComposer` part de la texture vanilla `Slope_Hay_Textures/Softwood.png` (64×128). Chaque pixel opaque prend le pixel correspondant de la texture de bloc du matériau, répétée : la couverture (1ᵉʳ matériau) dans la zone 56×32 en haut à gauche, le support (2ᵉ matériau) ailleurs.
   - Cette zone est lue à l'œil sur la texture vanilla ; elle est approximative. Les UV du modèle ne se projettent pas simplement sur la texture 64×128 (échelle non élucidée).
-  - La texture est publiée comme les icônes (`runtime/VariantAssets` : PNG sur disque, inscription silencieuse, `sendAsset(asset, false)`), **avant** le `UpdateBlockTypes` qui la nomme.
+  - La texture est publiée comme les icônes (`runtime/VariantAssets` : PNG sur disque, inscription silencieuse, `sendAsset(asset, false)`), **avant** le `UpdateBlockTypes` qui la nomme. (Remplacé le 2026-09-29 : voir « Séquencement des PNG neuves ».)
 - **Résultat en jeu (2026-09-28)** :
   - avec `--rebuild=none`, le bloc n'est pas rose, mais il montre une **autre région de l'atlas**. Hypothèse (client fermé) : sans ce drapeau, le client ne place pas la nouvelle texture dans son atlas de textures de bloc ;
   - avec `--rebuild=editor` (`updateBlockTextures`, `updateModels`, `updateModelTextures`), la texture est **correcte**, sans `RequestCommonAssetsRebuild`, et les variantes fausses créées avant sont corrigées du même coup (atlas reconstruit).
@@ -528,6 +528,28 @@ Nouvelle piste, différente de B.6 : **aucun asset commun n'est ajouté**. La va
 #### État final (DO-1, 2026-09-28)
 
 Le prototype est devenu le moteur générique de DO-1 (aujourd'hui `domum/plugin`) : les formes viennent du manifeste généré (`hydomum/shapes.json`), les matériaux des tags DO (`ornamentTags` de `hydomum/id-map.json`, lus sur les `BlockType` vanilla par `MaterialCatalog`), les icônes des cartes d'icône générées au build (`hydomum/icons/<forme>.png`, lues par `IconMap`). Les réglages vérifiés en jeu ci-dessus sont fixés dans le code : envoi double avec les drapeaux sur le second, `TEXTURES` seulement quand une nouvelle texture de paire est générée, inscription silencieuse des PNG, `UpdateItems` avec `updateIcons`. Les variantes demandées ensemble sont créées en un seul lot. Les gabarits `HyColony_Ornament_*` du prototype sont supprimés. Vérifications en jeu : `docs/TESTING.md`, section « HyDomum : blocs d'architecte (DO-1) ».
+
+#### Séquencement des PNG neuves (2026-09-29)
+
+- **Avant** : chaque PNG neuve (texture de paire, icône) partait aux joueurs connectés dès son inscription (`sendAsset(asset, false)`), au milieu de la construction du lot. Venaient ensuite le `UpdateBlockTypes` avec `updateBlockTextures` (sur la 2ᵉ copie du double envoi) et le `UpdateItems` avec `updateIcons`.
+- **Référence** : le mod Frames (`github.com/luisca343/Frames`, `core/DynamicAssetReloader.java`) procède ainsi :
+  1. `CommonAssetRegistry.addCommonAsset` inscrit l'asset **sans l'envoyer** ;
+  2. `Item.getAssetStore().loadAssetsFromPaths(..., RebuildCache` tout à `true`) recharge les stores ;
+  3. `CommonAssetModule.sendAssets(assets, true)` envoie les fichiers, suivis d'un `RequestCommonAssetsRebuild` (`H: server/core/asset/common/CommonAssetModule.java:546-565`).
+
+  Selon Frames, des assets envoyés avant la reconstruction peuvent être effacés côté client par celle-ci.
+- **Retenu pour HyDomum** : le même ordre, avec nos drapeaux ciblés à la place de `RequestCommonAssetsRebuild`. Recopier Frames enverrait cette demande à chaque création, puisque chaque variante neuve a une icône neuve ; or elle a fait scintiller tout l'écran le 2026-09-27 (B.6).
+  1. `VariantAssets` inscrit sans envoyer, et garde par nom les PNG inscrites mais pas encore envoyées (textures, icônes). Une fois ses stores chargés, un lot prend celles **qu'il nomme** (`takeUnsent(noms)`), et chacune n'est prise qu'une fois. Une clé qui échoue garde donc ses PNG jusqu'à son nouvel essai. De deux lots parallèles qui nomment la même paire, le premier à la prendre l'envoie avec son drapeau.
+  2. `BlockTypeSynchronizer.register` et `registerItems` chargent les stores avec `AssetUpdateQuery.DEFAULT_NO_REBUILD`. Le double envoi de `UpdateBlockTypes` reste, sans drapeau sur les deux copies.
+  3. `BlockTypeSynchronizer.publish` envoie `sendAssets(nouvelles, false)`, puis un `UpdateBlockTypes` du lot avec `updateBlockTextures` si une texture est neuve, et un `UpdateItems` du lot avec `updateIcons` si une icône est neuve.
+- Un joueur qui se connecte reçoit toujours les PNG par la liste des assets requis, invalidée à l'inscription (réflexion, inchangée).
+- **[in-game]** À vérifier :
+  - le scintillement disparaît-il, ou reste-t-il un seul scintillement par paire neuve ?
+  - la texture de paire et l'icône sont-elles justes du premier coup chez un joueur déjà connecté ?
+  - un 2ᵉ joueur qui se connecte ensuite les voit-il ?
+  - deux formes de la même paire neuve demandées presque en même temps (deux `/hydomum give` rapides) sont-elles justes toutes les deux ?
+  - même question avec deux paires neuves **différentes**.
+- **Résultat en jeu (2026-09-30)** : il ne reste qu'**un** scintillement, à la première création, qui utilise une paire neuve (reconstruction de l'atlas). Avant ce changement, chaque création qui produisait une nouvelle PNG scintillait aussi, par exemple le passage des blocs aux portes dans l'établi ; ce n'est plus le cas.
 
 #### DO-2a (2026-09-28)
 
