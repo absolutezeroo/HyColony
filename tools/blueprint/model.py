@@ -18,6 +18,7 @@ class Mapping:
     deco       : True pour forcer support=15 (posé par un joueur ; empêche
                  les troncs de se comporter comme des arbres).
     components : composants de bloc à écrire dans le prefab.
+    fluid      : fluide Hytale de la case (tableau `fluids` du prefab), ou None.
     """
     target: str | None
     rotation: int = 0
@@ -26,16 +27,22 @@ class Mapping:
     skip: bool = False
     deco: bool = False
     components: dict | None = None
+    fluid: str | None = None
 
     @property
     def unmapped(self) -> bool:
-        return self.target is None and not self.skip
+        return self.target is None and not self.skip and self.fluid is None
 
 
 def place(target: str, rotation: int = 0, note: str | None = None, *,
           rule: str = "", deco: bool = False, components: dict | None = None) -> Mapping:
     return Mapping(target, int(rotation or 0), [note] if note else [], rule,
                    False, deco, components)
+
+
+def fluid(name: str, note: str, *, rule: str = "fluid") -> Mapping:
+    """Une case de fluide seul : rien dans `blocks`, le fluide dans `fluids`."""
+    return Mapping(None, 0, [note], rule, False, fluid=name)
 
 
 def skip(note: str, *, rule: str = "") -> Mapping:

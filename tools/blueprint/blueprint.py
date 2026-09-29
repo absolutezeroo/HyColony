@@ -79,6 +79,10 @@ def _primary_offset(root: dict) -> Pos | None:
 def _find_anchor(root: dict, grid: dict[Pos, dict]) -> tuple[Pos, str]:
     tes = [te for te in root.get("tile_entities", []) or [] if isinstance(te, dict)]
 
+    # 0) L'ancre de Structurize, celle que MineColonies utilise (la caserne, pas sa première tour).
+    po = _primary_offset(root)
+    if po is not None:
+        return po, "optional_data primary_offset (Structurize)"
     # 1) Entrepôt : tile entity dédiée, puis bloc de hutte.
     for te in tes:
         if te.get("id") == "minecolonies:warehouse":
@@ -90,11 +94,7 @@ def _find_anchor(root: dict, grid: dict[Pos, dict]) -> tuple[Pos, str]:
     for te in tes:
         if te.get("id") == "minecolonies:colonybuilding":
             return _te_pos(te), "tile entity minecolonies:colonybuilding"
-    # 3) Offset principal enregistré par Structurize.
-    po = _primary_offset(root)
-    if po is not None:
-        return po, "optional_data primary_offset (Structurize)"
-    # 4) N'importe quel bloc de hutte.
+    # 3) N'importe quel bloc de hutte.
     for pos, e in grid.items():
         if is_placeholder(e.get("Name", "")) and e.get("Name", "").startswith("minecolonies:blockhut"):
             return pos, f"bloc {e['Name']}"

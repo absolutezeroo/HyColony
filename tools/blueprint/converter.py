@@ -25,7 +25,7 @@ from . import tables as T
 from .blueprint import Blueprint, load_blueprint
 from .detectors import is_bed, is_normal_door, is_wall_sign, run_detectors
 from .geometry import DIR, OPPOSITE, Pos, sub, yaw_for
-from .model import Mapping, place, skip, unmapped
+from .model import Mapping, fluid, place, skip, unmapped
 
 DATA = Path(__file__).resolve().parent / "data"
 UPSTREAM_CSV = DATA / "default-block-overrides.csv"
@@ -232,19 +232,32 @@ class Options:
 # ne reçoivent PAS de vide forcé : il pourrait effacer le modèle.
 _EMPTY_AFTER_SKIP = {"removed", "chair", "upstream"}
 
+# Blocs de dev du mod HyColony (plugin/.../Server/Item/Items/HyColony).
+PLACEHOLDER_SOLID = "HyColony_Placeholder_Solid"
+PLACEHOLDER_FLUID = "HyColony_Placeholder_Fluid"
+# Fluides Minecraft -> fluide Hytale du tableau `fluids` (niveau 1 : une source, comme les prefabs vanilla).
+FLUIDS = {"minecraft:water": "Water_Source", "minecraft:lava": "Lava_Source"}
+
 
 def editor_block(bp: Blueprint, pos: Pos, name: str, m: Mapping) -> Mapping:
-    """Équivalents Hytale des blocs spéciaux MineColonies / Structurize.
+    """Équivalents Hytale des blocs spéciaux MineColonies / Structurize (docs/research/structurize-placeholders.md).
 
-    minecraft:air                     -> Empty         (vide forcé : le collage creuse)
-    structurize:blocksolidsubstitution-> Editor_Block  (« terrain plein ici si vide »)
-    structurize:blocksubstitution     -> rien          (terrain laissé intact)
-    bloc de hutte à l'ancre           -> Editor_Anchor (l'ancre survit à l'éditeur de prefabs)
+    minecraft:air, blocktagsubstitution -> Empty                      (vide forcé)
+    structurize:blocksolidsubstitution  -> HyColony_Placeholder_Solid (bloc de remplissage si le sol n'est pas plein)
+    structurize:blockfluidsubstitution  -> HyColony_Placeholder_Fluid (eau si ni fluide ni bloc plein)
+    structurize:blocksubstitution       -> rien                       (terrain laissé intact)
+    bloc de hutte à l'ancre             -> Editor_Anchor              (l'ancre survit à l'éditeur de prefabs)
+    Le niveau de styles.json doit porter "minecolonies": true pour que HyColony lise ces blocs.
     """
     if name == "minecraft:air":
         return place("Empty", 0, "air du blueprint -> vide forcé", rule="editor_empty")
+    if name == "structurize:blocktagsubstitution":
+        # Sans bloc de remplacement (le cas des plans medievaloak), Structurize le traite comme de l'air.
+        return place("Empty", 0, "substitution à étiquettes -> vide forcé", rule="editor_empty")
     if name == "structurize:blocksolidsubstitution":
-        return place("Editor_Block", 0, "substitution pleine -> Editor Block", rule="editor_solid")
+        return place(PLACEHOLDER_SOLID, 0, "substitution pleine -> substitut solide", rule="editor_solid")
+    if name == "structurize:blockfluidsubstitution":
+        return place(PLACEHOLDER_FLUID, 0, "substitution de fluide -> substitut de fluide", rule="editor_fluid")
     if pos == bp.anchor and name.startswith("minecolonies:blockhut"):
         return place("Editor_Anchor", 0, f"{name} -> Editor Anchor", rule="editor_anchor")
     if m.skip and m.rule in _EMPTY_AFTER_SKIP:
@@ -283,6 +296,8 @@ class Converter:
         m = always_empty(name, p)
         if m:
             return m
+        if name in FLUIDS:
+            return fluid(FLUIDS[name], f"{name} -> fluide {FLUIDS[name]}")
         if name.startswith(domum.PREFIX):
             m = domum.rule(bp, pos, name, p, self.options.domum_materials)
             if m:
@@ -363,7 +378,12 @@ class Result:
                 b["components"] = comps
             blocks.append(b)
         blocks.sort(key=lambda b: (b["x"], b["z"], b["y"]))
-        return {"version": 8, "blockIdVersion": 3, "anchorX": 0, "anchorY": 0, "anchorZ": 0, "blocks": blocks}
+        prefab = {"version": 8, "blockIdVersion": 3, "anchorX": 0, "anchorY": 0, "anchorZ": 0, "blocks": blocks}
+        fluids = [{"x": c.pos[0] - ax, "y": c.pos[1] - ay, "z": c.pos[2] - az, "name": c.mapping.fluid, "level": 1}
+                  for c in self.cells if c.mapping.fluid]
+        if fluids:
+            prefab["fluids"] = sorted(fluids, key=lambda f: (f["x"], f["z"], f["y"]))
+        return prefab
 
     def unmapped(self) -> Counter:
         return Counter(c.source.get("Name", "") for c in self.cells if c.mapping.unmapped)
