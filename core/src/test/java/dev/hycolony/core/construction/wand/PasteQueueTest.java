@@ -9,10 +9,14 @@ import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.BlueprintEntry;
+import dev.hycolony.core.construction.blueprint.BlueprintMarkers;
 import dev.hycolony.core.construction.blueprint.StructurePlan;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.config.ColonyConfig;
+import dev.hycolony.core.kernel.item.BlockKey;
+import dev.hycolony.core.kernel.item.BlockKind;
+import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.Workstation;
@@ -157,5 +161,39 @@ class PasteQueueTest {
             queue.tick();
         }
         assertTrue(queue.isEmpty());
+    }
+
+    @Test
+    void aMineColoniesPasteKeepsGoodGroundAndTerrainAndFillsTheRest() {
+        BlockState planks = FakeBlueprints.state(FakeBlueprints.PLANKS);
+        BlockState dirt = FakeBlueprints.state(FakeBlueprints.DIRT);
+        BlockState water = new BlockState(new BlockKey("~fluid:Water_Source"), 0);
+        t.catalog.kinds.put(water.key(), BlockKind.FLUID);
+        t.blocks.blocks.put(HUT.offset(1, -1, 0), planks); // good ground under a fill cell
+        t.blocks.blocks.put(HUT.offset(3, 0, 0), planks); // a solid block on a fluid cell
+        t.blocks.blocks.put(HUT.offset(4, 0, 0), planks); // absent: terrain
+        t.blocks.blocks.put(HUT.offset(2, 0, 0), planks); // explicit air
+        Blueprint bp = new Blueprint(
+                "mc",
+                List.of(),
+                new BlockPos(0, -1, 0),
+                new BlockPos(5, 0, 0),
+                Optional.of(new BlueprintMarkers(
+                        List.of(new BlockPos(2, 0, 0)),
+                        List.of(new BlockPos(1, -1, 0), new BlockPos(2, -1, 0)),
+                        List.of(
+                                new BlueprintEntry(new BlockPos(3, 0, 0), water, false),
+                                new BlueprintEntry(new BlockPos(5, 0, 0), water, false)))));
+        queue.add(StructurePlan.build(bp, HUT, t.catalog, FakeBlueprints.DIRT));
+        for (int i = 0; i < 10; i++) {
+            queue.tick();
+        }
+
+        assertEquals(planks, t.blocks.blocks.get(HUT.offset(1, -1, 0)));
+        assertEquals(dirt, t.blocks.blocks.get(HUT.offset(2, -1, 0)));
+        assertEquals(planks, t.blocks.blocks.get(HUT.offset(3, 0, 0)));
+        assertEquals(water, t.blocks.blocks.get(HUT.offset(5, 0, 0)));
+        assertEquals(planks, t.blocks.blocks.get(HUT.offset(4, 0, 0)));
+        assertFalse(t.blocks.blocks.containsKey(HUT.offset(2, 0, 0)));
     }
 }

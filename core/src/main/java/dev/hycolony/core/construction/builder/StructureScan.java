@@ -46,7 +46,8 @@ final class StructureScan {
 
     /**
      * CLEAR: a block the plan does not want there; REMOVE: any block; CLEAR_LEFTOVERS: a block still as the previous
-     * level placed it, that the new plan does not want; SOLID/DECORATE: not yet as planned.
+     * level placed it, that the new plan does not want, or for a MineColonies plan anything on its air cells (MC
+     * CLEAR_NON_SOLIDS); SOLID/DECORATE: not yet as planned.
      */
     private boolean needsWork(BuildSite site, Stage stage, int i, BlockPos pos) {
         BlockState world = blocks.get(pos).orElse(null);
@@ -54,13 +55,15 @@ final class StructureScan {
             case CLEAR -> world != null && clears(site, pos, world) && notAHut(pos);
             case REMOVE -> world != null && mineable(world) && notAHut(pos);
             case CLEAR_LEFTOVERS ->
-                // The old floor (below the hut) stays, as CLEAR's box starts at the hut level: no trench around.
-                pos.y() >= site.loadedOrder().buildingPos().y()
-                        && world != null
-                        && world.equals(site.previousPlan().stateAt(pos))
-                        && !world.equals(site.plan().stateAt(pos))
-                        && mineable(world)
-                        && notAHut(pos);
+                site.plan().hasMarkers()
+                        ? world != null && clearable(world) && notAHut(pos)
+                        // The old floor (below the hut) stays, as CLEAR's box starts at the hut level: no trench.
+                        : pos.y() >= site.loadedOrder().buildingPos().y()
+                                && world != null
+                                && world.equals(site.previousPlan().stateAt(pos))
+                                && !world.equals(site.plan().stateAt(pos))
+                                && mineable(world)
+                                && notAHut(pos);
             default -> {
                 BlueprintEntry e = site.entry(stage, i);
                 // The final walk only refills what was broken (air); a block the player changed stays.
@@ -79,7 +82,7 @@ final class StructureScan {
      * good floor, never a fluid (MC SolidSubstitutionPlacementHandler, AbstractEntityAIStructure.skipClearing).
      */
     private boolean clears(BuildSite site, BlockPos pos, BlockState world) {
-        if (site.plan().isFill(pos)) {
+        if (site.plan().isFillCell(pos)) {
             return mineable(world) && !catalog.isGoodFloor(world.key());
         }
         return clearable(world) && !world.equals(site.plan().stateAt(pos));

@@ -40,8 +40,7 @@ public final class StructurePlan {
     private final List<BlockPos> solidPositions;
     private final List<BlockPos> decoPositions;
     private final Map<BlockPos, BlockState> stateAt;
-    private final Set<BlockPos> fillCells;
-    private final Set<BlockPos> fluidCells;
+    private final Cells cells;
 
     /** The sorted SOLID, DECORATE and REMOVE lists, and the planned state by world position. */
     private record Lists(
@@ -50,8 +49,13 @@ public final class StructurePlan {
             List<BlockPos> remove,
             Map<BlockPos, BlockState> stateAt) {}
 
-    private StructurePlan(
-            BlockPos hut, List<BlockPos> clearList, Lists lists, Set<BlockPos> fillCells, Set<BlockPos> fluidCells) {
+    /**
+     * A MineColonies plan's placeholder world positions: fill and fluid cells, and the air cells top-down; all empty
+     * for a plan without markers ({@code marked} false).
+     */
+    private record Cells(boolean marked, Set<BlockPos> fill, Set<BlockPos> fluid, List<BlockPos> air) {}
+
+    private StructurePlan(BlockPos hut, List<BlockPos> clearList, Lists lists, Cells cells) {
         this.hut = hut;
         this.clearList = clearList;
         this.solidList = lists.solid();
@@ -60,8 +64,7 @@ public final class StructurePlan {
         this.solidPositions = solidList.stream().map(this::worldPos).toList();
         this.decoPositions = decoList.stream().map(this::worldPos).toList();
         this.stateAt = lists.stateAt();
-        this.fillCells = fillCells;
-        this.fluidCells = fluidCells;
+        this.cells = cells;
     }
 
     /**
@@ -92,13 +95,27 @@ public final class StructurePlan {
                             e.offset().x(), e.offset().y(), e.offset().z())));
         });
         List<BlockPos> clear = bp.markers().isPresent() ? markedClearList(bp, hut, fills) : buildClearList(bp, hut);
+        List<BlockPos> air = bp.markers()
+                .map(m -> m.air().stream()
+                        .map(o -> hut.offset(o.x(), o.y(), o.z()))
+                        .sorted(TOP_DOWN)
+                        .toList())
+                .orElse(List.of());
+        Set<BlockPos> terrain = new HashSet<>(fills);
+        terrain.addAll(fluids);
         return new StructurePlan(
-                hut, clear, sortedLists(planned, hut, catalog, fills), Set.copyOf(fills), Set.copyOf(fluids));
+                hut,
+                clear,
+                sortedLists(planned, hut, catalog, terrain),
+                new Cells(bp.markers().isPresent(), Set.copyOf(fills), Set.copyOf(fluids), air));
     }
 
-    /** Sorts {@code planned} into the stage lists; fill cells are terrain, never removed with the building. */
+    /**
+     * Sorts {@code planned} into the stage lists; {@code terrain} (fill and fluid cells) is never removed with the
+     * building (MC AbstractEntityAIStructure.skipRemoval skips the substitution blocks).
+     */
     private static Lists sortedLists(
-            List<BlueprintEntry> planned, BlockPos hut, ItemCatalog catalog, Set<BlockPos> fills) {
+            List<BlueprintEntry> planned, BlockPos hut, ItemCatalog catalog, Set<BlockPos> terrain) {
         List<BlueprintEntry> solid = new ArrayList<>();
         List<BlueprintEntry> deco = new ArrayList<>();
         List<BlockPos> remove = new ArrayList<>();
@@ -112,7 +129,7 @@ public final class StructurePlan {
                 case NON_SOLID, FLUID -> deco.add(e);
                 case AIR, UNBREAKABLE -> {}
             }
-            if (kind != BlockKind.AIR && !fills.contains(pos)) {
+            if (kind != BlockKind.AIR && !terrain.contains(pos)) {
                 remove.add(pos);
             }
         }
@@ -193,13 +210,18 @@ public final class StructurePlan {
     }
 
     /** Whether the plan fills this world position with the fill block (a blocksolidsubstitution cell). */
-    public boolean isFill(BlockPos worldPos) {
-        return fillCells.contains(worldPos);
+    public boolean isFillCell(BlockPos worldPos) {
+        return cells.fill().contains(worldPos);
     }
 
-    /** Whether the plan puts a fluid at this world position (a blockfluidsubstitution cell). */
-    public boolean isFluidFill(BlockPos worldPos) {
-        return fluidCells.contains(worldPos);
+    /** Whether the plan comes from a MineColonies blueprint (it has markers). */
+    public boolean hasMarkers() {
+        return cells.marked();
+    }
+
+    /** The plan's explicit air cells, top-down; empty without markers. */
+    public List<BlockPos> airPositions() {
+        return cells.air();
     }
 
     public BlockPos worldPos(BlueprintEntry e) {
@@ -213,8 +235,10 @@ public final class StructurePlan {
 
     /**
      * Whether {@code world} (null: nothing) already answers the entry: its exact state (key and rotation); for a fill
-     * cell any good floor (MC SolidSubstitutionPlacementHandler); for a fluid cell also any solid block (MC
-     * FluidSubstitutionPlacementHandler).
+     * cell any good floor (MC SolidSubstitutionPlacementHandler); for a fluid cell any solid block or any fluid (MC
+     * FluidSubstitutionPlacementHandler: isAnySolid or a fluid source).
+     *
+     * <p>Deviation from MC: any fluid counts, as the core cannot tell a source from a flowing fluid.
      */
     public boolean satisfied(BlueprintEntry e, @Nullable BlockState world, ItemCatalog catalog) {
         if (world == null) {
@@ -223,10 +247,14 @@ public final class StructurePlan {
         if (world.equals(e.state())) {
             return true;
         }
+        if (!cells.marked()) {
+            return false; // no allocation for Hytale prefabs, scanned every step
+        }
         BlockPos pos = worldPos(e);
-        if (fillCells.contains(pos)) {
+        if (cells.fill().contains(pos)) {
             return catalog.isGoodFloor(world.key());
         }
-        return fluidCells.contains(pos) && catalog.kind(world.key()) == BlockKind.SOLID;
+        BlockKind kind = catalog.kind(world.key());
+        return cells.fluid().contains(pos) && (kind == BlockKind.SOLID || kind == BlockKind.FLUID);
     }
 }

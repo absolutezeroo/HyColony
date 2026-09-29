@@ -6,6 +6,7 @@ import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.construction.blueprint.Blueprint;
+import dev.hycolony.core.construction.blueprint.BlueprintSource;
 import dev.hycolony.core.construction.blueprint.StructurePlan;
 import dev.hycolony.core.construction.resources.BuildingResourcesModule;
 import dev.hycolony.core.construction.shared.BuilderSettingsModule;
@@ -104,9 +105,10 @@ record BuilderContext(
      * default (MC AbstractEntityAIStructure.getSolidSubstitution); without either they get none.
      */
     StructurePlan planFor(Blueprint bp, BlockPos at) {
+        BlueprintSource blueprints = colony.context().ports().blueprints();
         return hut().module(BuilderSettingsModule.class)
-                .flatMap(BuilderSettingsModule::fillBlock)
-                .or(() -> colony.context().ports().blueprints().defaultFillBlock())
+                .flatMap(s -> s.fillBlock(blueprints))
+                .or(blueprints::defaultFillBlock)
                 .map(block -> StructurePlan.build(bp, at, catalog, block))
                 .orElseGet(() -> StructurePlan.build(bp, at, catalog));
     }

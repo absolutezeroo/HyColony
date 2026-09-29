@@ -26,18 +26,24 @@ Le bâtisseur MC pose toujours en mode *fancy*. Chaque case du plan est de l'un 
 | **air explicite** | rien (air) | mine le bloc, retire le fluide | 0 | CLEAR |
 | **absente** (substitution simple) | toujours | — | 0 | — |
 | **remplissage** (substitution pleine) | un bon bloc de sol : cube plein non feuillage, ou terre labourée (`isGoodFloorBlock`) | CLEAR mine le bloc (pas un fluide), SOLID pose le bloc de remplissage | 1 bloc de remplissage par case qui ne correspond pas | CLEAR puis SOLID |
-| **fluide** (substitution de fluide) | une source de fluide, ou un bloc plein | pose une source d'eau | 0 (eau) | DECORATE, sautée à CLEAR |
+| **fluide** (substitution de fluide) | un fluide, ou un bloc plein | mine d'abord un bloc non plein (plante…), puis pose une source d'eau | 0 (eau) | DECORATE, sautée à CLEAR |
 | **bloc** | l'état prévu | mine puis pose | son objet | CLEAR puis SOLID/DECORATE |
 
 - **Bloc de remplissage** : réglage `fillblock` de la hutte du bâtisseur qui porte l'ordre (MC `BuildingModules.BUILDER_SETTINGS`, `BuildingMiner.FILL_BLOCK`, défaut `minecraft:dirt`). Défaut HyColony : la terre de Hytale, lue dans l'id-map (`blueprint.fillBlock`). Le joueur peut choisir n'importe quel bloc plein qui a un objet.
 - **Fluide** : celui de la dimension dans MC (`getFluidForDimension`) : l'eau dans l'Overworld. Hytale n'a qu'un monde de surface : **l'eau**, `Water_Source`, lue dans l'id-map (`blueprint.placeholderFluid`).
-- **Amélioration** : MC saute CLEAR, HyColony garde son `CLEAR_LEFTOVERS` (écart déjà documenté dans `Stage`). En mode MC, `CLEAR_LEFTOVERS` ne mine pas une case de remplissage qui a déjà un bon bloc de sol.
+- **Amélioration** : pour un plan MineColonies, `CLEAR_LEFTOVERS` fait ce que fait MC `CLEAR_NON_SOLIDS` : il ne visite que les cases d'air du nouveau plan (les niveaux MC partagent une emprise). Les cases de remplissage, de fluide et absentes gardent ce qu'elles ont. Les prefabs Hytale gardent l'écart documenté dans `Stage`.
+- **Démolition** : REMOVE saute les cases de remplissage et de fluide (MC `AbstractEntityAIStructure.skipRemoval`).
 
 ## Écarts
 
 1. **Le mode est par niveau** (`"minecolonies": true`) : les prefabs vanilla Hytale gardent leur sémantique (absent = terrain, couches sous le sol ignorées, CLEAR de toute la boîte). `Deviation from MC:` aucun, MC n'a qu'une sémantique ; c'est un ajout pour les prefabs Hytale.
 2. **Pas de lave** : Hytale n'a pas de dimension où le fluide par défaut est la lave.
-3. **Bloc « à fluide »** : MC met un bloc `WATERLOGGED` à `true`. Hytale stocke le fluide à part du bloc : une case dont le bloc est plein correspond ; sinon l'eau est posée dans le fluide de la case, bloc gardé.
+3. **Bloc « à fluide »** : MC garde un bloc `WATERLOGGED` et le met à `true`. Hytale stocke le fluide à part du bloc et le cœur ne sait pas quels blocs acceptent l'eau : un bloc non plein est miné avant la pose de l'eau (comme MC le fait pour une plante).
+4. **N'importe quel fluide** correspond à une case de fluide : le cœur ne distingue pas une source d'un fluide qui coule (MC exige une source).
+5. **Bon sol** : Structurize teste la forme de collision (`isGoodFullBlock`) ; Hytale n'en a pas côté serveur, donc `DrawType` `Cube` ou `CubeWithModel` (minerais), matériau `Solid`, hors groupe `Leaves`.
+6. **Collage à la baguette** : il remplit avec le bloc de remplissage par défaut, où Structurize (`CreativeStructureHandler`) prend le bloc du générateur du monde.
+7. **Bloc de remplissage figé** au chargement de l'ordre (plan et ressources) ; MC relit `getSolidSubstitution` à chaque pose. Un bloc sauvegardé qui n'est plus proposé revient au défaut.
+8. **CLEAR retire aussi les fluides** sous l'air et sous les blocs prévus (écart antérieur : HyColony n'a pas d'étape `CLEAR_WATER`).
 
 ## Conception
 

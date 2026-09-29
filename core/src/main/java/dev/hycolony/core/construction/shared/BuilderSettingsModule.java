@@ -41,6 +41,14 @@ public final class BuilderSettingsModule implements PersistentModule, ProvidesTa
         return Optional.ofNullable(fillBlock);
     }
 
+    /**
+     * The block fill cells get: the chosen one while {@code blueprints} still offers it, else its default (a saved
+     * block since removed from the game falls back); empty when the source has neither.
+     */
+    public Optional<BlockKey> fillBlock(BlueprintSource blueprints) {
+        return fillBlock().filter(blueprints.fillBlockChoices()::contains).or(blueprints::defaultFillBlock);
+    }
+
     public void setFillBlock(BlockKey block) {
         this.fillBlock = block;
     }
@@ -69,7 +77,6 @@ public final class BuilderSettingsModule implements PersistentModule, ProvidesTa
     @Override
     public ModuleTab tab(Colony colony, Building building, UUID viewer) {
         BlueprintSource blueprints = colony.context().ports().blueprints();
-        return new BuilderSettingsView(
-                mode, fillBlock().or(blueprints::defaultFillBlock), blueprints.fillBlockChoices());
+        return new BuilderSettingsView(mode, fillBlock(blueprints), blueprints.fillBlockChoices());
     }
 }

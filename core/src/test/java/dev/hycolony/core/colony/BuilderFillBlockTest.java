@@ -111,4 +111,13 @@ class BuilderFillBlockTest {
         old.read(new JsonObject());
         assertEquals(Optional.empty(), old.fillBlock());
     }
+
+    @Test
+    void aSavedFillBlockNoLongerAmongTheChoicesGivesTheDefault() {
+        JsonObject saved = new JsonObject();
+        saved.addProperty("fillBlock", "removed_block");
+        settings().read(saved);
+
+        assertEquals(DIRT, view().fillBlock().orElseThrow());
+    }
 }

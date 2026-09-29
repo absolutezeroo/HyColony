@@ -23,18 +23,16 @@ import dev.hycolony.core.kernel.item.BlockKind;
 import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
-import dev.hycolony.core.kernel.persist.FileColonyStorage;
-import dev.hycolony.core.kernel.persist.MigrationChain;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.testing.TestContexts;
-import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BooleanSupplier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 /** A MineColonies blueprint's placeholder cells (Structurize substitutions), built by a builder. */
 class BuilderPlaceholdersTest {
@@ -49,12 +47,10 @@ class BuilderPlaceholdersTest {
     private static final ItemKey DIRT_I = new ItemKey("dirt_item");
     private static final ItemKey GRAVEL_I = new ItemKey("gravel_item");
 
-    @TempDir
-    Path dir;
-
     private final TestContexts t = new TestContexts();
     private final UUID alice = UUID.randomUUID();
-    private Blueprint plan = new Blueprint("none", List.of(), new BlockPos(0, 0, 0), new BlockPos(0, 0, 0));
+    /** Residence plans by level. */
+    private final Map<Integer, Blueprint> plans = new HashMap<>();
 
     private Colony colony;
     private CitizenData citizen;
@@ -67,7 +63,7 @@ class BuilderPlaceholdersTest {
             @Override
             public Optional<Blueprint> load(String style, String buildingTypeId, int level, int rotation) {
                 return buildingTypeId.equals(ConstructionBuildingTypes.RESIDENCE.id())
-                        ? Optional.of(plan)
+                        ? Optional.ofNullable(plans.get(level))
                         : Optional.empty();
             }
 
@@ -80,6 +76,11 @@ class BuilderPlaceholdersTest {
             public Optional<BlockKey> defaultFillBlock() {
                 return Optional.of(DIRT);
             }
+
+            @Override
+            public List<BlockKey> fillBlockChoices() {
+                return List.of(DIRT, GRAVEL);
+            }
         };
         for (BlockKey b : List.of(STONE, DIRT, GRAVEL, LEAVES)) {
             t.catalog.kinds.put(b, BlockKind.SOLID);
@@ -90,7 +91,6 @@ class BuilderPlaceholdersTest {
         t.catalog.itemForBlock.put(DIRT, DIRT_I);
         t.catalog.itemForBlock.put(GRAVEL, GRAVEL_I);
         ColonyManager manager = new ColonyManager(t.context());
-        manager.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp3b());
         manager.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
         colony = manager.foundation().confirm(alice, "A").orElseThrow();
         manager.huts().place(colony, ConstructionBuildingTypes.BUILDER.id(), HUT, 0);
@@ -108,9 +108,13 @@ class BuilderPlaceholdersTest {
         citizen.inventory().insert(new ItemAmount(GRAVEL_I, 16), t.catalog::maxStack);
     }
 
-    /** Stone at (1,0,0); air at (2,0,0); fill at (1,-1,0) and (2,-1,0); fluid at (3,0,0); the rest absent. */
+    /** Level 1: stone at (1,0,0); air at (2,0,0); fill at (1,-1,0) and (2,-1,0); fluid at (3,0,0); the rest absent. */
     private void mineColoniesPlan() {
-        plan = new Blueprint(
+        plans.put(1, mineColonies());
+    }
+
+    private static Blueprint mineColonies() {
+        return new Blueprint(
                 "mc",
                 List.of(new BlueprintEntry(new BlockPos(1, 0, 0), new BlockState(STONE, 0), false)),
                 new BlockPos(0, -1, 0),
@@ -122,7 +126,11 @@ class BuilderPlaceholdersTest {
     }
 
     private void build() {
-        colony.work().request(alice, RES, WorkOrderType.BUILD, "", Optional.of(HUT));
+        run(WorkOrderType.BUILD);
+    }
+
+    private void run(WorkOrderType type) {
+        colony.work().request(alice, RES, type, "", Optional.of(HUT));
         BooleanSupplier done = () -> colony.work().byBuilding(RES).isEmpty();
         for (int i = 0; i < 10_000 && !done.getAsBoolean(); i++) {
             t.clock.tick++;
@@ -138,6 +146,48 @@ class BuilderPlaceholdersTest {
 
     private void put(int dx, int dy, int dz, BlockKey key) {
         t.blocks.blocks.put(RES.offset(dx, dy, dz), new BlockState(key, 0));
+    }
+
+    /** The residence built at level 1 from a plain plan with stone on every cell the MineColonies level uses. */
+    private void builtPlainLevelThenMineColoniesLevel() {
+        List<BlueprintEntry> stone = List.of(
+                new BlueprintEntry(new BlockPos(1, 0, 0), new BlockState(STONE, 0), false),
+                new BlueprintEntry(new BlockPos(2, 0, 0), new BlockState(STONE, 0), false),
+                new BlueprintEntry(new BlockPos(1, -1, 0), new BlockState(STONE, 0), false),
+                new BlueprintEntry(new BlockPos(3, 0, 0), new BlockState(STONE, 0), false),
+                new BlueprintEntry(new BlockPos(4, 1, 0), new BlockState(STONE, 0), false));
+        plans.put(1, new Blueprint("plain", stone, new BlockPos(0, -1, 0), new BlockPos(4, 1, 0)));
+        plans.put(2, mineColonies());
+        stone.forEach(e -> put(e.offset().x(), e.offset().y(), e.offset().z(), STONE));
+        Building res = colony.buildings().at(RES).orElseThrow();
+        res.setLevel(1);
+        res.setBuilt(true);
+    }
+
+    @Test
+    void upgradeToAMineColoniesLevelOnlyClearsItsAirCells() {
+        builtPlainLevelThenMineColoniesLevel();
+
+        run(WorkOrderType.UPGRADE);
+
+        assertNull(world(2, 0, 0), "air cell cleared");
+        assertEquals(new BlockState(STONE, 0), world(1, -1, 0), "a good floor under a fill cell stays");
+        assertEquals(new BlockState(STONE, 0), world(3, 0, 0), "a solid block on a fluid cell stays");
+        assertEquals(new BlockState(STONE, 0), world(4, 1, 0), "an absent cell keeps what is there");
+        assertEquals(16, citizen.inventory().count(DIRT_I) + 1, "only the hole at (2,-1,0) was filled");
+    }
+
+    @Test
+    void removalLeavesFillAndFluidCellsAlone() {
+        mineColoniesPlan();
+        build();
+        put(3, 0, 0, STONE); // a player's block on the fluid cell
+
+        run(WorkOrderType.REMOVE);
+
+        assertNull(world(1, 0, 0), "the building's block is removed");
+        assertEquals(new BlockState(DIRT, 0), world(2, -1, 0), "the filled ground stays");
+        assertEquals(new BlockState(STONE, 0), world(3, 0, 0), "MC skipRemoval skips fluid substitutions");
     }
 
     @Test

@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
+/** A MineColonies blueprint's markers in the plan's stage lists (Structurize placeholders). */
 class StructurePlanMarkersTest {
     private static final BlockKey STONE = new BlockKey("stone");
     private static final BlockKey DIRT = new BlockKey("dirt");
@@ -48,15 +49,15 @@ class StructurePlanMarkersTest {
         StructurePlan plan = plan();
         assertEquals(List.of(HUT.offset(0, -1, 0), HUT.offset(0, 1, 0)), plan.solidPositions());
         assertEquals(DIRT, plan.solidList().getFirst().state().key());
-        assertTrue(plan.isFill(HUT.offset(0, -1, 0)));
-        assertFalse(plan.isFill(HUT.offset(0, 1, 0)));
+        assertTrue(plan.isFillCell(HUT.offset(0, -1, 0)));
+        assertFalse(plan.isFillCell(HUT.offset(0, 1, 0)));
     }
 
     @Test
     void fluidCellsJoinDecorate() {
         StructurePlan plan = plan();
         assertEquals(List.of(HUT.offset(1, -1, 0)), plan.decoPositions());
-        assertTrue(plan.isFluidFill(HUT.offset(1, -1, 0)));
+        assertFalse(plan.removeList().contains(HUT.offset(1, -1, 0)), "MC skipRemoval");
     }
 
     @Test

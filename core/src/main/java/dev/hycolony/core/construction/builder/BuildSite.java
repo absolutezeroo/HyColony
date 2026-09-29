@@ -99,9 +99,20 @@ final class BuildSite {
             case SOLID -> plan().solidPositions();
             case DECORATE -> plan().decoPositions();
             case REMOVE -> plan().removeList();
-            case CLEAR_LEFTOVERS -> previousPlan == null ? List.of() : previousPlan.removeList();
+            case CLEAR_LEFTOVERS -> leftovers();
             case DONE -> List.of();
         };
+    }
+
+    /**
+     * CLEAR_LEFTOVERS' positions: a MineColonies plan's air cells, as MC CLEAR_NON_SOLIDS visits (its levels share
+     * one footprint, and its substitutions keep what is there); else the previous level's blocks (see {@link Stage}).
+     */
+    private List<BlockPos> leftovers() {
+        if (plan().hasMarkers()) {
+            return plan().airPositions();
+        }
+        return previousPlan == null ? List.of() : previousPlan.removeList();
     }
 
     /** The planned block at index {@code i} of SOLID or DECORATE. */
