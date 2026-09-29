@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.core.kernel.persist.SavedJson;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequestToken;
@@ -188,17 +189,18 @@ public final class CraftingTasks {
     public void read(JsonObject in) {
         readTokens(in.get(QUEUE), queue);
         readTokens(in.get(ASSIGNED), assigned);
-        progress = intOr(in.get(PROGRESS));
-        maxCraftingCount = intOr(in.get(MAX_COUNTER));
-        craftCounter = intOr(in.get(CRAFT_COUNTER));
+        progress = SavedJson.intOr(in.get(PROGRESS), 0);
+        maxCraftingCount = SavedJson.intOr(in.get(MAX_COUNTER), 0);
+        craftCounter = SavedJson.intOr(in.get(CRAFT_COUNTER), 0);
         secondaryOutputs.clear();
         if (in.get(SECONDARY_OUTPUTS) instanceof JsonArray items) {
             for (JsonElement e : items) {
                 if (e instanceof JsonObject stack
                         && stack.get("item") instanceof JsonPrimitive item
                         && item.isString()
-                        && intOr(stack.get("count")) > 0) {
-                    secondaryOutputs.merge(new ItemKey(item.getAsString()), intOr(stack.get("count")), Integer::sum);
+                        && SavedJson.intOr(stack.get("count"), 0) > 0) {
+                    secondaryOutputs.merge(
+                            new ItemKey(item.getAsString()), SavedJson.intOr(stack.get("count"), 0), Integer::sum);
                 }
             }
         }
@@ -225,9 +227,5 @@ public final class CraftingTasks {
                 }
             }
         }
-    }
-
-    private static int intOr(@Nullable JsonElement saved) {
-        return saved instanceof JsonPrimitive p && p.isNumber() ? p.getAsInt() : 0;
     }
 }

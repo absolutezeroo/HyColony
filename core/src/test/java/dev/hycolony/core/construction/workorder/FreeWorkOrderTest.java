@@ -120,8 +120,8 @@ class FreeWorkOrderTest {
         t.players.creativeOperators.add(alice);
         start(D);
         JsonObject saved = order(20, 0, WorkOrderType.BUILD).write();
-        assertTrue(WorkOrder.read(saved).free());
+        assertTrue(WorkOrder.read(saved).orElseThrow().free());
         saved.remove("free"); // a save from before the flag
-        assertFalse(WorkOrder.read(saved).free());
+        assertFalse(WorkOrder.read(saved).orElseThrow().free());
     }
 }

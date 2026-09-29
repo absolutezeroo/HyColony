@@ -1,8 +1,13 @@
 package dev.hycolony.core.colony.persistence;
 
-import static dev.hycolony.core.colony.persistence.JsonPositions.pos;
-import static dev.hycolony.core.colony.persistence.JsonPositions.requirePos;
-import static dev.hycolony.core.colony.persistence.JsonPositions.tryPos;
+import static dev.hycolony.core.kernel.persist.SavedJson.arrayOr;
+import static dev.hycolony.core.kernel.persist.SavedJson.boolOr;
+import static dev.hycolony.core.kernel.persist.SavedJson.intOr;
+import static dev.hycolony.core.kernel.persist.SavedJson.objectOr;
+import static dev.hycolony.core.kernel.persist.SavedJson.pos;
+import static dev.hycolony.core.kernel.persist.SavedJson.requirePos;
+import static dev.hycolony.core.kernel.persist.SavedJson.stringOr;
+import static dev.hycolony.core.kernel.persist.SavedJson.tryPos;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -62,38 +67,35 @@ final class BuildingSerializer {
         return out;
     }
 
+    /** The saved building at its position (which the caller checked); a missing optional key takes its default (§ 5). */
     static Building read(JsonObject o, BuildingType type) {
-        Building b = Building.create(
-                type, requirePos(o.get("pos")), o.get("rotation").getAsInt());
-        b.setLevel(o.get("level").getAsInt());
-        b.setBuilt(o.get("built").getAsBoolean());
-        b.setCustomName(o.get("customName").getAsString());
-        b.setStyle(o.get("style").getAsString());
-        if (o.has("pickupPriority")) {
-            b.pickupPriority().set(o.get("pickupPriority").getAsInt());
-        }
-        if (o.has("deconstructed")) {
-            b.setDeconstructed(o.get("deconstructed").getAsBoolean());
-        }
+        Building b = Building.create(type, requirePos(o.get("pos")), intOr(o.get("rotation"), 0));
+        b.setLevel(intOr(o.get("level"), 0));
+        b.setBuilt(boolOr(o.get("built"), false));
+        b.setCustomName(stringOr(o.get("customName"), b.customName()));
+        b.setStyle(stringOr(o.get("style"), b.style()));
+        b.pickupPriority().set(intOr(o.get("pickupPriority"), b.pickupPriority().value()));
+        b.setDeconstructed(boolOr(o.get("deconstructed"), false));
         readRegisteredBlocks(o, b.registeredBlocks());
-        JsonObject modules = o.getAsJsonObject("modules");
+        JsonObject modules = objectOr(o.get("modules"));
         for (String key : modules.keySet()) {
+            if (!(modules.get(key) instanceof JsonObject saved)) {
+                continue;
+            }
             BuildingModule module = b.modules().get(key);
             if (module instanceof PersistentModule pm) {
-                pm.read(modules.getAsJsonObject(key));
+                pm.read(saved);
             } else if (module == null) {
-                b.unknownModules().put(key, modules.getAsJsonObject(key));
+                b.unknownModules().put(key, saved);
             }
         }
         return b;
     }
 
-    /** Saved containers and benches; a missing list (older save) registers none. */
+    /** Saved containers and benches; a missing list (older save) registers none, a malformed position is skipped. */
     private static void readRegisteredBlocks(JsonObject o, RegisteredBlocks blocks) {
-        if (o.has("containers")) {
-            for (JsonElement el : o.getAsJsonArray("containers")) {
-                blocks.addContainer(requirePos(el));
-            }
+        for (JsonElement el : arrayOr(o.get("containers"))) {
+            tryPos(el).ifPresent(blocks::addContainer);
         }
         if (o.get("workstations") instanceof JsonArray workstations) {
             for (JsonElement el : workstations) {

@@ -2,6 +2,7 @@ package dev.hycolony.core.construction.workorder;
 
 import com.google.gson.JsonObject;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.persist.SavedJson;
 import java.util.Optional;
 import org.jspecify.annotations.Nullable;
 
@@ -149,14 +150,14 @@ public final class WorkOrder {
         JsonObject o = new JsonObject();
         o.addProperty("id", id);
         o.addProperty("type", type.name());
-        o.add("pos", pos(buildingPos));
+        o.add("pos", SavedJson.pos(buildingPos));
         o.addProperty("targetLevel", targetLevel);
         o.addProperty("blueprintLevel", blueprintLevel);
         o.addProperty("style", style);
         o.addProperty("rotation", rotation);
         o.addProperty("priority", priority);
         if (claimedBy != null) {
-            o.add("claimedBy", pos(claimedBy));
+            o.add("claimedBy", SavedJson.pos(claimedBy));
         }
         o.addProperty("stage", stage.name());
         o.addProperty("progressIndex", progressIndex);
@@ -165,37 +166,35 @@ public final class WorkOrder {
         return o;
     }
 
-    public static WorkOrder read(JsonObject o) {
+    /**
+     * The saved order; empty when what it is cannot be read (§ 5): its id, a type and stage this build knows, its
+     * building's position or its level. A missing optional key takes its default.
+     */
+    public static Optional<WorkOrder> read(JsonObject o) {
+        Optional<WorkOrderType> type = SavedJson.enumOf(WorkOrderType.class, o.get("type"));
+        Optional<Stage> stage = SavedJson.enumOf(Stage.class, o.get("stage"));
+        Optional<BlockPos> pos = SavedJson.tryPos(o.get("pos"));
+        int id = SavedJson.intOr(o.get("id"), -1);
+        int targetLevel = SavedJson.intOr(o.get("targetLevel"), -1);
+        String style = SavedJson.stringOr(o.get("style"), "");
+        if (type.isEmpty() || stage.isEmpty() || pos.isEmpty() || id < 0 || targetLevel < 0) {
+            return Optional.empty();
+        }
         WorkOrder w = new WorkOrder(
-                o.get("id").getAsInt(),
-                WorkOrderType.valueOf(o.get("type").getAsString()),
-                readPos(o.getAsJsonObject("pos")),
-                o.get("targetLevel").getAsInt(),
+                id,
+                type.get(),
+                pos.get(),
+                targetLevel,
                 new Layout(
-                        o.get("style").getAsString(),
-                        o.has("blueprintLevel")
-                                ? o.get("blueprintLevel").getAsInt()
-                                : o.get("targetLevel").getAsInt(),
-                        o.get("rotation").getAsInt()));
-        w.priority = o.get("priority").getAsInt();
-        w.claimedBy = o.has("claimedBy") ? readPos(o.getAsJsonObject("claimedBy")) : null;
-        w.stage = Stage.valueOf(o.get("stage").getAsString());
-        w.progressIndex = o.get("progressIndex").getAsInt();
-        w.free = o.has("free") && o.get("free").getAsBoolean();
-        w.active = o.has("active") && o.get("active").getAsBoolean();
-        return w; // an old "requested" flag is ignored
-    }
-
-    private static JsonObject pos(BlockPos p) {
-        JsonObject o = new JsonObject();
-        o.addProperty("x", p.x());
-        o.addProperty("y", p.y());
-        o.addProperty("z", p.z());
-        return o;
-    }
-
-    private static BlockPos readPos(JsonObject o) {
-        return new BlockPos(
-                o.get("x").getAsInt(), o.get("y").getAsInt(), o.get("z").getAsInt());
+                        style,
+                        SavedJson.intOr(o.get("blueprintLevel"), targetLevel),
+                        SavedJson.intOr(o.get("rotation"), 0)));
+        w.priority = SavedJson.intOr(o.get("priority"), 0);
+        w.claimedBy = SavedJson.readPos(o.get("claimedBy"));
+        w.stage = stage.get();
+        w.progressIndex = SavedJson.intOr(o.get("progressIndex"), 0);
+        w.free = SavedJson.boolOr(o.get("free"), false);
+        w.active = SavedJson.boolOr(o.get("active"), false);
+        return Optional.of(w); // an old "requested" flag is ignored
     }
 }

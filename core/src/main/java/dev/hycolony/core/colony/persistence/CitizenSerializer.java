@@ -1,9 +1,16 @@
 package dev.hycolony.core.colony.persistence;
 
-import static dev.hycolony.core.colony.persistence.JsonPositions.pos;
-import static dev.hycolony.core.colony.persistence.JsonPositions.readPos;
-import static dev.hycolony.core.colony.persistence.JsonPositions.readVec;
-import static dev.hycolony.core.colony.persistence.JsonPositions.vec;
+import static dev.hycolony.core.kernel.persist.SavedJson.arrayOr;
+import static dev.hycolony.core.kernel.persist.SavedJson.boolOr;
+import static dev.hycolony.core.kernel.persist.SavedJson.doubleOr;
+import static dev.hycolony.core.kernel.persist.SavedJson.enumOf;
+import static dev.hycolony.core.kernel.persist.SavedJson.intOr;
+import static dev.hycolony.core.kernel.persist.SavedJson.objectOr;
+import static dev.hycolony.core.kernel.persist.SavedJson.pos;
+import static dev.hycolony.core.kernel.persist.SavedJson.readPos;
+import static dev.hycolony.core.kernel.persist.SavedJson.readVec;
+import static dev.hycolony.core.kernel.persist.SavedJson.stringOr;
+import static dev.hycolony.core.kernel.persist.SavedJson.vec;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
@@ -51,17 +58,17 @@ final class CitizenSerializer {
         return o;
     }
 
+    /** The saved citizen; a missing optional key takes its default (§ 5), a missing id throws. */
     static CitizenData read(JsonObject o, ColonyContext ctx) {
         CitizenData d = new CitizenData(o.get("id").getAsInt());
-        d.setName(o.get("name").getAsString());
-        d.setGender(Gender.valueOf(o.get("gender").getAsString()));
-        d.setChild(o.get("child").getAsBoolean());
+        d.setName(stringOr(o.get("name"), ""));
+        d.setGender(enumOf(Gender.class, o.get("gender")).orElse(Gender.MALE)); // MC: not female unless saved so
+        d.setChild(boolOr(o.get("child"), false));
         Skills skills = Skills.empty();
-        JsonObject so = o.getAsJsonObject("skills");
+        JsonObject so = objectOr(o.get("skills"));
         for (Skill s : Skill.values()) {
-            if (so.has(s.name())) {
-                JsonObject e = so.getAsJsonObject(s.name());
-                skills.set(s, e.get("level").getAsInt(), e.get("xp").getAsDouble());
+            if (so.get(s.name()) instanceof JsonObject e) {
+                skills.set(s, intOr(e.get("level"), 0), doubleOr(e.get("xp"), 0));
             }
         }
         d.setSkills(skills);
@@ -69,16 +76,16 @@ final class CitizenSerializer {
         d.setRespawnPosition(readPos(o.get("respawnPosition")));
         d.setHomeBuilding(readPos(o.get("home")));
         d.setWorkBuilding(readPos(o.get("work")));
-        d.setSaturation(o.get("saturation").getAsDouble());
-        d.setInventory(Inventory.read(o.getAsJsonArray("inventory"), CitizenData.INVENTORY_SLOTS));
-        if (o.has("job") && !o.get("job").isJsonNull()) {
-            readJob(o.getAsJsonObject("job"), d, ctx);
+        d.setSaturation(doubleOr(o.get("saturation"), d.saturation()));
+        d.setInventory(Inventory.read(arrayOr(o.get("inventory")), CitizenData.INVENTORY_SLOTS));
+        if (o.get("job") instanceof JsonObject job) {
+            readJob(job, d, ctx);
         }
         return d;
     }
 
     private static void readJob(JsonObject jobJson, CitizenData d, ColonyContext ctx) {
-        String typeId = jobJson.get("type").getAsString();
+        String typeId = stringOr(jobJson.get("type"), "");
         Optional<JobType> type = ctx.jobs().byId(typeId);
         if (type.isPresent()) {
             Job job = type.get().factory().apply(d);

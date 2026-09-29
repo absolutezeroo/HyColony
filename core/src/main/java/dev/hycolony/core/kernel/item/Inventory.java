@@ -3,6 +3,7 @@ package dev.hycolony.core.kernel.item;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
+import dev.hycolony.core.kernel.persist.SavedJson;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -187,17 +188,19 @@ public final class Inventory {
         return out;
     }
 
+    /** The saved slots; a slot without an item or a positive count stays empty (§ 5). */
     public static Inventory read(JsonArray a, int slotCount) {
         Inventory inv = new Inventory(slotCount);
         for (int i = 0; i < a.size() && i < slotCount; i++) {
-            var el = a.get(i);
-            if (el == null || el.isJsonNull()) {
+            if (!(a.get(i) instanceof JsonObject o)) {
                 continue;
             }
-            JsonObject o = el.getAsJsonObject();
-            int damage = o.has("damage") ? Math.max(0, o.get("damage").getAsInt()) : 0;
-            inv.slots[i] = new ItemAmount(
-                    new ItemKey(o.get("item").getAsString()), o.get("count").getAsInt(), damage);
+            String item = SavedJson.stringOr(o.get("item"), "");
+            int count = SavedJson.intOr(o.get("count"), 0);
+            if (!item.isEmpty() && count > 0) {
+                int damage = Math.max(0, SavedJson.intOr(o.get("damage"), 0));
+                inv.slots[i] = new ItemAmount(new ItemKey(item), count, damage);
+            }
         }
         return inv;
     }

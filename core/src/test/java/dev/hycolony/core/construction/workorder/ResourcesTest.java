@@ -284,7 +284,7 @@ class ResourcesTest {
         world.blocks.put(HUT.offset(1, 0, 0), new BlockState(STONE, 0)); // first stone placed
 
         // the order persists the progress; the module is rebuilt from it, needs recomputed from the world
-        WorkOrder loadedOrder = WorkOrder.read(o.write());
+        WorkOrder loadedOrder = WorkOrder.read(o.write()).orElseThrow();
         BuildingResourcesModule loaded = new BuildingResourcesModule();
         loaded.start(loadedOrder, NeededResources.compute(plan, world, c, RecipeCatalog.NONE));
         assertEquals(Stage.SOLID, loaded.stage());

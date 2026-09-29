@@ -629,7 +629,7 @@ class WorkManagerTest {
                 .write();
         json.addProperty("requested", true); // saved by an earlier version
 
-        JsonObject rewritten = WorkOrder.read(json).write();
+        JsonObject rewritten = WorkOrder.read(json).orElseThrow().write();
 
         assertFalse(rewritten.has("requested"));
         json.remove("requested");

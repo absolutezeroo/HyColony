@@ -1,8 +1,11 @@
 package dev.hycolony.core.colony.persistence;
 
-import static dev.hycolony.core.colony.persistence.JsonPositions.pos;
-import static dev.hycolony.core.colony.persistence.JsonPositions.requirePos;
-import static dev.hycolony.core.colony.persistence.JsonPositions.tryPos;
+import static dev.hycolony.core.kernel.persist.SavedJson.arrayOr;
+import static dev.hycolony.core.kernel.persist.SavedJson.intOr;
+import static dev.hycolony.core.kernel.persist.SavedJson.pos;
+import static dev.hycolony.core.kernel.persist.SavedJson.requirePos;
+import static dev.hycolony.core.kernel.persist.SavedJson.stringOr;
+import static dev.hycolony.core.kernel.persist.SavedJson.tryPos;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -26,7 +29,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-/** Colony <-> JSON (schema 4). Unknown buildings/modules are kept verbatim. */
+/** Colony <-> JSON (schema {@value #SCHEMA_VERSION}). Unknown buildings/modules are kept verbatim. */
 public final class ColonySerializer {
     public static final int SCHEMA_VERSION = 5;
 
@@ -68,16 +71,20 @@ public final class ColonySerializer {
         return o;
     }
 
+    /**
+     * The saved colony; a missing optional key takes its default (§ 5). Throws when its identity (id, centre,
+     * permissions) is missing: such a file is left untouched by {@code ColonyPersistence}.
+     */
     public static Colony read(JsonObject o, ColonyContext ctx, TerritoryIndex territory) {
         Colony c = new Colony(
                 ctx,
                 territory,
                 new Colony.Founding(
                         o.get("id").getAsInt(),
-                        o.get("name").getAsString(),
-                        requirePos(o.getAsJsonObject("center")),
+                        stringOr(o.get("name"), ""),
+                        requirePos(o.get("center")),
                         PermissionsSerializer.read(o.getAsJsonObject("permissions"))));
-        c.setDay(o.get("day").getAsInt());
+        c.setDay(intOr(o.get("day"), 0));
         readSettings(o, c);
         // Before the buildings: their crafting modules name recipes by their id in the registry.
         if (o.get("recipes") instanceof JsonObject recipes) {
@@ -85,17 +92,19 @@ public final class ColonySerializer {
                     .recipes()
                     .read(recipes, ctx.ports().crafting().catalog(), w -> LOG.log(System.Logger.Level.WARNING, w));
         }
-        readBuildings(o.getAsJsonArray("buildings"), c, ctx);
+        readBuildings(arrayOr(o.get("buildings")), c, ctx);
         if (o.get("fields") instanceof JsonArray fields) {
             c.registries().fields().load(fields);
         }
-        for (JsonElement el : o.getAsJsonArray("citizens")) {
-            c.citizens().restore(CitizenSerializer.read(el.getAsJsonObject(), ctx));
+        for (JsonElement el : arrayOr(o.get("citizens"))) {
+            if (el instanceof JsonObject citizen) {
+                c.citizens().restore(CitizenSerializer.read(citizen, ctx));
+            }
         }
         // After the buildings: they re-registered as resolver providers.
         boolean repaired = o.has("requests") && RequestSerializer.read(o.getAsJsonObject("requests"), c.requests());
-        readWorkOrders(o, c);
-        readEventLog(o.getAsJsonArray("eventLog"), c.log());
+        repaired |= readWorkOrders(o, c);
+        readEventLog(arrayOr(o.get("eventLog")), c.log());
         boolean healed = heal(c) || repaired;
         c.clearDirty();
         if (healed) {
@@ -113,11 +122,14 @@ public final class ColonySerializer {
         }
     }
 
+    /** The saved buildings; one of a type this build does not know, or without a position, is kept verbatim. */
     private static void readBuildings(JsonArray buildings, Colony c, ColonyContext ctx) {
         for (JsonElement el : buildings) {
-            JsonObject b = el.getAsJsonObject();
-            Optional<BuildingType> type = ctx.buildingTypes().byId(b.get("type").getAsString());
-            if (type.isEmpty()) {
+            if (!(el instanceof JsonObject b)) {
+                continue;
+            }
+            Optional<BuildingType> type = ctx.buildingTypes().byId(stringOr(b.get("type"), ""));
+            if (type.isEmpty() || tryPos(b.get("pos")).isEmpty()) {
                 c.buildings().keepUnknown(b);
                 continue;
             }
@@ -125,13 +137,13 @@ public final class ColonySerializer {
         }
     }
 
-    private static void readWorkOrders(JsonObject o, Colony c) {
-        if (o.has("workOrders")) {
-            WorkOrderSerializer.read(o.getAsJsonArray("workOrders"), c.work());
-        }
+    /** The saved work orders; true when an unreadable one was left out, so that the next save drops it. */
+    private static boolean readWorkOrders(JsonObject o, Colony c) {
+        boolean skipped = WorkOrderSerializer.read(arrayOr(o.get("workOrders")), c.work());
         if (o.has("workOrderTopId")) {
-            c.work().restoreTopId(o.get("workOrderTopId").getAsInt());
+            c.work().restoreTopId(intOr(o.get("workOrderTopId"), 0));
         }
+        return skipped;
     }
 
     private static JsonArray eventLog(EventLog eventLog) {
@@ -148,16 +160,18 @@ public final class ColonySerializer {
         return log;
     }
 
+    /** The saved event log; an entry that is not an object is skipped, a missing field takes its default. */
     private static void readEventLog(JsonArray entries, EventLog log) {
         for (JsonElement el : entries) {
-            JsonObject e = el.getAsJsonObject();
+            if (!(el instanceof JsonObject e)) {
+                continue;
+            }
             // Manual loop: JsonArray.asList() needs Gson 2.10+, and the server's Gson version is not guaranteed.
             List<String> params = new ArrayList<>();
-            for (JsonElement p : e.getAsJsonArray("params")) {
-                params.add(p.getAsString());
+            for (JsonElement p : arrayOr(e.get("params"))) {
+                params.add(stringOr(p, ""));
             }
-            log.restore(
-                    new EventLog.Entry(e.get("type").getAsString(), e.get("day").getAsInt(), params));
+            log.restore(new EventLog.Entry(stringOr(e.get("type"), ""), intOr(e.get("day"), 0), params));
         }
     }
 
