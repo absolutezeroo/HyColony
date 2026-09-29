@@ -3,12 +3,10 @@ package dev.hycolony.core.construction.builder;
 import dev.hycolony.core.construction.resources.BuildingResourcesModule;
 import dev.hycolony.core.construction.resources.NeededResources;
 import dev.hycolony.core.construction.workorder.Stage;
+import dev.hycolony.core.job.work.SyncRequests;
 import dev.hycolony.core.job.work.WorkerStock;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
-import dev.hycolony.core.request.Request;
-import dev.hycolony.core.request.model.RequestState;
-import java.util.List;
 import java.util.Set;
 import org.jspecify.annotations.Nullable;
 
@@ -84,7 +82,7 @@ final class BuilderGathering {
         if (stage != Stage.CLEAR && stage != Stage.REMOVE) { // never request while clearing or removing
             request(needed);
         }
-        return ctx.requests().hasSyncRequests() ? BuilderState.NEEDS_ITEM : BuilderState.BUILDING_STEP;
+        return ctx.sync().pending() ? BuilderState.NEEDS_ITEM : BuilderState.BUILDING_STEP;
     }
 
     /** True while the inventory holds fewer of the item than {@code need}. */
@@ -119,25 +117,20 @@ final class BuilderGathering {
         }
     }
 
-    /** MC waitForRequests / lookForRequests: fetch every completed request at the hut, wait for the open ones. */
+    /**
+     * MC waitForRequests / lookForRequests: at the hut, the completed building requests become stock and every
+     * completed own request is fetched ({@link SyncRequests#receiveAtHut}); waits while own requests stay open.
+     */
     @Nullable
     BuilderState waitForRequests() {
-        BuilderRequests requests = ctx.requests();
-        List<Request> mine = requests.mine();
-        if (mine.isEmpty()) {
+        if (!ctx.sync().pending()) {
             return BuilderState.START_WORKING;
         }
         if (!ctx.walkToHut()) {
             return null;
         }
-        requests.receiveCompletedBuildingRequests();
-        requests.claimOpenFromHut();
-        for (Request r : mine) {
-            if (r.state() == RequestState.COMPLETED) {
-                requests.pickUp(r);
-            }
-        }
-        return requests.hasSyncRequests() ? null : BuilderState.START_WORKING;
+        ctx.requests().receiveCompletedBuildingRequests();
+        return ctx.sync().receiveAtHut() ? null : BuilderState.START_WORKING;
     }
 
     /** MC getTotalAmount: what is still needed of the item, capped to a stack, at least 1. */

@@ -4,6 +4,7 @@ import dev.hycolony.core.building.Building;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.port.ContainerAccess;
+import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.model.Pickup;
 import dev.hycolony.core.request.model.RequestState;
 
@@ -35,7 +36,8 @@ public final class PickupRequests {
         }
         int priority = force ? Pickup.MAX_BUILDING_PRIORITY : hutPriority;
         int delay = Math.max(0, (Pickup.MAX_BUILDING_PRIORITY - hutPriority) - qty / ITEMS_PER_DAY_EARLIER);
-        colony.requests().createAndAssign(building, new Pickup(priority, colony.day() + delay, qty), -1);
+        colony.requests()
+                .createAndAssign(building, new Pickup(priority, colony.day() + delay, qty), Request.NO_CITIZEN);
         return true;
     }
 

@@ -25,6 +25,7 @@ import dev.hycolony.core.construction.workorder.WorkOrderType;
 import dev.hycolony.core.job.JobAI;
 import dev.hycolony.core.job.JobXp;
 import dev.hycolony.core.job.WorkerModule;
+import dev.hycolony.core.job.work.SyncRequests;
 import dev.hycolony.core.job.work.WorkerStock;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Either;
@@ -994,7 +995,7 @@ class BuilderAITest {
 
     @Test
     void mineWithoutAnyRequestIsEmpty() {
-        assertTrue(new BuilderRequests(
+        assertTrue(new SyncRequests(
                         colony, citizen, hut, new WorkerStock(colony, citizen, hut, BuilderContext.ACTIONS_UNTIL_DUMP))
                 .mine()
                 .isEmpty());

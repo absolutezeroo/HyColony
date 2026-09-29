@@ -22,6 +22,9 @@ import org.jspecify.annotations.Nullable;
  * {@link #incrementPriorityDueToAging()}.
  */
 public final class Request {
+    /** The citizen id of a building's own (async) request, which no worker waits for (MC's -1). */
+    public static final int NO_CITIZEN = -1;
+
     private final RequestToken token;
     private final RequesterId requester;
     private Requestable requestable;

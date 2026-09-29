@@ -69,7 +69,7 @@ public final class RequestManager {
     /** A child created by a resolver for one of its requests; inherits the parent's blacklist. */
     public RequestToken createChild(Resolver parentResolver, RequestToken parent, Requestable what) {
         Request p = store.require(parent);
-        Request child = store.create(parentResolver.requesterId(), what, -1);
+        Request child = store.create(parentResolver.requesterId(), what, Request.NO_CITIZEN);
         child.setParent(parent);
         p.addChild(child.token());
         queue.submit(() -> assigner.assignUnassigned(List.of(child.token()), p.blacklist()));

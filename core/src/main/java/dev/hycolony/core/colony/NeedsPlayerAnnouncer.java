@@ -30,13 +30,13 @@ final class NeedsPlayerAnnouncer {
             return;
         }
         Building b = colony.buildings().byRequester(r.requester()).orElse(null);
-        Optional<CitizenData> citizen = r.citizenId() != -1
+        Optional<CitizenData> citizen = r.citizenId() != Request.NO_CITIZEN
                 ? colony.citizens().get(r.citizenId())
                 : Optional.ofNullable(b)
                         .flatMap(hut -> hut.module(WorkerModule.class))
                         .flatMap(w -> w.workers().stream().findFirst())
                         .flatMap(colony.citizens()::get);
-        String who = r.citizenId() != -1
+        String who = r.citizenId() != Request.NO_CITIZEN
                 ? citizen.map(CitizenData::name).orElse("")
                 : b != null ? b.displayName() : r.requester().value();
         String job = citizen.flatMap(CitizenData::job).map(j -> j.type().id()).orElse("");

@@ -13,6 +13,7 @@ import dev.hycolony.core.crafting.recipe.RecipeCatalog;
 import dev.hycolony.core.job.Job;
 import dev.hycolony.core.job.JobXp;
 import dev.hycolony.core.job.WorkerModule;
+import dev.hycolony.core.job.work.SyncRequests;
 import dev.hycolony.core.job.work.ToolRequests;
 import dev.hycolony.core.job.work.WorkerStock;
 import dev.hycolony.core.kernel.BlockPos;
@@ -36,6 +37,7 @@ record BuilderContext(
         BuildingResourcesModule resources,
         WorkerStock stock,
         BuilderRequests requests,
+        SyncRequests sync,
         ToolRequests tools,
         BuilderWalker walker,
         BuilderGestures gestures,
@@ -78,7 +80,8 @@ record BuilderContext(
                 catalog,
                 resources,
                 stock,
-                new BuilderRequests(colony, citizen, hut, stock),
+                new BuilderRequests(colony, citizen, hut),
+                new SyncRequests(colony, citizen, hut, stock),
                 new ToolRequests(colony, citizen, hut),
                 new BuilderWalker(bodies, body, colony.context().clock()::currentTick),
                 new BuilderGestures(bodies, body, colony.context().ports().effects()),

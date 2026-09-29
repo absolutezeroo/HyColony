@@ -225,6 +225,6 @@ final class FarmWork {
                 return;
             }
         }
-        ctx.colony().requests().createAndAssign(ctx.hut(), new StackRequest(item, count, 1, true), -1);
+        ctx.colony().requests().createAndAssign(ctx.hut(), new StackRequest(item, count, 1, true), Request.NO_CITIZEN);
     }
 }

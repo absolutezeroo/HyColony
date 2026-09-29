@@ -109,7 +109,7 @@ public final class BuilderAI implements JobAI {
         return s != BuilderState.INVENTORY_FULL
                 && s != BuilderState.NEEDS_ITEM
                 && s != BuilderState.COMPLETE_BUILD
-                && ctx.requests().hasSyncRequests();
+                && ctx.sync().pending();
     }
 
     /** MC checkIfCanceled: the order vanished (cancelled, removed, completed elsewhere) or left this builder. */

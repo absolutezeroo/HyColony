@@ -192,7 +192,7 @@ public final class Building implements Requester, ResolverProvider {
      */
     @Override
     public void onRequestComplete(RequestManager manager, Request request) {
-        if (request.citizenId() == -1 && request.deliverable().isEmpty()) {
+        if (request.citizenId() == Request.NO_CITIZEN && request.deliverable().isEmpty()) {
             manager.updateState(request.token(), RequestState.RECEIVED);
         }
     }

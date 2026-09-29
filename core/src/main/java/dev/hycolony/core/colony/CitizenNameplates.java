@@ -57,7 +57,7 @@ public final class CitizenNameplates {
     private Set<Integer> waitingCitizens() {
         Set<Integer> out = new HashSet<>();
         for (Request r : colony.requests().assignedTo(PlayerResolver.ID)) {
-            if (r.citizenId() != -1 && r.state().isBefore(RequestState.COMPLETED)) {
+            if (r.citizenId() != Request.NO_CITIZEN && r.state().isBefore(RequestState.COMPLETED)) {
                 out.add(r.citizenId());
             }
         }

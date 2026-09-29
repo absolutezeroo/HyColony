@@ -86,7 +86,8 @@ final class RequestAssigner {
     List<RequestToken> createAll(Resolver requester, List<Requestable> what) {
         List<RequestToken> tokens = new ArrayList<>(what.size());
         for (Requestable d : what) {
-            tokens.add(store.create(requester.requesterId(), d, -1).token());
+            tokens.add(
+                    store.create(requester.requesterId(), d, Request.NO_CITIZEN).token());
         }
         return tokens;
     }

@@ -59,8 +59,9 @@ public final class RequestActions {
         // A broken tool answers no request (MC destroyed it): the player keeps it, a good one goes.
         List<ItemAmount> taken = ports.playerInventory()
                 .takeStacks(player, item.get(), wanted.count(), a -> wanted.matches(a, ports.catalog()));
-        Optional<CitizenData> citizen =
-                req.citizenId() == -1 ? Optional.empty() : c.citizens().get(req.citizenId());
+        Optional<CitizenData> citizen = req.citizenId() == Request.NO_CITIZEN
+                ? Optional.empty()
+                : c.citizens().get(req.citizenId());
         int moved = 0;
         for (ItemAmount stack : taken) {
             moved += stack.count() - giveBack(player, deliver(c, req, citizen, stack));

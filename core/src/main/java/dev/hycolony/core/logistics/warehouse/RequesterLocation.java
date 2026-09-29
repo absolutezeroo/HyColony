@@ -36,7 +36,7 @@ public final class RequesterLocation {
      * warehouse's delivery); else the raw requester id.
      */
     public static String displayName(Colony colony, Request r) {
-        if (r.citizenId() != -1) {
+        if (r.citizenId() != Request.NO_CITIZEN) {
             return colony.citizens().get(r.citizenId()).map(CitizenData::name).orElse("");
         }
         return of(colony, r.requester())
