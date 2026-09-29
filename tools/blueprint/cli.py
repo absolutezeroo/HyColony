@@ -23,9 +23,14 @@ SUFFIX_TRACE = ".trace.json"
 
 def register_hydomum_variants(variants_file: str | None, prefabs: list[Path]) -> None:
     """Avec --variantes-hydomum : ajoute au variants.json de HyDomum les variantes que nomment ces prefabs."""
-    if variants_file:
+    if not variants_file:
+        return
+    try:
         n = domum.register_from_prefabs(prefabs, Path(variants_file))
-        print(f"Variantes HyDomum ajoutées à {variants_file} : {n}")
+    except ValueError as e:
+        print(f"Variantes HyDomum non enregistrées : {e}", file=sys.stderr)
+        return
+    print(f"Variantes HyDomum ajoutées à {variants_file} : {n} (prises en compte au prochain démarrage du serveur)")
 
 
 def build_report(res: Result, known: set[str], known_src: str) -> dict:
@@ -114,7 +119,8 @@ def main(argv: list[str] | None = None) -> int:
                          "variantes (voir --variantes-hydomum). Par défaut : le gabarit HyDomum")
     ap.add_argument("--variantes-hydomum", metavar="FICHIER",
                     help="implique --domum-materiaux ; ajoute les variantes des prefabs écrits au variants.json de "
-                         "HyDomum (universe/hydomum/variants.json du serveur), qui les crée au démarrage")
+                         "HyDomum (universe/hydomum/variants.json du serveur), qui les crée au démarrage. "
+                         "Serveur arrêté : il réécrit ce fichier depuis sa mémoire")
     ap.add_argument("--trace", action="store_true", help="écrit aussi, pour chaque case, la règle appliquée")
     ap.add_argument("--strict", action="store_true", help="code de sortie 1 s'il reste des non mappés ou des IDs inconnus")
     ap.add_argument("--version", action="version", version=f"blueprint2hytale {__version__}")

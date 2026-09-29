@@ -216,7 +216,8 @@ class Options:
     # Traduit les blocs spéciaux MineColonies en blocs éditeur Hytale (voir
     # editor_block()). False = comportement V32 : ces cases sont omises.
     editor_blocks: bool = True
-    # Blocs Domum : True = nom complet avec les matériaux (<gabarit>__<m1>__<m2>, demande DO-3 côté HyDomum),
+    # Blocs Domum : True = nom complet avec les matériaux (<gabarit>__<m1>__<m2>, à enregistrer dans HyDomum :
+    # --variantes-hydomum),
     # False = le gabarit HyDomum dans ses matériaux par défaut.
     domum_materials: bool = False
 

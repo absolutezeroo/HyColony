@@ -14,13 +14,14 @@ Domum (tools/domum/blocks/door.py).
 
 Deux modes :
 - gabarit (défaut) : la forme dans ses matériaux par défaut, affichable tout de suite ;
-- matériaux : `<gabarit>__<matériau 1>__<matériau 2>` (domum/core/.../VariantKey.blockTypeKey). HyDomum doit
-  savoir créer ce matériau au chargement du prefab (tâche DO-3) : d'ici là, un tel bloc s'affiche inconnu.
+- matériaux : `<gabarit>__<matériau 1>__<matériau 2>` (domum/core/.../VariantKey.blockTypeKey). HyDomum crée ces
+  variantes au démarrage si elles sont dans son variants.json : option --variantes-hydomum (register_variants).
 """
 from __future__ import annotations
 
 import csv
 import json
+import os
 from functools import lru_cache
 from pathlib import Path
 
@@ -95,18 +96,27 @@ def variant_ids(targets) -> set[str]:
 
 def register_variants(path: Path, ids: set[str]) -> int:
     """Ajoute à la fin du variants.json de HyDomum (créé au besoin) les variantes absentes, sans rien retirer ; HyDomum
-    les crée au démarrage, avant les chunks et les prefabs (VariantStore). Renvoie le nombre d'ajouts."""
-    data = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {"schemaVersion": 1, "variants": []}
+    les crée au démarrage, avant les chunks et les prefabs (VariantStore). Renvoie le nombre d'ajouts.
+
+    Serveur arrêté : HyDomum garde la liste en mémoire et la réécrit en entier à chaque variante créée en jeu, ce qui
+    effacerait ces ajouts. Écriture atomique (.tmp puis remplacement), comme VariantStore."""
+    try:
+        data = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {"schemaVersion": 1, "variants": []}
+    except ValueError as e:
+        raise ValueError(f"{path} illisible ({e}) : non modifié") from None
     if isinstance(data, list):  # l'ancien format de SavedVariants : la liste seule
         data = {"schemaVersion": 1, "variants": data}
-    if data.get("schemaVersion", 1) > 1:
+    version = data.get("schemaVersion", 1)
+    if isinstance(version, int) and version > 1:  # comme SavedVariants.isNewer
         raise ValueError(f"{path} vient d'une version plus récente de HyDomum : non modifié")
     saved = data.setdefault("variants", [])
-    new = sorted(ids - set(saved))
+    new = sorted(ids - {v for v in saved if isinstance(v, str)})  # une entrée étrangère est gardée telle quelle
     if new:
         saved.extend(new)
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(data, separators=(",", ":")), encoding="utf-8")
+        tmp = path.with_name(path.name + ".tmp")
+        tmp.write_text(json.dumps(data, separators=(",", ":")), encoding="utf-8")
+        os.replace(tmp, path)
     return len(new)
 
 

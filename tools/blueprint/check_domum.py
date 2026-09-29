@@ -135,8 +135,8 @@ def every_state_emitted_exists_in_its_template():
 def variant_ids_name_shape_and_materials():
     # HyDomum saves a variant as VariantKey.id(): "<shape id>|<material 1>|<material 2>".
     target = "*HyDomum_TimberFrame_Plain__Wood_Hardwood_Planks__Soil_Clay_Smooth_White_State_Definitions_X"
-    assert domum.variant_ids([target, "HyDomum_Stairs", "Rock_Stone"]) == {
-        "TimberFrame_Plain|Wood_Hardwood_Planks|Soil_Clay_Smooth_White"}
+    assert domum.variant_ids([target, "HyDomum_Stairs", "Rock_Stone", "HyDomum_Stairs__Rock_Stone"]) == {
+        "TimberFrame_Plain|Wood_Hardwood_Planks|Soil_Clay_Smooth_White", "Stairs|Rock_Stone"}
 
 
 def registering_variants_keeps_the_saved_ones(tmp: Path):
@@ -145,6 +145,19 @@ def registering_variants_keeps_the_saved_ones(tmp: Path):
     added = domum.register_variants(path, {"Slab|Rock_Stone", "Stairs|Rock_Stone"})
     assert added == 1, added
     assert json.loads(path.read_text(encoding="utf-8"))["variants"] == ["Stairs|Rock_Stone", "Slab|Rock_Stone"]
+    old = tmp / "old.json"  # SavedVariants' first format: the bare list, with a foreign (non-text) entry kept
+    old.write_text(json.dumps(["Stairs|Rock_Stone", {"x": 1}]), encoding="utf-8")
+    assert domum.register_variants(old, {"Slab|Rock_Stone"}) == 1
+    assert json.loads(old.read_text(encoding="utf-8")) == {
+        "schemaVersion": 1, "variants": ["Stairs|Rock_Stone", {"x": 1}, "Slab|Rock_Stone"]}
+    newer = tmp / "newer.json"  # a newer HyDomum's file is never rewritten (SavedVariants.readOnly)
+    newer.write_text('{"schemaVersion": 2, "variants": []}', encoding="utf-8")
+    try:
+        domum.register_variants(newer, {"Slab|Rock_Stone"})
+        raise AssertionError("a newer schema must be refused")
+    except ValueError:
+        pass
+    assert newer.read_text(encoding="utf-8") == '{"schemaVersion": 2, "variants": []}'
     fresh = tmp / "new" / "variants.json"
     assert domum.register_variants(fresh, {"Slab|Rock_Stone"}) == 1
     assert json.loads(fresh.read_text(encoding="utf-8")) == {"schemaVersion": 1, "variants": ["Slab|Rock_Stone"]}

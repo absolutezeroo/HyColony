@@ -30,18 +30,23 @@ if __name__ == "__main__":
                     help="produit aussi plateforme_complete.prefab.json, avec tous les bâtiments posés")
     ap.add_argument("--variantes-hydomum", metavar="FICHIER",
                     help="blocs Domum avec leurs matériaux, et leurs variantes ajoutées au variants.json de HyDomum "
-                         "(universe/hydomum/variants.json du serveur), qui les crée au démarrage")
+                         "(universe/hydomum/variants.json du serveur), qui les crée au démarrage ; implique "
+                         "--avec-batiments. Serveur arrêté : il réécrit ce fichier depuis sa mémoire")
     a = ap.parse_args()
     files = sorted(p for p in Path(a.dossier).rglob("*") if p.suffix.lower() == ".blueprint")
     if not files:
         sys.exit(f"Aucun .blueprint dans {a.dossier}")
     converter = Converter(Options(domum_materials=bool(a.variantes_hydomum)))
-    info = generate(files, Path(a.output), with_buildings=a.avec_batiments, converter=converter, pack=a.pack)
+    with_buildings = a.avec_batiments or bool(a.variantes_hydomum)
+    info = generate(files, Path(a.output), with_buildings=with_buildings, converter=converter, pack=a.pack)
     print(f"{info['emplacements']} emplacements, plateforme {info['taille'][0]} x {info['taille'][1]}, "
           f"{info['blocs']} blocs, {info['trous']} case(s) laissée(s) ouverte(s) -> {a.output}/")
     if "complete" in info:
         c = info["complete"]
         print(f"plateforme complète : {c['batiments']} bâtiments, {c['blocs_total']} blocs")
     if a.variantes_hydomum:
-        n = domum.register_from_prefabs(Path(a.output).rglob("*.prefab.json"), Path(a.variantes_hydomum))
-        print(f"variantes HyDomum ajoutées à {a.variantes_hydomum} : {n}")
+        try:
+            n = domum.register_from_prefabs(Path(a.output).rglob("*.prefab.json"), Path(a.variantes_hydomum))
+        except ValueError as e:
+            sys.exit(f"variantes HyDomum non enregistrées : {e}")
+        print(f"variantes HyDomum ajoutées à {a.variantes_hydomum} : {n} (prises en compte au prochain démarrage)")
