@@ -222,7 +222,7 @@ FAMILY = {
     "minecraft:rail": f.rail,
     "domum_ornamentum:panel": f.domum_panel,
     # Botte de foin : le cube de foin Hytale ne tourne pas (pas de VariantRotation), elle reste debout.
-    # Citrouilles : le bloc de culture, et les citrouilles décoratives d'Halloween (qui éclairent) pour les sculptées.
+    # Citrouilles : la citrouille posée, et les citrouilles décoratives d'Halloween (qui éclairent) pour les sculptées.
     # La citrouille posable (Plant_Crop_Pumpkin_Block est la culture qui pousse, sur du sol). Modèle sans face
     # d'appui : rien ne tient dessus, et elle-même tient sur une face pleine.
     "minecraft:pumpkin": lambda p: place("Plant_Crop_Pumpkin_Item", 0, "citrouille -> citrouille posée",
