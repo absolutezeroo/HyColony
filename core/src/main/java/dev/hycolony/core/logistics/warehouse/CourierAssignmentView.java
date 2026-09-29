@@ -1,5 +1,6 @@
-package dev.hycolony.core.colony.ui.tab;
+package dev.hycolony.core.logistics.warehouse;
 
+import dev.hycolony.core.building.module.ModuleTab;
 import java.util.List;
 
 /** The warehouse's Couriers tab (MC CourierAssignmentModuleView): its couriers' names, at most {@code maxCouriers}. */

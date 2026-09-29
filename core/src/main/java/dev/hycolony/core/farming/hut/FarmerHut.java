@@ -2,7 +2,7 @@ package dev.hycolony.core.farming.hut;
 
 import dev.hycolony.core.building.BuildingRegistry;
 import dev.hycolony.core.building.BuildingType;
-import dev.hycolony.core.building.ModuleProducer;
+import dev.hycolony.core.building.module.ModuleProducer;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.crafting.module.CraftingModule;
 import dev.hycolony.core.crafting.request.CraftingResolvers;

@@ -5,7 +5,7 @@ import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.action.FieldActions;
-import dev.hycolony.core.colony.ui.tab.FieldsView;
+import dev.hycolony.core.farming.hut.FieldsView;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.plugin.ui.ColonyPage;
 import dev.hycolony.plugin.ui.highlight.Highlight;

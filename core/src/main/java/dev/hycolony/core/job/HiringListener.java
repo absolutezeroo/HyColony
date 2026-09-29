@@ -1,7 +1,7 @@
 package dev.hycolony.core.job;
 
 import dev.hycolony.core.building.Building;
-import dev.hycolony.core.building.BuildingModule;
+import dev.hycolony.core.building.module.BuildingModule;
 import dev.hycolony.core.colony.Colony;
 
 /**

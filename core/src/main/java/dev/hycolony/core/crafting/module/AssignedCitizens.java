@@ -1,7 +1,7 @@
 package dev.hycolony.core.crafting.module;
 
 import dev.hycolony.core.building.Building;
-import dev.hycolony.core.building.BuildingModule;
+import dev.hycolony.core.building.module.BuildingModule;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.job.WorkerModule;

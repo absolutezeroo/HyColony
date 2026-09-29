@@ -1,9 +1,9 @@
 package dev.hycolony.core.construction.resources;
 
 import dev.hycolony.core.building.Building;
-import dev.hycolony.core.building.ProvidesTab;
+import dev.hycolony.core.building.module.ModuleTab;
+import dev.hycolony.core.building.module.ProvidesTab;
 import dev.hycolony.core.colony.Colony;
-import dev.hycolony.core.colony.ui.tab.ModuleTab;
 import dev.hycolony.core.construction.workorder.Stage;
 import dev.hycolony.core.construction.workorder.WorkOrder;
 import dev.hycolony.core.kernel.item.Inventory;

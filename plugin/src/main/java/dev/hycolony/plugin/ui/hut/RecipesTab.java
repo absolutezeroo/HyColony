@@ -5,7 +5,7 @@ import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.action.CraftingActions;
-import dev.hycolony.core.colony.ui.tab.RecipesView;
+import dev.hycolony.core.crafting.module.RecipesView;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.plugin.crafting.BenchItems;

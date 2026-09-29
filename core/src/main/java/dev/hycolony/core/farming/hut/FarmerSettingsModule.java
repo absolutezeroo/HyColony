@@ -2,7 +2,7 @@ package dev.hycolony.core.farming.hut;
 
 import com.google.gson.JsonObject;
 import dev.hycolony.core.building.Building;
-import dev.hycolony.core.building.PersistentModule;
+import dev.hycolony.core.building.module.PersistentModule;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.farming.field.FieldJson;
 import dev.hycolony.core.logistics.pickup.KeepRule;

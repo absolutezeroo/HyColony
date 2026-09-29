@@ -2,6 +2,8 @@ package dev.hycolony.core.building;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import dev.hycolony.core.building.module.BuildingEventsModule;
+import dev.hycolony.core.building.module.ModuleProducer;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.colony.territory.TerritoryIndex;

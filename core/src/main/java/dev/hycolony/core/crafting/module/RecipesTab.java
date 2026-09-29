@@ -2,10 +2,9 @@ package dev.hycolony.core.crafting.module;
 
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.colony.Colony;
-import dev.hycolony.core.colony.ui.tab.RecipesView;
-import dev.hycolony.core.colony.ui.tab.RecipesView.IngredientLine;
-import dev.hycolony.core.colony.ui.tab.RecipesView.Line;
 import dev.hycolony.core.crafting.module.CraftingModule.LearnRefusal;
+import dev.hycolony.core.crafting.module.RecipesView.IngredientLine;
+import dev.hycolony.core.crafting.module.RecipesView.Line;
 import dev.hycolony.core.crafting.recipe.Ingredient;
 import dev.hycolony.core.crafting.recipe.Recipe;
 import dev.hycolony.core.crafting.recipe.RecipeCatalog;

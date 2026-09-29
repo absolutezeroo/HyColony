@@ -2,7 +2,7 @@ package dev.hycolony.core.testing.crafting;
 
 import com.google.gson.JsonObject;
 import dev.hycolony.core.building.BuildingType;
-import dev.hycolony.core.building.ModuleProducer;
+import dev.hycolony.core.building.module.ModuleProducer;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.colony.Colony;

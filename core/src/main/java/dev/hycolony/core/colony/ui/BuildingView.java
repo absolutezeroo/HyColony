@@ -1,6 +1,6 @@
 package dev.hycolony.core.colony.ui;
 
-import dev.hycolony.core.colony.ui.tab.ModuleTab;
+import dev.hycolony.core.building.module.ModuleTab;
 import dev.hycolony.core.construction.workorder.WorkOrderType;
 import dev.hycolony.core.job.HiringMode;
 import dev.hycolony.core.kernel.BlockPos;

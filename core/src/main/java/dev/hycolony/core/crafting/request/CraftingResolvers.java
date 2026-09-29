@@ -1,7 +1,7 @@
 package dev.hycolony.core.crafting.request;
 
 import dev.hycolony.core.building.Building;
-import dev.hycolony.core.building.CreatesResolvers;
+import dev.hycolony.core.building.module.CreatesResolvers;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.crafting.module.CraftingModule;
 import dev.hycolony.core.crafting.module.CraftingModules;

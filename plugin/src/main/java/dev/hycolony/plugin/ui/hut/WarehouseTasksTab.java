@@ -2,7 +2,7 @@ package dev.hycolony.plugin.ui.hut;
 
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
-import dev.hycolony.core.colony.ui.tab.TaskRow;
+import dev.hycolony.core.logistics.warehouse.TaskRow;
 import java.util.List;
 
 /** The warehouse's Tasks tab (MC WarehouseRequestTaskModuleView): the tasks waiting for a courier. */

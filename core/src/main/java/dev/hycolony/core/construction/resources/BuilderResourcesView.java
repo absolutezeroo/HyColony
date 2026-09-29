@@ -1,5 +1,6 @@
-package dev.hycolony.core.colony.ui.tab;
+package dev.hycolony.core.construction.resources;
 
+import dev.hycolony.core.building.module.ModuleTab;
 import dev.hycolony.core.construction.workorder.WorkOrderType;
 import dev.hycolony.core.kernel.item.ItemKey;
 import java.util.List;

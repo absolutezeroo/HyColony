@@ -3,7 +3,6 @@ package dev.hycolony.core.farming.hut;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.permission.Action;
-import dev.hycolony.core.colony.ui.tab.FieldsView;
 import dev.hycolony.core.farming.field.FarmField;
 import dev.hycolony.core.kernel.BlockPos;
 import java.util.Comparator;

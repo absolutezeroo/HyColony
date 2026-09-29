@@ -1,7 +1,7 @@
 package dev.hycolony.core.logistics.warehouse;
 
 import dev.hycolony.core.building.Building;
-import dev.hycolony.core.building.CreatesResolvers;
+import dev.hycolony.core.building.module.CreatesResolvers;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.request.Resolver;
 import java.util.List;

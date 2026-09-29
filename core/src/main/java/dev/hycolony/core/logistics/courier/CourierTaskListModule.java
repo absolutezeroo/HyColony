@@ -1,11 +1,10 @@
 package dev.hycolony.core.logistics.courier;
 
 import dev.hycolony.core.building.Building;
-import dev.hycolony.core.building.ProvidesTab;
+import dev.hycolony.core.building.module.ModuleTab;
+import dev.hycolony.core.building.module.ProvidesTab;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
-import dev.hycolony.core.colony.ui.tab.CourierTasksView;
-import dev.hycolony.core.colony.ui.tab.ModuleTab;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.logistics.warehouse.CourierAssignmentModule;
 import dev.hycolony.core.logistics.warehouse.TaskRows;

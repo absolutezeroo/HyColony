@@ -1,7 +1,7 @@
 package dev.hycolony.core.crafting.module;
 
 import dev.hycolony.core.building.Building;
-import dev.hycolony.core.building.BuildingModule;
+import dev.hycolony.core.building.module.BuildingModule;
 import dev.hycolony.core.crafting.recipe.RecipeId;
 import java.util.ArrayList;
 import java.util.List;

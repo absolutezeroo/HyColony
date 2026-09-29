@@ -1,7 +1,6 @@
 package dev.hycolony.core.logistics.warehouse;
 
 import dev.hycolony.core.colony.Colony;
-import dev.hycolony.core.colony.ui.tab.TaskRow;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.model.Crafting;

@@ -4,9 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import dev.hycolony.core.colony.ui.tab.RecipesView;
-import dev.hycolony.core.colony.ui.tab.RecipesView.IngredientLine;
-import dev.hycolony.core.colony.ui.tab.RecipesView.Line;
+import dev.hycolony.core.crafting.module.RecipesView.IngredientLine;
+import dev.hycolony.core.crafting.module.RecipesView.Line;
 import dev.hycolony.core.crafting.recipe.BenchRequirement;
 import dev.hycolony.core.crafting.recipe.Ingredient;
 import dev.hycolony.core.crafting.recipe.Recipe;

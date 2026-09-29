@@ -1,13 +1,13 @@
 package dev.hycolony.core.colony.view;
 
 import dev.hycolony.core.building.Building;
-import dev.hycolony.core.building.ProvidesTab;
+import dev.hycolony.core.building.module.ModuleTab;
+import dev.hycolony.core.building.module.ProvidesTab;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.colony.ui.BuildingView;
-import dev.hycolony.core.colony.ui.tab.ModuleTab;
 import dev.hycolony.core.construction.workorder.WorkManager;
 import dev.hycolony.core.construction.workorder.WorkOrder;
 import dev.hycolony.core.construction.workorder.WorkOrderType;

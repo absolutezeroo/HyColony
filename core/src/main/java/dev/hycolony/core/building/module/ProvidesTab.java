@@ -1,7 +1,7 @@
-package dev.hycolony.core.building;
+package dev.hycolony.core.building.module;
 
+import dev.hycolony.core.building.Building;
 import dev.hycolony.core.colony.Colony;
-import dev.hycolony.core.colony.ui.tab.ModuleTab;
 import java.util.UUID;
 
 /**

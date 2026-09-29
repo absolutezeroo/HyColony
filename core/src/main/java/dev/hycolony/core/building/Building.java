@@ -1,6 +1,9 @@
 package dev.hycolony.core.building;
 
 import com.google.gson.JsonObject;
+import dev.hycolony.core.building.module.BuildingModule;
+import dev.hycolony.core.building.module.CreatesResolvers;
+import dev.hycolony.core.building.module.ModuleProducer;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.ContainerAccess;

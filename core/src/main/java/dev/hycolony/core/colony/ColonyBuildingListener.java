@@ -1,10 +1,10 @@
 package dev.hycolony.core.colony;
 
 import dev.hycolony.core.building.Building;
-import dev.hycolony.core.building.BuildingEventsModule;
 import dev.hycolony.core.building.BuildingManager;
-import dev.hycolony.core.building.BuildingModule;
-import dev.hycolony.core.building.CreatesResolvers;
+import dev.hycolony.core.building.module.BuildingEventsModule;
+import dev.hycolony.core.building.module.BuildingModule;
+import dev.hycolony.core.building.module.CreatesResolvers;
 import dev.hycolony.core.crafting.module.RecipeReservations;
 import dev.hycolony.core.request.Resolver;
 import java.util.ArrayList;

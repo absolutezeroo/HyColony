@@ -2,12 +2,12 @@ package dev.hycolony.core.farming.hut;
 
 import com.google.gson.JsonObject;
 import dev.hycolony.core.building.Building;
-import dev.hycolony.core.building.BuildingEventsModule;
-import dev.hycolony.core.building.PersistentModule;
-import dev.hycolony.core.building.ProvidesTab;
-import dev.hycolony.core.building.TickingModule;
+import dev.hycolony.core.building.module.BuildingEventsModule;
+import dev.hycolony.core.building.module.ModuleTab;
+import dev.hycolony.core.building.module.PersistentModule;
+import dev.hycolony.core.building.module.ProvidesTab;
+import dev.hycolony.core.building.module.TickingModule;
 import dev.hycolony.core.colony.Colony;
-import dev.hycolony.core.colony.ui.tab.ModuleTab;
 import dev.hycolony.core.farming.field.FarmField;
 import dev.hycolony.core.farming.field.FieldJson;
 import dev.hycolony.core.farming.field.FieldRegistry;

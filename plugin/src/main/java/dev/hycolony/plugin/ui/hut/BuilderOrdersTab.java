@@ -5,7 +5,7 @@ import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import dev.hycolony.core.colony.ColonyManager;
 import dev.hycolony.core.colony.action.WorkOrderActions;
-import dev.hycolony.core.colony.ui.tab.WorkOrderListView;
+import dev.hycolony.core.construction.hut.WorkOrderListView;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.plugin.ui.ColonyPage;
 import java.util.List;

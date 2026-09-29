@@ -3,7 +3,7 @@ package dev.hycolony.plugin.ui.hut;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
-import dev.hycolony.core.colony.ui.tab.CourierAssignmentView;
+import dev.hycolony.core.logistics.warehouse.CourierAssignmentView;
 
 /**
  * The warehouse's Couriers tab (MC CourierAssignmentModuleView): how many are attached out of the maximum, and their

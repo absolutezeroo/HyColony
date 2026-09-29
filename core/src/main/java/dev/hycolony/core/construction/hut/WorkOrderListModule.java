@@ -1,10 +1,9 @@
 package dev.hycolony.core.construction.hut;
 
 import dev.hycolony.core.building.Building;
-import dev.hycolony.core.building.ProvidesTab;
+import dev.hycolony.core.building.module.ModuleTab;
+import dev.hycolony.core.building.module.ProvidesTab;
 import dev.hycolony.core.colony.Colony;
-import dev.hycolony.core.colony.ui.tab.ModuleTab;
-import dev.hycolony.core.colony.ui.tab.WorkOrderListView;
 import dev.hycolony.core.construction.resources.BuildingResourcesModule;
 import dev.hycolony.core.construction.shared.BuilderSettingsModule;
 import dev.hycolony.core.construction.workorder.ManualSelection;

@@ -2,7 +2,7 @@ package dev.hycolony.plugin.ui.hut;
 
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
-import dev.hycolony.core.colony.ui.tab.TaskRow;
+import dev.hycolony.core.logistics.warehouse.TaskRow;
 import dev.hycolony.plugin.ui.ColonyPage;
 import dev.hycolony.plugin.ui.RequestsPage;
 import java.util.List;

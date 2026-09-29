@@ -1,8 +1,8 @@
 package dev.hycolony.core.construction.shared;
 
 import dev.hycolony.core.building.Building;
-import dev.hycolony.core.building.BuildingEventsModule;
-import dev.hycolony.core.building.BuildingModule;
+import dev.hycolony.core.building.module.BuildingEventsModule;
+import dev.hycolony.core.building.module.BuildingModule;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyEvents;
 

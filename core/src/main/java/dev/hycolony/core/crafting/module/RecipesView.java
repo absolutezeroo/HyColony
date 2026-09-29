@@ -1,5 +1,6 @@
-package dev.hycolony.core.colony.ui.tab;
+package dev.hycolony.core.crafting.module;
 
+import dev.hycolony.core.building.module.ModuleTab;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ToolType;
 import java.util.List;

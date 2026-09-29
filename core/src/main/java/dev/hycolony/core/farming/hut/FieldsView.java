@@ -1,5 +1,6 @@
-package dev.hycolony.core.colony.ui.tab;
+package dev.hycolony.core.farming.hut;
 
+import dev.hycolony.core.building.module.ModuleTab;
 import dev.hycolony.core.farming.field.FieldStage;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemKey;

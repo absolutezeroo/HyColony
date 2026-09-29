@@ -1,7 +1,7 @@
 package dev.hycolony.core.crafting.request;
 
 import dev.hycolony.core.building.Building;
-import dev.hycolony.core.building.BuildingModule;
+import dev.hycolony.core.building.module.BuildingModule;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.request.Resolver;
 import dev.hycolony.core.request.model.RequesterId;

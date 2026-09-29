@@ -1,4 +1,4 @@
-package dev.hycolony.core.building;
+package dev.hycolony.core.building.module;
 
 import com.google.gson.JsonObject;
 
