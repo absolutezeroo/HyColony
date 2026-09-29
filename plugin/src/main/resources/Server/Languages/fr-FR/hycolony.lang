@@ -252,6 +252,7 @@ ui.requests.from = De {p0}
 ui.tool.pickaxe = Pioche
 ui.tool.axe = Hache
 ui.tool.shovel = Pelle
+ui.tool.hoe = Houe
 ui.building.hiring.default = Embauche : Par défaut
 ui.building.hiring.auto = Embauche : Automatique
 ui.building.hiring.manual = Embauche : Manuelle
