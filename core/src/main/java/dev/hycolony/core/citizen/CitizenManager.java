@@ -164,8 +164,8 @@ public final class CitizenManager {
 
     /**
      * MC CitizenData.updateEntityIfNecessary and spawnOrCreateCivilian: a citizen without a living body gets one at the
-     * first loaded of its respawn position, last position, work building and home; the town hall (else the colony's
-     * centre) when it has none. Nothing while none is loaded.
+     * first of its respawn position, last position, work building and home that is loaded and has room for it; the
+     * town hall (else the colony's centre) when it has none. Nothing while none fits.
      */
     private void updateBodyIfNecessary(CitizenData data) {
         BodyId body = bodies.get(data.id());
@@ -180,18 +180,24 @@ public final class CitizenManager {
         if (candidates.isEmpty()) {
             candidates.add(colony.buildings().townHall().map(Building::position).orElse(colony.center()));
         }
-        candidates.stream().filter(ctx().worldQuery()::isLoaded).findFirst().ifPresent(at -> spawnBody(data, at));
+        for (BlockPos at : candidates) {
+            if (ctx().worldQuery().isLoaded(at) && spawnBody(data, at)) {
+                return; // else MC tries the next one (getSpawnPoint found no room)
+            }
+        }
     }
 
-    private void spawnBody(CitizenData data, BlockPos near) {
-        ctx().bodies()
+    /** Spawns and binds a body near {@code near}; false when none could appear there. */
+    private boolean spawnBody(CitizenData data, BlockPos near) {
+        Optional<BodyId> body = ctx().bodies()
                 .spawn(
                         ctx().world(),
                         near,
                         colony.id(),
                         data.id(),
-                        colony.nameplates().nameFor(data))
-                .ifPresent(body -> bind(data, body));
+                        colony.nameplates().nameFor(data));
+        body.ifPresent(b -> bind(data, b));
+        return body.isPresent();
     }
 
     private void bind(CitizenData data, BodyId body) {

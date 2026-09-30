@@ -128,6 +128,26 @@ class CitizenManagerTest {
         assertEquals(Vec3.center(work), t.bodies.position(body).orElseThrow());
     }
 
+    /** MC spawnOrCreateCivilian: where no body can appear (getSpawnPoint null), the next candidate is tried. */
+    @Test
+    void aRespawnThatFailsAtItsLastPositionTriesItsWorkBuilding() {
+        Colony c = colonyWithTownHall();
+        slowTicks(c, 2);
+        CitizenData d = c.citizens().all().iterator().next();
+        t.bodies.despawn(c.citizens().bodyOf(d.id()).orElseThrow());
+        BlockPos last = new BlockPos(30, 64, 30);
+        BlockPos work = new BlockPos(20, 64, 0);
+        d.setLastPosition(Vec3.center(last));
+        d.setWorkBuilding(work);
+        t.bodies.refuseSpawnAt.add(last);
+
+        slowTicks(c, 13);
+
+        BodyId body = c.citizens().bodyOf(d.id()).orElseThrow();
+        assertTrue(t.bodies.isAlive(body));
+        assertEquals(Vec3.center(work), t.bodies.position(body).orElseThrow());
+    }
+
     @Test
     void bodyLoadedTwiceKeepsFirstAndDespawnsSecond() {
         Colony c = colonyWithTownHall();

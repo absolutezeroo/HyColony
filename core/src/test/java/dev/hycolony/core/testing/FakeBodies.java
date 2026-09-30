@@ -9,10 +9,12 @@ import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.CitizenBodies;
 import dev.hycolony.core.kernel.port.NavStatus;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 public final class FakeBodies implements CitizenBodies {
     public static final class Body {
@@ -38,6 +40,8 @@ public final class FakeBodies implements CitizenBodies {
 
     public final Map<BodyId, Body> bodies = new LinkedHashMap<>();
     public boolean refuseSpawn;
+    /** Positions where spawn fails, as when the world has no room there. */
+    public final Set<BlockPos> refuseSpawnAt = new HashSet<>();
     /** When set, moveTo teleports the body to its target and reports ARRIVED. */
     public boolean instant;
     /** When set (and not instant), moveTo never moves the body and navStatus stays MOVING: a nav that never ends. */
@@ -66,7 +70,7 @@ public final class FakeBodies implements CitizenBodies {
 
     @Override
     public Optional<BodyId> spawn(WorldKey world, BlockPos near, int colonyId, int citizenId, String displayName) {
-        if (refuseSpawn) {
+        if (refuseSpawn || refuseSpawnAt.contains(near)) {
             return Optional.empty();
         }
         BodyId id = new BodyId(next++);
