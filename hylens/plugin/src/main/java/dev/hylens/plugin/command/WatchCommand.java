@@ -61,16 +61,20 @@ final class WatchCommand extends AbstractPlayerCommand {
 
     /** HyColony in {@code world}; empty, and the player told, where it does not run or has stopped. */
     static Optional<ColonyWorld> colonies(PlayerRef player, World world) {
-        Optional<ColonyWorld> colonies;
-        try {
-            colonies = HyColonyApi.get().world(world);
-        } catch (IllegalStateException e) {
-            colonies = Optional.empty(); // HyColony stopped: its api holder is empty
-        }
+        Optional<ColonyWorld> colonies = worldOf(world);
         if (colonies.isEmpty()) {
             Chat.tell(player, "hylens.notRunning");
         }
         return colonies;
+    }
+
+    /** HyColony in {@code world}; empty where it does not run or has stopped. World thread. */
+    static Optional<ColonyWorld> worldOf(World world) {
+        try {
+            return HyColonyApi.get().world(world);
+        } catch (IllegalStateException e) {
+            return Optional.empty(); // HyColony stopped: its api holder is empty
+        }
     }
 
     /** /hylens watch: the citizen in view within {@link #TARGET_RADIUS} blocks. */

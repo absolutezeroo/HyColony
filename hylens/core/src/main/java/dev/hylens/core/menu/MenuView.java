@@ -1,0 +1,41 @@
+package dev.hylens.core.menu;
+
+import dev.hycolony.api.CitizenRef;
+import dev.hycolony.api.ColonyRef;
+import dev.hylens.core.draw.Layers;
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * What the HyLens menu shows (spec 2026-09-30, § 6.4): the world's colonies, the chosen one's citizens, the chosen
+ * citizen and the layers. Built by {@link MenuViews}.
+ */
+public record MenuView(
+        List<ColonyRow> colonies,
+        Optional<ColonyRef> colony,
+        List<CitizenRow> citizens,
+        Optional<CitizenRef> citizen,
+        Layers layers) {
+    /** Keeps its own copies of the lists. */
+    public MenuView {
+        colonies = List.copyOf(colonies);
+        citizens = List.copyOf(citizens);
+    }
+
+    /** One colony of the world: its name and number of citizens, and whether it is the chosen one. */
+    public record ColonyRow(ColonyRef ref, String name, int citizens, boolean chosen) {}
+
+    /**
+     * One citizen of the chosen colony: its job id, AI state and job step ("-" for none, or while its body is
+     * unloaded), its confirmed alerts, and whether it is chosen, and watched by the operator.
+     */
+    public record CitizenRow(
+            CitizenRef ref,
+            String name,
+            String job,
+            String ai,
+            String step,
+            int alerts,
+            boolean chosen,
+            boolean watched) {}
+}

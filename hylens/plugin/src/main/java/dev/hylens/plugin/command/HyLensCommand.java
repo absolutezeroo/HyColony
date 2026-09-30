@@ -13,6 +13,7 @@ import dev.hycolony.api.ApiVersion;
 import dev.hycolony.api.ColonyWorld;
 import dev.hycolony.plugin.api.HyColonyApi;
 import dev.hylens.core.ApiCompatibility;
+import dev.hylens.core.menu.Menus;
 import dev.hylens.core.watch.Watches;
 import dev.hylens.plugin.HyLensIds;
 import java.util.Optional;
@@ -23,11 +24,13 @@ import javax.annotation.Nonnull;
  * Hytale generates for it, which only the operators' "*" holds (AbstractCommand.setOwner, hasPermission).
  */
 public final class HyLensCommand extends AbstractCommandCollection {
-    public HyLensCommand(PluginBase owner, Watches watches, HyLensIds ids) {
+    public HyLensCommand(PluginBase owner, Watches watches, Menus menus, HyLensIds ids) {
         super("hylens", "HyLens, a debugging lens on HyColony (operators)");
         addSubCommand(new SelfTest());
-        addSubCommand(new WatchCommand(new CitizenWatch(owner, watches, ids)));
+        CitizenWatch watch = new CitizenWatch(owner, watches, ids);
+        addSubCommand(new WatchCommand(watch));
         addSubCommand(new UnwatchCommand(watches));
+        addSubCommand(new MenuCommand(menus, watches, watch));
     }
 
     /** Checks that HyColony's api answers in the player's world, and that HyLens runs with its version. */

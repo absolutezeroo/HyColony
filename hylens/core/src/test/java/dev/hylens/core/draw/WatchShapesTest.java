@@ -42,7 +42,10 @@ class WatchShapesTest {
     @Test
     void walkingBodyGetsALineAndASphereOnItsTarget() {
         List<Shape> shapes = WatchShapes.shapes(
-                citizen(Optional.of(BODY), Optional.empty()), debug(Optional.of(TARGET), Optional.empty()), List.of());
+                citizen(Optional.of(BODY), Optional.empty()),
+                debug(Optional.of(TARGET), Optional.empty()),
+                List.of(),
+                Layers.ALL);
 
         assertEquals(
                 List.of(
@@ -58,7 +61,8 @@ class WatchShapesTest {
             List<Shape> shapes = WatchShapes.shapes(
                     citizen(Optional.of(BODY), Optional.empty()),
                     debug(Optional.of(TARGET), Optional.of(away)),
-                    List.of(alert(code)));
+                    List.of(alert(code)),
+                    Layers.ALL);
 
             assertEquals(Shape.Colour.FAILED, shapes.getFirst().colour(), code);
             assertEquals(Shape.Colour.FAILED, shapes.get(1).colour(), code);
@@ -70,7 +74,8 @@ class WatchShapesTest {
         List<Shape> shapes = WatchShapes.shapes(
                 citizen(Optional.of(BODY), Optional.empty()),
                 debug(Optional.of(TARGET), Optional.empty()),
-                List.of(alert("JOB_STEP_STALE")));
+                List.of(alert("JOB_STEP_STALE")),
+                Layers.ALL);
 
         assertEquals(Shape.Colour.WALK, shapes.getFirst().colour());
     }
@@ -78,7 +83,10 @@ class WatchShapesTest {
     @Test
     void unloadedBodyGetsNoLineButItsTargetStillShows() {
         List<Shape> shapes = WatchShapes.shapes(
-                citizen(Optional.empty(), Optional.empty()), debug(Optional.of(TARGET), Optional.empty()), List.of());
+                citizen(Optional.empty(), Optional.empty()),
+                debug(Optional.of(TARGET), Optional.empty()),
+                List.of(),
+                Layers.ALL);
 
         assertEquals(List.of(Shape.sphere(centre(TARGET), Shape.Colour.WALK)), shapes);
     }
@@ -88,7 +96,10 @@ class WatchShapesTest {
         WalkEnded last = new WalkEnded(ANN, TARGET, new Vec(-7.8, 64.0, -2.2), "GAVE_UP", 2.3, "MOVING");
 
         List<Shape> shapes = WatchShapes.shapes(
-                citizen(Optional.of(BODY), Optional.of(HUT)), debug(Optional.empty(), Optional.of(last)), List.of());
+                citizen(Optional.of(BODY), Optional.of(HUT)),
+                debug(Optional.empty(), Optional.of(last)),
+                List.of(),
+                Layers.ALL);
 
         assertEquals(
                 List.of(
@@ -104,7 +115,8 @@ class WatchShapesTest {
                 WatchShapes.shapes(
                         citizen(Optional.of(BODY), Optional.empty()),
                         debug(Optional.empty(), Optional.empty()),
-                        List.of()));
+                        List.of(),
+                        Layers.ALL));
     }
 
     @Test
@@ -114,12 +126,14 @@ class WatchShapesTest {
         List<Shape> toHut = WatchShapes.shapes(
                 citizen(Optional.of(BODY), Optional.empty()),
                 debug(Optional.of(TARGET), Optional.of(onTheRoof)),
-                List.of(alert("WALK_ENDED_AWAY")));
+                List.of(alert("WALK_ENDED_AWAY")),
+                Layers.ALL);
         WalkEnded atTarget = new WalkEnded(ANN, TARGET, new Vec(9.5, 64, -1.5), "NAV_ENDED", 2.1, "IDLE");
         List<Shape> again = WatchShapes.shapes(
                 citizen(Optional.of(BODY), Optional.empty()),
                 debug(Optional.of(TARGET), Optional.of(atTarget)),
-                List.of(alert("WALK_ENDED_AWAY")));
+                List.of(alert("WALK_ENDED_AWAY")),
+                Layers.ALL);
 
         assertEquals(Shape.Colour.WALK, toHut.getFirst().colour(), "the failed walk went elsewhere");
         assertEquals(Shape.Colour.FAILED, again.getFirst().colour(), "a new try at the same target");
@@ -130,8 +144,43 @@ class WatchShapesTest {
         List<Shape> shapes = WatchShapes.shapes(
                 citizen(Optional.of(BODY), Optional.empty()),
                 debug(Optional.of(TARGET), Optional.empty()),
-                List.of(alert("JOB_STEP_STALE"), alert("STUCK_ESCALATED")));
+                List.of(alert("JOB_STEP_STALE"), alert("STUCK_ESCALATED")),
+                Layers.ALL);
 
         assertEquals(Shape.Colour.FAILED, shapes.getFirst().colour());
+    }
+
+    @Test
+    void layersTurnedOffAreNotDrawn() {
+        WalkEnded last = new WalkEnded(ANN, TARGET, new Vec(-7.8, 64.0, -2.2), "GAVE_UP", 2.3, "MOVING");
+        CitizenSnapshot c = citizen(Optional.of(BODY), Optional.of(HUT));
+        CitizenDebugSnapshot d = debug(Optional.of(TARGET), Optional.of(last));
+
+        assertEquals(
+                List.of(Shape.Kind.CUBE, Shape.Kind.CUBE),
+                WatchShapes.shapes(c, d, List.of(), Layers.ALL.toggle(Layers.Layer.TARGET)).stream()
+                        .map(Shape::kind)
+                        .toList());
+        assertEquals(
+                List.of(Shape.Colour.WALK, Shape.Colour.WALK, Shape.Colour.WORK),
+                WatchShapes.shapes(c, d, List.of(), Layers.ALL.toggle(Layers.Layer.STOP)).stream()
+                        .map(Shape::colour)
+                        .toList());
+        assertEquals(
+                List.of(Shape.Colour.WALK, Shape.Colour.WALK, Shape.Colour.STOP),
+                WatchShapes.shapes(c, d, List.of(), Layers.ALL.toggle(Layers.Layer.ZONE)).stream()
+                        .map(Shape::colour)
+                        .toList());
+    }
+
+    @Test
+    void alertsLayerOffNeverReddens() {
+        List<Shape> shapes = WatchShapes.shapes(
+                citizen(Optional.of(BODY), Optional.empty()),
+                debug(Optional.of(TARGET), Optional.empty()),
+                List.of(alert("STUCK_ESCALATED")),
+                Layers.ALL.toggle(Layers.Layer.ALERTS));
+
+        assertEquals(Shape.Colour.WALK, shapes.getFirst().colour());
     }
 }

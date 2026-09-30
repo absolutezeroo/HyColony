@@ -11,6 +11,7 @@ import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import dev.hylens.core.menu.Menus;
 import dev.hylens.core.watch.Watches;
 import dev.hylens.plugin.command.HyLensCommand;
 import dev.hylens.plugin.watch.WatchRefreshSystem;
@@ -24,7 +25,8 @@ public final class HyLensPlugin extends JavaPlugin {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
     private final Watches watches = new Watches();
-    private final WatchRefreshSystem refresh = new WatchRefreshSystem(watches);
+    private final Menus menus = new Menus();
+    private final WatchRefreshSystem refresh = new WatchRefreshSystem(watches, menus);
 
     public HyLensPlugin(@Nonnull JavaPluginInit init) {
         super(init);
@@ -32,7 +34,7 @@ public final class HyLensPlugin extends JavaPlugin {
 
     @Override
     protected void setup() {
-        getCommandRegistry().registerCommand(new HyLensCommand(this, watches, HyLensIds.load()));
+        getCommandRegistry().registerCommand(new HyLensCommand(this, watches, menus, HyLensIds.load()));
         getEventRegistry().register(PlayerDisconnectEvent.class, this::onDisconnect);
         getEntityStoreRegistry().registerSystem(refresh);
     }
@@ -67,6 +69,7 @@ public final class HyLensPlugin extends JavaPlugin {
     private void onDisconnect(PlayerDisconnectEvent e) {
         try {
             UUID operator = e.getPlayerRef().getUuid();
+            menus.forget(operator);
             boolean watched = watches.stop(operator).isPresent();
             @Nullable Ref<EntityStore> ref = e.getPlayerRef().getReference();
             if (ref == null || !ref.isValid()) {

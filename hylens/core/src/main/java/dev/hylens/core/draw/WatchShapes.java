@@ -25,18 +25,24 @@ public final class WatchShapes {
 
     private WatchShapes() {}
 
-    /** The shapes for {@code citizen}, from its debug snapshot {@code s} and its confirmed {@code alerts}. */
-    public static List<Shape> shapes(CitizenSnapshot citizen, CitizenDebugSnapshot s, List<Violation> alerts) {
+    /**
+     * The shapes for {@code citizen}, from its debug snapshot {@code s} and its confirmed {@code alerts}, as far as
+     * the operator's {@code layers} show them.
+     */
+    public static List<Shape> shapes(
+            CitizenSnapshot citizen, CitizenDebugSnapshot s, List<Violation> alerts, Layers layers) {
         List<Shape> out = new ArrayList<>(4);
-        Shape.Colour walk = failed(s, alerts) ? Shape.Colour.FAILED : Shape.Colour.WALK;
-        s.walkTarget().ifPresent(target -> {
+        Shape.Colour walk = layers.alerts() && failed(s, alerts) ? Shape.Colour.FAILED : Shape.Colour.WALK;
+        s.walkTarget().filter(t -> layers.target()).ifPresent(target -> {
             citizen.position()
                     .ifPresent(body -> out.add(
                             Shape.line(new Vec(body.x(), body.y() + BODY_HEIGHT, body.z()), centre(target), walk)));
             out.add(Shape.sphere(centre(target), walk));
         });
-        s.lastWalkEnd().ifPresent(end -> out.add(Shape.cube(centre(cell(end.at())), Shape.Colour.STOP)));
-        citizen.work().ifPresent(hut -> out.add(Shape.cube(centre(hut), Shape.Colour.WORK)));
+        s.lastWalkEnd()
+                .filter(e -> layers.stop())
+                .ifPresent(end -> out.add(Shape.cube(centre(cell(end.at())), Shape.Colour.STOP)));
+        citizen.work().filter(w -> layers.zone()).ifPresent(hut -> out.add(Shape.cube(centre(hut), Shape.Colour.WORK)));
         return out;
     }
 

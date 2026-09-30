@@ -5,11 +5,11 @@ import dev.hycolony.api.ApiText;
 import java.util.List;
 
 /** HyColony's api texts as Hytale messages: a translation key with p0, p1… params, a nested text translated too. */
-final class ApiMessages {
+public final class ApiMessages {
     private ApiMessages() {}
 
     /** {@code text} as a message; show it on a label's .TextSpans, since it may nest translations. */
-    static Message of(ApiText text) {
+    public static Message of(ApiText text) {
         Message m = Message.translation(text.key());
         List<Object> params = text.params();
         for (int i = 0; i < params.size(); i++) {

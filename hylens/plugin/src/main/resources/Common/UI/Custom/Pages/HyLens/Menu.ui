@@ -1,0 +1,106 @@
+$C = "../../Common.ui";
+$Sounds = "../../Sounds.ui";
+
+$C.@PageOverlay {
+  LayoutMode: Middle;
+
+  $C.@DecoratedContainer {
+    Anchor: (Width: 960);
+
+    #Title {
+      $C.@Title {
+        @Text = %hylens.menu.title;
+      }
+    }
+
+    #Content {
+      Padding: (Vertical: 20, Horizontal: 30);
+      LayoutMode: Left;
+
+      Group {
+        LayoutMode: Top;
+        Anchor: (Width: 240, Right: 16);
+
+        Label {
+          Text: %hylens.menu.colonies;
+          Style: (RenderBold: true, RenderUppercase: true, TextColor: #94a7bb);
+          Anchor: (Bottom: 6);
+        }
+
+        Group #Colonies {
+          LayoutMode: TopScrolling;
+          ScrollbarStyle: $C.@DefaultScrollbarStyle;
+          Anchor: (Height: 460);
+        }
+      }
+
+      Group {
+        LayoutMode: Top;
+        FlexWeight: 1;
+
+        Label {
+          Text: %hylens.menu.citizens;
+          Style: (RenderBold: true, RenderUppercase: true, TextColor: #94a7bb);
+          Anchor: (Bottom: 6);
+        }
+
+        Group #Citizens {
+          LayoutMode: TopScrolling;
+          ScrollbarStyle: $C.@DefaultScrollbarStyle;
+          Anchor: (Height: 260);
+        }
+
+        Label #Chosen {
+          Style: (RenderBold: true);
+          Anchor: (Top: 10, Bottom: 6);
+        }
+
+        Group {
+          LayoutMode: Left;
+          Anchor: (Height: 40);
+
+          $C.@TextButton #WatchButton {
+            @Anchor = (Right: 4);
+            Text: %hylens.menu.watch;
+            FlexWeight: 1;
+          }
+
+          $C.@SecondaryTextButton #LeisureButton {
+            @Anchor = (Right: 4);
+            Text: %hylens.menu.leisure;
+            FlexWeight: 1;
+          }
+
+          $C.@SecondaryTextButton #TeleportButton {
+            @Anchor = (Right: 4);
+            Text: %hylens.menu.teleport;
+            FlexWeight: 1;
+          }
+
+          $C.@SecondaryTextButton #RespawnButton {
+            Text: %hylens.menu.respawn;
+            FlexWeight: 1;
+          }
+        }
+
+        Label #Result {
+          Style: (TextColor: #94a7bb);
+          Anchor: (Top: 6, Height: 24);
+        }
+
+        Label {
+          Text: %hylens.menu.layers;
+          Style: (RenderBold: true, RenderUppercase: true, TextColor: #94a7bb);
+          Anchor: (Top: 10, Bottom: 6);
+        }
+
+        Group #Layers {
+          LayoutMode: Left;
+          Anchor: (Height: 36);
+        }
+      }
+    }
+  }
+}
+
+$C.@BackButton {}

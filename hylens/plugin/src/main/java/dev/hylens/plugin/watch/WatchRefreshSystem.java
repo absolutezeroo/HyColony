@@ -15,6 +15,7 @@ import dev.hycolony.plugin.api.HyColonyApi;
 import dev.hylens.core.draw.WatchShapes;
 import dev.hylens.core.hud.TargetCell;
 import dev.hylens.core.hud.WatchHudView;
+import dev.hylens.core.menu.Menus;
 import dev.hylens.core.watch.Watches;
 import java.util.Map;
 import java.util.Optional;
@@ -36,14 +37,16 @@ public final class WatchRefreshSystem extends TickingSystem<EntityStore> {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
     private final Watches watches;
+    private final Menus menus;
     private final Map<String, Float> sinceRefresh = new ConcurrentHashMap<>();
     /** Set by any world's thread: one failure is logged SEVERE, the next ones FINE. */
     private final AtomicBoolean failedOnce = new AtomicBoolean();
     /** Set by HyLens's shutdown: a tick still running must not put back a panel {@link #takeDown} took off. */
     private volatile boolean stopped;
 
-    public WatchRefreshSystem(Watches watches) {
+    public WatchRefreshSystem(Watches watches, Menus menus) {
         this.watches = watches;
+        this.menus = menus;
     }
 
     @Override
@@ -118,7 +121,13 @@ public final class WatchRefreshSystem extends TickingSystem<EntityStore> {
         Watched w = watched.get();
         Optional<TargetCell> cell = w.debug().walkTarget().flatMap(t -> TargetCells.at(world, t));
         hud.show(WatchHudView.lines(w.citizen(), w.debug(), w.alerts(), cell));
-        ShapePackets.send(player, WatchShapes.shapes(w.citizen(), w.debug(), w.alerts()));
+        ShapePackets.send(
+                player,
+                WatchShapes.shapes(
+                        w.citizen(),
+                        w.debug(),
+                        w.alerts(),
+                        menus.state(player.getUuid()).layers()));
     }
 
     private static @Nullable Player component(Store<EntityStore> store, PlayerRef player) {
