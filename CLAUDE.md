@@ -6,10 +6,15 @@ HyColony porte MineColonies sur Hytale 0.7.0-pre.4 (Update 7, épinglé dans `gr
 
 ## 1. Modules et dépendances
 
-- **Quatre mods**, avec des dépendances dans un seul sens : HyBlockUI (`blockui/`, la bibliothèque d'interface) ← HyDomum (`domum/core`, `domum/plugin`, le portage de Domum Ornamentum) ← HyColony (`core/`, `plugin/`) → HyVanilla (`vanilla/core`, `vanilla/plugin`, les blocs vanilla de Minecraft absents de Hytale), qui ne dépend d'aucun autre. Specs : `docs/superpowers/specs/2026-09-28-hycolony-split-hydomum-hyblockui-design.md`, `docs/superpowers/specs/2026-09-29-hyvanilla-design.md`.
-- Chaque cœur (`core/`, `domum/core/`, `vanilla/core/`) contient la logique du jeu en Java pur. **Aucun import `com.hypixel`** **[build : ArchitectureTest]**. Il ne dépend que du JDK, de Gson et de jspecify, ces deux derniers en `compileOnly` (jspecify n'apporte que des annotations). Il est compilé en Java 25, comme les plugins.
-- Chaque plugin (`plugin/`, `domum/plugin/`, `vanilla/plugin/`, `blockui/`) contient les adaptateurs Hytale et le pack d'assets de son mod. Il ne contient **pas** de règles de jeu : une décision de jeu prise dans un plugin est un bug.
-- Un mod ne voit d'un autre que ses paquets `api` (`dev.hyblockui.api` ; `dev.hydomum.api`, `dev.hydomum.plugin.api` ; `dev.hyvanilla.api`, `dev.hyvanilla.plugin.api`) **[build : `checkModApis`]**, en `compileOnly` : il n'embarque jamais un autre mod. Tout projet applique `hy.java-core` ou `hy.hytale-mod` (`build-logic/`) **[build]**.
+- **Cinq mods**, avec des dépendances dans un seul sens : HyBlockUI (`blockui/`, la bibliothèque d'interface) ← HyDomum (`domum/core`, `domum/plugin`, le portage de Domum Ornamentum) ← HyColony (`api/`, `core/`, `plugin/`) → HyVanilla (`vanilla/core`, `vanilla/plugin`, les blocs vanilla de Minecraft absents de Hytale), qui ne dépend d'aucun autre. HyLens (`hylens/core`, `hylens/plugin`, le mod de débogage) dépend de HyColony et de HyBlockUI, et personne ne dépend de lui. Specs : `docs/superpowers/specs/2026-09-28-hycolony-split-hydomum-hyblockui-design.md`, `docs/superpowers/specs/2026-09-29-hyvanilla-design.md`, `docs/superpowers/specs/2026-09-30-hycolony-api-hylens-design.md`.
+- Chaque cœur (`core/`, `api/`, `domum/core/`, `vanilla/core/`, `hylens/core/`) contient du Java pur. **Aucun import `com.hypixel`** **[build : ArchitectureTest]**. Il ne dépend que du JDK, de Gson et de jspecify, ces deux derniers en `compileOnly` (jspecify n'apporte que des annotations), et, pour `core/` et `hylens/core/`, de `:api`. Il est compilé en Java 25, comme les plugins.
+- Chaque plugin (`plugin/`, `domum/plugin/`, `vanilla/plugin/`, `blockui/`, `hylens/plugin/`) contient les adaptateurs Hytale et le pack d'assets de son mod. Il ne contient **pas** de règles de jeu : une décision de jeu prise dans un plugin est un bug.
+- Un mod ne voit d'un autre que ses paquets `api` (`dev.hyblockui.api` ; `dev.hydomum.api`, `dev.hydomum.plugin.api` ; `dev.hyvanilla.api`, `dev.hyvanilla.plugin.api` ; `dev.hycolony.api`, `dev.hycolony.plugin.api`) **[build : `checkModApis`]**, en `compileOnly` : il n'embarque jamais un autre mod **[build : `checkBundled`]**. Un mod se reconnaît au groupe Gradle de ses projets, et chaque fichier source est dans un paquet de ce groupe **[build : `checkModApis`]**. Tout projet applique `hy.java-core` ou `hy.hytale-mod` (`build-logic/`) **[build]**.
+- **L'API de HyColony** : `api/` (`dev.hycolony.api`) ne voit que le JDK, jspecify et elle-même **[build : ApiArchitectureTest]** ; le contrat du plugin (`dev.hycolony.plugin.api`) y ajoute les seuls types Hytale. Toutes deux suivent la spec 2026-09-30 (§ 4.1) :
+  - des instantanés immuables, des `Optional`, des `ApiText` pour tout texte ; chaque appel hors du fil du monde lève `IllegalStateException` (écart voulu au § 4 : l'API n'est pas un port), sauf les appels sûrs entre fils de la spec § 4.1 ;
+  - son propre semver (`ApiVersion`, `@since` sur chaque type) : retirer, renommer, ajouter une composante à un record ou un cas à un type scellé est une rupture ;
+  - ce qui est `@Experimental` peut changer d'une version mineure à l'autre ;
+  - les signatures publiques du reste sont dans `api/api.txt` et `plugin/api.txt` **[build : `apiCheck`]**. Un changement d'API passe par `./gradlew :api:apiDump :plugin:apiDump`, et le fichier régénéré est commité avec lui.
 - Le serveur de dev (`runAllMods`) met tous les mods sur un même classpath : il ne vérifie ni l'isolation des classes ni une dépendance absente. Ces cas se vérifient avec les jars de production dans un `mods/` (`docs/research/plugin-b-api.md` § 28).
 - Architecture ports & adaptateurs :
   - le cœur définit des ports (`kernel/port`, `construction/blueprint/BlueprintSource`, `app/ui/UiPort`) ;
@@ -72,16 +77,17 @@ HyColony porte MineColonies sur Hytale 0.7.0-pre.4 (Update 7, épinglé dans `gr
 
 ## 7. Textes et fenêtres
 
-- Tout texte vu par un joueur passe par une clé de traduction présente dans **en-US et fr-FR** (les deux fichiers ont les mêmes clés **[build : `checkLangParity`]**), dans le `.lang` du mod qui l'affiche (`hycolony.lang`, `hydomum.lang`, `hyvanilla.lang`, `hyblockui.lang` sous `Server/Languages/*/` ; les noms de blocs générés, `hydomum_blocks.lang`, sont écrits par `tools/domum`), avec des paramètres `{p0}`, `{p1}`…
+- Tout texte vu par un joueur passe par une clé de traduction présente dans **en-US et fr-FR** (les deux fichiers ont les mêmes clés **[build : `checkLangParity`]**), dans le `.lang` du mod qui l'affiche (`hycolony.lang`, `hydomum.lang`, `hyvanilla.lang`, `hyblockui.lang`, `hylens.lang` sous `Server/Languages/*/` ; les noms de blocs générés, `hydomum_blocks.lang`, sont écrits par `tools/domum`), avec des paramètres `{p0}`, `{p1}`…
 - Une traduction imbriquée dans une autre (`param(key, Message)`) s'affiche sur `.TextSpans`, **jamais** sur `.Text`. Sur un bouton : une clé complète par variante.
 - Les fenêtres affichent des **vues** du cœur (records immuables). Chaque bouton appelle une action du cœur, qui vérifie les permissions puis ré-affiche la vue. Les fichiers `.ui` copient les motifs vanilla (voir les `.ui` des assets).
-- Les identifiants d'assets Hytale ne vivent que dans l'id-map de chaque mod (`hycolony/id-map.json`, `hydomum/id-map.json`, `hyvanilla/id-map.json`). Les plans de bâtiments sont dans `hycolony/styles.json`.
+- Les identifiants d'assets Hytale ne vivent que dans l'id-map de chaque mod (`hycolony/id-map.json`, `hydomum/id-map.json`, `hyvanilla/id-map.json`, `hylens/id-map.json`). Les plans de bâtiments sont dans `hycolony/styles.json`.
 
 ## 8. Tests
 
 - **TDD** : le test qui échoue d'abord, puis le code. Tout changement de comportement du cœur a un test. Tout bug corrigé a le test qui le reproduit.
 - Noms de tests : phrases en camelCase (`waitingBuilderTakesToolPlacedInHutAndResumes`).
-- `./gradlew build` **vert avant chaque commit** : tests des cœurs, compilation des plugins, `checkFileSizes`, `spotlessCheck` et PMD. Le build échoue sur une erreur de formatage, une violation PMD ou un fichier trop long.
+- Les cœurs Java purs (`core/`, `api/`, `domum/core/`, `vanilla/core/`, `hylens/core/`) sont testés en TDD. HyLens se teste avec le vrai `:api` (`testImplementation`), jamais avec une copie.
+- `./gradlew build` **vert avant chaque commit** : tests des cœurs, compilation des plugins, `checkFileSizes`, `spotlessCheck`, PMD et `apiCheck`. Le build échoue sur une erreur de formatage, une violation PMD ou un fichier trop long.
 - Les trois listes d'exceptions `gradle/file-size-allowlist.txt`, `gradle/package-size-allowlist.txt` et `config/pmd/known-violations.txt` ne peuvent que **rétrécir** : on retire une ligne quand le fichier ou le paquet est découpé ou nettoyé, on n'en ajoute jamais.
 - Les plugins n'ont pas de tests unitaires. Ils sont vérifiés par `/hycolony selftest` et `docs/TESTING.md`, que l'utilisateur déroule en jeu.
 
@@ -96,7 +102,7 @@ HyColony porte MineColonies sur Hytale 0.7.0-pre.4 (Update 7, épinglé dans `gr
    - un commit par unité logique, qui compile seul ;
    - `git add <chemins>` explicites, jamais `-A`. `config.json` et `config.json.bak` (réglages locaux) ne sont jamais commités ;
    - les lignes de fin de commit sont celles demandées par la session en cours.
-6. La documentation du projet (`docs/`) est en français. L'utilisateur est francophone : on lui répond en français.
+6. La documentation du projet (`docs/`) est en français. L'utilisateur est francophone : on lui répond en français. Seule exception : le guide des auteurs d'addons (`api/README.md`) est en anglais, pour les auteurs de mods.
 
 ## 10. Garde-fous
 

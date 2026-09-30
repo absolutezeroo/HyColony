@@ -5,18 +5,22 @@ source of the project rules.** Read it in full before writing or reviewing anyth
 need to know first. (CLAUDE.md is in French: it covers modules, class design, style, robustness, persistence,
 MineColonies fidelity, texts, tests and process.)
 
-## Four mods
+## Five mods
 
-HyBlockUI (`blockui/`, UI library) ← HyDomum (`domum/core`, `domum/plugin`) ← HyColony (`core/`, `plugin/`) →
-HyVanilla (`vanilla/core`, `vanilla/plugin`, Minecraft's vanilla blocks), in one direction only. Each core is pure
-Java; a mod reaches another only through its `api` packages. Details: CLAUDE.md § 1.
+HyBlockUI (`blockui/`, UI library) ← HyDomum (`domum/core`, `domum/plugin`) ← HyColony (`api/`, `core/`, `plugin/`) →
+HyVanilla (`vanilla/core`, `vanilla/plugin`, Minecraft's vanilla blocks), in one direction only. HyLens
+(`hylens/core`, `hylens/plugin`, the debugging mod) depends on HyColony and HyBlockUI. Each core is pure Java; a mod
+reaches another only through its `api` packages, HyColony's being `dev.hycolony.api` and `dev.hycolony.plugin.api`.
+HyColony's api is versioned: its stable signatures live in `api/api.txt` and `plugin/api.txt`, regenerated with
+`./gradlew :api:apiDump :plugin:apiDump` and committed with any api change. Details: CLAUDE.md § 1.
 
 ## Verify before every commit
 
     ./gradlew spotlessApply   # format (palantir-java-format, import order); file by file with
                               # -PspotlessIdeHook="<absolute path>" when other sessions share the module
     ./gradlew build           # core tests, plugin compile with Error Prone and NullAway, spotlessCheck, PMD,
-                              # checkFileSizes, checkSectionDividers, checkLineLength
+                              # checkFileSizes, checkSectionDividers, checkLineLength, checkModApis,
+                              # checkLangParity, apiCheck
 
 The build must be green. Versioned git hooks enforce this: run `git config core.hooksPath .githooks` once per clone.
 
