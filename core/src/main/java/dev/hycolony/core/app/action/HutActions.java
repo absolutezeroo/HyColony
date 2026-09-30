@@ -1,6 +1,7 @@
 package dev.hycolony.core.app.action;
 
 import dev.hycolony.core.app.ColonyManager;
+import dev.hycolony.core.app.ColonySpacing;
 import dev.hycolony.core.app.HutPlacement;
 import dev.hycolony.core.app.view.ColonyWindows;
 import dev.hycolony.core.building.Building;
@@ -9,7 +10,6 @@ import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyAccess;
-import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.colony.ColonyEvents;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.construction.shared.BuilderSettingsModule;
@@ -79,12 +79,7 @@ public final class HutActions {
         if (spawn.isPresent()) {
             return new HutPlacement.Denied(spawn.get());
         }
-        ColonyContext ctx = manager.context();
-        if (!manager.territory()
-                .isFreeForNewColony(
-                        pos,
-                        ctx.config().claims().initialColonySize(),
-                        ctx.config().claims().minColonyDistance())) {
+        if (!ColonySpacing.isFarEnoughFromColonies(manager, pos)) {
             return new HutPlacement.Denied(Msg.of("hycolony.colony.tooClose"));
         }
         return new HutPlacement.FoundNewColony();

@@ -20,6 +20,7 @@ import dev.hycolony.core.colony.permission.DenialNotices;
 import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
+import dev.hycolony.core.kernel.config.ColonyConfig;
 import dev.hycolony.core.kernel.persist.ColonyStorage;
 import dev.hycolony.core.kernel.persist.MigrationChain;
 import dev.hycolony.core.kernel.port.BodyId;
@@ -79,15 +80,48 @@ class ColonyManagerTest {
                 ((HutPlacement.Denied) p).reason().key());
     }
 
+    /**
+     * MC isFarEnoughFromColonies: the closest centre at max(minColonyDistance, initialColonySize) chunks (128 blocks),
+     * and the initialColonySize cells around the new centre free (canClaimChunksInRange).
+     */
     @Test
     void newColonyTooCloseIsDenied() {
-        found(alice, "A", hall);
-        HutPlacement p = manager.huts().checkPlacement(bob, new BlockPos(16 * 16, 64, 0), TOWN_HALL);
+        found(alice, "A", hall); // claims the cells -4..4
+        HutPlacement p = manager.huts().checkPlacement(bob, new BlockPos(8 * 16, 64, 0), TOWN_HALL); // cell 4 is hers
         assertEquals(
                 "hycolony.colony.tooClose", ((HutPlacement.Denied) p).reason().key());
         assertInstanceOf(
                 HutPlacement.FoundNewColony.class,
-                manager.huts().checkPlacement(bob, new BlockPos(17 * 16, 64, 0), TOWN_HALL));
+                manager.huts().checkPlacement(bob, new BlockPos(9 * 16, 64, 0), TOWN_HALL));
+    }
+
+    @Test
+    void newColonyNeedsTheMinimumDistanceBetweenCentres() {
+        ColonyConfig d = ColonyConfig.defaults();
+        ColonyConfig.Claims c = d.claims();
+        t.config = new ColonyConfig(
+                d.gameplay(),
+                new ColonyConfig.Claims(
+                        c.maxColonySize(),
+                        20,
+                        c.initialColonySize(),
+                        c.maxDistanceFromWorldSpawn(),
+                        c.minDistanceFromWorldSpawn()),
+                d.permissions(),
+                d.commands(),
+                d.client(),
+                d.hycolony(),
+                d.structurize());
+        ColonyManager spaced = t.manager();
+        spaced.foundation().begin(alice, "Alice", hall, 0);
+        spaced.foundation().confirm(alice, "A").orElseThrow();
+
+        assertInstanceOf(
+                HutPlacement.Denied.class,
+                spaced.huts().checkPlacement(bob, new BlockPos(319, 64, 0), TOWN_HALL)); // 20 chunks: 320 blocks
+        assertInstanceOf(
+                HutPlacement.FoundNewColony.class,
+                spaced.huts().checkPlacement(bob, new BlockPos(320, 64, 0), TOWN_HALL));
     }
 
     @Test
@@ -165,7 +199,7 @@ class ColonyManagerTest {
     @Test
     void confirmOnSpotThatBecameInvalidDropsPendingAndClosesUi() {
         manager.foundation().begin(alice, "Alice", hall, 0);
-        found(bob, "B", new BlockPos(16 * 16, 64, 0)); // too close to alice's spot
+        found(bob, "B", new BlockPos(8 * 16, 64, 0)); // claims cell 4, within alice's initial cells
         assertTrue(manager.foundation().confirm(alice, "A").isEmpty());
         assertTrue(manager.foundation().pendingPositionOf(alice).isEmpty());
         assertFalse(t.ui.shown.containsKey(alice));

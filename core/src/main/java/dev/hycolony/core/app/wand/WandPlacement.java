@@ -1,6 +1,7 @@
 package dev.hycolony.core.app.wand;
 
 import dev.hycolony.core.app.ColonyManager;
+import dev.hycolony.core.app.ColonySpacing;
 import dev.hycolony.core.app.HutPlacement;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingType;
@@ -90,10 +91,7 @@ final class WandPlacement {
      */
     private Optional<Refused> locationRefusal(WandSession s, BlockPos pos, Optional<Colony> colony) {
         if (BuildingTypes.TOWN_HALL.id().equals(s.buildingTypeId())) {
-            var claims = manager.context().config().claims();
-            boolean fits = colony.isPresent()
-                    || manager.territory()
-                            .isFreeForNewColony(pos, claims.initialColonySize(), claims.minColonyDistance());
+            boolean fits = colony.isPresent() || ColonySpacing.isFarEnoughFromColonies(manager, pos);
             return fits ? Optional.empty() : Optional.of(refused("hycolony.colony.tooClose"));
         }
         if (colony.isEmpty()) {

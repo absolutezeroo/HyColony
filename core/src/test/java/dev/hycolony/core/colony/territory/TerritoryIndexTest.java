@@ -33,12 +33,13 @@ class TerritoryIndexTest {
         assertEquals(6, t.claimedCount(2));
     }
 
+    /** MC ChunkDataHelper.canClaimChunksInRange: every cell within range of the centre's is unclaimed. */
     @Test
-    void newColonyNeedsInitialPlusMinDistanceFree() {
+    void cellsAroundACentreCanBeClaimedOnlyWhenAllAreFree() {
         TerritoryIndex t = new TerritoryIndex();
         t.claimSquare(1, new ClaimCell(0, 0), 4); // cells -4..4
-        assertFalse(t.isFreeForNewColony(new BlockPos(16 * 16, 64, 0), 4, 8)); // centre cell 16: 16-12 = 4 claimed
-        assertTrue(t.isFreeForNewColony(new BlockPos(17 * 16, 64, 0), 4, 8)); // 17-12 = 5 free
+        assertFalse(t.canClaimAround(new BlockPos(8 * 16, 64, 0), 4)); // cells 4..12: 4 claimed
+        assertTrue(t.canClaimAround(new BlockPos(9 * 16, 64, 0), 4)); // cells 5..13 free
     }
 
     @Test

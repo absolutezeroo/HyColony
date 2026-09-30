@@ -149,7 +149,7 @@ C'est un portage fidèle de `BasicStateMachine` et `TickRateStateMachine` de Min
 **Territoire** (conversion fidèle à MineColonies) :
 - Le core découpe le monde en **cellules de claim de 16×16 blocs**, l'équivalent d'un chunk Minecraft, indépendamment des chunks Hytale de 32 blocs. Les distances en jeu sont donc identiques à MineColonies.
 - À la création, la colonie revendique toutes les cellules dans un rayon de `initialColonySize` = **4 cellules** autour de l'hôtel de ville (carré de 9×9 cellules).
-- **Création refusée** si une cellule dans un rayon de `initialColonySize + minColonyDistance` = **4 + 8 cellules** appartient déjà à une autre colonie.
+- **Création refusée** (MC `ColonyManager.isFarEnoughFromColonies`, `app/ColonySpacing`) si le centre d'une autre colonie est à moins de `max(minColonyDistance, initialColonySize)` = **8 cellules** (128 blocs, distance 3D), ou si une des cellules dans un rayon de `initialColonySize` = **4 cellules** autour du futur centre appartient déjà à une colonie.
 - `maxColonySize` = **20 cellules** : rayon maximal atteignable par les claims des bâtiments, qui arrivent au sous-projet 2.
 - Index `cellule → colonyId` par monde, pour savoir en O(1) à quelle colonie appartient une position.
 

@@ -45,10 +45,10 @@ public final class TerritoryIndex {
         owners.values().removeIf(id -> id == colonyId);
     }
 
-    /** No claimed cell within (initialSize + minDistance) cells of the would-be centre. */
-    public boolean isFreeForNewColony(BlockPos center, int initialSize, int minDistance) {
+    /** MC ChunkDataHelper.canClaimChunksInRange: no claimed cell within {@code range} cells of {@code center}'s. */
+    public boolean canClaimAround(BlockPos center, int range) {
         ClaimCell c = ClaimCell.of(center);
-        int r = initialSize + minDistance;
+        int r = range;
         for (int dx = -r; dx <= r; dx++) {
             for (int dz = -r; dz <= r; dz++) {
                 if (owners.containsKey(new ClaimCell(c.x() + dx, c.z() + dz))) {
