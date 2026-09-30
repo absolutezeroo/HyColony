@@ -1,6 +1,8 @@
 package dev.hylens.core.menu;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.api.CitizenRef;
 import dev.hycolony.api.ColonyRef;
@@ -16,7 +18,7 @@ class MenuStateTest {
 
     @Test
     void nothingIsChosenAtFirstAndEveryLayerShows() {
-        assertEquals(new MenuState(Optional.empty(), Optional.empty(), 1, Layers.ALL), MenuState.INITIAL);
+        assertEquals(new MenuState(Optional.empty(), Optional.empty(), 1, Layers.ALL, false), MenuState.INITIAL);
     }
 
     @Test
@@ -55,5 +57,22 @@ class MenuStateTest {
                 MenuState.INITIAL.withStep(4).withColony(A).withCitizen(ANN).toggle(Layers.Layer.ZONE);
 
         assertEquals(4, s.step());
+    }
+
+    @Test
+    void autoCheckIsOffAtFirstAndTogglesKeepingTheRest() {
+        MenuState on = MenuState.INITIAL.withColony(A).withStep(3).toggleAutoCheck();
+
+        assertTrue(on.autoCheck());
+        assertEquals(Optional.of(A), on.colony());
+        assertEquals(3, on.step());
+        assertFalse(on.toggleAutoCheck().autoCheck());
+        assertTrue(
+                on.withColony(B)
+                        .withCitizen(ANN)
+                        .withStep(5)
+                        .toggle(Layers.Layer.STOP)
+                        .autoCheck(),
+                "kept");
     }
 }

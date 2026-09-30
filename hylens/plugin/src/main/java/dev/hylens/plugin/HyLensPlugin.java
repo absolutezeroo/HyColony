@@ -11,10 +11,13 @@ import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import dev.hylens.core.check.NewAlerts;
 import dev.hylens.core.menu.Menus;
 import dev.hylens.core.menu.Pauses;
 import dev.hylens.core.watch.Watches;
+import dev.hylens.plugin.check.AutoCheckSystem;
 import dev.hylens.plugin.command.HyLensCommand;
+import dev.hylens.plugin.command.LensParts;
 import dev.hylens.plugin.command.MenuClock;
 import dev.hylens.plugin.watch.WatchRefreshSystem;
 import java.util.UUID;
@@ -29,7 +32,9 @@ public final class HyLensPlugin extends JavaPlugin {
     private final Watches watches = new Watches();
     private final Menus menus = new Menus();
     private final MenuClock clock = new MenuClock(this, new Pauses());
+    private final NewAlerts alerts = new NewAlerts();
     private final WatchRefreshSystem refresh = new WatchRefreshSystem(watches, menus);
+    private final AutoCheckSystem autoCheck = new AutoCheckSystem(menus, alerts);
 
     public HyLensPlugin(@Nonnull JavaPluginInit init) {
         super(init);
@@ -37,9 +42,12 @@ public final class HyLensPlugin extends JavaPlugin {
 
     @Override
     protected void setup() {
-        getCommandRegistry().registerCommand(new HyLensCommand(this, watches, menus, clock, HyLensIds.load()));
+        getCommandRegistry()
+                .registerCommand(
+                        new HyLensCommand(this, new LensParts(watches, menus, clock, alerts, HyLensIds.load())));
         getEventRegistry().register(PlayerDisconnectEvent.class, this::onDisconnect);
         getEntityStoreRegistry().registerSystem(refresh);
+        getEntityStoreRegistry().registerSystem(autoCheck);
     }
 
     /**
@@ -49,6 +57,7 @@ public final class HyLensPlugin extends JavaPlugin {
     @Override
     protected void shutdown() {
         refresh.stop();
+        autoCheck.stop();
         for (World world : Universe.get().getWorlds().values()) {
             try {
                 world.execute(() -> {
@@ -73,6 +82,7 @@ public final class HyLensPlugin extends JavaPlugin {
         try {
             UUID operator = e.getPlayerRef().getUuid();
             menus.forget(operator);
+            alerts.forget(operator);
             resumePauses(operator);
             boolean watched = watches.stop(operator).isPresent();
             @Nullable Ref<EntityStore> ref = e.getPlayerRef().getReference();

@@ -14,6 +14,7 @@ import dev.hycolony.api.ColonyWorld;
 import dev.hycolony.api.read.CitizenSnapshot;
 import dev.hycolony.plugin.api.HyColonyApi;
 import dev.hylens.core.watch.CitizenPicker;
+import dev.hylens.plugin.HyColonyAccess;
 import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nonnull;
@@ -61,20 +62,11 @@ final class WatchCommand extends AbstractPlayerCommand {
 
     /** HyColony in {@code world}; empty, and the player told, where it does not run or has stopped. */
     static Optional<ColonyWorld> colonies(PlayerRef player, World world) {
-        Optional<ColonyWorld> colonies = worldOf(world);
+        Optional<ColonyWorld> colonies = HyColonyAccess.world(world);
         if (colonies.isEmpty()) {
             Chat.tell(player, "hylens.notRunning");
         }
         return colonies;
-    }
-
-    /** HyColony in {@code world}; empty where it does not run or has stopped. World thread. */
-    static Optional<ColonyWorld> worldOf(World world) {
-        try {
-            return HyColonyApi.get().world(world);
-        } catch (IllegalStateException e) {
-            return Optional.empty(); // HyColony stopped: its api holder is empty
-        }
     }
 
     /** /hylens watch: the citizen in view within {@link #TARGET_RADIUS} blocks. */

@@ -15,9 +15,9 @@ import java.util.Optional;
 
 /**
  * Draws the HyLens menu from its view (spec 2026-09-30, § 6.4): the colonies, the chosen colony's citizens, the chosen
- * citizen's actions, the last action's result, the layers and the colony clock. Each button sends an "Action", and in
- * "Index" the id of its colony or citizen, or its layer's name: an id still names the same row once the list changed,
- * unless HyColony gave a dead citizen's id to a newcomer in between (colony ids are never reused).
+ * citizen's actions, the last action's result, the layers, the colony clock and the checks. Each button sends an
+ * "Action", and in "Index" the id of its colony or citizen, or its layer's name: an id still names the same row once
+ * the list changed, unless HyColony gave a dead citizen's id to a newcomer in between (colony ids are never reused).
  */
 final class MenuRender {
     static final String PAGE = "Pages/HyLens/Menu.ui";
@@ -58,6 +58,7 @@ final class MenuRender {
         result.ifPresent(r -> ui.set("#Result.TextSpans", ApiMessages.of(r)));
         layers(ui, events, v.layers());
         clock(ui, events, v);
+        checks(ui, events, v);
     }
 
     /** The world's colony clock: whether it runs, the step asked, and its buttons. */
@@ -73,6 +74,15 @@ final class MenuRender {
         bind(events, "#StepMoreButton", "stepMore", "");
         bind(events, "#StepButton", "step", "");
         bind(events, "#ResumeButton", "resume", "");
+    }
+
+    /** The checks: now, and the automatic one's switch, its text saying whether it is on. */
+    private static void checks(UICommandBuilder ui, UIEventBuilder events, MenuView v) {
+        ui.set(
+                "#AutoCheckButton.Text",
+                Message.translation(v.autoCheck() ? "hylens.menu.autoCheck.on" : "hylens.menu.autoCheck.off"));
+        bind(events, "#CheckNowButton", "checkNow", "");
+        bind(events, "#AutoCheckButton", "autoCheck", "");
     }
 
     /** Shows {@code text} alone, on a page that has nothing else to show. */

@@ -4,8 +4,8 @@ import com.hypixel.hytale.server.core.plugin.PluginBase;
 import com.hypixel.hytale.server.core.universe.world.World;
 import dev.hycolony.api.ApiText;
 import dev.hycolony.plugin.api.ColonyClock;
-import dev.hycolony.plugin.api.HyColonyApi;
 import dev.hylens.core.menu.Pauses;
+import dev.hylens.plugin.HyColonyAccess;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -80,12 +80,6 @@ public final class MenuClock {
     }
 
     private static Optional<ColonyClock> clock(World world) {
-        HyColonyApi api;
-        try {
-            api = HyColonyApi.get();
-        } catch (IllegalStateException e) {
-            return Optional.empty(); // HyColony stopped: its api holder is empty
-        }
-        return api.clock(world);
+        return HyColonyAccess.clock(world);
     }
 }

@@ -153,6 +153,28 @@ $C.@PageOverlay {
             FlexWeight: 1;
           }
         }
+
+        Label {
+          Text: %hylens.menu.checks;
+          Style: (RenderBold: true, RenderUppercase: true, TextColor: #94a7bb);
+          Anchor: (Top: 10, Bottom: 6);
+        }
+
+        Group {
+          LayoutMode: Left;
+          Anchor: (Height: 44);
+
+          $C.@SecondaryTextButton #CheckNowButton {
+            @Anchor = (Right: 6);
+            Text: %hylens.menu.checkNow;
+            FlexWeight: 1;
+          }
+
+          $C.@SecondaryTextButton #AutoCheckButton {
+            Text: "";
+            FlexWeight: 1;
+          }
+        }
       }
     }
   }

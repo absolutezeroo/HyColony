@@ -15,10 +15,15 @@ import dev.hyblockui.api.PageEvents;
 import dev.hycolony.api.ApiText;
 import dev.hycolony.api.CitizenRef;
 import dev.hycolony.api.ColonyWorld;
+import dev.hylens.core.check.AutoCheck;
+import dev.hylens.core.check.NewAlerts;
 import dev.hylens.core.menu.MenuView;
 import dev.hylens.core.menu.MenuViews;
 import dev.hylens.core.menu.Menus;
 import dev.hylens.core.watch.Watches;
+import dev.hylens.plugin.HyColonyAccess;
+import dev.hylens.plugin.check.ColonyChecks;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -27,8 +32,8 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * The HyLens menu (spec 2026-09-30, § 6.4): choose a colony and a citizen, watch it, act on it, turn layers on or off,
- * pause, step and resume the colonies. Each click redraws the page from what HyColony tells now; actions are
- * {@link MenuActions}', the clock {@link MenuClock}'s.
+ * pause, step and resume the colonies, check them now or every few seconds. Each click redraws the page from what
+ * HyColony tells now; actions are {@link MenuActions}', the clock {@link MenuClock}'s.
  */
 final class MenuPage extends InteractiveCustomUIPage<MenuPage.Data> {
     /** One click: its action, and the row or layer it was on. */
@@ -51,19 +56,23 @@ final class MenuPage extends InteractiveCustomUIPage<MenuPage.Data> {
     private static final Set<String> CHOICES = Set.of("colony", "citizen", "layer", "stepLess", "stepMore");
     /** The clicks on the colony clock. */
     private static final Set<String> CLOCK = Set.of("pause", "step", "resume");
+    /** The clicks on the checks. */
+    private static final Set<String> CHECKS = Set.of("checkNow", "autoCheck");
 
     private final Menus menus;
     private final Watches watches;
     private final CitizenWatch watch;
     private final MenuClock clock;
+    private final NewAlerts alerts;
     private Optional<ApiText> result = Optional.empty();
 
-    MenuPage(PlayerRef player, Menus menus, Watches watches, CitizenWatch watch, MenuClock clock) {
+    MenuPage(PlayerRef player, LensParts parts, CitizenWatch watch) {
         super(player, CustomPageLifetime.CanDismiss, Data.CODEC);
-        this.menus = menus;
-        this.watches = watches;
+        this.menus = parts.menus();
+        this.watches = parts.watches();
         this.watch = watch;
-        this.clock = clock;
+        this.clock = parts.clock();
+        this.alerts = parts.alerts();
     }
 
     @Override
@@ -97,23 +106,13 @@ final class MenuPage extends InteractiveCustomUIPage<MenuPage.Data> {
         if (v.isEmpty() || data.action == null) {
             return;
         }
-        UUID operator = playerRef.getUuid();
-        String index = data.index == null ? "" : data.index;
         String action = data.action;
-        if (CHOICES.contains(action)) {
-            choose(action, index, v.get(), operator);
-        } else if (CLOCK.contains(action)) {
-            result = clock.run(
-                    action,
-                    store.getExternalData().getWorld(),
-                    operator,
-                    menus.state(operator).step());
-        } else if ("watch".equals(action)) {
+        if ("watch".equals(action)) {
             if (startWatch(v.get(), ref, store)) {
                 return;
             }
         } else {
-            act(action, v.get(), ref, store);
+            dispatch(action, Objects.requireNonNullElse(data.index, ""), v.get(), ref, store);
         }
         rebuild();
     }
@@ -138,6 +137,38 @@ final class MenuPage extends InteractiveCustomUIPage<MenuPage.Data> {
         }
     }
 
+    /** Handles every click but "watch": a choice, the clock, the checks, or an action on the chosen citizen. */
+    private void dispatch(String action, String index, MenuView v, Ref<EntityStore> ref, Store<EntityStore> store) {
+        UUID operator = playerRef.getUuid();
+        if (CHOICES.contains(action)) {
+            choose(action, index, v, operator);
+        } else if (CLOCK.contains(action)) {
+            result = clock.run(
+                    action,
+                    store.getExternalData().getWorld(),
+                    operator,
+                    menus.state(operator).step());
+        } else if (CHECKS.contains(action)) {
+            check(action, store, operator);
+        } else {
+            act(action, v, ref, store);
+        }
+    }
+
+    /**
+     * Checks the world's colonies now, the result told in the chat ("checkNow"), or turns the operator's automatic
+     * check on or off ("autoCheck").
+     */
+    private void check(String action, Store<EntityStore> store, UUID operator) {
+        if ("checkNow".equals(action)) {
+            colonies(store).ifPresent(w -> ColonyChecks.tell(playerRef, w));
+            result = Optional.of(ApiText.of("hylens.check.inChat"));
+        } else {
+            boolean on = AutoCheck.toggle(menus, alerts, operator);
+            result = Optional.of(ApiText.of(on ? "hylens.check.autoOn" : "hylens.check.autoOff"));
+        }
+    }
+
     /** Runs the chosen citizen's action {@code action}; its result shows under the buttons. */
     private void act(String action, MenuView v, Ref<EntityStore> ref, Store<EntityStore> store) {
         Optional<CitizenRef> citizen = v.citizen();
@@ -157,7 +188,7 @@ final class MenuPage extends InteractiveCustomUIPage<MenuPage.Data> {
     }
 
     private static Optional<ColonyWorld> colonies(Store<EntityStore> store) {
-        return WatchCommand.worldOf(store.getExternalData().getWorld());
+        return HyColonyAccess.world(store.getExternalData().getWorld());
     }
 
     /**

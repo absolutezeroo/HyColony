@@ -147,5 +147,8 @@ class MenuViewsTest {
         assertFalse(
                 MenuViews.of(world, false, MenuState.INITIAL, Optional.empty()).paused());
         assertEquals(5, v.step());
+        assertFalse(v.autoCheck());
+        assertTrue(MenuViews.of(world, false, MenuState.INITIAL.toggleAutoCheck(), Optional.empty())
+                .autoCheck());
     }
 }

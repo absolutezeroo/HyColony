@@ -11,12 +11,12 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.api.ColonyWorld;
 import dev.hycolony.api.debug.DebugAccess;
-import dev.hycolony.plugin.api.HyColonyApi;
 import dev.hylens.core.draw.WatchShapes;
 import dev.hylens.core.hud.TargetCell;
 import dev.hylens.core.hud.WatchHudView;
 import dev.hylens.core.menu.Menus;
 import dev.hylens.core.watch.Watches;
+import dev.hylens.plugin.HyColonyAccess;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -38,7 +38,8 @@ public final class WatchRefreshSystem extends TickingSystem<EntityStore> {
 
     private final Watches watches;
     private final Menus menus;
-    private final Map<String, Float> sinceRefresh = new ConcurrentHashMap<>();
+    /** Seconds since each world's last round, one box per world: nothing is allocated per tick. */
+    private final Map<String, float[]> sinceRefresh = new ConcurrentHashMap<>();
     /** Set by any world's thread: one failure is logged SEVERE, the next ones FINE. */
     private final AtomicBoolean failedOnce = new AtomicBoolean();
     /** Set by HyLens's shutdown: a tick still running must not put back a panel {@link #takeDown} took off. */
@@ -55,17 +56,19 @@ public final class WatchRefreshSystem extends TickingSystem<EntityStore> {
             return;
         }
         World world = store.getExternalData().getWorld();
-        float elapsed = sinceRefresh.getOrDefault(world.getName(), 0f) + dt;
-        if (elapsed < REFRESH_SECONDS) {
-            sinceRefresh.put(world.getName(), elapsed);
+        float[] elapsed = sinceRefresh.computeIfAbsent(world.getName(), k -> new float[1]);
+        elapsed[0] += dt;
+        if (elapsed[0] < REFRESH_SECONDS) {
             return;
         }
-        sinceRefresh.put(world.getName(), 0f);
+        elapsed[0] = 0f;
         Optional<ColonyWorld> colonies;
         try {
-            colonies = HyColonyApi.get().world(world);
-        } catch (RuntimeException e) { // HyColony stopped: its api holder is empty
-            colonies = Optional.empty();
+            colonies = HyColonyAccess.world(world);
+        } catch (RuntimeException e) { // another mod's code: out of a TickingSystem, it would stop the world
+            LOG.at(failedOnce.getAndSet(true) ? Level.FINE : Level.SEVERE).withCause(e).log(
+                    "HyLens: HyColony's api failed");
+            return;
         }
         for (PlayerRef player : world.getPlayerRefs()) {
             // Out of a TickingSystem, an exception would stop the world's thread; one operator's never stops another's.
