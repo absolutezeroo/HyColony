@@ -40,7 +40,10 @@ def layout_size(family):
 def component_index(family, textures, ref):
     """0 or 1: the material slot of a face's texture reference, followed through the model's "#name" aliases to
     its placeholder texture (with or without the minecraft: namespace). A one-material family always reads tile 0;
-    an unknown placeholder of a two-material family reads the second slot, DO's centre."""
+    an unknown placeholder of a two-material family reads the second slot, DO's centre.
+
+    Deviation from MC: DO leaves a texture that is no component unretextured (the creeper fancy door's iron handle
+    and hinges, block/iron_block, FancyDoorBlock); here it reads the second material."""
     if len(family.components) == 1:
         return 0
     value, seen = ref, set()

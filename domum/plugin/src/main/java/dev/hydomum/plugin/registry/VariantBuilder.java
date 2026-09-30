@@ -23,7 +23,9 @@ import org.jspecify.annotations.Nullable;
 /**
  * Builds a batch of variants, not yet registered: each one's BlockTypes (a one-material variant reads its material's
  * texture through its template's models, a two-material one the palette through remapped models) and its Item with
- * its painted icon. A variant that fails is logged and left out.
+ * its painted icon. A variant that fails is logged and left out. MC DO makes the same block from the cutter's
+ * components ({@code ArchitectsCutterRecipe.assemble}) and retextures it at render time
+ * ({@code MateriallyTexturedBakedModel}); here each combination is its own BlockType (DynamicBlockTypeFactory).
  */
 final class VariantBuilder {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();

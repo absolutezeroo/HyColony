@@ -12,6 +12,10 @@ import java.util.Map;
  * in 32-63) so that each face reads its material's {@link PaletteLayout} tile instead: the face's rectangle
  * ({@link FaceRect}) tells its half, then its offset moves by that tile's distance to the half. Mirror, angle and
  * every other field are kept.
+ *
+ * <p>Deviation from MC: DO swaps each component's sprite in the baked model ({@code RetexturedBakedModelBuilder.build},
+ * {@code MateriallyTexturedBakedModel.getBakedInnerModelFor}); a Hytale model reads one texture, so the model itself
+ * is rewritten per pair.
  */
 public final class PaletteModel {
     private PaletteModel() {}

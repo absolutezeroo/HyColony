@@ -95,6 +95,7 @@ L'ordre compte : un modèle doit arriver chez le client **avant** le bloc qui le
 
 ## Hors portée
 
+- La quincaillerie en fer des portes ouvragées « creeper » : DO la laisse en fer (texture qui n'est pas un composant, `FancyDoorBlock`), le générateur la met sur le 2ᵉ matériau (`tools/domum/convert.py` `component_index`, écart documenté). La planche rendrait une case « fer » fixe possible : à faire à part.
 - Les formes à un matériau, qui ne scintillent déjà pas.
 - Les gabarits et leurs textures de paire du pack.
 - Le délai d'une seconde de l'aperçu de l'établi.

@@ -25,13 +25,16 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Builds a variant's BlockTypes and Item, named after {@link VariantKey#blockTypeKey()}, as copies of its shape's
- * template block (with each of its states) and template item, with the variant's layout texture and icon. It only
+ * template block (with each of its states) and template item, with the variant's texture and icon. It only
  * builds the objects: {@link BlockTypeSynchronizer} registers them.
  *
  * <p>The block copies keep the template's hitboxes, sounds and gathering, with the models modelOf gives for the
  * template's (its own for one material, remapped onto the palette for two, VariantPalette) and the variant's texture
- * (MC DO retextures the same model, {@code MateriallyTexturedBakedModel}); the item a state gives back becomes the
- * variant's.
+ * (its material's, or the palette); the item a state gives back becomes the variant's.
+ *
+ * <p>Deviation from MC: DO retextures one shared model per block at render time
+ * ({@code MateriallyTexturedBakedModel.getBakedInnerModelFor}); a Hytale model reads a single texture, so a
+ * two-material variant gets its own copy of each template model, remapped onto the palette.
  *
  * <p>Deviation from MC: a variant sounds and breaks like its template (its shape's default material): DO takes
  * them from the chosen material.

@@ -11,7 +11,8 @@ import java.util.Optional;
  * by id, row by row. Models then read both materials of a pair from this one texture, which clients hold from
  * connection, instead of a new pair texture (whose atlas rebuild flickers: docs/research/client-block-atlas.md).
  *
- * <p>Deviation from MC: DO retextures one model per block on the client; Hytale gives a model a single texture.
+ * <p>Deviation from MC: DO retextures one model per block on the client ({@code MateriallyTexturedBakedModel});
+ * Hytale gives a model a single texture.
  */
 public final class PaletteLayout {
     /** Side, in pixels, of one material's tile (a block face, as in the pair textures). */

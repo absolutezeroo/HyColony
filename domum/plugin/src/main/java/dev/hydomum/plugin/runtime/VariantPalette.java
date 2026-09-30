@@ -18,7 +18,9 @@ import org.jspecify.annotations.Nullable;
  * in their atlas on joining. A variant's models are its template's, remapped onto its materials' tiles: a new pair
  * then needs no new block texture, hence no client atlas rebuild and no flicker (checked in game, 2026-09-30).
  *
- * <p>Deviation from MC: DO retextures one model per block on the client; a Hytale model has a single texture.
+ * <p>Deviation from MC: DO retextures each component's placeholder sprite of one shared model on the client
+ * ({@code RetexturedBakedModelBuilder.build}, {@code MateriallyTexturedBakedModel}); a Hytale model reads a single
+ * texture, so both materials come from one palette through a model remapped per pair.
  */
 public final class VariantPalette {
     /** The texture two-material variants read. */
@@ -27,7 +29,7 @@ public final class VariantPalette {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
     private static final String HOLDER = "HyDomum_Palette";
     private static final String MODELS = "Blocks/HyDomum/Variants/";
-    /** Side past which a palette may exceed a client atlas page, in pixels. */
+    /** Side, in pixels, past which the palette is logged as large: arbitrary, the client's atlas page is unknown. */
     private static final int WARN_SIDE_PX = 2048;
 
     private final VariantAssets assets;

@@ -73,9 +73,11 @@ class PaletteModelTest {
     }
 
     @Test
-    void quadReadsItsXAndYSize() {
-        String remapped = PaletteModel.remap(box("quad", 8, 8, 0, "front", 32, 0, false, 0), FIRST, SECOND);
-        assertEquals(0, offset(remapped, "front", "x"));
+    void quadReadsItsXAndYSizeOnEverySide() {
+        // A quad's left face reads x 28..34, across both materials; a box's would read its z (0 wide) and pass.
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> PaletteModel.remap(box("quad", 6, 4, 0, "left", 28, 0, false, 0), FIRST, SECOND));
     }
 
     @Test

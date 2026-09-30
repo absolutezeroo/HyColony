@@ -270,7 +270,7 @@ Fabrication des blocs Domum Ornamentum par le joueur (spec `docs/superpowers/spe
 
 Spec `docs/superpowers/specs/2026-09-30-hydomum-palette-design.md`.
 
-209. **Planche au démarrage.** Le journal dit « hydomum: palette of N material(s), WxH px » (au plus 296 matériaux, environ 576x544 px), sans avertissement de taille. Se connecter. Pour chaque ligne, une paire jamais faite, avec `/hydomum give` : **aucun scintillement**, l'icône montre les deux matériaux, et le bloc posé les montre aux bons endroits, sans bande d'un autre matériau (regarder de près le haut et le bas des colombages) :
+209. **Planche au démarrage.** Le journal dit « hydomum: palette of N material(s), WxH px » (au plus 296 matériaux, environ 576x544 px), sans avertissement de taille. Se connecter. Pour chaque ligne, une paire jamais faite, avec `/hydomum give` : **aucun scintillement**, l'icône montre les deux matériaux, et le bloc posé les montre aux bons endroits, sans bande d'un autre matériau (regarder de près le haut et le bas des colombages) ni liseré d'une autre couleur au bord des faces **vu de loin** (si un liseré apparaît, il faut une marge autour des cases de la planche) :
      - `TimberFrame_Framed Wood_Softwood_Planks --second Soil_Clay_Smooth_White` et `TimberFrame_DoubleCrossed Metal_Iron --second Cloth_Block_Wool_Red` ;
      - `Shingle Rock_Slate_Brick --second Wood_Darkwood_Planks` : poser un toit en L, les coins se forment, tuiles et support aux bons matériaux ;
      - `ShingleSlab Soil_Clay_Red --second Wood_Birch_Trunk_Full` ;

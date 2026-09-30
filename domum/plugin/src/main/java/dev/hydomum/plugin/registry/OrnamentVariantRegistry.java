@@ -24,7 +24,7 @@ import org.jspecify.annotations.Nullable;
 /**
  * Cache {@link VariantKey} -> runtime variant: two identical requests always get the same BlockType, and a missing
  * variant is created once, even when requested again while it is being created. Variants requested together are
- * created in one batch: one BlockType load and one Item load, so at most one client atlas rebuild.
+ * created in one batch: one BlockType load and one Item load, whose new models and icons are sent together.
  */
 public final class OrnamentVariantRegistry {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();

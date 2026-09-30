@@ -15,7 +15,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * One BlockType of a variant, its main block or one of its states: a copy of the matching template block with the
- * variant's layout texture, state table and connection rules.
+ * variant's model, texture, state table and connection rules.
  *
  * <p>BlockType's fields are protected with no setters: a subclass is the only way to set them without decoding
  * JSON. {@code data} is dropped: kept, it would make every load re-read the template's contained assets under our

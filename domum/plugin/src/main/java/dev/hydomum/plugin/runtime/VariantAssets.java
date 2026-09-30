@@ -58,7 +58,8 @@ public final class VariantAssets {
 
     /**
      * @param packKey the plugin's asset pack name ({@code Group:Name})
-     * @param dir where the PNGs are kept: {@code FileCommonAsset} rereads a file once its bytes are collected
+     * @param dir where the generated PNGs and models are kept: {@code FileCommonAsset} rereads a file once its
+     *     bytes are collected
      */
     public VariantAssets(String packKey, Path dir) {
         this.packKey = packKey;

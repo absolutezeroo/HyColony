@@ -1,6 +1,6 @@
 """The 64x32 texture of a two-material Domum Ornamentum shape: the first material's texture on the left, the
-second's on the right, each fitted to one 32x32 block face. The name depends on the pair only, so the runtime
-reuses a pair the pack already ships (plugin VariantAssets.pairTexture writes the same name)."""
+second's on the right, each fitted to one 32x32 block face. Only the templates read these; runtime variants read
+the palette through remapped models (plugin VariantPalette), and their icons draw the same pair in memory."""
 
 from PIL import Image
 
