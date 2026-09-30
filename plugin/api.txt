@@ -1,0 +1,24 @@
+public abstract sealed interface dev.hycolony.plugin.api.ColonyWorldEvent permits dev.hycolony.plugin.api.ColonyWorldStarted, dev.hycolony.plugin.api.ColonyWorldStopped
+    public abstract com.hypixel.hytale.server.core.universe.world.World dev.hycolony.plugin.api.ColonyWorldEvent.world()
+public final record dev.hycolony.plugin.api.ColonyWorldStarted extends java.lang.Record implements dev.hycolony.plugin.api.ColonyWorldEvent
+    public com.hypixel.hytale.server.core.universe.world.World dev.hycolony.plugin.api.ColonyWorldStarted.world()
+    public dev.hycolony.plugin.api.ColonyWorldStarted(com.hypixel.hytale.server.core.universe.world.World)
+    public final boolean dev.hycolony.plugin.api.ColonyWorldStarted.equals(java.lang.Object)
+    public final int dev.hycolony.plugin.api.ColonyWorldStarted.hashCode()
+    public final java.lang.String dev.hycolony.plugin.api.ColonyWorldStarted.toString()
+public final record dev.hycolony.plugin.api.ColonyWorldStopped extends java.lang.Record implements dev.hycolony.plugin.api.ColonyWorldEvent
+    public com.hypixel.hytale.server.core.universe.world.World dev.hycolony.plugin.api.ColonyWorldStopped.world()
+    public dev.hycolony.plugin.api.ColonyWorldStopped(com.hypixel.hytale.server.core.universe.world.World)
+    public final boolean dev.hycolony.plugin.api.ColonyWorldStopped.equals(java.lang.Object)
+    public final int dev.hycolony.plugin.api.ColonyWorldStopped.hashCode()
+    public final java.lang.String dev.hycolony.plugin.api.ColonyWorldStopped.toString()
+public abstract interface dev.hycolony.plugin.api.HyColonyApi
+    public abstract <E> java.util.Optional<dev.hycolony.api.Subscription> dev.hycolony.plugin.api.HyColonyApi.subscribe(com.hypixel.hytale.server.core.plugin.PluginBase,com.hypixel.hytale.server.core.universe.world.World,java.lang.Class<E>,java.util.function.Consumer<? super E>)
+    public abstract dev.hycolony.api.Subscription dev.hycolony.plugin.api.HyColonyApi.subscribeWorlds(com.hypixel.hytale.server.core.plugin.PluginBase,java.util.function.Consumer<? super dev.hycolony.plugin.api.ColonyWorldEvent>)
+    public abstract java.util.Optional<com.hypixel.hytale.component.Ref<com.hypixel.hytale.server.core.universe.world.storage.EntityStore>> dev.hycolony.plugin.api.HyColonyApi.bodyOf(dev.hycolony.api.CitizenRef)
+    public abstract java.util.Optional<dev.hycolony.api.CitizenRef> dev.hycolony.plugin.api.HyColonyApi.citizenOf(com.hypixel.hytale.component.Ref<com.hypixel.hytale.server.core.universe.world.storage.EntityStore>,com.hypixel.hytale.component.ComponentAccessor<com.hypixel.hytale.server.core.universe.world.storage.EntityStore>)
+    public abstract java.util.Optional<dev.hycolony.api.ColonyWorld> dev.hycolony.plugin.api.HyColonyApi.world(com.hypixel.hytale.server.core.universe.world.World)
+    public static dev.hycolony.plugin.api.HyColonyApi dev.hycolony.plugin.api.HyColonyApi.get()
+public final class dev.hycolony.plugin.api.HyColonyApiHolder
+    public static void dev.hycolony.plugin.api.HyColonyApiHolder.clear()
+    public static void dev.hycolony.plugin.api.HyColonyApiHolder.install(dev.hycolony.plugin.api.HyColonyApi)

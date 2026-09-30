@@ -32,7 +32,7 @@ tasks.withType<JavaCompile>().configureEach {
     options.compilerArgs.addAll(listOf("-Xmaxwarns", "10000"))
     options.errorprone {
         disableWarningsInGeneratedCode.set(true)
-        option("NullAway:AnnotatedPackages", "dev.hycolony,dev.hydomum,dev.hyblockui,dev.hyvanilla")
+        option("NullAway:AnnotatedPackages", "dev.hycolony,dev.hydomum,dev.hyblockui,dev.hyvanilla,dev.hylens")
         option("NullAway:JSpecifyMode", "true")
         check("NullAway", CheckSeverity.ERROR)
     }
@@ -115,37 +115,95 @@ val checkLineLength by tasks.registering {
 }
 
 // CLAUDE.md § 1 (split spec, mods' APIs): a mod reaches another mod only through that mod's api packages. A fully
-// qualified name written without an import escapes this check; the style's explicit imports make that rare.
+// qualified name written without an import escapes this check; the style's explicit imports make that rare. A mod
+// is known by its projects' Maven group, so a source file must sit in its project's group: a file of HyLens written
+// in a dev.hycolony package would otherwise pass as HyColony's own.
 val modApis = mapOf(
     "dev.hyblockui." to listOf("dev.hyblockui.api."),
     "dev.hydomum." to listOf("dev.hydomum.api.", "dev.hydomum.plugin.api."),
     "dev.hyvanilla." to listOf("dev.hyvanilla.api.", "dev.hyvanilla.plugin.api."),
-    "dev.hycolony." to emptyList(),
+    "dev.hycolony." to listOf("dev.hycolony.api.", "dev.hycolony.plugin.api."),
+    "dev.hylens." to emptyList(),
 )
-// The mod this project belongs to: its Maven group (dev.hycolony, dev.hydomum, dev.hyblockui or dev.hyvanilla), read
-// when the task runs, since a module's build script sets its group after this convention is applied.
+// The mod this project belongs to: its Maven group (dev.hycolony, dev.hydomum, dev.hyblockui, dev.hyvanilla or
+// dev.hylens), read when the task runs, since a module's build script sets its group after this convention is applied.
 val ownMod = provider { "${project.group}." }
 val checkModApis by tasks.registering {
     group = "verification"
-    description = "Fails when a source file imports another mod outside that mod's api packages"
+    description = "Fails when a source file imports another mod outside that mod's api packages, or leaves its group"
     val sources = fileTree("src") { include("*/java/**/*.java") }
     inputs.files(sources)
     doLast {
         val own = ownMod.get()
         val import = Regex("""^\s*import\s+(?:static\s+)?([\w.]+)""")
+        val pkg = Regex("""^\s*package\s+([\w.]+)\s*;""")
         val found = sources.files.sortedBy { it.path }.flatMap { file ->
-            file.readLines().withIndex().mapNotNull { (i, line) ->
+            val path = file.relativeTo(root).invariantSeparatorsPath
+            val lines = file.readLines()
+            val declared = lines.firstNotNullOfOrNull { pkg.find(it)?.groupValues?.get(1) }
+            // A module-info.java has no package.
+            val outside = if (file.name == "module-info.java" || declared != null && "$declared.".startsWith(own))
+                emptyList()
+                else listOf("  $path: package ${declared ?: "(none)"} is outside the group ${own.dropLast(1)}")
+            outside + lines.withIndex().mapNotNull { (i, line) ->
                 val name = import.find(line)?.groupValues?.get(1) ?: return@mapNotNull null
                 val mod = modApis.keys.firstOrNull { name.startsWith(it) } ?: return@mapNotNull null
                 if (mod == own || modApis.getValue(mod).any { name.startsWith(it) }) null
-                else "  ${file.relativeTo(root).invariantSeparatorsPath}:${i + 1}: $name"
+                else "  $path:${i + 1}: $name"
             }
         }
         if (found.isNotEmpty()) {
-            throw GradleException("Imports of another mod outside its api packages (CLAUDE.md § 1):\n" +
-                found.joinToString("\n"))
+            throw GradleException("Imports of another mod outside its api packages, or files outside their project's " +
+                "group (CLAUDE.md § 1):\n" + found.joinToString("\n"))
         }
     }
+}
+
+// CLAUDE.md § 1 (api spec § 4.3): the public signatures of HyColony's api, stable ones only, are kept in api.txt next
+// to the project's build script. apiCheck (part of check) fails when the compiled classes differ from it; apiDump
+// rewrites it, so every change of the api shows in the diff. What is @Experimental is left out (ApiSignatures.kt).
+// The signatures are read by reflection in the Gradle daemon, whose JDK formats them: it must be the workspace's.
+val apiPackages = mapOf(":api" to "dev.hycolony.api", ":plugin" to "dev.hycolony.plugin.api")
+apiPackages[path]?.let { apiPackage ->
+    val apiFile = layout.projectDirectory.file("api.txt").asFile
+    val classesDirs = the<SourceSetContainer>().named("main").map { it.output.classesDirs }
+    val compileClasspath = configurations.named("compileClasspath")
+    val projectPath = path
+    val javaVersion = providers.gradleProperty("java_version").get().toInt()
+    fun signatures(): List<String> {
+        if (Runtime.version().feature() != javaVersion) {
+            throw GradleException("The api's signatures are read with the Gradle daemon's JDK " +
+                "${Runtime.version().feature()}; run Gradle on JDK $javaVersion (org.gradle.java.home).")
+        }
+        return apiSignatures(classesDirs.get().files, compileClasspath.get().files, apiPackage)
+    }
+    tasks.register("apiDump") {
+        group = "api"
+        description = "Writes the public signatures of $apiPackage to api.txt"
+        dependsOn("classes")
+        outputs.file(apiFile)
+        // Its input is the compiled api and its whole classpath: rewriting the file every time is simpler and cheap.
+        outputs.upToDateWhen { false }
+        doLast { apiFile.writeText(signatures().joinToString("\n", postfix = "\n")) }
+    }
+    val apiCheck = tasks.register("apiCheck") {
+        group = "verification"
+        description = "Fails when the public signatures of $apiPackage differ from api.txt"
+        dependsOn("classes")
+        inputs.files(classesDirs, apiFile)
+        doLast {
+            val expected = if (apiFile.isFile) apiFile.readLines().filter { it.isNotEmpty() } else emptyList()
+            val actual = signatures()
+            if (expected != actual) {
+                val gone = expected - actual.toSet()
+                val added = actual - expected.toSet()
+                throw GradleException("The api of $apiPackage changed (CLAUDE.md § 1). Check it keeps the api's " +
+                    "version policy, then run ./gradlew $projectPath:apiDump and commit api.txt:\n" +
+                    (gone.map { "  - $it" } + added.map { "  + $it" }).joinToString("\n"))
+            }
+        }
+    }
+    tasks.named("check") { dependsOn(apiCheck) }
 }
 
 tasks.named("check") { dependsOn(checkFileSizes, checkSectionDividers, checkLineLength, checkModApis) }

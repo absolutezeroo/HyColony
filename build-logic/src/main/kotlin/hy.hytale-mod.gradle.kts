@@ -28,8 +28,26 @@ hytaleTools {
     bundleAssetEditorRuntime = false
 }
 
+// bundled is transitive: a project that a bundled project depends on (api(...) or implementation(...)) would ride
+// along into the jar, and a mod could ship a second copy of another mod's classes, HyColony's api for one. Every
+// project it resolves to must share the mod's group, read when the task runs as the mod's build script sets it.
+val modGroup = provider { project.group.toString() }
+val checkBundled by tasks.registering {
+    group = "verification"
+    description = "Fails when bundled resolves to a project of another mod's group"
+    doLast {
+        val own = modGroup.get()
+        val strays = bundled.incoming.resolutionResult.allComponents
+            .filter { it.id is ProjectComponentIdentifier && it.moduleVersion?.group != own }
+        if (strays.isNotEmpty()) {
+            throw GradleException("Projects of another mod in bundled, compile against them with compileOnly " +
+                "(CLAUDE.md § 1):\n" + strays.joinToString("\n") { "  ${it.id.displayName}" })
+        }
+    }
+}
+
 tasks.named<Jar>("jar") {
-    dependsOn(bundled)
+    dependsOn(bundled, checkBundled)
     from({ bundled.filter { it.name.endsWith(".jar") }.map { zipTree(it) } })
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
