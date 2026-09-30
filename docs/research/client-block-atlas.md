@@ -50,6 +50,7 @@ Adresses virtuelles relatives (RVA) du binaire ci-dessus. Champs du paquet côt�
 - Au démarrage, HyDomum dessine une seule texture, la planche : la face de chaque matériau DO dans une case de 32 px. Un bloc caché la lit, donc chaque client la met dans son atlas dès la connexion.
 - Pour une paire neuve, on n'envoie que le **modèle** du gabarit, remappé : ses faces visent la case du 1ᵉʳ ou du 2ᵉ matériau dans la planche (`PaletteModel`). On l'envoie avant le bloc, puis on inscrit le bloc **sans aucun drapeau de reconstruction**.
 - **Vérifié en jeu (2026-09-30)**, avec `/hydomum palette` sur 10 colombages aux paires jamais utilisées, dont plusieurs en rafale : **aucun scintillement**, rendu juste à l'œil. Le remappage du prototype plaçait pourtant quelques faces retournées ou tournées sur le mauvais matériau (bandes de 2 texels) ; c'est corrigé par `FaceRect` (spec `2026-09-30-hydomum-palette-design.md`). Un modèle envoyé en cours de partie est donc lu sans `updateModels`, comme le laissait prévoir `PrepareBlockTypes`.
+- **Intégration vérifiée en jeu (2026-09-30)** : toutes les formes à deux matériaux (colombages, bardeaux avec coins, portes et trappes ouvragées, murs de papier), l'établi et le redémarrage, **sans aucun scintillement**, icônes justes. La planche fait environ 540 ko (576×544 px, 296 matériaux).
 - Il reste l'icône, qui est celle du gabarit dans le test. Les icônes ont leur propre atlas, et une icône générée arrive déjà sans scintillement (`domum-ornamentum.md`, 2026-09-28).
 
 ## Adresses (pour refaire l'analyse sur une autre version)
