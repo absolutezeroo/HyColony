@@ -782,6 +782,22 @@ Pour HyColony, qui a un pack : sans HyDomum, le serveur ne démarre pas, et le j
 - **Données en dev.** Ce qu'un mod écrit dans `run/mods/<mod>/` est perdu à chaque lancement. `run/universe/` survit.
 - **En production.** Rien n'est effacé : `mods/HyColony_<nom>/config.json` et les données persistent d'un lancement à l'autre. Un mod qui n'écrit rien n'a pas de dossier.
 
+### 28.6 HyColony et HyLens en production (protocole, à dérouler)
+
+Les essais de la spec `specs/2026-09-30-hycolony-api-hylens-design.md` § 8, numérotés 235 à 241 dans `docs/TESTING.md`. Les résultats attendus se déduisent des faits déjà vérifiés, dont le piège 1.9 (le rechargement de HyColony échoue) ; ils restent **[in-game]** tant que l'utilisateur ne les a pas déroulés.
+
+| Essai | Attendu | Pourquoi |
+|---|---|---|
+| Les cinq ensemble | HyLens se charge après HyColony et HyBlockUI | Arêtes vers les dépendances dures (§ 28.1 ; `hycolony-api.md` § 3) |
+| Sans HyColony | Le serveur s'arrête et nomme `HyColony:hycolony` | HyLens a un pack (§ 28.4) |
+| HyColony sans HyLens | Tout marche | Personne ne dépend de HyLens |
+| Une seule copie de l'API | `ApiVersion.class` identique vu des deux mods (`/hylens selftest`, `api class`) | `:api` est embarqué dans le seul jar de HyColony, HyLens le voit par le pont (§ 28.2 ; `checkBundled`) |
+| Arrêt de HyLens | Son abonnement se ferme, la pause est levée, son filtre de paquet est retiré, ses spectateurs sortent du mode spectateur ; `/plugin unload` le retire aussi du démarrage (`HytaleServerConfig.setBoot`), `/plugin load` l'y remet | Registres de HyLens défaits à l'arrêt ; `track`, `pause` liés au propriétaire (spec § 4.1) ; `MapSend.stop` appelle `PacketAdapters.deregisterInbound`, statique, donc jamais défait par Hytale |
+| `/plugin reload` de HyColony | HyLens est déchargé d'abord et ne revient pas ; le second `setup()` de HyColony **échoue** (SEVERE, HyColony en FAILED) | `PluginManager.unload`/`reload` (`hycolony-api.md` § 3) ; piège 1.9 de `pieges-portage.md` (audit D-1, non corrigé) : l'attendu « aucune exception » de la spec § 8, essai 6, ne tiendra qu'une fois D-1 corrigé |
+| Monde désactivé | HyLens dit « indisponible » | `HyColonyApi.world` rend vide (spec § 4.1) ; la désactivation est globale (`WorldRuntimes.enableIfIdsValid`) : un id invalide dans `hycolony/id-map.json` désactive tous les mondes |
+
+Pour la copie unique de l'API, `/hylens selftest` (ligne `api class`) charge `dev.hycolony.api.ApiVersion` par le chargeur de la classe qui implémente `HyColonyApi`, celui de HyColony, et la compare à la sienne : la même classe, c'est le même `identityHashCode`. Une classe différente voudrait dire que `:api` est chargé deux fois.
+
 ## 29. Voir un bloc à travers les murs (recherche du 2026-09-28)
 
 But : un équivalent de l'effet « Glowing » de Minecraft pour l'épouvantail d'un champ. Chemins relatifs à `build/vineflower/hytale-server/com/hypixel/hytale/`.
