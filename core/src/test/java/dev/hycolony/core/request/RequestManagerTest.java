@@ -14,6 +14,7 @@ import dev.hycolony.core.request.model.Requestable;
 import dev.hycolony.core.request.model.RequesterId;
 import dev.hycolony.core.request.model.StackRequest;
 import dev.hycolony.core.request.resolver.PlayerResolver;
+import dev.hycolony.core.request.resolver.RetryingResolver;
 import dev.hycolony.core.testing.FakeCatalog;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -615,7 +616,8 @@ class RequestManagerTest {
 
     /**
      * MC StandardPlayerRequestResolver.onColonyUpdate: when a request the player holds does not match, its ancestors
-     * are walked; the first that matches has its children cancelled and is reassigned with the player blacklisted.
+     * are walked; the first that matches is reassigned, its children cancelled (without a blacklist here: see
+     * Ancestors).
      */
     @Test
     void aColonyUpdateMatchingAnAncestorOfAPlayerRequestReassignsThatAncestor() {
@@ -633,6 +635,25 @@ class RequestManagerTest {
         assertTrue(m.get(log).isEmpty(), "the ancestor's children are cancelled");
         assertSame(maker, resolverOf(plank));
         assertEquals(2, maker.assigned.size());
+        assertTrue(req(plank).children().isEmpty());
+    }
+
+    /** MC StandardRetryingRequestResolver.onColonyUpdate walks the ancestors of the requests it holds the same way. */
+    @Test
+    void aColonyUpdateMatchingAnAncestorOfARetryingRequestReassignsThatAncestor() {
+        m.registerBuiltIn(new RetryingResolver(new BlockPos(0, 0, 0)));
+        FixedResolver maker = resolver("maker", 100, 0);
+        maker.handles = item(PLANK);
+        maker.children = List.of(stack(LOG));
+        RequestToken plank = m.createAndAssign(hut, stack(PLANK), -1);
+        RequestToken log = req(plank).children().iterator().next();
+        assertEquals(RetryingResolver.ID, resolverOf(log).resolverId());
+        maker.children = List.of();
+
+        m.onColonyUpdate(r -> r.token().equals(plank));
+
+        assertTrue(m.get(log).isEmpty(), "the ancestor's children are cancelled");
+        assertSame(maker, resolverOf(plank));
         assertTrue(req(plank).children().isEmpty());
     }
 

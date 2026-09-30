@@ -129,7 +129,7 @@ public final class RetryingResolver implements Resolver {
                 continue;
             }
             if (!which.test(r.get())) {
-                Ancestors.reassignMatching(m, r.get(), which, ID);
+                Ancestors.reassignMatching(m, r.get(), which);
             } else if (canReassign(m, t)) {
                 m.reassign(t, Set.of(ID));
             }

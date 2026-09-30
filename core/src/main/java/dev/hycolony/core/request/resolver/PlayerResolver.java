@@ -118,7 +118,7 @@ public final class PlayerResolver implements Resolver {
     public void onColonyUpdate(RequestManager m, Predicate<Request> which) {
         for (Request r : new ArrayList<>(open.values())) {
             if (!which.test(r)) {
-                Ancestors.reassignMatching(m, r, which, ID);
+                Ancestors.reassignMatching(m, r, which);
             } else if (r.children().isEmpty()) {
                 m.reassign(r.token(), Set.of(ID));
             }

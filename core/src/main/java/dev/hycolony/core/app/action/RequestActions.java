@@ -145,7 +145,8 @@ public final class RequestActions {
                         .owningContainer(containerPos)
                         .ifPresent(b -> c.requests()
                                 .onColonyUpdate(r -> r.requester().equals(b.requesterId())
-                                        && b.resolvers().stream().anyMatch(res -> res.canResolve(c.requests(), r)))));
+                                        // the hut's stock only: its BuildingResolver, first (SyncRequests)
+                                        && b.resolvers().getFirst().canResolve(c.requests(), r))));
     }
 
     /** AbstractBuilding.overruleNextOpenRequestWithStack. */

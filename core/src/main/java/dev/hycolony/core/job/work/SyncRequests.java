@@ -74,7 +74,9 @@ public final class SyncRequests {
                 .onColonyUpdate(r -> r.requester().equals(hut.requesterId())
                         && r.citizenId() == citizen.id()
                         && r.state().isBefore(RequestState.COMPLETED)
-                        && hut.resolvers().stream().anyMatch(res -> res.canResolve(requests(), r)));
+                        // the hut's stock only (its BuildingResolver, first): its crafters asked again would rebuild
+                        // a tree they hold at every wait, with new tokens and retries
+                        && hut.resolvers().getFirst().canResolve(requests(), r));
     }
 
     /**

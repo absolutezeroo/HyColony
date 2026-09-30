@@ -21,6 +21,8 @@ import dev.hycolony.core.crafting.task.Crafter;
 import dev.hycolony.core.crafting.task.CraftingTasks;
 import dev.hycolony.core.job.JobAI;
 import dev.hycolony.core.job.WorkerModule;
+import dev.hycolony.core.job.work.SyncRequests;
+import dev.hycolony.core.job.work.WorkerStock;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.item.ItemAmount;
@@ -139,6 +141,30 @@ class CraftingScenarioTest {
     }
 
     /** What the crafter and the request system do while a task waits for its essence, seen after each tick. */
+    /**
+     * A worker's wait asks again only what its hut's stock can serve: a request its own hut crafts, whose ingredient is
+     * nowhere, keeps its tree (asking the crafter again would rebuild it, new tokens and retries, at every wait).
+     */
+    @Test
+    void aWorkerWaitLeavesTheTreeItsOwnHutCraftsAlone() {
+        Huts huts = huts();
+        CitizenData crafter = colony.citizens().get(CRAFTER).orElseThrow();
+        colony.requests().createAndAssign(huts.crafter(), new StackRequest(SEEDS, 10, 10, true), CRAFTER);
+        List<RequestToken> tree = liveTokens();
+        assertTrue(tree.size() >= 3, () -> "seeds, their crafting, its essence: " + tree);
+        SyncRequests sync =
+                new SyncRequests(colony, crafter, huts.crafter(), new WorkerStock(colony, crafter, huts.crafter(), 64));
+
+        sync.claimOpenFromHut();
+        sync.claimOpenFromHut();
+
+        assertEquals(tree, liveTokens());
+    }
+
+    private List<RequestToken> liveTokens() {
+        return colony.requests().all().stream().map(Request::token).toList();
+    }
+
     private final class Watch implements Runnable {
         private final CraftingTasks tasks;
         /** The crafter's assigned tasks, then its queue, when the first delivery is asked. */
