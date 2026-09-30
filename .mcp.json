@@ -10,6 +10,10 @@
       "env": {
         "HYTALE_MCP_CACHE_DIR": "C:/Users/Ctuto/.hytale-intellij/docs-cache"
       }
+    },
+    "hytale": {
+      "url": "http://localhost:3000/bb-mcp",
+      "type": "http"
     }
   }
 }
