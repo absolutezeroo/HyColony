@@ -110,11 +110,16 @@ public final class PlayerResolver implements Resolver {
         return 0;
     }
 
-    /** Matching requests get another chance, with the player blacklisted. */
+    /**
+     * MC onColonyUpdate: matching requests get another chance, with the player blacklisted; for one that does not
+     * match, the first matching ancestor does ({@link Ancestors}).
+     */
     @Override
     public void onColonyUpdate(RequestManager m, Predicate<Request> which) {
         for (Request r : new ArrayList<>(open.values())) {
-            if (which.test(r) && r.children().isEmpty()) {
+            if (!which.test(r)) {
+                Ancestors.reassignMatching(m, r, which, ID);
+            } else if (r.children().isEmpty()) {
                 m.reassign(r.token(), Set.of(ID));
             }
         }

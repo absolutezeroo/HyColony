@@ -113,9 +113,10 @@ final class RequestTransitions {
             canceller.cancel(req.token());
             return;
         }
-        // onChildRequestCancelled; the parent keeps the blacklist it was assigned with.
+        // MC onChildRequestCancelled reassigns with an empty blacklist: one inherited from an earlier reassignment
+        // (the player's, say) could leave no resolver at all, and the parent would wait forever.
         parent.setDeliveries(List.of());
         canceller.cancelChildren(parent);
-        assigner.reassign(parent, parent.blacklist());
+        assigner.reassign(parent, Set.of());
     }
 }

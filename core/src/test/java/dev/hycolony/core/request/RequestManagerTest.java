@@ -13,6 +13,7 @@ import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.request.model.Requestable;
 import dev.hycolony.core.request.model.RequesterId;
 import dev.hycolony.core.request.model.StackRequest;
+import dev.hycolony.core.request.resolver.PlayerResolver;
 import dev.hycolony.core.testing.FakeCatalog;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -374,8 +375,9 @@ class RequestManagerTest {
         assertTrue(m.all().isEmpty());
     }
 
+    /** MC RequestHandler.onChildRequestCancelled: the parent is reassigned with an empty blacklist. */
     @Test
-    void childFailureReassignsParentWithBlacklistPreserved() {
+    void childFailureReassignsParentWithAnEmptyBlacklist() {
         FixedResolver stock = resolver("stock", 300, 0);
         stock.handles = item(LOG);
         FixedResolver banned = resolver("banned", 250, 0);
@@ -397,16 +399,15 @@ class RequestManagerTest {
         crafter.canResolve = false;
         m.updateState(c1, RequestState.FAILED);
 
-        assertSame(fallback, resolverOf(p), "banned (250) stays blacklisted");
-        assertEquals(1, banned.assigned.stream().filter(r -> r == parent).count());
+        assertSame(banned, resolverOf(p), "the earlier blacklist is dropped");
+        assertEquals(2, banned.assigned.stream().filter(r -> r == parent).count());
         assertTrue(parent.deliveries().isEmpty());
         assertTrue(m.get(c1).isEmpty());
         assertTrue(m.get(c2).isEmpty(), "siblings are cancelled too");
         assertEquals(2, crafter.cancelled.size(), "crafter notified as requester of both children");
         assertEquals(List.of(parent), crafter.cancelledAssigned);
         assertTrue(parent.children().isEmpty());
-        assertEquals(2, fallback.resolved.size(), "first the LOG2 sibling, then the reassigned parent");
-        assertSame(parent, fallback.resolved.get(1));
+        assertEquals(1, fallback.resolved.size(), "only the LOG2 sibling: banned took the parent back");
         assertTrue(hut.cancelled.isEmpty());
     }
 
@@ -610,6 +611,29 @@ class RequestManagerTest {
         assertEquals(1, hut.completed.size());
         assertTrue(m.get(t).isEmpty());
         assertTrue(m.all().isEmpty());
+    }
+
+    /**
+     * MC StandardPlayerRequestResolver.onColonyUpdate: when a request the player holds does not match, its ancestors
+     * are walked; the first that matches has its children cancelled and is reassigned with the player blacklisted.
+     */
+    @Test
+    void aColonyUpdateMatchingAnAncestorOfAPlayerRequestReassignsThatAncestor() {
+        m.registerBuiltIn(new PlayerResolver(new BlockPos(0, 0, 0)));
+        FixedResolver maker = resolver("maker", 100, 0);
+        maker.handles = item(PLANK);
+        maker.children = List.of(stack(LOG));
+        RequestToken plank = m.createAndAssign(hut, stack(PLANK), -1);
+        RequestToken log = req(plank).children().iterator().next();
+        assertEquals(PlayerResolver.ID, resolverOf(log).resolverId());
+        maker.children = List.of(); // now makes planks without logs
+
+        m.onColonyUpdate(r -> r.token().equals(plank));
+
+        assertTrue(m.get(log).isEmpty(), "the ancestor's children are cancelled");
+        assertSame(maker, resolverOf(plank));
+        assertEquals(2, maker.assigned.size());
+        assertTrue(req(plank).children().isEmpty());
     }
 
     @Test

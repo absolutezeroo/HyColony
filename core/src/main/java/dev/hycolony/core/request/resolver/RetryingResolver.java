@@ -117,12 +117,20 @@ public final class RetryingResolver implements Resolver {
         }
     }
 
-    /** Matching requests are reassigned now, with the retrying resolver blacklisted. */
+    /**
+     * MC onColonyUpdate: matching requests are reassigned now, with the retrying resolver blacklisted; for one that
+     * does not match, the first matching ancestor is ({@link Ancestors}).
+     */
     @Override
     public void onColonyUpdate(RequestManager m, Predicate<Request> which) {
         for (RequestToken t : new ArrayList<>(delays.keySet())) {
             Optional<Request> r = m.get(t);
-            if (r.isPresent() && which.test(r.get()) && canReassign(m, t)) {
+            if (r.isEmpty()) {
+                continue;
+            }
+            if (!which.test(r.get())) {
+                Ancestors.reassignMatching(m, r.get(), which, ID);
+            } else if (canReassign(m, t)) {
                 m.reassign(t, Set.of(ID));
             }
         }
