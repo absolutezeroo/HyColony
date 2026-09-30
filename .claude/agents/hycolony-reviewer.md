@@ -21,7 +21,7 @@ You are the independent reviewer of HyColony, a faithful port of MineColonies to
 - **Comments must be true.** Check every Javadoc and comment the change adds or touches against the code: a predicate broader than its Javadoc, a "never throws", an "as MC". A false comment is a finding.
 - **MC claims need MC.** Never call something a deviation from MC, or faithful to MC, without quoting the MC `file:line` you read (`raw.githubusercontent.com/ldtteam/minecolonies/version/main/…`). If you cannot check it, say so and leave it to `mc-fidelity-checker`.
 - **Removed or renamed symbols.** Grep every old name in all modules and in `docs/` (specs, research, `TESTING.md`).
-- **Line length.** Check that added lines, Javadoc and comments included, stay within 120 columns; the build does not check comments.
+- **Line length.** Check that added lines, Javadoc and comments included, stay within 120 columns: `checkLineLength` enforces it for Java; check other files (Kotlin build scripts, `.ui`, JSON) by hand.
 
 ## What to check
 

@@ -8,21 +8,22 @@ Liste de contrôle lue par les agents (`hycolony-implementer`, `hycolony-reviewe
 2. **La hauteur du monde est bornée.** `ChunkUtil.MIN_Y = 0`, `HEIGHT = 320` (`math/util/ChunkUtil.java`). Une section hors de cette hauteur n'existe jamais : une attente « jusqu'au chargement » ne finirait jamais. `HytaleWorldBlocks.isLoaded` répond donc `true` hors de cette hauteur (`plugin-b-api.md` § 34). Trouvé à la relecture du correctif M-1.
 3. **Remplacer un bloc à entité garde le contenu, le casser le jette.**
    - Poser un bloc à la place d'un autre recrée l'entité du bloc : `BlockOperations.setBlock` clone une entité neuve (l. 91-96).
-   - `BlockEntity.setBlockEntity` envoie d'abord un `BlockReplaceEvent` à l'ancienne entité (l. 114-117), puis la retire (l. 119-120).
+   - `BlockEntity.setBlockEntity` (`server/core/modules/block/BlockEntity.java`, à ne pas confondre avec l'homonyme de `server/core/entity/entities`) envoie d'abord un `BlockReplaceEvent` à l'ancienne entité (l. 115-117), puis la retire (l. 120-121). La recréation n'a lieu que sans le réglage 2 (`(settings & 2) == 0`, `BlockOperations` l. 87).
    - `ItemContainerSystems.OnReplaced` (l. 138-165) déplace alors tout le contenu dans le nouveau conteneur (`moveAllItemStacksTo`). `onEntityRemove` (l. 97-122) ne jette au sol que ce qui n'a pas tenu, et ferme les fenêtres ouvertes.
    - Si le nouveau bloc n'a pas d'entité (cassage, bloc ordinaire), tout le contenu tombe au sol (`plugin-b-api.md`, cassage).
-   - Pour le portage, c'est Structurize qui décide : un bloc à entité n'est jamais « le même bloc » (§ 2.1).
+   - Pour le portage, c'est Structurize qui décide : un bloc du plan qui porte des `tileEntityData` n'est jamais « le même bloc » (`StructurePlacer` l. 228, § 2.1).
 4. **Une exception qui sort d'un système ECS tue un thread.**
    - `TickingThread` n'attrape qu'**hors** de sa boucle (`util/thread/TickingThread.java`, `while` l. 57, `catch (Throwable)` l. 88). Une exception dans un `TickingSystem`, un `EntityTickingSystem` ou un système d'événement ECS arrête donc le monde.
    - Les fournisseurs de marqueurs de carte (`MapMarkerTracker`, l. 79-81) n'attrapent rien non plus.
    - Les écouteurs du bus d'événements, eux, sont protégés : `SyncEventBusRegistry` attrape `Throwable` et journalise (l. 143-146).
-   - Chaque système du plugin attrape `RuntimeException` (CLAUDE.md § 4). Bug : audit E-3.
+   - Les tâches passées par `world.execute` sont protégées : `World.consumeTaskQueue` attrape `Exception` (l. 1165).
+   - Chaque système ECS et chaque fournisseur de marqueurs du plugin attrape donc `RuntimeException`, comme les gestionnaires d'événements de CLAUDE.md § 4. Bug : audit E-3.
 5. **`World.execute` lève quand le monde s'arrête** (`SkipSentryException`). Un appel depuis un autre monde, la déconnexion ou l'arrêt est lui-même gardé ; sinon un monde arrêté empêche le nettoyage des autres. Bug : audit E-7.
 6. **Changements structurels interdits pendant `processing`.**
    - Ajouter ou retirer une entité ou un composant lève dans un système d'événement, un `RefSystem`, une interaction ou un `EntityTickingSystem` : `Store.tick(ArchetypeTickingSystem…)` prend le verrou (`component/Store.java:2015-2037`). On passe alors par le `CommandBuffer`, ou on diffère par `world.execute`.
    - Seul le tick d'un `TickingSystem` simple n'est **pas** sous ce verrou (`Store.tickInternal`, l. 1990-2013).
    - Bug : audit E-8 (commentaires faux).
-7. **Le verrou d'assets bloque le thread du monde pour toujours.** `World.tick` garde le verrou de lecture de `AssetRegistry.ASSET_LOCK` pendant tout le tick (`World.java:401-419`). `loadAssets` prend le verrou d'écriture (`AssetStore.java:833-921`) : appelé depuis le thread du monde, il ne rend jamais la main. On charge hors du thread du monde, puis on revient par `world.execute` (`plugin-b-api.md` § 17).
+7. **Le verrou d'assets bloque le thread du monde pour toujours.** `World.tick` garde le verrou de lecture de `AssetRegistry.ASSET_LOCK` pendant tout le tick (`World.java:376-403`, verrou l. 380-398). `loadAssets` prend le verrou d'écriture (`AssetStore.java:833-921`) : appelé depuis le thread du monde, il ne rend jamais la main. On charge hors du thread du monde, puis on revient par `world.execute` (`plugin-b-api.md` § 17).
 8. **Deux enums `Rotation`.** `protocol/Rotation` a `getValue()` ; `server/core/asset/type/blocktype/config/Rotation` (celui de `yaw()`) a `getDegrees()`, pas `getValue()`. Ne jamais persister un `ordinal()`. Bug : audit G-3 et commit `6b5467be` qui ne compile pas.
 9. **Le rechargement du plugin n'est pas pris en charge.** `NPCPlugin.registerCoreComponentType` lève au second `setup()` : `BuilderFactory.add` refuse un nom déjà enregistré (`server/npc/asset/builder/BuilderFactory.java:41-44`). Bug : audit D-1/D-2 (non corrigé).
 10. **Chunks de 32 blocs** (`ChunkUtil.SIZE`). Les distances MC en chunks passent par les cellules de claim de 16 blocs (`ClaimCell.SIZE`), jamais par les chunks Hytale (spec SP0 § 3.2).

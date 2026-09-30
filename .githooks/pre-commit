@@ -1,5 +1,5 @@
 #!/bin/sh
-# Fast gate (CLAUDE.md § 3, § 8): formatting, file/package sizes, section dividers.
+# Fast gate (CLAUDE.md § 3, § 8): formatting, file/package sizes, section dividers, Java lines over 120 columns.
 # Skipped when no staged file can affect these checks (docs-only commits stay instant).
 relevant=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(java|kts|kt)$|^gradle/|^config/|^build-logic/|(^|/)gradle\.properties$')
 if [ -z "$relevant" ]; then
@@ -16,7 +16,9 @@ if [ -n "$partial" ]; then
 fi
 if ! ./gradlew spotlessCheck checkFileSizes checkSectionDividers checkLineLength --quiet; then
     echo >&2
-    echo "pre-commit: checks failed. Run ./gradlew spotlessApply, split oversized files/packages," >&2
-    echo "remove section dividers, then commit again. Never bypass with --no-verify (CLAUDE.md § 10)." >&2
+    echo "pre-commit: checks failed. Format your files one by one" >&2
+    echo "(./gradlew :<module>:spotlessApply -PspotlessIdeHook=\"<absolute path>\": other sessions may share the module)," >&2
+    echo "wrap lines over 120 columns, split oversized files/packages, remove section dividers, then commit again." >&2
+    echo "Never bypass with --no-verify (CLAUDE.md § 10)." >&2
     exit 1
 fi
