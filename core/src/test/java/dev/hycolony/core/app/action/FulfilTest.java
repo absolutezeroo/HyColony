@@ -203,7 +203,7 @@ class FulfilTest {
         Colony loaded = ColonySerializer.read(ColonySerializer.write(colony), t.context(), new TerritoryIndex());
 
         Building hut2 = loaded.buildings().at(hall).orElseThrow();
-        assertEquals(List.of(hall, chest), hut2.containers());
+        assertEquals(List.of(chest, hall), hut2.containers());
         assertEquals(
                 "retrying",
                 loaded.requests().resolverOf(token).map(Resolver::resolverId).orElseThrow());

@@ -158,12 +158,12 @@ public final class Building implements Requester, ResolverProvider {
         resolvers = List.copyOf(all);
     }
 
-    /** The hut block first, then the registered containers. */
+    /** The registered containers, then the hut block (MC AbstractBuildingContainer.getContainers). */
     public List<BlockPos> containers() {
         Set<BlockPos> registered = registeredBlocks.containers();
         List<BlockPos> out = new ArrayList<>(registered.size() + 1);
-        out.add(position);
         out.addAll(registered);
+        out.add(position);
         return out;
     }
 

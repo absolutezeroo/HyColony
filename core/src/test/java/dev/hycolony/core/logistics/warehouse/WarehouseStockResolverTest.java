@@ -155,14 +155,14 @@ class WarehouseStockResolverTest {
         t.containers.maxStack = 64;
         Building w = warehouse(new BlockPos(10, 64, 0));
         BlockPos rack = new BlockPos(12, 64, 0);
+        BlockPos rack2 = new BlockPos(14, 64, 0);
         w.registeredBlocks().addContainer(rack);
-        t.containers.slots.put(w.position(), 9);
+        w.registeredBlocks().addContainer(rack2);
         t.containers.slots.put(rack, 9);
-        stock(w.position(), 100);
-        stock(rack, 50);
-        BlockPos untouched = new BlockPos(14, 64, 0);
-        w.registeredBlocks().addContainer(untouched);
-        stock(untouched, 30);
+        t.containers.slots.put(rack2, 9);
+        stock(rack, 100);
+        stock(rack2, 50);
+        stock(w.position(), 30); // MC getContainers: the racks, then the hut block, untouched here
         Building hut = hut(new BlockPos(0, 64, 0));
 
         RequestToken token = request(hut, 120, 120);
@@ -170,9 +170,9 @@ class WarehouseStockResolverTest {
         int p = Delivery.DEFAULT_DELIVERY_PRIORITY;
         assertEquals(
                 List.of(
-                        new Delivery(w.position(), hut.requesterId(), new ItemAmount(STONE, 64), p),
-                        new Delivery(w.position(), hut.requesterId(), new ItemAmount(STONE, 36), p),
-                        new Delivery(rack, hut.requesterId(), new ItemAmount(STONE, 20), p)),
+                        new Delivery(rack, hut.requesterId(), new ItemAmount(STONE, 64), p),
+                        new Delivery(rack, hut.requesterId(), new ItemAmount(STONE, 36), p),
+                        new Delivery(rack2, hut.requesterId(), new ItemAmount(STONE, 20), p)),
                 children(token));
         assertEquals(
                 List.of(64, 36, 20),

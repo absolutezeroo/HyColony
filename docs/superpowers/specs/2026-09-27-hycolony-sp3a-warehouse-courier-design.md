@@ -70,7 +70,7 @@ Toutes reprises de MineColonies ; les références `§` renvoient à la recherch
   - pas d'interactions de chat (« pas d'entrepôt », « coffre plein »), pas de statut visible ni de sac à dos, pas de statistiques, pas de faim (`decreaseSaturationForContinuousAction`) : ces systèmes n'existent pas encore dans le cœur ;
   - l'échange d'une pile quand la cible est pleine (`forceItemStackToItemHandler`) passe par le port de conteneurs, par objet et non par case : l'extraction peut prendre l'objet dans une autre case du même conteneur ; ce qui n'a pas pu être échangé est remis ;
   - « objets de ses requêtes » de la cible (`isItemStackInRequest`) : toutes les requêtes ouvertes du bâtiment, pas seulement celles de ses citoyens, car notre constructeur demande ses matériaux au nom de la hutte ;
-  - ramassage : le parcours case par case porte sur les cases non vides des conteneurs de la hutte (hutte d'abord) ; l'indice reste en place quand la pile est partie entière ;
+  - ramassage : le parcours case par case porte sur les cases non vides des conteneurs de la hutte (étagères d'abord, puis le bloc de hutte, comme MC `getContainers`) ; l'indice reste en place quand la pile est partie entière ;
   - vitesse : facteur de la vitesse de base donné au corps (`CitizenBodies.setMovementSpeed`), recalculé à chaque décision (MC `onLevelUp`) et remis à 1 quand l'IA de métier est abandonnée (MC retire le modificateur avec le métier) ;
   - pas de test de dimension (`isReachableFromLocation`) : un seul monde ;
   - objets sortis d'un conteneur qui n'y rentrent plus (rangement ou échange défait) : jetés au sol à cet endroit et journalisés (MC ne les remet pas) ;

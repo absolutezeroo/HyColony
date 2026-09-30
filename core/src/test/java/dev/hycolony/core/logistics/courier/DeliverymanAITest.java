@@ -58,7 +58,7 @@ class DeliverymanAITest extends CourierAITestBase {
         Vec3 inside = Vec3.center(new BlockPos(0, 64, -1));
         assertEquals(inside, t.bodies.moves.getFirst(), "walks to the cell beside the hut block");
         assertEquals(List.of(inside), t.bodies.teleports, "stuck on the roof, it is brought inside as MC does");
-        assertEquals(4, stored(warehouse.position(), LOG));
+        assertEquals(4, t.containers.count(warehouse.containers(), LOG));
     }
 
     @Test
@@ -68,7 +68,7 @@ class DeliverymanAITest extends CourierAITestBase {
 
         runUntil(() -> carried(LOG) == 0);
 
-        assertEquals(4, stored(warehouse.position(), LOG));
+        assertEquals(4, t.containers.count(warehouse.containers(), LOG));
     }
 
     @Test
@@ -80,7 +80,7 @@ class DeliverymanAITest extends CourierAITestBase {
 
         runUntil(() -> completed(task));
 
-        assertEquals(4, stored(warehouse.position(), LOG));
+        assertEquals(4, t.containers.count(warehouse.containers(), LOG));
         assertEquals(5, stored(target.position(), STONE));
     }
 

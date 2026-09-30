@@ -61,7 +61,7 @@ class BuildingWorkstationsTest {
         b.registeredBlocks().addContainer(HUT);
         b.registeredBlocks().addContainer(BENCH);
         assertEquals(Set.of(BENCH), b.registeredBlocks().containers());
-        assertEquals(List.of(HUT, BENCH), b.containers());
+        assertEquals(List.of(BENCH, HUT), b.containers()); // MC AbstractBuildingContainer.getContainers: racks first
     }
 
     @Test

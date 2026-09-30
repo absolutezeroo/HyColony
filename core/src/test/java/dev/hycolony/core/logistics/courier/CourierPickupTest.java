@@ -44,7 +44,7 @@ class CourierPickupTest extends CourierAITestBase {
 
         assertEquals(4, carried(DIRT));
         assertEquals(awarded(0.05), citizen.skills().experience(Skill.Agility), 1e-9);
-        runUntil(() -> stored(warehouse.position(), LOG) == 10); // no task left: stored at the warehouse
+        runUntil(() -> t.containers.count(warehouse.containers(), LOG) == 10); // no task left: stored at the warehouse
     }
 
     @Test

@@ -132,7 +132,7 @@ class CourierDeliveryTest extends CourierAITestBase {
 
         assertEquals(5, stored(target.position(), STONE));
         assertEquals(0, stored(target.position(), DIRT));
-        runUntil(() -> stored(warehouse.position(), DIRT) == 7); // carried back and stored
+        runUntil(() -> t.containers.count(warehouse.containers(), DIRT) == 7); // carried back and stored
     }
 
     /** MC forceItemStackToItemHandler swaps out the stack itself: a worn tool leaves with its damage. */
@@ -167,7 +167,7 @@ class CourierDeliveryTest extends CourierAITestBase {
         runUntil(() -> completed(task)); // MC finishRequest(true) even when nothing fitted
 
         assertEquals(7, stored(target.position(), DIRT));
-        runUntil(() -> stored(warehouse.position(), STONE) == 5); // then dumped at the warehouse
+        runUntil(() -> t.containers.count(warehouse.containers(), STONE) == 5); // then dumped at the warehouse
     }
 
     @Test
