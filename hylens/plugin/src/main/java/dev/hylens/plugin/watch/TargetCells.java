@@ -2,6 +2,7 @@ package dev.hylens.plugin.watch;
 
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.math.util.ChunkUtil;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.fluid.Fluid;
 import com.hypixel.hytale.server.core.universe.world.World;
@@ -30,8 +31,11 @@ final class TargetCells {
                 : Optional.empty();
     }
 
-    /** The id of what fills the cell; empty when its section is not loaded. */
+    /** The id of what fills the cell, {@code ""} out of the world's height; empty when its section is not loaded. */
     private static Optional<String> id(World world, int x, int y, int z) {
+        if (y < 0 || y >= ChunkUtil.HEIGHT) {
+            return Optional.of("");
+        }
         @Nullable Ref<ChunkStore> sec = world.getChunkStore().getChunkSectionReferenceAtBlock(x, y, z);
         if (sec == null || !sec.isValid()) {
             return Optional.empty();
@@ -46,9 +50,14 @@ final class TargetCells {
             @Nullable BlockType type = BlockType.getAssetMap().getAsset(id);
             return Optional.of(type == null ? "#" + id : type.getId());
         }
+        return Optional.of(fluid(store, sec, x, y, z));
+    }
+
+    /** The id of the fluid filling the cell of section {@code sec}, else {@code ""}. */
+    private static String fluid(Store<ChunkStore> store, Ref<ChunkStore> sec, int x, int y, int z) {
         @Nullable FluidSection fluids = store.getComponent(sec, FluidSection.getComponentType());
         int fluid = fluids == null ? Fluid.EMPTY_ID : fluids.getFluidId(x, y, z);
         @Nullable Fluid f = fluid == Fluid.EMPTY_ID ? null : Fluid.getAssetMap().getAsset(fluid);
-        return Optional.of(f == null ? "" : f.getId());
+        return f == null ? "" : f.getId();
     }
 }

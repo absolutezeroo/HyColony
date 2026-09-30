@@ -75,7 +75,9 @@ class MenuViewsTest {
         MenuView v = MenuViews.of(world, false, MenuState.INITIAL, Optional.empty());
 
         assertEquals(
-                List.of(new MenuView.ColonyRow(A, "Alpha", 2, false), new MenuView.ColonyRow(B, "Beta", 0, false)),
+                List.of(
+                        new MenuView.ColonyRow(A, "Alpha", 2, 3, false),
+                        new MenuView.ColonyRow(B, "Beta", 0, 0, false)),
                 v.colonies());
         assertEquals(List.of(), v.citizens());
     }
@@ -84,7 +86,8 @@ class MenuViewsTest {
     void chosenColonyListsItsCitizensWithTheirStateAndAlerts() {
         MenuView v = MenuViews.of(world, false, MenuState.INITIAL.withCitizen(ANN), Optional.of(ANN));
 
-        assertEquals(new MenuView.ColonyRow(A, "Alpha", 2, true), v.colonies().getFirst());
+        assertEquals(
+                new MenuView.ColonyRow(A, "Alpha", 2, 3, true), v.colonies().getFirst());
         assertEquals(
                 List.of(
                         new MenuView.CitizenRow(
@@ -100,6 +103,13 @@ class MenuViewsTest {
                                 BOB, "Bob", ApiText.of("hycolony.ui.job.none"), "-", "-", 0, false, false)),
                 v.citizens());
         assertEquals(Optional.of(ANN), v.citizen());
+    }
+
+    @Test
+    void colonyCountsEveryAlertThoughNoCitizenCarriesIt() {
+        MenuView v = MenuViews.of(world, false, MenuState.INITIAL, Optional.empty());
+
+        assertEquals(3, v.colonies().getFirst().alerts(), "Ann's two and the request no citizen asked");
     }
 
     @Test

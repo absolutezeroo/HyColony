@@ -108,8 +108,8 @@ public final class MapSend {
         @Nullable
         HeightmapColumn column =
                 chunk == null ? null : chunk.getStore().getComponent(chunk, HeightmapColumn.getComponentType());
-        int height = column == null ? Integer.MIN_VALUE : column.getHeight(x, z);
-        ApiText told = height == Integer.MIN_VALUE
+        int height = column == null ? HeightmapColumn.NO_HEIGHT : column.getHeight(x, z);
+        ApiText told = height == HeightmapColumn.NO_HEIGHT
                 ? ApiText.of("hylens.send.noGround")
                 : SendHere.watchedOrChosen(
                         world, watches, menus, player.getUuid(), SendTarget.standingOn(x, height, z));

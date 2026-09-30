@@ -132,11 +132,14 @@ class NewAlertsTest {
     }
 
     @Test
-    void forgottenOperatorIsToldAfresh() {
+    void forgottenOperatorIsToldAfreshOthersAreNot() {
+        UUID other = UUID.randomUUID();
         alerts.fresh(OPERATOR, COLONY, List.of(stale("300")));
+        alerts.fresh(other, COLONY, List.of(stale("300")));
 
         alerts.forget(OPERATOR);
 
         assertEquals(List.of(stale("300")), alerts.fresh(OPERATOR, COLONY, List.of(stale("300"))));
+        assertEquals(List.of(), alerts.fresh(other, COLONY, List.of(stale("300"))));
     }
 }

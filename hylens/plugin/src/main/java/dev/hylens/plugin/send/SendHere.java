@@ -27,7 +27,7 @@ public final class SendHere {
     }
 
     /**
-     * Walks the citizen {@code operator} watches, else the one chosen in their menu, to {@code cell} in {@code world};
+     * Walks the citizen {@code operator} watches in {@code world}, else the one chosen in their menu, to {@code cell};
      * the chat line telling what came of it, or why no citizen was sent.
      */
     public static ApiText watchedOrChosen(World world, Watches watches, Menus menus, UUID operator, Pos cell) {
@@ -35,8 +35,10 @@ public final class SendHere {
         if (colonies.isEmpty()) {
             return ApiText.of("hylens.notRunning");
         }
-        Optional<CitizenRef> who =
-                SendTarget.who(watches.watched(operator), menus.state(operator).citizen());
+        Optional<CitizenRef> who = SendTarget.who(
+                world.getName(),
+                watches.watched(operator),
+                menus.state(operator).citizen());
         if (who.isEmpty()) {
             return ApiText.of("hylens.send.noneChosen");
         }

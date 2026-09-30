@@ -94,7 +94,7 @@ final class WatchCommand extends AbstractPlayerCommand {
             }
             @Nullable Ref<EntityStore> target = TargetUtil.getTargetEntity(ref, TARGET_RADIUS, false, store);
             if (target == null) {
-                Chat.tell(player, "hylens.watch.noTarget");
+                Chat.tell(player, "hylens.watch.noTarget", String.valueOf((int) TARGET_RADIUS));
                 return;
             }
             HyColonyApi.get()

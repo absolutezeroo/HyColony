@@ -27,17 +27,17 @@ public record Shape(Kind kind, Vec from, Vec to, Colour colour) {
     }
 
     /** A line from {@code from} to {@code to}. */
-    public static Shape line(Vec from, Vec to, Colour colour) {
+    static Shape line(Vec from, Vec to, Colour colour) {
         return new Shape(Kind.LINE, from, to, colour);
     }
 
     /** A sphere centred on {@code at}. */
-    public static Shape sphere(Vec at, Colour colour) {
+    static Shape sphere(Vec at, Colour colour) {
         return new Shape(Kind.SPHERE, at, at, colour);
     }
 
     /** A one-block cube centred on {@code at}. */
-    public static Shape cube(Vec at, Colour colour) {
+    static Shape cube(Vec at, Colour colour) {
         return new Shape(Kind.CUBE, at, at, colour);
     }
 }

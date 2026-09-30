@@ -26,10 +26,14 @@ import javax.annotation.Nonnull;
 /**
  * Every {@link #CHECK_SECONDS}, on each world's thread: checks its colonies for the operators there who turned the
  * automatic check on, and tells each of them the violations that newly lasted (spec 2026-09-30, § 6.5). These regular
- * checks are also what confirms a lasting state for the menu and the HUD. Each colony is checked once per round.
+ * checks are also what confirms a lasting state for the menu (the HUD confirms its own, at each refresh). Each colony
+ * is checked once per round.
  */
 public final class AutoCheckSystem extends TickingSystem<EntityStore> {
-    /** Seconds between two checks: 40 core ticks, well under HyColony's 100-tick confirmation. */
+    /**
+     * Seconds between two checks, in server time: 40 core ticks while the colonies run, well under HyColony's 100-tick
+     * confirmation.
+     */
     static final float CHECK_SECONDS = 2f;
 
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
@@ -69,7 +73,7 @@ public final class AutoCheckSystem extends TickingSystem<EntityStore> {
         // Out of a TickingSystem, an exception would stop the world's thread.
         try {
             HyColonyAccess.world(world).ifPresent(w -> check(w, checking));
-        } catch (RuntimeException e) {
+        } catch (RuntimeException | LinkageError e) {
             LOG.at(failedOnce.getAndSet(true) ? Level.FINE : Level.SEVERE).withCause(e).log(
                     "HyLens: the automatic check failed");
         }

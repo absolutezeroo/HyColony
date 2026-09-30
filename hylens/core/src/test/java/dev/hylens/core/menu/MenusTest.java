@@ -29,12 +29,15 @@ class MenusTest {
     }
 
     @Test
-    void forgottenOperatorStartsAfresh() {
+    void forgottenOperatorStartsAfreshOthersKeepTheirChoices() {
+        UUID other = UUID.randomUUID();
         menus.update(OPERATOR, s -> s.withColony(A));
+        MenuState kept = menus.update(other, s -> s.withColony(A));
 
         menus.forget(OPERATOR);
 
         assertEquals(MenuState.INITIAL, menus.state(OPERATOR));
+        assertEquals(kept, menus.state(other));
     }
 
     @Test

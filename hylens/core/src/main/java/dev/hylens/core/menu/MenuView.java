@@ -27,8 +27,11 @@ public record MenuView(
         citizens = List.copyOf(citizens);
     }
 
-    /** One colony of the world: its name and number of citizens, and whether it is the chosen one. */
-    public record ColonyRow(ColonyRef ref, String name, int citizens, boolean chosen) {}
+    /**
+     * One colony of the world: its name, number of citizens and confirmed alerts (those no citizen carries too, such as
+     * a request without resolver), and whether it is the chosen one.
+     */
+    public record ColonyRow(ColonyRef ref, String name, int citizens, int alerts, boolean chosen) {}
 
     /**
      * One citizen of the chosen colony: its job's name, AI state and job step ("-" for none, or while its body is

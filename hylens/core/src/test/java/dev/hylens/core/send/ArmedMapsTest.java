@@ -26,12 +26,15 @@ class ArmedMapsTest {
     }
 
     @Test
-    void disarmedMapTeleportsAsUsual() {
+    void disarmedMapTeleportsAsUsualOthersStayArmed() {
+        UUID other = UUID.randomUUID();
         armed.arm(OPERATOR);
+        armed.arm(other);
 
         armed.disarm(OPERATOR);
 
         assertFalse(armed.use(OPERATOR));
+        assertTrue(armed.use(other));
     }
 
     @Test

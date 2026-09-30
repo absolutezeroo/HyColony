@@ -128,6 +128,44 @@ class WatchHudViewTest {
                 WatchHudView.lines(NAMED, unloaded, List.of(), Optional.empty()).get(2));
     }
 
+    private static CitizenDebugSnapshot idleWith(int leisureTicks, List<HistoryEntry> history) {
+        CitizenDebugSnapshot s = idle();
+        return new CitizenDebugSnapshot(
+                ANN,
+                NOW,
+                s.aiState(),
+                s.aiStateSince(),
+                "",
+                0,
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                "",
+                0,
+                List.of(),
+                leisureTicks,
+                history);
+    }
+
+    @Test
+    void historyShorterThanFiveShowsItAllNewestFirst() {
+        List<HistoryEntry> history = List.of(entry(NOW - 40, "S0"), entry(NOW - 20, "S1"));
+
+        List<ApiText> lines = WatchHudView.lines(NAMED, idleWith(0, history), List.of(), Optional.empty());
+
+        assertEquals(ApiText.of("hylens.hud.history"), lines.get(10));
+        assertEquals(ApiText.of("hylens.hud.historyEntry", "1", history.get(1).detail()), lines.get(11));
+        assertEquals(ApiText.of("hylens.hud.historyEntry", "2", history.get(0).detail()), lines.get(12));
+        assertEquals(14, lines.size());
+    }
+
+    @Test
+    void leisureOutsideABreakNeverShowsBelowZero() {
+        List<ApiText> lines = WatchHudView.lines(NAMED, idleWith(-40, List.of()), List.of(), Optional.empty());
+
+        assertEquals(ApiText.of("hylens.hud.leisure", "0"), lines.get(9));
+    }
+
     @Test
     void historyShowsTheLastFiveTransitionsNewestFirst() {
         List<HistoryEntry> history = IntStream.range(0, 7)

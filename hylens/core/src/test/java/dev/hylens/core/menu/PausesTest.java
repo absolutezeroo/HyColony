@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -20,8 +19,7 @@ class PausesTest {
     void pauseIsTheOperatorsWhoAskedIt() {
         pauses.paused("default", ANN);
 
-        assertEquals(Optional.of(ANN), pauses.by("default"));
-        assertEquals(Optional.empty(), pauses.by("other"));
+        assertEquals(Set.of("default"), pauses.pausedBy(ANN));
     }
 
     @Test
@@ -30,7 +28,7 @@ class PausesTest {
 
         pauses.resumed("default");
 
-        assertEquals(Optional.empty(), pauses.by("default"));
+        assertEquals(Set.of(), pauses.pausedBy(ANN));
     }
 
     @Test
@@ -48,7 +46,7 @@ class PausesTest {
         pauses.paused("default", ANN);
 
         assertTrue(pauses.forget("default", ANN));
-        assertEquals(Optional.empty(), pauses.by("default"));
+        assertEquals(Set.of(), pauses.pausedBy(ANN));
     }
 
     @Test
@@ -57,6 +55,6 @@ class PausesTest {
         pauses.paused("default", BOB);
 
         assertFalse(pauses.forget("default", ANN));
-        assertEquals(Optional.of(BOB), pauses.by("default"));
+        assertEquals(Set.of("default"), pauses.pausedBy(BOB));
     }
 }

@@ -13,12 +13,12 @@ import java.util.Optional;
 public record MenuState(
         Optional<ColonyRef> colony, Optional<CitizenRef> citizen, int step, Layers layers, boolean autoCheck) {
     /** Core ticks a step may ask at most: HyColony keeps no more pending (ColonyClock.step). */
-    public static final int MAX_STEP = 10;
+    static final int MAX_STEP = 10;
 
     /** Nothing chosen, a step of one tick, every layer shown, no automatic check. */
-    public static final MenuState INITIAL = new MenuState(Optional.empty(), Optional.empty(), 1, Layers.ALL, false);
+    static final MenuState INITIAL = new MenuState(Optional.empty(), Optional.empty(), 1, Layers.ALL, false);
 
-    /** {@code colony} chosen; the citizen chosen is kept only if it belongs to it. */
+    /** {@code chosen} as the colony; the citizen chosen is kept only if it belongs to it. */
     public MenuState withColony(ColonyRef chosen) {
         Optional<CitizenRef> kept = citizen.filter(c -> c.colony().equals(chosen));
         return new MenuState(Optional.of(chosen), kept, step, layers, autoCheck);

@@ -1,7 +1,6 @@
 package dev.hylens.core.menu;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,11 +22,6 @@ public final class Pauses {
     /** {@code world}'s colonies resumed, whoever asked. */
     public void resumed(String world) {
         byWorld.remove(world);
-    }
-
-    /** Who paused {@code world}'s colonies through HyLens; empty while they run, or if another plugin paused them. */
-    public Optional<UUID> by(String world) {
-        return Optional.ofNullable(byWorld.get(world));
     }
 
     /** The worlds whose colonies {@code operator} paused through HyLens, as they leave. */

@@ -28,7 +28,7 @@ public final class FakeColonyWorld implements ColonyWorld, DebugAccess {
     private final Map<CitizenRef, CitizenDebugSnapshot> debug = new LinkedHashMap<>();
     private final Map<ColonyRef, List<Violation>> alerts = new LinkedHashMap<>();
 
-    /** Adds {@code colony} with its {@code citizens}. */
+    /** Adds {@code colony} with its citizens {@code members}. */
     public FakeColonyWorld colony(ColonySummary colony, CitizenSnapshot... members) {
         colonies.put(colony.ref(), colony);
         citizens.put(colony.ref(), List.of(members));

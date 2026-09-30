@@ -26,8 +26,11 @@ public final class SendTarget {
         }
     }
 
-    /** The citizen to send: the one {@code watched}, else the one {@code chosen} in the menu; empty with neither. */
-    public static Optional<CitizenRef> who(Optional<CitizenRef> watched, Optional<CitizenRef> chosen) {
-        return watched.or(() -> chosen);
+    /**
+     * The citizen to send in the world named {@code world}: the one {@code watched} there, else the one {@code chosen}
+     * in the menu; empty with neither. A watch kept from another world names a citizen HyColony does not know here.
+     */
+    public static Optional<CitizenRef> who(String world, Optional<CitizenRef> watched, Optional<CitizenRef> chosen) {
+        return watched.filter(c -> c.colony().world().equals(world)).or(() -> chosen);
     }
 }

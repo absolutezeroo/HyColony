@@ -9,12 +9,14 @@ import com.hypixel.hytale.server.core.entity.entities.player.hud.HudManager;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import dev.hycolony.api.CitizenRef;
 import dev.hycolony.api.ColonyWorld;
 import dev.hycolony.api.debug.DebugAccess;
 import dev.hylens.core.draw.WatchShapes;
 import dev.hylens.core.hud.TargetCell;
 import dev.hylens.core.hud.WatchHudView;
 import dev.hylens.core.menu.Menus;
+import dev.hylens.core.watch.WatchLoss;
 import dev.hylens.core.watch.Watches;
 import dev.hylens.plugin.HyColonyAccess;
 import java.util.Map;
@@ -31,7 +33,10 @@ import org.jspecify.annotations.Nullable;
  * watching. Its alerts come from {@link DebugAccess#check}, which confirms a lasting one across these regular calls.
  */
 public final class WatchRefreshSystem extends TickingSystem<EntityStore> {
-    /** Seconds between two refreshes: 10 ticks of the core; measured in game at no visible cost (plan, task 10). */
+    /**
+     * Seconds between two refreshes, in server time: 10 core ticks while the colonies run, and it goes on while they
+     * are paused; measured in game at no visible cost (plan, task 10).
+     */
     static final float REFRESH_SECONDS = 0.5f;
 
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
@@ -65,7 +70,8 @@ public final class WatchRefreshSystem extends TickingSystem<EntityStore> {
         Optional<ColonyWorld> colonies;
         try {
             colonies = HyColonyAccess.world(world);
-        } catch (RuntimeException e) { // another mod's code: out of a TickingSystem, it would stop the world
+        } catch (RuntimeException
+                | LinkageError e) { // another mod's code: out of a TickingSystem, it would stop the world
             LOG.at(failedOnce.getAndSet(true) ? Level.FINE : Level.SEVERE).withCause(e).log(
                     "HyLens: HyColony's api failed");
             return;
@@ -74,7 +80,7 @@ public final class WatchRefreshSystem extends TickingSystem<EntityStore> {
             // Out of a TickingSystem, an exception would stop the world's thread; one operator's never stops another's.
             try {
                 refresh(world, store, colonies, player);
-            } catch (RuntimeException e) {
+            } catch (RuntimeException | LinkageError e) {
                 LOG.at(failedOnce.getAndSet(true) ? Level.FINE : Level.SEVERE).withCause(e).log(
                         "HyLens: the watch refresh failed");
             }
@@ -106,11 +112,15 @@ public final class WatchRefreshSystem extends TickingSystem<EntityStore> {
             return;
         }
         HudManager huds = component.getHudManager();
-        Optional<Watched> watched =
-                watches.watched(player.getUuid()).flatMap(c -> colonies.flatMap(w -> Watched.read(w, c)));
+        Optional<CitizenRef> citizen = watches.watched(player.getUuid());
+        Optional<Watched> watched = citizen.flatMap(c -> colonies.flatMap(w -> Watched.read(w, c)));
         if (watched.isEmpty()) {
             if (huds.getCustomHud(WatchHud.KEY) != null) {
                 huds.removeCustomHud(player, WatchHud.KEY);
+            }
+            if (citizen.filter(c -> WatchLoss.gone(world.getName(), colonies, c))
+                    .isPresent()) {
+                LostWatch.drop(player, store, watches);
             }
             return;
         }

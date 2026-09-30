@@ -5,9 +5,20 @@ import dev.hycolony.api.ColonyRef;
 import dev.hylens.core.draw.Layers;
 import dev.hylens.core.menu.MenuView;
 import java.util.Optional;
+import java.util.Set;
 
-/** Reads what a click on the HyLens menu names: a colony or citizen id, a layer; empty for one no longer shown. */
+/**
+ * Reads a click on the HyLens menu: which kind it is, and what it names (a colony or citizen id, a layer; empty for
+ * one no longer shown).
+ */
 final class MenuClicks {
+    /** The clicks that record a choice. */
+    static final Set<String> CHOICES = Set.of("colony", "citizen", "layer", "stepLess", "stepMore");
+    /** The clicks on the colony clock. */
+    static final Set<String> CLOCK = Set.of("pause", "step", "resume");
+    /** The clicks on the checks. */
+    static final Set<String> CHECKS = Set.of("checkNow", "autoCheck");
+
     private MenuClicks() {}
 
     /** The colony whose id is {@code index}, if the page still lists it. */

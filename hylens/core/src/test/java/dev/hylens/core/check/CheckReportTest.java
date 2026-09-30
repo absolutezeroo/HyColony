@@ -40,6 +40,17 @@ class CheckReportTest {
     }
 
     @Test
+    void violationOfACitizenSomewhereNamesTheCitizen() {
+        Violation endedAway =
+                new Violation("WALK_ENDED_AWAY", DETAIL, Optional.of(ANN), Optional.of(new Pos(3, 64, -2)));
+
+        assertEquals(
+                ApiText.of("hylens.check.citizen", "Ann", DETAIL),
+                CheckReport.colony("Alpha", List.of(endedAway), Map.of(ANN, "Ann"))
+                        .get(1));
+    }
+
+    @Test
     void citizenWithoutAKnownNameShowsItsId() {
         Violation ofAnn = new Violation("QUEUE_INCOHERENT", DETAIL, Optional.of(ANN), Optional.empty());
 

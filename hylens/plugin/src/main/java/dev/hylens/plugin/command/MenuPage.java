@@ -11,7 +11,6 @@ import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import dev.hyblockui.api.PageEvents;
 import dev.hycolony.api.ApiText;
 import dev.hycolony.api.ColonyWorld;
 import dev.hylens.core.menu.MenuView;
@@ -21,7 +20,6 @@ import dev.hylens.core.watch.Watches;
 import dev.hylens.plugin.HyColonyAccess;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import javax.annotation.Nonnull;
 import org.jspecify.annotations.Nullable;
@@ -65,19 +63,13 @@ final class MenuPage extends InteractiveCustomUIPage<MenuPage.Data> {
         String z;
     }
 
-    /** The clicks that record a choice. */
-    private static final Set<String> CHOICES = Set.of("colony", "citizen", "layer", "stepLess", "stepMore");
-    /** The clicks on the colony clock. */
-    private static final Set<String> CLOCK = Set.of("pause", "step", "resume");
-    /** The clicks on the checks. */
-    private static final Set<String> CHECKS = Set.of("checkNow", "autoCheck");
-
     private final Menus menus;
     private final Watches watches;
     private final CitizenWatch watch;
     private final MenuClock clock;
     private final MenuChecks checks;
     private final MenuSend send;
+    private final MenuEvents events = new MenuEvents();
     private Optional<ApiText> result = Optional.empty();
 
     MenuPage(PlayerRef player, LensParts parts, CitizenWatch watch, MenuSend send) {
@@ -103,10 +95,13 @@ final class MenuPage extends InteractiveCustomUIPage<MenuPage.Data> {
                         () -> MenuRender.only(ui, ApiText.of("hylens.notRunning")));
     }
 
-    /** A failure is logged, never thrown into Hytale's PageManager; the page always gets an update back. */
+    /**
+     * A failure is logged, never thrown into Hytale's PageManager; the page always gets an update back. A LinkageError
+     * (HyLens stopped, its classes gone) is caught too ({@link MenuEvents}).
+     */
     @Override
     public void handleDataEvent(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, String rawData) {
-        PageEvents.guard(getClass(), () -> {
+        events.guard(getClass(), () -> {
             try {
                 super.handleDataEvent(ref, store, rawData);
             } finally {
@@ -169,15 +164,15 @@ final class MenuPage extends InteractiveCustomUIPage<MenuPage.Data> {
     /** Handles every click but "watch": a choice, the clock, the checks, or an action on the chosen citizen. */
     private void dispatch(String action, String index, MenuView v, Ref<EntityStore> ref, Store<EntityStore> store) {
         UUID operator = playerRef.getUuid();
-        if (CHOICES.contains(action)) {
+        if (MenuClicks.CHOICES.contains(action)) {
             choose(action, index, v, operator);
-        } else if (CLOCK.contains(action)) {
+        } else if (MenuClicks.CLOCK.contains(action)) {
             result = clock.run(
                     action,
                     store.getExternalData().getWorld(),
                     operator,
                     menus.state(operator).step());
-        } else if (CHECKS.contains(action)) {
+        } else if (MenuClicks.CHECKS.contains(action)) {
             result = Optional.of(checks.run(action, playerRef, colonies(store)));
         } else {
             act(action, v, ref, store);

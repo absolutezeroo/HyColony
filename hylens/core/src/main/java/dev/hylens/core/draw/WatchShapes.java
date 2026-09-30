@@ -53,7 +53,7 @@ public final class WatchShapes {
     private static boolean failed(CitizenDebugSnapshot s, List<Violation> alerts) {
         boolean sameTarget = s.lastWalkEnd().map(WalkEnded::target).equals(s.walkTarget());
         return alerts.stream()
-                .anyMatch(v -> v.code().equals(STUCK) || sameTarget && v.code().equals(ENDED_AWAY));
+                .anyMatch(v -> v.code().equals(STUCK) || (sameTarget && v.code().equals(ENDED_AWAY)));
     }
 
     private static Pos cell(Vec v) {

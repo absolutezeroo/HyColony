@@ -39,10 +39,14 @@ final class MenuRender {
             MenuView.ColonyRow c = colonies.get(i);
             String row = "#Colonies[" + i + "]";
             ui.append("#Colonies", COLONY_ROW);
-            String key = c.chosen() ? "hylens.menu.colonyChosen" : "hylens.menu.colony";
+            String key =
+                    (c.chosen() ? "hylens.menu.colonyChosen" : "hylens.menu.colony") + (c.alerts() > 0 ? "Alerts" : "");
             ui.set(
                     row + ".Text",
-                    Message.translation(key).param("p0", c.name()).param("p1", String.valueOf(c.citizens())));
+                    Message.translation(key)
+                            .param("p0", c.name())
+                            .param("p1", String.valueOf(c.citizens()))
+                            .param("p2", String.valueOf(c.alerts())));
             bind(events, row, "colony", String.valueOf(c.ref().colonyId()));
         }
         List<MenuView.CitizenRow> citizens = v.citizens();

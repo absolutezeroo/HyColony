@@ -32,7 +32,8 @@ final class CitizenWatch {
 
     /**
      * On the world's thread: the operator at {@code ref} watches {@code citizen}, named {@code name}; tells them why
-     * not when its body is not loaded in their world, or dying, or the watch game mode cannot be entered.
+     * not when its body is not loaded in their world, or dying, HyColony no longer knows it, or the watch game mode
+     * cannot be entered.
      */
     void start(PlayerRef player, Store<EntityStore> store, Ref<EntityStore> ref, CitizenRef citizen, String name) {
         HyColonyApi api = HyColonyApi.get();
@@ -51,7 +52,7 @@ final class CitizenWatch {
             return;
         }
         Optional<String> mode = ids.watchGameMode().filter(GameModeTypes::isValidType);
-        if (mode.isEmpty() || !Spectating.isSpectating(ref, store) && !GameModeTypes.enter(ref, store, mode.get())) {
+        if (mode.isEmpty() || (!Spectating.isSpectating(ref, store) && !GameModeTypes.enter(ref, store, mode.get()))) {
             tracking.get().close();
             Chat.tell(player, "hylens.watch.cantEnter");
             return;

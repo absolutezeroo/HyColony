@@ -32,8 +32,14 @@ class SendTargetTest {
 
     @Test
     void watchedCitizenGoesFirstThenTheChosenOne() {
-        assertEquals(Optional.of(ANN), SendTarget.who(Optional.of(ANN), Optional.of(BOB)));
-        assertEquals(Optional.of(BOB), SendTarget.who(Optional.empty(), Optional.of(BOB)));
-        assertEquals(Optional.empty(), SendTarget.who(Optional.empty(), Optional.empty()));
+        assertEquals(Optional.of(ANN), SendTarget.who("default", Optional.of(ANN), Optional.of(BOB)));
+        assertEquals(Optional.of(BOB), SendTarget.who("default", Optional.empty(), Optional.of(BOB)));
+        assertEquals(Optional.empty(), SendTarget.who("default", Optional.empty(), Optional.empty()));
+    }
+
+    @Test
+    void watchKeptFromAnotherWorldGivesWayToTheChosenCitizen() {
+        assertEquals(Optional.of(BOB), SendTarget.who("nether", Optional.of(ANN), Optional.of(BOB)));
+        assertEquals(Optional.empty(), SendTarget.who("nether", Optional.of(ANN), Optional.empty()));
     }
 }

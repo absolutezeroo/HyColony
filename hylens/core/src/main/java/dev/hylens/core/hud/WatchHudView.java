@@ -33,7 +33,7 @@ public final class WatchHudView {
      * Lines the HUD holds at most: 10 of state, a header and {@link #HISTORY}, a header and {@link #ALERTS}. The panel
      * (Hud/HyLens/WatchHud.ui) is exactly this many lines of 20 px high.
      */
-    public static final int MAX_LINES = 10 + 1 + HISTORY + 1 + ALERTS;
+    static final int MAX_LINES = 10 + 1 + HISTORY + 1 + ALERTS;
 
     private static final int TICKS_PER_SECOND = 20;
     private static final String NONE = "-";
@@ -67,7 +67,7 @@ public final class WatchHudView {
                         ? ApiText.of("hylens.hud.stuckNone")
                         : ApiText.of("hylens.hud.stuck", s.lastStuck(), seconds(s.tick() - s.lastStuckTick())));
         out.add(ApiText.of("hylens.hud.queue", String.valueOf(s.queue().size()), queue(s.queue())));
-        out.add(ApiText.of("hylens.hud.leisure", seconds(s.leisureTicks())));
+        out.add(ApiText.of("hylens.hud.leisure", seconds(Math.max(0, s.leisureTicks()))));
         history(out, s);
         alerts(out, alerts);
         return out;
