@@ -13,7 +13,8 @@ public enum ColonyState implements IState {
      * MC ColonyStateMachine over its important players (the colony managers online, EventHandler.onPlayerEnterWorld):
      * ACTIVE with a player inside the colony's territory, or with a manager online while its centre is loaded;
      * UNLOADED with a manager online elsewhere; INACTIVE otherwise. Deviation from MC: MC wants more than 40 chunks
-     * loaded, here the centre's chunk (Hytale chunks are 32 blocks; spec SP0 § 3.2), and only this world's players.
+     * loaded, here the centre's chunk (Hytale chunks are 32 blocks; spec SP0 § 3.2), and only this world's players;
+     * the rank is read at each evaluation, where MC keeps the important players it found at login until logout.
      */
     static ColonyState of(Colony colony) {
         ColonyContext ctx = colony.context();

@@ -182,7 +182,7 @@ Les constantes suivantes ressemblent à des options mais **ne correspondent à a
 | `BuilderTimings.java:6` `PROGRESS_MULTIPLIER` | 10 | `CitizenConstants.java:261` |
 | `BuilderTimings.java:8` `LEVEL_MODIFIER` | 0.85 | `AbstractEntityAIInteract.java:54` |
 | `core:construction/workorder/WorkManager.java:30` `MAX_DISTANCE_SQ` | 100² | `WorkOrderBuilding.java:30` |
-| `core:request/resolver/RetryingResolver.java:27` `MAX_TRIES`, `DELAY_TICKS` | 3, 1200 | `StandardRetryingRequestResolver.java:31-32` (anciennes options `maximalretries`, `delaybetweenretries`) |
+| `core:request/resolver/RetryingResolver.java:27` `MAX_TRIES`, `DELAY_UPDATES` | 3, 1200 (mises à jour de 11 ticks) | `StandardRetryingRequestResolver.java:31-32` (anciennes options `maximalretries`, `delaybetweenretries`) |
 | `core:citizen/CitizenManager.java:19-20` `INITIAL_SPAWN_FIRST`, `INITIAL_SPAWN_RESET` | 30 s, 60 s | `CitizenManager.java:95,600` (ancienne option `citizenrespawninterval`) |
 | `core:citizen/Experience.java:5` `EXPERIENCE_MULTIPLIER` | 1 | `ExperienceUtils.java:11` |
 | `core:citizen/CitizenData.java:11` `MAX_SATURATION` | 60 | `ICitizenData.java:30` |

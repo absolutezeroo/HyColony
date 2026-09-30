@@ -131,7 +131,7 @@ C'est un portage fidèle de `BasicStateMachine` et `TickRateStateMachine` de Min
 - `state` : `ACTIVE` / `UNLOADED` / `INACTIVE`
 
 **Machine d'état de la colonie** (réévaluée toutes les 100 ticks, reprise de MineColonies) :
-- `ACTIVE` si un joueur « abonné » est dans le territoire, ou si le chunk de l'hôtel de ville est chargé et qu'un gestionnaire de la colonie est en ligne (rang `isColonyManager`, par défaut Owner et Officer, comme les « joueurs importants » de MineColonies). Écart : MineColonies utilise ici « plus de 40 chunks chargés » ; comme les chunks Hytale font 32 blocs, on retient le chunk de l'hôtel de ville, qui donne un comportement équivalent.
+- `ACTIVE` si un joueur « abonné » est dans le territoire, ou si le chunk de l'hôtel de ville est chargé et qu'un gestionnaire de la colonie est en ligne (rang `isColonyManager`, par défaut Owner et Officer, comme les « joueurs importants » de MineColonies). Écarts : MineColonies utilise ici « plus de 40 chunks chargés » ; comme les chunks Hytale font 32 blocs, on retient le chunk de l'hôtel de ville, qui donne un comportement équivalent. Seuls les joueurs du monde de la colonie comptent, et le rang est relu à chaque évaluation (MineColonies fige ses joueurs importants à la connexion).
 - `UNLOADED` si un gestionnaire est en ligne ;
 - `INACTIVE` sinon.
 
@@ -211,7 +211,7 @@ C'est le squelette qui accueillera les 54 bâtiments. Il est fidèle au modèle 
 - Toutes les 60 ticks, `lastPosition` est mise à jour depuis le corps.
 
 **IA citoyen du sous-projet 0** : une `TickRateStateMachine`, comme MineColonies (`EntityAICitizenWander`).
-- `IDLE` : toutes les 100 ticks, si la marche précédente est finie (navigation terminée), un point à ≤ 10 blocs de la position courante du citoyen, puis `moveTo` ; le citoyen reste en `IDLE` pendant la marche. Il n'y a pas d'état d'errance à part, MineColonies n'en a pas.
+- `IDLE` : toutes les 100 ticks, si la marche précédente est finie (navigation terminée), un point juste au-delà de 10 blocs de la position courante du citoyen (MC `PathJobRandomPos` ne finit qu'à plus de 10 blocs ; écart : sans recherche de chemin, la case à 11 blocs dans une direction au hasard), puis `moveTo` ; le citoyen reste en `IDLE` pendant la marche. Il n'y a pas d'état d'errance à part, MineColonies n'en a pas. Écart : pas encore la branche de loisir de MineColonies (5 % : lieu de loisir, sinon logement ou centre de la colonie, où le citoyen flâne, s'assoit ou lit).
 - La décision de travailler est prise toutes les 10 ticks (MC `CitizenAI.decideAiTask`).
 
 C'est la version réduite du `CitizenAI` de MineColonies (IDLE, WORK, SLEEP, EAT…). Les autres états viendront avec les sous-projets 3 et 4.
@@ -338,7 +338,7 @@ L'asset pack est dans `plugin/src/main/resources/` (`IncludesAssetPack: true`) :
 | Situation | Comportement |
 |---|---|
 | Exception pendant le tick d'une colonie | Journaliser avec la trace, puis **suspendre les ticks de cette colonie pendant 5 minutes** (comme MineColonies). Les autres colonies continuent. |
-| Exception dans une action d'IA de citoyen | Journaliser ; le citoyen garde son état (MC `AbstractEntityCitizen`). L'IA de métier (`WorkerMachine`) met en plus le travailleur en pause, comme MC `AbstractEntityAIBasic.onException` : un délai du travailleur puis un délai de la cible fautive, de 100 ticks chacun, doublés à chaque nouvelle exception. L'essai suivant vient donc 200 ticks plus tard, puis 400, 800… |
+| Exception dans une action d'IA de citoyen | Journaliser ; le citoyen garde son état (MC `AbstractEntityCitizen`). L'IA de métier (`WorkerMachine`) met en plus le travailleur en pause, comme MC `AbstractEntityAIBasic.onException` : un délai du travailleur puis un délai de la cible fautive, de 100 ticks chacun, doublés à chaque nouvelle exception. L'essai suivant vient donc 200 ticks plus tard, puis 400, 800… Écarts : le doublement s'arrête vers 61 jours de pause (chez MineColonies, `100 × timer` déborde de l'int dès la 26ᵉ exception) ; pas d'interaction `WORKER_AI_EXCEPTION`, faute d'interactions de citoyen. Le gestionnaire de l'IA du citoyen journalise la première exception en WARNING, les suivantes en DEBUG (celui de MineColonies est muet). |
 | Échec d'écriture disque | Journaliser, laisser la colonie marquée comme modifiée, réessayer à la sauvegarde suivante. Le `.bak` n'est jamais supprimé. |
 | Fichier corrompu | Se rabattre sur le `.bak`, sinon mettre en quarantaine dans `corrupt/` (§ 5). |
 | Id d'asset manquant | Rapport d'erreur, désactivation propre si l'id est vital (§ 4.3). |

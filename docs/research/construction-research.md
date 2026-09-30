@@ -37,7 +37,7 @@ Ce document complète `minecolonies-analysis.md` (§5 requêtes, §6-7 jobs et c
 - **Bouton « ajouter »** : il transfère `min(manque, ce que le joueur possède)` vers l'inventaire de la cabane, puis appelle `overruleNextOpenRequestWithStack`.
 - **Bouton « Fournir »** (fenêtre des requêtes du citoyen) : il apparaît si le joueur a un objet correspondant. Il donne `min(demandé, possédé)` à l'**inventaire du citoyen**, puis passe la requête en OVERRULED. Une quantité partielle clôt quand même la requête, et le constructeur redemande le reste.
 - Les objets déposés dans la cabane ne sont pas liés à une requête. Le constructeur se sert dans la cabane, et `BuildingRequestResolver` résout les requêtes à partir de ce stock.
-- **Résolveur retrying** : 3 essais espacés de 1200 ticks, avant de passer au joueur.
+- **Résolveur retrying** : 3 essais espacés de 1200 mises à jour du système de requêtes (13 200 ticks), avant de passer au joueur.
 
 ### Stockage, défrichage, fin de chantier
 - **Conteneurs d'une cabane** = le bloc de la cabane + les racks **posés par le constructeur** (un rack posé à la main n'est pas enregistré).

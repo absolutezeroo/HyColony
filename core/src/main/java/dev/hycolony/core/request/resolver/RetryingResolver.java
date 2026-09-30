@@ -117,7 +117,9 @@ public final class RetryingResolver implements Resolver {
                 delays.remove(t);
                 m.reassign(t, tries.getOrDefault(t, 0) >= MAX_TRIES ? Set.of(ID) : Set.of());
             } else {
-                delays.put(t, DELAY_UPDATES); // waits for its children instead of being stranded
+                // Deviation from MC: MC's reassignment throws on a request with children and the resolver forgets
+                // it; here it waits another delay for its children instead of being stranded.
+                delays.put(t, DELAY_UPDATES);
             }
         }
     }

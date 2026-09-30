@@ -7,7 +7,7 @@ Sources MineColonies : branche `version/main`, sous `https://raw.githubuserconte
 ## Réponse courte
 
 1. **Aucun citoyen n'a de maison.** `CitizenData.homeBuilding` existe et est sauvegardé (`CitizenSerializer.java:41,65`), mais **personne n'appelle `setHomeBuilding`** (grep sur `core/src/main` et `plugin/src/main`). `LivingModule` ne contient qu'une méthode `capacity(b) = b.level()` avec la Javadoc « Used from SP4 on » (`core/.../construction/hut/LivingModule.java:6-10`). La fenêtre de la résidence est la fenêtre générique de hutte (`BuildingViews.of`) : sans `WorkerModule`, elle n'affiche ni habitants ni bouton d'attribution.
-2. **Il n'y a pas de sommeil.** `CitizenState` n'a que `IDLE, WANDERING, WORKING` (`core/.../citizen/CitizenState.java`). `ColonyEvents.DayStarted` / `NightFell` sont publiés par `Colony.checkDayTime` (`core/.../colony/Colony.java:127-136`) mais **aucun abonné** ne les écoute, et `GameClock.isDaytime()` n'est lu que par `Colony`. Le constructeur travaille donc toute la nuit (MC : les travailleurs rentrent dormir).
+2. **Il n'y a pas de sommeil.** `CitizenState` n'a que `IDLE, WORKING` (l'errance se fait en `IDLE`, comme MC) (`core/.../citizen/CitizenState.java`). `ColonyEvents.DayStarted` / `NightFell` sont publiés par `Colony.checkDayTime` (`core/.../colony/Colony.java:127-136`) mais **aucun abonné** ne les écoute, et `GameClock.isDaytime()` n'est lu que par `Colony`. Le constructeur travaille donc toute la nuit (MC : les travailleurs rentrent dormir).
 
 ## A. MineColonies
 
@@ -237,7 +237,7 @@ Aux niveaux 2, 3 et 5, il y a moins de lits que d'habitants. Les citoyens en tro
 
 ## C. Notre code aujourd'hui
 
-- `CitizenAI` (`core/.../citizen/CitizenAI.java`) : `IDLE` toutes les 20 ticks, `WANDERING` toutes les 5, `WORKING` toutes les 1. Le travail est redécidé toutes les `DECIDE_INTERVAL_TICKS = 10`, avec la pluie puis `canGoIdle`. La flânerie se fait autour de l'hôtel de ville (`WANDER_RADIUS = 10`). **Aucune notion de nuit.**
+- `CitizenAI` (`core/.../citizen/CitizenAI.java`) : `IDLE` redécide le travail toutes les `DECIDE_INTERVAL_TICKS = 10` (la pluie puis `canGoIdle`) et flâne toutes les 100 ticks autour de la position du citoyen (juste au-delà de `WANDER_RADIUS = 10`), `WORKING` toutes les 1 (mis à jour le 2026-09-30). **Aucune notion de nuit.**
 - `Colony.checkDayTime` (`Colony.java:81,127-136`, toutes les `DAYTIME_INTERVAL = 20` ticks) incrémente `day` et publie `DayStarted` / `NightFell`, sans aucun abonné.
 - Le constructeur (`construction/builder/…`) ne consulte ni l'horloge ni ces événements. **Il travaille la nuit.**
 - `BuildingEventsModule` n'a plus de point d'accroche `onWakeUp` : il a été retiré, car rien ne l'appelait. Le sous-projet 4 doit rajouter `onWakeUp(Colony, Building)`, appelé depuis l'équivalent de MC `AbstractBuilding.onWakeUp`.

@@ -86,7 +86,10 @@ public final class WorkerMachine<S extends IState> {
         return Optional.ofNullable(lastError);
     }
 
-    /** MC AbstractEntityAIBasic.onException: pauses the worker, longer each time; the state stays. */
+    /**
+     * MC AbstractEntityAIBasic.onException: pauses the worker, longer each time; the state stays. Deviation from MC:
+     * no WORKER_AI_EXCEPTION interaction (HyColony has no citizen interactions yet), only the log.
+     */
     private void onException(RuntimeException e) {
         int timeout = EXCEPTION_DELAY * exceptionTimer;
         LOG.log(

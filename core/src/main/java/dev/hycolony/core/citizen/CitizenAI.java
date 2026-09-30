@@ -96,8 +96,9 @@ public final class CitizenAI {
     }
 
     /**
-     * MC AbstractEntityCitizen's AI exception handler: logged only; the citizen keeps its state. The first one is a
-     * WARNING, the next ones DEBUG: a target that throws at every tick would flood the log.
+     * MC EntityCitizen.citizenAI's exception handler: the citizen keeps its state. Deviation from MC: MC's handler is
+     * silent; here the first exception is a WARNING and the next ones DEBUG, so a target throwing at every tick is seen
+     * without flooding the log.
      */
     private void onException(RuntimeException e) {
         LOG.log(
@@ -114,7 +115,8 @@ public final class CitizenAI {
 
     /**
      * MC EntityAICitizenWander.decide: once the last walk is over (canUse: navigation done), a walk to a random spot
-     * around the citizen's own position; the citizen stays IDLE.
+     * around the citizen's own position; the citizen stays IDLE. Deviation from MC: no leisure branch yet (MC
+     * LEISURE_CHANCE, 5 %: a leisure site, else its home or the colony's centre, where it wanders, sits or reads).
      */
     private @Nullable CitizenState wander() {
         if (bodies.navStatus(body) == NavStatus.MOVING) {
