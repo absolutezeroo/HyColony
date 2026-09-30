@@ -35,8 +35,8 @@ final class CitizenInventoryWindow extends ContainerWindow implements ValidatedW
     }
 
     /**
-     * Hytale asks every tick (PlayerSendInventorySystem, WindowManager.updateWindows) whether to re-send the window: yes
-     * also when the citizen's AI changed the inventory, which no container transaction reports; then tells the page
+     * Hytale asks every tick (PlayerSendInventorySystem, WindowManager.updateWindows) whether to re-send the window:
+     * yes also when the citizen's AI changed the inventory, which no container transaction reports; then tells the page
      * showing it. Allocates nothing.
      */
     @Override

@@ -41,7 +41,8 @@ final class PackAssets {
     /**
      * Unregisters the asset pack {@code id} on a plugin unload, so that a reload can register it again (same source,
      * same name would be refused). Like vanilla PluginManager.unregisterAssetPackIfNeeded, which does it for the
-     * plugin's own pack under the asset lock that the unload already holds. Its translations stay (plugin-b-api § 21.3).
+     * plugin's own pack under the asset lock that the unload already holds. Its translations stay (plugin-b-api §
+     * 21.3).
      */
     static void unregister(String id) {
         AssetModule.get().unregisterPack(id);

@@ -41,7 +41,9 @@ final class ForcedInsert {
         return rest;
     }
 
-    /** Takes {@code local} out and puts {@code rest} in; undoes both and returns empty when {@code rest} did not fit. */
+    /**
+     * Takes {@code local} out and puts {@code rest} in; undoes both and returns empty when {@code rest} did not fit.
+     */
     private static Optional<ItemAmount> swap(
             CourierContext ctx, List<BlockPos> container, ItemAmount local, ItemAmount rest) {
         ContainerAccess access = ctx.containers();

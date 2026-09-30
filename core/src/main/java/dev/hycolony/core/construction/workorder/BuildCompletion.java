@@ -10,8 +10,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * The building side of a finished order (MC executeSpecificCompleteActions + sendCompletionMessage). Fireworks only when
- * the level rises, as MC AbstractSchematicProvider.upgradeBuildingLevelToSchematicData: never on REPAIR nor REMOVE.
+ * The building side of a finished order (MC executeSpecificCompleteActions + sendCompletionMessage). Fireworks only
+ * when the level rises, as MC AbstractSchematicProvider.upgradeBuildingLevelToSchematicData: never on REPAIR nor
+ * REMOVE.
  */
 final class BuildCompletion {
     private BuildCompletion() {}

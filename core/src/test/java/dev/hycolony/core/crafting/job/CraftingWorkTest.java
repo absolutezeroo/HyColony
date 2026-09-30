@@ -44,7 +44,8 @@ class CraftingWorkTest {
 
     private static final String REDUCEABLE_ESSENCE = """
             {"jobs": {"%s": {"allow": [{"bench": "Farmingbench", "categories": ["*"]}]}},
-             "reduceable": {"ingredients": ["Ingredient_Life_Essence"], "excludedProducts": []}}""".formatted(CraftingHut.JOB);
+             "reduceable": {"ingredients": ["Ingredient_Life_Essence"], "excludedProducts": []}}
+            """.formatted(CraftingHut.JOB);
 
     private final CrafterRig rig = new CrafterRig();
 

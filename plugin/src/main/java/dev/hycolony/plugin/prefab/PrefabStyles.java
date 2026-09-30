@@ -18,9 +18,9 @@ import javax.annotation.Nullable;
  * Pure part of {@link HytaleBlueprintSource}: the {@code hycolony/styles.json} table and the hut-cell math. Needs no
  * running server ({@link PrefabRotation} is a plain enum, {@link IPrefabBuffer} only read through its getters).
  *
- * <p>Format: {@code { style: { buildingTypeId: { level: { "prefab": "<path under Server/Prefabs>", "hutOffset": [x,y,z],
- * "spawnerChests": true, "minecolonies": true } } } }}; {@code spawnerChests} and {@code minecolonies} are optional
- * (false).
+ * <p>Format: {@code { style: { buildingTypeId: { level: { "prefab": "<path under Server/Prefabs>", "hutOffset":
+ * [x,y,z], "spawnerChests": true, "minecolonies": true } } } }}; {@code spawnerChests} and {@code minecolonies} are
+ * optional (false).
  * {@code hutOffset} is in the prefab file's own coordinates (the x/y/z written in the {@code .prefab.json}, before the
  * anchor is subtracted), unrotated. Absent: the default cell, see {@link #hutCell}; for a {@code minecolonies} level,
  * the prefab's anchor, where the converter puts the hut.

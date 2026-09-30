@@ -47,10 +47,11 @@ public final class CitizenInventoryActions {
     }
 
     /**
-     * A player's move changed the citizen's inventory from {@code before}: each slot that was empty or now holds another
-     * item is a stack the player put there (MC ContainerCitizenInventory slot {@code set}), offered to the citizen's
-     * workplace. A stack only topped up is not (MC {@code moveItemStackTo} grows it and calls {@code setChanged}, not
-     * {@code set}). Marks the colony to save; a citizen gone does nothing, one without workplace overrules nothing.
+     * A player's move changed the citizen's inventory from {@code before}: each slot that was empty or now holds
+     * another item is a stack the player put there (MC ContainerCitizenInventory slot {@code set}), offered to the
+     * citizen's workplace. A stack only topped up is not (MC {@code moveItemStackTo} grows it and calls {@code
+     * setChanged}, not {@code set}). Marks the colony to save; a citizen gone does nothing, one without workplace
+     * overrules nothing.
      *
      * <p>Deviation from MC: Hytale has no per-slot {@code set} callback, so a put is read from the slot's content; MC
      * also calls {@code set} with the rest of a stack shift-clicked out, which overrules nothing here.
@@ -85,8 +86,8 @@ public final class CitizenInventoryActions {
     }
 
     /**
-     * MC AbstractBuilding.overruleNextOpenRequestOfCitizenWithStack: the first IN_PROGRESS request {@code work} made for
-     * the citizen that {@code stack} matches is overruled with it, as delivered to the citizen. Only the building
+     * MC AbstractBuilding.overruleNextOpenRequestOfCitizenWithStack: the first IN_PROGRESS request {@code work} made
+     * for the citizen that {@code stack} matches is overruled with it, as delivered to the citizen. Only the building
      * itself makes requests for a citizen here, so MC's "requester is the building or one of its resolvers" is the
      * building alone.
      *

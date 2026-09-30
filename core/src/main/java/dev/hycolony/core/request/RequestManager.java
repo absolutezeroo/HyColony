@@ -139,7 +139,9 @@ public final class RequestManager {
         });
     }
 
-    /** Cancels every request made by {@code requester} (subtrees first, requester notified), e.g. a removed building. */
+    /**
+     * Cancels every request made by {@code requester} (subtrees first, requester notified), e.g. a removed building.
+     */
     public void cancelAllFrom(RequesterId requester) {
         queue.submit(() -> canceller.cancelAllFrom(requester));
     }

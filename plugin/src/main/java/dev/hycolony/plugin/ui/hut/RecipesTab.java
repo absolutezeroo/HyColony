@@ -15,8 +15,8 @@ import java.util.UUID;
 
 /**
  * A crafting hut's Recipes tab (MC WindowListRecipes): {@code active} of {@code max}, the learnt recipes with Up, Down,
- * Enable/Disable and Remove, then the recipes the hut could learn with Learn. Each button goes to the core, which checks
- * MANAGE_HUTS and shows the window again.
+ * Enable/Disable and Remove, then the recipes the hut could learn with Learn. Each button goes to the core, which
+ * checks MANAGE_HUTS and shows the window again.
  *
  * <p>Deviation from MC: Up and Down move one row; MC's Shift-click to the top or bottom has no Hytale event yet.
  */

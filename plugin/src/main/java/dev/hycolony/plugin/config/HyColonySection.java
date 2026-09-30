@@ -46,7 +46,9 @@ final class HyColonySection {
         return new ColonyConfig.HyColony(autosaveIntervalMinutes, builderInfiniteResources, creativeOperatorFreeBuilds);
     }
 
-    /** The {@code SubPlugins} switches; a value that is not a boolean is passed as is, so the pack keeps its default. */
+    /**
+     * The {@code SubPlugins} switches; a value that is not a boolean is passed as is, so the pack keeps its default.
+     */
     FeatureFlags subPlugins() {
         Map<String, Object> flags = new LinkedHashMap<>();
         if (subPlugins != null) {

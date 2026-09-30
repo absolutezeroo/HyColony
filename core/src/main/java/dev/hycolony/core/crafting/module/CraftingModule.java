@@ -241,8 +241,8 @@ public final class CraftingModule implements PersistentModule, TickingModule, Ke
 
     /**
      * MC replaceRecipe: puts {@code newId} in the place of {@code oldId} and marks the colony dirty; no-op if
-     * {@code oldId} is not listed. Deviation from MC: if {@code newId} is already listed, {@code oldId} is only removed,
-     * where MC lists {@code newId} twice.
+     * {@code oldId} is not listed. Deviation from MC: if {@code newId} is already listed, {@code oldId} is only
+     * removed, where MC lists {@code newId} twice.
      */
     void replaceRecipe(Colony colony, RecipeId oldId, RecipeId newId) {
         if (list.replace(oldId, newId)) {

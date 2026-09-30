@@ -128,9 +128,9 @@ final class WarehouseStockResolver implements Resolver {
     }
 
     /**
-     * MC {@code getSuitabilityMetric}: {@code max(distance / 10, 1)} plus the warehouse's courier queue length. Deviation
-     * from MC: an unknown requester (its hut removed) scores the worst; MC's requester keeps its saved location, so it
-     * always gets a distance (or NPEs).
+     * MC {@code getSuitabilityMetric}: {@code max(distance / 10, 1)} plus the warehouse's courier queue length.
+     * Deviation from MC: an unknown requester (its hut removed) scores the worst; MC's requester keeps its saved
+     * location, so it always gets a distance (or NPEs).
      */
     @Override
     public double suitability(RequestManager m, Request r) {

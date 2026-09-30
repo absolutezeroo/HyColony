@@ -12,8 +12,9 @@ import java.util.function.BooleanSupplier;
 
 /**
  * The test crafter's AI, built on {@link CraftingWork} the way a concrete crafter AI (the farmer) is: MC
- * AbstractEntityAICrafting's targets, and the dump and wait-for-requests ones of AbstractEntityAIBasic, on a machine run
- * every {@link #MACHINE_RATE} game ticks. It goes idle (the citizen wanders) once it has no task and nothing to dump.
+ * AbstractEntityAICrafting's targets, and the dump and wait-for-requests ones of AbstractEntityAIBasic, on a machine
+ * run every {@link #MACHINE_RATE} game ticks. It goes idle (the citizen wanders) once it has no task and nothing to
+ * dump.
  */
 public final class TestCrafterAI implements JobAI {
     /** MC ENTITY_AI_TICKRATE: the machine runs every 5 game ticks and counts 5 per run. */

@@ -74,7 +74,8 @@ public final class HytaleWorldQuery implements WorldQuery {
      * loaded, the weather is not computed yet, or anything fails (never throws).
      *
      * <p>Deviation from MC: MC Level.isRaining is one flag for the whole world; Hytale has weather per environment
-     * only, so the core asks at the worker's hut. Snow counts as rain, as MC's global flag is also true in snowy biomes.
+     * only, so the core asks at the worker's hut. Snow counts as rain, as MC's global flag is also true in snowy
+     * biomes.
      */
     @Override
     public boolean isRainingAt(BlockPos pos) {

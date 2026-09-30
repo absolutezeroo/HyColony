@@ -34,7 +34,10 @@ class RecipeChoiceTest {
         return item::equals;
     }
 
-    /** A Fieldcraft recipe (Hytale id {@code Hand_<output>}) of {@code inputs} making one {@code output}, giving back {@code secondary}. */
+    /**
+     * A Fieldcraft recipe (Hytale id {@code Hand_<output>}) of {@code inputs} making one {@code output}, giving back
+     * {@code secondary}.
+     */
     private static Recipe recipe(List<Ingredient> inputs, ItemKey output, List<ItemAmount> secondary) {
         return new Recipe(
                 inputs,
@@ -103,7 +106,8 @@ class RecipeChoiceTest {
     @Test
     void customRecipeIsChosenEvenIfTheJobMayNotLearnIt() {
         CraftingHut gifted = new CraftingHut("""
-                {"jobs": {"%s": {"custom": [{"id": "gift", "hytaleRecipe": "Plant_Seeds_Wheat"}]}}}""".formatted(CraftingHut.JOB), true);
+                {"jobs": {"%s": {"custom": [{"id": "gift", "hytaleRecipe": "Plant_Seeds_Wheat"}]}}}
+                """.formatted(CraftingHut.JOB), true);
         Recipe hytale = RecipeFixtures.fieldcraft("Seeds", "Plant_Seeds_Wheat");
         gifted.t.recipes.add(hytale);
         RecipeId custom = gifted.register(RecipeFixtures.from(hytale, new RecipeSource.Custom("gift")));
@@ -120,7 +124,8 @@ class RecipeChoiceTest {
     @Test
     void recipeWhoseIngredientNoLongerHasAnyItemIsNoLongerChosen() {
         CraftingHut gifted = new CraftingHut("""
-                {"jobs": {"%s": {"custom": [{"id": "gift", "hytaleRecipe": "Hand_Plant_Seeds_Wheat"}]}}}""".formatted(CraftingHut.JOB), true);
+                {"jobs": {"%s": {"custom": [{"id": "gift", "hytaleRecipe": "Hand_Plant_Seeds_Wheat"}]}}}
+                """.formatted(CraftingHut.JOB), true);
         Recipe hytale = recipe(List.of(new Ingredient.OfTag("Type=Essence", 2)), WHEAT_SEEDS, List.of());
         gifted.t.recipes.add(hytale).tag("Type=Essence", RecipeFixtures.ESSENCE);
         RecipeId custom = gifted.register(RecipeFixtures.from(hytale, new RecipeSource.Custom("gift")));

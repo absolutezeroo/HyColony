@@ -12,7 +12,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-/** The courier queue's rules outside task selection (MC JobDeliveryman.finishRequest, getTaskListWithSameDestination). */
+/**
+ * The courier queue's rules outside task selection (MC JobDeliveryman.finishRequest, getTaskListWithSameDestination).
+ */
 final class CourierTasks {
     private CourierTasks() {}
 

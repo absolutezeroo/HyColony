@@ -19,9 +19,10 @@ import java.util.function.Function;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The {@code Crafting} benches of the game by bench id (plugin-b-api § « Recettes et tables »): their categories and the
- * cost of each tier upgrade. Several blocks may share a bench id ({@code Bench_Farming} and {@code Bench_Trough} are
- * both {@code Farmingbench}): their categories are merged and the tiers come from the one with the most tier levels.
+ * The {@code Crafting} benches of the game by bench id (plugin-b-api § « Recettes et tables »): their categories and
+ * the cost of each tier upgrade. Several blocks may share a bench id ({@code Bench_Farming} and {@code Bench_Trough}
+ * are both {@code Farmingbench}): their categories are merged and the tiers come from the one with the most tier
+ * levels.
  */
 final class BenchIndex {
     private final Map<String, List<String>> categories;
@@ -80,9 +81,9 @@ final class BenchIndex {
     }
 
     /**
-     * The upgrades from {@code fromTier} to {@code toTier}: Hytale's {@code TierLevels[t - 1].UpgradeRequirement} raises
-     * tier {@code t} to {@code t + 1} (Bench.getUpgradeRequirement), summed by item. A resource-type material becomes
-     * the first item of that type ({@code firstOf}); one with no item is dropped.
+     * The upgrades from {@code fromTier} to {@code toTier}: Hytale's {@code TierLevels[t - 1].UpgradeRequirement}
+     * raises tier {@code t} to {@code t + 1} (Bench.getUpgradeRequirement), summed by item. A resource-type material
+     * becomes the first item of that type ({@code firstOf}); one with no item is dropped.
      *
      * <p>Deviation from MC: MC has no bench tiers. The core counts items, not resource types, so the builder asks for
      * one precise trunk where Hytale takes any trunk of the family (the Farmingbench upgrades).

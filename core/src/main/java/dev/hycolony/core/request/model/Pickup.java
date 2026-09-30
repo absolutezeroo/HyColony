@@ -10,7 +10,9 @@ package dev.hycolony.core.request.model;
  * quantity.
  */
 public record Pickup(int priority, int day, int quantity) implements Requestable {
-    /** MC {@code AbstractDeliverymanRequestable.MAX_BUILDING_PRIORITY}: highest priority a building's setting allows. */
+    /**
+     * MC {@code AbstractDeliverymanRequestable.MAX_BUILDING_PRIORITY}: highest priority a building's setting allows.
+     */
     public static final int MAX_BUILDING_PRIORITY = 10;
 
     /** MC {@code incrementPriorityDueToAging}: +1 per aging tick, never above {@link Delivery#MAX_AGING_PRIORITY}. */

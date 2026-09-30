@@ -98,7 +98,9 @@ class WarehouseCourierSimulationTest extends LogisticsSimulation {
         assertTrue(couriers(warehouse).contains(courier().id()));
     }
 
-    /** Review point 5: a v2 save, from before the warehouse, loads; a warehouse placed afterwards serves its builder. */
+    /**
+     * Review point 5: a v2 save, from before the warehouse, loads; a warehouse placed afterwards serves its builder.
+     */
     @Test
     void midbuildV2SaveIsFinishedFromANewWarehouse() throws Exception {
         try (var in = getClass().getResourceAsStream("/fixtures/colony-v2-midbuild.json")) {

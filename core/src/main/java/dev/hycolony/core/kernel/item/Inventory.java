@@ -12,8 +12,8 @@ import java.util.function.ToIntFunction;
 import org.jspecify.annotations.Nullable;
 
 /**
- * A fixed number of slots, each holding at most one {@link ItemAmount}: an item, a count and a tool's damage. Other item
- * metadata (a hut's level) does not travel through a citizen's inventory (known limitation, backlog).
+ * A fixed number of slots, each holding at most one {@link ItemAmount}: an item, a count and a tool's damage. Other
+ * item metadata (a hut's level) does not travel through a citizen's inventory (known limitation, backlog).
  */
 public final class Inventory {
     private final @Nullable ItemAmount[] slots;

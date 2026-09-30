@@ -17,8 +17,8 @@ public enum HiringMode {
     }
 
     /**
-     * MC {@code AbstractBuilding.canAssignCitizens}: built and above level 0, or always for a building that allows level
-     * 0 (MC {@code BuildingBuilder} overrides it to true).
+     * MC {@code AbstractBuilding.canAssignCitizens}: built and above level 0, or always for a building that allows
+     * level 0 (MC {@code BuildingBuilder} overrides it to true).
      */
     public static boolean canAssignCitizens(Building building, boolean assignableAtLevel0) {
         return assignableAtLevel0 || (building.level() > 0 && building.isBuilt());

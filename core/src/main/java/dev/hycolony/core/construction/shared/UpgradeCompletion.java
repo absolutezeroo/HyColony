@@ -10,7 +10,8 @@ import java.util.UUID;
 
 /**
  * A building reaching a level, shared by a finished work order and a creative paste (MC
- * AbstractBuilding.onUpgradeComplete, plus the fireworks of AbstractSchematicProvider.upgradeBuildingLevelToSchematicData).
+ * AbstractBuilding.onUpgradeComplete, plus the fireworks of
+ * AbstractSchematicProvider.upgradeBuildingLevelToSchematicData).
  */
 public final class UpgradeCompletion {
     private UpgradeCompletion() {}

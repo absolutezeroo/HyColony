@@ -46,8 +46,8 @@ final class CraftingCycles {
     }
 
     /**
-     * MC {@code request.getRequest().equals(target)}. MC Stack.equals ignores the counts, which our {@link StackRequest}
-     * record compares, so two stacks are compared by item and building flag here.
+     * MC {@code request.getRequest().equals(target)}. MC Stack.equals ignores the counts, which our {@link
+     * StackRequest} record compares, so two stacks are compared by item and building flag here.
      *
      * <p>Deviation from MC: a {@code StackList} (an ingredient given by resource type or tag) is never the same thing
      * as a {@link StackRequest}, even one of an item it accepts; MC asks an ingredient as a Stack of its exact item,

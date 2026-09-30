@@ -24,8 +24,8 @@ public final class Crafters {
     }
 
     /**
-     * MC {@code getModuleMatching(CraftingWorkerBuildingModule.class, jobEntry).getAssignedCitizen()} filtered on crafter
-     * jobs: the hut's workers for {@code jobId} that craft, in hiring order.
+     * MC {@code getModuleMatching(CraftingWorkerBuildingModule.class, jobEntry).getAssignedCitizen()} filtered on
+     * crafter jobs: the hut's workers for {@code jobId} that craft, in hiring order.
      */
     public static List<Crafter> ofJob(Colony colony, Building hut, String jobId) {
         return collect(colony, hut, jobId);

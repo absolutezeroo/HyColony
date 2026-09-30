@@ -201,7 +201,9 @@ class CraftingTasksTest {
 
         back.read(JsonParser.parseString("""
                         {"queue": ["not-a-token", 5, "%s"], "assignedTasks": 3, "progress": "x",
-                         "secondaryOutputs": [{"item": "A"}, {"item": "B", "count": 2}, {"item": "C", "count": 0}, 7]}""".formatted(kept.id())).getAsJsonObject());
+                         "secondaryOutputs": [{"item": "A"}, {"item": "B", "count": 2},
+                                              {"item": "C", "count": 0}, 7]}
+                        """.formatted(kept.id())).getAsJsonObject());
 
         assertEquals(List.of(kept), back.taskQueue());
         assertEquals(List.of(), back.assignedTasks());

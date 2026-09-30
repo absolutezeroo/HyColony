@@ -88,7 +88,8 @@ public final class FarmerFieldsModule
     }
 
     /**
-     * True when {@code f} got its pass today: the farmer comes back to it the next colony day (MC getExtensionToWorkOn).
+     * True when {@code f} got its pass today: the farmer comes back to it the next colony day (MC
+     * getExtensionToWorkOn).
      */
     public boolean doneToday(Colony c, FarmField f) {
         return choice.doneToday(f.pos(), c.day());

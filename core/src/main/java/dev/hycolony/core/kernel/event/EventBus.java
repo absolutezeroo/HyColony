@@ -75,7 +75,9 @@ public final class EventBus {
         return false;
     }
 
-    /** Delivers {@code event} to the open listeners of its exact type, in subscription order, then drops closed ones. */
+    /**
+     * Delivers {@code event} to the open listeners of its exact type, in subscription order, then drops closed ones.
+     */
     public void post(Object event) {
         boolean anyClosed = false;
         for (Registration r : listeners.getOrDefault(event.getClass(), NONE)) {

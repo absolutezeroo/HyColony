@@ -106,7 +106,8 @@ public final class WorkManager {
     }
 
     /**
-     * Every order when {@code BuilderInfiniteResources}, or a creative operator's order (if enabled); a REMOVE never is.
+     * Every order when {@code BuilderInfiniteResources}, or a creative operator's order (if enabled); a REMOVE never
+     * is.
      *
      * <p>Deviation from MC: both options are ours. MC only has the hard-coded constant
      * Constants.BUILDER_INF_RESOURECES (false), which our {@code BuilderInfiniteResources} exposes in the config.

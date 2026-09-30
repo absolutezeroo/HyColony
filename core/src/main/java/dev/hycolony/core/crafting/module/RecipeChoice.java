@@ -46,8 +46,8 @@ public final class RecipeChoice {
 
     /**
      * MC getFirstRecipe: the first active recipe of the list making an item {@code output} accepts; empty if none.
-     * Deviation from MC: a recipe that is no longer valid (its bench broken, see {@link RecipeCompatibility#stillValid})
-     * is skipped.
+     * Deviation from MC: a recipe that is no longer valid (its bench broken, see {@link
+     * RecipeCompatibility#stillValid}) is skipped.
      */
     public static Optional<Chosen> firstRecipe(
             Colony colony, Building hut, CraftingModule module, Predicate<ItemKey> output) {

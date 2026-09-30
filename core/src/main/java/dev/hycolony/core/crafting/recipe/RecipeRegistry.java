@@ -87,8 +87,9 @@ public final class RecipeRegistry {
     }
 
     /**
-     * MC StandardRecipeManager.read: replaces this registry's recipes with the saved ones; a Hytale recipe is read again
-     * from {@code catalog}. A recipe the game no longer has, or a malformed one, is dropped with one {@code warn}.
+     * MC StandardRecipeManager.read: replaces this registry's recipes with the saved ones; a Hytale recipe is read
+     * again from {@code catalog}. A recipe the game no longer has, or a malformed one, is dropped with one {@code
+     * warn}.
      */
     public void read(JsonObject in, RecipeCatalog catalog, Consumer<String> warn) {
         recipes.clear();

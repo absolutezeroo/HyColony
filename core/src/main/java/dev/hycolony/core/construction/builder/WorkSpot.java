@@ -50,10 +50,10 @@ final class WorkSpot {
 
     /**
      * The first free spot with ground under it and no dangerous block within 1 block ({@link DangerousCells#near});
-     * else the first free spot with ground under it; else the first free one in a column with no ground at all (unloaded
-     * or open terrain, neither buried nor in a fluid: never above unfit ground such as lava); else 2 blocks outward and
-     * 1 up, unverified since it may be over lava (the walk there then ends, blocked or given up by the stuck handler,
-     * and the builder works from where it got).
+     * else the first free spot with ground under it; else the first free one in a column with no ground at all
+     * (unloaded or open terrain, neither buried nor in a fluid: never above unfit ground such as lava); else 2 blocks
+     * outward and 1 up, unverified since it may be over lava (the walk there then ends, blocked or given up by the
+     * stuck handler, and the builder works from where it got).
      *
      * <p>Deviation from MC: the walker never teleports onto an unverified spot, where MC's PathingStuckHandler
      * teleports regardless; it gives up the walk instead.

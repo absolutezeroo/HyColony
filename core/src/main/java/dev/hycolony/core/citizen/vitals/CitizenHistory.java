@@ -6,13 +6,13 @@ import java.util.List;
 
 /**
  * A tracked citizen's last {@value #SIZE} {@link HistoryEntry}s, oldest first, kept while one of its trackings is open.
- * Closing a tracking only sets a flag, safe from any thread; the world thread drops the closed ones when it next records
- * or reads.
+ * Closing a tracking only sets a flag, safe from any thread; the world thread drops the closed ones when it next
+ * records or reads.
  *
  * <p>Deviation from MC: {@code BasicStateMachine} keeps a ring of 20 per state machine (the citizen's and its job's),
  * stamped in real time, enabled outside production, for a player in debug mode who interacts with the citizen
- * ({@code EntityCitizen}) and at the AI's first exception. Here one ring of 20 in ticks holds the AI and job transitions,
- * walk ends and stuck actions, and only a tracked citizen allocates one (spec 2026-09-30, § 5).
+ * ({@code EntityCitizen}) and at the AI's first exception. Here one ring of 20 in ticks holds the AI and job
+ * transitions, walk ends and stuck actions, and only a tracked citizen allocates one (spec 2026-09-30, § 5).
  */
 public final class CitizenHistory {
     /** Entries kept per tracked citizen. */

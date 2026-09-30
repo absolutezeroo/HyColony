@@ -64,8 +64,8 @@ class JsonFragmentsTest {
 
         assertTrue(conflicts.isEmpty());
         assertEquals(
-                json(
-                        "{\"outlander\": {\"hycolony:builder\": {\"1\": {\"prefab\": \"a\"}, \"2\": {\"prefab\": \"b\"}}}}"),
+                json("{\"outlander\": {\"hycolony:builder\": {\"1\": {\"prefab\": \"a\"}, "
+                        + "\"2\": {\"prefab\": \"b\"}}}}"),
                 styles.merged());
     }
 

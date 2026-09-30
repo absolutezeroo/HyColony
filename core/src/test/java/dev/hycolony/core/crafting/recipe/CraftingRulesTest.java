@@ -22,7 +22,8 @@ class CraftingRulesTest {
             "allow":[{"bench":"Farmingbench","categories":["*"]},{"bench":"Fieldcraft","categories":["Seeds"]}],
             "includeItems":["Food_Bread"],
             "excludeItems":["Plant_Sapling_Oak"],
-            "custom":[{"id":"farmer_wheat_seeds","hytaleRecipe":"Plant_Seeds_Wheat","minBuildingLevel":1,"maxBuildingLevel":5}]}},
+            "custom":[{"id":"farmer_wheat_seeds","hytaleRecipe":"Plant_Seeds_Wheat",
+                       "minBuildingLevel":1,"maxBuildingLevel":5}]}},
          "reduceable":{"ingredients":["Ingredient_Life_Essence"],"excludedProducts":["Plant_Seeds_Wheat"]}}
         """;
 

@@ -58,7 +58,9 @@ class CraftingDumpTest {
         assertEquals(QUERY_ITEMS, rig.work.getRecipe(), "once per recipe, even if the dump left them");
     }
 
-    /** MC WorkerUtil.isPartOfRecipe knows the grid's tools and the secondary outputs, not the recipe's required tool. */
+    /**
+     * MC WorkerUtil.isPartOfRecipe knows the grid's tools and the secondary outputs, not the recipe's required tool.
+     */
     @Test
     void toolTheRecipeRequiresCountsAsAnOtherItem() {
         CrafterRig axe = new CrafterRig(seeds(List.of(), Optional.of(ToolType.AXE)));

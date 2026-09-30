@@ -17,10 +17,10 @@ import java.util.UUID;
 /**
  * Whether a hut's crafting module may hold a recipe (MC AbstractCraftingBuildingModule.isRecipeCompatible and the
  * crafter's own override, e.g. BuildingFarmer.CraftingModule: the intermediate block, then the {@code crafterProduct}
- * tags). Deviation from MC: the intermediate block becomes a bench of the hut's plan, with Hytale's categories and tier,
- * and the tags become the job's filter in {@code crafting.json}. Deviation from MC: a recipe with a resource type or tag
- * ingredient the catalog lists no item for is neither compatible nor valid, as its ingredient requests would wait
- * forever; MC recipes name an exact item.
+ * tags). Deviation from MC: the intermediate block becomes a bench of the hut's plan, with Hytale's categories and
+ * tier, and the tags become the job's filter in {@code crafting.json}. Deviation from MC: a recipe with a resource type
+ * or tag ingredient the catalog lists no item for is neither compatible nor valid, as its ingredient requests would
+ * wait forever; MC recipes name an exact item.
  */
 final class RecipeCompatibility {
     private RecipeCompatibility() {}

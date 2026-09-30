@@ -96,7 +96,9 @@ final class CraftingProductionResolver implements Resolver {
         return TaskIngredients.of(colony, hut, module.get(), task);
     }
 
-    /** MC canBuildingCraftStack: the public one needs a crafter of the job at the hut; the private one crafts itself. */
+    /**
+     * MC canBuildingCraftStack: the public one needs a crafter of the job at the hut; the private one crafts itself.
+     */
     private boolean canBuildingCraft() {
         return !isPublic || !Crafters.ofJob(colony, hut, jobId).isEmpty();
     }

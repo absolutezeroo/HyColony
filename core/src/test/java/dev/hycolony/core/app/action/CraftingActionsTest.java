@@ -27,7 +27,9 @@ import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
-/** A crafting hut's Recipes tab buttons (MC AddRemoveRecipeMessage, ToggleRecipeMessage, ChangeRecipePriorityMessage). */
+/**
+ * A crafting hut's Recipes tab buttons (MC AddRemoveRecipeMessage, ToggleRecipeMessage, ChangeRecipePriorityMessage).
+ */
 class CraftingActionsTest {
     private static final BlockPos HUT = new BlockPos(10, 64, 0);
     private static final Recipe WHEAT = RecipeFixtures.fieldcraft("Seeds", "Plant_Seeds_Wheat");
