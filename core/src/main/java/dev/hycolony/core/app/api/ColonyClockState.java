@@ -13,7 +13,7 @@ import org.jspecify.annotations.Nullable;
  * source (MC has no pause). Never saved.
  */
 public final class ColonyClockState {
-    /** The core ticks one step may run at once: as many as the tick system catches up after a stall. */
+    /** The core ticks that may wait to run while paused: as many as the tick system catches up after a stall. */
     public static final int MAX_STEP = 10;
 
     private @Nullable String owner;
@@ -41,8 +41,8 @@ public final class ColonyClockState {
     }
 
     /**
-     * While paused, lets {@code n} more core ticks run at the next server tick, {@link #MAX_STEP} pending at most;
-     * false while running.
+     * While paused, lets {@code n} more core ticks run, at the pace of time, {@link #MAX_STEP} pending at most; false
+     * while running.
      */
     public boolean step(int n) {
         applyReleases();
@@ -59,6 +59,12 @@ public final class ColonyClockState {
         return owner != null;
     }
 
+    /** Whether steps asked for are still to run: while they run, the bodies keep walking. */
+    public boolean stepsPending() {
+        applyReleases();
+        return owner != null && steps > 0;
+    }
+
     /** Who paused them; empty while running. */
     public Optional<String> owner() {
         applyReleases();
@@ -72,15 +78,15 @@ public final class ColonyClockState {
 
     /**
      * Each server tick: of the {@code due} core ticks the time elapsed calls for, how many run. All of them while
-     * running; while paused, the steps asked for, then none.
+     * running; while paused, as many of the steps asked for, so the bodies walk as fast as ever, then none.
      */
     public int allow(int due) {
         applyReleases();
         if (owner == null) {
             return due;
         }
-        int n = steps;
-        steps = 0;
+        int n = Math.min(steps, due);
+        steps -= n;
         return n;
     }
 

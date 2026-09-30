@@ -24,8 +24,21 @@ class ColonyClockStateTest {
 
         assertTrue(clock.step(4));
 
-        assertEquals(4, clock.allow(1), "a step runs at once, whatever the time elapsed");
+        assertEquals(1, clock.allow(1), "at the pace of time: the bodies walk as they would");
+        assertEquals(3, clock.allow(5), "the steps left");
         assertEquals(0, clock.allow(3), "once");
+    }
+
+    @Test
+    void stepsStayPendingThroughAServerTickWithNoCoreTickDue() {
+        clock.pause("Tests:HyLens");
+        clock.step(4);
+        clock.allow(1);
+
+        assertEquals(0, clock.allow(0), "a world ticks 30 times a second, the core 20");
+        assertTrue(clock.stepsPending(), "the bodies keep walking");
+        clock.allow(3);
+        assertFalse(clock.stepsPending());
     }
 
     @Test
@@ -35,7 +48,7 @@ class ColonyClockStateTest {
         clock.step(6);
         clock.step(6);
 
-        assertEquals(ColonyClockState.MAX_STEP, clock.allow(1));
+        assertEquals(ColonyClockState.MAX_STEP, clock.allow(20));
     }
 
     @Test
