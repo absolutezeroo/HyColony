@@ -17,7 +17,8 @@ fi
 if ! ./gradlew spotlessCheck checkFileSizes checkSectionDividers checkLineLength --quiet; then
     echo >&2
     echo "pre-commit: checks failed. Format your files one by one" >&2
-    echo "(./gradlew :<module>:spotlessApply -PspotlessIdeHook=\"<absolute path>\": other sessions may share the module)," >&2
+    echo "(./gradlew :<module>:spotlessApply -PspotlessIdeHook=\"<absolute path>\";" >&2
+    echo "other sessions may share the module)," >&2
     echo "wrap lines over 120 columns, split oversized files/packages, remove section dividers, then commit again." >&2
     echo "Never bypass with --no-verify (CLAUDE.md § 10)." >&2
     exit 1
