@@ -1,8 +1,6 @@
 package dev.hycolony.core.kernel.ai;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,13 +13,10 @@ import org.jspecify.annotations.Nullable;
  * the first transition that returns a state ends the tick.
  */
 public class TickRateStateMachine<S extends IState> {
-    private static final int HISTORY_SIZE = 20;
-
     private final Map<S, List<TickingTransition<S>>> transitionMap = new HashMap<>();
     private final List<TickingTransition<S>> aiBlocking = new ArrayList<>();
     private final List<TickingTransition<S>> stateBlocking = new ArrayList<>();
     private final List<TickingTransition<S>> events = new ArrayList<>();
-    private final Deque<String> history = new ArrayDeque<>(HISTORY_SIZE);
     private final S initState;
     /** The initial state's transitions: mapped at construction and never unmapped. */
     private final List<TickingTransition<S>> initStateTransitions;
@@ -136,10 +131,6 @@ public class TickRateStateMachine<S extends IState> {
                 reset();
                 return true;
             }
-            if (history.size() == HISTORY_SIZE) {
-                history.removeFirst();
-            }
-            history.addLast(state + "->" + newState);
             currentStateTransitions = next;
         }
         state = newState;
@@ -160,9 +151,5 @@ public class TickRateStateMachine<S extends IState> {
         if (executedTransition != null) {
             executedTransition.setTicksToUpdate(ticksToNext);
         }
-    }
-
-    public List<String> history() {
-        return List.copyOf(history);
     }
 }

@@ -1,7 +1,6 @@
 package dev.hycolony.core.kernel.ai;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -166,17 +165,5 @@ class TickRateStateMachineTest {
         sm.tick();
         assertEquals(1, errors.size());
         assertEquals(S.A, sm.getState());
-    }
-
-    @Test
-    void historyKeepsLastTransitions() {
-        var sm = machine();
-        sm.addTransition(new AITarget<>(S.A, S.B, 1));
-        sm.addTransition(new AITarget<>(S.B, S.A, 1));
-        for (int i = 0; i < 30; i++) {
-            sm.tick();
-        }
-        assertEquals(20, sm.history().size());
-        assertTrue(sm.history().getLast().endsWith("->A"));
     }
 }
