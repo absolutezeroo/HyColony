@@ -2,7 +2,6 @@ package dev.hycolony.core.citizen;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.building.Building;
@@ -17,7 +16,6 @@ import dev.hycolony.core.kernel.item.BlockKind;
 import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.NavStatus;
-import dev.hycolony.core.testing.FakeBodies;
 import dev.hycolony.core.testing.TestContexts;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -25,50 +23,32 @@ import org.junit.jupiter.api.Test;
 class CitizenAITest {
     private final TestContexts t = new TestContexts();
 
+    /** MC EntityAICitizenWander: every 100 ticks, once the last walk is over, a spot within 10 of where it stands. */
     @Test
-    void wandersNearTownHallThenReturnsToIdleOnArrival() {
-        BlockPos hall = new BlockPos(100, 64, 100);
-        Colony c = new Colony(
-                t.context(),
-                new TerritoryIndex(),
-                new Colony.Founding(1, "T", hall, Permissions.createDefault(UUID.randomUUID(), "A")));
-        c.buildings().add(Building.create(BuildingTypes.TOWN_HALL, hall, 0));
-        CitizenData d = new CitizenData(1);
+    void wandersAroundItsOwnPositionOnceTheLastWalkIsOver() {
         BodyId body = t.bodies.existing(1, 1, new Vec3(100, 64, 100));
-        CitizenAI ai = new CitizenAI(c, d, body);
+        CitizenAI ai = new CitizenAI(colonyAt(new BlockPos(0, 64, 0)), new CitizenData(1), body);
 
-        for (int i = 0; i < 420 && ai.state() == CitizenState.IDLE; i++) {
+        for (int i = 0; i < 100; i++) {
             ai.tick();
         }
-        assertEquals(CitizenState.WANDERING, ai.state());
-        FakeBodies.Body b = t.bodies.bodies.get(body);
-        assertNotNull(b.target);
-        assertTrue(Math.abs(b.target.x() - 100.5) <= 10 && Math.abs(b.target.z() - 100.5) <= 10);
-
-        b.status = NavStatus.ARRIVED;
-        for (int i = 0; i < 10; i++) {
-            ai.tick();
-        }
+        assertEquals(1, t.bodies.moves.size());
+        Vec3 first = t.bodies.moves.getFirst();
+        assertTrue(
+                Math.abs(first.x() - 100.5) <= 10 && Math.abs(first.z() - 100.5) <= 10,
+                "around itself, not the town hall: " + first);
         assertEquals(CitizenState.IDLE, ai.state());
-    }
 
-    @Test
-    void wanderTimesOutAfter30Seconds() {
-        BlockPos hall = new BlockPos(0, 64, 0);
-        Colony c = new Colony(
-                t.context(),
-                new TerritoryIndex(),
-                new Colony.Founding(1, "T", hall, Permissions.createDefault(UUID.randomUUID(), "A")));
-        BodyId body = t.bodies.existing(1, 1, new Vec3(0, 64, 0));
-        CitizenAI ai = new CitizenAI(c, new CitizenData(1), body);
-        for (int i = 0; i < 420 && ai.state() == CitizenState.IDLE; i++) {
+        for (int i = 0; i < 300; i++) {
             ai.tick();
         }
-        assertEquals(CitizenState.WANDERING, ai.state()); // no town hall: anchor = own position
-        for (int i = 0; i < 610; i++) {
+        assertEquals(1, t.bodies.moves.size(), "not while the walk goes on");
+
+        t.bodies.bodies.get(body).status = NavStatus.ARRIVED;
+        for (int i = 0; i < 100; i++) {
             ai.tick();
         }
-        assertEquals(CitizenState.IDLE, ai.state());
+        assertEquals(2, t.bodies.moves.size());
     }
 
     @Test
@@ -86,7 +66,7 @@ class CitizenAITest {
 
         for (int i = 0; i < 20_000; i++) {
             ai.tick();
-            if (ai.state() == CitizenState.WANDERING) {
+            if (t.bodies.bodies.get(body).status == NavStatus.MOVING) {
                 t.bodies.bodies.get(body).status = NavStatus.ARRIVED;
             }
         }
@@ -107,7 +87,7 @@ class CitizenAITest {
 
         for (int i = 0; i < 20_000; i++) {
             ai.tick();
-            if (ai.state() == CitizenState.WANDERING) {
+            if (t.bodies.bodies.get(body).status == NavStatus.MOVING) {
                 t.bodies.bodies.get(body).status = NavStatus.ARRIVED;
             }
         }

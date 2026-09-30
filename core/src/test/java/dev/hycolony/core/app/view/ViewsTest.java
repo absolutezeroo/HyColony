@@ -34,10 +34,13 @@ import dev.hycolony.core.construction.workorder.WorkOrderType;
 import dev.hycolony.core.job.HiringMode;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.core.kernel.port.BodyId;
+import dev.hycolony.core.kernel.port.NavStatus;
 import dev.hycolony.core.logistics.courier.DeliverymanHut;
 import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.request.model.StackRequest;
@@ -467,6 +470,30 @@ class ViewsTest {
         assertEquals(List.of(), after.requests());
         assertEquals(Optional.empty(), after.waitingFor());
         assertEquals("absent", after.activity(), "no body in the world");
+    }
+
+    /** MC keeps a wandering citizen IDLE; the town hall still shows one walking about as wandering. */
+    @Test
+    void anIdleCitizenWalkingAboutShowsAsWandering() {
+        citizen(9, "Walker");
+        BodyId body = t.bodies.existing(colony.id(), 9, new Vec3(0, 64, 0));
+        colony.citizens().onBodyLoaded(body, 9);
+
+        t.bodies.bodies.get(body).status = NavStatus.MOVING;
+        manager.windows().openTownHall(alice, hall);
+        assertEquals("wandering", statusOf("Walker"));
+        t.bodies.bodies.get(body).status = NavStatus.ARRIVED;
+        manager.windows().openTownHall(alice, hall);
+        assertEquals("idle", statusOf("Walker"));
+    }
+
+    private String statusOf(String name) {
+        return ((TownHallView) t.ui.shown.get(alice))
+                .citizens().stream()
+                        .filter(r -> r.name().equals(name))
+                        .findFirst()
+                        .orElseThrow()
+                        .status();
     }
 
     @Test

@@ -210,9 +210,9 @@ C'est le squelette qui accueillera les 54 bâtiments. Il est fidèle au modèle 
 - Quand une entité avec ce composant est chargée, le plugin prévient le core (`onBodyLoaded`). Si les données existent et n'ont pas encore de corps, le core les **relie**. Si le citoyen a déjà un corps vivant, ou n'existe plus dans les données, le corps chargé est **supprimé**. Ce cas couvre les doublons après un crash, et MineColonies fait de même.
 - Toutes les 60 ticks, `lastPosition` est mise à jour depuis le corps.
 
-**IA citoyen du sous-projet 0** : une `TickRateStateMachine` à deux états.
-- `IDLE` : choisit toutes les 10 à 20 secondes un point au sol à ≤ 10 blocs de l'hôtel de ville, puis `moveTo`.
-- `WANDERING` : attend `ARRIVED`, `BLOCKED` ou `FAILED` (délai max 30 s), puis revient en `IDLE`.
+**IA citoyen du sous-projet 0** : une `TickRateStateMachine`, comme MineColonies (`EntityAICitizenWander`).
+- `IDLE` : toutes les 100 ticks, si la marche précédente est finie (navigation terminée), un point à ≤ 10 blocs de la position courante du citoyen, puis `moveTo` ; le citoyen reste en `IDLE` pendant la marche. Il n'y a pas d'état d'errance à part, MineColonies n'en a pas.
+- La décision de travailler est prise toutes les 10 ticks (MC `CitizenAI.decideAiTask`).
 
 C'est la version réduite du `CitizenAI` de MineColonies (IDLE, WORK, SLEEP, EAT…). Les autres états viendront avec les sous-projets 3 et 4.
 

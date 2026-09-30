@@ -14,6 +14,7 @@ import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.testing.TestContexts;
+import dev.hycolony.core.testing.TestJobs;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
@@ -154,15 +155,16 @@ class CitizenManagerTest {
         Colony c = colonyWithTownHall();
         slowTicks(c, 2);
         CitizenData d = c.citizens().all().iterator().next();
+        d.setJob(TestJobs.TYPE.factory().apply(d));
         BodyId body = c.citizens().bodyOf(d.id()).orElseThrow();
-        for (int i = 0; i < 500 && c.citizens().aiState(d.id()).orElseThrow() != CitizenState.WANDERING; i++) {
+        for (int i = 0; i < 500 && c.citizens().aiState(d.id()).orElseThrow() != CitizenState.WORKING; i++) {
             c.citizens().tickAi();
         }
-        assertEquals(CitizenState.WANDERING, c.citizens().aiState(d.id()).orElseThrow());
+        assertEquals(CitizenState.WORKING, c.citizens().aiState(d.id()).orElseThrow());
 
         c.citizens().onBodyLoaded(body, d.id()); // the exact same body, loaded again
 
-        assertEquals(CitizenState.WANDERING, c.citizens().aiState(d.id()).orElseThrow());
+        assertEquals(CitizenState.WORKING, c.citizens().aiState(d.id()).orElseThrow());
     }
 
     @Test

@@ -550,7 +550,7 @@ class ConstructionSimulationTest {
         runUntil(
                 () -> colony.citizens()
                         .aiState(builder.id())
-                        .map(s -> s.name().equals("IDLE") || s.name().equals("WANDERING"))
+                        .map(s -> s.name().equals("IDLE"))
                         .orElse(false),
                 1000);
         assertTrue(colony.requests().all().isEmpty());

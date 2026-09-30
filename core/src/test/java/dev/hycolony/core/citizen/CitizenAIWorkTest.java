@@ -11,6 +11,7 @@ import dev.hycolony.core.job.JobType;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.port.BodyId;
+import dev.hycolony.core.kernel.port.NavStatus;
 import dev.hycolony.core.testing.TestContexts;
 import dev.hycolony.core.testing.TestJobs;
 import java.util.ArrayList;
@@ -45,10 +46,13 @@ class CitizenAIWorkTest {
         }
         assertEquals(CitizenState.IDLE, ai.state()); // no longer working
 
-        for (int i = 0; i < 420 && ai.state() != CitizenState.WANDERING; i++) {
+        t.bodies.bodies.get(body).status = NavStatus.ARRIVED; // the job's last walk is over
+        int moves = t.bodies.moves.size();
+        for (int i = 0; i < 120 && t.bodies.moves.size() == moves; i++) {
             ai.tick();
         }
-        assertEquals(CitizenState.WANDERING, ai.state()); // and resumes its errand
+        assertEquals(moves + 1, t.bodies.moves.size()); // and wanders again
+        assertEquals(CitizenState.IDLE, ai.state());
     }
 
     @Test

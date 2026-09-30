@@ -97,9 +97,19 @@ class BuilderIdleTest {
         return ai.state() == state;
     }
 
+    /** Idle, it wanders around (MC EntityAICitizenWander): a walk every 100 ticks at most. */
+    private boolean wanders(int max) {
+        int moves = t.bodies.moves.size();
+        for (int i = 0; i < max && t.bodies.moves.size() == moves; i++) {
+            t.clock.tick++;
+            ai.tick();
+        }
+        return ai.state() == CitizenState.IDLE && t.bodies.moves.size() > moves;
+    }
+
     @Test
     void builderWithoutOrderWanders() {
-        assertTrue(tickUntil(CitizenState.WANDERING, 420));
+        assertTrue(wanders(120));
     }
 
     @Test
@@ -112,7 +122,7 @@ class BuilderIdleTest {
 
     @Test
     void orderCreatedWhileWanderingBringsBuilderBackToWork() {
-        assertTrue(tickUntil(CitizenState.WANDERING, 420));
+        assertTrue(wanders(120));
         claimOrder();
         assertTrue(tickUntil(CitizenState.WORKING, 40));
     }
@@ -127,6 +137,6 @@ class BuilderIdleTest {
 
         assertTrue(tickUntil(CitizenState.IDLE, 40));
         assertNull(t.bodies.bodies.get(body).held, "MC resetAI clears the held item");
-        assertTrue(tickUntil(CitizenState.WANDERING, 40), "the next idle decision wanders at once");
+        assertTrue(wanders(120), "then wanders like any idle citizen");
     }
 }

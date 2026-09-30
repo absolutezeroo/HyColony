@@ -20,17 +20,18 @@ import java.util.random.RandomGenerator;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Top-level citizen AI: idle, wander, or work its job. Port of MC CitizenAI.calculateNextState, reduced to the work
+ * Top-level citizen AI: idle (wandering around) or work its job. Port of MC CitizenAI.calculateNextState, reduced to the work
  * decision: the citizen works only when its job AI cannot go idle ({@link JobAI#canGoIdle}), it is not on a leisure
  * break ({@link #onBreak}) and the rain does not stop it ({@link #rainStopsWork}).
  */
 public final class CitizenAI {
     private static final System.Logger LOG = System.getLogger(CitizenAI.class.getName());
+    /** MC EntityAICitizenWander.decide: walkToRandomPos(citizen, 10, speed), around the citizen's own position. */
     private static final int WANDER_RADIUS = 10;
-    private static final int IDLE_MIN_TICKS = 200, IDLE_MAX_TICKS = 400;
-    private static final int WANDER_TIMEOUT_TICKS = 600;
+    /** MC EntityAICitizenWander: its IDLE transition runs every 100 ticks. */
+    private static final int WANDER_RATE_TICKS = 100;
     /**
-     * Random wander spots tried before resting again. Deviation from MC: EntityAICitizenWander's walkToRandomPos runs
+     * Random wander spots tried before waiting for the next wander decision. Deviation from MC: EntityAICitizenWander's walkToRandomPos runs
      * a path search (PathJobRandomPos) that never ends on a dangerous block; without one, a few spots are drawn.
      */
     private static final int WANDER_TRIES = 10;
@@ -49,8 +50,6 @@ public final class CitizenAI {
     private final RandomGenerator random;
     private final DangerousCells danger;
     private final TickRateStateMachine<CitizenState> machine;
-    private int idleTicksLeft;
-    private int wanderTicks;
     private int workTicks;
     private @Nullable JobAI jobAI;
     /** The job and work building {@link #jobAI} was created for. */
@@ -67,10 +66,11 @@ public final class CitizenAI {
         this.random = colony.context().random();
         this.danger = new DangerousCells(
                 colony.context().ports().blocks(), colony.context().ports().catalog());
-        this.idleTicksLeft = nextIdle();
         this.machine = new TickRateStateMachine<>(CitizenState.IDLE, this::onException);
-        machine.addTransition(new AITarget<>(CitizenState.IDLE, (IStateSupplier<CitizenState>) this::idle, 20));
-        machine.addTransition(new AITarget<>(CitizenState.WANDERING, (IStateSupplier<CitizenState>) this::wander, 5));
+        machine.addTransition(
+                new AITarget<>(CitizenState.IDLE, (IStateSupplier<CitizenState>) this::idle, DECIDE_INTERVAL_TICKS));
+        machine.addTransition(
+                new AITarget<>(CitizenState.IDLE, (IStateSupplier<CitizenState>) this::wander, WANDER_RATE_TICKS));
         machine.addTransition(new AITarget<>(CitizenState.WORKING, (IStateSupplier<CitizenState>) this::work, 1));
         // A body can keep a job's speed across a crash (the Hytale effect is saved with the NPC); a job AI sets its
         // own.
@@ -95,27 +95,23 @@ public final class CitizenAI {
         LOG.log(System.Logger.Level.WARNING, "Citizen AI failed for " + data.name(), e);
     }
 
+    /** MC CitizenAI.decideAiTask, every {@link #DECIDE_INTERVAL_TICKS}: to work when it should. */
     private @Nullable CitizenState idle() {
-        if (shouldWork()) {
-            return CitizenState.WORKING;
-        }
-        idleTicksLeft -= 20;
-        if (idleTicksLeft > 0) {
+        return shouldWork() ? CitizenState.WORKING : null;
+    }
+
+    /**
+     * MC EntityAICitizenWander.decide: once the last walk is over (canUse: navigation done), a walk to a random spot
+     * around the citizen's own position; the citizen stays IDLE.
+     */
+    private @Nullable CitizenState wander() {
+        if (bodies.navStatus(body) == NavStatus.MOVING) {
             return null;
         }
-        Vec3 here = bodies.position(body).orElse(null);
-        if (here == null) {
-            return null;
-        }
-        BlockPos anchor = colony.buildings().townHall().map(b -> b.position()).orElse(here.toBlockPos());
-        Vec3 target = wanderTarget(anchor, here.y()).orElse(null);
-        if (target == null) {
-            idleTicksLeft = nextIdle();
-            return null;
-        }
-        bodies.moveTo(body, target);
-        wanderTicks = 0;
-        return CitizenState.WANDERING;
+        bodies.position(body)
+                .flatMap(here -> wanderTarget(here.toBlockPos(), here.y()))
+                .ifPresent(target -> bodies.moveTo(body, target));
+        return null;
     }
 
     /**
@@ -140,21 +136,6 @@ public final class CitizenAI {
         return Optional.ofNullable(columnSafe);
     }
 
-    private @Nullable CitizenState wander() {
-        wanderTicks += 5;
-        // MC re-decides every DECIDE_INTERVAL_TICKS in any state: a worker stopped by the rain resumes mid-walk.
-        if (wanderTicks % DECIDE_INTERVAL_TICKS == 0 && shouldWork()) {
-            return CitizenState.WORKING;
-        }
-        NavStatus status = bodies.navStatus(body);
-        boolean done = status == NavStatus.ARRIVED || status == NavStatus.BLOCKED || status == NavStatus.FAILED;
-        if (done || wanderTicks >= WANDER_TIMEOUT_TICKS) {
-            idleTicksLeft = nextIdle();
-            return CitizenState.IDLE;
-        }
-        return null;
-    }
-
     private @Nullable CitizenState work() {
         Job job = data.job().orElse(null);
         if (job == null) {
@@ -168,7 +149,6 @@ public final class CitizenAI {
         // MC re-decides every DECIDE_INTERVAL_TICKS, which also keeps the order lookup off the per-tick path.
         if (++workTicks % DECIDE_INTERVAL_TICKS == 0 && (rainStopsWork() || ai.canGoIdle() || onBreak(ai))) {
             dropJobAI();
-            idleTicksLeft = 0; // the next idle decision wanders, replacing the job's unfinished walk
             return CitizenState.IDLE;
         }
         ai.tick();
@@ -239,9 +219,5 @@ public final class CitizenAI {
         JobAI ai = job.createAI(colony, body);
         jobAI = ai;
         return ai;
-    }
-
-    private int nextIdle() {
-        return IDLE_MIN_TICKS + random.nextInt(IDLE_MAX_TICKS - IDLE_MIN_TICKS + 1);
     }
 }

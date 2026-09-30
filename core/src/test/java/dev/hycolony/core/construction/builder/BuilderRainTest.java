@@ -161,8 +161,9 @@ class BuilderRainTest {
         assertTrue(tickUntil(CitizenState.WORKING, 40));
         t.world.raining = true;
         assertTrue(tickUntil(CitizenState.IDLE, 10));
-        t.bodies.frozen = true; // the wander walk never ends: only the decision can leave WANDERING
-        assertTrue(tickUntil(CitizenState.WANDERING, 420));
+        t.bodies.frozen = true; // a wander walk that never ends: only the work decision ends the idling
+        int moves = t.bodies.moves.size();
+        assertTrue(tickUntil(() -> t.bodies.moves.size() > moves, 420), "wanders meanwhile");
 
         t.world.raining = false;
 
