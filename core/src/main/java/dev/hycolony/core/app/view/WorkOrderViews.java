@@ -3,6 +3,7 @@ package dev.hycolony.core.app.view;
 import dev.hycolony.core.app.ui.WorkOrdersView;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.ColonyAccess;
 import dev.hycolony.core.colony.permission.Action;
 import java.util.List;
 import java.util.UUID;
@@ -23,6 +24,6 @@ final class WorkOrderViews {
                         o.targetLevel(),
                         WorkOrderStatus.builderName(c, o)))
                 .toList();
-        return new WorkOrdersView(lines, c.permissions().hasPermission(viewer, Action.MANAGE_HUTS));
+        return new WorkOrdersView(lines, ColonyAccess.allows(c, viewer, Action.MANAGE_HUTS));
     }
 }

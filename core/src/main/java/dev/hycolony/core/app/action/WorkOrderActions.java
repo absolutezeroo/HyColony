@@ -4,6 +4,7 @@ import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.app.view.ColonyWindows;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.ColonyAccess;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.construction.workorder.ManualSelection;
 import dev.hycolony.core.construction.workorder.WorkOrder;
@@ -136,7 +137,7 @@ public final class WorkOrderActions {
     /** The colony if it holds the order and the player may manage its huts, else null. */
     private @Nullable Colony managedColony(UUID player, int colonyId, int orderId) {
         return manager.byId(colonyId)
-                .filter(c -> c.permissions().hasPermission(player, Action.MANAGE_HUTS)
+                .filter(c -> ColonyAccess.allows(c, player, Action.MANAGE_HUTS)
                         && c.work().byId(orderId).isPresent())
                 .orElse(null);
     }

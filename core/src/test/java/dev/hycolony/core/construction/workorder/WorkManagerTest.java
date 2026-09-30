@@ -165,6 +165,19 @@ class WorkManagerTest {
                 colony.work().request(UUID.randomUUID(), res.position(), WorkOrderType.BUILD, "", Optional.empty()));
     }
 
+    /** MC Permissions.hasPermission(Player, Action): a creative operator has the operator rank in any colony. */
+    @Test
+    void aCreativeOperatorOrdersWorkInAForeignColony() {
+        builder(new BlockPos(10, 64, 0), 1);
+        Building res = residence(new BlockPos(20, 64, 0), 0);
+        UUID operator = UUID.randomUUID();
+        t.players.creativeOperators.add(operator);
+
+        assertTrue(
+                colony.work().request(operator, res.position(), WorkOrderType.BUILD, "", Optional.empty())
+                        instanceof Either.Left<?, ?>);
+    }
+
     @Test
     void refusesWhenAnOrderAlreadyExists() {
         builder(new BlockPos(10, 64, 0), 1);

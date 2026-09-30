@@ -4,6 +4,7 @@ import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.app.ui.FieldView;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.ColonyAccess;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.farming.field.FarmField;
 import dev.hycolony.core.farming.field.FieldRadii;
@@ -130,7 +131,7 @@ public final class FieldActions {
 
     private Optional<FarmField> managedField(UUID player, BlockPos pos) {
         return manager.colonyAt(pos)
-                .filter(c -> c.permissions().hasPermission(player, Action.MANAGE_HUTS))
+                .filter(c -> ColonyAccess.allows(c, player, Action.MANAGE_HUTS))
                 .flatMap(c -> c.registries().fields().get(pos));
     }
 
@@ -157,6 +158,6 @@ public final class FieldActions {
                                 f.seed(),
                                 f.radii(),
                                 manager.context().ports().farming().seeds(),
-                                c.permissions().hasPermission(player, Action.MANAGE_HUTS)));
+                                ColonyAccess.allows(c, player, Action.MANAGE_HUTS)));
     }
 }

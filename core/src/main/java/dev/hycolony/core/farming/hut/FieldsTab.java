@@ -2,6 +2,7 @@ package dev.hycolony.core.farming.hut;
 
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.ColonyAccess;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.farming.field.FarmField;
 import dev.hycolony.core.kernel.BlockPos;
@@ -34,7 +35,7 @@ final class FieldsTab {
                 module.maxFields(hut),
                 fertilize,
                 rows,
-                c.permissions().hasPermission(viewer, Action.MANAGE_HUTS));
+                ColonyAccess.allows(c, viewer, Action.MANAGE_HUTS));
     }
 
     private static FieldsView.Row row(Colony c, Building hut, FarmerFieldsModule module, FarmField f) {

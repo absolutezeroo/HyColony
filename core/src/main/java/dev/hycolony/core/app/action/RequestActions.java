@@ -4,6 +4,7 @@ import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.ColonyAccess;
 import dev.hycolony.core.colony.GamePorts;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.kernel.BlockPos;
@@ -43,7 +44,7 @@ public final class RequestActions {
      */
     public boolean fulfil(UUID player, int colonyId, RequestToken token) {
         Colony c = manager.byId(colonyId).orElse(null);
-        if (c == null || !c.permissions().hasPermission(player, Action.ACCESS_HUTS)) {
+        if (c == null || !ColonyAccess.allows(c, player, Action.ACCESS_HUTS)) {
             return false;
         }
         Request req = openItemRequest(c, token).orElse(null);
@@ -110,7 +111,7 @@ public final class RequestActions {
      */
     public int addToHut(UUID player, BlockPos hutPos, ItemKey item, int wanted) {
         Colony c = manager.colonyAt(hutPos).orElse(null);
-        if (c == null || wanted <= 0 || !c.permissions().hasPermission(player, Action.ACCESS_HUTS)) {
+        if (c == null || wanted <= 0 || !ColonyAccess.allows(c, player, Action.ACCESS_HUTS)) {
             return 0;
         }
         Building b = c.buildings().at(hutPos).orElse(null);

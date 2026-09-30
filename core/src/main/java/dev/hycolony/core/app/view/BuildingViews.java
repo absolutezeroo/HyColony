@@ -6,6 +6,7 @@ import dev.hycolony.core.building.module.ModuleTab;
 import dev.hycolony.core.building.module.ProvidesTab;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.ColonyAccess;
 import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.construction.workorder.WorkManager;
@@ -35,7 +36,7 @@ final class BuildingViews {
     BuildingView of(Colony c, Building b, UUID viewer) {
         Optional<WorkerModule> w = b.module(WorkerModule.class);
         Optional<WorkOrder> order = c.work().byBuilding(b.position());
-        boolean manage = c.permissions().hasPermission(viewer, Action.MANAGE_HUTS);
+        boolean manage = ColonyAccess.allows(c, viewer, Action.MANAGE_HUTS);
         return new BuildingView(
                 c.id(),
                 b.position(),

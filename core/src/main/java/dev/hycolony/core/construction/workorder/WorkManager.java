@@ -2,6 +2,7 @@ package dev.hycolony.core.construction.workorder;
 
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.ColonyAccess;
 import dev.hycolony.core.colony.ColonyEvents;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.construction.shared.BuilderHut;
@@ -53,7 +54,7 @@ public final class WorkManager {
      */
     public Either<WorkOrder, WorkOrderRefusal> request(
             UUID player, BlockPos buildingPos, WorkOrderType type, String style, Optional<BlockPos> builder) {
-        if (!colony.permissions().hasPermission(player, Action.MANAGE_HUTS)) {
+        if (!ColonyAccess.allows(colony, player, Action.MANAGE_HUTS)) {
             return new Either.Right<>(WorkOrderRefusal.NO_PERMISSION);
         }
         Building b = colony.buildings()

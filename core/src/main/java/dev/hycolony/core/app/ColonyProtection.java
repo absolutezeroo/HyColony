@@ -1,11 +1,11 @@
 package dev.hycolony.core.app;
 
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.ColonyAccess;
 import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.colony.ColonyRefusal;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.colony.permission.BlockUse;
-import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.config.Explosions;
 import java.util.Optional;
@@ -34,8 +34,7 @@ public final class ColonyProtection {
      */
     public boolean isAllowed(UUID player, BlockPos pos, Action action) {
         return manager.colonyAt(pos)
-                .map(c -> c.permissions().hasPermission(player, action)
-                        || (bypassesPermissions(player) && Permissions.operatorRankHas(action)))
+                .map(c -> ColonyAccess.allows(c, player, action))
                 .orElse(true);
     }
 
@@ -78,18 +77,6 @@ public final class ColonyProtection {
     public boolean explosionSparesBlock(BlockPos pos) {
         return context().config().permissions().turnOffExplosionsInColonies() != Explosions.DAMAGE_EVERYTHING
                 && manager.colonyAt(pos).isPresent();
-    }
-
-    /**
-     * MC: a player in creative with at least operator level {@code PermissionEventBypassMinPermLevel}.
-     *
-     * <p>Deviation from MC: Hytale has no operator levels. Level 0 (MC: every player) lets any creative player
-     * through; levels 1 to 4 need a Hytale operator in creative.
-     */
-    private boolean bypassesPermissions(UUID player) {
-        return context().config().permissions().permissionEventBypassMinPermLevel() == 0
-                ? context().players().isCreative(player)
-                : context().players().isCreativeOperator(player);
     }
 
     private ColonyContext context() {

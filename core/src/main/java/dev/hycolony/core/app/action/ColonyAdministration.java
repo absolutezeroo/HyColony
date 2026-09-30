@@ -3,6 +3,7 @@ package dev.hycolony.core.app.action;
 import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.app.view.ColonyWindows;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.ColonyAccess;
 import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.kernel.port.Msg;
@@ -22,7 +23,7 @@ public final class ColonyAdministration {
     /** EDIT_PERMISSIONS; see {@link dev.hycolony.core.colony.permission.Permissions#setRank}. */
     public boolean setRank(UUID actor, int colonyId, UUID target, String targetName, int rankId) {
         Colony c = manager.byId(colonyId).orElse(null);
-        if (c == null || !c.permissions().hasPermission(actor, Action.EDIT_PERMISSIONS)) {
+        if (c == null || !ColonyAccess.allows(c, actor, Action.EDIT_PERMISSIONS)) {
             return false;
         }
         boolean changed = c.permissions().setRank(target, targetName, rankId);

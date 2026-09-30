@@ -9,6 +9,7 @@ import dev.hycolony.core.app.ui.WindowKey;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.ColonyAccess;
 import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.colony.ColonyRefusal;
 import dev.hycolony.core.colony.permission.Action;
@@ -137,12 +138,12 @@ public final class ColonyWindows {
 
     /** The colony, while it exists and {@code viewer} may still see its windows (ACCESS_HUTS); silent. */
     private Optional<Colony> watchable(int colonyId, UUID viewer) {
-        return manager.byId(colonyId).filter(c -> c.permissions().hasPermission(viewer, Action.ACCESS_HUTS));
+        return manager.byId(colonyId).filter(c -> ColonyAccess.allows(c, viewer, Action.ACCESS_HUTS));
     }
 
     /** ACCESS_HUTS, else the player is told. */
     private boolean canAccess(Colony c, UUID player) {
-        if (c.permissions().hasPermission(player, Action.ACCESS_HUTS)) {
+        if (ColonyAccess.allows(c, player, Action.ACCESS_HUTS)) {
             return true;
         }
         ColonyRefusal.tell(c, player);

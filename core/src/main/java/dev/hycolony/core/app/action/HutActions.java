@@ -8,6 +8,7 @@ import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.ColonyAccess;
 import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.colony.ColonyEvents;
 import dev.hycolony.core.colony.permission.Action;
@@ -37,7 +38,7 @@ public final class HutActions {
     /** Port of AbstractBlockHut.canPaste: PLACE_HUTS inside a colony, then {@link #checkHutRules}. */
     public HutPlacement checkPlacement(UUID player, BlockPos pos, String buildingTypeId) {
         Optional<Colony> colony = manager.colonyAt(pos);
-        if (colony.isPresent() && !colony.get().permissions().hasPermission(player, Action.PLACE_HUTS)) {
+        if (colony.isPresent() && !ColonyAccess.allows(colony.get(), player, Action.PLACE_HUTS)) {
             return new HutPlacement.Denied(
                     Msg.of("hycolony.permission.placeHuts", colony.get().name()));
         }

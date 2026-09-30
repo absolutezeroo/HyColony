@@ -6,6 +6,7 @@ import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.ColonyAccess;
 import dev.hycolony.core.colony.GamePorts;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.colony.territory.ClaimCell;
@@ -69,7 +70,7 @@ final class WandPlacement {
         }
         BlockPos pos = s.anchor().get();
         Optional<Colony> colony = manager.colonyAt(pos);
-        if (colony.isPresent() && !colony.get().permissions().hasPermission(player, Action.MANAGE_HUTS)) {
+        if (colony.isPresent() && !ColonyAccess.allows(colony.get(), player, Action.MANAGE_HUTS)) {
             return refused("hycolony.wand.noPermission");
         }
         Optional<Refused> location = locationRefusal(s, pos, colony);

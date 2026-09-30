@@ -4,6 +4,7 @@ import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.ColonyAccess;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.kernel.item.Inventory;
 import dev.hycolony.core.kernel.item.ItemAmount;
@@ -38,7 +39,7 @@ public final class CitizenInventoryActions {
         if (c == null || c.citizens().get(citizenId).isEmpty()) {
             return;
         }
-        if (!c.permissions().hasPermission(player, Action.MANAGE_HUTS)) {
+        if (!ColonyAccess.allows(c, player, Action.MANAGE_HUTS)) {
             manager.context().notifier().send(player, Msg.of("hycolony.permission.denied", c.name()));
             return;
         }
