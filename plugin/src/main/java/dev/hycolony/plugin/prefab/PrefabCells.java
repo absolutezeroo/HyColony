@@ -21,10 +21,10 @@ import javax.annotation.Nullable;
 
 /**
  * What one prefab cell becomes in a blueprint (the per-cell rules of HytaleBlueprintSource). {@code Empty},
- * {@code Editor_*} and spawners are skipped, except that a chest spawner (a spawner table with a container block)
- * becomes the given empty chest: vanilla villages never place a chest directly, and the chests the builder places
- * become the building's racks. The chest keeps the spawner's rotation (the spawner's own rotation mode is INHERIT)
- * and gets no loot.
+ * {@code Editor_*} and spawners are skipped (PrefabReading drops the keep-terrain placeholder earlier), except that a
+ * chest spawner (a spawner table with a container block) becomes the given empty chest: vanilla villages never place
+ * a chest directly, and the chests the builder places become the building's racks. The chest keeps the spawner's
+ * rotation (the spawner's own rotation mode is INHERIT) and gets no loot.
  */
 final class PrefabCells {
     private static final String SPAWNER = "Block_Spawner_Block";
@@ -44,20 +44,32 @@ final class PrefabCells {
         FLUID
     }
 
-    /** The two placeholder block ids of the id-map. */
-    record Placeholders(String solid, String fluid) {}
+    /** The three placeholder block ids of the id-map. */
+    record Placeholders(String solid, String fluid, String keep) {}
 
     /** The cell's marker in a MineColonies blueprint; empty for a block, a fluid-only cell or anything else. */
     static Optional<Marker> marker(int blockId, int fluidId, Placeholders ids) {
         if (blockId == BlockType.EMPTY_ID) {
             return fluidId == 0 ? Optional.of(Marker.AIR) : Optional.empty();
         }
-        BlockType type = BlockType.getAssetMap().getAsset(blockId);
-        String id = type == null ? "" : type.getId();
+        String id = id(blockId);
         if (id.equals(ids.solid())) {
             return Optional.of(Marker.FILL);
         }
         return id.equals(ids.fluid()) ? Optional.of(Marker.FLUID) : Optional.empty();
+    }
+
+    /**
+     * Whether the cell is the keep-terrain placeholder (MC blocksubstitution): read as an absent cell, so the builder
+     * leaves the terrain there. A solid block the workshop platform lays under each hut, which survives a re-save.
+     */
+    static boolean keepsTerrain(int blockId, Placeholders ids) {
+        return blockId != BlockType.EMPTY_ID && id(blockId).equals(ids.keep());
+    }
+
+    private static String id(int blockId) {
+        BlockType type = BlockType.getAssetMap().getAsset(blockId);
+        return type == null ? "" : type.getId();
     }
 
     private PrefabCells() {}

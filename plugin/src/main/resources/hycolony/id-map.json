@@ -24,6 +24,7 @@
     "selftest.door_open": "*Furniture_Crude_Door_State_Definitions_OpenDoorIn",
     "blueprint.placeholder.solid": "HyColony_Placeholder_Solid",
     "blueprint.placeholder.fluid": "HyColony_Placeholder_Fluid",
+    "blueprint.placeholder.keep": "HyColony_Placeholder_Keep",
     "blueprint.fillBlock": "Soil_Dirt"
   },
   "npcRoles": { "npc.citizen": "HyColony_Citizen" },

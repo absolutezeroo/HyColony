@@ -53,7 +53,7 @@ import org.jspecify.annotations.Nullable;
  * {@code hutOffset} says otherwise, and the blueprint carries {@link BlueprintMarkers}: an explicit {@code Empty}
  * (no fluid) is air to clear, and the id-map's placeholder blocks ({@code blueprint.placeholder.solid|fluid}) are fill
  * and fluid cells, the fluid being {@code placeholderFluid}. Elsewhere the placeholder blocks are skipped, like the
- * {@code Editor_*} blocks.
+ * {@code Editor_*} blocks. The keep-terrain placeholder ({@code blueprint.placeholder.keep}) is skipped everywhere.
  *
  * <p>{@link #prewarm(PrefabStyles)} parses the prefabs off the world thread at startup; a later load then reads the cached
  * buffer. Results are cached per (style, type, level, rotation).
@@ -193,7 +193,9 @@ public final class HytaleBlueprintSource implements BlueprintSource {
     private PrefabReading.Rules rules(String style, PrefabStyles.Level entry) {
         String chest = entry.spawnerChests() ? ids.blockId(SPAWNER_CHEST_KEY + style) : null;
         PrefabCells.Placeholders placeholders = new PrefabCells.Placeholders(
-                ids.blockId("blueprint.placeholder.solid"), ids.blockId("blueprint.placeholder.fluid"));
+                ids.blockId("blueprint.placeholder.solid"),
+                ids.blockId("blueprint.placeholder.fluid"),
+                ids.blockId("blueprint.placeholder.keep"));
         return new PrefabReading.Rules(chest, placeholders, entry.minecolonies(), ids.placeholderFluid());
     }
 

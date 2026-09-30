@@ -88,7 +88,7 @@ Le bâtisseur MC pose toujours en mode *fancy*. Chaque case du plan est de l'un 
 | Source | Sortie |
 |---|---|
 | `minecraft:air`, `blocktagsubstitution` sans remplacement | `Empty` |
-| `blocksubstitution` | rien |
+| `blocksubstitution` | rien (la plateforme d'atelier pose `HyColony_Placeholder_Keep` sous les huttes : un bloc solide que Hytale réenregistre et que le plugin lit comme une case absente, dans tout prefab) |
 | `blocksolidsubstitution` | `HyColony_Placeholder_Solid` |
 | `blockfluidsubstitution` | `HyColony_Placeholder_Fluid` |
 | `minecraft:water` / `lava` | tableau `fluids` (`Water_Source` / `Lava_Source`), pas de bloc |

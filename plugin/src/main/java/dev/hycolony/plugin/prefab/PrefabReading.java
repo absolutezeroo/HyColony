@@ -27,7 +27,8 @@ final class PrefabReading {
 
     /**
      * What cells turn into: {@code chest} replaces a chest spawner (null: none); the {@code placeholders} blocks are
-     * markers of a {@code minecolonies} level, whose fluid cells get {@code fluid}, and skipped elsewhere.
+     * markers of a {@code minecolonies} level, whose fluid cells get {@code fluid}, and skipped elsewhere; the keep
+     * placeholder is skipped everywhere (kept terrain).
      */
     record Rules(@Nullable String chest, PrefabCells.Placeholders placeholders, boolean minecolonies, String fluid) {}
 
@@ -78,7 +79,7 @@ final class PrefabReading {
                         PrefabBufferCall call,
                         int fluidId,
                         int fluidLevel) -> {
-                    if (filler != 0) {
+                    if (filler != 0 || PrefabCells.keepsTerrain(blockId, rules.placeholders())) {
                         return;
                     }
                     Optional<PrefabCells.Marker> marker = PrefabCells.marker(blockId, fluidId, rules.placeholders());
