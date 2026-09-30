@@ -206,6 +206,12 @@ public final class BuilderAI implements JobAI {
         if (i != from) {
             site.progress(stage, i);
         }
+        if (!ctx.blocks().isLoaded(site.positions(stage).get(i))) {
+            // Deviation from MC: checkIfCanceled only waits while the order's own position is unloaded, as Minecraft
+            // loads any other chunk on access; Hytale does not, so every unloaded cell of the plan is waited for
+            // instead of being skipped (the order would complete with holes).
+            return null;
+        }
         return blockWork.work(stage, i);
     }
 

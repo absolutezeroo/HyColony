@@ -19,6 +19,7 @@ public final class FakeWorldBlocks implements WorldBlocks {
     /** Items dropped on the ground by drop(), by position, in call order. */
     public final Map<BlockPos, List<ItemAmount>> dropped = new LinkedHashMap<>();
 
+    /** When false, the whole world reads as unloaded: get() is empty, place() and breakBlock() change nothing. */
     public boolean loaded = true;
     /** When true, place() fails and changes nothing (a Hytale placement refused by a hitbox or unloaded chunk). */
     public boolean refusePlace;
@@ -43,12 +44,12 @@ public final class FakeWorldBlocks implements WorldBlocks {
     @Override
     public Optional<BlockState> get(BlockPos pos) {
         reads++;
-        return Optional.ofNullable(blocks.get(pos));
+        return loaded ? Optional.ofNullable(blocks.get(pos)) : Optional.empty();
     }
 
     @Override
     public boolean place(BlockPos pos, BlockState state, boolean withContainer) {
-        if (refusePlace) {
+        if (refusePlace || !loaded) {
             return false;
         }
         beforeChange.accept(pos);
@@ -60,6 +61,9 @@ public final class FakeWorldBlocks implements WorldBlocks {
 
     @Override
     public List<ItemAmount> breakBlock(BlockPos pos) {
+        if (!loaded) {
+            return List.of();
+        }
         beforeChange.accept(pos);
         benchTiers.remove(pos);
         BlockState removed = blocks.remove(pos);

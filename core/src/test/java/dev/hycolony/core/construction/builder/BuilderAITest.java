@@ -264,6 +264,29 @@ class BuilderAITest {
         assertEquals(new BlockState(bedrock, 0), t.blocks.blocks.get(at(3, 0, 0)));
     }
 
+    /** MC checkIfCanceled waits while the site is unloaded: a chunk that is not loaded is never skipped. */
+    @Test
+    void unloadedPlanPositionsAreWaitedForNotSkipped() {
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 0);
+        blueprint = bp(List.of(entry(1, 0, 0, STONE), entry(1, 1, 0, TORCH)));
+        t.blocks.blocks.put(at(1, 1, 0), new BlockState(DIRT, 0)); // CLEAR must mine it
+        give(STONE_I, 1);
+        give(TORCH_I, 1);
+        WorkOrder o = order(res, WorkOrderType.BUILD);
+        t.blocks.loaded = false;
+
+        tick(3000);
+
+        assertFalse(gone(o), "an unloaded site was completed");
+        assertEquals(0, res.level());
+        assertTrue(t.blocks.placed.isEmpty());
+        t.blocks.loaded = true;
+        tickUntil(() -> gone(o), 5000);
+        assertEquals(1, res.level());
+        assertEquals(new BlockState(STONE, 0), t.blocks.blocks.get(at(1, 0, 0)));
+        assertEquals(new BlockState(TORCH, 0), t.blocks.blocks.get(at(1, 1, 0)));
+    }
+
     @Test
     void solidBeforeDecoBottomUp() {
         Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);

@@ -51,6 +51,9 @@ final class StructureScan {
      */
     private boolean needsWork(BuildSite site, Stage stage, int i, BlockPos pos) {
         BlockState world = blocks.get(pos).orElse(null);
+        if (world == null && !blocks.isLoaded(pos)) {
+            return true; // unknown until loaded: the step stops here and waits (BuilderAI.structureStep)
+        }
         return switch (stage) {
             case CLEAR -> world != null && clears(site, pos, world) && notAHut(pos);
             case REMOVE -> world != null && mineable(world) && notAHut(pos);
