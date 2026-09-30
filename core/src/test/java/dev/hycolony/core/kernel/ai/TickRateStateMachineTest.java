@@ -137,6 +137,53 @@ class TickRateStateMachineTest {
         assertEquals(List.of("once", "state"), log);
     }
 
+    /** MC TickingOneTimeEvent.shouldRemove, as CommandCitizenTriggerWalkTo overrides it: it lasts until done. */
+    @Test
+    void oneTimeEventStaysUntilItSaysItIsDone() {
+        var sm = machine();
+        boolean[] done = {false};
+        sm.addTransition(new AIOneTimeEventTarget<>(record("walk", S.A)) {
+            @Override
+            public boolean shouldRemove() {
+                return done[0];
+            }
+        });
+        sm.addTransition(new AITarget<>(S.A, record("state", null), 1));
+
+        sm.tick();
+        sm.tick();
+        done[0] = true;
+        sm.tick();
+        sm.tick();
+
+        assertEquals(List.of("walk", "walk", "walk", "state"), log, "it fired once more, then was removed");
+    }
+
+    /** MC BasicStateMachine.transitionToNext reads shouldRemove after the action: one that ends itself goes at once. */
+    @Test
+    void oneTimeEventThatEndsItselfIsRemovedTheSameTick() {
+        var sm = machine();
+        boolean[] done = {false};
+        sm.addTransition(
+                new AIOneTimeEventTarget<S>(() -> {
+                    log.add("walk");
+                    done[0] = log.size() == 2;
+                    return S.A;
+                }) {
+                    @Override
+                    public boolean shouldRemove() {
+                        return done[0];
+                    }
+                });
+        sm.addTransition(new AITarget<>(S.A, record("state", null), 1));
+
+        sm.tick();
+        sm.tick();
+        sm.tick();
+
+        assertEquals(List.of("walk", "walk", "state"), log);
+    }
+
     @Test
     void exceptionInConditionIsReportedAndEvaluationContinues() {
         var sm = machine();

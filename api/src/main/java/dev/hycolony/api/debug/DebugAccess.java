@@ -1,15 +1,22 @@
 package dev.hycolony.api.debug;
 
+import dev.hycolony.api.ActionResult;
+import dev.hycolony.api.Actor;
 import dev.hycolony.api.CitizenRef;
 import dev.hycolony.api.ColonyRef;
 import dev.hycolony.api.Experimental;
+import dev.hycolony.api.Pos;
 import dev.hycolony.api.Subscription;
 import java.util.List;
 import java.util.Optional;
 
 /**
- * What a debugging tool reads of one world's colonies. Every method must be called on that world's thread, else it
- * throws {@link IllegalStateException}. HyColony implements it, addons do not.
+ * What a debugging tool reads of one world's colonies, and does to their citizens. Every method must be called on that
+ * world's thread, else it throws {@link IllegalStateException}. HyColony implements it, addons do not.
+ *
+ * <p>An action is asked by an {@link Actor}: a player acts if a server operator or a manager of the colony (as MC's
+ * officer commands), a plugin answers for itself, and the colony, only ever a cause, is refused.
+ * {@link ActionResult.NotFound} for an unknown colony, or, once allowed, an unknown citizen.
  *
  * @since 1.0
  */
@@ -35,4 +42,27 @@ public interface DebugAccess {
      * which stops tracking when the plugin stops.
      */
     Optional<Subscription> track(CitizenRef ref);
+
+    /**
+     * Sends the citizen {@code ref} to {@code target}, a block of this world (MC {@code /mc citizens walk}): it walks
+     * up to 4 blocks from it, for 3 minutes at most or until the stuck handler gives up, its AI waiting, which then
+     * waits 5 seconds more and starts its job afresh. A new call replaces the walk under way.
+     * {@link ActionResult.Unavailable} while its body is unloaded or dead.
+     */
+    ActionResult walkTo(Actor actor, CitizenRef ref, Pos target);
+
+    /** Starts a leisure break for the citizen {@code ref} now, as long as one of MC's (3 minutes). */
+    ActionResult forceLeisure(Actor actor, CitizenRef ref);
+
+    /**
+     * Teleports the citizen {@code ref}'s body onto {@code target}, its job then starting afresh;
+     * {@link ActionResult.Unavailable} while unloaded or dead.
+     */
+    ActionResult teleport(Actor actor, CitizenRef ref, Pos target);
+
+    /**
+     * Replaces the citizen {@code ref}'s body with a new one where the colony's respawn check would put it (its respawn
+     * point, else its last position...); {@link ActionResult.Unavailable} when none could appear, its old body kept.
+     */
+    ActionResult respawnBody(Actor actor, CitizenRef ref);
 }

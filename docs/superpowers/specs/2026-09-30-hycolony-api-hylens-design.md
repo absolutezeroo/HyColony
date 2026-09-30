@@ -118,11 +118,16 @@ HyBlockUI ← HyDomum ← HyColony → HyVanilla
   Ils tournent aussi dans les simulations de test.
 - **`walkTo`** (MC `CommandCitizenTriggerWalkTo`) :
   - `kernel/ai` porte `shouldRemove`, pour qu'une transition unique dure jusqu'à l'arrivée ;
-  - un citoyen avec un métier marche jusqu'à 4 blocs de la position, pendant 3 minutes au plus, puis reste sur place 100 ticks avant de reprendre son IA ;
-  - un citoyen sans métier reçoit un simple `moveTo`, comme chez MC ;
-  - une nouvelle demande remplace la marche en cours.
+  - le citoyen marche jusqu'à 4 blocs de la position (`BlockApproach.walkToSafePos`), pendant 3 minutes au plus. Son IA attend pendant ce temps, puis encore 100 ticks, et reprend avec une IA de métier neuve ;
+  - une nouvelle demande remplace la marche en cours, avec un marcheur neuf.
 
-  **Deviation from MC :** MC met sa navigation en pause, et son IA continue de tourner sans pouvoir bouger. Ici, la transition garde le citoyen immobile 100 ticks, IA comprise. Le résultat est proche.
+  **Deviation from MC :**
+  - MC met sa navigation en pause 100 ticks, et son IA continue de tourner. Ici, c'est l'IA qui attend 100 ticks. Dans les deux cas, un chemin déjà en cours peut se terminer.
+  - L'IA du métier repart à neuf, car nos marcheurs gardent un état (cible, case d'arrêt) que le `walkToPos` de MC n'a pas. La téléportation de débogage fait de même.
+  - Un citoyen sans métier marche de la même façon, surveillé et borné. MC lui donne un simple `moveTo`, que surveille l'anti-blocage de sa navigation ; le nôtre n'en a pas. Une navigation laissée en cours après un abandon ou la limite relève de la limite de temps de la flânerie (tâche 6).
+  - L'IA du métier est oubliée à la commande, mais sa vitesse et l'objet tenu restent : chez MC, la vitesse d'Agilité du livreur est un modificateur gardé avec le métier.
+  - L'anti-blocage ne téléporte que vers une case vérifiée à côté de la cible, et abandonne sinon, ce qui finit la marche plus tôt. MC cherche une case sûre à 10 blocs et n'abandonne jamais.
+  - Les décisions de l'IA attendent aussi : chez MC, `decideAiTask` est un événement qui passe d'abord. La limite de temps est testée avant la marche. Le pas tourne à chaque tick, alors que l'IA d'un citoyen MC tourne tous les 5 ticks.
 - **Actions** `forceLeisure`, `teleport` et `respawnBody`, testées.
 - **Horloge de colonie** : l'état vit dans le cœur (`app/api`), testé : propriétaire, drapeau sûr entre fils, pas restants bornés par `MAX_STEP`. La levée à l'arrêt du propriétaire ne fait que poser le drapeau, qui est lu au tick suivant sur le fil du monde. Le plugin se contente de lire `paused` et de consommer les pas dans `ColonyTickSystem`, et le pont lui transmet l'arrêt du propriétaire. La pause arrête l'IA, pas l'autosauvegarde. Les corps s'arrêtent : leur cible de marche est désactivée, un mécanisme à vérifier dans les sources Hytale. Le composant `Frozen` n'est pas employé, car il est sauvegardé avec le PNJ. À la reprise, `BodyWalker` relance la marche, puisque le statut n'est plus « en cours ». Une flânerie de `CitizenAI` finit au plus tard à `WANDER_TIMEOUT_TICKS`.
 
@@ -208,7 +213,13 @@ Hors garde-fous : `settings.gradle.kts`, les `build.gradle.kts` des modules, `gr
 - Les événements portent leur cause (idée de Sponge). Ceux de MC non.
 - L'historique est horodaté en ticks, note aussi les marches et les actions de l'anti-blocage, et n'est actif que pour un citoyen suivi. Un seul anneau de 20 entrées tient l'IA, le métier, les marches et l'anti-blocage. MC tient un anneau de 20 par machine d'états (celle du citoyen, celle du métier), horodaté à l'heure réelle, et l'active d'office hors production (`BasicStateMachine`, `historyEnabled`), pour un joueur en mode débogage qui interagit avec le citoyen (`EntityCitizen`), et à la première exception de l'IA.
 - **Ajouts sans équivalent dans MC** : le contrôle des invariants (MC n'a que `debuginventories`), la pause et le pas à pas de la colonie, `forceLeisure` et `respawnBody`, `WalkEnded` et `StuckAction`.
-- `walkTo` : l'attente de 100 ticks remplace la pause de navigation de MC (§ 5).
+- `walkTo` (§ 5) :
+  - l'attente de 100 ticks de l'IA remplace la pause de navigation de MC ;
+  - une marche par citoyen : MC range la marche par joueur, et une seconde commande finit les deux ;
+  - l'IA du métier repart à neuf ;
+  - le citoyen sans métier marche comme un ouvrier ;
+  - l'anti-blocage abandonne au lieu de téléporter vers une case non vérifiée ;
+  - la sous-commande `walk stop` de MC n'est pas portée : une nouvelle demande remplace la marche, et HyLens n'en a pas l'usage en V1.
 
 ## 10. À vérifier en jeu
 

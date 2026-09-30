@@ -44,7 +44,11 @@ public class TickingTransition<S extends IState> {
         return null;
     }
 
-    public boolean isOneTime() {
+    /**
+     * Whether the machine drops it once it returned a state (MC IStateMachineOneTimeEvent.shouldRemove); false for a
+     * lasting transition.
+     */
+    public boolean shouldRemove() {
         return false;
     }
 

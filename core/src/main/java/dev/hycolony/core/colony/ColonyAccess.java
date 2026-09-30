@@ -18,6 +18,12 @@ public final class ColonyAccess {
                 || (bypassesPermissions(colony.context(), player) && Permissions.operatorRankHas(action));
     }
 
+    /** MC IMCColonyOfficerCommand.checkPreCondition: a server operator, or a manager of {@code colony} by rank. */
+    public static boolean isOfficer(Colony colony, UUID player) {
+        return colony.context().players().isOperator(player)
+                || colony.permissions().rankOf(player).isColonyManager();
+    }
+
     /**
      * MC: a player in creative with at least operator level {@code PermissionEventBypassMinPermLevel}.
      *

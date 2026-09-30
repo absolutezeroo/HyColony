@@ -77,6 +77,7 @@ debug.violation.requestUnresolved = Request {p0} is {p1} without a resolver
 debug.violation.respawnFailed = Respawn failing for {p0} s
 debug.violation.aiFailing = {p0} AI exceptions caught, {p1} of them by its job
 debug.violation.stuckEscalated = The stuck handler chose {p0} on the walk to {p1}
+debug.refused.colony = The colony itself cannot ask for that.
 item.hut.builder.name = Builder's Hut
 item.hut.builder.description = Place it in your colony: a builder will live and work here.
 item.hut.residence.name = Residence

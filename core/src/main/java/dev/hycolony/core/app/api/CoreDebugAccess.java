@@ -1,7 +1,10 @@
 package dev.hycolony.core.app.api;
 
+import dev.hycolony.api.ActionResult;
+import dev.hycolony.api.Actor;
 import dev.hycolony.api.CitizenRef;
 import dev.hycolony.api.ColonyRef;
+import dev.hycolony.api.Pos;
 import dev.hycolony.api.Subscription;
 import dev.hycolony.api.debug.CitizenDebugSnapshot;
 import dev.hycolony.api.debug.DebugAccess;
@@ -18,16 +21,18 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * The api's debug reads of one world's colonies (spec 2026-09-30, § 4.2): each call checks the thread as
- * {@link CoreColonyWorld} does. {@link #check} keeps a {@link ViolationWatch} per colony, so it confirms the lasting
- * states across its calls.
+ * The api's debug reads of one world's colonies, and its actions ({@link CoreDebugActions}) (spec 2026-09-30, § 4.2):
+ * each call checks the thread as {@link CoreColonyWorld} does. {@link #check} keeps a {@link ViolationWatch} per
+ * colony, so it confirms the lasting states across its calls.
  */
 final class CoreDebugAccess implements DebugAccess {
     private final CoreColonyWorld world;
     private final Map<Integer, ViolationWatch> watches = new HashMap<>();
+    private final CoreDebugActions actions;
 
     CoreDebugAccess(CoreColonyWorld world) {
         this.world = world;
+        this.actions = new CoreDebugActions(world);
     }
 
     @Override
@@ -67,6 +72,26 @@ final class CoreDebugAccess implements DebugAccess {
             CitizenHistory.Tracking tracking = d.vitals().track();
             return tracking::close;
         });
+    }
+
+    @Override
+    public ActionResult walkTo(Actor actor, CitizenRef ref, Pos target) {
+        return actions.walkTo(actor, ref, target);
+    }
+
+    @Override
+    public ActionResult forceLeisure(Actor actor, CitizenRef ref) {
+        return actions.forceLeisure(actor, ref);
+    }
+
+    @Override
+    public ActionResult teleport(Actor actor, CitizenRef ref, Pos target) {
+        return actions.teleport(actor, ref, target);
+    }
+
+    @Override
+    public ActionResult respawnBody(Actor actor, CitizenRef ref) {
+        return actions.respawnBody(actor, ref);
     }
 
     private Optional<CitizenData> citizen(CitizenRef ref) {

@@ -1,6 +1,8 @@
 package dev.hycolony.core.citizen;
 
 import dev.hycolony.core.citizen.vitals.AiWatch;
+import dev.hycolony.core.citizen.vitals.CitizenWalkReports;
+import dev.hycolony.core.colony.BlockApproach;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.job.Job;
 import dev.hycolony.core.job.JobAI;
@@ -10,6 +12,7 @@ import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.ai.AITarget;
 import dev.hycolony.core.kernel.ai.IStateSupplier;
 import dev.hycolony.core.kernel.ai.TickRateStateMachine;
+import dev.hycolony.core.kernel.nav.BodyWalker;
 import dev.hycolony.core.kernel.nav.DangerousCells;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.CitizenBodies;
@@ -56,6 +59,7 @@ public final class CitizenAI {
     private final DangerousCells danger;
     private final TickRateStateMachine<CitizenState> machine;
     private final AiWatch watch;
+    private final CommandedWalk commanded;
     private int workTicks;
     private boolean failed;
     private @Nullable JobAI jobAI;
@@ -74,6 +78,15 @@ public final class CitizenAI {
         this.danger = new DangerousCells(
                 colony.context().ports().blocks(), colony.context().ports().catalog());
         this.watch = new AiWatch(colony, data);
+        this.commanded = new CommandedWalk(
+                () -> new BlockApproach(
+                        colony.context().ports(),
+                        new BodyWalker(
+                                bodies,
+                                body,
+                                colony.context().clock()::currentTick,
+                                new CitizenWalkReports(colony, data))),
+                colony.context().clock()::currentTick);
         this.machine = new TickRateStateMachine<>(CitizenState.IDLE, this::onException);
         watch.afterTick(CitizenState.IDLE, null, 0); // its vital signs know where it starts
         machine.addTransition(
@@ -94,6 +107,25 @@ public final class CitizenAI {
 
     public CitizenState state() {
         return machine.getState();
+    }
+
+    /**
+     * MC CommandCitizenTriggerWalkTo: the citizen walks to {@code target} (see {@link CommandedWalk}), its AI waiting;
+     * a new command replaces the walk under way. Deviation from MC: its job AI then starts afresh, as its walkers would
+     * believe it where it was (MC's walks keep no state).
+     */
+    public void walkTo(BlockPos target) {
+        forgetJobAI();
+        if (!commanded.active()) {
+            machine.addTransition(commanded.transition(machine::getState));
+        }
+        commanded.start(target);
+    }
+
+    /** Teleports its body to {@code to}; its job AI starts afresh, as for {@link #walkTo}. */
+    public void teleport(Vec3 to) {
+        forgetJobAI();
+        bodies.teleport(body, to);
     }
 
     /** Its job's AI, while it has a job; for diagnostics. */
@@ -237,6 +269,15 @@ public final class CitizenAI {
         aiJob = null;
         bodies.setHeldItem(body, Optional.empty());
         bodies.setMovementSpeed(body, 1);
+    }
+
+    /**
+     * Forgets the job AI only, so the next work tick makes a fresh one; its speed and held item stay, as MC's command
+     * leaves them (the courier's Agility is an attribute modifier kept with the job).
+     */
+    private void forgetJobAI() {
+        jobAI = null;
+        aiJob = null;
     }
 
     /** A fresh job AI, now current, at normal speed: a courier hired for another job loses its Agility bonus (MC). */

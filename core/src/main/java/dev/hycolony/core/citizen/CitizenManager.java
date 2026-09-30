@@ -240,6 +240,31 @@ public final class CitizenManager {
         bind(data, body);
     }
 
+    /**
+     * Gives citizen {@code id} a new body where the respawn check would ({@link #updateBodyIfNecessary}), then removes
+     * the old one; true once one appeared. False for an unknown citizen, or when none could: a citizen that had a body
+     * keeps it and its AI, with no failed respawn noted; one without keeps the failure the respawn check noted.
+     */
+    public boolean respawnBody(int id) {
+        CitizenData data = citizens.get(id);
+        if (data == null) {
+            return false;
+        }
+        BodyId old = bodies.remove(id); // its AI stays until bind replaces it with the new body's
+        updateBodyIfNecessary(data);
+        if (bodies.containsKey(id)) {
+            if (old != null) {
+                ctx().bodies().despawn(old);
+            }
+            return true;
+        }
+        if (old != null) {
+            bodies.put(id, old);
+            failedRespawns.bodied(id);
+        }
+        return false;
+    }
+
     public void onBodyUnloaded(BodyId body) {
         bodies.entrySet().removeIf(e -> {
             if (e.getValue().equals(body)) {

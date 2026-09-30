@@ -121,7 +121,7 @@ public class TickRateStateMachine<S extends IState> {
         if (newState == null) {
             return false;
         }
-        if (transition.isOneTime()) {
+        if (transition.shouldRemove()) {
             removeTransition(transition);
         }
         if (!newState.equals(state)) {

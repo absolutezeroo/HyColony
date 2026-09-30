@@ -26,7 +26,9 @@ import org.jspecify.annotations.Nullable;
  * path); the levels collapse to repath, teleport, give up. MC's citizen lands next to its goal after
  * completeStuckAction; a Hytale teleport can land it under a roof two blocks off, so the walk is also given up when it
  * circles for a global timeout after the teleport. A walk started without teleport (to a spot never checked, which
- * may be in lava) gives up wherever it would teleport: MC's handler teleports regardless.
+ * may be in lava) gives up wherever it would teleport: MC's handler teleports regardless. MC's citizens also take 20 %
+ * of their maximum health on a full stuck (completeStuckAction, withTakeDamageOnStuck(0.2f) in
+ * MinecoloniesAdvancedPathNavigate); ours take none.
  */
 public final class StuckHandler {
     public enum Action {
