@@ -31,7 +31,12 @@ public final class CitizenWalkReports implements WalkListener {
 
     @Override
     public void walkEnded(BlockPos target, Vec3 at, WalkEnd how, double distance, NavStatus nav) {
-        citizen.vitals().walkEnded(new EndedWalk(target, how, at, distance, nav, now()));
+        EndedWalk end = new EndedWalk(target, how, at, distance, nav, now());
+        CitizenVitals v = citizen.vitals();
+        v.walkEnded(end);
+        if (v.keepsHistory()) {
+            v.note(HistoryEntry.walkEnded(end));
+        }
         EventBus bus = colony.context().bus();
         if (bus.hasListeners(CitizenDebugEvents.WalkEnded.class)) {
             bus.post(new CitizenDebugEvents.WalkEnded(colony, citizen, target, at, how, distance, nav));
@@ -40,7 +45,12 @@ public final class CitizenWalkReports implements WalkListener {
 
     @Override
     public void stuck(BlockPos target, Vec3 at, StuckHandler.Action action) {
-        citizen.vitals().stuck(action, now());
+        long now = now();
+        CitizenVitals v = citizen.vitals();
+        v.stuck(action, now);
+        if (v.keepsHistory()) {
+            v.note(HistoryEntry.stuck(now, target, at, action));
+        }
         EventBus bus = colony.context().bus();
         if (bus.hasListeners(CitizenDebugEvents.StuckActed.class)) {
             bus.post(new CitizenDebugEvents.StuckActed(colony, citizen, target, at, action));

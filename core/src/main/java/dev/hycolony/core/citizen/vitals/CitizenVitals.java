@@ -3,12 +3,14 @@ package dev.hycolony.core.citizen.vitals;
 import dev.hycolony.core.citizen.CitizenState;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.nav.StuckHandler;
+import java.util.List;
 import java.util.Optional;
 import org.jspecify.annotations.Nullable;
 
 /**
- * A citizen's vital signs, for diagnostics: what its AI and walks did last, kept up to date in place (never
- * allocated per tick) by the features themselves, not through the event bus. Runtime only, never saved.
+ * A citizen's vital signs, for diagnostics: what its AI and walks did last, and its {@link #history()} while tracked,
+ * kept up to date in place (never allocated per tick) by the features themselves, not through the event bus. Runtime
+ * only, never saved.
  */
 public final class CitizenVitals {
     private @Nullable CitizenState aiState;
@@ -22,6 +24,7 @@ public final class CitizenVitals {
     private @Nullable EndedWalk lastWalkEnd;
     private StuckHandler.@Nullable Action lastStuck;
     private long lastStuckTick;
+    private @Nullable CitizenHistory history;
 
     /** The citizen AI's state; empty before its AI was made. */
     public Optional<CitizenState> aiState() {
@@ -76,6 +79,39 @@ public final class CitizenVitals {
     /** The tick of the stuck handler's last action. */
     public long lastStuckTick() {
         return lastStuckTick;
+    }
+
+    /**
+     * Keeps this citizen's {@link #history()} until the returned tracking closes; world thread. The history starts
+     * empty unless another tracking still holds it.
+     */
+    public CitizenHistory.Tracking track() {
+        CitizenHistory h = keepsHistory() ? history : null;
+        if (h == null) {
+            h = new CitizenHistory();
+            history = h;
+        }
+        return h.track();
+    }
+
+    /** Its last transitions, walk ends and stuck actions, oldest first; empty while no tracking is open. */
+    public List<HistoryEntry> history() {
+        return keepsHistory() && history != null ? history.entries() : List.of();
+    }
+
+    /** Whether a tracking is open; drops the history once all are closed, so an untracked citizen holds none. */
+    boolean keepsHistory() {
+        if (history != null && !history.tracked()) {
+            history = null;
+        }
+        return history != null;
+    }
+
+    /** Notes {@code entry} in its history; the caller builds it only while {@link #keepsHistory()}. */
+    void note(HistoryEntry entry) {
+        if (history != null) {
+            history.add(entry);
+        }
     }
 
     /** The AI state without an Optional: the watch reads it each tick. */

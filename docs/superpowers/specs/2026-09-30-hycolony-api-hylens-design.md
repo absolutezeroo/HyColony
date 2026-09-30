@@ -206,7 +206,7 @@ Hors garde-fous : `settings.gradle.kts`, les `build.gradle.kts` des modules, `gr
 - Le bus d'événements permet de se désabonner, ce que celui de MC ne permet pas. Les deux isolent chaque abonné (MC `DefaultEventBus`).
 - Un appel à l'API hors du fil du monde lève une exception (§ 4.1).
 - Les événements portent leur cause (idée de Sponge). Ceux de MC non.
-- L'historique est horodaté en ticks, note aussi les marches, et n'est actif que pour un citoyen suivi. MC l'active d'office hors production (`BasicStateMachine`, `historyEnabled`).
+- L'historique est horodaté en ticks, note aussi les marches et les actions de l'anti-blocage, et n'est actif que pour un citoyen suivi. Un seul anneau de 20 entrées tient l'IA, le métier, les marches et l'anti-blocage. MC tient un anneau de 20 par machine d'états (celle du citoyen, celle du métier), horodaté à l'heure réelle, et l'active d'office hors production (`BasicStateMachine`, `historyEnabled`), pour un joueur en mode débogage qui interagit avec le citoyen (`EntityCitizen`), et à la première exception de l'IA.
 - **Ajouts sans équivalent dans MC** : le contrôle des invariants (MC n'a que `debuginventories`), la pause et le pas à pas de la colonie, `forceLeisure` et `respawnBody`, `WalkEnded` et `StuckAction`.
 - `walkTo` : l'attente de 100 ticks remplace la pause de navigation de MC (§ 5).
 

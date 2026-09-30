@@ -29,7 +29,11 @@ public final class AiWatch {
         CitizenVitals v = citizen.vitals();
         CitizenState before = v.rawAiState();
         if (state != before) {
-            v.aiState(state, colony.context().clock().currentTick());
+            long now = colony.context().clock().currentTick();
+            v.aiState(state, now);
+            if (v.keepsHistory()) {
+                v.note(HistoryEntry.aiState(now, before, state));
+            }
             EventBus bus = colony.context().bus();
             if (before != null && bus.hasListeners(CitizenDebugEvents.AiStateChanged.class)) {
                 bus.post(new CitizenDebugEvents.AiStateChanged(colony, citizen, before, state));
@@ -47,9 +51,8 @@ public final class AiWatch {
         CitizenVitals v = citizen.vitals();
         String before = v.rawJobStep();
         v.jobStep(null, colony.context().clock().currentTick());
-        EventBus bus = colony.context().bus();
-        if (before != null && bus.hasListeners(CitizenDebugEvents.JobStepChanged.class)) {
-            bus.post(new CitizenDebugEvents.JobStepChanged(colony, citizen, before, ""));
+        if (before != null) {
+            stepChanged(v, before, "");
         }
     }
 
@@ -63,15 +66,22 @@ public final class AiWatch {
         String before = v.rawJobStep();
         if (!Objects.equals(step, before)) {
             v.jobStep(step, colony.context().clock().currentTick());
-            EventBus bus = colony.context().bus();
-            if (bus.hasListeners(CitizenDebugEvents.JobStepChanged.class)) {
-                bus.post(new CitizenDebugEvents.JobStepChanged(
-                        colony, citizen, before == null ? "" : before, step == null ? "" : step));
-            }
+            stepChanged(v, before == null ? "" : before, step == null ? "" : step);
         }
         if (job != null && job.failures() > seenFailures) {
             v.jobFailed(job.failures() - seenFailures);
             seenFailures = job.failures();
+        }
+    }
+
+    /** Notes a job step change in the history of a tracked citizen, and posts it to who listens. */
+    private void stepChanged(CitizenVitals v, String from, String to) {
+        if (v.keepsHistory()) {
+            v.note(HistoryEntry.jobStep(v.jobStepSince(), from, to));
+        }
+        EventBus bus = colony.context().bus();
+        if (bus.hasListeners(CitizenDebugEvents.JobStepChanged.class)) {
+            bus.post(new CitizenDebugEvents.JobStepChanged(colony, citizen, from, to));
         }
     }
 }
