@@ -213,15 +213,20 @@ final class FarmWork {
     }
 
     /**
-     * MC checkIfRequestForItemExistOrCreateAsync: a hut request for {@code item} unless one is already open or
-     * completed. Deviation from MC: filed for the hut, not the citizen, so that the farmer does not wait for it (MC's
-     * async request); what is delivered is taken from the hut at the next preparation, without MC's NEEDS_ITEM.
+     * MC checkIfRequestForItemExistOrCreateAsync: a hut request for {@code item} unless one is still open. Called once
+     * none is carried nor in the hut, so a completed one was delivered and used up: it is received (MC cleanAsync /
+     * markRequestAsAccepted) and the item asked for again. Deviation from MC: filed for the hut, not the citizen, so
+     * that the farmer does not wait for it (MC's async request); what is delivered is taken from the hut at the next
+     * preparation, without MC's NEEDS_ITEM.
      */
     private void askOnce(ItemKey item, int count) {
         for (Request r : ctx.colony().requests().byRequester(ctx.hut().requesterId())) {
-            if (r.requestable() instanceof StackRequest s
-                    && s.item().equals(item)
-                    && r.state().isBefore(RequestState.RECEIVED)) {
+            if (!(r.requestable() instanceof StackRequest s) || !s.item().equals(item)) {
+                continue;
+            }
+            if (r.state() == RequestState.COMPLETED) {
+                ctx.colony().requests().updateState(r.token(), RequestState.RECEIVED);
+            } else if (r.state().isBefore(RequestState.COMPLETED)) {
                 return;
             }
         }

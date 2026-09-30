@@ -9,7 +9,11 @@ import dev.hycolony.core.farming.field.FarmField;
 import dev.hycolony.core.farming.field.FieldRadii;
 import dev.hycolony.core.farming.field.FieldStage;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.item.ItemAmount;
+import dev.hycolony.core.request.Request;
+import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.ToolRequest;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
@@ -111,6 +115,49 @@ class FarmWorkPrepareTest extends FarmerTestBase {
         work.prepare();
 
         assertEquals(1, requestsFor(SEEDS).size());
+    }
+
+    /** MC cleanAsync / markRequestAsAccepted: a delivered request is received, so the item is asked for again. */
+    @Test
+    void seedsAreAskedAgainOnceTheDeliveredOnesAreUsedUp() {
+        FarmField f = field(true);
+        give(HOE, 1);
+        give(FERTILIZER, 1);
+        f.nextStage();
+        work.prepare(); // none anywhere: asks, skips planting
+        Request first = requestsFor(SEEDS).get(0);
+        colony.requests().overrule(first.token(), List.of(new ItemAmount(SEEDS, 64))); // a player supplies them
+        putInHut(SEEDS, 64);
+        f.nextStage();
+        f.nextStage(); // PLANTED, EMPTY, then HOED again
+        work.prepare(); // takes the delivered seeds
+        assertEquals(64, carried(SEEDS));
+        citizen.inventory().extract(SEEDS, 64); // all planted
+
+        work.prepare();
+
+        assertEquals(
+                1,
+                requestsFor(SEEDS).stream()
+                        .filter(r -> r.state().isBefore(RequestState.COMPLETED))
+                        .count());
+    }
+
+    @Test
+    void fertilizerIsAskedAgainOnceTheDeliveredOneIsUsedUp() {
+        field(true);
+        give(HOE, 1);
+        work.prepare();
+        Request first = requestsFor(FERTILIZER).get(0);
+        colony.requests().overrule(first.token(), List.of(new ItemAmount(FERTILIZER, 1)));
+
+        work.prepare(); // none carried nor in the hut: the delivered one is spent
+
+        assertEquals(
+                1,
+                requestsFor(FERTILIZER).stream()
+                        .filter(r -> r.state().isBefore(RequestState.COMPLETED))
+                        .count());
     }
 
     @Test
