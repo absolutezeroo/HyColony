@@ -98,7 +98,7 @@ public final class HutBlockSystems {
                 }
                 ColonyManager m = rt.manager();
                 BlockPos pos = pos(event.getTargetBlock());
-                int rotation = event.getRotation().yaw().ordinal();
+                int rotation = event.getRotation().yaw().getValue(); // saved: the declared value, not the ordinal
                 HutPlacement result = m.huts().checkPlacement(player.getUuid(), pos, type.id());
                 switch (result) {
                     case HutPlacement.Denied denied -> {
