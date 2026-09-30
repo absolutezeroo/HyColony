@@ -28,6 +28,8 @@ public final class CitizenManager {
     private final Map<Integer, CitizenData> citizens = new TreeMap<>();
     private final Map<Integer, BodyId> bodies = new HashMap<>();
     private final Map<Integer, CitizenAI> ais = new HashMap<>();
+    private final FailedRespawns failedRespawns = new FailedRespawns();
+
     private int respawnInterval = INITIAL_SPAWN_FIRST;
     private int citizenRespawnTimer = RESPAWN_CHECK_TICKS;
     private boolean failNextTick;
@@ -54,6 +56,16 @@ public final class CitizenManager {
 
     public Optional<CitizenState> aiState(int id) {
         return Optional.ofNullable(ais.get(id)).map(CitizenAI::state);
+    }
+
+    /** The citizens whose respawn keeps failing; for diagnostics. */
+    public FailedRespawns failedRespawns() {
+        return failedRespawns;
+    }
+
+    /** Citizen {@code id}'s AI, while its body is loaded; for diagnostics. */
+    public Optional<CitizenAI> ai(int id) {
+        return Optional.ofNullable(ais.get(id));
     }
 
     public Optional<Msg> jobActivity(int id) {
@@ -165,7 +177,8 @@ public final class CitizenManager {
     /**
      * MC CitizenData.updateEntityIfNecessary and spawnOrCreateCivilian: a citizen without a living body gets one at the
      * first of its respawn position, last position, work building and home that is loaded and has room for it; the
-     * town hall (else the colony's centre) when it has none. Nothing while none fits.
+     * town hall (else the colony's centre) when it has none. Nothing while none fits: {@link #failedRespawns()} then
+     * notes it, unless none was loaded.
      */
     private void updateBodyIfNecessary(CitizenData data) {
         BodyId body = bodies.get(data.id());
@@ -180,11 +193,16 @@ public final class CitizenManager {
         if (candidates.isEmpty()) {
             candidates.add(colony.buildings().townHall().map(Building::position).orElse(colony.center()));
         }
+        boolean tried = false;
         for (BlockPos at : candidates) {
-            if (ctx().worldQuery().isLoaded(at) && spawnBody(data, at)) {
-                return; // else MC tries the next one (getSpawnPoint found no room)
+            if (ctx().worldQuery().isLoaded(at)) {
+                tried = true;
+                if (spawnBody(data, at)) {
+                    return; // else MC tries the next one (getSpawnPoint found no room)
+                }
             }
         }
+        failedRespawns.checked(data.id(), tried, ctx().clock().currentTick()); // each loaded spot refused it
     }
 
     /** Spawns and binds a body near {@code near}; false when none could appear there. */
@@ -201,6 +219,7 @@ public final class CitizenManager {
     }
 
     private void bind(CitizenData data, BodyId body) {
+        failedRespawns.bodied(data.id());
         bodies.put(data.id(), body);
         ais.put(data.id(), new CitizenAI(colony, data, body));
     }

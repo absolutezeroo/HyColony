@@ -1,16 +1,14 @@
 package dev.hycolony.core.citizen.vitals;
 
 import dev.hycolony.core.citizen.CitizenState;
-import dev.hycolony.core.kernel.BlockPos;
-import dev.hycolony.core.kernel.nav.StuckHandler;
 import java.util.List;
 import java.util.Optional;
 import org.jspecify.annotations.Nullable;
 
 /**
- * A citizen's vital signs, for diagnostics: what its AI and walks did last, and its {@link #history()} while tracked,
- * kept up to date in place (never allocated per tick) by the features themselves, not through the event bus. Runtime
- * only, never saved.
+ * A citizen's vital signs, for diagnostics: what its AI did last, its {@link #walks()}, and its {@link #history()}
+ * while tracked, kept up to date in place (never allocated per tick) by the features themselves, not through the event
+ * bus. Runtime only, never saved.
  */
 public final class CitizenVitals {
     private @Nullable CitizenState aiState;
@@ -19,11 +17,8 @@ public final class CitizenVitals {
     private long jobStepSince;
     private int aiFailures;
     private int jobFailures;
-    private @Nullable BlockPos walkTarget;
-    private long walkStartTick;
-    private @Nullable EndedWalk lastWalkEnd;
-    private StuckHandler.@Nullable Action lastStuck;
-    private long lastStuckTick;
+    private long lastActionTick;
+    private final WalkVitals walks = new WalkVitals();
     private @Nullable CitizenHistory history;
 
     /** The citizen AI's state; empty before its AI was made. */
@@ -56,29 +51,14 @@ public final class CitizenVitals {
         return jobFailures;
     }
 
-    /** What its last started walk goes to; empty before any. */
-    public Optional<BlockPos> walkTarget() {
-        return Optional.ofNullable(walkTarget);
+    /** The tick its job last counted an action (MC {@code actionsDone}): a block placed, a cell hoed, a craft. */
+    public long lastActionTick() {
+        return lastActionTick;
     }
 
-    /** The tick its last walk started. */
-    public long walkStartTick() {
-        return walkStartTick;
-    }
-
-    /** How its last ended walk ended, with that walk's own target; empty before any. */
-    public Optional<EndedWalk> lastWalkEnd() {
-        return Optional.ofNullable(lastWalkEnd);
-    }
-
-    /** The stuck handler's last action on its walks; empty before any. */
-    public Optional<StuckHandler.Action> lastStuck() {
-        return Optional.ofNullable(lastStuck);
-    }
-
-    /** The tick of the stuck handler's last action. */
-    public long lastStuckTick() {
-        return lastStuckTick;
+    /** Its walks: the last one started and ended, and the stuck handler's last action. */
+    public WalkVitals walks() {
+        return walks;
     }
 
     /**
@@ -144,17 +124,7 @@ public final class CitizenVitals {
         jobFailures += more;
     }
 
-    void walkStarted(BlockPos target, long tick) {
-        walkTarget = target;
-        walkStartTick = tick;
-    }
-
-    void walkEnded(EndedWalk end) {
-        lastWalkEnd = end;
-    }
-
-    void stuck(StuckHandler.Action action, long tick) {
-        lastStuck = action;
-        lastStuckTick = tick;
+    void acted(long tick) {
+        lastActionTick = tick;
     }
 }

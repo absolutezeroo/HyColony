@@ -21,7 +21,9 @@ import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
-/** MC EntityAIWorkDeliveryman: decide, dump, working state, speed and finishRequest; the rain rule through CitizenAI. */
+/**
+ * MC EntityAIWorkDeliveryman: decide, dump, working state, speed and finishRequest; the rain rule through CitizenAI.
+ */
 class DeliverymanAITest extends CourierAITestBase {
     @Test
     void withoutTaskItWaitsAtTheWarehouse() {
@@ -31,6 +33,22 @@ class DeliverymanAITest extends CourierAITestBase {
 
         assertEquals("START_WORKING", ai.stateName());
         assertTrue(Vec3.center(warehouse.position()).distance(t.bodies.bodies.get(body).position) < 3);
+        assertTrue(ai.waiting(), "waiting for a task is legitimate: its step may last");
+        assertFalse(ai.servesQueueHead());
+        job.mutableQueue().add(RequestToken.random());
+        assertFalse(ai.waiting(), "a task queued: it has work");
+    }
+
+    @Test
+    void aDeliveryServesTheHeadOfItsQueue() {
+        hire();
+        put(RACK, STONE, 5);
+        RequestToken task = delivery(RACK, STONE, 5);
+
+        runUntil(() -> ai.servesQueueHead());
+
+        assertEquals(task, ai.queue().getFirst());
+        assertFalse(ai.waiting());
     }
 
     @Test
@@ -62,7 +80,7 @@ class DeliverymanAITest extends CourierAITestBase {
         assertEquals(List.of(inside), t.bodies.teleports, "stuck on the roof, it is brought inside as MC does");
         assertEquals(
                 Optional.of(WalkEnd.TELEPORTED),
-                citizen.vitals().lastWalkEnd().map(EndedWalk::how),
+                citizen.vitals().walks().lastEnd().map(EndedWalk::how),
                 "its walker reports to its vital signs");
         assertEquals(4, t.containers.count(warehouse.containers(), LOG));
     }

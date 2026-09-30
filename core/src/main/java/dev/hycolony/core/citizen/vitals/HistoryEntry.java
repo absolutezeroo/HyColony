@@ -5,7 +5,6 @@ import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.nav.StuckHandler;
 import dev.hycolony.core.kernel.port.Msg;
-import java.util.Locale;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -41,7 +40,7 @@ public record HistoryEntry(long tick, Kind kind, String from, String to, Msg det
 
     /** A walk ended: what it went to, how, where the body stood and how far from its goal. */
     static HistoryEntry walkEnded(EndedWalk walk) {
-        String target = text(walk.target());
+        String target = DebugText.pos(walk.target());
         String how = walk.how().name();
         return new HistoryEntry(
                 walk.tick(),
@@ -52,30 +51,22 @@ public record HistoryEntry(long tick, Kind kind, String from, String to, Msg det
                         "hycolony.debug.history.walkEnded",
                         target,
                         how,
-                        text(walk.at()),
-                        String.format(Locale.ROOT, "%.1f", walk.distance())));
+                        DebugText.pos(walk.at()),
+                        DebugText.decimal(walk.distance())));
     }
 
     /** The stuck handler took {@code action} on the walk to {@code target}, the body at {@code at}. */
     static HistoryEntry stuck(long tick, BlockPos target, Vec3 at, StuckHandler.Action action) {
-        String to = text(target);
+        String to = DebugText.pos(target);
         return new HistoryEntry(
                 tick,
                 Kind.STUCK,
                 to,
                 action.name(),
-                Msg.of("hycolony.debug.history.stuck", to, text(at), action.name()));
+                Msg.of("hycolony.debug.history.stuck", to, DebugText.pos(at), action.name()));
     }
 
     private static String shown(String step) {
         return step.isEmpty() ? "-" : step;
-    }
-
-    private static String text(BlockPos p) {
-        return p.x() + " " + p.y() + " " + p.z();
-    }
-
-    private static String text(Vec3 v) {
-        return String.format(Locale.ROOT, "%.1f %.1f %.1f", v.x(), v.y(), v.z());
     }
 }

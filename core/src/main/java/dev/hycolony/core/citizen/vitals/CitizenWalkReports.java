@@ -26,14 +26,14 @@ public final class CitizenWalkReports implements WalkListener {
 
     @Override
     public void walkStarted(BlockPos target, Vec3 from) {
-        citizen.vitals().walkStarted(target, now());
+        citizen.vitals().walks().started(target, now());
     }
 
     @Override
     public void walkEnded(BlockPos target, Vec3 at, WalkEnd how, double distance, NavStatus nav) {
         EndedWalk end = new EndedWalk(target, how, at, distance, nav, now());
         CitizenVitals v = citizen.vitals();
-        v.walkEnded(end);
+        v.walks().ended(end);
         if (v.keepsHistory()) {
             v.note(HistoryEntry.walkEnded(end));
         }
@@ -47,7 +47,7 @@ public final class CitizenWalkReports implements WalkListener {
     public void stuck(BlockPos target, Vec3 at, StuckHandler.Action action) {
         long now = now();
         CitizenVitals v = citizen.vitals();
-        v.stuck(action, now);
+        v.walks().stuck(action, now);
         if (v.keepsHistory()) {
             v.note(HistoryEntry.stuck(now, target, at, action));
         }

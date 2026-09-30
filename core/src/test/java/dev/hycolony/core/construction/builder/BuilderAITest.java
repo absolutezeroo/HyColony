@@ -279,7 +279,10 @@ class BuilderAITest {
 
         assertFalse(gone(o), "an unloaded cell was skipped");
         assertEquals(Stage.CLEAR, o.stage());
+        assertTrue(ai.waiting(), "waiting for a chunk is legitimate: its step may last");
         t.blocks.unloaded.clear();
+        tickUntil(() -> !t.blocks.blocks.containsKey(at(1, 1, 0)), 5000);
+        assertFalse(ai.waiting(), "the cell loaded: it no longer waits");
         tickUntil(() -> gone(o), 5000);
         assertFalse(t.blocks.blocks.containsKey(at(1, 1, 0)));
         assertEquals(new BlockState(STONE, 0), t.blocks.blocks.get(at(2, 1, 0)));
@@ -315,7 +318,7 @@ class BuilderAITest {
         assertEquals(List.of(at(2, 0, 0), at(2, 1, 0), at(1, 0, 0)), t.blocks.placed);
         assertEquals(0, citizen.inventory().count(STONE_I));
         assertEquals(0, citizen.inventory().count(TORCH_I));
-        assertTrue(citizen.vitals().lastWalkEnd().isPresent(), "its walker reports to its vital signs");
+        assertTrue(citizen.vitals().walks().lastEnd().isPresent(), "its walker reports to its vital signs");
     }
 
     @Test
@@ -455,8 +458,10 @@ class BuilderAITest {
         give(bi, 5);
         order(res, WorkOrderType.UPGRADE);
 
+        assertFalse(ai.waiting());
         tick(400);
         assertEquals("NEEDS_ITEM", ai.stateName());
+        assertTrue(ai.waiting(), "waiting for its items is legitimate: its step may last");
         tick(2000);
 
         List<Request> reqs = builderRequests();

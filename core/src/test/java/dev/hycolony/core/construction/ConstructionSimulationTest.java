@@ -19,6 +19,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.app.HutPlacement;
+import dev.hycolony.core.app.diagnostics.Invariants;
+import dev.hycolony.core.app.diagnostics.Violation;
+import dev.hycolony.core.app.diagnostics.ViolationWatch;
 import dev.hycolony.core.app.ui.BuildingView;
 import dev.hycolony.core.app.ui.RequestsView;
 import dev.hycolony.core.building.Building;
@@ -102,6 +105,10 @@ class ConstructionSimulationTest {
     private final Map<RequestToken, Request> seen = new LinkedHashMap<>();
     /** Every resolver each request was seen with. */
     private final Map<RequestToken, Set<String>> resolversSeen = new HashMap<>();
+    /** The invariants that last, checked every tick (spec 2026-09-30, § 5). */
+    private final ViolationWatch invariants = new ViolationWatch();
+    /** The first lasting broken invariant met, per code and citizen. */
+    private final Map<String, Violation> violations = new LinkedHashMap<>();
     /** The player supplies the clipboard's requests every second. */
     private boolean autoFulfil = true;
 
@@ -142,6 +149,11 @@ class ConstructionSimulationTest {
         colony = manager.foundation().confirm(alice, "Simulation").orElseThrow();
         watch(colony);
         t.blocks.blocks.put(TOWN_HALL, state(HUT_BLOCK));
+    }
+
+    @AfterEach
+    void noBrokenInvariants() {
+        assertEquals(List.of(), List.copyOf(violations.values()), "broken invariants");
     }
 
     @AfterEach
@@ -205,6 +217,9 @@ class ConstructionSimulationTest {
                     .ifPresent(res -> resolversSeen
                             .computeIfAbsent(r.token(), k -> new HashSet<>())
                             .add(res.resolverId()));
+        }
+        for (Violation v : invariants.confirmed(Invariants.check(colony), t.clock.tick)) {
+            violations.putIfAbsent(v.code() + " " + v.citizen(), v);
         }
         if (autoFulfil && t.clock.tick % 20 == 0) {
             fulfilAll();
@@ -626,6 +641,7 @@ class ConstructionSimulationTest {
         assertTrue(placed > 500, "the builder kept building: " + placed);
         assertTrue(avgMs < 2.0, "avg colony tick " + avgMs + " ms");
         assertTrue(slow <= 3, slow + " ticks over 5 ms"); // the plan's load, not a steady cost
+        assertEquals(List.of(), Invariants.check(colony), "a builder placing its blocks is never stale");
     }
 
     @Test

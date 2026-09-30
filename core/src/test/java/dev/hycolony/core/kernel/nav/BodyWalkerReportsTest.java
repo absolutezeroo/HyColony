@@ -33,7 +33,7 @@ class BodyWalkerReportsTest {
         @Override
         public void walkEnded(BlockPos target, Vec3 at, WalkEnd how, double distance, NavStatus nav) {
             heard.add(how + " " + Math.round(distance)
-                    + (how == WalkEnd.NAV_ENDED || how == WalkEnd.GAVE_UP ? " " + nav : ""));
+                    + (how == WalkEnd.NAV_ENDED || how == WalkEnd.IN_REACH || how == WalkEnd.GAVE_UP ? " " + nav : ""));
         }
 
         @Override
@@ -105,7 +105,7 @@ class BodyWalkerReportsTest {
 
         walker.walkCloseTo(STAND, HUT, 4, true); // 6 blocks is not 4: it walks again
 
-        assertEquals(List.of("start 1", "NAV_ENDED 6 BLOCKED", "start 1"), heard);
+        assertEquals(List.of("start 1", "IN_REACH 6 BLOCKED", "start 1"), heard);
     }
 
     @Test

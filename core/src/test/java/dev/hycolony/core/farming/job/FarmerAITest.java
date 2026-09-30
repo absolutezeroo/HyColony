@@ -1,6 +1,7 @@
 package dev.hycolony.core.farming.job;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.farming.CropState;
@@ -29,7 +30,7 @@ class FarmerAITest extends FarmerTestBase {
         JobAI ai = job.createAI(colony, body);
 
         runUntil(ai, () -> t.farming.tilled.containsAll(cells()));
-        assertTrue(job.citizen().vitals().lastWalkEnd().isPresent(), "its walker reports to its vital signs");
+        assertTrue(job.citizen().vitals().walks().lastEnd().isPresent(), "its walker reports to its vital signs");
     }
 
     @Test
@@ -102,6 +103,19 @@ class FarmerAITest extends FarmerTestBase {
         JobAI ai = job.createAI(colony, body);
 
         runUntil(ai, () -> colony.requests().get(token).isEmpty());
+    }
+
+    @Test
+    void farmerWaitingForItsItemsWaitsLegitimately() {
+        colony.requests()
+                .createAndAssign(
+                        hut, new StackRequest(SEEDS, 64, 1, true), job.citizen().id());
+        JobAI ai = job.createAI(colony, body);
+        assertFalse(ai.waiting());
+
+        runUntil(ai, () -> ai.stateName().equals("NEEDS_ITEM"));
+
+        assertTrue(ai.waiting(), "its step may last");
     }
 
     private void runUntil(JobAI ai, BooleanSupplier done) {

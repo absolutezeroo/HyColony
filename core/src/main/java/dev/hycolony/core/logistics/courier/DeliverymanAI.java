@@ -11,6 +11,8 @@ import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.logistics.warehouse.WarehouseStorage;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.model.Delivery;
+import dev.hycolony.core.request.model.RequestToken;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -71,6 +73,27 @@ final class DeliverymanAI implements JobAI {
     @Override
     public String stateName() {
         return machine.state().name();
+    }
+
+    /** Without a task, it waits at the warehouse for one (MC decide). */
+    @Override
+    public boolean waiting() {
+        return machine.state() == CourierState.START_WORKING
+                && ctx.job().taskQueue().isEmpty();
+    }
+
+    /** Preparing, delivering or picking up works on the head of its queue. */
+    @Override
+    public boolean servesQueueHead() {
+        return switch (machine.state()) {
+            case PREPARE_DELIVERY, DELIVERY, PICKUP -> true;
+            default -> false;
+        };
+    }
+
+    @Override
+    public List<RequestToken> queue() {
+        return ctx.job().taskQueue();
     }
 
     /** MC isOkayToEat of each registered target. */

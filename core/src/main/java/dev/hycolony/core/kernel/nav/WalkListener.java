@@ -21,8 +21,8 @@ public interface WalkListener {
     /**
      * The walk to {@code target} ended {@code how}, the body at {@code at}, {@code distance} blocks from what it walked
      * to (the block a close walk is for, else the target). {@code nav} is the nav's status when the walk ended
-     * ({@link WalkEnd#NAV_ENDED}, {@link WalkEnd#GAVE_UP}); {@code MOVING} when it ended close, without waiting for
-     * the nav.
+     * ({@link WalkEnd#NAV_ENDED}, {@link WalkEnd#IN_REACH}, {@link WalkEnd#GAVE_UP}); {@code MOVING} when it ended
+     * close, without waiting for the nav.
      */
     default void walkEnded(BlockPos target, Vec3 at, WalkEnd how, double distance, NavStatus nav) {}
 

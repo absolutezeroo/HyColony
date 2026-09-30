@@ -75,7 +75,7 @@ public final class CitizenAI {
                 colony.context().ports().blocks(), colony.context().ports().catalog());
         this.watch = new AiWatch(colony, data);
         this.machine = new TickRateStateMachine<>(CitizenState.IDLE, this::onException);
-        watch.afterTick(CitizenState.IDLE, null); // its vital signs know where it starts
+        watch.afterTick(CitizenState.IDLE, null, 0); // its vital signs know where it starts
         machine.addTransition(
                 new AITarget<>(CitizenState.IDLE, (IStateSupplier<CitizenState>) this::idle, DECIDE_INTERVAL_TICKS));
         machine.addTransition(
@@ -86,14 +86,19 @@ public final class CitizenAI {
         bodies.setMovementSpeed(body, 1);
     }
 
-    /** One AI tick; then its vital signs note the state, the job step and failures (diagnostics). */
+    /** One AI tick; then its vital signs note the state, the job step, failures and actions (diagnostics). */
     public void tick() {
         machine.tick();
-        watch.afterTick(machine.getState(), jobAI);
+        watch.afterTick(machine.getState(), jobAI, aiJob == null ? 0 : aiJob.actionsDone());
     }
 
     public CitizenState state() {
         return machine.getState();
+    }
+
+    /** Its job's AI, while it has a job; for diagnostics. */
+    public Optional<JobAI> jobAi() {
+        return Optional.ofNullable(jobAI);
     }
 
     /** The job AI's own line while working. */

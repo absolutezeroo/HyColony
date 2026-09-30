@@ -104,10 +104,10 @@ class CitizenVitalsTest {
         walks.walkEnded(HUT, ROOF, WalkEnd.NAV_ENDED, 5.0, NavStatus.ARRIVED);
 
         CitizenVitals v = citizen.vitals();
-        assertEquals(Optional.of(HUT), v.walkTarget());
+        assertEquals(Optional.of(HUT), v.walks().target());
         assertEquals(
                 Optional.of(new EndedWalk(HUT, WalkEnd.NAV_ENDED, ROOF, 5.0, NavStatus.ARRIVED, 160)),
-                v.lastWalkEnd(),
+                v.walks().lastEnd(),
                 "the nav said it arrived, on the roof");
         assertFalse(t.bus.hasListeners(CitizenDebugEvents.WalkEnded.class), "diagnostics never listen to the bus");
     }
@@ -131,8 +131,10 @@ class CitizenVitalsTest {
 
         walks.stuck(HUT, ROOF, StuckHandler.Action.TELEPORT);
 
-        assertEquals(Optional.of(StuckHandler.Action.TELEPORT), citizen.vitals().lastStuck());
-        assertEquals(42, citizen.vitals().lastStuckTick());
+        assertEquals(
+                Optional.of(StuckHandler.Action.TELEPORT),
+                citizen.vitals().walks().lastStuck());
+        assertEquals(42, citizen.vitals().walks().lastStuckTick());
         assertEquals(1, heard.size());
     }
 
@@ -253,7 +255,7 @@ class CitizenVitalsTest {
 
         walks.walkStarted(next, ROOF);
 
-        assertEquals(Optional.of(HUT), citizen.vitals().lastWalkEnd().map(EndedWalk::target));
-        assertEquals(Optional.of(next), citizen.vitals().walkTarget());
+        assertEquals(Optional.of(HUT), citizen.vitals().walks().lastEnd().map(EndedWalk::target));
+        assertEquals(Optional.of(next), citizen.vitals().walks().target());
     }
 }

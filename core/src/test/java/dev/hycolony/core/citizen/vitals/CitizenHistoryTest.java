@@ -53,8 +53,8 @@ class CitizenHistoryTest {
 
     @Test
     void untrackedCitizenKeepsNoHistory() {
-        watch.afterTick(CitizenState.IDLE, null);
-        watch.afterTick(CitizenState.WORKING, job);
+        watch.afterTick(CitizenState.IDLE, null, 0);
+        watch.afterTick(CitizenState.WORKING, job, 0);
         walks.walkEnded(HUT, ROOF, WalkEnd.NAV_ENDED, 5.0, NavStatus.ARRIVED);
 
         assertFalse(citizen.vitals().keepsHistory(), "an untracked citizen allocates no history");
@@ -65,13 +65,13 @@ class CitizenHistoryTest {
     void trackedCitizenNotesItsTransitionsWithTheirTick() {
         citizen.vitals().track();
         t.clock.tick = 10;
-        watch.afterTick(CitizenState.IDLE, null);
+        watch.afterTick(CitizenState.IDLE, null, 0);
         t.clock.tick = 20;
-        watch.afterTick(CitizenState.WORKING, job);
+        watch.afterTick(CitizenState.WORKING, job, 0);
         t.clock.tick = 30;
-        watch.afterTick(CitizenState.WORKING, job); // nothing changed: nothing noted
+        watch.afterTick(CitizenState.WORKING, job, 0); // nothing changed: nothing noted
         step = "DELIVERY";
-        watch.afterTick(CitizenState.WORKING, job);
+        watch.afterTick(CitizenState.WORKING, job, 0);
 
         assertEquals(
                 List.of(
@@ -106,7 +106,7 @@ class CitizenHistoryTest {
     void newJobAiEndsTheOldStepInTheHistory() {
         citizen.vitals().track();
         t.clock.tick = 10;
-        watch.afterTick(CitizenState.WORKING, job);
+        watch.afterTick(CitizenState.WORKING, job, 0);
         t.clock.tick = 50;
 
         watch.jobStarted();
@@ -162,7 +162,7 @@ class CitizenHistoryTest {
         citizen.vitals().track();
         for (int i = 0; i < 25; i++) {
             step = "STEP_" + i;
-            watch.afterTick(CitizenState.WORKING, job);
+            watch.afterTick(CitizenState.WORKING, job, 0);
         }
 
         List<HistoryEntry> history = citizen.vitals().history();
@@ -174,11 +174,11 @@ class CitizenHistoryTest {
     @Test
     void closingTheTrackingStopsAndDropsTheHistory() {
         CitizenHistory.Tracking tracking = citizen.vitals().track();
-        watch.afterTick(CitizenState.IDLE, null);
+        watch.afterTick(CitizenState.IDLE, null, 0);
 
         tracking.close();
         tracking.close(); // idempotent
-        watch.afterTick(CitizenState.WORKING, job);
+        watch.afterTick(CitizenState.WORKING, job, 0);
 
         assertEquals(List.of(), citizen.vitals().history());
         assertFalse(citizen.vitals().keepsHistory(), "the history is dropped once no tracking is open");
@@ -187,7 +187,7 @@ class CitizenHistoryTest {
     @Test
     void trackingClosedFromAnotherThreadStopsTheHistory() throws InterruptedException {
         CitizenHistory.Tracking tracking = citizen.vitals().track();
-        watch.afterTick(CitizenState.IDLE, null);
+        watch.afterTick(CitizenState.IDLE, null, 0);
 
         Thread unloading = new Thread(tracking::close);
         unloading.start();
@@ -199,12 +199,12 @@ class CitizenHistoryTest {
     @Test
     void historyLastsWhileTheFirstTrackingIsOpen() {
         CitizenHistory.Tracking first = citizen.vitals().track();
-        watch.afterTick(CitizenState.IDLE, null);
+        watch.afterTick(CitizenState.IDLE, null, 0);
         CitizenHistory.Tracking second = citizen.vitals().track();
 
         assertEquals(1, citizen.vitals().history().size(), "a second tracker sees what was noted before it");
         second.close();
-        watch.afterTick(CitizenState.WORKING, job);
+        watch.afterTick(CitizenState.WORKING, job, 0);
 
         assertEquals(3, citizen.vitals().history().size(), "the first tracker still keeps it");
         first.close();
@@ -215,10 +215,10 @@ class CitizenHistoryTest {
     void historyLastsWhileTheSecondTrackingIsOpen() {
         CitizenHistory.Tracking first = citizen.vitals().track();
         CitizenHistory.Tracking second = citizen.vitals().track();
-        watch.afterTick(CitizenState.IDLE, null);
+        watch.afterTick(CitizenState.IDLE, null, 0);
 
         first.close();
-        watch.afterTick(CitizenState.WORKING, job);
+        watch.afterTick(CitizenState.WORKING, job, 0);
 
         assertEquals(3, citizen.vitals().history().size(), "the second tracker still keeps it");
         second.close();
@@ -228,7 +228,7 @@ class CitizenHistoryTest {
     @Test
     void newTrackingAfterAllClosedStartsEmpty() {
         CitizenHistory.Tracking old = citizen.vitals().track();
-        watch.afterTick(CitizenState.IDLE, null);
+        watch.afterTick(CitizenState.IDLE, null, 0);
         old.close();
 
         citizen.vitals().track();

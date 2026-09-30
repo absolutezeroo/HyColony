@@ -122,6 +122,12 @@ final class FarmerAI implements JobAI {
         return machine.state().isOkayToEat();
     }
 
+    /** Waiting for the items it asked for (NEEDS_ITEM) lasts as long as their delivery. */
+    @Override
+    public boolean waiting() {
+        return machine.state() == FarmerState.NEEDS_ITEM;
+    }
+
     /** MC canGoIdle: with no field to work today, idle when no crafting task either. */
     @Override
     public boolean canGoIdle() {

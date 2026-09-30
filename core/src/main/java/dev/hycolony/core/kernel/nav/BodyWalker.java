@@ -162,7 +162,7 @@ public final class BodyWalker {
         if (desired == null) {
             settled = to;
         }
-        ended(to, p, desired, WalkEnd.NAV_ENDED, nav);
+        ended(to, p, desired, desired == null ? WalkEnd.NAV_ENDED : WalkEnd.IN_REACH, nav);
         return true;
     }
 

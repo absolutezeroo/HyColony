@@ -29,6 +29,8 @@ public final class BuilderAI implements JobAI {
     private final BuilderGathering gathering;
     private final StructureLoader loader;
     private final WorkerMachine<BuilderState> machine;
+    /** Whether its last building step found the next cell of its plan unloaded, and waits for it. */
+    private boolean waitingForChunk;
 
     BuilderAI(BuilderContext ctx) {
         this.ctx = ctx;
@@ -99,6 +101,13 @@ public final class BuilderAI implements JobAI {
             case IDLE, START_WORKING, NEEDS_ITEM, GATHERING_REQUIRED_MATERIALS -> true;
             default -> false;
         };
+    }
+
+    /** Waiting for the items it asked for (NEEDS_ITEM), or for a cell of its plan to load, lasts as it must. */
+    @Override
+    public boolean waiting() {
+        BuilderState s = machine.state();
+        return s == BuilderState.NEEDS_ITEM || (s == BuilderState.BUILDING_STEP && waitingForChunk);
     }
 
     /** MC EntityAIStructureBuilder.canGoIdle: true when its hut has no active work order. */
@@ -186,6 +195,7 @@ public final class BuilderAI implements JobAI {
 
     /** One step: find the next position of the current stage that needs work, from the saved progress. */
     private @Nullable BuilderState structureStep() {
+        waitingForChunk = false;
         if (!site.loaded()) {
             return BuilderState.START_WORKING;
         }
@@ -215,6 +225,7 @@ public final class BuilderAI implements JobAI {
             // loads any other chunk on access; Hytale does not, so every unloaded cell of the plan is waited for
             // instead of being skipped (the order would complete with holes). MC goes IDLE meanwhile; the builder
             // stays in BUILDING_STEP here, so it takes no break while it waits.
+            waitingForChunk = true;
             return null;
         }
         return blockWork.work(stage, i);

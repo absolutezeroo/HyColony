@@ -18,14 +18,19 @@ public final class AiWatch {
     private final CitizenData citizen;
     /** The failures the current job AI had when last watched. */
     private int seenFailures;
+    /** Its job's action count when last watched. */
+    private int seenActions;
 
     public AiWatch(Colony colony, CitizenData citizen) {
         this.colony = colony;
         this.citizen = citizen;
     }
 
-    /** After an AI tick: notes {@code state}, and {@code job}'s step and failures when it has a job AI. */
-    public void afterTick(CitizenState state, @Nullable JobAI job) {
+    /**
+     * After an AI tick: notes {@code state}, {@code job}'s step and failures when it has a job AI, and when its job's
+     * action count ({@code actionsDone}, 0 without a job) last changed.
+     */
+    public void afterTick(CitizenState state, @Nullable JobAI job, int actionsDone) {
         CitizenVitals v = citizen.vitals();
         CitizenState before = v.rawAiState();
         if (state != before) {
@@ -40,6 +45,10 @@ public final class AiWatch {
             }
         }
         watchJob(v, job);
+        if (actionsDone != seenActions) {
+            seenActions = actionsDone;
+            v.acted(colony.context().clock().currentTick());
+        }
     }
 
     /**
