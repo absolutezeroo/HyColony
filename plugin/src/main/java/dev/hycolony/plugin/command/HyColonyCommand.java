@@ -225,6 +225,7 @@ public final class HyColonyCommand extends AbstractCommandCollection {
             FarmerSelfTest.run(out, rt, ids);
             LogisticsSelfTest.run(out, rt, at);
             BodySelfTest.run(out, rt, world, at);
+            ApiSelfTest.run(out, world, store);
         }
 
         /** A colony file written then read back in a temporary folder. */

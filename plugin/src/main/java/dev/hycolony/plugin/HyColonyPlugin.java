@@ -13,6 +13,7 @@ import com.hypixel.hytale.server.npc.NPCPlugin;
 import dev.hyblockui.api.ConfigQuarantine;
 import dev.hycolony.core.kernel.config.ColonyConfig;
 import dev.hycolony.plugin.block.BlockSystems;
+import dev.hycolony.plugin.bridge.ApiBridge;
 import dev.hycolony.plugin.command.HyColonyCommand;
 import dev.hycolony.plugin.config.HyColonyConfig;
 import dev.hycolony.plugin.goggles.GogglesSystems;
@@ -53,6 +54,7 @@ public final class HyColonyPlugin extends JavaPlugin {
         // Sub-plugin asset packs must be registered here, before LoadAssetEvent (plugin-b-api § 21.1).
         packs = SubPlugins.load(this, config.get().subPlugins());
         WorldRuntimes worlds = new WorldRuntimes(RuntimeSetup.create(colonyConfig, packs));
+        ApiBridge api = ApiBridge.install(worlds);
         IdMap ids = worlds.setup().ids();
         GlowingBlock.useEffect(ids.highlightEffect());
 
@@ -61,7 +63,7 @@ public final class HyColonyPlugin extends JavaPlugin {
         registerSystems(worlds, ids);
         WandInteraction.register(this, worlds);
         getCommandRegistry().registerCommand(new HyColonyCommand(worlds, ids, colonyConfig.commands(), packs));
-        registerWorldEvents(worlds);
+        registerWorldEvents(worlds, api);
         getEventRegistry().register(PlayerDisconnectEvent.class, e -> onDisconnect(worlds, ids, e));
 
         getLogger().at(Level.INFO).log("HyColony setup complete");
@@ -83,16 +85,20 @@ public final class HyColonyPlugin extends JavaPlugin {
                         e -> GogglesSystems.onPlayerReady(worlds, ids.itemId("build_goggles"), e));
     }
 
-    /** Creates a runtime when a world starts, drops it when the world goes, and saves every one on shutdown. */
-    private void registerWorldEvents(WorldRuntimes worlds) {
+    /**
+     * Creates a runtime when a world starts, drops it when the world goes, and saves every one on shutdown; tells
+     * the api's world listeners.
+     */
+    private void registerWorldEvents(WorldRuntimes worlds, ApiBridge api) {
         // Assets (blocks, items, NPC roles) are all loaded once a world starts: validate ids there.
         // World.onStart dispatches this on the world thread: create the runtime inline, before any
         // chunk (and its citizen NPCs) loads, so CitizenBodyLifecycleSystem finds it.
-        getEventRegistry().registerGlobal(StartWorldEvent.class, e -> onWorldStart(worlds, e));
+        getEventRegistry().registerGlobal(StartWorldEvent.class, e -> onWorldStart(worlds, api, e));
         // LAST: another listener may still cancel the removal, and then the runtime must stay.
         getEventRegistry().registerGlobal(EventPriority.LAST, RemoveWorldEvent.class, e -> {
             if (!e.isCancelled()) { // an EXCEPTIONAL removal always reports not cancelled
                 worlds.remove(e.getWorld());
+                api.stopped(e.getWorld());
             }
         });
         getEventRegistry()
@@ -104,11 +110,14 @@ public final class HyColonyPlugin extends JavaPlugin {
     }
 
     /** Validates the ids and creates the world's runtime; a failure is logged SEVERE, never thrown. */
-    private void onWorldStart(WorldRuntimes worlds, StartWorldEvent e) {
+    private void onWorldStart(WorldRuntimes worlds, ApiBridge api, StartWorldEvent e) {
         try {
             worlds.enableIfIdsValid();
             HytaleBlueprintSource.prewarm(worlds.setup().styles()); // once, in the background: assets are loaded
             WorldRuntime created = worlds.create(e.getWorld());
+            if (created.enabled()) {
+                api.started(e.getWorld());
+            }
             getLogger()
                     .at(Level.INFO)
                     .log(
@@ -151,6 +160,7 @@ public final class HyColonyPlugin extends JavaPlugin {
 
     @Override
     protected void shutdown() {
+        ApiBridge.uninstall();
         packs.unregisterAssets();
     }
 

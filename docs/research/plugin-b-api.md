@@ -858,6 +858,17 @@ Sources U7 (0.7.0-pre.4). Contexte : `docs/research/structurize-placeholders.md`
 - `math/util/ChunkUtil.java` : `MIN_Y = 0`, `HEIGHT = 320`, `HEIGHT_SECTIONS = 10`. Une colonne a dix sections de 32 blocs ; aucune ne couvre y < 0 ni y ≥ 320, même une fois le chunk chargé.
 - Conséquence : « la section est-elle chargée ? » ne suffit pas pour savoir si une case est chargée. `HytaleWorldBlocks.isLoaded` répond `true` hors de cette hauteur, pour qu'aucune attente (chantier non chargé, `BuilderAI.structureStep`) ne dure toujours ; la pose y échoue ensuite, et la case est sautée comme avant.
 
+## 35. L'API de HyColony pour d'autres mods : arrêt du propriétaire, fil, pause (2026-09-30)
+
+Tâche 6 du plan `2026-09-30-hycolony-api-hylens.md`, sources de 0.7.0-pre.4.
+
+- **Lier un nettoyage à l'arrêt d'un autre plugin.** `EventRegistry.register(EventRegistration<K, E>)` exige `E extends IBaseEvent<K>` (`event/EventRegistry.java`). `IBaseEvent<K>` est une interface vide (`event/IBaseEvent.java`), donc une classe marqueur jamais publiée suffit. Le constructeur `EventRegistration(Class<E>, BooleanSupplier isEnabled, Runnable unregister)` (`event/EventRegistration.java`) prend le nettoyage en `Runnable`.
+- **Quand ce nettoyage tourne.** `Registry.register` ajoute la désinscription aux `shutdownTasks` du plugin, une `CopyOnWriteArrayList` sûre entre fils (`registry/Registry.java`, `server/core/plugin/PluginBase.java`). À l'arrêt, `PluginBase.shutdown0` passe en `SHUTDOWN`, puis `cleanup` coupe les registres et lance chaque tâche dans l'ordre inverse, sur le fil qui arrête le plugin. Une inscription faite après l'arrêt lance le nettoyage, puis lève `IllegalStateException("Registry is not enabled!")`. `PluginBase.state` n'est pas `volatile` : un autre fil ne peut pas le lire sans risque.
+- **Identifier une instance de plugin.** `PluginBase.getIdentifier()` rend un `PluginIdentifier`. HyColony y ajoute l'`identityHashCode` de l'instance : un plugin rechargé est un autre propriétaire (`bridge/OwnerBinding.key`).
+- **Fil du monde.** `World.isInThread()` existe (`server/core/universe/world/World.java`, via `IWorldChunks`). `ComponentAccessor.getExternalData()` rend l'`EntityStore`, dont `getWorld()` donne le monde d'une entité (`component/ComponentAccessor.java`, `.../storage/EntityStore.java:177`). `Ref.isValid()` (`component/Ref.java:125`).
+- **Arrêter un citoyen sans `Frozen`.** Notre `MoveTarget` (`plugin/npc`) pilote le `Seek` du rôle. `mt.active = false` arrête la marche, comme le fait déjà `lookAt`, et `navStatus` rend alors IDLE. Une marche simple repart au tick suivant, puisque le statut n'est plus MOVING ; une marche vers un bloc compte IDLE comme une navigation finie, et s'arrête là si elle est déjà à portée (`BodyWalker.navDone`). Pendant le pas à pas, les pas tournent au rythme du temps et les corps ne sont arrêtés qu'une fois les pas épuisés : arrêtés à chaque pas, ils ne bougeraient jamais, et l'anti-blocage finirait par les téléporter. `Frozen` n'est pas employé, car il est sauvegardé avec le PNJ. Effet en jeu : **[in-game]**.
+- **Autosauvegarde en pause.** L'horloge du cœur (`HytaleGameClock`) n'avance qu'avec les ticks du cœur. `WorldRuntime.runCore` compte donc les ticks dus à part pour sauvegarder, en pause ou non.
+
 ## Could not verify
 
 1. **Client rendering of item animations on NPCs** (`AnimationSlot.Action` with `"Block"/"Build"` or `"Pickaxe"/"Mine"` on `PlayerTestModel_V`) and whether they loop or play once. Only the server packet path is verified.

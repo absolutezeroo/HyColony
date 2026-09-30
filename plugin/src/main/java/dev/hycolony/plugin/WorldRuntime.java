@@ -3,12 +3,11 @@ package dev.hycolony.plugin;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.universe.world.World;
 import dev.hycolony.core.app.ColonyManager;
+import dev.hycolony.core.app.api.ColonyClockState;
 import dev.hycolony.core.app.goggles.BuildGoggles;
 import dev.hycolony.core.app.wand.WandActions;
 import dev.hycolony.core.citizen.CitizenNames;
 import dev.hycolony.core.colony.ColonyContext;
-import dev.hycolony.core.colony.GamePorts;
-import dev.hycolony.core.crafting.recipe.CraftingSetup;
 import dev.hycolony.core.kernel.WorldKey;
 import dev.hycolony.core.kernel.config.ColonyConfig;
 import dev.hycolony.core.kernel.event.EventBus;
@@ -19,23 +18,17 @@ import dev.hycolony.core.kernel.persist.FileColonyStorage;
 import dev.hycolony.core.kernel.persist.MigrationChain;
 import dev.hycolony.plugin.adapter.HytaleBlocks;
 import dev.hycolony.plugin.adapter.HytaleCitizenBodies;
-import dev.hycolony.plugin.adapter.HytaleContainerAccess;
 import dev.hycolony.plugin.adapter.HytaleGameClock;
 import dev.hycolony.plugin.adapter.HytaleItemCatalog;
 import dev.hycolony.plugin.adapter.HytaleNotifier;
 import dev.hycolony.plugin.adapter.HytalePlayerDirectory;
-import dev.hycolony.plugin.adapter.HytalePlayerInventory;
 import dev.hycolony.plugin.adapter.HytalePreviewPort;
 import dev.hycolony.plugin.adapter.HytaleUiPort;
 import dev.hycolony.plugin.adapter.HytaleWorldBlocks;
-import dev.hycolony.plugin.adapter.HytaleWorldEffects;
 import dev.hycolony.plugin.adapter.HytaleWorldQuery;
 import dev.hycolony.plugin.block.HutBlockSystems;
-import dev.hycolony.plugin.crafting.HytaleRecipeCatalog;
-import dev.hycolony.plugin.farming.HytaleFarming;
 import dev.hycolony.plugin.npc.CitizenSpeed;
 import dev.hycolony.plugin.npc.GuardedBodies;
-import dev.hycolony.plugin.prefab.HytaleBlueprintSource;
 import dev.hycolony.plugin.ui.highlight.HighlightMarkers;
 import java.util.Random;
 import java.util.Set;
@@ -54,6 +47,11 @@ public final class WorldRuntime {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
     private final long autosaveTicks;
+    private final ColonyClockState clockState = new ColonyClockState();
+    /** Core ticks due since the last autosave, paused or not. */
+    private long sinceSave;
+    /** Whether the citizens were halted since the pause began or its last steps ran. */
+    private boolean halted;
     /** Colonies were read from disk. Never true while disabled, so a disabled runtime writes nothing. */
     private final boolean loaded;
 
@@ -86,7 +84,7 @@ public final class WorldRuntime {
                 names,
                 new Random(),
                 new EventBus(),
-                gamePorts(world, setup, catalog, worldBlocks));
+                WorldPorts.create(world, setup, catalog, worldBlocks));
         this.manager = new ColonyManager(ctx, new HytaleUiPort(() -> self[0], () -> wandSelf[0], blocks, ids));
         self[0] = manager;
         this.previews = new HytalePreviewPort(world);
@@ -100,22 +98,6 @@ public final class WorldRuntime {
         this.autosaveTicks = config.hycolony().autosaveIntervalMinutes() * 60L * 20L;
     }
 
-    /** The construction adapters of {@code world}. */
-    private static GamePorts gamePorts(
-            World world, RuntimeSetup setup, HytaleItemCatalog catalog, HytaleWorldBlocks worldBlocks) {
-        IdMap ids = setup.ids();
-        return new GamePorts(
-                catalog,
-                worldBlocks,
-                new HytaleContainerAccess(world, catalog.stacks()),
-                new HytalePlayerInventory(world, catalog.stacks()),
-                new HytaleBlueprintSource(ids, setup.styles(), catalog),
-                new HytaleWorldEffects(world, ids.fireworks(), ids.farming().tillSoundEvent()),
-                // Read here, before openStorage loads the colonies: a load drops every learnt recipe it does not know.
-                new CraftingSetup(HytaleRecipeCatalog.load(), setup.craftingRules()),
-                new HytaleFarming(world, worldBlocks, ids.farming(), ids.fieldBlockId()));
-    }
-
     /** Points the colonies' persistence at the world's save folder; reads them only when {@code enabled}. */
     private static void openStorage(ColonyManager manager, World world, boolean enabled) {
         manager.persistence()
@@ -125,8 +107,21 @@ public final class WorldRuntime {
         }
     }
 
+    /**
+     * Runs the {@code due} core ticks the time elapsed calls for, fewer while a debugging tool paused the colonies
+     * ({@link ColonyClockState}): the citizens then stand still. Autosaves on time, paused or not.
+     */
+    public void runCore(int due) {
+        int run = clockState.allow(due);
+        for (int i = 0; i < run; i++) {
+            tickCore();
+        }
+        haltWhilePaused(run);
+        autosave(due);
+    }
+
     /** One core tick (1/20 s). */
-    public void tickCore() {
+    private void tickCore() {
         if (!enabled) {
             return;
         }
@@ -135,11 +130,37 @@ public final class WorldRuntime {
             manager.tick();
             goggles.tick();
             wand.tick();
-            if (clock.currentTick() % autosaveTicks == 0) {
-                manager.persistence().saveDirty();
-            }
         } catch (RuntimeException e) {
             LOG.at(Level.SEVERE).withCause(e).log("HyColony tick failed in world '%s'", world.getName());
+        }
+    }
+
+    /**
+     * Stops the citizens once the pause begins, and again once its steps ran out: while steps run, their walks go on
+     * at their pace.
+     */
+    private void haltWhilePaused(int run) {
+        if (!clockState.paused() || run > 0 || clockState.stepsPending()) {
+            halted = false;
+            return;
+        }
+        if (!halted) {
+            bodies.haltAll();
+            halted = true;
+        }
+    }
+
+    /** Saves the colonies changed since, every {@code autosaveTicks} core ticks due. */
+    private void autosave(int due) {
+        sinceSave += due;
+        if (!enabled || sinceSave < autosaveTicks) {
+            return;
+        }
+        sinceSave = 0;
+        try {
+            manager.persistence().saveDirty();
+        } catch (RuntimeException e) {
+            LOG.at(Level.SEVERE).withCause(e).log("HyColony autosave failed in world '%s'", world.getName());
         }
     }
 
@@ -156,6 +177,11 @@ public final class WorldRuntime {
 
     public ColonyManager manager() {
         return manager;
+    }
+
+    /** Whether and how a debugging tool paused this world's colonies. */
+    public ColonyClockState clockState() {
+        return clockState;
     }
 
     public BuildGoggles goggles() {

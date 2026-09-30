@@ -82,7 +82,7 @@ HyBlockUI ← HyDomum ← HyColony → HyVanilla
     - actions : `walkTo`, `forceLeisure`, `teleport`, `respawnBody`.
 - **`dev.hycolony.plugin.api`** :
   - `HyColonyApi` : `world(World)`, `citizenOf(Ref, accessor)` (par le `CitizenTag` du corps), `bodyOf(CitizenRef)`, `subscribe(PluginBase owner, World, Class, Consumer)`, `track(PluginBase owner, CitizenRef)` (le suivi lié au propriétaire), `subscribeWorlds(owner, listener)`, `clock(World)` ;
-  - `ColonyClock` : `pause(owner)`, `step(n)`, `resume`, `paused`. `step` fait tourner au plus `MAX_STEP = 10` ticks du cœur d'un coup, sur le modèle de `MAX_CATCH_UP` ;
+  - `ColonyClock` : `pause(owner)`, `step(n)`, `resume`, `paused`. `step` fait tourner des ticks du cœur au rythme du temps, `MAX_STEP = 10` en attente au plus, sur le modèle de `MAX_CATCH_UP`. Tous d'un coup, les corps ne bougeraient pas : ils ne sont arrêtés qu'une fois les pas épuisés ;
   - `ColonyWorldStarted` et `ColonyWorldStopped`.
 
 ### 4.3 Stabilité dans le build

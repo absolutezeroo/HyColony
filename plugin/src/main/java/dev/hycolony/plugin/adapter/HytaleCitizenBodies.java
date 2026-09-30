@@ -93,6 +93,26 @@ public final class HytaleCitizenBodies implements CitizenBodies {
         return Optional.of(new BodyId(id));
     }
 
+    /** The loaded entity of {@code body}; empty once gone. */
+    public Optional<Ref<EntityStore>> entity(BodyId body) {
+        return Optional.ofNullable(ref(body));
+    }
+
+    /**
+     * Stops every body where it stands: its move target off, as {@link #lookAt} does, not Hytale's Frozen (saved with
+     * the NPC); a walker walks again once the nav is no longer moving.
+     */
+    public void haltAll() {
+        for (Ref<EntityStore> ref : refs.values()) {
+            if (ref.isValid()) {
+                MoveTarget mt = store().getComponent(ref, HyColonyComponents.moveTarget());
+                if (mt != null) {
+                    mt.active = false;
+                }
+            }
+        }
+    }
+
     private @Nullable Ref<EntityStore> ref(BodyId body) {
         Ref<EntityStore> ref = refs.get(body.value());
         return ref != null && ref.isValid() ? ref : null;
