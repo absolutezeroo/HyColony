@@ -316,6 +316,34 @@ class BuilderAITest {
         assertEquals(0, citizen.inventory().count(TORCH_I));
     }
 
+    /**
+     * Structurize StructurePlacer (allowReplace outside CLEAR): a block to replace stays until the planned block's
+     * items are at hand, then goes without a mining delay (handleRemoval: its drops kept, ores included).
+     */
+    @Test
+    void aBlockToReplaceGoesWithoutMiningOnceItsItemsAreAtHand() {
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);
+        blueprint = bp(List.of(entry(1, 0, 0, STONE)));
+        t.blocks.blocks.put(at(1, 0, 0), new BlockState(ORE, 0));
+        t.blocks.drops.put(at(1, 0, 0), List.of(new ItemAmount(ORE_I, 1)));
+        WorkOrder o = order(res, WorkOrderType.UPGRADE);
+
+        tick(600);
+        assertEquals(new BlockState(ORE, 0), t.blocks.blocks.get(at(1, 0, 0)), "kept while the stone is missing");
+        t.containers.containers.put(HUT, new java.util.LinkedHashMap<>(Map.of(STONE_I, 1))); // its request is served
+        List<String> states = new ArrayList<>();
+        tickUntil(
+                () -> {
+                    states.add(ai.stateName());
+                    return gone(o);
+                },
+                5000);
+
+        assertFalse(states.contains("MINE_BLOCK"));
+        assertEquals(new BlockState(STONE, 0), t.blocks.blocks.get(at(1, 0, 0)));
+        assertEquals(1, citizen.inventory().count(ORE_I));
+    }
+
     @Test
     void skipsAlreadyCorrectBlocks() {
         Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);

@@ -40,16 +40,13 @@ final class BuilderBlockWork {
     }
 
     /**
-     * The position at {@code i} needs work: mine it first, or place its block once every item it costs is at hand
-     * (MC hasListOfResInInvOrRequest); a free order places without items.
+     * The position at {@code i} needs work: mine it (the clearing stages), or place its block once every item it
+     * costs is at hand (MC hasListOfResInInvOrRequest), replacing what is there; a free order places without items.
      */
     @Nullable
     BuilderState work(Stage stage, int i) {
         BlockPos pos = ctx.site().positions(stage).get(i);
-        if (stage == Stage.CLEAR
-                || stage == Stage.REMOVE
-                || stage == Stage.CLEAR_LEFTOVERS
-                || ctx.scan().mustMineFirst(pos)) {
+        if (stage == Stage.CLEAR || stage == Stage.REMOVE || stage == Stage.CLEAR_LEFTOVERS) {
             return startMining(pos);
         }
         BlueprintEntry e = ctx.site().entry(stage, i);
@@ -175,13 +172,7 @@ final class BuilderBlockWork {
             // would never end. Refill after CLEAR is left as is (SOLID overwrites it, decorations sit in it).
             ctx.site().progress(Stage.CLEAR, ctx.site().loadedOrder().progressIndex() + 1);
         }
-        // MC: a rack that leaves the world leaves its building's containers (TileEntityRack removal), and a bench its
-        // hut's benches (FurnaceUserModule.removeFromFurnaces once the furnace is gone).
-        ctx.colony()
-                .buildings()
-                .owningContainer(pos)
-                .ifPresent(b -> b.registeredBlocks().removeContainer(pos));
-        ctx.colony().buildings().all().forEach(b -> b.registeredBlocks().removeWorkstation(pos));
+        forgetRegistered(pos);
         if (!ctx.catalog().isOre(state.key())) { // MC EntityAIStructureBuilder.mineBlock: getDrops = !isOre
             ctx.stock().storeDrops(drops);
         }
@@ -195,6 +186,9 @@ final class BuilderBlockWork {
 
     private void place(Stage stage, int i, BlockPos pos, BlueprintEntry e, List<ItemAmount> cost) {
         ctx.gestures().lookAt(pos); // MC BuildingStructureHandler.prePlacementLogic: faceBlock
+        if (ctx.scan().mustMineFirst(pos)) {
+            removeForReplace(pos);
+        }
         if (!ctx.blocks().place(pos, e.state(), e.hasContainer())) {
             LOG.log(
                     System.Logger.Level.WARNING,
@@ -218,6 +212,31 @@ final class BuilderBlockWork {
         ctx.gestures()
                 .startDelay(
                         BuilderTimings.placeDelay(ctx.citizen().skills().level(ctx.primary())), BodyAnimation.BUILD);
+    }
+
+    /**
+     * Structurize IPlacementHandler.handleRemoval (StructurePlacer, allowReplace outside CLEAR): the block in the way
+     * goes without a mining delay, tool wear nor experience; its drops, ores included, are kept unless the order is
+     * free (MC isCreative).
+     */
+    private void removeForReplace(BlockPos pos) {
+        List<ItemAmount> drops = ctx.blocks().breakBlock(pos);
+        forgetRegistered(pos);
+        if (!ctx.site().loadedOrder().free()) {
+            ctx.stock().storeDrops(drops);
+        }
+    }
+
+    /**
+     * MC: a rack that leaves the world leaves its building's containers (TileEntityRack removal), and a bench its
+     * hut's benches (FurnaceUserModule.removeFromFurnaces once the furnace is gone).
+     */
+    private void forgetRegistered(BlockPos pos) {
+        ctx.colony()
+                .buildings()
+                .owningContainer(pos)
+                .ifPresent(b -> b.registeredBlocks().removeContainer(pos));
+        ctx.colony().buildings().all().forEach(b -> b.registeredBlocks().removeWorkstation(pos));
     }
 
     /** MC StructurePlacer consume + reduceNeededResources: every item of the cell, each unit counted as placed. */
