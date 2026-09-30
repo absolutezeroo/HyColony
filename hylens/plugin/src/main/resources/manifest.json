@@ -1,0 +1,27 @@
+{
+    "Group": "HyColony",
+    "Name": "hylens",
+    "Version": "0.1.0",
+    "Description": "Debugging lens on HyColony's colonies: what a citizen thinks, where it walks, what breaks.",
+    "Authors": [
+        {
+            "Name": "Ctuto"
+        }
+    ],
+    "Website": "https://github.com/ldtteam/minecolonies",
+    "ServerVersion": ">=0.7.0-pre.4 <0.8.0",
+    "Dependencies": {
+        "Hytale:AssetModule": "*",
+        "HyColony:hycolony": "=0.1.0",
+        "HyColony:hyblockui": "=0.1.0"
+    },
+    "OptionalDependencies": {
+        
+    },
+    "DisabledByDefault": false,
+    "Main": "dev.hylens.plugin.HyLensPlugin",
+    "IncludesAssetPack": true,
+    "UpdateChecker": {
+        "CurseForge": ""
+    }
+}

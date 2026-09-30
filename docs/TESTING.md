@@ -350,3 +350,9 @@ Spec `docs/superpowers/specs/2026-09-29-hycolony-blueprint-placeholders-design.m
 206. **Bloc de dev dans un prefab Hytale.** Dans l'éditeur de prefabs, poser un « Substitut solide » dans un prefab Outlander utilisé par une hutte (sans `"minecolonies": true`), sauvegarder, reconstruire : le constructeur ne pose pas le substitut et ne le demande pas ; la construction se termine.
 207. **Lits et foin des plans convertis.** Coller `plateforme_complete` (`run/prefabs`) : les lits de la caserne ou de la résidence ont leur tête de lit (la planche haute) du côté où MineColonies met l'oreiller, dans les quatre directions ; une seule moitié de lit par lit, pas de lit coupé. Les bottes de foin sont des blocs `Ingredient_Hay` debout, sans avertissement « Failed to find block » au journal.
 208. **Sol de la plateforme.** Régénérer la plateforme (`plateforme.py`) et coller `plateforme_complete` : sous chaque bâtiment, le sol est en « Substitut de terrain » (vert), et non plus en herbe ; on marche dessus, et le gravier et l'herbe haute des plans (fermier, bûcheron) tiennent. Modifier une hutte, la réenregistrer avec son sol et la case « Include Empty Blocks » cochée, la reconstruire dans une colonie : le constructeur ne pose ni ne demande le substitut, le terrain de ces cases est gardé, et l'air du plan est vidé.
+
+## HyLens (mod de débogage)
+
+209. **Démarrage.** Le serveur de dev charge les cinq mods. Journal : HyLens démarre après HyColony et HyBlockUI, sans erreur.
+210. **Selftest.** En opérateur : `/hylens selftest` affiche `[OK] api version` et `[OK] api`. Le cas où HyColony est désactivé (`[KO] api : HyColony ne tourne pas dans ce monde`) est vérifié avec les jars de production (tâche 15 du plan de l'API, essai 7).
+211. **Réservé aux opérateurs.** B, non opérateur, lance `/hylens selftest` : la commande est refusée.

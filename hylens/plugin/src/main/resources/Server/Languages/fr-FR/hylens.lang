@@ -1,0 +1,3 @@
+selftest.ok = [OK] {p0}
+selftest.ko = [KO] {p0} : {p1}
+selftest.notRunning = HyColony ne tourne pas dans ce monde
