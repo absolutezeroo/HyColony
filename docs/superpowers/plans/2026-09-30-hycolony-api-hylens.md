@@ -29,7 +29,7 @@
   - `Actor` (scellé, avec ses trois cas dès maintenant : `Player`, `Plugin`, `Colony`) et `ActionResult` (scellé) ;
   - `Subscription`, `ApiVersion` ;
   - `@Experimental` (rétention `RUNTIME` ; sur un type, une méthode ou un paquet) ;
-  - `ColonyWorld`, vide pour l'instant.
+  - `ColonyWorld` : reporté à la tâche 2 (voir « Écarts constatés »).
 - [ ] `ApiArchitectureTest`, une liste blanche : les classes de `dev.hycolony.api..` ne dépendent que de `java..`, `org.jspecify..` et `dev.hycolony.api..`.
 - [ ] `core` : `api(project(":api"))`. `plugin` : `:api` embarqué dans le jar de HyColony, comme `:core`.
 - [ ] Commit `feat(api): the api project, its references and results`.
@@ -149,6 +149,7 @@
   - refuser un fichier dont le paquet ne commence pas par le groupe de son projet.
 
   `NullAway:AnnotatedPackages` : `dev.hylens`.
+- [ ] `hy.hytale-mod` : le `jar` échoue si un projet résolu par `bundled` n'a pas le groupe du mod. `bundled` est transitif, et rien d'autre n'empêche HyLens d'embarquer une seconde copie de `:api`.
 - [ ] `apiDump` et `apiCheck` : les empreintes des signatures publiques de `:api` et de `dev.hycolony.plugin.api`, sans les éléments `@Experimental`. `apiCheck` entre dans `check`. On génère et on commite les premières empreintes.
 - [ ] `CLAUDE.md` : § 1 (cinq mods, les cœurs purs, la politique de l'API), § 7, § 8, § 9.6. Puis `AGENTS.md`, les agents et les skills (spec § 7).
 - [ ] `guard.js` : protéger le `config.json` de `hylens/plugin` et celui de `vanilla/plugin`. `node .claude/hooks/test/run.js` doit être vert.
@@ -213,4 +214,5 @@ Chaque tâche suit le même déroulé :
 
 ## Écarts constatés à l'implémentation
 
-(à remplir)
+- **Tâche 1 :** `ColonyWorld` n'est pas créé vide. Une interface vide serait du code mort, et elle entrerait dans l'empreinte de l'API sans rien porter. La tâche 2 le crée avec ses lectures.
+- **Tâche 1 :** un paramètre d'`ApiText` est une `String` ou un `ApiText`, rien d'autre. Un nombre est formaté par l'appelant, comme dans le `Msg` du cœur. Changer ce domaine, dans un sens ou dans l'autre, est une rupture : le restreindre casse l'addon qui construit un `ApiText`, l'élargir casse celui qui l'affiche.

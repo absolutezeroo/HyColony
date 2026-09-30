@@ -1,7 +1,9 @@
 plugins { id("hy.hytale-mod") }
 
 dependencies {
-    // The pure core ships inside the plugin's jar: one jar to deploy.
+    // The pure core and the api ship inside the plugin's jar: one jar to deploy, and the only copy of the api that
+    // addons see (they compile against it, never ship it).
+    bundled(project(":api"))
     bundled(project(":core"))
     // Another mod: compiled against, never shipped (plugin-b-api.md § 28.2).
     compileOnly(project(":blockui"))
