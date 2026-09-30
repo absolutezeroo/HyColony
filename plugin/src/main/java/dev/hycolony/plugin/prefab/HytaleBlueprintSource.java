@@ -55,8 +55,8 @@ import org.jspecify.annotations.Nullable;
  * and fluid cells, the fluid being {@code placeholderFluid}. Elsewhere the placeholder blocks are skipped, like the
  * {@code Editor_*} blocks. The keep-terrain placeholder ({@code blueprint.placeholder.keep}) is skipped everywhere.
  *
- * <p>{@link #prewarm(PrefabStyles)} parses the prefabs off the world thread at startup; a later load then reads the cached
- * buffer. Results are cached per (style, type, level, rotation).
+ * <p>{@link #prewarm(PrefabStyles)} parses the prefabs off the world thread at startup; a later load then reads the
+ * cached buffer. Results are cached per (style, type, level, rotation).
  */
 public final class HytaleBlueprintSource implements BlueprintSource {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
