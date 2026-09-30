@@ -74,7 +74,7 @@ public final class RequestSerializer {
             Map<RequestToken, Integer> delays = new LinkedHashMap<>();
             Map<RequestToken, Integer> tries = new LinkedHashMap<>();
             for (Request req : m.assignedTo(RetryingResolver.ID)) {
-                delays.put(req.token(), savedDelays.getOrDefault(req.token(), RetryingResolver.DELAY_TICKS));
+                delays.put(req.token(), savedDelays.getOrDefault(req.token(), RetryingResolver.DELAY_UPDATES));
                 tries.put(req.token(), savedTries.getOrDefault(req.token(), 1));
             }
             r.restore(delays, tries);

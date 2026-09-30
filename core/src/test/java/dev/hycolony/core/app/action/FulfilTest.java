@@ -18,7 +18,6 @@ import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolInfo;
 import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.request.Request;
-import dev.hycolony.core.request.RequestManager;
 import dev.hycolony.core.request.Resolver;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequestToken;
@@ -330,17 +329,16 @@ class FulfilTest {
         RequestToken token = request(10, 1);
         run(200);
         assertEquals(ColonyState.INACTIVE, colony.state());
-        assertEquals(RetryingResolver.DELAY_TICKS, retrying().delays().get(token), "not ticked while inactive");
+        assertEquals(RetryingResolver.DELAY_UPDATES, retrying().delays().get(token), "not ticked while inactive");
 
         t.players.online.put(alice, hall);
         run(200);
         assertEquals(ColonyState.ACTIVE, colony.state());
         int before = retrying().delays().get(token);
         run(110);
-        int elapsed = before - retrying().delays().get(token);
-        // 10 request ticks in 110 game ticks; a state-update tick may delay one of them.
-        assertEquals(0, elapsed % RequestManager.TICK_INTERVAL);
-        assertTrue(elapsed == 99 || elapsed == 110, "elapsed " + elapsed);
+        int updates = before - retrying().delays().get(token);
+        // 10 request updates in 110 game ticks; a state-update tick may delay one of them.
+        assertTrue(updates == 9 || updates == 10, "updates " + updates);
     }
 
     @Test

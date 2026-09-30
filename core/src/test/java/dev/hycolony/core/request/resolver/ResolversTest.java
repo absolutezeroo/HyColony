@@ -101,7 +101,7 @@ class ResolversTest {
     }
 
     @Test
-    void retryingRetriesThreeTimesEvery1200TicksThenPlayer() {
+    void retryingRetriesThreeTimesEvery1200UpdatesThenPlayer() {
         Building a = hut(new BlockPos(0, 64, 0));
         RequestToken t = m.createAndAssign(a, planks(5), -1);
         assertEquals("retrying", resolverOf(t));
@@ -111,11 +111,11 @@ class ResolversTest {
         while (resolverOf(t).equals("retrying")) {
             m.tick();
             ticks += RequestManager.TICK_INTERVAL;
-            assertTrue(ticks < 10_000, "never reached the player");
+            assertTrue(ticks < 50_000, "never reached the player");
         }
         assertEquals("player", resolverOf(t));
-        // One 11-tick step of overshoot per 1200-tick delay.
-        int expected = RetryingResolver.MAX_TRIES * RetryingResolver.DELAY_TICKS;
+        // MC: 1200 request-system updates of 11 ticks per try (13 200 ticks), one update of overshoot per try.
+        int expected = RetryingResolver.MAX_TRIES * RetryingResolver.DELAY_UPDATES * RequestManager.TICK_INTERVAL;
         assertTrue(
                 ticks >= expected && ticks <= expected + RetryingResolver.MAX_TRIES * RequestManager.TICK_INTERVAL,
                 "reached player after " + ticks + " ticks");
@@ -130,11 +130,11 @@ class ResolversTest {
         Building a = hut(new BlockPos(0, 64, 0));
         RequestToken t = m.createAndAssign(a, planks(5), -1);
         m.createChild(retrying, t, new StackRequest(PLANKS, 1, 1, false));
-        for (int i = 0; i * RequestManager.TICK_INTERVAL < RetryingResolver.DELAY_TICKS; i++) {
+        for (int i = 0; i < RetryingResolver.DELAY_UPDATES; i++) {
             m.tick();
         }
         assertEquals("retrying", resolverOf(t));
-        assertEquals(RetryingResolver.DELAY_TICKS, retrying.delays().get(t), "not stranded without a delay");
+        assertEquals(RetryingResolver.DELAY_UPDATES, retrying.delays().get(t), "not stranded without a delay");
         assertEquals(1, retrying.tries().get(t));
     }
 

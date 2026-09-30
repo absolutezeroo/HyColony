@@ -19,13 +19,18 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 /**
- * MineColonies StandardRetryingRequestResolver: holds a request for {@link #DELAY_TICKS}, then reassigns it; after
- * {@link #MAX_TRIES} holds it blacklists itself so the request falls through to the player.
+ * MineColonies StandardRetryingRequestResolver: holds a request for {@link #DELAY_UPDATES} updates, then reassigns it;
+ * after {@link #MAX_TRIES} holds it blacklists itself so the request falls through to the player.
  */
 public final class RetryingResolver implements Resolver {
     public static final String ID = "retrying";
     public static final int PRIORITY = 50;
-    public static final int DELAY_TICKS = 1200, MAX_TRIES = 3;
+    /**
+     * MC RETRY_DELAY and getMaximalTries: 1200 updates of the request system, one every {@link RequestManager#TICK_INTERVAL}
+     * ticks (13 200 ticks, 11 minutes), per try.
+     */
+    public static final int DELAY_UPDATES = 1200, MAX_TRIES = 3;
+
     private static final RequesterId REQUESTER_ID = new RequesterId("resolver:" + ID);
 
     private final BlockPos location;
@@ -86,7 +91,7 @@ public final class RetryingResolver implements Resolver {
 
     @Override
     public void resolve(RequestManager m, Request r) {
-        delays.put(r.token(), DELAY_TICKS);
+        delays.put(r.token(), DELAY_UPDATES);
         tries.merge(r.token(), 1, Integer::sum);
     }
 
@@ -102,7 +107,7 @@ public final class RetryingResolver implements Resolver {
         tries.keySet().retainAll(delays.keySet());
         List<RequestToken> due = new ArrayList<>();
         for (Map.Entry<RequestToken, Integer> e : delays.entrySet()) {
-            e.setValue(e.getValue() - RequestManager.TICK_INTERVAL);
+            e.setValue(e.getValue() - 1); // MC update: --current, once per request-system update
             if (e.getValue() <= 0) {
                 due.add(e.getKey());
             }
@@ -112,7 +117,7 @@ public final class RetryingResolver implements Resolver {
                 delays.remove(t);
                 m.reassign(t, tries.getOrDefault(t, 0) >= MAX_TRIES ? Set.of(ID) : Set.of());
             } else {
-                delays.put(t, DELAY_TICKS); // waits for its children instead of being stranded
+                delays.put(t, DELAY_UPDATES); // waits for its children instead of being stranded
             }
         }
     }

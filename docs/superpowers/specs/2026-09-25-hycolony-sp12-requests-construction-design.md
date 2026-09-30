@@ -94,7 +94,7 @@ C'est un portage fidèle de `StandardRequestManager`, `RequestHandler` et des r�
   - **Transitions** : fidèles à § 5 de l'analyse. RESOLVED → suites, sinon COMPLETED ; COMPLETED → requester notifié, puis RECEIVED ou résolution du parent ; CANCELLED/FAILED d'un enfant → réassignation du parent ; OVERRULED ; RECEIVED → nettoyage. Elles sont écrites comme une **fonction de transition non réentrante** : une file d'événements est traitée dans l'ordre de MineColonies.
 - **Résolveurs du lot** :
   - `BuildingResolver` (priorité 200) : utilise le stock des conteneurs de la cabane du requester, via `ContainerAccess`. Il résout en ajoutant les piles aux `deliveries`, et le citoyen vient les chercher.
-  - `RetryingResolver` (priorité 50) : délai de 1200 ticks, 3 tentatives, puis liste noire.
+  - `RetryingResolver` (priorité 50) : délai de 1200 mises à jour du système de requêtes (une toutes les 11 ticks, soit 13 200 ticks ou 11 minutes, comme MC `RETRY_DELAY`), 3 tentatives, puis liste noire.
   - `PlayerResolver` (priorité 0) : attend le joueur.
   - `onColonyUpdate` est déclenché quand le joueur dépose des objets dans une cabane (événement de conteneur côté plugin) : les requêtes bloquées sont réassignées.
 - **Côté joueur** :
