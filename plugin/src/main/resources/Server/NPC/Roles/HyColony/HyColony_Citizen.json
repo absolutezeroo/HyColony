@@ -1,4 +1,5 @@
 {
+  "$Comment": "Deviation from MC: MaxClimbHeight 2, MC climbs 1.3. See docs/research/plugin-b-api.md, section 39.",
   "Type": "Generic",
   "Appearance": "PlayerTestModel_V",
   "MotionControllerList": [
@@ -7,6 +8,7 @@
       "MaxWalkSpeed": 3,
       "Gravity": 10,
       "MaxFallSpeed": 20,
+      "MaxClimbHeight": 2,
       "Acceleration": 10
     }
   ],

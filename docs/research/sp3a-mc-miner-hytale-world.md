@@ -375,10 +375,10 @@ The new `HytaleGenerator` also has cave-node ore veins (`Zones/*/Cave/Ores/*.nod
   - `MotionControllerWalk.isClimbable(...)` only means "may step onto" (no damage, not in the `Fence` block set).
   - The walk controller's "Climb" is a **ledge step-up** of at most `MaxClimbHeight` (default **1.3**) plus an ascent animation type (`Walk/Jump/Climb/Fly`).
   - The only other vertical mode is `MotionControllerFly`/`Dive` (flying or swimming roles).
-- **Drops**: `MaxDropHeight` defaults to **3.0** (+3 when the DROP constraint is relaxed). The path finder will not plan a fall deeper than that. Our `HyColony_Citizen` role sets no override, so it uses 1.3 and 3.
+- **Drops**: `MaxDropHeight` defaults to **3.0** (+3 when the DROP constraint is relaxed). The path finder will not plan a fall deeper than that. Our `HyColony_Citizen` role sets `MaxClimbHeight` 2 since 2026-09-30 (a deviation from MC's 1.3, `plugin-b-api.md` § 39) and keeps the drop of 3.
 - **Path finding** (`hytale-api-spike.md`): A* in `BodyMotionFind`/`AStarBase`, probing with the motion controller, so it only walks and steps. `MaxPathLength` 200, `MaxOpenNodes` 200, `MaxTotalNodes` 900. **It never digs**; the AI must break blocks itself, as MineColonies does.
 - **Walkable vertical access**:
-  - a staircase of **full blocks**: 1 up per 1 forward, within 1.3;
+  - a staircase of **full blocks**: 1 up per 1 forward (a step up to `MaxClimbHeight`, 2 for our citizens);
   - `*_Stairs` blocks;
   - slabs;
   - each step needs 2 blocks of headroom.
