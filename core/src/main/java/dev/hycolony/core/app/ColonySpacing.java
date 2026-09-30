@@ -28,9 +28,9 @@ public final class ColonySpacing {
     }
 
     private static long squared(BlockPos a, BlockPos b, boolean withHeight) {
-        long dx = a.x() - b.x();
-        long dy = withHeight ? a.y() - b.y() : 0;
-        long dz = a.z() - b.z();
+        long dx = (long) a.x() - b.x();
+        long dy = withHeight ? (long) a.y() - b.y() : 0;
+        long dz = (long) a.z() - b.z();
         return dx * dx + dy * dy + dz * dz;
     }
 }

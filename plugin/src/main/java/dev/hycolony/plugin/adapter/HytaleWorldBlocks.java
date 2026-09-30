@@ -154,8 +154,8 @@ public final class HytaleWorldBlocks implements WorldBlocks {
     }
 
     /**
-     * Whether {@code type} fits at {@code pos}. The builder mined the spot first, so leftovers are replaced, except a
-     * hut (a multi-cell block's hitbox may reach one). Also false if part of the hitbox is in an unloaded section.
+     * Whether {@code type} fits at {@code pos}. The builder cleared the spot first or turns the block already there,
+     * so leftovers are replaced, except a hut (a multi-cell block's hitbox may reach one). Also false if part of the hitbox is in an unloaded section.
      */
     private boolean fits(Store<ChunkStore> store, BlockSection blocks, BlockPos pos, BlockType type, int rotation) {
         return BlockOperations.testPlaceBlock(
