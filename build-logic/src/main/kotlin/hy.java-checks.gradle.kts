@@ -94,6 +94,26 @@ val checkSectionDividers by tasks.registering {
     }
 }
 
+// CLAUDE.md § 3: 120 columns, comments included. palantir-java-format wraps code but leaves Javadoc and comments as
+// written, so spotlessCheck alone lets a long comment through.
+val maxLineLength = 120
+val checkLineLength by tasks.registering {
+    group = "verification"
+    description = "Fails when a Java source line is longer than $maxLineLength columns"
+    val sources = fileTree("src") { include("*/java/**/*.java") }
+    inputs.files(sources)
+    doLast {
+        val found = sources.files.sortedBy { it.path }.flatMap { file ->
+            file.readLines().withIndex().filter { it.value.length > maxLineLength }
+                .map { "  ${file.relativeTo(root).invariantSeparatorsPath}:${it.index + 1} (${it.value.length})" }
+        }
+        if (found.isNotEmpty()) {
+            throw GradleException("Lines over $maxLineLength columns (CLAUDE.md § 3), wrap them:\n" +
+                found.joinToString("\n"))
+        }
+    }
+}
+
 // CLAUDE.md § 1 (split spec, mods' APIs): a mod reaches another mod only through that mod's api packages. A fully
 // qualified name written without an import escapes this check; the style's explicit imports make that rare.
 val modApis = mapOf(
@@ -128,7 +148,7 @@ val checkModApis by tasks.registering {
     }
 }
 
-tasks.named("check") { dependsOn(checkFileSizes, checkSectionDividers, checkModApis) }
+tasks.named("check") { dependsOn(checkFileSizes, checkSectionDividers, checkLineLength, checkModApis) }
 
 // CLAUDE.md § 3: formatting is checked by spotlessCheck (part of check). JSON, .ui and .lang are left alone.
 spotless {

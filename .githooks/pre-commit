@@ -14,7 +14,7 @@ if [ -n "$partial" ]; then
     echo "Stage them fully (git add <path>) or set the unstaged part aside, then commit again." >&2
     exit 1
 fi
-if ! ./gradlew spotlessCheck checkFileSizes checkSectionDividers --quiet; then
+if ! ./gradlew spotlessCheck checkFileSizes checkSectionDividers checkLineLength --quiet; then
     echo >&2
     echo "pre-commit: checks failed. Run ./gradlew spotlessApply, split oversized files/packages," >&2
     echo "remove section dividers, then commit again. Never bypass with --no-verify (CLAUDE.md § 10)." >&2
