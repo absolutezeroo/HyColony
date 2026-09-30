@@ -1,8 +1,11 @@
 """Plateforme d'atelier : un sol plat avec un emplacement par blueprint.
 
 Disposition : une rangée par type de hutte, une colonne par niveau.
-- Le sol des emplacements est en herbe : c'est le terrain que MineColonies
-  garde (blocs de substitution).
+- Le sol des emplacements est le substitut de terrain de HyColony
+  (`HyColony_Placeholder_Keep`), l'équivalent du `blocksubstitution` de
+  Structurize : un bloc solide, qui soutient ce qui est posé dessus. Un
+  bâtiment modifié sur la plateforme puis réenregistré le garde, et le plugin
+  le lit comme une case absente : le bâtisseur garde le terrain.
 - Les allées sont en pierre lisse.
 - Un bloc rouge marque, dans le sol, la verticale de l'ancre de chaque hutte.
 - Des blocs jaunes dans l'allée, devant chaque emplacement, indiquent son
@@ -26,7 +29,7 @@ from . import nbt
 from .blueprint import Blueprint, load_blueprint
 
 FLOOR = "Rock_Stone_Brick_Smooth"
-GROUND = "Soil_Grass"
+GROUND = "HyColony_Placeholder_Keep"
 ANCHOR_MARK = "Soil_Clay_Smooth_Red"
 LEVEL_MARK = "Soil_Clay_Smooth_Yellow"
 
@@ -181,9 +184,14 @@ def plan_markdown(slots: list[Slot], size, stats, pack: bool = False) -> str:
         "L'ancre de la plateforme est son coin **nord-ouest**, au niveau du sol :",
         "la plateforme s'étend vers l'est (+X) et vers le sud (+Z).",
         "",
-        "- herbe : emplacement d'un bâtiment (le terrain que MineColonies garde) ;",
+        "- substitut de terrain (vert) : emplacement d'un bâtiment, le terrain que MineColonies garde. Réenregistré",
+        "  avec un bâtiment, il reste un substitut : le bâtisseur n'y pose rien ;",
         "- bloc rouge : la verticale de l'ancre du prefab ;",
         "- blocs jaunes dans l'allée : le niveau (1 à 5).",
+        "",
+        "**Réenregistrer un bâtiment modifié** : coche « Include Empty Blocks » (ou `--empty` avec",
+        "`/editprefab save`). L'air est alors écrit comme `Empty` et le bâtisseur le vide, comme l'air d'un",
+        "scan MineColonies. Sans cette option, ces cases deviennent absentes et le bâtisseur y garde le terrain.",
         "",
         *(["`plateforme_complete.prefab.json` contient la plateforme avec tous les bâtiments déjà posés :",
            "colle-le comme la plateforme seule (même ancre). Les prefabs séparés sont rangés par type de hutte.",
