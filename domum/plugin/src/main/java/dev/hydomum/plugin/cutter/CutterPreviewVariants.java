@@ -23,7 +23,7 @@ import java.util.logging.Level;
  */
 final class CutterPreviewVariants {
     /** How long the slots must stay unchanged before their variants are created, in milliseconds. */
-    static final long DELAY_MILLIS = 1000;
+    static final long DELAY_MILLIS = 500;
 
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 

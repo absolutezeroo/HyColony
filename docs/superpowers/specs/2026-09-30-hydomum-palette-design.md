@@ -53,7 +53,7 @@ L'ordre compte : un modèle doit arriver chez le client **avant** le bloc qui le
   - portes et trappes ouvragées, ouvertes et fermées ;
   - murs de papier, avec leurs connexions.
 - **Icônes justes**, comme aujourd'hui.
-- **Établi** : l'aperçu attend toujours que les emplacements soient stables (1 s, `CutterPreviewVariants`), pour ne pas créer une variante par matériau essayé. Le scintillement qui suivait disparaît.
+- **Établi** : l'aperçu attend toujours que les emplacements soient stables (500 ms depuis le 2026-09-30, contre 1 s avant, `CutterPreviewVariants`), pour ne pas créer une variante par matériau essayé. Le scintillement qui suivait disparaît.
 
 ## Découpage du code
 
@@ -74,7 +74,7 @@ L'ordre compte : un modèle doit arriver chez le client **avant** le bloc qui le
 
 - **Planche impossible à dessiner** (texture illisible, AWT absent) : journalisé en SEVERE. Les variantes à deux matériaux échouent avec un message, celles à un matériau marchent toujours.
 - **Matériau absent de la planche** (il ne peut pas l'être : elle est faite depuis le même catalogue) : la variante échoue, journalisé.
-- **Taille de la planche** : un mod qui ajouterait beaucoup de matériaux agrandirait la planche. À 1 024 matériaux, elle ferait 1 024×1 024 px, encore sous les pages d'atlas vanilla. Au-delà, il faudra plusieurs planches, avec une paire dans la même planche. Hors portée : on journalise un avertissement au-delà de 2 048 px de côté.
+- **Taille de la planche** : un mod qui ajouterait beaucoup de matériaux agrandirait la planche. À 1 024 matériaux, elle ferait 1 024×1 024 px ; la taille d'une page d'atlas du client n'est pas connue. Au-delà, il faudra plusieurs planches, avec une paire dans la même planche. Hors portée : on journalise un avertissement au-delà de 2 048 px de côté.
 - **Création en double** : le futur d'une création est mis dans le cache **avant** d'être lancé, puis complété de l'extérieur, comme dans `OrnamentVariantRegistry` ; un échec immédiat retire bien la clé (le test avait une course qui la gardait en cache).
 - **Empreinte de la planche** : la mise en page (`TILE_PX`, nombre de colonnes) entre dans l'empreinte du PNG gardé sur disque, pour qu'un changement de mise en page ne réutilise pas un ancien fichier.
 - **Modèle mal formé** (offset sans `x`, `nodes` qui n'est pas un tableau) : `PaletteModel.remap` le refuse par `IllegalArgumentException`, jamais une autre exception.
@@ -98,4 +98,3 @@ L'ordre compte : un modèle doit arriver chez le client **avant** le bloc qui le
 - La quincaillerie en fer des portes ouvragées « creeper » : DO la laisse en fer (texture qui n'est pas un composant, `FancyDoorBlock`), le générateur la met sur le 2ᵉ matériau (`tools/domum/convert.py` `component_index`, écart documenté). La planche rendrait une case « fer » fixe possible : à faire à part.
 - Les formes à un matériau, qui ne scintillent déjà pas.
 - Les gabarits et leurs textures de paire du pack.
-- Le délai d'une seconde de l'aperçu de l'établi.
