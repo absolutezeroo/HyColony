@@ -220,6 +220,7 @@ Hors garde-fous : `settings.gradle.kts`, les `build.gradle.kts` des modules, `gr
   - le citoyen sans métier marche comme un ouvrier ;
   - l'anti-blocage abandonne au lieu de téléporter vers une case non vérifiée ;
   - la sous-commande `walk stop` de MC n'est pas portée : une nouvelle demande remplace la marche, et HyLens n'en a pas l'usage en V1.
+- La flânerie n'attend une marche en cours que `WANDER_TIMEOUT_TICKS` (120 * 20, le `MIN_TP_DELAY` de MC), comptés depuis la première décision qui la voit. MC attend que la navigation ait fini, ce que son anti-blocage garantit sur tout chemin ; le nôtre ne surveille que les marches des marcheurs.
 
 ## 10. À vérifier en jeu
 

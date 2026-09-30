@@ -48,8 +48,17 @@ public final class CitizenAI {
      * the slope the nav may climb or drop on the way to the column's ground.
      */
     private static final int WANDER_DANGER_HALF_HEIGHT = 3;
+    /**
+     * The ticks the wander waits for a walk under way. Deviation from MC: EntityAICitizenWander waits for the nav to
+     * be done, which MC's stuck handler ensures on every path (PathingStuckHandler MIN_TP_DELAY, 120 * 20, then
+     * completeStuckAction stops the nav); ours watches only walkers' walks, so a nav left running (a stuck wander, a
+     * job or commanded walk cut short) is waited for as long, then left.
+     */
+    static final int WANDER_TIMEOUT_TICKS = 120 * 20;
     /** MC CitizenAI: decideAiTask runs as an EVENT target every 10 ticks. */
     private static final int DECIDE_INTERVAL_TICKS = 10;
+
+    private static final long NOT_WAITING = -1;
 
     private final Colony colony;
     private final CitizenData data;
@@ -61,6 +70,9 @@ public final class CitizenAI {
     private final AiWatch watch;
     private final CommandedWalk commanded;
     private int workTicks;
+    /** The tick the wander first saw the walk under way, {@link #NOT_WAITING} while it saw none. */
+    private long waitingSince = NOT_WAITING;
+
     private boolean failed;
     private @Nullable JobAI jobAI;
     /** The job and work building {@link #jobAI} was created for. */
@@ -158,14 +170,22 @@ public final class CitizenAI {
     }
 
     /**
-     * MC EntityAICitizenWander.decide: once the last walk is over (canUse: navigation done), a walk to a random spot
+     * MC EntityAICitizenWander.decide: once the last walk is over (canUse: navigation done), or under way for
+     * {@link #WANDER_TIMEOUT_TICKS}, a walk to a random spot
      * around the citizen's own position; the citizen stays IDLE. Deviation from MC: no leisure branch yet (MC
      * LEISURE_CHANCE, 5 %: a leisure site, else its home or the colony's centre, where it wanders, sits or reads).
      */
     private @Nullable CitizenState wander() {
+        long now = colony.context().clock().currentTick();
         if (bodies.navStatus(body) == NavStatus.MOVING) {
-            return null;
+            if (waitingSince == NOT_WAITING) {
+                waitingSince = now;
+            }
+            if (now - waitingSince < WANDER_TIMEOUT_TICKS) {
+                return null;
+            }
         }
+        waitingSince = NOT_WAITING;
         bodies.position(body)
                 .flatMap(here -> wanderTarget(here.toBlockPos(), here.y()))
                 .ifPresent(target -> bodies.moveTo(body, target));
@@ -262,9 +282,11 @@ public final class CitizenAI {
 
     /**
      * Forgets the job AI and its held item (MC resetAI clears the render metadata), and its walking speed (MC
-     * BuildingDeliveryman removes the courier's speed modifier with the job; a job AI sets its own again).
+     * BuildingDeliveryman removes the courier's speed modifier with the job; a job AI sets its own again); restarts
+     * the wander's wait for a walk under way.
      */
     private void dropJobAI() {
+        waitingSince = NOT_WAITING; // back to IDLE: the walk under way is waited for from now
         jobAI = null;
         aiJob = null;
         bodies.setHeldItem(body, Optional.empty());
@@ -273,9 +295,11 @@ public final class CitizenAI {
 
     /**
      * Forgets the job AI only, so the next work tick makes a fresh one; its speed and held item stay, as MC's command
-     * leaves them (the courier's Agility is an attribute modifier kept with the job).
+     * leaves them (the courier's Agility is an attribute modifier kept with the job); restarts the wander's wait for a
+     * walk under way.
      */
     private void forgetJobAI() {
+        waitingSince = NOT_WAITING;
         jobAI = null;
         aiJob = null;
     }
