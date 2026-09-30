@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 class CitizenAITest {
     private final TestContexts t = new TestContexts();
 
-    /** MC EntityAICitizenWander: every 100 ticks, once the last walk is over, a spot within 10 of where it stands. */
+    /** MC EntityAICitizenWander: every 100 ticks, once the last walk is over, a spot past 10 blocks from itself. */
     @Test
     void wandersAroundItsOwnPositionOnceTheLastWalkIsOver() {
         BodyId body = t.bodies.existing(1, 1, new Vec3(100, 64, 100));
@@ -34,9 +34,8 @@ class CitizenAITest {
         }
         assertEquals(1, t.bodies.moves.size());
         Vec3 first = t.bodies.moves.getFirst();
-        assertTrue(
-                Math.abs(first.x() - 100.5) <= 10 && Math.abs(first.z() - 100.5) <= 10,
-                "around itself, not the town hall: " + first);
+        double away = Math.hypot(first.x() - 100.5, first.z() - 100.5);
+        assertTrue(away > 10 && away < 12, "just past 10 blocks from itself, not the town hall: " + first);
         assertEquals(CitizenState.IDLE, ai.state());
 
         for (int i = 0; i < 300; i++) {
@@ -56,9 +55,9 @@ class CitizenAITest {
         BlockState fire = new BlockState(new BlockKey("fire"), 0);
         t.catalog.kinds.put(fire.key(), BlockKind.NON_SOLID);
         t.catalog.harmful.add(fire.key());
-        for (int x = 90; x < 100; x++) {
-            for (int z = 90; z <= 110; z++) {
-                t.blocks.blocks.put(new BlockPos(x, 64, z), fire); // the western half of the wander square burns
+        for (int x = 85; x < 100; x++) {
+            for (int z = 85; z <= 115; z++) {
+                t.blocks.blocks.put(new BlockPos(x, 64, z), fire); // the western half of the wander ring burns
             }
         }
         BodyId body = t.bodies.existing(1, 1, new Vec3(100, 64, 100));
@@ -79,8 +78,8 @@ class CitizenAITest {
     void wanderNeverTargetsACellBesideABrazier() {
         BlockState brazier = new BlockState(new BlockKey("Furniture_Crude_Brazier"), 0); // solid, 0.3 high, burns
         t.catalog.harmful.add(brazier.key());
-        for (int z = 90; z <= 110; z++) {
-            t.blocks.blocks.put(new BlockPos(95, 64, z), brazier); // a row of braziers across the wander square
+        for (int z = 85; z <= 115; z++) {
+            t.blocks.blocks.put(new BlockPos(95, 64, z), brazier); // a row of braziers across the wander ring
         }
         BodyId body = t.bodies.existing(1, 1, new Vec3(100, 64, 100));
         CitizenAI ai = new CitizenAI(colonyAt(new BlockPos(100, 64, 100)), new CitizenData(1), body);
@@ -103,8 +102,8 @@ class CitizenAITest {
         BlockState fire = new BlockState(new BlockKey("fire"), 0);
         t.catalog.kinds.put(fire.key(), BlockKind.NON_SOLID);
         t.catalog.harmful.add(fire.key());
-        for (int x = 90; x <= 110; x++) {
-            for (int z = 90; z <= 110; z++) {
+        for (int x = 85; x <= 115; x++) {
+            for (int z = 85; z <= 115; z++) {
                 t.blocks.blocks.put(new BlockPos(x, 63, z), fire); // a campfire field under the feet level
             }
         }

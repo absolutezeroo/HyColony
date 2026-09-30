@@ -26,7 +26,10 @@ import org.jspecify.annotations.Nullable;
  */
 public final class CitizenAI {
     private static final System.Logger LOG = System.getLogger(CitizenAI.class.getName());
-    /** MC EntityAICitizenWander.decide: walkToRandomPos(citizen, 10, speed), around the citizen's own position. */
+    /**
+     * MC EntityAICitizenWander.decide: walkToRandomPos(citizen, 10, speed), whose PathJobRandomPos only ends more
+     * than 10 blocks from the citizen's own position.
+     */
     private static final int WANDER_RADIUS = 10;
     /** MC EntityAICitizenWander: its IDLE transition runs every 100 ticks. */
     private static final int WANDER_RATE_TICKS = 100;
@@ -124,16 +127,17 @@ public final class CitizenAI {
     }
 
     /**
-     * A random spot within {@link #WANDER_RADIUS} of {@code anchor}, at height {@code y}, with no dangerous block
-     * within 1 block ({@link DangerousCells#near}); else the first pick whose own column holds none (MC
+     * A random spot just past {@link #WANDER_RADIUS} of {@code anchor} (horizontally), at height {@code y}, with no
+     * dangerous block within 1 block ({@link DangerousCells#near}); else the first pick whose own column holds none (MC
      * PathJobRandomPos never ends on one, PathfindingUtils.isDangerous); empty after {@link #WANDER_TRIES} dangerous
-     * picks.
+     * picks. Deviation from MC: without a path search, the spot is the cell 11 blocks away in a random direction.
      */
     private Optional<Vec3> wanderTarget(BlockPos anchor, double y) {
         Vec3 columnSafe = null;
         for (int i = 0; i < WANDER_TRIES; i++) {
-            int dx = random.nextInt(2 * WANDER_RADIUS + 1) - WANDER_RADIUS;
-            int dz = random.nextInt(2 * WANDER_RADIUS + 1) - WANDER_RADIUS;
+            double angle = random.nextDouble(2 * Math.PI);
+            int dx = (int) Math.round(Math.cos(angle) * (WANDER_RADIUS + 1));
+            int dz = (int) Math.round(Math.sin(angle) * (WANDER_RADIUS + 1));
             Vec3 target = new Vec3(anchor.x() + dx + 0.5, y, anchor.z() + dz + 0.5);
             BlockPos cell = target.toBlockPos();
             if (!danger.near(cell, WANDER_DANGER_HALF_HEIGHT)) {
