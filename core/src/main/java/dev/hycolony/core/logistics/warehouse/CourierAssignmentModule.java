@@ -10,6 +10,7 @@ import dev.hycolony.core.building.module.TickingModule;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.job.HiringMode;
+import dev.hycolony.core.kernel.persist.SavedJson;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -94,17 +95,8 @@ public final class CourierAssignmentModule implements TickingModule, PersistentM
     @Override
     public void read(JsonObject in) {
         couriers.clear();
-        if (in.has("couriers")) {
-            in.getAsJsonArray("couriers").forEach(e -> couriers.add(e.getAsInt()));
-        }
-        hiringMode = HiringMode.DEFAULT;
-        if (in.has("hiringMode")) {
-            try {
-                hiringMode = HiringMode.valueOf(in.get("hiringMode").getAsString());
-            } catch (IllegalArgumentException _) {
-                // tolerant read (CLAUDE.md § 5)
-            }
-        }
+        couriers.addAll(SavedJson.ints(in.get("couriers")));
+        hiringMode = SavedJson.enumOf(HiringMode.class, in.get("hiringMode")).orElse(HiringMode.DEFAULT);
     }
 
     /** The warehouse's Couriers tab (MC CourierAssignmentModuleView). */

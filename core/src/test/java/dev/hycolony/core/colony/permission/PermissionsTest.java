@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.gson.JsonParser;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
@@ -61,5 +62,26 @@ class PermissionsTest {
         assertFalse(perms.setRank(bob, "Bob", Permissions.OWNER));
         assertFalse(perms.setRank(owner, "Alice", Permissions.FRIEND));
         assertFalse(perms.setRank(bob, "Bob", 99));
+    }
+
+    /** CLAUDE.md § 5: a rank or member missing keys takes the defaults; one without its id or uuid is dropped. */
+    @Test
+    void ranksAndMembersMissingKeysLoadWithDefaults() {
+        UUID owner = UUID.randomUUID();
+        UUID bob = UUID.randomUUID();
+        Permissions saved = PermissionsSerializer.read(
+                JsonParser.parseString("""
+                {"owner": "%s", "ownerName": "A",
+                 "ranks": [{"id": 1}, {"name": "no id"}, "not a rank"],
+                 "members": [{"uuid": "%s", "rank": 1}, {"name": "no uuid"}, {"uuid": "bad", "rank": 2}]}
+                """.formatted(owner, bob)).getAsJsonObject());
+
+        Rank officer = Permissions.createDefault(owner, "A").ranks().get(Permissions.OFFICER);
+        Rank read = saved.ranks().get(Permissions.OFFICER);
+        assertEquals(officer.name(), read.name());
+        assertEquals(officer.permissions(), read.permissions());
+        assertEquals(officer.isColonyManager(), read.isColonyManager());
+        assertEquals(Permissions.OFFICER, saved.rankOf(bob).id());
+        assertEquals(2, saved.members().size()); // the owner and bob
     }
 }

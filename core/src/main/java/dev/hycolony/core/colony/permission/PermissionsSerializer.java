@@ -3,9 +3,12 @@ package dev.hycolony.core.colony.permission;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import dev.hycolony.core.kernel.persist.SavedJson;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
+import org.jspecify.annotations.Nullable;
 
 /** A colony's {@link Permissions} (owner, ranks, members) to and from JSON. */
 public final class PermissionsSerializer {
@@ -44,25 +47,48 @@ public final class PermissionsSerializer {
         String ownerName = o.get("ownerName").getAsString();
         Permissions defaults = Permissions.createDefault(owner, ownerName);
         Map<Integer, Rank> ranks = new LinkedHashMap<>(defaults.ranks());
-        for (JsonElement el : o.getAsJsonArray("ranks")) {
-            JsonObject r = el.getAsJsonObject();
-            Rank rank = new Rank(
-                    r.get("id").getAsInt(),
-                    r.get("name").getAsString(),
-                    r.get("permissions").getAsLong(),
-                    r.get("initial").getAsBoolean());
-            rank.setColonyManager(r.get("colonyManager").getAsBoolean());
-            rank.setHostile(r.get("hostile").getAsBoolean());
-            ranks.put(r.get("id").getAsInt(), rank);
+        for (JsonElement el : SavedJson.arrayOr(o.get("ranks"))) {
+            readRank(SavedJson.objectOr(el), ranks);
         }
-        Map<UUID, Permissions.Member> members = new LinkedHashMap<>();
-        for (JsonElement el : o.getAsJsonArray("members")) {
-            JsonObject m = el.getAsJsonObject();
-            members.put(
-                    UUID.fromString(m.get("uuid").getAsString()),
-                    new Permissions.Member(
-                            m.get("name").getAsString(), m.get("rank").getAsInt()));
+        Map<UUID, Permissions.Member> members = new LinkedHashMap<>(defaults.members());
+        for (JsonElement el : SavedJson.arrayOr(o.get("members"))) {
+            JsonObject m = SavedJson.objectOr(el);
+            uuid(m.get("uuid"))
+                    .ifPresent(id -> members.put(
+                            id,
+                            new Permissions.Member(
+                                    SavedJson.stringOr(m.get("name"), ""),
+                                    SavedJson.intOr(m.get("rank"), Permissions.NEUTRAL))));
         }
         return Permissions.restore(owner, ownerName, ranks, members);
+    }
+
+    /**
+     * Tolerant (CLAUDE.md § 5): a key the saved rank lacks keeps the value of the rank it replaces (the default rank
+     * of that id, or a blank one); a rank without an id is dropped.
+     */
+    private static void readRank(JsonObject r, Map<Integer, Rank> ranks) {
+        int id = SavedJson.intOr(r.get("id"), -1);
+        if (id < 0) {
+            return;
+        }
+        Rank base = ranks.getOrDefault(id, new Rank(id, "", 0L, false));
+        Rank rank = new Rank(
+                id,
+                SavedJson.stringOr(r.get("name"), base.name()),
+                SavedJson.longOr(r.get("permissions"), base.permissions()),
+                SavedJson.boolOr(r.get("initial"), base.isInitial()));
+        rank.setColonyManager(SavedJson.boolOr(r.get("colonyManager"), base.isColonyManager()));
+        rank.setHostile(SavedJson.boolOr(r.get("hostile"), base.isHostile()));
+        ranks.put(id, rank);
+    }
+
+    /** The UUID the string {@code e} names; empty for anything else. */
+    private static Optional<UUID> uuid(@Nullable JsonElement e) {
+        try {
+            return Optional.of(UUID.fromString(SavedJson.stringOr(e, "")));
+        } catch (IllegalArgumentException _) {
+            return Optional.empty();
+        }
     }
 }

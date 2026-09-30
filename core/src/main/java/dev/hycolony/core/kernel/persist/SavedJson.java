@@ -7,6 +7,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.jspecify.annotations.Nullable;
@@ -23,6 +24,22 @@ public final class SavedJson {
     /** The integer {@code e}, else {@code fallback}. */
     public static int intOr(@Nullable JsonElement e, int fallback) {
         return (e instanceof JsonPrimitive p && p.isNumber()) ? p.getAsInt() : fallback;
+    }
+
+    /** The long {@code e}, else {@code fallback}. */
+    public static long longOr(@Nullable JsonElement e, long fallback) {
+        return (e instanceof JsonPrimitive p && p.isNumber()) ? p.getAsLong() : fallback;
+    }
+
+    /** The integers of the array {@code e}, in order; other entries, or anything but an array, give none. */
+    public static List<Integer> ints(@Nullable JsonElement e) {
+        List<Integer> out = new ArrayList<>();
+        for (JsonElement v : arrayOr(e)) {
+            if (v instanceof JsonPrimitive p && p.isNumber()) {
+                out.add(p.getAsInt());
+            }
+        }
+        return out;
     }
 
     /** The number {@code e}, else {@code fallback}. */

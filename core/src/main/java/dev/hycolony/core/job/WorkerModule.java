@@ -10,6 +10,7 @@ import dev.hycolony.core.building.module.TickingModule;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.kernel.persist.SavedJson;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -161,13 +162,10 @@ public final class WorkerModule implements PersistentModule, TickingModule, Buil
     }
 
     @Override
+    /** Tolerant (CLAUDE.md § 5): a non-number worker is skipped, an unknown or missing mode reads as DEFAULT. */
     public void read(JsonObject in) {
         workers.clear();
-        if (in.has("workers")) {
-            in.getAsJsonArray("workers").forEach(e -> workers.add(e.getAsInt()));
-        }
-        if (in.has("hiringMode")) {
-            hiringMode = HiringMode.valueOf(in.get("hiringMode").getAsString());
-        }
+        workers.addAll(SavedJson.ints(in.get("workers")));
+        hiringMode = SavedJson.enumOf(HiringMode.class, in.get("hiringMode")).orElse(HiringMode.DEFAULT);
     }
 }

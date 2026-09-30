@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.building.module.ModuleProducer;
@@ -180,5 +181,20 @@ class WorkerModuleTest {
         restored.read(json);
         assertEquals(module.workers(), restored.workers());
         assertEquals(HiringMode.AUTO, restored.hiringMode());
+    }
+
+    /** CLAUDE.md § 5: an unknown mode or a non-number worker never locks the colony. */
+    @Test
+    void unreadableSavedValuesFallBackInsteadOfThrowing() {
+        WorkerModule restored = module();
+        restored.read(JsonParser.parseString("{\"workers\":[1,\"x\",{},3],\"hiringMode\":\"GONE\"}")
+                .getAsJsonObject());
+        assertEquals(List.of(1, 3), restored.workers());
+        assertEquals(HiringMode.DEFAULT, restored.hiringMode());
+
+        restored.read(
+                JsonParser.parseString("{\"workers\":{},\"hiringMode\":{}}").getAsJsonObject());
+        assertTrue(restored.workers().isEmpty());
+        assertEquals(HiringMode.DEFAULT, restored.hiringMode());
     }
 }

@@ -3,12 +3,14 @@ package dev.hycolony.core.logistics.warehouse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.gson.JsonParser;
 import dev.hycolony.core.app.persistence.ColonySerializer;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.colony.territory.TerritoryIndex;
+import dev.hycolony.core.job.HiringMode;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.testing.TestContexts;
@@ -113,5 +115,20 @@ class CourierAssignmentModuleTest {
                 List.of(first, second),
                 back.module(WarehouseRequestQueue.class).orElseThrow().tokens());
         assertEquals(List.of(1), couriers(back));
+    }
+
+    /** CLAUDE.md § 5: a malformed courier entry or mode never locks the colony. */
+    @Test
+    void unreadableSavedValuesFallBackInsteadOfThrowing() {
+        CourierAssignmentModule m = warehouse(new BlockPos(10, 64, 10), 1)
+                .module(CourierAssignmentModule.class)
+                .orElseThrow();
+        m.read(JsonParser.parseString("{\"couriers\":[4,\"a\",5],\"hiringMode\":{}}")
+                .getAsJsonObject());
+        assertEquals(List.of(4, 5), m.couriers());
+        assertEquals(HiringMode.DEFAULT, m.hiringMode());
+
+        m.read(JsonParser.parseString("{\"couriers\":{}}").getAsJsonObject());
+        assertTrue(m.couriers().isEmpty());
     }
 }
