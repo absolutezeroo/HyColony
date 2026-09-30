@@ -8,20 +8,23 @@ import com.hypixel.hytale.server.core.modules.entity.component.Spectating;
 import com.hypixel.hytale.server.core.modules.entity.gamemode.GameModeTypes;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
+import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hylens.core.watch.Watches;
 import dev.hylens.plugin.command.HyLensCommand;
+import dev.hylens.plugin.hud.WatchHudSystem;
 import java.util.UUID;
 import java.util.logging.Level;
 import javax.annotation.Nonnull;
 import org.jspecify.annotations.Nullable;
 
-/** HyLens's entry point: the /hylens commands, which reach HyColony through its api only. */
+/** HyLens's entry point: the /hylens commands and the watch HUD, which reach HyColony through its api only. */
 public final class HyLensPlugin extends JavaPlugin {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
     private final Watches watches = new Watches();
+    private final WatchHudSystem hud = new WatchHudSystem(watches);
 
     public HyLensPlugin(@Nonnull JavaPluginInit init) {
         super(init);
@@ -31,6 +34,29 @@ public final class HyLensPlugin extends JavaPlugin {
     protected void setup() {
         getCommandRegistry().registerCommand(new HyLensCommand(this, watches, HyLensIds.load()));
         getEventRegistry().register(PlayerDisconnectEvent.class, this::onDisconnect);
+        getEntityStoreRegistry().registerSystem(hud);
+    }
+
+    /**
+     * Takes the watch panel off every player, each world on its own thread: nothing refreshes it once HyLens is gone.
+     * A world that no longer takes tasks is stopping, and takes its players' HUDs with it.
+     */
+    @Override
+    protected void shutdown() {
+        hud.stop();
+        for (World world : Universe.get().getWorlds().values()) {
+            try {
+                world.execute(() -> {
+                    try {
+                        WatchHudSystem.takeDown(world);
+                    } catch (RuntimeException e) {
+                        LOG.at(Level.WARNING).withCause(e).log("HyLens: taking the watch HUD down failed");
+                    }
+                });
+            } catch (RuntimeException e) {
+                LOG.at(Level.FINE).withCause(e).log("HyLens: world %s is stopping", world.getName());
+            }
+        }
     }
 
     /**

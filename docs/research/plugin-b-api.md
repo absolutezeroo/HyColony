@@ -880,6 +880,15 @@ Tâche 9 du plan `2026-09-30-hycolony-api-hylens.md`, sources de 0.7.0-pre.4.
 - **Arguments.** Un argument optionnel s'écrit `--nom=valeur`. Une variante d'usage (`addUsageVariant`) est choisie par son nombre **exact** de mots (`variantCommands.get(n)`, `command/system/AbstractCommand.java:835-836`), et le découpage se fait aux espaces : une variante qui prend un nom de plusieurs mots n'est jamais atteinte. Un argument requis `ArgTypes.GREEDY_STRING` (`arguments/types/ArgTypes.java:127`) rend sa commande `allowsExtraArguments` (l. 1179-1181) : elle accepte un mot ou plus (l. 752-764), et l'argument reçoit le reste de la ligne brut, sans le nom des commandes (`extractGreedyRawTail`, l. 880-909), guillemets compris. Pour « sans argument, ou un nom », HyLens met donc le nom sur la commande, et la forme sans argument dans une variante de zéro mot.
 - **Déconnexion sur le fil du monde.** `Universe.removePlayer` peut être appelé depuis le fil du monde (une expulsion dans un `world.execute`, `InventoryPacketHandler.java:447-452`) : il retire alors le joueur tout de suite (`Universe.java:1687-1693`). Un écouteur de `PlayerDisconnectEvent` qui veut encore toucher au joueur le fait donc sur place quand `world.isInThread()`, sinon par `world.execute`. À l'arrêt normal du serveur, `ShutdownEvent` déconnecte tout le monde avant l'arrêt des plugins (`HytaleServer.shutdown0`, l. 517-518), écouteurs encore inscrits.
 
+## 37. HyLens : un HUD personnalisé rafraîchi (2026-09-30)
+
+Tâche 10 du plan `2026-09-30-hycolony-api-hylens.md`, sources de 0.7.0-pre.4.
+
+- **Afficher, remplacer, retirer.** `Player.getHudManager()` (`server/core/entity/entities/Player.java:469`). `HudManager.addCustomHud(playerRef, hud)` garde le HUD sous sa clé et appelle `show()`, qui construit le document puis envoie `update(true, …)` ; un autre HUD sous la même clé est d'abord retiré. `getCustomHud(key)` le rend, `removeCustomHud(playerRef, key)` l'efface chez le client (`entity/entities/player/hud/HudManager.java:61, 129-162`).
+- **Mettre à jour.** `CustomUIHud.update(clear, builder)` envoie un paquet `CustomHud(key, zOrder, clear, commandes)` sans cache (`hud/CustomUIHud.java`). Avec `clear = false`, les commandes s'appliquent au document déjà affiché : `clear("#Lines")`, puis un `append("#Lines", "…ui")` par ligne et `set("#Lines[i] #Text.TextSpans", message)`, comme nos pages (`ui/builder/UICommandBuilder.java`).
+- **Clé.** Le mode spectateur affiche son propre HUD sous la clé `Spectating` (`modules/entity/spectator/SpectatingHud.java`) : HyLens prend `HyLensWatch`.
+- **Cadence.** Un `TickingSystem<EntityStore>` reçoit le `dt` de chaque monde, sur son fil (`component/system/tick/TickingSystem`), comme `ColonyTickSystem`. Le coût d'un rafraîchissement toutes les 0,5 s est **[in-game]**.
+
 ## Could not verify
 
 1. **Client rendering of item animations on NPCs** (`AnimationSlot.Action` with `"Block"/"Build"` or `"Pickaxe"/"Mine"` on `PlayerTestModel_V`) and whether they loop or play once. Only the server packet path is verified.

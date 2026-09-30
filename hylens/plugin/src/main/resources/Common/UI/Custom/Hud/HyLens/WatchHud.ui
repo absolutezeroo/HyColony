@@ -1,0 +1,9 @@
+Group {
+  Anchor: (Right: 20, Top: 80, Width: 640, Height: 400);
+  LayoutMode: Top;
+
+  Group #Lines {
+    LayoutMode: Top;
+    FlexWeight: 1;
+  }
+}

@@ -26,3 +26,13 @@ hytaleTools {
 }
 
 tasks.named<Jar>("jar") { archiveBaseName.set("HyLens") }
+
+// Hytale shuts the whole server down when a pack holds an invalid asset: check HyLens's own before it ships.
+val checkPackAssets by tasks.registering(CheckPackAssets::class) {
+    packs.from(layout.projectDirectory.dir("src/main/resources"))
+    namespace.set("HyLens")
+    stamp.set(layout.buildDirectory.file("tmp/checkPackAssets.stamp"))
+    // The pack is the mod's resources, where hytale-tools writes manifest.json.
+    mustRunAfter("createManifestIfMissing", "updatePluginManifest")
+}
+tasks.named("processResources") { dependsOn(checkPackAssets) }
