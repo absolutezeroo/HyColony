@@ -16,6 +16,7 @@ import dev.hydomum.plugin.registry.OrnamentVariantRegistry;
 import dev.hydomum.plugin.runtime.BlockTypeSynchronizer;
 import dev.hydomum.plugin.runtime.MaterialCatalog;
 import dev.hydomum.plugin.runtime.VariantAssets;
+import dev.hydomum.plugin.runtime.VariantPalette;
 import java.nio.file.Path;
 import java.util.logging.Level;
 import javax.annotation.Nonnull;
@@ -47,10 +48,13 @@ public final class HyDomumPlugin extends JavaPlugin {
         });
         DomumIds ids = DomumIds.load();
         String pack = getIdentifier().toString();
+        BlockTypeSynchronizer synchronizer = new BlockTypeSynchronizer(pack);
+        VariantAssets assets = new VariantAssets(pack, DATA.resolve("assets"));
         OrnamentVariantRegistry ornaments = new OrnamentVariantRegistry(
-                new BlockTypeSynchronizer(pack),
+                synchronizer,
                 new VariantStore(DATA.resolve("variants.json")),
-                new VariantAssets(pack, DATA.resolve("assets")));
+                assets,
+                new VariantPalette(assets, synchronizer));
         // First and unconditionally: HyColony orders its protection before this system (HyDomumSystems), and a
         // SystemDependency on an unregistered class throws (ComponentRegistry.java:657-659).
         registerCutter(ids, ornaments);

@@ -48,6 +48,11 @@ public final class MaterialCatalog {
         return tags;
     }
 
+    /** Every material's block id. */
+    public Set<String> materials() {
+        return textures.keySet();
+    }
+
     /** The Common path of blockId's side texture; empty when it is not a material. */
     public Optional<String> texture(String blockId) {
         return Optional.ofNullable(textures.get(blockId));

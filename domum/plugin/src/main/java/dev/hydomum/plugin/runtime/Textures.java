@@ -2,12 +2,14 @@ package dev.hydomum.plugin.runtime;
 
 import com.hypixel.hytale.server.core.asset.common.CommonAsset;
 import com.hypixel.hytale.server.core.asset.common.CommonAssetRegistry;
+import dev.hydomum.core.palette.PaletteLayout;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.function.Function;
 import javax.imageio.ImageIO;
 
 /** Image helpers of the generated textures and icons: read a loaded texture, fit it to a face, pair two, write PNG. */
@@ -56,6 +58,18 @@ final class Textures {
         g.drawImage(face(second), FACE, 0, null);
         g.dispose();
         return pair;
+    }
+
+    /** The palette: each material's face (from faceOf) in its layout tile, transparent elsewhere. */
+    static BufferedImage palette(PaletteLayout layout, Function<String, BufferedImage> faceOf) {
+        BufferedImage palette = new BufferedImage(layout.widthPx(), layout.heightPx(), BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = palette.createGraphics();
+        for (String material : layout.materials()) {
+            PaletteLayout.Tile tile = layout.tile(material).orElseThrow();
+            g.drawImage(face(faceOf.apply(material)), tile.x(), tile.y(), null);
+        }
+        g.dispose();
+        return palette;
     }
 
     /** {@code image} as PNG bytes. */

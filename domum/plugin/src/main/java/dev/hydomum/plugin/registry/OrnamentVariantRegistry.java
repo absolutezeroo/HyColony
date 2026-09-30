@@ -1,6 +1,7 @@
 package dev.hydomum.plugin.registry;
 
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.server.core.asset.common.CommonAsset;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import dev.hydomum.api.ShapeCatalog;
 import dev.hydomum.api.VariantKey;
@@ -9,6 +10,7 @@ import dev.hydomum.plugin.persistence.VariantStore;
 import dev.hydomum.plugin.runtime.BlockTypeSynchronizer;
 import dev.hydomum.plugin.runtime.MaterialCatalog;
 import dev.hydomum.plugin.runtime.VariantAssets;
+import dev.hydomum.plugin.runtime.VariantPalette;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -39,18 +41,22 @@ public final class OrnamentVariantRegistry {
     private final BlockTypeSynchronizer synchronizer;
     private final VariantStore store;
     private final VariantAssets assets;
+    private final VariantPalette palette;
     private final VariantBuilder builder;
     private volatile @Nullable Catalogs catalogs;
 
     /**
      * @param store the saved variants, extended by each creation
-     * @param assets generates pair textures and icons
+     * @param assets generates models and icons
+     * @param palette the texture two-material variants read, started with the catalogs
      */
-    public OrnamentVariantRegistry(BlockTypeSynchronizer synchronizer, VariantStore store, VariantAssets assets) {
+    public OrnamentVariantRegistry(
+            BlockTypeSynchronizer synchronizer, VariantStore store, VariantAssets assets, VariantPalette palette) {
         this.synchronizer = synchronizer;
         this.store = store;
         this.assets = assets;
-        this.builder = new VariantBuilder(assets);
+        this.palette = palette;
+        this.builder = new VariantBuilder(assets, palette);
     }
 
     /** The shapes and materials; empty before {@link #start}. */
@@ -103,11 +109,17 @@ public final class OrnamentVariantRegistry {
     }
 
     /**
-     * Takes the catalogs and registers every saved variant again, in one store load and without any client rebuild;
-     * call it at boot, off any world thread and before chunks load. A variant that fails is logged and skipped.
+     * Takes the catalogs, draws the palette, then registers every saved variant again, in one store load and without
+     * any client rebuild; call it at boot, off any world thread and before chunks load. A palette that cannot be
+     * drawn is logged: two-material variants then fail one by one. A variant that fails is logged and skipped.
      */
     public void start(Catalogs loaded) {
         catalogs = loaded;
+        try {
+            palette.start(loaded.shapes(), loaded.materials());
+        } catch (RuntimeException | LinkageError | java.awt.AWTError e) { // AWT may lack native libraries
+            LOG.at(Level.SEVERE).withCause(e).log("hydomum: palette not drawn, two-material variants unavailable");
+        }
         List<VariantKey> saved = store.load(loaded.shapes());
         if (saved.isEmpty()) {
             return;
@@ -121,10 +133,10 @@ public final class OrnamentVariantRegistry {
     }
 
     /**
-     * Builds keys' blocks and items (their new PNGs registered, not sent), registers them in the stores, then
-     * publishes the PNGs they name that were not sent yet, and saves the keys in the {@link VariantStore}. At boot
-     * nothing is sent (no player yet: assets, blocks and items reach clients when they join); otherwise
-     * UpdateBlockTypes goes twice (the client misses the first runtime one).
+     * Builds keys' blocks and items (their new models and icons registered, not sent), sends the new models, registers
+     * the blocks and items, then publishes the new icons and saves the keys in the {@link VariantStore}. At boot
+     * nothing is sent (no player yet: files, blocks and items reach clients when they join); otherwise
+     * UpdateBlockTypes goes twice (the client misses the first runtime one), and no packet asks for a texture rebuild.
      */
     private Batch create(List<VariantKey> keys, boolean boot) {
         Catalogs loaded = catalogs;
@@ -133,12 +145,17 @@ public final class OrnamentVariantRegistry {
         }
         VariantBuilder.Built built = builder.build(keys, loaded.materials());
         if (!built.types().isEmpty()) {
+            // Models go before the blocks that name them: nothing makes a client reread one later.
+            List<CommonAsset> models = assets.takeUnsentModels(built.assetNames());
+            if (!boot) {
+                synchronizer.sendModels(models);
+            }
             synchronizer.register(built.types(), !boot);
             synchronizer.registerItems(built.items());
-            // Taken once the stores hold this batch: a key that failed before keeps its PNGs for its retry.
-            VariantAssets.Unsent unsent = assets.takeUnsent(built.assetNames());
+            // Taken once the stores hold this batch: a key that failed before keeps its icon for its retry.
+            List<CommonAsset> icons = assets.takeUnsentIcons(built.assetNames());
             if (!boot) {
-                synchronizer.publish(built.types(), built.items(), unsent);
+                synchronizer.publishIcons(built.items(), icons);
                 store.add(built.done());
             }
         }

@@ -38,8 +38,12 @@ final class VariantBlockType extends BlockType {
     /** The template's asset data, answered by {@link #getData()} only; the {@code data} field stays null. */
     private final AssetExtraInfo.@Nullable Data templateData;
 
-    VariantBlockType(BlockType template, String id, String modelTexture, Family family) {
+    /** A copy of template under id, reading modelTexture through model (a common asset path; template's if null). */
+    VariantBlockType(BlockType template, String id, @Nullable String model, String modelTexture, Family family) {
         super(template);
+        if (model != null) {
+            this.customModel = model;
+        }
         this.templateData = template.getData();
         this.data = null;
         this.id = id;

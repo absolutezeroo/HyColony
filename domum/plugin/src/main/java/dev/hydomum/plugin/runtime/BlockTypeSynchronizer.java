@@ -12,30 +12,22 @@ import com.hypixel.hytale.server.core.asset.common.CommonAssetModule;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
 import com.hypixel.hytale.server.core.universe.Universe;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
 /**
- * Registers runtime BlockTypes and Items in Hytale's stores, then publishes a batch's new common assets (PNGs) to
- * connected players. The stores load first and their packets carry no client rebuild flag; the new PNGs go next;
- * the flags that make clients read them come last, in their own packets (the sequencing of Frames'
- * DynamicAssetReloader, with targeted flags instead of its {@code RequestCommonAssetsRebuild}, which is never sent).
+ * Registers runtime BlockTypes and Items in Hytale's stores and sends connected players a batch's new files: its
+ * models first, since no rebuild flag makes a client reread a model that arrives after the block naming it; its icons
+ * last, with the Items again and {@code updateIcons}. No packet carries {@code updateBlockTextures}: variants read
+ * textures clients already hold (VariantPalette), so no client atlas rebuild, hence no flicker.
  *
  * <p>Must not run on a world thread: {@code World.tick} holds the read lock of {@code AssetRegistry.ASSET_LOCK} and
  * {@code AssetStore.loadAssets} takes its write lock, which deadlocks (docs/research/plugin-b-api.md § 17).
  */
 public final class BlockTypeSynchronizer {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
-    /**
-     * Block textures only: the client rebuilds its block texture atlas, which a new model texture needs (without it,
-     * a composed variant shows the wrong atlas region; in game 2026-09-28).
-     */
-    private static final AssetUpdateQuery.RebuildCache BLOCK_TEXTURES =
-            new AssetUpdateQuery.RebuildCache(true, false, false, false, false, false);
-
     private final String packKey;
 
     /** @param packKey the plugin's asset pack name ({@code Group:Name}, as PluginManager registers it) */
@@ -90,33 +82,37 @@ public final class BlockTypeSynchronizer {
     }
 
     /**
-     * Sends connected players the unsent PNGs a registered batch names, then asks them to read them: the batch's
-     * {@code types} again with {@code updateBlockTextures} when a texture is new (the client rebuilds its whole
-     * atlas), its {@code items} again with {@code updateIcons} when an icon is new. Sends nothing without new PNG, or
+     * Sends connected players a batch's new models, before its blocks are registered. Sends nothing without model or
      * without player: joining players download them with the required assets. A failure is logged: clients lack the
-     * new PNGs until they reconnect.
+     * models until they reconnect.
      */
-    public void publish(List<BlockType> types, List<Item> items, VariantAssets.Unsent unsent) {
-        List<CommonAsset> textures = unsent.textures();
-        List<CommonAsset> icons = unsent.icons();
-        if ((textures.isEmpty() && icons.isEmpty()) || Universe.get().getPlayerCount() == 0) {
+    public void sendModels(List<CommonAsset> models) {
+        if (models.isEmpty() || Universe.get().getPlayerCount() == 0) {
             return;
         }
         try {
-            List<CommonAsset> assets = new ArrayList<>(textures);
-            assets.addAll(icons);
-            CommonAssetModule.get().sendAssets(assets, false);
-            if (!textures.isEmpty()) {
-                broadcastTypes(types, BLOCK_TEXTURES);
-            }
-            if (!icons.isEmpty()) {
-                broadcastItemIcons(items);
-            }
-            LOG.at(Level.INFO).log(
-                    "hydomum: published %d texture(s) and %d icon(s), then their rebuild flags",
-                    textures.size(), icons.size());
+            CommonAssetModule.get().sendAssets(models, false);
+            LOG.at(Level.INFO).log("hydomum: sent %d new model(s)", models.size());
         } catch (RuntimeException e) {
-            LOG.at(Level.SEVERE).withCause(e).log("hydomum: new assets not sent, clients need to reconnect");
+            LOG.at(Level.SEVERE).withCause(e).log("hydomum: new models not sent, clients need to reconnect");
+        }
+    }
+
+    /**
+     * Sends connected players a registered batch's new icons, then its {@code items} again with {@code updateIcons}
+     * (without it, a client ignores a new icon; in game 2026-09-28). Sends nothing without icon or without player;
+     * a failure is logged: clients lack the icons until they reconnect.
+     */
+    public void publishIcons(List<Item> items, List<CommonAsset> icons) {
+        if (icons.isEmpty() || Universe.get().getPlayerCount() == 0) {
+            return;
+        }
+        try {
+            CommonAssetModule.get().sendAssets(icons, false);
+            broadcastItemIcons(items);
+            LOG.at(Level.INFO).log("hydomum: published %d icon(s), then updateIcons", icons.size());
+        } catch (RuntimeException e) {
+            LOG.at(Level.SEVERE).withCause(e).log("hydomum: new icons not sent, clients need to reconnect");
         }
     }
 

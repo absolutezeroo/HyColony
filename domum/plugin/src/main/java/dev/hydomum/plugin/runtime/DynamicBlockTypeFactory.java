@@ -16,6 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import org.bson.BsonDocument;
 import org.bson.BsonString;
@@ -27,9 +28,10 @@ import org.jspecify.annotations.Nullable;
  * template block (with each of its states) and template item, with the variant's layout texture and icon. It only
  * builds the objects: {@link BlockTypeSynchronizer} registers them.
  *
- * <p>The block copies keep the template's models, hitboxes, sounds and gathering, so every variant reuses the
- * {@code .blockymodel}s the client already has; only the texture its models read changes (MC DO retextures the same
- * model, {@code MateriallyTexturedBakedModel}), and the item a state gives back becomes the variant's.
+ * <p>The block copies keep the template's hitboxes, sounds and gathering, with the models modelOf gives for the
+ * template's (its own for one material, remapped onto the palette for two, VariantPalette) and the variant's texture
+ * (MC DO retextures the same model, {@code MateriallyTexturedBakedModel}); the item a state gives back becomes the
+ * variant's.
  *
  * <p>Deviation from MC: a variant sounds and breaks like its template (its shape's default material): DO takes
  * them from the chosen material.
@@ -40,10 +42,10 @@ public final class DynamicBlockTypeFactory {
 
     /**
      * The variant's main BlockType, then one per template state ({@code *<key>_State_Definitions_<state>}, the key
-     * vanilla gives a decoded state), all to register together, every model reading modelTexture. Throws
-     * {@link IllegalStateException} without a template block.
+     * vanilla gives a decoded state), all to register together, each reading modelTexture through the model modelOf
+     * gives for its template block's model. Throws {@link IllegalStateException} without a template block.
      */
-    public List<BlockType> create(VariantKey key, String modelTexture) {
+    public List<BlockType> create(VariantKey key, String modelTexture, UnaryOperator<String> modelOf) {
         String templateKey = key.shape().templateKey();
         BlockType template = template(BlockType.getAssetMap().getAsset(templateKey), key);
         String mainKey = key.blockTypeKey();
@@ -57,10 +59,19 @@ public final class DynamicBlockTypeFactory {
                 copy(template.getConnectedBlockRuleSet(), templateKey, mainKey),
                 templateKey);
         List<BlockType> blocks = new ArrayList<>();
-        blocks.add(new VariantBlockType(template, mainKey, modelTexture, family));
-        stateKeys.forEach((state, stateKey) -> blocks.add(
-                new VariantBlockType(template(template.getBlockForState(state), key), stateKey, modelTexture, family)));
+        blocks.add(new VariantBlockType(template, mainKey, model(template, modelOf), modelTexture, family));
+        stateKeys.forEach((state, stateKey) -> {
+            BlockType stateTemplate = template(template.getBlockForState(state), key);
+            blocks.add(
+                    new VariantBlockType(stateTemplate, stateKey, model(stateTemplate, modelOf), modelTexture, family));
+        });
         return blocks;
+    }
+
+    /** block's model through modelOf; null (the template's own, kept by the copy) when block has none. */
+    private static @Nullable String model(BlockType block, UnaryOperator<String> modelOf) {
+        String model = block.getCustomModel();
+        return model == null ? null : modelOf.apply(model);
     }
 
     /**

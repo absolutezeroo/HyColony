@@ -24,22 +24,23 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.zip.CRC32;
+import org.jspecify.annotations.Nullable;
 
 /**
- * The PNGs a variant needs beyond vanilla ones: the texture of a two-material pair (unless the pack ships it) and
- * its inventory icon. Each is generated once per asset name and inputs, kept on disk (reused at the next boot) and
- * registered as a common asset without notification or send: it joins the assets a joining player downloads, whose
- * private cached list is refreshed by reflection, and waits until a batch that names it is registered in the stores
- * and takes it ({@link #takeUnsent}) for {@link BlockTypeSynchronizer#publish}. Must run off world threads (it reads
- * textures and writes files).
+ * The files a variant needs beyond vanilla ones: the palette texture (VariantPalette), each two-material model
+ * remapped onto it, and each variant's inventory icon. Each is generated once per asset name and inputs, kept on disk
+ * (reused at the next boot) and registered as a common asset without notification or send: it joins the assets a
+ * joining player downloads, whose private cached list is refreshed by reflection. A model or icon then waits until a
+ * batch that names it takes it ({@link #takeUnsentModels}, {@link #takeUnsentIcons}) to send it to connected players.
+ * Must run off world threads (it reads textures and writes files).
  *
- * <p>ponytail: PNGs of older fingerprints stay on disk, unread; add a sweep of the folder if it ever grows large.
+ * <p>ponytail: files of older fingerprints stay on disk, unread; add a sweep of the folder if it ever grows large.
  */
 public final class VariantAssets {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
-    /** Where pair textures live; tools/domum/pairs.py writes the pack's own under the same names. */
-    private static final String PAIRS = "Blocks/HyDomum/Pairs/";
-    /** Bump when Textures or IconMap draw differently: PNGs kept on disk by older code are then redrawn. */
+    /**
+     * Bump when Textures, IconMap or PaletteLayout draw differently: files kept on disk by older code are redrawn.
+     */
     private static final long DRAWING_VERSION = 1;
 
     private final String packKey;
@@ -49,14 +50,11 @@ public final class VariantAssets {
     // Loaded textures never change while the server runs.
     private final Map<String, byte[]> sources = new ConcurrentHashMap<>();
     private final Map<String, BufferedImage> images = new ConcurrentHashMap<>();
-    // Registered, not yet sent to connected players, by name: a key that fails keeps its PNGs until it is retried,
-    // and of two batches naming one PNG, only the first to take it sends it and its rebuild flag.
+    // Registered, not yet sent to connected players, by name: a key that fails keeps its files until it is retried,
+    // and of two batches naming one file, only the first to take it sends it.
     // ponytail: a key never retried keeps its entry until restart (one per name); sweep them if that ever matters.
-    private final Map<String, CommonAsset> unsentTextures = new ConcurrentHashMap<>();
+    private final Map<String, CommonAsset> unsentModels = new ConcurrentHashMap<>();
     private final Map<String, CommonAsset> unsentIcons = new ConcurrentHashMap<>();
-
-    /** Registered pair textures and icons that connected players do not have yet. */
-    public record Unsent(List<CommonAsset> textures, List<CommonAsset> icons) {}
 
     /**
      * @param packKey the plugin's asset pack name ({@code Group:Name})
@@ -68,37 +66,48 @@ public final class VariantAssets {
     }
 
     /**
-     * The pair texture of materials first and second (64 x 32: tex1's face left, tex2's right): the loaded asset
-     * when the pack or an earlier call has it, else registered from disk or generated. Throws when a texture is
-     * unreadable.
+     * The common asset name of key's icon, painted through map from its layout: the material's texture, or for two
+     * materials the 64 x 32 pair drawn in memory (never registered). Throws on failure.
      */
-    public String pairTexture(String first, String second, String tex1, String tex2) {
-        String name = PAIRS + first + "__" + second + ".png";
-        if (CommonAssetRegistry.getByName(name) != null) {
-            return name;
-        }
-        return registerOnce(
-                name,
-                fingerprint(0, source(tex1), source(tex2)),
-                () -> Textures.pair(image(tex1), image(tex2)),
-                unsentTextures);
-    }
-
-    /** The common asset name of key's icon, painted through map from its layout texture; throws on failure. */
-    public String icon(VariantKey key, IconMap map, String layoutTexture) {
+    public String icon(VariantKey key, IconMap map, List<String> textures) {
+        byte[][] inputs = textures.stream().map(this::source).toArray(byte[][]::new);
         return registerOnce(
                 "Icons/ItemsGenerated/" + key.blockTypeKey() + ".png",
-                fingerprint(map.crc(), source(layoutTexture)),
-                () -> map.sample(image(layoutTexture)),
+                fingerprint(map.crc(), inputs),
+                () -> Textures.png(map.sample(
+                        textures.size() == 1
+                                ? image(textures.getFirst())
+                                : Textures.pair(image(textures.get(0)), image(textures.get(1))))),
                 unsentIcons);
     }
 
+    /** The model JSON registered under the common asset name, once; it waits to be sent ({@link #takeUnsentModels}). */
+    public String model(String name, byte[] json) {
+        return registerOnce(name, fingerprint(0, json), () -> json, unsentModels);
+    }
+
     /**
-     * Takes the registered PNGs among {@code names} that were not sent yet; a name taken once is never returned
-     * again. Call it once the stores hold the batch that uses these names, so that a batch failing before keeps them.
+     * The file drawn by content, registered once under the common asset name for seed and inputs, never sent at
+     * runtime (the palette, drawn at boot). Throws when content fails.
      */
-    public Unsent takeUnsent(Collection<String> names) {
-        return new Unsent(take(unsentTextures, names), take(unsentIcons, names));
+    String generated(String name, long seed, Supplier<byte[]> content, byte[]... inputs) {
+        return registerOnce(name, fingerprint(seed, inputs), content, null);
+    }
+
+    /**
+     * Takes the registered models among names not sent yet; a name taken once is never returned again. Call it
+     * right before sending them, ahead of the blocks that name them.
+     */
+    public List<CommonAsset> takeUnsentModels(Collection<String> names) {
+        return take(unsentModels, names);
+    }
+
+    /**
+     * Takes the registered icons among names not sent yet; a name taken once is never returned again. Call it once
+     * the stores hold the batch, so that a batch failing before keeps them.
+     */
+    public List<CommonAsset> takeUnsentIcons(Collection<String> names) {
+        return take(unsentIcons, names);
     }
 
     /** The assets of {@code names} in unsent, removed from it. */
@@ -113,32 +122,36 @@ public final class VariantAssets {
         return taken;
     }
 
-    /** {@code name}, registered on the first call only, whose asset then waits in {@code unsent}. */
+    /** {@code name}, registered on the first call only, whose asset then waits in {@code unsent} when given. */
     private String registerOnce(
-            String name, long fingerprint, Supplier<BufferedImage> image, Map<String, CommonAsset> unsent) {
+            String name, long fingerprint, Supplier<byte[]> bytes, @Nullable Map<String, CommonAsset> unsent) {
         return published.computeIfAbsent(name, n -> {
-            register(n, stored(n, fingerprint, image)).ifPresent(a -> unsent.put(n, a));
+            Optional<CommonAsset> asset = register(n, stored(n, fingerprint, bytes));
+            if (unsent != null) {
+                asset.ifPresent(a -> unsent.put(n, a));
+            }
             return n;
         });
     }
 
     /**
-     * The file of name's PNG for these inputs: the one an earlier boot wrote when there (a restart redraws
+     * The file of name's content for these inputs: the one an earlier boot wrote when there (a restart redraws
      * nothing), else drawn and written. The fingerprint is in the file name, so a changed texture, icon map or
      * drawing code draws a new file.
      */
-    private Path stored(String name, long fingerprint, Supplier<BufferedImage> image) {
-        String stem = name.substring(0, name.length() - ".png".length());
-        Path file = dir.resolve(stem + "." + Long.toHexString(fingerprint) + ".png");
+    private Path stored(String name, long fingerprint, Supplier<byte[]> bytes) {
+        int dot = name.lastIndexOf('.');
+        String stem = name.substring(0, dot);
+        Path file = dir.resolve(stem + "." + Long.toHexString(fingerprint) + name.substring(dot));
         try {
             if (Files.isRegularFile(file)) {
                 return file;
             }
-            byte[] png = Textures.png(image.get());
+            byte[] content = bytes.get();
             Files.createDirectories(file.getParent());
-            // A crash mid-write must not leave a truncated PNG that the next boot would reuse.
+            // A crash mid-write must not leave a truncated file that the next boot would reuse.
             Path tmp = file.resolveSibling(file.getFileName() + ".tmp");
-            Files.write(tmp, png);
+            Files.write(tmp, content);
             Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
             return file;
         } catch (IOException e) {
@@ -156,12 +169,12 @@ public final class VariantAssets {
     }
 
     /** The bytes of the loaded texture {@code name}, read once. */
-    private byte[] source(String name) {
+    byte[] source(String name) {
         return sources.computeIfAbsent(name, Textures::bytes);
     }
 
     /** The loaded texture {@code name}, decoded once. */
-    private BufferedImage image(String name) {
+    BufferedImage image(String name) {
         return images.computeIfAbsent(name, n -> Textures.decode(n, source(n)));
     }
 
