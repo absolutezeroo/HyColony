@@ -5,15 +5,16 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
 import com.hypixel.hytale.server.core.command.system.basecommands.AbstractCommandCollection;
 import com.hypixel.hytale.server.core.command.system.basecommands.AbstractPlayerCommand;
+import com.hypixel.hytale.server.core.plugin.PluginBase;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import dev.hyblockui.api.Texts;
 import dev.hycolony.api.ApiVersion;
 import dev.hycolony.api.ColonyWorld;
 import dev.hycolony.plugin.api.HyColonyApi;
 import dev.hylens.core.ApiCompatibility;
-import java.util.List;
+import dev.hylens.core.watch.Watches;
+import dev.hylens.plugin.HyLensIds;
 import java.util.Optional;
 import javax.annotation.Nonnull;
 
@@ -22,9 +23,11 @@ import javax.annotation.Nonnull;
  * Hytale generates for it, which only the operators' "*" holds (AbstractCommand.setOwner, hasPermission).
  */
 public final class HyLensCommand extends AbstractCommandCollection {
-    public HyLensCommand() {
+    public HyLensCommand(PluginBase owner, Watches watches, HyLensIds ids) {
         super("hylens", "HyLens, a debugging lens on HyColony (operators)");
         addSubCommand(new SelfTest());
+        addSubCommand(new WatchCommand(new CitizenWatch(owner, watches, ids)));
+        addSubCommand(new UnwatchCommand(watches));
     }
 
     /** Checks that HyColony's api answers in the player's world, and that HyLens runs with its version. */
@@ -41,11 +44,15 @@ public final class HyLensCommand extends AbstractCommandCollection {
                 @Nonnull PlayerRef player,
                 @Nonnull World world) {
             ApiVersion running = ApiVersion.CURRENT;
-            report(
-                    player,
-                    "api version",
-                    ApiCompatibility.accepts(running),
-                    "HyColony's api " + running + ", HyLens built against " + ApiCompatibility.BUILT_AGAINST);
+            if (ApiCompatibility.accepts(running)) {
+                report(player, "api version", true, "");
+            } else {
+                Chat.tell(
+                        player,
+                        "hylens.selftest.versionMismatch",
+                        running.toString(),
+                        ApiCompatibility.BUILT_AGAINST.toString());
+            }
             Optional<ColonyWorld> colonies;
             try {
                 colonies = HyColonyApi.get().world(world);
@@ -53,15 +60,16 @@ public final class HyLensCommand extends AbstractCommandCollection {
                 report(player, "api", false, e.toString());
                 return;
             }
-            report(player, "api", colonies.isPresent(), "%hylens.selftest.notRunning");
+            report(player, "api", colonies.isPresent(), "%hylens.notRunning");
         }
 
         /** Sends one line, OK or KO; {@code detail} is shown for a KO, translated when written "%key". */
         private static void report(PlayerRef player, String step, boolean ok, String detail) {
-            player.sendMessage(
-                    ok
-                            ? Texts.translated("hylens.selftest.ok", List.of(step))
-                            : Texts.translated("hylens.selftest.ko", List.of(step, detail)));
+            if (ok) {
+                Chat.tell(player, "hylens.selftest.ok", step);
+            } else {
+                Chat.tell(player, "hylens.selftest.ko", step, detail);
+            }
         }
     }
 }

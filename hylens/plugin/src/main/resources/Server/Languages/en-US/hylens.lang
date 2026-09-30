@@ -1,3 +1,13 @@
+notRunning = HyColony does not run in this world
 selftest.ok = [OK] {p0}
 selftest.ko = [KO] {p0}: {p1}
-selftest.notRunning = HyColony does not run in this world
+selftest.versionMismatch = [KO] api version: HyColony's api is {p0}, HyLens is built against {p1}
+watch.started = Watching {p0}. /hylens unwatch to stop.
+watch.stopped = Watch stopped.
+watch.notWatching = You are not watching anyone.
+watch.noTarget = Look at a citizen within 32 blocks, or name one: /hylens watch <name>
+watch.notCitizen = This is not a citizen.
+watch.notFound = No citizen named {p0}.
+watch.ambiguous = Several citizens match: {p0}
+watch.noBody = The body of {p0} is not loaded in your world, or is dying.
+watch.cantEnter = Cannot enter the spectator mode.

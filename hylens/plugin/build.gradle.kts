@@ -11,6 +11,7 @@ dependencies {
     compileOnly(project(":api"))
     compileOnly(project(":plugin"))
     compileOnly(project(":blockui"))
+    compileOnly(libs.gson)
 }
 
 hytaleTools {
