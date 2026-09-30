@@ -38,6 +38,7 @@ class ColonyManagerTest {
     private final ColonyManager manager = t.manager();
     private final UUID alice = UUID.randomUUID();
     private final UUID bob = UUID.randomUUID();
+    private final UUID carol = UUID.randomUUID();
     private final BlockPos hall = new BlockPos(0, 64, 0);
     private static final String TOWN_HALL = BuildingTypes.TOWN_HALL.id();
 
@@ -97,22 +98,7 @@ class ColonyManagerTest {
 
     @Test
     void newColonyNeedsTheMinimumDistanceBetweenCentres() {
-        ColonyConfig d = ColonyConfig.defaults();
-        ColonyConfig.Claims c = d.claims();
-        t.config = new ColonyConfig(
-                d.gameplay(),
-                new ColonyConfig.Claims(
-                        c.maxColonySize(),
-                        20,
-                        c.initialColonySize(),
-                        c.maxDistanceFromWorldSpawn(),
-                        c.minDistanceFromWorldSpawn()),
-                d.permissions(),
-                d.commands(),
-                d.client(),
-                d.hycolony(),
-                d.structurize());
-        ColonyManager spaced = t.manager();
+        ColonyManager spaced = spacedBy(20);
         spaced.foundation().begin(alice, "Alice", hall, 0);
         spaced.foundation().confirm(alice, "A").orElseThrow();
 
@@ -122,6 +108,40 @@ class ColonyManagerTest {
         assertInstanceOf(
                 HutPlacement.FoundNewColony.class,
                 spaced.huts().checkPlacement(bob, new BlockPos(320, 64, 0), TOWN_HALL));
+    }
+
+    /** MC getClosestColony: only the nearest centre in 2D counts, then its 3D distance; a farther one is not asked. */
+    @Test
+    void onlyTheClosestColonyInTwoDimensionsIsMeasured() {
+        ColonyManager spaced = spacedBy(40); // 640 blocks
+        spaced.foundation().begin(alice, "Alice", new BlockPos(200, 764, 0), 0); // near in 2D, far in 3D (728)
+        spaced.foundation().confirm(alice, "A").orElseThrow();
+        spaced.foundation().begin(carol, "Carol", new BlockPos(600, 64, 0), 0); // farther in 2D, but 600 in 3D
+        spaced.foundation().confirm(carol, "C").orElseThrow();
+
+        assertInstanceOf(
+                HutPlacement.FoundNewColony.class,
+                spaced.huts().checkPlacement(bob, new BlockPos(0, 64, 0), TOWN_HALL));
+    }
+
+    /** A manager whose colonies must be {@code minColonyDistance} claim cells apart. */
+    private ColonyManager spacedBy(int minColonyDistance) {
+        ColonyConfig d = ColonyConfig.defaults();
+        ColonyConfig.Claims c = d.claims();
+        t.config = new ColonyConfig(
+                d.gameplay(),
+                new ColonyConfig.Claims(
+                        c.maxColonySize(),
+                        minColonyDistance,
+                        c.initialColonySize(),
+                        c.maxDistanceFromWorldSpawn(),
+                        c.minDistanceFromWorldSpawn()),
+                d.permissions(),
+                d.commands(),
+                d.client(),
+                d.hycolony(),
+                d.structurize());
+        return t.manager();
     }
 
     @Test
@@ -283,6 +303,18 @@ class ColonyManagerTest {
         assertFalse(manager.administration().rename(bob, c.id(), "Hacked"));
         assertTrue(manager.administration().rename(alice, c.id(), "Renamed"));
         assertEquals("Renamed", c.name());
+    }
+
+    /** MC TownHallRenameMessage: MANAGE_HUTS through hasPermission(Player, Action), the operator bypass included. */
+    @Test
+    void aCreativeOperatorRenamesAForeignColony() {
+        Colony c = found(alice, "A", hall);
+        t.players.creativeOperators.add(bob);
+
+        manager.windows().openTownHall(bob, hall);
+
+        assertTrue(((TownHallView) t.ui.shown.get(bob)).canRename());
+        assertTrue(manager.administration().rename(bob, c.id(), "Visited"));
     }
 
     @Test
