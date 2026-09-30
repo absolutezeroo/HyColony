@@ -26,8 +26,14 @@ allow Bash git commit -m 'docs: mention -n option'
 allow Bash git commit -m "fix(core): x" -m "never use --no-verify"
 allow Bash git commit -m "fix(core): support -Wall style"
 allow Bash git commit -F msg.txt
-allow Bash git commit --amend -m 'fix: x'
-allow Bash git commit --amend --no-edit
+deny Bash git commit --amend -m 'fix: x'
+deny Bash git commit --amend --no-edit
+deny Bash git commit --amen --no-edit
+deny Bash git commit "--amend" -m x
+deny Bash git -C . commit --amend -m x
+deny PowerShell git commit --amend --no-edit
+allow Bash git commit -m 'docs: never use --amend here'
+allow Bash git commit --fixup HEAD~1
 allow Bash git commit -s -m 'fix: x'
 allow Bash git commit --signoff -m 'fix: x'
 allow Bash git commit --include -m x core/Foo.java

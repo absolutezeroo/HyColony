@@ -484,6 +484,9 @@ function checkCommit(args, base) {
         if (/[an]/.test(shortLetters(o, "mFCct")) || isLong(o, "--no-verify", 6) || isLong(o, "--all", 3) || isLong(o, "--pathspec-from-file", 4)) {
             deny("CLAUDE.md § 10: never git commit --no-verify/-n (fix what the hook reports) nor -a/--all (stage explicit paths).");
         }
+        if (isLong(o, "--amend", 4)) {
+            deny("CLAUDE.md § 10: never git commit --amend: HEAD may be another session's commit. Fix a bad commit with a new one.");
+        }
     }
     checkPathspecs(ops, base);
 }

@@ -38,8 +38,8 @@ HyColony porte MineColonies sur Hytale 0.7.0-pre.4 (Update 7, épinglé dans `gr
 ## 3. Style
 
 - Identifiants, Javadoc et commentaires de code en anglais. Documentation `docs/` et messages de commit : voir § 9.
-- 4 espaces, 120 colonnes, UTF-8, fin de ligne LF **[.editorconfig]**. Pas d'import `*`.
-- Le formatage est celui de palantir-java-format **[build : `spotlessCheck`]**. On lance `./gradlew spotlessApply` avant chaque commit.
+- 4 espaces, 120 colonnes (commentaires et Javadoc compris : palantir ne les recoupe pas), UTF-8, fin de ligne LF **[.editorconfig, build : `checkLineLength` pour le Java]**. Pas d'import `*`.
+- Le formatage est celui de palantir-java-format **[build : `spotlessCheck`]**. On le lance avant chaque commit, fichier par fichier quand d'autres sessions travaillent dans le même module (`./gradlew :core:spotlessApply -PspotlessIdeHook="<chemin absolu>"`).
 - Imports (Google Java Style) : un bloc d'imports statiques, une ligne vide, puis un bloc d'imports normaux, chacun trié dans l'ordre ASCII **[build : `spotlessCheck`]**.
 - Complexité, classes fourre-tout, code mort et code fragile sont vérifiés par PMD (`config/pmd/ruleset.xml`) **[build : `pmdMain`]**.
 - Le code emploie les fonctionnalités actuelles de Java 25 quand elles le rendent plus clair. Error Prone et NullAway tournent dans le build **[build]**.
@@ -112,11 +112,11 @@ Fichiers garde-fous (la même liste figure dans `AGENTS.md`, dans l'agent `hycol
   - `hycolony-researcher` vérifie les faits et n'écrit que dans `docs/research/` (imposé par un hook de son frontmatter).
 - Skills (`.claude/skills/`) : `port-mc`, `hytale-api` et `add-lang-key`.
 - Hooks git versionnés (`.githooks/`), activés une fois par clone avec `git config core.hooksPath .githooks` :
-  - `pre-commit` lance `spotlessCheck checkFileSizes checkSectionDividers` si un fichier `.java`, `.kts`, `.kt`, `gradle.properties`, `gradle/`, `config/` ou `build-logic/` est indexé. Il refuse un fichier indexé qui a aussi des modifications non indexées, car Gradle vérifie l'arbre de travail ;
+  - `pre-commit` lance `spotlessCheck checkFileSizes checkSectionDividers checkLineLength` si un fichier `.java`, `.kts`, `.kt`, `gradle.properties`, `gradle/`, `config/` ou `build-logic/` est indexé. Il refuse un fichier indexé qui a aussi des modifications non indexées, car Gradle vérifie l'arbre de travail ;
   - `commit-msg` impose `type(scope): description`, y compris derrière `fixup!`/`squash!`, et n'accepte `Merge` et `Revert` que dans les formats de git ;
   - `pre-push` refuse un arbre de travail non propre, puis lance `./gradlew build`.
 - Hook Claude Code (`.claude/hooks/guard.js`, déclaré dans `.claude/settings.json`, banc de test `node .claude/hooks/test/run.js`). Il découpe chaque commande en mots sans guillemets et ne juge que les commandes, options et fichiers écrits : un texte qui cite un chemin ou une option passe. Il refuse :
-  - les indexations larges (`git add`/`stage` avec `-A`, `-u`, `.`, `:/`, `*`), `git commit -a`, `--no-verify` et `-n`, `git push` forcé, `--mirror`, `--delete` ou `:branche`, et tout changement de `core.hooksPath` (sauf vers `.githooks`), y compris par `.git/config` ;
+  - les indexations larges (`git add`/`stage` avec `-A`, `-u`, `.`, `:/`, `*`), `git commit -a`, `--no-verify`, `-n` et `--amend` (HEAD peut être le commit d'une autre session), `git push` forcé, `--mirror`, `--delete` ou `:branche`, et tout changement de `core.hooksPath` (sauf vers `.githooks`), y compris par `.git/config` ;
   - le lancement du serveur Hytale (tâches Gradle `runServer` et `runAllMods`, même abrégées, `HytaleServer.jar`, `Start-Process`) ;
   - l'ajout d'une entrée aux trois listes d'exceptions, qui ne se modifient qu'avec les outils Edit et Write ;
   - l'écriture et l'indexation de `.mcp.json`, `config.json`, `config.json.bak` et `.claude/settings.local.json` ;

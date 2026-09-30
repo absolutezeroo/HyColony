@@ -13,9 +13,10 @@ Java; a mod reaches another only through its `api` packages. Details: CLAUDE.md 
 
 ## Verify before every commit
 
-    ./gradlew spotlessApply   # format (palantir-java-format, import order)
+    ./gradlew spotlessApply   # format (palantir-java-format, import order); file by file with
+                              # -PspotlessIdeHook="<absolute path>" when other sessions share the module
     ./gradlew build           # core tests, plugin compile with Error Prone and NullAway, spotlessCheck, PMD,
-                              # checkFileSizes, checkSectionDividers
+                              # checkFileSizes, checkSectionDividers, checkLineLength
 
 The build must be green. Versioned git hooks enforce this: run `git config core.hooksPath .githooks` once per clone.
 
@@ -23,7 +24,7 @@ The build must be green. Versioned git hooks enforce this: run `git config core.
 
 - Launch the Hytale server (`runServer`, `runAllMods`, `HytaleServer.jar`). The user runs it and tests in game.
 - `git add -A`, `git add .`, `git add -u`, `git commit -a`: stage explicit paths only.
-- `--no-verify` on commit or push (nor `-n` on commit), `git push --force`, or changing `core.hooksPath`.
+- `--no-verify` on commit or push (nor `-n` on commit), `git commit --amend` (HEAD may be another session's commit), `git push --force`, or changing `core.hooksPath`.
 - Add a line to `gradle/file-size-allowlist.txt`, `gradle/package-size-allowlist.txt` or
   `config/pmd/known-violations.txt`: these lists only shrink.
 - Write or commit `.mcp.json`, `config.json`, `config.json.bak` or `.claude/settings.local.json` (local settings).
