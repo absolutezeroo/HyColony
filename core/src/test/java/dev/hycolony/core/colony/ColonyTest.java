@@ -66,6 +66,17 @@ class ColonyTest {
         assertEquals(ColonyState.ACTIVE, c.state());
     }
 
+    /** MC: only the colony's managers (isColonyManager, Owner and Officer by default) keep it going from afar. */
+    @Test
+    void aFriendOnlineElsewhereDoesNotKeepTheColonyGoing() {
+        Colony c = colony();
+        UUID friend = UUID.randomUUID();
+        assertTrue(c.permissions().setRank(friend, "Bob", Permissions.FRIEND));
+        t.players.online.put(friend, new BlockPos(10_000, 64, 0));
+        run(c, 200);
+        assertEquals(ColonyState.INACTIVE, c.state());
+    }
+
     @Test
     void dawnIncrementsDayAndPostsEvents() {
         Colony c = colony();

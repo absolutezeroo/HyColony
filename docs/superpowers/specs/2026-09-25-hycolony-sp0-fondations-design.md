@@ -131,8 +131,8 @@ C'est un portage fidèle de `BasicStateMachine` et `TickRateStateMachine` de Min
 - `state` : `ACTIVE` / `UNLOADED` / `INACTIVE`
 
 **Machine d'état de la colonie** (réévaluée toutes les 100 ticks, reprise de MineColonies) :
-- `ACTIVE` si un joueur « abonné » est dans le territoire, ou si le chunk de l'hôtel de ville est chargé et qu'un membre de rang ≥ Friend est en ligne. MineColonies utilise ici « plus de 40 chunks chargés » ; comme les chunks Hytale font 32 blocs, on retient le chunk de l'hôtel de ville, qui donne un comportement équivalent.
-- `UNLOADED` si un membre est en ligne ;
+- `ACTIVE` si un joueur « abonné » est dans le territoire, ou si le chunk de l'hôtel de ville est chargé et qu'un gestionnaire de la colonie est en ligne (rang `isColonyManager`, par défaut Owner et Officer, comme les « joueurs importants » de MineColonies). Écart : MineColonies utilise ici « plus de 40 chunks chargés » ; comme les chunks Hytale font 32 blocs, on retient le chunk de l'hôtel de ville, qui donne un comportement équivalent.
+- `UNLOADED` si un gestionnaire est en ligne ;
 - `INACTIVE` sinon.
 
 **Cadences en `ACTIVE`** :

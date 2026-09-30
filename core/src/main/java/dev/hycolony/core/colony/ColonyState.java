@@ -10,24 +10,26 @@ public enum ColonyState implements IState {
     INACTIVE;
 
     /**
-     * MineColonies-equivalent activity rule (spec § 3.2): ACTIVE with a player inside the colony's territory, or with a
-     * member online while its centre is loaded; UNLOADED with a member online elsewhere; INACTIVE otherwise.
+     * MC ColonyStateMachine over its important players (the colony managers online, EventHandler.onPlayerEnterWorld):
+     * ACTIVE with a player inside the colony's territory, or with a manager online while its centre is loaded;
+     * UNLOADED with a manager online elsewhere; INACTIVE otherwise. Deviation from MC: MC wants more than 40 chunks
+     * loaded, here the centre's chunk (Hytale chunks are 32 blocks; spec SP0 § 3.2), and only this world's players.
      */
     static ColonyState of(Colony colony) {
         ColonyContext ctx = colony.context();
         boolean playerInside = false;
-        boolean memberOnline = false;
+        boolean managerOnline = false;
         for (UUID player : ctx.players().onlineIn(ctx.world())) {
             if (ctx.players().position(player).map(colony::contains).orElse(false)) {
                 playerInside = true;
             }
-            if (colony.permissions().isMember(player)) {
-                memberOnline = true;
+            if (colony.permissions().rankOf(player).isColonyManager()) {
+                managerOnline = true;
             }
         }
-        if (playerInside || (memberOnline && ctx.worldQuery().isLoaded(colony.center()))) {
+        if (playerInside || (managerOnline && ctx.worldQuery().isLoaded(colony.center()))) {
             return ACTIVE;
         }
-        return memberOnline ? UNLOADED : INACTIVE;
+        return managerOnline ? UNLOADED : INACTIVE;
     }
 }
