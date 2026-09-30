@@ -5,7 +5,9 @@ import dev.hycolony.core.app.ui.TownHallView;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.CitizenState;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.ColonyAccess;
 import dev.hycolony.core.colony.ColonyContext;
+import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.NavStatus;
 import java.util.List;
@@ -31,7 +33,7 @@ final class TownHallViews {
                 c.permissions().ownerName(),
                 c.day(),
                 rows,
-                c.permissions().rankOf(viewer).isColonyManager(),
+                ColonyAccess.allows(c, viewer, Action.MANAGE_HUTS),
                 WorkOrderViews.of(c, viewer),
                 TownHallStats.of(c));
     }

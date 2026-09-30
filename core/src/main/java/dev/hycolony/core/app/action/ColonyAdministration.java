@@ -47,10 +47,13 @@ public final class ColonyAdministration {
         return manager.deleteColony(colonyId);
     }
 
-    /** A colony manager's rank renames the colony; the town hall window is shown again. */
+    /**
+     * MC TownHallRenameMessage (permissionNeeded MANAGE_HUTS, {@link ColonyAccess}) renames the colony; the town hall
+     * window is shown again.
+     */
     public boolean rename(UUID actor, int colonyId, String rawName) {
         Colony c = manager.byId(colonyId).orElse(null);
-        if (c == null || !c.permissions().rankOf(actor).isColonyManager()) {
+        if (c == null || !ColonyAccess.allows(c, actor, Action.MANAGE_HUTS)) {
             return false;
         }
         Optional<String> name = validName(manager.context(), actor, rawName);
