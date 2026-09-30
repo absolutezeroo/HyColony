@@ -23,6 +23,7 @@ import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.core.kernel.item.Inventory;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.core.kernel.item.Workstation;
 import dev.hycolony.core.logistics.pickup.KeepRule;
 import dev.hycolony.core.testing.FakeCatalog;
 import dev.hycolony.core.testing.FakeWorldBlocks;
@@ -33,6 +34,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
@@ -118,6 +120,27 @@ class ResourcesTest {
         assertFalse(n.remaining().containsKey(PLANK_I));
         assertEquals(1, n.remaining().get(STONE_I));
         assertEquals(2, n.total());
+    }
+
+    /** Structurize sameBlockInWorld needs no block entity: a turned container or bench still costs its item. */
+    @Test
+    void aTurnedContainerOrBenchStillCostsItsItem() {
+        FakeCatalog c = catalog();
+        FakeWorldBlocks world = new FakeWorldBlocks();
+        BlockState planned = new BlockState(STONE, 1);
+        List<BlueprintEntry> entries = List.of(
+                new BlueprintEntry(new BlockPos(1, 0, 0), planned, false),
+                new BlueprintEntry(new BlockPos(2, 0, 0), planned, true),
+                new BlueprintEntry(new BlockPos(3, 0, 0), planned, false, Optional.of(new Workstation("Bench", 1))));
+        for (int x = 1; x <= 3; x++) {
+            world.blocks.put(HUT.offset(x, 0, 0), new BlockState(STONE, 0));
+        }
+        StructurePlan plan =
+                StructurePlan.build(new Blueprint("k", entries, new BlockPos(0, 0, 0), new BlockPos(3, 0, 0)), HUT, c);
+
+        NeededResources n = NeededResources.compute(plan, world, c, RecipeCatalog.NONE);
+
+        assertEquals(needs(STONE_I, 2), n.remaining(), "the container and the bench, not the plain turned stone");
     }
 
     @Test
