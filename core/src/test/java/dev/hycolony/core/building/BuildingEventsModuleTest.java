@@ -15,6 +15,7 @@ import dev.hycolony.core.request.model.StackRequest;
 import dev.hycolony.core.testing.TestContexts;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
@@ -73,7 +74,7 @@ class BuildingEventsModuleTest {
         Recorder recorder = new Recorder();
         Building b = addHut(recorder);
         b.setLevel(2);
-        UpgradeCompletion.reach(colony, b, 2);
+        UpgradeCompletion.reach(colony, b, 2, Optional.empty());
         assertEquals(List.of(), recorder.events);
     }
 
@@ -83,7 +84,7 @@ class BuildingEventsModuleTest {
         Building b = addHut(recorder);
         b.setLevel(2);
         b.setDeconstructed(true);
-        UpgradeCompletion.reach(colony, b, 2);
+        UpgradeCompletion.reach(colony, b, 2, Optional.empty());
         assertEquals(List.of("upgraded to 2"), recorder.events);
     }
 
@@ -91,7 +92,7 @@ class BuildingEventsModuleTest {
     void reachingALevelTellsItsEventModules() {
         Recorder recorder = new Recorder();
         Building b = addHut(recorder);
-        UpgradeCompletion.reach(colony, b, 2);
+        UpgradeCompletion.reach(colony, b, 2, Optional.empty());
         assertEquals(List.of("upgraded to 2"), recorder.events);
     }
 }

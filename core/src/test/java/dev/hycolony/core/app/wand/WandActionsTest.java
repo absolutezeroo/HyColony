@@ -10,6 +10,7 @@ import dev.hycolony.core.app.ui.FoundColonyView;
 import dev.hycolony.core.app.ui.WandView;
 import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.ColonyEvents;
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.BlueprintSource;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
@@ -244,7 +245,9 @@ class WandActionsTest {
     @Test
     void successfulConfirmClosesTheWindowAndHidesThePreview() {
         chooseBuilder();
+        List<ColonyEvents.BuildingPlaced> placed = t.heard(ColonyEvents.BuildingPlaced.class);
         assertTrue(wand.confirm(alice, "Alice"));
+        assertEquals(Optional.of(alice), placed.getFirst().player(), "placed by alice");
         assertTrue(colony.buildings().at(spot).isPresent());
         assertTrue(ghost().isEmpty());
         assertFalse(t.ui.shown.containsKey(alice));

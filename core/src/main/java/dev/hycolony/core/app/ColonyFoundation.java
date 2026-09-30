@@ -91,14 +91,14 @@ public final class ColonyFoundation {
                         manager.allocateId(), name, hall.pos(), Permissions.createDefault(player, p.playerName())));
         manager.register(colony);
         colony.log().add("colonyCreated", colony.day(), name);
-        ctx.bus().post(new ColonyEvents.ColonyCreated(colony));
-        huts.place(colony, BuildingTypes.TOWN_HALL.id(), hall.pos(), hall.rotation());
+        ctx.bus().post(new ColonyEvents.ColonyCreated(colony, Optional.of(player)));
+        huts.place(colony, BuildingTypes.TOWN_HALL.id(), hall.pos(), hall.rotation(), player);
         Building townHall = colony.buildings().at(hall.pos()).orElseThrow();
         if (!hall.style().isEmpty()) {
             townHall.setStyle(hall.style());
         }
         if (hall.level() > 0) {
-            UpgradeCompletion.reach(colony, townHall, hall.level());
+            UpgradeCompletion.reach(colony, townHall, hall.level(), Optional.of(player));
         }
         ctx.notifier().send(player, Msg.of("hycolony.colony.created", name));
         manager.persistence().save(colony);

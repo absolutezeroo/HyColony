@@ -72,7 +72,7 @@ class LogisticsWindowsTest {
     }
 
     private Building hut(BuildingType type, BlockPos pos) {
-        manager.huts().place(colony, type.id(), pos, 0);
+        manager.huts().place(colony, type.id(), pos, 0, UUID.randomUUID());
         Building b = colony.buildings().at(pos).orElseThrow();
         b.setLevel(1);
         b.setBuilt(true);

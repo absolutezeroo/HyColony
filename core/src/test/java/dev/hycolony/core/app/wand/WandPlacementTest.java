@@ -8,6 +8,7 @@ import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.ColonyEvents;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
@@ -219,11 +220,13 @@ class WandPlacementTest {
 
     @Test
     void hutBrokenAtTheAnchorIsUnregisteredWhenTheNewBlockCannotBePlaced() {
-        manager.huts().place(colony, BUILDER, spot, 0);
+        manager.huts().place(colony, BUILDER, spot, 0, UUID.randomUUID());
         t.blocks.blocks.put(spot, new BlockState(new BlockKey("block:hut.builder"), 0));
         give(alice, BUILDER_ITEM);
         t.blocks.refusePlace = true;
+        List<ColonyEvents.BuildingRemoved> removed = t.heard(ColonyEvents.BuildingRemoved.class);
         assertEquals("hycolony.wand.placeFailed", refusal(placement.confirm(alice, "Alice", session(spot, BUILDER))));
         assertTrue(colony.buildings().at(spot).isEmpty());
+        assertEquals(Optional.of(alice), removed.getFirst().player(), "broken by alice's wand");
     }
 }

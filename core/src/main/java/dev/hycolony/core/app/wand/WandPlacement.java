@@ -127,7 +127,7 @@ final class WandPlacement {
             return refused("hycolony.wand.missingHut");
         }
         BlockPos pos = s.anchor().orElseThrow();
-        Optional<Refused> failed = placeHutBlock(pos, type, s.rotation());
+        Optional<Refused> failed = placeHutBlock(pos, type, s.rotation(), player);
         if (failed.isPresent()) {
             return failed.get();
         }
@@ -135,7 +135,7 @@ final class WandPlacement {
             ports().playerInventory().take(player, item, 1);
         }
         if (check instanceof HutPlacement.Allowed(var colony)) {
-            manager.huts().place(colony, type.id(), pos, s.rotation());
+            manager.huts().place(colony, type.id(), pos, s.rotation(), player);
             Building building = colony.buildings().at(pos).orElseThrow();
             building.setStyle(s.style());
             colony.markDirty();
@@ -149,13 +149,14 @@ final class WandPlacement {
      * Breaks what stands at {@code pos} and places the hut block there, turned by {@code rotation}; the refusal if
      * the block could not be placed (a hut broken meanwhile is then unregistered).
      */
-    Optional<Refused> placeHutBlock(BlockPos pos, BuildingType type, int rotation) {
+    Optional<Refused> placeHutBlock(BlockPos pos, BuildingType type, int rotation, UUID player) {
         Optional<BlockState> before = ports().blocks().get(pos);
         breakAnchor(pos);
         BlockState state = new BlockState(hutBlock.apply(type.hutBlockKey()), rotation);
         if (!ports().blocks().place(pos, state, false)) {
             if (!ports().blocks().get(pos).equals(before)) {
-                manager.huts().onRemoved(pos); // a hut broken at the anchor must not stay registered without its block
+                // A hut broken at the anchor must not stay registered without its block.
+                manager.huts().onRemoved(pos, player);
             }
             return Optional.of(refused("hycolony.wand.placeFailed"));
         }

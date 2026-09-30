@@ -19,6 +19,7 @@ import dev.hycolony.core.request.model.Delivery;
 import dev.hycolony.core.request.model.RequestState;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -93,7 +94,7 @@ class LogisticsFailureSimulationTest extends LogisticsSimulation {
         int planks = total(PLANKS_I);
 
         t.blocks.blocks.remove(WAREHOUSE);
-        manager.huts().onRemoved(WAREHOUSE);
+        manager.huts().onRemoved(WAREHOUSE, UUID.randomUUID());
         tick();
 
         assertTrue(colony.buildings().at(WAREHOUSE).isEmpty());

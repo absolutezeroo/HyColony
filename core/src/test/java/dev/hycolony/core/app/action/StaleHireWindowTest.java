@@ -26,7 +26,7 @@ class StaleHireWindowTest {
         manager.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
         Colony colony = manager.foundation().confirm(alice, "A").orElseThrow();
         BlockPos pos = new BlockPos(10, 64, 0);
-        manager.huts().place(colony, ConstructionBuildingTypes.BUILDER.id(), pos, 0);
+        manager.huts().place(colony, ConstructionBuildingTypes.BUILDER.id(), pos, 0, UUID.randomUUID());
         Building hut = colony.buildings().at(pos).orElseThrow();
         CitizenData ann = new CitizenData(1);
         ann.setName("Ann");
@@ -49,7 +49,7 @@ class StaleHireWindowTest {
         manager.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
         Colony colony = manager.foundation().confirm(alice, "A").orElseThrow();
         BlockPos pos = new BlockPos(10, 64, 0);
-        manager.huts().place(colony, ConstructionBuildingTypes.BUILDER.id(), pos, 0);
+        manager.huts().place(colony, ConstructionBuildingTypes.BUILDER.id(), pos, 0, UUID.randomUUID());
         manager.windows().openBuilding(alice, pos);
         t.ui.shown.clear();
         int messages = t.notifier.sent.size();

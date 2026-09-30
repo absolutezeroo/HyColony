@@ -16,6 +16,7 @@ import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.ColonyEvents;
 import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.BlueprintEntry;
@@ -106,7 +107,7 @@ class ViewsTest {
     }
 
     private Building hut(BuildingType type, BlockPos pos, int level) {
-        manager.huts().place(colony, type.id(), pos, 0);
+        manager.huts().place(colony, type.id(), pos, 0, UUID.randomUUID());
         Building b = colony.buildings().at(pos).orElseThrow();
         b.setLevel(level);
         return b;
@@ -412,7 +413,9 @@ class ViewsTest {
                 "hycolony.hut.pickupInventoryFull",
                 t.notifier.sent.getLast().msg().key());
         int[] given = {0};
+        List<ColonyEvents.BuildingRemoved> removed = t.heard(ColonyEvents.BuildingRemoved.class);
         assertTrue(manager.huts().pickUp(alice, res.position(), () -> ++given[0] > 0));
+        assertEquals(Optional.of(alice), removed.getFirst().player(), "picked up by alice");
         assertEquals(1, given[0]);
         assertTrue(colony.buildings().at(res.position()).isEmpty());
         assertTrue(colony.work().byId(orderId).isEmpty(), "removed through the normal path: its order is cancelled");

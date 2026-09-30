@@ -8,6 +8,7 @@ import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.ColonyEvents;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
@@ -67,7 +68,13 @@ class WandPasteTest {
 
     @Test
     void pastedHutIsBuiltAtTheChosenLevelWithItsStyleAndRotation() {
+        List<ColonyEvents.BuildingPlaced> placed = t.heard(ColonyEvents.BuildingPlaced.class);
+        List<ColonyEvents.BuildingLevelChanged> levels = t.heard(ColonyEvents.BuildingLevelChanged.class);
+
         WandPlacement.Result result = paste.paste(alice, "Alice", session(spot, BUILDER, 2));
+
+        assertEquals(Optional.of(alice), placed.getFirst().player(), "pasted by alice");
+        assertEquals(Optional.of(alice), levels.getFirst().player(), "its level too, not its builder's");
         Building b = assertInstanceOf(WandPlacement.Placed.class, result).building();
         assertEquals(2, b.level());
         assertTrue(b.isBuilt());
@@ -117,8 +124,10 @@ class WandPasteTest {
         WandPlacement.Result result = paste.paste(bob, "Bob", session(far, TOWN_HALL, 2));
         assertInstanceOf(WandPlacement.FoundColony.class, result);
         runQueue();
+        List<ColonyEvents.BuildingLevelChanged> levels = t.heard(ColonyEvents.BuildingLevelChanged.class);
         Colony founded = manager.foundation().confirm(bob, "Rivendell II").orElseThrow();
         Building townHall = founded.buildings().at(far).orElseThrow();
+        assertEquals(Optional.of(bob), levels.getFirst().player(), "founded at its level by bob");
         assertEquals(2, townHall.level());
         assertTrue(townHall.isBuilt());
         assertEquals(FakeBlueprints.STYLE, townHall.style());

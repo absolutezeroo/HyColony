@@ -56,18 +56,18 @@ final class WandPaste {
         if (bp.isEmpty()) {
             return WandPlacement.refused("hycolony.workorder.refused.no_blueprint");
         }
-        Optional<WandPlacement.Refused> failed = placement.placeHutBlock(pos, type.get(), s.rotation());
+        Optional<WandPlacement.Refused> failed = placement.placeHutBlock(pos, type.get(), s.rotation(), player);
         if (failed.isPresent()) {
             return failed.get();
         }
         queue.add(plan(bp.get(), pos));
         if (check instanceof HutPlacement.Allowed(var colony)) {
-            manager.huts().place(colony, type.get().id(), pos, s.rotation());
+            manager.huts().place(colony, type.get().id(), pos, s.rotation(), player);
             Building building = colony.buildings().at(pos).orElseThrow();
             building.setStyle(s.style());
             // MC setup: onUpgradeComplete(blueprint, level). Deviation from MC: the chosen level, which MC's code
             // intends; its path parsing reads the wrong character and would give level 1.
-            UpgradeCompletion.reach(colony, building, s.level());
+            UpgradeCompletion.reach(colony, building, s.level(), Optional.of(player));
             return new WandPlacement.Placed(building);
         }
         manager.foundation()

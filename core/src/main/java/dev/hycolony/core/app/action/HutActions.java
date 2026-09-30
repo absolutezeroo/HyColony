@@ -110,20 +110,24 @@ public final class HutActions {
         return Optional.empty();
     }
 
-    /** A building already registered at {@code pos} is stale (its block is gone): it is removed first, never a throw. */
-    public void place(Colony colony, String buildingTypeId, BlockPos pos, int rotation) {
+    /**
+     * Registers the hut {@code player} placed. A building already registered at {@code pos} is stale (its block is
+     * gone): the colony removes it first, never a throw.
+     */
+    public void place(Colony colony, String buildingTypeId, BlockPos pos, int rotation, UUID player) {
         BuildingType type =
                 manager.context().buildingTypes().byId(buildingTypeId).orElseThrow();
-        remove(colony, pos);
+        remove(colony, pos, Optional.empty());
         Building building = Building.create(type, pos, rotation);
         colony.buildings().add(building);
         colony.log().add("buildingPlaced", colony.day(), type.id());
         colony.markDirty();
-        manager.context().bus().post(new ColonyEvents.BuildingPlaced(colony, building));
+        manager.context().bus().post(new ColonyEvents.BuildingPlaced(colony, building, Optional.of(player)));
     }
 
-    public void onRemoved(BlockPos pos) {
-        manager.colonyAt(pos).ifPresent(c -> remove(c, pos));
+    /** {@code player} broke or picked up the hut block at {@code pos}: its building leaves the colony. */
+    public void onRemoved(BlockPos pos, UUID player) {
+        manager.colonyAt(pos).ifPresent(c -> remove(c, pos, Optional.of(player)));
     }
 
     /**
@@ -142,15 +146,15 @@ public final class HutActions {
         if (hasBuilding && manager.protection().refuses(player, pos, Action.BREAK_HUTS)) {
             return false;
         }
-        onRemoved(pos);
+        onRemoved(pos, player);
         return true;
     }
 
-    private void remove(Colony c, BlockPos pos) {
+    private void remove(Colony c, BlockPos pos, Optional<UUID> player) {
         c.buildings().remove(pos).ifPresent(b -> {
             c.log().add("buildingRemoved", c.day(), b.type().id());
             c.markDirty();
-            manager.context().bus().post(new ColonyEvents.BuildingRemoved(c, b));
+            manager.context().bus().post(new ColonyEvents.BuildingRemoved(c, b, player));
         });
     }
 
@@ -268,7 +272,7 @@ public final class HutActions {
             manager.context().notifier().send(player, Msg.of("hycolony.hut.pickupInventoryFull"));
             return false;
         }
-        onRemoved(hutPos);
+        onRemoved(hutPos, player);
         manager.windows().ui().close(player);
         return true;
     }

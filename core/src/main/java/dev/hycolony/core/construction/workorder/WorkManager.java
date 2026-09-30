@@ -83,12 +83,12 @@ public final class WorkManager {
             b.setStyle(order.style()); // the building keeps the style it is built in
         }
         colony.markDirty();
-        announceCreated(b, order);
+        announceCreated(b, order, player);
         return order;
     }
 
     /** Tells the members allowed to receive messages, then posts {@link ColonyEvents.WorkOrderCreated}. */
-    private void announceCreated(Building b, WorkOrder order) {
+    private void announceCreated(Building b, WorkOrder order, UUID player) {
         BlockPos buildingPos = order.buildingPos();
         Msg created = Msg.of(
                 "hycolony.workorder.created",
@@ -102,7 +102,7 @@ public final class WorkManager {
                 colony.context().notifier().send(member, created);
             }
         }
-        colony.context().bus().post(new ColonyEvents.WorkOrderCreated(colony, order));
+        colony.context().bus().post(new ColonyEvents.WorkOrderCreated(colony, order, Optional.of(player)));
     }
 
     /**

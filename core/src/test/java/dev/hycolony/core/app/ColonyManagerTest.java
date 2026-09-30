@@ -155,7 +155,7 @@ class ColonyManagerTest {
         assertEquals(
                 "hycolony.hut.townHallExists",
                 ((HutPlacement.Denied) second).reason().key());
-        manager.huts().onRemoved(hall);
+        manager.huts().onRemoved(hall, UUID.randomUUID());
         assertTrue(c.buildings().townHall().isEmpty());
         assertTrue(manager.byId(c.id()).isPresent()); // colony persists
         assertInstanceOf(
@@ -165,7 +165,8 @@ class ColonyManagerTest {
     @Test
     void placeHutOverAStaleBuildingReplacesItInsteadOfThrowing() {
         Colony c = found(alice, "A", hall);
-        manager.huts().place(c, TOWN_HALL, hall, 2); // the core still holds the hall: its block vanished unseen
+        // The core still holds the hall: its block vanished unseen.
+        manager.huts().place(c, TOWN_HALL, hall, 2, alice);
         assertEquals(1, c.buildings().all().size());
         assertEquals(2, c.buildings().at(hall).orElseThrow().rotation());
         assertEquals(
@@ -324,7 +325,7 @@ class ColonyManagerTest {
             c.citizens().onColonyTick();
         }
         assertTrue(t.bodies.aliveCount() > 0);
-        manager.deleteColony(c.id());
+        manager.deleteColony(c.id(), UUID.randomUUID());
         assertEquals(0, t.bodies.aliveCount());
         assertTrue(manager.colonyAt(hall).isEmpty());
     }
@@ -372,7 +373,7 @@ class ColonyManagerTest {
 
         Colony a = found(alice, "A", hall); // founded first: saved first in saveAll()
         Colony b = found(bob, "B", new BlockPos(2000, 64, 0));
-        manager.huts().place(a, throwing.id(), hall.offset(5, 0, 5), 0);
+        manager.huts().place(a, throwing.id(), hall.offset(5, 0, 5), 0, UUID.randomUUID());
 
         FailingStorage storage = new FailingStorage();
         manager.persistence().setStorage(storage, MigrationChain.sp0());
@@ -391,12 +392,12 @@ class ColonyManagerTest {
         storage.failArchive = true;
         manager.persistence().setStorage(storage, MigrationChain.sp0());
 
-        assertFalse(manager.deleteColony(c.id()));
+        assertFalse(manager.deleteColony(c.id(), UUID.randomUUID()));
         assertTrue(manager.byId(c.id()).isPresent());
         assertTrue(manager.colonyAt(hall).isPresent());
 
         storage.failArchive = false;
-        assertTrue(manager.deleteColony(c.id()));
+        assertTrue(manager.deleteColony(c.id(), UUID.randomUUID()));
         assertTrue(manager.byId(c.id()).isEmpty());
     }
 

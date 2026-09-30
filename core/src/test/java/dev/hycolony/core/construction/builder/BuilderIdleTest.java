@@ -75,7 +75,7 @@ class BuilderIdleTest {
     }
 
     private Building hut(BuildingType type, BlockPos pos, int level) {
-        manager.huts().place(colony, type.id(), pos, 0);
+        manager.huts().place(colony, type.id(), pos, 0, UUID.randomUUID());
         Building b = colony.buildings().at(pos).orElseThrow();
         b.setLevel(level);
         b.setBuilt(level > 0);

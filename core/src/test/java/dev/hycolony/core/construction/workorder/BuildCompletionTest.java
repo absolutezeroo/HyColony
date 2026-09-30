@@ -5,11 +5,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.ColonyEvents;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.port.Msg;
 import dev.hycolony.core.testing.TestContexts;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
@@ -26,7 +28,7 @@ class BuildCompletionTest {
     }
 
     private Building residence(int level) {
-        manager.huts().place(colony, ConstructionBuildingTypes.RESIDENCE.id(), RES, 0);
+        manager.huts().place(colony, ConstructionBuildingTypes.RESIDENCE.id(), RES, 0, UUID.randomUUID());
         Building b = colony.buildings().at(RES).orElseThrow();
         b.setLevel(level);
         t.notifier.sent.clear();
@@ -53,7 +55,12 @@ class BuildCompletionTest {
 
     @Test
     void upgradeCelebratesOnce() {
-        complete(residence(2), WorkOrderType.UPGRADE, 3);
+        Building b = residence(2);
+        List<ColonyEvents.BuildingLevelChanged> levels = t.heard(ColonyEvents.BuildingLevelChanged.class);
+
+        complete(b, WorkOrderType.UPGRADE, 3);
+
+        assertEquals(Optional.empty(), levels.getFirst().player(), "its builder: no player");
 
         assertEquals(List.of(RES), t.effects.celebrated);
         assertEquals(Msg.of("hycolony.build.complete", "%hycolony.ui.building.type.residence", "3"), onlyMessage());
@@ -70,7 +77,12 @@ class BuildCompletionTest {
 
     @Test
     void removeNeverCelebrates() {
-        complete(residence(2), WorkOrderType.REMOVE, 0);
+        Building b = residence(2);
+        List<ColonyEvents.BuildingLevelChanged> levels = t.heard(ColonyEvents.BuildingLevelChanged.class);
+
+        complete(b, WorkOrderType.REMOVE, 0);
+
+        assertEquals(Optional.empty(), levels.getFirst().player(), "its builder: no player");
 
         assertEquals(List.of(), t.effects.celebrated);
         assertEquals(Msg.of("hycolony.build.removeComplete", "%hycolony.ui.building.type.residence"), onlyMessage());

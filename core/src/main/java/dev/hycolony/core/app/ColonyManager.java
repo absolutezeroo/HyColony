@@ -153,8 +153,8 @@ public final class ColonyManager {
         byId(colonyId).ifPresent(c -> c.citizens().onBodyUnloaded(body));
     }
 
-    /** Archives before freeing anything; if archiving fails the colony stays registered. */
-    public boolean deleteColony(int colonyId) {
+    /** Deletes the colony for {@code player}; archives before freeing anything: if that fails, the colony stays. */
+    public boolean deleteColony(int colonyId, UUID player) {
         Colony c = colonies.get(colonyId);
         if (c == null || !persistence.archive(colonyId)) {
             return false;
@@ -162,7 +162,7 @@ public final class ColonyManager {
         colonies.remove(colonyId);
         c.citizens().despawnAll();
         territory.releaseAll(colonyId);
-        ctx.bus().post(new ColonyEvents.ColonyDeleted(colonyId));
+        ctx.bus().post(new ColonyEvents.ColonyDeleted(colonyId, Optional.of(player)));
         return true;
     }
 

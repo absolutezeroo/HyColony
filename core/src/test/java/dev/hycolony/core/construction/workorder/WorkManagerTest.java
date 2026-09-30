@@ -74,7 +74,7 @@ class WorkManagerTest {
     }
 
     private Building hut(BuildingType type, BlockPos pos, int level) {
-        manager.huts().place(colony, type.id(), pos, 0);
+        manager.huts().place(colony, type.id(), pos, 0, UUID.randomUUID());
         Building b = colony.buildings().at(pos).orElseThrow();
         b.setLevel(level);
         return b;
@@ -132,6 +132,7 @@ class WorkManagerTest {
                 t.notifier.sent.get(0).msg().params().get(0));
         assertEquals(1, events.size());
         assertEquals(o, events.get(0).order());
+        assertEquals(Optional.of(alice), events.get(0).player(), "the player who asked for it");
     }
 
     @Test
@@ -349,7 +350,7 @@ class WorkManagerTest {
         o.progress(Stage.SOLID, 7);
         colony.requests().createAndAssign(b, new StackRequest(new ItemKey("Stone"), 4, 4, true), 1);
 
-        manager.huts().onRemoved(b.position());
+        manager.huts().onRemoved(b.position(), UUID.randomUUID());
 
         assertEquals(Optional.of(o), colony.work().byId(o.id()));
         assertTrue(o.claimedBy().isEmpty());

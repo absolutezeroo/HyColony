@@ -45,7 +45,7 @@ class FieldActionsTest {
         manager.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
         colony = manager.foundation().confirm(alice, "A").orElseThrow();
         assertTrue(manager.administration().setRank(alice, colony.id(), carol, "Carol", Permissions.FRIEND));
-        manager.huts().place(colony, FarmerHut.TYPE_ID, HUT, 0);
+        manager.huts().place(colony, FarmerHut.TYPE_ID, HUT, 0, UUID.randomUUID());
         hut = colony.buildings().at(HUT).orElseThrow();
         hut.setLevel(2);
         hut.setBuilt(true);

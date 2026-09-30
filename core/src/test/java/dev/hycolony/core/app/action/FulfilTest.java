@@ -250,7 +250,7 @@ class FulfilTest {
         RequestToken byHut = colony.requests().createAndAssign(hut, new StackRequest(PLANKS, 2, 2, true), -1);
         assertEquals(RequestState.COMPLETED, get(byHut).state());
 
-        manager.huts().onRemoved(hall);
+        manager.huts().onRemoved(hall, UUID.randomUUID());
 
         assertTrue(colony.requests().all().isEmpty());
         assertTrue(retrying().delays().isEmpty());

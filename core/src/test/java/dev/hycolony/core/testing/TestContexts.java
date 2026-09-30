@@ -75,6 +75,13 @@ public final class TestContexts {
         return r;
     }
 
+    /** Every later event of exactly {@code type} posted on {@link #bus}, in order. */
+    public <E> List<E> heard(Class<E> type) {
+        List<E> heard = new ArrayList<>();
+        bus.subscribe(type, heard::add);
+        return heard;
+    }
+
     /** A colony manager on {@link #context()}, its windows opening in {@link #ui}. */
     public ColonyManager manager() {
         return new ColonyManager(context(), ui);

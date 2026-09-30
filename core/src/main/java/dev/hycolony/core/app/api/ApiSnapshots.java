@@ -123,7 +123,7 @@ final class ApiSnapshots {
         return token.id().toString();
     }
 
-    private static Pos pos(BlockPos p) {
+    static Pos pos(BlockPos p) {
         return new Pos(p.x(), p.y(), p.z());
     }
 

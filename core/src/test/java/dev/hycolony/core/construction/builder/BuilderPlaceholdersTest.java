@@ -93,11 +93,11 @@ class BuilderPlaceholdersTest {
         ColonyManager manager = t.manager();
         manager.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
         colony = manager.foundation().confirm(alice, "A").orElseThrow();
-        manager.huts().place(colony, ConstructionBuildingTypes.BUILDER.id(), HUT, 0);
+        manager.huts().place(colony, ConstructionBuildingTypes.BUILDER.id(), HUT, 0, UUID.randomUUID());
         Building hut = colony.buildings().at(HUT).orElseThrow();
         hut.setLevel(5);
         hut.setBuilt(true);
-        manager.huts().place(colony, ConstructionBuildingTypes.RESIDENCE.id(), RES, 0);
+        manager.huts().place(colony, ConstructionBuildingTypes.RESIDENCE.id(), RES, 0, UUID.randomUUID());
         citizen = new CitizenData(1);
         colony.citizens().restore(citizen);
         assertTrue(hut.module(WorkerModule.class).orElseThrow().hire(colony, hut, citizen));

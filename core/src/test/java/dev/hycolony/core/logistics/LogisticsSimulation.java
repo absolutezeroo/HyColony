@@ -133,7 +133,7 @@ abstract class LogisticsSimulation {
     Building placeHut(String typeId, BlockPos pos) {
         assertInstanceOf(HutPlacement.Allowed.class, manager.huts().checkPlacement(alice, pos, typeId));
         t.blocks.blocks.put(pos, state(HUT_BLOCK));
-        manager.huts().place(colony, typeId, pos, 0);
+        manager.huts().place(colony, typeId, pos, 0, UUID.randomUUID());
         return colony.buildings().at(pos).orElseThrow();
     }
 

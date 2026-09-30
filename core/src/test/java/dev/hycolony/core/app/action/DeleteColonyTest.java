@@ -1,13 +1,17 @@
 package dev.hycolony.core.app.action;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.ColonyEvents;
 import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.testing.TestContexts;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
@@ -37,8 +41,10 @@ class DeleteColonyTest {
     @Test
     void officerDeletesTheColony() {
         assertTrue(manager.administration().setRank(alice, colony.id(), bob, "Bob", Permissions.OFFICER));
+        List<ColonyEvents.ColonyDeleted> deleted = t.heard(ColonyEvents.ColonyDeleted.class);
 
         assertTrue(manager.administration().delete(bob, colony.id()));
+        assertEquals(Optional.of(bob), deleted.getFirst().player(), "deleted by the officer");
         assertTrue(manager.byId(colony.id()).isEmpty());
     }
 

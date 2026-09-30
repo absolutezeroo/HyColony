@@ -135,7 +135,7 @@ class PersistenceTest {
         m.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
         Colony c = m.foundation().confirm(alice, "A").orElseThrow();
         BlockPos hut = new BlockPos(20, 64, 0);
-        m.huts().place(c, ConstructionBuildingTypes.BUILDER.id(), hut, 0);
+        m.huts().place(c, ConstructionBuildingTypes.BUILDER.id(), hut, 0, UUID.randomUUID());
         Building b = c.buildings().at(hut).orElseThrow();
         assertTrue(b.module(WorkerModule.class)
                 .orElseThrow()
@@ -199,7 +199,7 @@ class PersistenceTest {
         m.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
         Colony c = m.foundation().confirm(alice, "A").orElseThrow();
         m.persistence().saveAll();
-        m.deleteColony(c.id());
+        m.deleteColony(c.id(), UUID.randomUUID());
         assertTrue(Files.notExists(dir.resolve("colony-" + c.id() + ".json")));
         assertTrue(Files.isDirectory(dir.resolve("archive")));
     }
@@ -274,8 +274,8 @@ class PersistenceTest {
         m.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
         Colony c = m.foundation().confirm(alice, "A").orElseThrow();
         BlockPos edge = new BlockPos(70, 64, 0), beyond = new BlockPos(85, 64, 0), unbuilt = new BlockPos(-70, 64, 0);
-        m.huts().place(c, ConstructionBuildingTypes.BUILDER.id(), edge, 0);
-        m.huts().place(c, ConstructionBuildingTypes.RESIDENCE.id(), unbuilt, 0);
+        m.huts().place(c, ConstructionBuildingTypes.BUILDER.id(), edge, 0, UUID.randomUUID());
+        m.huts().place(c, ConstructionBuildingTypes.RESIDENCE.id(), unbuilt, 0, UUID.randomUUID());
         c.buildings().at(edge).orElseThrow().setLevel(1);
         c.claimAround(edge, ClaimRadius.of(ConstructionBuildingTypes.BUILDER.id(), 1)); // as a finished build does
         assertTrue(c.contains(beyond));
@@ -300,7 +300,7 @@ class PersistenceTest {
         m.foundation().begin(bob, "Bob", new BlockPos(17 * ClaimCell.SIZE, 64, 0), 0);
         Colony b = m.foundation().confirm(bob, "B").orElseThrow();
         BlockPos hut = new BlockPos(12 * ClaimCell.SIZE, 64, 0), bCell = new BlockPos(13 * ClaimCell.SIZE, 64, 0);
-        m.huts().place(a, ConstructionBuildingTypes.BUILDER.id(), hut, 0);
+        m.huts().place(a, ConstructionBuildingTypes.BUILDER.id(), hut, 0, UUID.randomUUID());
         a.buildings().at(hut).orElseThrow().setLevel(1);
         a.claimAround(hut, ClaimRadius.of(ConstructionBuildingTypes.BUILDER.id(), 1)); // never steals B's cell
         assertTrue(b.contains(bCell));
@@ -340,7 +340,7 @@ class PersistenceTest {
         m.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
         Colony c = m.foundation().confirm(alice, "A").orElseThrow();
         BlockPos res = new BlockPos(20, 64, 0);
-        m.huts().place(c, ConstructionBuildingTypes.RESIDENCE.id(), res, 0);
+        m.huts().place(c, ConstructionBuildingTypes.RESIDENCE.id(), res, 0, UUID.randomUUID());
         c.requests()
                 .createAndAssign(
                         c.buildings().at(res).orElseThrow(), new StackRequest(new ItemKey("Stone"), 4, 4, true), -1);

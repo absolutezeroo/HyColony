@@ -58,7 +58,7 @@ class CraftingActionsTest {
         manager.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
         colony = manager.foundation().confirm(alice, "A").orElseThrow();
         assertTrue(manager.administration().setRank(alice, colony.id(), carol, "Carol", Permissions.FRIEND));
-        manager.huts().place(colony, TestCrafters.HUT.id(), HUT, 0);
+        manager.huts().place(colony, TestCrafters.HUT.id(), HUT, 0, UUID.randomUUID());
         hut = colony.buildings().at(HUT).orElseThrow();
         hut.setLevel(1);
         hut.setBuilt(true);
@@ -211,7 +211,7 @@ class CraftingActionsTest {
     @Test
     void hutWithoutCraftingModuleRefusesEveryButton() {
         BlockPos builder = new BlockPos(20, 64, 0);
-        manager.huts().place(colony, ConstructionBuildingTypes.BUILDER.id(), builder, 0);
+        manager.huts().place(colony, ConstructionBuildingTypes.BUILDER.id(), builder, 0, UUID.randomUUID());
 
         assertFalse(crafting.learn(alice, builder, WHEAT_ID.value()));
         assertFalse(crafting.remove(alice, builder, WHEAT_ID.value()));

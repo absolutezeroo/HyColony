@@ -6,6 +6,7 @@ import dev.hycolony.core.colony.ColonyEvents;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.construction.shared.UpgradeCompletion;
 import dev.hycolony.core.kernel.port.Msg;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -24,10 +25,12 @@ final class BuildCompletion {
         String logType;
         if (o.type() == WorkOrderType.REMOVE) {
             b.setDeconstructed(true);
-            colony.context().bus().post(new ColonyEvents.BuildingLevelChanged(colony, b, b.level(), b.level()));
+            colony.context()
+                    .bus()
+                    .post(new ColonyEvents.BuildingLevelChanged(colony, b, b.level(), b.level(), Optional.empty()));
             logType = "buildingDeconstructed";
         } else {
-            UpgradeCompletion.reach(colony, b, o.targetLevel());
+            UpgradeCompletion.reach(colony, b, o.targetLevel(), Optional.empty());
             logType = switch (o.type()) {
                 case BUILD -> "buildingBuilt";
                 case UPGRADE -> "buildingUpgraded";

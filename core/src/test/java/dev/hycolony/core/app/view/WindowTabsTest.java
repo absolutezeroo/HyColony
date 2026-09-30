@@ -62,7 +62,7 @@ class WindowTabsTest {
     }
 
     private Building hut(BlockPos pos, int level) {
-        manager.huts().place(colony, ConstructionBuildingTypes.BUILDER.id(), pos, 0);
+        manager.huts().place(colony, ConstructionBuildingTypes.BUILDER.id(), pos, 0, UUID.randomUUID());
         Building b = colony.buildings().at(pos).orElseThrow();
         b.setLevel(level);
         return b;

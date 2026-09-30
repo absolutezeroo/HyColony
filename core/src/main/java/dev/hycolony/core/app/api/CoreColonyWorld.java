@@ -3,6 +3,7 @@ package dev.hycolony.core.app.api;
 import dev.hycolony.api.CitizenRef;
 import dev.hycolony.api.ColonyRef;
 import dev.hycolony.api.ColonyWorld;
+import dev.hycolony.api.Subscription;
 import dev.hycolony.api.read.BuildingSnapshot;
 import dev.hycolony.api.read.CitizenSnapshot;
 import dev.hycolony.api.read.ColonySummary;
@@ -12,6 +13,7 @@ import dev.hycolony.core.colony.Colony;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 
 /**
  * The api's view of one world's colonies (spec 2026-09-30, § 4). Every call checks it runs on the world's thread, where
@@ -22,12 +24,14 @@ public final class CoreColonyWorld implements ColonyWorld {
     private final ColonyManager manager;
     private final BooleanSupplier onWorldThread;
     private final String world;
+    private final ApiEvents events;
 
     /** The api over {@code manager}'s colonies; {@code onWorldThread} tells whether the caller runs on its thread. */
     public CoreColonyWorld(ColonyManager manager, BooleanSupplier onWorldThread) {
         this.manager = manager;
         this.onWorldThread = onWorldThread;
         this.world = manager.context().world().name();
+        this.events = new ApiEvents(manager.context().bus(), world);
     }
 
     @Override
@@ -77,6 +81,12 @@ public final class CoreColonyWorld implements ColonyWorld {
                         .map(r -> ApiSnapshots.request(colony, c, r))
                         .toList())
                 .orElse(List.of());
+    }
+
+    @Override
+    public <E> Subscription subscribe(Class<E> type, Consumer<? super E> listener) {
+        checkThread();
+        return events.subscribe(type, listener);
     }
 
     /** The colony {@code ref} names, if it is of this world. */

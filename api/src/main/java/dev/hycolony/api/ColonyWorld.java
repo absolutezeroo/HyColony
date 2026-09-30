@@ -6,6 +6,7 @@ import dev.hycolony.api.read.ColonySummary;
 import dev.hycolony.api.read.RequestSnapshot;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * HyColony in one world. Every method must be called on that world's thread, else it throws
@@ -35,4 +36,12 @@ public interface ColonyWorld {
     /** The requests of {@code colony} the request system still knows, in creation order. */
     @Experimental
     List<RequestSnapshot> requests(ColonyRef colony);
+
+    /**
+     * Hears every later event of exactly {@code type}, one of the records of {@code dev.hycolony.api.event}: each is
+     * delivered on this world's thread, after the change. Throws {@link IllegalArgumentException} for another type.
+     * Close the subscription to stop; a plugin should rather subscribe through HyColony's Hytale entry point, which
+     * closes it when the plugin stops.
+     */
+    <E> Subscription subscribe(Class<E> type, Consumer<? super E> listener);
 }

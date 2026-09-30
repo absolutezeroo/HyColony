@@ -109,7 +109,7 @@ class PasteQueueTest {
         UUID alice = UUID.randomUUID();
         manager.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
         Colony colony = manager.foundation().confirm(alice, "Rivendell").orElseThrow();
-        manager.huts().place(colony, ConstructionBuildingTypes.BUILDER.id(), HUT, 0);
+        manager.huts().place(colony, ConstructionBuildingTypes.BUILDER.id(), HUT, 0, UUID.randomUUID());
         paste(FakeBlueprints.hut(false));
         for (int i = 0; i < HUT_BLOCKS; i++) {
             queue.tick();
@@ -123,7 +123,7 @@ class PasteQueueTest {
         UUID alice = UUID.randomUUID();
         manager.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
         Colony colony = manager.foundation().confirm(alice, "Rivendell").orElseThrow();
-        manager.huts().place(colony, ConstructionBuildingTypes.BUILDER.id(), HUT, 0);
+        manager.huts().place(colony, ConstructionBuildingTypes.BUILDER.id(), HUT, 0, UUID.randomUUID());
         t.recipes.upgradeCosts.put("Farmingbench:2", List.of(new ItemAmount(new ItemKey("Ingredient_A"), 5)));
         Workstation bench = new Workstation("Farmingbench", 2);
         BlueprintEntry e = new BlueprintEntry(

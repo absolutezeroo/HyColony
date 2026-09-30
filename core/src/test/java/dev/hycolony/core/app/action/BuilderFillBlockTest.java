@@ -62,7 +62,7 @@ class BuilderFillBlockTest {
         Colony colony = manager.foundation().confirm(alice, "A").orElseThrow();
         assertTrue(manager.administration().setRank(alice, colony.id(), carol, "Carol", Permissions.FRIEND));
         BlockPos pos = new BlockPos(10, 64, 0);
-        manager.huts().place(colony, ConstructionBuildingTypes.BUILDER.id(), pos, 0);
+        manager.huts().place(colony, ConstructionBuildingTypes.BUILDER.id(), pos, 0, UUID.randomUUID());
         builder = colony.buildings().at(pos).orElseThrow();
         builder.setLevel(1);
         t.ui.shown.clear();

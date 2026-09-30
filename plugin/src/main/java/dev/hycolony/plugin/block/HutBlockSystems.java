@@ -108,7 +108,8 @@ public final class HutBlockSystems {
                     // The core only returns this for a town hall.
                     case HutPlacement.FoundNewColony _ ->
                         m.foundation().begin(player.getUuid(), player.getUsername(), pos, rotation);
-                    case HutPlacement.Allowed allowed -> m.huts().place(allowed.colony(), type.id(), pos, rotation);
+                    case HutPlacement.Allowed allowed ->
+                        m.huts().place(allowed.colony(), type.id(), pos, rotation, player.getUuid());
                 }
             } catch (RuntimeException e) {
                 event.setCancelled(true);

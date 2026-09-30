@@ -44,7 +44,7 @@ public final class ColonyAdministration {
                         && !c.permissions().rankOf(actor).isColonyManager())) {
             return false;
         }
-        return manager.deleteColony(colonyId);
+        return manager.deleteColony(colonyId, actor);
     }
 
     /**

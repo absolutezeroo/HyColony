@@ -49,7 +49,7 @@ class ModuleTabsTest {
     }
 
     private BuildingView view(BuildingType type, BlockPos pos) {
-        manager.huts().place(colony, type.id(), pos, 0);
+        manager.huts().place(colony, type.id(), pos, 0, UUID.randomUUID());
         manager.windows().openBuilding(alice, pos);
         return (BuildingView) t.ui.shown.get(alice);
     }

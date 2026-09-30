@@ -31,7 +31,7 @@ class ToolRequestsTest {
         ColonyManager manager = t.manager();
         manager.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
         colony = manager.foundation().confirm(alice, "A").orElseThrow();
-        manager.huts().place(colony, DeliverymanHut.TYPE_ID, HUT, 0);
+        manager.huts().place(colony, DeliverymanHut.TYPE_ID, HUT, 0, UUID.randomUUID());
         hut = colony.buildings().at(HUT).orElseThrow();
         colony.citizens().restore(citizen);
         tools = new ToolRequests(colony, citizen, hut);

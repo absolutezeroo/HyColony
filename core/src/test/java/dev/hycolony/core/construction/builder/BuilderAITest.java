@@ -127,7 +127,7 @@ class BuilderAITest {
     }
 
     private Building hut(BuildingType type, BlockPos pos, int level) {
-        manager.huts().place(colony, type.id(), pos, 0);
+        manager.huts().place(colony, type.id(), pos, 0, UUID.randomUUID());
         Building b = colony.buildings().at(pos).orElseThrow();
         b.setLevel(level);
         b.setBuilt(level > 0);
@@ -615,7 +615,7 @@ class BuilderAITest {
             assertEquals(expected.skills().experience(s), citizen.skills().experience(s), 1e-9, s.name());
         }
         assertTrue(colony.log().entries().stream().anyMatch(e -> e.type().equals("buildingBuilt")));
-        assertEquals(List.of(new ColonyEvents.BuildingLevelChanged(colony, res, 0, 1)), events);
+        assertEquals(List.of(new ColonyEvents.BuildingLevelChanged(colony, res, 0, 1, Optional.empty())), events);
         assertEquals(1, t.notifier.sent.size());
         assertEquals("hycolony.build.complete", t.notifier.sent.get(0).msg().key());
         assertEquals(

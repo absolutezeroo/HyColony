@@ -30,7 +30,7 @@ class LiveWindowRefreshTest {
     void colonyWithAnIdleCitizen() {
         manager.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
         colony = manager.foundation().confirm(alice, "A").orElseThrow();
-        manager.huts().place(colony, ConstructionBuildingTypes.BUILDER.id(), pos, 0);
+        manager.huts().place(colony, ConstructionBuildingTypes.BUILDER.id(), pos, 0, UUID.randomUUID());
         CitizenData ann = new CitizenData(1);
         ann.setName("Ann");
         colony.citizens().restore(ann);
@@ -103,7 +103,7 @@ class LiveWindowRefreshTest {
     @Test
     void windowOfARemovedHutIsDroppedNotRedrawn() {
         manager.windows().openBuilding(alice, pos);
-        manager.huts().onRemoved(pos);
+        manager.huts().onRemoved(pos, UUID.randomUUID());
 
         tickWindows(OpenWindows.UPDATE_SUBSCRIBERS_INTERVAL_TICKS);
 
@@ -152,7 +152,7 @@ class LiveWindowRefreshTest {
     @Test
     void windowOfADeletedColonyIsDroppedNotRedrawn() {
         manager.windows().openTownHall(alice, colony.center());
-        assertTrue(manager.deleteColony(colony.id()));
+        assertTrue(manager.deleteColony(colony.id(), UUID.randomUUID()));
 
         tickWindows(OpenWindows.UPDATE_SUBSCRIBERS_INTERVAL_TICKS);
         int checks = t.ui.showingChecks;
