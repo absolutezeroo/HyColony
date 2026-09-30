@@ -1,6 +1,6 @@
 ---
 name: add-lang-key
-description: Add or change a player-visible translation key in both en-US and fr-FR .lang files of the mod that shows the text (hycolony.lang, hydomum.lang, hyvanilla.lang, hyblockui.lang). Use whenever code shows text to a player (message, window label, button, item name).
+description: Add or change a player-visible translation key in both en-US and fr-FR .lang files of the mod that shows the text (hycolony.lang, hydomum.lang, hyvanilla.lang, hyblockui.lang, hylens.lang). Use whenever code shows text to a player (message, window label, button, item name).
 argument-hint: <key> = <English text>
 ---
 
@@ -12,6 +12,7 @@ Every player-visible text is a key present in **both** files of the mod that sho
 | HyDomum | `domum/plugin/src/main/resources/Server/Languages/<lang>/hydomum.lang` | `hydomum.` |
 | HyVanilla | `vanilla/plugin/src/main/resources/Server/Languages/<lang>/hyvanilla.lang` | `hyvanilla.` |
 | HyBlockUI | `blockui/src/main/resources/Server/Languages/<lang>/hyblockui.lang` | `hyblockui.` |
+| HyLens | `hylens/plugin/src/main/resources/Server/Languages/<lang>/hylens.lang` | `hylens.` |
 
 The prefix is the `.lang` file's name (Hytale's I18nModule). HyDomum's block names (`hydomum_blocks.lang`) are written by `tools/domum/generate.py`: never edit them by hand.
 
