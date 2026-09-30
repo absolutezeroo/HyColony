@@ -550,6 +550,7 @@ Le prototype est devenu le moteur générique de DO-1 (aujourd'hui `domum/plugin
   - deux formes de la même paire neuve demandées presque en même temps (deux `/hydomum give` rapides) sont-elles justes toutes les deux ?
   - même question avec deux paires neuves **différentes**.
 - **Résultat en jeu (2026-09-30)** : il ne reste qu'**un** scintillement, à la première création, qui utilise une paire neuve (reconstruction de l'atlas). Avant ce changement, chaque création qui produisait une nouvelle PNG scintillait aussi, par exemple le passage des blocs aux portes dans l'établi ; ce n'est plus le cas.
+- **Ce scintillement restant est une limite du client** (analyse du binaire, `docs/research/client-block-atlas.md`). Une texture n'entre dans l'atlas que par une reconstruction complète, qui fait abandonner le maillage de tous les tronçons affichés. Aucune suite de paquets ne l'évite. Contournement vérifié en jeu le 2026-09-30 : lire les deux matériaux dans une planche de textures envoyée à la connexion, avec un modèle remappé par paire (même note, « la planche »).
 
 #### DO-2a (2026-09-28)
 
