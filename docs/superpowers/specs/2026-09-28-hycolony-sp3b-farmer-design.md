@@ -141,7 +141,7 @@ Toutes reprises de MC, sauf les écarts listés plus bas. Chaque classe portée 
 **`canGoPlanting`** (MC § 3.3) :
 - La graine du champ est dans l'inventaire → `FARMER_PLANT`.
 - Sinon, aller à la hutte, en y prenant jusqu'à 64 graines.
-- Sinon, une `StackRequest(graine, 64, 1)` asynchrone si aucune n'est ouverte, et l'étape passe à `PLANTED` sans planter.
+- Sinon, une `StackRequest(graine, 64, 1)` asynchrone si aucune n'est ouverte ni terminée (MC `checkIfRequestForItemExistOrCreate`), et l'étape passe à `PLANTED` sans planter. Une requête terminée est reçue par l'événement `cleanAsync` du fermier, toutes les 200 ticks (`SyncRequests.cleanAsync`) : l'objet peut alors être redemandé. Il en va de même pour l'engrais.
 - La requête de graines est résolue par la **fabrication de la hutte elle-même** (résolveur public de SP3b-1), avec l'essence de ses coffres, ou par l'entrepôt.
 
 **`workAtField`** (MC § 3.4) :

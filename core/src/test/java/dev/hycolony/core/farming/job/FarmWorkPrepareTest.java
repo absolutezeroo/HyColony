@@ -8,11 +8,13 @@ import dev.hycolony.core.farming.CropState;
 import dev.hycolony.core.farming.field.FarmField;
 import dev.hycolony.core.farming.field.FieldRadii;
 import dev.hycolony.core.farming.field.FieldStage;
+import dev.hycolony.core.job.work.SyncRequests;
+import dev.hycolony.core.job.work.WorkerStock;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemAmount;
-import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.model.RequestState;
+import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.request.model.ToolRequest;
 import java.util.List;
 import java.util.Optional;
@@ -118,9 +120,12 @@ class FarmWorkPrepareTest extends FarmerTestBase {
         assertEquals(1, requestsFor(SEEDS).size());
     }
 
-    /** MC cleanAsync / markRequestAsAccepted: a delivered request is received, so the item is asked for again. */
+    /**
+     * MC checkIfRequestForItemExistOrCreate: no new request while one is open or completed; once cleanAsync received
+     * the delivered one, the item is asked for again.
+     */
     @Test
-    void seedsAreAskedAgainOnceTheDeliveredOnesAreUsedUp() {
+    void seedsAreAskedAgainOnceTheDeliveredOnesAreReceived() {
         FarmField f = field(true);
         give(HOE, 1);
         give(FERTILIZER, 1);
@@ -134,54 +139,48 @@ class FarmWorkPrepareTest extends FarmerTestBase {
         work.prepare(); // takes the delivered seeds
         assertEquals(64, carried(SEEDS));
         citizen.inventory().extract(SEEDS, 64); // all planted
+        f.nextStage();
+        f.nextStage();
+        f.nextStage();
 
         work.prepare();
+        assertEquals(List.of(first.token()), tokens(requestsFor(SEEDS)), "the completed one still counts");
+        sync().cleanAsync();
+        f.nextStage();
+        f.nextStage(); // skipped to PLANTED without seeds, so EMPTY, then HOED again
+        work.prepare();
 
-        assertEquals(
-                1,
-                requestsFor(SEEDS).stream()
-                        .filter(r -> r.state().isBefore(RequestState.COMPLETED))
-                        .count());
+        assertEquals(1, open(requestsFor(SEEDS)));
     }
 
     @Test
-    void aFullInventoryDoesNotAskAgainForSeedsLeftInTheHut() {
-        FarmField f = field(true);
-        give(HOE, 1);
-        give(FERTILIZER, 1);
-        f.nextStage();
-        work.prepare();
-        Request first = requestsFor(SEEDS).get(0);
-        colony.requests().overrule(first.token(), List.of(new ItemAmount(SEEDS, 64)));
-        putInHut(SEEDS, 64);
-        for (int i = 0; !citizen.inventory().isFull(); i++) {
-            give(new ItemKey("junk" + i), 1);
-        }
-        f.nextStage();
-        f.nextStage(); // HOED again
-
-        work.prepare(); // nothing taken: the inventory is full
-
-        assertEquals(
-                List.of(first.token()),
-                requestsFor(SEEDS).stream().map(Request::token).toList());
-    }
-
-    @Test
-    void fertilizerIsAskedAgainOnceTheDeliveredOneIsUsedUp() {
+    void fertilizerIsAskedAgainOnceTheDeliveredOneIsReceived() {
         field(true);
         give(HOE, 1);
         work.prepare();
         Request first = requestsFor(FERTILIZER).get(0);
         colony.requests().overrule(first.token(), List.of(new ItemAmount(FERTILIZER, 1)));
 
-        work.prepare(); // none carried nor in the hut: the delivered one is spent
+        work.prepare();
+        assertEquals(List.of(first.token()), tokens(requestsFor(FERTILIZER)), "the completed one still counts");
+        sync().cleanAsync();
+        work.prepare();
 
-        assertEquals(
-                1,
-                requestsFor(FERTILIZER).stream()
-                        .filter(r -> r.state().isBefore(RequestState.COMPLETED))
-                        .count());
+        assertEquals(1, open(requestsFor(FERTILIZER)));
+    }
+
+    private SyncRequests sync() {
+        return new SyncRequests(colony, citizen, hut, new WorkerStock(colony, citizen, hut, 64));
+    }
+
+    private static List<RequestToken> tokens(List<Request> requests) {
+        return requests.stream().map(Request::token).toList();
+    }
+
+    private static long open(List<Request> requests) {
+        return requests.stream()
+                .filter(r -> r.state().isBefore(RequestState.COMPLETED))
+                .count();
     }
 
     @Test

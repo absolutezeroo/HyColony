@@ -7,8 +7,13 @@ import dev.hycolony.core.farming.CropState;
 import dev.hycolony.core.job.JobAI;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
+import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.nav.BodyWalker;
+import dev.hycolony.core.request.Request;
+import dev.hycolony.core.request.model.RequestToken;
+import dev.hycolony.core.request.model.StackRequest;
+import java.util.List;
 import java.util.function.BooleanSupplier;
 import org.junit.jupiter.api.Test;
 
@@ -73,6 +78,17 @@ class FarmerAITest extends FarmerTestBase {
         runUntil(ai, () -> ai.describe().isPresent());
 
         assertEquals("hycolony.farmer.noFields", ai.describe().orElseThrow().key());
+    }
+
+    /** MC AbstractEntityAIBasic's cleanAsync event, every 200 ticks: a completed hut request is received. */
+    @Test
+    void aCompletedHutRequestIsReceived() {
+        RequestToken token =
+                colony.requests().createAndAssign(hut, new StackRequest(SEEDS, 64, 1, true), Request.NO_CITIZEN);
+        colony.requests().overrule(token, List.of(new ItemAmount(SEEDS, 64)));
+        JobAI ai = job.createAI(colony, body);
+
+        runUntil(ai, () -> colony.requests().get(token).isEmpty());
     }
 
     private void runUntil(JobAI ai, BooleanSupplier done) {

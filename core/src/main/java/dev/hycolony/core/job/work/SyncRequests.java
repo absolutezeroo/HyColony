@@ -50,6 +50,19 @@ public final class SyncRequests {
     }
 
     /**
+     * MC cleanAsync: the hut's completed requests filed without a citizen (the async ones, whose items wait in the
+     * hut) are received, so their item may be asked for again. Returns false: MC's event never changes state.
+     */
+    public boolean cleanAsync() {
+        for (Request r : requests().byRequester(hut.requesterId())) {
+            if (r.citizenId() == Request.NO_CITIZEN && r.state() == RequestState.COMPLETED) {
+                requests().updateState(r.token(), RequestState.RECEIVED);
+            }
+        }
+        return false;
+    }
+
+    /**
      * MC lookForRequests, run at the hut: claims the open requests the hut can now serve ({@link #claimOpenFromHut}),
      * then picks up every completed one ({@link #pickUp}); true while some are still pending.
      */

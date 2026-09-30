@@ -25,6 +25,9 @@ final class FarmerAI implements JobAI {
 
     private static final int NEEDS_ITEM_RATE = 40;
 
+    /** MC AbstractEntityAIBasic: the rate of the cleanAsync event. */
+    private static final int CLEAN_ASYNC_RATE = 200;
+
     /** MC PREPARING's rate; the field states run every STANDARD_DELAY. */
     private static final int PREPARING_RATE = 20;
 
@@ -45,6 +48,7 @@ final class FarmerAI implements JobAI {
         event(AIBlockingEventType.STATE_BLOCKING, this::dumpDue, FarmerState.INVENTORY_FULL, DUMP_CHECK_RATE);
         craft(FarmerState.INVENTORY_FULL, crafting::dump, CraftingWork.TICKS_SECOND);
         event(AIBlockingEventType.AI_BLOCKING, this::needsItem, FarmerState.NEEDS_ITEM, NEEDS_ITEM_CHECK_RATE);
+        event(AIBlockingEventType.AI_BLOCKING, ctx.requests()::cleanAsync, FarmerState.NEEDS_ITEM, CLEAN_ASYNC_RATE);
         craft(FarmerState.NEEDS_ITEM, crafting::waitForRequests, NEEDS_ITEM_RATE);
         craft(FarmerState.GATHERING_REQUIRED_MATERIALS, crafting::gather, CraftingWork.TICKS_SECOND);
         // MC: the farmer's hasWorkToDo is always true, so IDLE always moves on.

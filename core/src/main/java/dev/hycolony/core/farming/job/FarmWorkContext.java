@@ -10,6 +10,7 @@ import dev.hycolony.core.farming.hut.FarmerFieldsModule;
 import dev.hycolony.core.farming.hut.FarmerSettingsModule;
 import dev.hycolony.core.job.JobXp;
 import dev.hycolony.core.job.WorkerModule;
+import dev.hycolony.core.job.work.SyncRequests;
 import dev.hycolony.core.job.work.ToolRequests;
 import dev.hycolony.core.job.work.WorkerHands;
 import dev.hycolony.core.job.work.WorkerStock;
@@ -29,6 +30,7 @@ record FarmWorkContext(
         WorkerModule workers,
         WorkerStock stock,
         ToolRequests tools,
+        SyncRequests requests,
         BodyWalker walker,
         BlockApproach approach,
         WorkerHands hands) {
@@ -58,6 +60,7 @@ record FarmWorkContext(
                 workers.get(),
                 crafting.stock(),
                 crafting.tools(),
+                crafting.requests(),
                 crafting.walker(),
                 crafting.approach(),
                 new WorkerHands(colony.context().bodies(), crafting.body())));

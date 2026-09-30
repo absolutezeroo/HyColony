@@ -170,9 +170,7 @@ final class FarmWork {
             return FarmerState.PREPARING;
         }
         if (ctx.stock().take(seed.get(), SEEDS_ASKED) <= 0) {
-            if (ctx.stock().hutCount(seed.get()) <= 0) { // a full inventory takes nothing, and nothing is spent
-                askOnce(seed.get(), SEEDS_ASKED);
-            }
+            askOnce(seed.get(), SEEDS_ASKED);
             field.nextStage();
         }
         return FarmerState.PREPARING;
@@ -215,20 +213,17 @@ final class FarmWork {
     }
 
     /**
-     * MC checkIfRequestForItemExistOrCreateAsync: a hut request for {@code item} unless one is still open. Called once
-     * none is carried nor in the hut, so a completed one was delivered and used up: it is received (MC cleanAsync /
-     * markRequestAsAccepted) and the item asked for again. Deviation from MC: filed for the hut, not the citizen, so
-     * that the farmer does not wait for it (MC's async request); what is delivered is taken from the hut at the next
-     * preparation, without MC's NEEDS_ITEM.
+     * MC checkIfRequestForItemExistOrCreateAsync: a hut request for {@code item} unless one is open or completed (a
+     * completed one is received by the cleanAsync event, {@link dev.hycolony.core.job.work.SyncRequests#cleanAsync}).
+     * Deviation from MC: filed for the hut, not the citizen, so that the farmer does not wait for it (MC's async
+     * request); what is delivered is taken from the hut at the next preparation, without MC's NEEDS_ITEM.
      */
     private void askOnce(ItemKey item, int count) {
         for (Request r : ctx.colony().requests().byRequester(ctx.hut().requesterId())) {
-            if (!(r.requestable() instanceof StackRequest s) || !s.item().equals(item)) {
-                continue;
-            }
-            if (r.state() == RequestState.COMPLETED) {
-                ctx.colony().requests().updateState(r.token(), RequestState.RECEIVED);
-            } else if (r.state().isBefore(RequestState.COMPLETED)) {
+            if (r.citizenId() == Request.NO_CITIZEN
+                    && r.requestable() instanceof StackRequest s
+                    && s.item().equals(item)
+                    && !RequestState.COMPLETED.isBefore(r.state())) {
                 return;
             }
         }
