@@ -87,6 +87,40 @@ $C.@PageOverlay {
           }
         }
 
+        Label {
+          Text: %hylens.menu.sendHere;
+          Style: (RenderBold: true, RenderUppercase: true, TextColor: #94a7bb);
+          Anchor: (Top: 10, Bottom: 6);
+        }
+
+        Group {
+          LayoutMode: Left;
+          Anchor: (Height: 44);
+
+          $C.@TextField #SendX {
+            @Anchor = (Width: 90, Right: 6);
+          }
+
+          $C.@TextField #SendY {
+            @Anchor = (Width: 90, Right: 6);
+          }
+
+          $C.@TextField #SendZ {
+            @Anchor = (Width: 90, Right: 6);
+          }
+
+          $C.@SecondaryTextButton #SendButton {
+            @Anchor = (Right: 6);
+            Text: %hylens.menu.send;
+            FlexWeight: 1;
+          }
+
+          $C.@SecondaryTextButton #SendMapButton {
+            Text: %hylens.menu.sendMap;
+            FlexWeight: 1;
+          }
+        }
+
         Label #Result {
           Style: (TextColor: #94a7bb);
           Anchor: (Top: 6, Height: 24);

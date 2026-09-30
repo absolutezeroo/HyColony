@@ -19,13 +19,17 @@ import dev.hylens.plugin.check.AutoCheckSystem;
 import dev.hylens.plugin.command.HyLensCommand;
 import dev.hylens.plugin.command.LensParts;
 import dev.hylens.plugin.command.MenuClock;
+import dev.hylens.plugin.send.MapSend;
 import dev.hylens.plugin.watch.WatchRefreshSystem;
 import java.util.UUID;
 import java.util.logging.Level;
 import javax.annotation.Nonnull;
 import org.jspecify.annotations.Nullable;
 
-/** HyLens's entry point: the /hylens commands, the watch HUD and drawings, reaching HyColony through its api only. */
+/**
+ * HyLens's entry point: the /hylens commands, the watch HUD and drawings, the automatic check and the map's "send
+ * here", reaching HyColony through its api only.
+ */
 public final class HyLensPlugin extends JavaPlugin {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
@@ -35,6 +39,7 @@ public final class HyLensPlugin extends JavaPlugin {
     private final NewAlerts alerts = new NewAlerts();
     private final WatchRefreshSystem refresh = new WatchRefreshSystem(watches, menus);
     private final AutoCheckSystem autoCheck = new AutoCheckSystem(menus, alerts);
+    private final MapSend map = new MapSend(watches, menus);
 
     public HyLensPlugin(@Nonnull JavaPluginInit init) {
         super(init);
@@ -44,18 +49,21 @@ public final class HyLensPlugin extends JavaPlugin {
     protected void setup() {
         getCommandRegistry()
                 .registerCommand(
-                        new HyLensCommand(this, new LensParts(watches, menus, clock, alerts, HyLensIds.load())));
+                        new HyLensCommand(this, new LensParts(watches, menus, clock, alerts, HyLensIds.load()), map));
         getEventRegistry().register(PlayerDisconnectEvent.class, this::onDisconnect);
         getEntityStoreRegistry().registerSystem(refresh);
         getEntityStoreRegistry().registerSystem(autoCheck);
+        map.start();
     }
 
     /**
-     * Takes the watch panel off every player, each world on its own thread: nothing refreshes it once HyLens is gone.
-     * A world that no longer takes tasks is stopping, and takes its players' HUDs with it.
+     * Stops reading the map packets, then takes the watch panel off every player, each world on its own thread:
+     * nothing refreshes it once HyLens is gone. A world that no longer takes tasks is stopping, and takes its players'
+     * HUDs with it.
      */
     @Override
     protected void shutdown() {
+        map.stop();
         refresh.stop();
         autoCheck.stop();
         for (World world : Universe.get().getWorlds().values()) {
@@ -83,6 +91,7 @@ public final class HyLensPlugin extends JavaPlugin {
             UUID operator = e.getPlayerRef().getUuid();
             menus.forget(operator);
             alerts.forget(operator);
+            map.disarm(operator);
             resumePauses(operator);
             boolean watched = watches.stop(operator).isPresent();
             @Nullable Ref<EntityStore> ref = e.getPlayerRef().getReference();

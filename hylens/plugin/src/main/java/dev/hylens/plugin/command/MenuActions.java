@@ -8,6 +8,7 @@ import dev.hycolony.api.ActionResult;
 import dev.hycolony.api.Actor;
 import dev.hycolony.api.ApiText;
 import dev.hycolony.api.CitizenRef;
+import dev.hycolony.api.ColonyWorld;
 import dev.hycolony.api.Pos;
 import dev.hycolony.api.debug.DebugAccess;
 import dev.hylens.core.menu.ActionReport;
@@ -23,15 +24,22 @@ final class MenuActions {
     private MenuActions() {}
 
     /**
-     * Runs {@code action} ("leisure", "teleport" to the operator's cell {@code feet}, "respawn") on {@code citizen} as
-     * {@code operator}; the text of its result, empty for an unknown action.
+     * Runs {@code action} ("leisure", "teleport" to the operator's cell {@code feet}, "respawn") on the chosen
+     * {@code citizen} of {@code colonies} as {@code operator}; the text of its result, or asks to choose a citizen
+     * first; empty for an unknown action.
      */
-    static Optional<ApiText> run(String action, DebugAccess debug, CitizenRef citizen, UUID operator, Pos feet) {
+    static Optional<ApiText> run(
+            String action, Optional<CitizenRef> citizen, Optional<ColonyWorld> colonies, UUID operator, Pos feet) {
+        if (citizen.isEmpty() || colonies.isEmpty()) {
+            return Optional.of(ApiText.of("hylens.action.noneChosen"));
+        }
+        DebugAccess debug = colonies.get().debug();
+        CitizenRef c = citizen.get();
         Actor actor = new Actor.Player(operator);
         Optional<ActionResult> done = switch (action) {
-            case "leisure" -> Optional.of(debug.forceLeisure(actor, citizen));
-            case "teleport" -> Optional.of(debug.teleport(actor, citizen, feet));
-            case "respawn" -> Optional.of(debug.respawnBody(actor, citizen));
+            case "leisure" -> Optional.of(debug.forceLeisure(actor, c));
+            case "teleport" -> Optional.of(debug.teleport(actor, c, feet));
+            case "respawn" -> Optional.of(debug.respawnBody(actor, c));
             default -> Optional.empty();
         };
         return done.map(ActionReport::text);

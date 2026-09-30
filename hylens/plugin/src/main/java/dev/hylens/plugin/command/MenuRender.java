@@ -15,9 +15,10 @@ import java.util.Optional;
 
 /**
  * Draws the HyLens menu from its view (spec 2026-09-30, § 6.4): the colonies, the chosen colony's citizens, the chosen
- * citizen's actions, the last action's result, the layers, the colony clock and the checks. Each button sends an
- * "Action", and in "Index" the id of its colony or citizen, or its layer's name: an id still names the same row once
- * the list changed, unless HyColony gave a dead citizen's id to a newcomer in between (colony ids are never reused).
+ * citizen's actions and "send here", the last action's result, the layers, the colony clock and the checks. Each
+ * button sends an "Action", and in "Index" the id of its colony or citizen, or its layer's name: an id still names the
+ * same row once the list changed, unless HyColony gave a dead citizen's id to a newcomer in between (colony ids are
+ * never reused).
  */
 final class MenuRender {
     static final String PAGE = "Pages/HyLens/Menu.ui";
@@ -27,8 +28,12 @@ final class MenuRender {
 
     private MenuRender() {}
 
-    /** Fills the page appended just before with {@code v} and the last {@code result}; binds every button. */
-    static void render(UICommandBuilder ui, UIEventBuilder events, MenuView v, Optional<ApiText> result) {
+    /**
+     * Fills the page appended just before with {@code v}, the last {@code result} and the "send here" {@code cell};
+     * binds every button.
+     */
+    static void render(
+            UICommandBuilder ui, UIEventBuilder events, MenuView v, Optional<ApiText> result, MenuSend.Typed cell) {
         List<MenuView.ColonyRow> colonies = v.colonies();
         for (int i = 0; i < colonies.size(); i++) {
             MenuView.ColonyRow c = colonies.get(i);
@@ -55,6 +60,7 @@ final class MenuRender {
         bind(events, "#LeisureButton", "leisure", "");
         bind(events, "#TeleportButton", "teleport", "");
         bind(events, "#RespawnButton", "respawn", "");
+        send(ui, events, cell);
         result.ifPresent(r -> ui.set("#Result.TextSpans", ApiMessages.of(r)));
         layers(ui, events, v.layers());
         clock(ui, events, v);
@@ -83,6 +89,15 @@ final class MenuRender {
                 Message.translation(v.autoCheck() ? "hylens.menu.autoCheck.on" : "hylens.menu.autoCheck.off"));
         bind(events, "#CheckNowButton", "checkNow", "");
         bind(events, "#AutoCheckButton", "autoCheck", "");
+    }
+
+    /** "Send here": the cell's fields, filled with {@code cell}, and their buttons. */
+    private static void send(UICommandBuilder ui, UIEventBuilder events, MenuSend.Typed cell) {
+        ui.set("#SendX.Value", cell.x());
+        ui.set("#SendY.Value", cell.y());
+        ui.set("#SendZ.Value", cell.z());
+        bind(events, "#SendButton", "send", "");
+        bind(events, "#SendMapButton", "sendMap", "");
     }
 
     /** Shows {@code text} alone, on a page that has nothing else to show. */
@@ -123,11 +138,19 @@ final class MenuRender {
         }
     }
 
+    /**
+     * Binds a button to {@code action} on {@code index}; every click also carries the "send here" fields as "@X", "@Y"
+     * and "@Z", so the redraw that follows keeps what was typed.
+     */
     private static void bind(UIEventBuilder events, String selector, String action, String index) {
         events.addEventBinding(
                 CustomUIEventBindingType.Activating,
                 selector,
-                EventData.of("Action", action).append("Index", index),
+                EventData.of("Action", action)
+                        .append("Index", index)
+                        .append("@X", "#SendX.Value")
+                        .append("@Y", "#SendY.Value")
+                        .append("@Z", "#SendZ.Value"),
                 false);
     }
 }

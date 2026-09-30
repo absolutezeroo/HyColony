@@ -13,16 +13,12 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hyblockui.api.PageEvents;
 import dev.hycolony.api.ApiText;
-import dev.hycolony.api.CitizenRef;
 import dev.hycolony.api.ColonyWorld;
-import dev.hylens.core.check.AutoCheck;
-import dev.hylens.core.check.NewAlerts;
 import dev.hylens.core.menu.MenuView;
 import dev.hylens.core.menu.MenuViews;
 import dev.hylens.core.menu.Menus;
 import dev.hylens.core.watch.Watches;
 import dev.hylens.plugin.HyColonyAccess;
-import dev.hylens.plugin.check.ColonyChecks;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -32,16 +28,23 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * The HyLens menu (spec 2026-09-30, § 6.4): choose a colony and a citizen, watch it, act on it, turn layers on or off,
- * pause, step and resume the colonies, check them now or every few seconds. Each click redraws the page from what
- * HyColony tells now; actions are {@link MenuActions}', the clock {@link MenuClock}'s.
+ * send it walking, pause, step and resume the colonies, check them now or every few seconds. Each click redraws the
+ * page from what HyColony tells now; actions are {@link MenuActions}', the clock {@link MenuClock}'s, the checks
+ * {@link MenuChecks}', "send here" {@link MenuSend}'s.
  */
 final class MenuPage extends InteractiveCustomUIPage<MenuPage.Data> {
-    /** One click: its action, and the row or layer it was on. */
+    /** One click: its action, the row or layer it was on, and the "send here" cell typed. */
     static final class Data {
         static final BuilderCodec<Data> CODEC = BuilderCodec.builder(Data.class, Data::new)
                 .append(new KeyedCodec<>("Action", Codec.STRING), (d, v) -> d.action = v, d -> d.action)
                 .add()
                 .append(new KeyedCodec<>("Index", Codec.STRING), (d, v) -> d.index = v, d -> d.index)
+                .add()
+                .append(new KeyedCodec<>("@X", Codec.STRING), (d, v) -> d.x = v, d -> d.x)
+                .add()
+                .append(new KeyedCodec<>("@Y", Codec.STRING), (d, v) -> d.y = v, d -> d.y)
+                .add()
+                .append(new KeyedCodec<>("@Z", Codec.STRING), (d, v) -> d.z = v, d -> d.z)
                 .add()
                 .build();
 
@@ -50,6 +53,16 @@ final class MenuPage extends InteractiveCustomUIPage<MenuPage.Data> {
 
         @Nullable
         String index;
+
+        /** "Send here"'s cell, as typed. */
+        @Nullable
+        String x;
+
+        @Nullable
+        String y;
+
+        @Nullable
+        String z;
     }
 
     /** The clicks that record a choice. */
@@ -63,16 +76,18 @@ final class MenuPage extends InteractiveCustomUIPage<MenuPage.Data> {
     private final Watches watches;
     private final CitizenWatch watch;
     private final MenuClock clock;
-    private final NewAlerts alerts;
+    private final MenuChecks checks;
+    private final MenuSend send;
     private Optional<ApiText> result = Optional.empty();
 
-    MenuPage(PlayerRef player, LensParts parts, CitizenWatch watch) {
+    MenuPage(PlayerRef player, LensParts parts, CitizenWatch watch, MenuSend send) {
         super(player, CustomPageLifetime.CanDismiss, Data.CODEC);
         this.menus = parts.menus();
         this.watches = parts.watches();
         this.watch = watch;
         this.clock = parts.clock();
-        this.alerts = parts.alerts();
+        this.checks = new MenuChecks(parts.menus(), parts.alerts());
+        this.send = send;
     }
 
     @Override
@@ -84,7 +99,7 @@ final class MenuPage extends InteractiveCustomUIPage<MenuPage.Data> {
         ui.append(MenuRender.PAGE);
         view(store)
                 .ifPresentOrElse(
-                        v -> MenuRender.render(ui, events, v, result),
+                        v -> MenuRender.render(ui, events, v, result, send.fields(MenuActions.feet(ref, store))),
                         () -> MenuRender.only(ui, ApiText.of("hylens.notRunning")));
     }
 
@@ -106,15 +121,29 @@ final class MenuPage extends InteractiveCustomUIPage<MenuPage.Data> {
         if (v.isEmpty() || data.action == null) {
             return;
         }
-        String action = data.action;
-        if ("watch".equals(action)) {
-            if (startWatch(v.get(), ref, store)) {
-                return;
-            }
-        } else {
-            dispatch(action, Objects.requireNonNullElse(data.index, ""), v.get(), ref, store);
+        send.remember(data);
+        if (closing(data.action, v.get(), ref, store)) {
+            return;
+        }
+        if ("send".equals(data.action)) {
+            result = Optional.of(send.toCell(playerRef, store.getExternalData().getWorld()));
+        } else if (!"watch".equals(data.action)) {
+            dispatch(data.action, Objects.requireNonNullElse(data.index, ""), v.get(), ref, store);
         }
         rebuild();
+    }
+
+    /**
+     * Handles the clicks that may close the page: "watch" closes it once the watch started, "sendMap" arms the map
+     * and closes the page so the operator can open the map. True once closed.
+     */
+    private boolean closing(String action, MenuView v, Ref<EntityStore> ref, Store<EntityStore> store) {
+        if ("sendMap".equals(action)) {
+            send.byMap(playerRef);
+            close();
+            return true;
+        }
+        return "watch".equals(action) && startWatch(v, ref, store);
     }
 
     /**
@@ -149,35 +178,15 @@ final class MenuPage extends InteractiveCustomUIPage<MenuPage.Data> {
                     operator,
                     menus.state(operator).step());
         } else if (CHECKS.contains(action)) {
-            check(action, store, operator);
+            result = Optional.of(checks.run(action, playerRef, colonies(store)));
         } else {
             act(action, v, ref, store);
         }
     }
 
-    /**
-     * Checks the world's colonies now, the result told in the chat ("checkNow"), or turns the operator's automatic
-     * check on or off ("autoCheck").
-     */
-    private void check(String action, Store<EntityStore> store, UUID operator) {
-        if ("checkNow".equals(action)) {
-            colonies(store).ifPresent(w -> ColonyChecks.tell(playerRef, w));
-            result = Optional.of(ApiText.of("hylens.check.inChat"));
-        } else {
-            boolean on = AutoCheck.toggle(menus, alerts, operator);
-            result = Optional.of(ApiText.of(on ? "hylens.check.autoOn" : "hylens.check.autoOff"));
-        }
-    }
-
     /** Runs the chosen citizen's action {@code action}; its result shows under the buttons. */
     private void act(String action, MenuView v, Ref<EntityStore> ref, Store<EntityStore> store) {
-        Optional<CitizenRef> citizen = v.citizen();
-        Optional<ColonyWorld> world = colonies(store);
-        if (citizen.isEmpty() || world.isEmpty()) {
-            result = Optional.of(ApiText.of("hylens.action.noneChosen"));
-            return;
-        }
-        MenuActions.run(action, world.get().debug(), citizen.get(), playerRef.getUuid(), MenuActions.feet(ref, store))
+        MenuActions.run(action, v.citizen(), colonies(store), playerRef.getUuid(), MenuActions.feet(ref, store))
                 .ifPresent(r -> result = Optional.of(r));
     }
 
