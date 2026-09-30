@@ -127,6 +127,9 @@ class WorkManagerTest {
         assertEquals(1, t.notifier.sent.size());
         assertEquals(alice, t.notifier.sent.get(0).player());
         assertEquals("hycolony.workorder.created", t.notifier.sent.get(0).msg().key());
+        assertEquals(
+                "%hycolony.ui.building.type.residence",
+                t.notifier.sent.get(0).msg().params().get(0));
         assertEquals(1, events.size());
         assertEquals(o, events.get(0).order());
     }

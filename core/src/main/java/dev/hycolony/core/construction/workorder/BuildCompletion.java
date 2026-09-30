@@ -51,14 +51,19 @@ final class BuildCompletion {
      * the colony centre, and no REMOVE hint about the "Pick Up" button (HyColony has none).
      */
     private static Msg completionMessage(WorkOrderType type, Building b) {
-        String name = b.displayName().startsWith("hycolony:")
-                ? "%hycolony.ui.building.type." + b.displayName().substring("hycolony:".length())
-                : b.displayName();
+        String name = nameParam(b);
         String level = String.valueOf(b.level());
         return switch (type) {
             case REMOVE -> Msg.of("hycolony.build.removeComplete", name);
             case REPAIR -> Msg.of("hycolony.build.repairComplete", name, level);
             case BUILD, UPGRADE -> Msg.of("hycolony.build.complete", name, level);
         };
+    }
+
+    /** The building's name as a message parameter: its translated type key, or its custom name as is. */
+    static String nameParam(Building b) {
+        return b.displayName().startsWith("hycolony:")
+                ? "%hycolony.ui.building.type." + b.displayName().substring("hycolony:".length())
+                : b.displayName();
     }
 }

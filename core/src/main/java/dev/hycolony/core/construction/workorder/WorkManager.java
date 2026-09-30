@@ -91,7 +91,7 @@ public final class WorkManager {
         BlockPos buildingPos = order.buildingPos();
         Msg created = Msg.of(
                 "hycolony.workorder.created",
-                b.displayName(),
+                BuildCompletion.nameParam(b),
                 colony.name(),
                 String.valueOf(buildingPos.x()),
                 String.valueOf(buildingPos.y()),
