@@ -368,12 +368,32 @@ class BuilderAITest {
         Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);
         blueprint = bp(List.of(new BlueprintEntry(new BlockPos(1, 0, 0), new BlockState(STONE, 1), false)));
         t.blocks.blocks.put(at(1, 0, 0), new BlockState(STONE, 0));
+        t.blocks.drops.put(at(1, 0, 0), List.of(new ItemAmount(STONE_I, 1))); // what breaking it would give
         WorkOrder o = order(res, WorkOrderType.UPGRADE);
 
         tickUntil(() -> gone(o), 5000);
 
         assertEquals(new BlockState(STONE, 1), t.blocks.blocks.get(at(1, 0, 0)));
         assertTrue(builderRequests().isEmpty(), "no stone asked for");
+        assertEquals(0, citizen.inventory().count(STONE_I), "turned, never broken");
+    }
+
+    /** Structurize sameBlockInWorld requires no block entity: a container turned the wrong way is replaced. */
+    @Test
+    void aContainerTurnedTheWrongWayIsReplacedWithItsCost() {
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);
+        blueprint = bp(List.of(new BlueprintEntry(new BlockPos(1, 0, 0), new BlockState(STONE, 1), true)));
+        t.blocks.blocks.put(at(1, 0, 0), new BlockState(STONE, 0));
+        t.blocks.drops.put(at(1, 0, 0), List.of(new ItemAmount(DIRT_I, 1))); // its content
+        WorkOrder o = order(res, WorkOrderType.UPGRADE);
+
+        tick(600);
+        assertFalse(builderRequests().isEmpty(), "a turned container costs its item");
+        t.containers.containers.put(HUT, new LinkedHashMap<>(Map.of(STONE_I, 1))); // its request is served
+        tickUntil(() -> gone(o), 5000);
+
+        assertEquals(new BlockState(STONE, 1), t.blocks.blocks.get(at(1, 0, 0)));
+        assertEquals(1, citizen.inventory().count(DIRT_I), "its content goes to the builder");
     }
 
     @Test

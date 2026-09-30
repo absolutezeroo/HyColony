@@ -234,10 +234,13 @@ public final class StructurePlan {
     }
 
     /**
-     * Structurize sameBlockInWorld: the world already holds the entry's block, only turned another way; it is then
-     * turned in place, without items.
+     * Structurize sameBlockInWorld: the world already holds the entry's block, only turned another way, and it has no
+     * block entity (tileEntityData null: no container nor bench); it is then turned in place, without items.
      */
     public boolean onlyTurns(BlueprintEntry e, WorldBlocks world) {
+        if (e.hasContainer() || e.workstation().isPresent()) {
+            return false;
+        }
         return world.get(worldPos(e))
                 .map(w -> w.key().equals(e.state().key()) && !w.equals(e.state()))
                 .orElse(false);
