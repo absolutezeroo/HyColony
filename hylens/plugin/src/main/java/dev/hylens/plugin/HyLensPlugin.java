@@ -13,18 +13,18 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hylens.core.watch.Watches;
 import dev.hylens.plugin.command.HyLensCommand;
-import dev.hylens.plugin.hud.WatchHudSystem;
+import dev.hylens.plugin.watch.WatchRefreshSystem;
 import java.util.UUID;
 import java.util.logging.Level;
 import javax.annotation.Nonnull;
 import org.jspecify.annotations.Nullable;
 
-/** HyLens's entry point: the /hylens commands and the watch HUD, which reach HyColony through its api only. */
+/** HyLens's entry point: the /hylens commands, the watch HUD and drawings, reaching HyColony through its api only. */
 public final class HyLensPlugin extends JavaPlugin {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
     private final Watches watches = new Watches();
-    private final WatchHudSystem hud = new WatchHudSystem(watches);
+    private final WatchRefreshSystem refresh = new WatchRefreshSystem(watches);
 
     public HyLensPlugin(@Nonnull JavaPluginInit init) {
         super(init);
@@ -34,7 +34,7 @@ public final class HyLensPlugin extends JavaPlugin {
     protected void setup() {
         getCommandRegistry().registerCommand(new HyLensCommand(this, watches, HyLensIds.load()));
         getEventRegistry().register(PlayerDisconnectEvent.class, this::onDisconnect);
-        getEntityStoreRegistry().registerSystem(hud);
+        getEntityStoreRegistry().registerSystem(refresh);
     }
 
     /**
@@ -43,12 +43,12 @@ public final class HyLensPlugin extends JavaPlugin {
      */
     @Override
     protected void shutdown() {
-        hud.stop();
+        refresh.stop();
         for (World world : Universe.get().getWorlds().values()) {
             try {
                 world.execute(() -> {
                     try {
-                        WatchHudSystem.takeDown(world);
+                        WatchRefreshSystem.takeDown(world);
                     } catch (RuntimeException e) {
                         LOG.at(Level.WARNING).withCause(e).log("HyLens: taking the watch HUD down failed");
                     }

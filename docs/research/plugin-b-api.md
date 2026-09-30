@@ -889,6 +889,15 @@ Tâche 10 du plan `2026-09-30-hycolony-api-hylens.md`, sources de 0.7.0-pre.4.
 - **Clé.** Le mode spectateur affiche son propre HUD sous la clé `Spectating` (`modules/entity/spectator/SpectatingHud.java`) : HyLens prend `HyLensWatch`.
 - **Cadence.** Un `TickingSystem<EntityStore>` reçoit le `dt` de chaque monde, sur son fil (`component/system/tick/TickingSystem`), comme `ColonyTickSystem`. Le coût d'un rafraîchissement toutes les 0,5 s est **[in-game]**.
 
+## 38. HyLens : dessiner pour un seul joueur (2026-09-30)
+
+Tâche 11 du plan `2026-09-30-hycolony-api-hylens.md`, sources de 0.7.0-pre.4.
+
+- **Le paquet.** `DisplayDebug(forme, matrice float[16], couleur, durée en secondes, drapeaux, paramètres, opacité)` (`protocol/packets/player/DisplayDebug.java:52-68`). Formes : `Sphere`, `Cylinder`, `Cone`, `Cube`, `Frustum`, `Sector`, `Disc`, `Donut` (`protocol/DebugShape.java`) ; pas de ligne (`DebugUtils.addLine` en construit une avec un cylindre, mais l'envoie à tout le monde). Drapeaux : `FLAG_FADE` 1, `FLAG_NO_WIREFRAME` 2, `FLAG_NO_SOLID` 4 (`server/core/modules/debug/DebugUtils.java:53-56`).
+- **Un seul joueur.** `DebugUtils.add` écrit le paquet à tous les joueurs du monde (l. 108-112). Pour l'opérateur seul, on écrit le paquet sur son `PlayerRef.getPacketHandler()`, comme `WildernessDebugShapeSystem` (`builtin/adventure/wilderness/debug/WildernessDebugShapeSystem.java`).
+- **Les unités.** Le cube unité est centré sur l'origine, de côté 1 (la zone sauvage se dessine au centre du chunk, échelle 32). Le cylindre unité est centré et suit l'axe Y local : la tige de `DebugUtils.addArrow` est placée à mi-longueur puis étirée en Y (l. 195-209). Une ligne de A à B est donc un cylindre au milieu de A et B, tourné de Y vers B − A (`Quaterniond.rotationTo`), d'échelle (épaisseur, longueur, épaisseur).
+- **Le chemin de la navigation.** `/npc debug set VisPath` (`server/npc/commands/NPCDebugCommand.java`, drapeau `RoleDebugFlags.VisPath`, lu par `BodyMotionFindBase`) dessine le chemin A\* d'un PNJ ; rendu et cible visée **[in-game]**.
+
 ## Could not verify
 
 1. **Client rendering of item animations on NPCs** (`AnimationSlot.Action` with `"Block"/"Build"` or `"Pickaxe"/"Mine"` on `PlayerTestModel_V`) and whether they loop or play once. Only the server packet path is verified.

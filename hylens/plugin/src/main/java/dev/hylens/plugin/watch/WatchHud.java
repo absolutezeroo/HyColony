@@ -1,4 +1,4 @@
-package dev.hylens.plugin.hud;
+package dev.hylens.plugin.watch;
 
 import com.hypixel.hytale.server.core.entity.entities.player.hud.CustomUIHud;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;

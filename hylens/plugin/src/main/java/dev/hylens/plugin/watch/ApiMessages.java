@@ -1,4 +1,4 @@
-package dev.hylens.plugin.hud;
+package dev.hylens.plugin.watch;
 
 import com.hypixel.hytale.server.core.Message;
 import dev.hycolony.api.ApiText;

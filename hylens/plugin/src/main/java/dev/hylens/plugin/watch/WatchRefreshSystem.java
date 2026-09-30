@@ -1,4 +1,4 @@
-package dev.hylens.plugin.hud;
+package dev.hylens.plugin.watch;
 
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
@@ -9,18 +9,13 @@ import com.hypixel.hytale.server.core.entity.entities.player.hud.HudManager;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import dev.hycolony.api.ApiText;
-import dev.hycolony.api.CitizenRef;
 import dev.hycolony.api.ColonyWorld;
-import dev.hycolony.api.debug.CitizenDebugSnapshot;
 import dev.hycolony.api.debug.DebugAccess;
-import dev.hycolony.api.debug.Violation;
-import dev.hycolony.api.read.CitizenSnapshot;
 import dev.hycolony.plugin.api.HyColonyApi;
+import dev.hylens.core.draw.WatchShapes;
 import dev.hylens.core.hud.TargetCell;
 import dev.hylens.core.hud.WatchHudView;
 import dev.hylens.core.watch.Watches;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,10 +26,10 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Every {@link #REFRESH_SECONDS}, on each world's thread: shows what the citizen an operator there watches thinks, and
- * takes the panel off an operator who stopped watching (spec 2026-09-30, § 6.2). Its alerts come from
- * {@link DebugAccess#check}, which confirms a lasting one across these regular calls.
+ * draws its walk for that operator alone (spec 2026-09-30, § 6.2, § 6.3); takes the panel off an operator who stopped
+ * watching. Its alerts come from {@link DebugAccess#check}, which confirms a lasting one across these regular calls.
  */
-public final class WatchHudSystem extends TickingSystem<EntityStore> {
+public final class WatchRefreshSystem extends TickingSystem<EntityStore> {
     /** Seconds between two refreshes: 10 ticks of the core; measured in game at no visible cost (plan, task 10). */
     static final float REFRESH_SECONDS = 0.5f;
 
@@ -47,7 +42,7 @@ public final class WatchHudSystem extends TickingSystem<EntityStore> {
     /** Set by HyLens's shutdown: a tick still running must not put back a panel {@link #takeDown} took off. */
     private volatile boolean stopped;
 
-    public WatchHudSystem(Watches watches) {
+    public WatchRefreshSystem(Watches watches) {
         this.watches = watches;
     }
 
@@ -75,7 +70,7 @@ public final class WatchHudSystem extends TickingSystem<EntityStore> {
                 refresh(world, store, colonies, player);
             } catch (RuntimeException e) {
                 LOG.at(failedOnce.getAndSet(true) ? Level.FINE : Level.SEVERE).withCause(e).log(
-                        "HyLens: the watch HUD failed");
+                        "HyLens: the watch refresh failed");
             }
         }
     }
@@ -105,9 +100,9 @@ public final class WatchHudSystem extends TickingSystem<EntityStore> {
             return;
         }
         HudManager huds = component.getHudManager();
-        Optional<List<ApiText>> lines =
-                watches.watched(player.getUuid()).flatMap(c -> colonies.flatMap(w -> lines(world, w, c)));
-        if (lines.isEmpty()) {
+        Optional<Watched> watched =
+                watches.watched(player.getUuid()).flatMap(c -> colonies.flatMap(w -> Watched.read(w, c)));
+        if (watched.isEmpty()) {
             if (huds.getCustomHud(WatchHud.KEY) != null) {
                 huds.removeCustomHud(player, WatchHud.KEY);
             }
@@ -120,29 +115,14 @@ public final class WatchHudSystem extends TickingSystem<EntityStore> {
             hud = new WatchHud(player);
             huds.addCustomHud(player, hud);
         }
-        hud.show(lines.get());
+        Watched w = watched.get();
+        Optional<TargetCell> cell = w.debug().walkTarget().flatMap(t -> TargetCells.at(world, t));
+        hud.show(WatchHudView.lines(w.citizen(), w.debug(), w.alerts(), cell));
+        ShapePackets.send(player, WatchShapes.shapes(w.citizen(), w.debug(), w.alerts()));
     }
 
     private static @Nullable Player component(Store<EntityStore> store, PlayerRef player) {
         @Nullable Ref<EntityStore> ref = player.getReference();
         return ref == null || !ref.isValid() ? null : store.getComponent(ref, Player.getComponentType());
-    }
-
-    /**
-     * The lines of {@code citizen}, its alerts and the blocks at its walk target included; empty when HyColony no
-     * longer knows it.
-     */
-    private static Optional<List<ApiText>> lines(World world, ColonyWorld colonies, CitizenRef citizen) {
-        DebugAccess debug = colonies.debug();
-        Optional<CitizenDebugSnapshot> snapshot = debug.inspect(citizen);
-        Optional<CitizenSnapshot> known = colonies.citizen(citizen);
-        if (snapshot.isEmpty() || known.isEmpty()) {
-            return Optional.empty();
-        }
-        List<Violation> alerts = debug.check(citizen.colony()).stream()
-                .filter(v -> v.citizen().equals(Optional.of(citizen)))
-                .toList();
-        Optional<TargetCell> cell = snapshot.get().walkTarget().flatMap(t -> TargetCells.at(world, t));
-        return Optional.of(WatchHudView.lines(known.get(), snapshot.get(), alerts, cell));
     }
 }
