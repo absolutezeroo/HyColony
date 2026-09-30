@@ -84,4 +84,15 @@ class PermissionsTest {
         assertEquals(Permissions.OFFICER, saved.rankOf(bob).id());
         assertEquals(2, saved.members().size()); // the owner and bob
     }
+
+    @Test
+    void aSaveWithoutOwnerNameLoadsWithABlankName() {
+        UUID owner = UUID.randomUUID();
+
+        Permissions saved = PermissionsSerializer.read(
+                JsonParser.parseString("{\"owner\": \"%s\"}".formatted(owner)).getAsJsonObject());
+
+        assertEquals(owner, saved.owner());
+        assertEquals("", saved.ownerName());
+    }
 }
