@@ -42,9 +42,13 @@ public final class PermissionsSerializer {
         return o;
     }
 
+    /**
+     * The saved permissions; throws only for a missing or malformed {@code owner}, the colony's identity (see
+     * ColonySerializer.read). Anything else missing or malformed falls back (CLAUDE.md § 5).
+     */
     public static Permissions read(JsonObject o) {
         UUID owner = UUID.fromString(o.get("owner").getAsString());
-        String ownerName = o.get("ownerName").getAsString();
+        String ownerName = SavedJson.stringOr(o.get("ownerName"), "");
         Permissions defaults = Permissions.createDefault(owner, ownerName);
         Map<Integer, Rank> ranks = new LinkedHashMap<>(defaults.ranks());
         for (JsonElement el : SavedJson.arrayOr(o.get("ranks"))) {

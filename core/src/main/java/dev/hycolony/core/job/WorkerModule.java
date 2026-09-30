@@ -161,8 +161,8 @@ public final class WorkerModule implements PersistentModule, TickingModule, Buil
         out.addProperty("hiringMode", hiringMode.name());
     }
 
-    @Override
     /** Tolerant (CLAUDE.md § 5): a non-number worker is skipped, an unknown or missing mode reads as DEFAULT. */
+    @Override
     public void read(JsonObject in) {
         workers.clear();
         workers.addAll(SavedJson.ints(in.get("workers")));

@@ -10,6 +10,7 @@ import dev.hycolony.core.farming.field.FieldRadii;
 import dev.hycolony.core.farming.field.FieldStage;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemAmount;
+import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.ToolRequest;
@@ -141,6 +142,29 @@ class FarmWorkPrepareTest extends FarmerTestBase {
                 requestsFor(SEEDS).stream()
                         .filter(r -> r.state().isBefore(RequestState.COMPLETED))
                         .count());
+    }
+
+    @Test
+    void aFullInventoryDoesNotAskAgainForSeedsLeftInTheHut() {
+        FarmField f = field(true);
+        give(HOE, 1);
+        give(FERTILIZER, 1);
+        f.nextStage();
+        work.prepare();
+        Request first = requestsFor(SEEDS).get(0);
+        colony.requests().overrule(first.token(), List.of(new ItemAmount(SEEDS, 64)));
+        putInHut(SEEDS, 64);
+        for (int i = 0; !citizen.inventory().isFull(); i++) {
+            give(new ItemKey("junk" + i), 1);
+        }
+        f.nextStage();
+        f.nextStage(); // HOED again
+
+        work.prepare(); // nothing taken: the inventory is full
+
+        assertEquals(
+                List.of(first.token()),
+                requestsFor(SEEDS).stream().map(Request::token).toList());
     }
 
     @Test

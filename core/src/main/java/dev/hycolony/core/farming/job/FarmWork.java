@@ -170,7 +170,9 @@ final class FarmWork {
             return FarmerState.PREPARING;
         }
         if (ctx.stock().take(seed.get(), SEEDS_ASKED) <= 0) {
-            askOnce(seed.get(), SEEDS_ASKED);
+            if (ctx.stock().hutCount(seed.get()) <= 0) { // a full inventory takes nothing, and nothing is spent
+                askOnce(seed.get(), SEEDS_ASKED);
+            }
             field.nextStage();
         }
         return FarmerState.PREPARING;
