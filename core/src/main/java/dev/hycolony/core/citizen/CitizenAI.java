@@ -20,9 +20,9 @@ import java.util.random.RandomGenerator;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Top-level citizen AI: idle (wandering around) or work its job. Port of MC CitizenAI.calculateNextState, reduced to the work
- * decision: the citizen works only when its job AI cannot go idle ({@link JobAI#canGoIdle}), it is not on a leisure
- * break ({@link #onBreak}) and the rain does not stop it ({@link #rainStopsWork}).
+ * Top-level citizen AI: idle (wandering around) or work its job. Port of MC CitizenAI.calculateNextState, reduced to
+ * the work decision: the citizen works only when its job AI cannot go idle ({@link JobAI#canGoIdle}), it is not on a
+ * leisure break ({@link #onBreak}) and the rain does not stop it ({@link #rainStopsWork}).
  */
 public final class CitizenAI {
     private static final System.Logger LOG = System.getLogger(CitizenAI.class.getName());
@@ -31,8 +31,9 @@ public final class CitizenAI {
     /** MC EntityAICitizenWander: its IDLE transition runs every 100 ticks. */
     private static final int WANDER_RATE_TICKS = 100;
     /**
-     * Random wander spots tried before waiting for the next wander decision. Deviation from MC: EntityAICitizenWander's walkToRandomPos runs
-     * a path search (PathJobRandomPos) that never ends on a dangerous block; without one, a few spots are drawn.
+     * Random wander spots tried before waiting for the next wander decision. Deviation from MC:
+     * EntityAICitizenWander's walkToRandomPos runs a path search (PathJobRandomPos) that never ends on a dangerous
+     * block; without one, a few spots are drawn.
      */
     private static final int WANDER_TRIES = 10;
     /**
@@ -51,6 +52,7 @@ public final class CitizenAI {
     private final DangerousCells danger;
     private final TickRateStateMachine<CitizenState> machine;
     private int workTicks;
+    private boolean failed;
     private @Nullable JobAI jobAI;
     /** The job and work building {@link #jobAI} was created for. */
     private @Nullable Job aiJob;
@@ -90,9 +92,16 @@ public final class CitizenAI {
         return state() == CitizenState.WORKING && jobAI != null ? jobAI.describe() : Optional.empty();
     }
 
-    /** MC AbstractEntityCitizen's AI exception handler: logged only; the citizen keeps its state. */
+    /**
+     * MC AbstractEntityCitizen's AI exception handler: logged only; the citizen keeps its state. The first one is a
+     * WARNING, the next ones DEBUG: a target that throws at every tick would flood the log.
+     */
     private void onException(RuntimeException e) {
-        LOG.log(System.Logger.Level.WARNING, "Citizen AI failed for " + data.name(), e);
+        LOG.log(
+                failed ? System.Logger.Level.DEBUG : System.Logger.Level.WARNING,
+                "Citizen AI failed for " + data.name(),
+                e);
+        failed = true;
     }
 
     /** MC CitizenAI.decideAiTask, every {@link #DECIDE_INTERVAL_TICKS}: to work when it should. */
@@ -115,9 +124,10 @@ public final class CitizenAI {
     }
 
     /**
-     * A random spot within {@link #WANDER_RADIUS} of {@code anchor}, at height {@code y}, with no dangerous block within
-     * 1 block ({@link DangerousCells#near}); else the first pick whose own column holds none (MC PathJobRandomPos never
-     * ends on one, PathfindingUtils.isDangerous); empty after {@link #WANDER_TRIES} dangerous picks.
+     * A random spot within {@link #WANDER_RADIUS} of {@code anchor}, at height {@code y}, with no dangerous block
+     * within 1 block ({@link DangerousCells#near}); else the first pick whose own column holds none (MC
+     * PathJobRandomPos never ends on one, PathfindingUtils.isDangerous); empty after {@link #WANDER_TRIES} dangerous
+     * picks.
      */
     private Optional<Vec3> wanderTarget(BlockPos anchor, double y) {
         Vec3 columnSafe = null;
