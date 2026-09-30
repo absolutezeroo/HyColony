@@ -40,6 +40,8 @@ Defined for Claude Code in `.claude/`; other tools can follow the same files as 
 
 - Agents (`.claude/agents/`): `hycolony-implementer` (test-first change, then commit), `hycolony-reviewer` (independent
   review required after every change), `mc-fidelity-checker` (compares ported code with MineColonies),
-  `hycolony-researcher` (verifies facts, writes only under `docs/research/`).
+  `hycolony-researcher` (verifies facts, writes only under `docs/research/`), `ui-lang-checker` (texts and windows,
+  CLAUDE.md § 7).
 - Skills (`.claude/skills/`): `port-mc` (order of work to port a MineColonies system), `hytale-api` (verify a Hytale API
-  in the decompiled server), `add-lang-key` (add a text key to en-US and fr-FR).
+  in the decompiled server), `add-lang-key` (add a text key to en-US and fr-FR), `add-migration` (schema bump of the
+  colony save), `ship` (build, reviews, then commit).

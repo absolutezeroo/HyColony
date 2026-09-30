@@ -13,13 +13,25 @@
         ]
       }
     ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/format-java.js\" record",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "cd \"$CLAUDE_PROJECT_DIR\" && if [ -n \"$(git status --porcelain -- '*.java')\" ]; then ./gradlew spotlessApply -q --offline >/dev/null 2>&1 || echo '{\"systemMessage\":\"spotlessApply a échoué : lance ./gradlew spotlessApply\"}'; fi",
-            "timeout": 180,
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/format-java.js\" format",
+            "timeout": 300,
             "statusMessage": "Formatage Java (spotlessApply)…"
           }
         ]
