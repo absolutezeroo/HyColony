@@ -853,6 +853,11 @@ Sources U7 (0.7.0-pre.4). Contexte : `docs/research/structurize-placeholders.md`
 - La rotation garde le `FaceType` (`getSupporting(rotationIndex)`) ; un `BlockType` copié (`super(template)`, variantes HyDomum) recopie `supporting`. Les définitions d'état héritent du `Supporting` du bloc : un état plus étroit doit déclarer le sien. Modèle vanilla : `Rock_Stone_Brick_Pillar_Middle` ne déclare que `Up` et `Down`.
 - À appliquer à tout futur bloc `Model` plein (HyDomum, HyVanilla…).
 
+## 34. Hauteur du monde : une section hors de [0, 320) n'existe jamais (2026-09-30)
+
+- `math/util/ChunkUtil.java` : `MIN_Y = 0`, `HEIGHT = 320`, `HEIGHT_SECTIONS = 10`. Une colonne a dix sections de 32 blocs ; aucune ne couvre y < 0 ni y ≥ 320, même une fois le chunk chargé.
+- Conséquence : « la section est-elle chargée ? » ne suffit pas pour savoir si une case est chargée. `HytaleWorldBlocks.isLoaded` répond `true` hors de cette hauteur, pour qu'aucune attente (chantier non chargé, `BuilderAI.structureStep`) ne dure toujours ; la pose y échoue ensuite, et la case est sautée comme avant.
+
 ## Could not verify
 
 1. **Client rendering of item animations on NPCs** (`AnimationSlot.Action` with `"Block"/"Build"` or `"Pickaxe"/"Mine"` on `PlayerTestModel_V`) and whether they loop or play once. Only the server packet path is verified.

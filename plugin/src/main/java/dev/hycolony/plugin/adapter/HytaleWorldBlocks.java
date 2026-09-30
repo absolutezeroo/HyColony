@@ -3,6 +3,7 @@ package dev.hycolony.plugin.adapter;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.math.util.ChunkUtil;
 import com.hypixel.hytale.protocol.BlockMaterial;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.fluid.Fluid;
@@ -63,8 +64,12 @@ public final class HytaleWorldBlocks implements WorldBlocks {
                 || (type.getDefaultStateKey() != null && hutBlockIds.contains(type.getDefaultStateKey()));
     }
 
+    /** A cell outside the world's height (ChunkUtil.MIN_Y to HEIGHT) has no section ever: it counts as loaded. */
     @Override
     public boolean isLoaded(BlockPos pos) {
+        if (pos.y() < ChunkUtil.MIN_Y || pos.y() >= ChunkUtil.HEIGHT) {
+            return true;
+        }
         try {
             return section(pos) != null;
         } catch (RuntimeException e) {

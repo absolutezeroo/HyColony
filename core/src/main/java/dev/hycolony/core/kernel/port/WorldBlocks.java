@@ -7,6 +7,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface WorldBlocks {
+    /**
+     * False while {@code pos} is in a part of the world that may load later; a cell that can never hold a block
+     * (outside the world's height) counts as loaded, so nothing waits for it.
+     */
     boolean isLoaded(BlockPos pos);
 
     /** Empty if the chunk is not loaded. */

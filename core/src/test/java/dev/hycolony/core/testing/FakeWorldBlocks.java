@@ -5,10 +5,12 @@ import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.port.WorldBlocks;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 
 public final class FakeWorldBlocks implements WorldBlocks {
@@ -19,8 +21,10 @@ public final class FakeWorldBlocks implements WorldBlocks {
     /** Items dropped on the ground by drop(), by position, in call order. */
     public final Map<BlockPos, List<ItemAmount>> dropped = new LinkedHashMap<>();
 
-    /** When false, the whole world reads as unloaded: get() is empty, place() and breakBlock() change nothing. */
+    /** When false, the whole world reads as unloaded: get() is empty, and nothing is placed, broken or dropped. */
     public boolean loaded = true;
+    /** Cells read as unloaded even while {@link #loaded}. */
+    public final Set<BlockPos> unloaded = new HashSet<>();
     /** When true, place() fails and changes nothing (a Hytale placement refused by a hitbox or unloaded chunk). */
     public boolean refusePlace;
     /** How many times get() was called. */
@@ -38,18 +42,18 @@ public final class FakeWorldBlocks implements WorldBlocks {
 
     @Override
     public boolean isLoaded(BlockPos pos) {
-        return loaded;
+        return loaded && !unloaded.contains(pos);
     }
 
     @Override
     public Optional<BlockState> get(BlockPos pos) {
         reads++;
-        return loaded ? Optional.ofNullable(blocks.get(pos)) : Optional.empty();
+        return isLoaded(pos) ? Optional.ofNullable(blocks.get(pos)) : Optional.empty();
     }
 
     @Override
     public boolean place(BlockPos pos, BlockState state, boolean withContainer) {
-        if (refusePlace || !loaded) {
+        if (refusePlace || !isLoaded(pos)) {
             return false;
         }
         beforeChange.accept(pos);
@@ -61,7 +65,7 @@ public final class FakeWorldBlocks implements WorldBlocks {
 
     @Override
     public List<ItemAmount> breakBlock(BlockPos pos) {
-        if (!loaded) {
+        if (!isLoaded(pos)) {
             return List.of();
         }
         beforeChange.accept(pos);
@@ -75,7 +79,7 @@ public final class FakeWorldBlocks implements WorldBlocks {
 
     @Override
     public boolean placeQuietly(BlockPos pos, BlockState state, boolean withContainer) {
-        if (refusePlace) {
+        if (refusePlace || !isLoaded(pos)) {
             return false;
         }
         quiet.add(pos);
@@ -84,6 +88,9 @@ public final class FakeWorldBlocks implements WorldBlocks {
 
     @Override
     public List<ItemAmount> breakQuietly(BlockPos pos) {
+        if (!isLoaded(pos)) {
+            return List.of();
+        }
         quiet.add(pos);
         return breakBlock(pos);
     }
@@ -91,7 +98,7 @@ public final class FakeWorldBlocks implements WorldBlocks {
     /** False when refused, unloaded or with no block at {@code pos}; this fake takes any block for a bench. */
     @Override
     public boolean setBenchTier(BlockPos pos, int tier) {
-        if (refuseBenchTier || !loaded || !blocks.containsKey(pos)) {
+        if (refuseBenchTier || !isLoaded(pos) || !blocks.containsKey(pos)) {
             return false;
         }
         benchTiers.put(pos, tier);
@@ -100,6 +107,9 @@ public final class FakeWorldBlocks implements WorldBlocks {
 
     @Override
     public void drop(BlockPos pos, List<ItemAmount> items) {
+        if (!isLoaded(pos)) {
+            return;
+        }
         dropped.computeIfAbsent(pos, p -> new ArrayList<>()).addAll(items);
     }
 }

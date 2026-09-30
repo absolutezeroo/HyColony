@@ -266,25 +266,39 @@ class BuilderAITest {
 
     /** MC checkIfCanceled waits while the site is unloaded: a chunk that is not loaded is never skipped. */
     @Test
-    void unloadedPlanPositionsAreWaitedForNotSkipped() {
+    void anUnloadedCellIsWaitedForNotSkipped() {
         Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 0);
-        blueprint = bp(List.of(entry(1, 0, 0, STONE), entry(1, 1, 0, TORCH)));
-        t.blocks.blocks.put(at(1, 1, 0), new BlockState(DIRT, 0)); // CLEAR must mine it
-        give(STONE_I, 1);
-        give(TORCH_I, 1);
+        blueprint = bp(List.of(entry(1, 0, 0, STONE), entry(2, 1, 0, STONE)));
+        t.blocks.blocks.put(at(1, 1, 0), new BlockState(DIRT, 0)); // an air cell of the plan: only CLEAR mines it
+        t.blocks.unloaded.add(at(1, 1, 0));
+        give(STONE_I, 2);
         WorkOrder o = order(res, WorkOrderType.BUILD);
-        t.blocks.loaded = false;
 
         tick(3000);
 
-        assertFalse(gone(o), "an unloaded site was completed");
-        assertEquals(0, res.level());
-        assertTrue(t.blocks.placed.isEmpty());
-        t.blocks.loaded = true;
+        assertFalse(gone(o), "an unloaded cell was skipped");
+        assertEquals(Stage.CLEAR, o.stage());
+        t.blocks.unloaded.clear();
         tickUntil(() -> gone(o), 5000);
-        assertEquals(1, res.level());
-        assertEquals(new BlockState(STONE, 0), t.blocks.blocks.get(at(1, 0, 0)));
-        assertEquals(new BlockState(TORCH, 0), t.blocks.blocks.get(at(1, 1, 0)));
+        assertFalse(t.blocks.blocks.containsKey(at(1, 1, 0)));
+        assertEquals(new BlockState(STONE, 0), t.blocks.blocks.get(at(2, 1, 0)));
+    }
+
+    @Test
+    void anUnloadedSolidCellIsWaitedForNotSkipped() {
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);
+        blueprint = bp(List.of(entry(1, 0, 0, STONE), entry(2, 0, 0, STONE)));
+        t.blocks.unloaded.add(at(2, 0, 0));
+        give(STONE_I, 2);
+        WorkOrder o = order(res, WorkOrderType.UPGRADE);
+
+        tick(3000);
+
+        assertFalse(gone(o), "an unloaded cell was skipped");
+        assertEquals(List.of(at(1, 0, 0)), t.blocks.placed);
+        t.blocks.unloaded.clear();
+        tickUntil(() -> gone(o), 5000);
+        assertEquals(List.of(at(1, 0, 0), at(2, 0, 0)), t.blocks.placed);
     }
 
     @Test
