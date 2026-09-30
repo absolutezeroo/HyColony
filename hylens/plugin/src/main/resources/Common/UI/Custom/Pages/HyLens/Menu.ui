@@ -5,7 +5,7 @@ $C.@PageOverlay {
   LayoutMode: Middle;
 
   $C.@DecoratedContainer {
-    Anchor: (Width: 960);
+    Anchor: (Width: 1120);
 
     #Title {
       $C.@Title {
@@ -47,7 +47,7 @@ $C.@PageOverlay {
         Group #Citizens {
           LayoutMode: TopScrolling;
           ScrollbarStyle: $C.@DefaultScrollbarStyle;
-          Anchor: (Height: 260);
+          Anchor: (Height: 240);
         }
 
         Label #Chosen {
@@ -57,22 +57,26 @@ $C.@PageOverlay {
 
         Group {
           LayoutMode: Left;
-          Anchor: (Height: 40);
+          Anchor: (Height: 44, Bottom: 6);
 
           $C.@TextButton #WatchButton {
-            @Anchor = (Right: 4);
+            @Anchor = (Right: 6);
             Text: %hylens.menu.watch;
             FlexWeight: 1;
           }
 
           $C.@SecondaryTextButton #LeisureButton {
-            @Anchor = (Right: 4);
             Text: %hylens.menu.leisure;
             FlexWeight: 1;
           }
+        }
+
+        Group {
+          LayoutMode: Left;
+          Anchor: (Height: 44);
 
           $C.@SecondaryTextButton #TeleportButton {
-            @Anchor = (Right: 4);
+            @Anchor = (Right: 6);
             Text: %hylens.menu.teleport;
             FlexWeight: 1;
           }
@@ -95,8 +99,7 @@ $C.@PageOverlay {
         }
 
         Group #Layers {
-          LayoutMode: Left;
-          Anchor: (Height: 36);
+          LayoutMode: LeftWrap;
         }
       }
     }

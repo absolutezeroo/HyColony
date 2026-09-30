@@ -7,6 +7,7 @@ import dev.hycolony.api.debug.HistoryEntry;
 import dev.hycolony.api.debug.Violation;
 import dev.hycolony.api.debug.WalkEnded;
 import dev.hycolony.api.read.CitizenSnapshot;
+import dev.hycolony.api.read.JobNames;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -47,7 +48,7 @@ public final class WatchHudView {
             CitizenSnapshot citizen, CitizenDebugSnapshot s, List<Violation> alerts, Optional<TargetCell> cell) {
         List<ApiText> out = new ArrayList<>(MAX_LINES);
         out.add(ApiText.of("hylens.hud.title", citizen.name()));
-        out.add(ApiText.of("hylens.hud.job", citizen.job().orElse(NONE)));
+        out.add(ApiText.of("hylens.hud.job", JobNames.of(citizen.job())));
         out.add(
                 s.aiState().isEmpty()
                         ? ApiText.of("hylens.hud.unloaded")

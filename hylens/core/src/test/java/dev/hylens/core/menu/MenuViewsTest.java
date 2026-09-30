@@ -86,8 +86,16 @@ class MenuViewsTest {
         assertEquals(
                 List.of(
                         new MenuView.CitizenRow(
-                                ANN, "Ann", "hycolony:deliveryman", "WORKING", "START_WORKING", 2, true, true),
-                        new MenuView.CitizenRow(BOB, "Bob", "-", "-", "-", 0, false, false)),
+                                ANN,
+                                "Ann",
+                                ApiText.of("hycolony.ui.job.deliveryman"),
+                                "WORKING",
+                                "START_WORKING",
+                                2,
+                                true,
+                                true),
+                        new MenuView.CitizenRow(
+                                BOB, "Bob", ApiText.of("hycolony.ui.job.none"), "-", "-", 0, false, false)),
                 v.citizens());
         assertEquals(Optional.of(ANN), v.citizen());
     }

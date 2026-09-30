@@ -72,7 +72,7 @@ final class MenuRender {
         ui.set(
                 row + " #State.TextSpans",
                 Message.translation("hylens.menu.rowState")
-                        .param("p0", c.job())
+                        .param("p0", ApiMessages.of(c.job()))
                         .param("p1", c.ai())
                         .param("p2", c.step()));
         if (c.alerts() > 0) {

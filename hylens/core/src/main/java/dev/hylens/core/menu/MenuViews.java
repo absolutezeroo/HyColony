@@ -6,6 +6,7 @@ import dev.hycolony.api.ColonyWorld;
 import dev.hycolony.api.debug.CitizenDebugSnapshot;
 import dev.hycolony.api.debug.Violation;
 import dev.hycolony.api.read.CitizenSnapshot;
+import dev.hycolony.api.read.JobNames;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -55,7 +56,7 @@ public final class MenuViews {
         return new MenuView.CitizenRow(
                 m.ref(),
                 m.name(),
-                m.job().orElse(NONE),
+                JobNames.of(m.job()),
                 d.map(CitizenDebugSnapshot::aiState).filter(a -> !a.isEmpty()).orElse(NONE),
                 d.map(CitizenDebugSnapshot::jobStep).filter(j -> !j.isEmpty()).orElse(NONE),
                 alerts,

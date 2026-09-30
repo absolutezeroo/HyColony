@@ -1,5 +1,6 @@
 package dev.hylens.core.menu;
 
+import dev.hycolony.api.ApiText;
 import dev.hycolony.api.CitizenRef;
 import dev.hycolony.api.ColonyRef;
 import dev.hylens.core.draw.Layers;
@@ -26,13 +27,13 @@ public record MenuView(
     public record ColonyRow(ColonyRef ref, String name, int citizens, boolean chosen) {}
 
     /**
-     * One citizen of the chosen colony: its job id, AI state and job step ("-" for none, or while its body is
+     * One citizen of the chosen colony: its job's name, AI state and job step ("-" for none, or while its body is
      * unloaded), its confirmed alerts, and whether it is chosen, and watched by the operator.
      */
     public record CitizenRow(
             CitizenRef ref,
             String name,
-            String job,
+            ApiText job,
             String ai,
             String step,
             int alerts,

@@ -1,7 +1,6 @@
 $C = "../../Common.ui";
 
 $C.@SecondaryTextButton #Button {
-  @Anchor = (Right: 4);
+  @Anchor = (Width: 380, Right: 6, Bottom: 6);
   Text: "";
-  FlexWeight: 1;
 }

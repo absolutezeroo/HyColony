@@ -2,25 +2,25 @@ $C = "../../Common.ui";
 
 Group {
   LayoutMode: Left;
-  Anchor: (Height: 30, Bottom: 2);
+  Anchor: (Height: 32, Bottom: 2);
 
   Label #Name {
-    FlexWeight: 1;
-    Style: (VerticalAlignment: Center);
+    Anchor: (Width: 230);
+    Style: (VerticalAlignment: Center, RenderBold: true);
   }
 
   Label #State {
-    Anchor: (Width: 280);
+    FlexWeight: 1;
     Style: (TextColor: #94a7bb, VerticalAlignment: Center);
   }
 
   Label #Alerts {
-    Anchor: (Width: 90);
+    Anchor: (Width: 110);
     Style: (TextColor: #e06c5a, VerticalAlignment: Center);
   }
 
-  $C.@SecondaryTextButton #Choose {
-    @Anchor = (Width: 110);
-    Text: %hylens.menu.choose;
+  $C.@SmallSecondaryTextButton #Choose {
+    @Text = %hylens.menu.choose;
+    Anchor: (Width: 120, Height: 32);
   }
 }

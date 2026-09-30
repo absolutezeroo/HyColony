@@ -76,7 +76,7 @@ class WatchHudViewTest {
         assertEquals(
                 List.of(
                         ApiText.of("hylens.hud.title", "Ann"),
-                        ApiText.of("hylens.hud.job", "-"),
+                        ApiText.of("hylens.hud.job", ApiText.of("hycolony.ui.job.none")),
                         ApiText.of("hylens.hud.ai", "IDLE", "5"),
                         ApiText.of("hylens.hud.step", "-", "0"),
                         ApiText.of("hylens.hud.activity", "-"),
@@ -201,10 +201,10 @@ class WatchHudViewTest {
     @Test
     void jobIsShownUnderTheName() {
         CitizenSnapshot miner = new CitizenSnapshot(
-                ANN, "Ann", Optional.of("hycolony:quarrier"), Optional.empty(), Optional.empty(), Optional.empty());
+                ANN, "Ann", Optional.of("hycolony:builder"), Optional.empty(), Optional.empty(), Optional.empty());
 
         assertEquals(
-                ApiText.of("hylens.hud.job", "hycolony:quarrier"),
+                ApiText.of("hylens.hud.job", ApiText.of("hycolony.ui.job.builder")),
                 WatchHudView.lines(miner, idle(), List.of(), Optional.empty()).get(1));
     }
 
