@@ -14,21 +14,21 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hyblockui.api.PageEvents;
 import dev.hycolony.api.ApiText;
 import dev.hycolony.api.CitizenRef;
-import dev.hycolony.api.ColonyRef;
 import dev.hycolony.api.ColonyWorld;
-import dev.hylens.core.draw.Layers;
 import dev.hylens.core.menu.MenuView;
 import dev.hylens.core.menu.MenuViews;
 import dev.hylens.core.menu.Menus;
 import dev.hylens.core.watch.Watches;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import javax.annotation.Nonnull;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The HyLens menu (spec 2026-09-30, § 6.4): choose a colony and a citizen, watch it, act on it, turn layers on or off.
- * Each click redraws the page from what HyColony tells now; actions are {@link MenuActions}'.
+ * The HyLens menu (spec 2026-09-30, § 6.4): choose a colony and a citizen, watch it, act on it, turn layers on or off,
+ * pause, step and resume the colonies. Each click redraws the page from what HyColony tells now; actions are
+ * {@link MenuActions}', the clock {@link MenuClock}'s.
  */
 final class MenuPage extends InteractiveCustomUIPage<MenuPage.Data> {
     /** One click: its action, and the row or layer it was on. */
@@ -47,16 +47,23 @@ final class MenuPage extends InteractiveCustomUIPage<MenuPage.Data> {
         String index;
     }
 
+    /** The clicks that record a choice. */
+    private static final Set<String> CHOICES = Set.of("colony", "citizen", "layer", "stepLess", "stepMore");
+    /** The clicks on the colony clock. */
+    private static final Set<String> CLOCK = Set.of("pause", "step", "resume");
+
     private final Menus menus;
     private final Watches watches;
     private final CitizenWatch watch;
+    private final MenuClock clock;
     private Optional<ApiText> result = Optional.empty();
 
-    MenuPage(PlayerRef player, Menus menus, Watches watches, CitizenWatch watch) {
+    MenuPage(PlayerRef player, Menus menus, Watches watches, CitizenWatch watch, MenuClock clock) {
         super(player, CustomPageLifetime.CanDismiss, Data.CODEC);
         this.menus = menus;
         this.watches = watches;
         this.watch = watch;
+        this.clock = clock;
     }
 
     @Override
@@ -92,24 +99,43 @@ final class MenuPage extends InteractiveCustomUIPage<MenuPage.Data> {
         }
         UUID operator = playerRef.getUuid();
         String index = data.index == null ? "" : data.index;
-        switch (data.action) {
+        String action = data.action;
+        if (CHOICES.contains(action)) {
+            choose(action, index, v.get(), operator);
+        } else if (CLOCK.contains(action)) {
+            result = clock.run(
+                    action,
+                    store.getExternalData().getWorld(),
+                    operator,
+                    menus.state(operator).step());
+        } else if ("watch".equals(action)) {
+            if (startWatch(v.get(), ref, store)) {
+                return;
+            }
+        } else {
+            act(action, v.get(), ref, store);
+        }
+        rebuild();
+    }
+
+    /**
+     * Records the operator's choice {@code action} (a colony, a citizen, a layer, a smaller or larger step) named by
+     * {@code index}; choosing a colony or a citizen clears the last result.
+     */
+    private void choose(String action, String index, MenuView v, UUID operator) {
+        switch (action) {
             case "colony" -> {
-                colonyRow(v.get(), index).ifPresent(c -> menus.update(operator, s -> s.withColony(c)));
+                MenuClicks.colony(v, index).ifPresent(c -> menus.update(operator, s -> s.withColony(c)));
                 result = Optional.empty();
             }
             case "citizen" -> {
-                citizenRow(v.get(), index).ifPresent(c -> menus.update(operator, s -> s.withCitizen(c)));
+                MenuClicks.citizen(v, index).ifPresent(c -> menus.update(operator, s -> s.withCitizen(c)));
                 result = Optional.empty();
             }
-            case "layer" -> layer(index).ifPresent(l -> menus.update(operator, s -> s.toggle(l)));
-            case "watch" -> {
-                if (startWatch(v.get(), ref, store)) {
-                    return;
-                }
-            }
-            default -> act(data.action, v.get(), ref, store);
+            case "layer" -> MenuClicks.layer(index).ifPresent(l -> menus.update(operator, s -> s.toggle(l)));
+            case "stepLess" -> menus.update(operator, s -> s.withStep(s.step() - 1));
+            default -> menus.update(operator, s -> s.withStep(s.step() + 1));
         }
-        rebuild();
     }
 
     /** Runs the chosen citizen's action {@code action}; its result shows under the buttons. */
@@ -126,7 +152,8 @@ final class MenuPage extends InteractiveCustomUIPage<MenuPage.Data> {
 
     private Optional<MenuView> view(Store<EntityStore> store) {
         UUID operator = playerRef.getUuid();
-        return colonies(store).map(w -> MenuViews.of(w, menus.state(operator), watches.watched(operator)));
+        boolean paused = MenuClock.paused(store.getExternalData().getWorld());
+        return colonies(store).map(w -> MenuViews.of(w, paused, menus.state(operator), watches.watched(operator)));
     }
 
     private static Optional<ColonyWorld> colonies(Store<EntityStore> store) {
@@ -150,39 +177,5 @@ final class MenuPage extends InteractiveCustomUIPage<MenuPage.Data> {
             return true;
         }
         return false;
-    }
-
-    /** The colony whose id is {@code index}, if the page still lists it. */
-    private static Optional<ColonyRef> colonyRow(MenuView v, String index) {
-        return id(index)
-                .flatMap(id -> v.colonies().stream()
-                        .map(MenuView.ColonyRow::ref)
-                        .filter(c -> c.colonyId() == id)
-                        .findFirst());
-    }
-
-    /** The citizen of the chosen colony whose id is {@code index}, if the page still lists it. */
-    private static Optional<CitizenRef> citizenRow(MenuView v, String index) {
-        return id(index)
-                .flatMap(id -> v.citizens().stream()
-                        .map(MenuView.CitizenRow::ref)
-                        .filter(c -> c.citizenId() == id)
-                        .findFirst());
-    }
-
-    private static Optional<Integer> id(String index) {
-        try {
-            return Optional.of(Integer.parseInt(index));
-        } catch (NumberFormatException e) {
-            return Optional.empty();
-        }
-    }
-
-    private static Optional<Layers.Layer> layer(String name) {
-        try {
-            return Optional.of(Layers.Layer.valueOf(name));
-        } catch (IllegalArgumentException e) {
-            return Optional.empty();
-        }
     }
 }

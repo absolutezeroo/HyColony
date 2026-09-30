@@ -24,13 +24,13 @@ import javax.annotation.Nonnull;
  * Hytale generates for it, which only the operators' "*" holds (AbstractCommand.setOwner, hasPermission).
  */
 public final class HyLensCommand extends AbstractCommandCollection {
-    public HyLensCommand(PluginBase owner, Watches watches, Menus menus, HyLensIds ids) {
+    public HyLensCommand(PluginBase owner, Watches watches, Menus menus, MenuClock clock, HyLensIds ids) {
         super("hylens", "HyLens, a debugging lens on HyColony (operators)");
         addSubCommand(new SelfTest());
         CitizenWatch watch = new CitizenWatch(owner, watches, ids);
         addSubCommand(new WatchCommand(watch));
         addSubCommand(new UnwatchCommand(watches));
-        addSubCommand(new MenuCommand(menus, watches, watch));
+        addSubCommand(new MenuCommand(menus, watches, watch, clock));
     }
 
     /** Checks that HyColony's api answers in the player's world, and that HyLens runs with its version. */

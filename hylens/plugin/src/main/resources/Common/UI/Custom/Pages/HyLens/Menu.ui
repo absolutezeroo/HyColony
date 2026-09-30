@@ -47,7 +47,7 @@ $C.@PageOverlay {
         Group #Citizens {
           LayoutMode: TopScrolling;
           ScrollbarStyle: $C.@DefaultScrollbarStyle;
-          Anchor: (Height: 240);
+          Anchor: (Height: 200);
         }
 
         Label #Chosen {
@@ -100,6 +100,58 @@ $C.@PageOverlay {
 
         Group #Layers {
           LayoutMode: LeftWrap;
+        }
+
+        Group {
+          LayoutMode: Left;
+          Anchor: (Top: 8, Bottom: 6, Height: 24);
+
+          Label {
+            Text: %hylens.menu.clock;
+            Style: (RenderBold: true, RenderUppercase: true, TextColor: #94a7bb);
+            Anchor: (Right: 12);
+          }
+
+          Label #ClockState {
+            FlexWeight: 1;
+          }
+        }
+
+        Group {
+          LayoutMode: Left;
+          Anchor: (Height: 44);
+
+          $C.@SecondaryTextButton #PauseButton {
+            @Anchor = (Right: 6);
+            Text: %hylens.menu.pause;
+            FlexWeight: 1;
+          }
+
+          $C.@SecondaryTextButton #StepLessButton {
+            @Anchor = (Width: 60, Right: 6);
+            Text: %hylens.menu.stepLess;
+          }
+
+          Label #StepCount {
+            Anchor: (Width: 110, Right: 6);
+            Style: (HorizontalAlignment: Center, VerticalAlignment: Center);
+          }
+
+          $C.@SecondaryTextButton #StepMoreButton {
+            @Anchor = (Width: 60, Right: 6);
+            Text: %hylens.menu.stepMore;
+          }
+
+          $C.@SecondaryTextButton #StepButton {
+            @Anchor = (Right: 6);
+            Text: %hylens.menu.step;
+            FlexWeight: 1;
+          }
+
+          $C.@SecondaryTextButton #ResumeButton {
+            Text: %hylens.menu.resume;
+            FlexWeight: 1;
+          }
         }
       }
     }

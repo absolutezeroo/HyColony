@@ -18,12 +18,14 @@ final class MenuCommand extends AbstractPlayerCommand {
     private final Menus menus;
     private final Watches watches;
     private final CitizenWatch watch;
+    private final MenuClock clock;
 
-    MenuCommand(Menus menus, Watches watches, CitizenWatch watch) {
-        super("menu", "Open the HyLens menu: colonies, citizens, actions, layers (operators)");
+    MenuCommand(Menus menus, Watches watches, CitizenWatch watch, MenuClock clock) {
+        super("menu", "Open the HyLens menu: colonies, citizens, actions, layers, clock (operators)");
         this.menus = menus;
         this.watches = watches;
         this.watch = watch;
+        this.clock = clock;
     }
 
     @Override
@@ -35,7 +37,7 @@ final class MenuCommand extends AbstractPlayerCommand {
             @Nonnull World world) {
         @Nullable Player component = store.getComponent(ref, Player.getComponentType());
         if (component != null) {
-            component.getPageManager().openCustomPage(ref, store, new MenuPage(player, menus, watches, watch));
+            component.getPageManager().openCustomPage(ref, store, new MenuPage(player, menus, watches, watch, clock));
         }
     }
 }

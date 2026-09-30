@@ -16,7 +16,7 @@ class MenuStateTest {
 
     @Test
     void nothingIsChosenAtFirstAndEveryLayerShows() {
-        assertEquals(new MenuState(Optional.empty(), Optional.empty(), Layers.ALL), MenuState.INITIAL);
+        assertEquals(new MenuState(Optional.empty(), Optional.empty(), 1, Layers.ALL), MenuState.INITIAL);
     }
 
     @Test
@@ -40,5 +40,20 @@ class MenuStateTest {
 
         assertEquals(Layers.ALL.toggle(Layers.Layer.ZONE), s.layers());
         assertEquals(Optional.of(A), s.colony());
+    }
+
+    @Test
+    void stepIsKeptBetweenOneAndTen() {
+        assertEquals(1, MenuState.INITIAL.withStep(0).step());
+        assertEquals(7, MenuState.INITIAL.withStep(7).step());
+        assertEquals(MenuState.MAX_STEP, MenuState.INITIAL.withStep(99).step());
+    }
+
+    @Test
+    void stepIsKeptAcrossOtherChoices() {
+        MenuState s =
+                MenuState.INITIAL.withStep(4).withColony(A).withCitizen(ANN).toggle(Layers.Layer.ZONE);
+
+        assertEquals(4, s.step());
     }
 }

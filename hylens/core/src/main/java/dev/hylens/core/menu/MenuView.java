@@ -9,14 +9,16 @@ import java.util.Optional;
 
 /**
  * What the HyLens menu shows (spec 2026-09-30, § 6.4): the world's colonies, the chosen one's citizens, the chosen
- * citizen and the layers. Built by {@link MenuViews}.
+ * citizen, the layers, and the world's colony clock with the step asked. Built by {@link MenuViews}.
  */
 public record MenuView(
         List<ColonyRow> colonies,
         Optional<ColonyRef> colony,
         List<CitizenRow> citizens,
         Optional<CitizenRef> citizen,
-        Layers layers) {
+        Layers layers,
+        boolean paused,
+        int step) {
     /** Keeps its own copies of the lists. */
     public MenuView {
         colonies = List.copyOf(colonies);

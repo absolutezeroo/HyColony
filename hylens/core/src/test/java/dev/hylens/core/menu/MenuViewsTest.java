@@ -1,6 +1,8 @@
 package dev.hylens.core.menu;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.api.ApiText;
 import dev.hycolony.api.CitizenRef;
@@ -70,7 +72,7 @@ class MenuViewsTest {
 
     @Test
     void coloniesAreListedAndNoneChosenAtFirst() {
-        MenuView v = MenuViews.of(world, MenuState.INITIAL, Optional.empty());
+        MenuView v = MenuViews.of(world, false, MenuState.INITIAL, Optional.empty());
 
         assertEquals(
                 List.of(new MenuView.ColonyRow(A, "Alpha", 2, false), new MenuView.ColonyRow(B, "Beta", 0, false)),
@@ -80,7 +82,7 @@ class MenuViewsTest {
 
     @Test
     void chosenColonyListsItsCitizensWithTheirStateAndAlerts() {
-        MenuView v = MenuViews.of(world, MenuState.INITIAL.withCitizen(ANN), Optional.of(ANN));
+        MenuView v = MenuViews.of(world, false, MenuState.INITIAL.withCitizen(ANN), Optional.of(ANN));
 
         assertEquals(new MenuView.ColonyRow(A, "Alpha", 2, true), v.colonies().getFirst());
         assertEquals(
@@ -104,9 +106,9 @@ class MenuViewsTest {
     void goneColonyOrCitizenIsNoLongerChosen() {
         CitizenRef gone = new CitizenRef(A, 99);
 
-        MenuView noCitizen = MenuViews.of(world, MenuState.INITIAL.withCitizen(gone), Optional.empty());
+        MenuView noCitizen = MenuViews.of(world, false, MenuState.INITIAL.withCitizen(gone), Optional.empty());
         MenuView noColony =
-                MenuViews.of(world, MenuState.INITIAL.withColony(new ColonyRef("default", 9)), Optional.empty());
+                MenuViews.of(world, false, MenuState.INITIAL.withColony(new ColonyRef("default", 9)), Optional.empty());
 
         assertEquals(Optional.empty(), noCitizen.citizen());
         assertEquals(2, noCitizen.citizens().size());
@@ -116,14 +118,14 @@ class MenuViewsTest {
 
     @Test
     void layersAreShownAsChosen() {
-        MenuView v = MenuViews.of(world, MenuState.INITIAL.toggle(Layers.Layer.STOP), Optional.empty());
+        MenuView v = MenuViews.of(world, false, MenuState.INITIAL.toggle(Layers.Layer.STOP), Optional.empty());
 
         assertEquals(Layers.ALL.toggle(Layers.Layer.STOP), v.layers());
     }
 
     @Test
     void watchedAndChosenCitizensAreToldApart() {
-        MenuView v = MenuViews.of(world, MenuState.INITIAL.withCitizen(ANN), Optional.of(BOB));
+        MenuView v = MenuViews.of(world, false, MenuState.INITIAL.withCitizen(ANN), Optional.of(BOB));
 
         assertEquals(
                 List.of(true, false),
@@ -135,5 +137,15 @@ class MenuViewsTest {
                 List.of(true, false),
                 v.colonies().stream().map(MenuView.ColonyRow::chosen).toList(),
                 "only the chosen colony");
+    }
+
+    @Test
+    void clockAndStepAreShown() {
+        MenuView v = MenuViews.of(world, true, MenuState.INITIAL.withStep(5), Optional.empty());
+
+        assertTrue(v.paused());
+        assertFalse(
+                MenuViews.of(world, false, MenuState.INITIAL, Optional.empty()).paused());
+        assertEquals(5, v.step());
     }
 }

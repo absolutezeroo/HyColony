@@ -12,8 +12,10 @@ import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hylens.core.menu.Menus;
+import dev.hylens.core.menu.Pauses;
 import dev.hylens.core.watch.Watches;
 import dev.hylens.plugin.command.HyLensCommand;
+import dev.hylens.plugin.command.MenuClock;
 import dev.hylens.plugin.watch.WatchRefreshSystem;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -26,6 +28,7 @@ public final class HyLensPlugin extends JavaPlugin {
 
     private final Watches watches = new Watches();
     private final Menus menus = new Menus();
+    private final MenuClock clock = new MenuClock(this, new Pauses());
     private final WatchRefreshSystem refresh = new WatchRefreshSystem(watches, menus);
 
     public HyLensPlugin(@Nonnull JavaPluginInit init) {
@@ -34,7 +37,7 @@ public final class HyLensPlugin extends JavaPlugin {
 
     @Override
     protected void setup() {
-        getCommandRegistry().registerCommand(new HyLensCommand(this, watches, menus, HyLensIds.load()));
+        getCommandRegistry().registerCommand(new HyLensCommand(this, watches, menus, clock, HyLensIds.load()));
         getEventRegistry().register(PlayerDisconnectEvent.class, this::onDisconnect);
         getEntityStoreRegistry().registerSystem(refresh);
     }
@@ -70,6 +73,7 @@ public final class HyLensPlugin extends JavaPlugin {
         try {
             UUID operator = e.getPlayerRef().getUuid();
             menus.forget(operator);
+            resumePauses(operator);
             boolean watched = watches.stop(operator).isPresent();
             @Nullable Ref<EntityStore> ref = e.getPlayerRef().getReference();
             if (ref == null || !ref.isValid()) {
@@ -85,6 +89,24 @@ public final class HyLensPlugin extends JavaPlugin {
             }
         } catch (RuntimeException ex) {
             LOG.at(Level.SEVERE).withCause(ex).log("HyLens: stopping a watch on disconnect failed");
+        }
+    }
+
+    /**
+     * Resumes the colonies {@code operator} paused through HyLens, each world on its own thread, where it is decided
+     * whether they still hold the pause (spec 2026-09-30, § 6.1). A world that no longer takes tasks is stopping.
+     */
+    private void resumePauses(UUID operator) {
+        for (String name : clock.pausedBy(operator)) {
+            @Nullable World world = Universe.get().getWorld(name);
+            if (world == null) {
+                continue;
+            }
+            try {
+                world.execute(() -> clock.resumeFor(world, operator));
+            } catch (RuntimeException e) {
+                LOG.at(Level.FINE).withCause(e).log("HyLens: world %s is stopping", name);
+            }
         }
     }
 

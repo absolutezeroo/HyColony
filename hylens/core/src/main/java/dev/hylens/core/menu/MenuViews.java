@@ -20,11 +20,11 @@ public final class MenuViews {
     private MenuViews() {}
 
     /**
-     * The menu of {@code world} for an operator who chose {@code s} and watches {@code watched}. A chosen colony or
-     * citizen that no longer exists is shown as not chosen. Asks HyColony for the chosen colony's alerts, which
-     * confirms a lasting one across calls.
+     * The menu of {@code world}, its colonies {@code paused} or not, for an operator who chose {@code s} and watches
+     * {@code watched}. A chosen colony or citizen that no longer exists is shown as not chosen. Asks HyColony for the
+     * chosen colony's alerts, which confirms a lasting one across calls.
      */
-    public static MenuView of(ColonyWorld world, MenuState s, Optional<CitizenRef> watched) {
+    public static MenuView of(ColonyWorld world, boolean paused, MenuState s, Optional<CitizenRef> watched) {
         Optional<ColonyRef> colony = s.colony().filter(c -> world.colony(c).isPresent());
         List<MenuView.ColonyRow> colonies = world.colonies().stream()
                 .map(c -> new MenuView.ColonyRow(
@@ -43,7 +43,7 @@ public final class MenuViews {
         List<MenuView.CitizenRow> citizens = members.stream()
                 .map(m -> row(world, m, alerts.getOrDefault(m.ref(), 0L).intValue(), citizen, watched))
                 .toList();
-        return new MenuView(colonies, colony, citizens, citizen, s.layers());
+        return new MenuView(colonies, colony, citizens, citizen, s.layers(), paused, s.step());
     }
 
     private static MenuView.CitizenRow row(

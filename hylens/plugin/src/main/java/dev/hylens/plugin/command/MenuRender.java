@@ -15,9 +15,9 @@ import java.util.Optional;
 
 /**
  * Draws the HyLens menu from its view (spec 2026-09-30, § 6.4): the colonies, the chosen colony's citizens, the chosen
- * citizen's actions, the last action's result and the layers. Each button sends an "Action", and in "Index" the id
- * of its colony or citizen, or its layer's name: an id still names the same row once the list changed, unless
- * HyColony gave a dead citizen's id to a newcomer in between (colony ids are never reused).
+ * citizen's actions, the last action's result, the layers and the colony clock. Each button sends an "Action", and in
+ * "Index" the id of its colony or citizen, or its layer's name: an id still names the same row once the list changed,
+ * unless HyColony gave a dead citizen's id to a newcomer in between (colony ids are never reused).
  */
 final class MenuRender {
     static final String PAGE = "Pages/HyLens/Menu.ui";
@@ -57,6 +57,22 @@ final class MenuRender {
         bind(events, "#RespawnButton", "respawn", "");
         result.ifPresent(r -> ui.set("#Result.TextSpans", ApiMessages.of(r)));
         layers(ui, events, v.layers());
+        clock(ui, events, v);
+    }
+
+    /** The world's colony clock: whether it runs, the step asked, and its buttons. */
+    private static void clock(UICommandBuilder ui, UIEventBuilder events, MenuView v) {
+        ui.set(
+                "#ClockState.TextSpans",
+                Message.translation(v.paused() ? "hylens.menu.clockPaused" : "hylens.menu.clockRunning"));
+        ui.set(
+                "#StepCount.TextSpans",
+                Message.translation("hylens.menu.stepCount").param("p0", String.valueOf(v.step())));
+        bind(events, "#PauseButton", "pause", "");
+        bind(events, "#StepLessButton", "stepLess", "");
+        bind(events, "#StepMoreButton", "stepMore", "");
+        bind(events, "#StepButton", "step", "");
+        bind(events, "#ResumeButton", "resume", "");
     }
 
     /** Shows {@code text} alone, on a page that has nothing else to show. */
