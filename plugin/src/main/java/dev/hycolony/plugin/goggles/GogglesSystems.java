@@ -51,6 +51,14 @@ public final class GogglesSystems {
 
     /** PlayerReadyEvent: no armour event is sent on joining a world, so the slot is read once the player is in. */
     public static void onPlayerReady(WorldRuntimes runtimes, String goggles, PlayerReadyEvent e) {
+        try {
+            checkOnJoin(runtimes, goggles, e);
+        } catch (RuntimeException ex) { // the world may no longer take tasks (stopping)
+            LOG.at(Level.SEVERE).withCause(ex).log("HyColony goggles check failed on join");
+        }
+    }
+
+    private static void checkOnJoin(WorldRuntimes runtimes, String goggles, PlayerReadyEvent e) {
         Ref<EntityStore> ref = e.getPlayerRef();
         World world = e.getPlayer().getWorld();
         WorldRuntime rt = runtimes.of(world);
@@ -118,6 +126,9 @@ public final class GogglesSystems {
      */
     public static final class Visibility extends EntityTickingSystem<EntityStore> {
         private final WorldRuntimes runtimes;
+        /** The first failure is logged SEVERE, the next ones FINE: this runs for every player every tick. */
+        private boolean failed;
+
         private final Set<Dependency<EntityStore>> dependencies =
                 Set.of(new SystemDependency<>(Order.AFTER, EntityTrackerSystems.CollectVisible.class));
 
@@ -148,15 +159,21 @@ public final class GogglesSystems {
                 @Nonnull ArchetypeChunk<EntityStore> chunk,
                 @Nonnull Store<EntityStore> store,
                 @Nonnull CommandBuffer<EntityStore> buffer) {
-            WorldRuntime rt = runtimes.of(store.getExternalData().getWorld());
-            if (rt == null) {
-                return;
-            }
-            EntityTrackerSystems.EntityViewer viewer =
-                    chunk.getComponent(index, EntityTrackerSystems.EntityViewer.getComponentType());
-            PlayerRef player = chunk.getComponent(index, PlayerRef.getComponentType());
-            if (viewer != null && player != null) {
-                viewer.hiddenCount += rt.previews().hideFromOthers(player.getUuid(), viewer.visible);
+            // A throw here would end the world thread (TickingThread catches outside its loop): never let one out.
+            try {
+                WorldRuntime rt = runtimes.of(store.getExternalData().getWorld());
+                if (rt == null) {
+                    return;
+                }
+                EntityTrackerSystems.EntityViewer viewer =
+                        chunk.getComponent(index, EntityTrackerSystems.EntityViewer.getComponentType());
+                PlayerRef player = chunk.getComponent(index, PlayerRef.getComponentType());
+                if (viewer != null && player != null) {
+                    viewer.hiddenCount += rt.previews().hideFromOthers(player.getUuid(), viewer.visible);
+                }
+            } catch (RuntimeException e) {
+                LOG.at(failed ? Level.FINE : Level.SEVERE).withCause(e).log("HyColony preview visibility failed");
+                failed = true;
             }
         }
     }

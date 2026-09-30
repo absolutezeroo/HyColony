@@ -95,7 +95,12 @@ public final class HyColonyPlugin extends JavaPlugin {
                 worlds.remove(e.getWorld());
             }
         });
-        getEventRegistry().register(ShutdownEvent.class, e -> worlds.all().forEach(WorldRuntime::saveAll));
+        getEventRegistry()
+                .register(
+                        ShutdownEvent.class,
+                        e -> worlds.all()
+                                .forEach(rt ->
+                                        safely("save of world " + rt.world().getName(), rt::saveAll)));
     }
 
     /** Validates the ids and creates the world's runtime; a failure is logged SEVERE, never thrown. */
@@ -120,23 +125,28 @@ public final class HyColonyPlugin extends JavaPlugin {
     /** On each world's thread: takes off the leaver's goggles and wand, and cancels their unconfirmed town hall. */
     private void onDisconnect(WorldRuntimes worlds, IdMap ids, PlayerDisconnectEvent e) {
         UUID uuid = e.getPlayerRef().getUuid();
+        // execute throws once a world stops taking tasks: guarded too, so the other worlds still clean up.
         worlds.all()
-                .forEach(rt -> rt.world().execute(() -> {
-                    safely("goggles", () -> rt.goggles().unequip(uuid));
-                    safely("wand", () -> rt.wand().disconnect(uuid));
-                }));
-        worlds.all()
-                .forEach(rt -> rt.world()
-                        .execute(() -> safely(
-                                "foundation",
-                                () -> rt.manager()
-                                        .foundation()
-                                        .cancel(uuid)
-                                        .ifPresent(pos -> rt.blocks()
-                                                .removeWithDrop(
-                                                        pos,
-                                                        ids.blockId("hut.townhall"),
-                                                        ids.itemId("hut.townhall"))))));
+                .forEach(rt -> safely(
+                        "disconnect clean-up",
+                        () -> rt.world().execute(() -> {
+                            safely(
+                                    "goggles clean-up on disconnect",
+                                    () -> rt.goggles().unequip(uuid));
+                            safely(
+                                    "wand clean-up on disconnect",
+                                    () -> rt.wand().disconnect(uuid));
+                            safely(
+                                    "foundation clean-up on disconnect",
+                                    () -> rt.manager()
+                                            .foundation()
+                                            .cancel(uuid)
+                                            .ifPresent(pos -> rt.blocks()
+                                                    .removeWithDrop(
+                                                            pos,
+                                                            ids.blockId("hut.townhall"),
+                                                            ids.itemId("hut.townhall"))));
+                        })));
     }
 
     @Override
@@ -144,12 +154,12 @@ public final class HyColonyPlugin extends JavaPlugin {
         packs.unregisterAssets();
     }
 
-    /** Runs one disconnect clean-up; a failure is logged and does not skip the next one. */
-    private void safely(String what, Runnable cleanup) {
+    /** Runs one clean-up step; a failure is logged SEVERE and does not skip the next one. */
+    private void safely(String what, Runnable step) {
         try {
-            cleanup.run();
+            step.run();
         } catch (RuntimeException ex) {
-            getLogger().at(Level.SEVERE).withCause(ex).log("HyColony: %s clean-up on disconnect failed", what);
+            getLogger().at(Level.SEVERE).withCause(ex).log("HyColony: %s failed", what);
         }
     }
 }

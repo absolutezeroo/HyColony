@@ -142,6 +142,7 @@ public final class CitizenFireImmunitySystems {
                     event.setCancelled(true);
                 }
             } catch (RuntimeException e) {
+                event.setCancelled(true); // CLAUDE.md sec 4: a failed check cancels, like the other systems
                 LOG.at(Level.SEVERE).withCause(e).log("HyColony citizen fire contact guard failed");
             }
         }
