@@ -68,10 +68,10 @@ HyBlockUI ← HyDomum ← HyColony → HyVanilla
 
 - **`dev.hycolony.api`** : `ColonyWorld`, `ColonyRef`, `CitizenRef`, `Pos`, `Vec`, `ApiText`, `Actor`, `ActionResult`, `Subscription`, `ApiVersion`, `@Experimental`. `ColonyWorld` rassemble les lectures, `subscribe(Class, Consumer)` et `debug()`, cette dernière marquée `@Experimental`.
 - **`dev.hycolony.api.read`** :
-  - `ColonySummary` : ref, nom, centre, nombre de citoyens ;
-  - `CitizenSnapshot` : ref, nom, métier, maison, lieu de travail, position ;
-  - `BuildingSnapshot` : type, position, niveau, construit ou non, style ;
-  - `RequestSnapshot` : id, état en texte, demandeur, résolveur, parent, enfants, livreur, objet (`ApiText`).
+  - `ColonySummary` : ref, nom, centre (celui de la fondation), propriétaire, nombre de citoyens ;
+  - `CitizenSnapshot` : ref, nom, métier, maison, lieu de travail, position du corps ;
+  - `BuildingSnapshot` : colonie, type, position, niveau, construit ou non, style ;
+  - `RequestSnapshot`, `@Experimental` jusqu'à son premier client (le graphe des requêtes, V2) : id, colonie, état, genre, objet, nombre, hutte et citoyen qui demandent, résolveur, parent, enfants. Ce sont des données, pas un texte : le cœur ne connaît pas le nom des objets dans la langue du joueur (le plugin les tire de `Item.getTranslationMessage()`), et un addon peut filtrer. Le livreur qui porte une requête est lu dans la file du métier, dans le diagnostic.
 - **`dev.hycolony.api.event`** (stable) : les événements existants, traduits en références : `ColonyCreated`, `ColonyDeleted`, `BuildingPlaced`, `BuildingRemoved`, `BuildingLevelChanged`, `WorkOrderCreated`, `CitizenSpawned`, `DayStarted`, `NightFell`. `ColonyCreated`, `ColonyDeleted`, `BuildingPlaced`, `BuildingRemoved`, `BuildingLevelChanged` et `WorkOrderCreated` portent `Actor cause` dès la v1, car l'ajouter plus tard serait une rupture. La cause est le joueur, ou `Actor.Colony` quand aucun joueur n'agit (un bâtiment périmé retiré par `HutActions.place`, un niveau gagné par le bâtisseur). Le cœur la transmet depuis `HutActions`, `ColonyFoundation`, `ColonyManager`, `WorkManager` et le retrait par la baguette. `CitizenSpawned`, `DayStarted` et `NightFell` n'ont pas de cause.
 - **`dev.hycolony.api.debug`** (tout `@Experimental`, car il expose des états internes sous forme de texte) :
   - événements : `CitizenStateChanged`, `JobStateChanged`, `WalkEnded` (cible, position, statut de navigation, raison, distance), `StuckAction` (action, position), `RequestStateChanged` ;

@@ -43,7 +43,7 @@
   - une liste copiée ne bouge plus quand le cœur change ;
   - un id inconnu rend un `Optional` vide ;
   - un appel hors du fil lève `IllegalStateException` (contrôle par `BooleanSupplier`).
-- [ ] `ColonySummary`, `CitizenSnapshot`, `BuildingSnapshot` et `RequestSnapshot`, dont l'objet est un `ApiText`.
+- [ ] `ColonySummary`, `CitizenSnapshot`, `BuildingSnapshot` et `RequestSnapshot` (des données, `@Experimental`, spec § 4.2).
 - [ ] `ColonyWorld` et son implémentation `app/api/CoreColonyWorld`.
 - [ ] Commit `feat(core): the api's snapshots of colonies, citizens, buildings and requests`.
 
@@ -216,3 +216,4 @@ Chaque tâche suit le même déroulé :
 
 - **Tâche 1 :** `ColonyWorld` n'est pas créé vide. Une interface vide serait du code mort, et elle entrerait dans l'empreinte de l'API sans rien porter. La tâche 2 le crée avec ses lectures.
 - **Tâche 1 :** un paramètre d'`ApiText` est une `String` ou un `ApiText`, rien d'autre. Un nombre est formaté par l'appelant, comme dans le `Msg` du cœur. Changer ce domaine, dans un sens ou dans l'autre, est une rupture : le restreindre casse l'addon qui construit un `ApiText`, l'élargir casse celui qui l'affiche.
+- **Tâche 2 :** une requête est décrite par des données (genre, objet, nombre, demandeur), pas par un `ApiText` : le cœur ne connaît pas le nom des objets dans la langue du joueur. `RequestSnapshot` et `ColonyWorld.requests` sont `@Experimental` jusqu'au graphe des requêtes (V2), puisqu'il leur manque encore le type et les niveaux d'un outil. `ColonySummary` gagne le propriétaire, et `BuildingSnapshot` sa colonie.
