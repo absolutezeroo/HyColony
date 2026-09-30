@@ -1,6 +1,7 @@
 package dev.hycolony.core.construction.builder;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -23,11 +24,13 @@ import dev.hycolony.core.kernel.item.BlockKind;
 import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.kernel.persist.FileColonyStorage;
 import dev.hycolony.core.kernel.persist.MigrationChain;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.testing.TestContexts;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -219,6 +222,28 @@ class BuilderCleanupTest {
 
         assertNull(world(3, 1, 0));
         assertEquals(17, citizen.inventory().count(STONE_I)); // the drop joins the 16 given
+    }
+
+    /**
+     * MC CLEAR_NON_SOLIDS goes through block placement (Structurize handleRemoval): a leftover is removed without
+     * mining, so without a tool nor a break delay.
+     */
+    @Test
+    void upgradeRemovesLeftoversWithoutMining() {
+        builtLevelOneThenUpgradeDropsTheRoof();
+        t.catalog.toolForBlock.put(STONE, ToolType.PICKAXE); // no pickaxe anywhere: mining would ask for one
+        order(WorkOrderType.UPGRADE);
+        List<String> states = new ArrayList<>();
+
+        for (int i = 0; i < 10_000 && !finished(); i++) {
+            t.clock.tick++;
+            ai.tick();
+            states.add(ai.stateName());
+        }
+
+        assertTrue(finished(), () -> "not reached; state " + ai.stateName());
+        assertNull(world(3, 1, 0));
+        assertFalse(states.contains("MINE_BLOCK"));
     }
 
     @Test

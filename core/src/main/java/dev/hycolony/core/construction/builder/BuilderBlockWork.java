@@ -40,14 +40,21 @@ final class BuilderBlockWork {
     }
 
     /**
-     * The position at {@code i} needs work: mine it (the clearing stages), or place its block once every item it
-     * costs is at hand (MC hasListOfResInInvOrRequest), replacing what is there; a free order places without items.
+     * The position at {@code i} needs work: mine it (CLEAR, REMOVE), remove a leftover (CLEAR_LEFTOVERS), or place its
+     * block once every item it costs is at hand (MC hasListOfResInInvOrRequest), replacing what is there; a free
+     * order places without items.
      */
     @Nullable
     BuilderState work(Stage stage, int i) {
         BlockPos pos = ctx.site().positions(stage).get(i);
-        if (stage == Stage.CLEAR || stage == Stage.REMOVE || stage == Stage.CLEAR_LEFTOVERS) {
+        if (stage == Stage.CLEAR || stage == Stage.REMOVE) {
             return startMining(pos);
+        }
+        if (stage == Stage.CLEAR_LEFTOVERS) {
+            if (ctx.walkToWork(pos)) {
+                clearLeftover(stage, i, pos);
+            }
+            return null;
         }
         BlueprintEntry e = ctx.site().entry(stage, i);
         boolean turn = ctx.site().plan().onlyTurns(e, ctx.blocks());
@@ -210,6 +217,22 @@ final class BuilderBlockWork {
         ctx.job().incrementActions();
         ctx.site().progress(stage, i + 1);
         ctx.gestures().hold(cost.isEmpty() ? null : cost.getFirst().item());
+        ctx.gestures()
+                .startDelay(
+                        BuilderTimings.placeDelay(ctx.citizen().skills().level(ctx.primary())), BodyAnimation.BUILD);
+    }
+
+    /**
+     * MC CLEAR_NON_SOLIDS places the plan's air through Structurize's block placement: the leftover goes as a
+     * replaced block ({@link #removeForReplace}), with the placement's experience and delay.
+     */
+    private void clearLeftover(Stage stage, int i, BlockPos pos) {
+        ctx.gestures().lookAt(pos);
+        removeForReplace(pos);
+        ctx.award(XP_PER_BLOCK);
+        ctx.job().incrementActions();
+        ctx.site().progress(stage, i + 1);
+        ctx.gestures().hold(null);
         ctx.gestures()
                 .startDelay(
                         BuilderTimings.placeDelay(ctx.citizen().skills().level(ctx.primary())), BodyAnimation.BUILD);
