@@ -1,0 +1,75 @@
+package dev.hycolony.core.app.api;
+
+import dev.hycolony.api.CitizenRef;
+import dev.hycolony.api.ColonyRef;
+import dev.hycolony.api.Subscription;
+import dev.hycolony.api.debug.CitizenDebugSnapshot;
+import dev.hycolony.api.debug.DebugAccess;
+import dev.hycolony.api.debug.HistoryEntry;
+import dev.hycolony.api.debug.Violation;
+import dev.hycolony.core.app.diagnostics.Invariants;
+import dev.hycolony.core.app.diagnostics.ViolationWatch;
+import dev.hycolony.core.citizen.CitizenData;
+import dev.hycolony.core.citizen.vitals.CitizenHistory;
+import dev.hycolony.core.colony.Colony;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+/**
+ * The api's debug reads of one world's colonies (spec 2026-09-30, § 4.2): each call checks the thread as
+ * {@link CoreColonyWorld} does. {@link #check} keeps a {@link ViolationWatch} per colony, so it confirms the lasting
+ * states across its calls.
+ */
+final class CoreDebugAccess implements DebugAccess {
+    private final CoreColonyWorld world;
+    private final Map<Integer, ViolationWatch> watches = new HashMap<>();
+
+    CoreDebugAccess(CoreColonyWorld world) {
+        this.world = world;
+    }
+
+    @Override
+    public Optional<CitizenDebugSnapshot> inspect(CitizenRef ref) {
+        world.checkThread();
+        return world.find(ref.colony())
+                .flatMap(c -> c.citizens().get(ref.citizenId()).map(d -> ApiDebugSnapshots.citizen(ref, c, d)));
+    }
+
+    @Override
+    public List<HistoryEntry> history(CitizenRef ref) {
+        world.checkThread();
+        return citizen(ref)
+                .map(d -> d.vitals().history().stream()
+                        .map(ApiDebugSnapshots::entry)
+                        .toList())
+                .orElse(List.of());
+    }
+
+    @Override
+    public List<Violation> check(ColonyRef ref) {
+        world.checkThread();
+        Colony c = world.find(ref).orElse(null);
+        if (c == null) {
+            return List.of();
+        }
+        long now = c.context().clock().currentTick();
+        return watches.computeIfAbsent(c.id(), _ -> new ViolationWatch()).confirmed(Invariants.check(c), now).stream()
+                .map(v -> ApiDebugSnapshots.violation(ref, v))
+                .toList();
+    }
+
+    @Override
+    public Optional<Subscription> track(CitizenRef ref) {
+        world.checkThread();
+        return citizen(ref).map(d -> {
+            CitizenHistory.Tracking tracking = d.vitals().track();
+            return tracking::close;
+        });
+    }
+
+    private Optional<CitizenData> citizen(CitizenRef ref) {
+        return world.find(ref.colony()).flatMap(c -> c.citizens().get(ref.citizenId()));
+    }
+}

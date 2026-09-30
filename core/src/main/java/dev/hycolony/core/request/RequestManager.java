@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -175,6 +176,11 @@ public final class RequestManager {
     /** Sees every request as it is created, even one closed within the same tick (simulations, debugging). */
     public void setCreationListener(Consumer<Request> listener) {
         store.setCreationListener(listener);
+    }
+
+    /** Hears each state change of a request, with the state it left (debugging); not a load from a save. */
+    public void setStateListener(BiConsumer<Request, RequestState> listener) {
+        store.setStateListener(listener);
     }
 
     public void onColonyUpdate(Predicate<Request> which) {

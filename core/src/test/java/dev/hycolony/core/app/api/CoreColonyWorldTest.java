@@ -177,7 +177,8 @@ class CoreColonyWorldTest {
                 () -> world.citizens(ref),
                 () -> world.citizen(citizen),
                 () -> world.buildings(ref),
-                () -> world.requests(ref));
+                () -> world.requests(ref),
+                world::debug);
         reads.forEach(read -> assertThrows(IllegalStateException.class, read));
     }
 }

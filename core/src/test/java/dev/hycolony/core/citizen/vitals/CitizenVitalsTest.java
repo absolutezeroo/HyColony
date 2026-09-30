@@ -120,7 +120,7 @@ class CitizenVitalsTest {
 
         assertEquals(
                 List.of(new CitizenDebugEvents.WalkEnded(
-                        colony, citizen, HUT, ROOF, WalkEnd.NAV_ENDED, 5.0, NavStatus.ARRIVED)),
+                        colony, citizen, new EndedWalk(HUT, WalkEnd.NAV_ENDED, ROOF, 5.0, NavStatus.ARRIVED, 0))),
                 heard);
     }
 

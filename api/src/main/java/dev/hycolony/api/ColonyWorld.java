@@ -1,5 +1,6 @@
 package dev.hycolony.api;
 
+import dev.hycolony.api.debug.DebugAccess;
 import dev.hycolony.api.read.BuildingSnapshot;
 import dev.hycolony.api.read.CitizenSnapshot;
 import dev.hycolony.api.read.ColonySummary;
@@ -38,10 +39,15 @@ public interface ColonyWorld {
     List<RequestSnapshot> requests(ColonyRef colony);
 
     /**
-     * Hears every later event of exactly {@code type}, one of the records of {@code dev.hycolony.api.event}: each is
-     * delivered on this world's thread, after the change. Throws {@link IllegalArgumentException} for another type.
-     * Close the subscription to stop; a plugin should rather subscribe through HyColony's Hytale entry point, which
-     * closes it when the plugin stops.
+     * Hears every later event of exactly {@code type}, one of the records of {@code dev.hycolony.api.event} or an
+     * experimental event of {@code dev.hycolony.api.debug} ({@code CitizenStateChanged}, {@code JobStateChanged},
+     * {@code WalkEnded}, {@code StuckAction}, {@code RequestStateChanged}): each is delivered on this world's thread,
+     * after the change. Throws {@link IllegalArgumentException} for another type. Close the subscription to stop; a
+     * plugin should rather subscribe through HyColony's Hytale entry point, which closes it when the plugin stops.
      */
     <E> Subscription subscribe(Class<E> type, Consumer<? super E> listener);
+
+    /** What a debugging tool reads of this world's colonies. */
+    @Experimental
+    DebugAccess debug();
 }

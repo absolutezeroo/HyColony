@@ -26,8 +26,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
- * The api's stable events: each is heard by listening to the core event it comes from, translated into references
- * with its cause (spec 2026-09-30, § 4.2). Nothing listens to the core until an addon subscribes.
+ * The api's events, stable and ({@link DebugRoutes}) experimental: each is heard by listening to the core event it
+ * comes from, translated into references, with its cause when it has one (spec 2026-09-30, § 4.2). Nothing listens to
+ * the core until an addon subscribes.
  */
 final class ApiEvents {
     /** One api event type: the core event it comes from, and how it is translated. */
@@ -43,6 +44,7 @@ final class ApiEvents {
         routeColonies();
         routeBuildings();
         routeCitizensAndDays();
+        DebugRoutes.addTo(this, world);
     }
 
     private void routeColonies() {
@@ -127,7 +129,7 @@ final class ApiEvents {
     }
 
     /** Hears the api event {@code api} through the core event {@code core}, translated by {@code translate}. */
-    private <A, C> void route(Class<A> api, Class<C> core, Function<C, A> translate) {
+    <A, C> void route(Class<A> api, Class<C> core, Function<C, A> translate) {
         routes.put(api, new Route<>(core, translate::apply));
     }
 

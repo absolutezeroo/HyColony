@@ -4,6 +4,7 @@ import dev.hycolony.api.CitizenRef;
 import dev.hycolony.api.ColonyRef;
 import dev.hycolony.api.ColonyWorld;
 import dev.hycolony.api.Subscription;
+import dev.hycolony.api.debug.DebugAccess;
 import dev.hycolony.api.read.BuildingSnapshot;
 import dev.hycolony.api.read.CitizenSnapshot;
 import dev.hycolony.api.read.ColonySummary;
@@ -25,6 +26,7 @@ public final class CoreColonyWorld implements ColonyWorld {
     private final BooleanSupplier onWorldThread;
     private final String world;
     private final ApiEvents events;
+    private final CoreDebugAccess debug = new CoreDebugAccess(this);
 
     /** The api over {@code manager}'s colonies; {@code onWorldThread} tells whether the caller runs on its thread. */
     public CoreColonyWorld(ColonyManager manager, BooleanSupplier onWorldThread) {
@@ -89,8 +91,14 @@ public final class CoreColonyWorld implements ColonyWorld {
         return events.subscribe(type, listener);
     }
 
+    @Override
+    public DebugAccess debug() {
+        checkThread();
+        return debug;
+    }
+
     /** The colony {@code ref} names, if it is of this world. */
-    private Optional<Colony> find(ColonyRef ref) {
+    Optional<Colony> find(ColonyRef ref) {
         return ref.world().equals(world) ? manager.byId(ref.colonyId()) : Optional.empty();
     }
 
@@ -98,7 +106,8 @@ public final class CoreColonyWorld implements ColonyWorld {
         return new ColonyRef(world, c.id());
     }
 
-    private void checkThread() {
+    /** Throws {@link IllegalStateException} off the world's thread. */
+    void checkThread() {
         if (!onWorldThread.getAsBoolean()) {
             throw new IllegalStateException("HyColony's api was called outside the thread of world " + world);
         }

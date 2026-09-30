@@ -35,7 +35,7 @@ final class RequestAssigner {
 
     void assign(Request req, Set<String> blacklist) {
         req.setBlacklist(blacklist);
-        req.setState(RequestState.ASSIGNING);
+        store.changeState(req, RequestState.ASSIGNING);
         Attempt winner = null;
         for (Resolver r : resolvers.candidates(req.requester())) {
             if (!offeredTo(r, req, blacklist)) {
@@ -49,7 +49,7 @@ final class RequestAssigner {
             }
         }
         if (winner == null) {
-            req.setState(RequestState.REPORTED);
+            store.changeState(req, RequestState.REPORTED);
             LOG.log(System.Logger.Level.DEBUG, "No resolver for {0}", req); // REPORTED is a legitimate state
             return;
         }
@@ -95,7 +95,7 @@ final class RequestAssigner {
     /** RequestHandler.resolve: register, notify, link and assign children, then IN_PROGRESS. */
     private void resolveWith(Request req, Resolver resolver, Set<String> blacklist, List<RequestToken> children) {
         store.assign(req.token(), resolver);
-        req.setState(RequestState.ASSIGNED);
+        store.changeState(req, RequestState.ASSIGNED);
         resolver.onAssigned(manager, req);
 
         for (RequestToken c : children) {
@@ -108,7 +108,7 @@ final class RequestAssigner {
         assignUnassigned(children, blacklist);
 
         if (req.state().isBefore(RequestState.IN_PROGRESS)) {
-            req.setState(RequestState.IN_PROGRESS);
+            store.changeState(req, RequestState.IN_PROGRESS);
             if (req.children().isEmpty()) {
                 resolve(req);
             }
@@ -168,7 +168,7 @@ final class RequestAssigner {
             store.unassign(req.token());
             current.onCancelled(manager, req);
         }
-        req.setState(RequestState.REPORTED);
+        store.changeState(req, RequestState.REPORTED);
         assign(req, blacklist);
     }
 

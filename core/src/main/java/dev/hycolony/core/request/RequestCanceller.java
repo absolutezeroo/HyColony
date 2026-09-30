@@ -34,7 +34,7 @@ final class RequestCanceller {
         }
         req.parent().map(store::request).ifPresent(p -> p.removeChild(token));
         req.setParent(null);
-        req.setState(RequestState.CANCELLED);
+        store.changeState(req, RequestState.CANCELLED);
         if (resolver != null) {
             resolver.onCancelled(manager, req);
         }

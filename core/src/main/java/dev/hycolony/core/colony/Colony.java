@@ -63,6 +63,7 @@ public final class Colony {
         this.buildings = new BuildingManager(new ColonyBuildingListener(this));
         requests.registerBuiltIn(new PlayerResolver(center));
         requests.registerBuiltIn(new RetryingResolver(center));
+        requests.setStateListener(new RequestStatePoster(ctx.bus(), id));
         this.citizens = new CitizenManager(this);
         this.wasDaytime = ctx.clock().isDaytime();
         this.machine = new TickRateStateMachine<>(ColonyState.INACTIVE, this::onException);

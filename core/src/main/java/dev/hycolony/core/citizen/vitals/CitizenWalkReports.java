@@ -39,7 +39,7 @@ public final class CitizenWalkReports implements WalkListener {
         }
         EventBus bus = colony.context().bus();
         if (bus.hasListeners(CitizenDebugEvents.WalkEnded.class)) {
-            bus.post(new CitizenDebugEvents.WalkEnded(colony, citizen, target, at, how, distance, nav));
+            bus.post(new CitizenDebugEvents.WalkEnded(colony, citizen, end));
         }
     }
 

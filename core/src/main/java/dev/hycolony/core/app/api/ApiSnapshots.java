@@ -131,7 +131,7 @@ final class ApiSnapshots {
         return Optional.ofNullable(p).map(ApiSnapshots::pos);
     }
 
-    private static Vec vec(Vec3 v) {
+    static Vec vec(Vec3 v) {
         return new Vec(v.x(), v.y(), v.z());
     }
 }

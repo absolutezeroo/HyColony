@@ -45,7 +45,7 @@ final class RequestTransitions {
     }
 
     void transition(Request req, RequestState state) {
-        req.setState(state);
+        store.changeState(req, state);
         switch (state) {
             case RESOLVED -> onResolved(req);
             case COMPLETED -> onCompleted(req);
@@ -58,7 +58,7 @@ final class RequestTransitions {
     private void onResolved(Request req) {
         Resolver resolver = store.resolverOf(req.token());
         List<Requestable> followups = resolver == null ? List.of() : resolver.followups(manager, req);
-        req.setState(RequestState.FOLLOWUP_IN_PROGRESS);
+        store.changeState(req, RequestState.FOLLOWUP_IN_PROGRESS);
         if (resolver != null && !followups.isEmpty()) {
             List<RequestToken> tokens = assigner.createAll(resolver, followups);
             for (RequestToken c : tokens) {
@@ -92,7 +92,7 @@ final class RequestTransitions {
 
     /** RequestHandler.onRequestOverruled, preceded by overrideCurrentDeliveries. */
     void overrule(Request req, List<ItemAmount> delivered) {
-        req.setState(RequestState.OVERRULED);
+        store.changeState(req, RequestState.OVERRULED);
         Resolver resolver = store.resolverOf(req.token());
         if (resolver == null) {
             store.clean(req.token());

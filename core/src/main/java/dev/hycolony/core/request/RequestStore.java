@@ -1,5 +1,6 @@
 package dev.hycolony.core.request;
 
+import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.request.model.Requestable;
 import dev.hycolony.core.request.model.RequesterId;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import org.jspecify.annotations.Nullable;
 
@@ -27,9 +29,27 @@ final class RequestStore {
     private final Map<RequesterId, Set<RequestToken>> byRequester = new HashMap<>();
     /** Sees every request as it is created, even one closed within the same tick (simulations, debugging). */
     private Consumer<Request> creationListener = _ -> {};
+    /** Hears each state change of a request, with the state it left. */
+    private BiConsumer<Request, RequestState> stateListener = (_, _) -> {};
 
     void setCreationListener(Consumer<Request> listener) {
         creationListener = Objects.requireNonNull(listener, "listener");
+    }
+
+    void setStateListener(BiConsumer<Request, RequestState> listener) {
+        stateListener = Objects.requireNonNull(listener, "listener");
+    }
+
+    /**
+     * Sets {@code req}'s state to {@code to}, telling the state listener when it changed: how every transition sets it
+     * (a cancellation sets CANCELLED twice).
+     */
+    void changeState(Request req, RequestState to) {
+        RequestState from = req.state();
+        req.setState(to);
+        if (from != to) {
+            stateListener.accept(req, from);
+        }
     }
 
     Request create(RequesterId requester, Requestable what, int citizenId) {
