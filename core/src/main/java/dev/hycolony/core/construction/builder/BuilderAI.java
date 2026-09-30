@@ -7,7 +7,6 @@ import dev.hycolony.core.job.work.WorkerMachine;
 import dev.hycolony.core.kernel.ai.AIBlockingEventType;
 import dev.hycolony.core.kernel.ai.IStateSupplier;
 import dev.hycolony.core.kernel.port.Msg;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BooleanSupplier;
@@ -175,7 +174,7 @@ public final class BuilderAI implements JobAI {
         if (!ctx.walkToWorkPos(ctx.hut().position())) {
             return null;
         }
-        ctx.stock().dump(ctx.resources().currentBucket().orElse(Map.of()));
+        ctx.stock().dumpKeepingHutRules(true); // MC BuildingBuilder keepX and getRequiredItemsAndAmount
         ctx.job().clearActions();
         return site.loaded() ? BuilderState.BUILDING_STEP : BuilderState.START_WORKING;
     }

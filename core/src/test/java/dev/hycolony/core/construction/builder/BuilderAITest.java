@@ -440,6 +440,7 @@ class BuilderAITest {
             give(j, 1);
         }
         assertTrue(citizen.inventory().isFull());
+        t.catalog.tools.put(junk.get(0), new ToolInfo(ToolType.HOE, 0, 1f)); // not a tool the builder's hut keeps
 
         tickUntil(() -> ai.stateName().equals("INVENTORY_FULL"), 1000);
         tickUntil(() -> !ai.stateName().equals("INVENTORY_FULL"), 1000);

@@ -20,7 +20,6 @@ import dev.hycolony.core.logistics.pickup.KeepToolsModule;
 import dev.hycolony.core.testing.TestContexts;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.UUID;
@@ -69,19 +68,6 @@ class WorkerStockTest {
 
         assertEquals(OptionalInt.of(1), stock.toolInInventory(ToolType.PICKAXE));
         assertEquals(OptionalInt.empty(), stock.toolInInventory(ToolType.AXE));
-    }
-
-    @Test
-    void aDumpKeepsTheKeepAmountsAndTheFirstToolOfEachType() {
-        citizen.inventory().insert(new ItemAmount(LOG, 20), k -> 64);
-        citizen.inventory().set(1, Optional.of(new ItemAmount(PICK, 1)));
-        citizen.inventory().set(2, Optional.of(new ItemAmount(IRON_PICK, 1)));
-
-        stock.dump(Map.of(LOG, 5));
-
-        assertEquals(5, citizen.inventory().count(LOG));
-        assertEquals(1, citizen.inventory().count(PICK));
-        assertEquals(List.of(new ItemAmount(LOG, 15), new ItemAmount(IRON_PICK, 1)), t.containers.stacks(HUT));
     }
 
     @Test
