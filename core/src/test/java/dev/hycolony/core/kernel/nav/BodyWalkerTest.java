@@ -100,6 +100,40 @@ class BodyWalkerTest {
     }
 
     @Test
+    void walkBackAfterAnotherTargetAlreadyReachedIsWatchedAnew() {
+        walker.walkCloseTo(STAND, HUT, 7, true);
+        navEnds(NavStatus.BLOCKED, new Vec3(-5.5, 64, 0.5));
+        assertTrue(walker.walkCloseTo(STAND, HUT, 7, true));
+        assertTrue(walker.walkTo(new BlockPos(-6, 64, 0)), "already there: no walk starts");
+        clock.tick += 5_000; // long after the walk to STAND started
+
+        for (int i = 0; i < 50; i++) {
+            clock.tick++;
+            walker.walkCloseTo(STAND, HUT, 4, true);
+            bodies.bodies.get(body).status = NavStatus.BLOCKED;
+        }
+
+        assertTrue(bodies.teleports.isEmpty(), "the walk to STAND starting again is not stuck at once");
+    }
+
+    @Test
+    void walkBackIntoARangeLeftSinceIsWatchedAnew() {
+        BlockPos column = new BlockPos(20, 64, 0);
+        walker.walkTo(column, 4);
+        bodies.bodies.get(body).position = new Vec3(17.5, 64, 0.5);
+        assertTrue(walker.walkTo(column, 4), "within its range: arrived");
+        clock.tick += 5_000; // long after that walk started
+        bodies.bodies.get(body).position = new Vec3(26, 64, 0.5); // pushed out of range, its nav still running
+
+        for (int i = 0; i < 50; i++) {
+            clock.tick++;
+            walker.walkTo(column, 4);
+        }
+
+        assertTrue(bodies.teleports.isEmpty(), "a walk starting again is not stuck at once");
+    }
+
+    @Test
     void bodyBesideTheBlockHasArrivedWithoutWalking() {
         bodies.bodies.get(body).position = new Vec3(1.5, 64, 0.5);
 

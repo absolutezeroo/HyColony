@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import org.jspecify.annotations.Nullable;
 
 public final class FakeBodies implements CitizenBodies {
     public static final class Body {
@@ -42,10 +43,19 @@ public final class FakeBodies implements CitizenBodies {
     public boolean refuseSpawn;
     /** Positions where spawn fails, as when the world has no room there. */
     public final Set<BlockPos> refuseSpawnAt = new HashSet<>();
-    /** When set, moveTo teleports the body to its target and reports ARRIVED. */
+    /** When set (and {@link #navEndsAt} is not), moveTo teleports the body to its target and reports ARRIVED. */
     public boolean instant;
     /** When set (and not instant), moveTo never moves the body and navStatus stays MOVING: a nav that never ends. */
     public boolean frozen;
+    /**
+     * When set, every moveTo ends there at once with {@link #navEndStatus}, wherever it was sent: a nav that ends
+     * elsewhere, as Hytale's best partial path onto a roof. Wins over {@link #instant} and {@link #frozen}.
+     */
+    public @Nullable Vec3 navEndsAt;
+    /** When set, reading a nav's status throws, as a broken adapter would: a job AI's machine then fails. */
+    public boolean failNav;
+    /** How a nav sent elsewhere by {@link #navEndsAt} ends. */
+    public NavStatus navEndStatus = NavStatus.ARRIVED;
     /** Every teleport target, in call order. */
     public final List<Vec3> teleports = new ArrayList<>();
     /** Every moveTo target, in call order. */
@@ -95,7 +105,11 @@ public final class FakeBodies implements CitizenBodies {
         moves.add(target);
         b.target = target;
         b.status = NavStatus.MOVING;
-        if (instant && !frozen) {
+        Vec3 elsewhere = navEndsAt;
+        if (elsewhere != null) {
+            b.position = elsewhere;
+            b.status = navEndStatus;
+        } else if (instant && !frozen) {
             b.position = target;
             b.status = NavStatus.ARRIVED;
         }
@@ -119,6 +133,9 @@ public final class FakeBodies implements CitizenBodies {
 
     @Override
     public NavStatus navStatus(BodyId body) {
+        if (failNav) {
+            throw new IllegalStateException("failing fake nav");
+        }
         return bodies.get(body).status;
     }
 

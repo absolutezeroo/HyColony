@@ -25,18 +25,27 @@ public final class BodyWalker {
     private final BodyId body;
     private final LongSupplier clock;
     private final StuckHandler stuck = new StuckHandler();
+    private final WalkListener listener;
     private @Nullable BlockPos navTarget;
     /** A target whose plain walk ended where its nav did, or whose walk was given up: the body works from there. */
     private @Nullable BlockPos settled;
     /** The walk to {@link #navTarget} had arrived: walking there again is watched anew by the stuck handler. */
     private boolean arrived;
+    /** The stuck handler teleported the body during the walk under way: its end is {@link WalkEnd#TELEPORTED}. */
+    private boolean teleported;
     /** Walks started so far. */
     private int walks;
 
     public BodyWalker(CitizenBodies bodies, BodyId body, LongSupplier clock) {
+        this(bodies, body, clock, WalkListener.NONE);
+    }
+
+    /** A walker whose walks {@code listener} hears (diagnostics). */
+    public BodyWalker(CitizenBodies bodies, BodyId body, LongSupplier clock, WalkListener listener) {
         this.bodies = bodies;
         this.body = body;
         this.clock = clock;
+        this.listener = listener;
     }
 
     /** True while a walk is under way (for the citizen window). */
@@ -67,12 +76,19 @@ public final class BodyWalker {
     }
 
     /**
-     * {@link #walkTo(BlockPos)}, already arrived when within {@code range} blocks of {@code to}. A walk started before
-     * is not stopped then: the body may finish it, which only shows.
+     * {@link #walkTo(BlockPos)}, already arrived when within {@code range} blocks of {@code to}: a walk under way to
+     * {@code to} then counts as arrived (its end is heard once), and walking there again later is watched anew. A walk
+     * started before is not stopped: the body may finish it, which only shows.
      */
     public boolean walkTo(BlockPos to, int range) {
         Vec3 p = bodies.position(body).orElse(null);
-        return (p != null && p.distance(Vec3.center(to)) <= range) || walkTo(to);
+        if (p != null && p.distance(Vec3.center(to)) <= range) {
+            if (to.equals(navTarget)) {
+                ended(to, p, null, WalkEnd.CLOSE, NavStatus.MOVING);
+            }
+            return true;
+        }
+        return walkTo(to);
     }
 
     /** {@link #walkTo(BlockPos)}; the stuck handler teleports to {@code to} only when {@code teleportAllowed}. */
@@ -99,8 +115,7 @@ public final class BodyWalker {
         if (p == null) {
             return false;
         }
-        if (to.equals(settled) || close(p, to, desired)) {
-            arrived = to.equals(navTarget); // no walk may be under way to another target
+        if (alreadyThere(to, p, desired)) {
             return true;
         }
         long now = clock.getAsLong();
@@ -109,40 +124,78 @@ public final class BodyWalker {
             settled = null;
             arrived = false;
             walks++;
+            teleported = false;
+            listener.walkStarted(to, p);
             bodies.moveTo(body, Vec3.center(to));
             stuck.start(Vec3.center(to), p, now, teleportAllowed);
             return false;
         }
         NavStatus s = bodies.navStatus(body);
         if (navDone(s, desired) && withinReach(p, desired, reach)) {
-            return arrive(to, desired);
+            return arrive(to, p, desired, s);
         }
         if (arrived) {
             arrived = false; // left since: a new walk, whose progress the stuck handler watches from now, once
+            teleported = false;
             stuck.start(Vec3.center(to), p, now, teleportAllowed);
+            listener.walkStarted(to, p);
         }
         if (s != NavStatus.MOVING) {
             bodies.moveTo(body, Vec3.center(to)); // dropped (e.g. by lookAt), ended too far off, or left since
         }
-        return unstick(to, p, now);
+        return unstick(to, p, now, desired, s);
     }
 
-    /** The walk to {@code to} arrived, its nav over; a plain walk ends wherever its nav ended. Returns true. */
-    private boolean arrive(BlockPos to, @Nullable BlockPos desired) {
-        if (desired == null) {
-            settled = to;
+    /** Whether the walk to {@code to} ended before, or the body got close; the walk under way then ends close. */
+    private boolean alreadyThere(BlockPos to, Vec3 p, @Nullable BlockPos desired) {
+        if (!to.equals(settled) && !close(p, to, desired)) {
+            return false;
         }
-        arrived = true;
+        if (to.equals(navTarget)) { // no walk may be under way to another target
+            ended(to, p, desired, WalkEnd.CLOSE, NavStatus.MOVING);
+        }
         return true;
     }
 
-    /** Follows the stuck handler's advice; true once it gave up (the walk then counts as ended). */
-    private boolean unstick(BlockPos to, Vec3 p, long now) {
-        switch (stuck.check(p, now)) {
+    /** The walk to {@code to} arrived, its nav over; a plain walk ends wherever its nav ended. Returns true. */
+    private boolean arrive(BlockPos to, Vec3 p, @Nullable BlockPos desired, NavStatus nav) {
+        if (desired == null) {
+            settled = to;
+        }
+        ended(to, p, desired, WalkEnd.NAV_ENDED, nav);
+        return true;
+    }
+
+    /**
+     * Marks the walk to {@code to} arrived, telling the listener the first time only; a close end after a teleport is
+     * {@link WalkEnd#TELEPORTED}.
+     */
+    private void ended(BlockPos to, Vec3 p, @Nullable BlockPos desired, WalkEnd how, NavStatus nav) {
+        if (!arrived) {
+            WalkEnd end = how == WalkEnd.CLOSE && teleported ? WalkEnd.TELEPORTED : how;
+            listener.walkEnded(to, p, end, p.distance(Vec3.center(desired == null ? to : desired)), nav);
+        }
+        arrived = true;
+    }
+
+    /**
+     * Follows the stuck handler's advice; true once it gave up (the walk then counts as ended, the nav at
+     * {@code nav}).
+     */
+    private boolean unstick(BlockPos to, Vec3 p, long now, @Nullable BlockPos desired, NavStatus nav) {
+        StuckHandler.Action action = stuck.check(p, now);
+        if (action != StuckHandler.Action.NONE) {
+            listener.stuck(to, p, action);
+        }
+        switch (action) {
             case REPATH -> bodies.moveTo(body, Vec3.center(to));
-            case TELEPORT -> bodies.teleport(body, Vec3.center(to));
+            case TELEPORT -> {
+                teleported = true;
+                bodies.teleport(body, Vec3.center(to));
+            }
             case GIVE_UP -> {
                 settled = to;
+                ended(to, p, desired, WalkEnd.GAVE_UP, nav);
                 return true;
             }
             case NONE -> {}
