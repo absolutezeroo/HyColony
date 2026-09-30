@@ -67,7 +67,7 @@ final class BuilderGathering {
             return null;
         }
         WorkerStock stock = ctx.stock();
-        ctx.requests().receiveCompletedBuildingRequests();
+        ctx.sync().cleanAsync();
         ctx.resources()
                 .currentBucket()
                 .ifPresent(bucket -> bucket.forEach(
@@ -129,7 +129,7 @@ final class BuilderGathering {
         if (!ctx.walkToWorkPos(ctx.hut().position())) {
             return null;
         }
-        ctx.requests().receiveCompletedBuildingRequests();
+        ctx.sync().cleanAsync();
         return ctx.sync().receiveAtHut() ? null : BuilderState.START_WORKING;
     }
 

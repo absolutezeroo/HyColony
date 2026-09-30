@@ -13,7 +13,8 @@ import java.util.List;
 /**
  * A worker's own requests (MC AbstractEntityAIBasic checkIfNeedsItem, waitForRequests and lookForRequests): filed
  * under its hut with its citizen's id, they are sync, the worker waits for them in NEEDS_ITEM, then takes their items
- * from the hut through {@link WorkerStock}. Any job composes one around its citizen and hut.
+ * from the hut through {@link WorkerStock}. Any job composes one around its citizen and hut. The hut's async requests
+ * (filed without a citizen) are received by {@link #cleanAsync}.
  */
 public final class SyncRequests {
     private final Colony colony;
@@ -87,9 +88,7 @@ public final class SyncRequests {
                 .onColonyUpdate(r -> r.requester().equals(hut.requesterId())
                         && r.citizenId() == citizen.id()
                         && r.state().isBefore(RequestState.COMPLETED)
-                        // the hut's stock only (its BuildingResolver, first): its crafters asked again would rebuild
-                        // a tree they hold at every wait, with new tokens and retries
-                        && hut.resolvers().getFirst().canResolve(requests(), r));
+                        && hut.stockCanServe(requests(), r));
     }
 
     /**

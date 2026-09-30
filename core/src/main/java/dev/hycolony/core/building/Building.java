@@ -213,6 +213,14 @@ public final class Building implements Requester, ResolverProvider {
         return resolvers;
     }
 
+    /**
+     * Whether this hut's own stock can serve {@code r} now: its {@link BuildingResolver}, not its crafters, which
+     * asked again would rebuild a tree they hold. False before the colony attached the resolvers.
+     */
+    public boolean stockCanServe(RequestManager m, Request r) {
+        return !resolvers.isEmpty() && resolvers.getFirst().canResolve(m, r);
+    }
+
     /** Saved data of modules no longer registered for this type: written back untouched. */
     public Map<String, JsonObject> unknownModules() {
         return unknownModules;

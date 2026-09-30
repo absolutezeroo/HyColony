@@ -72,16 +72,4 @@ final class BuilderRequests {
         }
         request(new StackRequest(item, count, 1, true));
     }
-
-    /**
-     * MC cleanAsync / markRequestAsAccepted: a completed building request left its items in the hut, where the
-     * builder takes them like any stock. RECEIVED, so the item can be asked for again.
-     */
-    void receiveCompletedBuildingRequests() {
-        for (Request r : requests().byRequester(hut.requesterId())) {
-            if (r.citizenId() == Request.NO_CITIZEN && r.state() == RequestState.COMPLETED) {
-                requests().updateState(r.token(), RequestState.RECEIVED);
-            }
-        }
-    }
 }

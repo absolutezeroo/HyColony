@@ -140,7 +140,6 @@ class CraftingScenarioTest {
         assertEquals(10, everywhere(SEEDS), "no seed made twice or lost");
     }
 
-    /** What the crafter and the request system do while a task waits for its essence, seen after each tick. */
     /**
      * A worker's wait asks again only what its hut's stock can serve: a request its own hut crafts, whose ingredient is
      * nowhere, keeps its tree (asking the crafter again would rebuild it, new tokens and retries, at every wait).
@@ -165,6 +164,7 @@ class CraftingScenarioTest {
         return colony.requests().all().stream().map(Request::token).toList();
     }
 
+    /** What the crafter and the request system do while a task waits for its essence, seen after each tick. */
     private final class Watch implements Runnable {
         private final CraftingTasks tasks;
         /** The crafter's assigned tasks, then its queue, when the first delivery is asked. */
