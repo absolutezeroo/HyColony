@@ -47,8 +47,9 @@ class WorkerMachineTest {
         assertEquals(Step.SECOND, machine.state());
     }
 
+    /** MC AbstractEntityAIBasic.onException: the state stays, the pause is EXCEPTION_DELAY times a doubling timer. */
     @Test
-    void exceptionResetsTheMachineAndPausesTheWorker() {
+    void anExceptionPausesTheWorkerLongerEachTimeInTheSameState() {
         machine.target(Step.FIRST, () -> Step.SECOND, 1);
         machine.target(
                 Step.SECOND,
@@ -58,9 +59,16 @@ class WorkerMachineTest {
                 1);
 
         tick(2 * WorkerMachine.MACHINE_RATE);
-
-        assertEquals(Step.FIRST, machine.state());
+        assertEquals(Step.SECOND, machine.state());
         assertEquals(WorkerMachine.EXCEPTION_DELAY, delay.remaining());
         assertTrue(machine.lastError().isPresent());
+
+        for (int i = 0;
+                i < 4 * WorkerMachine.EXCEPTION_DELAY && delay.remaining() <= WorkerMachine.EXCEPTION_DELAY;
+                i++) {
+            machine.tick(); // until the next exception, once this pause is over
+        }
+        assertEquals(Step.SECOND, machine.state());
+        assertEquals(2 * WorkerMachine.EXCEPTION_DELAY, delay.remaining());
     }
 }

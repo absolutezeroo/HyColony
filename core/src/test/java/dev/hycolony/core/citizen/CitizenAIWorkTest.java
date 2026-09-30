@@ -145,6 +145,56 @@ class CitizenAIWorkTest {
         }
     }
 
+    private static final class ThrowingJob extends Job {
+        static final JobType TYPE = new JobType("test:throwing", ThrowingJob::new);
+
+        ThrowingJob(CitizenData citizen) {
+            super(TYPE, citizen);
+        }
+
+        @Override
+        public JobAI createAI(Colony colony, BodyId body) {
+            return new JobAI() {
+                @Override
+                public void tick() {
+                    throw new IllegalStateException("broken job AI");
+                }
+
+                @Override
+                public String stateName() {
+                    return "broken";
+                }
+
+                @Override
+                public boolean canBeInterrupted() {
+                    return false;
+                }
+            };
+        }
+    }
+
+    /** MC AbstractEntityCitizen: the citizen AI's exception handler only logs; the citizen keeps its state. */
+    @Test
+    void aThrowingJobAiLeavesTheCitizenWorking() {
+        Colony c = new Colony(
+                t.context(),
+                new TerritoryIndex(),
+                new Colony.Founding(1, "T", new BlockPos(0, 64, 0), Permissions.createDefault(UUID.randomUUID(), "A")));
+        CitizenData d = new CitizenData(1);
+        c.citizens().restore(d);
+        BodyId body = t.bodies.existing(1, 1, new Vec3(0, 64, 0));
+        d.setJob(new ThrowingJob(d));
+        CitizenAI ai = new CitizenAI(c, d, body);
+        for (int i = 0; i < 30 && ai.state() != CitizenState.WORKING; i++) {
+            ai.tick();
+        }
+
+        for (int i = 0; i < 20; i++) {
+            ai.tick();
+            assertEquals(CitizenState.WORKING, ai.state());
+        }
+    }
+
     @Test
     void rehiredElsewhereBeforeNextTickGetsANewJobAi() {
         TICKED_FOR.clear();

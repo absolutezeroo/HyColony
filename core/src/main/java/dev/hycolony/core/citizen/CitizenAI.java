@@ -90,9 +90,9 @@ public final class CitizenAI {
         return state() == CitizenState.WORKING && jobAI != null ? jobAI.describe() : Optional.empty();
     }
 
+    /** MC AbstractEntityCitizen's AI exception handler: logged only; the citizen keeps its state. */
     private void onException(RuntimeException e) {
         LOG.log(System.Logger.Level.WARNING, "Citizen AI failed for " + data.name(), e);
-        machine.reset();
     }
 
     private @Nullable CitizenState idle() {

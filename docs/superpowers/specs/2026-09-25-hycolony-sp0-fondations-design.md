@@ -120,7 +120,7 @@ C'est un portage fidèle de `BasicStateMachine` et `TickRateStateMachine` de Min
 - Ordre d'évaluation à chaque tick : `AI_BLOCKING` → `EVENT` → `STATE_BLOCKING` → transitions de l'état courant. **La première transition qui déclenche termine le tick.** Une action qui renvoie `null` ne provoque pas de transition.
 - Cadence par transition, bornée à [1, 12 000]. Chaque transition a un compte à rebours décrémenté du `tickRate` de la machine. Décalage initial réparti par un compteur global modulo 50. `setCurrentDelay(n)` permet à une action d'imposer son délai.
 - Un état sans transitions lève une erreur puis `reset()` vers l'état initial. Les 20 dernières transitions sont gardées pour le débogage.
-- Une exception dans une action est attrapée : la machine journalise, fait `reset()` et continue (§ 5).
+- Une exception dans une action est attrapée et passée au gestionnaire de la machine ; l'état ne change pas (MC `BasicStateMachine.checkTransition`) et la machine continue (§ 5).
 
 ### 3.2 Colonie : `colony`
 
@@ -338,7 +338,7 @@ L'asset pack est dans `plugin/src/main/resources/` (`IncludesAssetPack: true`) :
 | Situation | Comportement |
 |---|---|
 | Exception pendant le tick d'une colonie | Journaliser avec la trace, puis **suspendre les ticks de cette colonie pendant 5 minutes** (comme MineColonies). Les autres colonies continuent. |
-| Exception dans une action d'IA de citoyen | Journaliser, `reset()` de la machine vers son état initial. |
+| Exception dans une action d'IA de citoyen | Journaliser ; le citoyen garde son état (MC `AbstractEntityCitizen`). L'IA de métier (`WorkerMachine`) met en plus le travailleur en pause : 100 ticks, puis le double à chaque nouvelle exception (MC `AbstractEntityAIBasic.onException`). |
 | Échec d'écriture disque | Journaliser, laisser la colonie marquée comme modifiée, réessayer à la sauvegarde suivante. Le `.bak` n'est jamais supprimé. |
 | Fichier corrompu | Se rabattre sur le `.bak`, sinon mettre en quarantaine dans `corrupt/` (§ 5). |
 | Id d'asset manquant | Rapport d'erreur, désactivation propre si l'id est vital (§ 4.3). |

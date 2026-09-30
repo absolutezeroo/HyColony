@@ -15,15 +15,21 @@ import org.jspecify.annotations.Nullable;
 /**
  * A worker AI's state machine, run as MC AbstractAISkeleton and AbstractEntityAIBasic run theirs: once every
  * {@link #MACHINE_RATE} game ticks, kept in its state while the worker waits (MC's AI_BLOCKING waitingForSomething
- * event, registered first), and after an exception logged, reset and paused {@link #EXCEPTION_DELAY} ticks. Each job's
- * AI registers its own targets and events on it.
+ * event, registered first), and after an exception logged and paused, longer each time. Each job's AI registers its
+ * own targets and events on it.
  */
 public final class WorkerMachine<S extends IState> {
     /** MC ENTITY_AI_TICKRATE: the machine runs every 5 game ticks and counts 5 per run. */
     public static final int MACHINE_RATE = 5;
 
-    /** MC AbstractEntityAIBasic.onException: the ticks a worker pauses after its AI threw. */
+    /** MC EXCEPTION_TIMEOUT: the ticks a worker pauses after its AI's first exception, doubled at each next one. */
     public static final int EXCEPTION_DELAY = 100;
+
+    /**
+     * Deviation from MC: MC's timer doubles until the int wraps (to 0, no pause at all, after 32 exceptions); it stops
+     * doubling here at about 58 days of pause.
+     */
+    private static final int MAX_EXCEPTION_TIMER = 1 << 20;
 
     private static final System.Logger LOG = System.getLogger(WorkerMachine.class.getName());
 
@@ -32,11 +38,12 @@ public final class WorkerMachine<S extends IState> {
     private final IntConsumer pause;
     private @Nullable RuntimeException lastError;
     private int calls;
+    private int exceptionTimer = 1;
 
     /**
      * A machine starting in {@code initial} for the worker {@code worker} names (in the log). It stays in its state
-     * while {@code waiting} is true; after an exception it goes back to {@code initial} and {@code pause} gets
-     * {@link #EXCEPTION_DELAY}.
+     * while {@code waiting} is true; after an exception it keeps its state and {@code pause} gets
+     * {@link #EXCEPTION_DELAY} times a timer that doubles at each exception.
      */
     public WorkerMachine(S initial, Supplier<String> worker, BooleanSupplier waiting, IntConsumer pause) {
         this.machine = new TickRateStateMachine<>(initial, this::onException, MACHINE_RATE);
@@ -79,10 +86,18 @@ public final class WorkerMachine<S extends IState> {
         return Optional.ofNullable(lastError);
     }
 
+    /** MC AbstractEntityAIBasic.onException: pauses the worker, longer each time; the state stays. */
     private void onException(RuntimeException e) {
-        LOG.log(System.Logger.Level.WARNING, "Worker AI failed for " + worker.get(), e);
+        int timeout = EXCEPTION_DELAY * exceptionTimer;
+        LOG.log(
+                System.Logger.Level.WARNING,
+                "Worker AI failed for " + worker.get() + "; paused " + timeout + " ticks",
+                e);
         lastError = e;
-        machine.reset();
-        pause.accept(EXCEPTION_DELAY);
+        pause.accept(timeout);
+        machine.setCurrentDelay(timeout);
+        if (exceptionTimer < MAX_EXCEPTION_TIMER) {
+            exceptionTimer *= 2;
+        }
     }
 }
