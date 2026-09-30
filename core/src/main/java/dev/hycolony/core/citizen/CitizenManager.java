@@ -4,11 +4,14 @@ import dev.hycolony.core.building.Building;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.Msg;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
@@ -159,20 +162,25 @@ public final class CitizenManager {
         return data;
     }
 
+    /**
+     * MC CitizenData.updateEntityIfNecessary and spawnOrCreateCivilian: a citizen without a living body gets one at the
+     * first loaded of its respawn position, last position, work building and home; the town hall (else the colony's
+     * centre) when it has none. Nothing while none is loaded.
+     */
     private void updateBodyIfNecessary(CitizenData data) {
         BodyId body = bodies.get(data.id());
         if (body != null && ctx().bodies().isAlive(body)) {
             return;
         }
-        BlockPos target = data.respawnPosition() != null
-                ? data.respawnPosition()
-                : data.lastPosition() != null
-                        ? data.lastPosition().toBlockPos()
-                        : colony.buildings().townHall().map(Building::position).orElse(colony.center());
-        if (!ctx().worldQuery().isLoaded(target)) {
-            return;
+        List<BlockPos> candidates = new ArrayList<>(4);
+        Optional.ofNullable(data.respawnPosition()).ifPresent(candidates::add);
+        Optional.ofNullable(data.lastPosition()).map(Vec3::toBlockPos).ifPresent(candidates::add);
+        Optional.ofNullable(data.workBuilding()).ifPresent(candidates::add);
+        Optional.ofNullable(data.homeBuilding()).ifPresent(candidates::add);
+        if (candidates.isEmpty()) {
+            candidates.add(colony.buildings().townHall().map(Building::position).orElse(colony.center()));
         }
-        spawnBody(data, target);
+        candidates.stream().filter(ctx().worldQuery()::isLoaded).findFirst().ifPresent(at -> spawnBody(data, at));
     }
 
     private void spawnBody(CitizenData data, BlockPos near) {

@@ -202,7 +202,7 @@ C'est le squelette qui accueillera les 54 bâtiments. Il est fidèle au modèle 
 
 **`CitizenManager`** (tick lent, toutes les 500 ticks) :
 - **Apparition initiale** : tant que la colonie a moins de `initialCitizenAmount` citoyens (4 par défaut) et qu'un hôtel de ville existe, **un** citoyen apparaît par tick lent, à côté de l'hôtel de ville. Le premier citoyen déclenchera au sous-projet 4 la quête de bienvenue ; pour l'instant, il produit juste une entrée de journal.
-- **Respawn** : toutes les **5 minutes** (6 000 ticks), pour chaque citoyen dont le corps est absent ou mort, et seulement si le chunk de destination est chargé, le citoyen réapparaît à `respawnPosition`, sinon `lastPosition`, sinon près de l'hôtel de ville.
+- **Respawn** : toutes les **5 minutes** (6 000 ticks), pour chaque citoyen dont le corps est absent ou mort, le citoyen réapparaît à la première position chargée parmi `respawnPosition`, `lastPosition`, son bâtiment de travail et son logement (MC `CitizenData.updateEntityIfNecessary`) ; sans aucune de ces positions, près de l'hôtel de ville. Si aucune n'est chargée, il attend le contrôle suivant.
 - **Plafond** : `maxCitizenPerColony` (250). La capacité réelle en logements arrive au sous-projet 4.
 
 **Liaison entre données et corps** (`CitizenBodies`) :

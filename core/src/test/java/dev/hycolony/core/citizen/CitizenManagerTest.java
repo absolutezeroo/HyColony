@@ -107,6 +107,26 @@ class CitizenManagerTest {
         assertTrue(t.bodies.isAlive(c.citizens().bodyOf(d.id()).orElseThrow()));
     }
 
+    /** MC updateEntityIfNecessary: respawn, last position, work and home buildings; the first loaded one wins. */
+    @Test
+    void aDeadCitizenRespawnsAtItsWorkBuildingWhenItsLastPositionIsUnloaded() {
+        Colony c = colonyWithTownHall();
+        slowTicks(c, 2);
+        CitizenData d = c.citizens().all().iterator().next();
+        t.bodies.despawn(c.citizens().bodyOf(d.id()).orElseThrow());
+        BlockPos last = new BlockPos(500, 64, 500);
+        BlockPos work = new BlockPos(20, 64, 0);
+        d.setLastPosition(Vec3.center(last));
+        d.setWorkBuilding(work);
+        t.world.unloaded.add(last);
+
+        slowTicks(c, 13); // past the respawn timer (6000)
+
+        BodyId body = c.citizens().bodyOf(d.id()).orElseThrow();
+        assertTrue(t.bodies.isAlive(body));
+        assertEquals(Vec3.center(work), t.bodies.position(body).orElseThrow());
+    }
+
     @Test
     void bodyLoadedTwiceKeepsFirstAndDespawnsSecond() {
         Colony c = colonyWithTownHall();
