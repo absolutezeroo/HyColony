@@ -1,5 +1,6 @@
 package dev.hycolony.core.crafting.module;
 
+import dev.hycolony.api.read.JobNames;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
@@ -126,7 +127,7 @@ public final class RecipeImprovement {
         String jobId = crafted.crafter().job().map(j -> j.type().id()).orElse(module.jobId());
         return Msg.of(
                 "hycolony.crafting.improved." + random.nextInt(MESSAGES),
-                "%hycolony.ui.job." + jobId.substring(jobId.indexOf(':') + 1),
+                "%" + JobNames.of(Optional.of(jobId)).key(),
                 recipe.primaryOutput().item().id(),
                 reduction.lastReduced().id(),
                 crafted.crafter().name());
