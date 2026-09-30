@@ -8,6 +8,7 @@ import com.hypixel.hytale.server.core.modules.entity.component.Spectating;
 import com.hypixel.hytale.server.core.modules.entity.gamemode.GameModeTypes;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -57,9 +58,9 @@ public final class HyLensPlugin extends JavaPlugin {
     }
 
     /**
-     * Stops reading the map packets, then takes the watch panel off every player, each world on its own thread:
-     * nothing refreshes it once HyLens is gone. A world that no longer takes tasks is stopping, and takes its players'
-     * HUDs with it.
+     * Stops reading the map packets, then takes the watch panel off every player and its watchers out of the spectator
+     * mode, each world on its own thread: nothing refreshes the panel once HyLens is gone, and /hylens unwatch goes
+     * with it. A world that no longer takes tasks is stopping, and takes its players with it.
      */
     @Override
     protected void shutdown() {
@@ -69,10 +70,16 @@ public final class HyLensPlugin extends JavaPlugin {
         for (World world : Universe.get().getWorlds().values()) {
             try {
                 world.execute(() -> {
+                    // HyLens's class loader may be closed by now: a LinkageError would stop the world's thread.
                     try {
                         WatchRefreshSystem.takeDown(world);
-                    } catch (RuntimeException e) {
+                    } catch (RuntimeException | LinkageError e) {
                         LOG.at(Level.WARNING).withCause(e).log("HyLens: taking the watch HUD down failed");
+                    }
+                    try {
+                        leaveSpectators(world);
+                    } catch (RuntimeException | LinkageError e) {
+                        LOG.at(Level.WARNING).withCause(e).log("HyLens: leaving the spectator mode failed");
                     }
                 });
             } catch (RuntimeException e) {
@@ -129,9 +136,19 @@ public final class HyLensPlugin extends JavaPlugin {
         }
     }
 
+    /** On {@code world}'s thread: takes each of its players who watched a citizen out of the spectator mode. */
+    private void leaveSpectators(World world) {
+        for (PlayerRef player : world.getPlayerRefs()) {
+            @Nullable Ref<EntityStore> ref = player.getReference();
+            if (ref != null && ref.isValid()) {
+                leaveSpectator(player.getUuid(), false, ref, ref.getStore());
+            }
+        }
+    }
+
     /**
      * On the world's thread: takes {@code operator} out of the spectator mode if they watched a citizen, or started a
-     * watch from a command queued before they left; stops that watch too.
+     * watch from a command queued before they left or HyLens stopped; stops that watch too.
      */
     private void leaveSpectator(UUID operator, boolean watched, Ref<EntityStore> ref, Store<EntityStore> store) {
         try {
@@ -140,7 +157,7 @@ public final class HyLensPlugin extends JavaPlugin {
                 GameModeTypes.exit(ref, store);
             }
         } catch (RuntimeException ex) {
-            LOG.at(Level.SEVERE).withCause(ex).log("HyLens: leaving the spectator mode on disconnect failed");
+            LOG.at(Level.SEVERE).withCause(ex).log("HyLens: leaving the spectator mode failed");
         }
     }
 }

@@ -21,6 +21,7 @@ hud.alert = ! {p0}
 hud.noAlerts = No alert
 selftest.ok = [OK] {p0}
 selftest.ko = [KO] {p0}: {p1}
+selftest.twoApis = HyColony's api is loaded twice: HyLens must not ship it
 selftest.versionMismatch = [KO] api version: HyColony's api is {p0}, HyLens is built against {p1}
 watch.started = Watching {p0}. /hylens unwatch to stop.
 watch.stopped = Watch stopped.

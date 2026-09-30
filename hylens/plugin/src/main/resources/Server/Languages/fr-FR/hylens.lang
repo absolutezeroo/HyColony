@@ -21,6 +21,7 @@ hud.alert = ! {p0}
 hud.noAlerts = Aucune alerte
 selftest.ok = [OK] {p0}
 selftest.ko = [KO] {p0} : {p1}
+selftest.twoApis = L'API de HyColony est chargée deux fois : HyLens ne doit pas l'embarquer
 selftest.versionMismatch = [KO] api version : l'API de HyColony est en {p0}, HyLens est compilé pour {p1}
 watch.started = Vous suivez {p0}. /hylens unwatch pour arrêter.
 watch.stopped = Suivi arrêté.

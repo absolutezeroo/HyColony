@@ -37,7 +37,10 @@ public final class HyLensCommand extends AbstractCommandCollection {
         addSubCommand(new SendCommand(parts.watches(), parts.menus(), map));
     }
 
-    /** Checks that HyColony's api answers in the player's world, and that HyLens runs with its version. */
+    /**
+     * Checks that HyLens runs with HyColony's api version, that the api answers in the player's world, and that it is
+     * loaded once (spec 2026-09-30, § 8, test 4).
+     */
     static final class SelfTest extends AbstractPlayerCommand {
         SelfTest() {
             super("selftest", "Check that HyColony's api answers HyLens in this world (operators)");
@@ -68,6 +71,21 @@ public final class HyLensCommand extends AbstractCommandCollection {
                 return;
             }
             report(player, "api", colonies.isPresent(), "%hylens.notRunning");
+            report(player, "api class", apiLoadedOnce(), "%hylens.selftest.twoApis");
+        }
+
+        /**
+         * Whether HyColony's classes and HyLens's see the same api classes: HyColony ships the api, HyLens reaches it
+         * through the plugins' bridge. A copy shipped in HyLens would load a second ApiVersion, a type HyColony's
+         * values would not match. Only production jars can tell: the dev server has one classpath.
+         */
+        private static boolean apiLoadedOnce() {
+            try {
+                ClassLoader colony = HyColonyApi.get().getClass().getClassLoader();
+                return Class.forName(ApiVersion.class.getName(), false, colony) == ApiVersion.class;
+            } catch (ClassNotFoundException | RuntimeException e) {
+                return false;
+            }
         }
 
         /** Sends one line, OK or KO; {@code detail} is shown for a KO, translated when written "%key". */
