@@ -306,7 +306,8 @@ public final class HytaleCitizenBodies implements CitizenBodies {
     /**
      * MC PathingStuckHandler.completeStuckAction (teleport near the goal): the motion controller moves the target to
      * an accessible position within 10 blocks up or down (as BodyMotionTeleport does), then a Teleport component is
-     * added. Deferred to world.execute: the colony ticks inside a store system, where structural changes throw.
+     * added. Deferred to world.execute for a caller in an event system, a RefSystem or an interaction, where the store
+     * is processing and structural changes throw; the colony tick itself is not (Store.tickInternal takes no lock).
      */
     @Override
     public void teleport(BodyId body, Vec3 target) {

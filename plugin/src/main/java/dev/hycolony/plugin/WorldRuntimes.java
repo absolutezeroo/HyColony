@@ -54,6 +54,8 @@ public final class WorldRuntimes {
             if (world.isInThread() || !world.isAlive()) {
                 rt.saveAll(); // on the world thread, or its thread is gone: nothing else touches the colonies
             } else {
+                // No timeout: Universe.removeWorld (:1314) then joins this world's own stop the same way, so a
+                // wait here could only move Hytale's wait one line earlier.
                 CompletableFuture.runAsync(rt::saveAll, world).join();
             }
         } catch (RuntimeException e) {

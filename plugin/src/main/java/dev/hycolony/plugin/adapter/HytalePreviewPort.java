@@ -33,8 +33,8 @@ import org.joml.Vector3d;
  * blocks to every player who starts seeing the entity, and {@link #hideFromOthers} keeps each one to its owner. A
  * preview's blocks cannot change, so {@link #show} removes the entity and spawns a new one.
  *
- * <p>Every change is deferred to {@code world.execute}: the core runs inside store systems, where adding or removing
- * an entity throws. Tasks run in order, so a show followed by a hide stays consistent. World thread only.
+ * <p>Every change is deferred to {@code world.execute}: the core is also called from event systems and interactions,
+ * where the store is processing and adding or removing an entity throws (the colony tick itself is not). Tasks run in order, so a show followed by a hide stays consistent. World thread only.
  *
  * <p>Fallback if the client ignores a {@code PrefabPreview} that never had a {@code PersistentPrefabPreview}: write
  * the blocks as a temporary prefab in the server prefab folder and spawn {@code PersistentPrefabPreview.spawn(store,

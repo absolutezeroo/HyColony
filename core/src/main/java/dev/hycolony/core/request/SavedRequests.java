@@ -27,7 +27,8 @@ final class SavedRequests {
      * The loadable requests by token, in save order.
      *
      * @param repaired whether broken parent or child links were dropped, so the save must be rewritten; requests left
-     *     out for an unknown type or state do not count, so they are read again once their pack is back
+     *     out for an unknown type or state do not count, but the next save drops them anyway: their requesters ask
+     *     again once their pack is back
      */
     record Loaded(Map<RequestToken, Request> requests, boolean repaired) {}
 
