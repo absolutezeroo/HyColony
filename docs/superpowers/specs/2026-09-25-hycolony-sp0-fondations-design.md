@@ -338,7 +338,7 @@ L'asset pack est dans `plugin/src/main/resources/` (`IncludesAssetPack: true`) :
 | Situation | Comportement |
 |---|---|
 | Exception pendant le tick d'une colonie | Journaliser avec la trace, puis **suspendre les ticks de cette colonie pendant 5 minutes** (comme MineColonies). Les autres colonies continuent. |
-| Exception dans une action d'IA de citoyen | Journaliser ; le citoyen garde son état (MC `AbstractEntityCitizen`). L'IA de métier (`WorkerMachine`) met en plus le travailleur en pause : 100 ticks, puis le double à chaque nouvelle exception (MC `AbstractEntityAIBasic.onException`). |
+| Exception dans une action d'IA de citoyen | Journaliser ; le citoyen garde son état (MC `AbstractEntityCitizen`). L'IA de métier (`WorkerMachine`) met en plus le travailleur en pause, comme MC `AbstractEntityAIBasic.onException` : un délai du travailleur puis un délai de la cible fautive, de 100 ticks chacun, doublés à chaque nouvelle exception. L'essai suivant vient donc 200 ticks plus tard, puis 400, 800… |
 | Échec d'écriture disque | Journaliser, laisser la colonie marquée comme modifiée, réessayer à la sauvegarde suivante. Le `.bak` n'est jamais supprimé. |
 | Fichier corrompu | Se rabattre sur le `.bak`, sinon mettre en quarantaine dans `corrupt/` (§ 5). |
 | Id d'asset manquant | Rapport d'erreur, désactivation propre si l'id est vital (§ 4.3). |

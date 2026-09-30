@@ -26,8 +26,8 @@ public final class WorkerMachine<S extends IState> {
     public static final int EXCEPTION_DELAY = 100;
 
     /**
-     * Deviation from MC: MC's timer doubles until the int wraps (to 0, no pause at all, after 32 exceptions); it stops
-     * doubling here at about 58 days of pause.
+     * Deviation from MC: MC's {@code 100 * exceptionTimer} overflows the int from the 26th exception on; the timer
+     * stops doubling here, at about 61 days of pause.
      */
     private static final int MAX_EXCEPTION_TIMER = 1 << 20;
 
@@ -94,6 +94,8 @@ public final class WorkerMachine<S extends IState> {
                 "Worker AI failed for " + worker.get() + "; paused " + timeout + " ticks",
                 e);
         lastError = e;
+        // MC setDelay then setCurrentDelay: the failed target counts down only once the worker's delay is over (the
+        // AI_BLOCKING wait ends the machine's tick first), so the next try comes 2 * timeout later, as in MC.
         pause.accept(timeout);
         machine.setCurrentDelay(timeout);
         if (exceptionTimer < MAX_EXCEPTION_TIMER) {
