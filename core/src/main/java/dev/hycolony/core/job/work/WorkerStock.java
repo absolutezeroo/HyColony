@@ -107,8 +107,8 @@ public final class WorkerStock {
     /**
      * MC dumpOneMoreSlot's own rule: stores everything but what the hut's keep rules keep in a worker's inventory
      * (MC buildingRequiresCertainAmountOfItem with {@code inventory} true, {@link HutKeep}): only its {@code keepX}
-     * entries marked so, a tool among them only if the hut lists its type. Then as {@link #dump(ToIntFunction, boolean)};
-     * {@code pickupAllowed} false (MC isAfterDumpPickupAllowed) asks for no courier unless the hut is full.
+     * entries marked so, a tool among them only if the hut lists its type. Then as
+     * {@link #dump(ToIntFunction, boolean)}; {@code pickupAllowed} false (MC isAfterDumpPickupAllowed) asks for no courier unless the hut is full.
      */
     public void dumpKeepingHutRules(boolean pickupAllowed) {
         HutKeep keep = HutKeep.of(colony, hut, true);

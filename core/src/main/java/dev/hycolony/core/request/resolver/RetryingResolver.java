@@ -26,8 +26,8 @@ public final class RetryingResolver implements Resolver {
     public static final String ID = "retrying";
     public static final int PRIORITY = 50;
     /**
-     * MC RETRY_DELAY and getMaximalTries: 1200 updates of the request system, one every {@link RequestManager#TICK_INTERVAL}
-     * ticks (13 200 ticks, 11 minutes), per try.
+     * MC RETRY_DELAY and getMaximalTries: 1200 updates of the request system, one every
+     * {@link RequestManager#TICK_INTERVAL} ticks (13 200 ticks, 11 minutes), per try.
      */
     public static final int DELAY_UPDATES = 1200, MAX_TRIES = 3;
 

@@ -27,7 +27,7 @@ import org.jspecify.annotations.Nullable;
  * Blueprints read from the prefabs listed in {@link PrefabStyles}. Never throws: an unknown style/type/level,
  * a missing prefab or a failed parse gives {@link Optional#empty()} and one logged warning.
  *
- * <p>Rotation: the int is the hut's {@code yaw().ordinal()} (SP0). {@code PrefabRotation.VALUES} is
+ * <p>Rotation: the int is the hut's {@code yaw().getDegrees() / 90} (SP0). {@code PrefabRotation.VALUES} is
  * {@code ROTATION_0/90/180/270}, built on {@code Rotation.None/Ninety/OneEighty/TwoSeventy} in that same order, so
  * {@code VALUES[i] == PrefabRotation.fromRotation(Rotation.VALUES[i])}. The buffer turns every entry's own rotation by
  * the same amount ({@code PrefabRotation.getRotation(int)} adds the yaw), so the house turns with the hut block.
