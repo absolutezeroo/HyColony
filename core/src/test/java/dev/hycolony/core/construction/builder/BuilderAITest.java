@@ -451,7 +451,7 @@ class BuilderAITest {
     }
 
     @Test
-    void fullInventoryDumpsKeepingBucketItems() {
+    void fullInventoryDumpsKeepingWhatTheOrderStillNeeds() {
         Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);
         List<BlueprintEntry> entries = new ArrayList<>();
         for (int x = 1; x <= 10; x++) {
@@ -468,7 +468,6 @@ class BuilderAITest {
             give(j, 1);
         }
         assertTrue(citizen.inventory().isFull());
-        t.catalog.tools.put(junk.get(0), new ToolInfo(ToolType.HOE, 0, 1f)); // not a tool the builder's hut keeps
 
         tickUntil(() -> ai.stateName().equals("INVENTORY_FULL"), 1000);
         tickUntil(() -> !ai.stateName().equals("INVENTORY_FULL"), 1000);
@@ -477,7 +476,8 @@ class BuilderAITest {
             assertEquals(1, t.containers.count(List.of(HUT), j), j.id());
             assertEquals(0, citizen.inventory().count(j));
         }
-        assertEquals(10, citizen.inventory().count(STONE_I)); // the bucket amount is kept (MC keepX)
+        assertEquals(
+                10, citizen.inventory().count(STONE_I)); // what the order still needs (MC getRequiredItemsAndAmount)
         assertEquals(5, t.containers.count(List.of(HUT), STONE_I));
     }
 

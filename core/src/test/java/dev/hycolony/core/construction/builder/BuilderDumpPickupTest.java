@@ -124,9 +124,9 @@ class BuilderDumpPickupTest {
         assertTrue(citizen.inventory().contents().contains(new ItemAmount(pick, 1)));
     }
 
-    /** MC BuildingBuilder keepX: pickaxe, axe and shovel only; any other tool goes to the hut. */
+    /** MC BuildingBuilder keepX: one pickaxe, shovel, axe and hoe each; a second of a kind goes to the hut. */
     @Test
-    void aToolTheHutDoesNotKeepIsStored() {
+    void theBuilderKeepsOneToolOfEachKindItsHutListsHoeIncluded() {
         ItemKey pick = new ItemKey("pickaxe");
         ItemKey hoe = new ItemKey("hoe");
         t.catalog.tools.put(pick, new ToolInfo(ToolType.PICKAXE, 0, 1f));
@@ -134,11 +134,14 @@ class BuilderDumpPickupTest {
         t.catalog.maxStacks.put(pick, 1);
         t.catalog.maxStacks.put(hoe, 1);
         give(pick, 1);
+        give(pick, 1);
         give(hoe, 1);
 
         stock.dumpKeepingHutRules(true);
 
-        assertEquals(List.of(new ItemAmount(pick, 1)), citizen.inventory().contents());
-        assertTrue(t.containers.stacks(HUT).contains(new ItemAmount(hoe, 1)));
+        assertEquals(
+                List.of(new ItemAmount(pick, 1), new ItemAmount(hoe, 1)),
+                citizen.inventory().contents());
+        assertEquals(List.of(new ItemAmount(pick, 1)), t.containers.stacks(HUT));
     }
 }

@@ -28,9 +28,12 @@ public final class ConstructionBuildingTypes {
                     new ModuleProducer("resources", BuildingResourcesModule::new),
                     new ModuleProducer("builderSettings", BuilderSettingsModule::new),
                     new ModuleProducer("workOrderList", WorkOrderListModule::new),
+                    // MC BuildingBuilder keepX: pickaxe, shovel, axe, hoe and shears. Deviation from MC: no shears,
+                    // HyColony has no such tool type yet.
                     new ModuleProducer(
                             "keepTools",
-                            () -> new KeepToolsModule(EnumSet.of(ToolType.PICKAXE, ToolType.AXE, ToolType.SHOVEL)))));
+                            () -> new KeepToolsModule(
+                                    EnumSet.of(ToolType.PICKAXE, ToolType.AXE, ToolType.SHOVEL, ToolType.HOE)))));
 
     public static final BuildingType RESIDENCE = new BuildingType(
             "hycolony:residence", "hut.residence", 5, List.of(new ModuleProducer("living", LivingModule::new)));
