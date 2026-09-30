@@ -212,6 +212,14 @@ Chaque tâche suit le même déroulé :
 - [ ] La doc d'installation : sans HyColony, le serveur s'arrête (spec § 8).
 - [ ] Vérification finale : `./gradlew build` vert, `apiCheck` vert, et les cinq mods démarrent ensemble.
 
+## Après HyLens : ce que HyLens a montré dans HyColony (2026-09-30)
+
+À traiter à la fin du plan, à la demande de l'utilisateur :
+
+- [ ] **Livreur face à une caisse.** Sans tâche, le livreur vise une case à côté du bloc de l'entrepôt posée sur une caisse : `BlockApproach.standable` accepte un meuble (`UNBREAKABLE`) comme sol, et la navigation de Hytale n'y monte pas. À 3 blocs, l'anti-blocage abandonne (« assez près ») : l'alerte 10 se déclenche à chaque retour. Correction proposée : n'accepter comme sol qu'un bloc plein (`SOLID`), en TDD, avec une caisse à côté d'une hutte.
+- [ ] **Pics de TPS pendant la récolte du fermier.** `/world perf` : 30 TPS en moyenne, mais un écart de ±13 à ±27 sur 1 et 5 min, qui suit les récoltes et les tâches du fermier. Mesurer ce que fait `FieldPass` à chaque tick de récolte avant de corriger.
+- Le fermier qui travaille une case à 4 blocs est fidèle à MC (`walkToSafePos`, `FieldPass.CELL_RANGE`) : rien à faire.
+
 ## Écarts constatés à l'implémentation
 
 - **Tâche 1 :** `ColonyWorld` n'est pas créé vide. Une interface vide serait du code mort, et elle entrerait dans l'empreinte de l'API sans rien porter. La tâche 2 le crée avec ses lectures.
