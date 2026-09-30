@@ -41,7 +41,7 @@ public final class NeededResources {
 
     /**
      * Every unit of every item a not-yet-done entry costs ({@link EntryCost}), so a bench with its upgrades weighs in
-     * the buckets for all it asks.
+     * the buckets for all it asks; a block only to turn costs nothing ({@link StructurePlan#onlyTurns}).
      */
     public static NeededResources compute(
             StructurePlan plan, WorldBlocks world, ItemCatalog catalog, RecipeCatalog recipes) {
@@ -50,7 +50,7 @@ public final class NeededResources {
         for (List<BlueprintEntry> entries : List.of(plan.solidList(), plan.decoList())) {
             for (BlueprintEntry e : entries) {
                 List<ItemAmount> cost = EntryCost.of(e, catalog, recipes);
-                if (!cost.isEmpty() && !plan.isDone(e, world, catalog)) {
+                if (!cost.isEmpty() && !plan.isDone(e, world, catalog) && !plan.onlyTurns(e, world)) {
                     cost.forEach(a -> seq.addAll(Collections.nCopies(a.count(), a.item())));
                 }
             }

@@ -362,6 +362,20 @@ class BuilderAITest {
         assertEquals(0, citizen.inventory().count(DIRT_I));
     }
 
+    /** Structurize sameBlockInWorld: the same block turned the wrong way is only turned, without items. */
+    @Test
+    void theSameBlockTurnedTheWrongWayIsTurnedWithoutItems() {
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);
+        blueprint = bp(List.of(new BlueprintEntry(new BlockPos(1, 0, 0), new BlockState(STONE, 1), false)));
+        t.blocks.blocks.put(at(1, 0, 0), new BlockState(STONE, 0));
+        WorkOrder o = order(res, WorkOrderType.UPGRADE);
+
+        tickUntil(() -> gone(o), 5000);
+
+        assertEquals(new BlockState(STONE, 1), t.blocks.blocks.get(at(1, 0, 0)));
+        assertTrue(builderRequests().isEmpty(), "no stone asked for");
+    }
+
     @Test
     void skipsAlreadyCorrectBlocks() {
         Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);

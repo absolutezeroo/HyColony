@@ -103,20 +103,20 @@ class ResourcesTest {
         FakeWorldBlocks world = new FakeWorldBlocks();
         // torch (deco) listed first to prove SOLID comes before DECO regardless of blueprint order
         StructurePlan plan = row(c, List.of(TORCH, STONE, STONE, PLANK, GHOST, STONE));
-        // stone at x=2 already placed; x=3 has stone with the wrong rotation (not done)
+        // stone at x=2 already placed; x=3 has stone with the wrong rotation: only turned, no item (Structurize
+        // sameBlockInWorld)
         world.blocks.put(HUT.offset(2, 0, 0), new BlockState(STONE, 0));
         world.blocks.put(HUT.offset(3, 0, 0), new BlockState(STONE, 1));
 
         NeededResources n = NeededResources.compute(plan, world, c, RecipeCatalog.NONE);
 
-        assertEquals(List.of(STONE_I, PLANK_I, STONE_I, TORCH_I), n.sequence());
-        assertEquals(needs(STONE_I, 2, PLANK_I, 1, TORCH_I, 1), n.remaining());
-        assertEquals(4, n.total());
+        assertEquals(List.of(PLANK_I, STONE_I, TORCH_I), n.sequence());
+        assertEquals(needs(PLANK_I, 1, STONE_I, 1, TORCH_I, 1), n.remaining());
+        assertEquals(3, n.total());
 
-        n.reduce(STONE_I, 1);
-        assertEquals(1, n.remaining().get(STONE_I));
         n.reduce(PLANK_I, 5);
         assertFalse(n.remaining().containsKey(PLANK_I));
+        assertEquals(1, n.remaining().get(STONE_I));
         assertEquals(2, n.total());
     }
 

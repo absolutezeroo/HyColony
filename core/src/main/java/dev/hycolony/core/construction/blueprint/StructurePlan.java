@@ -234,6 +234,16 @@ public final class StructurePlan {
     }
 
     /**
+     * Structurize sameBlockInWorld: the world already holds the entry's block, only turned another way; it is then
+     * turned in place, without items.
+     */
+    public boolean onlyTurns(BlueprintEntry e, WorldBlocks world) {
+        return world.get(worldPos(e))
+                .map(w -> w.key().equals(e.state().key()) && !w.equals(e.state()))
+                .orElse(false);
+    }
+
+    /**
      * Whether {@code world} (null: nothing) already answers the entry: its exact state (key and rotation); for a fill
      * cell any good floor (MC SolidSubstitutionPlacementHandler); for a fluid cell any solid block or any fluid (MC
      * FluidSubstitutionPlacementHandler: isAnySolid or a fluid source).

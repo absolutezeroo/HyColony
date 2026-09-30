@@ -50,7 +50,8 @@ final class BuilderBlockWork {
             return startMining(pos);
         }
         BlueprintEntry e = ctx.site().entry(stage, i);
-        List<ItemAmount> cost = EntryCost.of(e, ctx.catalog(), ctx.recipes()); // empty: free to place
+        boolean turn = ctx.site().plan().onlyTurns(e, ctx.blocks());
+        List<ItemAmount> cost = turn ? List.of() : EntryCost.of(e, ctx.catalog(), ctx.recipes()); // empty: free
         Optional<ItemAmount> lacking = ctx.site().loadedOrder().free() ? Optional.empty() : lacking(cost);
         if (lacking.isPresent()) {
             return gathering.missing(lacking.get(), i);
@@ -186,7 +187,7 @@ final class BuilderBlockWork {
 
     private void place(Stage stage, int i, BlockPos pos, BlueprintEntry e, List<ItemAmount> cost) {
         ctx.gestures().lookAt(pos); // MC BuildingStructureHandler.prePlacementLogic: faceBlock
-        if (ctx.scan().mustMineFirst(pos)) {
+        if (!ctx.site().plan().onlyTurns(e, ctx.blocks()) && ctx.scan().mustMineFirst(pos)) {
             removeForReplace(pos);
         }
         if (!ctx.blocks().place(pos, e.state(), e.hasContainer())) {
