@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
+import dev.hycolony.core.kernel.nav.WalkListener;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.testing.FakeBodies;
 import dev.hycolony.core.testing.TestContexts;
@@ -19,7 +20,7 @@ class BuilderWalkerTest {
     private final BodyId body = bodies.existing(1, 1, Vec3.center(new BlockPos(0, 1, 0)));
     private long now;
     private final BuilderWalker walker = new BuilderWalker(
-            bodies, body, () -> now, new TestContexts().context().ports());
+            bodies, body, () -> now, new TestContexts().context().ports(), WalkListener.NONE);
 
     BuilderWalkerTest() {
         bodies.frozen = true; // moveTo never moves the body, navStatus stays MOVING

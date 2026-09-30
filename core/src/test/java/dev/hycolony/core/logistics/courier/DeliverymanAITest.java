@@ -7,11 +7,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import dev.hycolony.core.citizen.CitizenAI;
 import dev.hycolony.core.citizen.CitizenState;
 import dev.hycolony.core.citizen.Skill;
+import dev.hycolony.core.citizen.vitals.EndedWalk;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.core.kernel.item.ItemAmount;
+import dev.hycolony.core.kernel.nav.WalkEnd;
 import dev.hycolony.core.kernel.port.NavStatus;
 import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.testing.FakeBodies;
@@ -58,7 +60,21 @@ class DeliverymanAITest extends CourierAITestBase {
         Vec3 inside = Vec3.center(new BlockPos(0, 64, -1));
         assertEquals(inside, t.bodies.moves.getFirst(), "walks to the cell beside the hut block");
         assertEquals(List.of(inside), t.bodies.teleports, "stuck on the roof, it is brought inside as MC does");
+        assertEquals(
+                Optional.of(WalkEnd.TELEPORTED),
+                citizen.vitals().lastWalkEnd().map(EndedWalk::how),
+                "its walker reports to its vital signs");
         assertEquals(4, t.containers.count(warehouse.containers(), LOG));
+    }
+
+    @Test
+    void aFailingMachineIsCountedAsTheCouriersFailures() {
+        hire();
+        citizen.inventory().insert(new ItemAmount(LOG, 4), i -> 64);
+        t.bodies.instant = false;
+        t.bodies.failNav = true;
+
+        runUntil(() -> ai.failures() > 0);
     }
 
     @Test

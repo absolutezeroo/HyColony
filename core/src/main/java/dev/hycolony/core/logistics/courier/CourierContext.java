@@ -3,6 +3,7 @@ package dev.hycolony.core.logistics.courier;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
+import dev.hycolony.core.citizen.vitals.CitizenWalkReports;
 import dev.hycolony.core.colony.BlockApproach;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.job.JobXp;
@@ -42,8 +43,11 @@ final class CourierContext {
         this.colony = colony;
         this.job = job;
         this.body = body;
-        this.walker =
-                new BodyWalker(colony.context().bodies(), body, colony.context().clock()::currentTick);
+        this.walker = new BodyWalker(
+                colony.context().bodies(),
+                body,
+                colony.context().clock()::currentTick,
+                new CitizenWalkReports(colony, job.citizen()));
         this.approach = new BlockApproach(colony.context().ports(), walker);
     }
 

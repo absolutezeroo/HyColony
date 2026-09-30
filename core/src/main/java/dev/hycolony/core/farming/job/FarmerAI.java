@@ -107,6 +107,11 @@ final class FarmerAI implements JobAI {
     }
 
     @Override
+    public int failures() {
+        return machine.failures();
+    }
+
+    @Override
     public String stateName() {
         return machine.state().name();
     }

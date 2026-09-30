@@ -5,6 +5,7 @@ import dev.hycolony.core.colony.BlockApproach;
 import dev.hycolony.core.colony.GamePorts;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.nav.BodyWalker;
+import dev.hycolony.core.kernel.nav.WalkListener;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.CitizenBodies;
 import java.util.Optional;
@@ -25,8 +26,9 @@ final class BuilderWalker {
     /** The block the work spot was already chosen again for, because it was out of reach from the first one. */
     private @Nullable BlockPos repickedFor;
 
-    BuilderWalker(CitizenBodies bodies, BodyId body, LongSupplier clock, GamePorts ports) {
-        this.walker = new BodyWalker(bodies, body, clock);
+    /** The builder's walks, which {@code reports} hears (diagnostics). */
+    BuilderWalker(CitizenBodies bodies, BodyId body, LongSupplier clock, GamePorts ports, WalkListener reports) {
+        this.walker = new BodyWalker(bodies, body, clock, reports);
         this.approach = new BlockApproach(ports, walker);
     }
 

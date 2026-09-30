@@ -1,6 +1,7 @@
 package dev.hycolony.core.citizen;
 
 import com.google.gson.JsonObject;
+import dev.hycolony.core.citizen.vitals.CitizenVitals;
 import dev.hycolony.core.job.Job;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
@@ -32,6 +33,8 @@ public final class CitizenData {
     private Inventory inventory = new Inventory(INVENTORY_SLOTS);
     private @Nullable Job job;
     private @Nullable JsonObject unknownJob;
+    /** Runtime only, never saved. */
+    private final CitizenVitals vitals = new CitizenVitals();
 
     public CitizenData(int id) {
         this.id = id;
@@ -146,6 +149,11 @@ public final class CitizenData {
 
     public void setInventory(Inventory inventory) {
         this.inventory = inventory;
+    }
+
+    /** What its AI and walks did last, for diagnostics (not saved). */
+    public CitizenVitals vitals() {
+        return vitals;
     }
 
     public Optional<Job> job() {

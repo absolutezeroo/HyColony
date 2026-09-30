@@ -315,6 +315,24 @@ class BuilderAITest {
         assertEquals(List.of(at(2, 0, 0), at(2, 1, 0), at(1, 0, 0)), t.blocks.placed);
         assertEquals(0, citizen.inventory().count(STONE_I));
         assertEquals(0, citizen.inventory().count(TORCH_I));
+        assertTrue(citizen.vitals().lastWalkEnd().isPresent(), "its walker reports to its vital signs");
+    }
+
+    @Test
+    void aFailingMachineIsCountedAsTheBuildersFailures() {
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);
+        blueprint = bp(List.of(entry(1, 0, 0, STONE)));
+        give(STONE_I, 1);
+        order(res, WorkOrderType.UPGRADE);
+        t.blocks.beforeChange = p -> {
+            throw new IllegalStateException("failing fake world"); // placing the stone throws
+        };
+
+        for (int i = 0; i < 2000 && ai.failures() == 0; i++) { // not tickUntil: it asserts no error happened
+            step();
+        }
+
+        assertEquals(1, ai.failures());
     }
 
     /**

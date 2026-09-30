@@ -1,5 +1,6 @@
 package dev.hycolony.core.citizen;
 
+import dev.hycolony.core.citizen.vitals.AiWatch;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.job.Job;
 import dev.hycolony.core.job.JobAI;
@@ -54,6 +55,7 @@ public final class CitizenAI {
     private final RandomGenerator random;
     private final DangerousCells danger;
     private final TickRateStateMachine<CitizenState> machine;
+    private final AiWatch watch;
     private int workTicks;
     private boolean failed;
     private @Nullable JobAI jobAI;
@@ -71,7 +73,9 @@ public final class CitizenAI {
         this.random = colony.context().random();
         this.danger = new DangerousCells(
                 colony.context().ports().blocks(), colony.context().ports().catalog());
+        this.watch = new AiWatch(colony, data);
         this.machine = new TickRateStateMachine<>(CitizenState.IDLE, this::onException);
+        watch.afterTick(CitizenState.IDLE, null); // its vital signs know where it starts
         machine.addTransition(
                 new AITarget<>(CitizenState.IDLE, (IStateSupplier<CitizenState>) this::idle, DECIDE_INTERVAL_TICKS));
         machine.addTransition(
@@ -82,8 +86,10 @@ public final class CitizenAI {
         bodies.setMovementSpeed(body, 1);
     }
 
+    /** One AI tick; then its vital signs note the state, the job step and failures (diagnostics). */
     public void tick() {
         machine.tick();
+        watch.afterTick(machine.getState(), jobAI);
     }
 
     public CitizenState state() {
@@ -106,6 +112,7 @@ public final class CitizenAI {
                 "Citizen AI failed for " + data.name(),
                 e);
         failed = true;
+        watch.failed();
     }
 
     /** MC CitizenAI.decideAiTask, every {@link #DECIDE_INTERVAL_TICKS}: to work when it should. */
@@ -234,6 +241,7 @@ public final class CitizenAI {
         aiWorkBuilding = data.workBuilding();
         JobAI ai = job.createAI(colony, body);
         jobAI = ai;
+        watch.jobStarted(); // once made: a failing createAI leaves the old AI counted as it was
         return ai;
     }
 }

@@ -37,6 +37,7 @@ public final class WorkerMachine<S extends IState> {
     private final Supplier<String> worker;
     private final IntConsumer pause;
     private @Nullable RuntimeException lastError;
+    private int failures;
     private int calls;
     private int exceptionTimer = 1;
 
@@ -81,6 +82,11 @@ public final class WorkerMachine<S extends IState> {
         return machine.getState();
     }
 
+    /** How many exceptions the machine caught. */
+    public int failures() {
+        return failures;
+    }
+
     /** The last exception the machine caught; empty while none did (the tests assert so). */
     public Optional<RuntimeException> lastError() {
         return Optional.ofNullable(lastError);
@@ -97,6 +103,7 @@ public final class WorkerMachine<S extends IState> {
                 "Worker AI failed for " + worker.get() + "; paused " + timeout + " ticks",
                 e);
         lastError = e;
+        failures++;
         // MC setDelay then setCurrentDelay: the failed target counts down only once the worker's delay is over (the
         // AI_BLOCKING wait ends the machine's tick first), so the next try comes 2 * timeout later, as in MC.
         pause.accept(timeout);

@@ -73,6 +73,7 @@ class WorkerMachineTest {
         assertEquals(Step.SECOND, machine.state());
         assertTrue(machine.lastError().isPresent());
         assertEquals(3, thrownAt.size(), "exceptions at " + thrownAt);
+        assertEquals(3, machine.failures(), "each exception counted, for the citizen's vital signs");
         int first = thrownAt.get(1) - thrownAt.get(0);
         int second = thrownAt.get(2) - thrownAt.get(1);
         assertTrue(

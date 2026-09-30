@@ -29,6 +29,19 @@ class FarmerAITest extends FarmerTestBase {
         JobAI ai = job.createAI(colony, body);
 
         runUntil(ai, () -> t.farming.tilled.containsAll(cells()));
+        assertTrue(job.citizen().vitals().lastWalkEnd().isPresent(), "its walker reports to its vital signs");
+    }
+
+    @Test
+    void aFailingMachineIsCountedAsTheFarmersFailures() {
+        field(true);
+        give(HOE, 1);
+        settings().setFertilize(false);
+        JobAI ai = job.createAI(colony, body);
+        t.bodies.instant = false;
+        t.bodies.failNav = true;
+
+        runUntil(ai, () -> ai.failures() > 0);
     }
 
     @Test

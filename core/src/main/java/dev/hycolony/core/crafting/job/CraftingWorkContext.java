@@ -4,6 +4,7 @@ import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.module.BuildingModule;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
+import dev.hycolony.core.citizen.vitals.CitizenWalkReports;
 import dev.hycolony.core.colony.BlockApproach;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.crafting.recipe.RecipeCatalog;
@@ -71,8 +72,11 @@ public record CraftingWorkContext(
         }
         CitizenData citizen = job.citizen();
         WorkerStock stock = new WorkerStock(colony, citizen, hut, actionsUntilDump);
-        BodyWalker walker =
-                new BodyWalker(colony.context().bodies(), body, colony.context().clock()::currentTick);
+        BodyWalker walker = new BodyWalker(
+                colony.context().bodies(),
+                body,
+                colony.context().clock()::currentTick,
+                new CitizenWalkReports(colony, citizen));
         return Optional.of(new CraftingWorkContext(
                 colony,
                 job,

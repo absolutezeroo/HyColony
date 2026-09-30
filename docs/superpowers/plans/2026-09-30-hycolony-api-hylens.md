@@ -222,3 +222,7 @@ Chaque tâche suit le même déroulé :
 - **Tâche 3 :** `HutActions.place` et `onRemoved` prennent un `UUID` : ils ne sont appelés que pour un joueur. Seul le retrait d'un bâtiment périmé a pour cause la colonie. Un gain de niveau porte aussi son joueur : une copie créative ou une fondation copiée à un niveau est son fait, pas celui du bâtisseur.
 - **Tâche 3 :** le test « une action demandée au nom de `Actor.Colony` est refusée » attend la tâche 5, la première à ajouter des actions.
 - **Tâche 3 :** un abonnement fermé oublie tout de suite son écouteur, donc rien d'un addon déchargé n'est retenu. Le bus retire l'abonnement lui-même au prochain `subscribe`, `post` ou `hasListeners` de ce type.
+- **Tâche 4 :** les signes vitaux vivent dans un sous-paquet `citizen/vitals` : `CitizenVitals`, `EndedWalk`, les événements de débogage du cœur, l'écouteur de marche et `AiWatch`. Le plan prévoyait un seul fichier dans `citizen`, qui en compte déjà 11.
+- **Tâche 4 :** le « niveau d'anti-blocage » est remplacé par la dernière action de l'anti-blocage et son tick. Une action postérieure au début de la marche en cours suffit pour l'invariant 10.
+- **Tâche 4 :** les transitions sont relevées en comparant, après chaque tick, l'état de l'IA et le nom d'étape du métier (une constante d'énumération, donc aucune allocation), au lieu d'un crochet dans la machine d'états. Les métiers restent intacts.
+- **Tâche 4 :** une fin de marche porte le statut de la navigation (arrivée, bloquée) et une raison de plus, `TELEPORTED`.

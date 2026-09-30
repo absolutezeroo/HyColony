@@ -3,6 +3,7 @@ package dev.hycolony.core.construction.builder;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
+import dev.hycolony.core.citizen.vitals.CitizenWalkReports;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.BlueprintSource;
@@ -86,7 +87,8 @@ record BuilderContext(
                         bodies,
                         body,
                         colony.context().clock()::currentTick,
-                        colony.context().ports()),
+                        colony.context().ports(),
+                        new CitizenWalkReports(colony, citizen)),
                 new BuilderGestures(bodies, body, colony.context().ports().effects()),
                 new BuildSite(colony, resources, new WorkSpot(blocks, catalog)),
                 new StructureScan(colony, blocks, catalog),

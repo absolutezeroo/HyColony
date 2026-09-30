@@ -1,0 +1,53 @@
+package dev.hycolony.core.citizen.vitals;
+
+import dev.hycolony.core.citizen.CitizenData;
+import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.Vec3;
+import dev.hycolony.core.kernel.event.EventBus;
+import dev.hycolony.core.kernel.nav.StuckHandler;
+import dev.hycolony.core.kernel.nav.WalkEnd;
+import dev.hycolony.core.kernel.nav.WalkListener;
+import dev.hycolony.core.kernel.port.NavStatus;
+
+/**
+ * One citizen's walks as its vital signs see them: each start, end and stuck action is kept in its
+ * {@link CitizenVitals}, and posted as a {@link CitizenDebugEvents} only while someone listens. A job context gives it
+ * to the walker of that citizen.
+ */
+public final class CitizenWalkReports implements WalkListener {
+    private final Colony colony;
+    private final CitizenData citizen;
+
+    public CitizenWalkReports(Colony colony, CitizenData citizen) {
+        this.colony = colony;
+        this.citizen = citizen;
+    }
+
+    @Override
+    public void walkStarted(BlockPos target, Vec3 from) {
+        citizen.vitals().walkStarted(target, now());
+    }
+
+    @Override
+    public void walkEnded(BlockPos target, Vec3 at, WalkEnd how, double distance, NavStatus nav) {
+        citizen.vitals().walkEnded(new EndedWalk(target, how, at, distance, nav, now()));
+        EventBus bus = colony.context().bus();
+        if (bus.hasListeners(CitizenDebugEvents.WalkEnded.class)) {
+            bus.post(new CitizenDebugEvents.WalkEnded(colony, citizen, target, at, how, distance, nav));
+        }
+    }
+
+    @Override
+    public void stuck(BlockPos target, Vec3 at, StuckHandler.Action action) {
+        citizen.vitals().stuck(action, now());
+        EventBus bus = colony.context().bus();
+        if (bus.hasListeners(CitizenDebugEvents.StuckActed.class)) {
+            bus.post(new CitizenDebugEvents.StuckActed(colony, citizen, target, at, action));
+        }
+    }
+
+    private long now() {
+        return colony.context().clock().currentTick();
+    }
+}
