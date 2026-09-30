@@ -1,24 +1,28 @@
 """The architect's cutter block (MC DO ArchitectsCutterBlock): a bench opening the plugin's cutter window, which
-crafts with the player's own materials as Hytale's benches do (so it holds no container). It wears the vanilla builder's bench, Hytale's own architect bench.
+crafts with the player's own materials as Hytale's benches do (so it holds no container). It wears Hytale's own
+architect bench dressed with DO miniatures (cutter_model.py).
 
 Deviation from MC: DO's recipe (1 iron ingot, 3 stone slabs, 3 logs; DO-gen recipes/architectscutter.json) is made
 at Hytale's Workbench, logs as any trunk (Wood_Trunk resource type)."""
 
-from blocks import common
+from blocks import common, cutter_model
 from pack import write_json
 
 IDENT = "HyDomum_ArchitectsCutter"
 NAME_KEY = "item.do.architectscutter.name"
 NAMES = {"en-US": "Architect's cutter", "fr-FR": "Établi de l'architecte"}
-# The vanilla bench keys the cutter keeps: its look, collision, rotation, sounds and how it breaks.
-BENCH_KEYS = ("Material", "DrawType", "Opacity", "CustomModel", "CustomModelTexture", "HitboxType", "VariantRotation",
-              "Gathering", "BlockParticleSetId", "BlockSoundSetId", "PhysicalMaterialId", "Support")
+# The vanilla bench keys the cutter keeps: its collision, rotation, sounds and how it breaks.
+BENCH_KEYS = ("Material", "DrawType", "Opacity", "HitboxType", "VariantRotation", "Gathering", "BlockParticleSetId",
+              "BlockSoundSetId", "PhysicalMaterialId", "Support")
 
 
 def generate(ctx):
-    """Writes the cutter item and its names, and records the builder bench's window sounds for the id-map."""
+    """Writes the cutter item, its model and names, and records the builder bench's window sounds for the id-map."""
     bench = ctx.assets.item("Bench_Builders")
     block = {key: bench["BlockType"][key] for key in BENCH_KEYS}
+    cutter_model.write(ctx, bench)
+    block["CustomModel"] = cutter_model.MODEL
+    block["CustomModelTexture"] = [{"Texture": cutter_model.TEXTURE, "Weight": 1}]
     # The window is the plugin's, so it plays the bench's own open and close sounds itself (id-map sounds).
     config = bench["BlockType"]["Bench"]
     ctx.sounds["cutter.open"] = config["LocalOpenSoundEventId"]
@@ -27,7 +31,7 @@ def generate(ctx):
     block["Interactions"] = {"Use": {"Interactions": [{"Type": "Simple"}]}}
     item = {
         "TranslationProperties": {"Name": "hydomum_blocks." + NAME_KEY},
-        "Icon": bench["Icon"],
+        "Icon": cutter_model.ICON,
         "IconProperties": bench["IconProperties"],
         "Categories": ["Furniture.Benches"],
         "PlayerAnimationsId": "Block",

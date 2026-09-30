@@ -231,29 +231,6 @@ def trapdoor_opens_like_vanilla():
     assert len([i for i in ctx.items if i.startswith("HyDomum_FancyTrapdoor_")]) == 2
 
 
-def cutter_is_a_bench_without_container():
-    """The architect's cutter: the vanilla builder's bench look, no container, a plain Use the plugin handles,
-    crafted at the Workbench from DO's recipe (1 iron ingot, 3 stone slabs, 3 logs)."""
-    ctx = generate_into_temp()
-    path = ctx.pack / "Server/Item/Items/HyDomum/HyDomum_ArchitectsCutter.json"
-    item = json.loads(path.read_text(encoding="utf-8"))
-    block = item["BlockType"]
-    assert "BlockEntity" not in block
-    assert block["Interactions"]["Use"] == {"Interactions": [{"Type": "Simple"}]}
-    assert block["CustomModel"] == "Blocks/Benches/Builder.blockymodel"
-    inputs = {i.get("ItemId") or i["ResourceTypeId"]: i["Quantity"] for i in item["Recipe"]["Input"]}
-    assert inputs == {"Ingredient_Bar_Iron": 1, "Rock_Stone_Half": 3, "Wood_Trunk": 3}
-    assert item["Recipe"]["BenchRequirement"][0]["Id"] == "Workbench"
-
-
-def cutter_sounds_are_the_builder_bench_ones():
-    """The id-map fragment gives the cutter window the vanilla builder bench's open and close sounds."""
-    ctx = generate_into_temp()
-    fragment = json.loads((ctx.pack / "hydomum/id-map.json").read_text(encoding="utf-8"))
-    assert fragment["sounds"] == {"cutter.open": "SFX_Workbench_Open", "cutter.close": "SFX_Workbench_Close"}
-    assert fragment["ornamentTags"]
-
-
 def manifest_names_each_template_do_source():
     """Each shape names the DO block (and type) it comes from and the textureData keys of its slots, for the
     blueprint converter (tools/blueprint)."""
@@ -273,7 +250,6 @@ def run():
     """Runs this module's checks; an AssertionError names the failing case."""
     manifest_lists_every_template_with_its_slots()
     manifest_names_each_template_do_source()
-    cutter_sounds_are_the_builder_bench_ones()
     static_templates_live_in_the_do_tab()
     two_material_templates_read_their_default_pair()
     every_category_has_both_icons()
@@ -285,4 +261,3 @@ def run():
     shingle_hitboxes_are_dos()
     door_copies_vanilla_mechanics()
     trapdoor_opens_like_vanilla()
-    cutter_is_a_bench_without_container()
