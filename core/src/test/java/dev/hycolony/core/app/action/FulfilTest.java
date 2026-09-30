@@ -342,6 +342,14 @@ class FulfilTest {
     }
 
     @Test
+    void aHutWhoseResolversAreNotAttachedYetServesNothing() {
+        Request r = colony.requests().get(request(5, 1)).orElseThrow();
+        Building loose = Building.create(hut.type(), new BlockPos(500, 64, 500), 0); // never added to the colony
+
+        assertFalse(loose.stockCanServe(colony.requests(), r));
+    }
+
+    @Test
     void containerChangeReassignsOnlyWhatTheHutCanNowServe() {
         RequestToken planks = request(5, 1);
         RequestToken stone =

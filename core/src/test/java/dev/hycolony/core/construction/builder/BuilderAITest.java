@@ -45,6 +45,7 @@ import dev.hycolony.core.request.resolver.PlayerResolver;
 import dev.hycolony.core.request.resolver.RetryingResolver;
 import dev.hycolony.core.testing.TestContexts;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -330,7 +331,7 @@ class BuilderAITest {
 
         tick(600);
         assertEquals(new BlockState(ORE, 0), t.blocks.blocks.get(at(1, 0, 0)), "kept while the stone is missing");
-        t.containers.containers.put(HUT, new java.util.LinkedHashMap<>(Map.of(STONE_I, 1))); // its request is served
+        t.containers.containers.put(HUT, new LinkedHashMap<>(Map.of(STONE_I, 1))); // its request is served
         List<String> states = new ArrayList<>();
         tickUntil(
                 () -> {
@@ -342,6 +343,23 @@ class BuilderAITest {
         assertFalse(states.contains("MINE_BLOCK"));
         assertEquals(new BlockState(STONE, 0), t.blocks.blocks.get(at(1, 0, 0)));
         assertEquals(1, citizen.inventory().count(ORE_I));
+    }
+
+    /** Structurize handleRemoval: a creative (free) order keeps nothing of the block it replaces. */
+    @Test
+    void aFreeOrderKeepsNoDropOfTheBlockItReplaces() {
+        t.players.creativeOperators.add(alice);
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);
+        blueprint = bp(List.of(entry(1, 0, 0, STONE)));
+        t.blocks.blocks.put(at(1, 0, 0), new BlockState(DIRT, 0));
+        t.blocks.drops.put(at(1, 0, 0), List.of(new ItemAmount(DIRT_I, 1)));
+        WorkOrder o = order(res, WorkOrderType.UPGRADE);
+        assertTrue(o.free());
+
+        tickUntil(() -> gone(o), 5000);
+
+        assertEquals(new BlockState(STONE, 0), t.blocks.blocks.get(at(1, 0, 0)));
+        assertEquals(0, citizen.inventory().count(DIRT_I));
     }
 
     @Test

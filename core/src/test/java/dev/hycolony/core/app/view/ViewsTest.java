@@ -472,6 +472,17 @@ class ViewsTest {
         assertEquals("absent", after.activity(), "no body in the world");
     }
 
+    /** MC Permissions.hasPermission(Player, Action): a creative operator opens and manages a foreign colony's hut. */
+    @Test
+    void aCreativeOperatorManagesAForeignHutFromItsWindow() {
+        Building res = residence(1);
+        t.players.creativeOperators.add(bob); // neutral in this colony
+
+        BuildingView v = view(bob, res);
+
+        assertTrue(v.canManage());
+    }
+
     /** MC keeps a wandering citizen IDLE; the town hall still shows one walking about as wandering. */
     @Test
     void anIdleCitizenWalkingAboutShowsAsWandering() {
