@@ -95,6 +95,8 @@ public final class ColonyFoundation {
         huts.place(colony, BuildingTypes.TOWN_HALL.id(), hall.pos(), hall.rotation(), player);
         Building townHall = colony.buildings().at(hall.pos()).orElseThrow();
         if (!hall.style().isEmpty()) {
+            // MC CreateColonyMessage: the pack the town hall is built in becomes the colony's.
+            colony.settings().setStyle(hall.style());
             townHall.setStyle(hall.style());
         }
         if (hall.level() > 0) {

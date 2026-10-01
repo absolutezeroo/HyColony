@@ -119,6 +119,8 @@ public final class HutActions {
                 manager.context().buildingTypes().byId(buildingTypeId).orElseThrow();
         remove(colony, pos, Optional.empty());
         Building building = Building.create(type, pos, rotation);
+        // MC AbstractBuilding.getStructurePack: a hut without its own pack takes the colony's.
+        building.setStyle(colony.settings().style());
         colony.buildings().add(building);
         colony.log().add("buildingPlaced", colony.day(), type.id());
         colony.markDirty();

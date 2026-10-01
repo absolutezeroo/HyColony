@@ -72,6 +72,23 @@ public final class ColonyAdministration {
         return true;
     }
 
+    /**
+     * MC ColonyStructureStyleMessage (MANAGE_HUTS): sets the colony's style, the one new huts take; false without the
+     * right or for a style the blueprints do not offer.
+     */
+    public boolean setStyle(UUID actor, int colonyId, String style) {
+        Colony c = manager.byId(colonyId).orElse(null);
+        if (c == null
+                || !ColonyAccess.allows(c, actor, Action.MANAGE_HUTS)
+                || !manager.context().ports().blueprints().styles().contains(style)) {
+            return false;
+        }
+        c.settings().setStyle(style);
+        c.markDirty();
+        windows.showTownHall(c, actor);
+        return true;
+    }
+
     /** Trims {@code raw}; empty if blank or over {@link ColonyManager#MAX_NAME_LENGTH}, after telling {@code actor}. */
     public static Optional<String> validName(ColonyContext ctx, UUID actor, String raw) {
         String name = raw == null ? "" : raw.trim();

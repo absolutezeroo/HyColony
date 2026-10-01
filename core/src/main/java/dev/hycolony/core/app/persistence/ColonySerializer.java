@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 
 /** Colony <-> JSON (schema {@value #SCHEMA_VERSION}). Unknown buildings/modules are kept verbatim. */
 public final class ColonySerializer {
-    public static final int SCHEMA_VERSION = 6;
+    public static final int SCHEMA_VERSION = 7;
 
     private static final System.Logger LOG = System.getLogger(ColonySerializer.class.getName());
 
@@ -44,6 +44,7 @@ public final class ColonySerializer {
         o.addProperty(MigrationChain.VERSION_KEY, SCHEMA_VERSION);
         o.addProperty("id", c.id());
         o.addProperty("name", c.name());
+        o.addProperty("style", c.settings().style());
         o.add("center", pos(c.center()));
         o.addProperty("day", c.day());
         o.add("permissions", PermissionsSerializer.write(c.permissions()));
@@ -53,10 +54,7 @@ public final class ColonySerializer {
         o.addProperty("workOrderTopId", c.work().topId());
         o.add("recipes", c.registries().recipes().write());
         o.add("fields", c.registries().fields().write());
-        JsonObject settings = new JsonObject();
-        settings.addProperty("autoHiring", c.settings().autoHiring());
-        settings.addProperty("autoHousing", c.settings().autoHousing());
-        o.add("settings", settings);
+        o.add("settings", settings(c));
 
         JsonArray buildings = new JsonArray();
         for (Building b : c.buildings().all()) {
@@ -88,6 +86,7 @@ public final class ColonySerializer {
                         requirePos(o.get("center")),
                         PermissionsSerializer.read(o.getAsJsonObject("permissions"))));
         c.setDay(intOr(o.get("day"), 0));
+        c.settings().setStyle(stringOr(o.get("style"), ""));
         readSettings(o, c);
         // Before the buildings: their crafting modules name recipes by their id in the registry.
         if (o.get("recipes") instanceof JsonObject recipes) {
@@ -112,12 +111,21 @@ public final class ColonySerializer {
         return c;
     }
 
+    private static JsonObject settings(Colony c) {
+        JsonObject settings = new JsonObject();
+        settings.addProperty("autoHiring", c.settings().autoHiring());
+        settings.addProperty("autoHousing", c.settings().autoHousing());
+        settings.addProperty("moveIn", c.settings().moveIn());
+        return settings;
+    }
+
     private static void readSettings(JsonObject o, Colony c) {
         JsonObject settings = objectOr(o.get("settings"));
         c.settings()
                 .setAutoHiring(boolOr(settings.get("autoHiring"), c.settings().autoHiring()));
         c.settings()
                 .setAutoHousing(boolOr(settings.get("autoHousing"), c.settings().autoHousing()));
+        c.settings().setMoveIn(boolOr(settings.get("moveIn"), c.settings().moveIn()));
     }
 
     /** The saved citizens; true when one without an id was left out, so that the next save drops it. */
@@ -168,6 +176,7 @@ public final class ColonySerializer {
             JsonArray params = new JsonArray();
             e.params().forEach(params::add);
             entry.add("params", params);
+            entry.add("pos", pos(e.pos().orElse(null)));
             log.add(entry);
         }
         return log;
@@ -184,7 +193,8 @@ public final class ColonySerializer {
             for (JsonElement p : arrayOr(e.get("params"))) {
                 params.add(stringOr(p, ""));
             }
-            log.restore(new EventLog.Entry(stringOr(e.get("type"), ""), intOr(e.get("day"), 0), params));
+            log.restore(new EventLog.Entry(
+                    stringOr(e.get("type"), ""), intOr(e.get("day"), 0), params, tryPos(e.get("pos"))));
         }
     }
 

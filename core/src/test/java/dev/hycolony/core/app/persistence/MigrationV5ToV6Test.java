@@ -42,7 +42,9 @@ class MigrationV5ToV6Test {
         JsonObject migrated =
                 MigrationChain.sp4().migrate(JsonParser.parseString(fixture()).getAsJsonObject());
 
-        assertEquals(6, migrated.get(MigrationChain.VERSION_KEY).getAsInt());
+        assertEquals(
+                ColonySerializer.SCHEMA_VERSION,
+                migrated.get(MigrationChain.VERSION_KEY).getAsInt());
         JsonObject modules =
                 migrated.getAsJsonArray("buildings").get(1).getAsJsonObject().getAsJsonObject("modules");
         assertEquals(
@@ -81,7 +83,7 @@ class MigrationV5ToV6Test {
         assertFalse(c.citizens().get(1).orElseThrow().asleep());
         m.persistence().saveAll();
         String saved = Files.readString(dir.resolve("colony-1.json"));
-        assertTrue(saved.contains("\"schemaVersion\":6"), saved);
+        assertTrue(saved.contains("\"schemaVersion\":" + ColonySerializer.SCHEMA_VERSION), saved);
         assertTrue(saved.contains("\"autoHousing\":true"), saved);
     }
 }

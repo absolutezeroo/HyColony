@@ -3,6 +3,7 @@ package dev.hycolony.core.colony.permission;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.persist.SavedJson;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -10,7 +11,7 @@ import java.util.Optional;
 import java.util.UUID;
 import org.jspecify.annotations.Nullable;
 
-/** A colony's {@link Permissions} (owner, ranks, members) to and from JSON. */
+/** A colony's {@link Permissions} (owner, ranks, members, refused actions) to and from JSON. */
 public final class PermissionsSerializer {
     private PermissionsSerializer() {}
 
@@ -39,7 +40,34 @@ public final class PermissionsSerializer {
             members.add(mo);
         });
         o.add("members", members);
+        o.add("events", events(p.events()));
         return o;
+    }
+
+    private static JsonArray events(PermissionEvents events) {
+        JsonArray a = new JsonArray();
+        for (PermissionEvents.Event e : events.entries()) {
+            JsonObject eo = new JsonObject();
+            e.player().ifPresent(id -> eo.addProperty("player", id.toString()));
+            eo.addProperty("name", e.name());
+            eo.addProperty("action", e.action().name());
+            eo.add("pos", SavedJson.pos(e.pos()));
+            a.add(eo);
+        }
+        return a;
+    }
+
+    /** The saved refused actions, oldest first; one with an unknown action or no position is dropped. */
+    private static void readEvents(JsonArray saved, PermissionEvents events) {
+        for (JsonElement el : saved) {
+            JsonObject e = SavedJson.objectOr(el);
+            Optional<Action> action = action(SavedJson.stringOr(e.get("action"), ""));
+            Optional<BlockPos> pos = SavedJson.tryPos(e.get("pos"));
+            if (action.isPresent() && pos.isPresent()) {
+                events.add(new PermissionEvents.Event(
+                        uuid(e.get("player")), SavedJson.stringOr(e.get("name"), ""), action.get(), pos.get()));
+            }
+        }
     }
 
     /**
@@ -64,7 +92,9 @@ public final class PermissionsSerializer {
                                     SavedJson.stringOr(m.get("name"), ""),
                                     SavedJson.intOr(m.get("rank"), Permissions.NEUTRAL))));
         }
-        return Permissions.restore(owner, ownerName, ranks, members);
+        Permissions p = Permissions.restore(owner, ownerName, ranks, members);
+        readEvents(SavedJson.arrayOr(o.get("events")), p.events());
+        return p;
     }
 
     /**
@@ -85,6 +115,15 @@ public final class PermissionsSerializer {
         rank.setColonyManager(SavedJson.boolOr(r.get("colonyManager"), base.isColonyManager()));
         rank.setHostile(SavedJson.boolOr(r.get("hostile"), base.isHostile()));
         ranks.put(id, rank);
+    }
+
+    /** The action named {@code name}; empty for an unknown name. */
+    private static Optional<Action> action(String name) {
+        try {
+            return Optional.of(Action.valueOf(name));
+        } catch (IllegalArgumentException _) {
+            return Optional.empty();
+        }
     }
 
     /** The UUID the string {@code e} names; empty for anything else. */

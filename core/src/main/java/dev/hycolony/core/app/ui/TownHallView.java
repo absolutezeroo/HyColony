@@ -1,7 +1,9 @@
 package dev.hycolony.core.app.ui;
 
 import dev.hycolony.core.citizen.home.HousingCapacity;
+import dev.hycolony.core.construction.workorder.WorkOrderType;
 import java.util.List;
+import java.util.Optional;
 
 /** MC WindowTownHall, one field group per tab: Actions (name, rename), Information, Citizens, Statistics. */
 public record TownHallView(
@@ -12,9 +14,20 @@ public record TownHallView(
         List<CitizenRow> citizens,
         boolean canRename,
         WorkOrdersView workOrders,
-        Stats stats) {
+        Stats stats,
+        Home home) {
     public TownHallView {
         citizens = List.copyOf(citizens);
+    }
+
+    /**
+     * MC WindowMainPage: the town hall's level (its ribbon), the type of the order running on it (the build button
+     * then cancels it) and the colony's pack among the blueprint styles.
+     */
+    public record Home(int townHallLevel, Optional<WorkOrderType> order, String style, List<String> styles) {
+        public Home {
+            styles = List.copyOf(styles);
+        }
     }
 
     /**

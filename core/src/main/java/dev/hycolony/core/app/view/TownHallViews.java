@@ -2,12 +2,14 @@ package dev.hycolony.core.app.view;
 
 import dev.hycolony.core.app.ui.CitizenRow;
 import dev.hycolony.core.app.ui.TownHallView;
+import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.CitizenState;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyAccess;
 import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.colony.permission.Action;
+import dev.hycolony.core.construction.workorder.WorkOrder;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.NavStatus;
 import java.util.List;
@@ -35,7 +37,17 @@ final class TownHallViews {
                 rows,
                 ColonyAccess.allows(c, viewer, Action.MANAGE_HUTS),
                 WorkOrderViews.of(c, viewer),
-                TownHallStats.of(c));
+                TownHallStats.of(c),
+                home(c));
+    }
+
+    private TownHallView.Home home(Colony c) {
+        Optional<Building> hall = c.buildings().townHall();
+        return new TownHallView.Home(
+                hall.map(Building::level).orElse(0),
+                hall.flatMap(b -> c.work().byBuilding(b.position())).map(WorkOrder::type),
+                c.settings().style(),
+                ctx.ports().blueprints().styles());
     }
 
     /**

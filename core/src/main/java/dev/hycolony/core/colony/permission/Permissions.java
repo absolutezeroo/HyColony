@@ -45,6 +45,8 @@ public final class Permissions {
     /** Not saved: who was told of a refusal lately, for this colony only (MC has one event handler per colony). */
     private final DenialNotices denials = new DenialNotices();
 
+    private final PermissionEvents events = new PermissionEvents();
+
     private Permissions(UUID owner, String ownerName, Map<Integer, Rank> ranks, Map<UUID, Member> members) {
         this.owner = owner;
         this.ownerName = ownerName;
@@ -55,6 +57,11 @@ public final class Permissions {
     /** When this colony tells a refused player again; see {@link DenialNotices}. */
     public DenialNotices denials() {
         return denials;
+    }
+
+    /** The refused actions logged for the town hall's Permissions tab (MC permission events). */
+    public PermissionEvents events() {
+        return events;
     }
 
     public static Permissions createDefault(UUID owner, String ownerName) {
