@@ -1,0 +1,45 @@
+$B = "Book.ui";
+$C = "../../../Common.ui";
+
+// One setting of a hut's Settings page (MC layoutsettings.xml "box" of 45 with layoutboolsetting.xml,
+// layoutstringsetting.xml or layoutblocksetting.xml), MC sizes doubled: its wrapped name, then On/Off on
+// builder_button_very_small, the value on builder_button_medium_large, or Switch on builder_button_small with the
+// block's icon. The page shows the button of the setting's kind.
+
+Group {
+  Anchor: (Height: 90);
+  OutlineSize: 1;
+  OutlineColor: #000000;
+  TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+
+  Label #Desc {
+    Anchor: (Left: 10, Top: 10, Width: 308, Height: 30);
+    Style: (FontSize: 14, TextColor: #000000, Wrap: true, VerticalAlignment: Center);
+  }
+
+  TextButton #Bool {
+    Anchor: (Left: 10, Top: 50, Width: 60, Height: 34);
+    Style: $B.@VerySmallButtonStyle;
+    Text: "";
+    Visible: false;
+  }
+
+  TextButton #String {
+    Anchor: (Left: 10, Top: 50, Width: 290, Height: 34);
+    Style: $B.@WideButtonDisabledStyle;
+    Text: "";
+    Visible: false;
+  }
+
+  TextButton #Block {
+    Anchor: (Left: 10, Top: 50, Width: 160, Height: 34);
+    Style: $B.@SmallButtonStyle;
+    Text: %hycolony.ui.setting.switch;
+    Visible: false;
+  }
+
+  ItemIcon #Icon {
+    Anchor: (Left: 200, Top: 50, Width: 32, Height: 32);
+    Visible: false;
+  }
+}

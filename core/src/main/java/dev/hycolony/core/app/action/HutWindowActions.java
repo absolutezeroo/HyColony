@@ -3,6 +3,7 @@ package dev.hycolony.core.app.action;
 import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.app.view.ColonyWindows;
 import dev.hycolony.core.building.Building;
+import dev.hycolony.core.building.module.HutSettings;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.port.Msg;
@@ -111,6 +112,27 @@ public final class HutWindowActions {
         h.colony().markDirty();
         windows.showBuilding(h.colony(), h.building(), player);
         return true;
+    }
+
+    /**
+     * MC TriggerSettingMessage (MANAGE_HUTS): the hut's active BOOL or STRING setting {@code id} turns over or moves
+     * on, then the hut shows again. False without the right, for an unknown, inactive or BLOCK setting.
+     */
+    public boolean triggerSetting(UUID player, BlockPos hutPos, String id) {
+        ManagedHut h = ManagedHut.find(manager, player, hutPos).orElse(null);
+        if (h == null) {
+            return false;
+        }
+        boolean changed = h.building().modules().values().stream()
+                .filter(HutSettings.class::isInstance)
+                .map(HutSettings.class::cast)
+                .filter(s -> s.settingRows(h.colony()).stream().anyMatch(r -> r.id().equals(id) && r.active()))
+                .anyMatch(s -> s.trigger(id));
+        if (changed) {
+            h.colony().markDirty();
+            windows.showBuilding(h.colony(), h.building(), player);
+        }
+        return changed;
     }
 
     /** MC OpenInventoryMessage: whether {@code player} may open the hut block's container (MANAGE_HUTS). */

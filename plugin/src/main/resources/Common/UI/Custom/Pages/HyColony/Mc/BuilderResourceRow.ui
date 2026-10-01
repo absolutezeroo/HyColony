@@ -1,0 +1,36 @@
+$B = "Book.ui";
+
+// A resource of the builder's Required Resources page (MC layoutbuilderres.xml "resources" box), MC sizes doubled: a
+// bordered row with the item's icon and name, the player's shortfall, "available / needed" and the add button (MC
+// "↥", which the client fonts lack, so "+"; WindowBuilderResModule moves it to x 143).
+
+Group {
+  Anchor: (Height: 60);
+  OutlineSize: 1;
+  OutlineColor: #000000;
+
+  ItemIcon #Icon {
+    Anchor: (Left: 2, Top: 2, Width: 32, Height: 32);
+  }
+
+  Label #Name {
+    Anchor: (Left: 40, Top: 6, Width: 200, Height: 24);
+    Style: $B.@Ink;
+  }
+
+  Label #Missing {
+    Anchor: (Left: 4, Top: 36, Width: 100, Height: 24);
+    Style: $B.@Ink;
+  }
+
+  Label #Count {
+    Anchor: (Left: 0, Top: 36, Width: 316, Height: 24);
+    Style: $B.@InkCentered;
+  }
+
+  TextButton #AddButton {
+    Anchor: (Left: 286, Top: 26, Width: 28, Height: 30);
+    Style: $B.@MiniButtonStyle;
+    Text: "+";
+  }
+}

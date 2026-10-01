@@ -10,6 +10,7 @@ import dev.hycolony.core.app.ui.BuildingView;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.building.module.ModuleTab;
+import dev.hycolony.core.building.module.SettingsView;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.permission.Permissions;
@@ -28,7 +29,6 @@ import dev.hycolony.core.construction.resources.BuildingResourcesModule;
 import dev.hycolony.core.construction.resources.NeededResources;
 import dev.hycolony.core.construction.shared.BuilderSettingsModule;
 import dev.hycolony.core.construction.shared.BuilderSettingsModule.Mode;
-import dev.hycolony.core.construction.shared.BuilderSettingsView;
 import dev.hycolony.core.construction.workorder.ManualSelection;
 import dev.hycolony.core.construction.workorder.Stage;
 import dev.hycolony.core.construction.workorder.WorkOrder;
@@ -232,10 +232,11 @@ class BuilderHutTabsTest {
         Building residence = hut(ConstructionBuildingTypes.RESIDENCE, new BlockPos(20, 64, 0), 1);
         manager.windows().openBuilding(alice, residence.position());
 
-        assertTrue(((BuildingView) t.ui.shown.get(alice))
-                .tab(BuilderSettingsView.class)
-                .isEmpty());
-        assertEquals(Mode.AUTO, tab(alice, BuilderSettingsView.class).mode());
+        assertTrue(
+                ((BuildingView) t.ui.shown.get(alice)).tab(SettingsView.class).isEmpty());
+        assertEquals(
+                "hycolony.ui.setting.value.automatic",
+                tab(alice, SettingsView.class).rows().getFirst().valueKey());
     }
 
     /** Blocks a, b, c, d of the plan need items A (x2), B, C, D; the builder already placed nothing. */

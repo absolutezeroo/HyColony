@@ -12,8 +12,9 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * The builder hut's Work orders tab (MC WorkOrderModuleWindow): name, distance, the current order framed in green,
- * Cancel on orders claimed here, Select on the others in MANUAL mode (disabled with the reason as tooltip).
+ * The builder hut's Work Orders page (MC WorkOrderModuleWindow): name, distance, the current order framed in green,
+ * Cancel on orders claimed here, Assign on the others in MANUAL mode (disabled with the reason as tooltip). Buttons
+ * show for every viewer, as MC's; the core refuses one without MANAGE_HUTS.
  */
 final class BuilderOrdersTab implements HutTab {
     /** MC's workOrderBox colour for the current order: (0, 170, 0). */
@@ -23,19 +24,17 @@ final class BuilderOrdersTab implements HutTab {
     private final UUID player;
     private final BlockPos hut;
     private final WorkOrderListView tabs;
-    private final boolean canManage;
 
-    BuilderOrdersTab(ColonyManager manager, UUID player, BlockPos hut, WorkOrderListView tabs, boolean canManage) {
+    BuilderOrdersTab(ColonyManager manager, UUID player, BlockPos hut, WorkOrderListView tabs) {
         this.manager = manager;
         this.player = player;
         this.hut = hut;
         this.tabs = tabs;
-        this.canManage = canManage;
     }
 
     @Override
     public String document() {
-        return "Pages/HyColony/BuilderOrdersTab.ui";
+        return "Pages/HyColony/Hut/BuilderOrders.ui";
     }
 
     @Override
@@ -50,24 +49,22 @@ final class BuilderOrdersTab implements HutTab {
 
     @Override
     public void render(UICommandBuilder ui, UIEventBuilder events, String root) {
+        ui.set(root + " #Desc.Text", Message.translation(descKey()));
         List<WorkOrderListView.OrderLine> lines = tabs.orders();
-        if (lines.isEmpty()) {
-            ui.set(root + " #OrdersEmpty.Visible", true);
-            ui.set(root + " #OrdersEmpty.Text", Message.translation("hycolony.ui.workorders.empty"));
-        }
+        ui.set(root + " #Empty.Visible", lines.isEmpty());
         for (int i = 0; i < lines.size(); i++) {
             WorkOrderListView.OrderLine o = lines.get(i);
-            String row = root + " #BuilderOrders[" + i + "]";
-            ui.append(root + " #BuilderOrders", "Pages/HyColony/BuilderOrderRow.ui");
+            String row = root + " #Orders[" + i + "]";
+            ui.append(root + " #Orders", "Pages/HyColony/Mc/BuilderOrderRow.ui");
             if (o.current()) {
-                ui.set(row + ".Background", CURRENT_FRAME);
+                ui.set(row + ".OutlineColor", CURRENT_FRAME); // MC colours only the box's border
             }
-            ui.set(
-                    row + " #Title.TextSpans",
-                    Message.translation("hycolony.ui.workorders.line")
-                            .param("p0", ColonyPage.workOrderTypeName(o.type()))
-                            .param("p1", ColonyPage.buildingName(o.buildingName()))
-                            .param("p2", String.valueOf(o.targetLevel())));
+            Message title = Message.translation("hycolony.ui.workorders.line")
+                    .param("p0", ColonyPage.workOrderTypeName(o.type()))
+                    .param("p1", ColonyPage.buildingName(o.buildingName()))
+                    .param("p2", String.valueOf(o.targetLevel()));
+            ui.set(row + " #Title.TextSpans", title);
+            ui.set(row + " #Title.TooltipTextSpans", title);
             ui.set(
                     row + " #Distance.Text",
                     Message.translation("hycolony.ui.builder.orders.distance")
@@ -78,7 +75,7 @@ final class BuilderOrdersTab implements HutTab {
 
     private void button(
             UICommandBuilder ui, UIEventBuilder events, String button, WorkOrderListView.OrderLine o, int i) {
-        if (!canManage || !tabs.selectable(o)) {
+        if (!tabs.selectable(o)) {
             ui.set(button + ".Visible", false);
             return;
         }

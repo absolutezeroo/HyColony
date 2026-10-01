@@ -1,0 +1,30 @@
+$B = "Book.ui";
+$C = "../../../Common.ui";
+
+// A work order of the builder's Work Orders page (MC layoutworkorders.xml "workOrderBox"), MC sizes doubled: a
+// bordered row (green for the builder's current order) with the order's name, its distance in blue and Cancel or
+// Assign on builder_button_small.
+
+Group {
+  Anchor: (Height: 60);
+  OutlineSize: 1;
+  OutlineColor: #000000;
+
+  Label #Title {
+    Anchor: (Left: 4, Top: 4, Width: 300, Height: 24);
+    Style: (...$B.@Ink, FontSize: 14);
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+  }
+
+  Label #Distance {
+    Anchor: (Left: 4, Top: 34, Width: 150, Height: 24);
+    Style: (...$B.@Ink, TextColor: #0000ff);
+  }
+
+  TextButton #Button {
+    Anchor: (Left: 160, Top: 26, Width: 128, Height: 34);
+    Style: $B.@SmallButtonStyle;
+    Text: "";
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+  }
+}

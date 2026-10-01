@@ -28,21 +28,19 @@ final class BuilderResourcesTab implements HutTab {
         this.view = view;
     }
 
-    /**
-     * MC colours red, orange, dark green and black; black is unreadable on Hytale's dark panels, so NOT_NEEDED is grey.
-     */
+    /** MC WindowBuilderResModule's row colours: BlockUI's red, orange, darkgreen and black. */
     private static String color(BuilderResourcesView.Status status) {
         return switch (status) {
-            case DONT_HAVE -> "#962f2f";
-            case NEED_MORE -> "#cc8844";
-            case HAVE_ENOUGH -> "#3d913f";
-            case NOT_NEEDED -> "#7a8a9a";
+            case DONT_HAVE -> "#ff0000";
+            case NEED_MORE -> "#ffa500";
+            case HAVE_ENOUGH -> "#006400";
+            case NOT_NEEDED -> "#000000";
         };
     }
 
     @Override
     public String document() {
-        return "Pages/HyColony/BuilderResourcesTab.ui";
+        return "Pages/HyColony/Hut/BuilderResources.ui";
     }
 
     @Override
@@ -57,16 +55,13 @@ final class BuilderResourcesTab implements HutTab {
 
     @Override
     public void render(UICommandBuilder ui, UIEventBuilder events, String root) {
+        ui.set(root + " #Desc.Text", Message.translation(descKey()));
         header(ui, root);
         List<ResourceRow> rows = view.rows();
-        if (rows.isEmpty() && view.header().isPresent()) {
-            ui.set(root + " #ResourcesEmpty.Visible", true);
-            ui.set(root + " #ResourcesEmpty.Text", Message.translation("hycolony.ui.resources.empty"));
-        }
         for (int i = 0; i < rows.size(); i++) {
             ResourceRow r = rows.get(i);
             String row = root + " #Resources[" + i + "]";
-            ui.append(root + " #Resources", "Pages/HyColony/ResourceRow.ui");
+            ui.append(root + " #Resources", "Pages/HyColony/Mc/BuilderResourceRow.ui");
             ui.set(row + " #Icon.ItemId", r.item().id());
             ui.set(row + " #Name.Text", ColonyPage.itemName(r.item().id()));
             int missing = r.missingFromPlayer();
@@ -84,28 +79,29 @@ final class BuilderResourcesTab implements HutTab {
         }
     }
 
+    /** MC onOpened: the order's name (none without one), "Step n/m" always, "Supplied / Used" once one is needed. */
     private void header(UICommandBuilder ui, String root) {
         if (view.header().isEmpty()) {
-            ui.set(root + " #OrderName.Text", Message.translation("hycolony.ui.resources.noOrder"));
-            ui.set(root + " #Step.Visible", false);
-            ui.set(root + " #Supply.Visible", false);
+            ui.set(
+                    root + " #Step.Text",
+                    Message.translation("hycolony.ui.resources.step")
+                            .param("p0", "0")
+                            .param("p1", "0"));
             return;
         }
         BuilderResourcesView.Header h = view.header().get();
-        ui.set(
-                root + " #OrderName.TextSpans",
-                Message.translation("hycolony.ui.workorders.line")
-                        .param("p0", ColonyPage.workOrderTypeName(h.type()))
-                        .param("p1", ColonyPage.buildingName(h.buildingName()))
-                        .param("p2", String.valueOf(h.targetLevel())));
+        Message name = Message.translation("hycolony.ui.workorders.line")
+                .param("p0", ColonyPage.workOrderTypeName(h.type()))
+                .param("p1", ColonyPage.buildingName(h.buildingName()))
+                .param("p2", String.valueOf(h.targetLevel()));
+        ui.set(root + " #OrderName.TextSpans", name);
+        ui.set(root + " #OrderName.TooltipTextSpans", name); // MC: the same text as tooltip
         ui.set(
                 root + " #Step.Text",
                 Message.translation("hycolony.ui.resources.step")
                         .param("p0", String.valueOf(h.step()))
                         .param("p1", String.valueOf(h.totalSteps())));
-        if (view.rows().isEmpty()) {
-            ui.set(root + " #Supply.Visible", false); // MC sets it only when something is needed
-        } else {
+        if (!view.rows().isEmpty()) {
             ui.set(
                     root + " #Supply.Text",
                     Message.translation("hycolony.ui.resources.supply")

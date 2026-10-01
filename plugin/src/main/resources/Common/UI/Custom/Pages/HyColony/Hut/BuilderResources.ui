@@ -1,0 +1,29 @@
+$P = "Parts.ui";
+$B = "../Mc/Book.ui";
+$C = "../../../Common.ui";
+
+// The builder hut's Required Resources page (MC gui/layouthuts/layoutbuilderres.xml, WindowBuilderResModule), MC
+// positions and sizes doubled: the header, the order's name, its step, "Supplied / Used", then the resources.
+
+@Line = Label {
+  @Top = 0;
+
+  Anchor: (Left: 26, Top: @Top, Width: 328, Height: 22);
+  Style: $B.@InkCentered;
+  TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+};
+
+Group {
+  Anchor: (Left: 0, Top: 0, Width: 380, Height: 488);
+
+  $P.@Desc #Desc {}
+  @Line #OrderName { @Top = 58; }
+  @Line #Step { @Top = 80; }
+  @Line #Supply { @Top = 102; }
+
+  Group #Resources {
+    Anchor: (Left: 26, Top: 124, Width: 328, Height: 326);
+    LayoutMode: TopScrolling;
+    ScrollbarStyle: $C.@DefaultScrollbarStyle;
+  }
+}

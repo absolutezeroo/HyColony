@@ -1,0 +1,26 @@
+$P = "Parts.ui";
+$B = "../Mc/Book.ui";
+$C = "../../../Common.ui";
+
+// The builder hut's Work Orders page (MC gui/layouthuts/layoutworkorders.xml, WorkOrderModuleWindow), MC positions and
+// sizes doubled: the header and the orders, "No work orders" when there are none. Deviation from MC: its second
+// "Work Orders" label at x 201, outside the 190-wide paper, is left out.
+
+Group {
+  Anchor: (Left: 0, Top: 0, Width: 380, Height: 488);
+
+  $P.@Desc #Desc {}
+
+  Label #Empty {
+    Anchor: (Left: 26, Top: 70, Width: 328, Height: 22);
+    Style: $B.@InkCentered;
+    Text: %hycolony.ui.workorders.empty;
+    Visible: false;
+  }
+
+  Group #Orders {
+    Anchor: (Left: 26, Top: 70, Width: 328, Height: 308);
+    LayoutMode: TopScrolling;
+    ScrollbarStyle: $C.@DefaultScrollbarStyle;
+  }
+}

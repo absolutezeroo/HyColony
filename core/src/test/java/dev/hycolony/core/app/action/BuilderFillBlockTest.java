@@ -8,13 +8,14 @@ import com.google.gson.JsonObject;
 import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.app.ui.BuildingView;
 import dev.hycolony.core.building.Building;
+import dev.hycolony.core.building.module.SettingRow;
+import dev.hycolony.core.building.module.SettingsView;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.BlueprintSource;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
 import dev.hycolony.core.construction.shared.BuilderSettingsModule;
-import dev.hycolony.core.construction.shared.BuilderSettingsView;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.testing.TestContexts;
@@ -72,18 +73,21 @@ class BuilderFillBlockTest {
         return builder.module(BuilderSettingsModule.class).orElseThrow();
     }
 
-    private BuilderSettingsView view() {
+    /** The Settings tab's fill block row. */
+    private SettingRow view() {
         manager.windows().openBuilding(alice, builder.position());
         return ((BuildingView) t.ui.shown.get(alice))
-                .tab(BuilderSettingsView.class)
-                .orElseThrow();
+                .tab(SettingsView.class).orElseThrow().rows().stream()
+                        .filter(r -> r.id().equals(BuilderSettingsModule.FILL_BLOCK))
+                        .findFirst()
+                        .orElseThrow();
     }
 
     @Test
     void theViewShowsTheDefaultFillBlockAndTheChoices() {
-        BuilderSettingsView v = view();
-        assertEquals(DIRT, v.fillBlock().orElseThrow());
-        assertEquals(List.of(DIRT, GRAVEL), v.fillChoices());
+        SettingRow v = view();
+        assertEquals(DIRT, v.block().orElseThrow());
+        assertEquals(List.of(DIRT, GRAVEL), v.choices());
     }
 
     @Test
@@ -96,7 +100,7 @@ class BuilderFillBlockTest {
 
         assertEquals(Optional.of(GRAVEL), settings().fillBlock());
         assertTrue(t.ui.shown.get(alice) instanceof BuildingView, "the hut window is shown again");
-        assertEquals(GRAVEL, view().fillBlock().orElseThrow());
+        assertEquals(GRAVEL, view().block().orElseThrow());
     }
 
     @Test
@@ -120,6 +124,6 @@ class BuilderFillBlockTest {
         saved.addProperty("fillBlock", "removed_block");
         settings().read(saved);
 
-        assertEquals(DIRT, view().fillBlock().orElseThrow());
+        assertEquals(DIRT, view().block().orElseThrow());
     }
 }

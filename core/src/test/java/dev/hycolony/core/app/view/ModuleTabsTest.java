@@ -9,13 +9,13 @@ import dev.hycolony.core.app.ui.BuildingView;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.building.module.ModuleProducer;
 import dev.hycolony.core.building.module.ModuleTab;
+import dev.hycolony.core.building.module.SettingsView;
 import dev.hycolony.core.citizen.home.ResidentsView;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
 import dev.hycolony.core.construction.hut.WorkOrderListView;
 import dev.hycolony.core.construction.resources.BuilderResourcesView;
 import dev.hycolony.core.construction.resources.BuildingResourcesModule;
-import dev.hycolony.core.construction.shared.BuilderSettingsView;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
@@ -65,7 +65,7 @@ class ModuleTabsTest {
     @Test
     void eachHutShowsTheTabsOfItsMcModuleViewsInOrder() {
         assertEquals(
-                List.of(BuilderResourcesView.class, BuilderSettingsView.class, WorkOrderListView.class),
+                List.of(BuilderResourcesView.class, SettingsView.class, WorkOrderListView.class),
                 kinds(view(ConstructionBuildingTypes.BUILDER, new BlockPos(20, 64, 0))));
         assertEquals(
                 List.of(CourierAssignmentView.class, WarehouseTasksView.class),

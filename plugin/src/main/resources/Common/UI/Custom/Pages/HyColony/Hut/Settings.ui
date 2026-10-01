@@ -1,0 +1,17 @@
+$P = "Parts.ui";
+$C = "../../../Common.ui";
+
+// A hut's Settings page (MC gui/layouthuts/layoutsettings.xml, SettingsModuleWindow), MC positions and sizes doubled:
+// the header and one bordered row per setting (Mc/SettingRow.ui).
+
+Group {
+  Anchor: (Left: 0, Top: 0, Width: 380, Height: 488);
+
+  $P.@Desc #Desc {}
+
+  Group #Settings {
+    Anchor: (Left: 26, Top: 80, Width: 328, Height: 340);
+    LayoutMode: TopScrolling;
+    ScrollbarStyle: $C.@DefaultScrollbarStyle;
+  }
+}

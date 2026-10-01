@@ -1,23 +1,28 @@
 package dev.hycolony.core.construction.shared;
 
 import com.google.gson.JsonObject;
-import dev.hycolony.core.building.Building;
-import dev.hycolony.core.building.module.ModuleTab;
+import dev.hycolony.core.building.module.HutSettings;
 import dev.hycolony.core.building.module.PersistentModule;
-import dev.hycolony.core.building.module.ProvidesTab;
+import dev.hycolony.core.building.module.SettingRow;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.construction.blueprint.BlueprintSource;
 import dev.hycolony.core.kernel.item.BlockKey;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import org.jspecify.annotations.Nullable;
 
 /**
  * The builder hut's settings (MC BuildingModules.BUILDER_SETTINGS): the work mode (AUTO takes orders from the work
  * manager, MANUAL picks them itself) and the fill block of placeholder cells (MC BuildingMiner.FILL_BLOCK).
  */
-public final class BuilderSettingsModule implements PersistentModule, ProvidesTab {
+public final class BuilderSettingsModule implements PersistentModule, HutSettings {
+    /** MC BuildingBuilder.MODE's id. */
+    static final String MODE = "mode";
+
+    /** MC BuildingMiner.FILL_BLOCK's id. */
+    public static final String FILL_BLOCK = "fillblock";
+
     public enum Mode {
         AUTO,
         MANUAL;
@@ -77,10 +82,32 @@ public final class BuilderSettingsModule implements PersistentModule, ProvidesTa
                 : null;
     }
 
-    /** The builder hut's Settings tab (MC SettingsModuleView of BUILDER_SETTINGS). */
+    /**
+     * MC BUILDER_SETTINGS, in its order: the mode, the recipe mode and construction strategy (research settings: shown
+     * disabled with their default value), the fill block. Deviation from MC: no "Use Shears" row (no shears in
+     * HyColony).
+     */
     @Override
-    public ModuleTab tab(Colony colony, Building building, UUID viewer) {
+    public List<SettingRow> settingRows(Colony colony) {
         BlueprintSource blueprints = colony.context().ports().blueprints();
-        return new BuilderSettingsView(mode, fillBlock(blueprints), blueprints.fillBlockChoices());
+        return List.of(
+                SettingRow.string(MODE, "hycolony.ui.setting.value." + (mode == Mode.AUTO ? "automatic" : "manual")),
+                SettingRow.needsResearch(
+                        "recipemode",
+                        "hycolony.ui.setting.value.priority",
+                        "hycolony.ui.setting.research.warehousemaster"),
+                SettingRow.needsResearch(
+                        "buildmode", "hycolony.ui.setting.value.default", "hycolony.ui.setting.research.buildermodes"),
+                SettingRow.block(FILL_BLOCK, fillBlock(blueprints), blueprints.fillBlockChoices()));
+    }
+
+    /** MC StringSetting.trigger of the mode: automatic and manual in turn. */
+    @Override
+    public boolean trigger(String id) {
+        if (!MODE.equals(id)) {
+            return false;
+        }
+        mode = mode.next();
+        return true;
     }
 }
