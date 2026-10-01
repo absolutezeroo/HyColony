@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
+import dev.hycolony.core.citizen.CitizenState;
+import dev.hycolony.core.citizen.sleep.SleepDecision;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.item.ItemAmount;
@@ -63,6 +65,24 @@ class CitizenNameplatesTest {
         colony.nameplates().refresh();
         assertEquals("Jean", shown());
         assertEquals(List.of("Jean", "! Jean", "Jean"), t.bodies.renames);
+    }
+
+    /** MC VisibleCitizenStatus.SLEEP over its head while in SLEEP; the "!" of a pending interaction comes first. */
+    @Test
+    void sleepingCitizenShowsZzzAndAPendingRequestWins() {
+        t.clock.dayTime = SleepDecision.NIGHT;
+        for (int i = 0; i < 100 && colony.citizens().aiState(1).orElseThrow() != CitizenState.SLEEP; i++) {
+            t.clock.tick++;
+            colony.citizens().tickAi();
+        }
+        colony.nameplates().refresh();
+        assertEquals("zZz Jean", shown());
+        assertEquals("zZz Jean", colony.nameplates().nameFor(jean));
+
+        RequestToken token = colony.requests().createAndAssign(hut, PLANKS, jean.id());
+        colony.requests().reassign(token, Set.of(RetryingResolver.ID));
+        colony.nameplates().refresh();
+        assertEquals("! Jean", shown());
     }
 
     @Test

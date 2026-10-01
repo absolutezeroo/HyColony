@@ -1,6 +1,7 @@
 package dev.hycolony.core.colony;
 
 import dev.hycolony.core.citizen.CitizenData;
+import dev.hycolony.core.citizen.CitizenState;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.model.RequestState;
@@ -17,10 +18,13 @@ import java.util.Set;
  * renamed only when its name changes, or once when first seen (a body loaded after a restart may carry a stale name).
  *
  * <p>Deviation from MC: MC renders an icon over the head; Hytale NPCs have no such overlay, so the name carries it.
+ * The same goes for MC's sleep status (VisibleCitizenStatus.SLEEP), "zZz name" while the citizen is in SLEEP.
  */
 public final class CitizenNameplates {
     public static final int INTERVAL = 20;
     static final String MARKER = "! ";
+    /** MC VisibleCitizenStatus.SLEEP ("Sleeping zZZ"), shown while the citizen's AI is in SLEEP. */
+    static final String SLEEP_MARKER = "zZz ";
 
     private final Colony colony;
     /** The name last given to each body. */
@@ -32,7 +36,7 @@ public final class CitizenNameplates {
 
     /** The name a body of {@code citizen} should show now (also for a body spawned now). */
     public String nameFor(CitizenData citizen) {
-        return waitingCitizens().contains(citizen.id()) ? MARKER + citizen.name() : citizen.name();
+        return name(citizen, waitingCitizens());
     }
 
     public void refresh() {
@@ -43,7 +47,7 @@ public final class CitizenNameplates {
             if (body == null || !colony.context().bodies().isAlive(body)) {
                 continue;
             }
-            String name = waiting.contains(d.id()) ? MARKER + d.name() : d.name();
+            String name = name(d, waiting);
             if (!name.equals(shown.get(body))) {
                 colony.context().bodies().setDisplayName(body, name);
             }
@@ -51,6 +55,15 @@ public final class CitizenNameplates {
         }
         shown.clear(); // gone bodies are forgotten
         shown.putAll(seen);
+    }
+
+    /** "! name" while a player must provide, else "zZz name" while in SLEEP (MC draws the interaction first). */
+    private String name(CitizenData d, Set<Integer> waiting) {
+        if (waiting.contains(d.id())) {
+            return MARKER + d.name();
+        }
+        boolean sleeping = colony.citizens().aiState(d.id()).orElse(null) == CitizenState.SLEEP;
+        return sleeping ? SLEEP_MARKER + d.name() : d.name();
     }
 
     // ponytail: building-level requests (citizen -1) mark nobody; MC shows those on the hut, not on a citizen.
