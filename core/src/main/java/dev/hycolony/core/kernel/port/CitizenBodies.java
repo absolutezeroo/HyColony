@@ -56,6 +56,9 @@ public interface CitizenBodies {
     /** Whether the body still lies in a bed: false once something else got it up (a broken bed, a teleport…). */
     boolean isInBed(BodyId body);
 
-    /** Gets the body up beside its bed (MC spawnCitizenFromBed); no effect on a standing or unknown body. */
+    /**
+     * Gets the body up beside its bed (MC spawnCitizenFromBed) and ends its sleeping pose, also for a body something
+     * else already got off its bed; no effect on an unknown body.
+     */
     void wakeUp(BodyId body);
 }

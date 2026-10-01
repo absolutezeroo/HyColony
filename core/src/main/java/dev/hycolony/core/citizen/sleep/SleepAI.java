@@ -210,6 +210,7 @@ public final class SleepAI {
         BlockPos bed = usedBed;
         if (bed != null) {
             if (data.asleep() && !bodies.isInBed(body)) {
+                bodies.wakeUp(body); // its sleeping pose ends, though Hytale already got it off the bed
                 handler.leftBed();
             }
             if (bed.distSq(at) > BED_RANGE_SQ) {

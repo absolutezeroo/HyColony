@@ -74,6 +74,8 @@ public final class FakeBodies implements CitizenBodies {
     public final List<Vec3> looks = new ArrayList<>();
     /** Every setDisplayName call, in call order. */
     public final List<String> renames = new ArrayList<>();
+    /** Every body told to get up, in order, lying or not. */
+    public final List<BodyId> wakeUps = new ArrayList<>();
 
     private long next = 1;
 
@@ -207,6 +209,7 @@ public final class FakeBodies implements CitizenBodies {
     /** Stands up beside the bed, one block east. */
     @Override
     public void wakeUp(BodyId body) {
+        wakeUps.add(body);
         Body b = bodies.get(body);
         if (b != null && b.inBed != null) {
             b.position = Vec3.center(b.inBed.offset(1, 0, 0));

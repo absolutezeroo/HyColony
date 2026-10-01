@@ -7,6 +7,7 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.protocol.BlockMountType;
+import com.hypixel.hytale.server.core.entity.movement.MovementStatesComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -19,7 +20,9 @@ import org.joml.Vector3i;
 /**
  * Citizens lying in Hytale beds through the native bed mount (BlockMountAPI.mountOnBlock, docs/research/plugin-b-api.md
  * § 41): it places and turns the body on the bed's sleeping point and takes that point, so no player lies there
- * meanwhile. World thread only; nothing here throws past a log line (CLAUDE.md § 4).
+ * meanwhile. The lying pose is MovementStates.sleeping, which a player's own client sets and the server only relays
+ * (MovementStatesSystems): no server code sets it, so it is set here for the NPC. World thread only, outside a store's
+ * processing; nothing here throws past a log line (CLAUDE.md § 4).
  */
 public final class CitizenBeds {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
@@ -58,6 +61,7 @@ public final class CitizenBeds {
             return true;
         });
         if (result[0] instanceof BlockMountAPI.Mounted) {
+            setSleeping(st, ref, true);
             return true;
         }
         LOG.at(warned ? Level.FINE : Level.WARNING).log(
@@ -81,10 +85,14 @@ public final class CitizenBeds {
      * entity leaving a bed a PlayerSomnolence, which a players' night skip would then act on: taken off again.
      */
     public void wakeUp(Ref<EntityStore> ref) {
-        if (!isInBed(ref)) {
+        if (!ref.isValid()) {
             return;
         }
         Store<EntityStore> st = world.getEntityStore().getStore();
+        setSleeping(st, ref, false); // also after a dismount without us, so it never walks about lying
+        if (!isInBed(ref)) {
+            return;
+        }
         TransformComponent t = st.getComponent(ref, TransformComponent.getComponentType());
         st.tryRemoveComponent(ref, MountedComponent.getComponentType());
         world.execute(() -> {
@@ -95,6 +103,14 @@ public final class CitizenBeds {
         if (t != null) {
             Vector3d at = t.getPosition();
             teleporter.teleport(ref, new Vec3(at.x, at.y, at.z));
+        }
+    }
+
+    /** The lying pose clients draw (MovementStates.sleeping, sent to viewers when it changes); none without states. */
+    private static void setSleeping(Store<EntityStore> st, Ref<EntityStore> ref, boolean sleeping) {
+        MovementStatesComponent states = st.getComponent(ref, MovementStatesComponent.getComponentType());
+        if (states != null) {
+            states.getMovementStates().sleeping = sleeping;
         }
     }
 }

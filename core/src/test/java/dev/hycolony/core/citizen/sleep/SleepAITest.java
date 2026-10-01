@@ -203,6 +203,21 @@ class SleepAITest {
         assertEquals(BED_A, t.bodies.bodies.get(first.body()).inBed);
     }
 
+    /** Its body is told to get up, so that its sleeping pose ends even when Hytale already got it off the bed. */
+    @Test
+    void bedLeftAndBrokenGetsTheBodyUp() {
+        bed(BED_A);
+        Sleeper first = resident(1, HOUSE);
+        tickUntil(first, () -> first.data().asleep() && first.ai().state() == SleepAI.State.SLEEPING);
+
+        t.bodies.bodies.get(first.body()).inBed = null; // the bed broken under it
+        t.bodies.beds.remove(BED_A);
+        tick(first, 31);
+
+        assertFalse(first.data().asleep());
+        assertTrue(t.bodies.wakeUps.contains(first.body()));
+    }
+
     @Test
     void wokenBesideItsBedLiesDownAgain() {
         bed(BED_A);
