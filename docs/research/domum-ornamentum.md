@@ -258,7 +258,8 @@ Rappel commun : une forme ou un état Hytale est un `BlockType` distinct (`State
   - Une règle de gabarit teste sur le voisin des `FaceTags`, des `Shapes`, des `BlockTypes` ou des `BlockTypeLists` (`H: server/core/universe/world/connectedblocks/ConnectedBlockPatternRule.java:24-60`).
   - Le portillon est une porte (`"Use": "Door"`, états de porte, `zip: .../Wood_Softwood_Fence_Gate.json`), déclarée comme forme `Gate` du gabarit.
 - **Écarts de forme** :
-  - le gabarit vanilla n'a ni « bout » (1 voisin) ni « poteau seul » (0 voisin) : ces cas tombent sur `Straight`. Pour la vitre MC (demi-vitre au bout), il faut un **gabarit à nous** avec deux formes de plus. C'est un asset : store `Item/CustomConnectedBlockTemplates` (`H: .../connectedblocks/ConnectedBlocksModule.java:66`) ;
+  - le gabarit vanilla n'a ni « bout » (1 voisin) ni « poteau seul » (0 voisin) : ces cas tombent sur `Straight`. Nos clôtures et murets ont donc leur propre gabarit (ci-dessous). Pour la vitre MC (demi-vitre au bout), il faut un **gabarit à nous** avec deux formes de plus. C'est un asset : store `Item/CustomConnectedBlockTemplates` (`H: .../connectedblocks/ConnectedBlocksModule.java:66`) ;
+  - la forme par défaut **garde la rotation actuelle du bloc** (`H: .../connectedblocks/CustomConnectedBlockTemplateAsset.java:174-181`), alors qu'une forme trouvée par motif la recalcule (`CustomConnectedBlockPattern.java:339-350`). Avec le gabarit vanilla, dont `Straight` n'a pas de motif, une clôture en coin qui perd un voisin redevient droite mais reste tournée comme le coin (vu en jeu : `--` puis un coin cassé donne `-|`). D'où `HyDomum_FenceConnectedBlockTemplate` (`tools/domum/blocks/compat.py`) : le poteau seul par défaut, symétrique, et un motif pour chaque autre forme ;
   - `in_wall` (portillon abaissé entre deux murets) n'a pas d'équivalent. Une forme de gabarit dédiée est possible en principe ; son effet sur les états de porte est **[in-game]**.
 - **Verdict : assets seuls.**
 
@@ -385,7 +386,7 @@ Rappel commun : une forme ou un état Hytale est un `BlockType` distinct (`State
 | Comportement DO | Mécanisme Hytale | Assets seuls ? |
 |---|---|---|
 | Porte, trappe : ouverture, 2 blocs, portes doubles | `Interactions.Use: Door` / `Door_Horizontal`, états `OpenDoorIn/Out`, boîte de 2 de haut (fillers), `DoorConnectedBlockTemplate` | Oui. Charnière = rotation de 180°. Trappe du bas : `UpDownNESW` ou bloc `_Bottom` **[in-game]** |
-| Clôture, muret, portillon, mur de papier | `CustomTemplate` + `WallConnectedBlockTemplate`, ou un gabarit à nous pour les bouts de vitre | Oui |
+| Clôture, muret, portillon, mur de papier | `CustomTemplate` : `WallConnectedBlockTemplate` pour le portillon, un gabarit à nous (poteau seul et bout) pour la clôture, le muret et la vitre | Oui |
 | Bardeaux (5 formes, haut ou bas) | `Roof` (`Regular` seul, sans `Hollow`/`Topper`), `UpDownNESW` | Oui (plus les modèles des pentes `_lower`) |
 | Demi-bardeau (6 formes) | gabarit `CustomTemplate` à nous : 6 formes, `IsCardinallyRotatable` | Oui |
 | Pilier (4 formes) | copie de `PillarConnectedBlockTemplate` avec une forme `Full` en plus | Oui |

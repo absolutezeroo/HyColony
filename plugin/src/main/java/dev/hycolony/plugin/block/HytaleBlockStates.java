@@ -59,8 +59,8 @@ public final class HytaleBlockStates {
 
     /**
      * The key the builder places and compares: a connected-block shape state (stair or roof corner, roof Topper,
-     * fence Corner/T/Cross) keeps its variant id, as vanilla prefab pasting writes it; any other state variant
-     * ({@code *…}, e.g. an open door or chest) is its base block, so a player's interaction is not rebuilt.
+     * fence Post/End/Corner/T/Cross) keeps its variant id, as vanilla prefab pasting writes it; any other state
+     * variant ({@code *…}, e.g. an open door or chest) is its base block, so a player's interaction is not rebuilt.
      */
     public static String blockKey(BlockType type) {
         String id = type.getId();

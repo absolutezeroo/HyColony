@@ -44,6 +44,9 @@ DIRECTED_FRAME_ROTATIONS = {"up": 0, "down": rot_index(0, 2, 0), "south": rot_in
                             "east": rot_index(1, 1, 0), "north": rot_index(2, 1, 0), "west": rot_index(3, 1, 0)}
 DIRECTED_FRAMES = ("TimberFrame_SideFramed", "TimberFrame_UpGated", "TimberFrame_DownGated",
                    "TimberFrame_SideFramedHorizontal")
+# Voisin unique d'une barrière ou d'un muret -> lacet de son état End, dont le bras vise le nord au lacet 0 et tourne
+# comme le coin (geometry.CORNER_YAW : nord -> ouest -> sud -> est).
+END_YAW = {"north": 0, "west": 1, "south": 2, "east": 3}
 # Propriété `shape` des demi-bardeaux -> état HyDomum ; `top` garde le gabarit.
 SHINGLE_SLAB_STATES = {"one_way": "One_Way", "two_way": "Two_Way", "three_way": "Three_Way",
                        "four_way": "Four_Way", "curved": "Curved"}
@@ -199,9 +202,14 @@ def _shaped(shape_id: str, base: str, p: dict) -> Mapping | None:
             return place(_state(base, "Block"), 0, rule="slab")
         return fam.slab(base)(p)
     if shape_id in ("Fence", "Wall"):
-        # HyDomum n'a pas de poutre : un poteau isolé reste une clôture (ou un muret) droite.
-        target, rotation, note = fam._connected(base, _state(base, "Corner"),
-                                                fam._connections(p, wall_style=shape_id == "Wall"),
+        connections = fam._connections(p, wall_style=shape_id == "Wall")
+        # Le gabarit HyDomum a un poteau seul et un bout, comme Minecraft (tools/domum/blocks/compat.py).
+        if not connections:
+            return place(_state(base, "Post"), 0, rule=shape_id.lower())
+        if len(connections) == 1:
+            (side,) = connections
+            return place(_state(base, "End"), END_YAW[side], rule=shape_id.lower())
+        target, rotation, note = fam._connected(base, _state(base, "Corner"), connections,
                                                 t_uses_main_axis=shape_id == "Wall")
         m = place(target, rotation, rule=shape_id.lower())
         if note:

@@ -2,10 +2,14 @@
 states, hitboxes and interactions, each look drawn by DO's model of the matching shape (Minecraft's templates,
 minecraft.py), every vanilla id renamed to ours.
 
-Deviation from MC: fences and walls join by the vanilla template (FenceConnection), so to fences, walls and gates,
-vanilla ones included, never to a solid face; alone, they keep the vanilla Straight shape (arms east and west)
-instead of Minecraft's lone post; walls have no tall sides and no post raised by the block above; a gate next to
-a wall is not lowered (Minecraft's in_wall).
+Fences and walls join by our own template (TEMPLATE) instead of the vanilla one, which has no lone post nor end
+and keeps a block's old turn when no shape matches (a fence left with one neighbour stayed a corner's straight run,
+turned across it): every shape but the lone post has a pattern, so its turn is always recomputed.
+
+Deviation from MC: fences and walls join by the vanilla FenceConnection tag, so to fences, walls and gates,
+vanilla ones included, never to a solid face; a vanilla fence shows the tag on its arms' sides only, so ours stays a
+post against a vanilla run's flank while the vanilla one may turn toward ours; walls have no tall sides and no post
+raised by the block above; a gate next to a wall is not lowered (Minecraft's in_wall).
 """
 
 import json
@@ -25,6 +29,21 @@ VANILLA = {"Fence": "Wood_Softwood_Fence", "FenceGate": "Wood_Softwood_Fence_Gat
 MATERIAL_KEYS = ("Material", "DrawType", "CustomModel", "CustomModelTexture", "Textures", "Gathering", "Group",
                  "Flags", "BlockParticleSetId", "ParticleColor", "BlockSoundSetId", "PhysicalMaterialId",
                  "TextureComputedColor", "Aliases")
+TEMPLATE = "HyDomum_FenceConnectedBlockTemplate"
+TAG = "FenceConnection"
+DEFAULT = "Post"
+# Shape -> the neighbours that make it (common.neighbour_template), turned as the vanilla template's, so the vanilla
+# states keep their hitboxes and the blocks already placed their look. The end reaches north, which Hytale's default
+# Symmetric flip mirrors right (a prefab flipped along X or Z).
+SHAPES = {
+    "End": {"north"},
+    "Straight": {"east", "west"},
+    "Corner": {"west", "south"},
+    "T_Junction": {"east", "west", "south"},
+    "Cross_Junction": {"north", "south", "east", "west"},
+}
+# Our shapes the vanilla template lacks: new states of the same name.
+NEW_STATES = (DEFAULT, "End")
 # Gate leaves (Minecraft pixels): each turns about its post like a door leaf; the vanilla door animations turn
 # "Door" one way and "Door2" the other, so both leaves open to the same side.
 GATE_LEAVES = (("Door", (1, 0, 8), lambda e: 2 <= e["from"][0] and e["to"][0] <= 8),
@@ -40,8 +59,8 @@ def generate(ctx, family):
     skeleton = common.model_block_type(ctx, family, default, None, block_type["VariantRotation"])
     del skeleton["Opacity"]  # the vanilla block's own, when it has one
     block_type = {**skeleton, **block_type}
-    for state, path in states.items():
-        block_type["State"]["Definitions"][state]["CustomModel"] = path
+    for state, look in states.items():
+        block_type["State"]["Definitions"].setdefault(state, {}).update(look)
     item = common.template(ctx, family, ident, (), block_type, vanilla_item.get("IconProperties"))
     # The item's own vanilla keys: its interactions (a slab's merge into a full block) and hand animations.
     item.update({k: vanilla_item[k] for k in ("Interactions", "PlayerAnimationsId") if k in vanilla_item})
@@ -65,17 +84,28 @@ def _model(ctx, family, name, props):
 
 
 def _connected(ctx, family, ident, block_type, arms):
-    """Default and state looks of a fence or wall: each template shape's sides (its FaceTags) become DO arms."""
+    """Default and state looks of a fence or wall, joined by our template: each shape's neighbours become DO arms.
+    The vanilla shapes keep their states; the lone post and the end are new states, with their own hitbox and the
+    vanilla states' other keys (a wall state's gathering). The vanilla gate pattern goes: a gate's sides are read
+    from its own rules."""
     rules = block_type["ConnectedBlockRuleSet"]
-    template = ctx.assets.json(common.TEMPLATES + rules["TemplateShapeAssetId"] + ".json")["Shapes"]
+    prefix = f"*{ident}_State_Definitions_"
+    patterns = {shape: prefix + shape for shape in NEW_STATES}
+    patterns.update({shape: target for shape, target in rules["TemplateShapeBlockPatterns"].items() if shape in SHAPES})
+    rules.update(TemplateShapeAssetId=TEMPLATE, TemplateShapeBlockPatterns=patterns)
+    write_json(ctx.pack / common.TEMPLATES / (TEMPLATE + ".json"), common.neighbour_template(TAG, DEFAULT, SHAPES))
+    shared = {k: v for k, v in block_type["State"]["Definitions"]["Cross"].items()
+              if k not in ("CustomModel", "HitboxType", "FlipType")}
     default, states = None, {}
-    for shape, target in rules["TemplateShapeBlockPatterns"].items():
-        sides = {face.lower() for face in template[shape]["FaceTags"]}
+    for shape, target in patterns.items():
+        sides = SHAPES.get(shape, set())
         if target == ident:
             default = _model(ctx, family, ident, arms(sides))
-        elif target.startswith(f"*{ident}_State_Definitions_"):
-            state = target[len(f"*{ident}_State_Definitions_"):]
-            states[state] = _model(ctx, family, ident + "_" + state, arms(sides))
+            continue
+        state = target[len(prefix):]
+        name = ident + "_" + state
+        states[state] = ({**shared, **common.look(ctx, family, name, family.blocks[0], arms(sides))}
+                         if state in NEW_STATES else {"CustomModel": _model(ctx, family, name, arms(sides))})
     return default, states
 
 
@@ -99,7 +129,7 @@ def stairs(ctx, family, ident, block_type):
     """Straight stairs, and the vanilla corner states drawn by DO's outer and inner stairs (roof.CORNERS)."""
     base = {"facing": "north", "half": "bottom"}
     default = _model(ctx, family, ident, {**base, "shape": "straight"})
-    return default, {state: _model(ctx, family, ident + "_" + state, {**base, "shape": shape})
+    return default, {state: {"CustomModel": _model(ctx, family, ident + "_" + state, {**base, "shape": shape})}
                      for state, shape in roof.CORNERS.items()}
 
 
@@ -116,8 +146,8 @@ def slab(ctx, family, ident, block_type):
     # variant renames a plain ItemId to its own item, it cannot rewrite a contained asset.
     del breaking["DropList"]
     breaking.update({"ItemId": ident, "Quantity": 2})
-    return _model(ctx, family, ident, {"type": "bottom"}), {"Block": _model(ctx, family, ident + "_Block",
-                                                                             {"type": "double"})}
+    default = _model(ctx, family, ident, {"type": "bottom"})
+    return default, {"Block": {"CustomModel": _model(ctx, family, ident + "_Block", {"type": "double"})}}
 
 
 def gate(ctx, family, ident, block_type):

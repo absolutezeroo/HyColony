@@ -96,8 +96,8 @@ public final class DynamicBlockTypeFactory {
      * A copy of the template's connection rules, by a codec round trip: a rule set caches its own block's state ids
      * ({@code updateCachedBlockTypes}), so a shared instance would point the template at the variant, or back. The
      * template's own keys in a connection template's patterns become the variant's (its main block and its states);
-     * other blocks (a fence's gate pattern names the template gate), the template shape, face tags and material
-     * name stay shared, so variants of one shape join across materials as in DO.
+     * any other block a pattern names, the template shape, face tags and material name stay shared, so variants of
+     * one shape join across materials as in DO.
      */
     private static @Nullable ConnectedBlockRuleSet copy(
             @Nullable ConnectedBlockRuleSet rules, String templateKey, String mainKey) {

@@ -75,13 +75,35 @@
               "GatherType": "Rocks"
             }
           }
+        },
+        "Post": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Post.blockymodel",
+          "HitboxType": "HyDomum_Wall_Post"
+        },
+        "End": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_End.blockymodel",
+          "HitboxType": "HyDomum_Wall_End"
         }
       }
     },
     "ConnectedBlockRuleSet": {
       "Type": "CustomTemplate",
-      "TemplateShapeAssetId": "WallConnectedBlockTemplate",
+      "TemplateShapeAssetId": "HyDomum_FenceConnectedBlockTemplate",
       "TemplateShapeBlockPatterns": {
+        "Post": "*HyDomum_Wall_State_Definitions_Post",
+        "End": "*HyDomum_Wall_State_Definitions_End",
         "Straight": "HyDomum_Wall",
         "Corner": "*HyDomum_Wall_State_Definitions_Corner",
         "T_Junction": "*HyDomum_Wall_State_Definitions_T",

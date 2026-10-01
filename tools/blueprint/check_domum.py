@@ -104,7 +104,17 @@ def ceiling_trapdoor_is_flipped_and_turned_back():
 
 def isolated_fence_post_is_not_called_a_beam():
     m = _rule("domum_ornamentum:vanilla_fence_compat", {})
-    assert m.target == "HyDomum_Fence" and not any("poutre" in n for n in m.notes), m
+    assert m.target == "*HyDomum_Fence_State_Definitions_Post" and not any("poutre" in n for n in m.notes), m
+
+
+def fence_end_points_its_arm_at_its_neighbour():
+    # Le bout HyDomum tend son bras vers le nord au yaw 0, tourné comme le coin (CORNER_YAW).
+    for side, yaw in (("north", 0), ("west", 1), ("south", 2), ("east", 3)):
+        m = _rule("domum_ornamentum:vanilla_fence_compat", {side: "true"})
+        assert (m.target, m.rotation) == ("*HyDomum_Fence_State_Definitions_End", yaw), (side, m)
+        assert not any("approxim" in n for n in m.notes), m
+    m = _rule("domum_ornamentum:vanilla_wall_compat", {"north": "low"})
+    assert (m.target, m.rotation) == ("*HyDomum_Wall_State_Definitions_End", 0), m
 
 
 def every_state_emitted_exists_in_its_template():
@@ -128,7 +138,7 @@ def every_state_emitted_exists_in_its_template():
         elif sid == "FenceGate" or sid.startswith(("Trapdoor_", "FancyTrapdoor_")):
             wanted = {"OpenDoorOut"}
         elif sid in ("Fence", "Wall"):
-            wanted = {"Corner"}
+            wanted = {"Corner", "Post", "End"}
         assert wanted <= have, (sid, wanted - have)
 
 
@@ -169,6 +179,7 @@ def run():
     floor_trapdoor_keeps_dos_hinge_side()
     ceiling_trapdoor_is_flipped_and_turned_back()
     isolated_fence_post_is_not_called_a_beam()
+    fence_end_points_its_arm_at_its_neighbour()
     every_state_emitted_exists_in_its_template()
     timber_frame_takes_its_two_materials()
     template_mode_keeps_the_default_materials()

@@ -57,16 +57,25 @@
         },
         "Cross": {
           "CustomModel": "Blocks/HyDomum/Fence_Cross.blockymodel"
+        },
+        "Post": {
+          "CustomModel": "Blocks/HyDomum/Fence_Post.blockymodel",
+          "HitboxType": "HyDomum_Fence_Post"
+        },
+        "End": {
+          "CustomModel": "Blocks/HyDomum/Fence_End.blockymodel",
+          "HitboxType": "HyDomum_Fence_End"
         }
       }
     },
     "ConnectedBlockRuleSet": {
       "Type": "CustomTemplate",
-      "TemplateShapeAssetId": "WallConnectedBlockTemplate",
+      "TemplateShapeAssetId": "HyDomum_FenceConnectedBlockTemplate",
       "TemplateShapeBlockPatterns": {
+        "Post": "*HyDomum_Fence_State_Definitions_Post",
+        "End": "*HyDomum_Fence_State_Definitions_End",
         "Straight": "HyDomum_Fence",
         "Corner": "*HyDomum_Fence_State_Definitions_Corner",
-        "Gate": "HyDomum_FenceGate",
         "T_Junction": "*HyDomum_Fence_State_Definitions_T",
         "Cross_Junction": "*HyDomum_Fence_State_Definitions_Cross"
       }

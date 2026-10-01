@@ -96,8 +96,9 @@ def paper_wall_connects_to_its_neighbours():
 
 
 def compat_uses_do_models_and_vanilla_shapes():
-    """Fences, gates, walls, stairs and slabs keep their vanilla equivalent's rules, states and hitboxes, draw every
-    state with a DO model and name our blocks only; the gate's leaves hang on the nodes the door animation turns."""
+    """Fences, gates, walls, stairs and slabs keep their vanilla equivalent's rule type, states and hitboxes (fences
+    and walls add the lone post and the end), draw every state with a DO model and name our blocks only; the gate's
+    leaves hang on the nodes the door animation turns."""
     from blocks import compat
 
     ctx = generate_into_temp()
@@ -108,7 +109,8 @@ def compat_uses_do_models_and_vanilla_shapes():
         assert ours.get("HitboxType") == theirs.get("HitboxType"), name
         assert ours["VariantRotation"] == theirs["VariantRotation"], name
         states = ours.get("State", {}).get("Definitions", {})
-        assert set(states) == set(theirs.get("State", {}).get("Definitions", {})), name
+        added = set(compat.NEW_STATES) if name in ("Fence", "Wall") else set()
+        assert set(states) == set(theirs.get("State", {}).get("Definitions", {})) | added, name
         for look in [ours] + [s for s in states.values() if "CustomModel" in s]:
             assert look["CustomModel"].startswith("Blocks/HyDomum/"), name
         assert not any(v in json.dumps(ours) for v in compat.VANILLA.values()), name
@@ -125,8 +127,58 @@ def compat_uses_do_models_and_vanilla_shapes():
     assert merge["Parent"] == "Half_Block" and merge["Matchers"][0]["Block"]["Id"] == "HyDomum_Slab", merge
 
 
+def fence_and_wall_shape_by_their_neighbours():
+    """A fence or wall is a lone post alone, then an end, straight run, corner, T or cross, as Minecraft's: every
+    shape but the post has a pattern turned in the four directions, so its turn follows its neighbours (the vanilla
+    template's patternless Straight kept a broken corner's turn); the vanilla shapes keep the vanilla sides, so their
+    states keep their hitboxes; a gate's sides come from its own rules."""
+    from blocks import common, compat
+
+    ctx = generate_into_temp()
+    ours = template(ctx, compat.TEMPLATE)
+    shapes = ours["Shapes"]
+    assert ours["DefaultShape"] == "Post" and set(shapes) == {"Post", *compat.SHAPES}
+    assert not shapes["Post"]["PatternsToMatchAnyOf"]
+    vanilla = ctx.assets.json(common.TEMPLATES + "WallConnectedBlockTemplate.json")["Shapes"]
+    side_at = {offset: side for side, (offset, _) in common.SIDES.items()}
+    expected = {"End": {"north"}, **{shape: {face.lower() for face in vanilla[shape]["FaceTags"]}
+                                     for shape in compat.SHAPES if shape != "End"}}
+    for shape, look in shapes.items():
+        assert all(look["FaceTags"][side.capitalize()] == ["FenceConnection"] for side in common.SIDES), shape
+        if shape == "Post":
+            continue
+        (pattern,) = look["PatternsToMatchAnyOf"]
+        assert pattern["AllowedPatternTransformations"] == {"IsCardinallyRotatable": True}, shape
+        rules = pattern["RulesToMatch"]
+        included = {side_at[tuple(r["Position"][axis] for axis in "XYZ")] for r in rules
+                    if r["IncludeOrExclude"] == "Include"}
+        assert len(rules) == 4 and included == expected[shape], (shape, included)
+    for name in ("Fence", "Wall"):
+        ident = "HyDomum_" + name
+        block = ctx.items[ident]["BlockType"]
+        rules = block["ConnectedBlockRuleSet"]
+        assert rules["TemplateShapeAssetId"] == compat.TEMPLATE and set(rules["TemplateShapeBlockPatterns"]) == set(
+            shapes), name
+        # The straight run stays the block itself: placed fences and converted blueprints keep their look.
+        assert rules["TemplateShapeBlockPatterns"]["Straight"] == ident, name
+        states = block["State"]["Definitions"]
+        for state in compat.NEW_STATES:
+            # A wall's state is gathered as the wall, like the vanilla states (the block's own gathering differs).
+            assert "HitboxType" in states[state] and states[state].get("Gathering") == states["Cross"].get(
+                "Gathering"), (name, state)
+    assert "Gathering" in ctx.items["HyDomum_Wall"]["BlockType"]["State"]["Definitions"]["End"]
+    # The fence alone is its post only; its end reaches north, the side its End pattern includes.
+    low, high = bounds(ctx.models["HyDomum_Fence_Post"]["nodes"])
+    assert -5 < low[0] and high[0] < 5 and -5 < low[2] and high[2] < 5, (low, high)
+    low, high = bounds(ctx.models["HyDomum_Fence_End"]["nodes"])
+    assert low[2] == -16 and high[2] < 5 and -5 < low[0] and high[0] < 5, (low, high)
+    gate = ctx.items["HyDomum_FenceGate"]["BlockType"]["ConnectedBlockRuleSet"]
+    assert gate["TemplateShapeAssetId"] == "WallConnectedBlockTemplate", gate
+
+
 def wall_post_rises_like_minecraft():
-    """Minecraft's WallBlock.shouldRaisePost: no post on a straight run or a cross, a post on a corner or a T."""
+    """Minecraft's WallBlock.shouldRaisePost: no post on a straight run or a cross, a post alone, on an end, a corner
+    or a T."""
     ctx = generate_into_temp()
 
     def has_post(name):
@@ -135,6 +187,7 @@ def wall_post_rises_like_minecraft():
 
     assert not has_post("HyDomum_Wall") and not has_post("HyDomum_Wall_Cross")
     assert has_post("HyDomum_Wall_Corner") and has_post("HyDomum_Wall_T")
+    assert has_post("HyDomum_Wall_Post") and has_post("HyDomum_Wall_End")
 
 
 def run():
@@ -142,4 +195,5 @@ def run():
     pillar_has_four_closed_shapes()
     paper_wall_connects_to_its_neighbours()
     compat_uses_do_models_and_vanilla_shapes()
+    fence_and_wall_shape_by_their_neighbours()
     wall_post_rises_like_minecraft()
