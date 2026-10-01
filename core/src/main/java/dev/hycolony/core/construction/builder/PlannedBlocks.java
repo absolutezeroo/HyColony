@@ -32,7 +32,9 @@ final class PlannedBlocks {
     /**
      * The builder placed {@code e} at {@code pos}: its container and bench join the building, which is told of it, and
      * a field block becomes a field of the colony. MC BlockScarecrow.setPlacedBy takes the colony at the block: an
-     * order's plan lies in the builder's colony (a plan past its border is refused), so it is that one.
+     * order's plan lay in the builder's colony when the order was made (a plan past its border is refused). Should the
+     * territory shrink later (a hut removed, then a reload), FieldRegistry.cleanUp drops the field at the next slow
+     * tick and it joins the colony at the block at its first use (FieldActions.open).
      */
     void placed(BlockPos pos, BlueprintEntry e) {
         if (e.hasContainer()) {
