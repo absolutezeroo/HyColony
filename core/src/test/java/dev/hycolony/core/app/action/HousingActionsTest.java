@@ -2,6 +2,7 @@ package dev.hycolony.core.app.action;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.app.ColonyManager;
@@ -120,7 +121,22 @@ class HousingActionsTest {
 
         BodyId body = colony.citizens().bodyOf(1).orElseThrow();
         assertEquals(HOUSE, t.bodies.bodies.get(body).position.toBlockPos());
-        assertEquals(null, d.respawnPosition(), "used once, as MC's nextRespawnPos");
+        assertNull(d.respawnPosition(), "used once, as MC's nextRespawnPos");
+    }
+
+    /** MC clears nextRespawnPos after any spawn: a failed recall does not pin every later respawn to the hut. */
+    @Test
+    void failedRecallDoesNotPinLaterRespawns() {
+        Building b = residence(1);
+        CitizenData d = citizen(1);
+        living(b).assign(colony, b, d);
+        t.bodies.refuseSpawn = true;
+        housing.recall(alice, HOUSE);
+        t.bodies.refuseSpawn = false;
+
+        assertTrue(colony.citizens().respawnBody(1));
+
+        assertNull(d.respawnPosition());
     }
 
     @Test

@@ -62,11 +62,7 @@ public final class CitizenRecall {
         if (d == null) {
             return false;
         }
-        d.setRespawnPosition(hut);
-        boolean spawned = c.citizens().respawnBody(id);
-        if (spawned) {
-            d.setRespawnPosition(null);
-        }
-        return spawned;
+        d.setRespawnPosition(hut); // used up once a body appears (CitizenManager), as MC's nextRespawnPos
+        return c.citizens().respawnBody(id);
     }
 }

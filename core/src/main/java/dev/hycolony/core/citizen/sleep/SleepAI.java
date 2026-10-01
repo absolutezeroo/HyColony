@@ -197,10 +197,13 @@ public final class SleepAI {
     }
 
     /**
-     * MC sleep: a citizen more than 3 blocks from its bed walks back, keeping its bed and tries; by its bed, one not
-     * lying lies down again (MC re-applies the sleeping pose); without a bed it tries again; zZz particles either way.
-     * Deviation from MC: Hytale can get a sleeper out of its bed without us (players skipping the night, a broken bed,
-     * see {@link CitizenBodies#isInBed}); it is awake then, without the wake-up hooks, until it lies down again.
+     * MC sleep: a citizen more than 3 blocks from its bed walks back to it, its bed and arrivals kept; without a bed it
+     * tries again; zZz particles either way.
+     *
+     * <p>Deviation from MC: MC only re-applies the sleeping pose by the bed; here a citizen by its bed but not lying
+     * lies down again in full (trySleep: asleep, bed, announce, held item). Hytale can get a sleeper out of its bed
+     * without us (players skipping the night, a broken bed, a teleport, see {@link CitizenBodies#isInBed}): it is
+     * awake then, without the wake-up hooks, until it lies down again.
      */
     private @Nullable State sleep() {
         BlockPos at = here().orElse(null);

@@ -190,6 +190,24 @@ class SleepAITest {
         assertEquals(BED_A, first.data().bedPos());
     }
 
+    /** MC EntityAISleep.sleep: back to WALKING_HOME keeping usedBed, so it returns to the same bed. */
+    @Test
+    void farFromItsBedKeepsItsBed() {
+        bed(BED_A);
+        bed(BED_B);
+        Sleeper first = resident(1, HOUSE);
+        tickUntil(first, () -> first.data().asleep() && first.ai().state() == SleepAI.State.SLEEPING);
+        BedModule beds = house.module(BedModule.class).orElseThrow();
+        beds.removeBed(BED_A);
+        beds.addBed(BED_A); // its rank now points at BED_B
+
+        t.bodies.bodies.get(first.body()).position = Vec3.center(new BlockPos(60, 64, 0));
+        tickUntil(first, () -> first.ai().state() == SleepAI.State.WALKING_HOME);
+        tickUntil(first, () -> first.data().asleep());
+
+        assertEquals(BED_A, first.data().bedPos());
+    }
+
     @Test
     void bedLeftWithoutUsLiesDownAgain() {
         bed(BED_A);

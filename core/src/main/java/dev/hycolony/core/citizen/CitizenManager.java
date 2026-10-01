@@ -223,7 +223,10 @@ public final class CitizenManager {
         failedRespawns.checked(data.id(), tried, ctx().clock().currentTick()); // each loaded spot refused it
     }
 
-    /** Spawns and binds a body near {@code near}; false when none could appear there. */
+    /**
+     * Spawns and binds a body near {@code near}; false when none could appear there. Once one appears, its respawn
+     * position is used up (MC CitizenData.updateEntityIfNecessary clears nextRespawnPos).
+     */
     private boolean spawnBody(CitizenData data, BlockPos near) {
         Optional<BodyId> body = ctx().bodies()
                 .spawn(
@@ -232,7 +235,10 @@ public final class CitizenManager {
                         colony.id(),
                         data.id(),
                         colony.nameplates().nameFor(data));
-        body.ifPresent(b -> bind(data, b));
+        body.ifPresent(b -> {
+            data.setRespawnPosition(null);
+            bind(data, b);
+        });
         return body.isPresent();
     }
 

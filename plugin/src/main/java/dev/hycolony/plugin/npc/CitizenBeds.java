@@ -3,29 +3,36 @@ package dev.hycolony.plugin.npc;
 import com.hypixel.hytale.builtin.beds.sleep.components.PlayerSomnolence;
 import com.hypixel.hytale.builtin.mounts.BlockMountAPI;
 import com.hypixel.hytale.builtin.mounts.MountedComponent;
+import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.protocol.AnimationSlot;
 import com.hypixel.hytale.protocol.BlockMountType;
 import com.hypixel.hytale.server.core.entity.movement.MovementStatesComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.hypixel.hytale.server.npc.entities.NPCEntity;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import java.util.logging.Level;
 import org.joml.Vector3d;
 import org.joml.Vector3i;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Citizens lying in Hytale beds through the native bed mount (BlockMountAPI.mountOnBlock, docs/research/plugin-b-api.md
  * § 41): it places and turns the body on the bed's sleeping point and takes that point, so no player lies there
- * meanwhile. The lying pose is MovementStates.sleeping, which a player's own client sets and the server only relays
- * (MovementStatesSystems): no server code sets it, so it is set here for the NPC. World thread only, outside a store's
- * processing; nothing here throws past a log line (CLAUDE.md § 4).
+ * meanwhile. The lying pose is the Player model's "Sleep" animation on the Status slot, as vanilla NPCs lie down
+ * (Outlander_Peon; § 44): the client draws a player lying from MovementStates.sleeping, not an NPC. That state is set
+ * too, for the sleeping bounding box. World thread only, outside a store's processing; nothing here throws past a log
+ * line (CLAUDE.md § 4).
  */
 public final class CitizenBeds {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
+    /** The Player model's lying animation (Flavor/Sleep.blockyanim lays the Pelvis down), looping by default. */
+    private static final String SLEEP_ANIMATION = "Sleep";
 
     private final World world;
     private final BodyTeleport teleporter;
@@ -62,6 +69,7 @@ public final class CitizenBeds {
         });
         if (result[0] instanceof BlockMountAPI.Mounted) {
             setSleeping(st, ref, true);
+            playStatus(st, ref, SLEEP_ANIMATION);
             return true;
         }
         LOG.at(warned ? Level.FINE : Level.WARNING).log(
@@ -89,8 +97,12 @@ public final class CitizenBeds {
             return;
         }
         Store<EntityStore> st = world.getEntityStore().getStore();
-        setSleeping(st, ref, false); // also after a dismount without us, so it never walks about lying
+        // Also after a dismount without us (a teleport, a broken bed, a night skip), so it never walks about lying.
+        setSleeping(st, ref, false);
+        playStatus(st, ref, null);
         if (!isInBed(ref)) {
+            // Hytale got it off the bed and WakeUpOnDismountSystem gave it a PlayerSomnolence: taken off too.
+            st.tryRemoveComponent(ref, PlayerSomnolence.getComponentType());
             return;
         }
         TransformComponent t = st.getComponent(ref, TransformComponent.getComponentType());
@@ -111,6 +123,18 @@ public final class CitizenBeds {
         MovementStatesComponent states = st.getComponent(ref, MovementStatesComponent.getComponentType());
         if (states != null) {
             states.getMovementStates().sleeping = sleeping;
+        }
+    }
+
+    /**
+     * The NPC's Status animation, kept in its ActiveAnimationComponent so players arriving later see it too; null
+     * stops it (as SpawnMarkerSystems). Nothing for an entity that is no NPC.
+     */
+    private static void playStatus(Store<EntityStore> st, Ref<EntityStore> ref, @Nullable String animation) {
+        ComponentType<EntityStore, NPCEntity> type = NPCEntity.getComponentType();
+        NPCEntity npc = type == null ? null : st.getComponent(ref, type);
+        if (npc != null) {
+            npc.playAnimation(ref, AnimationSlot.Status, animation, st);
         }
     }
 }
