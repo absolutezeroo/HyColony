@@ -38,7 +38,7 @@ Références :
 
 ### 3.2 Vues et actions
 
-- Chaque onglet lit une partie de `TownHallView`, qui devient un record par onglet (`TownHallView.Home`, `.Info`, `.Settings`, `.Permissions`, et la liste `citizens`), construit par `TownHallViews`. Seule la partie de l'onglet ouvert est utile, mais le coût de construction est faible ; on garde une seule vue pour rester simple.
+- Chaque onglet lit une partie de `TownHallView`, qui devient un record par onglet (`TownHallView.Home`, `.Info`, `.Stats`, `.Settings`, `.Permissions`, et la liste `citizens`), construit par `TownHallViews`. Seule la partie de l'onglet ouvert est utile, mais le coût de construction est faible ; on garde une seule vue pour rester simple.
 - Chaque bouton appelle une action du cœur, qui vérifie la permission de MC puis réaffiche la fenêtre (§ 7 de CLAUDE.md). Permission par défaut d'un message de colonie MC : `MANAGE_HUTS` ; les messages de permissions vérifient `EDIT_PERMISSIONS` (Inv., « Règle commune »).
 - L'onglet ouvert reste l'état de la page (`keepTabOf`), comme aujourd'hui.
 

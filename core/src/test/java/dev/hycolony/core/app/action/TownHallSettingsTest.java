@@ -48,6 +48,18 @@ class TownHallSettingsTest {
         manager.administration().setSetting(alice, colony.id(), Toggle.MOVE_IN, false);
         manager.administration().setSetting(alice, colony.id(), Toggle.MOVE_IN, false);
         assertFalse(colony.settings().moveIn());
+        manager.administration().setSetting(alice, colony.id(), Toggle.MOVE_IN, true);
+        manager.administration().setSetting(alice, colony.id(), Toggle.MOVE_IN, true);
+        assertTrue(colony.settings().moveIn());
+    }
+
+    @Test
+    void eachSwitchTurnsBackOn() {
+        for (Toggle toggle : Toggle.values()) {
+            manager.administration().setSetting(alice, colony.id(), toggle, false);
+            manager.administration().setSetting(alice, colony.id(), toggle, true);
+            assertTrue(colony.settings().get(toggle), toggle.name());
+        }
     }
 
     @Test
