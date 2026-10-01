@@ -36,7 +36,7 @@ RED = "#FF5555"
 # A rule between the vanilla description and ours, after ItemTooltip.ui's @Separator (colour #25262c): the tooltip
 # text has no separator tag, so 18 horizontal bars (U+2015, 14 px wide in the description's 14 px Nunito Sans, ink
 # edge to edge) span 252 px, under the 272 px of the narrowest tooltip's content with room for rounding at other UI
-# scales: it never wraps (docs/research/client-tooltip-markup.md § Séparateur).
+# scales: it should not wrap (docs/research/client-tooltip-markup.md § Séparateur).
 SEPARATOR = '<color is="#25262C">' + "―" * 18 + "</color>"
 
 # MC's texts where it has one (manual_en_us.json: core.gui.restaurant.foodquality and vanillafoodquality,
