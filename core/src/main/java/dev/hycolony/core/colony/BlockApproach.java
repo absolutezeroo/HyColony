@@ -103,17 +103,11 @@ public final class BlockApproach {
      * least 1, MC AbstractSchematicProvider); the hut without a plan.
      */
     private BlockPos centre(Building building) {
-        BlockPos at = building.position();
-        if (building.style().isEmpty()) {
-            return at;
-        }
-        return ports.blueprints()
-                .load(building.style(), building.type().id(), Math.max(1, building.level()), building.rotation())
-                .map(bp -> new BlockPos(
-                        (2 * at.x() + bp.min().x() + bp.max().x()) / 2,
-                        at.y(),
-                        (2 * at.z() + bp.min().z() + bp.max().z()) / 2))
-                .orElse(at);
+        HutFootprint.Box box = HutFootprint.of(ports, building);
+        return new BlockPos(
+                (box.min().x() + box.max().x()) / 2,
+                building.position().y(),
+                (box.min().z() + box.max().z()) / 2);
     }
 
     /** Feet and head cells passable, a floor to stand on (MC SurfaceType.WALKABLE), no danger near. */
