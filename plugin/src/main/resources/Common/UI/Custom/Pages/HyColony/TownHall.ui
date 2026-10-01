@@ -137,6 +137,7 @@ $C.@PageOverlay {
       Label #TotalCitizens {
         Anchor: (Left: 200, Top: 122, Width: 296, Height: 22);
         Style: (...@Ink, RenderBold: true);
+        TextTooltipStyle: $C.@DefaultTextTooltipStyle;
       }
 
       Group #StatLines {
