@@ -308,7 +308,7 @@ Il nourrit le facteur `idleatjob`. Il est sauvé.
 
 - `CitizenView` gagne le bonheur, la liste des modificateurs (id, facteur) et la vie (déjà en pourcentage : la vie absolue et le maximum s'ajoutent).
 - `TownHallView.Citizens` gagne le bonheur global et la moyenne par modificateur.
-- **API** (`dev.hycolony.api`) : l'instantané du citoyen gagne `saturation` et `happiness` (record : nouvelle composante = **rupture**, spec 2026-09-30 § 4.1). Comme une rupture demande une version majeure, on ne touche pas aux records existants : on ajoute une méthode `@Experimental` `HyColonyApi.citizenWellbeing(colonyId, citizenId) → Optional<CitizenWellbeing>` (nouveau record, `@since` de la version mineure suivante), `apiDump` régénéré. HyLens l'affiche dans sa fiche de citoyen.
+- **API** (`dev.hycolony.api`) : l'instantané du citoyen gagne `saturation` et `happiness` (record : nouvelle composante = **rupture**, spec 2026-09-30 § 4.1). Comme une rupture demande une version majeure, on ne touche pas aux records existants : on ajoute une méthode `@Experimental` `ColonyWorld.wellbeing(CitizenRef) → Optional<CitizenWellbeing>` (nouveau record `read/CitizenWellbeing` : saturation, maximum, bonheur, facteur de chaque modificateur ; `@since 1.1`, `ApiVersion` 1.1.0), à côté de `citizen(ref)` plutôt que sur `HyColonyApi`, car toutes les lectures d'un monde y sont ; `apiDump` régénéré (les parties expérimentales n'entrent pas dans `api.txt`). HyLens l'affiche dans son HUD de suivi (une ligne « Saturation : x/60, bonheur : y/10 », le maximum venant de l'API) et se déclare construit contre 1.1.
 
 ## 10. La salle à manger (MC `BuildingCook`, RC § 1)
 

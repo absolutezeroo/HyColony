@@ -133,7 +133,7 @@ public final class WatchRefreshSystem extends TickingSystem<EntityStore> {
         }
         Watched w = watched.get();
         Optional<TargetCell> cell = w.debug().walkTarget().flatMap(t -> TargetCells.at(world, t));
-        hud.show(WatchHudView.lines(w.citizen(), w.debug(), w.alerts(), cell));
+        hud.show(WatchHudView.lines(w.citizen(), w.debug(), w.wellbeing(), w.alerts(), cell));
         ShapePackets.send(
                 player,
                 WatchShapes.shapes(

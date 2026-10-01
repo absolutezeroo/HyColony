@@ -14,6 +14,7 @@ hud.stuck = Stuck handler: {p0}, {p1} s ago
 hud.stuckNone = Stuck handler: nothing
 hud.queue = Queue ({p0}): {p1}
 hud.leisure = Leisure: {p0} s
+hud.wellbeing = Saturation: {p0}/{p1}, happiness: {p2}/10
 hud.history = Last changes:
 hud.historyEntry = {p0} s ago: {p1}
 hud.alerts = Alerts ({p0}):

@@ -7,6 +7,7 @@ import dev.hycolony.api.debug.HistoryEntry;
 import dev.hycolony.api.debug.Violation;
 import dev.hycolony.api.debug.WalkEnded;
 import dev.hycolony.api.read.CitizenSnapshot;
+import dev.hycolony.api.read.CitizenWellbeing;
 import dev.hycolony.api.read.JobNames;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,8 +18,8 @@ import java.util.stream.Collectors;
 /**
  * What the HUD shows of a watched citizen, one text per line (spec 2026-09-30, § 6.2): its job, its AI state and job
  * step with how long they last, its activity, walk target and the blocks there, last walk and stuck action, job queue,
- * leisure, its last {@link #HISTORY} transitions and its alerts. Durations are in seconds of the core's clock (20
- * ticks per second).
+ * leisure, saturation and happiness, its last {@link #HISTORY} transitions and its alerts. Durations are in seconds of
+ * the core's clock (20 ticks per second).
  */
 public final class WatchHudView {
     /** Transitions shown, newest first. */
@@ -30,10 +31,10 @@ public final class WatchHudView {
     /** Characters of a request id shown: HyColony's alerts name requests the same way (CitizenInvariants). */
     static final int SHORT_ID = 8;
     /**
-     * Lines the HUD holds at most: 10 of state, a header and {@link #HISTORY}, a header and {@link #ALERTS}. The panel
+     * Lines the HUD holds at most: 11 of state, a header and {@link #HISTORY}, a header and {@link #ALERTS}. The panel
      * (Hud/HyLens/WatchHud.ui) is exactly this many lines of 20 px high.
      */
-    static final int MAX_LINES = 10 + 1 + HISTORY + 1 + ALERTS;
+    static final int MAX_LINES = 11 + 1 + HISTORY + 1 + ALERTS;
 
     private static final int TICKS_PER_SECOND = 20;
     private static final String NONE = "-";
@@ -41,11 +42,15 @@ public final class WatchHudView {
     private WatchHudView() {}
 
     /**
-     * The lines for {@code citizen}, read at {@code s.tick()}, with its confirmed {@code alerts} and what the world
-     * holds at its walk target ({@code cell}, empty while unloaded).
+     * The lines for {@code citizen}, read at {@code s.tick()}, with how it fares ({@code wellbeing}, "-" when unknown),
+     * its confirmed {@code alerts} and what the world holds at its walk target ({@code cell}, empty while unloaded).
      */
     public static List<ApiText> lines(
-            CitizenSnapshot citizen, CitizenDebugSnapshot s, List<Violation> alerts, Optional<TargetCell> cell) {
+            CitizenSnapshot citizen,
+            CitizenDebugSnapshot s,
+            Optional<CitizenWellbeing> wellbeing,
+            List<Violation> alerts,
+            Optional<TargetCell> cell) {
         List<ApiText> out = new ArrayList<>(MAX_LINES);
         out.add(ApiText.of("hylens.hud.title", citizen.name()));
         out.add(ApiText.of("hylens.hud.job", JobNames.of(citizen.job())));
@@ -68,6 +73,13 @@ public final class WatchHudView {
                         : ApiText.of("hylens.hud.stuck", s.lastStuck(), seconds(s.tick() - s.lastStuckTick())));
         out.add(ApiText.of("hylens.hud.queue", String.valueOf(s.queue().size()), queue(s.queue())));
         out.add(ApiText.of("hylens.hud.leisure", seconds(Math.max(0, s.leisureTicks()))));
+        out.add(wellbeing
+                .map(w -> ApiText.of(
+                        "hylens.hud.wellbeing",
+                        tenth(w.saturation()),
+                        String.valueOf((int) w.maxSaturation()),
+                        tenth(w.happiness())))
+                .orElse(ApiText.of("hylens.hud.wellbeing", NONE, NONE, NONE)));
         history(out, s);
         alerts(out, alerts);
         return out;
@@ -127,6 +139,11 @@ public final class WatchHudView {
 
     private static String pos(Pos p) {
         return p.x() + " " + p.y() + " " + p.z();
+    }
+
+    /** {@code value} with one decimal, whatever the locale. */
+    private static String tenth(double value) {
+        return String.format(Locale.ROOT, "%.1f", value);
     }
 
     private static String seconds(long ticks) {

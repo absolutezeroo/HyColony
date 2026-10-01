@@ -6,6 +6,7 @@ import dev.hycolony.api.Pos;
 import dev.hycolony.api.Vec;
 import dev.hycolony.api.read.BuildingSnapshot;
 import dev.hycolony.api.read.CitizenSnapshot;
+import dev.hycolony.api.read.CitizenWellbeing;
 import dev.hycolony.api.read.ColonySummary;
 import dev.hycolony.api.read.RequestSnapshot;
 import dev.hycolony.core.building.Building;
@@ -54,6 +55,18 @@ final class ApiSnapshots {
                 optionalPos(d.homeBuilding()),
                 optionalPos(d.workBuilding()),
                 at);
+    }
+
+    /** How {@code d} fares: its saturation, happiness (MC getHappiness) and each modifier's last factor. */
+    static CitizenWellbeing wellbeing(CitizenRef ref, Colony c, CitizenData d) {
+        return new CitizenWellbeing(
+                ref,
+                d.saturation(),
+                CitizenData.MAX_SATURATION,
+                d.happiness().happiness(c, d),
+                d.happiness().modifiers().stream()
+                        .map(m -> new CitizenWellbeing.HappinessFactor(m.id(), m.lastFactor()))
+                        .toList());
     }
 
     /** {@code b} of {@code colony}. */

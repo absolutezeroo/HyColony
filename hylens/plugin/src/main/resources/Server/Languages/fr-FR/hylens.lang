@@ -14,6 +14,7 @@ hud.stuck = Anti-blocage : {p0}, il y a {p1} s
 hud.stuckNone = Anti-blocage : rien
 hud.queue = File ({p0}) : {p1}
 hud.leisure = Loisir : {p0} s
+hud.wellbeing = Saturation : {p0}/{p1}, bonheur : {p2}/10
 hud.history = Derniers changements :
 hud.historyEntry = Il y a {p0} s : {p1}
 hud.alerts = Alertes ({p0}) :

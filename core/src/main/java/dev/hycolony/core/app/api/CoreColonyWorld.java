@@ -7,6 +7,7 @@ import dev.hycolony.api.Subscription;
 import dev.hycolony.api.debug.DebugAccess;
 import dev.hycolony.api.read.BuildingSnapshot;
 import dev.hycolony.api.read.CitizenSnapshot;
+import dev.hycolony.api.read.CitizenWellbeing;
 import dev.hycolony.api.read.ColonySummary;
 import dev.hycolony.api.read.RequestSnapshot;
 import dev.hycolony.core.app.ColonyManager;
@@ -64,6 +65,13 @@ public final class CoreColonyWorld implements ColonyWorld {
         checkThread();
         return find(ref.colony())
                 .flatMap(c -> c.citizens().get(ref.citizenId()).map(d -> ApiSnapshots.citizen(ref.colony(), c, d)));
+    }
+
+    @Override
+    public Optional<CitizenWellbeing> wellbeing(CitizenRef ref) {
+        checkThread();
+        return find(ref.colony())
+                .flatMap(c -> c.citizens().get(ref.citizenId()).map(d -> ApiSnapshots.wellbeing(ref, c, d)));
     }
 
     @Override

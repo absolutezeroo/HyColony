@@ -14,6 +14,7 @@ import dev.hycolony.api.debug.PartTiming;
 import dev.hycolony.api.debug.Violation;
 import dev.hycolony.api.read.BuildingSnapshot;
 import dev.hycolony.api.read.CitizenSnapshot;
+import dev.hycolony.api.read.CitizenWellbeing;
 import dev.hycolony.api.read.ColonySummary;
 import dev.hycolony.api.read.RequestSnapshot;
 import java.util.LinkedHashMap;
@@ -66,6 +67,12 @@ public final class FakeColonyWorld implements ColonyWorld, DebugAccess {
     @Override
     public Optional<CitizenSnapshot> citizen(CitizenRef ref) {
         return citizens(ref.colony()).stream().filter(c -> c.ref().equals(ref)).findFirst();
+    }
+
+    /** None: HyLens's core reads no wellbeing; its HUD gets it from the plugin. */
+    @Override
+    public Optional<CitizenWellbeing> wellbeing(CitizenRef ref) {
+        return Optional.empty();
     }
 
     @Override

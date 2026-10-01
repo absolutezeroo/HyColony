@@ -12,6 +12,7 @@ import dev.hycolony.api.debug.HistoryEntry;
 import dev.hycolony.api.debug.Violation;
 import dev.hycolony.api.debug.WalkEnded;
 import dev.hycolony.api.read.CitizenSnapshot;
+import dev.hycolony.api.read.CitizenWellbeing;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
@@ -87,13 +88,23 @@ class WatchHudViewTest {
                         ApiText.of("hylens.hud.stuckNone"),
                         ApiText.of("hylens.hud.queue", "0", "-"),
                         ApiText.of("hylens.hud.leisure", "0"),
+                        ApiText.of("hylens.hud.wellbeing", "-", "-", "-"),
                         ApiText.of("hylens.hud.noAlerts")),
-                WatchHudView.lines(NAMED, idle(), List.of(), Optional.empty()));
+                WatchHudView.lines(NAMED, idle(), Optional.empty(), List.of(), Optional.empty()));
+    }
+
+    @Test
+    void itsSaturationAndHappinessShowWithOneDecimal() {
+        CitizenWellbeing fed = new CitizenWellbeing(ANN, 12.25, 60, 7.0, List.of());
+        assertEquals(
+                ApiText.of("hylens.hud.wellbeing", "12.3", "60", "7.0"),
+                WatchHudView.lines(NAMED, idle(), Optional.of(fed), List.of(), Optional.empty())
+                        .get(10));
     }
 
     @Test
     void workingCitizenShowsWhatItDoesAndWhereItWalks() {
-        List<ApiText> lines = WatchHudView.lines(NAMED, working(), List.of(), Optional.empty());
+        List<ApiText> lines = WatchHudView.lines(NAMED, working(), Optional.empty(), List.of(), Optional.empty());
 
         assertEquals(ApiText.of("hylens.hud.ai", "WORK", "20"), lines.get(2));
         assertEquals(ApiText.of("hylens.hud.step", "PICKUP", "3"), lines.get(3));
@@ -128,7 +139,8 @@ class WatchHudViewTest {
 
         assertEquals(
                 ApiText.of("hylens.hud.unloaded"),
-                WatchHudView.lines(NAMED, unloaded, List.of(), Optional.empty()).get(2));
+                WatchHudView.lines(NAMED, unloaded, Optional.empty(), List.of(), Optional.empty())
+                        .get(2));
     }
 
     private static CitizenDebugSnapshot idleWith(int leisureTicks, List<HistoryEntry> history) {
@@ -155,17 +167,19 @@ class WatchHudViewTest {
     void historyShorterThanFiveShowsItAllNewestFirst() {
         List<HistoryEntry> history = List.of(entry(NOW - 40, "S0"), entry(NOW - 20, "S1"));
 
-        List<ApiText> lines = WatchHudView.lines(NAMED, idleWith(0, history), List.of(), Optional.empty());
+        List<ApiText> lines =
+                WatchHudView.lines(NAMED, idleWith(0, history), Optional.empty(), List.of(), Optional.empty());
 
-        assertEquals(ApiText.of("hylens.hud.history"), lines.get(10));
-        assertEquals(ApiText.of("hylens.hud.historyEntry", "1", history.get(1).detail()), lines.get(11));
-        assertEquals(ApiText.of("hylens.hud.historyEntry", "2", history.get(0).detail()), lines.get(12));
-        assertEquals(14, lines.size());
+        assertEquals(ApiText.of("hylens.hud.history"), lines.get(11));
+        assertEquals(ApiText.of("hylens.hud.historyEntry", "1", history.get(1).detail()), lines.get(12));
+        assertEquals(ApiText.of("hylens.hud.historyEntry", "2", history.get(0).detail()), lines.get(13));
+        assertEquals(15, lines.size());
     }
 
     @Test
     void leisureOutsideABreakNeverShowsBelowZero() {
-        List<ApiText> lines = WatchHudView.lines(NAMED, idleWith(-40, List.of()), List.of(), Optional.empty());
+        List<ApiText> lines =
+                WatchHudView.lines(NAMED, idleWith(-40, List.of()), Optional.empty(), List.of(), Optional.empty());
 
         assertEquals(ApiText.of("hylens.hud.leisure", "0"), lines.get(9));
     }
@@ -193,25 +207,25 @@ class WatchHudViewTest {
                 0,
                 history);
 
-        List<ApiText> lines = WatchHudView.lines(NAMED, withHistory, List.of(), Optional.empty());
+        List<ApiText> lines = WatchHudView.lines(NAMED, withHistory, Optional.empty(), List.of(), Optional.empty());
 
-        assertEquals(ApiText.of("hylens.hud.history"), lines.get(10));
-        assertEquals(ApiText.of("hylens.hud.historyEntry", "1", history.get(6).detail()), lines.get(11));
-        assertEquals(ApiText.of("hylens.hud.historyEntry", "5", history.get(2).detail()), lines.get(15));
-        assertEquals(ApiText.of("hylens.hud.noAlerts"), lines.get(16));
-        assertEquals(17, lines.size());
+        assertEquals(ApiText.of("hylens.hud.history"), lines.get(11));
+        assertEquals(ApiText.of("hylens.hud.historyEntry", "1", history.get(6).detail()), lines.get(12));
+        assertEquals(ApiText.of("hylens.hud.historyEntry", "5", history.get(2).detail()), lines.get(16));
+        assertEquals(ApiText.of("hylens.hud.noAlerts"), lines.get(17));
+        assertEquals(18, lines.size());
     }
 
     @Test
     void alertsAreCountedAndTheFirstThreeShown() {
         List<Violation> alerts = List.of(alert("a"), alert("b"), alert("c"), alert("d"));
 
-        List<ApiText> lines = WatchHudView.lines(NAMED, idle(), alerts, Optional.empty());
+        List<ApiText> lines = WatchHudView.lines(NAMED, idle(), Optional.empty(), alerts, Optional.empty());
 
-        assertEquals(ApiText.of("hylens.hud.alerts", "4"), lines.get(10));
-        assertEquals(ApiText.of("hylens.hud.alert", alerts.get(0).detail()), lines.get(11));
-        assertEquals(ApiText.of("hylens.hud.alert", alerts.get(2).detail()), lines.get(13));
-        assertEquals(14, lines.size());
+        assertEquals(ApiText.of("hylens.hud.alerts", "4"), lines.get(11));
+        assertEquals(ApiText.of("hylens.hud.alert", alerts.get(0).detail()), lines.get(12));
+        assertEquals(ApiText.of("hylens.hud.alert", alerts.get(2).detail()), lines.get(14));
+        assertEquals(15, lines.size());
     }
 
     @Test
@@ -239,7 +253,8 @@ class WatchHudViewTest {
 
         assertEquals(
                 WatchHudView.MAX_LINES,
-                WatchHudView.lines(NAMED, full, alerts, Optional.empty()).size());
+                WatchHudView.lines(NAMED, full, Optional.empty(), alerts, Optional.empty())
+                        .size());
     }
 
     @Test
@@ -249,7 +264,8 @@ class WatchHudViewTest {
 
         assertEquals(
                 ApiText.of("hylens.hud.job", ApiText.of("hycolony.ui.job.builder")),
-                WatchHudView.lines(miner, idle(), List.of(), Optional.empty()).get(1));
+                WatchHudView.lines(miner, idle(), Optional.empty(), List.of(), Optional.empty())
+                        .get(1));
     }
 
     @Test
@@ -258,7 +274,8 @@ class WatchHudViewTest {
 
         assertEquals(
                 ApiText.of("hylens.hud.targetCell", "10 64 -3", "Rock_Stone", ApiText.of("hylens.hud.empty")),
-                WatchHudView.lines(NAMED, working(), List.of(), cell).get(5));
+                WatchHudView.lines(NAMED, working(), Optional.empty(), List.of(), cell)
+                        .get(5));
     }
 
     @Test
@@ -267,7 +284,8 @@ class WatchHudViewTest {
 
         assertEquals(
                 ApiText.of("hylens.hud.target", "-"),
-                WatchHudView.lines(NAMED, idle(), List.of(), cell).get(5));
+                WatchHudView.lines(NAMED, idle(), Optional.empty(), List.of(), cell)
+                        .get(5));
     }
 
     @Test
@@ -292,6 +310,7 @@ class WatchHudViewTest {
 
         assertEquals(
                 ApiText.of("hylens.hud.queue", "3", "11111111, 22222222, 33333333"),
-                WatchHudView.lines(NAMED, three, List.of(), Optional.empty()).get(8));
+                WatchHudView.lines(NAMED, three, Optional.empty(), List.of(), Optional.empty())
+                        .get(8));
     }
 }

@@ -1,5 +1,5 @@
 Group {
-  Anchor: (Right: 20, Top: 80, Width: 640, Height: 400);
+  Anchor: (Right: 20, Top: 80, Width: 640, Height: 420);
   LayoutMode: Top;
 
   Group #Lines {

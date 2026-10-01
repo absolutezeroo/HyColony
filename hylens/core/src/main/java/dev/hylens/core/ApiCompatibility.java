@@ -9,7 +9,7 @@ import dev.hycolony.api.ApiVersion;
  */
 public final class ApiCompatibility {
     /** The api HyLens is compiled against; {@link ApiVersion#CURRENT} is read from HyColony's jar at runtime. */
-    public static final ApiVersion BUILT_AGAINST = new ApiVersion(1, 0, 0);
+    public static final ApiVersion BUILT_AGAINST = new ApiVersion(1, 1, 0);
 
     private ApiCompatibility() {}
 

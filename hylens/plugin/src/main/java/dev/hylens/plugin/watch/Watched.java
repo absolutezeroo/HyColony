@@ -6,14 +6,19 @@ import dev.hycolony.api.debug.CitizenDebugSnapshot;
 import dev.hycolony.api.debug.DebugAccess;
 import dev.hycolony.api.debug.Violation;
 import dev.hycolony.api.read.CitizenSnapshot;
+import dev.hycolony.api.read.CitizenWellbeing;
 import java.util.List;
 import java.util.Optional;
 
 /** What HyColony tells of a watched citizen at one refresh: the HUD and the drawings show the same read. */
-record Watched(CitizenSnapshot citizen, CitizenDebugSnapshot debug, List<Violation> alerts) {
+record Watched(
+        CitizenSnapshot citizen,
+        CitizenDebugSnapshot debug,
+        Optional<CitizenWellbeing> wellbeing,
+        List<Violation> alerts) {
     /**
-     * On the world's thread: {@code citizen} as HyColony knows it, with its confirmed alerts; empty when it no longer
-     * knows it.
+     * On the world's thread: {@code citizen} as HyColony knows it, with how it fares and its confirmed alerts; empty
+     * when it no longer knows it.
      */
     static Optional<Watched> read(ColonyWorld colonies, CitizenRef citizen) {
         DebugAccess debug = colonies.debug();
@@ -25,6 +30,6 @@ record Watched(CitizenSnapshot citizen, CitizenDebugSnapshot debug, List<Violati
         List<Violation> alerts = debug.check(citizen.colony()).stream()
                 .filter(v -> v.citizen().equals(Optional.of(citizen)))
                 .toList();
-        return Optional.of(new Watched(known.get(), snapshot.get(), alerts));
+        return Optional.of(new Watched(known.get(), snapshot.get(), colonies.wellbeing(citizen), alerts));
     }
 }

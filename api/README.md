@@ -66,6 +66,7 @@ api.subscribeWorlds(this, event -> {
 `ColonyWorld` reads one world's colonies:
 - `colonies()` and `colony(ref)`;
 - `citizens(colony)` and `citizen(ref)`;
+- `wellbeing(ref)`, a citizen's saturation, happiness and happiness factors, which is experimental (since 1.1);
 - `buildings(colony)`;
 - `requests(colony)`, which is experimental.
 
@@ -178,6 +179,7 @@ What is marked `@Experimental` may change in a minor version. This covers:
 - `ColonyWorld.debug()` and the whole `dev.hycolony.api.debug` package: inspection, history, invariant checks,
   timings, walks, debugging actions;
 - `requests(colony)` and `RequestSnapshot`;
+- `wellbeing(ref)` and `CitizenWellbeing`;
 - `JobNames`;
 - `HyColonyApi.track` and `clock`, and `ColonyClock`.
 

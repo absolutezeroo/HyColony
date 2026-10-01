@@ -3,6 +3,7 @@ package dev.hycolony.api;
 import dev.hycolony.api.debug.DebugAccess;
 import dev.hycolony.api.read.BuildingSnapshot;
 import dev.hycolony.api.read.CitizenSnapshot;
+import dev.hycolony.api.read.CitizenWellbeing;
 import dev.hycolony.api.read.ColonySummary;
 import dev.hycolony.api.read.RequestSnapshot;
 import java.util.List;
@@ -30,6 +31,14 @@ public interface ColonyWorld {
 
     /** The citizen {@code ref}; empty if there is none. */
     Optional<CitizenSnapshot> citizen(CitizenRef ref);
+
+    /**
+     * How the citizen {@code ref} fares: its saturation and happiness; empty if there is none.
+     *
+     * @since 1.1
+     */
+    @Experimental
+    Optional<CitizenWellbeing> wellbeing(CitizenRef ref);
 
     /** The buildings of {@code colony}, in the order they were placed. */
     List<BuildingSnapshot> buildings(ColonyRef colony);

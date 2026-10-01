@@ -10,6 +10,7 @@ import dev.hycolony.api.Pos;
 import dev.hycolony.api.Vec;
 import dev.hycolony.api.read.BuildingSnapshot;
 import dev.hycolony.api.read.CitizenSnapshot;
+import dev.hycolony.api.read.CitizenWellbeing;
 import dev.hycolony.api.read.ColonySummary;
 import dev.hycolony.api.read.RequestSnapshot;
 import dev.hycolony.core.app.ColonyManager;
@@ -106,6 +107,28 @@ class CoreColonyWorldTest {
     }
 
     @Test
+    void wellbeingCarriesSaturationHappinessAndEachFactor() {
+        CitizenData d = firstCitizen();
+        d.setSaturation(12.5);
+        CitizenRef citizen = new CitizenRef(ref, d.id());
+
+        CitizenWellbeing w = world.wellbeing(citizen).orElseThrow();
+
+        assertEquals(12.5, w.saturation());
+        assertEquals(CitizenData.MAX_SATURATION, w.maxSaturation());
+        assertEquals(d.happiness().happiness(colony, d), w.happiness());
+        assertEquals(d.happiness().modifiers().size(), w.factors().size());
+        assertEquals(
+                0.0, // homeless: MC's housing factor of a home of level 0
+                w.factors().stream()
+                        .filter(f -> f.id().equals("homelessness"))
+                        .findFirst()
+                        .orElseThrow()
+                        .factor());
+        assertEquals(Optional.empty(), world.wellbeing(new CitizenRef(ref, 99)));
+    }
+
+    @Test
     void townHallIsABuilding() {
         assertEquals(
                 List.of(new BuildingSnapshot(
@@ -176,6 +199,7 @@ class CoreColonyWorldTest {
                 () -> world.colony(ref),
                 () -> world.citizens(ref),
                 () -> world.citizen(citizen),
+                () -> world.wellbeing(citizen),
                 () -> world.buildings(ref),
                 () -> world.requests(ref),
                 world::debug);
