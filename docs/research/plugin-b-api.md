@@ -974,6 +974,16 @@ Revérification de `sp4-sleep-home.md` § B (écrit pour 0.6.8) sur les sources 
 - Seule une entité `Player` passe. Seul le propriétaire du `RespawnBlock` appelle `mountOnBlock` (l. 85-99). Si un citoyen occupe l'unique point, il reçoit `server.interactions.didNotMount` avec `NO_MOUNT_POINT_FOUND` (l. 94-95). Un non-propriétaire reçoit `respawnPointClaimed` ou la page de point de réapparition. Personne ne déloge un citoyen.
 - `mountOnBlock` ne regarde pas le `RespawnBlock` : un citoyen peut prendre le lit d'un joueur, et le joueur ne peut plus s'y coucher. Un citoyen qui vise un lit déjà pris par un joueur ou un autre citoyen reçoit `NO_MOUNT_POINT_FOUND`.
 
+## 42. Cacher un objet de la bibliothèque créative (2026-10-01)
+
+- **Champ `Variant`** d'un objet (`server/core/asset/type/item/config/Item.java:386-389`, champ `protected boolean variant` l. 566) : « If this item is marked as a variant, then we filter it out of the item library menu by default, unless the player chooses to display variants. » 125 objets vanilla l'ont, 22 autres seulement sur certains de leurs `State` (`Rock_Stone_Cobble_Corner`, `Rock_Stone_Brick_Roof_Hollow`, `Deco_Lantern_Ceiling`…, `zip:Server/Item/Items/`). `toPacket` l'envoie (`packet.variant`, l. 787).
+- **Côté serveur, il ne change rien.** `Item.isVariant()` (l. 1069) n'a aucun appelant : pose, casse, objets lâchés, artisanat et commandes `give` ignorent le champ. Le filtre est fait par le client.
+- **Sans catégorie, l'objet reste trouvable.** `Categories` vide le sort des onglets, mais la recherche de la bibliothèque le trouve encore (constaté en jeu sur les variantes de HyDomum). Que `Variant` le masque aussi de la recherche reste **[in-game]**.
+- **Groupe repliable (comme l'inventaire créatif de Minecraft Bedrock) : non trouvé.** Aucun champ documenté ne le décrit. Deux champs restent à examiner côté client :
+  - `Set` (`Item.java:187`, sans documentation, aucun appelant serveur) regroupe une même famille d'objets : 171 valeurs dans `zip:Server/Item/Items/`, dont `Rock_Stone` (47 objets : bloc, briques, escaliers, toits, murets…) et `Build` (56). Son usage par le client (bibliothèque, outils de construction ?) est **[in-game]** ;
+  - les `Children` d'une `ItemCategory` (catégories imbriquées, § B.10 de `domum-ornamentum.md`).
+- HyDomum : `VariantItem` (`domum/plugin/.../runtime/DynamicBlockTypeFactory.java`) pose `variant = true` sur chaque matériau créé.
+
 ## Could not verify
 
 1. **Client rendering of item animations on NPCs** (`AnimationSlot.Action` with `"Block"/"Build"` or `"Pickaxe"/"Mine"` on `PlayerTestModel_V`) and whether they loop or play once. Only the server packet path is verified.

@@ -174,8 +174,10 @@ public final class DynamicBlockTypeFactory {
             }
             this.interactions = interactions(template);
             // Out of the creative library: only the templates (each shape in its default material) are listed there,
-            // not every material a player or /hydomum created.
+            // not every material a player or /hydomum created. Null categories keep it out of the tabs; Variant also
+            // hides it from the library, unless the player chooses to display variants.
             this.categories = null;
+            this.variant = true;
         }
 
         /**
