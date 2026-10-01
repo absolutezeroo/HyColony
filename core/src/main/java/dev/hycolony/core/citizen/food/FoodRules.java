@@ -77,7 +77,10 @@ public final class FoodRules {
         return hut.modules().values().stream().noneMatch(m -> m instanceof EatingRule rule && !rule.keepsFood());
     }
 
-    /** MC FoodUtils.getFoodValue: the saturation eating one gives, a dish counting twice; 0 for no food. */
+    /**
+     * MC FoodUtils.getFoodValue: the saturation eating one gives, a dish counting twice; 0 for no food.
+     * tools/food/generate.py repeats it for the food tooltips: change both.
+     */
     public static double foodValue(ItemCatalog catalog, ItemKey item) {
         return catalog.food(item)
                 .map(f -> f.nutrition() * (f.isDish() ? DISH_BONUS : 1.0))
@@ -98,7 +101,10 @@ public final class FoodRules {
         return catalog.food(item).map(FoodInfo::isDish).orElse(false);
     }
 
-    /** MC FoodUtils.getBuildingLevelForFood: the highest home level the food still feeds, 2 to 5. */
+    /**
+     * MC FoodUtils.getBuildingLevelForFood: the highest home level the food still feeds, 2 to 5.
+     * tools/food/generate.py repeats it for the food tooltips: change both.
+     */
     public static int buildingLevelForFood(ItemCatalog catalog, ItemKey item) {
         int nutrition = catalog.food(item).map(FoodInfo::nutrition).orElse(0);
         return Math.max(2, Math.min(nutrition - 1, MAX_BUILDING_LEVEL));

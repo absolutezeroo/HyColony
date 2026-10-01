@@ -19,7 +19,7 @@
         "HyColony:hyvanilla": "=0.1.0"
     },
     "OptionalDependencies": {
-        
+        "com.hypersonicsharkz:Hytalor": "*"
     },
     "ServerVersion": ">=0.7.0-pre.5 <0.8.0",
     "Main": "dev.hycolony.plugin.HyColonyPlugin",

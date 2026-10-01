@@ -70,6 +70,44 @@ val checkSubpluginAssets by tasks.registering(CheckPackAssets::class) {
 }
 subpluginResources { dependsOn(checkSubpluginAssets) }
 
+// The food tooltips (Hytalor patches and hycolony_food.lang) are written by tools/food/generate.py from the id-map's
+// food table: fail when the table changed without them (docs/research/food-tooltips.md).
+val checkFoodTooltips by tasks.registering {
+    val resources = layout.projectDirectory.dir("src/main/resources").asFile
+    val patchDir = resources.resolve("Server/Patch/HyColony/Food")
+    // The languages tools/food/generate.py writes (its TEXTS table).
+    val langFiles = listOf("en-US", "fr-FR").map { resources.resolve("Server/Languages/$it/hycolony_food.lang") }
+    inputs.files(fileTree(patchDir))
+    inputs.file(resources.resolve("hycolony/id-map.json"))
+    inputs.files(langFiles)
+    val stamp = layout.buildDirectory.file("tmp/checkFoodTooltips.stamp")
+    outputs.file(stamp)
+    doLast {
+        val idMap = groovy.json.JsonSlurper().parse(resources.resolve("hycolony/id-map.json")) as Map<*, *>
+        val food = idMap["food"] as Map<*, *>
+        val foods = (food["foods"] as Map<*, *>).mapKeys { it.key.toString() }
+        // Each food's header, then its description line; the bench decides which foods are raw.
+        val expected = listOf("# cookingBench=${food["cookingBench"]}") + foods.keys.sorted().flatMap { id ->
+            val f = foods.getValue(id) as Map<*, *>
+            listOf("# $id nutrition=${f["nutrition"]} tier=${f["tier"]} poisonous=${f["poisonous"]}", "$id.description")
+        }
+        val patches = patchDir.listFiles().orEmpty().map { it.name.removeSuffix(".json") }.toSortedSet()
+        val problems = mutableListOf<String>()
+        if (patches != foods.keys.toSortedSet()) problems += "patches $patches != foods ${foods.keys.sorted()}"
+        langFiles.forEach { file ->
+            val lines = file.takeIf { it.isFile }?.readLines().orEmpty().drop(1)
+                .map { if (it.startsWith("#")) it else it.substringBefore(" = ") }
+            if (lines != expected) problems += "${file.parentFile.name}/hycolony_food.lang differs from the id-map"
+        }
+        if (problems.isNotEmpty()) {
+            throw GradleException(
+                "Food tooltips out of date, run python tools/food/generate.py:\n" + problems.joinToString("\n"))
+        }
+        stamp.get().asFile.apply { parentFile.mkdirs(); writeText("ok\n") }
+    }
+}
+tasks.named("processResources") { dependsOn(checkFoodTooltips) }
+
 sourceSets.main { resources.srcDir(subpluginResources) }
 // runServer puts the resources' source dirs on its classpath without building them.
 tasks.matching { it.name == "prepareRunServer" }.configureEach { dependsOn(subpluginResources) }
