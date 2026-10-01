@@ -153,6 +153,7 @@ class CitizenManagerTest {
     @Test
     void anInitialCitizenAppearsBesideItsTownHall() {
         Colony c = colonyWithTownHall();
+        t.players.online.put(c.permissions().owner(), hall);
         t.bodies.refuseSpawnAt.add(hall.offset(0, 0, -1)); // the north column is blocked, as an obstacle would
 
         slowTicks(c, 2);
@@ -160,6 +161,7 @@ class CitizenManagerTest {
         CitizenData d = c.citizens().all().iterator().next();
         BodyId body = c.citizens().bodyOf(d.id()).orElseThrow();
         assertEquals(Vec3.center(hall.offset(1, 0, 0)), t.bodies.position(body).orElseThrow());
+        assertEquals(0, warnings(), "a citizen that arrived warns nobody");
     }
 
     /** MC spawnOrCreateCivilian: an initial citizen that finds no room at the town hall warns the colony, once. */
@@ -182,6 +184,7 @@ class CitizenManagerTest {
         Colony c = colonyWithTownHall();
         t.players.online.put(c.permissions().owner(), hall);
         t.world.unloaded.add(hall);
+        t.bodies.refuseSpawnAround.add(hall); // Hytale's probe refuses a column whose chunk does not tick
 
         slowTicks(c, 2);
 

@@ -156,7 +156,8 @@ public final class HytaleCitizenBodies implements CitizenBodies {
                         });
         if (result != SpawnTestResult.TEST_OK || spawned[0] == null) {
             // The reason (FAIL_NO_POSITION, FAIL_INVALID_POSITION...) is only known here. FINE: a refused column is a
-            // normal step of the core's search (CitizenArrival), which tells the players when none fits.
+            // normal step of the core's search (CitizenArrival); CitizenManager warns the players when a new citizen
+            // finds no room at the town hall.
             LOG.at(Level.FINE).log("HyColony: cannot spawn a citizen in the column of %s: %s", near, result);
             return Optional.empty();
         }
