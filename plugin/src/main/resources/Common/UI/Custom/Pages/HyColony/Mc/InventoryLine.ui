@@ -1,0 +1,30 @@
+$B = "Book.ui";
+
+// An item of the inventory summary (MC gui/windowhutallinventory.xml "allinventorylist" box), MC sizes doubled: a
+// bordered row with the item's icon, its name cut at 17 characters, its quantity and Locate ("?").
+
+Group {
+  Anchor: (Height: 36);
+  OutlineSize: 1;
+  OutlineColor: #000000;
+
+  ItemIcon #Icon {
+    Anchor: (Left: 0, Top: 0, Width: 34, Height: 34);
+  }
+
+  Label #Name {
+    Anchor: (Left: 40, Top: 6, Width: 200, Height: 24);
+    Style: $B.@Ink;
+  }
+
+  Label #Count {
+    Anchor: (Left: 234, Top: 2, Width: 50, Height: 32);
+    Style: $B.@Ink;
+  }
+
+  TextButton #Locate {
+    Anchor: (Left: 282, Top: 2, Width: 28, Height: 30);
+    Style: $B.@MiniButtonStyle;
+    Text: "?";
+  }
+}

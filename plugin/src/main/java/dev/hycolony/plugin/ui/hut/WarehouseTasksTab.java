@@ -19,7 +19,12 @@ final class WarehouseTasksTab implements HutTab {
     }
 
     @Override
-    public String labelKey() {
+    public String icon() {
+        return "info";
+    }
+
+    @Override
+    public String descKey() {
         return "hycolony.ui.building.tab.tasks";
     }
 

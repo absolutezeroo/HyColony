@@ -3,7 +3,7 @@ package dev.hycolony.core.app;
 import dev.hycolony.core.app.action.CitizenInventoryActions;
 import dev.hycolony.core.app.action.ColonyAdministration;
 import dev.hycolony.core.app.action.HutActions;
-import dev.hycolony.core.app.action.LogisticsActions;
+import dev.hycolony.core.app.action.HutWindowActions;
 import dev.hycolony.core.app.action.RequestActions;
 import dev.hycolony.core.app.action.WorkOrderActions;
 import dev.hycolony.core.app.ui.UiPort;
@@ -46,7 +46,7 @@ public final class ColonyManager {
     private final RequestActions requestActions;
     private final ColonyAdministration administration;
     private final CitizenInventoryActions citizenInventories;
-    private final LogisticsActions logistics;
+    private final HutWindowActions hutWindows;
     private final ColonyProtection protection = new ColonyProtection(this);
 
     /** The colonies of the world {@code ctx} describes, whose windows open through {@code ui}. */
@@ -61,7 +61,7 @@ public final class ColonyManager {
         this.requestActions = new RequestActions(this);
         this.administration = new ColonyAdministration(this, windows);
         this.citizenInventories = new CitizenInventoryActions(this);
-        this.logistics = new LogisticsActions(this, windows);
+        this.hutWindows = new HutWindowActions(this, windows);
     }
 
     public ColonyContext context() {
@@ -106,9 +106,9 @@ public final class ColonyManager {
         return citizenInventories;
     }
 
-    /** A hut window's pickup priority and "force pickup" buttons. */
-    public LogisticsActions logistics() {
-        return logistics;
+    /** A hut window's frame and main page buttons: recall, rename, inventory, hiring mode, pickup. */
+    public HutWindowActions hutWindows() {
+        return hutWindows;
     }
 
     /** What players may do inside the colonies. */

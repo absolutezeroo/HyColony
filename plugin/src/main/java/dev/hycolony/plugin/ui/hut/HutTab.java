@@ -7,15 +7,18 @@ import dev.hycolony.plugin.ui.ItemPickerPage;
 import java.util.Optional;
 
 /**
- * One module tab of a hut window (MC module window): its own {@code .ui}, appended into the window's
- * {@code #ModuleTabs}, then filled under that appended root.
+ * One module tab of a hut window (MC module window): its own {@code .ui}, appended into the window's {@code #Page}
+ * while the tab is open, then filled under that appended root; its side tab shows its icon and description.
  */
 public interface HutTab {
     /** The tab's {@code .ui} document. */
     String document();
 
-    /** The tab button's full label key. */
-    String labelKey();
+    /** MC IBuildingModuleView.getIcon: the side tab's icon, a texture name of SideTabs.ICONS ("settings"). */
+    String icon();
+
+    /** MC IBuildingModuleView.getDesc: the side tab's tooltip and the page's header, a full language key. */
+    String descKey();
 
     /** Fills the tab appended at selector {@code root} and binds its buttons. */
     void render(UICommandBuilder ui, UIEventBuilder events, String root);

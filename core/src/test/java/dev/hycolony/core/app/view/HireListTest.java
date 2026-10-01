@@ -3,9 +3,9 @@ package dev.hycolony.core.app.view;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import dev.hycolony.core.app.ColonyManager;
+import dev.hycolony.core.app.hut.HireView.Candidate;
+import dev.hycolony.core.app.hut.HireView.HomeLine;
 import dev.hycolony.core.app.ui.BuildingView;
-import dev.hycolony.core.app.ui.BuildingView.HomeLine;
-import dev.hycolony.core.app.ui.BuildingView.WorkerRow;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
@@ -50,7 +50,7 @@ class HireListTest {
         citizen(3, "Far", new BlockPos(100, 64, 0)); // 70 blocks: 80 once rounded
         citizen(4, "Near", new BlockPos(60, 64, 0)); // 30 blocks: 40 once rounded
 
-        List<String> names = view().hireable().stream().map(WorkerRow::name).toList();
+        List<String> names = rows().stream().map(Candidate::name).toList();
 
         assertEquals(List.of("Near", "Far", "Abe", "Zed"), names); // the homeless count as 100
     }
@@ -61,10 +61,16 @@ class HireListTest {
         citizen(2, "Here", HUT);
         citizen(3, "Away", new BlockPos(60, 64, 0));
 
-        List<WorkerRow> rows = view().hireable();
+        List<Candidate> rows = rows();
 
-        assertEquals(new WorkerRow(2, "Here", HomeLine.LIVES_HERE, 0), rows.get(0));
-        assertEquals(new WorkerRow(3, "Away", HomeLine.DISTANCE, 30), rows.get(1));
-        assertEquals(new WorkerRow(1, "Home", HomeLine.HOMELESS, 0), rows.get(2));
+        assertEquals(List.of(2, 3, 1), rows.stream().map(Candidate::citizenId).toList());
+        assertEquals(HomeLine.LIVES_HERE, rows.get(0).home());
+        assertEquals(HomeLine.DISTANCE, rows.get(1).home());
+        assertEquals(30, rows.get(1).homeDistance());
+        assertEquals(HomeLine.HOMELESS, rows.get(2).home());
+    }
+
+    private List<Candidate> rows() {
+        return view().hire().orElseThrow().listed(false);
     }
 }

@@ -32,6 +32,7 @@ import dev.hycolony.plugin.ui.RequestsPage;
 import dev.hycolony.plugin.ui.citizen.CitizenInventoryWindows;
 import dev.hycolony.plugin.ui.citizen.CitizenPage;
 import dev.hycolony.plugin.ui.field.FieldPage;
+import dev.hycolony.plugin.ui.hut.HutWindow;
 import dev.hycolony.plugin.ui.townhall.TownHallPage;
 import dev.hycolony.plugin.ui.wand.WandPage;
 import java.util.HashSet;
@@ -136,10 +137,7 @@ public final class HytaleUiPort implements UiPort {
 
     @Override
     public boolean refreshBuilding(UUID player, BuildingView view) {
-        return live.refresh(
-                player,
-                new WindowKey.Hut(view.pos()),
-                (pr, previous) -> new BuildingPage(pr, view, manager.get()).keepStateOf(previous));
+        return live.refresh(player, new WindowKey.Hut(view.pos()), buildingPage(view));
     }
 
     @Override
@@ -156,8 +154,14 @@ public final class HytaleUiPort implements UiPort {
         return (pr, previous) -> new TownHallPage(pr, view, manager.get()).keepTabOf(previous);
     }
 
+    /**
+     * The window of the player for this hut drawing {@code view}: the one open (main window or a window it opened, MC
+     * keeps a sub-window open after its action), else the hut's main window.
+     */
     private BiFunction<PlayerRef, CustomUIPage, ColonyPage> buildingPage(BuildingView view) {
-        return (pr, previous) -> new BuildingPage(pr, view, manager.get()).keepTabOf(previous);
+        return (pr, previous) -> previous instanceof HutWindow w && w.hutPos().equals(view.pos())
+                ? w.with(pr, view)
+                : new BuildingPage(pr, view, manager.get());
     }
 
     private BiFunction<PlayerRef, CustomUIPage, ColonyPage> citizenPage(CitizenView view) {

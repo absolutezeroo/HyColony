@@ -1,0 +1,33 @@
+$B = "Book.ui";
+$C = "../../../Common.ui";
+
+// A citizen of MC's hire window (gui/windowhireworker.xml "unemployed" view), MC sizes doubled: MC's faint brown
+// gradient (ARGB 0x19A55400), "Job: Name" in blue, where it lives (MC text scale 0.8), its skills (scale 0.7) with
+// the job's skill description as tooltip, and Hire or Fire on builder_button_quite_small.
+
+Group {
+  Anchor: (Height: 70);
+  Background: #a55400(0.1);
+
+  Label #Name {
+    Anchor: (Left: 10, Top: 0, Width: 350, Height: 24);
+    Style: (FontSize: 15, TextColor: #0000ff, VerticalAlignment: Center);
+  }
+
+  Label #Distance {
+    Anchor: (Left: 4, Top: 20, Width: 600, Height: 16);
+    Style: (FontSize: 12, TextColor: #000000, VerticalAlignment: Center);
+  }
+
+  Label #Skills {
+    Anchor: (Left: 4, Top: 36, Width: 740, Height: 32);
+    Style: (FontSize: 11, TextColor: #000000, Wrap: true, VerticalAlignment: Start);
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+  }
+
+  TextButton #Button {
+    Anchor: (Left: 400, Top: 4, Width: 88, Height: 20);
+    Style: $B.@QuiteSmallButtonStyle;
+    Text: "";
+  }
+}

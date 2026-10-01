@@ -16,6 +16,60 @@ $C = "../../../Common.ui";
   Sounds: $C.@ButtonSounds
 );
 
+// A disabled MC button keeps its texture (or MC's _disabled one) and greys its text, as BlockUI's ButtonImage.
+@InkDisabled = LabelStyle(...@InkCentered, TextColor: #707070);
+
+@WideButtonDisabledStyle = TextButtonStyle(
+  ...@WideButtonStyle,
+  Disabled: (Background: "builder_button_medium_large_disabled.png", LabelStyle: @InkDisabled)
+);
+
+// MC's builder_button_medium (86 x 17), doubled.
+@MediumButtonStyle = TextButtonStyle(
+  Default: (Background: "builder_button_medium.png", LabelStyle: @InkCentered),
+  Hovered: (Background: "builder_button_medium.png", LabelStyle: (...@InkCentered, RenderBold: true)),
+  Pressed: (Background: "builder_button_medium.png", LabelStyle: @InkCentered),
+  Disabled: (Background: "builder_button_medium_disabled.png", LabelStyle: @InkDisabled),
+  Sounds: $C.@ButtonSounds
+);
+
+// MC's builder_button_small (64 x 17), doubled.
+@SmallButtonStyle = TextButtonStyle(
+  Default: (Background: "builder_button_small.png", LabelStyle: @InkCentered),
+  Hovered: (Background: "builder_button_small.png", LabelStyle: (...@InkCentered, RenderBold: true)),
+  Pressed: (Background: "builder_button_small.png", LabelStyle: @InkCentered),
+  Disabled: (Background: "builder_button_small_disabled.png", LabelStyle: @InkDisabled),
+  Sounds: $C.@ButtonSounds
+);
+
+// MC's builder_button_quite_small (44 x 16), doubled, its label at MC's 0.8 scale.
+@QuiteSmallInk = LabelStyle(...@InkCentered, FontSize: 12);
+@QuiteSmallButtonStyle = TextButtonStyle(
+  Default: (Background: "builder_button_quite_small.png", LabelStyle: @QuiteSmallInk),
+  Hovered: (Background: "builder_button_quite_small.png", LabelStyle: (...@QuiteSmallInk, RenderBold: true)),
+  Pressed: (Background: "builder_button_quite_small.png", LabelStyle: @QuiteSmallInk),
+  Disabled: (Background: "builder_button_quite_small_disabled.png", LabelStyle: (...@QuiteSmallInk, TextColor: #707070)),
+  Sounds: $C.@ButtonSounds
+);
+
+// MC's builder_button_large (169 x 17), doubled.
+@LargeButtonStyle = TextButtonStyle(
+  Default: (Background: "builder_button_large.png", LabelStyle: @InkCentered),
+  Hovered: (Background: "builder_button_large.png", LabelStyle: (...@InkCentered, RenderBold: true)),
+  Pressed: (Background: "builder_button_large.png", LabelStyle: @InkCentered),
+  Disabled: (Background: "builder_button_large_disabled.png", LabelStyle: @InkDisabled),
+  Sounds: $C.@ButtonSounds
+);
+
+// MC's builder_button_very_small (29 x 15), doubled.
+@VerySmallButtonStyle = TextButtonStyle(
+  Default: (Background: "builder_button_very_small.png", LabelStyle: @InkCentered),
+  Hovered: (Background: "builder_button_very_small.png", LabelStyle: (...@InkCentered, RenderBold: true)),
+  Pressed: (Background: "builder_button_very_small.png", LabelStyle: @InkCentered),
+  Disabled: (Background: "builder_button_very_small_disabled.png", LabelStyle: @InkDisabled),
+  Sounds: $C.@ButtonSounds
+);
+
 // MC's builder_button_mini (14 x 15), doubled: the "<", ">" and row arrow buttons.
 @MiniButtonStyle = TextButtonStyle(
   Default: (Background: "builder_button_mini.png", LabelStyle: @InkCentered),

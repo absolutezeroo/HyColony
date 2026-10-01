@@ -1,0 +1,31 @@
+$P = "Parts.ui";
+$B = "../Mc/Book.ui";
+
+// A residence's main page (MC windowhuthome.xml in layouthutpageactionsmin.xml), MC positions and sizes doubled: the
+// title strip, "Assigned Citizens: n/m", the residents, Manage Housing, Build Options, Recall Citizens, then Help,
+// Inventory and the inventory summary chest.
+
+Group {
+  Anchor: (Left: 0, Top: 0, Width: 380, Height: 488);
+
+  $P.@SketchLeft {}
+  $P.@SketchCenter {}
+  $P.@SketchRight {}
+  $P.@Title #Title {}
+  $P.@EditName #EditName {}
+
+  Label #Assigned {
+    Anchor: (Left: 26, Top: 64, Width: 328, Height: 22);
+    Style: $B.@InkCentered;
+  }
+
+  $P.@List #Residents { @Top = 96; @Height = 60; }
+
+  $P.@WideButton #Assign { @Top = 184; Text: %hycolony.ui.hut.manageHousing; }
+  $P.@Build #Build {}
+  $P.@WideButton #Recall { @Top = 256; Text: %hycolony.ui.residence.recall; }
+
+  $P.@Info #Info {}
+  $P.@Inventory #Inventory {}
+  $P.@AllInventory #AllInventory {}
+}

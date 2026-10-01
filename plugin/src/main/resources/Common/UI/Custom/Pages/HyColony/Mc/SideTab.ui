@@ -1,0 +1,40 @@
+$C = "../../../Common.ui";
+
+// One side tab of a hut window (MC TabsWindowModule.renderTabButton), MC sizes doubled: a 64 x 52 tab whose
+// background is one of tab_left_side1..4 and a 40 x 40 module icon at (10, 6), the module's description as tooltip.
+// SideTabs shows one background and one icon; #Hit takes the click and the tooltip.
+
+@Back = Group {
+  Anchor: (Left: 0, Top: 0, Width: 64, Height: 52);
+  Visible: false;
+};
+
+@Icon = Group {
+  Anchor: (Left: 10, Top: 6, Width: 40, Height: 40);
+  Visible: false;
+};
+
+Group {
+  Anchor: (Width: 64, Height: 56);
+
+  @Back #Back1 { Background: "tab_left_side1.png"; }
+  @Back #Back2 { Background: "tab_left_side2.png"; }
+  @Back #Back3 { Background: "tab_left_side3.png"; }
+  @Back #Back4 { Background: "tab_left_side4.png"; }
+
+  @Icon #IconMain { Background: "main.png"; }
+  @Icon #IconCrafting { Background: "crafting.png"; }
+  @Icon #IconInventory { Background: "inventory.png"; }
+  @Icon #IconSettings { Background: "settings.png"; }
+  @Icon #IconInfo { Background: "info.png"; }
+  @Icon #IconStock { Background: "stock.png"; }
+  @Icon #IconStats { Background: "stats.png"; }
+  @Icon #IconField { Background: "field.png"; }
+  @Icon #IconEntity { Background: "entity.png"; }
+
+  Button #Hit {
+    Anchor: (Left: 0, Top: 0, Width: 64, Height: 52);
+    Style: (Default: (Background: #000000(0)), Sounds: $C.@ButtonSounds);
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+  }
+}

@@ -39,7 +39,12 @@ final class FieldsTab implements HutTab {
     }
 
     @Override
-    public String labelKey() {
+    public String icon() {
+        return "field";
+    }
+
+    @Override
+    public String descKey() {
         return "hycolony.ui.building.tab.fields";
     }
 

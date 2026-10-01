@@ -44,7 +44,8 @@ public final class HutTabs {
             case CourierTasksView c -> Optional.of(new CourierTasksTab(c));
             case FieldsView f -> Optional.of(new FieldsTab(manager, player, view.pos(), f));
             case RecipesView r -> Optional.of(new RecipesTab(manager, player, view.pos(), r, view.canManage()));
-            case ResidentsView r -> Optional.of(new ResidentsTab(manager, player, view.pos(), r));
+            // MC LivingBuildingModuleView has no page: the residence's main page and assign window show it.
+            case ResidentsView _ -> Optional.empty();
             default -> {
                 LOG.at(Level.FINE).log(
                         "No renderer for the hut tab %s", tab.getClass().getSimpleName());

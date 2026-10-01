@@ -1,0 +1,51 @@
+$P = "Parts.ui";
+$B = "../Mc/Book.ui";
+
+// The main page of a hut with workers (MC layouthutpageactions.xml in layouthutpageactionsmin.xml), MC positions and
+// sizes doubled: the title strip, the assigned workers, Manage Workers, Recall Worker, Build Options, the pickup
+// priority with - and +, Request Pickup Now, then Help, Inventory and the inventory summary chest.
+
+Group {
+  Anchor: (Left: 0, Top: 0, Width: 380, Height: 488);
+
+  $P.@SketchLeft {}
+  $P.@SketchCenter {}
+  $P.@SketchRight {}
+  $P.@Title #Title {}
+  $P.@EditName #EditName {}
+
+  Label {
+    Anchor: (Left: 26, Top: 64, Width: 328, Height: 22);
+    Style: (...$B.@InkCentered, RenderBold: true);
+    Text: %hycolony.ui.hut.workersAssigned;
+  }
+
+  $P.@List #Workers { @Top = 86; @Height = 60; }
+
+  $P.@WideButton #Hire { @Top = 148; Text: %hycolony.ui.hut.manageWorkers; }
+  $P.@WideButton #Recall { @Top = 184; Text: %hycolony.ui.hut.recallWorker; }
+  $P.@Build #Build {}
+
+  Label #Prio {
+    Anchor: (Left: 60, Top: 270, Width: 190, Height: 30);
+    Style: $B.@Ink;
+  }
+
+  TextButton #PrioDown {
+    Anchor: (Left: 254, Top: 270, Width: 28, Height: 30);
+    Style: $B.@MiniButtonStyle;
+    Text: "-";
+  }
+
+  TextButton #PrioUp {
+    Anchor: (Left: 288, Top: 270, Width: 28, Height: 30);
+    Style: $B.@MiniButtonStyle;
+    Text: "+";
+  }
+
+  $P.@WideButton #ForcePickup { @Top = 308; Text: %hycolony.ui.hut.forcePickup; }
+
+  $P.@Info #Info {}
+  $P.@Inventory #Inventory {}
+  $P.@AllInventory #AllInventory {}
+}

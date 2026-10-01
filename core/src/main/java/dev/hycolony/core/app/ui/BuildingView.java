@@ -1,22 +1,23 @@
 package dev.hycolony.core.app.ui;
 
+import dev.hycolony.core.app.hut.HireView;
+import dev.hycolony.core.app.hut.HutStock;
 import dev.hycolony.core.building.module.ModuleTab;
 import dev.hycolony.core.construction.workorder.WorkOrderType;
-import dev.hycolony.core.job.HiringMode;
 import dev.hycolony.core.kernel.BlockPos;
-import dev.hycolony.core.kernel.item.ItemAmount;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Set;
 
 /**
- * A hut's window. {@code allowed} is empty while an order exists (the button becomes Cancel); {@code hiringMode} is
- * empty for a building that employs no one;
+ * A hut's window. {@code customName}: the name the players gave the hut, empty for none (the title then shows the
+ * type's name, MC IBuildingView.getBuildingDisplayName). {@code hire}: the hire window of a hut that employs workers
+ * (MC WindowHireWorker), empty otherwise. {@code allowed} is empty while an order exists (the button becomes Cancel);
  * {@code pickupPriority}: shown on worker huts only (MC AbstractWindowWorkerModuleBuilding); {@code stock}: what the
- * hut and its racks hold, most first (MC WindowHutAllInventory); {@code tabs}: the tabs of the hut's modules, in
- * module order (MC module views); {@code upgradeWarning}: the language key of what the next level lacks, shown on
- * the build button (MC getHoverWarningForLevel).
+ * hut and its racks hold, by item with the containers holding it (MC WindowHutAllInventory); {@code tabs}: the tabs
+ * of the hut's modules, in module order (MC module views); {@code upgradeWarning}: the language key of what the next
+ * level lacks, shown on the build button (MC getHoverWarningForLevel).
  */
 public record BuildingView(
         int colonyId,
@@ -26,37 +27,36 @@ public record BuildingView(
         int maxLevel,
         boolean built,
         boolean deconstructed,
-        List<WorkerRow> workers,
-        List<WorkerRow> hireable,
-        Optional<HiringMode> hiringMode,
+        String customName,
+        MainKind mainKind,
+        List<WorkerLine> workers,
+        Optional<HireView> hire,
         Optional<OrderRow> order,
         Set<WorkOrderType> allowed,
         List<String> styles,
         String style,
         boolean canManage,
         OptionalInt pickupPriority,
-        List<ItemAmount> stock,
+        List<HutStock> stock,
         List<ModuleTab> tabs,
         Optional<String> upgradeWarning) {
-    /**
-     * A worker or a candidate, with where it lives (MC WindowHireWorker's distance label); {@code homeDistance} in
-     * blocks, for {@link HomeLine#DISTANCE} only.
-     */
-    public record WorkerRow(int citizenId, String name, HomeLine home, int homeDistance) {}
+    /** A worker on the main page (MC AbstractWindowWorkerModuleBuilding): "Job: Name", tooltip "Name (id)". */
+    public record WorkerLine(int citizenId, String name, String jobId) {}
 
-    /** MC hiring labels: homeless, lives here, lives at its current workplace, lives N blocks from here. */
-    public enum HomeLine {
-        HOMELESS,
-        LIVES_HERE,
-        LIVES_AT_WORK,
-        DISTANCE
+    /**
+     * MC AbstractBuildingView.getWindow: a hut with workers (layouthutpageactions), a residence (windowhuthome) or
+     * any other hut (layouthutpageactionsmin).
+     */
+    public enum MainKind {
+        WORKERS,
+        LIVING,
+        SIMPLE
     }
 
     public record OrderRow(int id, WorkOrderType type, int targetLevel, Optional<String> builderName, int percent) {}
 
     public BuildingView {
         workers = List.copyOf(workers);
-        hireable = List.copyOf(hireable);
         allowed = Set.copyOf(allowed);
         styles = List.copyOf(styles);
         stock = List.copyOf(stock);

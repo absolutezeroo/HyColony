@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.app.ColonyManager;
+import dev.hycolony.core.app.hut.HireView;
 import dev.hycolony.core.app.ui.BuildingView;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
@@ -32,9 +33,7 @@ class StaleHireWindowTest {
         ann.setName("Ann");
         colony.citizens().restore(ann);
         manager.windows().openBuilding(alice, pos);
-        assertEquals(
-                List.of(new BuildingView.WorkerRow(1, "Ann", BuildingView.HomeLine.HOMELESS, 0)),
-                ((BuildingView) t.ui.shown.get(alice)).hireable());
+        assertEquals(1, listed((BuildingView) t.ui.shown.get(alice)).getFirst().citizenId());
 
         colony.buildings().onColonyTick(colony); // DEFAULT hiring mode auto-hires Ann behind the open window
         t.ui.shown.clear();
@@ -42,8 +41,12 @@ class StaleHireWindowTest {
         assertFalse(manager.huts().hire(alice, hut.position(), ann.id()), "Ann is already employed");
         BuildingView shown = (BuildingView) t.ui.shown.get(alice);
         assertTrue(shown != null, "the stale window is re-shown");
-        assertEquals(List.of(new BuildingView.WorkerRow(1, "Ann", BuildingView.HomeLine.HOMELESS, 0)), shown.workers());
-        assertEquals(List.of(), shown.hireable());
+        assertEquals(List.of(new BuildingView.WorkerLine(1, "Ann", "hycolony:builder")), shown.workers());
+        assertTrue(listed(shown).getFirst().here(), "Ann is listed as working here");
+    }
+
+    private static List<HireView.Candidate> listed(BuildingView v) {
+        return v.hire().orElseThrow().listed(false);
     }
 
     @Test

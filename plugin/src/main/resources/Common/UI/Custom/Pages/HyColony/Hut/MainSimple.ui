@@ -1,0 +1,18 @@
+$P = "Parts.ui";
+
+// The main page of a hut without workers nor residents, the warehouse (MC layouthutpageactionsmin.xml), MC positions
+// and sizes doubled: the title strip, Build Options, Help, Inventory and the inventory summary chest.
+
+Group {
+  Anchor: (Left: 0, Top: 0, Width: 380, Height: 488);
+
+  $P.@SketchLeft {}
+  $P.@SketchCenter {}
+  $P.@SketchRight {}
+  $P.@Title #Title {}
+  $P.@EditName #EditName {}
+  $P.@Build #Build {}
+  $P.@Info #Info {}
+  $P.@Inventory #Inventory {}
+  $P.@AllInventory #AllInventory {}
+}

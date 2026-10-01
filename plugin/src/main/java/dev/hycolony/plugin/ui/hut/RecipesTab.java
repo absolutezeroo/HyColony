@@ -43,7 +43,12 @@ final class RecipesTab implements HutTab {
     }
 
     @Override
-    public String labelKey() {
+    public String icon() {
+        return "crafting";
+    }
+
+    @Override
+    public String descKey() {
         return "hycolony.ui.building.tab.recipes";
     }
 

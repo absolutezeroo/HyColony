@@ -16,6 +16,12 @@ public enum HiringMode {
         return all[(ordinal() + 1) % all.length];
     }
 
+    /** MC WindowHireWorker.switchHiringMode: the next mode of a workplace, which skips LOCKED (homes only). */
+    public HiringMode nextForWorkplace() {
+        HiringMode next = next();
+        return next == LOCKED ? LOCKED.next() : next;
+    }
+
     /**
      * MC {@code AbstractBuilding.canAssignCitizens}: built and above level 0, or always for a building that allows
      * level 0 (MC {@code BuildingBuilder} overrides it to true).

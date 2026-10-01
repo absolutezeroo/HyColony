@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.app.ColonyManager;
+import dev.hycolony.core.app.hut.HutStock;
 import dev.hycolony.core.app.ui.BuildingView;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.building.module.ModuleProducer;
@@ -25,7 +26,9 @@ import dev.hycolony.core.logistics.warehouse.WarehouseBuilding;
 import dev.hycolony.core.logistics.warehouse.WarehouseTasksView;
 import dev.hycolony.core.testing.TestContexts;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -87,15 +90,14 @@ class ModuleTabsTest {
     }
 
     @Test
-    void everyHutShowsItsStockMostHeldFirst() {
+    void everyHutShowsItsStock() {
         BlockPos pos = new BlockPos(0, 64, -20);
         t.containers.insert(List.of(pos), new ItemAmount(new ItemKey("Wood_Oak_Trunk"), 3));
         t.containers.insert(List.of(pos), new ItemAmount(new ItemKey("Rock_Stone"), 40));
 
         assertEquals(
-                List.of(
-                        new ItemAmount(new ItemKey("Rock_Stone"), 40),
-                        new ItemAmount(new ItemKey("Wood_Oak_Trunk"), 3)),
-                view(ConstructionBuildingTypes.RESIDENCE, pos).stock());
+                Map.of(new ItemKey("Rock_Stone"), 40, new ItemKey("Wood_Oak_Trunk"), 3),
+                view(ConstructionBuildingTypes.RESIDENCE, pos).stock().stream()
+                        .collect(Collectors.toMap(HutStock::item, HutStock::count)));
     }
 }

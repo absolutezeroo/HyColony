@@ -1,0 +1,15 @@
+$B = "Book.ui";
+$C = "../../../Common.ui";
+
+// One line of a hut main page list (MC layouthutpageactions.xml "workers", windowhuthome.xml "assignedCitizen"), MC
+// row of 11 doubled: "Job: Name" centred, with a tooltip when the page sets one.
+
+Group {
+  Anchor: (Height: 22);
+
+  Label #Line {
+    Anchor: (Left: 0, Top: 0, Width: 316, Height: 22);
+    Style: (...$B.@InkCentered, FontSize: 14);
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+  }
+}

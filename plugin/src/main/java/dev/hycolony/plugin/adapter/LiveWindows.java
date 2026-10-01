@@ -9,9 +9,9 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.app.ui.WindowKey;
-import dev.hycolony.plugin.ui.BuildingPage;
 import dev.hycolony.plugin.ui.ColonyPage;
 import dev.hycolony.plugin.ui.citizen.CitizenPage;
+import dev.hycolony.plugin.ui.hut.HutWindow;
 import dev.hycolony.plugin.ui.townhall.TownHallPage;
 import java.util.UUID;
 import java.util.function.BiFunction;
@@ -69,8 +69,7 @@ final class LiveWindows {
 
     private static boolean shows(ColonyPage page, WindowKey window) {
         return switch (window) {
-            case WindowKey.Hut h ->
-                page instanceof BuildingPage b && b.view().pos().equals(h.pos());
+            case WindowKey.Hut h -> page instanceof HutWindow w && w.hutPos().equals(h.pos());
             case WindowKey.TownHall t ->
                 page instanceof TownHallPage p && p.view().colonyId() == t.colonyId();
             case WindowKey.Citizen c ->

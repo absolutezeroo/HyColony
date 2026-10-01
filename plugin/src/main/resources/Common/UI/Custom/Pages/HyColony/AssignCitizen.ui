@@ -1,0 +1,51 @@
+$C = "../../Common.ui";
+$B = "Mc/Book.ui";
+
+// A residence's assign window (MC gui/windowassigncitizen.xml, WindowAssignCitizen), MC positions and sizes doubled:
+// the wide paper, the residents on the left with Unassign, the other citizens on the right with Assign, the building
+// assignment mode and the closing cross.
+
+@Column = Group {
+  @Left = 0;
+
+  Anchor: (Left: @Left, Top: 80, Width: 380, Height: 320);
+  LayoutMode: TopScrolling;
+  ScrollbarStyle: $C.@DefaultScrollbarStyle;
+};
+
+$C.@PageOverlay {
+  LayoutMode: Middle;
+
+  Group {
+    Anchor: (Width: 800, Height: 488);
+    Background: "Mc/builder_paper_wide2.png";
+
+    Label {
+      Anchor: (Left: 0, Top: 40, Width: 800, Height: 22);
+      Style: $B.@InkCentered;
+      Text: %hycolony.ui.hut.assign.description;
+    }
+
+    @Column #Residents { @Left = 20; }
+    @Column #Candidates { @Left = 402; }
+
+    Label {
+      Anchor: (Left: 80, Top: 420, Width: 260, Height: 22);
+      Style: $B.@Ink;
+      Text: %hycolony.ui.hut.assign.mode;
+    }
+
+    TextButton #Mode {
+      Anchor: (Left: 340, Top: 414, Width: 338, Height: 34);
+      Style: $B.@LargeButtonStyle;
+      Text: "";
+    }
+
+    Button #Cancel {
+      Anchor: (Left: 750, Top: 20, Width: 28, Height: 30);
+      Style: (Default: (Background: "Mc/button_x.png"), Sounds: $C.@ButtonSounds);
+    }
+  }
+}
+
+$C.@BackButton {}

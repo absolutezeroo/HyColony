@@ -1,0 +1,90 @@
+$B = "../Mc/Book.ui";
+$C = "../../../Common.ui";
+
+// The pieces every MC hut main page shares (gui/layouthuts/layouthutpageactionsminwoinv.xml and
+// layouthutpageactionsmin.xml), MC positions and sizes doubled; module pages use @Desc (MC "desc" header). Pages
+// instantiate them with their ids; texture paths resolve from this file.
+
+@SketchLeft = Group {
+  Anchor: (Left: 48, Top: 24, Width: 12, Height: 30);
+  Background: "../Mc/builder_sketch_left.png";
+};
+
+@SketchCenter = Group {
+  Anchor: (Left: 60, Top: 24, Width: 260, Height: 30);
+  Background: "../Mc/builder_sketch_center.png";
+};
+
+@SketchRight = Group {
+  Anchor: (Left: 320, Top: 24, Width: 12, Height: 30);
+  Background: "../Mc/builder_sketch_right.png";
+};
+
+// MC "name": the hut's display name and level, red (BlockUI's red is #FF0000).
+@Title = Label {
+  Anchor: (Left: 60, Top: 28, Width: 256, Height: 22);
+  Style: (...$B.@InkCentered, TextColor: #ff0000);
+};
+
+// MC "editName": builderhut/edit with the tooltip "Edit".
+@EditName = Button {
+  Anchor: (Left: 300, Top: 22, Width: 30, Height: 30);
+  Style: (Default: (Background: "../Mc/edit.png"), Sounds: $C.@ButtonSounds);
+  TooltipText: %hycolony.ui.hut.edit;
+  TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+};
+
+// MC "build": Build Options, or the cancel label of the hut's order.
+@Build = TextButton {
+  Anchor: (Left: 60, Top: 220, Width: 258, Height: 34);
+  Style: $B.@WideButtonStyle;
+  Text: "";
+};
+
+// MC "info": the red wax help seal, shown when the hut has help pages.
+@Info = Button {
+  Anchor: (Left: 28, Top: 428, Width: 34, Height: 34);
+  Style: (Default: (Background: "../Mc/red_wax_information.png"), Sounds: $C.@ButtonSounds);
+  TooltipText: %hycolony.ui.hut.help;
+  TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+};
+
+// MC "inventory": opens the hut block's container.
+@Inventory = TextButton {
+  Anchor: (Left: 104, Top: 428, Width: 172, Height: 34);
+  Style: $B.@MediumButtonStyle;
+  Text: %hycolony.ui.hut.inventory;
+};
+
+// MC "allinventory": the chest opening the building inventory summary.
+@AllInventory = Button {
+  Anchor: (Left: 318, Top: 428, Width: 34, Height: 34);
+  Style: (Default: (Background: "../Mc/chest.png"), Sounds: $C.@ButtonSounds);
+  TooltipText: %hycolony.ui.hut.inventorySummary;
+  TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+};
+
+// MC "desc" of a module page (AbstractModuleWindow): the module's description, black, in the title strip's place.
+@Desc = Label {
+  Anchor: (Left: 60, Top: 28, Width: 260, Height: 22);
+  Style: $B.@InkCentered;
+};
+
+// A wide MC button (builder_button_medium_large) at MC x 30, doubled.
+@WideButton = TextButton {
+  @Top = 0;
+
+  Anchor: (Left: 60, Top: @Top, Width: 258, Height: 34);
+  Style: $B.@WideButtonStyle;
+  Text: "";
+};
+
+// A one-line MC list (164 wide at x 13), doubled, 22-high rows appended by the page.
+@List = Group {
+  @Top = 0;
+  @Height = 60;
+
+  Anchor: (Left: 26, Top: @Top, Width: 328, Height: @Height);
+  LayoutMode: TopScrolling;
+  ScrollbarStyle: $C.@DefaultScrollbarStyle;
+};

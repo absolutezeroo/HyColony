@@ -1,0 +1,33 @@
+$C = "../../Common.ui";
+
+// MC gui/windowhutnameentry.xml: a lightbox window with a title, a field of 25 characters, Done and Cancel; MC
+// positions and sizes doubled. MC draws the game's default buttons here, so Hytale's own stand in.
+
+$C.@PageOverlay {
+  LayoutMode: Middle;
+
+  Group {
+    Anchor: (Width: 840, Height: 480);
+
+    Label {
+      Anchor: (Left: 0, Top: 200, Width: 840, Height: 22);
+      Text: %hycolony.ui.hut.rename.title;
+      Style: (FontSize: 16, TextColor: #ffffff, HorizontalAlignment: Center);
+    }
+
+    $C.@TextField #Name {
+      @Anchor = (Left: 270, Top: 220, Width: 300);
+      MaxLength: 25;
+    }
+
+    $C.@TextButton #DoneButton {
+      @Anchor = (Left: 220, Top: 340, Width: 400);
+      Text: %hycolony.ui.townhall.rename.done;
+    }
+
+    $C.@SecondaryTextButton #CancelButton {
+      @Anchor = (Left: 220, Top: 388, Width: 400);
+      Text: %hycolony.ui.townhall.rename.cancel;
+    }
+  }
+}

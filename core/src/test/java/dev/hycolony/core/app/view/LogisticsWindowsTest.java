@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.app.ColonyManager;
+import dev.hycolony.core.app.hut.HutStock;
 import dev.hycolony.core.app.ui.BuildingView;
 import dev.hycolony.core.app.ui.CitizenView;
 import dev.hycolony.core.app.ui.RequestsView;
@@ -34,9 +35,11 @@ import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.request.model.StackRequest;
 import dev.hycolony.core.testing.TestContexts;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
 /** The logistics windows (MC warehouse modules, courier task list, pickup priority) and courier requests in views. */
@@ -108,38 +111,38 @@ class LogisticsWindowsTest {
 
     @Test
     void pickupPriorityButtonsNeedManageHutsAndStayWithinZeroToTen() {
-        assertTrue(manager.logistics().alterPickupPriority(alice, builder.position(), true));
+        assertTrue(manager.hutWindows().pickup().alterPickupPriority(alice, builder.position(), true));
         assertEquals(OptionalInt.of(6), ((BuildingView) t.ui.shown.get(alice)).pickupPriority(), "re-shown");
 
-        assertFalse(manager.logistics().alterPickupPriority(carol, builder.position(), false));
-        assertFalse(manager.logistics().alterPickupPriority(alice, warehouse.position(), true), "no worker");
+        assertFalse(manager.hutWindows().pickup().alterPickupPriority(carol, builder.position(), false));
+        assertFalse(manager.hutWindows().pickup().alterPickupPriority(alice, warehouse.position(), true), "no worker");
         assertEquals(6, builder.pickupPriority().value());
         assertEquals(5, warehouse.pickupPriority().value());
 
         for (int i = 0; i < 12; i++) {
-            manager.logistics().alterPickupPriority(alice, builder.position(), false);
+            manager.hutWindows().pickup().alterPickupPriority(alice, builder.position(), false);
         }
         assertEquals(0, builder.pickupPriority().value());
         for (int i = 0; i < 12; i++) {
-            manager.logistics().alterPickupPriority(alice, builder.position(), true);
+            manager.hutWindows().pickup().alterPickupPriority(alice, builder.position(), true);
         }
         assertEquals(10, builder.pickupPriority().value());
     }
 
     @Test
     void forcePickupCreatesOneForcedPickupAndTellsThePlayer() {
-        assertFalse(manager.logistics().forcePickup(carol, builder.position()));
+        assertFalse(manager.hutWindows().pickup().forcePickup(carol, builder.position()));
         assertEquals(List.of(), pickups());
         assertEquals(
                 "hycolony.permission.toolDenied",
                 t.notifier.sent.getLast().msg().key());
 
-        assertTrue(manager.logistics().forcePickup(alice, builder.position()));
+        assertTrue(manager.hutWindows().pickup().forcePickup(alice, builder.position()));
         assertEquals("hycolony.pickup.forced", t.notifier.sent.getLast().msg().key());
         assertEquals(1, pickups().size());
         assertEquals(Pickup.MAX_BUILDING_PRIORITY, ((Pickup) pickups().get(0).requestable()).priority());
 
-        assertFalse(manager.logistics().forcePickup(alice, builder.position()), "one open pickup per hut");
+        assertFalse(manager.hutWindows().pickup().forcePickup(alice, builder.position()), "one open pickup per hut");
         assertEquals(
                 "hycolony.pickup.forceFailed", t.notifier.sent.getLast().msg().key());
         assertEquals(1, pickups().size());
@@ -147,7 +150,7 @@ class LogisticsWindowsTest {
 
     @Test
     void forcePickupIsRefusedOnAHutWithoutWorkers() {
-        assertFalse(manager.logistics().forcePickup(alice, warehouse.position()), "MC: worker huts only");
+        assertFalse(manager.hutWindows().pickup().forcePickup(alice, warehouse.position()), "MC: worker huts only");
         assertEquals(List.of(), pickups());
         assertEquals(List.of(), t.notifier.sent);
     }
@@ -169,7 +172,9 @@ class LogisticsWindowsTest {
 
         assertEquals(List.of("Cora"), w.couriers());
         assertEquals(2, w.maxCouriers(), "level 1 x 2");
-        assertEquals(List.of(new ItemAmount(STONE, 40), new ItemAmount(LOG, 3)), v.stock());
+        assertEquals(
+                Map.of(STONE, 40, LOG, 3),
+                v.stock().stream().collect(Collectors.toMap(HutStock::item, HutStock::count)));
         assertEquals(List.of(), v.tab(WarehouseTasksView.class).orElseThrow().queue());
     }
 
@@ -255,7 +260,7 @@ class LogisticsWindowsTest {
 
     @Test
     void clipboardShowsAPickupHeldByThePlayer() {
-        assertTrue(manager.logistics().forcePickup(alice, builder.position()));
+        assertTrue(manager.hutWindows().pickup().forcePickup(alice, builder.position()));
 
         List<RequestRow> rows = clipboard().rows();
 

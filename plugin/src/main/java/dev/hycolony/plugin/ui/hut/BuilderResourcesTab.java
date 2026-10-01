@@ -46,7 +46,12 @@ final class BuilderResourcesTab implements HutTab {
     }
 
     @Override
-    public String labelKey() {
+    public String icon() {
+        return "inventory";
+    }
+
+    @Override
+    public String descKey() {
         return "hycolony.ui.building.tab.resources";
     }
 

@@ -25,7 +25,12 @@ final class WarehouseCouriersTab implements HutTab {
     }
 
     @Override
-    public String labelKey() {
+    public String icon() {
+        return "entity";
+    }
+
+    @Override
+    public String descKey() {
         return "hycolony.ui.building.tab.couriers";
     }
 

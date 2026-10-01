@@ -14,7 +14,6 @@ import com.hypixel.hytale.server.core.universe.world.chunk.section.BlockSection;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.app.ColonyManager;
-import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.port.Msg;
 import dev.hycolony.plugin.adapter.HytaleNotifier;
@@ -33,18 +32,14 @@ final class HutStorage {
         this.pos = pos;
     }
 
-    /** OPEN_CONTAINER, as for any chest in the colony (ProtectionSystems' check): the button is hidden without it. */
-    boolean mayOpen() {
-        return manager.protection().allows(playerRef.getUuid(), pos, Action.OPEN_CONTAINER);
-    }
-
     /**
-     * Opens the container as vanilla OpenContainerInteraction does. On close the window leaves the block's window table
-     * (or it never opens again) and the core re-checks the building's stuck requests.
+     * Opens the container as vanilla OpenContainerInteraction does, if the core lets the player (MC
+     * OpenInventoryMessage: MANAGE_HUTS, a refusal told). On close the window leaves the block's window table (or it
+     * never opens again) and the core re-checks the building's stuck requests.
      */
     void open(Ref<EntityStore> ref, Store<EntityStore> store) {
-        if (manager.protection().refuses(playerRef.getUuid(), pos, Action.OPEN_CONTAINER)) {
-            return; // checked again: ranks may have changed since the page was built
+        if (!manager.hutWindows().mayOpenInventory(playerRef.getUuid(), pos)) {
+            return;
         }
         World world = store.getExternalData().getWorld();
         ChunkStore cs = world.getChunkStore();

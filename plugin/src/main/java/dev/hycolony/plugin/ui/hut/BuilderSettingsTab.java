@@ -39,7 +39,12 @@ final class BuilderSettingsTab implements HutTab {
     }
 
     @Override
-    public String labelKey() {
+    public String icon() {
+        return "settings";
+    }
+
+    @Override
+    public String descKey() {
         return "hycolony.ui.building.tab.settings";
     }
 

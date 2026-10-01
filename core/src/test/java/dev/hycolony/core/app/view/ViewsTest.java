@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import dev.hycolony.core.app.ColonyManager;
+import dev.hycolony.core.app.hut.HireView;
 import dev.hycolony.core.app.ui.BuildingView;
 import dev.hycolony.core.app.ui.CitizenView;
 import dev.hycolony.core.app.ui.RequestsView;
@@ -343,21 +344,15 @@ class ViewsTest {
 
         BuildingView v = view(alice, hut);
         assertEquals(List.of(), v.workers());
-        assertEquals(
-                List.of(
-                        new BuildingView.WorkerRow(ann.id(), "Ann", BuildingView.HomeLine.HOMELESS, 0),
-                        new BuildingView.WorkerRow(ben.id(), "Ben", BuildingView.HomeLine.HOMELESS, 0)),
-                v.hireable());
-        assertEquals(Optional.of(HiringMode.DEFAULT), v.hiringMode());
+        assertEquals(List.of(ann.id(), ben.id()), listed(v));
+        assertEquals(HiringMode.DEFAULT, v.hire().orElseThrow().mode());
 
         assertTrue(manager.huts().hire(alice, hut.position(), ann.id()));
         v = (BuildingView) t.ui.shown.get(alice);
-        assertEquals(
-                List.of(new BuildingView.WorkerRow(ann.id(), "Ann", BuildingView.HomeLine.HOMELESS, 0)), v.workers());
-        assertEquals(
-                List.of(new BuildingView.WorkerRow(ben.id(), "Ben", BuildingView.HomeLine.HOMELESS, 0)), v.hireable());
+        assertEquals(List.of(new BuildingView.WorkerLine(ann.id(), "Ann", "hycolony:builder")), v.workers());
+        assertEquals(List.of(ann.id(), ben.id()), listed(v), "Ann now works here: listed first");
         assertFalse(manager.huts().hire(alice, hut.position(), ben.id()), "a builder hut employs one worker");
-        assertFalse(manager.huts().hire(alice, hut.position(), bobTheBuilder.id()), "already employed elsewhere");
+        assertFalse(manager.huts().hire(alice, hut.position(), bobTheBuilder.id()), "the hut is full");
 
         assertTrue(manager.huts().fire(alice, hut.position(), ann.id()));
         assertTrue(((BuildingView) t.ui.shown.get(alice)).workers().isEmpty());
@@ -365,12 +360,21 @@ class ViewsTest {
         assertFalse(manager.huts().fire(alice, hut.position(), ann.id()), "not a worker any more");
 
         assertTrue(manager.huts().setHiring(alice, hut.position(), HiringMode.MANUAL));
-        assertEquals(Optional.of(HiringMode.MANUAL), ((BuildingView) t.ui.shown.get(alice)).hiringMode());
+        assertEquals(
+                HiringMode.MANUAL,
+                ((BuildingView) t.ui.shown.get(alice)).hire().orElseThrow().mode());
         assertEquals(
                 Optional.empty(),
-                view(alice, colony.buildings().at(hall).orElseThrow()).hiringMode(),
+                view(alice, colony.buildings().at(hall).orElseThrow()).hire(),
                 "the town hall employs no one");
         assertFalse(manager.huts().hire(alice, hall, ann.id()), "the town hall employs no one");
+    }
+
+    /** The ids the hire window lists without "Show employed?". */
+    private static List<Integer> listed(BuildingView v) {
+        return v.hire().orElseThrow().listed(false).stream()
+                .map(HireView.Candidate::citizenId)
+                .toList();
     }
 
     @Test

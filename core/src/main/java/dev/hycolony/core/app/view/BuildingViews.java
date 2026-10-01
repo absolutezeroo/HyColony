@@ -1,10 +1,11 @@
 package dev.hycolony.core.app.view;
 
+import dev.hycolony.core.app.hut.HireViews;
+import dev.hycolony.core.app.hut.HutStock;
 import dev.hycolony.core.app.ui.BuildingView;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.module.ModuleTab;
 import dev.hycolony.core.building.module.ProvidesTab;
-import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.home.LivingModule;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyAccess;
@@ -16,18 +17,21 @@ import dev.hycolony.core.construction.workorder.WorkOrderType;
 import dev.hycolony.core.farming.hut.FarmerHut;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
-import dev.hycolony.core.kernel.item.ItemAmount;
+import dev.hycolony.core.kernel.item.ItemKey;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Set;
 import java.util.UUID;
 
 /**
- * Builds a hut's window view: its level, workers, the citizens it may hire, its work order, the orders it allows, its
- * stock and the tabs its modules provide.
+ * Builds a hut's window view: its level, workers, its hire window, its work order, the orders it allows, its stock and
+ * the tabs its modules provide.
  */
 final class BuildingViews {
     private final ColonyContext ctx;
@@ -48,9 +52,10 @@ final class BuildingViews {
                 b.type().maxLevel(),
                 b.isBuilt(),
                 b.isDeconstructed(),
-                workers(c, b, w),
-                hireable(c, b, w),
-                w.map(WorkerModule::hiringMode),
+                b.customName(),
+                mainKind(b, w),
+                workers(c, w),
+                HireViews.of(c, b),
                 order.map(o -> new BuildingView.OrderRow(
                         o.id(),
                         o.type(),
@@ -87,19 +92,25 @@ final class BuildingViews {
     }
 
     /**
-     * MC WindowHutAllInventory with its "count, descending" sort: every item of the hut block and racks, most held
-     * first, ties by id.
-     *
-     * <p>Deviation from MC: no sort button nor search field; the list always uses this order.
+     * MC WindowHutAllInventory.updateResources: every item of the hut block and racks with each container holding it,
+     * most held first; the window sorts and filters them itself, as MC's.
      */
-    private List<ItemAmount> stock(Building b) {
-        return ctx.ports().containers().contents(b.containers()).entrySet().stream()
-                .filter(e -> e.getValue() > 0)
-                .map(e -> new ItemAmount(e.getKey(), e.getValue()))
-                .sorted(Comparator.comparingInt(ItemAmount::count)
-                        .reversed()
-                        .thenComparing(a -> a.item().id()))
-                .toList();
+    private List<HutStock> stock(Building b) {
+        Map<ItemKey, List<HutStock.Holder>> holders = new LinkedHashMap<>();
+        for (BlockPos pos : b.containers()) {
+            ctx.ports().containers().contents(List.of(pos)).forEach((item, count) -> {
+                if (count > 0) {
+                    holders.computeIfAbsent(item, k -> new ArrayList<>()).add(new HutStock.Holder(pos, count));
+                }
+            });
+        }
+        List<HutStock> stock = new ArrayList<>();
+        holders.forEach((item, list) -> {
+            list.sort(Comparator.comparingInt(HutStock.Holder::count).reversed());
+            stock.add(new HutStock(
+                    item, list.stream().mapToInt(HutStock.Holder::count).sum(), list));
+        });
+        return stock;
     }
 
     /** MC BuildingEntry: one tab per module that has a view, in module order. */
@@ -110,38 +121,21 @@ final class BuildingViews {
                 .toList();
     }
 
-    private static List<BuildingView.WorkerRow> workers(Colony c, Building b, Optional<WorkerModule> w) {
+    /** MC AbstractBuildingView.getWindow: workers first, then a residence, else the minimal page. */
+    private static BuildingView.MainKind mainKind(Building b, Optional<WorkerModule> w) {
+        if (w.isPresent()) {
+            return BuildingView.MainKind.WORKERS;
+        }
+        return b.module(LivingModule.class).isPresent() ? BuildingView.MainKind.LIVING : BuildingView.MainKind.SIMPLE;
+    }
+
+    private static List<BuildingView.WorkerLine> workers(Colony c, Optional<WorkerModule> w) {
         return w.map(m -> m.workers().stream()
                         .flatMap(id -> c.citizens().get(id).stream())
-                        .map(d -> workerRow(d, b.position()))
+                        .map(d -> new BuildingView.WorkerLine(
+                                d.id(), d.name(), m.job().id()))
                         .toList())
                 .orElse(List.of());
-    }
-
-    /**
-     * Adults without a job or workplace, if the hut employs anyone, sorted as MC WindowHireWorker.updateCitizens: by
-     * the distance from their home to the hut rounded to 40 blocks (the homeless count as 100), then by name.
-     */
-    private static List<BuildingView.WorkerRow> hireable(Colony c, Building b, Optional<WorkerModule> w) {
-        return w.isEmpty()
-                ? List.of()
-                : c.citizens().all().stream()
-                        .filter(d -> !d.isChild() && d.job().isEmpty() && d.workBuilding() == null)
-                        .sorted(Comparator.comparingDouble((CitizenData d) -> homeBucket(d, b.position()))
-                                .thenComparing(CitizenData::name))
-                        .map(d -> workerRow(d, b.position()))
-                        .toList();
-    }
-
-    /** MC WindowHireWorker: the home's distance to {@code hut} rounded to the nearest 40 blocks; 100 when homeless. */
-    private static double homeBucket(CitizenData d, BlockPos hut) {
-        BlockPos home = d.homeBuilding();
-        if (home == null) {
-            return 100.0;
-        }
-        double distance = Math.sqrt((double) home.distSq(hut));
-        double rest = distance % 40;
-        return rest > 20 ? distance - rest + 40 : distance - rest;
     }
 
     private static Set<WorkOrderType> allowedOrders(Building b) {
@@ -152,21 +146,5 @@ final class BuildingViews {
             }
         }
         return allowed;
-    }
-
-    /** MC WindowHireWorker's distance label: homeless, lives here, lives at its workplace, or N blocks away. */
-    private static BuildingView.WorkerRow workerRow(CitizenData d, BlockPos hut) {
-        BlockPos home = d.homeBuilding();
-        if (home == null) {
-            return new BuildingView.WorkerRow(d.id(), d.name(), BuildingView.HomeLine.HOMELESS, 0);
-        }
-        if (home.equals(hut)) {
-            return new BuildingView.WorkerRow(d.id(), d.name(), BuildingView.HomeLine.LIVES_HERE, 0);
-        }
-        if (home.equals(d.workBuilding())) {
-            return new BuildingView.WorkerRow(d.id(), d.name(), BuildingView.HomeLine.LIVES_AT_WORK, 0);
-        }
-        int distance = (int) Math.sqrt((double) home.distSq(hut));
-        return new BuildingView.WorkerRow(d.id(), d.name(), BuildingView.HomeLine.DISTANCE, distance);
     }
 }

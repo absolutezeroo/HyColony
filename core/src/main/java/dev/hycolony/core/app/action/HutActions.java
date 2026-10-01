@@ -178,9 +178,26 @@ public final class HutActions {
             return false;
         }
         CitizenData citizen = h.colony().citizens().get(citizenId).orElse(null);
-        boolean hired = citizen != null && !citizen.isChild() && w.hire(h.colony(), h.building(), citizen);
+        boolean hired = citizen != null
+                && !citizen.isChild()
+                && w.workers().size() < w.maxWorkers()
+                && leaveOldWorkplace(h.colony(), citizen, hutPos)
+                && w.hire(h.colony(), h.building(), citizen);
         windows.showBuilding(h.colony(), h.building(), player);
         return hired;
+    }
+
+    /**
+     * MC WindowHireWorker.doneClicked: a citizen working elsewhere is first fired from its old hut; true once it has no
+     * other workplace. Its own hut ({@code hutPos}) is left alone.
+     */
+    private static boolean leaveOldWorkplace(Colony c, CitizenData citizen, BlockPos hutPos) {
+        BlockPos old = citizen.workBuilding();
+        if (old == null || old.equals(hutPos)) {
+            return true;
+        }
+        c.buildings().at(old).ifPresent(b -> b.module(WorkerModule.class).ifPresent(m -> m.fire(c, b, citizen.id())));
+        return citizen.workBuilding() == null;
     }
 
     /**

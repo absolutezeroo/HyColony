@@ -1,153 +1,28 @@
 $C = "../../Common.ui";
-$Sounds = "../../Sounds.ui";
+
+// A hut's window as MC's (gui/layouthuts/*.xml), MC positions and sizes doubled: the builder paper, the open tab's
+// page appended into #Page (Hut/*.ui), then the side tabs (MC TabsWindowModule) drawn over the paper's left edge.
+// Textures under Mc/ are MineColonies' (ldtteam, GPL-3), scaled x4 nearest-neighbour into @2x files.
 
 $C.@PageOverlay {
   LayoutMode: Middle;
 
-  $C.@DecoratedContainer {
-    Anchor: (Width: 760);
+  Group {
+    Anchor: (Width: 420, Height: 488);
 
-    #Title {
-      $C.@Title {
-        @Text = %hycolony.ui.building.title;
-      }
+    Group {
+      Anchor: (Left: 40, Top: 0, Width: 380, Height: 488);
+      Background: "Mc/builder_paper.png";
     }
 
-    #Content {
-      Padding: (Vertical: 24, Horizontal: 40);
+    Group #Page {
+      Anchor: (Left: 40, Top: 0, Width: 380, Height: 488);
+    }
+
+    // MC TAB_Y_OFFSET 10 and TAB_HEIGHT + TAB_Y_SPACING 28, doubled: SideTab.ui is 56 high, its tab 52.
+    Group #Tabs {
+      Anchor: (Left: 0, Top: 20, Width: 64, Height: 468);
       LayoutMode: Top;
-
-      Group #TabButtons {
-        LayoutMode: Left;
-        Anchor: (Height: 32, Bottom: 12);
-      }
-
-      Group #MainTab {
-        LayoutMode: Top;
-
-        Label #TypeName {
-          Style: (FontSize: 22, RenderBold: true, RenderUppercase: true);
-        }
-
-        Label #Level {
-          Style: (TextColor: #94a7bb);
-          Anchor: (Top: 4);
-        }
-
-        Label #State {
-          Style: (TextColor: #94a7bb);
-          Anchor: (Top: 2, Bottom: 10);
-        }
-
-        Label #OrderInfo {
-          Anchor: (Bottom: 8);
-        }
-
-        Group #MainActions {
-          LayoutMode: Top;
-
-          $C.@TextButton #BuildButton {
-            @Anchor = (Height: 44, Bottom: 8);
-            Text: "";
-          }
-
-          $C.@SecondaryTextButton #HiringButton {
-            @Anchor = (Bottom: 8);
-            Text: "";
-          }
-
-          Group #WorkerSection {
-            LayoutMode: Top;
-
-            Label {
-              Text: %hycolony.ui.building.workers;
-              Style: (RenderBold: true, RenderUppercase: true, TextColor: #94a7bb);
-              Anchor: (Bottom: 6);
-            }
-
-            Group #Workers {
-              LayoutMode: TopScrolling;
-              ScrollbarStyle: $C.@DefaultScrollbarStyle;
-              Anchor: (Height: 80, Bottom: 8);
-            }
-          }
-
-          Group #HireSection {
-            LayoutMode: Top;
-
-            Label {
-              Text: %hycolony.ui.building.hireable;
-              Style: (RenderBold: true, RenderUppercase: true, TextColor: #94a7bb);
-              Anchor: (Bottom: 6);
-            }
-
-            Group #Hireable {
-              LayoutMode: TopScrolling;
-              ScrollbarStyle: $C.@DefaultScrollbarStyle;
-              Anchor: (Height: 120, Bottom: 8);
-            }
-          }
-
-          Group #PickupSection {
-            LayoutMode: Left;
-            Anchor: (Height: 44, Bottom: 8);
-
-            Label #PickupPriority {
-              Style: (RenderBold: true, TextColor: #94a7bb);
-              FlexWeight: 1;
-            }
-
-            $C.@SecondaryTextButton #PickupDownButton {
-              @Anchor = (Width: 60, Right: 4);
-              Text: %hycolony.ui.pickup.down;
-            }
-
-            $C.@SecondaryTextButton #PickupUpButton {
-              @Anchor = (Width: 60, Right: 4);
-              Text: %hycolony.ui.pickup.up;
-            }
-
-            $C.@SecondaryTextButton #ForcePickupButton {
-              @Anchor = (Width: 200);
-              Text: %hycolony.ui.pickup.force;
-            }
-          }
-
-          $C.@SecondaryTextButton #StorageButton {
-            @Anchor = (Bottom: 8);
-            Text: %hycolony.ui.building.storage;
-          }
-
-          $C.@SecondaryTextButton #StockButton {
-            Text: %hycolony.ui.building.inventorySummary;
-          }
-        }
-
-        Group #StockView {
-          LayoutMode: Top;
-          Visible: false;
-
-          Label #StockEmpty {
-            Style: (TextColor: #94a7bb);
-            Anchor: (Bottom: 10);
-            Visible: false;
-          }
-
-          Group #Stock {
-            LayoutMode: TopScrolling;
-            ScrollbarStyle: $C.@DefaultScrollbarStyle;
-            Anchor: (Height: 380, Bottom: 8);
-          }
-
-          $C.@SecondaryTextButton #StockBackButton {
-            Text: %hycolony.ui.building.options.back;
-          }
-        }
-      }
-
-      Group #ModuleTabs {
-        LayoutMode: Top;
-      }
     }
   }
 }

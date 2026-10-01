@@ -1,0 +1,45 @@
+$C = "../../Common.ui";
+$B = "Mc/Book.ui";
+
+// A hut's inventory summary (MC gui/windowhutallinventory.xml, WindowHutAllInventory), MC positions and sizes
+// doubled: "All Items", the filter field, the sort button, the items (icon, name, quantity, Locate) and Back.
+
+$C.@PageOverlay {
+  LayoutMode: Middle;
+
+  Group {
+    Anchor: (Width: 380, Height: 488);
+    Background: "Mc/builder_paper.png";
+
+    Label {
+      Anchor: (Left: 60, Top: 28, Width: 260, Height: 22);
+      Style: $B.@InkCentered;
+      Text: %hycolony.ui.hut.allItems;
+    }
+
+    $C.@TextField #Filter {
+      @Anchor = (Left: 30, Top: 60, Width: 264);
+      MaxLength: 25;
+    }
+
+    TextButton #Sort {
+      Anchor: (Left: 316, Top: 62, Width: 28, Height: 30);
+      Style: $B.@MiniButtonStyle;
+      Text: "";
+    }
+
+    Group #Items {
+      Anchor: (Left: 30, Top: 110, Width: 330, Height: 312);
+      LayoutMode: TopScrolling;
+      ScrollbarStyle: $C.@DefaultScrollbarStyle;
+    }
+
+    TextButton #Back {
+      Anchor: (Left: 100, Top: 430, Width: 172, Height: 34);
+      Style: $B.@MediumButtonStyle;
+      Text: %hycolony.ui.building.options.back;
+    }
+  }
+}
+
+$C.@BackButton {}

@@ -1,0 +1,28 @@
+$B = "Book.ui";
+$C = "../../../Common.ui";
+
+// A row of MC's assign and hire windows (gui/windowassigncitizen.xml, windowhireworker.xml "assigned" and
+// "unassigned" views), MC sizes doubled: MC's faint brown gradient (ARGB 0x19A55400), the citizen's name in blue,
+// its button on builder_button_quite_small, and its wrapped line below.
+
+Group {
+  Anchor: (Height: 68);
+  Background: #a55400(0.1);
+
+  Label #Name {
+    Anchor: (Left: 10, Top: 4, Width: 360, Height: 24);
+    Style: (FontSize: 15, TextColor: #0000ff, VerticalAlignment: Center);
+  }
+
+  TextButton #Button {
+    Anchor: (Left: 240, Top: 4, Width: 88, Height: 20);
+    Style: $B.@QuiteSmallButtonStyle;
+    Text: "";
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+  }
+
+  Label #Line {
+    Anchor: (Left: 10, Top: 26, Width: 350, Height: 40);
+    Style: (FontSize: 14, TextColor: #000000, Wrap: true, VerticalAlignment: Start);
+  }
+}

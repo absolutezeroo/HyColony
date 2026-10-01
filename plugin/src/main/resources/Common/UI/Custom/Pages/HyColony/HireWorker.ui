@@ -1,0 +1,65 @@
+$C = "../../Common.ui";
+$B = "Mc/Book.ui";
+
+// A worker hut's hire window (MC gui/windowhireworker.xml, WindowHireWorker), MC positions and sizes doubled: the wide
+// paper, "Choose workers for the ...", the job button, the citizens (Hire or Fire), the building hiring mode, "Show
+// employed?" and the closing cross.
+
+$C.@PageOverlay {
+  LayoutMode: Middle;
+
+  Group {
+    Anchor: (Width: 800, Height: 488);
+    Background: "Mc/builder_paper_wide2.png";
+
+    Label #JobLabel {
+      Anchor: (Left: 0, Top: 30, Width: 800, Height: 22);
+      Style: $B.@InkCentered;
+    }
+
+    // MC setupJobButtons: one builder_button_medium per job at (15 + 90 i, 30), the selected one disabled.
+    TextButton #Job {
+      Anchor: (Left: 30, Top: 60, Width: 172, Height: 34);
+      Style: $B.@MediumButtonStyle;
+      Text: "";
+      TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+    }
+
+    Group #Citizens {
+      Anchor: (Left: 40, Top: 96, Width: 750, Height: 270);
+      LayoutMode: TopScrolling;
+      ScrollbarStyle: $C.@DefaultScrollbarStyle;
+    }
+
+    Label {
+      Anchor: (Left: 40, Top: 378, Width: 260, Height: 22);
+      Style: $B.@Ink;
+      Text: %hycolony.ui.hut.hire.mode;
+    }
+
+    TextButton #Mode {
+      Anchor: (Left: 300, Top: 374, Width: 338, Height: 34);
+      Style: $B.@LargeButtonStyle;
+      Text: "";
+    }
+
+    Label {
+      Anchor: (Left: 40, Top: 420, Width: 240, Height: 22);
+      Style: $B.@Ink;
+      Text: %hycolony.ui.hut.hire.showEmployed;
+    }
+
+    TextButton #ShowEmployed {
+      Anchor: (Left: 400, Top: 416, Width: 58, Height: 34);
+      Style: $B.@VerySmallButtonStyle;
+      Text: "";
+    }
+
+    Button #Cancel {
+      Anchor: (Left: 750, Top: 20, Width: 28, Height: 30);
+      Style: (Default: (Background: "Mc/button_x.png"), Sounds: $C.@ButtonSounds);
+    }
+  }
+}
+
+$C.@BackButton {}
