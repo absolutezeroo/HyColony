@@ -1,0 +1,53 @@
+{
+  "medievaloak": {
+    "hycolony:townhall": {
+      "1": {"prefab": "MedievalOak/fundamentals/townhall1.prefab.json", "minecolonies": true},
+      "2": {"prefab": "MedievalOak/fundamentals/townhall2.prefab.json", "minecolonies": true},
+      "3": {"prefab": "MedievalOak/fundamentals/townhall3.prefab.json", "minecolonies": true},
+      "4": {"prefab": "MedievalOak/fundamentals/townhall4.prefab.json", "minecolonies": true},
+      "5": {"prefab": "MedievalOak/fundamentals/townhall5.prefab.json", "minecolonies": true}
+    },
+    "hycolony:builder": {
+      "1": {"prefab": "MedievalOak/fundamentals/builder1.prefab.json", "minecolonies": true},
+      "2": {"prefab": "MedievalOak/fundamentals/builder2.prefab.json", "minecolonies": true},
+      "3": {"prefab": "MedievalOak/fundamentals/builder3.prefab.json", "minecolonies": true},
+      "4": {"prefab": "MedievalOak/fundamentals/builder4.prefab.json", "minecolonies": true},
+      "5": {"prefab": "MedievalOak/fundamentals/builder5.prefab.json", "minecolonies": true}
+    },
+    "hycolony:cook": {
+      "1": {"prefab": "MedievalOak/fundamentals/cook1.prefab.json", "minecolonies": true},
+      "2": {"prefab": "MedievalOak/fundamentals/cook2.prefab.json", "minecolonies": true},
+      "3": {"prefab": "MedievalOak/fundamentals/cook3.prefab.json", "minecolonies": true},
+      "4": {"prefab": "MedievalOak/fundamentals/cook4.prefab.json", "minecolonies": true},
+      "5": {"prefab": "MedievalOak/fundamentals/cook5.prefab.json", "minecolonies": true}
+    },
+    "hycolony:residence": {
+      "1": {"prefab": "MedievalOak/fundamentals/residence1.prefab.json", "minecolonies": true},
+      "2": {"prefab": "MedievalOak/fundamentals/residence2.prefab.json", "minecolonies": true},
+      "3": {"prefab": "MedievalOak/fundamentals/residence3.prefab.json", "minecolonies": true},
+      "4": {"prefab": "MedievalOak/fundamentals/residence4.prefab.json", "minecolonies": true},
+      "5": {"prefab": "MedievalOak/fundamentals/residence5.prefab.json", "minecolonies": true}
+    },
+    "hycolony:warehouse": {
+      "1": {"prefab": "MedievalOak/craftsmanship/storage/warehouse1.prefab.json", "minecolonies": true},
+      "2": {"prefab": "MedievalOak/craftsmanship/storage/warehouse2.prefab.json", "minecolonies": true},
+      "3": {"prefab": "MedievalOak/craftsmanship/storage/warehouse3.prefab.json", "minecolonies": true},
+      "4": {"prefab": "MedievalOak/craftsmanship/storage/warehouse4.prefab.json", "minecolonies": true},
+      "5": {"prefab": "MedievalOak/craftsmanship/storage/warehouse5.prefab.json", "minecolonies": true}
+    },
+    "hycolony:deliveryman": {
+      "1": {"prefab": "MedievalOak/craftsmanship/storage/deliveryman1.prefab.json", "minecolonies": true},
+      "2": {"prefab": "MedievalOak/craftsmanship/storage/deliveryman2.prefab.json", "minecolonies": true},
+      "3": {"prefab": "MedievalOak/craftsmanship/storage/deliveryman3.prefab.json", "minecolonies": true},
+      "4": {"prefab": "MedievalOak/craftsmanship/storage/deliveryman4.prefab.json", "minecolonies": true},
+      "5": {"prefab": "MedievalOak/craftsmanship/storage/deliveryman5.prefab.json", "minecolonies": true}
+    },
+    "hycolony:farmer": {
+      "1": {"prefab": "MedievalOak/agriculture/horticulture/farmer1.prefab.json", "minecolonies": true},
+      "2": {"prefab": "MedievalOak/agriculture/horticulture/farmer2.prefab.json", "minecolonies": true},
+      "3": {"prefab": "MedievalOak/agriculture/horticulture/farmer3.prefab.json", "minecolonies": true},
+      "4": {"prefab": "MedievalOak/agriculture/horticulture/farmer4.prefab.json", "minecolonies": true},
+      "5": {"prefab": "MedievalOak/agriculture/horticulture/farmer5.prefab.json", "minecolonies": true}
+    }
+  }
+}

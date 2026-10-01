@@ -75,3 +75,4 @@ On supprime :
 
 - Seules les huttes dont le métier existe sont converties et livrées.
 - Les blocs du § 2 sans équivalent exact (dalle de briques du Nether, rosier, métier à tisser, réserve, tige de l'End) prennent l'équivalent le plus proche de Hytale.
+- Chaque plan du fermier de niveau L reçoit un `Bench_Farming` de niveau L à côté de la hutte, comme les anciens plans vanilla (spec SP3b, § plans du fermier) : MC fabrique dans la hutte, Hytale à un établi, et sans lui le fermier n'apprend aucune recette de graines. `tools/prefabs/add_bench.py` l'ajoute après la conversion, sur deux cases libres posées sur un sol plein (le banc fait 2 × 2 cases).

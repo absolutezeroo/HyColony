@@ -1,0 +1,11 @@
+{
+  "packs": {
+    "medievaloak": {
+      "name": "hycolony.pack.medievaloak.name",
+      "desc": "hycolony.pack.medievaloak.desc",
+      "authors": ["Carlansor"],
+      "icon": "pack_medievaloak",
+      "owner": "minecolonies"
+    }
+  }
+}

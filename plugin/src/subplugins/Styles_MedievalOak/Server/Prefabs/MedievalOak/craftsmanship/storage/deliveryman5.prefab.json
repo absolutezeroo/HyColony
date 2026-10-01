@@ -1,0 +1,12024 @@
+{
+  "version": 8,
+  "blockIdVersion": 3,
+  "anchorX": 0,
+  "anchorY": 0,
+  "anchorZ": 0,
+  "blocks": [
+    {
+      "x": -7,
+      "y": 2,
+      "z": -5,
+      "name": "Rock_Stone_Brick_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": -7,
+      "y": 3,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": -7,
+      "y": 4,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": -7,
+      "y": 5,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": -7,
+      "y": 6,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": -7,
+      "y": 7,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": -7,
+      "y": 8,
+      "z": -5,
+      "name": "HyDomum_Shingle__Soil_Clay_Smooth_Orange__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": -7,
+      "y": 9,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 10,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 11,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 12,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 13,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 14,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": -3,
+      "z": -4,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -7,
+      "y": -2,
+      "z": -4,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -7,
+      "y": -1,
+      "z": -4,
+      "name": "Rock_Stone_Brick_Smooth"
+    },
+    {
+      "x": -7,
+      "y": 0,
+      "z": -4,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -7,
+      "y": 1,
+      "z": -4,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -7,
+      "y": 2,
+      "z": -4,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -7,
+      "y": 3,
+      "z": -4,
+      "name": "Rock_Stone_Brick_Smooth"
+    },
+    {
+      "x": -7,
+      "y": 4,
+      "z": -4,
+      "name": "*HyDomum_Wall__Rock_Stone_Brick_State_Definitions_Straight_Up",
+      "rotation": 1
+    },
+    {
+      "x": -7,
+      "y": 5,
+      "z": -4,
+      "name": "HyDomum_Fence__Wood_Hardwood_Planks",
+      "rotation": 1
+    },
+    {
+      "x": -7,
+      "y": 6,
+      "z": -4,
+      "name": "HyDomum_Fence__Wood_Hardwood_Planks",
+      "rotation": 1
+    },
+    {
+      "x": -7,
+      "y": 7,
+      "z": -4,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": -7,
+      "y": 8,
+      "z": -4,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": -7,
+      "y": 9,
+      "z": -4,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": -7,
+      "y": 10,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 11,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 12,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 13,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 14,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": -3,
+      "z": -3,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -7,
+      "y": -2,
+      "z": -3,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -7,
+      "y": -1,
+      "z": -3,
+      "name": "Deco_Iron_Bars",
+      "rotation": 1
+    },
+    {
+      "x": -7,
+      "y": 0,
+      "z": -3,
+      "name": "Deco_Iron_Bars",
+      "rotation": 1
+    },
+    {
+      "x": -7,
+      "y": 1,
+      "z": -3,
+      "name": "Deco_Iron_Bars",
+      "rotation": 1
+    },
+    {
+      "x": -7,
+      "y": 2,
+      "z": -3,
+      "name": "Rock_Stone_Brick_Stairs",
+      "rotation": 10
+    },
+    {
+      "x": -7,
+      "y": 3,
+      "z": -3,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -7,
+      "y": 4,
+      "z": -3,
+      "name": "*HyDomum_Wall__Rock_Stone_Brick_State_Definitions_Straight_Up",
+      "rotation": 1
+    },
+    {
+      "x": -7,
+      "y": 5,
+      "z": -3,
+      "name": "HyDomum_Fence__Wood_Hardwood_Planks",
+      "rotation": 1
+    },
+    {
+      "x": -7,
+      "y": 6,
+      "z": -3,
+      "name": "HyDomum_Fence__Wood_Hardwood_Planks",
+      "rotation": 1
+    },
+    {
+      "x": -7,
+      "y": 7,
+      "z": -3,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": -7,
+      "y": 8,
+      "z": -3,
+      "name": "HyDomum_TimberFrame_OneCrossedLr__Wood_Hardwood_Planks__Soil_Clay_Smooth_White"
+    },
+    {
+      "x": -7,
+      "y": 9,
+      "z": -3,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": -7,
+      "y": 10,
+      "z": -3,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": -7,
+      "y": 11,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 12,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 13,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 14,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": -3,
+      "z": -2,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -7,
+      "y": -2,
+      "z": -2,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -7,
+      "y": -1,
+      "z": -2,
+      "name": "Deco_Iron_Bars",
+      "rotation": 1
+    },
+    {
+      "x": -7,
+      "y": 0,
+      "z": -2,
+      "name": "Deco_Iron_Bars",
+      "rotation": 1
+    },
+    {
+      "x": -7,
+      "y": 1,
+      "z": -2,
+      "name": "Deco_Iron_Bars",
+      "rotation": 1
+    },
+    {
+      "x": -7,
+      "y": 2,
+      "z": -2,
+      "name": "Deco_Iron_Bars"
+    },
+    {
+      "x": -7,
+      "y": 3,
+      "z": -2,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -7,
+      "y": 4,
+      "z": -2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": -7,
+      "y": 5,
+      "z": -2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": -7,
+      "y": 6,
+      "z": -2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": -7,
+      "y": 7,
+      "z": -2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": -7,
+      "y": 8,
+      "z": -2,
+      "name": "HyDomum_TimberFrame_Plain__Wood_Hardwood_Planks__Soil_Clay_Smooth_White"
+    },
+    {
+      "x": -7,
+      "y": 9,
+      "z": -2,
+      "name": "HyDomum_TimberFrame_Plain__Wood_Hardwood_Planks__Soil_Clay_Smooth_White"
+    },
+    {
+      "x": -7,
+      "y": 10,
+      "z": -2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": -7,
+      "y": 11,
+      "z": -2,
+      "name": "*HyDomum_ShingleSlab__Soil_Clay_Brick__Wood_Hardwood_Planks_State_Definitions_One_Way",
+      "rotation": 3
+    },
+    {
+      "x": -7,
+      "y": 12,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 13,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 14,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": -3,
+      "z": -1,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -7,
+      "y": -2,
+      "z": -1,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -7,
+      "y": -1,
+      "z": -1,
+      "name": "Deco_Iron_Bars",
+      "rotation": 1
+    },
+    {
+      "x": -7,
+      "y": 0,
+      "z": -1,
+      "name": "Deco_Iron_Bars",
+      "rotation": 1
+    },
+    {
+      "x": -7,
+      "y": 1,
+      "z": -1,
+      "name": "Deco_Iron_Bars",
+      "rotation": 1
+    },
+    {
+      "x": -7,
+      "y": 2,
+      "z": -1,
+      "name": "Rock_Stone_Brick_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": -7,
+      "y": 3,
+      "z": -1,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -7,
+      "y": 4,
+      "z": -1,
+      "name": "*HyDomum_Wall__Rock_Stone_Brick_State_Definitions_Straight_Up",
+      "rotation": 1
+    },
+    {
+      "x": -7,
+      "y": 5,
+      "z": -1,
+      "name": "*HyDomum_Fence__Wood_Hardwood_Planks_State_Definitions_End",
+      "rotation": 2
+    },
+    {
+      "x": -7,
+      "y": 6,
+      "z": -1,
+      "name": "*HyDomum_Fence__Wood_Hardwood_Planks_State_Definitions_End",
+      "rotation": 2
+    },
+    {
+      "x": -7,
+      "y": 7,
+      "z": -1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": -7,
+      "y": 8,
+      "z": -1,
+      "name": "HyDomum_TimberFrame_OneCrossedRl__Wood_Hardwood_Planks__Soil_Clay_Smooth_White"
+    },
+    {
+      "x": -7,
+      "y": 9,
+      "z": -1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": -7,
+      "y": 10,
+      "z": -1,
+      "name": "HyDomum_Shingle__Soil_Clay_Smooth_Orange__Wood_Hardwood_Planks"
+    },
+    {
+      "x": -7,
+      "y": 11,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 12,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 13,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 14,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": -3,
+      "z": 0,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -7,
+      "y": -2,
+      "z": 0,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -7,
+      "y": -1,
+      "z": 0,
+      "name": "Rock_Stone_Brick_Smooth"
+    },
+    {
+      "x": -7,
+      "y": 0,
+      "z": 0,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -7,
+      "y": 1,
+      "z": 0,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -7,
+      "y": 2,
+      "z": 0,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -7,
+      "y": 3,
+      "z": 0,
+      "name": "Rock_Stone_Brick_Smooth"
+    },
+    {
+      "x": -7,
+      "y": 4,
+      "z": 0,
+      "name": "*HyDomum_Wall__Rock_Stone_Brick_State_Definitions_Straight_Up",
+      "rotation": 1
+    },
+    {
+      "x": -7,
+      "y": 5,
+      "z": 0,
+      "name": "HyDomum_Fence__Wood_Hardwood_Planks",
+      "rotation": 1
+    },
+    {
+      "x": -7,
+      "y": 6,
+      "z": 0,
+      "name": "HyDomum_Fence__Wood_Hardwood_Planks",
+      "rotation": 1
+    },
+    {
+      "x": -7,
+      "y": 7,
+      "z": 0,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": -7,
+      "y": 8,
+      "z": 0,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": -7,
+      "y": 9,
+      "z": 0,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks"
+    },
+    {
+      "x": -7,
+      "y": 10,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 11,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 12,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 13,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 14,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": -3,
+      "z": 1,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -7,
+      "y": -2,
+      "z": 1,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -7,
+      "y": 2,
+      "z": 1,
+      "name": "Rock_Stone_Brick_Stairs",
+      "rotation": 10
+    },
+    {
+      "x": -7,
+      "y": 3,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": -7,
+      "y": 4,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": -7,
+      "y": 5,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": -7,
+      "y": 6,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": -7,
+      "y": 7,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": -7,
+      "y": 8,
+      "z": 1,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks"
+    },
+    {
+      "x": -7,
+      "y": 9,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 10,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 11,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 12,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 13,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 14,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": -3,
+      "z": 2,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -7,
+      "y": -2,
+      "z": 2,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -7,
+      "y": 3,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 4,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 5,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 6,
+      "z": 2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": -7,
+      "y": 7,
+      "z": 2,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks"
+    },
+    {
+      "x": -7,
+      "y": 8,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 9,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 10,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 11,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 12,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 13,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 14,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 6,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 7,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 8,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 9,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 10,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 11,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 12,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -7,
+      "y": 13,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 2,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 3,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": -6,
+      "y": 4,
+      "z": -5,
+      "name": "HyDomum_TimberFrame_Plain__Wood_Hardwood_Planks__Wood_Hardwood_Planks"
+    },
+    {
+      "x": -6,
+      "y": 5,
+      "z": -5,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": -6,
+      "y": 6,
+      "z": -5,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": -6,
+      "y": 7,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": -6,
+      "y": 8,
+      "z": -5,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": -6,
+      "y": 9,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 10,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 11,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 12,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 13,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 14,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": -3,
+      "z": -4,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -6,
+      "y": -2,
+      "z": -4,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -6,
+      "y": -1,
+      "z": -4,
+      "name": "Deco_Iron_Bars"
+    },
+    {
+      "x": -6,
+      "y": 0,
+      "z": -4,
+      "name": "Deco_Iron_Bars"
+    },
+    {
+      "x": -6,
+      "y": 1,
+      "z": -4,
+      "name": "Deco_Iron_Bars"
+    },
+    {
+      "x": -6,
+      "y": 2,
+      "z": -4,
+      "name": "Rock_Stone_Brick_Stairs",
+      "rotation": 11
+    },
+    {
+      "x": -6,
+      "y": 3,
+      "z": -4,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -6,
+      "y": 4,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 5,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 6,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 7,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 8,
+      "z": -4,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 10
+    },
+    {
+      "x": -6,
+      "y": 9,
+      "z": -4,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": -6,
+      "y": 10,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 11,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 12,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 13,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 14,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": -3,
+      "z": -3,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -6,
+      "y": -2,
+      "z": -3,
+      "name": "Rock_Stone_Cobble_Stairs"
+    },
+    {
+      "x": -6,
+      "y": -1,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 0,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 1,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 2,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 3,
+      "z": -3,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -6,
+      "y": 4,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 5,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 6,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 7,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 8,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 9,
+      "z": -3,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 10
+    },
+    {
+      "x": -6,
+      "y": 10,
+      "z": -3,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": -6,
+      "y": 11,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 12,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 13,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 14,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": -3,
+      "z": -2,
+      "name": "Rock_Stone_Cobble_Stairs"
+    },
+    {
+      "x": -6,
+      "y": -2,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": -1,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 0,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 1,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 2,
+      "z": -2,
+      "name": "Rock_Stone_Cobble_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": -6,
+      "y": 3,
+      "z": -2,
+      "name": "Rock_Stone_Brick_Stairs"
+    },
+    {
+      "x": -6,
+      "y": 4,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 5,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 6,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 7,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 8,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 9,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 10,
+      "z": -2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": -6,
+      "y": 11,
+      "z": -2,
+      "name": "*HyDomum_ShingleSlab__Soil_Clay_Smooth_Orange__Wood_Hardwood_Planks_State_Definitions_Two_Way",
+      "rotation": 3
+    },
+    {
+      "x": -6,
+      "y": 12,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 13,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 14,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": -3,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": -2,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": -1,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 0,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 1,
+      "z": -1,
+      "name": "Rock_Stone_Cobble_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": -6,
+      "y": 2,
+      "z": -1,
+      "name": "Rock_Stone_Brick_Stairs"
+    },
+    {
+      "x": -6,
+      "y": 3,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 4,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 5,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 6,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 7,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 8,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 9,
+      "z": -1,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": -6,
+      "y": 10,
+      "z": -1,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks"
+    },
+    {
+      "x": -6,
+      "y": 11,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 12,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 13,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 14,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": -3,
+      "z": 0,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -6,
+      "y": -2,
+      "z": 0,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -6,
+      "y": -1,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 0,
+      "z": 0,
+      "name": "Rock_Stone_Cobble_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": -6,
+      "y": 1,
+      "z": 0,
+      "name": "Rock_Stone_Brick_Stairs"
+    },
+    {
+      "x": -6,
+      "y": 2,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 3,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 4,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 5,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 6,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 7,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 8,
+      "z": 0,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": -6,
+      "y": 9,
+      "z": 0,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks"
+    },
+    {
+      "x": -6,
+      "y": 10,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 11,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 12,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 13,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 14,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": -3,
+      "z": 1,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -6,
+      "y": -2,
+      "z": 1,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -6,
+      "y": -1,
+      "z": 1,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -6,
+      "y": 0,
+      "z": 1,
+      "name": "Rock_Stone_Brick_Stairs"
+    },
+    {
+      "x": -6,
+      "y": 1,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 2,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 3,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 4,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 5,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 6,
+      "z": 1,
+      "name": "*HyDomum_Fence__Wood_Hardwood_Planks_State_Definitions_End",
+      "rotation": 3
+    },
+    {
+      "x": -6,
+      "y": 7,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": -6,
+      "y": 8,
+      "z": 1,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks"
+    },
+    {
+      "x": -6,
+      "y": 9,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 10,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 11,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 12,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 13,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 14,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": -3,
+      "z": 2,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -6,
+      "y": -2,
+      "z": 2,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -6,
+      "y": -1,
+      "z": 2,
+      "name": "Rock_Stone_Brick_Stairs"
+    },
+    {
+      "x": -6,
+      "y": 0,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 1,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 2,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 3,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 4,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 5,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 6,
+      "z": 2,
+      "name": "Wood_Hardwood_Planks_Half",
+      "rotation": 8
+    },
+    {
+      "x": -6,
+      "y": 7,
+      "z": 2,
+      "name": "HyDomum_Shingle__Soil_Clay_Smooth_Orange__Wood_Hardwood_Planks"
+    },
+    {
+      "x": -6,
+      "y": 8,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 9,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 10,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 11,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 12,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 13,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 14,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 6,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 7,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 8,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 9,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 10,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 11,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 12,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 13,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -6,
+      "y": 14,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 2,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 3,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": -5,
+      "y": 4,
+      "z": -5,
+      "name": "HyDomum_TimberFrame_Plain__Wood_Hardwood_Planks__Wood_Hardwood_Planks"
+    },
+    {
+      "x": -5,
+      "y": 5,
+      "z": -5,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": -5,
+      "y": 6,
+      "z": -5,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": -5,
+      "y": 7,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": -5,
+      "y": 8,
+      "z": -5,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": -5,
+      "y": 9,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 10,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 11,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 12,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 13,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 14,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": -3,
+      "z": -4,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -5,
+      "y": -2,
+      "z": -4,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -5,
+      "y": -1,
+      "z": -4,
+      "name": "Deco_Iron_Bars"
+    },
+    {
+      "x": -5,
+      "y": 0,
+      "z": -4,
+      "name": "Deco_Iron_Bars"
+    },
+    {
+      "x": -5,
+      "y": 1,
+      "z": -4,
+      "name": "Deco_Iron_Bars"
+    },
+    {
+      "x": -5,
+      "y": 2,
+      "z": -4,
+      "name": "Rock_Stone_Brick_Stairs",
+      "rotation": 9
+    },
+    {
+      "x": -5,
+      "y": 3,
+      "z": -4,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -5,
+      "y": 4,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 5,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 6,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 7,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 8,
+      "z": -4,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 10
+    },
+    {
+      "x": -5,
+      "y": 9,
+      "z": -4,
+      "name": "HyDomum_Shingle__Soil_Clay_Smooth_Orange__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": -5,
+      "y": 10,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 11,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 12,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 13,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 14,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": -3,
+      "z": -3,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -5,
+      "y": -2,
+      "z": -3,
+      "name": "Rock_Stone_Cobble_Stairs"
+    },
+    {
+      "x": -5,
+      "y": -1,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 0,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 1,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 2,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 3,
+      "z": -3,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -5,
+      "y": 4,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 5,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 6,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 7,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 8,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 9,
+      "z": -3,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 10
+    },
+    {
+      "x": -5,
+      "y": 10,
+      "z": -3,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": -5,
+      "y": 11,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 12,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 13,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 14,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": -3,
+      "z": -2,
+      "name": "Rock_Stone_Cobble_Stairs"
+    },
+    {
+      "x": -5,
+      "y": -2,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": -1,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 0,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 1,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 2,
+      "z": -2,
+      "name": "Rock_Stone_Cobble_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": -5,
+      "y": 3,
+      "z": -2,
+      "name": "Rock_Stone_Brick_Stairs"
+    },
+    {
+      "x": -5,
+      "y": 4,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 5,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 6,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 7,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 8,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 9,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 10,
+      "z": -2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": -5,
+      "y": 11,
+      "z": -2,
+      "name": "*HyDomum_ShingleSlab__Soil_Clay_Brick__Wood_Hardwood_Planks_State_Definitions_One_Way"
+    },
+    {
+      "x": -5,
+      "y": 12,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 13,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 14,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": -3,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": -2,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": -1,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 0,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 1,
+      "z": -1,
+      "name": "Rock_Stone_Cobble_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": -5,
+      "y": 2,
+      "z": -1,
+      "name": "Rock_Stone_Brick_Stairs"
+    },
+    {
+      "x": -5,
+      "y": 3,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 4,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 5,
+      "z": -1,
+      "name": "Wood_Torch_Wall",
+      "rotation": 3
+    },
+    {
+      "x": -5,
+      "y": 6,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 7,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 8,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 9,
+      "z": -1,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": -5,
+      "y": 10,
+      "z": -1,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks"
+    },
+    {
+      "x": -5,
+      "y": 11,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 12,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 13,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 14,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": -3,
+      "z": 0,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -5,
+      "y": -2,
+      "z": 0,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -5,
+      "y": -1,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 0,
+      "z": 0,
+      "name": "Rock_Stone_Cobble_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": -5,
+      "y": 1,
+      "z": 0,
+      "name": "Rock_Stone_Brick_Stairs"
+    },
+    {
+      "x": -5,
+      "y": 2,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 3,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 4,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 5,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 6,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 7,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 8,
+      "z": 0,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": -5,
+      "y": 9,
+      "z": 0,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks"
+    },
+    {
+      "x": -5,
+      "y": 10,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 11,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 12,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 13,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 14,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": -3,
+      "z": 1,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -5,
+      "y": -2,
+      "z": 1,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -5,
+      "y": -1,
+      "z": 1,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -5,
+      "y": 0,
+      "z": 1,
+      "name": "Rock_Stone_Brick_Stairs"
+    },
+    {
+      "x": -5,
+      "y": 1,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 2,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 3,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 4,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 5,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 6,
+      "z": 1,
+      "name": "HyDomum_Fence__Wood_Hardwood_Planks"
+    },
+    {
+      "x": -5,
+      "y": 7,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": -5,
+      "y": 8,
+      "z": 1,
+      "name": "HyDomum_Shingle__Soil_Clay_Smooth_Orange__Wood_Hardwood_Planks"
+    },
+    {
+      "x": -5,
+      "y": 9,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 10,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 11,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 12,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 13,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 14,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": -3,
+      "z": 2,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -5,
+      "y": -2,
+      "z": 2,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -5,
+      "y": -1,
+      "z": 2,
+      "name": "Rock_Stone_Brick_Stairs"
+    },
+    {
+      "x": -5,
+      "y": 0,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 1,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 2,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 3,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 4,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 5,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 6,
+      "z": 2,
+      "name": "Wood_Hardwood_Planks_Half",
+      "rotation": 8
+    },
+    {
+      "x": -5,
+      "y": 7,
+      "z": 2,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks"
+    },
+    {
+      "x": -5,
+      "y": 8,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 9,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 10,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 11,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 12,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 13,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 14,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 6,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 7,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 8,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 9,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 10,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 11,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 12,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 13,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -5,
+      "y": 14,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 2,
+      "z": -5,
+      "name": "Rock_Stone_Brick_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": -4,
+      "y": 3,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": -4,
+      "y": 4,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": -4,
+      "y": 5,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": -4,
+      "y": 6,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": -4,
+      "y": 7,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": -4,
+      "y": 8,
+      "z": -5,
+      "name": "HyDomum_Shingle__Soil_Clay_Smooth_Orange__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": -4,
+      "y": 9,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 10,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 11,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 12,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 13,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 14,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": -3,
+      "z": -4,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -4,
+      "y": -2,
+      "z": -4,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -4,
+      "y": -1,
+      "z": -4,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -4,
+      "y": 0,
+      "z": -4,
+      "name": "Rock_Stone_Brick_Smooth"
+    },
+    {
+      "x": -4,
+      "y": 1,
+      "z": -4,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -4,
+      "y": 2,
+      "z": -4,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -4,
+      "y": 3,
+      "z": -4,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": -4,
+      "y": 4,
+      "z": -4,
+      "name": "HyDomum_TimberFrame_Plain__Wood_Hardwood_Planks__Wood_Hardwood_Planks"
+    },
+    {
+      "x": -4,
+      "y": 5,
+      "z": -4,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": -4,
+      "y": 6,
+      "z": -4,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": -4,
+      "y": 7,
+      "z": -4,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": -4,
+      "y": 8,
+      "z": -4,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": -4,
+      "y": 9,
+      "z": -4,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": -4,
+      "y": 10,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 11,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 12,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 13,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 14,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": -3,
+      "z": -3,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -4,
+      "y": -2,
+      "z": -3,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -4,
+      "y": -1,
+      "z": -3,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -4,
+      "y": 0,
+      "z": -3,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -4,
+      "y": 1,
+      "z": -3,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -4,
+      "y": 2,
+      "z": -3,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -4,
+      "y": 3,
+      "z": -3,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": -4,
+      "y": 4,
+      "z": -3,
+      "name": "Furniture_Village_Door",
+      "rotation": 1
+    },
+    {
+      "x": -4,
+      "y": 6,
+      "z": -3,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": -4,
+      "y": 7,
+      "z": -3,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": -4,
+      "y": 8,
+      "z": -3,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": -4,
+      "y": 9,
+      "z": -3,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": -4,
+      "y": 10,
+      "z": -3,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": -4,
+      "y": 11,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 12,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 13,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 14,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": -3,
+      "z": -2,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -4,
+      "y": -2,
+      "z": -2,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -4,
+      "y": -1,
+      "z": -2,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -4,
+      "y": 0,
+      "z": -2,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -4,
+      "y": 1,
+      "z": -2,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -4,
+      "y": 2,
+      "z": -2,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -4,
+      "y": 3,
+      "z": -2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": -4,
+      "y": 4,
+      "z": -2,
+      "name": "HyDomum_TimberFrame_Plain__Wood_Hardwood_Planks__Wood_Hardwood_Planks"
+    },
+    {
+      "x": -4,
+      "y": 5,
+      "z": -2,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": -4,
+      "y": 6,
+      "z": -2,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": -4,
+      "y": 7,
+      "z": -2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": -4,
+      "y": 8,
+      "z": -2,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": -4,
+      "y": 9,
+      "z": -2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": -4,
+      "y": 10,
+      "z": -2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": -4,
+      "y": 11,
+      "z": -2,
+      "name": "*HyDomum_ShingleSlab__Soil_Clay_Brick__Wood_Hardwood_Planks_State_Definitions_One_Way"
+    },
+    {
+      "x": -4,
+      "y": 12,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 13,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 14,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": -3,
+      "z": -1,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -4,
+      "y": -2,
+      "z": -1,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -4,
+      "y": -1,
+      "z": -1,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -4,
+      "y": 0,
+      "z": -1,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -4,
+      "y": 1,
+      "z": -1,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -4,
+      "y": 2,
+      "z": -1,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -4,
+      "y": 3,
+      "z": -1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": -4,
+      "y": 4,
+      "z": -1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": -4,
+      "y": 5,
+      "z": -1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": -4,
+      "y": 6,
+      "z": -1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": -4,
+      "y": 7,
+      "z": -1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": -4,
+      "y": 8,
+      "z": -1,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": -4,
+      "y": 9,
+      "z": -1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": -4,
+      "y": 10,
+      "z": -1,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks"
+    },
+    {
+      "x": -4,
+      "y": 11,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 12,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 13,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 14,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": -3,
+      "z": 0,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -4,
+      "y": -2,
+      "z": 0,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -4,
+      "y": -1,
+      "z": 0,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -4,
+      "y": 0,
+      "z": 0,
+      "name": "Rock_Stone_Brick_Smooth"
+    },
+    {
+      "x": -4,
+      "y": 1,
+      "z": 0,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -4,
+      "y": 2,
+      "z": 0,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -4,
+      "y": 3,
+      "z": 0,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": -4,
+      "y": 4,
+      "z": 0,
+      "name": "HyDomum_TimberFrame_Plain__Wood_Hardwood_Planks__Wood_Hardwood_Planks"
+    },
+    {
+      "x": -4,
+      "y": 5,
+      "z": 0,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": -4,
+      "y": 6,
+      "z": 0,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": -4,
+      "y": 7,
+      "z": 0,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": -4,
+      "y": 8,
+      "z": 0,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": -4,
+      "y": 9,
+      "z": 0,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks"
+    },
+    {
+      "x": -4,
+      "y": 10,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 11,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 12,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 13,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 14,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": -3,
+      "z": 1,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -4,
+      "y": -2,
+      "z": 1,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -4,
+      "y": -1,
+      "z": 1,
+      "name": "*Rock_Stone_Brick_Stairs_State_Definitions_Corner_Left",
+      "rotation": 3
+    },
+    {
+      "x": -4,
+      "y": 0,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 1,
+      "z": 1,
+      "name": "Wood_Torch_Wall"
+    },
+    {
+      "x": -4,
+      "y": 2,
+      "z": 1,
+      "name": "Rock_Stone_Brick_Stairs",
+      "rotation": 10
+    },
+    {
+      "x": -4,
+      "y": 3,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": -4,
+      "y": 4,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": -4,
+      "y": 5,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": -4,
+      "y": 6,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": -4,
+      "y": 7,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": -4,
+      "y": 8,
+      "z": 1,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks"
+    },
+    {
+      "x": -4,
+      "y": 9,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 10,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 11,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 12,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 13,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 14,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": -3,
+      "z": 2,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -4,
+      "y": -2,
+      "z": 2,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -4,
+      "y": -1,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 0,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 1,
+      "z": 2,
+      "name": "Wood_Hardwood_Planks"
+    },
+    {
+      "x": -4,
+      "y": 2,
+      "z": 2,
+      "name": "Deco_Iron_Chain_Small"
+    },
+    {
+      "x": -4,
+      "y": 3,
+      "z": 2,
+      "name": "Rock_Stone_Brick_Stairs"
+    },
+    {
+      "x": -4,
+      "y": 4,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 5,
+      "z": 2,
+      "name": "*Furniture_Village_Trapdoor_State_Definitions_OpenDoorOut",
+      "rotation": 3
+    },
+    {
+      "x": -4,
+      "y": 6,
+      "z": 2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": -4,
+      "y": 7,
+      "z": 2,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks"
+    },
+    {
+      "x": -4,
+      "y": 8,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 9,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 10,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 11,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 12,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 13,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 14,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 1,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 2,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 6,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 7,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 8,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 9,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 10,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 11,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 12,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 13,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -4,
+      "y": 14,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 2,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 3,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": -3,
+      "y": 4,
+      "z": -5,
+      "name": "HyDomum_TimberFrame_Plain__Wood_Hardwood_Planks__Wood_Hardwood_Planks"
+    },
+    {
+      "x": -3,
+      "y": 5,
+      "z": -5,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": -3,
+      "y": 6,
+      "z": -5,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": -3,
+      "y": 7,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": -3,
+      "y": 8,
+      "z": -5,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": -3,
+      "y": 9,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 10,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 11,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 12,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 13,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 14,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": -3,
+      "z": -4,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -3,
+      "y": -2,
+      "z": -4,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -3,
+      "y": -1,
+      "z": -4,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -3,
+      "y": 0,
+      "z": -4,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -3,
+      "y": 1,
+      "z": -4,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -3,
+      "y": 2,
+      "z": -4,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -3,
+      "y": 3,
+      "z": -4,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": -3,
+      "y": 4,
+      "z": -4,
+      "name": "HyVanilla_Carpet_Yellow"
+    },
+    {
+      "x": -3,
+      "y": 5,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 6,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 7,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 8,
+      "z": -4,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 10
+    },
+    {
+      "x": -3,
+      "y": 9,
+      "z": -4,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": -3,
+      "y": 10,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 11,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 12,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 13,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 14,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": -3,
+      "z": -3,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -3,
+      "y": -2,
+      "z": -3,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -3,
+      "y": -1,
+      "z": -3,
+      "name": "Soil_Clay_Orange"
+    },
+    {
+      "x": -3,
+      "y": 0,
+      "z": -3,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 1
+    },
+    {
+      "x": -3,
+      "y": 1,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 2,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 3,
+      "z": -3,
+      "name": "Wood_Hardwood_Planks_Half",
+      "rotation": 8
+    },
+    {
+      "x": -3,
+      "y": 4,
+      "z": -3,
+      "name": "HyVanilla_Carpet_Black"
+    },
+    {
+      "x": -3,
+      "y": 5,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 6,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 7,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 8,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 9,
+      "z": -3,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 10
+    },
+    {
+      "x": -3,
+      "y": 10,
+      "z": -3,
+      "name": "HyDomum_Shingle__Soil_Clay_Smooth_Orange__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": -3,
+      "y": 11,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 12,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 13,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 14,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": -3,
+      "z": -2,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -3,
+      "y": -2,
+      "z": -2,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -3,
+      "y": -1,
+      "z": -2,
+      "name": "Soil_Clay_Smooth_Grey"
+    },
+    {
+      "x": -3,
+      "y": 0,
+      "z": -2,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 1
+    },
+    {
+      "x": -3,
+      "y": 1,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 2,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 3,
+      "z": -2,
+      "name": "Wood_Hardwood_Planks_Half",
+      "rotation": 8
+    },
+    {
+      "x": -3,
+      "y": 4,
+      "z": -2,
+      "name": "HyVanilla_Carpet_Yellow"
+    },
+    {
+      "x": -3,
+      "y": 5,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 6,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 7,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 8,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 9,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 10,
+      "z": -2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": -3,
+      "y": 11,
+      "z": -2,
+      "name": "*HyDomum_ShingleSlab__Soil_Clay_Brick__Wood_Hardwood_Planks_State_Definitions_One_Way"
+    },
+    {
+      "x": -3,
+      "y": 12,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 13,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 14,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": -3,
+      "z": -1,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -3,
+      "y": -2,
+      "z": -1,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -3,
+      "y": -1,
+      "z": -1,
+      "name": "Soil_Clay_Orange"
+    },
+    {
+      "x": -3,
+      "y": 0,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 1,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 2,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 3,
+      "z": -1,
+      "name": "Wood_Hardwood_Planks_Half",
+      "rotation": 8
+    },
+    {
+      "x": -3,
+      "y": 4,
+      "z": -1,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 1
+    },
+    {
+      "x": -3,
+      "y": 5,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 6,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 7,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 8,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 9,
+      "z": -1,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": -3,
+      "y": 10,
+      "z": -1,
+      "name": "HyDomum_Shingle__Soil_Clay_Smooth_Orange__Wood_Hardwood_Planks"
+    },
+    {
+      "x": -3,
+      "y": 11,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 12,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 13,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 14,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": -3,
+      "z": 0,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -3,
+      "y": -2,
+      "z": 0,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -3,
+      "y": -1,
+      "z": 0,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -3,
+      "y": 0,
+      "z": 0,
+      "name": "Furniture_Village_Door"
+    },
+    {
+      "x": -3,
+      "y": 2,
+      "z": 0,
+      "name": "Rock_Stone_Brick_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": -3,
+      "y": 3,
+      "z": 0,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": -3,
+      "y": 4,
+      "z": 0,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 1
+    },
+    {
+      "x": -3,
+      "y": 5,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 6,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 7,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 8,
+      "z": 0,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": -3,
+      "y": 9,
+      "z": 0,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks"
+    },
+    {
+      "x": -3,
+      "y": 10,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 11,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 12,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 13,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 14,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": -3,
+      "z": 1,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -3,
+      "y": -2,
+      "z": 1,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -3,
+      "y": -1,
+      "z": 1,
+      "name": "Rock_Stone_Brick_Stairs"
+    },
+    {
+      "x": -3,
+      "y": 0,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 1,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 2,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 3,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": -3,
+      "y": 4,
+      "z": 1,
+      "name": "HyDomum_TimberFrame_Plain__Wood_Hardwood_Planks__Wood_Hardwood_Planks"
+    },
+    {
+      "x": -3,
+      "y": 5,
+      "z": 1,
+      "name": "Furniture_Village_Window"
+    },
+    {
+      "x": -3,
+      "y": 6,
+      "z": 1,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": -3,
+      "y": 7,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": -3,
+      "y": 8,
+      "z": 1,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks"
+    },
+    {
+      "x": -3,
+      "y": 9,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 10,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 11,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 12,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 13,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 14,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": -3,
+      "z": 2,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -3,
+      "y": -2,
+      "z": 2,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -3,
+      "y": -1,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 0,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 1,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 2,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 3,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 4,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 5,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 6,
+      "z": 2,
+      "name": "Wood_Hardwood_Planks_Half",
+      "rotation": 8
+    },
+    {
+      "x": -3,
+      "y": 7,
+      "z": 2,
+      "name": "*HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks_State_Definitions_Inverted_Corner_Left",
+      "rotation": 3
+    },
+    {
+      "x": -3,
+      "y": 8,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 9,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 10,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 11,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 12,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 13,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 14,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": -1,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 0,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 1,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 2,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 6,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 7,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 8,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 9,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 10,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 11,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 12,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 13,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -3,
+      "y": 14,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 2,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 3,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": -2,
+      "y": 4,
+      "z": -5,
+      "name": "HyDomum_TimberFrame_Plain__Wood_Hardwood_Planks__Wood_Hardwood_Planks"
+    },
+    {
+      "x": -2,
+      "y": 5,
+      "z": -5,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": -2,
+      "y": 6,
+      "z": -5,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": -2,
+      "y": 7,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": -2,
+      "y": 8,
+      "z": -5,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": -2,
+      "y": 9,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 10,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 11,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 12,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 13,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 14,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": -3,
+      "z": -4,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -2,
+      "y": -2,
+      "z": -4,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -2,
+      "y": -1,
+      "z": -4,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -2,
+      "y": 0,
+      "z": -4,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -2,
+      "y": 1,
+      "z": -4,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -2,
+      "y": 2,
+      "z": -4,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -2,
+      "y": 3,
+      "z": -4,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": -2,
+      "y": 4,
+      "z": -4,
+      "name": "HyVanilla_Carpet_Black"
+    },
+    {
+      "x": -2,
+      "y": 5,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 6,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 7,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 8,
+      "z": -4,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 10
+    },
+    {
+      "x": -2,
+      "y": 9,
+      "z": -4,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": -2,
+      "y": 10,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 11,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 12,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 13,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 14,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": -3,
+      "z": -3,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -2,
+      "y": -2,
+      "z": -3,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -2,
+      "y": -1,
+      "z": -3,
+      "name": "Soil_Clay_Smooth_Grey"
+    },
+    {
+      "x": -2,
+      "y": 0,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 1,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 2,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 3,
+      "z": -3,
+      "name": "Wood_Hardwood_Planks_Half",
+      "rotation": 8
+    },
+    {
+      "x": -2,
+      "y": 4,
+      "z": -3,
+      "name": "HyVanilla_Carpet_Yellow"
+    },
+    {
+      "x": -2,
+      "y": 5,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 6,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 7,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 8,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 9,
+      "z": -3,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 10
+    },
+    {
+      "x": -2,
+      "y": 10,
+      "z": -3,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": -2,
+      "y": 11,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 12,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 13,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 14,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": -3,
+      "z": -2,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -2,
+      "y": -2,
+      "z": -2,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -2,
+      "y": -1,
+      "z": -2,
+      "name": "Soil_Clay_Orange"
+    },
+    {
+      "x": -2,
+      "y": 0,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 1,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 2,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 3,
+      "z": -2,
+      "name": "Wood_Hardwood_Planks_Half",
+      "rotation": 8
+    },
+    {
+      "x": -2,
+      "y": 4,
+      "z": -2,
+      "name": "HyVanilla_Carpet_Black"
+    },
+    {
+      "x": -2,
+      "y": 5,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 6,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 7,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 8,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 9,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 10,
+      "z": -2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": -2,
+      "y": 11,
+      "z": -2,
+      "name": "*HyDomum_ShingleSlab__Soil_Clay_Smooth_Orange__Wood_Hardwood_Planks_State_Definitions_One_Way",
+      "rotation": 1
+    },
+    {
+      "x": -2,
+      "y": 12,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 13,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 14,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": -3,
+      "z": -1,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -2,
+      "y": -2,
+      "z": -1,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -2,
+      "y": -1,
+      "z": -1,
+      "name": "Soil_Clay_Smooth_Grey"
+    },
+    {
+      "x": -2,
+      "y": 0,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 1,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 2,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 3,
+      "z": -1,
+      "name": "Wood_Hardwood_Planks_Half",
+      "rotation": 8
+    },
+    {
+      "x": -2,
+      "y": 4,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 5,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 6,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 7,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 8,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 9,
+      "z": -1,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": -2,
+      "y": 10,
+      "z": -1,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks"
+    },
+    {
+      "x": -2,
+      "y": 11,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 12,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 13,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 14,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": -3,
+      "z": 0,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -2,
+      "y": -2,
+      "z": 0,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -2,
+      "y": -1,
+      "z": 0,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -2,
+      "y": 0,
+      "z": 0,
+      "name": "Furniture_Village_Door",
+      "rotation": 2
+    },
+    {
+      "x": -2,
+      "y": 2,
+      "z": 0,
+      "name": "Rock_Stone_Brick_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": -2,
+      "y": 3,
+      "z": 0,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": -2,
+      "y": 4,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 5,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 6,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 7,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 8,
+      "z": 0,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": -2,
+      "y": 9,
+      "z": 0,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks"
+    },
+    {
+      "x": -2,
+      "y": 10,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 11,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 12,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 13,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 14,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": -3,
+      "z": 1,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -2,
+      "y": -2,
+      "z": 1,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -2,
+      "y": -1,
+      "z": 1,
+      "name": "Rock_Stone_Brick_Stairs"
+    },
+    {
+      "x": -2,
+      "y": 0,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 1,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 2,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 3,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": -2,
+      "y": 4,
+      "z": 1,
+      "name": "HyDomum_TimberFrame_Plain__Wood_Hardwood_Planks__Wood_Hardwood_Planks"
+    },
+    {
+      "x": -2,
+      "y": 5,
+      "z": 1,
+      "name": "Furniture_Village_Window"
+    },
+    {
+      "x": -2,
+      "y": 6,
+      "z": 1,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": -2,
+      "y": 7,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": -2,
+      "y": 8,
+      "z": 1,
+      "name": "*HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks_State_Definitions_Inverted_Corner_Left",
+      "rotation": 3
+    },
+    {
+      "x": -2,
+      "y": 9,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 10,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 11,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 12,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 13,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 14,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": -3,
+      "z": 2,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -2,
+      "y": -2,
+      "z": 2,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -2,
+      "y": -1,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 0,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 1,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 2,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 3,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 4,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 5,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 6,
+      "z": 2,
+      "name": "Wood_Hardwood_Planks_Half",
+      "rotation": 8
+    },
+    {
+      "x": -2,
+      "y": 7,
+      "z": 2,
+      "name": "HyDomum_TimberFrame_OneCrossedLr__Wood_Hardwood_Planks__Soil_Clay_Smooth_White"
+    },
+    {
+      "x": -2,
+      "y": 8,
+      "z": 2,
+      "name": "HyDomum_Shingle__Soil_Clay_Smooth_Orange__Wood_Hardwood_Planks",
+      "rotation": 3
+    },
+    {
+      "x": -2,
+      "y": 9,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 10,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 11,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 12,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 13,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 14,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": -1,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 0,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 1,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 2,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 6,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 7,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 8,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 9,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 10,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 11,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 12,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 13,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -2,
+      "y": 14,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 2,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 3,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": -1,
+      "y": 4,
+      "z": -5,
+      "name": "HyDomum_TimberFrame_Plain__Wood_Hardwood_Planks__Wood_Hardwood_Planks"
+    },
+    {
+      "x": -1,
+      "y": 5,
+      "z": -5,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": -1,
+      "y": 6,
+      "z": -5,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": -1,
+      "y": 7,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": -1,
+      "y": 8,
+      "z": -5,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": -1,
+      "y": 9,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 10,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 11,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 12,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 13,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 14,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": -3,
+      "z": -4,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -1,
+      "y": -2,
+      "z": -4,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -1,
+      "y": -1,
+      "z": -4,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -1,
+      "y": 0,
+      "z": -4,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -1,
+      "y": 1,
+      "z": -4,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -1,
+      "y": 2,
+      "z": -4,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": -1,
+      "y": 3,
+      "z": -4,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": -1,
+      "y": 4,
+      "z": -4,
+      "name": "Rock_Stone_Brick_Stairs",
+      "rotation": 10
+    },
+    {
+      "x": -1,
+      "y": 5,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 6,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 7,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 8,
+      "z": -4,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": -1,
+      "y": 9,
+      "z": -4,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": -1,
+      "y": 10,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 11,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 12,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 13,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 14,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": -3,
+      "z": -3,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -1,
+      "y": -2,
+      "z": -3,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -1,
+      "y": -1,
+      "z": -3,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -1,
+      "y": 0,
+      "z": -3,
+      "name": "HyDomum_FenceGate__Wood_Hardwood_Planks",
+      "rotation": 3
+    },
+    {
+      "x": -1,
+      "y": 1,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 2,
+      "z": -3,
+      "name": "Rock_Stone_Brick_Half",
+      "rotation": 8
+    },
+    {
+      "x": -1,
+      "y": 3,
+      "z": -3,
+      "name": "Wood_Hardwood_Planks_Half",
+      "rotation": 8
+    },
+    {
+      "x": -1,
+      "y": 4,
+      "z": -3,
+      "name": "Rock_Stone_Brick_Half",
+      "rotation": 8
+    },
+    {
+      "x": -1,
+      "y": 5,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 6,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 7,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 8,
+      "z": -3,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": -1,
+      "y": 9,
+      "z": -3,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 10
+    },
+    {
+      "x": -1,
+      "y": 10,
+      "z": -3,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": -1,
+      "y": 11,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 12,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 13,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 14,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": -3,
+      "z": -2,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -1,
+      "y": -2,
+      "z": -2,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -1,
+      "y": -1,
+      "z": -2,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -1,
+      "y": 0,
+      "z": -2,
+      "name": "Rock_Stone_Brick_Stairs",
+      "rotation": 10
+    },
+    {
+      "x": -1,
+      "y": 1,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 2,
+      "z": -2,
+      "name": "Rock_Stone_Brick_Half",
+      "rotation": 8
+    },
+    {
+      "x": -1,
+      "y": 3,
+      "z": -2,
+      "name": "Wood_Hardwood_Planks_Half",
+      "rotation": 8
+    },
+    {
+      "x": -1,
+      "y": 4,
+      "z": -2,
+      "name": "Rock_Stone_Brick_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": -1,
+      "y": 5,
+      "z": -2,
+      "name": "HyVanilla_Flower_Pot_Orange"
+    },
+    {
+      "x": -1,
+      "y": 6,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 7,
+      "z": -2,
+      "name": "Deco_Lantern_Ceiling"
+    },
+    {
+      "x": -1,
+      "y": 8,
+      "z": -2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": -1,
+      "y": 9,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 10,
+      "z": -2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": -1,
+      "y": 11,
+      "z": -2,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -1,
+      "y": 12,
+      "z": -2,
+      "name": "*HyDomum_Wall__Rock_Stone_Brick_State_Definitions_Post"
+    },
+    {
+      "x": -1,
+      "y": 13,
+      "z": -2,
+      "name": "*HyDomum_Fence__Wood_Hardwood_Planks_State_Definitions_Post"
+    },
+    {
+      "x": -1,
+      "y": 14,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": -3,
+      "z": -1,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -1,
+      "y": -2,
+      "z": -1,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -1,
+      "y": -1,
+      "z": -1,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -1,
+      "y": 0,
+      "z": -1,
+      "name": "Rock_Stone_Brick_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": -1,
+      "y": 1,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 2,
+      "z": -1,
+      "name": "Rock_Stone_Brick_Half",
+      "rotation": 8
+    },
+    {
+      "x": -1,
+      "y": 3,
+      "z": -1,
+      "name": "Wood_Hardwood_Planks_Half",
+      "rotation": 8
+    },
+    {
+      "x": -1,
+      "y": 4,
+      "z": -1,
+      "name": "HyDomum_FenceGate__Wood_Hardwood_Planks",
+      "rotation": 3
+    },
+    {
+      "x": -1,
+      "y": 5,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 6,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 7,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 8,
+      "z": -1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": -1,
+      "y": 9,
+      "z": -1,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": -1,
+      "y": 10,
+      "z": -1,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks"
+    },
+    {
+      "x": -1,
+      "y": 11,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 12,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 13,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 14,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": -3,
+      "z": 0,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -1,
+      "y": -2,
+      "z": 0,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -1,
+      "y": -1,
+      "z": 0,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -1,
+      "y": 0,
+      "z": 0,
+      "name": "Rock_Stone_Brick_Smooth"
+    },
+    {
+      "x": -1,
+      "y": 1,
+      "z": 0,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -1,
+      "y": 2,
+      "z": 0,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -1,
+      "y": 3,
+      "z": 0,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": -1,
+      "y": 4,
+      "z": 0,
+      "name": "HyDomum_Fence__Wood_Hardwood_Planks",
+      "rotation": 1
+    },
+    {
+      "x": -1,
+      "y": 5,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 6,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 7,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 8,
+      "z": 0,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": -1,
+      "y": 9,
+      "z": 0,
+      "name": "*HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks_State_Definitions_Inverted_Corner_Right"
+    },
+    {
+      "x": -1,
+      "y": 10,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 11,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 12,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 13,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 14,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": -3,
+      "z": 1,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -1,
+      "y": -2,
+      "z": 1,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -1,
+      "y": -1,
+      "z": 1,
+      "name": "*Rock_Stone_Brick_Stairs_State_Definitions_Corner_Right",
+      "rotation": 1
+    },
+    {
+      "x": -1,
+      "y": 0,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 1,
+      "z": 1,
+      "name": "Wood_Torch_Wall"
+    },
+    {
+      "x": -1,
+      "y": 2,
+      "z": 1,
+      "name": "Rock_Stone_Brick_Stairs",
+      "rotation": 10
+    },
+    {
+      "x": -1,
+      "y": 3,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": -1,
+      "y": 4,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": -1,
+      "y": 5,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": -1,
+      "y": 6,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": -1,
+      "y": 7,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": -1,
+      "y": 8,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": -1,
+      "y": 9,
+      "z": 1,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 3
+    },
+    {
+      "x": -1,
+      "y": 10,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 11,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 12,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 13,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 14,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": -3,
+      "z": 2,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": -1,
+      "y": -2,
+      "z": 2,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": -1,
+      "y": -1,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 0,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 1,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 2,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 3,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 4,
+      "z": 2,
+      "name": "*Wood_Hardwood_Stairs_State_Definitions_Corner_Right",
+      "rotation": 9
+    },
+    {
+      "x": -1,
+      "y": 5,
+      "z": 2,
+      "name": "*Furniture_Village_Trapdoor_State_Definitions_OpenDoorOut"
+    },
+    {
+      "x": -1,
+      "y": 6,
+      "z": 2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": -1,
+      "y": 7,
+      "z": 2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": -1,
+      "y": 8,
+      "z": 2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": -1,
+      "y": 9,
+      "z": 2,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 3
+    },
+    {
+      "x": -1,
+      "y": 10,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 11,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 12,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 13,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 14,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 6,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 7,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 8,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 9,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 10,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 11,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 12,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 13,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": -1,
+      "y": 14,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 2,
+      "z": -5,
+      "name": "Rock_Stone_Brick_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": 0,
+      "y": 3,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": 0,
+      "y": 4,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 0,
+      "y": 5,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 0,
+      "y": 6,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 0,
+      "y": 7,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 0,
+      "y": 8,
+      "z": -5,
+      "name": "HyDomum_Shingle__Soil_Clay_Smooth_Orange__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": 0,
+      "y": 9,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 10,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 11,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 12,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 13,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 14,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": -3,
+      "z": -4,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 0,
+      "y": -2,
+      "z": -4,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 0,
+      "y": -1,
+      "z": -4,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 0,
+      "y": 0,
+      "z": -4,
+      "name": "Rock_Stone_Brick_Smooth"
+    },
+    {
+      "x": 0,
+      "y": 1,
+      "z": -4,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 0,
+      "y": 2,
+      "z": -4,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 0,
+      "y": 3,
+      "z": -4,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": 0,
+      "y": 4,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 5,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 6,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 7,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 8,
+      "z": -4,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 10
+    },
+    {
+      "x": 0,
+      "y": 9,
+      "z": -4,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": 0,
+      "y": 10,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 11,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 12,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 13,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 14,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": -3,
+      "z": -3,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 0,
+      "y": -2,
+      "z": -3,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 0,
+      "y": -1,
+      "z": -3,
+      "name": "Soil_Clay_Smooth_Grey"
+    },
+    {
+      "x": 0,
+      "y": 0,
+      "z": -3,
+      "name": "HyVanilla_Carpet_Yellow"
+    },
+    {
+      "x": 0,
+      "y": 1,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 2,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 3,
+      "z": -3,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": 0,
+      "y": 4,
+      "z": -3,
+      "name": "Furniture_Village_Chair",
+      "rotation": 3
+    },
+    {
+      "x": 0,
+      "y": 5,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 6,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 7,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 8,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 9,
+      "z": -3,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 10
+    },
+    {
+      "x": 0,
+      "y": 10,
+      "z": -3,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": 0,
+      "y": 11,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 12,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 13,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 14,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": -3,
+      "z": -2,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 0,
+      "y": -2,
+      "z": -2,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 0,
+      "y": -1,
+      "z": -2,
+      "name": "Soil_Clay_Orange"
+    },
+    {
+      "x": 0,
+      "y": 0,
+      "z": -2,
+      "name": "HyVanilla_Carpet_Black"
+    },
+    {
+      "x": 0,
+      "y": 1,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 2,
+      "z": -2,
+      "name": "Deco_Lantern_Ceiling"
+    },
+    {
+      "x": 0,
+      "y": 3,
+      "z": -2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": 0,
+      "y": 4,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 5,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 6,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 7,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 8,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 9,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 10,
+      "z": -2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": 0,
+      "y": 11,
+      "z": -2,
+      "name": "*HyDomum_ShingleSlab__Soil_Clay_Brick__Wood_Hardwood_Planks_State_Definitions_One_Way",
+      "rotation": 3
+    },
+    {
+      "x": 0,
+      "y": 12,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 13,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 14,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": -3,
+      "z": -1,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 0,
+      "y": -2,
+      "z": -1,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 0,
+      "y": -1,
+      "z": -1,
+      "name": "Soil_Clay_Smooth_Grey"
+    },
+    {
+      "x": 0,
+      "y": 0,
+      "z": -1,
+      "name": "HyVanilla_Carpet_Yellow"
+    },
+    {
+      "x": 0,
+      "y": 1,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 2,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 3,
+      "z": -1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": 0,
+      "y": 4,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 5,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 6,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 7,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 8,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 9,
+      "z": -1,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": 0,
+      "y": 10,
+      "z": -1,
+      "name": "HyDomum_Shingle__Soil_Clay_Smooth_Orange__Wood_Hardwood_Planks"
+    },
+    {
+      "x": 0,
+      "y": 11,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 12,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 13,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 14,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": -3,
+      "z": 0,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 0,
+      "y": -2,
+      "z": 0,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 0,
+      "y": -1,
+      "z": 0,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 0,
+      "y": 0,
+      "z": 0,
+      "name": "Editor_Anchor"
+    },
+    {
+      "x": 0,
+      "y": 1,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 2,
+      "z": 0,
+      "name": "Rock_Stone_Brick_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": 0,
+      "y": 3,
+      "z": 0,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": 0,
+      "y": 4,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 5,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 6,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 7,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 8,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 9,
+      "z": 0,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": 0,
+      "y": 10,
+      "z": 0,
+      "name": "*HyDomum_ShingleSlab__Soil_Clay_Brick__Wood_Hardwood_Planks_State_Definitions_One_Way",
+      "rotation": 2
+    },
+    {
+      "x": 0,
+      "y": 11,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 12,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 13,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 14,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": -3,
+      "z": 1,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 0,
+      "y": -2,
+      "z": 1,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 0,
+      "y": -1,
+      "z": 1,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 0,
+      "y": 0,
+      "z": 1,
+      "name": "Rock_Stone_Brick_Smooth"
+    },
+    {
+      "x": 0,
+      "y": 1,
+      "z": 1,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 0,
+      "y": 2,
+      "z": 1,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 0,
+      "y": 3,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": 0,
+      "y": 4,
+      "z": 1,
+      "name": "HyDomum_TimberFrame_Plain__Wood_Hardwood_Planks__Wood_Hardwood_Planks"
+    },
+    {
+      "x": 0,
+      "y": 5,
+      "z": 1,
+      "name": "Furniture_Village_Window"
+    },
+    {
+      "x": 0,
+      "y": 6,
+      "z": 1,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": 0,
+      "y": 7,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": 0,
+      "y": 8,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 9,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": 0,
+      "y": 10,
+      "z": 1,
+      "name": "*HyDomum_ShingleSlab__Soil_Clay_Brick__Wood_Hardwood_Planks_State_Definitions_Two_Way"
+    },
+    {
+      "x": 0,
+      "y": 11,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 12,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 13,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 14,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": -3,
+      "z": 2,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 0,
+      "y": -2,
+      "z": 2,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 0,
+      "y": -1,
+      "z": 2,
+      "name": "Rock_Stone_Brick_Smooth"
+    },
+    {
+      "x": 0,
+      "y": 0,
+      "z": 2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 0,
+      "y": 1,
+      "z": 2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 0,
+      "y": 2,
+      "z": 2,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks"
+    },
+    {
+      "x": 0,
+      "y": 3,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 4,
+      "z": 2,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 10
+    },
+    {
+      "x": 0,
+      "y": 5,
+      "z": 2,
+      "name": "*HyVanilla_Flower_Pot_Orange_State_Definitions_Plant_Cactus_1"
+    },
+    {
+      "x": 0,
+      "y": 6,
+      "z": 2,
+      "name": "Wood_Hardwood_Planks_Half",
+      "rotation": 8
+    },
+    {
+      "x": 0,
+      "y": 7,
+      "z": 2,
+      "name": "HyDomum_TimberFrame_Plain__Wood_Hardwood_Planks__Soil_Clay_Smooth_White"
+    },
+    {
+      "x": 0,
+      "y": 8,
+      "z": 2,
+      "name": "Furniture_Village_Window"
+    },
+    {
+      "x": 0,
+      "y": 9,
+      "z": 2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": 0,
+      "y": 10,
+      "z": 2,
+      "name": "*HyDomum_ShingleSlab__Soil_Clay_Brick__Wood_Hardwood_Planks_State_Definitions_One_Way"
+    },
+    {
+      "x": 0,
+      "y": 11,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 12,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 13,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 14,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 6,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 7,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 8,
+      "z": 3,
+      "name": "*Furniture_Village_Trapdoor_State_Definitions_OpenDoorOut",
+      "rotation": 3
+    },
+    {
+      "x": 0,
+      "y": 9,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 10,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 11,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 12,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 13,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 0,
+      "y": 14,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 2,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 3,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": 1,
+      "y": 4,
+      "z": -5,
+      "name": "HyDomum_TimberFrame_Plain__Wood_Hardwood_Planks__Wood_Hardwood_Planks"
+    },
+    {
+      "x": 1,
+      "y": 5,
+      "z": -5,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": 1,
+      "y": 6,
+      "z": -5,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": 1,
+      "y": 7,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": 1,
+      "y": 8,
+      "z": -5,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": 1,
+      "y": 9,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 10,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 11,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 12,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 13,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 14,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": -3,
+      "z": -4,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 1,
+      "y": -2,
+      "z": -4,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 1,
+      "y": -1,
+      "z": -4,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 1,
+      "y": 0,
+      "z": -4,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": 1,
+      "y": 1,
+      "z": -4,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": 1,
+      "y": 2,
+      "z": -4,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": 1,
+      "y": 3,
+      "z": -4,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": 1,
+      "y": 4,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 5,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 6,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 7,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 8,
+      "z": -4,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 10
+    },
+    {
+      "x": 1,
+      "y": 9,
+      "z": -4,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": 1,
+      "y": 10,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 11,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 12,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 13,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 14,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": -3,
+      "z": -3,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 1,
+      "y": -2,
+      "z": -3,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 1,
+      "y": -1,
+      "z": -3,
+      "name": "Soil_Clay_Orange"
+    },
+    {
+      "x": 1,
+      "y": 0,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 1,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 2,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 3,
+      "z": -3,
+      "name": "Wood_Hardwood_Planks_Half",
+      "rotation": 8
+    },
+    {
+      "x": 1,
+      "y": 4,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 5,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 6,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 7,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 8,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 9,
+      "z": -3,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 10
+    },
+    {
+      "x": 1,
+      "y": 10,
+      "z": -3,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": 1,
+      "y": 11,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 12,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 13,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 14,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": -3,
+      "z": -2,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 1,
+      "y": -2,
+      "z": -2,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 1,
+      "y": -1,
+      "z": -2,
+      "name": "Soil_Clay_Smooth_Grey"
+    },
+    {
+      "x": 1,
+      "y": 0,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 1,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 2,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 3,
+      "z": -2,
+      "name": "Wood_Hardwood_Planks_Half",
+      "rotation": 8
+    },
+    {
+      "x": 1,
+      "y": 4,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 5,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 6,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 7,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 8,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 9,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 10,
+      "z": -2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": 1,
+      "y": 11,
+      "z": -2,
+      "name": "*HyDomum_ShingleSlab__Soil_Clay_Smooth_Orange__Wood_Hardwood_Planks_State_Definitions_Two_Way",
+      "rotation": 3
+    },
+    {
+      "x": 1,
+      "y": 12,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 13,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 14,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": -3,
+      "z": -1,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 1,
+      "y": -2,
+      "z": -1,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 1,
+      "y": -1,
+      "z": -1,
+      "name": "Soil_Clay_Orange"
+    },
+    {
+      "x": 1,
+      "y": 0,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 1,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 2,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 3,
+      "z": -1,
+      "name": "Wood_Hardwood_Planks_Half",
+      "rotation": 8
+    },
+    {
+      "x": 1,
+      "y": 4,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 5,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 6,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 7,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 8,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 9,
+      "z": -1,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": 1,
+      "y": 10,
+      "z": -1,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks"
+    },
+    {
+      "x": 1,
+      "y": 11,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 12,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 13,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 14,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": -3,
+      "z": 0,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 1,
+      "y": -2,
+      "z": 0,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 1,
+      "y": -1,
+      "z": 0,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 1,
+      "y": 0,
+      "z": 0,
+      "name": "*Furniture_Village_Trapdoor_State_Definitions_OpenDoorOut",
+      "rotation": 2
+    },
+    {
+      "x": 1,
+      "y": 1,
+      "z": 0,
+      "name": "*Furniture_Village_Trapdoor_State_Definitions_OpenDoorOut",
+      "rotation": 2
+    },
+    {
+      "x": 1,
+      "y": 2,
+      "z": 0,
+      "name": "Rock_Stone_Brick_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": 1,
+      "y": 3,
+      "z": 0,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": 1,
+      "y": 4,
+      "z": 0,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 11
+    },
+    {
+      "x": 1,
+      "y": 5,
+      "z": 0,
+      "name": "Furniture_Crude_Torch"
+    },
+    {
+      "x": 1,
+      "y": 6,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 7,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 8,
+      "z": 0,
+      "name": "*Wood_Hardwood_Stairs_State_Definitions_Corner_Left",
+      "rotation": 9
+    },
+    {
+      "x": 1,
+      "y": 9,
+      "z": 0,
+      "name": "*HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks_State_Definitions_Inverted_Corner_Left"
+    },
+    {
+      "x": 1,
+      "y": 10,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 11,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 12,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 13,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 14,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": -3,
+      "z": 1,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 1,
+      "y": -2,
+      "z": 1,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 1,
+      "y": -1,
+      "z": 1,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 1,
+      "y": 0,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 1,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 2,
+      "z": 1,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 1,
+      "y": 3,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": 1,
+      "y": 4,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 1,
+      "y": 5,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 1,
+      "y": 6,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 1,
+      "y": 7,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 1,
+      "y": 8,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 1,
+      "y": 9,
+      "z": 1,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 1
+    },
+    {
+      "x": 1,
+      "y": 10,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 11,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 12,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 13,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 14,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": -3,
+      "z": 2,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 1,
+      "y": -2,
+      "z": 2,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 1,
+      "y": -1,
+      "z": 2,
+      "name": "Rock_Stone_Brick_Stairs",
+      "rotation": 10
+    },
+    {
+      "x": 1,
+      "y": 0,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 1,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 2,
+      "z": 2,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks"
+    },
+    {
+      "x": 1,
+      "y": 3,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 4,
+      "z": 2,
+      "name": "*Wood_Hardwood_Stairs_State_Definitions_Corner_Left",
+      "rotation": 11
+    },
+    {
+      "x": 1,
+      "y": 5,
+      "z": 2,
+      "name": "*Furniture_Village_Trapdoor_State_Definitions_OpenDoorOut"
+    },
+    {
+      "x": 1,
+      "y": 6,
+      "z": 2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": 1,
+      "y": 7,
+      "z": 2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 1,
+      "y": 8,
+      "z": 2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 1,
+      "y": 9,
+      "z": 2,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 1
+    },
+    {
+      "x": 1,
+      "y": 10,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 11,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 12,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 13,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 14,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 0,
+      "z": 3,
+      "name": "*Furniture_Village_Trapdoor_State_Definitions_OpenDoorOut"
+    },
+    {
+      "x": 1,
+      "y": 1,
+      "z": 3,
+      "name": "*Furniture_Village_Trapdoor_State_Definitions_OpenDoorOut"
+    },
+    {
+      "x": 1,
+      "y": 2,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 6,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 7,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 8,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 9,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 10,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 11,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 12,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 13,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 1,
+      "y": 14,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 2,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 3,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": 2,
+      "y": 4,
+      "z": -5,
+      "name": "HyDomum_TimberFrame_Plain__Wood_Hardwood_Planks__Wood_Hardwood_Planks"
+    },
+    {
+      "x": 2,
+      "y": 5,
+      "z": -5,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": 2,
+      "y": 6,
+      "z": -5,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": 2,
+      "y": 7,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": 2,
+      "y": 8,
+      "z": -5,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": 2,
+      "y": 9,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 10,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 11,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 12,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 13,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 14,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": -3,
+      "z": -4,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 2,
+      "y": -2,
+      "z": -4,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 2,
+      "y": -1,
+      "z": -4,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 2,
+      "y": 0,
+      "z": -4,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": 2,
+      "y": 1,
+      "z": -4,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": 2,
+      "y": 2,
+      "z": -4,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": 2,
+      "y": 3,
+      "z": -4,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": 2,
+      "y": 4,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 5,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 6,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 7,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 8,
+      "z": -4,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 10
+    },
+    {
+      "x": 2,
+      "y": 9,
+      "z": -4,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": 2,
+      "y": 10,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 11,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 12,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 13,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 14,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": -3,
+      "z": -3,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 2,
+      "y": -2,
+      "z": -3,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 2,
+      "y": -1,
+      "z": -3,
+      "name": "Soil_Clay_Smooth_Grey"
+    },
+    {
+      "x": 2,
+      "y": 2,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 3,
+      "z": -3,
+      "name": "Wood_Hardwood_Planks_Half",
+      "rotation": 8
+    },
+    {
+      "x": 2,
+      "y": 4,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 5,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 6,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 7,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 8,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 9,
+      "z": -3,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 10
+    },
+    {
+      "x": 2,
+      "y": 10,
+      "z": -3,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": 2,
+      "y": 11,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 12,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 13,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 14,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": -3,
+      "z": -2,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 2,
+      "y": -2,
+      "z": -2,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 2,
+      "y": -1,
+      "z": -2,
+      "name": "Soil_Clay_Orange"
+    },
+    {
+      "x": 2,
+      "y": 0,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 1,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 2,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 3,
+      "z": -2,
+      "name": "Wood_Hardwood_Planks_Half",
+      "rotation": 8
+    },
+    {
+      "x": 2,
+      "y": 4,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 5,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 6,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 7,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 8,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 9,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 10,
+      "z": -2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": 2,
+      "y": 11,
+      "z": -2,
+      "name": "*HyDomum_ShingleSlab__Soil_Clay_Brick__Wood_Hardwood_Planks_State_Definitions_One_Way"
+    },
+    {
+      "x": 2,
+      "y": 12,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 13,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 14,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": -3,
+      "z": -1,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 2,
+      "y": -2,
+      "z": -1,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 2,
+      "y": -1,
+      "z": -1,
+      "name": "Soil_Clay_Smooth_Grey"
+    },
+    {
+      "x": 2,
+      "y": 0,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 1,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 2,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 3,
+      "z": -1,
+      "name": "Wood_Hardwood_Planks_Half",
+      "rotation": 8
+    },
+    {
+      "x": 2,
+      "y": 4,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 5,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 6,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 7,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 8,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 9,
+      "z": -1,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": 2,
+      "y": 10,
+      "z": -1,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks"
+    },
+    {
+      "x": 2,
+      "y": 11,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 12,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 13,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 14,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": -3,
+      "z": 0,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 2,
+      "y": -2,
+      "z": 0,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 2,
+      "y": -1,
+      "z": 0,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 2,
+      "y": 0,
+      "z": 0,
+      "name": "Furniture_Crude_Chest_Small",
+      "rotation": 2,
+      "components": {
+        "Components": {
+          "ItemContainerBlock": {
+            "Capacity": 18
+          }
+        }
+      }
+    },
+    {
+      "x": 2,
+      "y": 1,
+      "z": 0,
+      "name": "Wood_Torch_Wall",
+      "rotation": 2
+    },
+    {
+      "x": 2,
+      "y": 2,
+      "z": 0,
+      "name": "Rock_Stone_Brick_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": 2,
+      "y": 3,
+      "z": 0,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": 2,
+      "y": 4,
+      "z": 0,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 9
+    },
+    {
+      "x": 2,
+      "y": 5,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 6,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 7,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 8,
+      "z": 0,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": 2,
+      "y": 9,
+      "z": 0,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks"
+    },
+    {
+      "x": 2,
+      "y": 10,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 11,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 12,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 13,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 14,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": -3,
+      "z": 1,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 2,
+      "y": -2,
+      "z": 1,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 2,
+      "y": -1,
+      "z": 1,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": 2,
+      "y": 0,
+      "z": 1,
+      "name": "Rock_Stone_Brick_Smooth"
+    },
+    {
+      "x": 2,
+      "y": 1,
+      "z": 1,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 2,
+      "y": 2,
+      "z": 1,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 2,
+      "y": 3,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": 2,
+      "y": 4,
+      "z": 1,
+      "name": "HyDomum_TimberFrame_Plain__Wood_Hardwood_Planks__Wood_Hardwood_Planks"
+    },
+    {
+      "x": 2,
+      "y": 5,
+      "z": 1,
+      "name": "Furniture_Village_Window"
+    },
+    {
+      "x": 2,
+      "y": 6,
+      "z": 1,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": 2,
+      "y": 7,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": 2,
+      "y": 8,
+      "z": 1,
+      "name": "*HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks_State_Definitions_Inverted_Corner_Right",
+      "rotation": 1
+    },
+    {
+      "x": 2,
+      "y": 9,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 10,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 11,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 12,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 13,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 14,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": -3,
+      "z": 2,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 2,
+      "y": -2,
+      "z": 2,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 2,
+      "y": -1,
+      "z": 2,
+      "name": "Rock_Stone_Brick_Smooth"
+    },
+    {
+      "x": 2,
+      "y": 0,
+      "z": 2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 2,
+      "y": 1,
+      "z": 2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 2,
+      "y": 2,
+      "z": 2,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks"
+    },
+    {
+      "x": 2,
+      "y": 3,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 4,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 5,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 6,
+      "z": 2,
+      "name": "Wood_Hardwood_Planks_Half",
+      "rotation": 8
+    },
+    {
+      "x": 2,
+      "y": 7,
+      "z": 2,
+      "name": "HyDomum_TimberFrame_OneCrossedRl__Wood_Hardwood_Planks__Soil_Clay_Smooth_White"
+    },
+    {
+      "x": 2,
+      "y": 8,
+      "z": 2,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 1
+    },
+    {
+      "x": 2,
+      "y": 9,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 10,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 11,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 12,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 13,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 14,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 6,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 7,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 8,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 9,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 10,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 11,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 12,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 13,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 2,
+      "y": 14,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 2,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 3,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": 3,
+      "y": 4,
+      "z": -5,
+      "name": "HyDomum_TimberFrame_Plain__Wood_Hardwood_Planks__Wood_Hardwood_Planks"
+    },
+    {
+      "x": 3,
+      "y": 5,
+      "z": -5,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": 3,
+      "y": 6,
+      "z": -5,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": 3,
+      "y": 7,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": 3,
+      "y": 8,
+      "z": -5,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": 3,
+      "y": 9,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 10,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 11,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 12,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 13,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 14,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": -3,
+      "z": -4,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 3,
+      "y": -2,
+      "z": -4,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 3,
+      "y": -1,
+      "z": -4,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 3,
+      "y": 0,
+      "z": -4,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": 3,
+      "y": 1,
+      "z": -4,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": 3,
+      "y": 2,
+      "z": -4,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": 3,
+      "y": 3,
+      "z": -4,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": 3,
+      "y": 4,
+      "z": -4,
+      "name": "Rock_Stone_Brick_Smooth"
+    },
+    {
+      "x": 3,
+      "y": 5,
+      "z": -4,
+      "name": "Furniture_Village_Bookcase",
+      "rotation": 3
+    },
+    {
+      "x": 3,
+      "y": 6,
+      "z": -4,
+      "name": "Furniture_Village_Bookcase",
+      "rotation": 3
+    },
+    {
+      "x": 3,
+      "y": 7,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 8,
+      "z": -4,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 10
+    },
+    {
+      "x": 3,
+      "y": 9,
+      "z": -4,
+      "name": "HyDomum_Shingle__Soil_Clay_Smooth_Orange__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": 3,
+      "y": 10,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 11,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 12,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 13,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 14,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": -3,
+      "z": -3,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 3,
+      "y": -2,
+      "z": -3,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 3,
+      "y": -1,
+      "z": -3,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 3,
+      "y": 0,
+      "z": -3,
+      "name": "Furniture_Crude_Chest_Large",
+      "components": {
+        "Components": {
+          "ItemContainerBlock": {
+            "Capacity": 36
+          }
+        }
+      }
+    },
+    {
+      "x": 3,
+      "y": 1,
+      "z": -3,
+      "name": "Furniture_Crude_Chest_Large",
+      "components": {
+        "Components": {
+          "ItemContainerBlock": {
+            "Capacity": 36
+          }
+        }
+      }
+    },
+    {
+      "x": 3,
+      "y": 2,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 3,
+      "z": -3,
+      "name": "Wood_Hardwood_Planks_Half",
+      "rotation": 8
+    },
+    {
+      "x": 3,
+      "y": 4,
+      "z": -3,
+      "name": "Rock_Stone_Brick_Stairs",
+      "rotation": 10
+    },
+    {
+      "x": 3,
+      "y": 5,
+      "z": -3,
+      "name": "Rock_Stone_Brick_Stairs",
+      "rotation": 10
+    },
+    {
+      "x": 3,
+      "y": 6,
+      "z": -3,
+      "name": "Rock_Stone_Brick_Stairs",
+      "rotation": 10
+    },
+    {
+      "x": 3,
+      "y": 7,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 8,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 9,
+      "z": -3,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 10
+    },
+    {
+      "x": 3,
+      "y": 10,
+      "z": -3,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": 3,
+      "y": 11,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 12,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 13,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 14,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": -3,
+      "z": -2,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 3,
+      "y": -2,
+      "z": -2,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 3,
+      "y": -1,
+      "z": -2,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 3,
+      "y": 0,
+      "z": -2,
+      "name": "*Furniture_Village_Trapdoor_State_Definitions_OpenDoorOut",
+      "rotation": 3
+    },
+    {
+      "x": 3,
+      "y": 1,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 2,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 3,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 4,
+      "z": -2,
+      "name": "Metal_Iron_Pipe_Large_Mouthpiece"
+    },
+    {
+      "x": 3,
+      "y": 5,
+      "z": -2,
+      "name": "Furniture_Crude_Chest_Small",
+      "rotation": 3,
+      "components": {
+        "Components": {
+          "ItemContainerBlock": {
+            "Capacity": 18
+          }
+        }
+      }
+    },
+    {
+      "x": 3,
+      "y": 6,
+      "z": -2,
+      "name": "Rock_Stone_Brick_Half",
+      "rotation": 8
+    },
+    {
+      "x": 3,
+      "y": 7,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 8,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 9,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 10,
+      "z": -2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": 3,
+      "y": 11,
+      "z": -2,
+      "name": "*HyDomum_ShingleSlab__Soil_Clay_Brick__Wood_Hardwood_Planks_State_Definitions_One_Way"
+    },
+    {
+      "x": 3,
+      "y": 12,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 13,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 14,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": -3,
+      "z": -1,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 3,
+      "y": -2,
+      "z": -1,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 3,
+      "y": -1,
+      "z": -1,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 3,
+      "y": 0,
+      "z": -1,
+      "name": "*Furniture_Village_Trapdoor_State_Definitions_OpenDoorOut",
+      "rotation": 3
+    },
+    {
+      "x": 3,
+      "y": 1,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 2,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 3,
+      "z": -1,
+      "name": "Wood_Hardwood_Planks_Half",
+      "rotation": 8
+    },
+    {
+      "x": 3,
+      "y": 4,
+      "z": -1,
+      "name": "Rock_Stone_Brick_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": 3,
+      "y": 5,
+      "z": -1,
+      "name": "Rock_Stone_Brick_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": 3,
+      "y": 6,
+      "z": -1,
+      "name": "Rock_Stone_Brick_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": 3,
+      "y": 7,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 8,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 9,
+      "z": -1,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": 3,
+      "y": 10,
+      "z": -1,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks"
+    },
+    {
+      "x": 3,
+      "y": 11,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 12,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 13,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 14,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": -3,
+      "z": 0,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 3,
+      "y": -2,
+      "z": 0,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 3,
+      "y": -1,
+      "z": 0,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 3,
+      "y": 0,
+      "z": 0,
+      "name": "*Furniture_Village_Trapdoor_State_Definitions_OpenDoorOut",
+      "rotation": 2
+    },
+    {
+      "x": 3,
+      "y": 1,
+      "z": 0,
+      "name": "*Furniture_Village_Trapdoor_State_Definitions_OpenDoorOut",
+      "rotation": 2
+    },
+    {
+      "x": 3,
+      "y": 2,
+      "z": 0,
+      "name": "Rock_Stone_Brick_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": 3,
+      "y": 3,
+      "z": 0,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": 3,
+      "y": 4,
+      "z": 0,
+      "name": "Wood_Hardwood_Planks"
+    },
+    {
+      "x": 3,
+      "y": 5,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 6,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 7,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 8,
+      "z": 0,
+      "name": "Wood_Hardwood_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": 3,
+      "y": 9,
+      "z": 0,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks"
+    },
+    {
+      "x": 3,
+      "y": 10,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 11,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 12,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 13,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 14,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": -3,
+      "z": 1,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 3,
+      "y": -2,
+      "z": 1,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 3,
+      "y": -1,
+      "z": 1,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 3,
+      "y": 0,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 1,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 2,
+      "z": 1,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 3,
+      "y": 3,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": 3,
+      "y": 4,
+      "z": 1,
+      "name": "HyDomum_TimberFrame_Plain__Wood_Hardwood_Planks__Wood_Hardwood_Planks"
+    },
+    {
+      "x": 3,
+      "y": 5,
+      "z": 1,
+      "name": "Furniture_Village_Window"
+    },
+    {
+      "x": 3,
+      "y": 6,
+      "z": 1,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": 3,
+      "y": 7,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": 3,
+      "y": 8,
+      "z": 1,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks"
+    },
+    {
+      "x": 3,
+      "y": 9,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 10,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 11,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 12,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 13,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 14,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": -3,
+      "z": 2,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 3,
+      "y": -2,
+      "z": 2,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 3,
+      "y": -1,
+      "z": 2,
+      "name": "Rock_Stone_Brick_Stairs",
+      "rotation": 10
+    },
+    {
+      "x": 3,
+      "y": 0,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 1,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 2,
+      "z": 2,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks"
+    },
+    {
+      "x": 3,
+      "y": 3,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 4,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 5,
+      "z": 2,
+      "name": "*Furniture_Village_Trapdoor_State_Definitions_OpenDoorOut",
+      "rotation": 3
+    },
+    {
+      "x": 3,
+      "y": 6,
+      "z": 2,
+      "name": "Wood_Hardwood_Planks_Half",
+      "rotation": 8
+    },
+    {
+      "x": 3,
+      "y": 7,
+      "z": 2,
+      "name": "*HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks_State_Definitions_Inverted_Corner_Right",
+      "rotation": 1
+    },
+    {
+      "x": 3,
+      "y": 8,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 9,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 10,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 11,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 12,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 13,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 14,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 0,
+      "z": 3,
+      "name": "*Furniture_Village_Trapdoor_State_Definitions_OpenDoorOut"
+    },
+    {
+      "x": 3,
+      "y": 1,
+      "z": 3,
+      "name": "*Furniture_Village_Trapdoor_State_Definitions_OpenDoorOut"
+    },
+    {
+      "x": 3,
+      "y": 2,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 6,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 7,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 8,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 9,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 10,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 11,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 12,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 13,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 3,
+      "y": 14,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 2,
+      "z": -5,
+      "name": "Rock_Stone_Brick_Stairs",
+      "rotation": 8
+    },
+    {
+      "x": 4,
+      "y": 3,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": 4,
+      "y": 4,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 4,
+      "y": 5,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 4,
+      "y": 6,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 4,
+      "y": 7,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 4,
+      "y": 8,
+      "z": -5,
+      "name": "HyDomum_Shingle__Soil_Clay_Smooth_Orange__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": 4,
+      "y": 9,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 10,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 11,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 12,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 13,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 14,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": -3,
+      "z": -4,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 4,
+      "y": -2,
+      "z": -4,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 4,
+      "y": -1,
+      "z": -4,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 4,
+      "y": 0,
+      "z": -4,
+      "name": "Rock_Stone_Brick_Smooth"
+    },
+    {
+      "x": 4,
+      "y": 1,
+      "z": -4,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 4,
+      "y": 2,
+      "z": -4,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 4,
+      "y": 3,
+      "z": -4,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": 4,
+      "y": 4,
+      "z": -4,
+      "name": "HyDomum_TimberFrame_Plain__Wood_Hardwood_Planks__Wood_Hardwood_Planks"
+    },
+    {
+      "x": 4,
+      "y": 5,
+      "z": -4,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": 4,
+      "y": 6,
+      "z": -4,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": 4,
+      "y": 7,
+      "z": -4,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": 4,
+      "y": 8,
+      "z": -4,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 4,
+      "y": 9,
+      "z": -4,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": 4,
+      "y": 10,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 11,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 12,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 13,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 14,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": -3,
+      "z": -3,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 4,
+      "y": -2,
+      "z": -3,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 4,
+      "y": -1,
+      "z": -3,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 4,
+      "y": 0,
+      "z": -3,
+      "name": "Rock_Stone_Brick_Smooth"
+    },
+    {
+      "x": 4,
+      "y": 1,
+      "z": -3,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 4,
+      "y": 2,
+      "z": -3,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 4,
+      "y": 3,
+      "z": -3,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": 4,
+      "y": 4,
+      "z": -3,
+      "name": "HyDomum_TimberFrame_Plain__Wood_Hardwood_Planks__Wood_Hardwood_Planks"
+    },
+    {
+      "x": 4,
+      "y": 5,
+      "z": -3,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": 4,
+      "y": 6,
+      "z": -3,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": 4,
+      "y": 7,
+      "z": -3,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": 4,
+      "y": 8,
+      "z": -3,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": 4,
+      "y": 9,
+      "z": -3,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 4,
+      "y": 10,
+      "z": -3,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": 4,
+      "y": 11,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 12,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 13,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 14,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": -3,
+      "z": -2,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 4,
+      "y": -2,
+      "z": -2,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 4,
+      "y": -1,
+      "z": -2,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": 4,
+      "y": 0,
+      "z": -2,
+      "name": "Furniture_Crude_Chest_Small",
+      "rotation": 3,
+      "components": {
+        "Components": {
+          "ItemContainerBlock": {
+            "Capacity": 18
+          }
+        }
+      }
+    },
+    {
+      "x": 4,
+      "y": 1,
+      "z": -2,
+      "name": "Rock_Stone_Cobble_Stairs",
+      "rotation": 3
+    },
+    {
+      "x": 4,
+      "y": 2,
+      "z": -2,
+      "name": "Rock_Stone_Brick_Stairs",
+      "rotation": 9
+    },
+    {
+      "x": 4,
+      "y": 3,
+      "z": -2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": 4,
+      "y": 4,
+      "z": -2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 4,
+      "y": 5,
+      "z": -2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 4,
+      "y": 6,
+      "z": -2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 4,
+      "y": 7,
+      "z": -2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": 4,
+      "y": 8,
+      "z": -2,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": 4,
+      "y": 9,
+      "z": -2,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": 4,
+      "y": 10,
+      "z": -2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 4,
+      "y": 11,
+      "z": -2,
+      "name": "*HyDomum_ShingleSlab__Soil_Clay_Smooth_Orange__Wood_Hardwood_Planks_State_Definitions_Two_Way",
+      "rotation": 3
+    },
+    {
+      "x": 4,
+      "y": 12,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 13,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 14,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": -3,
+      "z": -1,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 4,
+      "y": -2,
+      "z": -1,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 4,
+      "y": -1,
+      "z": -1,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": 4,
+      "y": 0,
+      "z": -1,
+      "name": "Furniture_Crude_Chest_Small",
+      "rotation": 3,
+      "components": {
+        "Components": {
+          "ItemContainerBlock": {
+            "Capacity": 18
+          }
+        }
+      }
+    },
+    {
+      "x": 4,
+      "y": 1,
+      "z": -1,
+      "name": "Rock_Stone_Cobble_Stairs",
+      "rotation": 3
+    },
+    {
+      "x": 4,
+      "y": 2,
+      "z": -1,
+      "name": "Rock_Stone_Brick_Stairs",
+      "rotation": 9
+    },
+    {
+      "x": 4,
+      "y": 3,
+      "z": -1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": 4,
+      "y": 4,
+      "z": -1,
+      "name": "HyDomum_TimberFrame_Plain__Wood_Hardwood_Planks__Wood_Hardwood_Planks"
+    },
+    {
+      "x": 4,
+      "y": 5,
+      "z": -1,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": 4,
+      "y": 6,
+      "z": -1,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": 4,
+      "y": 7,
+      "z": -1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": 4,
+      "y": 8,
+      "z": -1,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": 4,
+      "y": 9,
+      "z": -1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 4,
+      "y": 10,
+      "z": -1,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks"
+    },
+    {
+      "x": 4,
+      "y": 11,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 12,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 13,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 14,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": -3,
+      "z": 0,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 4,
+      "y": -2,
+      "z": 0,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 4,
+      "y": -1,
+      "z": 0,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 4,
+      "y": 0,
+      "z": 0,
+      "name": "Rock_Stone_Brick_Smooth"
+    },
+    {
+      "x": 4,
+      "y": 1,
+      "z": 0,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 4,
+      "y": 2,
+      "z": 0,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 4,
+      "y": 3,
+      "z": 0,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": 4,
+      "y": 4,
+      "z": 0,
+      "name": "HyDomum_TimberFrame_Plain__Wood_Hardwood_Planks__Wood_Hardwood_Planks"
+    },
+    {
+      "x": 4,
+      "y": 5,
+      "z": 0,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": 4,
+      "y": 6,
+      "z": 0,
+      "name": "Soil_Clay_Blue"
+    },
+    {
+      "x": 4,
+      "y": 7,
+      "z": 0,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": 4,
+      "y": 8,
+      "z": 0,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 4,
+      "y": 9,
+      "z": 0,
+      "name": "HyDomum_Shingle__Soil_Clay_Smooth_Orange__Wood_Hardwood_Planks"
+    },
+    {
+      "x": 4,
+      "y": 10,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 11,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 12,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 13,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 14,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": -3,
+      "z": 1,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 4,
+      "y": -2,
+      "z": 1,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 4,
+      "y": -1,
+      "z": 1,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 4,
+      "y": 0,
+      "z": 1,
+      "name": "Rock_Stone_Brick_Smooth"
+    },
+    {
+      "x": 4,
+      "y": 1,
+      "z": 1,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 4,
+      "y": 2,
+      "z": 1,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 4,
+      "y": 3,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": 4,
+      "y": 4,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 4,
+      "y": 5,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 4,
+      "y": 6,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 4,
+      "y": 7,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 4,
+      "y": 8,
+      "z": 1,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks"
+    },
+    {
+      "x": 4,
+      "y": 9,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 10,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 11,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 12,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 13,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 14,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": -3,
+      "z": 2,
+      "name": "HyColony_Placeholder_Solid"
+    },
+    {
+      "x": 4,
+      "y": -2,
+      "z": 2,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 4,
+      "y": -1,
+      "z": 2,
+      "name": "Rock_Stone_Brick_Smooth"
+    },
+    {
+      "x": 4,
+      "y": 0,
+      "z": 2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 4,
+      "y": 1,
+      "z": 2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 4,
+      "y": 2,
+      "z": 2,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks"
+    },
+    {
+      "x": 4,
+      "y": 3,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 4,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 5,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 6,
+      "z": 2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": 4,
+      "y": 7,
+      "z": 2,
+      "name": "HyDomum_Shingle__Soil_Clay_Smooth_Orange__Wood_Hardwood_Planks"
+    },
+    {
+      "x": 4,
+      "y": 8,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 9,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 10,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 11,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 12,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 13,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 14,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 6,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 7,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 8,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 9,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 10,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 11,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 12,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 13,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 4,
+      "y": 14,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 3,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 4,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 5,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 6,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 7,
+      "z": -5,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": 5,
+      "y": 8,
+      "z": -5,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": 5,
+      "y": 9,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 10,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 11,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 12,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 13,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 14,
+      "z": -5,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 3,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 4,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 5,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 6,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 7,
+      "z": -4,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": 5,
+      "y": 8,
+      "z": -4,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 5,
+      "y": 9,
+      "z": -4,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": 5,
+      "y": 10,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 11,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 12,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 13,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 14,
+      "z": -4,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": -3,
+      "z": -3,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 5,
+      "y": -2,
+      "z": -3,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 5,
+      "y": -1,
+      "z": -3,
+      "name": "Rock_Stone_Brick_Smooth"
+    },
+    {
+      "x": 5,
+      "y": 0,
+      "z": -3,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 5,
+      "y": 1,
+      "z": -3,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 1
+    },
+    {
+      "x": 5,
+      "y": 2,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 3,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 4,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 5,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 6,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 7,
+      "z": -3,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": 5,
+      "y": 8,
+      "z": -3,
+      "name": "HyDomum_TimberFrame_OneCrossedRl__Wood_Hardwood_Planks__Soil_Clay_Smooth_White"
+    },
+    {
+      "x": 5,
+      "y": 9,
+      "z": -3,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 5,
+      "y": 10,
+      "z": -3,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 2
+    },
+    {
+      "x": 5,
+      "y": 11,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 12,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 13,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 14,
+      "z": -3,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": -3,
+      "z": -2,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": 5,
+      "y": -2,
+      "z": -2,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 5,
+      "y": -1,
+      "z": -2,
+      "name": "Rock_Stone_Brick_Stairs",
+      "rotation": 11
+    },
+    {
+      "x": 5,
+      "y": 0,
+      "z": -2,
+      "name": "*Furniture_Village_Trapdoor_State_Definitions_OpenDoorOut",
+      "rotation": 3
+    },
+    {
+      "x": 5,
+      "y": 1,
+      "z": -2,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 1
+    },
+    {
+      "x": 5,
+      "y": 2,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 3,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 4,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 5,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 6,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 7,
+      "z": -2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": 5,
+      "y": 8,
+      "z": -2,
+      "name": "HyDomum_TimberFrame_Plain__Wood_Hardwood_Planks__Soil_Clay_Smooth_White"
+    },
+    {
+      "x": 5,
+      "y": 9,
+      "z": -2,
+      "name": "HyDomum_TimberFrame_Plain__Wood_Hardwood_Planks__Soil_Clay_Smooth_White"
+    },
+    {
+      "x": 5,
+      "y": 10,
+      "z": -2,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 5,
+      "y": 11,
+      "z": -2,
+      "name": "*HyDomum_ShingleSlab__Soil_Clay_Brick__Wood_Hardwood_Planks_State_Definitions_One_Way",
+      "rotation": 1
+    },
+    {
+      "x": 5,
+      "y": 12,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 13,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 14,
+      "z": -2,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": -3,
+      "z": -1,
+      "name": "Rock_Stone_Cobble"
+    },
+    {
+      "x": 5,
+      "y": -2,
+      "z": -1,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 5,
+      "y": -1,
+      "z": -1,
+      "name": "Rock_Stone_Brick_Stairs",
+      "rotation": 11
+    },
+    {
+      "x": 5,
+      "y": 0,
+      "z": -1,
+      "name": "*Furniture_Village_Trapdoor_State_Definitions_OpenDoorOut",
+      "rotation": 3
+    },
+    {
+      "x": 5,
+      "y": 1,
+      "z": -1,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 1
+    },
+    {
+      "x": 5,
+      "y": 2,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 3,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 4,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 5,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 6,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 7,
+      "z": -1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": 5,
+      "y": 8,
+      "z": -1,
+      "name": "HyDomum_TimberFrame_OneCrossedLr__Wood_Hardwood_Planks__Soil_Clay_Smooth_White"
+    },
+    {
+      "x": 5,
+      "y": 9,
+      "z": -1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 5,
+      "y": 10,
+      "z": -1,
+      "name": "HyDomum_Shingle__Soil_Clay_Smooth_Orange__Wood_Hardwood_Planks"
+    },
+    {
+      "x": 5,
+      "y": 11,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 12,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 13,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 14,
+      "z": -1,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": -3,
+      "z": 0,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 5,
+      "y": -2,
+      "z": 0,
+      "name": "Rock_Stone_Brick"
+    },
+    {
+      "x": 5,
+      "y": -1,
+      "z": 0,
+      "name": "Rock_Stone_Brick_Smooth"
+    },
+    {
+      "x": 5,
+      "y": 0,
+      "z": 0,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 5,
+      "y": 1,
+      "z": 0,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks",
+      "rotation": 1
+    },
+    {
+      "x": 5,
+      "y": 2,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 3,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 4,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 5,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 6,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 7,
+      "z": 0,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 4
+    },
+    {
+      "x": 5,
+      "y": 8,
+      "z": 0,
+      "name": "Wood_Oak_Trunk",
+      "support": 15
+    },
+    {
+      "x": 5,
+      "y": 9,
+      "z": 0,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks"
+    },
+    {
+      "x": 5,
+      "y": 10,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 11,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 12,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 13,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 14,
+      "z": 0,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 3,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 4,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 5,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 6,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 7,
+      "z": 1,
+      "name": "Wood_Oak_Trunk",
+      "support": 15,
+      "rotation": 5
+    },
+    {
+      "x": 5,
+      "y": 8,
+      "z": 1,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks"
+    },
+    {
+      "x": 5,
+      "y": 9,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 10,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 11,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 12,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 13,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 14,
+      "z": 1,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 3,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 4,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 5,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 6,
+      "z": 2,
+      "name": "Wood_Hardwood_Planks_Half",
+      "rotation": 8
+    },
+    {
+      "x": 5,
+      "y": 7,
+      "z": 2,
+      "name": "HyDomum_Shingle__Soil_Clay_Brick__Wood_Hardwood_Planks"
+    },
+    {
+      "x": 5,
+      "y": 8,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 9,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 10,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 11,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 12,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 13,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 14,
+      "z": 2,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 6,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 7,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 8,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 9,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 10,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 11,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 12,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 13,
+      "z": 3,
+      "name": "Empty"
+    },
+    {
+      "x": 5,
+      "y": 14,
+      "z": 3,
+      "name": "Empty"
+    }
+  ]
+}
