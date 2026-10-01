@@ -12,6 +12,7 @@ import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
+import dev.hycolony.core.farming.hut.FarmerHut;
 import dev.hycolony.core.job.HiringMode;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
@@ -83,7 +84,7 @@ class HireWorkerViewTest {
     @Test
     void aHutThatMayNotAssignYetIsFullAsMc() {
         BlockPos farmPos = new BlockPos(-30, 64, 0);
-        manager.huts().place(colony, dev.hycolony.core.farming.hut.FarmerHut.TYPE_ID, farmPos, 0, alice);
+        manager.huts().place(colony, FarmerHut.TYPE_ID, farmPos, 0, alice);
         citizen(1, "Ann", null);
         manager.windows().openBuilding(alice, farmPos);
         HireView v = ((BuildingView) t.ui.shown.get(alice)).hire().orElseThrow();
@@ -97,6 +98,7 @@ class HireWorkerViewTest {
         hire(other, citizen(2, "Busy", null));
         citizen(3, "Kid", null).setChild(true);
         HireView v = view();
+        assertTrue(v.showEmployedEnabled());
         assertEquals(List.of("Free"), names(v.listed(false)));
         assertEquals(List.of("Free", "Busy"), names(v.listed(true)), "children are never listed");
     }

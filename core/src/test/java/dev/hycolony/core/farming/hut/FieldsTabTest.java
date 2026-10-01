@@ -24,6 +24,20 @@ class FieldsTabTest {
     }
 
     @Test
+    void sectorBoundsTruncateTheAngleAsMc() {
+        // atan2 gives 22.78 and 67.22 degrees; MC truncates to 22 (north) and 67 (west).
+        assertEquals("n", FieldsTab.direction(HUT, new BlockPos(-42, 64, -100)));
+        assertEquals("w", FieldsTab.direction(HUT, new BlockPos(-100, 64, -42)));
+    }
+
+    @Test
+    void sameColumnIsAboveBelowOrSameAsMc() {
+        assertEquals("up", FieldsTab.direction(HUT, new BlockPos(0, 70, 0)));
+        assertEquals("down", FieldsTab.direction(HUT, new BlockPos(0, 60, 0)));
+        assertEquals("same", FieldsTab.direction(HUT, HUT));
+    }
+
+    @Test
     void distanceIsTheWholeEuclideanDistance() {
         assertEquals(5, FieldsTab.distance(HUT, new BlockPos(3, 64, 4)));
     }

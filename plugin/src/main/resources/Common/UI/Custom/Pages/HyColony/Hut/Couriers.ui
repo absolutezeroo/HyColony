@@ -2,8 +2,8 @@ $P = "Parts.ui";
 $B = "../Mc/Book.ui";
 
 // The warehouse's Couriers page (MC gui/layouthuts/layoutcourierassignment.xml, SpecialAssignmentModuleWindow), MC
-// positions and sizes doubled: "Assigned Workers:" (MC sets no header here), the couriers, Manage Workers and Recall
-// Worker.
+// positions and sizes doubled: "Assigned Workers:" (MC workerhuts.workerassigned), the couriers, Manage Workers and
+// Recall Worker.
 
 Group {
   Anchor: (Left: 0, Top: 0, Width: 380, Height: 488);

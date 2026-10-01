@@ -2,10 +2,10 @@ $B = "Book.ui";
 $C = "../../../Common.ui";
 
 // A recipe of the recipes page (MC layoutlistrecipes.xml "recipes" view), MC sizes doubled: up and down, the 3 x 3
-// grid of ingredients (#In0..#In8, each with its count), the output, then Remove, Enable/Disable and the bench or
-// tool (MC "intermediate"); grey when disabled (MC's gradient). Deviation from MC: Minecraft's default buttons are
-// Mojang textures not in sources/, so MC's small builder button stands in; "↥" "↧" become "+" "-" (no arrows in the
-// client's fonts).
+// grid of ingredients (#In0..#In8, each with its count), the output, then Remove, Enable/Disable and the tool (MC
+// leaves its "intermediate" block hidden); grey when disabled (MC's gradient). Deviation from MC: Minecraft's default
+// buttons are Mojang textures not in sources/, so MC's small builder button stands in; "↥" "↧" become "+" "-" (no
+// arrows in the client's fonts), so they get a tooltip naming their move, which MC's arrows do not need.
 
 @In = Group {
   @X = 0;

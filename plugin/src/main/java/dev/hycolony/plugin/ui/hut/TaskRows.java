@@ -55,7 +55,10 @@ final class TaskRows {
         }
     }
 
-    /** MC IStackBasedTask: the prefix and the item with its count; any other task its short description. */
+    /**
+     * MC IStackBasedTask: the prefix and the item with its count; any other task its short description. Deviation from
+     * MC: the count is a label beside the icon (a Hytale ItemIcon draws none).
+     */
     private static void detail(UICommandBuilder ui, String row, TaskRow t) {
         Optional<ItemAmount> stack = switch (t.requestable()) {
             case Delivery d -> Optional.of(d.stack());
@@ -66,8 +69,13 @@ final class TaskRows {
             ui.set(row + " #Detail.TextSpans", RequestsPage.describe(t.requestable()));
             return;
         }
-        String prefix = t.requestable() instanceof Delivery ? "delivery" : "crafting";
-        ui.set(row + " #Detail.Text", Message.translation("hycolony.ui.tasks.prefix." + prefix));
+        // MC getDisplayPrefix: "Delivery of:", or "%d * Recipe:" with the crafting request's minimum count.
+        ui.set(
+                row + " #Detail.Text",
+                t.requestable() instanceof Crafting c
+                        ? Message.translation("hycolony.ui.tasks.prefix.crafting")
+                                .param("p0", String.valueOf(c.minCount()))
+                        : Message.translation("hycolony.ui.tasks.prefix.delivery"));
         ui.set(row + " #DetailIcon.Visible", true);
         ui.set(row + " #DetailIcon.ItemId", stack.get().item().id());
         ui.set(row + " #DetailCount.Visible", true);

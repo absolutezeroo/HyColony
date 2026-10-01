@@ -75,11 +75,15 @@ final class FieldsTab implements HutTab {
     /** Fills field row {@code sel}: seed icon, distance and direction, stage, Locate and the assign box. */
     private void row(UICommandBuilder ui, UIEventBuilder events, String sel, FieldsView.Row r) {
         r.seed().ifPresent(seed -> ui.set(sel + " #Icon.ItemId", seed.id()));
+        Message direction = Message.translation("hycolony.ui.direction." + r.direction());
+        // MC FarmFieldsModuleWindow: above and below show their long text alone, without the distance.
         ui.set(
                 sel + " #Distance.TextSpans",
-                Message.translation("hycolony.ui.fields.distance")
-                        .param("p0", String.valueOf(r.distance()))
-                        .param("p1", Message.translation("hycolony.ui.direction." + r.direction())));
+                r.direction().equals("up") || r.direction().equals("down")
+                        ? direction
+                        : Message.translation("hycolony.ui.fields.distance")
+                                .param("p0", String.valueOf(r.distance()))
+                                .param("p1", direction));
         if (r.seed().isPresent()) { // MC: without a seed, no stage
             stage(ui, sel, r);
         }

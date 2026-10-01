@@ -83,7 +83,11 @@ public final class HireWorkerPage extends ColonyPage implements HutWindow {
                         "hycolony.ui.hut.hiringMode." + lower(h.mode().name())));
         bind(events, "#Mode", "mode");
         ui.set("#ShowEmployed.Text", Message.translation("hycolony.ui.hut.hire." + (showEmployed ? "yes" : "no")));
-        bind(events, "#ShowEmployed", "showEmployed");
+        if (h.showEmployedEnabled()) {
+            bind(events, "#ShowEmployed", "showEmployed");
+        } else {
+            ui.set("#ShowEmployed.Disabled", true);
+        }
         List<HireView.Candidate> rows = h.listed(showEmployed);
         for (int i = 0; i < rows.size(); i++) {
             row(ui, events, "#Citizens[" + i + "]", h, rows.get(i));

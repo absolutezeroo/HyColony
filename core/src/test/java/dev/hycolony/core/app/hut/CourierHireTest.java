@@ -15,6 +15,7 @@ import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.logistics.courier.DeliverymanHut;
 import dev.hycolony.core.logistics.warehouse.CourierAssignmentModule;
+import dev.hycolony.core.logistics.warehouse.CourierAssignmentView;
 import dev.hycolony.core.logistics.warehouse.WarehouseBuilding;
 import dev.hycolony.core.testing.TestContexts;
 import java.util.List;
@@ -74,14 +75,78 @@ class CourierHireTest {
         other.module(CourierAssignmentModule.class).orElseThrow().attach(elsewhere.id());
         CitizenData idle = new CitizenData(3);
         colony.citizens().restore(idle);
+        CitizenData here = courier(4, "Abe", new BlockPos(-20, 64, -20));
+        couriers().attach(here.id());
 
         HireView v = view();
 
         assertEquals("hycolony:deliveryman", v.jobId());
         assertEquals(Optional.empty(), v.primary());
+        List<HireView.Candidate> listed = v.listed(false);
+        assertEquals(
+                List.of(4, 1),
+                listed.stream().map(HireView.Candidate::citizenId).toList(),
+                "attached here first");
+        assertEquals(HireView.Button.FIRE, v.button(listed.getFirst(), false), "an attached courier can be detached");
+        assertEquals(HireView.Button.HIRE, v.button(listed.get(1), false));
+    }
+
+    @Test
+    void theWarehouseRefusesChildrenNonCouriersAndCouriersOfAnotherWarehouse() {
+        CitizenData elsewhere = courier(1, "Dan", new BlockPos(-20, 64, 20));
+        manager.huts().place(colony, WarehouseBuilding.TYPE_ID, OTHER_STORE, 0, alice);
+        Building other = colony.buildings().at(OTHER_STORE).orElseThrow();
+        other.setLevel(1);
+        other.module(CourierAssignmentModule.class).orElseThrow().attach(elsewhere.id());
+        CitizenData idle = new CitizenData(2);
+        colony.citizens().restore(idle);
+        CitizenData kid = courier(3, "Kid", new BlockPos(-20, 64, -20));
+        kid.setChild(true);
+
+        assertFalse(manager.huts().hire(alice, STORE, elsewhere.id()), "one warehouse per courier");
+        assertFalse(manager.huts().hire(alice, STORE, idle.id()), "couriers only");
+        assertFalse(manager.huts().hire(alice, STORE, kid.id()), "adults only");
+        assertTrue(couriers().couriers().isEmpty());
+    }
+
+    @Test
+    void attachingAndDetachingMarkTheColonyToSave() {
+        CitizenData cora = courier(1, "Cora", new BlockPos(-20, 64, 0));
+        colony.clearDirty();
+        assertTrue(manager.huts().hire(alice, STORE, cora.id()));
+        assertTrue(colony.isDirty());
+        colony.clearDirty();
+        assertTrue(manager.huts().fire(alice, STORE, cora.id()));
+        assertTrue(colony.isDirty());
+    }
+
+    @Test
+    void aCourierIsAttachedOnce() {
+        assertTrue(couriers().attach(1));
+        assertFalse(couriers().attach(1));
+        assertEquals(List.of(1), couriers().couriers());
+    }
+
+    @Test
+    void showEmployedIsOffForTheWarehouseAsMc() {
+        courier(1, "Cora", new BlockPos(-20, 64, 0));
+        CitizenData idle = new CitizenData(2);
+        colony.citizens().restore(idle);
+
+        HireView v = view();
+
+        assertFalse(v.showEmployedEnabled(), "MC setupShowEmployed: disabled for a non-worker module");
         assertEquals(
                 List.of(1),
-                v.listed(false).stream().map(HireView.Candidate::citizenId).toList());
+                v.listed(true).stream().map(HireView.Candidate::citizenId).toList());
+        assertEquals(
+                HireView.Button.NONE,
+                v.button(
+                        v.all().stream()
+                                .filter(c -> c.citizenId() == 2)
+                                .findFirst()
+                                .orElseThrow(),
+                        true));
     }
 
     @Test
@@ -102,6 +167,21 @@ class CourierHireTest {
     }
 
     @Test
+    void theCouriersTabListsThemByIdAsMcHashSet() {
+        CitizenData dan = courier(2, "Dan", new BlockPos(-20, 64, 20));
+        CitizenData cora = courier(1, "Cora", new BlockPos(-20, 64, 0));
+        couriers().attach(dan.id());
+        couriers().attach(cora.id());
+
+        manager.windows().openBuilding(alice, STORE);
+        BuildingView v = (BuildingView) t.ui.shown.get(alice);
+
+        assertEquals(
+                List.of("Cora", "Dan"),
+                v.tab(CourierAssignmentView.class).orElseThrow().couriers());
+    }
+
+    @Test
     void courierButtonsNeedManageHuts() {
         CitizenData cora = courier(1, "Cora", new BlockPos(-20, 64, 0));
         assertFalse(manager.huts().hire(UUID.randomUUID(), STORE, cora.id()));
@@ -113,6 +193,20 @@ class CourierHireTest {
     void theCourierModeCyclesWithoutLocked() {
         assertTrue(manager.hutWindows().cycleHiring(alice, STORE));
         assertEquals(HiringMode.DEFAULT, couriers().hiringMode(), "MANUAL then DEFAULT: LOCKED skipped");
+    }
+
+    @Test
+    void recallSaysOnceForEachCourierThatCannotAppearAsMc() {
+        couriers().attach(courier(1, "Cora", new BlockPos(-20, 64, 0)).id());
+        couriers().attach(courier(2, "Dan", new BlockPos(-20, 64, 20)).id());
+        t.bodies.refuseSpawn = true;
+        int before = t.notifier.sent.size();
+        manager.hutWindows().recallWorkers(alice, STORE);
+        assertEquals(
+                2,
+                t.notifier.sent.subList(before, t.notifier.sent.size()).stream()
+                        .filter(s -> s.msg().key().equals("hycolony.hut.recallFail"))
+                        .count());
     }
 
     @Test

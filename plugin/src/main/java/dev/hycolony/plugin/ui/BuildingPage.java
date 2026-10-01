@@ -2,6 +2,7 @@ package dev.hycolony.plugin.ui;
 
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.protocol.packets.interface_.Page;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.entity.entities.player.pages.CustomUIPage;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
@@ -130,14 +131,10 @@ public final class BuildingPage extends ColonyPage implements HutWindow {
         }
     }
 
-    /** Replaces this window with {@code page}; an offline player gets nothing. */
-    private void show(Ref<EntityStore> ref, Store<EntityStore> store, CustomUIPage page) {
-        open(ref, store, page);
-    }
-
     /**
      * Back from a window the hut opened (MC's cross reopens the hut): opens the hut's main window itself, as
-     * {@code openBuilding} would redraw the open annex window of the same hut ({@link HutWindow}).
+     * {@code openBuilding} would redraw the open annex window of the same hut ({@link HutWindow}); closes the window
+     * when the hut is gone meanwhile.
      */
     public static void back(
             Ref<EntityStore> ref,
@@ -145,10 +142,22 @@ public final class BuildingPage extends ColonyPage implements HutWindow {
             PlayerRef playerRef,
             BuildingView view,
             ColonyManager manager) {
-        open(ref, store, new BuildingPage(playerRef, view, manager));
+        boolean exists = manager.colonyAt(view.pos())
+                .flatMap(c -> c.buildings().at(view.pos()))
+                .isPresent();
+        Player p = store.getComponent(ref, Player.getComponentType());
+        if (p == null) {
+            return;
+        }
+        if (exists) {
+            p.getPageManager().openCustomPage(ref, store, new BuildingPage(playerRef, view, manager));
+        } else {
+            p.getPageManager().setPage(ref, store, Page.None);
+        }
     }
 
-    private static void open(Ref<EntityStore> ref, Store<EntityStore> store, CustomUIPage page) {
+    /** Replaces this window with {@code page}; an offline player gets nothing. */
+    private static void show(Ref<EntityStore> ref, Store<EntityStore> store, CustomUIPage page) {
         Player p = store.getComponent(ref, Player.getComponentType());
         if (p != null) {
             p.getPageManager().openCustomPage(ref, store, page);

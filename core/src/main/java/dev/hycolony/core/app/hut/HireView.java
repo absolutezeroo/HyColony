@@ -8,9 +8,9 @@ import java.util.Optional;
 
 /**
  * A hut's hire window (MC WindowHireWorker) for its assignment module: its job, its hiring mode, how many it holds,
- * whether it is full, the job's primary and secondary skills (none for the warehouse's couriers), and every adult
- * citizen in MC's order (working here, unemployed, other jobs, not assignable, then home distance rounded to 40
- * blocks, then name).
+ * whether it is full, the job's primary and secondary skills (none for the warehouse's couriers), whether "Show
+ * employed?" is enabled (MC setupShowEmployed: worker modules only), and every adult citizen in MC's order (working
+ * here, unemployed, other jobs, not assignable, then home distance rounded to 40 blocks, then name).
  */
 public record HireView(
         String jobId,
@@ -19,6 +19,7 @@ public record HireView(
         boolean full,
         Optional<Skill> primary,
         Optional<Skill> secondary,
+        boolean showEmployedEnabled,
         List<Candidate> all) {
     public HireView {
         all = List.copyOf(all);
@@ -58,9 +59,13 @@ public record HireView(
         NONE
     }
 
-    /** MC updateCitizens: the assignable citizens, or every adult when "Show employed?" is on. */
+    /** MC updateCitizens: the assignable citizens, or every adult when "Show employed?" is on and enabled. */
     public List<Candidate> listed(boolean showEmployed) {
-        return all.stream().filter(c -> showEmployed || c.assignable()).toList();
+        return all.stream().filter(c -> shows(showEmployed) || c.assignable()).toList();
+    }
+
+    private boolean shows(boolean showEmployed) {
+        return showEmployed && showEmployedEnabled;
     }
 
     /**
@@ -71,6 +76,6 @@ public record HireView(
         if (c.here()) {
             return Button.FIRE;
         }
-        return (showEmployed || c.assignable()) && !full ? Button.HIRE : Button.NONE;
+        return (shows(showEmployed) || c.assignable()) && !full ? Button.HIRE : Button.NONE;
     }
 }

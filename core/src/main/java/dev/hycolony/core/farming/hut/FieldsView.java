@@ -25,7 +25,7 @@ public record FieldsView(boolean manual, int owned, int max, List<Row> rows) imp
     }
 
     /**
-     * One field: its seed, its distance to the hut and short direction key ({@code hycolony.ui.direction.*}), its
+     * One field: its seed, its distance to the hut and direction key ({@code hycolony.ui.direction.*}), its
      * stage, whether the hut owns it, the lang key of why it cannot be assigned, if so, and whether it got its pass
      * today (the farmer comes back tomorrow). Deviation from MC: that last mark is an addition, MC shows nothing.
      */

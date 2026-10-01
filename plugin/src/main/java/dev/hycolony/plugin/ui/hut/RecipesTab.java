@@ -19,7 +19,7 @@ import java.util.function.Function;
 /**
  * A crafting hut's recipes page (MC WindowListRecipes): "n of m", the learnt recipes in the order the crafters try them
  * (each with up, down, Remove and Enable/Disable), then Teach Recipe. Each button goes to the core, which checks
- * MANAGE_HUTS and shows the window again; the rows' events name their recipe, not their place.
+ * MANAGE_HUTS and shows the window again; as in MC, a row's event carries its place in the list shown.
  *
  * <p>Deviation from MC: up and down move one row (no Shift to the top or bottom), and a built-in recipe's Remove stays
  * disabled (no Ctrl to force it): Hytale sends no modifier key with a click.

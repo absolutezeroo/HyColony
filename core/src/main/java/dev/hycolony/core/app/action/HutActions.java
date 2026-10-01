@@ -162,7 +162,9 @@ public final class HutActions {
      * MC {@code AbstractWindowWorkerModuleBuilding.hireClicked}: refuses with a
      * {@code com.minecolonies.coremod.gui.workerhuts.level0}-style chat message when the hut cannot assign citizens
      * yet ({@link WorkerModule#canAssignCitizens}), instead of the silent failure of {@link WorkerModule#hire}. Any
-     * other refusal still re-shows the window: auto-hiring may have filled the hut behind a stale one.
+     * other refusal still re-shows the window: auto-hiring may have filled the hut behind a stale one. On a warehouse
+     * the courier is attached instead ({@link CourierHiring#hire}); MC's level-0 window never shows there, so a level-0
+     * warehouse (no room) refuses without a message.
      */
     public boolean hire(UUID player, BlockPos hutPos, int citizenId) {
         ManagedHut h = ManagedHut.find(manager, player, hutPos).orElse(null);

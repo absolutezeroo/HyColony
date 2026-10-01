@@ -59,8 +59,7 @@ public final class HutInfoPage extends ColonyPage {
         ui.set("#PageNum.Text", (page + 1) + "/" + count);
         bind(events, "#Prev", page == 0 ? "exit" : "prev");
         if (page > 0) {
-            // MC AbstractWindowSkeleton: prevPage and nextPage name themselves; the exit button under prevPage does
-            // not.
+            // MC AbstractWindowSkeleton: prevPage and nextPage name themselves; the exit under prevPage does not.
             ui.set("#Prev.TooltipText", Message.translation("hycolony.ui.prevPage"));
         }
         if (page + 1 < count) {

@@ -114,11 +114,12 @@ public final class CourierAssignmentModule implements TickingModule, PersistentM
         hiringMode = SavedJson.enumOf(HiringMode.class, in.get("hiringMode")).orElse(HiringMode.DEFAULT);
     }
 
-    /** The warehouse's Couriers tab (MC CourierAssignmentModuleView). */
+    /** The warehouse's Couriers tab (MC CourierAssignmentModuleView), by id as MC's HashSet of ints lists them. */
     @Override
     public ModuleTab tab(Colony colony, Building building, UUID viewer) {
         return new CourierAssignmentView(
                 couriers.stream()
+                        .sorted()
                         .flatMap(id -> colony.citizens().get(id).stream())
                         .map(CitizenData::name)
                         .toList(),

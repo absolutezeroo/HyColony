@@ -13,8 +13,13 @@ import java.util.Optional;
  * fields free or owned by the hut, owned first, then nearest first (MC FieldsComparator).
  */
 final class FieldsTab {
-    /** The eight short directions, from north clockwise ({@code hycolony.ui.direction.<key>}). */
-    private static final String[] DIRECTIONS = {"n", "ne", "e", "se", "s", "sw", "w", "nw"};
+    /**
+     * The directions after north counter-clockwise ({@code hycolony.ui.direction.<key>}), each up to its
+     * {@link #SECTOR_ENDS} bound in whole degrees (MC calcDirection: 22 < NW < 67 <= W <= 112 < SW < 157...).
+     */
+    private static final String[] DIRECTIONS = {"nw", "w", "sw", "s", "se", "e", "ne"};
+
+    private static final int[] SECTOR_ENDS = {66, 112, 156, 202, 246, 292, 337};
 
     private FieldsTab() {}
 
@@ -53,10 +58,25 @@ final class FieldsTab {
         return (int) Math.sqrt((double) a.distSq(b));
     }
 
-    /** The short direction from {@code from} to {@code to}, north being -z. */
+    /**
+     * MC BlockPosUtil.calcDirection: the direction key of {@code to} seen from {@code from}, north being -z; "up",
+     * "down" or "same" on the same column. The angle is truncated to whole degrees before MC's sector bounds.
+     */
     static String direction(BlockPos from, BlockPos to) {
-        double angle = Math.toDegrees(Math.atan2(to.x() - from.x(), from.z() - to.z()));
-        int sector = (int) Math.floorMod(Math.round(angle / 45.0), 8);
-        return DIRECTIONS[sector];
+        if (to.x() == from.x() && to.z() == from.z()) {
+            return to.y() > from.y() ? "up" : to.y() < from.y() ? "down" : "same";
+        }
+        int degree = (int) (Math.atan2(from.x() - to.x(), from.z() - to.z()) * 180 / Math.PI);
+        if (degree < 0) {
+            degree += 360;
+        }
+        if (degree <= 22 || degree >= 338) {
+            return "n";
+        }
+        int i = 0;
+        while (degree > SECTOR_ENDS[i]) {
+            i++;
+        }
+        return DIRECTIONS[i];
     }
 }

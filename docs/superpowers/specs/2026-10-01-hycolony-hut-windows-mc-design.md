@@ -111,7 +111,7 @@ Papier large ; à gauche les résidents (« Métier: à N blocs », rouge au-del
 - **Ressources du constructeur** : rendu de `layoutbuilderres.xml` ; NOT_NEEDED en noir (aujourd'hui gris).
 - **Ordres de travail** : rendu de `layoutworkorders.xml` ; l'ordre courant a un **contour** vert (0,170,0), plus un fond.
 - **Recettes** (fermier) : rendu de `layoutlistrecipes.xml` ; boutons vanilla remplacés par les boutons de `Book.ui` (écart) ; l'apprentissage par liste reste l'écart déjà documenté.
-- **Champs** : rendu de `layoutfarmfields.xml` ; l'assignation devient la case mini cochée de MC ; l'étape devient une icône d'objet Hytale avec l'infobulle « actuelle / suivante » ; « fait aujourd'hui » et Localiser restent (ajouts documentés) ; Fertiliser part dans Réglages.
+- **Champs** : rendu de `layoutfarmfields.xml` ; l'assignation devient la case mini cochée de MC ; l'étape s'écrit (pas d'icône de houe ni de graines, § 10) avec l'infobulle « actuelle / suivante » ; distance et direction selon `BlockPosUtil.calcDirection` (degrés tronqués, diagonales « N/W », « Directly above / below » sans distance, « Same location ») ; « fait aujourd'hui » et Localiser restent (ajouts documentés) ; Fertiliser part dans Réglages.
 - **Tâches du fermier** : la file d'artisanat (`CraftingTasks`) gagne une vue d'onglet `Tasks`, rendue comme les tâches (§ 7).
 
 ## 7. Lot 5 : livreur et entrepôt
@@ -121,7 +121,7 @@ Papier large ; à gauche les résidents (« Métier: à N blocs », rouge au-del
 
 ## 8. Lot 6 : inventaire total (`WindowHutAllInventory`, inventaire § 8.6)
 
-- Fenêtre à part, papier, « All Items » ; filtre (25 caractères, sur le nom affiché ou l'id ; tri par distance de Levenshtein au filtre comme MC) ; tri à 5 états « v^ », « A^ », « Av », « 1^ », « 1v », gardé par joueur entre deux ouvertures (MC : champ statique) ; liste : icône, nom tronqué à 17 caractères, quantité abrégée (« 1.2k », règle `Utils.format` de MC portée dans le cœur) ; « ? » Localiser : ferme la fenêtre, dit `coremod.locating`, surligne 60 s chaque conteneur qui tient l'objet (`Highlights` existant) avec sa couleur selon la quantité ; Retour.
+- Fenêtre à part, papier, « All Items » ; filtre (25 caractères, sur le nom affiché ou l'id ; tri par distance de Levenshtein au filtre comme MC) ; tri à 5 états « v^ », « A^ », « Av », « 1^ », « 1v », gardé par joueur entre deux ouvertures (MC : champ statique) ; liste : icône, nom tronqué à 17 caractères, quantité abrégée (« 1.2k », règle `Utils.format` de MC portée dans le cœur) ; « ? » Localiser : ferme la fenêtre, dit `coremod.locating`, surligne 60 s chaque conteneur qui tient l'objet (`Highlights` existant), sans la couleur selon la quantité (§ 10) ; Retour.
 - `HutInventoryView` : pour chaque objet, sa quantité totale et les conteneurs (position, quantité) qui le tiennent.
 - La sous-vue Inventaire total de la page principale disparaît.
 
@@ -139,7 +139,8 @@ Chacun porte un `Deviation from MC` dans le code.
 
 - Une seule fenêtre Hytale par hutte, onglets dans la page (pas de nouvelle fenêtre par module) ; le rendu reste sans onglet « ouvert ».
 - Son des onglets : le son de bouton du jeu (pas de son de page de livre dans Hytale 0.7.0-pre.4).
-- Boutons vanilla de Minecraft (recettes, renommage), ombre, houe et graines : textures de Mojang absentes de `sources/`, remplacées par des boutons de `Book.ui` ou de Hytale ; l'étape d'un champ s'écrit au lieu de son icône ; « ↥ » et « ↧ » deviennent « + » et « - » (pas de flèches dans les polices du client).
+- Boutons vanilla de Minecraft (recettes, renommage), ombre, houe et graines : textures de Mojang absentes de `sources/`, remplacées par des boutons de `Book.ui` ou de Hytale ; l'étape d'un champ s'écrit au lieu de son icône ; « ↥ » et « ↧ » deviennent « + » et « - » (pas de flèches dans les polices du client), avec une infobulle qui nomme leur sens.
+- La sortie d'une recette montre son seul objet produit (MC fait défiler ses `getOutputDisplayStacks`) ; la quantité d'une tâche s'écrit « xN » à côté de l'icône (une `ItemIcon` de Hytale ne dessine pas de quantité).
 - Le libellé « Work Orders » que `layoutworkorders.xml:6` pose hors du papier (x 201 > 190) n'est pas repris.
 - Le champ de renommage est pré-rempli avec le nom exact (pas en minuscules), comme pour la colonie.
 - Pas de Ctrl pour retirer une recette native (aucun événement de touche modificatrice connu), pas de Maj pour les quantités exactes ni pour monter une recette tout en haut.

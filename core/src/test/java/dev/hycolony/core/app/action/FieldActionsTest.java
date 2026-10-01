@@ -157,4 +157,17 @@ class FieldActionsTest {
         BuildingView view = assertInstanceOf(BuildingView.class, t.ui.shown.get(carol));
         assertTrue(view.tab(FieldsView.class).orElseThrow().canAssign(), "MC enables them in manual mode for all");
     }
+
+    @Test
+    void aFriendCannotAssignFreeNorSwitchTheMode() {
+        fields.placed(alice, NEAR);
+        fields.setSeed(alice, NEAR, FakeFarming.WHEAT_SEEDS);
+        assertTrue(fields.toggleMode(alice, HUT));
+        assertFalse(fields.assign(carol, HUT, NEAR));
+        assertTrue(fields.assign(alice, HUT, NEAR));
+        assertFalse(fields.free(carol, HUT, NEAR));
+        assertTrue(field(NEAR).isTaken());
+        assertFalse(fields.toggleMode(carol, HUT));
+        assertTrue(module().assignManually());
+    }
 }

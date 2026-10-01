@@ -31,6 +31,7 @@ public final class RecipeLines {
             stack(ui, sel + " #In" + cell, inputs.get(i).shown());
             ui.set(sel + " #In" + cell + ".Visible", true);
         }
+        // Deviation from MC: the recipe's one output; MC cycles its getOutputDisplayStacks over the ticks.
         stack(ui, sel + " #Output", line.output());
         // MC shows the required tool; it sets the intermediate block's name too but leaves it hidden.
         line.tool()

@@ -82,9 +82,10 @@ public final class HutWindowActions {
     }
 
     /**
-     * MC Manage Workers (AbstractWindowWorkerModuleBuilding, allowsAssignment) and Manage Housing (WindowHutLiving,
-     * level above 0): whether the hut takes citizens yet; if not, {@code player} is told MC's
-     * {@code workerhuts.level0}. MC checks this in the client without a right. False for a missing hut.
+     * MC Manage Workers (AbstractWindowWorkerModuleBuilding, allowsAssignment; SpecialAssignmentModuleWindow for the
+     * warehouse's couriers) and Manage Housing (WindowHutLiving, level above 0): whether the hut takes citizens yet;
+     * if not, {@code player} is told MC's {@code workerhuts.level0}. MC checks this in the client without a right.
+     * False for a missing hut.
      */
     public boolean mayAssign(UUID player, BlockPos hutPos) {
         Building b =
