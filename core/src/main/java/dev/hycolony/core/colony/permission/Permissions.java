@@ -166,7 +166,93 @@ public final class Permissions {
     }
 
     public boolean hasPermission(UUID player, Action action) {
-        return rankOf(player).has(action);
+        return hasPermission(rankOf(player), action);
+    }
+
+    /** MC hasPermission(Rank, Action): the rank's flag, but the neutral rank never edits permissions nor teleports. */
+    public boolean hasPermission(Rank rank, Action action) {
+        if (rank.id() == NEUTRAL && (action == Action.EDIT_PERMISSIONS || action == Action.TELEPORT_TO_COLONY)) {
+            return false;
+        }
+        return rank.has(action);
+    }
+
+    /**
+     * MC canAlterPermission: only the owner alters the owner's rank; the actor needs EDIT_PERMISSIONS and may not take
+     * from its own rank EDIT_PERMISSIONS, MANAGE_HUTS nor ACCESS_HUTS.
+     */
+    public boolean canAlterPermission(Rank actor, Rank rank, Action action) {
+        if (rank.id() == OWNER && actor.id() != OWNER) {
+            return false;
+        }
+        boolean ownKeyRight = actor.id() == rank.id()
+                && (action == Action.EDIT_PERMISSIONS || action == Action.MANAGE_HUTS || action == Action.ACCESS_HUTS);
+        return hasPermission(actor, Action.EDIT_PERMISSIONS) && !ownKeyRight;
+    }
+
+    /** MC alterPermission: sets or clears {@code action} on {@code rank} if {@link #canAlterPermission}; true if so. */
+    public boolean alterPermission(Rank actor, Rank rank, Action action, boolean enable) {
+        if (!canAlterPermission(actor, rank, action)) {
+            return false;
+        }
+        if (enable) {
+            rank.add(action);
+        } else {
+            rank.remove(action);
+        }
+        return true;
+    }
+
+    /** MC addRank: a rank without rights, at the first free id from the hostile rank's on. */
+    public Rank addRank(String name) {
+        int id = HOSTILE;
+        while (ranks.containsKey(id)) {
+            id++;
+        }
+        Rank rank = new Rank(id, name, 0L, false);
+        ranks.put(id, rank);
+        return rank;
+    }
+
+    /** MC removeRank: a rank that is not initial goes, its players become neutral; false otherwise. */
+    public boolean removeRank(int rankId) {
+        Rank rank = ranks.get(rankId);
+        if (rank == null || rank.isInitial()) {
+            return false;
+        }
+        members.replaceAll((id, m) -> m.rankId() == rankId ? new Member(m.name(), NEUTRAL) : m);
+        ranks.remove(rankId);
+        return true;
+    }
+
+    /** MC EditRankType: makes the rank a colony manager, hostile, or neither; false for an unknown rank. */
+    public boolean setRankType(int rankId, RankType type) {
+        Rank rank = ranks.get(rankId);
+        if (rank == null) {
+            return false;
+        }
+        rank.setColonyManager(type == RankType.COLONY_MANAGER);
+        rank.setHostile(type == RankType.HOSTILE);
+        return true;
+    }
+
+    /** MC addPlayer: puts the player at {@code rankId}, replacing its rank; never the owner, nor an unknown rank. */
+    public boolean addPlayer(UUID player, String name, int rankId) {
+        if (player.equals(owner) || !ranks.containsKey(rankId)) {
+            return false;
+        }
+        members.put(player, new Member(name, rankId));
+        return true;
+    }
+
+    /** MC removePlayer: a member leaves the colony's list; never the owner. */
+    public boolean removePlayer(UUID player) {
+        Member m = members.get(player);
+        if (m == null || m.rankId() == OWNER) {
+            return false;
+        }
+        members.remove(player);
+        return true;
     }
 
     /** MC hasPermission(OP_RANK, action): whether a player bypassing the permissions may do {@code action}. */
