@@ -10,6 +10,7 @@ import dev.hycolony.api.Subscription;
 import dev.hycolony.api.debug.CitizenDebugSnapshot;
 import dev.hycolony.api.debug.DebugAccess;
 import dev.hycolony.api.debug.HistoryEntry;
+import dev.hycolony.api.debug.PartTiming;
 import dev.hycolony.api.debug.Violation;
 import dev.hycolony.api.read.BuildingSnapshot;
 import dev.hycolony.api.read.CitizenSnapshot;
@@ -125,5 +126,10 @@ public final class FakeColonyWorld implements ColonyWorld, DebugAccess {
     @Override
     public ActionResult respawnBody(Actor actor, CitizenRef ref) {
         return new ActionResult.Done();
+    }
+
+    @Override
+    public List<PartTiming> timings() {
+        return List.of();
     }
 }

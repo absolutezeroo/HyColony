@@ -76,12 +76,19 @@ public final class Colony {
         for (ColonyState s : ColonyState.values()) {
             machine.addTransition(new AITarget<>(s, activity, UPDATE_STATE_INTERVAL));
         }
-        machine.addTransition(AITarget.every(ColonyState.ACTIVE, citizens::tickData, CITIZEN_DATA_INTERVAL));
-        machine.addTransition(AITarget.every(ColonyState.ACTIVE, this::checkDayTime, DAYTIME_INTERVAL));
-        machine.addTransition(AITarget.every(ColonyState.ACTIVE, this::slowTick, SLOW_TICK));
-        machine.addTransition(AITarget.every(ColonyState.ACTIVE, requests::tick, RequestManager.TICK_INTERVAL));
-        machine.addTransition(AITarget.every(ColonyState.ACTIVE, work::tick, WorkManager.TICK_INTERVAL));
-        machine.addTransition(AITarget.every(ColonyState.ACTIVE, nameplates::refresh, CitizenNameplates.INTERVAL));
+        // Each part is timed for HyLens's /hylens perf: Hytale measures the whole core as one system.
+        var t = ctx.timings();
+        machine.addTransition(
+                AITarget.every(ColonyState.ACTIVE, t.timed("citizen data", citizens::tickData), CITIZEN_DATA_INTERVAL));
+        machine.addTransition(
+                AITarget.every(ColonyState.ACTIVE, t.timed("daytime", this::checkDayTime), DAYTIME_INTERVAL));
+        machine.addTransition(AITarget.every(ColonyState.ACTIVE, t.timed("colony upkeep", this::slowTick), SLOW_TICK));
+        machine.addTransition(
+                AITarget.every(ColonyState.ACTIVE, t.timed("requests", requests::tick), RequestManager.TICK_INTERVAL));
+        machine.addTransition(
+                AITarget.every(ColonyState.ACTIVE, t.timed("work orders", work::tick), WorkManager.TICK_INTERVAL));
+        machine.addTransition(AITarget.every(
+                ColonyState.ACTIVE, t.timed("nameplates", nameplates::refresh), CitizenNameplates.INTERVAL));
     }
 
     public void tick() {

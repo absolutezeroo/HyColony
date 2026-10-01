@@ -45,7 +45,7 @@ missing jar, or remove the one that needs it. HyColony runs without HyLens.
 - `/hycolony info` shows the colony at your position.
 - `/hycolony rank <player> <officer|friend|neutral|hostile>` requires the colony's EDIT_PERMISSIONS.
 - `/hycolony delete <id>` and `/hycolony selftest` are for operators.
-- `/hylens menu`, `watch`, `unwatch`, `check`, `autocheck`, `send` and `selftest` (HyLens, operators only) debug
+- `/hylens menu`, `watch`, `unwatch`, `check`, `autocheck`, `send`, `perf` and `selftest` (HyLens, operators only) debug
   the colonies.
 
 ## Layout

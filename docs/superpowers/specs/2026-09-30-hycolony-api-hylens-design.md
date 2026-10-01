@@ -157,6 +157,8 @@ Tout est réservé aux opérateurs. Les lots sont dans l'ordre du plan.
    - des coordonnées dans le menu ;
    - **la carte** : en mode armé, l'entrée « Teleport » de la carte est interceptée. Elle ne donne que X et Z (`TeleportToWorldMapPosition`), alors HyLens cherche le sol lui-même. Le filtre de paquet est lu sur le fil réseau : l'état armé est sûr entre fils, et il se désarme à la déconnexion. Hors du mode armé, le paquet vanilla passe intact. `PacketAdapters.registerInbound` est statique : HyLens retire son filtre à son arrêt **[in-game]**.
 
+7. **Ce qui coûte le TPS** (ajout demandé, 2026-10-01) : `/hylens perf` dit, sur la dernière minute, le tick du monde face à son budget, les systèmes de Hytale les plus lourds (Hytale chronomètre chaque système à chaque tick, `Store.tick`, et `/server dump` les écrit) et, dans HyColony, que Hytale voit comme un seul système, ses parties les plus lourdes : le cœur les chronomètre lui-même (`TickTimings`, l'IA de chaque citoyen sous son métier, chaque tâche périodique de la colonie, les fenêtres, les lunettes, la baguette, l'autosauvegarde) et l'API de débogage les expose (`DebugAccess.timings`, `@Experimental`). `/hylens perf --dump` écrit tout dans un fichier texte (tous les systèmes, par période, et toutes les parties), comme `/server dump` pour Hytale.
+
 **V2 et plus tard** (`debug-mod.md` § 8) :
 - la vue dans les yeux du citoyen, en bascule : les réglages existent (`isFirstPerson`, `eyeOffset`), le rendu reste à vérifier **[in-game]** ;
 - le mode de jeu HyLens, qui met les actions sur les clics ;

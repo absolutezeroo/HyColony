@@ -15,6 +15,7 @@ import dev.hycolony.plugin.api.HyColonyApi;
 import dev.hylens.core.ApiCompatibility;
 import dev.hylens.plugin.check.AutoCheckCommand;
 import dev.hylens.plugin.check.CheckCommand;
+import dev.hylens.plugin.perf.PerfCommand;
 import dev.hylens.plugin.send.MapSend;
 import dev.hylens.plugin.send.SendCommand;
 import java.util.Optional;
@@ -35,6 +36,7 @@ public final class HyLensCommand extends AbstractCommandCollection {
         addSubCommand(new CheckCommand());
         addSubCommand(new AutoCheckCommand(parts.menus(), parts.alerts()));
         addSubCommand(new SendCommand(parts.watches(), parts.menus(), map));
+        addSubCommand(new PerfCommand(owner));
     }
 
     /**

@@ -111,10 +111,18 @@ public final class CitizenAI {
         bodies.setMovementSpeed(body, 1);
     }
 
-    /** One AI tick; then its vital signs note the state, the job step, failures and actions (diagnostics). */
+    /**
+     * One AI tick; then its vital signs note the state, the job step, failures and actions (diagnostics). Timed under
+     * its job (HyLens's /hylens perf).
+     */
     public void tick() {
-        machine.tick();
-        watch.afterTick(machine.getState(), jobAI, aiJob == null ? 0 : aiJob.actionsDone());
+        long start = colony.context().timings().start();
+        try {
+            machine.tick();
+            watch.afterTick(machine.getState(), jobAI, aiJob == null ? 0 : aiJob.actionsDone());
+        } finally {
+            colony.context().timings().stop(timingPart(), start);
+        }
     }
 
     public CitizenState state() {
@@ -138,6 +146,11 @@ public final class CitizenAI {
     public void teleport(Vec3 to) {
         forgetJobAI();
         bodies.teleport(body, to);
+    }
+
+    /** The part its ticks are timed as: its job AI's job type id, else {@code "citizen"}; allocates nothing. */
+    private String timingPart() {
+        return aiJob == null ? "citizen" : aiJob.type().id();
     }
 
     /** Its job's AI, while it has a job; for diagnostics. */

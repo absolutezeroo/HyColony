@@ -6,6 +6,7 @@ import dev.hycolony.core.job.JobRegistry;
 import dev.hycolony.core.kernel.WorldKey;
 import dev.hycolony.core.kernel.config.ColonyConfig;
 import dev.hycolony.core.kernel.event.EventBus;
+import dev.hycolony.core.kernel.perf.TickTimings;
 import dev.hycolony.core.kernel.port.CitizenBodies;
 import dev.hycolony.core.kernel.port.GameClock;
 import dev.hycolony.core.kernel.port.Notifier;
@@ -27,4 +28,5 @@ public record ColonyContext(
         CitizenNames names,
         RandomGenerator random,
         EventBus bus,
-        GamePorts ports) {}
+        GamePorts ports,
+        TickTimings timings) {}

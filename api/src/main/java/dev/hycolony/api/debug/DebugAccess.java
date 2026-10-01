@@ -65,4 +65,10 @@ public interface DebugAccess {
      * point, else its last position...); {@link ActionResult.Unavailable} when none could appear, its old body kept.
      */
     ActionResult respawnBody(Actor actor, CitizenRef ref);
+
+    /**
+     * How long each part of HyColony's core took in this world over the last minute, the heaviest first: Hytale
+     * measures the whole core as one system.
+     */
+    List<PartTiming> timings();
 }

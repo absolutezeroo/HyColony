@@ -175,8 +175,8 @@ A job's name is `JobNames.of(snapshot.job())`, as HyColony's windows show it. Th
 ## 7. Experimental parts
 
 What is marked `@Experimental` may change in a minor version. This covers:
-- `ColonyWorld.debug()` and the whole `dev.hycolony.api.debug` package: inspection, history, invariant checks, walks,
-  debugging actions;
+- `ColonyWorld.debug()` and the whole `dev.hycolony.api.debug` package: inspection, history, invariant checks,
+  timings, walks, debugging actions;
 - `requests(colony)` and `RequestSnapshot`;
 - `JobNames`;
 - `HyColonyApi.track` and `clock`, and `ColonyClock`.

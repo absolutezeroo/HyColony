@@ -37,6 +37,9 @@ public final class ColonyManager {
 
     private final ColonyPersistence persistence;
     private final ColonyWindows windows;
+    /** The windows' tick, timed for HyLens's /hylens perf. */
+    private final Runnable tickWindows;
+
     private final HutActions huts;
     private final ColonyFoundation foundation;
     private final WorkOrderActions workOrders;
@@ -51,6 +54,7 @@ public final class ColonyManager {
         this.ctx = ctx;
         this.persistence = new ColonyPersistence(this);
         this.windows = new ColonyWindows(this, ui);
+        this.tickWindows = ctx.timings().timed("windows", windows::tick);
         this.huts = new HutActions(this, windows);
         this.foundation = new ColonyFoundation(this, huts);
         this.workOrders = new WorkOrderActions(this, windows);
@@ -135,7 +139,7 @@ public final class ColonyManager {
         for (Colony colony : colonies.values()) {
             colony.tick();
         }
-        windows.tick();
+        tickWindows.run();
     }
 
     public void onBodyLoaded(BodyId body, int colonyId, int citizenId) {

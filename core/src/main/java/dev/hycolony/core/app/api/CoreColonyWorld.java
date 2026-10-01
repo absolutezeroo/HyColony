@@ -11,6 +11,7 @@ import dev.hycolony.api.read.ColonySummary;
 import dev.hycolony.api.read.RequestSnapshot;
 import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.kernel.perf.PartTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BooleanSupplier;
@@ -104,6 +105,11 @@ public final class CoreColonyWorld implements ColonyWorld {
 
     private ColonyRef ref(Colony c) {
         return new ColonyRef(world, c.id());
+    }
+
+    /** How long each part of this world's core took over the last minute, the heaviest first. */
+    List<PartTime> timings() {
+        return manager.context().timings().lastMinute();
     }
 
     /** Throws {@link IllegalStateException} off the world's thread. */

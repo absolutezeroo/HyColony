@@ -2,6 +2,7 @@ package dev.hycolony.core.app.api;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.api.ApiText;
 import dev.hycolony.api.CitizenRef;
@@ -12,6 +13,7 @@ import dev.hycolony.api.Vec;
 import dev.hycolony.api.debug.CitizenDebugSnapshot;
 import dev.hycolony.api.debug.DebugAccess;
 import dev.hycolony.api.debug.HistoryEntry;
+import dev.hycolony.api.debug.PartTiming;
 import dev.hycolony.api.debug.Violation;
 import dev.hycolony.api.debug.WalkEnded;
 import dev.hycolony.core.app.ColonyManager;
@@ -192,6 +194,61 @@ class CoreDebugAccessTest {
 
         CitizenDebugSnapshot s = debug.inspect(ref).orElseThrow();
         assertEquals(List.of("", ""), List.of(s.aiState(), s.jobStep()), "no AI runs without a body");
+    }
+
+    @Test
+    void aCitizenWithoutAJobIsTimedAsCitizen() {
+        manager.tick();
+
+        assertTrue(
+                debug.timings().stream().anyMatch(p -> p.part().equals("citizen") && p.calls() == 1),
+                debug.timings().toString());
+    }
+
+    @Test
+    void eachCitizensAiIsTimedUnderItsJob() {
+        workingOn(List.of());
+
+        manager.tick();
+
+        assertTrue(
+                debug.timings().stream().anyMatch(p -> p.part().equals(TestJobs.TYPE.id())),
+                "under its job's id: " + debug.timings());
+    }
+
+    @Test
+    void theWindowsAreTimed() {
+        manager.tick();
+
+        assertTrue(
+                debug.timings().stream().anyMatch(p -> p.part().equals("windows")),
+                debug.timings().toString());
+    }
+
+    @Test
+    void timingsTellEachPartsCallsTotalAndWorstHeaviestFirst() {
+        timed("light", 50);
+        timed("heavy", 300);
+        timed("heavy", 100);
+
+        assertEquals(
+                List.of(new PartTiming("heavy", 2, 400, 300), new PartTiming("light", 1, 50, 50)),
+                debug.timings().stream()
+                        .filter(p -> !p.part().equals("citizen"))
+                        .toList());
+    }
+
+    private void timed(String part, long took) {
+        long start = t.timings.start();
+        t.nanos += took;
+        t.timings.stop(part, start);
+    }
+
+    @Test
+    void timingsOffTheWorldThreadThrow() {
+        onWorldThread = false;
+
+        assertThrows(IllegalStateException.class, debug::timings);
     }
 
     @Test

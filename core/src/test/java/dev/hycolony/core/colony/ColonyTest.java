@@ -7,10 +7,13 @@ import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.colony.territory.ClaimCell;
 import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.perf.PartTime;
 import dev.hycolony.core.testing.TestContexts;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
 class ColonyTest {
@@ -32,6 +35,20 @@ class ColonyTest {
             t.clock.tick++;
             c.tick();
         }
+    }
+
+    @Test
+    void activeColonysPeriodicPartsAreTimed() {
+        Colony c = colony();
+        t.players.online.put(UUID.randomUUID(), new BlockPos(10, 64, 10));
+
+        run(c, 700);
+
+        Set<String> parts = t.timings.lastMinute().stream().map(PartTime::part).collect(Collectors.toSet());
+        assertTrue(
+                parts.containsAll(
+                        Set.of("requests", "work orders", "colony upkeep", "daytime", "nameplates", "citizen data")),
+                parts.toString());
     }
 
     @Test

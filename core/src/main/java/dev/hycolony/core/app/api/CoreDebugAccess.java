@@ -9,6 +9,7 @@ import dev.hycolony.api.Subscription;
 import dev.hycolony.api.debug.CitizenDebugSnapshot;
 import dev.hycolony.api.debug.DebugAccess;
 import dev.hycolony.api.debug.HistoryEntry;
+import dev.hycolony.api.debug.PartTiming;
 import dev.hycolony.api.debug.Violation;
 import dev.hycolony.core.app.diagnostics.Invariants;
 import dev.hycolony.core.app.diagnostics.ViolationWatch;
@@ -92,6 +93,14 @@ final class CoreDebugAccess implements DebugAccess {
     @Override
     public ActionResult respawnBody(Actor actor, CitizenRef ref) {
         return actions.respawnBody(actor, ref);
+    }
+
+    @Override
+    public List<PartTiming> timings() {
+        world.checkThread();
+        return world.timings().stream()
+                .map(p -> new PartTiming(p.part(), p.calls(), p.totalNanos(), p.maxNanos()))
+                .toList();
     }
 
     private Optional<CitizenData> citizen(CitizenRef ref) {

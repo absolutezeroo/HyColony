@@ -14,6 +14,7 @@ import dev.hycolony.core.kernel.event.EventBus;
 import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.nav.DetouringBodies;
+import dev.hycolony.core.kernel.perf.TickTimings;
 import dev.hycolony.core.kernel.persist.FileColonyStorage;
 import dev.hycolony.core.kernel.persist.MigrationChain;
 import dev.hycolony.plugin.adapter.HytaleBlocks;
@@ -44,6 +45,13 @@ public final class WorldRuntime {
     private final HytalePreviewPort previews;
     private final BuildGoggles goggles;
     private final WandActions wand;
+    /** The goggles' tick, timed for HyLens's /hylens perf. */
+    private final Runnable tickGoggles;
+    /** The wand's tick, timed for HyLens's /hylens perf. */
+    private final Runnable tickWand;
+    /** The autosave of dirty colonies, timed for HyLens's /hylens perf. */
+    private final Runnable saveDirty;
+
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
     private final long autosaveTicks;
@@ -84,7 +92,8 @@ public final class WorldRuntime {
                 names,
                 new Random(),
                 new EventBus(),
-                WorldPorts.create(world, setup, catalog, worldBlocks));
+                WorldPorts.create(world, setup, catalog, worldBlocks),
+                new TickTimings(System::nanoTime, clock::currentTick));
         this.manager = new ColonyManager(ctx, new HytaleUiPort(() -> self[0], () -> wandSelf[0], blocks, ids));
         self[0] = manager;
         this.previews = new HytalePreviewPort(world);
@@ -92,6 +101,9 @@ public final class WorldRuntime {
         this.wand =
                 new WandActions(manager, previews, k -> new ItemKey(ids.itemId(k)), k -> new BlockKey(ids.blockId(k)));
         wandSelf[0] = wand;
+        this.tickGoggles = ctx.timings().timed("goggles", goggles::tick);
+        this.tickWand = ctx.timings().timed("wand", wand::tick);
+        this.saveDirty = ctx.timings().timed("autosave", manager.persistence()::saveDirty);
         openStorage(manager, world, enabled);
         this.loaded = enabled;
         this.enabled = enabled;
@@ -128,8 +140,8 @@ public final class WorldRuntime {
         try {
             clock.advance();
             manager.tick();
-            goggles.tick();
-            wand.tick();
+            tickGoggles.run();
+            tickWand.run();
         } catch (RuntimeException e) {
             LOG.at(Level.SEVERE).withCause(e).log("HyColony tick failed in world '%s'", world.getName());
         }
@@ -158,7 +170,7 @@ public final class WorldRuntime {
         }
         sinceSave = 0;
         try {
-            manager.persistence().saveDirty();
+            saveDirty.run();
         } catch (RuntimeException e) {
             LOG.at(Level.SEVERE).withCause(e).log("HyColony autosave failed in world '%s'", world.getName());
         }
