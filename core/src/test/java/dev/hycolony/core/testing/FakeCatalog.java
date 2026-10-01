@@ -7,8 +7,10 @@ import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolInfo;
 import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.kernel.port.ItemCatalog;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -21,6 +23,7 @@ public final class FakeCatalog implements ItemCatalog {
     public final Set<BlockKey> ores = new HashSet<>();
     public final Set<BlockKey> harmful = new HashSet<>();
     public final Set<BlockKey> beds = new HashSet<>();
+    public final Set<BlockKey> seats = new HashSet<>();
     /** SOLID blocks that are no good floor (leaves); every other SOLID block is one. */
     public final Set<BlockKey> notGoodFloor = new HashSet<>();
 
@@ -81,6 +84,17 @@ public final class FakeCatalog implements ItemCatalog {
     @Override
     public boolean isBed(BlockKey block) {
         return beds.contains(block);
+    }
+
+    @Override
+    public boolean isSeat(BlockKey block) {
+        return seats.contains(block);
+    }
+
+    /** The foods by id, for a set order. */
+    @Override
+    public List<ItemKey> foods() {
+        return foods.keySet().stream().sorted(Comparator.comparing(ItemKey::id)).toList();
     }
 
     @Override

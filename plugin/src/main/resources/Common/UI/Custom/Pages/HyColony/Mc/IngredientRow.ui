@@ -1,0 +1,25 @@
+$B = "Book.ui";
+$C = "../../../Common.ui";
+
+// One ingredient of a dining hall's menu (MC layoutfoodstock.xml ingredientslist box), sizes doubled: a 34 px outlined
+// box, the item (its tooltip what the customers eat of it a day) and its name with the amount a dish takes.
+
+Group {
+  Anchor: (Height: 34);
+  OutlineSize: 1;
+  OutlineColor: #000000;
+
+  ItemIcon #Icon {
+    Anchor: (Left: 0, Top: 0, Width: 32, Height: 32);
+  }
+
+  Group #Daily {
+    Anchor: (Left: 0, Top: 0, Width: 32, Height: 32);
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+  }
+
+  Label #Name {
+    Anchor: (Left: 40, Top: 2, Width: 200, Height: 30);
+    Style: $B.@Ink;
+  }
+}

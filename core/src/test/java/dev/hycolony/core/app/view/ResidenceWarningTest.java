@@ -4,8 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.app.ui.BuildingView;
+import dev.hycolony.core.building.Building;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
+import dev.hycolony.core.crafting.restaurant.DiningHallHut;
+import dev.hycolony.core.crafting.restaurant.RestaurantMenuModule;
 import dev.hycolony.core.farming.hut.FarmerHut;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.testing.TestContexts;
@@ -52,6 +55,23 @@ class ResidenceWarningTest {
         colony.buildings().at(farm).orElseThrow().setLevel(1);
 
         assertEquals(Optional.empty(), warningAt(1));
+    }
+
+    @Test
+    void aDiningHallMenuWithBetterDishesLiftsTheLaterWarnings() {
+        BlockPos hallPos = new BlockPos(-10, 64, 10);
+        manager.huts().place(colony, DiningHallHut.TYPE_ID, hallPos, 0, UUID.randomUUID());
+        Building hall = colony.buildings().at(hallPos).orElseThrow();
+        hall.setLevel(1);
+        RestaurantMenuModule menu = hall.module(RestaurantMenuModule.class).orElseThrow();
+
+        menu.add(colony, hall, t.catalog.food("bread", 6, 1));
+        assertEquals(Optional.empty(), warningAt(2)); // MC checkColonyMenu(1)
+        assertEquals(Optional.of("hycolony.ui.residence.warning.4"), warningAt(3));
+
+        menu.add(colony, hall, t.catalog.food("stew", 9, 2));
+        assertEquals(Optional.empty(), warningAt(3));
+        assertEquals(Optional.empty(), warningAt(4));
     }
 
     @Test

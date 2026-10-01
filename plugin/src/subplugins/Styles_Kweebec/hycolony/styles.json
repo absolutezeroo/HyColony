@@ -66,6 +66,28 @@
         "hutOffset": [2, 10, -5]
       }
     },
+    "hycolony:cook": {
+      "1": {
+        "prefab": "Npc/Kweebec/Redwood/Small_Plot/House/Kweebec_Redwood_Small_Plot_House_001.prefab.json",
+        "hutOffset": [0, 8, -1]
+      },
+      "2": {
+        "prefab": "Npc/Kweebec/Redwood/Small_Plot/House/Kweebec_Redwood_Small_Plot_House_002.prefab.json",
+        "hutOffset": [0, 8, -2]
+      },
+      "3": {
+        "prefab": "Npc/Kweebec/Redwood/Normal_Plot/House/Kweebec_Redwood_Normal_Plot_House_001.prefab.json",
+        "hutOffset": [0, 9, -5]
+      },
+      "4": {
+        "prefab": "Npc/Kweebec/Redwood/Normal_Plot/House/Kweebec_Redwood_Normal_Plot_House_002.prefab.json",
+        "hutOffset": [1, 10, -2]
+      },
+      "5": {
+        "prefab": "Npc/Kweebec/Redwood/Medium_House/Kweebec_Redwood_Medium_House_002.prefab.json",
+        "hutOffset": [2, 10, -5]
+      }
+    },
     "hycolony:warehouse": {
       "1": {
         "prefab": "Npc/Kweebec/Autumn/Shops/Kweebec_Autumn_Shops_007.prefab.json",

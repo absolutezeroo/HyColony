@@ -4,6 +4,7 @@ import dev.hycolony.core.building.BuildingRegistry;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
+import dev.hycolony.core.crafting.restaurant.DiningHallHut;
 import dev.hycolony.core.farming.hut.FarmerHut;
 import dev.hycolony.core.job.JobRegistry;
 import dev.hycolony.core.logistics.courier.DeliverymanHut;
@@ -20,8 +21,8 @@ public final class CoreFeatures {
     private CoreFeatures() {}
 
     /**
-     * Registers the town hall, construction (builder, residence), logistics (warehouse, courier) and farming (farmer)
-     * types.
+     * Registers the town hall, construction (builder, residence), logistics (warehouse, courier), farming (farmer)
+     * and dining (dining hall, waiter) types.
      */
     public static void register(BuildingRegistry buildings, JobRegistry jobs) {
         BuildingTypes.register(buildings);
@@ -32,6 +33,8 @@ public final class CoreFeatures {
         DeliverymanHut.register(jobs);
         FarmerHut.register(buildings);
         FarmerHut.register(jobs);
+        DiningHallHut.register(buildings);
+        DiningHallHut.register(jobs);
     }
 
     /**

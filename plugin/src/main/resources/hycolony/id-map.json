@@ -6,6 +6,7 @@
     "hut.warehouse": "HyColony_Hut_Warehouse",
     "hut.deliveryman": "HyColony_Hut_Courier",
     "hut.farmer": "HyColony_Hut_Farmer",
+    "hut.cook": "HyColony_Hut_Cook",
     "block.field": "HyColony_Field",
     "build_goggles": "HyColony_Build_Goggles",
     "build_tool": "HyColony_Build_Tool",
@@ -22,6 +23,7 @@
     "hut.warehouse": "HyColony_Hut_Warehouse",
     "hut.deliveryman": "HyColony_Hut_Courier",
     "hut.farmer": "HyColony_Hut_Farmer",
+    "hut.cook": "HyColony_Hut_Cook",
     "block.field": "HyColony_Field",
     "selftest.chest": "Furniture_Crude_Chest_Small",
     "selftest.stair_corner": "*Rock_Stone_Brick_Stairs_State_Definitions_Corner_Right",
@@ -79,6 +81,7 @@
   "food": {
     "cookingBench": "Campfire",
     "eatParticle": "Food_Eat",
+    "defaultFuels": ["Ingredient_Charcoal"],
     "foods": {
       "Plant_Fruit_Apple": {"nutrition": 4, "tier": 0, "poisonous": false},
       "Plant_Fruit_Azure": {"nutrition": 4, "tier": 0, "poisonous": false},

@@ -23,6 +23,7 @@ import dev.hycolony.plugin.food.FoodIds;
 import dev.hycolony.plugin.food.HytaleFoods;
 import dev.hycolony.plugin.item.HytaleStacks;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -53,11 +54,11 @@ import org.jspecify.annotations.Nullable;
 public final class HytaleItemCatalog implements ItemCatalog {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
     private static final BlockInfo UNKNOWN_BLOCK =
-            new BlockInfo(BlockKind.UNBREAKABLE, Optional.empty(), false, Optional.empty(), 1f, false, false);
+            new BlockInfo(BlockKind.UNBREAKABLE, Optional.empty(), false, Optional.empty(), 1f, false, false, false);
     private static final BlockInfo FLUID =
-            new BlockInfo(BlockKind.FLUID, Optional.empty(), false, Optional.empty(), 0f, false, false);
+            new BlockInfo(BlockKind.FLUID, Optional.empty(), false, Optional.empty(), 0f, false, false, false);
     private static final BlockInfo AIR =
-            new BlockInfo(BlockKind.AIR, Optional.empty(), false, Optional.empty(), 0f, false, false);
+            new BlockInfo(BlockKind.AIR, Optional.empty(), false, Optional.empty(), 0f, false, false, false);
     private static final ItemInfo UNKNOWN_ITEM = new ItemInfo(1, Optional.empty(), 0);
 
     private record BlockInfo(
@@ -67,7 +68,8 @@ public final class HytaleItemCatalog implements ItemCatalog {
             Optional<ToolType> tool,
             float hardness,
             boolean harmful,
-            boolean bed) {}
+            boolean bed,
+            boolean seat) {}
 
     private record ItemInfo(int maxStack, Optional<ToolInfo> tool, int durability) {}
 
@@ -96,6 +98,16 @@ public final class HytaleItemCatalog implements ItemCatalog {
     @Override
     public Optional<FoodInfo> food(ItemKey item) {
         return foods.food(item);
+    }
+
+    @Override
+    public List<ItemKey> foods() {
+        return foods.foods();
+    }
+
+    /** The food table this catalog reads, shared with the cooking catalog. */
+    public HytaleFoods foodTable() {
+        return foods;
     }
 
     /** The cooking bench's result for {@code item} (MC the furnace's smelting result). */
@@ -185,6 +197,12 @@ public final class HytaleItemCatalog implements ItemCatalog {
         return block(block).bed();
     }
 
+    /** BlockType.getSeats() is non-null for every seat (32 vanilla chairs, stools, benches, sp4b-hytale-food § 6). */
+    @Override
+    public boolean isSeat(BlockKey block) {
+        return block(block).seat();
+    }
+
     @Override
     public Optional<ToolType> toolFor(BlockKey block) {
         return block(block).tool();
@@ -252,13 +270,14 @@ public final class HytaleItemCatalog implements ItemCatalog {
         }
         boolean harmful = type.getDamageToEntities() > 0 || type.isTrigger();
         boolean bed = type.getBeds() != null; // every bed has sleeping points (BlockMountAPI), vanilla and HyVanilla
+        boolean seat = type.getSeats() != null; // chairs, stools, benches (BlockMountAPI takes a seat first)
         Item item = type.getItem();
         Optional<ItemKey> itemKey = item == null ? Optional.empty() : Optional.of(new ItemKey(item.getId()));
         BlockGathering g = type.getGathering();
         BlockBreakingDropType breaking = g == null ? null : g.getBreaking();
         String gather = breaking == null ? null : breaking.getGatherType();
         if (g == null || "Unbreakable".equals(gather) || hutBlockIds.contains(type.getId())) {
-            return new BlockInfo(BlockKind.UNBREAKABLE, itemKey, false, Optional.empty(), 1f, harmful, bed);
+            return new BlockInfo(BlockKind.UNBREAKABLE, itemKey, false, Optional.empty(), 1f, harmful, bed, seat);
         }
         BlockKind kind = type.getMaterial() == BlockMaterial.Empty ? BlockKind.NON_SOLID : BlockKind.SOLID;
         return new BlockInfo(
@@ -268,7 +287,8 @@ public final class HytaleItemCatalog implements ItemCatalog {
                 Optional.ofNullable(toolType(gather)),
                 hardness(gather),
                 harmful,
-                bed);
+                bed,
+                seat);
     }
 
     /** The block's hardness from its gather type's unarmed power ({@link ToolScale#hardness}). */

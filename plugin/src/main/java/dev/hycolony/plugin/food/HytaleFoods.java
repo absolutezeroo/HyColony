@@ -8,6 +8,7 @@ import com.hypixel.hytale.server.core.inventory.MaterialQuantity;
 import dev.hycolony.core.kernel.item.FoodInfo;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.plugin.crafting.ResourceTypeIndex;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,14 +48,31 @@ public final class HytaleFoods {
         return Optional.ofNullable(foods.get(item));
     }
 
+    /** Every food of the table, by id. */
+    public List<ItemKey> foods() {
+        return foods.keySet().stream().sorted(Comparator.comparing(ItemKey::id)).toList();
+    }
+
     /** What the cooking bench makes of {@code item}; empty when it does not cook there. */
     public Optional<ItemKey> cooked(ItemKey item) {
+        return Optional.ofNullable(cookedMap().get(item));
+    }
+
+    /** The item that cooks into {@code dish}, the first by id when several do; empty when none does. */
+    public Optional<ItemKey> rawFor(ItemKey dish) {
+        return cookedMap().entrySet().stream()
+                .filter(e -> e.getValue().equals(dish))
+                .map(Map.Entry::getKey)
+                .min(Comparator.comparing(ItemKey::id));
+    }
+
+    private Map<ItemKey, ItemKey> cookedMap() {
         Map<ItemKey, ItemKey> map = cooked;
         if (map == null) {
             map = loadCooked();
             cooked = map;
         }
-        return Optional.ofNullable(map.get(item));
+        return map;
     }
 
     /**

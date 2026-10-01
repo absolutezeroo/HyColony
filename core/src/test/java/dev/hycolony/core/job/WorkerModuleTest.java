@@ -183,6 +183,15 @@ class WorkerModuleTest {
         assertEquals(HiringMode.AUTO, restored.hiringMode());
     }
 
+    /** MC canWorkDuringTheRain: the waiter's flag at any level, else only a max-level hut. */
+    @Test
+    void workersWorkInTheRainWithTheFlagOrAtTheMaxLevel() {
+        assertFalse(module().canWorkDuringTheRain(buildingWith(module(), 4, true)));
+        assertTrue(module().canWorkDuringTheRain(buildingWith(module(), 5, true)));
+        WorkerModule waiter = module().workingInRain();
+        assertTrue(waiter.canWorkDuringTheRain(buildingWith(waiter, 1, true)));
+    }
+
     /** CLAUDE.md § 5: an unknown mode or a non-number worker never locks the colony. */
     @Test
     void unreadableSavedValuesFallBackInsteadOfThrowing() {

@@ -1,0 +1,72 @@
+$P = "Parts.ui";
+$B = "../Mc/Book.ui";
+$C = "../../../Common.ui";
+
+// A dining hall's Menu page (MC gui/layouthuts/layoutfoodstock.xml, RestaurantMenuModuleWindow), MC positions and
+// sizes doubled. MC's window holds two pages side by side; HyColony's hut frame holds one, so #MenuPage (MC's left
+// page: the menu, its warnings and ingredients) and #OptionsPage (MC's right page: the filter and the food options,
+// its x shifted by -190 x 2) show one at a time, switched by #ToOptions and #ToMenu (a deviation from MC).
+
+Group {
+  Anchor: (Left: 0, Top: 0, Width: 380, Height: 488);
+
+  Group #MenuPage {
+    Anchor: (Left: 0, Top: 0, Width: 380, Height: 488);
+
+    $P.@Desc #Desc { Text: %hycolony.ui.menu.title; }
+
+    Label #PoorWarning {
+      Anchor: (Left: 28, Top: 50, Width: 320, Height: 44);
+      Style: (...$B.@InkCentered, TextColor: #ff0000, Wrap: true);
+      Text: %hycolony.ui.menu.poor;
+      Visible: false;
+    }
+
+    Label #Warning {
+      Anchor: (Left: 26, Top: 100, Width: 300, Height: 44);
+      Style: (...$B.@InkCentered, Wrap: true);
+      Text: %hycolony.ui.menu.warning;
+      Visible: false;
+    }
+
+    Group #Menu {
+      Anchor: (Left: 26, Top: 90, Width: 328, Height: 180);
+      LayoutMode: TopScrolling;
+      ScrollbarStyle: $C.@DefaultScrollbarStyle;
+    }
+
+    Label #IngredientsTitle {
+      Anchor: (Left: 26, Top: 270, Width: 260, Height: 22);
+      Style: $B.@InkCentered;
+      Text: %hycolony.ui.menu.ingredients;
+    }
+
+    Group #Ingredients {
+      Anchor: (Left: 26, Top: 290, Width: 328, Height: 140);
+      LayoutMode: TopScrolling;
+      ScrollbarStyle: $C.@DefaultScrollbarStyle;
+    }
+
+    $P.@WideButton #ToOptions { @Top = 440; Text: %hycolony.ui.menu.toOptions; }
+  }
+
+  Group #OptionsPage {
+    Anchor: (Left: 0, Top: 0, Width: 380, Height: 488);
+    Visible: false;
+
+    $P.@Desc #OptionsTitle { Text: %hycolony.ui.menu.options; }
+
+    $C.@TextField #Filter {
+      @Anchor = (Left: 40, Top: 56, Width: 300);
+      MaxLength: 25;
+    }
+
+    Group #Options {
+      Anchor: (Left: 26, Top: 100, Width: 328, Height: 330);
+      LayoutMode: TopScrolling;
+      ScrollbarStyle: $C.@DefaultScrollbarStyle;
+    }
+
+    $P.@WideButton #ToMenu { @Top = 440; Text: %hycolony.ui.menu.toMenu; }
+  }
+}

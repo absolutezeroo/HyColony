@@ -182,6 +182,7 @@ public final class IdMap {
         check(errors, "entity effect", byId(highlightEffect().stream().toList()), effect);
         check(errors, "particle system", byId(sleepParticle().stream().toList()), particle);
         check(errors, "food item", byId(List.copyOf(food().table().keySet())), item);
+        check(errors, "fuel item", byId(food().fuels()), item);
         check(errors, "particle system", byId(food().particle().stream().toList()), particle);
         check(
                 errors,

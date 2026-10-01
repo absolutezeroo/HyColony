@@ -1,0 +1,29 @@
+$P = "Parts.ui";
+$B = "../Mc/Book.ui";
+$C = "../../../Common.ui";
+
+// A furnace user's Fuel page (MC gui/layouthuts/layoutfilterablelist.xml, ItemListModuleWindow), MC positions and sizes
+// doubled: the header, the filter, one row per fuel (Mc/FuelRow.ui), then Reset to default.
+
+Group {
+  Anchor: (Left: 0, Top: 0, Width: 380, Height: 488);
+
+  $P.@Desc #Desc {}
+
+  $C.@TextField #Filter {
+    @Anchor = (Left: 40, Top: 60, Width: 300);
+    MaxLength: 25;
+  }
+
+  Group #Fuels {
+    Anchor: (Left: 26, Top: 100, Width: 328, Height: 272);
+    LayoutMode: TopScrolling;
+    ScrollbarStyle: $C.@DefaultScrollbarStyle;
+  }
+
+  TextButton #Reset {
+    Anchor: (Left: 100, Top: 388, Width: 172, Height: 34);
+    Style: $B.@MediumButtonStyle;
+    Text: %hycolony.ui.fuel.reset;
+  }
+}

@@ -29,6 +29,8 @@ public final class FakePlayers implements PlayerDirectory {
     public final Set<UUID> creativeOperators = new HashSet<>();
 
     private final Map<UUID, Integer> facing = new LinkedHashMap<>();
+    /** Each online player's health in percent; 100 when unset. */
+    public final Map<UUID, Integer> health = new LinkedHashMap<>();
 
     @Override
     public Optional<String> name(UUID player) {
@@ -88,5 +90,10 @@ public final class FakePlayers implements PlayerDirectory {
     /** Sets the quarter-turn direction {@link #facing} reports for {@code player}; 0 (north) until set. */
     public void setFacing(UUID player, int quarterTurn) {
         facing.put(player, quarterTurn);
+    }
+
+    @Override
+    public int healthPercent(UUID player) {
+        return online.containsKey(player) ? health.getOrDefault(player, 100) : 100;
     }
 }

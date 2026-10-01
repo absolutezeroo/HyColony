@@ -1,0 +1,25 @@
+$B = "Book.ui";
+
+// One item of MC's filterable list (layoutfilterablelist.xml resources box), sizes doubled: a 34 px outlined box, the
+// item, its name in white, then its On/Off switch (builder_button_very_small).
+
+Group {
+  Anchor: (Height: 34);
+  OutlineSize: 1;
+  OutlineColor: #000000;
+
+  ItemIcon #Icon {
+    Anchor: (Left: 0, Top: 0, Width: 32, Height: 32);
+  }
+
+  Label #Name {
+    Anchor: (Left: 40, Top: 2, Width: 196, Height: 30);
+    Style: (...$B.@Ink, TextColor: #ffffff);
+  }
+
+  TextButton #Switch {
+    Anchor: (Left: 240, Top: 2, Width: 58, Height: 30);
+    Style: $B.@VerySmallButtonStyle;
+    Text: "";
+  }
+}

@@ -20,8 +20,8 @@ public final class SideTabs {
     private static final int BACKGROUNDS = 4;
 
     /** The module icons SideTab.ui holds (MC textures/gui/modules). */
-    public static final Set<String> ICONS =
-            Set.of("main", "crafting", "inventory", "settings", "info", "stock", "stats", "field", "entity");
+    public static final Set<String> ICONS = Set.of(
+            "main", "crafting", "inventory", "settings", "info", "stock", "stats", "field", "entity", "food", "fuel");
 
     /** A side tab: its icon (one of {@link #ICONS}) and its description's language key. */
     public record Tab(String icon, String descKey) {}

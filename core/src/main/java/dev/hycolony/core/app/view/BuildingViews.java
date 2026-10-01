@@ -14,6 +14,7 @@ import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.construction.workorder.WorkManager;
 import dev.hycolony.core.construction.workorder.WorkOrder;
 import dev.hycolony.core.construction.workorder.WorkOrderType;
+import dev.hycolony.core.crafting.restaurant.RestaurantMenuModule;
 import dev.hycolony.core.farming.hut.FarmerHut;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
@@ -75,7 +76,8 @@ final class BuildingViews {
 
     /**
      * MC LivingBuildingView.getHoverWarningForLevel: before level 2, a farm (or fisher, not ported) of level 1 or
-     * more; before levels 3 to 5, a restaurant serving the right meals, which HyColony lacks, so always.
+     * more; before level 3, a dining hall menu with a dish of tier 1 or more (MC checkColonyMenu); before levels 4 and
+     * 5, one of tier 2 or more.
      */
     private static Optional<String> residenceWarning(Colony c, Building b) {
         if (b.module(LivingModule.class).isEmpty()) {
@@ -85,7 +87,8 @@ final class BuildingViews {
         boolean warn = switch (b.level()) {
             case 1 ->
                 c.buildings().all().stream().noneMatch(o -> o.type().id().equals(FarmerHut.TYPE_ID) && o.level() >= 1);
-            case 2, 3, 4 -> true;
+            case 2 -> !RestaurantMenuModule.anyMenuServesTier(c, 1);
+            case 3, 4 -> !RestaurantMenuModule.anyMenuServesTier(c, 2);
             default -> false;
         };
         return warn ? Optional.of("hycolony.ui.residence.warning." + next) : Optional.empty();

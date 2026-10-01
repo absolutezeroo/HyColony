@@ -6,17 +6,21 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.EntityEventSystem;
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.server.core.asset.type.item.config.Item;
 import com.hypixel.hytale.server.core.event.events.ecs.BreakBlockEvent;
 import com.hypixel.hytale.server.core.event.events.ecs.PlaceBlockEvent;
+import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.plugin.WorldRuntime;
 import dev.hycolony.plugin.WorldRuntimes;
 import java.util.Set;
 import java.util.logging.Level;
 import javax.annotation.Nonnull;
+import org.jspecify.annotations.Nullable;
 
 /**
  * PLACE_BLOCKS / BREAK_BLOCKS inside colonies (spec § 3.2); using a block is {@link BlockUseProtectionSystem}. Hut
@@ -64,18 +68,28 @@ public final class ProtectionSystems {
                         && hutItemIds.contains(event.getItemInHand().getItemId())) {
                     return;
                 }
-                if (deny(
-                        runtimes,
-                        store,
-                        HutBlockSystems.player(index, chunk, store),
-                        HutBlockSystems.pos(event.getTargetBlock()),
-                        Action.PLACE_BLOCKS)) {
+                BlockPos pos = HutBlockSystems.pos(event.getTargetBlock());
+                if (deny(runtimes, store, HutBlockSystems.player(index, chunk, store), pos, Action.PLACE_BLOCKS)) {
                     event.setCancelled(true);
+                } else {
+                    tellHuts(store, pos, event.getItemInHand());
                 }
             } catch (RuntimeException e) {
                 // A failing check must not let the placement through.
                 event.setCancelled(true);
                 LOG.at(Level.SEVERE).withCause(e).log("HyColony place check failed at %s", event.getTargetBlock());
+            }
+        }
+
+        /**
+         * The huts whose footprint holds {@code pos} hear of the block placed there (a dining hall takes a campfire or
+         * a seat, HutActions.placedByPlayer); an item that places no block tells nothing.
+         */
+        private void tellHuts(Store<EntityStore> store, BlockPos pos, @Nullable ItemStack inHand) {
+            WorldRuntime rt = runtimes.of(store.getExternalData().getWorld());
+            Item item = inHand == null ? null : Item.getAssetMap().getAsset(inHand.getItemId());
+            if (rt != null && rt.enabled() && item != null && item.getBlockId() != null) {
+                rt.manager().huts().placedByPlayer(pos, new BlockKey(item.getBlockId()));
             }
         }
     }

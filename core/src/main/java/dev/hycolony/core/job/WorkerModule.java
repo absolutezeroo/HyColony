@@ -31,6 +31,8 @@ public final class WorkerModule implements PersistentModule, TickingModule, Buil
     private final boolean assignableAtLevel0;
     private final List<Integer> workers = new ArrayList<>();
     private HiringMode hiringMode = HiringMode.DEFAULT;
+    /** MC canWorkingDuringRain; see {@link #workingInRain}. */
+    private boolean workingInRain;
 
     public WorkerModule(JobType jobType, Skill primary, Skill secondary, int maxWorkers, boolean assignableAtLevel0) {
         this.jobType = jobType;
@@ -77,11 +79,17 @@ public final class WorkerModule implements PersistentModule, TickingModule, Buil
     }
 
     /**
-     * MC canWorkDuringTheRain: a max-level hut works in the rain. MC's {@code canWorkingDuringRain} flag is false for
-     * every worker ported so far (builder, courier), so it is not a field until a worker needs it true.
+     * MC's {@code canWorkingDuringRain} flag, true for the dining hall's waiter: its workers work in the rain at any
+     * level. Set once, while the hut type builds the module; returns this module.
      */
+    public WorkerModule workingInRain() {
+        workingInRain = true;
+        return this;
+    }
+
+    /** MC canWorkDuringTheRain: the flag of {@link #workingInRain}, or a max-level hut. */
     public boolean canWorkDuringTheRain(Building b) {
-        return b.level() >= b.type().maxLevel();
+        return workingInRain || b.level() >= b.type().maxLevel();
     }
 
     public boolean canAssignCitizens(Building b) {

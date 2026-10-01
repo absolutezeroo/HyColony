@@ -4,20 +4,23 @@ import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.PlayerInventory;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
 
 /**
- * Unlimited-capacity player inventories, keyed by player. Damaged stacks (worn tools) sit in {@link #worn} and are
- * taken before the undamaged ones (a broken tool in an earlier slot).
+ * Unlimited-capacity player inventories, keyed by player, except the {@link #full} ones that take nothing. Damaged
+ * stacks (worn tools) sit in {@link #worn} and are taken before the undamaged ones (a broken tool in an earlier slot).
  */
 public final class FakePlayerInventory implements PlayerInventory {
     public final Map<UUID, Map<ItemKey, Integer>> inventories = new LinkedHashMap<>();
     public final Map<UUID, List<ItemAmount>> worn = new LinkedHashMap<>();
+    public final Set<UUID> full = new HashSet<>();
 
     @Override
     public int count(UUID player, ItemKey item) {
@@ -62,6 +65,9 @@ public final class FakePlayerInventory implements PlayerInventory {
 
     @Override
     public ItemAmount give(UUID player, ItemAmount amount) {
+        if (full.contains(player)) {
+            return amount;
+        }
         if (amount.damage() > 0) {
             worn.computeIfAbsent(player, p -> new ArrayList<>()).add(amount);
             return null;

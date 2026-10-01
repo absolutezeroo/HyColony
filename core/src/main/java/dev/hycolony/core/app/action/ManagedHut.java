@@ -11,9 +11,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 /** A hut a player may manage (MANAGE_HUTS, as MC's building messages), with its colony. */
-record ManagedHut(Colony colony, Building building) {
+public record ManagedHut(Colony colony, Building building) {
     /** The hut at {@code pos} if {@code player} may manage it; empty otherwise, the player told of a missing right. */
-    static Optional<ManagedHut> find(ColonyManager manager, UUID player, BlockPos pos) {
+    public static Optional<ManagedHut> find(ColonyManager manager, UUID player, BlockPos pos) {
         Optional<Colony> colony = manager.colonyAt(pos);
         if (colony.isPresent() && !ColonyAccess.allows(colony.get(), player, Action.MANAGE_HUTS)) {
             ColonyRefusal.tellNoPermission(colony.get(), player);

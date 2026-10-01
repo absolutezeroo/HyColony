@@ -8,6 +8,9 @@ import com.hypixel.hytale.server.core.auth.ServerAuthManager;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
+import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
+import com.hypixel.hytale.server.core.modules.entitystats.EntityStatValue;
+import com.hypixel.hytale.server.core.modules.entitystats.asset.DefaultEntityStatTypes;
 import com.hypixel.hytale.server.core.permissions.PermissionsModule;
 import com.hypixel.hytale.server.core.permissions.provider.HytalePermissionsProvider;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
@@ -30,6 +33,9 @@ public final class HytalePlayerDirectory implements PlayerDirectory {
 
     /** A quarter turn, in radians: {@code HeadRotation}'s yaw is a full-circle angle, not degrees. */
     private static final float QUARTER_TURN_RAD = (float) (Math.PI / 2.0);
+
+    /** The health percent of a player out of reach: nobody serves it. */
+    private static final int FULL_HEALTH = 100;
 
     private final World world;
     /** Also written by the profile service's thread (findByName's answer): volatile, a lost race only logs twice. */
@@ -182,5 +188,20 @@ public final class HytalePlayerDirectory implements PlayerDirectory {
     @Override
     public Collection<UUID> onlineIn(WorldKey key) {
         return world.getPlayerRefs().stream().map(PlayerRef::getUuid).toList();
+    }
+
+    /** The player's Health stat ({@code DefaultEntityStatTypes.getHealth}) in percent; 100 offline or unreadable. */
+    @Override
+    public int healthPercent(UUID player) {
+        try {
+            Ref<EntityStore> ref = refIn(player);
+            EntityStatMap stats =
+                    ref == null ? null : ref.getStore().getComponent(ref, EntityStatMap.getComponentType());
+            EntityStatValue health = stats == null ? null : stats.get(DefaultEntityStatTypes.getHealth());
+            return health == null ? FULL_HEALTH : (int) (health.asPercentage() * FULL_HEALTH);
+        } catch (RuntimeException e) {
+            fail("healthPercent", player, e);
+            return FULL_HEALTH;
+        }
     }
 }

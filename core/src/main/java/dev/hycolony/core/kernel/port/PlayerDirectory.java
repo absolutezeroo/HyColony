@@ -44,4 +44,10 @@ public interface PlayerDirectory {
      * throws).
      */
     int facing(UUID player);
+
+    /**
+     * The player's health in percent of its maximum (Hytale has no hunger: a dining hall's waiter feeds a hurt player,
+     * where MC feeds a hungry one). The offline or unknown player gives 100 (never throws).
+     */
+    int healthPercent(UUID player);
 }

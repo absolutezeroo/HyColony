@@ -32,6 +32,8 @@ Group {
   @Icon #IconStats { Background: "stats.png"; }
   @Icon #IconField { Background: "field.png"; }
   @Icon #IconEntity { Background: "entity.png"; }
+  @Icon #IconFood { Background: "food.png"; }
+  @Icon #IconFuel { Background: "fuel.png"; }
 
   Button #Hit {
     Anchor: (Left: 0, Top: 0, Width: 64, Height: 52);

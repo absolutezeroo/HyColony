@@ -19,11 +19,11 @@ import javax.annotation.Nonnull;
  */
 public final class HutInfoPage extends ColonyPage {
     /**
-     * MC's {@code com.minecolonies.coremod.info.<type>.<i>} pages, counted in manual_en_us.json: four for each hut that
-     * has help, none for the residence (whose window then hides the help seal).
+     * MC's {@code com.minecolonies.coremod.info.<type>.<i>} pages, counted in manual_en_us.json: four for most huts
+     * that have help, three for the dining hall, none for the residence (whose window then hides the help seal).
      */
     private static final Map<String, Integer> PAGES =
-            Map.of("builder", 4, "farmer", 4, "deliveryman", 4, "warehouse", 4);
+            Map.of("builder", 4, "farmer", 4, "deliveryman", 4, "warehouse", 4, "cook", 3);
 
     private final BlockPos hut;
     private final String type;

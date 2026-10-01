@@ -9,6 +9,7 @@ import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.colony.GamePorts;
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.BlueprintSource;
+import dev.hycolony.core.crafting.furnace.CookingSetup;
 import dev.hycolony.core.crafting.recipe.CraftingRules;
 import dev.hycolony.core.crafting.recipe.CraftingSetup;
 import dev.hycolony.core.job.JobRegistry;
@@ -19,6 +20,7 @@ import dev.hycolony.core.kernel.perf.TickTimings;
 import dev.hycolony.core.testing.crafting.FakeRecipeCatalog;
 import dev.hycolony.core.testing.crafting.TestCrafters;
 import dev.hycolony.core.testing.farming.FakeFarming;
+import dev.hycolony.core.testing.food.FakeCooking;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -29,6 +31,7 @@ import java.util.random.RandomGenerator;
 /** A fully faked colony context. Fields are public so tests can steer the fakes. */
 public final class TestContexts {
     public final FakeFarming farming = new FakeFarming();
+    public final FakeCooking cooking = new FakeCooking();
     public final FakeClock clock = new FakeClock();
     /** The time the core's timings read, in ns: it only moves when a test moves it. */
     public long nanos;
@@ -117,7 +120,8 @@ public final class TestContexts {
                         blueprints,
                         effects,
                         new CraftingSetup(recipes, craftingRules),
-                        farming),
+                        farming,
+                        new CookingSetup(cooking, cooking)),
                 timings);
     }
 }

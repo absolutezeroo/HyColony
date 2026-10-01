@@ -1,0 +1,68 @@
+$B = "Book.ui";
+$C = "../../../Common.ui";
+
+// One dish of a dining hall's menu or food options (MC layoutfoodstock.xml resourcesstock and resources boxes), sizes
+// doubled: a 34 px outlined box, its tier's colour (MC's gradient: gold, silver, bronze; its tooltip the home level
+// it feeds), the item and its name, then X (builder_button_very_small, red text) on the menu, or << among the options
+// (builder_button_mini; MC's "Limit Reached" tooltip once the menu is full).
+
+@Red = LabelStyle(...$B.@InkCentered, TextColor: #ff0000);
+
+Group {
+  Anchor: (Height: 34);
+  OutlineSize: 1;
+  OutlineColor: #000000;
+
+  Group #Tier3 { Anchor: (Left: 2, Top: 2, Width: 324, Height: 30); Background: #ffd700; Visible: false; }
+  Group #Tier2 { Anchor: (Left: 2, Top: 2, Width: 324, Height: 30); Background: #d3d3d3; Visible: false; }
+  Group #Tier1 { Anchor: (Left: 2, Top: 2, Width: 324, Height: 30); Background: #cd7f32; Visible: false; }
+
+  Group #Quality {
+    Anchor: (Left: 2, Top: 2, Width: 324, Height: 30);
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+  }
+
+  TextButton #Add {
+    Anchor: (Left: 6, Top: 2, Width: 28, Height: 30);
+    Style: $B.@MiniButtonStyle;
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+    Text: "<<";
+    Visible: false;
+  }
+
+  ItemIcon #Icon {
+    Anchor: (Left: 0, Top: 0, Width: 32, Height: 32);
+    Visible: false;
+  }
+
+  Label #Name {
+    Anchor: (Left: 40, Top: 2, Width: 200, Height: 30);
+    Style: $B.@Ink;
+    Visible: false;
+  }
+
+  // The options' layout (MC resources box): the item after <<, its name in white.
+  ItemIcon #OptionIcon {
+    Anchor: (Left: 40, Top: 0, Width: 32, Height: 32);
+    Visible: false;
+  }
+
+  Label #OptionName {
+    Anchor: (Left: 80, Top: 4, Width: 200, Height: 26);
+    Style: (...$B.@Ink, TextColor: #ffffff);
+    Visible: false;
+  }
+
+  TextButton #Remove {
+    Anchor: (Left: 252, Top: 2, Width: 58, Height: 30);
+    Style: TextButtonStyle(
+      Default: (Background: "builder_button_very_small.png", LabelStyle: @Red),
+      Hovered: (Background: "builder_button_very_small_hover.png", LabelStyle: @Red),
+      Pressed: (Background: "builder_button_very_small_hover.png", LabelStyle: @Red),
+      Disabled: (Background: "builder_button_very_small_dim.png", LabelStyle: @Red),
+      Sounds: $C.@ButtonSounds
+    );
+    Text: "X";
+    Visible: false;
+  }
+}

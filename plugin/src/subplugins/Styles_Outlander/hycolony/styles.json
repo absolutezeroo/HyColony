@@ -66,6 +66,28 @@
         "hutOffset": [1, 12, -5]
       }
     },
+    "hycolony:cook": {
+      "1": {
+        "prefab": "Npc/Outlander/Houses/Tier0/Outlander_Houses_Tier0_005.prefab.json",
+        "hutOffset": [-1, 15, 1]
+      },
+      "2": {
+        "prefab": "Npc/Outlander/Houses/Tier1/Outlander_Houses_Tier1_001.prefab.json",
+        "hutOffset": [2, 62, 17]
+      },
+      "3": {
+        "prefab": "Npc/Outlander/Houses/Tier2/Outlander_Houses_Tier2_001.prefab.json",
+        "hutOffset": [0, 62, 17]
+      },
+      "4": {
+        "prefab": "Npc/Outlander/Houses/Tier2/Outlander_Houses_Tier2_003.prefab.json",
+        "hutOffset": [6, 4, -4]
+      },
+      "5": {
+        "prefab": "Npc/Outlander/Houses/Tier3/Outlander_Houses_Tier3_005.prefab.json",
+        "hutOffset": [1, 12, -5]
+      }
+    },
     "hycolony:warehouse": {
       "1": {
         "prefab": "Npc/Outlander/Houses/Tier1/Outlander_Houses_Tier1_008.prefab.json",

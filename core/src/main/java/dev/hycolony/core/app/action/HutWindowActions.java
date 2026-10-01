@@ -1,6 +1,7 @@
 package dev.hycolony.core.app.action;
 
 import dev.hycolony.core.app.ColonyManager;
+import dev.hycolony.core.app.restaurant.RestaurantActions;
 import dev.hycolony.core.app.view.ColonyWindows;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.module.HutSettings;
@@ -25,16 +26,23 @@ public final class HutWindowActions {
     private final ColonyManager manager;
     private final ColonyWindows windows;
     private final LogisticsActions pickup;
+    private final RestaurantActions restaurant;
 
     public HutWindowActions(ColonyManager manager, ColonyWindows windows) {
         this.manager = manager;
         this.windows = windows;
         this.pickup = new LogisticsActions(manager, windows);
+        this.restaurant = new RestaurantActions(manager, windows);
     }
 
     /** The main page's pickup priority and "Request Pickup Now" buttons. */
     public LogisticsActions pickup() {
         return pickup;
+    }
+
+    /** A dining hall's Menu and Fuel tabs. */
+    public RestaurantActions restaurant() {
+        return restaurant;
     }
 
     /**

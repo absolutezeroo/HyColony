@@ -7,10 +7,12 @@ import dev.hycolony.core.app.view.ColonyWindows;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.building.BuildingTypes;
+import dev.hycolony.core.building.module.BuildingEventsModule;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyAccess;
 import dev.hycolony.core.colony.ColonyEvents;
+import dev.hycolony.core.colony.HutFootprint;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.construction.shared.BuilderSettingsModule;
 import dev.hycolony.core.job.WorkerModule;
@@ -285,5 +287,20 @@ public final class HutActions {
         onRemoved(hutPos, player);
         manager.windows().ui().close(player);
         return true;
+    }
+
+    /**
+     * A player placed {@code block} at {@code pos}: each hut whose footprint holds it hears it (a dining hall takes a
+     * campfire or a seat, a deviation from MC, see DiningRoomModule; a module that keeps it marks the colony). Nothing
+     * outside colonies.
+     */
+    public void placedByPlayer(BlockPos pos, BlockKey block) {
+        manager.colonyAt(pos).ifPresent(c -> {
+            for (Building b : c.buildings().all()) {
+                if (HutFootprint.isInBuilding(manager.context().ports(), b, pos)) {
+                    BuildingEventsModule.blockPlacedByPlayer(c, b, pos, block);
+                }
+            }
+        });
     }
 }

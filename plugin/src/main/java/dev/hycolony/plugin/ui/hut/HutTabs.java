@@ -8,12 +8,16 @@ import dev.hycolony.core.building.module.SettingsView;
 import dev.hycolony.core.citizen.home.ResidentsView;
 import dev.hycolony.core.construction.hut.WorkOrderListView;
 import dev.hycolony.core.construction.resources.BuilderResourcesView;
+import dev.hycolony.core.crafting.furnace.FuelListView;
 import dev.hycolony.core.crafting.module.RecipesView;
+import dev.hycolony.core.crafting.restaurant.MenuView;
 import dev.hycolony.core.crafting.task.CrafterTasksView;
 import dev.hycolony.core.farming.hut.FieldsView;
 import dev.hycolony.core.logistics.courier.CourierTasksView;
 import dev.hycolony.core.logistics.warehouse.CourierAssignmentView;
 import dev.hycolony.core.logistics.warehouse.WarehouseTasksView;
+import dev.hycolony.plugin.ui.hut.restaurant.FuelTab;
+import dev.hycolony.plugin.ui.hut.restaurant.MenuTab;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -44,6 +48,8 @@ public final class HutTabs {
             case CrafterTasksView c -> Optional.of(new TasksTab(c.tasks(), Optional.empty()));
             case FieldsView f -> Optional.of(new FieldsTab(manager, player, view.pos(), f));
             case RecipesView r -> Optional.of(new RecipesTab(manager, player, view, r));
+            case FuelListView f -> Optional.of(new FuelTab(manager, player, view.pos(), f));
+            case MenuView m -> Optional.of(new MenuTab(manager, player, view.pos(), m));
             // MC LivingBuildingModuleView has no page: the residence's main page and assign window show it.
             case ResidentsView _ -> Optional.empty();
             default -> {

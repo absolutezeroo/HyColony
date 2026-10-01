@@ -2,6 +2,7 @@ package dev.hycolony.plugin;
 
 import com.hypixel.hytale.server.core.universe.world.World;
 import dev.hycolony.core.colony.GamePorts;
+import dev.hycolony.core.crafting.furnace.CookingSetup;
 import dev.hycolony.core.crafting.recipe.CraftingSetup;
 import dev.hycolony.plugin.adapter.HytaleContainerAccess;
 import dev.hycolony.plugin.adapter.HytaleItemCatalog;
@@ -10,6 +11,8 @@ import dev.hycolony.plugin.adapter.HytaleWorldBlocks;
 import dev.hycolony.plugin.adapter.HytaleWorldEffects;
 import dev.hycolony.plugin.crafting.HytaleRecipeCatalog;
 import dev.hycolony.plugin.farming.HytaleFarming;
+import dev.hycolony.plugin.food.HytaleCookingCatalog;
+import dev.hycolony.plugin.food.HytaleCookingStations;
 import dev.hycolony.plugin.prefab.HytaleBlueprintSource;
 
 /** The construction adapters of one world, for its {@link WorldRuntime}. */
@@ -33,6 +36,9 @@ final class WorldPorts {
                         ids.food().particle()),
                 // Read here, before openStorage loads the colonies: a load drops every learnt recipe it does not know.
                 new CraftingSetup(HytaleRecipeCatalog.load(), setup.craftingRules()),
-                new HytaleFarming(world, worldBlocks, ids.farming(), ids.fieldBlockId()));
+                new HytaleFarming(world, worldBlocks, ids.farming(), ids.fieldBlockId()),
+                new CookingSetup(
+                        new HytaleCookingCatalog(ids.food(), catalog.foodTable()),
+                        new HytaleCookingStations(world, catalog.stacks())));
     }
 }

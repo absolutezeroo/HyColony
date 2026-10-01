@@ -21,6 +21,13 @@ public interface BuildingEventsModule extends BuildingModule {
      */
     default void onBlockPlacedInBuilding(Colony colony, Building building, BlockPos pos, BlockKey block) {}
 
+    /**
+     * A player placed {@code block} at {@code pos} in the building's footprint. MC has no such hook: only plan blocks
+     * register; a module registers a block placed by hand only for a documented deviation (a dining hall's campfire or
+     * seat, which no Hytale plan has).
+     */
+    default void onBlockPlacedByPlayer(Colony colony, Building building, BlockPos pos, BlockKey block) {}
+
     /** One of the building's citizens got up after a night in bed (MC {@code onWakeUp}, from AbstractBuilding). */
     default void onWakeUp(Colony colony, Building building) {}
 
@@ -38,6 +45,15 @@ public interface BuildingEventsModule extends BuildingModule {
         for (BuildingModule module : building.modules().values()) {
             if (module instanceof BuildingEventsModule events) {
                 events.onBlockPlacedInBuilding(colony, building, pos, block);
+            }
+        }
+    }
+
+    /** Tells each events module of {@code building} that a player placed {@code block} at {@code pos} in it. */
+    static void blockPlacedByPlayer(Colony colony, Building building, BlockPos pos, BlockKey block) {
+        for (BuildingModule module : building.modules().values()) {
+            if (module instanceof BuildingEventsModule events) {
+                events.onBlockPlacedByPlayer(colony, building, pos, block);
             }
         }
     }

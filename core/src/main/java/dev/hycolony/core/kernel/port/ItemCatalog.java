@@ -7,6 +7,7 @@ import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolInfo;
 import dev.hycolony.core.kernel.item.ToolType;
+import java.util.List;
 import java.util.Optional;
 
 public interface ItemCatalog {
@@ -34,8 +35,14 @@ public interface ItemCatalog {
     /** Whether this block is a bed citizens lie in: its block type has sleeping points (Hytale BlockType.getBeds). */
     boolean isBed(BlockKey block);
 
+    /** Whether citizens sit on this block: its block type has seats (Hytale BlockType.getSeats). */
+    boolean isSeat(BlockKey block);
+
     /** What eating {@code item} gives (MC ItemStackUtils.ISFOOD and FoodProperties); empty for no food. */
     Optional<FoodInfo> food(ItemKey item);
+
+    /** Every item {@link #food} knows, in a set order (MC CompatibilityManager's edibles, before filtering). */
+    List<ItemKey> foods();
 
     /**
      * What cooking {@code item} gives (MC the furnace's smelting result; in Hytale the campfire's); empty when it
