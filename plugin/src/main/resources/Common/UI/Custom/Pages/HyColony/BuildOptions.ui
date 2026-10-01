@@ -1,0 +1,82 @@
+$B = "Mc/Book.ui";
+$C = "../../Common.ui";
+$Sounds = "../../Sounds.ui";
+
+// A hut's build options (MC gui/windowbuildbuilding.xml, a lightbox window of 420 x 240), MC positions and sizes
+// doubled: style < dropdown > (MC lists only the hut's own style), builder dropdown, close, the plan's resources, then
+// Repair, Build/Upgrade, Deconstruct (or Pick Up). Textures under Mc/ are MineColonies' (GPL-3).
+
+$C.@PageOverlay {
+  LayoutMode: Middle;
+
+  Group {
+    Anchor: (Width: 840, Height: 480);
+
+    TextButton #StylePrev {
+      Anchor: (Left: 80, Top: 0, Width: 28, Height: 30);
+      Style: $B.@MiniButtonStyle;
+      Text: "<";
+    }
+
+    DropdownBox #Style {
+      Anchor: (Left: 110, Top: 0, Width: 258, Height: 34);
+      Style: $B.@DropdownStyle;
+    }
+
+    TextButton #StyleNext {
+      Anchor: (Left: 370, Top: 0, Width: 28, Height: 30);
+      Style: $B.@MiniButtonStyle;
+      Text: ">";
+    }
+
+    DropdownBox #Builder {
+      Anchor: (Left: 450, Top: 0, Width: 258, Height: 34);
+      Style: $B.@DropdownStyle;
+    }
+
+    Button #Close {
+      Anchor: (Left: 800, Top: 0, Width: 28, Height: 30);
+      Style: (Default: (Background: "Mc/button_x.png"), Sounds: $Sounds.@ButtonsCancel);
+    }
+
+    Group #Resources {
+      Anchor: (Left: 60, Top: 40, Width: 672, Height: 384);
+      LayoutMode: TopScrolling;
+      ScrollbarStyle: $C.@DefaultScrollbarStyle;
+    }
+
+    // Deviation from MC: the warning MC shows in a WindowConfirm before a build or upgrade (confirmClicked), shown
+    // here above the buttons until the second click.
+    Label #Warning {
+      Anchor: (Left: 60, Top: 420, Width: 720, Height: 20);
+      Style: (FontSize: 13, TextColor: #e69138, VerticalAlignment: Center);
+      Visible: false;
+    }
+
+    TextButton #RepairButton {
+      Anchor: (Left: 52, Top: 440, Width: 258, Height: 34);
+      Style: $B.@WideButtonStyle;
+      Text: "";
+    }
+
+    TextButton #BuildButton {
+      Anchor: (Left: 312, Top: 440, Width: 258, Height: 34);
+      Style: $B.@WideButtonStyle;
+      Text: "";
+      TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+    }
+
+    TextButton #RemoveButton {
+      Anchor: (Left: 572, Top: 440, Width: 258, Height: 34);
+      Style: $B.@WideButtonStyle;
+      Text: %hycolony.ui.workorder.type.remove;
+    }
+
+    TextButton #PickUpButton {
+      Anchor: (Left: 572, Top: 440, Width: 258, Height: 34);
+      Style: $B.@WideButtonStyle;
+      Text: %hycolony.ui.building.pickUp;
+      Visible: false;
+    }
+  }
+}

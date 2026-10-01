@@ -24,7 +24,7 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import org.joml.Vector3i;
 
-/** The hut window's "Pick up" button: the hut item to the player, then the block removed without a drop. */
+/** The build options' "Pick Up" button: the hut item to the player, then the block removed without a drop. */
 final class HutPickUp {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
     private final Supplier<ColonyManager> manager;

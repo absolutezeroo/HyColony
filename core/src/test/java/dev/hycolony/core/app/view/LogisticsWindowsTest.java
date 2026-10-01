@@ -130,14 +130,18 @@ class LogisticsWindowsTest {
     void forcePickupCreatesOneForcedPickupAndTellsThePlayer() {
         assertFalse(manager.logistics().forcePickup(carol, builder.position()));
         assertEquals(List.of(), pickups());
+        assertEquals(
+                "hycolony.permission.toolDenied",
+                t.notifier.sent.getLast().msg().key());
 
         assertTrue(manager.logistics().forcePickup(alice, builder.position()));
-        assertEquals("hycolony.pickup.forced", t.notifier.sent.get(0).msg().key());
+        assertEquals("hycolony.pickup.forced", t.notifier.sent.getLast().msg().key());
         assertEquals(1, pickups().size());
         assertEquals(Pickup.MAX_BUILDING_PRIORITY, ((Pickup) pickups().get(0).requestable()).priority());
 
         assertFalse(manager.logistics().forcePickup(alice, builder.position()), "one open pickup per hut");
-        assertEquals("hycolony.pickup.forceFailed", t.notifier.sent.get(1).msg().key());
+        assertEquals(
+                "hycolony.pickup.forceFailed", t.notifier.sent.getLast().msg().key());
         assertEquals(1, pickups().size());
     }
 

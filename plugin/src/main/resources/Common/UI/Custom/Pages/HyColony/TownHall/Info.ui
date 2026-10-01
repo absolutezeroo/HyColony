@@ -1,15 +1,27 @@
 $B = "../Mc/Book.ui";
 $C = "../../../Common.ui";
 
-// The town hall's Information tab (MC layoutinfo.xml), MC positions doubled: the work orders on the right page.
+// The town hall's Information tab (MC layoutinfo.xml), MC positions doubled: the interval and the colony's events on
+// the left page, the work orders on the right page.
 
 Group {
   Anchor: (Left: 0, Top: 0, Width: 1048, Height: 486);
 
+  DropdownBox #Interval {
+    Anchor: (Left: 232, Top: 124, Width: 258, Height: 34);
+    Style: $B.@DropdownStyle;
+  }
+
+  Group #Events {
+    Anchor: (Left: 212, Top: 160, Width: 296, Height: 280);
+    LayoutMode: TopScrolling;
+    ScrollbarStyle: $C.@DefaultScrollbarStyle;
+  }
+
   Label {
     Anchor: (Left: 552, Top: 56, Width: 296, Height: 22);
-    Text: %hycolony.ui.townhall.workOrders;
-    Style: $B.@Heading;
+    Text: %hycolony.ui.townhall.workOrdersHeader;
+    Style: (...$B.@Heading, RenderUnderlined: true);
   }
 
   Label #OrdersEmpty {

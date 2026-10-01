@@ -1,5 +1,6 @@
 package dev.hycolony.core.testing;
 
+import dev.hycolony.core.app.ui.BuildOptionsView;
 import dev.hycolony.core.app.ui.BuildingView;
 import dev.hycolony.core.app.ui.CitizenView;
 import dev.hycolony.core.app.ui.FieldView;
@@ -50,6 +51,11 @@ public final class FakeUi implements UiPort {
 
     @Override
     public void showBuilding(UUID player, BuildingView view) {
+        shown.put(player, view);
+    }
+
+    @Override
+    public void showBuildOptions(UUID player, BuildOptionsView view) {
         shown.put(player, view);
     }
 

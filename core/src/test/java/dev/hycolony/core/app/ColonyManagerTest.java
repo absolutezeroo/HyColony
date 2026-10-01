@@ -58,7 +58,6 @@ class ColonyManagerTest {
         assertEquals(81, manager.territory().claimedCount(c.id()));
         assertTrue(c.buildings().townHall().isPresent());
         assertEquals(alice, c.permissions().owner());
-        assertEquals("colonyCreated", c.log().entries().getFirst().type());
     }
 
     @Test
@@ -169,9 +168,6 @@ class ColonyManagerTest {
         manager.huts().place(c, TOWN_HALL, hall, 2, alice);
         assertEquals(1, c.buildings().all().size());
         assertEquals(2, c.buildings().at(hall).orElseThrow().rotation());
-        assertEquals(
-                "buildingRemoved",
-                c.log().entries().get(c.log().entries().size() - 2).type());
     }
 
     @Test
@@ -300,7 +296,6 @@ class ColonyManagerTest {
         manager.windows().openTownHall(alice, hall);
         TownHallView view = (TownHallView) t.ui.shown.get(alice);
         assertEquals("A", view.colonyName());
-        assertTrue(view.canRename());
         assertFalse(manager.administration().rename(bob, c.id(), "Hacked"));
         assertTrue(manager.administration().rename(alice, c.id(), "Renamed"));
         assertEquals("Renamed", c.name());
@@ -314,7 +309,6 @@ class ColonyManagerTest {
 
         manager.windows().openTownHall(bob, hall);
 
-        assertTrue(((TownHallView) t.ui.shown.get(bob)).canRename());
         assertTrue(manager.administration().rename(bob, c.id(), "Visited"));
     }
 

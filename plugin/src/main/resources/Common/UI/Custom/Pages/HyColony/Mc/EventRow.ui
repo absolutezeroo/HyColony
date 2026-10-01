@@ -1,0 +1,26 @@
+$C = "../../../Common.ui";
+
+// A colony event on the town hall's Information page (MC layoutinfo.xml eventsList box), MC sizes doubled: the action,
+// the citizen or hut in blue, the position.
+
+Group {
+  Anchor: (Height: 72);
+  OutlineSize: 1;
+  OutlineColor: #000000;
+
+  Label #Action {
+    Anchor: (Left: 4, Top: 2, Width: 270, Height: 24);
+    Style: (FontSize: 14, TextColor: #000000, VerticalAlignment: Center);
+  }
+
+  Label #Name {
+    Anchor: (Left: 4, Top: 24, Width: 270, Height: 24);
+    Style: (FontSize: 14, TextColor: #0000ff, VerticalAlignment: Center, ShrinkTextToFit: true);
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+  }
+
+  Label #Pos {
+    Anchor: (Left: 4, Top: 48, Width: 220, Height: 24);
+    Style: (FontSize: 14, TextColor: #000000, VerticalAlignment: Center);
+  }
+}

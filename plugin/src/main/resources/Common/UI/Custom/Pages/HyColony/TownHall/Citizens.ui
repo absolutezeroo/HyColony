@@ -1,12 +1,51 @@
+$B = "../Mc/Book.ui";
 $C = "../../../Common.ui";
 
-// The town hall's Citizens tab (MC layoutcitizens.xml), MC positions doubled.
+// The town hall's Citizens tab (MC layoutcitizens.xml, WindowCitizenPage), MC positions and sizes doubled: the
+// selected citizen's job, gender seal and recall button, the search field, then the citizens by name. Deviation from
+// MC: no happiness list (left page), health, happiness, saturation nor citizen render (no such systems yet).
 
 Group {
   Anchor: (Left: 0, Top: 0, Width: 1048, Height: 486);
 
+  Label #Job {
+    Anchor: (Left: 552, Top: 56, Width: 240, Height: 22);
+    Style: (...$B.@InkCentered, RenderBold: true);
+  }
+
+  Group #Male {
+    Anchor: (Left: 792, Top: 56, Width: 22, Height: 22);
+    Background: "../Mc/colonist_wax_male_smaller.png";
+    Visible: false;
+  }
+
+  Group #Female {
+    Anchor: (Left: 792, Top: 56, Width: 22, Height: 22);
+    Background: "../Mc/colonist_wax_female_smaller.png";
+    Visible: false;
+  }
+
+  TextButton #RecallButton {
+    Anchor: (Left: 612, Top: 140, Width: 172, Height: 34);
+    Style: (
+      ...$B.@WideButtonStyle,
+      Default: (Background: "../Mc/builder_button_medium.png", LabelStyle: $B.@InkCentered),
+      Hovered: (Background: "../Mc/builder_button_medium.png", LabelStyle: (...$B.@InkCentered, RenderBold: true)),
+      Pressed: (Background: "../Mc/builder_button_medium.png", LabelStyle: $B.@InkCentered)
+    );
+    Text: %hycolony.ui.townhall.recallOne;
+    Visible: false;
+  }
+
+  $C.@TextField #Search {
+    @Anchor = (Left: 570, Top: 180, Width: 258);
+    MaxLength: 32;
+    TooltipText: %hycolony.ui.townhall.citizenFilter;
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+  }
+
   Group #CitizenList {
-    Anchor: (Left: 552, Top: 56, Width: 296, Height: 404);
+    Anchor: (Left: 552, Top: 220, Width: 296, Height: 212);
     LayoutMode: TopScrolling;
     ScrollbarStyle: $C.@DefaultScrollbarStyle;
   }

@@ -38,7 +38,7 @@ final class BuildCompletion {
                 default -> "buildingRepaired";
             };
         }
-        colony.log().add(logType, colony.day(), b.type().id(), String.valueOf(b.level()));
+        colony.log().addAt(b.position(), logType, colony.day(), b.type().id(), String.valueOf(b.level()));
         Msg done = completionMessage(o.type(), b);
         for (UUID member : colony.permissions().members().keySet()) {
             if (colony.permissions().hasPermission(member, Action.RECEIVE_MESSAGES)) {
@@ -52,7 +52,7 @@ final class BuildCompletion {
     /**
      * MC EntityAIStructureBuilder.sendCompletionMessage: one key per {@code WorkOrderType.getCompletionMessageID}, the
      * building's translated name (or its custom name). Deviation from MC: the new level replaces the direction from
-     * the colony centre, and no REMOVE hint about the "Pick Up" button (HyColony has none).
+     * the colony centre.
      */
     private static Msg completionMessage(WorkOrderType type, Building b) {
         String name = nameParam(b);

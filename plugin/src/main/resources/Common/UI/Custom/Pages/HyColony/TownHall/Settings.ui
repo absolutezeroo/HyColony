@@ -1,0 +1,56 @@
+$B = "../Mc/Book.ui";
+$C = "../../../Common.ui";
+
+// The town hall's Settings tab (MC layoutsettings.xml, WindowSettings), MC positions and sizes doubled: one switch
+// per colony setting, its name on the left and On/Off on MC's builder_button_very_small. Deviation from MC: no
+// Enter/Leave Messages nor Construction tape switch (no such systems yet).
+
+@SwitchStyle = TextButtonStyle(
+  Default: (Background: "../Mc/builder_button_very_small.png", LabelStyle: $B.@InkCentered),
+  Hovered: (Background: "../Mc/builder_button_very_small.png", LabelStyle: (...$B.@InkCentered, RenderBold: true)),
+  Pressed: (Background: "../Mc/builder_button_very_small.png", LabelStyle: $B.@InkCentered),
+  Sounds: $C.@ButtonSounds
+);
+
+@Setting = Group {
+  @Top = 0;
+
+  Anchor: (Left: 200, Top: @Top, Width: 296, Height: 32);
+  TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+};
+
+@SettingLabel = Label {
+  Anchor: (Left: 0, Top: 6, Width: 296, Height: 22);
+  Style: $B.@Ink;
+};
+
+@Switch = TextButton {
+  Anchor: (Left: 240, Top: 0, Width: 58, Height: 32);
+  Style: @SwitchStyle;
+  Text: "";
+};
+
+Group {
+  Anchor: (Left: 0, Top: 0, Width: 1048, Height: 486);
+
+  @Setting {
+    @Top = 200;
+    TooltipText: %hycolony.ui.townhall.setting.movein.tooltip;
+    @SettingLabel { Text: %hycolony.ui.townhall.setting.movein; }
+    @Switch #Switch0 {}
+  }
+
+  @Setting {
+    @Top = 240;
+    TooltipText: %hycolony.ui.townhall.setting.jobhiring.tooltip;
+    @SettingLabel { Text: %hycolony.ui.townhall.setting.jobhiring; }
+    @Switch #Switch1 {}
+  }
+
+  @Setting {
+    @Top = 280;
+    TooltipText: %hycolony.ui.townhall.setting.housing.tooltip;
+    @SettingLabel { Text: %hycolony.ui.townhall.setting.housing; }
+    @Switch #Switch2 {}
+  }
+}

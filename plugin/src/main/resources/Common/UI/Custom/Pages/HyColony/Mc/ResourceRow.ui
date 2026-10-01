@@ -1,0 +1,22 @@
+// A resource of the build options window (MC windowbuildbuilding.xml resources box), MC sizes doubled: icon, name,
+// count, in white on the dimmed world as MC.
+
+Group {
+  Anchor: (Height: 60);
+  OutlineSize: 1;
+  OutlineColor: #000000;
+
+  ItemIcon #Icon {
+    Anchor: (Left: 6, Top: 6, Width: 48, Height: 48);
+  }
+
+  Label #Name {
+    Anchor: (Left: 66, Top: 18, Width: 450, Height: 24);
+    Style: (FontSize: 15, TextColor: #ffffff, VerticalAlignment: Center);
+  }
+
+  Label #Count {
+    Anchor: (Left: 584, Top: 18, Width: 48, Height: 24);
+    Style: (FontSize: 15, TextColor: #ffffff, VerticalAlignment: Center, HorizontalAlignment: End);
+  }
+}

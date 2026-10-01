@@ -172,10 +172,9 @@ public final class WorkerStock {
         }
     }
 
-    /** Items that fit neither in the inventory nor in the hut: logged as {@code debrisLost}. */
+    /** Items that fit neither in the inventory nor in the hut: lost, with a debug line. */
     private void lose(@Nullable ItemAmount rest) {
         if (rest != null) {
-            colony.log().add("debrisLost", colony.day(), rest.item().id(), String.valueOf(rest.count()));
             LOG.log(
                     System.Logger.Level.DEBUG,
                     "Worker {0}: {1} x {2} lost, inventory and hut full",

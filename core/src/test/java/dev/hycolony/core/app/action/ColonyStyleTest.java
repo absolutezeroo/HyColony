@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.app.ColonyManager;
+import dev.hycolony.core.app.ui.TownHallView;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.testing.FakeBlueprints;
@@ -56,6 +57,9 @@ class ColonyStyleTest {
         Colony c = found("");
         assertFalse(manager.administration().setStyle(UUID.randomUUID(), c.id(), FakeBlueprints.STYLE));
         assertEquals("", c.settings().style());
+        assertEquals(
+                "hycolony.permission.toolDenied",
+                t.notifier.sent.getLast().msg().key());
     }
 
     @Test
@@ -63,5 +67,6 @@ class ColonyStyleTest {
         Colony c = found("");
         assertFalse(manager.administration().setStyle(alice, c.id(), "No Such Pack"));
         assertEquals("", c.settings().style());
+        assertTrue(t.ui.shown.get(alice) instanceof TownHallView, "the dropdown shows the colony's style again");
     }
 }

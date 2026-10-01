@@ -61,7 +61,6 @@ final class BuildingViews {
                 ctx.ports().blueprints().styles(),
                 b.style(),
                 manage,
-                manage && b.canBePickedUp(),
                 // MC AbstractWindowWorkerModuleBuilding: only a hut with workers shows its pickup priority.
                 w.isPresent() ? OptionalInt.of(b.pickupPriority().value()) : OptionalInt.empty(),
                 stock(b),

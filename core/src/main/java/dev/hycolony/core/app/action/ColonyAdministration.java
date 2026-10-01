@@ -5,6 +5,8 @@ import dev.hycolony.core.app.view.ColonyWindows;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyAccess;
 import dev.hycolony.core.colony.ColonyContext;
+import dev.hycolony.core.colony.ColonyRefusal;
+import dev.hycolony.core.colony.ColonySettings;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.kernel.port.Msg;
 import java.util.Optional;
@@ -52,18 +54,16 @@ public final class ColonyAdministration {
     static final int RENAME_CUT_LENGTH = RENAME_MAX_LENGTH - 1;
 
     /**
-     * MC TownHallRenameMessage (permissionNeeded MANAGE_HUTS, {@link ColonyAccess}): renames the colony, a name over
-     * 25 characters cut to its first 24; the town hall window is shown again. False without the right or for a blank
-     * name.
-     *
-     * <p>Deviation from MC: a blank name is refused (MC would accept it and show an empty title).
+     * MC TownHallRenameMessage (permissionNeeded MANAGE_HUTS, {@link ColonyAccess}): renames the colony as typed, a
+     * name over 25 characters cut to its first 24; the town hall window is shown again. False without the right (the
+     * player is told) or for an empty name, which MC's WindowTownHallNameEntry never sends.
      */
     public boolean rename(UUID actor, int colonyId, String rawName) {
         Colony c = manager.byId(colonyId).orElse(null);
-        if (c == null || !ColonyAccess.allows(c, actor, Action.MANAGE_HUTS)) {
+        if (c == null || !allowed(c, actor)) {
             return false;
         }
-        String name = rawName == null ? "" : rawName.trim();
+        String name = rawName == null ? "" : rawName;
         if (name.isEmpty()) {
             return false;
         }
@@ -74,19 +74,47 @@ public final class ColonyAdministration {
 
     /**
      * MC ColonyStructureStyleMessage (MANAGE_HUTS): sets the colony's style, the one new huts take; false without the
-     * right or for a style the blueprints do not offer.
+     * right (the player is told) or for a style the blueprints do not offer.
+     *
+     * <p>Deviation from MC: MC stores any name it is sent; a style no blueprint has would leave new huts planless.
      */
     public boolean setStyle(UUID actor, int colonyId, String style) {
         Colony c = manager.byId(colonyId).orElse(null);
-        if (c == null
-                || !ColonyAccess.allows(c, actor, Action.MANAGE_HUTS)
-                || !manager.context().ports().blueprints().styles().contains(style)) {
+        if (c == null || !allowed(c, actor)) {
+            return false;
+        }
+        if (!manager.context().ports().blueprints().styles().contains(style)) {
+            windows.showTownHall(c, actor); // the dropdown shows the colony's style again
             return false;
         }
         c.settings().setStyle(style);
         c.markDirty();
         windows.showTownHall(c, actor);
         return true;
+    }
+
+    /**
+     * MC TriggerSettingMessage (MANAGE_HUTS): turns a town hall switch over, then shows the town hall again; false
+     * without the right (the player is told).
+     */
+    public boolean toggle(UUID actor, int colonyId, ColonySettings.Toggle toggle) {
+        Colony c = manager.byId(colonyId).orElse(null);
+        if (c == null || !allowed(c, actor)) {
+            return false;
+        }
+        c.settings().flip(toggle);
+        c.markDirty();
+        windows.showTownHall(c, actor);
+        return true;
+    }
+
+    /** MANAGE_HUTS (MC AbstractColonyServerMessage), else the player is told, as MC does. */
+    private static boolean allowed(Colony c, UUID actor) {
+        if (ColonyAccess.allows(c, actor, Action.MANAGE_HUTS)) {
+            return true;
+        }
+        ColonyRefusal.tellNoPermission(c, actor);
+        return false;
     }
 
     /** Trims {@code raw}; empty if blank or over {@link ColonyManager#MAX_NAME_LENGTH}, after telling {@code actor}. */

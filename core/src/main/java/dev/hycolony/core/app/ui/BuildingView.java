@@ -12,7 +12,7 @@ import java.util.Set;
 
 /**
  * A hut's window. {@code allowed} is empty while an order exists (the button becomes Cancel); {@code hiringMode} is
- * empty for a building that employs no one; {@code canPickUp}: deconstructed, MANAGE_HUTS, not the town hall;
+ * empty for a building that employs no one;
  * {@code pickupPriority}: shown on worker huts only (MC AbstractWindowWorkerModuleBuilding); {@code stock}: what the
  * hut and its racks hold, most first (MC WindowHutAllInventory); {@code tabs}: the tabs of the hut's modules, in
  * module order (MC module views); {@code upgradeWarning}: the language key of what the next level lacks, shown on
@@ -34,7 +34,6 @@ public record BuildingView(
         List<String> styles,
         String style,
         boolean canManage,
-        boolean canPickUp,
         OptionalInt pickupPriority,
         List<ItemAmount> stock,
         List<ModuleTab> tabs,

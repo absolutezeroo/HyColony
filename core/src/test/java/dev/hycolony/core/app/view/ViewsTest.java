@@ -123,14 +123,6 @@ class ViewsTest {
     }
 
     @Test
-    void townHallBuildingButtonOpensTheTownHallsOwnHutWindow() {
-        manager.windows().openTownHallBuilding(alice, colony.id());
-        BuildingView v = (BuildingView) t.ui.shown.get(alice);
-        assertEquals("hycolony:townhall", v.typeId());
-        assertEquals(hall, v.pos());
-    }
-
-    @Test
     void allowedActionsByLevelAndOrder() {
         Building res = residence(0);
         assertEquals(EnumSet.of(WorkOrderType.BUILD), view(alice, res).allowed());
@@ -146,7 +138,6 @@ class ViewsTest {
         res.setDeconstructed(true);
         BuildingView decon = view(alice, res);
         assertEquals(EnumSet.of(WorkOrderType.UPGRADE, WorkOrderType.REPAIR), decon.allowed());
-        assertTrue(decon.canPickUp());
         res.setLevel(0);
         assertEquals(
                 EnumSet.of(WorkOrderType.REPAIR),
@@ -170,7 +161,6 @@ class ViewsTest {
         assertEquals(0, row.percent());
         assertEquals(List.of("medieval", "desert"), ordered.styles());
         assertTrue(ordered.canManage());
-        assertFalse(ordered.canPickUp());
 
         colony.work().tick();
         assertEquals(Optional.of("Bob"), view(alice, res).order().orElseThrow().builderName());
@@ -291,7 +281,8 @@ class ViewsTest {
             manager.windows().openTownHall(player, hall);
             manager.windows().openCitizen(player, colony.id(), bobTheBuilder.id());
             manager.windows().openBuilding(player, res.position());
-            manager.windows().openTownHallBuilding(player, colony.id());
+            manager.windows().openBuildOptions(player, res.position());
+            manager.windows().openBuildingGui(player, hall);
             manager.windows().openRequests(player, colony.id());
             assertFalse(t.ui.shown.containsKey(player), "neutral and hostile see nothing");
             assertTrue(t.notifier.sent.stream()
@@ -300,7 +291,6 @@ class ViewsTest {
 
         BuildingView friendView = view(carol, res);
         assertFalse(friendView.canManage());
-        assertFalse(friendView.canPickUp());
         manager.windows().openTownHall(carol, hall);
         WorkOrdersView orders = ((TownHallView) t.ui.shown.get(carol)).workOrders();
         assertFalse(orders.canManage());
@@ -402,10 +392,6 @@ class ViewsTest {
     @Test
     void pickUpDeconstructedBuilding() {
         Building res = residence(2);
-        assertFalse(view(alice, res).canPickUp());
-        assertFalse(
-                manager.huts().pickUp(alice, res.position(), () -> fail("checks run first")),
-                "still standing: deconstruct it first");
 
         res.setDeconstructed(true);
         assertEquals(Optional.empty(), manager.workOrders().order(alice, res.position(), WorkOrderType.REPAIR, ""));
@@ -426,7 +412,6 @@ class ViewsTest {
 
         Building townHall = colony.buildings().at(hall).orElseThrow();
         townHall.setDeconstructed(true);
-        assertFalse(view(alice, townHall).canPickUp());
         assertFalse(manager.huts().pickUp(alice, hall, () -> fail("never given")), "the town hall is never picked up");
         assertTrue(colony.buildings().at(hall).isPresent());
     }

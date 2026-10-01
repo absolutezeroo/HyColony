@@ -90,7 +90,6 @@ public final class ColonyFoundation {
                 new Colony.Founding(
                         manager.allocateId(), name, hall.pos(), Permissions.createDefault(player, p.playerName())));
         manager.register(colony);
-        colony.log().add("colonyCreated", colony.day(), name);
         ctx.bus().post(new ColonyEvents.ColonyCreated(colony, Optional.of(player)));
         huts.place(colony, BuildingTypes.TOWN_HALL.id(), hall.pos(), hall.rotation(), player);
         Building townHall = colony.buildings().at(hall.pos()).orElseThrow();

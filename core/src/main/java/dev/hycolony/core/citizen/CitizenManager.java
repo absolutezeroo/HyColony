@@ -137,7 +137,9 @@ public final class CitizenManager {
             citizenRespawnTimer = RESPAWN_CHECK_TICKS;
             citizens.values().forEach(this::updateBodyIfNecessary);
         }
-        if (citizens.size() < ctx().config().gameplay().initialCitizenAmount()) {
+        // MC CitizenManager.onColonyTick: only while the town hall's "New citizens spawning" is on.
+        if (colony.settings().moveIn()
+                && citizens.size() < ctx().config().gameplay().initialCitizenAmount()) {
             respawnInterval -= 500 + 60 * townHall.get().level();
             if (respawnInterval <= 0) {
                 respawnInterval = INITIAL_SPAWN_RESET;
@@ -167,7 +169,8 @@ public final class CitizenManager {
         data.setGender(gender);
         data.setName(ctx().names().generate(ctx().random(), gender));
         spawnBody(data, townHall);
-        colony.log().add("citizenSpawned", colony.day(), data.name());
+        // MC CitizenManager: a CitizenSpawnedEvent at the town hall for a citizen moving in.
+        colony.log().addAt(townHall, "citizenSpawned", colony.day(), data.name());
         colony.markDirty();
         ctx().bus().post(new CitizenSpawned(colony, data));
     }

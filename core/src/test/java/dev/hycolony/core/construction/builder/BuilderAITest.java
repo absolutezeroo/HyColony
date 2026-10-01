@@ -13,7 +13,6 @@ import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.citizen.home.BedModule;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyEvents;
-import dev.hycolony.core.colony.EventLog;
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.BlueprintEntry;
 import dev.hycolony.core.construction.blueprint.BlueprintSource;
@@ -589,7 +588,6 @@ class BuilderAITest {
         assertTrue(mined > CitizenData.INVENTORY_SLOTS, "kept mining past a full inventory: " + mined);
         assertTrue(o.stage() != Stage.CLEAR || o.progressIndex() >= mined - 1);
         assertTrue(citizen.inventory().isFull());
-        assertTrue(colony.log().entries().stream().map(EventLog.Entry::type).anyMatch("debrisLost"::equals));
     }
 
     @Test
@@ -639,7 +637,8 @@ class BuilderAITest {
             assertEquals(expected.skills().level(s), citizen.skills().level(s), s.name());
             assertEquals(expected.skills().experience(s), citizen.skills().experience(s), 1e-9, s.name());
         }
-        assertTrue(colony.log().entries().stream().anyMatch(e -> e.type().equals("buildingBuilt")));
+        assertTrue(colony.log().entries().stream()
+                .anyMatch(e -> e.type().equals("buildingBuilt") && e.pos().equals(Optional.of(res.position()))));
         assertEquals(List.of(new ColonyEvents.BuildingLevelChanged(colony, res, 0, 1, Optional.empty())), events);
         assertEquals(1, t.notifier.sent.size());
         assertEquals("hycolony.build.complete", t.notifier.sent.get(0).msg().key());

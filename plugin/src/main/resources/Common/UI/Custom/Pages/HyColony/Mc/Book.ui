@@ -15,3 +15,28 @@ $C = "../../../Common.ui";
   Pressed: (Background: "builder_button_medium_large.png", LabelStyle: @InkCentered),
   Sounds: $C.@ButtonSounds
 );
+
+// MC's builder_button_mini (14 x 15), doubled: the "<", ">" and row arrow buttons.
+@MiniButtonStyle = TextButtonStyle(
+  Default: (Background: "builder_button_mini.png", LabelStyle: @InkCentered),
+  Hovered: (Background: "builder_button_mini.png", LabelStyle: (...@InkCentered, RenderBold: true)),
+  Pressed: (Background: "builder_button_mini.png", LabelStyle: @InkCentered),
+  Sounds: $C.@ButtonSounds
+);
+
+// MC's dropdown (a builder_button_medium_large showing the choice); the open list keeps Hytale's panel.
+@DropdownStyle = DropdownBoxStyle(
+  ...$C.@DefaultDropdownBoxStyle,
+  DefaultBackground: "builder_button_medium_large.png",
+  HoveredBackground: "builder_button_medium_large.png",
+  PressedBackground: "builder_button_medium_large.png",
+  LabelStyle: (...@InkCentered, FontSize: 14)
+);
+
+// The same on MC's builder_button_medium (86 x 17).
+@MediumDropdownStyle = DropdownBoxStyle(
+  ...@DropdownStyle,
+  DefaultBackground: "builder_button_medium.png",
+  HoveredBackground: "builder_button_medium.png",
+  PressedBackground: "builder_button_medium.png"
+);

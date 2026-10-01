@@ -106,9 +106,14 @@ public final class Building implements Requester, ResolverProvider {
         this.deconstructed = deconstructed;
     }
 
-    /** MC AbstractBuilding.pickUp: a deconstructed hut goes back to a player's inventory; the town hall never does. */
+    /**
+     * MC AbstractBuilding.pickUp: any hut goes back to a player's inventory (MC refuses only a hut with a parent,
+     * which HyColony has not).
+     *
+     * <p>Deviation from MC: never the town hall, as a HyColony colony cannot live without it.
+     */
     public boolean canBePickedUp() {
-        return deconstructed && !type.equals(BuildingTypes.TOWN_HALL);
+        return !type.equals(BuildingTypes.TOWN_HALL);
     }
 
     public String customName() {

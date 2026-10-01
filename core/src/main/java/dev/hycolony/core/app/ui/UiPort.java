@@ -10,6 +10,9 @@ public interface UiPort {
 
     void showBuilding(UUID player, BuildingView view);
 
+    /** A hut's build options window (MC WindowBuildBuilding); not kept live. */
+    void showBuildOptions(UUID player, BuildOptionsView view);
+
     void showRequests(UUID player, RequestsView view);
 
     void showCitizen(UUID player, CitizenView view);

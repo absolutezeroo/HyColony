@@ -5,7 +5,6 @@ import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.home.LivingModule;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.kernel.BlockPos;
-import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.port.Msg;
 import java.util.Optional;
 import java.util.UUID;
@@ -76,38 +75,13 @@ public final class HousingActions {
         Colony c = r.get().colony();
         boolean failed = false;
         for (int id : r.get().living().residents()) {
-            boolean alive = c.citizens()
-                    .bodyOf(id)
-                    .filter(manager.context().bodies()::isAlive)
-                    .isPresent();
-            if (alive) {
-                c.citizens().ai(id).ifPresent(ai -> ai.teleport(Vec3.center(hutPos)));
-            } else if (!respawnAt(c, id, hutPos)) {
-                failed = true;
-            }
+            failed |= !CitizenRecall.bring(manager, c, id, hutPos);
         }
         if (failed) {
             manager.context().notifier().send(player, Msg.of("hycolony.hut.recallFail"));
         }
         r.get().show(manager, player);
         return true;
-    }
-
-    /**
-     * MC setNextRespawnPosition then updateEntityIfNecessary: the body appears by {@code hut}; the position is used
-     * once, as MC clears nextRespawnPos after spawning.
-     */
-    private static boolean respawnAt(Colony c, int id, BlockPos hut) {
-        CitizenData d = c.citizens().get(id).orElse(null);
-        if (d == null) {
-            return false;
-        }
-        d.setRespawnPosition(hut);
-        boolean spawned = c.citizens().respawnBody(id);
-        if (spawned) {
-            d.setRespawnPosition(null);
-        }
-        return spawned;
     }
 
     /** A residence its player may manage, with its living module. */

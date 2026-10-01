@@ -17,4 +17,12 @@ public final class ColonyRefusal {
             ctx.notifier().send(player, Msg.of("hycolony.permission.denied", colony.name()));
         }
     }
+
+    /**
+     * MC AbstractColonyServerMessage: a colony action refused for a missing right tells the player every time, with
+     * MC's TOOL_PERMISSION_SCEPTER_PERMISSION_DENY.
+     */
+    public static void tellNoPermission(Colony colony, UUID player) {
+        colony.context().notifier().send(player, Msg.of("hycolony.permission.toolDenied"));
+    }
 }

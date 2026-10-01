@@ -12,12 +12,11 @@ import java.util.Locale;
 import java.util.UUID;
 
 /**
- * The town hall's Information tab: the colony's work orders in execution order (MC WindowInfoPage.fillWorkOrderList),
- * with up, down and delete for managers. As in MC: no priority number, no up on the first row, no down on the last.
- *
- * <p>Deviation from MC: no event log beside the list (no colony event log window yet).
+ * The town hall Information tab's right page: the colony's work orders in execution order (MC
+ * WindowInfoPage.fillWorkOrderList), with up, down and delete for managers. As in MC: no priority number, no up on
+ * the first row, no down on the last.
  */
-final class WorkOrderListTab implements TownHallTab {
+final class WorkOrderListTab {
     private final ColonyManager manager;
     private final UUID player;
     private final int colonyId;
@@ -30,8 +29,7 @@ final class WorkOrderListTab implements TownHallTab {
         this.view = view;
     }
 
-    @Override
-    public void render(UICommandBuilder ui, UIEventBuilder events, String root) {
+    void render(UICommandBuilder ui, UIEventBuilder events, String root) {
         List<OrderLine> orders = view.orders();
         if (orders.isEmpty()) {
             ui.set(root + " #OrdersEmpty.Visible", true);
@@ -84,8 +82,7 @@ final class WorkOrderListTab implements TownHallTab {
     }
 
     /** The core checks MANAGE_HUTS, then shows the town hall again. */
-    @Override
-    public void handle(ColonyPage.Act act) {
+    void handle(ColonyPage.Act act) {
         if (act.index() < 0 || act.index() >= view.orders().size()) {
             return;
         }

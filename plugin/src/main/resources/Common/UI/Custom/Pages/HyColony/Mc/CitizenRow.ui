@@ -1,28 +1,19 @@
-// A town hall citizen on the book's page: MC layoutcitizens.xml citizenList button, MC sizes doubled. Deviation from
-// MC: HyColony's status sits beside the name (MC shows a citizen's details only once selected).
+$B = "Book.ui";
+$C = "../../../Common.ui";
+
+// A citizen of the town hall's list (MC layoutcitizens.xml citizenList view), MC sizes doubled: a button with the
+// citizen's name, disabled for the selected one, its skills in the tooltip.
 
 Group {
   Anchor: (Height: 34);
 
-  Group {
+  TextButton #Name {
     Anchor: (Left: 18, Top: 0, Width: 258, Height: 34);
-    Background: "builder_button_medium_large.png";
-    LayoutMode: Left;
-    Padding: (Horizontal: 10);
-
-    Label #Name {
-      FlexWeight: 1;
-      Style: (
-        FontSize: 14,
-        TextColor: #000000,
-        VerticalAlignment: Center,
-        ShrinkTextToFit: true,
-        MinShrinkTextToFitFontSize: 10
-      );
-    }
-
-    Label #Status {
-      Style: (FontSize: 12, TextColor: #555555, VerticalAlignment: Center);
-    }
+    Style: (
+      ...$B.@WideButtonStyle,
+      Disabled: (Background: "builder_button_medium_large_disabled.png", LabelStyle: $B.@InkCentered)
+    );
+    Text: "";
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
   }
 }

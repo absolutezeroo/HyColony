@@ -37,16 +37,27 @@ class TownHallRenameTest {
     }
 
     @Test
-    void renameRefusesABlankName() {
+    void renameRefusesAnEmptyNameAsMcWindowSendsNone() {
         Colony c = found();
-        assertFalse(manager.administration().rename(alice, c.id(), "   "));
+        assertFalse(manager.administration().rename(alice, c.id(), ""));
         assertEquals("A", c.name());
     }
 
     @Test
-    void renameNeedsManageHuts() {
+    void renameKeepsSpacesAsMc() {
         Colony c = found();
-        assertFalse(manager.administration().rename(UUID.randomUUID(), c.id(), "Hacked"));
+        assertTrue(manager.administration().rename(alice, c.id(), "  New "));
+        assertEquals("  New ", c.name());
+    }
+
+    @Test
+    void renameNeedsManageHutsAndSaysSo() {
+        Colony c = found();
+        UUID stranger = UUID.randomUUID();
+        assertFalse(manager.administration().rename(stranger, c.id(), "Hacked"));
         assertEquals("A", c.name());
+        assertEquals(
+                "hycolony.permission.toolDenied",
+                t.notifier.sent.getLast().msg().key());
     }
 }

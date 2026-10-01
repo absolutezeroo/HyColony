@@ -8,17 +8,17 @@ import dev.hycolony.core.app.ui.BuildingView;
 import dev.hycolony.plugin.ui.logistics.PickupPanel;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
  * The hut window's Main tab (MC AbstractBuildingMainWindow): level, state, work order, the single build button, hiring
- * and workers, pickup priority, storage, inventory summary; and its Build options and inventory summary sub-views.
+ * and workers, pickup priority, storage, inventory summary; and its inventory summary sub-view.
  */
 final class BuildingMainTab {
     private final ColonyManager manager;
     private final UUID player;
     private final BuildingView view;
-    private final BuildOptionsPanel options;
     private final PickupPanel pickup;
     private final HutStockPanel stock;
 
@@ -26,14 +26,12 @@ final class BuildingMainTab {
         this.manager = manager;
         this.player = player;
         this.view = view;
-        this.options = new BuildOptionsPanel(manager, player, view);
         this.pickup = new PickupPanel(manager, player, view);
         this.stock = new HutStockPanel(view.stock());
     }
 
-    /** Takes over {@code previous}'s local state (the Build options and inventory summary sub-views), for a refresh. */
+    /** Takes over {@code previous}'s local state (the inventory summary sub-view), for a refresh. */
     void keepStateOf(BuildingMainTab previous) {
-        options.keepStateOf(previous.options);
         stock.keepStateOf(previous.stock);
     }
 
@@ -48,12 +46,8 @@ final class BuildingMainTab {
         String state = view.deconstructed() ? "deconstructed" : view.built() ? "built" : "notBuilt";
         ui.set("#State.Text", Message.translation("hycolony.ui.building.state." + state));
         orderInfo(ui);
-        ui.set("#MainActions.Visible", !options.isOpen() && !stock.isOpen());
-        ui.set("#BuildOptions.Visible", options.isOpen());
+        ui.set("#MainActions.Visible", !stock.isOpen());
         ui.set("#StockView.Visible", stock.isOpen());
-        if (options.isOpen()) {
-            options.render(ui, events);
-        }
         stock.render(ui, events);
         buildButton(ui, events);
         staff(ui, events);
@@ -85,8 +79,8 @@ final class BuildingMainTab {
     }
 
     /**
-     * MC updateButtonBuild: "Build options" opens the sub-view; with an order it becomes "Cancel build / upgrade /
-     * repair / deconstruction" (a full key per variant) and cancels it (MANAGE_HUTS, else disabled).
+     * MC updateButtonBuild: "Build options" opens the build options window; with an order it becomes "Cancel build /
+     * upgrade / repair / deconstruction" (a full key per variant) and cancels it (MANAGE_HUTS, else disabled).
      */
     private void buildButton(UICommandBuilder ui, UIEventBuilder events) {
         if (view.order().isEmpty()) {
@@ -155,26 +149,23 @@ final class BuildingMainTab {
         };
     }
 
+    /** The citizen of row {@code i} of {@code rows}; empty for an index out of the list. */
+    private static Optional<Integer> row(List<BuildingView.WorkerRow> rows, int i) {
+        return i >= 0 && i < rows.size() ? Optional.of(rows.get(i).citizenId()) : Optional.empty();
+    }
+
     /** Answers this tab's buttons; returns true if the page must be drawn again (local state changed). */
     boolean handle(ColonyPage.Act act) {
         int i = act.index;
         switch (act.action) {
             case "cancel" -> manager.workOrders().cancel(player, view.pos());
+            case "build" -> manager.windows().openBuildOptions(player, view.pos());
             case "hiring" -> view.hiringMode().ifPresent(m -> manager.huts().setHiring(player, view.pos(), m.next()));
-            case "fire" -> {
-                if (i >= 0 && i < view.workers().size()) {
-                    manager.huts()
-                            .fire(player, view.pos(), view.workers().get(i).citizenId());
-                }
-            }
-            case "hire" -> {
-                if (i >= 0 && i < view.hireable().size()) {
-                    manager.huts()
-                            .hire(player, view.pos(), view.hireable().get(i).citizenId());
-                }
-            }
+            case "fire" -> row(view.workers(), i).ifPresent(id -> manager.huts().fire(player, view.pos(), id));
+            case "hire" ->
+                row(view.hireable(), i).ifPresent(id -> manager.huts().hire(player, view.pos(), id));
             default -> {
-                return !pickup.handle(act) && (stock.handle(act) || options.handle(act));
+                return !pickup.handle(act) && stock.handle(act);
             }
         }
         return false;

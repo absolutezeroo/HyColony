@@ -14,9 +14,11 @@ class TownHallHomeViewTest {
     private final TownHallFixture f = new TownHallFixture();
 
     @Test
-    void homeShowsTheTownHallLevel() {
+    void homeShowsTheTownHallLevelAndPosition() {
         f.townHall().setLevel(3);
-        assertEquals(3, f.townHallView(f.alice).home().townHallLevel());
+        TownHallView.Home home = f.townHallView(f.alice).home();
+        assertEquals(3, home.townHallLevel());
+        assertEquals(f.hall, home.townHallPos());
     }
 
     @Test
@@ -34,6 +36,12 @@ class TownHallHomeViewTest {
     @Test
     void homeHasNoOrderWhenNoneRuns() {
         assertEquals(Optional.empty(), f.townHallView(f.alice).home().order());
+    }
+
+    @Test
+    void homeShowsTheFirstStyleForAColonyWithoutOne() {
+        f.colony.settings().setStyle("");
+        assertEquals("medieval", f.townHallView(f.alice).home().style());
     }
 
     @Test

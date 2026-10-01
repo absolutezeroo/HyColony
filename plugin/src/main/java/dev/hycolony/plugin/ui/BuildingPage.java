@@ -30,7 +30,6 @@ public final class BuildingPage extends ColonyPage {
     private record Bar(String group, String labelKey) implements TabBar.Tab {}
 
     private final BuildingView view;
-    private final Runnable pickUp;
     private final HutStorage storage;
     private final BuildingMainTab main;
     private final List<HutTab> moduleTabs;
@@ -38,10 +37,9 @@ public final class BuildingPage extends ColonyPage {
     /** Index in {@link #bar}; 0 is Main. */
     private int tab;
 
-    public BuildingPage(PlayerRef playerRef, BuildingView view, ColonyManager manager, Runnable pickUp) {
+    public BuildingPage(PlayerRef playerRef, BuildingView view, ColonyManager manager) {
         super(playerRef, manager);
         this.view = view;
-        this.pickUp = pickUp;
         this.storage = new HutStorage(playerRef, manager, view.pos());
         this.main = new BuildingMainTab(manager, player, view);
         this.moduleTabs = HutTabs.of(view, manager, player);
@@ -69,8 +67,8 @@ public final class BuildingPage extends ColonyPage {
     }
 
     /**
-     * For the core's live refresh: {@link #keepTabOf} plus the Build options (and its chosen style) and inventory
-     * summary sub-views, which an action's re-show resets.
+     * For the core's live refresh: {@link #keepTabOf} plus the inventory summary sub-view, which an action's re-show
+     * resets.
      */
     public BuildingPage keepStateOf(@Nullable CustomUIPage previous) {
         keepTabOf(previous);
@@ -108,7 +106,6 @@ public final class BuildingPage extends ColonyPage {
                 }
             }
             case "storage" -> storage.open(ref, store);
-            case "pickUp" -> pickUp.run();
             default -> {
                 if (main.handle(act)) {
                     rebuild();

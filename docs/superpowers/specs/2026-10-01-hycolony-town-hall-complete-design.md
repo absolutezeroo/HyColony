@@ -64,7 +64,7 @@ Page de gauche :
 
 - **Grand ruban** : le nom de l'hôtel de ville suivi de son niveau, « Town Hall 5 » (`WindowMainPage.java:93-94`). `TownHallView.Actions` reçoit le niveau.
 - **En-tête vert** « Colony Name: » (`layoutactions.xml:4`, clé MC `currtownhallname`), puis le crayon et le nom en texte (`:6-9`), aux positions de MC doublées. Le champ de saisie en ligne disparaît.
-- **Crayon** : visible pour qui a `MANAGE_HUTS`, il ouvre la fenêtre de renommage (§ 4.2).
+- **Crayon** : visible pour tous, comme MC ; il ouvre la fenêtre de renommage (§ 4.2). Le cœur refuse sans `MANAGE_HUTS` avec le message de MC (`TOOL_PERMISSION_SCEPTER_PERMISSION_DENY`), comme pour toute action de colonie.
 - **Build Options** (`build`, texture `builder_button_medium_large_build`) : sans ordre en cours, il ouvre la fenêtre de construction (§ 4.3) ; avec un ordre en cours, son libellé devient « Annuler la construction / l'amélioration / la réparation / la déconstruction » et un clic annule l'ordre (`AbstractBuildingMainWindow.buildClicked`, l. 65-86 ; action existante `WorkOrderActions.cancel`).
 - **Requêtes** : garde sa place, à l'emplacement du bouton Carte. `Deviation from MC: requests go through the clipboard item in MC, which HyColony does not have yet.`
 - Carte et Mercenaires : absents (C).
@@ -79,23 +79,23 @@ Page de droite, « Cosmetic Options: » (`layoutactions.xml:25-90`) :
 ### 4.2 Fenêtre de renommage (`WindowTownHallNameEntry`)
 
 - Page à voile : titre (`townhall.rename.title`), champ, Terminé et Annuler (`windowtownhallnameentry.xml`). Terminé renomme puis rouvre l'hôtel de ville ; Annuler le rouvre sans rien changer (`WindowTownHallNameEntry.java:43-62`).
-- Règle de MC pour le renommage (`TownHallRenameMessage.java:17-18,56`) : un nom de plus de 25 caractères est **tronqué à 24**. `ColonyAdministration.rename` suit cette règle, séparée de celle de la fondation (32 caractères, inchangée). Le nom vide reste refusé (Hytale envoie un champ vide si le joueur efface tout ; MC ne le refuse pas, mais un nom vide casserait l'affichage : `Deviation from MC`).
+- Règle de MC pour le renommage (`TownHallRenameMessage.java:17-18,56`) : un nom de plus de 25 caractères est **tronqué à 24**. `ColonyAdministration.rename` suit cette règle, séparée de celle de la fondation (32 caractères, inchangée). Le nom vide est refusé, comme la fenêtre de MC qui n'envoie rien dans ce cas (`WindowTownHallNameEntry.java:47-51`) ; les espaces sont gardés (MC ne coupe rien).
 
 ### 4.3 Fenêtre de construction (`WindowBuildBuilding`, `windowbuildbuilding.xml`)
 
 Elle remplace le sous-panneau `BuildOptionsPanel` de la fenêtre de hutte : le bouton « Options de construction » de **toutes** les huttes l'ouvre, comme chez MC. Page à voile, positions de MC doublées :
 
-- en haut : `<`, liste déroulante des styles, `>` ; liste déroulante des constructeurs ; croix `button_x` qui revient à la fenêtre d'origine ;
-- au centre : la liste des ressources du plan du niveau visé (icône, nom, quantité), le niveau suivant si la hutte peut monter, sinon le niveau actuel (`updateResources`, l. 298-330). Le cœur calcule cette liste depuis le plan (`BlueprintSource`) ; plan introuvable : la liste est vide et seuls Déconstruire et Ramasser restent, comme MC ;
-- en bas : Réparer (« Construire » si la hutte est déconstruite), Construire ou Améliorer (caché au niveau max ; infobulle d'avertissement et confirmation, comme aujourd'hui), Déconstruire, Ramasser. Les règles d'affichage sont celles de `WindowBuildBuilding.java:139-160`, déjà portées dans `BuildingView.allowed`.
+- en haut : `<`, la liste déroulante du style, `>` : MC n'y met que le style de la hutte (`updateStyles`), les flèches ne changent donc rien ; liste déroulante des constructeurs ; croix `button_x` qui revient à la fenêtre d'origine ;
+- au centre : la liste des ressources du plan du niveau visé (icône, nom, quantité), le niveau suivant si la hutte peut monter, sinon le niveau actuel (`updateResources`, l. 298-330). Le cœur calcule cette liste depuis le plan (`BlueprintSource`) ; plan introuvable : la liste est vide, Construire et Réparer sont cachés et Ramasser apparaît, comme MC ;
+- en bas : Réparer (« Construire le bâtiment » si la hutte est déconstruite), « Construire le bâtiment » ou Améliorer (caché au niveau max ; infobulle d'avertissement et confirmation en deux clics), Déconstruire, ou Ramasser à sa place au niveau 0, une fois déconstruite ou sans plan (`WindowBuildBuilding.java:139-160,323-328`). Le serveur accepte de ramasser toute hutte, comme MC, sauf l'hôtel de ville. Après un ordre, accepté ou refusé, la fenêtre propre au bâtiment revient (MC `openGui`).
 - **Choix du constructeur** : la première entrée est « Builder: » (automatique), puis les constructeurs de la colonie qui ont un travailleur, triés par distance à la hutte (`updateBuilders`, l. 246-262). Le cœur gagne ce paramètre : `WorkOrderActions.order` reçoit le constructeur choisi, et l'ordre est réservé à ce constructeur (MC `BuildRequestMessage` avec la position du constructeur). Les règles de réservation sont celles de MC, vérifiées au plan.
 
 ## 5. Lot 2 : Informations (`WindowInfoPage`, `layoutinfo.xml`)
 
-- **Page de gauche** : liste déroulante des intervalles (hier, semaine, 100 jours, depuis toujours ; défaut « depuis toujours », `WindowInfoPage.java:49,65-93`) et la liste des événements, du plus récent au plus ancien, filtrée par `jour >= jourActuel - intervalle` (`:106-124`).
+- **Page de gauche** : liste déroulante des intervalles (hier, semaine, 100 jours, depuis toujours ; défaut « depuis toujours », `WindowInfoPage.java:49,65-93`) et la liste des événements dans l'ordre du journal, du plus ancien au plus récent comme MC, filtrée par `jour >= jourActuel - intervalle` (`:106-124`, `TownHallView.Info.within`).
 - **Ligne d'événement** (`:126-164`) : l'action, le nom du citoyen ou « hutte niveau N », et la position x y z.
 - **Cœur** : `EventLog.Entry` gagne une position facultative (schéma de sauvegarde relevé par `add-migration` ; une ancienne entrée n'a pas de position). Chaque producteur existant la renseigne.
-- Les trois types d'événements propres à HyColony (`buildingPlaced`, `buildingRemoved`, `debrisLost`) ne sont pas journalisés par MC. Ils ne sont pas affichés. S'ils n'ont aucun autre lecteur (à vérifier au plan), on cesse de les produire.
+- Les types propres à HyColony (`colonyCreated`, `buildingPlaced`, `buildingRemoved`, `debrisLost`) ne sont plus produits : MC ne les journalise pas, et ils mangeraient le plafond de 100 événements. Ceux d'une ancienne sauvegarde ne sont pas affichés.
 - **Page de droite** : les ordres de travail, déjà faits.
 
 ## 6. Lot 3 : Citoyens (`WindowCitizenPage`, `layoutcitizens.xml`)
@@ -103,7 +103,7 @@ Elle remplace le sous-panneau `BuildOptionsPanel` de la fenêtre de hutte : le b
 - **Liste** (page de droite) : un bouton par citoyen, **trié par nom** ; le premier est sélectionné à l'ouverture ; le bouton du citoyen sélectionné est désactivé (`builder_button_medium_large_disabled`) ; son infobulle donne les compétences « nom : niveau » (`WindowCitizenPage.java:37,71-74,106,190-207`).
 - **Recherche** : un champ de 32 caractères au-dessus de la liste, filtre sans casse sur le nom ou le métier (`:81-107`). Le filtre est un état de la page.
 - **Détail** (en haut de la page de droite) : le métier en gras et le sceau de genre (`colonist_wax_male_smaller`/`_female_smaller`) ; le bouton « Rappeler ».
-- **Rappel d'un citoyen** : action nouvelle `CitizenActions.recall`, `MANAGE_HUTS` ; le citoyen est ramené à l'hôtel de ville, son corps est recréé s'il manque, sinon le message d'échec de MC (`RecallSingleCitizenMessage.java:66-90`). Le cœur réutilise ce que fait déjà le rappel des résidents (`HousingActions.recall`).
+- **Rappel d'un citoyen** : action nouvelle `CitizenRecall.recall`, `MANAGE_HUTS` ; le citoyen est ramené à l'hôtel de ville, son corps est recréé s'il manque (`RecallSingleCitizenMessage.java:66-90`), avec le geste partagé par le rappel des résidents (`HousingActions.recall`). Le message d'échec de MC part quand aucun corps ne peut apparaître (chez MC : quand la téléportation ne trouve pas de place ; notre téléportation n'échoue jamais).
 - Santé, bonheur, saturation, liste des modificateurs de bonheur (page de gauche) et rendu du citoyen : absents (C). La page de gauche reste vide. `Deviation from MC: no happiness, health nor food system yet.`
 
 ## 7. Lot 4 : Réglages (`WindowSettings`, `layoutsettings.xml`)
@@ -146,7 +146,22 @@ Trois sous-pages, tournées par `<` `>` avec leur numéro. Sans `EDIT_PERMISSION
 - **Plugin** : pas de tests unitaires (§ 8 de CLAUDE.md). `docs/TESTING.md` reçoit un point par onglet et pour chaque fenêtre (renommage, construction), avec les vérifications **[in-game]** : listes déroulantes texturées, interrupteurs, pages tournées, recherche.
 - Chaque lot : build vert, relectures (`hycolony-reviewer`, `ui-lang-checker`, `mc-fidelity-checker`), test en jeu par l'utilisateur, puis commit.
 
-## 11. Points ouverts, à trancher au plan
+## 11. Écarts à MC retenus
+
+Chacun porte un `Deviation from MC` dans le code.
+
+- Pas d'onglet Alliances (diplomatie absente) ; l'emplacement de son sceau reste vide.
+- Un onglet fermé donne son nom en infobulle, et non par le ruban de survol (Hytale ne montre pas un autre élément au survol).
+- Le bouton Requêtes remplace la carte (presse-papiers absent).
+- Le pack de colonie est une liste déroulante (la fenêtre de packs de Structurize n'est pas portée), un style inconnu est refusé, et une colonie sans pack montre le premier style (MC : « Colonial »).
+- L'hôtel de ville n'est jamais ramassé ; une hutte ramassée ne garde pas son niveau.
+- Pas de règle de hutte parente pour le niveau des ressources ; seul le constructeur est proposé (MC : toute hutte de type constructeur sauf le mineur).
+- L'avertissement avant une amélioration se confirme par un second clic (MC : une fenêtre de confirmation).
+- Le champ de renommage est pré-rempli avec le nom exact (MC le passe en minuscules par une recherche de traduction).
+- Le rappel dit son échec quand le corps ne peut apparaître (voir § 6).
+- Les onglets Accueil, Informations et Citoyens ne se redessinent pas en direct, pour ne pas fermer une liste ouverte ni effacer la recherche.
+
+## 12. Points ouverts, à trancher au plan
 
 - API Hytale pour retrouver un joueur hors ligne par son nom (§ 8).
 - Règles exactes de réservation d'un ordre par un constructeur choisi chez MC (§ 4.3).

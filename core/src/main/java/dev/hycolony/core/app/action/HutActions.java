@@ -23,7 +23,7 @@ import java.util.UUID;
 import java.util.function.BooleanSupplier;
 
 /**
- * What players do to huts: place and remove them (MC AbstractBlockHut), pick a deconstructed one up, and staff it
+ * What players do to huts: place and remove them (MC AbstractBlockHut), pick one up, and staff it
  * (hire, fire, hiring mode, builder mode). A managing action needs MANAGE_HUTS and re-shows the hut's window.
  */
 public final class HutActions {
@@ -119,10 +119,9 @@ public final class HutActions {
                 manager.context().buildingTypes().byId(buildingTypeId).orElseThrow();
         remove(colony, pos, Optional.empty());
         Building building = Building.create(type, pos, rotation);
-        // MC AbstractBuilding.getStructurePack: a hut without its own pack takes the colony's.
+        // MC RegisteredStructureManager.addNewBuilding: a hut placed without a pack takes the colony's.
         building.setStyle(colony.settings().style());
         colony.buildings().add(building);
-        colony.log().add("buildingPlaced", colony.day(), type.id());
         colony.markDirty();
         manager.context().bus().post(new ColonyEvents.BuildingPlaced(colony, building, Optional.of(player)));
     }
@@ -154,7 +153,6 @@ public final class HutActions {
 
     private void remove(Colony c, BlockPos pos, Optional<UUID> player) {
         c.buildings().remove(pos).ifPresent(b -> {
-            c.log().add("buildingRemoved", c.day(), b.type().id());
             c.markDirty();
             manager.context().bus().post(new ColonyEvents.BuildingRemoved(c, b, player));
         });
@@ -260,10 +258,12 @@ public final class HutActions {
     }
 
     /**
-     * MC's requestRemoval on a deconstructed hut (AbstractBuilding.pickUp): once every check passes, {@code giveItem}
-     * gives the player the hut item (with its level) and says whether it fit. Only then does the building leave the
-     * colony through the normal removal path (workers fired, requests and orders cancelled); the plugin removes the
-     * block. A full inventory refuses and keeps the building.
+     * MC BuildPickUpMessage (AbstractBuilding.pickUp, any hut but the town hall, see Building.canBePickedUp): once
+     * every check passes, {@code giveItem} gives the player the hut item and says whether it fit. Only then does the
+     * building leave the colony through the normal removal path (workers fired, requests and orders cancelled); the
+     * plugin removes the block. A full inventory refuses and keeps the building.
+     *
+     * <p>Deviation from MC: the item does not keep the hut's level (MC TAG_OTHER_LEVEL).
      */
     public boolean pickUp(UUID player, BlockPos hutPos, BooleanSupplier giveItem) {
         ManagedHut h = ManagedHut.find(manager, player, hutPos).orElse(null);

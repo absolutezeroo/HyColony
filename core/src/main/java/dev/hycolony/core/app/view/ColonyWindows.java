@@ -69,7 +69,7 @@ public final class ColonyWindows {
                 ui::refreshCitizen);
     }
 
-    /** Any hut's window; the town hall's window reaches it through its "building" action. */
+    /** Any hut's window. */
     public void openBuilding(UUID player, BlockPos hutPos) {
         Colony c = manager.colonyAt(hutPos).orElse(null);
         Building b = c == null ? null : c.buildings().at(hutPos).orElse(null);
@@ -79,17 +79,36 @@ public final class ColonyWindows {
     }
 
     /**
-     * The town hall's own hut window (MC "build" button on the Home tab): looked up on {@code colonyId} directly, not
-     * through a hut position, since the caller already knows which colony it is showing. A missing colony or town
-     * hall building is a silent no-op, like {@link #openBuilding}.
+     * A hut's build options (MC WindowBuildBuilding, opened by the "build" button); needs ACCESS_HUTS, a missing hut is
+     * a silent no-op.
      */
-    public void openTownHallBuilding(UUID player, int colonyId) {
-        manager.byId(colonyId)
-                .ifPresent(c -> c.buildings().townHall().ifPresent(b -> {
-                    if (canAccess(c, player)) {
-                        showBuilding(c, b, player);
-                    }
-                }));
+    public void openBuildOptions(UUID player, BlockPos hutPos) {
+        Colony c = manager.colonyAt(hutPos).orElse(null);
+        Building b = c == null ? null : c.buildings().at(hutPos).orElse(null);
+        if (c != null && b != null && canAccess(c, player)) {
+            ui.showBuildOptions(player, BuildOptionsViews.of(c, b, buildings.of(c, b, player)));
+        }
+    }
+
+    /** {@link #showBuildingGui} for a player who may see the colony's huts (ACCESS_HUTS); a missing hut is a no-op. */
+    public void openBuildingGui(UUID player, BlockPos hutPos) {
+        Colony c = manager.colonyAt(hutPos).orElse(null);
+        Building b = c == null ? null : c.buildings().at(hutPos).orElse(null);
+        if (c != null && b != null && canAccess(c, player)) {
+            showBuildingGui(c, b, player);
+        }
+    }
+
+    /**
+     * MC IBuildingView.openGui: the town hall's window for the town hall, the hut's window for any other hut. Checks
+     * no permission, like the other {@code show*} methods.
+     */
+    public void showBuildingGui(Colony c, Building b, UUID viewer) {
+        if (c.buildings().townHall().filter(b::equals).isPresent()) {
+            showTownHall(c, viewer);
+        } else {
+            showBuilding(c, b, viewer);
+        }
     }
 
     /** The clipboard (MC WindowClipBoard): root requests held by the player or retrying resolver. */

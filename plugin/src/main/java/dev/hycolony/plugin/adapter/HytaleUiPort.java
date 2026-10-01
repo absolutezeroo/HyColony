@@ -10,6 +10,7 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.app.ColonyManager;
+import dev.hycolony.core.app.ui.BuildOptionsView;
 import dev.hycolony.core.app.ui.BuildingView;
 import dev.hycolony.core.app.ui.CitizenView;
 import dev.hycolony.core.app.ui.FieldView;
@@ -23,6 +24,7 @@ import dev.hycolony.core.app.ui.WindowKey;
 import dev.hycolony.core.app.wand.WandActions;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.plugin.IdMap;
+import dev.hycolony.plugin.ui.BuildOptionsPage;
 import dev.hycolony.plugin.ui.BuildingPage;
 import dev.hycolony.plugin.ui.ColonyPage;
 import dev.hycolony.plugin.ui.FoundColonyPage;
@@ -115,7 +117,16 @@ public final class HytaleUiPort implements UiPort {
 
     @Override
     public void showBuilding(UUID player, BuildingView view) {
-        open(player, buildingPage(player, view));
+        open(player, buildingPage(view));
+    }
+
+    @Override
+    public void showBuildOptions(UUID player, BuildOptionsView view) {
+        open(
+                player,
+                (pr, previous) -> new BuildOptionsPage(
+                                pr, view, manager.get(), () -> pickUp.run(player, view.building()))
+                        .keepStateOf(previous));
     }
 
     @Override
@@ -128,8 +139,7 @@ public final class HytaleUiPort implements UiPort {
         return live.refresh(
                 player,
                 new WindowKey.Hut(view.pos()),
-                (pr, previous) -> new BuildingPage(pr, view, manager.get(), () -> pickUp.run(player, view))
-                        .keepStateOf(previous));
+                (pr, previous) -> new BuildingPage(pr, view, manager.get()).keepStateOf(previous));
     }
 
     @Override
@@ -146,9 +156,8 @@ public final class HytaleUiPort implements UiPort {
         return (pr, previous) -> new TownHallPage(pr, view, manager.get()).keepTabOf(previous);
     }
 
-    private BiFunction<PlayerRef, CustomUIPage, ColonyPage> buildingPage(UUID player, BuildingView view) {
-        return (pr, previous) ->
-                new BuildingPage(pr, view, manager.get(), () -> pickUp.run(player, view)).keepTabOf(previous);
+    private BiFunction<PlayerRef, CustomUIPage, ColonyPage> buildingPage(BuildingView view) {
+        return (pr, previous) -> new BuildingPage(pr, view, manager.get()).keepTabOf(previous);
     }
 
     private BiFunction<PlayerRef, CustomUIPage, ColonyPage> citizenPage(CitizenView view) {

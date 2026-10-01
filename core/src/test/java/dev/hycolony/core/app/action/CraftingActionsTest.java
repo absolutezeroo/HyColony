@@ -99,7 +99,10 @@ class CraftingActionsTest {
 
         assertEquals(List.of(), module.recipes());
         assertTrue(colony.registries().recipes().idOf(WHEAT).isEmpty());
-        assertEquals(List.of(), t.notifier.sent);
+        // MC AbstractColonyServerMessage tells a player without the right.
+        assertEquals(
+                List.of("hycolony.permission.toolDenied"),
+                t.notifier.sent.stream().map(s -> s.msg().key()).toList());
         assertFalse(t.ui.shown.containsKey(carol));
     }
 

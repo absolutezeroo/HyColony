@@ -32,17 +32,25 @@ public final class WorkOrderActions {
         this.windows = windows;
     }
 
-    /**
-     * The hut window's Build/Upgrade/Repair/Deconstruct button: empty on success (the window is re-shown), else the
-     * refusal, which the player is also told.
-     */
+    /** {@link #order(UUID, BlockPos, WorkOrderType, String, Optional)} for any builder. */
     public Optional<WorkOrderRefusal> order(UUID player, BlockPos hutPos, WorkOrderType type, String style) {
+        return order(player, hutPos, type, style, Optional.empty());
+    }
+
+    /**
+     * The build options' Build/Upgrade/Repair/Deconstruct button (MC BuildRequestMessage): empty on success, the
+     * order then reserved to {@code builder} if one is chosen; else the refusal, which the player is also told. Either
+     * way the building's own window shows again to a player who may see the colony's huts (MC WindowBuildBuilding
+     * closes with openGui); nothing for a hut gone.
+     */
+    public Optional<WorkOrderRefusal> order(
+            UUID player, BlockPos hutPos, WorkOrderType type, String style, Optional<BlockPos> builder) {
         Colony c = manager.colonyAt(hutPos).orElse(null);
         Building b = c == null ? null : c.buildings().at(hutPos).orElse(null);
         if (c == null || b == null) {
             return Optional.of(WorkOrderRefusal.INVALID_TYPE); // the hut is gone
         }
-        Either<WorkOrder, WorkOrderRefusal> r = c.work().request(player, hutPos, type, style, Optional.empty());
+        Either<WorkOrder, WorkOrderRefusal> r = c.work().request(player, hutPos, type, style, builder);
         if (r instanceof Either.Right(var refusal)) {
             manager.context()
                     .notifier()
@@ -50,9 +58,12 @@ public final class WorkOrderActions {
                             player,
                             Msg.of("hycolony.workorder.refused."
                                     + refusal.name().toLowerCase(Locale.ROOT)));
+            if (ColonyAccess.allows(c, player, Action.ACCESS_HUTS)) {
+                windows.showBuildingGui(c, b, player);
+            }
             return Optional.of(refusal);
         }
-        windows.showBuilding(c, b, player);
+        windows.showBuildingGui(c, b, player);
         return Optional.empty();
     }
 
@@ -67,7 +78,7 @@ public final class WorkOrderActions {
             return false;
         }
         h.colony().work().cancel(order.get().id());
-        windows.showBuilding(h.colony(), h.building(), player);
+        windows.showBuildingGui(h.colony(), h.building(), player);
         return true;
     }
 

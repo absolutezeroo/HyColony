@@ -18,6 +18,7 @@ import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.core.testing.TestContexts;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -37,11 +38,19 @@ final class TownHallFixture {
     final Colony colony;
     final Building builder;
     final CitizenData bob;
+    /** Every blueprint load, as "style/type/level". */
+    final List<String> loads = new ArrayList<>();
+    /** When true, no blueprint exists. */
+    boolean noBlueprints;
 
     TownHallFixture() {
         t.blueprints = new BlueprintSource() {
             @Override
             public Optional<Blueprint> load(String style, String buildingTypeId, int level, int rotation) {
+                loads.add(style + "/" + buildingTypeId + "/" + level);
+                if (noBlueprints) {
+                    return Optional.empty();
+                }
                 BlockPos o = new BlockPos(1, 0, 0);
                 return Optional.of(
                         new Blueprint("bp", List.of(new BlueprintEntry(o, new BlockState(STONE, 0), false)), o, o));

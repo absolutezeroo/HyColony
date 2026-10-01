@@ -3,12 +3,15 @@ package dev.hycolony.plugin.ui.townhall;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.Message;
+import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.entity.entities.player.pages.CustomUIPage;
+import com.hypixel.hytale.server.core.modules.i18n.I18nModule;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.app.ColonyManager;
+import dev.hycolony.core.app.action.CitizenRecall;
 import dev.hycolony.core.app.ui.TownHallView;
 import dev.hycolony.plugin.ui.ColonyPage;
 import java.util.List;
@@ -19,10 +22,13 @@ import javax.annotation.Nullable;
  * The town hall's window as MC's book (MC AbstractWindowTownHall): the open tab's page appended into {@code #Page},
  * then the bookmarks, each tab at its MC slot.
  *
- * <p>Deviation from MC: no Permissions, Alliances nor Settings tab yet, and a closed tab names itself in a tooltip
+ * <p>Deviation from MC: no Permissions nor Alliances tab yet, and a closed tab names itself in a tooltip
  * rather than MC's hover ribbon (Hytale cannot show another element on hover).
  */
 public final class TownHallPage extends ColonyPage {
+    /** The Home tab's pencil (MC rename button): opens {@link RenameColonyPage} in place of this window. */
+    static final String RENAME = "renameOpen";
+
     private static final String PAGE = "#Page";
     private static final String ROOT = PAGE + "[0]";
 
@@ -31,7 +37,8 @@ public final class TownHallPage extends ColonyPage {
         ACTIONS(0, "Actions", "actions"),
         INFO(1, "Info", "information"),
         CITIZENS(3, "Citizens", "citizens"),
-        STATS(4, "Stats", "stats");
+        STATS(4, "Stats", "stats"),
+        SETTINGS(6, "Settings", "settings");
 
         private final int slot;
         private final String document;
@@ -48,18 +55,22 @@ public final class TownHallPage extends ColonyPage {
 
     private final TownHallView view;
     private final TownHallActionsTab actions;
-    private final WorkOrderListTab info;
+    private final TownHallInfoTab info;
     private final TownHallCitizensTab citizens;
     private final TownHallStatsTab stats;
+    private final TownHallSettingsTab settings;
     private Tab tab = Tab.ACTIONS;
 
     public TownHallPage(PlayerRef playerRef, TownHallView view, ColonyManager manager) {
         super(playerRef, manager);
         this.view = view;
         this.actions = new TownHallActionsTab(manager, player, view);
-        this.info = new WorkOrderListTab(manager, player, view.colonyId(), view.workOrders());
-        this.citizens = new TownHallCitizensTab(view.citizens());
+        this.info = new TownHallInfoTab(
+                view.info(), new WorkOrderListTab(manager, player, view.colonyId(), view.workOrders()));
+        this.citizens = new TownHallCitizensTab(
+                view.citizens(), this::text, id -> new CitizenRecall(manager).recall(player, view.colonyId(), id));
         this.stats = new TownHallStatsTab(view.stats());
+        this.settings = new TownHallSettingsTab(manager, player, view.colonyId(), view.settings());
     }
 
     /** The open tab's content. */
@@ -69,6 +80,7 @@ public final class TownHallPage extends ColonyPage {
             case INFO -> info;
             case CITIZENS -> citizens;
             case STATS -> stats;
+            case SETTINGS -> settings;
         };
     }
 
@@ -81,14 +93,10 @@ public final class TownHallPage extends ColonyPage {
     public TownHallPage keepTabOf(@Nullable CustomUIPage previous) {
         if (previous instanceof TownHallPage p && p.view.colonyId() == view.colonyId()) {
             tab = p.tab;
+            info.keepIntervalOf(p.info);
+            citizens.keepStateOf(p.citizens);
         }
         return this;
-    }
-
-    /** The Home tab holds {@code #RenameInput}, shown only to whoever may rename. */
-    @Override
-    protected boolean showsInput() {
-        return tab == Tab.ACTIONS && view.canRename();
     }
 
     @Override
@@ -114,12 +122,22 @@ public final class TownHallPage extends ColonyPage {
             ui.set("#Ribbon" + t.slot + ".Visible", open);
             ui.set("#Mark" + t.slot + ".Visible", !open);
             ui.set("#Seal" + t.slot + ".Visible", !open);
-            ui.set("#RibbonText" + t.slot + ".Text", Message.translation(t.key));
+            ui.set("#RibbonText" + t.slot + ".TextSpans", ribbonText(t));
             ui.set("#Seal" + t.slot + ".TooltipText", Message.translation(t.key));
             if (!open) {
                 ColonyPage.bind(events, "#Seal" + t.slot, "tab", i);
             }
         }
+    }
+
+    /** The open tab's ribbon: its name, but the hut's name and level for Home (MC WindowMainPage). */
+    private Message ribbonText(Tab t) {
+        if (t != Tab.ACTIONS) {
+            return Message.translation(t.key);
+        }
+        return Message.join(
+                ColonyPage.buildingName("hycolony:townhall"),
+                Message.raw(" " + view.home().townHallLevel()));
     }
 
     @Override
@@ -131,6 +149,42 @@ public final class TownHallPage extends ColonyPage {
             }
             return;
         }
-        content().handle(act);
+        if (RENAME.equals(act.action())) {
+            openRename(ref, store);
+            return;
+        }
+        switch (content().handle(act)) {
+            case REDRAW -> rebuild();
+            case REFRESH -> {
+                UICommandBuilder ui = new UICommandBuilder();
+                UIEventBuilder events = new UIEventBuilder();
+                content().refresh(ui, events, ROOT);
+                sendUpdate(ui, events, false);
+            }
+            case NONE -> {}
+        }
+    }
+
+    /** {@code key} in the viewer's language; the key itself when the game has no text for it. */
+    private String text(String key) {
+        String text = I18nModule.get().getMessage(playerRef.getLanguage(), key);
+        return text == null ? key : text;
+    }
+
+    /**
+     * Home, Information and Citizens hold a dropdown or the search field: a live refresh would close the open list or
+     * reset what is being typed, so their new content shows at the next redraw (a tab change or an action).
+     */
+    @Override
+    protected boolean showsInput() {
+        return tab != Tab.STATS;
+    }
+
+    /** MC WindowMainPage.renameClicked, for every viewer (the core checks the right on Done); offline: nothing. */
+    private void openRename(Ref<EntityStore> ref, Store<EntityStore> store) {
+        Player p = store.getComponent(ref, Player.getComponentType());
+        if (p != null) {
+            p.getPageManager().openCustomPage(ref, store, new RenameColonyPage(playerRef, view, manager));
+        }
     }
 }
