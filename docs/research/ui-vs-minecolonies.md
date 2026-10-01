@@ -114,6 +114,159 @@ Ce qu'on montre et que MC ne montre pas :
 
 La vue `TownHallView` s'enrichit des ordres (déjà calculés par `WorkOrderViews`), des membres et des effectifs.
 
+### Inventaire complet, 2026-10-01
+
+Inventaire de tout ce que contient la fenêtre de l'hôtel de ville de MC, élément par élément, avant la conception « finir l'hôtel de ville ». Les sources MC sont lues dans la copie locale `sources/` (CLAUDE.md § 6), avec les numéros de ligne de cette copie. Rien n'est conçu ici.
+
+Abréviations :
+
+- `th/` = `sources/minecolonies/src/main/java/com/minecolonies/core/client/gui/townhall/` ;
+- `xml/` = `sources/minecolonies/src/main/resources/assets/minecolonies/gui/townhall/` ;
+- `msg/` = `sources/minecolonies/src/main/java/com/minecolonies/core/network/messages/` ;
+- `mc:` = `sources/minecolonies/src/main/java/com/minecolonies/` ;
+- `tex/` = `sources/minecolonies/src/main/resources/assets/minecolonies/textures/gui/` ;
+- `hc:` = `core/src/main/java/dev/hycolony/core/` ;
+- `pl:` = `plugin/src/main/java/dev/hycolony/plugin/` ;
+- `ui:` = `plugin/src/main/resources/Common/UI/Custom/Pages/HyColony/` (`Mc/` = les textures MC déjà copiées) ;
+- `v:` = `Common/UI/Custom/` de `pre-release-0.7.0-pre.4-Assets.zip` ; `srv:` = `build/vineflower/hytale-server/com/hypixel/hytale/`.
+
+Statuts : **fait** = déjà dans la fenêtre ; **A** = le cœur l'a, seule la fenêtre manque ; **B** = le cœur en a une partie (le manque est dit) ; **C** = il faut un système entier absent (nommé) ; **hors-port** = propre à MC sur Minecraft (Patreon).
+
+**Règle commune des messages MC.** Tout message qui hérite de `AbstractColonyServerMessage` exige `MANAGE_HUTS` sauf s'il redéfinit `permissionNeeded()` (`msg/server/AbstractColonyServerMessage.java:61-63`, contrôle `:122`). Aucun message de l'hôtel de ville ne redéfinit `ownerOnly()` (seule `AbstractColonyServerMessage` contient ce nom). `PermissionsMessage.*` n'hérite pas de cette classe et vérifie lui-même `EDIT_PERMISSIONS`.
+
+#### Cadre commun (`xml/windowtownhall.xml`, `th/AbstractWindowTownHall.java`)
+
+| Élément MC | Ce qu'il fait (source) | HyColony | Statut |
+|---|---|---|---|
+| Livre `townhall_book` | Fond 374 × 243 (`windowtownhall.xml:3`) | `ui:TownHall.ui:51-54` | fait |
+| Sept sceaux de cire + rubans courts | Un bouton par onglet, ouvre la page (`AbstractWindowTownHall.java:36-42`, `windowtownhall.xml:5-11,57-70`) | Quatre onglets (`pl:ui/townhall/TownHallPage.java:26-37`), emplacements tassés (`TownHall.ui:150-154`) | fait pour 4 ; Permissions, Alliances, Réglages manquent |
+| Ruban long de l'onglet ouvert | Bouton désactivé portant le nom de l'onglet (`windowtownhall.xml:13-33`, `AbstractWindowTownHall.java:44-47`) | `TownHall.ui:156-174` | fait |
+| Ruban au survol (`*Ext`, `onHoverId`) | `windowtownhall.xml:35-55,57` | Infobulle à la place (écart déjà noté plus haut) | écart documenté |
+| Libellé du ruban « Actions » | MC y écrit **le nom de la hutte et son niveau** (`th/WindowMainPage.java:93-94`), pas « Actions » | `TownHall.ui:158` écrit « Actions » ; `TownHallView` n'a pas le niveau de l'hôtel de ville (`hc:app/ui/TownHallView.java:7-15`) | B (le niveau existe sur `Building`, pas dans la vue) |
+
+#### Onglet 1 : Actions (`th/WindowMainPage.java`, `xml/layoutactions.xml`)
+
+| Élément MC | Ce qu'il fait (source, message serveur, règle) | Équivalent HyColony | Statut |
+|---|---|---|---|
+| Titre « nom actuel » + nom | `layoutactions.xml:4,6` ; nom posé à l'ouverture (`WindowMainPage.java:371`) | `pl:ui/townhall/TownHallActionsTab.java:32` ; pas d'en-tête (écart noté plus haut) | fait |
+| Crayon `rename` | Ouvre `WindowTownHallNameEntry` (`WindowMainPage.java:97,383-386`) ; voir sous-fenêtre plus bas | Champ en ligne + bouton (`TownHallActionsTab.java:38-49`), `hc:app/action/ColonyAdministration.java:52` (`MANAGE_HUTS`) | fait (forme différente) ; longueur : voir sous-fenêtre |
+| `build` (« Options de construction ») | `mc:core/client/gui/AbstractBuildingMainWindow.java:65-86` : annule l'ordre en cours si le libellé est « annuler », sinon ouvre `WindowBuildBuilding` | `#BuildingButton` ouvre la fenêtre de hutte (`hc:app/view/ColonyWindows.java:86`), qui contient le sous-panneau d'options (`pl:ui/BuildOptionsPanel.java:13`) | A (ouvrir directement les options ; texture `_build` absente) |
+| `map` | Ouvre `WindowColonyMap` (`WindowMainPage.java:99,399-402` ; `mc:core/client/gui/map/WindowColonyMap.java:63`, 754 lignes : `ZoomDragView`, liste des colonies par `ColonyListMessage` `:224`, classement de prestige `:221`) | rien | C : carte de la colonie |
+| `mercenaries` | Ouvre `WindowTownHallMercenary` (`WindowMainPage.java:98,391-394`) ; désactivé 40 min après usage (`:373-377`, `TICKS_FOURTY_MIN` `mc:api/util/constant/Constants.java:34`) | rien | C : mercenaires |
+| `bannerPicker` | Ouvre `WindowBannerPicker` (`WindowMainPage.java:105,238-242`, 573 lignes), qui envoie `ColonyFlagChangeMessage` → `colony.setColonyFlag` (`msg/server/colony/ColonyFlagChangeMessage.java:44-46`, `MANAGE_HUTS`) | rien | C : bannière |
+| `colorPicker` (liste déroulante) | Les couleurs `ChatFormatting.isColor` (`WindowMainPage.java:140`) ; `TeamColonyColorChangeMessage` → `colony.setColonyColor` (`msg/server/colony/TeamColonyColorChangeMessage.java:67-69`, `MANAGE_HUTS`). Sert à la couleur du nom des citoyens (`mc:api/entity/citizen/AbstractEntityCitizen.java:733,746`) et de la bordure (`mc:core/client/render/worldevent/ColonyBorderRenderer.java:155`) | `hc:colony/CitizenNameplates.java` pose le nom, sans couleur | C : couleur d'équipe (rendu coloré d'une plaque de nom Hytale **[in-game]**) |
+| `colonyStylePicker` | Ouvre `WindowSwitchPack` (Structurize), puis `ColonyStructureStyleMessage` → `colony.setStructurePack` (`WindowMainPage.java:102,121-128` ; `msg/server/colony/ColonyStructureStyleMessage.java:39-41`, `MANAGE_HUTS`) | Style par hutte seulement (`hc:app/persistence/BuildingSerializer.java:37`, `hc:app/ColonyFoundation.java:29,97-98`) ; aucun style de colonie | B : manque le style par défaut de la colonie |
+| `patreon` | Lien Patreon (`WindowMainPage.java:100,354-364`), visible si la fonction n'est pas débloquée (`:253-307`) | — | hors-port |
+| `textureStylePicker` + `resettexture` | Texture des citoyens ; `ColonyTextureStyleMessage` → `colony.setTextureStyle` (`WindowMainPage.java:202-208,247-250` ; `msg/server/colony/ColonyTextureStyleMessage.java:39-41`). **Activé seulement pour le propriétaire avec Patreon** (`WindowMainPage.java:260-267`, requête `auth.minecolonies.com` `:312-350`) | rien | C : apparences de citoyens (`docs/research/citizen-portraits.md`), et Patreon hors-port |
+| `nameStylePicker` | Fichier de noms ; `ColonyNameStyleMessage` → `colony.setNameStyle` (`WindowMainPage.java:215-221` ; `msg/server/colony/ColonyNameStyleMessage.java:39-41`). Même verrou Patreon (`:260-267`) | Un seul fichier, `names/default.json` (`hc:citizen/CitizenNames.java:28-31`) | B (plusieurs fichiers de noms manquent) et Patreon hors-port |
+| (HyColony) Requêtes, propriétaire, jour | — | `TownHallActionsTab.java:33-37` | écart documenté plus haut |
+
+#### Onglet 2 : Information (`th/WindowInfoPage.java`, `xml/layoutinfo.xml`)
+
+| Élément MC | Ce qu'il fait | Équivalent HyColony | Statut |
+|---|---|---|---|
+| `intervals` (liste déroulante) | Filtre les événements : hier, semaine, 100 jours, toujours (`th/WindowStatsPage.java:37-45`) ; défaut « toujours » (`WindowInfoPage.java:49,65-93`), filtre `event.getDay() >= jour - intervalle` (`:106-124`). Côté client seulement | `hc:colony/EventLog.java:11` porte un `day` | A |
+| `eventsList` | 100 événements au plus (`mc:api/util/constant/ColonyConstants.java:69`, `mc:core/colony/managers/EventDescriptionManager.java:30`). Ligne : action (cause de mort pour `CitizenDiedEvent`), nom du citoyen ou « hutte niveau », position x y z (`WindowInfoPage.java:126-164`) ; `addfakeplayer` caché (`:162`). Producteurs MC : `CitizenSpawnedEvent` (`mc:core/colony/managers/CitizenManager.java:293,633`), `CitizenBornEvent` (`ReproductionManager.java:216`), `CitizenGrownUpEvent` (`EntityAICitizenChild.java:289`), `CitizenDiedEvent` (`EntityCitizen.java:1624`), construit, amélioré, réparé, déconstruit (`AbstractEntityAIStructureWithWorkOrder.java:403-418`) | `EventLog` (`hc:colony/EventLog.java:8-33`, `MAX_ENTRIES = 100`), persisté (`ColonySerializer.java:73,106`). Producteurs : `colonyCreated` (`hc:app/ColonyFoundation.java:93`), `citizenSpawned` (`hc:citizen/CitizenManager.java:155`), `buildingBuilt/Upgraded/Repaired/Deconstructed` (`hc:construction/workorder/BuildCompletion.java:41`), et trois types absents de MC : `buildingPlaced`, `buildingRemoved` (`hc:app/action/HutActions.java:123,155`), `debrisLost` (`hc:job/work/WorkerStock.java:178`) | B : **pas de position** dans `Entry` ; naissance, passage à l'âge adulte et mort sont C (enfants, mort des citoyens) ; aucune vue n'expose le journal |
+| `workOrderList` + `plus`/`minus`/`delete` | Ordres filtrés par `shouldShowIn` et triés (`WindowInfoPage.java:171-184`) ; flèches masquées aux extrémités (`:265-278`) ; nom du constructeur (`:281-293`) ; `WorkOrderChangeMessage` (`:204,209,235` → `msg/server/colony/WorkOrderChangeMessage.java:81-91`, `MANAGE_HUTS`) | `pl:ui/townhall/WorkOrderListTab.java:33-98`, `hc:app/action/WorkOrderActions.java:117,127` | fait |
+
+#### Onglet 3 : Permissions (`th/WindowPermissionsPage.java`, `xml/layoutpermissions.xml`)
+
+Trois sous-pages dans un `switch` (`layoutpermissions.xml:4`), tournées par `prevPage`/`nextPage` avec le numéro `pageNum` (`:111-113`, gérés par `mc:core/client/gui/AbstractWindowSkeleton.java:81-87`). Sans `EDIT_PERMISSIONS`, les champs et boutons d'ajout sont désactivés, avec une infobulle d'erreur (`WindowPermissionsPage.java:314-339`).
+
+Ce que le cœur a déjà : les 26 `Action` de MC avec les mêmes bits (`hc:colony/permission/Action.java:5-31` = `mc:api/colony/permissions/Action.java:9-43`), les cinq rangs initiaux (`hc:colony/permission/Permissions.java:13,104`), `setRank` (`:176`, refuse OWNER, le propriétaire et un rang inconnu), `ColonyAdministration.setRank` (`hc:app/action/ColonyAdministration.java:24`, `EDIT_PERMISSIONS`), `Rank.add/remove` (`hc:colony/permission/Rank.java:23,27`), `isColonyManager/isHostile` et leurs setters package-private (`:47-59`). Le port `PlayerDirectory` ne sait pas trouver un joueur par son nom ni donner le nom d'un UUID (`hc:kernel/port/PlayerDirectory.java:9-33`).
+
+| Sous-page / élément MC | Ce qu'il fait (message, règle) | Équivalent HyColony | Statut |
+|---|---|---|---|
+| **Joueurs** : `addPlayerName` + `addPlayer` | `PermissionsMessage.AddPlayer` : `EDIT_PERMISSIONS`, ajoute au rang NEUTRAL en cherchant le profil par nom (`msg/PermissionsMessage.java:258-260`, `mc:core/colony/permissions/Permissions.java:804-830`) | `setRank` avec un UUID connu ; pas de recherche par nom | B : port nom → UUID manquant |
+| `addOnlinePlayer` (👥) + `playerPicker` | Liste des joueurs en ligne pas encore membres ; un clic remplit le champ (`WindowPermissionsPage.java:146-194`, `layoutpermissions.xml:10,47-51`) | `PlayerDirectory.onlineIn` (`PlayerDirectory.java:14`) donne des UUID, pas des noms | B : noms des joueurs en ligne |
+| `users` : nom, `rankPicker`, `removePlayer` | Triés par rang (`:285-290`) ; propriétaire : rang en texte, retrait désactivé (`:661-666`) ; les autres : liste déroulante des rangs sauf propriétaire (`:669-685`) → `ChangePlayerRank` : `EDIT_PERMISSIONS` et rang ≠ propriétaire (`msg/PermissionsMessage.java:485-487`) ; `removePlayer` → `RemovePlayer` : hostile + `EDIT_PERMISSIONS`, ou non hostile + `EDIT_PERMISSIONS` + rang gestionnaire, ou soi-même (`:561-568`) | `Permissions.members()` (`:188`) + `setRank` | B : retrait d'un membre manquant ; rang : A |
+| `eventsList` « événements de permission » + `addfakeplayer` | 100 refus au plus, du plus récent au plus ancien (`WindowPermissionsPage.java:422-452`), enregistrés quand MC annule une action (`mc:core/colony/permissions/ColonyPermissionEventHandler.java:159-176`, `mc:core/colony/buildings/workerbuildings/BuildingTownHall.java:110`) ; « ajouter » visible si le joueur est connu → `AddPlayerOrFakePlayer` au rang NEUTRAL, `EDIT_PERMISSIONS` (`msg/PermissionsMessage.java:403-405`) | Les refus existent (`hc:app/ColonyProtection.java:50`, `hc:colony/ColonyRefusal.java:14`) mais rien n'est enregistré | B : journal des refus manquant |
+| **Rangs** : `addRankName` + `buttonAddRank` | Nom non vide et unique, côté client (`WindowPermissionsPage.java:226-262`) → `AddRank` : `EDIT_PERMISSIONS`, premier id libre ≥ HOSTILE (`msg/PermissionsMessage.java:328-330`, `Permissions.java:1054-1068`) | rien | B : rangs personnalisés |
+| `rankButtonList` | Choisit le rang édité, Officier par défaut (`:117,364-420`) | `Permissions.ranks()` (`:184`) | A |
+| `rankTypePicker` (liste déroulante) | Gestionnaire, hostile, aucun (`:113-115,341`) → `EditRankType` : `EDIT_PERMISSIONS` (`msg/PermissionsMessage.java:700-720`) | `Rank.setColonyManager/setHostile` package-private (`Rank.java:55-59`) | B : action manquante |
+| `rankList` : un bouton marche/arrêt par `Action` | Toutes les actions (`:111,603-638`), désactivé si `!canAlterPermission` (`:626-635`) → `PermissionsMessage.Permission` → `alterPermission` (`msg/PermissionsMessage.java:166`) : un rang propriétaire ne change que par le propriétaire ; il faut `EDIT_PERMISSIONS` ; on ne retire pas à son propre rang `EDIT_PERMISSIONS`, `MANAGE_HUTS`, `ACCESS_HUTS` (`mc:core/colony/permissions/Permissions.java:304-323`). Le rang NEUTRAL n'a jamais `EDIT_PERMISSIONS` ni `TELEPORT_TO_COLONY` (`:641`) | `Rank.add/remove` sans ces règles ; `Permissions.hasPermission` n'a pas l'exception NEUTRAL (`hc:colony/permission/Permissions.java:161`) | B : `canAlterPermission`/`alterPermission` |
+| `removeRank` | Actif seulement pour un rang non initial (`:416`) → `RemoveRank` : `EDIT_PERMISSIONS`, ses joueurs passent NEUTRAL (`msg/PermissionsMessage.java:632-634`, `Permissions.java:1078-1090`) | `Rank.isInitial` (`Rank.java:43`) | B |
+| **Blocs libres** : `addBlockName` + `addBlock` | Un id de bloc ou une position « x y z » (`:535-565`) → `ChangeFreeToInteractBlockMessage` (`EDIT_PERMISSIONS`, `msg/server/colony/ChangeFreeToInteractBlockMessage.java:105-145`) | rien | C : blocs et positions libres d'accès |
+| `blocks` + `removeBlock` | Liste blocs puis positions (`:454-530`) | rien | C (même système) |
+| `blockTool` | `GiveToolMessage` donne le sceptre de permission (`:482-485`, `msg/server/colony/building/GiveToolMessage.java:61`) | rien | C : objet sceptre de permission |
+
+#### Onglet 4 : Citoyens (`th/WindowCitizenPage.java`, `xml/layoutcitizens.xml`)
+
+| Élément MC | Ce qu'il fait | Équivalent HyColony | Statut |
+|---|---|---|---|
+| `citizenList` | Boutons au nom, **triés par nom** (`WindowCitizenPage.java:37,106`) ; le premier est choisi à l'ouverture (`:71-74`) ; le choisi est désactivé (`:200-207`) ; infobulle des compétences « nom : niveau » (`:190-199`) | Liste non cliquable, statut à côté (`pl:ui/townhall/TownHallCitizensTab.java:16`) ; `TownHallViews.of` garde l'ordre des id (`hc:citizen/CitizenManager.java:28,45` : `TreeMap`) ; compétences : `CitizenData.skills()` (`hc:citizen/CitizenData.java:73`) | A (tri, sélection, infobulle) |
+| `search` | Filtre sur le nom ou le métier, sans casse (`:81-88,94-107`), 32 caractères (`layoutcitizens.xml:28`) | rien | A |
+| `job` (gras) | `layoutcitizens.xml:12`, `:140` | `CitizenData.job()` (`:182`) | A |
+| `gender` | Sceau homme/femme (`:131-138`) | `CitizenData.gender()` (`:57`) | A (textures absentes) |
+| `health` « pv/max » | `:142` | aucune santé dans le cœur | C : santé |
+| `happinessLevel` « n/10 » | `:143` | `PLACEHOLDER_HAPPINESS = 5.5` (`hc:citizen/CitizenManager.java:25`) | C : bonheur |
+| `saturation` « n/20 » | `:144` (MC affiche /20 alors que `MAX_SATURATION = 60`, `mc:api/colony/ICitizenData.java:30`) | `CitizenData.saturation()` (`:134`), jamais diminuée (seul `JobXp.java:36` la lit) | B : système de nourriture |
+| `entity` (rendu du citoyen) | Montré quand le citoyen dort (`:146-152,282-289`) | rien | C (portraits, `docs/research/citizen-portraits.md`) |
+| `recallone` | `RecallSingleCitizenMessage` : `MANAGE_HUTS` ; dernière position = hôtel de ville, crée le corps s'il manque, téléporte, sinon `WARNING_CITIZEN_RECALL_FAILED` (`:160-167` ; `msg/server/colony/citizen/RecallSingleCitizenMessage.java:66-90`) | `HousingActions.recall` rappelle les résidents d'une hutte (`hc:app/action/HousingActions.java:71`) | B : rappel d'un seul citoyen vers l'hôtel de ville |
+| `happinessTitle` + `happinessList` | Bonheur global arrondi (`:228-232`) ; par modificateur, la moyenne des facteurs, icône selon > 1, = 1, > 0,75, sinon (`:216-274`) | rien | C : bonheur |
+
+#### Onglet 5 : Statistiques (`th/WindowStatsPage.java`, `xml/layoutstats.xml`)
+
+| Élément MC | Ce qu'il fait | Équivalent HyColony | Statut |
+|---|---|---|---|
+| `totalCitizens` coloré + infobulle | `WindowStatsPage.java:84-124` | `hc:app/view/TownHallStats.java:24`, `pl:ui/townhall/TownHallStatsTab.java:18,55` | fait |
+| `citizen-stats` | Métier « n / m » triés, puis enfants, puis sans-emploi (`:126-221`) | `TownHallStats.of` | fait |
+| `intervals` (liste déroulante) | Hier par défaut (`:55`), 4 choix (`:37-45,263-291`) | rien | C : historique des statistiques |
+| `stats` | Une ligne par type de statistique, total ou somme sur l'intervalle (`:227-261`) ; `mc:core/colony/managers/StatisticsManager.java`, 62 constantes dans `mc:api/util/constant/StatisticsConstants.java` | rien (écart déjà noté dans `TownHallStats`) | C : statistiques de production |
+
+#### Onglet 6 : Alliances (`th/WindowAlliancePage.java`, `xml/layoutalliance.xml`)
+
+Tout l'onglet est **C : alliances et diplomatie** (`mc:core/colony/managers/ColonyConnectionManager.java`). Éléments :
+
+- `missingconnections` (texte d'aide) ou `activeconnections` selon qu'il existe des événements ou des colonies connectées (`WindowAlliancePage.java:69-78`) ;
+- `connectioneventlist` : événements reçus, du plus récent ; `acceptally` visible pour une demande d'alliance pas encore acceptée (`:192-226`) ;
+- `directcolonylist` et `indirectcolonylist` : nom, distance en blocs, état ; `requestally` et `startfeud` si neutre, `setneutral` sinon (`:152-187`) ;
+- chaque bouton envoie `TriggerConnectionEventMessage` (`:93-122`), qui exige `MANAGE_HUTS` par défaut **et** le revérifie (`msg/server/colony/TriggerConnectionEventMessage.java:50`) avant `triggerConnectionEvent` sur la colonie cible (`:59`).
+
+#### Onglet 7 : Réglages (`th/WindowSettings.java`, `xml/layoutsettings.xml`)
+
+Cinq `BoolSetting` de la colonie, tous à `true` par défaut (`mc:core/colony/buildings/modules/BuildingModules.java:527-531`, clés `BuildingTownHall.java:64-83`). Chaque bouton marche/arrêt (`builder_button_very_small`) envoie `TriggerSettingMessage` avec la position `ZERO` → `colony.getSettings().updateSetting` (`msg/server/colony/building/TriggerSettingMessage.java:88-93`), sans redéfinir la permission : `MANAGE_HUTS`.
+
+| Réglage MC | Effet MC | HyColony | Statut |
+|---|---|---|---|
+| `movein` (`kidspawn`) | Arrivée des citoyens initiaux, naissances, visiteurs (`CitizenManager.java:233,594`, `ReproductionManager.java:92`, `VisitorManager.java:240`) | Arrivée initiale sans ce test (`hc:citizen/CitizenManager.java:128-143`) | B : réglage absent ; naissances et visiteurs sont C |
+| `job` (`autohiring`) | Embauche automatique en mode DEFAULT (`mc:core/util/BuildingUtils.java:114`, `WorkAtHomeBuildingModule.java:57`) | `ColonySettings.autoHiring` (`hc:colony/ColonySettings.java:5,8-14`), appliqué (`hc:job/HiringMode.java:33`) | B : aucune action pour le basculer |
+| `housing` (`autohousing`) | Logement automatique en DEFAULT (`LivingBuildingModule.java:70`) | `ColonySettings.autoHousing` (`:6,17-23`), appliqué (`hc:citizen/home/LivingModule.java:51-53`) | B : même manque |
+| `entermessages` (`enterleave`) | Messages d'entrée et de sortie pour un non-gestionnaire (`mc:core/colony/Colony.java:1632,1653`) | rien | C : messages d'entrée/sortie |
+| `tape` | Ruban de chantier (`mc:core/entity/ai/workers/util/ConstructionTapeHelper.java:79`) | rien | C : ruban de chantier |
+
+#### Sous-fenêtres
+
+| Fenêtre MC | Contenu et règle | HyColony | Statut |
+|---|---|---|---|
+| `WindowTownHallNameEntry` (`xml/windowtownhallnameentry.xml`) | Fenêtre à voile : champ de 25 caractères (`:6`), Terminé, Annuler, puis rouvre l'hôtel de ville (`th/WindowTownHallNameEntry.java:43-62`). `ColonyView.setName` envoie `TownHallRenameMessage` (`mc:core/colony/ColonyView.java:995-999`) ; le serveur **tronque** à 24 un nom de plus de 25 (`msg/server/colony/TownHallRenameMessage.java:17-18,56-57`) | Champ en ligne ; `ColonyAdministration.rename` **refuse** au-delà de `MAX_NAME_LENGTH = 32` avec un message (`hc:app/action/ColonyAdministration.java:52-77`, `hc:app/ColonyManager.java:31`) ; 32 est la limite de la fondation MC (`xml/windowcolonymanagement.xml:12`) | B : longueur et troncature du renommage diffèrent de MC |
+| `WindowTownHallMercenary` (`xml/windowtownhallmercenary.xml`) | Texte d'histoire, `min(citoyens / 10 + 3, 9)` portraits (`th/WindowTownHallMercenary.java:41-58`), Engager → `HireMercenaryMessage` (`MANAGE_HUTS`) → `EntityMercenary.spawnMercenariesInColony` : 40 min de délai revérifiées, `citoyens / 10 + 3` soldats et un chef (`mc:core/entity/mobs/EntityMercenary.java:485-518`) | rien | C : mercenaires |
+| `WindowColonyMap`, `WindowBannerPicker` | Voir l'onglet Actions | rien | C |
+| `WindowTownHallColonyManage`, `…ColonyReactivate`, `…DeleteAbandonColony`, `…CantCreateColony` | Pas atteintes depuis les onglets : ouvertes par le serveur à la pose de l'hôtel de ville (`msg/client/OpenColonyFoundingCovenantMessage.java:40`, `OpenReactivateColonyMessage.java:40`, `OpenDeleteAbandonColonyMessage.java:54`, `OpenCantFoundColonyWarningMessage.java:50`) | Fondation : `pl:ui/FoundColonyPage.java` | hors du périmètre des onglets |
+
+#### Textures MC par onglet
+
+Déjà copiées dans `ui:Mc/` : `townhall_book`, `bookmark_ribbon_01/02/04/05`, `bookmark_short_ribbon_01/02/04/05`, `red_wax_home/work_orders/citizens/stats`, `builder_button_medium_large`, `builder_button_mini`, `edit`. Toutes celles qui manquent existent dans `tex/` (vérifié, taille d'origine entre parenthèses) :
+
+- **cadre** : `bookmark_short_ribbon_03` (31 × 15), `_06` (31 × 14, partagé par Alliances et Réglages, `windowtownhall.xml:10-11`), `bookmark_ribbon_03`, `_06` (204 × 17), `bookmark_medium_ribbon_01` à `_06` (104 × 14, rubans de survol, inutiles tant que l'écart de l'infobulle reste), `red_wax_permissions`, `red_wax_information` (sceau des **Alliances**, `windowtownhall.xml:67-68`), `red_wax_settings` (17 × 17) ;
+- **Actions** : `builderhut/builder_button_medium_large_build`, `_map`, `_merc`, `_banner` (129 × 17), `builder_button_medium` (86 × 17), `builder_button_medium_disabled` ; `patreonwidget` est hors-port ;
+- **Information**, **Statistiques** : rien de plus (`builder_button_medium_large` pour la liste déroulante, `builder_button_mini` pour les flèches) ;
+- **Permissions** : `builder_button_medium`, `builder_button_very_small` (29 × 16), `turn_page_left`, `turn_page_right` (18 × 10), `button_x` (14 × 15), `scepterpermission` (14 × 15) ;
+- **Citoyens** : `builder_button_medium` (rappel), `builder_button_medium_large_disabled` (citoyen choisi), `citizen/colonist_wax_male_smaller` et `_female_smaller` (30 × 30, `mc:api/util/constant/WindowConstants.java:887,892`), `citizen/icons` (87 × 9, cœur de bonheur), `happy_icon`, `satisfied_icon`, `unsatisfied_icon`, `unhappy_icon` (16 × 16, `WindowConstants.java:599-602`). Les icônes de santé et de faim viennent de `minecraft:textures/gui/icons.png` (`layoutcitizens.xml:19,21`), une texture de Mojang absente de `sources/` : à ne pas copier ;
+- **Alliances** : `builder_button_medium`, `builder_button_medium_small` (71 × 17), `builder_button_small` (64 × 17) ;
+- **Réglages** : `builder_button_very_small` ;
+- **Mercenaires** : `citizen/colonist_paper`, `colonist_text_decor_down`, `colonist_wax_male`, `textures/item/moneygold`, plus `minecraft:textures/item/diamond_sword` (Mojang).
+
+#### Widgets Hytale que ces éléments demandent
+
+Nos `.ui` utilisent aujourd'hui `TextField`, `ItemGrid`, `ItemIcon`, `ProgressBar` et `TopScrolling`, et le plugin lie déjà `ValueChanged` sur un champ de recherche (`pl:ui/ItemPickerPage.java:61`). Aucun n'utilise `DropdownBox` ni `CheckBox`.
+
+- **Liste déroulante** (couleur d'équipe, intervalles, rang de chaque joueur, type de rang, styles) : `$C.@DropdownBox` et `@DefaultDropdownBoxStyle` (`v:Common.ui:494-540`). Le style prend des textures (`DefaultBackground`, `HoveredBackground`, `PressedBackground`, `PanelBackground`), donc celle de MC peut s'y mettre **[in-game]**. Le serveur pose `.Entries` (une liste de `DropdownEntryInfo(LocalizableString label, String value, LocalizableString tooltip)`, `srv:server/core/ui/DropdownEntryInfo.java:8`) et `.Value`, et lit le choix par `ValueChanged` avec `@… = "#X.Value"`. Exemples : une liste par ligne d'une liste, comme le `rankPicker` de MC, dans `srv:builtin/blockspawner/ui/BlockSpawnerSettingsPage.java:177-199` avec `v:Pages/BlockSpawner/BlockSpawnerSpawnerEntryRow.ui:28,66` ; une liste simple dans `srv:builtin/adventure/teleporter/page/TeleporterSettingsPage.java:92-103` (libellé traduit par `LocalizableString.fromMessageId`, `:93`) ; une ligne type dans `v:Pages/Fields/DropdownRow.ui:13`.
+- **Case à cocher** : `$C.@CheckBox` et `@CheckBoxWithLabel` (`v:Common.ui:407-450`), lus par `ValueChanged` sur `#… #CheckBox` (`srv:builtin/buildertools/objimport/ObjImportPage.java:148`, `v:Pages/ObjImportPage.ui:148`, ligne type `v:Pages/Fields/CheckboxRow.ui:13`). MC n'en a pas besoin : ses réglages et ses déclencheurs de rang sont des **boutons texte marche/arrêt** (`xml/layoutsettings.xml:5`, `xml/layoutpermissions.xml:85-87`), qu'un `TextButton` dont on change le texte reproduit.
+- **Pages tournées** (sous-pages Permissions) : aucun widget `switch` n'est connu dans les `.ui` vanilla. Le seul couple précédent/suivant vanilla est dans un HUD (`ActionButton #PreviousPage`, `#NextPage`, `v:Hud/ToolsLegends/ToolsLegendsCommon.ui:112,128`). Le motif déjà employé pour les onglets (des `Group` dont un seul est `Visible`, § 0) suffit à tourner des pages.
+- **Champ de recherche** (Citoyens) : déjà en place, même motif que `srv:builtin/teleport/WarpListPage.java:68`.
+- **Rendu d'un citoyen** (`entityicon`) : pas de widget connu ; voir `docs/research/citizen-portraits.md`.
+
 ---
 
 ## 2. Fenêtre de hutte (constructeur en particulier)
