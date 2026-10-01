@@ -58,7 +58,7 @@ public final class HutRenamePage extends ColonyPage {
         }
     }
 
-    /** Shows the hut again; closes this window when the hut is gone. */
+    /** Shows the hut again; closes this window when the hut is gone or no longer visible to the player. */
     private void back() {
         if (!manager.windows().openBuilding(player, hut)) {
             close();

@@ -799,7 +799,7 @@ Constructeur (`bm:433-438`), dans l'ordre :
 
 | Réglage MC | Texte | HyColony | Statut |
 |---|---|---|---|
-| `mode` (Auto / Manuel) | « Task Assignment Mode: » | `BuilderSettingsTab.java:47-63`, `HutActions.setBuilderMode` (`hc:app/action/HutActions.java:223`) | fait (contenu) |
+| `mode` (Auto / Manuel) | « Task Assignment Mode: » | `SettingsTab.java`, `HutWindowActions.triggerSetting` | fait (contenu) |
 | `recipemode` | « Recipe Mode: » | rien | B : ligne désactivée avec la raison (HyColony n'a pas de recherche, donc toujours inactive) |
 | `buildmode` | « Construction Strategy: » | rien | B : même chose (recherche `buildermodes`) |
 | `useshears` (faux) | « Use Shears: » | rien | écart déjà assumé (pas de cisailles, `ConstructionBuildingTypes.java:33-34`) |

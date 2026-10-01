@@ -21,7 +21,8 @@ import javax.annotation.Nonnull;
 /**
  * A searchable list of items to pick one from (MC WindowSelectRes): the field's seed, the builder hut's fill block.
  * The list is filtered as the player types, by each item's name in the player's language or its id. Picking one and
- * Back both go to the core, which shows the window the list came from again (MC WindowSelectRes cancel).
+ * Back both go to the core, which shows the window the list came from again (MC WindowSelectRes cancel); Back closes
+ * the list when that window cannot show any more.
  */
 public final class ItemPickerPage extends ColonyPage {
     private static final String LIST = "#Items";
@@ -115,7 +116,10 @@ public final class ItemPickerPage extends ColonyPage {
         }
     }
 
-    /** A keystroke redraws the list; a pick or Back goes to the core, which shows the previous window again. */
+    /**
+     * A keystroke redraws the list; a pick or Back goes to the core, which shows the previous window again; Back closes
+     * the list when it cannot.
+     */
     @Override
     public void handleDataEvent(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, @Nonnull Act act) {
         switch (act.action()) {

@@ -75,7 +75,7 @@ class CourierHireTest {
         other.module(CourierAssignmentModule.class).orElseThrow().attach(elsewhere.id());
         CitizenData idle = new CitizenData(3);
         colony.citizens().restore(idle);
-        CitizenData here = courier(4, "Abe", new BlockPos(-20, 64, -20));
+        CitizenData here = courier(4, "Zed", new BlockPos(-20, 64, -20));
         couriers().attach(here.id());
 
         HireView v = view();
@@ -84,11 +84,11 @@ class CourierHireTest {
         assertEquals(Optional.empty(), v.primary());
         List<HireView.Candidate> listed = v.listed(false);
         assertEquals(
-                List.of(4, 1),
+                List.of(1, 4),
                 listed.stream().map(HireView.Candidate::citizenId).toList(),
-                "same priority (MC compares the courier's own hut), then by name");
-        assertEquals(HireView.Button.FIRE, v.button(listed.getFirst(), false), "an attached courier can be detached");
-        assertEquals(HireView.Button.HIRE, v.button(listed.get(1), false));
+                "same priority (MC compares the courier's own hut, not the warehouse), then by name");
+        assertEquals(HireView.Button.HIRE, v.button(listed.getFirst(), false));
+        assertEquals(HireView.Button.FIRE, v.button(listed.get(1), false), "an attached courier can be detached");
     }
 
     @Test

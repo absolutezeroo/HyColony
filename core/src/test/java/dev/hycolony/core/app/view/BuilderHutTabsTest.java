@@ -49,7 +49,7 @@ import org.junit.jupiter.api.Test;
 
 /** The builder hut's Settings and Work orders tabs: MC BuilderSettingsModule and WorkOrderModuleWindow. */
 class BuilderHutTabsTest {
-    /** The builder's mode setting (MC BuilderSettingsModule), which turns AUTO and MANUAL over. */
+    /** The builder's mode setting (MC BuilderSettingsModule), which toggles between AUTO and MANUAL. */
     private static final String MODE = "mode";
 
     private final TestContexts t = new TestContexts();

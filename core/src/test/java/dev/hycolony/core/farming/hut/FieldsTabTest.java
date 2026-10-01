@@ -32,6 +32,8 @@ class FieldsTabTest {
         assertEquals("se", FieldsTab.direction(HUT, new BlockPos(7, 64, 7)));
         assertEquals("w", FieldsTab.direction(HUT, new BlockPos(-100, 64, 41)), "112.3 degrees");
         assertEquals("s", FieldsTab.direction(HUT, new BlockPos(-42, 64, 100)), "157.2 degrees");
+        assertEquals("e", FieldsTab.direction(HUT, new BlockPos(100, 64, 43)), "-113.3 truncates to -113, so 247");
+        assertEquals("ne", FieldsTab.direction(HUT, new BlockPos(100, 64, -42)), "-67.2 truncates to -67, so 293");
         assertEquals("ne", FieldsTab.direction(HUT, new BlockPos(43, 64, -100)), "-23.3 truncates to 337");
         assertEquals("n", FieldsTab.direction(HUT, new BlockPos(42, 64, -100)), "-22.8 truncates to -22, so 338");
     }

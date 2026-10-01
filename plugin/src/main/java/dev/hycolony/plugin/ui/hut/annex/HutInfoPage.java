@@ -75,7 +75,7 @@ public final class HutInfoPage extends ColonyPage {
         switch (act.action()) {
             case "exit" -> {
                 if (!manager.windows().openBuilding(player, hut)) {
-                    close(); // the hut is gone
+                    close(); // the hut is gone or no longer visible to the player
                 }
             }
             case "prev" -> turn(page - 1);
