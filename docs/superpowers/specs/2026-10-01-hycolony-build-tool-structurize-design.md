@@ -48,11 +48,12 @@ Pas d'état persisté nouveau (la session de la baguette vit en mémoire) : pas 
 - **Ouverture** (`ItemBuildTool`, constructeur d'`AbstractBlueprintManipulationWindow`) : la position n'est posée que s'il n'y en a pas (le bloc cliqué, ou 10 blocs devant le joueur pour un clic dans le vide) ; sinon le fantôme reste où il est, jusqu'à Annuler ou une pose. Sans pack choisi, un pack est tiré au hasard (`StructurePacks.ensureSelectedPack`) ; sans aucun pack, la fenêtre des packs s'ouvre (`onOpened`). À la réouverture, les icônes sont actives, et une hutte choisie à plusieurs niveaux montre ses niveaux et le seul bouton retour (`handleBlueprintCategory` avec `onOpen`).
 - **Icône de catégorie** : ouvre ce dossier et se désactive. Un dossier avec des sous-dossiers montre les sous-dossiers et cache les niveaux, sinon il montre les plans.
 - **Sous-dossier** : l'ouvre de même, sans toucher aux icônes. **Retour** : remonte au parent et cache les niveaux ; à la racine, rien en bas sauf les icônes, toutes actives.
-- **Plan** : choisit la hutte au niveau 1 (`setBlueprint(leveled.get(0))`) et réactive les icônes. Une hutte à plusieurs niveaux montre ses niveaux à gauche et remplace la liste par le seul bouton retour, qui ramène à la liste du dossier (`updateFolders(empty, depth)`) ; une hutte à un seul niveau cache les niveaux et garde la liste. Une hutte verrouillée se choisit aussi, mais Valider reste caché.
+- **Plan** : choisit la hutte au niveau 1 (`setBlueprint(leveled.get(0))`) et réactive les icônes. Une hutte à plusieurs niveaux montre ses niveaux à gauche et remplace la liste par le seul bouton retour, qui ramène à la liste du dossier où elle a été cliquée (`updateFolders(empty, currentBlueprintCat)`), même après une réouverture ; une hutte à un seul niveau cache les niveaux et garde la liste. Une hutte verrouillée se choisit aussi, mais Valider reste caché. Les huttes d'un dossier viennent dans l'ordre de leur nom de fichier (`getBlueprints`) ; un dossier qui a à la fois des huttes et des sous-dossiers se propose lui-même comme sous-dossier `dossier/.`, rangé par nom avec les autres (`getCategories`).
+- **Fenêtre des packs, retour** : Annuler et Choisir rouvrent une baguette neuve (`prevWindow.get().open()`) : icônes actives, listes cachées, liste de placement fermée, niveaux et retour seul pour une hutte à plusieurs niveaux.
 - **Niveau** : choisit ce niveau et réactive les icônes. **Croix, Annuler, Valider** : comme aujourd'hui (`WandActions`).
 - **Huttes montrées** : toutes celles du pack qui ont un plan dans le dossier, plus seulement celles que le joueur porte (Structurize liste tout le pack).
 - **Verrou** (`AbstractBlockHut.getRequirements`, sauf en créatif) : une hutte autre que l'hôtel de ville (`BlockHutTownHall`) demande une colonie connue du client (`getClosestColonyView` : celle de la position, sinon la plus proche connue) → « Has to be placed inside a Colony » ; puis son bloc dans l'inventaire → « Requires 1 <hutte> Block in Inventory ». L'infobulle d'un plan est le nom et la description de la hutte (`getDesc`), puis les exigences en rouge.
-- **Valider** (`confirmClicked`) : en survie, place la hutte (un seul gestionnaire) ; en créatif, montre la liste `placement`, qui reste après un collage.
+- **Valider** (`confirmClicked`) : rien sans hutte ; en survie, place la hutte (un seul gestionnaire) et ferme la fenêtre et le fantôme dans tous les cas, refus compris (`handlePlacement` appelle `cancelClicked` dès l'envoi) ; en créatif, montre la liste `placement`, qui reste après un collage.
 
 ## 4. Fenêtre des packs (`windowswitchpack.xml`, 420 × 240 → 840 × 480, assombrie)
 
@@ -83,7 +84,8 @@ Pas d'état persisté nouveau (la session de la baguette vit en mémoire) : pas 
 - Pas de variantes (`alternatives`) : un style HyColony a un seul plan par hutte et par niveau.
 - Pas de raccourcis clavier : Hytale n'envoie pas les touches au serveur.
 - L'astuce reste jusqu'à la première action, où Structurize la cache après 10 s.
-- Exigence de recherche absente (pas de recherche). Les colonies « connues du client » sont celles où le joueur a accès aux huttes (MC envoie aussi la vue d'une colonie aux joueurs proches).
+- Exigence de recherche absente (pas de recherche).
+- Un plan est listé dès que `styles.json` a son entrée (`hasPlan` ne lit pas le prefab) ; un prefab manquant donne un fantôme vide et un refus à la pose, où Structurize ne liste pas un plan illisible.
 - Valider est recalculé à chaque rendu (verrou de la hutte choisie), où Structurize ne le fait qu'au choix du plan.
 - Les huttes d'un addon (id hors `hycolony:`) n'ont pas de description dans l'infobulle.
 - Un seul jeu d'icônes de catégories (celui de 23 packs de MC sur 24), une seule disposition (`layout`) pour tous les packs.

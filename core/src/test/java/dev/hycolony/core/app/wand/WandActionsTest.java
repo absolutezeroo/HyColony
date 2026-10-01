@@ -212,14 +212,24 @@ class WandActionsTest {
         assertFalse(wand.open(alice, Optional.empty()));
     }
 
+    /** ST handlePlacement: cancelClicked right after sending a survival placement, before the server answers. */
     @Test
-    void refusedConfirmKeepsSessionAndPreview() {
+    void refusedConfirmSaysWhyAndClosesLikeStructurize() {
         chooseBuilder();
         t.playerInventory.inventories.clear();
         assertFalse(wand.confirm(alice, "Alice"));
         assertEquals(List.of("hycolony.wand.missingHut"), sentKeys());
-        assertTrue(ghost().isPresent());
-        assertEquals(BUILDER, view().buildingTypeId());
+        assertTrue(ghost().isEmpty());
+        assertFalse(t.ui.shown.containsKey(alice));
+    }
+
+    @Test
+    void confirmBeforeAHutIsChosenDoesNothing() {
+        give(BUILDER_ITEM);
+        wand.open(alice, Optional.of(spot));
+        assertFalse(wand.confirm(alice, "Alice"));
+        assertTrue(sentKeys().isEmpty());
+        assertTrue(t.ui.shown.containsKey(alice));
     }
 
     @Test

@@ -49,7 +49,7 @@ public final class WandPage extends ColonyPage {
     /** The move buttons and their direction; the event index is the direction's ordinal. */
     private static final List<Move> MOVES = List.of(
             new Move("#Forward", WandActions.Dir.FORWARD),
-            new Move("#Back", WandActions.Dir.BACK),
+            new Move("#Backward", WandActions.Dir.BACK),
             new Move("#Left", WandActions.Dir.LEFT),
             new Move("#Right", WandActions.Dir.RIGHT),
             new Move("#Up", WandActions.Dir.UP),

@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.app.ui.WandView;
 import dev.hycolony.core.building.BuildingTypes;
+import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.BlockKey;
@@ -45,6 +46,7 @@ class WandNavigationTest {
             new WandActions(manager, previews, k -> new ItemKey("item:" + k), k -> new BlockKey("block:" + k));
     private final UUID alice = UUID.randomUUID();
     private final BlockPos spot = new BlockPos(10, 64, 10);
+    private final int colonyId;
 
     private TestContexts contexts() {
         TestContexts c = new TestContexts();
@@ -55,7 +57,8 @@ class WandNavigationTest {
 
     WandNavigationTest() {
         manager.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
-        manager.foundation().confirm(alice, "Rivendell").orElseThrow();
+        colonyId =
+                manager.foundation().confirm(alice, "Rivendell").orElseThrow().id();
     }
 
     private WandView view() {
@@ -156,6 +159,83 @@ class WandNavigationTest {
         assertFalse(hutsById().get(BUILDER).selected());
     }
 
+    /** ST onButtonClicked: a final folder keeps the levels (996-1016), one with subfolders hides them (969-976). */
+    @Test
+    void aFinalFolderKeepsTheLevelsAndAFolderWithSubfoldersHidesThem() {
+        openAt(spot);
+        wand.openCategory(alice, "fundamentals");
+        wand.selectBuilding(alice, BUILDER);
+        wand.openCategory(alice, "fundamentals");
+        assertTrue(view().panel().levels());
+        wand.openCategory(alice, "craftsmanship");
+        assertFalse(view().panel().levels());
+    }
+
+    @Test
+    void goingBackToTheRootEnablesEveryIcon() {
+        openAt(spot);
+        wand.openCategory(alice, "craftsmanship");
+        wand.openCategory(alice, STORAGE);
+        wand.back(alice);
+        assertEquals("craftsmanship", view().panel().disabledCategory());
+        wand.back(alice);
+        assertEquals("", view().panel().disabledCategory());
+    }
+
+    @Test
+    void aLevelClickEnablesTheIcons() {
+        openAt(spot);
+        wand.openCategory(alice, "fundamentals");
+        wand.selectBuilding(alice, BUILDER);
+        wand.openCategory(alice, "fundamentals");
+        assertEquals("fundamentals", view().panel().disabledCategory());
+        wand.selectLevel(alice, 2);
+        assertEquals("", view().panel().disabledCategory());
+    }
+
+    @Test
+    void aReopenedWindowWithAFolderButNoHutShowsNoList() {
+        openAt(spot);
+        wand.openCategory(alice, "fundamentals");
+        t.ui.close(alice);
+        wand.open(alice, Optional.empty());
+        assertFalse(view().panel().back());
+        assertTrue(view().huts().isEmpty());
+        assertEquals("", view().panel().disabledCategory());
+        assertEquals("/fundamentals", view().panel().treePath());
+    }
+
+    /** ST updateFolders(empty, currentBlueprintCat): the lone back button leads to the hut's folder. */
+    @Test
+    void theLoneBackButtonLeadsToTheFolderTheHutWasChosenIn() {
+        openAt(spot);
+        wand.openCategory(alice, "fundamentals");
+        wand.selectBuilding(alice, BUILDER);
+        wand.back(alice);
+        wand.back(alice);
+        assertEquals("", view().depth());
+        t.ui.close(alice);
+        wand.open(alice, Optional.empty());
+        assertTrue(view().panel().back());
+        assertTrue(wand.back(alice));
+        assertEquals("fundamentals", view().depth());
+        assertTrue(view().hutIds().contains(BUILDER));
+    }
+
+    /** ST StructurePacks.getBlueprints sorts by file name: builder before townhall. */
+    @Test
+    void aFoldersHutsComeInFileNameOrder() {
+        openAt(spot);
+        wand.openCategory(alice, "fundamentals");
+        assertEquals(List.of(BUILDER, TOWN_HALL), view().hutIds());
+    }
+
+    @Test
+    void anAddonHutIsNamedByItsIdInTheRequirement() {
+        assertEquals("%hycolony.ui.building.type.builder", WandViews.nameParam(BUILDER));
+        assertEquals("addon:forge", WandViews.nameParam("addon:forge"));
+    }
+
     @Test
     void choosingAHutAgainStartsAtLevelOne() {
         openAt(spot);
@@ -239,6 +319,52 @@ class WandNavigationTest {
         carry(alice, BUILDER);
         wand.open(alice, Optional.of(spot));
         assertTrue(view().canConfirm());
+    }
+
+    @Test
+    void aStrangerAimingInsideAColonyIsNotAskedForOne() {
+        UUID bob = UUID.randomUUID();
+        carry(bob, BUILDER);
+        wand.open(bob, Optional.of(spot));
+        wand.openCategory(bob, "fundamentals");
+        assertEquals(List.of(), builderRequirements(bob));
+    }
+
+    /** MC EventHandler (l.388-395): a client entering a colony's claim subscribes to it, wherever it aims. */
+    @Test
+    void aStrangerStandingInAColonyIsNotAskedForOneWhereverHeAims() {
+        UUID bob = UUID.randomUUID();
+        carry(bob, BUILDER);
+        t.players.online.put(bob, spot);
+        wand.open(bob, Optional.of(FAR));
+        wand.openCategory(bob, "fundamentals");
+        assertEquals(List.of(), builderRequirements(bob));
+    }
+
+    private List<Msg> builderRequirements(UUID player) {
+        return assertInstanceOf(WandView.class, t.ui.shown.get(player)).huts().stream()
+                .filter(h -> h.buildingTypeId().equals(BUILDER))
+                .findFirst()
+                .orElseThrow()
+                .requirements();
+    }
+
+    /** MC EventHandler: a client knows the colonies it manages; a friend's is not sent. */
+    @Test
+    void aFriendFarFromTheColonyIsAskedForOne() {
+        UUID carol = UUID.randomUUID();
+        assertTrue(manager.administration().setRank(alice, colonyId, carol, "Carol", Permissions.FRIEND));
+        carry(carol, BUILDER);
+        wand.open(carol, Optional.of(FAR));
+        wand.openCategory(carol, "fundamentals");
+        WandView carols = assertInstanceOf(WandView.class, t.ui.shown.get(carol));
+        assertEquals(
+                List.of(Msg.of("hycolony.wand.requirement.inColony")),
+                carols.huts().stream()
+                        .filter(h -> h.buildingTypeId().equals(BUILDER))
+                        .findFirst()
+                        .orElseThrow()
+                        .requirements());
     }
 
     /** MC getClosestColonyView: the colony at the position, else the nearest colony the client knows. */

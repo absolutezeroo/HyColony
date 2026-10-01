@@ -152,7 +152,7 @@ Le fantôme passe par le `PreviewPort` des lunettes. Côté plugin : l'objet, av
   - `manipulationHiddenUntilAHutIsChosen` ;
   - `cancelHidesThePreviewAndForgetsTheSession` ;
   - `disconnectForgetsEverything` ;
-  - `refusedConfirmKeepsSessionAndPreview` ;
+  - `refusedConfirmKeepsSessionAndPreview` (renommé `refusedConfirmSaysWhyAndClosesLikeStructurize` le 2026-10-01 : un refus ferme la fenêtre, comme Structurize) ;
   - `successfulConfirmClosesTheWindowAndHidesThePreview`.
 - [ ] Les voir échouer, puis écrire le code. `WandActions` doit rester sous 300 lignes : l'aperçu peut sortir dans un `WandPreview` package-private.
 - [ ] `./gradlew build`, puis commit `feat(core): build tool actions, view and preview`.

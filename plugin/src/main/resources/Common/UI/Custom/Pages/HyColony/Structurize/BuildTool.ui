@@ -5,8 +5,8 @@ $S = "St.ui";
 // 420 x 240 window doubled and centred, with no background nor darkening (lightbox="false"): the world and the ghost
 // stay visible. Switch Pack and the tree at the top; the levels on the left; the subfolders or blueprints, three per
 // row, above the pack's category icons; the manipulator on the right; cancel and confirm at the bottom. WandPage
-// appends GridRow.ui, LevelRow.ui (levels and placement options) and CategoryIcon.ui. Structurize's settings button is left out
-// (client renderer settings) and its mirror button stays disabled (no mirrored huts).
+// appends GridRow.ui, LevelRow.ui (levels and placement options) and CategoryIcon.ui. Structurize's settings button
+// is left out (client renderer settings) and its mirror button stays disabled (no mirrored huts).
 
 Group {
   LayoutMode: Middle;
@@ -106,7 +106,7 @@ Group {
         Anchor: (Left: 0, Top: 64, Width: 32, Height: 32);
       }
 
-      $S.@Square #Back {
+      $S.@Square #Backward {
         @Normal = "down.png";
         @Hover = "down_hover.png";
         @Off = "down_dim.png";
