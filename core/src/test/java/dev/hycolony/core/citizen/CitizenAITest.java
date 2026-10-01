@@ -36,7 +36,7 @@ class CitizenAITest {
 
         long gap = second - first;
         assertTrue(
-                gap >= CitizenAI.WANDER_TIMEOUT_TICKS && gap <= CitizenAI.WANDER_TIMEOUT_TICKS + 100 + 1,
+                gap >= CitizenWander.WANDER_TIMEOUT_TICKS && gap <= CitizenWander.WANDER_TIMEOUT_TICKS + 100 + 1,
                 "the second wander, once the first walk had run its time: " + gap);
     }
 
@@ -58,7 +58,7 @@ class CitizenAITest {
         long wandered = tickUntilMoves(ai, 1);
 
         assertTrue(
-                wandered - idle >= CitizenAI.WANDER_TIMEOUT_TICKS,
+                wandered - idle >= CitizenWander.WANDER_TIMEOUT_TICKS,
                 "MC waits for the nav to be done: " + (wandered - idle));
     }
 
@@ -75,7 +75,7 @@ class CitizenAITest {
             ai.tick();
         }
         d.setJob(TestJobs.TYPE.factory().apply(d));
-        for (int i = 0; i < CitizenAI.WANDER_TIMEOUT_TICKS + 100; i++) {
+        for (int i = 0; i < CitizenWander.WANDER_TIMEOUT_TICKS + 100; i++) {
             t.clock.tick++;
             ai.tick();
         }
@@ -86,7 +86,7 @@ class CitizenAITest {
         long wandered = tickUntilMoves(ai, 2);
 
         assertTrue(
-                wandered - idle >= CitizenAI.WANDER_TIMEOUT_TICKS,
+                wandered - idle >= CitizenWander.WANDER_TIMEOUT_TICKS,
                 "the walk is waited for afresh: " + (wandered - idle));
     }
 

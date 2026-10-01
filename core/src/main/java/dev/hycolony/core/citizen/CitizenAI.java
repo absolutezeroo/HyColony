@@ -13,14 +13,11 @@ import dev.hycolony.core.kernel.ai.AITarget;
 import dev.hycolony.core.kernel.ai.IStateSupplier;
 import dev.hycolony.core.kernel.ai.TickRateStateMachine;
 import dev.hycolony.core.kernel.nav.BodyWalker;
-import dev.hycolony.core.kernel.nav.DangerousCells;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.CitizenBodies;
 import dev.hycolony.core.kernel.port.Msg;
-import dev.hycolony.core.kernel.port.NavStatus;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.random.RandomGenerator;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -30,48 +27,20 @@ import org.jspecify.annotations.Nullable;
  */
 public final class CitizenAI {
     private static final System.Logger LOG = System.getLogger(CitizenAI.class.getName());
-    /**
-     * MC EntityAICitizenWander.decide: walkToRandomPos(citizen, 10, speed), whose PathJobRandomPos only ends more
-     * than 10 blocks from the citizen's own position.
-     */
-    private static final int WANDER_RADIUS = 10;
     /** MC EntityAICitizenWander: its IDLE transition runs every 100 ticks. */
     private static final int WANDER_RATE_TICKS = 100;
-    /**
-     * Random wander spots tried before waiting for the next wander decision. Deviation from MC:
-     * EntityAICitizenWander's walkToRandomPos runs a path search (PathJobRandomPos) that never ends on a dangerous
-     * block; without one, a few spots are drawn.
-     */
-    private static final int WANDER_TRIES = 10;
-    /**
-     * Blocks above and below the body's height checked for danger in a wander column: the floor, feet and head, plus
-     * the slope the nav may climb or drop on the way to the column's ground.
-     */
-    private static final int WANDER_DANGER_HALF_HEIGHT = 3;
-    /**
-     * The ticks the wander waits for a walk under way. Deviation from MC: EntityAICitizenWander waits for the nav to
-     * be done, which MC's stuck handler ensures on every path (PathingStuckHandler MIN_TP_DELAY, 120 * 20, then
-     * completeStuckAction stops the nav); ours watches only walkers' walks, so a nav left running (a stuck wander, a
-     * job or commanded walk cut short) is waited for as long, then left.
-     */
-    static final int WANDER_TIMEOUT_TICKS = 120 * 20;
     /** MC CitizenAI: decideAiTask runs as an EVENT target every 10 ticks. */
     private static final int DECIDE_INTERVAL_TICKS = 10;
-
-    private static final long NOT_WAITING = -1;
 
     private final Colony colony;
     private final CitizenData data;
     private final BodyId body;
     private final CitizenBodies bodies;
-    private final RandomGenerator random;
-    private final DangerousCells danger;
+    private final CitizenWander wander;
     private final TickRateStateMachine<CitizenState> machine;
     private final AiWatch watch;
     private final CommandedWalk commanded;
     private int workTicks;
-    /** The tick the wander first saw the walk under way, {@link #NOT_WAITING} while it saw none. */
-    private long waitingSince = NOT_WAITING;
 
     private boolean failed;
     private @Nullable JobAI jobAI;
@@ -86,9 +55,7 @@ public final class CitizenAI {
         this.data = data;
         this.body = body;
         this.bodies = colony.context().bodies();
-        this.random = colony.context().random();
-        this.danger = new DangerousCells(
-                colony.context().ports().blocks(), colony.context().ports().catalog());
+        this.wander = new CitizenWander(colony, body);
         this.watch = new AiWatch(colony, data);
         this.commanded = new CommandedWalk(
                 () -> new BlockApproach(
@@ -104,7 +71,7 @@ public final class CitizenAI {
         machine.addTransition(
                 new AITarget<>(CitizenState.IDLE, (IStateSupplier<CitizenState>) this::idle, DECIDE_INTERVAL_TICKS));
         machine.addTransition(
-                new AITarget<>(CitizenState.IDLE, (IStateSupplier<CitizenState>) this::wander, WANDER_RATE_TICKS));
+                new AITarget<>(CitizenState.IDLE, (IStateSupplier<CitizenState>) wander::wander, WANDER_RATE_TICKS));
         machine.addTransition(new AITarget<>(CitizenState.WORKING, (IStateSupplier<CitizenState>) this::work, 1));
         // A body can keep a job's speed across a crash (the Hytale effect is saved with the NPC); a job AI sets its
         // own.
@@ -182,53 +149,6 @@ public final class CitizenAI {
         return shouldWork() ? CitizenState.WORKING : null;
     }
 
-    /**
-     * MC EntityAICitizenWander.decide: once the last walk is over (canUse: navigation done), or under way for
-     * {@link #WANDER_TIMEOUT_TICKS}, a walk to a random spot
-     * around the citizen's own position; the citizen stays IDLE. Deviation from MC: no leisure branch yet (MC
-     * LEISURE_CHANCE, 5 %: a leisure site, else its home or the colony's centre, where it wanders, sits or reads).
-     */
-    private @Nullable CitizenState wander() {
-        long now = colony.context().clock().currentTick();
-        if (bodies.navStatus(body) == NavStatus.MOVING) {
-            if (waitingSince == NOT_WAITING) {
-                waitingSince = now;
-            }
-            if (now - waitingSince < WANDER_TIMEOUT_TICKS) {
-                return null;
-            }
-        }
-        waitingSince = NOT_WAITING;
-        bodies.position(body)
-                .flatMap(here -> wanderTarget(here.toBlockPos(), here.y()))
-                .ifPresent(target -> bodies.moveTo(body, target));
-        return null;
-    }
-
-    /**
-     * A random spot just past {@link #WANDER_RADIUS} of {@code anchor} (horizontally), at height {@code y}, with no
-     * dangerous block within 1 block ({@link DangerousCells#near}); else the first pick whose own column holds none (MC
-     * PathJobRandomPos never ends on one, PathfindingUtils.isDangerous); empty after {@link #WANDER_TRIES} dangerous
-     * picks. Deviation from MC: without a path search, the spot is the cell 11 blocks away in a random direction.
-     */
-    private Optional<Vec3> wanderTarget(BlockPos anchor, double y) {
-        Vec3 columnSafe = null;
-        for (int i = 0; i < WANDER_TRIES; i++) {
-            double angle = random.nextDouble(2 * Math.PI);
-            int dx = (int) Math.round(Math.cos(angle) * (WANDER_RADIUS + 1));
-            int dz = (int) Math.round(Math.sin(angle) * (WANDER_RADIUS + 1));
-            Vec3 target = new Vec3(anchor.x() + dx + 0.5, y, anchor.z() + dz + 0.5);
-            BlockPos cell = target.toBlockPos();
-            if (!danger.near(cell, WANDER_DANGER_HALF_HEIGHT)) {
-                return Optional.of(target);
-            }
-            if (columnSafe == null && !danger.inColumn(cell, WANDER_DANGER_HALF_HEIGHT)) {
-                columnSafe = target;
-            }
-        }
-        return Optional.ofNullable(columnSafe);
-    }
-
     private @Nullable CitizenState work() {
         Job job = data.job().orElse(null);
         if (job == null) {
@@ -299,7 +219,7 @@ public final class CitizenAI {
      * the wander's wait for a walk under way.
      */
     private void dropJobAI() {
-        waitingSince = NOT_WAITING; // back to IDLE: the walk under way is waited for from now
+        wander.restartWait(); // back to IDLE: the walk under way is waited for from now
         jobAI = null;
         aiJob = null;
         bodies.setHeldItem(body, Optional.empty());
@@ -312,7 +232,7 @@ public final class CitizenAI {
      * walk under way.
      */
     private void forgetJobAI() {
-        waitingSince = NOT_WAITING;
+        wander.restartWait();
         jobAI = null;
         aiJob = null;
     }
