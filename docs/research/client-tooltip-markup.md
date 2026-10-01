@@ -98,6 +98,16 @@ Voies possibles, de la plus simple à la moins recommandable :
    - `ItemQuality.itemTooltipTexture` / `itemTooltipArrowTexture` (`protocol/ItemQuality.java:21-23`) change le **fond** étiré (9-slice, `Border: 24`) de l'infobulle pour toute une qualité. Ce n'est pas une icône en ligne, cela change aussi la qualité affichée, et il faudrait une qualité par valeur ;
    - les lignes `#StatHealth`, `#StatDefense`, `#StatMana`, `#StatStamina` et `#StatAttack` de l'infobulle ont des icônes fixes, remplies par le client depuis les données de l'objet. Leur source n'est pas étudiée ici, et les détourner changerait le jeu.
 
+## 7. Séparateur : un trait de caractères
+
+Ajouté le 2026-10-01 pour les infobulles des aliments (`tools/food/generate.py`). Le balisage n'a pas de balise de séparateur (§ 1).
+
+- **Le trait du jeu** est `@Separator` de `Client/Data/Game/Interface/InGame/Tooltips/ItemTooltip.ui` : un `Group` de 1 px de haut, `Background: (Color: #25262c)`, placé au-dessus de la description (`Group #Description`).
+- **La largeur du contenu** : `@MinWidth = 320`, `Padding: (Full: 24, Top: 21)`, donc au moins 320 − 2 × 24 = 272 px ; l'infobulle s'élargit jusqu'à `@MaxWidth = 480` selon son texte.
+- **La police de la description** : `Label #Label`, `FontSize: 14`, sans `FontName`, donc la police par défaut, Nunito Sans. Le client dessine depuis l'atlas MSDF `Client/Data/Shared/UI/Fonts/NunitoSans-Medium.json` / `.png`, pas depuis le TTF.
+- **U+2015** (barre horizontale) est dans cet atlas, avec `advance: 1` em et une encre de 0 à 1 em une fois retirée la marge du champ de distance : les barres se touchent bord à bord, et chacune fait 14 px à la taille 14. Leur épaisseur est d'environ 0,054 em, soit à peu près 1 px. L'atlas n'a pas de crénage (`kerning` vide). U+2015 est aussi dans les atlas des autres polices de l'interface.
+- **Choix** : 18 barres (252 px) dans la couleur `#25262C`. 19 (266 px) tiendraient aussi à l'échelle 1, mais si le client arrondit l'avance de chaque glyphe au pixel à une échelle d'interface non entière, 19 barres dépasseraient (à ×1,25 : 19 × 18 = 342 px pour 340 px de contenu). Rendu et arrondi : **[in-game]**.
+
 ## Adresses (pour refaire l'analyse sur une autre version)
 
 | Rôle | RVA |
