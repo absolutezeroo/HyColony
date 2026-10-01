@@ -1,7 +1,8 @@
 $C = "../../Common.ui";
 
 // MC gui/windowhutnameentry.xml: a lightbox window with a title, a field of 25 characters, Done and Cancel; MC
-// positions and sizes doubled. MC draws the game's default buttons here, so Hytale's own stand in.
+// positions and sizes doubled. Deviation from MC: MC draws Minecraft's default buttons, whose texture is Mojang's and
+// not in sources/, so Hytale's own stand in.
 
 $C.@PageOverlay {
   LayoutMode: Middle;

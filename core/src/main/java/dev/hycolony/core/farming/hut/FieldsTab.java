@@ -2,14 +2,11 @@ package dev.hycolony.core.farming.hut;
 
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.colony.Colony;
-import dev.hycolony.core.colony.ColonyAccess;
-import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.farming.field.FarmField;
 import dev.hycolony.core.kernel.BlockPos;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 /**
  * The Fields tab of a farmer hut as a viewer sees it (MC FarmerFieldsModuleView and FarmFieldsModuleWindow): the
@@ -21,7 +18,7 @@ final class FieldsTab {
 
     private FieldsTab() {}
 
-    static FieldsView of(Colony c, Building hut, FarmerFieldsModule module, boolean fertilize, UUID viewer) {
+    static FieldsView of(Colony c, Building hut, FarmerFieldsModule module) {
         int owned = c.registries().fields().ownedBy(hut.position()).size();
         List<FieldsView.Row> rows = c.registries().fields().all().stream()
                 .filter(f -> f.owner().isEmpty() || f.owner().get().equals(hut.position()))
@@ -29,13 +26,7 @@ final class FieldsTab {
                         .thenComparingInt(f -> distance(hut.position(), f.pos())))
                 .map(f -> row(c, hut, module, f))
                 .toList();
-        return new FieldsView(
-                module.assignManually(),
-                owned,
-                module.maxFields(hut),
-                fertilize,
-                rows,
-                ColonyAccess.allows(c, viewer, Action.MANAGE_HUTS));
+        return new FieldsView(module.assignManually(), owned, module.maxFields(hut), rows);
     }
 
     private static FieldsView.Row row(Colony c, Building hut, FarmerFieldsModule module, FarmField f) {

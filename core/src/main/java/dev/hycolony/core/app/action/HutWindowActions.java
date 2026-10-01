@@ -7,13 +7,16 @@ import dev.hycolony.core.building.module.HutSettings;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.port.Msg;
+import dev.hycolony.core.logistics.warehouse.CourierAssignmentModule;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
- * A hut window's frame and main page buttons (MC AbstractBuildingMainWindow, AbstractWindowWorkerModuleBuilding):
- * recall the workers, rename the hut, open its inventory. Each needs MANAGE_HUTS, as MC's building messages; a refusal
- * is told, a missing hut is a silent false.
+ * A hut window's buttons (MC AbstractBuildingMainWindow, AbstractWindowWorkerModuleBuilding, WindowHireWorker,
+ * SettingsModuleWindow): recall, rename, the hiring mode, the settings, the inventory, the pickup buttons
+ * ({@link #pickup}). Each needs MANAGE_HUTS, as MC's building messages, a refusal told; {@link #mayAssign} needs none,
+ * as MC checks it in the client. A missing hut is a silent false.
  */
 public final class HutWindowActions {
     /** MC WindowHutNameEntry.MAX_NAME_LENGTH: a longer name is cut to this many characters. */
@@ -35,24 +38,24 @@ public final class HutWindowActions {
     }
 
     /**
-     * MC RecallCitizenMessage: every worker of the hut is teleported to it, a worker without a body gets one there; if
-     * one could not appear, MC's {@code workerhuts.recallfail}. The hut shows again.
+     * MC RecallCitizenMessage: every citizen the hut holds (its workers, or a warehouse's couriers, MC
+     * getAllAssignedCitizen) is teleported to it, one without a body gets one there; MC's {@code workerhuts.recallfail}
+     * for each one who could not appear. The hut shows again.
      */
     public boolean recallWorkers(UUID player, BlockPos hutPos) {
         ManagedHut h = ManagedHut.find(manager, player, hutPos).orElse(null);
         if (h == null) {
             return false;
         }
-        List<Integer> workers = h.building()
+        List<Integer> assigned = h.building()
                 .module(WorkerModule.class)
                 .map(WorkerModule::workers)
+                .or(() -> h.building().module(CourierAssignmentModule.class).map(CourierAssignmentModule::couriers))
                 .orElse(List.of());
-        boolean failed = false;
-        for (int id : workers) {
-            failed |= !CitizenRecall.bring(manager, h.colony(), id, hutPos);
-        }
-        if (failed) {
-            manager.context().notifier().send(player, Msg.of("hycolony.hut.recallFail"));
+        for (int id : assigned) {
+            if (!CitizenRecall.bring(manager, h.colony(), id, hutPos)) {
+                manager.context().notifier().send(player, Msg.of("hycolony.hut.recallFail"));
+            }
         }
         windows.showBuilding(h.colony(), h.building(), player);
         return true;
@@ -98,17 +101,24 @@ public final class HutWindowActions {
     }
 
     /**
-     * MC WindowHireWorker's mode button then BuildingHiringModeMessage: the hut's next hiring mode, LOCKED skipped (a
-     * workplace cannot be locked); the hut shows again. False without the right or a worker module.
+     * MC WindowHireWorker's mode button then BuildingHiringModeMessage (or CourierHiringModeMessage for a warehouse):
+     * the hut's next hiring mode, LOCKED skipped (only homes lock); the hut shows again. False without the right or
+     * an assignment module.
      */
     public boolean cycleHiring(UUID player, BlockPos hutPos) {
         ManagedHut h = ManagedHut.find(manager, player, hutPos).orElse(null);
-        WorkerModule w =
-                h == null ? null : h.building().module(WorkerModule.class).orElse(null);
-        if (h == null || w == null) {
+        if (h == null) {
             return false;
         }
-        w.setHiringMode(w.hiringMode().nextForWorkplace());
+        Optional<WorkerModule> w = h.building().module(WorkerModule.class);
+        Optional<CourierAssignmentModule> couriers = h.building().module(CourierAssignmentModule.class);
+        if (w.isPresent()) {
+            w.get().setHiringMode(w.get().hiringMode().nextForWorkplace());
+        } else if (couriers.isPresent()) {
+            couriers.get().setHiringMode(couriers.get().hiringMode().nextForWorkplace());
+        } else {
+            return false;
+        }
         h.colony().markDirty();
         windows.showBuilding(h.colony(), h.building(), player);
         return true;

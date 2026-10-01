@@ -1,0 +1,32 @@
+$P = "Parts.ui";
+$B = "../Mc/Book.ui";
+$C = "../../../Common.ui";
+
+// A hut's Tasks page (MC gui/layouthuts/layouttasklist.xml, WindowHutRequestTaskModule), MC positions and sizes
+// doubled: the header and the tasks (Mc/TaskLine.ui), "No tasks remaining" when there are none. Deviation from MC:
+// the courier hut adds, under the list, the warehouse its courier serves.
+
+Group {
+  Anchor: (Left: 0, Top: 0, Width: 380, Height: 488);
+
+  $P.@Desc #Desc {}
+
+  Label #Empty {
+    Anchor: (Left: 26, Top: 58, Width: 328, Height: 22);
+    Style: $B.@InkCentered;
+    Text: %hycolony.ui.tasks.empty;
+    Visible: false;
+  }
+
+  Group #Tasks {
+    Anchor: (Left: 26, Top: 58, Width: 328, Height: 370);
+    LayoutMode: TopScrolling;
+    ScrollbarStyle: $C.@DefaultScrollbarStyle;
+  }
+
+  Label #Extra {
+    Anchor: (Left: 26, Top: 436, Width: 328, Height: 22);
+    Style: (...$B.@InkCentered, FontSize: 13);
+    Visible: false;
+  }
+}

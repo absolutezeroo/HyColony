@@ -1,10 +1,12 @@
 package dev.hycolony.plugin.ui.hut;
 
+import com.hypixel.hytale.server.core.entity.entities.player.pages.CustomUIPage;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
 import dev.hycolony.plugin.ui.ColonyPage;
-import dev.hycolony.plugin.ui.ItemPickerPage;
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * One module tab of a hut window (MC module window): its own {@code .ui}, appended into the window's {@code #Page}
@@ -34,8 +36,11 @@ public interface HutTab {
         return false;
     }
 
-    /** The item list {@code act} opens in place of the window (MC WindowSelectRes); empty for other buttons. */
-    default Optional<ItemPickerPage.Picker> picker(ColonyPage.Act act) {
+    /**
+     * The window {@code act} opens in place of the hut's (MC WindowSelectRes, the crafting grid...), made for the
+     * player; empty for other buttons.
+     */
+    default Optional<Function<PlayerRef, CustomUIPage>> opens(ColonyPage.Act act) {
         return Optional.empty();
     }
 }

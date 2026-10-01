@@ -49,6 +49,17 @@ class HutStockOrderTest {
     }
 
     @Test
+    void tiesOfTheChosenSortKeepTheClosestNameFirstAsMc() {
+        HutStock oak = stock("hytale:oak_log", 7);
+        HutStock sand = stock("hytale:sand", 7);
+        Map<HutStock, String> names = Map.of(oak, "Oak Log", sand, "Sand");
+        assertEquals(
+                List.of(sand, oak),
+                HutStockOrder.sorted(List.of(oak, sand), names::get, "", HutStockOrder.Sort.COUNT_ASC),
+                "same count: MC's first, stable sort by distance decides");
+    }
+
+    @Test
     void theSortButtonCyclesThroughMcsLabels() {
         HutStockOrder.Sort s = HutStockOrder.Sort.NONE;
         StringBuilder labels = new StringBuilder();

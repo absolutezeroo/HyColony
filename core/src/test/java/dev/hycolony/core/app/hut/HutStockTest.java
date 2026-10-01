@@ -31,7 +31,7 @@ class HutStockTest {
         manager.huts().place(c, ConstructionBuildingTypes.BUILDER.id(), HUT, 0, alice);
         BlockPos rack = new BlockPos(31, 64, 0);
         c.buildings().at(HUT).orElseThrow().registeredBlocks().addContainer(rack);
-        t.containers.containers.put(HUT, new HashMap<>(Map.of(STONE, 3)));
+        t.containers.containers.put(HUT, new HashMap<>(Map.of(STONE, 90)));
         t.containers.containers.put(rack, new HashMap<>(Map.of(STONE, 70, LOG, 2)));
 
         manager.windows().openBuilding(alice, HUT);
@@ -39,8 +39,11 @@ class HutStockTest {
 
         HutStock stone =
                 stock.stream().filter(s -> s.item().equals(STONE)).findFirst().orElseThrow();
-        assertEquals(73, stone.count());
-        assertEquals(List.of(new HutStock.Holder(rack, 70), new HutStock.Holder(HUT, 3)), stone.holders());
+        assertEquals(160, stone.count());
+        assertEquals(
+                List.of(new HutStock.Holder(HUT, 90), new HutStock.Holder(rack, 70)),
+                stone.holders(),
+                "most held first, though the rack is listed before the hut block");
         HutStock log =
                 stock.stream().filter(s -> s.item().equals(LOG)).findFirst().orElseThrow();
         assertEquals(List.of(new HutStock.Holder(rack, 2)), log.holders());

@@ -11,7 +11,6 @@ import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.construction.workorder.WorkOrderType;
-import dev.hycolony.core.job.HiringMode;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.request.Request;
@@ -62,7 +61,8 @@ class LogisticsFailureSimulationTest extends LogisticsSimulation {
         int load = courier.inventory().count(PLANKS_I);
         int planks = total(PLANKS_I);
 
-        assertTrue(manager.huts().setHiring(alice, COURIER_HUT, HiringMode.MANUAL));
+        assertTrue(manager.hutWindows().cycleHiring(alice, COURIER_HUT)); // DEFAULT, then AUTO
+        assertTrue(manager.hutWindows().cycleHiring(alice, COURIER_HUT)); // then MANUAL
         assertTrue(manager.huts().fire(alice, COURIER_HUT, courier.id()));
         run(Colony.SLOW_TICK); // the warehouse drops a courier on its colony tick
 

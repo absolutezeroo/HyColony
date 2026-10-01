@@ -151,9 +151,10 @@ class FieldActionsTest {
     }
 
     @Test
-    void fertilizeSettingToggles() {
-        assertTrue(fields.toggleFertilize(alice, HUT));
-        BuildingView view = assertInstanceOf(BuildingView.class, t.ui.shown.get(alice));
-        assertFalse(view.tab(FieldsView.class).orElseThrow().fertilize());
+    void assignButtonsFollowTheModeOnlyAsMc() {
+        assertTrue(fields.toggleMode(alice, HUT));
+        manager.windows().openBuilding(carol, HUT);
+        BuildingView view = assertInstanceOf(BuildingView.class, t.ui.shown.get(carol));
+        assertTrue(view.tab(FieldsView.class).orElseThrow().canAssign(), "MC enables them in manual mode for all");
     }
 }

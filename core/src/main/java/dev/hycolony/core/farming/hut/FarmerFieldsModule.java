@@ -144,13 +144,10 @@ public final class FarmerFieldsModule
         return rules;
     }
 
-    /** MC FarmerFieldsModuleView: the Fields tab, with the hut's Request Fertilizer setting. */
+    /** MC FarmerFieldsModuleView: the Fields tab. */
     @Override
     public ModuleTab tab(Colony colony, Building building, UUID viewer) {
-        boolean fertilize = building.module(FarmerSettingsModule.class)
-                .map(FarmerSettingsModule::fertilize)
-                .orElse(true);
-        return FieldsTab.of(colony, building, this, fertilize, viewer);
+        return FieldsTab.of(colony, building, this);
     }
 
     @Override

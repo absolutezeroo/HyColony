@@ -195,6 +195,8 @@ class LogisticsWindowsTest {
         assertEquals(new ItemAmount(STONE, 10), d.stack());
         assertEquals(warehouse.displayName(), row.requester());
         assertEquals(Optional.of(builder.displayName()), row.forRequester(), "MC: requester -> parent requester");
+        assertEquals(Optional.of(warehouse.position()), row.requesterPos(), "MC's tooltip: requester position");
+        assertEquals(Optional.of(builder.position()), row.forPos(), "-> the parent's position");
         assertEquals(Delivery.DEFAULT_DELIVERY_PRIORITY, row.priority());
     }
 

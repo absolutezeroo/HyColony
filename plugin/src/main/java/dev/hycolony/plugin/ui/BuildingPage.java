@@ -30,6 +30,9 @@ import javax.annotation.Nullable;
  * A hut's window as MC AbstractBuildingWindow: the builder paper, Main then one side tab per module view of the hut
  * (MC module order), and only the open tab's {@code .ui} appended into {@code #Page}. The open tab is page state,
  * kept across the core's re-shows. Main's buttons may open another window in this one's place.
+ *
+ * <p>Deviation from MC: one Hytale window for every tab of the hut (MC opens a window per module), so a live refresh
+ * and an action keep the open tab; no tab looks open, as in MC.
  */
 public final class BuildingPage extends ColonyPage implements HutWindow {
     private static final String PAGE = "#Page[0]";
@@ -109,7 +112,7 @@ public final class BuildingPage extends ColonyPage implements HutWindow {
         }
         HutTab open = moduleTabs.get(tab - 1);
         open.handle(act);
-        open.picker(act).ifPresent(picker -> show(ref, store, new ItemPickerPage(playerRef, manager, picker)));
+        open.opens(act).ifPresent(page -> show(ref, store, page.apply(playerRef)));
         if (open.redraws(act)) {
             rebuild();
         }
@@ -129,6 +132,23 @@ public final class BuildingPage extends ColonyPage implements HutWindow {
 
     /** Replaces this window with {@code page}; an offline player gets nothing. */
     private void show(Ref<EntityStore> ref, Store<EntityStore> store, CustomUIPage page) {
+        open(ref, store, page);
+    }
+
+    /**
+     * Back from a window the hut opened (MC's cross reopens the hut): opens the hut's main window itself, as
+     * {@code openBuilding} would redraw the open annex window of the same hut ({@link HutWindow}).
+     */
+    public static void back(
+            Ref<EntityStore> ref,
+            Store<EntityStore> store,
+            PlayerRef playerRef,
+            BuildingView view,
+            ColonyManager manager) {
+        open(ref, store, new BuildingPage(playerRef, view, manager));
+    }
+
+    private static void open(Ref<EntityStore> ref, Store<EntityStore> store, CustomUIPage page) {
         Player p = store.getComponent(ref, Player.getComponentType());
         if (p != null) {
             p.getPageManager().openCustomPage(ref, store, page);

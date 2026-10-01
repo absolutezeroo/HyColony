@@ -30,7 +30,7 @@ $C.@PageOverlay {
     @Column #Candidates { @Left = 402; }
 
     Label {
-      Anchor: (Left: 80, Top: 420, Width: 260, Height: 22);
+      Anchor: (Left: 80, Top: 420, Width: 400, Height: 22);
       Style: $B.@Ink;
       Text: %hycolony.ui.hut.assign.mode;
     }

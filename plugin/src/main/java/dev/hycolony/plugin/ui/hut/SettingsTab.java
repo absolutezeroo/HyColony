@@ -1,8 +1,10 @@
 package dev.hycolony.plugin.ui.hut;
 
 import com.hypixel.hytale.server.core.Message;
+import com.hypixel.hytale.server.core.entity.entities.player.pages.CustomUIPage;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
 import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.building.module.SettingRow;
 import dev.hycolony.core.building.module.SettingsView;
@@ -13,6 +15,7 @@ import dev.hycolony.plugin.ui.ColonyPage;
 import dev.hycolony.plugin.ui.ItemPickerPage;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 
 /**
  * A hut's Settings page (MC SettingsModuleWindow): one row per setting, its name, then On/Off, its value (a click
@@ -108,9 +111,9 @@ final class SettingsTab implements HutTab {
         return view.rows().stream().filter(r -> r.id().equals(act.ref())).findFirst();
     }
 
-    /** The fill block list; a pick goes to the core (which re-shows the hut), Back reopens the hut window. */
+    /** The fill block list (MC WindowSelectRes); a pick goes to the core (which re-shows the hut), Back reopens it. */
     @Override
-    public Optional<ItemPickerPage.Picker> picker(ColonyPage.Act act) {
+    public Optional<Function<PlayerRef, CustomUIPage>> opens(ColonyPage.Act act) {
         if (!"setting".equals(act.action())) {
             return Optional.empty();
         }
@@ -123,6 +126,7 @@ final class SettingsTab implements HutTab {
                         true,
                         i -> manager.huts()
                                 .setFillBlock(player, hut, r.choices().get(i)),
-                        () -> manager.windows().openBuilding(player, hut)));
+                        () -> manager.windows().openBuilding(player, hut)))
+                .map(picker -> pr -> new ItemPickerPage(pr, manager, picker));
     }
 }

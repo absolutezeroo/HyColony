@@ -1,0 +1,101 @@
+$B = "Book.ui";
+$C = "../../../Common.ui";
+
+// A recipe of the recipes page (MC layoutlistrecipes.xml "recipes" view), MC sizes doubled: up and down, the 3 x 3
+// grid of ingredients (#In0..#In8, each with its count), the output, then Remove, Enable/Disable and the bench or
+// tool (MC "intermediate"); grey when disabled (MC's gradient). Deviation from MC: Minecraft's default buttons are
+// Mojang textures not in sources/, so MC's small builder button stands in; "↥" "↧" become "+" "-" (no arrows in the
+// client's fonts).
+
+@In = Group {
+  @X = 0;
+  @Y = 0;
+
+  Anchor: (Left: @X, Top: @Y, Width: 32, Height: 32);
+  Visible: false;
+};
+
+@Count = Label {
+  Anchor: (Left: 14, Top: 18, Width: 18, Height: 14);
+  Style: (FontSize: 11, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: End);
+};
+
+Group {
+  Anchor: (Height: 100);
+
+  Group #Grey {
+    Anchor: (Left: 0, Top: 0, Width: 323, Height: 100);
+    Background: #a0a0a0;
+    Visible: false;
+  }
+
+  Group {
+    Anchor: (Left: 0, Top: 0, Width: 323, Height: 100);
+    OutlineSize: 1;
+    OutlineColor: #000000;
+  }
+
+  @In #In0 { @X = 40; @Y = 2; ItemIcon #Icon { Anchor: (Width: 32, Height: 32); } @Count #Count {} }
+  @In #In1 { @X = 68; @Y = 2; ItemIcon #Icon { Anchor: (Width: 32, Height: 32); } @Count #Count {} }
+  @In #In2 { @X = 96; @Y = 2; ItemIcon #Icon { Anchor: (Width: 32, Height: 32); } @Count #Count {} }
+  @In #In3 { @X = 40; @Y = 30; ItemIcon #Icon { Anchor: (Width: 32, Height: 32); } @Count #Count {} }
+  @In #In4 { @X = 68; @Y = 30; ItemIcon #Icon { Anchor: (Width: 32, Height: 32); } @Count #Count {} }
+  @In #In5 { @X = 96; @Y = 30; ItemIcon #Icon { Anchor: (Width: 32, Height: 32); } @Count #Count {} }
+  @In #In6 { @X = 40; @Y = 58; ItemIcon #Icon { Anchor: (Width: 32, Height: 32); } @Count #Count {} }
+  @In #In7 { @X = 68; @Y = 58; ItemIcon #Icon { Anchor: (Width: 32, Height: 32); } @Count #Count {} }
+  @In #In8 { @X = 96; @Y = 58; ItemIcon #Icon { Anchor: (Width: 32, Height: 32); } @Count #Count {} }
+
+  Group #Output {
+    Anchor: (Left: 160, Top: 34, Width: 32, Height: 32);
+
+    ItemIcon #Icon {
+      Anchor: (Width: 32, Height: 32);
+    }
+
+    @Count #Count {}
+  }
+
+  TextButton #Up {
+    Anchor: (Left: 0, Top: 0, Width: 30, Height: 30);
+    Style: $B.@MiniButtonStyle;
+    Text: "+";
+    TooltipText: %hycolony.ui.recipes.up;
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+  }
+
+  TextButton #Down {
+    Anchor: (Left: 0, Top: 30, Width: 30, Height: 30);
+    Style: $B.@MiniButtonStyle;
+    Text: "-";
+    TooltipText: %hycolony.ui.recipes.down;
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+  }
+
+  TextButton #Remove {
+    Anchor: (Left: 210, Top: 6, Width: 90, Height: 30);
+    Style: $B.@SmallButtonStyle;
+    Text: %hycolony.ui.recipes.removeButton;
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+  }
+
+  TextButton #Toggle {
+    Anchor: (Left: 210, Top: 36, Width: 90, Height: 30);
+    Style: $B.@SmallButtonStyle;
+    Text: "";
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+  }
+
+  // The teach list's button (HyColony's stand-in for MC's crafting grid, see RecipeTeachPage).
+  TextButton #Learn {
+    Anchor: (Left: 210, Top: 36, Width: 90, Height: 30);
+    Style: $B.@SmallButtonStyle;
+    Text: %hycolony.ui.recipes.learn;
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+    Visible: false;
+  }
+
+  Label #Intermediate {
+    Anchor: (Left: 210, Top: 66, Width: 90, Height: 30);
+    Style: (...$B.@InkCentered, FontSize: 11, ShrinkTextToFit: true, MinShrinkTextToFitFontSize: 8);
+  }
+}

@@ -1,0 +1,75 @@
+$B = "Book.ui";
+$C = "../../../Common.ui";
+
+// A field of the farmer's Fields page (MC layoutfarmfields.xml "fields" box), MC sizes doubled: a bordered row with
+// the seed's icon, "Distance: Nm dir", "Stage:" and the stage (current and next as tooltip), and MC's assign box
+// (builder_button_mini, checked for a field of this hut; its _disabled textures while not in manual mode).
+// Deviation from MC: the stage is its name, as MC's icons (iron hoe, wheat seeds) are Mojang textures not in sources/;
+// Locate, before the assign box, was added at the user's request.
+
+@Box = Button {
+  Anchor: (Left: 274, Top: 8, Width: 28, Height: 30);
+  Visible: false;
+  TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+};
+
+Group {
+  Anchor: (Height: 60);
+  OutlineSize: 1;
+  OutlineColor: #000000;
+
+  ItemIcon #Icon {
+    Anchor: (Left: 8, Top: 8, Width: 32, Height: 32);
+  }
+
+  Label #Distance {
+    Anchor: (Left: 50, Top: 4, Width: 216, Height: 22);
+    Style: (...$B.@Ink, FontSize: 14);
+  }
+
+  Label #StageLabel {
+    Anchor: (Left: 50, Top: 30, Width: 70, Height: 22);
+    Style: (...$B.@Ink, FontSize: 14);
+  }
+
+  Label #Stage {
+    Anchor: (Left: 120, Top: 30, Width: 110, Height: 22);
+    Style: (...$B.@Ink, FontSize: 14);
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+  }
+
+  // Locate: the client's block icon, its selected variant while the highlight lasts.
+  Button #Locate {
+    Anchor: (Left: 240, Top: 8, Width: 28, Height: 30);
+    Style: (Default: (Background: "builder_button_mini.png"), Sounds: $C.@ButtonSounds);
+    TooltipText: %hycolony.ui.fields.locate.tooltip;
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+
+    Group #LocateIcon {
+      Anchor: (Left: 4, Top: 5, Width: 20, Height: 20);
+      Background: "../../HyBlockUI/Native/BlockIcon.png";
+    }
+
+    Group #LocateIconOn {
+      Anchor: (Left: 4, Top: 5, Width: 20, Height: 20);
+      Background: "../../HyBlockUI/Native/BlockIconSelected.png";
+      Visible: false;
+    }
+  }
+
+  @Box #Free {
+    Style: (
+      Default: (Background: "builder_button_mini.png"),
+      Disabled: (Background: "builder_button_mini_disabled.png"),
+      Sounds: $C.@ButtonSounds
+    );
+  }
+
+  @Box #Owned {
+    Style: (
+      Default: (Background: "builder_button_mini_check.png"),
+      Disabled: (Background: "builder_button_mini_disabled_check.png"),
+      Sounds: $C.@ButtonSounds
+    );
+  }
+}

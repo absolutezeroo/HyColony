@@ -6,6 +6,7 @@ import dev.hycolony.core.building.module.ModuleProducer;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.crafting.module.CraftingModule;
 import dev.hycolony.core.crafting.request.CraftingResolvers;
+import dev.hycolony.core.crafting.task.CrafterTaskListModule;
 import dev.hycolony.core.farming.job.FarmerJob;
 import dev.hycolony.core.job.JobRegistry;
 import dev.hycolony.core.job.WorkerModule;
@@ -35,6 +36,7 @@ public final class FarmerHut {
                     new ModuleProducer("craftingResolvers", CraftingResolvers::new),
                     new ModuleProducer("fields", FarmerFieldsModule::new),
                     new ModuleProducer("settings", FarmerSettingsModule::new),
+                    new ModuleProducer("craftTasks", CrafterTaskListModule::new),
                     // Deviation from MC: no axe, which MC's farmer keeps but never uses.
                     new ModuleProducer("keepTools", () -> new KeepToolsModule(EnumSet.of(ToolType.HOE)))));
 

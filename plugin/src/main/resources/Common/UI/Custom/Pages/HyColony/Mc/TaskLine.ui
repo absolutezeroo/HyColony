@@ -1,0 +1,50 @@
+$B = "Book.ui";
+$C = "../../../Common.ui";
+
+// A task of the Tasks page (MC layouttasklist.xml "tasks" box), MC sizes doubled: a bordered row with the request's
+// icon (MC getDisplayIcon: delivery or crafting, none otherwise), its short detail (dark green while in progress) and
+// the item with its count for a stack task, the courier priority, and "requester -> parent" with both places as
+// tooltip.
+
+@Icon = Group {
+  Anchor: (Left: 2, Top: 6, Width: 32, Height: 32);
+  Visible: false;
+};
+
+@Small = LabelStyle(FontSize: 12, TextColor: #000000, VerticalAlignment: Center);
+
+Group {
+  Anchor: (Height: 68);
+  OutlineSize: 1;
+  OutlineColor: #000000;
+
+  @Icon #Delivery { Background: "delivery.png"; }
+  @Icon #Crafting { Background: "crafting_public.png"; }
+
+  Label #Detail {
+    Anchor: (Left: 40, Top: 4, Width: 260, Height: 18);
+    Style: @Small;
+  }
+
+  ItemIcon #DetailIcon {
+    Anchor: (Left: 160, Top: 2, Width: 18, Height: 18);
+    Visible: false;
+  }
+
+  Label #DetailCount {
+    Anchor: (Left: 180, Top: 4, Width: 60, Height: 18);
+    Style: @Small;
+    Visible: false;
+  }
+
+  Label #Priority {
+    Anchor: (Left: 40, Top: 24, Width: 260, Height: 18);
+    Style: @Small;
+  }
+
+  Label #Requester {
+    Anchor: (Left: 4, Top: 44, Width: 300, Height: 18);
+    Style: @Small;
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+  }
+}

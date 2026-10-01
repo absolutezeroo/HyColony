@@ -22,22 +22,29 @@ public final class TaskRows {
     public static List<TaskRow> of(Colony c, List<RequestToken> tokens) {
         return tokens.stream()
                 .flatMap(t -> c.requests().get(t).stream())
-                .map(r -> new TaskRow(
-                        r.token(),
-                        r.requestable(),
-                        RequesterLocation.displayName(c, r),
-                        forRequester(c, r),
-                        priority(r),
-                        r.state() == RequestState.IN_PROGRESS))
+                .map(r -> row(c, r))
                 .toList();
     }
 
+    private static TaskRow row(Colony c, Request r) {
+        Optional<Request> parent = forRequester(c, r);
+        return new TaskRow(
+                r.token(),
+                r.requestable(),
+                RequesterLocation.displayName(c, r),
+                parent.map(p -> RequesterLocation.displayName(c, p)),
+                RequesterLocation.of(c, r.requester()),
+                parent.flatMap(p -> RequesterLocation.of(c, p.requester())),
+                priority(r),
+                r.state() == RequestState.IN_PROGRESS);
+    }
+
     /**
-     * MC WindowHutRequestTaskModule: climbs the parents while they ask from the same place as {@code r}, and names the
-     * requester of the one reached; empty without a parent. Stops before a request already visited: loading already
+     * MC WindowHutRequestTaskModule: climbs the parents while they ask from the same place as {@code r}, and returns
+     * the one reached; empty without a parent. Stops before a request already visited: loading already
      * drops parent cycles ({@code SavedRequests}), so this is only a cheap safety net.
      */
-    private static Optional<String> forRequester(Colony c, Request r) {
+    private static Optional<Request> forRequester(Colony c, Request r) {
         Request parent = r.parent().flatMap(c.requests()::get).orElse(null);
         Optional<BlockPos> here = RequesterLocation.of(c, r.requester());
         Set<RequestToken> visited = new HashSet<>(List.of(r.token()));
@@ -51,7 +58,7 @@ public final class TaskRows {
             }
             parent = up;
         }
-        return Optional.ofNullable(parent).map(p -> RequesterLocation.displayName(c, p));
+        return Optional.ofNullable(parent);
     }
 
     /** MC IDeliverymanRequestable.getPriority; 0 for any other request. */

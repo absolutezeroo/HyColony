@@ -12,6 +12,7 @@ import dev.hycolony.core.app.action.HousingActions;
 import dev.hycolony.core.app.ui.BuildingView;
 import dev.hycolony.core.citizen.home.ResidentsView;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.plugin.ui.BuildingPage;
 import dev.hycolony.plugin.ui.ColonyPage;
 import dev.hycolony.plugin.ui.hut.HutWindow;
 import java.util.Locale;
@@ -31,6 +32,9 @@ public final class AssignCitizenPage extends ColonyPage implements HutWindow {
     private static final String CLOSER_COLOR = "#00aa00";
 
     private static final String FAR_COLOR = "#ff5555";
+
+    /** MC windowassigncitizen.xml: the candidates' line at text scale 0.8 (the row's 14 for the residents). */
+    private static final int CANDIDATE_FONT_SIZE = 12;
 
     private final BuildingView view;
 
@@ -74,9 +78,10 @@ public final class AssignCitizenPage extends ColonyPage implements HutWindow {
         boolean room = r.assigned() < r.max();
         for (int i = 0; i < r.candidates().size(); i++) {
             ResidentsView.Candidate c = r.candidates().get(i);
+            // MC: "Job: works... home", or "Unemployed", a line break, then the home.
             Message line = Message.join(
                     workLine(c.jobId(), c.workDistance(), c.closer() ? CLOSER_COLOR : null),
-                    Message.raw(" "),
+                    Message.raw(c.jobId().isPresent() ? " " : "\n"),
                     homeLine(c.home()));
             row(ui, events, new Row("#Candidates", i, c.citizenId(), c.name(), line, true), r, room);
         }
@@ -90,6 +95,9 @@ public final class AssignCitizenPage extends ColonyPage implements HutWindow {
         ui.append(row.list(), "Pages/HyColony/Mc/AssignRow.ui");
         ui.set(sel + " #Name.Text", row.name());
         ui.set(sel + " #Line.TextSpans", row.line());
+        if (row.assign()) {
+            ui.set(sel + " #Line.Style.FontSize", CANDIDATE_FONT_SIZE);
+        }
         String button = sel + " #Button";
         // A button's Text renders no nested message: one full key per button.
         ui.set(
@@ -140,7 +148,7 @@ public final class AssignCitizenPage extends ColonyPage implements HutWindow {
             case "mode" -> actions.cycleMode(player, view.pos());
             case "assign" -> actions.assign(player, view.pos(), act.index());
             case "unassign" -> actions.unassign(player, view.pos(), act.index());
-            case "close" -> manager.windows().openBuilding(player, view.pos());
+            case "close" -> BuildingPage.back(ref, store, playerRef, view, manager);
             default -> {}
         }
     }

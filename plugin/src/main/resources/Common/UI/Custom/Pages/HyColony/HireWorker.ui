@@ -32,7 +32,7 @@ $C.@PageOverlay {
     }
 
     Label {
-      Anchor: (Left: 40, Top: 378, Width: 260, Height: 22);
+      Anchor: (Left: 40, Top: 378, Width: 400, Height: 22);
       Style: $B.@Ink;
       Text: %hycolony.ui.hut.hire.mode;
     }

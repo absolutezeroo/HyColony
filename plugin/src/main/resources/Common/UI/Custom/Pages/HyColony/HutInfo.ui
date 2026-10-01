@@ -9,6 +9,7 @@ $B = "Mc/Book.ui";
   @Left = 0;
 
   Anchor: (Left: @Left, Top: 26, Width: 36, Height: 20);
+  TextTooltipStyle: $C.@DefaultTextTooltipStyle;
 };
 
 $C.@PageOverlay {

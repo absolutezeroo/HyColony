@@ -8,6 +8,9 @@ import java.util.function.Function;
 /**
  * The order of MC WindowHutAllInventory's list (updateResources): the items whose shown name or id contains the
  * filter, closest names to the filter first (Levenshtein distance), then the sort the window's button chose.
+ *
+ * <p>Deviation from MC: the filter looks in the shown name and the item id, where MC looks in the item's description
+ * id and its tooltip lines (Minecraft item data Hytale has not).
  */
 public final class HutStockOrder {
     /** MC sortDescriptor 0..4 and the button's label for each. */

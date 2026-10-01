@@ -12,6 +12,7 @@ import dev.hycolony.core.app.hut.HireView;
 import dev.hycolony.core.app.ui.BuildingView;
 import dev.hycolony.core.app.ui.CitizenRow;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.plugin.ui.BuildingPage;
 import dev.hycolony.plugin.ui.ColonyPage;
 import dev.hycolony.plugin.ui.hut.HutWindow;
 import java.util.ArrayList;
@@ -24,6 +25,8 @@ import javax.annotation.Nonnull;
  * MC's order with where they live and their skills (the job's primary in dark green bold, its secondary in gold bold),
  * Hire or Fire, the building hiring mode and "Show employed?". The core checks MANAGE_HUTS and shows the hut again,
  * which redraws this window.
+ *
+ * <p>Deviation from MC: no Pause nor Restart buttons, as HyColony cannot pause a citizen yet.
  */
 public final class HireWorkerPage extends ColonyPage implements HutWindow {
     /** MC ChatFormatting.DARK_GREEN and GOLD, WindowHireWorker.createColor. */
@@ -127,8 +130,10 @@ public final class HireWorkerPage extends ColonyPage implements HutWindow {
             Message name =
                     Message.translation("hycolony.ui.skill." + lower(s.skill().name()));
             Message level = Message.raw(": " + s.level());
-            if (s.skill() == h.primary() || s.skill() == h.secondary()) {
-                String color = s.skill() == h.primary() ? PRIMARY_COLOR : SECONDARY_COLOR;
+            boolean primary = h.primary().filter(p -> p == s.skill()).isPresent();
+            boolean secondary = h.secondary().filter(p -> p == s.skill()).isPresent();
+            if (primary || secondary) {
+                String color = primary ? PRIMARY_COLOR : SECONDARY_COLOR;
                 name = name.color(color).bold(true);
                 level = level.color(color).bold(true);
             }
@@ -160,7 +165,7 @@ public final class HireWorkerPage extends ColonyPage implements HutWindow {
                 showEmployed = !showEmployed;
                 rebuild();
             }
-            case "close" -> manager.windows().openBuilding(player, view.pos());
+            case "close" -> BuildingPage.back(ref, store, playerRef, view, manager);
             default -> {}
         }
     }

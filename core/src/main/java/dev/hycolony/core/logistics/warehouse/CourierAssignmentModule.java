@@ -33,6 +33,20 @@ public final class CourierAssignmentModule implements TickingModule, PersistentM
         return Collections.unmodifiableList(couriers);
     }
 
+    /** MC CourierAssignmentModule.assignCitizen: attaches the courier {@code citizenId}; false if already attached. */
+    public boolean attach(int citizenId) {
+        if (couriers.contains(citizenId)) {
+            return false;
+        }
+        couriers.add(citizenId);
+        return true;
+    }
+
+    /** MC removeCitizen: detaches {@code citizenId}, who keeps its courier job; false if it was not attached. */
+    public boolean detach(int citizenId) {
+        return couriers.remove(Integer.valueOf(citizenId));
+    }
+
     /** MC getModuleMax: two couriers per warehouse level, so none at level 0. */
     public static int maxCouriers(Building warehouse) {
         return warehouse.level() * 2;
@@ -79,7 +93,8 @@ public final class CourierAssignmentModule implements TickingModule, PersistentM
         }
     }
 
-    private static boolean isCourier(CitizenData citizen) {
+    /** Whether {@code citizen} has the courier job. */
+    public static boolean isCourier(CitizenData citizen) {
         return citizen.job().map(j -> j.type().id().equals(COURIER_JOB_ID)).orElse(false);
     }
 

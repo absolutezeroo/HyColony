@@ -13,11 +13,11 @@ import dev.hycolony.core.colony.ColonyAccess;
 import dev.hycolony.core.colony.ColonyEvents;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.construction.shared.BuilderSettingsModule;
-import dev.hycolony.core.job.HiringMode;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.port.Msg;
+import dev.hycolony.core.logistics.warehouse.CourierAssignmentModule;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BooleanSupplier;
@@ -171,7 +171,7 @@ public final class HutActions {
         }
         WorkerModule w = h.building().module(WorkerModule.class).orElse(null);
         if (w == null) {
-            return false;
+            return assignCourier(player, h, citizenId, true);
         }
         if (!w.canAssignCitizens(h.building())) {
             manager.context().notifier().send(player, Msg.of("hycolony.hut.notBuiltYet"));
@@ -201,6 +201,27 @@ public final class HutActions {
     }
 
     /**
+     * Hire ({@code attach}) or Fire on a warehouse's couriers ({@link CourierHiring}); false for a hut without them.
+     * The hut shows again.
+     */
+    private boolean assignCourier(UUID player, ManagedHut h, int citizenId, boolean attach) {
+        CourierAssignmentModule m =
+                h.building().module(CourierAssignmentModule.class).orElse(null);
+        if (m == null) {
+            return false;
+        }
+        boolean done = attach
+                ? h.colony()
+                        .citizens()
+                        .get(citizenId)
+                        .map(d -> CourierHiring.hire(h, m, d))
+                        .orElse(false)
+                : CourierHiring.fire(h, m, citizenId);
+        windows.showBuilding(h.colony(), h.building(), player);
+        return done;
+    }
+
+    /**
      * MC {@code HireFireMessage} (fire): the citizen leaves the hut. A citizen who no longer works here is ignored
      * without a message, as in MC, but the window is still re-shown, as MC's client redraws its hire window.
      */
@@ -211,7 +232,7 @@ public final class HutActions {
         }
         WorkerModule w = h.building().module(WorkerModule.class).orElse(null);
         if (w == null) {
-            return false;
+            return assignCourier(player, h, citizenId, false);
         }
         boolean fired = w.workers().contains(citizenId);
         if (fired) {
@@ -219,21 +240,6 @@ public final class HutActions {
         }
         windows.showBuilding(h.colony(), h.building(), player);
         return fired;
-    }
-
-    public boolean setHiring(UUID player, BlockPos hutPos, HiringMode mode) {
-        ManagedHut h = ManagedHut.find(manager, player, hutPos).orElse(null);
-        if (h == null) {
-            return false;
-        }
-        WorkerModule w = h.building().module(WorkerModule.class).orElse(null);
-        if (w == null || mode == null) {
-            return false;
-        }
-        w.setHiringMode(mode);
-        h.colony().markDirty();
-        windows.showBuilding(h.colony(), h.building(), player);
-        return true;
     }
 
     /** The builder hut's Settings tab (MC BuilderSettingsModule's mode setting); false for a hut without it. */

@@ -84,6 +84,16 @@ class HutWindowActionsTest {
     }
 
     @Test
+    void renamingAndCyclingTheModeMarkTheColonyToSave() {
+        colony.clearDirty();
+        assertTrue(actions.rename(alice, HUT, "Mine"));
+        assertTrue(colony.isDirty());
+        colony.clearDirty();
+        assertTrue(actions.cycleHiring(alice, HUT));
+        assertTrue(colony.isDirty());
+    }
+
+    @Test
     void aNameOf15IsKeptAsTyped() {
         t.notifier.sent.clear();
         assertTrue(actions.rename(alice, HUT, " Fifteen chars "));

@@ -1,8 +1,0 @@
-Group {
-  LayoutMode: Left;
-  Anchor: (Height: 28, Top: 6);
-
-  Label #Text {
-    Style: (RenderBold: true, TextColor: #d9b35c);
-  }
-}

@@ -2,7 +2,8 @@ $C = "../../../Common.ui";
 
 // One side tab of a hut window (MC TabsWindowModule.renderTabButton), MC sizes doubled: a 64 x 52 tab whose
 // background is one of tab_left_side1..4 and a 40 x 40 module icon at (10, 6), the module's description as tooltip.
-// SideTabs shows one background and one icon; #Hit takes the click and the tooltip.
+// SideTabs shows one background and one icon; #Hit takes the click and the tooltip. Deviation from MC: the game's
+// button sound, as Hytale 0.7.0-pre.4 has no book page sound for MC's BOOK_PAGE_TURN.
 
 @Back = Group {
   Anchor: (Left: 0, Top: 0, Width: 64, Height: 52);

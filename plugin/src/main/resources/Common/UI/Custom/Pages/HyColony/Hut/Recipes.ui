@@ -1,0 +1,29 @@
+$P = "Parts.ui";
+$B = "../Mc/Book.ui";
+$C = "../../../Common.ui";
+
+// A crafting hut's recipes page (MC gui/layouthuts/layoutlistrecipes.xml, WindowListRecipes), MC positions and sizes
+// doubled: "List of Recipes", "n of m", the learnt recipes (Mc/RecipeLine.ui), then Teach Recipe.
+
+Group {
+  Anchor: (Left: 0, Top: 0, Width: 380, Height: 488);
+
+  Label #Desc {
+    Anchor: (Left: 60, Top: 28, Width: 260, Height: 22);
+    Style: $B.@InkCentered;
+    Text: %hycolony.ui.recipes.list;
+  }
+
+  Label #Status {
+    Anchor: (Left: 140, Top: 60, Width: 200, Height: 22);
+    Style: $B.@Ink;
+  }
+
+  Group #Recipes {
+    Anchor: (Left: 40, Top: 80, Width: 323, Height: 300);
+    LayoutMode: TopScrolling;
+    ScrollbarStyle: $C.@DefaultScrollbarStyle;
+  }
+
+  $P.@WideButton #Teach { @Top = 400; Text: %hycolony.ui.recipes.teach; }
+}

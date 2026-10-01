@@ -7,19 +7,27 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * A worker hut's hire window (MC WindowHireWorker): its job, its hiring mode, whether it is full, the job's primary
- * and secondary skills, and every adult citizen in MC's order (employed here, unemployed, other jobs, not assignable,
- * then home distance rounded to 40 blocks, then name).
+ * A hut's hire window (MC WindowHireWorker) for its assignment module: its job, its hiring mode, how many it holds,
+ * whether it is full, the job's primary and secondary skills (none for the warehouse's couriers), and every adult
+ * citizen in MC's order (working here, unemployed, other jobs, not assignable, then home distance rounded to 40
+ * blocks, then name).
  */
 public record HireView(
-        String jobId, HiringMode mode, int workers, boolean full, Skill primary, Skill secondary, List<Candidate> all) {
+        String jobId,
+        HiringMode mode,
+        int workers,
+        boolean full,
+        Optional<Skill> primary,
+        Optional<Skill> secondary,
+        List<Candidate> all) {
     public HireView {
         all = List.copyOf(all);
     }
 
     /**
-     * A citizen: its job, whether it works {@code here}, whether the hut's module may take it ({@code assignable}, MC
-     * WorkerBuildingModuleView.canAssign), where it lives and its skills, the job's primary first then its secondary.
+     * A citizen: its job, whether the module holds it ({@code here}), whether the module may take it
+     * ({@code assignable}, MC IAssignmentModuleView.canAssign), where it lives and its skills, the job's primary first
+     * then its secondary.
      */
     public record Candidate(
             int citizenId,

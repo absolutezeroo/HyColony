@@ -36,19 +36,19 @@ MC ouvre une fenêtre par module ; HyColony garde **une page** (`BuildingPage`) 
 
 - Le cadre `Building.ui` est réécrit : papier 380 × 488, bandeau, `#Title` rouge, `#EditName`, `#Info`, un `#Page` où le document de l'onglet est ajouté, une colonne `#Tabs` à x −40.
 - Chaque onglet est un document `.ui` à part (`Hut/Main*.ui`, `Hut/BuilderResources.ui`…), ajouté dans `#Page` ; seul l'onglet ouvert est construit (motif de `TownHallPage` depuis le lot 0 de l'hôtel de ville).
-- Onglets latéraux (`TabsWindowModule`) : onglet 64 × 52 en (−40, 20 + 56 i), fond `tab_left_sideN` (N de 1 à 4 tiré par un `Random` à graine stable par hutte : la position de la hutte), icône 40 × 40 en (10, 6), infobulle du module. Ordre : Principal, puis les modules de la hutte dans l'ordre de MC (inventaire § 8.2).
-- Son d'un onglet de module : un son de page de livre des assets Hytale s'il existe (à chercher, `docs/research/`), sinon le son d'onglet actuel.
+- Onglets latéraux (`TabsWindowModule`) : onglet 64 × 52 en (−40, 20 + 56 i), fond `tab_left_sideN` (N de 1 à 4 tiré, comme MC, par `new Random(hashCode de la position)` ; la formule `(y + z·31)·31 + x` de `Vec3i.hashCode` vient de Minecraft, pas de `sources/`), icône 40 × 40 en (10, 6), infobulle du module. Ordre : Principal, puis les modules de la hutte dans l'ordre de MC (inventaire § 8.2).
+- Son d'un onglet : le son de bouton du jeu (Hytale 0.7.0-pre.4 n'a pas de son de page de livre, écart).
 
 ### 3.2 Vues et actions
 
-- `BuildingView` garde un record par hutte et des `ModuleTab` par module (existant). Il gagne : `customName` (titre « nom niveau » : nom personnalisé, sinon le nom du type), le métier de chaque `WorkerRow`, le type de page principale (`MainKind` : WORKERS, SIMPLE, LIVING).
-- Les fenêtres annexes ont leurs vues : `HireWorkerView`, `AssignCitizenView`, `HutInventoryView`, et passent par `UiPort` (`showHireWorker`, `showAssignCitizen`, `showHutInventory`). Elles se ferment sur la hutte (`openBuildingGui`, comme le bouton X de MC).
+- `BuildingView` garde un record par hutte et des `ModuleTab` par module (existant). Il gagne : `customName` (titre « nom niveau » : nom personnalisé, sinon le nom du type), le métier de chaque ligne (`WorkerLine`), le type de page principale (`MainKind` : WORKERS, SIMPLE, LIVING), la fenêtre d'embauche (`HireView`, du module de travailleurs ou des livreurs de l'entrepôt) et le stock par conteneur (`HutStock`).
+- Les fenêtres annexes (embauche, affectation, inventaire total, recettes à apprendre) dessinent des parties de `BuildingView` : le cœur réaffiche la hutte après chaque action, et le plugin redessine la fenêtre annexe ouverte pour cette hutte (interface `HutWindow`) au lieu de revenir à la page principale, comme MC garde sa sous-fenêtre ouverte. Pas de nouvelle méthode de `UiPort`. La croix ou « Retour » ouvre la page principale de la hutte.
 - Les paquets `app/ui`, `app/view` et `app/action` sont presque pleins (15 fichiers au plus) : les vues et constructeurs des fenêtres de huttes vont dans un sous-paquet `app/hut` (vues, constructeurs, actions propres aux fenêtres annexes), seul son point d'entrée public.
 - La fenêtre d'aide (`WindowInfo`) n'a pas de règle de jeu : le plugin l'ouvre seul avec les clés de langue (`hycolony.ui.info.<type>.<i>.name` et `.text`), le nombre de pages par type est une constante du plugin (4 pour le constructeur, le fermier, le livreur et l'entrepôt ; 0 pour la résidence, bouton caché comme MC).
 
 ### 3.3 Styles et textures
 
-- `Mc/Book.ui` gagne : `@SmallButtonStyle` (64 × 17), `@QuiteSmallButtonStyle` (44 × 16, texte réduit), `@LargeButtonStyle` (169 × 17), `@VerySmallButtonStyle`, `@MediumButtonStyle` (sorti de `RankButtonRow.ui`), et un état `Disabled` (texture `_disabled` quand MC en a une, sinon même texture et texte gris, comme BlockUI) pour chacun.
+- `Mc/Book.ui` gagne : `@SmallButtonStyle` (64 × 17), `@QuiteSmallButtonStyle` (44 × 16, texte réduit), `@LargeButtonStyle` (169 × 17), `@VerySmallButtonStyle`, `@MediumButtonStyle`. Comme le `ButtonImage` de BlockUI avec `color="black"`, un bouton ne change ni survolé, ni pressé, ni désactivé ; seul un bouton dont le XML de MC nomme une texture `disabled` la prend (styles `*DisabledTexture`, la case des champs).
 - Textures à copier : inventaire § 8.7 (papier, bandeau, `red_wax_information`, `chest`, onglets et 9 icônes de module, boutons `small`, `quite_small`, `large`, `mini_check`, `mini_disabled*`, `builder_paper_wide2`). Les textures de Mojang absentes de `sources/` (boutons vanilla, `shadow`, houe, graines) sont remplacées par un bouton ou une icône d'objet Hytale (écart).
 - Un texte avec infobulle (« Nom (id) », nom d'ordre, positions d'une tâche) est un `Label` avec `TooltipText` ou `.TooltipTextSpans` ; le survol dans une liste défilante est à noter en jeu **[in-game]**.
 
@@ -138,11 +138,16 @@ Papier large ; à gauche les résidents (« Métier: à N blocs », rouge au-del
 Chacun porte un `Deviation from MC` dans le code.
 
 - Une seule fenêtre Hytale par hutte, onglets dans la page (pas de nouvelle fenêtre par module) ; le rendu reste sans onglet « ouvert ».
-- La suite des fonds d'onglet n'est pas celle de MC (le `hashCode` du `BlockPos` de Minecraft n'est pas dans `sources/`) ; graine stable par hutte.
-- Boutons vanilla de Minecraft, ombre, houe et graines : remplacés par des boutons de `Book.ui` ou des icônes d'objet Hytale.
+- Son des onglets : le son de bouton du jeu (pas de son de page de livre dans Hytale 0.7.0-pre.4).
+- Boutons vanilla de Minecraft (recettes, renommage), ombre, houe et graines : textures de Mojang absentes de `sources/`, remplacées par des boutons de `Book.ui` ou de Hytale ; l'étape d'un champ s'écrit au lieu de son icône ; « ↥ » et « ↧ » deviennent « + » et « - » (pas de flèches dans les polices du client).
 - Le libellé « Work Orders » que `layoutworkorders.xml:6` pose hors du papier (x 201 > 190) n'est pas repris.
 - Le champ de renommage est pré-rempli avec le nom exact (pas en minuscules), comme pour la colonie.
 - Pas de Ctrl pour retirer une recette native (aucun événement de touche modificatrice connu), pas de Maj pour les quantités exactes ni pour monter une recette tout en haut.
+- Localiser (inventaire total) : chaque conteneur brille avec un marqueur de carte « objet nombre », sans la couleur rouge-vert de MC selon le nombre (un bloc brillant n'a pas de couleur), et remplace toute autre surbrillance du joueur.
+- Le filtre de l'inventaire total cherche dans le nom affiché et l'id de l'objet (MC : l'id de description et l'infobulle, données d'objet de Minecraft).
+- Le tri de l'inventaire total est gardé par joueur jusqu'à l'arrêt du serveur (MC : un champ statique du client).
+- Pas de Pause ni de Redémarrer dans la fenêtre d'embauche (HyColony ne met pas encore un citoyen en pause).
+- « Apprendre une recette » ouvre la liste des recettes que la hutte peut apprendre (MC : une grille d'artisanat).
 - Les onglets C (stock minimum, statistiques, options de l'entrepôt, recettes du constructeur) manquent tant que leur système n'existe pas.
 - Ajouts déjà documentés conservés : « fait aujourd'hui » et Localiser dans Champs, ligne « entrepôt servi » du livreur, apprentissage des recettes par liste, confirmation par double clic dans la fenêtre de construction.
 

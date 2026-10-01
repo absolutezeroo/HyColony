@@ -262,7 +262,7 @@ class ViewsTest {
             assertFalse(manager.workOrders().cancel(player, res.position()));
             assertFalse(manager.huts().hire(player, builder.position(), idle.id()));
             assertFalse(manager.huts().fire(player, builder.position(), bobTheBuilder.id()));
-            assertFalse(manager.huts().setHiring(player, builder.position(), HiringMode.LOCKED));
+            assertFalse(manager.hutWindows().cycleHiring(player, builder.position()));
             assertFalse(manager.workOrders().move(player, colony.id(), orderId, 1));
             assertFalse(manager.workOrders().delete(player, colony.id(), orderId));
             res.setDeconstructed(true);
@@ -359,7 +359,8 @@ class ViewsTest {
         assertTrue(ann.job().isEmpty());
         assertFalse(manager.huts().fire(alice, hut.position(), ann.id()), "not a worker any more");
 
-        assertTrue(manager.huts().setHiring(alice, hut.position(), HiringMode.MANUAL));
+        assertTrue(manager.hutWindows().cycleHiring(alice, hut.position())); // DEFAULT, then AUTO
+        assertTrue(manager.hutWindows().cycleHiring(alice, hut.position()));
         assertEquals(
                 HiringMode.MANUAL,
                 ((BuildingView) t.ui.shown.get(alice)).hire().orElseThrow().mode());

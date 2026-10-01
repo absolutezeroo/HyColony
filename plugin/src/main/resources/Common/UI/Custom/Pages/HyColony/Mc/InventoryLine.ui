@@ -18,7 +18,7 @@ Group {
   }
 
   Label #Count {
-    Anchor: (Left: 234, Top: 2, Width: 50, Height: 32);
+    Anchor: (Left: 234, Top: 2, Width: 50, Height: 36);
     Style: $B.@Ink;
   }
 

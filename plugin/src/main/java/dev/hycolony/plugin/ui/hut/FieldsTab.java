@@ -5,22 +5,27 @@ import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.app.action.FieldActions;
+import dev.hycolony.core.farming.field.FieldStage;
 import dev.hycolony.core.farming.hut.FieldsView;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.plugin.ui.ColonyPage;
 import dev.hycolony.plugin.ui.highlight.Highlight;
 import dev.hycolony.plugin.ui.highlight.Highlights;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
- * A farmer hut's Fields tab (MC FarmFieldsModuleWindow): {@code owned} of {@code max}, the assignment mode and Request
- * Fertilizer buttons, then a row per field with its seed, distance, stage and Assign or Free. Assign and Free work in
- * manual mode only; a refused Assign is disabled with its reason as tooltip. The core checks MANAGE_HUTS and re-shows.
- * Locate makes the field block glow, with a map marker for the viewer, for a minute; a second click turns it off.
+ * A farmer hut's Fields page (MC FarmFieldsModuleWindow): the assignment mode, "n/m fields in use", then a row per
+ * field with its seed, distance, stage and MC's assign box (checked for a field of this hut). The box works in manual
+ * mode only; a refused one is disabled with its reason as tooltip. The core checks MANAGE_HUTS and re-shows. Locate
+ * makes the field block glow, with a map marker for the viewer, for a minute; a second click turns it off.
  * Deviation from MC: Locate is a button added at the user's request.
  */
 final class FieldsTab implements HutTab {
+    /** MC's red for a refused field's tooltip (ChatFormatting.RED). */
+    private static final String REFUSAL_COLOR = "#ff5555";
+
     private final ColonyManager manager;
     private final UUID player;
     private final BlockPos hut;
@@ -35,7 +40,7 @@ final class FieldsTab implements HutTab {
 
     @Override
     public String document() {
-        return "Pages/HyColony/FieldsTab.ui";
+        return "Pages/HyColony/Hut/Fields.ui";
     }
 
     @Override
@@ -50,81 +55,93 @@ final class FieldsTab implements HutTab {
 
     @Override
     public void render(UICommandBuilder ui, UIEventBuilder events, String root) {
+        ui.set(root + " #Desc.Text", Message.translation(descKey()));
+        // MC hiring.on / hiring.off: "Manual" or "Automatic"; the button stays enabled for all, the core refuses.
         ui.set(
-                root + " #FieldsCount.Text",
+                root + " #Mode.Text",
+                Message.translation("hycolony.ui.fields.mode." + (fields.manual() ? "manual" : "auto")));
+        ColonyPage.bind(events, root + " #Mode", "fieldsMode");
+        ui.set(
+                root + " #Count.Text",
                 Message.translation("hycolony.ui.fields.count")
                         .param("p0", String.valueOf(fields.owned()))
                         .param("p1", String.valueOf(fields.max())));
-        String mode = "hycolony.ui.fields.mode." + (fields.manual() ? "manual" : "auto");
-        setting(ui, events, root + " #ModeButton", mode, "fieldsMode");
-        String fertilize = "hycolony.ui.farmer.fertilize." + (fields.fertilize() ? "on" : "off");
-        setting(ui, events, root + " #FertilizeButton", fertilize, "fieldsFertilize");
-        if (fields.rows().isEmpty()) {
-            ui.set(root + " #FieldsEmpty.Visible", true);
-            ui.set(root + " #FieldsEmpty.Text", Message.translation("hycolony.ui.fields.none"));
-        }
         for (int i = 0; i < fields.rows().size(); i++) {
-            row(ui, events, root + " #Fields", i, fields.rows().get(i));
+            ui.append(root + " #Fields", "Pages/HyColony/Mc/FarmFieldRow.ui");
+            row(ui, events, root + " #Fields[" + i + "]", fields.rows().get(i));
         }
     }
 
-    /** A settings button showing {@code key}, sending {@code action}; disabled for a viewer who may not manage. */
-    private void setting(UICommandBuilder ui, UIEventBuilder events, String button, String key, String action) {
-        ui.set(button + ".Text", Message.translation(key));
-        if (fields.canManage()) {
-            ColonyPage.bind(events, button, action);
-        } else {
-            ui.set(button + ".Disabled", true);
-        }
-    }
-
-    /** Appends field row {@code i}: seed icon, distance and direction, stage, and its Assign or Free button. */
-    private void row(UICommandBuilder ui, UIEventBuilder events, String list, int i, FieldsView.Row r) {
-        String sel = list + "[" + i + "]";
-        ui.append(list, "Pages/HyColony/FieldRow.ui");
+    /** Fills field row {@code sel}: seed icon, distance and direction, stage, Locate and the assign box. */
+    private void row(UICommandBuilder ui, UIEventBuilder events, String sel, FieldsView.Row r) {
         r.seed().ifPresent(seed -> ui.set(sel + " #Icon.ItemId", seed.id()));
         ui.set(
                 sel + " #Distance.TextSpans",
                 Message.translation("hycolony.ui.fields.distance")
                         .param("p0", String.valueOf(r.distance()))
                         .param("p1", Message.translation("hycolony.ui.direction." + r.direction())));
-        String stage = r.seed().isEmpty()
-                ? "hycolony.ui.fields.noseed"
-                : "hycolony.ui.fields.stage." + r.stage().name().toLowerCase(Locale.ROOT);
-        Message stageLine = Message.translation(stage);
-        if (r.doneToday()) {
-            stageLine =
-                    Message.join(stageLine, Message.raw(" - "), Message.translation("hycolony.ui.fields.doneToday"));
+        if (r.seed().isPresent()) { // MC: without a seed, no stage
+            stage(ui, sel, r);
         }
-        ui.set(sel + " #Stage.TextSpans", stageLine);
-        ColonyPage.bind(events, sel + " #LocateButton", "fieldLocate", i);
+        String ref = ref(r);
+        ColonyPage.bindRef(events, sel + " #Locate", "fieldLocate", ref);
         if (Highlights.isActive(player, r.field())) {
             ui.set(sel + " #LocateIcon.Visible", false);
             ui.set(sel + " #LocateIconOn.Visible", true);
         }
-        String button = sel + " #AssignButton";
-        ui.set(
-                button + ".Text",
-                Message.translation(r.owned() ? "hycolony.ui.fields.free" : "hycolony.ui.fields.assign"));
+        String box = sel + (r.owned() ? " #Owned" : " #Free");
+        ui.set(box + ".Visible", true);
         if (!fields.canAssign()) {
-            ui.set(button + ".Disabled", true);
+            ui.set(box + ".Disabled", true);
         } else if (r.refusal().isPresent()) {
-            ui.set(button + ".Disabled", true);
-            ui.set(button + ".TooltipText", Message.translation(r.refusal().get()));
+            ui.set(box + ".Disabled", true);
+            ui.set(
+                    box + ".TooltipTextSpans",
+                    Message.translation(r.refusal().get()).color(REFUSAL_COLOR));
         } else {
-            ColonyPage.bind(events, button, "fieldAssign", i);
+            ColonyPage.bindRef(events, box, "fieldAssign", ref);
         }
     }
 
-    /** Mode, fertilizer, then Assign or Free for the row's field. The core re-shows the window. */
+    /** MC: "Stage:" and the stage, "Current: …" and "Next: …" as tooltip; HyColony adds "done today" after it. */
+    private static void stage(UICommandBuilder ui, String sel, FieldsView.Row r) {
+        ui.set(sel + " #StageLabel.Text", Message.translation("hycolony.ui.fields.status"));
+        Message stage = stageName(r.stage());
+        ui.set(
+                sel + " #Stage.TextSpans",
+                r.doneToday()
+                        ? Message.join(stage, Message.raw(" - "), Message.translation("hycolony.ui.fields.doneToday"))
+                        : stage);
+        ui.set(
+                sel + " #Stage.TooltipTextSpans",
+                Message.join(
+                        Message.translation("hycolony.ui.fields.status.current").param("p0", stage),
+                        Message.raw("\n"),
+                        Message.translation("hycolony.ui.fields.status.next")
+                                .param("p0", stageName(r.stage().next()))));
+    }
+
+    private static Message stageName(FieldStage stage) {
+        return Message.translation("hycolony.ui.fields.stage." + stage.name().toLowerCase(Locale.ROOT));
+    }
+
+    /** A row's stable id in events: its field's position, so a refresh that moves rows still names the right one. */
+    private static String ref(FieldsView.Row r) {
+        return r.field().x() + "," + r.field().y() + "," + r.field().z();
+    }
+
+    private Optional<FieldsView.Row> row(ColonyPage.Act act) {
+        return fields.rows().stream().filter(r -> ref(r).equals(act.ref())).findFirst();
+    }
+
+    /** Mode, then the assign box or Locate of the row's field. The core re-shows the window. */
     @Override
     public void handle(ColonyPage.Act act) {
         FieldActions actions = new FieldActions(manager);
         switch (act.action()) {
             case "fieldsMode" -> actions.toggleMode(player, hut);
-            case "fieldsFertilize" -> actions.toggleFertilize(player, hut);
-            case "fieldAssign" -> assignOrFree(actions, act.index());
-            case "fieldLocate" -> locate(act.index());
+            case "fieldAssign" -> row(act).ifPresent(r -> assignOrFree(actions, r));
+            case "fieldLocate" -> row(act).ifPresent(r -> Highlights.toggle(player, highlight(r)));
             default -> {} // BuildingPage offers every action to every tab
         }
     }
@@ -135,27 +152,13 @@ final class FieldsTab implements HutTab {
         return act.action().equals("fieldLocate");
     }
 
-    /**
-     * Highlights the row's field for the viewer, or turns the highlight off, to find it in a large colony; an unknown
-     * row does nothing.
-     */
-    private void locate(int index) {
-        if (index >= 0 && index < fields.rows().size()) {
-            Highlights.toggle(player, highlight(fields.rows().get(index)));
-        }
-    }
-
     /** A field as highlighted: its block glows, a "Field" marker on the map. */
     private static Highlight highlight(FieldsView.Row row) {
         return new Highlight(row.field(), Message.translation("hycolony.ui.fields.marker"));
     }
 
-    /** Frees the row's field if the hut owns it, else assigns it; an unknown row does nothing. */
-    private void assignOrFree(FieldActions actions, int index) {
-        if (index < 0 || index >= fields.rows().size()) {
-            return;
-        }
-        FieldsView.Row r = fields.rows().get(index);
+    /** Frees the row's field if the hut owns it, else assigns it (MC AssignFieldMessage). */
+    private void assignOrFree(FieldActions actions, FieldsView.Row r) {
         if (r.owned()) {
             actions.free(player, hut, r.field());
         } else {

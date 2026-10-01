@@ -9,6 +9,7 @@ import dev.hycolony.core.citizen.home.ResidentsView;
 import dev.hycolony.core.construction.hut.WorkOrderListView;
 import dev.hycolony.core.construction.resources.BuilderResourcesView;
 import dev.hycolony.core.crafting.module.RecipesView;
+import dev.hycolony.core.crafting.task.CrafterTasksView;
 import dev.hycolony.core.farming.hut.FieldsView;
 import dev.hycolony.core.logistics.courier.CourierTasksView;
 import dev.hycolony.core.logistics.warehouse.CourierAssignmentView;
@@ -37,11 +38,12 @@ public final class HutTabs {
             case BuilderResourcesView r -> Optional.of(new BuilderResourcesTab(manager, player, view.pos(), r));
             case SettingsView s -> Optional.of(new SettingsTab(manager, player, view.pos(), s));
             case WorkOrderListView o -> Optional.of(new BuilderOrdersTab(manager, player, view.pos(), o));
-            case CourierAssignmentView c -> Optional.of(new WarehouseCouriersTab(c));
-            case WarehouseTasksView w -> Optional.of(new WarehouseTasksTab(w.queue()));
-            case CourierTasksView c -> Optional.of(new CourierTasksTab(c));
+            case CourierAssignmentView c -> Optional.of(new WarehouseCouriersTab(manager, player, view, c));
+            case WarehouseTasksView w -> Optional.of(new TasksTab(w.queue(), Optional.empty()));
+            case CourierTasksView c -> Optional.of(TasksTab.courier(c));
+            case CrafterTasksView c -> Optional.of(new TasksTab(c.tasks(), Optional.empty()));
             case FieldsView f -> Optional.of(new FieldsTab(manager, player, view.pos(), f));
-            case RecipesView r -> Optional.of(new RecipesTab(manager, player, view.pos(), r, view.canManage()));
+            case RecipesView r -> Optional.of(new RecipesTab(manager, player, view, r));
             // MC LivingBuildingModuleView has no page: the residence's main page and assign window show it.
             case ResidentsView _ -> Optional.empty();
             default -> {

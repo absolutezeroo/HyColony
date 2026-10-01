@@ -18,6 +18,7 @@ import dev.hycolony.core.app.ui.BuildingView;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.port.Msg;
 import dev.hycolony.plugin.adapter.HytaleNotifier;
+import dev.hycolony.plugin.ui.BuildingPage;
 import dev.hycolony.plugin.ui.ColonyPage;
 import dev.hycolony.plugin.ui.highlight.Highlight;
 import dev.hycolony.plugin.ui.highlight.Highlights;
@@ -37,13 +38,14 @@ public final class HutInventoryPage extends ColonyPage implements HutWindow {
     private static final String LIST = "#Items";
     /** MC WindowHutAllInventory.ressourceStackName: the name is cut to its first 17 characters. */
     private static final int NAME_LENGTH = 17;
-    /** MC's sortDescriptor is static, kept for the game session: here, per player until the server stops. */
+    /**
+     * Deviation from MC: its sortDescriptor is a static field of the client, kept for the game session; the server
+     * keeps one per player until it stops.
+     */
     private static final Map<UUID, HutStockOrder.Sort> SORTS = new ConcurrentHashMap<>();
 
     private final BuildingView view;
     private String filter = "";
-    /** The rows shown, in order: Locate names its row by index into this list. */
-    private List<HutStock> shown = List.of();
 
     public HutInventoryPage(PlayerRef playerRef, ColonyManager manager, BuildingView view) {
         super(playerRef, manager);
@@ -90,10 +92,14 @@ public final class HutInventoryPage extends ColonyPage implements HutWindow {
         list(ui, events);
     }
 
-    /** The sort label and the rows, in MC's order. */
+    /**
+     * The sort label and the rows, in MC's order. Deviation from MC: no Shift for the exact quantity (no modifier key
+     * event); the abbreviated one shows.
+     */
     private void list(UICommandBuilder ui, UIEventBuilder events) {
         ui.set("#Sort.Text", sort().label());
-        shown = HutStockOrder.sorted(view.stock(), s -> name(s.item().id()), filter, sort());
+        List<HutStock> shown =
+                HutStockOrder.sorted(view.stock(), s -> name(s.item().id()), filter, sort());
         for (int i = 0; i < shown.size(); i++) {
             HutStock s = shown.get(i);
             String row = LIST + "[" + i + "]";
@@ -102,7 +108,8 @@ public final class HutInventoryPage extends ColonyPage implements HutWindow {
             String name = name(s.item().id());
             ui.set(row + " #Name.Text", name.substring(0, Math.min(NAME_LENGTH, name.length())));
             ui.set(row + " #Count.Text", HutStock.abbreviate(s.count()));
-            bind(events, row + " #Locate", "locate", i);
+            // The item's id, not the row: a page a live refresh did not redraw still finds it.
+            bindRef(events, row + " #Locate", "locate", s.item().id());
         }
     }
 
@@ -125,8 +132,12 @@ public final class HutInventoryPage extends ColonyPage implements HutWindow {
                 SORTS.put(player, sort().next());
                 redrawList();
             }
-            case "locate" -> locate(act.index());
-            case "back" -> manager.windows().openBuilding(player, view.pos());
+            case "locate" ->
+                view.stock().stream()
+                        .filter(s -> s.item().id().equals(act.ref()))
+                        .findFirst()
+                        .ifPresent(this::locate);
+            case "back" -> BuildingPage.back(ref, store, playerRef, view, manager);
             default -> {}
         }
     }
@@ -139,12 +150,12 @@ public final class HutInventoryPage extends ColonyPage implements HutWindow {
         sendUpdate(ui, events, false);
     }
 
-    /** MC locate: closes the window, says {@code coremod.locating} and highlights each container holding the item. */
-    private void locate(int row) {
-        if (row < 0 || row >= shown.size()) {
-            return;
-        }
-        HutStock s = shown.get(row);
+    /**
+     * MC locate: closes the window, says {@code coremod.locating} and highlights for 60 s each container holding the
+     * item. Deviation from MC: a glow and a map marker named "item count" for each, without MC's red-to-green colour
+     * by count (a glowing block has no colour), and it replaces any highlight the player had (MC clears only its own).
+     */
+    private void locate(HutStock s) {
         playerRef.sendMessage(HytaleNotifier.toMessage(Msg.of("hycolony.hut.locating")));
         close();
         Highlights.showAll(

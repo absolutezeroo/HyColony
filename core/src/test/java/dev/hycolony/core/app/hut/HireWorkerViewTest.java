@@ -17,6 +17,7 @@ import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.testing.TestContexts;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
@@ -73,6 +74,24 @@ class HireWorkerViewTest {
     }
 
     @Test
+    void homesInTheSame40BlockBucketSortByName() {
+        citizen(1, "Zed", new BlockPos(55, 64, 0)); // 25 blocks: 40 once rounded
+        citizen(2, "Abe", new BlockPos(65, 64, 0)); // 35 blocks: 40 once rounded
+        assertEquals(List.of("Abe", "Zed"), names(view().listed(false)));
+    }
+
+    @Test
+    void aHutThatMayNotAssignYetIsFullAsMc() {
+        BlockPos farmPos = new BlockPos(-30, 64, 0);
+        manager.huts().place(colony, dev.hycolony.core.farming.hut.FarmerHut.TYPE_ID, farmPos, 0, alice);
+        citizen(1, "Ann", null);
+        manager.windows().openBuilding(alice, farmPos);
+        HireView v = ((BuildingView) t.ui.shown.get(alice)).hire().orElseThrow();
+        assertTrue(v.full(), "MC isFull: !allowsAssignment() || full");
+        assertEquals(HireView.Button.NONE, v.button(v.all().getFirst(), false));
+    }
+
+    @Test
     void workersOfOtherHutsShowOnlyWithShowEmployedAndLast() {
         citizen(1, "Free", null);
         hire(other, citizen(2, "Busy", null));
@@ -121,7 +140,7 @@ class HireWorkerViewTest {
         assertEquals(w.primary(), order.get(0));
         assertEquals(w.secondary(), order.get(1));
         assertEquals(Skill.values().length, order.size());
-        assertEquals(w.primary(), v.primary());
+        assertEquals(Optional.of(w.primary()), v.primary());
     }
 
     @Test

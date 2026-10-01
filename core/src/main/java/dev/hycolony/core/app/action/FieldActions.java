@@ -9,7 +9,6 @@ import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.farming.field.FarmField;
 import dev.hycolony.core.farming.field.FieldRadii;
 import dev.hycolony.core.farming.hut.FarmerFieldsModule;
-import dev.hycolony.core.farming.hut.FarmerSettingsModule;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemKey;
@@ -104,15 +103,6 @@ public final class FieldActions {
                 .fields()
                 .free(farm.get().hut().colony(), farm.get().hut().building(), x));
         return f.isPresent() && shown(farm.get(), player);
-    }
-
-    /** The Request Fertilizer setting (MC FERTILIZE), on or off. */
-    public boolean toggleFertilize(UUID player, BlockPos hutPos) {
-        Optional<Farm> farm = farm(player, hutPos);
-        Optional<FarmerSettingsModule> settings =
-                farm.flatMap(f -> f.hut().building().module(FarmerSettingsModule.class));
-        settings.ifPresent(s -> s.setFertilize(!s.fertilize()));
-        return settings.isPresent() && shown(farm.get(), player);
     }
 
     /** A farmer hut the player may manage, with its fields module. */

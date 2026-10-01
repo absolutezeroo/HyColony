@@ -20,7 +20,7 @@ Group {
   }
 
   Label #Skills {
-    Anchor: (Left: 4, Top: 36, Width: 740, Height: 32);
+    Anchor: (Left: 4, Top: 36, Width: 600, Height: 32);
     Style: (FontSize: 11, TextColor: #000000, Wrap: true, VerticalAlignment: Start);
     TextTooltipStyle: $C.@DefaultTextTooltipStyle;
   }

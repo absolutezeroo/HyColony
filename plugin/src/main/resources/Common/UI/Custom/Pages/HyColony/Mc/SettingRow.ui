@@ -26,7 +26,7 @@ Group {
 
   TextButton #String {
     Anchor: (Left: 10, Top: 50, Width: 290, Height: 34);
-    Style: $B.@WideButtonDisabledStyle;
+    Style: $B.@WideButtonStyle;
     Text: "";
     Visible: false;
   }

@@ -9,17 +9,19 @@ import java.util.Optional;
 
 /**
  * A farmer hut's Fields tab (MC FarmFieldsModuleWindow): the assignment mode, {@code owned} of {@code max} fields in
- * use, the Request Fertilizer setting, and one row per field free or owned by the hut, owned first, then by distance.
+ * use, and one row per field free or owned by the hut, owned first, then by distance.
  */
-public record FieldsView(boolean manual, int owned, int max, boolean fertilize, List<Row> rows, boolean canManage)
-        implements ModuleTab {
+public record FieldsView(boolean manual, int owned, int max, List<Row> rows) implements ModuleTab {
     public FieldsView {
         rows = List.copyOf(rows);
     }
 
-    /** Whether the player may assign or free fields: a manager, in manual mode (MC FarmFieldsModuleWindow). */
+    /**
+     * Whether the Assign buttons are enabled: in manual mode, for every viewer (MC FarmFieldsModuleWindow; the core
+     * refuses a player without MANAGE_HUTS).
+     */
     public boolean canAssign() {
-        return canManage && manual;
+        return manual;
     }
 
     /**
