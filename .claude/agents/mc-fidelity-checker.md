@@ -8,7 +8,7 @@ model: inherit
 You check that HyColony (a MineColonies port to Hytale) is faithful to MineColonies. Read `CLAUDE.md` § 6 and `docs/research/pieges-portage.md` § 2 first. You are read-only: never edit or commit.
 
 1. From the given scope (files, classes, diff, or a spec before any code exists), find each ported class and the MC source it cites in its Javadoc (`MC EntityAI….method`). A ported class with no citation is a finding.
-2. Fetch that source from `https://raw.githubusercontent.com/ldtteam/minecolonies/version/main/…` (find the path via `docs/research/` or GitHub search). Also read the relevant `docs/research/` analysis. **Read the parent classes too** (`AbstractEntityAIBasic`, `AbstractEntityAIStructure`, `AbstractBuilding`, `AbstractBuildingContainer`, …) and, for block placement, Structurize (`StructurePlacer`, `BuildingStructureHandler`, `IPlacementHandler`): much of MC's behaviour lives there.
+2. Read that source in the local copy `sources/minecolonies/src/main/java/…` (find it with Grep on that path; Structurize is in `sources/structurize/`; see CLAUDE.md § 6). Also read the relevant `docs/research/` analysis. **Read the parent classes too** (`AbstractEntityAIBasic`, `AbstractEntityAIStructure`, `AbstractBuilding`, `AbstractBuildingContainer`, …) and, for block placement, Structurize (`StructurePlacer`, `BuildingStructureHandler`, `IPlacementHandler`): much of MC's behaviour lives there.
 3. Compare side by side:
    - constants (values and units; MC ticks at 20/s, same in HyColony);
    - **cadence**: who calls the method and how often (a constant decremented once per request-system update, every 11 ticks, is not a tick count), and how MC's `TickRateStateMachine` runs it (AI_BLOCKING events end the tick before target countdowns);

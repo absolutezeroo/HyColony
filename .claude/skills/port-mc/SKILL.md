@@ -8,7 +8,7 @@ argument-hint: <MineColonies class or system, e.g. EntityAIWorkLumberjack>
 Port `$ARGUMENTS` from MineColonies to HyColony. CLAUDE.md applies in full; this is the order of work.
 
 1. **Process gate (§ 9).** A new system needs a validated design, a spec in `docs/superpowers/specs/` and a plan in `docs/superpowers/plans/` before code. A small change needs a short design validated in the conversation. Don't skip it.
-2. **Read the source.** Fetch the MC class(es) from `github.com/ldtteam/minecolonies`, branch `version/main` (raw URLs under `raw.githubusercontent.com/ldtteam/minecolonies/version/main/`). Read `docs/research/` first; an analysis may already exist. Note every constant, formula, state and transition, in ticks.
+2. **Read the source.** Read the MC class(es) in the local copy `sources/minecolonies/src/main/java/…` (see CLAUDE.md § 6). Read `docs/research/` first; an analysis may already exist. Note every constant, formula, state and transition, in ticks.
    - **Read the parent classes too** (`AbstractEntityAIBasic`, `AbstractEntityAIStructure`, `AbstractBuilding`, `AbstractBuildingContainer`; Structurize `StructurePlacer` for block placement) and list what they add: much of MC's behaviour lives there. What a parent shared by all workers does goes in `job/work`, never in one job.
    - **Note the cadence** of each method (who calls it, how often, in which state machine) next to its constants: a constant only means something with its call rate.
    - **List whole branches**, even rare ones (a 5 % chance, a fallback): leaving one out is a deviation to mark.

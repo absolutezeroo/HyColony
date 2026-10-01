@@ -73,7 +73,7 @@ HyColony porte MineColonies sur Hytale 0.7.0-pre.4 (Update 7, épinglé dans `gr
 - Chaque système porté cite sa source MineColonies dans sa Javadoc (`MC EntityAIStructureBuilder.placeBlock`).
 - Constantes et formules reprises telles quelles, en ticks (chaque cœur tourne à 20 ticks/s).
 - Un écart (contrainte Hytale, bug de MC corrigé, ajout demandé) porte un commentaire `Deviation from MC: …` et figure dans la spec du sous-projet.
-- Référence : `github.com/ldtteam/minecolonies`, branche `version/main`, et les analyses de `docs/research/`.
+- Référence : MineColonies, branche `version/main`, et les analyses de `docs/research/`. Les sources de MineColonies, Structurize, BlockUI et Domum Ornamentum sont copiées dans `sources/`, et on les lit là. Ce dossier est ignoré par git : il faut le passer comme chemin à Grep, car une recherche depuis la racine ne le voit pas. Depuis un worktree, on lit `sources/` du dépôt principal par son chemin absolu. GitHub (`github.com/ldtteam/<dépôt>`) ne sert que pour un fichier absent.
 
 ## 7. Textes et fenêtres
 

@@ -12,6 +12,7 @@ run/
 .vscode
 .superpowers/
 /server/
+/sources/
 # Each mod's local dev config: runAllMods hard-links it into run/mods/ and reads it (split spec, dev config)
 plugin/src/main/resources/config.json
 plugin/src/main/resources/config.json.bak

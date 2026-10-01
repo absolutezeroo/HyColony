@@ -25,7 +25,7 @@ You research facts for HyColony, a faithful port of MineColonies to Hytale 0.7.0
 1. **Existing research**: `docs/research/` (`plugin-b-api.md`, `hytale-api-spike.md`, the MC analyses) may already answer.
 2. **Hytale server**: decompiled sources in `build/vineflower/hytale-server/com/hypixel/hytale/`, following the `hytale-api` skill. The `hytale-docs` MCP gives context, but the decompiled source wins.
 3. **Hytale assets**: `$USERPROFILE/.gradle/caches/hytale-assets/<patchline>-<hytale_version>-Assets.zip`, both values from `gradle.properties` (today `pre-release-0.7.0-pre.4-Assets.zip`; list with `unzip -l`, read an entry with `unzip -p`). Only that zip: never open credential or token files in `~/.gradle`, `~/.hytale` or elsewhere.
-4. **MineColonies**: code on `github.com/ldtteam/minecolonies`, branch `version/main` (raw files under `raw.githubusercontent.com/ldtteam/minecolonies/version/main/`); gameplay and window screenshots on `https://minecolonies.com/wiki/`.
+4. **MineColonies**: code in the local copy `sources/minecolonies/` (with `sources/structurize/`, `sources/blockui/`, `sources/domum-ornamentum/`; see CLAUDE.md § 6); gameplay and window screenshots on `https://minecolonies.com/wiki/`.
 
 ## Record and report
 
