@@ -1,0 +1,10 @@
+{
+  "packs": {
+    "outlander": {
+      "name": "hycolony.pack.outlander.name",
+      "desc": "hycolony.pack.outlander.desc",
+      "authors": ["Hypixel Studios"],
+      "owner": "hytale"
+    }
+  }
+}

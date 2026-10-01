@@ -12,6 +12,7 @@ import dev.hycolony.core.job.JobRegistry;
 import dev.hycolony.core.kernel.config.FeatureFlags;
 import dev.hycolony.core.kernel.config.JsonFragments;
 import dev.hycolony.plugin.IdMap;
+import dev.hycolony.plugin.prefab.PrefabPacks;
 import dev.hycolony.plugin.prefab.PrefabStyles;
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,6 +42,9 @@ public final class SubPlugins {
     private static final String ID_MAP = "id-map.json";
     private static final String STYLES = "styles.json";
     private static final String CRAFTING = "crafting.json";
+    private static final String PACKS = "packs.json";
+    /** packs.json merges key by key inside its sections (layout, packs); a pack is defined once. */
+    private static final int PACKS_DEPTH = 1;
     /** id-map.json merges key by key inside its sections (items, blocks...). */
     private static final int ID_MAP_DEPTH = 1;
     /** styles.json merges key by key inside a style and its building types; a level is defined once. */
@@ -116,6 +120,7 @@ public final class SubPlugins {
     private static void checkFragments(String name) {
         BundledPacks.fragment(name, ID_MAP).ifPresent(IdMap::of);
         BundledPacks.fragment(name, STYLES).ifPresent(PrefabStyles::of);
+        BundledPacks.fragment(name, PACKS).ifPresent(PrefabPacks::of);
         // CraftingRules skips a bad entry itself (logged once merged): only a file that is not a JSON object fails.
         BundledPacks.fragment(name, CRAFTING);
     }
@@ -143,6 +148,11 @@ public final class SubPlugins {
     /** The core styles merged with the enabled packs' fragments; styles come in pack order. */
     public PrefabStyles styles() {
         return PrefabStyles.of(merged(STYLES, STYLES_DEPTH));
+    }
+
+    /** The core's packs.json (hut layout, pack metadata) merged with the enabled packs' fragments. */
+    public PrefabPacks packs() {
+        return PrefabPacks.of(merged(PACKS, PACKS_DEPTH));
     }
 
     /**

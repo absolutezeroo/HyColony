@@ -11,6 +11,19 @@ public interface BlueprintSource {
 
     List<String> styles();
 
+    /** The style's pack metadata (ST pack.json); {@link PackInfo#defaults} when the source has none. */
+    default PackInfo pack(String style) {
+        return PackInfo.defaults(style);
+    }
+
+    /**
+     * The blueprint folder of a hut type, as the packs of MC lay them out ({@code fundamentals},
+     * {@code craftsmanship/storage}); {@link PackInfo#DEFAULT_CATEGORY} when the source names none.
+     */
+    default String category(String buildingTypeId) {
+        return PackInfo.DEFAULT_CATEGORY;
+    }
+
     /**
      * The fill block of a builder hut that chose none (MC BUILDER_SETTINGS fillblock, dirt by default); empty when
      * the source has none, and fill cells then stay as the world has them.

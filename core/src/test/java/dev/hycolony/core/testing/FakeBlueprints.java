@@ -3,6 +3,7 @@ package dev.hycolony.core.testing;
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.BlueprintEntry;
 import dev.hycolony.core.construction.blueprint.BlueprintSource;
+import dev.hycolony.core.construction.blueprint.PackInfo;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockKind;
@@ -36,6 +37,12 @@ public final class FakeBlueprints implements BlueprintSource {
     private final Map<String, Blueprint> plans = new HashMap<>();
     /** Every load, as "style/type/level". */
     public final List<String> loads = new ArrayList<>();
+    /** The styles offered; every style has the same plans. */
+    public final List<String> styleIds = new ArrayList<>(List.of(STYLE));
+    /** Pack metadata by style; absent = {@link PackInfo#defaults}. */
+    public final Map<String, PackInfo> packs = new HashMap<>();
+    /** Blueprint folder by hut type; absent = {@link PackInfo#DEFAULT_CATEGORY}. */
+    public final Map<String, String> categories = new HashMap<>();
 
     /** Kinds and items of the blocks above; every stack holds 64. */
     public static void registerBlocks(FakeCatalog catalog) {
@@ -65,7 +72,17 @@ public final class FakeBlueprints implements BlueprintSource {
 
     @Override
     public List<String> styles() {
-        return List.of(STYLE);
+        return styleIds;
+    }
+
+    @Override
+    public PackInfo pack(String style) {
+        return packs.getOrDefault(style, PackInfo.defaults(style));
+    }
+
+    @Override
+    public String category(String buildingTypeId) {
+        return categories.getOrDefault(buildingTypeId, PackInfo.DEFAULT_CATEGORY);
     }
 
     public static BlockState state(BlockKey key) {

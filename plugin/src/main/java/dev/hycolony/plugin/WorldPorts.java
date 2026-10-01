@@ -14,6 +14,7 @@ import dev.hycolony.plugin.farming.HytaleFarming;
 import dev.hycolony.plugin.food.HytaleCookingCatalog;
 import dev.hycolony.plugin.food.HytaleCookingStations;
 import dev.hycolony.plugin.prefab.HytaleBlueprintSource;
+import dev.hycolony.plugin.prefab.PackedBlueprints;
 
 /** The construction adapters of one world, for its {@link WorldRuntime}. */
 final class WorldPorts {
@@ -27,7 +28,7 @@ final class WorldPorts {
                 worldBlocks,
                 new HytaleContainerAccess(world, catalog.stacks()),
                 new HytalePlayerInventory(world, catalog.stacks()),
-                new HytaleBlueprintSource(ids, setup.styles(), catalog),
+                new PackedBlueprints(new HytaleBlueprintSource(ids, setup.styles(), catalog), setup.packs()),
                 new HytaleWorldEffects(
                         world,
                         ids.fireworks(),

@@ -1,0 +1,10 @@
+{
+  "packs": {
+    "kweebec": {
+      "name": "hycolony.pack.kweebec.name",
+      "desc": "hycolony.pack.kweebec.desc",
+      "authors": ["Hypixel Studios"],
+      "owner": "hytale"
+    }
+  }
+}

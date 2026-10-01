@@ -1,0 +1,12 @@
+{
+  "layout": {
+    "hycolony:townhall": "fundamentals",
+    "hycolony:builder": "fundamentals",
+    "hycolony:cook": "fundamentals",
+    "hycolony:residence": "fundamentals",
+    "hycolony:deliveryman": "craftsmanship/storage",
+    "hycolony:warehouse": "craftsmanship/storage",
+    "hycolony:farmer": "agriculture/horticulture"
+  },
+  "packs": {}
+}

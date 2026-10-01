@@ -5,18 +5,20 @@ import dev.hycolony.core.building.BuildingRegistry;
 import dev.hycolony.core.crafting.recipe.CraftingRules;
 import dev.hycolony.core.job.JobRegistry;
 import dev.hycolony.core.kernel.config.ColonyConfig;
+import dev.hycolony.plugin.prefab.PrefabPacks;
 import dev.hycolony.plugin.prefab.PrefabStyles;
 import dev.hycolony.plugin.subplugin.SubPlugins;
 
 /**
  * What every world's runtime and every hut system share, built once at plugin setup: the config, the asset ids,
- * blueprint styles and crafting rules (core files merged with the enabled sub-plugins' fragments) and the one building
- * and job registry (a hut is recognised by the same registry that the colonies use).
+ * blueprint styles and their packs, crafting rules (core files merged with the enabled sub-plugins' fragments) and the
+ * one building and job registry (a hut is recognised by the same registry that the colonies use).
  */
 public record RuntimeSetup(
         ColonyConfig config,
         IdMap ids,
         PrefabStyles styles,
+        PrefabPacks packs,
         CraftingRules craftingRules,
         BuildingRegistry buildings,
         JobRegistry jobs) {
@@ -29,6 +31,6 @@ public record RuntimeSetup(
         JobRegistry jobs = new JobRegistry();
         CoreFeatures.register(buildings, jobs);
         packs.registerFeatures(buildings, jobs, ids);
-        return new RuntimeSetup(config, ids, styles, craftingRules, buildings, jobs);
+        return new RuntimeSetup(config, ids, styles, packs.packs(), craftingRules, buildings, jobs);
     }
 }
