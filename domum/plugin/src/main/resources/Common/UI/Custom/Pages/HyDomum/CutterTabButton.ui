@@ -1,8 +1,11 @@
 $C = "../../Common.ui";
 
+// The client's top tab (Common.ui @TopTabAnchor: Height 62, Right 5, Bottom -14), 74 wide instead of 82 so that the
+// nine groups fit the frame. CutterDrawing raises the open one (Bottom 4), as the client's selected tab: its TAB_*
+// constants repeat this anchor, change them together.
 // Children are placed absolutely: in a layout, the selection overlay would push the icon aside.
 Button #TabButton {
-  Anchor: (Width: 70, Height: 56, Right: 4);
+  Anchor: (Width: 74, Height: 62, Right: 5, Bottom: -14);
   Style: (
     Default: (Background: "../../Common/Tab.png"),
     Hovered: (Background: "../../Common/Tab.png"),
@@ -16,12 +19,13 @@ Button #TabButton {
   TextTooltipStyle: $C.@DefaultTextTooltipStyle;
 
   Group #Selected {
-    Anchor: (Width: 70, Height: 56);
+    Anchor: (Width: 74, Height: 62);
     Background: "../../Common/TabSelectedOverlay.png";
     Visible: false;
   }
 
+  // The client's tab icon (@TopTabStyle IconAnchor: 44 x 44), centred.
   ItemIcon #Icon {
-    Anchor: (Width: 38, Height: 38, Left: 16, Top: 9);
+    Anchor: (Width: 44, Height: 44, Left: 15, Top: 9);
   }
 }

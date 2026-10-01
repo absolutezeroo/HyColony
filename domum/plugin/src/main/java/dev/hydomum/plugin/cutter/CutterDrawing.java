@@ -3,6 +3,8 @@ package dev.hydomum.plugin.cutter;
 import com.hypixel.hytale.protocol.packets.interface_.CustomUIEventBindingType;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
+import com.hypixel.hytale.server.core.ui.Anchor;
+import com.hypixel.hytale.server.core.ui.Value;
 import com.hypixel.hytale.server.core.ui.builder.EventData;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
@@ -13,6 +15,14 @@ import java.util.List;
 /** Draws a {@link CutterView} into Cutter.ui and binds its buttons to CutterPage's actions. */
 final class CutterDrawing {
     private static final String PAGES = "Pages/HyDomum/";
+    /** CutterTabButton.ui's anchor Width; keep in sync. */
+    private static final int TAB_WIDTH_PX = 74;
+    /** CutterTabButton.ui's anchor Height; keep in sync. */
+    private static final int TAB_HEIGHT_PX = 62;
+    /** CutterTabButton.ui's anchor Right; keep in sync. */
+    private static final int TAB_GAP_PX = 5;
+    /** The client's selected top tab (Common.ui @TopTabsStyle), against Bottom -14 for the others. */
+    private static final int RAISED_TAB_BOTTOM_PX = 4;
 
     private CutterDrawing() {}
 
@@ -44,9 +54,20 @@ final class CutterDrawing {
             ui.set(button + ".TooltipText", Message.translation(tab.nameKey()));
             bind(events, button, "group", i);
             if (tab.selected()) {
+                ui.setObject(button + ".Anchor", raisedTab());
                 ui.set("#GroupName.Text", Message.translation(tab.nameKey()));
             }
         }
+    }
+
+    /** CutterTabButton.ui's anchor lifted clear of the frame, as the client's selected tab (@TopTabsStyle Bottom 4). */
+    private static Anchor raisedTab() {
+        Anchor anchor = new Anchor();
+        anchor.setWidth(Value.of(TAB_WIDTH_PX));
+        anchor.setHeight(Value.of(TAB_HEIGHT_PX));
+        anchor.setRight(Value.of(TAB_GAP_PX));
+        anchor.setBottom(Value.of(RAISED_TAB_BOTTOM_PX));
+        return anchor;
     }
 
     /**

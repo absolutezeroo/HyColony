@@ -18,8 +18,15 @@ $C.@PageOverlay {
       LayoutMode: Top;
       Anchor: (Width: 715, Left: 38);
 
+      // Above the frame, as the client's bench tabs (Common.ui @TopTabsStyle): drawn before the container, so that
+      // their foot hides under its top edge.
+      Group #TabButtons {
+        LayoutMode: Left;
+        Anchor: (Height: 66, Left: 2);
+      }
+
       $C.@Container {
-        Anchor: (Width: 715, Height: 480);
+        Anchor: (Width: 715, Height: 416);
 
         #Title {
           $C.@Title {
@@ -29,11 +36,6 @@ $C.@PageOverlay {
 
         #Content {
           LayoutMode: Top;
-
-          Group #TabButtons {
-            LayoutMode: Left;
-            Anchor: (Height: 58, Bottom: 6);
-          }
 
           Group {
             LayoutMode: Left;
