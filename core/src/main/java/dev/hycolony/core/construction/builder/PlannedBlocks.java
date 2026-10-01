@@ -2,6 +2,7 @@ package dev.hycolony.core.construction.builder;
 
 import dev.hycolony.core.building.RegisteredBlocks;
 import dev.hycolony.core.building.module.BuildingEventsModule;
+import dev.hycolony.core.citizen.home.BedModule;
 import dev.hycolony.core.construction.blueprint.BlueprintEntry;
 import dev.hycolony.core.construction.workorder.Stage;
 import dev.hycolony.core.kernel.BlockPos;
@@ -40,18 +41,20 @@ final class PlannedBlocks {
 
     /**
      * The cells {@code from} to {@code to} (excluded) of a placing {@code stage}, which the scan skipped: those found
-     * as planned register their container and bench, once. CLEAR, REMOVE and CLEAR_LEFTOVERS place nothing.
+     * as planned register their container, bench and bed, once. CLEAR, REMOVE and CLEAR_LEFTOVERS place nothing. Beds
+     * are only looked for in a hut that keeps them, sparing a large plan a catalog lookup per cell.
      */
     void foundAsPlanned(Stage stage, int from, int to) {
         if (stage != Stage.SOLID && stage != Stage.DECORATE) {
             return;
         }
         List<BlockPos> positions = ctx.site().positions(stage);
+        boolean keepsBeds = ctx.site().target().module(BedModule.class).isPresent();
         for (int i = from; i < to; i++) {
             BlueprintEntry e = ctx.site().entry(stage, i);
             if (e.hasContainer()
                     || e.workstation().isPresent()
-                    || ctx.catalog().isBed(e.state().key())) {
+                    || (keepsBeds && ctx.catalog().isBed(e.state().key()))) {
                 registerIfAsPlanned(positions.get(i), e);
             }
         }
