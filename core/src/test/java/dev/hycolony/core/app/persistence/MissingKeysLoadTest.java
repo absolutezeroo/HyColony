@@ -75,6 +75,12 @@ class MissingKeysLoadTest {
     }
 
     @Test
+    void settingsWithoutMoveInLetCitizensMoveInAsMcsDefault() throws IOException {
+        Colony c = saveEditAndLoad(json -> json.getAsJsonObject("settings").remove("moveIn"));
+        assertTrue(c.settings().moveIn(), "MC BuildingTownHall.MOVE_IN defaults to true");
+    }
+
+    @Test
     void valuesOfAnotherTypeFallBackToTheirDefault() throws IOException {
         Colony c = saveEditAndLoad(json -> {
             json.addProperty("day", "seven");

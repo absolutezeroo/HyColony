@@ -97,15 +97,15 @@ public final class ColonyAdministration {
     }
 
     /**
-     * MC TriggerSettingMessage (MANAGE_HUTS): turns a town hall switch over, then shows the town hall again; false
-     * without the right (the player is told).
+     * MC TriggerSettingMessage (MANAGE_HUTS): sets a town hall switch to the value the window asks (MC sends the value,
+     * not a flip), then shows the town hall again; false without the right (the player is told).
      */
-    public boolean toggle(UUID actor, int colonyId, ColonySettings.Toggle toggle) {
+    public boolean setSetting(UUID actor, int colonyId, ColonySettings.Toggle toggle, boolean value) {
         Colony c = manager.byId(colonyId).orElse(null);
         if (c == null || !allowed(c, actor)) {
             return false;
         }
-        c.settings().flip(toggle);
+        c.settings().set(toggle, value);
         c.markDirty();
         windows.showTownHall(c, actor);
         return true;

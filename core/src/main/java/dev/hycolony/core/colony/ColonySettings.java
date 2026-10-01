@@ -49,12 +49,12 @@ public final class ColonySettings {
         };
     }
 
-    /** MC BoolSetting.trigger: turns {@code toggle} over. */
-    public void flip(Toggle toggle) {
+    /** MC SettingsModule.updateSetting: sets {@code toggle} to {@code value}. */
+    public void set(Toggle toggle, boolean value) {
         switch (toggle) {
-            case MOVE_IN -> moveIn = !moveIn;
-            case AUTO_HIRING -> autoHiring = !autoHiring;
-            case AUTO_HOUSING -> autoHousing = !autoHousing;
+            case MOVE_IN -> moveIn = value;
+            case AUTO_HIRING -> autoHiring = value;
+            case AUTO_HOUSING -> autoHousing = value;
         }
     }
 

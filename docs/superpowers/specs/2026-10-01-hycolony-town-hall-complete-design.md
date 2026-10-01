@@ -38,7 +38,7 @@ Références :
 
 ### 3.2 Vues et actions
 
-- Chaque onglet lit une partie de `TownHallView`, qui devient un record par onglet (`TownHallView.Actions`, `.Info`, `.Citizens`, `.Settings`, `.Permissions`), construit par `TownHallViews`. Seule la partie de l'onglet ouvert est utile, mais le coût de construction est faible ; on garde une seule vue pour rester simple.
+- Chaque onglet lit une partie de `TownHallView`, qui devient un record par onglet (`TownHallView.Home`, `.Info`, `.Settings`, `.Permissions`, et la liste `citizens`), construit par `TownHallViews`. Seule la partie de l'onglet ouvert est utile, mais le coût de construction est faible ; on garde une seule vue pour rester simple.
 - Chaque bouton appelle une action du cœur, qui vérifie la permission de MC puis réaffiche la fenêtre (§ 7 de CLAUDE.md). Permission par défaut d'un message de colonie MC : `MANAGE_HUTS` ; les messages de permissions vérifient `EDIT_PERMISSIONS` (Inv., « Règle commune »).
 - L'onglet ouvert reste l'état de la page (`keepTabOf`), comme aujourd'hui.
 
@@ -62,7 +62,7 @@ Les libellés reprennent ceux de MC (`sources/minecolonies/.../lang/manual_en_us
 
 Page de gauche :
 
-- **Grand ruban** : le nom de l'hôtel de ville suivi de son niveau, « Town Hall 5 » (`WindowMainPage.java:93-94`). `TownHallView.Actions` reçoit le niveau.
+- **Grand ruban** : le nom de l'hôtel de ville suivi de son niveau, « Town Hall 5 » (`WindowMainPage.java:93-94`). `TownHallView.Home` reçoit le niveau.
 - **En-tête vert** « Colony Name: » (`layoutactions.xml:4`, clé MC `currtownhallname`), puis le crayon et le nom en texte (`:6-9`), aux positions de MC doublées. Le champ de saisie en ligne disparaît.
 - **Crayon** : visible pour tous, comme MC ; il ouvre la fenêtre de renommage (§ 4.2). Le cœur refuse sans `MANAGE_HUTS` avec le message de MC (`TOOL_PERMISSION_SCEPTER_PERMISSION_DENY`), comme pour toute action de colonie.
 - **Build Options** (`build`, texture `builder_button_medium_large_build`) : sans ordre en cours, il ouvre la fenêtre de construction (§ 4.3) ; avec un ordre en cours, son libellé devient « Annuler la construction / l'amélioration / la réparation / la déconstruction » et un clic annule l'ordre (`AbstractBuildingMainWindow.buildClicked`, l. 65-86 ; action existante `WorkOrderActions.cancel`).
@@ -108,7 +108,7 @@ Elle remplace le sous-panneau `BuildOptionsPanel` de la fenêtre de hutte : le b
 
 ## 7. Lot 4 : Réglages (`WindowSettings`, `layoutsettings.xml`)
 
-- Un bouton marche/arrêt par réglage, aux positions de MC : **movein**, **job** (embauche automatique), **housing** (logement automatique). Chacun déclenche `ColonyAdministration.toggle`, `MANAGE_HUTS` (`TriggerSettingMessage.java:88-93`), puis réaffiche l'onglet.
+- Un bouton marche/arrêt par réglage, aux positions de MC : **movein**, **job** (embauche automatique), **housing** (logement automatique). Chacun envoie la valeur inverse de celle affichée à `ColonyAdministration.setSetting`, qui la pose (pas d'inversion côté serveur, comme MC), `MANAGE_HUTS` (`TriggerSettingMessage.java:88-93`), puis réaffiche l'onglet.
 - **Cœur** : `ColonySettings` gagne `moveIn` (défaut vrai, persisté). L'arrivée des citoyens initiaux le respecte (`CitizenManager.java:233` chez MC).
 - Messages d'entrée et de sortie, ruban de chantier : absents (C).
 
@@ -124,7 +124,7 @@ Trois sous-pages, tournées par `<` `>` avec leur numéro. Sans `EDIT_PERMISSION
 2. **Rangs** :
    - champ + « Ajouter un rang » : nom non vide et unique, premier identifiant libre au-delà des rangs initiaux (`Permissions.java:1054-1068`) ;
    - liste des rangs (Officier choisi par défaut) ; type du rang choisi (gestionnaire, hostile, aucun) par liste déroulante ; « Retirer » pour un rang non initial, ses joueurs passant Neutre (`:1078-1090`) ;
-   - un bouton marche/arrêt par action (les 26 de MC), désactivé quand `canAlterPermission` le refuse.
+   - un bouton marche/arrêt par action (les 27 de MC), désactivé quand `canAlterPermission` le refuse.
 3. **Blocs libres** : absente (C). La page n'est pas proposée ; `<` `>` tournent entre les deux premières.
 
 **Cœur** :
@@ -132,7 +132,7 @@ Trois sous-pages, tournées par `<` `>` avec leur numéro. Sans `EDIT_PERMISSION
 - `Permissions` : `canAlterPermission` et `alterPermission` (`Permissions.java:304-323`), l'exception du rang Neutre qui n'a jamais `EDIT_PERMISSIONS` ni `TELEPORT_TO_COLONY` (`:641`), `addRank`, `removeRank`, `setRankType`, `removePlayer`, `addPlayer`, avec les règles de MC ; persistance des rangs personnalisés (`add-migration` si le format change).
 - **Journal des refus** : chaque refus d'action (`ColonyProtection`) est noté quand la colonie a son hôtel de ville, 100 au plus, sans doublon, avec le joueur, l'action et la position ; en mémoire seulement, comme MC (`BuildingTownHall.java:110`, jamais écrit en NBT). Les actions de l'onglet refusent en silence sans `EDIT_PERMISSIONS`, comme `PermissionsMessage`.
 - **Port `PlayerDirectory`** : `name(UUID)` (joueur en ligne) et `findByName(String, Consumer<Optional<Profile>>)` : un joueur en ligne tout de suite, sinon le service de profils de Hytale que les commandes du jeu utilisent (`ArgTypes.GAME_PROFILE_LOOKUP_ASYNC`), dont la réponse revient sur le fil du monde (`docs/research/plugin-b-api.md` § 43). MC lit un cache local de profils ; Hytale n'en a pas.
-- Actions : `ColonyAdministration` délègue à une nouvelle classe `PermissionActions` (une responsabilité : modifier les permissions), `EDIT_PERMISSIONS` partout, comme `PermissionsMessage`.
+- Actions : une nouvelle classe `PermissionActions` (une responsabilité : modifier les permissions), `EDIT_PERMISSIONS` partout, comme `PermissionsMessage` ; la fenêtre l'appelle directement. `ColonyAdministration.setRank` reste pour la commande `/hycolony`.
 
 ## 9. Robustesse et persistance
 
@@ -161,10 +161,14 @@ Chacun porte un `Deviation from MC` dans le code.
 - Le rappel dit son échec quand le corps ne peut apparaître (voir § 6).
 - Les onglets Accueil, Informations, Permissions et Citoyens ne se redessinent pas en direct, pour ne pas fermer une liste ouverte ni effacer ce qui est tapé.
 - Pas de page Blocs libres dans Permissions ; le bouton des joueurs en ligne s'écrit « ... » (les polices n'ont pas l'emoji de MC).
+- La liste des joueurs en ligne ne propose que ceux du monde de la colonie (MC : tout le serveur).
+- Le propriétaire ne change jamais de rang : « Ajouter » d'un refus ne le rend pas Neutre, et la liste déroulante d'un membre ne peut pas le toucher (MC ne l'empêche que par la fenêtre).
+- Une hutte sauvée sans style montre celui de la colonie dans la fenêtre de construction.
+- Un joueur hors ligne est cherché par le service de profils de Hytale, qui répond plus tard (MC : cache local de profils).
 
-## 12. Points ouverts, à trancher au plan
+## 12. Points tranchés au plan
 
-- API Hytale pour retrouver un joueur hors ligne par son nom (§ 8).
-- Règles exactes de réservation d'un ordre par un constructeur choisi chez MC (§ 4.3).
-- Lecteurs éventuels des trois types d'événements propres à HyColony (§ 5).
-- Rendu d'une liste déroulante avec les textures de MC **[in-game]**.
+- Joueur hors ligne par son nom : service de profils de Hytale (§ 8, `docs/research/plugin-b-api.md` § 43).
+- Réservation d'un ordre par un constructeur choisi : relue au lot 1 contre MC.
+- Les types d'événements propres à HyColony restent dans le journal, mais l'onglet Informations ne montre que ceux de MC.
+- Rendu d'une liste déroulante avec les textures de MC : à noter en jeu **[in-game]** (`docs/TESTING.md`).

@@ -11,7 +11,7 @@ import java.util.UUID;
 
 /**
  * The town hall's Settings tab (MC WindowSettings): New citizens spawning, Auto Worker Hiring and Auto Citizen
- * Housing, each a switch reading On or Off (MC BoolSetting.render) that the core turns over.
+ * Housing, each a switch reading On or Off (MC BoolSetting.render) whose click asks the core for the other value.
  */
 final class TownHallSettingsTab implements TownHallTab {
     private final ColonyManager manager;
@@ -32,15 +32,17 @@ final class TownHallSettingsTab implements TownHallTab {
             String button = root + " #Switch" + t.ordinal();
             String state = settings.get(t) ? "on" : "off";
             ui.set(button + ".Text", Message.translation("hycolony.ui.townhall.setting." + state));
-            ColonyPage.bind(events, button, "toggle", t.ordinal());
+            // MC BoolSetting.trigger: the window turns the shown value over and sends the result.
+            ColonyPage.bind(events, button, settings.get(t) ? "settingOff" : "settingOn", t.ordinal());
         }
     }
 
-    /** MC TriggerSettingMessage: the core checks MANAGE_HUTS, then shows the town hall again. */
+    /** MC TriggerSettingMessage: the core checks MANAGE_HUTS, sets the value, then shows the town hall again. */
     @Override
     public Outcome handle(ColonyPage.Act act) {
-        if ("toggle".equals(act.action()) && act.index() >= 0 && act.index() < Toggle.values().length) {
-            manager.administration().toggle(player, colonyId, Toggle.values()[act.index()]);
+        boolean on = "settingOn".equals(act.action());
+        if ((on || "settingOff".equals(act.action())) && act.index() >= 0 && act.index() < Toggle.values().length) {
+            manager.administration().setSetting(player, colonyId, Toggle.values()[act.index()], on);
         }
         return Outcome.NONE;
     }

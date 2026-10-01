@@ -92,6 +92,16 @@ final class PermissionRanksPage {
                         .append("@Name", page + " #RankType.Value")
                         .append("Ref", rank),
                 false);
+        switches(ui, events, page, r);
+        if (r.initial()) {
+            ui.set(page + " #RemoveRank.Disabled", true);
+        } else {
+            ColonyPage.bindRef(events, page + " #RemoveRank", "permRemoveRank", rank);
+        }
+    }
+
+    /** The rank's actions as On/Off switches, disabled where MC canAlterPermission says no. */
+    private static void switches(UICommandBuilder ui, UIEventBuilder events, String page, TownHallView.RankRow r) {
         for (int i = 0; i < r.actions().size(); i++) {
             TownHallView.ActionState a = r.actions().get(i);
             String row = page + " #Actions[" + i + "]";
@@ -109,22 +119,18 @@ final class PermissionRanksPage {
                         row + " #Switch",
                         EventData.of("Action", a.on() ? "permDisable" : "permEnable")
                                 .append("Index", String.valueOf(a.action().ordinal()))
-                                .append("Ref", rank),
+                                .append("Ref", String.valueOf(r.id())),
                         false);
             } else {
                 ui.set(row + " #Switch.Disabled", true);
             }
         }
-        if (r.initial()) {
-            ui.set(page + " #RemoveRank.Disabled", true);
-        } else {
-            ColonyPage.bindRef(events, page + " #RemoveRank", "permRemoveRank", rank);
-        }
     }
 
     /**
      * Choosing a rank is page state; the other buttons go to the core, which shows the town hall again. Those acting
-     * on a rank name it in the event: a page a live refresh did not redraw still acts on the rank it shows.
+     * on a rank name its id in the event, so a page a live refresh did not redraw never acts on another listed rank
+     * (a removed rank's id may still be taken by a newer one, as MC reuses ids).
      */
     TownHallTab.Outcome handle(ColonyPage.Act act) {
         switch (act.action()) {

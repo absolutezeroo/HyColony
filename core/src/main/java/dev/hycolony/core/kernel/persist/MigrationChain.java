@@ -32,7 +32,7 @@ public final class MigrationChain {
      * schema 3 moved a tool's wear from the job's per-item counter onto the stack; schema 4 added the huts' plan
      * benches and the colony's recipe registry; schema 5 the colony's fields; schema 6 the residences' residents and
      * beds, the citizens' sleep and the colony's auto-housing setting; schema 7 the colony's style, its move-in
-     * setting, the event log's positions and the refused actions.
+     * setting and the event log's positions.
      */
     public static MigrationChain sp4() {
         return new MigrationChain(

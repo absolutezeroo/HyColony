@@ -26,26 +26,34 @@ class TownHallSettingsTest {
     }
 
     @Test
-    void toggleFlipsTheSettingAndShowsTheTownHallAgain() {
-        assertTrue(manager.administration().toggle(alice, colony.id(), Toggle.MOVE_IN));
+    void aSwitchSetsItsSettingAndShowsTheTownHallAgain() {
+        assertTrue(manager.administration().setSetting(alice, colony.id(), Toggle.MOVE_IN, false));
         assertFalse(colony.settings().moveIn());
         TownHallView.Settings shown = ((TownHallView) t.ui.shown.get(alice)).settings();
         assertFalse(shown.moveIn());
         assertTrue(shown.autoHiring());
         assertTrue(shown.autoHousing());
-        assertTrue(manager.administration().toggle(alice, colony.id(), Toggle.AUTO_HIRING));
+        assertTrue(manager.administration().setSetting(alice, colony.id(), Toggle.AUTO_HIRING, false));
         TownHallView.Settings hiringOff = ((TownHallView) t.ui.shown.get(alice)).settings();
         assertFalse(hiringOff.autoHiring());
-        assertTrue(hiringOff.autoHousing(), "only the switch clicked turns over");
-        assertTrue(manager.administration().toggle(alice, colony.id(), Toggle.AUTO_HOUSING));
+        assertTrue(hiringOff.autoHousing(), "only the switch clicked changes");
+        assertTrue(manager.administration().setSetting(alice, colony.id(), Toggle.AUTO_HOUSING, false));
         assertFalse(colony.settings().autoHiring());
         assertFalse(colony.settings().autoHousing());
     }
 
     @Test
-    void toggleNeedsManageHutsAndSaysSo() {
+    void aStaleClickSetsTheValueAskedInsteadOfTurningItBackAsMc() {
+        // Two managers click "Off" on the same switch: MC TriggerSettingMessage carries the value, not a flip.
+        manager.administration().setSetting(alice, colony.id(), Toggle.MOVE_IN, false);
+        manager.administration().setSetting(alice, colony.id(), Toggle.MOVE_IN, false);
+        assertFalse(colony.settings().moveIn());
+    }
+
+    @Test
+    void aSwitchNeedsManageHutsAndSaysSo() {
         UUID stranger = UUID.randomUUID();
-        assertFalse(manager.administration().toggle(stranger, colony.id(), Toggle.MOVE_IN));
+        assertFalse(manager.administration().setSetting(stranger, colony.id(), Toggle.MOVE_IN, false));
         assertTrue(colony.settings().moveIn());
         assertEquals(
                 "hycolony.permission.toolDenied",
