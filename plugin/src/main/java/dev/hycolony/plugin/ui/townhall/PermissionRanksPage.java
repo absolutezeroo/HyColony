@@ -123,8 +123,8 @@ final class PermissionRanksPage {
     }
 
     /**
-     * Choosing a rank is page state; the other buttons go to the core, which shows the town hall again. They name
-     * their rank in the event: a page a live refresh did not redraw still acts on the rank it shows.
+     * Choosing a rank is page state; the other buttons go to the core, which shows the town hall again. Those acting
+     * on a rank name it in the event: a page a live refresh did not redraw still acts on the rank it shows.
      */
     TownHallTab.Outcome handle(ColonyPage.Act act) {
         switch (act.action()) {

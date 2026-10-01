@@ -38,8 +38,8 @@ class TownHallPermissionsViewTest {
 
     @Test
     void ranksCarryTheirActionsAndWhatTheViewerMayAlter() {
-        TownHallView.RankRow owner = view(f.alice).ranks().getFirst();
-        TownHallView.RankRow friend = view(f.alice).ranks().get(Permissions.FRIEND);
+        TownHallView.RankRow owner = rank(view(f.alice), Permissions.OWNER);
+        TownHallView.RankRow friend = rank(view(f.alice), Permissions.FRIEND);
         assertEquals(Action.values().length, friend.actions().size());
         TownHallView.ActionState place = friend.actions().get(Action.PLACE_BLOCKS.ordinal());
         assertFalse(place.on());
@@ -47,12 +47,11 @@ class TownHallPermissionsViewTest {
         TownHallView.ActionState ownEdit = owner.actions().get(Action.EDIT_PERMISSIONS.ordinal());
         assertTrue(ownEdit.on());
         assertFalse(ownEdit.alterable(), "no rank takes EDIT_PERMISSIONS from itself");
-        assertFalse(view(f.carol)
-                .ranks()
-                .get(Permissions.FRIEND)
-                .actions()
-                .getFirst()
-                .alterable());
+        assertFalse(rank(view(f.carol), Permissions.FRIEND).actions().getFirst().alterable());
+    }
+
+    private static TownHallView.RankRow rank(TownHallView.Permissions view, int id) {
+        return view.ranks().stream().filter(r -> r.id() == id).findFirst().orElseThrow();
     }
 
     @Test
@@ -88,10 +87,7 @@ class TownHallPermissionsViewTest {
     @Test
     void theNeutralRankShowsEditPermissionsOffWhateverItsFlag() {
         f.colony.permissions().ranks().get(Permissions.NEUTRAL).add(Action.EDIT_PERMISSIONS);
-        TownHallView.RankRow neutral = view(f.alice).ranks().stream()
-                .filter(r -> r.id() == Permissions.NEUTRAL)
-                .findFirst()
-                .orElseThrow();
+        TownHallView.RankRow neutral = rank(view(f.alice), Permissions.NEUTRAL);
         assertFalse(neutral.actions().get(Action.EDIT_PERMISSIONS.ordinal()).on());
     }
 

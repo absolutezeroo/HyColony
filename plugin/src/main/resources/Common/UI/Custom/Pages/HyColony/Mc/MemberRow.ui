@@ -14,10 +14,10 @@ Group {
     Style: $B.@Ink;
   }
 
-  // No Disabled look: MC's removePlayer has no "disabled" source, so the owner's disabled cross looks the same.
+  // Disabled keeps the same image: MC's removePlayer has no "disabled" source, so the owner's cross looks the same.
   Button #Remove {
     Anchor: (Left: 264, Top: 2, Width: 28, Height: 30);
-    Style: (Default: (Background: "button_x.png"), Sounds: $C.@ButtonSounds);
+    Style: (Default: (Background: "button_x.png"), Disabled: (Background: "button_x.png"), Sounds: $C.@ButtonSounds);
   }
 
   Label #Rank {

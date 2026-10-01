@@ -54,8 +54,9 @@ public abstract class ColonyPage extends InteractiveCustomUIPage<ColonyPage.Act>
         /** A text field's value, sent as {@code @Name}; empty when the event carries none. */
         String name = "";
         /**
-         * A stable id of the row clicked (a player's UUID), sent as {@code Ref}: a window not redrawn by a live refresh
-         * still names the right row, where an index would point into the new list. Empty when the event carries none.
+         * A stable id of what the event acts on (a player's UUID, a rank id), sent as {@code Ref}: a window not redrawn
+         * by a live refresh still names the right one, where an index would point into the new list. Empty when the
+         * event carries none.
          */
         String ref = "";
         /** An item dropped on one of the window's inventory grids (InventoryGrids); empty for other events. */

@@ -135,14 +135,20 @@ public final class PermissionActions {
         return edit(actor, colonyId, p -> p.setRankType(rankId, type));
     }
 
-    /** MC PermissionsMessage.Permission: the actor's rank alters the rank's action (Permissions.alterPermission). */
+    /**
+     * MC PermissionsMessage.Permission: the actor's rank alters the rank's action (Permissions.alterPermission); false
+     * for an unknown colony, or a gone rank (the town hall then shows again without it).
+     */
     public boolean alterPermission(UUID actor, int colonyId, int rankId, Action action, boolean enable) {
         Colony c = manager.byId(colonyId).orElse(null);
-        Rank rank = c == null ? null : c.permissions().ranks().get(rankId);
-        if (c == null || rank == null) {
+        if (c == null) {
             return false;
         }
-        return changed(c, actor, c.permissions().alterPermission(c.permissions().rankOf(actor), rank, action, enable));
+        Rank rank = c.permissions().ranks().get(rankId);
+        return changed(
+                c,
+                actor,
+                rank != null && c.permissions().alterPermission(c.permissions().rankOf(actor), rank, action, enable));
     }
 
     /** Runs {@code change} on the colony's permissions if {@code actor} has EDIT_PERMISSIONS. */

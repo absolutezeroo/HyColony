@@ -168,6 +168,15 @@ class PermissionActionsTest {
     }
 
     @Test
+    void alteringAGoneRankShowsTheTownHallAgain() {
+        int guards = permissions().addRank("Guards").id();
+        permissions().removeRank(guards);
+        t.ui.shown.clear();
+        assertFalse(actions.alterPermission(alice, colony.id(), guards, Action.PLACE_BLOCKS, true));
+        assertTrue(t.ui.shown.get(alice) instanceof TownHallView, "the page drops the gone rank");
+    }
+
+    @Test
     void aRefusedRemovalSaysNothingAsMc() {
         permissions().addPlayer(bob, "Bob", Permissions.FRIEND);
         permissions().addPlayer(carol, "Carol", Permissions.FRIEND);
