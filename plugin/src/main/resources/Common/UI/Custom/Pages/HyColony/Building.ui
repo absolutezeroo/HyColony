@@ -153,6 +153,13 @@ $C.@PageOverlay {
             }
           }
 
+          // MC WindowConfirm before an upgrade the residence warns about (WindowBuildBuilding.confirmClicked).
+          Label #OptWarning {
+            Style: (TextColor: #e69138, Wrap: true);
+            Anchor: (Bottom: 8);
+            Visible: false;
+          }
+
           Group {
             LayoutMode: Left;
             Anchor: (Height: 44, Bottom: 8);
@@ -167,6 +174,7 @@ $C.@PageOverlay {
               @Anchor = (Right: 4);
               Text: "";
               FlexWeight: 1;
+              TextTooltipStyle: $C.@DefaultTextTooltipStyle;
             }
 
             $C.@TextButton #OptRemoveButton {

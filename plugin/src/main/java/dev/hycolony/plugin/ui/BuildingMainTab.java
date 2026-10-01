@@ -134,6 +134,7 @@ final class BuildingMainTab {
             String row = list + "[" + i + "]";
             ui.append(list, "Pages/HyColony/WorkerRow.ui");
             ui.set(row + " #Name.Text", rows.get(i).name());
+            ui.set(row + " #Home.Text", homeLine(rows.get(i)));
             if (view.canManage()) {
                 ui.set(row + " #Button.Text", Message.translation("hycolony.ui.building." + action));
                 ColonyPage.bind(events, row + " #Button", action, i);
@@ -141,6 +142,17 @@ final class BuildingMainTab {
                 ui.set(row + " #Button.Visible", false);
             }
         }
+    }
+
+    /** MC WindowHireWorker's distance label: homeless, lives here, lives at its workplace, or N blocks away. */
+    private static Message homeLine(BuildingView.WorkerRow row) {
+        return switch (row.home()) {
+            case HOMELESS -> Message.translation("hycolony.ui.hiring.homeless");
+            case LIVES_HERE -> Message.translation("hycolony.ui.hiring.livesHere");
+            case LIVES_AT_WORK -> Message.translation("hycolony.ui.hiring.livesAtWork");
+            case DISTANCE ->
+                Message.translation("hycolony.ui.hiring.distance").param("p0", String.valueOf(row.homeDistance()));
+        };
     }
 
     /** Answers this tab's buttons; returns true if the page must be drawn again (local state changed). */

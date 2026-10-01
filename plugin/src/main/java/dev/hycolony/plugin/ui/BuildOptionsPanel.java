@@ -18,6 +18,8 @@ final class BuildOptionsPanel {
     private final UUID player;
     private final BuildingView view;
     private boolean open;
+    /** The build button was clicked once despite the upgrade warning: the next click confirms (MC WindowConfirm). */
+    private boolean confirming;
     /** Local choice sent with the next order; the core has no "set style" action. */
     private int styleIndex;
 
@@ -59,7 +61,20 @@ final class BuildOptionsPanel {
         }
         WorkOrderType build =
                 view.allowed().contains(WorkOrderType.BUILD) ? WorkOrderType.BUILD : WorkOrderType.UPGRADE;
-        orderButton(ui, events, "#OptBuildButton", build, typeKey(build));
+        orderButton(ui, events, "#OptBuildButton", build, confirming ? "hycolony.ui.build.confirm" : typeKey(build));
+        view.upgradeWarning().ifPresent(warning -> {
+            // MC WindowBuildBuilding: the warning as the build button's tooltip, and in WindowConfirm once clicked.
+            ui.set("#OptBuildButton.TooltipText", Message.translation(warning));
+            if (confirming) {
+                ui.set("#OptWarning.Visible", true);
+                ui.set(
+                        "#OptWarning.TextSpans",
+                        Message.join(
+                                Message.translation("hycolony.ui.build.confirm.title"),
+                                Message.raw(" "),
+                                Message.translation(warning)));
+            }
+        });
         orderButton(
                 ui,
                 events,
@@ -97,7 +112,10 @@ final class BuildOptionsPanel {
     boolean handle(ColonyPage.Act act) {
         return switch (act.action) {
             case "build" -> show(true);
-            case "back" -> show(false);
+            case "back" -> {
+                confirming = false;
+                yield show(false);
+            }
             case "stylePrev" -> cycleStyle(-1);
             case "styleNext" -> cycleStyle(1);
             case "order" -> order(act.index);
@@ -120,11 +138,22 @@ final class BuildOptionsPanel {
         return true;
     }
 
-    /** A refusal is already sent to the player by the core (hycolony.workorder.refused.*). */
+    /**
+     * A refusal is already sent to the player by the core (hycolony.workorder.refused.*). A build or upgrade the hut
+     * warns about first asks for a second click (MC WindowBuildBuilding.confirmClicked opens WindowConfirm).
+     */
     private boolean order(int typeIndex) {
-        if (typeIndex >= 0 && typeIndex < WorkOrderType.values().length) {
-            manager.workOrders().order(player, view.pos(), WorkOrderType.values()[typeIndex], style());
+        if (typeIndex < 0 || typeIndex >= WorkOrderType.values().length) {
+            return false;
         }
+        WorkOrderType type = WorkOrderType.values()[typeIndex];
+        boolean buildButton = type == WorkOrderType.BUILD || type == WorkOrderType.UPGRADE;
+        if (buildButton && view.upgradeWarning().isPresent() && !confirming) {
+            confirming = true;
+            return true;
+        }
+        confirming = false;
+        manager.workOrders().order(player, view.pos(), type, style());
         return false;
     }
 }

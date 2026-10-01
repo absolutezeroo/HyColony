@@ -12,6 +12,7 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import dev.hycolony.core.citizen.home.HousingCapacity;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.GamePorts;
 import dev.hycolony.core.colony.permission.Permissions;
@@ -107,7 +108,8 @@ public final class HyColonyCommand extends AbstractCommandCollection {
                     c.permissions().ownerName(),
                     c.state().name().toLowerCase(Locale.ROOT),
                     String.valueOf(c.day()),
-                    String.valueOf(c.citizens().all().size()));
+                    String.valueOf(c.citizens().all().size()),
+                    String.valueOf(HousingCapacity.of(c).shownMax()));
         }
     }
 

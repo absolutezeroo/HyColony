@@ -8,6 +8,12 @@ Group {
     FlexWeight: 1;
   }
 
+  // MC WindowHireWorker's distance label: where the citizen lives.
+  Label #Home {
+    Anchor: (Width: 260, Right: 8);
+    Style: (TextColor: #94a7bb);
+  }
+
   $C.@SecondaryTextButton #Button {
     Anchor: (Width: 140, Height: 32);
     Text: "";
