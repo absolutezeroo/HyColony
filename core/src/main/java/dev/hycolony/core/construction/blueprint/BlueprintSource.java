@@ -11,6 +11,11 @@ public interface BlueprintSource {
 
     List<String> styles();
 
+    /** Whether the style has a plan for that hut and level, without reading it; by default, a load of it. */
+    default boolean hasPlan(String style, String buildingTypeId, int level) {
+        return load(style, buildingTypeId, level, 0).isPresent();
+    }
+
     /** The style's pack metadata (ST pack.json); {@link PackInfo#defaults} when the source has none. */
     default PackInfo pack(String style) {
         return PackInfo.defaults(style);

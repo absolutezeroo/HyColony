@@ -14,8 +14,6 @@ import dev.hycolony.core.app.ui.WandPacksView;
 import dev.hycolony.core.app.wand.WandActions;
 import dev.hycolony.core.construction.blueprint.PackInfo;
 import dev.hycolony.plugin.ui.ColonyPage;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 import javax.annotation.Nonnull;
 
@@ -32,8 +30,6 @@ public final class WandPacksPage extends ColonyPage {
 
     private final WandPacksView view;
     private final WandActions wand;
-    /** The styles shown, in list order, which a Select's index names. */
-    private final List<String> shown = new ArrayList<>();
 
     public WandPacksPage(PlayerRef playerRef, WandPacksView view, ColonyManager manager, WandActions wand) {
         super(playerRef, manager);
@@ -60,7 +56,6 @@ public final class WandPacksPage extends ColonyPage {
     /** ST sortAndFilterPacks: a title row per owner (capitalised, as ST), then rows of two packs. */
     private void fill(UICommandBuilder ui, UIEventBuilder events, WandPacksView packs) {
         ui.clear("#Packs");
-        shown.clear();
         ui.set("#Empty.Visible", packs.groups().isEmpty());
         int row = 0;
         for (WandPacksView.Group g : packs.groups()) {
@@ -92,8 +87,8 @@ public final class WandPacksPage extends ColonyPage {
         ui.set(
                 box + "#Authors.Text",
                 Message.translation("hycolony.ui.wand.authors").param("p0", String.join(", ", info.authors())));
-        bind(events, box + "#Select", "select", shown.size());
-        shown.add(p.style());
+        // By the style id: a click sent before a filtered list reached the client still picks the pack it showed.
+        bindRef(events, box + "#Select", "select", p.style());
     }
 
     private static String capitalised(String s) {
@@ -110,8 +105,8 @@ public final class WandPacksPage extends ColonyPage {
                 sendUpdate(ui, events, false);
             }
             case "select" -> {
-                if (act.index() >= 0 && act.index() < shown.size()) {
-                    wand.selectStyle(player, shown.get(act.index()));
+                if (view.styles().contains(act.ref())) {
+                    wand.selectStyle(player, act.ref());
                 }
             }
             case "cancel" -> wand.cancelPacks(player);

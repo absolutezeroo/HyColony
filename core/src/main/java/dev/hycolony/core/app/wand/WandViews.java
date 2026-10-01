@@ -4,6 +4,8 @@ import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.app.ui.WandView;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.building.BuildingTypes;
+import dev.hycolony.core.colony.ColonyAccess;
+import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.construction.blueprint.BlueprintSource;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.Msg;
@@ -15,9 +17,12 @@ import java.util.function.Function;
 
 /**
  * Builds the build tool window's view (ST WindowExtendedBuildTool): the pack's folders from the huts that have a plan
- * in the style, the open folder's subfolders or huts, and each hut's lock (ST AbstractBlockHut.getRequirements).
+ * in the style, the open folder's subfolders or huts when its list shows, and each hut's lock (ST
+ * AbstractBlockHut.getRequirements).
  */
 final class WandViews {
+    private static final String CORE_PREFIX = "hycolony:";
+
     private final ColonyManager manager;
     private final Function<String, ItemKey> hutItem;
 
@@ -26,24 +31,24 @@ final class WandViews {
         this.hutItem = hutItem;
     }
 
-    /**
-     * The view of {@code s} for {@code player}; {@code tip} shows Structurize's hint. At the root, nothing below the
-     * category icons; in a folder, its subfolders, or its huts when it has none.
-     */
+    /** The view of {@code s} for {@code player}; {@code tip} shows Structurize's hint. */
     WandView of(UUID player, WandSession s, boolean tip) {
+        WandNav nav = s.nav();
         WandTree tree = tree(s.style());
-        List<String> folders = s.depth().isEmpty() ? List.of() : tree.children(s.depth());
-        List<WandView.Hut> huts = s.depth().isEmpty() || !folders.isEmpty()
+        boolean list = nav.grid() == WandNav.Grid.LIST && !nav.depth().isEmpty();
+        List<String> folders = list ? tree.children(nav.depth()) : List.of();
+        List<WandView.Hut> huts = !list || !folders.isEmpty()
                 ? List.of()
-                : tree.huts(s.depth()).stream()
+                : tree.huts(nav.depth()).stream()
                         .map(id -> new WandView.Hut(id, id.equals(s.buildingTypeId()), requirements(player, s, id)))
                         .toList();
         boolean canConfirm =
-                s.hasBuilding() && requirements(player, s, s.buildingTypeId()).isEmpty();
+                !s.hasBuilding() || requirements(player, s, s.buildingTypeId()).isEmpty();
         return new WandView(
                 s.style(),
                 s.style().isEmpty() ? "" : blueprints().pack(s.style()).name(),
-                s.depth(),
+                new WandView.Panel(
+                        nav.depth(), treePath(s), nav.disabledIcon(), nav.canGoBack(), nav.levels(), nav.placing()),
                 tree.roots(),
                 folders,
                 huts,
@@ -58,14 +63,28 @@ final class WandViews {
     }
 
     /**
-     * The pack's huts (ST lists every blueprint of the pack): those with a plan in {@code style}, each in its folder.
-     * Empty before a style is chosen.
+     * ST's tree after the pack name: nothing before any navigation at the root, else {@code /folder}, and the
+     * blueprint's file ({@code /builder2}) once a hut or level was clicked (setBlueprint).
+     */
+    private static String treePath(WandSession s) {
+        WandNav nav = s.nav();
+        if (!nav.navigated()) {
+            return "";
+        }
+        String id = s.buildingTypeId();
+        return "/" + nav.depth()
+                + (nav.file() && s.hasBuilding() ? "/" + id.substring(id.indexOf(':') + 1) + s.level() : "");
+    }
+
+    /**
+     * The pack's huts (ST lists every blueprint of the pack): those with a level 1 plan in {@code style}, each in its
+     * folder. Empty before a style is chosen.
      */
     WandTree tree(String style) {
         Map<String, String> folders = new LinkedHashMap<>();
         if (!style.isEmpty()) {
             for (BuildingType t : manager.context().buildingTypes().all()) {
-                if (blueprints().load(style, t.id(), 1, 0).isPresent()) {
+                if (blueprints().hasPlan(style, t.id(), 1)) {
                     folders.put(t.id(), blueprints().category(t.id()));
                 }
             }
@@ -75,14 +94,18 @@ final class WandViews {
 
     /**
      * ST AbstractBlockHut.getRequirements, nothing in creative (areRequirementsMet): a hut other than the town hall
-     * needs its position in a colony (BlockHutTownHall skips it), then its hut block in the inventory.
+     * (BlockHutTownHall) needs a colony the client knows (getClosestColonyView: the colony at the position, else the
+     * nearest one known at any distance), then its hut block in the inventory.
+     *
+     * <p>Deviation from MC: the colonies a client knows are those the player may access (MC also sends a colony's
+     * view to the players near it).
      */
     List<Msg> requirements(UUID player, WandSession s, String typeId) {
         if (manager.context().players().isCreative(player)) {
             return List.of();
         }
         boolean townHall = BuildingTypes.TOWN_HALL.id().equals(typeId);
-        if (!townHall && s.anchor().flatMap(manager::colonyAt).isEmpty()) {
+        if (!townHall && !knowsAColony(player, s)) {
             return List.of(Msg.of("hycolony.wand.requirement.inColony"));
         }
         boolean carried = manager.context()
@@ -90,11 +113,19 @@ final class WandViews {
                 .byId(typeId)
                 .map(t -> manager.context().ports().playerInventory().count(player, hutItem.apply(t.hutBlockKey())) > 0)
                 .orElse(false);
-        return carried
-                ? List.of()
-                : List.of(Msg.of(
-                        "hycolony.wand.requirement.cost",
-                        "%hycolony.ui.building.type." + typeId.substring(typeId.indexOf(':') + 1)));
+        return carried ? List.of() : List.of(Msg.of("hycolony.wand.requirement.cost", nameParam(typeId)));
+    }
+
+    private boolean knowsAColony(UUID player, WandSession s) {
+        return s.anchor().flatMap(manager::colonyAt).isPresent()
+                || manager.all().stream().anyMatch(c -> ColonyAccess.allows(c, player, Action.ACCESS_HUTS));
+    }
+
+    /** A hut name as a message parameter: a HyColony hut's translated name, any other type's id as is. */
+    private static String nameParam(String typeId) {
+        return typeId.startsWith(CORE_PREFIX)
+                ? "%hycolony.ui.building.type." + typeId.substring(CORE_PREFIX.length())
+                : typeId;
     }
 
     /**
@@ -108,10 +139,7 @@ final class WandViews {
                 .map(BuildingType::maxLevel)
                 .orElse(0);
         int level = 0;
-        while (level < max
-                && blueprints()
-                        .load(s.style(), s.buildingTypeId(), level + 1, 0)
-                        .isPresent()) {
+        while (level < max && blueprints().hasPlan(s.style(), s.buildingTypeId(), level + 1)) {
             level++;
         }
         return level;

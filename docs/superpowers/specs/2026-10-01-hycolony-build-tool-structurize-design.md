@@ -23,8 +23,8 @@ Structurize range les plans d'un pack en dossiers (`fundamentals/builder1.bluepr
   ```
   - `layout` : le dossier de chaque hutte, celui des packs de MC (constructeur, cuisinier, résidence, hôtel de ville : `fundamentals` ; livreur, entrepôt : `craftsmanship/storage` ; fermier : `agriculture/horticulture`). Une hutte absente va dans `fundamentals`.
   - `packs` : les métadonnées d'un style. Absentes : le nom est l'id du style, sans description ni auteur, icône par défaut (le sceptre de Structurize), propriétaire `hycolony`.
-  - Lecture tolérante : clé absente = défaut, valeur mal formée = ignorée (journalisée une fois).
-- **Port** `BlueprintSource.pack(style)` → `PackInfo(name, desc, authors, icon, owner)` et `BlueprintSource.category(buildingTypeId)` → le chemin ; jamais d'exception. Le cœur ne voit aucun chemin de texture : `icon` est un nom que le plugin résout.
+  - Lecture tolérante : clé absente = défaut, valeur mal formée = ignorée sans bruit (un fichier qui n'est pas du JSON fait échouer son sous-plugin, comme les autres fragments).
+- **Port** `BlueprintSource.pack(style)` → `PackInfo(name, desc, authors, icon, owner)`, `BlueprintSource.category(buildingTypeId)` → le chemin et `BlueprintSource.hasPlan(style, type, level)` (sans lire le plan) ; jamais d'exception. Côté plugin, le décorateur `PackedBlueprints` ajoute `packs.json` à `HytaleBlueprintSource`. Le cœur ne voit aucun chemin de texture : `icon` nomme une texture de `Pages/HyColony/Structurize/` (sans repli si elle manque).
 
 Pas d'état persisté nouveau (la session de la baguette vit en mémoire) : pas de migration.
 
@@ -33,26 +33,26 @@ Pas d'état persisté nouveau (la session de la baguette vit en mémoire) : pas 
 | Élément | XML | Contenu (Structurize) |
 |---|---|---|
 | `switch` | 86 × 17 en (5, 5), `button_medium` | « Changer de pack » → fenêtre des packs (§ 4) |
-| `tree` | 300 × 12 en (100, 5), blanc gras | `pack`, puis `pack/dossier`, puis `pack/dossier/fichier` (`builder1`) |
-| `categories` | (120, 200), boutons 19 × 19 tous les 20 px | une icône par dossier de premier niveau du pack, infobulle = nom du dossier capitalisé ; le dossier ouvert est désactivé (icône `_disabled`) |
+| `tree` | 300 × 12 en (100, 5), blanc gras | `pack` ; après une navigation `pack/dossier` (`pack/` à la racine) ; après le choix d'un plan ou d'un niveau `pack/dossier/fichier` (`builder1`) |
+| `categories` | (120, 200), boutons 19 × 19 tous les 20 px | une icône par dossier de premier niveau du pack, infobulle = nom du dossier ; l'icône cliquée est désactivée (icône `_disabled`) jusqu'au choix d'un plan ou d'un niveau, au retour à la racine ou à la réouverture |
 | `subcategories` | 270 × 20/40/60 en (100, 180/160/140) selon le nombre de boutons (≤ 3, ≤ 6, plus) | « retour » (`back_medium`) puis un bouton par sous-dossier (`button_medium`, nom capitalisé, texte noir) ; trois par ligne |
 | `blueprints` | mêmes tailles et positions | « retour » puis un bouton par hutte (`button_blueprint`, texte blanc) : nom de la hutte ; `_selected` pour la hutte choisie ; `_disabled` et infobulle des exigences en rouge si elle est verrouillée (§ 3.1) ; trois par ligne |
 | `levels` | 100 × 120 en (5, 50), boutons 86 × 17 | « Niveau : n » pour chaque niveau de la hutte choisie qui a un plan dans le style (`updateLevels` liste les plans du pack ; aucun bouton désactivé) |
 | `manipulator` | 48 × 64 en (370, 100), boutons 16 × 16 | rotation gauche, haut, rotation droite / gauche, miroir, droite / moins, bas, plus |
-| `tip` | 200 × 50 en (150, 100), blanc | `structurize.gui.manipulation.info` à la première ouverture d'une session (§ 7) |
-| `placement` | 100 × 80 en (160, 80) | en créatif, après Valider : « Construit » (collage comme un constructeur) et « Placer la hutte » |
-| `cancel`, `confirm` | 30 × 30 en (90, 213) et (300, 213) | Annuler ; Valider (visible seulement si la hutte n'est pas verrouillée) |
+| `tip` | 200 × 50 en (150, 100), blanc | `structurize.gui.manipulation.info` quand la fenêtre s'ouvre sur une position nouvelle (§ 7) |
+| `placement` | 100 × 80 en (160, 80) | en créatif, après Valider : « Construit » (collage comme un constructeur) et « Assign to Builder » de MC (`blueprint.placement`) ; les autres listes se cachent |
+| `cancel`, `confirm` | 30 × 30 en (90, 213) et (300, 213) | Annuler ; Valider (visible sauf si la hutte choisie est verrouillée ; sans hutte, un clic ne fait rien) |
 
 ### 3.1 Navigation (`onButtonClicked`, `handleBlueprintCategory`)
 
-- **Ouverture** : un clic sur un bloc fixe l'ancre (inchangé). Sans pack choisi, la fenêtre des packs s'ouvre à la place (`onOpened`). Sinon la fenêtre s'ouvre là où la session en était (dossier, hutte).
-- **Icône de catégorie** : ouvre ce dossier (`depth`). Un dossier avec des sous-dossiers montre les sous-dossiers, sinon les plans.
-- **Sous-dossier** : l'ouvre de même. **Retour** : remonte au parent (à la racine, rien en bas sauf les icônes).
-- **Plan** : choisit la hutte au niveau 1 (Structurize `setBlueprint(leveled.get(0))`), montre ses niveaux à gauche et la croix ; le fantôme suit. Une hutte verrouillée se choisit aussi (Structurize), mais Valider reste caché.
-- **Niveau** : choisit ce niveau. **Croix, Annuler, Valider** : comme aujourd'hui (`WandActions`).
+- **Ouverture** (`ItemBuildTool`, constructeur d'`AbstractBlueprintManipulationWindow`) : la position n'est posée que s'il n'y en a pas (le bloc cliqué, ou 10 blocs devant le joueur pour un clic dans le vide) ; sinon le fantôme reste où il est, jusqu'à Annuler ou une pose. Sans pack choisi, un pack est tiré au hasard (`StructurePacks.ensureSelectedPack`) ; sans aucun pack, la fenêtre des packs s'ouvre (`onOpened`). À la réouverture, les icônes sont actives, et une hutte choisie à plusieurs niveaux montre ses niveaux et le seul bouton retour (`handleBlueprintCategory` avec `onOpen`).
+- **Icône de catégorie** : ouvre ce dossier et se désactive. Un dossier avec des sous-dossiers montre les sous-dossiers et cache les niveaux, sinon il montre les plans.
+- **Sous-dossier** : l'ouvre de même, sans toucher aux icônes. **Retour** : remonte au parent et cache les niveaux ; à la racine, rien en bas sauf les icônes, toutes actives.
+- **Plan** : choisit la hutte au niveau 1 (`setBlueprint(leveled.get(0))`) et réactive les icônes. Une hutte à plusieurs niveaux montre ses niveaux à gauche et remplace la liste par le seul bouton retour, qui ramène à la liste du dossier (`updateFolders(empty, depth)`) ; une hutte à un seul niveau cache les niveaux et garde la liste. Une hutte verrouillée se choisit aussi, mais Valider reste caché.
+- **Niveau** : choisit ce niveau et réactive les icônes. **Croix, Annuler, Valider** : comme aujourd'hui (`WandActions`).
 - **Huttes montrées** : toutes celles du pack qui ont un plan dans le dossier, plus seulement celles que le joueur porte (Structurize liste tout le pack).
-- **Verrou** (`AbstractBlockHut.getRequirements`, sauf en créatif) : sans le bloc de la hutte dans l'inventaire → « Coûte : <hutte> » ; hors de toute colonie (sauf l'hôtel de ville, `BlockHutTownHall`) → « Doit être placée dans une colonie ». L'ancre décide de la colonie.
-- **Valider** (`confirmClicked`) : en survie, place la hutte (un seul gestionnaire) ; en créatif, montre la liste `placement`.
+- **Verrou** (`AbstractBlockHut.getRequirements`, sauf en créatif) : une hutte autre que l'hôtel de ville (`BlockHutTownHall`) demande une colonie connue du client (`getClosestColonyView` : celle de la position, sinon la plus proche connue) → « Has to be placed inside a Colony » ; puis son bloc dans l'inventaire → « Requires 1 <hutte> Block in Inventory ». L'infobulle d'un plan est le nom et la description de la hutte (`getDesc`), puis les exigences en rouge.
+- **Valider** (`confirmClicked`) : en survie, place la hutte (un seul gestionnaire) ; en créatif, montre la liste `placement`, qui reste après un collage.
 
 ## 4. Fenêtre des packs (`windowswitchpack.xml`, 420 × 240 → 840 × 480, assombrie)
 
@@ -83,11 +83,13 @@ Pas d'état persisté nouveau (la session de la baguette vit en mémoire) : pas 
 - Pas de variantes (`alternatives`) : un style HyColony a un seul plan par hutte et par niveau.
 - Pas de raccourcis clavier : Hytale n'envoie pas les touches au serveur.
 - L'astuce reste jusqu'à la première action, où Structurize la cache après 10 s.
-- L'infobulle d'un plan est le nom de la hutte et ses exigences, sans la description de MC (ses textes de langue ne sont pas dans `sources/`) ; exigence de recherche absente (pas de recherche).
+- Exigence de recherche absente (pas de recherche). Les colonies « connues du client » sont celles où le joueur a accès aux huttes (MC envoie aussi la vue d'une colonie aux joueurs proches).
+- Valider est recalculé à chaque rendu (verrou de la hutte choisie), où Structurize ne le fait qu'au choix du plan.
+- Les huttes d'un addon (id hors `hycolony:`) n'ont pas de description dans l'infobulle.
 - Un seul jeu d'icônes de catégories (celui de 23 packs de MC sur 24), une seule disposition (`layout`) pour tous les packs.
 - Les packs de Hytale (kweebec, outlander) n'ont pas d'icône de MC : le sceptre de Structurize les remplace.
 - Le filtre des packs porte sur l'id du style et sur le nom écrit dans `packs.json` (une clé de traduction), le cœur ne traduisant pas ; il redessine la liste sur place pour garder le champ de saisie.
 - Le nom et la description d'un pack sont des clés de traduction (Structurize les écrit en clair dans `pack.json`) ; le titre d'un propriétaire et les auteurs restent écrits tels quels, comme Structurize.
 - Les noms de dossiers connus de MC sont traduits (Structurize les capitalise tels quels) ; un dossier inconnu est capitalisé.
 - Les icônes de catégories n'ont pas la teinte de survol de BlockUI (image posée à l'exécution par `AssetImage`).
-- Libellés de la liste de placement : « Construit » (Structurize `pretty`) et « Placer la hutte » (le texte de MC `blueprint.placement` n'est pas dans `sources/`).
+- Une position introuvable (joueur hors d'un monde chargé) dit `hycolony.wand.missingPos`, où Structurize prend toujours la position du joueur.

@@ -44,6 +44,25 @@ class WandTreeTest {
     }
 
     @Test
+    void aDeepFolderIsReachedOneLevelAtATime() {
+        WandTree deep = new WandTree(Map.of("dock", "infrastructure/boardwalk/docks"));
+        assertEquals(List.of("infrastructure/boardwalk"), deep.children("infrastructure"));
+        assertEquals(List.of("infrastructure/boardwalk/docks"), deep.children("infrastructure/boardwalk"));
+        assertEquals(List.of("dock"), deep.huts("infrastructure/boardwalk/docks"));
+    }
+
+    /** A folder with huts and subfolders: ST shows its subfolders (a non-terminal category). */
+    @Test
+    void aFolderWithHutsAndSubfoldersListsBoth() {
+        Map<String, String> huts = new LinkedHashMap<>();
+        huts.put("mixed", "agriculture");
+        huts.put("farmer", "agriculture/horticulture");
+        WandTree mixed = new WandTree(huts);
+        assertEquals(List.of("agriculture/horticulture"), mixed.children("agriculture"));
+        assertEquals(List.of("mixed"), mixed.huts("agriculture"));
+    }
+
+    @Test
     void theParentOfATopFolderIsTheRoot() {
         assertEquals("agriculture", WandTree.parent("agriculture/horticulture"));
         assertEquals("", WandTree.parent("fundamentals"));

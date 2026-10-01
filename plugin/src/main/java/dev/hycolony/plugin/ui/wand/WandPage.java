@@ -57,14 +57,18 @@ public final class WandPage extends ColonyPage {
 
     private record Move(String selector, WandActions.Dir dir) {}
 
-    /** ST updateFolders/updateBlueprints: the list's height and top by row count (1, 2, 3 rows), doubled. */
-    private static final int ROW_HEIGHT = 40;
+    /**
+     * ST updateFolders/updateBlueprints, doubled: rows 40 px high, the list ending at y 400 px from x 200 px, 540 px
+     * wide, 1 to 3 rows tall (more scroll), three buttons a row.
+     */
+    private static final int ROW_HEIGHT_PX = 40;
 
-    private static final int GRID_BOTTOM = 400;
-    private static final int GRID_LEFT = 200;
-    private static final int GRID_WIDTH = 540;
+    private static final int GRID_BOTTOM_PX = 400;
+    private static final int GRID_LEFT_PX = 200;
+    private static final int GRID_WIDTH_PX = 540;
     private static final int GRID_MAX_ROWS = 3;
     private static final int PER_ROW = 3;
+    private static final String CORE_PREFIX = "hycolony:";
 
     private final WandView view;
     private final WandActions wand;
@@ -85,8 +89,13 @@ public final class WandPage extends ColonyPage {
         bind(events, "#Switch", "switch");
         ui.set("#Tree.TextSpans", WandTexts.tree(view));
         categories(ui, events);
+        if (view.panel().placing()) {
+            placement(ui, events);
+        }
         grid(ui, events);
-        levels(ui, events);
+        if (view.panel().levels()) {
+            levels(ui, events);
+        }
         ui.set("#Tip.Visible", view.tip());
         ui.set("#Manipulator.Visible", view.manipulate());
         ui.set("#Confirm.Visible", view.canConfirm());
@@ -101,11 +110,9 @@ public final class WandPage extends ColonyPage {
         }
     }
 
-    /** ST onUpdate: one icon per top folder; the open one disabled with its disabled icon. */
+    /** ST onUpdate: one icon per top folder; the one last clicked disabled, with its disabled icon. */
     private void categories(UICommandBuilder ui, UIEventBuilder events) {
-        String open = view.depth().contains("/")
-                ? view.depth().substring(0, view.depth().indexOf('/'))
-                : view.depth();
+        String open = view.panel().disabledCategory();
         for (int i = 0; i < view.categories().size(); i++) {
             String folder = view.categories().get(i);
             String sel = "#Categories[" + i + "]";
@@ -121,9 +128,12 @@ public final class WandPage extends ColonyPage {
         }
     }
 
-    /** ST updateFolders/updateBlueprints: back, then the subfolders or the blueprints, three per row. */
+    /**
+     * ST updateFolders/updateBlueprints: back, then the subfolders or the blueprints, three per row; back alone once a
+     * hut with levels is chosen; nothing when the window shows no back button.
+     */
     private void grid(UICommandBuilder ui, UIEventBuilder events) {
-        if (view.depth().isEmpty()) {
+        if (!view.panel().back()) {
             return;
         }
         boolean folders = !view.folders().isEmpty();
@@ -131,10 +141,10 @@ public final class WandPage extends ColonyPage {
         int rows = (cells + PER_ROW - 1) / PER_ROW;
         int shown = Math.min(rows, GRID_MAX_ROWS);
         Anchor anchor = new Anchor();
-        anchor.setLeft(Value.of(GRID_LEFT));
-        anchor.setTop(Value.of(GRID_BOTTOM - shown * ROW_HEIGHT));
-        anchor.setWidth(Value.of(GRID_WIDTH));
-        anchor.setHeight(Value.of(shown * ROW_HEIGHT));
+        anchor.setLeft(Value.of(GRID_LEFT_PX));
+        anchor.setTop(Value.of(GRID_BOTTOM_PX - shown * ROW_HEIGHT_PX));
+        anchor.setWidth(Value.of(GRID_WIDTH_PX));
+        anchor.setHeight(Value.of(shown * ROW_HEIGHT_PX));
         ui.setObject("#Grid.Anchor", anchor);
         for (int r = 0; r < rows; r++) {
             ui.append("#Grid", DIR + "GridRow.ui");
@@ -156,13 +166,23 @@ public final class WandPage extends ColonyPage {
         }
     }
 
-    /** ST handleBlueprint: the hut's name, selected or locked texture, its requirements in red as tooltip. */
+    /**
+     * ST handleBlueprint: the hut's name, its selected or locked texture, and as tooltip its name and description
+     * (AbstractBlockHut.getDesc, HyColony huts only) then its requirements in red.
+     */
     private void hut(UICommandBuilder ui, UIEventBuilder events, String slot, int i) {
         WandView.Hut hut = view.huts().get(i);
+        String id = hut.buildingTypeId();
         String button = slot + (hut.selected() ? "#Selected" : hut.locked() ? "#Locked" : "#Hut");
         ui.set(button + ".Visible", true);
-        ui.set(button + ".Text", buildingName(hut.buildingTypeId()));
-        Message tip = buildingName(hut.buildingTypeId());
+        ui.set(button + ".Text", buildingName(id));
+        Message tip = buildingName(id);
+        if (id.startsWith(CORE_PREFIX)) {
+            tip = Message.join(
+                    tip,
+                    Message.raw("\n"),
+                    Message.translation("hycolony.ui.building.type." + id.substring(CORE_PREFIX.length()) + ".desc"));
+        }
         for (Msg m : hut.requirements()) {
             tip = Message.join(
                     tip, Message.raw("\n"), HytaleNotifier.toMessage(m).color("#ff5555"));
@@ -183,12 +203,10 @@ public final class WandPage extends ColonyPage {
         }
     }
 
-    /** ST updatePlacementOptions, creative only: Constructed (the paste) and the hut placement. */
+    /** ST updatePlacementOptions, creative only: Constructed (the paste), then MC's Assign to Builder. */
     private void placement(UICommandBuilder ui, UIEventBuilder events) {
         ui.set("#Placement.Visible", true);
-        ui.set("#Levels.Visible", false);
-        ui.set("#Grid.Visible", false);
-        String[][] options = {{"hycolony.ui.wand.pretty", "paste"}, {"hycolony.ui.wand.placeHut", "place"}};
+        String[][] options = {{"hycolony.ui.wand.pretty", "paste"}, {"hycolony.ui.wand.assign", "place"}};
         for (int i = 0; i < options.length; i++) {
             String row = "#Placement[" + i + "]";
             ui.append("#Placement", DIR + "LevelRow.ui");
@@ -237,16 +255,19 @@ public final class WandPage extends ColonyPage {
         }
     }
 
-    /** ST confirmClicked: survival places at once (one handler); creative shows the placement list. */
+    /**
+     * ST confirmClicked: nothing before a blueprint is chosen; survival places at once (MC's one handler); creative
+     * shows the placement list.
+     */
     private void confirm() {
-        if (!view.creative()) {
-            wand.confirm(player, playerRef.getUsername());
+        if (!view.manipulate()) {
             return;
         }
-        UICommandBuilder ui = new UICommandBuilder();
-        UIEventBuilder events = new UIEventBuilder();
-        placement(ui, events);
-        sendUpdate(ui, events, false);
+        if (view.creative()) {
+            wand.openPlacement(player);
+        } else {
+            wand.confirm(player, playerRef.getUsername());
+        }
     }
 
     private static <T> Optional<T> at(List<T> list, int i) {

@@ -26,6 +26,9 @@ public final class WandActions {
         DOWN
     }
 
+    /** ST AbstractBlueprintManipulationWindow: a click in the air puts the position this many blocks ahead. */
+    private static final int AHEAD_BLOCKS = 10;
+
     private final ColonyManager manager;
     private final WandViews views;
     private final WandPacks packs;
@@ -54,20 +57,27 @@ public final class WandActions {
     }
 
     /**
-     * ST ItemBuildTool.useOn/use: a clicked block becomes the anchor; a click in the air keeps the current one, or
-     * says {@code hycolony.wand.missingPos} and opens nothing (false) when there is none. Without a pack chosen, the
-     * pack window opens instead (ST WindowExtendedBuildTool.onOpened); the tip shows when the anchor is new (ST: no
-     * position set before).
+     * ST ItemBuildTool.useOn/use and AbstractBlueprintManipulationWindow's constructor: the position is set only when
+     * there is none (the clicked block, or 10 blocks ahead of the player for a click in the air); otherwise the ghost
+     * stays where it is. Without a pack chosen, one is picked at random (ST StructurePacks.ensureSelectedPack); with
+     * no pack at all the pack window opens (ST onOpened). The tip shows when the position is new. False, saying
+     * {@code hycolony.wand.missingPos}, when no position can be found (the player's own is unknown).
      */
     public boolean open(UUID player, Optional<BlockPos> clicked) {
         WandSession s = sessions.get(player);
         boolean tip = s.anchor().isEmpty();
-        if (clicked.isPresent()) {
-            s = s.withAnchor(clicked.get());
-        } else if (s.anchor().isEmpty()) {
-            manager.context().notifier().send(player, Msg.of("hycolony.wand.missingPos"));
-            return false;
+        if (s.anchor().isEmpty()) {
+            Optional<BlockPos> at = clicked.or(() -> ahead(player));
+            if (at.isEmpty()) {
+                manager.context().notifier().send(player, Msg.of("hycolony.wand.missingPos"));
+                return false;
+            }
+            s = s.withAnchor(at.get());
         }
+        if (s.style().isEmpty()) {
+            s = s.withStyle(packs.random().orElse(""));
+        }
+        s = s.withNav(s.nav().reopened(s.hasBuilding(), views.maxLevel(s) > 1));
         sessions.put(player, s);
         preview.refresh(player, s);
         if (s.style().isEmpty()) {
@@ -78,10 +88,16 @@ public final class WandActions {
         return true;
     }
 
+    /** ST: {@code player.blockPosition().relative(player.getDirection(), 10)}; empty when the position is unknown. */
+    private Optional<BlockPos> ahead(UUID player) {
+        int facing = manager.context().players().facing(player);
+        return manager.context().players().position(player).map(p -> WandMoves.ahead(p, facing, AHEAD_BLOCKS));
+    }
+
     /**
-     * ST WindowSwitchPack select: chooses a style and shows the build tool; a different one goes back to the root and
-     * drops the chosen hut and its ghost, as ST WindowExtendedBuildTool.init does on a pack change. False if unknown
-     * or the window was never opened.
+     * ST WindowSwitchPack select: chooses a style and shows the build tool; a different one starts the window anew
+     * and drops the chosen hut, its ghost and its rotation, as ST WindowExtendedBuildTool.init does on a pack change
+     * (RenderingCache.removeBlueprint). False if unknown or the window was never opened.
      */
     public boolean selectStyle(UUID player, String style) {
         Optional<WandSession> s = opened(player);
@@ -91,7 +107,9 @@ public final class WandActions {
         WandSession next = s.get().withStyle(style);
         update(
                 player,
-                style.equals(s.get().style()) ? next : next.withBuilding("").withDepth(""));
+                style.equals(s.get().style())
+                        ? next
+                        : next.withBuilding("").withRotation(0).withNav(WandNav.start()));
         return true;
     }
 
@@ -114,42 +132,65 @@ public final class WandActions {
     }
 
     /**
-     * ST onButtonClicked on a category icon or a subfolder: opens {@code folder}; false when it leads to no hut of the
-     * style. The chosen hut and its ghost stay.
+     * ST onButtonClicked on a category icon or a subfolder: opens {@code folder} ({@link WandNav#opened}); false when
+     * it leads to no hut of the style. The chosen hut and its ghost stay.
      */
     public boolean openCategory(UUID player, String folder) {
-        Optional<WandSession> s =
-                opened(player).filter(x -> views.tree(x.style()).contains(folder));
-        s.ifPresent(x -> update(player, x.withDepth(folder)));
-        return s.isPresent();
+        Optional<WandSession> s = opened(player);
+        WandTree tree = s.map(x -> views.tree(x.style())).orElse(null);
+        if (tree == null || !tree.contains(folder)) {
+            return false;
+        }
+        boolean root = !folder.contains("/");
+        update(
+                player,
+                s.get()
+                        .withNav(s.get()
+                                .nav()
+                                .opened(folder, root, !tree.children(folder).isEmpty())));
+        return true;
     }
 
-    /** ST's back button: the folder above; false at the root. */
+    /** ST's back button ({@link WandNav#back}); false when the window shows none. */
     public boolean back(UUID player) {
-        Optional<WandSession> s = opened(player).filter(x -> !x.depth().isEmpty());
-        s.ifPresent(x -> update(player, x.withDepth(WandTree.parent(x.depth()))));
+        Optional<WandSession> s = opened(player).filter(x -> x.nav().canGoBack());
+        s.ifPresent(x -> update(player, x.withNav(x.nav().back())));
         return s.isPresent();
     }
 
     /**
      * ST handleBlueprintCategory: chooses one of the style's huts at level 1 (setBlueprint(leveled.get(0))), locked
-     * or not; false if the style has no plan for it.
+     * or not ({@link WandNav#chose}); false if the style has no plan for it.
      */
     public boolean selectBuilding(UUID player, String buildingTypeId) {
         Optional<WandSession> s =
                 opened(player).filter(x -> views.tree(x.style()).hasHut(buildingTypeId));
-        s.ifPresent(x -> update(player, x.withBuilding(buildingTypeId).withLevel(1)));
+        s.ifPresent(x -> {
+            WandSession chosen = x.withBuilding(buildingTypeId).withLevel(1);
+            update(player, chosen.withNav(x.nav().chose(views.maxLevel(chosen) > 1)));
+        });
         return s.isPresent();
     }
 
-    /** Chooses the previewed level, 1 to the hut's maximum; false before a hut is chosen or out of range. */
+    /** Chooses the previewed level, 1 to the hut's last with a plan; false before a hut is chosen or out of range. */
     public boolean selectLevel(UUID player, int level) {
         Optional<WandSession> s = manipulable(player);
         if (s.isEmpty() || level < 1 || level > views.maxLevel(s.get())) {
             return false;
         }
-        update(player, s.get().withLevel(level));
+        update(player, s.get().withLevel(level).withNav(s.get().nav().leveled()));
         return true;
+    }
+
+    /**
+     * ST confirmClicked in creative: the placement list (Constructed, Assign to Builder), the other lists hidden;
+     * false outside creative or before a hut is chosen.
+     */
+    public boolean openPlacement(UUID player) {
+        Optional<WandSession> s =
+                manipulable(player).filter(x -> manager.context().players().isCreative(player));
+        s.ifPresent(x -> update(player, x.withNav(x.nav().placement())));
+        return s.isPresent();
     }
 
     /** Moves the anchor one block, relative to where the player faces now; false before a hut is chosen. */

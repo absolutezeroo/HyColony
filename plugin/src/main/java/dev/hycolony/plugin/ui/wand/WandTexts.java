@@ -24,19 +24,9 @@ final class WandTexts {
                 : name.isEmpty() ? name : name.substring(0, 1).toUpperCase(Locale.ROOT) + name.substring(1);
     }
 
-    /**
-     * ST's tree label: the pack, then {@code pack/folder}, and the blueprint's file name ({@code builder2}) while its
-     * hut is shown in the open folder.
-     */
+    /** ST's tree label: the pack's name, then the core's path ({@code /folder/builder2}). */
     static Message tree(WandView view) {
-        StringBuilder rest = new StringBuilder();
-        if (!view.depth().isEmpty()) {
-            rest.append('/').append(view.depth());
-        }
-        if (view.hutIds().contains(view.buildingTypeId())) {
-            String id = view.buildingTypeId();
-            rest.append('/').append(id.substring(id.indexOf(':') + 1)).append(view.level());
-        }
-        return Message.join(Message.translation(view.packName()), Message.raw(rest.toString()));
+        return Message.join(
+                Message.translation(view.packName()), Message.raw(view.panel().treePath()));
     }
 }
