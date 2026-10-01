@@ -7,8 +7,11 @@ $C = "../../../Common.ui";
 
 @SwitchStyle = TextButtonStyle(
   Default: (Background: "../Mc/builder_button_very_small.png", LabelStyle: $B.@InkCentered),
-  Hovered: (Background: "../Mc/builder_button_very_small.png", LabelStyle: (...$B.@InkCentered, RenderBold: true)),
-  Pressed: (Background: "../Mc/builder_button_very_small.png", LabelStyle: $B.@InkCentered),
+  Hovered: (
+    Background: "../Mc/builder_button_very_small_hover.png",
+    LabelStyle: (...$B.@InkCentered, RenderBold: true)
+  ),
+  Pressed: (Background: "../Mc/builder_button_very_small_hover.png", LabelStyle: $B.@InkCentered),
   Sounds: $C.@ButtonSounds
 );
 

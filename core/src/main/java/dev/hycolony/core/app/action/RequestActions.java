@@ -41,11 +41,19 @@ public final class RequestActions {
     /**
      * "Fournir": moves min(requested, owned) from the player to the requesting citizen (or, for the building
      * itself, its hut containers), each stack with its damage, and overrules the request. A partial amount still
-     * closes it; the requester asks again for the rest. False if nothing was moved.
+     * closes it; the requester asks again for the rest. False if nothing was moved, or without MANAGE_HUTS (told).
+     *
+     * <p>Deviation from MC: a hut's own request (no citizen) is filled into the hut's containers; MC's citizen window
+     * hands it to the citizen whose window it is. The clipboard has no citizen to hand it to.
      */
     public boolean fulfil(UUID player, int colonyId, RequestToken token) {
         Colony c = manager.byId(colonyId).orElse(null);
-        if (c == null || !ColonyAccess.allows(c, player, Action.ACCESS_HUTS)) {
+        if (c == null) {
+            return false;
+        }
+        // MC TransferItemsToCitizenRequestMessage and UpdateRequestStateMessage: MANAGE_HUTS, refused aloud.
+        if (!ColonyAccess.allows(c, player, Action.MANAGE_HUTS)) {
+            ColonyRefusal.tellNoPermission(c, player);
             return false;
         }
         Request req = openItemRequest(c, token).orElse(null);
@@ -80,7 +88,8 @@ public final class RequestActions {
      * MC RequestTreeWindowModule.cancel, sent as UpdateRequestStateMessage (CANCELLED) with MC's default MANAGE_HUTS:
      * the request is cancelled and the colony saved. False, changing nothing, for an unknown colony, a request no
      * longer open, or without the right (told, as MC). As MC's message, any open request may be cancelled; the windows
-     * offer Cancel on their tree's roots only.
+     * offer Cancel on their tree's roots only. Deviation from MC: a request already completed is left alone (MC's
+     * message would cancel it in any state).
      */
     public boolean cancel(UUID player, int colonyId, RequestToken token) {
         Colony c = manager.byId(colonyId).orElse(null);

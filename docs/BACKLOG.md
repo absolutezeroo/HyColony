@@ -119,7 +119,7 @@ Les corrections de l'audit sont commitées : bugs, socle des métiers (`job/work
   - la tâche en cours (`ongoing`) d'un livreur n'est pas vidée quand il devient inactif (comme MC), sans que ce soit documenté ;
   - Javadoc à compléter : `tokens()` de la file, bouton Stock (`BuildingViews.stock`) ;
   - tests : le message « entrepôt plein » n'est suivi que sur 2000 ticks ; les simulations d'échec ne vérifient la conservation des objets que pour `PLANKS` ;
-  - plugin : les gestionnaires « fournir » de `RequestsPage` ne revérifient pas `canSupply` ;
+  - plugin : les gestionnaires « fournir » revérifient `fulfillable` (fait le 2026-10-01, `RequestTreeEvents`, `RequestDetailPage`) ;
   - nom d'objet : repli sur le `Message` brut quand la traduction manque (`itemName`) ;
   - constante de cadre dupliquée dans les fenêtres de logistique du plugin.
 - **Domum Ornamentum** : repris le 2026-09-28 par un générateur au build, en trois sous-projets. DO-1 (les blocs, spec `docs/superpowers/specs/2026-09-28-hycolony-domum-ornamentum-do1-design.md`) est en cours ; restent :

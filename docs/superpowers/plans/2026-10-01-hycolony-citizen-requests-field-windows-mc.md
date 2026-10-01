@@ -48,7 +48,7 @@
 1. `RequestRow` gagne la position du demandeur, le nom du résolveur, `cancellable` (racine) et `fulfillable` (règle de contexte) ; la description reste rendue par le plugin depuis le `Requestable`.
 2. Requêtes du citoyen = celles de sa hutte de travail portées par lui, puis celles de la hutte sans citoyen (−1), chacune avec ses enfants.
 3. Fournir côté citoyen : livrable, et racine ou demandeur à la place de la hutte, et le joueur a l'objet (`isFulfillable`) ; tests de chaque refus.
-4. `RequestActions.cancel(player, colonyId, token)` : `MANAGE_HUTS`, racine seulement, `CANCELLED`, ré-affichage ; tests droit, enfant refusé, jeton inconnu.
+4. `RequestActions.cancel(player, colonyId, token)` : `MANAGE_HUTS` annoncé, toute requête ouverte comme le message de MC (Annuler n'est proposé que sur les racines), `CANCELLED` ; tests droit, requête terminée, jeton inconnu.
 
 **Plugin**
 

@@ -18,6 +18,13 @@ Group {
     TextTooltipStyle: $C.@DefaultTextTooltipStyle;
   }
 
+  Button #CraftingIcon {
+    Anchor: (Left: 2, Top: 6, Width: 32, Height: 32);
+    Style: (Default: (Background: "crafting_public.png"));
+    Visible: false;
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+  }
+
   ItemIcon #Item {
     Anchor: (Left: 2, Top: 6, Width: 32, Height: 32);
     Visible: false;
@@ -38,6 +45,11 @@ Group {
   ItemIcon #TaskItem {
     Anchor: (Left: 170, Top: 2, Width: 18, Height: 18);
     Visible: false;
+  }
+
+  Label #TaskCount {
+    Anchor: (Left: 190, Top: 2, Width: 60, Height: 18);
+    Style: (...$B.@Ink, FontSize: 14);
   }
 
   Label #Requester {

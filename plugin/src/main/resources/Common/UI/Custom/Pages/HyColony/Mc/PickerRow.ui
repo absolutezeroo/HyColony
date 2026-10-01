@@ -10,8 +10,8 @@ Group {
     Style: (
       ...$B.@WideButtonStyle,
       Default: (Background: "builder_button_medium.png", LabelStyle: $B.@InkCentered),
-      Hovered: (Background: "builder_button_medium.png", LabelStyle: (...$B.@InkCentered, RenderBold: true)),
-      Pressed: (Background: "builder_button_medium.png", LabelStyle: $B.@InkCentered)
+      Hovered: (Background: "builder_button_medium_hover.png", LabelStyle: (...$B.@InkCentered, RenderBold: true)),
+      Pressed: (Background: "builder_button_medium_hover.png", LabelStyle: $B.@InkCentered)
     );
     Text: "";
   }

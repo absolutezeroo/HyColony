@@ -95,6 +95,49 @@ public final class RequestsPage extends ColonyPage {
     }
 
     /**
+     * MC getShortDisplayString as a request tree shows it: "64 Stone" or "32-64 Stone" (minimum then count) for a
+     * stack, the type alone for a tool, else as {@link #describe}.
+     */
+    public static Message describeShort(Requestable requestable) {
+        return switch (requestable) {
+            case StackRequest s
+            when s.minCount() == s.count() ->
+                Message.translation("hycolony.ui.requests.short.stack")
+                        .param("p0", String.valueOf(s.count()))
+                        .param("p1", itemName(s.item().id()));
+            case StackRequest s ->
+                Message.translation("hycolony.ui.requests.short.stackRange")
+                        .param("p0", String.valueOf(s.minCount()))
+                        .param("p1", String.valueOf(s.count()))
+                        .param("p2", itemName(s.item().id()));
+            case ToolRequest t -> toolName(t);
+            default -> describe(requestable);
+        };
+    }
+
+    /**
+     * MC getLongDisplayString, a request's details: a tool with its minimal and maximal level (the maximal one only
+     * below any level), else the short text.
+     */
+    public static Message describeLong(Requestable requestable) {
+        if (!(requestable instanceof ToolRequest t)) {
+            return describeShort(requestable);
+        }
+        return t.maxLevel() == Integer.MAX_VALUE
+                ? Message.translation("hycolony.ui.requests.long.toolMin")
+                        .param("p0", toolName(t))
+                        .param("p1", String.valueOf(t.minLevel()))
+                : Message.translation("hycolony.ui.requests.long.toolMinMax")
+                        .param("p0", toolName(t))
+                        .param("p1", String.valueOf(t.minLevel()))
+                        .param("p2", String.valueOf(t.maxLevel()));
+    }
+
+    private static Message toolName(ToolRequest t) {
+        return Message.translation("hycolony.ui.tool." + t.type().name().toLowerCase(Locale.ROOT));
+    }
+
+    /**
      * Deviation from MC: the first accepted item (a StackList accepts at least one) stands for the list, where MC shows
      * its description, a translation key.
      */
@@ -107,7 +150,7 @@ public final class RequestsPage extends ColonyPage {
     /** A max-level hut asks for any tool level (MC TOOL_LEVEL_MAXIMUM): "level 0 or higher", not "0 to 2147483647". */
     private static Message describeTool(ToolRequest t) {
         boolean anyLevel = t.maxLevel() == Integer.MAX_VALUE;
-        Message tool = Message.translation("hycolony.ui.tool." + t.type().name().toLowerCase(Locale.ROOT));
+        Message tool = toolName(t);
         Message m = Message.translation(anyLevel ? "hycolony.ui.requests.toolAnyLevel" : "hycolony.ui.requests.tool")
                 .param("p0", tool)
                 .param("p1", String.valueOf(t.minLevel()));

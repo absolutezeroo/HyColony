@@ -9,17 +9,23 @@ import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.app.ui.RequestsView.RequestRow;
 import dev.hycolony.plugin.ui.ColonyPage;
+import dev.hycolony.plugin.ui.RequestsPage;
 import javax.annotation.Nonnull;
 
 /**
- * A request's details (MC WindowRequestDetail): its item, requester, the requester's place, its resolver and its
+ * A request's details (MC WindowRequestDetail): its item, requester, the requester's place, its resolver and its long
  * description, then Back, Fulfill and Cancel, the last two enabled as the tree offers them. Fulfill and Cancel go to
- * the core and, as Back, show the window the request came from again.
+ * the core and, as Back and Escape (MC closes back to the parent window), show the window the request came from again.
+ *
+ * <p>Deviation from MC: Back works (MC's window registers no handler for it, only Escape returns); the place is "x, y,
+ * z" without MC's dimension.
  */
 public final class RequestDetailPage extends ColonyPage {
     private final RequestTreeEvents tree;
     private final RequestRow row;
     private final ColonyPage origin;
+    /** Set once this window hands over to its origin, so its dismissal does not show the origin twice. */
+    private boolean leaving;
 
     RequestDetailPage(RequestTreeEvents tree, RequestRow row, ColonyPage origin) {
         super(tree.playerRef(), tree.manager());
@@ -41,7 +47,7 @@ public final class RequestDetailPage extends ColonyPage {
             @Nonnull Store<EntityStore> store) {
         ui.append("Pages/HyColony/RequestDetail.ui");
         RequestTree.icon(ui, "", row, tree.ids());
-        RequestTree.shortText(ui, "", row.requestable());
+        RequestTree.text(ui, "", row.requestable(), RequestsPage.describeLong(row.requestable()));
         ui.set("#Requester.TextSpans", buildingName(row.requesterName()));
         ui.set("#Place.TextSpans", RequestTree.place(row));
         row.resolver()
@@ -64,15 +70,39 @@ public final class RequestDetailPage extends ColonyPage {
     @Override
     public void handleDataEvent(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, @Nonnull Act act) {
         switch (act.action()) {
-            case "fulfill" -> tree.fulfil(row);
+            case "fulfill" -> {
+                if (row.fulfillable()) { // MC checks isFulfillable again
+                    tree.fulfil(row);
+                }
+            }
             case "cancel" -> tree.cancel(row);
             case "back" -> {}
             default -> {
                 return;
             }
         }
+        leaving = true;
         tree.reopen().run();
         closeIfStillShown(ref, store);
+    }
+
+    /**
+     * Escape: as MC's close, the origin shows again once this window is gone (world thread, next tick), unless another
+     * window opened in its place meanwhile.
+     */
+    @Override
+    public void onDismiss(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
+        super.onDismiss(ref, store);
+        if (leaving) {
+            return;
+        }
+        leaving = true;
+        store.getExternalData().getWorld().execute(() -> {
+            Player p = ref.isValid() ? store.getComponent(ref, Player.getComponentType()) : null;
+            if (p != null && p.getPageManager().getCustomPage() == null) {
+                tree.reopen().run();
+            }
+        });
     }
 
     /** The origin could not show again (its citizen or colony is gone): nothing replaced this window, so it closes. */

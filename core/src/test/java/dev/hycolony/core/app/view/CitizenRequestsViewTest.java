@@ -15,6 +15,7 @@ import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.core.logistics.warehouse.WarehouseBuilding;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.request.model.StackRequest;
@@ -76,6 +77,28 @@ class CitizenRequestsViewTest {
         assertEquals(Optional.of(HUT), row.requesterPos());
         assertEquals(Optional.of("Player"), row.resolver(), "MC StandardPlayerRequestResolver: \"Player\"");
         assertTrue(row.cancellable(), "MC isCancellable: a root of the tree");
+    }
+
+    @Test
+    void aChildIsFulfillableOnlyWhenItsRequesterStandsAtTheWorkplaceAsMc() {
+        RequestToken parent = ask(bob.id(), 3);
+        RequestToken here =
+                colony.requests().createChild(hut.resolvers().getFirst(), parent, new StackRequest(PLANK, 2, 2, true));
+        BlockPos storePos = new BlockPos(0, 64, 30);
+        manager.huts().place(colony, WarehouseBuilding.TYPE_ID, storePos, 0, alice);
+        Building store = colony.buildings().at(storePos).orElseThrow();
+        RequestToken away = colony.requests()
+                .createChild(store.resolvers().getFirst(), parent, new StackRequest(PLANK, 1, 1, true));
+        t.playerInventory.give(alice, new ItemAmount(PLANK, 5));
+
+        List<RequestRow> rows = rows();
+        RequestRow atHut =
+                rows.stream().filter(r -> r.token().equals(here)).findFirst().orElseThrow();
+        RequestRow elsewhere =
+                rows.stream().filter(r -> r.token().equals(away)).findFirst().orElseThrow();
+        assertTrue(atHut.fulfillable(), "MC: its requester's location is the hut's");
+        assertFalse(elsewhere.fulfillable(), "MC: a child asked elsewhere is not the citizen's to receive");
+        assertFalse(atHut.cancellable(), "MC isCancellable: roots only");
     }
 
     @Test

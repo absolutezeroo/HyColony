@@ -48,7 +48,7 @@ class CitizenWindowViewTest {
         var body = t.bodies.bodies.values().iterator().next();
         body.healthPercent = 10;
         body.alive = false;
-        assertEquals(20, view().health(), "no living entity: MC's MAX_HEALTH");
+        assertEquals(20, view().health(), "a body gone counts as MC's missing entity: MAX_HEALTH");
     }
 
     @Test

@@ -1,9 +1,10 @@
 $C = "../../../Common.ui";
 
 // Shared styles of the MC-look windows: ink on parchment and MC's textured buttons (builderhut/*). Texture paths
-// resolve from this file, so they work from any page that imports it. As BlockUI's ButtonImage with color="black",
-// a button looks the same hovered, pressed or disabled; only a button whose MC XML names a "disabled" texture swaps
-// to it (the *DisabledTexture styles).
+// resolve from this file, so they work from any page that imports it. As BlockUI's ButtonImage (ResolvedWidgetSprites)
+// draws a button whose state textures are its normal one, a hovered or pressed button is the texture times 1.1
+// (FOCUSED_MODULATOR, the *_hover files) and a disabled one times 0.5 (DISABLED_MODULATOR, the *_dim files); the ink
+// stays black. Only a button whose MC XML names a "disabled" texture swaps to it (the *DisabledTexture styles).
 
 @Ink = LabelStyle(FontSize: 15, TextColor: #000000, VerticalAlignment: Center);
 @InkCentered = LabelStyle(...@Ink, HorizontalAlignment: Center);
@@ -13,18 +14,18 @@ $C = "../../../Common.ui";
 // MC's builder_button_medium_large (129 x 17), doubled.
 @WideButtonStyle = TextButtonStyle(
   Default: (Background: "builder_button_medium_large.png", LabelStyle: @InkCentered),
-  Hovered: (Background: "builder_button_medium_large.png", LabelStyle: @InkCentered),
-  Pressed: (Background: "builder_button_medium_large.png", LabelStyle: @InkCentered),
-  Disabled: (Background: "builder_button_medium_large.png", LabelStyle: @InkCentered),
+  Hovered: (Background: "builder_button_medium_large_hover.png", LabelStyle: @InkCentered),
+  Pressed: (Background: "builder_button_medium_large_hover.png", LabelStyle: @InkCentered),
+  Disabled: (Background: "builder_button_medium_large_dim.png", LabelStyle: @InkCentered),
   Sounds: $C.@ButtonSounds
 );
 
 // MC's builder_button_medium (86 x 17), doubled.
 @MediumButtonStyle = TextButtonStyle(
   Default: (Background: "builder_button_medium.png", LabelStyle: @InkCentered),
-  Hovered: (Background: "builder_button_medium.png", LabelStyle: @InkCentered),
-  Pressed: (Background: "builder_button_medium.png", LabelStyle: @InkCentered),
-  Disabled: (Background: "builder_button_medium.png", LabelStyle: @InkCentered),
+  Hovered: (Background: "builder_button_medium_hover.png", LabelStyle: @InkCentered),
+  Pressed: (Background: "builder_button_medium_hover.png", LabelStyle: @InkCentered),
+  Disabled: (Background: "builder_button_medium_dim.png", LabelStyle: @InkCentered),
   Sounds: $C.@ButtonSounds
 );
 
@@ -37,18 +38,18 @@ $C = "../../../Common.ui";
 // MC's builder_button_small (64 x 17), doubled.
 @SmallButtonStyle = TextButtonStyle(
   Default: (Background: "builder_button_small.png", LabelStyle: @InkCentered),
-  Hovered: (Background: "builder_button_small.png", LabelStyle: @InkCentered),
-  Pressed: (Background: "builder_button_small.png", LabelStyle: @InkCentered),
-  Disabled: (Background: "builder_button_small.png", LabelStyle: @InkCentered),
+  Hovered: (Background: "builder_button_small_hover.png", LabelStyle: @InkCentered),
+  Pressed: (Background: "builder_button_small_hover.png", LabelStyle: @InkCentered),
+  Disabled: (Background: "builder_button_small_dim.png", LabelStyle: @InkCentered),
   Sounds: $C.@ButtonSounds
 );
 
 // MC's citizen/colonist_button_small (37 x 16), doubled: the request buttons.
 @ColonistSmallButtonStyle = TextButtonStyle(
   Default: (Background: "colonist_button_small.png", LabelStyle: @InkCentered),
-  Hovered: (Background: "colonist_button_small.png", LabelStyle: @InkCentered),
-  Pressed: (Background: "colonist_button_small.png", LabelStyle: @InkCentered),
-  Disabled: (Background: "colonist_button_small.png", LabelStyle: @InkCentered),
+  Hovered: (Background: "colonist_button_small_hover.png", LabelStyle: @InkCentered),
+  Pressed: (Background: "colonist_button_small_hover.png", LabelStyle: @InkCentered),
+  Disabled: (Background: "colonist_button_small_dim.png", LabelStyle: @InkCentered),
   Sounds: $C.@ButtonSounds
 );
 
@@ -56,36 +57,36 @@ $C = "../../../Common.ui";
 @QuiteSmallInk = LabelStyle(...@InkCentered, FontSize: 12);
 @QuiteSmallButtonStyle = TextButtonStyle(
   Default: (Background: "builder_button_quite_small.png", LabelStyle: @QuiteSmallInk),
-  Hovered: (Background: "builder_button_quite_small.png", LabelStyle: @QuiteSmallInk),
-  Pressed: (Background: "builder_button_quite_small.png", LabelStyle: @QuiteSmallInk),
-  Disabled: (Background: "builder_button_quite_small.png", LabelStyle: @QuiteSmallInk),
+  Hovered: (Background: "builder_button_quite_small_hover.png", LabelStyle: @QuiteSmallInk),
+  Pressed: (Background: "builder_button_quite_small_hover.png", LabelStyle: @QuiteSmallInk),
+  Disabled: (Background: "builder_button_quite_small_dim.png", LabelStyle: @QuiteSmallInk),
   Sounds: $C.@ButtonSounds
 );
 
 // MC's builder_button_large (169 x 17), doubled.
 @LargeButtonStyle = TextButtonStyle(
   Default: (Background: "builder_button_large.png", LabelStyle: @InkCentered),
-  Hovered: (Background: "builder_button_large.png", LabelStyle: @InkCentered),
-  Pressed: (Background: "builder_button_large.png", LabelStyle: @InkCentered),
-  Disabled: (Background: "builder_button_large.png", LabelStyle: @InkCentered),
+  Hovered: (Background: "builder_button_large_hover.png", LabelStyle: @InkCentered),
+  Pressed: (Background: "builder_button_large_hover.png", LabelStyle: @InkCentered),
+  Disabled: (Background: "builder_button_large_dim.png", LabelStyle: @InkCentered),
   Sounds: $C.@ButtonSounds
 );
 
 // MC's builder_button_very_small (29 x 15), doubled.
 @VerySmallButtonStyle = TextButtonStyle(
   Default: (Background: "builder_button_very_small.png", LabelStyle: @InkCentered),
-  Hovered: (Background: "builder_button_very_small.png", LabelStyle: @InkCentered),
-  Pressed: (Background: "builder_button_very_small.png", LabelStyle: @InkCentered),
-  Disabled: (Background: "builder_button_very_small.png", LabelStyle: @InkCentered),
+  Hovered: (Background: "builder_button_very_small_hover.png", LabelStyle: @InkCentered),
+  Pressed: (Background: "builder_button_very_small_hover.png", LabelStyle: @InkCentered),
+  Disabled: (Background: "builder_button_very_small_dim.png", LabelStyle: @InkCentered),
   Sounds: $C.@ButtonSounds
 );
 
 // MC's builder_button_mini (14 x 15), doubled: the "<", ">" and row arrow buttons.
 @MiniButtonStyle = TextButtonStyle(
   Default: (Background: "builder_button_mini.png", LabelStyle: @InkCentered),
-  Hovered: (Background: "builder_button_mini.png", LabelStyle: @InkCentered),
-  Pressed: (Background: "builder_button_mini.png", LabelStyle: @InkCentered),
-  Disabled: (Background: "builder_button_mini.png", LabelStyle: @InkCentered),
+  Hovered: (Background: "builder_button_mini_hover.png", LabelStyle: @InkCentered),
+  Pressed: (Background: "builder_button_mini_hover.png", LabelStyle: @InkCentered),
+  Disabled: (Background: "builder_button_mini_dim.png", LabelStyle: @InkCentered),
   Sounds: $C.@ButtonSounds
 );
 
@@ -93,8 +94,8 @@ $C = "../../../Common.ui";
 @DropdownStyle = DropdownBoxStyle(
   ...$C.@DefaultDropdownBoxStyle,
   DefaultBackground: "builder_button_medium_large.png",
-  HoveredBackground: "builder_button_medium_large.png",
-  PressedBackground: "builder_button_medium_large.png",
+  HoveredBackground: "builder_button_medium_large_hover.png",
+  PressedBackground: "builder_button_medium_large_hover.png",
   LabelStyle: (...@InkCentered, FontSize: 14)
 );
 
@@ -102,6 +103,6 @@ $C = "../../../Common.ui";
 @MediumDropdownStyle = DropdownBoxStyle(
   ...@DropdownStyle,
   DefaultBackground: "builder_button_medium.png",
-  HoveredBackground: "builder_button_medium.png",
-  PressedBackground: "builder_button_medium.png"
+  HoveredBackground: "builder_button_medium_hover.png",
+  PressedBackground: "builder_button_medium_hover.png"
 );

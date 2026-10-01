@@ -68,6 +68,14 @@ class CitizenSkillActionsTest {
     }
 
     @Test
+    void aFriendOutsideCreativeIsToldTooAsMcChecksTheRightFirst() {
+        assertFalse(adjust(carol, 1));
+        assertEquals(
+                "hycolony.permission.toolDenied",
+                t.notifier.sent.getLast().msg().key());
+    }
+
+    @Test
     void theLevelStaysBetweenOneAndTheMaximumAsMc() {
         t.players.creative.add(alice);
         ann.skills().set(Skill.Mana, 1, 0);

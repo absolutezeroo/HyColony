@@ -65,6 +65,15 @@ class RequestCancelTest {
     }
 
     @Test
+    void aCompletedRequestStillKnownIsLeftAlone() {
+        colony.requests().updateState(token, RequestState.COMPLETED);
+        Optional<RequestState> before = state();
+        assertTrue(before.isPresent(), "the request waits to be received");
+        assertFalse(manager.requestActions().cancel(alice, colony.id(), token));
+        assertEquals(before, state());
+    }
+
+    @Test
     void anUnknownOrClosedRequestIsIgnored() {
         assertTrue(manager.requestActions().cancel(alice, colony.id(), token));
         assertFalse(manager.requestActions().cancel(alice, colony.id(), token), "already gone");

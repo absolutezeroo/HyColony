@@ -115,4 +115,8 @@ Nouvelle action du cœur `RequestActions.cancel(player, colonyId, token)` : droi
 - Décalage de 4 px par profondeur dans l'arbre (2 px chez MC, ×2).
 - Les piles que MC fait défiler sur une requête à plusieurs objets : la première seulement.
 - Fournir dans le presse-papiers (ajout demandé).
+- Fournir une requête propre à la hutte (sans citoyen) remplit les conteneurs de la hutte ; MC la donne au citoyen de la fenêtre.
+- Une requête d'outil montre l'outil rudimentaire de son type ; le logo d'une livraison ou d'une tâche d'artisanat a pour infobulle le nom de son résolveur (MC : « From: », la place dans la file) ; le compte d'une tâche par pile s'écrit à côté de son objet.
+- Détail : Retour fonctionne (MC ne le relie à rien, seul Échap revient) ; la place s'écrit « x, y, z » sans la dimension ; Annuler laisse une requête déjà terminée.
+- Les textes « En attente de … » et les messages de chat gardent la plage de niveaux d'un outil (l'arbre et le détail suivent les textes court et long de MC).
 - Choix de graine : les graines de HyColony, sans les cultures de MC.

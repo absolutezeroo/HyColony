@@ -7,8 +7,8 @@ $C = "../../../Common.ui";
 @Ink = LabelStyle(FontSize: 14, TextColor: #000000, HorizontalAlignment: Center, VerticalAlignment: Center);
 @MiniStyle = TextButtonStyle(
   Default: (Background: "builder_button_mini.png", LabelStyle: @Ink),
-  Hovered: (Background: "builder_button_mini.png", LabelStyle: (...@Ink, RenderBold: true)),
-  Pressed: (Background: "builder_button_mini.png", LabelStyle: @Ink),
+  Hovered: (Background: "builder_button_mini_hover.png", LabelStyle: (...@Ink, RenderBold: true)),
+  Pressed: (Background: "builder_button_mini_hover.png", LabelStyle: @Ink),
   Sounds: $C.@ButtonSounds
 );
 

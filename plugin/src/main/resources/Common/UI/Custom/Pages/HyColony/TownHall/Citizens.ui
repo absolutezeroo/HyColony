@@ -30,8 +30,11 @@ Group {
     Style: (
       ...$B.@WideButtonStyle,
       Default: (Background: "../Mc/builder_button_medium.png", LabelStyle: $B.@InkCentered),
-      Hovered: (Background: "../Mc/builder_button_medium.png", LabelStyle: (...$B.@InkCentered, RenderBold: true)),
-      Pressed: (Background: "../Mc/builder_button_medium.png", LabelStyle: $B.@InkCentered)
+      Hovered: (
+        Background: "../Mc/builder_button_medium_hover.png",
+        LabelStyle: (...$B.@InkCentered, RenderBold: true)
+      ),
+      Pressed: (Background: "../Mc/builder_button_medium_hover.png", LabelStyle: $B.@InkCentered)
     );
     Text: %hycolony.ui.townhall.recallOne;
     Visible: false;

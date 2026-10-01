@@ -27,7 +27,8 @@ public record RequestTreeEvents(
     public boolean handle(Ref<EntityStore> ref, Store<EntityStore> store, ColonyPage page, ColonyPage.Act act) {
         switch (act.action()) {
             case RequestTree.FULFILL -> {
-                RequestTree.row(act, rows).ifPresent(r -> fulfil(r));
+                // MC checks isFulfillable again before acting.
+                RequestTree.row(act, rows).filter(RequestRow::fulfillable).ifPresent(r -> fulfil(r));
                 reopen.run();
             }
             case RequestTree.CANCEL -> {

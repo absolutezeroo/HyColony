@@ -18,9 +18,9 @@ Group {
     Anchor: (Left: 238, Top: 6, Width: 58, Height: 30);
     Style: (
       Default: (Background: "builder_button_very_small.png", LabelStyle: $B.@InkCentered),
-      Hovered: (Background: "builder_button_very_small.png", LabelStyle: (...$B.@InkCentered, RenderBold: true)),
-      Pressed: (Background: "builder_button_very_small.png", LabelStyle: $B.@InkCentered),
-      Disabled: (Background: "builder_button_very_small.png", LabelStyle: (...$B.@InkCentered, TextColor: #777777)),
+      Hovered: (Background: "builder_button_very_small_hover.png", LabelStyle: (...$B.@InkCentered, RenderBold: true)),
+      Pressed: (Background: "builder_button_very_small_hover.png", LabelStyle: $B.@InkCentered),
+      Disabled: (Background: "builder_button_very_small_dim.png", LabelStyle: (...$B.@InkCentered, TextColor: #777777)),
       Sounds: $C.@ButtonSounds
     );
     Text: "";

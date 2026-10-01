@@ -30,6 +30,13 @@ $C.@PageOverlay {
       TextTooltipStyle: $C.@DefaultTextTooltipStyle;
     }
 
+    Button #CraftingIcon {
+      Anchor: (Left: 24, Top: 60, Width: 48, Height: 48);
+      Style: (Default: (Background: "Mc/crafting_public.png"));
+      Visible: false;
+      TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+    }
+
     Label #Requester {
       Anchor: (Left: 80, Top: 60, Width: 270, Height: 18);
       Style: (...$B.@Ink, FontSize: 14);
@@ -53,6 +60,11 @@ $C.@PageOverlay {
     ItemIcon #TaskItem {
       Anchor: (Left: 160, Top: 150, Width: 18, Height: 18);
       Visible: false;
+    }
+
+    Label #TaskCount {
+      Anchor: (Left: 180, Top: 150, Width: 60, Height: 18);
+      Style: (...$B.@Ink, FontSize: 14);
     }
 
     TextButton #Back {

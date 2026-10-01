@@ -52,9 +52,11 @@ public final class RequestTree {
                 anchor.setHeight(Value.of(LINE_HEIGHT));
                 ui.setObject(row + ".Anchor", anchor);
             }
-            icon(ui, row + " ", r, ids);
-            shortText(ui, row + " ", r.requestable());
-            ui.set(row + " #Requester.TextSpans", ColonyPage.buildingName(r.requesterName()));
+            // MC sets the requester's line only beside an item (a request with display stacks).
+            if (icon(ui, row + " ", r, ids)) {
+                ui.set(row + " #Requester.TextSpans", ColonyPage.buildingName(r.requesterName()));
+            }
+            text(ui, row + " ", r.requestable(), RequestsPage.describeShort(r.requestable()));
             String ref = r.token().id().toString();
             ColonyPage.bindRef(events, row + " #Detail", DETAIL, ref);
             if (r.fulfillable()) {
@@ -76,42 +78,49 @@ public final class RequestTree {
     }
 
     /**
-     * MC: the request's item (its display stack), else its icon with the resolver as tooltip. Deviation from MC: the
-     * first of the stacks MC cycles through; a tool request shows the type's crude tool (IdMap toolIcon). {@code
-     * scope} prefixes the selectors: a row and a space, or nothing at the page's root.
+     * MC: the request's item (its display stacks), else its logo (a courier task's or a crafting task's, which have no
+     * display stacks) with its resolver as tooltip; true when an item shows. Deviation from MC: the first of the stacks
+     * MC cycles through; a tool request shows the type's crude tool (IdMap toolIcon); the logo's tooltip is the
+     * resolver's name, where MC writes "From:" and the queue position. {@code scope} prefixes the selectors: a row and
+     * a space, or nothing at the page's root.
      */
-    static void icon(UICommandBuilder ui, String scope, RequestRow r, IdMap ids) {
+    static boolean icon(UICommandBuilder ui, String scope, RequestRow r, IdMap ids) {
         Optional<String> item = item(r.requestable(), ids);
         if (item.isPresent()) {
             ui.set(scope + "#Item.Visible", true);
             ui.set(scope + "#Item.ItemId", item.get());
-            return;
+            return true;
         }
-        ui.set(scope + "#Icon.Visible", true);
-        r.resolver().ifPresent(name -> ui.set(scope + "#Icon.TooltipTextSpans", ColonyPage.buildingName(name)));
+        String logo = r.requestable() instanceof Crafting ? "#CraftingIcon" : "#Icon";
+        ui.set(scope + logo + ".Visible", true);
+        r.resolver().ifPresent(name -> ui.set(scope + logo + ".TooltipTextSpans", ColonyPage.buildingName(name)));
+        return false;
     }
 
+    /** MC getDisplayStacks: none for a courier task (delivery, pickup) or a crafting task. */
     private static Optional<String> item(Requestable requestable, IdMap ids) {
         return switch (requestable) {
             case StackRequest s -> Optional.of(s.item().id());
             case ToolRequest t -> Optional.of(ids.toolIcon(t.type()));
-            case Delivery d -> Optional.of(d.stack().item().id());
             case StackList l -> Optional.of(l.accepted().getFirst().id());
-            case Crafting c -> Optional.of(c.stack().id());
-            case Pickup _ -> Optional.empty();
+            case Delivery _, Pickup _, Crafting _ -> Optional.empty();
         };
     }
 
-    /** MC: a stack-based task's prefix and item, else the request's short description; {@code scope} as icon's. */
-    static void shortText(UICommandBuilder ui, String scope, Requestable requestable) {
+    /**
+     * MC: a stack-based task's prefix, its item and its count, else {@code plain} (the short or long description);
+     * {@code scope} as icon's. Deviation from MC: the count is a label beside the item (a Hytale ItemIcon draws none).
+     */
+    static void text(UICommandBuilder ui, String scope, Requestable requestable, Message plain) {
         Optional<ItemAmount> stack = StackTasks.stack(requestable);
         if (stack.isEmpty()) {
-            ui.set(scope + "#Short.TextSpans", RequestsPage.describe(requestable));
+            ui.set(scope + "#Short.TextSpans", plain);
             return;
         }
         ui.set(scope + "#Short.TextSpans", StackTasks.prefix(requestable));
         ui.set(scope + "#TaskItem.Visible", true);
         ui.set(scope + "#TaskItem.ItemId", stack.get().item().id());
+        ui.set(scope + "#TaskCount.Text", "x" + stack.get().count());
     }
 
     /** "x, y, z" of a request's requester, or nothing. */

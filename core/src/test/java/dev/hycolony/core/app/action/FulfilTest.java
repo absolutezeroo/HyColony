@@ -11,6 +11,7 @@ import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyState;
+import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemAmount;
@@ -138,6 +139,21 @@ class FulfilTest {
 
         assertEquals(3, t.containers.count(hut.containers(), PLANKS));
         assertEquals(RequestState.COMPLETED, get(token).state());
+    }
+
+    @Test
+    void aFriendMayNotFulfilAndIsToldAsMc() {
+        UUID carol = UUID.randomUUID();
+        assertTrue(manager.administration().setRank(alice, colony.id(), carol, "Carol", Permissions.FRIEND));
+        RequestToken token = request(10, 1);
+        t.playerInventory.give(carol, new ItemAmount(PLANKS, 10));
+
+        assertFalse(manager.requestActions().fulfil(carol, colony.id(), token), "MC: MANAGE_HUTS");
+        assertEquals(10, t.playerInventory.count(carol, PLANKS));
+        assertEquals(
+                "hycolony.permission.toolDenied",
+                t.notifier.sent.getLast().msg().key(),
+                "MC AbstractColonyServerMessage tells the refusal");
     }
 
     @Test

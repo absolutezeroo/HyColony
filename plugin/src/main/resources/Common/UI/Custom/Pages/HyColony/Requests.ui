@@ -12,8 +12,8 @@ $B = "Mc/Book.ui";
   Anchor: (Left: 300, Top: 46, Width: 28, Height: 30);
   Style: TextButtonStyle(
     Default: (Background: "Mc/builder_button_mini.png", LabelStyle: (...$B.@InkCentered, TextColor: @Ink)),
-    Hovered: (Background: "Mc/builder_button_mini.png", LabelStyle: (...$B.@InkCentered, TextColor: @Ink)),
-    Pressed: (Background: "Mc/builder_button_mini.png", LabelStyle: (...$B.@InkCentered, TextColor: @Ink)),
+    Hovered: (Background: "Mc/builder_button_mini_hover.png", LabelStyle: (...$B.@InkCentered, TextColor: @Ink)),
+    Pressed: (Background: "Mc/builder_button_mini_hover.png", LabelStyle: (...$B.@InkCentered, TextColor: @Ink)),
     Sounds: $C.@ButtonSounds
   );
   Text: "!";
