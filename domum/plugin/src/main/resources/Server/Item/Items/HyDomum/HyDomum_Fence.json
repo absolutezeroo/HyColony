@@ -53,10 +53,12 @@
         },
         "T": {
           "CustomModel": "Blocks/HyDomum/Fence_T.blockymodel",
-          "FlipType": "Symmetric"
+          "FlipType": "Symmetric",
+          "HitboxType": "HyDomum_Fence_T"
         },
         "Cross": {
-          "CustomModel": "Blocks/HyDomum/Fence_Cross.blockymodel"
+          "CustomModel": "Blocks/HyDomum/Fence_Cross.blockymodel",
+          "HitboxType": "Full"
         },
         "Post": {
           "CustomModel": "Blocks/HyDomum/Fence_Post.blockymodel",

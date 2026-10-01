@@ -51,13 +51,11 @@ public final class HytaleNeighbours {
             int x = at.x() + dx(side);
             int y = at.y();
             int z = at.z() + dz(side);
-            Ref<ChunkStore> ref = chunkStore.getChunkSectionReferenceAtBlock(x, y, z);
-            BlockSection section = ref == null || !ref.isValid()
-                    ? null
-                    : chunkStore.getStore().getComponent(ref, BlockSection.getComponentType());
-            if (section == null) {
+            Optional<BlockSection> loaded = section(chunkStore, x, y, z);
+            if (loaded.isEmpty()) {
                 return Optional.empty();
             }
+            BlockSection section = loaded.get();
             int index = section.get(x, y, z);
             int rotation = section.getRotationIndex(x, y, z);
             BlockType type = BlockType.getAssetMap().getAsset(index);
@@ -71,6 +69,14 @@ public final class HytaleNeighbours {
                             kind, fullFace, RotationTuple.get(rotation).yaw().getDegrees() / 90));
         }
         return Optional.of(around);
+    }
+
+    /** The block section holding x, y, z; empty when it is not loaded. */
+    static Optional<BlockSection> section(ChunkStore chunkStore, int x, int y, int z) {
+        Ref<ChunkStore> ref = chunkStore.getChunkSectionReferenceAtBlock(x, y, z);
+        return ref == null || !ref.isValid()
+                ? Optional.empty()
+                : Optional.ofNullable(chunkStore.getStore().getComponent(ref, BlockSection.getComponentType()));
     }
 
     /**

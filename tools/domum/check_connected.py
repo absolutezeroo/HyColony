@@ -99,7 +99,7 @@ def compat_uses_do_models_and_vanilla_shapes():
     """Fences, gates, walls, stairs and slabs keep their vanilla equivalent's rule type, states and hitboxes (fences
     and walls take our rule set and add the lone post and the end), draw every state with a DO model and name our
     blocks only; the gate's leaves hang on the nodes the door animation turns."""
-    from blocks import compat
+    from blocks import compat, wall_tops
 
     ctx = generate_into_temp()
     for name, vanilla_id in compat.VANILLA.items():
@@ -111,6 +111,8 @@ def compat_uses_do_models_and_vanilla_shapes():
         assert ours["VariantRotation"] == theirs["VariantRotation"], name
         states = ours.get("State", {}).get("Definitions", {})
         added = set(compat.NEW_STATES) if name in ("Fence", "Wall") else set()
+        if name == "Wall":
+            added |= {state for state, _, _, _ in wall_tops.looks({"Post": set(), **compat.SHAPES})}
         assert set(states) == set(theirs.get("State", {}).get("Definitions", {})) | added, name
         for look in [ours] + [s for s in states.values() if "CustomModel" in s]:
             assert look["CustomModel"].startswith("Blocks/HyDomum/"), name
@@ -133,7 +135,7 @@ def fence_and_wall_shape_by_their_neighbours():
     shape but the post has a pattern turned in the four directions, so its turn follows its neighbours (the vanilla
     template's patternless Straight kept a broken corner's turn); the vanilla shapes keep the vanilla sides, so their
     states keep their hitboxes; a gate's sides come from its own rules."""
-    from blocks import common, compat
+    from blocks import common, compat, wall_tops
 
     ctx = generate_into_temp()
     ours = template(ctx, compat.TEMPLATE)
@@ -158,8 +160,11 @@ def fence_and_wall_shape_by_their_neighbours():
         ident = "HyDomum_" + name
         block = ctx.items[ident]["BlockType"]
         rules = block["ConnectedBlockRuleSet"]
+        # A wall also names a pattern per top the block above gives it (wall_tops.py).
+        tops = {state for state, _, _, _ in wall_tops.looks({"Post": set(), **compat.SHAPES})}
+        tops = tops if name == "Wall" else set()
         assert rules["TemplateShapeAssetId"] == compat.TEMPLATE and set(rules["TemplateShapeBlockPatterns"]) == set(
-            shapes), name
+            shapes) | tops, name
         # Our Java rule set (domum/plugin HytaleFenceRules) picks the shape by MC's rule for a fence or a wall.
         assert rules["Type"] == "HyDomum_Fence" and rules["Joins"] == compat.JOINS[name], rules
         # The straight run stays the block itself: placed fences and converted blueprints keep their look.
@@ -209,6 +214,27 @@ def wall_post_rises_like_minecraft():
     assert has_post("HyDomum_Wall_Post") and has_post("HyDomum_Wall_End")
 
 
+def wall_tops_follow_the_block_above():
+    """A HyDomum wall has a state per top the block above gives it (MC WallBlock.updateShape), named as domum/core
+    WallState names them: tall arms reach the block's top, a raised post too, low arms do not."""
+    from blocks import compat, wall_tops
+
+    ctx = generate_into_temp()
+    tops = wall_tops.looks({"Post": set(), **compat.SHAPES})
+    states = ctx.items["HyDomum_Wall"]["BlockType"]["State"]["Definitions"]
+    assert len(tops) == 49 and {state for state, _, _, _ in tops} <= set(states), len(tops)
+    # Names as domum/core WallStateTest expects them.
+    assert {"End_TallN", "Straight_TallE_Up", "T_Junction_TallESW", "Cross_Junction_TallNESW"} <= set(states)
+    # A tall line with its post raised by a raised wall post above (MC WallBlock.shouldRaisePost checks it first).
+    assert {"Straight_TallEW_Up", "Cross_Junction_TallNESW_Up"} <= set(states) and "Corner_Up" not in states
+
+    def top(name):
+        return bounds(ctx.models[name]["nodes"])[1][1]
+
+    assert top("HyDomum_Wall") < 30 <= top("HyDomum_Wall_Straight_TallEW") and 30 <= top("HyDomum_Wall_Straight_Up")
+    assert states["End_TallN"]["Gathering"] == states["Cross"]["Gathering"]
+
+
 def run():
     """Runs this module's checks; an AssertionError names the failing case."""
     pillar_has_four_closed_shapes()
@@ -217,3 +243,4 @@ def run():
     fence_and_wall_shape_by_their_neighbours()
     vanilla_fences_are_named_by_family()
     wall_post_rises_like_minecraft()
+    wall_tops_follow_the_block_above()

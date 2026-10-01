@@ -10,8 +10,8 @@ rule set (only the blocks its TemplateShapeBlockPatterns name). The vanilla temp
 keeps a block's old turn when no shape matches.
 
 Deviation from MC: the vanilla fences, walls and bars keep the vanilla rules: they join ours by our face tags, whatever
-the family, never a full face, and have no lone post nor end; walls have no tall sides and no post raised by the block
-above; a gate next to a wall is not lowered (Minecraft's in_wall).
+the family, never a full face, and have no lone post nor end; a gate next to a wall is not lowered (Minecraft's
+in_wall). A wall's top follows the block above (tall arms, raised post: wall_tops.py, domum/core WallTop).
 """
 
 import json
@@ -20,7 +20,7 @@ import assemble
 import convert
 import faces
 import names
-from blocks import common, roof
+from blocks import common, roof, wall_tops
 from families import FAMILIES
 from models import walk
 from pack import write_json
@@ -113,8 +113,14 @@ def _connected(ctx, family, ident, block_type, arms):
             continue
         state = target[len(prefix):]
         name = ident + "_" + state
-        states[state] = ({**shared, **common.look(ctx, family, name, family.blocks[0], arms(sides))}
-                         if state in NEW_STATES else {"CustomModel": _model(ctx, family, name, arms(sides))})
+        if state in NEW_STATES:
+            states[state] = {**shared, **common.look(ctx, family, name, family.blocks[0], arms(sides))}
+        elif "HitboxType" in block_type["State"]["Definitions"].get(state, {}):
+            states[state] = {"CustomModel": _model(ctx, family, name, arms(sides))}
+        else:
+            # The vanilla T and cross inherit the straight run's hitbox: theirs is their model's bounding box (a block
+            # above a wall reads it, WallTop; each test band reaches a block's edge, so the box reads as the arms).
+            states[state] = common.look(ctx, family, name, family.blocks[0], arms(sides))
     return default, states
 
 
@@ -126,12 +132,20 @@ def fence(ctx, family, ident, block_type):
 
 def wall(ctx, family, ident, block_type):
     """A wall's arms are low; its post rises when alone or when an arm lacks its opposite (Minecraft's
-    WallBlock.shouldRaisePost, no block above): not on a straight run or a cross."""
+    WallBlock.shouldRaisePost, no block above): not on a straight run or a cross. Then a state per top the block
+    above gives it (wall_tops.py: tall arms, a raised optional post), found by its name in the rule set's patterns."""
     def arms(sides):
         up = not sides or ("north" in sides) != ("south" in sides) or ("east" in sides) != ("west" in sides)
         return {"up": "true" if up else "false", **{s: "low" if s in sides else "none" for s in common.SIDES}}
 
-    return _connected(ctx, family, ident, block_type, arms)
+    default, states = _connected(ctx, family, ident, block_type, arms)
+    patterns = block_type["ConnectedBlockRuleSet"]["TemplateShapeBlockPatterns"]
+    shared = {k: v for k, v in states[DEFAULT].items() if k not in ("CustomModel", "HitboxType")}
+    for state, sides, tall, post in wall_tops.looks({DEFAULT: set(), **SHAPES}):
+        patterns[state] = f"*{ident}_State_Definitions_{state}"
+        look = common.look(ctx, family, f"{ident}_{state}", family.blocks[0], wall_tops.props(sides, tall, post))
+        states[state] = {**shared, **look}
+    return default, states
 
 
 def stairs(ctx, family, ident, block_type):

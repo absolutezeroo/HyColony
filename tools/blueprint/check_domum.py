@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import tempfile
+from itertools import combinations
 from pathlib import Path
 
 from . import domum
@@ -127,6 +128,27 @@ def fence_junctions_take_their_t_and_cross_states():
     assert (m.target, m.rotation) == ("*HyDomum_Fence_State_Definitions_Corner", 0), m
 
 
+def wall_tops_follow_minecrafts_up_and_tall():
+    # Le dessus d'un muret Minecraft (up, côtés tall) donne l'état HyDomum de même nom que domum/core WallState.
+    north_end = {"north": "tall", "up": "true"}
+    m = _rule("domum_ornamentum:vanilla_wall_compat", north_end)
+    assert (m.target, m.rotation) == ("*HyDomum_Wall_State_Definitions_End_TallN", 0), m
+    # Un bout vers l'est (lacet 3) : son bras haut est le nord au lacet 0.
+    m = _rule("domum_ornamentum:vanilla_wall_compat", {"east": "tall", "up": "true"})
+    assert (m.target, m.rotation) == ("*HyDomum_Wall_State_Definitions_End_TallN", 3), m
+    m = _rule("domum_ornamentum:vanilla_wall_compat", {"east": "low", "west": "low", "up": "true"})
+    assert (m.target, m.rotation) == ("*HyDomum_Wall_State_Definitions_Straight_Up", 0), m
+    m = _rule("domum_ornamentum:vanilla_wall_compat", {"east": "tall", "west": "tall", "up": "true"})
+    assert (m.target, m.rotation) == ("*HyDomum_Wall_State_Definitions_Straight_TallEW_Up", 0), m
+    m = _rule("domum_ornamentum:vanilla_wall_compat", {"north": "tall", "south": "low", "up": "false"})
+    assert (m.target, m.rotation) == ("*HyDomum_Wall_State_Definitions_Straight_TallE", 1), m
+    # Un muret bas sans poteau facultatif garde son état d'origine ; une clôture n'a pas de dessus.
+    m = _rule("domum_ornamentum:vanilla_wall_compat", {"north": "low", "south": "low", "east": "low", "up": "true"})
+    assert m.target == "*HyDomum_Wall_State_Definitions_T", m
+    m = _rule("domum_ornamentum:vanilla_fence_compat", {"north": "true", "up": "true"})
+    assert m.target == "*HyDomum_Fence_State_Definitions_End", m
+
+
 def minecraft_fences_gates_and_walls_become_hydomum_ones():
     # Demandé le 2026-10-01 : les clôtures, portillons et murets de Minecraft prennent ceux de HyDomum, dans le
     # matériau de leur bloc de base (les planches de leur bois, la pierre du muret).
@@ -134,8 +156,10 @@ def minecraft_fences_gates_and_walls_become_hydomum_ones():
     assert (m.target, m.rotation) == ("*HyDomum_Fence__Wood_Hardwood_Planks_State_Definitions_Post", 0), m
     m = domum.vanilla_rule("minecraft:spruce_fence", {"east": "true", "west": "true"}, True)
     assert (m.target, m.rotation) == ("HyDomum_Fence__Wood_Softwood_Planks", 0), m
-    m = domum.vanilla_rule("minecraft:cobblestone_wall", {"north": "low", "south": "tall"}, True)
+    m = domum.vanilla_rule("minecraft:cobblestone_wall", {"north": "low", "south": "low"}, True)
     assert (m.target, m.rotation) == ("HyDomum_Wall__Rock_Stone_Cobble", 1), m
+    m = domum.vanilla_rule("minecraft:cobblestone_wall", {"north": "low", "south": "tall"}, True)
+    assert (m.target, m.rotation) == ("*HyDomum_Wall__Rock_Stone_Cobble_State_Definitions_Straight_TallW", 1), m
     m = domum.vanilla_rule("minecraft:stone_brick_wall", {"east": "low"}, True)
     assert m.target == "*HyDomum_Wall__Rock_Stone_Brick_State_Definitions_End", m
     m = domum.vanilla_rule("minecraft:oak_fence_gate", {"facing": "east", "open": "true"}, True)
@@ -189,8 +213,13 @@ def every_state_emitted_exists_in_its_template():
             wanted = set(domum.PILLAR_STATES.values())
         elif sid == "FenceGate" or sid.startswith(("Trapdoor_", "FancyTrapdoor_")):
             wanted = {"OpenDoorOut"}
-        elif sid in ("Fence", "Wall"):
+        elif sid == "Fence":
             wanted = {"Corner", "T", "Cross", "Post", "End"}
+        elif sid == "Wall":
+            # Every top the converter may name (domum._wall_top), for MC's up and tall properties.
+            tops = {domum._wall_top(domum.SHAPE_KEYS[state], set(tall), up) for state, arms in domum.CONNECTED
+                    for n in range(len(arms) + 1) for tall in combinations(sorted(arms), n) for up in (False, True)}
+            wanted = {"Corner", "T", "Cross", "Post", "End"} | (tops - {None})
         assert wanted <= have, (sid, wanted - have)
 
 
@@ -233,6 +262,7 @@ def run():
     isolated_fence_post_is_not_called_a_beam()
     fence_end_points_its_arm_at_its_neighbour()
     fence_junctions_take_their_t_and_cross_states()
+    wall_tops_follow_minecrafts_up_and_tall()
     minecraft_fences_gates_and_walls_become_hydomum_ones()
     every_state_emitted_exists_in_its_template()
     timber_frame_takes_its_two_materials()

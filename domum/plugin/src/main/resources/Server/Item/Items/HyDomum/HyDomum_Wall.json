@@ -65,7 +65,8 @@
               "GatherType": "Rocks"
             }
           },
-          "FlipType": "Symmetric"
+          "FlipType": "Symmetric",
+          "HitboxType": "HyDomum_Wall_T"
         },
         "Cross": {
           "CustomModel": "Blocks/HyDomum/Wall_Cross.blockymodel",
@@ -74,7 +75,8 @@
               "ItemId": "HyDomum_Wall",
               "GatherType": "Rocks"
             }
-          }
+          },
+          "HitboxType": "HyDomum_Wall_Cross"
         },
         "Post": {
           "Gathering": {
@@ -95,6 +97,496 @@
           },
           "CustomModel": "Blocks/HyDomum/Wall_End.blockymodel",
           "HitboxType": "HyDomum_Wall_End"
+        },
+        "End_TallN": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_End_TallN.blockymodel",
+          "HitboxType": "HyDomum_Wall_End_TallN"
+        },
+        "Straight_Up": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Straight_Up.blockymodel",
+          "HitboxType": "HyDomum_Wall_Straight_Up"
+        },
+        "Straight_TallE": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Straight_TallE.blockymodel",
+          "HitboxType": "HyDomum_Wall_Straight_TallE"
+        },
+        "Straight_TallE_Up": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Straight_TallE_Up.blockymodel",
+          "HitboxType": "HyDomum_Wall_Straight_TallE_Up"
+        },
+        "Straight_TallW": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Straight_TallW.blockymodel",
+          "HitboxType": "HyDomum_Wall_Straight_TallW"
+        },
+        "Straight_TallW_Up": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Straight_TallW_Up.blockymodel",
+          "HitboxType": "HyDomum_Wall_Straight_TallW_Up"
+        },
+        "Straight_TallEW": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Straight_TallEW.blockymodel",
+          "HitboxType": "HyDomum_Wall_Straight_TallEW"
+        },
+        "Straight_TallEW_Up": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Straight_TallEW_Up.blockymodel",
+          "HitboxType": "HyDomum_Wall_Straight_TallEW_Up"
+        },
+        "Corner_TallS": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Corner_TallS.blockymodel",
+          "HitboxType": "HyDomum_Wall_Corner_TallS"
+        },
+        "Corner_TallW": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Corner_TallW.blockymodel",
+          "HitboxType": "HyDomum_Wall_Corner_TallW"
+        },
+        "Corner_TallSW": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Corner_TallSW.blockymodel",
+          "HitboxType": "HyDomum_Wall_Corner_TallSW"
+        },
+        "T_Junction_TallE": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_T_Junction_TallE.blockymodel",
+          "HitboxType": "HyDomum_Wall_T_Junction_TallE"
+        },
+        "T_Junction_TallS": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_T_Junction_TallS.blockymodel",
+          "HitboxType": "HyDomum_Wall_T_Junction_TallS"
+        },
+        "T_Junction_TallW": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_T_Junction_TallW.blockymodel",
+          "HitboxType": "HyDomum_Wall_T_Junction_TallW"
+        },
+        "T_Junction_TallES": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_T_Junction_TallES.blockymodel",
+          "HitboxType": "HyDomum_Wall_T_Junction_TallES"
+        },
+        "T_Junction_TallEW": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_T_Junction_TallEW.blockymodel",
+          "HitboxType": "HyDomum_Wall_T_Junction_TallEW"
+        },
+        "T_Junction_TallSW": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_T_Junction_TallSW.blockymodel",
+          "HitboxType": "HyDomum_Wall_T_Junction_TallSW"
+        },
+        "T_Junction_TallESW": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_T_Junction_TallESW.blockymodel",
+          "HitboxType": "HyDomum_Wall_T_Junction_TallESW"
+        },
+        "Cross_Junction_Up": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Cross_Junction_Up.blockymodel",
+          "HitboxType": "Full"
+        },
+        "Cross_Junction_TallE": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Cross_Junction_TallE.blockymodel",
+          "HitboxType": "Full"
+        },
+        "Cross_Junction_TallE_Up": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Cross_Junction_TallE_Up.blockymodel",
+          "HitboxType": "Full"
+        },
+        "Cross_Junction_TallN": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Cross_Junction_TallN.blockymodel",
+          "HitboxType": "Full"
+        },
+        "Cross_Junction_TallN_Up": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Cross_Junction_TallN_Up.blockymodel",
+          "HitboxType": "Full"
+        },
+        "Cross_Junction_TallS": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Cross_Junction_TallS.blockymodel",
+          "HitboxType": "Full"
+        },
+        "Cross_Junction_TallS_Up": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Cross_Junction_TallS_Up.blockymodel",
+          "HitboxType": "Full"
+        },
+        "Cross_Junction_TallW": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Cross_Junction_TallW.blockymodel",
+          "HitboxType": "Full"
+        },
+        "Cross_Junction_TallW_Up": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Cross_Junction_TallW_Up.blockymodel",
+          "HitboxType": "Full"
+        },
+        "Cross_Junction_TallNE": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Cross_Junction_TallNE.blockymodel",
+          "HitboxType": "Full"
+        },
+        "Cross_Junction_TallNE_Up": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Cross_Junction_TallNE_Up.blockymodel",
+          "HitboxType": "Full"
+        },
+        "Cross_Junction_TallES": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Cross_Junction_TallES.blockymodel",
+          "HitboxType": "Full"
+        },
+        "Cross_Junction_TallES_Up": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Cross_Junction_TallES_Up.blockymodel",
+          "HitboxType": "Full"
+        },
+        "Cross_Junction_TallEW": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Cross_Junction_TallEW.blockymodel",
+          "HitboxType": "Full"
+        },
+        "Cross_Junction_TallEW_Up": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Cross_Junction_TallEW_Up.blockymodel",
+          "HitboxType": "Full"
+        },
+        "Cross_Junction_TallNS": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Cross_Junction_TallNS.blockymodel",
+          "HitboxType": "Full"
+        },
+        "Cross_Junction_TallNS_Up": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Cross_Junction_TallNS_Up.blockymodel",
+          "HitboxType": "Full"
+        },
+        "Cross_Junction_TallNW": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Cross_Junction_TallNW.blockymodel",
+          "HitboxType": "Full"
+        },
+        "Cross_Junction_TallNW_Up": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Cross_Junction_TallNW_Up.blockymodel",
+          "HitboxType": "Full"
+        },
+        "Cross_Junction_TallSW": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Cross_Junction_TallSW.blockymodel",
+          "HitboxType": "Full"
+        },
+        "Cross_Junction_TallSW_Up": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Cross_Junction_TallSW_Up.blockymodel",
+          "HitboxType": "Full"
+        },
+        "Cross_Junction_TallNES": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Cross_Junction_TallNES.blockymodel",
+          "HitboxType": "Full"
+        },
+        "Cross_Junction_TallNES_Up": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Cross_Junction_TallNES_Up.blockymodel",
+          "HitboxType": "Full"
+        },
+        "Cross_Junction_TallNEW": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Cross_Junction_TallNEW.blockymodel",
+          "HitboxType": "Full"
+        },
+        "Cross_Junction_TallNEW_Up": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Cross_Junction_TallNEW_Up.blockymodel",
+          "HitboxType": "Full"
+        },
+        "Cross_Junction_TallESW": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Cross_Junction_TallESW.blockymodel",
+          "HitboxType": "Full"
+        },
+        "Cross_Junction_TallESW_Up": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Cross_Junction_TallESW_Up.blockymodel",
+          "HitboxType": "Full"
+        },
+        "Cross_Junction_TallNSW": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Cross_Junction_TallNSW.blockymodel",
+          "HitboxType": "Full"
+        },
+        "Cross_Junction_TallNSW_Up": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Cross_Junction_TallNSW_Up.blockymodel",
+          "HitboxType": "Full"
+        },
+        "Cross_Junction_TallNESW": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Cross_Junction_TallNESW.blockymodel",
+          "HitboxType": "Full"
+        },
+        "Cross_Junction_TallNESW_Up": {
+          "Gathering": {
+            "Breaking": {
+              "ItemId": "HyDomum_Wall",
+              "GatherType": "Rocks"
+            }
+          },
+          "CustomModel": "Blocks/HyDomum/Wall_Cross_Junction_TallNESW_Up.blockymodel",
+          "HitboxType": "Full"
         }
       }
     },
@@ -107,7 +599,56 @@
         "Straight": "HyDomum_Wall",
         "Corner": "*HyDomum_Wall_State_Definitions_Corner",
         "T_Junction": "*HyDomum_Wall_State_Definitions_T",
-        "Cross_Junction": "*HyDomum_Wall_State_Definitions_Cross"
+        "Cross_Junction": "*HyDomum_Wall_State_Definitions_Cross",
+        "End_TallN": "*HyDomum_Wall_State_Definitions_End_TallN",
+        "Straight_Up": "*HyDomum_Wall_State_Definitions_Straight_Up",
+        "Straight_TallE": "*HyDomum_Wall_State_Definitions_Straight_TallE",
+        "Straight_TallE_Up": "*HyDomum_Wall_State_Definitions_Straight_TallE_Up",
+        "Straight_TallW": "*HyDomum_Wall_State_Definitions_Straight_TallW",
+        "Straight_TallW_Up": "*HyDomum_Wall_State_Definitions_Straight_TallW_Up",
+        "Straight_TallEW": "*HyDomum_Wall_State_Definitions_Straight_TallEW",
+        "Straight_TallEW_Up": "*HyDomum_Wall_State_Definitions_Straight_TallEW_Up",
+        "Corner_TallS": "*HyDomum_Wall_State_Definitions_Corner_TallS",
+        "Corner_TallW": "*HyDomum_Wall_State_Definitions_Corner_TallW",
+        "Corner_TallSW": "*HyDomum_Wall_State_Definitions_Corner_TallSW",
+        "T_Junction_TallE": "*HyDomum_Wall_State_Definitions_T_Junction_TallE",
+        "T_Junction_TallS": "*HyDomum_Wall_State_Definitions_T_Junction_TallS",
+        "T_Junction_TallW": "*HyDomum_Wall_State_Definitions_T_Junction_TallW",
+        "T_Junction_TallES": "*HyDomum_Wall_State_Definitions_T_Junction_TallES",
+        "T_Junction_TallEW": "*HyDomum_Wall_State_Definitions_T_Junction_TallEW",
+        "T_Junction_TallSW": "*HyDomum_Wall_State_Definitions_T_Junction_TallSW",
+        "T_Junction_TallESW": "*HyDomum_Wall_State_Definitions_T_Junction_TallESW",
+        "Cross_Junction_Up": "*HyDomum_Wall_State_Definitions_Cross_Junction_Up",
+        "Cross_Junction_TallE": "*HyDomum_Wall_State_Definitions_Cross_Junction_TallE",
+        "Cross_Junction_TallE_Up": "*HyDomum_Wall_State_Definitions_Cross_Junction_TallE_Up",
+        "Cross_Junction_TallN": "*HyDomum_Wall_State_Definitions_Cross_Junction_TallN",
+        "Cross_Junction_TallN_Up": "*HyDomum_Wall_State_Definitions_Cross_Junction_TallN_Up",
+        "Cross_Junction_TallS": "*HyDomum_Wall_State_Definitions_Cross_Junction_TallS",
+        "Cross_Junction_TallS_Up": "*HyDomum_Wall_State_Definitions_Cross_Junction_TallS_Up",
+        "Cross_Junction_TallW": "*HyDomum_Wall_State_Definitions_Cross_Junction_TallW",
+        "Cross_Junction_TallW_Up": "*HyDomum_Wall_State_Definitions_Cross_Junction_TallW_Up",
+        "Cross_Junction_TallNE": "*HyDomum_Wall_State_Definitions_Cross_Junction_TallNE",
+        "Cross_Junction_TallNE_Up": "*HyDomum_Wall_State_Definitions_Cross_Junction_TallNE_Up",
+        "Cross_Junction_TallES": "*HyDomum_Wall_State_Definitions_Cross_Junction_TallES",
+        "Cross_Junction_TallES_Up": "*HyDomum_Wall_State_Definitions_Cross_Junction_TallES_Up",
+        "Cross_Junction_TallEW": "*HyDomum_Wall_State_Definitions_Cross_Junction_TallEW",
+        "Cross_Junction_TallEW_Up": "*HyDomum_Wall_State_Definitions_Cross_Junction_TallEW_Up",
+        "Cross_Junction_TallNS": "*HyDomum_Wall_State_Definitions_Cross_Junction_TallNS",
+        "Cross_Junction_TallNS_Up": "*HyDomum_Wall_State_Definitions_Cross_Junction_TallNS_Up",
+        "Cross_Junction_TallNW": "*HyDomum_Wall_State_Definitions_Cross_Junction_TallNW",
+        "Cross_Junction_TallNW_Up": "*HyDomum_Wall_State_Definitions_Cross_Junction_TallNW_Up",
+        "Cross_Junction_TallSW": "*HyDomum_Wall_State_Definitions_Cross_Junction_TallSW",
+        "Cross_Junction_TallSW_Up": "*HyDomum_Wall_State_Definitions_Cross_Junction_TallSW_Up",
+        "Cross_Junction_TallNES": "*HyDomum_Wall_State_Definitions_Cross_Junction_TallNES",
+        "Cross_Junction_TallNES_Up": "*HyDomum_Wall_State_Definitions_Cross_Junction_TallNES_Up",
+        "Cross_Junction_TallNEW": "*HyDomum_Wall_State_Definitions_Cross_Junction_TallNEW",
+        "Cross_Junction_TallNEW_Up": "*HyDomum_Wall_State_Definitions_Cross_Junction_TallNEW_Up",
+        "Cross_Junction_TallESW": "*HyDomum_Wall_State_Definitions_Cross_Junction_TallESW",
+        "Cross_Junction_TallESW_Up": "*HyDomum_Wall_State_Definitions_Cross_Junction_TallESW_Up",
+        "Cross_Junction_TallNSW": "*HyDomum_Wall_State_Definitions_Cross_Junction_TallNSW",
+        "Cross_Junction_TallNSW_Up": "*HyDomum_Wall_State_Definitions_Cross_Junction_TallNSW_Up",
+        "Cross_Junction_TallNESW": "*HyDomum_Wall_State_Definitions_Cross_Junction_TallNESW",
+        "Cross_Junction_TallNESW_Up": "*HyDomum_Wall_State_Definitions_Cross_Junction_TallNESW_Up"
       },
       "Joins": "Wall"
     },

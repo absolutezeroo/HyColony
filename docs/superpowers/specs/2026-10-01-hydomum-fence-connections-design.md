@@ -44,6 +44,20 @@ Détail et références : `docs/research/connected-blocks.md` § 5.
 - Clôture et muret HyDomum : `"Type": "HyDomum_Fence"`, `"Joins"` `WoodenFence` et `Wall` (`compat.py`).
 - Familles vanilla (`blocks/vanilla_fences.py`) : l'id-map reçoit `connections` (`WOODEN_FENCE`, `FENCE`, `WALL`, `PANE` → ids exacts), lus dans les assets : chaque bloc droit du gabarit vanilla et les blocs que ses motifs nomment (angles des barreaux), portillons à part. La famille vient de l'id (`Wood_*_Fence`, `*_Fence`, `*_Wall`, `*_Bars`).
 
+## Dessus des murets (ajout validé le 2026-10-01 : « Minecraft l'a »)
+
+Un muret sous une barrière avait ses bras à 14/16 : la barrière « volait ». Minecraft (`WallBlock.updateShape`, cité de mémoire) lit la forme de collision du bloc du dessus, sa face du bas (`getFaceShape(DOWN)`) :
+
+- un bras relié devient **haut** (`TALL`) quand cette face couvre sa bande (`NORTH_TEST` = x 7-9, z 0-9 en seizièmes ; de même pour les autres côtés), sinon il reste **bas** ;
+- le poteau se lève (`shouldRaisePost`) : toujours si le dessus est un muret à poteau ; toujours seul, en bout, en angle ou en T (un bras sans son opposé) ; jamais sur une ligne dont les deux bras opposés sont hauts ; sinon si la face couvre le centre (`POST_TEST` = x 7-9, z 7-9) ou si le dessus est dans `WALL_POST_OVERRIDE` (torches, panneaux, bannières…).
+
+Hytale : la forme de collision d'un bloc est sa hitbox (`BlockBoundingBoxes.getAssetMap().getAsset(type.getHitboxTypeIndex()).get(rotation).getDetailBoxes()`, boîtes tournées, en blocs). Un bloc sans hitbox reçoit la boîte pleine (`RotatedVariantBoxes`) : seuls les blocs solides (`Material: Solid`) comptent, comme la collision de Minecraft. Poser un bloc au-dessus réévalue le muret (les 26 voisins, `ConnectedBlocksUtil.notifyNeighborsAndCollectChanges`).
+
+- Cœur : `Footprint` (rectangles de la face du bas du bloc du dessus, en blocs) et `WallTop` (bras hauts, poteau levé), avec les bandes de test de Minecraft ; `WallState` nomme l'état du muret : la forme du gabarit, ses bras hauts au lacet 0 (`_TallNESW`) et `_Up` quand le poteau, facultatif sur un droit ou une croix, est levé.
+- Plugin : `HytaleAbove` lit le bloc du dessus (hitbox des blocs solides, seuls à entrer en collision, `BlockDataProvider` ; rien au-dessus du sommet du monde ; muret HyDomum à poteau par le nom de son état).
+- Générateur : le muret reçoit un état par forme, ensemble de bras hauts et poteau facultatif (49 états de plus, une ligne haute pouvant garder un poteau levé par un muret au-dessus), dessinés par les modèles DO (`up`, `low`, `tall`). Les états T et croix ont la boîte englobante de leur modèle (la vanilla héritait de la hitbox du droit) : elle se lit comme leurs bras par le dessus des murets, mais un joueur bute dans les coins entre les bras.
+- Convertisseur : les propriétés `up` et `tall` du schéma Minecraft donnent l'état.
+
 ## Écarts avec Minecraft
 
 - Les exceptions de Minecraft (`isExceptionForConnection` : feuilles, barrière, citrouilles, pastèque, boîtes de Shulker) n'ont pas de face pleine dans Hytale (modèles, ou bloc vide pour la barrière) : seule la face pleine décide.
@@ -51,7 +65,10 @@ Détail et références : `docs/research/connected-blocks.md` § 5.
 - Les clôtures, murets et barreaux vanilla gardent les règles vanilla : ils se relient aux nôtres par nos tags de face, quelle que soit la famille, jamais à une face pleine, et n'ont ni poteau seul ni bout.
 - Une case de remplissage (bloc de plusieurs cases) n'a pas de face pleine.
 - Les murets ne se relient pas au mur de papier HyDomum, qui garde son gabarit (Minecraft relie un muret à une vitre).
-- Inchangés : pas de côté haut (`tall`) ni de poteau levé par le bloc du dessus pour les murets ; pas de portillon abaissé (`in_wall`) ; le mur de papier ne se relie qu'aux murs de papier.
+- Hytale n'a pas le tag `WALL_POST_OVERRIDE` : un bloc au-dessus ne compte que par sa collision. Une torche de bois (`Furniture_Crude_Torch`, sans collision) ne lève pas le poteau d'un muret droit ; d'autres torches, les panneaux et les bannières de Hytale ont une collision et comptent par elle (un panneau rend hauts les bras qu'il couvre).
+- Hytale ne propage la mise à jour d'un bloc qu'à 3 niveaux (`ConnectedBlocksUtil.MAX_UPDATE_DEPTH`) : sous une colonne de murets, le poteau levé par le muret du dessus ne descend que de trois murets (Minecraft descend toute la colonne).
+- Une case de remplissage (bloc de plusieurs cases) au-dessus est lue comme rien, et un muret vanilla au-dessus ne compte pas comme un muret à poteau (seulement par sa collision).
+- Inchangés : pas de portillon abaissé (`in_wall`) ; le mur de papier ne se relie qu'aux murs de papier.
 
 ## Hors périmètre
 

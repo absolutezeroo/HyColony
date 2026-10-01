@@ -54,6 +54,11 @@ DIRECTED_FRAMES = ("TimberFrame_SideFramed", "TimberFrame_UpGated", "TimberFrame
 CONNECTED = (("End", {"north"}), (None, {"east", "west"}), ("Corner", {"west", "south"}),
              ("T", {"east", "west", "south"}), ("Cross", {"north", "south", "east", "west"}))
 TURN = ("north", "west", "south", "east")
+# Le dessus d'un muret (domum/core WallState, tools/domum/blocks/wall_tops.py) : la forme du gabarit de chaque état de
+# CONNECTED, ses bras hauts au lacet 0 dans l'ordre N, E, S, O, et le poteau facultatif d'un droit ou d'une croix.
+SHAPE_KEYS = {"End": "End", None: "Straight", "Corner": "Corner", "T": "T_Junction", "Cross": "Cross_Junction"}
+TALL_LETTERS = (("north", "N"), ("east", "E"), ("south", "S"), ("west", "W"))
+OPTIONAL_POST = ("Straight", "Cross_Junction")
 # Clôtures, portillons et murets de Minecraft -> forme HyDomum (demandé le 2026-10-01), et les noms possibles de leur
 # bloc de base (planches de leur bois, pierre du muret).
 _WOOD_BASES = ("{}_planks", "{}s", "{}")
@@ -205,16 +210,30 @@ def rule(bp, pos, name: str, p: dict, with_materials: bool) -> Mapping | None:
     return m
 
 
-def _connected(base: str, sides: set[str], rule: str) -> Mapping:
+def _connected(base: str, sides: set[str], rule: str, tall: set[str] = frozenset(), up: bool = False) -> Mapping:
     """La forme HyDomum d'une clôture ou d'un muret dont les bras vont vers sides (ses connexions Minecraft) : poteau
-    seul, bout, droit, angle, T ou croix, au plus petit lacet."""
+    seul, bout, droit, angle, T ou croix, au plus petit lacet ; pour un muret, son dessus Minecraft (bras tall, poteau
+    up) quand il en a un (_wall_top)."""
     if not sides:
         return place(_state(base, "Post"), 0, rule=rule)
     for state, arms in CONNECTED:
         for yaw in range(len(TURN)):
             if {TURN[(TURN.index(side) + yaw) % len(TURN)] for side in arms} == sides:
-                return place(_state(base, state) if state else base, yaw, rule=rule)
+                top = _wall_top(SHAPE_KEYS[state], {TURN[(TURN.index(s) - yaw) % len(TURN)] for s in tall}, up)
+                target = _state(base, top) if top else (_state(base, state) if state else base)
+                return place(target, yaw, rule=rule)
     raise ValueError(f"pas de forme pour {sorted(sides)}")
+
+
+def _wall_top(shape: str, tall: set[str], up: bool) -> str | None:
+    """L'état du dessus d'un muret de cette forme (domum/core WallState.name) : bras hauts au lacet 0, poteau d'un
+    droit ou d'une croix ; None pour un muret bas sans poteau facultatif (l'état de sa forme)."""
+    name = shape
+    if tall:
+        name += "_Tall" + "".join(letter for side, letter in TALL_LETTERS if side in tall)
+    if up and shape in OPTIONAL_POST:
+        name += "_Up"
+    return name if name != shape else None
 
 
 def vanilla_rule(name: str, p: dict, with_materials: bool) -> Mapping | None:
@@ -274,8 +293,11 @@ def _shaped(shape_id: str, base: str, p: dict) -> Mapping | None:
         if p.get("type") == "double":
             return place(_state(base, "Block"), 0, rule="slab")
         return fam.slab(base)(p)
-    if shape_id in ("Fence", "Wall"):
-        return _connected(base, fam._connections(p, wall_style=shape_id == "Wall"), shape_id.lower())
+    if shape_id == "Fence":
+        return _connected(base, fam._connections(p, wall_style=False), "fence")
+    if shape_id == "Wall":
+        tall = {side for side in TURN if str(p.get(side, "")).lower() == "tall"}
+        return _connected(base, fam._connections(p, wall_style=True), "wall", tall, prop_true(p, "up"))
     if shape_id == "FenceGate":
         return place(_state(base, "OpenDoorOut") if prop_true(p, "open") else base, yaw_for(p), rule="fence_gate")
     if shape_id.startswith(("Door_", "FancyDoor_")):
