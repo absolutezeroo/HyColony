@@ -145,7 +145,7 @@ class InvariantsTest {
     @Test
     void citizenWhoseRespawnFailedIsReported() {
         c.t.bodies.despawn(c.body);
-        c.t.bodies.refuseSpawnAt.add(DiagnosedColony.HALL);
+        c.t.bodies.refuseSpawnAround.add(DiagnosedColony.HALL);
         assertEquals(List.of(), citizenCodes(), "no respawn tried yet");
 
         respawnCheck();
@@ -166,9 +166,9 @@ class InvariantsTest {
     @Test
     void citizenRespawnedAtLastIsNotReported() {
         c.t.bodies.despawn(c.body);
-        c.t.bodies.refuseSpawnAt.add(DiagnosedColony.HALL);
+        c.t.bodies.refuseSpawnAround.add(DiagnosedColony.HALL);
         respawnCheck();
-        c.t.bodies.refuseSpawnAt.clear();
+        c.t.bodies.refuseSpawnAround.clear();
 
         respawnCheck();
 

@@ -141,7 +141,7 @@ class CitizenManagerTest {
         BlockPos work = new BlockPos(20, 64, 0);
         d.setLastPosition(Vec3.center(last));
         d.setWorkBuilding(work);
-        t.bodies.refuseSpawnAt.add(last);
+        t.bodies.refuseSpawnAround.add(last);
 
         slowTicks(c, 13);
 

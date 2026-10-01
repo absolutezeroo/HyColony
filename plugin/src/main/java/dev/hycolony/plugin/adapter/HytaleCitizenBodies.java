@@ -145,7 +145,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
                         roleName,
                         null,
                         world,
-                        near.x() + 1,
+                        near.x(),
                         near.z(),
                         near.y(),
                         new Rotation3f(),

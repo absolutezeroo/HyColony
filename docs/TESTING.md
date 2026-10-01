@@ -11,6 +11,7 @@ Pour obtenir les objets : `/give HyColony_TownHall`, `/give HyColony_Hut_Builder
    Attendu : le bloc disparaît et l'objet tombe au sol.
 3. **Citoyens.** Dans les 2 minutes, 4 citoyens nommés apparaissent un par un et errent autour de l'hôtel de ville.
    S'éloigner loin pour décharger la zone, puis revenir : toujours 4 citoyens, aucun doublon.
+   Hôtel de ville collé à un obstacle (un mur ou un tronc juste à côté, sur un versant) : les citoyens apparaissent quand même dans les 5 blocs autour (MC `getSpawnPoint`), plutôt vers le nord-ouest. Hôtel de ville sans aucune place à 5 blocs autour (difficile à provoquer : Hytale cherche aussi 16 blocs plus haut et plus bas) : aucun citoyen n'apparaît, et A reçoit à chaque essai « Les nouveaux citoyens ne peuvent pas arriver dans votre colonie : il n'y a pas assez de place en X:… Y:… Z:… ! » ; le dégager, ils arrivent.
 4. **Redémarrage.** Arrêter le serveur puis le relancer.
    Attendu : la colonie et les 4 citoyens sont là, avec les mêmes noms et sans doublon. Les logs affichent `(1 colonies loaded)`.
 5. **Protection.** B essaie de casser ou de poser un bloc dans la colonie, et d'ouvrir un coffre : refusé, avec un message.

@@ -9,6 +9,7 @@ hut.notBuiltYet = Vous devez construire cette hutte avant de pouvoir embaucher u
 hut.locating = Les étagères contenant cet objet ont été localisées.
 hut.recallFail = Le rappel a échoué. Faites plus de place autour de la hutte.
 citizen.allAsleep = Tous les citoyens sont au lit.
+citizen.noArrivalSpace = Les nouveaux citoyens ne peuvent pas arriver dans votre colonie : il n'y a pas assez de place en X:{p0} Y:{p1} Z:{p2} !
 citizen.notNow = {p0} : je ne peux pas faire ça maintenant
 warehouse.full = L'entrepôt est plein, veuillez l'améliorer !
 warehouse.fullMax = L'entrepôt est plein, veuillez en construire un autre et faire de la place !

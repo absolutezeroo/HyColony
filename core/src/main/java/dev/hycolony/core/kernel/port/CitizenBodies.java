@@ -9,7 +9,10 @@ import java.util.Optional;
 
 /** In-world citizen bodies. Implementations tag each body with (colonyId, citizenId) persistently. */
 public interface CitizenBodies {
-    /** Spawns a body at a free standing spot near {@code near}. Empty if impossible right now. */
+    /**
+     * Spawns a body at a free standing spot in {@code near}'s column, at a height the game picks around {@code near}'s.
+     * Empty if impossible right now; the core tries the columns around (CitizenArrival).
+     */
     Optional<BodyId> spawn(WorldKey world, BlockPos near, int colonyId, int citizenId, String displayName);
 
     boolean isAlive(BodyId body);

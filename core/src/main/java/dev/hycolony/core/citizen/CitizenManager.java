@@ -224,17 +224,11 @@ public final class CitizenManager {
     }
 
     /**
-     * Spawns and binds a body near {@code near}; false when none could appear there. Once one appears, its respawn
-     * position is used up (MC CitizenData.updateEntityIfNecessary clears nextRespawnPos).
+     * Spawns and binds a body around {@code near} ({@link CitizenArrival}); false when none could appear there. Once
+     * one appears, its respawn position is used up (MC CitizenData.updateEntityIfNecessary clears nextRespawnPos).
      */
     private boolean spawnBody(CitizenData data, BlockPos near) {
-        Optional<BodyId> body = ctx().bodies()
-                .spawn(
-                        ctx().world(),
-                        near,
-                        colony.id(),
-                        data.id(),
-                        colony.nameplates().nameFor(data));
+        Optional<BodyId> body = CitizenArrival.spawn(colony, data, near);
         body.ifPresent(b -> {
             data.setRespawnPosition(null);
             bind(data, b);

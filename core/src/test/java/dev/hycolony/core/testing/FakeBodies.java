@@ -65,6 +65,8 @@ public final class FakeBodies implements CitizenBodies, BodyHealth, BodySeats {
     public boolean refuseSpawn;
     /** Positions where spawn fails, as when the world has no room there. */
     public final Set<BlockPos> refuseSpawnAt = new HashSet<>();
+    /** Positions with no room in any column 5 blocks around them, the core's whole search (CitizenArrival). */
+    public final Set<BlockPos> refuseSpawnAround = new HashSet<>();
     /** The positions that are beds a body may lie in. */
     public final Set<BlockPos> beds = new HashSet<>();
     /** Beds someone outside the colony (a player) lies in. */
@@ -112,7 +114,9 @@ public final class FakeBodies implements CitizenBodies, BodyHealth, BodySeats {
 
     @Override
     public Optional<BodyId> spawn(WorldKey world, BlockPos near, int colonyId, int citizenId, String displayName) {
-        if (refuseSpawn || refuseSpawnAt.contains(near)) {
+        boolean noRoomAround = refuseSpawnAround.stream()
+                .anyMatch(p -> Math.abs(p.x() - near.x()) <= 5 && Math.abs(p.z() - near.z()) <= 5);
+        if (refuseSpawn || noRoomAround || refuseSpawnAt.contains(near)) {
             return Optional.empty();
         }
         BodyId id = new BodyId(next++);
