@@ -31,10 +31,8 @@ final class PlannedBlocks {
 
     /**
      * The builder placed {@code e} at {@code pos}: its container and bench join the building, which is told of it, and
-     * a field block in the builder's colony becomes one of its fields.
-     *
-     * <p>Deviation from MC: BlockScarecrow.setPlacedBy registers with the colony at the block, whichever it is; a plan
-     * cell outside the builder's colony registers nothing here, the field joining a colony at its first use.
+     * a field block becomes a field of the colony. MC BlockScarecrow.setPlacedBy takes the colony at the block: an
+     * order's plan lies in the builder's colony (a plan past its border is refused), so it is that one.
      */
     void placed(BlockPos pos, BlueprintEntry e) {
         if (e.hasContainer()) {
@@ -43,7 +41,7 @@ final class PlannedBlocks {
         e.workstation().ifPresent(bench -> registerBench(pos, bench));
         BuildingEventsModule.blockPlaced(
                 ctx.colony(), ctx.site().target(), pos, e.state().key());
-        if (ctx.colony().contains(pos) && ctx.colony().registries().planBlockPlaced(pos)) {
+        if (ctx.colony().registries().planBlockPlaced(pos)) {
             ctx.colony().markDirty();
         }
     }
