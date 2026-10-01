@@ -53,6 +53,7 @@ public final class HyColonyPlugin extends JavaPlugin {
         ColonyConfig colonyConfig = config.get().toCore();
         // Sub-plugin asset packs must be registered here, before LoadAssetEvent (plugin-b-api § 21.1).
         packs = SubPlugins.load(this, config.get().subPlugins());
+        packs.requireDomumVariants(); // before LoadAssetEvent, when HyDomum creates them
         WorldRuntimes worlds = new WorldRuntimes(RuntimeSetup.create(colonyConfig, packs));
         ApiBridge api = ApiBridge.install(worlds);
         IdMap ids = worlds.setup().ids();

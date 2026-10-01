@@ -5,7 +5,9 @@ import com.hypixel.hytale.server.core.asset.common.CommonAsset;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import dev.hydomum.api.ShapeCatalog;
 import dev.hydomum.api.VariantKey;
+import dev.hydomum.core.BootVariants;
 import dev.hydomum.plugin.api.OrnamentVariant;
+import dev.hydomum.plugin.api.RequiredVariants;
 import dev.hydomum.plugin.persistence.VariantStore;
 import dev.hydomum.plugin.runtime.BlockTypeSynchronizer;
 import dev.hydomum.plugin.runtime.MaterialCatalog;
@@ -109,9 +111,10 @@ public final class OrnamentVariantRegistry {
     }
 
     /**
-     * Takes the catalogs, draws the palette, then registers every saved variant again, in one store load and without
-     * any client rebuild; call it at boot, off any world thread and before chunks load. A palette that cannot be
-     * drawn is logged: two-material variants then fail one by one. A variant that fails is logged and skipped.
+     * Takes the catalogs, draws the palette, then registers every saved variant again and those other mods require
+     * ({@link RequiredVariants}), in one store load and without any client rebuild; call it at boot, off any world
+     * thread and before chunks load. A palette that cannot be drawn is logged: two-material variants then fail one by
+     * one. A variant that fails, or a required id that is refused, is logged and skipped.
      */
     public void start(Catalogs loaded) {
         catalogs = loaded;
@@ -120,7 +123,13 @@ public final class OrnamentVariantRegistry {
         } catch (RuntimeException | LinkageError | java.awt.AWTError e) { // AWT may lack native libraries
             LOG.at(Level.SEVERE).withCause(e).log("hydomum: palette not drawn, two-material variants unavailable");
         }
-        List<VariantKey> saved = store.load(loaded.shapes());
+        BootVariants.Result boot = BootVariants.merge(
+                store.load(loaded.shapes()),
+                RequiredVariants.required(),
+                loaded.shapes(),
+                loaded.materials().tags());
+        boot.refused().forEach(id -> LOG.at(Level.WARNING).log("hydomum: required variant %s refused", id));
+        List<VariantKey> saved = boot.keys();
         if (saved.isEmpty()) {
             return;
         }
@@ -128,7 +137,7 @@ public final class OrnamentVariantRegistry {
         Batch batch = create(saved, true);
         batch.done().forEach(k -> variants.put(k, CompletableFuture.completedFuture(variant(k))));
         LOG.at(Level.INFO).log(
-                "hydomum: restored %d saved variant(s) in %d ms",
+                "hydomum: registered %d saved or required variant(s) in %d ms",
                 batch.done().size(), (System.nanoTime() - start) / 1_000_000);
     }
 

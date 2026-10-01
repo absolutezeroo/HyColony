@@ -1,5 +1,6 @@
 package dev.hycolony.plugin.subplugin;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.HytaleServer;
@@ -14,6 +15,7 @@ import dev.hycolony.core.kernel.config.JsonFragments;
 import dev.hycolony.plugin.IdMap;
 import dev.hycolony.plugin.prefab.PrefabPacks;
 import dev.hycolony.plugin.prefab.PrefabStyles;
+import dev.hydomum.plugin.api.RequiredVariants;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -43,6 +45,7 @@ public final class SubPlugins {
     private static final String STYLES = "styles.json";
     private static final String CRAFTING = "crafting.json";
     private static final String PACKS = "packs.json";
+    private static final String DOMUM_VARIANTS = "domum-variants.json";
     /** packs.json merges key by key inside its sections (layout, packs); a pack is defined once. */
     private static final int PACKS_DEPTH = 1;
     /** id-map.json merges key by key inside its sections (items, blocks...). */
@@ -121,6 +124,7 @@ public final class SubPlugins {
         BundledPacks.fragment(name, ID_MAP).ifPresent(IdMap::of);
         BundledPacks.fragment(name, STYLES).ifPresent(PrefabStyles::of);
         BundledPacks.fragment(name, PACKS).ifPresent(PrefabPacks::of);
+        BundledPacks.fragment(name, DOMUM_VARIANTS); // must be a JSON object
         // CraftingRules skips a bad entry itself (logged once merged): only a file that is not a JSON object fails.
         BundledPacks.fragment(name, CRAFTING);
     }
@@ -153,6 +157,26 @@ public final class SubPlugins {
     /** The core's packs.json (hut layout, pack metadata) merged with the enabled packs' fragments. */
     public PrefabPacks packs() {
         return PrefabPacks.of(merged(PACKS, PACKS_DEPTH));
+    }
+
+    /**
+     * Asks HyDomum to create at boot the ornament variants the enabled packs' prefabs use (their
+     * {@code hycolony/domum-variants.json}, {@code {"variants": ["shape|material|material", ...]}}), so that their
+     * Domum blocks do not load as "Unknown". Call during setup; a value that is not a string is skipped.
+     */
+    public void requireDomumVariants() {
+        List<String> ids = new ArrayList<>();
+        for (Pack pack : enabled()) {
+            BundledPacks.fragment(pack.name(), DOMUM_VARIANTS)
+                    .map(o -> o.get("variants"))
+                    .filter(JsonElement::isJsonArray)
+                    .ifPresent(a -> a.getAsJsonArray().forEach(e -> {
+                        if (e.isJsonPrimitive()) {
+                            ids.add(e.getAsString());
+                        }
+                    }));
+        }
+        RequiredVariants.require(ids);
     }
 
     /**
