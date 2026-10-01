@@ -386,7 +386,7 @@ Rappel commun : une forme ou un état Hytale est un `BlockType` distinct (`State
 | Comportement DO | Mécanisme Hytale | Assets seuls ? |
 |---|---|---|
 | Porte, trappe : ouverture, 2 blocs, portes doubles | `Interactions.Use: Door` / `Door_Horizontal`, états `OpenDoorIn/Out`, boîte de 2 de haut (fillers), `DoorConnectedBlockTemplate` | Oui. Charnière = rotation de 180°. Trappe du bas : `UpDownNESW` ou bloc `_Bottom` **[in-game]** |
-| Clôture, muret, portillon, mur de papier | `CustomTemplate` : `WallConnectedBlockTemplate` pour le portillon, un gabarit à nous (poteau seul et bout) pour la clôture, le muret et la vitre | Oui |
+| Clôture, muret, portillon, mur de papier | `CustomTemplate` : `WallConnectedBlockTemplate` pour le portillon, un gabarit à nous (poteau seul et bout) pour la vitre ; clôture et muret : notre règle Java `HyDomum_Fence` sur notre gabarit (`2026-10-01-hydomum-fence-connections-design.md`) | Oui |
 | Bardeaux (5 formes, haut ou bas) | `Roof` (`Regular` seul, sans `Hollow`/`Topper`), `UpDownNESW` | Oui (plus les modèles des pentes `_lower`) |
 | Demi-bardeau (6 formes) | gabarit `CustomTemplate` à nous : 6 formes, `IsCardinallyRotatable` | Oui |
 | Pilier (4 formes) | copie de `PillarConnectedBlockTemplate` avec une forme `Full` en plus | Oui |

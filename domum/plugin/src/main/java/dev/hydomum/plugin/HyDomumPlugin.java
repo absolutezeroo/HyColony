@@ -5,8 +5,11 @@ import com.hypixel.hytale.server.core.asset.LoadAssetEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
+import com.hypixel.hytale.server.core.universe.world.connectedblocks.ConnectedBlockRuleSet;
 import com.hypixel.hytale.server.core.util.Config;
 import dev.hyblockui.api.ConfigQuarantine;
+import dev.hydomum.plugin.connect.HytaleFenceRules;
+import dev.hydomum.plugin.connect.HytaleNeighbours;
 import dev.hydomum.plugin.cutter.CutterGroupMemory;
 import dev.hydomum.plugin.cutter.CutterSettings;
 import dev.hydomum.plugin.cutter.CutterSystem;
@@ -22,9 +25,9 @@ import java.util.logging.Level;
 import javax.annotation.Nonnull;
 
 /**
- * HyDomum's entry point (MC DO's DomumOrnamentum mod class): the architect's cutter, the /hydomum command, and once
- * assets are loaded the shape and material catalogs, then the saved variants registered again before any world loads
- * a chunk holding one.
+ * HyDomum's entry point (MC DO's DomumOrnamentum mod class): the fence rule set type, the architect's cutter, the
+ * /hydomum command, and once assets are loaded the shape and material catalogs, then the saved variants registered
+ * again before any world loads a chunk holding one.
  */
 public final class HyDomumPlugin extends JavaPlugin {
     private static final Path DATA = Constants.UNIVERSE_PATH.resolve("hydomum");
@@ -47,6 +50,9 @@ public final class HyDomumPlugin extends JavaPlugin {
             return null;
         });
         DomumIds ids = DomumIds.load();
+        // Before LoadAssetEvent: our fences' and walls' BlockTypes name this rule set type.
+        HytaleFenceRules.register(
+                new HytaleNeighbours(ids.connections()), getCodecRegistry(ConnectedBlockRuleSet.CODEC));
         String pack = getIdentifier().toString();
         BlockTypeSynchronizer synchronizer = new BlockTypeSynchronizer(pack);
         VariantAssets assets = new VariantAssets(pack, DATA.resolve("assets"));

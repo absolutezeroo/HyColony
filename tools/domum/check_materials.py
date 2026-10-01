@@ -19,6 +19,9 @@ def every_tag_lists_real_cubes():
         for block in blocks:
             assert tags.texture(assets, block).startswith("BlockTextures/"), (tag, block)
     assert "Wood_Hardwood_Planks" in built["shingles_support"] and "Soil_Dirt" not in built["shingles_support"]
+    # Planks for a fence, fence gate or stairs (a requested deviation from DO, tags.TAG_GROUPS).
+    for tag in ("fence_materials", "fence_gate_materials", "stairs_materials"):
+        assert {"Wood_Hardwood_Planks", "Wood_Softwood_Planks"} <= set(built[tag]), tag
     # A corner or ornate block shows several textures: it is not a material.
     assert all("Cobble_Corner" not in b and "Iridescent_Processed_Ornate" not in b for b in built["shingles_roof"])
     try:

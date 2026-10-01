@@ -97,15 +97,16 @@ def paper_wall_connects_to_its_neighbours():
 
 def compat_uses_do_models_and_vanilla_shapes():
     """Fences, gates, walls, stairs and slabs keep their vanilla equivalent's rule type, states and hitboxes (fences
-    and walls add the lone post and the end), draw every state with a DO model and name our blocks only; the gate's
-    leaves hang on the nodes the door animation turns."""
+    and walls take our rule set and add the lone post and the end), draw every state with a DO model and name our
+    blocks only; the gate's leaves hang on the nodes the door animation turns."""
     from blocks import compat
 
     ctx = generate_into_temp()
     for name, vanilla_id in compat.VANILLA.items():
         ours = ctx.items["HyDomum_" + name]["BlockType"]
         theirs = ctx.assets.item(vanilla_id)["BlockType"]
-        assert ours.get("ConnectedBlockRuleSet", {}).get("Type") == theirs.get("ConnectedBlockRuleSet", {}).get("Type")
+        rule_type = compat.RULES if name in ("Fence", "Wall") else theirs.get("ConnectedBlockRuleSet", {}).get("Type")
+        assert ours.get("ConnectedBlockRuleSet", {}).get("Type") == rule_type, name
         assert ours.get("HitboxType") == theirs.get("HitboxType"), name
         assert ours["VariantRotation"] == theirs["VariantRotation"], name
         states = ours.get("State", {}).get("Definitions", {})
@@ -159,6 +160,8 @@ def fence_and_wall_shape_by_their_neighbours():
         rules = block["ConnectedBlockRuleSet"]
         assert rules["TemplateShapeAssetId"] == compat.TEMPLATE and set(rules["TemplateShapeBlockPatterns"]) == set(
             shapes), name
+        # Our Java rule set (domum/plugin HytaleFenceRules) picks the shape by MC's rule for a fence or a wall.
+        assert rules["Type"] == "HyDomum_Fence" and rules["Joins"] == compat.JOINS[name], rules
         # The straight run stays the block itself: placed fences and converted blueprints keep their look.
         assert rules["TemplateShapeBlockPatterns"]["Straight"] == ident, name
         states = block["State"]["Definitions"]
@@ -174,6 +177,22 @@ def fence_and_wall_shape_by_their_neighbours():
     assert low[2] == -16 and high[2] < 5 and -5 < low[0] and high[0] < 5, (low, high)
     gate = ctx.items["HyDomum_FenceGate"]["BlockType"]["ConnectedBlockRuleSet"]
     assert gate["TemplateShapeAssetId"] == "WallConnectedBlockTemplate", gate
+    assert compat.JOINS == {"Fence": "WoodenFence", "Wall": "Wall"}  # DO's WOODEN_FENCES and WALLS tags
+
+
+def vanilla_fences_are_named_by_family():
+    """The id-map names every vanilla fence, wall and bars block (corner blocks of bars included, gates aside) by its
+    exact id under its Minecraft family, for our fences and walls to join; nothing else (a torch on a wall)."""
+    from blocks import vanilla_fences
+
+    ctx = generate_into_temp()
+    families = json.loads((ctx.pack / "hydomum/id-map.json").read_text(encoding="utf-8"))["connections"]
+    assert {k: len(v) for k, v in families.items()} == {"WOODEN_FENCE": 11, "FENCE": 12, "WALL": 43, "PANE": 4}
+    assert "Wood_Softwood_Fence" in families["WOODEN_FENCE"] and "Metal_Iron_Fence" in families["FENCE"]
+    assert "Rock_Stone_Brick_Wall" in families["WALL"] and "Deco_Iron_Bars_Corner" in families["PANE"]
+    every = {i for ids in families.values() for i in ids}
+    assert vanilla_fences.pattern_blocks("50%A,B") == ["A", "B"]
+    assert not {"Wood_Torch_Wall", "Plant_Vine_Wall", "Wood_Softwood_Fence_Gate", "Soil_Hive_Brick_Fence"} & every
 
 
 def wall_post_rises_like_minecraft():
@@ -196,4 +215,5 @@ def run():
     paper_wall_connects_to_its_neighbours()
     compat_uses_do_models_and_vanilla_shapes()
     fence_and_wall_shape_by_their_neighbours()
+    vanilla_fences_are_named_by_family()
     wall_post_rises_like_minecraft()

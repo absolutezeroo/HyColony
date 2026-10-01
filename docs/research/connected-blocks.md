@@ -145,3 +145,19 @@ Drawbacks compared with (a):
 | Chests | `Chest…` template: small to `*_Chest_Large` (a different BlockType, filler-based) | no: `*_Chest_Large` is a plain id, so it is already placed exactly | n/a |
 | Doors | `Door…`/`DoorLarge…` (double doors, `DontUpdateAfterInitialPlacement`) | minor | open states stay normalised |
 | Glass panes | none in 0.6.8 (windows are furniture, with no rule set) | n/a | n/a |
+
+## 5. A rule set type of our own (checked on 0.7.0-pre.4, 2026-10-01)
+
+Used by HyDomum's fences and walls (`docs/superpowers/specs/2026-10-01-hydomum-fence-connections-design.md`).
+
+- `ConnectedBlockRuleSet` is abstract; `ConnectedBlockRuleSet.CODEC` is a public `CodecMapCodec` keyed by `"Type"`, where `ConnectedBlocksModule` registers its own types (l. 72-76). A plugin registers one in `setup()`, which runs before `LoadAssetEvent` (`HytaleServer.java:342-395`), so BlockTypes naming it decode.
+- `CustomTemplateConnectedBlockRuleSet` is public and not final; `BuilderCodec.builder(Class, Supplier, parentCodec)` inherits its keys. A subclass stays a `CustomTemplateConnectedBlockRuleSet` for vanilla neighbours, which read its template's face tags (`CustomConnectedBlockPattern.checkPatternRuleAgainstBlockType`, l. 113).
+- No Hytale code reads a template besides through the rule set's `getConnectedBlockType` and that face-tag check (no other `getShapeTemplateAsset()` caller).
+- Neither `CustomTemplate` nor a subclass sends its rules to the client (`toPacket` returns `null`): shapes are server-side only.
+- A player placing or breaking **any** block re-evaluates the connected blocks around it (`BlockPlaceUtils.java:499`, `BlockHarvestUtils.java:1374`, `ConnectedBlocksUtil.setConnectedBlockAndNotifyNeighbors`, l. 118 outside any condition).
+- A template's face tags are not readable outside its package (`CustomConnectedBlockTemplateAsset.connectedBlockShapes` is `protected`, no getter); `getShapesForBlockType(index)` gives a block's shape names.
+- Full face: `BlockType.getSupporting(rotationIndex)` maps each `BlockFace` to `BlockFaceSupport`s; `"Full"` (`BlockFaceSupport.FULL_SUPPORTING_FACE`) is a full face.
+- `BlockSet` and `BlockSetModule` are `@Deprecated(forRemoval = true)`. The vanilla `Leaves` set is the glob `*Leaves`, a suffix (`StringUtil.isGlobMatching`): it misses the tree leaves (`Plant_Leaves_*`). Those are `DrawType: Model`, with no supporting face, so no full face; nor have the barrier (`DrawType: Empty`) or the pumpkins (models): Minecraft's connection exceptions need no list here.
+- An asset of a later pack inherits the previous pack's asset of the same key with `"Parent": "super"` (`AssetStore.java:793`, `DefaultAssetMap.getAsset(packKey, key)`), **but an item's contained `BlockType` does not**: `INHERIT_ID_AND_PARENT` (`ContainedAssetCodec.java:80-87`) passes the parent key "super" on, and the contained path looks for a BlockType named "super" (`AssetStore.java:1094-1100`, WARNING "Failed to find inherited parent asset super (BlockType)"), then loads the BlockType alone. Seen in game 2026-10-01: pink and black blocks, then a null BlockType on placement. The Hytalor mod (server side, `Server/Patch/**.json` merged key by key into the vanilla file, loaded in its own pack after every other) patches a vanilla item whole; tried on the vanilla fences on 2026-10-01 and dropped for looks (spec 2026-10-01-hydomum-fence-connections).
+- Only a player's place and break notify the neighbours (`BlockPlaceUtils`, `BlockHarvestUtils`): `BlockOperations.setBlock` (builders, pastes, physics) does not.
+- A template's default shape keeps the block's current rotation (`CustomConnectedBlockTemplateAsset.java:174-181`); a matched pattern recomputes it.

@@ -44,12 +44,15 @@ TAG_GROUPS = {
     "doors_materials": ("default", "planks"),
     "fancy_doors_materials": ("default", "planks"),
     "fancy_trapdoors_materials": ("default", "planks"),
-    "fence_materials": ("default",),
-    "fence_gate_materials": ("default",),
+    # Deviation from MC: DO's fence, fence gate and stairs tags leave planks out (Minecraft has a wooden fence, gate
+    # and stairs per plank); here they take planks, as the user asked (2026-10-01): a plank fence matches the plank
+    # blocks it stands by.
+    "fence_materials": ("default", "planks"),
+    "fence_gate_materials": ("default", "planks"),
     # Deviation from MC: DO's wall and stairs tags list single blocks and groups without #domum_ornamentum:default
     # (no plain stone, cobble or stone bricks); here they start from "default", so they also take those stones.
     "wall_materials": ("default", "planks"),
-    "stairs_materials": ("default", "dirt", "leaves"),
+    "stairs_materials": ("default", "planks", "dirt", "leaves"),
     "slab_materials": ("default", "planks", "dirt", "leaves"),
     "all_brick_materials": ("default", "stone"),
 }

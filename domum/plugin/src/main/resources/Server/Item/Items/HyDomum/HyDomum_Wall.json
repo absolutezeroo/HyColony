@@ -99,7 +99,7 @@
       }
     },
     "ConnectedBlockRuleSet": {
-      "Type": "CustomTemplate",
+      "Type": "HyDomum_Fence",
       "TemplateShapeAssetId": "HyDomum_FenceConnectedBlockTemplate",
       "TemplateShapeBlockPatterns": {
         "Post": "*HyDomum_Wall_State_Definitions_Post",
@@ -108,7 +108,8 @@
         "Corner": "*HyDomum_Wall_State_Definitions_Corner",
         "T_Junction": "*HyDomum_Wall_State_Definitions_T",
         "Cross_Junction": "*HyDomum_Wall_State_Definitions_Cross"
-      }
+      },
+      "Joins": "Wall"
     },
     "Gathering": {
       "Physics": {

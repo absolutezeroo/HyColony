@@ -19,7 +19,7 @@ import source  # noqa: E402
 import tabs  # noqa: E402
 import tags  # noqa: E402
 import validate  # noqa: E402
-from blocks import common, compat, cutter, door, pane, pillar, roof, static  # noqa: E402
+from blocks import common, compat, cutter, door, pane, pillar, roof, static, vanilla_fences  # noqa: E402
 from families import FAMILIES  # noqa: E402
 from pack import ROOT, validate_pack, write_json  # noqa: E402
 
@@ -62,7 +62,8 @@ def run(pack, resources, assets):
     cutter.generate(ctx)
     manifest.write(ctx)
     ctx.tab = tabs.generate(ctx)
-    write_json(pack / "hydomum" / "id-map.json", {"sounds": ctx.sounds, "ornamentTags": ctx.tags})
+    write_json(pack / "hydomum" / "id-map.json", {"sounds": ctx.sounds, "ornamentTags": ctx.tags,
+                                                  "connections": vanilla_fences.connections(assets)})
     for language, lines in ctx.lang.items():
         path = pack / "Server" / "Languages" / language / "hydomum_blocks.lang"
         path.parent.mkdir(parents=True, exist_ok=True)

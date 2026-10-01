@@ -2,14 +2,16 @@
 states, hitboxes and interactions, each look drawn by DO's model of the matching shape (Minecraft's templates,
 minecraft.py), every vanilla id renamed to ours.
 
-Fences and walls join by our own template (TEMPLATE) instead of the vanilla one, which has no lone post nor end
-and keeps a block's old turn when no shape matches (a fence left with one neighbour stayed a corner's straight run,
-turned across it): every shape but the lone post has a pattern, so its turn is always recomputed.
+Fences and walls shape by our own Java rule set (RULES, domum/plugin HytaleFenceRules): MC's FenceBlock and
+WallBlock rule picks one of our template's (TEMPLATE) shapes from the four neighbours, so a full face joins too, and
+vanilla fences, walls and bars by their family (vanilla_fences.py). The template gives the shapes' names and our
+blocks' FenceConnection face tags; its neighbour patterns, one per shape but the lone post, are not used by the
+rule set (only the blocks its TemplateShapeBlockPatterns name). The vanilla template has no lone post nor end and
+keeps a block's old turn when no shape matches.
 
-Deviation from MC: fences and walls join by the vanilla FenceConnection tag, so to fences, walls and gates,
-vanilla ones included, never to a solid face; a vanilla fence shows the tag on its arms' sides only, so ours stays a
-post against a vanilla run's flank while the vanilla one may turn toward ours; walls have no tall sides and no post
-raised by the block above; a gate next to a wall is not lowered (Minecraft's in_wall).
+Deviation from MC: the vanilla fences, walls and bars keep the vanilla rules: they join ours by our face tags, whatever
+the family, never a full face, and have no lone post nor end; walls have no tall sides and no post raised by the block
+above; a gate next to a wall is not lowered (Minecraft's in_wall).
 """
 
 import json
@@ -30,11 +32,16 @@ MATERIAL_KEYS = ("Material", "DrawType", "CustomModel", "CustomModelTexture", "T
                  "Flags", "BlockParticleSetId", "ParticleColor", "BlockSoundSetId", "PhysicalMaterialId",
                  "TextureComputedColor", "Aliases")
 TEMPLATE = "HyDomum_FenceConnectedBlockTemplate"
+RULES = "HyDomum_Fence"
+# DO's fence and wall join as Minecraft's families (domum/core Joiner): its fence is tagged WOODEN_FENCES, its wall
+# WALLS (DO FenceCompatibilityTagProvider, WallCompatibilityTagProvider).
+JOINS = {"Fence": "WoodenFence", "Wall": "Wall"}
 TAG = "FenceConnection"
 DEFAULT = "Post"
 # Shape -> the neighbours that make it (common.neighbour_template), turned as the vanilla template's, so the vanilla
 # states keep their hitboxes and the blocks already placed their look. The end reaches north, which Hytale's default
-# Symmetric flip mirrors right (a prefab flipped along X or Z).
+# Symmetric flip mirrors right (a prefab flipped along X or Z). The rule set's copy is domum/core ConnectedShape.SHAPES
+# (and tools/blueprint/domum.py CONNECTED): change all three together.
 SHAPES = {
     "End": {"north"},
     "Straight": {"east", "west"},
@@ -84,7 +91,8 @@ def _model(ctx, family, name, props):
 
 
 def _connected(ctx, family, ident, block_type, arms):
-    """Default and state looks of a fence or wall, joined by our template: each shape's neighbours become DO arms.
+    """Default and state looks of a fence or wall, shaped by our rule set as the family (its Joins) over our template:
+    each shape's neighbours become DO arms.
     The vanilla shapes keep their states; the lone post and the end are new states, with their own hitbox and the
     vanilla states' other keys (a wall state's gathering). The vanilla gate pattern goes: a gate's sides are read
     from its own rules."""
@@ -92,7 +100,8 @@ def _connected(ctx, family, ident, block_type, arms):
     prefix = f"*{ident}_State_Definitions_"
     patterns = {shape: prefix + shape for shape in NEW_STATES}
     patterns.update({shape: target for shape, target in rules["TemplateShapeBlockPatterns"].items() if shape in SHAPES})
-    rules.update(TemplateShapeAssetId=TEMPLATE, TemplateShapeBlockPatterns=patterns)
+    rules.update(Type=RULES, TemplateShapeAssetId=TEMPLATE, TemplateShapeBlockPatterns=patterns,
+                 Joins=JOINS[family.name])
     write_json(ctx.pack / common.TEMPLATES / (TEMPLATE + ".json"), common.neighbour_template(TAG, DEFAULT, SHAPES))
     shared = {k: v for k, v in block_type["State"]["Definitions"]["Cross"].items()
               if k not in ("CustomModel", "HitboxType", "FlipType")}
