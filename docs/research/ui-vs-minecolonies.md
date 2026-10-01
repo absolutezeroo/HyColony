@@ -78,6 +78,14 @@ Une seule page de 600 px. De haut en bas :
 - champ de renommage avec son bouton (visible pour un gestionnaire de colonie) ;
 - liste des citoyens (nom + statut `absent`/`idle`/`wandering`/`working`), non cliquable.
 
+**Mise à jour du 2026-10-01** : la fenêtre a maintenant l'apparence du livre de MC, avec les textures de MC copiées dans `Pages/HyColony/Mc/` et les positions de `windowtownhall.xml` et des `layout*.xml` doublées (CLAUDE.md § 7). Les onglets sont les sceaux de cire. Écarts restants, chacun marqué `Deviation from MC` dans les `.ui` et dans `TownHallPage` :
+
+- un onglet fermé donne son nom en infobulle, et non par le ruban qui sort au survol (`onHoverId`) ;
+- les emplacements des sceaux sont tassés, puisqu'il n'y a pas d'onglet Permissions ;
+- la ligne du nom est remontée (y 48 au lieu de 64-70), pour que le champ de renommage ne touche pas le ruban ; l'en-tête « nom actuel » manque ;
+- la liste des citoyens occupe toute la page de droite (ni sélection, ni recherche) et montre le statut à côté du nom ;
+- les boutons ↥ et ↧ des ordres sont étiquetés « + » et « − », car les polices du client n'ont pas de flèches.
+
 ### Écarts
 
 Ce qui manque chez nous :

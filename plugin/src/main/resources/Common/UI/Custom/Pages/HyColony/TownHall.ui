@@ -1,125 +1,199 @@
 $C = "../../Common.ui";
 $Sounds = "../../Sounds.ui";
 
+// The town hall as MC's book (gui/townhall/windowtownhall.xml and layout*.xml), MC positions and sizes doubled except
+// where a "Deviation from MC" says otherwise. Textures under Mc/ are MineColonies' (ldtteam, GPL-3), scaled x4
+// nearest-neighbour into @2x files.
+
+@Ink = LabelStyle(FontSize: 15, TextColor: #000000, VerticalAlignment: Center);
+@Faded = LabelStyle(FontSize: 14, TextColor: #555555, VerticalAlignment: Center);
+@WideButtonStyle = TextButtonStyle(
+  Default: (Background: "Mc/builder_button_medium_large.png", LabelStyle: (...@Ink, HorizontalAlignment: Center)),
+  Hovered: (
+    Background: "Mc/builder_button_medium_large.png",
+    LabelStyle: (...@Ink, HorizontalAlignment: Center, RenderBold: true)
+  ),
+  Pressed: (Background: "Mc/builder_button_medium_large.png", LabelStyle: (...@Ink, HorizontalAlignment: Center)),
+  Sounds: $C.@ButtonSounds
+);
+
+// A closed tab: its short ribbon behind its wax seal (MC "<tab>0" image and "<tab>" button).
+@Mark = Group {
+  @Slot = 0;
+
+  Anchor: (Left: 112, Top: 146 + 48 * @Slot, Width: 62, Height: 28);
+};
+
+@Seal = Button {
+  @Slot = 0;
+
+  Anchor: (Left: 124, Top: 142 + 48 * @Slot, Width: 34, Height: 34);
+  TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+};
+
+// The open tab: its long ribbon with its name (MC "<tab>1" button).
+@Ribbon = Group {
+  Anchor: (Left: 116, Top: 86, Width: 408, Height: 34);
+  Padding: (Left: 70, Top: 4);
+  Visible: false;
+};
+
+@RibbonLabel = Label {
+  Style: (FontSize: 15, TextColor: #ffffff, VerticalAlignment: Center);
+};
+
 $C.@PageOverlay {
   LayoutMode: Middle;
 
-  $C.@DecoratedContainer {
-    Anchor: (Width: 700);
+  Group {
+    Anchor: (Width: 1048, Height: 486);
 
-    #Title {
-      $C.@Title {
-        @Text = %hycolony.item.townhall.name;
+    Group {
+      Anchor: (Left: 150, Top: 0, Width: 748, Height: 486);
+      Background: "Mc/townhall_book.png";
+    }
+
+    // Deviation from MC: the name row sits at y 48, not MC's 64-70 under its "current name" header (layoutactions.xml),
+    // so that the 38-high rename field clears the open tab's ribbon at y 86.
+    Group #ActionsTab {
+      Visible: false;
+
+      $C.@TextField #RenameInput {
+        @Anchor = (Left: 236, Top: 44, Width: 264);
+      }
+
+      Button #RenameButton {
+        Anchor: (Left: 200, Top: 48, Width: 30, Height: 30);
+        Style: (Default: (Background: "Mc/edit.png"), Sounds: (...$Sounds.@ButtonsLight, ...$Sounds.@SaveSettings));
+        TooltipText: %hycolony.ui.townhall.rename;
+        TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+      }
+
+      Label #ColonyName {
+        Anchor: (Left: 200, Top: 48, Width: 300, Height: 30);
+        Style: (...@Ink, FontSize: 17, RenderBold: true, ShrinkTextToFit: true, MinShrinkTextToFitFontSize: 11);
+      }
+
+      TextButton #BuildingButton {
+        Anchor: (Left: 220, Top: 194, Width: 258, Height: 34);
+        Style: @WideButtonStyle;
+        Text: %hycolony.ui.townhall.building;
+      }
+
+      TextButton #RequestsButton {
+        Anchor: (Left: 220, Top: 232, Width: 258, Height: 34);
+        Style: @WideButtonStyle;
+        Text: %hycolony.ui.townhall.requests;
+      }
+
+      Label #Owner {
+        Anchor: (Left: 560, Top: 70, Width: 270, Height: 22);
+        Style: @Ink;
+      }
+
+      Label #Day {
+        Anchor: (Left: 560, Top: 96, Width: 270, Height: 22);
+        Style: @Faded;
       }
     }
 
-    #Content {
-      Padding: (Vertical: 24, Horizontal: 40);
-      LayoutMode: Top;
+    Group #InfoTab {
+      Visible: false;
 
-      Group #TabButtons {
-        LayoutMode: Left;
-        Anchor: (Height: 32, Bottom: 12);
+      Label {
+        Anchor: (Left: 552, Top: 56, Width: 296, Height: 22);
+        Text: %hycolony.ui.townhall.workOrders;
+        Style: (...@Ink, TextColor: #aa0000, HorizontalAlignment: Center, RenderBold: true);
       }
 
-      Group #ActionsTab {
-        LayoutMode: Top;
-
-        Label #ColonyName {
-          Style: (FontSize: 22, RenderBold: true, RenderUppercase: true);
-        }
-
-        Label #Owner {
-          Style: (TextColor: #94a7bb);
-          Anchor: (Top: 4);
-        }
-
-        Label #Day {
-          Style: (TextColor: #94a7bb);
-          Anchor: (Top: 2, Bottom: 10);
-        }
-
-        Group {
-          LayoutMode: Left;
-          Anchor: (Height: 44, Bottom: 12);
-
-          $C.@TextField #RenameInput {
-            FlexWeight: 1;
-          }
-
-          $C.@TextButton #RenameButton {
-            @Sounds = $Sounds.@SaveSettings;
-            @Anchor = (Left: 8);
-            Text: %hycolony.ui.townhall.rename;
-          }
-        }
-
-        Group {
-          LayoutMode: Left;
-          Anchor: (Height: 44);
-
-          $C.@SecondaryTextButton #BuildingButton {
-            @Anchor = (Right: 4);
-            Text: %hycolony.ui.townhall.building;
-            FlexWeight: 1;
-          }
-
-          $C.@SecondaryTextButton #RequestsButton {
-            Text: %hycolony.ui.townhall.requests;
-            FlexWeight: 1;
-          }
-        }
-      }
-
-      Group #InfoTab {
-        LayoutMode: Top;
+      Label #OrdersEmpty {
+        Anchor: (Left: 552, Top: 100, Width: 296, Height: 22);
+        Style: @Faded;
         Visible: false;
-
-        Label {
-          Text: %hycolony.ui.townhall.workOrders;
-          Style: (RenderBold: true, RenderUppercase: true, TextColor: #94a7bb);
-          Anchor: (Bottom: 6);
-        }
-
-        Label #OrdersEmpty {
-          Style: (TextColor: #94a7bb);
-          Anchor: (Bottom: 10);
-          Visible: false;
-        }
-
-        Group #Orders {
-          LayoutMode: TopScrolling;
-          ScrollbarStyle: $C.@DefaultScrollbarStyle;
-          Anchor: (Height: 380);
-        }
       }
 
-      Group #CitizensTab {
-        LayoutMode: Top;
-        Visible: false;
+      Group #Orders {
+        Anchor: (Left: 552, Top: 100, Width: 296, Height: 332);
+        LayoutMode: TopScrolling;
+        ScrollbarStyle: $C.@DefaultScrollbarStyle;
+      }
+    }
 
-        Group #CitizenList {
-          LayoutMode: TopScrolling;
-          ScrollbarStyle: $C.@DefaultScrollbarStyle;
-          Anchor: (Height: 400);
-        }
+    // Deviation from MC: the list takes the whole right page (MC: y 220, 212 high, under the selected citizen and the
+    // search field, which HyColony does not have yet).
+    Group #CitizensTab {
+      Visible: false;
+
+      Group #CitizenList {
+        Anchor: (Left: 552, Top: 56, Width: 296, Height: 404);
+        LayoutMode: TopScrolling;
+        ScrollbarStyle: $C.@DefaultScrollbarStyle;
+      }
+    }
+
+    Group #StatsTab {
+      Visible: false;
+
+      Label #TotalCitizens {
+        Anchor: (Left: 200, Top: 122, Width: 296, Height: 22);
+        Style: (...@Ink, RenderBold: true);
       }
 
-      Group #StatsTab {
-        LayoutMode: Top;
-        Visible: false;
-
-        Label #TotalCitizens {
-          Style: (RenderBold: true);
-          Anchor: (Bottom: 10);
-        }
-
-        Group #StatLines {
-          LayoutMode: TopScrolling;
-          ScrollbarStyle: $C.@DefaultScrollbarStyle;
-          Anchor: (Height: 360);
-        }
+      Group #StatLines {
+        Anchor: (Left: 200, Top: 166, Width: 296, Height: 272);
+        LayoutMode: TopScrolling;
+        ScrollbarStyle: $C.@DefaultScrollbarStyle;
       }
+    }
+
+    // Tabs in TownHallPage.Tab order. Deviation from MC: the slots are compacted, as there is no Permissions tab.
+    @Mark #Mark0 { @Slot = 0; Background: "Mc/bookmark_short_ribbon_01.png"; }
+    @Mark #Mark1 { @Slot = 1; Background: "Mc/bookmark_short_ribbon_02.png"; }
+    @Mark #Mark2 { @Slot = 2; Background: "Mc/bookmark_short_ribbon_04.png"; }
+    @Mark #Mark3 { @Slot = 3; Background: "Mc/bookmark_short_ribbon_05.png"; }
+
+    @Ribbon #Ribbon0 {
+      Background: "Mc/bookmark_ribbon_01.png";
+      @RibbonLabel { Text: %hycolony.ui.townhall.tab.actions; }
+    }
+
+    @Ribbon #Ribbon1 {
+      Background: "Mc/bookmark_ribbon_02.png";
+      @RibbonLabel { Text: %hycolony.ui.townhall.tab.information; }
+    }
+
+    @Ribbon #Ribbon2 {
+      Background: "Mc/bookmark_ribbon_04.png";
+      @RibbonLabel { Text: %hycolony.ui.townhall.tab.citizens; }
+    }
+
+    @Ribbon #Ribbon3 {
+      Background: "Mc/bookmark_ribbon_05.png";
+      @RibbonLabel { Text: %hycolony.ui.townhall.tab.stats; }
+    }
+
+    @Seal #Seal0 {
+      @Slot = 0;
+      Style: (Default: (Background: "Mc/red_wax_home.png"), Sounds: $C.@ButtonSounds);
+      TooltipText: %hycolony.ui.townhall.tab.actions;
+    }
+
+    @Seal #Seal1 {
+      @Slot = 1;
+      Style: (Default: (Background: "Mc/red_wax_work_orders.png"), Sounds: $C.@ButtonSounds);
+      TooltipText: %hycolony.ui.townhall.tab.information;
+    }
+
+    @Seal #Seal2 {
+      @Slot = 2;
+      Style: (Default: (Background: "Mc/red_wax_citizens.png"), Sounds: $C.@ButtonSounds);
+      TooltipText: %hycolony.ui.townhall.tab.citizens;
+    }
+
+    @Seal #Seal3 {
+      @Slot = 3;
+      Style: (Default: (Background: "Mc/red_wax_stats.png"), Sounds: $C.@ButtonSounds);
+      TooltipText: %hycolony.ui.townhall.tab.stats;
     }
   }
 }

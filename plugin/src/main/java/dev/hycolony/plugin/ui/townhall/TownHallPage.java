@@ -10,40 +10,29 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.app.ui.TownHallView;
 import dev.hycolony.plugin.ui.ColonyPage;
-import dev.hycolony.plugin.ui.TabBar;
 import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * The town hall's window in tabs, in MC AbstractWindowTownHall order: Actions, Information, Citizens, Statistics.
+ * The town hall's window as MC's book, in MC AbstractWindowTownHall tab order: Actions, Information, Citizens,
+ * Statistics.
  *
- * <p>Deviation from MC: no Permissions, Alliances nor Settings tab (no window for those systems yet).
+ * <p>Deviation from MC: no Permissions, Alliances nor Settings tab (no window for those systems yet), and a closed
+ * tab names itself in a tooltip rather than MC's hover ribbon.
  */
 public final class TownHallPage extends ColonyPage {
-    /** A tab: its content group and its label key. */
-    enum Tab implements TabBar.Tab {
-        ACTIONS("#ActionsTab", "actions"),
-        INFO("#InfoTab", "information"),
-        CITIZENS("#CitizensTab", "citizens"),
-        STATS("#StatsTab", "stats");
+    /** A tab, in the order of its bookmark ({@code #Mark<i>}, {@code #Seal<i>}, {@code #Ribbon<i>}): its group. */
+    enum Tab {
+        ACTIONS("#ActionsTab"),
+        INFO("#InfoTab"),
+        CITIZENS("#CitizensTab"),
+        STATS("#StatsTab");
 
         private final String group;
-        private final String key;
 
-        Tab(String group, String key) {
+        Tab(String group) {
             this.group = group;
-            this.key = key;
-        }
-
-        @Override
-        public String group() {
-            return group;
-        }
-
-        @Override
-        public String labelKey() {
-            return "hycolony.ui.townhall.tab." + key;
         }
     }
 
@@ -74,10 +63,10 @@ public final class TownHallPage extends ColonyPage {
         return this;
     }
 
-    /** The Actions tab holds {@code #RenameInput}. */
+    /** The Actions tab holds {@code #RenameInput}, shown only to whoever may rename. */
     @Override
     protected boolean showsInput() {
-        return tab == Tab.ACTIONS;
+        return tab == Tab.ACTIONS && view.canRename();
     }
 
     @Override
@@ -87,11 +76,28 @@ public final class TownHallPage extends ColonyPage {
             @Nonnull UIEventBuilder events,
             @Nonnull Store<EntityStore> store) {
         ui.append("Pages/HyColony/TownHall.ui");
-        TabBar.render(ui, events, TABS, tab);
+        renderTabs(ui, events);
         actions.render(ui, events);
         orders.render(ui, events);
         TownHallCitizensTab.render(ui, view.citizens());
         TownHallStatsTab.render(ui, view.stats());
+    }
+
+    /**
+     * Shows the open tab's long ribbon and content, and the others' short ribbon and wax seal (MC
+     * AbstractWindowTownHall constructor). A seal click sends action "tab" with its index.
+     */
+    private void renderTabs(UICommandBuilder ui, UIEventBuilder events) {
+        for (int i = 0; i < TABS.size(); i++) {
+            boolean open = TABS.get(i) == tab;
+            ui.set("#Ribbon" + i + ".Visible", open);
+            ui.set("#Mark" + i + ".Visible", !open);
+            ui.set("#Seal" + i + ".Visible", !open);
+            ui.set(TABS.get(i).group + ".Visible", open);
+            if (!open) {
+                ColonyPage.bind(events, "#Seal" + i, "tab", i);
+            }
+        }
     }
 
     @Override

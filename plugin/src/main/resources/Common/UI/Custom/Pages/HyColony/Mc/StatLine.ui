@@ -1,0 +1,10 @@
+// A town hall statistics line on the book's page (MC layoutstats.xml citizen-stats box), MC sizes doubled.
+
+Group {
+  Anchor: (Height: 22);
+
+  Label #Line {
+    Anchor: (Left: 0, Top: 0, Width: 296, Height: 22);
+    Style: (FontSize: 14, TextColor: #000000, VerticalAlignment: Center);
+  }
+}

@@ -45,7 +45,7 @@ final class TownHallStatsTab {
     }
 
     private static void line(UICommandBuilder ui, int index, String property, Message text) {
-        ui.append("#StatLines", "Pages/HyColony/StatLine.ui");
+        ui.append("#StatLines", "Pages/HyColony/Mc/StatLine.ui");
         ui.set("#StatLines[" + index + "] #Line." + property, text);
     }
 }

@@ -36,6 +36,8 @@ final class TownHallActionsTab {
         ColonyPage.bind(events, "#BuildingButton", "building");
         ColonyPage.bind(events, "#RequestsButton", "requests");
         if (view.canRename()) {
+            // The rename field shows the name, as MC's name label beside its edit button.
+            ui.set("#ColonyName.Visible", false);
             events.addEventBinding(
                     CustomUIEventBindingType.Activating,
                     "#RenameButton",

@@ -1,0 +1,57 @@
+$C = "../../../Common.ui";
+
+// A town hall work order on the book's page (MC layoutinfo.xml workOrderList view), MC sizes doubled. "X" is MC's own
+// delete label. Deviation from MC: MC labels plus and minus "↥" and "↧" (layoutinfo.xml), but the client fonts have no
+// arrows (docs/research/plugin-b-api.md, "Icônes de flèches"), so "+" and "−"; the tooltips carry the words.
+
+@Ink = LabelStyle(FontSize: 14, TextColor: #000000, HorizontalAlignment: Center, VerticalAlignment: Center);
+@MiniStyle = TextButtonStyle(
+  Default: (Background: "builder_button_mini.png", LabelStyle: @Ink),
+  Hovered: (Background: "builder_button_mini.png", LabelStyle: (...@Ink, RenderBold: true)),
+  Pressed: (Background: "builder_button_mini.png", LabelStyle: @Ink),
+  Sounds: $C.@ButtonSounds
+);
+
+Group {
+  Anchor: (Height: 60);
+
+  TextButton #UpButton {
+    Anchor: (Left: 0, Top: 0, Width: 28, Height: 30);
+    Style: @MiniStyle;
+    Text: "+";
+    TooltipText: %hycolony.ui.workorders.up;
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+  }
+
+  TextButton #DownButton {
+    Anchor: (Left: 0, Top: 30, Width: 28, Height: 30);
+    Style: @MiniStyle;
+    Text: "−";
+    TooltipText: %hycolony.ui.workorders.down;
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+  }
+
+  Label #Title {
+    Anchor: (Left: 34, Top: 4, Width: 210, Height: 34);
+    Style: (
+      FontSize: 14,
+      TextColor: #000000,
+      VerticalAlignment: Center,
+      ShrinkTextToFit: true,
+      MinShrinkTextToFitFontSize: 10
+    );
+  }
+
+  Label #Info {
+    Anchor: (Left: 50, Top: 40, Width: 160, Height: 16);
+    Style: (FontSize: 12, TextColor: #707070, VerticalAlignment: Center);
+  }
+
+  TextButton #DeleteButton {
+    Anchor: (Left: 244, Top: 16, Width: 28, Height: 30);
+    Style: (...@MiniStyle, Default: (Background: "builder_button_mini.png", LabelStyle: (...@Ink, TextColor: #cc0000)));
+    Text: "X";
+    TooltipText: %hycolony.ui.workorders.delete;
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+  }
+}

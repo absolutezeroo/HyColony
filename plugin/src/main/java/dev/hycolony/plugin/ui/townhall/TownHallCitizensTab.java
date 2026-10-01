@@ -16,7 +16,7 @@ final class TownHallCitizensTab {
     static void render(UICommandBuilder ui, List<CitizenRow> rows) {
         for (int i = 0; i < rows.size(); i++) {
             String row = "#CitizenList[" + i + "]";
-            ui.append("#CitizenList", "Pages/HyColony/CitizenRow.ui");
+            ui.append("#CitizenList", "Pages/HyColony/Mc/CitizenRow.ui");
             ui.set(row + " #Name.Text", rows.get(i).name());
             ui.set(
                     row + " #Status.Text",

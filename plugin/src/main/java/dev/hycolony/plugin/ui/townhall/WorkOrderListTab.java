@@ -39,7 +39,7 @@ final class WorkOrderListTab {
         for (int i = 0; i < orders.size(); i++) {
             OrderLine o = orders.get(i);
             String row = "#Orders[" + i + "]";
-            ui.append("#Orders", "Pages/HyColony/OrderRow.ui");
+            ui.append("#Orders", "Pages/HyColony/Mc/OrderRow.ui");
             ui.set(
                     row + " #Title.TextSpans",
                     Message.translation("hycolony.ui.workorders.line")
