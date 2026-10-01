@@ -29,7 +29,10 @@ final class PlannedBlocks {
         this.ctx = ctx;
     }
 
-    /** The builder placed {@code e} at {@code pos}: its container and bench join the building, which is told of it. */
+    /**
+     * The builder placed {@code e} at {@code pos}: its container and bench join the building, which is told of it, and
+     * a field block becomes a colony field.
+     */
     void placed(BlockPos pos, BlueprintEntry e) {
         if (e.hasContainer()) {
             ctx.site().target().registeredBlocks().addContainer(pos); // MC: racks placed become the containers
@@ -37,6 +40,9 @@ final class PlannedBlocks {
         e.workstation().ifPresent(bench -> registerBench(pos, bench));
         BuildingEventsModule.blockPlaced(
                 ctx.colony(), ctx.site().target(), pos, e.state().key());
+        if (ctx.colony().registries().planBlockPlaced(pos)) {
+            ctx.colony().markDirty();
+        }
     }
 
     /**

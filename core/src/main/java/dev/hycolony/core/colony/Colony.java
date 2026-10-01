@@ -48,7 +48,7 @@ public final class Colony {
     private final CitizenNameplates nameplates = new CitizenNameplates(this);
     private final ColonySettings settings = new ColonySettings();
     private final EventLog log = new EventLog();
-    private final ColonyRegistries registries = new ColonyRegistries();
+    private final ColonyRegistries registries;
     private final TickRateStateMachine<ColonyState> machine;
     private int day;
     private boolean wasDaytime;
@@ -62,6 +62,7 @@ public final class Colony {
         this.name = founding.name();
         this.center = founding.center();
         this.permissions = founding.permissions();
+        this.registries = new ColonyRegistries(pos -> ctx.ports().farming().isFieldBlock(pos));
         this.requests = new RequestManager(this::requester, ctx.ports().catalog());
         this.buildings = new BuildingManager(new ColonyBuildingListener(this));
         requests.registerBuiltIn(new PlayerResolver(center));

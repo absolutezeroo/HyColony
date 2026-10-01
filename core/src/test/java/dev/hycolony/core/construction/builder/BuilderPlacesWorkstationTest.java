@@ -37,7 +37,8 @@ import org.junit.jupiter.api.Test;
 
 /**
  * A crafting bench of the plan: the builder pays it with its Hytale upgrades, places it at its planned tier and the
- * hut registers it (MC registerBlockPosition); a bench the builder mines leaves the hut.
+ * hut registers it (MC registerBlockPosition); a bench the builder mines leaves the hut. A field block of the plan
+ * becomes a colony field once placed (MC FieldPlacementHandler).
  */
 class BuilderPlacesWorkstationTest {
     private static final BlockPos HUT = new BlockPos(10, 64, 0);
@@ -231,6 +232,25 @@ class BuilderPlacesWorkstationTest {
         assertEquals(
                 Map.of(at, new Workstation(FARMING, 3)), res.registeredBlocks().workstations());
         assertTrue(colony.requests().byRequester(builderHut.requesterId()).isEmpty());
+    }
+
+    @Test
+    void placedFieldBlockBecomesAColonyField() {
+        BlockKey field = new BlockKey("HyColony_Field");
+        ItemKey fieldItem = new ItemKey("HyColony_Field");
+        t.catalog.kinds.put(field, BlockKind.SOLID);
+        t.catalog.itemForBlock.put(field, fieldItem);
+        hut(ConstructionBuildingTypes.RESIDENCE.id(), RES, 0);
+        BlockPos at = RES.offset(1, 0, 0);
+        t.farming.fieldBlocks.add(at); // what the world holds there once the builder placed it
+        plans.put(
+                1, plan(new BlueprintEntry(new BlockPos(1, 0, 0), new BlockState(field, 0), false, Optional.empty())));
+        give(fieldItem, 1);
+        order(WorkOrderType.BUILD);
+
+        tickUntil(this::finished);
+
+        assertTrue(colony.registries().fields().get(at).isPresent());
     }
 
     @Test

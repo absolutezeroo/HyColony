@@ -113,8 +113,14 @@ final class PasteQueue {
         return true;
     }
 
-    /** A placed bench gets its planned tier; a placed container or bench joins the hut's building. */
+    /**
+     * A placed bench gets its planned tier; a placed container or bench joins the hut's building; a placed field block
+     * becomes a field of the colony it stands in.
+     */
     private void placed(StructurePlan plan, BlockPos pos, BlueprintEntry e) {
+        manager.colonyAt(pos)
+                .filter(colony -> colony.registries().planBlockPlaced(pos))
+                .ifPresent(Colony::markDirty);
         Optional<Workstation> bench = e.workstation();
         if (bench.isPresent() && !blocks().setBenchTier(pos, bench.get().tier())) {
             warn(

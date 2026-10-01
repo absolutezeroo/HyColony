@@ -218,6 +218,24 @@ class PasteQueueTest {
     }
 
     @Test
+    void pastedFieldBlockBecomesAColonyField() {
+        UUID alice = UUID.randomUUID();
+        manager.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
+        Colony colony = manager.foundation().confirm(alice, "Rivendell").orElseThrow();
+        manager.huts().place(colony, ConstructionBuildingTypes.BUILDER.id(), HUT, 0, UUID.randomUUID());
+        BlockKey field = new BlockKey("HyColony_Field");
+        t.catalog.kinds.put(field, BlockKind.SOLID);
+        BlockPos at = HUT.offset(1, 0, 0);
+        t.farming.fieldBlocks.add(at); // what the world holds there once pasted
+        paste(new Blueprint(
+                "field", List.of(FakeBlueprints.entry(1, 0, 0, field)), new BlockPos(0, 0, 0), new BlockPos(1, 0, 0)));
+
+        queue.tick();
+
+        assertTrue(colony.registries().fields().get(at).isPresent());
+    }
+
+    @Test
     void pastedBenchOutsideAnyColonyStillGetsItsTier() {
         Workstation bench = new Workstation("Farmingbench", 3);
         BlueprintEntry e = new BlueprintEntry(
