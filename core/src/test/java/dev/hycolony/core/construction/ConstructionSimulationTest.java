@@ -169,7 +169,7 @@ class ConstructionSimulationTest {
 
     private ColonyManager newManager() {
         ColonyManager m = t.manager();
-        m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp3b());
+        m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp4());
         return m;
     }
 

@@ -24,7 +24,7 @@ class SchemaV2MigrationTest {
 
     private ColonyManager manager() {
         ColonyManager m = new TestContexts().manager();
-        m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp3b());
+        m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp4());
         return m;
     }
 

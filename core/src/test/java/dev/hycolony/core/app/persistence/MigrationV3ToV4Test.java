@@ -37,7 +37,7 @@ class MigrationV3ToV4Test {
     void v3ColonyLoadsWithNoWorkstations() throws IOException {
         Files.writeString(dir.resolve("colony-1.json"), fixture());
         ColonyManager m = new TestContexts().manager();
-        m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp3b());
+        m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp4());
 
         m.persistence().loadAll();
 
@@ -55,7 +55,7 @@ class MigrationV3ToV4Test {
     void v3ToV4GivesEveryBuildingNoWorkstationsAndTheColonyNoRecipes() throws IOException {
         JsonObject doc = JsonParser.parseString(fixture()).getAsJsonObject();
 
-        JsonObject migrated = MigrationChain.sp3b().migrate(doc);
+        JsonObject migrated = MigrationChain.sp4().migrate(doc);
 
         assertEquals(
                 ColonySerializer.SCHEMA_VERSION,

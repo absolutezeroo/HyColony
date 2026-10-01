@@ -35,7 +35,7 @@ class MigrationV4ToV5Test {
     void v4ColonyLoadsWithNoField() throws IOException {
         Files.writeString(dir.resolve("colony-1.json"), fixture());
         ColonyManager m = new TestContexts().manager();
-        m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp3b());
+        m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp4());
 
         m.persistence().loadAll();
 
@@ -43,16 +43,18 @@ class MigrationV4ToV5Test {
         assertTrue(c.registries().fields().all().isEmpty());
         m.persistence().saveAll();
         String saved = Files.readString(dir.resolve("colony-1.json"));
-        assertTrue(saved.contains("\"schemaVersion\":5"), saved);
+        assertTrue(saved.contains("\"schemaVersion\":" + ColonySerializer.SCHEMA_VERSION), saved);
         assertTrue(saved.contains("\"fields\":[]"), saved);
     }
 
     @Test
     void v4ToV5GivesTheColonyNoField() throws IOException {
         JsonObject migrated =
-                MigrationChain.sp3b().migrate(JsonParser.parseString(fixture()).getAsJsonObject());
+                MigrationChain.sp4().migrate(JsonParser.parseString(fixture()).getAsJsonObject());
 
-        assertEquals(5, migrated.get(MigrationChain.VERSION_KEY).getAsInt());
+        assertEquals(
+                ColonySerializer.SCHEMA_VERSION,
+                migrated.get(MigrationChain.VERSION_KEY).getAsInt());
         assertTrue(migrated.getAsJsonArray("fields").isEmpty());
     }
 }

@@ -166,7 +166,7 @@ class CraftingHealTest {
     /** The colony read back by the real load of a world ({@link ColonyManager}'s persistence). */
     private Colony loadAll(TestContexts t) {
         ColonyManager m = t.manager();
-        m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp3b());
+        m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp4());
         m.persistence().loadAll();
         return m.byId(h.colony.id()).orElseThrow();
     }

@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -27,18 +28,20 @@ public final class MigrationChain {
     }
 
     /**
-     * SP3b: schema 5. Schema 2 added citizen inventory/job, colony requests/workOrders/settings, building containers;
+     * SP4: schema 6. Schema 2 added citizen inventory/job, colony requests/workOrders/settings, building containers;
      * schema 3 moved a tool's wear from the job's per-item counter onto the stack; schema 4 added the huts' plan
-     * benches and the colony's recipe registry; schema 5 the colony's fields.
+     * benches and the colony's recipe registry; schema 5 the colony's fields; schema 6 the residences' residents and
+     * beds, the citizens' sleep and the colony's auto-housing setting.
      */
-    public static MigrationChain sp3b() {
+    public static MigrationChain sp4() {
         return new MigrationChain(
-                5,
+                6,
                 List.of(
                         new Migration(1, MigrationChain::v1ToV2),
                         new Migration(2, MigrationChain::v2ToV3),
                         new Migration(3, MigrationChain::v3ToV4),
-                        new Migration(4, MigrationChain::v4ToV5)));
+                        new Migration(4, MigrationChain::v4ToV5),
+                        new Migration(5, MigrationChain::v5ToV6)));
     }
 
     private static JsonObject v1ToV2(JsonObject doc) {
@@ -96,6 +99,55 @@ public final class MigrationChain {
     private static JsonObject v4ToV5(JsonObject doc) {
         doc.add("fields", new JsonArray());
         return doc;
+    }
+
+    /**
+     * Schema 6 (SP4): each residence lists the citizens whose saved home it is, in citizen order (the load assigns
+     * them again, as MC), and no bed yet (the load finds them in its plan); citizens are awake; the colony houses its
+     * homeless automatically (MC AUTO_HOUSING_MODE).
+     */
+    private static JsonObject v5ToV6(JsonObject doc) {
+        for (JsonElement el : doc.getAsJsonArray("buildings")) {
+            if (el instanceof JsonObject b
+                    && b.get("type") instanceof JsonPrimitive type
+                    && "hycolony:residence".equals(type.getAsString())) {
+                residenceModules(doc, b);
+            }
+        }
+        for (JsonElement el : doc.getAsJsonArray("citizens")) {
+            if (el instanceof JsonObject citizen) {
+                citizen.addProperty("asleep", false);
+                citizen.add("bedPos", JsonNull.INSTANCE);
+            }
+        }
+        JsonObject settings = doc.get("settings") instanceof JsonObject s ? s : new JsonObject();
+        settings.addProperty("autoHousing", true);
+        doc.add("settings", settings);
+        return doc;
+    }
+
+    /** The {@code living} module (residents whose saved home is this residence) and an empty {@code bed} module. */
+    private static void residenceModules(JsonObject doc, JsonObject residence) {
+        JsonObject modules = residence.get("modules") instanceof JsonObject m ? m : new JsonObject();
+        residence.add("modules", modules);
+        JsonElement pos = residence.get("pos");
+        if (!modules.has("living")) {
+            JsonArray residents = new JsonArray();
+            for (JsonElement el : doc.getAsJsonArray("citizens")) {
+                if (el instanceof JsonObject c && pos != null && pos.equals(c.get("home")) && c.has("id")) {
+                    residents.add(c.get("id"));
+                }
+            }
+            JsonObject living = new JsonObject();
+            living.add("residents", residents);
+            living.addProperty("hiringMode", "DEFAULT");
+            modules.add("living", living);
+        }
+        if (!modules.has("bed")) {
+            JsonObject bed = new JsonObject();
+            bed.add("beds", new JsonArray());
+            modules.add("bed", bed);
+        }
     }
 
     private static Optional<JsonObject> lastSlotOf(JsonArray inventory, String item) {

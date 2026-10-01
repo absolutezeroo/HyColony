@@ -74,14 +74,14 @@ class NeedsPlayerNoticeTest {
 
     @Test
     void requestAlreadyWithThePlayerIsNotAnnouncedAgainWhenTheColonyLoads(@TempDir Path dir) {
-        manager.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp3b());
+        manager.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp4());
         toPlayer(colony.requests().createAndAssign(hut, PLANKS, 1));
         colony.markDirty();
         manager.persistence().saveAll();
         TestContexts loading = new TestContexts();
         loading.players.online.put(alice, hall);
         ColonyManager reloaded = loading.manager();
-        reloaded.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp3b());
+        reloaded.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp4());
 
         reloaded.persistence().loadAll();
 

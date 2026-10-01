@@ -47,6 +47,8 @@ final class CitizenSerializer {
         o.add("lastPosition", vec(d.lastPosition()));
         o.add("respawnPosition", pos(d.respawnPosition()));
         o.add("home", pos(d.homeBuilding()));
+        o.add("bedPos", pos(d.bedPos()));
+        o.addProperty("asleep", d.asleep());
         o.add("work", pos(d.workBuilding()));
         o.addProperty("saturation", d.saturation());
         o.addProperty("leisureTime", d.leisureTime());
@@ -84,6 +86,10 @@ final class CitizenSerializer {
         d.setSaturation(doubleOr(o.get("saturation"), d.saturation()));
         // Deviation from MC: capped at one break, so an edited save cannot keep a worker on a break forever.
         d.setLeisureTime(Math.min(intOr(o.get("leisureTime"), 0), CitizenData.LEISURE_TICKS));
+        d.setBedPos(readPos(o.get("bedPos")));
+        if (boolOr(o.get("asleep"), false)) {
+            d.setAsleep(true); // after the leisure time: falling asleep ends it (MC CitizenData.setAsleep)
+        }
         d.setInventory(Inventory.read(arrayOr(o.get("inventory")), CitizenData.INVENTORY_SLOTS));
         if (o.get("job") instanceof JsonObject job) {
             readJob(job, d, ctx);

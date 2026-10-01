@@ -24,7 +24,7 @@ public final class ColonyPersistence {
 
     private final ColonyManager manager;
     private @Nullable ColonyStorage storage;
-    private MigrationChain migrations = MigrationChain.sp3b();
+    private MigrationChain migrations = MigrationChain.sp4();
     /** Ids whose file must never be touched (newer schema). */
     private final Set<Integer> lockedIds = new HashSet<>();
     /** Set once listing the storage fails: saves are refused and founding is denied until restart. */
