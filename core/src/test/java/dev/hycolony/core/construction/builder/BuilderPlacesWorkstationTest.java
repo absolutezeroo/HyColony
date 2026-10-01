@@ -199,6 +199,7 @@ class BuilderPlacesWorkstationTest {
         assertEquals(0, citizen.inventory().count(BENCH_I));
         assertEquals(0, citizen.inventory().count(A));
         assertEquals(0, citizen.inventory().count(B));
+        assertTrue(colony.registries().fields().all().isEmpty(), "a bench is no field");
     }
 
     @Test

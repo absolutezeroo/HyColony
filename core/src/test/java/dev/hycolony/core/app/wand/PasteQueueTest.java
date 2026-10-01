@@ -215,6 +215,7 @@ class PasteQueueTest {
                 Map.of(at, bench),
                 colony.buildings().at(HUT).orElseThrow().registeredBlocks().workstations());
         assertTrue(colony.requests().all().isEmpty());
+        assertTrue(colony.registries().fields().all().isEmpty(), "a bench is no field");
     }
 
     @Test
