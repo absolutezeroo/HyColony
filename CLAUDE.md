@@ -79,7 +79,7 @@ HyColony porte MineColonies sur Hytale 0.7.0-pre.4 (Update 7, épinglé dans `gr
 
 - Tout texte vu par un joueur passe par une clé de traduction présente dans **en-US et fr-FR** (les deux fichiers ont les mêmes clés **[build : `checkLangParity`]**), dans le `.lang` du mod qui l'affiche (`hycolony.lang`, `hydomum.lang`, `hyvanilla.lang`, `hyblockui.lang`, `hylens.lang` sous `Server/Languages/*/` ; les noms de blocs générés, `hydomum_blocks.lang`, sont écrits par `tools/domum`), avec des paramètres `{p0}`, `{p1}`…
 - Une traduction imbriquée dans une autre (`param(key, Message)`) s'affiche sur `.TextSpans`, **jamais** sur `.Text`. Sur un bouton : une clé complète par variante.
-- Les fenêtres affichent des **vues** du cœur (records immuables). Chaque bouton appelle une action du cœur, qui vérifie les permissions puis ré-affiche la vue. Les fichiers `.ui` copient les motifs vanilla (voir les `.ui` des assets).
+- Les fenêtres affichent des **vues** du cœur (records immuables). Chaque bouton appelle une action du cœur, qui vérifie les permissions puis ré-affiche la vue.  Les fenêtres de HyColony reprennent l'apparence de MineColonies : positions et tailles de ses `.xml` (`sources/minecolonies/.../gui/`) ×2, et textures copiées de `sources/` dans `Pages/HyColony/Mc/`, agrandies ×4 au plus proche voisin en @2x. Les autres mods, et les contrôles sans équivalent chez MC, copient les motifs vanilla (voir les `.ui` des assets).
 - Les identifiants d'assets Hytale ne vivent que dans l'id-map de chaque mod (`hycolony/id-map.json`, `hydomum/id-map.json`, `hyvanilla/id-map.json`, `hylens/id-map.json`). Les plans de bâtiments sont dans `hycolony/styles.json`.
 
 ## 8. Tests
