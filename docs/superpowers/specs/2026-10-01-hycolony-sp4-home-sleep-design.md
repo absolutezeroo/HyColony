@@ -310,3 +310,18 @@ Clés en en-US et fr-FR dans `hycolony.lang` (skill `add-lang-key`), reprises de
 - Lever à l'aube, y compris quand un joueur fait passer la nuit, et quand il se lève avant la fin du saut.
 - Une résidence construite avant SP4 retrouve ses lits et ses habitants au chargement.
 - Les citoyens en trop dorment debout dans la hutte.
+
+## 12. Décisions prises à la réalisation
+
+Le plan (`docs/superpowers/plans/2026-10-01-hycolony-sp4-home-sleep.md`) a été suivi, avec ces ajustements :
+
+- **Paquets.** La maison et les lits sont dans `citizen/home`, le sommeil dans `citizen/sleep` (la matrice figée de `FeatureDependenciesTest` interdit à `citizen` de dépendre de `construction`). L'emprise d'une hutte est `colony/HutFootprint` (`building` ne voit pas les plans).
+- **Plafond de citoyens.** *Écart avec MC* : MC plafonne aussi par la recherche `CITIZEN_CAP` (25 tant qu'elle n'est pas faite) ; sans recherche, seule `maxCitizenPerColony` plafonne.
+- **Lit quitté.** `CitizenBodies.isInBed` voit un lit quitté sans nous (lit cassé, nuit passée par les joueurs, téléportation) ; le citoyen redevient éveillé sans les crochets de réveil (`SleepHandler.leftBed`) et retourne se coucher. *Écart avec MC* : rien ne sort un citoyen de son lit dans MC.
+- **Drapeau « tous dorment ».** Il vit sur `CitizenManager` comme `areCitizensSleeping` de MC ; `SleepNotice` n'a que des méthodes statiques (limites PMD de couplage et de nombre de méthodes).
+- **Plaque de nom.** Le « ! » d'une demande au joueur passe avant « zZz », comme MC dessine l'interaction avant le statut.
+- **Confirmation d'amélioration.** Au lieu d'une fenêtre `WindowConfirm`, le premier clic sur « Améliorer » affiche l'avertissement dans le panneau des options et le bouton devient « Confirmer » ; le second lance l'ordre.
+- **Bouton de mode.** L'onglet « Habitants » reprend les clés « Embauche : … » des huttes de travail.
+- **Apparence.** L'onglet « Habitants » suit l'apparence actuelle des onglets de hutte ; il suivra l'apparence MineColonies (`Pages/HyColony/Mc/`) quand la fenêtre de hutte sera convertie (CLAUDE.md § 7).
+- **Horloge.** `HytaleGameClock.realTicksUntil` travaille directement sur l'heure MC, chaque phase étant linéaire en temps réel ; le résultat est celui de la formule du § 4.
+- **Plugin.** Le coucher passe par `BlockMountAPI.mountOnBlock` dans `Store.forEachChunk` (variante à prédicat, arrêtée au premier morceau) ; la particule est `Sleepy` (id-map `sleepParticle`). Le message « lit occupé » au joueur n'est pas envoyé : le refus natif de Hytale (`NO_MOUNT_POINT_FOUND`) est gardé, à confirmer en jeu.
