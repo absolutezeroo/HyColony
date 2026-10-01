@@ -1,49 +1,12 @@
 $C = "../../Common.ui";
+$S = "Mc/SelectRes.ui";
+
+// The builder's fill block list: Structurize's item picker, which MC BlockSetting opens without a description.
 
 $C.@PageOverlay {
   LayoutMode: Middle;
 
-  $C.@DecoratedContainer {
-    Anchor: (Width: 520, Height: 560);
-
-    #Title {
-      Group {
-        LayoutMode: Left;
-
-        $C.@Title {
-          @Text = %hycolony.ui.builder.fillBlock.pick;
-        }
-      }
-
-      $C.@HeaderSearch {}
-    }
-
-    #Content {
-      Padding: (Vertical: 16, Horizontal: 24);
-      LayoutMode: Top;
-
-      Label #ItemsEmpty {
-        Text: %hycolony.ui.builder.fillBlock.noMatch;
-        Style: (TextColor: #94a7bb);
-        Visible: false;
-      }
-
-      Group #Items {
-        LayoutMode: TopScrolling;
-        ScrollbarStyle: $C.@DefaultScrollbarStyle;
-        FlexWeight: 1;
-      }
-
-      // As MC WindowSelectRes' cancel: back to the builder hut window.
-      Group {
-        LayoutMode: Center;
-        Anchor: (Top: 10);
-
-        $C.@SecondaryTextButton #CancelButton {
-          @Anchor = (Width: 200);
-          Text: %hycolony.ui.builder.fillBlock.back;
-        }
-      }
-    }
-  }
+  $S.@SelectRes {}
 }
+
+$C.@BackButton {}

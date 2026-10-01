@@ -13,4 +13,7 @@ public interface WorldQuery {
 
     /** Whether it rains or snows at {@code pos} (MC Level.isRaining); false when unknown (never throws). */
     boolean isRainingAt(BlockPos pos);
+
+    /** The name of the biome at {@code pos}'s column (MC Level.getBiome); empty when unknown (never throws). */
+    Optional<String> biome(BlockPos pos);
 }

@@ -13,6 +13,7 @@ import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.farming.field.FarmField;
 import dev.hycolony.core.farming.field.FieldRadii;
+import dev.hycolony.core.farming.field.FieldRadii.Direction;
 import dev.hycolony.core.farming.hut.FarmerFieldsModule;
 import dev.hycolony.core.farming.hut.FarmerHut;
 import dev.hycolony.core.farming.hut.FieldsView;
@@ -21,6 +22,7 @@ import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.testing.TestContexts;
 import dev.hycolony.core.testing.farming.FakeFarming;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -79,6 +81,29 @@ class FieldActionsTest {
         assertEquals(FieldRadii.defaults(), view.radii());
         assertFalse(view.canManage());
         assertEquals(t.farming.seeds(), view.seeds());
+    }
+
+    @Test
+    void eachSideSaysWhereItLiesFromTheViewersLookAsMc() {
+        t.players.setFacing(alice, 0); // looking north
+        fields.open(alice, NEAR);
+        Map<Direction, FieldView.Relative> sides = ((FieldView) t.ui.shown.get(alice)).relative();
+        assertEquals(FieldView.Relative.OPPOSITE, sides.get(Direction.NORTH), "the side the player looks at");
+        assertEquals(FieldView.Relative.NEAREST, sides.get(Direction.SOUTH));
+        assertEquals(FieldView.Relative.TO_RIGHT, sides.get(Direction.EAST));
+        assertEquals(FieldView.Relative.TO_LEFT, sides.get(Direction.WEST));
+        t.players.setFacing(alice, 1); // looking east
+        fields.open(alice, NEAR);
+        sides = ((FieldView) t.ui.shown.get(alice)).relative();
+        assertEquals(FieldView.Relative.OPPOSITE, sides.get(Direction.EAST));
+        assertEquals(FieldView.Relative.TO_RIGHT, sides.get(Direction.SOUTH));
+    }
+
+    @Test
+    void theWindowNamesTheFieldsBiomeAsMcWindowField() {
+        t.world.biome = Optional.of("Forest");
+        fields.open(alice, NEAR);
+        assertEquals(Optional.of("Forest"), ((FieldView) t.ui.shown.get(alice)).biome());
     }
 
     @Test

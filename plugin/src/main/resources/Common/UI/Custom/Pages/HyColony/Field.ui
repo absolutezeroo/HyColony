@@ -1,83 +1,96 @@
 $C = "../../Common.ui";
+$B = "Mc/Book.ui";
+
+// A field block's window as MC's (gui/windowfield.xml, containers/WindowField), MC positions and sizes doubled: the
+// short builder paper, the sketch banner and the red "Field", the farmer and the biome, Pick seed and the seed, then
+// the field block between the scarecrow's four side buttons, each showing its side's size. The side buttons are MC's
+// scarecrow.png cut per side and state (WindowField.updateButtons: disabled, normal, hovered). MC's crop climate line
+// is left out (HyColony has no crop climates).
+// Textures under Mc/ are MineColonies' (ldtteam, GPL-3), scaled x4 nearest-neighbour into @2x files.
+
+@Ink = LabelStyle(...$B.@InkCentered, FontSize: 18, TextColor: #ffffff);
+
+@Side = TextButton {
+  @Normal = "Mc/scarecrow_north_normal.png";
+  @Hover = "Mc/scarecrow_north_hover.png";
+  @Off = "Mc/scarecrow_north_disabled.png";
+
+  Style: TextButtonStyle(
+    Default: (Background: @Normal, LabelStyle: @Ink),
+    Hovered: (Background: @Hover, LabelStyle: @Ink),
+    Pressed: (Background: @Hover, LabelStyle: @Ink),
+    Disabled: (Background: @Off, LabelStyle: @Ink),
+    Sounds: $C.@ButtonSounds
+  );
+  TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+  Text: "";
+};
 
 $C.@PageOverlay {
   LayoutMode: Middle;
 
-  $C.@DecoratedContainer {
-    Anchor: (Width: 560);
+  Group {
+    Anchor: (Width: 380, Height: 260);
+    Background: "Mc/builder_paper_short.png";
 
-    #Title {
-      $C.@Title {
-        @Text = %hycolony.ui.field.title;
-      }
+    Group { Anchor: (Left: 88, Top: 24, Width: 12, Height: 30); Background: "Mc/builder_sketch_left.png"; }
+    Group { Anchor: (Left: 100, Top: 24, Width: 180, Height: 30); Background: "Mc/builder_sketch_center.png"; }
+    Group { Anchor: (Left: 280, Top: 24, Width: 12, Height: 30); Background: "Mc/builder_sketch_right.png"; }
+
+    Label {
+      Anchor: (Left: 60, Top: 28, Width: 260, Height: 22);
+      Style: $B.@Heading;
+      Text: %hycolony.ui.field.title;
     }
 
-    #Content {
-      Padding: (Vertical: 20, Horizontal: 32);
-      LayoutMode: Top;
+    Label #Farmer {
+      Anchor: (Left: 26, Top: 60, Width: 328, Height: 22);
+      Style: $B.@Ink;
+    }
 
-      Label #Farmer {
-        Style: (RenderBold: true);
-        Anchor: (Bottom: 8);
-      }
+    Label #Biome {
+      Anchor: (Left: 26, Top: 86, Width: 328, Height: 22);
+      Style: $B.@Ink;
+    }
 
-      Group {
-        LayoutMode: Left;
-        Anchor: (Height: 40, Bottom: 8);
+    TextButton #PickSeed {
+      Anchor: (Left: 26, Top: 144, Width: 172, Height: 34);
+      Style: $B.@MediumButtonStyle;
+      Text: %hycolony.ui.field.seed;
+    }
 
-        ItemIcon #SeedIcon {
-          Anchor: (Width: 32, Height: 32);
-        }
+    ItemIcon #Seed {
+      Anchor: (Left: 26, Top: 184, Width: 32, Height: 32);
+      Visible: false;
+    }
 
-        Label #SeedName {
-          FlexWeight: 1;
-          Padding: (Horizontal: 8);
-        }
-      }
+    ItemIcon #Center {
+      Anchor: (Left: 266, Top: 146, Width: 32, Height: 32);
+    }
 
-      Group {
-        LayoutMode: Center;
-        Anchor: (Height: 40);
+    @Side #North {
+      Anchor: (Left: 258, Top: 90, Width: 48, Height: 48);
+    }
 
-        $C.@SecondaryTextButton #North {
-          Anchor: (Width: 60, Height: 32);
-          Text: "";
-          TextTooltipStyle: $C.@DefaultTextTooltipStyle;
-        }
-      }
+    @Side #South {
+      @Normal = "Mc/scarecrow_south_normal.png";
+      @Hover = "Mc/scarecrow_south_hover.png";
+      @Off = "Mc/scarecrow_south_disabled.png";
+      Anchor: (Left: 258, Top: 186, Width: 48, Height: 48);
+    }
 
-      Group {
-        LayoutMode: Center;
-        Anchor: (Height: 40);
+    @Side #West {
+      @Normal = "Mc/scarecrow_west_normal.png";
+      @Hover = "Mc/scarecrow_west_hover.png";
+      @Off = "Mc/scarecrow_west_disabled.png";
+      Anchor: (Left: 210, Top: 138, Width: 48, Height: 48);
+    }
 
-        $C.@SecondaryTextButton #West {
-          Anchor: (Width: 60, Height: 32, Right: 70);
-          Text: "";
-          TextTooltipStyle: $C.@DefaultTextTooltipStyle;
-        }
-
-        $C.@SecondaryTextButton #East {
-          Anchor: (Width: 60, Height: 32);
-          Text: "";
-          TextTooltipStyle: $C.@DefaultTextTooltipStyle;
-        }
-      }
-
-      Group {
-        LayoutMode: Center;
-        Anchor: (Height: 40, Bottom: 10);
-
-        $C.@SecondaryTextButton #South {
-          Anchor: (Width: 60, Height: 32);
-          Text: "";
-          TextTooltipStyle: $C.@DefaultTextTooltipStyle;
-        }
-      }
-
-      $C.@SecondaryTextButton #PickSeed {
-        Anchor: (Height: 36);
-        Text: %hycolony.ui.field.seed;
-      }
+    @Side #East {
+      @Normal = "Mc/scarecrow_east_normal.png";
+      @Hover = "Mc/scarecrow_east_hover.png";
+      @Off = "Mc/scarecrow_east_disabled.png";
+      Anchor: (Left: 306, Top: 138, Width: 48, Height: 48);
     }
   }
 }

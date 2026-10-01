@@ -1,0 +1,59 @@
+$C = "../../../Common.ui";
+$B = "Book.ui";
+
+// Structurize's item picker (WindowSelectRes, gui/windowselectres.xml and layoutselectres.xml), its sizes doubled in
+// BlockUI's default 420 x 240 window: no paper, over the darkened game; the previous item "->" at the top left, the
+// white description, the filter, the list (ItemPickerPage appends Mc/SelectResRow.ui), and the cancel button.
+// Structurize's cancel.png (ldtteam, GPL-3) is scaled x4 nearest-neighbour into select_cancel@2x.png.
+
+@White = LabelStyle(...$B.@Ink, TextColor: #ffffff);
+
+@SelectRes = Group {
+  @Desc = "";
+
+  Anchor: (Width: 840, Height: 480);
+
+  ItemIcon #FromIcon {
+    Anchor: (Left: 0, Top: 2, Width: 34, Height: 34);
+    Visible: false;
+  }
+
+  Label #FromName {
+    Anchor: (Left: 60, Top: 8, Width: 280, Height: 24);
+    Style: @White;
+    Visible: false;
+  }
+
+  Label #To {
+    Anchor: (Left: 300, Top: 8, Width: 240, Height: 24);
+    Style: @White;
+    Text: "->";
+    Visible: false;
+  }
+
+  Label {
+    Anchor: (Left: 0, Top: 50, Width: 840, Height: 22);
+    Style: (...@White, HorizontalAlignment: Center);
+    Text: @Desc;
+  }
+
+  Group {
+    Anchor: (Left: 160, Top: 78, Width: 540, Height: 300);
+
+    $C.@TextField #SearchInput {
+      @Anchor = (Left: 120, Top: 4, Width: 300);
+      MaxLength: 25;
+    }
+
+    Group #Items {
+      Anchor: (Left: 0, Top: 60, Width: 540, Height: 240);
+      LayoutMode: TopScrolling;
+      ScrollbarStyle: $C.@DefaultScrollbarStyle;
+    }
+  }
+
+  Button #CancelButton {
+    Anchor: (Left: 430, Top: 370, Width: 64, Height: 64);
+    Style: (Default: (Background: "select_cancel.png"), Sounds: $C.@ButtonSounds);
+  }
+};

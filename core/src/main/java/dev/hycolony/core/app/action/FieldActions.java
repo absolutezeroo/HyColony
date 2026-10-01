@@ -145,8 +145,10 @@ public final class FieldActions {
                         new FieldView(
                                 pos,
                                 farmer,
+                                manager.context().worldQuery().biome(pos),
                                 f.seed(),
                                 f.radii(),
+                                FieldView.sides(manager.context().players().facing(player)),
                                 manager.context().ports().farming().seeds(),
                                 ColonyAccess.allows(c, player, Action.MANAGE_HUTS)));
     }

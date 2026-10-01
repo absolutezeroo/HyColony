@@ -15,6 +15,8 @@ public final class FakeWorld implements WorldQuery {
     public BlockPos spawn;
     /** Rain or snow everywhere. */
     public boolean raining;
+    /** The biome everywhere; empty when unknown. */
+    public Optional<String> biome = Optional.empty();
 
     @Override
     public boolean isLoaded(BlockPos pos) {
@@ -29,5 +31,10 @@ public final class FakeWorld implements WorldQuery {
     @Override
     public boolean isRainingAt(BlockPos pos) {
         return raining;
+    }
+
+    @Override
+    public Optional<String> biome(BlockPos pos) {
+        return biome;
     }
 }

@@ -1,0 +1,25 @@
+$B = "Book.ui";
+
+// One item of Structurize's item picker (layoutselectres.xml resources box), sizes doubled: a 36 px outlined box, the
+// item, its name in white, then Select (builder_button_medium).
+
+Group {
+  Anchor: (Height: 36);
+  OutlineSize: 1;
+  OutlineColor: #000000;
+
+  ItemIcon #Icon {
+    Anchor: (Left: 2, Top: 2, Width: 32, Height: 32);
+  }
+
+  Label #Name {
+    Anchor: (Left: 40, Top: 0, Width: 270, Height: 36);
+    Style: (...$B.@Ink, TextColor: #ffffff, Wrap: true);
+  }
+
+  TextButton #Select {
+    Anchor: (Left: 320, Top: 2, Width: 172, Height: 34);
+    Style: $B.@MediumButtonStyle;
+    Text: %hycolony.ui.field.select;
+  }
+}

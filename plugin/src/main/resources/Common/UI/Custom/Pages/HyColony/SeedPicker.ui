@@ -1,49 +1,15 @@
 $C = "../../Common.ui";
+$S = "Mc/SelectRes.ui";
+
+// The field's seed list: Structurize's item picker (MC WindowField.selectSeed opens WindowSelectRes) with MC's "Pick
+// seed" description.
 
 $C.@PageOverlay {
   LayoutMode: Middle;
 
-  $C.@DecoratedContainer {
-    Anchor: (Width: 520, Height: 560);
-
-    #Title {
-      Group {
-        LayoutMode: Left;
-
-        $C.@Title {
-          @Text = %hycolony.ui.field.seed;
-        }
-      }
-
-      $C.@HeaderSearch {}
-    }
-
-    #Content {
-      Padding: (Vertical: 16, Horizontal: 24);
-      LayoutMode: Top;
-
-      Label #ItemsEmpty {
-        Text: %hycolony.ui.field.seed.noMatch;
-        Style: (TextColor: #94a7bb);
-        Visible: false;
-      }
-
-      Group #Items {
-        LayoutMode: TopScrolling;
-        ScrollbarStyle: $C.@DefaultScrollbarStyle;
-        FlexWeight: 1;
-      }
-
-      // As MC WindowSelectRes' cancel: back to the field window.
-      Group {
-        LayoutMode: Center;
-        Anchor: (Top: 10);
-
-        $C.@SecondaryTextButton #CancelButton {
-          @Anchor = (Width: 200);
-          Text: %hycolony.ui.field.back;
-        }
-      }
-    }
+  $S.@SelectRes {
+    @Desc = %hycolony.ui.field.seed;
   }
 }
+
+$C.@BackButton {}

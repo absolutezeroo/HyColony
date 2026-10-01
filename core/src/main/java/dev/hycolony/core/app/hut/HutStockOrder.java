@@ -65,7 +65,7 @@ public final class HutStockOrder {
     }
 
     /** The edit distance between {@code a} and {@code b}, case-sensitive (MC StringUtils.getLevenshteinDistance). */
-    static int levenshtein(String a, String b) {
+    public static int levenshtein(String a, String b) {
         int[] previous = new int[b.length() + 1];
         int[] current = new int[b.length() + 1];
         for (int j = 0; j <= b.length(); j++) {

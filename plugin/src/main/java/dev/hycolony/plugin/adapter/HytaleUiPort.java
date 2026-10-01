@@ -181,7 +181,7 @@ public final class HytaleUiPort implements UiPort {
     /** Opens the field block's window (MC WindowField). */
     @Override
     public void showField(UUID player, FieldView view) {
-        open(player, pr -> new FieldPage(pr, view, manager.get()));
+        open(player, pr -> new FieldPage(pr, view, manager.get(), ids));
     }
 
     @Override

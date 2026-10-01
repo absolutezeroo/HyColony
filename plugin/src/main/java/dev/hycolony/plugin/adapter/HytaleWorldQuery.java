@@ -11,6 +11,8 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.section.EnvironmentSection;
 import com.hypixel.hytale.server.core.universe.world.spawn.ISpawnProvider;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
+import com.hypixel.hytale.server.worldgen.biome.Biome;
+import com.hypixel.hytale.server.worldgen.chunk.ChunkGenerator;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.port.WorldQuery;
 import java.util.Optional;
@@ -26,6 +28,7 @@ public final class HytaleWorldQuery implements WorldQuery {
     private final Set<String> precipitation;
     private boolean warned;
     private boolean weatherWarned;
+    private boolean biomeWarned;
 
     /** {@code precipitation}: the weather particle systems that count as rain or snow (id-map). */
     public HytaleWorldQuery(World world, Set<String> precipitation) {
@@ -99,6 +102,28 @@ public final class HytaleWorldQuery implements WorldQuery {
             LOG.at(weatherWarned ? Level.FINE : Level.WARNING).withCause(e).log("WorldQuery.isRainingAt failed");
             weatherWarned = true;
             return false;
+        }
+    }
+
+    /**
+     * The world generator's biome at the column, as BiomeDataSystem finds the player's (ChunkGenerator
+     * getZoneBiomeResultAt with the world's seed); empty for a world without that generator.
+     */
+    @Override
+    public Optional<String> biome(BlockPos pos) {
+        try {
+            if (!(world.getChunkStore().getGenerator() instanceof ChunkGenerator generator)) {
+                return Optional.empty();
+            }
+            int seed = (int) world.getWorldConfig().getSeed();
+            return Optional.ofNullable(generator
+                            .getZoneBiomeResultAt(seed, pos.x(), pos.z())
+                            .getBiome())
+                    .map(Biome::getName);
+        } catch (RuntimeException e) {
+            LOG.at(biomeWarned ? Level.FINE : Level.WARNING).withCause(e).log("WorldQuery.biome failed");
+            biomeWarned = true;
+            return Optional.empty();
         }
     }
 }

@@ -11,27 +11,29 @@ import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.app.ColonyManager;
+import dev.hycolony.core.app.select.SelectResOrder;
+import dev.hycolony.core.kernel.item.ItemKey;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.IntConsumer;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 
 /**
- * A searchable list of items to pick one from (MC WindowSelectRes): the field's seed, the builder hut's fill block.
- * The list is filtered as the player types, by each item's name in the player's language or its id. Picking one and
- * Back both go to the core, which shows the window the list came from again (MC WindowSelectRes cancel); Back closes
- * the list when that window cannot show any more.
+ * A searchable list of items to pick one from (Structurize WindowSelectRes): the field's seed, the builder hut's fill
+ * block. The current item shows at the top left with "->"; the list follows SelectResOrder as the player types.
+ * Picking one and Cancel both go to the core, which shows the window the list came from again (MC WindowSelectRes
+ * cancel); Cancel closes the list when that window cannot show any more.
  */
 public final class ItemPickerPage extends ColonyPage {
     private static final String LIST = "#Items";
 
     /**
-     * What the list shows and does: its {@code .ui} document (title and texts, with {@code #Items},
-     * {@code #ItemsEmpty}, {@code #SearchInput} and {@code #CancelButton}), the item ids, the current one (its row is
-     * disabled), whether the viewer may pick, and the core actions for a pick (by index in {@code ids}) and Back
-     * (false when no window opened in its place).
+     * What the list shows and does: its {@code .ui} document (Mc/SelectRes.ui's template with its description), the
+     * item ids, the current one (its row is disabled), whether the viewer may pick, and the core actions for a pick
+     * (by index in {@code ids}) and Back (false when no window opened in its place).
      */
     public record Picker(
             String document,
@@ -66,27 +68,28 @@ public final class ItemPickerPage extends ColonyPage {
                 EventData.of("Action", "search").append("@Name", "#SearchInput.Value"),
                 false);
         bind(events, "#CancelButton", "back");
+        // WindowSelectRes: the previous item, its name and "->" at the top left.
+        picker.current().ifPresent(id -> {
+            ui.set("#FromIcon.Visible", true);
+            ui.set("#FromIcon.ItemId", id);
+            ui.set("#FromName.Visible", true);
+            ui.set("#FromName.TextSpans", itemName(id));
+            ui.set("#To.Visible", true);
+        });
         fill(ui, events, "");
     }
 
-    /** Clears the list and appends the items matching {@code query}, or the "no match" line. */
-    private void fill(UICommandBuilder ui, UIEventBuilder events, String query) {
+    /** Clears the list and appends the items SelectResOrder keeps for {@code filter}, in its order. */
+    private void fill(UICommandBuilder ui, UIEventBuilder events, String filter) {
         ui.clear(LIST);
-        List<String> terms = List.of(query.trim().toLowerCase(Locale.ROOT).split("\\s+"));
-        int lines = 0;
-        for (int i = 0; i < picker.ids().size(); i++) {
-            String id = picker.ids().get(i);
-            if (matches(id, terms)) {
-                row(ui, events, new Row(lines++, i), id);
-            }
+        Set<String> held = manager.context().ports().playerInventory().contents(player).keySet().stream()
+                .map(ItemKey::id)
+                .collect(Collectors.toSet());
+        List<String> shown = SelectResOrder.sorted(picker.ids(), this::name, held, filter);
+        for (int line = 0; line < shown.size(); line++) {
+            String id = shown.get(line);
+            row(ui, events, new Row(line, picker.ids().indexOf(id)), id);
         }
-        ui.set("#ItemsEmpty.Visible", lines == 0);
-    }
-
-    /** True when each term is in the item's name, in the player's language, or in its id. */
-    private boolean matches(String id, List<String> terms) {
-        String text = (name(id) + " " + id).toLowerCase(Locale.ROOT);
-        return terms.stream().allMatch(text::contains);
     }
 
     /** The item's name in the player's language; its id when the game has no translation. */
@@ -106,7 +109,7 @@ public final class ItemPickerPage extends ColonyPage {
     /** One item; its Select button is disabled for the current item or a viewer who may not pick. */
     private void row(UICommandBuilder ui, UIEventBuilder events, Row r, String id) {
         String row = LIST + "[" + r.line() + "]";
-        ui.append(LIST, "Pages/HyColony/FieldSeedRow.ui");
+        ui.append(LIST, "Pages/HyColony/Mc/SelectResRow.ui");
         ui.set(row + " #Icon.ItemId", id);
         ui.set(row + " #Name.TextSpans", itemName(id));
         if (picker.canPick() && !picker.current().map(id::equals).orElse(false)) {
