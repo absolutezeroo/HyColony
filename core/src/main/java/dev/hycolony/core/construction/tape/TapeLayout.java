@@ -33,11 +33,7 @@ final class TapeLayout {
 
     /** The tapes around the footprint from {@code min} to {@code max}; a column with no ground in reach has none. */
     static List<Tape> of(BlockPos min, BlockPos max, WorldBlocks world, ItemCatalog catalog) {
-        Border border = new Border(
-                Math.min(min.x(), max.x()) - 1,
-                Math.min(min.z(), max.z()) - 1,
-                Math.abs(max.x() - min.x()) + 2,
-                Math.abs(max.z() - min.z()) + 2);
+        Border border = Border.around(min, max);
         int top = Math.max(min.y(), max.y());
         int depth = Math.abs(max.y() - min.y()) + EXTRA_DEPTH;
         Map<BlockPos, Tape> tapes = new LinkedHashMap<>();
@@ -47,6 +43,11 @@ final class TapeLayout {
             }
         }
         return new ArrayList<>(tapes.values());
+    }
+
+    /** The columns of the border around the footprint from {@code min} to {@code max}, each once, at y 0. */
+    static List<BlockPos> columns(BlockPos min, BlockPos max) {
+        return Border.around(min, max).columns().stream().distinct().toList();
     }
 
     /** MC firstValidPosition: above the first solid block, going down from {@code top}, whose upper cell is free. */
@@ -75,6 +76,15 @@ final class TapeLayout {
 
     /** The widened border: its north-west corner ({@code x}, {@code z}) and its sizes, MC's sizeX and sizeZ. */
     private record Border(int x, int z, int sizeX, int sizeZ) {
+        /** MC's corners widened by one block on X and Z. */
+        static Border around(BlockPos min, BlockPos max) {
+            return new Border(
+                    Math.min(min.x(), max.x()) - 1,
+                    Math.min(min.z(), max.z()) - 1,
+                    Math.abs(max.x() - min.x()) + 2,
+                    Math.abs(max.z() - min.z()) + 2);
+        }
+
         /** MC's walk: north and south edges, then west and east, step by step, then the south-east corner. */
         List<BlockPos> columns() {
             List<BlockPos> out = new ArrayList<>();
