@@ -89,7 +89,7 @@ Pas d'état persisté nouveau (la session de la baguette vit en mémoire) : pas 
 - Valider est recalculé à chaque rendu (verrou de la hutte choisie), où Structurize ne le fait qu'au choix du plan.
 - Les huttes d'un addon (id hors `hycolony:`) n'ont pas de description dans l'infobulle.
 - Un seul jeu d'icônes de catégories (celui de 23 packs de MC sur 24), une seule disposition (`layout`) pour tous les packs.
-- Les packs de Hytale (kweebec, outlander) n'ont pas d'icône de MC : le sceptre de Structurize les remplace.
+- Un pack sans icône de MC prend le sceptre de Structurize (c'était le cas des packs de Hytale, kweebec et outlander, retirés depuis par la spec `2026-10-01-hycolony-style-medievaloak-design.md`).
 - Le filtre des packs porte sur l'id du style et sur le nom écrit dans `packs.json` (une clé de traduction), le cœur ne traduisant pas ; il redessine la liste sur place pour garder le champ de saisie.
 - Le nom et la description d'un pack sont des clés de traduction (Structurize les écrit en clair dans `pack.json`) ; le titre d'un propriétaire et les auteurs restent écrits tels quels, comme Structurize.
 - Les noms de dossiers connus de MC sont traduits (Structurize les capitalise tels quels) ; un dossier inconnu est capitalisé.

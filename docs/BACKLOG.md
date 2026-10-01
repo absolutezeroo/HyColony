@@ -85,8 +85,6 @@ Les corrections de l'audit sont commitées : bugs, socle des métiers (`job/work
 - **Documenter tout le code** : ajouter une Javadoc courte à chaque classe et à chaque méthode non triviale du cœur et du plugin (règle de CLAUDE.md § 3), puis la faire respecter par le build avec la règle PMD `CommentRequired` (classes, méthodes publiques et protégées). À lancer après les corrections de la relecture, pour éviter les conflits.
 - **Découpage du plugin** : lignes PMD restantes, `HytaleItemCatalog`, `BuildingPage`, `HytaleWorldBlocks`, etc.
 - **Blocs impossibles à obtenir en survie dans les plans** : ramener le coût au drop du bloc, faire demander les graines pour les cultures, ajouter une table de remplacement par style, et un contrôle au démarrage et dans `selftest` (voir `docs/research/prefab-obtainability.md`).
-  - Décision : Kweebec niveau 5 (séquoia géant) → garder ce prefab ou prendre une maison plus petite ?
-  - Décision : Outlander niveau 1 → passer à `Tier0_006` ?
 - **Fenêtres alignées sur le wiki MineColonies** (https://minecolonies.com/wiki/) : comparer chaque fenêtre à ses captures (disposition, onglets, boutons, ordre des infos), puis proposer une liste d'ajustements que l'utilisateur valide.
 
 ## Plus tard
@@ -134,7 +132,6 @@ Les corrections de l'audit sont commitées : bugs, socle des métiers (`job/work
   - la lanterne de l'épouvantail : le bloc Champ n'a pas de moitié haute ni de lumière.
 - **Apparences aléatoires des citoyens.**
 - **Hôtel de ville disparu** sans être cassé par un joueur : aujourd'hui il ne peut plus être reposé, il faut passer par `/hycolony delete`.
-- **Outlander niveau 5** : bâti à flanc de colline, son plancher peut flotter sur un terrain en pente.
 - **Nourriture et salle à manger (SP4b), reste** :
   - les interactions de MC (plaintes du serveur : pas de combustible choisi, pas de four, menu vide ; citoyen affamé sans salle) attendent un système d'interactions ;
   - des plans propres à la salle à manger (aujourd'hui ceux de la résidence), avec feux de camp et sièges ;
