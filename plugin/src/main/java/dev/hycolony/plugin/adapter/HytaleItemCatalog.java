@@ -50,11 +50,11 @@ import org.jspecify.annotations.Nullable;
 public final class HytaleItemCatalog implements ItemCatalog {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
     private static final BlockInfo UNKNOWN_BLOCK =
-            new BlockInfo(BlockKind.UNBREAKABLE, Optional.empty(), false, Optional.empty(), 1f, false);
+            new BlockInfo(BlockKind.UNBREAKABLE, Optional.empty(), false, Optional.empty(), 1f, false, false);
     private static final BlockInfo FLUID =
-            new BlockInfo(BlockKind.FLUID, Optional.empty(), false, Optional.empty(), 0f, false);
+            new BlockInfo(BlockKind.FLUID, Optional.empty(), false, Optional.empty(), 0f, false, false);
     private static final BlockInfo AIR =
-            new BlockInfo(BlockKind.AIR, Optional.empty(), false, Optional.empty(), 0f, false);
+            new BlockInfo(BlockKind.AIR, Optional.empty(), false, Optional.empty(), 0f, false, false);
     private static final ItemInfo UNKNOWN_ITEM = new ItemInfo(1, Optional.empty(), 0);
 
     private record BlockInfo(
@@ -63,7 +63,8 @@ public final class HytaleItemCatalog implements ItemCatalog {
             boolean ore,
             Optional<ToolType> tool,
             float hardness,
-            boolean harmful) {}
+            boolean harmful,
+            boolean bed) {}
 
     private record ItemInfo(int maxStack, Optional<ToolInfo> tool, int durability) {}
 
@@ -158,6 +159,12 @@ public final class HytaleItemCatalog implements ItemCatalog {
         }
     }
 
+    /** BlockType.getBeds() is non-null for every bed (vanilla and HyVanilla); an unknown block or a fluid is none. */
+    @Override
+    public boolean isBed(BlockKey block) {
+        return block(block).bed();
+    }
+
     @Override
     public Optional<ToolType> toolFor(BlockKey block) {
         return block(block).tool();
@@ -224,13 +231,14 @@ public final class HytaleItemCatalog implements ItemCatalog {
             return AIR;
         }
         boolean harmful = type.getDamageToEntities() > 0 || type.isTrigger();
+        boolean bed = type.getBeds() != null; // every bed has sleeping points (BlockMountAPI), vanilla and HyVanilla
         Item item = type.getItem();
         Optional<ItemKey> itemKey = item == null ? Optional.empty() : Optional.of(new ItemKey(item.getId()));
         BlockGathering g = type.getGathering();
         BlockBreakingDropType breaking = g == null ? null : g.getBreaking();
         String gather = breaking == null ? null : breaking.getGatherType();
         if (g == null || "Unbreakable".equals(gather) || hutBlockIds.contains(type.getId())) {
-            return new BlockInfo(BlockKind.UNBREAKABLE, itemKey, false, Optional.empty(), 1f, harmful);
+            return new BlockInfo(BlockKind.UNBREAKABLE, itemKey, false, Optional.empty(), 1f, harmful, bed);
         }
         BlockKind kind = type.getMaterial() == BlockMaterial.Empty ? BlockKind.NON_SOLID : BlockKind.SOLID;
         return new BlockInfo(
@@ -239,7 +247,8 @@ public final class HytaleItemCatalog implements ItemCatalog {
                 gather != null && gather.startsWith("Ore"),
                 Optional.ofNullable(toolType(gather)),
                 hardness(gather),
-                harmful);
+                harmful,
+                bed);
     }
 
     /** The block's hardness from its gather type's unarmed power ({@link ToolScale#hardness}). */

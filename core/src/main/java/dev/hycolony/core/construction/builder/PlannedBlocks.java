@@ -1,6 +1,7 @@
 package dev.hycolony.core.construction.builder;
 
 import dev.hycolony.core.building.RegisteredBlocks;
+import dev.hycolony.core.building.module.BuildingEventsModule;
 import dev.hycolony.core.construction.blueprint.BlueprintEntry;
 import dev.hycolony.core.construction.workorder.Stage;
 import dev.hycolony.core.kernel.BlockPos;
@@ -27,12 +28,14 @@ final class PlannedBlocks {
         this.ctx = ctx;
     }
 
-    /** The builder placed {@code e} at {@code pos}: its container and bench join the building. */
+    /** The builder placed {@code e} at {@code pos}: its container and bench join the building, which is told of it. */
     void placed(BlockPos pos, BlueprintEntry e) {
         if (e.hasContainer()) {
             ctx.site().target().registeredBlocks().addContainer(pos); // MC: racks placed become the containers
         }
         e.workstation().ifPresent(bench -> registerBench(pos, bench));
+        BuildingEventsModule.blockPlaced(
+                ctx.colony(), ctx.site().target(), pos, e.state().key());
     }
 
     /**
@@ -46,7 +49,9 @@ final class PlannedBlocks {
         List<BlockPos> positions = ctx.site().positions(stage);
         for (int i = from; i < to; i++) {
             BlueprintEntry e = ctx.site().entry(stage, i);
-            if (e.hasContainer() || e.workstation().isPresent()) {
+            if (e.hasContainer()
+                    || e.workstation().isPresent()
+                    || ctx.catalog().isBed(e.state().key())) {
                 registerIfAsPlanned(positions.get(i), e);
             }
         }
@@ -68,6 +73,8 @@ final class PlannedBlocks {
         e.workstation()
                 .ifPresent(bench ->
                         registered.addFoundWorkstation(pos, bench, ctx.blocks().benchTier(pos)));
+        BuildingEventsModule.blockPlaced(
+                ctx.colony(), ctx.site().target(), pos, e.state().key());
     }
 
     /**

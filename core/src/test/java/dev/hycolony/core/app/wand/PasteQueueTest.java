@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.building.Building;
+import dev.hycolony.core.citizen.home.BedModule;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.BlueprintEntry;
@@ -26,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
@@ -116,6 +118,35 @@ class PasteQueueTest {
         }
         Building b = colony.buildings().at(HUT).orElseThrow();
         assertTrue(b.registeredBlocks().containers().contains(HUT.offset(0, 2, 0)));
+    }
+
+    @Test
+    void pastedResidenceRegistersTheBedsItPlacesAndFinds() {
+        UUID alice = UUID.randomUUID();
+        manager.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
+        Colony colony = manager.foundation().confirm(alice, "Rivendell").orElseThrow();
+        manager.huts().place(colony, ConstructionBuildingTypes.RESIDENCE.id(), HUT, 0, UUID.randomUUID());
+        BlockKey bed = new BlockKey("test:bed");
+        t.catalog.kinds.put(bed, BlockKind.NON_SOLID);
+        t.catalog.beds.add(bed);
+        t.blocks.blocks.put(HUT.offset(2, 0, 0), FakeBlueprints.state(bed));
+        paste(new Blueprint(
+                "beds",
+                List.of(FakeBlueprints.entry(1, 0, 0, bed), FakeBlueprints.entry(2, 0, 0, bed)),
+                new BlockPos(0, 0, 0),
+                new BlockPos(2, 0, 0)));
+        for (int i = 0; i < 4; i++) {
+            queue.tick();
+        }
+
+        assertEquals(
+                Set.of(HUT.offset(2, 0, 0), HUT.offset(1, 0, 0)),
+                Set.copyOf(colony.buildings()
+                        .at(HUT)
+                        .orElseThrow()
+                        .module(BedModule.class)
+                        .orElseThrow()
+                        .beds()));
     }
 
     @Test

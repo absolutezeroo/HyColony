@@ -10,6 +10,7 @@ import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
+import dev.hycolony.core.citizen.home.BedModule;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyEvents;
 import dev.hycolony.core.colony.EventLog;
@@ -714,6 +715,44 @@ class BuilderAITest {
 
         assertEquals(Set.of(at(2, 0, 0)), res.registeredBlocks().containers());
         assertFalse(t.blocks.placed.contains(at(2, 0, 0)), "kept with its items, not placed again");
+    }
+
+    /** A bed the builder places from the plan joins the residence's beds (MC BedHandlingModule). */
+    @Test
+    void builderRegistersThePlannedBedItPlaces() {
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 0);
+        BlockKey bed = new BlockKey("bed");
+        ItemKey bedItem = new ItemKey("bed_item");
+        t.catalog.kinds.put(bed, BlockKind.NON_SOLID);
+        t.catalog.itemForBlock.put(bed, bedItem);
+        t.catalog.beds.add(bed);
+        blueprint = bp(List.of(entry(1, 0, 0, STONE), entry(2, 0, 0, bed)));
+        give(STONE_I, 1);
+        give(bedItem, 1);
+        WorkOrder o = order(res, WorkOrderType.BUILD);
+
+        tickUntil(() -> gone(o), 5000);
+
+        assertEquals(
+                List.of(at(2, 0, 0)), res.module(BedModule.class).orElseThrow().beds());
+    }
+
+    /** A bed already where the plan puts one joins the residence's beds, as MC registers a cell found as planned. */
+    @Test
+    void bedFoundAsPlannedJoinsTheResidence() {
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 0);
+        BlockKey bed = new BlockKey("bed");
+        t.catalog.kinds.put(bed, BlockKind.NON_SOLID);
+        t.catalog.beds.add(bed);
+        blueprint = bp(List.of(entry(1, 0, 0, STONE), entry(2, 0, 0, bed)));
+        t.blocks.blocks.put(at(2, 0, 0), new BlockState(bed, 0));
+        give(STONE_I, 1);
+        WorkOrder o = order(res, WorkOrderType.BUILD);
+
+        tickUntil(() -> gone(o), 5000);
+
+        assertEquals(
+                List.of(at(2, 0, 0)), res.module(BedModule.class).orElseThrow().beds());
     }
 
     /** A cell skipped for holding an unbreakable block, not the planned chest, registers no container. */

@@ -1,6 +1,7 @@
 package dev.hycolony.core.app.wand;
 
 import dev.hycolony.core.app.ColonyManager;
+import dev.hycolony.core.building.module.BuildingEventsModule;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.construction.blueprint.BlueprintEntry;
 import dev.hycolony.core.construction.blueprint.StructurePlan;
@@ -120,7 +121,7 @@ final class PasteQueue {
                     "Paste: could not set the bench at {0} to tier {1}",
                     pos, bench.get().tier());
         }
-        if (e.hasContainer() || bench.isPresent()) {
+        if (e.hasContainer() || bench.isPresent() || isBed(e)) {
             register(plan, pos, e);
         }
     }
@@ -130,7 +131,7 @@ final class PasteQueue {
      * it has, writing nothing (MC CreativeBuildingStructureHandler.triggerSuccess only registers).
      */
     private void registerFound(StructurePlan plan, BlockPos pos, BlueprintEntry e) {
-        if (!e.hasContainer() && e.workstation().isEmpty()) {
+        if (!e.hasContainer() && e.workstation().isEmpty() && !isBed(e)) {
             return;
         }
         Optional<Colony> colony = manager.colonyAt(plan.hut());
@@ -140,6 +141,7 @@ final class PasteQueue {
             }
             e.workstation()
                     .ifPresent(bench -> b.registeredBlocks().addFoundWorkstation(pos, bench, blocks().benchTier(pos)));
+            BuildingEventsModule.blockPlaced(colony.get(), b, pos, e.state().key());
             colony.get().markDirty();
         });
     }
@@ -155,8 +157,14 @@ final class PasteQueue {
                 b.registeredBlocks().addContainer(pos);
             }
             e.workstation().ifPresent(bench -> b.registeredBlocks().addWorkstation(pos, bench));
+            BuildingEventsModule.blockPlaced(colony.get(), b, pos, e.state().key());
             colony.get().markDirty();
         });
+    }
+
+    /** A bed the hut's bed module registers (MC BedHandlingModule, through registerBlockPosition). */
+    private boolean isBed(BlueprintEntry e) {
+        return manager.context().ports().catalog().isBed(e.state().key());
     }
 
     /** Logs a paste problem: the first one as a warning, the next ones at DEBUG. */

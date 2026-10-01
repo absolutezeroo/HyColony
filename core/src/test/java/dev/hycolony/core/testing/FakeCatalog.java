@@ -19,6 +19,7 @@ public final class FakeCatalog implements ItemCatalog {
     public final Map<BlockKey, BlockKind> kinds = new HashMap<>();
     public final Set<BlockKey> ores = new HashSet<>();
     public final Set<BlockKey> harmful = new HashSet<>();
+    public final Set<BlockKey> beds = new HashSet<>();
     /** SOLID blocks that are no good floor (leaves); every other SOLID block is one. */
     public final Set<BlockKey> notGoodFloor = new HashSet<>();
 
@@ -55,6 +56,11 @@ public final class FakeCatalog implements ItemCatalog {
     @Override
     public boolean isHarmful(BlockKey block) {
         return harmful.contains(block);
+    }
+
+    @Override
+    public boolean isBed(BlockKey block) {
+        return beds.contains(block);
     }
 
     @Override

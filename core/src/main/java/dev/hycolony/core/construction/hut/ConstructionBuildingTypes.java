@@ -4,6 +4,7 @@ import dev.hycolony.core.building.BuildingRegistry;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.building.module.ModuleProducer;
 import dev.hycolony.core.citizen.Skill;
+import dev.hycolony.core.citizen.home.BedModule;
 import dev.hycolony.core.citizen.home.LivingModule;
 import dev.hycolony.core.construction.builder.BuilderJob;
 import dev.hycolony.core.construction.resources.BuildingResourcesModule;
@@ -37,7 +38,10 @@ public final class ConstructionBuildingTypes {
                                     EnumSet.of(ToolType.PICKAXE, ToolType.AXE, ToolType.SHOVEL, ToolType.HOE)))));
 
     public static final BuildingType RESIDENCE = new BuildingType(
-            "hycolony:residence", "hut.residence", 5, List.of(new ModuleProducer("living", LivingModule::new)));
+            "hycolony:residence",
+            "hut.residence",
+            5,
+            List.of(new ModuleProducer("living", LivingModule::new), new ModuleProducer("bed", BedModule::new)));
 
     private ConstructionBuildingTypes() {}
 

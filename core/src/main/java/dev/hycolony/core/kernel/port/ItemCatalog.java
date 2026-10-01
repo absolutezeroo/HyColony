@@ -30,6 +30,9 @@ public interface ItemCatalog {
      */
     boolean isHarmful(BlockKey block);
 
+    /** Whether this block is a bed citizens lie in: its block type has sleeping points (Hytale BlockType.getBeds). */
+    boolean isBed(BlockKey block);
+
     Optional<ToolType> toolFor(BlockKey block);
 
     float hardness(BlockKey block);
