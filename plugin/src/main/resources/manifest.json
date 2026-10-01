@@ -21,7 +21,7 @@
     "OptionalDependencies": {
         
     },
-    "ServerVersion": ">=0.7.0-pre.4 <0.8.0",
+    "ServerVersion": ">=0.7.0-pre.5 <0.8.0",
     "Main": "dev.hycolony.plugin.HyColonyPlugin",
     "UpdateChecker": {
         "CurseForge": ""

@@ -27,7 +27,7 @@ Pour obtenir les objets : `/give HyColony_TownHall`, `/give HyColony_Hut_Builder
 133. **Feu.** Poser un feu (`Deco_Fire`), un feu de camp éteint (`Deco_Campfire_Off`) et un brasero (`Furniture_Crude_Brazier`) à moins de 10 blocs de l'hôtel de ville, puis regarder les citoyens errer 5 minutes.
     Attendu : aucun citoyen ne s'arrête dans ou sur ces blocs, ni juste à côté (il s'arrête à au moins 1 bloc, diagonales comprises, même près d'une porte de maison), aucun ne brûle, et aucun ne les **traverse** : placer un feu entre un citoyen et l'hôtel de ville, il le contourne. Viser un citoyen et lancer `/npc debug toggle VisPath` : chaque segment affiché passe à côté du feu.
     Noter aussi si le feu de camp de cuisine (`Bench_Campfire`) brûle : d'après les données, il ne devrait pas, et il n'est donc pas évité.
-    Pousser ou téléporter un citoyen à l'intérieur d'un `Deco_Fire` ou d'un `Furniture_Crude_Brazier` allumé (en contournant l'évitement) : ni teinte d'écran ni particules de flamme sur lui, et sa vie n'y baisse pas.
+    Pousser ou téléporter un citoyen à l'intérieur d'un `Deco_Fire` ou d'un `Furniture_Crude_Brazier` allumé (en contournant l'évitement) : ni teinte d'écran ni particules de flamme sur lui, et sa vie n'y baisse pas. Même chose **sur** un `Deco_Campfire_Off` (ses braises font des dégâts `Physical`, reconnus par leur `DeathMessageKey` depuis 0.7.0-pre.5) : sa vie n'y baisse pas.
     Pousser ou téléporter un citoyen sur un piège à pointes (`Survival_Trap_Spike_Wood`, `_Iron` ou `_Wood_Large`) ou un piège à mâchoires (`Survival_Trap_Snapjaw`) : lui, il perd de la vie (l'immunité au feu ne protège pas des pièges).
 
 ## SP1+2 : requêtes et construction
