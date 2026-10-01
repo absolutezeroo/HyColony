@@ -1064,7 +1064,7 @@ class BuilderAITest {
     void completedRequestPickedUpFromHutThenReceivedAndBuildResumes() {
         Request r = waitingForStone(2);
         t.containers.containers.put(HUT, new java.util.LinkedHashMap<>(Map.of(STONE_I, 2))); // "Ajouter"
-        colony.requests().overrule(r.token(), List.of(new ItemAmount(STONE_I, 2)));
+        colony.requests().overrule(r.token(), List.of(new ItemAmount(STONE_I, 2)), false);
 
         tickUntil(() -> colony.requests().get(r.token()).isEmpty(), 1000);
 
@@ -1077,7 +1077,7 @@ class BuilderAITest {
     void missingDeliveryIsRequestedAgainForMissingCount() {
         Request r = waitingForStone(2);
         t.containers.containers.put(HUT, new java.util.LinkedHashMap<>(Map.of(STONE_I, 1))); // one taken meanwhile
-        colony.requests().overrule(r.token(), List.of(new ItemAmount(STONE_I, 2)));
+        colony.requests().overrule(r.token(), List.of(new ItemAmount(STONE_I, 2)), false);
 
         tickUntil(() -> colony.requests().get(r.token()).isEmpty(), 1000);
 

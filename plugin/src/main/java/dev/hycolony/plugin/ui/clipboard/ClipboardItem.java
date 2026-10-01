@@ -13,7 +13,10 @@ import org.bson.BsonValue;
 
 /**
  * The clipboard a player used (MC ItemClipboard's NBT): the colony it notes and its "!" state live in the item's
- * metadata. The last clipboard each player used is kept for its window's "!" button.
+ * metadata. The last clipboard each player used is kept for its window's "!" button, until they leave.
+ *
+ * <p>Deviation from MC: the "!" button writes into that clipboard, where MC's ItemSettingMessage writes into the item
+ * in the main hand; the same item while the window is open.
  *
  * @param container the container holding it, as the interaction found it
  * @param slot its slot there
@@ -64,8 +67,13 @@ public record ClipboardItem(ItemContainer container, short slot, ItemStack stack
         LAST_USED.put(player, item);
     }
 
-    /** The clipboard {@code player} last used, if any since the server started. */
+    /** The clipboard {@code player} last used, if any since they joined. */
     public static Optional<ClipboardItem> lastUsed(UUID player) {
         return Optional.ofNullable(LAST_USED.get(player));
+    }
+
+    /** Forgets the clipboard {@code player} last used (they left). */
+    public static void forget(UUID player) {
+        LAST_USED.remove(player);
     }
 }

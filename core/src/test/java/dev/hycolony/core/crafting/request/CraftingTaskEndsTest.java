@@ -83,7 +83,7 @@ class CraftingTaskEndsTest {
         Request task = rig.task(parent);
         tasksOf(crafter).onTaskDeletion(task.token());
 
-        m().overrule(task.children().getFirst(), List.of(new ItemAmount(ESSENCE, 20)));
+        m().overrule(task.children().getFirst(), List.of(new ItemAmount(ESSENCE, 20)), false);
 
         assertTrue(m().get(task.token()).isEmpty(), "cancelled");
         Request again = rig.task(parent);

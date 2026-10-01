@@ -21,10 +21,15 @@ final class CitizenInventoryWindow extends ContainerWindow implements ValidatedW
     private @Nullable Inventory seen;
     private long seenChanges;
 
+    /**
+     * The citizen's name as the window's {@code name}, MC's title for this screen; a BenchWindow's client reads its
+     * {@code name} as a translation key, which an unknown key shows as is. Unverified for a container window.
+     */
     CitizenInventoryWindow(CitizenItemContainer container, CitizenData citizen, BooleanSupplier alive) {
         super(container);
         this.citizen = citizen;
         this.alive = alive;
+        getData().addProperty("name", citizen.name());
     }
 
     /** Hytale checks it before each move in the window and closes the window when it fails. */

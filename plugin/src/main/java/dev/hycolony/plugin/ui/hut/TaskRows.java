@@ -9,7 +9,7 @@ import dev.hycolony.core.request.model.Crafting;
 import dev.hycolony.core.request.model.Delivery;
 import dev.hycolony.core.request.model.Pickup;
 import dev.hycolony.plugin.ui.ColonyPage;
-import dev.hycolony.plugin.ui.RequestsPage;
+import dev.hycolony.plugin.ui.request.RequestTexts;
 import dev.hycolony.plugin.ui.request.StackTasks;
 import java.util.List;
 import java.util.Optional;
@@ -63,7 +63,7 @@ final class TaskRows {
     private static void detail(UICommandBuilder ui, String row, TaskRow t) {
         Optional<ItemAmount> stack = StackTasks.stack(t.requestable());
         if (stack.isEmpty()) {
-            ui.set(row + " #Detail.TextSpans", RequestsPage.describe(t.requestable()));
+            ui.set(row + " #Detail.TextSpans", RequestTexts.describe(t.requestable()));
             return;
         }
         ui.set(row + " #Detail.Text", StackTasks.prefix(t.requestable()));

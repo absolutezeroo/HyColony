@@ -118,6 +118,7 @@ class FarmWorkPrepareTest extends FarmerTestBase {
         work.prepare();
 
         assertEquals(1, requestsFor(SEEDS).size());
+        assertTrue(requestsFor(SEEDS).get(0).async(), "MC checkIfRequestForItemExistOrCreateAsync");
     }
 
     /**
@@ -132,7 +133,7 @@ class FarmWorkPrepareTest extends FarmerTestBase {
         f.nextStage();
         work.prepare(); // none anywhere: asks, skips planting
         Request first = requestsFor(SEEDS).get(0);
-        colony.requests().overrule(first.token(), List.of(new ItemAmount(SEEDS, 64))); // a player supplies them
+        colony.requests().overrule(first.token(), List.of(new ItemAmount(SEEDS, 64)), false); // a player supplies them
         putInHut(SEEDS, 64);
         f.nextStage();
         f.nextStage(); // PLANTED, EMPTY, then HOED again
@@ -159,7 +160,7 @@ class FarmWorkPrepareTest extends FarmerTestBase {
         give(HOE, 1);
         work.prepare();
         Request first = requestsFor(FERTILIZER).get(0);
-        colony.requests().overrule(first.token(), List.of(new ItemAmount(FERTILIZER, 1)));
+        colony.requests().overrule(first.token(), List.of(new ItemAmount(FERTILIZER, 1)), false);
 
         work.prepare();
         assertEquals(List.of(first.token()), tokens(requestsFor(FERTILIZER)), "the completed one still counts");

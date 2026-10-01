@@ -264,7 +264,7 @@ class CraftingProductionResolverTest {
         rig.stock(ESSENCE, 20);
         rig.h.module.remove(rig.h.colony, id);
 
-        m().overrule(essence, List.of(new ItemAmount(ESSENCE, 20)));
+        m().overrule(essence, List.of(new ItemAmount(ESSENCE, 20)), false);
 
         assertTrue(m().get(task.token()).isEmpty(), "failed: MC finds no module holding the recipe");
         assertEquals(0, rig.inHut(SEEDS));

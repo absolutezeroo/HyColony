@@ -1,6 +1,7 @@
 package dev.hycolony.core.request;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -495,6 +496,18 @@ class RequestManagerTest {
         assertEquals(RequestState.IN_PROGRESS, req(t).state()); // untouched otherwise
     }
 
+    /** MC moveToSyncCitizen calls the job's markRequestSync: the clipboard shows it again with "!" off. */
+    @Test
+    void makeSyncEndsAnAsyncRequest() {
+        resolver("stock", 200, 0).handles = item(LOG);
+        RequestToken t = m.createAsync(hut, stack(LOG));
+        assertTrue(req(t).async());
+
+        m.makeSync(t, 7);
+
+        assertFalse(req(t).async());
+    }
+
     @Test
     void overruleCompletesOnceAndCancelsChildren() {
         FixedResolver stock = resolver("stock", 200, 0);
@@ -507,8 +520,8 @@ class RequestManagerTest {
         RequestToken child = req(t).children().get(0);
         log.clear();
 
-        m.overrule(t, List.of(new ItemAmount(PLANK, 3)));
-        m.overrule(t, List.of(new ItemAmount(PLANK, 1)));
+        m.overrule(t, List.of(new ItemAmount(PLANK, 3)), false);
+        m.overrule(t, List.of(new ItemAmount(PLANK, 1)), false);
 
         Request parent = req(t);
         assertEquals(1, hut.completed.size());

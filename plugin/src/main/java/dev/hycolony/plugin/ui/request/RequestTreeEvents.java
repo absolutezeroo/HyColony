@@ -27,7 +27,7 @@ public record RequestTreeEvents(
     public boolean handle(Ref<EntityStore> ref, Store<EntityStore> store, ColonyPage page, ColonyPage.Act act) {
         switch (act.action()) {
             case RequestTree.FULFILL -> {
-                // MC checks isFulfillable again before acting.
+                // MC tests the request's current fulfillability; here the row's, and the core checks the items again.
                 RequestTree.row(act, rows).filter(RequestRow::fulfillable).ifPresent(r -> fulfil(r));
                 reopen.run();
             }

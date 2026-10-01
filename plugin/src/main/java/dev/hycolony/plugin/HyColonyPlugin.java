@@ -130,9 +130,13 @@ public final class HyColonyPlugin extends JavaPlugin {
         }
     }
 
-    /** On each world's thread: takes off the leaver's goggles and wand, and cancels their unconfirmed town hall. */
+    /**
+     * Forgets the leaver's last item page, then on each world's thread takes off their goggles and wand, and cancels
+     * their unconfirmed town hall.
+     */
     private void onDisconnect(WorldRuntimes worlds, IdMap ids, PlayerDisconnectEvent e) {
         UUID uuid = e.getPlayerRef().getUuid();
+        safely("item pages clean-up on disconnect", () -> ItemPages.disconnect(uuid));
         // execute throws once a world stops taking tasks: guarded too, so the other worlds still clean up.
         worlds.all()
                 .forEach(rt -> safely(

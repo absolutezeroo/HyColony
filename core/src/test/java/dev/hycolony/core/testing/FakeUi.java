@@ -113,6 +113,11 @@ public final class FakeUi implements UiPort {
     }
 
     @Override
+    public boolean refreshRequests(UUID player, RequestsView view) {
+        return redraw(player, view, shown.get(player) instanceof RequestsView v && v.colonyId() == view.colonyId());
+    }
+
+    @Override
     public boolean isShowing(UUID player, WindowKey window) {
         showingChecks++;
         if (failing.contains(player)) {
@@ -127,6 +132,9 @@ public final class FakeUi implements UiPort {
         }
         if (view instanceof TownHallView t) {
             return new WindowKey.TownHall(t.colonyId());
+        }
+        if (view instanceof RequestsView r) {
+            return new WindowKey.Clipboard(r.colonyId());
         }
         return view instanceof CitizenView c ? new WindowKey.Citizen(c.colonyId(), c.citizenId()) : null;
     }

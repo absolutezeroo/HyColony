@@ -286,4 +286,16 @@ class RequestSerializerTest {
 
         assertTrue(l.m.get(t).orElseThrow().deliveredToCitizen());
     }
+
+    @Test
+    void asyncFlagSurvivesSave() {
+        World w = new World();
+        RequestToken t = w.m.createAsync(w.hut, new StackRequest(STONE, 2, 2, true));
+
+        World l = new World();
+        RequestSerializer.read(roundTrip(RequestSerializer.write(w.m)), l.m);
+
+        assertTrue(l.m.get(t).orElseThrow().async());
+        assertEquals(Request.NO_CITIZEN, l.m.get(t).orElseThrow().citizenId(), "no worker waits for it");
+    }
 }

@@ -32,6 +32,9 @@ public interface UiPort {
     /** {@link #refreshBuilding} for this citizen's window. */
     boolean refreshCitizen(UUID player, CitizenView view);
 
+    /** {@link #refreshBuilding} for the clipboard window of the view's colony. */
+    boolean refreshRequests(UUID player, RequestsView view);
+
     /** A field block's window (MC WindowField); re-shown after every button. */
     void showField(UUID player, FieldView view);
 

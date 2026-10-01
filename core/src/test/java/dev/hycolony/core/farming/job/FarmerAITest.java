@@ -99,7 +99,7 @@ class FarmerAITest extends FarmerTestBase {
     void aCompletedHutRequestIsReceived() {
         RequestToken token =
                 colony.requests().createAndAssign(hut, new StackRequest(SEEDS, 64, 1, true), Request.NO_CITIZEN);
-        colony.requests().overrule(token, List.of(new ItemAmount(SEEDS, 64)));
+        colony.requests().overrule(token, List.of(new ItemAmount(SEEDS, 64)), false);
         JobAI ai = job.createAI(colony, body);
 
         runUntil(ai, () -> colony.requests().get(token).isEmpty());

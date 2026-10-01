@@ -97,7 +97,7 @@ class LogisticsWindowsTest {
     }
 
     private RequestsView clipboard() {
-        manager.windows().openRequests(alice, colony.id());
+        manager.windows().openRequests(alice, colony.id(), true);
         return (RequestsView) t.ui.shown.get(alice);
     }
 

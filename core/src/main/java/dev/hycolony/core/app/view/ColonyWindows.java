@@ -3,6 +3,7 @@ package dev.hycolony.core.app.view;
 import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.app.ui.BuildingView;
 import dev.hycolony.core.app.ui.CitizenView;
+import dev.hycolony.core.app.ui.RequestsView;
 import dev.hycolony.core.app.ui.TownHallView;
 import dev.hycolony.core.app.ui.UiPort;
 import dev.hycolony.core.app.ui.WindowKey;
@@ -113,21 +114,23 @@ public final class ColonyWindows {
         }
     }
 
-    /** The clipboard (MC WindowClipBoard) with every root request held by the player or retrying resolver. */
-    public void openRequests(UUID player, int colonyId) {
-        openRequests(player, colonyId, true);
-    }
-
     /**
-     * The clipboard (MC WindowClipBoard): root requests held by the player or retrying resolver, the asynchronous ones
-     * only with {@code showImportant}; nothing for an unknown colony or a viewer without access.
+     * The clipboard (MC WindowClipBoard): root requests held by the player or retrying resolver, the async ones only
+     * with {@code showImportant}, then watched as MC's RequestTreeWindowModule.onUpdate refreshes it; nothing for an
+     * unknown colony or a viewer without access.
      */
     public void openRequests(UUID player, int colonyId, boolean showImportant) {
         Colony c = manager.byId(colonyId).orElse(null);
         if (c == null || !canAccess(c, player)) {
             return;
         }
-        ui.showRequests(player, requests.of(c, player, showImportant));
+        RequestsView view = requests.of(c, player, showImportant);
+        ui.showRequests(player, view);
+        open.watch(
+                player,
+                new OpenWindows.Shown<>(new WindowKey.Clipboard(c.id()), view),
+                () -> watchable(c.id(), player).map(col -> requests.of(col, player, showImportant)),
+                ui::refreshRequests);
     }
 
     /**

@@ -7,12 +7,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.app.ui.BuildingView;
 import dev.hycolony.core.app.ui.CitizenView;
+import dev.hycolony.core.app.ui.RequestsView;
 import dev.hycolony.core.app.ui.TownHallView;
+import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.core.request.model.StackRequest;
 import dev.hycolony.core.testing.TestContexts;
 import java.util.List;
 import java.util.UUID;
@@ -131,6 +135,19 @@ class LiveWindowRefreshTest {
         tickWindows(OpenWindows.UPDATE_SUBSCRIBERS_INTERVAL_TICKS);
 
         assertEquals("Bea", ((CitizenView) t.ui.redrawn.get(0)).name());
+    }
+
+    @Test
+    void openClipboardIsRedrawnWhenARequestComesAsMcRefreshesItsTree() {
+        manager.windows().openRequests(alice, colony.id(), false);
+        Building hut = colony.buildings().at(pos).orElseThrow();
+        colony.requests().createAndAssign(hut, new StackRequest(new ItemKey("plank"), 2, 2, true), 1);
+
+        tickWindows(OpenWindows.UPDATE_SUBSCRIBERS_INTERVAL_TICKS);
+
+        RequestsView redrawn = (RequestsView) t.ui.redrawn.get(0);
+        assertEquals(1, redrawn.rows().size());
+        assertFalse(redrawn.showImportant(), "the window keeps its \"!\" state");
     }
 
     @Test

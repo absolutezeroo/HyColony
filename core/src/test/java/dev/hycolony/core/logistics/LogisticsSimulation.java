@@ -216,7 +216,7 @@ abstract class LogisticsSimulation {
     }
 
     private void fulfilAll() {
-        manager.windows().openRequests(alice, colony.id());
+        manager.windows().openRequests(alice, colony.id(), true);
         RequestsView view = (RequestsView) t.ui.shown.get(alice);
         for (RequestsView.RequestRow row : view.rows()) {
             if (row.fulfillable()) {

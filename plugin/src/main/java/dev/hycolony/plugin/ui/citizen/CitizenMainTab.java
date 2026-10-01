@@ -8,7 +8,7 @@ import dev.hycolony.core.app.ui.CitizenView;
 import dev.hycolony.core.citizen.Gender;
 import dev.hycolony.plugin.adapter.HytaleNotifier;
 import dev.hycolony.plugin.ui.ColonyPage;
-import dev.hycolony.plugin.ui.RequestsPage;
+import dev.hycolony.plugin.ui.request.RequestTexts;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -62,7 +62,7 @@ final class CitizenMainTab {
             ui.set(
                     PAGE + " #Activity.TextSpans",
                     Message.translation("hycolony.ui.citizen.waitingFor")
-                            .param("p0", RequestsPage.describe(view.waitingFor().get())));
+                            .param("p0", RequestTexts.describe(view.waitingFor().get())));
         } else if (view.jobActivity().isPresent()) {
             ui.set(
                     PAGE + " #Activity.TextSpans",

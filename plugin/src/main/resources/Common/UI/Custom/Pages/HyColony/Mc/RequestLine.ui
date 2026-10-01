@@ -59,14 +59,14 @@ Group {
 
   TextButton #Fulfill {
     Anchor: (Left: 40, Top: 46, Width: 74, Height: 32);
-    Style: $B.@ColonistSmallButtonStyle;
+    Style: $B.@TreeSmallButtonStyle;
     Text: %hycolony.ui.requests.fulfil;
     Visible: false;
   }
 
   TextButton #Cancel {
     Anchor: (Left: 140, Top: 46, Width: 74, Height: 32);
-    Style: $B.@ColonistSmallButtonStyle;
+    Style: $B.@TreeSmallButtonStyle;
     Text: %hycolony.ui.requests.cancel;
     Visible: false;
   }

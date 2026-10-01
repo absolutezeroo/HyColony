@@ -194,7 +194,7 @@ class ConstructionSimulationTest {
 
     /** The clipboard, supplied from the player's inventory. */
     private void fulfilAll() {
-        manager.windows().openRequests(alice, colony.id());
+        manager.windows().openRequests(alice, colony.id(), true);
         RequestsView view = (RequestsView) t.ui.shown.get(alice);
         for (RequestsView.RequestRow row : view.rows()) {
             if (row.playerHas() > 0 && manager.requestActions().fulfil(alice, colony.id(), row.token())) {

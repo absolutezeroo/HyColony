@@ -195,8 +195,8 @@ public final class Building implements Requester, ResolverProvider {
     /**
      * MC AbstractBuilding.onRequestedRequestComplete: a building-level request that brings no items (a pickup, a
      * courier delivery) is received at once, so it leaves the request system. Deviation from MC: MC receives every
-     * building-level request here; a building-level item request stays COMPLETED for the worker taking its items,
-     * since our builder files at building level the async requests MC files under its citizen.
+     * building-level request here; a building-level item request (the builder's materials, a job's async request
+     * filed for the hut) stays COMPLETED for the worker taking its items from the hut.
      */
     @Override
     public void onRequestComplete(RequestManager manager, Request request) {

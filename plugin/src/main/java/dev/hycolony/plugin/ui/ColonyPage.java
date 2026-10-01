@@ -105,6 +105,27 @@ public abstract class ColonyPage extends InteractiveCustomUIPage<ColonyPage.Act>
         this.player = playerRef.getUuid();
     }
 
+    /**
+     * The closed page a {@link #reshowFor} stands in for, per world thread: an Escape leaves no page open whose state
+     * the re-shown window could keep.
+     */
+    private static final ThreadLocal<ColonyPage> CLOSED = new ThreadLocal<>();
+
+    /** Runs {@code reshow} as if {@code closed} were still open, so the window shown again keeps its tab. */
+    protected static void reshowFor(ColonyPage closed, Runnable reshow) {
+        CLOSED.set(closed);
+        try {
+            reshow.run();
+        } finally {
+            CLOSED.remove();
+        }
+    }
+
+    /** {@code open}, or with none open the closed page a running {@link #reshowFor} stands in for; null if neither. */
+    public static @Nullable CustomUIPage openOrClosed(@Nullable CustomUIPage open) {
+        return open != null ? open : CLOSED.get();
+    }
+
     /** The page that draws and answers this window now (see {@link #refreshWith}). */
     public final ColonyPage live() {
         return successor == null ? this : successor;

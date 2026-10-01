@@ -34,16 +34,16 @@ final class RequestViews {
     }
 
     /**
-     * MC ClipboardRequestTreeWindowModule.getOpenRequests: with {@code showImportant} off, the asynchronous requests
-     * (a hut's own, filed without a citizen) are left out, as MC's code does when its flag is off; HyColony has no
-     * minimum stock requests, MC's other hidden kind.
+     * MC ClipboardRequestTreeWindowModule.getOpenRequests: with {@code showImportant} off, the jobs' async requests
+     * ({@link Request#async()}) are left out; a hut's own requests, such as the builder's materials, stay. HyColony
+     * has no minimum stock requests, MC's other hidden kind.
      */
     RequestsView of(Colony c, UUID player, boolean showImportant) {
         // WindowClipBoard: nearest requester to the player first, then by token (no position: token order only).
         Optional<BlockPos> at = ctx.players().position(player);
         List<Request> sorted = new ArrayList<>(openRoots(c.requests()));
         if (!showImportant) {
-            sorted.removeIf(r -> r.citizenId() == Request.NO_CITIZEN);
+            sorted.removeIf(Request::async);
         }
         sorted.sort(Comparator.comparingLong((Request r) -> at.map(p -> c.buildings()
                                 .byRequester(r.requester())

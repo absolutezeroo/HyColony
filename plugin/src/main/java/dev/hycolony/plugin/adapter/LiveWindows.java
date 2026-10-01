@@ -10,6 +10,7 @@ import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.app.ui.WindowKey;
 import dev.hycolony.plugin.ui.ColonyPage;
+import dev.hycolony.plugin.ui.RequestsPage;
 import dev.hycolony.plugin.ui.citizen.CitizenPage;
 import dev.hycolony.plugin.ui.hut.HutWindow;
 import dev.hycolony.plugin.ui.townhall.TownHallPage;
@@ -76,6 +77,8 @@ final class LiveWindows {
                 page instanceof CitizenPage p
                         && p.view().colonyId() == c.colonyId()
                         && p.view().citizenId() == c.citizenId();
+            case WindowKey.Clipboard c ->
+                page instanceof RequestsPage p && p.view().colonyId() == c.colonyId();
         };
     }
 

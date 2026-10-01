@@ -103,7 +103,7 @@ class RequestStateEventsTest {
     void overrulingPostsItThenCompletion() {
         int from = heard.size();
 
-        colony.requests().overrule(token, List.of());
+        colony.requests().overrule(token, List.of(), false);
 
         assertEquals(List.of("IN_PROGRESS->OVERRULED", "OVERRULED->COMPLETED"), path(from));
     }

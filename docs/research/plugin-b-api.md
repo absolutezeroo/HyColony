@@ -1034,6 +1034,15 @@ Constat en jeu (2026-10-01) : un citoyen monté sur un lit (`BlockMountAPI.mount
 - Que le client couche le citoyen avec `Status` `Sleep` alors qu'il est monté et `sleeping` (superposition avec l'animation de mouvement que le client choisit, peut-être `MountIdle`), et à la même hauteur qu'un joueur : `Pelvis` y -42 est relatif à la position du corps, posée au point de couchage par `mountOnBlock`.
 - Que l'orientation suive le lit (le lacet vient du point de couchage, § 41).
 
+## 45. Métadonnées d'un objet tenu et titre d'un conteneur (2026-10-01)
+
+Sources : décompilé de 0.7.0-pre.4 (chemins relatifs à `com/hypixel/hytale/server/core/`).
+
+- `ItemStack.withMetadata(String key, BsonValue)` renvoie une copie avec la clé posée. `getMetadata()` est `@Deprecated` et renvoie un clone du document (`inventory/ItemStack.java` l. 175-178). `getFromMetadataOrNull(key, Codec)` décode sans clone, mais lève si la valeur n'a pas le type du codec (l. 670-673). Le presse-papiers lit par `getMetadata()` pour rester tolérant au type.
+- `ItemContainer.replaceItemStackInSlot(slot, ancien, nouveau)` ne remplace que si la case tient encore `ancien` (garde par `isStackableWith`), puis envoie la mise à jour (`inventory/container/ItemContainer.java` l. 207-211). `.succeeded()` dit si la case a changé. Un objet déplacé ou jeté entre-temps reste donc intact.
+- `InteractionContext.getHeldItem()`, `getHeldItemContainer()` et `getHeldItemSlot()` donnent l'objet, le conteneur et la case de l'interaction en cours (`entity/InteractionContext.java` l. 413-424).
+- `ContainerWindow.getData()` est le `windowData` envoyé dans `OpenWindow`, vide par défaut. `BenchWindow` y met `name`, une clé de traduction. Que le client affiche `name` pour une fenêtre de conteneur n'est **pas vérifié** (**[in-game]**, `TESTING.md` point 72).
+
 ## Could not verify
 
 1. **Client rendering of item animations on NPCs** (`AnimationSlot.Action` with `"Block"/"Build"` or `"Pickaxe"/"Mine"` on `PlayerTestModel_V`) and whether they loop or play once. Only the server packet path is verified.

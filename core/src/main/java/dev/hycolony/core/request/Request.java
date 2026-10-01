@@ -35,6 +35,7 @@ public final class Request {
     private final List<ItemAmount> deliveries = new ArrayList<>();
     private Set<String> blacklist = Set.of();
     private boolean deliveredToCitizen;
+    private boolean async;
 
     Request(RequestToken token, RequesterId requester, Requestable requestable, int citizenId) {
         this.token = Objects.requireNonNull(token, "token");
@@ -99,6 +100,11 @@ public final class Request {
         return citizenId;
     }
 
+    /** A job's async request (MC CitizenData.createRequestAsync), which the clipboard hides unless "!" is on. */
+    public boolean async() {
+        return async;
+    }
+
     void setState(RequestState s) {
         state = s;
     }
@@ -113,6 +119,10 @@ public final class Request {
 
     void setDeliveredToCitizen(boolean b) {
         deliveredToCitizen = b;
+    }
+
+    void setAsync(boolean b) {
+        async = b;
     }
 
     void addChild(RequestToken c) {

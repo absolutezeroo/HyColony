@@ -33,6 +33,7 @@ import dev.hycolony.plugin.ui.citizen.CitizenInventoryWindows;
 import dev.hycolony.plugin.ui.citizen.CitizenPage;
 import dev.hycolony.plugin.ui.field.FieldPage;
 import dev.hycolony.plugin.ui.hut.HutWindow;
+import dev.hycolony.plugin.ui.request.RequestTexts;
 import dev.hycolony.plugin.ui.townhall.TownHallPage;
 import dev.hycolony.plugin.ui.wand.WandPage;
 import java.util.HashSet;
@@ -150,6 +151,14 @@ public final class HytaleUiPort implements UiPort {
         return live.refresh(player, new WindowKey.Citizen(view.colonyId(), view.citizenId()), citizenPage(view));
     }
 
+    @Override
+    public boolean refreshRequests(UUID player, RequestsView view) {
+        return live.refresh(
+                player,
+                new WindowKey.Clipboard(view.colonyId()),
+                (pr, previous) -> new RequestsPage(pr, view, manager.get(), ids));
+    }
+
     private BiFunction<PlayerRef, CustomUIPage, ColonyPage> townHallPage(TownHallView view) {
         return (pr, previous) -> new TownHallPage(pr, view, manager.get()).keepTabOf(previous);
     }
@@ -198,7 +207,7 @@ public final class HytaleUiPort implements UiPort {
     public void notifyNeedsPlayer(UUID player, NeedsPlayerNotice notice) {
         PlayerRef pr = Universe.get().getPlayer(player);
         if (pr != null) {
-            pr.sendMessage(RequestsPage.needsPlayer(notice));
+            pr.sendMessage(RequestTexts.needsPlayer(notice));
         }
     }
 
@@ -228,7 +237,7 @@ public final class HytaleUiPort implements UiPort {
             return;
         }
         PageManager pages = p.getPageManager();
-        CustomUIPage current = pages.getCustomPage();
+        CustomUIPage current = ColonyPage.openOrClosed(pages.getCustomPage());
         guarded(
                 "open",
                 () -> pages.openCustomPage(

@@ -4,7 +4,7 @@
     "Description": "hycolony.item.clipboard.description"
   },
   "Quality": "Uncommon",
-  "MaxStack": 1,
+  "MaxStack": 64,
   "PlayerAnimationsId": "Block",
   "ItemSoundSetId": "ISS_Weapons_Wood",
   "Categories": [
@@ -25,7 +25,6 @@
     "KnowledgeRequired": false
   },
   "Interactions": {
-    "Primary": { "Interactions": [ { "Type": "OpenCustomUI", "Page": { "Id": "HyColony_Clipboard" } } ] },
     "Secondary": { "Interactions": [ { "Type": "OpenCustomUI", "Page": { "Id": "HyColony_Clipboard" } } ] }
   },
   "Tags": {

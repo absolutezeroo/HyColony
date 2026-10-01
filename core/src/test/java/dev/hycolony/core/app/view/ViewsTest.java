@@ -238,7 +238,7 @@ class ViewsTest {
         t.playerInventory.give(alice, new ItemAmount(planks, 7));
         t.players.online.put(alice, new BlockPos(20, 64, 0));
 
-        manager.windows().openRequests(alice, colony.id());
+        manager.windows().openRequests(alice, colony.id(), true);
 
         RequestsView v = (RequestsView) t.ui.shown.get(alice);
         assertEquals(colony.id(), v.colonyId());
@@ -292,7 +292,7 @@ class ViewsTest {
             manager.windows().openBuilding(player, res.position());
             manager.windows().openBuildOptions(player, res.position());
             manager.windows().openBuildingGui(player, hall);
-            manager.windows().openRequests(player, colony.id());
+            manager.windows().openRequests(player, colony.id(), true);
             assertFalse(t.ui.shown.containsKey(player), "neutral and hostile see nothing");
             assertTrue(t.notifier.sent.stream()
                     .anyMatch(s -> s.player().equals(player) && s.msg().key().equals("hycolony.permission.denied")));

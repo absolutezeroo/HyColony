@@ -67,6 +67,17 @@ public final class RequestManager {
         return req.token();
     }
 
+    /**
+     * MC CitizenData.createRequestAsync: a hut request no worker waits for, marked async so that the clipboard hides
+     * it unless "!" is on. Deviation from MC: filed for the hut, not the citizen (see FarmWork.askOnce).
+     */
+    public RequestToken createAsync(Requester requester, Requestable what) {
+        Request req = store.create(requester.requesterId(), what, Request.NO_CITIZEN);
+        req.setAsync(true);
+        queue.submit(() -> assigner.assignUnassigned(List.of(req.token()), Set.of()));
+        return req.token();
+    }
+
     /** A child created by a resolver for one of its requests; inherits the parent's blacklist. */
     public RequestToken createChild(Resolver parentResolver, RequestToken parent, Requestable what) {
         Request p = store.require(parent);
@@ -118,15 +129,9 @@ public final class RequestManager {
 
     /**
      * The player provided the items: cancel children, then COMPLETED. MC StandardRequestManager.overruleRequest.
-     * Deviation from MC: applied once; MineColonies ran it twice.
-     */
-    public void overrule(RequestToken token, List<ItemAmount> delivered) {
-        overrule(token, delivered, false);
-    }
-
-    /**
-     * {@code toCitizen}: the items were handed to the requesting citizen ("Fournir"), not left in the hut; the
-     * request remembers it ({@link Request#deliveredToCitizen()}) so its pick-up takes nothing from the hut.
+     * Deviation from MC: applied once; MineColonies ran it twice. {@code toCitizen}: the items were handed to the
+     * requesting citizen ("Fournir"), not left in the hut; the request remembers it
+     * ({@link Request#deliveredToCitizen()}) so its pick-up takes nothing from the hut.
      */
     public void overrule(RequestToken token, List<ItemAmount> delivered, boolean toCitizen) {
         store.require(token);
@@ -162,13 +167,17 @@ public final class RequestManager {
         return cancelled[0];
     }
 
-    /** MC moveToSyncCitizen: a building's (async) request becomes the citizen's, who now waits for it. */
+    /**
+     * MC moveToSyncCitizen: a building's (async) request becomes the citizen's, who now waits for it; no longer async
+     * (MC markRequestSync).
+     */
     public void makeSync(RequestToken token, int citizenId) {
         store.require(token);
         queue.submit(() -> {
             Request req = store.request(token);
             if (req != null) {
                 req.setCitizenId(citizenId);
+                req.setAsync(false);
             }
         });
     }

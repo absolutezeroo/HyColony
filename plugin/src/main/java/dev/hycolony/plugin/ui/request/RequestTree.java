@@ -16,7 +16,6 @@ import dev.hycolony.core.request.model.StackRequest;
 import dev.hycolony.core.request.model.ToolRequest;
 import dev.hycolony.plugin.IdMap;
 import dev.hycolony.plugin.ui.ColonyPage;
-import dev.hycolony.plugin.ui.RequestsPage;
 import java.util.List;
 import java.util.Optional;
 
@@ -56,7 +55,7 @@ public final class RequestTree {
             if (icon(ui, row + " ", r, ids)) {
                 ui.set(row + " #Requester.TextSpans", ColonyPage.buildingName(r.requesterName()));
             }
-            text(ui, row + " ", r.requestable(), RequestsPage.describeShort(r.requestable()));
+            text(ui, row + " ", r.requestable(), RequestTexts.describeShort(r.requestable()));
             String ref = r.token().id().toString();
             ColonyPage.bindRef(events, row + " #Detail", DETAIL, ref);
             if (r.fulfillable()) {
@@ -120,7 +119,7 @@ public final class RequestTree {
         ui.set(scope + "#Short.TextSpans", StackTasks.prefix(requestable));
         ui.set(scope + "#TaskItem.Visible", true);
         ui.set(scope + "#TaskItem.ItemId", stack.get().item().id());
-        ui.set(scope + "#TaskCount.Text", "x" + stack.get().count());
+        ui.set(scope + "#TaskCount.Text", String.valueOf(stack.get().count()));
     }
 
     /** "x, y, z" of a request's requester, or nothing. */

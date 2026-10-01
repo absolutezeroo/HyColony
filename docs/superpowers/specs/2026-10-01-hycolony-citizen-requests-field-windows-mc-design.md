@@ -96,7 +96,7 @@ Nouvelle action du cœur `RequestActions.cancel(player, colonyId, token)` : droi
 - Vues : `CitizenView` (santé, saturation, compétences avec celles du métier en tête, genre, créatif, lignes métier et activité gardées, requêtes en arbre avec les nouveaux champs), `RequestsView` (racines, état « ! »), `FieldView` (biome). La ligne `RequestRow` porte tout ce qu'affiche le détail.
 - Actions : `RequestActions.cancel`, `CitizenSkillActions.adjust` (créatif), le presse-papiers (retenir une colonie, ouvrir), l'état « ! ».
 - Ports : `CitizenBodies.healthPercent` (pour cent de la santé maximale, 0 sans corps vivant, jamais d'exception) ; `PlayerDirectory.isCreative` (existant) ; le biome par `WorldQuery` s'il existe dans l'API.
-- Pas d'état persisté nouveau dans la colonie (la colonie du presse-papiers et « ! » vivent dans l'objet) : pas de migration.
+- La colonie du presse-papiers et « ! » vivent dans l'objet. Seul ajout persisté : le marqueur `async` d'une requête (`CitizenData.createRequestAsync` de MC), clé facultative écrite seulement à vrai, absente = faux, comme `deliveredToCitizen` : une vieille sauvegarde se lit telle quelle, sans migration.
 - TDD : ordre des compétences, cœurs et saturation (règles de MC dans le cœur, en nombre d'icônes de chaque sorte), ajustement en créatif seulement, arbre, Annuler (droit, racine), Fournir (règles de `isFulfillable`), presse-papiers (colonie retenue, sans colonie, filtre « ! »).
 
 ## 7. Tests en jeu
@@ -120,3 +120,7 @@ Nouvelle action du cœur `RequestActions.cancel(player, colonyId, token)` : droi
 - Détail : Retour fonctionne (MC ne le relie à rien, seul Échap revient) ; la place s'écrit « x, y, z » sans la dimension ; Annuler laisse une requête déjà terminée.
 - Les textes « En attente de … » et les messages de chat gardent la plage de niveaux d'un outil (l'arbre et le détail suivent les textes court et long de MC).
 - Choix de graine : les graines de HyColony, sans les cultures de MC.
+- Le niveau d'un outil s'écrit en chiffre ; MC nomme la qualité du niveau (bois, pierre…), dont Hytale n'a pas l'équivalent.
+- Presse-papiers : `clipboard.needcolony` va dans le chat (MC : au-dessus de la barre d'objets ; le port `Notifier` n'a que le chat). « ! » s'écrit dans le dernier presse-papiers utilisé, oublié à la déconnexion (MC : l'objet en main).
+- Le filtre « ! » cache les requêtes marquées `async`, celles que MC crée par `createRequestAsync` ; elles sont rangées sous la hutte, sans citoyen (écart déjà documenté de `FarmWork.askOnce`). Seul le fermier en crée aujourd'hui.
+- L'écran d'inventaire du citoyen passe le nom du citoyen en `name` de la fenêtre, comme le titre de MC ; le client peut l'ignorer pour un conteneur (à vérifier en jeu).

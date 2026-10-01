@@ -155,6 +155,9 @@ public final class RequestSerializer {
         if (r.deliveredToCitizen()) {
             o.addProperty("deliveredToCitizen", true);
         }
+        if (r.async()) {
+            o.addProperty("async", true);
+        }
         JsonArray blacklist = new JsonArray();
         r.blacklist().stream().sorted().forEach(blacklist::add);
         o.add("blacklist", blacklist);
@@ -184,6 +187,7 @@ public final class RequestSerializer {
         RequestToken.fromJson(o.get("children")).forEach(r::addChild);
         readDeliveries(SavedJson.arrayOr(o.get("deliveries")), r);
         r.setDeliveredToCitizen(SavedJson.boolOr(o.get("deliveredToCitizen"), false));
+        r.setAsync(SavedJson.boolOr(o.get("async"), false));
         r.setBlacklist(readBlacklist(SavedJson.arrayOr(o.get("blacklist"))));
         return Optional.of(r);
     }

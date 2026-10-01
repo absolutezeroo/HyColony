@@ -2,6 +2,7 @@ package dev.hycolony.plugin.ui.request;
 
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
@@ -9,7 +10,7 @@ import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.app.ui.RequestsView.RequestRow;
 import dev.hycolony.plugin.ui.ColonyPage;
-import dev.hycolony.plugin.ui.RequestsPage;
+import java.util.logging.Level;
 import javax.annotation.Nonnull;
 
 /**
@@ -21,6 +22,8 @@ import javax.annotation.Nonnull;
  * z" without MC's dimension.
  */
 public final class RequestDetailPage extends ColonyPage {
+    private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
+
     private final RequestTreeEvents tree;
     private final RequestRow row;
     private final ColonyPage origin;
@@ -47,7 +50,7 @@ public final class RequestDetailPage extends ColonyPage {
             @Nonnull Store<EntityStore> store) {
         ui.append("Pages/HyColony/RequestDetail.ui");
         RequestTree.icon(ui, "", row, tree.ids());
-        RequestTree.text(ui, "", row.requestable(), RequestsPage.describeLong(row.requestable()));
+        RequestTree.text(ui, "", row.requestable(), RequestTexts.describeLong(row.requestable()));
         ui.set("#Requester.TextSpans", buildingName(row.requesterName()));
         ui.set("#Place.TextSpans", RequestTree.place(row));
         row.resolver()
@@ -71,7 +74,7 @@ public final class RequestDetailPage extends ColonyPage {
     public void handleDataEvent(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, @Nonnull Act act) {
         switch (act.action()) {
             case "fulfill" -> {
-                if (row.fulfillable()) { // MC checks isFulfillable again
+                if (row.fulfillable()) { // MC tests the request's fulfillability; the core checks the items again
                     tree.fulfil(row);
                 }
             }
@@ -87,8 +90,9 @@ public final class RequestDetailPage extends ColonyPage {
     }
 
     /**
-     * Escape: as MC's close, the origin shows again once this window is gone (world thread, next tick), unless another
-     * window opened in its place meanwhile.
+     * Escape: as MC's close, the origin shows again on its tab once this window is gone (world thread, next tick),
+     * unless another HyColony or custom window opened meanwhile; a native page (a container) is not seen, so the origin
+     * would replace it. Nothing when the world no longer takes tasks.
      */
     @Override
     public void onDismiss(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
@@ -97,12 +101,16 @@ public final class RequestDetailPage extends ColonyPage {
             return;
         }
         leaving = true;
-        store.getExternalData().getWorld().execute(() -> {
-            Player p = ref.isValid() ? store.getComponent(ref, Player.getComponentType()) : null;
-            if (p != null && p.getPageManager().getCustomPage() == null) {
-                tree.reopen().run();
-            }
-        });
+        try {
+            store.getExternalData().getWorld().execute(() -> {
+                Player p = ref.isValid() ? store.getComponent(ref, Player.getComponentType()) : null;
+                if (p != null && p.getPageManager().getCustomPage() == null) {
+                    reshowFor(this, tree.reopen());
+                }
+            });
+        } catch (RuntimeException e) {
+            LOG.at(Level.FINE).withCause(e).log("HyColony request detail: origin not shown again");
+        }
     }
 
     /** The origin could not show again (its citizen or colony is gone): nothing replaced this window, so it closes. */

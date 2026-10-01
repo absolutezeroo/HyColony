@@ -60,18 +60,20 @@ class ClipboardActionsTest {
     }
 
     @Test
-    void theImportantButtonHidesTheHutsOwnRequestsAsMcCodeDoes() {
-        RequestToken own = colony.requests()
+    void theImportantButtonHidesOnlyTheJobsAsyncRequestsAsMcDoes() {
+        RequestToken materials = colony.requests()
                 .createAndAssign(hut, new StackRequest(new ItemKey("plank"), 3, 3, true), Request.NO_CITIZEN);
+        RequestToken async = colony.requests().createAsync(hut, new StackRequest(new ItemKey("seed"), 4, 1, true));
 
         clipboard.open(alice, Optional.of(colony.id()), false);
         RequestsView hidden = (RequestsView) t.ui.shown.get(alice);
         assertFalse(hidden.showImportant());
-        assertTrue(hidden.rows().stream().noneMatch(r -> r.token().equals(own)), "MC: async requests hidden");
+        assertTrue(hidden.rows().stream().anyMatch(r -> r.token().equals(materials)), "MC shows the hut's own");
+        assertTrue(hidden.rows().stream().noneMatch(r -> r.token().equals(async)), "MC: async requests hidden");
 
         clipboard.open(alice, Optional.of(colony.id()), true);
         RequestsView all = (RequestsView) t.ui.shown.get(alice);
         assertTrue(all.showImportant());
-        assertTrue(all.rows().stream().anyMatch(r -> r.token().equals(own)));
+        assertTrue(all.rows().stream().anyMatch(r -> r.token().equals(async)));
     }
 }

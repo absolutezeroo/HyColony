@@ -33,6 +33,8 @@ public final class ClipboardActions {
     /**
      * MC ItemClipboard.openWindow: without a noted colony, {@code clipboard.needcolony}; else the colony's requests
      * with the "!" state (nothing shows for a colony gone or one the player may not see, as MC finds no view).
+     * Deviation from MC: the message goes to the chat, where MC shows it above the hotbar (the notifier has the chat
+     * only).
      */
     public void open(UUID player, Optional<Integer> colonyId, boolean showImportant) {
         if (colonyId.isEmpty()) {
