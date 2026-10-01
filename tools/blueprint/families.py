@@ -223,6 +223,15 @@ def trapdoor(name: str, p: dict) -> Mapping:
     return m
 
 
+def double_plant(target: str, note: str | None = None):
+    """Plante haute de deux cases (rosier, pivoine) : la plante Hytale sur la moitié basse, rien sur la haute."""
+    def rule(p: dict) -> Mapping:
+        if p.get("half") == "upper":
+            return skip("moitié haute de plante : la plante Hytale est sur la case du dessous", rule="double_plant")
+        return place(target, 0, note, rule="double_plant")
+    return rule
+
+
 def door(name: str, p: dict) -> Mapping:
     if p.get("half") == "upper":
         return skip("moitié haute de porte : la porte Hytale occupe déjà cette case", rule="door")

@@ -146,6 +146,8 @@ SIMPLE: dict[str, tuple[str, str | None]] = {
     "minecraft:cartography_table": (_CRATE, "table de cartographie -> caisse 1x1"),
     "minecraft:jukebox": (_CRATE, "jukebox -> caisse 1x1"),
     "minecraft:lectern": (_CRATE, "pupitre -> caisse 1x1 (orientation ignorée)"),
+    "minecraft:loom": (_CRATE, "métier à tisser -> caisse 1x1 (Bench_Loom est un établi de 2 cases)"),
+    "minecraft:end_rod": ("Furniture_Crude_Candle", "tige de l'End -> bougie (orientation ignorée)"),
     "minecraft:barrel": ("Furniture_Tavern_Barrel", "tonneau natif (rotation aléatoire côté Hytale)"),
     "domum_ornamentum:blockbarreldeco_standing": ("Furniture_Tavern_Barrel", None),
     "domum_ornamentum:blockbarreldeco_onside": ("Furniture_Tavern_Barrel", "tonneau couché redressé"),
@@ -224,6 +226,10 @@ FAMILY = {
     "minecraft:ender_chest": f.chest("Furniture_Crude_Chest_Small", "coffre de l'Ender -> petit coffre natif"),
     "minecraft:hopper": f.facing("Metal_Iron_Pipe_Large_Mouthpiece", "entonnoir -> embout de tuyau"),
     "minecraft:campfire": f.facing("Bench_Campfire"),
+    # Huttes de Medieval Oak (spec 2026-10-01-hycolony-style-medievaloak-design.md § 2).
+    "minecraft:nether_brick_slab": f.slab("Rock_Runic_Dark_Brick_Half", "comme les escaliers de briques du Nether"),
+    "minecraft:rose_bush": f.double_plant("Plant_Flower_Tall_Red", "rosier -> grande fleur rouge"),
+    "minecolonies:blockstash": f.chest("Furniture_Crude_Chest_Small", "réserve (bâtiment absent) -> petit coffre"),
     # Divers
     "minecraft:chain": f.chain("Deco_Iron_Chain_Small", "chaîne -> petite chaîne native"),
     "minecraft:lantern": f.lantern,

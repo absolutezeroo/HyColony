@@ -33,7 +33,7 @@ Ils ont 7 blocs sans règle :
 | `minecraft:nether_brick_slab` | Règle des dalles, sur `Rock_Runic_Dark_Brick_Half` (comme les escaliers de briques du Nether, déjà en `Rock_Runic_Dark_Brick_Stairs`) |
 | `minecraft:wall_torch` sur un escalier | Le dos plein d'un escalier compte comme support d'une torche murale |
 | `minecraft:rose_bush` | `Plant_Flower_Tall_Red` en bas, rien en haut |
-| `minecraft:loom` | `Bench_Loom`, orienté ; il ne doit pas devenir un établi de la hutte |
+| `minecraft:loom` | La caisse 1 × 1 des autres établis de MC (`Furniture_Village_Crate`) : `Bench_Loom` est un établi de fabrication de deux cases, qui deviendrait l'établi de la hutte et déborderait sur sa voisine |
 | `minecolonies:blockstash` | Petit coffre, comme `minecraft:chest` (la Réserve n'est pas un bâtiment de HyColony) |
 | `minecraft:end_rod` | `Furniture_Crude_Candle` |
 
@@ -41,7 +41,7 @@ Chaque règle a sa vérification dans `tools/blueprint/check_*.py`. Les 120 autr
 
 ## 3. Variantes Domum livrées (HyDomum)
 
-Les 35 plans utilisent 41 variantes HyDomum (`forme|matériau1|matériau2`). Aujourd'hui, une variante n'existe qu'après sa création par le découpeur ou par `universe/hydomum/variants.json`. Une variante absente se charge en bloc « Unknown ».
+Les 35 plans utilisent 42 variantes HyDomum (`forme|matériau1|matériau2`). Aujourd'hui, une variante n'existe qu'après sa création par le découpeur ou par `universe/hydomum/variants.json`. Une variante absente se charge en bloc « Unknown ».
 
 - **HyDomum** (`dev.hydomum.plugin.api`) gagne `BootVariants.require(Collection<String> ids)`.
   - Un autre mod l'appelle pendant son `setup` ; HyDomum crée ces variantes au démarrage, avec ses variantes sauvegardées (`OrnamentVariantRegistry.start`).
@@ -59,7 +59,7 @@ Les 35 plans utilisent 41 variantes HyDomum (`forme|matériau1|matériau2`). Auj
   - `authors` du `pack.json` ;
   - `owner` « minecolonies » ;
   - `icon` « pack_medievaloak ».
-- `hycolony/domum-variants.json` : les 41 variantes.
+- `hycolony/domum-variants.json` : les 42 variantes.
 - `Common/UI/Custom/Pages/HyColony/Structurize/pack_medievaloak@2x.png` : `medievaloak.png` (400 × 400) ramenée à 320 × 320.
 
 ## 5. Retrait des styles vanilla

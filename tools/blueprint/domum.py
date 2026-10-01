@@ -54,6 +54,10 @@ DIRECTED_FRAMES = ("TimberFrame_SideFramed", "TimberFrame_UpGated", "TimberFrame
 CONNECTED = (("End", {"north"}), (None, {"east", "west"}), ("Corner", {"west", "south"}),
              ("T", {"east", "west", "south"}), ("Cross", {"north", "south", "east", "west"}))
 TURN = ("north", "west", "south", "east")
+# Les cloisons de papier (HyDomum_PaneConnectedBlockTemplate) : chaque état et ses bras au lacet 0 ; sans bras, le
+# bloc de base est le poteau.
+PANE_CONNECTED = (("End", {"north"}), ("Straight", {"north", "south"}), ("Corner", {"north", "east"}),
+                  ("T_Junction", {"north", "east", "west"}), ("Cross_Junction", {"north", "south", "east", "west"}))
 # Le dessus d'un muret (domum/core WallState, tools/domum/blocks/wall_tops.py) : la forme du gabarit de chaque état de
 # CONNECTED, ses bras hauts au lacet 0 dans l'ordre N, E, S, O, et le poteau facultatif d'un droit ou d'une croix.
 SHAPE_KEYS = {"End": "End", None: "Straight", "Corner": "Corner", "T": "T_Junction", "Cross": "Cross_Junction"}
@@ -225,6 +229,18 @@ def _connected(base: str, sides: set[str], rule: str, tall: set[str] = frozenset
     raise ValueError(f"pas de forme pour {sorted(sides)}")
 
 
+def _pane(base: str, sides: set[str]) -> Mapping:
+    """La forme HyDomum d'une cloison de papier dont les bras vont vers sides (ses connexions Minecraft, comme une
+    vitre) : poteau seul (le bloc de base), bout, droit, angle, T ou croix, au plus petit lacet (PANE_CONNECTED)."""
+    if not sides:
+        return place(base, 0, rule="pane")
+    for state, arms in PANE_CONNECTED:
+        for yaw in range(len(TURN)):
+            if {TURN[(TURN.index(side) + yaw) % len(TURN)] for side in arms} == sides:
+                return place(_state(base, state), yaw, rule="pane")
+    raise ValueError(f"pas de forme pour {sorted(sides)}")
+
+
 def _wall_top(shape: str, tall: set[str], up: bool) -> str | None:
     """L'état du dessus d'un muret de cette forme (domum/core WallState.name) : bras hauts au lacet 0, poteau d'un
     droit ou d'une croix ; None pour un muret bas sans poteau facultatif (l'état de sa forme)."""
@@ -320,5 +336,7 @@ def _shaped(shape_id: str, base: str, p: dict) -> Mapping | None:
         return place(base, DIRECTED_FRAME_ROTATIONS.get(p.get("facing", "up"), 0), rule="timber_frame")
     if shape_id.startswith("TimberFrame_"):
         return place(base, 0, rule="timber_frame")
-    # Panneaux, cloisons de papier, poteaux : rotation HyDomum pas encore vérifiée, règles existantes.
+    if shape_id.startswith("PaperWall"):
+        return _pane(base, fam._connections(p, wall_style=False))
+    # Panneaux, poteaux : rotation HyDomum pas encore vérifiée, règles existantes.
     return None

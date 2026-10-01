@@ -193,6 +193,27 @@ def minecraft_fences_gates_and_walls_become_hydomum_ones():
     assert domum.vanilla_rule("minecraft:oak_fence_gate", {"facing": "north"}, False) is None
 
 
+def paper_wall_takes_the_pane_shape_of_its_connections():
+    # HyDomum_PaneConnectedBlockTemplate at yaw 0: End north, Straight north-south, Corner north-east, T_Junction
+    # north-east-west; the base block is the lone post. Turned by the same NESW variant rotation as the fences.
+    def pane(**sides):
+        m = _rule("domum_ornamentum:blockpaperwall", {s: "true" for s in sides} | {"waterlogged": "false"})
+        return m.target, m.rotation
+
+    state = "*HyDomum_PaperWall_State_Definitions_"
+    assert pane() == ("HyDomum_PaperWall", 0)
+    for side, yaw in (("north", 0), ("west", 1), ("south", 2), ("east", 3)):
+        assert pane(**{side: 1}) == (state + "End", yaw), side
+    assert pane(north=1, south=1) == (state + "Straight", 0)
+    assert pane(east=1, west=1) == (state + "Straight", 1)
+    assert pane(north=1, east=1) == (state + "Corner", 0)
+    assert pane(west=1, north=1) == (state + "Corner", 1)
+    assert pane(north=1, south=1, east=1) == (state + "T_Junction", 3)
+    assert pane(north=1, south=1, east=1, west=1) == (state + "Cross_Junction", 0)
+    m = _rule("domum_ornamentum:blocktiledpaperwall", {"north": "true"})
+    assert (m.target, m.rotation) == ("*HyDomum_PaperWall_Tiled_State_Definitions_End", 0), m
+
+
 def every_state_emitted_exists_in_its_template():
     items = domum.RESOURCES.parent / "Server" / "Item" / "Items" / "HyDomum"
 
@@ -215,6 +236,8 @@ def every_state_emitted_exists_in_its_template():
             wanted = {"OpenDoorOut"}
         elif sid == "Fence":
             wanted = {"Corner", "T", "Cross", "Post", "End"}
+        elif sid.startswith("PaperWall"):
+            wanted = {state for state, _ in domum.PANE_CONNECTED}
         elif sid == "Wall":
             # Every top the converter may name (domum._wall_top), for MC's up and tall properties.
             tops = {domum._wall_top(domum.SHAPE_KEYS[state], set(tall), up) for state, arms in domum.CONNECTED
@@ -263,6 +286,7 @@ def run():
     fence_end_points_its_arm_at_its_neighbour()
     fence_junctions_take_their_t_and_cross_states()
     wall_tops_follow_minecrafts_up_and_tall()
+    paper_wall_takes_the_pane_shape_of_its_connections()
     minecraft_fences_gates_and_walls_become_hydomum_ones()
     every_state_emitted_exists_in_its_template()
     timber_frame_takes_its_two_materials()
