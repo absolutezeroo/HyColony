@@ -12,6 +12,7 @@ import dev.hycolony.core.app.ui.WindowKey;
 import dev.hycolony.plugin.ui.ColonyPage;
 import dev.hycolony.plugin.ui.RequestsPage;
 import dev.hycolony.plugin.ui.citizen.CitizenPage;
+import dev.hycolony.plugin.ui.field.FieldPage;
 import dev.hycolony.plugin.ui.hut.HutWindow;
 import dev.hycolony.plugin.ui.townhall.TownHallPage;
 import java.util.UUID;
@@ -79,6 +80,8 @@ final class LiveWindows {
                         && p.view().citizenId() == c.citizenId();
             case WindowKey.Clipboard c ->
                 page instanceof RequestsPage p && p.view().colonyId() == c.colonyId();
+            case WindowKey.Field f ->
+                page instanceof FieldPage p && p.view().pos().equals(f.pos());
         };
     }
 

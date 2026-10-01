@@ -22,8 +22,8 @@ final class CitizenInventoryWindow extends ContainerWindow implements ValidatedW
     private long seenChanges;
 
     /**
-     * The citizen's name as the window's {@code name}, MC's title for this screen; a BenchWindow's client reads its
-     * {@code name} as a translation key, which an unknown key shows as is. Unverified for a container window.
+     * The citizen's name as the window's {@code name}, MC's title for this screen, as BenchWindow sends its own (a
+     * translation key there). Whether the client shows it for a container window is unverified (TESTING point 72).
      */
     CitizenInventoryWindow(CitizenItemContainer container, CitizenData citizen, BooleanSupplier alive) {
         super(container);

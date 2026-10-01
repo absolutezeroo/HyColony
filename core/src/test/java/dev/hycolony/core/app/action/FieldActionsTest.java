@@ -62,6 +62,20 @@ class FieldActionsTest {
         return colony.registries().fields().get(pos).orElseThrow();
     }
 
+    /** MC WindowField.onUpdate redraws every tick; the window is redrawn at the next subscriber update. */
+    @Test
+    void openFieldWindowIsRedrawnWhenTheFieldChanges() {
+        assertTrue(fields.open(carol, NEAR));
+        field(NEAR).setSeed(Optional.of(new ItemKey("wheat_seeds")));
+
+        for (int i = 0; i < 20; i++) {
+            manager.windows().tick();
+        }
+
+        FieldView redrawn = assertInstanceOf(FieldView.class, t.ui.redrawn.get(0));
+        assertEquals(Optional.of(new ItemKey("wheat_seeds")), redrawn.seed());
+    }
+
     @Test
     void placingInsideTheColonyRegistersAField() {
         assertTrue(fields.placed(alice, NEAR));

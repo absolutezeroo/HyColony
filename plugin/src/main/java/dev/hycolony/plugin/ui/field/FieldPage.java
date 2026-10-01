@@ -23,7 +23,8 @@ import javax.annotation.Nonnull;
  * the scarecrow's four side buttons, each showing its side's size, with its absolute and, in grey italics, its relative
  * direction from the player's look as tooltip. A side button grows the side by one, past what the budget allows back
  * to 1; each button goes to the core, which checks MANAGE_HUTS and shows the window again. Without MANAGE_HUTS the
- * buttons are disabled.
+ * buttons are disabled (deviation documented in FieldActions). The core redraws the window as the field or the
+ * player's look changes.
  *
  * <p>Deviation from MC: the seed is picked from the game's crop seeds, where MC's list shows the seeds and crops the
  * colony knows; the biome is the world generator's name (Hytale names no biome for players); no crop climate line.
@@ -36,6 +37,10 @@ public final class FieldPage extends ColonyPage {
         super(playerRef, manager);
         this.view = view;
         this.ids = ids;
+    }
+
+    public FieldView view() {
+        return view;
     }
 
     @Override

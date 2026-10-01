@@ -13,8 +13,8 @@ import java.util.List;
 /**
  * A worker's own requests (MC AbstractEntityAIBasic checkIfNeedsItem, waitForRequests and lookForRequests): filed
  * under its hut with its citizen's id, they are sync, the worker waits for them in NEEDS_ITEM, then takes their items
- * from the hut through {@link WorkerStock}. Any job composes one around its citizen and hut. The hut's async requests
- * (filed without a citizen) are received by {@link #cleanAsync}.
+ * from the hut through {@link WorkerStock}. Any job composes one around its citizen and hut. The hut's own item
+ * requests (filed without a citizen) are received by {@link #cleanAsync}.
  */
 public final class SyncRequests {
     private final Colony colony;
@@ -51,8 +51,12 @@ public final class SyncRequests {
     }
 
     /**
-     * MC cleanAsync: the hut's completed requests filed without a citizen (the async ones, whose items wait in the
-     * hut) are received, so their item may be asked for again. Returns false: MC's event never changes state.
+     * MC cleanAsync: the hut's completed requests filed without a citizen, whose items wait in the hut, are received,
+     * so their item may be asked for again. Returns false: MC's event never changes state.
+     *
+     * <p>Deviation from MC: MC receives the job's async requests only; here every building-level item request, async
+     * or not (the builder's materials, a save older than {@link Request#async()}), as Building.onRequestComplete
+     * leaves them COMPLETED for the worker.
      */
     public boolean cleanAsync() {
         for (Request r : requests().byRequester(hut.requesterId())) {

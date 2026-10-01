@@ -1,15 +1,12 @@
 package dev.hycolony.core.app.action;
 
 import dev.hycolony.core.app.ColonyManager;
-import dev.hycolony.core.app.ui.FieldView;
-import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyAccess;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.farming.field.FarmField;
 import dev.hycolony.core.farming.field.FieldRadii;
 import dev.hycolony.core.farming.hut.FarmerFieldsModule;
-import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemKey;
 import java.util.Optional;
@@ -20,6 +17,10 @@ import java.util.UUID;
  * its window (MC FarmFieldUpdateSeedMessage, FarmFieldPlotResizeMessage), and the farmer hut's Fields tab buttons (MC
  * AssignmentModeMessage, AssignFieldMessage, the Request Fertilizer setting). Changes need MANAGE_HUTS; each re-shows
  * the window it came from. Built by its caller, like {@code CraftingActions}.
+ *
+ * <p>Deviation from MC: a radius change needs MANAGE_HUTS too, where MC's FarmFieldPlotResizeMessage checks no right,
+ * so that a stranger cannot reshape a colony's field; the window disables its buttons without it, where MC leaves
+ * them on. A field block outside any colony opens no window, where MC shows one with its radii only.
  */
 public final class FieldActions {
     private final ColonyManager manager;
@@ -52,7 +53,7 @@ public final class FieldActions {
         if (!placed(player, pos)) {
             return false;
         }
-        show(manager.colonyAt(pos).orElseThrow(), pos, player);
+        manager.windows().showField(manager.colonyAt(pos).orElseThrow(), pos, player);
         return true;
     }
 
@@ -128,28 +129,7 @@ public final class FieldActions {
     private boolean changed(UUID player, BlockPos pos) {
         Colony c = manager.colonyAt(pos).orElseThrow();
         c.markDirty();
-        show(c, pos, player);
+        manager.windows().showField(c, pos, player);
         return true;
-    }
-
-    private void show(Colony c, BlockPos pos, UUID player) {
-        FarmField f = c.registries().fields().get(pos).orElseThrow();
-        Optional<String> farmer = f.owner()
-                .flatMap(c.buildings()::at)
-                .flatMap(b -> WorkerModule.firstWorker(c, b))
-                .map(CitizenData::name);
-        manager.windows()
-                .ui()
-                .showField(
-                        player,
-                        new FieldView(
-                                pos,
-                                farmer,
-                                manager.context().worldQuery().biome(pos),
-                                f.seed(),
-                                f.radii(),
-                                FieldView.sides(manager.context().players().facing(player)),
-                                manager.context().ports().farming().seeds(),
-                                ColonyAccess.allows(c, player, Action.MANAGE_HUTS)));
     }
 }

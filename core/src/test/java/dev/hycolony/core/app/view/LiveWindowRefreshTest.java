@@ -143,7 +143,9 @@ class LiveWindowRefreshTest {
         Building hut = colony.buildings().at(pos).orElseThrow();
         colony.requests().createAndAssign(hut, new StackRequest(new ItemKey("plank"), 2, 2, true), 1);
 
-        tickWindows(OpenWindows.UPDATE_SUBSCRIBERS_INTERVAL_TICKS);
+        tickWindows(OpenWindows.REQUEST_TREE_REFRESH_TICKS - 1);
+        assertTrue(t.ui.redrawn.isEmpty(), "MC rebuilds the tree every AUTO_REFRESH_TICKS only");
+        tickWindows(1);
 
         RequestsView redrawn = (RequestsView) t.ui.redrawn.get(0);
         assertEquals(1, redrawn.rows().size());
