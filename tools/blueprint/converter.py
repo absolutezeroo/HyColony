@@ -6,7 +6,7 @@ Ordre de résolution d'une case (le premier qui répond gagne) :
   2. Cases toujours vides (air, marqueurs de hutte, détails retirés, lits…)
   3. Blocs Domum portés par HyDomum ; avec leurs matériaux, les clôtures, portillons et murets de Minecraft
      deviennent aussi ceux de HyDomum (domum.py)
-  4. Règles contextuelles (torche murale, bibliothèque, bloc de verre, clôture)
+  4. Règles contextuelles (torche murale, bibliothèque, bloc de verre, clôture, citrouille)
   5. Tables : FAMILY (directionnels) puis SIMPLE
   6. Motifs (panneaux, portes, trappes, couleurs, tapis et pots HyVanilla, vitres…)
   7. Table de secours HytalesHub (uniquement blocs non directionnels)
@@ -17,6 +17,7 @@ Le fichier --overrides de l'utilisateur remplace la cible des étapes 2 à 8.
 from __future__ import annotations
 
 import csv
+import hashlib
 from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -179,9 +180,27 @@ def fence_in_context(base: str):
     return rule
 
 
+# Une citrouille Hypixel sur PUMPKIN_HYPIXEL_ONE_IN, les autres mignonnes (demandé le 2026-10-01 : la citrouille
+# posable, une culture, saute à la mise à jour d'un bloc voisin).
+PUMPKIN_HYPIXEL_ONE_IN = 4
+
+
+def pumpkin(bp: Blueprint, pos: Pos, p: dict) -> Mapping:
+    """Citrouille -> citrouille décorative d'Halloween, mignonne ou Hypixel et tournée selon sa position : le choix
+    reste le même d'une conversion à l'autre et se mêle sans motif régulier. Écart : elles éclairent et ont une face
+    sculptée, pas la citrouille simple de Minecraft."""
+    # Un hachage qui mêle les bits : les constantes d'un hachage spatial modulo 4 donnent un réseau régulier.
+    h = int.from_bytes(hashlib.blake2b(repr(tuple(pos)).encode(), digest_size=4).digest(), "big")
+    hypixel = h % PUMPKIN_HYPIXEL_ONE_IN == 0
+    target = "Deco_Halloween_Pumpkin_Hypixel" if hypixel else "Deco_Halloween_Pumpkin_Cute"
+    return place(target, (h // PUMPKIN_HYPIXEL_ONE_IN) % 4,
+                 f"citrouille -> {target} (face sculptée et lumière : pas MC)", rule="pumpkin")
+
+
 CONTEXTUAL = {
     "minecraft:wall_torch": wall_torch,
     "minecraft:bookshelf": bookshelf,
+    "minecraft:pumpkin": pumpkin,
     "minecraft:oak_fence": fence_in_context("Wood_Hardwood_Fence"),
 }
 

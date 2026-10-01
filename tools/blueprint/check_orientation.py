@@ -51,9 +51,19 @@ def pumpkins_and_mossy_walls_of_the_farmer_are_converted():
         cell = {"Name": f"minecraft:{name}", "Properties": {"facing": "north"}}
         m = _mappings({(4, 0, 4): cell})[(4, 0, 4)]
         assert (m.target, m.rotation) == (target, 2), (name, m)
-    # Plant_Crop_Pumpkin_Block is a growing crop (seeds, needs soil); the pumpkin itself is the Item's block.
-    m = _mappings({(4, 0, 4): {"Name": "minecraft:pumpkin"}})[(4, 0, 4)]
-    assert m.target == "Plant_Crop_Pumpkin_Item", m
+    # A pumpkin is a decorative one (the placed crop item pops on a block update): mostly Cute, a Hypixel one about
+    # every fourth, chosen by position so a reconversion keeps them, and turned by position too.
+    hypixel = "Deco_Halloween_Pumpkin_Hypixel"
+    grid = {(x, 0, z): {"Name": "minecraft:pumpkin"} for x in range(8) for z in range(8)}
+    cells = _mappings(grid)
+    targets = [m.target for m in cells.values()]
+    assert set(targets) == {"Deco_Halloween_Pumpkin_Cute", hypixel}, set(targets)
+    assert 8 <= targets.count(hypixel) <= 24, targets.count(hypixel)
+    assert len({m.rotation for m in cells.values()}) == 4 and cells == _mappings(grid)
+    # No regular pattern: rows differ in their Hypixel count, and Hypixel ones face several ways.
+    rows = [[cells[(x, 0, z)].target for x in range(8)] for z in range(8)]
+    assert len({row.count(hypixel) for row in rows}) > 1, rows
+    assert len({m.rotation for m in cells.values() if m.target == hypixel}) > 1
     m = _mappings({(4, 0, 4): {"Name": "minecraft:melon"}})[(4, 0, 4)]  # no melon in Hytale: the pumpkin, not a crop
     assert m.target == "Plant_Crop_Pumpkin_Item", m
     m = _mappings({(4, 0, 4): {"Name": "minecraft:mossy_stone_brick_wall"}})[(4, 0, 4)]
@@ -74,11 +84,24 @@ def tools_are_not_blocks():
     assert "HyColony_Build_Tool" not in known and "HyColony_Placeholder_Solid" in known
 
 
+def deepslate_is_hytales_slate():
+    # Deepslate is Hytale's slate (asked 2026-10-01), as its walls: a full block and its wall's material match.
+    from .domum import material_table
+    from .tables import SIMPLE
+
+    for name in ("deepslate", "cobbled_deepslate", "deepslate_bricks", "deepslate_tiles", "polished_deepslate",
+                 "polished_blackstone", "mud_bricks"):
+        m = _mappings({(4, 0, 4): {"Name": f"minecraft:{name}"}})[(4, 0, 4)]
+        assert m.target == SIMPLE[f"minecraft:{name}"][0] == material_table()[f"minecraft:{name}"], (name, m)
+    assert SIMPLE["minecraft:deepslate_bricks"][0] == "Rock_Slate_Brick"
+
+
 def run():
     a_single_chest_faces_like_minecraft()
     a_bookshelf_wall_opens_towards_the_inside()
     a_lone_rack_faces_like_a_chest()
     pumpkins_and_mossy_walls_of_the_farmer_are_converted()
+    deepslate_is_hytales_slate()
     tools_are_not_blocks()
     print("blueprint orientation check: OK")
 

@@ -98,6 +98,14 @@ SIMPLE: dict[str, tuple[str, str | None]] = {
     "minecraft:stone": ("Rock_Stone", None),
     "minecraft:cobblestone": ("Rock_Stone_Cobble", None),
     "minecraft:mossy_cobblestone": ("Rock_Stone_Cobble_Mossy", None),
+    # Abîme : l'ardoise de Hytale (demandé le 2026-10-01), comme ses murets (data/domum-materials.csv).
+    "minecraft:deepslate": ("Rock_Slate", None),
+    "minecraft:cobbled_deepslate": ("Rock_Slate_Cobble", None),
+    "minecraft:deepslate_bricks": ("Rock_Slate_Brick", None),
+    "minecraft:deepslate_tiles": ("Rock_Slate_Brick", "tuiles d'abîme -> brique d'ardoise"),
+    "minecraft:polished_deepslate": ("Rock_Slate_Brick_Smooth", None),
+    "minecraft:polished_blackstone": ("Rock_Volcanic_Brick_Smooth", "blackstone poli -> brique volcanique lisse"),
+    "minecraft:mud_bricks": ("Soil_Clay_Brick", "briques de boue approximées en brique d'argile"),
     "minecraft:stone_bricks": ("Rock_Stone_Brick", None),
     "minecraft:cracked_stone_bricks": ("Rock_Stone_Brick", "fissures omises"),
     "minecraft:mossy_stone_bricks": ("Rock_Stone_Brick_Mossy", None),
@@ -222,11 +230,9 @@ FAMILY = {
     "minecraft:rail": f.rail,
     "domum_ornamentum:panel": f.domum_panel,
     # Botte de foin : le cube de foin Hytale ne tourne pas (pas de VariantRotation), elle reste debout.
-    # Citrouilles : la citrouille posée, et les citrouilles décoratives d'Halloween (qui éclairent) pour les sculptées.
-    # La citrouille posable (Plant_Crop_Pumpkin_Block est la culture qui pousse, sur du sol). Modèle sans face
-    # d'appui : rien ne tient dessus, et elle-même tient sur une face pleine.
-    "minecraft:pumpkin": lambda p: place("Plant_Crop_Pumpkin_Item", 0, "citrouille -> citrouille posée",
-                                         rule="simple"),
+    # Citrouilles : les citrouilles décoratives d'Halloween (qui éclairent) pour les sculptées ; la citrouille simple
+    # dépend de sa position (converter.pumpkin). La pastèque : la citrouille posable (Plant_Crop_Pumpkin_Block est la
+    # culture qui pousse, sur du sol), sans face d'appui : rien ne tient dessus, et elle tient sur une face pleine.
     "minecraft:melon": lambda p: place("Plant_Crop_Pumpkin_Item", 0, "pastèque -> citrouille posée (pas de pastèque "
                                        "dans Hytale)", rule="simple"),
     "minecraft:jack_o_lantern": f.front_south("Deco_Halloween_Pumpkin_Scary",
