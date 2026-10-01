@@ -5,6 +5,7 @@ import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalInt;
 
 public interface WorldBlocks {
     /**
@@ -38,4 +39,7 @@ public interface WorldBlocks {
      * {@code Tier<N>} block state). False if the chunk is not loaded or the block there is no bench.
      */
     boolean setBenchTier(BlockPos pos, int tier);
+
+    /** The tier of the crafting bench at {@code pos}; empty if the chunk is not loaded or the block is no bench. */
+    OptionalInt benchTier(BlockPos pos);
 }

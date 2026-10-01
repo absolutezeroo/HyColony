@@ -10,6 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -103,6 +104,15 @@ public final class FakeWorldBlocks implements WorldBlocks {
         }
         benchTiers.put(pos, tier);
         return true;
+    }
+
+    /** The tier set or put in {@link #benchTiers}, else 1 for any block; empty unloaded or with no block. */
+    @Override
+    public OptionalInt benchTier(BlockPos pos) {
+        if (!isLoaded(pos) || !blocks.containsKey(pos)) {
+            return OptionalInt.empty();
+        }
+        return OptionalInt.of(benchTiers.getOrDefault(pos, 1));
     }
 
     @Override

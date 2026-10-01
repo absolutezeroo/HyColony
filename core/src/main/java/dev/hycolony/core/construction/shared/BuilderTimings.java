@@ -1,4 +1,4 @@
-package dev.hycolony.core.construction.builder;
+package dev.hycolony.core.construction.shared;
 
 /** Builder place and break delays in ticks (MC AbstractEntityAIStructure / AbstractEntityAIInteract). */
 public final class BuilderTimings {

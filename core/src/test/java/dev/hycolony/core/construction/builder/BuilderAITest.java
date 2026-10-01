@@ -35,6 +35,7 @@ import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolInfo;
 import dev.hycolony.core.kernel.item.ToolType;
+import dev.hycolony.core.kernel.item.Workstation;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.model.RequestState;
@@ -692,6 +693,88 @@ class BuilderAITest {
         assertEquals(new BlockState(STONE, 0), t.blocks.blocks.get(at(1, 0, 0)));
         assertEquals(0, citizen.inventory().count(STONE_I));
         assertTrue(builderRequests().isEmpty());
+    }
+
+    /**
+     * A chest already where the plan puts it joins the building's containers, as MC registers a cell found as planned
+     * (Structurize AbstractBlueprintIterator.iterateWithCondition -> triggerSuccess): the warehouse fills it.
+     */
+    @Test
+    void chestAlreadyAsPlannedJoinsTheBuildingsContainers() {
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 0);
+        BlockKey chest = new BlockKey("chest");
+        t.catalog.kinds.put(chest, BlockKind.SOLID);
+        blueprint = bp(List.of(
+                entry(1, 0, 0, STONE), new BlueprintEntry(new BlockPos(2, 0, 0), new BlockState(chest, 0), true)));
+        t.blocks.blocks.put(at(2, 0, 0), new BlockState(chest, 0));
+        give(STONE_I, 1);
+        WorkOrder o = order(res, WorkOrderType.BUILD);
+
+        tickUntil(() -> gone(o), 5000);
+
+        assertEquals(Set.of(at(2, 0, 0)), res.registeredBlocks().containers());
+        assertFalse(t.blocks.placed.contains(at(2, 0, 0)), "kept with its items, not placed again");
+    }
+
+    /** A cell skipped for holding an unbreakable block, not the planned chest, registers no container. */
+    @Test
+    void unbreakableBlockWhereAChestIsPlannedIsNoContainer() {
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 0);
+        BlockKey chest = new BlockKey("chest");
+        BlockKey crate = new BlockKey("crate");
+        t.catalog.kinds.put(chest, BlockKind.SOLID);
+        t.catalog.kinds.put(crate, BlockKind.UNBREAKABLE);
+        blueprint = bp(List.of(
+                entry(1, 0, 0, STONE), new BlueprintEntry(new BlockPos(2, 0, 0), new BlockState(chest, 0), true)));
+        t.blocks.blocks.put(at(2, 0, 0), new BlockState(crate, 0));
+        give(STONE_I, 1);
+        WorkOrder o = order(res, WorkOrderType.BUILD);
+
+        tickUntil(() -> gone(o), 5000);
+
+        assertTrue(res.registeredBlocks().containers().isEmpty());
+    }
+
+    /**
+     * A bench already where the plan puts it joins the building at the tier it has: MC registers what is there and
+     * writes nothing (BuildingStructureHandler.triggerSuccess), so a player's higher bench is never lowered, nor a
+     * lower one raised for free.
+     */
+    @Test
+    void benchAlreadyAsPlannedJoinsTheBuildingAtItsOwnTierUntouched() {
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 0);
+        blueprint = bp(List.of(new BlueprintEntry(
+                new BlockPos(1, 0, 0),
+                new BlockState(STONE, 0),
+                false,
+                Optional.of(new Workstation("Farmingbench", 2)))));
+        t.blocks.blocks.put(at(1, 0, 0), new BlockState(STONE, 0));
+        t.blocks.benchTiers.put(at(1, 0, 0), 3); // the player upgraded it past the plan
+        WorkOrder o = order(res, WorkOrderType.BUILD);
+
+        tickUntil(() -> gone(o), 5000);
+
+        assertEquals(
+                Map.of(at(1, 0, 0), new Workstation("Farmingbench", 3)),
+                res.registeredBlocks().workstations());
+        assertEquals(3, t.blocks.benchTiers.get(at(1, 0, 0)), "never lowered");
+    }
+
+    /** A container the plan lists among its decorations (a non solid block) found as planned joins too. */
+    @Test
+    void decorationContainerAlreadyAsPlannedJoinsTheBuildingsContainers() {
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 0);
+        BlockKey pot = new BlockKey("pot");
+        t.catalog.kinds.put(pot, BlockKind.NON_SOLID);
+        blueprint = bp(List.of(
+                entry(1, 0, 0, STONE), new BlueprintEntry(new BlockPos(1, 1, 0), new BlockState(pot, 0), true)));
+        t.blocks.blocks.put(at(1, 1, 0), new BlockState(pot, 0));
+        give(STONE_I, 1);
+        WorkOrder o = order(res, WorkOrderType.BUILD);
+
+        tickUntil(() -> gone(o), 5000);
+
+        assertEquals(Set.of(at(1, 1, 0)), res.registeredBlocks().containers());
     }
 
     /** Simulation: a REMOVE left the mined chest registered as the building's container. */

@@ -26,6 +26,7 @@ public final class BuilderAI implements JobAI {
     private final BuilderContext ctx;
     private final BuildSite site;
     private final BuilderBlockWork blockWork;
+    private final PlannedBlocks planned;
     private final BuilderGathering gathering;
     private final StructureLoader loader;
     private final WorkerMachine<BuilderState> machine;
@@ -36,7 +37,8 @@ public final class BuilderAI implements JobAI {
         this.ctx = ctx;
         this.site = ctx.site();
         this.gathering = new BuilderGathering(ctx);
-        this.blockWork = new BuilderBlockWork(ctx, gathering);
+        this.planned = new PlannedBlocks(ctx);
+        this.blockWork = new BuilderBlockWork(ctx, gathering, planned);
         this.loader = new StructureLoader(ctx);
         this.machine = new WorkerMachine<>(
                 BuilderState.IDLE,
@@ -210,6 +212,7 @@ public final class BuilderAI implements JobAI {
         int from = site.loadedOrder().progressIndex();
         int limit = (int) Math.min(size, (long) from + SCAN_LIMIT);
         int i = ctx.scan().firstNeedingWork(site, stage, from, limit);
+        planned.foundAsPlanned(stage, from, i);
         if (i >= limit) {
             if (i < size) {
                 site.progress(stage, i); // scan budget spent: go on next step

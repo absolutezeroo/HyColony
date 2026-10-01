@@ -119,6 +119,52 @@ class PasteQueueTest {
     }
 
     @Test
+    void chestAlreadyThereJoinsTheHutsBuildingUntouched() {
+        UUID alice = UUID.randomUUID();
+        manager.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
+        Colony colony = manager.foundation().confirm(alice, "Rivendell").orElseThrow();
+        manager.huts().place(colony, ConstructionBuildingTypes.BUILDER.id(), HUT, 0, UUID.randomUUID());
+        BlockPos chest = HUT.offset(0, 2, 0);
+        t.blocks.blocks.put(chest, FakeBlueprints.state(FakeBlueprints.CHEST));
+        paste(FakeBlueprints.hut(false));
+        for (int i = 0; i < HUT_BLOCKS; i++) {
+            queue.tick();
+        }
+
+        assertTrue(colony.buildings()
+                .at(HUT)
+                .orElseThrow()
+                .registeredBlocks()
+                .containers()
+                .contains(chest));
+        assertFalse(t.blocks.placed.contains(chest), "kept as it was");
+    }
+
+    @Test
+    void benchAlreadyThereJoinsTheHutAtItsOwnTier() {
+        UUID alice = UUID.randomUUID();
+        manager.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
+        Colony colony = manager.foundation().confirm(alice, "Rivendell").orElseThrow();
+        manager.huts().place(colony, ConstructionBuildingTypes.BUILDER.id(), HUT, 0, UUID.randomUUID());
+        BlockPos at = HUT.offset(1, 0, 0);
+        t.blocks.blocks.put(at, FakeBlueprints.state(FakeBlueprints.PLANKS));
+        t.blocks.benchTiers.put(at, 1);
+        BlueprintEntry e = new BlueprintEntry(
+                new BlockPos(1, 0, 0),
+                FakeBlueprints.state(FakeBlueprints.PLANKS),
+                false,
+                Optional.of(new Workstation("Farmingbench", 2)));
+        paste(new Blueprint("bench", List.of(e), new BlockPos(0, 0, 0), new BlockPos(1, 0, 0)));
+
+        queue.tick();
+
+        assertEquals(1, t.blocks.benchTiers.get(at), "not raised for free");
+        assertEquals(
+                Map.of(at, new Workstation("Farmingbench", 1)),
+                colony.buildings().at(HUT).orElseThrow().registeredBlocks().workstations());
+    }
+
+    @Test
     void pastedBenchJoinsTheHutForFree() {
         UUID alice = UUID.randomUUID();
         manager.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);

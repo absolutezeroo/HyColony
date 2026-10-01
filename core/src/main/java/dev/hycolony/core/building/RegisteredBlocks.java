@@ -6,12 +6,13 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.OptionalInt;
 import java.util.Set;
 
 /**
- * The blocks of its plan a hut registered once placed, besides the hut block: its containers (MC
+ * The blocks of its plan a hut registered once placed or found as planned, besides the hut block: its containers (MC
  * AbstractBuildingContainer.containerList) and its crafting benches (MC FurnaceUserModule, the furnaces a smelter got
- * from AbstractBuilding.registerBlockPosition). A block a player places never comes here.
+ * from AbstractBuilding.registerBlockPosition). A block a player places elsewhere than its plan never comes here.
  */
 public final class RegisteredBlocks {
     private final BlockPos hut;
@@ -45,6 +46,17 @@ public final class RegisteredBlocks {
      */
     public void addWorkstation(BlockPos pos, Workstation workstation) {
         workstations.put(pos, workstation);
+    }
+
+    /**
+     * MC registerBlockPosition of a bench found where the plan puts one, as it stands: registered with the {@code tier}
+     * the world gives it (the plan's tier is not paid for), nothing if the world gives none. A bench already registered
+     * keeps its entry: one the builder placed and paid for stays at its planned tier, though the world refused it.
+     */
+    public void addFoundWorkstation(BlockPos pos, Workstation planned, OptionalInt tier) {
+        if (!workstations.containsKey(pos)) {
+            tier.ifPresent(t -> workstations.put(pos, new Workstation(planned.benchId(), t)));
+        }
     }
 
     /** Forgets the bench at {@code pos} once broken (MC FurnaceUserModule.removeFromFurnaces); no-op if none. */

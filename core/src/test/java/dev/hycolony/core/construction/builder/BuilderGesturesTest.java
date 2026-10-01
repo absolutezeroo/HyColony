@@ -3,6 +3,7 @@ package dev.hycolony.core.construction.builder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.hycolony.core.construction.shared.BuilderTimings;
 import dev.hycolony.core.job.work.WorkerMachine;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;

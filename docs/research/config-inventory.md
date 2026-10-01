@@ -177,7 +177,7 @@ Les constantes suivantes ressemblent à des options mais **ne correspondent à a
 
 | HyColony | Valeur | Source MC (en dur) |
 |---|---|---|
-| `core:construction/builder/BuilderTimings.java:5` `BUILD_BLOCK_DELAY` | 15 | `AbstractEntityAIStructure.java:79` (ancienne option `builderbuildblockdelay`, supprimée) |
+| `core:construction/shared/BuilderTimings.java:5` `BUILD_BLOCK_DELAY` | 15 | `AbstractEntityAIStructure.java:79` (ancienne option `builderbuildblockdelay`, supprimée) |
 | `BuilderTimings.java:7` `BLOCK_MINING_DELAY` | 500 | `AbstractEntityAIInteract.java:100` (ancienne option `blockminingdelaymodifier`) |
 | `BuilderTimings.java:6` `PROGRESS_MULTIPLIER` | 10 | `CitizenConstants.java:261` |
 | `BuilderTimings.java:8` `LEVEL_MODIFIER` | 0.85 | `AbstractEntityAIInteract.java:54` |

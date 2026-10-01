@@ -1,4 +1,4 @@
-package dev.hycolony.core.construction.builder;
+package dev.hycolony.core.construction.shared;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

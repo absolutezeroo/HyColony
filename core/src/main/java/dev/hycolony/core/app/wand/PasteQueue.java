@@ -16,7 +16,8 @@ import java.util.Optional;
  * head advances, by at most Structurize {@code maxOperationsPerTick} world changes per tick. A paste first breaks what
  * its plan leaves empty (ST CreativeStructureHandler.allowReplace, drops ignored), then places its solid blocks, then
  * its decorations and fluids, each bottom up, all quietly (no particles nor sound, as ST). A placed block with a
- * container, or a crafting bench, joins the hut's building (MC AbstractBuildingContainer.registerBlockPosition).
+ * container, or a crafting bench, joins the hut's building (MC AbstractBuildingContainer.registerBlockPosition); one
+ * found already as planned joins too, as it stands.
  *
  * <p>Deviation from MC: a pasted chest is empty, since our plans carry no container contents (ST
  * ContainerPlacementHandler pastes them); no entity phase, our prefabs have no entities. A pasted bench gets its
@@ -97,7 +98,10 @@ final class PasteQueue {
         BlueprintEntry e = list.get(index++);
         if (plan.satisfied(
                 e, blocks().get(pos).orElse(null), manager.context().ports().catalog())) {
-            return true; // ST StructurePlacer: a block already matching is left as is (a chest keeps its items)
+            // ST StructurePlacer: a block already matching is left as is (a chest keeps its items), yet its container
+            // or bench joins the hut, as ST's iterator calls triggerSuccess on it (CreativeBuildingStructureHandler).
+            registerFound(plan, pos, e);
+            return true;
         }
         if (!blocks().placeQuietly(pos, e.state(), e.hasContainer())) {
             // An unloaded section or a refused block: skipped, never retried, so a paste always ends.
@@ -119,6 +123,25 @@ final class PasteQueue {
         if (e.hasContainer() || bench.isPresent()) {
             register(plan, pos, e);
         }
+    }
+
+    /**
+     * The container and bench of a cell found as planned join the hut's building as they stand, the bench at the tier
+     * it has, writing nothing (MC CreativeBuildingStructureHandler.triggerSuccess only registers).
+     */
+    private void registerFound(StructurePlan plan, BlockPos pos, BlueprintEntry e) {
+        if (!e.hasContainer() && e.workstation().isEmpty()) {
+            return;
+        }
+        Optional<Colony> colony = manager.colonyAt(plan.hut());
+        colony.flatMap(c -> c.buildings().at(plan.hut())).ifPresent(b -> {
+            if (e.hasContainer()) {
+                b.registeredBlocks().addContainer(pos);
+            }
+            e.workstation()
+                    .ifPresent(bench -> b.registeredBlocks().addFoundWorkstation(pos, bench, blocks().benchTier(pos)));
+            colony.get().markDirty();
+        });
     }
 
     /**

@@ -10,6 +10,7 @@ import com.hypixel.hytale.server.core.universe.world.chunk.BlockOperations;
 import com.hypixel.hytale.server.core.universe.world.chunk.section.BlockSection;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import dev.hycolony.core.kernel.BlockPos;
+import java.util.OptionalInt;
 import org.joml.Vector3i;
 
 /**
@@ -20,6 +21,18 @@ import org.joml.Vector3i;
  */
 public final class BenchTiers {
     private BenchTiers() {}
+
+    /** The tier of the bench at {@code pos}; empty if the chunk is unloaded or it is no bench. */
+    public static OptionalInt get(World world, BlockPos pos) {
+        Ref<ChunkStore> section = HytaleSections.section(world, pos);
+        if (section == null) {
+            return OptionalInt.empty();
+        }
+        Store<ChunkStore> store = world.getChunkStore().getStore();
+        Ref<ChunkStore> entity = BlockModule.getBlockEntity(store, section, pos.x(), pos.y(), pos.z());
+        BenchBlock bench = entity == null ? null : store.getComponent(entity, BenchBlock.getComponentType());
+        return bench == null ? OptionalInt.empty() : OptionalInt.of(bench.getTierLevel());
+    }
 
     /** True once the bench at {@code pos} has {@code tier}; false if the chunk is unloaded or it is no bench. */
     public static boolean set(World world, BlockPos pos, int tier) {

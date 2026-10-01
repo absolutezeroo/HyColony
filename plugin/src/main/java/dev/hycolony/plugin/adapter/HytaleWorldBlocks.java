@@ -23,6 +23,7 @@ import dev.hycolony.plugin.block.HytaleBlockStates;
 import dev.hycolony.plugin.block.HytaleSections;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.logging.Level;
 import org.jspecify.annotations.Nullable;
@@ -221,6 +222,16 @@ public final class HytaleWorldBlocks implements WorldBlocks {
         } catch (RuntimeException e) {
             fail("setBenchTier", pos, e);
             return false;
+        }
+    }
+
+    @Override
+    public OptionalInt benchTier(BlockPos pos) {
+        try {
+            return BenchTiers.get(world, pos);
+        } catch (RuntimeException e) {
+            fail("benchTier", pos, e);
+            return OptionalInt.empty();
         }
     }
 

@@ -2,6 +2,7 @@ package dev.hycolony.core.construction.builder;
 
 import dev.hycolony.core.construction.blueprint.BlueprintEntry;
 import dev.hycolony.core.construction.resources.EntryCost;
+import dev.hycolony.core.construction.shared.BuilderTimings;
 import dev.hycolony.core.construction.workorder.Stage;
 import dev.hycolony.core.construction.workorder.WorkOrder;
 import dev.hycolony.core.kernel.BlockPos;
@@ -10,7 +11,6 @@ import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolType;
-import dev.hycolony.core.kernel.item.Workstation;
 import dev.hycolony.core.kernel.port.BodyAnimation;
 import java.util.List;
 import java.util.Optional;
@@ -31,12 +31,12 @@ final class BuilderBlockWork {
     private final BuilderGathering gathering;
     private @Nullable BlockPos mineTarget;
     private boolean mineDelayed;
-    /** A refused bench tier is logged once as a warning, then at DEBUG. */
-    private boolean tierWarned;
+    private final PlannedBlocks planned;
 
-    BuilderBlockWork(BuilderContext ctx, BuilderGathering gathering) {
+    BuilderBlockWork(BuilderContext ctx, BuilderGathering gathering, PlannedBlocks planned) {
         this.ctx = ctx;
         this.gathering = gathering;
+        this.planned = planned;
     }
 
     /**
@@ -208,11 +208,7 @@ final class BuilderBlockWork {
             return;
         }
         consume(cost);
-        if (e.hasContainer()) {
-            // MC: racks the builder places become the building's containers
-            ctx.site().target().registeredBlocks().addContainer(pos);
-        }
-        e.workstation().ifPresent(bench -> registerBench(pos, bench));
+        planned.placed(pos, e);
         ctx.award(XP_PER_BLOCK);
         ctx.job().incrementActions();
         ctx.site().progress(stage, i + 1);
@@ -274,24 +270,5 @@ final class BuilderBlockWork {
                 ctx.resources().onPlaced(a.item()); // a free order still counts it, for the progress shown
             }
         }
-    }
-
-    /**
-     * Gives the placed bench its planned tier, then registers it with the target hut (MC triggerSuccess ->
-     * registerBlockPosition). The hut keeps the planned tier even if the world refused it: the builder paid for it.
-     *
-     * <p>Deviation from MC: MC blocks have no tier; Hytale benches do (SP3b-1 spec, deviations 2 and 3).
-     */
-    private void registerBench(BlockPos pos, Workstation bench) {
-        if (!ctx.blocks().setBenchTier(pos, bench.tier())) {
-            LOG.log(
-                    tierWarned ? System.Logger.Level.DEBUG : System.Logger.Level.WARNING,
-                    "Builder {0}: could not set the bench at {1} to tier {2}; the hut registers it at that tier",
-                    ctx.citizen().name(),
-                    pos,
-                    bench.tier());
-            tierWarned = true;
-        }
-        ctx.site().target().registeredBlocks().addWorkstation(pos, bench);
     }
 }
