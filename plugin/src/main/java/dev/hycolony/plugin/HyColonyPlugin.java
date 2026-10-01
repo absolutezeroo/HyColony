@@ -24,8 +24,8 @@ import dev.hycolony.plugin.npc.HyColonyComponents;
 import dev.hycolony.plugin.npc.HyColonySeek;
 import dev.hycolony.plugin.prefab.HytaleBlueprintSource;
 import dev.hycolony.plugin.subplugin.SubPlugins;
+import dev.hycolony.plugin.ui.ItemPages;
 import dev.hycolony.plugin.ui.highlight.GlowingBlock;
-import dev.hycolony.plugin.ui.wand.WandInteraction;
 import java.util.UUID;
 import java.util.logging.Level;
 import javax.annotation.Nonnull;
@@ -62,7 +62,7 @@ public final class HyColonyPlugin extends JavaPlugin {
         NPCPlugin.get().registerCoreComponentType("HyColonyTarget", BuilderSensorHyColonyTarget::new);
         NPCPlugin.get().registerCoreComponentType("HyColonySeek", HyColonySeek.Builder::new);
         registerSystems(worlds, ids);
-        WandInteraction.register(this, worlds);
+        ItemPages.register(this, worlds);
         getCommandRegistry().registerCommand(new HyColonyCommand(worlds, ids, colonyConfig.commands(), packs));
         registerWorldEvents(worlds, api);
         getEventRegistry().register(PlayerDisconnectEvent.class, e -> onDisconnect(worlds, ids, e));

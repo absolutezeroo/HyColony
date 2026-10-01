@@ -1,32 +1,48 @@
 $C = "../../Common.ui";
+$B = "Mc/Book.ui";
+
+// The clipboard's window as MC's (gui/windowclipboard.xml, WindowClipBoard), MC positions and sizes doubled: the
+// clipboard texture, "Open requests:", the "!" button (builder_button_mini, its "!" green when on, red when off, the
+// hide/show tooltip), then the request tree (RequestTree) at MC's (16, 44).
+// Textures under Mc/ are MineColonies' (ldtteam, GPL-3), scaled x4 nearest-neighbour into @2x files.
+
+@Important = TextButton {
+  @Ink = #000000;
+
+  Anchor: (Left: 300, Top: 46, Width: 28, Height: 30);
+  Style: TextButtonStyle(
+    Default: (Background: "Mc/builder_button_mini.png", LabelStyle: (...$B.@InkCentered, TextColor: @Ink)),
+    Hovered: (Background: "Mc/builder_button_mini.png", LabelStyle: (...$B.@InkCentered, TextColor: @Ink)),
+    Pressed: (Background: "Mc/builder_button_mini.png", LabelStyle: (...$B.@InkCentered, TextColor: @Ink)),
+    Sounds: $C.@ButtonSounds
+  );
+  Text: "!";
+  TooltipText: %hycolony.ui.request.hideshow;
+  TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+  Visible: false;
+};
 
 $C.@PageOverlay {
   LayoutMode: Middle;
 
-  $C.@DecoratedContainer {
-    Anchor: (Width: 700);
+  Group {
+    Anchor: (Width: 380, Height: 488);
+    Background: "Mc/clipboard.png";
 
-    #Title {
-      $C.@Title {
-        @Text = %hycolony.ui.requests.title;
-      }
+    Label {
+      Anchor: (Left: 32, Top: 56, Width: 316, Height: 22);
+      Style: $B.@InkCentered;
+      Text: %hycolony.ui.citizen.requests;
     }
 
-    #Content {
-      Padding: (Vertical: 24, Horizontal: 40);
-      LayoutMode: Top;
+    // BlockUI Color "green" and "red".
+    @Important #ImportantOn { @Ink = #008000; }
+    @Important #ImportantOff { @Ink = #ff0000; }
 
-      Label #Empty {
-        Style: (TextColor: #94a7bb);
-        Anchor: (Bottom: 10);
-        Visible: false;
-      }
-
-      Group #Requests {
-        LayoutMode: TopScrolling;
-        ScrollbarStyle: $C.@DefaultScrollbarStyle;
-        Anchor: (Height: 400);
-      }
+    Group #Tree {
+      Anchor: (Left: 32, Top: 88, Width: 316, Height: 368);
+      LayoutMode: TopScrolling;
+      ScrollbarStyle: $C.@DefaultScrollbarStyle;
     }
   }
 }

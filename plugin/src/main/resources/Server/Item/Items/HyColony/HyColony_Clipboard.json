@@ -1,0 +1,36 @@
+{
+  "TranslationProperties": {
+    "Name": "hycolony.item.clipboard.name",
+    "Description": "hycolony.item.clipboard.description"
+  },
+  "Quality": "Uncommon",
+  "MaxStack": 1,
+  "PlayerAnimationsId": "Block",
+  "ItemSoundSetId": "ISS_Weapons_Wood",
+  "Categories": [
+    "Items.Tools"
+  ],
+  "Icon": "Icons/ItemsGenerated/Tool_Map.png",
+  "Model": "Items/Consumables/Scrolls/Map.blockymodel",
+  "Texture": "Items/Consumables/Scrolls/Map_Wood.png",
+  "Recipe": {
+    "Input": [
+      { "ItemId": "Ingredient_Stick", "Quantity": 7 },
+      { "ItemId": "Ingredient_Leather_Light", "Quantity": 1 },
+      { "ItemId": "HyColony_Build_Tool", "Quantity": 1 }
+    ],
+    "BenchRequirement": [
+      { "Id": "Workbench", "Type": "Crafting", "Categories": [ "Workbench_Crafting" ] }
+    ],
+    "KnowledgeRequired": false
+  },
+  "Interactions": {
+    "Primary": { "Interactions": [ { "Type": "OpenCustomUI", "Page": { "Id": "HyColony_Clipboard" } } ] },
+    "Secondary": { "Interactions": [ { "Type": "OpenCustomUI", "Page": { "Id": "HyColony_Clipboard" } } ] }
+  },
+  "Tags": {
+    "Type": [
+      "Tool"
+    ]
+  }
+}

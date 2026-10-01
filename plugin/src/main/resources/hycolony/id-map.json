@@ -9,6 +9,7 @@
     "block.field": "HyColony_Field",
     "build_goggles": "HyColony_Build_Goggles",
     "build_tool": "HyColony_Build_Tool",
+    "clipboard": "HyColony_Clipboard",
     "tool.pickaxe": "Tool_Pickaxe_Crude",
     "tool.axe": "Tool_Hatchet_Crude",
     "tool.shovel": "Tool_Shovel_Crude",

@@ -3,8 +3,7 @@ $C = "../../../Common.ui";
 $Sounds = "../../../Sounds.ui";
 
 // The town hall's Home tab (MC layoutactions.xml, WindowMainPage), MC positions and sizes doubled. Deviation from
-// MC: the Requests button stands in the Town Map's place (MC reaches requests through the clipboard item, which
-// HyColony lacks); no map, mercenaries, flag, colour nor Patreon (no such systems).
+// MC: no town map, mercenaries, flag, colour nor Patreon (no such systems); the Town Map's place stays empty.
 
 @Label = Label {
   Style: $B.@Ink;
@@ -43,12 +42,6 @@ Group {
       Pressed: (Background: "../Mc/builder_button_medium_large_build.png", LabelStyle: $B.@InkCentered)
     );
     Text: "";
-  }
-
-  TextButton #RequestsButton {
-    Anchor: (Left: 220, Top: 232, Width: 258, Height: 34);
-    Style: $B.@WideButtonStyle;
-    Text: %hycolony.ui.townhall.requests;
   }
 
   Label {

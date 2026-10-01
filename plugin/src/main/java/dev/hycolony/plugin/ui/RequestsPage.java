@@ -10,26 +10,41 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.app.ui.NeedsPlayerNotice;
 import dev.hycolony.core.app.ui.RequestsView;
-import dev.hycolony.core.app.ui.RequestsView.RequestRow;
 import dev.hycolony.core.request.model.Crafting;
-import dev.hycolony.core.request.model.Deliverable;
 import dev.hycolony.core.request.model.Delivery;
 import dev.hycolony.core.request.model.Pickup;
 import dev.hycolony.core.request.model.Requestable;
 import dev.hycolony.core.request.model.StackList;
 import dev.hycolony.core.request.model.StackRequest;
 import dev.hycolony.core.request.model.ToolRequest;
-import java.util.List;
+import dev.hycolony.plugin.IdMap;
+import dev.hycolony.plugin.ui.clipboard.ClipboardItem;
+import dev.hycolony.plugin.ui.request.RequestTree;
+import dev.hycolony.plugin.ui.request.RequestTreeEvents;
 import java.util.Locale;
 import javax.annotation.Nonnull;
 
-/** The colony's open requests the player can supply (MineColonies' clipboard). */
+/**
+ * The clipboard's window (MC WindowClipBoard): the requests only a player can serve as a request tree, and the "!"
+ * button, whose state the clipboard item keeps (MC ItemSettingMessage). Also the requests' texts in the player's
+ * language, for every window that names a request.
+ */
 public final class RequestsPage extends ColonyPage {
     private final RequestsView view;
+    private final IdMap ids;
+    private final RequestTreeEvents tree;
 
-    public RequestsPage(PlayerRef playerRef, RequestsView view, ColonyManager manager) {
+    public RequestsPage(PlayerRef playerRef, RequestsView view, ColonyManager manager, IdMap ids) {
         super(playerRef, manager);
         this.view = view;
+        this.ids = ids;
+        this.tree = new RequestTreeEvents(
+                manager,
+                playerRef,
+                view.colonyId(),
+                view.rows(),
+                ids,
+                () -> manager.windows().openRequests(player, view.colonyId(), view.showImportant()));
     }
 
     @Override
@@ -39,39 +54,10 @@ public final class RequestsPage extends ColonyPage {
             @Nonnull UIEventBuilder events,
             @Nonnull Store<EntityStore> store) {
         ui.append("Pages/HyColony/Requests.ui");
-        List<RequestRow> rows = view.rows();
-        if (rows.isEmpty()) {
-            ui.set("#Empty.Visible", true);
-            ui.set("#Empty.Text", Message.translation("hycolony.ui.requests.empty"));
-        }
-        for (int i = 0; i < rows.size(); i++) {
-            appendRow(ui, events, "#Requests", i, rows.get(i));
-        }
-    }
-
-    /**
-     * Appends request {@code r} as row {@code i} of {@code list}: a child sits under its parent, marked once per level
-     * (MC RequestTreeWindowModule indents it); "Supply" only where the core allows it.
-     */
-    public static void appendRow(UICommandBuilder ui, UIEventBuilder events, String list, int i, RequestRow r) {
-        String row = list + "[" + i + "]";
-        ui.append(list, "Pages/HyColony/RequestRow.ui");
-        Message description = describe(r.requestable());
-        for (int d = 0; d < r.depth(); d++) {
-            description = Message.translation("hycolony.ui.requests.child").param("p0", description);
-        }
-        ui.set(row + " #Description.TextSpans", description);
-        Message info = r.requestable() instanceof Deliverable
-                ? Message.translation("hycolony.ui.requests.info")
-                        .param("p0", buildingName(r.requesterName()))
-                        .param("p1", String.valueOf(r.playerHas()))
-                : Message.translation("hycolony.ui.requests.from").param("p0", buildingName(r.requesterName()));
-        ui.set(row + " #Info.TextSpans", info);
-        if (r.fulfillable()) {
-            bind(events, row + " #FulfilButton", "fulfil", i);
-        } else {
-            ui.set(row + " #FulfilButton.Visible", false);
-        }
+        String important = view.showImportant() ? "#ImportantOn" : "#ImportantOff";
+        ui.set(important + ".Visible", true);
+        bind(events, important, "important");
+        RequestTree.render(ui, events, "#Tree", view.rows(), ids);
     }
 
     /** The chat line "{requester} ({job}) needs: {requestable}". */
@@ -130,12 +116,13 @@ public final class RequestsPage extends ColonyPage {
 
     @Override
     public void handleDataEvent(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, @Nonnull Act act) {
-        if (act.action.equals("fulfil")
-                && act.index >= 0
-                && act.index < view.rows().size()) {
-            manager.requestActions()
-                    .fulfil(player, view.colonyId(), view.rows().get(act.index).token());
-            manager.windows().openRequests(player, view.colonyId()); // fulfil does not re-show
+        if (!"important".equals(act.action())) {
+            tree.handle(ref, store, this, act);
+            return;
         }
+        // MC toggleImportant: the flag flips, the item keeps it, the list is drawn again.
+        boolean on = !view.showImportant();
+        ClipboardItem.lastUsed(player).ifPresent(item -> ClipboardItem.used(player, item.withShowImportant(on)));
+        manager.windows().openRequests(player, view.colonyId(), on);
     }
 }

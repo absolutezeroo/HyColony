@@ -170,7 +170,7 @@ public final class HytaleUiPort implements UiPort {
 
     @Override
     public void showRequests(UUID player, RequestsView view) {
-        open(player, pr -> new RequestsPage(pr, view, manager.get()));
+        open(player, pr -> new RequestsPage(pr, view, manager.get(), ids));
     }
 
     @Override

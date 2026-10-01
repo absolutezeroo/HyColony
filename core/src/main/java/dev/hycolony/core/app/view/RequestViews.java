@@ -33,10 +33,18 @@ final class RequestViews {
         this.ctx = ctx;
     }
 
-    RequestsView of(Colony c, UUID player) {
+    /**
+     * MC ClipboardRequestTreeWindowModule.getOpenRequests: with {@code showImportant} off, the asynchronous requests
+     * (a hut's own, filed without a citizen) are left out, as MC's code does when its flag is off; HyColony has no
+     * minimum stock requests, MC's other hidden kind.
+     */
+    RequestsView of(Colony c, UUID player, boolean showImportant) {
         // WindowClipBoard: nearest requester to the player first, then by token (no position: token order only).
         Optional<BlockPos> at = ctx.players().position(player);
         List<Request> sorted = new ArrayList<>(openRoots(c.requests()));
+        if (!showImportant) {
+            sorted.removeIf(r -> r.citizenId() == Request.NO_CITIZEN);
+        }
         sorted.sort(Comparator.comparingLong((Request r) -> at.map(p -> c.buildings()
                                 .byRequester(r.requester())
                                 .map(b -> b.position().distSq(p))
@@ -51,7 +59,8 @@ final class RequestViews {
                 c.id(),
                 rows.stream()
                         .map(row -> row.withFulfillable(row.depth() == 0 && row.playerHas() > 0))
-                        .toList());
+                        .toList(),
+                showImportant);
     }
 
     /** The roots of the open requests the player or retrying resolver holds, once each. */

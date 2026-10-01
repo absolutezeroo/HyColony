@@ -7,13 +7,14 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Open requests the player can supply (the clipboard): those held by the player and retrying resolvers.
+ * Open requests the player can supply (the clipboard): those held by the player and retrying resolvers. {@code
+ * showImportant} is the clipboard's "!" button (MC WindowClipBoard: green when on).
  *
  * <p>Deviation from MC: the clipboard offers Fulfill on a root the player holds items for; MC's clipboard has no such
  * button (ClipboardRequestTreeWindowModule keeps isFulfillable false), it is only in the citizen's Requests tab and the
  * request detail window. Kept at the user's request.
  */
-public record RequestsView(int colonyId, List<RequestRow> rows) {
+public record RequestsView(int colonyId, List<RequestRow> rows, boolean showImportant) {
     /**
      * {@code requestable} is the request itself (a stack, a tool, a courier delivery or pickup), for the UI to name in
      * the player's language. {@code requesterPos} is where its requester stands and {@code resolver} who resolves it

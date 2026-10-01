@@ -113,13 +113,21 @@ public final class ColonyWindows {
         }
     }
 
-    /** The clipboard (MC WindowClipBoard): root requests held by the player or retrying resolver. */
+    /** The clipboard (MC WindowClipBoard) with every root request held by the player or retrying resolver. */
     public void openRequests(UUID player, int colonyId) {
+        openRequests(player, colonyId, true);
+    }
+
+    /**
+     * The clipboard (MC WindowClipBoard): root requests held by the player or retrying resolver, the asynchronous ones
+     * only with {@code showImportant}; nothing for an unknown colony or a viewer without access.
+     */
+    public void openRequests(UUID player, int colonyId, boolean showImportant) {
         Colony c = manager.byId(colonyId).orElse(null);
         if (c == null || !canAccess(c, player)) {
             return;
         }
-        ui.showRequests(player, requests.of(c, player));
+        ui.showRequests(player, requests.of(c, player, showImportant));
     }
 
     /**

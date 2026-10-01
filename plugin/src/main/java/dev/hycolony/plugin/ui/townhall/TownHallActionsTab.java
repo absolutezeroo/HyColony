@@ -17,8 +17,8 @@ import java.util.UUID;
 
 /**
  * The town hall's Home tab (MC WindowMainPage, layoutactions.xml): the colony name and its rename pencil, the build
- * button (build options, or cancel the running order), Requests, and the colony pack; citizen style and name pack are
- * shown disabled at "default", as MC shows them without Patreon.
+ * button (build options, or cancel the running order) and the colony pack; citizen style and name pack are shown
+ * disabled at "default", as MC shows them without Patreon. Requests are the clipboard item's, as in MC.
  */
 final class TownHallActionsTab implements TownHallTab {
     private final ColonyManager manager;
@@ -37,7 +37,6 @@ final class TownHallActionsTab implements TownHallTab {
         // As MC, every button shows for every viewer: the core refuses and says so without the right.
         ColonyPage.bind(events, root + " #RenameButton", TownHallPage.RENAME);
         buildButton(ui, events, root);
-        ColonyPage.bind(events, root + " #RequestsButton", "requests");
         colonyPack(ui, events, root);
     }
 
@@ -82,7 +81,6 @@ final class TownHallActionsTab implements TownHallTab {
             case "build" ->
                 manager.windows().openBuildOptions(player, view.home().townHallPos());
             case "cancel" -> manager.workOrders().cancel(player, view.home().townHallPos());
-            case "requests" -> manager.windows().openRequests(player, view.colonyId());
             case "colonyPack" -> manager.administration().setStyle(player, view.colonyId(), act.name());
             default -> {}
         }

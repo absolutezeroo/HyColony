@@ -71,7 +71,7 @@ class RequestCyclesOnLoadTest {
     private Colony assertLoadsAndViewsPromptly(JsonObject json, List<RequestToken> tokens) {
         return assertTimeoutPreemptively(Duration.ofSeconds(2), () -> {
             Colony loaded = ColonySerializer.read(json, t.context(), new TerritoryIndex());
-            new RequestViews(t.context()).of(loaded, owner);
+            new RequestViews(t.context()).of(loaded, owner, true);
             assertEquals(
                     tokens.stream()
                             .filter(tk -> loaded.requests().get(tk).isPresent())
