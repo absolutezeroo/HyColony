@@ -146,7 +146,8 @@ public final class OrnamentVariantRegistry {
     /**
      * Builds keys' blocks and items (their new models and icons registered, not sent), sends the new models, registers
      * the blocks and items, then publishes the new icons and saves the keys in the {@link VariantStore}. At boot
-     * nothing is sent (no player yet: files, blocks and items reach clients when they join); otherwise
+     * nothing is sent nor saved ({@link #start} saves; no player yet: files, blocks and items reach clients when they
+     * join); otherwise
      * UpdateBlockTypes goes twice (the client misses the first runtime one), and no packet asks for a texture rebuild.
      */
     private Batch create(List<VariantKey> keys, boolean boot) {

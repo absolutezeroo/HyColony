@@ -14,10 +14,10 @@ import org.junit.jupiter.api.Test;
 class BootVariantsTest {
     private static final String STONE = "Rock_Stone_Brick";
     private static final String PLANKS = "Wood_Hardwood_Planks";
+    private static final String COBBLE = "Rock_Stone_Cobble";
     private final ShapeCatalog shapes = ShapeCatalog.parse("""
             {"schemaVersion": 1, "shapes": [{"id": "Shingle", "template": "HyDomum_Shingle", "group": "c",
              "slots": ["roof", "support"], "optionalSecond": false, "cutterQuantity": 4}]}""");
-    private static final String COBBLE = "Rock_Stone_Cobble";
     private final MaterialTags tags =
             new MaterialTags(Map.of("roof", Set.of(STONE, COBBLE), "support", Set.of(PLANKS)));
 
