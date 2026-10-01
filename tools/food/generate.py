@@ -33,6 +33,11 @@ MAX_BUILDING_LEVEL = 5
 # MC ChatFormatting.GRAY and RED, the colours of MC's food tooltips (ClientEventHandler.onItemTooltipEvent).
 GRAY = "#AAAAAA"
 RED = "#FF5555"
+# A rule between the vanilla description and ours, after ItemTooltip.ui's @Separator (colour #25262c): the tooltip
+# text has no separator tag, so 18 horizontal bars (U+2015, 14 px wide in the description's 14 px Nunito Sans, ink
+# edge to edge) span 252 px, under the 272 px of the narrowest tooltip's content with room for rounding at other UI
+# scales: it never wraps (docs/research/client-tooltip-markup.md § Séparateur).
+SEPARATOR = '<color is="#25262C">' + "―" * 18 + "</color>"
 
 # MC's texts where it has one (manual_en_us.json: core.gui.restaurant.foodquality and vanillafoodquality,
 # core.item.food.tooltip.tier.<n>, coremod.item.tooltip.wrongfood); the value and poison lines are HyColony's.
@@ -154,7 +159,7 @@ def lines(food, raw, texts):
 def description(food, raw, vanilla_key, texts):
     colour, text = lines(food, raw, texts)
     ours = f'<color is="{colour}">' + "\\n".join(text) + "</color>"
-    return f'<msg key="{vanilla_key}"/>\\n\\n{ours}' if vanilla_key else ours
+    return f'<msg key="{vanilla_key}"/>\\n{SEPARATOR}\\n{ours}' if vanilla_key else ours
 
 
 def header(item_id, food):
