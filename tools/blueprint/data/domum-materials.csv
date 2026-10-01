@@ -65,3 +65,9 @@ minecraft:cyan_terracotta,Soil_Clay_Cyan,
 minecraft:spruce_log,Wood_Fir_Trunk_Full,
 minecraft:chiseled_stone_bricks,Rock_Stone_Brick_Decorative,
 minecraft:dark_oak_planks,Wood_Darkwood_Planks,
+minecraft:bamboo_planks,Wood_Tropicalwood_Planks,bambou -> bois tropical (comme ses barrières, HytalesHub)
+minecraft:red_sandstone,Rock_Sandstone_Red,
+minecraft:polished_blackstone,Rock_Volcanic_Brick_Smooth,blackstone poli -> brique volcanique lisse
+minecraft:mud_bricks,Soil_Clay_Brick,briques de boue approximées en brique d'argile
+minecraft:deepslate_bricks,Rock_Slate_Brick,abîme -> ardoise, comme ses autres formes
+minecraft:deepslate,Rock_Slate,

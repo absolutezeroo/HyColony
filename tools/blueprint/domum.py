@@ -1,4 +1,6 @@
-"""Blocs Domum Ornamentum -> formes du mod HyDomum.
+"""Blocs Domum Ornamentum -> formes du mod HyDomum ; et les clôtures, portillons et murets de Minecraft -> ceux de
+HyDomum (vanilla_rule, demandé le 2026-10-01), dans le matériau de leur bloc de base, avec leur poteau seul, bout, T
+et croix de Minecraft.
 
 Les données viennent du générateur HyDomum (tools/domum), jamais écrites à la main :
 - domum/.../hydomum/shapes.json : pour chaque forme, son bloc Domum source (et son `type`), le nom de son gabarit
@@ -8,9 +10,9 @@ Les données viennent du générateur HyDomum (tools/domum), jamais écrites à 
 
 Rotation : les blocs « compat » de HyDomum (escalier, dalle, clôture, muret, portillon, porte) ont les rotations et
 les états des blocs vanilla (vérifié par tools/domum/check_connected.py), donc les adaptateurs de families.py
-s'appliquent tels quels ; les bardeaux suivent les escaliers. Les colombages à motif orienté tournent en DoublePipe
-depuis leur modèle dessiné vers le haut, les autres ne tournent pas ; les trappes gardent le côté de charnière de
-Domum (tools/domum/blocks/door.py).
+s'appliquent tels quels ; clôtures et murets prennent la forme du gabarit HyDomum (CONNECTED) ; les bardeaux
+suivent les escaliers. Les colombages à motif orienté tournent en DoublePipe depuis leur modèle dessiné vers le haut,
+les autres ne tournent pas ; les trappes gardent le côté de charnière de Domum (tools/domum/blocks/door.py).
 
 Deux modes :
 - gabarit (défaut) : la forme dans ses matériaux par défaut, affichable tout de suite ;
@@ -26,12 +28,14 @@ from functools import lru_cache
 from pathlib import Path
 
 from . import families as fam
+from . import tables as T
 from .geometry import prop_true, rot_index, yaw_for
 from .model import Mapping, place, skip
 
 REPO = Path(__file__).resolve().parents[2]
 RESOURCES = REPO / "domum" / "plugin" / "src" / "main" / "resources" / "hydomum"
 MATERIALS_CSV = Path(__file__).resolve().parent / "data" / "domum-materials.csv"
+UPSTREAM_CSV = Path(__file__).resolve().parent / "data" / "default-block-overrides.csv"
 PREFIX = "domum_ornamentum:"
 KEY_SEPARATOR = "__"
 
@@ -44,9 +48,17 @@ DIRECTED_FRAME_ROTATIONS = {"up": 0, "down": rot_index(0, 2, 0), "south": rot_in
                             "east": rot_index(1, 1, 0), "north": rot_index(2, 1, 0), "west": rot_index(3, 1, 0)}
 DIRECTED_FRAMES = ("TimberFrame_SideFramed", "TimberFrame_UpGated", "TimberFrame_DownGated",
                    "TimberFrame_SideFramedHorizontal")
-# Voisin unique d'une barrière ou d'un muret -> lacet de son état End, dont le bras vise le nord au lacet 0 et tourne
-# comme le coin (geometry.CORNER_YAW : nord -> ouest -> sud -> est).
-END_YAW = {"north": 0, "west": 1, "south": 2, "east": 3}
+# Formes du gabarit des clôtures HyDomum (tools/domum/blocks/compat.py SHAPES, domum/core ConnectedShape) : forme ->
+# (état, bras au lacet 0) ; le droit est le bloc lui-même, le poteau seul l'état Post. Chaque lacet tourne un côté
+# vers le suivant de TURN, comme le coin (geometry.CORNER_YAW).
+CONNECTED = (("End", {"north"}), (None, {"east", "west"}), ("Corner", {"west", "south"}),
+             ("T", {"east", "west", "south"}), ("Cross", {"north", "south", "east", "west"}))
+TURN = ("north", "west", "south", "east")
+# Clôtures, portillons et murets de Minecraft -> forme HyDomum (demandé le 2026-10-01), et les noms possibles de leur
+# bloc de base (planches de leur bois, pierre du muret).
+_WOOD_BASES = ("{}_planks", "{}s", "{}")
+VANILLA_SHAPES = (("_fence_gate", "FenceGate", _WOOD_BASES), ("_fence", "Fence", _WOOD_BASES),
+                  ("_wall", "Wall", ("{}s", "{}")))
 # Propriété `shape` des demi-bardeaux -> état HyDomum ; `top` garde le gabarit.
 SHINGLE_SLAB_STATES = {"one_way": "One_Way", "two_way": "Two_Way", "three_way": "Three_Way",
                        "four_way": "Four_Way", "curved": "Curved"}
@@ -77,6 +89,14 @@ def material_table() -> dict[str, str]:
     """Matériau Minecraft -> bloc Hytale ; une cible vide = pas d'équivalent (matériau par défaut)."""
     with MATERIALS_CSV.open("r", encoding="utf-8-sig", newline="") as fh:
         return {r["minecraft_material"].strip(): (r["hytale_material"] or "").strip() for r in csv.DictReader(fh)}
+
+
+@lru_cache(maxsize=1)
+def upstream_table() -> dict[str, str]:
+    """Table de secours HytalesHub (data/default-block-overrides.csv) : bloc Minecraft -> bloc Hytale."""
+    with UPSTREAM_CSV.open("r", encoding="utf-8-sig", newline="") as fh:
+        return {r["minecraft_block"].strip(): r["hytale_block"].strip() for r in csv.DictReader(fh)
+                if r.get("minecraft_block") and r.get("hytale_block")}
 
 
 def template_ids() -> set[str]:
@@ -185,6 +205,59 @@ def rule(bp, pos, name: str, p: dict, with_materials: bool) -> Mapping | None:
     return m
 
 
+def _connected(base: str, sides: set[str], rule: str) -> Mapping:
+    """La forme HyDomum d'une clôture ou d'un muret dont les bras vont vers sides (ses connexions Minecraft) : poteau
+    seul, bout, droit, angle, T ou croix, au plus petit lacet."""
+    if not sides:
+        return place(_state(base, "Post"), 0, rule=rule)
+    for state, arms in CONNECTED:
+        for yaw in range(len(TURN)):
+            if {TURN[(TURN.index(side) + yaw) % len(TURN)] for side in arms} == sides:
+                return place(_state(base, state) if state else base, yaw, rule=rule)
+    raise ValueError(f"pas de forme pour {sorted(sides)}")
+
+
+def vanilla_rule(name: str, p: dict, with_materials: bool) -> Mapping | None:
+    """Avec les matériaux, une clôture, un portillon ou un muret de Minecraft devient celui de HyDomum (demandé le
+    2026-10-01), dans le matériau de son bloc de base quand l'emplacement l'accepte, sinon dans celui du gabarit ;
+    None pour un autre bloc, sans HyDomum à côté, ou sans les matériaux (la conversion rapide garde les clôtures et
+    murets Hytale, choix de l'utilisateur : le gabarit HyDomum est en bois)."""
+    if not with_materials or not name.startswith("minecraft:"):
+        return None
+    for suffix, shape_id, bases in VANILLA_SHAPES:
+        if name.endswith(suffix):
+            break
+    else:
+        return None
+    shape = next((s for s in shapes().values() if s["id"] == shape_id), None)
+    if shape is None:
+        return None
+    base, notes = shape["template"], [f"{name} -> {shape['template']}"]
+    stem = name[len("minecraft:"):-len(suffix)]
+    material, note = _vanilla_material(shape, [f"minecraft:{b.format(stem)}" for b in bases])
+    base = base + KEY_SEPARATOR + material if material else base
+    notes.append(note)
+    m = _shaped(shape_id, base, p)
+    m.rule = "domum_" + (m.rule or "shape")
+    m.notes = notes + m.notes
+    return m
+
+
+def _vanilla_material(shape: dict, candidates: list[str]) -> tuple[str | None, str]:
+    """Le bloc Hytale du premier bloc de base connu parmi candidates (table des matériaux Domum, table simple, puis
+    table de secours HytalesHub, comme le convertisseur pour ces blocs) que l'emplacement de shape accepte ; None et
+    une note sinon."""
+    tables, upstream = material_table(), upstream_table()
+    accepted = slot_tags().get(shape["slots"][0], frozenset())
+    for source in candidates:
+        target = tables.get(source) or (T.SIMPLE[source][0] if source in T.SIMPLE else None) or upstream.get(source)
+        if target:
+            if target in accepted:
+                return target, f"matériau {source} -> {target}"
+            return None, f"{target} refusé par l'emplacement {shape['slots'][0]} : matériaux par défaut du gabarit"
+    return None, f"aucun bloc de base connu parmi {candidates} : matériaux par défaut du gabarit"
+
+
 def _state(base: str, state: str) -> str:
     """La clé d'un état de bloc Hytale (`*<bloc>_State_Definitions_<état>`), gabarit ou variante."""
     return f"*{base}_State_Definitions_{state}"
@@ -202,19 +275,7 @@ def _shaped(shape_id: str, base: str, p: dict) -> Mapping | None:
             return place(_state(base, "Block"), 0, rule="slab")
         return fam.slab(base)(p)
     if shape_id in ("Fence", "Wall"):
-        connections = fam._connections(p, wall_style=shape_id == "Wall")
-        # Le gabarit HyDomum a un poteau seul et un bout, comme Minecraft (tools/domum/blocks/compat.py).
-        if not connections:
-            return place(_state(base, "Post"), 0, rule=shape_id.lower())
-        if len(connections) == 1:
-            (side,) = connections
-            return place(_state(base, "End"), END_YAW[side], rule=shape_id.lower())
-        target, rotation, note = fam._connected(base, _state(base, "Corner"), connections,
-                                                t_uses_main_axis=shape_id == "Wall")
-        m = place(target, rotation, rule=shape_id.lower())
-        if note:
-            m.notes.append(note)
-        return m
+        return _connected(base, fam._connections(p, wall_style=shape_id == "Wall"), shape_id.lower())
     if shape_id == "FenceGate":
         return place(_state(base, "OpenDoorOut") if prop_true(p, "open") else base, yaw_for(p), rule="fence_gate")
     if shape_id.startswith(("Door_", "FancyDoor_")):

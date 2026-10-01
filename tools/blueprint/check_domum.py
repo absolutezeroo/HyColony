@@ -117,6 +117,58 @@ def fence_end_points_its_arm_at_its_neighbour():
     assert (m.target, m.rotation) == ("*HyDomum_Wall_State_Definitions_End", 0), m
 
 
+def fence_junctions_take_their_t_and_cross_states():
+    # Le T HyDomum s'ouvre à l'est, l'ouest et le sud au yaw 0, tourné comme le coin (domum/core ConnectedShape).
+    m = _rule("domum_ornamentum:vanilla_fence_compat", {"north": "true", "south": "true", "east": "true"})
+    assert (m.target, m.rotation) == ("*HyDomum_Fence_State_Definitions_T", 1), m
+    m = _rule("domum_ornamentum:vanilla_wall_compat", {s: "low" for s in ("north", "south", "east", "west")})
+    assert (m.target, m.rotation) == ("*HyDomum_Wall_State_Definitions_Cross", 0), m
+    m = _rule("domum_ornamentum:vanilla_fence_compat", {"west": "true", "south": "true"})
+    assert (m.target, m.rotation) == ("*HyDomum_Fence_State_Definitions_Corner", 0), m
+
+
+def minecraft_fences_gates_and_walls_become_hydomum_ones():
+    # Demandé le 2026-10-01 : les clôtures, portillons et murets de Minecraft prennent ceux de HyDomum, dans le
+    # matériau de leur bloc de base (les planches de leur bois, la pierre du muret).
+    m = domum.vanilla_rule("minecraft:oak_fence", {}, True)
+    assert (m.target, m.rotation) == ("*HyDomum_Fence__Wood_Hardwood_Planks_State_Definitions_Post", 0), m
+    m = domum.vanilla_rule("minecraft:spruce_fence", {"east": "true", "west": "true"}, True)
+    assert (m.target, m.rotation) == ("HyDomum_Fence__Wood_Softwood_Planks", 0), m
+    m = domum.vanilla_rule("minecraft:cobblestone_wall", {"north": "low", "south": "tall"}, True)
+    assert (m.target, m.rotation) == ("HyDomum_Wall__Rock_Stone_Cobble", 1), m
+    m = domum.vanilla_rule("minecraft:stone_brick_wall", {"east": "low"}, True)
+    assert m.target == "*HyDomum_Wall__Rock_Stone_Brick_State_Definitions_End", m
+    m = domum.vanilla_rule("minecraft:oak_fence_gate", {"facing": "east", "open": "true"}, True)
+    assert m.target == "*HyDomum_FenceGate__Wood_Hardwood_Planks_State_Definitions_OpenDoorOut", m
+    # Un bloc de base absent de la table Domum : la table simple (moussu), la table de secours HytalesHub (jungle).
+    m = domum.vanilla_rule("minecraft:mossy_stone_brick_wall", {}, True)
+    assert m.target == "*HyDomum_Wall__Rock_Stone_Brick_Mossy_State_Definitions_Post", m
+    m = domum.vanilla_rule("minecraft:jungle_fence", {}, True)
+    assert m.target.startswith("*HyDomum_Fence__Wood_Tropicalwood_Planks_"), m
+    # Les blocs de base ajoutés à data/domum-materials.csv.
+    for name, material in (("minecraft:bamboo_fence", "Wood_Tropicalwood_Planks"),
+                           ("minecraft:red_sandstone_wall", "Rock_Sandstone_Red"),
+                           ("minecraft:polished_blackstone_wall", "Rock_Volcanic_Brick_Smooth"),
+                           ("minecraft:mud_brick_wall", "Soil_Clay_Brick")):
+        assert f"__{material}_State" in domum.vanilla_rule(name, {}, True).target, name
+    # L'abîme est l'ardoise de Hytale (Rock_Slate), quelle que soit sa forme.
+    for wall in ("cobbled_deepslate", "polished_deepslate", "deepslate_brick", "deepslate_tile"):
+        assert "__Rock_Slate" in domum.vanilla_rule(f"minecraft:{wall}_wall", {}, True).target, wall
+    # Un matériau que l'emplacement refuse : le gabarit, avec une note.
+    saved = domum.slot_tags
+    domum.slot_tags = lambda: {}
+    try:
+        m = domum.vanilla_rule("minecraft:oak_fence", {}, True)
+    finally:
+        domum.slot_tags = saved
+    assert m.target == "*HyDomum_Fence_State_Definitions_Post" and any("refusé" in n for n in m.notes), m
+    # Sans les matériaux, la conversion rapide garde les clôtures et murets Hytale ; un autre bloc n'est pas concerné.
+    assert domum.vanilla_rule("minecraft:oak_fence", {}, False) is None
+    assert domum.vanilla_rule("minecraft:wall_torch", {}, True) is None
+    assert domum.vanilla_rule("domum_ornamentum:x_wall", {}, True) is None
+    assert domum.vanilla_rule("minecraft:oak_fence_gate", {"facing": "north"}, False) is None
+
+
 def every_state_emitted_exists_in_its_template():
     items = domum.RESOURCES.parent / "Server" / "Item" / "Items" / "HyDomum"
 
@@ -138,7 +190,7 @@ def every_state_emitted_exists_in_its_template():
         elif sid == "FenceGate" or sid.startswith(("Trapdoor_", "FancyTrapdoor_")):
             wanted = {"OpenDoorOut"}
         elif sid in ("Fence", "Wall"):
-            wanted = {"Corner", "Post", "End"}
+            wanted = {"Corner", "T", "Cross", "Post", "End"}
         assert wanted <= have, (sid, wanted - have)
 
 
@@ -180,6 +232,8 @@ def run():
     ceiling_trapdoor_is_flipped_and_turned_back()
     isolated_fence_post_is_not_called_a_beam()
     fence_end_points_its_arm_at_its_neighbour()
+    fence_junctions_take_their_t_and_cross_states()
+    minecraft_fences_gates_and_walls_become_hydomum_ones()
     every_state_emitted_exists_in_its_template()
     timber_frame_takes_its_two_materials()
     template_mode_keeps_the_default_materials()

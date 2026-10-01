@@ -7,12 +7,12 @@ from __future__ import annotations
 from pathlib import Path
 
 from .blueprint import Blueprint
-from .converter import Converter
+from .converter import Converter, Options
 
 
-def _mappings(grid: dict, anchor=(0, 0, 0)) -> dict:
+def _mappings(grid: dict, anchor=(0, 0, 0), options: Options | None = None) -> dict:
     bp = Blueprint(Path("t.blueprint"), (9, 3, 9), grid, [], anchor, "test")
-    return {c.pos: c.mapping for c in Converter().convert(bp).cells}
+    return {c.pos: c.mapping for c in Converter(options).convert(bp).cells}
 
 
 def a_single_chest_faces_like_minecraft():
@@ -60,6 +60,12 @@ def pumpkins_and_mossy_walls_of_the_farmer_are_converted():
     assert m.rule == "wall" and m.target.startswith("Rock_Stone_Brick_"), m  # an isolated post becomes a beam
     m = _mappings({(4, 0, 4): {"Name": "minecraft:mossy_cobblestone_wall"}})[(4, 0, 4)]
     assert m.rule == "wall" and m.target.startswith("Rock_Stone_Cobble_"), m
+    # With their materials, walls and fences are HyDomum's, a lone one its post, not a beam.
+    with_materials = Options(domum_materials=True)
+    m = _mappings({(4, 0, 4): {"Name": "minecraft:mossy_cobblestone_wall"}}, options=with_materials)[(4, 0, 4)]
+    assert (m.rule, m.target) == ("domum_wall", "*HyDomum_Wall__Rock_Stone_Cobble_Mossy_State_Definitions_Post"), m
+    m = _mappings({(4, 0, 4): {"Name": "minecraft:oak_fence"}}, options=with_materials)[(4, 0, 4)]
+    assert m.target == "*HyDomum_Fence__Wood_Hardwood_Planks_State_Definitions_Post", m
 
 
 def tools_are_not_blocks():

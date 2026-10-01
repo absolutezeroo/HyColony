@@ -4,13 +4,15 @@ Ordre de résolution d'une case (le premier qui répond gagne) :
 
   1. Assemblages détectés (chaises, racks, doubles portes, doubles coffres)
   2. Cases toujours vides (air, marqueurs de hutte, détails retirés, lits…)
-  3. Règles contextuelles (torche murale, bibliothèque, bloc de verre)
-  4. Blocs Domum portés par HyDomum (domum.py), puis tables : FAMILY (directionnels) puis SIMPLE
-  5. Motifs (panneaux, portes, trappes, couleurs, tapis et pots HyVanilla, vitres…)
-  6. Table de secours HytalesHub (uniquement blocs non directionnels)
-  7. Sinon : non mappé (listé dans le rapport)
+  3. Blocs Domum portés par HyDomum ; avec leurs matériaux, les clôtures, portillons et murets de Minecraft
+     deviennent aussi ceux de HyDomum (domum.py)
+  4. Règles contextuelles (torche murale, bibliothèque, bloc de verre, clôture)
+  5. Tables : FAMILY (directionnels) puis SIMPLE
+  6. Motifs (panneaux, portes, trappes, couleurs, tapis et pots HyVanilla, vitres…)
+  7. Table de secours HytalesHub (uniquement blocs non directionnels)
+  8. Sinon : non mappé (listé dans le rapport)
 
-Le fichier --overrides de l'utilisateur remplace la cible des étapes 2 à 7.
+Le fichier --overrides de l'utilisateur remplace la cible des étapes 2 à 8.
 """
 from __future__ import annotations
 
@@ -265,6 +267,9 @@ class Converter:
             m = domum.rule(bp, pos, name, p, self.options.domum_materials)
             if m:
                 return m
+        m = domum.vanilla_rule(name, p, self.options.domum_materials)
+        if m:
+            return m
         if name in CONTEXTUAL:
             m = CONTEXTUAL[name](bp, pos, p)
         elif name in T.FAMILY:
