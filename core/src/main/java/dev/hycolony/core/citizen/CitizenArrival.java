@@ -16,16 +16,16 @@ import java.util.UUID;
 /**
  * Where a citizen's body appears near a spot (MC EntityUtils.getSpawnPoint over BlockPosUtil.findAround): the spot's
  * column, its four neighbours, then MC's rings out to {@link #SCAN_RADIUS}, each column tried with the bodies port.
- * When none takes it at the town hall, the colony's players are told (MC CitizenManager.spawnOrCreateCivilian,
- * WARNING_COLONY_NO_ARRIVAL_SPACE).
+ * A building's own column is skipped: MC's checkValidSpawn refuses the hut's cell, whose block has a collision.
  *
- * <p>Deviation from MC: MC tests each cell of a 3D search for two free blocks over a walkable one with a free
- * neighbour. Hytale's column probe (NPCPlugin.spawnNPCWithColumnProbe) judges the height, 16 blocks up and down, and
- * the room for the model, so the search walks columns only and asks for no free neighbour.
+ * <p>Deviation from MC: MC tests each cell of a 3D search, three levels up and down, keeping a level before moving
+ * up or down, for two free blocks over a walkable one with a free neighbour. Hytale's column probe
+ * (NPCPlugin.spawnNPCWithColumnProbe) picks the free span nearest the spot's height within 16 blocks and checks the
+ * room for the model, so the search walks columns only and asks for no free neighbour.
  */
 final class CitizenArrival {
     /** MC EntityUtils.SCAN_RADIUS, in blocks. */
-    static final int SCAN_RADIUS = 5;
+    private static final int SCAN_RADIUS = 5;
 
     private CitizenArrival() {}
 
@@ -33,14 +33,15 @@ final class CitizenArrival {
     static Optional<BodyId> spawn(Colony colony, CitizenData data, BlockPos near) {
         ColonyContext ctx = colony.context();
         String name = colony.nameplates().nameFor(data);
+        boolean building = colony.buildings().at(near).isPresent();
         for (BlockPos column : columns(near)) {
+            if (building && column.equals(near)) {
+                continue;
+            }
             Optional<BodyId> body = ctx.bodies().spawn(ctx.world(), column, colony.id(), data.id(), name);
             if (body.isPresent()) {
                 return body;
             }
-        }
-        if (colony.buildings().townHall().filter(h -> h.position().equals(near)).isPresent()) {
-            tellNoSpace(colony, near);
         }
         return Optional.empty();
     }
@@ -69,8 +70,12 @@ final class CitizenArrival {
         return new ArrayList<>(out);
     }
 
-    /** MC MessageUtils.format(...).sendTo(colony).forAllPlayers: online owner and members allowed RECEIVE_MESSAGES. */
-    private static void tellNoSpace(Colony colony, BlockPos hall) {
+    /**
+     * MC WARNING_COLONY_NO_ARRIVAL_SPACE, from spawnOrCreateCivilian when a new citizen finds no room at the town hall
+     * {@code hall}: told to the colony's online owner and members allowed RECEIVE_MESSAGES, the project's reading of
+     * MC's sendTo(colony).forAllPlayers (MC sends to the subscribers near the colony with that right).
+     */
+    static void tellNoSpace(Colony colony, BlockPos hall) {
         Msg msg = Msg.of(
                 "hycolony.citizen.noArrivalSpace",
                 String.valueOf(hall.x()),

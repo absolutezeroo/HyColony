@@ -120,7 +120,8 @@ class HousingActionsTest {
         housing.recall(alice, HOUSE);
 
         BodyId body = colony.citizens().bodyOf(1).orElseThrow();
-        assertEquals(HOUSE, t.bodies.bodies.get(body).position.toBlockPos());
+        // Beside the hut block, north first (MC getSpawnPoint refuses the hut's own cell).
+        assertEquals(HOUSE.offset(0, 0, -1), t.bodies.bodies.get(body).position.toBlockPos());
         assertNull(d.respawnPosition(), "used once, as MC's nextRespawnPos");
     }
 

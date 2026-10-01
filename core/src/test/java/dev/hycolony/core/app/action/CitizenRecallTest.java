@@ -56,7 +56,8 @@ class CitizenRecallTest {
         assertTrue(recall.recall(alice, colony.id(), 1));
 
         BodyId body = colony.citizens().bodyOf(1).orElseThrow();
-        assertEquals(HALL, t.bodies.bodies.get(body).position.toBlockPos());
+        // Beside the hut block, north first (MC getSpawnPoint refuses the hut's own cell).
+        assertEquals(HALL.offset(0, 0, -1), t.bodies.bodies.get(body).position.toBlockPos());
     }
 
     @Test

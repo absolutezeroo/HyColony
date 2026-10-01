@@ -151,6 +151,50 @@ class CitizenManagerTest {
     }
 
     @Test
+    void anInitialCitizenAppearsBesideItsTownHall() {
+        Colony c = colonyWithTownHall();
+        t.bodies.refuseSpawnAt.add(hall.offset(0, 0, -1)); // the north column is blocked, as an obstacle would
+
+        slowTicks(c, 2);
+
+        CitizenData d = c.citizens().all().iterator().next();
+        BodyId body = c.citizens().bodyOf(d.id()).orElseThrow();
+        assertEquals(Vec3.center(hall.offset(1, 0, 0)), t.bodies.position(body).orElseThrow());
+    }
+
+    /** MC spawnOrCreateCivilian: an initial citizen that finds no room at the town hall warns the colony, once. */
+    @Test
+    void noRoomAroundTheTownHallWarnsAtEachInitialSpawnOnly() {
+        Colony c = colonyWithTownHall();
+        t.players.online.put(c.permissions().owner(), hall);
+        t.bodies.refuseSpawnAround.add(hall);
+
+        slowTicks(c, 2);
+        assertEquals(1, warnings());
+
+        slowTicks(c, 13); // the respawn check (6000 ticks) falls back on the town hall, but warns nobody
+        c.citizens().onWakeUp();
+        assertEquals(c.citizens().all().size(), warnings(), "one per initial citizen, none from a respawn");
+    }
+
+    @Test
+    void anUnloadedTownHallWarnsNobody() {
+        Colony c = colonyWithTownHall();
+        t.players.online.put(c.permissions().owner(), hall);
+        t.world.unloaded.add(hall);
+
+        slowTicks(c, 2);
+
+        assertEquals(0, warnings());
+    }
+
+    private long warnings() {
+        return t.notifier.sent.stream()
+                .filter(s -> s.msg().key().equals("hycolony.citizen.noArrivalSpace"))
+                .count();
+    }
+
+    @Test
     void bodyLoadedTwiceKeepsFirstAndDespawnsSecond() {
         Colony c = colonyWithTownHall();
         CitizenData d = new CitizenData(7);

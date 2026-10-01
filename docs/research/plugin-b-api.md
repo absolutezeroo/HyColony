@@ -1044,6 +1044,14 @@ Sources : décompilé de 0.7.0-pre.4 (chemins relatifs à `com/hypixel/hytale/se
 - Biome d'une colonne (fenêtre du champ, `HytaleWorldQuery.biome`) : `world.getChunkStore().getGenerator()` est un `worldgen.chunk.ChunkGenerator` pour un monde généré, puis `getZoneBiomeResultAt(int seed, int x, int z).getBiome().getName()` avec `(int) world.getWorldConfig().getSeed()`. C'est le motif de `worldgen/BiomeDataSystem.java` l. 60-73 (biome du joueur) et de `NPCMemory.java` l. 305-307. Le nom est l'identifiant brut du générateur, non traduit. Un monde sans ce générateur n'a pas de biome.
 - `ContainerWindow.getData()` est le `windowData` envoyé dans `OpenWindow`, vide par défaut. `BenchWindow` y met `name`, une clé de traduction. Que le client affiche `name` pour une fenêtre de conteneur n'est **pas vérifié** (**[in-game]**, `TESTING.md` point 72).
 
+## 46. Faire apparaître un PNJ dans une colonne (`HytaleCitizenBodies.spawn`, 2026-10-02)
+
+Sources : décompilé de 0.7.0-pre.5 (`server/npc/NPCPlugin.java`, `server/spawning/SpawningContext.java`).
+
+- `NPCPlugin.spawnNPCWithColumnProbe(store, rôle, groupe, world, x, z, yHint, rotation, postSpawn)` ne teste **qu'une colonne** (x, z) (l. 1149-1194). Il renvoie `FAIL_INVALID_POSITION` quand `SpawningContext.set` échoue ou quand `canSpawn()` refuse la place du modèle.
+- `SpawningContext.set(world, x, y, z)` exige un chunk et une section **qui tournent** (`resolveTickingChunk`, `isTickingSection`, l. 544-545). Il échantillonne la colonne de `y - 16` à `y + 16` (`maxVerticalOffset` 16, l. 559-561) et choisit l'espace libre le plus proche de `y` (`selectGap`). Le sol retenu est le dessus du bloc plein sous cet espace : dans la colonne d'un bloc de hutte (`Material: Solid`), c'est le dessus de la hutte.
+- Constat du 2026-10-02 : la seule colonne `x + 1` de l'hôtel de ville était refusée, et la colonie n'avait aucun citoyen. Le cœur parcourt maintenant les colonnes autour, dans l'ordre de MC (`CitizenArrival`), et saute la colonne d'un bâtiment.
+
 ## Could not verify
 
 1. **Client rendering of item animations on NPCs** (`AnimationSlot.Action` with `"Block"/"Build"` or `"Pickaxe"/"Mine"` on `PlayerTestModel_V`) and whether they loop or play once. Only the server packet path is verified.

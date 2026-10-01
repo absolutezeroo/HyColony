@@ -14,10 +14,10 @@ import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.Msg;
+import dev.hycolony.core.testing.FakeNotifier;
 import dev.hycolony.core.testing.TestContexts;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
@@ -36,6 +36,11 @@ class CitizenArrivalTest {
                 t.context(), territory, new Colony.Founding(1, "Test", hall, Permissions.createDefault(owner, "A")));
         c.buildings().add(Building.create(BuildingTypes.TOWN_HALL, hall, 0));
         return c;
+    }
+
+    private Vec3 spawnedAt(BlockPos near) {
+        BodyId body = CitizenArrival.spawn(colony, data, near).orElseThrow();
+        return t.bodies.position(body).orElseThrow();
     }
 
     @Test
@@ -61,40 +66,42 @@ class CitizenArrivalTest {
     }
 
     @Test
-    void aBlockedSpotSpawnsTheBodyInTheFirstColumnThatTakesIt() {
-        t.bodies.refuseSpawnAt.add(hall);
+    void aHutsOwnColumnIsSkippedSoTheBodyAppearsNorthOfIt() {
+        // MC checkValidSpawn refuses the hut's cell (the hut block has a collision), then tries north first.
+        assertEquals(Vec3.center(hall.offset(0, 0, -1)), spawnedAt(hall));
+    }
+
+    @Test
+    void aSpotThatIsNoBuildingIsTriedFirst() {
+        BlockPos last = new BlockPos(40, 64, 40);
+        assertEquals(Vec3.center(last), spawnedAt(last));
+    }
+
+    @Test
+    void aColumnWithoutRoomPassesToTheNextOne() {
         t.bodies.refuseSpawnAt.add(hall.offset(0, 0, -1));
-
-        Optional<BodyId> body = CitizenArrival.spawn(colony, data, hall);
-
-        assertEquals(
-                Vec3.center(hall.offset(1, 0, 0)),
-                t.bodies.position(body.orElseThrow()).orElseThrow());
-        assertTrue(t.notifier.sent.isEmpty());
+        assertEquals(Vec3.center(hall.offset(1, 0, 0)), spawnedAt(hall));
     }
 
     @Test
-    void noRoomAroundTheTownHallTellsTheColonysPlayers() {
+    void noSpaceReachesTheOnlinePlayersAllowedColonyMessages() {
+        UUID officer = UUID.randomUUID();
+        UUID friend = UUID.randomUUID();
+        UUID awayOfficer = UUID.randomUUID();
+        colony.permissions().addPlayer(officer, "O", Permissions.OFFICER);
+        colony.permissions().addPlayer(friend, "F", Permissions.FRIEND);
+        colony.permissions().addPlayer(awayOfficer, "W", Permissions.OFFICER);
         t.players.online.put(owner, hall);
-        t.bodies.refuseSpawn = true;
+        t.players.online.put(officer, hall);
+        t.players.online.put(friend, hall);
 
-        assertTrue(CitizenArrival.spawn(colony, data, hall).isEmpty());
+        CitizenArrival.tellNoSpace(colony, hall);
 
         assertEquals(
-                List.of(new Msg("hycolony.citizen.noArrivalSpace", List.of("0", "64", "0"))),
-                t.notifier.sent.stream()
-                        .filter(s -> s.player().equals(owner))
-                        .map(s -> s.msg())
-                        .toList());
-    }
-
-    @Test
-    void noRoomElsewhereTellsNobody() {
-        t.players.online.put(owner, hall);
-        t.bodies.refuseSpawn = true;
-
-        assertTrue(CitizenArrival.spawn(colony, data, new BlockPos(40, 64, 40)).isEmpty());
-
-        assertTrue(t.notifier.sent.isEmpty());
+                List.of(owner, officer),
+                t.notifier.sent.stream().map(FakeNotifier.Sent::player).toList());
+        assertEquals(
+                new Msg("hycolony.citizen.noArrivalSpace", List.of("0", "64", "0")),
+                t.notifier.sent.getFirst().msg());
     }
 }

@@ -168,7 +168,9 @@ public final class CitizenManager {
         }
         data.setGender(gender);
         data.setName(ctx().names().generate(ctx().random(), gender));
-        spawnBody(data, townHall);
+        if (!spawnBody(data, townHall) && ctx().worldQuery().isLoaded(townHall)) {
+            CitizenArrival.tellNoSpace(colony, townHall); // MC spawnOrCreateCivilian, on a loaded town hall only
+        }
         // MC CitizenManager: a CitizenSpawnedEvent at the town hall for a citizen moving in.
         colony.log().addAt(townHall, "citizenSpawned", colony.day(), data.name());
         colony.markDirty();

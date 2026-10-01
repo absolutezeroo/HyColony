@@ -62,7 +62,6 @@ public final class HytaleCitizenBodies implements CitizenBodies {
     private final IdentityHashMap<Ref<EntityStore>, Long> ids = new IdentityHashMap<>();
     private long nextId = 1;
     private boolean speedWarned;
-    private boolean spawnWarned;
 
     /** {@code coreTicks}: the core's clock, for how long a hurt body is remembered. */
     public HytaleCitizenBodies(World world, String roleName, CitizenSpeed speed, LongSupplier coreTicks) {
@@ -156,10 +155,9 @@ public final class HytaleCitizenBodies implements CitizenBodies {
                             spawned[0] = ref;
                         });
         if (result != SpawnTestResult.TEST_OK || spawned[0] == null) {
-            // CLAUDE.md § 4: the reason (FAIL_NO_POSITION, FAIL_INVALID_POSITION...) is only known here.
-            LOG.at(spawnWarned ? Level.FINE : Level.WARNING).log(
-                    "HyColony: cannot spawn a citizen near %s: %s", near, result);
-            spawnWarned = true;
+            // The reason (FAIL_NO_POSITION, FAIL_INVALID_POSITION...) is only known here. FINE: a refused column is a
+            // normal step of the core's search (CitizenArrival), which tells the players when none fits.
+            LOG.at(Level.FINE).log("HyColony: cannot spawn a citizen in the column of %s: %s", near, result);
             return Optional.empty();
         }
         return Optional.of(track(spawned[0]));
