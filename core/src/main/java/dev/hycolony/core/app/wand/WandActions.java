@@ -13,7 +13,8 @@ import java.util.function.Function;
 /**
  * The build tool buttons (ST ItemBuildTool, WindowExtendedBuildTool, AbstractBlueprintManipulationWindow): each
  * updates the player's session, redraws the ghost and re-shows the window, and returns false on an invalid input
- * (nothing changes then). Sessions live in memory only.
+ * (nothing changes then), except a refused survival placement, which closes everything as Structurize does
+ * ({@link #confirm}). Sessions live in memory only.
  */
 public final class WandActions {
     /** The six move buttons of Structurize's manipulation window (ST AbstractBlueprintManipulationWindow). */
@@ -247,7 +248,7 @@ public final class WandActions {
     /**
      * The creative "Pretty" paste ({@link WandPaste}). False, with nothing changed, if the player is not in creative
      * mode: ST only offers the button then, and our window lives on the server, so the check is made again here. A
-     * refusal is handled like {@link #confirm}'s; a paste keeps the session, ghost and window, as ST closes its window
+     * refusal is sent to the player and keeps the session, ghost and window; so does a paste, as ST closes its window
      * after a survival placement only, except for a town hall whose founding window has replaced ours.
      */
     public boolean paste(UUID player, String playerName) {

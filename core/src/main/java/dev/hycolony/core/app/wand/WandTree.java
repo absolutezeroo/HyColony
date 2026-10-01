@@ -1,6 +1,5 @@
 package dev.hycolony.core.app.wand;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
@@ -32,8 +31,8 @@ final class WandTree {
     }
 
     /**
-     * The direct subfolders of {@code folder}, as full paths; a folder that also holds huts lists itself first as
-     * {@code folder/.} (ST StructurePacks.getCategories), so that its huts stay reachable.
+     * The direct subfolders of {@code folder}, as full paths in name order; a folder that also holds huts lists itself
+     * among them as {@code folder/.} (ST StructurePacks.getCategories), so that its huts stay reachable.
      */
     List<String> children(String folder) {
         if (folder.endsWith(HERE)) {
@@ -47,11 +46,10 @@ final class WandTree {
                 out.add(next < 0 ? f : f.substring(0, next));
             }
         }
-        List<String> children = new ArrayList<>(out);
-        if (!children.isEmpty() && !huts(folder).isEmpty()) {
-            children.addFirst(folder + HERE);
+        if (!out.isEmpty() && !huts(folder).isEmpty()) {
+            out.add(folder + HERE); // ST sorts every category by its subPath, this one included
         }
-        return List.copyOf(children);
+        return List.copyOf(out);
     }
 
     /** The hut types filed directly in {@code folder} ({@code folder/.}: in {@code folder}). */

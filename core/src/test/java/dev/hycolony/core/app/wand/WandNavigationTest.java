@@ -333,6 +333,20 @@ class WandNavigationTest {
                 .allMatch(h -> h.requirements().isEmpty()));
     }
 
+    /** MC addCloseSubscriber: a client standing in a colony's claim knows it, wherever it aims. */
+    @Test
+    void aStrangerStandingInAColonyIsNotAskedForOneWhereverHeAims() {
+        UUID bob = UUID.randomUUID();
+        carry(bob, BUILDER);
+        t.players.online.put(bob, spot);
+        wand.open(bob, Optional.of(FAR));
+        wand.openCategory(bob, "fundamentals");
+        WandView bobs = assertInstanceOf(WandView.class, t.ui.shown.get(bob));
+        assertTrue(bobs.huts().stream()
+                .filter(h -> h.buildingTypeId().equals(BUILDER))
+                .allMatch(h -> h.requirements().isEmpty()));
+    }
+
     /** MC EventHandler: a client knows the colonies it manages; a friend's is not sent. */
     @Test
     void aFriendFarFromTheColonyIsAskedForOne() {
