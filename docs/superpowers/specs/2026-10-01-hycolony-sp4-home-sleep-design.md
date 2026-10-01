@@ -243,12 +243,12 @@ Le réveil a aussi lieu, comme dans MC :
 
 - **`boolean sleepIn(BodyId body, BlockPos bed)`** : couche le corps dans le lit (bloc de base). Faux si le bloc n'est pas un lit chargé, si le lit est pris, ou si le corps est inconnu. Ne lève jamais d'exception (CLAUDE.md § 4).
 - **`boolean isInBed(BodyId body)`** : le corps est toujours couché. Un lit quitté sans nous (passage de nuit des joueurs, téléportation, lit cassé) se voit ainsi au tick suivant de `sleep()`, qui le traite comme un citoyen loin de son lit.
-- **`void wakeUp(BodyId body)`** : lève le corps et le pose au point de sortie à côté du lit. Sans effet sur un corps debout ou inconnu.
+- **`void wakeUp(BodyId body)`** : lève le corps et le pose au point de sortie à côté du lit, et met fin à sa pose couchée, même pour un corps que Hytale a déjà fait descendre (pour qu'il ne marche jamais couché). Sans effet sur un corps inconnu.
 
 `plugin/adapter/HytaleCitizenBodies` (API § 41) :
 
 - `sleepIn` arrête la navigation (`MoveTarget.active = false`, comme aujourd'hui), puis appelle `BlockMountAPI.mountOnBlock(ref, commandBuffer, pos, hit)`. Le `CommandBuffer` vient de `Store.forEachChunk(query, (chunk, cb) -> …)`, la seule voie publique hors d'un système, ce qui garde la réponse synchrone. `mountOnBlock` place et tourne le corps et occupe le point de couchage du lit ;
-- si le client ne montre pas le PNJ couché avec le seul `MountedUpdate`, l'adaptateur ajoute `MovementStates.sleeping = true` et joue l'animation `Sleep` (héritée par `PlayerTestModel_V`) **[in-game]** ;
+- le client ne couche pas un PNJ d'après le seul `MountedUpdate` ni d'après `MovementStates.sleeping` (vu en jeu le 2026-10-01) : l'adaptateur joue l'animation `Sleep` du modèle `Player` sur le créneau `Status` (elle couche le `Pelvis`, comme pour `Outlander_Peon`, `plugin-b-api.md` § 44) et pose aussi `sleeping = true` pour la boîte de collision ; au lever, il arrête l'animation et remet `sleeping` à faux ;
 - si la gravité de `SteeringSystem` fait glisser le corps, l'adaptateur pose `Frozen` pendant le sommeil, et le retire au réveil et à l'apparition du corps (il est sauvegardé) **[in-game]** ;
 - `wakeUp` retire `MountedComponent` (comme `DismountCommand`), ce qui libère le lit, retire le `PlayerSomnolence` que `WakeUpOnDismountSystem` pose sur tout PNJ qui sort d'un lit, puis téléporte le corps à un point libre à côté du lit ;
 - un `DidNotMount` renvoie `false`, journalisé une fois, puis en FINE ;
@@ -297,7 +297,7 @@ Clés en en-US et fr-FR dans `hycolony.lang` (skill `add-lang-key`), reprises de
 - **Lits** : enregistrement par le constructeur et la baguette, bloc de base seul, pas de doublon, rescan d'une résidence d'avant SP4, `removeBed`.
 - **Horloge** : correspondance des phases et pause dans `FakeGameClock` (le calcul Hytale se vérifie en jeu, le plugin n'a pas de tests unitaires).
 - **Décision** : départ juste à temps selon la distance (troncatures en `int`) ; pas de départ avant `NIGHT - 2000` ; départ au-delà de `NIGHT` ; heure en pause ; sans position de maison, pas de départ ; délai de 15 s en dormant ; réveil à l'aube ; le sommeil passe avant la pluie, le loisir et le travail.
-- **Coucher** : lit par rang rechoisi à chaque tentative, repli sur la hutte (rang hors liste, lit pris), `removeBed` sans marcher puis rang recalculé, bloc au-dessus solide refusé, arrivée à 1,5 et 12 blocs, `bedTicks` remis à 0 en route, `MAX_BED_TICKS`, retour en `WALKING_HOME` à plus de 3 blocs ou lit quitté, sans-abri debout près de l'hôtel de ville, objet tenu retiré, loisir remis à zéro, plaque de nom, particules, message « tous dorment » une seule fois puis réarmé à la nuit.
+- **Coucher** : lit par rang rechoisi à chaque tentative, repli sur la hutte (rang hors liste, lit pris), `removeBed` sans marcher puis rang recalculé, bloc au-dessus solide refusé, arrivée à 1,5 et 12 blocs, `bedTicks` remis à 0 en route, `MAX_BED_TICKS`, retour en `WALKING_HOME` à plus de 3 blocs en gardant son lit, recouché sur place près de son lit (lit quitté sans nous, réveil par téléportation), sans-abri debout près de l'hôtel de ville, objet tenu retiré, loisir remis à zéro, plaque de nom, particules, message « tous dorment » une seule fois puis réarmé à la nuit.
 - **Réveil** : `onWakeUp` de l'atelier, du métier et de la maison ; réveil avant téléportation ; réapparition à l'aube d'un citoyen sans corps.
 - **Persistance** : migration de la fixture schéma 5 (`residents` remplis depuis `home`), aller-retour des nouvelles clés, habitants en trop rendus sans-abri, citoyen endormi réveillé à l'apparition de son corps.
 
@@ -325,3 +325,6 @@ Le plan (`docs/superpowers/plans/2026-10-01-hycolony-sp4-home-sleep.md`) a été
 - **Apparence.** L'onglet « Habitants » suit l'apparence actuelle des onglets de hutte ; il suivra l'apparence MineColonies (`Pages/HyColony/Mc/`) quand la fenêtre de hutte sera convertie (CLAUDE.md § 7).
 - **Horloge.** `HytaleGameClock.realTicksUntil` travaille directement sur l'heure MC, chaque phase étant linéaire en temps réel ; le résultat est celui de la formule du § 4.
 - **Plugin.** Le coucher passe par `BlockMountAPI.mountOnBlock` dans `Store.forEachChunk` (variante à prédicat, arrêtée au premier morceau) ; la particule est `Sleepy` (id-map `sleepParticle`). Le message « lit occupé » au joueur n'est pas envoyé : le refus natif de Hytale (`NO_MOUNT_POINT_FOUND`) est gardé, à confirmer en jeu.
+- **Apparition d'un corps.** *Écart avec MC* : MC n'appelle `onWakeUp` à l'apparition que sans position de lit (`CitizenData.initEntityValues`) ; ici toujours (`SleepHandler.onWakeUp`), Hytale ne sauvant aucun PNJ couché. Comme MC, cela met fin au loisir (`setAsleep` le remet à zéro dans les deux sens).
+- **Recoucher.** *Écart avec MC* : MC ne fait que réappliquer la pose près du lit ; ici un citoyen près de son lit mais pas couché refait un `trySleep` complet.
+- **Position de réapparition.** Comme `nextRespawnPos` de MC, elle est effacée dès qu'un corps apparaît (`CitizenManager.spawnBody`) : un rappel raté ne fixe pas les réapparitions suivantes à la hutte.

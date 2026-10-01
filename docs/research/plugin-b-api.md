@@ -995,6 +995,45 @@ Vérifié dans les sources décompilées de 0.7.0-pre.4.
 - **Liste déroulante** : `DropdownEntryInfo(LocalizableString label, String value)` (`server/core/ui/DropdownEntryInfo.java:31`), posée par `ui.set("#X.Entries", List)` puis `.Value` ; le choix revient par l'événement `ValueChanged` avec `@… = "#X.Value"` (`BlockSpawnerSettingsPage.java:177-199`). `LocalizableString.fromString` pour une donnée, `fromMessageId` pour une clé.
 - **Infobulle riche** : `.TooltipTextSpans` accepte un `Message` imbriqué (vanilla `MemoriesPage.java:227`).
 
+## 44. Coucher un PNJ à l'écran : l'animation `Sleep` sur le créneau `Status` (2026-10-01)
+
+Constat en jeu (2026-10-01) : un citoyen monté sur un lit (`BlockMountAPI.mountOnBlock`, § 41) avec `MovementStates.sleeping = true` est dessiné **debout** sur le lit, un joueur dans le même lit est dessiné couché. Sources : décompilé de 0.7.0-pre.4 (chemins relatifs à `com/hypixel/hytale/`) et `zip:` = `pre-release-0.7.0-pre.4-Assets.zip` du cache Gradle (même taille, 3 808 952 006 octets, que l'`Assets.zip` de l'installation `pre-release`).
+
+**Ce que le serveur envoie pour un joueur couché, et que le PNJ n'a pas : rien.**
+
+- Aucun système du lit ne joue d'animation : ni `builtin/beds` ni `builtin/mounts` n'appellent `playAnimation` ; le seul appel d'animation des montures arrête le créneau `Movement` à la descente (`builtin/mounts/MountSystems.java:819`).
+- Ce que reçoivent les spectateurs d'un dormeur : `MountedUpdate(0, offset, controller, BlockMount(Bed, position, rotation, bloc))` pour **toute** entité montée visible (`MountSystems.TrackerUpdate`, l. 831-931), et `MovementStatesUpdate` à chaque changement, `sleeping` compris (`server/core/entity/movement/MovementStatesSystems.java:166-170`, `MovementStates.equals` compare `sleeping`, `protocol/MovementStates.java:535`). Le PNJ les reçoit tous deux.
+- Le reste est réservé au joueur lui-même : `PlayerSomnolence` (posé par `BedInteraction.java:97`, sans codec ni mise à jour réseau), `UpdateSleepState` écrit au seul dormeur (`builtin/beds/sleep/systems/player/UpdateSleepPacketSystem.java:70, 94`), `EnterBedSystem` filtré sur `PlayerRef` (l. 44, messages seulement).
+- La seule différence restante est la nature de l'entité (joueur ou PNJ) côté client : le client d'un spectateur choisit lui-même l'animation de mouvement d'un joueur à partir de `MovementStates.sleeping` (aucun serveur ne lui envoie `Sleep`), et ne le fait visiblement pas pour un PNJ. Pourquoi ne se tranche **que dans le client**, non lu (§ 5 de la demande).
+
+**Les PNJ vanilla se couchent par `PlayAnimation` sur le créneau `Status`, sans lit ni monture.**
+
+- `zip:Server/NPC/Roles/Intelligent/Temple/Temple_Goblin_Scrapper_Sleep_Static.json` : `BodyMotion Nothing`, `Status` `Laydown` (l. 33-35), puis `Status` `Sleep` une fois (`Sensor Any Once`, l. 61-66). Même motif pour les bêtes et les intelligents (`_Core/Components/ActionLists/Component_ActionList_Sleep.json` : `Laydown` ; `_Core/Components/Instructions/Component_Instruction_Play_Animation.json` : créneau `Status`, utilisé par `Component_Instruction_Wild_Sleep_State` avec `Sleep`) ; le réveil repasse par `Status` (`Component_ActionList_Wake.json` : `Wake`) ou vide le créneau (`Component_Instruction_Clear_Status_Animation.json` : `PlayAnimation` `Status` sans `Animation`).
+- L'action `PlayAnimation` appelle `NPCEntity.playAnimation(ref, slot, animationId, store)` (`server/npc/corecomponents/audiovisual/ActionPlayAnimation.java:62`), l'appel public que le plugin peut faire lui-même.
+- **Un humanoïde dérivé de `Player` qui s'allonge** : `Outlander_Peon` (`zip:Server/NPC/Roles/Intelligent/Faction/Outlander/Outlander_Peon.json:3, 16`, `Template_Trork_Melee`, `BedBlockSet Trork_Bedroll`). Le modèle `Outlander_Peon` → `Outlander` → `Parent: Player` (`Characters/Player_With_Face.blockymodel`, racine `Origin` → `Pelvis`) ne redéfinit pas `Sleep` : il joue **le `Sleep` du joueur**. Le Trork/Outlander marche jusqu'à un bloc du lit (capteur `Block` sur `BedBlockSet`, `Reserve`), puis joue `Status` `Sleep` (`Component_Trork_Instruction_Idle.json:759-806`). Pas de `mountOnBlock`.
+
+**Les animations de sommeil couchent tout le corps par le nœud `Pelvis`.**
+
+- `zip:Common/Characters/Player.blockymodel` : `Origin` (racine, à 0) → `Pelvis` (y 51) → `Belly`, cuisses… : `Pelvis` porte tout le corps.
+- `zip:Common/Characters/Animations/Flavor/Sleep.blockyanim` (le `Sleep` de `Player.json`, l. 873-878, sans `Looping` donc **en boucle** : défaut `looping = true`, `server/core/asset/type/model/config/ModelAsset.java:599, 628`) anime 24 nœuds, dont **`Pelvis` : orientation (-0,707107 ; 0 ; 0 ; 0,707107), soit -90° autour de X (sur le dos), et position y -42** (l'hypothèse « seulement tête, torse, membres » est fausse). `Sleep2.blockyanim` : `Pelvis` (-0,5 ; 0,5 ; -0,5 ; 0,5), y -39 (sur le côté). `Common/NPC/Human/Animations/Sleep.blockyanim` a le même `Pelvis` mais aucun modèle de `Server/Models` ne le cite.
+- Même principe chez les PNJ : `Pelvis` à ~90° dans `Sleep` du Trork (y -55), du Kweebec Sapling (y -17), du Feran (y -32), du Goblin (y -31).
+- `PlayerTestModel_V` hérite bien de `Sleep` : `AnimationSets` d'un enfant est **fusionné** avec celui du parent (`MapUtil.combineUnmodifiable(model.animationSetMap, m)`, `ModelAsset.java:235-241`). `NPCEntity.playAnimation(…, "Sleep")` passe donc le contrôle d'existence (`NPCEntity.java:276`).
+
+**Ce que fait `NPCEntity.playAnimation(ref, AnimationSlot.Status, "Sleep", acc)`** (`server/npc/entities/NPCEntity.java:254-293`).
+
+- Hors créneau `Action`, il refuse (avertissement) un id absent des `AnimationSets` du modèle (l. 276-278), puis écrit l'id dans `ActiveAnimationComponent` (l. 285-288 ; composant posé sur tout PNJ, `server/npc/systems/RoleBuilderSystem.java:228`) et envoie `PlayAnimation(networkId, null, "Sleep", Status)` aux joueurs qui voient le PNJ (`AnimationUtils.java:48-83`). Rien n'est renvoyé si l'id est déjà celui du créneau (l. 286).
+- **Nouveaux spectateurs** : `ModelSystems.AnimationEntityTrackerUpdate` leur envoie `ActiveAnimationsUpdate` (tous les créneaux) dès qu'ils voient l'entité (`server/core/modules/entity/system/ModelSystems.java:97-101, 109`).
+- **Non persisté** : `ActiveAnimationComponent` est enregistré sans codec (`server/core/modules/entity/EntityModule.java:393`, comparer `Frozen` l. 436). `MountedComponent` est lui aussi retiré au déchargement (§ 41) : au rechargement, le citoyen n'est plus ni monté ni couché, et c'est au plugin de recoucher.
+- **Lever** : `playAnimation(ref, AnimationSlot.Status, null, acc)` vide le créneau et envoie l'arrêt (le contrôle d'existence ne s'applique pas à `null`, l. 276), comme `SpawnMarkerSystems.java:642` et `Component_Instruction_Clear_Status_Animation`. À faire à **chaque** lever, y compris après une descente sans nous (téléportation, lit cassé, passage de nuit, § 41) : sinon le citoyen marcherait couché.
+- Accès : `store.getComponent(ref, NPCEntity.getComponentType())` (`NPCEntity.java:154`), sur le fil du monde.
+
+**Un modèle et une animation à nous : possible, inutile ici.** Un modèle `Server/Models/…/X.json` avec `"Parent": "PlayerTestModel_V"` et ses propres `AnimationSets` (fusionnés avec ceux du parent) serait choisi par le rôle via `"Appearance": "X"` (id d'asset du modèle). Une entrée d'`AnimationSets` : `{"Animations": [{"Animation": "<chemin sous Common/>.blockyanim", "Speed", "BlendingDuration", "Looping", "Weight", "FootstepIntervals", "SoundEventId", "PassiveLoopCount"}], "NextAnimationDelay"}` (clés du codec, `ModelAsset.java`). Un `.blockyanim` est un JSON `{"formatVersion": 1, "duration": 90, "holdLastKeyframe": false, "nodeAnimations": {"<nœud>": {"position": [{"time", "delta": {x, y, z}, "interpolationType": "smooth"}], "orientation": [{"time", "delta": {x, y, z, w}, "interpolationType"}], "shapeStretch": [], "shapeVisible": [], "shapeUvOffset": []}}}` (exemple réel : `Flavor/Sleep.blockyanim`) ; l'unité de `duration` et de `time` n'est pas vérifiée. Le `Sleep` du joueur couche déjà le corps : aucun asset nouveau n'est nécessaire.
+
+**[in-game]**
+
+- Que le client couche le citoyen avec `Status` `Sleep` alors qu'il est monté et `sleeping` (superposition avec l'animation de mouvement que le client choisit, peut-être `MountIdle`), et à la même hauteur qu'un joueur : `Pelvis` y -42 est relatif à la position du corps, posée au point de couchage par `mountOnBlock`.
+- Que l'orientation suive le lit (le lacet vient du point de couchage, § 41).
+
 ## Could not verify
 
 1. **Client rendering of item animations on NPCs** (`AnimationSlot.Action` with `"Block"/"Build"` or `"Pickaxe"/"Mine"` on `PlayerTestModel_V`) and whether they loop or play once. Only the server packet path is verified.
