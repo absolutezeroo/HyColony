@@ -97,6 +97,22 @@ public final class GuardedBodies implements CitizenBodies {
         run("setMovementSpeed", () -> bodies.setMovementSpeed(body, factor));
     }
 
+    /** A failed call is a bed refused: the citizen stands, as without a bed (MC). */
+    @Override
+    public boolean sleepIn(BodyId body, BlockPos bed) {
+        return guard("sleepIn", () -> bodies.sleepIn(body, bed), false);
+    }
+
+    @Override
+    public boolean isInBed(BodyId body) {
+        return guard("isInBed", () -> bodies.isInBed(body), false);
+    }
+
+    @Override
+    public void wakeUp(BodyId body) {
+        run("wakeUp", () -> bodies.wakeUp(body));
+    }
+
     private void run(String op, Runnable call) {
         try {
             call.run();

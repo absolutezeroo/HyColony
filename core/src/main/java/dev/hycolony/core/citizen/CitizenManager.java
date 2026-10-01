@@ -29,6 +29,8 @@ public final class CitizenManager {
     private final Map<Integer, BodyId> bodies = new HashMap<>();
     private final Map<Integer, CitizenAI> ais = new HashMap<>();
     private final FailedRespawns failedRespawns = new FailedRespawns();
+    /** MC CitizenManager.areCitizensSleeping: "all asleep" was announced this night (see SleepNotice). */
+    private boolean allAsleepAnnounced;
 
     private int respawnInterval = INITIAL_SPAWN_FIRST;
     private int citizenRespawnTimer = RESPAWN_CHECK_TICKS;
@@ -56,6 +58,14 @@ public final class CitizenManager {
 
     public Optional<CitizenState> aiState(int id) {
         return Optional.ofNullable(ais.get(id)).map(CitizenAI::state);
+    }
+
+    public boolean allAsleepAnnounced() {
+        return allAsleepAnnounced;
+    }
+
+    public void setAllAsleepAnnounced(boolean announced) {
+        this.allAsleepAnnounced = announced;
     }
 
     /** The citizens whose respawn keeps failing; for diagnostics. */

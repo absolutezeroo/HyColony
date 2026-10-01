@@ -215,4 +215,22 @@ public final class DetouringBodies implements CitizenBodies {
     public void playAnimation(BodyId body, BodyAnimation animation) {
         bodies.playAnimation(body, animation);
     }
+
+    /** Lying down ends any detour under way. */
+    @Override
+    public boolean sleepIn(BodyId body, BlockPos bed) {
+        forget(body);
+        return bodies.sleepIn(body, bed);
+    }
+
+    @Override
+    public boolean isInBed(BodyId body) {
+        return bodies.isInBed(body);
+    }
+
+    @Override
+    public void wakeUp(BodyId body) {
+        forget(body);
+        bodies.wakeUp(body);
+    }
 }

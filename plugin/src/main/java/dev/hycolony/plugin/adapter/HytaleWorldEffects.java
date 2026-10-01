@@ -18,6 +18,7 @@ import com.hypixel.hytale.server.core.universe.world.chunk.section.BlockSection;
 import com.hypixel.hytale.server.core.universe.world.chunk.section.ChunkSection;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.port.WorldEffects;
 import java.util.List;
 import java.util.Optional;
@@ -197,4 +198,8 @@ public final class HytaleWorldEffects implements WorldEffects {
             section.markNeedsSaving();
         }
     }
+
+    /** Not yet wired to Hytale's sleep particles (SP4 plan Task 17). */
+    @Override
+    public void sleeping(Vec3 at) {}
 }

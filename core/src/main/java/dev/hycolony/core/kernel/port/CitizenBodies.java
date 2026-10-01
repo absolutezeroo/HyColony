@@ -46,4 +46,16 @@ public interface CitizenBodies {
      * its base 0.3). No effect on an unknown body.
      */
     void setMovementSpeed(BodyId body, double factor);
+
+    /**
+     * Lays the body in the bed whose base block is {@code bed} (MC CitizenSleepHandler.trySleep); false when it is no
+     * loaded bed, the bed is taken or the body is unknown.
+     */
+    boolean sleepIn(BodyId body, BlockPos bed);
+
+    /** Whether the body still lies in a bed: false once something else got it up (a broken bed, a teleport…). */
+    boolean isInBed(BodyId body);
+
+    /** Gets the body up beside its bed (MC spawnCitizenFromBed); no effect on a standing or unknown body. */
+    void wakeUp(BodyId body);
 }

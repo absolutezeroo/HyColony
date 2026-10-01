@@ -97,6 +97,9 @@ public abstract class Job {
     /** MC IJob.onRemoval: the job is being taken from its citizen. No-op by default. */
     public void onRemoval(Colony colony) {}
 
+    /** MC IJob.onWakeUp: its citizen got up after a night in bed. No-op by default. */
+    public void onWakeUp(Colony colony) {}
+
     /** Also saves whether the citizen is working (MC CitizenData TAG_ACTIVE); the inactivity timer restarts unset. */
     public JsonObject write() {
         JsonObject o = new JsonObject();

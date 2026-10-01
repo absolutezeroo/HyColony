@@ -1,6 +1,7 @@
 package dev.hycolony.core.testing;
 
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.port.WorldEffects;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +12,7 @@ public final class FakeWorldEffects implements WorldEffects {
     public final List<Float> hitProgress = new ArrayList<>();
     public final List<BlockPos> tilled = new ArrayList<>();
     public final List<BlockPos> placed = new ArrayList<>();
+    public final List<Vec3> sleeps = new ArrayList<>();
 
     @Override
     public void celebrate(BlockPos hut) {
@@ -31,5 +33,10 @@ public final class FakeWorldEffects implements WorldEffects {
     @Override
     public void blockPlaced(BlockPos pos) {
         placed.add(pos);
+    }
+
+    @Override
+    public void sleeping(Vec3 at) {
+        sleeps.add(at);
     }
 }

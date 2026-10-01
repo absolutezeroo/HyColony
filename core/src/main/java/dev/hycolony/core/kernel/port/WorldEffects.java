@@ -1,6 +1,7 @@
 package dev.hycolony.core.kernel.port;
 
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.Vec3;
 
 /** Purely visual world effects seen by nearby players. Never throws; an unloaded position is a no-op. */
 public interface WorldEffects {
@@ -19,4 +20,7 @@ public interface WorldEffects {
 
     /** The placing sound of the block now at {@code pos}, as a player's placing plays it. */
     void blockPlaced(BlockPos pos);
+
+    /** A sleeping citizen's particles at {@code at} (MC SleepingParticleMessage, the "zZz" over its head). */
+    void sleeping(Vec3 at);
 }

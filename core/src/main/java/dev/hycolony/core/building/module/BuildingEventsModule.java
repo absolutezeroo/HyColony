@@ -21,6 +21,18 @@ public interface BuildingEventsModule extends BuildingModule {
      */
     default void onBlockPlacedInBuilding(Colony colony, Building building, BlockPos pos, BlockKey block) {}
 
+    /** One of the building's citizens got up after a night in bed (MC {@code onWakeUp}, from AbstractBuilding). */
+    default void onWakeUp(Colony colony, Building building) {}
+
+    /** MC AbstractBuilding.onWakeUp: tells every events module of {@code building}. */
+    static void wakeUp(Colony colony, Building building) {
+        for (BuildingModule module : building.modules().values()) {
+            if (module instanceof BuildingEventsModule events) {
+                events.onWakeUp(colony, building);
+            }
+        }
+    }
+
     /** MC registerBlockPosition: tells each events module of {@code building} about the block placed at {@code pos}. */
     static void blockPlaced(Colony colony, Building building, BlockPos pos, BlockKey block) {
         for (BuildingModule module : building.modules().values()) {

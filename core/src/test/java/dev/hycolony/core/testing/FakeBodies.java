@@ -30,6 +30,9 @@ public final class FakeBodies implements CitizenBodies {
         public boolean alive = true;
         public ItemKey held;
         public BodyAnimation lastAnimation;
+        /** The bed it lies in; null standing. */
+        public @Nullable BlockPos inBed;
+
         public int animations;
         /** The last walking speed factor set (1 = normal). */
         public double speed = 1;
@@ -46,6 +49,10 @@ public final class FakeBodies implements CitizenBodies {
     public boolean refuseSpawn;
     /** Positions where spawn fails, as when the world has no room there. */
     public final Set<BlockPos> refuseSpawnAt = new HashSet<>();
+    /** The positions that are beds a body may lie in. */
+    public final Set<BlockPos> beds = new HashSet<>();
+    /** Beds someone outside the colony (a player) lies in. */
+    public final Set<BlockPos> takenBeds = new HashSet<>();
     /** When set (and {@link #navEndsAt} is not), moveTo teleports the body to its target and reports ARRIVED. */
     public boolean instant;
     /** When set (and not instant), moveTo never moves the body and navStatus stays MOVING: a nav that never ends. */
@@ -175,5 +182,35 @@ public final class FakeBodies implements CitizenBodies {
         Body b = bodies.get(body);
         b.lastAnimation = animation;
         b.animations++;
+    }
+
+    /** A bed in {@link #beds} that no body nor {@link #takenBeds} holds: the body lies on it. */
+    @Override
+    public boolean sleepIn(BodyId body, BlockPos bed) {
+        Body b = bodies.get(body);
+        boolean taken = takenBeds.contains(bed) || bodies.values().stream().anyMatch(o -> bed.equals(o.inBed));
+        if (b == null || !b.alive || !beds.contains(bed) || taken) {
+            return false;
+        }
+        b.inBed = bed;
+        b.position = Vec3.center(bed);
+        b.status = NavStatus.IDLE;
+        return true;
+    }
+
+    @Override
+    public boolean isInBed(BodyId body) {
+        Body b = bodies.get(body);
+        return b != null && b.inBed != null;
+    }
+
+    /** Stands up beside the bed, one block east. */
+    @Override
+    public void wakeUp(BodyId body) {
+        Body b = bodies.get(body);
+        if (b != null && b.inBed != null) {
+            b.position = Vec3.center(b.inBed.offset(1, 0, 0));
+            b.inBed = null;
+        }
     }
 }

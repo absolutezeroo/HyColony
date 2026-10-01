@@ -1,6 +1,5 @@
 package dev.hycolony.plugin.adapter;
 
-import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.component.Store;
@@ -8,18 +7,14 @@ import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.protocol.AnimationSlot;
 import com.hypixel.hytale.server.core.entity.AnimationUtils;
-import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
-import com.hypixel.hytale.server.core.modules.entity.teleport.Teleport;
 import com.hypixel.hytale.server.core.modules.physics.util.PhysicsMath;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.NPCPlugin;
-import com.hypixel.hytale.server.npc.entities.NPCEntity;
 import com.hypixel.hytale.server.npc.movement.NavState;
-import com.hypixel.hytale.server.npc.movement.controllers.MotionController;
 import com.hypixel.hytale.server.npc.role.Role;
 import com.hypixel.hytale.server.npc.role.support.DisplayNameSupport;
 import com.hypixel.hytale.server.npc.util.InventoryHelper;
@@ -32,6 +27,7 @@ import dev.hycolony.core.kernel.port.BodyAnimation;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.CitizenBodies;
 import dev.hycolony.core.kernel.port.NavStatus;
+import dev.hycolony.plugin.npc.BodyTeleport;
 import dev.hycolony.plugin.npc.CitizenSpeed;
 import dev.hycolony.plugin.npc.CitizenTag;
 import dev.hycolony.plugin.npc.HyColonyComponents;
@@ -50,18 +46,16 @@ import org.jspecify.annotations.Nullable;
 public final class HytaleCitizenBodies implements CitizenBodies {
     /** World ticks after moveTo during which a stale AT_GOAL etc. is ignored. */
     private static final long FRESH_MOVE_TICKS = 10;
-    /** MC completeStuckAction searches 10 blocks around the goal. */
-    private static final double TELEPORT_Y_RANGE = 10;
 
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
     private final World world;
     private final String roleName;
     private final CitizenSpeed speed;
+    private final BodyTeleport teleporter;
     private final Map<Long, Ref<EntityStore>> refs = new HashMap<>();
     private final IdentityHashMap<Ref<EntityStore>, Long> ids = new IdentityHashMap<>();
     private long nextId = 1;
-    private boolean teleportWarned;
     private boolean speedWarned;
     private boolean spawnWarned;
 
@@ -69,6 +63,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
         this.world = world;
         this.roleName = roleName;
         this.speed = speed;
+        this.teleporter = new BodyTeleport(world);
     }
 
     private Store<EntityStore> store() {
@@ -186,7 +181,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
     @Override
     public List<Vec3> path(BodyId body) {
         Ref<EntityStore> ref = ref(body);
-        Role role = ref == null ? null : role(store(), ref);
+        Role role = ref == null ? null : BodyTeleport.role(store(), ref);
         return role != null && role.getLastBodySteeringMotion() instanceof HyColonySeek seek
                 ? seek.waypoints()
                 : List.of();
@@ -205,7 +200,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
         if (world.getTick() - mt.sinceTick < FRESH_MOVE_TICKS) {
             return NavStatus.MOVING; // the nav state still describes the previous goal
         }
-        Role role = role(store(), ref);
+        Role role = BodyTeleport.role(store(), ref);
         if (role == null) {
             return NavStatus.FAILED; // no longer an NPC: nothing will move it
         }
@@ -222,13 +217,6 @@ public final class HytaleCitizenBodies implements CitizenBodies {
             mt.active = false;
         }
         return status;
-    }
-
-    /** The body's NPC role; null when the entity is not (or no longer) an NPC, or the NPC module is absent. */
-    private static @Nullable Role role(Store<EntityStore> st, Ref<EntityStore> ref) {
-        ComponentType<EntityStore, NPCEntity> type = NPCEntity.getComponentType();
-        NPCEntity npc = type == null ? null : st.getComponent(ref, type);
-        return npc == null ? null : npc.getRole();
     }
 
     @Override
@@ -335,53 +323,26 @@ public final class HytaleCitizenBodies implements CitizenBodies {
         }
     }
 
-    /**
-     * MC PathingStuckHandler.completeStuckAction (teleport near the goal): the motion controller moves the target to
-     * an accessible position within 10 blocks up or down (as BodyMotionTeleport does), then a Teleport component is
-     * added. Deferred to world.execute for a caller in an event system, a RefSystem or an interaction, where the store
-     * is processing and structural changes throw; the colony tick itself is not (Store.tickInternal takes no lock).
-     */
+    /** MC PathingStuckHandler.completeStuckAction (teleport near the goal), see {@link BodyTeleport}. */
     @Override
     public void teleport(BodyId body, Vec3 target) {
         Ref<EntityStore> ref = ref(body);
-        if (ref == null) {
-            return;
+        if (ref != null) {
+            teleporter.teleport(ref, target);
         }
-        world.execute(() -> {
-            if (!ref.isValid()) {
-                return;
-            }
-            Store<EntityStore> st = store();
-            Role role = role(st, ref);
-            TransformComponent t = st.getComponent(ref, TransformComponent.getComponentType());
-            BoundingBox box = st.getComponent(ref, BoundingBox.getComponentType());
-            if (role == null || t == null) {
-                return;
-            }
-            Vector3d to = new Vector3d(target.x(), target.y(), target.z());
-            MotionController mc = role.getActiveMotionController();
-            if (!mc.translateToAccessiblePosition(
-                            to,
-                            box == null ? null : box.getBoundingBox(),
-                            to.y - TELEPORT_Y_RANGE,
-                            to.y + TELEPORT_Y_RANGE,
-                            st)
-                    || !mc.isValidPosition(to, st)) {
-                warnNoFreeSpot(to);
-                return;
-            }
-            MoveTarget mt = st.getComponent(ref, HyColonyComponents.moveTarget());
-            if (mt != null) {
-                mt.active = false;
-            }
-            st.addComponent(ref, Teleport.getComponentType(), Teleport.createExact(to, t.getRotation()));
-        });
     }
 
-    /** CLAUDE.md § 4: the first failed teleport is a WARNING, the following ones FINE. */
-    private void warnNoFreeSpot(Vector3d to) {
-        LOG.at(teleportWarned ? Level.FINE : Level.WARNING).log(
-                "HyColony: no free spot to unstick a citizen near %s", to);
-        teleportWarned = true;
+    /** Not yet wired to Hytale's bed mount (SP4 plan Task 17): the citizen sleeps standing, as MC without a bed. */
+    @Override
+    public boolean sleepIn(BodyId body, BlockPos bed) {
+        return false;
     }
+
+    @Override
+    public boolean isInBed(BodyId body) {
+        return false;
+    }
+
+    @Override
+    public void wakeUp(BodyId body) {}
 }
