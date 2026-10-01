@@ -30,14 +30,15 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * Shows a citizen climbing a 2-block step as a player does, with Hytale's ledge climb ("mantling", the MantleUp
- * animation of the Player model) instead of walking up the air. Hytale's NPC Walk controller only knows one animation
- * for every step up (AscentAnimationType), and never the mantling state, which only a player's client sets
- * (builtin/mantling/MantlingPlugin). Runs after the NPC's own movement states, which never touch {@code mantling}.
+ * Shows a citizen climbing a 3-block ledge as a player does, with Hytale's ledge climb ("mantling", the MantleUp
+ * animation of the Player model). A player jumps a step of 1 or 2 blocks, and so does a citizen: Hytale's NPC Walk
+ * controller jumps any step of 0.6 block or more it has room to jump (state {@code jumping}), and never sets the
+ * mantling state, which only a player's client sets (builtin/mantling/MantlingPlugin). Runs after the NPC's own
+ * movement states, which never touch {@code mantling}.
  *
  * <p>Deviation from MC: MC citizens step up at most 1.3 blocks without a ladder
- * ({@code PathingConstants.MAX_JUMP_HEIGHT}, {@code api/util/constant/PathingConstants.java:44}); a 2-block step, and
- * its animation, are HyColony's (see the citizen role).
+ * ({@code PathingConstants.MAX_JUMP_HEIGHT}, {@code api/util/constant/PathingConstants.java:44}); steps of 2 and 3
+ * blocks, and the ledge climb, are HyColony's, as a player climbs them (see the citizen role).
  */
 public final class CitizenMantleSystem extends EntityTickingSystem<EntityStore> {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
@@ -64,9 +65,9 @@ public final class CitizenMantleSystem extends EntityTickingSystem<EntityStore> 
     }
 
     /**
-     * Sets {@code mantling} while the citizen ascends a step of 2 blocks, and clears it otherwise. The step is judged
-     * once, on the first tick of the ascent: 2 blocks high when the block ahead, one above the feet, is solid. Judged
-     * later, the body risen, a higher block further on would pass for this step.
+     * Sets {@code mantling} while the citizen ascends a ledge of 3 blocks, and clears it otherwise. The ledge is judged
+     * once, on the first tick of the ascent: 3 blocks high when the blocks ahead, one and two above the feet, are both
+     * solid. Judged later, the body risen, a higher block further on would pass for this ledge.
      */
     @Override
     public void tick(
@@ -103,7 +104,7 @@ public final class CitizenMantleSystem extends EntityTickingSystem<EntityStore> 
     private static boolean judge(MoveTarget walk, Store<EntityStore> store, TransformComponent transform) {
         if (!walk.ascentJudged) {
             walk.ascentJudged = true;
-            walk.ledgeClimb = twoBlockStepAhead(store, transform);
+            walk.ledgeClimb = threeBlockLedgeAhead(store, transform);
         }
         return walk.ledgeClimb;
     }
@@ -117,16 +118,15 @@ public final class CitizenMantleSystem extends EntityTickingSystem<EntityStore> 
 
     /** Sets or clears {@code s.mantling}; a ledge climb is not a jump. */
     private static void update(MovementStates s, boolean mantling) {
-        if (mantling != s.mantling) {
-            s.mantling = mantling;
-            if (mantling) {
-                s.jumping = false;
-            }
+        s.mantling = mantling;
+        if (mantling) {
+            // Each tick: Hytale may set it again mid-ascent (MotionControllerBase.updateMovementState).
+            s.jumping = false;
         }
     }
 
-    /** Whether the block ahead of the body's feet, one above the feet, is solid: the step is 2 blocks high. */
-    private static boolean twoBlockStepAhead(Store<EntityStore> store, TransformComponent transform) {
+    /** Whether the blocks ahead of the body, one and two above its feet, are solid: the ledge is 3 blocks high. */
+    private static boolean threeBlockLedgeAhead(Store<EntityStore> store, TransformComponent transform) {
         double x = transform.getPosition().x;
         double y = transform.getPosition().y;
         double z = transform.getPosition().z;
@@ -135,7 +135,8 @@ public final class CitizenMantleSystem extends EntityTickingSystem<EntityStore> 
         float heading = transform.getRotation().yaw();
         int ax = (int) Math.floor(x + PhysicsMath.headingX(heading) * AHEAD_BLOCKS);
         int az = (int) Math.floor(z + PhysicsMath.headingZ(heading) * AHEAD_BLOCKS);
-        return solid(store, ax, (int) Math.floor(y) + 1, az);
+        int feet = (int) Math.floor(y);
+        return solid(store, ax, feet + 1, az) && solid(store, ax, feet + 2, az);
     }
 
     /** Whether the block at {@code x y z} is solid; false where its section is not loaded. */

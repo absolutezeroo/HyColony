@@ -15,7 +15,7 @@ public final class MoveTarget implements Component<EntityStore> {
     public long sinceTick;
     /** Whether the ascent under way was judged, on its first tick (CitizenMantleSystem). */
     public boolean ascentJudged;
-    /** Whether the ascent under way climbs a 2-block ledge, as judged on its first tick. */
+    /** Whether the ascent under way climbs a 3-block ledge, as judged on its first tick. */
     public boolean ledgeClimb;
 
     @Override

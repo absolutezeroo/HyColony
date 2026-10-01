@@ -1,5 +1,5 @@
 {
-  "$Comment": "Deviation from MC: MaxClimbHeight 2, MC climbs 1.3 (plugin-b-api.md 39). HyColonySeek: section 40.",
+  "$Comment": "Deviation from MC: MaxClimbHeight 3, MC climbs 1.3 (plugin-b-api.md 39). HyColonySeek: section 40.",
   "Type": "Generic",
   "Appearance": "PlayerTestModel_V",
   "MotionControllerList": [
@@ -8,7 +8,7 @@
       "MaxWalkSpeed": 3,
       "Gravity": 10,
       "MaxFallSpeed": 20,
-      "MaxClimbHeight": 2,
+      "MaxClimbHeight": 3,
       "Acceleration": 10
     }
   ],
