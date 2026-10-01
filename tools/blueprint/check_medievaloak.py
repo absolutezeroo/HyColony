@@ -65,7 +65,7 @@ def a_wall_torch_hangs_on_the_full_back_of_a_stair():
 
 
 def a_scarecrow_is_the_field_block_on_its_lower_half():
-    # MC places a plan's scarecrow (blockhutfield) and registers it as a field (FieldPlacementHandler): not a hut marker.
+    # MC places a plan's scarecrow (blockhutfield) and registers it as a field (FieldPlacementHandler): no hut marker.
     for facing in ("north", "east", "south", "west"):
         m = _one("minecolonies:blockhutfield", {"half": "lower", "facing": facing})
         assert (m.target, m.rotation) == ("HyColony_Field", yaw_for({"facing": facing})), (facing, m)

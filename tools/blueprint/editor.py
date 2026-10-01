@@ -12,7 +12,8 @@ from .model import Mapping, fluid, place, skip
 # (tapis, leviers, accoudoirs de chaise, haut d'une plante haute qui tient
 # sur une case…). Les moitiés absorbées par un modèle multi-cases (pied de
 # lit, haut de porte ou d'épouvantail, 2e case d'un grand coffre) ne
-# reçoivent PAS de vide forcé : il pourrait effacer le modèle.
+# reçoivent PAS de vide forcé : il pourrait effacer le modèle. Le prefab
+# retire en plus tout vide tombé dans un modèle à plusieurs cases (fillers).
 _EMPTY_AFTER_SKIP = {"removed", "chair", "upstream", "fluid_flowing", "double_plant"}
 
 # Blocs de dev du mod HyColony (plugin/.../Server/Item/Items/HyColony).

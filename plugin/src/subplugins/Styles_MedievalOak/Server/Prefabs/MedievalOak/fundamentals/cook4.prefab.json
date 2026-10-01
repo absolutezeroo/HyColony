@@ -62390,12 +62390,6 @@
     },
     {
       "x": 11,
-      "y": 5,
-      "z": 5,
-      "name": "Empty"
-    },
-    {
-      "x": 11,
       "y": 6,
       "z": 5,
       "name": "Empty"
@@ -62926,12 +62920,6 @@
       "z": 9,
       "name": "Furniture_Village_Chair",
       "rotation": 2
-    },
-    {
-      "x": 11,
-      "y": 5,
-      "z": 9,
-      "name": "Empty"
     },
     {
       "x": 11,

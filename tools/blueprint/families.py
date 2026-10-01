@@ -224,7 +224,8 @@ def trapdoor(name: str, p: dict) -> Mapping:
 
 
 def double_plant(target: str, note: str | None = None):
-    """Plante haute de deux cases (rosier, pivoine) : la plante Hytale sur la moitié basse, rien sur la haute."""
+    """Plante haute de deux cases (rosier, pivoine) : la plante Hytale sur la moitié basse ; la haute reçoit un vide
+    forcé (editor._EMPTY_AFTER_SKIP), retiré si la plante Hytale l'occupe (fillers)."""
     def rule(p: dict) -> Mapping:
         if p.get("half") == "upper":
             return skip("moitié haute de plante : la plante Hytale est sur la case du dessous", rule="double_plant")

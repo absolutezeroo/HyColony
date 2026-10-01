@@ -18076,12 +18076,6 @@
     },
     {
       "x": -4,
-      "y": 1,
-      "z": -1,
-      "name": "Empty"
-    },
-    {
-      "x": -4,
       "y": 2,
       "z": -1,
       "name": "Empty"
@@ -18397,12 +18391,6 @@
       "z": 1,
       "name": "Furniture_Village_Chair",
       "rotation": 2
-    },
-    {
-      "x": -4,
-      "y": 1,
-      "z": 1,
-      "name": "Empty"
     },
     {
       "x": -4,
@@ -28376,12 +28364,6 @@
     },
     {
       "x": -1,
-      "y": 5,
-      "z": -3,
-      "name": "Empty"
-    },
-    {
-      "x": -1,
       "y": 6,
       "z": -3,
       "name": "Empty"
@@ -32872,12 +32854,6 @@
     },
     {
       "x": 0,
-      "y": 5,
-      "z": 3,
-      "name": "Empty"
-    },
-    {
-      "x": 0,
       "y": 6,
       "z": 3,
       "name": "Empty"
@@ -34278,12 +34254,6 @@
       "z": -10,
       "name": "Furniture_Village_Chair",
       "rotation": 3
-    },
-    {
-      "x": 1,
-      "y": 1,
-      "z": -10,
-      "name": "Empty"
     },
     {
       "x": 1,

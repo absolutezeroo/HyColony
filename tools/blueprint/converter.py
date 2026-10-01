@@ -24,6 +24,7 @@ from pathlib import Path
 
 from . import domum
 from . import families as fam
+from . import fillers
 from . import hyvanilla
 from . import tables as T
 from .blueprint import Blueprint, load_blueprint
@@ -251,6 +252,9 @@ class Options:
     # --variantes-hydomum),
     # False = le gabarit HyDomum dans ses matériaux par défaut.
     domum_materials: bool = False
+    # Hitbox des blocs à plusieurs cases, pour retirer les cases vides qui les effaceraient ; None = celles du jeu
+    # épinglé et des mods du dépôt (fillers.default()), et aucune passe sans le zip d'assets.
+    hitboxes: fillers.Hitboxes | None = None
 
 
 @dataclass
@@ -335,7 +339,7 @@ class Converter:
     def convert(self, bp: Blueprint) -> "Result":
         detection = run_detectors(bp)
         cells = [Cell(pos, e, self.resolve(bp, pos, e, detection.claims)) for pos, e in bp.grid.items()]
-        return Result(bp, detection, cells)
+        return Result(bp, detection, cells, self.options.hitboxes or fillers.default())
 
     def convert_file(self, path: str | Path) -> "Result":
         return self.convert(load_blueprint(path))
@@ -346,6 +350,7 @@ class Result:
     blueprint: Blueprint
     detection: object
     cells: list[Cell]
+    hitboxes: fillers.Hitboxes | None = None
 
     def prefab(self) -> dict:
         ax, ay, az = self.blueprint.anchor
@@ -370,6 +375,8 @@ class Result:
                 b["components"] = comps
             blocks.append(b)
         blocks.sort(key=lambda b: (b["x"], b["z"], b["y"]))
+        if self.hitboxes is not None:
+            blocks = self.hitboxes.drop_covered_empties(blocks)
         prefab = {"version": 8, "blockIdVersion": 3, "anchorX": 0, "anchorY": 0, "anchorZ": 0, "blocks": blocks}
         fluids = [{"x": c.pos[0] - ax, "y": c.pos[1] - ay, "z": c.pos[2] - az, "name": c.mapping.fluid, "level": 1}
                   for c in self.cells if c.mapping.fluid]
