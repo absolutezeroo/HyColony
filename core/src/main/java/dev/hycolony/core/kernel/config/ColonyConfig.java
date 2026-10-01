@@ -16,8 +16,8 @@ public record ColonyConfig(
     /**
      * MC ServerConfiguration, section gameplay.
      *
-     * @param maxCitizenPerColony read by nothing yet: MC only caps immigration and births (housing), and forces the
-     *     initial spawn
+     * @param maxCitizenPerColony the cap of the colony's housing (HousingCapacity, MC getMaxCitizens); MC also caps
+     *     immigration and births with it, not ported
      * @param workersAlwaysWorkInRain MC workersalwaysworkinrain: rain never stops a worker
      *     (CitizenAI.shouldWorkWhileRaining)
      */

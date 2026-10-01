@@ -1,5 +1,6 @@
 package dev.hycolony.core.app.ui;
 
+import dev.hycolony.core.citizen.home.HousingCapacity;
 import java.util.List;
 
 /** MC WindowTownHall, one field group per tab: Actions (name, rename), Information, Citizens, Statistics. */
@@ -17,10 +18,16 @@ public record TownHallView(
     }
 
     /**
-     * MC WindowStatsPage.createAndSetStatistics: the citizen count, workers over places per job (sorted by job id),
-     * the children and the unemployed adults.
+     * MC WindowStatsPage.createAndSetStatistics: the citizen count over {@code maxCitizens} with its colour
+     * ({@code population}), workers over places per job (sorted by job id), the children and the unemployed adults.
      */
-    public record Stats(int citizens, List<JobCount> jobs, int children, int unemployed) {
+    public record Stats(
+            int citizens,
+            int maxCitizens,
+            HousingCapacity.Population population,
+            List<JobCount> jobs,
+            int children,
+            int unemployed) {
         public Stats {
             jobs = List.copyOf(jobs);
         }

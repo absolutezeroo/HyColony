@@ -12,6 +12,7 @@ import dev.hycolony.core.app.ui.WorkOrdersView;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
+import dev.hycolony.core.citizen.home.HousingCapacity.Population;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.BlueprintEntry;
@@ -84,7 +85,8 @@ class WindowTabsTest {
         assertTrue(builder.module(WorkerModule.class).orElseThrow().hire(colony, builder, bob));
 
         assertEquals(
-                new Stats(4, List.of(new JobCount("hycolony:builder", 1, 2)), 1, 2),
+                // No residence: one place, so four citizens need housing (MC WindowStatsPage, orange).
+                new Stats(4, 4, Population.NEEDS_HOUSING, List.of(new JobCount("hycolony:builder", 1, 2)), 1, 2),
                 townHall().stats());
     }
 
