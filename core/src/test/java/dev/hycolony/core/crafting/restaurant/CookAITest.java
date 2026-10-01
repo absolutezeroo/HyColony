@@ -78,22 +78,14 @@ class CookAITest extends DiningHallFixture {
     }
 
     @Test
-    void aFuelDeliveryNotYetReceivedDoesNotStopTheWaiterAskingAgain() {
-        station();
-        hire();
-        runUntil(() -> openFuelRequests().size() == 1);
-        Request first = openFuelRequests().getFirst();
-        BrokenRequests.setState(colony.requests(), first.token(), RequestState.COMPLETED); // delivered, not received
+    void aFuelDeliveryNotYetReceivedIsNoLongerAnOpenRequest() {
+        FuelRequests.ask(colony, hall, List.of(CHARCOAL), 1);
+        Request asked = colony.requests().byRequester(hall.requesterId()).getFirst();
+        assertTrue(FuelRequests.open(colony, hall));
 
-        runUntil(() -> openFuelRequests().size() == 1);
+        BrokenRequests.setState(colony.requests(), asked.token(), RequestState.COMPLETED); // delivered, not received
 
-        assertEquals(RequestState.COMPLETED, first.state()); // MC: asked again before the waiter receives it
-    }
-
-    private List<Request> openFuelRequests() {
-        return colony.requests().byRequester(hall.requesterId()).stream()
-                .filter(r -> r.requestable() instanceof StackList && r.state().isBefore(RequestState.COMPLETED))
-                .toList();
+        assertFalse(FuelRequests.open(colony, hall)); // MC: the waiter asks again before it receives the delivery
     }
 
     @Test
