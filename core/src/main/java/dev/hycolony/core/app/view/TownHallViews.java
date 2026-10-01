@@ -59,7 +59,8 @@ final class TownHallViews {
                 new TownHallView.Settings(
                         c.settings().moveIn(),
                         c.settings().autoHiring(),
-                        c.settings().autoHousing()),
+                        c.settings().autoHousing(),
+                        c.settings().constructionTape()),
                 PermissionViews.of(c, ctx, viewer));
     }
 

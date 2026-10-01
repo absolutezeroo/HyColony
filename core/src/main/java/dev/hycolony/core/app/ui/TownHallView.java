@@ -71,13 +71,14 @@ public record TownHallView(
     public record ActionState(Action action, boolean on, boolean alterable) {}
 
     /** MC WindowSettings: the town hall's switches, in MC's order. */
-    public record Settings(boolean moveIn, boolean autoHiring, boolean autoHousing) {
+    public record Settings(boolean moveIn, boolean autoHiring, boolean autoHousing, boolean constructionTape) {
         /** The value of {@code toggle}. */
         public boolean get(ColonySettings.Toggle toggle) {
             return switch (toggle) {
                 case MOVE_IN -> moveIn;
                 case AUTO_HIRING -> autoHiring;
                 case AUTO_HOUSING -> autoHousing;
+                case CONSTRUCTION_TAPE -> constructionTape;
             };
         }
     }

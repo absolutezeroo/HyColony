@@ -24,8 +24,14 @@ public final class ConstructionTape {
         place(colony, HutFootprint.of(colony.context().ports(), building));
     }
 
-    /** MC placeConstructionTape: the tapes of {@link TapeLayout} around {@code box}, where the game has the block. */
+    /**
+     * MC placeConstructionTape: the tapes of {@link TapeLayout} around {@code box}, where the game has the block;
+     * nothing while the colony's construction tape setting is off.
+     */
     public static void place(Colony colony, HutFootprint.Box box) {
+        if (!colony.settings().constructionTape()) {
+            return;
+        }
         GamePorts p = colony.context().ports();
         for (Tape tape : TapeLayout.of(box.min(), box.max(), p.blocks(), p.catalog())) {
             p.tape()

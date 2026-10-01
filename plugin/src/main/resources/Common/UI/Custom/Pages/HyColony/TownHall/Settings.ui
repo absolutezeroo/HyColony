@@ -3,7 +3,7 @@ $C = "../../../Common.ui";
 
 // The town hall's Settings tab (MC layoutsettings.xml, WindowSettings), MC positions and sizes doubled: one switch
 // per colony setting, its name on the left and On/Off on MC's builder_button_very_small. Deviation from MC: no
-// Enter/Leave Messages nor Construction tape switch (no such systems yet).
+// Enter/Leave Messages switch (no such system yet), so the Construction tape switch comes fourth.
 
 @SwitchStyle = TextButtonStyle(
   Default: (Background: "../Mc/builder_button_very_small.png", LabelStyle: $B.@InkCentered),
@@ -55,5 +55,12 @@ Group {
     TooltipText: %hycolony.ui.townhall.setting.housing.tooltip;
     @SettingLabel { Text: %hycolony.ui.townhall.setting.housing; }
     @Switch #Switch2 {}
+  }
+
+  @Setting {
+    @Top = 320;
+    TooltipText: %hycolony.ui.townhall.setting.tape.tooltip;
+    @SettingLabel { Text: %hycolony.ui.townhall.setting.tape; }
+    @Switch #Switch3 {}
   }
 }

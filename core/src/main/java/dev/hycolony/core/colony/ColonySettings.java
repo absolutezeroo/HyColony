@@ -1,17 +1,23 @@
 package dev.hycolony.core.colony;
 
-/** Colony-wide choices: the town hall's switches (auto-hiring, auto-housing, move-in) and the colony's style. */
+/**
+ * Colony-wide choices: the town hall's switches (auto-hiring, auto-housing, move-in, construction tape) and the
+ * colony's style.
+ */
 public final class ColonySettings {
     /** The town hall's Settings tab switches (MC BuildingTownHall's BoolSettings), in MC's tab order. */
     public enum Toggle {
         MOVE_IN,
         AUTO_HIRING,
-        AUTO_HOUSING
+        AUTO_HOUSING,
+        CONSTRUCTION_TAPE
     }
 
     private boolean autoHiring = true;
     private boolean autoHousing = true;
     private boolean moveIn = true;
+    private boolean constructionTape = true;
+
     private String style = "";
 
     public boolean autoHiring() {
@@ -31,6 +37,15 @@ public final class ColonySettings {
         this.autoHousing = autoHousing;
     }
 
+    /** MC BuildingTownHall.CONSTRUCTION_TAPE (default true): tape is placed around building sites. */
+    public boolean constructionTape() {
+        return constructionTape;
+    }
+
+    public void setConstructionTape(boolean constructionTape) {
+        this.constructionTape = constructionTape;
+    }
+
     /** MC BuildingTownHall.MOVE_IN (default true): new citizens move into the colony. */
     public boolean moveIn() {
         return moveIn;
@@ -46,6 +61,7 @@ public final class ColonySettings {
             case MOVE_IN -> moveIn;
             case AUTO_HIRING -> autoHiring;
             case AUTO_HOUSING -> autoHousing;
+            case CONSTRUCTION_TAPE -> constructionTape;
         };
     }
 
@@ -55,6 +71,7 @@ public final class ColonySettings {
             case MOVE_IN -> moveIn = value;
             case AUTO_HIRING -> autoHiring = value;
             case AUTO_HOUSING -> autoHousing = value;
+            case CONSTRUCTION_TAPE -> constructionTape = value;
         }
     }
 

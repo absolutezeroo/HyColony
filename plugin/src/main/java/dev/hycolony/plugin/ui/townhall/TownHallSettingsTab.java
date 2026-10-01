@@ -10,8 +10,9 @@ import dev.hycolony.plugin.ui.ColonyPage;
 import java.util.UUID;
 
 /**
- * The town hall's Settings tab (MC WindowSettings): New citizens spawning, Auto Worker Hiring and Auto Citizen
- * Housing, each a switch reading On or Off (MC BoolSetting.render) whose click asks the core for the other value.
+ * The town hall's Settings tab (MC WindowSettings): New citizens spawning, Auto Worker Hiring, Auto Citizen Housing
+ * and Construction tape, each a switch reading On or Off (MC BoolSetting.render) whose click asks the core for the
+ * other value.
  */
 final class TownHallSettingsTab implements TownHallTab {
     private final ColonyManager manager;

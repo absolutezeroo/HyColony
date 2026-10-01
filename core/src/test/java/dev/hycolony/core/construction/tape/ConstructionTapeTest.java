@@ -3,6 +3,7 @@ package dev.hycolony.core.construction.tape;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.ColonySettings;
 import dev.hycolony.core.colony.HutFootprint;
 import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.colony.territory.ClaimCell;
@@ -58,6 +59,15 @@ class ConstructionTapeTest {
         assertEquals(
                 new BlockState(FakeTapeBlocks.key(TapeShape.STRAIGHT), 1),
                 t.blocks.blocks.get(new BlockPos(0, 64, -1)));
+    }
+
+    @Test
+    void aColonyThatTurnedTheTapeOffGetsNone() {
+        colony.settings().set(ColonySettings.Toggle.CONSTRUCTION_TAPE, false);
+
+        ConstructionTape.place(colony, BOX);
+
+        assertEquals(0, tapes());
     }
 
     @Test

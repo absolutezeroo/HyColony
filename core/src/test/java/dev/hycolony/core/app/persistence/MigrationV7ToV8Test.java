@@ -51,7 +51,9 @@ class MigrationV7ToV8Test {
         JsonObject migrated =
                 MigrationChain.sp4().migrate(JsonParser.parseString(fixture()).getAsJsonObject());
 
-        assertEquals(8, migrated.get(MigrationChain.VERSION_KEY).getAsInt());
+        assertEquals(
+                ColonySerializer.SCHEMA_VERSION,
+                migrated.get(MigrationChain.VERSION_KEY).getAsInt());
         JsonObject citizen = migrated.getAsJsonArray("citizens").get(0).getAsJsonObject();
         assertFalse(citizen.get("justAte").getAsBoolean());
         assertEquals(0, citizen.getAsJsonArray("foodHistory").size());

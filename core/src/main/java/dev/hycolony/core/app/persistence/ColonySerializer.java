@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 
 /** Colony <-> JSON (schema {@value #SCHEMA_VERSION}). Unknown buildings/modules are kept verbatim. */
 public final class ColonySerializer {
-    public static final int SCHEMA_VERSION = 8;
+    public static final int SCHEMA_VERSION = 9;
 
     private static final System.Logger LOG = System.getLogger(ColonySerializer.class.getName());
 
@@ -116,6 +116,7 @@ public final class ColonySerializer {
         settings.addProperty("autoHiring", c.settings().autoHiring());
         settings.addProperty("autoHousing", c.settings().autoHousing());
         settings.addProperty("moveIn", c.settings().moveIn());
+        settings.addProperty("constructionTape", c.settings().constructionTape());
         return settings;
     }
 
@@ -126,6 +127,9 @@ public final class ColonySerializer {
         c.settings()
                 .setAutoHousing(boolOr(settings.get("autoHousing"), c.settings().autoHousing()));
         c.settings().setMoveIn(boolOr(settings.get("moveIn"), c.settings().moveIn()));
+        c.settings()
+                .setConstructionTape(
+                        boolOr(settings.get("constructionTape"), c.settings().constructionTape()));
     }
 
     /** The saved citizens; true when one without an id was left out, so that the next save drops it. */
