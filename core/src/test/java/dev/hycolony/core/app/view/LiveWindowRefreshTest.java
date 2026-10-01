@@ -52,7 +52,8 @@ class LiveWindowRefreshTest {
         tickWindows(1);
 
         BuildingView redrawn = (BuildingView) t.ui.redrawn.get(0);
-        assertEquals(List.of(new BuildingView.WorkerRow(1, "Ann")), redrawn.workers());
+        assertEquals(
+                List.of(new BuildingView.WorkerRow(1, "Ann", BuildingView.HomeLine.HOMELESS, 0)), redrawn.workers());
     }
 
     @Test

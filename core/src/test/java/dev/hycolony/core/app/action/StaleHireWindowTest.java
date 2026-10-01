@@ -32,7 +32,9 @@ class StaleHireWindowTest {
         ann.setName("Ann");
         colony.citizens().restore(ann);
         manager.windows().openBuilding(alice, pos);
-        assertEquals(List.of(new BuildingView.WorkerRow(1, "Ann")), ((BuildingView) t.ui.shown.get(alice)).hireable());
+        assertEquals(
+                List.of(new BuildingView.WorkerRow(1, "Ann", BuildingView.HomeLine.HOMELESS, 0)),
+                ((BuildingView) t.ui.shown.get(alice)).hireable());
 
         colony.buildings().onColonyTick(colony); // DEFAULT hiring mode auto-hires Ann behind the open window
         t.ui.shown.clear();
@@ -40,7 +42,7 @@ class StaleHireWindowTest {
         assertFalse(manager.huts().hire(alice, hut.position(), ann.id()), "Ann is already employed");
         BuildingView shown = (BuildingView) t.ui.shown.get(alice);
         assertTrue(shown != null, "the stale window is re-shown");
-        assertEquals(List.of(new BuildingView.WorkerRow(1, "Ann")), shown.workers());
+        assertEquals(List.of(new BuildingView.WorkerRow(1, "Ann", BuildingView.HomeLine.HOMELESS, 0)), shown.workers());
         assertEquals(List.of(), shown.hireable());
     }
 

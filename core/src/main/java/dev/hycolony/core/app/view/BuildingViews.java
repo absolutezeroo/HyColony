@@ -15,6 +15,7 @@ import dev.hycolony.core.construction.workorder.WorkOrder;
 import dev.hycolony.core.construction.workorder.WorkOrderType;
 import dev.hycolony.core.farming.hut.FarmerHut;
 import dev.hycolony.core.job.WorkerModule;
+import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import java.util.Comparator;
 import java.util.EnumSet;
@@ -47,8 +48,8 @@ final class BuildingViews {
                 b.type().maxLevel(),
                 b.isBuilt(),
                 b.isDeconstructed(),
-                workers(c, w),
-                hireable(c, w),
+                workers(c, b, w),
+                hireable(c, b, w),
                 w.map(WorkerModule::hiringMode),
                 order.map(o -> new BuildingView.OrderRow(
                         o.id(),
@@ -110,22 +111,38 @@ final class BuildingViews {
                 .toList();
     }
 
-    private static List<BuildingView.WorkerRow> workers(Colony c, Optional<WorkerModule> w) {
+    private static List<BuildingView.WorkerRow> workers(Colony c, Building b, Optional<WorkerModule> w) {
         return w.map(m -> m.workers().stream()
                         .flatMap(id -> c.citizens().get(id).stream())
-                        .map(BuildingViews::workerRow)
+                        .map(d -> workerRow(d, b.position()))
                         .toList())
                 .orElse(List.of());
     }
 
-    /** Adults without a job or workplace, if the hut employs anyone. */
-    private static List<BuildingView.WorkerRow> hireable(Colony c, Optional<WorkerModule> w) {
+    /**
+     * Adults without a job or workplace, if the hut employs anyone, sorted as MC WindowHireWorker.updateCitizens: by
+     * the distance from their home to the hut rounded to 40 blocks (the homeless count as 100), then by name.
+     */
+    private static List<BuildingView.WorkerRow> hireable(Colony c, Building b, Optional<WorkerModule> w) {
         return w.isEmpty()
                 ? List.of()
                 : c.citizens().all().stream()
                         .filter(d -> !d.isChild() && d.job().isEmpty() && d.workBuilding() == null)
-                        .map(BuildingViews::workerRow)
+                        .sorted(Comparator.comparingDouble((CitizenData d) -> homeBucket(d, b.position()))
+                                .thenComparing(CitizenData::name))
+                        .map(d -> workerRow(d, b.position()))
                         .toList();
+    }
+
+    /** MC WindowHireWorker: the home's distance to {@code hut} rounded to the nearest 40 blocks; 100 when homeless. */
+    private static double homeBucket(CitizenData d, BlockPos hut) {
+        BlockPos home = d.homeBuilding();
+        if (home == null) {
+            return 100.0;
+        }
+        double distance = Math.sqrt(home.distSq(hut));
+        double rest = distance % 40;
+        return rest > 20 ? distance - rest + 40 : distance - rest;
     }
 
     private static Set<WorkOrderType> allowedOrders(Building b) {
@@ -138,7 +155,19 @@ final class BuildingViews {
         return allowed;
     }
 
-    private static BuildingView.WorkerRow workerRow(CitizenData d) {
-        return new BuildingView.WorkerRow(d.id(), d.name());
+    /** MC WindowHireWorker's distance label: homeless, lives here, lives at its workplace, or N blocks away. */
+    private static BuildingView.WorkerRow workerRow(CitizenData d, BlockPos hut) {
+        BlockPos home = d.homeBuilding();
+        if (home == null) {
+            return new BuildingView.WorkerRow(d.id(), d.name(), BuildingView.HomeLine.HOMELESS, 0);
+        }
+        if (home.equals(hut)) {
+            return new BuildingView.WorkerRow(d.id(), d.name(), BuildingView.HomeLine.LIVES_HERE, 0);
+        }
+        if (home.equals(d.workBuilding())) {
+            return new BuildingView.WorkerRow(d.id(), d.name(), BuildingView.HomeLine.LIVES_AT_WORK, 0);
+        }
+        int distance = (int) Math.sqrt(home.distSq(hut));
+        return new BuildingView.WorkerRow(d.id(), d.name(), BuildingView.HomeLine.DISTANCE, distance);
     }
 }

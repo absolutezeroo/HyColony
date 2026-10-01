@@ -354,14 +354,18 @@ class ViewsTest {
         BuildingView v = view(alice, hut);
         assertEquals(List.of(), v.workers());
         assertEquals(
-                List.of(new BuildingView.WorkerRow(ann.id(), "Ann"), new BuildingView.WorkerRow(ben.id(), "Ben")),
+                List.of(
+                        new BuildingView.WorkerRow(ann.id(), "Ann", BuildingView.HomeLine.HOMELESS, 0),
+                        new BuildingView.WorkerRow(ben.id(), "Ben", BuildingView.HomeLine.HOMELESS, 0)),
                 v.hireable());
         assertEquals(Optional.of(HiringMode.DEFAULT), v.hiringMode());
 
         assertTrue(manager.huts().hire(alice, hut.position(), ann.id()));
         v = (BuildingView) t.ui.shown.get(alice);
-        assertEquals(List.of(new BuildingView.WorkerRow(ann.id(), "Ann")), v.workers());
-        assertEquals(List.of(new BuildingView.WorkerRow(ben.id(), "Ben")), v.hireable());
+        assertEquals(
+                List.of(new BuildingView.WorkerRow(ann.id(), "Ann", BuildingView.HomeLine.HOMELESS, 0)), v.workers());
+        assertEquals(
+                List.of(new BuildingView.WorkerRow(ben.id(), "Ben", BuildingView.HomeLine.HOMELESS, 0)), v.hireable());
         assertFalse(manager.huts().hire(alice, hut.position(), ben.id()), "a builder hut employs one worker");
         assertFalse(manager.huts().hire(alice, hut.position(), bobTheBuilder.id()), "already employed elsewhere");
 

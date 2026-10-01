@@ -39,7 +39,19 @@ public record BuildingView(
         List<ItemAmount> stock,
         List<ModuleTab> tabs,
         Optional<String> upgradeWarning) {
-    public record WorkerRow(int citizenId, String name) {}
+    /**
+     * A worker or a candidate, with where it lives (MC WindowHireWorker's distance label); {@code homeDistance} in
+     * blocks, for {@link HomeLine#DISTANCE} only.
+     */
+    public record WorkerRow(int citizenId, String name, HomeLine home, int homeDistance) {}
+
+    /** MC hiring labels: homeless, lives here, lives at its current workplace, lives N blocks from here. */
+    public enum HomeLine {
+        HOMELESS,
+        LIVES_HERE,
+        LIVES_AT_WORK,
+        DISTANCE
+    }
 
     public record OrderRow(int id, WorkOrderType type, int targetLevel, Optional<String> builderName, int percent) {}
 
