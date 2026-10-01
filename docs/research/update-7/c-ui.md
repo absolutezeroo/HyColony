@@ -73,7 +73,7 @@ Règle de tri : on ne retient que ce qui rapproche de MineColonies ou améliore 
    - `CharacterPreviewComponent` (`PlayerCharacterPanel.ui`) profite peut-être du correctif de fuite mémoire à la fermeture d'un menu qui montre le personnage (N[613]). **[in-game]** : on ne sait pas s'il couvre les pages serveur.
 4. **Requêtes / presse-papiers** (MC `WindowClipBoard`, § 5) et **ordres de travail** (§ 6) : `RequestRow.ui`, `OrderRow.ui:11`, la même réduction sur les titres. Rien d'autre dans U7.
 5. **Champ et sélecteur de graines** (MC `WindowField` / `WindowSelectRes`). `Field.ui:32` `#SeedName` et `FieldSeedRow.ui:11` `#Name` : réduction. Le changement de langue résolue aide la recherche (voir « À migrer » 3).
-6. **Baguette / style** (Structurize `WindowBuildTool`). `WandPage.ui:32` `#Tree` (fil « style / hutte », hauteur 24, pleine largeur de 540) et `WandHutRow.ui:19` `#Name` : réduction.
+6. **Baguette / style** (Structurize `WindowBuildTool`). `WandPage.ui:32` `#Tree` (fil « style / hutte », hauteur 24, pleine largeur de 540) et `WandHutRow.ui:19` `#Name` : réduction. *Ces fichiers ont été remplacés le 2026-10-01 par `Structurize/BuildTool.ui` et `GridRow.ui`.*
 7. **Coupeur (HyDomum, sans équivalent MC direct)**. `Cutter.ui:46` `#GroupName` et `Cutter.ui:65` `#ShapeName` (15 px, colonne de 330) : réduction. Textures d'emplacements vanilla, voir la ligne `IngredientSlot` plus haut.
 8. **Localiser / surbrillance** (`plugin/.../ui/highlight/HighlightMarkers.java:28-31`).
    - `MapMarkerBuilder` gagne `withIconSize(MapMarkerIconSize)` (`Default`/`Major`, 64 px) et `withCompassImage(String)` (`S7/.../worldmap/markers/MapMarkerBuilder.java:40-48`). Le constructeur et `withName` sont inchangés.

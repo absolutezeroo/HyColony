@@ -32,7 +32,7 @@ Poser une hutte comme dans MineColonies : choisir un style, une hutte et un nive
   La recette des lunettes prend ensuite la baguette comme ingrédient central, comme dans MineColonies (voir la spec des lunettes).
 - **Ouvrir** :
   - un clic (principal ou secondaire) sur un bloc ouvre la fenêtre et place l'ancre sur la face visée du bloc (`useOn`) ;
-  - un clic dans le vide rouvre la fenêtre en gardant l'ancre courante (`use`). Sans ancre, un message `hycolony.wand.missingPos` s'affiche et la fenêtre ne s'ouvre pas (`structurize.gui.missing.pos`).
+  - un clic dans le vide rouvre la fenêtre en gardant l'ancre courante (`use`). Sans ancre, un message `hycolony.wand.missingPos` s'affiche et la fenêtre ne s'ouvre pas (`structurize.gui.missing.pos`). *Remplacé le 2026-10-01 (`2026-10-01-hycolony-build-tool-structurize-design.md` § 3.1) : comme Structurize, l'ancre n'est posée que s'il n'y en a pas, 10 blocs devant le joueur pour un clic dans le vide.*
 - **Choisir** :
   - la fenêtre montre le style (le « pack »), puis la hutte, puis le niveau (1 à 5), comme l'arbre de Structurize ;
   - en survie, seules les huttes dont le joueur a le bloc dans son inventaire sont proposées (`BLOCK_BLUEPRINT_REQUIREMENT`) ; en créatif, toutes le sont ;

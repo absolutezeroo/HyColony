@@ -410,7 +410,7 @@ Il n'existe ni `CreativeRawStructureHandler` ni gestionnaire créatif dans `core
   - `pastedTownHallOutsideColonyFoundsAtPastedLevel`.
 
 **Plugin** :
-- `WandPage` : un bouton `#PasteButton`, visible si `view.creative() && view.manipulate()`. Son action `"paste"` appelle `wand.paste(player, playerRef.getUsername())`. Dans `WandPage.ui`, il copie le bouton de validation.
+- `WandPage` : un bouton `#PasteButton`, visible si `view.creative() && view.manipulate()`. Son action `"paste"` appelle `wand.paste(player, playerRef.getUsername())`. Dans `WandPage.ui`, il copie le bouton de validation. *Remplacé le 2026-10-01 : en créatif, Valider ouvre la liste de placement de Structurize, dont « Construit » appelle `wand.paste`.*
 - Une clé `hycolony.ui.wand.paste` (en-US et fr-FR). Aucune autre clé n'est nécessaire si l'on réutilise `hycolony.hut.*` et `hycolony.wand.noPermission`.
 - `HyColonyConfig` lit `Structurize.maxOperationsPerTick`, et `ColonyConfig` applique les bornes.
 - Aucune nouvelle API Hytale : `WorldBlocks.place` et `breakBlock` suffisent.

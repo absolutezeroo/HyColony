@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 import java.util.TreeMap;
 import java.util.UUID;
@@ -22,6 +23,12 @@ final class WandPacks {
 
     WandPacks(ColonyManager manager) {
         this.manager = manager;
+    }
+
+    /** ST StructurePacks.ensureSelectedPack: a style at random; empty when there is none. */
+    Optional<String> random() {
+        List<String> styles = manager.context().ports().blueprints().styles();
+        return styles.isEmpty() ? Optional.empty() : Optional.of(styles.get(random.nextInt(styles.size())));
     }
 
     /** Shows the window to {@code player}; {@code hasStyle} makes Cancel go back to the build tool. */

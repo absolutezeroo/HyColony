@@ -27,6 +27,11 @@ final class WandMoves {
         };
     }
 
+    /** {@code pos} moved {@code blocks} blocks towards {@code facing} (MC BlockPos.relative(direction, n)). */
+    static BlockPos ahead(BlockPos pos, int facing, int blocks) {
+        return pos.offset(dx(facing) * blocks, 0, dz(facing) * blocks);
+    }
+
     /** Rotates a quarter-turn direction (0-3) by one quarter turn, wrapping at the ends. */
     static int rotate(int rotation, boolean clockwise) {
         return clockwise ? (rotation + 1) % 4 : (rotation + 3) % 4;

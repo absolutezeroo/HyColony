@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.app.ui.FoundColonyView;
-import dev.hycolony.core.app.ui.WandPacksView;
 import dev.hycolony.core.app.ui.WandView;
 import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.colony.Colony;
@@ -109,10 +108,8 @@ class WandActionsTest {
     }
 
     @Test
-    void openOnABlockAnchorsThereAndShowsThePackWindowFirst() {
+    void openOnABlockAnchorsThere() {
         assertTrue(wand.open(alice, Optional.of(spot)));
-        // ST WindowExtendedBuildTool.onOpened: without a pack, WindowSwitchPack opens instead.
-        assertInstanceOf(WandPacksView.class, t.ui.shown.get(alice));
         chooseBuilder();
         assertEquals(spot, ghost().orElseThrow().origin());
     }

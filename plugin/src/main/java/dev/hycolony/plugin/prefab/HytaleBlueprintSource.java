@@ -134,6 +134,12 @@ public final class HytaleBlueprintSource implements BlueprintSource {
         return styles.styles();
     }
 
+    /** Whether styles.json has a well-formed entry for it; the prefab is not read. */
+    @Override
+    public boolean hasPlan(String style, String buildingTypeId, int level) {
+        return styles.level(style, buildingTypeId, level) != null;
+    }
+
     @Override
     public Optional<Blueprint> load(String style, String buildingTypeId, int level, int rotation) {
         int rot = rotation & 3;
