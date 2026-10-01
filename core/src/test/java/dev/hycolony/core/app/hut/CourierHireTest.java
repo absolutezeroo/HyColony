@@ -86,7 +86,7 @@ class CourierHireTest {
         assertEquals(
                 List.of(4, 1),
                 listed.stream().map(HireView.Candidate::citizenId).toList(),
-                "attached here first");
+                "same priority (MC compares the courier's own hut), then by name");
         assertEquals(HireView.Button.FIRE, v.button(listed.getFirst(), false), "an attached courier can be detached");
         assertEquals(HireView.Button.HIRE, v.button(listed.get(1), false));
     }

@@ -69,13 +69,15 @@ public final class ColonyWindows {
                 ui::refreshCitizen);
     }
 
-    /** Any hut's window. */
-    public void openBuilding(UUID player, BlockPos hutPos) {
+    /** Any hut's window; false, showing nothing, for a missing hut or a viewer without access. */
+    public boolean openBuilding(UUID player, BlockPos hutPos) {
         Colony c = manager.colonyAt(hutPos).orElse(null);
         Building b = c == null ? null : c.buildings().at(hutPos).orElse(null);
-        if (c != null && b != null && canAccess(c, player)) {
-            showBuilding(c, b, player);
+        if (c == null || b == null || !canAccess(c, player)) {
+            return false;
         }
+        showBuilding(c, b, player);
+        return true;
     }
 
     /**

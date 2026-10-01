@@ -23,8 +23,9 @@ import javax.annotation.Nonnull;
 /**
  * A worker hut's hire window (MC WindowHireWorker): "Choose workers for the ...", the job button, the citizens in
  * MC's order with where they live and their skills (the job's primary in dark green bold, its secondary in gold bold),
- * Hire or Fire, the building hiring mode and "Show employed?". The core checks MANAGE_HUTS and shows the hut again,
- * which redraws this window.
+ * Hire or Fire, the building hiring mode and "Show employed?". On a warehouse it lists couriers (MC
+ * CourierAssignmentModuleView): no coloured skill, "Show employed?" greyed. The core checks MANAGE_HUTS and shows the
+ * hut again, which redraws this window.
  *
  * <p>Deviation from MC: no Pause nor Restart buttons, as HyColony cannot pause a citizen yet.
  */

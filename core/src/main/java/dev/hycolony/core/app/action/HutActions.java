@@ -23,8 +23,8 @@ import java.util.UUID;
 import java.util.function.BooleanSupplier;
 
 /**
- * What players do to huts: place and remove them (MC AbstractBlockHut), pick one up, and staff it
- * (hire, fire, hiring mode, builder mode). A managing action needs MANAGE_HUTS and re-shows the hut's window.
+ * What players do to huts: place and remove them (MC AbstractBlockHut), pick one up, staff it (hire, fire) and set
+ * the builder's fill block. A managing action needs MANAGE_HUTS and re-shows the hut's window.
  */
 public final class HutActions {
     private final ColonyManager manager;
@@ -242,23 +242,6 @@ public final class HutActions {
         }
         windows.showBuilding(h.colony(), h.building(), player);
         return fired;
-    }
-
-    /** The builder hut's Settings tab (MC BuilderSettingsModule's mode setting); false for a hut without it. */
-    public boolean setBuilderMode(UUID player, BlockPos hutPos, BuilderSettingsModule.Mode mode) {
-        ManagedHut h = ManagedHut.find(manager, player, hutPos).orElse(null);
-        if (h == null) {
-            return false;
-        }
-        BuilderSettingsModule s =
-                h.building().module(BuilderSettingsModule.class).orElse(null);
-        if (s == null || mode == null) {
-            return false;
-        }
-        s.setMode(mode);
-        h.colony().markDirty();
-        windows.showBuilding(h.colony(), h.building(), player);
-        return true;
     }
 
     /**

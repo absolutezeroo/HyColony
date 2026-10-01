@@ -14,6 +14,7 @@ import dev.hycolony.core.app.ColonyManager;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.function.BooleanSupplier;
 import java.util.function.IntConsumer;
 import javax.annotation.Nonnull;
 
@@ -28,7 +29,8 @@ public final class ItemPickerPage extends ColonyPage {
     /**
      * What the list shows and does: its {@code .ui} document (title and texts, with {@code #Items},
      * {@code #ItemsEmpty}, {@code #SearchInput} and {@code #CancelButton}), the item ids, the current one (its row is
-     * disabled), whether the viewer may pick, and the core actions for a pick (by index in {@code ids}) and Back.
+     * disabled), whether the viewer may pick, and the core actions for a pick (by index in {@code ids}) and Back
+     * (false when no window opened in its place).
      */
     public record Picker(
             String document,
@@ -36,7 +38,7 @@ public final class ItemPickerPage extends ColonyPage {
             Optional<String> current,
             boolean canPick,
             IntConsumer pick,
-            Runnable back) {
+            BooleanSupplier back) {
         public Picker {
             ids = List.copyOf(ids);
         }
@@ -128,7 +130,11 @@ public final class ItemPickerPage extends ColonyPage {
                     picker.pick().accept(act.index());
                 }
             }
-            case "back" -> picker.back().run();
+            case "back" -> {
+                if (!picker.back().getAsBoolean()) {
+                    close(); // nothing to go back to
+                }
+            }
             default -> {}
         }
     }

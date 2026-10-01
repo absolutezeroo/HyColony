@@ -49,6 +49,9 @@ import org.junit.jupiter.api.Test;
 
 /** The builder hut's Settings and Work orders tabs: MC BuilderSettingsModule and WorkOrderModuleWindow. */
 class BuilderHutTabsTest {
+    /** The builder's mode setting (MC BuilderSettingsModule), which turns AUTO and MANUAL over. */
+    private static final String MODE = "mode";
+
     private final TestContexts t = new TestContexts();
     private final ColonyManager manager;
     private final UUID alice = UUID.randomUUID();
@@ -103,16 +106,17 @@ class BuilderHutTabsTest {
 
     @Test
     void settingTheBuilderModeNeedsManageHutsAndReShowsTheHut() {
-        assertFalse(manager.huts().setBuilderMode(carol, builder.position(), Mode.MANUAL));
+        assertFalse(manager.hutWindows().triggerSetting(carol, builder.position(), MODE));
         assertEquals(Mode.AUTO, mode());
 
-        assertTrue(manager.huts().setBuilderMode(alice, builder.position(), Mode.MANUAL));
+        assertTrue(manager.hutWindows().triggerSetting(alice, builder.position(), MODE));
 
         assertEquals(Mode.MANUAL, mode());
         assertTrue(t.ui.shown.get(alice) instanceof BuildingView);
         Building residence = hut(ConstructionBuildingTypes.RESIDENCE, new BlockPos(20, 64, 0), 0);
         assertFalse(
-                manager.huts().setBuilderMode(alice, residence.position(), Mode.AUTO), "only a builder hut has a mode");
+                manager.hutWindows().triggerSetting(alice, residence.position(), MODE),
+                "only a builder hut has a mode");
     }
 
     @Test
@@ -174,7 +178,7 @@ class BuilderHutTabsTest {
 
     @Test
     void selectingAnOrderWithALowerIdQueuesItBehindTheOrderUnderWay() {
-        assertTrue(manager.huts().setBuilderMode(alice, builder.position(), Mode.MANUAL));
+        assertTrue(manager.hutWindows().triggerSetting(alice, builder.position(), MODE));
         WorkOrder older = order(new BlockPos(20, 64, 0), 0, WorkOrderType.BUILD);
         WorkOrder current = order(new BlockPos(30, 64, 0), 0, WorkOrderType.BUILD);
         assertTrue(manager.workOrders().select(alice, builder.position(), current.id()));
@@ -299,7 +303,7 @@ class BuilderHutTabsTest {
         assertEquals(
                 List.of(mine.id()), ids(tab(alice, WorkOrderListView.class).orders()), "AUTO: only its own orders");
 
-        assertTrue(manager.huts().setBuilderMode(alice, builder.position(), Mode.MANUAL));
+        assertTrue(manager.hutWindows().triggerSetting(alice, builder.position(), MODE));
         List<WorkOrderListView.OrderLine> lines =
                 tab(alice, WorkOrderListView.class).orders();
 

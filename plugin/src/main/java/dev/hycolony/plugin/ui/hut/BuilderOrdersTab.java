@@ -69,24 +69,23 @@ final class BuilderOrdersTab implements HutTab {
                     row + " #Distance.Text",
                     Message.translation("hycolony.ui.builder.orders.distance")
                             .param("p0", String.valueOf(o.distance())));
-            button(ui, events, row + " #Button", o, i);
+            button(ui, events, row + " #Button", o);
         }
     }
 
-    private void button(
-            UICommandBuilder ui, UIEventBuilder events, String button, WorkOrderListView.OrderLine o, int i) {
+    private void button(UICommandBuilder ui, UIEventBuilder events, String button, WorkOrderListView.OrderLine o) {
         if (!tabs.selectable(o)) {
             ui.set(button + ".Visible", false);
             return;
         }
         if (o.claimedHere()) {
             ui.set(button + ".Text", Message.translation("hycolony.ui.builder.orders.cancel"));
-            ColonyPage.bind(events, button, "orderCancel", i);
+            ColonyPage.bindRef(events, button, "orderCancel", String.valueOf(o.id()));
             return;
         }
         ui.set(button + ".Text", Message.translation("hycolony.ui.builder.orders.select"));
         if (o.selectRefusal().isEmpty()) {
-            ColonyPage.bind(events, button, "select", i);
+            ColonyPage.bindRef(events, button, "select", String.valueOf(o.id()));
         } else {
             ui.set(button + ".Disabled", true);
             ui.set(
@@ -96,14 +95,20 @@ final class BuilderOrdersTab implements HutTab {
         }
     }
 
-    /** Select and Cancel go to the core, which checks MANAGE_HUTS and shows the window again. */
+    /**
+     * Select and Cancel go to the core, which checks MANAGE_HUTS and shows the window again; the event names the
+     * order's id, so a list redrawn meanwhile still targets the order clicked.
+     */
     @Override
     public void handle(ColonyPage.Act act) {
-        List<WorkOrderListView.OrderLine> lines = tabs.orders();
-        if (act.index() < 0 || act.index() >= lines.size()) {
+        int orderId = tabs.orders().stream()
+                .filter(o -> String.valueOf(o.id()).equals(act.ref()))
+                .mapToInt(WorkOrderListView.OrderLine::id)
+                .findFirst()
+                .orElse(-1);
+        if (orderId < 0) {
             return;
         }
-        int orderId = lines.get(act.index()).id();
         switch (act.action()) {
             case "select" -> manager.workOrders().select(player, hut, orderId);
             case "orderCancel" -> manager.workOrders().cancelFromBuilder(player, hut, orderId);

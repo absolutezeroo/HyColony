@@ -9,7 +9,7 @@ import dev.hycolony.core.kernel.BlockPos;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
-/** The distance and short direction of a Fields tab row (MC "Distance: 5m NE"), north being -z. */
+/** The distance and short direction of a Fields tab row (MC "Distance: 5m N/E"), north being -z. */
 class FieldsTabTest {
     private static final BlockPos HUT = new BlockPos(0, 64, 0);
 
@@ -28,6 +28,12 @@ class FieldsTabTest {
         // atan2 gives 22.78 and 67.22 degrees; MC truncates to 22 (north) and 67 (west).
         assertEquals("n", FieldsTab.direction(HUT, new BlockPos(-42, 64, -100)));
         assertEquals("w", FieldsTab.direction(HUT, new BlockPos(-100, 64, -42)));
+        assertEquals("sw", FieldsTab.direction(HUT, new BlockPos(-7, 64, 7)));
+        assertEquals("se", FieldsTab.direction(HUT, new BlockPos(7, 64, 7)));
+        assertEquals("w", FieldsTab.direction(HUT, new BlockPos(-100, 64, 41)), "112.3 degrees");
+        assertEquals("s", FieldsTab.direction(HUT, new BlockPos(-42, 64, 100)), "157.2 degrees");
+        assertEquals("ne", FieldsTab.direction(HUT, new BlockPos(43, 64, -100)), "-23.3 truncates to 337");
+        assertEquals("n", FieldsTab.direction(HUT, new BlockPos(42, 64, -100)), "-22.8 truncates to -22, so 338");
     }
 
     @Test

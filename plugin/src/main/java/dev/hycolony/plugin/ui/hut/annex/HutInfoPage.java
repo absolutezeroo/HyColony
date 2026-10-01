@@ -73,7 +73,11 @@ public final class HutInfoPage extends ColonyPage {
     @Override
     public void handleDataEvent(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, @Nonnull Act act) {
         switch (act.action()) {
-            case "exit" -> manager.windows().openBuilding(player, hut);
+            case "exit" -> {
+                if (!manager.windows().openBuilding(player, hut)) {
+                    close(); // the hut is gone
+                }
+            }
             case "prev" -> turn(page - 1);
             case "next" -> turn(page + 1);
             default -> {}

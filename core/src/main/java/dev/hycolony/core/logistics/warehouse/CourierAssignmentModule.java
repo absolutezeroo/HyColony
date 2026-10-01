@@ -114,7 +114,7 @@ public final class CourierAssignmentModule implements TickingModule, PersistentM
         hiringMode = SavedJson.enumOf(HiringMode.class, in.get("hiringMode")).orElse(HiringMode.DEFAULT);
     }
 
-    /** The warehouse's Couriers tab (MC CourierAssignmentModuleView), by id as MC's HashSet of ints lists them. */
+    /** The warehouse's Couriers tab (MC CourierAssignmentModuleView), by id, as MC's HashSet lists ids below 16. */
     @Override
     public ModuleTab tab(Colony colony, Building building, UUID viewer) {
         return new CourierAssignmentView(

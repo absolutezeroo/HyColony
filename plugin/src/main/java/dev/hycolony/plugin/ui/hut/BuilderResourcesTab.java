@@ -72,7 +72,7 @@ final class BuilderResourcesTab implements HutTab {
                 ui.set(row + label + ".Style.TextColor", color);
             }
             if (r.status().canAdd()) {
-                ColonyPage.bind(events, row + " #AddButton", "add", i);
+                ColonyPage.bindRef(events, row + " #AddButton", "add", r.item().id());
             } else {
                 ui.set(row + " #AddButton.Disabled", true);
             }
@@ -110,14 +110,17 @@ final class BuilderResourcesTab implements HutTab {
         }
     }
 
-    /** Add: the player's items go into the hut (MC TransferItemsRequestMessage); the core shows the window again. */
+    /**
+     * Add: the player's items go into the hut (MC TransferItemsRequestMessage); the core shows the window again. The
+     * event names the item, so a list redrawn meanwhile still adds the item clicked.
+     */
     @Override
     public void handle(ColonyPage.Act act) {
-        if ("add".equals(act.action())
-                && act.index() >= 0
-                && act.index() < view.rows().size()) {
-            ResourceRow r = view.rows().get(act.index());
-            manager.requestActions().addToHut(player, hut, r.item(), r.missing());
+        if ("add".equals(act.action())) {
+            view.rows().stream()
+                    .filter(r -> r.item().id().equals(act.ref()))
+                    .findFirst()
+                    .ifPresent(r -> manager.requestActions().addToHut(player, hut, r.item(), r.missing()));
         }
     }
 }

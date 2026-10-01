@@ -50,11 +50,18 @@ public final class HutRenamePage extends ColonyPage {
         switch (act.action()) {
             case "done" -> {
                 if (!manager.hutWindows().rename(player, hut, act.name())) {
-                    manager.windows().openBuilding(player, hut);
+                    back();
                 }
             }
-            case "cancel" -> manager.windows().openBuilding(player, hut);
+            case "cancel" -> back();
             default -> {}
+        }
+    }
+
+    /** Shows the hut again; closes this window when the hut is gone. */
+    private void back() {
+        if (!manager.windows().openBuilding(player, hut)) {
+            close();
         }
     }
 }

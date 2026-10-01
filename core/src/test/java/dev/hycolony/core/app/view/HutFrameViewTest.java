@@ -1,6 +1,7 @@
 package dev.hycolony.core.app.view;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.app.ColonyManager;
@@ -38,6 +39,14 @@ class HutFrameViewTest {
     private BuildingView view(BlockPos pos) {
         manager.windows().openBuilding(alice, pos);
         return (BuildingView) t.ui.shown.get(alice);
+    }
+
+    @Test
+    void openingAHutSaysWhetherItsWindowShowed() {
+        place(ConstructionBuildingTypes.BUILDER.id(), HUT);
+        assertTrue(manager.windows().openBuilding(alice, HUT));
+        assertFalse(manager.windows().openBuilding(alice, new BlockPos(90, 64, 0)), "no hut there");
+        assertFalse(manager.windows().openBuilding(UUID.randomUUID(), HUT), "a stranger may not look");
     }
 
     @Test
