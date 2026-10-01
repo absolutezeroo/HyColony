@@ -25,6 +25,18 @@ def offsets_follow_hytales_rounding_and_yaw():
     assert filler_offsets([{"Min": {"X": 0, "Y": 0, "Z": 0}, "Max": {"X": 1, "Y": 1, "Z": 1}}], 3) == set()
 
 
+def a_state_takes_its_own_hitbox():
+    # Each state is its own BlockType (FillerBlockUtil.setFillerBlocksAt reads its HitboxType): an open gate juts out.
+    open_out = [{"Min": {"X": 0, "Y": 0, "Z": -0.25}, "Max": {"X": 1, "Y": 1, "Z": 0.65}}]
+    unit = [{"Min": {"X": 0, "Y": 0, "Z": 0}, "Max": {"X": 1, "Y": 1, "Z": 1}}]
+    hitboxes = Hitboxes({"HyDomum_FenceGate": "Fence_Gate", "HyDomum_FenceGate#OpenDoorOut": "Fence_Gate_Open_Out"},
+                        {"Fence_Gate": unit, "Fence_Gate_Open_Out": open_out})
+    gate = "*HyDomum_FenceGate__Wood_Hardwood_Planks_State_Definitions_OpenDoorOut"
+    assert hitboxes.offsets(gate, 0) == {(0, 0, -1)}, "a negative minimum rounds down"
+    assert hitboxes.offsets(gate, 3) == {(1, 0, 0)}
+    assert hitboxes.offsets("HyDomum_FenceGate__Wood_Hardwood_Planks", 3) == set()
+
+
 def an_empty_cell_inside_a_multi_cell_model_is_dropped():
     # Le plan MC a de l'air au-dessus de l'épouvantail : un vide forcé là effacerait le modèle posé.
     hitboxes = Hitboxes({"HyColony_Field": "Scarecrow"}, {"Scarecrow": SCARECROW})
@@ -38,6 +50,7 @@ def an_empty_cell_inside_a_multi_cell_model_is_dropped():
 
 def run():
     offsets_follow_hytales_rounding_and_yaw()
+    a_state_takes_its_own_hitbox()
     an_empty_cell_inside_a_multi_cell_model_is_dropped()
     print("blueprint fillers check: OK")
 
