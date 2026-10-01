@@ -45,20 +45,29 @@ public final class ColonyAdministration {
         return manager.deleteColony(colonyId, actor);
     }
 
+    /** MC TownHallRenameMessage.MAX_NAME_LENGTH: a longer new name is cut to {@link #RENAME_CUT_LENGTH}. */
+    static final int RENAME_MAX_LENGTH = 25;
+
+    /** MC TownHallRenameMessage.SUBSTRING_LENGTH. */
+    static final int RENAME_CUT_LENGTH = RENAME_MAX_LENGTH - 1;
+
     /**
-     * MC TownHallRenameMessage (permissionNeeded MANAGE_HUTS, {@link ColonyAccess}) renames the colony; the town hall
-     * window is shown again.
+     * MC TownHallRenameMessage (permissionNeeded MANAGE_HUTS, {@link ColonyAccess}): renames the colony, a name over
+     * 25 characters cut to its first 24; the town hall window is shown again. False without the right or for a blank
+     * name.
+     *
+     * <p>Deviation from MC: a blank name is refused (MC would accept it and show an empty title).
      */
     public boolean rename(UUID actor, int colonyId, String rawName) {
         Colony c = manager.byId(colonyId).orElse(null);
         if (c == null || !ColonyAccess.allows(c, actor, Action.MANAGE_HUTS)) {
             return false;
         }
-        Optional<String> name = validName(manager.context(), actor, rawName);
+        String name = rawName == null ? "" : rawName.trim();
         if (name.isEmpty()) {
             return false;
         }
-        c.setName(name.get());
+        c.setName(name.length() <= RENAME_MAX_LENGTH ? name : name.substring(0, RENAME_CUT_LENGTH));
         windows.showTownHall(c, actor);
         return true;
     }
