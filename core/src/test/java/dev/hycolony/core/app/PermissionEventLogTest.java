@@ -40,6 +40,16 @@ class PermissionEventLogTest {
     }
 
     @Test
+    void aColonyWithoutTownHallLogsNothingAsMc() {
+        BlockPos hall = new BlockPos(0, 64, 0);
+        manager.foundation().begin(alice, "Alice", hall, 0);
+        Colony c = manager.foundation().confirm(alice, "A").orElseThrow();
+        c.buildings().remove(hall);
+        assertTrue(manager.protection().refuses(bob, inside, Action.BREAK_BLOCKS));
+        assertTrue(c.permissions().events().entries().isEmpty());
+    }
+
+    @Test
     void aRefusedBlockUseIsLoggedToo() {
         manager.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
         Colony c = manager.foundation().confirm(alice, "A").orElseThrow();

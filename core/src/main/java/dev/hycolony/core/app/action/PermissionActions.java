@@ -19,7 +19,7 @@ import java.util.function.Predicate;
  * PermissionsMessage (not an AbstractColonyServerMessage) does.
  */
 public final class PermissionActions {
-    /** MC WindowPermissionsPage: the player and rank name fields take 32 characters (maxlength). */
+    /** MC layoutpermissions.xml: the player and rank name fields take 32 characters (maxlength). */
     static final int MAX_NAME_LENGTH = 32;
 
     private final ColonyManager manager;
@@ -30,7 +30,8 @@ public final class PermissionActions {
 
     /**
      * MC AddPlayer: the player named {@code name}, once found (online or in the game's profiles), joins as neutral;
-     * false without the right or the colony, true once the lookup is asked.
+     * false without the right or the colony, or for an empty name or one over {@link #MAX_NAME_LENGTH}; true once
+     * the lookup is asked.
      *
      * <p>Deviation from MC: MC reads the server's local profile cache; Hytale has none, so the lookup asks Hytale's
      * profile service and answers later (PlayerDirectory.findByName).
@@ -105,7 +106,10 @@ public final class PermissionActions {
         });
     }
 
-    /** MC AddRank: the window sends only a non-empty name no rank has yet (WindowPermissionsPage.isValidRankname). */
+    /**
+     * MC AddRank: the window sends only a non-empty name no rank but the owner's has yet
+     * (WindowPermissionsPage.isValidRankname); false otherwise or over {@link #MAX_NAME_LENGTH}.
+     */
     public boolean addRank(UUID actor, int colonyId, String name) {
         return edit(actor, colonyId, p -> {
             if (name.isEmpty()

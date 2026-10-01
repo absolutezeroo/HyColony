@@ -26,7 +26,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * A HyColony window: buttons send {@code Action} (+ {@code Index} for list rows) and call ColonyManager, which
+ * A HyColony window: buttons send {@code Action} (+ {@code Index} for a row or a number, {@code Ref} for a row a live
+ * refresh may move, {@code @Name} for a field's value) and call ColonyManager, which
  * re-shows a fresh snapshot. Buttons do not lock the interface, so no "unlock" update is ever needed; a re-shown
  * page waits for the client's acknowledgement, which drops double clicks. World thread only. Public for the window
  * sub-packages.

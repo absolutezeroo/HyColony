@@ -32,7 +32,8 @@ public final class HytalePlayerDirectory implements PlayerDirectory {
     private static final float QUARTER_TURN_RAD = (float) (Math.PI / 2.0);
 
     private final World world;
-    private boolean warned;
+    /** Also written by the profile service's thread (findByName's answer): volatile, a lost race only logs twice. */
+    private volatile boolean warned;
 
     public HytalePlayerDirectory(World world) {
         this.world = world;

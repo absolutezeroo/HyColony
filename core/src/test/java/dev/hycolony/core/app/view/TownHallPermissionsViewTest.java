@@ -88,7 +88,22 @@ class TownHallPermissionsViewTest {
     @Test
     void theNeutralRankShowsEditPermissionsOffWhateverItsFlag() {
         f.colony.permissions().ranks().get(Permissions.NEUTRAL).add(Action.EDIT_PERMISSIONS);
-        TownHallView.RankRow neutral = view(f.alice).ranks().get(Permissions.NEUTRAL);
+        TownHallView.RankRow neutral = view(f.alice).ranks().stream()
+                .filter(r -> r.id() == Permissions.NEUTRAL)
+                .findFirst()
+                .orElseThrow();
         assertFalse(neutral.actions().get(Action.EDIT_PERMISSIONS.ordinal()).on());
+    }
+
+    @Test
+    void ranksKeepTheirInsertionOrderWhenAnIdIsReusedAsMc() {
+        Permissions p = f.colony.permissions();
+        int a = p.addRank("A").id();
+        p.addRank("B");
+        p.removeRank(a);
+        assertEquals(a, p.addRank("C").id(), "MC reuses the lowest free id");
+        List<String> names =
+                view(f.alice).ranks().stream().map(TownHallView.RankRow::name).toList();
+        assertEquals(List.of("B", "C"), names.subList(names.size() - 2, names.size()));
     }
 }

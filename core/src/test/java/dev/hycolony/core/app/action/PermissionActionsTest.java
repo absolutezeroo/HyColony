@@ -157,6 +157,25 @@ class PermissionActionsTest {
     }
 
     @Test
+    void aLateAnswerAfterTheActorLostTheRightAddsNoOne() {
+        permissions().addPlayer(carol, "Carol", Permissions.FRIEND);
+        permissions().ranks().get(Permissions.FRIEND).add(Action.EDIT_PERMISSIONS);
+        t.players.answerLater = true;
+        assertTrue(actions.addPlayer(carol, colony.id(), "Bob"));
+        permissions().ranks().get(Permissions.FRIEND).remove(Action.EDIT_PERMISSIONS);
+        t.players.answerNow();
+        assertFalse(permissions().members().containsKey(bob));
+    }
+
+    @Test
+    void aRefusedRemovalSaysNothingAsMc() {
+        permissions().addPlayer(bob, "Bob", Permissions.FRIEND);
+        permissions().addPlayer(carol, "Carol", Permissions.FRIEND);
+        assertFalse(actions.removePlayer(carol, colony.id(), bob));
+        assertTrue(t.notifier.sent.isEmpty());
+    }
+
+    @Test
     void aLateAnswerDoesNotReopenAClosedTownHall() {
         t.players.answerLater = true;
         assertTrue(actions.addPlayer(alice, colony.id(), "Bob"));

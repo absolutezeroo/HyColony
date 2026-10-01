@@ -67,7 +67,7 @@ final class TownHallPermissionsTab implements TownHallTab {
         }
     }
 
-    /** MC's Players page: without EDIT_PERMISSIONS the add field and buttons are disabled with MC's tooltip. */
+    /** MC's Players page: without EDIT_PERMISSIONS the name field and Add are disabled with MC's tooltip. */
     private void players(UICommandBuilder ui, UIEventBuilder events, String page) {
         ui.set(page + " #PlayerName.Value", picked);
         if (view.canEdit()) {

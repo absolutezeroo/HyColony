@@ -137,7 +137,7 @@ Trois sous-pages, tournées par `<` `>` avec leur numéro. Sans `EDIT_PERMISSION
 ## 9. Robustesse et persistance
 
 - Toute action vérifie l'existence de la colonie, du joueur, du rang ou du citoyen, et renvoie `false` sans lever d'exception ; l'index d'une ligne vient de la vue affichée et est borné.
-- Les nouveaux états persistés (style de colonie, position des événements, `moveIn`, rangs personnalisés, journal des refus) passent par `MigrationChain` avec une fixture de l'ancienne version, et une lecture tolérante (§ 5 de CLAUDE.md).
+- Les nouveaux états persistés (style de colonie, position des événements, `moveIn`, rangs personnalisés) passent par `MigrationChain` avec une fixture de l'ancienne version, et une lecture tolérante (§ 5 de CLAUDE.md).
 - Une liste déroulante ou un champ renvoyant une valeur inconnue est ignoré, sans plantage.
 
 ## 10. Tests

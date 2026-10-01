@@ -84,10 +84,13 @@ final class PermissionRanksPage {
         }
         ui.set(page + " #RankType.Entries", types);
         ui.set(page + " #RankType.Value", r.type().name());
+        String rank = String.valueOf(r.id());
         events.addEventBinding(
                 CustomUIEventBindingType.ValueChanged,
                 page + " #RankType",
-                EventData.of("Action", "permRankType").append("@Name", page + " #RankType.Value"),
+                EventData.of("Action", "permRankType")
+                        .append("@Name", page + " #RankType.Value")
+                        .append("Ref", rank),
                 false);
         for (int i = 0; i < r.actions().size(); i++) {
             TownHallView.ActionState a = r.actions().get(i);
@@ -100,8 +103,14 @@ final class PermissionRanksPage {
                     row + " #Switch.Text",
                     Message.translation("hycolony.ui.townhall.setting." + (a.on() ? "on" : "off")));
             if (a.alterable()) {
-                ColonyPage.bind(
-                        events, row + " #Switch", "permToggle", a.action().ordinal());
+                // MC WindowPermissionsPage.trigger sends the state the shown button asks for, not a flip.
+                events.addEventBinding(
+                        CustomUIEventBindingType.Activating,
+                        row + " #Switch",
+                        EventData.of("Action", a.on() ? "permDisable" : "permEnable")
+                                .append("Index", String.valueOf(a.action().ordinal()))
+                                .append("Ref", rank),
+                        false);
             } else {
                 ui.set(row + " #Switch.Disabled", true);
             }
@@ -109,11 +118,14 @@ final class PermissionRanksPage {
         if (r.initial()) {
             ui.set(page + " #RemoveRank.Disabled", true);
         } else {
-            ColonyPage.bind(events, page + " #RemoveRank", "permRemoveRank");
+            ColonyPage.bindRef(events, page + " #RemoveRank", "permRemoveRank", rank);
         }
     }
 
-    /** Choosing a rank is page state; the other buttons go to the core, which shows the town hall again. */
+    /**
+     * Choosing a rank is page state; the other buttons go to the core, which shows the town hall again. They name
+     * their rank in the event: a page a live refresh did not redraw still acts on the rank it shows.
+     */
     TownHallTab.Outcome handle(ColonyPage.Act act) {
         switch (act.action()) {
             case "permSelectRank" -> {
@@ -123,16 +135,23 @@ final class PermissionRanksPage {
                 }
             }
             case "permAddRank" -> actions.addRank(player, colonyId, act.name());
-            case "permRankType" -> type(act.name()).ifPresent(t -> actions.setRankType(player, colonyId, rankId, t));
-            case "permToggle" -> toggle(act.index());
-            case "permRemoveRank" -> {
-                if (actions.removeRank(player, colonyId, rankId)) {
-                    rankId = Permissions.OFFICER;
-                }
-            }
+            case "permRankType" ->
+                type(act.name())
+                        .ifPresent(t -> rankOf(act).ifPresent(id -> actions.setRankType(player, colonyId, id, t)));
+            case "permEnable", "permDisable" -> alter(act, act.action().equals("permEnable"));
+            case "permRemoveRank" -> rankOf(act).ifPresent(id -> actions.removeRank(player, colonyId, id));
             default -> {}
         }
         return TownHallTab.Outcome.NONE;
+    }
+
+    /** The rank id the event names in {@code Ref}; empty if it names none. */
+    private static Optional<Integer> rankOf(ColonyPage.Act act) {
+        try {
+            return Optional.of(Integer.parseInt(act.ref()));
+        } catch (NumberFormatException _) {
+            return Optional.empty();
+        }
     }
 
     private static Optional<RankType> type(String name) {
@@ -143,14 +162,12 @@ final class PermissionRanksPage {
         }
     }
 
-    /** MC PermissionsMessage.Permission: turns the action over (the core checks canAlterPermission). */
-    private void toggle(int ordinal) {
-        if (ordinal < 0 || ordinal >= Action.values().length) {
-            return;
+    /** MC PermissionsMessage.Permission: sets the rank's action as asked (the core checks canAlterPermission). */
+    private void alter(ColonyPage.Act act, boolean enable) {
+        int ordinal = act.index();
+        if (ordinal >= 0 && ordinal < Action.values().length) {
+            rankOf(act)
+                    .ifPresent(id -> actions.alterPermission(player, colonyId, id, Action.values()[ordinal], enable));
         }
-        Action action = Action.values()[ordinal];
-        chosen().flatMap(r ->
-                        r.actions().stream().filter(a -> a.action() == action).findFirst())
-                .ifPresent(a -> actions.alterPermission(player, colonyId, rankId, action, !a.on()));
     }
 }
