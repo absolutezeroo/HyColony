@@ -1,0 +1,46 @@
+$S = "St.ui";
+
+// A row of two packs in Structurize's pack window (windowswitchpack.xml box1 and box2), doubled: the 80 x 80 icon, the
+// name (scale 1.2), the description (scale 0.6), the authors (scale 0.8) and Select.
+
+@Pack = Group {
+  Anchor: (Width: 400, Height: 200);
+  Visible: false;
+
+  AssetImage #Icon {
+    Anchor: (Left: 0, Top: 0, Width: 160, Height: 160);
+  }
+
+  Label #Name {
+    Anchor: (Left: 162, Top: 0, Width: 238, Height: 34);
+    Style: (...$S.@WhiteLeft, FontSize: 18);
+  }
+
+  Label #Desc {
+    Anchor: (Left: 162, Top: 40, Width: 238, Height: 100);
+    Style: (...$S.@WhiteLeft, FontSize: 11, VerticalAlignment: Start);
+  }
+
+  Label #Authors {
+    Anchor: (Left: 180, Top: 140, Width: 220, Height: 60);
+    Style: (...$S.@WhiteLeft, FontSize: 12, VerticalAlignment: Start);
+  }
+
+  TextButton #Select {
+    Anchor: (Left: 0, Top: 160, Width: 172, Height: 34);
+    Style: $S.@MediumButtonStyle;
+    Text: %hycolony.ui.wand.select;
+  }
+};
+
+Group {
+  Anchor: (Height: 200);
+
+  @Pack #P0 {
+    Anchor: (Left: 0, Top: 0, Width: 400, Height: 200);
+  }
+
+  @Pack #P1 {
+    Anchor: (Left: 400, Top: 0, Width: 400, Height: 200);
+  }
+}

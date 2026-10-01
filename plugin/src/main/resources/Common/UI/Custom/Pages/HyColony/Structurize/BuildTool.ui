@@ -1,0 +1,139 @@
+$C = "../../../Common.ui";
+$S = "St.ui";
+
+// Structurize's build tool (gui/windowbuildtool.xml with gui/layoutmanipulation.xml, WindowExtendedBuildTool), its
+// 420 x 240 window doubled and centred, with no background nor darkening (lightbox="false"): the world and the ghost
+// stay visible. Switch Pack and the tree at the top; the levels on the left; the subfolders or blueprints, three per
+// row, above the pack's category icons; the manipulator on the right; cancel and confirm at the bottom. WandPage
+// appends GridRow.ui, LevelRow.ui, PlacementRow.ui and CategoryIcon.ui. Structurize's settings button is left out
+// (client renderer settings) and its mirror button stays disabled (no mirrored huts).
+
+Group {
+  LayoutMode: Middle;
+
+  Group {
+    Anchor: (Width: 840, Height: 480);
+
+    TextButton #Switch {
+      Anchor: (Left: 10, Top: 10, Width: 172, Height: 34);
+      Style: $S.@MediumButtonStyle;
+      Text: %hycolony.ui.wand.switchPack;
+    }
+
+    Label #Tree {
+      Anchor: (Left: 200, Top: 10, Width: 600, Height: 24);
+      Style: (...$S.@WhiteLeft, RenderBold: true, Wrap: false);
+    }
+
+    Group #Levels {
+      Anchor: (Left: 10, Top: 100, Width: 200, Height: 240);
+      LayoutMode: TopScrolling;
+      ScrollbarStyle: $C.@DefaultScrollbarStyle;
+    }
+
+    Group #Grid {
+      Anchor: (Left: 200, Top: 360, Width: 540, Height: 40);
+      LayoutMode: TopScrolling;
+      ScrollbarStyle: $C.@DefaultScrollbarStyle;
+    }
+
+    Group #Categories {
+      Anchor: (Left: 240, Top: 400, Width: 360, Height: 40);
+      LayoutMode: Left;
+    }
+
+    Label #Tip {
+      Anchor: (Left: 300, Top: 200, Width: 400, Height: 100);
+      Style: $S.@WhiteLeft;
+      Text: %hycolony.ui.wand.tip;
+      Visible: false;
+    }
+
+    Group #Placement {
+      Anchor: (Left: 320, Top: 160, Width: 200, Height: 160);
+      LayoutMode: Top;
+      Visible: false;
+    }
+
+    Group #Manipulator {
+      Anchor: (Left: 740, Top: 200, Width: 96, Height: 128);
+      Visible: false;
+
+      $S.@Square #RotateLeft {
+        @Normal = "rotateleft.png";
+        @Hover = "rotateleft_hover.png";
+        @Off = "rotateleft_dim.png";
+        Anchor: (Left: 0, Top: 0, Width: 32, Height: 32);
+      }
+
+      $S.@Square #Forward {
+        Anchor: (Left: 32, Top: 0, Width: 32, Height: 32);
+      }
+
+      $S.@Square #RotateRight {
+        @Normal = "rotateright.png";
+        @Hover = "rotateright_hover.png";
+        @Off = "rotateright_dim.png";
+        Anchor: (Left: 64, Top: 0, Width: 32, Height: 32);
+      }
+
+      $S.@Square #Left {
+        @Normal = "left.png";
+        @Hover = "left_hover.png";
+        @Off = "left_dim.png";
+        Anchor: (Left: 0, Top: 32, Width: 32, Height: 32);
+      }
+
+      $S.@Square #Mirror {
+        @Normal = "mirror.png";
+        @Hover = "mirror_hover.png";
+        @Off = "mirror_dim.png";
+        Anchor: (Left: 32, Top: 32, Width: 32, Height: 32);
+        Disabled: true;
+      }
+
+      $S.@Square #Right {
+        @Normal = "right.png";
+        @Hover = "right_hover.png";
+        @Off = "right_dim.png";
+        Anchor: (Left: 64, Top: 32, Width: 32, Height: 32);
+      }
+
+      $S.@Square #Down {
+        @Normal = "minus.png";
+        @Hover = "minus_hover.png";
+        @Off = "minus_dim.png";
+        Anchor: (Left: 0, Top: 64, Width: 32, Height: 32);
+      }
+
+      $S.@Square #Back {
+        @Normal = "down.png";
+        @Hover = "down_hover.png";
+        @Off = "down_dim.png";
+        Anchor: (Left: 32, Top: 64, Width: 32, Height: 32);
+      }
+
+      $S.@Square #Up {
+        @Normal = "plus.png";
+        @Hover = "plus_hover.png";
+        @Off = "plus_dim.png";
+        Anchor: (Left: 64, Top: 64, Width: 32, Height: 32);
+      }
+    }
+
+    $S.@Square #Cancel {
+      @Normal = "cancel.png";
+      @Hover = "cancel_hover.png";
+      @Off = "cancel_dim.png";
+      Anchor: (Left: 180, Top: 426, Width: 60, Height: 60);
+    }
+
+    $S.@Square #Confirm {
+      @Normal = "confirm.png";
+      @Hover = "confirm_hover.png";
+      @Off = "confirm_dim.png";
+      Anchor: (Left: 600, Top: 426, Width: 60, Height: 60);
+      Visible: false;
+    }
+  }
+}

@@ -1,0 +1,11 @@
+// An owner's title row of Structurize's pack window (windowswitchpack.xml box0: centred, yellow, text scale 4),
+// doubled.
+
+Group {
+  Anchor: (Height: 200);
+
+  Label #Owner {
+    Anchor: (Left: 0, Top: 60, Width: 800, Height: 80);
+    Style: (FontSize: 48, TextColor: #ffff55, HorizontalAlignment: Center, VerticalAlignment: Center);
+  }
+}

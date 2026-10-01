@@ -55,7 +55,7 @@ class WandPlacementTest {
     }
 
     private static WandSession session(BlockPos anchor, String type) {
-        return new WandSession(Optional.of(anchor), FakeBlueprints.STYLE, type, 1, 2);
+        return new WandSession(Optional.of(anchor), FakeBlueprints.STYLE, type, 1, 2, "");
     }
 
     private void give(UUID player, ItemKey item) {

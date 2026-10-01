@@ -44,6 +44,9 @@ public interface UiPort {
     /** The build tool window; re-shown after every button. */
     void showWand(UUID player, WandView view);
 
+    /** The build tool's pack window (ST WindowSwitchPack); re-shown after every keystroke of its filter. */
+    void showWandPacks(UUID player, WandPacksView view);
+
     /**
      * The citizen's own inventory as a container window, live on its core inventory (MC ContainerCitizenInventory),
      * shown in the citizen window's Inventory tab. The caller has checked the permission; a player or citizen gone by

@@ -19,6 +19,7 @@ import dev.hycolony.core.app.ui.NeedsPlayerNotice;
 import dev.hycolony.core.app.ui.RequestsView;
 import dev.hycolony.core.app.ui.TownHallView;
 import dev.hycolony.core.app.ui.UiPort;
+import dev.hycolony.core.app.ui.WandPacksView;
 import dev.hycolony.core.app.ui.WandView;
 import dev.hycolony.core.app.ui.WindowKey;
 import dev.hycolony.core.app.wand.WandActions;
@@ -35,6 +36,7 @@ import dev.hycolony.plugin.ui.field.FieldPage;
 import dev.hycolony.plugin.ui.hut.HutWindow;
 import dev.hycolony.plugin.ui.request.RequestTexts;
 import dev.hycolony.plugin.ui.townhall.TownHallPage;
+import dev.hycolony.plugin.ui.wand.WandPacksPage;
 import dev.hycolony.plugin.ui.wand.WandPage;
 import java.util.HashSet;
 import java.util.Optional;
@@ -201,7 +203,12 @@ public final class HytaleUiPort implements UiPort {
 
     @Override
     public void showWand(UUID player, WandView view) {
-        open(player, pr -> new WandPage(pr, view, manager.get(), wand.get(), ids));
+        open(player, pr -> new WandPage(pr, view, manager.get(), wand.get()));
+    }
+
+    @Override
+    public void showWandPacks(UUID player, WandPacksView view) {
+        open(player, pr -> new WandPacksPage(pr, view, manager.get(), wand.get()));
     }
 
     @Override

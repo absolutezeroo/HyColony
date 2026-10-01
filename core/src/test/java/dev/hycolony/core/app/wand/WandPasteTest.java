@@ -57,7 +57,7 @@ class WandPasteTest {
     }
 
     private static WandSession session(BlockPos anchor, String type, int level) {
-        return new WandSession(Optional.of(anchor), FakeBlueprints.STYLE, type, level, 2);
+        return new WandSession(Optional.of(anchor), FakeBlueprints.STYLE, type, level, 2, "");
     }
 
     private void runQueue() {

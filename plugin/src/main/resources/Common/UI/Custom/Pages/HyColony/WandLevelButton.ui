@@ -1,5 +1,0 @@
-$C = "../../Common.ui";
-
-$C.@SmallSecondaryTextButton #LevelButton {
-  Anchor: (Height: 30, Bottom: 4);
-}

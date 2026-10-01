@@ -1,0 +1,38 @@
+$C = "../../../Common.ui";
+$S = "St.ui";
+
+// Structurize's pack window (gui/windowswitchpack.xml, WindowSwitchPack), its 420 x 240 window doubled over the
+// darkened game (lightbox="true"): Cancel and the name filter at the top, then the packs list, one title row per
+// owner and two packs per row (WandPacksPage appends PackTitle.ui and PackRow.ui).
+
+$C.@PageOverlay {
+  LayoutMode: Middle;
+
+  Group {
+    Anchor: (Width: 840, Height: 480);
+
+    TextButton #Cancel {
+      Anchor: (Left: 6, Top: 6, Width: 172, Height: 34);
+      Style: $S.@MediumButtonStyle;
+      Text: %hycolony.ui.wand.cancel;
+    }
+
+    $C.@TextField #Filter {
+      @Anchor = (Left: 300, Top: 6, Width: 258);
+      MaxLength: 25;
+    }
+
+    Label #Empty {
+      Anchor: (Left: 0, Top: 120, Width: 840, Height: 40);
+      Style: $S.@White;
+      Text: %hycolony.ui.wand.noPack;
+      Visible: false;
+    }
+
+    Group #Packs {
+      Anchor: (Left: 0, Top: 80, Width: 840, Height: 400);
+      LayoutMode: TopScrolling;
+      ScrollbarStyle: $C.@DefaultScrollbarStyle;
+    }
+  }
+}

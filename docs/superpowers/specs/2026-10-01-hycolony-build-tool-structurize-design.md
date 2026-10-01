@@ -37,7 +37,7 @@ Pas d'état persisté nouveau (la session de la baguette vit en mémoire) : pas 
 | `categories` | (120, 200), boutons 19 × 19 tous les 20 px | une icône par dossier de premier niveau du pack, infobulle = nom du dossier capitalisé ; le dossier ouvert est désactivé (icône `_disabled`) |
 | `subcategories` | 270 × 20/40/60 en (100, 180/160/140) selon le nombre de boutons (≤ 3, ≤ 6, plus) | « retour » (`back_medium`) puis un bouton par sous-dossier (`button_medium`, nom capitalisé, texte noir) ; trois par ligne |
 | `blueprints` | mêmes tailles et positions | « retour » puis un bouton par hutte (`button_blueprint`, texte blanc) : nom de la hutte ; `_selected` pour la hutte choisie ; `_disabled` et infobulle des exigences en rouge si elle est verrouillée (§ 3.1) ; trois par ligne |
-| `levels` | 100 × 120 en (5, 50), boutons 86 × 17 | « Niveau : n » pour chaque niveau de la hutte choisie (aucun bouton désactivé, comme Structurize) |
+| `levels` | 100 × 120 en (5, 50), boutons 86 × 17 | « Niveau : n » pour chaque niveau de la hutte choisie qui a un plan dans le style (`updateLevels` liste les plans du pack ; aucun bouton désactivé) |
 | `manipulator` | 48 × 64 en (370, 100), boutons 16 × 16 | rotation gauche, haut, rotation droite / gauche, miroir, droite / moins, bas, plus |
 | `tip` | 200 × 50 en (150, 100), blanc | `structurize.gui.manipulation.info` à la première ouverture d'une session (§ 7) |
 | `placement` | 100 × 80 en (160, 80) | en créatif, après Valider : « Construit » (collage comme un constructeur) et « Placer la hutte » |
@@ -85,4 +85,9 @@ Pas d'état persisté nouveau (la session de la baguette vit en mémoire) : pas 
 - L'astuce reste jusqu'à la première action, où Structurize la cache après 10 s.
 - L'infobulle d'un plan est le nom de la hutte et ses exigences, sans la description de MC (ses textes de langue ne sont pas dans `sources/`) ; exigence de recherche absente (pas de recherche).
 - Un seul jeu d'icônes de catégories (celui de 23 packs de MC sur 24), une seule disposition (`layout`) pour tous les packs.
-- Les packs de Hytale (kweebec, outlander) n'ont pas d'icône de MC : icône du pack dessinée à partir d'une icône du jeu, ou le sceptre de Structurize.
+- Les packs de Hytale (kweebec, outlander) n'ont pas d'icône de MC : le sceptre de Structurize les remplace.
+- Le filtre des packs porte sur l'id du style et sur le nom écrit dans `packs.json` (une clé de traduction), le cœur ne traduisant pas ; il redessine la liste sur place pour garder le champ de saisie.
+- Le nom et la description d'un pack sont des clés de traduction (Structurize les écrit en clair dans `pack.json`) ; le titre d'un propriétaire et les auteurs restent écrits tels quels, comme Structurize.
+- Les noms de dossiers connus de MC sont traduits (Structurize les capitalise tels quels) ; un dossier inconnu est capitalisé.
+- Les icônes de catégories n'ont pas la teinte de survol de BlockUI (image posée à l'exécution par `AssetImage`).
+- Libellés de la liste de placement : « Construit » (Structurize `pretty`) et « Placer la hutte » (le texte de MC `blueprint.placement` n'est pas dans `sources/`).

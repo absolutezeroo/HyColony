@@ -9,6 +9,7 @@ import dev.hycolony.core.app.ui.NeedsPlayerNotice;
 import dev.hycolony.core.app.ui.RequestsView;
 import dev.hycolony.core.app.ui.TownHallView;
 import dev.hycolony.core.app.ui.UiPort;
+import dev.hycolony.core.app.ui.WandPacksView;
 import dev.hycolony.core.app.ui.WandView;
 import dev.hycolony.core.app.ui.WindowKey;
 import java.util.ArrayList;
@@ -76,6 +77,11 @@ public final class FakeUi implements UiPort {
 
     @Override
     public void showWand(UUID player, WandView view) {
+        shown.put(player, view);
+    }
+
+    @Override
+    public void showWandPacks(UUID player, WandPacksView view) {
         shown.put(player, view);
     }
 

@@ -1,0 +1,60 @@
+$C = "../../../Common.ui";
+$S = "St.ui";
+
+// One row of Structurize's subcategories or blueprints list (windowbuildtool.xml, box 20 high, three 86 x 17
+// buttons 87 apart), doubled. Each slot holds the five kinds of button ST draws there (handleSubCat,
+// handleBlueprint); WandPage shows the one it needs.
+
+@Slot = Group {
+  TextButton #Back {
+    Anchor: (Full: 0);
+    Style: $S.@BackButtonStyle;
+    Text: "";
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+    TooltipText: %hycolony.ui.wand.folderBack;
+    Visible: false;
+  }
+
+  TextButton #Folder {
+    Anchor: (Full: 0);
+    Style: $S.@MediumButtonStyle;
+    Visible: false;
+  }
+
+  TextButton #Hut {
+    Anchor: (Full: 0);
+    Style: $S.@BlueprintStyle;
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+    Visible: false;
+  }
+
+  TextButton #Selected {
+    Anchor: (Full: 0);
+    Style: $S.@BlueprintSelectedStyle;
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+    Visible: false;
+  }
+
+  TextButton #Locked {
+    Anchor: (Full: 0);
+    Style: $S.@BlueprintLockedStyle;
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+    Visible: false;
+  }
+};
+
+Group {
+  Anchor: (Height: 40);
+
+  @Slot #S0 {
+    Anchor: (Left: 0, Top: 0, Width: 172, Height: 34);
+  }
+
+  @Slot #S1 {
+    Anchor: (Left: 174, Top: 0, Width: 172, Height: 34);
+  }
+
+  @Slot #S2 {
+    Anchor: (Left: 348, Top: 0, Width: 172, Height: 34);
+  }
+}

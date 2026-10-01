@@ -1,0 +1,18 @@
+$C = "../../../Common.ui";
+
+// One of the pack's category icons (WindowExtendedBuildTool.onUpdate: a 19 x 19 ButtonImage every 20 px), doubled.
+// WandPage sets the icon (the category's icon.png, its icon_disabled.png once open, or Structurize's default.png).
+
+Group {
+  Anchor: (Width: 40, Height: 38);
+
+  Button #Button {
+    Anchor: (Left: 0, Top: 0, Width: 38, Height: 38);
+    Style: ButtonStyle(Sounds: $C.@ButtonSounds);
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+
+    AssetImage #Icon {
+      Anchor: (Full: 0);
+    }
+  }
+}

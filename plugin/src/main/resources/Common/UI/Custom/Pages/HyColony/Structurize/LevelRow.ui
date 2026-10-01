@@ -1,0 +1,13 @@
+$S = "St.ui";
+
+// One row of Structurize's levels list (windowbuildtool.xml, box 17 high, one 86 x 17 button_medium), doubled; also
+// a row of the creative placement list (layoutmanipulation.xml "placement").
+
+Group {
+  Anchor: (Height: 34);
+
+  TextButton #Button {
+    Anchor: (Left: 0, Top: 0, Width: 172, Height: 34);
+    Style: $S.@MediumButtonStyle;
+  }
+}

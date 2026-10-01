@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.app.ui.FoundColonyView;
+import dev.hycolony.core.app.ui.WandPacksView;
 import dev.hycolony.core.app.ui.WandView;
 import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.colony.Colony;
@@ -108,12 +109,10 @@ class WandActionsTest {
     }
 
     @Test
-    void openOnABlockAnchorsThereAndShowsTheWindow() {
+    void openOnABlockAnchorsThereAndShowsThePackWindowFirst() {
         assertTrue(wand.open(alice, Optional.of(spot)));
-        assertEquals(List.of(FakeBlueprints.STYLE, NORDIC), view().styles());
-        // ST preselects no pack: nothing is offered until a style is chosen.
-        assertEquals("", view().style());
-        assertTrue(view().buildingTypeIds().isEmpty());
+        // ST WindowExtendedBuildTool.onOpened: without a pack, WindowSwitchPack opens instead.
+        assertInstanceOf(WandPacksView.class, t.ui.shown.get(alice));
         chooseBuilder();
         assertEquals(spot, ghost().orElseThrow().origin());
     }
@@ -135,31 +134,15 @@ class WandActionsTest {
     }
 
     @Test
-    void survivalListsOnlyHutsInTheInventory() {
-        give(BUILDER_ITEM);
-        wand.open(alice, Optional.of(spot));
-        wand.selectStyle(alice, FakeBlueprints.STYLE);
-        assertEquals(List.of(BUILDER), view().buildingTypeIds());
-        assertFalse(wand.selectBuilding(alice, TOWN_HALL));
-    }
-
-    @Test
-    void creativeListsEveryHut() {
-        t.players.creative.add(alice);
-        wand.open(alice, Optional.of(spot));
-        wand.selectStyle(alice, FakeBlueprints.STYLE);
-        assertTrue(view().buildingTypeIds().containsAll(List.of(BUILDER, TOWN_HALL)));
-        assertTrue(wand.selectBuilding(alice, TOWN_HALL));
-    }
-
-    @Test
     void offersOnlyHutsWithAPlanInTheStyle() {
         t.players.creative.add(alice);
         wand.open(alice, Optional.of(spot));
         wand.selectStyle(alice, FakeBlueprints.STYLE);
-        assertEquals(Set.of(BUILDER, TOWN_HALL), Set.copyOf(view().buildingTypeIds()));
+        wand.openCategory(alice, "fundamentals");
+        assertEquals(Set.of(BUILDER, TOWN_HALL), Set.copyOf(view().hutIds()));
+        assertTrue(wand.selectBuilding(alice, TOWN_HALL));
         wand.selectStyle(alice, NORDIC);
-        assertTrue(view().buildingTypeIds().isEmpty());
+        assertTrue(view().categories().isEmpty());
         assertFalse(wand.selectBuilding(alice, BUILDER));
     }
 

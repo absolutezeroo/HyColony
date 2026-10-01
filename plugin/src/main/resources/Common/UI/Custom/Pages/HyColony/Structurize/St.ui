@@ -1,0 +1,67 @@
+$C = "../../../Common.ui";
+
+// Shared styles of Structurize's build tool windows. Textures here are Structurize's (gui/buildtool, ldtteam, GPL-3)
+// and MineColonies' pack category icons, scaled nearest-neighbour to their displayed size x4 into @2x files. As
+// BlockUI's ButtonImage draws a button with one texture, hovered or pressed is that texture times 1.1 (the *_hover
+// files) and disabled times 0.5 (the *_dim files). A label with only textcolor and texthovercolor="gray" keeps
+// BlockUI's white for its disabled text.
+
+@Black = LabelStyle(FontSize: 15, TextColor: #000000, VerticalAlignment: Center, HorizontalAlignment: Center);
+@Gray = LabelStyle(...@Black, TextColor: #808080);
+@White = LabelStyle(...@Black, TextColor: #ffffff);
+@WhiteLeft = LabelStyle(...@White, HorizontalAlignment: Start, Wrap: true);
+
+// button_medium (86 x 17): black text, gray when hovered.
+@MediumButtonStyle = TextButtonStyle(
+  Default: (Background: "button_medium.png", LabelStyle: @Black),
+  Hovered: (Background: "button_medium_hover.png", LabelStyle: @Gray),
+  Pressed: (Background: "button_medium_hover.png", LabelStyle: @Gray),
+  Disabled: (Background: "button_medium_disabled.png", LabelStyle: @White),
+  Sounds: $C.@ButtonSounds
+);
+
+// back_medium (86 x 17), no text.
+@BackButtonStyle = TextButtonStyle(
+  Default: (Background: "back_medium.png", LabelStyle: @Black),
+  Hovered: (Background: "back_medium_hover.png", LabelStyle: @Gray),
+  Pressed: (Background: "back_medium_hover.png", LabelStyle: @Gray),
+  Disabled: (Background: "back_medium_dim.png", LabelStyle: @White),
+  Sounds: $C.@ButtonSounds
+);
+
+// A blueprint (button_blueprint, white text, gray when hovered), selected or locked (ST handleBlueprint).
+@BlueprintStyle = TextButtonStyle(
+  Default: (Background: "button_blueprint.png", LabelStyle: @White),
+  Hovered: (Background: "button_blueprint_hover.png", LabelStyle: @Gray),
+  Pressed: (Background: "button_blueprint_hover.png", LabelStyle: @Gray),
+  Disabled: (Background: "button_blueprint_dim.png", LabelStyle: @White),
+  Sounds: $C.@ButtonSounds
+);
+@BlueprintSelectedStyle = TextButtonStyle(
+  Default: (Background: "button_blueprint_selected.png", LabelStyle: @White),
+  Hovered: (Background: "button_blueprint_selected_hover.png", LabelStyle: @Gray),
+  Pressed: (Background: "button_blueprint_selected_hover.png", LabelStyle: @Gray),
+  Disabled: (Background: "button_blueprint_selected_dim.png", LabelStyle: @White),
+  Sounds: $C.@ButtonSounds
+);
+@BlueprintLockedStyle = TextButtonStyle(
+  Default: (Background: "button_blueprint_disabled.png", LabelStyle: @White),
+  Hovered: (Background: "button_blueprint_disabled_hover.png", LabelStyle: @Gray),
+  Pressed: (Background: "button_blueprint_disabled_hover.png", LabelStyle: @Gray),
+  Disabled: (Background: "button_blueprint_disabled_dim.png", LabelStyle: @White),
+  Sounds: $C.@ButtonSounds
+);
+
+// A textured square button of the manipulator (16 x 16) or the bottom row (30 x 30).
+@Square = Button {
+  @Normal = "up.png";
+  @Hover = "up_hover.png";
+  @Off = "up_dim.png";
+  Style: ButtonStyle(
+    Default: (Background: @Normal),
+    Hovered: (Background: @Hover),
+    Pressed: (Background: @Hover),
+    Disabled: (Background: @Off),
+    Sounds: $C.@ButtonSounds
+  );
+};
