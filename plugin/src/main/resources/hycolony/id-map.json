@@ -65,6 +65,7 @@
   },
   "fireworks": ["Firework_Mix2", "Firework_Mix3", "Firework_Mix4"],
   "highlightEffect": "Drop_Legendary",
+  "sleepParticle": "Sleepy",
   "placeholderFluid": "Water_Source",
   "skillIcons": {
     "Athletics": "Armor_Leather_Light_Legs",

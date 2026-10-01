@@ -42,12 +42,15 @@ public final class HytaleWorldEffects implements WorldEffects {
     private final World world;
     private final List<String> fireworks;
     private final Optional<String> tillSound;
+    private final Optional<String> sleepParticle;
     private boolean warned;
 
-    public HytaleWorldEffects(World world, List<String> fireworks, Optional<String> tillSound) {
+    public HytaleWorldEffects(
+            World world, List<String> fireworks, Optional<String> tillSound, Optional<String> sleepParticle) {
         this.world = world;
         this.fireworks = fireworks;
         this.tillSound = tillSound;
+        this.sleepParticle = sleepParticle;
     }
 
     /**
@@ -199,7 +202,19 @@ public final class HytaleWorldEffects implements WorldEffects {
         }
     }
 
-    /** Not yet wired to Hytale's sleep particles (SP4 plan Task 17). */
+    /** The id-map's sleep particles (Hytale's NPC "Sleepy" zZz), as MC's SleepingParticleMessage; none without one. */
     @Override
-    public void sleeping(Vec3 at) {}
+    public void sleeping(Vec3 at) {
+        sleepParticle.ifPresent(id -> {
+            try {
+                ParticleUtil.spawnParticleEffect(
+                        id,
+                        new Vector3d(at.x(), at.y(), at.z()),
+                        world.getEntityStore().getStore());
+            } catch (RuntimeException e) {
+                LOG.at(warned ? Level.FINE : Level.WARNING).withCause(e).log("HyColony sleep particles failed");
+                warned = true;
+            }
+        });
+    }
 }

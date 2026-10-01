@@ -25,7 +25,7 @@ final class WorldPorts {
                 new HytaleContainerAccess(world, catalog.stacks()),
                 new HytalePlayerInventory(world, catalog.stacks()),
                 new HytaleBlueprintSource(ids, setup.styles(), catalog),
-                new HytaleWorldEffects(world, ids.fireworks(), ids.farming().tillSoundEvent()),
+                new HytaleWorldEffects(world, ids.fireworks(), ids.farming().tillSoundEvent(), ids.sleepParticle()),
                 // Read here, before openStorage loads the colonies: a load drops every learnt recipe it does not know.
                 new CraftingSetup(HytaleRecipeCatalog.load(), setup.craftingRules()),
                 new HytaleFarming(world, worldBlocks, ids.farming(), ids.fieldBlockId()));

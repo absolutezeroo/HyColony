@@ -28,6 +28,7 @@ import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.CitizenBodies;
 import dev.hycolony.core.kernel.port.NavStatus;
 import dev.hycolony.plugin.npc.BodyTeleport;
+import dev.hycolony.plugin.npc.CitizenBeds;
 import dev.hycolony.plugin.npc.CitizenSpeed;
 import dev.hycolony.plugin.npc.CitizenTag;
 import dev.hycolony.plugin.npc.HyColonyComponents;
@@ -53,6 +54,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
     private final String roleName;
     private final CitizenSpeed speed;
     private final BodyTeleport teleporter;
+    private final CitizenBeds beds;
     private final Map<Long, Ref<EntityStore>> refs = new HashMap<>();
     private final IdentityHashMap<Ref<EntityStore>, Long> ids = new IdentityHashMap<>();
     private long nextId = 1;
@@ -64,6 +66,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
         this.roleName = roleName;
         this.speed = speed;
         this.teleporter = new BodyTeleport(world);
+        this.beds = new CitizenBeds(world, teleporter);
     }
 
     private Store<EntityStore> store() {
@@ -332,17 +335,24 @@ public final class HytaleCitizenBodies implements CitizenBodies {
         }
     }
 
-    /** Not yet wired to Hytale's bed mount (SP4 plan Task 17): the citizen sleeps standing, as MC without a bed. */
+    /** Hytale's bed mount, see {@link CitizenBeds}; false for an unknown body. */
     @Override
     public boolean sleepIn(BodyId body, BlockPos bed) {
-        return false;
+        Ref<EntityStore> ref = ref(body);
+        return ref != null && beds.sleepIn(ref, bed);
     }
 
     @Override
     public boolean isInBed(BodyId body) {
-        return false;
+        Ref<EntityStore> ref = ref(body);
+        return ref != null && beds.isInBed(ref);
     }
 
     @Override
-    public void wakeUp(BodyId body) {}
+    public void wakeUp(BodyId body) {
+        Ref<EntityStore> ref = ref(body);
+        if (ref != null) {
+            beds.wakeUp(ref);
+        }
+    }
 }

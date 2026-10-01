@@ -37,6 +37,7 @@ public final class IdMap {
             List<String> potions,
             FarmingIds farming,
             @Nullable String highlightEffect,
+            @Nullable String sleepParticle,
             @Nullable String placeholderFluid) {}
 
     private final Data data;
@@ -48,6 +49,11 @@ public final class IdMap {
     /** The id-map read from {@code json}: the core's hycolony/id-map.json merged with the enabled packs' fragments. */
     public static IdMap of(JsonObject json) {
         return new IdMap(new Gson().fromJson(json, Data.class));
+    }
+
+    /** The particle system over a sleeping citizen (MC SleepingParticleMessage); empty if the map has none. */
+    public Optional<String> sleepParticle() {
+        return Optional.ofNullable(data.sleepParticle());
     }
 
     /** The entity effect that makes a highlighted block glow (a vanilla ModelVFX effect); empty when not set. */
@@ -166,6 +172,7 @@ public final class IdMap {
         check(errors, "npc role", data.npcRoles(), id -> NPCPlugin.get().hasRoleName(id));
         check(errors, "sound event", byId(farming().tillSoundEvent().stream().toList()), sound);
         check(errors, "entity effect", byId(highlightEffect().stream().toList()), effect);
+        check(errors, "particle system", byId(sleepParticle().stream().toList()), particle);
         check(
                 errors,
                 "fluid",
