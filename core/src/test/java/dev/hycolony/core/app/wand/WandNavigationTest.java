@@ -327,13 +327,10 @@ class WandNavigationTest {
         carry(bob, BUILDER);
         wand.open(bob, Optional.of(spot));
         wand.openCategory(bob, "fundamentals");
-        WandView bobs = assertInstanceOf(WandView.class, t.ui.shown.get(bob));
-        assertTrue(bobs.huts().stream()
-                .filter(h -> h.buildingTypeId().equals(BUILDER))
-                .allMatch(h -> h.requirements().isEmpty()));
+        assertEquals(List.of(), builderRequirements(bob));
     }
 
-    /** MC addCloseSubscriber: a client standing in a colony's claim knows it, wherever it aims. */
+    /** MC EventHandler (l.388-395): a client entering a colony's claim subscribes to it, wherever it aims. */
     @Test
     void aStrangerStandingInAColonyIsNotAskedForOneWhereverHeAims() {
         UUID bob = UUID.randomUUID();
@@ -341,10 +338,15 @@ class WandNavigationTest {
         t.players.online.put(bob, spot);
         wand.open(bob, Optional.of(FAR));
         wand.openCategory(bob, "fundamentals");
-        WandView bobs = assertInstanceOf(WandView.class, t.ui.shown.get(bob));
-        assertTrue(bobs.huts().stream()
+        assertEquals(List.of(), builderRequirements(bob));
+    }
+
+    private List<Msg> builderRequirements(UUID player) {
+        return assertInstanceOf(WandView.class, t.ui.shown.get(player)).huts().stream()
                 .filter(h -> h.buildingTypeId().equals(BUILDER))
-                .allMatch(h -> h.requirements().isEmpty()));
+                .findFirst()
+                .orElseThrow()
+                .requirements();
     }
 
     /** MC EventHandler: a client knows the colonies it manages; a friend's is not sent. */

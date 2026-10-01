@@ -69,6 +69,18 @@ class WandTreeTest {
         assertFalse(tree().contains("fundamentals/."), "only a mixed folder has it");
     }
 
+    /** ST sorts every category by its subPath, {@code folder/.} included ("-" comes before "."). */
+    @Test
+    void theMixedFoldersOwnEntryIsSortedByNameWithItsSiblings() {
+        Map<String, String> huts = new LinkedHashMap<>();
+        huts.put("mixed", "agriculture");
+        huts.put("old", "agriculture/-legacy");
+        huts.put("farmer", "agriculture/horticulture");
+        assertEquals(
+                List.of("agriculture/-legacy", "agriculture/.", "agriculture/horticulture"),
+                new WandTree(huts).children("agriculture"));
+    }
+
     @Test
     void theParentOfATopFolderIsTheRoot() {
         assertEquals("agriculture", WandTree.parent("agriculture/horticulture"));
