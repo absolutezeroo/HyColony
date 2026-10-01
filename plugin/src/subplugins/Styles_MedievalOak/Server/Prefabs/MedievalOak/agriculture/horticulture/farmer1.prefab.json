@@ -17684,6 +17684,13 @@
     },
     {
       "x": -8,
+      "y": -1,
+      "z": 13,
+      "name": "HyColony_Field",
+      "rotation": 3
+    },
+    {
+      "x": -8,
       "y": 0,
       "z": 13,
       "name": "Empty"

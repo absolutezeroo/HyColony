@@ -30,11 +30,13 @@ PLACEHOLDERS = {
     "structurize:blocktagsubstitution",
 }
 # Tout `minecolonies:blockhut*` est un marqueur de hutte (métadonnée) : géré
-# par motif dans is_placeholder(), plus besoin d'ajouter chaque hutte.
+# par motif dans is_placeholder(), plus besoin d'ajouter chaque hutte. Sauf
+# l'épouvantail (blockhutfield), que MC pose et enregistre comme champ.
+SCARECROW = "minecolonies:blockhutfield"
 
 
 def is_placeholder(name: str) -> bool:
-    return name in PLACEHOLDERS or name.startswith("minecolonies:blockhut")
+    return name in PLACEHOLDERS or (name.startswith("minecolonies:blockhut") and name != SCARECROW)
 
 
 # Petits détails sans équivalent propre : on les retire plutôt que de les
@@ -229,6 +231,7 @@ FAMILY = {
     # Huttes de Medieval Oak (spec 2026-10-01-hycolony-style-medievaloak-design.md § 2).
     "minecraft:nether_brick_slab": f.slab("Rock_Runic_Dark_Brick_Half", "comme les escaliers de briques du Nether"),
     "minecraft:rose_bush": f.double_plant("Plant_Flower_Tall_Red", "rosier -> grande fleur rouge"),
+    SCARECROW: f.field_block,
     "minecolonies:blockstash": f.chest("Furniture_Crude_Chest_Small", "réserve (bâtiment absent) -> petit coffre"),
     # Divers
     "minecraft:chain": f.chain("Deco_Iron_Chain_Small", "chaîne -> petite chaîne native"),

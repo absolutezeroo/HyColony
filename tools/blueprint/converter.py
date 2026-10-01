@@ -82,11 +82,13 @@ def _is_solid_neighbour(bp: Blueprint, pos: Pos) -> bool:
 
 
 def wall_torch(bp: Blueprint, pos: Pos, p: dict) -> Mapping:
-    """Torche murale sur un bloc plein, ou sur le dos d'un escalier (sa face pleine est celle de son facing)."""
+    """Torche murale sur un bloc plein, ou sur le dos d'un escalier droit ou en coin rentrant (sa face pleine est celle
+    de son facing ; celle d'un coin sortant n'est pleine qu'à moitié)."""
     f = p.get("facing")
     support = bp.name_at(sub(pos, DIR[f])) if f in DIR else None
-    behind = (bp.get(sub(pos, DIR[f])) or {}) if f in DIR else {}
-    stair_back = (support or "").endswith("_stairs") and (behind.get("Properties") or {}).get("facing") == f
+    behind = (bp.get(sub(pos, DIR[f])) or {}).get("Properties") or {} if f in DIR else {}
+    stair_back = ((support or "").endswith("_stairs") and behind.get("facing") == f
+                  and behind.get("shape", "straight") in ("straight", "inner_left", "inner_right"))
     if support not in T.FULL_SUPPORT_SOURCE and not stair_back:
         return unmapped(f"torche murale ignorée : pas de support plein derrière ({support})", rule="wall_torch")
     return place("Wood_Torch_Wall", fam.wall_outward_yaw(p), rule="wall_torch")

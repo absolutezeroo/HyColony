@@ -232,6 +232,14 @@ def double_plant(target: str, note: str | None = None):
     return rule
 
 
+def field_block(p: dict) -> Mapping:
+    """Épouvantail de MC (deux cases) : le bloc de champ de HyColony sur la moitié basse, que le constructeur
+    enregistre comme champ à la pose (MC FieldPlacementHandler) ; rien sur la haute."""
+    if p.get("half") == "upper":
+        return skip("moitié haute d'épouvantail : le bloc de champ est sur la case du dessous", rule="field")
+    return place("HyColony_Field", yaw_for(p), "épouvantail -> bloc de champ HyColony", rule="field")
+
+
 def door(name: str, p: dict) -> Mapping:
     if p.get("half") == "upper":
         return skip("moitié haute de porte : la porte Hytale occupe déjà cette case", rule="door")

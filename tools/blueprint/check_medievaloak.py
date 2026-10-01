@@ -28,8 +28,9 @@ def a_nether_brick_slab_is_a_runic_dark_brick_half():
 def a_rose_bush_is_a_tall_red_flower_on_its_lower_half():
     m = _one("minecraft:rose_bush", {"half": "lower"})
     assert (m.target, m.rotation) == ("Plant_Flower_Tall_Red", 0), m
+    # Plant_Flower_Tall_Red fills one cell (hitbox Plant_Full): the upper half is cleared, not left to the terrain.
     m = _one("minecraft:rose_bush", {"half": "upper"})
-    assert m.target is None and not m.unmapped, m
+    assert m.target == "Empty" and not m.unmapped, m
 
 
 def a_loom_is_a_crate_not_a_two_cell_bench():
@@ -57,9 +58,23 @@ def a_wall_torch_hangs_on_the_full_back_of_a_stair():
     side = dict(stair, Properties=dict(stair["Properties"], facing="north"))
     m = _mappings({(4, 1, 4): torch, (3, 1, 4): side})[(4, 1, 4)]
     assert m.unmapped, m
+    # An outer corner stair's facing side is only half full.
+    outer = dict(stair, Properties=dict(stair["Properties"], shape="outer_left"))
+    m = _mappings({(4, 1, 4): torch, (3, 1, 4): outer})[(4, 1, 4)]
+    assert m.unmapped, m
+
+
+def a_scarecrow_is_the_field_block_on_its_lower_half():
+    # MC places a plan's scarecrow (blockhutfield) and registers it as a field (FieldPlacementHandler): not a hut marker.
+    for facing in ("north", "east", "south", "west"):
+        m = _one("minecolonies:blockhutfield", {"half": "lower", "facing": facing})
+        assert (m.target, m.rotation) == ("HyColony_Field", yaw_for({"facing": facing})), (facing, m)
+    m = _one("minecolonies:blockhutfield", {"half": "upper", "facing": "east"})
+    assert m.target is None and not m.unmapped, m
 
 
 def run():
+    a_scarecrow_is_the_field_block_on_its_lower_half()
     a_nether_brick_slab_is_a_runic_dark_brick_half()
     a_rose_bush_is_a_tall_red_flower_on_its_lower_half()
     a_loom_is_a_crate_not_a_two_cell_bench()

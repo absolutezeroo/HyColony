@@ -162,19 +162,26 @@ public final class SubPlugins {
     /**
      * Asks HyDomum to create at boot the ornament variants the enabled packs' prefabs use (their
      * {@code hycolony/domum-variants.json}, {@code {"variants": ["shape|material|material", ...]}}), so that their
-     * Domum blocks do not load as "Unknown". Call during setup; a value that is not a string is skipped.
+     * Domum blocks do not load as "Unknown". Call during setup; a {@code variants} that is not an array, and an entry
+     * that is not a string, are skipped and logged as a WARNING.
      */
     public void requireDomumVariants() {
         List<String> ids = new ArrayList<>();
         for (Pack pack : enabled()) {
-            BundledPacks.fragment(pack.name(), DOMUM_VARIANTS)
-                    .map(o -> o.get("variants"))
-                    .filter(JsonElement::isJsonArray)
-                    .ifPresent(a -> a.getAsJsonArray().forEach(e -> {
-                        if (e.isJsonPrimitive()) {
-                            ids.add(e.getAsString());
-                        }
-                    }));
+            BundledPacks.fragment(pack.name(), DOMUM_VARIANTS).ifPresent(o -> {
+                JsonElement variants = o.get("variants");
+                if (variants == null || !variants.isJsonArray()) {
+                    LOG.at(Level.WARNING).log("HyColony: %s/%s has no \"variants\" array", pack.name(), DOMUM_VARIANTS);
+                    return;
+                }
+                for (JsonElement e : variants.getAsJsonArray()) {
+                    if (e.isJsonPrimitive() && e.getAsJsonPrimitive().isString()) {
+                        ids.add(e.getAsString());
+                    } else {
+                        LOG.at(Level.WARNING).log("HyColony: %s/%s skips %s", pack.name(), DOMUM_VARIANTS, e);
+                    }
+                }
+            });
         }
         RequiredVariants.require(ids);
     }
