@@ -24,10 +24,17 @@ Spec : `docs/superpowers/specs/2026-10-01-hycolony-sp4b-food-happiness-design.md
 ## Étape 3 : la salle à manger
 
 14. **Hutte** (S § 10) : `crafting/restaurant/DiningHallHut` (type, modules), `MenuModule`, `FuelListModule`, `SeatModule`, `CustomerModule` ; enregistrement des feux de camp et sièges posés à la main dans l'emprise ; `ItemCatalog.isSeat/isFuel/isCookingStation`.
+    - `RestaurantMenuModule` (MC du même nom) : menu ≤ 5 × niveau, `EDIBLE` seulement, requêtes toutes les 500 ticks (`StackRequest` du plat, puis de son cru quand la première n'a pas dépassé `IN_PROGRESS`, annulées à `delta ≤ 0`), garde `taillePile × niveau` du plat et du cru, sauvé.
+    - `DiningRoomModule` implémente le port `DiningHall` : places enregistrées (comme les lits), `nextSeat` (3 tirages), clients (MC `storeCustomer`, y compris le premier remplissage par la salle la plus proche de chaque hutte de travail), `hasWaiter`, `keepsFood = false` (`EatingRule`), sauvé.
+    - `FuelListModule` (MC `ItemListModule` `FUEL_LIST`) : liste sauvée, défaut de l'id-map ; garde 64 × niveau, jamais emporté par le livreur, au plus 64 sur le serveur.
+    - `CookingStationsModule` (MC `FurnaceUserModule`) : feux de camp enregistrés, retirés paresseusement.
 15. **Serveur** (S § 11) : port `CookingStations` ; `crafting/furnace/FurnaceUserAI` ; `crafting/restaurant/CookJob`, `CookAI` (service) ; chemin salle à manger de `EatAI`.
-16. **Places** : `CitizenBodies.sitOn/isSeatTaken/standUp`.
-17. **Plugin** : objet et bloc `HyColony_Hut_Cook`, styles, id-map, `HytaleCookingStations`, sièges, onglets Menu et Combustible ; textes.
+    - Machine (MC `AbstractEntityAIUsesFurnace`, sur `WorkerMachine`) : `IDLE → START_WORKING` (5), `START_WORKING` (60), `FILL_UP` (5), `RETRIEVING_END_PRODUCT` (5), `RETRIEVING_USED_FUEL` (5), accélération (événement, 20), `GATHERING_REQUIRED_MATERIALS`, `COOK_SERVE_FOOD_TO_CITIZEN` / `_TO_PLAYER` (30), vidage après chaque action.
+    - `servesFood() = true` ; `EatAI` le fait déjà renoncer à sa propre salle.
+16. **Places** : ports `BodySeats` (fait aux étapes 1-2).
+17. **Plugin** : objet et bloc `HyColony_Hut_Cook`, styles, id-map, `HytaleCookingStations`, sièges, onglets Menu et Combustible ; textes ; enregistrement à la pose par un joueur (`PlaceBlockEvent`) d'un feu de camp ou d'un siège dans l'emprise.
+18. **Avertissements de résidence** `warning.3` à `.5` sur les menus réels (S § 15).
 
 ## Fin
 
-18. `docs/TESTING.md`, `docs/BACKLOG.md`, S § 18, `./gradlew build`, relecture finale (`hycolony-reviewer`, `mc-fidelity-checker`, `ui-lang-checker`).
+19. `docs/TESTING.md`, `docs/BACKLOG.md`, S § 18, `./gradlew build`, relecture finale (`hycolony-reviewer`, `mc-fidelity-checker`, `ui-lang-checker`).
