@@ -15,14 +15,17 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
+import org.jspecify.annotations.Nullable;
 
 /**
- * The Main page's skills (MC main.xml and CitizenWindowUtils.createSkillContent): name, small icon and level, + and -
- * shown while the icon is hovered (MC onHoverId) and active in creative mode (MC AdjustSkillCitizenMessage). Kept at
- * the user's request: the job's skills first in bold, an XP bar and "XP x / y" over the level.
+ * The Main page's skills (MC main.xml and CitizenWindowUtils.createSkillContent): name, small icon and level, and in
+ * creative mode + and - shown while the icon is hovered (MC onHoverId, whose pane shows only when enabled, that is in
+ * creative mode; MC AdjustSkillCitizenMessage). Kept at the user's request: the job's skills first in bold, an XP bar
+ * and "XP x / y" over the level.
  *
  * <p>Deviation from MC: the hover is told to the server (MouseEntered and MouseExited events), so + and - appear after
- * a round trip; moving from the icon onto them sends an exit then an entry, which leaves them shown.
+ * a round trip; moving from the icon onto them sends an exit then an entry, which leaves them shown. The hovered skill
+ * is page state, kept across the core's re-shows.
  */
 final class CitizenSkillLines {
     private static final String LIST = "#MainPage #Skills";
@@ -32,6 +35,7 @@ final class CitizenSkillLines {
     private final ColonyManager manager;
     private final UUID player;
     private final CitizenView view;
+    private @Nullable Skill hovered;
 
     CitizenSkillLines(ColonyManager manager, UUID player, CitizenView view) {
         this.manager = manager;
@@ -52,18 +56,27 @@ final class CitizenSkillLines {
             ui.set(row + " #Level.Text", String.valueOf(r.level()));
             ui.set(row + " #Level.TooltipText", xp(r));
             ui.set(row + " #Xp.Value", r.progress());
-            for (String hover : new String[] {" #Hover", " #Plus", " #Minus"}) {
-                bind(events, CustomUIEventBindingType.MouseEntered, row + hover, SHOW, skill);
-                bind(events, CustomUIEventBindingType.MouseExited, row + hover, HIDE, skill);
-            }
             if (view.creative()) {
-                ColonyPage.bindRef(events, row + " #Plus", "skillPlus", skill);
-                ColonyPage.bindRef(events, row + " #Minus", "skillMinus", skill);
-            } else {
-                ui.set(row + " #Plus.Disabled", true);
-                ui.set(row + " #Minus.Disabled", true);
+                buttons(ui, events, row, r.skill());
             }
         }
+    }
+
+    /** The hover that shows + and -, and their clicks; shown already when the skill was hovered before a re-show. */
+    private void buttons(UICommandBuilder ui, UIEventBuilder events, String row, Skill skill) {
+        String ref = skill.name();
+        for (String hover : new String[] {" #Hover", " #Plus", " #Minus"}) {
+            bind(events, CustomUIEventBindingType.MouseEntered, row + hover, SHOW, ref);
+            bind(events, CustomUIEventBindingType.MouseExited, row + hover, HIDE, ref);
+        }
+        ColonyPage.bindRef(events, row + " #Plus", "skillPlus", ref);
+        ColonyPage.bindRef(events, row + " #Minus", "skillMinus", ref);
+        ui.set(row + " #Buttons.Visible", skill == hovered);
+    }
+
+    /** Takes over the skill {@code previous} had hovered (the same citizen's window, shown again). */
+    void keepHoverOf(CitizenSkillLines previous) {
+        hovered = previous.hovered;
     }
 
     private static Message xp(SkillRow r) {
@@ -94,8 +107,12 @@ final class CitizenSkillLines {
             case "skillPlus" -> skills.adjust(player, view.colonyId(), view.citizenId(), skill, 1);
             case "skillMinus" -> skills.adjust(player, view.colonyId(), view.citizenId(), skill, -1);
             case SHOW, HIDE -> {
+                boolean show = SHOW.equals(act.action());
+                if (show || hovered == skill) {
+                    hovered = show ? skill : null;
+                }
                 UICommandBuilder ui = new UICommandBuilder();
-                ui.set(LIST + "[" + index + "] #Buttons.Visible", SHOW.equals(act.action()));
+                ui.set(LIST + "[" + index + "] #Buttons.Visible", show);
                 return Optional.of(ui);
             }
             default -> {}

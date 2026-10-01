@@ -5,6 +5,7 @@ import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyAccess;
+import dev.hycolony.core.colony.ColonyRefusal;
 import dev.hycolony.core.colony.permission.Action;
 import java.util.UUID;
 
@@ -20,7 +21,7 @@ public final class CitizenSkillActions {
      * MC AdjustSkillCitizenMessage: a player in creative mode with MANAGE_HUTS (MC AbstractColonyServerMessage's
      * default) moves the citizen's {@code skill} by {@code delta} levels, kept between 1 and the maximum (MC
      * CitizenSkillHandler.incrementLevel); the colony is saved and the window shown again. False, changing nothing,
-     * for an unknown colony or citizen, outside creative mode or without the right.
+     * for an unknown colony or citizen, without the right (the player is told, as MC) or outside creative mode.
      *
      * <p>Deviation from MC: the citizen's body need not be loaded; MC returns without its entity, here the skills live
      * in the core.
@@ -31,9 +32,14 @@ public final class CitizenSkillActions {
             return false;
         }
         CitizenData d = c.citizens().get(citizenId).orElse(null);
-        if (d == null
-                || !manager.context().players().isCreative(player)
-                || !ColonyAccess.allows(c, player, Action.MANAGE_HUTS)) {
+        if (d == null) {
+            return false;
+        }
+        if (!ColonyAccess.allows(c, player, Action.MANAGE_HUTS)) {
+            ColonyRefusal.tellNoPermission(c, player); // MC checks the right first, aloud
+            return false;
+        }
+        if (!manager.context().players().isCreative(player)) {
             return false;
         }
         d.skills().set(skill, d.skills().level(skill) + delta, d.skills().experience(skill));

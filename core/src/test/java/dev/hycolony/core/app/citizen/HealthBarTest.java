@@ -50,6 +50,12 @@ class HealthBarTest {
     }
 
     @Test
+    void sixtyIsTenGreenAndEightyTenBlueHearts() {
+        assertEquals(Collections.nCopies(10, List.of(EMPTY, Heart.GREEN)), HealthBar.of(60));
+        assertEquals(Collections.nCopies(10, List.of(EMPTY, Heart.BLUE)), HealthBar.of(80));
+    }
+
+    @Test
     void theLabelIsHalfTheHealth() {
         assertEquals(10, HealthBar.label(20));
         assertEquals(2, HealthBar.label(5));

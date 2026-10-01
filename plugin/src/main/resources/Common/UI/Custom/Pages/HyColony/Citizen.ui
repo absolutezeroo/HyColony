@@ -84,7 +84,7 @@ $C.@PageOverlay {
         }
 
         Label #HealthLabel {
-          Anchor: (Left: 380, Top: 102, Width: 40, Height: 22);
+          Anchor: (Left: 380, Top: 104, Width: 60, Height: 22);
           Style: $B.@Ink;
         }
 
@@ -178,7 +178,7 @@ $C.@PageOverlay {
 
         Label {
           Anchor: (Left: 100, Top: 88, Width: 300, Height: 60);
-          Style: (...$B.@Ink, VerticalAlignment: Start, Wrap: true);
+          Style: (...$B.@Ink, Wrap: true);
           Text: %hycolony.ui.citizen.jobDesc;
         }
 

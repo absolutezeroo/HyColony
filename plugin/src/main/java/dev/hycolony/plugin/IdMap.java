@@ -10,11 +10,13 @@ import com.hypixel.hytale.server.core.asset.type.particle.config.ParticleSystem;
 import com.hypixel.hytale.server.core.asset.type.soundevent.config.SoundEvent;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.RootInteraction;
 import com.hypixel.hytale.server.npc.NPCPlugin;
+import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.plugin.farming.FarmingIds;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -107,6 +109,11 @@ public final class IdMap {
     /** The farming section: seeds and crops, soils, fertilizer, hoes, field barriers; none in an older file. */
     public FarmingIds farming() {
         return Objects.requireNonNullElse(data.farming(), FarmingIds.NONE);
+    }
+
+    /** The item a request for a tool of {@code type} shows (the type's crude tool, items {@code tool.<type>}). */
+    public String toolIcon(ToolType type) {
+        return itemId("tool." + type.name().toLowerCase(Locale.ROOT));
     }
 
     /** The field block's id, empty until the id-map has one ({@code block.field}). */

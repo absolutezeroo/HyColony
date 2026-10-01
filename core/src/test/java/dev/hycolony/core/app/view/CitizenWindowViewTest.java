@@ -11,7 +11,6 @@ import dev.hycolony.core.citizen.Gender;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.testing.TestContexts;
-import java.util.OptionalInt;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
@@ -40,12 +39,21 @@ class CitizenWindowViewTest {
     void healthIsTheBodysShareOfTwentyAsMcCitizens() {
         colony.citizens().respawnBody(ann.id());
         t.bodies.bodies.values().iterator().next().healthPercent = 59;
-        assertEquals(OptionalInt.of(11), view().health());
+        assertEquals(11, view().health());
     }
 
     @Test
-    void aCitizenWithoutABodyShowsNoHealth() {
-        assertEquals(OptionalInt.empty(), view().health());
+    void aDeadBodyCountsAsNoBody() {
+        colony.citizens().respawnBody(ann.id());
+        var body = t.bodies.bodies.values().iterator().next();
+        body.healthPercent = 10;
+        body.alive = false;
+        assertEquals(20, view().health(), "no living entity: MC's MAX_HEALTH");
+    }
+
+    @Test
+    void aCitizenWithoutABodyShowsFullHealthAsMc() {
+        assertEquals(20, view().health(), "MC CitizenDataView.getHealth: MAX_HEALTH without its entity");
     }
 
     @Test

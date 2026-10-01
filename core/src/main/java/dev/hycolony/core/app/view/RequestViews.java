@@ -8,6 +8,7 @@ import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.logistics.warehouse.RequesterLocation;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.RequestManager;
+import dev.hycolony.core.request.Resolver;
 import dev.hycolony.core.request.model.Deliverable;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequestToken;
@@ -45,7 +46,12 @@ final class RequestViews {
         Map<ItemKey, Integer> owned = ctx.ports().playerInventory().contents(player);
         List<RequestsView.RequestRow> rows = new ArrayList<>();
         sorted.forEach(r -> tree(c, r, 0, owned, rows));
-        return new RequestsView(c.id(), rows);
+        // Kept at the user's request (RequestsView): Fulfill on a root the player holds items for.
+        return new RequestsView(
+                c.id(),
+                rows.stream()
+                        .map(row -> row.withFulfillable(row.depth() == 0 && row.playerHas() > 0))
+                        .toList());
     }
 
     /** The roots of the open requests the player or retrying resolver holds, once each. */
@@ -72,14 +78,22 @@ final class RequestViews {
 
     /**
      * MC RequestTreeWindowModule.constructTreeFromRequest: {@code r} at {@code depth}, then each of its children still
-     * known one level deeper, appended to {@code rows}; a request already listed is skipped (a tree walk never loops).
+     * known one level deeper, appended to {@code rows} without Fulfill (each window sets its own rule); a request
+     * already listed is skipped (a tree walk never loops).
      */
     void tree(Colony c, Request r, int depth, Map<ItemKey, Integer> owned, List<RequestsView.RequestRow> rows) {
         if (rows.stream().anyMatch(row -> row.token().equals(r.token()))) {
             return;
         }
         rows.add(new RequestsView.RequestRow(
-                r.token(), r.requestable(), RequesterLocation.displayName(c, r), has(r, owned), depth));
+                r.token(),
+                r.requestable(),
+                RequesterLocation.displayName(c, r),
+                RequesterLocation.of(c, r.requester()),
+                c.requests().resolverOf(r.token()).map(Resolver::displayName),
+                has(r, owned),
+                depth,
+                false));
         for (RequestToken child : r.children()) {
             c.requests().get(child).ifPresent(k -> tree(c, k, depth + 1, owned, rows));
         }

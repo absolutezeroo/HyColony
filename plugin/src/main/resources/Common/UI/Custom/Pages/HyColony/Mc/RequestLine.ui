@@ -1,0 +1,61 @@
+$B = "Book.ui";
+$C = "../../../Common.ui";
+
+// A request of a request tree (MC gui/layouthuts/layoutrequeststree.xml, RequestTreeWindowModule), MC sizes doubled:
+// a box 80 high, outlined; the request's item (or, without one, its icon with its resolver as tooltip), the detail
+// button under it, the short text with the task's item beside it, the requester, then Fulfill and Cancel. RequestTree
+// moves the box right by 4 px per tree level (MC: 2 px) and shows what applies.
+
+Group {
+  Anchor: (Height: 80);
+  OutlineSize: 1;
+  OutlineColor: #000000;
+
+  Button #Icon {
+    Anchor: (Left: 2, Top: 6, Width: 32, Height: 32);
+    Style: (Default: (Background: "delivery.png"));
+    Visible: false;
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+  }
+
+  ItemIcon #Item {
+    Anchor: (Left: 2, Top: 6, Width: 32, Height: 32);
+    Visible: false;
+  }
+
+  Button #Detail {
+    Anchor: (Left: 2, Top: 46, Width: 32, Height: 32);
+    Style: (Default: (Background: "detail_button.png"), Sounds: $C.@ButtonSounds);
+    TooltipText: %hycolony.ui.requests.details;
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+  }
+
+  Label #Short {
+    Anchor: (Left: 40, Top: 4, Width: 260, Height: 18);
+    Style: (...$B.@Ink, FontSize: 14);
+  }
+
+  ItemIcon #TaskItem {
+    Anchor: (Left: 170, Top: 2, Width: 18, Height: 18);
+    Visible: false;
+  }
+
+  Label #Requester {
+    Anchor: (Left: 40, Top: 26, Width: 260, Height: 18);
+    Style: (...$B.@Ink, FontSize: 14);
+  }
+
+  TextButton #Fulfill {
+    Anchor: (Left: 40, Top: 46, Width: 74, Height: 32);
+    Style: $B.@ColonistSmallButtonStyle;
+    Text: %hycolony.ui.requests.fulfil;
+    Visible: false;
+  }
+
+  TextButton #Cancel {
+    Anchor: (Left: 140, Top: 46, Width: 74, Height: 32);
+    Style: $B.@ColonistSmallButtonStyle;
+    Text: %hycolony.ui.requests.cancel;
+    Visible: false;
+  }
+}

@@ -2,7 +2,7 @@ package dev.hycolony.core.app.citizen;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The citizen window's health bar (MC CitizenWindowUtils.createHealthBar): ten heart slots, blue, green, golden then
@@ -14,29 +14,24 @@ public final class HealthBar {
 
     /** MC HeartsEnum: its value in health points, its half heart and the heart one step below it. */
     public enum Heart {
-        EMPTY(0),
-        HALF_RED(1),
-        RED(2),
-        HALF_GOLDEN(3),
-        GOLDEN(4),
-        HALF_GREEN(5),
-        GREEN(6),
-        HALF_BLUE(7),
-        BLUE(8);
+        EMPTY(0, null, null),
+        HALF_RED(1, null, EMPTY),
+        RED(2, HALF_RED, EMPTY),
+        HALF_GOLDEN(3, null, RED),
+        GOLDEN(4, HALF_GOLDEN, RED),
+        HALF_GREEN(5, null, GOLDEN),
+        GREEN(6, HALF_GREEN, GOLDEN),
+        HALF_BLUE(7, null, GREEN),
+        BLUE(8, HALF_BLUE, GREEN);
 
         private final int value;
+        private final @Nullable Heart half;
+        private final @Nullable Heart previous;
 
-        Heart(int value) {
+        Heart(int value, @Nullable Heart half, @Nullable Heart previous) {
             this.value = value;
-        }
-
-        /** The heart one step below: RED's is EMPTY, GOLDEN's RED…; empty for EMPTY and half hearts. */
-        private Optional<Heart> previous() {
-            return value % 2 == 0 && value > 0 ? Optional.of(values()[ordinal() - 2]) : Optional.empty();
-        }
-
-        private Heart half() {
-            return values()[ordinal() - 1];
+            this.half = half;
+            this.previous = previous;
         }
     }
 
@@ -71,7 +66,11 @@ public final class HealthBar {
 
         /** Draws {@code heart}s while the health is above its threshold, then its half heart; true once full. */
         boolean fill(Heart heart) {
-            Heart prev = heart.previous().orElseThrow();
+            Heart prev = heart.previous;
+            Heart half = heart.half;
+            if (prev == null || half == null) { // MC skips half hearts and EMPTY
+                return false;
+            }
             while (pos < SLOTS && left > prev.value * SLOTS + 1) {
                 slots.get(pos++).add(heart);
                 left -= heart.value - prev.value;
@@ -80,8 +79,8 @@ public final class HealthBar {
                 if (prev != Heart.EMPTY) { // MC draws EMPTY again; the background already is
                     slots.get(pos).add(prev);
                 }
-                slots.get(pos++).add(heart.half());
-                left -= heart.half().value - prev.value;
+                slots.get(pos++).add(half);
+                left -= half.value - prev.value;
             }
             return pos >= SLOTS;
         }

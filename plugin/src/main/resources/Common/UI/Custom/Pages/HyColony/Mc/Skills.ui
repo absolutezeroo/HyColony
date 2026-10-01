@@ -1,5 +1,6 @@
 // MC's small skill icons (textures/entity/skills/small, ldtteam, GPL-3), one hidden group per skill filling the
-// template: a page shows the one it needs.
+// template: a page shows the one it needs. Their sources are 64 x 64 for an 18 px icon, so they are copied as they
+// are, not scaled x4 as the GUI textures.
 
 @Icon = Group {
   Anchor: (Full: 0);

@@ -5,6 +5,7 @@ import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyAccess;
+import dev.hycolony.core.colony.ColonyRefusal;
 import dev.hycolony.core.colony.GamePorts;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.kernel.BlockPos;
@@ -73,6 +74,32 @@ public final class RequestActions {
         c.requests().overrule(token, List.of(new ItemAmount(item.get(), moved)), citizen.isPresent());
         c.markDirty();
         return true;
+    }
+
+    /**
+     * MC RequestTreeWindowModule.cancel, sent as UpdateRequestStateMessage (CANCELLED) with MC's default MANAGE_HUTS:
+     * the request is cancelled and the colony saved. False, changing nothing, for an unknown colony, a request no
+     * longer open, or without the right (told, as MC). As MC's message, any open request may be cancelled; the windows
+     * offer Cancel on their tree's roots only.
+     */
+    public boolean cancel(UUID player, int colonyId, RequestToken token) {
+        Colony c = manager.byId(colonyId).orElse(null);
+        if (c == null) {
+            return false;
+        }
+        if (!ColonyAccess.allows(c, player, Action.MANAGE_HUTS)) {
+            ColonyRefusal.tellNoPermission(c, player);
+            return false;
+        }
+        boolean open = c.requests()
+                .get(token)
+                .filter(r -> r.state().isBefore(RequestState.COMPLETED))
+                .isPresent();
+        if (open) {
+            c.requests().updateState(token, RequestState.CANCELLED);
+            c.markDirty();
+        }
+        return open;
     }
 
     /** The request if it is still open and asks for items; empty otherwise (a player only provides items). */

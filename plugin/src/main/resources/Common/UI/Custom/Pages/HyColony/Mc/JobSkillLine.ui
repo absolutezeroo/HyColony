@@ -2,7 +2,7 @@ $B = "Book.ui";
 $S = "Skills.ui";
 
 // A line of the citizen's Job page (MC gui/citizen/job.xml), MC sizes doubled: the skill's small icon 22 x 22, then
-// "Skill (n% XP)" 30 px to its right. CitizenPage places each line at MC's height.
+// "Skill (n% XP)" 30 px to its right. Citizen.ui's #JobPrimary and #JobSecondary stack them at MC's heights.
 
 Group {
   Anchor: (Width: 302, Height: 24);

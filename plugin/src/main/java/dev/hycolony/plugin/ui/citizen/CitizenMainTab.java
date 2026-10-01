@@ -38,7 +38,7 @@ final class CitizenMainTab {
     static void render(UICommandBuilder ui, CitizenView view) {
         ui.set(PAGE + " #Name.Text", view.name());
         lines(ui, view);
-        view.health().ifPresent(h -> hearts(ui, h));
+        hearts(ui, view.health());
         food(ui, view.saturation());
         if (view.gender() == Gender.FEMALE) {
             ui.set(PAGE + " #Male.Visible", false);

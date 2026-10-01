@@ -36,15 +36,16 @@ Hors périmètre (systèmes absents) : bonheur (barre, onglet), famille (onglet)
 
 - Nom centré, noir, 328 × 22 en (66, 28) ; décor `colonist_text_decor_down` 164 × 32 en (148, 58).
 - Barre de santé en (110, 84) : 10 cœurs de 18 px (`createHealthBar`), le libellé « santé / 2 » à sa droite. La santé vient du corps Hytale du citoyen (nouvelle lecture du port `CitizenBodies`), ramenée à l'échelle de MC (20 points) ; cœurs rouges, dorés, verts et bleus selon les seuils de MC.
-- Gardées **à la demande de l'utilisateur** (Javadoc de `CitizenMainTab`) : sous la barre de nourriture, à la place de la barre de bonheur absente, deux lignes de 12 px en (66, 148) : « Métier : X — lieu de travail » et l'activité (« En attente de … », l'état, ou la ligne du métier).
+- Gardées **à la demande de l'utilisateur** (Javadoc de `CitizenMainTab`) : sous la barre de nourriture, à la place de la barre de bonheur absente, deux lignes de 12 px en (66, 146) et (66, 162) : « Métier : X — lieu de travail » et l'activité (« En attente de … », l'état, ou la ligne du métier).
 - Barre de saturation en (110, 106) : `MAX_SATURATION / 6` icônes `empty`, puis `full` pour chaque tranche de 6, puis `half` (règle de `createSaturationBar`, sur dix par ligne).
 - Compétences en liste en (110, 180) de 210 × 286, une ligne de 26 : libellé aligné à droite 136 × 24, icône `entity/skills/small/<skill>` 18 × 18 en (140, 4), niveau en (164, 2). Ordre et ajouts gardés **à la demande de l'utilisateur** (Javadoc de `SkillRows`) : les compétences du métier d'abord, en gras, puis les autres dans l'ordre de `main.xml` ; sous chaque ligne, une barre d'XP de 2 px vers le niveau suivant, et « XP x / y » en infobulle.
-- Boutons + et − (24 × 26) de chaque compétence, en (112, 0) et (136, 0) de sa ligne, montrés au survol de l'icône et actifs pour un joueur en mode créatif (MC `AdjustSkillCitizenMessage`, refusé hors créatif) : le niveau monte ou descend d'un.
+- Boutons + et − (24 × 26) de chaque compétence, en (112, 0) et (136, 0) de sa ligne, montrés au survol de l'icône pour un joueur en mode créatif seulement (BlockUI n'affiche le panneau de survol que s'il est actif, et `createSkillContent` ne l'active qu'en créatif) : le niveau monte ou descend d'un (MC `AdjustSkillCitizenMessage` : `MANAGE_HUTS`, refus annoncé, puis créatif).
+- Santé : celle du corps ramenée à 20 points ; sans corps, 20 comme MC (`CitizenDataView.getHealth`).
 - Ruban `colonist_decor_up_ribbon_smaller` 30 × 98 en (354, 418) ; sceau de genre `colonist_wax_male_smaller` ou `_female_smaller` 60 × 60 en (340, 408).
 
 ### 3.3 Métier (`job.xml`, `updateJobPage`)
 
-« Job: X » centré en (90, 64), l'explication `gui.citizen.job.skills` en (100, 88) sur 300 × 60, puis six lignes icône 22 × 22 et texte : primaire « (100% XP) », complémentaire « (10% XP) », adverse « (-10% XP) » à y = 148, 172, 196 ; secondaire « (50% XP) », « (5% XP) », « (-5% XP) » à y = 248, 272, 296 ; icône en x = 100, texte en x = 130. Le cœur a déjà ces données (`CitizenView.JobSkills`).
+« Job: X » centré en (90, 64), l'explication `gui.citizen.job.desc` en (100, 88) sur 300 × 60, puis six lignes icône 22 × 22 et texte : primaire « (100% XP) », complémentaire « (10% XP) », adverse « (-10% XP) » à y = 148, 172, 196 ; secondaire « (50% XP) », « (5% XP) », « (-5% XP) » à y = 248, 272, 296 ; icône en x = 100, texte en x = 130. Le cœur a déjà ces données (`CitizenView.JobSkills`).
 
 ## 4. Requêtes (lots 2 et 3)
 
@@ -57,7 +58,7 @@ Hors périmètre (systèmes absents) : bonheur (barre, onglet), famille (onglet)
 
 ### 4.2 Onglet Requêtes du citoyen (`requests.xml`, `RequestWindowCitizen`)
 
-- Titre « Requests » centré 328 × 22 en (66, 28) ; l'arbre en (66, 58).
+- Titre « Open requests: » centré 328 × 22 en (66, 28) ; l'arbre en (66, 58).
 - Requêtes : celles du citoyen dans sa hutte puis celles de la hutte sans citoyen (−1).
 - Fournir visible si la requête est livrable, si c'est une racine ou si son demandeur est à la place de la hutte, et si le joueur a l'objet (`isFulfillable`). Le cœur garde sa règle actuelle pour la quantité et le message `cantTakeEquipped`.
 
@@ -79,7 +80,7 @@ Hors périmètre (systèmes absents) : bonheur (barre, onglet), famille (onglet)
 
 ### 4.5 Annuler
 
-Nouvelle action du cœur `RequestActions.cancel(player, colonyId, token)` : droit `MANAGE_HUTS` (MC `AbstractColonyServerMessage.permissionNeeded`), racine seulement, `updateState(CANCELLED)` comme `UpdateRequestStateMessage`, puis ré-affichage.
+Nouvelle action du cœur `RequestActions.cancel(player, colonyId, token)` : droit `MANAGE_HUTS` (MC `AbstractColonyServerMessage.permissionNeeded`), toute requête encore ouverte comme le message de MC (les fenêtres ne proposent Annuler que sur les racines de leur arbre), `updateState(CANCELLED)` comme `UpdateRequestStateMessage` ; la fenêtre se ré-affiche ensuite.
 
 ## 5. Fenêtre du champ (lot 4, `windowfield.xml`, `WindowField`)
 
@@ -92,9 +93,9 @@ Nouvelle action du cœur `RequestActions.cancel(player, colonyId, token)` : droi
 
 ## 6. Cœur
 
-- Vues : `CitizenView` (santé, saturation, compétences en ordre fixe, genre, créatif, requêtes en arbre avec les nouveaux champs), `RequestsView` (racines, état « ! »), `FieldView` (biome), une vue du détail.
-- Actions : `RequestActions.cancel`, l'ajustement d'une compétence en créatif, le presse-papiers (retenir une colonie, ouvrir), l'état « ! ».
-- Ports : `CitizenBodies.health` (santé et maximum du corps, 0 sans corps, jamais d'exception) ; `PlayerDirectory.isCreative` (faux hors ligne) ; le biome par `WorldQuery` s'il existe dans l'API.
+- Vues : `CitizenView` (santé, saturation, compétences avec celles du métier en tête, genre, créatif, lignes métier et activité gardées, requêtes en arbre avec les nouveaux champs), `RequestsView` (racines, état « ! »), `FieldView` (biome). La ligne `RequestRow` porte tout ce qu'affiche le détail.
+- Actions : `RequestActions.cancel`, `CitizenSkillActions.adjust` (créatif), le presse-papiers (retenir une colonie, ouvrir), l'état « ! ».
+- Ports : `CitizenBodies.healthPercent` (pour cent de la santé maximale, 0 sans corps vivant, jamais d'exception) ; `PlayerDirectory.isCreative` (existant) ; le biome par `WorldQuery` s'il existe dans l'API.
 - Pas d'état persisté nouveau dans la colonie (la colonie du presse-papiers et « ! » vivent dans l'objet) : pas de migration.
 - TDD : ordre des compétences, cœurs et saturation (règles de MC dans le cœur, en nombre d'icônes de chaque sorte), ajustement en créatif seulement, arbre, Annuler (droit, racine), Fournir (règles de `isFulfillable`), presse-papiers (colonie retenue, sans colonie, filtre « ! »).
 
@@ -107,8 +108,11 @@ Nouvelle action du cœur `RequestActions.cancel(player, colonyId, token)` : droi
 - Inventaire du citoyen dans la fenêtre (déjà documenté).
 - Compétences du métier en tête, barre d'XP, lignes métier, lieu de travail et activité (demandés par l'utilisateur, déjà documentés).
 - Bonheur, Famille, Debug, statut visible et climat des cultures absents.
-- Les boutons +/− d'une compétence apparaissent au survol de son icône comme chez MC (`onHoverId`), par les événements `MouseEntered` et `MouseExited` (`CustomUIEventBindingType`), donc après un aller-retour au serveur.
-- La santé du corps Hytale ramenée à l'échelle de MC (20 points) ; les cœurs rouges et dorés de Minecraft (`gui/icons.png` de Mojang, absent de `sources/`) remplacés par des cœurs dessinés à partir de ceux de `citizen/green_bluehearts.png` de MC.
+- Le survol qui montre les +/− passe par les événements `MouseEntered` et `MouseExited` (`CustomUIEventBindingType`), donc après un aller-retour au serveur.
+- La santé du corps Hytale ramenée à l'échelle de MC (20 points) ; les cœurs vides, rouges et dorés de Minecraft (`gui/icons.png` de Mojang, absent de `sources/`) remplacés par des cœurs dessinés à partir de ceux de `citizen/green_bluehearts.png` de MC.
+- Les icônes de compétences gardent la taille de leur source (64 px), sans agrandissement ×4.
+- L'ajustement d'une compétence ne demande pas que le corps du citoyen soit chargé (MC sort sans son entité ; ici les compétences vivent dans le cœur).
+- Fournir depuis la fenêtre du citoyen demande que le joueur ait l'objet, même en créatif (MC le crée en créatif).
 - Décalage de 4 px par profondeur dans l'arbre (2 px chez MC, ×2).
 - Les piles que MC fait défiler sur une requête à plusieurs objets : la première seulement.
 - Fournir dans le presse-papiers (ajout demandé).

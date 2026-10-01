@@ -8,6 +8,7 @@ import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.app.ui.CitizenView;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
+import dev.hycolony.core.citizen.Skills;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.kernel.BlockPos;
@@ -56,10 +57,14 @@ class CitizenSkillActionsTest {
     }
 
     @Test
-    void aCreativeFriendMayNotManage() {
+    void aCreativeFriendMayNotManageAndIsToldAsMc() {
         t.players.creative.add(carol);
         assertFalse(adjust(carol, 1));
         assertEquals(5, ann.skills().level(Skill.Mana));
+        assertEquals(
+                "hycolony.permission.toolDenied",
+                t.notifier.sent.getLast().msg().key(),
+                "MC AbstractColonyServerMessage: the right is checked, and refused aloud, before creative mode");
     }
 
     @Test
@@ -68,5 +73,17 @@ class CitizenSkillActionsTest {
         ann.skills().set(Skill.Mana, 1, 0);
         adjust(alice, -1);
         assertEquals(1, ann.skills().level(Skill.Mana));
+        ann.skills().set(Skill.Mana, Skills.MAX_CITIZEN_LEVEL, 0);
+        adjust(alice, 1);
+        assertEquals(Skills.MAX_CITIZEN_LEVEL, ann.skills().level(Skill.Mana));
+    }
+
+    @Test
+    void anUnknownColonyOrCitizenChangesNothing() {
+        t.players.creative.add(alice);
+        CitizenSkillActions actions = new CitizenSkillActions(manager);
+        assertFalse(actions.adjust(alice, colony.id() + 1, ann.id(), Skill.Mana, 1));
+        assertFalse(actions.adjust(alice, colony.id(), 99, Skill.Mana, 1));
+        assertEquals(5, ann.skills().level(Skill.Mana));
     }
 }

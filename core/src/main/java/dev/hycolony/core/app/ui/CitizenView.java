@@ -8,18 +8,18 @@ import dev.hycolony.core.kernel.port.Msg;
 import dev.hycolony.core.request.model.Requestable;
 import java.util.List;
 import java.util.Optional;
-import java.util.OptionalInt;
 
 /**
  * MineColonies' citizen window (MainWindowCitizen, RequestWindowCitizen, JobWindowCitizen). {@code workBuilding} is a
  * building type id or custom name. {@code activity} is an i18n key suffix: "waitingFor" (with {@code waitingFor}, the
  * first open request), else "working", "wandering", "idle" or "absent"; {@code jobActivity} is the job AI's own line
  * (e.g. the builder's stage, block and action); with the job and workplace, they are kept at the user's request (MC's
- * window has no such lines). {@code health} is in MC points (20 for ten red hearts, see HealthBar), empty without a
- * body. {@code creative}: the viewer may raise or lower skills (MC AdjustSkillCitizenMessage). {@code requests} are
- * the citizen's open requests, each followed by its children (MC RequestTreeWindowModule), with what the viewer holds
- * of it. {@code skills} lists the job's primary and secondary skills first, then the rest in MineColonies order.
- * {@code jobSkills} feeds the Job tab and is empty for a citizen without a workplace.
+ * window has no such lines). {@code health} is in MC points (20 for ten red hearts, see HealthBar), 20 without a
+ * body as MC. {@code creative}: the viewer may raise or lower skills (MC AdjustSkillCitizenMessage). {@code
+ * requests} are the citizen's requests in its workplace then the workplace's own, each followed by its children (MC
+ * RequestWindowCitizen), with what the viewer holds of it. {@code skills} lists the job's primary and secondary
+ * skills first, then the rest in MineColonies order. {@code jobSkills} feeds the Job tab and is empty for a citizen
+ * without a workplace.
  */
 public record CitizenView(
         int colonyId,
@@ -30,7 +30,7 @@ public record CitizenView(
         String activity,
         Optional<Requestable> waitingFor,
         Optional<Msg> jobActivity,
-        OptionalInt health,
+        int health,
         double saturation,
         Gender gender,
         boolean creative,

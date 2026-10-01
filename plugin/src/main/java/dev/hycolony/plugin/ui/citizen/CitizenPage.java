@@ -11,7 +11,9 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hyblockui.api.InventoryGrids;
 import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.app.ui.CitizenView;
+import dev.hycolony.plugin.IdMap;
 import dev.hycolony.plugin.ui.ColonyPage;
+import dev.hycolony.plugin.ui.request.RequestDetailPage;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
@@ -44,16 +46,18 @@ public final class CitizenPage extends ColonyPage {
     }
 
     private final CitizenView view;
+    private final IdMap ids;
     private final CitizenRequestsTab requests;
     private final CitizenSkillLines skills;
     private final List<Tab> tabs = new ArrayList<>(List.of(Tab.MAIN, Tab.REQUESTS, Tab.INVENTORY));
     private Tab tab = Tab.MAIN;
     private @Nullable CitizenInventoryPanel inventory;
 
-    public CitizenPage(PlayerRef playerRef, CitizenView view, ColonyManager manager) {
+    public CitizenPage(PlayerRef playerRef, CitizenView view, ColonyManager manager, IdMap ids) {
         super(playerRef, manager);
         this.view = view;
-        this.requests = new CitizenRequestsTab(manager, player, view);
+        this.ids = ids;
+        this.requests = new CitizenRequestsTab(manager, playerRef, view, ids);
         this.skills = new CitizenSkillLines(manager, player, view);
         if (view.jobSkills().isPresent()) {
             tabs.add(Tab.JOB);
@@ -67,25 +71,33 @@ public final class CitizenPage extends ColonyPage {
 
     /**
      * Opens on the tab {@code previous} showed if it is this citizen's window (the core re-shows after actions), taking
-     * over its open inventory; an Inventory tab whose container is gone falls back to Main.
+     * over its open inventory; an Inventory tab whose container is gone falls back to Main. A request's details opened
+     * from it count as it (their Back shows it again).
      */
     public CitizenPage keepTabOf(@Nullable CustomUIPage previous) {
-        if (previous instanceof CitizenPage p && shows(p.view.colonyId(), p.view.citizenId()) && tabs.contains(p.tab)) {
+        CustomUIPage shown = previous instanceof RequestDetailPage d ? d.origin() : previous;
+        if (shown instanceof CitizenPage p && shows(p.view.colonyId(), p.view.citizenId()) && tabs.contains(p.tab)) {
             tab = p.tab;
-            inventory = p.inventory;
-            p.inventory = null;
-            if (inventory != null) {
-                inventory.attach(this::redrawIfShown);
-            }
-            if (inventory != null && !inventory.isOpen()) { // its window closed: nothing left to show
-                inventory.stopWatch();
-                inventory = null;
-            }
+            skills.keepHoverOf(p.skills);
+            takeInventoryOf(p);
             if (tab == Tab.INVENTORY && inventory == null) {
                 tab = Tab.MAIN;
             }
         }
         return this;
+    }
+
+    /** Takes over {@code p}'s inventory panel, dropped if its window closed meanwhile. */
+    private void takeInventoryOf(CitizenPage p) {
+        inventory = p.inventory;
+        p.inventory = null;
+        if (inventory != null) {
+            inventory.attach(this::redrawIfShown);
+        }
+        if (inventory != null && !inventory.isOpen()) { // its window closed: nothing left to show
+            inventory.stopWatch();
+            inventory = null;
+        }
     }
 
     /** Whether this is the window of that citizen. */
@@ -95,7 +107,7 @@ public final class CitizenPage extends ColonyPage {
 
     /** A copy of this window on its Inventory tab, showing panel (whose window opens with it). */
     CitizenPage withInventory(PlayerRef playerRef, CitizenInventoryPanel panel) {
-        CitizenPage page = new CitizenPage(playerRef, view, manager);
+        CitizenPage page = new CitizenPage(playerRef, view, manager, ids);
         page.tab = Tab.INVENTORY;
         page.inventory = panel;
         panel.attach(page::redrawIfShown);
@@ -140,8 +152,9 @@ public final class CitizenPage extends ColonyPage {
             }
             return;
         }
-        skills.handle(act).ifPresent(update -> sendUpdate(update, null, false));
-        requests.handle(act);
+        if (!requests.handle(ref, store, this, act)) {
+            skills.handle(act).ifPresent(update -> sendUpdate(update, null, false));
+        }
     }
 
     /** Stops showing the inventory: its window closes. Never throws. */

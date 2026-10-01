@@ -28,11 +28,11 @@
 **Cœur**
 
 1. `SkillRows` reste (ordre « métier d'abord » et XP gardés à la demande de l'utilisateur) ; seul le rendu change.
-2. `HealthBar.of(int health)` : port de `createHealthBar` (10 emplacements, chacun un cœur de fond et un demi-cœur posé dessus, ordre bleu, vert, doré, rouge, seuils de `WindowConstants`), avec tests sur 0, 1, 20, 21, 40, 80.
+2. `HealthBar.of(int health)` : port de `createHealthBar` (10 emplacements, chacun un cœur de fond et un demi-cœur posé dessus, ordre bleu, vert, doré, rouge, seuils de `WindowConstants`), avec tests sur 0, 5, 20, 21, 40 (au-delà de 20, inatteignable avec la mise à l'échelle).
 3. `SaturationBar.of(double saturation)` : `MAX_SATURATION / 6` emplacements vides, pleins par tranche de 6, un demi si reste ; tests 0, 3, 60, 33.
-4. Port `CitizenBodies.health(BodyId)` → `Optional<BodyHealth(current, max)>` (vide sans corps) ; `Fake` ; la vue ramène à l'échelle de MC : `round(current / max × 20)`.
+4. Port `CitizenBodies.healthPercent(BodyId)` → `int` (0 sans corps vivant ; un `int` pour ne pas alourdir le couplage de `DetouringBodies`) ; `Fake` ; la vue ramène à l'échelle de MC en tronquant comme MC (`percent × 20 / 100`), 20 sans corps.
 5. Port `PlayerDirectory.isCreative(UUID)` (faux hors ligne) ; action `CitizenActions.adjustSkill(player, colonyId, citizenId, skill, ±1)` : refus hors créatif (MC `AdjustSkillCitizenMessage`), niveau borné comme `CitizenSkillHandler.incrementLevel`, colonie marquée à sauver, citoyen ré-affiché.
-6. `CitizenView` : nom, santé (cœurs + libellé), saturation, compétences, genre, créatif, requêtes (lot 2), compétences du métier ; ce que MC ne montre pas (activité, attente, ligne du métier, XP) quitte la vue si rien d'autre ne le lit (vérifier HyLens et l'API).
+6. `CitizenView` : nom, santé, saturation, compétences, genre, créatif, requêtes (lot 2), compétences du métier ; l'activité, l'attente, la ligne du métier et l'XP restent (demandés par l'utilisateur, registre).
 
 **Plugin**
 

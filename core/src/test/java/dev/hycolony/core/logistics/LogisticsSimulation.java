@@ -219,7 +219,7 @@ abstract class LogisticsSimulation {
         manager.windows().openRequests(alice, colony.id());
         RequestsView view = (RequestsView) t.ui.shown.get(alice);
         for (RequestsView.RequestRow row : view.rows()) {
-            if (row.canSupply()) {
+            if (row.fulfillable()) {
                 manager.requestActions().fulfil(alice, colony.id(), row.token());
             }
         }

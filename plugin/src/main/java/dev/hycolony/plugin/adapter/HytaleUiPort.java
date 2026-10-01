@@ -165,7 +165,7 @@ public final class HytaleUiPort implements UiPort {
     }
 
     private BiFunction<PlayerRef, CustomUIPage, ColonyPage> citizenPage(CitizenView view) {
-        return (pr, previous) -> new CitizenPage(pr, view, manager.get()).keepTabOf(previous);
+        return (pr, previous) -> new CitizenPage(pr, view, manager.get(), ids).keepTabOf(previous);
     }
 
     @Override

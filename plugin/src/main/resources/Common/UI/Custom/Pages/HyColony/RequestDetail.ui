@@ -1,0 +1,78 @@
+$C = "../../Common.ui";
+$B = "Mc/Book.ui";
+
+// A request's details (MC gui/windowrequestdetail.xml, WindowRequestDetail), MC positions and sizes doubled: the
+// colonist paper stretched to 380 x 266, the title, the request's item (or its icon), its requester, the requester's
+// place and its resolver, its description (a stack-based task's prefix and item), then Back, Fulfill and Cancel.
+
+$C.@PageOverlay {
+  LayoutMode: Middle;
+
+  Group {
+    Anchor: (Width: 380, Height: 266);
+    Background: "Mc/colonist_paper.png";
+
+    Label {
+      Anchor: (Left: 0, Top: 26, Width: 380, Height: 22);
+      Style: $B.@InkCentered;
+      Text: %hycolony.ui.citizen.requests;
+    }
+
+    ItemIcon #Item {
+      Anchor: (Left: 24, Top: 60, Width: 48, Height: 48);
+      Visible: false;
+    }
+
+    Button #Icon {
+      Anchor: (Left: 24, Top: 60, Width: 48, Height: 48);
+      Style: (Default: (Background: "Mc/delivery.png"));
+      Visible: false;
+      TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+    }
+
+    Label #Requester {
+      Anchor: (Left: 80, Top: 60, Width: 270, Height: 18);
+      Style: (...$B.@Ink, FontSize: 14);
+    }
+
+    Label #Place {
+      Anchor: (Left: 80, Top: 80, Width: 270, Height: 18);
+      Style: (...$B.@Ink, FontSize: 14);
+    }
+
+    Label #Resolver {
+      Anchor: (Left: 80, Top: 100, Width: 270, Height: 18);
+      Style: (...$B.@Ink, FontSize: 14);
+    }
+
+    Label #Short {
+      Anchor: (Left: 24, Top: 120, Width: 340, Height: 80);
+      Style: (...$B.@Ink, VerticalAlignment: Start, Wrap: true);
+    }
+
+    ItemIcon #TaskItem {
+      Anchor: (Left: 160, Top: 150, Width: 18, Height: 18);
+      Visible: false;
+    }
+
+    TextButton #Back {
+      Anchor: (Left: 70, Top: 210, Width: 74, Height: 32);
+      Style: $B.@ColonistSmallButtonStyle;
+      Text: %hycolony.ui.building.options.back;
+    }
+
+    TextButton #Fulfill {
+      Anchor: (Left: 152, Top: 210, Width: 74, Height: 32);
+      Style: $B.@ColonistSmallButtonStyle;
+      Text: %hycolony.ui.requests.fulfil;
+    }
+
+    TextButton #Cancel {
+      Anchor: (Left: 234, Top: 210, Width: 74, Height: 32);
+      Style: $B.@ColonistSmallButtonStyle;
+      Text: %hycolony.ui.requests.cancel;
+    }
+  }
+}
+
+$C.@BackButton {}

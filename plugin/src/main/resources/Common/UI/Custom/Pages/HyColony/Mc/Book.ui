@@ -43,6 +43,15 @@ $C = "../../../Common.ui";
   Sounds: $C.@ButtonSounds
 );
 
+// MC's citizen/colonist_button_small (37 x 16), doubled: the request buttons.
+@ColonistSmallButtonStyle = TextButtonStyle(
+  Default: (Background: "colonist_button_small.png", LabelStyle: @InkCentered),
+  Hovered: (Background: "colonist_button_small.png", LabelStyle: @InkCentered),
+  Pressed: (Background: "colonist_button_small.png", LabelStyle: @InkCentered),
+  Disabled: (Background: "colonist_button_small.png", LabelStyle: @InkCentered),
+  Sounds: $C.@ButtonSounds
+);
+
 // MC's builder_button_quite_small (44 x 16), doubled, its label at MC's 0.8 scale.
 @QuiteSmallInk = LabelStyle(...@InkCentered, FontSize: 12);
 @QuiteSmallButtonStyle = TextButtonStyle(

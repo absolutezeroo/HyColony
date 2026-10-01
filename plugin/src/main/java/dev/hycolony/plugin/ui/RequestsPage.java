@@ -67,7 +67,7 @@ public final class RequestsPage extends ColonyPage {
                         .param("p1", String.valueOf(r.playerHas()))
                 : Message.translation("hycolony.ui.requests.from").param("p0", buildingName(r.requesterName()));
         ui.set(row + " #Info.TextSpans", info);
-        if (r.canSupply()) {
+        if (r.fulfillable()) {
             bind(events, row + " #FulfilButton", "fulfil", i);
         } else {
             ui.set(row + " #FulfilButton.Visible", false);

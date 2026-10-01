@@ -407,7 +407,7 @@ if (player.getPageManager().setPageWithWindows(ref, store, Page.Bench, true, w))
   - `ItemSlot #Slot { ShowQualityBackground: true; ShowQuantity: false; }`, set with `ui.set(sel + " #Slot.ItemId", itemId)` (`BarterPage`, `RespawnPage`). The vanilla pages overlay the quantity with a `Label`;
   - `ItemSlotButton #Btn { … }`: a clickable slot, used as the row button in `BarterTradeRow.ui`;
   - `ItemGrid` (`SlotsPerRow`, `Style: (SlotSize, SlotIconSize, …)`): used for window-backed grids; not needed here.
-- **Progress bar**: the `Common.ui` template `@ProgressBar` (a `ProgressBar` 284 × 6 with the `Common/ProgressBar*.png` textures). Vanilla use, from `Pages/UIGallery/Categories/ProgressContent.ui`: `$C.@ProgressBar #Bar { @Anchor = (Bottom: 4, Left: 0); Value: 0.75; }`. `Value` is a float in [0, 1], set with `ui.set(sel + " #Bar.Value", 0.5f)` (`MemoriesPage`, `PrefabEditorSaveSettingsPage`). Used by `SkillRow.ui`.
+- **Progress bar**: the `Common.ui` template `@ProgressBar` (a `ProgressBar` 284 × 6 with the `Common/ProgressBar*.png` textures). Vanilla use, from `Pages/UIGallery/Categories/ProgressContent.ui`: `$C.@ProgressBar #Bar { @Anchor = (Bottom: 4, Left: 0); Value: 0.75; }`. `Value` is a float in [0, 1], set with `ui.set(sel + " #Bar.Value", 0.5f)` (`MemoriesPage`, `PrefabEditorSaveSettingsPage`). A bare `ProgressBar` takes its own `Background` (a colour works) and `BarTexturePath`, as `Mc/SkillLine.ui`'s 2 px XP bar. A row's `Anchor` can be changed at runtime with `setObject(sel + ".Anchor", anchor)` (`PointInspectorPage`), as the request tree indents its children.
 
 Row for the builder's resource list (red/orange/green like MineColonies):
 ```

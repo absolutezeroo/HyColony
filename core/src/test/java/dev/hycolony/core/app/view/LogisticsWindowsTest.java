@@ -251,13 +251,13 @@ class LogisticsWindowsTest {
         assertEquals(2, rows.size(), "MC RequestTreeWindowModule: the root, then its children one level deeper");
         assertEquals(root, rows.get(0).token());
         assertEquals(0, rows.get(0).depth());
-        assertTrue(rows.get(0).canSupply());
+        assertTrue(rows.get(0).fulfillable());
         Delivery d = assertInstanceOf(Delivery.class, rows.get(1).requestable());
         assertEquals(new ItemAmount(STONE, 10), d.stack());
         assertEquals(1, rows.get(1).depth());
         assertEquals(warehouse.displayName(), rows.get(1).requesterName());
         assertEquals(0, rows.get(1).playerHas(), "not items the player can hand over");
-        assertFalse(rows.get(1).canSupply());
+        assertFalse(rows.get(1).fulfillable());
     }
 
     @Test
@@ -269,7 +269,7 @@ class LogisticsWindowsTest {
         assertEquals(1, rows.size());
         assertInstanceOf(Pickup.class, rows.get(0).requestable());
         assertEquals(builder.displayName(), rows.get(0).requesterName());
-        assertFalse(rows.get(0).canSupply());
+        assertFalse(rows.get(0).fulfillable());
     }
 
     @Test

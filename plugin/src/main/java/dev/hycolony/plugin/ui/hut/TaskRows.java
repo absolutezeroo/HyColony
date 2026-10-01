@@ -10,6 +10,7 @@ import dev.hycolony.core.request.model.Delivery;
 import dev.hycolony.core.request.model.Pickup;
 import dev.hycolony.plugin.ui.ColonyPage;
 import dev.hycolony.plugin.ui.RequestsPage;
+import dev.hycolony.plugin.ui.request.StackTasks;
 import java.util.List;
 import java.util.Optional;
 
@@ -60,22 +61,12 @@ final class TaskRows {
      * MC: the count is a label beside the icon (a Hytale ItemIcon draws none).
      */
     private static void detail(UICommandBuilder ui, String row, TaskRow t) {
-        Optional<ItemAmount> stack = switch (t.requestable()) {
-            case Delivery d -> Optional.of(d.stack());
-            case Crafting c -> Optional.of(new ItemAmount(c.stack(), c.count()));
-            default -> Optional.empty();
-        };
+        Optional<ItemAmount> stack = StackTasks.stack(t.requestable());
         if (stack.isEmpty()) {
             ui.set(row + " #Detail.TextSpans", RequestsPage.describe(t.requestable()));
             return;
         }
-        // MC getDisplayPrefix: "Delivery of:", or "%d * Recipe:" with the crafting request's minimum count.
-        ui.set(
-                row + " #Detail.Text",
-                t.requestable() instanceof Crafting c
-                        ? Message.translation("hycolony.ui.tasks.prefix.crafting")
-                                .param("p0", String.valueOf(c.minCount()))
-                        : Message.translation("hycolony.ui.tasks.prefix.delivery"));
+        ui.set(row + " #Detail.Text", StackTasks.prefix(t.requestable()));
         ui.set(row + " #DetailIcon.Visible", true);
         ui.set(row + " #DetailIcon.ItemId", stack.get().item().id());
         ui.set(row + " #DetailCount.Visible", true);
