@@ -29,6 +29,7 @@ class CourierPickupTest extends CourierAITestBase {
         runUntil(() -> carried(LOG) == 10 && m.all().isEmpty());
 
         assertEquals(RequestState.RECEIVED, made.get(task).state());
+        assertTrue(citizen.hunger().pending() > 0); // MC pickup: each slot taken is a continuous action
     }
 
     @Test

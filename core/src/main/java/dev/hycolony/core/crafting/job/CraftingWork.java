@@ -263,7 +263,7 @@ public final class CraftingWork {
             case FAILED -> {
                 currentRequest = null;
                 ctx.tasks().finishRequest(ctx.colony(), false);
-                ctx.job().incrementActions(); // MC incrementActionsDone(AndDecSaturation): saturation is not ported
+                ctx.job().incrementActionsAndDecSaturation(); // MC AbstractEntityAICrafting: the tool broke
                 resetValues();
                 yield CraftingStep.START_WORKING;
             }

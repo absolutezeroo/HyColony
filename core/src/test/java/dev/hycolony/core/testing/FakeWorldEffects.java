@@ -13,6 +13,7 @@ public final class FakeWorldEffects implements WorldEffects {
     public final List<BlockPos> tilled = new ArrayList<>();
     public final List<BlockPos> placed = new ArrayList<>();
     public final List<Vec3> sleeps = new ArrayList<>();
+    public final List<Vec3> meals = new ArrayList<>();
 
     @Override
     public void celebrate(BlockPos hut) {
@@ -38,5 +39,10 @@ public final class FakeWorldEffects implements WorldEffects {
     @Override
     public void sleeping(Vec3 at) {
         sleeps.add(at);
+    }
+
+    @Override
+    public void eating(Vec3 at) {
+        meals.add(at);
     }
 }

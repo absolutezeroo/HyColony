@@ -99,6 +99,8 @@ public final class TestContexts {
                 config,
                 clock,
                 bodies,
+                bodies,
+                bodies,
                 world,
                 notifier,
                 players,

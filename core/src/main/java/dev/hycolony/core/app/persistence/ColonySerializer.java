@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 
 /** Colony <-> JSON (schema {@value #SCHEMA_VERSION}). Unknown buildings/modules are kept verbatim. */
 public final class ColonySerializer {
-    public static final int SCHEMA_VERSION = 7;
+    public static final int SCHEMA_VERSION = 8;
 
     private static final System.Logger LOG = System.getLogger(ColonySerializer.class.getName());
 

@@ -19,6 +19,8 @@ import dev.hycolony.core.kernel.port.BodyId;
  */
 public final class FarmerJob extends Job implements Crafter {
     public static final JobType TYPE = new JobType("hycolony:farmer", FarmerJob::new);
+    /** MC JobFarmer.getSaturationFactor: a farmer gets hungry 20 % faster. */
+    static final double SATURATION_FACTOR = 1.2;
 
     private final CraftingTasks tasks = new CraftingTasks();
 
@@ -38,6 +40,12 @@ public final class FarmerJob extends Job implements Crafter {
                 .flatMap(crafting -> FarmWorkContext.of(crafting, this)
                         .<JobAI>map(farm -> new FarmerAI(new CraftingWork(crafting), farm)))
                 .orElseGet(IdleAI::new);
+    }
+
+    /** MC JobFarmer.getSaturationFactor. */
+    @Override
+    public double saturationFactor() {
+        return SATURATION_FACTOR;
     }
 
     /** MC AbstractJobCrafter.onRemoval. */

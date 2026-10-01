@@ -198,9 +198,9 @@ Ce que le cœur a déjà : les 26 `Action` de MC avec les mêmes bits (`hc:colon
 | `search` | Filtre sur le nom ou le métier, sans casse (`:81-88,94-107`), 32 caractères (`layoutcitizens.xml:28`) | rien | A |
 | `job` (gras) | `layoutcitizens.xml:12`, `:140` | `CitizenData.job()` (`:182`) | A |
 | `gender` | Sceau homme/femme (`:131-138`) | `CitizenData.gender()` (`:57`) | A (textures absentes) |
-| `health` « pv/max » | `:142` | aucune santé dans le cœur | C : santé |
-| `happinessLevel` « n/10 » | `:143` | `PLACEHOLDER_HAPPINESS = 5.5` (`hc:citizen/CitizenManager.java:25`) | C : bonheur |
-| `saturation` « n/20 » | `:144` (MC affiche /20 alors que `MAX_SATURATION = 60`, `mc:api/colony/ICitizenData.java:30`) | `CitizenData.saturation()` (`:134`), jamais diminuée (seul `JobXp.java:36` la lit) | B : système de nourriture |
+| `health` « pv/max » | `:142` | `BodyHealth.health/maxHealth` (`TownHallViews.vitals`), SP4b | fait (SP4b) |
+| `happinessLevel` « n/10 » | `:143` | `CitizenHappiness.happiness` (`TownHallViews.vitals`), SP4b | fait (SP4b) |
+| `saturation` « n/20 » | `:144` (MC affiche /20 alors que `MAX_SATURATION = 60`, `mc:api/colony/ICitizenData.java:30`) | `CitizenData.saturation()`, qui baisse depuis SP4b (`HungerTicks`) | fait (SP4b) |
 | `entity` (rendu du citoyen) | Montré quand le citoyen dort (`:146-152,282-289`) | rien | C (portraits, `docs/research/citizen-portraits.md`) |
 | `recallone` | `RecallSingleCitizenMessage` : `MANAGE_HUTS` ; dernière position = hôtel de ville, crée le corps s'il manque, téléporte, sinon `WARNING_CITIZEN_RECALL_FAILED` (`:160-167` ; `msg/server/colony/citizen/RecallSingleCitizenMessage.java:66-90`) | `HousingActions.recall` rappelle les résidents d'une hutte (`hc:app/action/HousingActions.java:71`) | B : rappel d'un seul citoyen vers l'hôtel de ville |
 | `happinessTitle` + `happinessList` | Bonheur global arrondi (`:228-232`) ; par modificateur, la moyenne des facteurs, icône selon > 1, = 1, > 0,75, sinon (`:216-274`) | rien | C : bonheur |

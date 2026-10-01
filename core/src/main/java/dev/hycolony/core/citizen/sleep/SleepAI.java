@@ -2,6 +2,7 @@ package dev.hycolony.core.citizen.sleep;
 
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
+import dev.hycolony.core.citizen.happiness.HappinessEvents;
 import dev.hycolony.core.citizen.home.BedModule;
 import dev.hycolony.core.citizen.home.HomePosition;
 import dev.hycolony.core.citizen.home.LivingModule;
@@ -164,6 +165,7 @@ public final class SleepAI {
                 data.setBedPos(null);
                 usedBed = null;
             }
+            HappinessEvents.reachedBed(data); // MC: at every arrival, a bed lain in or not
         } else {
             bedTicks = 0;
         }

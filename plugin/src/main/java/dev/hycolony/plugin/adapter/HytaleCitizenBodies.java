@@ -5,22 +5,13 @@ import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Rotation3f;
-import com.hypixel.hytale.protocol.AnimationSlot;
-import com.hypixel.hytale.server.core.entity.AnimationUtils;
-import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
-import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
-import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
-import com.hypixel.hytale.server.core.modules.entitystats.EntityStatValue;
-import com.hypixel.hytale.server.core.modules.entitystats.asset.DefaultEntityStatTypes;
-import com.hypixel.hytale.server.core.modules.physics.util.PhysicsMath;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.NPCPlugin;
 import com.hypixel.hytale.server.npc.movement.NavState;
 import com.hypixel.hytale.server.npc.role.Role;
 import com.hypixel.hytale.server.npc.role.support.DisplayNameSupport;
-import com.hypixel.hytale.server.npc.util.InventoryHelper;
 import com.hypixel.hytale.server.spawning.SpawnTestResult;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
@@ -32,16 +23,22 @@ import dev.hycolony.core.kernel.port.CitizenBodies;
 import dev.hycolony.core.kernel.port.NavStatus;
 import dev.hycolony.plugin.npc.BodyTeleport;
 import dev.hycolony.plugin.npc.CitizenBeds;
-import dev.hycolony.plugin.npc.CitizenSpeed;
 import dev.hycolony.plugin.npc.CitizenTag;
 import dev.hycolony.plugin.npc.HyColonyComponents;
 import dev.hycolony.plugin.npc.HyColonySeek;
 import dev.hycolony.plugin.npc.MoveTarget;
+import dev.hycolony.plugin.npc.body.BodyGestures;
+import dev.hycolony.plugin.npc.body.BodySpeeds;
+import dev.hycolony.plugin.npc.body.BodyVitals;
+import dev.hycolony.plugin.npc.body.CitizenSpeed;
+import dev.hycolony.plugin.npc.body.HytaleBodyHealth;
+import dev.hycolony.plugin.npc.body.HytaleBodySeats;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.LongSupplier;
 import java.util.logging.Level;
 import org.joml.Vector3d;
 import org.jspecify.annotations.Nullable;
@@ -55,21 +52,38 @@ public final class HytaleCitizenBodies implements CitizenBodies {
 
     private final World world;
     private final String roleName;
-    private final CitizenSpeed speed;
+    private final BodySpeeds speeds;
     private final BodyTeleport teleporter;
     private final CitizenBeds beds;
+    private final BodyVitals vitals;
+    private final HytaleBodyHealth health;
+    private final HytaleBodySeats seats;
     private final Map<Long, Ref<EntityStore>> refs = new HashMap<>();
     private final IdentityHashMap<Ref<EntityStore>, Long> ids = new IdentityHashMap<>();
     private long nextId = 1;
     private boolean speedWarned;
     private boolean spawnWarned;
 
-    public HytaleCitizenBodies(World world, String roleName, CitizenSpeed speed) {
+    /** {@code coreTicks}: the core's clock, for how long a hurt body is remembered. */
+    public HytaleCitizenBodies(World world, String roleName, CitizenSpeed speed, LongSupplier coreTicks) {
         this.world = world;
         this.roleName = roleName;
-        this.speed = speed;
+        this.speeds = new BodySpeeds(speed);
         this.teleporter = new BodyTeleport(world);
         this.beds = new CitizenBeds(world, teleporter);
+        this.vitals = new BodyVitals(world, coreTicks);
+        this.health = new HytaleBodyHealth(world, this::entity, vitals, speeds);
+        this.seats = new HytaleBodySeats(world, this::entity);
+    }
+
+    /** The bodies' health port, on the same Health stats and speeds as these bodies. */
+    public HytaleBodyHealth health() {
+        return health;
+    }
+
+    /** The bodies' seats port. */
+    public HytaleBodySeats seats() {
+        return seats;
     }
 
     private Store<EntityStore> store() {
@@ -160,9 +174,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
     @Override
     public int healthPercent(BodyId body) {
         Ref<EntityStore> ref = ref(body);
-        EntityStatMap stats = ref == null ? null : store().getComponent(ref, EntityStatMap.getComponentType());
-        EntityStatValue health = stats == null ? null : stats.get(DefaultEntityStatTypes.getHealth());
-        return health == null ? 0 : (int) (health.asPercentage() * 100);
+        return ref == null ? 0 : vitals.percent(ref);
     }
 
     @Override
@@ -250,7 +262,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
             return;
         }
         try {
-            speed.apply(ref, factor, store());
+            speeds.setJobFactor(ref, factor, store());
         } catch (RuntimeException e) {
             LOG.at(speedWarned ? Level.FINE : Level.WARNING).withCause(e).log("HyColony: cannot set a citizen's speed");
             speedWarned = true;
@@ -272,46 +284,25 @@ public final class HytaleCitizenBodies implements CitizenBodies {
         }
     }
 
-    /** Hotbar slot 0 of the NPC (the role's default hotbar has 3 slots). */
+    /** See {@link BodyGestures#hold}. */
     @Override
     public void setHeldItem(BodyId body, Optional<ItemKey> item) {
         Ref<EntityStore> ref = ref(body);
-        if (ref == null) {
-            return;
-        }
-        if (item.isEmpty()) {
-            InventoryHelper.clearItemInHand(ref, (byte) 0, store());
-        } else if (InventoryHelper.setHotbarItem(ref, item.get().id(), (byte) 0, store())) {
-            InventoryHelper.setHotbarSlot(ref, (byte) 0, store());
+        if (ref != null) {
+            BodyGestures.hold(ref, item, store());
         }
     }
 
-    /**
-     * Plays an item animation on the Action slot (the model has no work animations of its own).
-     * Fallback if the client shows nothing: {@code "Default", "SwingRight"}.
-     */
+    /** See {@link BodyGestures#animate}. */
     @Override
     public void playAnimation(BodyId body, BodyAnimation animation) {
         Ref<EntityStore> ref = ref(body);
-        if (ref == null) {
-            return;
-        }
-        switch (animation) {
-            case BUILD -> AnimationUtils.playAnimation(ref, AnimationSlot.Action, "Block", "Build", store());
-            case MINE -> AnimationUtils.playAnimation(ref, AnimationSlot.Action, "Pickaxe", "Mine", store());
-            // The hoe's own animation set (Server/Item/Animations/Hoe.json), as Hoe_Till plays it for a player
-            case TILL -> AnimationUtils.playAnimation(ref, AnimationSlot.Action, "Hoe", "Till", store());
-            // The seeds' animation set (Template_Seeds PlayerAnimationsId), as Seed_Place plays it for a player
-            case PLANT -> AnimationUtils.playAnimation(ref, AnimationSlot.Action, "Item", "Interact", store());
+        if (ref != null) {
+            BodyGestures.animate(ref, animation, store());
         }
     }
 
-    /**
-     * MC WorkerUtil.faceBlock: body yaw toward the target (TransformComponent rotation) and head yaw and pitch from
-     * the eyes (HeadRotation), with PhysicsMath's heading/pitch as NPC motions use. The walk is ended first: with no
-     * Seek target the role has no body steering, so MotionControllerBase keeps the yaw it reads from the transform
-     * each tick, and the head, without head steering, turns toward that body yaw.
-     */
+    /** Ends the walk, then {@link BodyGestures#lookAt}. */
     @Override
     public void lookAt(BodyId body, Vec3 target) {
         Ref<EntityStore> ref = ref(body);
@@ -322,20 +313,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
         if (mt != null) {
             mt.active = false;
         }
-        TransformComponent t = store().getComponent(ref, TransformComponent.getComponentType());
-        HeadRotation head = store().getComponent(ref, HeadRotation.getComponentType());
-        if (t == null) {
-            return;
-        }
-        Vector3d p = t.getPosition();
-        double dx = target.x() - p.x, dz = target.z() - p.z;
-        double dy = target.y() - (p.y + ModelComponent.getEyeHeight(ref, store()));
-        float yaw = PhysicsMath.normalizeTurnAngle(PhysicsMath.headingFromDirection(dx, dz));
-        t.getRotation().setYaw(yaw);
-        if (head != null) {
-            head.getRotation().setYaw(yaw);
-            head.getRotation().setPitch(PhysicsMath.pitchFromDirection(dx, dy, dz));
-        }
+        BodyGestures.lookAt(ref, target, store());
     }
 
     /** MC PathingStuckHandler.completeStuckAction (teleport near the goal), see {@link BodyTeleport}. */

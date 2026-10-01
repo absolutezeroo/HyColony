@@ -42,6 +42,19 @@ class HutKeepTest {
     }
 
     @Test
+    void aHutKeepsTwoFoodsPerLevelForItsWorkersButNotRawFood() {
+        ItemKey bread = t.catalog.food("bread", 6, 1);
+        ItemKey meat = t.catalog.food("meat", 3, 0);
+        t.catalog.cooked.put(meat, bread);
+        builderHut.setLevel(2);
+
+        HutKeep keep = HutKeep.of(colony, builderHut, true);
+
+        assertEquals(1, keep.removable(new ItemAmount(bread, 5)), "MC keepFood: level x 2, inventory too");
+        assertEquals(3, keep.removable(new ItemAmount(meat, 3)), "raw food is no food to keep");
+    }
+
+    @Test
     void buildingKeepsItsToolsAndOpenRequestItems() {
         RequestToken parent = colony.requests().createAndAssign(builderHut, new StackRequest(STONE, 1, 1, true), -1);
         RequestToken child = colony.requests()

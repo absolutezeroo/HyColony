@@ -61,6 +61,7 @@ final class PickupRound {
         if (pickupFromBuilding(hut)) {
             reset();
             ctx.job().finishRequest(ctx.colony(), true);
+            ctx.job().decreaseSaturationForContinuousAction(); // MC EntityAIWorkDeliveryman.pickup
             ctx.award(XP_PER_PICKUP);
             return ((Pickup) task.requestable()).priority() >= PRIORITY_FORCING_DUMP
                     ? CourierState.DUMPING

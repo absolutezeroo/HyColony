@@ -12,6 +12,7 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Roo
 import com.hypixel.hytale.server.npc.NPCPlugin;
 import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.plugin.farming.FarmingIds;
+import dev.hycolony.plugin.food.FoodIds;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -36,6 +37,8 @@ public final class IdMap {
             List<String> toggleableUseInteractions,
             List<String> potions,
             FarmingIds farming,
+            @Nullable FoodIds food,
+            @Nullable List<String> hurtIgnoredCauses,
             @Nullable String highlightEffect,
             @Nullable String sleepParticle,
             @Nullable String placeholderFluid) {}
@@ -111,6 +114,16 @@ public final class IdMap {
         return Objects.requireNonNullElse(data.farming(), FarmingIds.NONE);
     }
 
+    /** Damage causes that do not hurt a citizen's feelings (MC EntityCitizen.hurt: IS_FIRE, IS_LIGHTNING). */
+    public Set<String> hurtIgnoredCauses() {
+        return Set.copyOf(Objects.requireNonNullElse(data.hurtIgnoredCauses(), List.of()));
+    }
+
+    /** The food section: the foods, the cooking bench and the eating particle; none in an older file. */
+    public FoodIds food() {
+        return Objects.requireNonNullElse(data.food(), FoodIds.NONE);
+    }
+
     /** The item a request for a tool of {@code type} shows (the type's crude tool, items {@code tool.<type>}). */
     public String toolIcon(ToolType type) {
         return itemId("tool." + type.name().toLowerCase(Locale.ROOT));
@@ -168,6 +181,8 @@ public final class IdMap {
         check(errors, "sound event", byId(farming().tillSoundEvent().stream().toList()), sound);
         check(errors, "entity effect", byId(highlightEffect().stream().toList()), effect);
         check(errors, "particle system", byId(sleepParticle().stream().toList()), particle);
+        check(errors, "food item", byId(List.copyOf(food().table().keySet())), item);
+        check(errors, "particle system", byId(food().particle().stream().toList()), particle);
         check(
                 errors,
                 "fluid",

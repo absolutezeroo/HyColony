@@ -23,6 +23,7 @@ import dev.hycolony.core.construction.workorder.WorkOrder;
 import dev.hycolony.core.construction.workorder.WorkOrderRefusal;
 import dev.hycolony.core.construction.workorder.WorkOrderType;
 import dev.hycolony.core.job.JobAI;
+import dev.hycolony.core.job.JobStatus;
 import dev.hycolony.core.job.JobXp;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
@@ -242,6 +243,7 @@ class BuilderAITest {
         assertEquals(1, citizen.inventory().count(DIRT_I));
         assertEquals(0, citizen.inventory().count(ORE_I));
         assertEquals(Stage.SOLID, o.stage());
+        assertTrue(citizen.hunger().pending() >= 0.04 - 1e-9); // MC: each block mined is a continuous action
     }
 
     @Test
@@ -609,6 +611,7 @@ class BuilderAITest {
                 "max level hut");
         assertEquals(citizen.id(), reqs.get(0).citizenId());
         assertTrue(t.blocks.blocks.containsKey(at(1, 0, 0))); // not mined without its tool
+        assertEquals(JobStatus.STUCK, citizen.jobStatus()); // MC checkForToolOrWeapon
     }
 
     @Test
@@ -629,6 +632,7 @@ class BuilderAITest {
         assertEquals(1, res.level());
         assertTrue(res.isBuilt());
         assertFalse(res.isDeconstructed());
+        assertTrue(citizen.hunger().pending() >= 0.2 - 1e-9); // MC completeBuild: a work action
         assertTrue(colony.contains(beyond));
         CitizenData expected = new CitizenData(99);
         JobXp.award(expected, Skill.Adaptability, Skill.Athletics, 0.05, new JobXp.Levels(hut.level(), 0));

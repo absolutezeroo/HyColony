@@ -1,6 +1,7 @@
 package dev.hycolony.core.logistics.pickup;
 
 import dev.hycolony.core.building.Building;
+import dev.hycolony.core.citizen.food.FoodRules;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 /**
  * What a building keeps during one dump or pickup pass (MC {@code buildingRequiresCertainAmountOfItem} over
@@ -19,6 +21,9 @@ import java.util.Map;
  * {@code localAlreadyKept}; make a new one per pass.
  */
 public final class HutKeep {
+    /** MC AbstractBuilding.getRequiredItemsAndAmount: food kept per hut level. */
+    static final int KEPT_FOOD_PER_LEVEL = 2;
+
     private final List<KeepRule> rules;
     private final ItemCatalog catalog;
     private final int[] kept;
@@ -31,9 +36,9 @@ public final class HutKeep {
 
     /**
      * The keep rules of {@code building}: its {@link KeepsItems} modules (MC {@code keepX} and
-     * {@code IHasRequiredItemsModule}), plus, for a pickup from the hut ({@code inventory} false), the deliveries of
-     * the requests its resolvers made. {@code inventory} true is a worker dumping its inventory: MC skips the rules
-     * whose inventory flag is false.
+     * {@code IHasRequiredItemsModule}), its workers' food (MC {@code keepFood}, unless an {@code EatingRule} says no),
+     * plus, for a pickup from the hut ({@code inventory} false), the deliveries of the requests its resolvers made.
+     * {@code inventory} true is a worker dumping its inventory: MC skips the rules whose inventory flag is false.
      */
     public static HutKeep of(Colony colony, Building building, boolean inventory) {
         List<KeepRule> rules = new ArrayList<>();
@@ -41,6 +46,12 @@ public final class HutKeep {
             rules.addAll(deliveryRules(colony.requests(), building));
         }
         ItemCatalog catalog = colony.context().ports().catalog();
+        if (FoodRules.keepsFood(building)) {
+            // MC AbstractBuilding.keepFood: food its workers may eat (as from no home), level x 2, inventory too.
+            Predicate<ItemKey> allowed = FoodRules.workAllows(colony, building.position());
+            rules.add(new KeepRule(
+                    item -> FoodRules.canEat(catalog, item, 0, allowed), building.level() * KEPT_FOOD_PER_LEVEL, true));
+        }
         for (var module : building.modules().values()) {
             if (module instanceof KeepsItems keeps) {
                 for (KeepRule rule : keeps.keepRules(colony, building)) {
@@ -75,9 +86,6 @@ public final class HutKeep {
      *
      * <p>MC also keeps a stack that is better equipment than the one already kept, but then counts it past the kept
      * amount and lets it leave anyway, so that check is not ported.
-     *
-     * <p>Deviation from MC: no {@code keepFood} rule (MC AbstractBuilding keeps {@code level * 2} food, inventory
-     * included): the core has no notion of food items yet (backlog, with the hunger system).
      */
     public int removable(ItemAmount stack) {
         if (catalog.wornOut(stack)) {

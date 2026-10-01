@@ -55,10 +55,12 @@ final class DeliveryDrop {
         Optional<Boolean> success = putIn(target, items);
         ctx.showHeld();
         if (success.isEmpty()) {
+            ctx.job().decreaseSaturationForContinuousAction(); // MC EntityAIWorkDeliveryman.deliver, nothing extracted
             ctx.job().finishRequest(ctx.colony(), false);
             return CourierState.START_WORKING;
         }
         ctx.award(XP_PER_DELIVERY);
+        ctx.job().decreaseSaturationForContinuousAction(); // MC EntityAIWorkDeliveryman.deliver
         ctx.job().finishRequest(ctx.colony(), true);
         return success.get() ? CourierState.START_WORKING : CourierState.DUMPING;
     }

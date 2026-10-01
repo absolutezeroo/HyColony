@@ -2,6 +2,7 @@ package dev.hycolony.core.testing;
 
 import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockKind;
+import dev.hycolony.core.kernel.item.FoodInfo;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolInfo;
 import dev.hycolony.core.kernel.item.ToolType;
@@ -27,6 +28,25 @@ public final class FakeCatalog implements ItemCatalog {
     public final Map<BlockKey, Float> hardness = new HashMap<>();
     public final Map<ItemKey, ToolInfo> tools = new HashMap<>();
     public final Map<ItemKey, Integer> durability = new HashMap<>();
+    public final Map<ItemKey, FoodInfo> foods = new HashMap<>();
+    public final Map<ItemKey, ItemKey> cooked = new HashMap<>();
+
+    /** Makes {@code item} a food of {@code nutrition} and {@code tier}; returns it. */
+    public ItemKey food(String item, int nutrition, int tier) {
+        ItemKey key = new ItemKey(item);
+        foods.put(key, new FoodInfo(nutrition, tier, false));
+        return key;
+    }
+
+    @Override
+    public Optional<FoodInfo> food(ItemKey item) {
+        return Optional.ofNullable(foods.get(item));
+    }
+
+    @Override
+    public Optional<ItemKey> cooked(ItemKey item) {
+        return Optional.ofNullable(cooked.get(item));
+    }
 
     @Override
     public int maxStack(ItemKey item) {

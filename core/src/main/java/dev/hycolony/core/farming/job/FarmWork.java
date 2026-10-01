@@ -1,8 +1,10 @@
 package dev.hycolony.core.farming.job;
 
+import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.farming.field.FarmField;
 import dev.hycolony.core.farming.field.FieldStage;
 import dev.hycolony.core.farming.hut.FieldWalk;
+import dev.hycolony.core.job.JobStatus;
 import dev.hycolony.core.job.work.WorkDelay;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemAmount;
@@ -54,10 +56,16 @@ final class FarmWork {
         return status;
     }
 
-    /** MC prepareForFarming, every 20 ticks: what the farmer does next with its fields. */
+    /**
+     * MC prepareForFarming, every 20 ticks: what the farmer does next with its fields; its job status (MC JobStatus)
+     * is IDLE, then STUCK without a built hut, a field or a hoe, else WORKING.
+     */
     FarmerState prepare() {
         status = Optional.empty();
+        CitizenData farmer = ctx.job().citizen();
+        farmer.setJobStatus(JobStatus.IDLE);
         if (ctx.hut().level() < 1) {
+            farmer.setJobStatus(JobStatus.STUCK);
             return FarmerState.PREPARING;
         }
         if (!fertilizerReady()) {
@@ -65,6 +73,7 @@ final class FarmWork {
         }
         if (ctx.colony().registries().fields().ownedBy(ctx.hut().position()).isEmpty()) {
             status = Optional.of(Msg.of("hycolony.farmer.noFields"));
+            farmer.setJobStatus(JobStatus.STUCK);
             return FarmerState.IDLE;
         }
         Optional<FarmField> field = ctx.fields().fieldToWorkOn(ctx.colony(), ctx.hut());

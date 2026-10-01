@@ -3,6 +3,7 @@ package dev.hycolony.core.job.work;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.job.JobStatus;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.request.Request;
@@ -43,8 +44,15 @@ public final class ToolRequests {
      * MC checkForToolOrWeapon(type) with checkForNeededTool: whether the worker lacks a usable tool of {@code type}.
      * With none in its inventory it walks to the hut ({@code walkToHut}, true once there) and takes one from there;
      * with none there either, or while still walking, it asks for one ({@link #requestTool}) and true is returned.
+     * The citizen's job status follows (MC): STUCK while it lacks one, else WORKING.
      */
     public boolean missing(ToolType type, WorkerStock stock, BooleanSupplier walkToHut) {
+        boolean lacking = lacks(type, stock, walkToHut);
+        citizen.setJobStatus(lacking ? JobStatus.STUCK : JobStatus.WORKING);
+        return lacking;
+    }
+
+    private boolean lacks(ToolType type, WorkerStock stock, BooleanSupplier walkToHut) {
         if (stock.toolInInventory(type).isPresent()) {
             return false;
         }

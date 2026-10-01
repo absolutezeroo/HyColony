@@ -7,8 +7,10 @@ import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import dev.hycolony.api.read.JobNames;
 import dev.hycolony.core.app.ui.CitizenRow;
+import dev.hycolony.core.app.ui.TownHallView;
 import dev.hycolony.core.citizen.Gender;
 import dev.hycolony.plugin.ui.ColonyPage;
+import dev.hycolony.plugin.ui.citizen.HappinessRowsUi;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -17,11 +19,13 @@ import java.util.function.IntConsumer;
 import java.util.function.UnaryOperator;
 
 /**
- * The town hall's Citizens tab (MC WindowCitizenPage): the citizens by name, filtered by the search field on their
- * name or job, one selected (its job, gender seal and recall button); the filter and the selection are page state.
+ * The town hall's Citizens tab (MC WindowCitizenPage): the colony's happiness and its modifiers, the citizens by name,
+ * filtered by the search field on their name or job, one selected (its job, gender seal, health, happiness,
+ * saturation and recall button); the filter and the selection are page state.
  */
 final class TownHallCitizensTab implements TownHallTab {
     private final List<CitizenRow> rows;
+    private final TownHallView.Happiness happiness;
     /** A language key to the viewer's text, for the job filter (MC compares the job's shown name). */
     private final UnaryOperator<String> text;
     /** Recalls the citizen of this id (the core checks the right). */
@@ -31,8 +35,9 @@ final class TownHallCitizensTab implements TownHallTab {
     /** The selected citizen's id: the first by name on opening (MC WindowCitizenPage); empty without citizens. */
     private Optional<Integer> selected;
 
-    TownHallCitizensTab(List<CitizenRow> rows, UnaryOperator<String> text, IntConsumer recall) {
-        this.rows = rows;
+    TownHallCitizensTab(TownHallView view, UnaryOperator<String> text, IntConsumer recall) {
+        this.rows = view.citizens();
+        this.happiness = view.happiness();
         this.text = text;
         this.recall = recall;
         this.selected = rows.stream().findFirst().map(CitizenRow::id);
@@ -59,6 +64,11 @@ final class TownHallCitizensTab implements TownHallTab {
                 EventData.of("Action", "citizenSearch").append("@Name", root + " #Search.Value"),
                 false);
         ColonyPage.bind(events, root + " #RecallButton", "recallOne");
+        // MC fillHappinessList: the colony's mean happiness, then every modifier's mood.
+        ui.set(
+                root + " #HappinessTitle.TextSpans",
+                Message.translation("hycolony.ui.townhall.currentHappiness").param("p0", happiness.overall()));
+        HappinessRowsUi.townHall(ui, root + " #HappinessList", happiness.modifiers());
         refresh(ui, events, root);
     }
 
@@ -82,6 +92,11 @@ final class TownHallCitizensTab implements TownHallTab {
             }
         }
         ui.set(root + " #Job.TextSpans", sel.map(TownHallCitizensTab::job).orElse(Message.raw("")));
+        // MC updateCitizen: "health/max", "happiness/10", "saturation/20" (MC writes 20, though it goes up to 60).
+        CitizenRow.Vitals v = sel.map(CitizenRow::vitals).orElse(null);
+        ui.set(root + " #Health.Text", v == null ? "" : v.health() + "/" + v.maxHealth());
+        ui.set(root + " #HappinessLevel.Text", v == null ? "" : v.happiness() + "/10");
+        ui.set(root + " #Saturation.Text", v == null ? "" : v.saturation() + "/20");
         // MC's layout shows the male seal until a female citizen is selected, and the recall button always.
         boolean female = sel.filter(r -> r.gender() == Gender.FEMALE).isPresent();
         ui.set(root + " #Male.Visible", !female);

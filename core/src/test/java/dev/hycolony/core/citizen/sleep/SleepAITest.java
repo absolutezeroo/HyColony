@@ -8,6 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.citizen.CitizenData;
+import dev.hycolony.core.citizen.happiness.HappinessIds;
+import dev.hycolony.core.citizen.happiness.HappinessModifier;
 import dev.hycolony.core.citizen.home.BedModule;
 import dev.hycolony.core.citizen.home.LivingModule;
 import dev.hycolony.core.colony.Colony;
@@ -123,6 +125,20 @@ class SleepAITest {
         assertEquals(SleepAI.State.SLEEPING, second.ai().state()); // MC: FIND_BED ends the round after lying down
         assertEquals(BED_B, second.data().bedPos());
         assertEquals(BED_B, t.bodies.bodies.get(second.body()).inBed);
+    }
+
+    @Test
+    void reachingItsBedStartsItsSleptTonightDaysAgain() {
+        bed(BED_A);
+        Sleeper s = resident(1, new BlockPos(0, 64, 0));
+        HappinessModifier slept =
+                s.data().happiness().get(HappinessIds.SLEPTTONIGHT).orElseThrow();
+        slept.dayEnd(c, s.data());
+        assertEquals(1, slept.days());
+
+        tickUntil(s, () -> s.data().asleep());
+
+        assertEquals(0, slept.days()); // MC EntityAISleep: resetModifier("slepttonight") at the bed
     }
 
     @Test

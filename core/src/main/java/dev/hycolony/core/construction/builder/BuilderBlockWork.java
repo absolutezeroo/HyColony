@@ -5,6 +5,7 @@ import dev.hycolony.core.construction.resources.EntryCost;
 import dev.hycolony.core.construction.shared.BuilderTimings;
 import dev.hycolony.core.construction.workorder.Stage;
 import dev.hycolony.core.construction.workorder.WorkOrder;
+import dev.hycolony.core.job.JobStatus;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.BlockKind;
 import dev.hycolony.core.kernel.item.BlockState;
@@ -107,6 +108,7 @@ final class BuilderBlockWork {
         if (type != null && toolSlot.isEmpty()) {
             return fetchTool(type);
         }
+        ctx.citizen().setJobStatus(JobStatus.WORKING); // MC holdEfficientTool: a tool at hand, or none needed
         if (!ctx.walkToWork(pos)) {
             return null;
         }
@@ -132,6 +134,7 @@ final class BuilderBlockWork {
         ItemKey inHut = ctx.stock().toolInHut(type).orElse(null);
         if (inHut == null) {
             ctx.tools().requestTool(type);
+            ctx.citizen().setJobStatus(JobStatus.STUCK); // MC checkForToolOrWeapon: no tool to work with
             return BuilderState.NEEDS_ITEM;
         }
         if (!ctx.walkToHut()) {
@@ -190,6 +193,7 @@ final class BuilderBlockWork {
         }
         ctx.award(XP_PER_BLOCK);
         ctx.job().incrementActions();
+        ctx.job().decreaseSaturationForContinuousAction(); // MC AbstractEntityAIStructure, after mineBlock
     }
 
     private void place(Stage stage, int i, BlockPos pos, BlueprintEntry e, List<ItemAmount> cost) {

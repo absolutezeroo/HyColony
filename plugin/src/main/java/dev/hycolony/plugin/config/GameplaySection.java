@@ -23,6 +23,8 @@ final class GameplaySection {
                     (s, v) -> s.workersAlwaysWorkInRain = v,
                     s -> s.workersAlwaysWorkInRain)
             .add()
+            .append(new KeyedCodec<>("FoodModifier", Codec.DOUBLE), (s, v) -> s.foodModifier = v, s -> s.foodModifier)
+            .add()
             .build();
 
     private static final ColonyConfig.Gameplay DEFAULTS =
@@ -31,8 +33,10 @@ final class GameplaySection {
     int initialCitizenAmount = DEFAULTS.initialCitizenAmount();
     int maxCitizenPerColony = DEFAULTS.maxCitizenPerColony();
     boolean workersAlwaysWorkInRain = DEFAULTS.workersAlwaysWorkInRain();
+    double foodModifier = DEFAULTS.foodModifier();
 
     ColonyConfig.Gameplay toCore() {
-        return new ColonyConfig.Gameplay(initialCitizenAmount, maxCitizenPerColony, workersAlwaysWorkInRain);
+        return new ColonyConfig.Gameplay(
+                initialCitizenAmount, maxCitizenPerColony, workersAlwaysWorkInRain, foodModifier);
     }
 }

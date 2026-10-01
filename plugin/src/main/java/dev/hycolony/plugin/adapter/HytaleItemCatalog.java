@@ -12,12 +12,15 @@ import com.hypixel.hytale.server.core.asset.type.item.config.ItemTool;
 import com.hypixel.hytale.server.core.asset.type.item.config.ItemToolSpec;
 import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockKind;
+import dev.hycolony.core.kernel.item.FoodInfo;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolInfo;
 import dev.hycolony.core.kernel.item.ToolScale;
 import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.plugin.block.HytaleBlockStates;
+import dev.hycolony.plugin.food.FoodIds;
+import dev.hycolony.plugin.food.HytaleFoods;
 import dev.hycolony.plugin.item.HytaleStacks;
 import java.util.HashMap;
 import java.util.Map;
@@ -76,12 +79,29 @@ public final class HytaleItemCatalog implements ItemCatalog {
     private final Map<String, Integer> hoeLevels;
 
     private final HytaleStacks stacks = new HytaleStacks(this::durability);
+    private final HytaleFoods foods;
     private boolean warned;
 
-    /** {@code hutBlockIds}: the id-map's hut block ids; {@code hoeLevels}: its hoes and their tool level. */
-    public HytaleItemCatalog(Set<String> hutBlockIds, Map<String, Integer> hoeLevels) {
+    /**
+     * {@code hutBlockIds}: the id-map's hut block ids; {@code hoeLevels}: its hoes and their tool level; {@code foods}:
+     * its food table and cooking bench.
+     */
+    public HytaleItemCatalog(Set<String> hutBlockIds, Map<String, Integer> hoeLevels, FoodIds foods) {
         this.hutBlockIds = Set.copyOf(hutBlockIds);
         this.hoeLevels = Map.copyOf(hoeLevels);
+        this.foods = new HytaleFoods(foods);
+    }
+
+    /** The id-map's food table (Hytale has no nutrition, see {@link HytaleFoods}). */
+    @Override
+    public Optional<FoodInfo> food(ItemKey item) {
+        return foods.food(item);
+    }
+
+    /** The cooking bench's result for {@code item} (MC the furnace's smelting result). */
+    @Override
+    public Optional<ItemKey> cooked(ItemKey item) {
+        return foods.cooked(item);
     }
 
     /** The stack conversion that turns a tool's damage into Hytale durability with this catalog's durabilities. */

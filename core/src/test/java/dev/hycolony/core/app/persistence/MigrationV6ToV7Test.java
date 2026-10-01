@@ -37,7 +37,9 @@ class MigrationV6ToV7Test {
         JsonObject migrated =
                 MigrationChain.sp4().migrate(JsonParser.parseString(fixture()).getAsJsonObject());
 
-        assertEquals(7, migrated.get(MigrationChain.VERSION_KEY).getAsInt());
+        assertEquals(
+                ColonySerializer.SCHEMA_VERSION,
+                migrated.get(MigrationChain.VERSION_KEY).getAsInt());
         assertEquals("Medieval Oak", migrated.get("style").getAsString());
         assertTrue(migrated.getAsJsonObject("settings").get("moveIn").getAsBoolean());
         assertTrue(migrated.getAsJsonArray("eventLog")
@@ -62,7 +64,7 @@ class MigrationV6ToV7Test {
         assertTrue(c.log().entries().stream().map(EventLog.Entry::pos).allMatch(p -> p.isEmpty()));
         m.persistence().saveAll();
         String saved = Files.readString(dir.resolve("colony-1.json"));
-        assertTrue(saved.contains("\"schemaVersion\":7"), saved);
+        assertTrue(saved.contains("\"schemaVersion\":" + ColonySerializer.SCHEMA_VERSION), saved);
         assertEquals(
                 "Medieval Oak",
                 JsonParser.parseString(saved).getAsJsonObject().get("style").getAsString());

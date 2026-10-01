@@ -2,6 +2,8 @@ package dev.hycolony.core.colony;
 
 import dev.hycolony.core.building.BuildingManager;
 import dev.hycolony.core.citizen.CitizenManager;
+import dev.hycolony.core.citizen.food.HungerTicks;
+import dev.hycolony.core.citizen.happiness.HappinessEvents;
 import dev.hycolony.core.citizen.sleep.SleepNotice;
 import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.colony.territory.ClaimCell;
@@ -83,6 +85,16 @@ public final class Colony {
                 AITarget.every(ColonyState.ACTIVE, t.timed("citizen data", citizens::tickData), CITIZEN_DATA_INTERVAL));
         machine.addTransition(
                 AITarget.every(ColonyState.ACTIVE, t.timed("daytime", this::checkDayTime), DAYTIME_INTERVAL));
+        // Deviation from MC: hunger and healing run for every citizen at once here, not on each citizen's entity, and
+        // only while the colony is ACTIVE; the state update ends a tick every 100, so they come about 1 % later.
+        machine.addTransition(AITarget.every(
+                ColonyState.ACTIVE,
+                t.timed("hunger", () -> HungerTicks.decreaseIdleSaturation(this)),
+                HungerTicks.SATURATION_DECREASE_AFTER));
+        machine.addTransition(AITarget.every(
+                ColonyState.ACTIVE,
+                t.timed("healing", () -> HungerTicks.updateHealing(this)),
+                HungerTicks.HEAL_CITIZENS_AFTER));
         machine.addTransition(AITarget.every(ColonyState.ACTIVE, t.timed("colony upkeep", this::slowTick), SLOW_TICK));
         machine.addTransition(
                 AITarget.every(ColonyState.ACTIVE, t.timed("requests", requests::tick), RequestManager.TICK_INTERVAL));
@@ -121,7 +133,8 @@ public final class Colony {
             citizens.onWakeUp(); // MC Colony.checkDayTime: citizenManager.onWakeUp()
             ctx.bus().post(new ColonyEvents.DayStarted(this));
         } else if (!daytime && wasDaytime) {
-            SleepNotice.onNightFall(this); // MC: citizenManager.updateCitizenSleep(false)
+            HappinessEvents.onNightFall(this); // MC: checkCitizensForHappiness, then updateCitizenSleep(false)
+            SleepNotice.onNightFall(this);
             ctx.bus().post(new ColonyEvents.NightFell(this));
         }
         wasDaytime = daytime;

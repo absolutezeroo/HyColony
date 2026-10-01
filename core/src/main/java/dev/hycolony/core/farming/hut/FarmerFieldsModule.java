@@ -7,11 +7,13 @@ import dev.hycolony.core.building.module.ModuleTab;
 import dev.hycolony.core.building.module.PersistentModule;
 import dev.hycolony.core.building.module.ProvidesTab;
 import dev.hycolony.core.building.module.TickingModule;
+import dev.hycolony.core.citizen.food.EatingRule;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.farming.field.FarmField;
 import dev.hycolony.core.farming.field.FieldJson;
 import dev.hycolony.core.farming.field.FieldRegistry;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.logistics.pickup.KeepRule;
 import dev.hycolony.core.logistics.pickup.KeepsItems;
 import java.util.ArrayList;
@@ -24,7 +26,7 @@ import java.util.UUID;
  * level of them, claimed one per colony tick unless assigned by hand, and the one to work next.
  */
 public final class FarmerFieldsModule
-        implements PersistentModule, TickingModule, BuildingEventsModule, KeepsItems, ProvidesTab {
+        implements PersistentModule, TickingModule, BuildingEventsModule, KeepsItems, ProvidesTab, EatingRule {
     /** MC getRequiredItemsAndAmount: 64 of each owned field's seed stay with the farmer. */
     public static final int SEEDS_KEPT = 64;
 
@@ -132,6 +134,16 @@ public final class FarmerFieldsModule
             f.setOwner(Optional.empty());
         }
         colony.markDirty();
+    }
+
+    /**
+     * MC BuildingFarmer.canEat: the farmer never eats the seed of a field the hut owns. MC also refuses wheat, which
+     * needs no rule here: Hytale's wheat is no food.
+     */
+    @Override
+    public boolean canEat(Colony colony, Building hut, ItemKey food) {
+        return colony.registries().fields().ownedBy(hut.position()).stream()
+                .noneMatch(f -> f.seed().map(food::equals).orElse(false));
     }
 
     /** 64 of each owned field's seed, in the hut and in the farmer's inventory. */

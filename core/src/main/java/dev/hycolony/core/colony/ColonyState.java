@@ -18,19 +18,25 @@ public enum ColonyState implements IState {
      */
     static ColonyState of(Colony colony) {
         ColonyContext ctx = colony.context();
-        boolean playerInside = false;
-        boolean managerOnline = false;
-        for (UUID player : ctx.players().onlineIn(ctx.world())) {
-            if (ctx.players().position(player).map(colony::contains).orElse(false)) {
-                playerInside = true;
-            }
-            if (colony.permissions().rankOf(player).isColonyManager()) {
-                managerOnline = true;
-            }
-        }
-        if (playerInside || (managerOnline && ctx.worldQuery().isLoaded(colony.center()))) {
+        boolean managerOnline = ctx.players().onlineIn(ctx.world()).stream()
+                .anyMatch(player -> colony.permissions().rankOf(player).isColonyManager());
+        if (hasPlayerInside(colony) || (managerOnline && ctx.worldQuery().isLoaded(colony.center()))) {
             return ACTIVE;
         }
         return managerOnline ? UNLOADED : INACTIVE;
+    }
+
+    /**
+     * Whether a player of the colony's world stands in its territory: MC's close subscribers (players near enough to
+     * get the colony's updates), which the day's happiness waits for.
+     */
+    public static boolean hasPlayerInside(Colony colony) {
+        ColonyContext ctx = colony.context();
+        for (UUID player : ctx.players().onlineIn(ctx.world())) {
+            if (ctx.players().position(player).map(colony::contains).orElse(false)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

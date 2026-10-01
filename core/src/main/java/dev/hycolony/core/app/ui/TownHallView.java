@@ -1,5 +1,6 @@
 package dev.hycolony.core.app.ui;
 
+import dev.hycolony.core.app.citizen.HappinessRows;
 import dev.hycolony.core.citizen.home.HousingCapacity;
 import dev.hycolony.core.colony.ColonySettings;
 import dev.hycolony.core.colony.permission.Action;
@@ -17,6 +18,7 @@ public record TownHallView(
         int colonyId,
         String colonyName,
         List<CitizenRow> citizens,
+        Happiness happiness,
         WorkOrdersView workOrders,
         Stats stats,
         Home home,
@@ -25,6 +27,16 @@ public record TownHallView(
         Permissions permissions) {
     public TownHallView {
         citizens = List.copyOf(citizens);
+    }
+
+    /**
+     * MC WindowCitizenPage.fillHappinessList: the colony's mean happiness ("#.#", rounded up) and every modifier with
+     * the mood of its mean factor.
+     */
+    public record Happiness(String overall, List<HappinessRows.Row> modifiers) {
+        public Happiness {
+            modifiers = List.copyOf(modifiers);
+        }
     }
 
     /**

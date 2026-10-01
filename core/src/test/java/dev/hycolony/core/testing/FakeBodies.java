@@ -8,6 +8,8 @@ import dev.hycolony.core.kernel.port.BodyAnimation;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.CitizenBodies;
 import dev.hycolony.core.kernel.port.NavStatus;
+import dev.hycolony.core.kernel.port.body.BodyHealth;
+import dev.hycolony.core.kernel.port.body.BodySeats;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -17,7 +19,8 @@ import java.util.Optional;
 import java.util.Set;
 import org.jspecify.annotations.Nullable;
 
-public final class FakeBodies implements CitizenBodies {
+/** The three body ports at once (a test steers one fake): moves and work, health, seats. */
+public final class FakeBodies implements CitizenBodies, BodyHealth, BodySeats {
     public static final class Body {
         public final int colonyId, citizenId;
         public String name;
@@ -30,6 +33,16 @@ public final class FakeBodies implements CitizenBodies {
         public boolean alive = true;
         /** What {@link FakeBodies#healthPercent} reports. */
         public int healthPercent = 100;
+        /** Health on MC's scale; {@link FakeBodies#heal} raises it up to {@link #maxHealth}. */
+        public double health = 20;
+
+        public double maxHealth = 20;
+        /** What {@link FakeBodies#recentlyHurt} reports. */
+        public boolean recentlyHurt;
+        /** Whether it is slowed down by starving. */
+        public boolean starving;
+        /** The seat it sits on; null standing. */
+        public @Nullable BlockPos seat;
 
         public ItemKey held;
         public BodyAnimation lastAnimation;
@@ -56,6 +69,10 @@ public final class FakeBodies implements CitizenBodies {
     public final Set<BlockPos> beds = new HashSet<>();
     /** Beds someone outside the colony (a player) lies in. */
     public final Set<BlockPos> takenBeds = new HashSet<>();
+    /** The positions that are seats a body may sit on. */
+    public final Set<BlockPos> seats = new HashSet<>();
+    /** Seats someone outside the colony (a player) sits on. */
+    public final Set<BlockPos> takenSeats = new HashSet<>();
     /** When set (and {@link #navEndsAt} is not), moveTo teleports the body to its target and reports ARRIVED. */
     public boolean instant;
     /** When set (and not instant), moveTo never moves the body and navStatus stays MOVING: a nav that never ends. */
@@ -112,6 +129,36 @@ public final class FakeBodies implements CitizenBodies {
     @Override
     public int healthPercent(BodyId body) {
         return isAlive(body) ? bodies.get(body).healthPercent : 0;
+    }
+
+    @Override
+    public double health(BodyId body) {
+        return isAlive(body) ? bodies.get(body).health : 0;
+    }
+
+    @Override
+    public double maxHealth(BodyId body) {
+        return isAlive(body) ? bodies.get(body).maxHealth : 0;
+    }
+
+    @Override
+    public void heal(BodyId body, double amount) {
+        if (isAlive(body)) {
+            Body b = bodies.get(body);
+            b.health = Math.min(b.maxHealth, b.health + amount);
+        }
+    }
+
+    @Override
+    public boolean recentlyHurt(BodyId body) {
+        return isAlive(body) && bodies.get(body).recentlyHurt;
+    }
+
+    @Override
+    public void setStarving(BodyId body, boolean starving) {
+        if (isAlive(body)) {
+            bodies.get(body).starving = starving;
+        }
     }
 
     @Override
@@ -222,6 +269,38 @@ public final class FakeBodies implements CitizenBodies {
         if (b != null && b.inBed != null) {
             b.position = Vec3.center(b.inBed.offset(1, 0, 0));
             b.inBed = null;
+        }
+    }
+
+    /** A seat in {@link #seats} that no other body nor {@link #takenSeats} holds: the body sits on it. */
+    @Override
+    public boolean sitOn(BodyId body, BlockPos seat) {
+        Body b = bodies.get(body);
+        if (b == null || !b.alive || !seats.contains(seat)) {
+            return false;
+        }
+        if (seat.equals(b.seat)) {
+            return true;
+        }
+        if (isSeatTaken(seat)) {
+            return false;
+        }
+        b.seat = seat;
+        b.position = Vec3.center(seat);
+        b.status = NavStatus.IDLE;
+        return true;
+    }
+
+    @Override
+    public boolean isSeatTaken(BlockPos seat) {
+        return takenSeats.contains(seat) || bodies.values().stream().anyMatch(o -> seat.equals(o.seat));
+    }
+
+    @Override
+    public void standUp(BodyId body) {
+        Body b = bodies.get(body);
+        if (b != null) {
+            b.seat = null;
         }
     }
 }

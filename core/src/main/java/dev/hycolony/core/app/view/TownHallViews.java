@@ -1,5 +1,6 @@
 package dev.hycolony.core.app.view;
 
+import dev.hycolony.core.app.citizen.HappinessRows;
 import dev.hycolony.core.app.ui.CitizenRow;
 import dev.hycolony.core.app.ui.TownHallView;
 import dev.hycolony.core.building.Building;
@@ -21,6 +22,9 @@ import java.util.UUID;
 
 /** Builds the town hall window's view (MC WindowTownHall): the colony, its work orders, citizens and statistics. */
 final class TownHallViews {
+    /** MC MAX_HEALTH of a citizen, shown without a living body. */
+    private static final int MC_MAX_HEALTH = 20;
+
     /**
      * MC EventDescriptionManager's kinds: a citizen moving in, a hut built, upgraded, repaired or deconstructed.
      * Births, coming of age, deaths and visitors need systems HyColony lacks.
@@ -40,10 +44,14 @@ final class TownHallViews {
                 .sorted(Comparator.comparing(CitizenData::name))
                 .map(d -> row(c, d))
                 .toList();
+        // Rows first: each citizen's happiness is computed for its row before the colony's sums read them.
+        TownHallView.Happiness happiness =
+                new TownHallView.Happiness(HappinessRows.overall(c), HappinessRows.colony(c));
         return new TownHallView(
                 c.id(),
                 c.name(),
                 rows,
+                happiness,
                 WorkOrderViews.of(c, viewer),
                 TownHallStats.of(c),
                 home(c),
@@ -84,7 +92,15 @@ final class TownHallViews {
                 .map(s -> new CitizenRow.SkillLevel(s, d.skills().level(s)))
                 .toList();
         return new CitizenRow(
-                d.id(), d.name(), d.gender(), d.job().map(j -> j.type().id()), status(c, d), skills);
+                d.id(), d.name(), d.gender(), d.job().map(j -> j.type().id()), status(c, d), skills, vitals(c, d));
+    }
+
+    /** MC WindowCitizenPage's labels; a citizen without a living body shows MC's full 20/20. */
+    private CitizenRow.Vitals vitals(Colony c, CitizenData d) {
+        Optional<BodyId> body = c.citizens().bodyOf(d.id()).filter(ctx.bodies()::isAlive);
+        int health = body.map(b -> (int) ctx.health().health(b)).orElse(MC_MAX_HEALTH);
+        int max = body.map(b -> (int) ctx.health().maxHealth(b)).orElse(MC_MAX_HEALTH);
+        return new CitizenRow.Vitals(health, max, (int) d.happiness().happiness(c, d), (int) d.saturation());
     }
 
     /**

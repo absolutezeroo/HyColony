@@ -75,7 +75,7 @@ public final class HyColonyPlugin extends JavaPlugin {
         getEntityStoreRegistry().registerSystem(new ColonyTickSystem(worlds));
         getEntityStoreRegistry().registerSystem(new CitizenBodyLifecycleSystem(worlds));
         BlockSystems.register(getEntityStoreRegistry(), worlds, ids);
-        CitizenSystems.register(getEntityStoreRegistry(), worlds);
+        CitizenSystems.register(getEntityStoreRegistry(), worlds, ids);
         getEntityStoreRegistry().registerSystem(new GogglesSystems.ArmorChange(worlds, ids.itemId("build_goggles")));
         getEntityStoreRegistry().registerSystem(new GogglesSystems.Visibility(worlds));
         getEventRegistry()

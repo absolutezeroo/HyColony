@@ -94,7 +94,8 @@ class BuilderRainTest {
                 new ColonyConfig.Gameplay(
                         d.gameplay().initialCitizenAmount(),
                         d.gameplay().maxCitizenPerColony(),
-                        workersAlwaysWorkInRain),
+                        workersAlwaysWorkInRain,
+                        d.gameplay().foodModifier()),
                 d.claims(),
                 d.permissions(),
                 d.commands(),

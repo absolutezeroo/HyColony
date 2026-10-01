@@ -43,14 +43,20 @@ public final class HytaleWorldEffects implements WorldEffects {
     private final List<String> fireworks;
     private final Optional<String> tillSound;
     private final Optional<String> sleepParticle;
+    private final Optional<String> eatParticle;
     private boolean warned;
 
     public HytaleWorldEffects(
-            World world, List<String> fireworks, Optional<String> tillSound, Optional<String> sleepParticle) {
+            World world,
+            List<String> fireworks,
+            Optional<String> tillSound,
+            Optional<String> sleepParticle,
+            Optional<String> eatParticle) {
         this.world = world;
         this.fireworks = fireworks;
         this.tillSound = tillSound;
         this.sleepParticle = sleepParticle;
+        this.eatParticle = eatParticle;
     }
 
     /**
@@ -205,16 +211,28 @@ public final class HytaleWorldEffects implements WorldEffects {
     /** The id-map's sleep particles (Hytale's NPC "Sleepy" zZz), as MC's SleepingParticleMessage; none without one. */
     @Override
     public void sleeping(Vec3 at) {
-        sleepParticle.ifPresent(id -> {
-            try {
-                ParticleUtil.spawnParticleEffect(
-                        id,
-                        new Vector3d(at.x(), at.y(), at.z()),
-                        world.getEntityStore().getStore());
-            } catch (RuntimeException e) {
-                LOG.at(warned ? Level.FINE : Level.WARNING).withCause(e).log("HyColony sleep particles failed");
-                warned = true;
-            }
-        });
+        sleepParticle.ifPresent(id -> particles(id, at));
+    }
+
+    /**
+     * The id-map's eating particles (Hytale's {@code Food_Eat} crumbs a player's meal throws, sp4b-hytale-food § 5.e),
+     * as MC's ItemParticleEffectMessage; none without one. Deviation from MC: generic crumbs, not the food's own item.
+     */
+    @Override
+    public void eating(Vec3 at) {
+        eatParticle.ifPresent(id -> particles(id, at));
+    }
+
+    /** One particle system at {@code at}; never throws (first failure WARNING, then FINE). */
+    private void particles(String id, Vec3 at) {
+        try {
+            ParticleUtil.spawnParticleEffect(
+                    id,
+                    new Vector3d(at.x(), at.y(), at.z()),
+                    world.getEntityStore().getStore());
+        } catch (RuntimeException e) {
+            LOG.at(warned ? Level.FINE : Level.WARNING).withCause(e).log("HyColony particles %s failed", id);
+            warned = true;
+        }
     }
 }

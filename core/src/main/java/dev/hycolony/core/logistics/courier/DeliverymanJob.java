@@ -32,6 +32,8 @@ public final class DeliverymanJob extends Job implements CourierTaskQueue {
 
     /** MC {@code getInactivityLimit}: 600 citizen-data updates of 60 ticks, so 36,000 ticks without working. */
     public static final int INACTIVITY_LIMIT = 600;
+    /** MC JobDeliveryman.getSaturationFactor: a courier gets hungry 20 % faster. */
+    static final double SATURATION_FACTOR = 1.2;
 
     private final List<RequestToken> queue = new ArrayList<>();
     private final Set<RequestToken> ongoing = new LinkedHashSet<>();
@@ -138,6 +140,12 @@ public final class DeliverymanJob extends Job implements CourierTaskQueue {
         } else {
             cancelAssignedRequests(colony);
         }
+    }
+
+    /** MC JobDeliveryman.getSaturationFactor. */
+    @Override
+    public double saturationFactor() {
+        return SATURATION_FACTOR;
     }
 
     /** MC {@code onRemoval}: the courier's tasks fail, so their requests go back to the request system. */

@@ -136,12 +136,13 @@ final class FieldPass {
         if (ctx.stock().inventory().damage(hoe.getAsInt(), 1, catalog().durability(tool))) {
             ctx.hands().holdTool(ctx.stock(), ToolType.HOE); // worn out: another hoe, or an empty hand
         }
+        ctx.job().decreaseSaturationForContinuousAction(); // MC EntityAIWorkFarmer, after tilling
         fertilize(surface);
     }
 
     /**
      * MC tryToPlant / plantCrop: false when the seed ran out; the seed's crop placed, one seed used. Deviation from MC:
-     * no melon/pumpkin gap (Hytale's pumpkin has no stem) and no saturation spent (citizens do not eat yet); asked
+     * no melon/pumpkin gap (Hytale's pumpkin has no stem); asked
      * for, the farmer faces the cell, plays the seed-placing gesture and the crop's placing sound, as a Hytale player
      * sows (MC's crop just appears). A cell the world refuses keeps its seed and logs a warning, once per farmer AI.
      */
@@ -163,6 +164,7 @@ final class FieldPass {
         }
         ctx.hands().swing(BodyAnimation.PLANT);
         ctx.colony().context().ports().effects().blockPlaced(crop);
+        ctx.job().decreaseSaturationForContinuousAction(); // MC plantCrop, once the crop is placed
         ctx.stock().inventory().extract(seed.get(), 1);
         didWork = true;
         return true;

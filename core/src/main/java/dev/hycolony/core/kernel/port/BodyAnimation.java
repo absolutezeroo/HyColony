@@ -7,5 +7,7 @@ public enum BodyAnimation {
     /** A hoe tilling the soil (the player's Till). */
     TILL,
     /** A seed placed by hand (the player's seed placing). */
-    PLANT
+    PLANT,
+    /** A bite of the food in hand (the player's eating, MC EntityAIEatTask's swing). */
+    EAT
 }

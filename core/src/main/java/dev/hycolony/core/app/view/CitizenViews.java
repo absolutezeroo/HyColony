@@ -1,5 +1,6 @@
 package dev.hycolony.core.app.view;
 
+import dev.hycolony.core.app.citizen.HappinessRows;
 import dev.hycolony.core.app.ui.CitizenView;
 import dev.hycolony.core.app.ui.RequestsView;
 import dev.hycolony.core.building.Building;
@@ -19,8 +20,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Builds the citizen window's view (MC MainWindowCitizen, RequestWindowCitizen, JobWindowCitizen): name, health and
- * food, skills, gender, requests and the job's skills.
+ * Builds the citizen window's view (MC MainWindowCitizen, RequestWindowCitizen, JobWindowCitizen,
+ * HappinessWindowCitizen): name, health, food and happiness, skills, gender, requests and the job's skills.
  */
 final class CitizenViews {
     /** MC citizens have 20 health points, ten red hearts; a Hytale body's share of its maximum is scaled to it. */
@@ -56,6 +57,8 @@ final class CitizenViews {
                 c.citizens().jobActivity(d.id()),
                 health(c, d),
                 d.saturation(),
+                d.happiness().happiness(c, d),
+                HappinessRows.of(d.happiness()),
                 d.gender(),
                 ctx.players().isCreative(player),
                 SkillRows.of(d.skills(), jobSkills),

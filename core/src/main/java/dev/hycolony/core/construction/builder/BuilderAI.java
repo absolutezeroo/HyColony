@@ -255,7 +255,7 @@ public final class BuilderAI implements JobAI {
             return BuilderState.IDLE;
         }
         ctx.colony().work().finish(o, site.target());
-        ctx.job().incrementActions();
+        ctx.job().incrementActionsAndDecSaturation(); // MC AbstractEntityAIStructure.completeBuild
         ctx.award(XP_EACH_BUILDING);
         // All builder requests are sync: leftovers (e.g. a next bucket no longer needed) would block it forever.
         ctx.colony().requests().cancelAllFrom(ctx.hut().requesterId());

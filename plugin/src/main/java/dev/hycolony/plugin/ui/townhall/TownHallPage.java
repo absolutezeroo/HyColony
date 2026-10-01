@@ -70,7 +70,7 @@ public final class TownHallPage extends ColonyPage {
         this.info = new TownHallInfoTab(
                 view.info(), new WorkOrderListTab(manager, player, view.colonyId(), view.workOrders()));
         this.citizens = new TownHallCitizensTab(
-                view.citizens(), this::text, id -> new CitizenRecall(manager).recall(player, view.colonyId(), id));
+                view, this::text, id -> new CitizenRecall(manager).recall(player, view.colonyId(), id));
         this.stats = new TownHallStatsTab(view.stats());
         this.settings = new TownHallSettingsTab(manager, player, view.colonyId(), view.settings());
         this.permissions = new TownHallPermissionsTab(manager, player, view.colonyId(), view.permissions());

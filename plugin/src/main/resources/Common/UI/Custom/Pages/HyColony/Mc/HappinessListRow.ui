@@ -1,0 +1,31 @@
+$C = "../../../Common.ui";
+$B = "Book.ui";
+
+// One modifier of the town hall's happiness list (MC layoutcitizens.xml happinessList), MC sizes doubled: a 22 px row,
+// the mood icon at x 0 (MC 11 x 11) and the name at x 30 (MC 15). The icon's tooltip tells the mood, the name's the
+// modifier's description. One mood layer is shown (HappinessRows.Mood).
+
+@Mood = Group {
+  Anchor: (Full: 0);
+  Visible: false;
+};
+
+Group {
+  Anchor: (Height: 22);
+
+  Group #Icon {
+    Anchor: (Left: 0, Top: 0, Width: 22, Height: 22);
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+
+    @Mood #Positive { Background: "happy_icon.png"; }
+    @Mood #Neutral { Background: "satisfied_icon.png"; }
+    @Mood #SlightlyNegative { Background: "unsatisfied_icon.png"; }
+    @Mood #Negative { Background: "unhappy_icon.png"; }
+  }
+
+  Label #Name {
+    Anchor: (Left: 30, Top: 0, Width: 240, Height: 22);
+    Style: $B.@Ink;
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+  }
+}

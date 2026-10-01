@@ -6,7 +6,11 @@ import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.job.JobStatus;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.item.ItemAmount;
+import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.core.kernel.item.ToolInfo;
 import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.logistics.courier.DeliverymanHut;
 import dev.hycolony.core.request.Request;
@@ -69,6 +73,18 @@ class ToolRequestsTest {
                 List.of(citizen.id(), second.id()),
                 toolRequests().stream().map(Request::citizenId).toList(),
                 "MC looks at the citizen's own requests only");
+    }
+
+    @Test
+    void aWorkerWithoutItsToolIsStuckThenWorksOnceItHasOne() {
+        WorkerStock stock = new WorkerStock(colony, citizen, hut, 32);
+        t.catalog.tools.put(new ItemKey("hoe"), new ToolInfo(ToolType.HOE, 1, 1));
+
+        assertEquals(true, tools.missing(ToolType.HOE, stock, () -> false));
+        assertEquals(JobStatus.STUCK, citizen.jobStatus());
+        citizen.inventory().insert(new ItemAmount(new ItemKey("hoe"), 1), _ -> 1);
+        assertEquals(false, tools.missing(ToolType.HOE, stock, () -> false));
+        assertEquals(JobStatus.WORKING, citizen.jobStatus());
     }
 
     @Test

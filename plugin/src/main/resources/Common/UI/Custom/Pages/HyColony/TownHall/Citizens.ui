@@ -1,12 +1,56 @@
 $B = "../Mc/Book.ui";
 $C = "../../../Common.ui";
 
-// The town hall's Citizens tab (MC layoutcitizens.xml, WindowCitizenPage), MC positions and sizes doubled: the
-// selected citizen's job, gender seal and recall button, the search field, then the citizens by name. Deviation from
-// MC: no happiness list (left page), health, happiness, saturation nor citizen render (no such systems yet).
+// The town hall's Citizens tab (MC layoutcitizens.xml, WindowCitizenPage), MC positions and sizes doubled: on the left
+// page the colony's happiness and its modifiers; on the right the selected citizen's job, gender seal, health,
+// happiness and saturation, its recall button, the search field, then the citizens by name. Deviation from MC: no
+// citizen render (no such Hytale widget).
+
+@Short = LabelStyle(...$B.@Ink, FontSize: 11, HorizontalAlignment: End);
 
 Group {
   Anchor: (Left: 0, Top: 0, Width: 1048, Height: 486);
+
+  Label #HappinessTitle {
+    Anchor: (Left: 200, Top: 122, Width: 240, Height: 22);
+    Style: $B.@InkCentered;
+  }
+
+  Group #HappinessList {
+    Anchor: (Left: 200, Top: 166, Width: 296, Height: 272);
+    LayoutMode: TopScrolling;
+    ScrollbarStyle: $C.@DefaultScrollbarStyle;
+  }
+
+  Label #Health {
+    Anchor: (Left: 542, Top: 94, Width: 70, Height: 16);
+    Style: @Short;
+  }
+
+  Group {
+    Anchor: (Left: 612, Top: 92, Width: 18, Height: 18);
+    Background: "../Mc/heart_red.png";
+  }
+
+  Label #HappinessLevel {
+    Anchor: (Left: 632, Top: 94, Width: 50, Height: 16);
+    Style: @Short;
+  }
+
+  Group {
+    Anchor: (Left: 682, Top: 92, Width: 18, Height: 18);
+    Background: "../Mc/smiley_red.png";
+  }
+
+  Label #Saturation {
+    Anchor: (Left: 702, Top: 94, Width: 50, Height: 16);
+    Style: @Short;
+  }
+
+  Group {
+    Anchor: (Left: 752, Top: 92, Width: 18, Height: 18);
+    Background: "../Mc/full.png";
+  }
 
   Label #Job {
     Anchor: (Left: 552, Top: 56, Width: 240, Height: 22);

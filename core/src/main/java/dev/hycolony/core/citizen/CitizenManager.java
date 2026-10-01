@@ -1,6 +1,7 @@
 package dev.hycolony.core.citizen;
 
 import dev.hycolony.core.building.Building;
+import dev.hycolony.core.citizen.happiness.CitizenHappiness;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.kernel.BlockPos;
@@ -21,8 +22,6 @@ public final class CitizenManager {
     public static final int RESPAWN_CHECK_TICKS = 5 * 60 * 20;
     public static final int INITIAL_SPAWN_FIRST = 30 * 20;
     public static final int INITIAL_SPAWN_RESET = 60 * 20;
-    /** MineColonies' overall happiness of an empty colony; replaced by the happiness system in SP4. */
-    public static final double PLACEHOLDER_HAPPINESS = 5.5;
 
     private final Colony colony;
     private final Map<Integer, CitizenData> citizens = new TreeMap<>();
@@ -89,7 +88,8 @@ public final class CitizenManager {
 
     /**
      * Every 60 ticks while ACTIVE, for each citizen whose body is alive (MC CitizenData.update does nothing without a
-     * live entity): records its position, counts its job's inactivity and its leisure time.
+     * live entity): records its position (the way since the last one counts as walking, MC decreaseWalkingSaturation),
+     * counts its job's inactivity and its leisure time.
      */
     public void tickData() {
         if (failNextTick) {
@@ -99,7 +99,7 @@ public final class CitizenManager {
         for (Map.Entry<Integer, BodyId> e : bodies.entrySet()) {
             CitizenData data = citizens.get(e.getKey());
             if (data != null && ctx().bodies().isAlive(e.getValue())) {
-                ctx().bodies().position(e.getValue()).ifPresent(data::setLastPosition);
+                ctx().bodies().position(e.getValue()).ifPresent(data::moved);
                 data.job().ifPresent(job -> job.tickInactivity(colony));
                 data.tickLeisure(Colony.CITIZEN_DATA_INTERVAL, homeLevel(data), ctx().random());
             }
@@ -183,7 +183,7 @@ public final class CitizenManager {
         }
         CitizenData data = new CitizenData(id);
         data.setSaturation(CitizenData.MAX_SATURATION);
-        int levelCap = ((int) PLACEHOLDER_HAPPINESS) * 2;
+        int levelCap = ((int) CitizenHappiness.overall(colony)) * 2; // MC: the mean happiness before it joins
         if (citizens.size() < ctx().config().gameplay().initialCitizenAmount()) {
             levelCap = Math.max(5, levelCap);
         }
@@ -242,8 +242,10 @@ public final class CitizenManager {
         return body.isPresent();
     }
 
+    /** Binds {@code body} to its citizen, with a fresh AI and an IDLE job status (MC initEntityValues). */
     private void bind(CitizenData data, BodyId body) {
         failedRespawns.bodied(data.id());
+        data.resetJobStatus();
         bodies.put(data.id(), body);
         ais.put(data.id(), new CitizenAI(colony, data, body));
     }
@@ -287,6 +289,14 @@ public final class CitizenManager {
             failedRespawns.bodied(id);
         }
         return false;
+    }
+
+    /** The citizen whose body is {@code body}; empty for a body bound to no citizen of this colony. */
+    public Optional<CitizenData> citizenOf(BodyId body) {
+        return bodies.entrySet().stream()
+                .filter(e -> e.getValue().equals(body))
+                .findFirst()
+                .flatMap(e -> get(e.getKey()));
     }
 
     public void onBodyUnloaded(BodyId body) {

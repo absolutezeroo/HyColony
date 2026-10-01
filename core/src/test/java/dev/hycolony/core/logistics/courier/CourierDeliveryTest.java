@@ -210,4 +210,19 @@ class CourierDeliveryTest extends CourierAITestBase {
 
         assertEquals(0, stored(RACK, STONE));
     }
+
+    @Test
+    void theCourierNeverEatsWhatItDeliversAndDeliveringMakesItHungry() {
+        hire();
+        put(RACK, STONE, 5);
+        RequestToken task = delivery(RACK, STONE, 5);
+        runUntil(() -> job.currentTask(colony).isPresent());
+        CourierTaskListModule tasks = hut.module(CourierTaskListModule.class).orElseThrow();
+
+        assertFalse(tasks.canEat(colony, hut, STONE)); // MC BuildingDeliveryman.canEat
+        assertTrue(tasks.canEat(colony, hut, DIRT));
+        assertEquals(0, citizen.hunger().pending());
+        runUntil(() -> completed(task));
+        assertTrue(citizen.hunger().pending() > 0); // MC deliver: a continuous action
+    }
 }

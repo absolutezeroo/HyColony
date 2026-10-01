@@ -3,6 +3,7 @@ package dev.hycolony.core.construction.resources;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.module.ModuleTab;
 import dev.hycolony.core.building.module.ProvidesTab;
+import dev.hycolony.core.citizen.food.EatingRule;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.construction.workorder.Stage;
 import dev.hycolony.core.construction.workorder.WorkOrder;
@@ -25,7 +26,7 @@ import org.jspecify.annotations.Nullable;
  * load). Progress lives in the {@link WorkOrder}, which persists it; this module only writes through to it, so it
  * has nothing to save. Port of MC's BuildingResourcesModule.
  */
-public final class BuildingResourcesModule implements KeepsItems, ProvidesTab {
+public final class BuildingResourcesModule implements KeepsItems, ProvidesTab, EatingRule {
     private @Nullable WorkOrder order;
     private NeededResources needs = NeededResources.empty();
     private List<Map<ItemKey, Integer>> buckets = List.of();
@@ -88,6 +89,12 @@ public final class BuildingResourcesModule implements KeepsItems, ProvidesTab {
         List<KeepRule> out = new ArrayList<>(needs.remaining().size());
         needs.remaining().forEach((item, n) -> out.add(new KeepRule(item::equals, n, true)));
         return out;
+    }
+
+    /** MC BuildingBuilder.canEat: the builder never eats what its order still needs (requiresResourceForBuilding). */
+    @Override
+    public boolean canEat(Colony colony, Building hut, ItemKey food) {
+        return !needs.remaining().containsKey(food);
     }
 
     public NeededResources needs() {

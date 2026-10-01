@@ -19,11 +19,12 @@ import javax.annotation.Nullable;
 
 /**
  * The citizen's window as MC's (AbstractWindowCitizen and its pages): the colonist paper, the side tabs of nav.xml in
- * MC's order, Main, Requests, Inventory, then Job for a citizen with a workplace, and the open tab's page. Moving from
- * tab to tab stays in this window (MC opens a window per tab); no tab looks open, as in MC. The Inventory tab opens
- * the citizen's container as the game's container screen, as MC's OpenInventoryMessage opens its container screen.
+ * MC's order, Main, Requests, Inventory, Happiness, then Job for a citizen with a workplace, and the open tab's page.
+ * Moving from tab to tab stays in this window (MC opens a window per tab); no tab looks open, as in MC. The Inventory
+ * tab opens the citizen's container as the game's container screen, as MC's OpenInventoryMessage opens its container
+ * screen.
  *
- * <p>Deviation from MC: no Happiness, Family nor Debug tab (no such systems yet).
+ * <p>Deviation from MC: no Family nor Debug tab (no such systems yet).
  */
 public final class CitizenPage extends ColonyPage {
     /** A tab: its page group and the button that opens it (Citizen.ui); Inventory has no page of its own. */
@@ -31,6 +32,7 @@ public final class CitizenPage extends ColonyPage {
         MAIN("#MainPage", "#MainHit"),
         REQUESTS("#RequestsPage", "#RequestsHit"),
         INVENTORY("", "#InventoryHit"),
+        HAPPINESS("#HappinessPage", "#HappinessHit"),
         JOB("#JobPage", "#JobHit");
 
         private final String page;
@@ -45,7 +47,7 @@ public final class CitizenPage extends ColonyPage {
     private final CitizenView view;
     private final CitizenRequestsTab requests;
     private final CitizenSkillLines skills;
-    private final List<Tab> tabs = new ArrayList<>(List.of(Tab.MAIN, Tab.REQUESTS, Tab.INVENTORY));
+    private final List<Tab> tabs = new ArrayList<>(List.of(Tab.MAIN, Tab.REQUESTS, Tab.INVENTORY, Tab.HAPPINESS));
     private Tab tab = Tab.MAIN;
 
     public CitizenPage(PlayerRef playerRef, CitizenView view, ColonyManager manager, IdMap ids) {
@@ -97,6 +99,7 @@ public final class CitizenPage extends ColonyPage {
         }
         ui.set(tab.page + ".Visible", true);
         CitizenMainTab.render(ui, view);
+        HappinessRowsUi.citizen(ui, "#HappinessPage #HappinessRows", view.happinessRows());
         skills.render(ui, events);
         requests.render(ui, events);
         view.jobSkills().ifPresent(j -> CitizenJobTab.render(ui, view.jobId(), j));

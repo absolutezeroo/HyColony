@@ -15,7 +15,7 @@ import org.jspecify.annotations.Nullable;
  * choice among them is stable. Every resource type of 0.6.8 counts 1 per item, so a count of items is a count of the
  * resource (plugin-b-api § « Recettes et tables »).
  */
-final class ResourceTypeIndex {
+public final class ResourceTypeIndex {
     private final Map<String, List<ItemKey>> items;
 
     private ResourceTypeIndex(Map<String, List<ItemKey>> items) {
@@ -23,7 +23,7 @@ final class ResourceTypeIndex {
     }
 
     /** Reads the item asset map once. */
-    static ResourceTypeIndex load() {
+    public static ResourceTypeIndex load() {
         Map<String, List<ItemKey>> out = new TreeMap<>();
         SkippedAssets skipped = new SkippedAssets("item");
         for (Item item : Item.getAssetMap().getAssetMap().values()) {
@@ -52,7 +52,7 @@ final class ResourceTypeIndex {
     }
 
     /** The items of {@code resourceTypeId}, sorted by id; empty if none. */
-    List<ItemKey> items(String resourceTypeId) {
+    public List<ItemKey> items(String resourceTypeId) {
         return items.getOrDefault(resourceTypeId, List.of());
     }
 }

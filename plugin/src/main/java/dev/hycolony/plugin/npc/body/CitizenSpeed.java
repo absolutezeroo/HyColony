@@ -1,4 +1,4 @@
-package dev.hycolony.plugin.npc;
+package dev.hycolony.plugin.npc.body;
 
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;

@@ -3,8 +3,8 @@ $B = "Mc/Book.ui";
 
 // The citizen's window as MC's (gui/citizen/nav.xml, main.xml, job.xml, requests.xml), MC positions and sizes
 // doubled: the side tabs, then the colonist paper drawn over their right edge as nav.xml does, then each tab's page
-// (CitizenPage shows the open one). MC's tab backgrounds are fixed by nav.xml; Happiness and Family keep their empty
-// places (systems HyColony lacks). The Inventory tab opens the game's container screen instead (CitizenPage).
+// (CitizenPage shows the open one). MC's tab backgrounds are fixed by nav.xml; Family keeps its empty place (a system
+// HyColony lacks). The Inventory tab opens the game's container screen instead (CitizenPage).
 // Textures under Mc/ are MineColonies' (ldtteam, GPL-3), scaled x4 nearest-neighbour into @2x files.
 
 @TabBack = Group {
@@ -48,6 +48,8 @@ $C.@PageOverlay {
       @TabIcon { @Y = 134; Background: "Mc/requests.png"; }
       @TabBack { @Y = 184; Background: "Mc/tab_left_side3.png"; }
       @TabIcon { @Y = 190; Background: "Mc/inventory.png"; }
+      @TabBack { @Y = 236; Background: "Mc/tab_left_side2.png"; }
+      @TabIcon { @Y = 242; Background: "Mc/happiness.png"; }
 
       Group #JobTab {
         Anchor: (Left: 0, Top: 0, Width: 64, Height: 488);
@@ -65,6 +67,7 @@ $C.@PageOverlay {
       @TabHit #MainHit { @Y = 72; TooltipText: %hycolony.ui.citizen.tab.main; }
       @TabHit #RequestsHit { @Y = 128; TooltipText: %hycolony.ui.citizen.requests; }
       @TabHit #InventoryHit { @Y = 184; TooltipText: %hycolony.ui.citizen.tab.inventory; }
+      @TabHit #HappinessHit { @Y = 236; TooltipText: %hycolony.ui.citizen.tab.happiness; }
       @TabHit #JobHit { @Y = 340; TooltipText: %hycolony.ui.citizen.tab.job; Visible: false; }
 
       @Page #MainPage {
@@ -93,20 +96,25 @@ $C.@PageOverlay {
           LayoutMode: Left;
         }
 
-        // Kept at the user's request (MC's window has none): the job and workplace, then the activity, where MC's
-        // happiness bar would be.
+        Group #Smileys {
+          Anchor: (Left: 130, Top: 146, Width: 200, Height: 18);
+          LayoutMode: Left;
+        }
+
+        // Kept at the user's request (MC's window has none): the job and workplace, then the activity, under MC's
+        // happiness bar; the skills start 16 px lower than MC's to make room.
         Label #JobLine {
-          Anchor: (Left: 66, Top: 146, Width: 328, Height: 16);
+          Anchor: (Left: 66, Top: 164, Width: 328, Height: 16);
           Style: (...$B.@InkCentered, FontSize: 12);
         }
 
         Label #Activity {
-          Anchor: (Left: 66, Top: 162, Width: 328, Height: 16);
+          Anchor: (Left: 66, Top: 180, Width: 328, Height: 16);
           Style: (...$B.@InkCentered, FontSize: 12);
         }
 
         Group #Skills {
-          Anchor: (Left: 110, Top: 180, Width: 210, Height: 286);
+          Anchor: (Left: 110, Top: 196, Width: 210, Height: 270);
           LayoutMode: TopScrolling;
           ScrollbarStyle: $C.@DefaultScrollbarStyle;
         }
@@ -139,6 +147,21 @@ $C.@PageOverlay {
           Anchor: (Left: 66, Top: 58, Width: 316, Height: 368);
           LayoutMode: TopScrolling;
           ScrollbarStyle: $C.@DefaultScrollbarStyle;
+        }
+      }
+
+      // MC happiness.xml: the title at (45, 32), then MC's rows from y 62 every 12
+      // (CitizenWindowUtils.updateHappiness).
+      @Page #HappinessPage {
+        Label {
+          Anchor: (Left: 90, Top: 64, Width: 272, Height: 22);
+          Style: $B.@InkCentered;
+          Text: %hycolony.ui.happiness.modifiers;
+        }
+
+        Group #HappinessRows {
+          Anchor: (Left: 90, Top: 124, Width: 300, Height: 340);
+          LayoutMode: Top;
         }
       }
 

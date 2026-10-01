@@ -2,6 +2,7 @@ package dev.hycolony.core.kernel.port;
 
 import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockKind;
+import dev.hycolony.core.kernel.item.FoodInfo;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolInfo;
@@ -32,6 +33,15 @@ public interface ItemCatalog {
 
     /** Whether this block is a bed citizens lie in: its block type has sleeping points (Hytale BlockType.getBeds). */
     boolean isBed(BlockKey block);
+
+    /** What eating {@code item} gives (MC ItemStackUtils.ISFOOD and FoodProperties); empty for no food. */
+    Optional<FoodInfo> food(ItemKey item);
+
+    /**
+     * What cooking {@code item} gives (MC the furnace's smelting result; in Hytale the campfire's); empty when it
+     * does not cook.
+     */
+    Optional<ItemKey> cooked(ItemKey item);
 
     Optional<ToolType> toolFor(BlockKey block);
 

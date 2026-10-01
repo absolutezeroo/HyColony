@@ -28,8 +28,8 @@ import dev.hycolony.plugin.adapter.HytaleUiPort;
 import dev.hycolony.plugin.adapter.HytaleWorldBlocks;
 import dev.hycolony.plugin.adapter.HytaleWorldQuery;
 import dev.hycolony.plugin.block.HutBlockSystems;
-import dev.hycolony.plugin.npc.CitizenSpeed;
 import dev.hycolony.plugin.npc.GuardedBodies;
+import dev.hycolony.plugin.npc.body.CitizenSpeed;
 import dev.hycolony.plugin.ui.highlight.HighlightMarkers;
 import java.util.Random;
 import java.util.Set;
@@ -71,10 +71,11 @@ public final class WorldRuntime {
         ColonyConfig config = setup.config();
         IdMap ids = setup.ids();
         this.clock = new HytaleGameClock(world);
-        this.bodies = new HytaleCitizenBodies(world, ids.npcRole("npc.citizen"), new CitizenSpeed(ids.speedEffects()));
+        this.bodies = new HytaleCitizenBodies(
+                world, ids.npcRole("npc.citizen"), new CitizenSpeed(ids.speedEffects()), clock::currentTick);
         Set<String> hutBlockIds = HutBlockSystems.byBlockId(setup).keySet(); // the builder never breaks these
         HytaleItemCatalog catalog =
-                new HytaleItemCatalog(hutBlockIds, ids.farming().hoeLevels());
+                new HytaleItemCatalog(hutBlockIds, ids.farming().hoeLevels(), ids.food());
         this.blocks = new HytaleBlocks(world, catalog.stacks());
         ColonyManager[] self = new ColonyManager[1];
         WandActions[] wandSelf = new WandActions[1]; // the UI port needs it before it exists
@@ -84,6 +85,8 @@ public final class WorldRuntime {
                 config,
                 clock,
                 new DetouringBodies(new GuardedBodies(bodies), worldBlocks, catalog), // Hytale's nav walks through fire
+                bodies.health(),
+                bodies.seats(),
                 new HytaleWorldQuery(world, ids.precipitationParticles()),
                 new HytaleNotifier(),
                 new HytalePlayerDirectory(world),

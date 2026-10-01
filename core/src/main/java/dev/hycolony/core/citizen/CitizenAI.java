@@ -1,5 +1,6 @@
 package dev.hycolony.core.citizen;
 
+import dev.hycolony.core.citizen.food.CitizenEating;
 import dev.hycolony.core.citizen.sleep.CitizenSleep;
 import dev.hycolony.core.citizen.sleep.SleepDecision;
 import dev.hycolony.core.citizen.vitals.AiWatch;
@@ -25,9 +26,10 @@ import java.util.Optional;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Top-level citizen AI: idle (wandering around) or work its job. Port of MC CitizenAI.calculateNextState, reduced to
- * the work decision: the citizen works only when its job AI cannot go idle ({@link JobAI#canGoIdle}), it is not on a
- * leisure break ({@link #onBreak}) and the rain does not stop it ({@link #rainStopsWork}).
+ * Top-level citizen AI: sleep, eat, idle (wandering around) or work its job. Port of MC CitizenAI.calculateNextState
+ * in MC's order, sleep then hunger then rain then work (sickness, mourning and raids are not ported): the citizen
+ * works only when its job AI cannot go idle ({@link JobAI#canGoIdle}), it is not on a leisure break
+ * ({@link #onBreak}) and the rain does not stop it ({@link #rainStopsWork}).
  */
 public final class CitizenAI {
     private static final System.Logger LOG = System.getLogger(CitizenAI.class.getName());
@@ -45,6 +47,13 @@ public final class CitizenAI {
     private final AiWatch watch;
     private final CommandedWalk commanded;
     private final CitizenSleep sleep;
+    private final CitizenEating eating;
+    /**
+     * Whether the last decision was EATING (MC {@code lastState == EATING}): it stays so after a meal ends, so a
+     * citizen whose meal ended hungry goes back to eat at once, as in MC.
+     */
+    private boolean decidedEating;
+
     private int workTicks;
 
     private boolean failed;
@@ -72,6 +81,7 @@ public final class CitizenAI {
                                 new CitizenWalkReports(colony, data))),
                 colony.context().clock()::currentTick);
         this.sleep = new CitizenSleep(colony, data, body);
+        this.eating = new CitizenEating(colony, data, body);
         this.machine = new TickRateStateMachine<>(CitizenState.IDLE, this::onException);
         watch.afterTick(CitizenState.IDLE, null, 0); // its vital signs know where it starts
         machine.addTransition(
@@ -79,8 +89,9 @@ public final class CitizenAI {
         machine.addTransition(
                 new AITarget<>(CitizenState.IDLE, (IStateSupplier<CitizenState>) wander::wander, WANDER_RATE_TICKS));
         machine.addTransition(new AITarget<>(CitizenState.WORKING, (IStateSupplier<CitizenState>) this::work, 1));
-        machine.addTransition(new AIEventTarget<>(AIBlockingEventType.EVENT, this::decideSleep, DECIDE_INTERVAL_TICKS));
+        machine.addTransition(new AIEventTarget<>(AIBlockingEventType.EVENT, this::decide, DECIDE_INTERVAL_TICKS));
         machine.addTransition(new AITarget<>(CitizenState.SLEEP, (IStateSupplier<CitizenState>) this::sleeping, 1));
+        machine.addTransition(new AITarget<>(CitizenState.EATING, (IStateSupplier<CitizenState>) this::eat, 1));
         sleep.onBodyAppeared();
         // A body can keep a job's speed across a crash (the Hytale effect is saved with the NPC); a job AI sets its
         // own.
@@ -163,23 +174,65 @@ public final class CitizenAI {
     }
 
     /**
-     * MC CitizenAI.decideAiTask, sleep part, every {@link #DECIDE_INTERVAL_TICKS} in any state, before the rain,
-     * leisure and work: see {@link SleepDecision}. Asleep, it decides again only every 15 s (MC setCurrentDelay).
+     * MC CitizenAI.decideAiTask, every {@link #DECIDE_INTERVAL_TICKS} in any state: the sleep part first (see
+     * {@link SleepDecision}; asleep, it decides again only every 15 s, MC setCurrentDelay), then the hunger part.
      */
-    private @Nullable CitizenState decideSleep() {
+    private @Nullable CitizenState decide() {
         CitizenState now = machine.getState();
-        return switch (sleep.decide(now == CitizenState.SLEEP)) {
+        CitizenState next = switch (sleep.decide(now == CitizenState.SLEEP)) {
             case STAY_ASLEEP -> {
                 machine.setCurrentDelay(SleepDecision.SLEEP_DECIDE_DELAY_TICKS);
                 yield null;
             }
             case GO_TO_SLEEP -> {
+                decidedEating = false;
+                leaveEating(now);
                 dropJobAI(); // MC resetAI on leaving WORK; the sleep decision ignores canBeInterrupted
                 yield CitizenState.SLEEP;
             }
-            case WAKE_UP -> now == CitizenState.SLEEP ? CitizenState.IDLE : null;
-            case NONE -> null;
+            case WAKE_UP -> decideHunger(now == CitizenState.SLEEP ? CitizenState.IDLE : now);
+            case NONE -> decideHunger(now);
         };
+        return next == now ? null : next;
+    }
+
+    /**
+     * MC calculateNextState's hunger part, after the sleep part and before the rain and work: to EATING when it should
+     * eat (its job AI dropped, as on leaving WORK), judged as still eating after a decision to eat (MC lastState); out
+     * of EATING once it should not, straight to work when it should work. {@code now} is the state the sleep part left
+     * it in.
+     */
+    private CitizenState decideHunger(CitizenState now) {
+        boolean eatingNow = now == CitizenState.EATING;
+        JobAI ai = jobAI;
+        decidedEating = eating.shouldEat(decidedEating || eatingNow, ai == null || ai.canBeInterrupted());
+        if (decidedEating) {
+            if (!eatingNow) {
+                dropJobAI();
+            }
+            return CitizenState.EATING;
+        }
+        if (eatingNow) {
+            eating.stop();
+            return shouldWork() ? CitizenState.WORKING : CitizenState.IDLE;
+        }
+        return now;
+    }
+
+    /** MC EntityAIEatTask: one tick of the meal; IDLE once it is over. */
+    private @Nullable CitizenState eat() {
+        if (eating.tick()) {
+            eating.stop();
+            return CitizenState.IDLE;
+        }
+        return null;
+    }
+
+    /** A meal under way ends when another state takes over (MC reset). */
+    private void leaveEating(CitizenState now) {
+        if (now == CitizenState.EATING) {
+            eating.stop();
+        }
     }
 
     /** MC EntityAISleep's transitions, while in SLEEP. */

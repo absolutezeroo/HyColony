@@ -2,6 +2,7 @@ package dev.hycolony.plugin.ui.citizen;
 
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
+import dev.hycolony.core.app.citizen.HappinessBar;
 import dev.hycolony.core.app.citizen.HealthBar;
 import dev.hycolony.core.app.citizen.SaturationBar;
 import dev.hycolony.core.app.ui.CitizenView;
@@ -14,10 +15,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The citizen's Main page (MC MainWindowCitizen, main.xml): name, health and food bars, the skills and the gender seal.
+ * The citizen's Main page (MC MainWindowCitizen, main.xml): name, health, food and happiness bars, the skills and the
+ * gender seal.
  *
  * <p>Deviation from MC: the job, workplace and activity lines, the XP bars and the job's skills first are kept at the
- * user's request (see SkillRows); the happiness bar is absent (no happiness system).
+ * user's request (see SkillRows), under the happiness bar.
  */
 final class CitizenMainTab {
     private static final String PAGE = "#MainPage";
@@ -40,6 +42,7 @@ final class CitizenMainTab {
         lines(ui, view);
         hearts(ui, view.health());
         food(ui, view.saturation());
+        smileys(ui, view.happiness());
         if (view.gender() == Gender.FEMALE) {
             ui.set(PAGE + " #Male.Visible", false);
             ui.set(PAGE + " #Female.Visible", true);
@@ -92,6 +95,20 @@ final class CitizenMainTab {
             String slot = PAGE + " #Food[" + i + "]";
             ui.append(PAGE + " #Food", "Pages/HyColony/Mc/FoodSlot.ui");
             switch (icons.get(i)) {
+                case FULL -> ui.set(slot + " #Full.Visible", true);
+                case HALF -> ui.set(slot + " #Half.Visible", true);
+                case EMPTY -> {}
+            }
+        }
+    }
+
+    /** MC createHappinessBar: ten smileys, red ones for the citizen's whole happiness points. */
+    private static void smileys(UICommandBuilder ui, double happiness) {
+        List<HappinessBar.Smiley> slots = HappinessBar.of(happiness);
+        for (int i = 0; i < slots.size(); i++) {
+            String slot = PAGE + " #Smileys[" + i + "]";
+            ui.append(PAGE + " #Smileys", "Pages/HyColony/Mc/SmileySlot.ui");
+            switch (slots.get(i)) {
                 case FULL -> ui.set(slot + " #Full.Visible", true);
                 case HALF -> ui.set(slot + " #Half.Visible", true);
                 case EMPTY -> {}

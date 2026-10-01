@@ -30,6 +30,7 @@ class FieldPassTest extends FarmerTestBase {
         assertTrue(t.farming.tilled.containsAll(cells()));
         assertEquals(8, citizen.inventory().slot(0).map(ItemAmount::damage).orElse(-1));
         assertEquals(FieldStage.HOED, f.stage());
+        assertEquals(0.02 * cells().size(), citizen.hunger().pending(), 1e-9); // MC: each tilled cell
     }
 
     @Test
@@ -61,6 +62,7 @@ class FieldPassTest extends FarmerTestBase {
         }
         assertEquals(0, carried(SEEDS));
         assertEquals(FieldStage.PLANTED, f.stage());
+        assertEquals(0.02 * cells().size(), citizen.hunger().pending(), 1e-9); // MC plantCrop: each crop placed
     }
 
     @Test

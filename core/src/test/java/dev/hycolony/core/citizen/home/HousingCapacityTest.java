@@ -39,7 +39,7 @@ class HousingCapacityTest {
     private void capAt25() {
         ColonyConfig d = ColonyConfig.defaults();
         t.config = new ColonyConfig(
-                new ColonyConfig.Gameplay(4, 25, false),
+                new ColonyConfig.Gameplay(4, 25, false, 1.0),
                 d.claims(),
                 d.permissions(),
                 d.commands(),

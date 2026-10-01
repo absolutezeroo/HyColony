@@ -1,5 +1,6 @@
 package dev.hycolony.core.app.ui;
 
+import dev.hycolony.core.app.citizen.HappinessRows;
 import dev.hycolony.core.app.ui.RequestsView.RequestRow;
 import dev.hycolony.core.citizen.Gender;
 import dev.hycolony.core.citizen.Skill;
@@ -15,7 +16,8 @@ import java.util.Optional;
  * first open request), else "working", "wandering", "idle" or "absent"; {@code jobActivity} is the job AI's own line
  * (e.g. the builder's stage, block and action); with the job and workplace, they are kept at the user's request (MC's
  * window has no such lines). {@code health} is in MC points (20 for ten red hearts, see HealthBar), 20 without a
- * body as MC. {@code creative}: the viewer may raise or lower skills (MC AdjustSkillCitizenMessage). {@code
+ * body as MC. {@code happiness} (0 to 10, MC getHappiness) feeds the smiley bar and {@code happinessRows} the
+ * Happiness tab. {@code creative}: the viewer may raise or lower skills (MC AdjustSkillCitizenMessage). {@code
  * requests} are the citizen's requests in its workplace then the workplace's own, each followed by its children (MC
  * RequestWindowCitizen), with what the viewer holds of it. {@code skills} lists the job's primary and secondary
  * skills first, then the rest in MineColonies order. {@code jobSkills} feeds the Job tab and is empty for a citizen
@@ -32,12 +34,15 @@ public record CitizenView(
         Optional<Msg> jobActivity,
         int health,
         double saturation,
+        double happiness,
+        List<HappinessRows.Row> happinessRows,
         Gender gender,
         boolean creative,
         List<SkillRow> skills,
         List<RequestRow> requests,
         Optional<JobSkills> jobSkills) {
     public CitizenView {
+        happinessRows = List.copyOf(happinessRows);
         skills = List.copyOf(skills);
         requests = List.copyOf(requests);
     }

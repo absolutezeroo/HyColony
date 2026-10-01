@@ -1,8 +1,11 @@
 package dev.hycolony.core.citizen;
 
 import com.google.gson.JsonObject;
+import dev.hycolony.core.citizen.food.CitizenHunger;
+import dev.hycolony.core.citizen.happiness.CitizenHappiness;
 import dev.hycolony.core.citizen.vitals.CitizenVitals;
 import dev.hycolony.core.job.Job;
+import dev.hycolony.core.job.JobStatus;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.item.Inventory;
@@ -30,7 +33,9 @@ public final class CitizenData {
     private @Nullable BlockPos bedPos;
     private boolean asleep;
     private @Nullable BlockPos workBuilding;
-    private double saturation = MAX_SATURATION;
+    private final CitizenHunger hunger = new CitizenHunger(MAX_SATURATION);
+    private final CitizenHappiness happiness = new CitizenHappiness();
+    private JobStatus jobStatus = JobStatus.IDLE;
     private int leisureTime;
     private Inventory inventory = new Inventory(INVENTORY_SLOTS);
     private @Nullable Job job;
@@ -86,6 +91,14 @@ public final class CitizenData {
         this.lastPosition = lastPosition;
     }
 
+    /** Its body stands at {@code pos} now: the way from its last position counts as walking (MC walkDist). */
+    public void moved(Vec3 pos) {
+        if (lastPosition != null) {
+            hunger.walked(lastPosition, pos);
+        }
+        lastPosition = pos;
+    }
+
     public @Nullable BlockPos respawnPosition() {
         return respawnPosition;
     }
@@ -130,11 +143,35 @@ public final class CitizenData {
     }
 
     public double saturation() {
-        return saturation;
+        return hunger.saturation();
     }
 
     public void setSaturation(double saturation) {
-        this.saturation = saturation;
+        hunger.setSaturation(saturation);
+    }
+
+    /** Its saturation, last meals and the work waiting to cost it (MC CitizenData, CitizenFoodHandler). */
+    public CitizenHunger hunger() {
+        return hunger;
+    }
+
+    /** Its happiness and modifiers (MC CitizenHappinessHandler). */
+    public CitizenHappiness happiness() {
+        return happiness;
+    }
+
+    /** What its job is up to (MC CitizenData.jobStatus). */
+    public JobStatus jobStatus() {
+        return jobStatus;
+    }
+
+    public void setJobStatus(JobStatus jobStatus) {
+        this.jobStatus = jobStatus;
+    }
+
+    /** MC CitizenData.isIdleAtJob: its job status is STUCK. */
+    public boolean isIdleAtJob() {
+        return jobStatus == JobStatus.STUCK;
     }
 
     /** Ticks of leisure left; 0 or less when not on a break. */
@@ -180,10 +217,24 @@ public final class CitizenData {
         return Optional.ofNullable(job);
     }
 
-    /** Sets or clears the job; either way a kept unknown job is dropped, the game having decided anew. */
+    /**
+     * Sets or clears the job; either way a kept unknown job is dropped, the game having decided anew. A new job puts
+     * the job status back to IDLE (MC CitizenJobHandler.onJobChanged); clearing it keeps the status, as MC.
+     */
     public void setJob(@Nullable Job job) {
         this.job = job;
         this.unknownJob = null;
+        resetJobStatus();
+    }
+
+    /**
+     * Its job status back to IDLE when it has a job (MC IJob.initEntityValues, on a job change and each time its body
+     * appears); nothing without one.
+     */
+    public void resetJobStatus() {
+        if (job != null) {
+            jobStatus = JobStatus.IDLE;
+        }
     }
 
     /** The saved job whose type is not registered (its pack disabled), kept verbatim to be written back. */

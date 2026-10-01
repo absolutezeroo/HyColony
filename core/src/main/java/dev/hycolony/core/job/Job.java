@@ -52,6 +52,38 @@ public abstract class Job {
         actionsDone += n;
     }
 
+    /** MC AbstractEntityAIBasic.incrementActionsDoneAndDecSaturation: one action that also costs saturation. */
+    public void incrementActionsAndDecSaturation() {
+        citizen.hunger().forAction();
+        incrementActions();
+    }
+
+    /** MC EntityCitizen.decreaseSaturationForContinuousAction, for a little continuous work. */
+    public void decreaseSaturationForContinuousAction() {
+        citizen.hunger().forContinuousAction();
+    }
+
+    /** MC IJob.getSaturationFactor: how much faster than others its citizen gets hungry; 1 by default. */
+    public double saturationFactor() {
+        return 1.0;
+    }
+
+    /**
+     * Whether this job serves food in a dining hall (MC {@code job.getJobRegistryEntry() == ModJobs.cook}): such a
+     * citizen seldom leaves to eat and never looks for food elsewhere than its hall. False by default.
+     */
+    public boolean servesFood() {
+        return false;
+    }
+
+    /**
+     * Whether this job guards the colony (MC {@code instanceof AbstractJobGuard}), for the security and sleep happiness
+     * factors. No guard is ported yet: false by default.
+     */
+    public boolean isGuard() {
+        return false;
+    }
+
     public void clearActions() {
         actionsDone = 0;
     }

@@ -8,6 +8,7 @@ import dev.hycolony.core.farming.CropState;
 import dev.hycolony.core.farming.field.FarmField;
 import dev.hycolony.core.farming.field.FieldRadii;
 import dev.hycolony.core.farming.field.FieldStage;
+import dev.hycolony.core.job.JobStatus;
 import dev.hycolony.core.job.work.SyncRequests;
 import dev.hycolony.core.job.work.WorkerStock;
 import dev.hycolony.core.kernel.BlockPos;
@@ -33,6 +34,16 @@ class FarmWorkPrepareTest extends FarmerTestBase {
     void noFieldBlocksTheFarmer() {
         assertEquals(FarmerState.IDLE, work.prepare());
         assertTrue(work.status().isPresent());
+        assertEquals(JobStatus.STUCK, citizen.jobStatus()); // MC prepareForFarming
+    }
+
+    @Test
+    void aFarmerWithAFieldAndAHoeIsWorking() {
+        citizen.setJobStatus(JobStatus.STUCK);
+        field(true);
+        give(HOE, 1);
+        work.prepare();
+        assertEquals(JobStatus.WORKING, citizen.jobStatus()); // MC holdEfficientTool
     }
 
     @Test

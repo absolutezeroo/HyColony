@@ -6,10 +6,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingTypes;
+import dev.hycolony.core.citizen.happiness.CitizenHappiness;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.colony.territory.ClaimCell;
 import dev.hycolony.core.colony.territory.TerritoryIndex;
+import dev.hycolony.core.job.JobStatus;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.port.BodyId;
@@ -196,5 +198,54 @@ class CitizenManagerTest {
         t.bodies.bodies.get(body).position = new Vec3(5, 64, 5);
         c.citizens().tickData();
         assertEquals(new Vec3(5, 64, 5), d.lastPosition());
+    }
+
+    @Test
+    void aNewJobOrANewBodyPutsTheJobStatusBackToIdle() {
+        Colony c = colonyWithTownHall();
+        slowTicks(c, 2);
+        CitizenData d = c.citizens().all().iterator().next();
+        d.setJobStatus(JobStatus.STUCK);
+        d.setJob(TestJobs.TYPE.factory().apply(d));
+        assertEquals(JobStatus.IDLE, d.jobStatus());
+
+        d.setJobStatus(JobStatus.STUCK);
+        t.bodies.despawn(c.citizens().bodyOf(d.id()).orElseThrow()); // its chunk unloaded, then loaded again
+        c.citizens().onBodyLoaded(t.bodies.existing(1, d.id(), new Vec3(0, 64, 0)), d.id());
+        assertEquals(JobStatus.IDLE, d.jobStatus()); // MC initEntityValues: a body loaded anew
+
+        d.setJobStatus(JobStatus.STUCK);
+        d.setJob(null);
+        assertEquals(JobStatus.STUCK, d.jobStatus()); // MC onJobChanged(null) leaves it
+    }
+
+    @Test
+    void aNewCitizensSkillsAreCappedByTheColonysHappiness() {
+        Colony c = colonyWithTownHall();
+        for (int id = 1; id <= 3; id++) {
+            c.citizens().restore(new CitizenData(id)); // homeless and jobless: unhappy
+        }
+        assertTrue(((int) CitizenHappiness.overall(c)) * 2 < 5, "the test needs an unhappy colony");
+
+        slowTicks(c, 2); // the fourth initial citizen: MC's floor of 5 for those
+
+        CitizenData fourth = c.citizens().get(4).orElseThrow();
+        for (Skill s : Skill.values()) {
+            assertTrue(fourth.skills().level(s) < 5, s.name()); // MC initForNewCivilian: random below the cap
+        }
+    }
+
+    @Test
+    void walkingBetweenTwoSamplesMakesACitizenHungry() {
+        Colony c = colonyWithTownHall();
+        slowTicks(c, 2);
+        CitizenData d = c.citizens().all().iterator().next();
+        BodyId body = c.citizens().bodyOf(d.id()).orElseThrow();
+        c.citizens().tickData();
+        for (int x = 1; x <= 5; x++) {
+            t.bodies.bodies.get(body).position = new Vec3(x * 10, 64, 0);
+            c.citizens().tickData();
+        }
+        assertEquals(0.02, d.hunger().pending(), 1e-9); // 50 blocks x 0.6 = 30 > 25: one continuous action
     }
 }

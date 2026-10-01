@@ -23,4 +23,7 @@ public interface WorldEffects {
 
     /** A sleeping citizen's particles at {@code at} (MC SleepingParticleMessage, the "zZz" over its head). */
     void sleeping(Vec3 at);
+
+    /** An eating citizen's food crumbs at its mouth {@code at} (MC ItemParticleEffectMessage of the food eaten). */
+    void eating(Vec3 at);
 }

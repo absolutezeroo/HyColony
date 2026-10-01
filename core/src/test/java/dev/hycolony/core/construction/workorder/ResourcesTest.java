@@ -346,4 +346,21 @@ class ResourcesTest {
         assertTrue(stone.inventory());
         assertFalse(rules.stream().anyMatch(r -> r.matches().test(TORCH_I)));
     }
+
+    @Test
+    void theBuilderNeverEatsWhatItsOrderStillNeeds() {
+        FakeCatalog c = catalog();
+        Building hut = Building.create(ConstructionBuildingTypes.BUILDER, HUT, 0);
+        BuildingResourcesModule m = hut.module(BuildingResourcesModule.class).orElseThrow();
+        m.start(
+                order(1),
+                NeededResources.compute(row(c, List.of(PLANK)), new FakeWorldBlocks(), c, RecipeCatalog.NONE));
+        Colony colony = new Colony(
+                new TestContexts().context(),
+                new TerritoryIndex(),
+                new Colony.Founding(1, "T", HUT, Permissions.createDefault(UUID.randomUUID(), "O")));
+
+        assertFalse(m.canEat(colony, hut, PLANK_I)); // MC BuildingBuilder.canEat
+        assertTrue(m.canEat(colony, hut, STONE_I));
+    }
 }

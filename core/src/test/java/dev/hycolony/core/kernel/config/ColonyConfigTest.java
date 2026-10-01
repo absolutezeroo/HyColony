@@ -60,9 +60,12 @@ class ColonyConfigTest {
 
     @Test
     void gameplayGogglesAndBypassLevelAreClampedToMineColoniesBounds() {
-        assertEquals(1, new ColonyConfig.Gameplay(0, 0, false).initialCitizenAmount());
-        assertEquals(25, new ColonyConfig.Gameplay(0, 0, false).maxCitizenPerColony());
-        assertEquals(500, new ColonyConfig.Gameplay(99, 9999, false).maxCitizenPerColony());
+        assertEquals(1, new ColonyConfig.Gameplay(0, 0, false, 1).initialCitizenAmount());
+        assertEquals(25, new ColonyConfig.Gameplay(0, 0, false, 1).maxCitizenPerColony());
+        assertEquals(500, new ColonyConfig.Gameplay(99, 9999, false, 1).maxCitizenPerColony());
+        assertEquals(0.1, new ColonyConfig.Gameplay(4, 250, false, 0).foodModifier());
+        assertEquals(100, new ColonyConfig.Gameplay(4, 250, false, 500).foodModifier());
+        assertEquals(1, new ColonyConfig.Gameplay(4, 250, false, Double.NaN).foodModifier());
         assertEquals(1, new ColonyConfig.Client(0).buildGoggleRange());
         assertEquals(250, new ColonyConfig.Client(999).buildGoggleRange());
         assertEquals(

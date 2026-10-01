@@ -215,4 +215,17 @@ class FarmerFieldsModuleTest {
         assertTrue(back.walk().offset().isEmpty());
         assertTrue(back.walk().advance(FieldRadii.defaults()), "the next pass starts from the first cell");
     }
+
+    @Test
+    void theFarmerNeverEatsTheSeedOfAFieldItOwns() {
+        FarmerColony c = new FarmerColony(1);
+        FarmField a = c.field(10, true);
+        ItemKey apple = new ItemKey("apple");
+        assertTrue(c.fields().canEat(c.colony, c.hut, FarmerColony.WHEAT_SEEDS));
+
+        c.fields().assign(c.colony, c.hut, a);
+
+        assertFalse(c.fields().canEat(c.colony, c.hut, FarmerColony.WHEAT_SEEDS));
+        assertTrue(c.fields().canEat(c.colony, c.hut, apple));
+    }
 }
