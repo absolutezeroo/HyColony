@@ -83,6 +83,6 @@ final class ResidentsViews {
 
     /** MC BlockPosUtil.getDistance truncated to int: empty without a workplace. */
     private static OptionalInt distance(@Nullable BlockPos a, BlockPos b) {
-        return a == null ? OptionalInt.empty() : OptionalInt.of((int) Math.sqrt(a.distSq(b)));
+        return a == null ? OptionalInt.empty() : OptionalInt.of((int) Math.sqrt((double) a.distSq(b)));
     }
 }

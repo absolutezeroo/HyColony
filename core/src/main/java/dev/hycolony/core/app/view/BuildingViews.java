@@ -140,7 +140,7 @@ final class BuildingViews {
         if (home == null) {
             return 100.0;
         }
-        double distance = Math.sqrt(home.distSq(hut));
+        double distance = Math.sqrt((double) home.distSq(hut));
         double rest = distance % 40;
         return rest > 20 ? distance - rest + 40 : distance - rest;
     }
@@ -167,7 +167,7 @@ final class BuildingViews {
         if (home.equals(d.workBuilding())) {
             return new BuildingView.WorkerRow(d.id(), d.name(), BuildingView.HomeLine.LIVES_AT_WORK, 0);
         }
-        int distance = (int) Math.sqrt(home.distSq(hut));
+        int distance = (int) Math.sqrt((double) home.distSq(hut));
         return new BuildingView.WorkerRow(d.id(), d.name(), BuildingView.HomeLine.DISTANCE, distance);
     }
 }
