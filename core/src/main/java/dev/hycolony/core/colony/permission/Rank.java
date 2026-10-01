@@ -52,7 +52,7 @@ public final class Rank {
         return hostile;
     }
 
-    /** MC's rank type shown in the Permissions tab: manager first, then hostile, else none. */
+    /** MC's rank type shown in the Permissions tab (WindowPermissionsPage): manager first, then hostile, else none. */
     public RankType type() {
         return colonyManager ? RankType.COLONY_MANAGER : hostile ? RankType.HOSTILE : RankType.NONE;
     }

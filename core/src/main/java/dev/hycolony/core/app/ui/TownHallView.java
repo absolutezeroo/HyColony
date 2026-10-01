@@ -1,6 +1,7 @@
 package dev.hycolony.core.app.ui;
 
 import dev.hycolony.core.citizen.home.HousingCapacity;
+import dev.hycolony.core.colony.ColonySettings;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.colony.permission.PermissionEvents;
 import dev.hycolony.core.colony.permission.RankType;
@@ -58,7 +59,16 @@ public record TownHallView(
     public record ActionState(Action action, boolean on, boolean alterable) {}
 
     /** MC WindowSettings: the town hall's switches, in MC's order. */
-    public record Settings(boolean moveIn, boolean autoHiring, boolean autoHousing) {}
+    public record Settings(boolean moveIn, boolean autoHiring, boolean autoHousing) {
+        /** The value of {@code toggle}. */
+        public boolean get(ColonySettings.Toggle toggle) {
+            return switch (toggle) {
+                case MOVE_IN -> moveIn;
+                case AUTO_HIRING -> autoHiring;
+                case AUTO_HOUSING -> autoHousing;
+            };
+        }
+    }
 
     /** MC WindowInfoPage: the colony's day (for the interval filter) and its events of MC's kinds, oldest first. */
     public record Info(int day, List<EventRow> events) {

@@ -236,7 +236,10 @@ public final class Permissions {
         return true;
     }
 
-    /** MC addPlayer: puts the player at {@code rankId}, replacing its rank; never the owner, nor an unknown rank. */
+    /**
+     * MC addPlayer: puts the player at {@code rankId}, replacing its rank. Never the owner (MC's by-name addPlayer
+     * refuses it; Deviation from MC: its by-UUID one does not) nor an unknown rank.
+     */
     public boolean addPlayer(UUID player, String name, int rankId) {
         if (player.equals(owner) || !ranks.containsKey(rankId)) {
             return false;

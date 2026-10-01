@@ -34,6 +34,9 @@ class TownHallSettingsTest {
         assertTrue(shown.autoHiring());
         assertTrue(shown.autoHousing());
         assertTrue(manager.administration().toggle(alice, colony.id(), Toggle.AUTO_HIRING));
+        TownHallView.Settings hiringOff = ((TownHallView) t.ui.shown.get(alice)).settings();
+        assertFalse(hiringOff.autoHiring());
+        assertTrue(hiringOff.autoHousing(), "only the switch clicked turns over");
         assertTrue(manager.administration().toggle(alice, colony.id(), Toggle.AUTO_HOUSING));
         assertFalse(colony.settings().autoHiring());
         assertFalse(colony.settings().autoHousing());

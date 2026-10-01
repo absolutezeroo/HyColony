@@ -108,7 +108,7 @@ Elle remplace le sous-panneau `BuildOptionsPanel` de la fenêtre de hutte : le b
 
 ## 7. Lot 4 : Réglages (`WindowSettings`, `layoutsettings.xml`)
 
-- Un bouton marche/arrêt par réglage, aux positions de MC : **movein**, **job** (embauche automatique), **housing** (logement automatique). Chacun déclenche `ColonyAdministration.toggleSetting`, `MANAGE_HUTS` (`TriggerSettingMessage.java:88-93`), puis réaffiche l'onglet.
+- Un bouton marche/arrêt par réglage, aux positions de MC : **movein**, **job** (embauche automatique), **housing** (logement automatique). Chacun déclenche `ColonyAdministration.toggle`, `MANAGE_HUTS` (`TriggerSettingMessage.java:88-93`), puis réaffiche l'onglet.
 - **Cœur** : `ColonySettings` gagne `moveIn` (défaut vrai, persisté). L'arrivée des citoyens initiaux le respecte (`CitizenManager.java:233` chez MC).
 - Messages d'entrée et de sortie, ruban de chantier : absents (C).
 

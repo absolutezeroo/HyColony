@@ -28,10 +28,9 @@ final class TownHallSettingsTab implements TownHallTab {
 
     @Override
     public void render(UICommandBuilder ui, UIEventBuilder events, String root) {
-        boolean[] values = {settings.moveIn(), settings.autoHiring(), settings.autoHousing()};
         for (Toggle t : Toggle.values()) {
             String button = root + " #Switch" + t.ordinal();
-            String state = values[t.ordinal()] ? "on" : "off";
+            String state = settings.get(t) ? "on" : "off";
             ui.set(button + ".Text", Message.translation("hycolony.ui.townhall.setting." + state));
             ColonyPage.bind(events, button, "toggle", t.ordinal());
         }

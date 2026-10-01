@@ -12,7 +12,10 @@ import dev.hycolony.core.kernel.port.Msg;
 import java.util.Optional;
 import java.util.UUID;
 
-/** What a colony's managers change about the colony itself: its name, its members' ranks, its existence. */
+/**
+ * What a colony's managers change about the colony itself: its name, style and town hall settings, its members'
+ * ranks, its existence.
+ */
 public final class ColonyAdministration {
     private final ColonyManager manager;
     private final ColonyWindows windows;

@@ -124,7 +124,6 @@ build.complete = Construction de {p0} terminée (niveau {p1}).
 build.repairComplete = Réparation de {p0} terminée (niveau {p1}).
 build.removeComplete = Déconstruction de {p0} terminée. Pour déplacer le bâtiment, utilisez le bouton « Ramasser » de la fenêtre « Options de construction » du bâtiment.
 storage.unavailable = Les sauvegardes des colonies n'ont pas pu être chargées : impossible de fonder une colonie. Consultez le journal du serveur.
-ui.townhall.workOrders = Ordres de travail
 ui.townhall.tab.actions = Accueil
 ui.townhall.tab.information = Informations
 ui.townhall.tab.citizens = Citoyens

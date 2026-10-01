@@ -124,7 +124,6 @@ build.complete = Completed building {p0} (level {p1}).
 build.repairComplete = Completed repair of {p0} (level {p1}).
 build.removeComplete = Completed deconstruction of {p0}. To move the building, use the 'Pick Up' button in the building's 'Build Options' GUI.
 storage.unavailable = Colony saves could not be loaded: no new colony can be founded. Check the server log.
-ui.townhall.workOrders = Work orders
 ui.townhall.tab.actions = Home
 ui.townhall.tab.information = Information
 ui.townhall.tab.citizens = Citizens

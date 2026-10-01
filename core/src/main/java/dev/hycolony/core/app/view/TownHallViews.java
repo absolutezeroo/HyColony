@@ -23,7 +23,7 @@ import java.util.UUID;
 final class TownHallViews {
     /**
      * MC EventDescriptionManager's kinds: a citizen moving in, a hut built, upgraded, repaired or deconstructed.
-     * Births, coming of age and deaths need systems HyColony lacks.
+     * Births, coming of age, deaths and visitors need systems HyColony lacks.
      */
     private static final Set<String> MC_EVENTS =
             Set.of("citizenSpawned", "buildingBuilt", "buildingUpgraded", "buildingRepaired", "buildingDeconstructed");

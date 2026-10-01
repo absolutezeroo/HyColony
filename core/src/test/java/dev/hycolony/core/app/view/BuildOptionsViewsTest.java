@@ -169,6 +169,36 @@ class BuildOptionsViewsTest {
     }
 
     @Test
+    void aFriendsOrderGetsMcsRefusalMessage() {
+        f.hut(ConstructionBuildingTypes.RESIDENCE, residencePos, 0);
+        assertTrue(f.manager
+                .workOrders()
+                .order(f.carol, residencePos, WorkOrderType.BUILD, "medieval", Optional.empty())
+                .isPresent());
+        assertEquals(
+                "hycolony.permission.toolDenied",
+                f.t.notifier.sent.getLast().msg().key());
+    }
+
+    @Test
+    void movingOrDeletingAnOrderWithoutTheRightSaysSoAsMc() {
+        f.townHall().setLevel(1);
+        f.townHall().setBuilt(true);
+        f.manager.workOrders().order(f.alice, f.hall, WorkOrderType.UPGRADE, "medieval", Optional.empty());
+        int id = f.colony.work().byBuilding(f.hall).orElseThrow().id();
+        f.t.notifier.sent.clear();
+        assertFalse(f.manager.workOrders().delete(f.carol, f.colony.id(), id));
+        assertEquals(
+                "hycolony.permission.toolDenied",
+                f.t.notifier.sent.getLast().msg().key());
+        f.t.notifier.sent.clear();
+        assertFalse(f.manager.workOrders().move(f.carol, f.colony.id(), id, 1));
+        assertEquals(
+                "hycolony.permission.toolDenied",
+                f.t.notifier.sent.getLast().msg().key());
+    }
+
+    @Test
     void cancellingTheTownHallsOrderReshowsTheTownHall() {
         f.townHall().setLevel(1);
         f.townHall().setBuilt(true);

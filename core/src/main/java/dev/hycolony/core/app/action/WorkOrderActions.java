@@ -5,6 +5,7 @@ import dev.hycolony.core.app.view.ColonyWindows;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyAccess;
+import dev.hycolony.core.colony.ColonyRefusal;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.construction.workorder.ManualSelection;
 import dev.hycolony.core.construction.workorder.WorkOrder;
@@ -39,9 +40,10 @@ public final class WorkOrderActions {
 
     /**
      * The build options' Build/Upgrade/Repair/Deconstruct button (MC BuildRequestMessage): empty on success, the
-     * order then reserved to {@code builder} if one is chosen; else the refusal, which the player is also told. Either
-     * way the building's own window shows again to a player who may see the colony's huts (MC WindowBuildBuilding
-     * closes with openGui); nothing for a hut gone.
+     * order then reserved to {@code builder} if one is chosen; else the refusal, which the player is also told (MC's
+     * refusal message for a missing right). The building's own window then shows again (MC WindowBuildBuilding
+     * closes with openGui): always after an order, after a refusal only to a player who may see the colony's huts;
+     * nothing for a hut gone.
      */
     public Optional<WorkOrderRefusal> order(
             UUID player, BlockPos hutPos, WorkOrderType type, String style, Optional<BlockPos> builder) {
@@ -52,12 +54,17 @@ public final class WorkOrderActions {
         }
         Either<WorkOrder, WorkOrderRefusal> r = c.work().request(player, hutPos, type, style, builder);
         if (r instanceof Either.Right(var refusal)) {
-            manager.context()
-                    .notifier()
-                    .send(
-                            player,
-                            Msg.of("hycolony.workorder.refused."
-                                    + refusal.name().toLowerCase(Locale.ROOT)));
+            if (refusal == WorkOrderRefusal.NO_PERMISSION) {
+                // MC BuildRequestMessage is an AbstractColonyServerMessage: its own refusal message.
+                ColonyRefusal.tellNoPermission(c, player);
+            } else {
+                manager.context()
+                        .notifier()
+                        .send(
+                                player,
+                                Msg.of("hycolony.workorder.refused."
+                                        + refusal.name().toLowerCase(Locale.ROOT)));
+            }
             if (ColonyAccess.allows(c, player, Action.ACCESS_HUTS)) {
                 windows.showBuildingGui(c, b, player);
             }
@@ -145,11 +152,19 @@ public final class WorkOrderActions {
         return true;
     }
 
-    /** The colony if it holds the order and the player may manage its huts, else null. */
+    /**
+     * The colony if it holds the order and the player may manage its huts, else null; a missing right is told with
+     * MC's refusal message (WorkOrderChangeMessage is an AbstractColonyServerMessage).
+     */
     private @Nullable Colony managedColony(UUID player, int colonyId, int orderId) {
-        return manager.byId(colonyId)
-                .filter(c -> ColonyAccess.allows(c, player, Action.MANAGE_HUTS)
-                        && c.work().byId(orderId).isPresent())
-                .orElse(null);
+        Colony c = manager.byId(colonyId).orElse(null);
+        if (c == null || c.work().byId(orderId).isEmpty()) {
+            return null;
+        }
+        if (!ColonyAccess.allows(c, player, Action.MANAGE_HUTS)) {
+            ColonyRefusal.tellNoPermission(c, player);
+            return null;
+        }
+        return c;
     }
 }

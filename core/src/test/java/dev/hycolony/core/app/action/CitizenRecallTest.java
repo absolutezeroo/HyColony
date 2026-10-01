@@ -75,6 +75,9 @@ class CitizenRecallTest {
         citizen(1);
         assertFalse(recall.recall(UUID.randomUUID(), colony.id(), 1));
         assertTrue(colony.citizens().bodyOf(1).isEmpty());
+        assertEquals(
+                "hycolony.permission.toolDenied",
+                t.notifier.sent.getLast().msg().key());
     }
 
     @Test
