@@ -271,6 +271,8 @@ Nos `.ui` utilisent aujourd'hui `TextField`, `ItemGrid`, `ItemIcon`, `ProgressBa
 
 ## 2. Fenêtre de hutte (constructeur en particulier)
 
+**Remplacé par le § 8 (inventaire complet du 2026-10-01) ; gardé pour l'historique.**
+
 ### MineColonies
 
 - **Onglets latéraux** : `client/gui/AbstractBuildingWindow.java:55-83`. Un onglet « principal » (`textures/gui/modules/main.png`), puis un par module dont `isPageVisible()` est vrai, **dans l'ordre d'enregistrement des modules**. Le clic joue `BOOK_PAGE_TURN`.
@@ -350,6 +352,8 @@ Ce qu'on montre et que MC ne montre pas :
 ---
 
 ## 3. Ressources du constructeur
+
+**Remplacé par le § 8.5 (inventaire complet du 2026-10-01) ; gardé pour l'historique.**
 
 ### MineColonies (`gui/layouthuts/layoutbuilderres.xml`, `client/gui/modules/building/WindowBuilderResModule.java`)
 
@@ -499,6 +503,8 @@ Ce qu'on montre et que MC ne montre pas : le bouton **Fournir** dans le presse-p
 
 ## 6. Ordres de travail
 
+**Pour l'onglet de la hutte du constructeur, remplacé par le § 8.5 (2026-10-01) ; l'hôtel de ville est au § 1.**
+
 ### MineColonies
 
 - **Hôtel de ville, onglet Information** : décrit au § 1 (↥ ↧ X, nom d'affichage, constructeur). **Pas de numéro de priorité affiché.**
@@ -558,3 +564,438 @@ Incertitudes :
 - **[in-game]** Rendu d'un `@SmallSecondaryTextButton` `Disabled` comme onglet actif.
 - **[in-game]** `TabNavigation` et la donnée de `SelectedTabChanged` ne sont pas vérifiés.
 - **[in-game]** Ouverture du vrai conteneur d'inventaire d'un PNJ : non étudiée ici.
+
+---
+
+## 8. Fenêtres de huttes : inventaire complet, 2026-10-01
+
+Inventaire de tout ce que montrent les fenêtres des huttes de MC (hors hôtel de ville, déjà fait), élément par élément, avant le sous-projet « huttes à l'apparence et au contenu de MC ». Même méthode qu'au § 1 « Inventaire complet » : XML, classe Java (textes posés, listes, infobulles, règles d'activation), message serveur de chaque bouton, puis ce que HyColony montre. Rien n'est conçu ici.
+
+Abréviations (en plus de celles du § 1) :
+
+- `gui/` = `sources/minecolonies/src/main/java/com/minecolonies/core/client/gui/` ; `mod/` = `gui/modules/building/` ;
+- `xml/` = `sources/minecolonies/src/main/resources/assets/minecolonies/gui/` ; `lh/` = `xml/layouthuts/` ;
+- `mv/` = `mc:core/colony/buildings/moduleviews/` ; `bm:` = `mc:core/colony/buildings/modules/BuildingModules.java` ; `mbi:` = `mc:apiimp/initializer/ModBuildingsInitializer.java` ;
+- `lang:` = `sources/minecolonies/src/main/resources/assets/minecolonies/lang/manual_en_us.json` (seul fichier de langue de la copie) ;
+- `bui:` = `sources/blockui/src/main/java/com/ldtteam/blockui/` ;
+- « ×2 » : position et taille MC doublées (CLAUDE.md § 7), notées `(x,y) l×h`.
+
+Statuts : **fait** ; **A** = le cœur a la donnée et le comportement, seul le rendu MC manque ; **B** = le système existe mais la vue n'a pas tout ce que MC montre (le manque est dit) ; **C** = il faut un système absent (nommé), à repousser ; **hors-port** = propre à Minecraft.
+
+**Règle commune des messages.** Tous les messages envoyés par ces fenêtres héritent d'`AbstractBuildingServerMessage` ou d'`AbstractColonyServerMessage` sans redéfinir `permissionNeeded()`, donc exigent `MANAGE_HUTS` (`msg/AbstractColonyServerMessage.java:61-63`). Vérifié pour : `BuildRequestMessage`, `HutRenameMessage`, `RecallCitizenMessage`, `RecallCitizenHutMessage`, `ChangeDeliveryPriorityMessage`, `ForcePickupMessage`, `OpenInventoryMessage`, `HireFireMessage`, `BuildingHiringModeMessage`, `PauseCitizenMessage`, `RestartCitizenMessage`, `AssignUnassignMessage`, `TransferItemsRequestMessage`, `MarkBuildingDirtyMessage`, `TriggerSettingMessage`, `ToggleRecipeMessage`, `ChangeRecipePriorityMessage`, `AddRemoveRecipeMessage`, `AssignFieldMessage`, `AssignmentModeMessage`, `UpgradeWarehouseMessage`, `SortBuildingMessage`, `Add/RemoveMinimumStock…Message`, `CourierHiringModeMessage`, `BuildPickUpMessage`, `WorkOrderChangeMessage`, `BuilderSelectWorkOrderMessage` (déclarations `extends` lues dans `msg/`). En plus, chaque ouverture de fenêtre et chaque clic enregistré envoient `OpenGuiWindowTriggerMessage` et `ClickGuiButtonTriggerMessage` (`gui/AbstractWindowSkeleton.java:96,196`), qui ne servent qu'aux succès et quêtes : hors-port.
+
+### 8.1 Cadre commun d'une hutte
+
+#### Le papier et la page principale (`lh/layouthutpageactionsminwoinv.xml`, `lh/layouthutpageactionsmin.xml`, `gui/AbstractBuildingMainWindow.java`)
+
+Les fenêtres font 190 × 244 (×2 : 380 × 488). Trois niveaux de mise en page s'incluent : `minwoinv` (papier, titre, renommer, construire, aide) ⊂ `min` (+ inventaire, inventaire total) ⊂ `layouthutpageactions.xml` (+ travailleurs, embauche, rappel, priorité de ramassage).
+
+| Élément MC (id) | XML (pos, taille, texture, libellé) | ×2 | Java (contenu, règle, message) |
+|---|---|---|---|
+| papier | `minwoinv.xml:4`, 190×244, `builderhut/builder_paper` (texture 192×240, étirée : BlockUI dessine l'image à la taille du nœud, `bui:controls/Image.java:184-198`) | (0,0) 380×488 | — |
+| bandeau du titre | `minwoinv.xml:6-8` : `builder_sketch_left` (24,12) 6×15, `_center` (30,12) 130×15 (texture 154×15), `_right` (160,12) 6×15 | (48,24) 12×30 ; (60,24) 260×30 ; (320,24) 12×30 | — |
+| `name` | `minwoinv.xml:9`, (30,14) 128×11, centré, rouge (`red` = #FF0000, `bui:Color.java:32`) | (60,28) 256×22 | `getBuildingDisplayName()` + « » + niveau (`AbstractBuildingMainWindow.java:171-176`) ; le nom d'affichage est le nom personnalisé s'il existe, sinon la clé du type (`mc:api/colony/buildings/views/IBuildingView.java:82-86`) |
+| `editName` | `minwoinv.xml:10-11`, (150,11) 15×15, `builderhut/edit`, infobulle `com.minecolonies.gui.edit` (« Edit ») | (300,22) 30×30 | ouvre `WindowHutNameEntry` (`AbstractBuildingMainWindow.java:50,108-111`), § 8.6 |
+| `build` | `minwoinv.xml:13-15`, (30,110) 129×17, `builder_button_medium_large`, `workerhuts.buildrepair` (« Build Options ») | (60,220) 258×34 | libellé recalculé à chaque image : annuler construction (niveau 0) ou amélioration, réparation, déconstruction, sinon « Build Options » (`:121-163`) ; un clic sur un libellé d'annulation envoie `BuildRequestMessage` BUILD, REPAIR ou REMOVE avec `BlockPos.ZERO` (= annuler), sinon ouvre `WindowBuildBuilding` (`:65-87`) |
+| `info` | `minwoinv.xml:16-17`, (14,214) 17×17, `red_wax_information`, infobulle `core.building.help` (« Help ») | (28,428) 34×34 | visible seulement si la clé `com.minecolonies.coremod.info.<type>.0` existe (`:55-59`) ; ouvre `WindowInfo` (`:92-95`), § 8.6 |
+| `inventory` | `min.xml:5-7`, (52,214) 86×17, `builder_button_medium`, `container.inventory` | (104,428) 172×34 | `OpenInventoryMessage` : ouvre le conteneur du bloc de hutte (`:100-103` ; `msg/colony/OpenInventoryMessage.java:153-161`), `MANAGE_HUTS` |
+| `allinventory` | `min.xml:8-10`, (159,214) 17×17, `textures/gui/chest.png` (25×25), sans texte, infobulle `core.building.inv_sum` (« Building Inventory Summary ») | (318,428) 34×34 | ouvre `WindowHutAllInventory` (`:116-119`), § 8.6 |
+
+Qui utilise quoi : une hutte avec un `WorkerBuildingModuleView` ouvre `WindowHutWorkerModulePlaceholder` (`windowhutworkerplaceholder.xml` = `layouthutpageactions.xml`), sinon `WindowHutMinPlaceholder` (`layouthutpageactionsmin.xml`) (`mc:core/colony/buildings/views/AbstractBuildingView.java:391-398`). Le constructeur ouvre `WindowHutBuilderModule` (même XML, `mc:core/colony/buildings/workerbuildings/BuildingBuilder.java:228-231`), l'entrepôt `WindowHutMinPlaceholder` (`BuildingWareHouse.java:217-220`), la résidence `WindowHutLiving` (`HomeBuildingModule.java:42-45`, § 8.4).
+
+#### Travailleurs (`lh/layouthutpageactions.xml`, `gui/AbstractWindowWorkerModuleBuilding.java`)
+
+| Élément MC | XML | ×2 | Java |
+|---|---|---|---|
+| titre | `:6-7`, (13,32) 164×11, centré, `workerhuts.workerassigned` (« §lAssigned Workers: », gras par le code §l) | (26,64) 328×22 | — |
+| `workers` | `:9-15`, (13,43) 164×30, ligne de 11, `workerName` centré | (26,86) 328×60, ligne 22 | une ligne par travailleur de chaque `WorkerBuildingModuleView` : « Métier: Nom », infobulle « Nom (id) » (`AbstractWindowWorkerModuleBuilding.java:163-203`, texte `:195`, infobulle `:196`) |
+| `hire` | `:17-19`, (30,74) 129×17, `medium_large`, `workerhuts.manage` (« Manage Workers ») | (60,148) 258×34 | si `!allowsAssignment()` (serveur : `canAssignCitizens`, `mc:core/colony/buildings/AbstractBuilding.java:711`), message de chat `workerhuts.level0` ; sinon ouvre `WindowHireWorker` (`:143-152`), § 8.6 |
+| `recall` | `:20-22`, (30,92), `workerhuts.recall` (« Recall Worker ») | (60,184) 258×34 | `RecallCitizenMessage` (`:157-160`) : chaque travailleur est téléporté à la hutte ; un corps absent est recréé ; échec → `WARNING_CITIZEN_RECALL_FAILED` (`msg/colony/building/worker/RecallCitizenMessage.java:58-96`) |
+| `prioValue` | `:24`, (30,135) 95×15, aligné à gauche | (60,270) 190×30 | « Pickup Prio.: » + « n/10 » ou « Never » (`:97-111`, clés `workerhuts.buildprio`, `workerhuts.deliveryprio.never`) |
+| `deliveryPrioDown` / `Up` | `:26-29`, (127,135) et (144,135) 14×15, `builder_button_mini`, « - » « + » | (254,270) et (288,270) 28×30 | borne côté client 0..10, puis `ChangeDeliveryPriorityMessage` (`:113-131`) → `alterPickUpPriority(±1)` si la hutte a un `WorkerBuildingModule` ou est un `Stash` (`msg/colony/building/ChangeDeliveryPriorityMessage.java:63-77`) |
+| `forcePickup` | `:31-33`, (30,154), `workerhuts.forcepickup` (« Request Pickup Now ») | (60,308) 258×34 | `ForcePickupMessage` (`:133-136`) → `createPickupRequest(STACKSIZE, true)`, message de réussite ou d'échec (`msg/colony/building/ForcePickupMessage.java:54-71`) |
+
+Ordre de dessin : le XML d'abord, puis les onglets ajoutés par `addChild` (donc par-dessus le papier).
+
+#### Onglets latéraux (`gui/modules/TabsWindowModule.java`, `gui/AbstractBuildingWindow.java`)
+
+- Constantes (`TabsWindowModule.java:22-30`) : `TAB_X_OFFSET` 12, `TAB_Y_OFFSET` 10, onglet 32 × 26, `TAB_Y_SPACING` 2, icône 20 × 20 décalée de (5, 3).
+- Côté gauche : x = −(32 − 12) = −20 (`:135`), y = 10 + 28 × index (`:105`). **×2 : x −40, y 20 + 56 × i, onglet 64 × 52, icône (10, 6) 40 × 40.** Le côté droit (x = largeur − 12, `:136`) n'est pas utilisé par les huttes.
+- Fond de chaque onglet tiré au hasard parmi `modules/tab_left_side1..4` (32 × 26) (`:172-175`), avec un `Random(buildingView.getID().hashCode())` (`AbstractBuildingWindow.java:55`) : même suite d'images à chaque ouverture d'une même hutte, différente d'une hutte à l'autre. L'icône est une `ButtonImage` de 20 × 20 qui porte le même gestionnaire (`TabsWindowModule.java:113-122`).
+- Infobulle sur tout l'onglet = `getDesc()` du module (`:124-127`).
+- **Aucun état « onglet ouvert »** : tous les onglets se dessinent pareil ; chacun ouvre une nouvelle fenêtre (`AbstractBuildingWindow.java:65,81`).
+- Liste (`AbstractBuildingWindow.java:57-84`) : d'abord **Principal** (`modules/main.png`, infobulle `coremod.gui.maintab` « Main », rouvre `buildingView.getWindow()`, sans son), puis chaque vue de module dont `isPageVisible()` est vrai, dans l'ordre d'enregistrement (`moduleViews` est un `Int2ObjectLinkedOpenHashMap`, `AbstractBuildingView.java:152,715-718`, rempli dans l'ordre des producteurs, `mc:api/colony/buildings/registry/BuildingEntry.java:158`). Un clic de module joue `BOOK_PAGE_TURN` (`:80`). `isPageVisible()` vaut vrai par défaut (`mc:api/colony/buildings/modules/IBuildingModuleView.java:40`).
+- Les fenêtres de module (`gui/AbstractModuleWindow.java:50,58-65`) posent `getDesc()` dans le texte d'id `desc` s'il existe (en-tête (30,14) 130 × 11, noir ; ×2 (60,28) 260 × 22).
+- Les fenêtres annexes (`WindowHireWorker`, `WindowAssignCitizen`, `WindowHutAllInventory`, `WindowInfo`) héritent d'`AbstractWindowSkeleton` et **n'ont pas d'onglets**.
+
+Icône et infobulle de chaque vue de module rencontrée (textures 20 × 20 dans `tex/modules/`) :
+
+| Vue (source) | Onglet ? | Icône | Infobulle / en-tête (texte anglais) |
+|---|---|---|---|
+| `WorkerBuildingModuleView` (`mv/WorkerBuildingModuleView.java:112-127`) | non | `custom` | — |
+| `CraftingModuleView` (`mv/CraftingModuleView.java:180-202`) | si `isVisible` du serveur : types d'artisanat ou recettes (`mc:core/colony/buildings/modules/AbstractCraftingBuildingModule.java:334,440-443`) | `<id>.png`, ici `crafting` | `workerhuts.recipe.crafting` « Crafting Recipes » |
+| `BuildingResourcesModuleView` (`mv/BuildingResourcesModuleView.java:125-140`) | oui | `inventory` | `workerhuts.resourcelist` « Required Resources » |
+| `SettingsModuleView` (`mv/SettingsModuleView.java:99-114`) | oui | `settings` | `workerhuts.settings` « Settings » |
+| `WorkOrderListModuleView` (`mv/WorkOrderListModuleView.java:28-50`) | oui | `info` | `townhall.workorders` « Work Orders » |
+| `MinimumStockModuleView` (`mv/MinimumStockModuleView.java:54-81`) | oui | `stock` | `warehouse.stock` « Minimum Stock » |
+| `BuildingStatisticsModuleView` (`mv/BuildingStatisticsModuleView.java:31-46`) | oui | `stats` | `core.gui.modules.stats` « Building Statistics » |
+| `FieldsModuleView` (`mv/FieldsModuleView.java:47-56`) | oui | `field` | `workerhuts.fields` « Fields » |
+| `RequestTaskModuleView` et ses sous-classes (`mv/RequestTaskModuleView.java:30-45`) | oui | `info` | `workerhuts.crafter.tasks` « Tasks » |
+| `CourierAssignmentModuleView` (`mv/CourierAssignmentModuleView.java:69-78,123-126`) | oui | `entity` | `workerhuts.warehouse.couriers` « Couriers » |
+| `WarehouseOptionsModuleView` (`mv/WarehouseOptionsModuleView.java:25-47`) | oui | `settings` | `workerhuts.settings` « Settings » |
+| `LivingBuildingModuleView` (`mv/LivingBuildingModuleView.java:73-76,104`) | **non** | `custom` | `null` |
+
+Textes anglais lus dans `lang:` (clés préfixées `com.minecolonies.`).
+
+#### HyColony aujourd'hui (cadre)
+
+- Une seule page vanilla : `$C.@DecoratedContainer` de 760 px, titre générique, rangée `#TabButtons` en haut (`ui:Building.ui:7-23`), un `TabButton.ui` texte par onglet, l'onglet ouvert désactivé (`pl:ui/TabBar.java:23-33`, `pl:ui/BuildingPage.java:46,87-92`).
+- Les onglets viennent des modules `ProvidesTab`, dans l'ordre des modules (`hc:app/view/BuildingViews.java:105-111`), rendus par `pl:ui/hut/HutTabs.java:35-53`.
+- Onglet Principal (`pl:ui/BuildingMainTab.java`) :
+  - type, « niveau n/max », état (`:40-47`), ligne d'ordre (`:62-79`), bouton de construction fidèle à `updateButtonBuild` (`:85-98`) ;
+  - bouton du mode d'embauche **sur la page principale** (`:100-123`), listes en ligne Travailleurs (Renvoyer) et Embauchables (Embaucher) (`ui:Building.ui:54-89`) ;
+  - priorité de ramassage et ramassage forcé (`pl:ui/logistics/PickupPanel.java:31-62`) ;
+  - Stockage (`pl:ui/HutStorage.java:36-38`, droit `OPEN_CONTAINER`) et Inventaire total en sous-vue (`pl:ui/HutStockPanel.java:13-14,34`).
+
+| Élément du cadre | Statut | Manque ou écart |
+|---|---|---|
+| Papier 380 × 488, bandeau, titre rouge | A (rendu) / B (titre) | `BuildingView` n'a pas `customName` (`hc:app/ui/BuildingView.java:21-40`) ; `Building.customName()` existe (`hc:building/Building.java:119-124,192`) |
+| Crayon + renommage | B | aucune action cœur n'appelle `setCustomName` hors chargement (`hc:app/persistence/BuildingSerializer.java:75`) |
+| Construire | fait | texture `builder_button_medium_large` à poser |
+| Aide (`info`) | A | pages de texte MC, § 8.6 |
+| Inventaire | A, écart de droit | MC exige `MANAGE_HUTS`, HyColony `OPEN_CONTAINER` (`HutStorage.java:36-38`) |
+| Inventaire total | B | § 8.6 |
+| Onglets latéraux | A | rendu à refaire ; MC n'a pas d'état « ouvert » (écart actuel : `TabBar` désactive l'onglet ouvert) |
+| Travailleurs « Métier: Nom » + infobulle | B | `WorkerRow` n'a pas le métier (`BuildingView.java:45`) ; l'id y est |
+| Gérer les travailleurs | A | données de candidats présentes ; fenêtre séparée à faire (§ 8.6) |
+| Rappel des travailleurs | B | `CitizenRecall.bring` existe (`hc:app/action/CitizenRecall.java:52`), utilisé pour les résidents (`hc:app/action/HousingActions.java:70-84`), pas d'action pour les travailleurs |
+| Priorité, ramassage forcé | fait (contenu) | rendu à refaire ; MC laisse les boutons actifs pour tous, le serveur refuse ; HyColony les désactive sans `MANAGE_HUTS` (`PickupPanel.java:42-48`) |
+| (HyColony) état, « niveau n/max », ligne d'ordre, listes d'embauche en ligne, bouton du mode d'embauche sur la page | écart | absents de la page MC : le mode est dans `WindowHireWorker`, l'avancement dans l'onglet Ressources |
+
+### 8.2 Modules de chaque hutte, dans l'ordre des onglets
+
+Ordre MC lu dans `mbi:` ; définitions dans `bm:`. Le premier onglet est toujours Principal (`main`).
+
+**Constructeur** (`mbi:95-107`) — HyColony : ressources, réglages, ordres (`hc:construction/hut/ConstructionBuildingTypes.java:22-38`).
+
+| # | Module MC (`bm:`) | Onglet, icône | Statut | Ce qui manque |
+|---|---|---|---|---|
+| 0 | Principal | `main` | B | § 8.1 (nom, rappel, métier des lignes) ; et `WindowHutGuide` (§ 8.6) |
+| — | `BUILDER_WORK` (`:430-432`) | aucun | — | — |
+| 1 | `BUILDER_CRAFT` : `SimpleCraftingModule`, artisanat 2 × 2 (`:440-441` ; `mc:core/colony/buildings/modules/SimpleCraftingModule.java:52-55`) | Crafting Recipes, `crafting` | C | artisanat du constructeur : HyColony n'a pas de `CraftingModule` sur le constructeur ; MC sert ces recettes par le résolveur d'artisanat privé (`mc:core/colony/requestsystem/resolvers/PrivateWorkerCraftingProductionResolver.java:77`) ; l'exécution par l'IA du constructeur n'est pas vérifiée ici |
+| 2 | `BUILDING_RESOURCES` (`:444-445`) | Required Resources, `inventory` | A | § 8.5 |
+| 3 | `BUILDER_SETTINGS` (`:433-438`) | Settings, `settings` | B | 3 réglages sur 5, § 8.5 |
+| 4 | `WORKORDER_VIEW` (`:442-443`) | Work Orders, `info` | A | § 8.5 |
+| 5 | `MIN_STOCK` (`:43-44`) | Minimum Stock, `stock` | C | stock minimum |
+| 6 | `STATS_MODULE` (`:62-64`) | Building Statistics, `stats` | C | statistiques de hutte (`BuildingStatisticsModule`) |
+
+**Fermier** (`mbi:204-216`) — HyColony : recettes, champs (`hc:farming/hut/FarmerHut.java:27-39`). Attention aux noms de MC : `FARMER_WORK` est le module d'**artisanat** (`bm:125-126`) et `FARMER_CRAFT` le module de **travailleur** (`bm:122-124`).
+
+| # | Module MC | Onglet, icône | Statut | Ce qui manque |
+|---|---|---|---|---|
+| 0 | Principal | `main` | B | § 8.1 |
+| 1 | `FARMER_WORK` : `BuildingFarmer.CraftingModule` (artisanat 2 × 2 et 3 × 3, `AbstractCraftingBuildingModule.java:1026-1029`) | Crafting Recipes, `crafting` | A | § 8.5 (l'apprentissage par liste reste un écart documenté) |
+| — | `FARMER_CRAFT` (travailleur, Stamina, Athletics) | aucun | — | — |
+| 2 | `FARMER_FIELDS` (`bm:127-128`) | Fields, `field` | A | § 8.5 |
+| 3 | `FARMER_SETTINGS` : `fertilize` (vrai), `recipemode` (`bm:129-132`) | Settings, `settings` | B | `FarmerSettingsModule` n'a pas d'onglet (`hc:farming/hut/FarmerSettingsModule.java`) ; « Request Fertilizer » est aujourd'hui dans l'onglet Champs (`pl:ui/hut/FieldsTab.java:55-56`) ; `recipemode` absent |
+| 4 | `CRAFT_TASK_VIEW` : `CrafterRequestTaskModuleView` (`bm:52`), la file des métiers artisans (`mv/CrafterRequestTaskModuleView.java:15-32`) ; le fermier MC est un artisan (`mc:core/colony/jobs/JobFarmer.java:12`, vue `CrafterJobView`) | Tasks, `info` | B | la file existe (`hc:crafting/task/CraftingTasks.java:51`), aucune vue d'onglet |
+| 5 | `MIN_STOCK` | Minimum Stock, `stock` | C | stock minimum |
+| 6 | `STATS_MODULE` | Building Statistics, `stats` | C | statistiques de hutte |
+
+**Coursier** (`mbi:194-202`) — HyColony : tâches (`hc:logistics/courier/DeliverymanHut.java:23-31`).
+
+| # | Module MC | Onglet, icône | Statut | Ce qui manque |
+|---|---|---|---|---|
+| 0 | Principal | `main` | B | § 8.1 |
+| — | `COURIER_WORK` (`bm:390-392`) | aucun | — | — |
+| 1 | `COURIER_TASK_VIEW` : `CourierRequestTaskModuleView` (`bm:53` ; `mv/CourierRequestTaskModuleView.java:15-32`) | Tasks, `info` | B | § 8.5 (icônes, infobulle des positions) |
+| 2 | `STATS_MODULE` | Building Statistics, `stats` | C | statistiques de hutte |
+
+**Entrepôt** (`mbi:395-403`) — HyColony : coursiers, tâches (`hc:logistics/warehouse/WarehouseBuilding.java:18-26`). Page principale `WindowHutMinPlaceholder` : ni travailleurs ni priorité.
+
+| # | Module MC | Onglet, icône | Statut | Ce qui manque |
+|---|---|---|---|---|
+| 0 | Principal (min) | `main` | B | § 8.1 (nom, inventaire total) |
+| 1 | `WAREHOUSE_COURIERS` (`bm:394-395`) | Couriers, `entity` | B | rattacher ou détacher à la main, mode d'embauche, rappel : § 8.5 |
+| 2 | `WAREHOUSE_OPTIONS` (`bm:396-397`) | Settings, `settings` | C | amélioration de stockage (bloc d'émeraude) et tri de l'entrepôt |
+| 3 | `MIN_STOCK` | Minimum Stock, `stock` | C | stock minimum |
+| 4 | `WAREHOUSE_REQUEST_QUEUE` (`bm:398-399`) | Tasks, `info` | B | § 8.5 |
+
+**Résidence** (`mbi:245-253`) : `HOME` (sans vue, `bm:486-487`), `LIVING` (vue sans onglet, `mv/LivingBuildingModuleView.java:104`), `BED` (sans vue, `bm:50`). **Seul l'onglet Principal**, et l'info est masquée (pas de clé `info.residence.*` dans `lang:`). HyColony : `living` et `bed` (`ConstructionBuildingTypes.java:40-44`), avec un onglet Résidents.
+
+| # | Module MC | Onglet | Statut | Ce qui manque |
+|---|---|---|---|---|
+| 0 | Principal (`WindowHutLiving`) | `main` | B | le contenu est aujourd'hui dans l'onglet Résidents (`pl:ui/hut/ResidentsTab.java:52-79`) : écart à défaire ; renommage manquant |
+
+Bilan des onglets (Principal compris) : constructeur A 2 / B 2 / C 3 ; fermier A 2 / B 3 / C 2 ; coursier A 0 / B 2 / C 1 ; entrepôt A 0 / B 3 / C 2 ; résidence B 1.
+
+### 8.3 Fenêtres annexes ouvertes depuis une hutte
+
+| Fenêtre MC | Ouverte par | Statut |
+|---|---|---|
+| `WindowHireWorker` | `hire` (huttes à travailleurs), `hire` de l'onglet Coursiers | B |
+| `WindowAssignCitizen` | `assign` de la résidence | A |
+| `WindowHutNameEntry` | `editName` | B |
+| `WindowHutAllInventory` | `allinventory` | B |
+| `WindowInfo` | `info` | A |
+| `WindowHutGuide` | ouverture de la hutte du constructeur sans le succès « check_out_guide » (`gui/huts/WindowHutBuilderModule.java:52-66`) | C : succès (advancements) |
+| `WindowBuildBuilding` (+ `WindowConfirm`) | `build` | fait (`pl:ui/BuildOptionsPage.java`, déjà au style MC ; double clic au lieu de `WindowConfirm`, `:42`) |
+| `WindowSelectRes` | bloc de remplissage, ajout de stock minimum | fait pour le bloc de remplissage (`pl:ui/ItemPickerPage.java`) |
+
+### 8.4 Résidence : page principale (`xml/windowhuthome.xml`, `gui/huts/WindowHutLiving.java`)
+
+Inclut `layouthutpageactionsmin.xml` (§ 8.1 : papier, titre, renommer, construire à (30,110), inventaire, inventaire total ; aide masquée).
+
+| Élément MC | XML | ×2 | Java, message | HyColony | Statut |
+|---|---|---|---|---|---|
+| `assignedlabel` | `:4`, (13,32) 164×11, centré | (26,64) 328×22 | « Assigned Citizens: %d/%d » (`home.assigned`, `WindowHutLiving.java:106-110`) | `ResidentsTab.java:53-57` | A |
+| `assignedCitizen` | `:6-12`, (13,48) 164×30, ligne de 11 | (26,96) 328×60 | « Métier: Nom » ou « Nom » sans emploi (`:81-98`) | lignes avec distance du travail (`ResidentsTab.java:62-66`) | A |
+| `assign` | `:14-16`, (30,92) 129×17, `medium_large`, `home.manage` « Manage Housing » | (60,184) 258×34 | niveau 0 → message `workerhuts.level0` ; sinon `WindowAssignCitizen` (`:115-124`) | listes dans l'onglet | A |
+| `recall` | `:17-19`, (30,128), `townhall.recall` « Recall Citizens » | (60,256) 258×34 | `RecallCitizenHutMessage` (`:71-74` ; `msg/colony/building/RecallCitizenHutMessage.java:48-76`) | `HousingActions.recall` (`hc:app/action/HousingActions.java:70-84`) | fait (contenu) |
+
+`WindowAssignCitizen` (`xml/windowassigncitizen.xml`, `gui/WindowAssignCitizen.java`), papier large `builder_paper_wide2` 400 × 244 (×2 800 × 488), sans onglets :
+
+| Élément MC | XML | ×2 | Java | Statut |
+|---|---|---|---|---|
+| description | `:6`, (0,20) 100 %×11, `assigning.description` | (0,40) 800×22 | — | A |
+| `assigned` (gauche) | `:8-18`, (10,40) 190×160, ligne 34 (fond `gradient` 430265344) : `citizen` bleu (5,2), `fire` (120,2) 44×10 `builder_button_quite_small` libellé `hiring.buttonunassign`, `job` (5,13) 175×20 | (20,80) 380×320, ligne 68 ; bouton (240,4) 88×20 | « Métier: à N blocs », en rouge au-delà de 300 (`:341-398`, `FAR_DISTANCE_THRESHOLD` `:39`) ; bouton actif si (DEFAULT et logement auto désactivé) ou MANUAL, sinon infobulle `home.hire.warning` ; un citoyen en voyage : désactivé, `home.travelling` | A (voyage : C) |
+| `unassigned` (droite) | `:20-30`, (201,40), même ligne, `hire` « Assign » | (402,80) 380×320 | candidats : pas logés à leur travail, pas déjà ici ; triés sans logis d'abord puis distance du travail (`:193-217`) ; ligne « Métier: à N » en vert si plus près, « actuellement M » en rouge au-delà de 300, « sans logis » (`:245-318`) ; actif si place libre | A |
+| `mode` | `:32-34`, label (40,210), bouton (170,207) 169×17 `builder_button_large` | (80,420) ; (340,414) 338×34 | 4 modes en boucle, LOCKED compris (`:154-165`) → `BuildingHiringModeMessage` | A |
+| `cancel` | `:36-37`, (375,10) 14×15 `button_x` | (750,20) 28×30 | rouvre la hutte (`:172-178`) | A |
+| messages | — | — | `AssignUnassignMessage` (`:100-136`) | `HousingActions.assign/unassign/cycleMode` | fait (contenu) |
+
+### 8.5 Pages de modules
+
+#### Ressources du constructeur (`lh/layoutbuilderres.xml`, `mod/WindowBuilderResModule.java`) — A
+
+| Élément MC | XML | ×2 | Java |
+|---|---|---|---|
+| `desc` | `:4` | (60,28) 260×22 | « Required Resources » (`:64`) |
+| `constructionName` | `:6`, (13,29) 164×11 | (26,58) 328×22 | nom de l'ordre, infobulle identique (`:136-146`) |
+| `stepprogress` | `:7`, (13,40) | (26,80) | « Step %d/%d » (`:147`) |
+| `progress` | `:8`, (13,51) | (26,102) | « Supplied %s / Used %s », posé seulement si le total > 0 (`:103-106`) |
+| `resources` | `:9-22`, (13,62) 164×163, ligne `box` 30 bordée | (26,124) 328×326, ligne 60 | icône (1,1) 16 ; nom (20,3) 100×12 ; manque joueur (2,18) 50×12 si < 0 ; « dispo / requis » centré (0,18) ; toute la ligne rouge, orange, vert foncé #006400 ou noire (`:164-191`) ; tri `ResourceComparator` (`:108`) ; rafraîchi toutes les 20 images (`:218-228`) |
+| `resourceAdd` « ↥ » | `:16-17`, 14×15 `builder_button_mini`, repositionné par le code en (143,13) (`:194-196`) | (286,26) 28×30 | actif en NEED_MORE et HAVE_ENOUGH ; `TransferItemsRequestMessage` (`:235-263`) ; `MarkBuildingDirtyMessage` à l'ouverture (`:134`) |
+
+HyColony : `pl:ui/hut/BuilderResourcesTab.java:54-110`, vue `hc:construction/resources/BuilderResourcesView.java` : tout y est (nom, étape, livré/avancement, manque joueur, couleur de ligne, tri). `IN_DELIVERY` : MC ne remplit jamais `amountInDelivery` dans cette fenêtre (seule `gui/WindowResourceList.java:111-116` le fait), donc ce statut n'y apparaît jamais ; rien ne manque. Écart actuel : NOT_NEEDED en gris (`BuilderResourcesTab.java:34-41`), à remettre en noir sur le papier.
+
+#### Réglages (`lh/layoutsettings.xml`, `mod/SettingsModuleWindow.java`)
+
+- Liste `settingslist` (13,40) 164 × 170, `box` de 45 bordée (`layoutsettings.xml:6-8`) ; ×2 (26,80) 328 × 340, ligne 90.
+- Chaque ligne charge le XML de son type (`SettingsModuleWindow.java:88-109`) ; texte `desc` = `com.minecolonies.coremod.setting.<id>` (`:104-108`).
+- Les réglages s'affichent dans l'ordre d'insertion (`LinkedHashMap`, `mc:core/colony/buildings/moduleviews/SettingsModuleView.java:37`). Un réglage inactif (recherche manquante) est montré désactivé, car `shouldHideWhenInactive` vaut faux par défaut (`mc:api/colony/buildings/modules/settings/ISetting.java:83`, `SettingsModuleView.java:76-87`).
+- Infobulle (`ISetting.java:115-140`) : `setting.tooltip.<id>` s'il existe, sinon `getToolTipText()` ; inactif, la raison (« needs research »).
+- Clic → `TriggerSettingMessage` (`SettingsModuleView.java:117-124`).
+
+| Type (XML) | Ligne MC | ×2 | Contenu |
+|---|---|---|---|
+| `BoolSetting` (`lh/layoutboolsetting.xml`) | `desc` (5,5) 100 %×15 enroulé ; `trigger` (5,25) 30×17 `builder_button_very_small` | (10,10) ×30 ; (10,50) 60×34 | « On »/« Off » (`retrieveon/off`) |
+| `StringSetting` (`layoutstringsetting.xml`) | `trigger` (5,25) 145×17 `medium_large`, largeur bornée à 145 | (10,50) 290×34 | la valeur traduite ; un clic passe à la suivante |
+| `BlockSetting` (`layoutblocksetting.xml`) | `trigger` (5,25) 80×17 `builder_button_small` « Switch », `icon` (100,25) 16 | (10,50) 160×34 ; (200,50) 32×32 | ouvre `WindowSelectRes` des blocs pleins |
+| `CrafterRecipeSetting` (`StringSettingWithDesc`) | comme `StringSetting` | idem | « Priority » / « Max stock » ; inactif sans la recherche `recipemodeunlock` |
+| `BuilderModeSetting` | comme `StringSetting` | idem | itérateurs de Structurize, infobulle par valeur ; inactif sans la recherche `buildermodes` |
+
+Constructeur (`bm:433-438`), dans l'ordre :
+
+| Réglage MC | Texte | HyColony | Statut |
+|---|---|---|---|
+| `mode` (Auto / Manuel) | « Task Assignment Mode: » | `BuilderSettingsTab.java:47-63`, `HutActions.setBuilderMode` (`hc:app/action/HutActions.java:223`) | fait (contenu) |
+| `recipemode` | « Recipe Mode: » | rien | B : ligne désactivée avec la raison (HyColony n'a pas de recherche, donc toujours inactive) |
+| `buildmode` | « Construction Strategy: » | rien | B : même chose (recherche `buildermodes`) |
+| `useshears` (faux) | « Use Shears: » | rien | écart déjà assumé (pas de cisailles, `ConstructionBuildingTypes.java:33-34`) |
+| `fillblock` (terre) | « Fill block: » | bloc de remplissage + `ItemPickerPage` (`BuilderSettingsTab.java:77-89`, `HutActions.setFillBlock` `:243`) | fait (contenu) |
+
+Fermier (`bm:129-132`) : `fertilize` (BoolSetting, vrai, « Request Fertilizer ») — action `FieldActions.toggleFertilize` (`hc:app/action/FieldActions.java:110-116`), à sortir de l'onglet Champs ; `recipemode` — B comme ci-dessus.
+
+#### Ordres de travail du constructeur (`lh/layoutworkorders.xml`, `mod/WorkOrderModuleWindow.java`) — A
+
+| Élément MC | XML | ×2 | Java |
+|---|---|---|---|
+| `desc` | `:4`, « Work Orders » | (60,28) | — |
+| libellé égaré | `:6`, (201,28) 148×11 « Work Orders » : hors du papier de 190 | (402,56) | bizarrerie MC : à reproduire ou à écarter (question ouverte) |
+| `workOrders` | `:8-18`, (13,35) 164×154, vide : « No work orders » ; `box` 30 bordée | (26,70) 328×308, ligne 60 | filtre `shouldShowIn`, `canBuildIgnoringDistance`, puis réclamés ici (+ non réclamés en Manuel) (`:114-137`) ; tri ordre courant, réclamés ici, autres, puis `WORK_ORDER_COMPARATOR` (`:142-168`) ; rafraîchi toutes les 20 images (`:99-109`) |
+| `buildingName` | (2,2) 150×12, infobulle identique | (4,4) 300×24 | `order.getDisplayName()` (`:192-197`) |
+| `buildingPos` | (2,17) 50×12, bleu | (4,34) 100×24 | « %d blocks », distance 2D (`:198-199`) |
+| `manage` | (80,13) 64×17 `builder_button_small` | (160,26) 128×34 | réclamé ici : « Cancel » → `WorkOrderChangeMessage(id, remove=true)`, qui **supprime** l'ordre (`msg/colony/WorkOrderChangeMessage.java:81-87`) ; en Manuel : « Assign » → `BuilderSelectWorkOrderMessage`, désactivé avec infobulle (pas de travailleur, déjà réclamé, ne peut construire) (`:201-252`) ; en Auto, un ordre non réclamé ici n'est pas listé |
+| cadre de l'ordre courant | la **bordure** du `box` passe à (0,170,0) (`:180-188` ; `Box` ne dessine qu'un contour, `bui:views/Box.java:55-57`) | — | — |
+
+HyColony : `pl:ui/hut/BuilderOrdersTab.java:47-110`, `WorkOrderActions.select/cancelFromBuilder` (`hc:app/action/WorkOrderActions.java:96,124`, suppression comme MC). Écart : l'ordre courant a un **fond** vert (`BuilderOrdersTab.java:58`) au lieu d'un contour ; un `Group` sait poser `OutlineSize`/`OutlineColor` (déjà fait dans `ui:Mc/ActionRow.ui:9-10`).
+
+#### Recettes (`lh/layoutlistrecipes.xml`, `mod/WindowListRecipes.java`) — A pour le fermier, C pour le constructeur
+
+| Élément MC | XML | ×2 | Java |
+|---|---|---|---|
+| en-tête fixe | `:4-5`, « List of Recipes » | (60,28) | — |
+| `recipestatus` | `:7`, (70,30) | (140,60) | « %s of %s » actives / max, à chaque image (`:290`) ; visible si le module accepte des recettes (`:85-86`, `CraftingModuleView.java:145-148`) |
+| `recipes` | `:8-31`, (20,40) 85 %×150, ligne de 50 | (40,80) ≈322×300, ligne 100 | `output` (80,17) 16 qui alterne les sorties (`:178-180`) ; grille 3 × 3 `res1..9` (20/34/48, 1/15/29) avec quantités, cas spécial de 4 entrées (`:235-267`) ; fond gris `gradient` rgb(160,160,160) si désactivée (`:221-232`) ; `intermediate` (105,33) : outil requis ou bloc intermédiaire (`:208-219`) |
+| `up` « ↥ », `down` « ↧ » | (0,0), (0,15) 15×15, **sans texture** (bouton vanilla de Minecraft, `bui:controls/ButtonImage.java:23`) | (0,0), (0,30) 30×30 | `ChangeRecipePriorityMessage`, Maj = jusqu'au bout (`:111-131`) |
+| `remove` | (105,3) 45×15, vanilla | (210,6) 90×30 | `AddRemoveRecipeMessage` ; recette native désactivée sauf Ctrl, avec infobulle `removebuiltin` (`:137-143,182-206`) |
+| `toggle` | (105,18) 45×15, vanilla | (210,36) 90×30 | « Enable »/« Disable » ; une désactivée se cache si le maximum est atteint, sauf recette native (`:221-232`) ; `ToggleRecipeMessage` (`:100-105`) |
+| `crafting` | `:34-36`, (30,200) 129×17 `medium_large`, « workerhuts.crafting » | (60,400) 258×34 | ouvre l'interface d'apprentissage (conteneur d'artisanat) (`:148-157`) |
+
+HyColony : `pl:ui/hut/RecipesTab.java:51`, `hc:crafting/module/RecipesView.java`. Écarts déjà documentés : apprentissage par liste (`RecipesView`), pas de Maj (`RecipesTab.java:21`). Manque : la suppression d'une recette native avec Ctrl (pas d'événement de touche modificatrice connu).
+
+#### Champs du fermier (`lh/layoutfarmfields.xml`, `mod/FarmFieldsModuleWindow.java`) — A
+
+| Élément MC | XML | ×2 | Java |
+|---|---|---|---|
+| en-tête fixe | `:4-5`, « Fields » | (60,28) | — |
+| `AssignmentModeLabel` | `:6-7`, (13,29) 164×11 « Assign fields to worker » | (26,58) 328×22 | — |
+| `assignmentMode` | `:8-11`, (52,42) 86×17 `builder_button_medium` (désactivé : `_medium_disabled`) | (104,84) 172×34 | « Manual »/« Automatic » (`hiring.on/off`) ; `AssignmentModeMessage` (`:112-116,141-147`) |
+| `fieldCount` | `:12-13`, (13,69) | (26,138) 328×22 | « %d/%d fields in use » (`:145-146`) |
+| `fields` | `:15-25`, (13,82) 164×145, `box` 30 | (26,164) 328×290, ligne 60 | `icon` (4,4) graine ; `dist` (25,4) 108×9 « N m dir » ou texte long pour haut/bas (`:184-192`) ; `nextstagetext` (25,17) « Status: » ; `nextstageicon` (60,13) 16 : icône de l'étape (houe de fer, graines de blé, durum, `mc:core/colony/buildingextensions/FarmField.java:242-244`) avec infobulle « actuelle / suivante » (`:167-182`) |
+| `assign` | (137,4) 14×15 `builder_button_mini` ; coché : `_mini_check` (`:72-87,241-253`) | (274,8) 28×30 | actif en Manuel ; refus : désactivé, infobulle rouge (`:194-221`) ; `AssignFieldMessage` (`:123-136`) |
+
+HyColony : `pl:ui/hut/FieldsTab.java:47-110`, vue `hc:farming/hut/FieldsView.java`. Données complètes. Écarts : bouton « Fertiliser » (à déplacer dans Réglages), « fait aujourd'hui » et Localiser (ajouts documentés, `FieldsTab.java:21`) ; étape en texte au lieu d'une icône avec infobulle ; bouton texte Assigner/Libérer au lieu de la case mini cochée.
+
+#### Tâches (`lh/layouttasklist.xml`, `mod/WindowHutRequestTaskModule.java`) — B
+
+Même fenêtre pour les tâches d'artisan (fermier), de coursier et de l'entrepôt (`mv/RequestTaskModuleView.java:30-32`). L'arbre `layoutrequeststree.xml` sert au citoyen et au presse-papiers, pas aux huttes.
+
+| Élément MC | XML | ×2 | Java |
+|---|---|---|---|
+| en-tête fixe | `:4-5`, « Tasks » | (60,28) | — |
+| `tasks` | `:7-17`, (13,29) 164×185, vide : « No tasks remaining » ; `box` 34 | (26,58) 328×370, ligne 68 | tâches dont la requête existe encore (`:50-58`) |
+| `deliveryImage` | (1,3) 16 | (2,6) 32 | `request.getDisplayIcon()` (`:115-116`) |
+| `shortDetail` + `detailIcon` | (20,2) 130×9 ; (80,1) 9×9 | (40,4) 260×18 ; (160,2) 18×18 | tâche de pile : préfixe + objet avec quantité ; sinon texte court ; **vert foncé** si IN_PROGRESS, noir sinon (`:94-107`) |
+| `priority` | (20,12) 130×9 | (40,24) 260×18 | « Priority: n » pour une requête de coursier (`:109-113`) |
+| `requester` | (2,22) 150×9 | (4,44) 300×18 | « demandeur -> parent » en remontant les parents du même lieu, infobulle des positions « x, y, z -> x, y, z » (`:63-91`) |
+
+HyColony : `pl:ui/hut/TaskRows.java`, `CourierTasksTab.java:30`, `WarehouseTasksTab.java:27`, vue `hc:logistics/warehouse/TaskRow.java`. Manquent : l'icône de requête et l'icône d'objet, l'infobulle des positions. Écart : la tâche en cours a un fond vert (`TaskRows.java:30`) au lieu d'un texte vert foncé. HyColony ajoute en tête la ligne « entrepôt servi » du coursier (`CourierTasksTab.java:30-38`), absente de MC. Pour le fermier, la file existe (`CraftingTasks.java:51`) mais aucune vue ne l'expose.
+
+#### Coursiers de l'entrepôt (`lh/layoutcourierassignment.xml`, `mod/SpecialAssignmentModuleWindow.java`) — B
+
+| Élément MC | XML | ×2 | Java |
+|---|---|---|---|
+| titre | `:4-5`, (13,22) « Assigned Workers: » (pas d'en-tête `desc`) | (26,44) 328×22 | — |
+| `workers` | `:7-13`, (13,43) 164×110, ligne 11 | (26,86) 328×220 | « Métier: Nom » (`:83-121`) |
+| `hire` | `:15-17`, (30,154) `medium_large` « Manage Workers » | (60,308) 258×34 | niveau 0 → `workerhuts.level0` ; sinon `WindowHireWorker` sur le module des coursiers (`:72-81`), qui rattache par `HireFireMessage` et change le mode par `CourierHiringModeMessage` (`mv/CourierAssignmentModuleView.java:48-98`) ; candidats : coursiers rattachés à aucun autre entrepôt (`:101-113`) ; maximum niveau × 2 (`:116-119`) |
+| `recall` | `:18-20`, (30,172) « Recall Worker » | (60,344) 258×34 | `RecallCitizenMessage` (`:62-65`) |
+
+HyColony : `pl:ui/hut/WarehouseCouriersTab.java:33-50` (« n / max » et les noms ; écart documenté `:12`). Le maximum est le même (`hc:logistics/warehouse/CourierAssignmentModule.java:37-38`), le mode existe (`:29,41-46`), mais aucune action ne rattache, ne détache ni ne change le mode ; pas de rappel.
+
+#### Options de l'entrepôt (`lh/layoutwarehouseoptions.xml`, `mod/WarehouseOptionsModuleWindow.java`) — C
+
+- En-tête « Upgrade Storage ».
+- `box` (13,29) 164 × 30 ; ×2 (26,58) 328 × 60. Il contient : l'icône du bloc d'émeraude, seulement au niveau max (`:177-182`) ; le nom (18,2) ; « ↥ » (145,2) 16 × 16 vanilla ; le manque (2,20) ; « dispo / requis » (67,20) ; « n of 3 » (132,20) (`:89-183`).
+- Ligne noire et « X » rouge avec infobulle tant que la hutte n'est pas au niveau max (`:142-160`).
+- Clic → `UpgradeWarehouseMessage` (`:188-194`).
+- `sort` (50,70) 86 × 17 `medium` ; ×2 (100,140) 172 × 34. Désactivé sous le niveau 3, avec infobulle (`:68-77`) ; sinon `SortBuildingMessage` et message `WAREHOUSE_SORTED` (`:199-206`).
+- HyColony : rien (amélioration de stockage et tri absents, `WarehouseBuilding.java` Javadoc).
+
+#### Stock minimum (`lh/layoutminimumstock.xml`, `mod/MinimumStockModuleWindow.java`) — C
+
+- `addStock` (50,30) 86 × 17 `medium` « Add » ; ×2 (100,60) 172 × 34. Il devient « Limit Reached » avec la texture `_medium_disabled` à la limite (`:63-70`). Sinon il ouvre `WindowSelectRes` (objets + inventaire, avec quantité) → `AddMinimumStockToBuildingModuleMessage` (`:91-103`).
+- `resourcesstock` (13,50) 170 × 180 ; ×2 (26,100) 340 × 360. Chaque ligne de 17 (×2 34) : icône 17, nom (20,1), quantité (115,1), `removeStock` « X » rouge (130,1) 29 × 15 `very_small` → `RemoveMinimumStock…Message` (`:79-86,115-149`).
+- HyColony : rien.
+
+#### Statistiques de hutte (`lh/layoutstatsmodule.xml`, `mod/WindowStatsModule.java`) — C
+
+- Liste déroulante `intervals` (30,30) 129 × 17 : hier par défaut, semaine, 100 jours, toujours (`:61-72`).
+- `stats` (20,55) 160 × 160 : une ligne `com.minecolonies.coremod.statistic.*` par type, avec infobulle (`:102-185`).
+- « masquer les zéros » (20,220) avec la case `hidezero` (127,218) `mini_check`, cochée par défaut (`:79`).
+- HyColony : rien.
+
+### 8.6 Fenêtres annexes : détail
+
+#### `WindowHireWorker` (`xml/windowhireworker.xml`, `gui/WindowHireWorker.java`) — B
+
+Papier `builder_paper_wide2` 400 × 244 (×2 800 × 488), sans onglets.
+
+| Élément MC | XML | ×2 | Java |
+|---|---|---|---|
+| `jobLabel` | `:6`, (0,15) 100 %×11 | (0,30) 800×22 | « Choose workers for the %s. » ; hutte dédiée : « métier/métier … » (`:123-136`) |
+| boutons de métier | ajoutés par le code : (15 + 90 i, 30) 86×17 `builder_button_medium` | (30 + 180 i, 60) 172×34 | un par module d'affectation permis, « Métier n » ; le choisi désactivé ; infobulle `<job>.job.desc` (`:510-552`) |
+| `unemployed` | `:7-28`, (20,48) 375×135, ligne 35 | (40,96) 750×270, ligne 70 | `citizen` bleu (5,0) « Métier ou Unemployed: Nom » (`:475-478`) ; `distance` (2,10) ×0.8 : sans logis, habite ici, habite au travail, à N blocs (`:479-495`) ; `attributes` (2,18) ×0.7 : toutes les compétences « nom: niveau », primaire en vert foncé gras, secondaire en or gras, en tête (`:449-473,562-573`), infobulle `<job>.skills.desc` (`:499-503`) |
+| `done` / `fire` | (200,2) 44×10 `builder_button_quite_small` | (400,4) 88×20 | embaucher si assignable, module pas plein, pas déjà là ; plein : rien ; sinon renvoyer (masqué si en voyage) (`:405-438`) ; un employé d'ailleurs est d'abord retiré de son ancienne hutte (`:241-258`) ; `HireFireMessage` |
+| `pause` / `restart` | (250,2), (300,2) | (500,4), (600,4) | « Pause »/« Unpause », `PauseCitizenMessage` ; « Restart » visible si en pause, `RestartCitizenMessage` (`:198-220,436-447`) |
+| `mode` | `:69-72`, label (20,189), bouton (150,187) 169×17 `builder_button_large` | (40,378) ; (300,374) 338×34 | modes en boucle **sans LOCKED** pour un lieu de travail (`:166-181`) → `BuildingHiringModeMessage` |
+| `showEmployed` | `:74-77`, (200,208) 29×17 `very_small` « No »/« Yes » | (400,416) 58×34 | montre aussi les employés d'ailleurs (`:313-344`) |
+| `cancel` | `:79-80`, (375,10) `button_x` | (750,20) 28×30 | rouvre la hutte (`:143-149`) |
+
+Tri : employés ici, sans emploi, autre métier, non assignables, puis distance du logement arrondie à 40 (sans logis = 100), puis nom (`:266-284,349-377`). HyColony trie seulement les sans-emploi, par distance puis nom (`hc:app/view/BuildingViews.java:121-145`).
+
+Manques : compétences par candidat (`CitizenData.skills()` existe), employés d'ici dans la même liste, « Montrer les employés » (`WorkerModule.hire` refuse un employé, `hc:job/WorkerModule.java:96-101`), boutons de métier. Pause et Redémarrer : C (pause d'un citoyen). **Écart** : le bouton de mode HyColony passe par LOCKED (`pl:ui/BuildingMainTab.java:163`, `HiringMode.next()` `hc:job/HiringMode.java:14-17`).
+
+#### `WindowHutNameEntry` (`xml/windowhutnameentry.xml`, `gui/WindowHutNameEntry.java`) — B
+
+- Fenêtre sans texture, assombrie (`lightbox`), à la taille par défaut 420 × 240 (`bui:views/BOWindow.java:27,32`) ; ×2 840 × 480.
+- Titre blanc « Rename Your Building » (0,100) ; ×2 (0,200).
+- `name` (135,110) 150 × 18, `maxlength` 25 ; ×2 (270,220) 300 × 36.
+- `done` (110,170) et `cancel` (110,194), boutons vanilla 200 × 20 ; ×2 (220,340) et (220,388) 400 × 40.
+- À l'ouverture : le nom personnalisé en minuscules (`:46-50`).
+- Terminé : au-delà de **15** caractères, coupé à 15 avec le message `gui.name.toolong` (`:28,55-63`), puis `setCustomName` → `HutRenameMessage` → `building.setCustomBuildingName` sans contrôle (`mc:core/colony/buildings/views/AbstractBuildingView.java:640-644` ; `msg/colony/building/HutRenameMessage.java:56-59`). Puis la hutte se rouvre (`:72-75`).
+- HyColony : rien (pas d'action de renommage de hutte). Le renommage de la colonie (`TownHall/Actions.ui`) donne un motif à reprendre.
+
+#### `WindowHutAllInventory` (`xml/windowhutallinventory.xml`, `gui/WindowHutAllInventory.java`) — B
+
+| Élément MC | XML | ×2 | Java |
+|---|---|---|---|
+| `desc` | `:6`, « All Items » | (60,28) | — |
+| `names` (filtre) | `:7`, (15,30) 132×18, 25 car. | (30,60) 264×36 | filtre sur l'id ou l'infobulle, 10 images après la frappe (`:97-115,239-253`) ; tri par distance de Levenshtein au filtre (`:254`) |
+| `sortStorageFilter` | `:8-10`, (158,31) 14×15 `mini` | (316,62) 28×30 | 5 états « v^ » (aucun), « A^ », « Av », « 1^ », « 1v » ; état **statique**, partagé entre fenêtres (`:63,162-200,256-276`) |
+| `allinventorylist` | `:11-20`, (15,55) 165×156, `box` 18 | (30,110) 330×312, ligne 36 | icône 17 ; nom tronqué à 17 caractères (20,3) ; quantité abrégée « 1.2k » (`mc:api/util/Utils.java:178-191`), exacte avec Maj (`:321-341`) ; contenu de la hutte et de ses étagères (`:205-232`) |
+| `locate` « ? » | (141,1) 14×15 `mini` | (282,2) 28×30 | ferme la fenêtre, message `coremod.locating`, surligne 60 s chaque étagère qui contient l'objet, avec le nombre et une couleur selon la quantité (`:117-148`) |
+| `back` | `:21-23`, (50,215) 86×17 `medium` | (100,430) 172×34 | rouvre la fenêtre précédente (`:153-156`) |
+
+HyColony : sous-vue de l'onglet Principal (`pl:ui/HutStockPanel.java`, écart `:13-14`), tri fixe par quantité décroissante (`hc:app/view/BuildingViews.java:89-103`, écart `:93`). Manquent : filtre, bouton de tri, Localiser. Les surlignages existent déjà (`pl:ui/hut/FieldsTab.java:96-99`, `Highlights`), mais la vue ne dit pas quel conteneur tient quoi.
+
+#### `WindowInfo` (`xml/windowinfo.xml`, `gui/WindowInfo.java`) — A
+
+- Papier, bandeau (44,12) 6 + 90 + 6 ; ×2 (88,24) 12 + 180 + 12.
+- `pages` (20,14) 150 × 210 ; ×2 (40,28) 300 × 420.
+- `exit` et `prevPage` superposés en (13,13) 18 × 10, `turn_page_left` ; `nextPage` (159,13) `turn_page_right` ; ×2 (26,26) et (318,26) 36 × 20.
+- `pageNum` (158,222) ; ×2 (316,444).
+- Une page par clé `com.minecolonies.coremod.info.<type>.<i>` (`:42-67`) : titre rouge `.name` (30,0) 90 × 11, texte noir (0,16) 150 × 194.
+- `lang:` a 4 pages pour `builder`, `farmer`, `deliveryman`, `warehouse` (0 à 3), aucune pour `residence`.
+- HyColony : rien. Il faut seulement porter ces textes (en-US et fr-FR).
+
+#### `WindowHutGuide` (`xml/windowhutguide.xml`) — C
+
+Plein écran 960 × 540, image `guide/background.png`, trois textes et « confirm ». MC l'ouvre à la place de la hutte du constructeur tant que le succès `minecolonies/check_out_guide` n'est pas obtenu (`gui/huts/WindowHutBuilderModule.java:46-66`). Il faut un système de succès : à repousser.
+
+### 8.7 Textures à copier
+
+Déjà dans `ui:Mc/` : `builder_button_medium`, `_medium_disabled`, `_medium_large`, `_medium_large_build`, `_medium_large_disabled`, `_mini`, `_very_small`, `button_x`, `edit`, `turn_page_left/right`. Tailles d'origine vérifiées dans `tex/`.
+
+| Fenêtre | À copier (taille d'origine) |
+|---|---|
+| Cadre et Principal | `builderhut/builder_paper` (192×240), `builder_sketch_left/right` (6×15), `builder_sketch_center` (154×15), `red_wax_information` (17×17), `chest` (25×25) |
+| Onglets | `modules/tab_left_side1..4` (32×26) ; icônes 20×20 : `main`, `crafting`, `inventory`, `settings`, `info`, `stock`, `stats`, `field`, `entity` |
+| Réglages | `builder_button_small` (64×17) |
+| Champs, statistiques | `builder_button_mini_check`, `_mini_disabled`, `_mini_disabled_check` (14×15) |
+| Embauche, affectation | `builder_paper_wide2` (400×244), `builder_button_quite_small` (44×16), `builder_button_large` (169×17) |
+| Ordres de travail | `builder_button_small` |
+| Variantes désactivées utiles | `builder_button_small_disabled`, `_quite_small_disabled`, `_very_small_disabled`, `_large_disabled` (présentes dans `tex/builderhut/`) |
+| Guide (C) | `guide/background` (960×540) |
+
+Ne pas copier, car ce sont des textures de Mojang absentes de `sources/` : les boutons vanilla sans `source` (recettes, « ↥ » de l'entrepôt, nom de hutte : `bui:controls/ButtonImage.java:23`), `minecraft:textures/misc/shadow.png` (tâches) et les icônes d'étape `iron_hoe`, `wheat_seeds` (champs). Pour celles-ci, prendre une icône d'objet Hytale ou un bouton Hytale (écart à nommer).
+
+### 8.8 Widgets Hytale à ajouter à ceux de l'hôtel de ville
+
+Déjà là : `ui:Mc/Book.ui` (`@Ink`, `@InkCentered`, `@Faded`, `@Heading`, `@WideButtonStyle`, `@MiniButtonStyle`, `@DropdownStyle`, `@MediumDropdownStyle`), les lignes `ui:Mc/*.ui` (`ResourceRow`, `OrderRow`, `PickerRow`, `StatLine`, `CitizenRow`…), les contours de ligne (`OutlineSize`/`OutlineColor`, `Mc/ActionRow.ui:9-10`), la page tournée (`TownHall/Permissions.ui:134-143`) et `$C.@TextField` (`TownHall/Citizens.ui:40`).
+
+- **Onglet latéral** : un `Button` à fond `tab_left_sideN` et un `Group` d'icône par-dessus, avec `TooltipText` et `TextTooltipStyle`. C'est le motif du sceau `@Seal` (`ui:TownHall.ui:15-21`). L'image N se tire dans le plugin avec une graine stable par hutte. Le `hashCode` du `BlockPos` de Minecraft n'est pas dans `sources/` : la même suite que MC n'est pas vérifiable.
+- **Styles de bouton** à ajouter dans `Book.ui` :
+  - `small` (64×17), `quite_small` (44×16, texte ×0.8), `large` (169×17), `very_small`, et un `@MediumButtonStyle` (aujourd'hui en ligne dans `Mc/RankButtonRow.ui:16`) ;
+  - un état `Disabled` pour `@WideButtonStyle` et `@MiniButtonStyle`. Sans attribut `disabled`, BlockUI garde la même texture et grise le texte (`bui:controls/ButtonImage.java:71,95`) ; `TextButtonStyle` accepte `Disabled:` (`v:Common.ui:119,127`).
+- **Case mini cochée** (champs, masquer les zéros) : deux boutons dont un seul est `Visible`, comme Localiser (`pl:ui/hut/FieldsTab.java:96-99`).
+- **Infobulle sur un texte** (« Nom (id) » d'un travailleur, nom d'ordre, positions d'une tâche) : un `Label` accepte `TooltipText` et `TextTooltipStyle` (`v:Pages/PrefabEditorSaveSettings.ui:5,104-107`) ; le serveur pose aussi `.TooltipTextSpans` (`srv:builtin/adventure/memories/page/MemoriesPage.java:227`). **[in-game]** Survol d'un `Label` dans une liste défilante.
+- **Texte enroulé** (`desc` des réglages, `job` de l'affectation) : `Wrap: true` dans le `LabelStyle` (`v:Pages/PrefabEditorSaveSettings.ui:7`).
+- **Texte réduit** (×0.8, ×0.7 de l'embauche) : `FontSize` plus petit.
+- **Fenêtre assombrie** (nom de hutte) : `$C.@PageOverlay` sans papier, comme l'hôtel de ville.
+- **Son** : MC joue `BOOK_PAGE_TURN` sur un onglet de module. HyColony a seulement `Sounds/DefaultTabActivate.ogg` (`ui:TabButton.ui:5-7`) ; aucun son de page n'a été cherché dans les assets.
+- Liste déroulante (statistiques) : déjà là, mais le module est C.
+
+### 8.9 Questions ouvertes et risques
+
+1. **Mode d'embauche des huttes à travailleurs** : MC saute LOCKED (`gui/WindowHireWorker.java:166-181`), HyColony non (`pl:ui/BuildingMainTab.java:163`). La résidence, elle, passe bien par LOCKED (`gui/WindowAssignCitizen.java:154-165`). C'est un bug de fidélité à corriger.
+2. **Droit d'ouverture de l'inventaire de hutte** : `MANAGE_HUTS` chez MC (`OpenInventoryMessage` sans redéfinition), `OPEN_CONTAINER` chez HyColony (`pl:ui/HutStorage.java:36-38`). Faut-il s'aligner, ou est-ce un écart voulu ?
+3. **Onglet ouvert** : MC n'en montre aucun (chaque onglet est une fenêtre). Garder un état visible serait un écart à nommer.
+4. **Contenus déplacés chez HyColony** : Résidents (onglet au lieu de la page principale et de `WindowAssignCitizen`), Fertiliser (Champs au lieu de Réglages), embauche en ligne et mode sur la page principale (au lieu de `WindowHireWorker`), sous-vue Inventaire total. Ils sont à remettre aux places de MC.
+5. **Renommer** : MC coupe à 15 caractères côté client, le champ en accepte 25, le serveur ne vérifie rien. Faut-il reproduire tel quel ?
+6. **Libellé « Work Orders » hors du papier** (`lh/layoutworkorders.xml:6`, x = 201 > 190) : bizarrerie MC, à reproduire ou non.
+7. **Fenêtres absentes** : `WindowHutGuide` (succès), `WindowConfirm` (déjà remplacé par un double clic), apprentissage de recette (conteneur d'artisanat, remplacé par une liste).
+8. **Stock minimum, statistiques de hutte, options de l'entrepôt, recettes du constructeur, pause d'un citoyen, recherche** (réglages `recipemode`, `buildmode`) : systèmes C. Les onglets correspondants manqueront tant qu'ils n'existent pas. Les lignes de réglage liées à la recherche peuvent s'afficher désactivées, avec la raison de MC.
+9. **Textures Mojang** (boutons vanilla, ombre, houe, graines) : à remplacer par des éléments Hytale, écart à nommer.
+10. **[in-game]** Rendu des textures étirées (`builder_paper` 192×240 dans 190×244, `sketch_center` 154 dans 130, `chest` 25 dans 17) une fois agrandies ×4 puis affichées ×2.
