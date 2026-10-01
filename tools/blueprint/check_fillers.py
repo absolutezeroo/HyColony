@@ -7,7 +7,7 @@ from pathlib import Path
 
 from .blueprint import Blueprint
 from .converter import Converter, Options
-from .fillers import Hitboxes, filler_offsets
+from .fillers import Hitboxes, _hitbox_index, filler_offsets
 
 # Hitbox du Bench_Farming (X -1..1, Y 0..2) et de l'épouvantail (Y 0..2.3), lues dans les assets du jeu.
 BENCH = [{"Min": {"X": -1, "Y": 0, "Z": 0}, "Max": {"X": 1, "Y": 1, "Z": 1}},
@@ -25,8 +25,22 @@ def offsets_follow_hytales_rounding_and_yaw():
     assert filler_offsets([{"Min": {"X": 0, "Y": 0, "Z": 0}, "Max": {"X": 1, "Y": 1, "Z": 1}}], 3) == set()
 
 
+def the_index_reads_each_states_hitbox_from_the_closest_item_defining_it():
+    # Un état a pour parent le BlockType qui le contient (StateData INJECT_PARENT) : un état redéfini sans HitboxType
+    # prend la hitbox de base de son objet, pas celle de l'état chez un ancêtre.
+    items = {
+        "Gate": {"BlockType": {"HitboxType": "Fence_Gate",
+                               "State": {"Definitions": {"OpenDoorOut": {"HitboxType": "Open"}, "Closed": {}}}}},
+        "Child": {"Parent": "Gate"},
+        "Redef": {"Parent": "Gate", "BlockType": {"HitboxType": "Half", "State": {"Definitions": {"OpenDoorOut": {}}}}},
+    }
+    assert _hitbox_index(items) == {"Gate": "Fence_Gate", "Gate#OpenDoorOut": "Open", "Child": "Fence_Gate",
+                                    "Child#OpenDoorOut": "Open", "Redef": "Half"}, _hitbox_index(items)
+
+
 def a_state_takes_its_own_hitbox():
-    # Each state is its own BlockType (FillerBlockUtil.setFillerBlocksAt reads its HitboxType): an open gate juts out.
+    # Chaque état est son propre BlockType (FillerBlockUtil.setFillerBlocksAt lit sa HitboxType) : un portillon ouvert
+    # déborde.
     open_out = [{"Min": {"X": 0, "Y": 0, "Z": -0.25}, "Max": {"X": 1, "Y": 1, "Z": 0.65}}]
     unit = [{"Min": {"X": 0, "Y": 0, "Z": 0}, "Max": {"X": 1, "Y": 1, "Z": 1}}]
     hitboxes = Hitboxes({"HyDomum_FenceGate": "Fence_Gate", "HyDomum_FenceGate#OpenDoorOut": "Fence_Gate_Open_Out"},
@@ -50,6 +64,7 @@ def an_empty_cell_inside_a_multi_cell_model_is_dropped():
 
 def run():
     offsets_follow_hytales_rounding_and_yaw()
+    the_index_reads_each_states_hitbox_from_the_closest_item_defining_it()
     a_state_takes_its_own_hitbox()
     an_empty_cell_inside_a_multi_cell_model_is_dropped()
     print("blueprint fillers check: OK")

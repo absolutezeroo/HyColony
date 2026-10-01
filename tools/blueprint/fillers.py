@@ -96,17 +96,25 @@ def default() -> Hitboxes | None:
     for mod in _MODS:
         for p in (REPO / mod / "src/main/resources/Server/Item").glob("**/*.json"):
             add(p.stem, _read(p.read_text(encoding="utf-8")), "/Block/Hitboxes/" in p.as_posix())
-    hitbox_of = {}
+    return Hitboxes(_hitbox_index(items), boxes)
+
+
+def _hitbox_index(items: dict[str, dict]) -> dict[str, str]:
+    """`<objet>` -> son HitboxType, et `<objet>#<état>` -> celui de l'état quand il en a un (voir _hitbox_types)."""
+    index = {}
     for name in items:
         for state, hitbox in _hitbox_types(items, name).items():
-            hitbox_of[f"{name}#{state}" if state else name] = hitbox
-    return Hitboxes(hitbox_of, boxes)
+            index[f"{name}#{state}" if state else name] = hitbox
+    return index
 
 
 def _hitbox_types(items: dict[str, dict], name: str) -> dict[str, str]:
-    """Le HitboxType du BlockType de l'objet (clé "") et de chacun de ses états (BlockType.State.Definitions), le plus
-    proche l'emportant le long des parents (Parent)."""
+    """Le HitboxType du BlockType de l'objet (clé ""), le plus proche le long des parents (Parent), et celui de chaque
+    état (BlockType.State.Definitions) que l'objet le plus proche qui le définit lui donne. Un état a pour parent le
+    BlockType qui le contient (StateData INJECT_PARENT) : défini sans HitboxType, il prend celle de son objet, donc
+    il n'a pas d'entrée."""
     found: dict[str, str] = {}
+    defined: set[str] = set()
     for _ in range(10):
         item = items.get(name)
         if item is None:
@@ -115,8 +123,9 @@ def _hitbox_types(items: dict[str, dict], name: str) -> dict[str, str]:
         if block.get("HitboxType"):
             found.setdefault("", block["HitboxType"])
         for state, definition in ((block.get("State") or {}).get("Definitions") or {}).items():
-            if isinstance(definition, dict) and definition.get("HitboxType"):
-                found.setdefault(state, definition["HitboxType"])
+            if state not in defined and isinstance(definition, dict) and definition.get("HitboxType"):
+                found[state] = definition["HitboxType"]
+            defined.add(state)
         if "Parent" not in item:
             break
         name = item["Parent"]
