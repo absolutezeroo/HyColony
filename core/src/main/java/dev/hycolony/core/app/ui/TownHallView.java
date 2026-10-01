@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-/** MC WindowTownHall, one field group per tab: Home (name, rename), Information, Citizens, Statistics. */
+/** MC WindowTownHall, one field group per tab: Home, Information, Permissions, Citizens, Statistics, Settings. */
 public record TownHallView(
         int colonyId,
         String colonyName,
@@ -27,7 +27,7 @@ public record TownHallView(
     }
 
     /**
-     * MC WindowPermissionsPage: whether the viewer may edit (EDIT_PERMISSIONS), the members by rank, the ranks by id,
+     * MC WindowPermissionsPage: whether the viewer may edit (EDIT_PERMISSIONS), the members by rank, the ranks as made,
      * the refused actions newest first and the online players who are not members.
      */
     public record Permissions(

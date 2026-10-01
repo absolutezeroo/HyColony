@@ -24,10 +24,9 @@ final class PermissionViews {
     static TownHallView.Permissions of(Colony c, ColonyContext ctx, UUID viewer) {
         Permissions p = c.permissions();
         Rank viewerRank = p.rankOf(viewer);
-        List<TownHallView.RankRow> ranks = p.ranks().values().stream()
-                .sorted(Comparator.comparingInt(Rank::id))
-                .map(r -> rank(p, viewerRank, r))
-                .toList();
+        // MC lists the ranks in the order they were made (Permissions.ranks, a LinkedHashMap).
+        List<TownHallView.RankRow> ranks =
+                p.ranks().values().stream().map(r -> rank(p, viewerRank, r)).toList();
         List<PermissionEvents.Event> refusals = new ArrayList<>(p.events().entries());
         Collections.reverse(refusals); // MC fillEventsList: newest first
         return new TownHallView.Permissions(
@@ -56,7 +55,12 @@ final class PermissionViews {
         return new TownHallView.RankRow(r.id(), r.name(), r.isInitial(), r.type(), actions);
     }
 
-    /** MC playerPicker: the players online in the colony's world who are not members yet. */
+    /**
+     * MC playerPicker: the online players who are not members yet.
+     *
+     * <p>Deviation from MC: those of the colony's world only (HyColony runs one colony manager per world); MC offers
+     * every player of the server.
+     */
     private static List<PlayerDirectory.Profile> online(Permissions p, ColonyContext ctx) {
         return ctx.players().onlineIn(ctx.world()).stream()
                 .filter(id -> !p.members().containsKey(id))

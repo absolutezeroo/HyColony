@@ -59,8 +59,11 @@ public final class ColonyProtection {
         return true;
     }
 
-    /** MC cancelEvent: the refusal joins the town hall's permission events (PermissionEvents). */
+    /** MC cancelEvent: the refusal joins the town hall's permission events, if the colony has its town hall. */
     private void log(Colony c, UUID player, Action action, BlockPos pos) {
+        if (c.buildings().townHall().isEmpty()) {
+            return;
+        }
         String name = context().players().name(player).orElse("");
         if (c.permissions().events().add(new PermissionEvents.Event(Optional.of(player), name, action, pos))) {
             c.markDirty();

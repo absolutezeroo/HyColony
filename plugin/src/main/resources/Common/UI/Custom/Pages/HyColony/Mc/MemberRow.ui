@@ -20,7 +20,7 @@ Group {
   }
 
   Label #Rank {
-    Anchor: (Left: 10, Top: 38, Width: 258, Height: 22);
+    Anchor: (Left: 10, Top: 34, Width: 258, Height: 22);
     Style: $B.@Ink;
     Visible: false;
   }

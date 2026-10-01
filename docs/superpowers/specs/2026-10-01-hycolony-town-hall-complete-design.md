@@ -130,7 +130,7 @@ Trois sous-pages, tournées par `<` `>` avec leur numéro. Sans `EDIT_PERMISSION
 **Cœur** :
 
 - `Permissions` : `canAlterPermission` et `alterPermission` (`Permissions.java:304-323`), l'exception du rang Neutre qui n'a jamais `EDIT_PERMISSIONS` ni `TELEPORT_TO_COLONY` (`:641`), `addRank`, `removeRank`, `setRankType`, `removePlayer`, `addPlayer`, avec les règles de MC ; persistance des rangs personnalisés (`add-migration` si le format change).
-- **Journal des refus** : chaque refus d'action (`ColonyProtection`) est enregistré, 100 au plus, avec le joueur, l'action et la position ; persisté comme chez MC (`BuildingTownHall.java:110`).
+- **Journal des refus** : chaque refus d'action (`ColonyProtection`) est noté quand la colonie a son hôtel de ville, 100 au plus, sans doublon, avec le joueur, l'action et la position ; en mémoire seulement, comme MC (`BuildingTownHall.java:110`, jamais écrit en NBT). Les actions de l'onglet refusent en silence sans `EDIT_PERMISSIONS`, comme `PermissionsMessage`.
 - **Port `PlayerDirectory`** : `name(UUID)` (joueur en ligne) et `findByName(String, Consumer<Optional<Profile>>)` : un joueur en ligne tout de suite, sinon le service de profils de Hytale que les commandes du jeu utilisent (`ArgTypes.GAME_PROFILE_LOOKUP_ASYNC`), dont la réponse revient sur le fil du monde (`docs/research/plugin-b-api.md` § 43). MC lit un cache local de profils ; Hytale n'en a pas.
 - Actions : `ColonyAdministration` délègue à une nouvelle classe `PermissionActions` (une responsabilité : modifier les permissions), `EDIT_PERMISSIONS` partout, comme `PermissionsMessage`.
 

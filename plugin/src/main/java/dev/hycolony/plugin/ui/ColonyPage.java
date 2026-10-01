@@ -43,6 +43,8 @@ public abstract class ColonyPage extends InteractiveCustomUIPage<ColonyPage.Act>
                                         d -> String.valueOf(d.index))
                                 .add()
                                 .append(new KeyedCodec<>("@Name", Codec.STRING), (d, v) -> d.name = v, d -> d.name)
+                                .add()
+                                .append(new KeyedCodec<>("Ref", Codec.STRING), (d, v) -> d.ref = v, d -> d.ref)
                                 .add(),
                         d -> d.drop)
                 .build();
@@ -50,6 +52,11 @@ public abstract class ColonyPage extends InteractiveCustomUIPage<ColonyPage.Act>
         int index = -1;
         /** A text field's value, sent as {@code @Name}; empty when the event carries none. */
         String name = "";
+        /**
+         * A stable id of the row clicked (a player's UUID), sent as {@code Ref}: a window not redrawn by a live refresh
+         * still names the right row, where an index would point into the new list. Empty when the event carries none.
+         */
+        String ref = "";
         /** An item dropped on one of the window's inventory grids (InventoryGrids); empty for other events. */
         final InventoryDrop drop = new InventoryDrop();
 
@@ -63,6 +70,10 @@ public abstract class ColonyPage extends InteractiveCustomUIPage<ColonyPage.Act>
 
         public String name() {
             return name;
+        }
+
+        public String ref() {
+            return ref;
         }
 
         public InventoryDrop drop() {
@@ -129,6 +140,15 @@ public abstract class ColonyPage extends InteractiveCustomUIPage<ColonyPage.Act>
 
     public static void bind(UIEventBuilder events, String selector, String action) {
         events.addEventBinding(CustomUIEventBindingType.Activating, selector, EventData.of("Action", action), false);
+    }
+
+    /** A button whose event names its row by a stable id ({@link Act#ref}). */
+    public static void bindRef(UIEventBuilder events, String selector, String action, String ref) {
+        events.addEventBinding(
+                CustomUIEventBindingType.Activating,
+                selector,
+                EventData.of("Action", action).append("Ref", ref),
+                false);
     }
 
     public static void bind(UIEventBuilder events, String selector, String action, int index) {

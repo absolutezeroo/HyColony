@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.permission.Action;
+import dev.hycolony.core.colony.permission.BlockUse;
 import dev.hycolony.core.colony.permission.PermissionEvents;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.testing.TestContexts;
@@ -26,6 +27,7 @@ class PermissionEventLogTest {
         manager.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
         Colony c = manager.foundation().confirm(alice, "A").orElseThrow();
         t.players.names.put(bob, "Bob");
+        t.players.online.put(bob, inside);
         c.clearDirty();
 
         assertTrue(manager.protection().refuses(bob, inside, Action.BREAK_BLOCKS));
@@ -35,5 +37,17 @@ class PermissionEventLogTest {
                 List.of(new PermissionEvents.Event(Optional.of(bob), "Bob", Action.BREAK_BLOCKS, inside)),
                 c.permissions().events().entries());
         assertTrue(c.isDirty());
+    }
+
+    @Test
+    void aRefusedBlockUseIsLoggedToo() {
+        manager.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
+        Colony c = manager.foundation().confirm(alice, "A").orElseThrow();
+        BlockUse chest = new BlockUse(false, true, false, BlockUse.Held.NOTHING);
+        assertTrue(manager.protection().refuses(bob, inside, chest));
+        // MC's first check: a neutral player may not even right-click a block.
+        assertEquals(
+                Action.RIGHTCLICK_BLOCK,
+                c.permissions().events().entries().getFirst().action());
     }
 }

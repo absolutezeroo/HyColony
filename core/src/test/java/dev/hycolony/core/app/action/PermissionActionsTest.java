@@ -31,6 +31,7 @@ class PermissionActionsTest {
         manager.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
         colony = manager.foundation().confirm(alice, "A").orElseThrow();
         t.players.names.put(bob, "Bob");
+        t.notifier.sent.clear();
     }
 
     private Permissions permissions() {
@@ -39,10 +40,12 @@ class PermissionActionsTest {
 
     @Test
     void addingAKnownNameMakesTheMemberNeutralAndShowsTheTownHall() {
+        manager.windows().openTownHall(alice, new BlockPos(0, 64, 0));
         assertTrue(actions.addPlayer(alice, colony.id(), "Bob"));
         assertEquals(Permissions.NEUTRAL, permissions().rankOf(bob).id());
         assertEquals("Bob", permissions().members().get(bob).name());
-        assertTrue(t.ui.shown.get(alice) instanceof TownHallView);
+        TownHallView shown = (TownHallView) t.ui.shown.get(alice);
+        assertTrue(shown.permissions().members().stream().anyMatch(m -> m.id().equals(bob)), "shown again");
     }
 
     @Test
@@ -52,12 +55,10 @@ class PermissionActionsTest {
     }
 
     @Test
-    void addingNeedsEditPermissionsAndSaysSo() {
+    void addingNeedsEditPermissionsAndRefusesSilentlyAsMc() {
         assertFalse(actions.addPlayer(carol, colony.id(), "Bob"));
         assertFalse(permissions().members().containsKey(bob));
-        assertEquals(
-                "hycolony.permission.toolDenied",
-                t.notifier.sent.getLast().msg().key());
+        assertTrue(t.notifier.sent.isEmpty());
     }
 
     @Test
@@ -71,7 +72,7 @@ class PermissionActionsTest {
     }
 
     @Test
-    void anOfficerRemovesAFriendButAFriendRemovesNoOneElse() {
+    void anEditorRemovesAFriendButAFriendRemovesNoOneElse() {
         permissions().addPlayer(bob, "Bob", Permissions.FRIEND);
         permissions().addPlayer(carol, "Carol", Permissions.FRIEND);
         assertFalse(actions.removePlayer(carol, colony.id(), bob), "a friend has no EDIT_PERMISSIONS");
@@ -128,5 +129,46 @@ class PermissionActionsTest {
         assertFalse(actions.setRank(alice, colony.id(), bob, Permissions.OWNER));
         assertFalse(actions.setRank(carol, colony.id(), bob, Permissions.OFFICER));
         assertEquals(Permissions.FRIEND, permissions().rankOf(bob).id());
+    }
+
+    @Test
+    void anEditorWhoIsNoManagerRemovesOnlyHostilePlayers() {
+        permissions().addPlayer(carol, "Carol", Permissions.FRIEND);
+        permissions().ranks().get(Permissions.FRIEND).add(Action.EDIT_PERMISSIONS);
+        permissions().addPlayer(bob, "Bob", Permissions.HOSTILE);
+        UUID dave = UUID.randomUUID();
+        permissions().addPlayer(dave, "Dave", Permissions.NEUTRAL);
+        assertFalse(actions.removePlayer(carol, colony.id(), dave));
+        assertTrue(actions.removePlayer(carol, colony.id(), bob));
+    }
+
+    @Test
+    void aRankMayBeNamedAfterTheOwnerRankAsMcListsAllButIt() {
+        assertTrue(actions.addRank(alice, colony.id(), "Owner"));
+    }
+
+    @Test
+    void aLateAnswerForAGoneColonyChangesNothing() {
+        t.players.answerLater = true;
+        assertTrue(actions.addPlayer(alice, colony.id(), "Bob"));
+        manager.deleteColony(colony.id(), alice);
+        t.players.answerNow();
+        assertFalse(permissions().members().containsKey(bob));
+    }
+
+    @Test
+    void aLateAnswerDoesNotReopenAClosedTownHall() {
+        t.players.answerLater = true;
+        assertTrue(actions.addPlayer(alice, colony.id(), "Bob"));
+        t.ui.shown.clear();
+        t.players.answerNow();
+        assertEquals(Permissions.NEUTRAL, permissions().rankOf(bob).id());
+        assertFalse(t.ui.shown.containsKey(alice), "the player had left the town hall");
+    }
+
+    @Test
+    void aNameLongerThanTheFieldIsRefused() {
+        assertFalse(actions.addRank(alice, colony.id(), "x".repeat(33)));
+        assertFalse(actions.addPlayer(alice, colony.id(), "x".repeat(33)));
     }
 }

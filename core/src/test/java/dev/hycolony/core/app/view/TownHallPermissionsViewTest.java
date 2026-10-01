@@ -25,13 +25,15 @@ class TownHallPermissionsViewTest {
     @Test
     void membersAreSortedByRank() {
         UUID dave = UUID.randomUUID();
+        UUID zed = UUID.randomUUID();
         f.colony.permissions().addPlayer(dave, "Dave", Permissions.HOSTILE);
+        f.colony.permissions().addPlayer(zed, "Zed", Permissions.OFFICER); // joined last, ranks before Carol
         assertEquals(
-                List.of("Alice", "Carol", "Dave"),
+                List.of("Alice", "Zed", "Carol", "Dave"),
                 view(f.alice).members().stream()
                         .map(TownHallView.MemberRow::name)
                         .toList());
-        assertEquals(Permissions.FRIEND, view(f.alice).members().get(1).rankId());
+        assertEquals(Permissions.FRIEND, view(f.alice).members().get(2).rankId());
     }
 
     @Test
@@ -81,5 +83,12 @@ class TownHallPermissionsViewTest {
         assertEquals(
                 List.of("Ed"),
                 view(f.alice).online().stream().map(p -> p.name()).toList());
+    }
+
+    @Test
+    void theNeutralRankShowsEditPermissionsOffWhateverItsFlag() {
+        f.colony.permissions().ranks().get(Permissions.NEUTRAL).add(Action.EDIT_PERMISSIONS);
+        TownHallView.RankRow neutral = view(f.alice).ranks().get(Permissions.NEUTRAL);
+        assertFalse(neutral.actions().get(Action.EDIT_PERMISSIONS.ordinal()).on());
     }
 }

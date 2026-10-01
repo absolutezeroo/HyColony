@@ -10,7 +10,7 @@ Group {
   OutlineColor: #000000;
 
   Label #Name {
-    Anchor: (Left: 4, Top: 4, Width: 220, Height: 34);
+    Anchor: (Left: 4, Top: 4, Width: 220, Height: 36);
     Style: (...$B.@Ink, FontSize: 14, ShrinkTextToFit: true, MinShrinkTextToFitFontSize: 10);
   }
 

@@ -63,13 +63,13 @@ final class WorkOrderListTab {
         String down = row + " #DownButton";
         String delete = row + " #DeleteButton";
         if (shown(ui, up, view.canManage() && i > 0)) {
-            ColonyPage.bind(events, up, "up", i);
+            ColonyPage.bind(events, up, "up", view.orders().get(i).id());
         }
         if (shown(ui, down, view.canManage() && i < view.orders().size() - 1)) {
-            ColonyPage.bind(events, down, "down", i);
+            ColonyPage.bind(events, down, "down", view.orders().get(i).id());
         }
         if (shown(ui, delete, view.canManage())) {
-            ColonyPage.bind(events, delete, "delete", i);
+            ColonyPage.bind(events, delete, "delete", view.orders().get(i).id());
         }
     }
 
@@ -81,12 +81,10 @@ final class WorkOrderListTab {
         return shown;
     }
 
-    /** The core checks MANAGE_HUTS, then shows the town hall again. */
+    /** The core checks MANAGE_HUTS and the order id, then shows the town hall again. */
     void handle(ColonyPage.Act act) {
-        if (act.index() < 0 || act.index() >= view.orders().size()) {
-            return;
-        }
-        int id = view.orders().get(act.index()).id();
+        // The event carries the order's id: still the clicked order after a live refresh not redrawn.
+        int id = act.index();
         switch (act.action()) {
             case "up" -> manager.workOrders().move(player, colonyId, id, 1);
             case "down" -> manager.workOrders().move(player, colonyId, id, -1);

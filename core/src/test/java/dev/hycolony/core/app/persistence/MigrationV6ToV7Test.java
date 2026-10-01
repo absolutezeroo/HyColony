@@ -19,7 +19,7 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/** Schema 7 (town hall): the colony style, the move-in setting, event positions and the permission events. */
+/** Schema 7 (town hall): the colony style, the move-in setting and the event positions. */
 class MigrationV6ToV7Test {
     private static final String FIXTURE = "colony-v6-townhall.json";
 
@@ -45,8 +45,6 @@ class MigrationV6ToV7Test {
                 .getAsJsonObject()
                 .get("pos")
                 .isJsonNull());
-        assertTrue(
-                migrated.getAsJsonObject("permissions").getAsJsonArray("events").isEmpty());
     }
 
     @Test
@@ -62,7 +60,6 @@ class MigrationV6ToV7Test {
         assertTrue(c.settings().moveIn());
         assertEquals(2, c.log().entries().size());
         assertTrue(c.log().entries().stream().map(EventLog.Entry::pos).allMatch(p -> p.isEmpty()));
-        assertTrue(c.permissions().events().entries().isEmpty());
         m.persistence().saveAll();
         String saved = Files.readString(dir.resolve("colony-1.json"));
         assertTrue(saved.contains("\"schemaVersion\":7"), saved);

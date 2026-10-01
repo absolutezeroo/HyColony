@@ -55,6 +55,9 @@ final class TownHallPermissionsTab implements TownHallTab {
         ui.set(root + " #PlayersPage.Visible", page == 0);
         ui.set(root + " #RanksPage.Visible", page == 1);
         ui.set(root + " #PageNum.Text", (page + 1) + "/" + PAGES);
+        // MC AbstractWindowSkeleton.setPage: no "previous" on the first page, no "next" on the last.
+        ui.set(root + " #PrevPage.Visible", page > 0);
+        ui.set(root + " #NextPage.Visible", page < PAGES - 1);
         ColonyPage.bind(events, root + " #PrevPage", "permPrev");
         ColonyPage.bind(events, root + " #NextPage", "permNext");
         if (page == 0) {
@@ -73,14 +76,18 @@ final class TownHallPermissionsTab implements TownHallTab {
                     page + " #AddPlayer",
                     EventData.of("Action", "permAddPlayer").append("@Name", page + " #PlayerName.Value"),
                     false);
-            ColonyPage.bind(events, page + " #OnlinePlayers", "permPicker");
         } else {
-            Message error = Message.translation("hycolony.ui.townhall.perm.playerError");
-            for (String id : List.of(" #PlayerName", " #AddPlayer", " #OnlinePlayers")) {
-                ui.set(page + id + ".Disabled", true);
-                ui.set(page + id + ".TooltipText", error);
-            }
+            // MC WindowPermissionsPage: the field and its button greyed, the tooltip on the field.
+            ui.set(page + " #PlayerName.Disabled", true);
+            ui.set(page + " #AddPlayer.Disabled", true);
+            ui.set(page + " #PlayerName.TooltipText", Message.translation("hycolony.ui.townhall.perm.playerError"));
         }
+        // The typed name goes with the click, so that redrawing the page with the list keeps it.
+        events.addEventBinding(
+                CustomUIEventBindingType.Activating,
+                page + " #OnlinePlayers",
+                EventData.of("Action", "permPicker").append("@Name", page + " #PlayerName.Value"),
+                false);
         members(ui, events, page + " #Members");
         refusals(ui, events, page + " #Refusals");
         ui.set(page + " #Picker.Visible", picker);
@@ -88,11 +95,15 @@ final class TownHallPermissionsTab implements TownHallTab {
             String row = page + " #Picker[" + i + "]";
             ui.append(page + " #Picker", "Pages/HyColony/Mc/PickerRow.ui");
             ui.set(row + " #Pick.Text", view.online().get(i).name());
-            ColonyPage.bind(events, row + " #Pick", "permPick", i);
+            ColonyPage.bindRef(
+                    events,
+                    row + " #Pick",
+                    "permPick",
+                    view.online().get(i).id().toString());
         }
     }
 
-    /** MC updateUsers: the owner's rank as text and no remove cross, the others' rank as a dropdown without Owner. */
+    /** MC updateUsers: the owner's rank as text and its cross greyed, the others' rank as a dropdown without Owner. */
     private void members(UICommandBuilder ui, UIEventBuilder events, String list) {
         List<DropdownEntryInfo> rankEntries = new ArrayList<>();
         view.ranks().stream()
@@ -105,20 +116,20 @@ final class TownHallPermissionsTab implements TownHallTab {
             ui.append(list, "Pages/HyColony/Mc/MemberRow.ui");
             ui.set(row + " #Name.Text", m.name());
             if (m.rankId() == Permissions.OWNER) {
-                ui.set(row + " #Remove.Visible", false);
+                ui.set(row + " #Remove.Disabled", true);
                 ui.set(row + " #RankPicker.Visible", false);
                 ui.set(row + " #Rank.Visible", true);
                 ui.set(row + " #Rank.Text", m.rankName());
                 continue;
             }
-            ColonyPage.bind(events, row + " #Remove", "permRemove", i);
+            ColonyPage.bindRef(events, row + " #Remove", "permRemove", m.id().toString());
             ui.set(row + " #RankPicker.Entries", rankEntries);
             ui.set(row + " #RankPicker.Value", String.valueOf(m.rankId()));
             events.addEventBinding(
                     CustomUIEventBindingType.ValueChanged,
                     row + " #RankPicker",
                     EventData.of("Action", "permSetRank")
-                            .append("Index", String.valueOf(i))
+                            .append("Ref", m.id().toString())
                             .append("@Name", row + " #RankPicker.Value"),
                     false);
         }
@@ -136,7 +147,8 @@ final class TownHallPermissionsTab implements TownHallTab {
                     row + " #Pos.Text",
                     e.pos().x() + " " + e.pos().y() + " " + e.pos().z());
             if (e.player().isPresent()) {
-                ColonyPage.bind(events, row + " #Add", "permAddKnown", i);
+                ColonyPage.bindRef(
+                        events, row + " #Add", "permAddKnown", e.player().get().toString());
             } else {
                 ui.set(row + " #Add.Visible", false);
             }
@@ -155,9 +167,9 @@ final class TownHallPermissionsTab implements TownHallTab {
                 return navigate(act);
             }
             case "permAddPlayer" -> actions.addPlayer(player, colonyId, act.name());
-            case "permRemove" -> member(act.index()).ifPresent(m -> actions.removePlayer(player, colonyId, m.id()));
-            case "permSetRank" -> member(act.index()).ifPresent(m -> setRank(m, act.name()));
-            case "permAddKnown" -> addKnown(act.index());
+            case "permRemove" -> uuid(act.ref()).ifPresent(id -> actions.removePlayer(player, colonyId, id));
+            case "permSetRank" -> uuid(act.ref()).ifPresent(id -> setRank(id, act.name()));
+            case "permAddKnown" -> uuid(act.ref()).ifPresent(this::addKnown);
             default -> {
                 return ranks.handle(act);
             }
@@ -168,38 +180,52 @@ final class TownHallPermissionsTab implements TownHallTab {
     /** The page state: turning pages, opening the online players, picking one into the name field. */
     private Outcome navigate(ColonyPage.Act act) {
         switch (act.action()) {
-            case "permPicker" -> picker = !picker;
+            case "permPicker" -> {
+                picked = act.name();
+                picker = !view.online().isEmpty();
+            }
             case "permPick" -> {
-                if (act.index() < 0 || act.index() >= view.online().size()) {
+                Optional<String> name = uuid(act.ref())
+                        .flatMap(id -> view.online().stream()
+                                .filter(o -> o.id().equals(id))
+                                .map(o -> o.name())
+                                .findFirst());
+                if (name.isEmpty()) {
                     return Outcome.NONE;
                 }
-                picked = view.online().get(act.index()).name();
+                picked = name.get();
                 picker = false;
             }
             default -> {
-                page = Math.floorMod(page + ("permNext".equals(act.action()) ? 1 : -1), PAGES);
+                page = Math.clamp(page + ("permNext".equals(act.action()) ? 1 : -1), 0, PAGES - 1);
                 picker = false;
             }
         }
         return Outcome.REDRAW;
     }
 
-    private Optional<TownHallView.MemberRow> member(int i) {
-        return i >= 0 && i < view.members().size() ? Optional.of(view.members().get(i)) : Optional.empty();
+    /** The UUID an event names; empty for anything else (a forged event). */
+    private static Optional<UUID> uuid(String ref) {
+        try {
+            return Optional.of(UUID.fromString(ref));
+        } catch (IllegalArgumentException _) {
+            return Optional.empty();
+        }
     }
 
-    private void setRank(TownHallView.MemberRow m, String value) {
+    private void setRank(UUID member, String value) {
         try {
-            actions.setRank(player, colonyId, m.id(), Integer.parseInt(value));
+            actions.setRank(player, colonyId, member, Integer.parseInt(value));
         } catch (NumberFormatException _) {
             // A forged value: ignored.
         }
     }
 
-    private void addKnown(int i) {
-        if (i >= 0 && i < view.refusals().size()) {
-            PermissionEvents.Event e = view.refusals().get(i);
-            e.player().ifPresent(id -> actions.addKnownPlayer(player, colonyId, id, e.name()));
-        }
+    /** MC AddPlayerOrFakePlayer, with the name the refusal logged; nothing once the refusal is gone. */
+    private void addKnown(UUID refused) {
+        view.refusals().stream()
+                .filter(e -> e.player().filter(refused::equals).isPresent())
+                .findFirst()
+                .ifPresent(e -> actions.addKnownPlayer(player, colonyId, refused, e.name()));
     }
 }

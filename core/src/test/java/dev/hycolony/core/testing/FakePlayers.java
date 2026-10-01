@@ -3,6 +3,7 @@ package dev.hycolony.core.testing;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.WorldKey;
 import dev.hycolony.core.kernel.port.PlayerDirectory;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -16,6 +17,10 @@ import java.util.function.Consumer;
 public final class FakePlayers implements PlayerDirectory {
     /** Every player the game knows by name, online or not. */
     public final Map<UUID, String> names = new LinkedHashMap<>();
+    /** When set, {@link #findByName} answers only at {@link #answerNow}. */
+    public boolean answerLater;
+
+    private final List<Runnable> lateAnswers = new ArrayList<>();
 
     public final Map<UUID, BlockPos> online = new LinkedHashMap<>();
     public final Set<UUID> operators = new HashSet<>();
@@ -27,15 +32,27 @@ public final class FakePlayers implements PlayerDirectory {
 
     @Override
     public Optional<String> name(UUID player) {
-        return Optional.ofNullable(names.get(player));
+        return online.containsKey(player) ? Optional.ofNullable(names.get(player)) : Optional.empty();
     }
 
     @Override
     public void findByName(String name, Consumer<Optional<Profile>> then) {
-        then.accept(names.entrySet().stream()
+        Runnable answer = () -> then.accept(names.entrySet().stream()
                 .filter(e -> e.getValue().equalsIgnoreCase(name))
                 .findFirst()
                 .map(e -> new Profile(e.getKey(), e.getValue())));
+        if (answerLater) {
+            lateAnswers.add(answer);
+        } else {
+            answer.run();
+        }
+    }
+
+    /** Answers the lookups held back while {@link #answerLater} was set, as the profile service does later. */
+    public void answerNow() {
+        List<Runnable> due = new ArrayList<>(lateAnswers);
+        lateAnswers.clear();
+        due.forEach(Runnable::run);
     }
 
     @Override

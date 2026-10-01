@@ -8,7 +8,7 @@ import com.google.gson.JsonPrimitive;
 
 /**
  * Schema 7 (town hall): the colony's style is its town hall's (MC IColony.getStructurePack), new citizens move in (MC
- * MOVE_IN default), past events have no position and no refused action is logged.
+ * MOVE_IN default) and past events have no position.
  */
 final class MigrationV6ToV7 {
     private MigrationV6ToV7() {}
@@ -24,9 +24,6 @@ final class MigrationV6ToV7 {
                     e.add("pos", JsonNull.INSTANCE);
                 }
             }
-        }
-        if (doc.get("permissions") instanceof JsonObject permissions) {
-            permissions.add("events", new JsonArray());
         }
         return doc;
     }

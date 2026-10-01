@@ -9,7 +9,7 @@ import java.util.UUID;
 
 /**
  * The colony's refused actions, oldest first, as MC BuildingTownHall.permissionEvents: at most
- * {@value #MAX_EVENTS}, an event already logged is not logged twice.
+ * {@value #MAX_EVENTS}, an event already logged is not logged twice, kept in memory only (MC never saves them).
  */
 public final class PermissionEvents {
     /** MC ColonyConstants.MAX_COLONY_EVENTS. */

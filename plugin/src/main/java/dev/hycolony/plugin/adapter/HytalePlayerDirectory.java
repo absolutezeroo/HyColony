@@ -52,32 +52,46 @@ public final class HytalePlayerDirectory implements PlayerDirectory {
     /**
      * An online player of that exact name (case ignored), else the profile service the game's commands use
      * (ArgTypes.GAME_PROFILE_LOOKUP_ASYNC); its answer comes back on this world's thread. No session token, no answer
-     * or a failure: empty.
+     * or a failure: empty. Deviation from MC: MC reads the server's local profile cache, which Hytale has not.
      */
     @Override
     public void findByName(String name, Consumer<Optional<Profile>> then) {
+        Optional<Profile> now;
         try {
             PlayerRef online = Universe.get().getPlayerByUsername(name, NameMatching.EXACT_IGNORE_CASE);
-            if (online != null) {
-                then.accept(Optional.of(new Profile(online.getUuid(), online.getUsername())));
+            now = online == null ? Optional.empty() : Optional.of(new Profile(online.getUuid(), online.getUsername()));
+            if (now.isEmpty() && askProfileService(name, then)) {
                 return;
             }
-            ServerAuthManager auth = ServerAuthManager.getInstance();
-            String token = auth.getSessionToken();
-            if (token == null) {
-                then.accept(Optional.empty());
-                return;
-            }
-            auth.getProfileServiceClient()
-                    .getProfileByUsernameAsync(name, token)
-                    .whenComplete((profile, error) -> world.execute(() -> then.accept(
-                            error != null || profile == null || profile.getUuid() == null
-                                    ? Optional.empty()
-                                    : Optional.of(new Profile(profile.getUuid(), profile.getUsername())))));
         } catch (RuntimeException e) {
-            LOG.at(Level.WARNING).withCause(e).log("PlayerDirectory.findByName failed for %s", name);
-            then.accept(Optional.empty());
+            fail("findByName", name, e);
+            now = Optional.empty();
         }
+        then.accept(now);
+    }
+
+    /**
+     * Asks Hytale's profile service for {@code name}; the answer reaches {@code then} on this world's thread (a profile
+     * without a name keeps the typed one). False without a session token, nothing asked.
+     */
+    private boolean askProfileService(String name, Consumer<Optional<Profile>> then) {
+        ServerAuthManager auth = ServerAuthManager.getInstance();
+        String token = auth.getSessionToken();
+        if (token == null) {
+            return false;
+        }
+        auth.getProfileServiceClient().getProfileByUsernameAsync(name, token).whenComplete((profile, error) -> {
+            Optional<Profile> found = error != null || profile == null || profile.getUuid() == null
+                    ? Optional.empty()
+                    : Optional.of(new Profile(
+                            profile.getUuid(), profile.getUsername() == null ? name : profile.getUsername()));
+            try {
+                world.execute(() -> then.accept(found));
+            } catch (RuntimeException e) {
+                fail("findByName", name, e); // the world is stopping: the answer is dropped
+            }
+        });
+        return true;
     }
 
     @Override
@@ -151,7 +165,7 @@ public final class HytalePlayerDirectory implements PlayerDirectory {
     }
 
     /** CLAUDE.md § 4: the first failure at WARNING, the following ones at FINE. */
-    private void fail(String op, UUID player, RuntimeException e) {
+    private void fail(String op, Object player, RuntimeException e) {
         LOG.at(warned ? Level.FINE : Level.WARNING).withCause(e).log("PlayerDirectory.%s failed for %s", op, player);
         warned = true;
     }

@@ -57,11 +57,9 @@ final class PermissionRanksPage {
                     EventData.of("Action", "permAddRank").append("@Name", page + " #RankName.Value"),
                     false);
         } else {
-            Message error = Message.translation("hycolony.ui.townhall.perm.rankError");
-            for (String id : List.of(" #RankName", " #AddRank")) {
-                ui.set(page + id + ".Disabled", true);
-                ui.set(page + id + ".TooltipText", error);
-            }
+            ui.set(page + " #RankName.Disabled", true);
+            ui.set(page + " #AddRank.Disabled", true);
+            ui.set(page + " #RankName.TooltipText", Message.translation("hycolony.ui.townhall.perm.rankError"));
         }
         for (int i = 0; i < view.ranks().size(); i++) {
             TownHallView.RankRow r = view.ranks().get(i);

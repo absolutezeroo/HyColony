@@ -131,11 +131,15 @@ Group {
 
   Button #PrevPage {
     Anchor: (Left: 200, Top: 48, Width: 36, Height: 20);
+    TooltipText: %hycolony.ui.prevPage;
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
     Style: (Default: (Background: "../Mc/turn_page_left.png"), Sounds: $C.@ButtonSounds);
   }
 
   Button #NextPage {
     Anchor: (Left: 812, Top: 48, Width: 36, Height: 20);
+    TooltipText: %hycolony.ui.nextPage;
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
     Style: (Default: (Background: "../Mc/turn_page_right.png"), Sounds: $C.@ButtonSounds);
   }
 

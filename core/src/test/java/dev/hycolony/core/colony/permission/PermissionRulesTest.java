@@ -28,6 +28,8 @@ class PermissionRulesTest {
 
     @Test
     void onlyTheOwnerAltersTheOwnerRank() {
+        rank(Permissions.OFFICER).add(Action.EDIT_PERMISSIONS);
+        assertTrue(p.canAlterPermission(rank(Permissions.OFFICER), rank(Permissions.FRIEND), Action.PLACE_BLOCKS));
         assertFalse(p.canAlterPermission(rank(Permissions.OFFICER), rank(Permissions.OWNER), Action.PLACE_BLOCKS));
         assertTrue(p.canAlterPermission(rank(Permissions.OWNER), rank(Permissions.OWNER), Action.PLACE_BLOCKS));
     }
@@ -74,7 +76,7 @@ class PermissionRulesTest {
         Rank guards = p.addRank("Guards");
         assertTrue(p.addPlayer(bob, "Bob", guards.id()));
         assertTrue(p.removeRank(guards.id()));
-        assertEquals(Permissions.NEUTRAL, p.rankOf(bob).id());
+        assertEquals(Permissions.NEUTRAL, p.members().get(bob).rankId(), "saved as neutral, not as a gone rank");
         assertFalse(p.removeRank(Permissions.FRIEND));
         assertTrue(p.ranks().containsKey(Permissions.FRIEND));
     }
