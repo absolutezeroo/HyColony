@@ -19,8 +19,7 @@ import dev.hycolony.plugin.config.HyColonyConfig;
 import dev.hycolony.plugin.goggles.GogglesSystems;
 import dev.hycolony.plugin.npc.BuilderSensorHyColonyTarget;
 import dev.hycolony.plugin.npc.CitizenBodyLifecycleSystem;
-import dev.hycolony.plugin.npc.CitizenFireImmunitySystems;
-import dev.hycolony.plugin.npc.CitizenUseSystem;
+import dev.hycolony.plugin.npc.CitizenSystems;
 import dev.hycolony.plugin.npc.HyColonyComponents;
 import dev.hycolony.plugin.prefab.HytaleBlueprintSource;
 import dev.hycolony.plugin.subplugin.SubPlugins;
@@ -74,9 +73,7 @@ public final class HyColonyPlugin extends JavaPlugin {
         getEntityStoreRegistry().registerSystem(new ColonyTickSystem(worlds));
         getEntityStoreRegistry().registerSystem(new CitizenBodyLifecycleSystem(worlds));
         BlockSystems.register(getEntityStoreRegistry(), worlds, ids);
-        getEntityStoreRegistry().registerSystem(new CitizenUseSystem(worlds));
-        getEntityStoreRegistry().registerSystem(new CitizenFireImmunitySystems.Grant());
-        getEntityStoreRegistry().registerSystem(new CitizenFireImmunitySystems.Guard());
+        CitizenSystems.register(getEntityStoreRegistry(), worlds);
         getEntityStoreRegistry().registerSystem(new GogglesSystems.ArmorChange(worlds, ids.itemId("build_goggles")));
         getEntityStoreRegistry().registerSystem(new GogglesSystems.Visibility(worlds));
         getEventRegistry()
