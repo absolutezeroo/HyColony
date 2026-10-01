@@ -8,6 +8,7 @@ import dev.hycolony.core.app.ui.BuildingView;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.building.module.ModuleProducer;
 import dev.hycolony.core.building.module.ModuleTab;
+import dev.hycolony.core.citizen.home.ResidentsView;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
 import dev.hycolony.core.construction.hut.WorkOrderListView;
@@ -67,7 +68,9 @@ class ModuleTabsTest {
                 List.of(CourierAssignmentView.class, WarehouseTasksView.class),
                 kinds(view(WarehouseBuilding.TYPE, new BlockPos(-20, 64, 0))));
         assertEquals(List.of(CourierTasksView.class), kinds(view(DeliverymanHut.TYPE, new BlockPos(0, 64, 20))));
-        assertEquals(List.of(), kinds(view(ConstructionBuildingTypes.RESIDENCE, new BlockPos(0, 64, -20))));
+        assertEquals(
+                List.of(ResidentsView.class),
+                kinds(view(ConstructionBuildingTypes.RESIDENCE, new BlockPos(0, 64, -20))));
     }
 
     @Test

@@ -15,7 +15,8 @@ import java.util.Set;
  * empty for a building that employs no one; {@code canPickUp}: deconstructed, MANAGE_HUTS, not the town hall;
  * {@code pickupPriority}: shown on worker huts only (MC AbstractWindowWorkerModuleBuilding); {@code stock}: what the
  * hut and its racks hold, most first (MC WindowHutAllInventory); {@code tabs}: the tabs of the hut's modules, in
- * module order (MC module views).
+ * module order (MC module views); {@code upgradeWarning}: the language key of what the next level lacks, shown on
+ * the build button (MC getHoverWarningForLevel).
  */
 public record BuildingView(
         int colonyId,
@@ -36,7 +37,8 @@ public record BuildingView(
         boolean canPickUp,
         OptionalInt pickupPriority,
         List<ItemAmount> stock,
-        List<ModuleTab> tabs) {
+        List<ModuleTab> tabs,
+        Optional<String> upgradeWarning) {
     public record WorkerRow(int citizenId, String name) {}
 
     public record OrderRow(int id, WorkOrderType type, int targetLevel, Optional<String> builderName, int percent) {}

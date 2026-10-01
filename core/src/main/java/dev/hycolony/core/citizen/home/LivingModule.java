@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.module.BuildingEventsModule;
 import dev.hycolony.core.building.module.PersistentModule;
+import dev.hycolony.core.building.module.ProvidesTab;
 import dev.hycolony.core.building.module.TickingModule;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
@@ -14,13 +15,14 @@ import dev.hycolony.core.kernel.persist.SavedJson;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import org.jspecify.annotations.Nullable;
 
 /**
  * The residents of a residence: one per hut level, assigned by hand or taken among the homeless. Port of MC
  * LivingBuildingModule and its AbstractAssignedCitizenModule.
  */
-public final class LivingModule implements PersistentModule, TickingModule, BuildingEventsModule {
+public final class LivingModule implements PersistentModule, TickingModule, BuildingEventsModule, ProvidesTab {
     private final List<Integer> residents = new ArrayList<>();
     private HiringMode hiringMode = HiringMode.DEFAULT;
 
@@ -120,6 +122,12 @@ public final class LivingModule implements PersistentModule, TickingModule, Buil
                 assign(colony, building, citizen);
             }
         }
+    }
+
+    /** MC LivingBuildingModuleView: the Residents tab, see {@link ResidentsViews}. */
+    @Override
+    public ResidentsView tab(Colony colony, Building building, UUID viewer) {
+        return ResidentsViews.of(colony, building, this, viewer);
     }
 
     /**

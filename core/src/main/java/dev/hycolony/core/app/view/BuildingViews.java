@@ -5,6 +5,7 @@ import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.module.ModuleTab;
 import dev.hycolony.core.building.module.ProvidesTab;
 import dev.hycolony.core.citizen.CitizenData;
+import dev.hycolony.core.citizen.home.LivingModule;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyAccess;
 import dev.hycolony.core.colony.ColonyContext;
@@ -12,6 +13,7 @@ import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.construction.workorder.WorkManager;
 import dev.hycolony.core.construction.workorder.WorkOrder;
 import dev.hycolony.core.construction.workorder.WorkOrderType;
+import dev.hycolony.core.farming.hut.FarmerHut;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import java.util.Comparator;
@@ -62,7 +64,26 @@ final class BuildingViews {
                 // MC AbstractWindowWorkerModuleBuilding: only a hut with workers shows its pickup priority.
                 w.isPresent() ? OptionalInt.of(b.pickupPriority().value()) : OptionalInt.empty(),
                 stock(b),
-                tabs(c, b, viewer));
+                tabs(c, b, viewer),
+                residenceWarning(c, b));
+    }
+
+    /**
+     * MC LivingBuildingView.getHoverWarningForLevel: before level 2, a farm (or fisher, not ported) of level 1 or
+     * more; before levels 3 to 5, a restaurant serving the right meals, which HyColony lacks, so always.
+     */
+    private static Optional<String> residenceWarning(Colony c, Building b) {
+        if (b.module(LivingModule.class).isEmpty()) {
+            return Optional.empty();
+        }
+        int next = b.level() + 1;
+        boolean warn = switch (b.level()) {
+            case 1 ->
+                c.buildings().all().stream().noneMatch(o -> o.type().id().equals(FarmerHut.TYPE_ID) && o.level() >= 1);
+            case 2, 3, 4 -> true;
+            default -> false;
+        };
+        return warn ? Optional.of("hycolony.ui.residence.warning." + next) : Optional.empty();
     }
 
     /**
