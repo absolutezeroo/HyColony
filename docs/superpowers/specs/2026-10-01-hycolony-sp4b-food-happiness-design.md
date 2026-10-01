@@ -320,19 +320,19 @@ Il nourrit le facteur `idleatjob`. Il est sauvé.
 
 ### 10.1 Le menu (MC `RestaurantMenuModule`, RC § 1.3)
 
-- Ensemble d'aliments `EDIBLE`, au plus `niveau × 5` (`STOCK_PER_LEVEL`), sauvé ; un aliment non `EDIBLE` est refusé (ajout et lecture).
-- Toutes les 500 ticks (`onColonyTick`), hutte chargée : pour chaque plat, `cible = taillePile × niveau` ; `compte` = ce plat dans la hutte (contenants et inventaire du serveur) + son aliment cru s'il se cuit en ce plat ; `delta = cible − compte` ; si `delta > 0` et pas de requête ouverte de ce plat : requête `StackRequest(plat, min(64, taillePile, delta), 1, canBeResolvedByBuilding = false)` ; si une requête du plat existe, qu'elle n'est pas plus loin que `IN_PROGRESS` et qu'aucune de l'aliment cru n'existe : la même pour l'aliment cru ; si `delta ≤ 0` : annule les deux requêtes. *Écart* : MC fait un `MinimumStack` ; HyColony n'a pas ce type, `StackRequest` avec `canBeResolvedByBuilding = false` se comporte pareil.
-- Retirer un plat annule sa requête ouverte.
+- Ensemble d'aliments `EDIBLE`, au plus `niveau × 5` (`STOCK_PER_LEVEL`), sauvé ; un aliment non `EDIBLE` est refusé à l'ajout, et retiré au premier tick de colonie après la lecture (*écart* : MC le filtre en lisant, un module lit sans le catalogue).
+- Toutes les 500 ticks (`onColonyTick`), hutte chargée : pour chaque plat, `cible = taillePile × niveau` ; `compte` = ce plat dans les contenants de la hutte (MC `hasBuildingEnoughElseCount`) + son aliment cru s'il se cuit en ce plat ; `delta = cible − compte` ; si `delta > 0` et pas de requête ouverte de ce plat : requête `StackRequest(plat, min(64, taillePile, delta), 1, canBeResolvedByBuilding = false)` ; si une requête du plat existe, qu'elle n'est pas plus loin que `IN_PROGRESS` et qu'aucune de l'aliment cru n'existe : la même pour l'aliment cru ; si `delta ≤ 0` : annule les deux requêtes. *Écart* : MC fait un `MinimumStack` ; HyColony n'a pas ce type, `StackRequest` avec `canBeResolvedByBuilding = false` se comporte pareil. Une requête est « ouverte » tant qu'elle n'est pas terminée : MC la retire des requêtes ouvertes dès qu'elle est livrée, même si personne ne l'a encore reçue.
+- Retirer un plat annule sa requête ouverte. *Écart* : MC la cherche sous le type `Stack` alors que ses requêtes sont des `MinimumStack`, et ne la trouve jamais (bug de MC corrigé).
 - La hutte garde `taillePile × niveau` de chaque plat et de son cru (`alterItemsToBeKept`, `HutKeep`).
-- **Onglet Menu** (MC `layoutfoodstock.xml`, ×2) : à gauche le menu (dégradé de palier or / argent / bronze, icône, nom, bouton X), l'avertissement « choisissez la nourriture… » si vide, l'avertissement rouge « un menu sans plats de qualité… » s'il n'a aucun plat de palier ≥ 2 ; à droite les aliments proposés (`EDIBLE` de nutrition ≥ niveau − 1, triés par `palier × −100 − nutrition` puis nom), un filtre (25 caractères) et le bouton `<<`. Ajouter et retirer exigent `MANAGE_HUTS` et ré-affichent la fenêtre. La liste des ingrédients et la consommation journalière (§ RC 1.3) suivent MC (ingrédients = la recette Hytale du plat, un niveau).
+- **Onglet Menu** (MC `layoutfoodstock.xml`, ×2) : à gauche le menu (dégradé de palier or / argent / bronze, icône, nom, bouton X), l'avertissement « choisissez la nourriture… » si vide, l'avertissement rouge « un menu sans plats de qualité… » s'il n'a aucun plat de palier ≥ 2 ; à droite les aliments proposés (`EDIBLE` de nutrition ≥ niveau − 1, triés par `palier × −100 − nutrition` puis nom), un filtre (25 caractères) et le bouton `<<`. Ajouter et retirer exigent `MANAGE_HUTS` et ré-affichent la fenêtre. La liste des ingrédients et la consommation journalière (§ RC 1.3) suivent MC (ingrédients = la recette Hytale du plat, sur 5 niveaux au plus comme `getRecipeFromStack(…, 5)` ; la consommation s'affiche en décimal, comme MC). Sur un menu plein, `<<` porte l'infobulle « Limite atteinte » de MC (MC le grise puis le réactive aussitôt : seule l'infobulle reste).
 
 ### 10.2 Le combustible (MC `ItemListModule` `FUEL_LIST`)
 
-Liste d'objets autorisés, sauvée, par défaut les combustibles « charbon » de Hytale (`Ingredient_Charcoal`, id-map `defaultFuels`) ; onglet Combustible : les objets du `ResourceType` `Fuel` (port `ItemCatalog.isFuel`), cochables. `MANAGE_HUTS`. La hutte garde `64 × niveau` de combustible autorisé, que le livreur n'emporte jamais (MC `BuildingCook.buildingRequiresCertainAmountOfItem`).
+Liste d'objets autorisés, sauvée, par défaut les combustibles « charbon » de Hytale (`Ingredient_Charcoal`, id-map `defaultFuels`) ; onglet Combustible : les objets du `ResourceType` `Fuel` (port `ItemCatalog.isFuel`), cochables. `MANAGE_HUTS`. Le livreur n'emporte jamais de combustible autorisé de la hutte ; le serveur en garde 64 sur lui quand il vide son inventaire (MC `BuildingCook.buildingRequiresCertainAmountOfItem` ; *écart* : MC garde des piles entières tant qu'il en garde moins de 64, jusqu'à 127).
 
 ## 11. Le serveur (MC `JobCook`, `EntityAIWorkCook`, `AbstractEntityAIUsesFurnace`, RC § 2, § 3)
 
-Métier `hycolony:cook` (« Serveur »), sans facteur de saturation propre. Son IA, `crafting/restaurant/CookAI`, s'appuie sur un utilisateur de feux de camp générique `crafting/furnace/FurnaceUserAI` (MC `AbstractEntityAIUsesFurnace`, réutilisable par un futur fondeur).
+Métier `hycolony:cook` (« Serveur »), sans facteur de saturation propre. Son IA, `crafting/restaurant/CookAI`, délègue le travail aux feux de camp à `FurnaceWork` (MC `AbstractEntityAIUsesFurnace`) et le service à `CookService` ; un futur fondeur extraira la partie générique de `FurnaceWork` vers `crafting/furnace`.
 
 ### 11.1 Les feux de camp (port `CookingStations`)
 
@@ -341,24 +341,24 @@ Pour une position enregistrée : `isStation`, `input`, `fuel`, `output` (objet e
 ### 11.2 La décision (`startWorking`, toutes les 60 ticks, dans l'ordre de MC)
 
 1. Marche vers la hutte.
-2. Liste de combustibles vide → plainte (§ 14), on continue.
-3. Aucun feu de camp → plainte, on reste (MC attend sans fin, sans autre sortie : un feu de camp posé débloque).
+2. Liste de combustibles vide → plainte chez MC (§ 14, non portée), on continue.
+3. Aucun feu de camp → on reste (plainte chez MC ; MC attend sans fin, sans autre sortie : un feu de camp posé débloque).
 4. Travaux importants du serveur (§ 11.3) ; s'ils renvoient autre chose que `START_WORKING`, on y va.
 5. Un feu de camp contient un combustible retiré de la liste → `RETRIEVING_USED_FUEL`.
 6. Un feu de camp est à vider (éteint avec un résultat, ou résultat > 10, ou résultat sans entrée) → `RETRIEVING_END_PRODUCT`.
 7. Comptages des cuisinables (cru dont le plat cuit est au menu) et des combustibles, hutte et inventaire.
-8. Aucun cuisinable et `!reachedMaxToKeep` → menu vide : plainte `FURNACE_USER_NO_FOOD`.
-9. Aucun combustible et pas de requête « Combustible » ouverte → `StackList(combustibles autorisés, « Combustible », 64 × feux, 1)`.
+8. Aucun cuisinable et `!reachedMaxToKeep` → MC se plaint (`FURNACE_USER_NO_FOOD`) ; non porté, ni `reachedMaxToKeep` qui ne sert qu'à cette plainte (§ 18).
+9. Aucun combustible et pas de requête « Combustible » ouverte (pas encore livrée) → `StackList(combustibles autorisés, « Combustible », 64 × feux, 1)` ; rien si aucun combustible n'est autorisé (*écart* : une `StackList` demande au moins un objet).
 10. Cuisinables ou combustible dans la hutte mais pas sur lui → les ramasser (`GATHERING_REQUIRED_MATERIALS`, le ramassage existant des métiers).
-11. Premier feu de camp à remplir (entrée sans combustible, combustible sans entrée, ou vide quand on a les deux) → `FILL_UP` ; un poste qui n'est plus un feu de camp est retiré.
+11. Premier feu de camp à remplir (entrée sans combustible, combustible sans entrée, ou vide quand on a les deux) → `FILL_UP` ; un poste dont le bloc chargé n'est plus un feu de camp est retiré ; un feu de camp chargé et éteint est rallumé au passage (*écart* : un four MC s'allume seul).
 
-`FILL_UP` (5 ticks) : à 64 cuisinables dans l'entrée vide, 64 combustibles dans l'emplacement vide, puis allume. `RETRIEVING_END_PRODUCT` (5 ticks) : tout le résultat dans l'inventaire, +2 XP, deux fois « action + saturation » (MC). `RETRIEVING_USED_FUEL` : reprend le combustible. Accélération chaque seconde, dans tous les états : `(Adaptabilité / 10) × 2` ticks de feu en plus, convertis en `/ 20` seconde de progression (MC `accelerateFurnaces`) **[in-game]**. Vidage de l'inventaire après chaque action (`actionsUntilDump = 1`). `reachedMaxToKeep` : ≤ 3 cases libres dans la hutte, ou plus de `max(1, niveau²) × 9` aliments `canEatLevel(niveau − 1)` comptés au plus `taillePile × 6` chacun.
+`FILL_UP` (5 ticks) : à 64 cuisinables dans l'entrée vide, 64 combustibles dans l'emplacement vide, puis allume. `RETRIEVING_END_PRODUCT` (5 ticks) : tout le résultat dans l'inventaire s'il y tient en entier (sinon il reste dans le feu), +2 XP, deux fois « action + saturation » (MC). `RETRIEVING_USED_FUEL` : reprend le combustible, de même. Accélération chaque seconde, dans tous les états : `(Adaptabilité / 10) × 2` ticks de feu en plus, convertis en `/ 20` seconde de progression (MC `accelerateFurnaces`) **[in-game]**. Vidage de l'inventaire après chaque action (`actionsUntilDump = 1`).
 
 ### 11.3 Servir (MC `checkForImportantJobs`, `serveFoodToCitizen`, `serveFoodToPlayer`, toutes les 30 ticks)
 
-- **Joueurs** : ceux dans l'emprise qui ont `MANAGE_HUTS`. Hytale n'a pas de faim (HF § 2) : *écart*, la condition MC « faim < 10 » est remplacée par « vie < 50 % » **[à valider en jeu]** ; le serveur leur donne des plats du menu jusqu'à `niveau × 16` de valeur nutritive, message « Tenez, gouverneur ».
+- **Joueurs** : ceux dans l'emprise qui ont `MANAGE_HUTS`. Hytale n'a pas de faim (HF § 2) : *écart*, la condition MC « faim < 10 » est remplacée par « vie < 50 % » **[à valider en jeu]** ; le serveur leur donne des plats du menu jusqu'à `niveau × 16` de valeur nutritive, message « Tenez, gouverneur ». Un joueur qui porte déjà un plat du menu, ou qui ne peut rien prendre (inventaire plein), est passé, et le serveur sert le suivant. *Écart* : un joueur déjà en file n'y est pas remis (MC l'ajoute à chaque passage).
 - **Citoyens** : ceux dans l'emprise, pas serveurs, `!isWorking`, saturation ≤ 10 et `!justAte`, sans plat du menu sur eux. S'il a le meilleur choix sur lui (`hasBestOptionInInv`) → file de service ; sinon s'il est dans les contenants → le chercher ; puis `SERVE_CITIZEN`, sinon `SERVE_PLAYER`.
-- **Service d'un citoyen** : sorti de l'emprise → suivant ; marche jusqu'à lui ; inventaire plein → le nourrit directement (au plus 10 bouchées, `increaseSaturation`, sans bonus ni historique, MC) ; il a déjà un plat du menu → rien ; sinon lui donne `ceil(⌊max(1, (60 − s) / valeur)⌋ × 1,5)` du meilleur plat, +2 XP, baisse continue.
+- **Service d'un citoyen** : sorti de l'emprise → suivant ; marche jusqu'à lui ; inventaire plein → le nourrit directement (au plus 10 bouchées, la première toujours donnée, `increaseSaturation`, sans bonus ni historique, MC) ; il a déjà un plat du menu → rien ; sinon lui donne `ceil(⌊max(1, (60 − s) / valeur)⌋ × 1,5)` du meilleur plat s'il tient en entier dans son inventaire (sinon rien, MC), +2 XP, baisse continue.
 - **Clients** (MC `storeCustomer`) : chaque salle tient l'ensemble des ids de citoyens qu'elle sert (sauvé) ; un citoyen ne l'est que d'une salle.
 
 ## 12. Ports et adaptateurs (récapitulatif)
@@ -384,9 +384,12 @@ Le système d'interactions (bulles, réponses, priorités) manque (§ 1). Les va
 - `RAW_FOOD`, `BETTER_FOOD`, `BETTER_FOOD_CHILDREN`, `NO_RESTAURANT` (RC § 7, l. 59-71) ;
 - `no.foodquality(.urgent)`, `no.fooddiversity(.urgent)` (l. 287-341) ;
 - `no.<id>`, `demands.<id>` pour `homelessness`, `unemployment`, `idleatjob` (seuils 7 et 14 jours) et `no.slepttonight` (l. 263-285) ;
-- `furnaceuser.nofuel`, `furnaceuser.nofood`, `bakery.nofurnace` (l. 54-57, 190-200, 221).
+- `furnaceuser.nofuel`, `furnaceuser.nofood`, `bakery.nofurnace` (l. 54-57, 190-200, 221) ;
+- les plaintes du serveur `POOR_MENU_INTERACTION` (salle de niveau ≥ 3 sans plat de MC au menu, `EntityAIWorkCook:350-366`) et `POOR_RESTAURANT_INTERACTION` (citoyen logé plus haut que la salle + 1, `:231-234`).
 
-En attendant, les plaintes du serveur (sans combustible, sans feu de camp, menu vide) passent par l'avertissement « ! » existant de la plaque de nom (`CitizenNameplates`), comme une requête au joueur, et par le journal en FINE ; *écart* documenté.
+En attendant, le serveur sans combustible, sans feu de camp ou au menu vide attend sans rien dire ; *écart* documenté (`FurnaceWork`).
+
+Autre omission : MC laisse le serveur ramasser les objets au sol (`setCanPickUpLoot(true)`) ; les citoyens de HyColony ne ramassent rien au sol.
 
 ## 15. Textes (en-US et fr-FR, `hycolony.lang`, skill `add-lang-key`)
 
@@ -432,3 +435,14 @@ Repris de MC (`manual_en_us.json`, RC § 7) : modificateurs (nom et description)
   - Le statut de travail repasse à IDLE à chaque nouveau métier (`CitizenData.setJob`) et à chaque corps lié d'un citoyen qui a un métier (`CitizenManager.bind`), comme MC `onJobChanged` → `initEntityValues` ; un licenciement le laisse tel quel, comme MC.
   - « Blessé récemment » ne compte qu'une attaque d'une entité ou de son projectile (MC `getLastHurtByMob`), sur l'horloge du cœur (20 ticks/s, le monde Hytale en a 30). Toute blessure hors feu et foudre rend malheureux.
   - *Écarts* documentés dans le code : la faim et les soins tournent dans la colonie (un tick sauté toutes les 100, ~1 %) ; `timeOutWalking` repart à 0 à chaque repas (MC ne le remet jamais à zéro) ; `FoodTransfer` prend dans plusieurs contenants et accepte un transfert partiel ; sans salle, `getFoodYourself` revient à `WAIT_FOR_FOOD` comme MC.
+- **Étape 3, la salle à manger.**
+  - Paquets : `crafting/furnace` (catalogue et port des postes de cuisson, `FurnaceUserModule`, `FuelListModule`, sa vue, la requête de combustible `FuelRequests`) et `crafting/restaurant` (la hutte, le métier, l'IA du serveur, le menu, la salle) ; les actions des fenêtres dans `app/restaurant/RestaurantActions`, exposées par `HutWindowActions.restaurant()`. Les ports de cuisson forment un neuvième composant de `GamePorts` (`CookingSetup`).
+  - *Écart* : aucun plan Hytale n'a de four ni de tag `sit` ; un feu de camp et un siège (chaise, tabouret, banc) posés **par un joueur** dans l'emprise s'enregistrent (`BuildingEventsModule.onBlockPlacedByPlayer`, appelé par `ProtectionSystems.Place`), comme les blocs du plan. Tous les sièges sont « dedans » (le `sit_out` de MC, évité sous la pluie, n'a pas d'équivalent).
+  - *Écart* : le feu de camp de Hytale doit être allumé (`setActive`, refusé sans combustible) ; l'accélération du serveur n'avance que la cuisson, pas la combustion.
+  - *Écart* : un joueur est servi sous 50 % de sa vie (Hytale n'a pas de faim), avec la permission `MANAGE_HUTS` ; ce qu'il ne peut pas prendre reste au serveur (MC l'échange contre un objet non comestible).
+  - *Écart* : les plaintes du serveur (pas de combustible choisi, pas de four, menu vide) sont des interactions, absentes de HyColony : il attend. `requestSmeltable` (qui ne sert qu'à ces plaintes) et `reachedMaxToKeep` ne sont pas portés.
+  - *Écart* : le menu demande ses plats par une `StackRequest` de minimum 1 que la salle ne résout pas elle-même (HyColony n'a pas de `MinimumStack`). Les plats de même palier et de même valeur nutritive se trient par id (MC trie par nom affiché, connu du seul client).
+  - *Écart* : les deux pages de MC (menu, plats possibles) s'affichent l'une après l'autre dans l'onglet, avec un bouton pour passer de l'une à l'autre.
+  - *Écarts* relevés à la relecture et documentés dans le code : un feu de camp chargé, éteint mais plein, est rallumé au passage ; un poste ou un siège n'est oublié que si son bloc chargé n'en est plus un ; retirer un plat annule sa requête (MC ne la trouve jamais, bug corrigé) ; le serveur garde exactement 64 combustibles (MC des piles entières, jusqu'à 127) ; aucune requête de combustible quand aucun n'est autorisé ; le serveur ramasse dans les contenants de la salle comme un seul stock.
+  - Corrigé à la relecture : une requête de la salle livrée mais pas encore reçue ne l'empêche plus de redemander (MC la sort des requêtes ouvertes dès sa livraison) ; un joueur à l'inventaire plein est passé sans vider la file ; un plat n'est donné à un citoyen que s'il tient en entier, et un produit retiré du feu seulement s'il tient en entier dans l'inventaire du serveur ; la première bouchée est toujours donnée ; un client inconnu ne compte pas dans la consommation, affichée en décimal comme MC ; l'infobulle « Limite atteinte » de MC sur `<<`.
+  - Les plans de la salle reprennent ceux de la résidence dans les deux styles (Kweebec, Outlander), faute de plans propres. Le module de statistiques de MC n'est pas porté (HyColony n'a pas encore de statistiques).

@@ -135,3 +135,8 @@ Les corrections de l'audit sont commitées : bugs, socle des métiers (`job/work
 - **Apparences aléatoires des citoyens.**
 - **Hôtel de ville disparu** sans être cassé par un joueur : aujourd'hui il ne peut plus être reposé, il faut passer par `/hycolony delete`.
 - **Outlander niveau 5** : bâti à flanc de colline, son plancher peut flotter sur un terrain en pente.
+- **Nourriture et salle à manger (SP4b), reste** :
+  - les interactions de MC (plaintes du serveur : pas de combustible choisi, pas de four, menu vide ; citoyen affamé sans salle) attendent un système d'interactions ;
+  - des plans propres à la salle à manger (aujourd'hui ceux de la résidence), avec feux de camp et sièges ;
+  - le module de statistiques de MC (repas servis) ;
+  - la mort des citoyens (rôle `Invulnerable`) pour voir soins et blessures en jeu.
