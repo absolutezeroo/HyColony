@@ -130,9 +130,12 @@ abstract class CourierAITestBase {
         return state == RequestState.FAILED || state == RequestState.CANCELLED;
     }
 
-    /** The Agility XP of an award of {@code xp}: x1.5 for the level-5 hut, x1.01 for Intelligence 1 (MC). */
+    /**
+     * The Agility XP of an award of {@code xp}: x1.6 for the level-5 hut and the level-1 residence that houses the
+     * courier (MC JobXp: 1 + (work + home levels) / 10), x1.01 for Intelligence 1.
+     */
     static double awarded(double xp) {
-        return xp * 1.5 * 1.01;
+        return xp * 1.6 * 1.01;
     }
 
     int carried(ItemKey item) {

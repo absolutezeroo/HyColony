@@ -27,6 +27,8 @@ public final class CitizenData {
     private @Nullable Vec3 lastPosition;
     private @Nullable BlockPos respawnPosition;
     private @Nullable BlockPos homeBuilding;
+    private @Nullable BlockPos bedPos;
+    private boolean asleep;
     private @Nullable BlockPos workBuilding;
     private double saturation = MAX_SATURATION;
     private int leisureTime;
@@ -98,6 +100,27 @@ public final class CitizenData {
 
     public void setHomeBuilding(@Nullable BlockPos homeBuilding) {
         this.homeBuilding = homeBuilding;
+    }
+
+    /** MC CitizenData.bedPos: the bed it lies in; null while it has none (MC BlockPos.ZERO). */
+    public @Nullable BlockPos bedPos() {
+        return bedPos;
+    }
+
+    public void setBedPos(@Nullable BlockPos bedPos) {
+        this.bedPos = bedPos;
+    }
+
+    public boolean asleep() {
+        return asleep;
+    }
+
+    /** MC CitizenData.setAsleep: falling asleep ends its leisure time. */
+    public void setAsleep(boolean asleep) {
+        this.asleep = asleep;
+        if (asleep) {
+            leisureTime = 0;
+        }
     }
 
     public @Nullable BlockPos workBuilding() {

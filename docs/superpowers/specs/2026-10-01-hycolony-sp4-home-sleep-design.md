@@ -48,7 +48,7 @@ La persistance (§ 8) et les textes (§ 9) suivent chaque étape : chacune ajout
 
 ## 1. Attribution d'une maison (MC `LivingBuildingModule`, `AbstractAssignedCitizenModule`, R § A.6, § E)
 
-`construction/hut/LivingModule` devient un module d'attribution (`PersistentModule`, `TickingModule`, `BuildingEventsModule`). Il ne partage pas de classe mère avec `WorkerModule`, qui porte la logique de métier. Il reprend `HiringMode` (`job/HiringMode`), le même enum que MC.
+`LivingModule` passe de `construction/hut` à `citizen/home` (l'IA de sommeil lit ses habitants, et la matrice figée de `FeatureDependenciesTest` interdit à `citizen` de dépendre de `construction`). Il devient un module d'attribution (`PersistentModule`, `TickingModule`, `BuildingEventsModule`). Il ne partage pas de classe mère avec `WorkerModule`, qui porte la logique de métier. Il reprend `HiringMode` (`job/HiringMode`), le même enum que MC.
 
 - **Habitants** : liste ordonnée d'ids de citoyens, persistée par le module. `max(b) = b.level()` : 0 au niveau 0, 5 au niveau 5 (MC `getModuleMax`).
 - **`assign(colony, b, citizen)`** renvoie `false` pour un doublon, une hutte pleine ou un citoyen absent. Sinon :
@@ -90,7 +90,7 @@ La liste d'embauche d'une hutte de travail trie aussi par distance à la maison 
 
 ### 2.2 Les lits
 
-`construction/hut/BedModule` (`PersistentModule`) tient la liste **ordonnée** des positions de lits de la hutte, persistée. La résidence a les modules `living` et `bed`, comme les modules `HOME`, `LIVING` et `BED` de MC.
+`citizen/home/BedModule` (`PersistentModule`) tient la liste **ordonnée** des positions de lits de la hutte, persistée. La résidence a les modules `living` et `bed`, comme les modules `HOME`, `LIVING` et `BED` de MC.
 
 - **Enregistrement** : quand un bloc de plan est posé dans la hutte, et que le catalogue dit que c'est un lit, sa position est ajoutée sans doublon (MC `onBlockPlacedInBuilding`, appelé par `registerBlockPosition`). Les deux points de pose sont ceux qui appellent déjà `addContainer` :
   - le constructeur (`construction/builder/BuilderBlockWork`) ;
