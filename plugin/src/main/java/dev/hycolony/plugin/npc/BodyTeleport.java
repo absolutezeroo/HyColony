@@ -70,7 +70,8 @@ public final class BodyTeleport {
             if (mt != null) {
                 mt.active = false;
             }
-            st.addComponent(ref, Teleport.getComponentType(), Teleport.createExact(to, t.getRotation()));
+            // put, not add: a teleport queued earlier in the same tick (a wake-up beside the bed) is replaced.
+            st.putComponent(ref, Teleport.getComponentType(), Teleport.createExact(to, t.getRotation()));
         });
     }
 
