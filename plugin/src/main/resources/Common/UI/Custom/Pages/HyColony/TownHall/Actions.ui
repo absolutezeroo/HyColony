@@ -1,0 +1,47 @@
+$B = "../Mc/Book.ui";
+$C = "../../../Common.ui";
+$Sounds = "../../../Sounds.ui";
+
+// The town hall's Home tab (MC layoutactions.xml), MC positions doubled.
+
+Group {
+  Anchor: (Left: 0, Top: 0, Width: 1048, Height: 486);
+
+  $C.@TextField #RenameInput {
+    @Anchor = (Left: 236, Top: 44, Width: 264);
+  }
+
+  Button #RenameButton {
+    Anchor: (Left: 200, Top: 48, Width: 30, Height: 30);
+    Style: (Default: (Background: "../Mc/edit.png"), Sounds: (...$Sounds.@ButtonsLight, ...$Sounds.@SaveSettings));
+    TooltipText: %hycolony.ui.townhall.rename;
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+  }
+
+  Label #ColonyName {
+    Anchor: (Left: 200, Top: 48, Width: 300, Height: 30);
+    Style: (...$B.@Ink, FontSize: 17, RenderBold: true, ShrinkTextToFit: true, MinShrinkTextToFitFontSize: 11);
+  }
+
+  TextButton #BuildingButton {
+    Anchor: (Left: 220, Top: 194, Width: 258, Height: 34);
+    Style: $B.@WideButtonStyle;
+    Text: %hycolony.ui.townhall.building;
+  }
+
+  TextButton #RequestsButton {
+    Anchor: (Left: 220, Top: 232, Width: 258, Height: 34);
+    Style: $B.@WideButtonStyle;
+    Text: %hycolony.ui.townhall.requests;
+  }
+
+  Label #Owner {
+    Anchor: (Left: 560, Top: 70, Width: 270, Height: 22);
+    Style: $B.@Ink;
+  }
+
+  Label #Day {
+    Anchor: (Left: 560, Top: 96, Width: 270, Height: 22);
+    Style: $B.@Faded;
+  }
+}

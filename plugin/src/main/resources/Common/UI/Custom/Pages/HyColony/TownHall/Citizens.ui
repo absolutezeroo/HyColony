@@ -1,0 +1,13 @@
+$C = "../../../Common.ui";
+
+// The town hall's Citizens tab (MC layoutcitizens.xml), MC positions doubled.
+
+Group {
+  Anchor: (Left: 0, Top: 0, Width: 1048, Height: 486);
+
+  Group #CitizenList {
+    Anchor: (Left: 552, Top: 56, Width: 296, Height: 404);
+    LayoutMode: TopScrolling;
+    ScrollbarStyle: $C.@DefaultScrollbarStyle;
+  }
+}

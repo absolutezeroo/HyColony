@@ -1,0 +1,26 @@
+$B = "../Mc/Book.ui";
+$C = "../../../Common.ui";
+
+// The town hall's Information tab (MC layoutinfo.xml), MC positions doubled: the work orders on the right page.
+
+Group {
+  Anchor: (Left: 0, Top: 0, Width: 1048, Height: 486);
+
+  Label {
+    Anchor: (Left: 552, Top: 56, Width: 296, Height: 22);
+    Text: %hycolony.ui.townhall.workOrders;
+    Style: $B.@Heading;
+  }
+
+  Label #OrdersEmpty {
+    Anchor: (Left: 552, Top: 100, Width: 296, Height: 22);
+    Style: $B.@Faded;
+    Visible: false;
+  }
+
+  Group #Orders {
+    Anchor: (Left: 552, Top: 100, Width: 296, Height: 332);
+    LayoutMode: TopScrolling;
+    ScrollbarStyle: $C.@DefaultScrollbarStyle;
+  }
+}

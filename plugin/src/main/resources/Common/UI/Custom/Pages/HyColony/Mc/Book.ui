@@ -1,0 +1,17 @@
+$C = "../../../Common.ui";
+
+// Shared styles of the MC-look windows: ink on parchment and MC's textured buttons (builderhut/*). Texture paths
+// resolve from this file, so they work from any page that imports it.
+
+@Ink = LabelStyle(FontSize: 15, TextColor: #000000, VerticalAlignment: Center);
+@InkCentered = LabelStyle(...@Ink, HorizontalAlignment: Center);
+@Faded = LabelStyle(FontSize: 14, TextColor: #555555, VerticalAlignment: Center);
+@Heading = LabelStyle(...@Ink, TextColor: #aa0000, HorizontalAlignment: Center, RenderBold: true);
+
+// MC's builder_button_medium_large (129 x 17), doubled.
+@WideButtonStyle = TextButtonStyle(
+  Default: (Background: "builder_button_medium_large.png", LabelStyle: @InkCentered),
+  Hovered: (Background: "builder_button_medium_large.png", LabelStyle: (...@InkCentered, RenderBold: true)),
+  Pressed: (Background: "builder_button_medium_large.png", LabelStyle: @InkCentered),
+  Sounds: $C.@ButtonSounds
+);

@@ -17,7 +17,7 @@ import java.util.UUID;
  * <p>Deviation from MC: the owner and the colony day are shown, and the Requests button stands in for the clipboard
  * item, which HyColony does not have yet. No map, mercenaries, banner, colours nor styles (no such systems).
  */
-final class TownHallActionsTab {
+final class TownHallActionsTab implements TownHallTab {
     private final ColonyManager manager;
     private final UUID player;
     private final TownHallView view;
@@ -28,29 +28,35 @@ final class TownHallActionsTab {
         this.view = view;
     }
 
-    void render(UICommandBuilder ui, UIEventBuilder events) {
-        ui.set("#ColonyName.Text", view.colonyName());
-        ui.set("#Owner.Text", Message.translation("hycolony.ui.townhall.owner").param("p0", view.ownerName()));
-        ui.set("#Day.Text", Message.translation("hycolony.ui.townhall.day").param("p0", String.valueOf(view.day())));
-        ui.set("#RenameInput.Value", view.colonyName());
-        ColonyPage.bind(events, "#BuildingButton", "building");
-        ColonyPage.bind(events, "#RequestsButton", "requests");
+    @Override
+    public void render(UICommandBuilder ui, UIEventBuilder events, String root) {
+        ui.set(root + " #ColonyName.Text", view.colonyName());
+        ui.set(
+                root + " #Owner.Text",
+                Message.translation("hycolony.ui.townhall.owner").param("p0", view.ownerName()));
+        ui.set(
+                root + " #Day.Text",
+                Message.translation("hycolony.ui.townhall.day").param("p0", String.valueOf(view.day())));
+        ui.set(root + " #RenameInput.Value", view.colonyName());
+        ColonyPage.bind(events, root + " #BuildingButton", "building");
+        ColonyPage.bind(events, root + " #RequestsButton", "requests");
         if (view.canRename()) {
             // The rename field shows the name, as MC's name label beside its edit button.
-            ui.set("#ColonyName.Visible", false);
+            ui.set(root + " #ColonyName.Visible", false);
             events.addEventBinding(
                     CustomUIEventBindingType.Activating,
-                    "#RenameButton",
-                    EventData.of("Action", "rename").append("@Name", "#RenameInput.Value"),
+                    root + " #RenameButton",
+                    EventData.of("Action", "rename").append("@Name", root + " #RenameInput.Value"),
                     false);
         } else {
-            ui.set("#RenameButton.Visible", false);
-            ui.set("#RenameInput.Visible", false);
+            ui.set(root + " #RenameButton.Visible", false);
+            ui.set(root + " #RenameInput.Visible", false);
         }
     }
 
     /** Navigation opens another window; rename goes to the core, which re-shows the town hall on success. */
-    void handle(ColonyPage.Act act) {
+    @Override
+    public void handle(ColonyPage.Act act) {
         switch (act.action()) {
             case "building" -> manager.windows().openTownHallBuilding(player, view.colonyId());
             case "requests" -> manager.windows().openRequests(player, view.colonyId());

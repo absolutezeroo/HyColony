@@ -17,7 +17,7 @@ import java.util.UUID;
  *
  * <p>Deviation from MC: no event log beside the list (no colony event log window yet).
  */
-final class WorkOrderListTab {
+final class WorkOrderListTab implements TownHallTab {
     private final ColonyManager manager;
     private final UUID player;
     private final int colonyId;
@@ -30,16 +30,17 @@ final class WorkOrderListTab {
         this.view = view;
     }
 
-    void render(UICommandBuilder ui, UIEventBuilder events) {
+    @Override
+    public void render(UICommandBuilder ui, UIEventBuilder events, String root) {
         List<OrderLine> orders = view.orders();
         if (orders.isEmpty()) {
-            ui.set("#OrdersEmpty.Visible", true);
-            ui.set("#OrdersEmpty.Text", Message.translation("hycolony.ui.workorders.empty"));
+            ui.set(root + " #OrdersEmpty.Visible", true);
+            ui.set(root + " #OrdersEmpty.Text", Message.translation("hycolony.ui.workorders.empty"));
         }
         for (int i = 0; i < orders.size(); i++) {
             OrderLine o = orders.get(i);
-            String row = "#Orders[" + i + "]";
-            ui.append("#Orders", "Pages/HyColony/Mc/OrderRow.ui");
+            String row = root + " #Orders[" + i + "]";
+            ui.append(root + " #Orders", "Pages/HyColony/Mc/OrderRow.ui");
             ui.set(
                     row + " #Title.TextSpans",
                     Message.translation("hycolony.ui.workorders.line")
@@ -83,7 +84,8 @@ final class WorkOrderListTab {
     }
 
     /** The core checks MANAGE_HUTS, then shows the town hall again. */
-    void handle(ColonyPage.Act act) {
+    @Override
+    public void handle(ColonyPage.Act act) {
         if (act.index() < 0 || act.index() >= view.orders().size()) {
             return;
         }
