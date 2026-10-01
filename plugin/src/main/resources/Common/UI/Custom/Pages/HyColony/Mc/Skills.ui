@@ -1,0 +1,23 @@
+// MC's small skill icons (textures/entity/skills/small, ldtteam, GPL-3), one hidden group per skill filling the
+// template: a page shows the one it needs.
+
+@Icon = Group {
+  Anchor: (Full: 0);
+  Visible: false;
+};
+
+@SkillIcons = Group {
+  Anchor: (Full: 0);
+
+  @Icon #Athletics { Background: "athletics.png"; }
+  @Icon #Dexterity { Background: "dexterity.png"; }
+  @Icon #Strength { Background: "strength.png"; }
+  @Icon #Agility { Background: "agility.png"; }
+  @Icon #Stamina { Background: "stamina.png"; }
+  @Icon #Mana { Background: "mana.png"; }
+  @Icon #Adaptability { Background: "adaptability.png"; }
+  @Icon #Focus { Background: "focus.png"; }
+  @Icon #Creativity { Background: "creativity.png"; }
+  @Icon #Knowledge { Background: "knowledge.png"; }
+  @Icon #Intelligence { Background: "intelligence.png"; }
+};

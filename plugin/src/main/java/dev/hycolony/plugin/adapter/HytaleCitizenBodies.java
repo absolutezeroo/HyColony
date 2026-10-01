@@ -10,6 +10,9 @@ import com.hypixel.hytale.server.core.entity.AnimationUtils;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
+import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
+import com.hypixel.hytale.server.core.modules.entitystats.EntityStatValue;
+import com.hypixel.hytale.server.core.modules.entitystats.asset.DefaultEntityStatTypes;
 import com.hypixel.hytale.server.core.modules.physics.util.PhysicsMath;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -151,6 +154,15 @@ public final class HytaleCitizenBodies implements CitizenBodies {
     @Override
     public boolean isAlive(BodyId body) {
         return ref(body) != null;
+    }
+
+    /** The NPC's Health stat ({@code DefaultEntityStatTypes.getHealth}) in percent of its range; 0 without one. */
+    @Override
+    public int healthPercent(BodyId body) {
+        Ref<EntityStore> ref = ref(body);
+        EntityStatMap stats = ref == null ? null : store().getComponent(ref, EntityStatMap.getComponentType());
+        EntityStatValue health = stats == null ? null : stats.get(DefaultEntityStatTypes.getHealth());
+        return health == null ? 0 : (int) (health.asPercentage() * 100);
     }
 
     @Override

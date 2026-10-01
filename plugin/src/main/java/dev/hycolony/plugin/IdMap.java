@@ -10,7 +10,6 @@ import com.hypixel.hytale.server.core.asset.type.particle.config.ParticleSystem;
 import com.hypixel.hytale.server.core.asset.type.soundevent.config.SoundEvent;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.RootInteraction;
 import com.hypixel.hytale.server.npc.NPCPlugin;
-import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.plugin.farming.FarmingIds;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,7 +28,6 @@ public final class IdMap {
             Map<String, String> items,
             Map<String, String> blocks,
             Map<String, String> npcRoles,
-            Map<String, String> skillIcons,
             List<String> fireworks,
             List<String> precipitationParticles,
             Map<String, String> speedEffects,
@@ -82,11 +80,6 @@ public final class IdMap {
 
     public String npcRole(String key) {
         return require(data.npcRoles(), key);
-    }
-
-    /** The item shown as {@code skill}'s icon in the citizen window. */
-    public String skillIcon(Skill skill) {
-        return require(data.skillIcons(), skill.name());
     }
 
     /** Particle systems fired when a building level rises. */
@@ -159,11 +152,6 @@ public final class IdMap {
         Predicate<String> interaction = id -> RootInteraction.getAssetMap().getAsset(id) != null;
         check(errors, "item", data.items(), item);
         check(errors, "block", data.blocks(), block);
-        Map<String, String> icons = new LinkedHashMap<>();
-        for (Skill skill : Skill.values()) {
-            icons.put(skill.name(), data.skillIcons().get(skill.name()));
-        }
-        check(errors, "skill icon", icons, item);
         check(errors, "particle system", byId(data.fireworks()), particle);
         check(errors, "precipitation particle system", byId(precipitation()), particle);
         check(errors, "speed effect", speeds(), effect);

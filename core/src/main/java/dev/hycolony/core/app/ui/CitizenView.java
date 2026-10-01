@@ -1,20 +1,25 @@
 package dev.hycolony.core.app.ui;
 
 import dev.hycolony.core.app.ui.RequestsView.RequestRow;
+import dev.hycolony.core.citizen.Gender;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.citizen.Skills;
 import dev.hycolony.core.kernel.port.Msg;
 import dev.hycolony.core.request.model.Requestable;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalInt;
 
 /**
- * MineColonies WindowCitizen. {@code activity} is an i18n key suffix: "waitingFor" (with {@code waitingFor}, the
- * first open request), else "working", "wandering", "idle" or "absent". {@code workBuilding} is a building type id or
- * custom name. {@code jobActivity} is the job AI's own line (e.g. the builder's stage, block and action). {@code
- * requests} are the citizen's open requests, each followed by its children (MC RequestTreeWindowModule), with what the
- * viewer holds of it. {@code skills} lists the job's primary and secondary skills first, then the rest in MineColonies
- * order. {@code jobSkills} feeds the Job tab and is empty for a citizen without a workplace.
+ * MineColonies' citizen window (MainWindowCitizen, RequestWindowCitizen, JobWindowCitizen). {@code workBuilding} is a
+ * building type id or custom name. {@code activity} is an i18n key suffix: "waitingFor" (with {@code waitingFor}, the
+ * first open request), else "working", "wandering", "idle" or "absent"; {@code jobActivity} is the job AI's own line
+ * (e.g. the builder's stage, block and action); with the job and workplace, they are kept at the user's request (MC's
+ * window has no such lines). {@code health} is in MC points (20 for ten red hearts, see HealthBar), empty without a
+ * body. {@code creative}: the viewer may raise or lower skills (MC AdjustSkillCitizenMessage). {@code requests} are
+ * the citizen's open requests, each followed by its children (MC RequestTreeWindowModule), with what the viewer holds
+ * of it. {@code skills} lists the job's primary and secondary skills first, then the rest in MineColonies order.
+ * {@code jobSkills} feeds the Job tab and is empty for a citizen without a workplace.
  */
 public record CitizenView(
         int colonyId,
@@ -25,6 +30,10 @@ public record CitizenView(
         String activity,
         Optional<Requestable> waitingFor,
         Optional<Msg> jobActivity,
+        OptionalInt health,
+        double saturation,
+        Gender gender,
+        boolean creative,
         List<SkillRow> skills,
         List<RequestRow> requests,
         Optional<JobSkills> jobSkills) {

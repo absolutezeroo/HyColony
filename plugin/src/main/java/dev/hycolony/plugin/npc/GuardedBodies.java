@@ -42,6 +42,11 @@ public final class GuardedBodies implements CitizenBodies {
     }
 
     @Override
+    public int healthPercent(BodyId body) {
+        return guard("healthPercent", () -> bodies.healthPercent(body), 0);
+    }
+
+    @Override
     public Optional<Vec3> position(BodyId body) {
         return guard("position", () -> bodies.position(body), Optional.empty());
     }

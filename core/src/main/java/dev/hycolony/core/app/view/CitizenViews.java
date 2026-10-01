@@ -16,10 +16,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.UUID;
 
-/** Builds the citizen window's view (MC WindowCitizen): job, activity, skills, inventory, requests, job skills. */
+/**
+ * Builds the citizen window's view (MC MainWindowCitizen, RequestWindowCitizen, JobWindowCitizen): name, health and
+ * food, skills, gender, requests and the job's skills.
+ */
 final class CitizenViews {
+    /** MC citizens have 20 health points, ten red hearts; a Hytale body's share of its maximum is scaled to it. */
+    private static final int MC_MAX_HEALTH = 20;
+
     private final ColonyContext ctx;
     private final TownHallViews townHall;
     private final RequestViews requests;
@@ -52,8 +59,21 @@ final class CitizenViews {
                 waitingFor.isPresent() ? "waitingFor" : townHall.status(c, d),
                 waitingFor,
                 c.citizens().jobActivity(d.id()),
+                health(c, d),
+                d.saturation(),
+                d.gender(),
+                ctx.players().isCreative(player),
                 SkillRows.of(d.skills(), jobSkills),
                 open,
                 worker.map(w -> JobSkillShares.of(w.primary(), w.secondary())));
+    }
+
+    /** The body's health in MC points, truncated as MC casts its float health; empty without a living body. */
+    private OptionalInt health(Colony c, CitizenData d) {
+        return c.citizens()
+                .bodyOf(d.id())
+                .filter(ctx.bodies()::isAlive)
+                .map(b -> OptionalInt.of(ctx.bodies().healthPercent(b) * MC_MAX_HEALTH / 100))
+                .orElse(OptionalInt.empty());
     }
 }

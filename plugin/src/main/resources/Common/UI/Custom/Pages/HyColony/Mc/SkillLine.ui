@@ -1,0 +1,58 @@
+$B = "Book.ui";
+$S = "Skills.ui";
+$C = "../../../Common.ui";
+
+// A skill of the citizen's main page (MC gui/citizen/main.xml), MC sizes doubled: its name right-aligned, its small
+// icon, its level, and + and - over the icon while it is hovered, active in creative mode (MC onHoverId). Kept at the
+// user's request (CitizenSkillLines): a 2 px XP bar under the icon and level, and "XP x / y" as the level's tooltip.
+
+Group {
+  Anchor: (Height: 26);
+
+  Label #Name {
+    Anchor: (Left: 0, Top: 2, Width: 136, Height: 24);
+    Style: (...$B.@Ink, HorizontalAlignment: End);
+  }
+
+  Group #Icon {
+    Anchor: (Left: 140, Top: 4, Width: 18, Height: 18);
+
+    $S.@SkillIcons #Icons {}
+  }
+
+  Label #Level {
+    Anchor: (Left: 164, Top: 2, Width: 30, Height: 24);
+    Style: $B.@Ink;
+    TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+  }
+
+  ProgressBar #Xp {
+    Anchor: (Left: 140, Top: 23, Width: 54, Height: 2);
+    Background: #00000033;
+    BarTexturePath: "xp_bar.png";
+    Value: 0.0;
+  }
+
+  // Over the icon, under the buttons: its hover shows + and - (MC onHoverId on the icon).
+  Button #Hover {
+    Anchor: (Left: 140, Top: 4, Width: 18, Height: 18);
+    Style: (Default: (Background: #000000(0)));
+  }
+
+  Group #Buttons {
+    Anchor: (Left: 112, Top: 0, Width: 48, Height: 26);
+    Visible: false;
+
+    TextButton #Plus {
+      Anchor: (Left: 0, Top: 0, Width: 24, Height: 26);
+      Style: $B.@MiniButtonStyle;
+      Text: "+";
+    }
+
+    TextButton #Minus {
+      Anchor: (Left: 24, Top: 0, Width: 24, Height: 26);
+      Style: $B.@MiniButtonStyle;
+      Text: "-";
+    }
+  }
+}

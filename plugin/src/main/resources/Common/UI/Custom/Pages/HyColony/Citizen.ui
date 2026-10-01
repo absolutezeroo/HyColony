@@ -1,119 +1,195 @@
 $C = "../../Common.ui";
+$B = "Mc/Book.ui";
+
+// The citizen's window as MC's (gui/citizen/nav.xml, main.xml, job.xml, requests.xml), MC positions and sizes
+// doubled: the side tabs, then the colonist paper drawn over their right edge as nav.xml does, then each tab's page
+// (CitizenPage shows the open one). MC's tab backgrounds are fixed by nav.xml; Happiness and Family keep their empty
+// places (systems HyColony lacks). Under the window, the player's inventory while the Inventory tab is open.
+// Textures under Mc/ are MineColonies' (ldtteam, GPL-3), scaled x4 nearest-neighbour into @2x files.
+
+@TabBack = Group {
+  @Y = 0;
+
+  Anchor: (Left: 0, Top: @Y, Width: 64, Height: 52);
+};
+
+@TabIcon = Group {
+  @Y = 0;
+
+  Anchor: (Left: 10, Top: @Y, Width: 40, Height: 40);
+};
+
+@TabHit = Button {
+  @Y = 0;
+
+  Anchor: (Left: 0, Top: @Y, Width: 40, Height: 52);
+  Style: (Default: (Background: #000000(0)), Sounds: $C.@ButtonSounds);
+  TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+};
+
+@Page = Group {
+  Anchor: (Left: 0, Top: 0, Width: 420, Height: 488);
+  Visible: false;
+};
 
 $C.@PageOverlay {
   LayoutMode: Middle;
 
-  // The citizen window, and the player's inventory under it while the Inventory tab is open.
   Group {
     LayoutMode: Top;
-    Anchor: (Width: 766);
+    Anchor: (Width: 420);
 
-    $C.@DecoratedContainer {
-      Anchor: (Width: 766);
+    Group {
+      Anchor: (Width: 420, Height: 488);
 
-      #Title {
-        $C.@Title {
-          @Text = %hycolony.ui.citizen.title;
+      @TabBack { @Y = 72; Background: "Mc/tab_left_side1.png"; }
+      @TabIcon { @Y = 78; Background: "Mc/info.png"; }
+      @TabBack { @Y = 128; Background: "Mc/tab_left_side2.png"; }
+      @TabIcon { @Y = 134; Background: "Mc/requests.png"; }
+      @TabBack { @Y = 184; Background: "Mc/tab_left_side3.png"; }
+      @TabIcon { @Y = 190; Background: "Mc/inventory.png"; }
+
+      Group #JobTab {
+        Anchor: (Left: 0, Top: 0, Width: 64, Height: 488);
+        Visible: false;
+
+        @TabBack { @Y = 340; Background: "Mc/tab_left_side3.png"; }
+        @TabIcon { @Y = 346; Background: "Mc/main.png"; }
+      }
+
+      Group {
+        Anchor: (Left: 40, Top: 0, Width: 380, Height: 488);
+        Background: "Mc/colonist_paper.png";
+      }
+
+      @TabHit #MainHit { @Y = 72; TooltipText: %hycolony.ui.citizen.tab.main; }
+      @TabHit #RequestsHit { @Y = 128; TooltipText: %hycolony.ui.citizen.requests; }
+      @TabHit #InventoryHit { @Y = 184; TooltipText: %hycolony.ui.citizen.tab.inventory; }
+      @TabHit #JobHit { @Y = 340; TooltipText: %hycolony.ui.citizen.tab.job; Visible: false; }
+
+      @Page #MainPage {
+        Label #Name {
+          Anchor: (Left: 66, Top: 28, Width: 328, Height: 22);
+          Style: $B.@InkCentered;
+        }
+
+        Group {
+          Anchor: (Left: 148, Top: 58, Width: 164, Height: 32);
+          Background: "Mc/colonist_text_decor_down.png";
+        }
+
+        Group #Hearts {
+          Anchor: (Left: 130, Top: 104, Width: 200, Height: 18);
+          LayoutMode: Left;
+        }
+
+        Label #HealthLabel {
+          Anchor: (Left: 380, Top: 102, Width: 40, Height: 22);
+          Style: $B.@Ink;
+        }
+
+        Group #Food {
+          Anchor: (Left: 130, Top: 126, Width: 200, Height: 18);
+          LayoutMode: Left;
+        }
+
+        // Kept at the user's request (MC's window has none): the job and workplace, then the activity, where MC's
+        // happiness bar would be.
+        Label #JobLine {
+          Anchor: (Left: 66, Top: 146, Width: 328, Height: 16);
+          Style: (...$B.@InkCentered, FontSize: 12);
+        }
+
+        Label #Activity {
+          Anchor: (Left: 66, Top: 162, Width: 328, Height: 16);
+          Style: (...$B.@InkCentered, FontSize: 12);
+        }
+
+        Group #Skills {
+          Anchor: (Left: 110, Top: 180, Width: 210, Height: 286);
+          LayoutMode: TopScrolling;
+          ScrollbarStyle: $C.@DefaultScrollbarStyle;
+        }
+
+        Group {
+          Anchor: (Left: 354, Top: 418, Width: 30, Height: 98);
+          Background: "Mc/colonist_decor_up_ribbon_smaller.png";
+        }
+
+        Group #Male {
+          Anchor: (Left: 340, Top: 408, Width: 60, Height: 60);
+          Background: "Mc/colonist_wax_male_smaller.png";
+        }
+
+        Group #Female {
+          Anchor: (Left: 340, Top: 408, Width: 60, Height: 60);
+          Background: "Mc/colonist_wax_female_smaller.png";
+          Visible: false;
         }
       }
 
-      #Content {
-        Padding: (Vertical: 24, Horizontal: 40);
-        LayoutMode: Top;
-
-        Group #TabButtons {
-          LayoutMode: Left;
-          Anchor: (Height: 32, Bottom: 12);
+      @Page #RequestsPage {
+        Label {
+          Anchor: (Left: 66, Top: 28, Width: 328, Height: 22);
+          Style: $B.@InkCentered;
+          Text: %hycolony.ui.citizen.requests;
         }
 
-        Group #MainTab {
-          LayoutMode: Top;
+        Group #Tree {
+          Anchor: (Left: 66, Top: 58, Width: 316, Height: 368);
+          LayoutMode: TopScrolling;
+          ScrollbarStyle: $C.@DefaultScrollbarStyle;
+        }
+      }
 
-          Label #Name {
-            Style: (FontSize: 22, RenderBold: true);
-          }
-
-          Label #Job {
-            Style: (TextColor: #94a7bb);
-            Anchor: (Top: 4);
-          }
-
-          Label #Workplace {
-            Style: (TextColor: #94a7bb);
-            Anchor: (Top: 2);
-          }
-
-          Label #Activity {
-            Style: (RenderBold: true);
-            Anchor: (Top: 6, Bottom: 10);
-          }
-
-          Label {
-            Text: %hycolony.ui.citizen.skills;
-            Style: (RenderBold: true, RenderUppercase: true, TextColor: #94a7bb);
-            Anchor: (Bottom: 6);
-          }
-
-          Group #Skills {
-            LayoutMode: TopScrolling;
-            ScrollbarStyle: $C.@DefaultScrollbarStyle;
-            Anchor: (Height: 300);
-          }
+      @Page #InventoryPage {
+        Label {
+          Anchor: (Left: 66, Top: 28, Width: 328, Height: 22);
+          Style: $B.@InkCentered;
+          Text: %hycolony.ui.citizen.tab.inventory;
         }
 
-        Group #RequestsTab {
-          LayoutMode: Top;
-          Visible: false;
+        ItemGrid #CitizenSlots {
+          Anchor: (Left: 58, Top: 64, Width: 344, Height: 118);
+          SlotsPerRow: 9;
+          AreItemsDraggable: true;
+          DisplayItemQuantity: true;
+          RenderItemQualityBackground: true;
+          Style: (
+            SlotSize: 36,
+            SlotIconSize: 32,
+            SlotSpacing: 2,
+            SlotBackground: "../HyBlockUI/Native/Slot.png",
+            DurabilityBar: "../HyBlockUI/Native/DurabilityBar.png",
+            DurabilityBarBackground: "../HyBlockUI/Native/DurabilityBarBackground.png",
+            DurabilityBarAnchor: (Bottom: 5, Left: 6, Width: 24, Height: 2),
+            DurabilityBarColorStart: #a63232,
+            DurabilityBarColorEnd: #63b649
+          );
+          Padding: 1;
+        }
+      }
 
-          Label #RequestsEmpty {
-            Style: (TextColor: #94a7bb);
-            Visible: false;
-          }
-
-          Group #Requests {
-            LayoutMode: TopScrolling;
-            ScrollbarStyle: $C.@DefaultScrollbarStyle;
-            Anchor: (Height: 400);
-          }
+      @Page #JobPage {
+        Label #JobLabel {
+          Anchor: (Left: 90, Top: 64, Width: 272, Height: 22);
+          Style: $B.@InkCentered;
         }
 
-        Group #InventoryTab {
-          LayoutMode: Top;
-          Visible: false;
-
-          ItemGrid #CitizenSlots {
-            Anchor: (Width: 686, Height: 230);
-            SlotsPerRow: 9;
-            AreItemsDraggable: true;
-            DisplayItemQuantity: true;
-            RenderItemQualityBackground: true;
-            Style: (SlotSize: 74, SlotIconSize: 64, SlotSpacing: 2, SlotBackground: "../HyBlockUI/Native/Slot.png", DurabilityBar: "../HyBlockUI/Native/DurabilityBar.png", DurabilityBarBackground: "../HyBlockUI/Native/DurabilityBarBackground.png", DurabilityBarAnchor: (Bottom: 10, Left: 13, Width: 48, Height: 2), DurabilityBarColorStart: #a63232, DurabilityBarColorEnd: #63b649);
-            Padding: 2;
-          }
+        Label {
+          Anchor: (Left: 100, Top: 88, Width: 300, Height: 60);
+          Style: (...$B.@Ink, VerticalAlignment: Start, Wrap: true);
+          Text: %hycolony.ui.citizen.jobDesc;
         }
 
-        Group #JobTab {
+        Group #JobPrimary {
+          Anchor: (Left: 100, Top: 148, Width: 302, Height: 72);
           LayoutMode: Top;
-          Visible: false;
+        }
 
-          Label #JobLabel {
-            Style: (FontSize: 18, RenderBold: true);
-          }
-
-          Label {
-            Text: %hycolony.ui.citizen.jobDesc;
-            Style: (TextColor: #94a7bb);
-            Anchor: (Top: 4, Bottom: 10);
-          }
-
-          Group #JobPrimary {
-            LayoutMode: Top;
-            Anchor: (Bottom: 16);
-          }
-
-          Group #JobSecondary {
-            LayoutMode: Top;
-          }
+        Group #JobSecondary {
+          Anchor: (Left: 100, Top: 248, Width: 302, Height: 72);
+          LayoutMode: Top;
         }
       }
     }

@@ -11,61 +11,50 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hyblockui.api.InventoryGrids;
 import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.app.ui.CitizenView;
-import dev.hycolony.plugin.IdMap;
 import dev.hycolony.plugin.ui.ColonyPage;
-import dev.hycolony.plugin.ui.TabBar;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * The citizen's window in tabs, in MC AbstractWindowCitizen order: Main, Requests, Inventory, then Job for a citizen
- * with a workplace.
+ * The citizen's window as MC's (AbstractWindowCitizen and its pages): the colonist paper, the side tabs of nav.xml in
+ * MC's order, Main, Requests, Inventory, then Job for a citizen with a workplace, and the open tab's page. Moving from
+ * tab to tab stays in this window (MC opens a window per tab); no tab looks open, as in MC.
  *
  * <p>Deviation from MC: no Happiness, Family nor Debug tab (no such systems yet). The Inventory tab opens the
  * citizen's container straight away as MC's does, but inside this window, over the player's own inventory, where MC
  * opens a separate container screen (see {@link CitizenInventoryPanel}).
  */
 public final class CitizenPage extends ColonyPage {
-    /** A tab: its content group and its label key. */
-    enum Tab implements TabBar.Tab {
-        MAIN("#MainTab", "main"),
-        REQUESTS("#RequestsTab", "requests"),
-        INVENTORY("#InventoryTab", "inventory"),
-        JOB("#JobTab", "job");
+    /** A tab: its page group and the button that opens it (Citizen.ui). */
+    enum Tab {
+        MAIN("#MainPage", "#MainHit"),
+        REQUESTS("#RequestsPage", "#RequestsHit"),
+        INVENTORY("#InventoryPage", "#InventoryHit"),
+        JOB("#JobPage", "#JobHit");
 
-        private final String group;
-        private final String key;
+        private final String page;
+        private final String hit;
 
-        Tab(String group, String key) {
-            this.group = group;
-            this.key = key;
-        }
-
-        @Override
-        public String group() {
-            return group;
-        }
-
-        @Override
-        public String labelKey() {
-            return "hycolony.ui.citizen.tab." + key;
+        Tab(String page, String hit) {
+            this.page = page;
+            this.hit = hit;
         }
     }
 
     private final CitizenView view;
-    private final IdMap ids;
     private final CitizenRequestsTab requests;
+    private final CitizenSkillLines skills;
     private final List<Tab> tabs = new ArrayList<>(List.of(Tab.MAIN, Tab.REQUESTS, Tab.INVENTORY));
     private Tab tab = Tab.MAIN;
     private @Nullable CitizenInventoryPanel inventory;
 
-    public CitizenPage(PlayerRef playerRef, CitizenView view, ColonyManager manager, IdMap ids) {
+    public CitizenPage(PlayerRef playerRef, CitizenView view, ColonyManager manager) {
         super(playerRef, manager);
         this.view = view;
-        this.ids = ids;
         this.requests = new CitizenRequestsTab(manager, player, view);
+        this.skills = new CitizenSkillLines(manager, player, view);
         if (view.jobSkills().isPresent()) {
             tabs.add(Tab.JOB);
         }
@@ -106,7 +95,7 @@ public final class CitizenPage extends ColonyPage {
 
     /** A copy of this window on its Inventory tab, showing panel (whose window opens with it). */
     CitizenPage withInventory(PlayerRef playerRef, CitizenInventoryPanel panel) {
-        CitizenPage page = new CitizenPage(playerRef, view, manager, ids);
+        CitizenPage page = new CitizenPage(playerRef, view, manager);
         page.tab = Tab.INVENTORY;
         page.inventory = panel;
         panel.attach(page::redrawIfShown);
@@ -120,13 +109,21 @@ public final class CitizenPage extends ColonyPage {
             @Nonnull UIEventBuilder events,
             @Nonnull Store<EntityStore> store) {
         ui.append("Pages/HyColony/Citizen.ui");
-        TabBar.render(ui, events, tabs, tab);
-        CitizenMainTab.render(ui, view, new SkillRowRenderer(ids));
+        for (int i = 0; i < tabs.size(); i++) {
+            bind(events, tabs.get(i).hit, "tab", i);
+        }
+        if (tabs.contains(Tab.JOB)) {
+            ui.set("#JobTab.Visible", true);
+            ui.set("#JobHit.Visible", true);
+        }
+        ui.set(tab.page + ".Visible", true);
+        CitizenMainTab.render(ui, view);
+        skills.render(ui, events);
         requests.render(ui, events);
         if (tab == Tab.INVENTORY && inventory != null) {
             inventory.draw(ui, events, "#PlayerInventory", store, ref);
         }
-        view.jobSkills().ifPresent(j -> CitizenJobTab.render(ui, ids, view.jobId(), j));
+        view.jobSkills().ifPresent(j -> CitizenJobTab.render(ui, view.jobId(), j));
     }
 
     @Override
@@ -143,6 +140,7 @@ public final class CitizenPage extends ColonyPage {
             }
             return;
         }
+        skills.handle(act).ifPresent(update -> sendUpdate(update, null, false));
         requests.handle(act);
     }
 

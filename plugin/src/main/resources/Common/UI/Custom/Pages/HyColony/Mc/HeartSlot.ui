@@ -1,0 +1,28 @@
+// One heart of the citizen's health bar (MC CitizenWindowUtils.createHealthBar), MC sizes doubled: an 18 x 18 heart
+// every 20 px. HealthBar gives each slot its layers, shown bottom to top: the empty heart, a full heart, then a half
+// heart drawn over the heart below it. Deviation from MC: red, golden and empty hearts are Mojang's gui/icons.png,
+// absent from sources/, so they are drawn from the shape of MC's green heart (green_bluehearts.png); green and blue
+// hearts are MC's own.
+
+@Layer = Group {
+  Anchor: (Full: 0);
+  Visible: false;
+};
+
+Group {
+  Anchor: (Width: 20, Height: 18);
+
+  Group {
+    Anchor: (Left: 0, Top: 0, Width: 18, Height: 18);
+
+    @Layer #Empty { Background: "heart_empty.png"; }
+    @Layer #Red { Background: "heart_red.png"; }
+    @Layer #Golden { Background: "heart_golden.png"; }
+    @Layer #Green { Background: "heart_green.png"; }
+    @Layer #Blue { Background: "heart_blue.png"; }
+    @Layer #HalfRed { Background: "heart_half_red.png"; }
+    @Layer #HalfGolden { Background: "heart_half_golden.png"; }
+    @Layer #HalfGreen { Background: "heart_half_green.png"; }
+    @Layer #HalfBlue { Background: "heart_half_blue.png"; }
+  }
+}

@@ -1,6 +1,5 @@
 package dev.hycolony.plugin.ui.citizen;
 
-import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import dev.hycolony.core.app.ColonyManager;
@@ -25,12 +24,8 @@ final class CitizenRequestsTab {
 
     void render(UICommandBuilder ui, UIEventBuilder events) {
         List<RequestRow> rows = view.requests();
-        if (rows.isEmpty()) {
-            ui.set("#RequestsEmpty.Visible", true);
-            ui.set("#RequestsEmpty.Text", Message.translation("hycolony.ui.requests.empty"));
-        }
         for (int i = 0; i < rows.size(); i++) {
-            RequestsPage.appendRow(ui, events, "#Requests", i, rows.get(i));
+            RequestsPage.appendRow(ui, events, "#RequestsPage #Tree", i, rows.get(i));
         }
     }
 

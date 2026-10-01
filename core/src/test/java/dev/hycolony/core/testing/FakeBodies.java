@@ -28,6 +28,9 @@ public final class FakeBodies implements CitizenBodies {
         public List<Vec3> path = List.of();
 
         public boolean alive = true;
+        /** What {@link FakeBodies#healthPercent} reports. */
+        public int healthPercent = 100;
+
         public ItemKey held;
         public BodyAnimation lastAnimation;
         /** The bed it lies in; null standing. */
@@ -104,6 +107,11 @@ public final class FakeBodies implements CitizenBodies {
     public boolean isAlive(BodyId body) {
         Body b = bodies.get(body);
         return b != null && b.alive;
+    }
+
+    @Override
+    public int healthPercent(BodyId body) {
+        return isAlive(body) ? bodies.get(body).healthPercent : 0;
     }
 
     @Override

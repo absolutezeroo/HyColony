@@ -36,8 +36,9 @@ Hors périmètre (systèmes absents) : bonheur (barre, onglet), famille (onglet)
 
 - Nom centré, noir, 328 × 22 en (66, 28) ; décor `colonist_text_decor_down` 164 × 32 en (148, 58).
 - Barre de santé en (110, 84) : 10 cœurs de 18 px (`createHealthBar`), le libellé « santé / 2 » à sa droite. La santé vient du corps Hytale du citoyen (nouvelle lecture du port `CitizenBodies`), ramenée à l'échelle de MC (20 points) ; cœurs rouges, dorés, verts et bleus selon les seuils de MC.
+- Gardées **à la demande de l'utilisateur** (Javadoc de `CitizenMainTab`) : sous la barre de nourriture, à la place de la barre de bonheur absente, deux lignes de 12 px en (66, 148) : « Métier : X — lieu de travail » et l'activité (« En attente de … », l'état, ou la ligne du métier).
 - Barre de saturation en (110, 106) : `MAX_SATURATION / 6` icônes `empty`, puis `full` pour chaque tranche de 6, puis `half` (règle de `createSaturationBar`, sur dix par ligne).
-- Compétences dans l'ordre fixe de `main.xml` (Athletics, Dexterity, Strength, Agility, Stamina, Mana, Adaptability, Focus, Creativity, Knowledge, Intelligence), liste en (110, 180) de 210 × 286, une ligne de 26 : libellé aligné à droite 136 × 24, icône `entity/skills/small/<skill>` 18 × 18 en (140, 4), **niveau seul** en (164, 2). L'XP, la barre et le surlignage des compétences du métier disparaissent (contenu de MC).
+- Compétences en liste en (110, 180) de 210 × 286, une ligne de 26 : libellé aligné à droite 136 × 24, icône `entity/skills/small/<skill>` 18 × 18 en (140, 4), niveau en (164, 2). Ordre et ajouts gardés **à la demande de l'utilisateur** (Javadoc de `SkillRows`) : les compétences du métier d'abord, en gras, puis les autres dans l'ordre de `main.xml` ; sous chaque ligne, une barre d'XP de 2 px vers le niveau suivant, et « XP x / y » en infobulle.
 - Boutons + et − (24 × 26) de chaque compétence, en (112, 0) et (136, 0) de sa ligne, montrés au survol de l'icône et actifs pour un joueur en mode créatif (MC `AdjustSkillCitizenMessage`, refusé hors créatif) : le niveau monte ou descend d'un.
 - Ruban `colonist_decor_up_ribbon_smaller` 30 × 98 en (354, 418) ; sceau de genre `colonist_wax_male_smaller` ou `_female_smaller` 60 × 60 en (340, 408).
 
@@ -104,6 +105,7 @@ Nouvelle action du cœur `RequestActions.cancel(player, colonyId, token)` : droi
 ## 8. Écarts à MC retenus
 
 - Inventaire du citoyen dans la fenêtre (déjà documenté).
+- Compétences du métier en tête, barre d'XP, lignes métier, lieu de travail et activité (demandés par l'utilisateur, déjà documentés).
 - Bonheur, Famille, Debug, statut visible et climat des cultures absents.
 - Les boutons +/− d'une compétence apparaissent au survol de son icône comme chez MC (`onHoverId`), par les événements `MouseEntered` et `MouseExited` (`CustomUIEventBindingType`), donc après un aller-retour au serveur.
 - La santé du corps Hytale ramenée à l'échelle de MC (20 points) ; les cœurs rouges et dorés de Minecraft (`gui/icons.png` de Mojang, absent de `sources/`) remplacés par des cœurs dessinés à partir de ceux de `citizen/green_bluehearts.png` de MC.

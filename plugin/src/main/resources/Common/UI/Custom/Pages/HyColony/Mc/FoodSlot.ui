@@ -1,0 +1,19 @@
+// One icon of the citizen's food bar (MC CitizenWindowUtils.createSaturationBar), MC sizes doubled: 18 x 18 every
+// 20 px, MC's citizen/empty.png under a full or half one (SaturationBar).
+
+@Layer = Group {
+  Anchor: (Full: 0);
+  Visible: false;
+};
+
+Group {
+  Anchor: (Width: 20, Height: 18);
+
+  Group {
+    Anchor: (Left: 0, Top: 0, Width: 18, Height: 18);
+    Background: "empty.png";
+
+    @Layer #Full { Background: "full.png"; }
+    @Layer #Half { Background: "half.png"; }
+  }
+}

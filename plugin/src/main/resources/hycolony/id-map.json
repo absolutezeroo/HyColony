@@ -67,19 +67,6 @@
   "highlightEffect": "Drop_Legendary",
   "sleepParticle": "Sleepy",
   "placeholderFluid": "Water_Source",
-  "skillIcons": {
-    "Athletics": "Armor_Leather_Light_Legs",
-    "Dexterity": "Weapon_Daggers_Iron",
-    "Strength": "Tool_Hammer_Iron",
-    "Agility": "Ingredient_Feathers_Light",
-    "Stamina": "Potion_Stamina",
-    "Mana": "Ingredient_Crystal_Purple",
-    "Adaptability": "Tool_Map",
-    "Focus": "Furniture_Crude_Candle",
-    "Creativity": "Furniture_Village_Painting_1x1",
-    "Knowledge": "Deco_Book_Pile_Small",
-    "Intelligence": "Deco_Scroll"
-  },
   "farming": {
     "seeds": {
       "Plant_Seeds_Aubergine": "Plant_Crop_Aubergine_Block",

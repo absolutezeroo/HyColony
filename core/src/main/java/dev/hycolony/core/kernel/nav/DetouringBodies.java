@@ -197,6 +197,11 @@ public final class DetouringBodies implements CitizenBodies {
     }
 
     @Override
+    public int healthPercent(BodyId body) {
+        return bodies.healthPercent(body);
+    }
+
+    @Override
     public Optional<Vec3> position(BodyId body) {
         return bodies.position(body);
     }

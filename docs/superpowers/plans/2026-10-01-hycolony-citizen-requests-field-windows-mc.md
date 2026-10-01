@@ -27,7 +27,7 @@
 
 **Cœur**
 
-1. `SkillRows` → niveaux dans l'ordre fixe de `main.xml` (`Skill.values()` dans cet ordre, vérifié par un test qui liste les 11) ; la vue ne garde que compétence et niveau.
+1. `SkillRows` reste (ordre « métier d'abord » et XP gardés à la demande de l'utilisateur) ; seul le rendu change.
 2. `HealthBar.of(int health)` : port de `createHealthBar` (10 emplacements, chacun un cœur de fond et un demi-cœur posé dessus, ordre bleu, vert, doré, rouge, seuils de `WindowConstants`), avec tests sur 0, 1, 20, 21, 40, 80.
 3. `SaturationBar.of(double saturation)` : `MAX_SATURATION / 6` emplacements vides, pleins par tranche de 6, un demi si reste ; tests 0, 3, 60, 33.
 4. Port `CitizenBodies.health(BodyId)` → `Optional<BodyHealth(current, max)>` (vide sans corps) ; `Fake` ; la vue ramène à l'échelle de MC : `round(current / max × 20)`.
