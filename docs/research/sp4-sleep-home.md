@@ -4,6 +4,8 @@ Recherche du 2026-09-27. Question de l'utilisateur : « pourquoi les citoyens ne
 
 Sources MineColonies : branche `version/main`, sous `https://raw.githubusercontent.com/ldtteam/minecolonies/version/main/src/main/java/com/minecolonies/` (abrégé `MC/`). Sources Hytale : `build/vineflower/hytale-server/com/hypixel/hytale/` (abrégé `HY/`) et `release-0.6.8-Assets.zip` (abrégé `zip:`).
 
+**Mise à jour du 2026-10-01** : les sources de MineColonies sont maintenant copiées en local. `MC/` correspond à `sources/minecolonies/src/main/java/com/minecolonies/`, et les textes en-US à `sources/minecolonies/src/main/resources/assets/minecolonies/lang/manual_en_us.json`. La section E relit tout ce qui touche la maison, le lit et le sommeil dans ces sources, et les affirmations contredites plus bas sont corrigées sur place (marquées « corrigé le 2026-10-01 »).
+
 ## Réponse courte
 
 1. **Aucun citoyen n'a de maison.** `CitizenData.homeBuilding` existe et est sauvegardé (`CitizenSerializer.java:41,65`), mais **personne n'appelle `setHomeBuilding`** (grep sur `core/src/main` et `plugin/src/main`). `LivingModule` ne contient qu'une méthode `capacity(b) = b.level()` avec la Javadoc « Used from SP4 on » (`core/.../construction/hut/LivingModule.java:6-10`). La fenêtre de la résidence est la fenêtre générique de hutte (`BuildingViews.of`) : sans `WorkerModule`, elle n'affiche ni habitants ni bouton d'attribution.
@@ -51,7 +53,8 @@ Dans `calculateNextState` (l. 168-201) :
 - temps de trajet : `(distance + extra) * TIME_PER_BLOCK`, avec `TIME_PER_BLOCK = 6` ticks par bloc ;
 - temps restant : `NIGHT - dayTime % 24000` (plus `WORK_LONGER * 1000` avec la recherche) ;
 - résultat `true` si `timeLeft <= 0` ou `timeLeft - timeNeeded <= 0`. Autrement dit, le citoyen part juste à temps pour arriver à `NIGHT`, au plus tôt à 10600 ;
-- si la distance maison-atelier dépasse `MAX_NO_COMPLAIN_DISTANCE = 160`, il se plaint (`com.minecolonies.coremod.gui.chat.hometoofar`).
+- si la distance maison-atelier dépasse `MAX_NO_COMPLAIN_DISTANCE = 160`, il se plaint (`com.minecolonies.coremod.gui.chat.hometoofar`). Corrigé le 2026-10-01 : ce n'est pas un message de chat aux joueurs, mais une **interaction du citoyen** (`SimpleNotificationInteraction`, priorité `IMPORTANT`, `CitizenSleepHandler.java:266-276`) ;
+- corrigé le 2026-10-01 : les écarts `xDiff`, `zDiff` et `yDiff` sont des `int`, et `yDiff` est tronqué **après** la multiplication par 1,5 (`CitizenSleepHandler.java:256-258`). Un citoyen invisible ne part jamais (l. 243).
 
 Côté colonie (`MC/core/colony/Colony.java:633-652`), `checkDayTime` utilise `isDayTime` (seuil `NIGHT`). À la tombée de la nuit : `eventManager.onNightFall()`, `raidManager.onNightFall()`, `citizenManager.updateCitizenSleep(false)`. À l'aube : `citizenManager.onWakeUp()`, qui met à jour les entités et **efface le deuil** (`CitizenManager.java:~690`).
 
@@ -70,7 +73,7 @@ Machine d'états `SleepState { WALKING_HOME, FIND_BED, SLEEPING }` (l. 75-96) :
 
 - **avec maison** : passe à `FIND_BED` dès que `homeBuilding.isInBuilding(pos)` (dans l'emprise du bâtiment) ; sinon statut `SLEEP` et `EntityNavigationUtils.walkToBuilding(citizen, home)` ;
 - **sans maison** : passe à `FIND_BED` si `homePosition.distSqr(pos) <= RANGE_TO_BE_HOME`, avec `RANGE_TO_BE_HOME = 16` (`CitizenConstants.java:113`). C'est comparé à une distance **au carré**, donc 4 blocs. Sinon `walkToPos(homePosition, 4, true)` ;
-- 1 chance sur 33 (`CHANCE`, `nextInt(33) <= 1`) de jouer le son `OFF_TO_BED` s'il a un travail.
+- 2 chances sur 33 (`CHANCE`, `nextInt(33) <= 1`, corrigé le 2026-10-01) de jouer le son `OFF_TO_BED`, s'il a **à la fois** un atelier et un métier (`EntityAISleep.java:260-264`).
 
 **Repli sans maison** (`CitizenData.getHomePosition`, `MC/core/colony/CitizenData.java:2126-2150`) : la maison, sinon la **taverne** si son niveau est supérieur à 0, sinon l'**hôtel de ville**, sinon le centre de la colonie.
 
@@ -90,7 +93,7 @@ Machine d'états `SleepState { WALKING_HOME, FIND_BED, SLEEPING }` (l. 75-96) :
 - si la position n'est plus un lit : `removeBed(pos)` ;
 - le lit convient si c'est la tête et si le bloc au-dessus est un lit, un panneau DO, une trappe ou un bloc non solide ;
 - **sans lit valide** (index hors liste, bloc non chargé…) : `usedBed = homePos`, la position de la hutte ;
-- le citoyen marche vers `usedBed` dans le bâtiment (`walkToPosInBuilding(…, 12)`). À l'arrivée, `bedTicks++` ;
+- le citoyen marche vers `usedBed` dans le bâtiment (`walkToPosInBuilding(…, 12)`). À l'arrivée, `bedTicks++`. Précisé le 2026-10-01 : « arrivé » veut dire à 1,5 bloc du lit, ou à 12 blocs une fois le chemin terminé (`EntityNavigationUtils.java:65-82`, distance euclidienne) ; tant qu'il n'est pas arrivé, `bedTicks` est **remis à 0** (`EntityAISleep.java:215-218`) ;
   - si le lit est `OCCUPIED` et qu'une entité y dort déjà : `usedBed = homePos` ;
   - si `trySleep(usedBed)` échoue (pas un lit, par exemple la hutte) : `bedPos = ZERO` et `usedBed = null` ;
   - `happinessHandler.resetModifier(SLEPTTONIGHT)` est appelé à chaque arrivée, même sans lit ;
@@ -129,16 +132,16 @@ Heure : le premier `decideAiTask` où `dayTime % 24000 <= 10600`, donc à 0 (6 h
 - `removeCitizen` → `setHomeBuilding(null)` et `calculateMaxCitizens()` ;
 - `onDestroyed` retire tous les habitants ;
 - `CitizenData.onRemoveBuilding` oublie une maison retirée ;
-- **déménagement** : `CitizenData.setHomeBuilding(new)` retire le citoyen de l'ancienne maison et remet `bedPos = ZERO` (`CitizenData.java:889-908`). C'est la seule règle de départ. Aucune règle n'expulse lors d'une baisse de niveau.
+- **déménagement** : `CitizenData.setHomeBuilding(new)` retire le citoyen de l'ancienne maison et remet `bedPos = ZERO` (`CitizenData.java:889-908`). C'est la seule règle de départ. Aucune règle n'expulse lors d'une baisse de niveau. Corrigé le 2026-10-01 : MC ne sauvegarde pas la maison dans les données du citoyen ; au chargement, `LivingBuildingModule.deserializeNBT` (l. 23-50) rappelle `assignCitizen` pour chaque habitant, après la lecture du niveau. Les habitants au-delà de `max` sont donc **perdus au rechargement** (le refus « hutte pleine » s'applique), et redeviennent sans-abri.
 - **Attribution automatique** (`onColonyTick`, l. 67-86) : si la hutte n'est pas pleine, et que son mode est `AUTO`, ou `DEFAULT` avec le réglage d'hôtel de ville `AUTO_HOUSING_MODE` (défaut **true**, `BuildingModules.java:529`), elle capture les citoyens **sans maison** (`getHomeBuilding() == null`), dans l'ordre de la liste des citoyens. Elle ne déplace jamais un citoyen déjà logé.
 - Modes (`MC/api/colony/buildings/HiringMode.java`) : `DEFAULT` (« Default (colony override) »), `AUTO`, `MANUAL`, `LOCKED` (« Locked (no kids) »). HyColony a déjà le même enum : `core/.../job/HiringMode.java`.
-- `CitizenManager.calculateMaxCitizens` (l. 424-459) additionne `getModuleMax()` des modules de logement construits (niveau > 0). Une hutte `LOCKED` ne compte que ses habitants actuels. Ce total plafonne l'immigration et les naissances, que HyColony n'a pas encore.
+- `CitizenManager.calculateMaxCitizens` (l. 424-459) additionne `getModuleMax()` des modules de logement construits (niveau > 0). Une hutte `LOCKED` ne compte que ses habitants actuels. Ce total plafonne l'immigration et les naissances, que HyColony n'a pas encore. Corrigé le 2026-10-01 : il sert aussi au compteur « citoyens x/max » des statistiques de l'hôtel de ville (`WindowStatsPage.java:97-123`, via `ColonyView.java:285-286`) et à `/colony info` (`CommandColonyInfo.java:52`), que HyColony a (voir E.3).
 
 **Fenêtre** :
 
-- `WindowHutLiving` (`MC/core/client/gui/huts/WindowHutLiving.java`, `gui/windowhuthome.xml`) montre la liste des habitants (« Métier: Nom »), le libellé `com.minecolonies.coremod.gui.home.assigned` « Assigned Citizens: %d/%d », un bouton **assign** et un bouton **recall** (`RecallCitizenHutMessage`). Au niveau 0, le bouton assign affiche `…WORKERHUTS_LEVEL_0` et ne fait rien.
+- `WindowHutLiving` (`MC/core/client/gui/huts/WindowHutLiving.java`, `gui/windowhuthome.xml`) montre la liste des habitants (« Métier: Nom »), le libellé `com.minecolonies.coremod.gui.home.assigned` « Assigned Citizens: %d/%d », un bouton **assign** et un bouton **recall** (`RecallCitizenHutMessage`). Au niveau 0, le bouton assign envoie `…WORKERHUTS_LEVEL_0` au joueur **dans le chat** et n'ouvre rien (`WindowHutLiving.java:115-124`, corrigé le 2026-10-01).
 - `WindowAssignCitizen` (`MC/core/client/gui/WindowAssignCitizen.java`) a deux listes et un bouton de mode :
-  - **non assignés** : tous les citoyens sauf ceux qui travaillent chez eux et ceux qui habitent déjà ici. Les sans-abri passent d'abord, puis le tri se fait par distance de l'atelier à cette maison. La ligne affiche « Works %d blocks from here », en vert si c'est plus près que l'actuel, et « Homeless » ou « Current work distance », en rouge au-delà de `FAR_DISTANCE_THRESHOLD = 300` ;
+  - **non assignés** : tous les citoyens sauf ceux qui travaillent chez eux et ceux qui habitent déjà ici. Les sans-abri passent d'abord, puis le tri se fait par distance de l'atelier à cette maison. La ligne affiche « Works %d blocks from here », en vert si c'est plus près que l'actuel, et « Homeless » ou « Current work distance », en rouge au-delà de `FAR_DISTANCE_THRESHOLD = 300`. Précisé le 2026-10-01 dans E.2 (le citoyen sans atelier n'est pas toujours trié en dernier, et le rouge porte sur la distance **actuelle**) ;
   - **assignés** : bouton « unassign » (`gui.hiring.buttonunassign`), désactivé si le citoyen voyage ;
   - **les deux boutons ne sont actifs qu'en mode manuel effectif** : mode de la hutte `MANUAL`, ou `DEFAULT` avec `AUTO_HOUSING_MODE` à false. Sinon ils sont grisés, avec l'infobulle `gui.home.hire.warning` : « Turn the hiring mode of this hut (or colony) to manual to remove this citizen or assign another one. » Avec les réglages par défaut de MC, **on ne peut donc pas attribuer à la main sans passer la résidence en Manuel** ;
   - le bouton de mode fait tourner `DEFAULT → AUTO → MANUAL → LOCKED`.
@@ -155,22 +158,32 @@ Heure : le premier `decideAiTask` où `dayTime % 24000 <= 10600`, donc à 0 (6 h
 | Modificateur de bonheur `SLEPTTONIGHT` : poids 1.5, remis à zéro à chaque arrivée au lit, paliers `(0, 2.0) (2, 1.6) (3, 1.0)` jours | `EntityAISleep`, l. 213 ; `CitizenHappinessHandler`, l. 80 | **oui, le bonheur** |
 | `leisureTime = 0` à l'endormissement | `CitizenData.setAsleep` | non : le loisir est porté (`CitizenData.tickLeisure`), à remettre à zéro avec le sommeil |
 | Soin : **aucun bonus lié au sommeil**. `checkHeal` toutes les 100 ticks (`HEAL_CITIZENS_AFTER`) dépend seulement de la saturation | `EntityCitizen.java:885-910` | — |
-| Immunité à l'étouffement (`IN_WALL`) pendant le sommeil, pas de poussée entre entités, pas de rebond | `EntityCitizen`, l. 1293, 1514, 1913 | non (utile si la pose enfonce le modèle dans le lit) |
+| Pas de poussée entre entités (`doPush`), pas de rebond. Corrigé le 2026-10-01 : l'immunité à l'étouffement n'est **pas** liée au sommeil, tout dégât `IN_WALL` téléporte le citoyen et est ignoré (`EntityCitizen.java:1285-1291`), la clause `isAsleep` de la l. 1293 n'est jamais atteinte | `EntityCitizen`, l. 1285-1294, 1512-1517, 1911-1918 | non |
 | Objet tenu retiré | `trySleep` | non (`bodies.setHeldItem(body, empty)`) |
 | Message « tous les citoyens dorment » | `CitizenManager.onCitizenSleep` | non |
 | Le deuil est effacé à l'aube | `CitizenManager.onWakeUp` | le deuil n'est pas porté |
 | Plaintes « pas de garde près de… » à l'endormissement | `CitizenData.onGoSleep` | **oui, les gardes** |
 | Persistance : `bedPos` (`TAG_BEDS`) et `isAsleep` (`TAG_ASLEEP`) dans les données du citoyen ; au rechargement, si `bedPos == ZERO`, `onWakeUp()` | `CitizenData.java:1354-1355, 1479-1482, 574-577` | non |
 
-## B. Hytale 0.6.8
+## B. Hytale 0.6.8, revérifié en 0.7.0-pre.4
+
+**Revérifié en 0.7.0-pre.4 le 2026-10-01** : le détail, avec fichier:ligne, est dans `plugin-b-api.md` § 41. Ce qui change par rapport au texte de 0.6.8 ci-dessous :
+
+- **Constantes.** `NIGHTTIME_SECONDS = 34559` et `SUNRISE_SECONDS = 17279`, pas 34560 / 17280 : le calcul se fait en `float`. Le lever est à 04:47:59 et le coucher à 19:11:59, à une seconde près.
+- **Heure normalisée.** Le temps mis à l'échelle (0,25 au lever, 0,75 au coucher) est privé. On lit `getGameDateTime()` ou `getDayProgress()`, et les durées réelles par `World.getDaytimeDurationSeconds()` / `getNighttimeDurationSeconds()`, avec la surcharge du monde. La formule des ticks réels avant une heure cible est au § 41.
+- **Passage de nuit.** Le réveil des joueurs est à **04:47:00**. Le saut n'arrive qu'après 3 s réelles ou plus, et il peut s'arrêter à mi-nuit si un joueur se réveille.
+- **Monture.** `mountOnBlock` demande un `CommandBuffer`, qu'on n'obtient hors d'un système que par `Store.forEachChunk`. Elle doit recevoir le bloc de **base** du lit.
+- **Effets de bord.** Une téléportation fait descendre du lit (`TeleportMountedEntity`). Une descente pose `PlayerSomnolence` sur le PNJ, qui sera descendu à la fin du prochain passage de nuit des joueurs.
+- **Physique.** Le contrôleur de marche applique la gravité à chaque tick, même monté. `Frozen` l'arrête, mais il est sauvegardé.
+- **Lits.** `Furniture_Goblin_Bed` s'ajoute. Les 20 lits HyVanilla ont `Beds`.
 
 ### B.1 Heure du jour
 
 - `WorldTimeResource` (`HY/server/core/modules/time/WorldTimeResource.java:43-49`) :
   - `DAYTIME_PORTION_PERCENTAGE = 0.6` ;
   - `DAYTIME_SECONDS = 51840` ;
-  - `NIGHTTIME_SECONDS = 34560` ;
-  - `SUNRISE_SECONDS = NIGHTTIME_SECONDS / 2 = 17280`.
+  - `NIGHTTIME_SECONDS = 34560` (en 0.7.0-pre.4 : 34559, calcul en `float`, voir l'encadré ci-dessus) ;
+  - `SUNRISE_SECONDS = NIGHTTIME_SECONDS / 2 = 17280` (en 0.7.0-pre.4 : 17279).
 
   Le jour va donc de **04:48** (lever) à **19:12** (coucher), en heure de jeu. `tick()` (l. 117-137) fait avancer l'horloge à deux vitesses : `DaytimeDurationSeconds` réelles pour le jour, `NighttimeDurationSeconds` réelles pour la nuit.
 - `zip:Server/GameplayConfigs/Default.json` → `World` :
@@ -179,7 +192,7 @@ Heure : le premier `decideAiTask` où `dayTime % 24000 <= 10600`, donc à 0 (6 h
   - `Sleep.AllowedSleepHoursRange: [19.5, 4.79]`.
 - `getGameDateTime()` renvoie un `LocalDateTime` (l. 310). `isDayTimeWithinRange(min, max)` travaille sur `getDayProgress()` (l. 517).
 - **HyColony** : `HytaleGameClock.isDaytime()` utilise `isScaledDayTimeWithinRange(0.25, 0.75)`, soit exactement le lever (04:48) et le coucher (19:12) de `WorldTimeResource` (corrigé le 2026-09-29, `plugin-b-api.md` § 31). Avant, il testait `6 <= hour < 20`.
-- Les joueurs peuvent sauter la nuit : `UpdateWorldSlumberSystem` fait avancer l'heure via `timeResource.setGameTime(wakeUpTime, …)` (`HY/builtin/beds/sleep/systems/world/UpdateWorldSlumberSystem.java:48-73`). Il ne touche qu'aux entités `PlayerSomnolence`, donc pas aux PNJ.
+- Les joueurs peuvent sauter la nuit : `UpdateWorldSlumberSystem` fait avancer l'heure via `timeResource.setGameTime(wakeUpTime, …)` (`HY/builtin/beds/sleep/systems/world/UpdateWorldSlumberSystem.java:48-73`). Il ne touche qu'aux entités qui ont `PlayerSomnolence`. **En 0.7.0-pre.4**, un PNJ en reçoit un dès qu'il descend d'un lit (`WakeUpOnDismountSystem`, voir `plugin-b-api.md` § 41) : il est alors descendu de son lit à la fin d'un passage de nuit.
 
 ### B.2 Lits
 
@@ -290,7 +303,7 @@ Aux niveaux 2, 3 et 5, il y a moins de lits que d'habitants. Les citoyens en tro
 - plaintes « pas de garde » : pas de gardes ;
 - règle des mineurs sous terre : pas de mineur ;
 - recherche `WORK_LONGER` : pas de recherche ;
-- son `OFF_TO_BED` et particules de sommeil : **[in-game]**, ressources à trouver ;
+- son `OFF_TO_BED` et particules de sommeil : **[in-game]**, ressources à trouver. Corrigé le 2026-10-01 : les particules existent dans Hytale (E.3) ;
 - plafond d'immigration `calculateMaxCitizens` : pas d'immigration au-delà des citoyens initiaux.
 
 ## Incertitudes
@@ -298,4 +311,127 @@ Aux niveaux 2, 3 et 5, il y a moins de lits que d'habitants. Les citoyens en tro
 - **[in-game]** Pose couchée d'un PNJ monté sur un lit, stabilité du corps (glissement), et collision avec un joueur qui voudrait le même lit.
 - **[in-game]** Heures réelles de lever et de coucher par rapport à `HytaleGameClock` (6 h–20 h aujourd'hui, 04:48–19:12 d'après la source).
 - L'ordre de `bedList` dans MC vient d'un `HashSet`, donc l'attribution d'un lit à un citoyen n'y est pas stable. Nous pouvons garder l'ordre de pose, c'est un écart mineur à documenter.
-- Je n'ai pas cherché d'autres appels de `registerBlockPosition` que le constructeur (par exemple un bloc posé par un joueur dans la hutte) : la recherche de code GitHub demande une authentification.
+- ~~Je n'ai pas cherché d'autres appels de `registerBlockPosition` que le constructeur.~~ Résolu le 2026-10-01 : il n'a que trois appelants, le constructeur (`BuildingStructureHandler.java:199`), la pose créative (`api/util/CreativeBuildingStructureHandler.java:127`) et le marteau d'assistant (`core/items/ItemAssistantHammer.java:336`, absent de HyColony). Un bloc posé par un joueur n'enregistre **pas** de lit.
+
+## E. Audit sur les sources locales (2026-10-01)
+
+Relecture de tout le code MC lié à la maison, au lit et au sommeil dans `sources/`, comparée ligne à ligne avec la spec `docs/superpowers/specs/2026-10-01-hycolony-sp4-home-sleep-design.md` (abrégée « S § x »). Chemins abrégés : `MC/` = `sources/minecolonies/src/main/java/com/minecolonies/`, `lang:` = `sources/minecolonies/src/main/resources/assets/minecolonies/lang/manual_en_us.json`. Les systèmes HyColony ont été vérifiés dans `core/src/main/java`. Y sont absents : les statuts visibles, les interactions de citoyen, les sons de citoyen, le rappel, le retrait d'un citoyen, la fenêtre de réglages de l'hôtel de ville et la boîte d'emprise des bâtiments.
+
+### E.1 Ce qui a été lu
+
+- Modules : `MC/core/colony/buildings/modules/LivingBuildingModule.java`, `AbstractAssignedCitizenModule.java`, `BedHandlingModule.java`, `HomeBuildingModule.java` ; vues `moduleviews/LivingBuildingModuleView.java`, `views/LivingBuildingView.java` ; déclaration `MC/apiimp/initializer/ModBuildingsInitializer.java:245-253` (modules `HOME`, `LIVING`, `BED`, niveau max 5) et `MC/core/colony/buildings/modules/BuildingModules.java:50,486-489,525-531` (`AUTO_HOUSING_MODE` vrai par défaut). `HOME` n'a ni vue ni persistance, et son `getMaxInhabitants` n'a aucun appelant dans ces sources.
+- IA : `MC/core/entity/ai/workers/CitizenAI.java`, `MC/core/entity/ai/minimal/EntityAISleep.java`, `MC/core/entity/citizen/citizenhandlers/CitizenSleepHandler.java`, `MC/core/entity/pathfinding/navigation/EntityNavigationUtils.java`.
+- Données : `MC/core/colony/CitizenData.java`, `MC/core/colony/managers/CitizenManager.java`, `MC/core/colony/Colony.java:633-655`, `MC/api/util/WorldUtil.java:165-179`, `MC/core/colony/buildings/AbstractBuilding.java:254-257,1415-1419`, `AbstractSchematicProvider.java:505-520`.
+- Entité : `MC/core/entity/citizen/EntityCitizen.java`, `MC/api/entity/citizen/AbstractEntityCitizen.java`, `MC/core/util/TeleportHelper.java`, `MC/core/event/EventHandler.java`.
+- Fenêtres et messages : `WindowHutLiving.java` et `gui/windowhuthome.xml`, `WindowAssignCitizen.java` et `gui/windowassigncitizen.xml`, `AssignUnassignMessage.java`, `RecallCitizenHutMessage.java`, `BuildingHiringModeMessage.java`, `WindowHireWorker.java`, `townhall/WindowStatsPage.java`, `WindowBuildBuilding.java`.
+- Tous les appelants de `isAsleep`, `getBedPos`, `getBedLocation`, `getHomeBuilding`, `setHomeBuilding`, `getHomePosition`, `onGoSleep`, `onWakeUp`, `trySleep`, `registerBlockPosition` et `Pose.SLEEPING`.
+
+### E.2 Dans la spec, mais différent de MC (b)
+
+| S § | MC | Écart |
+|---|---|---|
+| 1 `remove` | `LivingBuildingModule.onRemoval` (l. 96-100) → `setHomeBuilding(null)` : `bedPos` est effacé, mais le citoyen **n'est pas réveillé**. Il reste couché jusqu'à l'aube, puis descend à côté du lit (`CitizenSleepHandler.java:178-218` lit la position du lit sur l'entité, pas `bedPos`). | La spec réveille un citoyen retiré. |
+| 1 réparation, 8 | MC ne sauve pas la maison du citoyen. `LivingBuildingModule.deserializeNBT` (l. 23-50) rappelle `assignCitizen` pour chaque habitant, après la lecture du niveau (`AbstractBuilding.java:328-366`). Au-delà de `max`, les habitants sont refusés (hutte pleine, `AbstractAssignedCitizenModule.java:55-66`) et redeviennent sans-abri. | La spec garde logé un habitant au-delà de `max`. |
+| 3 niveau 0 | `WindowHutLiving.java:115-124` : le bouton « Manage Housing » envoie `workerhuts.level0` dans le chat et n'ouvre rien. | La spec remplace le bouton par un libellé. |
+| 3 fenêtre | Deux fenêtres. La principale (`windowhuthome.xml` : « Assigned Citizens: x/y », liste « Métier: Nom », boutons « Manage Housing » et « Recall Citizens ») ouvre `WindowAssignCitizen` : description « Administer the citizens living here. », assignés à gauche avec « Unassign », non assignés à droite avec « Assign », « Building Assignment Mode: » avec le bouton de mode, et une croix qui revient à la hutte. | La spec fusionne tout en un onglet : écart d'interface à noter. |
+| 3 tri | `WindowAssignCitizen.java:196-210` : les sans-abri d'abord, puis la distance atelier → maison (euclidienne 3D, tronquée en `int`). Un citoyen **sans atelier et sans-abri** vaut 0 (en tête des sans-abri), un citoyen **sans atelier mais logé** vaut `Integer.MAX_VALUE` (en dernier). Le tri est stable, dans l'ordre des citoyens. | La spec met tout citoyen sans atelier après les autres. |
+| 3 lignes | Non assignés (l. 248-299) : « Métier: Works N blocks from here. » (vert foncé si N est inférieur à la distance actuelle), puis « Current work distance: M blocks » (rouge si M > 300), ou « Homeless ». Un citoyen logé sans atelier n'a pas ce second texte. Sans métier : « Unemployed », un saut de ligne, puis ce texte. Assignés (l. 344-377) : « Métier: Works N blocks from here. », en rouge si N > 300, sinon « Unemployed ». | La spec ne dit pas sur quoi portent le rouge et le vert, ni le cas sans métier. |
+| 3 boutons | En mode manuel, « Assign » est aussi grisé quand la hutte est pleine (l. 301-317). | Absent de la spec. |
+| 3 actions | `AssignUnassignMessage.java:119-130` ne vérifie **pas** le mode côté serveur : seule la fenêtre grise les boutons. Un « assign » vers la maison actuelle du citoyen, ou sur une hutte pleine qui le compte déjà, tombe dans la branche « retirer ». | La spec refuse hors mode manuel : plus strict, écart à noter. Le cas « retirer » n'est pas atteignable depuis la fenêtre. |
+| 4 | `WorldUtil.isDayTime` : `dayTime % 24000 <= NIGHT` (l. 165-168). | La spec écrit `dayTime() < NIGHT`. |
+| 5.1 plainte | `CitizenSleepHandler.java:266-276` : interaction du citoyen (`SimpleNotificationInteraction`, `IMPORTANT`), pas un message aux joueurs. | La spec l'envoie aux joueurs : écart à noter, faute d'interactions dans HyColony. |
+| 5.1 distance | `xDiff`, `zDiff` et `yDiff` sont des `int`, avec `yDiff = (int)(|dy| * 1.5)` (l. 256-260). | Troncatures absentes de la spec. |
+| 5.3 choix du lit | `EntityAISleep.java:159-220` : le lit est **rechoisi par rang à chaque tentative** tant que `usedBed` est vide ou vaut la hutte (l. 165). Si le bloc n'est plus un lit, `removeBed`, puis **retour sans marcher** (l. 178-182) : la tentative suivante recalcule le rang sur la liste raccourcie, et peut tomber sur un autre lit. Le lit n'est retenu que si c'est la tête et si le bloc au-dessus est un lit, un panneau DO, une trappe ou un bloc non solide (l. 183-189). Un lit non chargé donne la hutte. Un lit `OCCUPIED` avec une entité couchée dans son volume donne la hutte (l. 199-205). | La spec dit que la tentative suivante « retombe sur la hutte », et omet le contrôle du bloc au-dessus (à porter, ou à noter comme écart Hytale). |
+| 5.3 arrivée | « Arrivé » veut dire à 1,5 bloc, ou à 12 blocs une fois le chemin fini (`EntityNavigationUtils.java:65-82,95-108`). Pas encore arrivé : `bedTicks = 0` (l. 215-218). Échec de `trySleep` : `bedPos = ZERO` en plus de `usedBed = null` (l. 208-212). | Le rayon de 12, la remise à zéro de `bedTicks` et l'effacement de `bedPos` manquent. |
+| 5.3 sommeil | `sleep()` réapplique la pose couchée toutes les 30 ticks (l. 225-243). | À reprendre si l'adaptateur doit réaffirmer l'état couché. |
+| 5.4 message | Le drapeau « tous dorment » repasse à faux à la **tombée de la nuit** (`Colony.java:645`, `CitizenManager.updateCitizenSleep`, l. 666-669), pas au réveil. Tous les citoyens comptent, y compris ceux sans corps et les enfants (l. 672-689). | La spec dit « il repart après un réveil ». |
+| 5.6 | `notifyCitizenHandlersOfWakeUp` (l. 160-176) appelle aussi `job.onWakeUp()`. Il s'exécute même pour un citoyen qui ne dormait pas, quand il est appelé depuis `CitizenData.initEntityValues` (l. 574-577). | Le crochet du métier manque. Son seul contenu MC est la nourriture (E.4). |
+| 5.7 | `CitizenData.initEntityValues` (l. 542, 574-577) ne réveille que si `bedPos == ZERO`, et à **chaque** apparition du corps, pas seulement au chargement. | La spec réveille tout citoyen endormi au chargement : écart justifié par Hytale, à écrire en `Deviation from MC`. Elle oublie la réapparition d'un corps (E.3). |
+| Dehors | `calculateMaxCitizens` sert aussi aux statistiques de l'hôtel de ville et à `/colony info` (E.3). | La spec le dit réservé à l'immigration et aux naissances. |
+
+Conformes (a), pour mémoire :
+
+- capacité = niveau, refus d'un doublon, d'une hutte pleine ou d'un citoyen absent, déménagement, `onRemoved` ;
+- attribution automatique (`AUTO`, ou `DEFAULT` avec le réglage), modes et leur cycle ;
+- permission `MANAGE_HUTS`, y compris pour le changement de mode (`BuildingHiringModeMessage`) ;
+- lit enregistré par sa tête (son origine) sans doublon, `MAX_BED_TICKS = 10`, retour à `WALKING_HOME` au-delà de 3 blocs, sans-abri debout ;
+- cadences 20/30/30/30, fenêtre `NIGHT - 2000`, délai de 15 s, départ « juste à temps », priorité du sommeil, `resetAI` au retour au travail ;
+- objet tenu retiré, `leisureTime = 0`, réveil et sortie du lit.
+
+Déjà portés, et qui s'activeront avec SP4 : le loisir selon le niveau de la maison (`CitizenManager.homeLevel`), l'expérience et le plafond de compétence selon la maison (`job/JobXp`, `citizen/Skills.addXp` ; MC `CitizenExperienceHandler.java:75-86`, `CitizenSkillHandler.java:184-192`). Un citoyen logé dépassera le plafond de compétence de 10 des sans-abri.
+
+### E.3 Absent de la spec, portable maintenant (c)
+
+1. **Boîte d'emprise de la hutte**, prérequis de S § 5.3 : MC `isInBuilding` teste les coins du plan élargis de 1 bloc sur les trois axes (`AbstractSchematicProvider.java:505-520`), et la marche vers le lit vise le centre de ces coins (`EntityNavigationUtils.java:95-108`). Le cœur HyColony n'a pas de coins de bâtiment (le note `HytaleWorldEffects.celebrate`).
+2. **Capacité de la colonie** : `calculateMaxCitizens` (`CitizenManager.java:424-459`) et, sans recherche, `getMaxCitizens = max(1, min(somme, maxCitizenPerColony))` (l. 503-506). Elle est recalculée à l'attribution, au retrait et à l'amélioration (`LivingBuildingModule.java:89-119`), et affichée :
+   - dans les statistiques de l'hôtel de ville, « x/max » en vert sous 90 %, en orange avec l'infobulle « Needs Housing » sous le plafond de la config, sinon en rouge avec « Reached Configured Limit » (`WindowStatsPage.java:97-123`, sans le cas de la recherche) ;
+   - dans `/colony info` (`CommandColonyInfo.java:52`).
+
+   Elle lève les écarts notés dans `TownHallStats` et `ColonyConfig.maxCitizenPerColony`.
+3. **Bouton « Recall Citizens »** de la résidence (`RecallCitizenHutMessage.java:47-74`, `MANAGE_HUTS`) : chaque habitant est téléporté au point d'apparition de la hutte, un habitant sans corps y réapparaît, et un échec envoie `workerhuts.recallfail`. La téléportation réveille d'abord un citoyen endormi (`TeleportHelper.java:36-60`).
+4. **Réveil avant toute téléportation** (`TeleportHelper.java:49-52`) : vaut aussi pour la téléportation de débogage `CitizenAI.teleport` (HyLens).
+5. **Réveil à la réapparition d'un corps** (`CitizenData.initEntityValues`, l. 574-577) : `CitizenManager.updateBodyIfNecessary` doit remettre `asleep` à faux.
+6. **À l'aube, réapparition de tout citoyen sans corps** (`CitizenManager.onWakeUp`, l. 691-697, `updateEntityIfNecessary`).
+7. **Particules de sommeil**, toutes les 30 ticks en `SLEEPING`, à `(x, y + 1, z)`, même debout sans lit (`EntityAISleep.java:240`). Hytale a le système `Server/Particles/NPC/Emotions/Sleepy.particlesystem` (émetteur `Zzzz`, texture `Common/Particles/Textures/Shapes/Zzz.png`, durée 5 s) et `ParticleUtil.spawnParticleEffect(String, Vector3dc, ComponentAccessor)` (`HY/server/core/universe/world/ParticleUtil.java:50`), déjà employé par `HytaleWorldEffects`. **[in-game]** L'identifiant exact (`Sleepy`) reste à confirmer.
+8. **Lit refusé au joueur** (`EventHandler.java:610-631`) : un joueur qui utilise un lit où dort un citoyen est refusé avec `block.minecraft.bed.occupied` (« This bed is occupied »). **[in-game]** Ce que fait Hytale seul avec un point de couchage déjà pris.
+9. **Fenêtre d'embauche** (`WindowHireWorker.java:349-376,479-495`) : candidats triés par distance maison → hutte, arrondie à 40 blocs (sans-abri = 100), puis par nom ; libellé « Currently homeless », « Lives here », « Lives at current work building » ou « Lives %d blocks from here ». `BuildingViews.hireable` ne trie ni n'affiche rien de tel.
+10. **Avertissements d'amélioration de la résidence** (`LivingBuildingView.java:93-130`, affichés en infobulle et en confirmation par `WindowBuildBuilding.java:130,207-211`) :
+    - niveau 1 → 2 sans ferme ni pêcheur de niveau ≥ 1 : `residence.warning.2` ;
+    - niveaux 2 → 5 : `warning.3` à `warning.5` tant qu'aucune cantine n'a de menu adapté, donc **toujours** dans HyColony, qui n'a pas de cantine.
+11. **Pas de poussée entre entités** pour un citoyen endormi (`EntityCitizen.java:1512-1517`). **[in-game]** Hytale pousse-t-il un PNJ monté ?
+12. **Repère « couché » au-dessus de la tête** : `VisibleCitizenStatus.SLEEP` est dessiné au-dessus du citoyen (`render = true`, `VisibleCitizenStatus.java:36-37`, `RenderBipedCitizen.java:110-124`), pendant la marche et le sommeil. Portable comme le « ! » de `CitizenNameplates`, sans le système de statuts.
+13. **Constructeur** : `BuildingBuilder.onWakeUp` remet `purgedMobsToday` à faux (l. 91-94), et un constructeur dont la hutte est au moins au niveau `LEVEL_TO_PURGE_MOBS = 4` supprime une fois par jour les monstres dans l'emprise d'un chantier de type `BUILD` (`EntityAIStructureBuilder.java:55,163-186`). Ce n'est pas porté dans HyColony : à porter avec le crochet `onWakeUp`, ou à noter comme écart.
+14. **Chemin trop long** : au-delà de 900 blocs, le citoyen est téléporté à `getHomePosition()` (`MinecoloniesAdvancedPathNavigate.java:310-330`). C'est une sûreté de navigation, hors du cœur du sujet.
+
+### E.4 Absent, dépend d'un système absent (d)
+
+- **Gardes** : ils ne dorment jamais par ce chemin (`CitizenAI.java:136-150`), sont exclus de « tous dorment », ont le module `BED` des tours et casernes, et provoquent les plaintes « pas de garde » (`CitizenData.onGoSleep`, l. 1883-1904 ; `lang:` `noguardnearwork`, `noguardnearhome`).
+- **Raids** : `SLEEP` avec le statut `RAIDED` (`CitizenAI.java:161-166`).
+- **Maladie et hôpital** : réveil retardé du malade (l. 186-200), lits d'hôpital (`EntityAISickTask`, `BuildingHospital`).
+- **Faim** : saturation figée la nuit et pendant le sommeil (`EntityCitizen.java:1977`), nourriture selon le niveau de la maison (`FoodUtils`), `searchedForFoodToday` (`AbstractJob.onWakeUp`, l. 347-350), requêtes de la maison (`AbstractJob.onStackPickUp`, l. 322-337).
+- **Bonheur** : `SLEPTTONIGHT`, `HOMELESSNESS`, fonction de logement niveau / 3 (`ModHappinessFactorTypeInitializer.java:44`).
+- **Deuil** : `doesLiveWith`, effacement à l'aube.
+- **Interactions** : « zZzz... » (`entity.citizen.sleeping`, `HIDDEN`), « hometoofar », demandes des sans-abri (`InteractionValidatorInitializer.java:266-270`).
+- **Statuts visibles** : `SLEEP` (« Sleeping zZZ ») et `HOUSE` dans la fenêtre du citoyen (`MainWindowCitizen.java:41-52`). HyColony y affiche l'état de l'IA, ce qui suffit pour « SLEEP ».
+- **Sons de citoyen** : `OFF_TO_BED` en rentrant et en dormant (`SoundUtils.java:115-118`, `AbstractEntityCitizen.java:208-215`), `BAD_HOUSING`.
+- **Apparence selon la maison** : le modèle d'un citoyen sans métier (« settler », « citizen », « noble », « aristocrat ») dépend du niveau de sa maison (`CitizenJobHandler.java:48-90`), appelé par `setHomeBuilding` et `onUpgradeComplete`.
+- **Autres** :
+  - enfants et naissances (« Locked (no kids) », plafond de naissances, lit d'enfant décalé) ;
+  - visiteurs et taverne (repli des sans-abri, `TavernLivingBuildingModule`, recrutement) ;
+  - recherche (`WORK_LONGER`, `CITIZEN_CAP`) ;
+  - mineur sous terre ;
+  - voyage (« Unassign » grisé) ;
+  - résurrection (`onResurrect`) ;
+  - retrait d'un citoyen (`removeCivilian`, l. 378-404) ;
+  - bâtiments où l'on vit au travail (`WorkAtHomeBuildingModule`) ;
+  - fenêtre de réglages de l'hôtel de ville (bascule `AUTO_HOUSING_MODE`, absente comme celle d'`autoHiring`) ;
+  - marteau d'assistant.
+
+### E.5 Textes en-US de MC (`lang:`)
+
+| Clé | Texte |
+|---|---|
+| `com.minecolonies.coremod.gui.home.assigned` | Assigned Citizens: %d/%d |
+| `…gui.home.manage` | Manage Housing |
+| `…gui.townhall.recall` | Recall Citizens |
+| `…gui.assigning.description` | Administer the citizens living here. |
+| `…gui.hiring.buttonassign`, `buttonunassign` | Assign, Unassign |
+| `…gui.buildingassignmentmode` | Building Assignment Mode: |
+| `…gui.hiringmode.default`, `auto`, `manual`, `locked` | Default (colony override), Automatic, Manual, Locked (no kids) |
+| `…gui.home.new` | Works %d blocks from here. |
+| `…gui.home.homeless` | Homeless |
+| `…gui.home.currently` | Current work distance: %d blocks |
+| `…gui.home.hire.warning` | Turn the hiring mode of this hut (or colony) to manual to remove this citizen or assign another one. |
+| `…gui.home.travelling` | This citizen is currently travelling. You can not fire them. |
+| `…gui.townhall.citizens.unemployed` | Unemployed |
+| `…gui.workerhuts.level0` | You must construct this hut before you can hire a worker! |
+| `…workerhuts.recallfail` | Recall failed. Please make more space around the location. |
+| `…entity.citizen.sleep` | All citizens are tucked into bed. |
+| `…entity.citizen.sleeping` | zZzz... I want to sleep... Why are you bothering me? |
+| `…gui.chat.hometoofar` | I have to walk a long way home from work every day. It would be nice if I could live somewhere closer. |
+| `…gui.townhall.population.totalcitizens.count` | %d/%d |
+| `…totalcitizens.houselimited`, `configlimited` | Needs Housing, Reached Configured Limit |
+| `com.minecolonies.gui.visiblestatus.sleep` | Sleeping zZZ |
+| `com.minecolonies.core.gui.hiring.homeless`, `liveshere`, `livesatwork`, `distance` | Currently homeless, Lives here, Lives at current work building, Lives %d blocks from here |
+| `com.minecolonies.core.gui.residence.warning.2` à `.5` | voir `lang:` (ferme ou pêcheur ; repas ; repas cuisinés variés ; production de nourriture) |
+| `block.minecraft.bed.occupied` | texte vanilla de Minecraft, absent de `sources/` |
