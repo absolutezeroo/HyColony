@@ -25,6 +25,10 @@ import java.util.logging.Level;
  */
 public final class HytaleFarming implements FarmingAccess {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
+    // A Hytale state block id: "*<block>_State_Definitions_<state>".
+    private static final String STATE = "_State_Definitions_";
+    // A HyDomum variant id: "<template>__<material>..." (dev.hydomum.api.VariantKey.blockTypeKey).
+    private static final String VARIANT = "__";
 
     private final WorldBlocks blocks;
     private final FarmBlocks farm;
@@ -118,9 +122,24 @@ public final class HytaleFarming implements FarmingAccess {
         }
     }
 
+    /**
+     * Whether the block at pos bounds a field: a fence, gate or wall of the id-map's list, in any of its shapes or
+     * states (a corner, an open gate) or HyDomum materials (MC FarmField.isValidDelimiter: any FenceBlock,
+     * FenceGateBlock or WallBlock).
+     */
     @Override
     public boolean isFieldBarrier(BlockPos pos) {
-        return key(pos).filter(barriers::contains).isPresent();
+        return key(pos).map(HytaleFarming::barrierKey)
+                .filter(barriers::contains)
+                .isPresent();
+    }
+
+    /** The block a state id belongs to, then the HyDomum shape a variant id belongs to; any other id as it is. */
+    static String barrierKey(String id) {
+        int state = id.indexOf(STATE);
+        String block = id.startsWith("*") && state > 0 ? id.substring(1, state) : id;
+        int variant = block.indexOf(VARIANT);
+        return variant > 0 ? block.substring(0, variant) : block;
     }
 
     @Override

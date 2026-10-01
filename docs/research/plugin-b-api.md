@@ -716,7 +716,7 @@ Vérifié dans les sources décompilées et dans `Assets.zip` le 2026-09-28. Com
   - une culture éternelle est reposée à son premier stade. Écart : Hytale la renvoie à `Stage1` par `FarmingUtil.harvest`, un peu plus loin.
 - **Engrais** : `BlockModule.getComponent(TilledSoilBlock.getComponentType(), world, x, y, z)`, puis `setFertilized(true)`, puis `BlockSection.setTicking(x, y, z, true)` sur le sol et sur le bloc au-dessus (`FertilizeSoilInteraction.java:120-140`).
 - **Houes** : `Tool_Hoe_*` n'ont pas de `ItemTool` exploitable (elles labourent par l'interaction `Hoe_Till`). L'id-map leur donne un niveau (`farming.hoes` : Crude 0, Copper 1, Iron 2, Thorium 3), et leurs usages valent `Item.getMaxDurability()`, puisque le labour coûte 1 de durabilité par bloc.
-- **Barrières de champ** : 74 blocs, ceux dont l'identifiant finit par `_Fence` ou `_Fence_Gate`, et les murets de pierre `Rock_*_Wall`. Seuls 5 blocs portent le tag `SubType=Fence`. Liste dans `farming.fieldBarriers`.
+- **Barrières de champ** : 74 blocs, ceux dont l'identifiant finit par `_Fence` ou `_Fence_Gate`, et les murets de pierre `Rock_*_Wall`, plus les clôtures, portillons et murets HyDomum (`HyDomum_Fence`, `HyDomum_FenceGate`, `HyDomum_Wall`). Seuls 5 blocs portent le tag `SubType=Fence`. Liste dans `farming.fieldBarriers`. Un id d'état (`*X_State_Definitions_Y` : angle, T, portillon ouvert) compte comme son bloc, une variante HyDomum (`T__matériau`) comme son gabarit (`HytaleFarming.barrierKey`).
 - **[in-game]** Restent à voir en jeu :
   - la pousse d'une culture posée par le fermier ;
   - la maturité lue au stade final ;
