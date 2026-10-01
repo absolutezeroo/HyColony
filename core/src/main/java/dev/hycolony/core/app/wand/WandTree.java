@@ -1,5 +1,6 @@
 package dev.hycolony.core.app.wand;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
@@ -11,6 +12,8 @@ import java.util.TreeSet;
  */
 final class WandTree {
     private static final char SEP = '/';
+    /** ST's subcategory for a mixed folder's own blueprints. */
+    private static final String HERE = "/.";
 
     private final Map<String, String> folderOf;
     private final List<String> order;
@@ -28,8 +31,14 @@ final class WandTree {
         return List.copyOf(out);
     }
 
-    /** The direct subfolders of {@code folder}, as full paths. */
+    /**
+     * The direct subfolders of {@code folder}, as full paths; a folder that also holds huts lists itself first as
+     * {@code folder/.} (ST StructurePacks.getCategories), so that its huts stay reachable.
+     */
     List<String> children(String folder) {
+        if (folder.endsWith(HERE)) {
+            return List.of();
+        }
         String prefix = folder + SEP;
         TreeSet<String> out = new TreeSet<>();
         for (String f : folderOf.values()) {
@@ -38,12 +47,17 @@ final class WandTree {
                 out.add(next < 0 ? f : f.substring(0, next));
             }
         }
-        return List.copyOf(out);
+        List<String> children = new ArrayList<>(out);
+        if (!children.isEmpty() && !huts(folder).isEmpty()) {
+            children.addFirst(folder + HERE);
+        }
+        return List.copyOf(children);
     }
 
-    /** The hut types filed directly in {@code folder}. */
+    /** The hut types filed directly in {@code folder} ({@code folder/.}: in {@code folder}). */
     List<String> huts(String folder) {
-        return order.stream().filter(t -> folder.equals(folderOf.get(t))).toList();
+        String own = folder.endsWith(HERE) ? folder.substring(0, folder.length() - HERE.length()) : folder;
+        return order.stream().filter(t -> own.equals(folderOf.get(t))).toList();
     }
 
     /** Whether {@code buildingTypeId} is one of the style's huts. */
@@ -53,6 +67,9 @@ final class WandTree {
 
     /** Whether {@code folder} leads to a hut of the style; false for the root. */
     boolean contains(String folder) {
+        if (folder.endsWith(HERE)) {
+            return children(parent(folder)).contains(folder);
+        }
         return !folder.isEmpty()
                 && folderOf.values().stream().anyMatch(f -> f.equals(folder) || f.startsWith(folder + SEP));
     }

@@ -77,15 +77,21 @@ public final class WandActions {
         if (s.style().isEmpty()) {
             s = s.withStyle(packs.random().orElse(""));
         }
-        s = s.withNav(s.nav().reopened(s.hasBuilding(), views.maxLevel(s) > 1));
-        sessions.put(player, s);
-        preview.refresh(player, s);
         if (s.style().isEmpty()) {
+            sessions.put(player, s);
             packs.open(player, false);
         } else {
-            manager.windows().ui().showWand(player, views.of(player, s, tip));
+            reopen(player, s, tip);
         }
         return true;
+    }
+
+    /** ST: a new WindowExtendedBuildTool, whose init lays the lists out again ({@link WandNav#reopened}). */
+    private void reopen(UUID player, WandSession s, boolean tip) {
+        WandSession next = s.withNav(s.nav().reopened(s.hasBuilding(), views.maxLevel(s) > 1));
+        sessions.put(player, next);
+        preview.refresh(player, next);
+        manager.windows().ui().showWand(player, views.of(player, next, tip));
     }
 
     /** ST: {@code player.blockPosition().relative(player.getDirection(), 10)}; empty when the position is unknown. */
@@ -95,8 +101,8 @@ public final class WandActions {
     }
 
     /**
-     * ST WindowSwitchPack select: chooses a style and shows the build tool; a different one starts the window anew
-     * and drops the chosen hut, its ghost and its rotation, as ST WindowExtendedBuildTool.init does on a pack change
+     * ST WindowSwitchPack select: chooses a style and opens a new build tool window; a different one starts anew and
+     * drops the chosen hut, its ghost and its rotation, as ST WindowExtendedBuildTool.init does on a pack change
      * (RenderingCache.removeBlueprint). False if unknown or the window was never opened.
      */
     public boolean selectStyle(UUID player, String style) {
@@ -105,11 +111,12 @@ public final class WandActions {
             return false;
         }
         WandSession next = s.get().withStyle(style);
-        update(
+        reopen(
                 player,
                 style.equals(s.get().style())
                         ? next
-                        : next.withBuilding("").withRotation(0).withNav(WandNav.start()));
+                        : next.withBuilding("").withRotation(0).withNav(WandNav.start()),
+                false);
         return true;
     }
 
@@ -120,13 +127,13 @@ public final class WandActions {
         return s.isPresent();
     }
 
-    /** ST WindowSwitchPack cancel: back to the build tool, or closed when no pack was ever chosen. */
+    /** ST WindowSwitchPack cancel: a new build tool window, or closed when no pack was ever chosen. */
     public boolean cancelPacks(UUID player) {
         Optional<WandSession> s = opened(player);
         if (s.isEmpty() || s.get().style().isEmpty()) {
             manager.windows().ui().close(player);
         } else {
-            show(player, s.get());
+            reopen(player, s.get(), false);
         }
         return true;
     }
@@ -137,8 +144,8 @@ public final class WandActions {
      */
     public boolean openCategory(UUID player, String folder) {
         Optional<WandSession> s = opened(player);
-        WandTree tree = s.map(x -> views.tree(x.style())).orElse(null);
-        if (tree == null || !tree.contains(folder)) {
+        Optional<WandTree> tree = s.map(x -> views.tree(x.style())).filter(t -> t.contains(folder));
+        if (tree.isEmpty()) {
             return false;
         }
         boolean root = !folder.contains("/");
@@ -147,7 +154,10 @@ public final class WandActions {
                 s.get()
                         .withNav(s.get()
                                 .nav()
-                                .opened(folder, root, !tree.children(folder).isEmpty())));
+                                .opened(
+                                        folder,
+                                        root,
+                                        !tree.get().children(folder).isEmpty())));
         return true;
     }
 
@@ -215,13 +225,23 @@ public final class WandActions {
     }
 
     /**
-     * Places the hut (MC SurvivalHandler, see {@link WandPlacement}). A refusal is sent to the player and keeps the
-     * session, ghost and window (false); a success forgets them and closes the window, except when a town hall
-     * began founding a colony: the founding window has replaced ours and closing it would cancel the foundation.
+     * Places the hut (MC SurvivalHandler, see {@link WandPlacement}); nothing before a hut is chosen (ST
+     * confirmClicked). As ST handlePlacement calls cancelClicked as soon as it sends a survival placement, the
+     * session, ghost and window go either way; a refusal is sent to the player (false). A town hall that began
+     * founding a colony leaves the founding window open: closing it would cancel the foundation.
      */
     public boolean confirm(UUID player, String playerName) {
         WandSession s = sessions.get(player);
-        return finish(player, s, placement.confirm(player, playerName, s));
+        if (!s.hasBuilding()) {
+            return false;
+        }
+        WandPlacement.Result result = placement.confirm(player, playerName, s);
+        if (result instanceof WandPlacement.Refused(var reason)) {
+            manager.context().notifier().send(player, reason);
+            cancel(player);
+            return false;
+        }
+        return finish(player, s, result);
     }
 
     /**

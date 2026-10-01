@@ -106,6 +106,26 @@ class WandPacksTest {
         assertEquals("nordic", view().style());
     }
 
+    /** ST: Cancel and Select open a new WindowExtendedBuildTool, whose init enables the icons and hides the lists. */
+    @Test
+    void backFromThePackWindowTheBuildToolIsLaidOutAnew() {
+        t.players.creative.add(alice);
+        wand.open(alice, Optional.of(spot));
+        wand.selectStyle(alice, FakeBlueprints.STYLE);
+        wand.openCategory(alice, "fundamentals");
+        wand.switchPack(alice);
+        wand.cancelPacks(alice);
+        assertEquals("", view().panel().disabledCategory());
+        assertFalse(view().panel().back());
+        wand.openCategory(alice, "fundamentals");
+        wand.selectBuilding(alice, BUILDER);
+        wand.openPlacement(alice);
+        wand.switchPack(alice);
+        wand.selectStyle(alice, FakeBlueprints.STYLE);
+        assertFalse(view().panel().placing());
+        assertEquals(BUILDER, view().buildingTypeId(), "the same pack keeps the hut");
+    }
+
     @Test
     void anotherPackForgetsTheFolderTheHutAndTheRotation() {
         t.players.creative.add(alice);

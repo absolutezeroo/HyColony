@@ -4,11 +4,10 @@ import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.app.ui.WandView;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.building.BuildingTypes;
-import dev.hycolony.core.colony.ColonyAccess;
-import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.construction.blueprint.BlueprintSource;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.Msg;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,9 +70,13 @@ final class WandViews {
         if (!nav.navigated()) {
             return "";
         }
-        String id = s.buildingTypeId();
         return "/" + nav.depth()
-                + (nav.file() && s.hasBuilding() ? "/" + id.substring(id.indexOf(':') + 1) + s.level() : "");
+                + (nav.file() && s.hasBuilding() ? "/" + fileName(s.buildingTypeId()) + s.level() : "");
+    }
+
+    /** A hut's blueprint file name without its level, as MC's packs name it ({@code builder}). */
+    private static String fileName(String typeId) {
+        return typeId.substring(typeId.indexOf(':') + 1);
     }
 
     /**
@@ -83,11 +86,12 @@ final class WandViews {
     WandTree tree(String style) {
         Map<String, String> folders = new LinkedHashMap<>();
         if (!style.isEmpty()) {
-            for (BuildingType t : manager.context().buildingTypes().all()) {
-                if (blueprints().hasPlan(style, t.id(), 1)) {
-                    folders.put(t.id(), blueprints().category(t.id()));
-                }
-            }
+            // ST StructurePacks.getBlueprints sorts a folder's blueprints by file name (builder1 before townhall1).
+            manager.context().buildingTypes().all().stream()
+                    .map(BuildingType::id)
+                    .sorted(Comparator.comparing(WandViews::fileName))
+                    .filter(id -> blueprints().hasPlan(style, id, 1))
+                    .forEach(id -> folders.put(id, blueprints().category(id)));
         }
         return new WandTree(folders);
     }
@@ -97,8 +101,8 @@ final class WandViews {
      * (BlockHutTownHall) needs a colony the client knows (getClosestColonyView: the colony at the position, else the
      * nearest one known at any distance), then its hut block in the inventory.
      *
-     * <p>Deviation from MC: the colonies a client knows are those the player may access (MC also sends a colony's
-     * view to the players near it).
+     * <p>As MC sends colony views (EventHandler on login, Permissions subscribers): a client knows the colonies it
+     * manages (owner, officer) and the one whose claim the player stands in, besides the one at the position.
      */
     List<Msg> requirements(UUID player, WandSession s, String typeId) {
         if (manager.context().players().isCreative(player)) {
@@ -118,11 +122,17 @@ final class WandViews {
 
     private boolean knowsAColony(UUID player, WandSession s) {
         return s.anchor().flatMap(manager::colonyAt).isPresent()
-                || manager.all().stream().anyMatch(c -> ColonyAccess.allows(c, player, Action.ACCESS_HUTS));
+                || manager.context()
+                        .players()
+                        .position(player)
+                        .flatMap(manager::colonyAt)
+                        .isPresent()
+                || manager.all().stream()
+                        .anyMatch(c -> c.permissions().rankOf(player).isColonyManager());
     }
 
     /** A hut name as a message parameter: a HyColony hut's translated name, any other type's id as is. */
-    private static String nameParam(String typeId) {
+    static String nameParam(String typeId) {
         return typeId.startsWith(CORE_PREFIX)
                 ? "%hycolony.ui.building.type." + typeId.substring(CORE_PREFIX.length())
                 : typeId;

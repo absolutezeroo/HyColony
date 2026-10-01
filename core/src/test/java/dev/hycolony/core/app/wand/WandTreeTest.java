@@ -51,15 +51,22 @@ class WandTreeTest {
         assertEquals(List.of("dock"), deep.huts("infrastructure/boardwalk/docks"));
     }
 
-    /** A folder with huts and subfolders: ST shows its subfolders (a non-terminal category). */
+    /**
+     * A folder with huts and subfolders: ST StructurePacks.getCategories adds the folder itself as a terminal
+     * subcategory ({@code folder/.}), which lists its own huts.
+     */
     @Test
-    void aFolderWithHutsAndSubfoldersListsBoth() {
+    void aFolderWithHutsAndSubfoldersOffersItselfAsASubfolder() {
         Map<String, String> huts = new LinkedHashMap<>();
         huts.put("mixed", "agriculture");
         huts.put("farmer", "agriculture/horticulture");
         WandTree mixed = new WandTree(huts);
-        assertEquals(List.of("agriculture/horticulture"), mixed.children("agriculture"));
-        assertEquals(List.of("mixed"), mixed.huts("agriculture"));
+        assertEquals(List.of("agriculture/.", "agriculture/horticulture"), mixed.children("agriculture"));
+        assertTrue(mixed.contains("agriculture/."));
+        assertEquals(List.of(), mixed.children("agriculture/."));
+        assertEquals(List.of("mixed"), mixed.huts("agriculture/."));
+        assertEquals("agriculture", WandTree.parent("agriculture/."));
+        assertFalse(tree().contains("fundamentals/."), "only a mixed folder has it");
     }
 
     @Test
