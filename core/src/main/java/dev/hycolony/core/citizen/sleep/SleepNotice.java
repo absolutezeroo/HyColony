@@ -2,6 +2,7 @@ package dev.hycolony.core.citizen.sleep;
 
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.kernel.port.Msg;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -37,11 +38,12 @@ public final class SleepNotice {
         colony.citizens().setAllAsleepAnnounced(false);
     }
 
-    /** MC MessageUtils.sendTo(colony).forAllPlayers: the owner and every member. */
+    /** MC MessageUtils.sendTo(colony).forAllPlayers: the owner and the members allowed RECEIVE_MESSAGES. */
     private static Set<UUID> members(Colony colony) {
         Set<UUID> to = new LinkedHashSet<>();
         to.add(colony.permissions().owner());
         to.addAll(colony.permissions().members().keySet());
+        to.removeIf(p -> !colony.permissions().hasPermission(p, Action.RECEIVE_MESSAGES));
         return to;
     }
 }

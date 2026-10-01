@@ -14,6 +14,7 @@ import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
 import dev.hycolony.core.job.HiringMode;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
+import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.Msg;
 import dev.hycolony.core.testing.TestContexts;
 import java.util.List;
@@ -106,6 +107,20 @@ class HousingActionsTest {
         assertTrue(housing.recall(alice, HOUSE));
 
         assertEquals(List.of(Vec3.center(HOUSE)), t.bodies.teleports);
+    }
+
+    @Test
+    void recallRespawnsABodilessResidentAtTheHut() {
+        Building b = residence(1);
+        CitizenData d = citizen(1);
+        d.setLastPosition(Vec3.center(new BlockPos(60, 64, 0)));
+        living(b).assign(colony, b, d);
+
+        housing.recall(alice, HOUSE);
+
+        BodyId body = colony.citizens().bodyOf(1).orElseThrow();
+        assertEquals(HOUSE, t.bodies.bodies.get(body).position.toBlockPos());
+        assertEquals(null, d.respawnPosition(), "used once, as MC's nextRespawnPos");
     }
 
     @Test

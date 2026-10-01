@@ -194,13 +194,25 @@ class SleepAITest {
     void bedLeftWithoutUsLiesDownAgain() {
         bed(BED_A);
         Sleeper first = resident(1, HOUSE);
-        tickUntil(first, () -> first.data().asleep());
+        tickUntil(first, () -> first.data().asleep() && first.ai().state() == SleepAI.State.SLEEPING);
 
-        t.bodies.bodies.get(first.body()).inBed = null; // a broken bed, or players skipping the night
-        tickUntil(first, () -> !first.data().asleep());
-        assertEquals(SleepAI.State.WALKING_HOME, first.ai().state());
+        t.bodies.bodies.get(first.body()).inBed = null; // players skipping the night
+        tick(first, 31);
 
-        tickUntil(first, () -> first.data().asleep());
+        assertTrue(first.data().asleep());
+        assertEquals(BED_A, t.bodies.bodies.get(first.body()).inBed);
+    }
+
+    @Test
+    void wokenBesideItsBedLiesDownAgain() {
+        bed(BED_A);
+        Sleeper first = resident(1, HOUSE);
+        tickUntil(first, () -> first.data().asleep() && first.ai().state() == SleepAI.State.SLEEPING);
+
+        new SleepHandler(c, first.data(), first.body()).wakeUp(); // a teleport near the bed wakes it up first
+        tick(first, 31);
+
+        assertTrue(first.data().asleep(), "MC EntityAISleep.sleep re-applies the sleeping pose");
         assertEquals(BED_A, t.bodies.bodies.get(first.body()).inBed);
     }
 

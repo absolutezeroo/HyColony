@@ -38,14 +38,18 @@ public final class SleepHandler {
         return true;
     }
 
-    /**
-     * MC onWakeUp, for an asleep citizen only (as each MC caller checks isAsleep): its workplace, job and home learn of
-     * it, then it gets out of bed, awake and bedless.
-     */
+    /** MC onWakeUp for an asleep citizen (MC calculateNextState and TeleportHelper check isAsleep); else nothing. */
     public void wakeUp() {
-        if (!data.asleep()) {
-            return;
+        if (data.asleep()) {
+            onWakeUp();
         }
+    }
+
+    /**
+     * MC onWakeUp, asleep or not (MC CitizenData.initEntityValues calls it at each body appearance): its workplace,
+     * job and home learn of it; an asleep citizen gets out of bed, bedless; it ends awake, its leisure over.
+     */
+    public void onWakeUp() {
         Optional.ofNullable(data.workBuilding())
                 .flatMap(colony.buildings()::at)
                 .ifPresent(b -> BuildingEventsModule.wakeUp(colony, b));
@@ -53,8 +57,12 @@ public final class SleepHandler {
         Optional.ofNullable(data.homeBuilding())
                 .flatMap(colony.buildings()::at)
                 .ifPresent(b -> BuildingEventsModule.wakeUp(colony, b));
-        bodies.wakeUp(body);
-        leftBed();
+        if (data.asleep()) {
+            bodies.wakeUp(body);
+            data.setBedPos(null);
+        }
+        data.setAsleep(false);
+        colony.markDirty();
     }
 
     /**

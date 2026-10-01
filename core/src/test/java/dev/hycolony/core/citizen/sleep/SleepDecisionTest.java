@@ -58,7 +58,9 @@ class SleepDecisionTest {
 
     @Test
     void pausedClockNeverSendsHomeEarly() {
-        clock.dayTime = 11000;
+        clock.dayTime = 12500; // 100 ticks left, 300 needed: it would leave now
+        assertEquals(Verdict.GO_TO_SLEEP, SleepDecision.decide(clock, false, false, homeAt(50, 0), AT));
+
         clock.paused = true;
         assertEquals(Verdict.NONE, SleepDecision.decide(clock, false, false, homeAt(50, 0), AT));
     }

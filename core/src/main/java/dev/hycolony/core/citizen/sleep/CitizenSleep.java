@@ -59,8 +59,16 @@ public final class CitizenSleep {
         current.tick();
     }
 
-    /** MC CitizenSleepHandler.onWakeUp for an asleep citizen (a teleport, a body appearing); else nothing. */
+    /** MC CitizenSleepHandler.onWakeUp for an asleep citizen (a teleport, MC TeleportHelper); else nothing. */
     public void wakeUp() {
         handler.wakeUp();
+    }
+
+    /**
+     * MC CitizenData.initEntityValues: a body appearing wakes its citizen up. Deviation from MC: always, not only
+     * without a bed position, as Hytale saves no NPC lying in a bed.
+     */
+    public void onBodyAppeared() {
+        handler.onWakeUp();
     }
 }

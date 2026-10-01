@@ -197,9 +197,10 @@ public final class SleepAI {
     }
 
     /**
-     * MC sleep: a citizen whose bed is more than 3 blocks away walks back; without a bed it tries again; zZz particles
-     * either way. Deviation from MC: a bed left without us (players skipping the night, a broken bed, see
-     * {@link CitizenBodies#isInBed}) also walks back, awake, to lie down again; MC re-applies the pose instead.
+     * MC sleep: a citizen more than 3 blocks from its bed walks back, keeping its bed and tries; by its bed, one not
+     * lying lies down again (MC re-applies the sleeping pose); without a bed it tries again; zZz particles either way.
+     * Deviation from MC: Hytale can get a sleeper out of its bed without us (players skipping the night, a broken bed,
+     * see {@link CitizenBodies#isInBed}); it is awake then, without the wake-up hooks, until it lies down again.
      */
     private @Nullable State sleep() {
         BlockPos at = here().orElse(null);
@@ -208,12 +209,19 @@ public final class SleepAI {
         }
         BlockPos bed = usedBed;
         if (bed != null) {
-            if (bed.distSq(at) > BED_RANGE_SQ || (data.asleep() && !bodies.isInBed(body))) {
+            if (data.asleep() && !bodies.isInBed(body)) {
+                handler.leftBed();
+            }
+            if (bed.distSq(at) > BED_RANGE_SQ) {
                 if (data.asleep()) {
-                    bodies.wakeUp(body); // no effect once out of bed; gets a displaced body off it
+                    bodies.wakeUp(body); // gets a displaced body off its bed
                     handler.leftBed();
                 }
-                return checkSleep();
+                return State.WALKING_HOME;
+            }
+            if (!data.asleep() && !handler.trySleep(bed)) {
+                data.setBedPos(null);
+                usedBed = null;
             }
         } else {
             findBedAndTryToSleep();

@@ -82,7 +82,7 @@ public final class HousingActions {
                     .isPresent();
             if (alive) {
                 c.citizens().ai(id).ifPresent(ai -> ai.teleport(Vec3.center(hutPos)));
-            } else if (!c.citizens().respawnBody(id)) {
+            } else if (!respawnAt(c, id, hutPos)) {
                 failed = true;
             }
         }
@@ -91,6 +91,23 @@ public final class HousingActions {
         }
         r.get().show(manager, player);
         return true;
+    }
+
+    /**
+     * MC setNextRespawnPosition then updateEntityIfNecessary: the body appears by {@code hut}; the position is used
+     * once, as MC clears nextRespawnPos after spawning.
+     */
+    private static boolean respawnAt(Colony c, int id, BlockPos hut) {
+        CitizenData d = c.citizens().get(id).orElse(null);
+        if (d == null) {
+            return false;
+        }
+        d.setRespawnPosition(hut);
+        boolean spawned = c.citizens().respawnBody(id);
+        if (spawned) {
+            d.setRespawnPosition(null);
+        }
+        return spawned;
     }
 
     /** A residence its player may manage, with its living module. */

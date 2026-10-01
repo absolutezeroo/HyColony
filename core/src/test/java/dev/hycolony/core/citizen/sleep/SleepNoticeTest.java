@@ -1,6 +1,7 @@
 package dev.hycolony.core.citizen.sleep;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
@@ -42,6 +43,18 @@ class SleepNoticeTest {
         assertEquals(1, t.notifier.sent.size());
         assertEquals(
                 Msg.of("hycolony.citizen.allAsleep"), t.notifier.sent.getFirst().msg());
+    }
+
+    @Test
+    void hostileMembersHearNothing() {
+        UUID hostile = UUID.randomUUID();
+        c.permissions().setRank(hostile, "H", Permissions.HOSTILE);
+        t.players.online.put(hostile, new BlockPos(0, 64, 0));
+        citizen(1, true);
+
+        SleepNotice.onCitizenSleep(c);
+
+        assertTrue(t.notifier.sent.stream().noneMatch(s -> s.player().equals(hostile)));
     }
 
     @Test

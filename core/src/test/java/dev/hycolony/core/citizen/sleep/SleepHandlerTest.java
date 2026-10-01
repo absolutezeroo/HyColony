@@ -129,6 +129,16 @@ class SleepHandlerTest {
     }
 
     @Test
+    void wakingUpEndsALeisureBreakDrawnAtNight() {
+        handler.trySleep(BED);
+        d.setLeisureTime(500); // tickLeisure runs at night too (MC CitizenData.update)
+
+        handler.wakeUp();
+
+        assertEquals(0, d.leisureTime());
+    }
+
+    @Test
     void wakeUpOfAnAwakeCitizenDoesNothing() {
         Building home = counted(new BlockPos(40, 64, 0));
         d.setHomeBuilding(home.position());

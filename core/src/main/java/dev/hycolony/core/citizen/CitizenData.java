@@ -115,12 +115,10 @@ public final class CitizenData {
         return asleep;
     }
 
-    /** MC CitizenData.setAsleep: falling asleep ends its leisure time. */
+    /** MC CitizenData.setAsleep: falling asleep or waking up ends its leisure time. */
     public void setAsleep(boolean asleep) {
         this.asleep = asleep;
-        if (asleep) {
-            leisureTime = 0;
-        }
+        leisureTime = 0;
     }
 
     public @Nullable BlockPos workBuilding() {
@@ -151,8 +149,7 @@ public final class CitizenData {
     /**
      * Counts a running break down by {@code elapsed} ticks, else starts one ({@link #LEISURE_TICKS}) with a chance of
      * 1 in 1200 x (120 / home level) / {@code elapsed}: one break every 120 / home level minutes on average. MC
-     * CitizenData.update (leisure part). Deviation from MC: no reset when the citizen falls asleep (setAsleep), as
-     * there is no sleep yet.
+     * CitizenData.update (leisure part); falling asleep and waking up end a break ({@link #setAsleep}).
      */
     void tickLeisure(int elapsed, int homeLevel, RandomGenerator random) {
         if (leisureTime > 0) {

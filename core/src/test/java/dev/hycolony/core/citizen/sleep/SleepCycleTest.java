@@ -200,6 +200,16 @@ class SleepCycleTest {
         assertNull(d.bedPos());
     }
 
+    /** MC CitizenData.initEntityValues: onWakeUp at every body appearance, which ends any leisure break. */
+    @Test
+    void anAppearingBodyEndsTheLeisureBreak() {
+        d.setLeisureTime(500);
+
+        citizen(HOUSE);
+
+        assertEquals(0, d.leisureTime());
+    }
+
     @Test
     void bodilessCitizenRespawnsAtDawn() {
         c.citizens().restore(d);

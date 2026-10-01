@@ -81,7 +81,7 @@ public final class CitizenAI {
         machine.addTransition(new AITarget<>(CitizenState.WORKING, (IStateSupplier<CitizenState>) this::work, 1));
         machine.addTransition(new AIEventTarget<>(AIBlockingEventType.EVENT, this::decideSleep, DECIDE_INTERVAL_TICKS));
         machine.addTransition(new AITarget<>(CitizenState.SLEEP, (IStateSupplier<CitizenState>) this::sleeping, 1));
-        sleep.wakeUp(); // MC CitizenData.initEntityValues: a body appears standing (Hytale saves no NPC in a bed)
+        sleep.onBodyAppeared();
         // A body can keep a job's speed across a crash (the Hytale effect is saved with the NPC); a job AI sets its
         // own.
         bodies.setMovementSpeed(body, 1);
