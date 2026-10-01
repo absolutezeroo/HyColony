@@ -153,6 +153,21 @@ class LiveWindowRefreshTest {
     }
 
     @Test
+    void openClipboardWaitsAFullTreeRefreshAgainAfterARedraw() {
+        manager.windows().openRequests(alice, colony.id(), false);
+        Building hut = colony.buildings().at(pos).orElseThrow();
+        colony.requests().createAndAssign(hut, new StackRequest(new ItemKey("plank"), 2, 2, true), 1);
+        tickWindows(OpenWindows.REQUEST_TREE_REFRESH_TICKS);
+        colony.requests().createAndAssign(hut, new StackRequest(new ItemKey("stone"), 2, 2, true), 1);
+
+        tickWindows(OpenWindows.REQUEST_TREE_REFRESH_TICKS - 1);
+        assertEquals(1, t.ui.redrawn.size(), "MC's tree cache lasts AUTO_REFRESH_TICKS every time");
+        tickWindows(1);
+
+        assertEquals(2, ((RequestsView) t.ui.redrawn.get(1)).rows().size());
+    }
+
+    @Test
     void windowOfAPlayerWhoLostHutAccessIsDroppedNotRedrawn() {
         UUID bob = UUID.randomUUID();
         colony.permissions().setRank(bob, "Bob", Permissions.OFFICER);

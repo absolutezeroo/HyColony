@@ -29,13 +29,13 @@ public final class SelectResOrder {
         Comparator<Entry> then =
                 filter.isEmpty() ? Comparator.comparing(Entry::name) : Comparator.comparingInt(Entry::distance);
         return ids.stream()
-                .map(id -> {
-                    String n = name.apply(id);
-                    return new Entry(id, n, held.contains(id), filter.isEmpty() ? 0 : Levenshtein.distance(n, filter));
-                })
+                .map(id -> new Entry(id, name.apply(id), held.contains(id), 0))
                 .filter(e -> filter.isEmpty()
                         || e.id().toLowerCase(Locale.ROOT).contains(lower)
                         || e.name().toLowerCase(Locale.ROOT).contains(lower))
+                .map(e -> filter.isEmpty()
+                        ? e
+                        : new Entry(e.id(), e.name(), e.held(), Levenshtein.distance(e.name(), filter)))
                 .sorted(heldFirst.thenComparing(then))
                 .map(Entry::id)
                 .toList();

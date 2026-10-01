@@ -39,7 +39,11 @@ final class OpenWindows {
         open.put(player, new Watch<>(shown.key(), shown.view(), view, redraw));
     }
 
-    /** How often a window is checked, in ticks: the clipboard as MC's request tree, the others as its view sync. */
+    /**
+     * How often a window is checked, in ticks: the clipboard as MC's request tree, the others as its view sync.
+     * Deviation from MC: the citizen window's request tree follows the citizen window, where MC rebuilds it every
+     * REQUEST_TREE_REFRESH_TICKS too.
+     */
     private static int everyTicks(WindowKey key) {
         return key instanceof WindowKey.Clipboard ? REQUEST_TREE_REFRESH_TICKS : UPDATE_SUBSCRIBERS_INTERVAL_TICKS;
     }
@@ -48,8 +52,8 @@ final class OpenWindows {
     record Shown<V>(WindowKey key, V view) {}
 
     /**
-     * Every {@link #UPDATE_SUBSCRIBERS_INTERVAL_TICKS}: redraws the changed windows due (see {@link #everyTicks}),
-     * forgets gone or closed ones.
+     * Every {@link #UPDATE_SUBSCRIBERS_INTERVAL_TICKS}: checks the windows due (see {@link #everyTicks}), redraws the
+     * changed ones and forgets the gone or closed ones; a window not due is kept until its next check.
      */
     void tick() {
         if (++ticks < UPDATE_SUBSCRIBERS_INTERVAL_TICKS) {
@@ -82,7 +86,7 @@ final class OpenWindows {
         private V last;
         private final Supplier<Optional<V>> view;
         private final BiPredicate<UUID, V> redraw;
-        /** Ticks since this window was last checked, counted every subscriber update. */
+        /** Ticks since this window was last checked or watched, counted in whole subscriber updates. */
         private int age;
 
         Watch(WindowKey key, V last, Supplier<Optional<V>> view, BiPredicate<UUID, V> redraw) {

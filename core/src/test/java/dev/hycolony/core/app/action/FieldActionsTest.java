@@ -68,12 +68,40 @@ class FieldActionsTest {
         assertTrue(fields.open(carol, NEAR));
         field(NEAR).setSeed(Optional.of(new ItemKey("wheat_seeds")));
 
-        for (int i = 0; i < 20; i++) {
-            manager.windows().tick();
-        }
+        tickWindows();
 
         FieldView redrawn = assertInstanceOf(FieldView.class, t.ui.redrawn.get(0));
         assertEquals(Optional.of(new ItemKey("wheat_seeds")), redrawn.seed());
+    }
+
+    /** MC getDirectionalTranslationKey reads the player's look at each redraw. */
+    @Test
+    void openFieldWindowSidesFollowThePlayersLook() {
+        t.players.setFacing(carol, 0);
+        assertTrue(fields.open(carol, NEAR));
+        t.players.setFacing(carol, 1); // turned east
+
+        tickWindows();
+
+        FieldView redrawn = assertInstanceOf(FieldView.class, t.ui.redrawn.get(0));
+        assertEquals(FieldView.Relative.OPPOSITE, redrawn.relative().get(Direction.EAST));
+    }
+
+    @Test
+    void fieldWindowOfADeletedColonyIsDroppedNotRedrawn() {
+        assertTrue(fields.open(carol, NEAR));
+        field(NEAR).setSeed(Optional.of(new ItemKey("wheat_seeds")));
+        assertTrue(manager.deleteColony(colony.id(), UUID.randomUUID()));
+
+        tickWindows();
+
+        assertTrue(t.ui.redrawn.isEmpty());
+    }
+
+    private void tickWindows() {
+        for (int i = 0; i < 20; i++) {
+            manager.windows().tick();
+        }
     }
 
     @Test

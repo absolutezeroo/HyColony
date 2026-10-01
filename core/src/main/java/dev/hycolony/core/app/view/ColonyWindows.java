@@ -136,9 +136,10 @@ public final class ColonyWindows {
     }
 
     /**
-     * A field block's window (MC WindowField), watched as MC redraws it every tick: the farmer, seed and radii, and
-     * each side seen from where the viewer looks now. Checks no permission (MC opens it for anyone); nothing for a
-     * position that is not one of the colony's fields.
+     * A field block's window (MC WindowField), watched as MC redraws it: the farmer, seed and radii, and each side
+     * seen from where the viewer looks now. Checks no permission (MC opens it for anyone); nothing for a position that
+     * is not one of the colony's fields. Deviation from MC: checked every UPDATE_SUBSCRIBERS_INTERVAL_TICKS, where
+     * WindowField.onUpdate redraws each client tick.
      */
     public void showField(Colony c, BlockPos pos, UUID player) {
         fields.of(c, pos, player).ifPresent(view -> {
