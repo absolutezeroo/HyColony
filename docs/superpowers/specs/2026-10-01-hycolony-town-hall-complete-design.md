@@ -131,7 +131,7 @@ Trois sous-pages, tournées par `<` `>` avec leur numéro. Sans `EDIT_PERMISSION
 
 - `Permissions` : `canAlterPermission` et `alterPermission` (`Permissions.java:304-323`), l'exception du rang Neutre qui n'a jamais `EDIT_PERMISSIONS` ni `TELEPORT_TO_COLONY` (`:641`), `addRank`, `removeRank`, `setRankType`, `removePlayer`, `addPlayer`, avec les règles de MC ; persistance des rangs personnalisés (`add-migration` si le format change).
 - **Journal des refus** : chaque refus d'action (`ColonyProtection`) est enregistré, 100 au plus, avec le joueur, l'action et la position ; persisté comme chez MC (`BuildingTownHall.java:110`).
-- **Port `PlayerDirectory`** : `uuidByName(String)` (joueur connu du serveur, en ligne ou non) et `name(UUID)`. Son adaptateur Hytale s'appuie sur une API vérifiée dans les sources décompilées (`hytale-api`) ; s'il n'en existe pas pour un joueur hors ligne, l'ajout se limite aux joueurs en ligne et l'écart est documenté.
+- **Port `PlayerDirectory`** : `name(UUID)` (joueur en ligne) et `findByName(String, Consumer<Optional<Profile>>)` : un joueur en ligne tout de suite, sinon le service de profils de Hytale que les commandes du jeu utilisent (`ArgTypes.GAME_PROFILE_LOOKUP_ASYNC`), dont la réponse revient sur le fil du monde (`docs/research/plugin-b-api.md` § 43). MC lit un cache local de profils ; Hytale n'en a pas.
 - Actions : `ColonyAdministration` délègue à une nouvelle classe `PermissionActions` (une responsabilité : modifier les permissions), `EDIT_PERMISSIONS` partout, comme `PermissionsMessage`.
 
 ## 9. Robustesse et persistance
@@ -159,7 +159,8 @@ Chacun porte un `Deviation from MC` dans le code.
 - L'avertissement avant une amélioration se confirme par un second clic (MC : une fenêtre de confirmation).
 - Le champ de renommage est pré-rempli avec le nom exact (MC le passe en minuscules par une recherche de traduction).
 - Le rappel dit son échec quand le corps ne peut apparaître (voir § 6).
-- Les onglets Accueil, Informations et Citoyens ne se redessinent pas en direct, pour ne pas fermer une liste ouverte ni effacer la recherche.
+- Les onglets Accueil, Informations, Permissions et Citoyens ne se redessinent pas en direct, pour ne pas fermer une liste ouverte ni effacer ce qui est tapé.
+- Pas de page Blocs libres dans Permissions ; le bouton des joueurs en ligne s'écrit « ... » (les polices n'ont pas l'emoji de MC).
 
 ## 12. Points ouverts, à trancher au plan
 

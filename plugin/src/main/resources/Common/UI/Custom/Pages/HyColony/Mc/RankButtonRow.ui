@@ -1,0 +1,20 @@
+$B = "Book.ui";
+
+// A rank on the Permissions tab's Ranks page (MC layoutpermissions.xml rankButtonList box), MC sizes doubled; the
+// chosen rank's button is disabled.
+
+Group {
+  Anchor: (Height: 30);
+
+  TextButton #Rank {
+    Anchor: (Left: 4, Top: 0, Width: 172, Height: 30);
+    Style: (
+      ...$B.@WideButtonStyle,
+      Default: (Background: "builder_button_medium.png", LabelStyle: $B.@InkCentered),
+      Hovered: (Background: "builder_button_medium.png", LabelStyle: (...$B.@InkCentered, RenderBold: true)),
+      Pressed: (Background: "builder_button_medium.png", LabelStyle: $B.@InkCentered),
+      Disabled: (Background: "builder_button_medium_disabled.png", LabelStyle: $B.@InkCentered)
+    );
+    Text: "";
+  }
+}

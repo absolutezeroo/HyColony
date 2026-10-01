@@ -1,0 +1,28 @@
+$B = "Book.ui";
+$C = "../../../Common.ui";
+
+// An action of the chosen rank (MC layoutpermissions.xml rankList box), MC sizes doubled: its name and an On/Off
+// switch, disabled where the viewer's rank may not alter it.
+
+Group {
+  Anchor: (Height: 42);
+  OutlineSize: 1;
+  OutlineColor: #000000;
+
+  Label #Name {
+    Anchor: (Left: 4, Top: 4, Width: 220, Height: 34);
+    Style: (...$B.@Ink, FontSize: 14, ShrinkTextToFit: true, MinShrinkTextToFitFontSize: 10);
+  }
+
+  TextButton #Switch {
+    Anchor: (Left: 238, Top: 6, Width: 58, Height: 30);
+    Style: (
+      Default: (Background: "builder_button_very_small.png", LabelStyle: $B.@InkCentered),
+      Hovered: (Background: "builder_button_very_small.png", LabelStyle: (...$B.@InkCentered, RenderBold: true)),
+      Pressed: (Background: "builder_button_very_small.png", LabelStyle: $B.@InkCentered),
+      Disabled: (Background: "builder_button_very_small.png", LabelStyle: (...$B.@InkCentered, TextColor: #777777)),
+      Sounds: $C.@ButtonSounds
+    );
+    Text: "";
+  }
+}

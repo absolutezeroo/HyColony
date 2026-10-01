@@ -1,10 +1,15 @@
 package dev.hycolony.core.app.ui;
 
 import dev.hycolony.core.citizen.home.HousingCapacity;
+import dev.hycolony.core.colony.permission.Action;
+import dev.hycolony.core.colony.permission.PermissionEvents;
+import dev.hycolony.core.colony.permission.RankType;
 import dev.hycolony.core.construction.workorder.WorkOrderType;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.port.PlayerDirectory;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /** MC WindowTownHall, one field group per tab: Home (name, rename), Information, Citizens, Statistics. */
 public record TownHallView(
@@ -15,10 +20,42 @@ public record TownHallView(
         Stats stats,
         Home home,
         Info info,
-        Settings settings) {
+        Settings settings,
+        Permissions permissions) {
     public TownHallView {
         citizens = List.copyOf(citizens);
     }
+
+    /**
+     * MC WindowPermissionsPage: whether the viewer may edit (EDIT_PERMISSIONS), the members by rank, the ranks by id,
+     * the refused actions newest first and the online players who are not members.
+     */
+    public record Permissions(
+            boolean canEdit,
+            List<MemberRow> members,
+            List<RankRow> ranks,
+            List<PermissionEvents.Event> refusals,
+            List<PlayerDirectory.Profile> online) {
+        public Permissions {
+            members = List.copyOf(members);
+            ranks = List.copyOf(ranks);
+            refusals = List.copyOf(refusals);
+            online = List.copyOf(online);
+        }
+    }
+
+    /** A colony member: its id, name and rank. */
+    public record MemberRow(UUID id, String name, int rankId, String rankName) {}
+
+    /** A rank: its id, name, whether it is initial (never removed), its type and every action's state. */
+    public record RankRow(int id, String name, boolean initial, RankType type, List<ActionState> actions) {
+        public RankRow {
+            actions = List.copyOf(actions);
+        }
+    }
+
+    /** An action of a rank: set or not, and whether the viewer's rank may alter it (MC canAlterPermission). */
+    public record ActionState(Action action, boolean on, boolean alterable) {}
 
     /** MC WindowSettings: the town hall's switches, in MC's order. */
     public record Settings(boolean moveIn, boolean autoHiring, boolean autoHousing) {}

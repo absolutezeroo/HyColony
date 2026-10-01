@@ -3,6 +3,8 @@ package dev.hycolony.plugin.adapter;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.protocol.GameMode;
+import com.hypixel.hytale.server.core.NameMatching;
+import com.hypixel.hytale.server.core.auth.ServerAuthManager;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
@@ -18,6 +20,7 @@ import dev.hycolony.core.kernel.port.PlayerDirectory;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import org.joml.Vector3d;
 import org.jspecify.annotations.Nullable;
@@ -33,6 +36,48 @@ public final class HytalePlayerDirectory implements PlayerDirectory {
 
     public HytalePlayerDirectory(World world) {
         this.world = world;
+    }
+
+    /** An online player's name, from the universe's players. */
+    @Override
+    public Optional<String> name(UUID player) {
+        try {
+            return Optional.ofNullable(Universe.get().getPlayer(player)).map(PlayerRef::getUsername);
+        } catch (RuntimeException e) {
+            fail("name", player, e);
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * An online player of that exact name (case ignored), else the profile service the game's commands use
+     * (ArgTypes.GAME_PROFILE_LOOKUP_ASYNC); its answer comes back on this world's thread. No session token, no answer
+     * or a failure: empty.
+     */
+    @Override
+    public void findByName(String name, Consumer<Optional<Profile>> then) {
+        try {
+            PlayerRef online = Universe.get().getPlayerByUsername(name, NameMatching.EXACT_IGNORE_CASE);
+            if (online != null) {
+                then.accept(Optional.of(new Profile(online.getUuid(), online.getUsername())));
+                return;
+            }
+            ServerAuthManager auth = ServerAuthManager.getInstance();
+            String token = auth.getSessionToken();
+            if (token == null) {
+                then.accept(Optional.empty());
+                return;
+            }
+            auth.getProfileServiceClient()
+                    .getProfileByUsernameAsync(name, token)
+                    .whenComplete((profile, error) -> world.execute(() -> then.accept(
+                            error != null || profile == null || profile.getUuid() == null
+                                    ? Optional.empty()
+                                    : Optional.of(new Profile(profile.getUuid(), profile.getUsername())))));
+        } catch (RuntimeException e) {
+            LOG.at(Level.WARNING).withCause(e).log("PlayerDirectory.findByName failed for %s", name);
+            then.accept(Optional.empty());
+        }
     }
 
     @Override

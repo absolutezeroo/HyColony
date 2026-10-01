@@ -1,0 +1,31 @@
+$B = "Book.ui";
+$C = "../../../Common.ui";
+
+// A refused action on the Permissions tab (MC layoutpermissions.xml eventsList box), MC sizes doubled: the action,
+// the player in blue, the position, and Add for a known player.
+
+Group {
+  Anchor: (Height: 72);
+  OutlineSize: 1;
+  OutlineColor: #000000;
+
+  Label #Action {
+    Anchor: (Left: 2, Top: 2, Width: 280, Height: 24);
+    Style: (...$B.@Ink, FontSize: 14);
+  }
+
+  Label #Name {
+    Anchor: (Left: 2, Top: 24, Width: 200, Height: 24);
+    Style: (...$B.@Ink, FontSize: 14, TextColor: #0000ff);
+  }
+
+  Label #Pos {
+    Anchor: (Left: 2, Top: 48, Width: 140, Height: 24);
+    Style: (...$B.@Ink, FontSize: 14);
+  }
+
+  $C.@SecondaryTextButton #Add {
+    @Anchor = (Left: 210, Top: 20, Width: 70, Height: 28);
+    Text: %hycolony.ui.townhall.perm.add;
+  }
+}

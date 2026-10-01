@@ -6,6 +6,7 @@ import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.colony.ColonyRefusal;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.colony.permission.BlockUse;
+import dev.hycolony.core.colony.permission.PermissionEvents;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.config.Explosions;
 import java.util.Optional;
@@ -51,8 +52,19 @@ public final class ColonyProtection {
         if (allows(player, pos, action)) {
             return false;
         }
-        manager.colonyAt(pos).ifPresent(c -> ColonyRefusal.tell(c, player));
+        manager.colonyAt(pos).ifPresent(c -> {
+            ColonyRefusal.tell(c, player);
+            log(c, player, action, pos);
+        });
         return true;
+    }
+
+    /** MC cancelEvent: the refusal joins the town hall's permission events (PermissionEvents). */
+    private void log(Colony c, UUID player, Action action, BlockPos pos) {
+        String name = context().players().name(player).orElse("");
+        if (c.permissions().events().add(new PermissionEvents.Event(Optional.of(player), name, action, pos))) {
+            c.markDirty();
+        }
     }
 
     /**
@@ -61,11 +73,12 @@ public final class ColonyProtection {
      */
     public boolean refuses(UUID player, BlockPos pos, BlockUse use) {
         Optional<Colony> colony = manager.colonyAt(pos);
-        if (colony.isEmpty()
-                || use.refused(a -> isAllowed(player, pos, a), enabled()).isEmpty()) {
+        Optional<Action> refused = colony.flatMap(c -> use.refused(a -> isAllowed(player, pos, a), enabled()));
+        if (colony.isEmpty() || refused.isEmpty()) {
             return false;
         }
         ColonyRefusal.tell(colony.get(), player);
+        log(colony.get(), player, refused.get(), pos);
         return true;
     }
 

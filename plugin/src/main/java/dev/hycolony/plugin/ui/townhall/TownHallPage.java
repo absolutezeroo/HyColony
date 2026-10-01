@@ -22,7 +22,7 @@ import javax.annotation.Nullable;
  * The town hall's window as MC's book (MC AbstractWindowTownHall): the open tab's page appended into {@code #Page},
  * then the bookmarks, each tab at its MC slot.
  *
- * <p>Deviation from MC: no Permissions nor Alliances tab yet, and a closed tab names itself in a tooltip
+ * <p>Deviation from MC: no Alliances tab (no diplomacy system), and a closed tab names itself in a tooltip
  * rather than MC's hover ribbon (Hytale cannot show another element on hover).
  */
 public final class TownHallPage extends ColonyPage {
@@ -36,6 +36,7 @@ public final class TownHallPage extends ColonyPage {
     enum Tab {
         ACTIONS(0, "Actions", "actions"),
         INFO(1, "Info", "information"),
+        PERMISSIONS(2, "Permissions", "permissions"),
         CITIZENS(3, "Citizens", "citizens"),
         STATS(4, "Stats", "stats"),
         SETTINGS(6, "Settings", "settings");
@@ -59,6 +60,7 @@ public final class TownHallPage extends ColonyPage {
     private final TownHallCitizensTab citizens;
     private final TownHallStatsTab stats;
     private final TownHallSettingsTab settings;
+    private final TownHallPermissionsTab permissions;
     private Tab tab = Tab.ACTIONS;
 
     public TownHallPage(PlayerRef playerRef, TownHallView view, ColonyManager manager) {
@@ -71,6 +73,7 @@ public final class TownHallPage extends ColonyPage {
                 view.citizens(), this::text, id -> new CitizenRecall(manager).recall(player, view.colonyId(), id));
         this.stats = new TownHallStatsTab(view.stats());
         this.settings = new TownHallSettingsTab(manager, player, view.colonyId(), view.settings());
+        this.permissions = new TownHallPermissionsTab(manager, player, view.colonyId(), view.permissions());
     }
 
     /** The open tab's content. */
@@ -81,6 +84,7 @@ public final class TownHallPage extends ColonyPage {
             case CITIZENS -> citizens;
             case STATS -> stats;
             case SETTINGS -> settings;
+            case PERMISSIONS -> permissions;
         };
     }
 
@@ -95,6 +99,7 @@ public final class TownHallPage extends ColonyPage {
             tab = p.tab;
             info.keepIntervalOf(p.info);
             citizens.keepStateOf(p.citizens);
+            permissions.keepStateOf(p.permissions);
         }
         return this;
     }
@@ -172,12 +177,12 @@ public final class TownHallPage extends ColonyPage {
     }
 
     /**
-     * Home, Information and Citizens hold a dropdown or the search field: a live refresh would close the open list or
-     * reset what is being typed, so their new content shows at the next redraw (a tab change or an action).
+     * Home, Information, Permissions and Citizens hold a dropdown or a text field: a live refresh would close the open
+     * list or reset what is being typed, so their new content shows at the next redraw (a tab change or an action).
      */
     @Override
     protected boolean showsInput() {
-        return tab != Tab.STATS;
+        return tab != Tab.STATS && tab != Tab.SETTINGS;
     }
 
     /** MC WindowMainPage.renameClicked, for every viewer (the core checks the right on Done); offline: nothing. */

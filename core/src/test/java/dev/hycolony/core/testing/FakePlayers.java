@@ -11,8 +11,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public final class FakePlayers implements PlayerDirectory {
+    /** Every player the game knows by name, online or not. */
+    public final Map<UUID, String> names = new LinkedHashMap<>();
+
     public final Map<UUID, BlockPos> online = new LinkedHashMap<>();
     public final Set<UUID> operators = new HashSet<>();
     public final Set<UUID> creative = new HashSet<>();
@@ -20,6 +24,19 @@ public final class FakePlayers implements PlayerDirectory {
     public final Set<UUID> creativeOperators = new HashSet<>();
 
     private final Map<UUID, Integer> facing = new LinkedHashMap<>();
+
+    @Override
+    public Optional<String> name(UUID player) {
+        return Optional.ofNullable(names.get(player));
+    }
+
+    @Override
+    public void findByName(String name, Consumer<Optional<Profile>> then) {
+        then.accept(names.entrySet().stream()
+                .filter(e -> e.getValue().equalsIgnoreCase(name))
+                .findFirst()
+                .map(e -> new Profile(e.getKey(), e.getValue())));
+    }
 
     @Override
     public boolean isOperator(UUID player) {

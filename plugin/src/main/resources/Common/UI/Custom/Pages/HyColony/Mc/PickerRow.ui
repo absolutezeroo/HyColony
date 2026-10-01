@@ -1,0 +1,18 @@
+$B = "Book.ui";
+
+// An online player in the Permissions tab's picker (MC layoutpermissions.xml playerPicker box), MC sizes doubled.
+
+Group {
+  Anchor: (Height: 34);
+
+  TextButton #Pick {
+    Anchor: (Left: 4, Top: 2, Width: 172, Height: 30);
+    Style: (
+      ...$B.@WideButtonStyle,
+      Default: (Background: "builder_button_medium.png", LabelStyle: $B.@InkCentered),
+      Hovered: (Background: "builder_button_medium.png", LabelStyle: (...$B.@InkCentered, RenderBold: true)),
+      Pressed: (Background: "builder_button_medium.png", LabelStyle: $B.@InkCentered)
+    );
+    Text: "";
+  }
+}

@@ -986,6 +986,15 @@ Revérification de `sp4-sleep-home.md` § B (écrit pour 0.6.8) sur les sources 
   - les `Children` d'une `ItemCategory` (catégories imbriquées, § B.10 de `domum-ornamentum.md`).
 - HyDomum : `VariantItem` (`domum/plugin/.../runtime/DynamicBlockTypeFactory.java`) pose `variant = true` sur chaque matériau créé.
 
+## 43. Joueur par nom, listes déroulantes et infobulles riches (2026-10-01)
+
+Vérifié dans les sources décompilées de 0.7.0-pre.4.
+
+- **Joueur en ligne par nom** : `Universe.getPlayerByUsername(String, NameMatching)` (`server/core/universe/Universe.java:1479`). `NameMatching` (`server/core/NameMatching.java:10-20`) a `EXACT`, `EXACT_IGNORE_CASE`, `STARTS_WITH`, `STARTS_WITH_IGNORE_CASE` ; `DEFAULT` = `STARTS_WITH_IGNORE_CASE`.
+- **Joueur hors ligne par nom** : pas de cache local de profils comme le `ProfileCache` de Minecraft. Les commandes du jeu (`/whitelist add`, `ArgTypes.GAME_PROFILE_LOOKUP_ASYNC`, `server/core/command/system/arguments/types/ArgTypes.java:207-252`) cherchent d'abord parmi les joueurs en ligne, puis appellent le service web de profils : `ServerAuthManager.getInstance().getProfileServiceClient().getProfileByUsernameAsync(name, sessionToken)` (`server/core/auth/ProfileServiceClient.java:224`), avec `getSessionToken()` (`ServerAuthManager.java:339`, null sans session). La réponse est un `CompletableFuture<PublicGameProfile>` (`getUuid()`, `getUsername()`), hors du fil du monde : on la ramène par `World.execute(Runnable)` (`World` implémente `Executor`, l. 1120). **[in-game]** : comportement sans connexion au service.
+- **Liste déroulante** : `DropdownEntryInfo(LocalizableString label, String value)` (`server/core/ui/DropdownEntryInfo.java:31`), posée par `ui.set("#X.Entries", List)` puis `.Value` ; le choix revient par l'événement `ValueChanged` avec `@… = "#X.Value"` (`BlockSpawnerSettingsPage.java:177-199`). `LocalizableString.fromString` pour une donnée, `fromMessageId` pour une clé.
+- **Infobulle riche** : `.TooltipTextSpans` accepte un `Message` imbriqué (vanilla `MemoriesPage.java:227`).
+
 ## Could not verify
 
 1. **Client rendering of item animations on NPCs** (`AnimationSlot.Action` with `"Block"/"Build"` or `"Pickaxe"/"Mine"` on `PlayerTestModel_V`) and whether they loop or play once. Only the server packet path is verified.

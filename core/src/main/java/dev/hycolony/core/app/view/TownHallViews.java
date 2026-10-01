@@ -51,7 +51,8 @@ final class TownHallViews {
                 new TownHallView.Settings(
                         c.settings().moveIn(),
                         c.settings().autoHiring(),
-                        c.settings().autoHousing()));
+                        c.settings().autoHousing()),
+                PermissionViews.of(c, ctx, viewer));
     }
 
     /** The log's events of MC's kinds, in log order (MC WindowInfoPage.fillEventsList). */

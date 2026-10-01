@@ -1,0 +1,32 @@
+$B = "Book.ui";
+$C = "../../../Common.ui";
+
+// A colony member on the Permissions tab (MC layoutpermissions.xml users box), MC sizes doubled: its name, the
+// remove cross, and its rank as text (the owner) or as a rank dropdown.
+
+Group {
+  Anchor: (Height: 70);
+  OutlineSize: 1;
+  OutlineColor: #000000;
+
+  Label #Name {
+    Anchor: (Left: 10, Top: 4, Width: 200, Height: 22);
+    Style: $B.@Ink;
+  }
+
+  Button #Remove {
+    Anchor: (Left: 264, Top: 2, Width: 28, Height: 30);
+    Style: (Default: (Background: "button_x.png"), Sounds: $C.@ButtonSounds);
+  }
+
+  Label #Rank {
+    Anchor: (Left: 10, Top: 38, Width: 258, Height: 22);
+    Style: $B.@Ink;
+    Visible: false;
+  }
+
+  DropdownBox #RankPicker {
+    Anchor: (Left: 4, Top: 34, Width: 258, Height: 34);
+    Style: $B.@DropdownStyle;
+  }
+}

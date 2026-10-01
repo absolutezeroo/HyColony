@@ -5,8 +5,21 @@ import dev.hycolony.core.kernel.WorldKey;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public interface PlayerDirectory {
+    /** A player known to the game: its id and name. */
+    record Profile(UUID id, String name) {}
+
+    /** An online player's name; empty for an offline or unknown player (never throws). */
+    Optional<String> name(UUID player);
+
+    /**
+     * The player named {@code name}, online or known to the game's profiles (MC's profile cache): {@code then} gets
+     * it, or empty, on the world thread, now or later. Never throws.
+     */
+    void findByName(String name, Consumer<Optional<Profile>> then);
+
     boolean isOnline(UUID player);
 
     Optional<BlockPos> position(UUID player);

@@ -1,0 +1,146 @@
+$B = "../Mc/Book.ui";
+$C = "../../../Common.ui";
+
+// The town hall's Permissions tab (MC layoutpermissions.xml, WindowPermissionsPage), MC positions and sizes doubled
+// (the switch sits at MC x 75): the Players page, then the Ranks page, turned by < and >. Deviation from MC: no Free
+// Blocks page (no free-to-interact blocks yet); the online players button reads "..." as the fonts lack MC's emoji.
+
+@MiniStyle = $B.@MiniButtonStyle;
+
+Group {
+  Anchor: (Left: 0, Top: 0, Width: 1048, Height: 486);
+
+  Group #PlayersPage {
+    Anchor: (Left: 0, Top: 0, Width: 1048, Height: 486);
+    Visible: false;
+
+    Label {
+      Anchor: (Left: 202, Top: 130, Width: 296, Height: 22);
+      Text: %hycolony.ui.townhall.perm.addPlayer;
+      Style: $B.@Ink;
+    }
+
+    $C.@TextField #PlayerName {
+      @Anchor = (Left: 202, Top: 152, Width: 200);
+      MaxLength: 32;
+      TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+    }
+
+    TextButton #AddPlayer {
+      Anchor: (Left: 410, Top: 156, Width: 28, Height: 30);
+      Style: @MiniStyle;
+      Text: "+";
+      TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+    }
+
+    TextButton #OnlinePlayers {
+      Anchor: (Left: 450, Top: 156, Width: 28, Height: 30);
+      Style: (
+        ...@MiniStyle,
+        Default: (Background: "../Mc/builder_button_mini.png", LabelStyle: (...$B.@InkCentered, TextColor: #0000ff))
+      );
+      Text: "...";
+    }
+
+    Group #Members {
+      Anchor: (Left: 202, Top: 200, Width: 296, Height: 242);
+      LayoutMode: TopScrolling;
+      ScrollbarStyle: $C.@DefaultScrollbarStyle;
+    }
+
+    Label {
+      Anchor: (Left: 542, Top: 78, Width: 296, Height: 22);
+      Text: %hycolony.ui.townhall.perm.events;
+      Style: $B.@InkCentered;
+    }
+
+    Group #Refusals {
+      Anchor: (Left: 542, Top: 100, Width: 296, Height: 304);
+      LayoutMode: TopScrolling;
+      ScrollbarStyle: $C.@DefaultScrollbarStyle;
+    }
+
+    // MC playerPicker: drawn over the events list while open.
+    Group #Picker {
+      Anchor: (Left: 480, Top: 152, Width: 196, Height: 238);
+      LayoutMode: TopScrolling;
+      ScrollbarStyle: $C.@DefaultScrollbarStyle;
+      Background: #f3e6c0;
+      Visible: false;
+    }
+  }
+
+  Group #RanksPage {
+    Anchor: (Left: 0, Top: 0, Width: 1048, Height: 486);
+    Visible: false;
+
+    Label {
+      Anchor: (Left: 222, Top: 130, Width: 296, Height: 22);
+      Text: %hycolony.ui.townhall.perm.addRank;
+      Style: $B.@Ink;
+    }
+
+    $C.@TextField #RankName {
+      @Anchor = (Left: 222, Top: 160, Width: 200);
+      MaxLength: 32;
+      TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+    }
+
+    TextButton #AddRank {
+      Anchor: (Left: 430, Top: 164, Width: 28, Height: 30);
+      Style: @MiniStyle;
+      Text: "+";
+      TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+    }
+
+    Group #RankButtons {
+      Anchor: (Left: 242, Top: 210, Width: 200, Height: 220);
+      LayoutMode: TopScrolling;
+      ScrollbarStyle: $C.@DefaultScrollbarStyle;
+    }
+
+    Label {
+      Anchor: (Left: 552, Top: 82, Width: 100, Height: 22);
+      Text: %hycolony.ui.townhall.perm.type;
+      Style: $B.@Ink;
+    }
+
+    DropdownBox #RankType {
+      Anchor: (Left: 638, Top: 76, Width: 172, Height: 34);
+      Style: $B.@MediumDropdownStyle;
+    }
+
+    Group #Actions {
+      Anchor: (Left: 552, Top: 120, Width: 300, Height: 260);
+      LayoutMode: TopScrolling;
+      ScrollbarStyle: $C.@DefaultScrollbarStyle;
+    }
+
+    TextButton #RemoveRank {
+      Anchor: (Left: 552, Top: 400, Width: 258, Height: 34);
+      Style: (
+        ...$B.@WideButtonStyle,
+        Default: (
+          Background: "../Mc/builder_button_medium_large.png",
+          LabelStyle: (...$B.@InkCentered, TextColor: #cc0000)
+        )
+      );
+      Text: %hycolony.ui.townhall.perm.removeRank;
+    }
+  }
+
+  Button #PrevPage {
+    Anchor: (Left: 200, Top: 48, Width: 36, Height: 20);
+    Style: (Default: (Background: "../Mc/turn_page_left.png"), Sounds: $C.@ButtonSounds);
+  }
+
+  Button #NextPage {
+    Anchor: (Left: 812, Top: 48, Width: 36, Height: 20);
+    Style: (Default: (Background: "../Mc/turn_page_right.png"), Sounds: $C.@ButtonSounds);
+  }
+
+  Label #PageNum {
+    Anchor: (Left: 812, Top: 422, Width: 36, Height: 18);
+    Style: (...$B.@InkCentered, FontSize: 13);
+  }
+}
