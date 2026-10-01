@@ -3,8 +3,8 @@ package dev.hycolony.plugin.ui.citizen;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.protocol.packets.interface_.Page;
 import com.hypixel.hytale.server.core.entity.entities.Player;
-import com.hypixel.hytale.server.core.entity.entities.player.pages.PageManager;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -13,14 +13,12 @@ import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.ColonyEvents;
 import dev.hycolony.plugin.item.HytaleStacks;
-import dev.hycolony.plugin.ui.ColonyPage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import java.util.logging.Level;
-import org.jspecify.annotations.Nullable;
 
 /**
  * The citizen inventory windows open in one world: opens them, and closes them when their citizen is gone. World
@@ -40,9 +38,9 @@ public final class CitizenInventoryWindows {
     }
 
     /**
-     * Shows the container in the citizen's window, on its Inventory tab: the window is reopened with the container
-     * beside it (PageManager.openCustomPageWithWindows). The core checked the permission; an offline player, a gone
-     * citizen, or a player not looking at that citizen's window is ignored.
+     * MC OpenInventoryMessage: opens the citizen's inventory as the game's container screen (the player's inventory
+     * beside it), in place of the citizen's window, as a chest opens (PageManager.setPageWithWindows, Page.Bench,
+     * like InventorySeeCommand). The core checked the permission; an offline player or a gone citizen is ignored.
      */
     public void open(UUID player, int colonyId, int citizenId) {
         PlayerRef pr = Universe.get().getPlayer(player);
@@ -55,36 +53,16 @@ public final class CitizenInventoryWindows {
             return;
         }
         Store<EntityStore> store = ref.getStore();
-        Shown shown = shownWindow(store, ref, colonyId, citizenId);
-        if (shown == null) {
+        Player playerComponent = store.getComponent(ref, Player.getComponentType());
+        if (playerComponent == null) {
             return;
         }
         subscribeOnce();
         CitizenInventoryWindow window = newWindow(colonyId, citizenId, citizen);
-        CitizenInventoryPanel panel =
-                new CitizenInventoryPanel(store.getExternalData().getWorld(), window);
-        if (shown.pages().openCustomPageWithWindows(ref, store, shown.page().withInventory(pr, panel), window)) {
+        if (playerComponent.getPageManager().setPageWithWindows(ref, store, Page.Bench, true, window)) {
             open.add(new Open(ref, colonyId, window));
             window.registerCloseEvent(e -> forget(window));
         }
-    }
-
-    /** The player's pages and the citizen window they look at. */
-    private record Shown(PageManager pages, CitizenPage page) {}
-
-    /** The citizen window the player looks at, if it is that citizen's; null otherwise. */
-    private static @Nullable Shown shownWindow(
-            Store<EntityStore> store, Ref<EntityStore> ref, int colonyId, int citizenId) {
-        Player playerComponent = store.getComponent(ref, Player.getComponentType());
-        if (playerComponent == null) {
-            return null;
-        }
-        PageManager pages = playerComponent.getPageManager();
-        return pages.getCustomPage() instanceof ColonyPage colonyPage
-                        && colonyPage.live() instanceof CitizenPage page
-                        && page.shows(colonyId, citizenId)
-                ? new Shown(pages, page)
-                : null;
     }
 
     /** A window on the citizen's inventory, valid while the citizen exists; the client gets its state on open. */

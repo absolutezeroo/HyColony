@@ -4,7 +4,7 @@ $B = "Mc/Book.ui";
 // The citizen's window as MC's (gui/citizen/nav.xml, main.xml, job.xml, requests.xml), MC positions and sizes
 // doubled: the side tabs, then the colonist paper drawn over their right edge as nav.xml does, then each tab's page
 // (CitizenPage shows the open one). MC's tab backgrounds are fixed by nav.xml; Happiness and Family keep their empty
-// places (systems HyColony lacks). Under the window, the player's inventory while the Inventory tab is open.
+// places (systems HyColony lacks). The Inventory tab opens the game's container screen instead (CitizenPage).
 // Textures under Mc/ are MineColonies' (ldtteam, GPL-3), scaled x4 nearest-neighbour into @2x files.
 
 @TabBack = Group {
@@ -142,34 +142,6 @@ $C.@PageOverlay {
         }
       }
 
-      @Page #InventoryPage {
-        Label {
-          Anchor: (Left: 66, Top: 28, Width: 328, Height: 22);
-          Style: $B.@InkCentered;
-          Text: %hycolony.ui.citizen.tab.inventory;
-        }
-
-        ItemGrid #CitizenSlots {
-          Anchor: (Left: 58, Top: 64, Width: 344, Height: 118);
-          SlotsPerRow: 9;
-          AreItemsDraggable: true;
-          DisplayItemQuantity: true;
-          RenderItemQualityBackground: true;
-          Style: (
-            SlotSize: 36,
-            SlotIconSize: 32,
-            SlotSpacing: 2,
-            SlotBackground: "../HyBlockUI/Native/Slot.png",
-            DurabilityBar: "../HyBlockUI/Native/DurabilityBar.png",
-            DurabilityBarBackground: "../HyBlockUI/Native/DurabilityBarBackground.png",
-            DurabilityBarAnchor: (Bottom: 5, Left: 6, Width: 24, Height: 2),
-            DurabilityBarColorStart: #a63232,
-            DurabilityBarColorEnd: #63b649
-          );
-          Padding: 1;
-        }
-      }
-
       @Page #JobPage {
         Label #JobLabel {
           Anchor: (Left: 90, Top: 64, Width: 272, Height: 22);
@@ -192,11 +164,6 @@ $C.@PageOverlay {
           LayoutMode: Top;
         }
       }
-    }
-
-    Group #PlayerInventory {
-      LayoutMode: Center;
-      Anchor: (Top: 8);
     }
   }
 }

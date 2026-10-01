@@ -20,7 +20,6 @@ final class CitizenInventoryWindow extends ContainerWindow implements ValidatedW
     private final BooleanSupplier alive;
     private @Nullable Inventory seen;
     private long seenChanges;
-    private Runnable onChange = () -> {};
 
     CitizenInventoryWindow(CitizenItemContainer container, CitizenData citizen, BooleanSupplier alive) {
         super(container);
@@ -36,21 +35,11 @@ final class CitizenInventoryWindow extends ContainerWindow implements ValidatedW
 
     /**
      * Hytale asks every tick (PlayerSendInventorySystem, WindowManager.updateWindows) whether to re-send the window:
-     * yes also when the citizen's AI changed the inventory, which no container transaction reports; then tells the page
-     * showing it. Allocates nothing.
+     * yes also when the citizen's AI changed the inventory, which no container transaction reports. Allocates nothing.
      */
     @Override
     protected boolean consumeIsDirty() {
-        boolean dirty = super.consumeIsDirty() | coreChanged();
-        if (dirty) {
-            onChange.run();
-        }
-        return dirty;
-    }
-
-    /** Runs listener whenever the window is re-sent (a move in it, or the AI changing the inventory). */
-    void onChange(Runnable listener) {
-        this.onChange = listener;
+        return super.consumeIsDirty() | coreChanged();
     }
 
     /** Whether the citizen's inventory changed since the last call (the AI took or stored items, or was replaced). */

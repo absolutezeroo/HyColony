@@ -30,7 +30,7 @@ Hors périmètre (systèmes absents) : bonheur (barre, onglet), famille (onglet)
 - Une page Hytale (`CitizenPage`) ; papier `citizen/colonist_paper.png` 380 × 488 en (40, 0) ; la fenêtre fait 420 × 488.
 - Onglets latéraux de `nav.xml` : bouton 64 × 52 en (0, y) et icône 40 × 40 en (10, y + 6), y = 72, 128, 184, 236, 288, 340, 392 pour Principal (`tab_left_side1`, `info`), Requêtes (`side2`, `requests`), Inventaire (`side3`, `inventory`), Bonheur (`side2`, `happiness`), Famille (`side1`, `family`), Métier (`side3`, `main`), Debug (`side3`, `settings`). Les fonds sont fixés par le `.xml` (pas de tirage, contrairement aux huttes). Infobulle de chaque icône (`gui.citizen.main`, `requests`, `inventory`, `job`).
 - Bonheur, Famille et Debug n'apparaissent pas (§ 2). Métier n'apparaît que si le citoyen a un lieu de travail (MC : `AbstractBuildingView` qui n'est pas la bibliothèque).
-- Même architecture que les huttes : un document `.ui` par onglet ajouté dans `#Page`, l'onglet ouvert gardé à travers les ré-affichages du cœur. Inventaire garde le panneau de conteneur dans la fenêtre (écart déjà documenté de `CitizenPage`).
+- Même architecture que les huttes : un document `.ui` par onglet ajouté dans `#Page`, l'onglet ouvert gardé à travers les ré-affichages du cœur. Inventaire ouvre l'écran de conteneur du jeu à la place de la fenêtre, comme MC (`OpenInventoryMessage`) ; demandé par l'utilisateur le 2026-10-01, il remplace le panneau dessiné dans la fenêtre.
 
 ### 3.2 Principal (`main.xml`, `MainWindowCitizen`)
 
@@ -105,7 +105,6 @@ Nouvelle action du cœur `RequestActions.cancel(player, colonyId, token)` : droi
 
 ## 8. Écarts à MC retenus
 
-- Inventaire du citoyen dans la fenêtre (déjà documenté).
 - Compétences du métier en tête, barre d'XP, lignes métier, lieu de travail et activité (demandés par l'utilisateur, déjà documentés).
 - Bonheur, Famille, Debug, statut visible et climat des cultures absents.
 - Le survol qui montre les +/− passe par les événements `MouseEntered` et `MouseExited` (`CustomUIEventBindingType`), donc après un aller-retour au serveur.
