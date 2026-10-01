@@ -1,0 +1,48 @@
+$C = "../../Common.ui";
+
+Group {
+  LayoutMode: Top;
+  Visible: false;
+
+  Label #Assigned {
+    Style: (RenderBold: true);
+    Anchor: (Bottom: 6);
+  }
+
+  Group {
+    LayoutMode: Left;
+    Anchor: (Height: 36, Bottom: 8);
+
+    $C.@SecondaryTextButton #ModeButton {
+      Anchor: (Width: 280, Height: 32, Right: 8);
+      Text: "";
+    }
+
+    $C.@SecondaryTextButton #RecallButton {
+      Anchor: (Width: 220, Height: 32);
+      Text: "";
+    }
+  }
+
+  Label #ResidentsTitle {
+    Style: (RenderBold: true, TextColor: #94a7bb);
+    Anchor: (Bottom: 4);
+  }
+
+  Group #Residents {
+    LayoutMode: TopScrolling;
+    ScrollbarStyle: $C.@DefaultScrollbarStyle;
+    Anchor: (Height: 150, Bottom: 8);
+  }
+
+  Label #CandidatesTitle {
+    Style: (RenderBold: true, TextColor: #94a7bb);
+    Anchor: (Bottom: 4);
+  }
+
+  Group #Candidates {
+    LayoutMode: TopScrolling;
+    ScrollbarStyle: $C.@DefaultScrollbarStyle;
+    Anchor: (Height: 190);
+  }
+}

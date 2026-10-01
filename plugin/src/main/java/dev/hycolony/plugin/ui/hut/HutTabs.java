@@ -4,6 +4,7 @@ import com.hypixel.hytale.logger.HytaleLogger;
 import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.app.ui.BuildingView;
 import dev.hycolony.core.building.module.ModuleTab;
+import dev.hycolony.core.citizen.home.ResidentsView;
 import dev.hycolony.core.construction.hut.WorkOrderListView;
 import dev.hycolony.core.construction.resources.BuilderResourcesView;
 import dev.hycolony.core.construction.shared.BuilderSettingsView;
@@ -43,6 +44,7 @@ public final class HutTabs {
             case CourierTasksView c -> Optional.of(new CourierTasksTab(c));
             case FieldsView f -> Optional.of(new FieldsTab(manager, player, view.pos(), f));
             case RecipesView r -> Optional.of(new RecipesTab(manager, player, view.pos(), r, view.canManage()));
+            case ResidentsView r -> Optional.of(new ResidentsTab(manager, player, view.pos(), r));
             default -> {
                 LOG.at(Level.FINE).log(
                         "No renderer for the hut tab %s", tab.getClass().getSimpleName());
