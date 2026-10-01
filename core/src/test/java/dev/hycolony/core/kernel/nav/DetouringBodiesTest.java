@@ -13,6 +13,7 @@ import dev.hycolony.core.kernel.port.NavStatus;
 import dev.hycolony.core.testing.FakeBodies;
 import dev.hycolony.core.testing.FakeCatalog;
 import dev.hycolony.core.testing.FakeWorldBlocks;
+import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -53,6 +54,47 @@ class DetouringBodiesTest {
         assertEquals(NavStatus.ARRIVED, status);
         assertTrue(fake.moves.size() > 1, "waypoints before the target: " + fake.moves);
         assertEquals(TO, fake.moves.getLast());
+    }
+
+    @Test
+    void pathIsTheNavsOwnThenTheDetourWaypointsLeft() {
+        bodies.moveTo(body, TO);
+        Vec3 first = fake.moves.getFirst();
+        Vec3 halfway = new Vec3(first.x() / 2, 64, first.z() / 2);
+        fake.bodies.get(body).path = List.of(halfway);
+
+        List<Vec3> path = bodies.path(body);
+
+        assertEquals(List.of(halfway, first), path.subList(0, 2), "the nav's path, then the leg under way's corner");
+        assertEquals(TO, path.getLast(), "then the legs left, to the target");
+    }
+
+    @Test
+    void legWalkedStraightStillShowsItsCorner() {
+        bodies.moveTo(body, TO);
+        Vec3 first = fake.moves.getFirst();
+
+        List<Vec3> path = bodies.path(body);
+
+        assertEquals(first, path.getFirst(), "Hytale steers a clear leg without a path: the corner comes first");
+        assertTrue(path.size() > 1, "a detour: " + path);
+    }
+
+    @Test
+    void navPathEndingOnTheCornerHasItOnce() {
+        bodies.moveTo(body, TO);
+        Vec3 first = fake.moves.getFirst();
+        fake.bodies.get(body).path = List.of(new Vec3(first.x() / 2, 64, first.z() / 2), first);
+
+        assertEquals(1, Collections.frequency(bodies.path(body), first));
+    }
+
+    @Test
+    void pathOfAStraightWalkIsTheNavsOwn() {
+        bodies.moveTo(body, new Vec3(0.5, 64, 9.5));
+        fake.bodies.get(body).path = List.of(new Vec3(0.5, 64, 9.5));
+
+        assertEquals(List.of(new Vec3(0.5, 64, 9.5)), bodies.path(body));
     }
 
     @Test

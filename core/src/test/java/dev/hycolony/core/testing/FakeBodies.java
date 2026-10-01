@@ -24,6 +24,9 @@ public final class FakeBodies implements CitizenBodies {
         public Vec3 position;
         public Vec3 target;
         public NavStatus status = NavStatus.IDLE;
+        /** What {@link FakeBodies#path} reports. */
+        public List<Vec3> path = List.of();
+
         public boolean alive = true;
         public ItemKey held;
         public BodyAnimation lastAnimation;
@@ -129,6 +132,12 @@ public final class FakeBodies implements CitizenBodies {
         if (b != null) {
             b.speed = factor;
         }
+    }
+
+    @Override
+    public List<Vec3> path(BodyId body) {
+        Body b = bodies.get(body);
+        return b == null ? List.of() : b.path;
     }
 
     @Override

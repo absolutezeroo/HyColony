@@ -35,9 +35,11 @@ import dev.hycolony.core.kernel.port.NavStatus;
 import dev.hycolony.plugin.npc.CitizenSpeed;
 import dev.hycolony.plugin.npc.CitizenTag;
 import dev.hycolony.plugin.npc.HyColonyComponents;
+import dev.hycolony.plugin.npc.HyColonySeek;
 import dev.hycolony.plugin.npc.MoveTarget;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -178,6 +180,16 @@ public final class HytaleCitizenBodies implements CitizenBodies {
         mt.target.set(target.x(), target.y(), target.z());
         mt.active = true;
         mt.sinceTick = world.getTick();
+    }
+
+    /** The waypoints its HyColonySeek still walks; empty for another body motion, or an unknown body. */
+    @Override
+    public List<Vec3> path(BodyId body) {
+        Ref<EntityStore> ref = ref(body);
+        Role role = ref == null ? null : role(store(), ref);
+        return role != null && role.getLastBodySteeringMotion() instanceof HyColonySeek seek
+                ? seek.waypoints()
+                : List.of();
     }
 
     @Override

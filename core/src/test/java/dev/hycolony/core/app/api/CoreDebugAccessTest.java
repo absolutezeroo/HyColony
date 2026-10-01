@@ -139,6 +139,7 @@ class CoreDebugAccessTest {
                         0,
                         Optional.empty(),
                         Optional.of(new Pos(8, 64, 0)),
+                        List.of(),
                         Optional.of(new WalkEnded(
                                 ref, new Pos(8, 64, 0), new Vec(8.5, 64, 0.5), "TELEPORTED", 0.0, "MOVING")),
                         "TELEPORT",
@@ -162,6 +163,24 @@ class CoreDebugAccessTest {
                 Optional.of(ApiText.of("hycolony.test.fetching", ApiText.of("hycolony.test.planks"), "3")),
                 s.activity(),
                 "a parameter naming a key is a text of its own");
+    }
+
+    @Test
+    void inspectShowsThePathItsBodyPlansToWalk() {
+        t.bodies.bodies.get(body).path = List.of(new Vec3(2.5, 64, 0.5), new Vec3(5.5, 65, 0.5));
+
+        assertEquals(
+                List.of(new Vec(2.5, 64, 0.5), new Vec(5.5, 65, 0.5)),
+                debug.inspect(ref).orElseThrow().path());
+    }
+
+    @Test
+    void citizenWithoutItsBodyHasNoPath() {
+        t.bodies.bodies.get(body).path = List.of(new Vec3(2.5, 64, 0.5));
+
+        colony.citizens().onBodyUnloaded(body);
+
+        assertEquals(List.of(), debug.inspect(ref).orElseThrow().path());
     }
 
     @Test

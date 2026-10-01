@@ -3,6 +3,7 @@ package dev.hycolony.core.app.api;
 import dev.hycolony.api.ApiText;
 import dev.hycolony.api.CitizenRef;
 import dev.hycolony.api.ColonyRef;
+import dev.hycolony.api.Vec;
 import dev.hycolony.api.debug.CitizenDebugSnapshot;
 import dev.hycolony.api.debug.HistoryEntry;
 import dev.hycolony.api.debug.Violation;
@@ -41,12 +42,20 @@ final class ApiDebugSnapshots {
                 v.jobStepSince(),
                 c.citizens().jobActivity(d.id()).map(ApiDebugSnapshots::text),
                 walks.target().map(ApiSnapshots::pos),
+                path(c, d),
                 walks.lastEnd().map(e -> walkEnded(ref, e)),
                 walks.lastStuck().map(Enum::name).orElse(""),
                 walks.lastStuckTick(),
                 queue(c, d),
                 d.leisureTime(),
                 v.history().stream().map(ApiDebugSnapshots::entry).toList());
+    }
+
+    /** The path the citizen's loaded body still plans to walk; empty without one. */
+    private static List<Vec> path(Colony c, CitizenData d) {
+        return c.citizens().bodyOf(d.id()).map(b -> c.context().bodies().path(b)).orElse(List.of()).stream()
+                .map(ApiSnapshots::vec)
+                .toList();
     }
 
     /** How a walk of {@code citizen} ended. */

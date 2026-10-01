@@ -4,6 +4,7 @@ import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.WorldKey;
 import dev.hycolony.core.kernel.item.ItemKey;
+import java.util.List;
 import java.util.Optional;
 
 /** In-world citizen bodies. Implementations tag each body with (colonyId, citizenId) persistently. */
@@ -18,6 +19,12 @@ public interface CitizenBodies {
     void moveTo(BodyId body, Vec3 target);
 
     NavStatus navStatus(BodyId body);
+
+    /**
+     * The points the body's walk still plans to pass, the next first, as its navigation computed them; empty when it
+     * steers straight at its target (nothing in the way), stands, or is unknown.
+     */
+    List<Vec3> path(BodyId body);
 
     void setDisplayName(BodyId body, String name);
 

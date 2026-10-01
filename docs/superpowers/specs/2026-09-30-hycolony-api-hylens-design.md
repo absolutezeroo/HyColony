@@ -76,7 +76,7 @@ HyBlockUI ← HyDomum ← HyColony → HyVanilla
 - **`dev.hycolony.api.event`** (stable) : les événements existants, traduits en références : `ColonyCreated`, `ColonyDeleted`, `BuildingPlaced`, `BuildingRemoved`, `BuildingLevelChanged`, `WorkOrderCreated`, `CitizenSpawned`, `DayStarted`, `NightFell`. `ColonyCreated`, `ColonyDeleted`, `BuildingPlaced`, `BuildingRemoved`, `BuildingLevelChanged` et `WorkOrderCreated` portent `Actor cause` dès la v1, car l'ajouter plus tard serait une rupture. La cause est le joueur, ou `Actor.Colony` quand aucun joueur n'agit (un bâtiment périmé retiré par `HutActions.place`, un niveau gagné par le bâtisseur). Le cœur la transmet depuis `HutActions`, `ColonyFoundation`, `ColonyManager`, `WorkManager` et le retrait par la baguette. `CitizenSpawned`, `DayStarted` et `NightFell` n'ont pas de cause.
 - **`dev.hycolony.api.debug`** (tout `@Experimental`, car il expose des états internes sous forme de texte) :
   - événements : `CitizenStateChanged`, `JobStateChanged`, `WalkEnded` (cible, position, statut de navigation, raison, distance), `StuckAction` (action, position), `RequestStateChanged` ;
-  - `CitizenDebugSnapshot` : l'état de l'IA, l'étape du métier (`JobAI.stateName()`, une chaîne, pour ne pas exposer les énumérations package-private comme `CourierState`), l'activité, la cible de marche, la case d'arrêt, le statut de navigation, le niveau d'anti-blocage, la file du métier, le loisir, les dernières transitions et les alertes ;
+  - `CitizenDebugSnapshot` : l'état de l'IA, l'étape du métier (`JobAI.stateName()`, une chaîne, pour ne pas exposer les énumérations package-private comme `CourierState`), l'activité, la cible de marche, le chemin que le corps prévoit d'y marcher (ajouté le 2026-10-01), la case d'arrêt, le statut de navigation, le niveau d'anti-blocage, la file du métier, le loisir, les dernières transitions et les alertes ;
   - `HistoryEntry(long tick, kind, from, to, ApiText detail)` et `Violation(code, ApiText detail, citizen?, pos?)` ;
   - `DebugAccess` :
     - lecture : `inspect`, `history`, `check(colony)`, et `track(ref)`, qui rend une `Subscription` : la fermer arrête le suivi ;
@@ -139,7 +139,7 @@ Tout est réservé aux opérateurs. Les lots sont dans l'ordre du plan.
 1. **Suivre un citoyen** : `/hylens watch [citoyen]` (sans argument, le citoyen visé), puis `/hylens unwatch`. La caméra suit à la 3ᵉ personne, par le mécanisme de `/spectate`. Le suivi démarre l'historique. Il cesse quand l'opérateur se déconnecte, et la colonie reprend si c'est lui qui l'avait mise en pause.
 2. **HUD « ce qu'il pense »** pendant le suivi, rafraîchi toutes les 10 ticks du cœur (0,5 s) à partir de `CitizenDebugSnapshot` : état, étape, activité, cible, statut de navigation, anti-blocage, file, loisir, 5 dernières transitions, alertes. Coût à mesurer **[in-game]**.
 3. **Dessins** pour l'opérateur seul :
-   - ligne du corps à la cible, rouge si la marche a fini loin ;
+   - ligne du corps à la cible, rouge si la marche a fini loin ; elle suit le chemin que le citoyen prévoit de marcher (ajout demandé en jeu, 2026-10-01 : les points de l'A\* de Hytale et les détours de HyColony, `CitizenDebugSnapshot.path`), posée sur le sol quand il marche droit (Hytale le guide alors sans chemin, son corps suivant le relief) ;
    - sphère sur la cible ;
    - cube sur la case d'arrêt et sur la zone de travail ;
    - `/npc debug set VisPath` documenté pour le chemin A*. Attention : il retire la plaque de nom à chaque changement de drapeaux.

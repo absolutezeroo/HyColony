@@ -9,6 +9,7 @@ import dev.hycolony.core.kernel.port.BodyAnimation;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.CitizenBodies;
 import dev.hycolony.core.kernel.port.NavStatus;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -54,6 +55,11 @@ public final class GuardedBodies implements CitizenBodies {
     @Override
     public NavStatus navStatus(BodyId body) {
         return guard("navStatus", () -> bodies.navStatus(body), NavStatus.FAILED);
+    }
+
+    @Override
+    public List<Vec3> path(BodyId body) {
+        return guard("path", () -> bodies.path(body), List.of());
     }
 
     @Override

@@ -21,6 +21,7 @@ import dev.hycolony.plugin.npc.BuilderSensorHyColonyTarget;
 import dev.hycolony.plugin.npc.CitizenBodyLifecycleSystem;
 import dev.hycolony.plugin.npc.CitizenSystems;
 import dev.hycolony.plugin.npc.HyColonyComponents;
+import dev.hycolony.plugin.npc.HyColonySeek;
 import dev.hycolony.plugin.prefab.HytaleBlueprintSource;
 import dev.hycolony.plugin.subplugin.SubPlugins;
 import dev.hycolony.plugin.ui.highlight.GlowingBlock;
@@ -59,6 +60,7 @@ public final class HyColonyPlugin extends JavaPlugin {
 
         HyColonyComponents.register(getEntityStoreRegistry());
         NPCPlugin.get().registerCoreComponentType("HyColonyTarget", BuilderSensorHyColonyTarget::new);
+        NPCPlugin.get().registerCoreComponentType("HyColonySeek", HyColonySeek.Builder::new);
         registerSystems(worlds, ids);
         WandInteraction.register(this, worlds);
         getCommandRegistry().registerCommand(new HyColonyCommand(worlds, ids, colonyConfig.commands(), packs));

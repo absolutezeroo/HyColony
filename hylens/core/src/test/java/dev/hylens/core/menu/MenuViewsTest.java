@@ -44,6 +44,7 @@ class MenuViewsTest {
                 0,
                 Optional.empty(),
                 Optional.empty(),
+                List.of(),
                 Optional.empty(),
                 "",
                 0,

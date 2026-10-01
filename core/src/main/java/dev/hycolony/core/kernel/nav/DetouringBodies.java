@@ -10,6 +10,7 @@ import dev.hycolony.core.kernel.port.CitizenBodies;
 import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.core.kernel.port.NavStatus;
 import dev.hycolony.core.kernel.port.WorldBlocks;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -89,6 +90,25 @@ public final class DetouringBodies implements CitizenBodies {
             forget(body);
         }
         return status;
+    }
+
+    /**
+     * The nav's own path on the leg under way, then the detour's waypoints from that leg's corner on, the walk's target
+     * last. A clear leg is steered without a path, so its corner is told here, once even when the nav's path ends on
+     * it.
+     */
+    @Override
+    public List<Vec3> path(BodyId body) {
+        List<Vec3> nav = bodies.path(body);
+        SafeRoute.Plan rest = legs.get(body);
+        if (rest == null) {
+            return nav;
+        }
+        List<Vec3> corners = rest.waypoints();
+        boolean navEndsOnCorner = !nav.isEmpty() && nav.getLast().equals(corners.getFirst());
+        List<Vec3> all = new ArrayList<>(nav);
+        all.addAll(navEndsOnCorner ? corners.subList(1, corners.size()) : corners);
+        return all;
     }
 
     /** Whether the line from {@code here} to the waypoint after the current one keeps the plan's clearance. */

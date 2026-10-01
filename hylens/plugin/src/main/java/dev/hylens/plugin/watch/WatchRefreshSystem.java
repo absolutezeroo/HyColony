@@ -140,7 +140,8 @@ public final class WatchRefreshSystem extends TickingSystem<EntityStore> {
                         w.citizen(),
                         w.debug(),
                         w.alerts(),
-                        menus.state(player.getUuid()).layers()));
+                        menus.state(player.getUuid()).layers(),
+                        new HytaleGround(world)));
     }
 
     private static @Nullable Player component(Store<EntityStore> store, PlayerRef player) {
