@@ -15,9 +15,12 @@ public final class RequiredVariants {
 
     private RequiredVariants() {}
 
-    /** Adds variant ids ({@code shape|material|material}, as HyDomum saves them); call during setup only. */
+    /**
+     * Adds variant ids ({@code shape|material|material}, as HyDomum saves them); call during setup only. Throws
+     * {@link NullPointerException} at the caller for a null id, which would otherwise break every variant at boot.
+     */
     public static synchronized void require(Collection<String> ids) {
-        REQUIRED.addAll(ids);
+        REQUIRED.addAll(List.copyOf(ids));
     }
 
     /** Every id required so far, in order; HyDomum reads it at boot. */

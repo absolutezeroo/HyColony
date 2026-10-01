@@ -17,7 +17,9 @@ class BootVariantsTest {
     private final ShapeCatalog shapes = ShapeCatalog.parse("""
             {"schemaVersion": 1, "shapes": [{"id": "Shingle", "template": "HyDomum_Shingle", "group": "c",
              "slots": ["roof", "support"], "optionalSecond": false, "cutterQuantity": 4}]}""");
-    private final MaterialTags tags = new MaterialTags(Map.of("roof", Set.of(STONE), "support", Set.of(PLANKS)));
+    private static final String COBBLE = "Rock_Stone_Cobble";
+    private final MaterialTags tags =
+            new MaterialTags(Map.of("roof", Set.of(STONE, COBBLE), "support", Set.of(PLANKS)));
 
     private VariantKey key(String id) {
         return VariantKey.parse(id, shapes).orElseThrow();
@@ -30,6 +32,14 @@ class BootVariantsTest {
                 BootVariants.merge(List.of(saved), List.of(saved.id(), "Shingle|" + STONE + "|" + STONE), shapes, tags);
         assertEquals(List.of(saved), r.keys(), "the stone support is refused by its slot");
         assertEquals(List.of("Shingle|" + STONE + "|" + STONE), r.refused());
+    }
+
+    @Test
+    void savedVariantsComeBeforeTheRequiredOnes() {
+        VariantKey saved = key("Shingle|" + COBBLE + "|" + PLANKS);
+        VariantKey required = key("Shingle|" + STONE + "|" + PLANKS);
+        BootVariants.Result r = BootVariants.merge(List.of(saved), List.of(required.id()), shapes, tags);
+        assertEquals(List.of(saved, required), r.keys());
     }
 
     @Test

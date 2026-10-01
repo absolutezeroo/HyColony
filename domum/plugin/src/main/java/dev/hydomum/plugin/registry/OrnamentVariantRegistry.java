@@ -112,9 +112,9 @@ public final class OrnamentVariantRegistry {
 
     /**
      * Takes the catalogs, draws the palette, then registers every saved variant again and those other mods require
-     * ({@link RequiredVariants}), in one store load and without any client rebuild; call it at boot, off any world
-     * thread and before chunks load. A palette that cannot be drawn is logged: two-material variants then fail one by
-     * one. A variant that fails, or a required id that is refused, is logged and skipped.
+     * ({@link RequiredVariants}), in one store load and without any client rebuild, then saves the required ones; call
+     * it at boot, off any world thread and before chunks load. A palette that cannot be drawn is logged: two-material
+     * variants then fail one by one. A variant that fails, or a required id that is refused, is logged and skipped.
      */
     public void start(Catalogs loaded) {
         catalogs = loaded;
@@ -136,6 +136,8 @@ public final class OrnamentVariantRegistry {
         long start = System.nanoTime();
         Batch batch = create(saved, true);
         batch.done().forEach(k -> variants.put(k, CompletableFuture.completedFuture(variant(k))));
+        // A required variant is saved like a crafted one: blocks placed from it survive the requiring mod's removal.
+        store.add(batch.done());
         LOG.at(Level.INFO).log(
                 "hydomum: registered %d saved or required variant(s) in %d ms",
                 batch.done().size(), (System.nanoTime() - start) / 1_000_000);
