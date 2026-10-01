@@ -146,6 +146,11 @@ public final class CitizenManager {
         }
     }
 
+    /** MC CitizenManager.onWakeUp, at dawn: each citizen without a living body gets one (updateEntityIfNecessary). */
+    public void onWakeUp() {
+        citizens.values().forEach(this::updateBodyIfNecessary);
+    }
+
     private void spawnInitialCitizen(BlockPos townHall) {
         int femaleCount = (int) citizens.values().stream()
                 .filter(c -> c.gender() == Gender.FEMALE)

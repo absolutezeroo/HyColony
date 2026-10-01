@@ -1,5 +1,7 @@
 package dev.hycolony.core.citizen;
 
+import dev.hycolony.core.citizen.sleep.CitizenSleep;
+import dev.hycolony.core.citizen.sleep.SleepDecision;
 import dev.hycolony.core.citizen.vitals.AiWatch;
 import dev.hycolony.core.citizen.vitals.CitizenWalkReports;
 import dev.hycolony.core.colony.BlockApproach;
@@ -9,6 +11,8 @@ import dev.hycolony.core.job.JobAI;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
+import dev.hycolony.core.kernel.ai.AIBlockingEventType;
+import dev.hycolony.core.kernel.ai.AIEventTarget;
 import dev.hycolony.core.kernel.ai.AITarget;
 import dev.hycolony.core.kernel.ai.IStateSupplier;
 import dev.hycolony.core.kernel.ai.TickRateStateMachine;
@@ -40,6 +44,7 @@ public final class CitizenAI {
     private final TickRateStateMachine<CitizenState> machine;
     private final AiWatch watch;
     private final CommandedWalk commanded;
+    private final CitizenSleep sleep;
     private int workTicks;
 
     private boolean failed;
@@ -66,6 +71,7 @@ public final class CitizenAI {
                                 colony.context().clock()::currentTick,
                                 new CitizenWalkReports(colony, data))),
                 colony.context().clock()::currentTick);
+        this.sleep = new CitizenSleep(colony, data, body);
         this.machine = new TickRateStateMachine<>(CitizenState.IDLE, this::onException);
         watch.afterTick(CitizenState.IDLE, null, 0); // its vital signs know where it starts
         machine.addTransition(
@@ -73,6 +79,9 @@ public final class CitizenAI {
         machine.addTransition(
                 new AITarget<>(CitizenState.IDLE, (IStateSupplier<CitizenState>) wander::wander, WANDER_RATE_TICKS));
         machine.addTransition(new AITarget<>(CitizenState.WORKING, (IStateSupplier<CitizenState>) this::work, 1));
+        machine.addTransition(new AIEventTarget<>(AIBlockingEventType.EVENT, this::decideSleep, DECIDE_INTERVAL_TICKS));
+        machine.addTransition(new AITarget<>(CitizenState.SLEEP, (IStateSupplier<CitizenState>) this::sleeping, 1));
+        sleep.wakeUp(); // MC CitizenData.initEntityValues: a body appears standing (Hytale saves no NPC in a bed)
         // A body can keep a job's speed across a crash (the Hytale effect is saved with the NPC); a job AI sets its
         // own.
         bodies.setMovementSpeed(body, 1);
@@ -109,8 +118,12 @@ public final class CitizenAI {
         commanded.start(target);
     }
 
-    /** Teleports its body to {@code to}; its job AI starts afresh, as for {@link #walkTo}. */
+    /**
+     * Teleports its body to {@code to}, woken first (MC TeleportHelper); its job AI starts afresh, as for
+     * {@link #walkTo}.
+     */
     public void teleport(Vec3 to) {
+        sleep.wakeUp();
         forgetJobAI();
         bodies.teleport(body, to);
     }
@@ -147,6 +160,32 @@ public final class CitizenAI {
     /** MC CitizenAI.decideAiTask, every {@link #DECIDE_INTERVAL_TICKS}: to work when it should. */
     private @Nullable CitizenState idle() {
         return shouldWork() ? CitizenState.WORKING : null;
+    }
+
+    /**
+     * MC CitizenAI.decideAiTask, sleep part, every {@link #DECIDE_INTERVAL_TICKS} in any state, before the rain,
+     * leisure and work: see {@link SleepDecision}. Asleep, it decides again only every 15 s (MC setCurrentDelay).
+     */
+    private @Nullable CitizenState decideSleep() {
+        CitizenState now = machine.getState();
+        return switch (sleep.decide(now == CitizenState.SLEEP)) {
+            case STAY_ASLEEP -> {
+                machine.setCurrentDelay(SleepDecision.SLEEP_DECIDE_DELAY_TICKS);
+                yield null;
+            }
+            case GO_TO_SLEEP -> {
+                dropJobAI(); // MC resetAI on leaving WORK; the sleep decision ignores canBeInterrupted
+                yield CitizenState.SLEEP;
+            }
+            case WAKE_UP -> now == CitizenState.SLEEP ? CitizenState.IDLE : null;
+            case NONE -> null;
+        };
+    }
+
+    /** MC EntityAISleep's transitions, while in SLEEP. */
+    private @Nullable CitizenState sleeping() {
+        sleep.tick();
+        return null;
     }
 
     private @Nullable CitizenState work() {

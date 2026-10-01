@@ -2,6 +2,7 @@ package dev.hycolony.core.colony;
 
 import dev.hycolony.core.building.BuildingManager;
 import dev.hycolony.core.citizen.CitizenManager;
+import dev.hycolony.core.citizen.sleep.SleepNotice;
 import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.colony.territory.ClaimCell;
 import dev.hycolony.core.colony.territory.TerritoryIndex;
@@ -117,8 +118,10 @@ public final class Colony {
         if (daytime && !wasDaytime) {
             day++;
             markDirty();
+            citizens.onWakeUp(); // MC Colony.checkDayTime: citizenManager.onWakeUp()
             ctx.bus().post(new ColonyEvents.DayStarted(this));
         } else if (!daytime && wasDaytime) {
+            SleepNotice.onNightFall(this); // MC: citizenManager.updateCitizenSleep(false)
             ctx.bus().post(new ColonyEvents.NightFell(this));
         }
         wasDaytime = daytime;
