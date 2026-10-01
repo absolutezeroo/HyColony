@@ -70,10 +70,4 @@ class HutStockOrderTest {
         assertEquals("v^ A^ Av 1^ 1v ", labels.toString());
         assertEquals(HutStockOrder.Sort.NONE, s);
     }
-
-    @Test
-    void levenshteinIsTheEditDistance() {
-        assertEquals(3, HutStockOrder.levenshtein("kitten", "sitting"));
-        assertEquals(5, HutStockOrder.levenshtein("Stone", ""));
-    }
 }

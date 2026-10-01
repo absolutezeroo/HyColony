@@ -35,4 +35,16 @@ class SelectResOrderTest {
         assertEquals(List.of("melon_seeds", "wheat_seeds"), sorted(Set.of(), "Seeds"), "6 edits against 10");
         assertEquals(List.of("wheat_seeds", "melon_seeds"), sorted(Set.of("wheat_seeds"), "Seeds"));
     }
+
+    /** Alphabetical order would put "Melon Seeds" before "Seeds"; the distance (6 against 0) puts it after. */
+    @Test
+    void withAFilterTheDistanceWinsOverTheName() {
+        Map<String, String> names =
+                Map.of("melon_seeds", "Melon Seeds", "seeds", "Seeds", "wheat_seeds", "Wheat Seeds Bag");
+        List<String> ids = List.of("melon_seeds", "seeds", "wheat_seeds");
+
+        assertEquals(
+                List.of("seeds", "melon_seeds", "wheat_seeds"),
+                SelectResOrder.sorted(ids, names::get, Set.of(), "Seeds"));
+    }
 }

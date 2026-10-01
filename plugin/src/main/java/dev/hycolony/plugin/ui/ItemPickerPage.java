@@ -13,7 +13,9 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.app.select.SelectResOrder;
 import dev.hycolony.core.kernel.item.ItemKey;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
@@ -32,8 +34,8 @@ public final class ItemPickerPage extends ColonyPage {
 
     /**
      * What the list shows and does: its {@code .ui} document (Mc/SelectRes.ui's template with its description), the
-     * item ids, the current one (its row is disabled), whether the viewer may pick, and the core actions for a pick
-     * (by index in {@code ids}) and Back (false when no window opened in its place).
+     * item ids, the current one, whether the viewer may pick, and the core actions for a pick (by index in
+     * {@code ids}) and Cancel (false when no window opened in its place).
      */
     public record Picker(
             String document,
@@ -41,17 +43,22 @@ public final class ItemPickerPage extends ColonyPage {
             Optional<String> current,
             boolean canPick,
             IntConsumer pick,
-            BooleanSupplier back) {
+            BooleanSupplier cancel) {
         public Picker {
             ids = List.copyOf(ids);
         }
     }
 
     private final Picker picker;
+    /** Each id's index in the picker, so that filling the list stays linear. */
+    private final Map<String, Integer> indexOf = new HashMap<>();
 
     public ItemPickerPage(PlayerRef playerRef, ColonyManager manager, Picker picker) {
         super(playerRef, manager);
         this.picker = picker;
+        for (int i = 0; i < picker.ids().size(); i++) {
+            indexOf.putIfAbsent(picker.ids().get(i), i);
+        }
     }
 
     @Override
@@ -61,7 +68,8 @@ public final class ItemPickerPage extends ColonyPage {
             @Nonnull UIEventBuilder events,
             @Nonnull Store<EntityStore> store) {
         ui.append(picker.document());
-        // As the game's own search lists (CommandListPage): every keystroke sends the field's value.
+        // As the game's own search lists (CommandListPage): every keystroke sends the field's value. Deviation from
+        // MC: the list is redrawn at once, where WindowSelectRes waits 10 client ticks after the last keystroke.
         events.addEventBinding(
                 CustomUIEventBindingType.ValueChanged,
                 "#SearchInput",
@@ -88,7 +96,7 @@ public final class ItemPickerPage extends ColonyPage {
         List<String> shown = SelectResOrder.sorted(picker.ids(), this::name, held, filter);
         for (int line = 0; line < shown.size(); line++) {
             String id = shown.get(line);
-            row(ui, events, new Row(line, picker.ids().indexOf(id)), id);
+            row(ui, events, new Row(line, indexOf.getOrDefault(id, -1)), id);
         }
     }
 
@@ -106,13 +114,13 @@ public final class ItemPickerPage extends ColonyPage {
      */
     private record Row(int line, int item) {}
 
-    /** One item; its Select button is disabled for the current item or a viewer who may not pick. */
+    /** One item; its Select button is disabled for a viewer who may not pick (MC lets the current one be picked). */
     private void row(UICommandBuilder ui, UIEventBuilder events, Row r, String id) {
         String row = LIST + "[" + r.line() + "]";
         ui.append(LIST, "Pages/HyColony/Mc/SelectResRow.ui");
         ui.set(row + " #Icon.ItemId", id);
         ui.set(row + " #Name.TextSpans", itemName(id));
-        if (picker.canPick() && !picker.current().map(id::equals).orElse(false)) {
+        if (picker.canPick()) {
             bind(events, row + " #Select", "pick", r.item());
         } else {
             ui.set(row + " #Select.Disabled", true);
@@ -120,8 +128,8 @@ public final class ItemPickerPage extends ColonyPage {
     }
 
     /**
-     * A keystroke redraws the list; a pick or Back goes to the core, which shows the previous window again; Back closes
-     * the list when it cannot.
+     * A keystroke redraws the list; a pick or Cancel goes to the core, which shows the previous window again; Cancel
+     * closes the list when it cannot.
      */
     @Override
     public void handleDataEvent(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, @Nonnull Act act) {
@@ -138,7 +146,7 @@ public final class ItemPickerPage extends ColonyPage {
                 }
             }
             case "back" -> {
-                if (!picker.back().getAsBoolean()) {
+                if (!picker.cancel().getAsBoolean()) {
                     close(); // nothing to go back to
                 }
             }

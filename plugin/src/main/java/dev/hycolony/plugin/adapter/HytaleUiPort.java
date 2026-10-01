@@ -194,6 +194,12 @@ public final class HytaleUiPort implements UiPort {
     }
 
     @Override
+    public boolean refreshField(UUID player, FieldView view) {
+        return live.refresh(
+                player, new WindowKey.Field(view.pos()), (pr, previous) -> new FieldPage(pr, view, manager.get(), ids));
+    }
+
+    @Override
     public void showWand(UUID player, WandView view) {
         open(player, pr -> new WandPage(pr, view, manager.get(), wand.get(), ids));
     }

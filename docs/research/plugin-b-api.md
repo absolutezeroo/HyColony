@@ -1034,13 +1034,14 @@ Constat en jeu (2026-10-01) : un citoyen monté sur un lit (`BlockMountAPI.mount
 - Que le client couche le citoyen avec `Status` `Sleep` alors qu'il est monté et `sleeping` (superposition avec l'animation de mouvement que le client choisit, peut-être `MountIdle`), et à la même hauteur qu'un joueur : `Pelvis` y -42 est relatif à la position du corps, posée au point de couchage par `mountOnBlock`.
 - Que l'orientation suive le lit (le lacet vient du point de couchage, § 41).
 
-## 45. Métadonnées d'un objet tenu et titre d'un conteneur (2026-10-01)
+## 45. Métadonnées d'un objet tenu, titre d'un conteneur et biome d'une colonne (2026-10-01)
 
 Sources : décompilé de 0.7.0-pre.4 (chemins relatifs à `com/hypixel/hytale/server/core/`).
 
 - `ItemStack.withMetadata(String key, BsonValue)` renvoie une copie avec la clé posée. `getMetadata()` est `@Deprecated` et renvoie un clone du document (`inventory/ItemStack.java` l. 175-178). `getFromMetadataOrNull(key, Codec)` décode sans clone, mais lève si la valeur n'a pas le type du codec (l. 670-673). Le presse-papiers lit par `getMetadata()` pour rester tolérant au type.
 - `ItemContainer.replaceItemStackInSlot(slot, ancien, nouveau)` ne remplace que si la case tient encore `ancien` (garde par `isStackableWith`), puis envoie la mise à jour (`inventory/container/ItemContainer.java` l. 207-211). `.succeeded()` dit si la case a changé. Un objet déplacé ou jeté entre-temps reste donc intact.
 - `InteractionContext.getHeldItem()`, `getHeldItemContainer()` et `getHeldItemSlot()` donnent l'objet, le conteneur et la case de l'interaction en cours (`entity/InteractionContext.java` l. 413-424).
+- Biome d'une colonne (fenêtre du champ, `HytaleWorldQuery.biome`) : `world.getChunkStore().getGenerator()` est un `worldgen.chunk.ChunkGenerator` pour un monde généré, puis `getZoneBiomeResultAt(int seed, int x, int z).getBiome().getName()` avec `(int) world.getWorldConfig().getSeed()`. C'est le motif de `worldgen/BiomeDataSystem.java` l. 60-73 (biome du joueur) et de `NPCMemory.java` l. 305-307. Le nom est l'identifiant brut du générateur, non traduit. Un monde sans ce générateur n'a pas de biome.
 - `ContainerWindow.getData()` est le `windowData` envoyé dans `OpenWindow`, vide par défaut. `BenchWindow` y met `name`, une clé de traduction. Que le client affiche `name` pour une fenêtre de conteneur n'est **pas vérifié** (**[in-game]**, `TESTING.md` point 72).
 
 ## Could not verify

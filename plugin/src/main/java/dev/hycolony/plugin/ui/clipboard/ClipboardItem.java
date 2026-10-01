@@ -54,10 +54,17 @@ public record ClipboardItem(ItemContainer container, short slot, ItemStack stack
         return with(SHOW_IMPORTANT, BsonBoolean.valueOf(on));
     }
 
-    /** The item with {@code key} set; unchanged when its slot no longer holds it (moved or dropped meanwhile). */
+    /**
+     * The item with {@code key} set, read again from its slot so that the stack keeps its current count (a clipboard
+     * picked up or dropped meanwhile); unchanged when the slot no longer holds this clipboard.
+     */
     private ClipboardItem with(String key, BsonValue value) {
-        ItemStack next = stack.withMetadata(key, value);
-        return container.replaceItemStackInSlot(slot, stack, next).succeeded()
+        ItemStack current = container.getItemStack(slot);
+        if (current == null || !current.isStackableWith(stack)) {
+            return this;
+        }
+        ItemStack next = current.withMetadata(key, value);
+        return container.replaceItemStackInSlot(slot, current, next).succeeded()
                 ? new ClipboardItem(container, slot, next)
                 : this;
     }

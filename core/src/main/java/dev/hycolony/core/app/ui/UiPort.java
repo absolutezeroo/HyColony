@@ -38,6 +38,9 @@ public interface UiPort {
     /** A field block's window (MC WindowField); re-shown after every button. */
     void showField(UUID player, FieldView view);
 
+    /** {@link #refreshBuilding} for the window of the view's field. */
+    boolean refreshField(UUID player, FieldView view);
+
     /** The build tool window; re-shown after every button. */
     void showWand(UUID player, WandView view);
 

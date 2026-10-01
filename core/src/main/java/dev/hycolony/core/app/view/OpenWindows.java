@@ -19,6 +19,9 @@ final class OpenWindows {
     /** MC {@code ColonyConstants.UPDATE_SUBSCRIBERS_INTERVAL}, in ticks. */
     static final int UPDATE_SUBSCRIBERS_INTERVAL_TICKS = 20;
 
+    /** MC {@code RequestTreeWindowModule.AUTO_REFRESH_TICKS}: the clipboard's tree is rebuilt this often, in ticks. */
+    static final int REQUEST_TREE_REFRESH_TICKS = 100;
+
     private static final System.Logger LOG = System.getLogger(OpenWindows.class.getName());
     private final UiPort ui;
     private final Map<UUID, Watch<?>> open = new HashMap<>();
@@ -36,10 +39,22 @@ final class OpenWindows {
         open.put(player, new Watch<>(shown.key(), shown.view(), view, redraw));
     }
 
+    /**
+     * How often a window is checked, in ticks: the clipboard as MC's request tree, the others as its view sync.
+     * Deviation from MC: the citizen window's request tree follows the citizen window, where MC rebuilds it every
+     * REQUEST_TREE_REFRESH_TICKS too.
+     */
+    private static int everyTicks(WindowKey key) {
+        return key instanceof WindowKey.Clipboard ? REQUEST_TREE_REFRESH_TICKS : UPDATE_SUBSCRIBERS_INTERVAL_TICKS;
+    }
+
     /** The window just shown: which one, and the view drawn in it. */
     record Shown<V>(WindowKey key, V view) {}
 
-    /** Every {@link #UPDATE_SUBSCRIBERS_INTERVAL_TICKS}: redraws changed windows, forgets gone or closed ones. */
+    /**
+     * Every {@link #UPDATE_SUBSCRIBERS_INTERVAL_TICKS}: checks the windows due (see {@link #everyTicks}), redraws the
+     * changed ones and forgets the gone or closed ones; a window not due is kept until its next check.
+     */
     void tick() {
         if (++ticks < UPDATE_SUBSCRIBERS_INTERVAL_TICKS) {
             return;
@@ -53,6 +68,11 @@ final class OpenWindows {
      * drops that window only, so the others are still refreshed.
      */
     private boolean refresh(UUID player, Watch<?> w) {
+        w.age += UPDATE_SUBSCRIBERS_INTERVAL_TICKS;
+        if (w.age < everyTicks(w.key)) {
+            return true;
+        }
+        w.age = 0;
         try {
             return ui.isShowing(player, w.key) && w.refresh(player);
         } catch (RuntimeException e) {
@@ -66,6 +86,8 @@ final class OpenWindows {
         private V last;
         private final Supplier<Optional<V>> view;
         private final BiPredicate<UUID, V> redraw;
+        /** Ticks since this window was last checked or watched, counted in whole subscriber updates. */
+        private int age;
 
         Watch(WindowKey key, V last, Supplier<Optional<V>> view, BiPredicate<UUID, V> redraw) {
             this.key = key;

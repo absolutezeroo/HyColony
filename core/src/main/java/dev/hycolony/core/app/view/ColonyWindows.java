@@ -21,7 +21,7 @@ import java.util.UUID;
 /**
  * Shows the colony's windows (MC's Window* classes) through the UI port. Opening one needs ACCESS_HUTS, else the
  * player is told; the {@code show*} methods re-show a window after an action that already checked its permission. The
- * hut, town hall and citizen windows shown stay live ({@link OpenWindows}).
+ * hut, town hall, citizen, clipboard and field windows shown stay live ({@link OpenWindows}).
  */
 public final class ColonyWindows {
     private final ColonyManager manager;
@@ -30,6 +30,7 @@ public final class ColonyWindows {
     private final BuildingViews buildings;
     private final RequestViews requests;
     private final CitizenViews citizens;
+    private final FieldViews fields;
     private final OpenWindows open;
     private final UiPort ui;
 
@@ -41,6 +42,7 @@ public final class ColonyWindows {
         this.buildings = new BuildingViews(ctx);
         this.requests = new RequestViews(ctx);
         this.citizens = new CitizenViews(ctx, townHall, requests);
+        this.fields = new FieldViews(ctx);
         this.open = new OpenWindows(ui);
     }
 
@@ -131,6 +133,23 @@ public final class ColonyWindows {
                 new OpenWindows.Shown<>(new WindowKey.Clipboard(c.id()), view),
                 () -> watchable(c.id(), player).map(col -> requests.of(col, player, showImportant)),
                 ui::refreshRequests);
+    }
+
+    /**
+     * A field block's window (MC WindowField), watched as MC redraws it: the farmer, seed and radii, and each side
+     * seen from where the viewer looks now. Checks no permission (MC opens it for anyone); nothing for a position that
+     * is not one of the colony's fields. Deviation from MC: checked every UPDATE_SUBSCRIBERS_INTERVAL_TICKS, where
+     * WindowField.onUpdate redraws each client tick.
+     */
+    public void showField(Colony c, BlockPos pos, UUID player) {
+        fields.of(c, pos, player).ifPresent(view -> {
+            ui.showField(player, view);
+            open.watch(
+                    player,
+                    new OpenWindows.Shown<>(new WindowKey.Field(pos), view),
+                    () -> manager.byId(c.id()).flatMap(col -> fields.of(col, pos, player)),
+                    ui::refreshField);
+        });
     }
 
     /**

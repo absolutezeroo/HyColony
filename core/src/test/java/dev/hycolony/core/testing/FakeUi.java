@@ -113,6 +113,14 @@ public final class FakeUi implements UiPort {
     }
 
     @Override
+    public boolean refreshField(UUID player, FieldView view) {
+        return redraw(
+                player,
+                view,
+                shown.get(player) instanceof FieldView v && v.pos().equals(view.pos()));
+    }
+
+    @Override
     public boolean refreshRequests(UUID player, RequestsView view) {
         return redraw(player, view, shown.get(player) instanceof RequestsView v && v.colonyId() == view.colonyId());
     }
@@ -135,6 +143,9 @@ public final class FakeUi implements UiPort {
         }
         if (view instanceof RequestsView r) {
             return new WindowKey.Clipboard(r.colonyId());
+        }
+        if (view instanceof FieldView f) {
+            return new WindowKey.Field(f.pos());
         }
         return view instanceof CitizenView c ? new WindowKey.Citizen(c.colonyId(), c.citizenId()) : null;
     }
