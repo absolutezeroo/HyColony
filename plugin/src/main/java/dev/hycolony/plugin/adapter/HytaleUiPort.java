@@ -26,6 +26,7 @@ import dev.hycolony.core.app.ui.WindowKey;
 import dev.hycolony.core.app.wand.HutHandPlacement;
 import dev.hycolony.core.app.wand.WandActions;
 import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.plugin.IdMap;
 import dev.hycolony.plugin.ui.BuildOptionsPage;
 import dev.hycolony.plugin.ui.BuildingPage;
@@ -43,6 +44,7 @@ import dev.hycolony.plugin.ui.wand.SuggestBuildToolPage;
 import dev.hycolony.plugin.ui.wand.WandPacksPage;
 import dev.hycolony.plugin.ui.wand.WandPage;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiFunction;
@@ -70,9 +72,15 @@ public final class HytaleUiPort implements UiPort {
 
     private boolean warned;
 
-    public HytaleUiPort(Supplier<ColonyManager> manager, Supplier<WandActions> wand, HytaleBlocks blocks, IdMap ids) {
+    /** {@code bodies}: a citizen body's loaded entity, for the camera of the citizen's inventory page. */
+    public HytaleUiPort(
+            Supplier<ColonyManager> manager,
+            Supplier<WandActions> wand,
+            HytaleBlocks blocks,
+            IdMap ids,
+            Function<BodyId, Optional<Ref<EntityStore>>> bodies) {
         this.manager = manager;
-        this.citizenInventories = new CitizenInventoryWindows(manager);
+        this.citizenInventories = new CitizenInventoryWindows(manager, bodies);
         this.pickUp = new HutPickUp(manager, ids);
         this.wand = wand;
         this.blocks = blocks;

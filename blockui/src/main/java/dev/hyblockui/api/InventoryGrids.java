@@ -1,11 +1,13 @@
 package dev.hyblockui.api;
 
+import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.protocol.packets.interface_.CustomUIEventBindingType;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
 import com.hypixel.hytale.server.core.ui.builder.EventData;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 /**
  * Draws item grids in a custom page that the client lets the player drag from and drop on, as in its own inventory
@@ -27,6 +29,15 @@ public final class InventoryGrids {
             UICommandBuilder ui, UIEventBuilder events, String selector, ItemContainer container, int section) {
         fill(ui, selector, container, section);
         bindDrop(events, selector, selector);
+    }
+
+    /**
+     * Fills a page's own grid at selector with {@code part} of player's inventory, for a page laid out its own way
+     * (PlayerPanels draws Hytale's); its drops come back with the part's grid name ({@link PlayerSection#byGrid}).
+     */
+    public static void drawPlayerPart(
+            UICommandBuilder ui, UIEventBuilder events, String selector, PlayerSection part, Ref<EntityStore> player) {
+        drawPlayerGrid(ui, events, selector, part, part.container(player.getStore(), player));
     }
 
     /** Fills the grid at selector with part of the player's inventory, held in container. */

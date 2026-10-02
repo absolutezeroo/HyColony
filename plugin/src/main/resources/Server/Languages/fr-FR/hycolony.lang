@@ -374,6 +374,7 @@ ui.citizen.skillXpMax = Niveau max
 ui.citizen.requests = Requêtes ouvertes :
 ui.citizen.tab.main = Infos
 ui.citizen.tab.inventory = Inventaire
+ui.citizenInventory.inventory = Inventaire
 ui.citizen.tab.job = Métier
 ui.citizen.tab.happiness = Bonheur
 ui.happiness.modifiers = Modificateurs de bonheur

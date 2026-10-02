@@ -97,7 +97,8 @@ public final class WorldRuntime {
                 new EventBus(),
                 WorldPorts.create(world, setup, catalog, worldBlocks),
                 new TickTimings(System::nanoTime, clock::currentTick));
-        this.manager = new ColonyManager(ctx, new HytaleUiPort(() -> self[0], () -> wandSelf[0], blocks, ids));
+        this.manager =
+                new ColonyManager(ctx, new HytaleUiPort(() -> self[0], () -> wandSelf[0], blocks, ids, bodies::entity));
         self[0] = manager;
         this.previews = new HytalePreviewPort(world);
         this.goggles = new BuildGoggles(manager, previews);

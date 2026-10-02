@@ -8,6 +8,7 @@ import dev.hycolony.core.app.action.CitizenInventoryActions;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.kernel.item.Inventory;
 import dev.hycolony.core.kernel.item.ItemAmount;
+import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.plugin.item.HytaleStacks;
 import java.util.Optional;
 import java.util.function.BooleanSupplier;
@@ -18,45 +19,46 @@ import javax.annotation.Nonnull;
 import org.jspecify.annotations.Nullable;
 
 /**
- * A citizen's core inventory seen as a Hytale container: every slot read and write goes to the core, so the player and
- * the citizen's AI share one live inventory (MC ContainerCitizenInventory's SlotItemHandler on the citizen's
- * inventory). {@code items} only caches the stacks built from the core, each tool at the durability its damage leaves
- * ({@link HytaleStacks}); a tool worn by a mined block changes the inventory, so an open window shows it. World thread
- * only.
+ * One part of a citizen's core inventory ({@link CitizenInventoryPart}: its 27 slots or its armour) seen as a Hytale
+ * container: every slot read and write goes to the core, so the player and the citizen's AI share one live inventory
+ * (MC ContainerCitizenInventory's SlotItemHandler on the citizen's inventory, and its armour slots). {@code items} only
+ * caches the stacks built from the core, each tool at the durability its damage leaves ({@link HytaleStacks}); a tool
+ * worn by a mined block changes the inventory, so an open window shows it. World thread only.
  */
 final class CitizenItemContainer extends SimpleItemContainer {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
-    private final CitizenData citizen;
-    private final int colonyId;
-    private final BooleanSupplier alive;
+    /** Whose inventory: the citizen, its colony, and whether it is still in that colony. */
+    record Owner(CitizenData citizen, int colonyId, BooleanSupplier alive) {}
+
+    private final Owner owner;
+    private final CitizenInventoryPart part;
     private final Supplier<CitizenInventoryActions> actions;
     private final HytaleStacks stacks;
     /** Nesting of write actions: a move locks both containers and re-enters, only the outermost one reports. */
     private int writeDepth;
 
     /**
-     * Reads {@code citizen}'s inventory directly; {@code alive} says whether it is still in its colony (nothing is
-     * accepted once it is not); {@code actions} gets each player move that changed it; {@code stacks} converts a tool's
-     * damage to and from Hytale durability.
+     * Reads {@code part} of the owner's inventory directly (nothing is accepted once the owner is gone); {@code
+     * actions} gets each player move that changed it; {@code stacks} converts a tool's damage to and from Hytale
+     * durability.
      */
     CitizenItemContainer(
-            CitizenData citizen,
-            int colonyId,
-            BooleanSupplier alive,
-            Supplier<CitizenInventoryActions> actions,
-            HytaleStacks stacks) {
-        super((short) citizen.inventory().size());
-        this.citizen = citizen;
-        this.colonyId = colonyId;
-        this.alive = alive;
+            Owner owner, CitizenInventoryPart part, Supplier<CitizenInventoryActions> actions, HytaleStacks stacks) {
+        super((short) part.of(owner.citizen()).size());
+        this.owner = owner;
+        this.part = part;
         this.actions = actions;
         this.stacks = stacks;
     }
 
+    private Inventory inventory() {
+        return part.of(owner.citizen());
+    }
+
     @Override
     protected @Nullable ItemStack internal_getSlot(short slot) {
-        Inventory inv = citizen.inventory();
+        Inventory inv = inventory();
         ItemAmount a = slot < inv.size() ? inv.slot(slot).orElse(null) : null;
         ItemStack cached = items[slot];
         if (a == null) {
@@ -77,7 +79,7 @@ final class CitizenItemContainer extends SimpleItemContainer {
             return internal_removeSlot(slot);
         }
         ItemStack previous = internal_getSlot(slot);
-        Inventory inv = citizen.inventory();
+        Inventory inv = inventory();
         if (slot < inv.size()) {
             inv.set(slot, Optional.of(stacks.toAmount(itemStack)));
             items[slot] = itemStack;
@@ -88,7 +90,7 @@ final class CitizenItemContainer extends SimpleItemContainer {
     @Override
     protected @Nullable ItemStack internal_removeSlot(short slot) {
         ItemStack previous = internal_getSlot(slot);
-        Inventory inv = citizen.inventory();
+        Inventory inv = inventory();
         if (slot < inv.size()) {
             inv.set(slot, Optional.empty());
         }
@@ -114,21 +116,24 @@ final class CitizenItemContainer extends SimpleItemContainer {
     }
 
     /**
-     * Refuses anything the core cannot hold as it is, and everything once the citizen is gone.
+     * Refuses anything the core cannot hold as it is, armour MC would not let the citizen wear (MC
+     * ContainerCitizenInventory armour slot mayPlace), and everything once the citizen is gone.
      *
      * <p>Deviation from MC: the core keeps an item's key, count and damage only, so an item with other metadata is
      * refused rather than stripped. A worn tool is accepted: its damage goes with it.
      */
     @Override
     protected boolean cantAddToSlot(short slot, ItemStack itemStack, ItemStack slotItemStack) {
-        return !alive.getAsBoolean()
+        return !owner.alive().getAsBoolean()
                 || itemStack.getMetadata() != null
+                || !part.accepts(
+                        actions.get(), owner.colonyId(), owner.citizen(), slot, new ItemKey(itemStack.getItemId()))
                 || super.cantAddToSlot(slot, itemStack, slotItemStack);
     }
 
     @Override
     public boolean isEmpty() {
-        Inventory inv = citizen.inventory();
+        Inventory inv = inventory();
         return inv.freeSlots() == inv.size();
     }
 
@@ -164,7 +169,7 @@ final class CitizenItemContainer extends SimpleItemContainer {
         if (writeDepth > 0) {
             return write.get();
         }
-        Inventory inv = citizen.inventory();
+        Inventory inv = inventory();
         Inventory before = inv.copy();
         long changes = inv.changes();
         writeDepth++;
@@ -172,7 +177,7 @@ final class CitizenItemContainer extends SimpleItemContainer {
             return write.get();
         } finally {
             writeDepth--;
-            if (citizen.inventory().changes() != changes) {
+            if (inventory().changes() != changes) {
                 report(before);
             }
         }
@@ -180,7 +185,7 @@ final class CitizenItemContainer extends SimpleItemContainer {
 
     private void report(Inventory before) {
         try {
-            actions.get().onPlayerEdit(colonyId, citizen.id(), before);
+            part.report(actions.get(), owner.colonyId(), owner.citizen(), before);
         } catch (RuntimeException e) {
             LOG.at(Level.SEVERE).withCause(e).log("HyColony: citizen inventory change not applied to its requests");
         }

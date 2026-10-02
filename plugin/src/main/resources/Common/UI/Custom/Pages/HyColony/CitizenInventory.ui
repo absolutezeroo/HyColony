@@ -1,0 +1,58 @@
+$C = "../../Common.ui";
+
+// A citizen's inventory (MC WindowCitizenInventory, textures/gui/citizen_container.png), MC positions and sizes
+// doubled: the citizen's name, its 27 slots, the frame where the server camera shows it, its 4 armour slots, then
+// "Inventory" and the player's storage and hotbar. The background is composed by tools/ui/citizen_inventory.py; the
+// grids sit on its slots, so they draw no slot of their own.
+
+@McSlot = 36;
+@McGridStyle = (SlotSize: @McSlot, SlotIconSize: 32, SlotSpacing: 0, DurabilityBar: "../HyBlockUI/Native/DurabilityBar.png", DurabilityBarBackground: "../HyBlockUI/Native/DurabilityBarBackground.png", DurabilityBarAnchor: (Bottom: 4, Left: 4, Width: 28, Height: 2), DurabilityBarColorStart: #a63232, DurabilityBarColorEnd: #63b649);
+@McGrid = ItemGrid {
+  AreItemsDraggable: true;
+  DisplayItemQuantity: true;
+  Style: @McGridStyle;
+};
+@McLabel = LabelStyle(FontSize: 15, TextColor: #404040, VerticalAlignment: Center);
+
+$C.@PageOverlay {
+  LayoutMode: Middle;
+
+  Group {
+    Anchor: (Width: 490, Height: 344);
+    Background: "Mc/citizen_inventory.png";
+
+    Label #Name {
+      Anchor: (Left: 160, Top: 10, Width: 180, Height: 28);
+      Style: @McLabel;
+      Text: "";
+    }
+
+    @McGrid #CitizenSlots {
+      Anchor: (Left: 14, Top: 44, Width: 324, Height: 108);
+      SlotsPerRow: 9;
+    }
+
+    @McGrid #ArmorSlots {
+      Anchor: (Left: 444, Top: 44, Width: 36, Height: 144);
+      SlotsPerRow: 1;
+    }
+
+    Label {
+      Anchor: (Left: 16, Top: 152, Width: 300, Height: 24);
+      Style: @McLabel;
+      Text: %hycolony.ui.citizenInventory.inventory;
+    }
+
+    @McGrid #PlayerStorage {
+      Anchor: (Left: 14, Top: 178, Width: 324, Height: 108);
+      SlotsPerRow: 9;
+    }
+
+    @McGrid #PlayerHotbar {
+      Anchor: (Left: 14, Top: 294, Width: 324, Height: 36);
+      SlotsPerRow: 9;
+    }
+  }
+}
+
+$C.@BackButton {}

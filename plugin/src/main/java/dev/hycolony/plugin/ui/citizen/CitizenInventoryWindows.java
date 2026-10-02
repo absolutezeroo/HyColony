@@ -3,44 +3,54 @@ package dev.hycolony.plugin.ui.citizen;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.protocol.packets.interface_.Page;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
+import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import dev.hyblockui.api.HeldWindows;
 import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.ColonyEvents;
+import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.plugin.item.HytaleStacks;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BooleanSupplier;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
 /**
- * The citizen inventory windows open in one world: opens them, and closes them when their citizen is gone. World
- * thread only.
+ * The citizen inventory pages open in one world: opens them, and closes them when their citizen's colony is gone.
+ * World thread only.
  */
 public final class CitizenInventoryWindows {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
-    private record Open(Ref<EntityStore> player, int colonyId, CitizenInventoryWindow window) {}
+    private record Open(int colonyId, CitizenInventoryPage page) {}
 
     private final Supplier<ColonyManager> manager;
+    private final Function<BodyId, Optional<Ref<EntityStore>>> bodies;
     private final List<Open> open = new ArrayList<>();
     private boolean subscribed;
 
-    public CitizenInventoryWindows(Supplier<ColonyManager> manager) {
+    /** {@code bodies}: a citizen body's loaded entity, for the camera that shows it. */
+    public CitizenInventoryWindows(
+            Supplier<ColonyManager> manager, Function<BodyId, Optional<Ref<EntityStore>>> bodies) {
         this.manager = manager;
+        this.bodies = bodies;
     }
 
     /**
-     * MC OpenInventoryMessage: opens the citizen's inventory as the game's container screen (the player's inventory
-     * beside it), in place of the citizen's window, as a chest opens (PageManager.setPageWithWindows, Page.Bench,
-     * like InventorySeeCommand). The core checked the permission; an offline player or a gone citizen is ignored.
+     * MC OpenInventoryMessage: opens the citizen's inventory in our page (MC WindowCitizenInventory), in place of the
+     * citizen's window, with a window on its 27 slots and one on its armour beside it
+     * (PageManager.openCustomPageWithWindows, as HyDomum's cutter). The core checked the permission; an offline player
+     * or a gone citizen is ignored.
+     *
+     * <p>Deviation from MC: our own page, not the game's container screen, so that the camera can show the citizen:
+     * Hytale's container screen imposes its camera (citizen-inventory-window.md § 9).
      */
     public void open(UUID player, int colonyId, int citizenId) {
         PlayerRef pr = Universe.get().getPlayer(player);
@@ -58,32 +68,52 @@ public final class CitizenInventoryWindows {
             return;
         }
         subscribeOnce();
-        CitizenInventoryWindow window = newWindow(colonyId, citizenId, citizen);
-        if (playerComponent.getPageManager().setPageWithWindows(ref, store, Page.Bench, true, window)) {
-            open.add(new Open(ref, colonyId, window));
-            window.registerCloseEvent(e -> forget(window));
+        CitizenInventoryPage page = newPage(pr, store.getExternalData().getWorld(), colonyId, citizen);
+        CitizenInventoryPage.Setup s = page.setup();
+        if (playerComponent.getPageManager().openCustomPageWithWindows(ref, store, page, s.main(), s.armor())) {
+            open.add(new Open(colonyId, page));
+            s.main().registerCloseEvent(e -> forget(page));
         }
     }
 
-    /** A window on the citizen's inventory, valid while the citizen exists; the client gets its state on open. */
-    private CitizenInventoryWindow newWindow(int colonyId, int citizenId, CitizenData citizen) {
+    /** The page on {@code citizen}'s inventory, its two windows valid while the citizen exists. */
+    private CitizenInventoryPage newPage(PlayerRef player, World world, int colonyId, CitizenData citizen) {
         // Read on moves only, never per tick.
         BooleanSupplier alive = () -> manager.get()
                 .byId(colonyId)
-                .flatMap(c -> c.citizens().get(citizenId))
+                .flatMap(c -> c.citizens().get(citizen.id()))
                 .isPresent();
+        CitizenItemContainer.Owner owner = new CitizenItemContainer.Owner(citizen, colonyId, alive);
+        CitizenPreviewCamera camera = new CitizenPreviewCamera(
+                player,
+                world,
+                () -> manager.get()
+                        .byId(colonyId)
+                        .flatMap(c -> c.citizens().bodyOf(citizen.id()))
+                        .flatMap(bodies));
+        return new CitizenInventoryPage(
+                player,
+                new CitizenInventoryPage.Setup(
+                        world,
+                        citizen,
+                        window(owner, CitizenInventoryPart.MAIN),
+                        window(owner, CitizenInventoryPart.ARMOR),
+                        camera));
+    }
+
+    /** A window on {@code part} of the owner's inventory; the client gets its state on open. */
+    private CitizenInventoryWindow window(CitizenItemContainer.Owner owner, CitizenInventoryPart part) {
         CitizenItemContainer container = new CitizenItemContainer(
-                citizen,
-                colonyId,
-                alive,
+                owner,
+                part,
                 () -> manager.get().citizenInventories(),
                 new HytaleStacks(manager.get().context().ports().catalog()::durability));
-        CitizenInventoryWindow window = new CitizenInventoryWindow(container, citizen, alive);
+        CitizenInventoryWindow window = new CitizenInventoryWindow(container, owner, part);
         window.coreChanged(); // the client gets the current state on open, no need to send it twice
         return window;
     }
 
-    /** Citizens only leave with their colony (no death yet), so its deletion is when their windows close. */
+    /** Citizens only leave with their colony (no death yet), so its deletion is when their pages close. */
     private void subscribeOnce() {
         if (!subscribed) {
             subscribed = true;
@@ -92,7 +122,7 @@ public final class CitizenInventoryWindows {
     }
 
     /**
-     * Closes the colony's windows still open; backwards, since each close removes its entry. A failing close is logged
+     * Closes the colony's pages still open; backwards, since each close removes its entry. A failing close is logged
      * and forgotten, the others still close.
      */
     private void closeAll(int colonyId) {
@@ -102,19 +132,17 @@ public final class CitizenInventoryWindows {
                 continue;
             }
             try {
-                if (HeldWindows.holds(o.player(), o.player().getStore(), o.window())) {
-                    o.window().close(o.player(), o.player().getStore()); // its close event forgets it
-                }
+                o.page().closeFromServer(); // its dismissal closes its windows, whose close event forgets it
             } catch (RuntimeException e) {
-                LOG.at(Level.SEVERE).withCause(e).log("HyColony: could not close a citizen inventory window");
+                LOG.at(Level.SEVERE).withCause(e).log("HyColony: could not close a citizen inventory page");
             }
-            forget(o.window());
+            forget(o.page());
         }
     }
 
-    /** Drops the entry of this very window, if still listed. */
-    @SuppressWarnings("PMD.CompareObjectsWithEquals") // identity: a later window may share id, type and player
-    private void forget(CitizenInventoryWindow window) {
-        open.removeIf(o -> o.window() == window);
+    /** Drops the entry of this very page, if still listed. */
+    @SuppressWarnings("PMD.CompareObjectsWithEquals") // identity: pages are not values
+    private void forget(CitizenInventoryPage page) {
+        open.removeIf(o -> o.page() == page);
     }
 }
