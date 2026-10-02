@@ -32,8 +32,22 @@ public final class HostileSpawnSystems {
     public static void register(ComponentRegistryProxy<EntityStore> registry, WorldRuntimes runtimes, IdMap ids) {
         HostileSpawns rule = new HostileSpawns(runtimes, ids.npcs().group("npc.group.hostile"));
         registry.registerSystem(new WorldSpawn(rule));
-        registry.registerSystem(new Marked<>(rule, SpawnBeaconReference.getComponentType()));
-        registry.registerSystem(new Marked<>(rule, SpawnMarkerReference.getComponentType()));
+        registry.registerSystem(new BeaconSpawn(rule));
+        registry.registerSystem(new MarkerSpawn(rule));
+    }
+
+    /** An NPC a spawn beacon tags. Its own class: Hytale registers one system per class. */
+    private static final class BeaconSpawn extends Marked<SpawnBeaconReference> {
+        BeaconSpawn(HostileSpawns rule) {
+            super(rule, SpawnBeaconReference.getComponentType());
+        }
+    }
+
+    /** An NPC a spawn marker tags. Its own class: Hytale registers one system per class. */
+    private static final class MarkerSpawn extends Marked<SpawnMarkerReference> {
+        MarkerSpawn(HostileSpawns rule) {
+            super(rule, SpawnMarkerReference.getComponentType());
+        }
     }
 
     /** An NPC a world spawn adds: WorldSpawnJobSystems sets its spawn configuration before the add. */
@@ -71,7 +85,7 @@ public final class HostileSpawnSystems {
     }
 
     /** An NPC a spawn beacon or marker tags, just after adding it. */
-    private static final class Marked<T extends Component<EntityStore>> extends RefChangeSystem<EntityStore, T> {
+    private abstract static class Marked<T extends Component<EntityStore>> extends RefChangeSystem<EntityStore, T> {
         private final HostileSpawns rule;
         private final ComponentType<EntityStore, T> mark;
 
