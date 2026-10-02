@@ -73,26 +73,25 @@ def walk(nodes):
 def bounds(nodes):
     """Lowest and highest corner, in model units, of every shape of the model."""
     points = []
-    for n in nodes:
-        collect(n, (0.0, 0.0, 0.0), (0.0, 0.0, 0.0, 1.0), points)
+    for n, position, rotation in placed(nodes):
+        shape = n["shape"]
+        offset, stretch = (tuple(shape[key][a] for a in "xyz") for key in ("offset", "stretch"))
+        for corner in corners(shape):
+            points.append(add(position, rotate(rotation, add(offset, tuple(c * s for c, s in zip(corner, stretch))))))
     if not points:
         return (0, 0, 0), (0, 0, 0)
     return tuple(min(p[i] for p in points) for i in range(3)), tuple(max(p[i] for p in points) for i in range(3))
 
 
-def collect(n, parent_position, parent_rotation, points):
-    o = n["orientation"]
-    rotation = multiply(parent_rotation, (o["x"], o["y"], o["z"], o["w"]))
-    p = n["position"]
-    position = add(parent_position, rotate(parent_rotation, (p["x"], p["y"], p["z"])))
-    shape = n["shape"]
-    offset = (shape["offset"]["x"], shape["offset"]["y"], shape["offset"]["z"])
-    stretch = (shape["stretch"]["x"], shape["stretch"]["y"], shape["stretch"]["z"])
-    for corner in corners(shape):
-        local = add(offset, tuple(c * s for c, s in zip(corner, stretch)))
-        points.append(add(position, rotate(rotation, local)))
-    for child in n.get("children", []):
-        collect(child, position, rotation, points)
+def placed(nodes, position=(0.0, 0.0, 0.0), rotation=(0.0, 0.0, 0.0, 1.0)):
+    """(node, world position, world rotation) of every node. A child's position counts from its parent's position
+    plus the parent's shape offset, turned by the parent (Hytale's BlockyModelBoundsParser.accumulateNodeBounds)."""
+    for n in nodes:
+        o, p, offset = n["orientation"], n["position"], n["shape"]["offset"]
+        own = multiply(rotation, (o["x"], o["y"], o["z"], o["w"]))
+        at = add(position, rotate(rotation, (p["x"], p["y"], p["z"])))
+        yield n, at, own
+        yield from placed(n.get("children", []), add(at, rotate(own, (offset["x"], offset["y"], offset["z"]))), own)
 
 
 def corners(shape):

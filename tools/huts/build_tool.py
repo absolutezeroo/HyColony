@@ -7,9 +7,13 @@ from PIL import ImageDraw
 
 from brushes import crystal, metal, wood
 from materials import BRASS, CYAN, LEATHER, leather
+from pack import turned
 
 MODEL = "Items/HyColony/Build_Tool"
 ICON = "Build_Tool"
+# As Hytale's tool icons (Icons/ItemsGenerated/Tool_Hammer_*): laid diagonally, head top left, seen three-quarter
+# from the gem's side.
+ICON_VIEW = turned(70, 15, 45)
 PICTURES = frozenset()
 
 

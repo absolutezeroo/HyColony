@@ -110,18 +110,22 @@ frappe en acier, panne en deux paliers, deux bagues de laiton, et un cristal cya
 tourné de 45° et sa table), serti dans un cadre en laiton. Choisi par l'utilisateur parmi quatre pistes (sceptre,
 marteau, compas, bâton à plan) ; un premier jet en équerre et fil à plomb a été écarté. L'objet lit
 `Items/HyColony/Build_Tool.{blockymodel,png}`, son icône et le son `ISS_Weapons_Wood` des marteaux de Hytale.
+Son icône le pose en diagonale, tête en haut à gauche, vu de trois quarts côté gemme, comme les icônes d'outils de
+Hytale (`Icons/ItemsGenerated/Tool_Hammer_*`) ; les huttes et les lunettes gardent la vue isométrique.
 
 ## Peinture
 
 Retour de l'utilisateur sur les premiers jets : textures trop nettes, sans le travail au crayon et à la brosse douce
 que conseille Hytale. Chaque modèle passe donc par trois étapes (`tools/huts/generate.py`, `texture`) :
 
-1. ses matières : les pinceaux de `tools/huts/brushes.py`, qui peignent une zone entière (bois, métal brossé, cristal
-   taillé, papier, tissu, pierre, minerai, terre cuite ; pierre et minerai pour les huttes de mineur et de carrier,
-   demandés par l'utilisateur), et quelques teintes de tuiles de Hytale (`tools/huts/materials.py` : cuir, plume…) ;
+1. ses matières : les pinceaux de `tools/vanilla/brushes.py` (partagés avec les lits et pots de HyVanilla), qui
+   peignent une zone entière (bois, métal brossé, cristal taillé, papier, tissu, pierre, minerai, terre cuite ;
+   pierre et minerai pour les huttes de mineur et de carrier, demandés par l'utilisateur), et quelques teintes de
+   tuiles de Hytale (`tools/huts/materials.py` : cuir, plume…) ;
 2. `tools/vanilla/bake.py` cuit la lumière à partir du modèle lui-même, pixel par pixel : occlusion ambiante (rayons
    contre les autres boîtes et, pour un bloc, le sol), ombre portée d'une lumière en haut à l'avant gauche, biseau
-   sur les deux anneaux de pixels du bord de chaque zone avec usure (éclats clairs) côté lumière, crasse au pied d'un
+   sur les deux anneaux de pixels du bord de chaque zone avec usure (éclats clairs) côté lumière (une arête ne
+   s'assombrit que tournée vers le bas, une jointure entre deux boîtes n'a pas de biseau), crasse au pied d'un
    bloc, variation douce de teinte, ombres froides et lumières chaudes ; la direction de la lumière aussi sur les
    faces `flat` ; une occlusion réduite et pas d'ombre portée sur les faces lumineuses ;
 3. le débordement des bords dans les marges (`paint.bleed`).

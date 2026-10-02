@@ -85,21 +85,20 @@ Vérifié le 2026-10-02 sur Hytale 0.7.0-pre.5 (`pre-release-0.7.0-pre.5-Assets.
   - dans `tools/vanilla/models/` quand le générateur le reprend (le pot, recopié par couleur et par plante, dans un
     dossier que le générateur efface).
   Le générateur lit ces modèles et ne les écrit plus.
-- `tools/vanilla/paint.py` peint la texture zone par zone à partir de tuiles de Hytale (planches, laine, argile,
-  terre), selon la matière de chaque nœud et le côté de chaque face. Il ajoute :
-  - une ombre de contact au pied des côtés, une rangée éclairée en haut des côtés ;
-  - un dessus légèrement bombé et un liseré plus sombre ;
-  - des ombres teintées, bornées entre 14 et 242 (ni noir ni blanc purs).
-  Le sens des planches suit le grand côté de la zone. `softened` atténue la trame des tissus, `darker` assombrit
-  une matière (intérieur du pot).
+- `tools/vanilla/paint.py` peint la texture zone par zone, selon la matière de chaque nœud et le côté de chaque face,
+  avec les pinceaux de `tools/vanilla/brushes.py` (bois, tissu, terre cuite, terre, métal, cristal…), dans la
+  couleur moyenne de la matière de Hytale qu'ils imitent (laine, planches, argile). `tools/vanilla/bake.py` cuit
+  ensuite la lumière du modèle (occlusion ambiante, ombre portée, biseaux, salissure au pied, variation de teinte).
+  Chaque face a sa propre zone d'UV. Un bord dont la surface se poursuit dans une autre boîte, un demi-pixel plus
+  loin, n'a pas de biseau : jointure (un mur en plusieurs boîtes), coin rentrant, ou pied d'un bloc posé au sol. Les
+  arêtes ne s'assombrissent que tournées vers le bas. `light_map` se calcule une fois par modèle, puis `lit` l'applique
+  à chaque couleur (lits, pots).
 - `pack.draw_model` dessine l'icône à partir du modèle et de sa texture. Il suit les nœuds imbriqués et tournés,
-  avec un tampon de profondeur, vu depuis +x +z, donc côté devant. `models.collect` (bornes, hitbox du lit, mise à
-  l'échelle des plantes en pot) ignore encore le décalage du parent : à corriger à part, car cela change la taille de
-  41 plantes en pot.
+  avec un tampon de profondeur, vu depuis +x +z, donc côté devant. Un outil tenu se dessine plutôt comme les icônes
+  d'outils de Hytale (`Icons/ItemsGenerated/Tool_Hammer_*`, pioches, haches) : en diagonale, tête en haut à gauche,
+  de trois quarts (`pack.turned`, vue orthographique tournée). `models.placed` applique la règle de placement des
+  enfants (§ 3) pour tous les outils : bornes (hitbox du lit, mise à l'échelle des plantes en pot), icônes, cuisson.
 - Les huttes de HyColony suivent la même chaîne : `tools/huts/generate.py`, spec
-  `docs/superpowers/specs/2026-10-02-hycolony-hut-models-design.md`. Leur lumière n'est plus le dégradé générique de
-  `paint.shaded` mais celle que `tools/vanilla/bake.py` cuit à partir du modèle (occlusion ambiante, ombre portée,
-  biseaux, variation de teinte), sur des matières peintes au pinceau (`tools/huts/brushes.py`). Chaque face y a sa
-  propre zone d'UV, parce que la lumière cuite diffère d'une face à l'autre.
+  `docs/superpowers/specs/2026-10-02-hycolony-hut-models-design.md`.
 - Pour modifier un modèle : l'ouvrir dans un projet `hytale_prop` (§ 3), le retoucher, le réexporter, puis relancer
   `python tools/vanilla/generate.py`.

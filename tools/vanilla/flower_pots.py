@@ -3,10 +3,10 @@ potted_<plant> blocks. The colours are a requested addition: Minecraft's flower 
 
 Each state's model is the pot plus the plant's vanilla model scaled to stand in it (Minecraft's flower_pot_cross parent
 model does the same with the plant's texture). The pot itself is built in Blockbench (POT_MODEL, Minecraft's shape,
-docs/research/hytale-models.md), its faces unwrapped in one 32 px cell that paint.py fills per colour (clay outside,
-darker clay inside, the dirt). One atlas serves every pot: each plant texture once and one pot cell per colour. Each
-colour has its own models (its empty pot and one per plant), which differ only in the UVs of the pot's faces. To pot a
-new plant, add its item id to PLANTS and re-run generate.py.
+docs/research/hytale-models.md), one UV island per face in a POT_CELL that paint.py fills per colour with brushes
+(brushes.py: the clay, the dirt) and bake.py lights from the pot. One atlas serves every pot: each plant texture once
+and one pot cell per colour. Each colour has its own models (its empty pot and one per plant), which differ only in
+the UVs of the pot's faces. To pot a new plant, add its item id to PLANTS and re-run generate.py.
 """
 
 import copy
@@ -16,15 +16,17 @@ from pathlib import Path
 
 from PIL import Image
 
+from bake import light_map, lit
+from brushes import average, stone, terracotta
 from models import bounds, empty_shape, face_rects, node, scaled, shift_uvs, walk
 from pack import ICON_SIZE, PACK, draw_model, save_png, write_json
-from paint import darker, paint
+from paint import bleed, paint
 
 POT_MODEL = Path(__file__).parent / "models" / "Flower_Pot.blockymodel"
-# The inside of the pot, out of the light.
-INSIDE_LIGHT = 0.68
-# The side of each wall facing the pot's centre.
-INNER_SIDES = {"Wall_North": "front", "Wall_South": "back", "Wall_West": "right", "Wall_East": "left"}
+# The pot's texture: its 22 face islands, 2 pixels apart.
+POT_CELL = (96, 32)
+# Crumbs of the dirt (stone brush chunks, in pixels).
+DIRT_CRUMBS = (2, 2)
 MODELS = "Blocks/HyVanilla/Flower_Pot/"
 ATLAS = MODELS + "Atlas.png"
 DIRT = "BlockTextures/Soil_Dirt_Wet.png"
@@ -107,16 +109,16 @@ def generate(assets):
     plants = {p: assets.item(p)["BlockType"] for p in PLANTS}
     textures = {p: plant_texture(assets, block) for p, block in plants.items()}
     clays = {c: assets.item("Soil_Clay_Smooth_" + c) for c in COLOURS}
-    layout, size = pack_layout(dict(textures.values()), ["pot:" + c for c in COLOURS])
-    atlas = Image.new("RGBA", size, (0, 0, 0, 0))
-    for key, image in dict(textures.values()).items():
-        atlas.paste(image, layout[key])
     template = json.loads(POT_MODEL.read_text(encoding="utf-8"))["nodes"]
-    dirt = assets.image("Common/" + DIRT).crop((0, 0, CELL, CELL))
-    cells = {c: pot_cell(template, clay_texture(assets, item).crop((0, 0, CELL, CELL)), dirt)
+    values = light_map(template, grounded=True)
+    dirt = stone(average(assets.image("Common/" + DIRT)), DIRT_CRUMBS)
+    cells = {c: pot_cell(template, values, terracotta(average(clay_texture(assets, item))), dirt)
              for c, item in clays.items()}
-    for colour, cell in cells.items():
-        atlas.paste(cell, layout["pot:" + colour])
+    images = dict(textures.values()) | {"pot:" + c: cell for c, cell in cells.items()}
+    layout, size = pack_layout(images)
+    atlas = Image.new("RGBA", size, (0, 0, 0, 0))
+    for key, image in images.items():
+        atlas.paste(image, layout[key])
     save_png(atlas, PACK / "Common" / ATLAS)
     potted = {}
     for plant_id, block in plants.items():
@@ -161,13 +163,11 @@ def tinted(texture, colour):
     return Image.merge("RGBA", (*channels, a))
 
 
-def pack_layout(images, cells):
-    """Places every texture of images ({key: image}), then one 32 px cell per key of cells, on a grid of 32 px cells,
-    tallest first, ATLAS_WIDTH wide. Returns {key: (u, v)} and the atlas size, a power of two high. Same input, same
-    layout."""
+def pack_layout(images):
+    """Places every image of images ({key: image}, sides multiples of 32) on a grid of 32 px cells, tallest first,
+    ATLAS_WIDTH wide. Returns {key: (u, v)} and the atlas size, a power of two high. Same input, same layout."""
     sizes = {key: (image.size[0] // CELL, image.size[1] // CELL) for key, image in images.items()}
-    order = sorted(sizes, key=lambda k: (-sizes[k][1], -sizes[k][0], k)) + list(cells)
-    sizes.update({key: (1, 1) for key in cells})
+    order = sorted(sizes, key=lambda k: (-sizes[k][1], -sizes[k][0], k))
     used = set()
     layout = {}
     for key in order:
@@ -208,17 +208,14 @@ def fit(nodes, vanilla_scale, width_room):
     return min(factor, DIRT_TOP / -low[1]) if low[1] < 0 else factor
 
 
-def pot_cell(template, clay, dirt):
-    """One colour's 32 px pot cell, painted on the pot model's islands: clay outside and underneath, darker clay
-    inside, the dirt. The walls' side faces join without a seam (no side rims)."""
-    tiles = {"clay": clay, "inside": darker(clay, INSIDE_LIGHT), "dirt": darker(dirt, INSIDE_LIGHT)}
-
+def pot_cell(template, values, clay_brush, dirt_brush):
+    """One colour's pot cell, painted on the pot model's islands (the clay, the dirt's top) and lit by values (the
+    pot's light_map: the walls shade their inside and the dirt themselves)."""
     def material(name, side):
-        if name == "Dirt":
-            return "clay" if side == "bottom" else "dirt"
-        return "inside" if INNER_SIDES.get(name) == side else "clay"
+        return "dirt" if name == "Dirt" and side == "top" else "clay"
 
-    return paint(template, (CELL, CELL), tiles, material, side_rims=False)
+    painted = paint(template, POT_CELL, {"clay": clay_brush, "dirt": dirt_brush}, material)
+    return bleed(lit(painted, values), template)
 
 
 def write_model(name, nodes):

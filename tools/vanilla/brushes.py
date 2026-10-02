@@ -1,10 +1,37 @@
-"""Brushes of HyColony's hand-built models, one per kind of material. A brush paints a whole island,
-(w, h, side) -> image, as a painter would (strokes along a plank, folds down a hanging cloth, chunks of stone, a
-gradient across a crystal face); bake.light then lights the result from the model (tools/vanilla/bake.py)."""
+"""Brushes of the hand-built models (HyColony's huts and items, HyVanilla's bed and pots), one per kind of material.
+A brush paints a whole island, (w, h, side) -> image, as a painter would (strokes along a plank, folds down a hanging
+cloth, chunks of stone, a gradient across a crystal face); bake.light then lights the result from the model."""
 
 from PIL import Image
 
-from materials import coloured, jitter, mix, smooth
+
+def average(image):
+    """The image's mean (r, g, b): the colour a brush paints a Hytale material with (a wool, a clay, planks)."""
+    return image.convert("RGB").resize((1, 1), Image.BOX).getpixel((0, 0))
+
+
+def jitter(i, salt):
+    """Deterministic pseudo-random value in [-1, 1] for an integer."""
+    h = (i * 2654435761 + salt * 40503) & 0xFFFFFFFF
+    h = ((h ^ (h >> 15)) * 2246822519) & 0xFFFFFFFF
+    return ((h ^ (h >> 13)) & 0xFFFF) / 32767.5 - 1.0
+
+
+def smooth(x, salt):
+    """Smooth 1D noise in [-1, 1]."""
+    i = int(x // 1)
+    f = x - i
+    f = f * f * (3 - 2 * f)
+    return jitter(i, salt) * (1 - f) + jitter(i + 1, salt) * f
+
+
+def mix(a, b, t):
+    t = max(0.0, min(1.0, t))
+    return tuple(round(x + (y - x) * t) for x, y in zip(a, b))
+
+
+def coloured(rgb, k):
+    return (*(max(0, min(255, round(c * k))) for c in rgb), 255)
 
 
 def painted(rule):
@@ -136,8 +163,21 @@ def ore(rock, nugget, density=0.15):
     return brush
 
 
+def terracotta(rgb):
+    """Thrown terracotta (flower pots): a faint warm mottle, soft throwing rings round side faces (the same rows on
+    every wall, so split walls line up), fine light grains of sand."""
+    def rule(x, y, w, h, side):
+        k = 1 + 0.03 * smooth(x / 5 + y * 0.3, y // 5) + 0.015 * jitter(x * 29 + y * 11, 22)
+        if side not in ("top", "bottom"):
+            k += 0.04 * smooth(y / 1.5, 23)
+        if jitter(x * 61 + y * 43, 24) > 0.94:
+            k += 0.07
+        return coloured(rgb, k)
+    return painted(rule)
+
+
 def clay(rgb):
-    """Fired clay (bricks, pots): a soft mottle and scattered dark pores."""
+    """Fired clay (bricks): a soft mottle and scattered dark pores."""
     def rule(x, y, w, h, side):
         k = 1 + 0.07 * smooth(x / 3 + y * 0.5, y // 3) + 0.03 * jitter(x * 29 + y * 11, 18)
         if jitter(x * 61 + y * 43, 19) > 0.9:

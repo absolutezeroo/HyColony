@@ -8,7 +8,7 @@ from pathlib import Path
 
 from PIL import Image, ImageChops, ImageDraw
 
-from models import add, multiply, rotate
+from models import add, multiply, placed, rotate
 
 ROOT = Path(__file__).resolve().parents[2]
 PACK = ROOT / "vanilla" / "plugin" / "src" / "main" / "resources"
@@ -122,10 +122,30 @@ def draw_box(icon, box, textures, scale, origin):
     draw_face(icon, textures["top"], top, edge(top, p(x1, y1, z0)), edge(top, p(x0, y1, z1)), 1.0)
 
 
-def draw_model(icon, nodes, texture, scale, origin):
+def screen(point, scale, origin, view=None):
+    """(x, y, depth) of a model point on the icon, the larger depth the nearer: the isometric view from +x +z, or with
+    view (a quaternion turning the model in front of the camera, which looks down -z) an orthographic one."""
+    if view is None:
+        return (*iso(*point, scale, origin), sum(point))
+    x, y, z = rotate(view, point)
+    return origin[0] + x * scale, origin[1] - y * scale, z
+
+
+def turned(yaw, pitch, roll):
+    """The view (a quaternion for screen) turning a model by yaw about y, then pitch about x, then roll about the
+    camera's axis, in degrees: roll 45 lays a tool diagonally, its head top left, as Hytale's tool icons."""
+    def about(axis, degrees):
+        half = math.radians(degrees) / 2
+        return (*(c * math.sin(half) for c in axis), math.cos(half))
+
+    return multiply(about((0, 0, 1), roll), multiply(about((1, 0, 0), pitch), about((0, 1, 0), yaw)))
+
+
+def draw_model(icon, nodes, texture, scale, origin, view=None):
     """Draws a model's boxes, nested and turned as they are, with a depth buffer (boxes that pass through each other
-    hide each other correctly), each face read from its texture island and shaded by how it faces the view (top 1.0,
-    +z 0.8, +x 0.65, as draw_box). The view from +x +z shows a block's front, +z."""
+    hide each other correctly), each face read from its texture island and shaded by how it faces the view: in the
+    isometric view from +x +z, which shows a block's front (+z), top 1.0, +z 0.8, +x 0.65 as draw_box; with view,
+    which turns the model instead (screen), lit from the top left (turned_shade)."""
     texels, out, nearest = texture.load(), icon.load(), {}
     for n, position, rotation in placed(nodes):
         shape = n["shape"]
@@ -138,14 +158,14 @@ def draw_model(icon, nodes, texture, scale, origin):
         for side, face in shape["textureLayout"].items():
             if face.get("angle", 0) or any(face.get("mirror", {}).values()):
                 raise SystemExit(f"{n['name']} {side}: draw_model reads unturned, unmirrored faces")
-            shade = facing_shade(rotate(rotation, FACE_NORMALS[side]))
+            normal = rotate(rotation, FACE_NORMALS[side])
+            shade = facing_shade(normal) if view is None else turned_shade(rotate(view, normal))
             if shade is None:
                 continue
             for local, texel in face_samples(side, size, face, scale * max(abs(s) for s in stretch)):
                 stretched = tuple(o + c * s for o, c, s in zip(offset, local, stretch))
-                point = add(position, rotate(rotation, stretched))
-                sx, sy = iso(*point, scale, origin)
-                pixel, depth = (int(sx), int(sy)), sum(point)
+                sx, sy, depth = screen(add(position, rotate(rotation, stretched)), scale, origin, view)
+                pixel = (int(sx), int(sy))
                 colour = texels[texel]
                 if colour[3] and 0 <= pixel[0] < icon.width and 0 <= pixel[1] < icon.height \
                         and depth > nearest.get(pixel, float("-inf")):
@@ -157,25 +177,21 @@ FACE_NORMALS = {"front": (0, 0, 1), "back": (0, 0, -1), "right": (1, 0, 0), "lef
                 "bottom": (0, -1, 0)}
 
 
-def placed(nodes, position=(0.0, 0.0, 0.0), rotation=(0.0, 0.0, 0.0, 1.0)):
-    """(node, world position, world rotation) of every node. A child's position counts from its parent's position
-    plus the parent's shape offset, turned by the parent (Hytale's BlockyModelBoundsParser.accumulateNodeBounds;
-    models.collect still leaves the offset out: bounds() for the bed hitbox, the pots' plant fitting and
-    tools/domum's checks, to fix on its own)."""
-    for n in nodes:
-        o, p, offset = n["orientation"], n["position"], n["shape"]["offset"]
-        own = multiply(rotation, (o["x"], o["y"], o["z"], o["w"]))
-        at = add(position, rotate(rotation, (p["x"], p["y"], p["z"])))
-        yield n, at, own
-        yield from placed(n.get("children", []), add(at, rotate(own, (offset["x"], offset["y"], offset["z"]))), own)
-
-
 def facing_shade(normal):
     """The shade of a face whose normal is this, seen from +x +y +z; None when it faces away."""
     x, y, z = normal
     if x + y + z <= 1e-6:
         return None
     return y * y * 1.0 + z * z * 0.8 + x * x * 0.65
+
+
+def turned_shade(normal):
+    """The shade of a face whose normal, in the camera's frame, is this (the camera looks down -z), lit from the top
+    left like Hytale's item icons; None when it faces away."""
+    x, y, z = normal
+    if z <= 1e-6:
+        return None
+    return 0.72 + 0.28 * max(0.0, -0.5 * x + 0.6 * y + 0.62 * z)
 
 
 def face_samples(side, size, face, density):

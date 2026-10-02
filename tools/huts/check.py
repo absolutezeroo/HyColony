@@ -7,8 +7,8 @@ from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parents[1] / "vanilla"))
 import bake  # noqa: E402
-from models import empty_shape, node  # noqa: E402
-from pack import placed  # noqa: E402
+from models import bounds, empty_shape, node, placed  # noqa: E402
+from pack import screen, turned, turned_shade  # noqa: E402
 from paint import bleed  # noqa: E402
 from PIL import Image  # noqa: E402
 
@@ -38,6 +38,33 @@ class PlacedTest(unittest.TestCase):
         parent = node("Parent", (0, 0, 0), shape_at((0, 0, 2)), [child])
         parent["orientation"] = {"x": 0, "y": half, "z": 0, "w": half}
         self.assertEqual((2, 0, 0), positions([parent])["Child"])
+
+
+class BoundsTest(unittest.TestCase):
+    def test_bounds_place_a_child_from_its_parents_shape_offset(self):
+        child = shape_at((0, 0, 0))
+        child.update({"type": "box", "settings": {"size": {"x": 2, "y": 2, "z": 2}}})
+        parent = node("Parent", (0, 0, 0), shape_at((0, 0, 10)), [node("Child", (0, 0, 0), child)])
+        self.assertEqual(((-1, -1, 9), (1, 1, 11)), bounds([parent]))
+
+
+class IconViewTest(unittest.TestCase):
+    def test_a_rolled_view_lays_a_tool_s_handle_towards_the_top_left_and_keeps_its_near_side_nearer(self):
+        view = turned(0, 0, 45)
+        x, y, _ = screen((0.0, 1.0, 0.0), 10.0, (0.0, 0.0), view)
+        self.assertAlmostEqual(-10 * math.sqrt(0.5), x)
+        self.assertAlmostEqual(-10 * math.sqrt(0.5), y)
+        self.assertGreater(screen((0.0, 0.0, 1.0), 1.0, (0.0, 0.0), view)[2], 0)
+
+    def test_a_turned_view_applies_yaw_before_pitch(self):
+        x, y, depth = screen((1.0, 0.0, 0.0), 1.0, (0.0, 0.0), turned(90, 90, 0))
+        self.assertAlmostEqual(0.0, x)
+        self.assertAlmostEqual(-1.0, y)
+        self.assertAlmostEqual(0.0, depth)
+
+    def test_a_face_turned_away_from_the_camera_is_not_drawn(self):
+        self.assertIsNone(turned_shade((0.0, 0.0, -1.0)))
+        self.assertIsNotNone(turned_shade((0.0, 0.0, 1.0)))
 
 
 def two_islands():
@@ -97,6 +124,11 @@ class BakeTest(unittest.TestCase):
         self.assertGreater(bake.brightness(point, front, ((0.0, 1.0, 0.0), 1.0), [], "standard"), plain)
         self.assertLess(bake.brightness(point, front, ((0.0, -1.0, 0.0), 1.0), [], "standard"), plain)
 
+    def test_a_side_edge_turned_from_the_light_is_not_darkened(self):
+        point, front = (0.0, 0.0, 0.0), (0.0, 0.0, 1.0)
+        plain = bake.brightness(point, front, None, [], "standard")
+        self.assertEqual(plain, bake.brightness(point, front, ((1.0, 0.0, 0.0), 1.0), [], "standard"))
+
     def test_the_floor_shades_a_grounded_foot_only(self):
         side = (0.0, 0.0, 1.0)
         self.assertGreater(bake.occlusion((0.0, 0.5, 0.0), side, [bake.FLOOR]), 0.0)
@@ -108,6 +140,41 @@ class BakeTest(unittest.TestCase):
         self.assertIsNone(bake.edge(1, 1, 3, 6, u, v))
         self.assertEqual(bake.BEVEL_RINGS[0], bake.edge(0, 2, 3, 6, u, v)[1])
         self.assertEqual(bake.BEVEL_RINGS[1], bake.edge(1, 2, 4, 6, u, v)[1])
+
+    def test_a_seam_between_boxes_side_by_side_gets_no_bevel_and_the_outer_corner_keeps_it(self):
+        left, right = box("Left", (-1, 0, 0), (2, 6, 2)), box("Right", (1, 0, 0), (2, 6, 2))
+        boxes = list(bake.world_boxes([left, right]))
+        edges = {at: edge for at, _, _, edge in bake.texels(left["shape"], "front", (-1.0, 0.0, 0.0),
+                                                              (0.0, 0.0, 0.0, 1.0), boxes)}
+        self.assertIsNone(edges[(1, 3)])
+        self.assertEqual(((-1.0, 0.0, 0.0), bake.BEVEL_RINGS[0]), edges[(0, 3)])
+
+    def test_both_border_rings_agree_under_a_thin_plank_flush_on_top_and_under_one_a_unit_above(self):
+        def top_rings(plank_y):
+            leg = box("Leg", (0, 0, 0), (6, 6, 6))
+            boxes = list(bake.world_boxes([leg, box("Plank", (0, plank_y, 0), (6, 1, 6))]))
+            edges = {at: edge for at, _, _, edge in bake.texels(leg["shape"], "front", (0.0, 0.0, 0.0),
+                                                                  (0.0, 0.0, 0.0, 1.0), boxes)}
+            return edges[(2, 0)], edges[(2, 1)]
+
+        self.assertEqual((None, None), top_rings(3.5))
+        up = (0.0, 1.0, 0.0)
+        self.assertEqual(((up, bake.BEVEL_RINGS[0]), (up, bake.BEVEL_RINGS[1])), top_rings(4.5))
+
+    def test_a_stretched_box_keeps_both_bevel_rings_on_an_open_border(self):
+        tall = box("Tall", (0, 0, 0), (6, 6, 6))
+        tall["shape"]["stretch"]["y"] = 2
+        edges = {at: edge for at, _, _, edge in bake.texels(tall["shape"], "front", (0.0, 0.0, 0.0),
+                                                              (0.0, 0.0, 0.0, 1.0), list(bake.world_boxes([tall])))}
+        up = (0.0, 1.0, 0.0)
+        self.assertEqual(((up, bake.BEVEL_RINGS[0]), (up, bake.BEVEL_RINGS[1])), (edges[(2, 0)], edges[(2, 1)]))
+
+    def test_lit_grades_painted_texels_and_leaves_transparent_ones(self):
+        image = Image.new("RGBA", (2, 1), (100, 100, 100, 255))
+        image.putpixel((1, 0), (100, 100, 100, 0))
+        bake.lit(image, {(0, 0): 0.5, (1, 0): 0.5, (5, 5): 0.5})
+        self.assertLess(image.getpixel((0, 0))[0], 100)
+        self.assertEqual((100, 100, 100, 0), image.getpixel((1, 0)))
 
     def test_two_faces_sharing_an_island_are_refused(self):
         shared = {side: {"offset": {"x": 0, "y": 0}} for side in ("front", "back")}

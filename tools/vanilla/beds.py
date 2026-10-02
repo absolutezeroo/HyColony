@@ -1,26 +1,26 @@
 """Minecraft's 1x2 bed, one per wool colour (spec 2026-09-29 HyVanilla beds): one shared model built in Blockbench
-(docs/research/hytale-models.md), one texture painted per colour (its wool for the blanket, white wool for the sheet
-and pillow, softwood planks for the frame), the hitbox, the icons, the recipe from wool and planks, and the recolouring
-recipes that follow each wool's own recipe. Deviation from MC: a four-post wooden frame around the mattress (asked by
-the user, to suit Hytale's furniture); our own geometry."""
+(docs/research/hytale-models.md), one texture painted per colour with brushes (brushes.py: cloth in its wool's colour
+for the blanket, in white wool's for the sheet and pillow, wood in softwood planks' for the frame) and lit from the
+model (bake.py), the hitbox, the icons, the recipe from wool and planks, and the recolouring recipes that follow each
+wool's own recipe. Deviation from MC: a four-post wooden frame around the mattress (asked by the user, to suit
+Hytale's furniture); our own geometry."""
 
 import json
 
 from PIL import Image
 
+from bake import light_map, lit
+from brushes import average, cloth, wood
 from models import bounds, walk
 from pack import ICON_SIZE, PACK, draw_model, save_png, write_json
-from paint import paint, softened
+from paint import bleed, paint
 
 # Hand-built in Blockbench (Hytale Prop, 32 units per block), not generated: 1 x 2 blocks, the head on the origin cell
-# (towards -z, as Hytale's own beds), the blanket's top at Minecraft's 9/16.
+# (towards -z, as Hytale's own beds), the blanket's top at Minecraft's 9/16. One UV island per face (bake.light).
 MODEL = "Blocks/HyVanilla/Bed.blockymodel"
 PLANKS = "BlockTextures/Wood_Softwood_Planks_Top.png"
 SHEET = "BlockTextures/Cloth_White.png"
-CELL = 32
-TEXTURE_SIZE = (128, 96)
-# How much of the wool's knit stays on the blanket and sheet (the rest is their mean colour): no noisy cloth.
-CLOTH_GRAIN = 0.4
+TEXTURE_SIZE = (128, 160)
 # Node name prefixes of each hitbox part.
 PARTS = {"head": ("Post_Head", "Post_Cap_Head", "Headboard"), "foot": ("Post_Foot", "Post_Cap_Foot", "Footboard"),
          "body": ("Frame", "Mattress", "Blanket"), "pillow": ("Pillow",)}
@@ -38,24 +38,22 @@ def generate(assets, colours):
     """Writes the hitbox, and per colour the texture, icon, item and recolouring recipe."""
     nodes = json.loads((PACK / "Common" / MODEL).read_text(encoding="utf-8"))["nodes"]
     write_json(PACK / "Server/Item/Block/Hitboxes/HyVanilla/HyVanilla_Bed.json", hitbox(nodes))
-    planks = cell(assets.image("Common/" + PLANKS))
-    sheet = softened(cell(assets.image("Common/" + SHEET)), CLOTH_GRAIN)
+    wooden = wood(average(assets.image("Common/" + PLANKS)))
+    sheet = cloth(average(assets.image("Common/" + SHEET)))
+    values = light_map(nodes, grounded=True)
     for old in (PACK / "Server/Item/Recipes/HyVanilla").glob("HyVanilla_Bed_*.json"):
         old.unlink()
     for colour in colours:
         wool_item = assets.item("Cloth_Block_Wool_" + colour)
-        wool = softened(cell(assets.image("Common/BlockTextures/Cloth_" + colour + ".png")), CLOTH_GRAIN)
-        texture = paint(nodes, TEXTURE_SIZE, {"wood": planks, "sheet": sheet, "wool": wool}, material)
+        wool = cloth(average(assets.image("Common/BlockTextures/Cloth_" + colour + ".png")))
+        painted = paint(nodes, TEXTURE_SIZE, {"wood": wooden, "sheet": sheet, "wool": wool}, material)
+        texture = bleed(lit(painted, values), nodes)
         save_png(texture, PACK / "Common" / texture_path(colour))
         save_png(icon(nodes, texture), PACK / "Common/Icons/Items/HyVanilla" / ("Bed_" + colour + ".png"))
         write_json(PACK / "Server/Item/Items/HyVanilla" / (bed_id(colour) + ".json"), bed_item(colour, wool_item))
         recolour = recolour_recipe(colour, wool_item.get("Recipe"), colours)
         if recolour is not None:
             write_json(PACK / "Server/Item/Recipes/HyVanilla" / (bed_id(colour) + "_Dye.json"), recolour)
-
-
-def cell(image):
-    return image.crop((0, 0, CELL, CELL))
 
 
 def material(name, _side):

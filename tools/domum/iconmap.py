@@ -16,7 +16,7 @@ from pathlib import Path
 from PIL import Image
 
 sys.path.append(str(Path(__file__).resolve().parents[1] / "vanilla"))
-from models import TURNS, add, multiply, rotate  # noqa: E402
+from models import TURNS, add, placed, rotate  # noqa: E402
 
 SIZE = 64
 PIXELS_PER_UNIT = 2  # at Scale 1
@@ -98,13 +98,9 @@ def _shade(normal):
     return 0.85 if abs(normal[2]) >= abs(normal[0]) else 0.7
 
 
-def _faces(nodes, position=(0.0, 0.0, 0.0), rotation=(0.0, 0.0, 0.0, 1.0)):
+def _faces(nodes):
     """Every face of the model: (world corners top-left, +texture x, +texture y; their texels; world normal)."""
-    for n in nodes:
-        o = n["orientation"]
-        turn = multiply(rotation, (o["x"], o["y"], o["z"], o["w"]))
-        p = n["position"]
-        at = add(position, rotate(rotation, (p["x"], p["y"], p["z"])))
+    for n, at, turn in placed(nodes):
         shape = n["shape"]
         for side, box, layout in _sides(shape):
             normal, corner, axis_u, axis_v = FRAMES[side]
@@ -117,7 +113,6 @@ def _faces(nodes, position=(0.0, 0.0, 0.0), rotation=(0.0, 0.0, 0.0, 1.0)):
             offset = [shape["offset"][k] for k in "xyz"]
             points = [add(at, rotate(turn, add(offset, [c * s for c, s in zip(q, stretch)]))) for q in local]
             yield points, _texels(layout, width, height), rotate(turn, normal)
-        yield from _faces(n.get("children", []), at, turn)
 
 
 def _sides(shape):

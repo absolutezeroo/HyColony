@@ -1,7 +1,8 @@
-"""Shared colours, tile tints and helpers of HyColony's hand-built models (the brushes are in brushes.py)."""
+"""Shared colours and tile tints of HyColony's hand-built models (the brushes are in tools/vanilla/brushes.py)."""
 
 from PIL import Image, ImageDraw
 
+from brushes import jitter
 from paint import softened
 
 LEATHER = (104, 64, 38)
@@ -36,27 +37,3 @@ def leather(rgb, tile):
             k = 0.9 if n < -0.6 else 1.08 if n > 0.85 else 1.0
             pixels[x, y] = (min(255, round(r * k)), min(255, round(g * k)), min(255, round(b * k)), a)
     return base
-
-
-def jitter(i, salt):
-    """Deterministic pseudo-random value in [-1, 1] for an integer."""
-    h = (i * 2654435761 + salt * 40503) & 0xFFFFFFFF
-    h = ((h ^ (h >> 15)) * 2246822519) & 0xFFFFFFFF
-    return ((h ^ (h >> 13)) & 0xFFFF) / 32767.5 - 1.0
-
-
-def smooth(x, salt):
-    """Smooth 1D noise in [-1, 1]."""
-    i = int(x // 1)
-    f = x - i
-    f = f * f * (3 - 2 * f)
-    return jitter(i, salt) * (1 - f) + jitter(i + 1, salt) * f
-
-
-def mix(a, b, t):
-    t = max(0.0, min(1.0, t))
-    return tuple(round(x + (y - x) * t) for x, y in zip(a, b))
-
-
-def coloured(rgb, k):
-    return (*(max(0, min(255, round(c * k))) for c in rgb), 255)
