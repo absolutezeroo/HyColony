@@ -67,6 +67,13 @@ def main():
         "Icon": ICON,
         "IconProperties": common.DEFAULT_ICON,
         "Categories": ["Blocks.Deco"],
+        # MC's shaped recipe SWS / S S / S S : 6 bâtons et une laine (le tag minecraft:wool ; Hytale n'a pas de type
+        # de ressource laine, d'où la laine blanche), à l'établi comme la baguette.
+        "Recipe": {
+            "Input": [{"ItemId": "Ingredient_Stick", "Quantity": 6}, {"ItemId": MATERIALS[1], "Quantity": 1}],
+            "BenchRequirement": [{"Id": "Workbench", "Type": "Crafting", "Categories": ["Workbench_Crafting"]}],
+            "KnowledgeRequired": False,
+        },
         "PlayerAnimationsId": "Block",
         "BlockType": block_type,
         "ItemSoundSetId": "ISS_Blocks_Wood",

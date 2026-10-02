@@ -19,6 +19,28 @@
   "Categories": [
     "Blocks.Deco"
   ],
+  "Recipe": {
+    "Input": [
+      {
+        "ItemId": "Ingredient_Stick",
+        "Quantity": 6
+      },
+      {
+        "ItemId": "Cloth_Block_Wool_White",
+        "Quantity": 1
+      }
+    ],
+    "BenchRequirement": [
+      {
+        "Id": "Workbench",
+        "Type": "Crafting",
+        "Categories": [
+          "Workbench_Crafting"
+        ]
+      }
+    ],
+    "KnowledgeRequired": false
+  },
   "PlayerAnimationsId": "Block",
   "BlockType": {
     "Material": "Empty",
