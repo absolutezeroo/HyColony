@@ -173,14 +173,14 @@ final class FieldPass {
     }
 
     /**
-     * MC harvestIfAble / mineBlock: an empty hand (holdEfficientTool finds no tool for a crop: removeHeldItem, the
-     * hoe's slot still held), facing the crop, a stroke on it (MC hitBlockWithToolInHand looks at it and swings), then
-     * the harvest drops go to the inventory; one action, the block's and harvest XP, even without drops. Nothing more
-     * when the crop is still mature (the harvest failed).
+     * MC harvestIfAble / mineBlock: the tool the world gives the crop in hand ({@link #holdToolFor}), facing the crop,
+     * a stroke on it (MC hitBlockWithToolInHand looks at it and swings), then the harvest drops go to the inventory;
+     * one action, the block's and harvest XP, even without drops. Nothing more when the crop is still mature (the
+     * harvest failed).
      */
     private void harvest(BlockPos surface) {
         BlockPos crop = surface.offset(0, 1, 0);
-        ctx.hands().hold(Optional.empty());
+        holdToolFor(crop);
         ctx.hands().face(crop);
         ctx.hands().swing(BodyAnimation.MINE);
         ctx.colony().context().ports().effects().blockHit(crop, 1f);
@@ -193,6 +193,28 @@ final class FieldPass {
         ctx.award(XP_PER_BLOCK);
         ctx.award(XP_PER_HARVEST);
         didWork = true;
+    }
+
+    /**
+     * MC holdEfficientTool(target): the slot of the worker's best tool for the block at {@code pos} as the world tells
+     * it (ItemCatalog.toolFor), else an empty hand (removeHeldItem), the held slot left as it is. A Hytale crop needs
+     * none (Template_Crop_Block: Gathering.Soft, no Breaking; sp3b-hytale-farming § 201), so the farmer harvests
+     * bare-handed, as MC's for a crop of hardness 0.
+     */
+    private void holdToolFor(BlockPos pos) {
+        OptionalInt slot = ctx.colony()
+                .context()
+                .ports()
+                .blocks()
+                .get(pos)
+                .flatMap(s -> catalog().toolFor(s.key()))
+                .map(ctx.stock()::toolInInventory)
+                .orElse(OptionalInt.empty());
+        if (slot.isPresent()) {
+            ctx.hands().holdSlot(slot.getAsInt());
+        } else {
+            ctx.hands().hold(Optional.empty());
+        }
     }
 
     /** Deviation from MC (compost, bone meal): one use of a carried fertilizer tool on an unfertilized cell. */

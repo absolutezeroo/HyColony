@@ -2,6 +2,7 @@ package dev.hycolony.core.farming.job;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.citizen.inventory.CitizenEquipment;
@@ -10,6 +11,8 @@ import dev.hycolony.core.farming.field.FarmField;
 import dev.hycolony.core.farming.field.FieldStage;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
+import dev.hycolony.core.kernel.item.BlockKey;
+import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolInfo;
@@ -299,12 +302,25 @@ class FieldPassTest extends FarmerTestBase {
         pass(FarmerState.FARMER_HARVEST);
 
         FakeBodies.Body b = t.bodies.bodies.get(body);
-        assertEquals(null, b.held, "MC mineBlock: holdEfficientTool finds no tool for a crop, removeHeldItem");
+        assertNull(b.held, "MC mineBlock: holdEfficientTool finds no tool for a crop, removeHeldItem");
         assertEquals(0, citizen.equipment().held(CitizenEquipment.Hand.MAIN), "equipHoe's slot stays held");
         assertEquals(BodyAnimation.MINE, b.lastAnimation, "MC mineBlock");
         List<BlockPos> crops = cells().stream().map(c -> c.offset(0, 1, 0)).toList();
         assertEquals(crops, t.effects.hits);
         assertEquals(crops.stream().map(Vec3::middle).toList(), t.bodies.looks, "MC hitBlockWithToolInHand looks");
+    }
+
+    @Test
+    void aCropTheWorldGivesAToolIsHarvestedWithIt() {
+        plantedField(FakeFarming.WHEAT_SEEDS);
+        give(HOE, 1);
+        BlockKey wheat = new BlockKey("Plant_Crop_Wheat");
+        t.catalog.toolForBlock.put(wheat, ToolType.HOE);
+        cells().forEach(c -> t.blocks.blocks.put(c.offset(0, 1, 0), new BlockState(wheat, 0)));
+
+        pass(FarmerState.FARMER_HARVEST);
+
+        assertEquals(HOE, t.bodies.bodies.get(body).held, "MC holdEfficientTool(crop): the world's tool for it");
     }
 
     @Test
