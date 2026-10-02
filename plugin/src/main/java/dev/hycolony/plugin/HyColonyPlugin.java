@@ -132,8 +132,8 @@ public final class HyColonyPlugin extends JavaPlugin {
     }
 
     /**
-     * Forgets the leaver's last item page, then on each world's thread takes off their goggles and wand, and cancels
-     * their unconfirmed town hall.
+     * Forgets the leaver's last item page and drawn borders, then on each world's thread takes off their goggles and
+     * wand, and cancels their unconfirmed town hall.
      */
     private void onDisconnect(WorldRuntimes worlds, IdMap ids, PlayerDisconnectEvent e) {
         UUID uuid = e.getPlayerRef().getUuid();

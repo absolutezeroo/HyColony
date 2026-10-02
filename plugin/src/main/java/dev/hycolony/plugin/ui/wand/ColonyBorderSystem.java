@@ -55,7 +55,10 @@ final class ColonyBorderSystem extends TickingSystem<EntityStore> {
     /** The borders a player was last sent, when (System.nanoTime), and whether any line was drawn. */
     private record Sent(Key key, long nanos, boolean drawn) {}
 
-    /** By player, across worlds (each on its own thread); forgotten when they leave ({@link #forget}). */
+    /**
+     * By player, across worlds (each on its own thread); forgotten when they leave ({@link #forget}). ponytail: a
+     * look between the disconnect event and the player's removal from the world puts a small entry back.
+     */
     private static final Map<UUID, Sent> SENT = new ConcurrentHashMap<>();
 
     private final WorldRuntimes runtimes;

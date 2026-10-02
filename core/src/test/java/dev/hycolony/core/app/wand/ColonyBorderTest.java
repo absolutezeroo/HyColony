@@ -191,6 +191,18 @@ class ColonyBorderTest {
         assertFalse(lines.isEmpty());
     }
 
+    /** By default (MC colonyteamborders true), the other colonies take their team colour: white. */
+    @Test
+    void byDefaultTheOtherColoniesAreWhite() {
+        ColonyManager manager = new TestContexts().manager();
+        manager.territory().claimSquare(OTHER, new ClaimCell(5, 5), 0);
+
+        List<Line> lines = ColonyBorder.lines(manager, OWN, AWAY, VIEW);
+
+        assertTrue(lines.stream().allMatch(l -> l.colour() == Colour.WHITE));
+        assertFalse(lines.isEmpty());
+    }
+
     private static Colony found(ColonyManager manager, UUID owner, BlockPos hall) {
         manager.foundation().begin(owner, "O", hall, 0);
         return manager.foundation().confirm(owner, "C" + hall.x()).orElseThrow();

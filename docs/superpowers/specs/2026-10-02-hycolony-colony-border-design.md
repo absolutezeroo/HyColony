@@ -27,7 +27,7 @@ Port de MineColonies : `ColonyBorderRenderer` (appelé par `WorldEventContext.re
 
 ## 3. Plugin
 
-- `ui/wand/ColonyBorderSystem` (un `TickingSystem` par monde, tous les quarts de seconde) : pour chaque joueur qui tient la baguette (`InventoryComponent.getItemInHand`), la colonie la plus proche et la cellule du joueur ; à un changement, il efface les formes du joueur (`ClearDebugShapes`) et envoie les segments ; sinon il les renouvelle avant qu'elles expirent. Quand le joueur range la baguette, il les efface.
+- `ui/wand/ColonyBorderSystem` (un `TickingSystem` par monde, tous les quarts de seconde) : pour chaque joueur qui tient la baguette (`InventoryComponent.getItemInHand`), la colonie la plus proche et la cellule du joueur ; à un changement, il efface les formes du joueur (`ClearDebugShapes`, seulement si des segments avaient été dessinés) et envoie les segments ; sinon il les renouvelle avant qu'elles expirent. Quand le joueur range la baguette, il les efface de même. Un joueur qui quitte le serveur est oublié (`ItemPages.disconnect`).
 - Un segment est un cylindre fin `DisplayDebug` envoyé au seul joueur, comme HyLens (`ShapePackets`).
 - Distance de vue : `Player.getViewRadius()` en tronçons Hytale de 32 blocs, soit deux cellules de 16 chacun.
 
@@ -46,5 +46,5 @@ Port de MineColonies : `ColonyBorderRenderer` (appelé par `WorldEventContext.re
 
 ## 5. Tests
 
-- Cœur : une cellule seule (quatre poteaux, une horizontale tous les 16 blocs), pas de ligne entre deux cellules de la même colonie, le motif serré dans la colonne et la rangée du joueur, la fenêtre de dessin, les couleurs selon le réglage, un segment partagé gardé une fois, la colonie la plus proche.
+- Cœur : une cellule seule (quatre poteaux, une horizontale tous les 16 blocs), pas de ligne entre deux cellules de la même colonie, le motif serré dans la colonne et la rangée du joueur, la fenêtre de dessin sur les quatre côtés et son minimum de 2 cellules, la frontière dessinée par chacune de deux colonies voisines, les couleurs selon le réglage (lu dans la configuration, vrai par défaut), un segment partagé gardé une fois, la colonie la plus proche (propriétaire de la cellule d'abord, puis distance 2D).
 - En jeu : nouveaux points de `docs/TESTING.md`.
