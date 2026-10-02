@@ -34,11 +34,11 @@ Succès :
 
 ## 3. Cœur (`construction/tape/`, Java pur, TDD)
 
-- `TapeLayout` : à partir de deux coins, la liste des rubans à poser, chacun avec sa colonne, sa forme (`STRAIGHT`, `CORNER`) et sa rotation, dans l'ordre de MC. La recherche du sol (`firstValidPosition`) lit le monde par `WorldBlocks` et `ItemCatalog` : plein = `SOLID` ou `UNBREAKABLE`, remplaçable = vide, ou un bloc que le catalogue dit remplaçable.
-- `ConstructionTape` : `place(colony, building)` et `remove(colony, building)`, d'après `HutFootprint.of`. La pose respecte le réglage. Le retrait n'enlève que des blocs de ruban.
-- Un port `TapeBlocks` (`kernel/port`) donne l'état de bloc d'un ruban pour une forme et une rotation, et dit si un bloc est un ruban. Le plugin l'implémente avec les ids de l'id-map.
-- Les rubans d'un même chantier se raccordent par construction (droits le long des bords, coins aux angles). Les formes `T_JUNCTION` et `CROSS_JUNCTION` existent pour les rubans de deux chantiers voisins, que le cœur calcule à la pose d'après les rubans déjà là (MC `getConnections`, sans la règle de la tige).
-- Branchements : `WorkManager.create` (pose), `WorkManager.cancel` et `complete` (retrait), `BuildCompletion` à la fin d'une amélioration (retrait autour des anciens coins), le retrait d'un bâtiment (`ColonyBuildingListener`), la pose d'une hutte par la baguette en survie (`WandPlacement`) et la fin d'un collage (`PasteQueue`, retrait).
+- `TapeLayout` : à partir de deux coins, la liste des rubans à poser, chacun avec sa colonne, sa forme (`STRAIGHT` le long d'un bord, `CORNER` à un angle) et sa rotation, dans l'ordre de MC. La recherche du sol (`firstValidPosition`) lit le monde par `WorldBlocks` et `ItemCatalog` : plein = `SOLID` ou `UNBREAKABLE` ; libre = vide ou `NON_SOLID`, ce que le placement de Hytale tient pour libre (matériau `Empty` : herbe, fleur, ruban).
+- `ConstructionTape` : `place(colony, building)` et `remove(colony, building)`, d'après `HutFootprint.of` (le plan du niveau actuel, au moins 1 ; la hutte seule sans style). La pose respecte le réglage, sans même lire le plan quand il est coupé ; elle est silencieuse (`placeQuietly`). Le retrait, silencieux et sans butin, n'enlève que des blocs de ruban, quel que soit le réglage.
+- Un port `TapeBlocks` (`construction/tape`) donne le bloc d'un ruban de chaque forme et dit si un bloc est un ruban. Le plugin l'implémente avec les ids de l'id-map (`block.tape.<forme>`).
+- Les rubans d'un même chantier se raccordent par construction (droits le long des bords, coins aux angles). Le cœur ne pose ni T ni croix : ces formes viennent du gabarit de raccord, quand un joueur pose ou casse un ruban voisin (une pose par le serveur ne déclenche pas les raccords de Hytale, `docs/research/connected-blocks.md`). Deux chantiers voisins : le ruban posé en second remplace celui du premier sur les cases communes, et le premier retrait les enlève (comme MC, qui retire tout ruban de son contour).
+- Branchements : `WorkManager.create` (pose, jamais pour un ordre relu d'une sauvegarde), `WorkManager.cancel` et `complete` (retrait), `BuildCompletion` avant le changement de niveau (retrait autour des anciens coins ; `complete` retire ensuite autour des nouveaux), le retrait d'un bâtiment (`ColonyBuildingListener`, MC `onDestroyed`), la pose d'une hutte par la baguette en survie (`WandPlacement`). Un collage créatif ne pose pas de ruban ; coller sur une hutte existante retire d'abord l'ancien bâtiment, donc son ruban (`HutActions.place`), ce qui tient lieu du retrait de fin de collage de MC.
 - Réglage `ColonySettings.Toggle.CONSTRUCTION_TAPE`, vrai par défaut, montré par `TownHallView.Settings` après les trois réglages existants (MC le met en dernier ; HyColony n'a pas `entermessages`). Sauvegardé dans `settings.constructionTape` ; schéma 9 par `MigrationChain`, qui écrit `true` dans une sauvegarde de schéma 8.
 
 ## 4. Plugin
@@ -50,9 +50,10 @@ Succès :
 
 ## 5. Écarts
 
-- Les formes sont calculées par le cœur à la pose, puis par le gabarit de raccord de Hytale quand un joueur change un voisin. La règle de MC qui coupe la tige d'un T face à un autre T n'est pas reprise.
-- « Remplaçable » est ce que le catalogue de HyColony en sait (à vérifier dans les assets à l'implémentation), au lieu de `canBeReplaced` de Minecraft.
-- Les textures sont celles de Hytale (bois dur, laine blanche), pas celles de Minecraft.
+- Les formes sont calculées par le cœur à la pose (droits et coins), puis par le gabarit de raccord de Hytale quand un joueur change un voisin. Le cœur ne fait pas de T ni de croix entre deux chantiers voisins, et la règle de MC qui coupe la tige d'un T face à un autre T n'est pas reprise.
+- « Remplaçable » est ce que le placement de Hytale tient pour libre (vide ou matériau `Empty`, `BlockOperations.testPlaceBlock`), au lieu de `canBeReplaced` de Minecraft.
+- Les textures sont celles de Hytale (bois dur, laine blanche), pas celles de Minecraft. La hitbox de chaque forme est la boîte qui englobe son modèle, là où MC a des formes fines.
+- Pas de retrait propre à la fin d'un collage : voir les branchements.
 
 ## 6. Tests
 
