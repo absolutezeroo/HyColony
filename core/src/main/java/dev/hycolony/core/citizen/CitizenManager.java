@@ -1,7 +1,6 @@
 package dev.hycolony.core.citizen;
 
 import dev.hycolony.core.building.Building;
-import dev.hycolony.core.citizen.happiness.CitizenHappiness;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.kernel.BlockPos;
@@ -154,44 +153,32 @@ public final class CitizenManager {
     }
 
     private void spawnInitialCitizen(BlockPos townHall) {
-        int femaleCount = (int) citizens.values().stream()
-                .filter(c -> c.gender() == Gender.FEMALE)
-                .count();
-        CitizenData data = createAndRegister();
-        Gender gender;
-        if (citizens.size() == 1) {
-            gender = ctx().random().nextBoolean() ? Gender.FEMALE : Gender.MALE;
-        } else if (femaleCount < (citizens.size() - 1) / 2.0) {
-            gender = Gender.FEMALE;
-        } else {
-            gender = Gender.MALE;
-        }
-        data.setGender(gender);
-        data.setName(ctx().names().generate(ctx().random(), gender));
+        CitizenData data = Newcomers.register(colony, citizens);
         if (!spawnBody(data, townHall) && ctx().worldQuery().isLoaded(townHall)) {
             CitizenArrival.tellNoSpace(colony, townHall); // MC spawnOrCreateCivilian, on a loaded town hall only
         }
-        // MC CitizenManager: a CitizenSpawnedEvent at the town hall for a citizen moving in.
-        colony.log().addAt(townHall, "citizenSpawned", colony.day(), data.name());
-        colony.markDirty();
-        ctx().bus().post(new CitizenSpawned(colony, data));
+        Newcomers.arrived(colony, data, townHall);
     }
 
-    /** MineColonies createAndRegisterCivilianData + initForNewCivilian. */
-    private CitizenData createAndRegister() {
-        int id = 1;
-        while (citizens.containsKey(id)) {
-            id++;
+    /**
+     * MC spawnOrCreateCivilian(null, world, [], force = true), asked by /mc citizens spawnNew: a new citizen at the
+     * town hall even with "new citizens" off and beyond the initial amount. False, and nothing created, without a
+     * loaded town hall, or when no body finds room there, the colony then warned (MC creates the citizen only once its
+     * spawn point is found).
+     */
+    public boolean spawnForced() {
+        Optional<BlockPos> hall = colony.buildings().townHall().map(Building::position);
+        if (hall.isEmpty() || !ctx().worldQuery().isLoaded(hall.get())) {
+            return false;
         }
-        CitizenData data = new CitizenData(id);
-        data.setSaturation(CitizenData.MAX_SATURATION);
-        int levelCap = ((int) CitizenHappiness.overall(colony)) * 2; // MC: the mean happiness before it joins
-        if (citizens.size() < ctx().config().gameplay().initialCitizenAmount()) {
-            levelCap = Math.max(5, levelCap);
+        CitizenData data = Newcomers.register(colony, citizens);
+        if (!spawnBody(data, hall.get())) {
+            citizens.remove(data.id());
+            CitizenArrival.tellNoSpace(colony, hall.get());
+            return false;
         }
-        data.setSkills(Skills.initRandom(levelCap, ctx().random()));
-        citizens.put(id, data);
-        return data;
+        Newcomers.arrived(colony, data, hall.get());
+        return true;
     }
 
     /**
