@@ -28,6 +28,7 @@ import dev.hycolony.core.request.model.ToolRequest;
 import dev.hycolony.core.request.resolver.PlayerResolver;
 import dev.hycolony.core.request.resolver.RetryingResolver;
 import dev.hycolony.core.testing.TestContexts;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -91,7 +92,7 @@ class FulfilTest {
         assertTrue(manager.requestActions().fulfil(alice, colony.id(), token));
 
         assertEquals(List.of(new ItemAmount(shovel, 1, 20)), citizen.inventory().contents());
-        assertEquals(List.of(new ItemAmount(shovel, 1, 150)), t.playerInventory.worn.get(alice));
+        assertEquals(List.of(new ItemAmount(shovel, 1, 150)), t.playerInventory.damaged.get(alice));
     }
 
     @Test
@@ -354,6 +355,90 @@ class FulfilTest {
 
         assertEquals(1, citizen.inventory().count(stonePick));
         assertEquals(List.of(new ItemAmount(stonePick, 1)), get(token).deliveries());
+    }
+
+    /** MC RequestWindowCitizen.onFulfill: no slot but the armour and shield ones holds it, so the citizen says so. */
+    @Test
+    void aPlayerWearingTheOnlyMatchingItemIsToldAsMcCantTakeEquipped() {
+        ItemKey helmet = new ItemKey("Armor_Iron_Head");
+        citizen.setName("Bob");
+        t.playerInventory.equipped.put(alice, new ArrayList<>(List.of(new ItemAmount(helmet, 1))));
+        RequestToken token = colony.requests().createAndAssign(hut, new StackRequest(helmet, 1, 1, true), 1);
+
+        assertFalse(manager.requestActions().fulfil(alice, colony.id(), token));
+
+        assertTrue(get(token).state().isBefore(RequestState.COMPLETED));
+        assertEquals(List.of(new ItemAmount(helmet, 1)), t.playerInventory.equipped.get(alice), "still worn");
+        assertEquals(
+                "hycolony.request.cantTakeEquipped",
+                t.notifier.sent.getLast().msg().key());
+        assertEquals(List.of("Bob"), t.notifier.sent.getLast().msg().params());
+    }
+
+    /** A hut's own request has no citizen to speak: its hut does, by its translated name. */
+    @Test
+    void aHutsOwnRequestTellsCantTakeEquippedInTheHutsName() {
+        ItemKey torch = new ItemKey("Furniture_Crude_Torch");
+        t.playerInventory.equipped.put(alice, new ArrayList<>(List.of(new ItemAmount(torch, 4))));
+        RequestToken token =
+                colony.requests().createAndAssign(hut, new StackRequest(torch, 4, 4, true), Request.NO_CITIZEN);
+
+        assertFalse(manager.requestActions().fulfil(alice, colony.id(), token));
+
+        assertEquals(
+                "hycolony.request.cantTakeEquipped",
+                t.notifier.sent.getLast().msg().key());
+        assertEquals(
+                List.of("%hycolony.ui.building.type." + hut.type().id().substring("hycolony:".length())),
+                t.notifier.sent.getLast().msg().params());
+    }
+
+    /** MC counts what the player wears in the amount closed with, but never takes it. */
+    @Test
+    void theClosedAmountCountsWhatThePlayerWearsAsMc() {
+        ItemKey helmet = new ItemKey("Armor_Iron_Head");
+        t.catalog.maxStacks.put(helmet, 1);
+        t.playerInventory.give(alice, new ItemAmount(helmet, 1));
+        t.playerInventory.equipped.put(alice, new ArrayList<>(List.of(new ItemAmount(helmet, 1))));
+        RequestToken token = colony.requests().createAndAssign(hut, new StackRequest(helmet, 3, 3, true), 1);
+
+        assertTrue(manager.requestActions().fulfil(alice, colony.id(), token));
+
+        assertEquals(1, citizen.inventory().count(helmet));
+        assertEquals(List.of(new ItemAmount(helmet, 2)), get(token).deliveries());
+        assertEquals(1, t.playerInventory.equipped.get(alice).size(), "the worn one stays");
+    }
+
+    /** MC TransferItemsToCitizenRequestMessage takes only stacks identical to the first (compareItemStacks...). */
+    @Test
+    void onlyStacksWornLikeTheFirstAreTakenAsMc() {
+        ItemKey pick = new ItemKey("Tool_Pickaxe_Iron");
+        t.catalog.durability.put(pick, 250);
+        t.catalog.maxStacks.put(pick, 1);
+        t.playerInventory.give(alice, new ItemAmount(pick, 1, 30));
+        t.playerInventory.give(alice, new ItemAmount(pick, 1, 50));
+        RequestToken token = colony.requests().createAndAssign(hut, new StackRequest(pick, 2, 2, true), 1);
+
+        assertTrue(manager.requestActions().fulfil(alice, colony.id(), token));
+
+        assertEquals(List.of(new ItemAmount(pick, 1, 30)), citizen.inventory().contents());
+        assertEquals(List.of(new ItemAmount(pick, 1, 50)), t.playerInventory.damaged.get(alice));
+        assertEquals(List.of(new ItemAmount(pick, 2)), get(token).deliveries(), "min(asked, all matching)");
+    }
+
+    /** MC: a broken tool no longer exists, so it counts in nothing. */
+    @Test
+    void aBrokenToolThePlayerKeepsIsNotCountedInTheClosedAmount() {
+        ItemKey shovel = new ItemKey("Tool_Shovel_Crude");
+        t.catalog.durability.put(shovel, 150);
+        t.catalog.maxStacks.put(shovel, 1);
+        t.playerInventory.give(alice, new ItemAmount(shovel, 1, 150));
+        t.playerInventory.give(alice, new ItemAmount(shovel, 1, 20));
+        RequestToken token = colony.requests().createAndAssign(hut, new StackRequest(shovel, 2, 2, true), 1);
+
+        assertTrue(manager.requestActions().fulfil(alice, colony.id(), token));
+
+        assertEquals(List.of(new ItemAmount(shovel, 1)), get(token).deliveries());
     }
 
     /** MC RequestWindowCitizen: the amount closed with is min(asked, every matching item the player holds). */

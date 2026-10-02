@@ -9,14 +9,13 @@ import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.job.WorkerModule;
-import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.model.Deliverable;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.Requestable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -72,7 +71,7 @@ final class CitizenViews {
      * (citizen -1), each followed by its children, with Fulfill as MC isFulfillable.
      */
     private List<RequestsView.RequestRow> requests(Colony c, Building work, CitizenData d, UUID player) {
-        Map<ItemKey, Integer> owned = ctx.ports().playerInventory().contents(player);
+        List<ItemAmount> owned = requests.owned(player);
         List<RequestsView.RequestRow> rows = new ArrayList<>();
         for (int citizen : List.of(d.id(), Request.NO_CITIZEN)) {
             openOf(c, work, citizen).forEach(r -> requests.tree(c, r, 0, owned, rows));

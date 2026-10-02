@@ -2,6 +2,7 @@ package dev.hycolony.core.kernel.port;
 
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -29,8 +30,18 @@ public interface PlayerInventory {
      */
     List<ItemAmount> takeStacks(UUID player, ItemKey item, int max, Predicate<ItemAmount> accept);
 
-    /** Everything the player carries, in inventory order. */
-    Map<ItemKey, Integer> contents(UUID player);
+    /** Every stack the player carries (not what they wear), with its damage, in inventory order. */
+    List<ItemAmount> stacks(UUID player);
+
+    /** The stacks the player wears or holds aside, with their damage: MC's armour and shield slots. */
+    List<ItemAmount> equipped(UUID player);
+
+    /** Everything the player carries, by item, in inventory order. */
+    default Map<ItemKey, Integer> contents(UUID player) {
+        Map<ItemKey, Integer> out = new LinkedHashMap<>();
+        stacks(player).forEach(s -> out.merge(s.item(), s.count(), Integer::sum));
+        return out;
+    }
 
     /** Gives {@code amount} with its damage. Returns the remainder that did not fit, or {@code null} if all fit. */
     @Nullable

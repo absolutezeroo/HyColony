@@ -360,6 +360,7 @@ ui.hut.hiringMode.auto = Automatic
 ui.hut.hiringMode.manual = Manual
 ui.hut.hiringMode.locked = Locked (no kids)
 request.needsPlayer = {p0} ({p1}) needs: {p2}
+request.cantTakeEquipped = <{p0}> The only item you have is what you're wearing or holding. Put it in your inventory if you want to give it to me.
 ui.job.builder = Builder
 ui.job.deliveryman = Courier
 ui.job.farmer = Farmer

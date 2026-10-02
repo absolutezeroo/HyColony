@@ -360,6 +360,7 @@ ui.hut.hiringMode.auto = Automatique
 ui.hut.hiringMode.manual = Manuel
 ui.hut.hiringMode.locked = Verrouillé (pas d'enfants)
 request.needsPlayer = {p0} ({p1}) a besoin de : {p2}
+request.cantTakeEquipped = <{p0}> Le seul objet que vous avez, c'est celui que vous portez ou tenez. Mettez-le dans votre inventaire si vous voulez me le donner.
 ui.job.builder = Constructeur
 ui.job.deliveryman = Livreur
 ui.job.farmer = Fermier

@@ -15,11 +15,15 @@ import java.util.function.Predicate;
 
 /**
  * Unlimited-capacity player inventories, keyed by player, except the {@link #full} ones that take nothing. Damaged
- * stacks (worn tools) sit in {@link #worn} and are taken before the undamaged ones (a broken tool in an earlier slot).
+ * stacks (worn tools) sit in {@link #damaged} and are taken before the undamaged ones (a broken tool in an earlier
+ * slot).
  */
 public final class FakePlayerInventory implements PlayerInventory {
     public final Map<UUID, Map<ItemKey, Integer>> inventories = new LinkedHashMap<>();
-    public final Map<UUID, List<ItemAmount>> worn = new LinkedHashMap<>();
+    public final Map<UUID, List<ItemAmount>> damaged = new LinkedHashMap<>();
+    /** What each player wears (armour, utility slots): counted, never taken. */
+    public final Map<UUID, List<ItemAmount>> equipped = new LinkedHashMap<>();
+
     public final Set<UUID> full = new HashSet<>();
 
     @Override
@@ -31,7 +35,8 @@ public final class FakePlayerInventory implements PlayerInventory {
     public List<ItemAmount> takeStacks(UUID player, ItemKey item, int max, Predicate<ItemAmount> accept) {
         List<ItemAmount> out = new ArrayList<>();
         int taken = 0;
-        Iterator<ItemAmount> it = worn.getOrDefault(player, new ArrayList<>()).iterator();
+        Iterator<ItemAmount> it =
+                damaged.getOrDefault(player, new ArrayList<>()).iterator();
         while (it.hasNext() && taken < max) {
             ItemAmount a = it.next();
             if (a.item().equals(item) && a.count() <= max - taken && accept.test(a)) {
@@ -54,13 +59,17 @@ public final class FakePlayerInventory implements PlayerInventory {
         return out;
     }
 
+    /** The damaged stacks first, as {@link #takeStacks} takes them, then one undamaged stack per item. */
     @Override
-    public Map<ItemKey, Integer> contents(UUID player) {
-        Map<ItemKey, Integer> out = new LinkedHashMap<>(inventories.getOrDefault(player, Map.of()));
-        for (ItemAmount a : worn.getOrDefault(player, List.of())) {
-            out.merge(a.item(), a.count(), Integer::sum);
-        }
+    public List<ItemAmount> stacks(UUID player) {
+        List<ItemAmount> out = new ArrayList<>(damaged.getOrDefault(player, List.of()));
+        inventories.getOrDefault(player, Map.of()).forEach((item, n) -> out.add(new ItemAmount(item, n)));
         return out;
+    }
+
+    @Override
+    public List<ItemAmount> equipped(UUID player) {
+        return List.copyOf(equipped.getOrDefault(player, List.of()));
     }
 
     /** Each successful swapIntoHotbar, as "hotbarItem<->otherItem"; this fake has no slots, so nothing moves. */
@@ -81,7 +90,7 @@ public final class FakePlayerInventory implements PlayerInventory {
             return amount;
         }
         if (amount.damage() > 0) {
-            worn.computeIfAbsent(player, p -> new ArrayList<>()).add(amount);
+            damaged.computeIfAbsent(player, p -> new ArrayList<>()).add(amount);
             return null;
         }
         inventories

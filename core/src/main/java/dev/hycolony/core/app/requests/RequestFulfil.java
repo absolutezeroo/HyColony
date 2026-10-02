@@ -7,13 +7,14 @@ import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.colony.GamePorts;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.core.kernel.port.Msg;
+import dev.hycolony.core.kernel.port.PlayerInventory;
 import dev.hycolony.core.logistics.warehouse.RequesterLocation;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.model.Deliverable;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequestToken;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.jspecify.annotations.Nullable;
@@ -27,10 +28,8 @@ import org.jspecify.annotations.Nullable;
  * hut that asks, or whose resolver asks, as the clipboard and the api have no citizen's window; MC hands it to the
  * window's citizen.
  *
- * <p>Deviation from MC: the player gives every stack of the item the request accepts, whatever its wear (a broken
- * tool excepted); MC takes only stacks identical to its first matching one (ItemStackUtils
- * .compareItemStacksIgnoreStackSize), but the inventory port's contents count items by key, without their wear. For
- * the same reason the amount the request is closed with counts a broken tool the player keeps.
+ * <p>Deviation from MC: what the player wears is never taken; MC's transfer could take a worn stack identical to the
+ * one handed over once the others ran out.
  */
 public final class RequestFulfil {
     private static final System.Logger LOG = System.getLogger(RequestFulfil.class.getName());
@@ -42,11 +41,11 @@ public final class RequestFulfil {
 
     /**
      * Fills {@code c}'s open item request {@code token}, then overrules it, and saves. From {@code payer}'s inventory
-     * (MC: a player holding a matching item): its first matching item, what fits moved and the rest given back, the
-     * request closed with min(asked, all matching items owned). With no payer (creative mode, a plugin): the request's
-     * first displayed item, as many as asked, for free, what does not fit lost, the request closed with the amount
-     * asked; without a displayed item it is closed with no delivery, as MC. False, changing nothing, for no such open
-     * request or a payer holding none of it.
+     * (MC: a player holding a matching item): its first matching stack and those identical, what fits moved and the
+     * rest given back, the request closed with min(asked, all matching items owned). With no payer (creative mode, a
+     * plugin): the request's first displayed item, as many as asked, for free, what does not fit lost, the request
+     * closed with the amount asked; without a displayed item it is closed with no delivery, as MC. False, changing
+     * nothing, for no such open request, or a payer holding none of it or only wearing it (told).
      */
     public boolean fulfil(Colony c, RequestToken token, Optional<UUID> payer) {
         Request req = c.requests()
@@ -71,28 +70,44 @@ public final class RequestFulfil {
     }
 
     /**
-     * MC's window outside creative mode: the stacks of the first matching item the player can give; what to overrule
-     * with, empty if the player holds none of it (or only broken tools).
+     * MC's window outside creative mode: the player's first carried stack the request accepts and those identical to
+     * it (same item and wear, MC compareItemStacksIgnoreStackSize); the amount to overrule with counts every matching
+     * item, worn ones too. Empty if the player holds none of it (a broken tool answers nothing: MC destroyed it), or
+     * only wears it, then told so (MC cantTakeEquipped).
      */
     private Optional<List<ItemAmount>> fromInventory(
             Colony c, Request req, Optional<CitizenData> citizen, UUID player) {
         Deliverable wanted = req.deliverable().orElseThrow();
-        GamePorts ports = ctx.ports();
-        Map<ItemKey, Integer> owned = ports.playerInventory().contents(player);
-        List<ItemKey> items = owned.keySet().stream()
-                .filter(k -> wanted.matches(k, ports.catalog()))
-                .toList();
-        int matching = items.stream().mapToInt(owned::get).sum();
-        for (ItemKey item : items) {
-            // A broken tool answers no request (MC destroyed it): the player keeps it, a good one goes.
-            List<ItemAmount> taken = ports.playerInventory()
-                    .takeStacks(player, item, wanted.count(), a -> wanted.matches(a, ports.catalog()));
-            if (!taken.isEmpty()) {
-                taken.forEach(stack -> giveBack(player, deliver(c, req, citizen, stack)));
-                return Optional.of(List.of(new ItemAmount(item, Math.min(wanted.count(), matching))));
+        PlayerInventory inv = ctx.ports().playerInventory();
+        List<ItemAmount> carried = accepted(inv.stacks(player), wanted);
+        int matching = count(carried) + count(accepted(inv.equipped(player), wanted));
+        if (carried.isEmpty()) {
+            if (matching > 0) {
+                // MC names the window's citizen; with none, the hut that receives the items speaks.
+                String who = citizen.map(CitizenData::name)
+                        .orElseGet(() -> hut(c, req)
+                                .map(Building::nameParam)
+                                .orElse(req.requester().value()));
+                ctx.notifier().send(player, Msg.of("hycolony.request.cantTakeEquipped", who));
             }
+            return Optional.empty();
         }
-        return Optional.empty();
+        ItemAmount first = carried.getFirst();
+        for (ItemAmount stack :
+                inv.takeStacks(player, first.item(), wanted.count(), a -> a.damage() == first.damage())) {
+            giveBack(player, deliver(c, req, citizen, stack));
+        }
+        return Optional.of(List.of(new ItemAmount(first.item(), Math.min(wanted.count(), matching))));
+    }
+
+    private List<ItemAmount> accepted(List<ItemAmount> stacks, Deliverable wanted) {
+        return stacks.stream()
+                .filter(s -> wanted.matches(s, ctx.ports().catalog()))
+                .toList();
+    }
+
+    private static int count(List<ItemAmount> stacks) {
+        return stacks.stream().mapToInt(ItemAmount::count).sum();
     }
 
     /**

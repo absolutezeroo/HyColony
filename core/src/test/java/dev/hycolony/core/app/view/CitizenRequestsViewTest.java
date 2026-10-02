@@ -15,12 +15,16 @@ import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.core.kernel.item.ToolInfo;
+import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.logistics.warehouse.WarehouseBuilding;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.model.Delivery;
 import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.request.model.StackRequest;
+import dev.hycolony.core.request.model.ToolRequest;
 import dev.hycolony.core.testing.TestContexts;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -116,6 +120,33 @@ class CitizenRequestsViewTest {
         t.players.creative.add(alice);
 
         assertTrue(rows().getFirst().fulfillable(), "MC: isCreative || the player holds it");
+    }
+
+    /** MC: a broken tool no longer exists, so it offers nothing to give. */
+    @Test
+    void aBrokenToolAloneOffersNoFulfill() {
+        ItemKey shovel = new ItemKey("Tool_Shovel_Crude");
+        t.catalog.tools.put(shovel, new ToolInfo(ToolType.SHOVEL, 0, 1f));
+        t.catalog.durability.put(shovel, 150);
+        t.playerInventory.give(alice, new ItemAmount(shovel, 1, 150));
+        colony.requests().createAndAssign(hut, new ToolRequest(ToolType.SHOVEL, 0, 5), bob.id());
+
+        RequestRow row = rows().getFirst();
+
+        assertEquals(0, row.playerHas());
+        assertFalse(row.fulfillable());
+    }
+
+    /** MC isFulfillable looks at the whole player inventory, armour and shield slots included. */
+    @Test
+    void whatThePlayerWearsOffersFulfillAsMc() {
+        t.playerInventory.equipped.put(alice, new ArrayList<>(List.of(new ItemAmount(PLANK, 2))));
+        ask(bob.id(), 3);
+
+        RequestRow row = rows().getFirst();
+
+        assertEquals(2, row.playerHas());
+        assertTrue(row.fulfillable());
     }
 
     @Test

@@ -89,7 +89,7 @@ public interface DebugAccess {
      * window "Fulfill": a player needs the colony's MANAGE_HUTS right and gives from their inventory, or for free in
      * creative mode; a plugin gives for free. {@link ActionResult.NotFound} for an unknown, malformed or closed
      * request, or one that asks no items (a delivery, a pickup); {@link ActionResult.Unavailable} when the player holds
-     * none of it.
+     * none of it, or only wears it.
      *
      * @since 1.3
      */

@@ -4,7 +4,8 @@ import dev.hycolony.core.app.ui.RequestsView;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.kernel.BlockPos;
-import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.core.kernel.item.ItemAmount;
+import dev.hycolony.core.kernel.port.PlayerInventory;
 import dev.hycolony.core.logistics.warehouse.RequesterLocation;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.RequestManager;
@@ -51,7 +52,7 @@ final class RequestViews {
                                 .orElse(Long.MAX_VALUE))
                         .orElse(0L))
                 .thenComparing(r -> r.token().id()));
-        Map<ItemKey, Integer> owned = ctx.ports().playerInventory().contents(player);
+        List<ItemAmount> owned = owned(player);
         List<RequestsView.RequestRow> rows = new ArrayList<>();
         sorted.forEach(r -> tree(c, r, 0, owned, rows));
         // Kept at the user's request (RequestsView): Fulfill on a root the player holds items for, or any item root in
@@ -93,7 +94,7 @@ final class RequestViews {
      * known one level deeper, appended to {@code rows} without Fulfill (each window sets its own rule); a request
      * already listed is skipped (a tree walk never loops).
      */
-    void tree(Colony c, Request r, int depth, Map<ItemKey, Integer> owned, List<RequestsView.RequestRow> rows) {
+    void tree(Colony c, Request r, int depth, List<ItemAmount> owned, List<RequestsView.RequestRow> rows) {
         if (rows.stream().anyMatch(row -> row.token().equals(r.token()))) {
             return;
         }
@@ -111,18 +112,29 @@ final class RequestViews {
         }
     }
 
-    /** How many of {@code owned} match {@code r}; 0 for a courier delivery or pickup, which a player cannot provide. */
-    private int has(Request r, Map<ItemKey, Integer> owned) {
+    /**
+     * Every stack {@code player} carries or wears, as MC's citizen window counts the whole player inventory (armour
+     * and shield slots included, RequestWindowCitizen.isFulfillable); the clipboard counts the same way.
+     */
+    List<ItemAmount> owned(UUID player) {
+        PlayerInventory inv = ctx.ports().playerInventory();
+        List<ItemAmount> owned = new ArrayList<>(inv.stacks(player));
+        owned.addAll(inv.equipped(player));
+        return owned;
+    }
+
+    /**
+     * How many of {@code owned} {@code r} accepts, a broken tool never; 0 for a courier delivery or pickup, which a
+     * player cannot provide.
+     */
+    private int has(Request r, List<ItemAmount> owned) {
         Deliverable d = r.deliverable().orElse(null);
         if (d == null) {
             return 0;
         }
-        int has = 0;
-        for (Map.Entry<ItemKey, Integer> e : owned.entrySet()) {
-            if (d.matches(e.getKey(), ctx.ports().catalog())) {
-                has += e.getValue();
-            }
-        }
-        return has;
+        return owned.stream()
+                .filter(s -> d.matches(s, ctx.ports().catalog()))
+                .mapToInt(ItemAmount::count)
+                .sum();
     }
 }
