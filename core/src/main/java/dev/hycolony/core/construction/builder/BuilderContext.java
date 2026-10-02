@@ -16,6 +16,7 @@ import dev.hycolony.core.job.JobXp;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.job.work.SyncRequests;
 import dev.hycolony.core.job.work.ToolRequests;
+import dev.hycolony.core.job.work.WorkerHands;
 import dev.hycolony.core.job.work.WorkerStock;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.port.BodyId;
@@ -89,7 +90,11 @@ record BuilderContext(
                         colony.context().clock()::currentTick,
                         colony.context().ports(),
                         new CitizenWalkReports(colony, citizen)),
-                new BuilderGestures(bodies, body, colony.context().ports().effects()),
+                new BuilderGestures(
+                        bodies,
+                        body,
+                        new WorkerHands(bodies, body, citizen),
+                        colony.context().ports().effects()),
                 new BuildSite(colony, resources, new WorkSpot(blocks, catalog)),
                 new StructureScan(colony, blocks, catalog),
                 worker.map(WorkerModule::primary).orElse(Skill.Adaptability),

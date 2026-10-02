@@ -45,6 +45,9 @@ public final class FakeBodies implements CitizenBodies, BodyHealth, BodySeats {
         public @Nullable BlockPos seat;
 
         public ItemKey held;
+        /** What it shows worn, by armour slot; empty until {@link FakeBodies#setArmor}. */
+        public List<Optional<ItemKey>> armor = List.of();
+
         public BodyAnimation lastAnimation;
         /** The bed it lies in; null standing. */
         public @Nullable BlockPos inBed;
@@ -236,6 +239,11 @@ public final class FakeBodies implements CitizenBodies, BodyHealth, BodySeats {
     @Override
     public void setHeldItem(BodyId body, Optional<ItemKey> item) {
         bodies.get(body).held = item.orElse(null);
+    }
+
+    @Override
+    public void setArmor(BodyId body, List<Optional<ItemKey>> pieces) {
+        bodies.get(body).armor = List.copyOf(pieces);
     }
 
     @Override

@@ -39,6 +39,12 @@ public interface CitizenBodies {
     /** Shows {@code item} in the body's main hand; empty clears it. */
     void setHeldItem(BodyId body, Optional<ItemKey> item);
 
+    /**
+     * Shows {@code pieces} worn by the body, one per armour slot (head, chest, hands, legs), empty for a bare slot. A
+     * copy for display only: the citizen's own armour stays the truth.
+     */
+    void setArmor(BodyId body, List<Optional<ItemKey>> pieces);
+
     void playAnimation(BodyId body, BodyAnimation animation);
 
     /** Turns body and head toward {@code target} (MC WorkerUtil.faceBlock); ends any walk in progress. */

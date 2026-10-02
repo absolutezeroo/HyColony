@@ -63,7 +63,7 @@ record FarmWorkContext(
                 crafting.requests(),
                 crafting.walker(),
                 crafting.approach(),
-                new WorkerHands(colony.context().bodies(), crafting.body())));
+                new WorkerHands(colony.context().bodies(), crafting.body(), crafting.citizen())));
     }
 
     CitizenData citizen() {

@@ -1,6 +1,7 @@
 package dev.hycolony.core.citizen;
 
 import dev.hycolony.core.building.Building;
+import dev.hycolony.core.citizen.inventory.HeldItems;
 import dev.hycolony.core.citizen.wander.LeisureTimer;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyContext;
@@ -230,12 +231,16 @@ public final class CitizenManager {
         return body.isPresent();
     }
 
-    /** Binds {@code body} to its citizen, with a fresh AI and an IDLE job status (MC initEntityValues). */
+    /**
+     * Binds {@code body} to its citizen, with a fresh AI and an IDLE job status (MC initEntityValues); the body shows
+     * the citizen's armour and held slot, as MC's entity renders its InventoryCitizen.
+     */
     private void bind(CitizenData data, BodyId body) {
         failedRespawns.bodied(data.id());
         data.resetJobStatus();
         bodies.put(data.id(), body);
         ais.put(data.id(), new CitizenAI(colony, data, body));
+        HeldItems.show(data, ctx().bodies(), body);
     }
 
     /** A body tagged with this colony was loaded into the world. */

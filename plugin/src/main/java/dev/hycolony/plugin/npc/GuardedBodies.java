@@ -83,6 +83,11 @@ public final class GuardedBodies implements CitizenBodies {
     }
 
     @Override
+    public void setArmor(BodyId body, List<Optional<ItemKey>> pieces) {
+        run("setArmor", () -> bodies.setArmor(body, pieces));
+    }
+
+    @Override
     public void playAnimation(BodyId body, BodyAnimation animation) {
         run("playAnimation", () -> bodies.playAnimation(body, animation));
     }

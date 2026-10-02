@@ -3,7 +3,9 @@ package dev.hycolony.core.construction.builder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.construction.shared.BuilderTimings;
+import dev.hycolony.core.job.work.WorkerHands;
 import dev.hycolony.core.job.work.WorkerMachine;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
@@ -19,7 +21,8 @@ class BuilderGesturesTest {
     private final FakeBodies bodies = new FakeBodies();
     private final BodyId body = bodies.existing(1, 1, new Vec3(0, 0, 0));
     private final FakeWorldEffects effects = new FakeWorldEffects();
-    private final BuilderGestures gestures = new BuilderGestures(bodies, body, effects);
+    private final BuilderGestures gestures =
+            new BuilderGestures(bodies, body, new WorkerHands(bodies, body, new CitizenData(1)), effects);
 
     /** Runs the delay out one machine tick at a time; returns the game tick of every play (0 = startDelay). */
     private List<Integer> playTicks(int delay, BodyAnimation anim) {

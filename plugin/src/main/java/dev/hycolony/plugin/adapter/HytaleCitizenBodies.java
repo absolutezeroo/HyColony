@@ -292,6 +292,15 @@ public final class HytaleCitizenBodies implements CitizenBodies {
         }
     }
 
+    /** See {@link BodyGestures#wear}. */
+    @Override
+    public void setArmor(BodyId body, List<Optional<ItemKey>> pieces) {
+        Ref<EntityStore> ref = ref(body);
+        if (ref != null) {
+            BodyGestures.wear(ref, pieces, store());
+        }
+    }
+
     /** See {@link BodyGestures#animate}. */
     @Override
     public void playAnimation(BodyId body, BodyAnimation animation) {

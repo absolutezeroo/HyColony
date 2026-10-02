@@ -28,7 +28,7 @@ final class CrafterHands {
 
     CrafterHands(CraftingWorkContext ctx) {
         this.ctx = ctx;
-        this.hands = new WorkerHands(ctx.colony().context().bodies(), ctx.body());
+        this.hands = new WorkerHands(ctx.colony().context().bodies(), ctx.body(), ctx.citizen());
     }
 
     /** MC walkToTaggedWorkPos: true once at the recipe's bench, or at the hut (walkToBuilding) without one. */

@@ -2,9 +2,6 @@ package dev.hycolony.core.kernel.nav;
 
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
-import dev.hycolony.core.kernel.WorldKey;
-import dev.hycolony.core.kernel.item.ItemKey;
-import dev.hycolony.core.kernel.port.BodyAnimation;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.CitizenBodies;
 import dev.hycolony.core.kernel.port.ItemCatalog;
@@ -21,13 +18,12 @@ import java.util.Optional;
  * legs, handed to the real bodies one at a time. Callers see one walk: {@link #navStatus} reports MOVING until the
  * last leg ends. See {@link SafeRoute} for why this is not left to Hytale's nav.
  */
-public final class DetouringBodies implements CitizenBodies {
+public final class DetouringBodies extends ForwardingBodies {
     /** Horizontal distance, in blocks, at which a waypoint counts as reached even if the nav never says so. */
     static final double WAYPOINT_REACH = 1.0;
     /** Replans from where the nav stopped, per walk, before the next leg is taken as it is (never stalls). */
     static final int MAX_REPLANS = 8;
 
-    private final CitizenBodies bodies;
     private final SafeRoute route;
     private final ClearTarget clearTarget;
     /**
@@ -45,7 +41,7 @@ public final class DetouringBodies implements CitizenBodies {
     private final Map<BodyId, Long> refusedFrom = new HashMap<>();
 
     public DetouringBodies(CitizenBodies bodies, WorldBlocks blocks, ItemCatalog catalog) {
-        this.bodies = bodies;
+        super(bodies);
         DangerousCells danger = new DangerousCells(blocks, catalog);
         this.route = new SafeRoute(danger);
         this.clearTarget = new ClearTarget(blocks, catalog, danger);
@@ -176,49 +172,9 @@ public final class DetouringBodies implements CitizenBodies {
     }
 
     @Override
-    public void setMovementSpeed(BodyId body, double factor) {
-        bodies.setMovementSpeed(body, factor);
-    }
-
-    @Override
     public void despawn(BodyId body) {
         forget(body);
         bodies.despawn(body);
-    }
-
-    @Override
-    public Optional<BodyId> spawn(WorldKey world, BlockPos near, int colonyId, int citizenId, String displayName) {
-        return bodies.spawn(world, near, colonyId, citizenId, displayName);
-    }
-
-    @Override
-    public boolean isAlive(BodyId body) {
-        return bodies.isAlive(body);
-    }
-
-    @Override
-    public int healthPercent(BodyId body) {
-        return bodies.healthPercent(body);
-    }
-
-    @Override
-    public Optional<Vec3> position(BodyId body) {
-        return bodies.position(body);
-    }
-
-    @Override
-    public void setDisplayName(BodyId body, String name) {
-        bodies.setDisplayName(body, name);
-    }
-
-    @Override
-    public void setHeldItem(BodyId body, Optional<ItemKey> item) {
-        bodies.setHeldItem(body, item);
-    }
-
-    @Override
-    public void playAnimation(BodyId body, BodyAnimation animation) {
-        bodies.playAnimation(body, animation);
     }
 
     /** Lying down ends any detour under way. */
@@ -226,11 +182,6 @@ public final class DetouringBodies implements CitizenBodies {
     public boolean sleepIn(BodyId body, BlockPos bed) {
         forget(body);
         return bodies.sleepIn(body, bed);
-    }
-
-    @Override
-    public boolean isInBed(BodyId body) {
-        return bodies.isInBed(body);
     }
 
     @Override

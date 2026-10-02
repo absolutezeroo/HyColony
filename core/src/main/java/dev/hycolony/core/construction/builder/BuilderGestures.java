@@ -42,10 +42,10 @@ final class BuilderGestures {
     /** What the builder holds: the block it places or the tool it mines with (for the citizen window). */
     private @Nullable ItemKey inHand;
 
-    BuilderGestures(CitizenBodies bodies, BodyId body, WorldEffects effects) {
+    BuilderGestures(CitizenBodies bodies, BodyId body, WorkerHands hands, WorldEffects effects) {
         this.bodies = bodies;
         this.body = body;
-        this.hands = new WorkerHands(bodies, body);
+        this.hands = hands;
         this.effects = effects;
     }
 

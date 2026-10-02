@@ -3,6 +3,7 @@ package dev.hycolony.core.logistics.courier;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
+import dev.hycolony.core.citizen.inventory.HeldItems;
 import dev.hycolony.core.citizen.vitals.CitizenWalkReports;
 import dev.hycolony.core.colony.BlockApproach;
 import dev.hycolony.core.colony.Colony;
@@ -129,9 +130,9 @@ final class CourierContext {
         colony.context().ports().blocks().drop(containers.getFirst(), List.of(left));
     }
 
-    /** MC setHeldItem(SLOT_HAND): the courier shows what is in its first slot. */
+    /** MC setHeldItem(SLOT_HAND): the courier holds its first slot and shows what is in it. */
     void showHeld() {
-        colony.context().bodies().setHeldItem(body, inventory().slot(0).map(ItemAmount::item));
+        HeldItems.holdSlot(citizen(), colony.context().bodies(), body, 0);
     }
 
     /** MC CitizenExperienceHandler.addExperience, split between the hut's skills (Agility, Adaptability). */
