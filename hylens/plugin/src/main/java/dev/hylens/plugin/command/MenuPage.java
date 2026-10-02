@@ -199,13 +199,19 @@ final class MenuPage extends InteractiveCustomUIPage<MenuPage.Data> {
         } else if (MenuClicks.CHECKS.contains(action)) {
             result = Optional.of(checks.run(action, playerRef, colonies(store)));
         } else {
-            act(action, v, ref, store);
+            act(action, index, v, ref, store);
         }
     }
 
-    /** Runs the chosen citizen's action {@code action}; its result shows under the buttons. */
-    private void act(String action, MenuView v, Ref<EntityStore> ref, Store<EntityStore> store) {
-        MenuActions.run(action, v.citizen(), colonies(store), playerRef.getUuid(), MenuActions.feet(ref, store))
+    /**
+     * Runs the action {@code action} on the chosen citizen, or the edit named by {@code index} ({@link
+     * MenuActions#edit}); its result shows under the right page.
+     */
+    private void act(String action, String index, MenuView v, Ref<EntityStore> ref, Store<EntityStore> store) {
+        UUID operator = playerRef.getUuid();
+        (MenuClicks.EDITS.contains(action)
+                        ? MenuActions.edit(action, index, v, colonies(store), operator)
+                        : MenuActions.run(action, v.citizen(), colonies(store), operator, MenuActions.feet(ref, store)))
                 .ifPresent(r -> result = Optional.of(r));
     }
 

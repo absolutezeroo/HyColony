@@ -12,16 +12,41 @@ import dev.hycolony.api.ColonyWorld;
 import dev.hycolony.api.Pos;
 import dev.hycolony.api.debug.DebugAccess;
 import dev.hylens.core.menu.ActionReport;
+import dev.hylens.core.menu.MenuView;
 import java.util.Optional;
 import java.util.UUID;
 import org.joml.Vector3d;
 
 /**
- * The menu's actions on a citizen (spec 2026-09-30, § 6.4), asked of HyColony in the operator's name: HyColony lets
- * an operator or a manager of the colony act, and refuses anyone else /hylens would have been granted to. World thread.
+ * The menu's actions on a citizen (spec 2026-09-30, § 6.4) and its edits of a colony's citizens (spec 2026-10-02 lot
+ * 2, § 5), asked of HyColony in the operator's name: HyColony decides who may act, as MC's commands. World thread.
  */
 final class MenuActions {
     private MenuActions() {}
+
+    /**
+     * Runs the edit {@code action}: "spawn" a citizen in {@code v}'s chosen colony, or set the chosen citizen's
+     * "saturation" by the step named {@code index}, from the saturation HyColony reads now; as {@code operator}. The
+     * text of its result, or asks to choose first; empty for an unknown step or an unread saturation.
+     */
+    static Optional<ApiText> edit(
+            String action, String index, MenuView v, Optional<ColonyWorld> colonies, UUID operator) {
+        Actor actor = new Actor.Player(operator);
+        if ("spawn".equals(action)) {
+            return Optional.of(colonies.flatMap(w ->
+                            v.colony().map(c -> ActionReport.spawned(w.debug().spawnCitizen(actor, c))))
+                    .orElse(ApiText.of("hylens.action.noColony")));
+        }
+        if (v.citizen().isEmpty() || colonies.isEmpty()) {
+            return Optional.of(ApiText.of("hylens.action.noneChosen"));
+        }
+        CitizenRef c = v.citizen().get();
+        ColonyWorld w = colonies.get();
+        return MenuClicks.saturation(index)
+                .flatMap(step -> w.wellbeing(c)
+                        .map(now -> ActionReport.text(
+                                w.debug().setSaturation(actor, c, step.from(now.saturation(), now.maxSaturation())))));
+    }
 
     /**
      * Runs {@code action} ("leisure", "teleport" to the operator's cell {@code feet}, "respawn") on the chosen

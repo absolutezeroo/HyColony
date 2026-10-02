@@ -551,3 +551,12 @@ Spec `docs/superpowers/specs/2026-10-02-hylens-livre-mc-design.md`. Un opérateu
 332. **Arrêter.** « Arrêter le suivi » : retour au mode de jeu normal, HUD retiré, le livre reste ouvert et montre « Suivre ». `/hylens unwatch` fait toujours de même.
 333. **Déconnexion.** Se déconnecter en caméra libre, se reconnecter : mode de jeu normal.
 334. **HUD sur parchemin.** Suivre un citoyen : le panneau est le parchemin large de MC à droite de l'écran, ses lignes à l'encre noire et lisibles. Si le parchemin ne s'affiche pas (texture prise dans un autre dossier du pack), le signaler : la texture sera copiée sous `Hud/HyLens/`.
+
+## HyLens : citoyens
+
+Spec `docs/superpowers/specs/2026-10-02-hylens-citoyens-design.md`. Un opérateur, une colonie avec son hôtel de ville chargé.
+
+335. **Nouveau citoyen.** Onglet Colonies, colonie choisie : « Nouveau citoyen » → « Fait. », un citoyen de plus dans la liste et devant l'hôtel de ville, une ligne au journal de la mairie. Avec « Nouveaux citoyens » coupé dans la mairie, et au-delà de 4 citoyens : ça marche aussi.
+336. **Sans place.** Murer l'hôtel de ville (aucune place autour) : « Nouveau citoyen » → « Indisponible : … », aucun citoyen ajouté, le message « pas de place » de la colonie.
+337. **Saturation.** Onglet Citoyens, un citoyen choisi : « Saturation : x/60 » ; 0, −, +, Max changent la valeur, bornée à 0 et 60 ; le HUD du suivi suit ; la valeur survit à un redémarrage du serveur.
+338. **Gestionnaire.** Un joueur gestionnaire non opérateur, à qui /hylens est accordé : « Nouveau citoyen » est refusé ; la saturation est refusée, « désactivée dans la configuration » ; avec `"CanPlayerUseModifyCitizensCommand": true` dans la section `Commands` de `config.json`, la saturation marche.

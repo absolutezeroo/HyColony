@@ -10,7 +10,7 @@ $C = "../../../Common.ui";
 @FadedCentered = LabelStyle(...@Faded, HorizontalAlignment: Center);
 @Heading = LabelStyle(...@Ink, TextColor: #aa0000, HorizontalAlignment: Center, RenderBold: true);
 @Alert = LabelStyle(FontSize: 12, TextColor: #aa0000, VerticalAlignment: Center, HorizontalAlignment: End);
-@CompactInkCentered = LabelStyle(...@InkCentered, FontSize: 12);
+@CompactInkCentered = LabelStyle(...@InkCentered, FontSize: 12, ShrinkTextToFit: true, MinShrinkTextToFitFontSize: 9);
 
 // MC's builder_button_medium_large (129 x 17), doubled.
 @WideButtonStyle = TextButtonStyle(
@@ -36,6 +36,15 @@ $C = "../../../Common.ui";
   Hovered: (Background: "builder_button_small_hover.png", LabelStyle: @CompactInkCentered),
   Pressed: (Background: "builder_button_small_hover.png", LabelStyle: @CompactInkCentered),
   Disabled: (Background: "builder_button_small_dim.png", LabelStyle: @CompactInkCentered),
+  Sounds: $C.@ButtonSounds
+);
+
+// MC's builder_button_very_small (29 x 15), doubled: the saturation's "0" and "Max".
+@VerySmallButtonStyle = TextButtonStyle(
+  Default: (Background: "builder_button_very_small.png", LabelStyle: @CompactInkCentered),
+  Hovered: (Background: "builder_button_very_small_hover.png", LabelStyle: @CompactInkCentered),
+  Pressed: (Background: "builder_button_very_small_hover.png", LabelStyle: @CompactInkCentered),
+  Disabled: (Background: "builder_button_very_small_dim.png", LabelStyle: @CompactInkCentered),
   Sounds: $C.@ButtonSounds
 );
 

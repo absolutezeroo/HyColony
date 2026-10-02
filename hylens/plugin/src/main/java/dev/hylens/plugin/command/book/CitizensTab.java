@@ -3,8 +3,11 @@ package dev.hylens.plugin.command.book;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import dev.hylens.core.menu.MenuView;
+import dev.hylens.core.menu.SaturationStep;
 import dev.hylens.plugin.watch.ApiMessages;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -15,6 +18,11 @@ import java.util.Optional;
 final class CitizensTab {
     static final String PAGE = "Pages/HyLens/Book/Citizens.ui";
     private static final String ROW = "Pages/HyLens/Book/CitizenRow.ui";
+    private static final Map<SaturationStep, String> SATURATION_BUTTONS = Map.of(
+            SaturationStep.ZERO, "#SatZeroButton",
+            SaturationStep.LESS, "#SatLessButton",
+            SaturationStep.MORE, "#SatMoreButton",
+            SaturationStep.MAX, "#SatMaxButton");
 
     private CitizensTab() {}
 
@@ -31,6 +39,7 @@ final class CitizensTab {
                 chosen.map(c -> Message.translation("hylens.menu.chosen").param("p0", c.name()))
                         .orElse(Message.translation("hylens.menu.noneChosen")));
         chosen.ifPresent(c -> ui.set("#ChosenState.TextSpans", state(c)));
+        saturation(ui, binds, chosen.flatMap(MenuView.CitizenRow::saturation));
         boolean watched = chosen.map(MenuView.CitizenRow::watched).orElse(false);
         ui.set("#WatchButton.Visible", !watched);
         ui.set("#FreeButton.Visible", watched);
@@ -49,6 +58,20 @@ final class CitizensTab {
         ui.set("#SendZ.Value", watch.z());
         binds.on("#SendButton", "send", "");
         binds.on("#SendMapButton", "sendMap", "");
+    }
+
+    /**
+     * The chosen citizen's {@code saturation}, as the watch panel shows it, and MC's suggested values; the row hidden
+     * when HyColony reads none.
+     */
+    private static void saturation(UICommandBuilder ui, MenuBinds binds, Optional<MenuView.Saturation> saturation) {
+        ui.set("#SaturationRow.Visible", saturation.isPresent());
+        saturation.ifPresent(s -> ui.set(
+                "#Saturation.TextSpans",
+                Message.translation("hylens.menu.saturation")
+                        .param("p0", String.format(Locale.ROOT, "%.1f", s.value()))
+                        .param("p1", String.valueOf((int) s.max()))));
+        SATURATION_BUTTONS.forEach((step, button) -> binds.on(button, "saturation", step.name()));
     }
 
     /** {@code c}'s job, AI state and job step. */

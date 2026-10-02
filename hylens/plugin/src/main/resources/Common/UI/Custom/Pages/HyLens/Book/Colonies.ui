@@ -35,4 +35,10 @@ Group {
     Style: $B.@WideButtonStyle;
     Text: %hylens.menu.checkNow;
   }
+
+  TextButton #SpawnButton {
+    Anchor: (Left: 571, Top: 172, Width: 258, Height: 34);
+    Style: $B.@WideButtonStyle;
+    Text: %hylens.menu.spawn;
+  }
 }

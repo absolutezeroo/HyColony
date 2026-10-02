@@ -43,5 +43,6 @@ final class ColoniesTab {
                         },
                         () -> ui.set("#ColonyDetail.TextSpans", Message.translation("hylens.menu.colonyNone")));
         binds.on("#CheckNowButton", "checkNow", "");
+        binds.on("#SpawnButton", "spawn", "");
     }
 }

@@ -51,21 +51,56 @@ Group {
   }
 
   TextButton #LeisureButton {
-    Anchor: (Left: 571, Top: 156, Width: 258, Height: 34);
-    Style: $B.@WideButtonStyle;
+    Anchor: (Left: 552, Top: 156, Width: 128, Height: 34);
+    Style: $B.@SmallCompactButtonStyle;
     Text: %hylens.menu.leisure;
   }
 
   TextButton #TeleportButton {
-    Anchor: (Left: 571, Top: 196, Width: 258, Height: 34);
-    Style: $B.@WideButtonStyle;
+    Anchor: (Left: 720, Top: 156, Width: 128, Height: 34);
+    Style: $B.@SmallCompactButtonStyle;
     Text: %hylens.menu.teleport;
   }
 
   TextButton #RespawnButton {
-    Anchor: (Left: 571, Top: 236, Width: 258, Height: 34);
-    Style: $B.@WideButtonStyle;
+    Anchor: (Left: 552, Top: 196, Width: 128, Height: 34);
+    Style: $B.@SmallCompactButtonStyle;
     Text: %hylens.menu.respawn;
+  }
+
+  // The chosen citizen's saturation and MC's suggested values (spec 2026-10-02 lot 2, § 5); hidden when unread.
+  Group #SaturationRow {
+    Anchor: (Left: 552, Top: 238, Width: 296, Height: 30);
+    Visible: false;
+
+    Label #Saturation {
+      Anchor: (Left: 0, Top: 0, Width: 110, Height: 30);
+      Style: (...$B.@Ink, FontSize: 13);
+    }
+
+    TextButton #SatZeroButton {
+      Anchor: (Left: 112, Top: 0, Width: 58, Height: 30);
+      Style: $B.@VerySmallButtonStyle;
+      Text: %hylens.menu.saturation.zero;
+    }
+
+    TextButton #SatLessButton {
+      Anchor: (Left: 174, Top: 0, Width: 28, Height: 30);
+      Style: $B.@MiniButtonStyle;
+      Text: %hylens.menu.saturation.less;
+    }
+
+    TextButton #SatMoreButton {
+      Anchor: (Left: 206, Top: 0, Width: 28, Height: 30);
+      Style: $B.@MiniButtonStyle;
+      Text: %hylens.menu.saturation.more;
+    }
+
+    TextButton #SatMaxButton {
+      Anchor: (Left: 238, Top: 0, Width: 58, Height: 30);
+      Style: $B.@VerySmallButtonStyle;
+      Text: %hylens.menu.saturation.max;
+    }
   }
 
   Label {

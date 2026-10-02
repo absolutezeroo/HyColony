@@ -5,6 +5,7 @@ import dev.hycolony.api.ColonyRef;
 import dev.hylens.core.draw.Layers;
 import dev.hylens.core.menu.MenuTab;
 import dev.hylens.core.menu.MenuView;
+import dev.hylens.core.menu.SaturationStep;
 import java.util.Optional;
 import java.util.Set;
 
@@ -17,6 +18,8 @@ final class MenuClicks {
     static final Set<String> CHOICES = Set.of("colony", "citizen", "layer", "stepLess", "stepMore", "tab");
     /** The clicks on the watch: start it, free or follow its camera, stop it. */
     static final Set<String> WATCH = Set.of("watch", "free", "follow", "unwatch");
+    /** The clicks that change a colony's citizens: a new one, the chosen one's saturation. */
+    static final Set<String> EDITS = Set.of("spawn", "saturation");
     /** The clicks on the colony clock. */
     static final Set<String> CLOCK = Set.of("pause", "step", "resume");
     /** The clicks on the checks. */
@@ -53,6 +56,15 @@ final class MenuClicks {
     static Optional<Layers.Layer> layer(String name) {
         try {
             return Optional.of(Layers.Layer.valueOf(name));
+        } catch (IllegalArgumentException e) {
+            return Optional.empty();
+        }
+    }
+
+    /** The saturation step named {@code name}, if it is one. */
+    static Optional<SaturationStep> saturation(String name) {
+        try {
+            return Optional.of(SaturationStep.valueOf(name));
         } catch (IllegalArgumentException e) {
             return Optional.empty();
         }
