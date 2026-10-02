@@ -137,14 +137,16 @@ final class CitizenInventoryPage extends InteractiveCustomUIPage<CitizenInventor
     }
 
     /**
-     * The page's world is stopped: stops following on the world the player is in now, where its inventory, which the
-     * watch listens to, lives; nothing for a player gone. Never throws.
+     * The page's world is stopped: stops following on the world the player is in now, where its inventory lives (the
+     * watch also listens to the citizen's containers, whose world no longer runs). Nothing for a player gone, or for a
+     * reference read stale off the world thread: the watch then stays, harmless, as the page is no longer shown. Never
+     * throws.
      */
     private void stopOnPlayersWorld() {
         try {
             Ref<EntityStore> ref = playerRef.getReference();
             if (ref != null && ref.isValid()) {
-                ref.getStore().getExternalData().getWorld().execute(() -> stopFollowing(false));
+                ref.getStore().getExternalData().getWorld().execute(this::stopFollowing);
             }
         } catch (RuntimeException e) {
             LOG.at(Level.FINE).withCause(e).log("HyColony: citizen inventory watch left to its player");
@@ -153,12 +155,12 @@ final class CitizenInventoryPage extends InteractiveCustomUIPage<CitizenInventor
 
     /**
      * The camera follows the citizen; the page is redrawn when its AI changed what it carries or wears. A page no
-     * longer shown without a dismissal stops following: the camera is forgotten when the player left the world or the
-     * server (Hytale reset it), given back otherwise.
+     * longer shown without a dismissal (a world change, a disconnection) stops following and gives the camera back
+     * ({@link CitizenPreviewCamera#stop}).
      */
     private void checkNow() {
         if (!isShown()) {
-            stopFollowing(playerInWorld());
+            stopFollowing();
             return;
         }
         setup.camera().follow();
@@ -200,17 +202,14 @@ final class CitizenInventoryPage extends InteractiveCustomUIPage<CitizenInventor
      */
     @Override
     public void onDismiss(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
-        stopFollowing(true);
+        stopFollowing();
         HeldWindows.closeLater(ref, setup.main());
         HeldWindows.closeLater(ref, setup.armor());
         super.onDismiss(ref, store);
     }
 
-    /**
-     * Stops watching the inventories and checking; the camera is given back when {@code giveCameraBack}, else only
-     * forgotten (the player left this world or the server). Once is enough.
-     */
-    private void stopFollowing(boolean giveCameraBack) {
+    /** Stops watching the inventories and checking, and gives the camera back; once is enough. */
+    private void stopFollowing() {
         InventoryWatch current = watch;
         watch = null;
         if (current != null) {
@@ -221,11 +220,7 @@ final class CitizenInventoryPage extends InteractiveCustomUIPage<CitizenInventor
         if (timer != null) {
             timer.cancel(false);
         }
-        if (giveCameraBack) {
-            setup.camera().stop();
-        } else {
-            setup.camera().forget();
-        }
+        setup.camera().stop();
     }
 
     Setup setup() {
@@ -240,7 +235,7 @@ final class CitizenInventoryPage extends InteractiveCustomUIPage<CitizenInventor
         if (isShown()) {
             close();
         } else {
-            stopFollowing(playerInWorld());
+            stopFollowing();
         }
     }
 
@@ -252,19 +247,13 @@ final class CitizenInventoryPage extends InteractiveCustomUIPage<CitizenInventor
 
     /** Whether the player still looks at this page, in this world. */
     private boolean isShown() {
-        if (!playerInWorld()) {
+        Ref<EntityStore> ref = playerRef.getReference();
+        if (ref == null
+                || !ref.isValid()
+                || !setup.world().equals(ref.getStore().getExternalData().getWorld())) {
             return false;
         }
-        Ref<EntityStore> ref = playerRef.getReference();
-        Player shown = ref == null ? null : ref.getStore().getComponent(ref, Player.getComponentType());
+        Player shown = ref.getStore().getComponent(ref, Player.getComponentType());
         return shown != null && equals(shown.getPageManager().getCustomPage());
-    }
-
-    /** Whether the player is still on the server, in this page's world. */
-    private boolean playerInWorld() {
-        Ref<EntityStore> ref = playerRef.getReference();
-        return ref != null
-                && ref.isValid()
-                && setup.world().equals(ref.getStore().getExternalData().getWorld());
     }
 }

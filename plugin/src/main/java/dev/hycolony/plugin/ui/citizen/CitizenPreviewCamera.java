@@ -14,6 +14,7 @@ import com.hypixel.hytale.protocol.packets.camera.SetServerCamera;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
+import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import java.util.Optional;
@@ -52,21 +53,21 @@ final class CitizenPreviewCamera {
         this.body = body;
     }
 
-    /** Gives the camera back (PlayerCameraResetCommand); safe to call more than once, and never throws. */
+    /**
+     * Gives the camera back (PlayerCameraResetCommand), a world change included, which resets no camera
+     * (Universe.transferPlayerAsync); only forgets it for a player gone from the server (Universe.playersByUuid, a
+     * concurrent map). Safe to call more than once, from any thread; never throws.
+     */
     void stop() {
         try {
-            release();
+            if (player.equals(Universe.get().getPlayer(player.getUuid()))) {
+                release();
+            } else {
+                on = false;
+            }
         } catch (RuntimeException e) {
             LOG.at(Level.WARNING).withCause(e).log("HyColony: citizen preview camera not given back");
         }
-    }
-
-    /**
-     * The player left this world or the server, and Hytale reset its camera already (Player.resetManagers): forgets
-     * the camera without a packet, which would cut a camera set since (another citizen's page).
-     */
-    void forget() {
-        on = false;
     }
 
     /**
