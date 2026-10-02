@@ -193,9 +193,7 @@ public final class CitizenAI {
             case GO_TO_SLEEP -> {
                 decidedEating = false;
                 leaveEating(now);
-                // MC resets the job AI on entering WORK again (resetAI): dropping it here has that effect. The sleep
-                // decision ignores canBeInterrupted.
-                dropJobAI();
+                dropJobAI(); // the sleep decision ignores canBeInterrupted
                 yield CitizenState.SLEEP;
             }
             case WAKE_UP -> decideHunger(now == CitizenState.SLEEP ? CitizenState.IDLE : now);
@@ -271,7 +269,7 @@ public final class CitizenAI {
     /**
      * MC calculateNextState: work only when the rain does not stop it ({@link #rainStopsWork}, checked first as in MC),
      * the job AI cannot go idle and the citizen is not on a break ({@link #onBreak}). Asks a fresh job AI, which then
-     * starts from its first state like MC's resetAI on entering WORK.
+     * starts from its first state as MC's resetAI on entering WORK makes it (its fields too: {@link #dropJobAI}).
      */
     private boolean shouldWork() {
         Job job = data.job().orElse(null);
@@ -314,9 +312,12 @@ public final class CitizenAI {
     }
 
     /**
-     * Forgets the job AI (MC resetAI: its state machine and render metadata; the hand is left as it is), and its
-     * walking speed (MC BuildingDeliveryman removes the courier's speed modifier with the job; a job AI sets its own
-     * again); restarts the wander's wait for a walk under way.
+     * Forgets the job AI, the next WORK making a fresh one, and its walking speed (MC BuildingDeliveryman removes the
+     * courier's speed modifier with the job; a job AI sets its own again); restarts the wander's wait for a walk under
+     * way. The hand is left as it is, as MC.
+     *
+     * <p>Deviation from MC: the whole job AI goes, its fields too (the farmer's skippedState and forceLeave, say); MC
+     * keeps its AI and only resets its state machine and render metadata on entering WORK again (resetAI).
      */
     private void dropJobAI() {
         wander.restartWait(); // back to IDLE: the walk under way is waited for from now

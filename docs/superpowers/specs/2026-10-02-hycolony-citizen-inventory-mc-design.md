@@ -105,6 +105,8 @@ Chacun porte un `Deviation from MC:` dans le code.
 - Le maj-clic est celui de Hytale (`InventoryUtils.smartMoveItem`) : des cases du citoyen ou de son armure vers l'inventaire du joueur, rangé selon les réglages du joueur ; du joueur vers les 27 cases du citoyen, puis son armure quand elles sont pleines. Le `quickMoveStack` de MC (`ContainerCitizenInventory`) envoie les cases du citoyen vers celles du joueur en partant de la fin, l'armure en dernier ; une pièce d'armure vers les 27 cases du citoyen ; et les objets du joueur vers ces 27 cases seulement.
 - L'aperçu est la vraie scène, filmée par la caméra du serveur, et ne suit pas la souris.
 - 27 cases fixes : pas de recherche qui agrandit l'inventaire.
+- Avant une pose, le bâtisseur ne s'écarte pas de la case où il se tient (MC `walkAwayFrom`, prévu : `docs/research/architecture/audit-global/02-findings-M.md`), et son geste est le coup « Build » d'une pose réussie, là où MC fait `swing` avant de tenter la pose, même refusée.
+- Écart existant, relevé par les relectures (`CitizenAI.dropJobAI`) : quitter le travail (sommeil, repas, pluie, pause) jette toute l'IA de métier et ses champs (le `skippedState` et le `forceLeave` du fermier par exemple), là où MC garde son IA et ne remet que sa machine à états à zéro en revenant au travail (`resetAI`). Le corriger demande que chaque IA de métier sache se remettre à zéro sans être recréée : un changement à part.
 
 ## 6. Tests
 

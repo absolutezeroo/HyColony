@@ -33,8 +33,9 @@ final class FarmWork {
     private final FieldPass pass;
     private int skippedState;
     /**
-     * MC didWork set by prepareForFarming on the fourth skip: the next pass to end leaves its field whatever it did,
-     * even a pass days later on another field (MC keeps didWork on the AI the same way).
+     * MC didWork set by prepareForFarming on the fourth skip: the next pass to end leaves its field whatever it did.
+     * Deviation from MC: forgotten with the job AI when the farmer leaves WORK (CitizenAI.dropJobAI); MC keeps didWork
+     * on its AI until a later pass, even days later on another field.
      */
     private boolean forceLeave;
 
