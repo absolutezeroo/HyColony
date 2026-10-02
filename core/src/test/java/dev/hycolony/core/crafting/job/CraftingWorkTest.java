@@ -19,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
+import dev.hycolony.core.citizen.inventory.CitizenEquipment;
 import dev.hycolony.core.crafting.module.CraftingHut;
 import dev.hycolony.core.crafting.recipe.Ingredient;
 import dev.hycolony.core.crafting.recipe.Recipe;
@@ -139,6 +140,22 @@ class CraftingWorkTest {
 
         assertEquals(1, axe.carried(AXE));
         assertEquals(0, axe.inHut(AXE));
+    }
+
+    @Test
+    void theCrafterHoldsTheSlotOfTheToolItWears() {
+        CrafterRig axe = new CrafterRig(seeds(List.of(), Optional.of(ToolType.AXE)));
+        axe.t.catalog.tools.put(AXE, new ToolInfo(ToolType.AXE, 1, 1f));
+        axe.t.catalog.durability.put(AXE, 9);
+        axe.crafter.inventory().set(0, Optional.of(new ItemAmount(AXE, 1, 9))); // broken: never used
+        axe.crafter.inventory().set(3, Optional.of(new ItemAmount(AXE, 1)));
+        axe.stock(ESSENCE, 20);
+        axe.task(axe.ask(10));
+        assertEquals(CRAFT, axe.toCraft());
+
+        axe.work.craft();
+
+        assertEquals(3, axe.crafter.equipment().held(CitizenEquipment.Hand.MAIN), "MC setHeldItem(hand, toolSlot)");
     }
 
     @Test

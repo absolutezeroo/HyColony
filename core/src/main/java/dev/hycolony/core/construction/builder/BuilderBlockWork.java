@@ -162,7 +162,11 @@ final class BuilderBlockWork {
         ItemKey tool = itemIn(toolSlot);
         mineDelayed = true;
         ctx.gestures().lookAt(pos);
-        ctx.gestures().hold(tool);
+        if (tool == null) {
+            ctx.gestures().hold(null);
+        } else {
+            ctx.gestures().holdSlot(toolSlot.getAsInt(), tool); // MC equipTool: the very slot it wears
+        }
         ctx.gestures()
                 .startMining(
                         BuilderTimings.breakDelay(
@@ -187,9 +191,13 @@ final class BuilderBlockWork {
         if (!ctx.catalog().isOre(state.key())) { // MC EntityAIStructureBuilder.mineBlock: getDrops = !isOre
             ctx.stock().storeDrops(drops);
         }
-        if (tool != null) {
-            // MC damageItemInHand: 1 per block; at its durability the tool breaks, no message (the next block asks).
-            ctx.stock().inventory().damage(toolSlot.getAsInt(), 1, ctx.catalog().durability(tool));
+        // MC damageItemInHand: 1 per block; at its durability the tool breaks, no message (the next block asks), and
+        // the hand it emptied shows nothing.
+        if (tool != null
+                && ctx.stock()
+                        .inventory()
+                        .damage(toolSlot.getAsInt(), 1, ctx.catalog().durability(tool))) {
+            ctx.gestures().hold(null);
         }
         ctx.award(XP_PER_BLOCK);
         ctx.job().incrementActions();

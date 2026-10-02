@@ -40,10 +40,15 @@ public final class WorkerHands {
     public void holdTool(WorkerStock stock, ToolType type) {
         OptionalInt slot = stock.toolInInventory(type);
         if (slot.isPresent()) {
-            HeldItems.holdSlot(citizen, bodies, body, slot.getAsInt());
+            holdSlot(slot.getAsInt());
         } else {
             hold(Optional.empty());
         }
+    }
+
+    /** MC setHeldItem(hand, slot): the main hand holds inventory slot {@code slot}, whose item the body shows. */
+    public void holdSlot(int slot) {
+        HeldItems.holdSlot(citizen, bodies, body, slot);
     }
 
     /** MC WorkerUtil.faceBlock, or hitBlockWithToolInHand's setLookAt: the body turns to {@code pos}. */

@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.hycolony.core.citizen.inventory.CitizenEquipment;
 import dev.hycolony.core.farming.CropState;
 import dev.hycolony.core.farming.field.FarmField;
 import dev.hycolony.core.farming.field.FieldStage;
@@ -15,6 +16,7 @@ import dev.hycolony.core.request.model.ToolRequest;
 import dev.hycolony.core.testing.FakeBodies;
 import dev.hycolony.core.testing.farming.FakeFarming;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 /** MC EntityAIWorkFarmer.workAtField, hoeIfAble, tryToPlant and harvestIfAble, plus the Hytale fertilizer. */
@@ -299,6 +301,20 @@ class FieldPassTest extends FarmerTestBase {
         List<BlockPos> crops = cells().stream().map(c -> c.offset(0, 1, 0)).toList();
         assertEquals(crops, t.effects.hits);
         assertEquals(crops.stream().map(Vec3::middle).toList(), t.bodies.looks, "MC hitBlockWithToolInHand looks");
+    }
+
+    @Test
+    void farmerHoldsTheSlotOfTheHoeItWears() {
+        field(true);
+        settings().setFertilize(false);
+        int uses = t.catalog.durability(HOE);
+        citizen.inventory().set(0, Optional.of(new ItemAmount(HOE, 1, uses))); // worn out: never used
+        citizen.inventory().set(2, Optional.of(new ItemAmount(HOE, 1)));
+
+        pass(FarmerState.FARMER_HOE);
+
+        assertEquals(2, citizen.equipment().held(CitizenEquipment.Hand.MAIN), "MC equipTool: the hoe it wears");
+        assertEquals(8, citizen.inventory().slot(2).orElseThrow().damage());
     }
 
     @Test

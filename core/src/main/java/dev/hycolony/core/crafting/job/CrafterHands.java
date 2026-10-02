@@ -6,7 +6,6 @@ import dev.hycolony.core.crafting.recipe.Recipe;
 import dev.hycolony.core.crafting.recipe.RecipeMatching;
 import dev.hycolony.core.job.work.WorkerHands;
 import dev.hycolony.core.kernel.BlockPos;
-import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.Workstation;
 import dev.hycolony.core.kernel.port.BodyAnimation;
@@ -44,10 +43,11 @@ final class CrafterHands {
      */
     void hit(Recipe recipe, OptionalInt toolSlot, float done) {
         BlockPos at = workBlock(recipe);
-        Optional<ItemKey> tool = toolSlot.isPresent()
-                ? ctx.stock().inventory().slot(toolSlot.getAsInt()).map(ItemAmount::item)
-                : Optional.empty();
-        hands.hold(tool.or(() -> anIngredient(recipe)));
+        if (toolSlot.isPresent()) {
+            hands.holdSlot(toolSlot.getAsInt());
+        } else {
+            hands.hold(anIngredient(recipe));
+        }
         hands.face(at);
         hands.swing(BodyAnimation.BUILD);
         ctx.colony().context().ports().effects().blockHit(at, done);

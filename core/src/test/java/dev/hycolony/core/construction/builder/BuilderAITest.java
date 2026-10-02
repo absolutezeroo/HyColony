@@ -1207,6 +1207,30 @@ class BuilderAITest {
         assertEquals(1, dirtLeft());
     }
 
+    /** MC damageItemInHand: the tool that breaks leaves the hand (setItemSlot MAINHAND to nothing). */
+    @Test
+    void aToolThatBreaksLeavesTheBuildersHand() {
+        ItemKey shovel = shovelWork(2);
+        give(shovel, 1);
+
+        tickUntil(() -> citizen.inventory().count(shovel) == 0, 5000);
+
+        assertNotEquals(shovel, t.bodies.bodies.get(body).held);
+    }
+
+    /** MC setHeldItem(hand, slot): the builder holds the slot of the tool it digs with, the one that wears. */
+    @Test
+    void theBuilderHoldsTheSlotOfTheToolItWears() {
+        ItemKey shovel = shovelWork(9);
+        citizen.inventory().set(0, java.util.Optional.of(new ItemAmount(shovel, 1, 9))); // broken: never used
+        citizen.inventory().set(3, java.util.Optional.of(new ItemAmount(shovel, 1)));
+
+        tickUntil(() -> dirtLeft() == 2, 5000);
+
+        assertEquals(3, citizen.equipment().held(dev.hycolony.core.citizen.inventory.CitizenEquipment.Hand.MAIN));
+        assertEquals(1, citizen.inventory().slot(3).orElseThrow().damage(), "the slot held is the one worn");
+    }
+
     @Test
     void fiveFreshToolsWearOneByOne() {
         ItemKey shovel = shovelWork(2);

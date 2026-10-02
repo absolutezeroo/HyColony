@@ -10,6 +10,7 @@ import dev.hycolony.core.building.module.ModuleProducer;
 import dev.hycolony.core.citizen.CitizenAI;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.CitizenState;
+import dev.hycolony.core.citizen.inventory.CitizenEquipment;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.colony.territory.TerritoryIndex;
@@ -28,6 +29,7 @@ import dev.hycolony.core.testing.food.FakeEatingRule;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BooleanSupplier;
 import org.junit.jupiter.api.Test;
@@ -141,6 +143,16 @@ class EatAITest {
         assertTrue(citizen.hunger().justAte());
         assertEquals(List.of(apple), citizen.hunger().history().foods());
         assertTrue(t.effects.meals.size() >= 15);
+    }
+
+    @Test
+    void anEatingCitizenHoldsTheSlotOfItsFood() {
+        citizen.inventory().set(5, Optional.of(new ItemAmount(apple, 20)));
+        start(2);
+
+        tickUntil(() -> apple.equals(t.bodies.bodies.get(body).held));
+
+        assertEquals(5, citizen.equipment().held(CitizenEquipment.Hand.MAIN), "MC setHeldItem(MAIN_HAND, foodSlot)");
     }
 
     @Test

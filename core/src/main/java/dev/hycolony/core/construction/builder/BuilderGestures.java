@@ -110,9 +110,16 @@ final class BuilderGestures {
         hands.swing(anim);
     }
 
+    /** Holds {@code item} in the main hand (its first inventory slot); null empties the hand. */
     void hold(@Nullable ItemKey item) {
         inHand = item;
         hands.hold(Optional.ofNullable(item));
+    }
+
+    /** MC setHeldItem(hand, slot): holds inventory slot {@code slot}, which carries {@code item}. */
+    void holdSlot(int slot, ItemKey item) {
+        inHand = item;
+        hands.holdSlot(slot);
     }
 
     @Nullable
