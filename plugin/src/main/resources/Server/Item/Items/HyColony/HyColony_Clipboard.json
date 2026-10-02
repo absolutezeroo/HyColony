@@ -10,9 +10,9 @@
   "Categories": [
     "Items.Tools"
   ],
-  "Icon": "Icons/ItemsGenerated/Tool_Map.png",
-  "Model": "Items/Consumables/Scrolls/Map.blockymodel",
-  "Texture": "Items/Consumables/Scrolls/Map_Wood.png",
+  "Icon": "Icons/Items/HyColony/Clipboard.png",
+  "Model": "Items/HyColony/Clipboard.blockymodel",
+  "Texture": "Items/HyColony/Clipboard.png",
   "Recipe": {
     "Input": [
       { "ItemId": "Ingredient_Stick", "Quantity": 7 },

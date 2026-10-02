@@ -4,7 +4,7 @@
     "Description": "hycolony.item.hut.farmer.description"
   },
   "MaxStack": 1,
-  "Icon": "Icons/ItemsGenerated/Furniture_Kweebec_Chest_Small.png",
+  "Icon": "Icons/Items/HyColony/Hut_Farmer.png",
   "Categories": [
     "Furniture.Containers"
   ],
@@ -38,13 +38,15 @@
     "Material": "Solid",
     "DrawType": "Model",
     "Opacity": "Transparent",
-    "CustomModel": "Blocks/Decorative_Sets/Kweebec/Chest_Small.blockymodel",
+    "CustomModel": "Blocks/HyColony/Huts/Farmer.blockymodel",
     "CustomModelTexture": [
       {
-        "Texture": "Blocks/Decorative_Sets/Kweebec/Chest_Small_Texture.png",
+        "Texture": "Blocks/HyColony/Huts/Farmer.png",
         "Weight": 1
       }
     ],
+    "CustomModelAnimation": "Blocks/HyColony/Huts/Farmer.blockyanim",
+    "HitboxType": "HyColony_Hut",
     "VariantRotation": "NESW",
     "Gathering": {
       "Breaking": {
@@ -61,12 +63,10 @@
     "State": {
       "Definitions": {
         "CloseWindow": {
-          "InteractionSoundEventId": "SFX_Chest_Wooden_Close",
-          "CustomModelAnimation": "Blocks/Animations/Chest/Chest_Close.blockyanim"
+          "InteractionSoundEventId": "SFX_Chest_Wooden_Close"
         },
         "OpenWindow": {
-          "InteractionSoundEventId": "SFX_Chest_Wooden_Open",
-          "CustomModelAnimation": "Blocks/Animations/Chest/Chest_Open.blockyanim"
+          "InteractionSoundEventId": "SFX_Chest_Wooden_Open"
         }
       }
     },
@@ -81,22 +81,10 @@
       ]
     },
     "BlockParticleSetId": "Wood",
-    "ParticleColor": "#793e21",
+    "ParticleColor": "#6c5736",
     "BlockSoundSetId": "Wood",
     "PhysicalMaterialId": "Wood",
-    "TextureComputedColor": "#462111"
-  },
-  "IconProperties": {
-    "Scale": 0.55,
-    "Translation": [
-      0,
-      -15
-    ],
-    "Rotation": [
-      22.5,
-      45,
-      22.5
-    ]
+    "TextureComputedColor": "#6C5736"
   },
   "ItemSoundSetId": "ISS_Blocks_Wood"
 }

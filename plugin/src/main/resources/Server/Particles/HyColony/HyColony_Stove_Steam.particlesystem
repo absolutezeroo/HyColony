@@ -1,0 +1,7 @@
+{
+  "$Comment": "The cook hut's pot of stew: the steam of Workbench_Cooking_On (Vapor_Water), alone.",
+  "Spawners": [
+    { "SpawnerId": "Vapor_Water" }
+  ],
+  "CullDistance": 40
+}

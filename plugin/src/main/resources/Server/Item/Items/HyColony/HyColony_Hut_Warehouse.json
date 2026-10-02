@@ -4,7 +4,7 @@
     "Description": "hycolony.item.hut.warehouse.description"
   },
   "MaxStack": 1,
-  "Icon": "Icons/ItemsGenerated/Furniture_Village_Chest_Small.png",
+  "Icon": "Icons/Items/HyColony/Hut_Warehouse.png",
   "Categories": [
     "Furniture.Containers"
   ],
@@ -23,10 +23,11 @@
     "Material": "Solid",
     "DrawType": "Model",
     "Opacity": "Transparent",
-    "CustomModel": "Blocks/Decorative_Sets/Village/Chest_Small.blockymodel",
+    "CustomModel": "Blocks/HyColony/Huts/Warehouse.blockymodel",
     "CustomModelTexture": [
-      { "Texture": "Blocks/Decorative_Sets/Village/Chest_Small_Texture.png", "Weight": 1 }
+      { "Texture": "Blocks/HyColony/Huts/Warehouse.png", "Weight": 1 }
     ],
+    "HitboxType": "HyColony_Hut_Tall",
     "VariantRotation": "NESW",
     "Gathering": {
       "Breaking": { "GatherType": "Woods" }
@@ -39,12 +40,10 @@
     "State": {
       "Definitions": {
         "CloseWindow": {
-          "InteractionSoundEventId": "SFX_Chest_Wooden_Close",
-          "CustomModelAnimation": "Blocks/Animations/Chest/Chest_Close.blockyanim"
+          "InteractionSoundEventId": "SFX_Chest_Wooden_Close"
         },
         "OpenWindow": {
-          "InteractionSoundEventId": "SFX_Chest_Wooden_Open",
-          "CustomModelAnimation": "Blocks/Animations/Chest/Chest_Open.blockyanim"
+          "InteractionSoundEventId": "SFX_Chest_Wooden_Open"
         }
       }
     },
@@ -55,15 +54,10 @@
       "Down": [ { "FaceType": "Full" } ]
     },
     "BlockParticleSetId": "Wood",
-    "ParticleColor": "#5b3222",
+    "ParticleColor": "#7c5a3a",
     "BlockSoundSetId": "Wood",
     "PhysicalMaterialId": "Wood",
-    "TextureComputedColor": "#39271F"
-  },
-  "IconProperties": {
-    "Scale": 0.55,
-    "Translation": [ 0, -15 ],
-    "Rotation": [ 22.5, 45, 22.5 ]
+    "TextureComputedColor": "#7C5A3A"
   },
   "ItemSoundSetId": "ISS_Blocks_Wood"
 }

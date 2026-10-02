@@ -70,7 +70,7 @@ Hors périmètre (systèmes absents) : bonheur (barre, onglet), famille (onglet)
 
 ### 4.4 Presse-papiers (`windowclipboard.xml`, `WindowClipBoard`, `ItemClipboard`)
 
-- **Objet** `HyColony_Clipboard` (modèle et icône à partir d'un objet Hytale proche, recette d'artisanat à l'établi comme l'outil de construction ; nom `item.minecolonies.clipboard`).
+- **Objet** `HyColony_Clipboard` (modèle et icône propres depuis le 2026-10-02, spec des modèles de huttes § Presse-papiers ; recette d'artisanat à l'établi comme l'outil de construction ; nom `item.minecolonies.clipboard`).
   - Utilisé sur un bloc de hutte d'une colonie : il retient cette colonie (métadonnée de l'objet) et dit `clipboard.registered` avec le nom de la colonie.
   - Utilisé ailleurs : ouvre la fenêtre de la colonie retenue ; sans colonie, dit `clipboard.needcolony`.
 - **Fenêtre** : `gui/clipboard.png` 380 × 488 ; titre « Requests » 316 × 22 en (32, 56) ; bouton « ! » 28 × 30 en (300, 46) (`builder_button_mini`), rouge ou vert, infobulle `gui.request.hideshow` ; l'arbre en (32, 88).

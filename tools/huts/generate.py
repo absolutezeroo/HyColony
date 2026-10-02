@@ -1,19 +1,22 @@
-"""Paints HyColony's hand-built models (spec 2026-10-02 hut models: hut blocks, build goggles, build tool) and draws
-their icons, with the shared model tools of tools/common.
+"""Paints HyColony's hand-built models (spec 2026-10-02 hut models: hut blocks, build goggles, build tool, clipboard)
+and draws their icons, with the shared model tools of tools/common.
 
-Each model is built in Blockbench (docs/research/hytale-models.md) and exported to
+Each model is built in Blockbench (docs/research/hytale-models.md; the clipboard by a one-off script) and saved to
 plugin/src/main/resources/Common/<MODEL>.blockymodel; this script never writes it. It paints the model's texture next
 to it (<MODEL>.png: paint.texture, the materials' brushes and the light baked from the model) and draws the item icon
 (Icons/Items/HyColony/<ICON>.png). Run once after changing a model or its materials, then commit the outputs. Needs
 Python 3.10+ and Pillow.
 
-A model's module (builder.py, town_hall.py, goggles.py, build_tool.py; listed in MODELS) declares:
+A model's module (builder.py, town_hall.py, residence.py, farmer.py, cook.py, courier.py, warehouse.py, goggles.py,
+build_tool.py, clipboard.py; listed in MODELS) declares:
 - MODEL: its path under Common, without extension; a block's (under Blocks/) stands on a floor that shades its foot;
 - ICON: its icon's name;
 - PICTURES: the materials whose tile carries a drawing laid out for its island, never turned;
 - material(name, side): the material of a node's face, from the node's name (without Blockbench's '--C<n>');
 - tiles(assets): material -> a 32 px tile or a brush (tools/common/brushes.py);
-- ICON_VIEW, optional: the icon's view (icons.turned) instead of the isometric one of blocks.
+- ICON_VIEW, optional: the icon's view (icons.turned) instead of the isometric one of blocks;
+- animation(nodes), optional: the model's looping blockyanim, written next to it (<MODEL>.blockyanim);
+- SEE_THROUGH, optional: the nodes lit but casting no baked shadow (shown only part of the time by the animation).
 
     python tools/huts/generate.py [path/to/Assets.zip]
 """
@@ -27,17 +30,23 @@ TOOLS = Path(__file__).resolve().parents[1]
 sys.path.append(str(TOOLS / "common"))
 import build_tool  # noqa: E402
 import builder  # noqa: E402
+import clipboard  # noqa: E402
+import cook  # noqa: E402
+import courier  # noqa: E402
+import farmer  # noqa: E402
 import goggles  # noqa: E402
+import residence  # noqa: E402
 import town_hall  # noqa: E402
+import warehouse  # noqa: E402
 from bake import light_map  # noqa: E402
 from icons import ICON_SIZE, draw_model, frame  # noqa: E402
-from pack import GRADLE_ASSETS, ROOT, Assets, save_png  # noqa: E402
+from pack import GRADLE_ASSETS, ROOT, Assets, save_png, write_json  # noqa: E402
 from pack_rules import validate_pack  # noqa: E402
 from paint import islands, texture  # noqa: E402
 from PIL import Image  # noqa: E402
 
 RESOURCES = ROOT / "plugin" / "src" / "main" / "resources"
-MODELS = (builder, town_hall, goggles, build_tool)
+MODELS = (builder, town_hall, residence, farmer, cook, courier, warehouse, goggles, build_tool, clipboard)
 
 
 def main():
@@ -47,6 +56,8 @@ def main():
         nodes = json.loads(model.read_text(encoding="utf-8"))["nodes"]
         image = model_texture(module, nodes, assets)
         save_png(image, model.with_suffix(".png"))
+        if hasattr(module, "animation"):
+            write_json(model.with_suffix(".blockyanim"), module.animation(nodes))
         icon = Image.new("RGBA", (ICON_SIZE, ICON_SIZE), (0, 0, 0, 0))
         view = getattr(module, "ICON_VIEW", None)
         draw_model(icon, nodes, image, *frame(nodes, view), view)
@@ -59,7 +70,8 @@ def model_texture(module, nodes, assets):
     # Blockbench names a group's later cubes '<cube>--C<n>': the materials read the name before it.
     return texture(nodes, texture_size(nodes), module.tiles(assets),
                    lambda name, side: module.material(name.split("--")[0], side),
-                   light_map(nodes, grounded=module.MODEL.startswith("Blocks/")), module.PICTURES)
+                   light_map(nodes, module.MODEL.startswith("Blocks/"), getattr(module, "SEE_THROUGH", frozenset())),
+                   module.PICTURES)
 
 
 def texture_size(nodes):

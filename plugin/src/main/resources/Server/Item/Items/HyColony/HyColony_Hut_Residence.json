@@ -4,7 +4,7 @@
     "Description": "hycolony.item.hut.residence.description"
   },
   "MaxStack": 1,
-  "Icon": "Icons/ItemsGenerated/Furniture_Desert_Chest_Small.png",
+  "Icon": "Icons/Items/HyColony/Hut_Residence.png",
   "Categories": [
     "Furniture.Containers"
   ],
@@ -22,11 +22,16 @@
     "Material": "Solid",
     "DrawType": "Model",
     "Opacity": "Transparent",
-    "CustomModel": "Blocks/Decorative_Sets/Desert/Chest_Small.blockymodel",
+    "CustomModel": "Blocks/HyColony/Huts/Residence.blockymodel",
     "CustomModelTexture": [
-      { "Texture": "Blocks/Decorative_Sets/Desert/Chest_Small_Texture.png", "Weight": 1 }
+      { "Texture": "Blocks/HyColony/Huts/Residence.png", "Weight": 1 }
     ],
+    "HitboxType": "HyColony_Hut_Tall",
     "VariantRotation": "NESW",
+    "Particles": [
+      { "SystemId": "HyColony_Hearth", "TargetNodeName": "Flame", "Scale": 0.45 }
+    ],
+    "Light": { "Color": "#c96" },
     "Gathering": {
       "Breaking": { "GatherType": "Woods" }
     },
@@ -38,12 +43,10 @@
     "State": {
       "Definitions": {
         "CloseWindow": {
-          "InteractionSoundEventId": "SFX_Chest_Wooden_Close",
-          "CustomModelAnimation": "Blocks/Animations/Chest/Chest_Close.blockyanim"
+          "InteractionSoundEventId": "SFX_Chest_Wooden_Close"
         },
         "OpenWindow": {
-          "InteractionSoundEventId": "SFX_Chest_Wooden_Open",
-          "CustomModelAnimation": "Blocks/Animations/Chest/Chest_Open.blockyanim"
+          "InteractionSoundEventId": "SFX_Chest_Wooden_Open"
         }
       }
     },
@@ -54,15 +57,10 @@
       "Down": [ { "FaceType": "Full" } ]
     },
     "BlockParticleSetId": "Wood",
-    "ParticleColor": "#bd9c60",
+    "ParticleColor": "#8c8478",
     "BlockSoundSetId": "Wood",
     "PhysicalMaterialId": "Wood",
-    "TextureComputedColor": "#625F40"
-  },
-  "IconProperties": {
-    "Scale": 0.55,
-    "Translation": [ 0, -15 ],
-    "Rotation": [ 22.5, 45, 22.5 ]
+    "TextureComputedColor": "#7A726A"
   },
   "ItemSoundSetId": "ISS_Blocks_Wood"
 }

@@ -4,7 +4,7 @@
     "Description": "hycolony.item.hut.cook.description"
   },
   "MaxStack": 1,
-  "Icon": "Icons/ItemsGenerated/Furniture_Tavern_Chest_Small.png",
+  "Icon": "Icons/Items/HyColony/Hut_Cook.png",
   "Categories": [
     "Furniture.Containers"
   ],
@@ -38,14 +38,25 @@
     "Material": "Solid",
     "DrawType": "Model",
     "Opacity": "Transparent",
-    "CustomModel": "Blocks/Decorative_Sets/Tavern/SmallChest.blockymodel",
+    "CustomModel": "Blocks/HyColony/Huts/Cook.blockymodel",
     "CustomModelTexture": [
       {
-        "Texture": "Blocks/Decorative_Sets/Tavern/SmallChest_Texture.png",
+        "Texture": "Blocks/HyColony/Huts/Cook.png",
         "Weight": 1
       }
     ],
+    "HitboxType": "HyColony_Hut_Tall",
     "VariantRotation": "NESW",
+    "Particles": [
+      {
+        "SystemId": "HyColony_Stove_Steam",
+        "TargetNodeName": "Steam",
+        "Scale": 0.6
+      }
+    ],
+    "Light": {
+      "Color": "#a75"
+    },
     "Gathering": {
       "Breaking": {
         "GatherType": "Woods"
@@ -61,12 +72,10 @@
     "State": {
       "Definitions": {
         "CloseWindow": {
-          "InteractionSoundEventId": "SFX_Chest_Wooden_Close",
-          "CustomModelAnimation": "Blocks/Animations/Chest/Chest_Close.blockyanim"
+          "InteractionSoundEventId": "SFX_Chest_Wooden_Close"
         },
         "OpenWindow": {
-          "InteractionSoundEventId": "SFX_Chest_Wooden_Open",
-          "CustomModelAnimation": "Blocks/Animations/Chest/Chest_Open.blockyanim"
+          "InteractionSoundEventId": "SFX_Chest_Wooden_Open"
         }
       }
     },
@@ -81,22 +90,10 @@
       ]
     },
     "BlockParticleSetId": "Wood",
-    "ParticleColor": "#793e21",
+    "ParticleColor": "#3e3c42",
     "BlockSoundSetId": "Wood",
     "PhysicalMaterialId": "Wood",
-    "TextureComputedColor": "#462111"
-  },
-  "IconProperties": {
-    "Scale": 0.55,
-    "Translation": [
-      0,
-      -15
-    ],
-    "Rotation": [
-      22.5,
-      45,
-      22.5
-    ]
+    "TextureComputedColor": "#3E3C42"
   },
   "ItemSoundSetId": "ISS_Blocks_Wood"
 }

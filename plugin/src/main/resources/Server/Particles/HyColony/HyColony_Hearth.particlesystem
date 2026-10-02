@@ -1,0 +1,9 @@
+{
+  "$Comment": "The residence's hearth: Campfire_New_Cartoon's flames and sparks, no smoke through the mantel.",
+  "Spawners": [
+    { "SpawnerId": "Fire_Up", "PositionOffset": { "X": 0, "Y": 0.1, "Z": 0 }, "Attractors": [] },
+    { "SpawnerId": "Fire_Center", "PositionOffset": { "X": 0, "Y": 0.1, "Z": 0 } },
+    { "SpawnerId": "Fireplace_Sparks_Up" }
+  ],
+  "CullDistance": 60
+}

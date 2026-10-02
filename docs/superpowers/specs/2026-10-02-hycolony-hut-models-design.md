@@ -1,7 +1,7 @@
 # Modèles des blocs de hutte
 
-Date : 2026-10-02. Statut : constructeur, hôtel de ville, lunettes et outil de construction faits ; maison, fermier et
-bûcheron à venir.
+Date : 2026-10-02. Statut : constructeur, hôtel de ville, résidence, fermier, cuisinier, coursier, entrepôt, lunettes,
+outil de construction et presse-papiers faits ; bûcheron à venir, avec son métier.
 
 ## But
 
@@ -23,6 +23,11 @@ la portons pas. Chaque hutte a un design à nous, dans le style des meubles de H
   Elle y arrive soit par sa géométrie (constructeur), soit par `CustomModelScale` (hôtel de ville, ×1,4, dessiné
   dans 22,8 unités de large). Sa hitbox `HyColony_Hut` fait 1×1,4×1 : Hytale pose une cellule de remplissage
   au-dessus (`FillerBlockUtil.forEachFillerBlock`).
+  - Une hutte dont le meuble de Hytale équivalent est plus haut monte **jusqu'à 2 blocs** (64 unités), avec la
+    hitbox `HyColony_Hut_Tall` (1×2×1). Elle occupe les mêmes cases : `FillerBlockUtil` arrondit la hauteur de la
+    même façon, une seule cellule de remplissage au-dessus. Ainsi le cuisinier (l'établi de cuisine de Hytale fait
+    2,2 blocs de haut, le fourneau 2), la résidence, le coursier et l'entrepôt, à la demande de l'utilisateur, qui
+    garde le constructeur, l'hôtel de ville et le fermier à leur taille.
   - *Écart avec MC*, demandé par l'utilisateur pour la taille des meubles de Hytale : chez MineColonies, la hutte tient
     dans sa case (`AbstractColonyBlock.java:80`) et on peut poser un bloc dessus. Ici, la case au-dessus est occupée par
     la cellule de remplissage, que `HytaleWorldBlocks` lit comme la hutte (le constructeur ne la casse pas). Les 35
@@ -94,6 +99,122 @@ Un pupitre officiel sur un tapis, avec la bannière et la cloche de la colonie, 
   (2 blocs de large, 1,8 de haut) avec le modèle de l'établi d'architecte. Casse, particules et sons passent de la
   pierre au bois, comme le bloc de MineColonies (`BlockHutTownHall.java:51`, `MapColor.WOOD`, `SoundType.WOOD`).
 
+## Résidence
+
+Un âtre douillet en pierre, en 45 boîtes, avec une texture de 96×224, à sa taille réelle (sans `CustomModelScale`) :
+une grande cheminée ouverte dont le chapeau monte à 64 (2 blocs). Choisi par l'utilisateur parmi deux pistes (âtre,
+table de chevet).
+
+- **Maçonnerie** en pierre peinte (pinceau `stone`) : un âtre dallé de 32×3×24, deux montants et un fond de 28 de
+  haut dont les faces tournées vers le feu sont noircies de suie, une hotte de 18 et un conduit coiffé d'un chapeau
+  qui déborde.
+- **Pare-feu** en fer devant le foyer, à la demande de l'utilisateur : une traverse basse, une traverse haute et six
+  barreaux, entre les montants.
+- **Feu** : un lit de braises lumineuses (`fullbright`, fissures orange et jaunes), trois bûches croisées (écorce, et
+  anneaux de coupe aux bouts) sur deux chenets en fer. Les flammes sont des particules : le système
+  `HyColony_Hearth` (`Server/Particles/HyColony/`) reprend les flammes et les étincelles de `Campfire_New_Cartoon`,
+  sans sa fumée ni sa distorsion, qui monteraient à travers le manteau. Il est accroché au nœud vide `Flame`, au cœur
+  des bûches, à l'échelle 0,45. L'âtre éclaire d'une lueur chaude (`Light` `#c96`), comme les braseros de Hytale.
+- **Crémaillère** en fer et **bouilloire** en cuivre brossé pendue haut au-dessus du feu (fond, panse, bord, anse,
+  bec).
+- **Manteau** en bois sombre sur une poutre : une bougie dans son bougeoir en laiton (flamme `fullbright`), un portrait
+  de famille dans un cadre doré (paysage, maisonnette au toit rouge), penché contre la hotte, et un pot en terre
+  cuite. Au-dessus, une horloge murale en bois sur la hotte (cadran crème, aiguilles à dix heures dix, balancier en
+  laiton).
+- **Devant** : un tas de bûches qui montre ses anneaux de coupe, et un tisonnier appuyé contre le montant droit.
+- **Objet** : hitbox `HyColony_Hut_Tall`. Il quitte le petit coffre `Desert/Chest_Small` et ses animations de
+  couvercle ; casse, sons et particules restent ceux du bois, comme le bloc de MineColonies.
+- Le dessous de l'âtre est gardé, à la demande de l'utilisateur : il se voit d'en dessous, même si le bloc est posé
+  sur un support plein. Règle pour toutes les huttes : le dessous d'une large base qui ferme le meuble (dalle de
+  l'âtre, corps du fourneau) est gardé ; celui d'un pied ou d'un manche posé au sol est retiré.
+
+## Fermier
+
+Une table de rempotage, en 60 boîtes, avec une texture de 64×256, à sa taille réelle : les pousses de l'étagère haute
+montent à 44 (1,37 bloc). Choisie parmi deux pistes (établi de semis, brouette de récolte).
+
+- **Table** en bois peint : quatre pieds, ceux de l'arrière montant en dossier, un plateau en planches, une étagère
+  basse et une étagère haute devant un dosseret.
+- **Étagère haute** : trois pots en terre cuite remplis de terreau, chacun avec sa jeune pousse (une tige et deux
+  feuilles en V).
+- **Plateau** : un bac de semis (lattes, terreau) avec deux rangs de trois pousses tournées chacune à sa façon, et un
+  arrosoir en cuivre (anse, bec incliné, pomme), dont l'ouverture montre l'eau. Le terreau est mouillé autour de chaque
+  pousse, à la demande de l'utilisateur : un halo un peu plus sombre et quelques reflets d'eau.
+- **Étagère basse** : un sac de graines en toile de jute ouvert, et une caisse en lattes avec une citrouille à côtes et
+  deux carottes.
+- **Devant** : une fourche appuyée contre le plateau. Sa tête suit celle de l'établi de ferme de Hytale
+  (`Blocks/Benches/Farming`, un quad de 14×16 aux dents peintes) : quatre dents de 2 espacées de 2 sur une barre de
+  14, ici en boîtes ; s'y ajoutent une virole et un manche de 2×2 (celui de Hytale fait 3×31×3). Un premier jet à
+  trois dents de 1 faisait une plaque.
+- **Animation** : les neuf pousses se balancent dans une brise légère (`Farmer.blockyanim`, `CustomModelAnimation` du
+  bloc, comme le feu de camp de Hytale) : ±6° de côté et ±3° d'avant en arrière, un cycle de 3 s, chaque pousse
+  décalée d'un quart de cycle sur la précédente. `tools/huts/farmer.py` l'écrit (`animation`).
+- **Goutte** : une goutte d'eau d'un pixel (nœud `Drop`, pendue à l'arête la plus basse de la pomme inclinée)
+  apparaît à 70/180 du cycle, perle en grossissant (de 0,3 à 1) jusqu'à 140, tombe de 3 sur le plateau jusqu'à 152,
+  puis disparaît et remonte sans se voir (`shapeVisible`, `shapeStretch`, `position` de la même animation). Hytale
+  étire une forme autour de son centre : la perle est remontée de la moitié de ce qui lui manque, pour rester pendue
+  à la pomme. Visible 30 % du temps, elle ne projette pas d'ombre cuite (`SEE_THROUGH`, `bake.light_map`). Une
+  première version en particules (la goutte de `Goblin_Sludge_Drip` recolorée) était trop grosse à cette échelle :
+  l'utilisateur a demandé une animation à nous.
+- **Objet** : hitbox `HyColony_Hut` ; il quitte le petit coffre `Kweebec/Chest_Small` et ses animations de couvercle.
+
+## Cuisinier
+
+Un fourneau en fonte, en 68 boîtes, avec une texture de 64×320, à sa taille réelle : le chapeau du tuyau de poêle
+monte à 64 (2 blocs), comme l'établi de cuisine de Hytale (63×69×32). Choisi parmi deux pistes (fourneau, billot de
+cuisine). Un premier jet de 1,37 bloc était « vraiment petit » à côté de celui de Hytale.
+
+- **Fourneau** en fonte (pinceau `metal`, à peine brossé), un corps d'un bloc de haut sur quatre pieds de 6, sous une
+  plaque de cuisson qui déborde.
+  En façade : la porte du foyer, un cadre et deux barreaux devant des braises lumineuses (`fullbright`, le pinceau
+  `embers` de `tools/common/brushes.py`), la porte du four à poignée en laiton, et une barre en laiton sur deux
+  supports, avec un torchon à carreaux rouges et crème plié dessus.
+- **Plaque** : à droite, quatre feux en carré, à la demande de l'utilisateur (« comme des feux à gaz ») : chacun un
+  socle en fonte claire, un chapeau en laiton et un support de casserole en croix. Un premier jet, un rond peint sur la
+  plaque puis un seul brûleur, ne se lisait pas. Sur le feu avant gauche, une marmite de ragoût (carotte et herbes
+  dans la sauce) et sa louche en acier.
+- **Dosseret** en fonte derrière les feux, sous une étagère chauffe-plats sur deux consoles : une pile de trois
+  assiettes et un bol en terre cuite.
+- **À gauche** : le tuyau de poêle, son collier et son chapeau, une tresse de six têtes d'ail pendue à une corde
+  devant lui, un pot à sel en grès crème à bande bleue (couvercle en bois) et un moulin à poivre en bois sombre à
+  bouton de laiton. Deux simples pots d'épices d'un premier jet ont été remplacés (« boff »).
+- **Vapeur** : le système `HyColony_Stove_Steam` reprend la vapeur de l'établi de cuisine de Hytale
+  (`Workbench_Cooking_On`, spawner `Vapor_Water`) seule, accrochée au nœud vide `Steam` au-dessus de la marmite, à
+  l'échelle 0,6. Le fourneau éclaire d'une lueur faible (`Light` `#a75`), plus sombre que l'âtre : son feu est fermé.
+- **Objet** : hitbox `HyColony_Hut_Tall` ; il quitte le petit coffre `Tavern/SmallChest` et ses animations de
+  couvercle.
+
+## Coursier
+
+Un pupitre de tri postal, en 44 boîtes, avec une texture de 64×384, à sa taille réelle : 2 blocs de haut (64), avec
+la hitbox `HyColony_Hut_Tall`. Choisi parmi deux pistes (pupitre de tri, charrette à bras).
+
+- **Bureau** en bois peint sur quatre pieds de 5×5, au ras du plateau, un caisson à deux tiroirs (boutons en laiton)
+  sous le plateau et une étagère basse portant deux colis. Un premier jet sur des pieds de 3×3 faisait « des petits
+  pieds et un gros truc » : l'utilisateur a demandé un meuble plus costaud.
+- **Casier à lettres** de 4×4 cases (côtés de 2, trois étagères, trois cloisons en retrait d'une unité pour que leurs
+  faces avant ne se confondent pas avec celles des étagères), avec des liasses de lettres (tranches rayées, enveloppe
+  et cachet rouge sur le dessus), un rouleau et un petit colis ; une corniche, et une enseigne en bois à l'enveloppe.
+- **Plateau** : une sacoche en cuir (rabat, boucle en laiton, bandoulière), deux colis en papier kraft ficelés, un
+  tampon sur son encreur rouge et une lettre cachetée posée de biais.
+- **Objet** : il quitte le petit coffre `Lumberjack/SmallChest` et ses animations de couvercle.
+
+## Entrepôt
+
+Une réserve de marchandises, en 31 boîtes, avec une texture de 32×672, à sa taille réelle : 2 blocs de haut (62),
+avec la hitbox `HyColony_Hut_Tall`. Choisie parmi deux pistes (pile de stock, étagère à casiers).
+
+- **Rayonnage** en bois sombre au fond : quatre montants, un fond en planches, deux étagères et un plateau. En bas,
+  deux sacs de grain en toile et une caisse ; au milieu, trois caisses à étiquette ; en haut, deux rouleaux de tissu
+  rouge et bleu et une cruche en terre cuite.
+- **Devant** : une grande caisse à étiquette (lattes, étiquette crème écrite) portant le registre d'inventaire ouvert
+  (pages écrites, reliure en cuir), et un tonneau à douelles cerclé de deux bandes de fer, bombé par deux boîtes
+  croisées, portant une balance en laiton (socle, fût, fléau, deux plateaux pendus, une pile de pièces d'or).
+- **Pas tout au cordeau**, à la demande de l'utilisateur : la balance est tournée de 14° et son fléau penche de 6° vers
+  le plateau aux pièces (plus bas d'une demi-unité, l'autre plus haut d'autant) ; la grande caisse, les caisses du
+  rayonnage, un sac et un rouleau ont chacun un léger biais.
+- **Objet** : il quitte le petit coffre `Village/Chest_Small` et ses animations de couvercle.
+
 ## Lunettes de construction
 
 Des lunettes d'architecte, pièce d'armure de tête (racine `Head` du casque `Armors/Diving_Crude/Head` de Hytale), en
@@ -112,6 +233,23 @@ marteau, compas, bâton à plan) ; un premier jet en équerre et fil à plomb a 
 `Items/HyColony/Build_Tool.{blockymodel,png}`, son icône et le son `ISS_Weapons_Wood` des marteaux de Hytale.
 Son icône le pose en diagonale, tête en haut à gauche, vu de trois quarts côté gemme, comme les icônes d'outils de
 Hytale (`Icons/ItemsGenerated/Tool_Hammer_*`) ; les huttes et les lunettes gardent la vue isométrique.
+
+## Presse-papiers
+
+Le presse-papiers de MineColonies (`ItemClipboard`, la liste des requêtes de la colonie), objet tenu, en 10 boîtes,
+validé par l'utilisateur sur captures Blockbench :
+- planchette de bois rouge-brun, plus claire et plus orangée que le rouge sombre de la texture de MC ;
+- liasse de papier crème posée de biais (3°), écrite d'un titre rouge et de sept requêtes, dont les deux premières
+  cochées en vert ;
+- pince en fer posée sur la planchette, le haut de la liasse pris dessous (plaque, charnière roulée, levier relevé
+  de 25°, deux rivets de laiton) ;
+- crayon ocre à pointe de graphite, penché de 8° et tenu à droite par une boucle de cuir.
+
+Il remplace la carte de Hytale (`Items/Consumables/Scrolls/Map`) et en garde la racine `R-Attachment` (`isPiece`),
+l'animation « Block », le plan y-z et la feuille tournée vers +x. La carte pend de son rouleau le long de +z ; le
+presse-papiers monte le long de +y depuis son bord bas, comme l'outil de construction. Le modèle est écrit par un
+script (pas dans Blockbench), en JSON indenté. L'objet lit `Items/HyColony/Clipboard.{blockymodel,png}` et son
+icône (debout, vue de trois quarts côté feuille).
 
 ## Peinture
 
@@ -139,20 +277,33 @@ Pistes proposées à l'utilisateur, chacune à valider sur des captures Blockben
 
 | Hutte | Piste |
 |---|---|
-| Maison | Maisonnette miniature : toit à deux pans, cheminée, porte et fenêtre éclairée. |
-| Fermier | Carré de terre avec des pousses, caisse de légumes, fourche et houe croisées, arrosoir. |
 | Bûcheron | Souche avec une hache plantée, tas de bûches, jeune arbre. Bloc avec le métier (pas encore porté). |
 
 ## À vérifier en jeu
 
-- Le constructeur et l'hôtel de ville s'affichent avec leur modèle et leur texture, sans face qui scintille ni bord de
-  texture étranger, à la taille des meubles de Hytale, et font face au joueur qui les pose, dans les quatre
-  directions.
+- Le constructeur, l'hôtel de ville, la résidence, le fermier, le cuisinier, le coursier et l'entrepôt s'affichent
+  avec leur modèle et leur texture, sans face qui scintille ni bord de texture étranger, à la taille des meubles de
+  Hytale, et font face au joueur qui les pose, dans les quatre directions.
+- Le presse-papiers tenu en main montre sa feuille écrite au joueur, la planchette droite dans la main comme la carte
+  de Hytale. Sinon : si la feuille est tournée vers l'extérieur, un demi-tour autour de y sous `R-Attachment` ; s'il
+  est couché dans la main, un quart de tour autour de x, pour reprendre l'axe +z de la carte.
 - Les icônes montrent la hutte de face.
+- Les systèmes `HyColony_Hearth` et `HyColony_Stove_Steam` du pack sont chargés : un id inconnu arrêterait le serveur
+  (`ModelParticle` valide `SystemId`, `ParticleSpawnerGroup` le `SpawnerId` ; `validate_pack` les vérifie avant,
+  comme le chemin de `CustomModelAnimation`).
+- La résidence : des flammes et des étincelles montent des bûches ; la lueur chaude éclaire autour de l'âtre. Les
+  flammes (`Fire_Up`, qui monte) et les étincelles (`Fireplace_Sparks_Up`, jusqu'à 1,1 s) ne doivent pas traverser le
+  manteau à l'échelle 0,45 ; sinon, essayer le feu fermé de Hytale (`Bench_Furnace`, `Fire_Furnace_On` :
+  `Fire_Center` et `Furnace_Sparks`).
+- Le fermier : ses pousses se balancent, l'animation continue quand sa fenêtre s'ouvre et se ferme (ses états
+  héritent de `CustomModelAnimation`) ; toutes les 3 s, une goutte perle sous la pomme de l'arrosoir, tombe sur le
+  plateau et disparaît, à une taille juste.
+- Le cuisinier : la vapeur monte de la marmite (`HyColony_Stove_Steam`) ; le foyer luit derrière ses barreaux.
 - Utiliser une hutte ouvre toujours sa fenêtre ; aucune erreur d'animation au journal. L'hôtel de ville crée la
   colonie comme avant.
-- Le bloc au-dessus d'une hutte posée après ce changement est occupé (cellule de remplissage de la hitbox de 1,4) : on
-  ne peut rien y poser.
+- Le bloc au-dessus d'une hutte posée après ce changement est occupé (cellule de remplissage de la hitbox de 1,4, ou
+  de 2 pour la résidence, le cuisinier, le coursier et l'entrepôt) : on ne peut rien y poser ; le joueur bute sur la
+  hitbox de 2 blocs jusqu'en haut du modèle, sans buter dans le vide au-dessus des huttes de 1,4.
 - **Vieux mondes** :
   - un hôtel de ville posé avant ce changement garde trois cellules de remplissage de l'ancienne hitbox
     `Bench_Architect` ((-1, 0, 0), (-1, 1, 0) et (0, 1, 0) pour la rotation de base ; elles tournent avec `NESW`,
@@ -160,5 +311,6 @@ Pistes proposées à l'utilisateur, chacune à valider sur des captures Blockben
     la cellule au-dessus de lui (`removeFillerBlocksAt` suit la hitbox actuelle, 1×1,4×1, et ne retire qu'une case du
     même id) : les deux de côté restent. Elles sont invisibles et ne bloquent pas, mais occupent leurs cases et se
     lisent comme une hutte. Pour nettoyer : poser puis casser un bloc dans chacune des deux ;
-  - une hutte de constructeur posée avant ce changement n'a pas de cellule au-dessus : un bloc posé là traverse le
-    nouveau modèle (1,28 bloc). Reposer la hutte règle le cas.
+  - une hutte de constructeur, de résidence, de fermier, de cuisinier, de coursier ou d'entrepôt posée avant ce
+    changement n'a pas de cellule au-dessus : un bloc posé là traverse le nouveau modèle (1,28 bloc pour le
+    constructeur, 1,37 pour le fermier, près de 2 pour les autres). Reposer la hutte règle le cas.
