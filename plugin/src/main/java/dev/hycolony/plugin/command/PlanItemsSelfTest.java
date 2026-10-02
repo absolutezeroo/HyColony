@@ -23,7 +23,10 @@ final class PlanItemsSelfTest {
 
     private PlanItemsSelfTest() {}
 
-    /** One report line: KO names the first items without source, each with the first plan asking for it. */
+    /**
+     * One report line: KO names the first items without source, each with the first plan asking for it and the
+     * block of that plan it is asked for.
+     */
     static void run(SelfTestReport report, WorldRuntime rt) {
         GamePorts ports = rt.manager().context().ports();
         BlueprintSource blueprints = ports.blueprints();
@@ -53,7 +56,8 @@ final class PlanItemsSelfTest {
             for (ItemAmount a :
                     EntryCost.of(e, ports.catalog(), ports.crafting().catalog())) {
                 if (!sources.hasSource(a.item().id())) {
-                    missing.putIfAbsent(a.item().id(), plan);
+                    missing.putIfAbsent(
+                            a.item().id(), plan + " <- " + e.state().key().id());
                 }
             }
         }
