@@ -23,7 +23,9 @@ final class MenuWatchClicks {
 
     /**
      * On the world's thread: runs the watch click {@code action} of {@code player}, at {@code ref}, on {@code chosen};
-     * true when the menu should close, the camera following or free. Refusals are told in the chat.
+     * true when the menu should close, the camera following or free. Refusals are told in the chat. Freeing or
+     * following a citizen the operator no longer watches (a book drawn before the watch changed) does nothing, so the
+     * camera never follows another citizen than the HUD's.
      */
     boolean run(
             String action,
@@ -32,8 +34,8 @@ final class MenuWatchClicks {
             Ref<EntityStore> ref,
             Store<EntityStore> store) {
         return switch (action) {
-            case "free" -> watch.free(player, store, ref);
-            case "follow" -> watch.follow(player, store, ref, chosen.ref(), chosen.name());
+            case "free" -> chosen.watched() && watch.free(player, store, ref);
+            case "follow" -> chosen.watched() && watch.follow(player, store, ref, chosen.ref(), chosen.name());
             case "unwatch" -> {
                 watch.stop(player, store, ref);
                 yield false;

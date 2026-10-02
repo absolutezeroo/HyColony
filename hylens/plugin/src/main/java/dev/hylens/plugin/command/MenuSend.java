@@ -15,8 +15,8 @@ import java.util.Optional;
 
 /**
  * The menu's "send here" (spec 2026-09-30, § 6.6): to the cell typed, or by the map, the citizen watched else the one
- * chosen. Keeps the cell last typed while its page is open: every click carries the fields, so a redraw shows them
- * again. World thread.
+ * chosen. Keeps the cell last typed while its page is open: clicks on the Citizens tab carry the fields, so a redraw
+ * shows them again; other clicks leave them as they were. World thread.
  */
 final class MenuSend {
     /** The cell's fields, as typed. */

@@ -53,7 +53,6 @@ menu.rowChosen = > {p0}
 menu.rowWatched = {p0} (suivi)
 menu.rowState = {p0} | {p1} | {p2}
 menu.rowAlerts = {p0} alerte(s)
-menu.choose = Choisir
 menu.chosen = Citoyen : {p0}
 menu.noneChosen = Choisissez un citoyen pour agir sur lui.
 menu.watch = Suivre

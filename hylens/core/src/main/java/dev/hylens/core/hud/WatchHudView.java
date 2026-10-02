@@ -31,8 +31,8 @@ public final class WatchHudView {
     /** Characters of a request id shown: HyColony's alerts name requests the same way (CitizenInvariants). */
     static final int SHORT_ID = 8;
     /**
-     * Lines the HUD holds at most: 11 of state, a header and {@link #HISTORY}, a header and {@link #ALERTS}. The panel
-     * (Hud/HyLens/WatchHud.ui) is exactly this many lines of 20 px high.
+     * Lines the HUD holds at most: 11 of state, a header and {@link #HISTORY}, a header and {@link #ALERTS}. The
+     * panel's #Lines (Hud/HyLens/WatchHud.ui) holds this many lines of 20 px.
      */
     static final int MAX_LINES = 11 + 1 + HISTORY + 1 + ALERTS;
 
