@@ -110,7 +110,7 @@ Chaque option est vérifiée seulement si le joueur n'est pas opérateur (ex. `C
 | `neighborbuildingrendering` | true | - | Afficher les bâtiments voisins pendant la pose d'un plan | futur (outil de construction) |
 | `neighborbuildingrange` | 4 | -2-16 | Distance de voisinage, en blocs | futur |
 | `buildgogglerange` | 50 | 1-250 | Distance (blocs) à laquelle les lunettes montrent les ordres (`ColonyBlueprintRenderer.java:458`, comparé au carré) | ACTUEL (lunettes) |
-| `colonyteamborders` | true | - | Couleur d'équipe pour les frontières | futur (frontières) |
+| `colonyteamborders` | true | - | Couleur d'équipe pour les frontières | ACTUEL (bordure de la baguette) |
 | `holidayfeatures` | true | - | Contenu de fêtes | futur |
 | `showdyetooltips` | true | - | Infobulle des cuirs teints | n/a |
 
@@ -228,7 +228,8 @@ Vérifié (clone MC `6b3916a1`) : ce ne sont pas des écarts. `BuilderStock.ACTI
     "EnableDebugLogging": false
   },
   "Client": {
-    "BuildGoggleRange": 50
+    "BuildGoggleRange": 50,
+    "ColonyTeamBorders": true
   },
   "HyColony": {
     "AutosaveIntervalMinutes": 5,
@@ -266,6 +267,7 @@ Tout ce comportement est vérifié dans les sources seulement **[in-game]** : à
 | Option | Branchement |
 |---|---|
 | `Client.BuildGoggleRange` | `core:app/goggles/GogglesView.java` (remplace `RANGE_SQ`) |
+| `Client.ColonyTeamBorders` | `core:app/wand/ColonyBorder.lines` ; sans couleur d'équipe dans HyColony, vrai = tout en blanc (le défaut de MC) |
 | `Gameplay.MaxCitizenPerColony` | **non lue**, conforme à MC : MC ne plafonne que l'immigration et les naissances (`CitizenManager.spawnCitizenOnPosition`, `force = false`) ; l'apparition initiale, seule apparition de HyColony, passe `force = true` (`CitizenManager.java:630`) et est bornée par `InitialCitizenAmount` (≤ 10 < 25) |
 | `Permissions.PermissionEventBypassMinPermLevel` | `core:app/ColonyProtection.isAllowed` (protection) ; 0 = tout joueur en créatif, 1-4 = opérateur en créatif |
 | `Permissions.TurnOffExplosionsInColonies` | `core:app/ColonyProtection.explosionSparesBlock` et `plugin:block/ExplosionProtectionSystem` ; blocs seulement (voir `plugin-b-api.md` § 13) |

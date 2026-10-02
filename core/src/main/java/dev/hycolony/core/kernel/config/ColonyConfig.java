@@ -74,8 +74,11 @@ public record ColonyConfig(
      * MC ClientConfiguration, section gameplay.
      *
      * <p>Deviation from MC: a server setting here, since a Hytale plugin has no client-side config.
+     *
+     * @param colonyTeamBorders the build tool's colony borders take each colony's team colour, else white for the
+     *     nearest colony and red for the others (MC colonyteamborders)
      */
-    public record Client(int buildGoggleRange) {
+    public record Client(int buildGoggleRange, boolean colonyTeamBorders) {
         public Client {
             buildGoggleRange = Math.clamp(buildGoggleRange, 1, 250);
         }
@@ -116,7 +119,7 @@ public record ColonyConfig(
                 new Claims(20, 8, 4, 30000, 0),
                 new Permissions(true, Explosions.DAMAGE_ENTITIES, 2),
                 new Commands(true, true, false),
-                new Client(50),
+                new Client(50, true),
                 new HyColony(5, false, true),
                 new Structurize(1000));
     }

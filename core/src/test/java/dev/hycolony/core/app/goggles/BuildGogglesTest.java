@@ -147,7 +147,7 @@ class BuildGogglesTest {
                 d.claims(),
                 d.permissions(),
                 d.commands(),
-                new ColonyConfig.Client(10),
+                new ColonyConfig.Client(10, true),
                 d.hycolony(),
                 d.structurize()));
         claimedBuild();

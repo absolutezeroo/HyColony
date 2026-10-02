@@ -10,7 +10,12 @@ public final class TerritoryIndex {
     private final Map<ClaimCell, Integer> owners = new HashMap<>();
 
     public OptionalInt colonyAt(BlockPos pos) {
-        Integer id = owners.get(ClaimCell.of(pos));
+        return colonyAt(ClaimCell.of(pos));
+    }
+
+    /** The colony owning {@code cell}; empty if unclaimed. */
+    public OptionalInt colonyAt(ClaimCell cell) {
+        Integer id = owners.get(cell);
         return id == null ? OptionalInt.empty() : OptionalInt.of(id);
     }
 

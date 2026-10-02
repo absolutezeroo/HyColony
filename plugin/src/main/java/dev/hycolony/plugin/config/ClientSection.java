@@ -13,11 +13,17 @@ final class ClientSection {
                     (s, v) -> s.buildGoggleRange = v,
                     s -> s.buildGoggleRange)
             .add()
+            .append(
+                    new KeyedCodec<>("ColonyTeamBorders", Codec.BOOLEAN),
+                    (s, v) -> s.colonyTeamBorders = v,
+                    s -> s.colonyTeamBorders)
+            .add()
             .build();
 
     int buildGoggleRange = ColonyConfig.defaults().client().buildGoggleRange();
+    boolean colonyTeamBorders = ColonyConfig.defaults().client().colonyTeamBorders();
 
     ColonyConfig.Client toCore() {
-        return new ColonyConfig.Client(buildGoggleRange);
+        return new ColonyConfig.Client(buildGoggleRange, colonyTeamBorders);
     }
 }

@@ -66,8 +66,8 @@ class ColonyConfigTest {
         assertEquals(0.1, new ColonyConfig.Gameplay(4, 250, false, 0).foodModifier());
         assertEquals(100, new ColonyConfig.Gameplay(4, 250, false, 500).foodModifier());
         assertEquals(1, new ColonyConfig.Gameplay(4, 250, false, Double.NaN).foodModifier());
-        assertEquals(1, new ColonyConfig.Client(0).buildGoggleRange());
-        assertEquals(250, new ColonyConfig.Client(999).buildGoggleRange());
+        assertEquals(1, new ColonyConfig.Client(0, true).buildGoggleRange());
+        assertEquals(250, new ColonyConfig.Client(999, true).buildGoggleRange());
         assertEquals(
                 4,
                 new ColonyConfig.Permissions(true, Explosions.DAMAGE_NOTHING, 9).permissionEventBypassMinPermLevel());
