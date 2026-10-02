@@ -45,9 +45,9 @@ Refaire l'inventaire du citoyen exactement comme MC :
 - `CitizenEquipment` : `armor()`, 4 cases dans l'ordre de Hytale (tête, torse, mains, jambes), chacune vide ou une pile avec son usure ; `held(Hand)`, main et main secondaire, chacune l'indice d'une case ou −1. Un indice qui ne pointe plus sur rien (case vidée) reste, comme MC : la main est vide tant que la case l'est.
 
 **Objet tenu**, comme MC, en deux choses :
-- la case tenue : `HeldItems.holdSlot` (MC `CitizenItemUtils.setHeldItem`) la prend et montre son objet ; c'est la case de l'outil qu'il use (`WorkerHands.holdSlot` pour le bâtisseur, MC `holdEfficientTool`, et pour l'artisan, MC `AbstractEntityAICrafting.craft` l. 537-538 ; `holdTool` pour la houe du fermier, la première de son inventaire, MC `equipHoe` / `getHoeSlot`, −1 sans houe) ; `HeldItems.release` la rend quand le dépôt range sa pile (`WorkerStock`, MC `dumpOneMoreSlot`) ;
-- l'objet montré en main : `CitizenBodies.setHeldItem` seul (`WorkerHands.hold`, MC `setItemInHand`), la case tenue restant : nourriture du repas, ingrédient de l'artisan, graines du fermier, mains vidées (outil cassé, bâtisseur sans outil, sommeil, repas fini, `resetValues`), et le bloc que le bâtisseur va poser, montré avant la pose même refusée (MC `BuildingStructureHandler.prePlacementLogic`) ;
-- quitter le travail (pluie, pause, repas : MC `resetAI`) ne touche pas la main ;
+- la case tenue : `HeldItems.holdSlot` (MC `CitizenItemUtils.setHeldItem`) la prend et montre son objet ; c'est la case de l'outil qu'il use (`WorkerHands.holdSlot` pour le bâtisseur, MC `holdEfficientTool`, et pour l'artisan la première case de l'outil demandé, quel que soit son niveau, MC `AbstractEntityAICrafting.craft` l. 533-538 ; `holdTool` pour la houe du fermier, la première de son inventaire, MC `equipHoe` / `getHoeSlot`, −1 sans houe) ; `HeldItems.release` la rend quand le dépôt range sa pile (`WorkerStock`, MC `dumpOneMoreSlot`) ;
+- l'objet montré en main : `CitizenBodies.setHeldItem` seul (`WorkerHands.hold`, MC `setItemInHand`), la case tenue restant : nourriture du repas, ingrédient de l'artisan, graines du fermier, mains vidées (outil cassé, bâtisseur sans outil, fermier qui récolte, sommeil, repas fini, `resetValues`), et le bloc que le bâtisseur va poser, montré avant la pose même refusée, la main vide pour un ordre gratuit (MC `BuildingStructureHandler.prePlacementLogic`, `StructurePlacer` en créatif) ;
+- quitter le travail (pluie, pause, repas) ne touche pas la main : MC ne remet l'IA de métier à zéro (`resetAI`) qu'en revenant au travail, sans toucher la main ;
 - un corps lié montre l'armure, pas l'objet tenu : la main d'une entité de MC est la sienne, l'IA la remplit à son prochain geste.
 
 **Armure** :
@@ -83,7 +83,7 @@ Refaire l'inventaire du citoyen exactement comme MC :
 **Aperçu par la caméra** (`CitizenPreviewCamera`) :
 - à l'ouverture : `SetServerCamera(Custom, true, …)` attachée au `NetworkId` du corps, `followAttachedEntity`, de face (lacet du corps + π), réglages de `SpectatorSystems.applyFollowCamera` ;
 - le cadre de l'aperçu est **transparent** : le citoyen y apparaît. La caméra le garde au centre de l'écran : la fenêtre est placée pour que son cadre tombe au centre, ou la caméra est décalée (`positionOffset`, `rotationOffset`) ; le choix et les valeurs se règlent **en jeu** sur la vraie fenêtre ;
-- retour (`SetServerCamera(Custom, false, null)`) à la fermeture de la page, à la déconnexion, et si le corps n'est plus chargé (la fenêtre reste) ;
+- retour (`SetServerCamera(Custom, false, null)`) à la fermeture de la page, au changement de monde (Hytale ne remet pas la caméra, `Universe.transferPlayerAsync`), et si le corps n'est plus chargé (la fenêtre reste) ; un joueur déconnecté n'a plus de caméra à rendre : elle est seulement oubliée ;
 - sans corps chargé : la fenêtre s'ouvre sans aperçu (cadre vide).
 
 **Corps** :

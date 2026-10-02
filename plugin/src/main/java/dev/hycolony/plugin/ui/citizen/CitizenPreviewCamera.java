@@ -26,7 +26,8 @@ import java.util.logging.Level;
  * frame (settings of SpectatorSystems.applyFollowCamera; essay in game, citizen-inventory-window.md § 9).
  *
  * <p>Deviation from MC: WindowCitizenInventory draws the entity in its frame, turned toward the mouse; Hytale cannot
- * draw an entity in a page, so the camera films the citizen itself, re-aimed when it turns. World thread.
+ * draw an entity in a page, so the camera films the citizen itself, re-aimed when it turns. The page's world thread,
+ * but for {@link #stop} once that world no longer runs.
  */
 final class CitizenPreviewCamera {
     /** Blocks between the camera and the citizen's eyes. */
@@ -44,7 +45,8 @@ final class CitizenPreviewCamera {
     private final World world;
     private final Supplier<Optional<Ref<EntityStore>>> body;
     private float aimedYaw = Float.NaN;
-    private boolean on;
+    /** Volatile: {@link #stop} may run on the player's new world thread once the page's world stopped. */
+    private volatile boolean on;
 
     /** {@code body}: the citizen's loaded body, read anew at each call (it may respawn or unload). */
     CitizenPreviewCamera(PlayerRef player, World world, Supplier<Optional<Ref<EntityStore>>> body) {
@@ -56,7 +58,8 @@ final class CitizenPreviewCamera {
     /**
      * Gives the camera back (PlayerCameraResetCommand), a world change included, which resets no camera
      * (Universe.transferPlayerAsync); only forgets it for a player gone from the server (Universe.playersByUuid, a
-     * concurrent map). Safe to call more than once, from any thread; never throws.
+     * concurrent map). Safe to call more than once, and from the player's world thread once the page's world stopped;
+     * never throws.
      */
     void stop() {
         try {

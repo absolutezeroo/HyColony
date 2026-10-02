@@ -13,8 +13,8 @@ import java.util.logging.Level;
  * Armour pieces from Hytale's item assets: the slot of {@code Item.getArmor().getArmorSlot()} (ItemArmorSlot order
  * Head, Chest, Hands, Legs), {@code Item.getItemLevel()}, which a child item inherits from its parent, and {@code
  * Item.getMaxDurability()}; its hits before it breaks come from the item catalog's durability. Read at each call (one
- * asset lookup, asked when a player moves an item into a citizen's armour, and at load for each worn armour piece of
- * a schema-9 citizen). Never throws (CLAUDE.md § 4).
+ * asset lookup, asked when a player moves an item into a citizen's armour, and at load for each damaged stack in a
+ * schema-9 citizen's inventory). Never throws (CLAUDE.md § 4).
  */
 public final class HytaleArmorCatalog implements ArmorCatalog {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
