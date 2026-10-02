@@ -64,6 +64,7 @@ public final class MenuViews {
                 d.map(CitizenDebugSnapshot::jobStep).filter(j -> !j.isEmpty()).orElse(NONE),
                 alerts,
                 chosen.map(m.ref()::equals).orElse(false),
-                watched.map(m.ref()::equals).orElse(false));
+                watched.map(m.ref()::equals).orElse(false),
+                world.wellbeing(m.ref()).map(w -> new MenuView.Saturation(w.saturation(), w.maxSaturation())));
     }
 }

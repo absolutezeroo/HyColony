@@ -29,6 +29,13 @@ public final class FakeColonyWorld implements ColonyWorld, DebugAccess {
     private final Map<ColonyRef, List<CitizenSnapshot>> citizens = new LinkedHashMap<>();
     private final Map<CitizenRef, CitizenDebugSnapshot> debug = new LinkedHashMap<>();
     private final Map<ColonyRef, List<Violation>> alerts = new LinkedHashMap<>();
+    private final Map<CitizenRef, CitizenWellbeing> wellbeing = new LinkedHashMap<>();
+
+    /** What {@code wellbeing} returns for its citizen. */
+    public FakeColonyWorld wellbeing(CitizenWellbeing w) {
+        wellbeing.put(w.citizen(), w);
+        return this;
+    }
 
     /** Adds {@code colony} with its citizens {@code members}. */
     public FakeColonyWorld colony(ColonySummary colony, CitizenSnapshot... members) {
@@ -69,10 +76,9 @@ public final class FakeColonyWorld implements ColonyWorld, DebugAccess {
         return citizens(ref.colony()).stream().filter(c -> c.ref().equals(ref)).findFirst();
     }
 
-    /** None: HyLens's core reads no wellbeing; its HUD gets it from the plugin. */
     @Override
     public Optional<CitizenWellbeing> wellbeing(CitizenRef ref) {
-        return Optional.empty();
+        return Optional.ofNullable(wellbeing.get(ref));
     }
 
     @Override

@@ -11,6 +11,7 @@ import dev.hycolony.api.Pos;
 import dev.hycolony.api.debug.CitizenDebugSnapshot;
 import dev.hycolony.api.debug.Violation;
 import dev.hycolony.api.read.CitizenSnapshot;
+import dev.hycolony.api.read.CitizenWellbeing;
 import dev.hycolony.api.read.ColonySummary;
 import dev.hylens.core.draw.Layers;
 import dev.hylens.core.testing.FakeColonyWorld;
@@ -99,9 +100,18 @@ class MenuViewsTest {
                                 "START_WORKING",
                                 2,
                                 true,
-                                true),
+                                true,
+                                Optional.empty()),
                         new MenuView.CitizenRow(
-                                BOB, "Bob", ApiText.of("hycolony.ui.job.none"), "-", "-", 0, false, false)),
+                                BOB,
+                                "Bob",
+                                ApiText.of("hycolony.ui.job.none"),
+                                "-",
+                                "-",
+                                0,
+                                false,
+                                false,
+                                Optional.empty())),
                 v.citizens());
         assertEquals(Optional.of(ANN), v.citizen());
     }
@@ -161,6 +171,21 @@ class MenuViewsTest {
         assertFalse(v.autoCheck());
         assertTrue(MenuViews.of(world, false, MenuState.INITIAL.toggleAutoCheck(), Optional.empty())
                 .autoCheck());
+    }
+
+    @Test
+    void aRowShowsTheSaturationReadFromHyColony() {
+        world.wellbeing(new CitizenWellbeing(ANN, 42, 60, 7, List.of()));
+
+        MenuView v = MenuViews.of(world, false, MenuState.INITIAL.withColony(A), Optional.empty());
+
+        assertEquals(
+                Optional.of(new MenuView.Saturation(42, 60)),
+                v.citizens().stream()
+                        .filter(r -> r.ref().equals(ANN))
+                        .findFirst()
+                        .orElseThrow()
+                        .saturation());
     }
 
     @Test

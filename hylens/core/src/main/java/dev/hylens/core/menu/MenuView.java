@@ -36,7 +36,8 @@ public record MenuView(
 
     /**
      * One citizen of the chosen colony: its job's name, AI state and job step ("-" for none, or while its body is
-     * unloaded), its confirmed alerts, and whether it is chosen, and watched by the operator.
+     * unloaded), its confirmed alerts, whether it is chosen, and watched by the operator, and its saturation (empty
+     * when HyColony reads none).
      */
     public record CitizenRow(
             CitizenRef ref,
@@ -46,5 +47,9 @@ public record MenuView(
             String step,
             int alerts,
             boolean chosen,
-            boolean watched) {}
+            boolean watched,
+            Optional<Saturation> saturation) {}
+
+    /** A citizen's saturation, as HyColony read it, and its maximum (spec 2026-10-02 lot 2, § 5). */
+    public record Saturation(double value, double max) {}
 }

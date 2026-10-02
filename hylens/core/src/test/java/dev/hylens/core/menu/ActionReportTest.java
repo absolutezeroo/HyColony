@@ -21,4 +21,12 @@ class ActionReportTest {
 
         assertEquals(ApiText.of("hylens.action.refused", reason), ActionReport.text(new ActionResult.Refused(reason)));
     }
+
+    @Test
+    void aSpawnThatCannotHappenSaysWhy() {
+        assertEquals(
+                ApiText.of("hylens.action.spawnUnavailable"), ActionReport.spawned(new ActionResult.Unavailable()));
+        assertEquals(ApiText.of("hylens.action.colonyNotFound"), ActionReport.spawned(new ActionResult.NotFound()));
+        assertEquals(ApiText.of("hylens.action.done"), ActionReport.spawned(new ActionResult.Done()));
+    }
 }

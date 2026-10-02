@@ -16,4 +16,13 @@ public final class ActionReport {
             case ActionResult.Unavailable _ -> ApiText.of("hylens.action.unavailable");
         };
     }
+
+    /** The text of a spawn's {@code result}: as {@link #text}, but naming the colony or town hall when it failed. */
+    public static ApiText spawned(ActionResult result) {
+        return switch (result) {
+            case ActionResult.NotFound _ -> ApiText.of("hylens.action.colonyNotFound");
+            case ActionResult.Unavailable _ -> ApiText.of("hylens.action.spawnUnavailable");
+            default -> text(result);
+        };
+    }
 }
