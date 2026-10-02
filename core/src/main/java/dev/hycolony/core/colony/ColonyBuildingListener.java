@@ -5,6 +5,7 @@ import dev.hycolony.core.building.BuildingManager;
 import dev.hycolony.core.building.module.BuildingEventsModule;
 import dev.hycolony.core.building.module.BuildingModule;
 import dev.hycolony.core.building.module.CreatesResolvers;
+import dev.hycolony.core.construction.tape.ConstructionTape;
 import dev.hycolony.core.crafting.module.RecipeReservations;
 import dev.hycolony.core.request.Resolver;
 import java.util.ArrayList;
@@ -33,9 +34,13 @@ final class ColonyBuildingListener implements BuildingManager.Listener {
         colony.requests().onProviderAdded(building);
     }
 
-    /** MC AbstractBuilding.destroy: tells its event modules, then cancels its requests and work orders. */
+    /**
+     * MC AbstractBuilding.destroy: takes its construction tape down (onDestroyed), tells its event modules, then
+     * cancels its requests and work orders.
+     */
     @Override
     public void removed(Building building) {
+        ConstructionTape.remove(colony, building);
         for (BuildingModule module : building.modules().values()) {
             if (module instanceof BuildingEventsModule events) {
                 events.onRemoved(colony, building);

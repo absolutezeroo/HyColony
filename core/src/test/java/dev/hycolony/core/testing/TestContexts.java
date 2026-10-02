@@ -46,7 +46,7 @@ public final class TestContexts {
     public final FakePlayers players = new FakePlayers();
     public final FakeUi ui = new FakeUi();
     public final EventBus bus = new EventBus();
-    public final FakeCatalog catalog = new FakeCatalog();
+    public final FakeCatalog catalog = FakeTapeBlocks.walkThrough(new FakeCatalog());
     public final FakeWorldBlocks blocks = new FakeWorldBlocks();
     public final FakeContainers containers = new FakeContainers();
     public final FakePlayerInventory playerInventory = new FakePlayerInventory();

@@ -5,6 +5,7 @@ import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyEvents;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.construction.shared.UpgradeCompletion;
+import dev.hycolony.core.construction.tape.ConstructionTape;
 import dev.hycolony.core.kernel.port.Msg;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,6 +24,9 @@ final class BuildCompletion {
      * leaves the work manager.
      */
     static void apply(Colony colony, WorkOrder o, Building b) {
+        // MC AbstractBuilding.onUpgradeComplete: the tape of the plan built over comes down before the level changes;
+        // the order's own removal then takes the tape around the new level's plan.
+        ConstructionTape.remove(colony, b);
         String logType;
         if (o.type() == WorkOrderType.REMOVE) {
             b.setDeconstructed(true);

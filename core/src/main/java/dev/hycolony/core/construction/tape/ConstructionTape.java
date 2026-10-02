@@ -19,9 +19,14 @@ public final class ConstructionTape {
 
     private ConstructionTape() {}
 
-    /** MC placeConstructionTape(building.getCorners(), colony): around the footprint of the building's level. */
+    /**
+     * MC placeConstructionTape(building.getCorners(), colony): around the footprint of the building's level; its plan
+     * is not even read while the colony's construction tape setting is off.
+     */
     public static void place(Colony colony, Building building) {
-        place(colony, HutFootprint.of(colony.context().ports(), building));
+        if (colony.settings().constructionTape()) {
+            place(colony, HutFootprint.of(colony.context().ports(), building));
+        }
     }
 
     /**

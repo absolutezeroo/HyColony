@@ -6,6 +6,7 @@ import dev.hycolony.core.colony.ColonyAccess;
 import dev.hycolony.core.colony.ColonyEvents;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.construction.shared.BuilderHut;
+import dev.hycolony.core.construction.tape.ConstructionTape;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Either;
@@ -82,6 +83,7 @@ public final class WorkManager {
         if (type == WorkOrderType.BUILD) {
             b.setStyle(order.style()); // the building keeps the style it is built in
         }
+        ConstructionTape.place(colony, b); // MC WorkOrderBuilding.onAdded, never for an order read from a save
         colony.markDirty();
         announceCreated(b, order, player);
         return order;
@@ -121,14 +123,15 @@ public final class WorkManager {
     }
 
     /**
-     * Removes the order; if it was its builder's active order ({@link #claimedBy}), that builder's requests are
-     * cancelled too (they were made for it). Placed blocks stay.
+     * Removes the order and its construction tape; if it was its builder's active order ({@link #claimedBy}), that
+     * builder's requests are cancelled too (they were made for it). Placed blocks stay.
      */
     public void cancel(int orderId) {
         WorkOrder order = orders.get(orderId);
         if (order == null) {
             return;
         }
+        removeTape(order);
         Optional<BlockPos> claimer = order.claimedBy();
         boolean active = claimer.flatMap(this::claimedBy).map(order::equals).orElse(false);
         orders.remove(orderId);
@@ -237,12 +240,21 @@ public final class WorkManager {
         BuildCompletion.apply(colony, o, b);
     }
 
-    /** The order is done: removed without touching requests. */
+    /** The order is done: removed with its construction tape, without touching requests. */
     void complete(WorkOrder o) {
         if (orders.remove(o.id()) != null) {
             byBuilding.remove(o.buildingPos());
+            removeTape(o);
             colony.markDirty();
         }
+    }
+
+    /**
+     * MC WorkOrderBuilding.onRemoved: the tape around the footprint of the building's current level; nothing once the
+     * building is gone (the colony took its tape down then, MC AbstractBuilding.onDestroyed).
+     */
+    private void removeTape(WorkOrder o) {
+        colony.buildings().at(o.buildingPos()).ifPresent(b -> ConstructionTape.remove(colony, b));
     }
 
     /**

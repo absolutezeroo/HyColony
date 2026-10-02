@@ -55,6 +55,7 @@ class BuildGogglesTest {
         manager = t.manager();
         manager.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
         colony = manager.foundation().confirm(alice, "A").orElseThrow();
+        colony.settings().setConstructionTape(false); // the plan's blocks only (tape: ConstructionTape*)
         goggles = new BuildGoggles(manager, previews);
         t.players.online.put(alice, HOUSE.offset(5, 0, 0));
     }

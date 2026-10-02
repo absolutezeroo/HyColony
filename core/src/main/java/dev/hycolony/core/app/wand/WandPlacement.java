@@ -12,6 +12,7 @@ import dev.hycolony.core.colony.GamePorts;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.colony.territory.ClaimCell;
 import dev.hycolony.core.construction.blueprint.Blueprint;
+import dev.hycolony.core.construction.tape.ConstructionTape;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockState;
@@ -138,6 +139,9 @@ final class WandPlacement {
             manager.huts().place(colony, type.id(), pos, s.rotation(), player);
             Building building = colony.buildings().at(pos).orElseThrow();
             building.setStyle(s.style());
+            if (!creative) {
+                ConstructionTape.place(colony, building); // MC SurvivalHandler.handle, after the hut's plan is set
+            }
             colony.markDirty();
             return new Placed(building);
         }

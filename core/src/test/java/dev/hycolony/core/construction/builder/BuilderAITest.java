@@ -106,6 +106,7 @@ class BuilderAITest {
         manager = t.manager();
         manager.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
         colony = manager.foundation().confirm(alice, "A").orElseThrow();
+        colony.settings().setConstructionTape(false); // the builder's own world changes only (tape: ConstructionTape*)
         hut = hut(ConstructionBuildingTypes.BUILDER, HUT, 5);
         citizen = new CitizenData(1);
         colony.citizens().restore(citizen);

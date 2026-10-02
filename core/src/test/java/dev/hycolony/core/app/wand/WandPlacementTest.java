@@ -119,6 +119,42 @@ class WandPlacementTest {
         assertTrue(t.blocks.blocks.containsKey(spot));
     }
 
+    /** Stone under the hut's taped border, so that each tape finds its ground. */
+    private void groundAround(BlockPos at) {
+        for (int x = -3; x <= 3; x++) {
+            for (int z = -3; z <= 3; z++) {
+                t.blocks.blocks.put(at.offset(x, -1, z), FakeBlueprints.state(FakeBlueprints.DIRT));
+            }
+        }
+    }
+
+    private long tapes() {
+        return t.blocks.blocks.values().stream()
+                .filter(s -> t.tape.isTape(s.key()))
+                .count();
+    }
+
+    /** MC SurvivalHandler: a hut placed with the build tool in survival is taped around its level 1 plan. */
+    @Test
+    void survivalPlacementTapesTheSite() {
+        groundAround(spot);
+        give(alice, BUILDER_ITEM);
+
+        placement.confirm(alice, "Alice", session(spot, BUILDER));
+
+        assertEquals(16, tapes(), "the border of the 3 x 3 plan widened by one");
+    }
+
+    @Test
+    void creativePlacementTapesNothing() {
+        groundAround(spot);
+        t.players.creative.add(alice);
+
+        placement.confirm(alice, "Alice", session(spot, BUILDER));
+
+        assertEquals(0, tapes());
+    }
+
     @Test
     void placedHutIsLevelZeroWithTheChosenStyleAndRotation() {
         give(alice, BUILDER_ITEM);
