@@ -8,7 +8,6 @@ import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockGathering
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.fluid.Fluid;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
-import com.hypixel.hytale.server.core.asset.type.item.config.ItemTool;
 import com.hypixel.hytale.server.core.asset.type.item.config.ItemToolSpec;
 import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockKind;
@@ -21,6 +20,7 @@ import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.plugin.block.HytaleBlockStates;
 import dev.hycolony.plugin.food.FoodIds;
 import dev.hycolony.plugin.food.HytaleFoods;
+import dev.hycolony.plugin.item.HytaleItemInfo;
 import dev.hycolony.plugin.item.HytaleStacks;
 import java.util.HashMap;
 import java.util.List;
@@ -59,7 +59,6 @@ public final class HytaleItemCatalog implements ItemCatalog {
             new BlockInfo(BlockKind.FLUID, Optional.empty(), false, Optional.empty(), 0f, false, false, false);
     private static final BlockInfo AIR =
             new BlockInfo(BlockKind.AIR, Optional.empty(), false, Optional.empty(), 0f, false, false, false);
-    private static final ItemInfo UNKNOWN_ITEM = new ItemInfo(1, Optional.empty(), 0);
 
     private record BlockInfo(
             BlockKind kind,
@@ -71,10 +70,9 @@ public final class HytaleItemCatalog implements ItemCatalog {
             boolean bed,
             boolean seat) {}
 
-    private record ItemInfo(int maxStack, Optional<ToolInfo> tool, int durability) {}
-
     private final Map<BlockKey, BlockInfo> blocks = new HashMap<>();
-    private final Map<ItemKey, ItemInfo> items = new HashMap<>();
+    private final Map<ItemKey, HytaleItemInfo> items = new HashMap<>();
+    private @Nullable List<ItemKey> tools;
     private final Map<BlockKey, Boolean> goodFloors = new HashMap<>();
     private final Set<String> hutBlockIds;
     /** The id-map's hoes and their tool level: Hytale hoes have no tool spec to map (they till by interaction). */
@@ -103,6 +101,15 @@ public final class HytaleItemCatalog implements ItemCatalog {
     @Override
     public List<ItemKey> foods() {
         return foods.foods();
+    }
+
+    /** Every Hytale item {@link #tool} knows, by id; listed once, at the first call. */
+    @Override
+    public List<ItemKey> tools() {
+        if (tools == null) {
+            tools = HytaleItemInfo.tools(Item.getAssetMap().getAssetMap().keySet().stream(), k -> tool(k).isPresent());
+        }
+        return tools;
     }
 
     /** The food table this catalog reads, shared with the cooking catalog. */
@@ -237,14 +244,14 @@ public final class HytaleItemCatalog implements ItemCatalog {
         return info;
     }
 
-    private ItemInfo item(ItemKey key) {
-        ItemInfo info = items.get(key);
+    private HytaleItemInfo item(ItemKey key) {
+        HytaleItemInfo info = items.get(key);
         if (info == null) {
             try {
-                info = hoeLevels.containsKey(key.id()) ? computeHoe(key.id()) : computeItem(key.id());
+                info = HytaleItemInfo.of(key.id(), hoeLevels);
             } catch (RuntimeException e) {
                 fail(key.id(), e);
-                info = UNKNOWN_ITEM;
+                info = HytaleItemInfo.UNKNOWN;
             }
             items.put(key, info);
         }
@@ -314,74 +321,6 @@ public final class HytaleItemCatalog implements ItemCatalog {
             case "Soils" -> ToolType.SHOVEL;
             default -> null;
         };
-    }
-
-    /**
-     * A hoe: tool type HOE at its id-map level, speed 1, and one use per tilled block (Hoe_Till's
-     * AdjustHeldItemDurability -1), so its uses are its max durability.
-     */
-    private ItemInfo computeHoe(String id) {
-        Item item = Item.getAssetMap().getAsset(id);
-        if (item == null) {
-            return UNKNOWN_ITEM;
-        }
-        return new ItemInfo(
-                Math.max(1, item.getMaxStack()),
-                Optional.of(new ToolInfo(ToolType.HOE, hoeLevels.getOrDefault(id, 0), 1f)),
-                (int) item.getMaxDurability());
-    }
-
-    private static ItemInfo computeItem(String id) {
-        Item item = Item.getAssetMap().getAsset(id);
-        if (item == null) {
-            return UNKNOWN_ITEM;
-        }
-        int maxStack = Math.max(1, item.getMaxStack());
-        ItemTool tool = item.getTool();
-        ToolType type = tool == null
-                ? null
-                : switch (String.valueOf(item.getPlayerAnimationsId())) {
-                    case "Pickaxe" -> ToolType.PICKAXE;
-                    case "Hatchet" -> ToolType.AXE;
-                    case "Shovel" -> ToolType.SHOVEL;
-                    default -> null;
-                };
-        if (type == null) {
-            return new ItemInfo(maxStack, Optional.empty(), 0);
-        }
-        String gather = switch (type) {
-            case PICKAXE -> "Rocks";
-            case AXE -> "Woods";
-            case SHOVEL, HOE -> "Soils";
-        };
-        ItemToolSpec spec = null;
-        if (tool.getSpecs() != null) {
-            for (ItemToolSpec s : tool.getSpecs()) {
-                if (gather.equals(s.getGatherType())) {
-                    spec = s;
-                    break;
-                }
-            }
-        }
-        ItemToolSpec unarmed = ItemToolSpec.getAssetMap().getAsset(gather);
-        float power = spec == null ? 0f : spec.getPower();
-        float speed = ToolScale.speed(power, unarmed == null ? 0f : unarmed.getPower());
-        int level = spec == null ? 0 : ToolScale.level(spec.getQuality());
-        return new ItemInfo(maxStack, Optional.of(new ToolInfo(type, level, speed)), durability(item, tool, power));
-    }
-
-    /** Blocks of the tool's own gather type mined before it breaks ({@link ToolScale#uses}); 0 = unbreakable. */
-    private static int durability(Item item, ItemTool tool, float power) {
-        double max = item.getMaxDurability();
-        double loss = item.getDurabilityLossOnHit(); // Hytale's fallback when no block set matches
-        ItemTool.DurabilityLossBlockTypes[] perSet = tool.getDurabilityLossBlockTypes();
-        if (perSet != null && perSet.length > 0) {
-            loss = 0; // vanilla tools list one entry (Stone, Rock, Ores, Soil, Wood): take the worst listed
-            for (ItemTool.DurabilityLossBlockTypes t : perSet) {
-                loss = Math.max(loss, t.getDurabilityLossOnHit());
-            }
-        }
-        return ToolScale.uses(max, loss, power);
     }
 
     private void fail(String id, RuntimeException e) {

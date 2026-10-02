@@ -3,6 +3,7 @@ package dev.hycolony.core.request.model;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.ItemCatalog;
+import java.util.Optional;
 
 /** A requestable satisfied by handing over items (MineColonies IDeliverable). */
 public sealed interface Deliverable extends Requestable permits StackRequest, ToolRequest, StackList {
@@ -12,6 +13,12 @@ public sealed interface Deliverable extends Requestable permits StackRequest, To
     default boolean matches(ItemAmount stack, ItemCatalog catalog) {
         return !catalog.wornOut(stack) && matches(stack.item(), catalog);
     }
+
+    /**
+     * The item this request shows first, which a player in creative mode hands over for free (MC
+     * IRequest.getDisplayStacks().findFirst()); empty when none is known.
+     */
+    Optional<ItemKey> displayed(ItemCatalog catalog);
 
     int count();
 

@@ -44,6 +44,9 @@ public interface ItemCatalog {
     /** Every item {@link #food} knows, in a set order (MC CompatibilityManager's edibles, before filtering). */
     List<ItemKey> foods();
 
+    /** Every item {@link #tool} knows, by id (the tools MC's ToolRequest shows). */
+    List<ItemKey> tools();
+
     /**
      * What cooking {@code item} gives (MC the furnace's smelting result; in Hytale the campfire's); empty when it
      * does not cook.

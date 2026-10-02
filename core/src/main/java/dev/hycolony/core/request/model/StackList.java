@@ -5,6 +5,7 @@ import dev.hycolony.core.kernel.port.ItemCatalog;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * MC StackList: {@code count} items, any of {@code accepted}; asked for a recipe ingredient given by Hytale resource
@@ -24,6 +25,12 @@ public record StackList(List<ItemKey> accepted, String description, int count, i
     @Override
     public boolean matches(ItemKey item, ItemCatalog catalog) {
         return accepted.contains(item);
+    }
+
+    /** Its first accepted item. */
+    @Override
+    public Optional<ItemKey> displayed(ItemCatalog catalog) {
+        return Optional.of(accepted.getFirst());
     }
 
     @Override

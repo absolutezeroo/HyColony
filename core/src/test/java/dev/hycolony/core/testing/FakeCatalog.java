@@ -97,6 +97,12 @@ public final class FakeCatalog implements ItemCatalog {
         return foods.keySet().stream().sorted(Comparator.comparing(ItemKey::id)).toList();
     }
 
+    /** The tools by id. */
+    @Override
+    public List<ItemKey> tools() {
+        return tools.keySet().stream().sorted(Comparator.comparing(ItemKey::id)).toList();
+    }
+
     @Override
     public Optional<ToolType> toolFor(BlockKey block) {
         return Optional.ofNullable(toolForBlock.get(block));

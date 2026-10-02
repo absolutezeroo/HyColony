@@ -4,6 +4,7 @@ import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.kernel.port.ItemCatalog;
 import java.util.Objects;
+import java.util.Optional;
 
 /** A single tool of {@code type} with a level in [minLevel, maxLevel]. */
 public record ToolRequest(ToolType type, int minLevel, int maxLevel) implements Deliverable {
@@ -19,6 +20,12 @@ public record ToolRequest(ToolType type, int minLevel, int maxLevel) implements 
         return catalog.tool(item)
                 .filter(t -> t.type() == type && t.level() >= minLevel && t.level() <= maxLevel)
                 .isPresent();
+    }
+
+    /** The first of the catalog's tools, by id, that it accepts (MC ToolRequest's display stacks: the tools fit). */
+    @Override
+    public Optional<ItemKey> displayed(ItemCatalog catalog) {
+        return catalog.tools().stream().filter(t -> matches(t, catalog)).findFirst();
     }
 
     @Override
