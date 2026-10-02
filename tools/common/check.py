@@ -63,6 +63,11 @@ class UnwrapTest(unittest.TestCase):
                 self.assertTrue(apart, (a, b))
         bake.light_map(nodes)
 
+    def test_a_texture_taller_than_max_side_gives_way_to_a_wider_one_even_of_a_larger_area(self):
+        # 14 faces of 26 x 26: 32 x 416 is smaller than 64 x 224, but 416 is over MAX_SIDE.
+        nodes = [node(f"P{i}", (0, 0, 0), box_shape((1, 26, 26), ("left", "right"))) for i in range(7)]
+        self.assertEqual((64, 224), unwrap(nodes))
+
 
 class BoundsTest(unittest.TestCase):
     def test_bounds_place_a_child_from_its_parents_shape_offset(self):

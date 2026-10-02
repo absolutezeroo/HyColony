@@ -45,10 +45,17 @@ def box_shape(size, sides, offset=(0, 0, 0), shading="standard"):
     return shape
 
 
+# The longest texture side unwrap picks when it can: Hytale's block textures reach 352, ours 384 (shown in game);
+# longer strips (the warehouse's smallest layout is 32 x 672) are untried in the client's block atlas. Not a client
+# limit: HyDomum's 576 x 544 board shows in game.
+MAX_SIDE = 384
+
+
 def unwrap(nodes, widths=(32, 64, 96, 128, 160, 192, 256)):
     """Lays every box face of the model on its own UV island, 2 pixels apart (paint.bleed fills the gap), in shelves
-    of the texture width of widths giving the smallest texture (as the Blockbench unwrap of
-    docs/research/hytale-models.md). Returns the texture size, sides multiples of 32; changes nodes in place."""
+    of the texture width of widths giving the smallest texture with no side over MAX_SIDE, else the one of the shortest
+    longest side (as the Blockbench unwrap of docs/research/hytale-models.md). Returns the texture size, sides
+    multiples of 32; changes nodes in place."""
     faces = []
     for n in walk(nodes):
         shape = n["shape"]
@@ -72,7 +79,7 @@ def unwrap(nodes, widths=(32, 64, 96, 128, 160, 192, 256)):
         return spots, 32 * math.ceil((y + row) / 32)
 
     fits = [(width, *laid) for width in widths if (laid := shelves(width))]
-    width, spots, height = min(fits, key=lambda f: f[0] * f[2])
+    width, spots, height = min(fits, key=lambda f: (max(f[0], f[2], MAX_SIDE), f[0] * f[2]))
     for face, x, y in spots:
         face["offset"] = {"x": x, "y": y}
     return width, height
