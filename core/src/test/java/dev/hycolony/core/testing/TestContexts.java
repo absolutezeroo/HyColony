@@ -124,7 +124,8 @@ public final class TestContexts {
                         new CraftingSetup(recipes, craftingRules),
                         farming,
                         new CookingSetup(cooking, cooking),
-                        tape),
+                        tape,
+                        catalog),
                 timings);
     }
 }

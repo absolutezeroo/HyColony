@@ -14,6 +14,7 @@ import dev.hycolony.plugin.crafting.HytaleRecipeCatalog;
 import dev.hycolony.plugin.farming.HytaleFarming;
 import dev.hycolony.plugin.food.HytaleCookingCatalog;
 import dev.hycolony.plugin.food.HytaleCookingStations;
+import dev.hycolony.plugin.item.HytaleArmorCatalog;
 import dev.hycolony.plugin.prefab.HytaleBlueprintSource;
 import dev.hycolony.plugin.prefab.PackedBlueprints;
 
@@ -42,6 +43,7 @@ final class WorldPorts {
                 new CookingSetup(
                         new HytaleCookingCatalog(ids.food(), catalog.foodTable()),
                         new HytaleCookingStations(world, catalog.stacks())),
-                new HytaleTapeBlocks(ids));
+                new HytaleTapeBlocks(ids),
+                new HytaleArmorCatalog());
     }
 }

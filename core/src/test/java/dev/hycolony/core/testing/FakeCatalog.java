@@ -1,5 +1,7 @@
 package dev.hycolony.core.testing;
 
+import dev.hycolony.core.citizen.inventory.ArmorCatalog;
+import dev.hycolony.core.kernel.item.ArmorInfo;
 import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockKind;
 import dev.hycolony.core.kernel.item.FoodInfo;
@@ -16,7 +18,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-public final class FakeCatalog implements ItemCatalog {
+/** The item facts tests set, the armour pieces included ({@link #armors}). */
+public final class FakeCatalog implements ItemCatalog, ArmorCatalog {
     public int defaultMaxStack = 64;
     public final Map<ItemKey, Integer> maxStacks = new HashMap<>();
     public final Map<BlockKey, ItemKey> itemForBlock = new HashMap<>();
@@ -31,6 +34,7 @@ public final class FakeCatalog implements ItemCatalog {
     public final Map<BlockKey, ToolType> toolForBlock = new HashMap<>();
     public final Map<BlockKey, Float> hardness = new HashMap<>();
     public final Map<ItemKey, ToolInfo> tools = new LinkedHashMap<>();
+    public final Map<ItemKey, ArmorInfo> armors = new HashMap<>();
     public final Map<ItemKey, Integer> durability = new HashMap<>();
     public final Map<ItemKey, FoodInfo> foods = new HashMap<>();
     public final Map<ItemKey, ItemKey> cooked = new HashMap<>();
@@ -117,6 +121,11 @@ public final class FakeCatalog implements ItemCatalog {
     @Override
     public Optional<ToolInfo> tool(ItemKey item) {
         return Optional.ofNullable(tools.get(item));
+    }
+
+    @Override
+    public Optional<ArmorInfo> armor(ItemKey item) {
+        return Optional.ofNullable(armors.get(item));
     }
 
     @Override
