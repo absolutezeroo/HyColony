@@ -56,9 +56,13 @@ ActionResult setSaturation(Actor actor, CitizenRef ref, double value);
 
 ## 4. Le cœur de HyColony (TDD)
 
-- **`CitizenManager.spawnForced(BlockPos townHall)`** : le citoyen MC `spawnOrCreateCivilian(force = true)`. Il réutilise le chemin de `spawnInitialCitizen` (genre équilibré, nom, compétences, journal `citizenSpawned`, événement `CitizenSpawned`) sans regarder `moveIn` ni `initialCitizenAmount`. Il renvoie `false` sans rien créer si l'hôtel de ville n'est pas chargé (`worldQuery().isLoaded`). L'arrivée normale (`onColonyTick`) ne change pas.
+- **`CitizenManager.spawnForced(BlockPos townHall)`** : le citoyen MC `spawnOrCreateCivilian(force = true)`. Il réutilise le chemin de `spawnInitialCitizen` (genre équilibré, nom, compétences, journal `citizenSpawned`, événement `CitizenSpawned`, donc aussi l'événement d'API `CitizenSpawned`) sans regarder `moveIn` ni `initialCitizenAmount`. L'arrivée normale (`onColonyTick`) ne change pas. Il renvoie `false` **sans rien créer** dans deux cas, comme MC :
+  - l'hôtel de ville n'est pas chargé (`worldQuery().isLoaded`) ;
+  - il est chargé mais aucun corps n'y trouve de place : MC ne crée alors pas le citoyen et prévient les joueurs (`WARNING_COLONY_NO_ARRIVAL_SPACE`, déjà porté : `CitizenArrival.tellNoSpace`). Aujourd'hui `spawnInitialCitizen` garde le citoyen sans corps dans ce cas ; l'arrivée forcée, elle, essaie le corps avant d'enregistrer le citoyen.
+- **Sauvegarde** : les deux actions marquent la colonie à réécrire (`colony.markDirty()`), sinon une saturation posée juste avant un arrêt serait perdue.
 - **`CoreDebugActions`** gagne `spawnCitizen` et `setSaturation`. S'il dépasse 150 lignes, ces deux actions vont dans un collaborateur (`CoreDebugColonyActions`). Le refus « opérateur seul » et le refus par la config s'ajoutent à `refusal`.
 - **Config** : `ColonyConfig.Commands` gagne `canPlayerUseModifyCitizensCommand` (défaut `false`, MC) ; `plugin/config/CommandsSection` lit et écrit la clé `CanPlayerUseModifyCitizensCommand` de la section `Commands` de `config.json`. Une ancienne config sans la clé prend le défaut.
+- **Documentation** : `api/README.md` (guide des auteurs d'addons, en anglais) cite les deux actions et la version 1.2 ; `docs/research/config-inventory.md` passe `canplayerusemodifycitizenscommand` de « futur » à porté, et son exemple de `config.json` gagne la clé.
 - **Texte** : `hycolony.debug.refused.config` (« Cette commande est désactivée dans la configuration du serveur. », MC `COMMAND_DISABLED_IN_CONFIG`), en-US et fr-FR.
 
 ## 5. HyLens
@@ -72,14 +76,15 @@ ActionResult setSaturation(Actor actor, CitizenRef ref, double value);
 ## 6. Tests
 
 - Cœur de HyColony :
-  - `spawnCitizen` d'un opérateur ajoute un citoyen même avec « nouveaux citoyens » coupé et au-delà de `initialCitizenAmount` ; un gestionnaire non opérateur est refusé ; sans hôtel de ville chargé, `Unavailable` et aucun citoyen ;
-  - `setSaturation` : la valeur posée, bornée à 0 et 60 ; un gestionnaire refusé par défaut, accepté avec la config ; colonie ou citoyen inconnu, `NotFound` ;
+  - `spawnCitizen` d'un opérateur ajoute un citoyen même avec « nouveaux citoyens » coupé et au-delà de `initialCitizenAmount`, et l'événement d'API `CitizenSpawned` part ; un gestionnaire non opérateur est refusé ; sans hôtel de ville chargé, ou sans place pour le corps, `Unavailable` et aucun citoyen ; la colonie est marquée à réécrire ;
+  - `setSaturation` : la valeur posée, bornée à 0 et 60, la colonie marquée à réécrire ; un gestionnaire refusé par défaut, accepté avec la config ; colonie ou citoyen inconnu, `NotFound` ;
   - la config : la clé lue, son défaut sans elle.
-- Cœur de HyLens : `SaturationStep` (0, −1, +1, max, bornes), la saturation dans `MenuView`.
+- Cœur de HyLens : `SaturationStep` (0, −1, +1, max, bornes), la saturation dans `MenuView` ; `ApiCompatibilityTest` suit la 1.2 (HyLens refuse une HyColony 1.1, à qui manquent les deux méthodes).
 - En jeu (`docs/TESTING.md`) : « Nouveau citoyen » avec les arrivées coupées, puis sans hôtel de ville chargé ; les quatre boutons de saturation, le HUD qui suit ; un gestionnaire non opérateur refusé, puis accepté avec la clé.
 
 ## 7. Écarts à MineColonies
 
 - `setSaturation` remplace les trois opérateurs `=`, `+`, `-` de la commande : HyLens calcule la valeur, HyColony la borne. Même effet.
 - Sans hôtel de ville chargé, `Unavailable` au lieu du plantage de MC.
+- MC poste `CitizenAddedModEvent` avec la source `COMMANDS` ; l'événement d'API `CitizenSpawned` de HyColony n'a pas de source (en ajouter une serait une rupture du record).
 - La réponse de `spawnCitizen` ne porte pas le nom du nouveau citoyen (`ActionResult` n'a pas de charge, en ajouter une serait une rupture) : il apparaît dans la liste.
