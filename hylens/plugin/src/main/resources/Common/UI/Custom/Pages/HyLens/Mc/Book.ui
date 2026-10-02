@@ -39,7 +39,7 @@ $C = "../../../Common.ui";
   Sounds: $C.@ButtonSounds
 );
 
-// MC's builder_button_very_small (29 x 15), doubled: the saturation's "0" and "Max".
+// MC's builder_button_very_small (29 x 16), doubled: the saturation's "0" and "Max".
 @VerySmallButtonStyle = TextButtonStyle(
   Default: (Background: "builder_button_very_small.png", LabelStyle: @CompactInkCentered),
   Hovered: (Background: "builder_button_very_small_hover.png", LabelStyle: @CompactInkCentered),

@@ -11,6 +11,7 @@ import dev.hycolony.api.debug.CitizenDebugSnapshot;
 import dev.hycolony.api.debug.DebugAccess;
 import dev.hycolony.api.debug.HistoryEntry;
 import dev.hycolony.api.debug.PartTiming;
+import dev.hycolony.api.debug.SaturationChange;
 import dev.hycolony.api.debug.Violation;
 import dev.hycolony.api.read.BuildingSnapshot;
 import dev.hycolony.api.read.CitizenSnapshot;
@@ -147,7 +148,7 @@ public final class FakeColonyWorld implements ColonyWorld, DebugAccess {
     }
 
     @Override
-    public ActionResult setSaturation(Actor actor, CitizenRef ref, double value) {
+    public ActionResult modifySaturation(Actor actor, CitizenRef ref, SaturationChange change, double value) {
         return new ActionResult.Done();
     }
 

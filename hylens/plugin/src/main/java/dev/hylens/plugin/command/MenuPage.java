@@ -204,8 +204,8 @@ final class MenuPage extends InteractiveCustomUIPage<MenuPage.Data> {
     }
 
     /**
-     * Runs the action {@code action} on the chosen citizen, or the edit named by {@code index} ({@link
-     * MenuActions#edit}); its result shows under the right page.
+     * Runs the action {@code action} on the chosen citizen, or the edit {@code action} with its step {@code index}
+     * ({@link MenuActions#edit}); its result shows under the right page.
      */
     private void act(String action, String index, MenuView v, Ref<EntityStore> ref, Store<EntityStore> store) {
         UUID operator = playerRef.getUuid();

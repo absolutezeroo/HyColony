@@ -25,9 +25,9 @@ final class MenuActions {
     private MenuActions() {}
 
     /**
-     * Runs the edit {@code action}: "spawn" a citizen in {@code v}'s chosen colony, or set the chosen citizen's
-     * "saturation" by the step named {@code index}, from the saturation HyColony reads now; as {@code operator}. The
-     * text of its result, or asks to choose first; empty for an unknown step or an unread saturation.
+     * Runs the edit {@code action}: "spawn" a citizen in {@code v}'s chosen colony, or change the chosen citizen's
+     * "saturation" by the step named {@code index} (its maximum read from HyColony now); as {@code operator}. The text
+     * of its result, or asks to choose first; empty for an unknown step or an unread saturation.
      */
     static Optional<ApiText> edit(
             String action, String index, MenuView v, Optional<ColonyWorld> colonies, UUID operator) {
@@ -45,7 +45,7 @@ final class MenuActions {
         return MenuClicks.saturation(index)
                 .flatMap(step -> w.wellbeing(c)
                         .map(now -> ActionReport.text(
-                                w.debug().setSaturation(actor, c, step.from(now.saturation(), now.maxSaturation())))));
+                                w.debug().modifySaturation(actor, c, step.change(), step.value(now.maxSaturation())))));
     }
 
     /**

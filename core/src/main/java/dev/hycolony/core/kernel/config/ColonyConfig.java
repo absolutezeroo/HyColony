@@ -68,7 +68,7 @@ public record ColonyConfig(
      * MC ServerConfiguration, section commands: which subcommands non-operators may run.
      *
      * @param canPlayerUseModifyCitizensCommand MC canplayerusemodifycitizenscommand: a colony manager who is not an
-     *     operator may set a citizen's saturation (/mc citizens modify, HyColony's DebugAccess.setSaturation)
+     *     operator may change a citizen's saturation (/mc citizens modify, HyColony's DebugAccess.modifySaturation)
      */
     public record Commands(
             boolean canPlayerUseShowColonyInfoCommand,

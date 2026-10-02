@@ -7,12 +7,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.EventLog;
 import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.colony.territory.ClaimCell;
 import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.testing.TestContexts;
 import java.util.List;
+import java.util.Optional;
+import java.util.Random;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
@@ -63,6 +67,35 @@ class CitizenForcedArrivalTest {
 
         assertTrue(c.isDirty());
         assertEquals(1, heard.size());
+        CitizenData data = heard.getFirst().citizen();
+        Optional<BlockPos> spawnPoint =
+                c.citizens().bodyOf(data.id()).flatMap(t.bodies::position).map(Vec3::toBlockPos);
+        EventLog.Entry entry = c.log().entries().getLast();
+        assertEquals("citizenSpawned", entry.type());
+        assertEquals(spawnPoint, entry.pos(), "MC journals spawnNew at the spawn point, not the town hall");
+    }
+
+    @Test
+    void aForcedArrivalDrawsItsGenderUnbalancedAsMcsInitForNewCivilian() {
+        t.random = () -> new Random(1234) {
+            @Override
+            public boolean nextBoolean() {
+                return true;
+            }
+        };
+        Colony c = colony(true);
+        for (int id = 1; id <= 2; id++) {
+            CitizenData woman = new CitizenData(id);
+            woman.setGender(Gender.FEMALE);
+            c.citizens().restore(woman);
+        }
+
+        c.citizens().spawnForced();
+
+        assertEquals(
+                Gender.FEMALE,
+                c.citizens().get(3).orElseThrow().gender(),
+                "the initial arrivals' balance would have made it a man");
     }
 
     @Test

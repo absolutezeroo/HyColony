@@ -48,9 +48,16 @@ class CoreDebugSpawnTest {
         int before = colony.citizens().all().size();
 
         assertEquals(
-                new ActionResult.Refused(ApiText.of("hycolony.permission.denied", "Rivendell")),
+                new ActionResult.Refused(ApiText.of("hycolony.debug.refused.operator")),
                 debug.spawnCitizen(new Actor.Player(owner), ref));
         assertEquals(before, colony.citizens().all().size());
+    }
+
+    @Test
+    void aNonOperatorIsRefusedBeforeTheColonyIsLookedUpAsMc() {
+        assertEquals(
+                new ActionResult.Refused(ApiText.of("hycolony.debug.refused.operator")),
+                debug.spawnCitizen(new Actor.Player(owner), new ColonyRef("world", 99)));
     }
 
     @Test

@@ -76,13 +76,13 @@ public interface DebugAccess {
     ActionResult spawnCitizen(Actor actor, ColonyRef colony);
 
     /**
-     * Sets the citizen {@code ref}'s saturation to {@code value}, kept between 0 and its maximum (MC
-     * {@code /mc citizens modify saturation}); a value that is not a number is refused. A colony manager who is not an
-     * operator needs the server's Commands.CanPlayerUseModifyCitizensCommand.
+     * Changes the citizen {@code ref}'s saturation by {@code change} with {@code value}, which must be between 0 and
+     * its maximum (MC {@code /mc citizens modify saturation}). A player must be in creative mode, and a colony manager
+     * who is not an operator needs the server's Commands.CanPlayerUseModifyCitizensCommand.
      *
      * @since 1.2
      */
-    ActionResult setSaturation(Actor actor, CitizenRef ref, double value);
+    ActionResult modifySaturation(Actor actor, CitizenRef ref, SaturationChange change, double value);
 
     /**
      * How long each part of HyColony's core took in this world over the last minute, the heaviest first: Hytale

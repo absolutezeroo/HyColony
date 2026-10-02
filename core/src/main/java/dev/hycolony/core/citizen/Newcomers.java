@@ -13,19 +13,22 @@ import java.util.Map;
 final class Newcomers {
     private Newcomers() {}
 
-    /** A newcomer moved in at {@code townHall}: the colony's journal, a save, the event (MC CitizenManager). */
-    static void arrived(Colony colony, CitizenData data, BlockPos townHall) {
-        // MC CitizenManager: a CitizenSpawnedEvent at the town hall for a citizen moving in.
-        colony.log().addAt(townHall, "citizenSpawned", colony.day(), data.name());
+    /**
+     * A newcomer moved in, journaled at {@code at}: the colony's journal, a save, the event (MC CitizenManager's
+     * CitizenSpawnedEvent, at the town hall for an initial citizen, at its spawn point for spawnNew).
+     */
+    static void arrived(Colony colony, CitizenData data, BlockPos at) {
+        colony.log().addAt(at, "citizenSpawned", colony.day(), data.name());
         colony.markDirty();
         colony.context().bus().post(new CitizenSpawned(colony, data));
     }
 
     /**
      * Registers in {@code citizens} a new citizen of {@code colony}: the first free id, full saturation, skills capped
-     * by the colony's mean happiness (at least 5 below the initial amount), MC's balanced gender and a name.
+     * by the colony's mean happiness (at least 5 below the initial amount), and a name. Its gender is {@code balanced}
+     * for an initial citizen (MC onColonyTick's setGenderAndGenerateName), else drawn (MC initForNewCivilian).
      */
-    static CitizenData register(Colony colony, Map<Integer, CitizenData> citizens) {
+    static CitizenData register(Colony colony, Map<Integer, CitizenData> citizens, boolean balanced) {
         ColonyContext ctx = colony.context();
         int femaleCount = (int) citizens.values().stream()
                 .filter(c -> c.gender() == Gender.FEMALE)
@@ -43,7 +46,7 @@ final class Newcomers {
         data.setSkills(Skills.initRandom(levelCap, ctx.random()));
         citizens.put(id, data);
         Gender gender;
-        if (citizens.size() == 1) {
+        if (!balanced || citizens.size() == 1) {
             gender = ctx.random().nextBoolean() ? Gender.FEMALE : Gender.MALE;
         } else if (femaleCount < (citizens.size() - 1) / 2.0) {
             gender = Gender.FEMALE;

@@ -70,16 +70,16 @@ Group {
 
   // The chosen citizen's saturation and MC's suggested values (spec 2026-10-02 lot 2, § 5); hidden when unread.
   Group #SaturationRow {
-    Anchor: (Left: 552, Top: 238, Width: 296, Height: 30);
+    Anchor: (Left: 552, Top: 238, Width: 296, Height: 32);
     Visible: false;
 
     Label #Saturation {
       Anchor: (Left: 0, Top: 0, Width: 110, Height: 30);
-      Style: (...$B.@Ink, FontSize: 13);
+      Style: (...$B.@Ink, FontSize: 13, ShrinkTextToFit: true, MinShrinkTextToFitFontSize: 9);
     }
 
     TextButton #SatZeroButton {
-      Anchor: (Left: 112, Top: 0, Width: 58, Height: 30);
+      Anchor: (Left: 112, Top: 0, Width: 58, Height: 32);
       Style: $B.@VerySmallButtonStyle;
       Text: %hylens.menu.saturation.zero;
     }
@@ -97,7 +97,7 @@ Group {
     }
 
     TextButton #SatMaxButton {
-      Anchor: (Left: 238, Top: 0, Width: 58, Height: 30);
+      Anchor: (Left: 238, Top: 0, Width: 58, Height: 32);
       Style: $B.@VerySmallButtonStyle;
       Text: %hylens.menu.saturation.max;
     }

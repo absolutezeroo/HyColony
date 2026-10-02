@@ -2,6 +2,8 @@
 
 Suite de `2026-10-02-hylens-livre-mc-design.md` (§ 2, lot 2) et de `2026-09-30-hycolony-api-hylens-design.md` (API v1).
 
+Révisée après les relectures du 2026-10-02 (fidélité à MC) : mode créatif exigé, `=`, `+` et `-` distincts, valeur hors bornes refusée, genre tiré, journal au point d'apparition, refus « opérateur » avant la colonie.
+
 ## 1. Objectif
 
 L'utilisateur veut agir sur les citoyens depuis HyLens (2026-10-02). Il a choisi les actions de MineColonies seules, sans ajout (ni compétences, ni métier). Les commandes de MC sur les citoyens sont `spawnNew`, `kill`, `modify … saturation` et `reload` (`sources/minecolonies/.../commands/citizencommands/`) :
@@ -11,80 +13,69 @@ L'utilisateur veut agir sur les citoyens depuis HyLens (2026-10-02). Il a choisi
 
 ## 2. MineColonies
 
-**`CommandCitizenSpawnNew`** (`IMCOPCommand` : opérateurs seuls) appelle `CitizenManager.spawnOrCreateCivilian(null, world, [], force = true)` (`core/colony/managers/CitizenManager.java` l. 231-310) :
+**`CommandCitizenSpawnNew`** (`IMCOPCommand` : opérateurs seuls, `COMMAND_REQUIRES_OP` vérifié avant la colonie) appelle `CitizenManager.spawnOrCreateCivilian(null, world, [], force = true)` (`core/colony/managers/CitizenManager.java` l. 231-310) :
 - `force` passe outre le réglage « nouveaux citoyens » de la mairie (`MOVE_IN`) et l'avertissement du nombre maximum de citoyens ;
-- le citoyen apparaît au point d'apparition calculé autour de l'hôtel de ville, seulement s'il est chargé. Sans hôtel de ville chargé, rien n'est créé : la commande plante alors sur un `null` (bug de MC, non porté) ;
-- l'événement `CitizenSpawnedEvent` va au journal de la colonie ; la commande répond `COMMAND_CITIZEN_SPAWN_SUCCESS` avec le nom.
+- le citoyen n'est créé qu'une fois son point d'apparition trouvé autour de l'hôtel de ville chargé (`createAndRegisterCivilianData` puis `initForNewCivilian`, qui tire son genre au hasard, `CitizenData.java:519`). Sans hôtel de ville, sans hôtel de ville chargé, ou sans place (l'avertissement `WARNING_COLONY_NO_ARRIVAL_SPACE` part alors), rien n'est créé et la commande plante sur un `null` (bug de MC) ;
+- l'événement `CitizenSpawnedEvent` va au journal **au point d'apparition** (l. 293) ; la commande répond `COMMAND_CITIZEN_SPAWN_SUCCESS` avec le nom.
 
-**`CommandCitizenModify`** (`IMCColonyOfficerCommand` : opérateur, ou gestionnaire de la colonie) :
-- un joueur non opérateur n'y a droit que si `canPlayerUseModifyCitizensCommand` (défaut `false`, `ServerConfiguration` l. 157) ; sinon `COMMAND_DISABLED_IN_CONFIG` ;
-- `saturation = v`, `+ v`, `- v`, avec `v` entre 0 et `MAX_SATURATION` ; les suggestions sont 0 et le maximum pour `=`, 1 pour `+` et `-` ;
-- `increaseSaturation` et `decreaseSaturation` bornent le résultat entre 0 et le maximum.
+**`CommandCitizenModify`** (`IMCColonyOfficerCommand`) vérifie, dans l'ordre (l. 92-127) :
+1. la valeur, entre 0 et `MAX_SATURATION` (`DoubleArgumentType.doubleArg(0, MAX)`, la commande est rejetée sinon) ;
+2. opérateur, ou gestionnaire de la colonie ;
+3. un non-opérateur n'y a droit que si `canPlayerUseModifyCitizensCommand` (défaut `false`, `ServerConfiguration` l. 157), sinon `COMMAND_DISABLED_IN_CONFIG` ;
+4. un joueur, opérateur compris, doit être en **mode créatif** ; seule la console y échappe (`COMMAND_REQUIRES_CREATIVE`) ;
+5. le citoyen.
+
+Puis `= v` appelle `setSaturation`, `+ v` `increaseSaturation` (plafonnée au maximum), `- v` `decreaseSaturation` : `v` fois le `foodModifier` de la config, plancher 0, et `justAte = false` ; rien sur une colonie inactive (`CitizenData.java:1158-1171`). Les suggestions sont 0 et le maximum pour `=`, 1 pour `+` et `-`. La commande répond `COMMAND_CITIZEN_MODIFY_SUCCESS` avec la nouvelle valeur.
 
 ## 3. L'API (`DebugAccess`, version 1.2)
 
-Deux méthodes, `@Experimental` comme le reste de `DebugAccess`. L'API passe en **1.2.0** (`ApiVersion.CURRENT`), et HyLens est construit contre elle (`ApiCompatibility.BUILT_AGAINST`). `api/api.txt` est régénéré (`./gradlew :api:apiDump`).
+Deux méthodes et une énumération, `@Experimental` comme tout `dev.hycolony.api.debug`. L'API passe en **1.2.0** (`ApiVersion.CURRENT`), et HyLens est construit contre elle (`ApiCompatibility.BUILT_AGAINST`). `api/api.txt` ne change pas : il ne liste pas les parties `@Experimental`.
 
 ```java
-/**
- * A new citizen arrives at the colony's town hall (MC {@code /mc citizens spawnNew}), even with "new citizens" off and
- * beyond the colony's room. Operators only, and plugins; {@link ActionResult.Unavailable} without a loaded town hall,
- * nothing created then.
- *
- * @since 1.2
- */
 ActionResult spawnCitizen(Actor actor, ColonyRef colony);
-
-/**
- * Sets the citizen {@code ref}'s saturation to {@code value}, kept between 0 and its maximum (MC
- * {@code /mc citizens modify saturation}). A colony manager who is not an operator needs the server's
- * Commands.CanPlayerUseModifyCitizensCommand.
- *
- * @since 1.2
- */
-ActionResult setSaturation(Actor actor, CitizenRef ref, double value);
+ActionResult modifySaturation(Actor actor, CitizenRef ref, SaturationChange change, double value);
+enum SaturationChange { SET, INCREASE, DECREASE } // MC's =, +, -
 ```
 
-`=`, `+` et `-` de MC se font tous par `setSaturation` : HyLens lit la saturation actuelle (`ColonyWorld.wellbeing`) et envoie la nouvelle valeur. Une seule méthode suffit ; la borne est appliquée par HyColony.
+**Droits et refus**, dans l'ordre de MC (`CoreDebugEdits`) :
 
-**Droits** (`CoreDebugActions.refusal`, qui sert déjà aux 4 actions) :
+| Action | Ordre des refus |
+|---|---|
+| `spawnCitizen` | joueur non opérateur (`hycolony.debug.refused.operator`, MC `COMMAND_REQUIRES_OP`), colonie (`refused.colony`) ; puis colonie inconnue `NotFound` ; puis `Unavailable` sans arrivée possible |
+| `modifySaturation` | valeur hors de [0, 60] ou NaN (`hycolony.debug.refused.value`) ; opérateur hors créatif (`refused.creative` : chez MC, un opérateur passe le contrôle d'officier sans la colonie) ; colonie inconnue `NotFound` ; ni opérateur ni gestionnaire (`hycolony.permission.denied`) ; gestionnaire non opérateur sans la config (`refused.config`) ; joueur hors créatif (`refused.creative`, MC `COMMAND_REQUIRES_CREATIVE`) ; citoyen inconnu `NotFound` |
 
-| Action | Opérateur | Gestionnaire non opérateur | Plugin | Colonie |
-|---|---|---|---|---|
-| `spawnCitizen` | oui | non (`hycolony.permission.denied`) | oui | non |
-| `setSaturation` | oui | si `CanPlayerUseModifyCitizensCommand`, sinon refus `hycolony.debug.refused.config` | oui | non |
+Un plugin passe partout, comme la console de MC ; la colonie, simple cause, est refusée.
 
 ## 4. Le cœur de HyColony (TDD)
 
-- **`CitizenManager.spawnForced(BlockPos townHall)`** : le citoyen MC `spawnOrCreateCivilian(force = true)`. Il réutilise le chemin de `spawnInitialCitizen` (genre équilibré, nom, compétences, journal `citizenSpawned`, événement `CitizenSpawned`, donc aussi l'événement d'API `CitizenSpawned`) sans regarder `moveIn` ni `initialCitizenAmount`. L'arrivée normale (`onColonyTick`) ne change pas. Il renvoie `false` **sans rien créer** dans deux cas, comme MC :
-  - l'hôtel de ville n'est pas chargé (`worldQuery().isLoaded`) ;
-  - il est chargé mais aucun corps n'y trouve de place : MC ne crée alors pas le citoyen et prévient les joueurs (`WARNING_COLONY_NO_ARRIVAL_SPACE`, déjà porté : `CitizenArrival.tellNoSpace`). Aujourd'hui `spawnInitialCitizen` garde le citoyen sans corps dans ce cas ; l'arrivée forcée, elle, essaie le corps avant d'enregistrer le citoyen.
-- **Sauvegarde** : les deux actions marquent la colonie à réécrire (`colony.markDirty()`), sinon une saturation posée juste avant un arrêt serait perdue.
-- **`CoreDebugActions`** gagne `spawnCitizen` et `setSaturation`. S'il dépasse 150 lignes, ces deux actions vont dans un collaborateur (`CoreDebugColonyActions`). Le refus « opérateur seul » et le refus par la config s'ajoutent à `refusal`.
-- **Config** : `ColonyConfig.Commands` gagne `canPlayerUseModifyCitizensCommand` (défaut `false`, MC) ; `plugin/config/CommandsSection` lit et écrit la clé `CanPlayerUseModifyCitizensCommand` de la section `Commands` de `config.json`. Une ancienne config sans la clé prend le défaut.
-- **Documentation** : `api/README.md` (guide des auteurs d'addons, en anglais) cite les deux actions et la version 1.2 ; `docs/research/config-inventory.md` passe `canplayerusemodifycitizenscommand` de « futur » à porté, et son exemple de `config.json` gagne la clé.
-- **Texte** : `hycolony.debug.refused.config` (« Cette commande est désactivée dans la configuration du serveur. », MC `COMMAND_DISABLED_IN_CONFIG`), en-US et fr-FR.
+- **`CitizenManager.spawnForced()`** : MC `spawnOrCreateCivilian(force = true)`. La création du citoyen est dans `Newcomers.register(colony, citizens, balanced)` : genre **équilibré** pour une arrivée initiale (MC `onColonyTick`), **tiré** pour l'arrivée forcée (MC `initForNewCivilian`). Le corps est essayé avant de garder le citoyen : sans hôtel de ville chargé, ou sans place (les joueurs prévenus, `CitizenArrival.tellNoSpace`), rien n'est créé. Le journal `citizenSpawned` est au point d'apparition du corps ; la colonie est marquée à réécrire ; l'événement `CitizenSpawned` part (et son pendant d'API).
+- **`CoreDebugEdits`** porte les deux actions (`CoreDebugActions` aurait dépassé 150 lignes) ; `CoreColonyWorld.isOperator` sert au refus « opérateur » avant la colonie.
+- **`modifySaturation`** : `SET` → `CitizenData.setSaturation`, `INCREASE` → `CitizenHunger.increase`, `DECREASE` → `CitizenHunger.decrease(value, foodModifier)` (déjà le port de MC `decreaseSaturation`, `justAte` compris), sans effet sur une colonie `INACTIVE` (MC `Colony.isActive`). La colonie est marquée à réécrire.
+- **Config** : `ColonyConfig.Commands.canPlayerUseModifyCitizensCommand` (défaut `false`), clé `CanPlayerUseModifyCitizensCommand` de la section `Commands` de `config.json`.
+- **Documentation** : `api/README.md` (§ 5), `docs/research/config-inventory.md`.
+- **Textes** (`hycolony.lang`, en-US et fr-FR) : `debug.refused.config`, `debug.refused.operator`, `debug.refused.creative` (textes de MC), et `debug.refused.value` (« entre {p0} et {p1} », le nôtre : chez MC, c'est Brigadier qui rejette la valeur avec son propre message).
 
 ## 5. HyLens
 
-- **Onglet Colonies** : sous « Contrôler maintenant », un bouton **« Nouveau citoyen »**, sur la colonie choisie. Le résultat s'affiche sous la page de droite (« Fait. », ou le refus) ; le nouveau venu entre dans la liste au redessin suivant.
-- **Onglet Citoyens** : une ligne **« Saturation : 42/60 »** et quatre petits boutons **0**, **−**, **+**, **Max** (les suggestions de MC : 0 et le maximum pour `=`, 1 pour `+` et `-`). La valeur vient de `ColonyWorld.wellbeing` ; sans elle (citoyen inconnu), la ligne et les boutons sont cachés.
-- **Place** : Loisir, Téléporter et Refaire le corps passent en deux colonnes de petits boutons pour libérer la ligne.
-- **Cœur de HyLens** (TDD) : `MenuView.CitizenRow` gagne la saturation et son maximum (`Optional`, vides sans `wellbeing`). Le calcul de la valeur envoyée (0, actuelle − 1, actuelle + 1, maximum) est dans le cœur de HyLens (`SaturationStep`), testé.
-- **Textes** (`hylens.lang`, en-US et fr-FR) : « Nouveau citoyen », « Saturation : {p0}/{p1} », les quatre boutons (une clé chacun).
+- **Onglet Colonies** : un bouton **« Nouveau citoyen »** sous « Contrôler maintenant », sur la colonie choisie ; le résultat sous la page de droite (`ActionReport.spawned` : « Fait. », le refus, « colonie inconnue » ou « hôtel de ville non chargé ou sans place »).
+- **Onglet Citoyens** : une ligne **« Saturation : 42.0/60 »** et quatre boutons **0**, **−**, **+**, **Max**. `SaturationStep` (cœur de HyLens) donne l'opérateur de MC et la valeur suggérée : `SET 0`, `DECREASE 1`, `INCREASE 1`, `SET max` ; HyColony applique les règles de MC. Sans saturation lue, la ligne est cachée. Loisir, Téléporter et Refaire le corps passent en deux colonnes.
+- **Textes** (`hylens.lang`) : « Nouveau citoyen », « Saturation : {p0}/{p1} », une clé par bouton, et les trois messages de `ActionReport.spawned` et `action.noColony`.
 
 ## 6. Tests
 
 - Cœur de HyColony :
-  - `spawnCitizen` d'un opérateur ajoute un citoyen même avec « nouveaux citoyens » coupé et au-delà de `initialCitizenAmount`, et l'événement d'API `CitizenSpawned` part ; un gestionnaire non opérateur est refusé ; sans hôtel de ville chargé, ou sans place pour le corps, `Unavailable` et aucun citoyen ; la colonie est marquée à réécrire ;
-  - `setSaturation` : la valeur posée, bornée à 0 et 60, la colonie marquée à réécrire ; un gestionnaire refusé par défaut, accepté avec la config ; colonie ou citoyen inconnu, `NotFound` ;
-  - la config : la clé lue, son défaut sans elle.
-- Cœur de HyLens : `SaturationStep` (0, −1, +1, max, bornes), la saturation dans `MenuView` ; `ApiCompatibilityTest` suit la 1.2 (HyLens refuse une HyColony 1.1, à qui manquent les deux méthodes).
-- En jeu (`docs/TESTING.md`) : « Nouveau citoyen » avec les arrivées coupées, puis sans hôtel de ville chargé ; les quatre boutons de saturation, le HUD qui suit ; un gestionnaire non opérateur refusé, puis accepté avec la clé.
+  - arrivée forcée : au-delà des arrivées coupées et du nombre initial ; sauvée, journalisée au point d'apparition, annoncée ; genre tiré même quand l'équilibre dirait l'inverse ; sans hôtel de ville, hôtel de ville déchargé ou sans place : rien de créé, avertissement une fois (sauf déchargé) ;
+  - `spawnCitizen` : opérateur, plugin, gestionnaire refusé « opérateur » (même pour une colonie inconnue), colonie refusée, `Unavailable`, `NotFound` ;
+  - `modifySaturation` : `SET` (0 compris) et sauvegarde ; `INCREASE` plafonné ; `DECREASE` fois le modificateur de nourriture, `justAte` remis à faux, plancher 0, rien sur une colonie inactive ; valeurs hors bornes, NaN et infinis refusés sans rien changer ; gestionnaire hors créatif refusé par la config (avant le créatif et le citoyen), accepté avec elle ; opérateur hors créatif refusé, même pour une colonie inconnue ; citoyen inconnu `NotFound` ;
+  - la config : défaut `false`.
+- Cœur de HyLens : `SaturationStep` (opérateur et valeur de chaque bouton), la saturation dans `MenuView`, `ActionReport.spawned`, `ApiCompatibilityTest` (HyColony 1.1 refusée).
+- En jeu (`docs/TESTING.md` 335-338).
 
 ## 7. Écarts à MineColonies
 
-- `setSaturation` remplace les trois opérateurs `=`, `+`, `-` de la commande : HyLens calcule la valeur, HyColony la borne. Même effet.
-- Sans hôtel de ville chargé, `Unavailable` au lieu du plantage de MC.
-- MC poste `CitizenAddedModEvent` avec la source `COMMANDS` ; l'événement d'API `CitizenSpawned` de HyColony n'a pas de source (en ajouter une serait une rupture du record).
-- La réponse de `spawnCitizen` ne porte pas le nom du nouveau citoyen (`ActionResult` n'a pas de charge, en ajouter une serait une rupture) : il apparaît dans la liste.
+Chacun porte un `Deviation from MC:` dans le code.
+
+- Sans arrivée possible, `spawnCitizen` répond `Unavailable` au lieu du plantage de MC (`CoreDebugEdits.spawnCitizen`).
+- Les actions répondent un `ActionResult` sans le texte de succès de MC (nom du nouveau citoyen, nouvelle saturation) : HyLens les relit (`CoreDebugEdits`). En ajouter une charge serait une rupture de l'API.
+- L'événement d'API `CitizenSpawned` n'a pas la source `COMMANDS` de MC `CitizenAddedModEvent` (en ajouter une serait une rupture du record).
+- `modifySaturation` marque la colonie à réécrire, que MC ne marque pas : HyColony ne réécrit que les colonies marquées.

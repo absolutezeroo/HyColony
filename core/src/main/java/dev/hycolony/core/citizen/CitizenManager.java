@@ -153,7 +153,7 @@ public final class CitizenManager {
     }
 
     private void spawnInitialCitizen(BlockPos townHall) {
-        CitizenData data = Newcomers.register(colony, citizens);
+        CitizenData data = Newcomers.register(colony, citizens, true);
         if (!spawnBody(data, townHall) && ctx().worldQuery().isLoaded(townHall)) {
             CitizenArrival.tellNoSpace(colony, townHall); // MC spawnOrCreateCivilian, on a loaded town hall only
         }
@@ -164,20 +164,24 @@ public final class CitizenManager {
      * MC spawnOrCreateCivilian(null, world, [], force = true), asked by /mc citizens spawnNew: a new citizen at the
      * town hall even with "new citizens" off and beyond the initial amount. False, and nothing created, without a
      * loaded town hall, or when no body finds room there, the colony then warned (MC creates the citizen only once its
-     * spawn point is found).
+     * spawn point is found). Its gender is drawn, and its arrival journaled where it appeared, as MC's.
      */
     public boolean spawnForced() {
         Optional<BlockPos> hall = colony.buildings().townHall().map(Building::position);
         if (hall.isEmpty() || !ctx().worldQuery().isLoaded(hall.get())) {
             return false;
         }
-        CitizenData data = Newcomers.register(colony, citizens);
+        CitizenData data = Newcomers.register(colony, citizens, false);
         if (!spawnBody(data, hall.get())) {
             citizens.remove(data.id());
             CitizenArrival.tellNoSpace(colony, hall.get());
             return false;
         }
-        Newcomers.arrived(colony, data, hall.get());
+        BlockPos at = Optional.ofNullable(bodies.get(data.id()))
+                .flatMap(ctx().bodies()::position)
+                .map(Vec3::toBlockPos)
+                .orElse(hall.get());
+        Newcomers.arrived(colony, data, at);
         return true;
     }
 

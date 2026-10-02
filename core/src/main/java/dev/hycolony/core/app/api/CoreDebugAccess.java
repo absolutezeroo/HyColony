@@ -10,6 +10,7 @@ import dev.hycolony.api.debug.CitizenDebugSnapshot;
 import dev.hycolony.api.debug.DebugAccess;
 import dev.hycolony.api.debug.HistoryEntry;
 import dev.hycolony.api.debug.PartTiming;
+import dev.hycolony.api.debug.SaturationChange;
 import dev.hycolony.api.debug.Violation;
 import dev.hycolony.core.app.diagnostics.Invariants;
 import dev.hycolony.core.app.diagnostics.ViolationWatch;
@@ -103,8 +104,8 @@ final class CoreDebugAccess implements DebugAccess {
     }
 
     @Override
-    public ActionResult setSaturation(Actor actor, CitizenRef ref, double value) {
-        return edits.setSaturation(actor, ref, value);
+    public ActionResult modifySaturation(Actor actor, CitizenRef ref, SaturationChange change, double value) {
+        return edits.modifySaturation(actor, ref, change, value);
     }
 
     @Override

@@ -146,8 +146,9 @@ The actor matters:
 - `Actor.Colony()` is only ever a cause, so an action asked in its name is refused.
 
 Two actions, since 1.2, follow MineColonies' commands more narrowly: `spawnCitizen` is for operators only (MC's
-`spawnNew`), and `setSaturation` lets a colony manager who is not an operator act only if the server's
-`Commands.CanPlayerUseModifyCitizensCommand` allows it (MC's `modify`).
+`spawnNew`), and `modifySaturation` (MC's `modify ... saturation`, its `=`, `+` and `-` as `SaturationChange`) wants a
+player in creative mode, and lets a colony manager who is not an operator act only if the server's
+`Commands.CanPlayerUseModifyCitizensCommand` allows it.
 
 Some things you hold on behalf of your plugin, for example a colony paused through
 `api.clock(world).ifPresent(c -> c.pause(owner))` or a citizen followed through `api.track(owner, citizen)`. They end

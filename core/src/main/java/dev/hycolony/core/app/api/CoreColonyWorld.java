@@ -15,6 +15,7 @@ import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.kernel.perf.PartTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
@@ -113,6 +114,16 @@ public final class CoreColonyWorld implements ColonyWorld {
 
     private ColonyRef ref(Colony c) {
         return new ColonyRef(world, c.id());
+    }
+
+    /** Whether {@code player} is a server operator, for the commands MC keeps to operators. */
+    boolean isOperator(UUID player) {
+        return manager.context().players().isOperator(player);
+    }
+
+    /** Whether {@code player} is in creative mode, for the commands MC keeps to it. */
+    boolean isCreative(UUID player) {
+        return manager.context().players().isCreative(player);
     }
 
     /** How long each part of this world's core took over the last minute, the heaviest first. */
