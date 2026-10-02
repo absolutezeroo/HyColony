@@ -23,13 +23,14 @@ import org.jspecify.annotations.Nullable;
  * height, more than 10 blocks away and off danger, and walks once the last stroll is over (MC's walkToRandomPosWithin
  * also skips a draw while its last random path result is kept, 20 s after the walk), with no rain preference (MC's
  * preferInside, which in its code rejects covered spots); the walk to the site is given up after
- * {@link CitizenWander#WANDER_TIMEOUT_TICKS} (MC's stuck handler teleports).
+ * {@link CitizenWander#WANDER_TIMEOUT_TICKS} (MC's stuck handler teleports); a citizen found already there keeps any
+ * walk under way (MC's walkToPos stops it; the body port has no stop).
  */
 final class LeisureWalk {
     /** MC goToLeisureSite: walkToPos(citizen, leisureSite, 3, true), arrived within that many blocks once stopped. */
     private static final int ARRIVED_BLOCKS = 3;
-    /** MC EntityNavigationUtils.walkToPos: before any walk, already there within REACHED_DIST (squared, 1.5²). */
-    private static final double REACHED_DIST_SQ = 1.5 * 1.5;
+    /** MC EntityNavigationUtils.walkToPos: before any walk, already there within REACHED_DIST blocks. */
+    private static final double REACHED_DIST = 1.5;
     /** MC wanderAtLeisureSite: nextInt(60 * 5) < 1 leaves the site. */
     private static final int LEAVE_BOUND = 60 * 5;
     /** MC wanderAtLeisureSite: nextInt(10) <= 0 strolls to a random spot of the building. */
@@ -106,7 +107,7 @@ final class LeisureWalk {
         }
         if (goingSince == NOT_STARTED) {
             goingSince = now;
-            if (distanceSq(here.get(), Vec3.center(to)) <= REACHED_DIST_SQ) {
+            if (here.get().distance(Vec3.center(to)) <= REACHED_DIST) {
                 atSite = true;
             } else {
                 bodies.moveTo(body, Vec3.center(to));
@@ -114,7 +115,7 @@ final class LeisureWalk {
         } else if (now - goingSince >= CitizenWander.WANDER_TIMEOUT_TICKS) {
             stop();
         } else if (bodies.navStatus(body) != NavStatus.MOVING) {
-            if (distanceSq(here.get(), Vec3.center(to)) <= (double) ARRIVED_BLOCKS * ARRIVED_BLOCKS) {
+            if (here.get().distance(Vec3.center(to)) <= ARRIVED_BLOCKS) {
                 atSite = true;
             } else {
                 bodies.moveTo(body, Vec3.center(to));
@@ -151,18 +152,11 @@ final class LeisureWalk {
             int x = box.min().x() + random.nextInt(box.max().x() - box.min().x() + 1);
             int z = box.min().z() + random.nextInt(box.max().z() - box.min().z() + 1);
             BlockPos spot = new BlockPos(x, y, z);
-            if (distanceSq(here.get(), Vec3.center(spot)) > (double) STROLL_MIN_BLOCKS * STROLL_MIN_BLOCKS
+            if (here.get().distance(Vec3.center(spot)) > STROLL_MIN_BLOCKS
                     && !danger.near(spot, CitizenWander.WANDER_DANGER_HALF_HEIGHT)) {
                 return Optional.of(spot);
             }
         }
         return Optional.empty();
-    }
-
-    private static double distanceSq(Vec3 a, Vec3 b) {
-        double dx = a.x() - b.x();
-        double dy = a.y() - b.y();
-        double dz = a.z() - b.z();
-        return dx * dx + dy * dy + dz * dz;
     }
 }

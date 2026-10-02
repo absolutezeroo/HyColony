@@ -215,7 +215,7 @@ class CitizenAITest {
         }
     }
 
-    /** MC EntityAICitizenWander: the leisure walk plays every 20 ticks, and ends when the citizen goes to work. */
+    /** MC EntityAICitizenWander: the leisure walk plays through the AI, and ends when the citizen goes to work. */
     @Test
     void aLeisureWalkPlaysThenEndsWhenTheCitizenGoesToWork() {
         t.random = Rolls::new;

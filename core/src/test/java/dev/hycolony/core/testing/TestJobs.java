@@ -18,7 +18,22 @@ public final class TestJobs {
     /** A courier double with the real courier job id, whose task queue tests fill by hand. */
     public static final JobType COURIER = new JobType(CourierAssignmentModule.COURIER_JOB_ID, TestCourierJob::new);
 
+    /** A guard double: no guard job is ported yet. */
+    public static final JobType GUARD = new JobType("test:guard", TestGuardJob::new);
+
     private TestJobs() {}
+
+    /** A job that guards the colony (MC AbstractJobGuard). */
+    private static final class TestGuardJob extends TestJob {
+        TestGuardJob(CitizenData citizen) {
+            super(GUARD, citizen);
+        }
+
+        @Override
+        public boolean isGuard() {
+            return true;
+        }
+    }
 
     /** A courier whose task queue tests fill by hand, as the real courier job does when it takes a task. */
     public static final class TestCourierJob extends TestJob implements CourierTaskQueue {

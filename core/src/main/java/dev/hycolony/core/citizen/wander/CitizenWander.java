@@ -67,7 +67,10 @@ public final class CitizenWander {
     private final LeisureWalk leisure;
     /** The tick the wander first saw the walk under way, {@link #NOT_WAITING} while it saw none. */
     private long waitingSince = NOT_WAITING;
-    /** The IDLE ticks, out of leisure, the next wander decision still waits ({@link #LEISURE_DELAY_TICKS}). */
+    /**
+     * The IDLE ticks, out of leisure, the next wander decision still waits ({@link #LEISURE_DELAY_TICKS}), within one
+     * {@link #WANDER_RATE_TICKS} period.
+     */
     private int pausedTicks;
 
     /** {@code delay}: MC setCurrentDelay on the citizen's AI, for the leisure walk's transition. */
@@ -122,8 +125,9 @@ public final class CitizenWander {
         }
         if (random.nextInt(100) < LEISURE_CHANCE) {
             leisure.start(LeisureSites.pick(colony, data, random));
-            // MC setCurrentDelay(60 * 20) on this decision: the transition's own countdown, here counted down
-            // between this check's calls; minus this call's own period, as MC's countdown starts from the decision.
+            // MC setCurrentDelay(60 * 20) on this decision, its countdown frozen during the leisure: counted down here
+            // by this check's calls out of leisure. The first comes within one period of the leisure's end, so the
+            // twelfth (the decision) falls 1101 to 1200 IDLE ticks after it (MC 1200).
             pausedTicks = LEISURE_DELAY_TICKS - WANDER_RATE_TICKS;
             return null;
         }

@@ -78,7 +78,8 @@ public abstract class Job {
 
     /**
      * Whether this job guards the colony (MC {@code instanceof AbstractJobGuard}), for the security and sleep happiness
-     * factors. No guard is ported yet: false by default.
+     * factors and the idle wander (a guard does not wander, MC EntityAICitizenWander.canUse). No guard is ported yet:
+     * false by default.
      */
     public boolean isGuard() {
         return false;

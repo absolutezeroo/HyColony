@@ -172,6 +172,8 @@ chunks de 32 de `SpawnSuppression`).
     mais `Aggressive` ne les inclut pas), `Wraith`, `Hound_Bleached` (gabarit `Template_Predator`, attitude `Hostile`),
     `Golem_Firesteel`, `Spirit_*`, `Eye_Void_Surge`, `Void_Spawn_Surge`, `Slug_Magma`, `Snail_Magma`, `Molerat`,
     `Larva_Silk`, `Lizard_Sand`, `Bat`, `Cow_Undead`, `Pig_Undead` (hostilité de ces derniers non vérifiée).
+  - Vérifié depuis : `Snail_Magma` est passif (`Template_Beasts_Passive_Critter`, il fuit), à ne pas mettre dans un
+    groupe hostile ; `Slug_Magma` est un prédateur (`Template_Predator`).
   - **Faux positif** : `Horse_Skeleton` (monture) entre par `*Skeleton*` (aussi dans `Neutral`).
   - Animaux passifs : dans `Neutral` (`Prey`, `PreyBig`) ou `Passive` (`Critters`, `Birds`, `Aquatic`), pas dans
     `Aggressive`. `HyColony_Citizen` n'entre dans aucun des trois.

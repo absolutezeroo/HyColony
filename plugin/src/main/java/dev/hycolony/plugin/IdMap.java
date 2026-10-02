@@ -85,7 +85,7 @@ public final class IdMap {
         return require(data.blocks(), key);
     }
 
-    /** The NPC roles and groups; groups absent from an older file are none. */
+    /** The NPC roles and groups (none from a file without the section; the core's always has npc.group.hostile). */
     public NpcIds npcs() {
         return new NpcIds(data.npcRoles(), Objects.requireNonNullElse(data.npcGroups(), Map.of()));
     }
