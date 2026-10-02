@@ -116,7 +116,8 @@ public final class HytalePlayerInventory implements PlayerInventory {
             }
             ItemStack a = all.getItemStack(inHotbar);
             ItemStack b = all.getItemStack(other);
-            // The second write only once the first has succeeded: alone, it would duplicate the hut's stack.
+            // The second write only once the first has succeeded: alone, it would duplicate the hut's stack. Both slots
+            // were read just above on this thread, so a failing second write (the tool in both) cannot happen.
             return all.replaceItemStackInSlot(inHotbar, a, b).succeeded()
                     && all.replaceItemStackInSlot(other, b, a).succeeded();
         } catch (RuntimeException e) {

@@ -3,6 +3,7 @@ package dev.hycolony.core.app.wand;
 import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.app.HutPlacement;
 import dev.hycolony.core.app.ui.SuggestBuildToolView;
+import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyAccess;
 import dev.hycolony.core.colony.permission.Action;
@@ -13,8 +14,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * A hut block placed by hand, the town hall's included (MC EventHandler.onPlayerInteract on an AbstractBlockHut): it is
- * refused and the build tool suggested (MC WindowSuggestBuildTool), unless a creative player places it crouching.
+ * A hut block placed by hand, the town hall's included (MC EventHandler.onPlayerInteract on an AbstractBlockHut): once
+ * the placing rules allow it, it is refused and the build tool suggested (MC WindowSuggestBuildTool), unless a
+ * creative player places it crouching.
  * Built by its caller, like {@code FieldActions}.
  */
 public final class HutHandPlacement {
@@ -32,22 +34,26 @@ public final class HutHandPlacement {
     /**
      * MC EventHandler.onPlayerInteract for the hut item {@code hut} of type {@code buildingTypeId} placed at {@code
      * target}: first the hut's placing rules (handleEventCancellation; HutActions.checkPlacement), whose refusal is
-     * returned with its reason and opens no window; then, in a colony where the player lacks ACCESS_HUTS, a silent
-     * refusal (empty); then a creative player crouching gets the placement the rules allow; anyone else gets the
-     * suggestion window, and empty. Empty means: cancel the placement, say nothing.
+     * returned with its reason and opens no window, except a town hall outside colonies, whose founding rules wait for
+     * the colony; then, in a colony where the player lacks ACCESS_HUTS, a silent refusal (empty); then a creative
+     * player crouching gets what the rules decide; anyone else gets the suggestion window, and empty. Empty means:
+     * cancel the placement, say nothing.
      *
      * <p>Deviation from MC: MC's onBlockHutPlaced lets a creative player place a hut outside any colony or a second
-     * town hall; HutActions.checkPlacement, the port of AbstractBlockHut.canPaste, has no creative exception (M-26).
+     * town hall, and shows a creative player standing its message and the window; HutActions.checkPlacement, the port
+     * of AbstractBlockHut.canPaste, has no creative exception (M-26): the message alone.
      * Deviation from MC: the colony is read at the placed cell, not the clicked one, which PlaceBlockEvent lacks. MC
      * also skips its storage components (IRSComponentBlock); none is ported yet, to exclude here when they are.
      */
     public Optional<HutPlacement> handPlaced(
             UUID player, BlockPos target, String buildingTypeId, ItemKey hut, boolean crouching) {
         HutPlacement rules = manager.huts().checkPlacement(player, target, buildingTypeId);
-        if (rules instanceof HutPlacement.Denied) {
+        Optional<Colony> colony = manager.colonyAt(target);
+        // MC onBlockHutPlaced lets any town hall through outside colonies: the founding rules wait for the colony.
+        boolean founding = colony.isEmpty() && BuildingTypes.TOWN_HALL.id().equals(buildingTypeId);
+        if (rules instanceof HutPlacement.Denied && !founding) {
             return Optional.of(rules);
         }
-        Optional<Colony> colony = manager.colonyAt(target);
         if (colony.isPresent() && !ColonyAccess.allows(colony.get(), player, Action.ACCESS_HUTS)) {
             return Optional.empty();
         }

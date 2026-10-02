@@ -9,6 +9,7 @@ import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.building.module.BuildingEventsModule;
 import dev.hycolony.core.citizen.CitizenData;
+import dev.hycolony.core.citizen.vitals.DebugText;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyAccess;
 import dev.hycolony.core.colony.ColonyEvents;
@@ -59,8 +60,11 @@ public final class HutActions {
             return checkOutsideColonies(player, pos, isTownHall);
         }
         Colony c = colony.get();
-        if (isTownHall && c.buildings().townHall().isPresent()) {
-            return new HutPlacement.Denied(Msg.of("hycolony.hut.townHallExists"));
+        Optional<Building> townHall = c.buildings().townHall();
+        if (isTownHall && townHall.isPresent()) {
+            // MC BlockHutTownHall.canPlaceAt: WARNING_DUPLICATE_TOWN_HALL names where the town hall stands.
+            return new HutPlacement.Denied(Msg.of(
+                    "hycolony.hut.townHallExists", DebugText.pos(townHall.get().position())));
         }
         return new HutPlacement.Allowed(c);
     }

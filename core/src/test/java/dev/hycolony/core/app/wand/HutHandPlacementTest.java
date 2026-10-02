@@ -111,7 +111,7 @@ class HutHandPlacementTest {
                 Optional.of(new HutPlacement.Denied(Msg.of("hycolony.hut.tooFar"))),
                 place(alice, far, BUILDER, BUILDER_ITEM, false));
         assertEquals(
-                Optional.of(new HutPlacement.Denied(Msg.of("hycolony.hut.townHallExists"))),
+                Optional.of(new HutPlacement.Denied(Msg.of("hycolony.hut.townHallExists", "0 64 0"))),
                 place(alice, spot, TOWN_HALL, TOWN_HALL_ITEM, false));
         assertFalse(t.ui.shown.containsKey(alice));
     }
@@ -125,6 +125,28 @@ class HutHandPlacementTest {
         assertTrue(place(carol, far, TOWN_HALL, TOWN_HALL_ITEM, false).isEmpty());
 
         assertEquals(new SuggestBuildToolView(far, TOWN_HALL_ITEM), t.ui.shown.get(carol));
+    }
+
+    /** MC onBlockHutPlaced: a town hall outside colonies passes; owning a colony is refused only when founding. */
+    @Test
+    void aColonyOwnersTownHallOutsideColoniesIsSuggestedTheBuildToolToo() {
+        BlockPos far = new BlockPos(5000, 64, 5000);
+
+        assertTrue(place(alice, far, TOWN_HALL, TOWN_HALL_ITEM, false).isEmpty());
+
+        assertEquals(new SuggestBuildToolView(far, TOWN_HALL_ITEM), t.ui.shown.get(alice));
+    }
+
+    /** Placed as is, the town hall meets the founding rules there, as MC's colony creation does. */
+    @Test
+    void aCreativeOwnerCrouchingWithATownHallOutsideColoniesIsToldTheFoundingRefusal() {
+        t.players.creative.add(alice);
+        BlockPos far = new BlockPos(5000, 64, 5000);
+
+        assertEquals(
+                Optional.of(new HutPlacement.Denied(Msg.of("hycolony.colony.alreadyOwner"))),
+                place(alice, far, TOWN_HALL, TOWN_HALL_ITEM, true));
+        assertFalse(t.ui.shown.containsKey(alice));
     }
 
     @Test

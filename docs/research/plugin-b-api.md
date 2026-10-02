@@ -1054,7 +1054,7 @@ Sources : décompilé de 0.7.0-pre.5 (`server/npc/NPCPlugin.java`, `server/spawn
 
 ## 47. Pose d'un bloc à la main : case visée, accroupi, échange de cases (`HutPlaceSystem`, 2026-10-02)
 
-Sources : décompilé de 0.7.0-pre.4.
+Sources : décompilé de 0.7.0-pre.5.
 
 - `PlaceBlockEvent.getTargetBlock()` est la case où va le bloc, pas la case cliquée (`PlaceBlockInteraction` l. 146 et 202-227) ; l'événement ne donne pas la face cliquée. Annulé, il laisse l'objet dans l'inventaire (`BlockPlaceUtils.placeBlock` l. 104-109 sort avant `removeItemStackFromSlot`, l. 141). Seules les interactions d'un joueur créent cet événement : `ports().blocks().place` ne le déclenche pas.
 - Un joueur accroupi : `MovementStatesComponent.getMovementStates().crouching`, posé par le client (`PlayerInput.SetMovementStates`, l. 227-234) et lu côté serveur par `ConditionInteraction` (l. 110).

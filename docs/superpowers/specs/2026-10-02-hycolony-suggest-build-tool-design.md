@@ -7,7 +7,7 @@ Port de MineColonies : `EventHandler.onPlayerInteract` (le bloc de hutte en main
 ## 1. Ce que fait MineColonies
 
 - Un joueur pose un bloc de hutte (`AbstractBlockHut`, sauf les composants de stockage, `IRSComponentBlock`), hôtel de ville compris, dans cet ordre :
-  - les règles de pose de la hutte (`handleEventCancellation` → `onBlockHutPlaced` : colonie, distance, hôtel de ville déjà là, `PLACE_HUTS`…) : un refus annule la pose avec son message, sans fenêtre ;
+  - les règles de pose de la hutte (`handleEventCancellation` → `onBlockHutPlaced` : `PLACE_HUTS` dans une colonie, hôtel de ville déjà là ; hors colonie, une hutte autre que l'hôtel de ville est refusée, « pas d'hôtel de ville » ou « hors de votre colonie ») : un refus annule la pose avec son message, sans fenêtre. Un hôtel de ville hors colonie passe toujours : les règles de fondation (déjà propriétaire, distance au point d'apparition, autre colonie trop proche) n'arrivent qu'à la création de la colonie ;
   - dans une colonie où il n'a pas `ACCESS_HUTS` : la pose est annulée, sans message ni fenêtre ;
   - en créatif et accroupi : la pose se fait normalement ;
   - sinon : la pose est annulée et la fenêtre `WindowSuggestBuildTool` s'ouvre, avec la position visée (la case contre la face cliquée).
@@ -34,12 +34,13 @@ Port de MineColonies : `EventHandler.onPlayerInteract` (le bloc de hutte en main
 ## 4. Écarts
 
 - L'échange se fait au clic du bouton côté serveur (MC le fait par un message du client) ; le résultat est le même.
-- Le créatif accroupi garde les règles de pose : MC (`onBlockHutPlaced`) laisse un joueur créatif poser une hutte hors colonie ou un second hôtel de ville ; `HutActions.checkPlacement`, port de `AbstractBlockHut.canPaste`, n'a pas cette exception (audit M-26, déjà en place avant ce changement).
-- La colonie est lue à la case posée (MC la lit à la position du joueur pour `ACCESS_HUTS`) : les deux ne diffèrent qu'à la bordure du territoire, et c'est la case posée qui compte pour les règles.
+- Le créatif garde les règles de pose : MC (`onBlockHutPlaced`) laisse un joueur créatif poser une hutte hors colonie ou un second hôtel de ville (accroupi), et lui montre le message puis la fenêtre (debout) ; `HutActions.checkPlacement`, port de `AbstractBlockHut.canPaste`, n'a pas cette exception : le message seul (audit M-26, déjà en place avant ce changement).
+- Un hôtel de ville posé tel quel (créatif accroupi) hors colonie rencontre aussitôt les règles de fondation, avec leur message ; MC les applique à la création de la colonie, juste après.
+- La colonie est lue à la case posée (MC la lit au bloc cliqué pour `ACCESS_HUTS`, que `PlaceBlockEvent` ne donne pas) : les deux ne diffèrent qu'à la bordure du territoire.
 - L'inventaire de l'échange est la barre d'action plus le sac (le conteneur combiné de Hytale) ; l'armure et la main secondaire, que MC compte aussi, n'y sont pas.
 - Les composants de stockage (`IRSComponentBlock`) sont exclus chez MC ; HyColony n'en a pas encore : à exclure quand ils arriveront.
 
 ## 5. Tests
 
-- Cœur : le refus des règles d'abord (trop loin, hôtel de ville déjà là, étranger sans `PLACE_HUTS`), sans fenêtre ; le refus muet sans `ACCESS_HUTS` ; la suggestion ; la pose en créatif accroupi ; sans baguette, le message et rien d'autre ; avec baguette, l'échange puis l'ouverture de la baguette à la position, le fantôme gardé s'il existe déjà.
+- Cœur : le refus des règles d'abord (trop loin, hôtel de ville déjà là, étranger sans `PLACE_HUTS`), sans fenêtre ; l'hôtel de ville hors colonie suggéré, même pour un propriétaire ; le refus muet sans `ACCESS_HUTS` ; la suggestion ; la pose en créatif accroupi ; sans baguette, le message et rien d'autre ; avec baguette, l'échange puis l'ouverture de la baguette à la position, le fantôme gardé s'il existe déjà.
 - En jeu : nouveaux points de `docs/TESTING.md`.

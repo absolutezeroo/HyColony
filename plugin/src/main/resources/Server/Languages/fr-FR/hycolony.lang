@@ -1,9 +1,9 @@
 item.townhall.name = Hôtel de ville
 item.townhall.description = Posez-le pour fonder une colonie.
 npc.citizen.name = Citoyen
-hut.noTownHall = Vous devez d'abord poser un hôtel de ville.
-hut.tooFar = C'est trop loin de votre hôtel de ville.
-hut.townHallExists = Cette colonie a déjà un hôtel de ville.
+hut.noTownHall = Vous devez d'abord poser un hôtel de ville !
+hut.tooFar = Vous ne pouvez pas poser de bâtiment hors de votre colonie ! Agrandissez-la en améliorant l'hôtel de ville, ou en construisant et améliorant des tours de garde et des casernes.
+hut.townHallExists = Cette colonie a déjà un hôtel de ville, posé en : {p0}
 hut.pickupInventoryFull = Votre inventaire est plein : la hutte n'a pas été récupérée.
 hut.notBuiltYet = Vous devez construire cette hutte avant de pouvoir embaucher un travailleur !
 hut.locating = Les étagères contenant cet objet ont été localisées.
