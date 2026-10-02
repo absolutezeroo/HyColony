@@ -24,8 +24,7 @@ import java.util.UUID;
  * HappinessWindowCitizen): name, health, food and happiness, skills, gender, requests and the job's skills.
  */
 final class CitizenViews {
-    /** MC citizens have 20 health points, ten red hearts; a Hytale body's share of its maximum is scaled to it. */
-    private static final int MC_MAX_HEALTH = 20;
+    private static final int MC_MAX_HEALTH = CitizenData.MC_MAX_HEALTH;
 
     private final ColonyContext ctx;
     private final TownHallViews townHall;

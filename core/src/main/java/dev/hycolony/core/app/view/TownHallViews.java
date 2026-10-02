@@ -22,8 +22,8 @@ import java.util.UUID;
 
 /** Builds the town hall window's view (MC WindowTownHall): the colony, its work orders, citizens and statistics. */
 final class TownHallViews {
-    /** MC MAX_HEALTH of a citizen, shown without a living body. */
-    private static final int MC_MAX_HEALTH = 20;
+    /** Shown without a living body. */
+    private static final int MC_MAX_HEALTH = CitizenData.MC_MAX_HEALTH;
 
     /**
      * MC EventDescriptionManager's kinds: a citizen moving in, a hut built, upgraded, repaired or deconstructed.

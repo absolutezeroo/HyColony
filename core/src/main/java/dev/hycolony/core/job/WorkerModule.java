@@ -9,6 +9,7 @@ import dev.hycolony.core.building.module.PersistentModule;
 import dev.hycolony.core.building.module.TickingModule;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
+import dev.hycolony.core.citizen.inventory.EquipmentReturn;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.kernel.persist.SavedJson;
 import java.util.ArrayList;
@@ -130,12 +131,19 @@ public final class WorkerModule implements PersistentModule, TickingModule, Buil
             return;
         }
         c.requests().cancelAllFrom(b.requesterId(), citizenId); // MC: a leaving worker's requests go with it
-        c.citizens().get(citizenId).ifPresent(citizen -> {
-            citizen.job().ifPresent(job -> job.onRemoval(c));
-            citizen.setJob(null);
-            citizen.setWorkBuilding(null);
-        });
+        c.citizens().get(citizenId).ifPresent(citizen -> free(c, citizen));
         c.markDirty();
+    }
+
+    /**
+     * {@code citizen} loses its job (MC AbstractJob.onRemoval, then the job and workplace cleared): the job lets go
+     * of its tasks, the citizen's hands empty and its armour goes back to its inventory ({@link EquipmentReturn}).
+     */
+    public static void free(Colony c, CitizenData citizen) {
+        citizen.job().ifPresent(job -> job.onRemoval(c));
+        EquipmentReturn.onJobRemoved(c, citizen);
+        citizen.setJob(null);
+        citizen.setWorkBuilding(null);
     }
 
     /** MC AbstractAssignedCitizenModule.onDestroyed: fires every worker of the removed hut. */

@@ -13,6 +13,7 @@ import com.hypixel.hytale.server.core.modules.entity.damage.DamageEventSystem;
 import com.hypixel.hytale.server.core.modules.entity.damage.DamageModule;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.citizen.happiness.HappinessEvents;
+import dev.hycolony.core.citizen.inventory.ArmorWear;
 import dev.hycolony.plugin.WorldRuntime;
 import dev.hycolony.plugin.WorldRuntimes;
 import java.util.Set;
@@ -22,7 +23,8 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * A citizen took damage (MC EntityCitizen.hurt): hurt by an attacker (an entity or its projectile), its body remembers
- * it for 100 ticks (no healing meanwhile, MC getLastHurtByMob); any damage makes its citizen unhappy for a day. In
+ * it for 100 ticks (no healing meanwhile, MC getLastHurtByMob); any damage makes its citizen unhappy for a day and
+ * wears its armour (MC CitizenItemUtils.damageArmor, {@link ArmorWear}). In
  * the inspect group, so only damage that was really applied counts
  * (sp4b-hytale-food § 5.c). The id-map's ignored causes (fire, lightning) do not count, as MC returns before. The
  * citizen role is Invulnerable today: nothing reaches here until citizens can be hurt (citizen-death.md).
@@ -70,9 +72,11 @@ public final class CitizenHurtSystem extends DamageEventSystem {
             if (event.getSource() instanceof Damage.EntitySource) {
                 rt.bodies().health().hurt(ref); // MC getLastHurtByMob: only an attacker stops the healing
             }
-            rt.manager()
-                    .byId(tag.colonyId())
-                    .ifPresent(c -> HappinessEvents.hurt(c, rt.bodies().track(ref)));
+            double percent = rt.bodies().health().damagePercent(ref, event.getAmount());
+            rt.manager().byId(tag.colonyId()).ifPresent(c -> {
+                HappinessEvents.hurt(c, rt.bodies().track(ref));
+                c.citizens().get(tag.citizenId()).ifPresent(d -> ArmorWear.onHurt(c, d, percent));
+            });
         } catch (RuntimeException e) {
             LOG.at(Level.SEVERE).withCause(e).log("HyColony citizen hurt failed");
         }

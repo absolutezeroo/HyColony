@@ -212,9 +212,7 @@ public final class ColonySerializer {
         boolean changed = false;
         for (CitizenData d : c.citizens().all()) {
             if (isStale(c, d)) {
-                d.job().ifPresent(job -> job.onRemoval(c));
-                d.setJob(null);
-                d.setWorkBuilding(null);
+                WorkerModule.free(c, d);
                 changed = true;
             }
         }

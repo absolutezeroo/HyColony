@@ -12,7 +12,7 @@ class GuardGearTest {
     /** A helmet of MC armour level {@code level} (a reference ItemLevel of that level). */
     private static ArmorInfo helmet(int level) {
         int[] itemLevels = {15, 20, 25, 30, 40, 50};
-        return new ArmorInfo(Slot.HEAD, itemLevels[level]);
+        return new ArmorInfo(Slot.HEAD, itemLevels[level], 100);
     }
 
     @Test
@@ -54,7 +54,7 @@ class GuardGearTest {
 
     @Test
     void aPieceGoesInItsOwnSlotOnly() {
-        assertFalse(GuardGear.allows(5, new ArmorInfo(Slot.CHEST, 30), Slot.HANDS));
-        assertTrue(GuardGear.allows(5, new ArmorInfo(Slot.CHEST, 30), Slot.CHEST));
+        assertFalse(GuardGear.allows(5, new ArmorInfo(Slot.CHEST, 30, 100), Slot.HANDS));
+        assertTrue(GuardGear.allows(5, new ArmorInfo(Slot.CHEST, 30, 100), Slot.CHEST));
     }
 }

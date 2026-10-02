@@ -19,6 +19,8 @@ public final class CitizenData {
     public static final int INVENTORY_SLOTS = 27;
     /** MC CitizenData.update: a leisure break lasts 3 minutes, in ticks. */
     public static final int LEISURE_TICKS = 20 * 60 * 3;
+    /** MC MAX_HEALTH of a citizen: 20 points, ten hearts; a Hytale body's share of its maximum is scaled to it. */
+    public static final int MC_MAX_HEALTH = 20;
 
     private final int id;
     private String name = "";

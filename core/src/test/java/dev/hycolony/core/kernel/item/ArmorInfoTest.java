@@ -16,7 +16,8 @@ class ArmorInfoTest {
     }
 
     @Test
-    void aNegativeItemLevelIsRefused() {
-        assertThrows(IllegalArgumentException.class, () -> new ArmorInfo(ArmorInfo.Slot.HEAD, -1));
+    void aNegativeItemLevelOrDurabilityIsRefused() {
+        assertThrows(IllegalArgumentException.class, () -> new ArmorInfo(ArmorInfo.Slot.HEAD, -1, 100));
+        assertThrows(IllegalArgumentException.class, () -> new ArmorInfo(ArmorInfo.Slot.HEAD, 20, -1));
     }
 }
