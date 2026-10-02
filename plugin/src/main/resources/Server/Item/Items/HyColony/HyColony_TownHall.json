@@ -5,7 +5,7 @@
   },
   "ItemLevel": 2,
   "MaxStack": 1,
-  "Icon": "Icons/ItemsGenerated/Bench_Architects.png",
+  "Icon": "Icons/Items/HyColony/Hut_TownHall.png",
   "Categories": [
     "Furniture.Benches"
   ],
@@ -22,11 +22,12 @@
     "Material": "Solid",
     "DrawType": "Model",
     "Opacity": "Transparent",
-    "CustomModel": "Blocks/Benches/Builder.blockymodel",
+    "CustomModel": "Blocks/HyColony/Huts/TownHall.blockymodel",
     "CustomModelTexture": [
-      { "Texture": "Blocks/Benches/Builder_Texture.png", "Weight": 1 }
+      { "Texture": "Blocks/HyColony/Huts/TownHall.png", "Weight": 1 }
     ],
-    "HitboxType": "Bench_Architect",
+    "CustomModelScale": 1.4,
+    "HitboxType": "HyColony_Hut",
     "VariantRotation": "NESW",
     "BlockEntity": {
       "Components": {
@@ -37,22 +38,17 @@
       "Use": "HyColony_TownHall_Use"
     },
     "Gathering": {
-      "Breaking": { "GatherType": "Benches" }
+      "Breaking": { "GatherType": "Woods" }
     },
-    "BlockParticleSetId": "Stone",
-    "ParticleColor": "#5C583E",
+    "BlockParticleSetId": "Wood",
+    "ParticleColor": "#4a2a20",
     "Support": {
       "Down": [ { "FaceType": "Full" } ]
     },
-    "BlockSoundSetId": "Stone",
-    "PhysicalMaterialId": "Stone",
-    "TextureComputedColor": "#767267"
+    "BlockSoundSetId": "Wood",
+    "PhysicalMaterialId": "Wood",
+    "TextureComputedColor": "#5a2a24"
   },
   "PlayerAnimationsId": "Block",
-  "IconProperties": {
-    "Scale": 0.365,
-    "Translation": [ 13.5, -11.1 ],
-    "Rotation": [ 22.5, 45, 22.5 ]
-  },
   "ItemSoundSetId": "ISS_Blocks_Wood"
 }

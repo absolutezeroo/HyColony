@@ -6,7 +6,8 @@ from PIL import Image, ImageDraw
 
 from paint import darker, softened
 
-MODEL = "Builder"
+MODEL = "Blocks/HyColony/Huts/Builder"
+ICON = "Hut_Builder"
 # Materials drawn for their island, never turned with the wood grain.
 PICTURES = frozenset({"sheet", "roll_end", "saw"})
 PAPER = (226, 214, 186)
@@ -62,7 +63,7 @@ def tinted(rgb, tile, keep):
 
 def blueprint(cloth, sketch):
     """Blueprint paper: a soft grid on blue; with sketch, the sheet's frame and a house drawing laid out on its
-    22 x 16 island: seen from the table's front (+z), u runs to the viewer's right and v towards them, so the sheet
+    24 x 18 island: seen from the table's front (+z), u runs to the viewer's right and v towards them, so the sheet
     reads as drawn."""
     image = tinted((52, 92, 150), cloth, 0.25)
     draw = ImageDraw.Draw(image)
@@ -70,15 +71,15 @@ def blueprint(cloth, sketch):
         draw.line([(i, 0), (i, 31)], fill=(64, 104, 160, 255))
         draw.line([(0, i), (31, i)], fill=(64, 104, 160, 255))
     if sketch:
-        sheet = Image.new("RGBA", (22, 16), (0, 0, 0, 0))
+        sheet = Image.new("RGBA", (24, 18), (0, 0, 0, 0))
         pen = ImageDraw.Draw(sheet)
-        pen.rectangle([1, 1, 20, 14], outline=(150, 180, 214, 255))
-        pen.line([(4, 7), (9, 3), (14, 7)], fill=SKETCH)
-        pen.rectangle([5, 7, 13, 12], outline=SKETCH)
-        pen.rectangle([8, 9, 10, 12], outline=SKETCH)
-        pen.rectangle([11, 8, 12, 9], outline=SKETCH)
-        for y in (4, 6, 8):
-            pen.line([(16, y), (19, y)], fill=SKETCH)
+        pen.rectangle([1, 1, 22, 16], outline=(150, 180, 214, 255))
+        pen.line([(4, 8), (10, 3), (16, 8)], fill=SKETCH)
+        pen.rectangle([5, 8, 15, 14], outline=SKETCH)
+        pen.rectangle([9, 10, 11, 14], outline=SKETCH)
+        pen.rectangle([13, 9, 14, 10], outline=SKETCH)
+        for y in (4, 6, 8, 10):
+            pen.line([(18, y), (21, y)], fill=SKETCH)
         image.alpha_composite(sheet)
     return image
 

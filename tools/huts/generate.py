@@ -1,10 +1,11 @@
-"""Paints HyColony's hut block models (spec 2026-10-02 hut models) and draws their icons.
+"""Paints HyColony's hand-built hut block models (spec 2026-10-02 hut models) and draws their icons.
 
-Each hut's model is built in Blockbench (docs/research/hytale-models.md) and exported to
-plugin/src/main/resources/Common/Blocks/HyColony/Huts/<Model>.blockymodel; this script never writes it. It paints the
-model's texture next to it, island by island (tools/vanilla/paint.py), with the hut module's materials, and draws the
-item icon from the model, seen from the hut's front (+z, the side facing the player who placed it). Run once after
-changing a model or its materials, then commit the outputs. Needs Python 3.10+ and Pillow.
+Each model is built in Blockbench (docs/research/hytale-models.md) and exported to
+plugin/src/main/resources/Common/<MODEL>.blockymodel, MODEL being declared by its module; this script never writes
+it. It paints the model's texture next to it (<MODEL>.png), island by island (tools/vanilla/paint.py), with the
+module's materials, and draws the item icon (Icons/Items/HyColony/<ICON>.png) from the model, seen from +x +z (a
+block's front, +z, faces the player who placed it). Run once after changing a model or its materials, then commit
+the outputs. Needs Python 3.10+ and Pillow.
 
     python tools/huts/generate.py [path/to/Assets.zip]
 """
@@ -17,29 +18,31 @@ from pathlib import Path
 TOOLS = Path(__file__).resolve().parents[1]
 sys.path.append(str(TOOLS / "vanilla"))
 import builder  # noqa: E402
+import town_hall  # noqa: E402
 from models import add, corners, rotate  # noqa: E402
 from pack import (GRADLE_ASSETS, ICON_SIZE, ROOT, Assets, draw_model, iso, placed, save_png,  # noqa: E402
                   validate_pack)
-from paint import islands, paint  # noqa: E402
+from paint import bleed, islands, paint  # noqa: E402
 from PIL import Image  # noqa: E402
 
 RESOURCES = ROOT / "plugin" / "src" / "main" / "resources"
-HUTS = (builder,)
+MODELS = (builder, town_hall)
 ICON_MARGIN = 3
 
 
 def main():
     assets = Assets(Path(sys.argv[1]) if len(sys.argv) > 1 else GRADLE_ASSETS)
-    for hut in HUTS:
-        model = RESOURCES / "Common/Blocks/HyColony/Huts" / (hut.MODEL + ".blockymodel")
+    for module in MODELS:
+        model = RESOURCES / "Common" / (module.MODEL + ".blockymodel")
         nodes = json.loads(model.read_text(encoding="utf-8"))["nodes"]
         # Blockbench names a group's later cubes '<cube>--C<n>': the materials read the name before it.
-        texture = paint(nodes, texture_size(nodes), hut.tiles(assets),
-                        lambda name, side: hut.material(name.split("--")[0], side), pictures=hut.PICTURES)
+        texture = bleed(paint(nodes, texture_size(nodes), module.tiles(assets),
+                              lambda name, side, m=module: m.material(name.split("--")[0], side),
+                              pictures=module.PICTURES), nodes)
         save_png(texture, model.with_suffix(".png"))
         icon = Image.new("RGBA", (ICON_SIZE, ICON_SIZE), (0, 0, 0, 0))
         draw_model(icon, nodes, texture, *icon_frame(nodes))
-        save_png(icon, RESOURCES / "Common/Icons/Items/HyColony" / ("Hut_" + hut.MODEL + ".png"))
+        save_png(icon, RESOURCES / "Common/Icons/Items/HyColony" / (module.ICON + ".png"))
     validate_pack(assets, RESOURCES)
 
 

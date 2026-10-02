@@ -26,6 +26,7 @@
     "CustomModelTexture": [
       { "Texture": "Blocks/HyColony/Huts/Builder.png", "Weight": 1 }
     ],
+    "HitboxType": "HyColony_Hut",
     "VariantRotation": "NESW",
     "Gathering": {
       "Breaking": { "GatherType": "Woods" }

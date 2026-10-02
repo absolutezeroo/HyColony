@@ -48,6 +48,20 @@ def paint(nodes, size, tiles, material_of, side_rims=True, pictures=frozenset())
     return image
 
 
+def bleed(image, nodes):
+    """Copies each island's border one pixel out into still transparent texels, so a face whose texture lookup
+    lands a fraction outside its island (thin faces, mipmaps) reads its own colour, not the next island's. Needs the
+    islands laid out 2 pixels apart: with 1, the pixel between two islands takes the first one's border only."""
+    pixels = image.load()
+    for _, _, u, v, w, h in islands(nodes):
+        for x in range(u - 1, u + w + 1):
+            for y in range(v - 1, v + h + 1):
+                inside = (min(max(x, u), u + w - 1), min(max(y, v), v + h - 1))
+                if (x, y) != inside and 0 <= x < image.width and 0 <= y < image.height and pixels[x, y][3] == 0:
+                    pixels[x, y] = pixels[inside]
+    return image
+
+
 def darker(tile, light):
     """The tile darkened to light (0..1), its shadow tinted as the painted shadows are."""
     out = tile.copy()
