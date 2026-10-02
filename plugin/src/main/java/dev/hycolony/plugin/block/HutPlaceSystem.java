@@ -21,12 +21,13 @@ import dev.hycolony.plugin.WorldRuntime;
 import dev.hycolony.plugin.WorldRuntimes;
 import dev.hycolony.plugin.adapter.HytaleNotifier;
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.Nonnull;
 
 /**
- * A player placing a hut block by hand: the core first decides whether it may be placed as it is (MC
- * EventHandler.onPlayerInteract: the build tool is suggested unless a creative player crouches), then the hut's
- * placing rules apply (a town hall begins a foundation). Queries PlayerRef so only players trigger it.
+ * A player placing a hut block by hand: the core decides (MC EventHandler.onPlayerInteract: the hut's placing rules,
+ * then the build tool suggested unless a creative player crouches); an allowed placement registers the hut or begins
+ * a foundation. Queries PlayerRef so only players trigger it.
  */
 public final class HutPlaceSystem extends EntityEventSystem<EntityStore, PlaceBlockEvent> {
     private final WorldRuntimes runtimes;
@@ -69,12 +70,14 @@ public final class HutPlaceSystem extends EntityEventSystem<EntityStore, PlaceBl
             BlockPos pos = HutBlockSystems.pos(event.getTargetBlock());
             HutHandPlacement hand = new HutHandPlacement(m, rt.wand(), buildTool);
             ItemKey hut = new ItemKey(held.getItemId());
-            if (!hand.handPlaced(player.getUuid(), pos, hut, crouching(chunk.getReferenceTo(index), store))) {
-                event.setCancelled(true); // MC: refused, the build tool suggested (or no access to the huts)
+            boolean crouching = crouching(chunk.getReferenceTo(index), store);
+            Optional<HutPlacement> placement = hand.handPlaced(player.getUuid(), pos, type.id(), hut, crouching);
+            if (placement.isEmpty()) {
+                event.setCancelled(true); // the build tool suggested, or no access to the colony's huts
                 return;
             }
             int rotation = event.getRotation().yaw().getDegrees() / 90; // declared degrees, not the enum position
-            switch (m.huts().checkPlacement(player.getUuid(), pos, type.id())) {
+            switch (placement.get()) {
                 case HutPlacement.Denied denied -> {
                     event.setCancelled(true);
                     player.sendMessage(HytaleNotifier.toMessage(denied.reason()));

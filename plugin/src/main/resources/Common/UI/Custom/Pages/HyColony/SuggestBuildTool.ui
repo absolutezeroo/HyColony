@@ -20,7 +20,7 @@ $C.@PageOverlay {
 
     Label {
       Anchor: (Left: 30, Top: 50, Width: 300, Height: 90);
-      Style: (...$B.@Ink, VerticalAlignment: Start, Wrap: true);
+      Style: (...$B.@Ink, VerticalAlignment: Center, Wrap: true);
       Text: %hycolony.ui.suggestBuildTool.warning;
     }
 

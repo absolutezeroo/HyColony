@@ -56,14 +56,21 @@ public final class SuggestBuildToolPage extends InteractiveCustomUIPage<SuggestB
                 CustomUIEventBindingType.Activating, "#Cancel", new EventData().append("Action", "cancel"));
     }
 
-    /** As FoundColonyPage: a failure is logged, and the update always sent, since the page locks the client. */
+    /**
+     * A failure is logged and answered with an update, since the page locks the client; a handled event closed or
+     * replaced the page, so no update follows (it would count as an unacknowledged page for the build tool's page).
+     */
     @Override
     public void handleDataEvent(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, String rawData) {
         PageEvents.guard(getClass(), () -> {
+            boolean handled = false;
             try {
                 super.handleDataEvent(ref, store, rawData);
+                handled = true;
             } finally {
-                sendUpdate(new UICommandBuilder(), false);
+                if (!handled) {
+                    sendUpdate(new UICommandBuilder(), false);
+                }
             }
         });
     }

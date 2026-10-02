@@ -1052,6 +1052,14 @@ Sources : décompilé de 0.7.0-pre.5 (`server/npc/NPCPlugin.java`, `server/spawn
 - `SpawningContext.set(world, x, y, z)` exige un chunk et une section **qui tournent** (`resolveTickingChunk`, `isTickingSection`, l. 544-545). Il échantillonne la colonne de `y - 16` à `y + 16` (`maxVerticalOffset` 16, l. 559-561) et choisit l'espace libre le plus proche de `y` (`selectGap`). Le sol retenu est le dessus du bloc plein sous cet espace : dans la colonne d'un bloc de hutte (`Material: Solid`), c'est le dessus de la hutte.
 - Constat du 2026-10-02 : la seule colonne `x + 1` de l'hôtel de ville était refusée, et la colonie n'avait aucun citoyen. Le cœur parcourt maintenant les colonnes autour, dans l'ordre de MC (`CitizenArrival`), et saute la colonne d'un bâtiment.
 
+## 47. Pose d'un bloc à la main : case visée, accroupi, échange de cases (`HutPlaceSystem`, 2026-10-02)
+
+Sources : décompilé de 0.7.0-pre.4.
+
+- `PlaceBlockEvent.getTargetBlock()` est la case où va le bloc, pas la case cliquée (`PlaceBlockInteraction` l. 146 et 202-227) ; l'événement ne donne pas la face cliquée. Annulé, il laisse l'objet dans l'inventaire (`BlockPlaceUtils.placeBlock` l. 104-109 sort avant `removeItemStackFromSlot`, l. 141). Seules les interactions d'un joueur créent cet événement : `ports().blocks().place` ne le déclenche pas.
+- Un joueur accroupi : `MovementStatesComponent.getMovementStates().crouching`, posé par le client (`PlayerInput.SetMovementStates`, l. 227-234) et lu côté serveur par `ConditionInteraction` (l. 110).
+- `InventoryComponent.getCombined(store, ref, HOTBAR_FIRST)` vaut barre d'action puis sac (`InventoryComponent` l. 156) ; la capacité de la barre vient du composant `InventoryComponent.Hotbar`. `ItemContainer.replaceItemStackInSlot(slot, attendu, nouveau)` renvoie une transaction dont `succeeded()` dit si la case tenait bien `attendu`.
+
 ## Could not verify
 
 1. **Client rendering of item animations on NPCs** (`AnimationSlot.Action` with `"Block"/"Build"` or `"Pickaxe"/"Mine"` on `PlayerTestModel_V`) and whether they loop or play once. Only the server packet path is verified.
