@@ -3,6 +3,7 @@ nodes, their placement, faces, bounds and uniform scaling (32 units per block)."
 
 import copy
 import math
+import operator
 
 FACE_NORMALS = {"front": (0, 0, 1), "back": (0, 0, -1), "right": (1, 0, 0), "left": (-1, 0, 0), "top": (0, 1, 0),
                 "bottom": (0, -1, 0)}
@@ -31,6 +32,50 @@ def empty_shape():
     return {"type": "none", "offset": xyz((0, 0, 0)), "stretch": xyz((1, 1, 1)), "settings": {"isPiece": False},
             "visible": True, "doubleSided": False, "shadingMode": "flat", "unwrapMode": "custom",
             "textureLayout": {}}
+
+
+def box_shape(size, sides, offset=(0, 0, 0), shading="standard"):
+    """A box shape of size (x, y, z), its centre offset from its node, showing only the faces sides (each on its own
+    island once unwrap lays them out)."""
+    shape = empty_shape()
+    shape.update({"type": "box", "offset": xyz(offset), "settings": {"isPiece": False, "size": xyz(size)},
+                  "shadingMode": shading, "textureLayout": {
+                      side: {"offset": {"x": 0, "y": 0}, "mirror": {"x": False, "y": False}, "angle": 0}
+                      for side in sides}})
+    return shape
+
+
+def unwrap(nodes, widths=(32, 64, 96, 128, 160, 192, 256)):
+    """Lays every box face of the model on its own UV island, 2 pixels apart (paint.bleed fills the gap), in shelves
+    of the texture width of widths giving the smallest texture (as the Blockbench unwrap of
+    docs/research/hytale-models.md). Returns the texture size, sides multiples of 32; changes nodes in place."""
+    faces = []
+    for n in walk(nodes):
+        shape = n["shape"]
+        if shape["type"] != "box":
+            continue
+        size = tuple(shape["settings"]["size"][a] for a in "xyz")
+        for side, face in shape["textureLayout"].items():
+            w, h = (int(c) for c in face_span(side, size))
+            faces.append((h, w, n["name"] + " " + side, face))
+    faces.sort(key=lambda f: (-f[0], -f[1], f[2]))
+
+    def shelves(width):
+        spots, x, y, row = [], 0, 0, 0
+        for h, w, _, face in faces:
+            if w > width:
+                return None
+            if x + w > width:
+                x, y, row = 0, y + row + 2, 0
+            spots.append((face, x, y))
+            x, row = x + w + 2, max(row, h)
+        return spots, 32 * math.ceil((y + row) / 32)
+
+    fits = [(width, *laid) for width in widths if (laid := shelves(width))]
+    width, spots, height = min(fits, key=lambda f: f[0] * f[2])
+    for face, x, y in spots:
+        face["offset"] = {"x": x, "y": y}
+    return width, height
 
 
 def xyz(values):
@@ -132,7 +177,7 @@ def corners(shape):
 
 
 def add(a, b):
-    return tuple(x + y for x, y in zip(a, b))
+    return tuple(map(operator.add, a, b))
 
 
 def multiply(q, r):
@@ -145,7 +190,17 @@ def multiply(q, r):
 
 
 def rotate(q, v):
-    norm = math.sqrt(sum(c * c for c in q)) or 1.0
-    q = tuple(c / norm for c in q)
-    x, y, z, _ = multiply(multiply(q, (v[0], v[1], v[2], 0.0)), (-q[0], -q[1], -q[2], q[3]))
-    return (x, y, z)
+    """v turned by the quaternion q (normalised first): q * v * conjugate(q), written out term by term in the order
+    multiply computes them (the generators' hot path; the same floats as two multiply calls)."""
+    a, b, c, w = q
+    # sum, not +: Python's float sum is compensated, and the generators' outputs are compared bit for bit.
+    norm = math.sqrt(sum((a * a, b * b, c * c, w * w))) or 1.0
+    a, b, c, w = a / norm, b / norm, c / norm, w / norm
+    vx, vy, vz = v
+    px = w * vx + a * 0.0 + b * vz - c * vy
+    py = w * vy - a * vz + b * 0.0 + c * vx
+    pz = w * vz + a * vy - b * vx + c * 0.0
+    pw = w * 0.0 - a * vx - b * vy - c * vz
+    return (pw * -a + px * w + py * -c - pz * -b,
+            pw * -b - px * -c + py * w + pz * -a,
+            pw * -c + px * -b - py * -a + pz * w)

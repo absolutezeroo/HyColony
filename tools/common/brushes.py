@@ -176,6 +176,16 @@ def terracotta(rgb):
     return painted(rule)
 
 
+def embers():
+    """Glowing embers (a fire's bed, a stove's firebox): dark coal broken by orange and yellow glowing cracks."""
+    def rule(x, y, w, h, side):
+        heat = (x * 7 + y * 13 + (x * y) % 5) % 9
+        if heat < 3:
+            return (255, 212, 96, 255) if heat == 0 else (255, 142, 44, 255)
+        return (64, 36, 28, 255) if heat % 2 else (92, 48, 32, 255)
+    return painted(rule)
+
+
 def clay(rgb):
     """Fired clay (bricks): a soft mottle and scattered dark pores."""
     def rule(x, y, w, h, side):

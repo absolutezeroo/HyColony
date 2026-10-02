@@ -34,13 +34,16 @@ LOW, HIGH = 12, 244
 FLOOR = ((0.0, -50.0, 0.0), (0.0, 0.0, 0.0, 1.0), (1000.0, 50.0, 1000.0), 1e9)
 # Hemisphere directions around a normal: (elevation, azimuth) in degrees, plus the normal itself.
 RAYS = [(90, 0)] + [(e, a) for e in (25, 55) for a in range(0, 360, 60)]
+# The quaternion of an unturned box.
+UNTURNED = (0.0, 0.0, 0.0, 1.0)
 
 
-def light_map(nodes, grounded=False):
+def light_map(nodes, grounded=False, see_through=frozenset()):
     """{texel: brightness} of every island texel of the model, to light any texture painted on it (lit). A grounded
-    model (a block) stands on a floor that occludes and grimes its foot. Fails when two faces share a texel: each face
-    must have its own island, lit for it."""
-    boxes = list(world_boxes(nodes)) + ([FLOOR] if grounded else [])
+    model (a block) stands on a floor that occludes and grimes its foot. The nodes named in see_through are lit but
+    occlude nothing (a part shown only part of the time, such as an animated drop). Fails when two faces share a
+    texel: each face must have its own island, lit for it."""
+    boxes = list(world_boxes(nodes, see_through)) + ([FLOOR] if grounded else [])
     values, owners = {}, {}
     for n, position, rotation in placed(nodes):
         shape = n["shape"]
@@ -159,26 +162,41 @@ def brightness(point, normal, border, boxes, mode):
 
 def occlusion(point, normal, boxes):
     """0 (open) to 1 (enclosed): how much of the hemisphere above the point other boxes hide, nearer counting more."""
-    tangent = unit(cross(normal, (0.0, 1.0, 0.0) if abs(normal[1]) < 0.9 else (1.0, 0.0, 0.0)))
-    bitangent = cross(normal, tangent)
+    nx, ny, nz = normal
+    tx, ty, tz = unit(cross(normal, (0.0, 1.0, 0.0) if abs(ny) < 0.9 else (1.0, 0.0, 0.0)))
+    bx, by, bz = cross(normal, (tx, ty, tz))
     start = add(point, scale(normal, RAY_START))
-    total = weight_sum = 0.0
-    for elevation, azimuth in RAYS:
-        e, a = math.radians(elevation), math.radians(azimuth)
-        direction = add(scale(normal, math.sin(e)),
-                        add(scale(tangent, math.cos(e) * math.cos(a)), scale(bitangent, math.cos(e) * math.sin(a))))
-        weight = math.sin(e)
+    total = 0.0
+    for weight, along_t, along_b in RAY_TERMS:
+        direction = (nx * weight + (tx * along_t + bx * along_b), ny * weight + (ty * along_t + by * along_b),
+                     nz * weight + (tz * along_t + bz * along_b))
         t = hit(start, direction, boxes, AO_DISTANCE)
         total += weight * (0.0 if t is None else 1.0 - t / AO_DISTANCE)
-        weight_sum += weight
-    return total / weight_sum
+    return total / RAY_WEIGHT
 
 
-def world_boxes(nodes):
-    """(centre, inverse rotation, half extents, bounding radius) of every box, in world space."""
+def ray_terms():
+    """Per ray of RAYS, computed once: (sin elevation, its weight and its share along the normal; its shares along the
+    tangent and the bitangent); and the sum of the weights."""
+    terms = []
+    for elevation, azimuth in RAYS:
+        e, a = math.radians(elevation), math.radians(azimuth)
+        terms.append((math.sin(e), math.cos(e) * math.cos(a), math.cos(e) * math.sin(a)))
+    weight = 0.0
+    for term in terms:
+        weight += term[0]
+    return terms, weight
+
+
+RAY_TERMS, RAY_WEIGHT = ray_terms()
+
+
+def world_boxes(nodes, skipped=frozenset()):
+    """(centre, inverse rotation, half extents, bounding radius) of every box, in world space, but those of the nodes
+    named in skipped."""
     for n, position, rotation in placed(nodes):
         shape = n["shape"]
-        if shape["type"] != "box":
+        if shape["type"] != "box" or n["name"] in skipped:
             continue
         offset, stretch = (tuple(shape[k][a] for a in "xyz") for k in ("offset", "stretch"))
         half = tuple(abs(shape["settings"]["size"][a] * k) / 2 for a, k in zip("xyz", stretch))
@@ -190,13 +208,22 @@ def world_boxes(nodes):
 def hit(origin, direction, boxes, reach):
     """Distance along the ray to the nearest box within reach, None if none (slab test in each box's frame)."""
     nearest = None
+    ox, oy, oz = origin
+    dx, dy, dz = direction
     for centre, inverse, half, radius in boxes:
-        to_centre = sub(centre, origin)
-        along = dot(to_centre, direction)
-        if along < -radius or along > reach + radius or dot(to_centre, to_centre) - along * along > radius * radius:
+        # The bounding sphere first: most boxes are behind, past reach or beside the ray. sum, as dot computes it.
+        cx, cy, cz = centre
+        tx, ty, tz = cx - ox, cy - oy, cz - oz
+        along = sum((tx * dx, ty * dy, tz * dz))
+        if along < -radius or along > reach + radius:
             continue
-        o = rotate(inverse, sub(origin, centre))
-        d = rotate(inverse, direction)
+        if sum((tx * tx, ty * ty, tz * tz)) - along * along > radius * radius:
+            continue
+        o = (ox - cx, oy - cy, oz - cz)
+        d = direction
+        # An unturned box (most of them, and the floor) needs no turn: the identity gives the same values.
+        if inverse != UNTURNED:
+            o, d = rotate(inverse, o), rotate(inverse, d)
         t0, t1 = 0.0, reach
         for k in range(3):
             if abs(d[k]) < 1e-9:
@@ -245,15 +272,16 @@ def graded(pixel, value):
 
 
 def sub(a, b):
-    return tuple(x - y for x, y in zip(a, b))
+    return (a[0] - b[0], a[1] - b[1], a[2] - b[2])
 
 
 def scale(a, k):
-    return tuple(x * k for x in a)
+    return (a[0] * k, a[1] * k, a[2] * k)
 
 
 def dot(a, b):
-    return sum(x * y for x, y in zip(a, b))
+    # sum, not +: Python's float sum is compensated, and the generators' outputs are compared bit for bit.
+    return sum((a[0] * b[0], a[1] * b[1], a[2] * b[2]))
 
 
 def cross(a, b):

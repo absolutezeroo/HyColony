@@ -8,7 +8,7 @@ from PIL import Image
 
 import bake
 from icons import screen, turned, turned_shade
-from models import bounds, empty_shape, face_rects, face_span, node, placed
+from models import bounds, box_shape, empty_shape, face_rects, face_span, node, placed, unwrap
 from paint import bleed
 
 
@@ -47,6 +47,21 @@ class FaceTest(unittest.TestCase):
         quad.update({"type": "quad", "settings": {"size": {"x": 5, "y": 6}},
                      "textureLayout": {"left": {"offset": {"x": 0, "y": 0}}}})
         self.assertEqual([("Quad", 0, 0, 5, 6)], list(face_rects([node("Quad", (0, 0, 0), quad)])))
+
+
+class UnwrapTest(unittest.TestCase):
+    def test_every_face_gets_its_own_island_two_pixels_apart_in_a_texture_of_multiples_of_32(self):
+        sides = ("front", "back", "left", "right", "top", "bottom")
+        nodes = [node("A", (0, 0, 0), box_shape((6, 4, 3), sides)), node("B", (0, 0, 0), box_shape((2, 9, 2), sides))]
+        width, height = unwrap(nodes)
+        self.assertEqual((0, 0), (width % 32, height % 32))
+        rects = [(u0, v0, u1, v1) for _, u0, v0, u1, v1 in face_rects(nodes)]
+        for i, a in enumerate(rects):
+            self.assertTrue(a[2] <= width and a[3] <= height)
+            for b in rects[i + 1:]:
+                apart = a[2] + 2 <= b[0] or b[2] + 2 <= a[0] or a[3] + 2 <= b[1] or b[3] + 2 <= a[1]
+                self.assertTrue(apart, (a, b))
+        bake.light_map(nodes)
 
 
 class BoundsTest(unittest.TestCase):
@@ -184,6 +199,18 @@ class BakeTest(unittest.TestCase):
         bake.lit(image, {(0, 0): 0.5, (1, 0): 0.5, (5, 5): 0.5})
         self.assertLess(image.getpixel((0, 0))[0], 100)
         self.assertEqual((100, 100, 100, 0), image.getpixel((1, 0)))
+
+    def test_a_see_through_node_is_lit_but_shades_nothing(self):
+        def top_light(see_through):
+            base = box("Base", (0, 0, 0), (6, 2, 6))
+            lid = box("Lid", (0, 4, 0), (6, 2, 6), {"top": {"offset": {"x": 10, "y": 0}}})
+            values = bake.light_map([base, lid], see_through=see_through)
+            return values[(3, 3)], (13, 3) in values
+
+        shaded, _ = top_light(frozenset())
+        open_sky, lid_lit = top_light(frozenset({"Lid"}))
+        self.assertLess(shaded, open_sky)
+        self.assertTrue(lid_lit)
 
     def test_two_faces_sharing_an_island_are_refused(self):
         shared = {side: {"offset": {"x": 0, "y": 0}} for side in ("front", "back")}

@@ -11,8 +11,9 @@ TEXTURE_ROOTS = ("Blocks/", "BlockTextures/", "Items/", "NPC/", "Resources/", "V
 
 def validate_pack(assets, pack):
     """Fails loudly on what Hytale would refuse in the pack's items: a Common path outside its root, of the wrong type
-    or missing (from the pack and the vanilla assets), an unknown item, hitbox, sound or particle set, material,
-    animation set, or crafting bench and category."""
+    or missing (from the pack and the vanilla assets; models, block animations, textures, icons), an unknown item,
+    hitbox, sound or particle set, particle system or spawner, material, animation set, or crafting bench and
+    category."""
     errors = []
     items = {p.stem: p for p in (pack / "Server/Item/Items").rglob("*.json")}
     hitboxes = {p.stem for p in (pack / "Server/Item/Block/Hitboxes").rglob("*.json")}
@@ -30,6 +31,9 @@ def validate_pack(assets, pack):
         "ItemSoundSetId": vanilla("Server/Audio/ItemSounds/"),
         "PlayerAnimationsId": vanilla("Server/Item/Animations/"),
         "ResourceTypeId": vanilla("Server/Item/ResourceTypes/"),
+        # A particle system's id is its file name (ModelParticle validates SystemId: an unknown one stops the server).
+        "SystemId": {p.stem for p in (pack / "Server/Particles").rglob("*.particlesystem")}
+        | {n.rsplit("/", 1)[-1][:-15] for n in assets.names if n.endswith(".particlesystem")},
     }
     benches = vanilla_benches(assets)
 
@@ -51,6 +55,9 @@ def validate_pack(assets, pack):
         for key, value in walk_json(data):
             if key in ("CustomModel", "Model"):
                 common(value, MODEL_ROOTS, ".blockymodel", name)
+            elif key == "CustomModelAnimation":
+                # CommonAssetValidator.ANIMATION_ITEM_BLOCK: the model roots, a .blockyanim.
+                common(value, MODEL_ROOTS, ".blockyanim", name)
             elif key == "Texture" or key in ("All", "Sides", "Top", "Bottom"):
                 common(value, TEXTURE_ROOTS, ".png", name)
             elif key in known and value not in known[key]:
@@ -63,6 +70,16 @@ def validate_pack(assets, pack):
             if key in known and value not in known[key]:
                 errors.append(f"{path.stem}: unknown {key} {value}")
         check_recipe(path.stem, data)
+    # The pack's particle systems: each spawner they use exists (ParticleSpawnerGroup validates SpawnerId).
+    spawners = ({p.stem for p in (pack / "Server/Particles").rglob("*.particlespawner")}
+                | {n.rsplit("/", 1)[-1][:-16] for n in assets.names if n.endswith(".particlespawner")})
+    for path in sorted((pack / "Server/Particles").rglob("*.particlesystem")):
+        system = json.loads(path.read_text(encoding="utf-8"))
+        if not system.get("Spawners"):
+            errors.append(f"{path.stem}: no Spawners (ParticleSystem requires a non-empty array)")
+        for spawner in system.get("Spawners") or []:
+            if spawner.get("SpawnerId") not in spawners:
+                errors.append(f"{path.stem}: unknown SpawnerId {spawner.get('SpawnerId')}")
     if errors:
         raise SystemExit(f"Invalid {pack.name} pack:\n  " + "\n  ".join(errors))
 
