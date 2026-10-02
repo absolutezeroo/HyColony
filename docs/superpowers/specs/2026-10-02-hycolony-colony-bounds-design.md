@@ -29,6 +29,7 @@ Recherche : `docs/research/colony-bounds-and-mob-spawns.md` (MC ne garde pas ses
   - hostile = dans le groupe de PNJ `HyColony_Hostile` (asset `Server/NPC/Groups/HyColony/`, id dans la section `npcGroups` de l'id-map, validée au démarrage) : le groupe vanilla `Aggressive`, `Outlander`, `Scarak` et quelques rôles nommés qu'ils oublient, sans le cheval squelette ;
   - trois origines : une apparition du monde (`RefSystem` à l'ajout, `spawnConfiguration` déjà posé), une balise et un marqueur (`RefChangeSystem` sur `SpawnBeaconReference` et `SpawnMarkerReference`, posés juste après l'ajout) ;
   - le PNJ disparaît au tick suivant, comme une disparition vanilla (`setDespawning`, `NPCPreTickSystem`) : retiré pendant son ajout, son générateur journaliserait une erreur et un marqueur pourrait être supprimé.
+- Failles (ajout du 2026-10-02, recherche § 7) : le territoire n'est pas de la nature sauvage. `ColonyWildernessTracker` remplace le tracker de Hytale (`WildernessTracker`) : un chunk de 32 qui touche une cellule revendiquée n'est pas sauvage (`ColonyProtection.isWilderness`), et sa `generation` suit `TerritoryIndex.revision()`. `WildernessTrackerSystem` le remet en place quand Hytale recrée le tracker.
 
 ## 4. Écarts
 
@@ -39,6 +40,7 @@ Recherche : `docs/research/colony-bounds-and-mob-spawns.md` (MC ne garde pas ses
 - La pause de 60 s est comptée par la flânerie elle-même (12 décisions de 100 ticks de repos hors loisir), le loisir n'ayant pas d'état à lui.
 - Bornage de la flânerie et retour vers la maison : ajouts demandés, MC laisse dériver ses citoyens. Une maison inaccessible est retentée à chaque décision.
 - Pas d'apparition naturelle de monstre hostile dans tout le territoire : MC ne refuse que dans les bâtiments (Hytale n'a pas l'équivalent de la lumière). Un monstre qui entre en marchant reste possible. Les marqueurs d'apparition (camps du monde) sont visés aussi, alors que MC laisse passer ses spawners (`MobSpawnType.SPAWNER`). La copie d'un monstre né du monde (`/entity clone`) garde sa configuration d'apparition et disparaît aussi. Le monstre peut se voir un tick.
+- Pas de faille (événement du monde d'Update 7) dans un chunk de 32 qui touche le territoire : MC n'a pas de failles. Pour Hytale, seul un lit rend une zone « habitée ». Une faille tirée juste au-delà de la bordure peut déborder de quelques blocs (rayon de recherche de 16).
 
 ## 5. Tests
 

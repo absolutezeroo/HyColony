@@ -575,3 +575,9 @@ Spec `docs/superpowers/specs/2026-10-02-hylens-requetes-design.md`. Une colonie 
 343. **Fenêtre du citoyen.** En créatif, « Fournir » dans la fenêtre des requêtes d'un citoyen (ou le presse-papiers) donne aussi gratuitement.
 344. **Remise à zéro.** « Remettre à zéro les requêtes » (opérateur) : la liste se vide d'un coup ; le bâtisseur, les livreurs et les artisans reprennent et redemandent ce qui leur manque dans la minute ; rien ne reste bloqué. Un livreur qui portait une livraison la dépose à l'entrepôt.
 345. **Droits.** Un joueur non opérateur : « Remettre à zéro » refusé, « désactivée dans la configuration » ; avec `"CanPlayerUseResetCommand": true` (section `Commands`), accepté, même sans être membre. « Fournir » demande le droit de gérer les huttes de la colonie.
+
+## Failles hors de la colonie
+
+Spec `docs/superpowers/specs/2026-10-02-hycolony-colony-bounds-design.md` (failles). Une colonie, un joueur opérateur.
+
+346. **Nature sauvage.** `/wilderness debug` dans la colonie, puis la carte du monde : autour du joueur (seulement son rayon de suivi, environ 3 chunks de 32), les chunks qui touchent le territoire s'affichent comme « maison », ceux d'au-delà comme sauvages. Agrandir le territoire (nouvelle hutte qui revendique) : l'affichage suit sans relancer. Rester une ou deux nuits dans la colonie : aucune faille gobeline ne s'ouvre dans le territoire (une faille juste au-delà de la bordure peut déborder de quelques blocs). Noter tout message `wilderness` dans le journal du serveur.

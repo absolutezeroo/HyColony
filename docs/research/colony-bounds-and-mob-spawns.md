@@ -242,3 +242,43 @@ composants, **[in-game]**).
   passe par `setDespawning` + `NPCPreTickSystem` (§ 6.2), vérifiée toutes les 30 s (`NPCPreTickSystem.java:97-99`).
 - Les balises retirent leurs PNJ hors rayon ou à l'heure de disparition par `commandBuffer.removeEntity(..., REMOVE)`
   (`SpawnBeaconSystems.java:120-135`).
+
+## 7. Les failles d'Update 7 et la « nature sauvage » (2026-10-02)
+
+Constat en jeu : des failles gobelines (`Goblin_Breach_Event`) s'ouvrent dans la colonie. Choix de l'utilisateur : le
+territoire d'une colonie n'est pas de la nature sauvage.
+
+- **Où s'ouvre une faille.** `Server/WorldEvent/Stage/Goblin/Breach/Goblin_Breach_Stage1.json` (zip pre.5) : condition
+  `LocationCondition` de type `WildernessLocation` (8-60 blocs du joueur à l'horizontale, 0-16 à la verticale,
+  `SearchRadius` 16), puis le prefab `Orbis/WorldEvent/Goblins/Goblin_World_Event_Portal` collé à l'étape 3. Les
+  gobelins sortent des 8 marqueurs `SpawnMarkerComponent` (`Goblin_Scrapper`…) de ce prefab : ils passent par le
+  crochet des marqueurs du § 6.
+- **`WildernessLocation.find`** (`builtin/adventure/wilderness/component/WildernessLocation.java:38-79`) : rien si le
+  tracker est désactivé ; sinon un composant `Wilderness` de joueur tiré au hasard, et 3 positions au hasard dans
+  chacun de ses chunks sauvages (chunks 3D de 32, `ChunkUtil.chunkCoordinate`).
+- **Composant `Wilderness`** (`component/Wilderness.java`) : sur chaque joueur (`WildernessEntitySystems.AddSystem`,
+  rayon `PlayerTrackerChunkRadius`/`Y`). `move` (l. 126-165), à chaque tick (`WildernessEntitySystems.TickSystem`),
+  recalcule ses bits seulement si le joueur change de chunk ou si `tracker.generation()` change, en appelant
+  `tracker.isWildernessChunk(Vector3i)` (l. 157). **C'est le seul appel du tracker hors de sa classe** (recherche de
+  `isWilderness`, `isHome`, `collect*Chunks` dans les sources : aucun autre).
+- **`WildernessTracker`** (`resource/WildernessTracker.java`, ressource du `ChunkStore`, classe et méthodes non
+  finales) : un chunk est « maison » s'il est dans l'ellipsoïde d'un `RespawnBlock` (lit) : `OwnedHomeChunkRadius`
+  autour d'un lit qui a un propriétaire, `UnownedHomeChunkRadius` sinon (`addHomeChunk`, l. 193-212). Constructeur de
+  copie public (l. 51-58, copie réglages et chunks, pas `generation`), `generation` protégé (`AtomicLong`).
+- **Recréé par Hytale** : `WildernessTrackerSystems.reload` (`system/WildernessTrackerSystems.java:29-54`) construit un
+  nouveau tracker et fait `store.replaceResource` ; appelé au `StartWorldEvent` et au rechargement de la
+  `GameplayConfig` du monde (`WildernessPlugin.java:96-107`), sur le thread du monde. `Store.replaceResource`
+  (`component/Store.java:1327-1332`) : `assertThread`, aucun contrôle du type concret.
+- **Réglages vanilla** (`Server/GameplayConfigs/Default.json`, l. 52-60) : `Enabled` true, `OwnedHomeChunkRadius` 8,
+  `OwnedHomeChunkRadiusY` 4, `UnownedHomeChunkRadius` 4, `UnownedHomeChunkRadiusY` 2, `PlayerTrackerChunkRadius` 3,
+  `PlayerTrackerChunkRadiusY` 1. Plugin `Hytale:Wilderness`.
+- **Choix** : une sous-classe du tracker (`plugin/.../npc/spawn/ColonyWildernessTracker`) redéfinit
+  `isWildernessChunk(Vector3i)` (sauvage pour Hytale et ne touchant aucune cellule revendiquée,
+  `ColonyProtection.isWilderness`) et `generation()` (plus `TerritoryIndex.revision()`, pour que les joueurs
+  recalculent quand le territoire change) ; `WildernessTrackerSystem` la remet en place à chaque tick si Hytale a
+  recréé le tracker. Ce système n'est pas ordonné par rapport à `WildernessEntitySystems.TickSystem` : après un
+  `reload`, les joueurs peuvent garder la nature sauvage vanilla un tick (démarrage du monde, rechargement de la
+  config seulement). **[in-game]** : `/wilderness debug` devrait montrer comme « maison » les chunks du territoire
+  proches du joueur (la teinte ne couvre que son rayon de suivi, `WildernessDebugMapSystem.java:88-96`).
+- Limite : le portail se pose dans un rayon de recherche de 16 blocs autour du point tiré ; une faille tirée juste
+  au-delà de la bordure peut déborder de quelques blocs.

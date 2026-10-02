@@ -19,6 +19,7 @@
         "HyColony:hyvanilla": "=0.1.0"
     },
     "OptionalDependencies": {
+        "Hytale:Wilderness": "*",
         "com.hypersonicsharkz:Hytalor": "*"
     },
     "ServerVersion": ">=0.7.0-pre.5 <0.8.0",

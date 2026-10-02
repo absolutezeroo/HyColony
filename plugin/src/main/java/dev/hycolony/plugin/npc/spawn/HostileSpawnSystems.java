@@ -23,17 +23,20 @@ import org.jspecify.annotations.Nullable;
  * The systems that keep hostile creatures from appearing naturally in a colony's territory ({@link HostileSpawns}):
  * an NPC is checked when a world spawn adds it (its spawn configuration is set before), and when a spawn beacon or
  * marker tags it (those marks come after the add). A plugin's NPC (our citizens) or one a command spawns has none of
- * them; a copy of a naturally spawned NPC (/entity clone) keeps its spawn configuration and is checked too.
+ * them; a copy of a naturally spawned NPC (/entity clone) keeps its spawn configuration and is checked too. A
+ * colony's territory is also not wilderness, where world events such as goblin breaches open
+ * ({@link WildernessTrackerSystem}).
  */
 public final class HostileSpawnSystems {
     private HostileSpawnSystems() {}
 
-    /** Registers the three checks; the hostile group's id comes from the id map. */
+    /** Registers the three checks and the colony-aware wilderness; the hostile group's id comes from the id map. */
     public static void register(ComponentRegistryProxy<EntityStore> registry, WorldRuntimes runtimes, IdMap ids) {
         HostileSpawns rule = new HostileSpawns(runtimes, ids.npcs().group("npc.group.hostile"));
         registry.registerSystem(new WorldSpawn(rule));
         registry.registerSystem(new BeaconSpawn(rule));
         registry.registerSystem(new MarkerSpawn(rule));
+        registry.registerSystem(new WildernessTrackerSystem(runtimes));
     }
 
     /** An NPC a spawn beacon tags. Its own class: Hytale registers one system per class. */
