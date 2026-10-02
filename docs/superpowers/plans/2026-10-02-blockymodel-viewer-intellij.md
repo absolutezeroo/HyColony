@@ -1048,8 +1048,10 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```bash
 mkdir -p src/test/resources/fixture/Blocks/Tape
 cp /c/Users/Ctuto/Desktop/HyColony/plugin/src/main/resources/Common/Blocks/HyColony/Construction_Tape/Corner.blockymodel \
-   /c/Users/Ctuto/Desktop/HyColony/plugin/src/main/resources/Common/Blocks/HyColony/Construction_Tape/Texture.png \
    src/test/resources/fixture/Blocks/Tape/
+# Each tape shape has its own texture since 2026-10-02: the corner's becomes the fixture's Texture.png.
+cp /c/Users/Ctuto/Desktop/HyColony/plugin/src/main/resources/Common/Blocks/HyColony/Construction_Tape/Corner.png \
+   src/test/resources/fixture/Blocks/Tape/Texture.png
 ```
 
 Le chemin contient `Blocks` : le plugin Hytale choisit le format `hytale_prop`, comme pour les vrais modèles.

@@ -44,7 +44,7 @@ Succès :
 ## 4. Plugin
 
 - Bloc `HyColony_Construction_Tape` : forme par défaut `Straight`, états `Corner`, `T_Junction`, `Cross_Junction`, rotation `NESW`. Sans collision, cassé d'un coup, sans butin. Un gabarit de raccord (`CustomTemplate`, comme les vitres de HyDomum) recalcule la forme quand un joueur casse ou pose un ruban voisin.
-- Modèles générés par un script (`tools/tape/`) depuis la géométrie des trois modèles de MC (×2, en unités Hytale). La texture est un atlas fait des planches de bois dur et de la laine blanche de Hytale, comme les atlas de HyVanilla.
+- Modèles générés par un script (`tools/tape/`) à partir de pièces faites à la main dans le style des huttes (`shapes.py`), à la demande de l'utilisateur (« ce n'est pas une vraie corde, c'est un truc blanc ») : au centre du bloc, un piquet de bois brut à pointe taillée, planté dans une motte de terre et ceint d'un tour de corde ; une corde de chanvre torsadée vers chaque côté raccordé, penchée de 14° pour pendre jusqu'au bord, où elle rejoint celle du voisin. Chaque forme est dépliée une zone par face (`models.unwrap`), peinte au pinceau et éclairée (`paint.texture`, `bake.light_map`), avec sa propre texture (`<Forme>.png`, la lumière cuite diffère d'une forme à l'autre), donnée par son état (`CustomModelTexture`).
 - `HytaleTapeBlocks` implémente le port ; les ids sont dans `hycolony/id-map.json`.
 - Textes (en-US, fr-FR) : nom et description du bloc ; la ligne du réglage et son infobulle, d'après MC (« Construction tape: », « Controls construction tape being placed on building sites »).
 
@@ -57,7 +57,8 @@ Succès :
 - Le ruban ne tombe pas quand on creuse sous lui : Hytale n'a pas de bloc à gravité pour un modèle ; il reste en l'air jusqu'à son retrait.
 - Un ruban en coin qui perd un voisin (cassé par un joueur) devient droit, où MC garde le coin : le gabarit de raccord de Hytale ne retient pas qu'il était un coin.
 - La recette demande la laine blanche, où MC prend n'importe quelle laine : Hytale n'a pas de type de ressource laine.
-- Les textures sont celles de Hytale (bois dur, laine blanche), pas celles de Minecraft. La hitbox de chaque forme est la boîte qui englobe son modèle, là où MC a des formes fines.
+- Les textures sont peintes pour HyColony (bois brut, corde de chanvre), pas celles de Minecraft (planches de chêne, laine blanche). La hitbox de chaque forme est la boîte qui englobe son modèle, bornée au bloc, là où MC a des formes fines.
+- Un seul piquet par bloc, au centre : MC met un piquet au bord de chaque bras, si bien que deux rubans voisins posent deux piquets collés. La corde pend entre deux piquets, comme chez MC.
 - Pas de retrait propre à la fin d'un collage : voir les branchements.
 
 ## 6. Tests

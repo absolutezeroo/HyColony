@@ -3,19 +3,7 @@
     "Name": "hycolony.item.tape.name",
     "Description": "hycolony.item.tape.description"
   },
-  "Icon": "Icons/ItemsGenerated/HyColony_Construction_Tape.png",
-  "IconProperties": {
-    "Scale": 0.58823,
-    "Rotation": [
-      22.5,
-      45,
-      22.5
-    ],
-    "Translation": [
-      0,
-      -13.5
-    ]
-  },
+  "Icon": "Icons/Items/HyColony/Construction_Tape.png",
   "Categories": [
     "Blocks.Deco"
   ],
@@ -46,14 +34,14 @@
     "Material": "Empty",
     "DrawType": "Model",
     "Opacity": "Transparent",
+    "VariantRotation": "NESW",
+    "CustomModel": "Blocks/HyColony/Construction_Tape/Straight.blockymodel",
     "CustomModelTexture": [
       {
-        "Texture": "Blocks/HyColony/Construction_Tape/Texture.png",
+        "Texture": "Blocks/HyColony/Construction_Tape/Straight.png",
         "Weight": 1
       }
     ],
-    "VariantRotation": "NESW",
-    "CustomModel": "Blocks/HyColony/Construction_Tape/Straight.blockymodel",
     "HitboxType": "HyColony_Construction_Tape_Straight",
     "Gathering": {
       "Soft": {
@@ -77,14 +65,32 @@
       "Definitions": {
         "Corner": {
           "CustomModel": "Blocks/HyColony/Construction_Tape/Corner.blockymodel",
+          "CustomModelTexture": [
+            {
+              "Texture": "Blocks/HyColony/Construction_Tape/Corner.png",
+              "Weight": 1
+            }
+          ],
           "HitboxType": "HyColony_Construction_Tape_Corner"
         },
         "T_Junction": {
           "CustomModel": "Blocks/HyColony/Construction_Tape/T_Junction.blockymodel",
+          "CustomModelTexture": [
+            {
+              "Texture": "Blocks/HyColony/Construction_Tape/T_Junction.png",
+              "Weight": 1
+            }
+          ],
           "HitboxType": "HyColony_Construction_Tape_T_Junction"
         },
         "Cross_Junction": {
           "CustomModel": "Blocks/HyColony/Construction_Tape/Cross_Junction.blockymodel",
+          "CustomModelTexture": [
+            {
+              "Texture": "Blocks/HyColony/Construction_Tape/Cross_Junction.png",
+              "Weight": 1
+            }
+          ],
           "HitboxType": "HyColony_Construction_Tape_Cross_Junction"
         }
       }

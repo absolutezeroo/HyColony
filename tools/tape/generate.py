@@ -1,54 +1,48 @@
 """Génère le bloc du ruban de chantier de HyColony (MC BlockConstructionTape, spec
-docs/superpowers/specs/2026-10-02-hycolony-construction-tape-design.md) : les modèles de ses quatre formes, leur
-texture (planches de bois dur et laine blanche de Hytale, à la place des planches de chêne et de la laine blanche de
-MC), leurs hitbox, son gabarit de raccord, son icône et son objet, dans les ressources du plugin de HyColony.
+docs/superpowers/specs/2026-10-02-hycolony-construction-tape-design.md) : les modèles de ses quatre formes, faits de
+pièces (shapes.py), dépliés une zone par face, peints au pinceau et éclairés comme les huttes (tools/common :
+paint.texture, bake.light_map), leurs textures et leurs hitbox, son gabarit de raccord, son icône et son objet, dans
+les ressources du plugin de HyColony.
 
-Lancé à la main, puis les sorties sont commitées : le build ne le lance jamais. Réutilise le convertisseur de
-modèles Minecraft de HyDomum (tools/domum/convert.py). Python 3.10+ et Pillow.
+Lancé à la main, puis les sorties sont commitées : le build ne le lance jamais. Python 3.10+ et Pillow.
 
-    python tools/tape/generate.py [chemin/vers/Assets.zip]
+    python tools/tape/generate.py
 """
 
 import json
 import sys
 from pathlib import Path
-from types import SimpleNamespace
+
+from PIL import Image
 
 TOOLS = Path(__file__).resolve().parents[1]
 sys.path += [str(TOOLS / "common"), str(TOOLS / "domum")]
-import convert  # noqa: E402
-import icon  # noqa: E402
-import iconmap  # noqa: E402
-import pairs  # noqa: E402
-import tags  # noqa: E402
+from bake import light_map  # noqa: E402
 from blocks import common  # noqa: E402
-from pack import ROOT, rounded, write_json  # noqa: E402
-from shapes import SHAPES, TEXTURES, elements  # noqa: E402
+from brushes import coloured, jitter, painted, stone, wood  # noqa: E402
+from icons import ICON_SIZE, draw_model, frame  # noqa: E402
+from models import bounds, unwrap  # noqa: E402
+from pack import ROOT, rounded, save_png, write_json  # noqa: E402
+import paint  # noqa: E402
+from shapes import SHAPES, parts  # noqa: E402
 
 OUT = ROOT / "plugin" / "src" / "main" / "resources"
 IDENT = "HyColony_Construction_Tape"
 FOLDER = "Blocks/HyColony/Construction_Tape/"
-TEXTURE = FOLDER + "Texture.png"
-ICON = "Icons/ItemsGenerated/" + IDENT + ".png"
+ICON = "Icons/Items/HyColony/Construction_Tape.png"
 HITBOXES = "Server/Item/Block/Hitboxes/HyColony/"
 TEMPLATE = "HyColony_TapeConnectedBlockTemplate"
 TAG = "HyColonyTape"
 DEFAULT = "Straight"
-# Les matériaux des deux tuiles de la texture, dans l'ordre des textures de MC (TEXTURES).
-MATERIALS = ("Wood_Hardwood_Planks", "Cloth_Block_Wool_White")
-FAMILY = SimpleNamespace(components=list(TEXTURES.values()))
+ROPE = (190, 154, 100)
 
 
 def main():
-    assets = tags.open_assets(sys.argv[1] if len(sys.argv) > 1 else None)
-    texture = pairs.image(assets, *MATERIALS)
-    _save(texture, TEXTURE)
     looks = {shape: _look(shape) for shape in SHAPES}
     block_type = {
         "Material": "Empty",  # MC noCollission : on le traverse, comme une plante
         "DrawType": "Model",
         "Opacity": "Transparent",
-        "CustomModelTexture": [{"Texture": TEXTURE, "Weight": 1}],
         "VariantRotation": "NESW",
         **looks[DEFAULT],
         "Gathering": {"Soft": {"DropList": "Empty"}},  # MC strength(0) et noLootTable
@@ -59,17 +53,15 @@ def main():
     states = {shape: look for shape, look in looks.items() if shape != DEFAULT}
     block_type.update(common.connected(IDENT, TEMPLATE, DEFAULT, states))
     write_json(OUT / "Server/Item/CustomConnectedBlockTemplates" / (TEMPLATE + ".json"), template())
-    straight = convert.to_blockymodel(_model(DEFAULT), FAMILY)
-    _save(icon.from_map(iconmap.render(straight, convert.layout_size(FAMILY), common.DEFAULT_ICON), texture), ICON)
     write_json(OUT / "Server/Item/Items/HyColony" / (IDENT + ".json"), {
         "TranslationProperties": {"Name": "hycolony.item.tape.name", "Description": "hycolony.item.tape.description"},
         "Icon": ICON,
-        "IconProperties": common.DEFAULT_ICON,
         "Categories": ["Blocks.Deco"],
         # MC's shaped recipe SWS / S S / S S : 6 bâtons et une laine (le tag minecraft:wool ; Hytale n'a pas de type
         # de ressource laine, d'où la laine blanche), à l'établi comme la baguette.
         "Recipe": {
-            "Input": [{"ItemId": "Ingredient_Stick", "Quantity": 6}, {"ItemId": MATERIALS[1], "Quantity": 1}],
+            "Input": [{"ItemId": "Ingredient_Stick", "Quantity": 6},
+                      {"ItemId": "Cloth_Block_Wool_White", "Quantity": 1}],
             "BenchRequirement": [{"Id": "Workbench", "Type": "Crafting", "Categories": ["Workbench_Crafting"]}],
             "KnowledgeRequired": False,
         },
@@ -100,30 +92,55 @@ def _pattern(sides):
             "RulesToMatch": rules}
 
 
-def _model(shape):
-    return {"textures": dict(TEXTURES), "elements": elements(shape)}
-
-
 def _look(shape):
-    """Écrit le modèle et la hitbox de la forme ; renvoie ses clés CustomModel et HitboxType."""
-    model = _model(shape)
-    path = FOLDER + shape + ".blockymodel"
-    target = OUT / "Common" / path
+    """Écrit le modèle, la texture et la hitbox de la forme (et l'icône, pour la forme par défaut) ; renvoie ses clés
+    CustomModel, CustomModelTexture et HitboxType."""
+    nodes = parts(shape)
+    size = unwrap(nodes)
+    model, texture = FOLDER + shape + ".blockymodel", FOLDER + shape + ".png"
+    target = OUT / "Common" / model
     target.parent.mkdir(parents=True, exist_ok=True)
-    blockymodel = rounded(convert.to_blockymodel(model, FAMILY))
-    target.write_text(json.dumps(blockymodel, separators=(",", ":")) + "\n", encoding="utf-8", newline="\n")
+    target.write_text(json.dumps(rounded({"lod": "auto", "nodes": nodes}), separators=(",", ":")) + "\n",
+                      encoding="utf-8", newline="\n")
+    image = paint.texture(nodes, size, TILES, _material, light_map(nodes, grounded=True))
+    save_png(image, OUT / "Common" / texture)
+    if shape == DEFAULT:
+        icon = Image.new("RGBA", (ICON_SIZE, ICON_SIZE), (0, 0, 0, 0))
+        draw_model(icon, nodes, image, *frame(nodes))
+        save_png(icon, OUT / "Common" / ICON)
     hitbox = f"{IDENT}_{shape}"
-    low = [min(e["from"][i] for e in model["elements"]) / 16 for i in range(3)]
-    high = [max(e["to"][i] for e in model["elements"]) / 16 for i in range(3)]
-    write_json(OUT / HITBOXES / (hitbox + ".json"),
-               {"Boxes": [{"Min": dict(zip("XYZ", low)), "Max": dict(zip("XYZ", high))}]})
-    return {"CustomModel": path, "HitboxType": hitbox}
+    low, high = bounds(nodes)
+    write_json(OUT / HITBOXES / (hitbox + ".json"), {"Boxes": [{
+        "Min": {"X": _cell(low[0]), "Y": max(0.0, low[1] / 32), "Z": _cell(low[2])},
+        "Max": {"X": _cell(high[0]), "Y": min(1.0, high[1] / 32), "Z": _cell(high[2])}}]})
+    return {"CustomModel": model, "CustomModelTexture": [{"Texture": texture, "Weight": 1}], "HitboxType": hitbox}
 
 
-def _save(image, path):
-    target = OUT / "Common" / path
-    target.parent.mkdir(parents=True, exist_ok=True)
-    image.save(target)
+def _cell(units):
+    """A model x or z (units, -16..16 about the block's centre) as a hitbox coordinate, kept inside the block."""
+    return round(min(1.0, max(0.0, (units + 16) / 32)), 4)
+
+
+def _material(name, _side):
+    """La motte de terre, le piquet de bois brut, sa pointe fraîchement taillée, la corde."""
+    if name == "Mound":
+        return "soil"
+    if name == "Stake":
+        return "stake"
+    return "cut" if name.startswith("Stake_") else "rope"
+
+
+def _rope():
+    """Une corde de chanvre torsadée : des brins en diagonale le long de la corde, chacun clair sur son dos et sombre
+    dans le creux entre deux brins."""
+    def rule(x, y, w, h, side):
+        strand = (x + y) % 3 if h >= w else (x - y) % 3
+        return coloured(ROPE, (1.16, 0.98, 0.74)[strand] + 0.04 * jitter(x * 13 + y * 7, 46))
+    return painted(rule)
+
+
+TILES = {"soil": stone((92, 66, 46), chunk=(2, 2)), "stake": wood((112, 82, 54), plank=99),
+         "cut": wood((198, 162, 112), plank=99), "rope": _rope()}
 
 
 if __name__ == "__main__":
