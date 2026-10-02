@@ -53,12 +53,12 @@ public final class HeldItems {
         showArmor(d, bodies, body);
     }
 
-    /** The body shows the armour {@code d} wears. */
+    /** The body wears the armour {@code d} wears, each piece with its wear. */
     public static void showArmor(CitizenData d, CitizenBodies bodies, BodyId body) {
         Inventory armor = d.equipment().armor();
-        List<Optional<ItemKey>> pieces = new ArrayList<>(armor.size());
+        List<Optional<ItemAmount>> pieces = new ArrayList<>(armor.size());
         for (int i = 0; i < armor.size(); i++) {
-            pieces.add(armor.slot(i).map(ItemAmount::item));
+            pieces.add(armor.slot(i));
         }
         bodies.setArmor(body, pieces);
     }

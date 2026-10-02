@@ -16,6 +16,10 @@ import org.jspecify.annotations.Nullable;
 /** Persistent citizen state. The in-world body is disposable and rebuilt from this. */
 public final class CitizenData {
     public static final double MAX_SATURATION = 60;
+    /**
+     * MC InventoryCitizen.DEFAULT_INV_SIZE. Deviation from MC: always 27; MC's research effect CITIZEN_INV_SLOTS adds
+     * 9, 18 or 27 slots, and HyColony has no research yet.
+     */
     public static final int INVENTORY_SLOTS = 27;
     /** MC CitizenData.update: a leisure break lasts 3 minutes, in ticks. */
     public static final int LEISURE_TICKS = 20 * 60 * 3;

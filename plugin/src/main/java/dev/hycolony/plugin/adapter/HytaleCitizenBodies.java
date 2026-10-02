@@ -16,11 +16,13 @@ import com.hypixel.hytale.server.spawning.SpawnTestResult;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.WorldKey;
+import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.BodyAnimation;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.CitizenBodies;
 import dev.hycolony.core.kernel.port.NavStatus;
+import dev.hycolony.plugin.item.HytaleStacks;
 import dev.hycolony.plugin.npc.BodyTeleport;
 import dev.hycolony.plugin.npc.CitizenBeds;
 import dev.hycolony.plugin.npc.CitizenTag;
@@ -58,15 +60,21 @@ public final class HytaleCitizenBodies implements CitizenBodies {
     private final BodyVitals vitals;
     private final HytaleBodyHealth health;
     private final HytaleBodySeats seats;
+    private final HytaleStacks stacks;
     private final Map<Long, Ref<EntityStore>> refs = new HashMap<>();
     private final IdentityHashMap<Ref<EntityStore>, Long> ids = new IdentityHashMap<>();
     private long nextId = 1;
     private boolean speedWarned;
 
-    /** {@code coreTicks}: the core's clock, for how long a hurt body is remembered. */
-    public HytaleCitizenBodies(World world, String roleName, CitizenSpeed speed, LongSupplier coreTicks) {
+    /**
+     * {@code coreTicks}: the core's clock, for how long a hurt body is remembered; {@code stacks}: the core's stacks as
+     * Hytale's, for the armour a body wears.
+     */
+    public HytaleCitizenBodies(
+            World world, String roleName, CitizenSpeed speed, LongSupplier coreTicks, HytaleStacks stacks) {
         this.world = world;
         this.roleName = roleName;
+        this.stacks = stacks;
         this.speeds = new BodySpeeds(speed);
         this.teleporter = new BodyTeleport(world);
         this.beds = new CitizenBeds(world, teleporter);
@@ -294,10 +302,10 @@ public final class HytaleCitizenBodies implements CitizenBodies {
 
     /** See {@link BodyGestures#wear}. */
     @Override
-    public void setArmor(BodyId body, List<Optional<ItemKey>> pieces) {
+    public void setArmor(BodyId body, List<Optional<ItemAmount>> pieces) {
         Ref<EntityStore> ref = ref(body);
         if (ref != null) {
-            BodyGestures.wear(ref, pieces, store());
+            BodyGestures.wear(ref, pieces, store(), stacks);
         }
     }
 

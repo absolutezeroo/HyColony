@@ -16,8 +16,14 @@ class ArmorInfoTest {
     }
 
     @Test
-    void aNegativeItemLevelOrDurabilityIsRefused() {
-        assertThrows(IllegalArgumentException.class, () -> new ArmorInfo(ArmorInfo.Slot.HEAD, -1, 100));
-        assertThrows(IllegalArgumentException.class, () -> new ArmorInfo(ArmorInfo.Slot.HEAD, 20, -1));
+    void aSlotIsFoundByItsIndexAndNoneOutside() {
+        assertEquals(java.util.Optional.of(ArmorInfo.Slot.HANDS), ArmorInfo.Slot.at(2));
+        assertEquals(java.util.Optional.empty(), ArmorInfo.Slot.at(4));
+        assertEquals(java.util.Optional.empty(), ArmorInfo.Slot.at(-1));
+    }
+
+    @Test
+    void aNegativeItemLevelIsRefused() {
+        assertThrows(IllegalArgumentException.class, () -> new ArmorInfo(ArmorInfo.Slot.HEAD, -1));
     }
 }

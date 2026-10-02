@@ -3,6 +3,7 @@ package dev.hycolony.core.testing;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.WorldKey;
+import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.BodyAnimation;
 import dev.hycolony.core.kernel.port.BodyId;
@@ -46,7 +47,7 @@ public final class FakeBodies implements CitizenBodies, BodyHealth, BodySeats {
 
         public ItemKey held;
         /** What it shows worn, by armour slot; empty until {@link FakeBodies#setArmor}. */
-        public List<Optional<ItemKey>> armor = List.of();
+        public List<Optional<ItemAmount>> armor = List.of();
 
         public BodyAnimation lastAnimation;
         /** The bed it lies in; null standing. */
@@ -242,7 +243,7 @@ public final class FakeBodies implements CitizenBodies, BodyHealth, BodySeats {
     }
 
     @Override
-    public void setArmor(BodyId body, List<Optional<ItemKey>> pieces) {
+    public void setArmor(BodyId body, List<Optional<ItemAmount>> pieces) {
         bodies.get(body).armor = List.copyOf(pieces);
     }
 

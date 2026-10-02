@@ -45,9 +45,9 @@ class CitizenArmorActionsTest {
         hut.setLevel(1);
         worker.setWorkBuilding(hall);
         colony.citizens().restore(worker);
-        t.catalog.armors.put(LEATHER_CAP, new ArmorInfo(Slot.HEAD, 15, 120));
-        t.catalog.armors.put(BRONZE_HELM, new ArmorInfo(Slot.HEAD, 25, 100));
-        t.catalog.armors.put(BRONZE_CHEST, new ArmorInfo(Slot.CHEST, 25, 100));
+        t.catalog.armors.put(LEATHER_CAP, new ArmorInfo(Slot.HEAD, 15));
+        t.catalog.armors.put(BRONZE_HELM, new ArmorInfo(Slot.HEAD, 25));
+        t.catalog.armors.put(BRONZE_CHEST, new ArmorInfo(Slot.CHEST, 25));
     }
 
     private boolean mayWear(int slot, ItemKey item) {
@@ -109,7 +109,11 @@ class CitizenArmorActionsTest {
         playerWears(Slot.HEAD.index(), new ItemAmount(LEATHER_CAP, 1));
 
         assertEquals(
-                List.of(Optional.of(LEATHER_CAP), Optional.empty(), Optional.empty(), Optional.empty()),
+                List.of(
+                        Optional.of(new ItemAmount(LEATHER_CAP, 1)),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty()),
                 t.bodies.bodies.get(body).armor);
         assertTrue(colony.isDirty());
     }

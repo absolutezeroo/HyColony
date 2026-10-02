@@ -25,17 +25,32 @@ public final class EquipmentJson {
     /**
      * The equipment saved in the citizen object {@code o}: the first 4 armour pieces; a missing or bad hand, or one
      * outside the inventory, holds nothing (CLAUDE.md § 5).
+     *
+     * <p>Deviation from MC: a missing hand holds nothing; MC's getInt reads it as slot 0.
      */
     public static CitizenEquipment read(JsonObject o) {
-        JsonArray armor = o.get("armor") instanceof JsonArray a ? a : new JsonArray();
-        CitizenEquipment e = new CitizenEquipment(Inventory.read(armor, CitizenEquipment.ARMOR_SLOTS));
-        e.hold(Hand.MAIN, slot(o.get("heldMain")));
-        e.hold(Hand.OFF, slot(o.get("heldOff")));
+        CitizenEquipment e = new CitizenEquipment(Inventory.read(armor(o), CitizenEquipment.ARMOR_SLOTS));
+        e.hold(Hand.MAIN, valid(slot(o.get("heldMain"))));
+        e.hold(Hand.OFF, valid(slot(o.get("heldOff"))));
         return e;
     }
 
+    /** Whether {@link #read} had to repair {@code o}: a hand outside the inventory, or more than 4 armour pieces. */
+    public static boolean needsRepair(JsonObject o) {
+        int main = slot(o.get("heldMain"));
+        int off = slot(o.get("heldOff"));
+        return valid(main) != main || valid(off) != off || armor(o).size() > CitizenEquipment.ARMOR_SLOTS;
+    }
+
+    private static JsonArray armor(JsonObject o) {
+        return o.get("armor") instanceof JsonArray a ? a : new JsonArray();
+    }
+
     private static int slot(JsonElement saved) {
-        int slot = saved instanceof JsonPrimitive p && p.isNumber() ? p.getAsInt() : CitizenEquipment.NO_SLOT;
+        return saved instanceof JsonPrimitive p && p.isNumber() ? p.getAsInt() : CitizenEquipment.NO_SLOT;
+    }
+
+    private static int valid(int slot) {
         return slot >= 0 && slot < CitizenData.INVENTORY_SLOTS ? slot : CitizenEquipment.NO_SLOT;
     }
 }

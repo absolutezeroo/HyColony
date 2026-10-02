@@ -93,11 +93,21 @@ class MigrationV9ToV10Test {
                 "armor", JsonParser.parseString("[" + String.join(",", java.util.Collections.nCopies(6, piece)) + "]"));
         Files.writeString(dir.resolve("colony-1.json"), doc.toString());
 
-        CitizenData d = aela(load());
+        ColonyManager m = load();
+        CitizenData d = aela(m);
 
         assertEquals(CitizenEquipment.NO_SLOT, d.equipment().held(Hand.MAIN), "out of the 27 slots");
         assertEquals(CitizenEquipment.NO_SLOT, d.equipment().held(Hand.OFF));
         assertEquals(4, d.equipment().armor().size());
         assertTrue(d.equipment().armor().slot(3).isPresent(), "the first 4 pieces are kept");
+        assertTrue(m.byId(1).orElseThrow().isDirty(), "repaired, so written again (CLAUDE.md § 5)");
+    }
+
+    @Test
+    void aSoundSaveIsNotWrittenAgain() throws IOException {
+        Files.writeString(dir.resolve("colony-1.json"), fixture());
+        load().persistence().saveAll();
+
+        assertTrue(!load().byId(1).orElseThrow().isDirty(), "nothing to repair once migrated and saved");
     }
 }

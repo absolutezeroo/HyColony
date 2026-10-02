@@ -3,7 +3,6 @@ package dev.hycolony.core.app.action;
 import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
-import dev.hycolony.core.citizen.inventory.CitizenEquipment;
 import dev.hycolony.core.citizen.inventory.GuardGear;
 import dev.hycolony.core.citizen.inventory.HeldItems;
 import dev.hycolony.core.colony.Colony;
@@ -87,7 +86,8 @@ public final class CitizenInventoryActions {
      * GuardGear}); false for anything else, an unknown citizen or slot, and a citizen without work building.
      */
     public boolean mayWear(int colonyId, int citizenId, int slot, ItemKey item) {
-        if (slot < 0 || slot >= CitizenEquipment.ARMOR_SLOTS) {
+        Optional<ArmorInfo.Slot> armorSlot = ArmorInfo.Slot.at(slot);
+        if (armorSlot.isEmpty()) {
             return false;
         }
         int workLevel = citizen(colonyId, citizenId)
@@ -99,7 +99,7 @@ public final class CitizenInventoryActions {
                 .ports()
                 .armors()
                 .armor(item)
-                .filter(piece -> GuardGear.allows(workLevel, piece, ArmorInfo.Slot.values()[slot]))
+                .filter(piece -> GuardGear.allows(workLevel, piece, armorSlot.get()))
                 .isPresent();
     }
 

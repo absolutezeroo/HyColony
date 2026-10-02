@@ -6,7 +6,6 @@ import com.hypixel.hytale.protocol.AnimationSlot;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
 import com.hypixel.hytale.server.core.entity.AnimationUtils;
 import com.hypixel.hytale.server.core.inventory.InventoryComponent;
-import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
@@ -15,8 +14,10 @@ import com.hypixel.hytale.server.core.modules.physics.util.PhysicsMath;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.util.InventoryHelper;
 import dev.hycolony.core.kernel.Vec3;
+import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.BodyAnimation;
+import dev.hycolony.plugin.item.HytaleStacks;
 import java.util.List;
 import java.util.Optional;
 import org.joml.Vector3d;
@@ -38,22 +39,24 @@ public final class BodyGestures {
     }
 
     /**
-     * Puts {@code pieces} in the body's armour (InventoryComponent.Armor, ItemArmorSlot order), as a role's Armor key
-     * does (InventoryHelper.useArmor); SyncEquipmentSystem then shows them to the players around. A bare slot, or an
-     * item the game lacks, empties it. A copy for display: Hytale wears no NPC armour out
-     * (ItemUtils.canDecreaseItemStackDurability: players only).
+     * Puts {@code pieces} in the body's armour (InventoryComponent.Armor, ItemArmorSlot order), each at the durability
+     * its wear leaves ({@code stacks}), as a role's Armor key does (InventoryHelper.useArmor): SyncEquipmentSystem
+     * shows them to the players around and DamageSystems.ArmorDamageReduction counts them, a broken piece less. A bare
+     * slot, or an item the game lacks, empties it. Hytale wears no NPC armour
+     * (ItemUtils.canDecreaseItemStackDurability: players only): the core does.
      */
-    public static void wear(Ref<EntityStore> ref, List<Optional<ItemKey>> pieces, Store<EntityStore> store) {
+    public static void wear(
+            Ref<EntityStore> ref, List<Optional<ItemAmount>> pieces, Store<EntityStore> store, HytaleStacks stacks) {
         InventoryComponent.Armor armor = store.getComponent(ref, InventoryComponent.Armor.getComponentType());
         if (armor == null) {
             return;
         }
         ItemContainer worn = armor.getInventory();
         for (short slot = 0; slot < Math.min(pieces.size(), worn.getCapacity()); slot++) {
-            Optional<ItemKey> piece =
-                    pieces.get(slot).filter(k -> Item.getAssetMap().getAsset(k.id()) != null);
+            Optional<ItemAmount> piece = pieces.get(slot)
+                    .filter(a -> Item.getAssetMap().getAsset(a.item().id()) != null);
             if (piece.isPresent()) {
-                worn.setItemStackForSlot(slot, new ItemStack(piece.get().id(), 1));
+                worn.setItemStackForSlot(slot, stacks.toStack(piece.get()));
             } else {
                 worn.removeItemStackFromSlot(slot);
             }

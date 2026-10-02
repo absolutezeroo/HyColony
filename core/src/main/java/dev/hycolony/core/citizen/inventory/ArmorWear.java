@@ -2,46 +2,49 @@ package dev.hycolony.core.citizen.inventory;
 
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
-import dev.hycolony.core.kernel.item.ArmorInfo;
 import dev.hycolony.core.kernel.item.Inventory;
+import dev.hycolony.core.kernel.item.ItemAmount;
+import dev.hycolony.core.kernel.port.ItemCatalog;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
- * MC CitizenItemUtils.damageArmor: a hurt citizen's armour wears, each piece by a quarter of the damage, at least one
- * point; a piece worn to its durability breaks and is gone.
+ * A hurt citizen's armour wears (MC CitizenItemUtils.updateArmorDamage, called from EntityCitizen.hurt).
  *
- * <p>Deviation from MC: the points come off the piece's Hytale durability (80 to 180 for vanilla armour, MC's 80 to
- * 528), so a piece breaks in fewer hits than in MC. Hytale itself never wears a non-player's armour.
+ * <p>Deviation from MC (Hytale world): MC wears every piece by a quarter of the damage, a broken piece gone → Hytale's
+ * own armour wear, which Hytale gives players only (DamageSystems.DamageArmor,
+ * ItemUtils.canDecreaseItemStackDurability): a hit whose cause wears armour costs one random piece that is not broken
+ * one hit of its life (its DurabilityLossOnHit, ItemCatalog.durability counting hits); a broken piece stays worn,
+ * broken. No research effect
+ * (MC ARMOR_DURABILITY) exists yet.
  */
 public final class ArmorWear {
-    /** MC: the damage shared by the armour pieces, a quarter each. */
-    private static final int DAMAGE_PER_POINT = 4;
-
     private ArmorWear() {}
 
     /**
-     * {@code d} lost {@code damagePercent} of its body's health: on MC's scale ({@link CitizenData#MC_MAX_HEALTH}),
-     * each armour piece the catalog knows loses {@code max(1, damage / 4)} points; the colony is saved and the body
-     * shows what is left. Nothing without armour.
+     * {@code d} took a hit whose cause wears armour: one of its pieces that is not broken, chosen at random, takes one
+     * hit; the colony is saved and the body shows it. Nothing without such a piece.
      */
-    public static void onHurt(Colony c, CitizenData d, double damagePercent) {
-        double damage = damagePercent * CitizenData.MC_MAX_HEALTH / 100;
-        int wear = Math.max(1, (int) (damage / DAMAGE_PER_POINT));
+    public static void onHurt(Colony c, CitizenData d) {
         Inventory armor = d.equipment().armor();
-        boolean worn = false;
+        ItemCatalog catalog = c.context().ports().catalog();
+        List<Integer> wearable = new ArrayList<>(armor.size());
         for (int slot = 0; slot < armor.size(); slot++) {
-            Optional<ArmorInfo> piece =
-                    armor.slot(slot).flatMap(a -> c.context().ports().armors().armor(a.item()));
-            if (piece.isPresent()) {
-                armor.damage(slot, wear, piece.get().maxDurability());
-                worn = true;
+            Optional<ItemAmount> piece = armor.slot(slot);
+            if (piece.isPresent() && catalog.durability(piece.get().item()) > 0 && !catalog.wornOut(piece.get())) {
+                wearable.add(slot);
             }
         }
-        if (worn) {
-            c.markDirty();
-            c.citizens()
-                    .bodyOf(d.id())
-                    .ifPresent(b -> HeldItems.showArmor(d, c.context().bodies(), b));
+        if (wearable.isEmpty()) {
+            return;
         }
+        int slot = wearable.get(c.context().random().nextInt(wearable.size()));
+        ItemAmount piece = armor.slot(slot).orElseThrow();
+        armor.set(slot, Optional.of(new ItemAmount(piece.item(), piece.count(), piece.damage() + 1)));
+        c.markDirty();
+        c.citizens()
+                .bodyOf(d.id())
+                .ifPresent(b -> HeldItems.showArmor(d, c.context().bodies(), b));
     }
 }

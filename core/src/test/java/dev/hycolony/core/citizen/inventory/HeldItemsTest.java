@@ -78,7 +78,9 @@ class HeldItemsTest {
         HeldItems.show(d, bodies, body);
 
         assertEquals(PICK, shown().held);
-        assertEquals(List.of(Optional.of(HELMET), Optional.empty(), Optional.empty(), Optional.empty()), shown().armor);
+        assertEquals(
+                List.of(Optional.of(new ItemAmount(HELMET, 1)), Optional.empty(), Optional.empty(), Optional.empty()),
+                shown().armor);
     }
 
     @Test

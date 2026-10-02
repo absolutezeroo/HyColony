@@ -4,6 +4,7 @@ import com.hypixel.hytale.logger.HytaleLogger;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.WorldKey;
+import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.BodyAnimation;
 import dev.hycolony.core.kernel.port.BodyId;
@@ -83,7 +84,7 @@ public final class GuardedBodies implements CitizenBodies {
     }
 
     @Override
-    public void setArmor(BodyId body, List<Optional<ItemKey>> pieces) {
+    public void setArmor(BodyId body, List<Optional<ItemAmount>> pieces) {
         run("setArmor", () -> bodies.setArmor(body, pieces));
     }
 

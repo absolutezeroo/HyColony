@@ -3,6 +3,7 @@ package dev.hycolony.core.kernel.nav;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.WorldKey;
+import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.BodyAnimation;
 import dev.hycolony.core.kernel.port.BodyId;
@@ -71,7 +72,7 @@ abstract class ForwardingBodies implements CitizenBodies {
     }
 
     @Override
-    public void setArmor(BodyId body, List<Optional<ItemKey>> pieces) {
+    public void setArmor(BodyId body, List<Optional<ItemAmount>> pieces) {
         bodies.setArmor(body, pieces);
     }
 

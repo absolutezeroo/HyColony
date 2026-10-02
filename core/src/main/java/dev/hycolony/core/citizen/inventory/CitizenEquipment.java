@@ -48,6 +48,9 @@ public final class CitizenEquipment {
     /**
      * MC setHeldItem(hand, slot): {@code hand} holds inventory {@code slot}, or nothing with {@link #NO_SLOT}; a slot
      * outside the citizen's inventory is refused.
+     *
+     * <p>Deviation from MC: MC's setHeldItem has no {@code else}, so setting the main hand also sets the off hand (a
+     * bug); here each hand is set alone.
      */
     public void hold(Hand hand, int slot) {
         if (slot < NO_SLOT || slot >= CitizenData.INVENTORY_SLOTS) {

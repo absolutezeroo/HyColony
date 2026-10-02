@@ -59,7 +59,10 @@ public interface ItemCatalog {
 
     Optional<ToolInfo> tool(ItemKey item);
 
-    /** How many blocks the tool mines before it breaks (its uses, MC max damage); 0 = unbreakable (or not a tool). */
+    /**
+     * How many blocks the tool mines before it breaks (its uses, MC max damage), or how many hits an armour piece
+     * takes; 0 = unbreakable (or neither).
+     */
     int durability(ItemKey item);
 
     /**

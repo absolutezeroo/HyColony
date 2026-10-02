@@ -3,6 +3,7 @@ package dev.hycolony.core.kernel.port;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.WorldKey;
+import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import java.util.List;
 import java.util.Optional;
@@ -40,10 +41,11 @@ public interface CitizenBodies {
     void setHeldItem(BodyId body, Optional<ItemKey> item);
 
     /**
-     * Shows {@code pieces} worn by the body, one per armour slot (head, chest, hands, legs), empty for a bare slot. A
-     * copy for display only: the citizen's own armour stays the truth.
+     * The body wears {@code pieces}, with their wear, one per armour slot (head, chest, hands, legs), empty for a bare
+     * slot: it shows them and they protect it, as a player's armour (MC AbstractEntityCitizen.onArmorAdd). A copy: the
+     * citizen's own armour stays the truth, and the game never wears the copy.
      */
-    void setArmor(BodyId body, List<Optional<ItemKey>> pieces);
+    void setArmor(BodyId body, List<Optional<ItemAmount>> pieces);
 
     void playAnimation(BodyId body, BodyAnimation animation);
 

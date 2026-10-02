@@ -71,11 +71,15 @@ public final class WorldRuntime {
         ColonyConfig config = setup.config();
         IdMap ids = setup.ids();
         this.clock = new HytaleGameClock(world);
-        this.bodies = new HytaleCitizenBodies(
-                world, ids.npcs().role("npc.citizen"), new CitizenSpeed(ids.speedEffects()), clock::currentTick);
         Set<String> hutBlockIds = HutBlockSystems.byBlockId(setup).keySet(); // the builder never breaks these
         HytaleItemCatalog catalog =
                 new HytaleItemCatalog(hutBlockIds, ids.farming().hoeLevels(), ids.food());
+        this.bodies = new HytaleCitizenBodies(
+                world,
+                ids.npcs().role("npc.citizen"),
+                new CitizenSpeed(ids.speedEffects()),
+                clock::currentTick,
+                catalog.stacks());
         this.blocks = new HytaleBlocks(world, catalog.stacks());
         ColonyManager[] self = new ColonyManager[1];
         WandActions[] wandSelf = new WandActions[1]; // the UI port needs it before it exists

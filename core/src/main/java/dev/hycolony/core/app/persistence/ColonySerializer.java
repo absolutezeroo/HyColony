@@ -132,19 +132,24 @@ public final class ColonySerializer {
                         boolOr(settings.get("constructionTape"), c.settings().constructionTape()));
     }
 
-    /** The saved citizens; true when one without an id was left out, so that the next save drops it. */
+    /**
+     * The saved citizens; true when one without an id was left out, or one was repaired while read, so that the next
+     * save writes them right.
+     */
     private static boolean readCitizens(JsonArray citizens, Colony c, ColonyContext ctx) {
-        boolean skipped = false;
+        boolean repaired = false;
         for (JsonElement el : citizens) {
             Optional<CitizenData> citizen =
                     el instanceof JsonObject saved ? CitizenSerializer.read(saved, ctx) : Optional.empty();
             citizen.ifPresent(c.citizens()::restore);
             if (citizen.isEmpty()) {
                 LOG.log(System.Logger.Level.WARNING, "Saved citizen skipped, no id: {0}", el);
-                skipped = true;
+                repaired = true;
+            } else if (CitizenSerializer.needsRepair((JsonObject) el)) {
+                repaired = true;
             }
         }
-        return skipped;
+        return repaired;
     }
 
     /** The saved buildings; one of a type this build does not know, or without a position, is kept verbatim. */

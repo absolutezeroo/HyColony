@@ -39,12 +39,6 @@ public final class HytaleBodyHealth implements BodyHealth {
         vitals.hurt(ref);
     }
 
-    /** {@code amount} of damage in percent of the body's maximum health; 0 without a Health stat. */
-    public double damagePercent(Ref<EntityStore> ref, double amount) {
-        double max = vitals.max(ref);
-        return max <= 0 ? 0 : amount * 100 / max;
-    }
-
     @Override
     public double health(BodyId body) {
         return read("health", body, vitals::current, 0.0);

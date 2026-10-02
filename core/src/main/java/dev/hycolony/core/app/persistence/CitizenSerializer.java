@@ -61,6 +61,11 @@ final class CitizenSerializer {
         return o;
     }
 
+    /** Whether {@link #read} repairs the saved citizen {@code o} (its equipment), so it is to be written again. */
+    static boolean needsRepair(JsonObject o) {
+        return EquipmentJson.needsRepair(o);
+    }
+
     /** The saved citizen; empty without an id, a missing optional key takes its default (§ 5). */
     static Optional<CitizenData> read(JsonObject o, ColonyContext ctx) {
         if (!(o.get("id") instanceof JsonPrimitive id && id.isNumber())) {

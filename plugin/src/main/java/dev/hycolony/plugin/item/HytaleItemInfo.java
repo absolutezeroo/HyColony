@@ -12,7 +12,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * What the item catalog knows of a Hytale item: its max stack, its tool type, level and speed, and its uses before it
- * breaks (0 = unbreakable).
+ * breaks: a tool's blocks, an armour piece's hits (0 = unbreakable).
  */
 public record HytaleItemInfo(int maxStack, Optional<ToolInfo> tool, int durability) {
     /** An item Hytale does not know: a stack of 1, no tool. */
@@ -46,9 +46,23 @@ public record HytaleItemInfo(int maxStack, Optional<ToolInfo> tool, int durabili
         ItemTool tool = item.getTool();
         ToolType type = tool == null ? null : toolType(item);
         if (tool == null || type == null) {
-            return new HytaleItemInfo(maxStack, Optional.empty(), 0);
+            return new HytaleItemInfo(maxStack, Optional.empty(), armorHits(item));
         }
         return tool(item, tool, type, maxStack);
+    }
+
+    /**
+     * An armour piece's uses: the hits it takes before it breaks, each costing its DurabilityLossOnHit of its
+     * MaxDurability, as DamageSystems.DamageArmor wears a player's (100 / 0.5 = 200 for vanilla iron); 0 for anything
+     * else or an unbreakable piece.
+     */
+    private static int armorHits(Item item) {
+        double max = item.getMaxDurability();
+        if (item.getArmor() == null || max <= 0) {
+            return 0;
+        }
+        double perHit = item.getDurabilityLossOnHit();
+        return perHit > 0 ? (int) Math.ceil(max / perHit) : (int) max;
     }
 
     /**
