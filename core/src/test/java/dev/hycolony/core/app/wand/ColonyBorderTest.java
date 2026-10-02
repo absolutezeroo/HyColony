@@ -11,6 +11,7 @@ import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.territory.ClaimCell;
 import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.config.ColonyConfig;
 import dev.hycolony.core.testing.TestContexts;
 import java.util.Collections;
 import java.util.List;
@@ -89,13 +90,48 @@ class ColonyBorderTest {
     @Test
     void onlyCellsWellWithinTheViewAreDrawn() {
         territory.claimSquare(OWN, new ClaimCell(4, 0), 0);
+        territory.claimSquare(OWN, new ClaimCell(-4, 0), 0);
+        territory.claimSquare(OWN, new ClaimCell(0, 4), 0);
+        territory.claimSquare(OWN, new ClaimCell(0, -4), 0);
+        territory.claimSquare(OWN, new ClaimCell(5, 0), 0);
         territory.claimSquare(OWN, new ClaimCell(-5, 0), 0);
+        territory.claimSquare(OWN, new ClaimCell(0, 5), 0);
+        territory.claimSquare(OWN, new ClaimCell(0, -5), 0);
 
         List<Line> lines = lines(AWAY, 8, true);
 
-        assertTrue(lines.contains(line(64, 0, 0, 64, 320, 0)), "4 cells away, under 8 - 3");
-        assertFalse(lines.contains(line(-80, 0, 0, -80, 320, 0)), "5 cells away is out");
-        assertTrue(lines(AWAY, 1, true).isEmpty(), "a tiny view still keeps 2 cells, the player's alone here");
+        assertTrue(lines.contains(line(64, 16, 0, 64, 16, 16)), "4 cells east, under 8 - 3");
+        assertTrue(lines.contains(line(-48, 16, 0, -48, 16, 16)), "4 cells west, its east side");
+        assertTrue(lines.contains(line(0, 16, 64, 16, 16, 64)), "4 cells south");
+        assertTrue(lines.contains(line(0, 16, -48, 16, 16, -48)), "4 cells north, its south side");
+        assertFalse(lines.contains(line(96, 16, 0, 96, 16, 16)), "5 cells east is out");
+        assertFalse(lines.contains(line(-80, 16, 0, -80, 16, 16)), "5 cells west is out");
+        assertFalse(lines.contains(line(0, 16, 96, 16, 16, 96)), "5 cells south is out");
+        assertFalse(lines.contains(line(0, 16, -80, 16, 16, -80)), "5 cells north is out");
+    }
+
+    /** MC: the window keeps 2 cells however small the view, so the cells next to the player's are drawn. */
+    @Test
+    void aTinyViewStillDrawsTheCellsNextToThePlayers() {
+        territory.claimSquare(OWN, new ClaimCell(1, 1), 0);
+        territory.claimSquare(OWN, new ClaimCell(2, 0), 0);
+
+        List<Line> lines = lines(AWAY, 1, true);
+
+        assertTrue(lines.contains(line(16, 16, 16, 32, 16, 16)), "a cell next to the player's");
+        assertFalse(lines.contains(line(32, 16, 0, 32, 16, 16)), "two cells away is out");
+    }
+
+    /** MC draw: a side is a border when its neighbour is another colony's, so both colonies draw their frontier. */
+    @Test
+    void twoNeighbouringColoniesEachDrawTheirFrontier() {
+        territory.claimSquare(OWN, new ClaimCell(5, 5), 0);
+        territory.claimSquare(OTHER, new ClaimCell(6, 5), 0);
+
+        List<Line> lines = lines(AWAY, VIEW, false);
+
+        assertTrue(lines.contains(line(96, 16, 80, 96, 16, 96)), "the own colony's east side, white");
+        assertTrue(lines.contains(new Line(new BlockPos(96, 16, 80), new BlockPos(96, 16, 96), Colour.RED)));
     }
 
     @Test
@@ -120,16 +156,39 @@ class ColonyBorderTest {
     /** MC getClosestColonyView: the colony owning the player's cell, else the one whose centre is nearest in 2D. */
     @Test
     void theNearestColonyOwnsThePlayersCellElseHasTheNearestCentre() {
-        TestContexts t = new TestContexts();
-        ColonyManager manager = t.manager();
-        Colony near = found(manager, UUID.randomUUID(), new BlockPos(0, 64, 0));
-        Colony far = found(manager, UUID.randomUUID(), new BlockPos(2000, 64, 0));
+        ColonyManager manager = new TestContexts().manager();
+        Colony west = found(manager, UUID.randomUUID(), new BlockPos(0, 64, 0));
+        Colony east = found(manager, UUID.randomUUID(), new BlockPos(2000, 2000, 0)); // high up: 3D would flip it
+        BlockPos outpost = new BlockPos(1900, 64, 0);
+        manager.territory().claimSquare(west.id(), ClaimCell.of(outpost), 0);
 
-        assertEquals(Optional.of(near), ColonyBorder.nearest(manager, new BlockPos(900, 200, 0)));
-        assertEquals(Optional.of(far), ColonyBorder.nearest(manager, new BlockPos(1100, 0, 0)));
-        assertEquals(Optional.of(far), ColonyBorder.nearest(manager, new BlockPos(2001, 64, 3)));
+        assertEquals(Optional.of(west), ColonyBorder.nearest(manager, new BlockPos(900, 64, 0)));
+        assertEquals(Optional.of(east), ColonyBorder.nearest(manager, new BlockPos(1050, 64, 0)), "in 2D");
+        assertEquals(Optional.of(west), ColonyBorder.nearest(manager, outpost), "its cell, though nearer east");
         assertTrue(ColonyBorder.nearest(new TestContexts().manager(), new BlockPos(0, 64, 0))
                 .isEmpty());
+    }
+
+    /** Client.ColonyTeamBorders off: the other colonies are red (MC colonyteamborders). */
+    @Test
+    void theTeamBordersSettingIsReadFromTheConfig() {
+        TestContexts t = new TestContexts();
+        ColonyConfig d = ColonyConfig.defaults();
+        t.config = new ColonyConfig(
+                d.gameplay(),
+                d.claims(),
+                d.permissions(),
+                d.commands(),
+                new ColonyConfig.Client(50, false),
+                d.hycolony(),
+                d.structurize());
+        ColonyManager manager = t.manager();
+        manager.territory().claimSquare(OTHER, new ClaimCell(5, 5), 0);
+
+        List<Line> lines = ColonyBorder.lines(manager, OWN, AWAY, VIEW);
+
+        assertTrue(lines.stream().allMatch(l -> l.colour() == Colour.RED));
+        assertFalse(lines.isEmpty());
     }
 
     private static Colony found(ColonyManager manager, UUID owner, BlockPos hall) {

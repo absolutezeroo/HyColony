@@ -14,6 +14,7 @@ import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.plugin.WorldRuntime;
 import dev.hycolony.plugin.WorldRuntimes;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.logging.Level;
 import javax.annotation.Nonnull;
 import org.jspecify.annotations.Nullable;
@@ -22,7 +23,8 @@ import org.jspecify.annotations.Nullable;
  * The build tool's use (ST ItemBuildTool.useOn/use), registered as the {@code HyColony_Build_Tool} page of the item's
  * {@code OpenCustomUI} interaction. It never returns a page itself: {@link
  * dev.hycolony.core.app.wand.WandActions#open} shows the window through the UI port, or refuses. World
- * thread (interaction tick).
+ * thread (interaction tick). Its registration also brings the colony borders shown while the tool is held
+ * ({@link ColonyBorderSystem}).
  */
 public final class WandInteraction implements OpenCustomUIInteraction.CustomPageSupplier {
     /** The page id in the item's {@code Interactions.*.Page.Id}. */
@@ -43,6 +45,11 @@ public final class WandInteraction implements OpenCustomUIInteraction.CustomPage
         OpenCustomUIInteraction.registerCustomPageSupplier(
                 plugin, WandPage.class, PAGE_ID, new WandInteraction(runtimes));
         plugin.getEntityStoreRegistry().registerSystem(new ColonyBorderSystem(runtimes));
+    }
+
+    /** Forgets the borders drawn for {@code player}, who left the server. */
+    public static void disconnect(UUID player) {
+        ColonyBorderSystem.forget(player);
     }
 
     /** Opens the window at the clicked block, or at the kept anchor on a click in the air; always null. */

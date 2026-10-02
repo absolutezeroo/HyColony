@@ -17,6 +17,9 @@ import org.joml.Vector3f;
  * The colony borders as shapes for one player only (DisplayDebug on their packet handler, as HyLens's ShapePackets:
  * DebugUtils would show them to the whole world). A line is a thin cylinder turned from Y to its direction, as
  * DebugUtils.addLine builds it.
+ *
+ * <p>Deviation from MC: DisplayDebug has no line, so cylinders {@link #LINE_WIDTH} wide at {@link #OPACITY}, where MC
+ * draws opaque one-pixel lines.
  */
 final class BorderShapes {
     private static final double LINE_WIDTH = 0.1;

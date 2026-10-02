@@ -30,6 +30,7 @@ class ColonyConfigTest {
         assertTrue(c.commands().canPlayerUseAddOfficerCommand());
         assertFalse(c.commands().canPlayerUseDeleteColonyCommand());
         assertEquals(50, c.client().buildGoggleRange());
+        assertTrue(c.client().colonyTeamBorders()); // MC ClientConfiguration.colonyteamborders
         assertEquals(5, c.hycolony().autosaveIntervalMinutes());
         assertFalse(c.hycolony().builderInfiniteResources());
         assertTrue(c.hycolony().creativeOperatorFreeBuilds());

@@ -17,8 +17,8 @@ import java.util.Set;
  * colony they are drawn for.
  */
 public final class ColonyBorder {
-    /** Deviation from MC: its CHUNK_HEIGHT 256 is Minecraft's world height; Hytale's is 320 (ChunkUtil.HEIGHT). */
-    static final int HEIGHT_BLOCKS = 320;
+    /** Deviation from MC: it draws from y 0 to its CHUNK_HEIGHT 256; here to Hytale's top, 320 (ChunkUtil.HEIGHT). */
+    private static final int HEIGHT_BLOCKS = 320;
     /** MC RENDER_DIST_THRESHOLD, in cells: the drawn window is that much smaller than the view. */
     private static final int RENDER_DIST_THRESHOLD = 3;
     /** MC: the drawn window keeps at least that many cells. */
@@ -39,7 +39,10 @@ public final class ColonyBorder {
     private final int nearestId;
     private final ClaimCell player;
     private final boolean teamBorders;
-    /** A line two neighbouring cells both draw is kept once: the same picture as MC, with half the shapes. */
+    /**
+     * A line two neighbouring cells both draw (a shared post) is kept once: the same picture as MC, a few shapes less.
+     * ponytail: rings of consecutive cells are not merged into one long line; merge them if large colonies lag.
+     */
     private final Set<Line> out = new LinkedHashSet<>();
 
     private ColonyBorder(TerritoryIndex territory, int nearestId, ClaimCell player, boolean teamBorders) {
@@ -52,6 +55,9 @@ public final class ColonyBorder {
     /**
      * MC ColonyManager.getClosestColonyView: the colony owning {@code pos}'s cell, else the one whose centre is
      * nearest in 2D; empty without colonies.
+     *
+     * <p>Deviation from MC: every colony of the world counts, and is drawn in its team colour; MC's client knows only
+     * the colonies it was sent (its own, those it walked into), and draws an unknown one red.
      */
     public static Optional<Colony> nearest(ColonyManager manager, BlockPos pos) {
         Optional<Colony> owner = manager.colonyAt(pos);
