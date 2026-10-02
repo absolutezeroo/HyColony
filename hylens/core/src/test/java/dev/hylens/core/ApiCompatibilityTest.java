@@ -50,4 +50,9 @@ class ApiCompatibilityTest {
     void hyColonyOneOneIsRefusedLackingSpawnCitizenAndModifySaturation() {
         assertFalse(ApiCompatibility.accepts(new ApiVersion(1, 1, 0)));
     }
+
+    @Test
+    void hyColonyOneTwoIsRefusedLackingFulfilRequestAndResetRequests() {
+        assertFalse(ApiCompatibility.accepts(new ApiVersion(1, 2, 0)));
+    }
 }

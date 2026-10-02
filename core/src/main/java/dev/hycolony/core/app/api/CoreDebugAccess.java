@@ -23,20 +23,22 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * The api's debug reads of one world's colonies, and its actions ({@link CoreDebugActions}, {@link CoreDebugEdits})
- * (spec 2026-09-30, § 4.2): each call checks the thread as {@link CoreColonyWorld} does. {@link #check} keeps a
- * {@link ViolationWatch} per colony, so it confirms the lasting states across its calls.
+ * The api's debug reads of one world's colonies, and its actions ({@link CoreDebugActions}, {@link CoreDebugEdits},
+ * {@link CoreDebugRequests}) (spec 2026-09-30, § 4.2): each call checks the thread as {@link CoreColonyWorld} does.
+ * {@link #check} keeps a {@link ViolationWatch} per colony, so it confirms the lasting states across its calls.
  */
 final class CoreDebugAccess implements DebugAccess {
     private final CoreColonyWorld world;
     private final Map<Integer, ViolationWatch> watches = new HashMap<>();
     private final CoreDebugActions actions;
     private final CoreDebugEdits edits;
+    private final CoreDebugRequests requests;
 
     CoreDebugAccess(CoreColonyWorld world) {
         this.world = world;
         this.actions = new CoreDebugActions(world);
         this.edits = new CoreDebugEdits(world);
+        this.requests = new CoreDebugRequests(world);
     }
 
     @Override
@@ -106,6 +108,16 @@ final class CoreDebugAccess implements DebugAccess {
     @Override
     public ActionResult modifySaturation(Actor actor, CitizenRef ref, SaturationChange change, double value) {
         return edits.modifySaturation(actor, ref, change, value);
+    }
+
+    @Override
+    public ActionResult fulfilRequest(Actor actor, ColonyRef colony, String requestId) {
+        return requests.fulfilRequest(actor, colony, requestId);
+    }
+
+    @Override
+    public ActionResult resetRequests(Actor actor, ColonyRef colony) {
+        return requests.resetRequests(actor, colony);
     }
 
     @Override

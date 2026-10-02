@@ -85,6 +85,25 @@ public interface DebugAccess {
     ActionResult modifySaturation(Actor actor, CitizenRef ref, SaturationChange change, double value);
 
     /**
+     * Hands the open item request {@code requestId} ({@code RequestSnapshot.id}) what it asks for, as MC's request
+     * window "Fulfill": a player needs the colony's MANAGE_HUTS right and gives from their inventory, or for free in
+     * creative mode; a plugin gives for free. {@link ActionResult.NotFound} for an unknown, malformed or closed
+     * request, {@link ActionResult.Unavailable} when there was nothing to hand over.
+     *
+     * @since 1.3
+     */
+    ActionResult fulfilRequest(Actor actor, ColonyRef colony, String requestId);
+
+    /**
+     * Restarts the colony's request system (MC {@code /mc colony requestsystem-reset}): every request forgotten at
+     * once, its workers asking again at their next need. A player who is not an operator needs the server's
+     * Commands.CanPlayerUseResetCommand; as MC, any player may then, member or not.
+     *
+     * @since 1.3
+     */
+    ActionResult resetRequests(Actor actor, ColonyRef colony);
+
+    /**
      * How long each part of HyColony's core took in this world over the last minute, the heaviest first: Hytale
      * measures the whole core as one system.
      */

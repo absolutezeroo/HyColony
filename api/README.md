@@ -150,6 +150,11 @@ Two actions, since 1.2, follow MineColonies' commands more narrowly: `spawnCitiz
 player in creative mode, and lets a colony manager who is not an operator act only if the server's
 `Commands.CanPlayerUseModifyCitizensCommand` allows it.
 
+Since 1.3, `fulfilRequest` hands a request what it asks for as MC's request window "Fulfill" (the colony's MANAGE_HUTS
+right; free in creative mode and for a plugin, else from the player's inventory), and `resetRequests` restarts a
+colony's request system as MC's `requestsystem-reset` (any player, member or not, once the server's
+`Commands.CanPlayerUseResetCommand` allows it; operators always).
+
 Some things you hold on behalf of your plugin, for example a colony paused through
 `api.clock(world).ifPresent(c -> c.pause(owner))` or a citizen followed through `api.track(owner, citizen)`. They end
 when that plugin stops: the colony resumes and the following stops, even if your shutdown forgets them. A pause is

@@ -153,6 +153,16 @@ public final class FakeColonyWorld implements ColonyWorld, DebugAccess {
     }
 
     @Override
+    public ActionResult fulfilRequest(Actor actor, ColonyRef colony, String requestId) {
+        return new ActionResult.Done();
+    }
+
+    @Override
+    public ActionResult resetRequests(Actor actor, ColonyRef colony) {
+        return new ActionResult.Done();
+    }
+
+    @Override
     public List<PartTiming> timings() {
         return List.of();
     }
