@@ -64,7 +64,7 @@ Chaque option est vérifiée seulement si le joueur n'est pas opérateur (ex. `C
 | `canplayerusehometpcommand` | false | `/mc home` | futur |
 | `canplayeruseshowcolonyinfocommand` | true | `/mc colony info` | ACTUEL (`/hycolony info`) |
 | `canplayerusekillcitizenscommand` | false | `/mc citizens kill` | futur |
-| `canplayerusemodifycitizenscommand` | false | `/mc citizens modify` | futur |
+| `canplayerusemodifycitizenscommand` | false | `/mc citizens modify` | porté (`Commands.CanPlayerUseModifyCitizensCommand`, HyLens lot 2) |
 | `canplayeruseaddofficercommand` | true | `/mc colony addOfficer` | ACTUEL (`/hycolony rank`) |
 | `canplayerusedeletecolonycommand` | false | `/mc colony delete` | ACTUEL (`/hycolony delete`) |
 | `canplayeruseresetcommand` | false | `/mc colony requestsystem-reset` | futur |
@@ -221,7 +221,8 @@ Vérifié (clone MC `6b3916a1`) : ce ne sont pas des écarts. `BuilderStock.ACTI
   "Commands": {
     "CanPlayerUseShowColonyInfoCommand": true,
     "CanPlayerUseAddOfficerCommand": true,
-    "CanPlayerUseDeleteColonyCommand": false
+    "CanPlayerUseDeleteColonyCommand": false,
+    "CanPlayerUseModifyCitizensCommand": false
   },
   "RequestSystem": {
     "CreativeResolve": false,

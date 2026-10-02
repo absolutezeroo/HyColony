@@ -8,6 +8,11 @@ import org.junit.jupiter.api.Test;
 
 class ColonyConfigTest {
     @Test
+    void managersMayNotModifyCitizensByDefaultAsMineColonies() {
+        assertFalse(ColonyConfig.defaults().commands().canPlayerUseModifyCitizensCommand());
+    }
+
+    @Test
     void autosaveIntervalIsClampedToAtLeastOneMinute() {
         assertEquals(1, new ColonyConfig.HyColony(0, false, true).autosaveIntervalMinutes());
     }
