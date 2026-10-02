@@ -1,0 +1,378 @@
+{
+  "ConnectsToOtherMaterials": true,
+  "DefaultShape": "Straight",
+  "Shapes": {
+    "Straight": {
+      "FaceTags": {
+        "North": [
+          "HyColonyTape"
+        ],
+        "South": [
+          "HyColonyTape"
+        ],
+        "East": [
+          "HyColonyTape"
+        ],
+        "West": [
+          "HyColonyTape"
+        ]
+      },
+      "PatternsToMatchAnyOf": [
+        {
+          "Type": "Custom",
+          "AllowedPatternTransformations": {
+            "IsCardinallyRotatable": true
+          },
+          "RulesToMatch": [
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": -1
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "South": [
+                  "HyColonyTape"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": 1
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "North": [
+                  "HyColonyTape"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Exclude",
+              "FaceTags": {
+                "West": [
+                  "HyColonyTape"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": -1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Exclude",
+              "FaceTags": {
+                "East": [
+                  "HyColonyTape"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "Type": "Custom",
+          "AllowedPatternTransformations": {
+            "IsCardinallyRotatable": true
+          },
+          "RulesToMatch": [
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": -1
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "South": [
+                  "HyColonyTape"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": 1
+              },
+              "IncludeOrExclude": "Exclude",
+              "FaceTags": {
+                "North": [
+                  "HyColonyTape"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Exclude",
+              "FaceTags": {
+                "West": [
+                  "HyColonyTape"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": -1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Exclude",
+              "FaceTags": {
+                "East": [
+                  "HyColonyTape"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "Corner": {
+      "FaceTags": {
+        "North": [
+          "HyColonyTape"
+        ],
+        "South": [
+          "HyColonyTape"
+        ],
+        "East": [
+          "HyColonyTape"
+        ],
+        "West": [
+          "HyColonyTape"
+        ]
+      },
+      "PatternsToMatchAnyOf": [
+        {
+          "Type": "Custom",
+          "AllowedPatternTransformations": {
+            "IsCardinallyRotatable": true
+          },
+          "RulesToMatch": [
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": -1
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "South": [
+                  "HyColonyTape"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": 1
+              },
+              "IncludeOrExclude": "Exclude",
+              "FaceTags": {
+                "North": [
+                  "HyColonyTape"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "West": [
+                  "HyColonyTape"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": -1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Exclude",
+              "FaceTags": {
+                "East": [
+                  "HyColonyTape"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "T_Junction": {
+      "FaceTags": {
+        "North": [
+          "HyColonyTape"
+        ],
+        "South": [
+          "HyColonyTape"
+        ],
+        "East": [
+          "HyColonyTape"
+        ],
+        "West": [
+          "HyColonyTape"
+        ]
+      },
+      "PatternsToMatchAnyOf": [
+        {
+          "Type": "Custom",
+          "AllowedPatternTransformations": {
+            "IsCardinallyRotatable": true
+          },
+          "RulesToMatch": [
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": -1
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "South": [
+                  "HyColonyTape"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": 1
+              },
+              "IncludeOrExclude": "Exclude",
+              "FaceTags": {
+                "North": [
+                  "HyColonyTape"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "West": [
+                  "HyColonyTape"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": -1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "East": [
+                  "HyColonyTape"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "Cross_Junction": {
+      "FaceTags": {
+        "North": [
+          "HyColonyTape"
+        ],
+        "South": [
+          "HyColonyTape"
+        ],
+        "East": [
+          "HyColonyTape"
+        ],
+        "West": [
+          "HyColonyTape"
+        ]
+      },
+      "PatternsToMatchAnyOf": [
+        {
+          "Type": "Custom",
+          "AllowedPatternTransformations": {
+            "IsCardinallyRotatable": true
+          },
+          "RulesToMatch": [
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": -1
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "South": [
+                  "HyColonyTape"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 0,
+                "Y": 0,
+                "Z": 1
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "North": [
+                  "HyColonyTape"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": 1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "West": [
+                  "HyColonyTape"
+                ]
+              }
+            },
+            {
+              "Position": {
+                "X": -1,
+                "Y": 0,
+                "Z": 0
+              },
+              "IncludeOrExclude": "Include",
+              "FaceTags": {
+                "East": [
+                  "HyColonyTape"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

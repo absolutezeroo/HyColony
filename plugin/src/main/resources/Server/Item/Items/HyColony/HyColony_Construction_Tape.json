@@ -1,0 +1,72 @@
+{
+  "TranslationProperties": {
+    "Name": "hycolony.item.tape.name",
+    "Description": "hycolony.item.tape.description"
+  },
+  "Icon": "Icons/ItemsGenerated/HyColony_Construction_Tape.png",
+  "IconProperties": {
+    "Scale": 0.58823,
+    "Rotation": [
+      22.5,
+      45,
+      22.5
+    ],
+    "Translation": [
+      0,
+      -13.5
+    ]
+  },
+  "Categories": [
+    "Blocks.Deco"
+  ],
+  "PlayerAnimationsId": "Block",
+  "BlockType": {
+    "Material": "Empty",
+    "DrawType": "Model",
+    "Opacity": "Transparent",
+    "CustomModelTexture": [
+      {
+        "Texture": "Blocks/HyColony/Construction_Tape/Texture.png",
+        "Weight": 1
+      }
+    ],
+    "VariantRotation": "NESW",
+    "CustomModel": "Blocks/HyColony/Construction_Tape/Straight.blockymodel",
+    "HitboxType": "HyColony_Construction_Tape_Straight",
+    "Gathering": {
+      "Soft": {
+        "DropList": "Empty"
+      }
+    },
+    "BlockParticleSetId": "Wood",
+    "BlockSoundSetId": "Wood",
+    "PhysicalMaterialId": "Wood",
+    "ConnectedBlockRuleSet": {
+      "Type": "CustomTemplate",
+      "TemplateShapeAssetId": "HyColony_TapeConnectedBlockTemplate",
+      "TemplateShapeBlockPatterns": {
+        "Straight": "HyColony_Construction_Tape",
+        "Corner": "*HyColony_Construction_Tape_State_Definitions_Corner",
+        "T_Junction": "*HyColony_Construction_Tape_State_Definitions_T_Junction",
+        "Cross_Junction": "*HyColony_Construction_Tape_State_Definitions_Cross_Junction"
+      }
+    },
+    "State": {
+      "Definitions": {
+        "Corner": {
+          "CustomModel": "Blocks/HyColony/Construction_Tape/Corner.blockymodel",
+          "HitboxType": "HyColony_Construction_Tape_Corner"
+        },
+        "T_Junction": {
+          "CustomModel": "Blocks/HyColony/Construction_Tape/T_Junction.blockymodel",
+          "HitboxType": "HyColony_Construction_Tape_T_Junction"
+        },
+        "Cross_Junction": {
+          "CustomModel": "Blocks/HyColony/Construction_Tape/Cross_Junction.blockymodel",
+          "HitboxType": "HyColony_Construction_Tape_Cross_Junction"
+        }
+      }
+    }
+  },
+  "ItemSoundSetId": "ISS_Blocks_Wood"
+}

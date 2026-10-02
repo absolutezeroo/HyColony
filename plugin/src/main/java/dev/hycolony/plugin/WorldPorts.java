@@ -2,7 +2,6 @@ package dev.hycolony.plugin;
 
 import com.hypixel.hytale.server.core.universe.world.World;
 import dev.hycolony.core.colony.GamePorts;
-import dev.hycolony.core.construction.tape.TapeBlocks;
 import dev.hycolony.core.crafting.furnace.CookingSetup;
 import dev.hycolony.core.crafting.recipe.CraftingSetup;
 import dev.hycolony.plugin.adapter.HytaleContainerAccess;
@@ -10,6 +9,7 @@ import dev.hycolony.plugin.adapter.HytaleItemCatalog;
 import dev.hycolony.plugin.adapter.HytalePlayerInventory;
 import dev.hycolony.plugin.adapter.HytaleWorldBlocks;
 import dev.hycolony.plugin.adapter.HytaleWorldEffects;
+import dev.hycolony.plugin.block.HytaleTapeBlocks;
 import dev.hycolony.plugin.crafting.HytaleRecipeCatalog;
 import dev.hycolony.plugin.farming.HytaleFarming;
 import dev.hycolony.plugin.food.HytaleCookingCatalog;
@@ -42,6 +42,6 @@ final class WorldPorts {
                 new CookingSetup(
                         new HytaleCookingCatalog(ids.food(), catalog.foodTable()),
                         new HytaleCookingStations(world, catalog.stacks())),
-                TapeBlocks.NONE);
+                new HytaleTapeBlocks(ids));
     }
 }
