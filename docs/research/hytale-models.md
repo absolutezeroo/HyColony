@@ -31,7 +31,8 @@ Hytale animés ainsi, 31 ont `"Looping": true` (feux de camp, braseros, bannièr
 portails n'ont pas la clé et le piège `Survival_Trap_Snapjaw` écrit `false` (une animation jouée une fois). Les
 états héritent de la clé : les coffres Scarak écrivent `false` dans `OpenWindow`/`CloseWindow` pour l'annuler.
 Un objet a sa propre clé `Animation` (`Item.java`), sans `Looping` à côté : les poissons s'en servent pour nager
-(`Swim.blockyanim`), la clé de coffre `Coffer_Key` pour flotter.
+(`Swim.blockyanim`), la clé de coffre `Coffer_Key` pour flotter. Vu en jeu le 2026-10-03 sur le marteau de HyColony :
+l'animation d'un objet tenu boucle, et un décalage d'UV animé (`shapeUvOffset`) s'y joue comme sur un bloc.
 
 **Pièce d'armure ou objet porté** (`Items/Armors/*`) : les nœuds racines portent le nom d'un os du joueur (`Head`,
 `Pelvis` › `Belly` › `Chest`, `R-Arm`, `R-Forearm` › `R-Hand`, `R-Thigh` › `R-Calf`, `R-Foot`… ;
