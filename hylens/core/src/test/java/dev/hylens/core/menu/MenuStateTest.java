@@ -35,6 +35,14 @@ class MenuStateTest {
     }
 
     @Test
+    void choosingACitizenKeepsTheRequestOnlyInItsColony() {
+        MenuState s = MenuState.INITIAL.withColony(A).withRequest("r1");
+
+        assertEquals(Optional.of("r1"), s.withCitizen(ANN).request());
+        assertEquals(Optional.empty(), s.withCitizen(new CitizenRef(B, 4)).request());
+    }
+
+    @Test
     void choosingAColonyOpensItsCitizens() {
         assertEquals(MenuTab.CITIZENS, MenuState.INITIAL.withColony(A).tab());
     }

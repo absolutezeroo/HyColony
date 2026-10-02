@@ -28,13 +28,13 @@ final class MenuActions {
     /**
      * Runs the edit {@code action}: on {@code v}'s chosen colony ({@link #onColony}), or change the chosen citizen's
      * "saturation" by the step named {@code index} (its maximum read from HyColony now); as {@code operator}. The text
-     * of its result, or asks to choose first; empty for an unknown step or an unread saturation.
+     * of its result, or asks to choose first; empty for an unknown action or step, or an unread saturation.
      */
     static Optional<ApiText> edit(
             String action, String index, MenuView v, Optional<ColonyWorld> colonies, UUID operator) {
         Actor actor = new Actor.Player(operator);
         if (!"saturation".equals(action)) {
-            return Optional.of(onColony(action, v, colonies, actor));
+            return onColony(action, v, colonies, actor);
         }
         if (v.citizen().isEmpty() || colonies.isEmpty()) {
             return Optional.of(ApiText.of("hylens.action.noneChosen"));
@@ -49,23 +49,25 @@ final class MenuActions {
 
     /**
      * Runs {@code action} on {@code v}'s chosen colony as {@code actor}: "spawn" a citizen, "resetRequests", or
-     * "fulfil" the chosen request; the text of its result, or asks to choose the colony or the request first.
+     * "fulfil" the chosen request; the text of its result, or asks to choose the colony or the request first; empty
+     * for an unknown action.
      */
-    private static ApiText onColony(String action, MenuView v, Optional<ColonyWorld> colonies, Actor actor) {
+    private static Optional<ApiText> onColony(String action, MenuView v, Optional<ColonyWorld> colonies, Actor actor) {
         if (colonies.isEmpty() || v.colony().isEmpty()) {
-            return ApiText.of("hylens.action.noColony");
+            return Optional.of(ApiText.of("hylens.action.noColony"));
         }
         DebugAccess debug = colonies.get().debug();
         ColonyRef c = v.colony().get();
         return switch (action) {
-            case "spawn" -> ActionReport.spawned(debug.spawnCitizen(actor, c));
-            case "resetRequests" -> ActionReport.reset(debug.resetRequests(actor, c));
-            default ->
-                v.requests().stream()
+            case "spawn" -> Optional.of(ActionReport.spawned(debug.spawnCitizen(actor, c)));
+            case "resetRequests" -> Optional.of(ActionReport.reset(debug.resetRequests(actor, c)));
+            case "fulfil" ->
+                Optional.of(v.requests().stream()
                         .filter(MenuView.RequestRow::chosen)
                         .findFirst()
                         .map(r -> ActionReport.fulfilled(debug.fulfilRequest(actor, c, r.id())))
-                        .orElse(ApiText.of("hylens.action.noRequest"));
+                        .orElse(ApiText.of("hylens.action.noRequest")));
+            default -> Optional.empty();
         };
     }
 

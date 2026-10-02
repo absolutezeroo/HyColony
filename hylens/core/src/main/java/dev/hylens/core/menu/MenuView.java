@@ -7,6 +7,7 @@ import dev.hycolony.api.Pos;
 import dev.hylens.core.draw.Layers;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * What the HyLens menu shows (spec 2026-09-30, § 6.4): the world's colonies, the chosen one's citizens, the chosen
@@ -46,7 +47,15 @@ public record MenuView(
             Optional<Pos> building,
             String state,
             Optional<String> resolver,
-            boolean chosen) {}
+            boolean chosen) {
+        /** The api's kinds of a request for items, the only ones MC's "Fulfill" serves (IDeliverable). */
+        private static final Set<String> ITEM_KINDS = Set.of("stack", "tool", "stack_list");
+
+        /** Whether it asks for items, so that "Fulfill" can serve it. */
+        public boolean asksItems() {
+            return ITEM_KINDS.contains(kind);
+        }
+    }
 
     /**
      * One colony of the world: its name, number of citizens and confirmed alerts (those no citizen carries too, such as

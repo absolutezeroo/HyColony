@@ -239,6 +239,33 @@ class MenuViewsTest {
     }
 
     @Test
+    void cancelledFailedAndReceivedRequestsAreNotListed() {
+        world.request(requestOf("r1", "CANCELLED", Optional.empty()))
+                .request(requestOf("r2", "FAILED", Optional.empty()))
+                .request(requestOf("r3", "RECEIVED", Optional.empty()));
+
+        assertEquals(
+                List.of(),
+                MenuViews.of(world, false, MenuState.INITIAL.withColony(A), Optional.empty())
+                        .requests());
+    }
+
+    @Test
+    void onlyARequestForItemsCanBeFulfilledAsMcIDeliverable() {
+        for (String kind : List.of("stack", "tool", "stack_list")) {
+            assertTrue(rowOf(kind).asksItems(), kind);
+        }
+        for (String kind : List.of("delivery", "pickup", "crafting", "unknown")) {
+            assertFalse(rowOf(kind).asksItems(), kind);
+        }
+    }
+
+    private static MenuView.RequestRow rowOf(String kind) {
+        return new MenuView.RequestRow(
+                "r", Optional.empty(), 1, kind, Optional.empty(), Optional.empty(), "ASSIGNED", Optional.empty(), true);
+    }
+
+    @Test
     void noColonyNoRequests() {
         world.request(requestOf("r1", "ASSIGNED", Optional.empty()));
 

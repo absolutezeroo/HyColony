@@ -41,7 +41,9 @@ final class RequestsTab {
                         .orElse(Message.translation(
                                 requests.isEmpty() ? "hylens.menu.requestsNone" : "hylens.menu.requestNoneChosen")));
         chosen.ifPresent(r -> details(ui, r));
-        ui.set("#FulfilButton.Visible", chosen.isPresent());
+        ui.set(
+                "#FulfilButton.Visible",
+                chosen.filter(MenuView.RequestRow::asksItems).isPresent());
         binds.on("#FulfilButton", "fulfil", "");
         binds.on("#ResetRequestsButton", "resetRequests", "");
     }
