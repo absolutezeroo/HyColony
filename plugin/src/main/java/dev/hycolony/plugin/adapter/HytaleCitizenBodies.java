@@ -273,7 +273,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
         Ref<EntityStore> ref = ref(body);
         if (ref != null) {
             untrack(ref);
-            // Deferred: despawn can run inside a store callback (RefSystem.onEntityAdded), where
+            // Deferred: despawn can run inside a store's processing (a system, an event handler), where
             // removeEntity throws "Store is currently processing".
             world.execute(() -> {
                 if (ref.isValid()) {
