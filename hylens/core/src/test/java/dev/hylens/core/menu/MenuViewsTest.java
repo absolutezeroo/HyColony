@@ -162,4 +162,11 @@ class MenuViewsTest {
         assertTrue(MenuViews.of(world, false, MenuState.INITIAL.toggleAutoCheck(), Optional.empty())
                 .autoCheck());
     }
+
+    @Test
+    void theViewShowsTheOpenTab() {
+        MenuView v = MenuViews.of(world, false, MenuState.INITIAL.withTab(MenuTab.VIEW), Optional.empty());
+
+        assertEquals(MenuTab.VIEW, v.tab());
+    }
 }

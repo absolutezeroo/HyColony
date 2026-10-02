@@ -47,6 +47,13 @@ class MenusTest {
         MenuState both = menus.update(OPERATOR, s -> s.toggle(Layers.Layer.ZONE));
 
         assertEquals(
-                new MenuState(Optional.of(A), Optional.empty(), 1, Layers.ALL.toggle(Layers.Layer.ZONE), false), both);
+                new MenuState(
+                        Optional.of(A),
+                        Optional.empty(),
+                        1,
+                        Layers.ALL.toggle(Layers.Layer.ZONE),
+                        false,
+                        MenuTab.CITIZENS),
+                both);
     }
 }

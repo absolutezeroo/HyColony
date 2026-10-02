@@ -17,8 +17,36 @@ class MenuStateTest {
     private static final CitizenRef ANN = new CitizenRef(A, 4);
 
     @Test
-    void nothingIsChosenAtFirstAndEveryLayerShows() {
-        assertEquals(new MenuState(Optional.empty(), Optional.empty(), 1, Layers.ALL, false), MenuState.INITIAL);
+    void nothingIsChosenAtFirstEveryLayerShowsAndTheColoniesTabIsOpen() {
+        assertEquals(
+                new MenuState(Optional.empty(), Optional.empty(), 1, Layers.ALL, false, MenuTab.COLONIES),
+                MenuState.INITIAL);
+    }
+
+    @Test
+    void choosingAColonyOpensItsCitizens() {
+        assertEquals(MenuTab.CITIZENS, MenuState.INITIAL.withColony(A).tab());
+    }
+
+    @Test
+    void choosingATabKeepsEveryChoice() {
+        MenuState s = MenuState.INITIAL.withColony(A).withCitizen(ANN).withStep(3);
+
+        MenuState view = s.withTab(MenuTab.VIEW);
+
+        assertEquals(MenuTab.VIEW, view.tab());
+        assertEquals(Optional.of(ANN), view.citizen());
+        assertEquals(3, view.step());
+    }
+
+    @Test
+    void theTabSurvivesEveryOtherChoiceButAColony() {
+        MenuState s = MenuState.INITIAL.withTab(MenuTab.VIEW);
+
+        assertEquals(MenuTab.VIEW, s.withCitizen(ANN).tab());
+        assertEquals(MenuTab.VIEW, s.withStep(5).tab());
+        assertEquals(MenuTab.VIEW, s.toggle(Layers.Layer.ZONE).tab());
+        assertEquals(MenuTab.VIEW, s.toggleAutoCheck().tab());
     }
 
     @Test
