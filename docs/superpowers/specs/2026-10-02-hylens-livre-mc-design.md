@@ -45,7 +45,7 @@ Les lots suivants prennent les emplacements 3 et plus (`red_wax_work_orders`, `r
 
 Ils ne reprennent que ce que le menu V1 fait déjà, plus la caméra libre.
 
-- **Colonies** : à gauche, la liste des colonies (nom, citoyens, alertes) ; à droite, la colonie choisie et les résultats du contrôle (`/hylens check`), avec le bouton « Contrôler ».
+- **Colonies** : à gauche, la liste des colonies (nom, citoyens, alertes) ; à droite, la colonie choisie (citoyens, alertes) et le bouton « Contrôler maintenant », dont le résumé s'affiche sous la page comme en V1.
 - **Citoyens** : à gauche, les citoyens de la colonie choisie (nom, métier, état, alertes) ; à droite, le citoyen choisi, ses actions (Suivre, Loisir, Téléporter, Refaire le corps), « Envoyer ici » (X Y Z, Envoyer, Par la carte) et le dernier résultat.
 - **Vue** : les couches à cocher, l'horloge (pause, pas × N, reprise) et le contrôle automatique.
 
@@ -67,11 +67,11 @@ L'état de la caméra est lu par le plugin sur le composant `Spectating` (cible 
 
 ### 3.4 Le HUD de suivi
 
-Le HUD garde ses lignes et sa place. Il prend un fond parchemin (`colonist_paper`, MC `gui/citizen/colonist_paper.png`) et l'encre noire de `Book.ui`. Qu'il masque une partie du jeu est accepté (utilisateur, 2026-10-02).
+Le HUD garde ses lignes et sa place à droite de l'écran. Il prend l'apparence de la fenêtre de débogage du citoyen de MC (`gui/citizen/debug.xml`, `DebugWindowCitizen`) : le parchemin `builder_paper_wide2` en 400 × 244, doublé en 800 × 488, et les lignes à l'encre noire depuis la place du premier texte de MC, (10, 15), doublé en (20, 30). Qu'il masque une partie du jeu est accepté (utilisateur, 2026-10-02).
 
 ### 3.5 Les textures
 
-Elles sont **copiées** dans le pack de HyLens (`Common/UI/Custom/Pages/HyLens/Mc/`), depuis celles de HyColony (`Pages/HyColony/Mc/`, déjà agrandies ×4 au plus proche voisin en @2x). HyLens ne pointe pas vers les assets de HyColony : leurs chemins ne font pas partie de son API. Seules les textures utilisées sont copiées : le livre, les rubans et sceaux des emplacements 0 à 2, les boutons utilisés, `colonist_paper`. Le fichier de styles `Mc/Book.ui` de HyLens ne garde que les styles qu'il emploie.
+Elles sont **copiées** dans le pack de HyLens (`Common/UI/Custom/Pages/HyLens/Mc/`), depuis celles de HyColony (`Pages/HyColony/Mc/`, déjà agrandies ×4 au plus proche voisin en @2x). HyLens ne pointe pas vers les assets de HyColony : leurs chemins ne font pas partie de son API. Seules les textures utilisées sont copiées : le livre, les rubans et sceaux des emplacements 0 à 2, les boutons utilisés, `builder_paper_wide2`. Le fichier de styles `Mc/Book.ui` de HyLens ne garde que les styles qu'il emploie.
 
 Ces textures sont de MineColonies (ldtteam, GPL-3.0). Le crédit est écrit en tête de chaque `.ui` qui les emploie, et dans un `NOTICE` à la racine. Celui-ci dit aussi qu'elles sont agrandies ×4. La ligne du `README.md` qui dit « no MineColonies assets are used » est corrigée.
 
@@ -103,4 +103,4 @@ Aucun sur le jeu. MC n'a pas d'outil de débogage en jeu : HyLens n'a pas d'équ
 ## 7. À vérifier en jeu
 
 - La caméra libre garde le vol et la traversée des blocs du mode spectateur.
-- Le chemin `../../Pages/HyLens/Mc/colonist_paper.png` depuis `Hud/HyLens/WatchHud.ui` (même pack, autre dossier) s'affiche ; sinon, la texture est aussi copiée sous `Hud/HyLens/`.
+- Le chemin `../../Pages/HyLens/Mc/builder_paper_wide2.png` depuis `Hud/HyLens/WatchHud.ui` (même pack, autre dossier) s'affiche ; sinon, la texture est aussi copiée sous `Hud/HyLens/`.
