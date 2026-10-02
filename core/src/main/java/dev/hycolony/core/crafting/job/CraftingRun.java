@@ -19,11 +19,12 @@ import java.util.OptionalInt;
  * statistics are not ported.
  */
 final class CraftingRun {
-    /** How the run ended: another run to make, the batch done, or the task failed. */
+    /** How the run ended: another run to make, the batch done, or the task failed (run unmade, tool broken). */
     enum Outcome {
         NEXT_RUN,
         DONE,
-        FAILED
+        NOT_MADE,
+        TOOL_BROKE
     }
 
     private final CraftingWorkContext ctx;
@@ -35,15 +36,15 @@ final class CraftingRun {
     }
 
     /**
-     * MC executeCraftingAction for {@code task}, with the tool in {@code toolSlot} if the recipe needs one: FAILED if
-     * the run cannot be made or the tool broke before the batch's last run; DONE after the batch's last run, one action
-     * done and the recipe maybe improved; else NEXT_RUN.
+     * MC executeCraftingAction for {@code task}, with the tool in {@code toolSlot} if the recipe needs one: NOT_MADE
+     * if the run cannot be made, TOOL_BROKE if the tool broke before the batch's last run; DONE after the batch's last
+     * run, one action done and the recipe maybe improved; else NEXT_RUN.
      */
     Outcome make(Chosen recipe, Request task, OptionalInt toolSlot) {
         Optional<List<ItemAmount>> added =
                 RecipeExecution.craftOnce(recipe.recipe(), ctx.stock().inventory(), ctx.recipes(), ctx.items());
         if (added.isEmpty()) {
-            return Outcome.FAILED;
+            return Outcome.NOT_MADE;
         }
         outputs.route(recipe.recipe(), added.get(), task);
         CraftingTasks tasks = ctx.tasks();
@@ -54,7 +55,7 @@ final class CraftingRun {
             improve(recipe);
             return Outcome.DONE;
         }
-        return broke ? Outcome.FAILED : Outcome.NEXT_RUN;
+        return broke ? Outcome.TOOL_BROKE : Outcome.NEXT_RUN;
     }
 
     /** MC CitizenItemUtils.damageItemInHand(1): wears the tool in {@code slot}; true when that broke it. */

@@ -1,6 +1,7 @@
 package dev.hycolony.core.crafting.job;
 
 import static dev.hycolony.core.crafting.job.CrafterRig.AXE;
+import static dev.hycolony.core.crafting.job.CrafterRig.BUCKET;
 import static dev.hycolony.core.crafting.job.CrafterRig.ESSENCE;
 import static dev.hycolony.core.crafting.job.CrafterRig.SEEDS;
 import static dev.hycolony.core.crafting.job.CrafterRig.seeds;
@@ -94,6 +95,47 @@ class CraftingWorkTest {
         assertEquals(INVENTORY_FULL, until(farmer.work::craft, CRAFT));
 
         assertEquals(64, farmer.job().actionsDone());
+    }
+
+    @Test
+    void aRunThatCannotBeMadeEarnsTheSuccessRewardWithoutHunger() {
+        CrafterRig farmer = new CrafterRig(64);
+        farmer.stock(ESSENCE, 2);
+        farmer.task(farmer.ask(1));
+        assertEquals(CRAFT, farmer.toCraft());
+        for (int i = 0; i < CitizenData.INVENTORY_SLOTS; i++) { // no room left for the seeds made
+            ItemAmount a = farmer.crafter.inventory().slot(i).orElse(null);
+            if (a == null) {
+                farmer.crafter.inventory().set(i, Optional.of(new ItemAmount(BUCKET, 1)));
+            } else if (a.item().equals(ESSENCE)) {
+                farmer.crafter.inventory().set(i, Optional.of(a.withCount(a.count() + 2))); // the run leaves it
+            }
+        }
+        double hunger = farmer.crafter.hunger().pending();
+
+        assertEquals(START_WORKING, until(farmer.work::craft, CRAFT));
+
+        assertEquals(64, farmer.job().actionsDone(), "MC executeCraftingAction: getActionRewardForCraftingSuccess");
+        assertEquals(hunger, farmer.crafter.hunger().pending(), 1e-9, "only a broken tool costs saturation");
+        assertEquals(0, farmer.carried(SEEDS), "nothing made");
+    }
+
+    @Test
+    void aToolBrokenBeforeTheLastRunFailsTheTaskForOneActionAndHunger() {
+        CrafterRig axe = new CrafterRig(seeds(List.of(), Optional.of(ToolType.AXE)));
+        axe.t.catalog.tools.put(AXE, new ToolInfo(ToolType.AXE, 1, 1f));
+        axe.t.catalog.durability.put(AXE, 1);
+        axe.crafter.inventory().set(3, Optional.of(new ItemAmount(AXE, 1)));
+        axe.stock(ESSENCE, 20);
+        axe.task(axe.ask(10));
+        assertEquals(CRAFT, axe.toCraft());
+        double hunger = axe.crafter.hunger().pending();
+
+        assertEquals(START_WORKING, until(axe.work::craft, CRAFT));
+
+        assertEquals(1, axe.job().actionsDone(), "MC incrementActionsDoneAndDecSaturation");
+        assertTrue(axe.crafter.hunger().pending() > hunger);
+        assertEquals(1, axe.carried(SEEDS), "the first run was made");
     }
 
     @Test
