@@ -1081,6 +1081,14 @@ Sources : décompilé de 0.7.0-pre.5 et assets pre.5. Détail et citations : `do
 - Point d'attache : `NPCEntity.leashPoint`, capteur `Leash` (`Range`), corps `WanderInCircle`/`WanderInRect` ; notre rôle citoyen n'en utilise aucun.
 - **Un système par classe** : `ComponentRegistry.registerSystem` indexe les systèmes par leur classe (`systemClasses.put(system.getClass(), …)`, l. 1218) et refuse une seconde instance de la même (« System of type … is already registered! », l. 646-647) ; le contournement `registerSystem(system, true)` est `@Deprecated(forRemoval = true)` (l. 622-623). Deux instances d'un même système générique (un `RefChangeSystem` par composant) font échouer la mise en place du plugin : il faut une sous-classe par instance. Vu en jeu le 2026-10-02.
 
+## 50. Ce que le joueur porte sur lui : armure et emplacements utilitaires (2026-10-02)
+
+Source : décompilé de 0.7.0-pre.5, `server/core/inventory/InventoryComponent.java`.
+
+- Un joueur a un composant par section : `Hotbar` (-1), `Storage` (-2), `Armor` (-3, une case par `ItemArmorSlot`), `Utility` (-5, 4 cases, filtre `getUtility().isUsable()` : l'équivalent de la main secondaire de MC), `Tool` (-8), `Backpack` (-9). `getInventory()` donne l'`ItemContainer` de chacun.
+- `getCombined(accessor, ref, types...)` met en cache un `CombinedItemContainer` dans le composant `Combined`, par **contenu** du tableau de types (`Object2ObjectOpenCustomHashMap` dont la stratégie compare par `Arrays.hashCode`/`Arrays.equals`, l. 452-463) : un tableau neuf de même contenu retrouve l'entrée en cache. `HytalePlayerInventory.equipped` lit simplement `Armor` et `Utility` par `store.getComponent`, chacun dans son ordre.
+- `ItemContainer.forEach` saute les cases vides (l. 1221-1227).
+
 ## Could not verify
 
 1. **Client rendering of item animations on NPCs** (`AnimationSlot.Action` with `"Block"/"Build"` or `"Pickaxe"/"Mine"` on `PlayerTestModel_V`) and whether they loop or play once. Only the server packet path is verified.

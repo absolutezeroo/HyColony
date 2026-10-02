@@ -35,7 +35,7 @@ L'utilisateur veut agir sur les requêtes d'une colonie depuis HyLens (2026-10-0
 - `ToolRequest` : l'outil du catalogue du bon type, entre les niveaux demandés, du niveau le plus bas (puis par identifiant). Le port `ItemCatalog` gagne `tools()`, la liste des objets qui sont des outils, lue dans `Item.getAssetMap()` comme `foods()` ;
 - aucun : la requête est clôturée sans livraison, comme MC (qui `OVERRULED` avec une pile vide).
 
-Hors créatif, inchangé : le premier objet du joueur qui convient, `min(demandé, possédé)` ; un citoyen plein clôture quand même la requête avec ce que le joueur possède, comme MC.
+Hors créatif, comme MC : la première pile de l'inventaire (barre d'action et sac) qui convient et celles qui lui sont identiques (même objet, même usure), la requête close avec `min(demandé, tout ce qui convient)`, armure et emplacements utilitaires compris ; un outil cassé ne compte pas ; un citoyen plein clôture quand même la requête. Un joueur qui n'a l'objet que sur lui reçoit `cantTakeEquipped`. Le port `PlayerInventory` gagne `stacks` (piles de la barre d'action et du sac, avec leur usure) et `equipped` (armure et emplacements utilitaires), et la fenêtre du citoyen et le presse-papiers comptent avec eux.
 
 ## 4. HyColony : la remise à zéro (cœur, TDD)
 
@@ -64,7 +64,7 @@ ActionResult resetRequests(Actor actor, ColonyRef colony);
 ```
 
 - `requestId` est l'`id` de `RequestSnapshot` ; un identifiant inconnu, d'une requête fermée ou d'une requête qui ne demande pas d'objets (livraison, ramassage) donne `NotFound`.
-- **Droits de `fulfilRequest`**, vérifiés avant la recherche de la requête : un joueur, `MANAGE_HUTS` (refus du cœur `hycolony.permission.denied`) ; un plugin fournit gratuitement, comme en créatif ; la colonie est refusée. `Unavailable` quand le joueur n'en porte pas (en créatif, la requête est close même si rien ne peut être reçu, comme MC).
+- **Droits de `fulfilRequest`**, vérifiés avant la recherche de la requête : un joueur, `MANAGE_HUTS` (refus du cœur `hycolony.permission.denied`) ; un plugin fournit gratuitement, comme en créatif ; la colonie est refusée. `Unavailable` quand le joueur n'en a pas, ou ne l'a que sur lui (en créatif, la requête est close même si rien ne peut être reçu, comme MC).
 - **Droits de `resetRequests`** : un opérateur toujours ; un autre joueur seulement si `CanPlayerUseResetCommand` (sinon `hycolony.debug.refused.config`), sans contrôle de membre, comme MC ; un plugin oui ; la colonie non.
 
 ## 6. HyLens
@@ -102,4 +102,4 @@ Chacun porte un `Deviation from MC:` dans le code.
 - Les résolveurs des huttes sont ré-enregistrés tels quels (ils n'ont pas d'état), là où MC en crée de nouveaux.
 - L'outil affiché est celui du niveau le plus bas : Hytale n'a pas l'ordre des onglets créatifs que suit MC.
 - Les objets d'une requête sans citoyen (requête fille, de hutte) vont aux conteneurs de la hutte ; MC les donne au citoyen de la fenêtre.
-- Hors créatif, le joueur donne toutes les piles de l'objet accepté, quelle que soit leur usure ; MC ne prend que les piles identiques à la première (le port d'inventaire compte les objets sans leur usure). Pour la même raison, la quantité de clôture compte un outil cassé que le joueur garde.
+- Ce que le joueur porte sur lui n'est jamais pris ; le transfert de MC pouvait prendre une pièce d'armure identique à la pile donnée une fois les autres épuisées.
