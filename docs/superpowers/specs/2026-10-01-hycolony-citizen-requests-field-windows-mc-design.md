@@ -60,7 +60,7 @@ Hors périmètre (systèmes absents) : bonheur (barre, onglet), famille (onglet)
 
 - Titre « Open requests: » centré 328 × 22 en (66, 28) ; l'arbre en (66, 58).
 - Requêtes : celles du citoyen dans sa hutte puis celles de la hutte sans citoyen (−1).
-- Fournir visible si la requête est livrable, si c'est une racine ou si son demandeur est à la place de la hutte, et si le joueur a l'objet (`isFulfillable`). Le cœur garde sa règle actuelle pour la quantité et le message `cantTakeEquipped`.
+- Fournir visible si la requête est livrable, si c'est une racine ou si son demandeur est à la place de la hutte, et si le joueur est en créatif ou a l'objet (`isFulfillable`). En créatif, l'objet affiché est donné gratuitement (spec HyLens 2026-10-02 lot 3, § 3).
 
 ### 4.3 Détail d'une requête (`windowrequestdetail.xml`, `WindowRequestDetail`)
 
@@ -111,7 +111,6 @@ Nouvelle action du cœur `RequestActions.cancel(player, colonyId, token)` : droi
 - La santé du corps Hytale ramenée à l'échelle de MC (20 points) ; les cœurs vides, rouges et dorés de Minecraft (`gui/icons.png` de Mojang, absent de `sources/`) remplacés par des cœurs dessinés à partir de ceux de `citizen/green_bluehearts.png` de MC.
 - Les icônes de compétences gardent la taille de leur source (64 px), sans agrandissement ×4.
 - L'ajustement d'une compétence ne demande pas que le corps du citoyen soit chargé (MC sort sans son entité ; ici les compétences vivent dans le cœur).
-- Fournir depuis la fenêtre du citoyen demande que le joueur ait l'objet, même en créatif (MC le crée en créatif).
 - Décalage de 4 px par profondeur dans l'arbre (2 px chez MC, ×2).
 - Les piles que MC fait défiler sur une requête à plusieurs objets : la première seulement.
 - Fournir dans le presse-papiers (ajout demandé).
