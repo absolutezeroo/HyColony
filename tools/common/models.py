@@ -1,7 +1,25 @@
-"""Blockymodel helpers of the HyVanilla generator: nodes, bounds and uniform scaling (32 units per block)."""
+"""Blockymodel geometry shared by the model tools (HyVanilla, HyColony's huts, items and construction tape, HyDomum):
+nodes, their placement, faces, bounds and uniform scaling (32 units per block)."""
 
 import copy
 import math
+
+FACE_NORMALS = {"front": (0, 0, 1), "back": (0, 0, -1), "right": (1, 0, 0), "left": (-1, 0, 0), "top": (0, 1, 0),
+                "bottom": (0, -1, 0)}
+
+
+def face_span(side, size):
+    """(width, height) of a box face of size (x, y, z), in texels as Blockbench lays it out."""
+    return {"front": (size[0], size[1]), "back": (size[0], size[1]), "right": (size[2], size[1]),
+            "left": (size[2], size[1]), "top": (size[0], size[2]), "bottom": (size[0], size[2])}[side]
+
+
+def face_point(side, size, s, t):
+    """The point about the box's centre at texel coordinates (s, t) of a face, as Blockbench lays faces out: u to the
+    right and v down, seen from outside the face."""
+    hx, hy, hz = (c / 2 for c in size)
+    return {"front": (-hx + s, hy - t, hz), "back": (hx - s, hy - t, -hz), "right": (hx, hy - t, hz - s),
+            "left": (-hx, hy - t, -hz + s), "top": (-hx + s, hy, -hz + t), "bottom": (-hx + s, -hy, hz - t)}[side]
 
 
 def node(name, position, shape, children=()):
@@ -48,12 +66,11 @@ def face_rects(nodes):
         shape = n["shape"]
         size = shape.get("settings", {}).get("size")
         for side, face in shape.get("textureLayout", {}).items():
-            if shape["type"] == "quad" or side in ("front", "back"):
+            # A quad's one face spans its x and y, whatever side it is named; a quad has no z.
+            if shape["type"] == "quad":
                 w, h = size["x"], size["y"]
-            elif side in ("left", "right"):
-                w, h = size["z"], size["y"]
             else:
-                w, h = size["x"], size["z"]
+                w, h = face_span(side, (size["x"], size["y"], size["z"]))
             mirror = face.get("mirror", {})
             w = -w if mirror.get("x") else w
             h = -h if mirror.get("y") else h

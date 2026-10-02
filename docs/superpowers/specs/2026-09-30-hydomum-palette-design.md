@@ -22,7 +22,7 @@ Source : `docs/research/client-block-atlas.md` (analyse du client, puis contourn
 
 ## Remappage d'un modèle
 
-- **Règle d'une face**, vérifiée sur les modèles vanilla (`tools/vanilla/models.py` `face_rects`, reprise par `tools/domum/convert.py`) :
+- **Règle d'une face**, vérifiée sur les modèles vanilla (`tools/common/models.py` `face_rects`, reprise par `tools/domum/convert.py`) :
   - l'offset est un pivot ;
   - la taille lue par la face est (x, y) pour front, back et quad, (z, y) pour left et right, (x, z) pour top et bottom ;
   - le miroir inverse la largeur ou la hauteur, puis l'angle (0, 90, 180, 270) fait tourner le rectangle autour du pivot ;

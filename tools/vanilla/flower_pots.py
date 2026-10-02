@@ -16,11 +16,13 @@ from pathlib import Path
 
 from PIL import Image
 
-from bake import light_map, lit
+from bake import light_map
 from brushes import average, stone, terracotta
+from icons import ICON_SIZE, draw_model
 from models import bounds, check_uvs, empty_shape, node, scaled, shift_uvs, walk
-from pack import ICON_SIZE, PACK, draw_model, rounded, save_png, write_json
-from paint import bleed, paint
+from pack import rounded, save_png, write_json
+import paint
+from paths import PACK
 
 POT_MODEL = Path(__file__).parent / "models" / "Flower_Pot.blockymodel"
 # The pot's texture: its 22 face islands, 2 pixels apart.
@@ -207,8 +209,7 @@ def pot_cell(template, values, clay_brush, dirt_brush):
     def material(name, side):
         return "dirt" if name == "Dirt" and side == "top" else "clay"
 
-    painted = paint(template, POT_CELL, {"clay": clay_brush, "dirt": dirt_brush}, material)
-    return bleed(lit(painted, values), template)
+    return paint.texture(template, POT_CELL, {"clay": clay_brush, "dirt": dirt_brush}, material, values)
 
 
 def write_model(name, nodes):

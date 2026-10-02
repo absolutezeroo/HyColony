@@ -9,14 +9,16 @@ import json
 
 from PIL import Image
 
-from bake import light_map, lit
+from bake import light_map
 from brushes import average, cloth, wood
+from icons import ICON_SIZE, draw_model
 from models import bounds, walk
-from pack import ICON_SIZE, PACK, draw_model, save_png, write_json
-from paint import bleed, paint
+from pack import save_png, write_json
+import paint
+from paths import PACK
 
 # Hand-built in Blockbench (Hytale Prop, 32 units per block), not generated: 1 x 2 blocks, the head on the origin cell
-# (towards -z, as Hytale's own beds), the blanket's top at Minecraft's 9/16. One UV island per face (bake.light).
+# (towards -z, as Hytale's own beds), the blanket's top at Minecraft's 9/16. One UV island per face (bake.light_map).
 MODEL = "Blocks/HyVanilla/Bed.blockymodel"
 PLANKS = "BlockTextures/Wood_Softwood_Planks_Top.png"
 SHEET = "BlockTextures/Cloth_White.png"
@@ -46,10 +48,9 @@ def generate(assets, colours):
     for colour in colours:
         wool_item = assets.item("Cloth_Block_Wool_" + colour)
         wool = cloth(average(assets.image("Common/BlockTextures/Cloth_" + colour + ".png")))
-        painted = paint(nodes, TEXTURE_SIZE, {"wood": wooden, "sheet": sheet, "wool": wool}, material)
-        texture = bleed(lit(painted, values), nodes)
-        save_png(texture, PACK / "Common" / texture_path(colour))
-        save_png(icon(nodes, texture), PACK / "Common/Icons/Items/HyVanilla" / ("Bed_" + colour + ".png"))
+        image = paint.texture(nodes, TEXTURE_SIZE, {"wood": wooden, "sheet": sheet, "wool": wool}, material, values)
+        save_png(image, PACK / "Common" / texture_path(colour))
+        save_png(icon(nodes, image), PACK / "Common/Icons/Items/HyVanilla" / ("Bed_" + colour + ".png"))
         write_json(PACK / "Server/Item/Items/HyVanilla" / (bed_id(colour) + ".json"), bed_item(colour, wool_item))
         recolour = recolour_recipe(colour, wool_item.get("Recipe"), colours)
         if recolour is not None:

@@ -7,7 +7,7 @@ import java.util.OptionalInt;
 
 /**
  * The texture rectangle one face of a blockymodel box or quad reads, in texels: the offset is the pivot, the mirror
- * flips the face's size over it, then the angle turns it about it (the rule tools/vanilla/models.py face_rects
+ * flips the face's size over it, then the angle turns it about it (the rule tools/common/models.py face_rects
  * verified on vanilla models, which tools/domum/convert.py writes).
  */
 record FaceRect(double minX, double minY, double maxX, double maxY) {
@@ -67,7 +67,7 @@ record FaceRect(double minX, double minY, double maxX, double maxY) {
         return inside ? OptionalInt.of(half) : OptionalInt.empty();
     }
 
-    /** (x, y) turned by angle, a quarter turn multiple (tools/vanilla/models.py TURNS). */
+    /** (x, y) turned by angle, a quarter turn multiple (tools/common/models.py TURNS). */
     private static double[] turn(double x, double y, int angle) {
         return switch (Math.floorMod(angle, 360)) {
             case 0 -> new double[] {x, y};

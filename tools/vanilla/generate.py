@@ -17,7 +17,10 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1] / "common"))
 import beds  # noqa: E402
 import flower_pots  # noqa: E402
-from pack import GRADLE_ASSETS, ICON_SIZE, PACK, Assets, draw_box, save_png, validate_pack, write_json  # noqa: E402
+from icons import ICON_SIZE, draw_box  # noqa: E402
+from pack import GRADLE_ASSETS, Assets, save_png, write_json  # noqa: E402
+from pack_rules import validate_pack  # noqa: E402
+from paths import PACK  # noqa: E402
 from PIL import Image  # noqa: E402
 
 # The 20 Hytale wool colours: Cloth_Block_Wool_<C>, texture BlockTextures/Cloth_<C>.png.
@@ -81,7 +84,7 @@ def main():
     carpets(assets)
     flower_pots.generate(assets)
     beds.generate(assets, WOOL_COLOURS)
-    validate_pack(assets)
+    validate_pack(assets, PACK)
 
 
 if __name__ == "__main__":

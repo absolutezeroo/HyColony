@@ -1,14 +1,11 @@
 """Paints a hand-built model's texture, island by island (docs/research/hytale-models.md): every face of a box gets
-its material's tile or brush (brushes.py). bake.light then lights the result from the model itself."""
+its material's tile or brush (brushes.py), then the light baked from the model itself (bake.py)."""
 
 from PIL import Image
 
+from bake import lit
 from brushes import average
-from models import walk
-
-# Side name -> the box size axes the face spans (width, height), as Blockbench lays faces out (u right, v down).
-SPANS = {"front": ("x", "y"), "back": ("x", "y"), "left": ("z", "y"), "right": ("z", "y"),
-         "top": ("x", "z"), "bottom": ("x", "z")}
+from models import face_span, walk
 
 
 def islands(nodes):
@@ -18,11 +15,11 @@ def islands(nodes):
         shape = n["shape"]
         if shape["type"] != "box":
             continue
-        size = shape["settings"]["size"]
+        size = tuple(shape["settings"]["size"][a] for a in "xyz")
         for side, face in shape.get("textureLayout", {}).items():
             if face.get("angle", 0) or any(face.get("mirror", {}).values()):
                 raise SystemExit(f"{n['name']} {side}: rotated or mirrored faces are not painted")
-            w, h = (int(size[axis]) for axis in SPANS[side])
+            w, h = (int(c) for c in face_span(side, size))
             rect = (int(face["offset"]["x"]), int(face["offset"]["y"]), w, h)
             if rect not in seen:
                 seen.add(rect)
@@ -39,6 +36,12 @@ def paint(nodes, size, tiles, material_of, pictures=frozenset()):
         tile = tiles[material]
         image.paste(tile(w, h, side) if callable(tile) else fill(tile, w, h, material not in pictures), (u, v))
     return image
+
+
+def texture(nodes, size, tiles, material_of, values, pictures=frozenset()):
+    """The model's finished texture: painted (paint), lit by values (bake.light_map of the model), each island bled
+    into its gap (bleed)."""
+    return bleed(lit(paint(nodes, size, tiles, material_of, pictures), values), nodes)
 
 
 def bleed(image, nodes):

@@ -12,8 +12,7 @@ can only hold one face's light."""
 
 import math
 
-from models import add, placed, rotate
-from pack import FACE_NORMALS, face_point, face_span
+from models import FACE_NORMALS, add, face_point, face_span, placed, rotate
 
 # Towards the light: above, in front (+z) and to the viewer's left (-x).
 LIGHT = tuple(c / math.sqrt(0.45 ** 2 + 1 + 0.55 ** 2) for c in (-0.45, 1.0, 0.55))
@@ -35,11 +34,6 @@ LOW, HIGH = 12, 244
 FLOOR = ((0.0, -50.0, 0.0), (0.0, 0.0, 0.0, 1.0), (1000.0, 50.0, 1000.0), 1e9)
 # Hemisphere directions around a normal: (elevation, azimuth) in degrees, plus the normal itself.
 RAYS = [(90, 0)] + [(e, a) for e in (25, 55) for a in range(0, 360, 60)]
-
-
-def light(image, nodes, grounded=False):
-    """image with the model's light (light_map) baked into every island texel. Returns image, changed in place."""
-    return lit(image, light_map(nodes, grounded))
 
 
 def light_map(nodes, grounded=False):

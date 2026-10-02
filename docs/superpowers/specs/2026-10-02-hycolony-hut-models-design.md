@@ -43,9 +43,9 @@ la portons pas. Chaque hutte a un design à nous, dans le style des meubles de H
     (`paint.bleed`) : sinon une face fine lit la zone voisine (vu sur les lunettes le 2026-10-02). Avec 1 pixel, le
     pixel entre deux zones ne prolongerait que la première.
 - Il est livré tel quel : `plugin/src/main/resources/Common/Blocks/HyColony/Huts/<Hutte>.blockymodel`.
-- `tools/huts/generate.py` peint la texture (`Huts/<Hutte>.png`) avec `tools/vanilla/paint.py` et les matières du
+- `tools/huts/generate.py` peint la texture (`Huts/<Hutte>.png`) avec `tools/common/paint.py` et les matières du
   module de la hutte (`tools/huts/<hutte>.py`). Il dessine aussi l'icône (`Icons/Items/HyColony/Hut_<Hutte>.png`),
-  vue de face (`pack.draw_model`, vue depuis +x +z).
+  vue de face (`icons.draw_model`, vue depuis +x +z).
 - L'objet de la hutte lit ce modèle, cette texture et cette icône. Les objets `HyColony_Hut_<Hutte>` gardent leurs
   états `OpenWindow` et `CloseWindow` (sons du coffre), sans l'animation du couvercle ; `HyColony_TownHall` n'en a
   jamais eu.
@@ -116,13 +116,13 @@ Hytale (`Icons/ItemsGenerated/Tool_Hammer_*`) ; les huttes et les lunettes garde
 ## Peinture
 
 Retour de l'utilisateur sur les premiers jets : textures trop nettes, sans le travail au crayon et à la brosse douce
-que conseille Hytale. Chaque modèle passe donc par trois étapes (`tools/huts/generate.py`, `texture`) :
+que conseille Hytale. Chaque modèle passe donc par trois étapes (`tools/common/paint.py`, `texture`) :
 
-1. ses matières : les pinceaux de `tools/vanilla/brushes.py` (partagés avec les lits et pots de HyVanilla), qui
+1. ses matières : les pinceaux de `tools/common/brushes.py` (partagés avec les lits et pots de HyVanilla), qui
    peignent une zone entière (bois, métal brossé, cristal taillé, papier, tissu, pierre, minerai, terre cuite ;
    pierre et minerai pour les huttes de mineur et de carrier, demandés par l'utilisateur), et quelques teintes de
    tuiles de Hytale (`tools/huts/materials.py` : cuir, plume…) ;
-2. `tools/vanilla/bake.py` cuit la lumière à partir du modèle lui-même, pixel par pixel : occlusion ambiante (rayons
+2. `tools/common/bake.py` cuit la lumière à partir du modèle lui-même, pixel par pixel : occlusion ambiante (rayons
    contre les autres boîtes et, pour un bloc, le sol), ombre portée d'une lumière en haut à l'avant gauche, biseau
    sur les deux anneaux de pixels du bord de chaque zone avec usure (éclats clairs) côté lumière (une arête ne
    s'assombrit que tournée vers le bas, une jointure entre deux boîtes n'a pas de biseau), crasse au pied d'un
@@ -130,7 +130,7 @@ que conseille Hytale. Chaque modèle passe donc par trois étapes (`tools/huts/g
    faces `flat` ; une occlusion réduite et pas d'ombre portée sur les faces lumineuses ;
 3. le débordement des bords dans les marges (`paint.bleed`).
 
-**Une zone d'UV par face** : une zone ne peut porter que la lumière d'une seule face. `bake.light` refuse un modèle
+**Une zone d'UV par face** : une zone ne peut porter que la lumière d'une seule face. `bake.light_map` refuse un modèle
 dont deux faces partagent un pixel (relecture du 2026-10-02 : l'avant d'un pied montrait la lumière de son arrière).
 
 ## Huttes suivantes

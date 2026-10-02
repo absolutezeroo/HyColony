@@ -78,25 +78,31 @@ Vérifié le 2026-10-02 sur Hytale 0.7.0-pre.5 (`pre-release-0.7.0-pre.5-Assets.
   capture à un modèle de référence de Hytale ouvert de la même façon. Ne jamais déplacer la vue de l'utilisateur.
 - Pour afficher un atlas, régler `uv_width` et `uv_height` de la texture à sa taille en pixels.
 
-## 4. Notre chaîne (HyVanilla)
+## 4. Notre chaîne (`tools/common`)
 
 - Le modèle se construit dans Blockbench, puis s'exporte :
   - directement dans le pack quand il est livré tel quel (`Common/Blocks/HyVanilla/Bed.blockymodel`) ;
   - dans `tools/vanilla/models/` quand le générateur le reprend (le pot, recopié par couleur et par plante, dans un
     dossier que le générateur efface).
   Le générateur lit ces modèles et ne les écrit plus.
-- `tools/vanilla/paint.py` peint la texture zone par zone, selon la matière de chaque nœud et le côté de chaque face,
-  avec les pinceaux de `tools/vanilla/brushes.py` (bois, tissu, terre cuite, terre, métal, cristal…), dans la
-  couleur moyenne de la matière de Hytale qu'ils imitent (laine, planches, argile). `tools/vanilla/bake.py` cuit
+- La boîte à outils commune est dans `tools/common/` : `models.py` (géométrie, placement des enfants, faces, bornes),
+  `pack.py` (archive d'assets, écriture d'un pack), `pack_rules.py` (validation), `icons.py` (icônes), `paint.py`,
+  `brushes.py`, `bake.py`. HyVanilla (`tools/vanilla`), les huttes et objets de HyColony (`tools/huts`), le ruban de
+  chantier (`tools/tape`) et HyDomum s'en servent ; les tests de la boîte à outils sont dans `tools/common/check.py`.
+- `tools/common/paint.py` peint la texture zone par zone, selon la matière de chaque nœud et le côté de chaque face,
+  avec les pinceaux de `tools/common/brushes.py` (bois, tissu, terre cuite, terre, métal, cristal…), dans la
+  couleur moyenne de la matière de Hytale qu'ils imitent (laine, planches, argile). `tools/common/bake.py` cuit
   ensuite la lumière du modèle (occlusion ambiante, ombre portée, biseaux, salissure au pied, variation de teinte).
   Chaque face a sa propre zone d'UV. Un bord dont la surface se poursuit dans une autre boîte, un demi-pixel plus
   loin, n'a pas de biseau : jointure (un mur en plusieurs boîtes), coin rentrant, ou pied d'un bloc posé au sol. Les
   arêtes ne s'assombrissent que tournées vers le bas. `light_map` se calcule une fois par modèle, puis `lit` l'applique
   à chaque couleur (lits, pots).
-- `pack.draw_model` dessine l'icône à partir du modèle et de sa texture. Il suit les nœuds imbriqués et tournés,
+- `paint.texture` enchaîne peinture, lumière (`bake.light_map`, calculée une fois par modèle) et débordement des
+  bords : c'est la seule chaîne, pour les lits, les pots, les huttes et les objets.
+- `icons.draw_model` dessine l'icône à partir du modèle et de sa texture. Il suit les nœuds imbriqués et tournés,
   avec un tampon de profondeur, vu depuis +x +z, donc côté devant. Un outil tenu se dessine plutôt comme les icônes
   d'outils de Hytale (`Icons/ItemsGenerated/Tool_Hammer_*`, pioches, haches) : en diagonale, tête en haut à gauche,
-  de trois quarts (`pack.turned`, vue orthographique tournée). `models.placed` applique la règle de placement des
+  de trois quarts (`icons.turned`, vue orthographique tournée). `models.placed` applique la règle de placement des
   enfants (§ 3) pour tous les outils : bornes (hitbox du lit, mise à l'échelle des plantes en pot), icônes, cuisson.
 - Les huttes de HyColony suivent la même chaîne : `tools/huts/generate.py`, spec
   `docs/superpowers/specs/2026-10-02-hycolony-hut-models-design.md`.

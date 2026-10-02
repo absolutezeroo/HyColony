@@ -7,7 +7,7 @@ from PIL import ImageDraw
 
 from brushes import crystal, metal, wood
 from materials import BRASS, CYAN, LEATHER, leather
-from pack import turned
+from icons import turned
 
 MODEL = "Items/HyColony/Build_Tool"
 ICON = "Build_Tool"

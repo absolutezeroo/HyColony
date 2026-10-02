@@ -1,16 +1,15 @@
-"""Checks of the shared model tools: python tools/common/check.py (no assets needed). An AssertionError names the case."""
+"""Checks of the shared model tools: python tools/common/check.py (no assets needed). An AssertionError names the
+case."""
 
 import math
-import sys
 import unittest
-from pathlib import Path
 
-sys.path.append(str(Path(__file__).resolve().parents[1] / "common"))
-import bake  # noqa: E402
-from models import bounds, empty_shape, node, placed  # noqa: E402
-from pack import screen, turned, turned_shade  # noqa: E402
-from paint import bleed  # noqa: E402
-from PIL import Image  # noqa: E402
+from PIL import Image
+
+import bake
+from icons import screen, turned, turned_shade
+from models import bounds, empty_shape, face_rects, face_span, node, placed
+from paint import bleed
 
 
 def shape_at(offset):
@@ -38,6 +37,16 @@ class PlacedTest(unittest.TestCase):
         parent = node("Parent", (0, 0, 0), shape_at((0, 0, 2)), [child])
         parent["orientation"] = {"x": 0, "y": half, "z": 0, "w": half}
         self.assertEqual((2, 0, 0), positions([parent])["Child"])
+
+
+class FaceTest(unittest.TestCase):
+    def test_a_box_s_side_faces_span_its_depth_and_a_quad_s_face_its_width_whatever_its_side(self):
+        self.assertEqual((4, 3), face_span("left", (2, 3, 4)))
+        self.assertEqual((2, 4), face_span("top", (2, 3, 4)))
+        quad = shape_at((0, 0, 0))
+        quad.update({"type": "quad", "settings": {"size": {"x": 5, "y": 6}},
+                     "textureLayout": {"left": {"offset": {"x": 0, "y": 0}}}})
+        self.assertEqual([("Quad", 0, 0, 5, 6)], list(face_rects([node("Quad", (0, 0, 0), quad)])))
 
 
 class BoundsTest(unittest.TestCase):
@@ -178,9 +187,8 @@ class BakeTest(unittest.TestCase):
 
     def test_two_faces_sharing_an_island_are_refused(self):
         shared = {side: {"offset": {"x": 0, "y": 0}} for side in ("front", "back")}
-        image = Image.new("RGBA", (4, 4), (200, 200, 200, 255))
         with self.assertRaises(SystemExit):
-            bake.light(image, [box("Block", (0, 0, 0), (2, 2, 2), shared)])
+            bake.light_map([box("Block", (0, 0, 0), (2, 2, 2), shared)])
 
 
 if __name__ == "__main__":

@@ -33,7 +33,7 @@ Ajouter le lit de Minecraft à HyVanilla : 1 bloc de large, 2 de long, 9/16 de h
     - l'oreiller (20×5×10, plus un dessus 18×1×8) est posé sur le matelas, à 2 unités de la tête de lit.
   - La géométrie est la nôtre. Le pack Better Beds (CC BY-NC-SA 4.0), montré par l'utilisateur, n'a servi que d'idée : sa licence est incompatible avec la GPL, et rien n'en est repris.
 - **Hitbox** `HyVanilla_Bed` : une boîte par partie, calculée sur le modèle : la tête (montants, chapeaux, tête de lit), le pied, le corps (cadre, matelas, couverture) et l'oreiller, chacune posée au sol.
-- **Textures** : un seul modèle, en ombrage `standard`, une zone d'UV par face (texture 128×160). `tools/vanilla/paint.py` peint une texture par couleur au pinceau (`tools/vanilla/brushes.py`) : bois dans la couleur des planches `Wood_Softwood_Planks_Top`, tissu dans celle de la laine blanche et de la laine de la couleur. `tools/vanilla/bake.py` y cuit la lumière du lit, calculée une fois pour toutes les couleurs.
+- **Textures** : un seul modèle, en ombrage `standard`, une zone d'UV par face (texture 128×160). `tools/common/paint.py` peint une texture par couleur au pinceau (`tools/common/brushes.py`) : bois dans la couleur des planches `Wood_Softwood_Planks_Top`, tissu dans celle de la laine blanche et de la laine de la couleur. `tools/common/bake.py` y cuit la lumière du lit, calculée une fois pour toutes les couleurs.
 - **Comportement du lit vanilla de Hytale** : même `Use`, `Primary` et `RespawnBlock` que `Furniture_Village_Bed`. Le joueur dort et le lit devient son point de réapparition. Les citoyens (SP4) reconnaissent un lit par `getBeds()`.
   - *Écart avec MC* : le sommeil suit les règles de Hytale (propriétaire du `RespawnBlock`, passage de la nuit), pas celles de Minecraft. MineColonies n'y touche pas.
 - **Point de couchage** : `Offset` de `(-0,1 ; 0,1 ; 0,8)`, `Yaw` de 0. C'est une première valeur, à régler en jeu. Elle reprend `Furniture_Crude_Bed`, le seul lit Hytale de 1×2 : ses `Offset` sont `(-0,1 ; -0,4 ; 0,8)`, soit le même décalage vers le pied que les autres lits.
@@ -42,7 +42,7 @@ Ajouter le lit de Minecraft à HyVanilla : 1 bloc de large, 2 de long, 9/16 de h
   - 3 `Cloth_Block_Wool_<C>` et 3 `Wood_Planks` (n'importe quelles planches) donnent 1 lit, à l'établi de meubles, catégorie `Furniture_Beds` (MC `<color>_bed`) ;
   - recoloration : pour chaque couleur autre que le blanc, la recette de sa laine avec les laines remplacées par les lits de même couleur. Par exemple, lit blanc + `Plant_Petals_Red` donne un lit rouge, et lit rouge + `Plant_Petals_White` donne un lit rouge clair. Même établi, catégorie `Furniture_Beds`. Ce sont des recettes autonomes `HyVanilla_Bed_<C>_Dye`.
   - *Écart avec MC* : Minecraft teint n'importe quel lit avec une teinture. Hytale n'a pas de teinture : on reprend donc le chemin de sa laine.
-- **Icône** générée, dans le style des tapis : le lit vu en perspective, dessiné à partir du modèle et de sa texture (`pack.draw_model`).
+- **Icône** générée, dans le style des tapis : le lit vu en perspective, dessiné à partir du modèle et de sa texture (`icons.draw_model`).
 - **Clés de langue** : `hyvanilla.item.bed.<c>.name`, en en-US et fr-FR.
 
 ## Réalisation

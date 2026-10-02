@@ -1,6 +1,6 @@
 """Brushes of the hand-built models (HyColony's huts and items, HyVanilla's bed and pots), one per kind of material.
 A brush paints a whole island, (w, h, side) -> image, as a painter would (strokes along a plank, folds down a hanging
-cloth, chunks of stone, a gradient across a crystal face); bake.light then lights the result from the model."""
+cloth, chunks of stone, a gradient across a crystal face); bake.py then lights the result from the model."""
 
 from PIL import Image
 

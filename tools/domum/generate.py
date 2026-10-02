@@ -21,7 +21,8 @@ import tags  # noqa: E402
 import validate  # noqa: E402
 from blocks import common, compat, cutter, door, pane, pillar, roof, static, vanilla_fences  # noqa: E402
 from families import FAMILIES  # noqa: E402
-from pack import ROOT, validate_pack, write_json  # noqa: E402
+from pack import ROOT, write_json  # noqa: E402
+from pack_rules import validate_pack  # noqa: E402
 
 PACK = ROOT / "domum" / "plugin" / "src" / "main" / "resources"
 RESOURCES = PACK
