@@ -7,11 +7,11 @@ import dev.hycolony.plugin.WorldRuntimes;
 import dev.hycolony.plugin.npc.spawn.HostileSpawnSystems;
 
 /**
- * Registers the systems that act on NPCs once they live: citizens' use by a player, fire, damage and ledge climb, and
- * the hostile creatures kept from spawning in colonies.
+ * Registers the systems that act on living NPCs: citizens' use by a player, fire, damage and ledge climb, and the
+ * hostile creatures kept from spawning in colonies.
  */
-public final class CitizenSystems {
-    private CitizenSystems() {}
+public final class NpcSystems {
+    private NpcSystems() {}
 
     /** Registers the use, fire immunity, hurt and ledge climb systems of citizens, and the hostile spawn checks. */
     public static void register(ComponentRegistryProxy<EntityStore> registry, WorldRuntimes worlds, IdMap ids) {

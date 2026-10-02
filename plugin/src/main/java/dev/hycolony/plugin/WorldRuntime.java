@@ -72,7 +72,7 @@ public final class WorldRuntime {
         IdMap ids = setup.ids();
         this.clock = new HytaleGameClock(world);
         this.bodies = new HytaleCitizenBodies(
-                world, ids.npcRole("npc.citizen"), new CitizenSpeed(ids.speedEffects()), clock::currentTick);
+                world, ids.npcs().role("npc.citizen"), new CitizenSpeed(ids.speedEffects()), clock::currentTick);
         Set<String> hutBlockIds = HutBlockSystems.byBlockId(setup).keySet(); // the builder never breaks these
         HytaleItemCatalog catalog =
                 new HytaleItemCatalog(hutBlockIds, ids.farming().hoeLevels(), ids.food());

@@ -14,7 +14,6 @@ import com.hypixel.hytale.component.system.RefSystem;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.components.SpawnBeaconReference;
 import com.hypixel.hytale.server.npc.components.SpawnMarkerReference;
-import com.hypixel.hytale.server.npc.entities.NPCEntity;
 import dev.hycolony.plugin.IdMap;
 import dev.hycolony.plugin.WorldRuntimes;
 import javax.annotation.Nonnull;
@@ -23,14 +22,15 @@ import org.jspecify.annotations.Nullable;
 /**
  * The systems that keep hostile creatures from appearing naturally in a colony's territory ({@link HostileSpawns}):
  * an NPC is checked when a world spawn adds it (its spawn configuration is set before), and when a spawn beacon or
- * marker tags it (those marks come after the add). A command's or a plugin's NPC (our citizens) has none of them.
+ * marker tags it (those marks come after the add). A plugin's NPC (our citizens) or one a command spawns has none of
+ * them; a copy of a naturally spawned NPC (/entity clone) keeps its spawn configuration and is checked too.
  */
 public final class HostileSpawnSystems {
     private HostileSpawnSystems() {}
 
     /** Registers the three checks; the hostile group's id comes from the id map. */
     public static void register(ComponentRegistryProxy<EntityStore> registry, WorldRuntimes runtimes, IdMap ids) {
-        HostileSpawns rule = new HostileSpawns(runtimes, ids.npcRole("npc.group.hostile"));
+        HostileSpawns rule = new HostileSpawns(runtimes, ids.npcs().group("npc.group.hostile"));
         registry.registerSystem(new WorldSpawn(rule));
         registry.registerSystem(new Marked<>(rule, SpawnBeaconReference.getComponentType()));
         registry.registerSystem(new Marked<>(rule, SpawnMarkerReference.getComponentType()));
@@ -55,9 +55,8 @@ public final class HostileSpawnSystems {
                 @Nonnull AddReason reason,
                 @Nonnull Store<EntityStore> store,
                 @Nonnull CommandBuffer<EntityStore> buffer) {
-            NPCEntity npc = store.getComponent(ref, HostileSpawns.npcType());
-            if (reason == AddReason.SPAWN && npc != null && npc.getSpawnConfiguration() != Integer.MIN_VALUE) {
-                rule.check(ref, store);
+            if (reason == AddReason.SPAWN) {
+                rule.check(ref, store, npc -> npc.getSpawnConfiguration() != Integer.MIN_VALUE);
             }
         }
 
@@ -98,7 +97,7 @@ public final class HostileSpawnSystems {
                 @Nonnull T component,
                 @Nonnull Store<EntityStore> store,
                 @Nonnull CommandBuffer<EntityStore> buffer) {
-            rule.check(ref, store);
+            rule.check(ref, store, npc -> true);
         }
 
         @Override

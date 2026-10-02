@@ -38,7 +38,8 @@
     "blueprint.placeholder.keep": "HyColony_Placeholder_Keep",
     "blueprint.fillBlock": "Soil_Dirt"
   },
-  "npcRoles": { "npc.citizen": "HyColony_Citizen", "npc.group.hostile": "HyColony_Hostile" },
+  "npcRoles": { "npc.citizen": "HyColony_Citizen" },
+  "npcGroups": { "npc.group.hostile": "HyColony_Hostile" },
   "toggleableUseInteractions": ["Door"],
   "potions": [
     "Potion_Antidote", "Potion_Health", "Potion_Health_Greater", "Potion_Health_Large", "Potion_Health_Lesser",

@@ -2,6 +2,7 @@ package dev.hycolony.plugin;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.hypixel.hytale.builtin.tagset.config.NPCGroup;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
 import com.hypixel.hytale.server.core.asset.type.fluid.Fluid;
@@ -31,6 +32,7 @@ public final class IdMap {
             Map<String, String> items,
             Map<String, String> blocks,
             Map<String, String> npcRoles,
+            @Nullable Map<String, String> npcGroups,
             List<String> fireworks,
             List<String> precipitationParticles,
             Map<String, String> speedEffects,
@@ -83,8 +85,9 @@ public final class IdMap {
         return require(data.blocks(), key);
     }
 
-    public String npcRole(String key) {
-        return require(data.npcRoles(), key);
+    /** The NPC roles and groups; groups absent from an older file are none. */
+    public NpcIds npcs() {
+        return new NpcIds(data.npcRoles(), Objects.requireNonNullElse(data.npcGroups(), Map.of()));
     }
 
     /** Particle systems fired when a building level rises. */
@@ -178,6 +181,7 @@ public final class IdMap {
         check(errors, "toggleable use interaction", byId(List.copyOf(toggleableUseInteractions())), interaction);
         check(errors, "potion item", byId(potionList()), item);
         check(errors, "npc role", data.npcRoles(), id -> NPCPlugin.get().hasRoleName(id));
+        check(errors, "npc group", npcs().groups(), id -> NPCGroup.getAssetMap().getIndex(id) != Integer.MIN_VALUE);
         check(errors, "sound event", byId(farming().tillSoundEvent().stream().toList()), sound);
         check(errors, "entity effect", byId(highlightEffect().stream().toList()), effect);
         check(errors, "particle system", byId(sleepParticle().stream().toList()), particle);

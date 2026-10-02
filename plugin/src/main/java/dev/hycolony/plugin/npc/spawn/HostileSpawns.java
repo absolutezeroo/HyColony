@@ -13,8 +13,10 @@ import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.plugin.WorldRuntime;
 import dev.hycolony.plugin.WorldRuntimes;
 import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import org.joml.Vector3d;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Despawns a naturally spawned hostile NPC standing where the core refuses hostile spawns (ColonyProtection
@@ -40,24 +42,33 @@ final class HostileSpawns {
         return Objects.requireNonNull(NPCEntity.getComponentType(), "the NPC module is not set up");
     }
 
-    /** On the world thread: despawns {@code ref} if it is hostile in a colony's territory; never throws. */
-    void check(Ref<EntityStore> ref, Store<EntityStore> store) {
+    /**
+     * On the world thread: despawns {@code ref} if {@code natural} holds for it and it is hostile in a colony's
+     * territory; never throws.
+     */
+    void check(Ref<EntityStore> ref, Store<EntityStore> store, Predicate<NPCEntity> natural) {
         try {
             WorldRuntime rt = runtimes.of(store.getExternalData().getWorld());
             NPCEntity npc = store.getComponent(ref, npcType());
-            TransformComponent transform = store.getComponent(ref, TransformComponent.getComponentType());
-            if (rt == null || !rt.enabled() || npc == null || transform == null || !hostile(npc.getRoleIndex())) {
-                return;
-            }
-            Vector3d at = transform.getPosition();
-            BlockPos pos = new BlockPos((int) Math.floor(at.x), (int) Math.floor(at.y), (int) Math.floor(at.z));
-            if (!rt.manager().protection().allowsHostileSpawn(pos)) {
-                npc.setDespawning(true);
-                npc.setDespawnRemainingSeconds(0);
+            if (rt != null && rt.enabled() && npc != null && natural.test(npc) && hostile(npc.getRoleIndex())) {
+                despawnInColony(rt, npc, store.getComponent(ref, TransformComponent.getComponentType()));
             }
         } catch (RuntimeException e) {
             LOG.at(failed ? Level.FINE : Level.SEVERE).withCause(e).log("HyColony hostile spawn check failed");
             failed = true;
+        }
+    }
+
+    /** Despawns {@code npc} at its next tick if it stands where the core refuses hostile spawns. */
+    private static void despawnInColony(WorldRuntime rt, NPCEntity npc, @Nullable TransformComponent transform) {
+        if (transform == null) {
+            return;
+        }
+        Vector3d at = transform.getPosition();
+        BlockPos pos = new BlockPos((int) Math.floor(at.x), (int) Math.floor(at.y), (int) Math.floor(at.z));
+        if (!rt.manager().protection().allowsHostileSpawn(pos)) {
+            npc.setDespawning(true);
+            npc.setDespawnRemainingSeconds(0);
         }
     }
 

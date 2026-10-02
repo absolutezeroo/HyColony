@@ -25,7 +25,10 @@ Recherche : `docs/research/colony-bounds-and-mob-spawns.md` (MC ne garde pas ses
 
 ## 3. Plugin
 
-- Monstres : retrait, à son ajout au monde, d'un PNJ hostile né d'une apparition naturelle dans une cellule revendiquée. Le test « hostile » et le crochet d'ajout sont à vérifier (`docs/research/colony-bounds-and-mob-spawns.md`, suite).
+- Monstres (`npc/spawn/`, recherche `docs/research/colony-bounds-and-mob-spawns.md` § 6) :
+  - hostile = dans le groupe de PNJ `HyColony_Hostile` (asset `Server/NPC/Groups/HyColony/`, id dans la section `npcGroups` de l'id-map, validée au démarrage) : le groupe vanilla `Aggressive`, `Outlander`, `Scarak` et quelques rôles nommés qu'ils oublient, sans le cheval squelette ;
+  - trois origines : une apparition du monde (`RefSystem` à l'ajout, `spawnConfiguration` déjà posé), une balise et un marqueur (`RefChangeSystem` sur `SpawnBeaconReference` et `SpawnMarkerReference`, posés juste après l'ajout) ;
+  - le PNJ disparaît au tick suivant, comme une disparition vanilla (`setDespawning`, `NPCPreTickSystem`) : retiré pendant son ajout, son générateur journaliserait une erreur et un marqueur pourrait être supprimé.
 
 ## 4. Écarts
 
@@ -35,7 +38,7 @@ Recherche : `docs/research/colony-bounds-and-mob-spawns.md` (MC ne garde pas ses
 - Une marche dans les coins du bâtiment vise, sans recherche de chemin, un point au hasard dans la boîte à la hauteur du bloc de hutte, à plus de 10 blocs et hors danger ; elle part dès que la précédente est finie (MC saute un tirage tant qu'il garde son dernier résultat de chemin). Pas de préférence liée à la pluie (`preferInside`, qui dans le code de MC écarte d'ailleurs les cases couvertes).
 - La pause de 60 s est comptée par la flânerie elle-même (12 décisions de 100 ticks de repos hors loisir), le loisir n'ayant pas d'état à lui.
 - Bornage de la flânerie et retour vers la maison : ajouts demandés, MC laisse dériver ses citoyens. Une maison inaccessible est retentée à chaque décision.
-- Pas d'apparition naturelle de monstre hostile dans tout le territoire : MC ne refuse que dans les bâtiments (Hytale n'a pas l'équivalent de la lumière). Un monstre qui entre en marchant reste possible.
+- Pas d'apparition naturelle de monstre hostile dans tout le territoire : MC ne refuse que dans les bâtiments (Hytale n'a pas l'équivalent de la lumière). Un monstre qui entre en marchant reste possible. Les marqueurs d'apparition (camps du monde) sont visés aussi, alors que MC laisse passer ses spawners (`MobSpawnType.SPAWNER`). La copie d'un monstre né du monde (`/entity clone`) garde sa configuration d'apparition et disparaît aussi. Le monstre peut se voir un tick.
 
 ## 5. Tests
 

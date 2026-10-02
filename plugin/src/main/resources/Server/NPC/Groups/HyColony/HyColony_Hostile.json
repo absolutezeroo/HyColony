@@ -11,9 +11,7 @@
     "Spirit_*",
     "Eye_Void_Surge",
     "Void_Spawn_Surge",
-    "Slug_Magma",
-    "Snail_Magma",
-    "Toad_Rhino_Magma"
+    "Slug_Magma"
   ],
   "ExcludeRoles": [
     "Horse_Skeleton*"
