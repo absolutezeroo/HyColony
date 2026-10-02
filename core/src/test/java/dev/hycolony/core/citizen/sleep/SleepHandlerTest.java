@@ -10,6 +10,7 @@ import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.building.module.BuildingEventsModule;
 import dev.hycolony.core.building.module.ModuleProducer;
 import dev.hycolony.core.citizen.CitizenData;
+import dev.hycolony.core.citizen.inventory.CitizenEquipment;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.colony.territory.TerritoryIndex;
@@ -86,12 +87,14 @@ class SleepHandlerTest {
     @Test
     void lyingDownDropsTheHeldItemEndsLeisureAndRemembersTheBed() {
         t.bodies.setHeldItem(body, Optional.of(new ItemKey("axe")));
+        d.equipment().hold(CitizenEquipment.Hand.MAIN, 3);
         d.setLeisureTime(500);
 
         assertTrue(handler.trySleep(BED));
 
         assertEquals(BED, t.bodies.bodies.get(body).inBed);
         assertNull(t.bodies.bodies.get(body).held);
+        assertEquals(3, d.equipment().held(CitizenEquipment.Hand.MAIN), "MC removeHeldItem: the entity's hand only");
         assertTrue(d.asleep());
         assertEquals(0, d.leisureTime());
         assertEquals(BED, d.bedPos());

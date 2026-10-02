@@ -2,6 +2,7 @@ package dev.hycolony.core.construction.builder;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.app.ColonyManager;
@@ -9,6 +10,7 @@ import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenAI;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.CitizenState;
+import dev.hycolony.core.citizen.inventory.CitizenEquipment;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.BlueprintEntry;
@@ -27,6 +29,7 @@ import dev.hycolony.core.kernel.item.BlockKind;
 import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.testing.TestContexts;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +48,8 @@ class BuilderRainTest {
 
     private final TestContexts t = new TestContexts();
     private Colony colony;
+    private CitizenData citizen;
+    private BodyId body;
     private CitizenAI ai;
 
     /**
@@ -77,7 +82,7 @@ class BuilderRainTest {
         colony = manager.foundation().confirm(alice, "A").orElseThrow();
         Building hut = place(manager, ConstructionBuildingTypes.BUILDER.id(), HUT, level);
         place(manager, ConstructionBuildingTypes.RESIDENCE.id(), RES, 0);
-        CitizenData citizen = new CitizenData(1);
+        citizen = new CitizenData(1);
         colony.citizens().restore(citizen);
         assertTrue(hut.module(WorkerModule.class).orElseThrow().hire(colony, hut, citizen));
         if (stones > 0) {
@@ -85,7 +90,8 @@ class BuilderRainTest {
         }
         var r = colony.work().request(alice, RES, WorkOrderType.BUILD, "", Optional.of(HUT));
         assertTrue(r instanceof Either.Left, () -> "refused: " + r);
-        ai = new CitizenAI(colony, citizen, t.bodies.existing(colony.id(), 1, Vec3.center(HUT)));
+        body = t.bodies.existing(colony.id(), 1, Vec3.center(HUT));
+        ai = new CitizenAI(colony, citizen, body);
     }
 
     private static ColonyConfig config(boolean workersAlwaysWorkInRain) {
@@ -154,6 +160,21 @@ class BuilderRainTest {
         Building residence = colony.buildings().at(RES).orElseThrow();
         assertTrue(tickUntil(() -> residence.level() == 1, 5_000), "resumes the same order and finishes it");
         assertEquals(PLAN_SIZE, t.blocks.placed.stream().distinct().count());
+    }
+
+    @Test
+    void aBuilderStoppedByTheRainKeepsWhatItHolds() {
+        start(1, false, PLAN_SIZE);
+        assertTrue(tickUntil(() -> atABlock() && t.blocks.placed.size() == 1, 2_000));
+        ItemKey held = t.bodies.bodies.get(body).held;
+        int slot = citizen.equipment().held(CitizenEquipment.Hand.MAIN);
+
+        t.world.raining = true;
+
+        assertTrue(tickUntil(CitizenState.IDLE, 10));
+        assertNotNull(held);
+        assertEquals(held, t.bodies.bodies.get(body).held, "MC resetAI leaves the entity's hand");
+        assertEquals(slot, citizen.equipment().held(CitizenEquipment.Hand.MAIN));
     }
 
     @Test

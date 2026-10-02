@@ -2,6 +2,7 @@ package dev.hycolony.core.citizen.food;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.building.Building;
@@ -154,6 +155,9 @@ class EatAITest {
         tickUntil(() -> apple.equals(t.bodies.bodies.get(body).held));
 
         assertEquals(2, citizen.equipment().held(CitizenEquipment.Hand.MAIN), "MC EntityAIEatTask: setItemInHand only");
+        tickUntil(() -> ai.state() == CitizenState.IDLE);
+        assertNull(t.bodies.bodies.get(body).held, "the meal over, the entity's hand empties");
+        assertEquals(2, citizen.equipment().held(CitizenEquipment.Hand.MAIN), "and the held slot stays");
     }
 
     @Test

@@ -1,7 +1,6 @@
 package dev.hycolony.core.construction.builder;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.app.ColonyManager;
@@ -136,7 +135,7 @@ class BuilderIdleTest {
         colony.work().cancel(order.id());
 
         assertTrue(tickUntil(CitizenState.IDLE, 40));
-        assertNull(t.bodies.bodies.get(body).held, "MC resetAI clears the held item");
+        assertEquals(STONE_ITEM, t.bodies.bodies.get(body).held, "MC resetAI leaves the entity's hand");
         assertTrue(wanders(120), "then wanders like any idle citizen");
     }
 }

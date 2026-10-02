@@ -163,7 +163,7 @@ final class BuilderBlockWork {
         mineDelayed = true;
         ctx.gestures().lookAt(pos);
         if (tool == null) {
-            ctx.gestures().hold(null);
+            ctx.gestures().hold(null); // MC holdEfficientTool without a tool: removeHeldItem, the entity's hand only
         } else {
             ctx.gestures().holdSlot(toolSlot.getAsInt(), tool); // MC holdEfficientTool: the very slot it wears
         }
@@ -192,7 +192,8 @@ final class BuilderBlockWork {
             ctx.stock().storeDrops(drops);
         }
         // MC damageItemInHand: 1 per block; at its durability the tool breaks, no message (the next block asks), and
-        // the hand it emptied shows nothing.
+        // the hand it emptied shows nothing. Deviation from MC: no research yet, so no TOOL_DURABILITY chance to spare
+        // the tool.
         if (tool != null
                 && ctx.stock()
                         .inventory()
@@ -205,7 +206,11 @@ final class BuilderBlockWork {
     }
 
     private void place(Stage stage, int i, BlockPos pos, BlueprintEntry e, List<ItemAmount> cost) {
-        ctx.gestures().lookAt(pos); // MC BuildingStructureHandler.prePlacementLogic: faceBlock
+        // MC BuildingStructureHandler.prePlacementLogic, before the placement is tried: faceBlock, and the first
+        // required
+        // item in the entity's hand (setItemSlot MAINHAND), the held slot left as it is
+        ctx.gestures().lookAt(pos);
+        ctx.gestures().hold(cost.isEmpty() ? null : cost.getFirst().item());
         if (!ctx.site().plan().onlyTurns(e, ctx.blocks()) && ctx.scan().mustMineFirst(pos)) {
             removeForReplace(pos);
         }
@@ -224,9 +229,6 @@ final class BuilderBlockWork {
         ctx.award(XP_PER_BLOCK);
         ctx.job().incrementActions();
         ctx.site().progress(stage, i + 1);
-        // Deviation from MC (asked for, a player's gesture): the hand shows the block just placed, its held slot left
-        // as it is; MC's entity keeps whatever it held (BuildingStructureHandler.getHeldItem reads it).
-        ctx.gestures().hold(cost.isEmpty() ? null : cost.getFirst().item());
         ctx.gestures()
                 .startDelay(
                         BuilderTimings.placeDelay(ctx.citizen().skills().level(ctx.primary())), BodyAnimation.BUILD);

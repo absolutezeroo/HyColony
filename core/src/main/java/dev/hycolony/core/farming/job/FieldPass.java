@@ -114,7 +114,7 @@ final class FieldPass {
      * mines a non-replaceable one (flower, torch) into the inventory: the core has no "replaceable" flag.
      */
     private void hoe(BlockPos surface) {
-        OptionalInt hoe = ctx.stock().toolInInventory(ToolType.HOE);
+        OptionalInt hoe = ctx.stock().firstToolInInventory(ToolType.HOE); // the slot equipHoe holds
         if (hoe.isEmpty()) {
             ctx.tools().requestTool(ToolType.HOE);
             return;
@@ -133,6 +133,7 @@ final class FieldPass {
         didWork = true;
         ItemKey tool =
                 ctx.stock().inventory().slot(hoe.getAsInt()).orElseThrow().item();
+        // Deviation from MC: no research yet, so no TOOL_DURABILITY chance to spare the tool (damageItemInHand).
         if (ctx.stock().inventory().damage(hoe.getAsInt(), 1, catalog().durability(tool))) {
             // MC damageItemInHand: the broken hoe leaves the hand empty; equipHoe takes the next one at the next cell
             ctx.hands().hold(Optional.empty());

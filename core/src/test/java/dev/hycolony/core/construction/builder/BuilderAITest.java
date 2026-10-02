@@ -213,6 +213,20 @@ class BuilderAITest {
         assertTrue(ai.lastError().isEmpty());
     }
 
+    /** MC BuildingStructureHandler.prePlacementLogic: the block to place is in hand before the placement is tried. */
+    @Test
+    void theBuilderShowsTheBlockItPlacesEvenWhenThePlacementIsRefused() {
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 0);
+        blueprint = bp(List.of(entry(1, 0, 0, STONE)));
+        give(STONE_I, 1);
+        t.blocks.refusePlace = true;
+        order(res, WorkOrderType.BUILD);
+
+        tickUntil(() -> STONE_I.equals(t.bodies.bodies.get(body).held), 3000);
+
+        assertEquals(1, citizen.inventory().count(STONE_I), "refused: nothing used");
+    }
+
     @Test
     void takesClaimedOrderAndLoadsStructure() {
         Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 0);

@@ -38,11 +38,11 @@ public final class WorkerHands {
     }
 
     /**
-     * MC EntityAIWorkFarmer.equipHoe, setHeldItem(MAIN_HAND, getHoeSlot()): holds the slot of the tool of {@code type}
-     * that {@code stock} would use; without one, no slot (MC's -1) and an empty hand.
+     * MC EntityAIWorkFarmer.equipHoe, setHeldItem(MAIN_HAND, getHoeSlot()): holds the first slot with a tool of
+     * {@code type} ({@link WorkerStock#firstToolInInventory}); without one, no slot (MC's -1) and an empty hand.
      */
     public void holdTool(WorkerStock stock, ToolType type) {
-        OptionalInt slot = stock.toolInInventory(type);
+        OptionalInt slot = stock.firstToolInInventory(type);
         if (slot.isPresent()) {
             holdSlot(slot.getAsInt());
         } else {

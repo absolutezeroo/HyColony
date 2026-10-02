@@ -312,15 +312,14 @@ public final class CitizenAI {
     }
 
     /**
-     * Forgets the job AI and its held item (MC resetAI clears the render metadata), and its walking speed (MC
-     * BuildingDeliveryman removes the courier's speed modifier with the job; a job AI sets its own again); restarts
-     * the wander's wait for a walk under way.
+     * Forgets the job AI (MC resetAI: its state machine and render metadata; the hand is left as it is), and its
+     * walking speed (MC BuildingDeliveryman removes the courier's speed modifier with the job; a job AI sets its own
+     * again); restarts the wander's wait for a walk under way.
      */
     private void dropJobAI() {
         wander.restartWait(); // back to IDLE: the walk under way is waited for from now
         jobAI = null;
         aiJob = null;
-        bodies.setHeldItem(body, Optional.empty()); // the entity's hand only: the held slot stays, as MC
         bodies.setMovementSpeed(body, 1);
     }
 

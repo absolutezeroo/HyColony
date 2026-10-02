@@ -209,6 +209,20 @@ public final class WorkerStock {
         return best < 0 ? OptionalInt.empty() : OptionalInt.of(best);
     }
 
+    /**
+     * MC getFirstSlotOfItemHandlerContainingEquipment (the farmer's getHoeSlot): the first slot holding a tool of
+     * {@code type} within the hut's max equipment level, whatever its level; empty if none.
+     */
+    public OptionalInt firstToolInInventory(ToolType type) {
+        for (int i = 0; i < inventory().size(); i++) {
+            ItemAmount a = inventory().slot(i).orElse(null);
+            if (a != null && usableTool(a, type) != null) {
+                return OptionalInt.of(i);
+            }
+        }
+        return OptionalInt.empty();
+    }
+
     /** A tool of {@code type} within the hut's max equipment level stored in the hut; empty if none. */
     public Optional<ItemKey> toolInHut(ToolType type) {
         for (BlockPos container : hut.containers()) {

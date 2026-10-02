@@ -11,6 +11,9 @@ import dev.hycolony.core.farming.field.FieldStage;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.item.ItemAmount;
+import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.core.kernel.item.ToolInfo;
+import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.kernel.port.BodyAnimation;
 import dev.hycolony.core.request.model.ToolRequest;
 import dev.hycolony.core.testing.FakeBodies;
@@ -315,6 +318,35 @@ class FieldPassTest extends FarmerTestBase {
 
         assertEquals(2, citizen.equipment().held(CitizenEquipment.Hand.MAIN), "MC equipHoe: the hoe it wears");
         assertEquals(8, citizen.inventory().slot(2).orElseThrow().damage());
+    }
+
+    @Test
+    void farmerUsesTheFirstHoeItCarriesNotTheLowest() {
+        field(true);
+        settings().setFertilize(false);
+        hut.setLevel(3);
+        ItemKey copper = new ItemKey("Tool_Hoe_Copper");
+        t.catalog.tools.put(copper, new ToolInfo(ToolType.HOE, 1, 1f));
+        t.catalog.durability.put(copper, 100);
+        citizen.inventory().set(1, Optional.of(new ItemAmount(copper, 1)));
+        citizen.inventory().set(4, Optional.of(new ItemAmount(HOE, 1)));
+
+        pass(FarmerState.FARMER_HOE);
+
+        assertEquals(1, citizen.equipment().held(CitizenEquipment.Hand.MAIN), "MC getHoeSlot: the first one");
+        assertEquals(8, citizen.inventory().slot(1).orElseThrow().damage());
+    }
+
+    @Test
+    void aFarmerLeftWithoutAHoeHoldsNoSlot() {
+        field(true);
+        settings().setFertilize(false);
+        int uses = t.catalog.durability(HOE);
+        citizen.inventory().set(0, Optional.of(new ItemAmount(HOE, 1, uses - 1))); // breaks on the first cell
+
+        pass(FarmerState.FARMER_HOE);
+
+        assertEquals(CitizenEquipment.NO_SLOT, citizen.equipment().held(CitizenEquipment.Hand.MAIN), "MC equipHoe: -1");
     }
 
     @Test
