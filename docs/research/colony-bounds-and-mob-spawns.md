@@ -282,3 +282,35 @@ territoire d'une colonie n'est pas de la nature sauvage.
   proches du joueur (la teinte ne couvre que son rayon de suivi, `WildernessDebugMapSystem.java:88-96`).
 - Limite : le portail se pose dans un rayon de recherche de 16 blocs autour du point tiré ; une faille tirée juste
   au-delà de la bordure peut déborder de quelques blocs.
+
+## 8. Monstres rechargés et marqueurs qui réapparaissent (2026-10-02)
+
+- **Constat en jeu** (diagnostic temporaire, journal complet `run/logs/2026-10-02_20-38-42_server.log`) : 184 PNJ
+  hostiles ajoutés en `AddReason.LOAD`, 21 en `SPAWN`, 5 marqués par un marqueur. Les `SPAWN` dans le territoire
+  étaient bien mis à disparaître (`despawning=true`) ; ceux qui restaient dans la colonie étaient tous des `LOAD`
+  (6 `Goblin_Scrapper`, 5 `Rat`, avec configuration d'apparition, et 1 `Skeleton_Archmage` sans, qui ne naît que de
+  marqueurs, `Server/NPC/Spawn/Markers/Undead/Skeleton/Skeleton_Archmage*.json`). Un PNJ est enregistré avec son
+  chunk (`EntitySection.java:289`, `addEntities(..., AddReason.LOAD)`) ; sa configuration d'apparition est sauvegardée
+  par son nom (`NPCEntity.java:73-76`), ses marques `SpawnMarkerReference`/`SpawnBeaconReference` aussi
+  (`SpawningPlugin.java:256,258`).
+- **`AddReason`** (`component/AddReason.java`) : `SPAWN` ou `LOAD`. `LOAD` sert au rechargement d'un chunk, à un
+  marqueur qui restaure ses PNJ en réserve (`StoredFlock.restoreNPCs:57`, appelé par `SpawnMarkerSystems.java:611`),
+  au changement de monde (`TeleportSystems.java:158`), au changement de rôle (`RoleChangeSystem.java:128`), au
+  collage d'un prefab (`BlockSelection.java:1526`), aux outils de construction (`BuilderToolsPlugin.java:4858`,
+  `EntityRemoveSnapshot.java:34`) et à `EncounterManagerPlugin.java:192`.
+- **Au rechargement**, les marques arrivent avec le PNJ : `RefChangeSystem.onComponentAdded` ne part que d'un ajout
+  de composant (`Store.java:2373`), jamais d'`addEntity`. Il faut donc les lire à l'ajout de l'entité.
+- **Marqueur qui restaure ses PNJ** : `restoreNPCs` (`SpawnMarkerSystems.java:609-625`) ajoute le PNJ avant de le
+  ramener au point du marqueur ; la vérification lit la position où il a été mis en réserve. Un PNJ mis en réserve
+  dans la colonie est donc retiré même si son camp est dehors (le camp reste vide jusqu'à son délai), et un PNJ
+  mis en réserve dehors d'un marqueur situé dans la colonie y reste. Cas rares, acceptés.
+- **Un marqueur réapparaît-il ?** Oui, après un délai, une fois ses PNJ partis (morts ou disparus,
+  `SpawnMarkerEntity.completeSpawnedNpcRemoval`, l. 271-286 ; si le chunk du marqueur n'est pas chargé au retrait,
+  il le constate après 35 s, `SpawnMarkerEntity.java:305-306`, `SpawnMarkerSystems.java:642-650`). Le délai :
+  `SpawnAfterGameTime` en temps de jeu, ou `RealtimeRespawnTime` si `RealtimeRespawn`
+  (`assets/spawnmarker/config/SpawnMarker.java:84,352-356`). Entrées des 295 marqueurs du zip pre.5 : en temps de
+  jeu, 289 `P1D` (un jour, par ex. `Intelligent/Goblin/Goblin_Scrapper.json`), 15 `PT1H`, 11 `PT1S`, 9 `PT15M`,
+  8 `PT30M`, 4 `PT10M`, 2 `PT20M` ; 29 en temps réel : 13 à 5 s, 8 à 1 s, 5 à 420 s, 1 à 30 s, 1 à 10 s, 1 à 2 s.
+  Un marqueur ne fait rien tant qu'un joueur est dans son `ExclusionRadius` (`SpawnMarkerEntity.java:421-428` ; 10
+  pour le gobelin), et se désactive au-delà de `DeactivationDistance` (40 par défaut, `SpawnMarker.java:236` ; 150
+  pour le gobelin).
