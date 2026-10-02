@@ -45,4 +45,9 @@ class ApiCompatibilityTest {
         assertFalse(ApiCompatibility.accepts(new ApiVersion(BUILT.major() + 1, 0, 0)));
         assertFalse(ApiCompatibility.accepts(new ApiVersion(BUILT.major() - 1, BUILT.minor(), BUILT.patch())));
     }
+
+    @Test
+    void hyColonyOneOneIsRefusedLackingSpawnCitizenAndSetSaturation() {
+        assertFalse(ApiCompatibility.accepts(new ApiVersion(1, 1, 0)));
+    }
 }

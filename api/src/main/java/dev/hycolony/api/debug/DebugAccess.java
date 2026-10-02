@@ -67,6 +67,24 @@ public interface DebugAccess {
     ActionResult respawnBody(Actor actor, CitizenRef ref);
 
     /**
+     * A new citizen arrives at the colony's town hall (MC {@code /mc citizens spawnNew}), even with "new citizens" off
+     * and beyond the colony's room. Operators only, and plugins; {@link ActionResult.Unavailable} without a loaded town
+     * hall or room for its body there, nothing created then.
+     *
+     * @since 1.2
+     */
+    ActionResult spawnCitizen(Actor actor, ColonyRef colony);
+
+    /**
+     * Sets the citizen {@code ref}'s saturation to {@code value}, kept between 0 and its maximum (MC
+     * {@code /mc citizens modify saturation}); a value that is not a number is refused. A colony manager who is not an
+     * operator needs the server's Commands.CanPlayerUseModifyCitizensCommand.
+     *
+     * @since 1.2
+     */
+    ActionResult setSaturation(Actor actor, CitizenRef ref, double value);
+
+    /**
      * How long each part of HyColony's core took in this world over the last minute, the heaviest first: Hytale
      * measures the whole core as one system.
      */

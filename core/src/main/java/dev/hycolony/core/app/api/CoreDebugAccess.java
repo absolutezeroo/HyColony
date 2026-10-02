@@ -22,18 +22,20 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * The api's debug reads of one world's colonies, and its actions ({@link CoreDebugActions}) (spec 2026-09-30, § 4.2):
- * each call checks the thread as {@link CoreColonyWorld} does. {@link #check} keeps a {@link ViolationWatch} per
- * colony, so it confirms the lasting states across its calls.
+ * The api's debug reads of one world's colonies, and its actions ({@link CoreDebugActions}, {@link CoreDebugEdits})
+ * (spec 2026-09-30, § 4.2): each call checks the thread as {@link CoreColonyWorld} does. {@link #check} keeps a
+ * {@link ViolationWatch} per colony, so it confirms the lasting states across its calls.
  */
 final class CoreDebugAccess implements DebugAccess {
     private final CoreColonyWorld world;
     private final Map<Integer, ViolationWatch> watches = new HashMap<>();
     private final CoreDebugActions actions;
+    private final CoreDebugEdits edits;
 
     CoreDebugAccess(CoreColonyWorld world) {
         this.world = world;
         this.actions = new CoreDebugActions(world);
+        this.edits = new CoreDebugEdits(world);
     }
 
     @Override
@@ -93,6 +95,16 @@ final class CoreDebugAccess implements DebugAccess {
     @Override
     public ActionResult respawnBody(Actor actor, CitizenRef ref) {
         return actions.respawnBody(actor, ref);
+    }
+
+    @Override
+    public ActionResult spawnCitizen(Actor actor, ColonyRef colony) {
+        return edits.spawnCitizen(actor, colony);
+    }
+
+    @Override
+    public ActionResult setSaturation(Actor actor, CitizenRef ref, double value) {
+        return edits.setSaturation(actor, ref, value);
     }
 
     @Override

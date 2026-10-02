@@ -145,6 +145,10 @@ The actor matters:
 - `Actor.Plugin(name)`, named `Group:Name` as in your manifest, is not checked: your plugin answers for what it does;
 - `Actor.Colony()` is only ever a cause, so an action asked in its name is refused.
 
+Two actions, since 1.2, follow MineColonies' commands more narrowly: `spawnCitizen` is for operators only (MC's
+`spawnNew`), and `setSaturation` lets a colony manager who is not an operator act only if the server's
+`Commands.CanPlayerUseModifyCitizensCommand` allows it (MC's `modify`).
+
 Some things you hold on behalf of your plugin, for example a colony paused through
 `api.clock(world).ifPresent(c -> c.pause(owner))` or a citizen followed through `api.track(owner, citizen)`. They end
 when that plugin stops: the colony resumes and the following stops, even if your shutdown forgets them. A pause is

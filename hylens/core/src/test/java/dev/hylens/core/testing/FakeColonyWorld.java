@@ -136,6 +136,16 @@ public final class FakeColonyWorld implements ColonyWorld, DebugAccess {
     }
 
     @Override
+    public ActionResult spawnCitizen(Actor actor, ColonyRef colony) {
+        return new ActionResult.Done();
+    }
+
+    @Override
+    public ActionResult setSaturation(Actor actor, CitizenRef ref, double value) {
+        return new ActionResult.Done();
+    }
+
+    @Override
     public List<PartTiming> timings() {
         return List.of();
     }

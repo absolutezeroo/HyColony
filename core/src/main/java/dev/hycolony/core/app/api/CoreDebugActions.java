@@ -83,7 +83,7 @@ final class CoreDebugActions {
     }
 
     /** Why {@code actor} may not act on {@code c}; empty when it may. */
-    private static Optional<ApiText> refusal(Actor actor, Colony c) {
+    static Optional<ApiText> refusal(Actor actor, Colony c) {
         return switch (actor) {
             case Actor.Colony _ -> Optional.of(ApiText.of("hycolony.debug.refused.colony"));
             case Actor.Plugin _ -> Optional.empty();
