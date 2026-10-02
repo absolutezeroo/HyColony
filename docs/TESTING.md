@@ -5,6 +5,8 @@ HyColony dépend des mods HyBlockUI, HyDomum et HyVanilla (HyDomum dépend de Hy
 
 Pour obtenir les objets : `/give HyColony_TownHall`, `/give HyColony_Hut_Builder`, `/give HyColony_Hut_Residence`.
 
+Comme dans MineColonies, un bloc de hutte posé à la main ouvre la suggestion de la baguette (points 310 à 313). Dans les points qui « posent » une hutte, la poser avec la baguette, ou à la main en créatif et accroupi.
+
 1. **Fondation.** A pose l'hôtel de ville, la fenêtre « Fonder une colonie » s'ouvre, A saisit le nom « Test » puis clique sur Fonder.
    Attendu : un message de fondation. Un double-clic ne crée qu'une colonie (vérifier avec `/hycolony info`).
 2. **Annulation.** A pose un hôtel de ville dans un autre monde, puis clique sur Annuler.
@@ -504,3 +506,12 @@ Spec `docs/superpowers/specs/2026-10-02-hycolony-construction-tape-design.md`. U
 307. **Réglage.** Hôtel de ville, onglet Réglages : quatrième ligne « Ruban de chantier : » (« Construction tape: ») avec son infobulle, « Activé » par défaut. Désactivé : un nouvel ordre ne pose plus de ruban ; le ruban déjà posé part quand même à la fin du chantier. Le réglage survit à un redémarrage ; une colonie d'avant le ruban l'a activé.
 308. **Raccords.** Deux chantiers voisins dont les rubans se touchent : noter la forme des rubans communs. Casser à la main un ruban d'un côté : ses voisins se reforment (bout de ligne droit) ; en reposer un : la ligne se referme. **[à vérifier]** : l'orientation des coins et des droits posés par la colonie correspond au contour (si un coin regarde vers l'extérieur ou un droit est en travers, le signe de la rotation est inversé).
 309. **Redémarrage.** Un chantier en cours, redémarrer le serveur : le ruban reste tel quel, aucun ruban n'est ajouté ; à la fin du chantier il disparaît.
+
+## Pose d'une hutte à la main (suggestion de la baguette)
+
+Spec `docs/superpowers/specs/2026-10-02-hycolony-suggest-build-tool-design.md`. Deux comptes : A (propriétaire) et B (étranger, sans le droit d'accéder aux huttes).
+
+310. **Suggestion.** En survie, A pose à la main une hutte de constructeur dans sa colonie, puis un hôtel de ville hors de toute colonie : aucun bloc n'est posé, rien ne quitte l'inventaire, et la fenêtre de MC s'ouvre (papier, croix en haut à droite, « Nous vous conseillons de poser ce plan avec la baguette de construction : elle vous permet d'ajuster sa position. », bouton « Utiliser la baguette » ; en anglais « We suggest using the build tool… », « Use build tool »). La croix la ferme sans rien faire.
+311. **Utiliser la baguette.** A tient la hutte dans la barre d'action et a la baguette ailleurs dans l'inventaire : « Utiliser la baguette » échange leurs cases (la baguette est maintenant en main, la hutte à l'ancienne place de la baguette) et ouvre la baguette ; son fantôme est à l'endroit visé (s'il n'y avait pas déjà un fantôme ailleurs). Sans baguette dans l'inventaire : « Il vous manque la baguette de construction dans l'inventaire ! » (« Missing build-tool in player inventory! ») et la fenêtre se ferme.
+312. **Créatif.** En créatif, A debout : la suggestion s'ouvre aussi. A accroupi : la hutte se pose directement, avec les règles habituelles (fondation pour un hôtel de ville, refus hors colonie).
+313. **Sans accès.** B pose une hutte dans la colonie de A : rien n'est posé, aucune fenêtre ne s'ouvre.

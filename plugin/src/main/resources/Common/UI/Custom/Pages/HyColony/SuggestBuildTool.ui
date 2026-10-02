@@ -1,0 +1,33 @@
+$B = "Mc/Book.ui";
+$C = "../../Common.ui";
+$Sounds = "../../Sounds.ui";
+
+// A hut block placed by hand (MC gui/windowsuggestbuildtool.xml, WindowSuggestBuildTool), MC positions and sizes
+// doubled: the colonist paper (380 x 266), the close cross, the suggestion and "Use build tool". MC's "Place anyway"
+// button is no longer in its window. Textures under Mc/ are MineColonies' (GPL-3).
+
+$C.@PageOverlay {
+  LayoutMode: Middle;
+
+  Group {
+    Anchor: (Width: 380, Height: 266);
+    Background: "Mc/colonist_paper.png";
+
+    Button #Cancel {
+      Anchor: (Left: 330, Top: 10, Width: 28, Height: 30);
+      Style: (Default: (Background: "Mc/button_x.png"), Sounds: $Sounds.@ButtonsCancel);
+    }
+
+    Label {
+      Anchor: (Left: 30, Top: 50, Width: 300, Height: 90);
+      Style: (...$B.@Ink, VerticalAlignment: Start, Wrap: true);
+      Text: %hycolony.ui.suggestBuildTool.warning;
+    }
+
+    TextButton #BuildTool {
+      Anchor: (Left: 100, Top: 200, Width: 172, Height: 34);
+      Style: $B.@MediumButtonStyle;
+      Text: %hycolony.ui.suggestBuildTool.buildTool;
+    }
+  }
+}

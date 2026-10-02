@@ -8,26 +8,25 @@ import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.EntityEventSystem;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.event.events.ecs.BreakBlockEvent;
-import com.hypixel.hytale.server.core.event.events.ecs.PlaceBlockEvent;
 import com.hypixel.hytale.server.core.event.events.ecs.UseBlockEvent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import dev.hycolony.core.app.ColonyManager;
-import dev.hycolony.core.app.HutPlacement;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.plugin.RuntimeSetup;
 import dev.hycolony.plugin.WorldRuntime;
 import dev.hycolony.plugin.WorldRuntimes;
-import dev.hycolony.plugin.adapter.HytaleNotifier;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import javax.annotation.Nonnull;
 import org.joml.Vector3i;
 
-/** Player-caused place / break / use of every hut block. Queries PlayerRef so only players trigger these. */
+/**
+ * Player-caused break / use of every hut block, and the helpers {@link HutPlaceSystem} shares. Queries PlayerRef so
+ * only players trigger these.
+ */
 public final class HutBlockSystems {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
@@ -59,63 +58,6 @@ public final class HutBlockSystems {
     static PlayerRef player(int index, ArchetypeChunk<EntityStore> chunk, Store<EntityStore> store) {
         Ref<EntityStore> ref = chunk.getReferenceTo(index);
         return store.getComponent(ref, PlayerRef.getComponentType());
-    }
-
-    public static final class Place extends EntityEventSystem<EntityStore, PlaceBlockEvent> {
-        private final WorldRuntimes runtimes;
-        private final Map<String, BuildingType> huts;
-
-        public Place(WorldRuntimes runtimes) {
-            super(PlaceBlockEvent.class);
-            this.runtimes = runtimes;
-            this.huts = byItemId(runtimes.setup());
-        }
-
-        @Override
-        public Query<EntityStore> getQuery() {
-            return PlayerRef.getComponentType();
-        }
-
-        @Override
-        public void handle(
-                int index,
-                @Nonnull ArchetypeChunk<EntityStore> chunk,
-                @Nonnull Store<EntityStore> store,
-                @Nonnull CommandBuffer<EntityStore> buffer,
-                @Nonnull PlaceBlockEvent event) {
-            try {
-                BuildingType type = event.getItemInHand() == null
-                        ? null
-                        : huts.get(event.getItemInHand().getItemId());
-                if (type == null) {
-                    return;
-                }
-                WorldRuntime rt = runtimes.of(store.getExternalData().getWorld());
-                PlayerRef player = player(index, chunk, store);
-                if (rt == null || !rt.enabled() || player == null) {
-                    event.setCancelled(true);
-                    return;
-                }
-                ColonyManager m = rt.manager();
-                BlockPos pos = pos(event.getTargetBlock());
-                int rotation = event.getRotation().yaw().getDegrees() / 90; // declared degrees, not the enum position
-                HutPlacement result = m.huts().checkPlacement(player.getUuid(), pos, type.id());
-                switch (result) {
-                    case HutPlacement.Denied denied -> {
-                        event.setCancelled(true);
-                        player.sendMessage(HytaleNotifier.toMessage(denied.reason()));
-                    }
-                    // The core only returns this for a town hall.
-                    case HutPlacement.FoundNewColony _ ->
-                        m.foundation().begin(player.getUuid(), player.getUsername(), pos, rotation);
-                    case HutPlacement.Allowed allowed ->
-                        m.huts().place(allowed.colony(), type.id(), pos, rotation, player.getUuid());
-                }
-            } catch (RuntimeException e) {
-                event.setCancelled(true);
-                failed("place", event.getTargetBlock(), e);
-            }
-        }
     }
 
     public static final class Break extends EntityEventSystem<EntityStore, BreakBlockEvent> {

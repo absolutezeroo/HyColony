@@ -5,6 +5,7 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
 import com.hypixel.hytale.server.core.inventory.InventoryComponent;
+import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
@@ -93,15 +94,62 @@ public final class HytalePlayerInventory implements PlayerInventory {
         }
     }
 
+    /**
+     * MC SwitchBuildingWithToolMessage on the hotbar then storage: the last hotbar slot holding {@code hotbarItem} and
+     * the last slot holding {@code otherItem} swap their stacks, each only if it still holds what was read.
+     */
+    @Override
+    public boolean swapIntoHotbar(UUID player, ItemKey hotbarItem, ItemKey otherItem) {
+        try {
+            Ref<EntityStore> ref = ref(player);
+            if (ref == null) {
+                return false;
+            }
+            Store<EntityStore> store = ref.getStore();
+            InventoryComponent.Hotbar hotbar = store.getComponent(ref, InventoryComponent.Hotbar.getComponentType());
+            ItemContainer all = InventoryComponent.getCombined(store, ref, InventoryComponent.HOTBAR_FIRST);
+            short inHotbar = lastSlot(
+                    all, hotbarItem, hotbar == null ? 0 : hotbar.getInventory().getCapacity());
+            short other = lastSlot(all, otherItem, all.getCapacity());
+            if (inHotbar < 0 || other < 0) {
+                return false;
+            }
+            ItemStack a = all.getItemStack(inHotbar);
+            ItemStack b = all.getItemStack(other);
+            all.replaceItemStackInSlot(inHotbar, a, b);
+            all.replaceItemStackInSlot(other, b, a);
+            return true;
+        } catch (RuntimeException e) {
+            fail("swap", e);
+            return false;
+        }
+    }
+
+    /** The last of the first {@code size} slots of {@code c} holding {@code item}; -1 for none. */
+    private static short lastSlot(ItemContainer c, ItemKey item, int size) {
+        for (short slot = (short) (Math.min(size, c.getCapacity()) - 1); slot >= 0; slot--) {
+            ItemStack s = c.getItemStack(slot);
+            if (s != null && !s.isEmpty() && s.getItemId().equals(item.id())) {
+                return slot;
+            }
+        }
+        return -1;
+    }
+
     /** The player's hotbar + storage, or null if offline or not in this world. */
     private @Nullable ItemContainer inventory(UUID player) {
+        Ref<EntityStore> ref = ref(player);
+        return ref == null
+                ? null
+                : InventoryComponent.getCombined(ref.getStore(), ref, InventoryComponent.HOTBAR_FIRST);
+    }
+
+    /** The player's entity in this world; null if offline or elsewhere. */
+    private @Nullable Ref<EntityStore> ref(UUID player) {
         PlayerRef pr = Universe.get().getPlayer(player);
         Ref<EntityStore> ref = pr == null ? null : pr.getReference();
         Store<EntityStore> store = world.getEntityStore().getStore();
-        if (ref == null || !ref.isValid() || ref.getStore() != store) {
-            return null;
-        }
-        return InventoryComponent.getCombined(store, ref, InventoryComponent.HOTBAR_FIRST);
+        return ref == null || !ref.isValid() || ref.getStore() != store ? null : ref;
     }
 
     private void fail(String op, RuntimeException e) {

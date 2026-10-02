@@ -17,17 +17,20 @@ import dev.hycolony.core.app.ui.FieldView;
 import dev.hycolony.core.app.ui.FoundColonyView;
 import dev.hycolony.core.app.ui.NeedsPlayerNotice;
 import dev.hycolony.core.app.ui.RequestsView;
+import dev.hycolony.core.app.ui.SuggestBuildToolView;
 import dev.hycolony.core.app.ui.TownHallView;
 import dev.hycolony.core.app.ui.UiPort;
 import dev.hycolony.core.app.ui.WandPacksView;
 import dev.hycolony.core.app.ui.WandView;
 import dev.hycolony.core.app.ui.WindowKey;
+import dev.hycolony.core.app.wand.HutHandPlacement;
 import dev.hycolony.core.app.wand.WandActions;
-import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.plugin.IdMap;
 import dev.hycolony.plugin.ui.BuildOptionsPage;
 import dev.hycolony.plugin.ui.BuildingPage;
 import dev.hycolony.plugin.ui.ColonyPage;
+import dev.hycolony.plugin.ui.FoundColonyHandler;
 import dev.hycolony.plugin.ui.FoundColonyPage;
 import dev.hycolony.plugin.ui.RequestsPage;
 import dev.hycolony.plugin.ui.citizen.CitizenInventoryWindows;
@@ -36,10 +39,10 @@ import dev.hycolony.plugin.ui.field.FieldPage;
 import dev.hycolony.plugin.ui.hut.HutWindow;
 import dev.hycolony.plugin.ui.request.RequestTexts;
 import dev.hycolony.plugin.ui.townhall.TownHallPage;
+import dev.hycolony.plugin.ui.wand.SuggestBuildToolPage;
 import dev.hycolony.plugin.ui.wand.WandPacksPage;
 import dev.hycolony.plugin.ui.wand.WandPage;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiFunction;
@@ -59,8 +62,6 @@ public final class HytaleUiPort implements UiPort {
     private final Supplier<WandActions> wand;
     private final HytaleBlocks blocks;
     private final IdMap ids;
-    private final String townHallBlockId;
-    private final String townHallItemId;
     private final CitizenInventoryWindows citizenInventories;
     private final HutPickUp pickUp;
     private final LiveWindows live = new LiveWindows();
@@ -76,42 +77,13 @@ public final class HytaleUiPort implements UiPort {
         this.wand = wand;
         this.blocks = blocks;
         this.ids = ids;
-        this.townHallBlockId = ids.blockId("hut.townhall");
-        this.townHallItemId = ids.itemId("hut.townhall");
-    }
-
-    private void removeTownHall(BlockPos pos) {
-        blocks.removeWithDrop(pos, townHallBlockId, townHallItemId);
     }
 
     @Override
     public void showFoundColony(UUID player, FoundColonyView view) {
         open(
                 player,
-                pr -> new FoundColonyPage(pr, view, new FoundColonyPage.Handler() {
-                    @Override
-                    public boolean confirm(String name) {
-                        ColonyManager m = manager.get();
-                        Optional<BlockPos> pos = m.foundation().pendingPositionOf(player);
-                        boolean created = m.foundation().confirm(player, name).isPresent();
-                        if (!created && m.foundation().pendingPositionOf(player).isEmpty()) {
-                            pos.ifPresent(HytaleUiPort.this::removeTownHall); // spot became invalid: foundation dropped
-                        }
-                        return created;
-                    }
-
-                    @Override
-                    public void cancel(boolean windowClosing) {
-                        if (windowClosing) {
-                            closing.add(player);
-                        }
-                        try {
-                            manager.get().foundation().cancel(player).ifPresent(HytaleUiPort.this::removeTownHall);
-                        } finally {
-                            closing.remove(player);
-                        }
-                    }
-                }));
+                pr -> new FoundColonyPage(pr, view, new FoundColonyHandler(manager, player, blocks, ids, closing)));
     }
 
     @Override
@@ -209,6 +181,12 @@ public final class HytaleUiPort implements UiPort {
     @Override
     public void showWandPacks(UUID player, WandPacksView view) {
         open(player, pr -> new WandPacksPage(pr, view, manager.get(), wand.get()));
+    }
+
+    @Override
+    public void showSuggestBuildTool(UUID player, SuggestBuildToolView view) {
+        HutHandPlacement hand = new HutHandPlacement(manager.get(), wand.get(), new ItemKey(ids.itemId("build_tool")));
+        open(player, pr -> new SuggestBuildToolPage(pr, view, hand));
     }
 
     @Override

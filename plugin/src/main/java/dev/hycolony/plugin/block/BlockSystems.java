@@ -11,7 +11,7 @@ public final class BlockSystems {
 
     /** Registers the hut, protection and field block systems; the field block only when the id-map has one. */
     public static void register(ComponentRegistryProxy<EntityStore> registry, WorldRuntimes worlds, IdMap ids) {
-        registry.registerSystem(new HutBlockSystems.Place(worlds));
+        registry.registerSystem(new HutPlaceSystem(worlds));
         registry.registerSystem(new HutBlockSystems.Break(worlds));
         registry.registerSystem(new HutBlockSystems.Use(worlds));
         registry.registerSystem(new ProtectionSystems.Place(worlds));
