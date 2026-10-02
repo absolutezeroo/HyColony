@@ -65,13 +65,16 @@ class ConstructionTapeTest {
     void removeVisitsACornerColumnThreeTimesAsMcDoes() {
         // MC removeConstructionTape walks the X edges, the Z edges, then the four corners: up to three tapes each.
         BlockState corner = new BlockState(FakeTapeBlocks.key(TapeShape.CORNER), 0);
-        for (int y = 63; y <= 66; y++) {
-            t.blocks.blocks.put(new BlockPos(-1, y, -1), corner);
+        for (BlockPos angle : List.of(
+                new BlockPos(-1, 0, -1), new BlockPos(-1, 0, 3), new BlockPos(3, 0, -1), new BlockPos(3, 0, 3))) {
+            for (int y = 63; y <= 66; y++) {
+                t.blocks.blocks.put(new BlockPos(angle.x(), y, angle.z()), corner);
+            }
         }
 
         ConstructionTape.remove(colony, BOX);
 
-        assertEquals(1, tapes(), "the fourth tape of the column stays");
+        assertEquals(4, tapes(), "the fourth tape of each corner column stays");
     }
 
     @Test

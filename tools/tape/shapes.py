@@ -16,8 +16,13 @@ sys.path.append(str(Path(__file__).resolve().parents[1] / "domum"))
 import assemble  # noqa: E402
 
 
-def _faces(texture, uvs):
-    return {side: {"texture": texture, "uv": uv} for side, uv in uvs.items()}
+def _faces(texture, uvs, top_turn=0):
+    """Les faces de MC ; top_turn est la "rotation" de leurs faces haut et bas, quand MC en donne une."""
+    faces = {side: {"texture": texture, "uv": uv} for side, uv in uvs.items()}
+    if top_turn:
+        for side in ("up", "down"):
+            faces[side]["rotation"] = top_turn
+    return faces
 
 
 _ROPE_UVS = {"north": [0, 0, 2, 1], "east": [0, 0, 3, 1], "south": [0, 0, 2, 1], "west": [0, 0, 3, 1],
@@ -26,9 +31,9 @@ _ROPE_UVS = {"north": [0, 0, 2, 1], "east": [0, 0, 3, 1], "south": [0, 0, 2, 1],
 ARM = [
     {"name": "post", "from": [6, 0, 0], "to": [10, 16, 1], "faces": _faces("#post", {
         "north": [1, 0, 5, 16], "east": [5, 0, 6, 16], "south": [6, 0, 10, 16], "west": [10, 0, 11, 16],
-        "up": [1, 0, 2, 4], "down": [1, 4, 2, 8]})},
-    {"name": "chain_outer", "from": [7, 14, 1], "to": [9, 15, 4], "faces": _faces("#tape", _ROPE_UVS)},
-    {"name": "chain_mid", "from": [7, 13, 4], "to": [9, 14, 7], "faces": _faces("#tape", _ROPE_UVS)},
+        "up": [1, 0, 2, 4], "down": [1, 4, 2, 8]}, top_turn=90)},
+    {"name": "chain_outer", "from": [7, 14, 1], "to": [9, 15, 4], "faces": _faces("#tape", _ROPE_UVS, 180)},
+    {"name": "chain_mid", "from": [7, 13, 4], "to": [9, 14, 7], "faces": _faces("#tape", _ROPE_UVS, 180)},
 ]
 # blockconstructiontape_corner.json : le piquet central d'un coin.
 CORNER_POST = [

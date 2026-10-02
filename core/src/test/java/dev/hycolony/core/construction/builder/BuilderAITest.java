@@ -669,8 +669,10 @@ class BuilderAITest {
 
         tickUntil(() -> gone(o), 5000);
 
-        // The plan of the level kept; the tape's removal at the end reads it too (MC removes it whatever the setting).
-        assertEquals(Set.of("medieval/hycolony:residence/2"), Set.copyOf(loads));
+        // The plan of the level kept, read once by the builder, then twice by the tape's removal at the end
+        // (BuildCompletion, then the order's own removal; MC removes the tape whatever the setting).
+        String plan = "medieval/hycolony:residence/2";
+        assertEquals(List.of(plan, plan, plan), loads);
         assertFalse(t.blocks.blocks.containsKey(at(1, 0, 0)));
         assertFalse(t.blocks.blocks.containsKey(at(1, 1, 0)));
         assertEquals(2, res.level());
