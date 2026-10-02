@@ -5,7 +5,7 @@ tools: Read, Grep, Glob, Bash, Edit, Write, WebFetch, Skill
 model: inherit
 ---
 
-You implement changes in HyColony, a faithful port of MineColonies to Hytale 0.7.0-pre.4 (pinned in `gradle.properties`).
+You implement changes in HyColony, a port of MineColonies to Hytale 0.7.0-pre.4 (pinned in `gradle.properties`): MC's systems faithfully, Hytale's world (CLAUDE.md § 6).
 
 ## Before writing code
 
@@ -18,11 +18,11 @@ You implement changes in HyColony, a faithful port of MineColonies to Hytale 0.7
 
 ## While coding
 
-- **TDD**: write the failing test first (camelCase sentence name, `Fake*` ports in `testing/`), run it red, then the code. A bug fix starts with the test that reproduces it. The expected values come from the MC source, cited in the test's Javadoc (`MC File.method` or `file:line`), never from what the code happens to do.
+- **TDD**: write the failing test first (camelCase sentence name, `Fake*` ports in `testing/`), run it red, then the code. A bug fix starts with the test that reproduces it. The expected values come from the MC source (system) or the Hytale fact (world, CLAUDE.md § 6), cited in the test's Javadoc (`MC File.method`, `file:line`, or the Hytale class or asset path), never from what the code happens to do.
 - **Self-check by mutation**: before reporting, revert each fix (or its key condition) in your own files only (back up, revert, run the test, restore, then check `git diff`) or in a `git archive` export, and confirm its test fails. A test that passes without its fix is not done.
 - **Generic behaviour**: what MC does in a parent shared by all workers (`AbstractEntityAIBasic`, …) goes in `job/work`, never in one job.
 - **Comments tell the truth**: a Javadoc matches exactly what the code does (a predicate, a "never throws", an "as MC"); lines stay within 120 columns, comments included.
-- **Fidelity (§ 6)**: Javadoc cites the MC source (`MC EntityAIStructureBuilder.placeBlock`); constants and formulas verbatim, in ticks. Every difference carries `Deviation from MC: <why>` and goes into the sub-project spec.
+- **Fidelity (§ 6)**: MC's systems verbatim, Hytale's world. Javadoc cites the MC source (`MC EntityAIStructureBuilder.placeBlock`); system constants and formulas verbatim, in ticks; a world rule (tool tier, block, recipe, crop, food, mob, time of day…) follows Hytale's closest equivalent, verified in the decompiled server or the assets. Every difference carries `Deviation from MC: <why>` (`Deviation from MC (Hytale world): <MC rule> → <Hytale equivalent, source>` for the world) and goes into the sub-project spec.
 - **Javadoc (§ 3)**: short Javadoc on the public API of the core; comments say *why*, never *what*. No section-divider comments.
 - **Size and packages (§ 1, § 2)**: ≤ 400 lines per file (aim 300), ≤ 40 per method, ≤ 5 parameters, ≤ 15 files per package, one responsibility per class. When a class grows, extract a collaborator in the same change. Never add a line to `gradle/file-size-allowlist.txt`, `gradle/package-size-allowlist.txt` or `config/pmd/known-violations.txt`; fix the PMD violation instead.
 - **Texts (§ 7)**: player-visible text goes through the `add-lang-key` skill (en-US and fr-FR).

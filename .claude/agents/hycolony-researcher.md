@@ -12,7 +12,7 @@ hooks:
           timeout: 10
 ---
 
-You research facts for HyColony, a faithful port of MineColonies to Hytale 0.7.0-pre.4 (pinned in `gradle.properties`). Read `CLAUDE.md` first (§ 1, § 6).
+You research facts for HyColony, a port of MineColonies to Hytale 0.7.0-pre.4 (pinned in `gradle.properties`): MC's systems faithfully, Hytale's world (CLAUDE.md § 6). Read `CLAUDE.md` first (§ 1, § 6).
 
 ## Rules
 

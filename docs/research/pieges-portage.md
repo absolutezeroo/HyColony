@@ -43,8 +43,8 @@ Sources lues sur `github.com/ldtteam/minecolonies`, branche `version/main` (Stru
 2. **Vérifier la cadence réelle, pas seulement la constante.** Une constante n'a de sens qu'avec la fréquence d'appel de sa méthode. `RETRY_DELAY = 1200` se décompte une fois par mise à jour (`StandardRetryingRequestResolver.java:151-153`), et le système de requêtes se met à jour tous les 11 ticks (`UPDATE_RS_INTERVAL`, `ColonyConstants.java:60`) : 13 200 ticks par essai. Bug : audit M-3 (×11 trop rapide).
 3. **Connaître la machine d'état de MC.** `TickRateStateMachine.tick` (`api/entity/ai/statemachine/tickratestatemachine/TickRateStateMachine.java:73-103`) s'arrête sur le premier événement AI_BLOCKING vrai, avant de décompter les cibles de l'état. Deux délais posés l'un après l'autre (`setDelay` puis `setCurrentDelay`, `AbstractEntityAIBasic.java:360-361`) s'additionnent donc. Faux positif de relecture : la « pause doublée » de `WorkerMachine`, qui est celle de MC.
 4. **Chercher les omissions, pas seulement les différences.** Une branche entière absente (loisir à 5 % de `EntityAICitizenWander`, `LEISURE_CHANCE` l. 38) ne se voit pas en comparant ce qui existe.
-5. **Un test fige MC, pas notre code.** L'attendu d'un test vient de la source MC citée (`MC Fichier:ligne`). Plusieurs tests figeaient un comportement faux (liste noire héritée, 1200 ticks, fondation à 16 cellules, pierre tournée payante). Un test dont l'attendu change est suspect jusqu'à preuve par la source.
-6. **« Comme MC » se prouve.** Toute phrase d'une spec, d'une Javadoc ou d'un rapport qui affirme la fidélité, ou qui dénonce un écart, cite `fichier:ligne` de MC. Sinon, ce n'est pas vérifié.
+5. **Un test fige la source (MC ou Hytale), pas notre code.** L'attendu d'un test vient de la source MC citée (`MC Fichier:ligne`). Pour une règle du monde (CLAUDE.md § 6), il vient du fait Hytale cité (classe décompilée ou chemin d'asset). Plusieurs tests figeaient un comportement faux (liste noire héritée, 1200 ticks, fondation à 16 cellules, pierre tournée payante). Un test dont l'attendu change est suspect jusqu'à preuve par la source.
+6. **« Comme MC » se prouve.** Toute phrase d'une spec, d'une Javadoc ou d'un rapport qui affirme la fidélité, ou qui dénonce un écart, cite `fichier:ligne` de MC. De même, « suit Hytale » cite la classe décompilée ou le chemin d'asset lu. Sinon, ce n'est pas vérifié.
 
 ## 3. Pièges de méthode
 
@@ -58,3 +58,15 @@ Sources lues sur `github.com/ldtteam/minecolonies`, branche `version/main` (Stru
 4. **Une Javadoc dit vrai.** Un prédicat plus large que sa Javadoc (`anyMatch` sur tous les résolveurs au lieu du stock de la hutte) a créé une boucle de requêtes.
 5. **Longueur des lignes.** palantir ne recoupe pas la Javadoc ni les commentaires ; `checkLineLength` (build et pre-commit) refuse toute ligne Java de plus de 120 colonnes depuis le 2026-09-30.
 6. **Vérifier une affirmation avant de l'écrire comme un fait**, même quand elle vient d'un relecteur. Le piège 1.3 a d'abord été écrit faux (« le contenu tombe au sol à chaque pose ») sur la foi d'une relecture, puis corrigé par une autre, sources à l'appui.
+
+## 4. Pièges du monde
+
+Depuis le 2026-10-02, les systèmes de MC sont portés à l'identique, mais le monde suit Hytale (CLAUDE.md § 6, spec `2026-10-02-hycolony-monde-hytale-design.md`). Avant de recopier une règle de MC, se demander si elle mesure le monde Minecraft. Règles du monde déjà rencontrées :
+
+1. **Chunks et hauteur** : chunks de 32 blocs, hauteur 0–320 (pièges 1.2 et 1.10).
+2. **Culture** : stades, durées, eau ×2,5, engrais ×2, lumière ×2, sol labouré qui revient, essence de vie (`sp3b-hytale-farming.md`, vérifié en 0.6.8).
+3. **Nourriture et cuisson** : objets, effets, bancs de cuisson (`sp4b-hytale-food.md`).
+4. **Monstres** : la plupart des monstres de surface (squelettes, loups, araignées) n'ont pas de condition de lumière ; ceux du Vide la nuit et des grottes en ont une (`LightRanges`, `colony-bounds-and-mob-spawns.md`).
+5. **Arbres, minerais, échelles, navigation des PNJ** : `sp3a-mc-miner-hytale-world.md` § B, vérifié en 0.6.8.
+
+L'audit du monde (`audit-monde-hytale.md`, tâche 5 du plan `2026-10-02-hycolony-monde-hytale.md`) recensera le reste.

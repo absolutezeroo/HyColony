@@ -2,11 +2,11 @@
 
 Ces règles valent pour tout le monde : l'utilisateur, Claude et chaque agent. Un agent qui code ou relit ici les lit **en entier** avant de commencer. Une règle vérifiée par le build est marquée **[build]**.
 
-HyColony porte MineColonies sur Hytale 0.7.0-pre.4 (Update 7, épinglé dans `gradle.properties`), **à l'identique** : mêmes systèmes, règles, constantes et formules. Les écarts sont rares, justifiés et documentés (voir § 6).
+HyColony porte MineColonies sur Hytale 0.7.0-pre.4 (Update 7, épinglé dans `gradle.properties`). **Les systèmes de MC sont portés à l'identique** : huttes, métiers, IA, requêtes, colonie, formules des citoyens, fenêtres, avec leurs règles, constantes et formules. **Le monde est celui de Hytale** : blocs, objets, outils, artisanat, culture, nourriture, mobs, temps. Une règle de MC qui s'appuie sur le monde Minecraft suit l'équivalent Hytale le plus proche. Les écarts sont justifiés et documentés (voir § 6).
 
 ## 1. Modules et dépendances
 
-- **Cinq mods**, avec des dépendances dans un seul sens : HyBlockUI (`blockui/`, la bibliothèque d'interface) ← HyDomum (`domum/core`, `domum/plugin`, le portage de Domum Ornamentum) ← HyColony (`api/`, `core/`, `plugin/`) → HyVanilla (`vanilla/core`, `vanilla/plugin`, les blocs vanilla de Minecraft absents de Hytale), qui ne dépend d'aucun autre. HyLens (`hylens/core`, `hylens/plugin`, le mod de débogage) dépend de HyColony et de HyBlockUI, et personne ne dépend de lui. Specs : `docs/superpowers/specs/2026-09-28-hycolony-split-hydomum-hyblockui-design.md`, `docs/superpowers/specs/2026-09-29-hyvanilla-design.md`, `docs/superpowers/specs/2026-09-30-hycolony-api-hylens-design.md`.
+- **Cinq mods**, avec des dépendances dans un seul sens : HyBlockUI (`blockui/`, la bibliothèque d'interface) ← HyDomum (`domum/core`, `domum/plugin`, le portage de Domum Ornamentum) ← HyColony (`api/`, `core/`, `plugin/`) → HyVanilla (`vanilla/core`, `vanilla/plugin`, les blocs vanilla de Minecraft sans équivalent Hytale dont un système a besoin, § 6), qui ne dépend d'aucun autre. HyLens (`hylens/core`, `hylens/plugin`, le mod de débogage) dépend de HyColony et de HyBlockUI, et personne ne dépend de lui. Specs : `docs/superpowers/specs/2026-09-28-hycolony-split-hydomum-hyblockui-design.md`, `docs/superpowers/specs/2026-09-29-hyvanilla-design.md`, `docs/superpowers/specs/2026-09-30-hycolony-api-hylens-design.md`.
 - Chaque cœur (`core/`, `api/`, `domum/core/`, `vanilla/core/`, `hylens/core/`) contient du Java pur. **Aucun import `com.hypixel`** **[build : ArchitectureTest]**. Il ne dépend que du JDK, de Gson et de jspecify, ces deux derniers en `compileOnly` (jspecify n'apporte que des annotations), et, pour `core/` et `hylens/core/`, de `:api`. Il est compilé en Java 25, comme les plugins.
 - Chaque plugin (`plugin/`, `domum/plugin/`, `vanilla/plugin/`, `blockui/`, `hylens/plugin/`) contient les adaptateurs Hytale et le pack d'assets de son mod. Il ne contient **pas** de règles de jeu : une décision de jeu prise dans un plugin est un bug.
 - Un mod ne voit d'un autre que ses paquets `api` (`dev.hyblockui.api` ; `dev.hydomum.api`, `dev.hydomum.plugin.api` ; `dev.hyvanilla.api`, `dev.hyvanilla.plugin.api` ; `dev.hycolony.api`, `dev.hycolony.plugin.api`) **[build : `checkModApis`]**, en `compileOnly` : il n'embarque jamais un autre mod **[build : `checkBundled`]**. Un mod se reconnaît au groupe Gradle de ses projets, et chaque fichier source est dans un paquet de ce groupe **[build : `checkModApis`]**. Tout projet applique `hy.java-core` ou `hy.hytale-mod` (`build-logic/`) **[build]**.
@@ -52,7 +52,7 @@ HyColony porte MineColonies sur Hytale 0.7.0-pre.4 (Update 7, épinglé dans `gr
 - **Documentation du code** : chaque classe, et chaque méthode qui n'est pas un simple accesseur, a une Javadoc **courte et précise**. Elle dit ce que fait la méthode et ce qu'elle renvoie, en une à trois lignes, sans roman. Elle ajoute ses effets de bord (état modifié, message envoyé), ce qu'elle renvoie sur une entrée absente ou invalide, et sa source MineColonies s'il y en a une. Exemple : `/** Places the next planned block of the current stage; skips positions already correct. */`.
 - À l'intérieur des méthodes, un commentaire explique seulement le **pourquoi** (contrainte Hytale, règle de MineColonies, cas limite), jamais ce que le code dit déjà.
 - Constantes : `static final` en `UPPER_SNAKE`, avec leur unité dans le nom ou la Javadoc (`DELAY_TICKS`).
-- **Configuration** : tout réglage que MineColonies expose dans sa configuration passe par `config.json`, dans la section MC correspondante (`Gameplay`, `Claims`, `Permissions`, `Commands`, `RequestSystem`, `Client`…), avec le défaut et les bornes de MC (rappliquées par `ColonyConfig`). Il n'est jamais codé en dur. Ce que MC code en dur reste une constante. Nos propres options vont dans la section `HyColony`. Une clé renommée ou déplacée reste lisible, sans être réécrite (voir `plugin/config/HyColonyConfig`).
+- **Configuration** : tout réglage que MineColonies expose dans sa configuration passe par `config.json`, dans la section MC correspondante (`Gameplay`, `Claims`, `Permissions`, `Commands`, `RequestSystem`, `Client`…), avec le défaut et les bornes de MC (rappliquées par `ColonyConfig`), sauf un défaut qui mesure le monde Minecraft (§ 6). Il n'est jamais codé en dur. Ce que MC code en dur reste une constante. Nos propres options vont dans la section `HyColony`. Une clé renommée ou déplacée reste lisible, sans être réécrite (voir `plugin/config/HyColonyConfig`).
 
 ## 4. Robustesse
 
@@ -70,9 +70,16 @@ HyColony porte MineColonies sur Hytale 0.7.0-pre.4 (Update 7, épinglé dans `gr
 
 ## 6. Fidélité à MineColonies
 
+- **Système ou monde** (spec `docs/superpowers/specs/2026-10-02-hycolony-monde-hytale-design.md`) :
+  - le **système** suit MC : huttes, niveaux et plans, logique de construction (Structurize), métiers, IA et délais, requêtes, entrepôt et livraisons, colonie, territoire, permissions, commandes, formules des citoyens (compétences, XP, bonheur, faim), fenêtres, configuration ;
+  - le **monde** suit Hytale : blocs, objets, matériaux, outils (paliers, durabilité, blocs qu'ils cassent), artisanat (bancs, catégories, recettes, carburant), culture, nourriture, mobs et factions, raids et combat, jour et nuit, météo, taille du monde et chunks, navigation et physique des PNJ, sons, particules, animations ;
+  - une durée de MC liée au monde (la nuit, la journée de 24 000 ticks) se recalcule en fraction du jour de Hytale ; un délai du système reste en ticks de MC ;
+  - ce qui manque à Hytale est remplacé par son équivalent Hytale le plus proche, vérifié dans `build/vineflower/hytale-server` ou les assets. HyVanilla n'ajoute une chose de Minecraft que s'il n'existe rien de comparable et que le système ne peut pas s'en passer ;
+  - ce que seul Hytale a (magie, montures…) n'est ajouté que si un système de MC y touche ;
+  - les objets propres à MC (outil de construction, blocs de huttes, Domum Ornamentum) restent ; leurs recettes passent par les bancs de Hytale.
 - Chaque système porté cite sa source MineColonies dans sa Javadoc (`MC EntityAIStructureBuilder.placeBlock`).
-- Constantes et formules reprises telles quelles, en ticks (chaque cœur tourne à 20 ticks/s).
-- Un écart (contrainte Hytale, bug de MC corrigé, ajout demandé) porte un commentaire `Deviation from MC: …` et figure dans la spec du sous-projet.
+- Constantes, formules et défauts de configuration du système repris tels quels, en ticks (chaque cœur tourne à 20 ticks/s). Une valeur qui mesure le monde Minecraft (durée de croissance, palier, durabilité) suit Hytale.
+- Un écart (contrainte Hytale, bug de MC corrigé, ajout demandé) porte un commentaire `Deviation from MC: …` et figure dans la spec du sous-projet. Un écart dû au monde s'écrit `Deviation from MC (Hytale world): <règle MC> → <équivalent Hytale, source>`.
 - Référence : MineColonies, branche `version/main`, et les analyses de `docs/research/`. Les sources de MineColonies, Structurize, BlockUI et Domum Ornamentum sont copiées dans `sources/`, et on les lit là. Ce dossier est ignoré par git : il faut le passer comme chemin à Grep, car une recherche depuis la racine ne le voit pas. Depuis un worktree, on lit `sources/` du dépôt principal par son chemin absolu. GitHub (`github.com/ldtteam/<dépôt>`) ne sert que pour un fichier absent.
 
 ## 7. Textes et fenêtres
@@ -114,7 +121,7 @@ Fichiers garde-fous (la même liste figure dans `AGENTS.md`, dans l'agent `hycol
 - Agents (`.claude/agents/`) :
   - `hycolony-implementer` code une modification validée, tests d'abord, puis commite ;
   - `hycolony-reviewer` fait la relecture indépendante du § 9.3 ;
-  - `mc-fidelity-checker` compare le code porté avec MineColonies ;
+  - `mc-fidelity-checker` compare le code porté avec MineColonies (systèmes) et vérifie que les règles du monde suivent Hytale (§ 6) ;
   - `hycolony-researcher` vérifie les faits et n'écrit que dans `docs/research/` (imposé par un hook de son frontmatter) ;
   - `ui-lang-checker` relit les textes et les fenêtres (§ 7) quand un diff touche un `.ui`, un `.lang`, une vue ou une fenêtre.
 - Skills (`.claude/skills/`) : `port-mc`, `hytale-api`, `add-lang-key`, `add-migration` (§ 5), `mc-ui-asset` (dessiner une icône dans le style de MC, § 7) et `ship` (fin d'une modification : build, relectures, commit ; lancée par l'utilisateur seulement).
