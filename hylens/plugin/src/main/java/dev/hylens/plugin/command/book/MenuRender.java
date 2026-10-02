@@ -12,9 +12,9 @@ import java.util.Optional;
 /**
  * Draws the HyLens menu as MC's town hall book (spec 2026-10-02, § 3.1): the open tab's page, its long ribbon, the
  * other tabs' short ribbons and wax seals (MC AbstractWindowTownHall), and the last action's result. Each tab draws
- * its own page ({@link ColoniesTab}, {@link CitizensTab}, {@link ViewTab}). An id in a button's "Index" still names
- * the same row once the list changed, unless HyColony gave a dead citizen's id to a newcomer in between (colony ids
- * are never reused).
+ * its own page ({@link ColoniesTab}, {@link CitizensTab}, {@link ViewTab}, {@link RequestsTab}). An id in a button's
+ * "Index" still names the same row once the list changed, unless HyColony gave a dead citizen's id to a newcomer in
+ * between (colony and request ids are never reused).
  */
 public final class MenuRender {
     public static final String PAGE = "Pages/HyLens/Menu.ui";
@@ -46,6 +46,10 @@ public final class MenuRender {
             case VIEW -> {
                 ui.append("#Page", ViewTab.PAGE);
                 ViewTab.render(ui, binds, v);
+            }
+            case REQUESTS -> {
+                ui.append("#Page", RequestsTab.PAGE);
+                RequestsTab.render(ui, binds, v);
             }
         }
         bookmarks(ui, binds, v.tab());
@@ -83,6 +87,7 @@ public final class MenuRender {
             case COLONIES -> "hylens.menu.colonies";
             case CITIZENS -> "hylens.menu.citizens";
             case VIEW -> "hylens.menu.view";
+            case REQUESTS -> "hylens.menu.requests";
         };
     }
 }

@@ -165,12 +165,16 @@ final class MenuPage extends InteractiveCustomUIPage<MenuPage.Data> {
     }
 
     /**
-     * Records the operator's choice {@code action} (a colony, a citizen, a layer, a tab, a smaller or larger step)
-     * named by {@code index}; choosing a colony or a citizen clears the last result.
+     * Records the operator's choice {@code action} (a colony, a citizen, a request, a layer, a tab, a smaller or larger
+     * step) named by {@code index}; choosing a colony, a citizen or a request clears the last result.
      */
     private void choose(String action, String index, MenuView v, UUID operator) {
         switch (action) {
             case "tab" -> MenuClicks.tab(index).ifPresent(t -> menus.update(operator, s -> s.withTab(t)));
+            case "request" -> {
+                MenuClicks.request(v, index).ifPresent(id -> menus.update(operator, s -> s.withRequest(id)));
+                result = Optional.empty();
+            }
             case "colony" -> {
                 MenuClicks.colony(v, index).ifPresent(c -> menus.update(operator, s -> s.withColony(c)));
                 result = Optional.empty();

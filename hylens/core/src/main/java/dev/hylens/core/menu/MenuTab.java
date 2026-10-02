@@ -4,5 +4,6 @@ package dev.hylens.core.menu;
 public enum MenuTab {
     COLONIES,
     CITIZENS,
-    VIEW
+    VIEW,
+    REQUESTS
 }

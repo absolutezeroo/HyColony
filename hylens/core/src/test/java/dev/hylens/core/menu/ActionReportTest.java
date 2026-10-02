@@ -23,6 +23,19 @@ class ActionReportTest {
     }
 
     @Test
+    void aFulfilThatCannotHappenSaysWhy() {
+        assertEquals(ApiText.of("hylens.action.requestNotFound"), ActionReport.fulfilled(new ActionResult.NotFound()));
+        assertEquals(ApiText.of("hylens.action.nothingToGive"), ActionReport.fulfilled(new ActionResult.Unavailable()));
+        assertEquals(ApiText.of("hylens.action.done"), ActionReport.fulfilled(new ActionResult.Done()));
+    }
+
+    @Test
+    void aResetOfAColonyGoneSaysSo() {
+        assertEquals(ApiText.of("hylens.action.colonyNotFound"), ActionReport.reset(new ActionResult.NotFound()));
+        assertEquals(ApiText.of("hylens.action.done"), ActionReport.reset(new ActionResult.Done()));
+    }
+
+    @Test
     void aSpawnThatCannotHappenSaysWhy() {
         assertEquals(
                 ApiText.of("hylens.action.spawnUnavailable"), ActionReport.spawned(new ActionResult.Unavailable()));

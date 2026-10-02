@@ -18,6 +18,7 @@ import dev.hycolony.api.read.CitizenSnapshot;
 import dev.hycolony.api.read.CitizenWellbeing;
 import dev.hycolony.api.read.ColonySummary;
 import dev.hycolony.api.read.RequestSnapshot;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +32,13 @@ public final class FakeColonyWorld implements ColonyWorld, DebugAccess {
     private final Map<CitizenRef, CitizenDebugSnapshot> debug = new LinkedHashMap<>();
     private final Map<ColonyRef, List<Violation>> alerts = new LinkedHashMap<>();
     private final Map<CitizenRef, CitizenWellbeing> wellbeing = new LinkedHashMap<>();
+    private final List<RequestSnapshot> requests = new ArrayList<>();
+
+    /** Adds {@code r} to what {@code requests} returns for its colony. */
+    public FakeColonyWorld request(RequestSnapshot r) {
+        requests.add(r);
+        return this;
+    }
 
     /** What {@code wellbeing} returns for its citizen. */
     public FakeColonyWorld wellbeing(CitizenWellbeing w) {
@@ -89,7 +97,7 @@ public final class FakeColonyWorld implements ColonyWorld, DebugAccess {
 
     @Override
     public List<RequestSnapshot> requests(ColonyRef colony) {
-        return List.of();
+        return requests.stream().filter(r -> r.colony().equals(colony)).toList();
     }
 
     @Override

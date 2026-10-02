@@ -564,3 +564,14 @@ Spec `docs/superpowers/specs/2026-10-02-hylens-citoyens-design.md`. Un opérateu
 ## Corps chargés avec leur chunk
 
 339. **Retour près de la colonie.** Deux fois : partir de nuit, citoyens couchés (c'est ce cas qui levait l'erreur), puis partir de jour ; chaque fois s'éloigner assez pour que la colonie se décharge, puis revenir : aucune erreur « Store is currently processing » au journal du serveur ; chaque citoyen reprend son corps, debout, et se remet au travail (ou retourne se coucher la nuit).
+
+## HyLens : requêtes
+
+Spec `docs/superpowers/specs/2026-10-02-hylens-requetes-design.md`. Une colonie dont un bâtisseur attend des matériaux.
+
+340. **L'onglet.** Le livre a un 4ᵉ sceau, « Requêtes » : à gauche les requêtes ouvertes de la colonie choisie (objet × quantité, état), « > » pour en choisir une ; à droite l'objet, le demandeur (citoyen ou hutte), l'état, le résolveur, et « Fournir ». Sans requête : « Aucune requête ouverte. ».
+341. **Fournir en créatif.** En créatif, « Fournir » sur la requête du bâtisseur : « Fait. », il reçoit tout ce qui est demandé sans rien prendre au joueur, la requête quitte la liste. Une requête d'outil donne le premier outil qui convient.
+342. **Fournir en survie.** En survie avec une partie de l'objet : elle part du sac, la requête se ferme, le bâtisseur redemande le reste. Sans l'objet : « Rien à donner… ».
+343. **Fenêtre du citoyen.** En créatif, « Fournir » dans la fenêtre des requêtes d'un citoyen (ou le presse-papiers) donne aussi gratuitement.
+344. **Remise à zéro.** « Remettre à zéro les requêtes » (opérateur) : la liste se vide d'un coup ; le bâtisseur, les livreurs et les artisans reprennent et redemandent ce qui leur manque dans la minute ; rien ne reste bloqué. Un livreur qui portait une livraison la dépose à l'entrepôt.
+345. **Droits.** Un joueur non opérateur : « Remettre à zéro » refusé, « désactivée dans la configuration » ; avec `"CanPlayerUseResetCommand": true` (section `Commands`), accepté, même sans être membre. « Fournir » demande le droit de gérer les huttes de la colonie.

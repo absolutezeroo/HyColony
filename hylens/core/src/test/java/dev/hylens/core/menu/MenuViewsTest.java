@@ -13,6 +13,7 @@ import dev.hycolony.api.debug.Violation;
 import dev.hycolony.api.read.CitizenSnapshot;
 import dev.hycolony.api.read.CitizenWellbeing;
 import dev.hycolony.api.read.ColonySummary;
+import dev.hycolony.api.read.RequestSnapshot;
 import dev.hylens.core.draw.Layers;
 import dev.hylens.core.testing.FakeColonyWorld;
 import java.util.List;
@@ -186,6 +187,64 @@ class MenuViewsTest {
                         .findFirst()
                         .orElseThrow()
                         .saturation());
+    }
+
+    private static RequestSnapshot requestOf(String id, String state, Optional<CitizenRef> citizen) {
+        return new RequestSnapshot(
+                id,
+                A,
+                state,
+                "stack",
+                Optional.of("Wood_Planks"),
+                16,
+                Optional.of(new Pos(0, 64, 0)),
+                citizen,
+                Optional.of("retrying"),
+                Optional.empty(),
+                List.of());
+    }
+
+    @Test
+    void theChosenColonysOpenRequestsAreListedTheChosenOneMarked() {
+        world.request(requestOf("r1", "ASSIGNED", Optional.of(ANN)))
+                .request(requestOf("r2", "COMPLETED", Optional.empty()))
+                .request(requestOf("r3", "RESOLVED", Optional.empty()));
+
+        MenuView v = MenuViews.of(world, false, MenuState.INITIAL.withColony(A).withRequest("r3"), Optional.empty());
+
+        assertEquals(
+                List.of(
+                        new MenuView.RequestRow(
+                                "r1",
+                                Optional.of("Wood_Planks"),
+                                16,
+                                "stack",
+                                Optional.of("Ann"),
+                                Optional.of(new Pos(0, 64, 0)),
+                                "ASSIGNED",
+                                Optional.of("retrying"),
+                                false),
+                        new MenuView.RequestRow(
+                                "r3",
+                                Optional.of("Wood_Planks"),
+                                16,
+                                "stack",
+                                Optional.empty(),
+                                Optional.of(new Pos(0, 64, 0)),
+                                "RESOLVED",
+                                Optional.of("retrying"),
+                                true)),
+                v.requests(),
+                "COMPLETED is closed; RESOLVED, before it, is still open as HyColony's core counts");
+    }
+
+    @Test
+    void noColonyNoRequests() {
+        world.request(requestOf("r1", "ASSIGNED", Optional.empty()));
+
+        assertEquals(
+                List.of(),
+                MenuViews.of(world, false, MenuState.INITIAL, Optional.empty()).requests());
     }
 
     @Test

@@ -19,8 +19,19 @@ class MenuStateTest {
     @Test
     void nothingIsChosenAtFirstEveryLayerShowsAndTheColoniesTabIsOpen() {
         assertEquals(
-                new MenuState(Optional.empty(), Optional.empty(), 1, Layers.ALL, false, MenuTab.COLONIES),
+                new MenuState(
+                        Optional.empty(), Optional.empty(), 1, Layers.ALL, false, MenuTab.COLONIES, Optional.empty()),
                 MenuState.INITIAL);
+    }
+
+    @Test
+    void aRequestIsChosenAndForgottenWithItsColony() {
+        MenuState s = MenuState.INITIAL.withColony(A).withRequest("r1");
+
+        assertEquals(Optional.of("r1"), s.request());
+        assertEquals(Optional.of("r1"), s.withColony(A).request(), "the same colony keeps it");
+        assertEquals(Optional.empty(), s.withColony(B).request());
+        assertEquals(Optional.of("r1"), s.withTab(MenuTab.VIEW).withStep(3).request());
     }
 
     @Test

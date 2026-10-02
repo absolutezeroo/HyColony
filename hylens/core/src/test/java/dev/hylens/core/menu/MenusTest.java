@@ -53,7 +53,8 @@ class MenusTest {
                         1,
                         Layers.ALL.toggle(Layers.Layer.ZONE),
                         false,
-                        MenuTab.CITIZENS),
+                        MenuTab.CITIZENS,
+                        Optional.empty()),
                 both);
     }
 }

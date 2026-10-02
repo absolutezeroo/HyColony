@@ -15,11 +15,11 @@ import java.util.Set;
  */
 final class MenuClicks {
     /** The clicks that record a choice. */
-    static final Set<String> CHOICES = Set.of("colony", "citizen", "layer", "stepLess", "stepMore", "tab");
+    static final Set<String> CHOICES = Set.of("colony", "citizen", "layer", "stepLess", "stepMore", "tab", "request");
     /** The clicks on the watch: start it, free or follow its camera, stop it. */
     static final Set<String> WATCH = Set.of("watch", "free", "follow", "unwatch");
     /** The clicks that change a colony's citizens: a new one, the chosen one's saturation. */
-    static final Set<String> EDITS = Set.of("spawn", "saturation");
+    static final Set<String> EDITS = Set.of("spawn", "saturation", "fulfil", "resetRequests");
     /** The clicks on the colony clock. */
     static final Set<String> CLOCK = Set.of("pause", "step", "resume");
     /** The clicks on the checks. */
@@ -59,6 +59,14 @@ final class MenuClicks {
         } catch (IllegalArgumentException e) {
             return Optional.empty();
         }
+    }
+
+    /** The request whose id is {@code index}, if the page still lists it. */
+    static Optional<String> request(MenuView v, String index) {
+        return v.requests().stream()
+                .map(MenuView.RequestRow::id)
+                .filter(index::equals)
+                .findFirst();
     }
 
     /** The saturation step named {@code name}, if it is one. */

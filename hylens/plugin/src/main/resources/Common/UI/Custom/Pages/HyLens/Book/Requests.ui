@@ -1,0 +1,54 @@
+$B = "../Mc/Book.ui";
+$C = "../../../Common.ui";
+
+// HyLens' Requests tab (spec 2026-10-02 lot 3, § 6), on the town hall book's pages: on the left the chosen colony's
+// open requests; on the right the chosen one, MC's request window "Fulfill", and the request system's reset.
+
+Group {
+  Anchor: (Left: 0, Top: 0, Width: 1048, Height: 486);
+
+  Label {
+    Anchor: (Left: 200, Top: 130, Width: 296, Height: 22);
+    Text: %hylens.menu.requests;
+    Style: $B.@Heading;
+  }
+
+  Group #Requests {
+    Anchor: (Left: 200, Top: 160, Width: 296, Height: 278);
+    LayoutMode: TopScrolling;
+    ScrollbarStyle: $C.@DefaultScrollbarStyle;
+  }
+
+  Label #RequestItem {
+    Anchor: (Left: 552, Top: 56, Width: 296, Height: 22);
+    Style: (...$B.@Heading, ShrinkTextToFit: true, MinShrinkTextToFitFontSize: 10);
+  }
+
+  Label #RequestAsker {
+    Anchor: (Left: 552, Top: 90, Width: 296, Height: 22);
+    Style: (...$B.@Ink, FontSize: 13, ShrinkTextToFit: true, MinShrinkTextToFitFontSize: 9);
+  }
+
+  Label #RequestState {
+    Anchor: (Left: 552, Top: 114, Width: 296, Height: 22);
+    Style: (...$B.@Ink, FontSize: 13, ShrinkTextToFit: true, MinShrinkTextToFitFontSize: 9);
+  }
+
+  Label #RequestResolver {
+    Anchor: (Left: 552, Top: 138, Width: 296, Height: 22);
+    Style: (...$B.@Faded, ShrinkTextToFit: true, MinShrinkTextToFitFontSize: 9);
+  }
+
+  TextButton #FulfilButton {
+    Anchor: (Left: 571, Top: 176, Width: 258, Height: 34);
+    Style: $B.@WideButtonStyle;
+    Text: %hylens.menu.fulfil;
+    Visible: false;
+  }
+
+  TextButton #ResetRequestsButton {
+    Anchor: (Left: 571, Top: 356, Width: 258, Height: 34);
+    Style: $B.@WideButtonStyle;
+    Text: %hylens.menu.resetRequests;
+  }
+}

@@ -8,6 +8,7 @@ import dev.hycolony.api.ActionResult;
 import dev.hycolony.api.Actor;
 import dev.hycolony.api.ApiText;
 import dev.hycolony.api.CitizenRef;
+import dev.hycolony.api.ColonyRef;
 import dev.hycolony.api.ColonyWorld;
 import dev.hycolony.api.Pos;
 import dev.hycolony.api.debug.DebugAccess;
@@ -25,17 +26,15 @@ final class MenuActions {
     private MenuActions() {}
 
     /**
-     * Runs the edit {@code action}: "spawn" a citizen in {@code v}'s chosen colony, or change the chosen citizen's
+     * Runs the edit {@code action}: on {@code v}'s chosen colony ({@link #onColony}), or change the chosen citizen's
      * "saturation" by the step named {@code index} (its maximum read from HyColony now); as {@code operator}. The text
      * of its result, or asks to choose first; empty for an unknown step or an unread saturation.
      */
     static Optional<ApiText> edit(
             String action, String index, MenuView v, Optional<ColonyWorld> colonies, UUID operator) {
         Actor actor = new Actor.Player(operator);
-        if ("spawn".equals(action)) {
-            return Optional.of(colonies.flatMap(w ->
-                            v.colony().map(c -> ActionReport.spawned(w.debug().spawnCitizen(actor, c))))
-                    .orElse(ApiText.of("hylens.action.noColony")));
+        if (!"saturation".equals(action)) {
+            return Optional.of(onColony(action, v, colonies, actor));
         }
         if (v.citizen().isEmpty() || colonies.isEmpty()) {
             return Optional.of(ApiText.of("hylens.action.noneChosen"));
@@ -46,6 +45,28 @@ final class MenuActions {
                 .flatMap(step -> w.wellbeing(c)
                         .map(now -> ActionReport.text(
                                 w.debug().modifySaturation(actor, c, step.change(), step.value(now.maxSaturation())))));
+    }
+
+    /**
+     * Runs {@code action} on {@code v}'s chosen colony as {@code actor}: "spawn" a citizen, "resetRequests", or
+     * "fulfil" the chosen request; the text of its result, or asks to choose the colony or the request first.
+     */
+    private static ApiText onColony(String action, MenuView v, Optional<ColonyWorld> colonies, Actor actor) {
+        if (colonies.isEmpty() || v.colony().isEmpty()) {
+            return ApiText.of("hylens.action.noColony");
+        }
+        DebugAccess debug = colonies.get().debug();
+        ColonyRef c = v.colony().get();
+        return switch (action) {
+            case "spawn" -> ActionReport.spawned(debug.spawnCitizen(actor, c));
+            case "resetRequests" -> ActionReport.reset(debug.resetRequests(actor, c));
+            default ->
+                v.requests().stream()
+                        .filter(MenuView.RequestRow::chosen)
+                        .findFirst()
+                        .map(r -> ActionReport.fulfilled(debug.fulfilRequest(actor, c, r.id())))
+                        .orElse(ApiText.of("hylens.action.noRequest"));
+        };
     }
 
     /**

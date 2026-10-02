@@ -46,7 +46,17 @@ public final class MenuViews {
         List<MenuView.CitizenRow> citizens = members.stream()
                 .map(m -> row(world, m, alerts.getOrDefault(m.ref(), 0L).intValue(), citizen, watched))
                 .toList();
-        return new MenuView(colonies, colony, citizens, citizen, s.layers(), paused, s.step(), s.autoCheck(), s.tab());
+        return new MenuView(
+                colonies,
+                colony,
+                citizens,
+                citizen,
+                s.layers(),
+                paused,
+                s.step(),
+                s.autoCheck(),
+                s.tab(),
+                MenuRequests.of(world, colony, members, s.request()));
     }
 
     private static MenuView.CitizenRow row(
