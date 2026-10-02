@@ -1,0 +1,25 @@
+{
+  "Parent": "Template_Weapon_Shield",
+  "TranslationProperties": {
+    "Name": "hycolony.item.knight_shield.name",
+    "Description": "hycolony.item.knight_shield.description"
+  },
+  "Quality": "Rare",
+  "ItemLevel": 35,
+  "Model": "Items/HyColony/Plate_Armor/Shield.blockymodel",
+  "Texture": "Items/HyColony/Plate_Armor/Shield.png",
+  "Icon": "Icons/Items/HyColony/Plate_Armor_Shield.png",
+  "InteractionVars": {
+    "Guard_Wield": {
+      "Interactions": [
+        {
+          "Parent": "Weapon_Shield_Secondary_Guard_Wield",
+          "StaminaCost": {
+            "Value": 17.11,
+            "CostType": "Damage"
+          }
+        }
+      ]
+    }
+  }
+}

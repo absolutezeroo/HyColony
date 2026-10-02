@@ -1,0 +1,69 @@
+{
+  "TranslationProperties": {
+    "Name": "hycolony.item.plate_armor_chest.name",
+    "Description": "hycolony.item.plate_armor_chest.description"
+  },
+  "Quality": "Rare",
+  "ItemLevel": 35,
+  "PlayerAnimationsId": "Block",
+  "ItemSoundSetId": "ISS_Armor_Heavy",
+  "Categories": [
+    "Items.Armors"
+  ],
+  "Icon": "Icons/Items/HyColony/Plate_Armor_Chest.png",
+  "Model": "Items/HyColony/Plate_Armor/Chest.blockymodel",
+  "Texture": "Items/HyColony/Plate_Armor/Chest.png",
+  "Interactions": {
+    "Primary": {
+      "Interactions": [
+        {
+          "Type": "EquipItem"
+        }
+      ]
+    },
+    "Secondary": {
+      "Interactions": [
+        {
+          "Type": "EquipItem"
+        }
+      ]
+    }
+  },
+  "Armor": {
+    "ArmorSlot": "Chest",
+    "BaseDamageResistance": 0,
+    "CosmeticsToHide": [
+      "Overtop",
+      "Cape"
+    ],
+    "DamageResistance": {
+      "Physical": [
+        {
+          "Amount": 0.1152,
+          "CalculationType": "Percent"
+        }
+      ],
+      "Projectile": [
+        {
+          "Amount": 0.1152,
+          "CalculationType": "Percent"
+        }
+      ]
+    },
+    "StatModifiers": {
+      "Health": [
+        {
+          "Amount": 22,
+          "CalculationType": "Additive"
+        }
+      ]
+    }
+  },
+  "MaxDurability": 250,
+  "DurabilityLossOnHit": 0.5,
+  "Tags": {
+    "Type": [
+      "Armor"
+    ]
+  }
+}

@@ -33,6 +33,25 @@ portails n'ont pas la clé et le piège `Survival_Trap_Snapjaw` écrit `false` (
 Un objet a sa propre clé `Animation` (`Item.java`), sans `Looping` à côté : les poissons s'en servent pour nager
 (`Swim.blockyanim`), la clé de coffre `Coffer_Key` pour flotter.
 
+**Pièce d'armure ou objet porté** (`Items/Armors/*`) : les nœuds racines portent le nom d'un os du joueur (`Head`,
+`Pelvis` › `Belly` › `Chest`, `R-Arm`, `R-Forearm` › `R-Hand`, `R-Thigh` › `R-Calf`, `R-Foot`… ;
+`Characters/Player.blockymodel`) et `"settings": {"isPiece": true}`. Ce drapeau accroche le nœud à l'os de même nom ;
+sans lui, le nœud reste à l'origine de l'entité, à ses pieds (vu en jeu le 2026-10-02 sur l'armure de plates). Dans
+les armures Cobalt, fer et Steel, tous les nœuds sans forme sont des os marqués `isPiece`, et aucun autre nœud ne
+l'est. Les positions des racines varient d'une armure à l'autre (le `Head` à y 0, −12 ou −19) alors que leurs
+décalages sont constants : on reprend tels quels les os d'une armure de Hytale du même gabarit.
+
+**Tissu et mèches qui bougent** : Hytale n'a pas de physique de tissu, mais les 2 340 animations du joueur
+(`Characters/Animations/`) font aussi tourner des nœuds qui ne sont pas des os, dans tout modèle porté qui en a, sans
+`isPiece` : `Front_Cloth_1`/`_2`, `Back_Cloth_1`/`_2` (et les pans de côté `R_Side_Cloth_*`, `L_Side_Cloth_*`),
+`Cape1` à `Cape3`, `Hair-B`/`B2`, `Hair-L`/`L2`, `Hair-R`/`R2`. Rotations surtout en x, autour de la position du nœud :
+en course, jusqu'à 35° pour le tissu de devant (qui se relève vers l'avant), 60° pour celui de derrière, 45° pour les
+mèches. Structure de Hytale : le nœud est la charnière, sa forme est décalée le long de son axe (`Front_Cloth_1` de la
+Cobalt à (0, 6, 9) sous `Pelvis`, décalage (0, −7, 0)) et l'enfant `_2` est au bout du parent. Les mèches pendent le
+long de leur +y local (rotation de −170° en x, `Characters/Haircuts/Long.blockymodel`) : une rotation +x les relève
+vers l'arrière ; sur une pièce qui monte, la même rotation la bascule vers l'avant. Vu et utilisé pour le tabard et le
+plumet de l'armure de plates (2026-10-02).
+
 **Décalage d'UV animé** (`shapeUvOffset`, delta x/y en pixels, sans `interpolationType`) : un décalage de -d en y lit
 la zone d pixels plus bas, +d en x d pixels plus à droite. Le feu (`VFX/Fire/Fire.blockymodel`, quad dont l'UV
 commence à y 32, `Fire.png` de 32×224) décale de 0 à -160 : sa dernière image tombe sur les lignes 192 à 224. La

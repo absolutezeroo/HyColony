@@ -1,0 +1,69 @@
+{
+  "TranslationProperties": {
+    "Name": "hycolony.item.plate_armor_legs.name",
+    "Description": "hycolony.item.plate_armor_legs.description"
+  },
+  "Quality": "Rare",
+  "ItemLevel": 35,
+  "PlayerAnimationsId": "Block",
+  "ItemSoundSetId": "ISS_Armor_Heavy",
+  "Categories": [
+    "Items.Armors"
+  ],
+  "Icon": "Icons/Items/HyColony/Plate_Armor_Legs.png",
+  "Model": "Items/HyColony/Plate_Armor/Legs.blockymodel",
+  "Texture": "Items/HyColony/Plate_Armor/Legs.png",
+  "Interactions": {
+    "Primary": {
+      "Interactions": [
+        {
+          "Type": "EquipItem"
+        }
+      ]
+    },
+    "Secondary": {
+      "Interactions": [
+        {
+          "Type": "EquipItem"
+        }
+      ]
+    }
+  },
+  "Armor": {
+    "ArmorSlot": "Legs",
+    "BaseDamageResistance": 0,
+    "CosmeticsToHide": [
+      "Pants",
+      "Shoes"
+    ],
+    "DamageResistance": {
+      "Physical": [
+        {
+          "Amount": 0.0896,
+          "CalculationType": "Percent"
+        }
+      ],
+      "Projectile": [
+        {
+          "Amount": 0.0896,
+          "CalculationType": "Percent"
+        }
+      ]
+    },
+    "StatModifiers": {
+      "Health": [
+        {
+          "Amount": 17,
+          "CalculationType": "Additive"
+        }
+      ]
+    }
+  },
+  "MaxDurability": 250,
+  "DurabilityLossOnHit": 0.5,
+  "Tags": {
+    "Type": [
+      "Armor"
+    ]
+  }
+}

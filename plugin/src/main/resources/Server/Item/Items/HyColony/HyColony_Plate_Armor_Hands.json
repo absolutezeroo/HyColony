@@ -1,0 +1,65 @@
+{
+  "TranslationProperties": {
+    "Name": "hycolony.item.plate_armor_hands.name",
+    "Description": "hycolony.item.plate_armor_hands.description"
+  },
+  "Quality": "Rare",
+  "ItemLevel": 35,
+  "PlayerAnimationsId": "Block",
+  "ItemSoundSetId": "ISS_Armor_Heavy",
+  "Categories": [
+    "Items.Armors"
+  ],
+  "Icon": "Icons/Items/HyColony/Plate_Armor_Hands.png",
+  "Model": "Items/HyColony/Plate_Armor/Hands.blockymodel",
+  "Texture": "Items/HyColony/Plate_Armor/Hands.png",
+  "Interactions": {
+    "Primary": {
+      "Interactions": [
+        {
+          "Type": "EquipItem"
+        }
+      ]
+    },
+    "Secondary": {
+      "Interactions": [
+        {
+          "Type": "EquipItem"
+        }
+      ]
+    }
+  },
+  "Armor": {
+    "ArmorSlot": "Hands",
+    "BaseDamageResistance": 0,
+    "DamageResistance": {
+      "Physical": [
+        {
+          "Amount": 0.0512,
+          "CalculationType": "Percent"
+        }
+      ],
+      "Projectile": [
+        {
+          "Amount": 0.0512,
+          "CalculationType": "Percent"
+        }
+      ]
+    },
+    "StatModifiers": {
+      "Health": [
+        {
+          "Amount": 10,
+          "CalculationType": "Additive"
+        }
+      ]
+    }
+  },
+  "MaxDurability": 250,
+  "DurabilityLossOnHit": 0.5,
+  "Tags": {
+    "Type": [
+      "Armor"
+    ]
+  }
+}
