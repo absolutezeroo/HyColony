@@ -246,7 +246,7 @@ Cinq `BoolSetting` de la colonie, tous à `true` par défaut (`mc:core/colony/bu
 
 #### Textures MC par onglet
 
-Depuis le 2026-10-02, à la demande de l'utilisateur, les sceaux de cire (`red_wax_*`, `colonist_wax_*`) et les icônes d'onglet (`modules/*`) ne sont plus copiés : ils sont dessinés dans le style de MC par `tools/ui/seals.py` et `tools/ui/tabs.py`, avec les mêmes noms, tailles et sens.
+Depuis le 2026-10-02, à la demande de l'utilisateur, les sceaux de cire (`red_wax_*`, `colonist_wax_*`) et les icônes d'onglet (`modules/*`) ne sont plus copiés : ils sont dessinés dans le style de MC par `tools/ui/seals.py` et `tools/ui/tabs.py`, avec les mêmes noms, tailles et sens. Le bouton `chest` (résumé de l'inventaire d'une hutte) montre le coffre rudimentaire de Hytale (`Furniture_Crude_Chest_Small`) et non celui de Minecraft, que Hytale n'a pas (`tools/ui/chest.py`).
 
 Déjà copiées dans `ui:Mc/` : `townhall_book`, `bookmark_ribbon_01/02/04/05`, `bookmark_short_ribbon_01/02/04/05`, `red_wax_home/work_orders/citizens/stats`, `builder_button_medium_large`, `builder_button_mini`, `edit`. Toutes celles qui manquent existent dans `tex/` (vérifié, taille d'origine entre parenthèses) :
 

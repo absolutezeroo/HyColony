@@ -2,8 +2,8 @@ $C = "../../Common.ui";
 
 // A hut's window as MC's (gui/layouthuts/*.xml), MC positions and sizes doubled: the builder paper, the open tab's
 // page appended into #Page (Hut/*.ui), then the side tabs (MC TabsWindowModule) drawn over the paper's left edge.
-// Textures under Mc/ are MineColonies' (ldtteam, GPL-3), except the wax seals and tab icons, ours, drawn in its style
-// by tools/ui/seals.py and tools/ui/tabs.py; all are scaled x4 nearest-neighbour into @2x files.
+// Textures under Mc/ are MineColonies' (ldtteam, GPL-3), except the wax seals, tab icons and the chest, ours, drawn
+// in its style by tools/ui/seals.py, tabs.py and chest.py; all are scaled x4 nearest-neighbour into @2x files.
 
 $C.@PageOverlay {
   LayoutMode: Middle;

@@ -8,5 +8,6 @@ modified form: scaled x4 nearest-neighbour into @2x files (2026). They live in:
 - plugin/src/main/resources/Common/UI/Custom/Pages/HyColony/Mc/ (HyColony)
 - hylens/plugin/src/main/resources/Common/UI/Custom/Pages/HyLens/Mc/ (HyLens)
 except the wax seals (red_wax_*@2x.png, colonist_wax_*@2x.png) and the side tab icons (main, crafting, inventory,
-settings, info, stock, stats, field, entity, food, fuel, requests, happiness @2x.png): our own, drawn in
-MineColonies' style by tools/ui/seals.py and tools/ui/tabs.py.
+settings, info, stock, stats, field, entity, food, fuel, requests, happiness @2x.png) and chest@2x.png (Hytale's
+crude chest on a parchment card): our own, drawn in MineColonies' style by tools/ui/seals.py, tools/ui/tabs.py and
+tools/ui/chest.py.
