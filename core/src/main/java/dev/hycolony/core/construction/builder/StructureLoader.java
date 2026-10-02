@@ -24,7 +24,8 @@ final class StructureLoader {
 
     /**
      * Loads {@code o} onto the (cleared) site and starts its resources from the order's saved stage and index, the
-     * order being the single owner of progress. Returns false when its building or blueprint is gone: the order is
+     * order being the single owner of progress, and cancels the hut's requests for items it no longer needs
+     * ({@link BuilderRequests#cancelUnneeded}). Returns false when its building or blueprint is gone: the order is
      * then cancelled (MC handleSpecificCancelActions).
      */
     boolean load(WorkOrder o) {
@@ -42,6 +43,7 @@ final class StructureLoader {
         BuildSite site = ctx.site();
         site.load(o, b, ctx.planFor(bp, o.buildingPos()), previousPlan(o, b));
         ctx.resources().start(o, NeededResources.compute(site.plan(), ctx.blocks(), ctx.catalog(), ctx.recipes()));
+        ctx.requests().cancelUnneeded(ctx.resources().needs().remaining().keySet());
         return true;
     }
 

@@ -1,7 +1,6 @@
 # PMD baseline: violations that existed when PMD was added (CLAUDE.md § 8).
 # One "Rule path" pair per line; that rule's violations in that file are tolerated.
 # This list may only shrink: a line that matches no violation fails the build, so remove it. Never add one.
-CognitiveComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleItemCatalog.java
 CompareObjectsWithEquals plugin/src/main/java/dev/hycolony/plugin/adapter/HytalePlayerInventory.java
 CouplingBetweenObjects core/src/main/java/dev/hycolony/core/request/RequestManager.java
 CouplingBetweenObjects plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleCitizenBodies.java

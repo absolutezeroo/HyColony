@@ -2,24 +2,23 @@ package dev.hycolony.plugin.adapter;
 
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.protocol.BlockMaterial;
-import com.hypixel.hytale.protocol.DrawType;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockBreakingDropType;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockGathering;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.fluid.Fluid;
-import com.hypixel.hytale.server.core.asset.type.item.config.Item;
-import com.hypixel.hytale.server.core.asset.type.item.config.ItemToolSpec;
+import dev.hycolony.core.kernel.item.BlockItems;
 import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockKind;
 import dev.hycolony.core.kernel.item.FoodInfo;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolInfo;
-import dev.hycolony.core.kernel.item.ToolScale;
 import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.plugin.block.HytaleBlockStates;
 import dev.hycolony.plugin.food.FoodIds;
 import dev.hycolony.plugin.food.HytaleFoods;
+import dev.hycolony.plugin.item.HytaleBlockItems;
+import dev.hycolony.plugin.item.HytaleGoodFloor;
 import dev.hycolony.plugin.item.HytaleItemInfo;
 import dev.hycolony.plugin.item.HytaleStacks;
 import java.util.HashMap;
@@ -54,15 +53,15 @@ import org.jspecify.annotations.Nullable;
 public final class HytaleItemCatalog implements ItemCatalog {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
     private static final BlockInfo UNKNOWN_BLOCK =
-            new BlockInfo(BlockKind.UNBREAKABLE, Optional.empty(), false, Optional.empty(), 1f, false, false, false);
+            new BlockInfo(BlockKind.UNBREAKABLE, BlockItems.NONE, false, Optional.empty(), 1f, false, false, false);
     private static final BlockInfo FLUID =
-            new BlockInfo(BlockKind.FLUID, Optional.empty(), false, Optional.empty(), 0f, false, false, false);
+            new BlockInfo(BlockKind.FLUID, BlockItems.NONE, false, Optional.empty(), 0f, false, false, false);
     private static final BlockInfo AIR =
-            new BlockInfo(BlockKind.AIR, Optional.empty(), false, Optional.empty(), 0f, false, false, false);
+            new BlockInfo(BlockKind.AIR, BlockItems.NONE, false, Optional.empty(), 0f, false, false, false);
 
     private record BlockInfo(
             BlockKind kind,
-            Optional<ItemKey> item,
+            BlockItems items,
             boolean ore,
             Optional<ToolType> tool,
             float hardness,
@@ -73,12 +72,13 @@ public final class HytaleItemCatalog implements ItemCatalog {
     private final Map<BlockKey, BlockInfo> blocks = new HashMap<>();
     private final Map<ItemKey, HytaleItemInfo> items = new HashMap<>();
     private @Nullable List<ItemKey> tools;
-    private final Map<BlockKey, Boolean> goodFloors = new HashMap<>();
+    private final HytaleGoodFloor goodFloor = new HytaleGoodFloor();
     private final Set<String> hutBlockIds;
     /** The id-map's hoes and their tool level: Hytale hoes have no tool spec to map (they till by interaction). */
     private final Map<String, Integer> hoeLevels;
 
     private final HytaleStacks stacks = new HytaleStacks(this::durability);
+    private final HytaleBlockItems blockItems = new HytaleBlockItems();
     private final HytaleFoods foods;
     private boolean warned;
 
@@ -107,7 +107,7 @@ public final class HytaleItemCatalog implements ItemCatalog {
     @Override
     public List<ItemKey> tools() {
         if (tools == null) {
-            tools = Item.getAssetMap().getAssetMap().keySet().stream()
+            tools = HytaleItemInfo.allIds().stream()
                     .map(ItemKey::new)
                     .filter(k -> tool(k).isPresent())
                     .toList();
@@ -136,9 +136,10 @@ public final class HytaleItemCatalog implements ItemCatalog {
         return item(item).maxStack();
     }
 
+    /** Read by {@link HytaleBlockItems} from the block's assets; cached with the rest of the block. */
     @Override
-    public Optional<ItemKey> itemForBlock(BlockKey block) {
-        return block(block).item();
+    public BlockItems blockItems(BlockKey block) {
+        return block(block).items();
     }
 
     @Override
@@ -151,31 +152,10 @@ public final class HytaleItemCatalog implements ItemCatalog {
         return block(block).ore();
     }
 
-    /**
-     * A solid block drawn as a full cube ({@code Cube}, or {@code CubeWithModel} as ores are), leaves excluded
-     * (Structurize {@code unsuitable_solid_for_placeholder}): vanilla leaves are models of group {@code Leaves}, and
-     * tilled soil is a cube ({@code Template_Soil}), as Structurize's {@code good_solid_for_placeholder} wants. A state
-     * variant is judged by its own block type (a slab's {@code Full} state is a cube); an unknown block or a fluid is
-     * no good floor. Cached per key.
-     *
-     * <p>Deviation from MC: Structurize tests the collision shape ({@code isGoodFullBlock}); Hytale has no such shape
-     * on the server, so the draw type and material stand for it.
-     */
+    /** Read by {@link HytaleGoodFloor}. */
     @Override
     public boolean isGoodFloor(BlockKey block) {
-        return goodFloors.computeIfAbsent(block, k -> {
-            try {
-                BlockType type = BlockType.getAssetMap().getAsset(k.id());
-                return type != null
-                        && !type.isUnknown()
-                        && type.getMaterial() == BlockMaterial.Solid
-                        && (type.getDrawType() == DrawType.Cube || type.getDrawType() == DrawType.CubeWithModel)
-                        && !"Leaves".equals(type.getGroup());
-            } catch (RuntimeException e) {
-                fail(k.id(), e);
-                return false;
-            }
-        });
+        return goodFloor.test(block);
     }
 
     /**
@@ -281,33 +261,23 @@ public final class HytaleItemCatalog implements ItemCatalog {
         boolean harmful = type.getDamageToEntities() > 0 || type.isTrigger();
         boolean bed = type.getBeds() != null; // every bed has sleeping points (BlockMountAPI), vanilla and HyVanilla
         boolean seat = type.getSeats() != null; // chairs, stools, benches (BlockMountAPI takes a seat first)
-        Item item = type.getItem();
-        Optional<ItemKey> itemKey = item == null ? Optional.empty() : Optional.of(new ItemKey(item.getId()));
+        BlockItems blockItemsOf = blockItems.of(type);
         BlockGathering g = type.getGathering();
         BlockBreakingDropType breaking = g == null ? null : g.getBreaking();
         String gather = breaking == null ? null : breaking.getGatherType();
         if (g == null || "Unbreakable".equals(gather) || hutBlockIds.contains(type.getId())) {
-            return new BlockInfo(BlockKind.UNBREAKABLE, itemKey, false, Optional.empty(), 1f, harmful, bed, seat);
+            return new BlockInfo(BlockKind.UNBREAKABLE, blockItemsOf, false, Optional.empty(), 1f, harmful, bed, seat);
         }
         BlockKind kind = type.getMaterial() == BlockMaterial.Empty ? BlockKind.NON_SOLID : BlockKind.SOLID;
         return new BlockInfo(
                 kind,
-                itemKey,
+                blockItemsOf,
                 gather != null && gather.startsWith("Ore"),
                 Optional.ofNullable(toolType(gather)),
-                hardness(gather),
+                HytaleItemInfo.hardness(gather),
                 harmful,
                 bed,
                 seat);
-    }
-
-    /** The block's hardness from its gather type's unarmed power ({@link ToolScale#hardness}). */
-    private static float hardness(@Nullable String gather) {
-        if (gather == null) {
-            return ToolScale.MIN_HARDNESS;
-        }
-        ItemToolSpec unarmed = ItemToolSpec.getAssetMap().getAsset(gather);
-        return ToolScale.hardness(unarmed == null ? 0f : unarmed.getPower());
     }
 
     private static @Nullable ToolType toolType(@Nullable String gather) {

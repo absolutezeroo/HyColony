@@ -1026,6 +1026,64 @@ class BuilderAITest {
         assertEquals(citizen.id(), reqs.get(0).citizenId());
     }
 
+    /** A save's request for an item no block costs any more (audit-monde-hytale A-15) is cancelled on load. */
+    @Test
+    void loadingAnOrderCancelsRequestsForAnItemNoBlockCosts() {
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);
+        blueprint = bp(List.of(entry(1, 0, 0, STONE)));
+        ItemKey gone = new ItemKey("Wood_Torch_Wall");
+        colony.requests().createAndAssign(hut, new StackRequest(gone, 4, 1, true), citizen.id());
+        t.containers.containers.put(HUT, new java.util.LinkedHashMap<>(Map.of(STONE_I, 1)));
+        order(res, WorkOrderType.UPGRADE);
+
+        // MC checkIfNeedsItem (AbstractEntityAIStructureWithWorkOrder): the stale sync request does not hold the
+        // builder before its order is loaded, and the load cancels it.
+        tickUntil(
+                () -> builderRequests().stream()
+                        .noneMatch(r -> r.requestable() instanceof StackRequest s
+                                && s.item().equals(gone)),
+                2000);
+        tickUntil(() -> t.blocks.placed.size() == 1, 5000);
+    }
+
+    /** MC checkIfNeedsItem: without an order, its open request sends it to wait (AbstractEntityAIBasic). */
+    @Test
+    void withoutOrderAnOpenRequestSendsTheBuilderToNeedsItem() {
+        colony.requests().createAndAssign(hut, new StackRequest(TORCH_I, 1, 1, true), citizen.id());
+
+        tickUntil(() -> ai.stateName().equals("NEEDS_ITEM"), 200);
+    }
+
+    /** MC AbstractEntityAIStructureWithWorkOrder.checkIfNeedsItem: its own completed request is fetched first. */
+    @Test
+    void completedOwnRequestIsFetchedBeforeTheStructureLoads() {
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);
+        blueprint = bp(List.of(entry(1, 0, 0, STONE)));
+        var token = colony.requests().createAndAssign(hut, new StackRequest(STONE_I, 1, 1, true), citizen.id());
+        colony.requests().updateState(token, RequestState.COMPLETED);
+        order(res, WorkOrderType.UPGRADE);
+
+        tickUntil(() -> ai.stateName().equals("NEEDS_ITEM"), 200);
+
+        assertEquals(0, resources().orderId());
+    }
+
+    /** MC's recalculated is never reset: once a structure was loaded, an open request is waited on before the next. */
+    @Test
+    void afterAFirstStructureAnOpenRequestIsAwaitedBeforeTheNextLoad() {
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);
+        blueprint = bp(List.of(entry(1, 0, 0, STONE)));
+        t.containers.containers.put(HUT, new java.util.LinkedHashMap<>(Map.of(STONE_I, 1)));
+        WorkOrder first = order(res, WorkOrderType.UPGRADE);
+        tickUntil(() -> gone(first), 5000);
+        colony.requests().createAndAssign(hut, new StackRequest(TORCH_I, 1, 1, true), citizen.id());
+        order(res, WorkOrderType.UPGRADE);
+
+        tickUntil(() -> ai.stateName().equals("NEEDS_ITEM"), 400);
+
+        assertEquals(0, resources().orderId());
+    }
+
     @Test
     void completedAsyncRequestsAreMarkedReceived() {
         Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);

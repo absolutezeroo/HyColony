@@ -45,6 +45,26 @@ final class BuilderRequests {
         return out;
     }
 
+    /**
+     * Cancels the hut's stack requests, not yet completed, for an item outside {@code needed}: a save may hold some
+     * for an item no block costs any more, which nothing would ever answer.
+     *
+     * <p>Deviation from MC: MC never revises its builder's requests when it loads an order. A save written before the
+     * builder asked for the item that places a block (docs/research/audit-monde-hytale.md A-15) may hold requests for
+     * a container item no block costs any more; they are repaired on every load. Otherwise this only cancels, after a
+     * restart, a bucket request whose cells were all placed meanwhile, which MC would still deliver; a finished order
+     * cancels all its requests anyway ({@code BuilderAI.completeBuild}).
+     */
+    void cancelUnneeded(Set<ItemKey> needed) {
+        for (Request r : requests().byRequester(hut.requesterId())) {
+            if (r.requestable() instanceof StackRequest s
+                    && !needed.contains(s.item())
+                    && r.state().isBefore(RequestState.COMPLETED)) {
+                requests().updateState(r.token(), RequestState.CANCELLED);
+            }
+        }
+    }
+
     private void request(Requestable what) {
         requests().createAndAssign(hut, what, citizen.id());
     }

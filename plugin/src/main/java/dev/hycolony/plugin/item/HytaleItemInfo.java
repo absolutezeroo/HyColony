@@ -8,6 +8,7 @@ import dev.hycolony.core.kernel.item.ToolScale;
 import dev.hycolony.core.kernel.item.ToolType;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -17,6 +18,11 @@ import org.jspecify.annotations.Nullable;
 public record HytaleItemInfo(int maxStack, Optional<ToolInfo> tool, int durability) {
     /** An item Hytale does not know: a stack of 1, no tool. */
     public static final HytaleItemInfo UNKNOWN = new HytaleItemInfo(1, Optional.empty(), 0);
+
+    /** Every item id of the loaded assets, in no set order. */
+    public static Set<String> allIds() {
+        return Item.getAssetMap().getAssetMap().keySet();
+    }
 
     /** Item {@code id}'s info: a hoe at its {@code hoeLevels} level, else what its Hytale asset says. */
     public static HytaleItemInfo of(String id, Map<String, Integer> hoeLevels) {
@@ -49,6 +55,15 @@ public record HytaleItemInfo(int maxStack, Optional<ToolInfo> tool, int durabili
             return new HytaleItemInfo(maxStack, Optional.empty(), 0);
         }
         return tool(item, tool, type, maxStack);
+    }
+
+    /** A block's hardness from its gather type's unarmed power ({@link ToolScale#hardness}); the least without one. */
+    public static float hardness(@Nullable String gather) {
+        if (gather == null) {
+            return ToolScale.MIN_HARDNESS;
+        }
+        ItemToolSpec unarmed = ItemToolSpec.getAssetMap().getAsset(gather);
+        return ToolScale.hardness(unarmed == null ? 0f : unarmed.getPower());
     }
 
     /**
