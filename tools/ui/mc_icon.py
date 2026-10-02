@@ -1,7 +1,8 @@
-"""Draws GUI icons in MineColonies' style, for the controls MC has no texture for (MC's own textures are copied, never
-redrawn). Built on pixelstudio.py of the pixel-art-studio skill (github.com/Gamezxz/pixel-art-studio, MIT, commit
-f8c246635c4621a6c2b427833149afdc3dc3c719: the outputs are byte-identical with that commit only; it also uses the
-private Sprite._img()), installed at the user level: ~/.claude/skills/pixel-art-studio.
+"""Draws GUI icons in MineColonies' style: our own versions of some MC textures (seals, tab icons, chest) and icons MC
+has none for (CLAUDE.md § 7). Built on pixelstudio.py of the pixel-art-studio skill
+(github.com/Gamezxz/pixel-art-studio, MIT, commit f8c246635c4621a6c2b427833149afdc3dc3c719: the outputs are
+byte-identical with that commit only; it also uses the private Sprite._img()), installed at the user level:
+~/.claude/skills/pixel-art-studio.
 
 MC's style, measured on its GUI textures with that skill's study.py: single-hue ramps (no hue shift), relief from
 shapes shifted toward the top-left light, soft shading melted inside the silhouette, a rim coloured by the angle of

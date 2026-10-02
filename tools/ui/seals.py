@@ -121,6 +121,7 @@ SEALS = [
     (HYLENS / "red_wax_colonies@2x.png", colonies, 17),
     (HYLENS / "red_wax_citizens@2x.png", citizens, 17),
     (HYLENS / "red_wax_lens@2x.png", lens, 17),
+    (HYLENS / "red_wax_work_orders@2x.png", work_orders, 17),
 ]
 
 if __name__ == "__main__":

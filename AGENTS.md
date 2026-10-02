@@ -48,4 +48,5 @@ Defined for Claude Code in `.claude/`; other tools can follow the same files as 
   CLAUDE.md § 7).
 - Skills (`.claude/skills/`): `port-mc` (order of work to port a MineColonies system), `hytale-api` (verify a Hytale API
   in the decompiled server), `add-lang-key` (add a text key to en-US and fr-FR), `add-migration` (schema bump of the
-  colony save), `ship` (build, reviews, then commit).
+  colony save), `mc-ui-asset` (draw an icon in MineColonies' style with `tools/ui/`), `ship` (build, reviews, then
+  commit).
