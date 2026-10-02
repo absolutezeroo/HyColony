@@ -5,7 +5,8 @@ $B = "Mc/Book.ui";
 // doubled: the side tabs, then the colonist paper drawn over their right edge as nav.xml does, then each tab's page
 // (CitizenPage shows the open one). MC's tab backgrounds are fixed by nav.xml; Family keeps its empty place (a system
 // HyColony lacks). The Inventory tab opens the game's container screen instead (CitizenPage).
-// Textures under Mc/ are MineColonies' (ldtteam, GPL-3), scaled x4 nearest-neighbour into @2x files.
+// Textures under Mc/ are MineColonies' (ldtteam, GPL-3), except the wax seals and tab icons, ours, drawn in its style
+// by tools/ui/seals.py and tools/ui/tabs.py; all are scaled x4 nearest-neighbour into @2x files.
 
 @TabBack = Group {
   @Y = 0;

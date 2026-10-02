@@ -246,6 +246,8 @@ Cinq `BoolSetting` de la colonie, tous à `true` par défaut (`mc:core/colony/bu
 
 #### Textures MC par onglet
 
+Depuis le 2026-10-02, à la demande de l'utilisateur, les sceaux de cire (`red_wax_*`, `colonist_wax_*`) et les icônes d'onglet (`modules/*`) ne sont plus copiés : ils sont dessinés dans le style de MC par `tools/ui/seals.py` et `tools/ui/tabs.py`, avec les mêmes noms, tailles et sens.
+
 Déjà copiées dans `ui:Mc/` : `townhall_book`, `bookmark_ribbon_01/02/04/05`, `bookmark_short_ribbon_01/02/04/05`, `red_wax_home/work_orders/citizens/stats`, `builder_button_medium_large`, `builder_button_mini`, `edit`. Toutes celles qui manquent existent dans `tex/` (vérifié, taille d'origine entre parenthèses) :
 
 - **cadre** : `bookmark_short_ribbon_03` (31 × 15), `_06` (31 × 14, partagé par Alliances et Réglages, `windowtownhall.xml:10-11`), `bookmark_ribbon_03`, `_06` (204 × 17), `bookmark_medium_ribbon_01` à `_06` (104 × 14, rubans de survol, inutiles tant que l'écart de l'infobulle reste), `red_wax_permissions`, `red_wax_information` (sceau des **Alliances**, `windowtownhall.xml:67-68`), `red_wax_settings` (17 × 17) ;

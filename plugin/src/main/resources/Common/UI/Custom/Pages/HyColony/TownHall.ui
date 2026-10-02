@@ -2,8 +2,9 @@ $C = "../../Common.ui";
 
 // The town hall's frame as MC's book (gui/townhall/windowtownhall.xml), MC positions and sizes doubled: the book, the
 // open tab's page appended into #Page (TownHall/*.ui), then the bookmarks drawn over it. Textures under Mc/ are
-// MineColonies' (ldtteam, GPL-3), scaled x4 nearest-neighbour into @2x files. Bookmarks are numbered by MC slot
-// (TownHallPage.Tab); Deviation from MC: no slot 5 (Alliances), as HyColony has no diplomacy system.
+// MineColonies' (ldtteam, GPL-3), except the wax seals, ours, drawn in its style by tools/ui/seals.py; all are scaled
+// x4 nearest-neighbour into @2x files. Bookmarks are numbered by MC slot (TownHallPage.Tab); Deviation from MC: no
+// slot 5 (Alliances), as HyColony has no diplomacy system.
 
 // A closed tab: its short ribbon behind its wax seal (MC "<tab>0" image and "<tab>" button).
 @Mark = Group {

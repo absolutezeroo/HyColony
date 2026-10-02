@@ -35,9 +35,15 @@ HyLens ne peut pas réutiliser le code de la mairie (`plugin/` de HyColony, hors
 
 | Emplacement | Onglet | Sceau | Ruban |
 |---|---|---|---|
-| 0 | Colonies | `red_wax_home` | `_01` |
+| 0 | Colonies | `red_wax_colonies` (drapeau, propre à HyLens) | `_01` |
 | 1 | Citoyens | `red_wax_citizens` | `_02` |
-| 2 | Vue | `red_wax_settings` | `_03` |
+| 2 | Vue | `red_wax_lens` (loupe, propre à HyLens) | `_03` |
+
+MC n'a pas de sceau pour une liste de colonies ni pour une vue de débogage : les sceaux `red_wax_home` et
+`red_wax_settings` empruntés au départ disaient autre chose (utilisateur, 2026-10-02). Ensuite, à la demande de
+l'utilisateur, tous les sceaux de HyLens et de HyColony sont devenus les nôtres : dessinés dans le style de cire de MC
+par `tools/ui/seals.py` (palette de MC mesurée, relief, dégradé doux, symbole enfoncé ; voir `tools/ui/mc_icon.py`),
+avec le sens et la taille des sceaux de MC. Ils ne sont pas copiés de MC.
 
 Les lots suivants prennent les emplacements 3 et plus (`red_wax_work_orders`, `red_wax_information`, `red_wax_stats`).
 
@@ -71,7 +77,7 @@ Le HUD garde ses lignes et sa place à droite de l'écran. Il prend l'apparence 
 
 ### 3.5 Les textures
 
-Elles sont **copiées** dans le pack de HyLens (`Common/UI/Custom/Pages/HyLens/Mc/`), depuis celles de HyColony (`Pages/HyColony/Mc/`, déjà agrandies ×4 au plus proche voisin en @2x). HyLens ne pointe pas vers les assets de HyColony : leurs chemins ne font pas partie de son API. Seules les textures utilisées sont copiées : le livre, les rubans et sceaux des emplacements 0 à 2, les boutons utilisés, `builder_paper_wide2`. Le fichier de styles `Mc/Book.ui` de HyLens ne garde que les styles qu'il emploie.
+Elles sont **copiées** dans le pack de HyLens (`Common/UI/Custom/Pages/HyLens/Mc/`), depuis celles de HyColony (`Pages/HyColony/Mc/`, déjà agrandies ×4 au plus proche voisin en @2x). HyLens ne pointe pas vers les assets de HyColony : leurs chemins ne font pas partie de son API. Seules les textures utilisées sont copiées : le livre, les rubans des emplacements 0 à 2 (les sceaux sont dessinés, § 3.1), les boutons utilisés, `builder_paper_wide2`. Le fichier de styles `Mc/Book.ui` de HyLens ne garde que les styles qu'il emploie.
 
 Ces textures sont de MineColonies (ldtteam, GPL-3.0). Le crédit est écrit en tête de chaque `.ui` qui les emploie, et dans un `NOTICE` à la racine. Celui-ci dit aussi qu'elles sont agrandies ×4. La ligne du `README.md` qui dit « no MineColonies assets are used » est corrigée.
 
