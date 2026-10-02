@@ -64,22 +64,33 @@ seulement pour l'instant).
 
 ## 4. Architecture
 
-Plugin IntelliJ en Kotlin, IntelliJ Platform Gradle Plugin 2.x, cible IDEA 2026.2 et suivantes. JCEF est fourni par
-l'IDE (`JBCefApp.isSupported()` vérifié ; sinon, message dans l'aperçu).
+Plugin IntelliJ en **Java 25** (l'IDE 2026.2 tourne déjà en Java 25 ; pas de couplage à la version de la
+bibliothèque Kotlin de l'IDE ; même langage que HyColony), IntelliJ Platform Gradle Plugin 2.19.0, Gradle 9.5.1,
+compilé contre l'IDEA installé (`local(…)`), cible IDEA 2026.2 (`since-build` 262).
+
+Dépendances vérifiées dans IDEA 2026.2.3 (build 262.10968.63) :
+- JCEF n'est plus dans la plateforme : il est dans le plugin intégré `com.intellij.modules.jcef` (« Web Browser
+  (JCEF) »), modules `intellij.libraries.jcef` (`org.cef.*`) et `intellij.platform.ui.jcef` (`JBCefBrowser`,
+  `JBCefJSQuery`, `JBCefApp`). Le plugin Markdown en dépend de la même façon. `JBCefApp.isSupported()` est vérifié ;
+  sinon, message dans l'aperçu.
+- `.blockymodel` est ajouté au type de fichier `JSON` du plugin `com.intellij.modules.json` (coloration, validation).
+- Hyve 1.1.0, qui a son propre éditeur Blockbench (version web téléchargée) et son type « Hytale Model » pour
+  `.blockymodel`, est désactivé par l'utilisateur. Les deux plugins ne sont pas faits pour être actifs ensemble.
 
 ### 4.1 Côté IntelliJ
 
 | Classe | Rôle |
 |---|---|
-| `BlockbenchInstall` | Trouve l'installation (réglage, sinon `%LOCALAPPDATA%\Programs\Blockbench`), `resources/app.asar`, la version (`package.json` de l'asar) et le dossier `%APPDATA%\Blockbench\plugins`. Renvoie l'installation ou la raison de son absence. |
+| `BlockbenchInstall` | Trouve l'installation (réglage, sinon `%LOCALAPPDATA%\Programs\Blockbench`), `Blockbench.exe`, `resources/app.asar` et le dossier `%APPDATA%\Blockbench\plugins\hytale_plugin.js`. Renvoie l'installation ou la raison de son absence. |
 | `AsarArchive` | Lit l'en-tête JSON de l'asar (taille à l'octet 12, données après `8 + uint32@4`) et renvoie les octets d'une entrée. Sans dépendance. |
-| `BlockbenchRequests` | Gestionnaire de requêtes du navigateur (`CefRequestHandler` → `CefResourceRequestHandler`). Sert l'hôte fictif `http://blockbench.localhost/` et bloque toute autre requête. |
+| `BlockbenchRoutes` | Java pur : une URL donne une réponse (statut, type MIME, octets) selon les routes ci-dessous. Testable sans navigateur. |
+| `CefRoutes` | Adaptateur JCEF (`CefRequestHandlerAdapter` → `CefResourceRequestHandlerAdapter` → `CefResourceHandlerAdapter`) : sert `BlockbenchRoutes` pour l'hôte fictif `http://blockbench.localhost/` et répond 404 à toute autre requête. |
 | `BlockymodelPreview` | `FileEditor` contenant un `JBCefBrowser`. Envoie le texte au JS (300 ms d'attente), écoute le VFS pour les `.png`, affiche les erreurs reçues par `JBCefJSQuery`. |
 | `BlockymodelEditorProvider` | `FileEditorProvider` pour l'extension `blockymodel` : `TextEditorWithPreview(texte, aperçu)`. |
 | `OpenInBlockbenchAction` | Lance `Blockbench.exe` sur le fichier. |
 | `BlockbenchSettings` | `PersistentStateComponent` et page de Settings : chemin de Blockbench. |
 
-Routes de `BlockbenchRequests` :
+Routes de `BlockbenchRoutes` (la requête est ignorée après `?`, sauf pour `/fs/…`) :
 
 | Route | Contenu |
 |---|---|
@@ -96,25 +107,31 @@ limites : 404. Aucune requête ne sort de la machine : pas de vérification de m
 
 - `node-shim.js` : la couche « faux Node » du § 2, nettoyée.
 - `viewer.js` : attend `Blockbench.setup_successful`, charge `hytale_plugin.js`, masque l'interface, expose
-  `showModel(path, jsonText)` (ferme le projet courant, charge le nouveau, rétablit la caméra) et
-  `reloadTextures()`. Remonte toute erreur (`window.ErrorLog`, exceptions de `showModel`) au Kotlin.
+  `showModel(path, jsonText)` (ferme le projet courant, charge le nouveau, rétablit la caméra ; les textures sont
+  relues à chaque chargement, l'hôte répondant `Cache-Control: no-store`). Remonte toute erreur (`window.ErrorLog`,
+  exceptions de `showModel`) au Java.
+- État lisible de l'extérieur : `document.documentElement.dataset.bbv` vaut `ready`, `model:<nombre de boîtes>` ou
+  `error:<message>`. Avec `?model=<chemin>` dans l'URL, `viewer.js` charge ce modèle seul (test de démarrage).
 
 ### 4.3 Flux
 
 1. Ouverture du fichier : `BlockymodelPreview` crée le navigateur sur `http://blockbench.localhost/bb/index.html`.
-2. Démarrage : `viewer.js` signale « prêt » ; Kotlin appelle `showModel(chemin, texte du document)`.
+2. Démarrage : `viewer.js` signale « prêt » ; Java appelle `showModel(chemin, texte du document)`.
 3. Frappe : chaque changement du document relance une attente de 300 ms, puis `showModel`.
-4. Texture : un événement VFS sur un `.png` du dossier du modèle appelle `reloadTextures()`.
+4. Texture : un événement VFS sur un `.png` du dossier du modèle (ou de `<Modèle>_Textures`) relance la même attente,
+   puis `showModel`.
 5. Fermeture de l'onglet : le navigateur est libéré (`Disposer`).
 
 Chaque onglet d'aperçu démarre son propre Blockbench : moins d'une seconde, environ 100 à 150 Mo de mémoire.
 
 ## 5. Tests
 
-- JUnit : `AsarArchive` (sur une petite archive de test du dépôt) ; routes et limites de `BlockbenchRequests` (chemin
-  hors limites refusé, hôte étranger bloqué, `index.html` modifié) ; `BlockbenchInstall` (réglage, défaut, absence).
-- Test de démarrage sur le vrai `app.asar` (ignoré si Blockbench n'est pas installé) : le bundle démarre sans erreur
-  et charge un modèle de test, comme dans l'étude.
+- JUnit 5 : `AsarArchive` (sur une petite archive écrite par le test) ; routes et limites de `BlockbenchRoutes`
+  (chemin hors limites refusé, `index.html` modifié, `fs` virtuel) ; `BlockbenchInstall` (réglage, défaut, absence).
+- Test de démarrage sur le vrai `app.asar` (ignoré si Blockbench ou Edge manque) : `BlockbenchRoutes` est servi par
+  le serveur HTTP du JDK, Edge headless ouvre `index.html?model=<modèle de test>` avec
+  `--virtual-time-budget=20000 --dump-dom`, et le DOM rendu doit contenir `data-bbv="model:<n>"`. Vérifié pendant
+  l'étude : `model:40` sur `Builder.blockymodel` en 2,3 s.
 - `buildPlugin` et `verifyPlugin` verts.
 - Essai en IDE par l'utilisateur (`runIde` ou zip installé) : Builder et TownHall de HyColony, un pot de HyVanilla,
   modification du JSON en direct, `bake.py` puis rechargement de la texture, Blockbench absent (chemin faux).
