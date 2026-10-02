@@ -10,14 +10,9 @@
   "Categories": [
     "Items.Armors"
   ],
-  "Icon": "Icons/ItemsGenerated/Armor_Diving_Crude_Head.png",
-  "IconProperties": {
-    "Rotation": [ 22.5, 45, 22.5 ],
-    "Scale": 0.5,
-    "Translation": [ 0, -15 ]
-  },
+  "Icon": "Icons/Items/HyColony/Build_Goggles.png",
   "Model": "Items/HyColony/Build_Goggles.blockymodel",
-  "Texture": "Items/HyColony/Build_Goggles_Texture.png",
+  "Texture": "Items/HyColony/Build_Goggles.png",
   "Recipe": {
     "Input": [
       { "ItemId": "HyColony_Build_Tool", "Quantity": 1 },

@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parents[1] / "vanilla"))
+import bake  # noqa: E402
 from models import empty_shape, node  # noqa: E402
 from pack import placed  # noqa: E402
 from paint import bleed  # noqa: E402
@@ -55,6 +56,64 @@ class BleedTest(unittest.TestCase):
         bleed(image, two_islands())
         self.assertEqual([(255, 0, 0, 255), (255, 0, 0, 255), (0, 0, 255, 255), (0, 0, 255, 255), (0, 0, 255, 255)],
                          [image.getpixel((x, 0)) for x in range(5)])
+
+
+def box(name, at, size, layout=None):
+    """A standard-shaded box node of size, its top face on the island at (0, 0) unless layout says otherwise."""
+    shape = shape_at((0, 0, 0))
+    shape.update({"type": "box", "settings": {"size": dict(zip("xyz", size))}, "shadingMode": "standard",
+                  "textureLayout": layout or {"top": {"offset": {"x": 0, "y": 0}}}})
+    return node(name, at, shape)
+
+
+class BakeTest(unittest.TestCase):
+    def test_a_box_hovering_over_a_texel_darkens_it(self):
+        lid = list(bake.world_boxes([box("Lid", (0, 3, 0), (6, 2, 6))]))
+        up = (0.0, 1.0, 0.0)
+        self.assertEqual(0.0, bake.occlusion((0.0, 0.0, 0.0), up, []))
+        self.assertGreater(bake.occlusion((0.0, 0.0, 0.0), up, lid), 0.3)
+
+    def test_a_ray_hits_a_turned_box_ahead_and_ignores_one_behind_or_beside_it(self):
+        half = math.sqrt(0.5)
+        ahead = box("Ahead", (0, 5, 0), (2, 2, 2))
+        ahead["orientation"] = {"x": 0, "y": half, "z": 0, "w": half}
+        boxes = list(bake.world_boxes([ahead, box("Behind", (0, -5, 0), (2, 2, 2))]))
+        self.assertAlmostEqual(4.0, bake.hit((0.0, 0.0, 0.0), (0.0, 1.0, 0.0), boxes, 10.0))
+        self.assertIsNone(bake.hit((0.0, 5.0, 0.0), (0.0, 1.0, 0.0), boxes, 10.0))
+        self.assertIsNone(bake.hit((0.0, 0.0, 0.0), (1.0, 0.0, 0.0), boxes, 10.0))
+        beam = box("Beam", (0, 0, 0), (8, 2, 2))
+        beam["orientation"] = {"x": 0, "y": half, "z": 0, "w": half}
+        beams = list(bake.world_boxes([beam]))
+        self.assertAlmostEqual(6.0, bake.hit((0.0, 0.0, -10.0), (0.0, 0.0, 1.0), beams, 20.0))
+
+    def test_a_ray_hits_a_long_box_whose_centre_lies_behind_its_start(self):
+        sill = list(bake.world_boxes([box("Sill", (-2, 0, 0), (10, 2, 2))]))
+        down = (math.sqrt(0.5), -math.sqrt(0.5), 0.0)
+        self.assertAlmostEqual(math.sqrt(2), bake.hit((0.5, 2.0, 0.0), down, sill, 10.0))
+
+    def test_the_bevel_lights_a_front_face_s_top_edge_and_shades_its_bottom_edge(self):
+        point, front = (0.0, 0.0, 0.0), (0.0, 0.0, 1.0)
+        plain = bake.brightness(point, front, None, [], "standard")
+        self.assertGreater(bake.brightness(point, front, ((0.0, 1.0, 0.0), 1.0), [], "standard"), plain)
+        self.assertLess(bake.brightness(point, front, ((0.0, -1.0, 0.0), 1.0), [], "standard"), plain)
+
+    def test_the_floor_shades_a_grounded_foot_only(self):
+        side = (0.0, 0.0, 1.0)
+        self.assertGreater(bake.occlusion((0.0, 0.5, 0.0), side, [bake.FLOOR]), 0.0)
+        self.assertEqual(0.0, bake.occlusion((0.0, -0.5, 0.0), side, [bake.FLOOR]))
+
+    def test_border_rings_skip_faces_too_thin_for_them(self):
+        u, v = (1.0, 0.0, 0.0), (0.0, -1.0, 0.0)
+        self.assertIsNone(bake.edge(0, 2, 1, 6, u, v))
+        self.assertIsNone(bake.edge(1, 1, 3, 6, u, v))
+        self.assertEqual(bake.BEVEL_RINGS[0], bake.edge(0, 2, 3, 6, u, v)[1])
+        self.assertEqual(bake.BEVEL_RINGS[1], bake.edge(1, 2, 4, 6, u, v)[1])
+
+    def test_two_faces_sharing_an_island_are_refused(self):
+        shared = {side: {"offset": {"x": 0, "y": 0}} for side in ("front", "back")}
+        image = Image.new("RGBA", (4, 4), (200, 200, 200, 255))
+        with self.assertRaises(SystemExit):
+            bake.light(image, [box("Block", (0, 0, 0), (2, 2, 2), shared)])
 
 
 if __name__ == "__main__":

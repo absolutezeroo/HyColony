@@ -182,18 +182,27 @@ def face_samples(side, size, face, density):
     """(point about the box's centre, texel) pairs covering a face, about two samples per icon pixel each way, as
     Blockbench lays faces out (u right, v down). The view looks along (1, 1, 1): the nearest point has the largest
     x + y + z."""
-    hx, hy, hz = (s / 2 for s in size)
-    w, h = {"front": (size[0], size[1]), "back": (size[0], size[1]), "right": (size[2], size[1]),
-            "left": (size[2], size[1]), "top": (size[0], size[2]), "bottom": (size[0], size[2])}[side]
+    w, h = face_span(side, size)
     columns, rows = max(1, math.ceil(w * density * 2)), max(1, math.ceil(h * density * 2))
     u0, v0 = face["offset"]["x"], face["offset"]["y"]
     for i in range(columns):
         for j in range(rows):
             s, t = (i + 0.5) / columns * w, (j + 0.5) / rows * h
-            point = {"front": (-hx + s, hy - t, hz), "back": (hx - s, hy - t, -hz), "right": (hx, hy - t, hz - s),
-                     "left": (-hx, hy - t, -hz + s), "top": (-hx + s, hy, -hz + t),
-                     "bottom": (-hx + s, -hy, hz - t)}[side]
-            yield point, (int(u0 + s), int(v0 + t))
+            yield face_point(side, size, s, t), (int(u0 + s), int(v0 + t))
+
+
+def face_span(side, size):
+    """(width, height) of a box face of size (x, y, z), in texels as Blockbench lays it out."""
+    return {"front": (size[0], size[1]), "back": (size[0], size[1]), "right": (size[2], size[1]),
+            "left": (size[2], size[1]), "top": (size[0], size[2]), "bottom": (size[0], size[2])}[side]
+
+
+def face_point(side, size, s, t):
+    """The point about the box's centre at texel coordinates (s, t) of a face, as Blockbench lays faces out: u to the
+    right and v down, seen from outside the face."""
+    hx, hy, hz = (c / 2 for c in size)
+    return {"front": (-hx + s, hy - t, hz), "back": (hx - s, hy - t, -hz), "right": (hx, hy - t, hz - s),
+            "left": (-hx, hy - t, -hz + s), "top": (-hx + s, hy, -hz + t), "bottom": (-hx + s, -hy, hz - t)}[side]
 
 
 def save_png(image, path):

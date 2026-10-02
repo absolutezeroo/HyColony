@@ -36,15 +36,18 @@ def islands(nodes):
                 yield n["name"], side, *rect
 
 
-def paint(nodes, size, tiles, material_of, side_rims=True, pictures=frozenset()):
-    """The model's texture: each island filled with tiles[material_of(node name, side)], then shaded. Without
-    side_rims, side faces keep their left and right columns unshaded: walls split into several boxes then join
-    without a seam. The materials in pictures carry a drawing laid out for their island: never turned."""
+def paint(nodes, size, tiles, material_of, side_rims=True, pictures=frozenset(), shade=True):
+    """The model's texture: each island filled with tiles[material_of(node name, side)], then shaded (unless shade
+    is False: bake.light then lights it from the model). A tile is an image, or a brush: a function (w, h, side)
+    painting the whole island. Without side_rims, side faces keep their left and right columns unshaded: walls split
+    into several boxes then join without a seam. The materials in pictures carry a drawing laid out for their
+    island: never turned."""
     image = Image.new("RGBA", size, (0, 0, 0, 0))
     for name, side, u, v, w, h in islands(nodes):
         material = material_of(name, side)
-        island = fill(tiles[material], w, h, material not in pictures)
-        image.paste(shaded(island, side, side_rims), (u, v))
+        tile = tiles[material]
+        island = tile(w, h, side) if callable(tile) else fill(tile, w, h, material not in pictures)
+        image.paste(shaded(island, side, side_rims) if shade else island, (u, v))
     return image
 
 

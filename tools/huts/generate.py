@@ -1,11 +1,12 @@
-"""Paints HyColony's hand-built hut block models (spec 2026-10-02 hut models) and draws their icons.
+"""Paints HyColony's hand-built models (spec 2026-10-02 hut models: hut blocks, build goggles, build tool) and draws
+their icons.
 
 Each model is built in Blockbench (docs/research/hytale-models.md) and exported to
 plugin/src/main/resources/Common/<MODEL>.blockymodel, MODEL being declared by its module; this script never writes
 it. It paints the model's texture next to it (<MODEL>.png), island by island (tools/vanilla/paint.py), with the
-module's materials, and draws the item icon (Icons/Items/HyColony/<ICON>.png) from the model, seen from +x +z (a
-block's front, +z, faces the player who placed it). Run once after changing a model or its materials, then commit
-the outputs. Needs Python 3.10+ and Pillow.
+module's materials and brushes, bakes the model's light into it (tools/vanilla/bake.py), and draws the item icon
+(Icons/Items/HyColony/<ICON>.png) from the model, seen from +x +z (a block's front, +z, faces the player who placed
+it). Run once after changing a model or its materials, then commit the outputs. Needs Python 3.10+ and Pillow.
 
     python tools/huts/generate.py [path/to/Assets.zip]
 """
@@ -17,8 +18,11 @@ from pathlib import Path
 
 TOOLS = Path(__file__).resolve().parents[1]
 sys.path.append(str(TOOLS / "vanilla"))
+import build_tool  # noqa: E402
 import builder  # noqa: E402
+import goggles  # noqa: E402
 import town_hall  # noqa: E402
+from bake import light  # noqa: E402
 from models import add, corners, rotate  # noqa: E402
 from pack import (GRADLE_ASSETS, ICON_SIZE, ROOT, Assets, draw_model, iso, placed, save_png,  # noqa: E402
                   validate_pack)
@@ -26,7 +30,7 @@ from paint import bleed, islands, paint  # noqa: E402
 from PIL import Image  # noqa: E402
 
 RESOURCES = ROOT / "plugin" / "src" / "main" / "resources"
-MODELS = (builder, town_hall)
+MODELS = (builder, town_hall, goggles, build_tool)
 ICON_MARGIN = 3
 
 
@@ -35,15 +39,22 @@ def main():
     for module in MODELS:
         model = RESOURCES / "Common" / (module.MODEL + ".blockymodel")
         nodes = json.loads(model.read_text(encoding="utf-8"))["nodes"]
-        # Blockbench names a group's later cubes '<cube>--C<n>': the materials read the name before it.
-        texture = bleed(paint(nodes, texture_size(nodes), module.tiles(assets),
-                              lambda name, side, m=module: m.material(name.split("--")[0], side),
-                              pictures=module.PICTURES), nodes)
-        save_png(texture, model.with_suffix(".png"))
+        image = texture(module, nodes, assets)
+        save_png(image, model.with_suffix(".png"))
         icon = Image.new("RGBA", (ICON_SIZE, ICON_SIZE), (0, 0, 0, 0))
-        draw_model(icon, nodes, texture, *icon_frame(nodes))
+        draw_model(icon, nodes, image, *icon_frame(nodes))
         save_png(icon, RESOURCES / "Common/Icons/Items/HyColony" / (module.ICON + ".png"))
     validate_pack(assets, RESOURCES)
+
+
+def texture(module, nodes, assets):
+    """The model's texture: its materials painted island by island, its light baked from the model (bake.light),
+    each island's border bled into its gap."""
+    # Blockbench names a group's later cubes '<cube>--C<n>': the materials read the name before it.
+    painted = paint(nodes, texture_size(nodes), module.tiles(assets),
+                    lambda name, side: module.material(name.split("--")[0], side), pictures=module.PICTURES,
+                    shade=False)
+    return bleed(light(painted, nodes, grounded=module.MODEL.startswith("Blocks/")), nodes)
 
 
 def texture_size(nodes):

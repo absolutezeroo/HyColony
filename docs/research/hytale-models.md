@@ -97,6 +97,9 @@ Vérifié le 2026-10-02 sur Hytale 0.7.0-pre.5 (`pre-release-0.7.0-pre.5-Assets.
   l'échelle des plantes en pot) ignore encore le décalage du parent : à corriger à part, car cela change la taille de
   41 plantes en pot.
 - Les huttes de HyColony suivent la même chaîne : `tools/huts/generate.py`, spec
-  `docs/superpowers/specs/2026-10-02-hycolony-hut-models-design.md`.
+  `docs/superpowers/specs/2026-10-02-hycolony-hut-models-design.md`. Leur lumière n'est plus le dégradé générique de
+  `paint.shaded` mais celle que `tools/vanilla/bake.py` cuit à partir du modèle (occlusion ambiante, ombre portée,
+  biseaux, variation de teinte), sur des matières peintes au pinceau (`tools/huts/brushes.py`). Chaque face y a sa
+  propre zone d'UV, parce que la lumière cuite diffère d'une face à l'autre.
 - Pour modifier un modèle : l'ouvrir dans un projet `hytale_prop` (§ 3), le retoucher, le réexporter, puis relancer
   `python tools/vanilla/generate.py`.

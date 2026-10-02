@@ -1,6 +1,7 @@
 # Modèles des blocs de hutte
 
-Date : 2026-10-02. Statut : constructeur et hôtel de ville faits ; maison, fermier et bûcheron à venir.
+Date : 2026-10-02. Statut : constructeur, hôtel de ville, lunettes et outil de construction faits ; maison, fermier et
+bûcheron à venir.
 
 ## But
 
@@ -37,6 +38,7 @@ la portons pas. Chaque hutte a un design à nous, dans le style des meubles de H
   - dessous posés sur une surface retirés ;
   - aucune face confondue ;
   - chaque groupe porte le nom de sa pièce principale ;
+  - une zone d'UV par face (voir « Peinture ») ;
   - 2 pixels de marge entre les zones d'UV, que le peintre remplit en prolongeant le bord de chaque zone d'un pixel
     (`paint.bleed`) : sinon une face fine lit la zone voisine (vu sur les lunettes le 2026-10-02). Avec 1 pixel, le
     pixel entre deux zones ne prolongerait que la première.
@@ -50,11 +52,11 @@ la portons pas. Chaque hutte a un design à nous, dans le style des meubles de H
 
 ## Constructeur
 
-Une table à dessin d'architecte, en 40 boîtes, avec une texture de 128×64 :
+Une table à dessin d'architecte, en 40 boîtes, avec une texture de 256×96 :
 
-- **Bâti** en planches de hêtre (`Wood_Hardwood_Planks`) : quatre pieds de 4×4 (ceux de l'arrière plus hauts), des
+- **Bâti** en bois brun peint (pinceau `wood`) : quatre pieds de 4×4 (ceux de l'arrière plus hauts), des
   traverses basses, une étagère et une traverse haute sur chaque flanc.
-- **Planche à dessin** en bois clair (`Wood_Lightwood_Planks`), de 32×28 (toute la largeur), inclinée de 24° vers le
+- **Planche à dessin** en bois clair peint, de 32×28 (toute la largeur), inclinée de 24° vers le
   joueur, avec un rebord à l'avant. Dessus :
   - un plan bleu quadrillé de 24×18, avec un cadre et le croquis d'une maison qui se lit depuis l'avant, et une
     tranche bleu foncé ;
@@ -72,12 +74,12 @@ Une table à dessin d'architecte, en 40 boîtes, avec une texture de 128×64 :
 ## Hôtel de ville
 
 Un pupitre officiel sur un tapis, avec la bannière et la cloche de la colonie, en 38 boîtes, avec une texture de
-128×64. Dessiné dans 22,8 unités de large et agrandi ×1,4 en jeu (`CustomModelScale`) : 1 bloc de large, 1,4 de haut.
+128×96. Dessiné dans 22,8 unités de large et agrandi ×1,4 en jeu (`CustomModelScale`) : 1 bloc de large, 1,4 de haut.
 
 - **Tapis** : un velours rouge peint en touffes, de 16×2×16, sur un socle de 18×18 dont le bord forme un liseré doré,
   avec cinq pompons dorés devant et cinq derrière, juste au-dessus du sol. L'ensemble est tourné de 3°, et chaque
   pompon a son propre biais.
-- **Pupitre** en bois sombre (`Wood_Darkwood_Planks`) : un pied, un fût droit qui entre dans l'épaisseur de la
+- **Pupitre** en bois sombre peint : un pied, un fût droit qui entre dans l'épaisseur de la
   planche, et une planche inclinée de 25° vers le joueur. Dessus :
   - le registre de la colonie ouvert, en cuir rouge sombre, avec ses pages écrites, posé de biais (6°) ;
   - un encrier avec sa plume.
@@ -87,10 +89,45 @@ Un pupitre officiel sur un tapis, avec la bannière et la cloche de la colonie, 
   bandes extérieures, plus longues, forment les deux pointes, et le bas est irrégulier. La barre a 3 de profondeur et
   couvre le haut des plis.
 - **Cloche** (derrière, de l'autre côté) : une potence en bois, une corde et une cloche en bronze
-  (`Metal_Bronze_Smooth`) balancée de 7°, avec son battant en fer.
+  brossé (pinceau `metal`) balancée de 7°, avec son battant en fer.
 - **Objet** : hitbox `HyColony_Hut` (1×1,4×1). L'objet utilisait jusqu'ici la hitbox `Bench_Architect` de Hytale
   (2 blocs de large, 1,8 de haut) avec le modèle de l'établi d'architecte. Casse, particules et sons passent de la
   pierre au bois, comme le bloc de MineColonies (`BlockHutTownHall.java:51`, `MapColor.WOOD`, `SoundType.WOOD`).
+
+## Lunettes de construction
+
+Des lunettes d'architecte, pièce d'armure de tête (racine `Head` du casque `Armors/Diving_Crude/Head` de Hytale), en
+29 boîtes, ombrage `flat` comme les armures de Hytale, calées sur la tête du joueur (30×28×28, yeux à y ≈ 18) :
+un anneau de cuir cousu autour de la tête, deux coques de cuir à monture de laiton et verres de cristal cyan
+lumineux (`fullbright`, le cristal cyan de la recette), un pont, une loupe à charnière relevée sur le front et une
+molette de réglage. L'objet lit `Items/HyColony/Build_Goggles.{blockymodel,png}` et son icône.
+
+## Outil de construction
+
+Un marteau d'architecte, objet tenu (racine `R-Attachment`, calé comme la baguette de Hytale, animation « Item »),
+en 15 boîtes : manche en hêtre, pommeau et bague en laiton, poignée gainée de cuir, tête en fer brossé avec face de
+frappe en acier, panne en deux paliers, deux bagues de laiton, et un cristal cyan taillé de chaque côté (losange
+tourné de 45° et sa table), serti dans un cadre en laiton. Choisi par l'utilisateur parmi quatre pistes (sceptre,
+marteau, compas, bâton à plan) ; un premier jet en équerre et fil à plomb a été écarté. L'objet lit
+`Items/HyColony/Build_Tool.{blockymodel,png}`, son icône et le son `ISS_Weapons_Wood` des marteaux de Hytale.
+
+## Peinture
+
+Retour de l'utilisateur sur les premiers jets : textures trop nettes, sans le travail au crayon et à la brosse douce
+que conseille Hytale. Chaque modèle passe donc par trois étapes (`tools/huts/generate.py`, `texture`) :
+
+1. ses matières : les pinceaux de `tools/huts/brushes.py`, qui peignent une zone entière (bois, métal brossé, cristal
+   taillé, papier, tissu, pierre, minerai, terre cuite ; pierre et minerai pour les huttes de mineur et de carrier,
+   demandés par l'utilisateur), et quelques teintes de tuiles de Hytale (`tools/huts/materials.py` : cuir, plume…) ;
+2. `tools/vanilla/bake.py` cuit la lumière à partir du modèle lui-même, pixel par pixel : occlusion ambiante (rayons
+   contre les autres boîtes et, pour un bloc, le sol), ombre portée d'une lumière en haut à l'avant gauche, biseau
+   sur les deux anneaux de pixels du bord de chaque zone avec usure (éclats clairs) côté lumière, crasse au pied d'un
+   bloc, variation douce de teinte, ombres froides et lumières chaudes ; la direction de la lumière aussi sur les
+   faces `flat` ; une occlusion réduite et pas d'ombre portée sur les faces lumineuses ;
+3. le débordement des bords dans les marges (`paint.bleed`).
+
+**Une zone d'UV par face** : une zone ne peut porter que la lumière d'une seule face. `bake.light` refuse un modèle
+dont deux faces partagent un pixel (relecture du 2026-10-02 : l'avant d'un pied montrait la lumière de son arrière).
 
 ## Huttes suivantes
 

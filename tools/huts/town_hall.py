@@ -1,12 +1,14 @@
 """The town hall's hut block (spec 2026-10-02 hut models): an official lectern holding the colony's register on a
 plush red carpet, the colony's banner on its mast and a bronze bell on its post, built in Blockbench. Its materials:
-Hytale wood, bronze, iron (the clapper) and cloth tiles, plus the painted details only this model has (the carpet's
-tufted pile, written pages, the banner's emblem)."""
+painted wood, metal (bronze, gold, the iron clapper), cloth and paper brushes, a few Hytale cloth tints, plus the
+painted details only this model has (the carpet's tufted pile, written pages, the banner's emblem)."""
 
 from PIL import ImageDraw
 
-from builder import feather, tinted
-from paint import darker
+from brushes import as_tile, cloth, metal, paper, wood
+from materials import feather, tinted
+
+RED = (150, 36, 38)
 
 MODEL = "Blocks/HyColony/Huts/TownHall"
 ICON = "Hut_TownHall"
@@ -39,19 +41,19 @@ def material(name, side):
 
 
 def tiles(assets):
-    """Material -> its 32 px tile."""
+    """Material -> its 32 px tile or brush."""
     def tile(name):
         return assets.image("Common/BlockTextures/" + name + ".png").crop((0, 0, 32, 32))
 
-    red = tinted((150, 36, 38), tile("Cloth_Red"), 0.3)
+    red = as_tile(cloth(RED, folds=0.04))
     return {
-        "wood": tile("Wood_Darkwood_Planks"), "bronze": tile("Metal_Bronze_Smooth"),
-        "gold": tinted(GOLD[:3], tile("Metal_Bronze_Smooth"), 0.4), "iron": darker(tile("Metal_Iron"), 0.5),
-        "plush": plush(red), "cloth": red, **banner_strips(red),
-        "leather": tinted((104, 40, 34), tile("Cloth_Red"), 0.2), "page": page(tile("Cloth_White")),
+        "wood": wood((92, 52, 36)), "bronze": metal((184, 124, 60)), "gold": metal(GOLD[:3]),
+        "iron": metal((76, 78, 86)),
+        "plush": plush(red), "cloth": cloth(RED), **banner_strips(red),
+        "leather": tinted((104, 40, 34), tile("Cloth_Red"), 0.2), "page": page(),
         "ink": tinted((40, 48, 86), tile("Cloth_Black"), 0.2),
         "shaft": tinted((204, 198, 186), tile("Cloth_White"), 0.2),
-        "feather": feather(tile("Cloth_White")), "rope": tinted((150, 116, 72), tile("Cloth_White"), 0.2),
+        "feather": feather(tile("Cloth_White")), "rope": cloth((150, 116, 72), folds=0.03),
     }
 
 
@@ -66,10 +68,11 @@ def plush(red):
     return image
 
 
-def page(cloth):
-    """Cream paper written in short brown lines, laid out on a page's 6 x 8 island (its edges, the first row, stay
-    blank)."""
-    image = tinted((230, 220, 194), cloth, 0.2)
+def page():
+    """Cream paper (the paper brush laid out for a page's 6 x 8 island) written in short brown lines (its edges, the
+    first row, stay blank)."""
+    image = as_tile(paper((230, 220, 194)))
+    image.paste(paper((230, 220, 194))(6, 8, "top"), (0, 0))
     draw = ImageDraw.Draw(image)
     for y in range(2, 8, 2):
         draw.line([(1, y), (4, y)], fill=(120, 96, 70, 255))
