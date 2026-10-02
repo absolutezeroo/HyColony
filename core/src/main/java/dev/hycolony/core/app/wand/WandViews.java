@@ -20,8 +20,6 @@ import java.util.function.Function;
  * AbstractBlockHut.getRequirements).
  */
 final class WandViews {
-    private static final String CORE_PREFIX = "hycolony:";
-
     private final ColonyManager manager;
     private final Function<String, ItemKey> hutItem;
 
@@ -117,7 +115,7 @@ final class WandViews {
                 .byId(typeId)
                 .map(t -> manager.context().ports().playerInventory().count(player, hutItem.apply(t.hutBlockKey())) > 0)
                 .orElse(false);
-        return carried ? List.of() : List.of(Msg.of("hycolony.wand.requirement.cost", nameParam(typeId)));
+        return carried ? List.of() : List.of(Msg.of("hycolony.wand.requirement.cost", BuildingType.nameParam(typeId)));
     }
 
     private boolean knowsAColony(UUID player, WandSession s) {
@@ -129,13 +127,6 @@ final class WandViews {
                         .isPresent()
                 || manager.all().stream()
                         .anyMatch(c -> c.permissions().rankOf(player).isColonyManager());
-    }
-
-    /** A hut name as a message parameter: a HyColony hut's translated name, any other type's id as is. */
-    static String nameParam(String typeId) {
-        return typeId.startsWith(CORE_PREFIX)
-                ? "%hycolony.ui.building.type." + typeId.substring(CORE_PREFIX.length())
-                : typeId;
     }
 
     /**

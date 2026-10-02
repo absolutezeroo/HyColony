@@ -8,4 +8,11 @@ public record BuildingType(String id, String hutBlockKey, int maxLevel, List<Mod
     public BuildingType {
         modules = List.copyOf(modules);
     }
+
+    /** {@code name} as a message parameter: a HyColony hut type's translated key, any other name as is. */
+    public static String nameParam(String name) {
+        return name.startsWith("hycolony:")
+                ? "%hycolony.ui.building.type." + name.substring("hycolony:".length())
+                : name;
+    }
 }

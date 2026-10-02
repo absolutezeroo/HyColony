@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.app.ui.WandView;
+import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
@@ -232,8 +233,8 @@ class WandNavigationTest {
 
     @Test
     void anAddonHutIsNamedByItsIdInTheRequirement() {
-        assertEquals("%hycolony.ui.building.type.builder", WandViews.nameParam(BUILDER));
-        assertEquals("addon:forge", WandViews.nameParam("addon:forge"));
+        assertEquals("%hycolony.ui.building.type.builder", BuildingType.nameParam(BUILDER));
+        assertEquals("addon:forge", BuildingType.nameParam("addon:forge"));
     }
 
     @Test

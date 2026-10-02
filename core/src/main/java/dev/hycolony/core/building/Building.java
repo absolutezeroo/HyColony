@@ -192,6 +192,11 @@ public final class Building implements Requester, ResolverProvider {
         return customName.isEmpty() ? type.id() : customName;
     }
 
+    /** Its name as a message parameter ({@link BuildingType#nameParam} of its display name). */
+    public String nameParam() {
+        return BuildingType.nameParam(displayName());
+    }
+
     /**
      * MC AbstractBuilding.onRequestedRequestComplete: a building-level request that brings no items (a pickup, a
      * courier delivery) is received at once, so it leaves the request system. Deviation from MC: MC receives every
