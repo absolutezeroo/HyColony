@@ -3,6 +3,7 @@ package dev.hycolony.core.construction.builder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.app.ColonyManager;
@@ -401,6 +402,25 @@ class BuilderAITest {
 
         assertEquals(new BlockState(STONE, 0), t.blocks.blocks.get(at(1, 0, 0)));
         assertEquals(0, citizen.inventory().count(DIRT_I));
+    }
+
+    /** Structurize StructurePlacer: a creative (free) order requires no item, so prePlacementLogic empties the hand. */
+    @Test
+    void aFreeOrderPlacesWithAnEmptyHand() {
+        t.players.creativeOperators.add(alice);
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);
+        blueprint = bp(List.of(entry(1, 0, 0, STONE)));
+        t.bodies.setHeldItem(body, Optional.of(STONE_I));
+        WorkOrder o = order(res, WorkOrderType.UPGRADE);
+        assertTrue(o.free());
+
+        tickUntil(
+                () -> STONE.equals(Optional.ofNullable(t.blocks.blocks.get(at(1, 0, 0)))
+                        .map(BlockState::key)
+                        .orElse(null)),
+                5000);
+
+        assertNull(t.bodies.bodies.get(body).held);
     }
 
     /** Structurize sameBlockInWorld: the same block turned the wrong way is only turned, without items. */

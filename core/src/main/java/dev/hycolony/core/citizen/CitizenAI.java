@@ -193,7 +193,9 @@ public final class CitizenAI {
             case GO_TO_SLEEP -> {
                 decidedEating = false;
                 leaveEating(now);
-                dropJobAI(); // MC resetAI on leaving WORK; the sleep decision ignores canBeInterrupted
+                // MC resets the job AI on entering WORK again (resetAI): dropping it here has that effect. The sleep
+                // decision ignores canBeInterrupted.
+                dropJobAI();
                 yield CitizenState.SLEEP;
             }
             case WAKE_UP -> decideHunger(now == CitizenState.SLEEP ? CitizenState.IDLE : now);

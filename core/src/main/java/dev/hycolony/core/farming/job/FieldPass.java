@@ -173,12 +173,14 @@ final class FieldPass {
     }
 
     /**
-     * MC harvestIfAble / mineBlock: facing the crop, a stroke on it (MC hitBlockWithToolInHand looks at it and swings),
-     * then the harvest drops go to the inventory; one action, the block's and harvest XP, even without drops. Nothing
-     * more when the crop is still mature (the harvest failed).
+     * MC harvestIfAble / mineBlock: an empty hand (holdEfficientTool finds no tool for a crop: removeHeldItem, the
+     * hoe's slot still held), facing the crop, a stroke on it (MC hitBlockWithToolInHand looks at it and swings), then
+     * the harvest drops go to the inventory; one action, the block's and harvest XP, even without drops. Nothing more
+     * when the crop is still mature (the harvest failed).
      */
     private void harvest(BlockPos surface) {
         BlockPos crop = surface.offset(0, 1, 0);
+        ctx.hands().hold(Optional.empty());
         ctx.hands().face(crop);
         ctx.hands().swing(BodyAnimation.MINE);
         ctx.colony().context().ports().effects().blockHit(crop, 1f);

@@ -28,6 +28,7 @@ import dev.hycolony.core.crafting.task.CraftingTasks;
 import dev.hycolony.core.job.JobAI;
 import dev.hycolony.core.job.JobXp;
 import dev.hycolony.core.kernel.item.ItemAmount;
+import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolInfo;
 import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.request.Request;
@@ -198,6 +199,23 @@ class CraftingWorkTest {
         axe.work.craft();
 
         assertEquals(3, axe.crafter.equipment().held(CitizenEquipment.Hand.MAIN), "MC setHeldItem(hand, toolSlot)");
+    }
+
+    @Test
+    void theCrafterUsesTheFirstToolOfItsTypeWhateverItsLevel() {
+        CrafterRig axe = new CrafterRig(seeds(List.of(), Optional.of(ToolType.AXE)));
+        ItemKey ironAxe = new ItemKey("Tool_Hatchet_Iron");
+        axe.t.catalog.tools.put(AXE, new ToolInfo(ToolType.AXE, 0, 1f));
+        axe.t.catalog.tools.put(ironAxe, new ToolInfo(ToolType.AXE, 9, 1f)); // beyond any hut's level
+        axe.crafter.inventory().set(1, Optional.of(new ItemAmount(ironAxe, 1)));
+        axe.crafter.inventory().set(4, Optional.of(new ItemAmount(AXE, 1)));
+        axe.stock(ESSENCE, 20);
+        axe.task(axe.ask(10));
+        assertEquals(CRAFT, axe.toCraft());
+
+        axe.work.craft();
+
+        assertEquals(1, axe.crafter.equipment().held(CitizenEquipment.Hand.MAIN), "MC findFirstSlotInItemHandlerWith");
     }
 
     @Test

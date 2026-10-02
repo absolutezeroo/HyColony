@@ -217,8 +217,8 @@ public final class CraftingWork {
         ctx.tasks().setProgress(progress);
         int required = CraftingProgress.requiredHits(
                 ctx.citizen().skills().level(ctx.skills().speed()));
-        OptionalInt toolSlot =
-                recipe.recipe().requiredTool().map(ctx.stock()::toolInInventory).orElse(OptionalInt.empty());
+        OptionalInt toolSlot = // MC craft: the first slot holding the required tool (findFirstSlotInItemHandlerWith)
+                recipe.recipe().requiredTool().map(ctx.stock()::firstToolOfType).orElse(OptionalInt.empty());
         hands.hit(recipe.recipe(), toolSlot, required <= 0 ? 1f : Math.min(1f, (float) progress / required));
         if (!isLive(head, current)) {
             return abandon();

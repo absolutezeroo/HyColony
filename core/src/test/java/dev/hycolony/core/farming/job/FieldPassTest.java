@@ -299,8 +299,9 @@ class FieldPassTest extends FarmerTestBase {
         pass(FarmerState.FARMER_HARVEST);
 
         FakeBodies.Body b = t.bodies.bodies.get(body);
-        assertEquals(HOE, b.held);
-        assertEquals(BodyAnimation.MINE, b.lastAnimation, "MC mineBlock with the hoe");
+        assertEquals(null, b.held, "MC mineBlock: holdEfficientTool finds no tool for a crop, removeHeldItem");
+        assertEquals(0, citizen.equipment().held(CitizenEquipment.Hand.MAIN), "equipHoe's slot stays held");
+        assertEquals(BodyAnimation.MINE, b.lastAnimation, "MC mineBlock");
         List<BlockPos> crops = cells().stream().map(c -> c.offset(0, 1, 0)).toList();
         assertEquals(crops, t.effects.hits);
         assertEquals(crops.stream().map(Vec3::middle).toList(), t.bodies.looks, "MC hitBlockWithToolInHand looks");

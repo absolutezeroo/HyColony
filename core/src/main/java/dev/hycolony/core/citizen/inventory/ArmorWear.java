@@ -16,8 +16,9 @@ import java.util.Optional;
  * own armour wear, which Hytale gives players only (DamageSystems.DamageArmor,
  * ItemUtils.canDecreaseItemStackDurability): a hit whose cause wears armour falls on one random piece that is not
  * broken, an unbreakable one included, and costs it one hit of its life (its DurabilityLossOnHit,
- * ItemCatalog.durability counting hits); an unbreakable piece loses nothing, a broken one stays worn. No research
- * effect (MC ARMOR_DURABILITY) exists yet.
+ * ItemCatalog.durability counting hits); an unbreakable piece loses nothing, a broken one stays worn.
+ *
+ * <p>Deviation from MC: no research yet, so no ARMOR_DURABILITY chance to spare the armour (updateArmorDamage).
  */
 public final class ArmorWear {
     private ArmorWear() {}

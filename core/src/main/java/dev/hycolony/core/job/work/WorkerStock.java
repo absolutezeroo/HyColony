@@ -17,6 +17,7 @@ import dev.hycolony.core.logistics.pickup.PickupRequests;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
 import org.jspecify.annotations.Nullable;
 
@@ -211,12 +212,26 @@ public final class WorkerStock {
 
     /**
      * MC getFirstSlotOfItemHandlerContainingEquipment (the farmer's getHoeSlot): the first slot holding a tool of
-     * {@code type} within the hut's max equipment level, whatever its level; empty if none.
+     * {@code type} of level 0 (MC TOOL_LEVEL_WOOD_OR_GOLD) up to the hut's max equipment level, not worn out; empty if
+     * none.
      */
     public OptionalInt firstToolInInventory(ToolType type) {
+        return firstSlot(a -> usableTool(a, type) != null);
+    }
+
+    /**
+     * MC findFirstSlotInItemHandlerWith(checkIsEquipment) (a crafter's tool): the first slot holding a tool of {@code
+     * type}, whatever its level, not worn out (MC's broken tool is gone); empty if none.
+     */
+    public OptionalInt firstToolOfType(ToolType type) {
+        return firstSlot(
+                a -> catalog.tool(a.item()).filter(t -> t.type() == type).isPresent() && !catalog.wornOut(a));
+    }
+
+    private OptionalInt firstSlot(Predicate<ItemAmount> wanted) {
         for (int i = 0; i < inventory().size(); i++) {
             ItemAmount a = inventory().slot(i).orElse(null);
-            if (a != null && usableTool(a, type) != null) {
+            if (a != null && wanted.test(a)) {
                 return OptionalInt.of(i);
             }
         }

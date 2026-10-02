@@ -206,11 +206,13 @@ final class BuilderBlockWork {
     }
 
     private void place(Stage stage, int i, BlockPos pos, BlueprintEntry e, List<ItemAmount> cost) {
-        // MC BuildingStructureHandler.prePlacementLogic, before the placement is tried: faceBlock, and the first
-        // required
-        // item in the entity's hand (setItemSlot MAINHAND), the held slot left as it is
+        // MC BuildingStructureHandler.prePlacementLogic, before the placement is tried: faceBlock, and the first item
+        // required in the entity's hand (setItemSlot MAINHAND), the held slot left as it is; a free order requires
+        // none (StructurePlacer: isCreative), so the hand empties. Deviation from MC: no walkAwayFrom when standing on
+        // the cell (planned, audit 02-findings-M); the swing is the placement's Build stroke (startDelay).
         ctx.gestures().lookAt(pos);
-        ctx.gestures().hold(cost.isEmpty() ? null : cost.getFirst().item());
+        boolean free = ctx.site().loadedOrder().free();
+        ctx.gestures().hold(free || cost.isEmpty() ? null : cost.getFirst().item());
         if (!ctx.site().plan().onlyTurns(e, ctx.blocks()) && ctx.scan().mustMineFirst(pos)) {
             removeForReplace(pos);
         }
