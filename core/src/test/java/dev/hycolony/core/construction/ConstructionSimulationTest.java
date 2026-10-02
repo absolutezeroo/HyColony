@@ -640,7 +640,10 @@ class ConstructionSimulationTest {
         assertEquals(Stage.SOLID, o.stage());
         assertTrue(placed > 500, "the builder kept building: " + placed);
         assertTrue(avgMs < 2.0, "avg colony tick " + avgMs + " ms");
-        assertTrue(slow <= 3, slow + " ticks over 5 ms"); // the plan's load, not a steady cost
+        // The plan's load, not a steady cost, which would slow most ticks: a wall clock also counts the stalls of a
+        // busy machine (GC, scheduling under a parallel build: a dozen seen), and Windows' thread CPU time is too
+        // coarse (15.6 ms) to measure a tick, so up to one tick in a thousand may be slow.
+        assertTrue(slow <= ticks / 1000, slow + " ticks over 5 ms");
         assertEquals(List.of(), Invariants.check(colony), "a builder placing its blocks is never stale");
     }
 
