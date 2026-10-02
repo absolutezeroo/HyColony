@@ -24,6 +24,22 @@ Vérifié le 2026-10-02 sur Hytale 0.7.0-pre.5 (`pre-release-0.7.0-pre.5-Assets.
 | Densité des props et blocs : 32 px par bloc, soit 1 px par unité (32 unités par bloc) | article ; format `hytale_prop` (`blockSize` 32) |
 | Densité des personnages et attachements (outils, armes, nourriture, cosmétiques) : 64 px par unité | article ; format `hytale_character` |
 
+**Animation de bloc en boucle** : un `CustomModelAnimation` posé sur le bloc lui-même (pas sur un état) ne boucle
+qu'avec `"Looping": true` à côté. `BlockType` lit `Looping` (`isLooping`, `false` par défaut) et l'envoie au client
+(`packet.looping`) ; sans lui, aucune animation n'a été vue en jeu sur le fermier (2026-10-02). Sur les 36 blocs de
+Hytale animés ainsi, 31 ont `"Looping": true` (feux de camp, braseros, bannières, cocons, coffres Scarak), les 4
+portails n'ont pas la clé et le piège `Survival_Trap_Snapjaw` écrit `false` (une animation jouée une fois). Les
+états héritent de la clé : les coffres Scarak écrivent `false` dans `OpenWindow`/`CloseWindow` pour l'annuler.
+Un objet a sa propre clé `Animation` (`Item.java`), sans `Looping` à côté : les poissons s'en servent pour nager
+(`Swim.blockyanim`), la clé de coffre `Coffer_Key` pour flotter.
+
+**Décalage d'UV animé** (`shapeUvOffset`, delta x/y en pixels, sans `interpolationType`) : un décalage de -d en y lit
+la zone d pixels plus bas, +d en x d pixels plus à droite. Le feu (`VFX/Fire/Fire.blockymodel`, quad dont l'UV
+commence à y 32, `Fire.png` de 32×224) décale de 0 à -160 : sa dernière image tombe sur les lignes 192 à 224. La
+torche (`Items/Torch/Torch.blockymodel`, UV à x 32, texture de 96 de large) décale de 0 à +48. Tous deux changent
+d'image tous les 5 ticks sans clé doublée : le client semble sauter d'une image à l'autre. Aucune animation de Hytale
+ne vise un nœud nommé `<nom>--C<n>` par l'exporteur de Blockbench : nos nœuds animés portent des noms simples.
+
 ### Tendances (l'article les conseille, Hytale les enfreint parfois)
 
 - **Ombrage `standard`** pour les meubles. Dans `Blocks/`, 70 % des boîtes sont en `standard` et 29 % en `flat`

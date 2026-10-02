@@ -147,8 +147,9 @@ montent à 44 (1,37 bloc). Choisie parmi deux pistes (établi de semis, brouette
   14, ici en boîtes ; s'y ajoutent une virole et un manche de 2×2 (celui de Hytale fait 3×31×3). Un premier jet à
   trois dents de 1 faisait une plaque.
 - **Animation** : les neuf pousses se balancent dans une brise légère (`Farmer.blockyanim`, `CustomModelAnimation` du
-  bloc, comme le feu de camp de Hytale) : ±6° de côté et ±3° d'avant en arrière, un cycle de 3 s, chaque pousse
-  décalée d'un quart de cycle sur la précédente. `tools/huts/farmer.py` l'écrit (`animation`).
+  bloc, avec `"Looping": true` comme le feu de camp de Hytale ; sans lui, le serveur envoie `looping` faux au client
+  et l'utilisateur n'a vu aucune animation en jeu, le 2026-10-02) : ±6° de côté et ±3° d'avant en arrière, un cycle
+  de 3 s, chaque pousse décalée d'un quart de cycle sur la précédente. `tools/huts/farmer.py` l'écrit (`animation`).
 - **Goutte** : une goutte d'eau d'un pixel (nœud `Drop`, pendue à l'arête la plus basse de la pomme inclinée)
   apparaît à 70/180 du cycle, perle en grossissant (de 0,3 à 1) jusqu'à 140, tombe de 3 sur le plateau jusqu'à 152,
   puis disparaît et remonte sans se voir (`shapeVisible`, `shapeStretch`, `position` de la même animation). Hytale
@@ -231,6 +232,15 @@ frappe en acier, panne en deux paliers, deux bagues de laiton, et un cristal cya
 tourné de 45° et sa table), serti dans un cadre en laiton. Choisi par l'utilisateur parmi quatre pistes (sceptre,
 marteau, compas, bâton à plan) ; un premier jet en équerre et fil à plomb a été écarté. L'objet lit
 `Items/HyColony/Build_Tool.{blockymodel,png}`, son icône et le son `ISS_Weapons_Wood` des marteaux de Hytale.
+**Cristaux vivants** (`tools/huts/glint.py`, constante `GLINT` du module, demandé par l'utilisateur) : l'objet
+déclare `Animation` (`Items/HyColony/Build_Tool.blockyanim`, clé `Animation` de `Item` ; `Item` n'a pas de clé
+`Looping`, et l'on attend qu'elle boucle comme les poissons de Hytale qui nagent en main, à vérifier en jeu). Les
+deux gemmes et leurs tables respirent (étirement de 1 à 1,06 puis retour, lissé, sur un cycle de 3 s, comme la
+bougie de Hytale ; au-delà de 1,06, les arêtes des gemmes tournées de 45° traverseraient leur bague), et un reflet
+clair les balaie une fois par cycle : trois images peintes sous la texture, lues par un décalage d'UV
+(`shapeUvOffset`, comme le feu de Hytale), chacune montrée 6/60 s. Les nœuds des gemmes portent des noms simples
+(`Gem_R`, `Gem_R_Table`, `Gem_L`, `Gem_L_Table`) : aucune animation de Hytale ne vise un nom en `--C<n>` de
+l'exporteur, et un nouvel export depuis Blockbench les remettrait, à renommer de nouveau.
 Son icône le pose en diagonale, tête en haut à gauche, vu de trois quarts côté gemme, comme les icônes d'outils de
 Hytale (`Icons/ItemsGenerated/Tool_Hammer_*`) ; les huttes et les lunettes gardent la vue isométrique.
 
@@ -284,6 +294,9 @@ Pistes proposées à l'utilisateur, chacune à valider sur des captures Blockben
 - Le constructeur, l'hôtel de ville, la résidence, le fermier, le cuisinier, le coursier et l'entrepôt s'affichent
   avec leur modèle et leur texture, sans face qui scintille ni bord de texture étranger, à la taille des meubles de
   Hytale, et font face au joueur qui les pose, dans les quatre directions.
+- Les gemmes du marteau tenu en main respirent et un reflet les balaie toutes les 3 s, sans glisser d'une image à
+  l'autre, et l'animation boucle (un objet n'a pas de `Looping`) ; la hutte du fermier balance ses pousses en
+  continu, même après l'ouverture et la fermeture de sa fenêtre.
 - Le presse-papiers tenu en main montre sa feuille écrite au joueur, la planchette droite dans la main comme la carte
   de Hytale. Sinon : si la feuille est tournée vers l'extérieur, un demi-tour autour de y sous `R-Attachment` ; s'il
   est couché dans la main, un quart de tour autour de x, pour reprendre l'axe +z de la carte.

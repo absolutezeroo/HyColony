@@ -582,7 +582,7 @@
             },
             {
               "id": "13",
-              "name": "Gem_R--C11",
+              "name": "Gem_R",
               "position": {"x": 6, "y": 23, "z": 0},
               "orientation": {"x": 0.38268, "y": 0, "z": 0, "w": 0.92388},
               "shape": {
@@ -634,7 +634,7 @@
             },
             {
               "id": "14",
-              "name": "Gem_R_Table--C12",
+              "name": "Gem_R_Table",
               "position": {"x": 7.5, "y": 23, "z": 0},
               "orientation": {"x": 0.38268, "y": 0, "z": 0, "w": 0.92388},
               "shape": {
@@ -686,7 +686,7 @@
             },
             {
               "id": "15",
-              "name": "Gem_L--C13",
+              "name": "Gem_L",
               "position": {"x": -6, "y": 23, "z": 0},
               "orientation": {"x": 0.38268, "y": 0, "z": 0, "w": 0.92388},
               "shape": {
@@ -738,7 +738,7 @@
             },
             {
               "id": "16",
-              "name": "Gem_L_Table--C14",
+              "name": "Gem_L_Table",
               "position": {"x": -7.5, "y": 23, "z": 0},
               "orientation": {"x": 0.38268, "y": 0, "z": 0, "w": 0.92388},
               "shape": {

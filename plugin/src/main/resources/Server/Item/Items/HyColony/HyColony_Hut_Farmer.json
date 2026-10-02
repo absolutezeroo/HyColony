@@ -46,6 +46,7 @@
       }
     ],
     "CustomModelAnimation": "Blocks/HyColony/Huts/Farmer.blockyanim",
+    "Looping": true,
     "HitboxType": "HyColony_Hut",
     "VariantRotation": "NESW",
     "Gathering": {

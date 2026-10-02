@@ -15,6 +15,8 @@ ICON = "Build_Tool"
 # from the gem's side.
 ICON_VIEW = turned(70, 15, 45)
 PICTURES = frozenset()
+# The two cut crystals and their tables breathe and glint (glint.py).
+GLINT = "Gem"
 
 
 def material(name, side):

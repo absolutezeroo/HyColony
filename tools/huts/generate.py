@@ -16,7 +16,8 @@ build_tool.py, clipboard.py; listed in MODELS) declares:
 - tiles(assets): material -> a 32 px tile or a brush (tools/common/brushes.py);
 - ICON_VIEW, optional: the icon's view (icons.turned) instead of the isometric one of blocks;
 - animation(nodes), optional: the model's looping blockyanim, written next to it (<MODEL>.blockyanim);
-- SEE_THROUGH, optional: the nodes lit but casting no baked shadow (shown only part of the time by the animation).
+- SEE_THROUGH, optional: the nodes lit but casting no baked shadow (shown only part of the time by the animation);
+- GLINT, optional: the name prefix of the crystal nodes that breathe and glint (glint.py), instead of animation.
 
     python tools/huts/generate.py [path/to/Assets.zip]
 """
@@ -34,6 +35,7 @@ import clipboard  # noqa: E402
 import cook  # noqa: E402
 import courier  # noqa: E402
 import farmer  # noqa: E402
+import glint  # noqa: E402
 import goggles  # noqa: E402
 import residence  # noqa: E402
 import town_hall  # noqa: E402
@@ -55,9 +57,13 @@ def main():
         model = RESOURCES / "Common" / (module.MODEL + ".blockymodel")
         nodes = json.loads(model.read_text(encoding="utf-8"))["nodes"]
         image = model_texture(module, nodes, assets)
-        save_png(image, model.with_suffix(".png"))
-        if hasattr(module, "animation"):
+        if hasattr(module, "GLINT"):
+            # The glint frames go below the texture; the icon reads only the islands above them.
+            image, step = glint.frames(image, nodes, module.GLINT)
+            write_json(model.with_suffix(".blockyanim"), glint.animation(nodes, module.GLINT, step))
+        elif hasattr(module, "animation"):
             write_json(model.with_suffix(".blockyanim"), module.animation(nodes))
+        save_png(image, model.with_suffix(".png"))
         icon = Image.new("RGBA", (ICON_SIZE, ICON_SIZE), (0, 0, 0, 0))
         view = getattr(module, "ICON_VIEW", None)
         draw_model(icon, nodes, image, *frame(nodes, view), view)

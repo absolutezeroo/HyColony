@@ -13,6 +13,7 @@
   "Icon": "Icons/Items/HyColony/Build_Tool.png",
   "Model": "Items/HyColony/Build_Tool.blockymodel",
   "Texture": "Items/HyColony/Build_Tool.png",
+  "Animation": "Items/HyColony/Build_Tool.blockyanim",
   "Recipe": {
     "Input": [
       { "ItemId": "Rock_Stone_Cobble", "Quantity": 1 },

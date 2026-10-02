@@ -11,8 +11,8 @@ TEXTURE_ROOTS = ("Blocks/", "BlockTextures/", "Items/", "NPC/", "Resources/", "V
 
 def validate_pack(assets, pack):
     """Fails loudly on what Hytale would refuse in the pack's items: a Common path outside its root, of the wrong type
-    or missing (from the pack and the vanilla assets; models, block animations, textures, icons), an unknown item,
-    hitbox, sound or particle set, particle system or spawner, material, animation set, or crafting bench and
+    or missing (from the pack and the vanilla assets; models, block and item animations, textures, icons), an unknown
+    item, hitbox, sound or particle set, particle system or spawner, material, animation set, or crafting bench and
     category."""
     errors = []
     items = {p.stem: p for p in (pack / "Server/Item/Items").rglob("*.json")}
@@ -52,6 +52,9 @@ def validate_pack(assets, pack):
     for name, path in sorted(items.items()):
         data = json.loads(path.read_text(encoding="utf-8"))
         common(data["Icon"], ICON_ROOTS, ".png", name)
+        if "Animation" in data:
+            # Item.Animation has the same validator as a block's CustomModelAnimation.
+            common(data["Animation"], MODEL_ROOTS, ".blockyanim", name)
         for key, value in walk_json(data):
             if key in ("CustomModel", "Model"):
                 common(value, MODEL_ROOTS, ".blockymodel", name)
