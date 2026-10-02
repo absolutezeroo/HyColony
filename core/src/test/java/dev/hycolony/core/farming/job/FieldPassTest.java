@@ -27,6 +27,8 @@ import org.junit.jupiter.api.Test;
 
 /** MC EntityAIWorkFarmer.workAtField, hoeIfAble, tryToPlant and harvestIfAble, plus the Hytale fertilizer. */
 class FieldPassTest extends FarmerTestBase {
+    private static final ItemKey AXE = new ItemKey("Tool_Hatchet_Crude");
+
     @Test
     void hoePassTillsEveryTillableCellAndWearsTheHoe() {
         FarmField f = field(true);
@@ -314,13 +316,36 @@ class FieldPassTest extends FarmerTestBase {
     void aCropTheWorldGivesAToolIsHarvestedWithIt() {
         plantedField(FakeFarming.WHEAT_SEEDS);
         give(HOE, 1);
-        BlockKey wheat = new BlockKey("Plant_Crop_Wheat");
-        t.catalog.toolForBlock.put(wheat, ToolType.HOE);
-        cells().forEach(c -> t.blocks.blocks.put(c.offset(0, 1, 0), new BlockState(wheat, 0)));
+        citizen.inventory().set(1, Optional.of(new ItemAmount(AXE, 1)));
+        woodyCrops();
 
         pass(FarmerState.FARMER_HARVEST);
 
-        assertEquals(HOE, t.bodies.bodies.get(body).held, "MC holdEfficientTool(crop): the world's tool for it");
+        assertEquals(AXE, t.bodies.bodies.get(body).held, "MC holdEfficientTool: the tool the block asks for");
+        assertEquals(1, citizen.equipment().held(CitizenEquipment.Hand.MAIN), "MC setHeldItem(MAIN_HAND, bestSlot)");
+    }
+
+    @Test
+    void aCropAskingForAToolTheFarmerLacksIsNotHarvestedAndTheToolIsAskedFor() {
+        plantedField(FakeFarming.WHEAT_SEEDS);
+        give(HOE, 1);
+        woodyCrops();
+
+        pass(FarmerState.FARMER_HARVEST);
+
+        assertTrue(
+                cells().stream().allMatch(c -> t.farming.crops.containsKey(c.offset(0, 1, 0))),
+                "MC holdEfficientTool: TOOL_NOT_FOUND, mineBlock false");
+        assertTrue(colony.requests().byRequester(hut.requesterId()).stream()
+                .anyMatch(r -> r.requestable() instanceof ToolRequest tool && tool.type() == ToolType.AXE));
+    }
+
+    /** Test-only crops whose block the world gives the axe (no Hytale crop asks a tool). */
+    private void woodyCrops() {
+        BlockKey woody = new BlockKey("test:woody_crop");
+        t.catalog.toolForBlock.put(woody, ToolType.AXE);
+        t.catalog.tools.put(AXE, new ToolInfo(ToolType.AXE, 0, 1f));
+        cells().forEach(c -> t.blocks.blocks.put(c.offset(0, 1, 0), new BlockState(woody, 0)));
     }
 
     @Test

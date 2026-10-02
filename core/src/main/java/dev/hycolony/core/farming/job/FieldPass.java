@@ -173,14 +173,19 @@ final class FieldPass {
     }
 
     /**
-     * MC harvestIfAble / mineBlock: the tool the world gives the crop in hand ({@link #holdToolFor}), facing the crop,
-     * a stroke on it (MC hitBlockWithToolInHand looks at it and swings), then the harvest drops go to the inventory;
-     * one action, the block's and harvest XP, even without drops. Nothing more when the crop is still mature (the
-     * harvest failed).
+     * MC harvestIfAble / mineBlock: the tool the world gives the crop in hand ({@link #holdToolFor}; none held, the
+     * cell is left), facing the crop, a stroke on it, then the harvest drops go to the inventory; one action, the
+     * block's and harvest XP, even without drops. Nothing more when the crop is still mature (the harvest failed).
+     *
+     * <p>Deviation from MC: a hit effect on the crop, where MC breaks it at once (breakBlockWithToolInHand, its delay 0
+     * for a crop) with no hit. Deviation from MC (Hytale world): MC damageItemInHand wears the held slot (the hoe) on
+     * each harvest → breaking a Soft block wears no tool in Hytale (BlockHarvestUtils.calculateDurabilityUse).
      */
     private void harvest(BlockPos surface) {
         BlockPos crop = surface.offset(0, 1, 0);
-        holdToolFor(crop);
+        if (!holdToolFor(crop)) {
+            return;
+        }
         ctx.hands().face(crop);
         ctx.hands().swing(BodyAnimation.MINE);
         ctx.colony().context().ports().effects().blockHit(crop, 1f);
@@ -196,25 +201,31 @@ final class FieldPass {
     }
 
     /**
-     * MC holdEfficientTool(target): the slot of the worker's best tool for the block at {@code pos} as the world tells
-     * it (ItemCatalog.toolFor), else an empty hand (removeHeldItem), the held slot left as it is. A Hytale crop needs
-     * none (Template_Crop_Block: Gathering.Soft, no Breaking; sp3b-hytale-farming § 201), so the farmer harvests
-     * bare-handed, as MC's for a crop of hardness 0.
+     * MC holdEfficientTool(target), true when the block at {@code pos} may be broken: without a tool the world asks for
+     * it (ItemCatalog.toolFor; MC NO_TOOL), an empty hand (removeHeldItem), the held slot left as it is; else the
+     * least powerful such tool that does the job held (WorkerStock.toolInInventory, MC getMostEfficientTool), or, the
+     * farmer lacking one (MC TOOL_NOT_FOUND), the tool asked for and false. A Hytale crop asks none
+     * (Template_Crop_Block: Gathering.Soft, no Breaking; sp3b-hytale-farming § 3.4), as MC's of hardness 0.
+     * Deviation from MC: the cell is then left, as {@link #hoe} leaves it without a hoe; MC waits on it.
      */
-    private void holdToolFor(BlockPos pos) {
-        OptionalInt slot = ctx.colony()
+    private boolean holdToolFor(BlockPos pos) {
+        Optional<ToolType> type = ctx.colony()
                 .context()
                 .ports()
                 .blocks()
                 .get(pos)
-                .flatMap(s -> catalog().toolFor(s.key()))
-                .map(ctx.stock()::toolInInventory)
-                .orElse(OptionalInt.empty());
-        if (slot.isPresent()) {
-            ctx.hands().holdSlot(slot.getAsInt());
-        } else {
+                .flatMap(s -> catalog().toolFor(s.key()));
+        if (type.isEmpty()) {
             ctx.hands().hold(Optional.empty());
+            return true;
         }
+        OptionalInt slot = ctx.stock().toolInInventory(type.get());
+        if (slot.isEmpty()) {
+            ctx.tools().requestTool(type.get());
+            return false;
+        }
+        ctx.hands().holdSlot(slot.getAsInt());
+        return true;
     }
 
     /** Deviation from MC (compost, bone meal): one use of a carried fertilizer tool on an unfertilized cell. */
