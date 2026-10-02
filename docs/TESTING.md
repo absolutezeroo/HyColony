@@ -550,3 +550,4 @@ Spec `docs/superpowers/specs/2026-10-02-hylens-livre-mc-design.md`. Un opérateu
 331. **Autre citoyen.** En caméra libre, choisir un autre citoyen et « Suivre » : la caméra le suit.
 332. **Arrêter.** « Arrêter le suivi » : retour au mode de jeu normal, HUD retiré, le livre reste ouvert et montre « Suivre ». `/hylens unwatch` fait toujours de même.
 333. **Déconnexion.** Se déconnecter en caméra libre, se reconnecter : mode de jeu normal.
+334. **HUD sur parchemin.** Suivre un citoyen : le panneau est le parchemin large de MC à droite de l'écran, ses lignes à l'encre noire et lisibles. Si le parchemin ne s'affiche pas (texture prise dans un autre dossier du pack), le signaler : la texture sera copiée sous `Hud/HyLens/`.

@@ -1,9 +1,12 @@
+// The watch panel as MC's citizen debug window (gui/citizen/debug.xml, DebugWindowCitizen), MC positions and sizes
+// doubled (spec 2026-10-02, § 3.4): builder_paper_wide2 (MineColonies', ldtteam, GPL-3, scaled x4 nearest-neighbour),
+// its lines in black ink from MC's first text, at (10, 15).
 Group {
-  Anchor: (Right: 20, Top: 80, Width: 640, Height: 420);
-  LayoutMode: Top;
+  Anchor: (Right: 20, Top: 80, Width: 800, Height: 488);
+  Background: "../../Pages/HyLens/Mc/builder_paper_wide2.png";
 
   Group #Lines {
+    Anchor: (Left: 20, Top: 30, Width: 760, Height: 428);
     LayoutMode: Top;
-    FlexWeight: 1;
   }
 }

@@ -1,9 +1,7 @@
 Group {
   Anchor: (Height: 20);
-  Background: #0d1117(0.72);
-  Padding: (Horizontal: 8);
 
   Label #Text {
-    Style: (FontSize: 14, TextColor: #e6edf3, VerticalAlignment: Center);
+    Style: (FontSize: 14, TextColor: #000000, VerticalAlignment: Center);
   }
 }
