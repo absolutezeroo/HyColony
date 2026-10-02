@@ -30,6 +30,16 @@ public final class ColonyProtection {
     }
 
     /**
+     * Whether a hostile creature may appear naturally at {@code pos}: not in any colony's territory.
+     *
+     * <p>Deviation from MC (asked for): MC refuses it only inside its buildings (EventHandler.on(PositionCheck),
+     * isInBuilding) and relies on Minecraft's light elsewhere; Hytale's surface monsters have no light condition.
+     */
+    public boolean allowsHostileSpawn(BlockPos pos) {
+        return manager.colonyAt(pos).isEmpty();
+    }
+
+    /**
      * Whether {@code player} may do {@code action} at {@code pos}; outside any colony everything is allowed. MC
      * Permissions.hasPermission(Player, Action): the player's rank, else the operator rank if they bypass.
      */

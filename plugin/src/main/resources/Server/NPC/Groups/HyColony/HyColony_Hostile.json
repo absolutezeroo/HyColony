@@ -1,0 +1,21 @@
+{
+  "IncludeGroups": [
+    "Aggressive",
+    "Outlander",
+    "Scarak"
+  ],
+  "IncludeRoles": [
+    "Wraith*",
+    "Hound_Bleached",
+    "Golem_Firesteel",
+    "Spirit_*",
+    "Eye_Void_Surge",
+    "Void_Spawn_Surge",
+    "Slug_Magma",
+    "Snail_Magma",
+    "Toad_Rhino_Magma"
+  ],
+  "ExcludeRoles": [
+    "Horse_Skeleton*"
+  ]
+}

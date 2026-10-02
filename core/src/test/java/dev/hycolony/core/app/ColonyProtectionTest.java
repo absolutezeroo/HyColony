@@ -38,6 +38,16 @@ class ColonyProtectionTest {
         return manager;
     }
 
+    /** Asked for: no hostile spawn anywhere in a colony's territory, and outside it as usual. */
+    @Test
+    void hostileSpawnsAreRefusedInTheTerritoryOnly() {
+        ColonyManager manager = start(2);
+
+        assertFalse(manager.protection().allowsHostileSpawn(inside));
+        assertFalse(manager.protection().allowsHostileSpawn(new BlockPos(79, 20, -64)), "a far claimed cell");
+        assertTrue(manager.protection().allowsHostileSpawn(new BlockPos(80, 64, 0)), "the first unclaimed cell");
+    }
+
     @Test
     void creativeOperatorBypassesProtectionWithTheOperatorRankActions() {
         ColonyManager manager = start(2);
