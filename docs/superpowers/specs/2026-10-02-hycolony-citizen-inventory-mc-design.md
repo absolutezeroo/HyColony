@@ -46,7 +46,7 @@ Refaire l'inventaire du citoyen exactement comme MC :
 **Objet tenu** : `WorkerHands.hold` passe d'un objet à une case (`holdSlot(hand, slot)`, MC `setHeldItem(hand, slot)`) ; le corps affiche l'objet de cette case. Chaque appel actuel à `CitizenBodies.setHeldItem` (14) est repris : main vide → `clear`, outil ou nourriture de l'inventaire → sa case. L'affichage suit la case quand son contenu change.
 
 **Armure** :
-- port `ItemCatalog` : `armor(ItemKey)` → `Optional<ArmorInfo>` (emplacement, `ItemLevel` de Hytale) ;
+- port `ArmorCatalog` (`citizen/inventory`, dans `GamePorts.armors`) : `armor(ItemKey)` → `Optional<ArmorInfo>` (emplacement, `ItemLevel` et `MaxDurability` de Hytale) ; un port à lui, `ItemCatalog` et son adaptateur étant au bout de leurs dépendances ;
 - `ArmorLevels.of(itemLevel)` : le niveau MC d'une pièce, en comparant son `ItemLevel` à celui des pièces de référence (comme MC compare la valeur d'armure) :
 
   | Niveau MC | Référence Hytale (`ItemLevel`) | Familles concernées |
@@ -60,19 +60,19 @@ Refaire l'inventaire du citoyen exactement comme MC :
 
 - `GuardGear` : les paliers de MC par niveau de bâtiment (§ 2), testés par emplacement et niveau ;
 - `CitizenInventoryActions` : poser, prendre, déplacer entre les 27 cases, les 4 cases d'armure et l'inventaire du joueur ; l'armure refusée si `GuardGear` dit non ; `MANAGE_HUTS` comme aujourd'hui ; chaque pile posée appelle la clôture de requête de MC (déjà portée pour les 27 cases) ;
-- `ArmorWear.onHurt(citizen, dégâts MC)` : `max(1, dégâts / 4)` sur chaque pièce, une pièce cassée retirée (MC `damageArmor`). Les dégâts de Hytale sont ramenés à l'échelle de MC (20 points de vie) comme la santé affichée (`CitizenViews.health`) ;
-- perte du métier : main, main secondaire et les 4 pièces reviennent dans l'inventaire (MC `AbstractJob.onRemoval`) ; ce qui ne tient pas reste où il est, comme MC.
+- `ArmorWear.onHurt(citizen, dégâts MC)` : `max(1, dégâts / 4)` points de durabilité sur chaque pièce, une pièce cassée retirée (MC `damageArmor`). Les dégâts de Hytale sont ramenés à l'échelle de MC (20 points de vie, `CitizenData.MC_MAX_HEALTH`) ;
+- perte du métier (`WorkerModule.free`, seul chemin, renvoi comme réparation au chargement) : main, main secondaire et les 4 pièces reviennent dans l'inventaire (MC `AbstractJob.onRemoval`) ; ce qui ne tient pas reste où il est, comme MC.
 
 **Sauvegarde** : schéma 10. `armor` (4 piles ou `null`), `heldMain`, `heldOff` (−1 par défaut). `MigrationChain` 9 → 10 avec sa fixture ; une valeur absente prend son défaut, un indice hors des 27 cases devient −1 (`heal`).
 
-**Vue** : `CitizenInventoryView` (nom, 27 cases, 4 pièces, mains) pour la fenêtre.
+**Vue** : pas de record de vue : la page lit le citoyen en direct par ses deux conteneurs (comme la fenêtre de conteneur d'avant), son nom compris.
 
 ## 4. Plugin
 
 **Notre fenêtre** (`ui/citizen/CitizenInventoryPage`, page personnalisée, comme `CutterPage` de HyDomum) :
-- la disposition de MC ×2 (§ 2) : 490 × 336, texture `citizen_container.png` copiée dans `Pages/HyColony/Mc/` et agrandie ×4 au plus proche voisin, découpée comme MC (haut de la fenêtre, bas « joueur », cadre, case) ;
-- trois grilles de HyBlockUI (`InventoryGrids.drawContainer`) : les 27 cases du citoyen (fenêtre 1), ses 4 cases d'armure (fenêtre 2), et l'inventaire du joueur (sac et barre rapide). Glisser, déposer et maj-clic sont natifs ; chaque dépôt passe par `CitizenInventoryActions` ;
-- le conteneur des 27 cases reprend `CitizenItemContainer` ; celui de l'armure (4 cases, `ItemContainerUtil.trySetArmorFilters` pour le type, plus un filtre qui interroge `GuardGear` dans le cœur) ;
+- la disposition de MC ×2 (§ 2) : 490 × 344, fond composé par `tools/ui/citizen_inventory.py` à partir de `citizen_container.png` comme `renderBg` le dessine (haut, bas « joueur », cadre, cases d'armure), agrandi ×4 au plus proche voisin ;
+- des grilles de HyBlockUI : les 27 cases du citoyen et ses 4 cases d'armure (`InventoryGrids.drawContainer`, deux fenêtres), le sac et la barre rapide du joueur aux positions de MC (`InventoryGrids.drawPlayerPart`, ajouté à HyBlockUI). Glisser, déposer et maj-clic sont natifs ;
+- un même conteneur adossé au cœur sert les deux parties (`CitizenItemContainer` et `CitizenInventoryPart`) : l'armure refuse ce que `CitizenInventoryActions.mayWear` refuse (type, emplacement, `GuardGear`), et chaque modification est rapportée au cœur (`onPlayerEdit`, `onArmorEdit`) ;
 - titre : le nom du citoyen ; libellé « Inventaire » (clés en-US et fr-FR) ;
 - remplace `CitizenInventoryWindows` (`Page.Bench`).
 
@@ -93,6 +93,8 @@ Chacun porte un `Deviation from MC:` dans le code.
 
 - Hytale a des gants au lieu de bottes : tête, torse, mains, jambes.
 - Le niveau d'une armure se lit sur son `ItemLevel` (table § 3), Hytale n'ayant pas de valeur d'armure comparable.
+- L'usure d'une pièce se compte en points de durabilité de Hytale (80 à 180 pour l'armure vanilla, contre 80 à 528 chez MC) : une pièce casse en moins de coups que chez MC. À revoir avec les gardes.
+- Le bâtisseur montre en main le bloc qu'il vient de poser, déjà retiré de son inventaire : cet objet est montré sans case (MC ne tient que des cases).
 - L'aperçu est la vraie scène, filmée par la caméra du serveur, et ne suit pas la souris.
 - 27 cases fixes : pas de recherche qui agrandit l'inventaire.
 
