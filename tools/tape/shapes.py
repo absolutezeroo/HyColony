@@ -9,6 +9,11 @@ un coin. Au lacet 0, un droit joint le nord et le sud, un coin le nord et l'est,
 """
 
 import copy
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parents[1] / "domum"))
+import assemble  # noqa: E402
 
 
 def _faces(texture, uvs):
@@ -48,19 +53,13 @@ SHAPES = {
 }
 # Le quart de tour du blockstate de MC qui amène le bras nord de chaque côté.
 _ANGLES = {"north": 0, "east": 90, "south": 180, "west": 270}
-# y = 90 : la face nord devient la face est, et ainsi de suite.
-_NEXT_SIDE = {"north": "east", "east": "south", "south": "west", "west": "north", "up": "up", "down": "down"}
 
 
 def turned(element, angle):
-    """element tourné de angle degrés autour de l'axe vertical du bloc, comme le "y" d'un blockstate de MC (sens
-    horaire vu de dessus : (x, z) -> (16 - z, x) par quart de tour) ; ses faces suivent."""
-    out = copy.deepcopy(element)
-    for _ in range(angle // 90 % 4):
-        (x0, y0, z0), (x1, y1, z1) = out["from"], out["to"]
-        out["from"], out["to"] = [16 - z1, y0, x0], [16 - z0, y1, x1]
-        out["faces"] = {_NEXT_SIDE[side]: face for side, face in out["faces"].items()}
-    return out
+    """element tourné de angle degrés autour de l'axe vertical du bloc, comme le "y" d'un blockstate de MC avec
+    son "uvlock": true (sens horaire vu de dessus : (x, z) -> (16 - z, x) par quart de tour, les faces et leurs uv
+    suivent) ; la rotation des modèles de HyDomum (tools/domum/assemble.py rotate_y)."""
+    return assemble.rotate_y({"textures": {}, "elements": [element]}, angle, uvlock=True)["elements"][0]
 
 
 def elements(shape):

@@ -83,7 +83,8 @@ def main():
 
 def template():
     """Le gabarit de raccord : la forme d'après les rubans voisins (MC getConnections), tournée avec le bloc ; un
-    seul voisin donne un droit qui le traverse, aucun garde la forme et la rotation posées."""
+    seul voisin donne un droit qui le traverse, aucun garde la forme et la rotation posées. common.neighbour_template
+    ne prend qu'un motif par forme : le droit en a deux ici."""
     face_tags = {side.capitalize(): [TAG] for side in common.SIDES}
     shapes = {}
     for shape, sides in SHAPES.items():
