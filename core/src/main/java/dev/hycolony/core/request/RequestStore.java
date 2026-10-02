@@ -40,6 +40,14 @@ final class RequestStore {
         stateListener = Objects.requireNonNull(listener, "listener");
     }
 
+    /** Forgets every request and assignment, keeping the listeners (MC reset's new data stores). */
+    void clear() {
+        requests.clear();
+        resolverOf.clear();
+        assigned.clear();
+        byRequester.clear();
+    }
+
     /**
      * Sets {@code req}'s state to {@code to}, telling the state listener when it changed: how every transition sets it
      * (a cancellation sets CANCELLED twice).

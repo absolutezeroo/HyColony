@@ -37,7 +37,7 @@ public final class RequestSerializer {
         o.add("requests", requests);
 
         JsonObject assignments = new JsonObject();
-        m.store().assignments().forEach((id, tokens) -> assignments.add(id, RequestToken.toJson(tokens)));
+        m.store.assignments().forEach((id, tokens) -> assignments.add(id, RequestToken.toJson(tokens)));
         o.add("assignments", assignments);
 
         retrying(m).ifPresent(r -> {
@@ -61,7 +61,7 @@ public final class RequestSerializer {
         }
         SavedRequests.Loaded loaded =
                 SavedRequests.read(SavedJson.arrayOr(o.get("requests")), RequestSerializer::readRequest);
-        loaded.requests().values().forEach(m.store()::restore);
+        loaded.requests().values().forEach(m.store::restore);
 
         List<RequestToken> orphans = readAssignments(SavedJson.objectOr(o.get("assignments")), m);
         boolean unassigned = addUnassigned(m, orphans);
@@ -94,7 +94,7 @@ public final class RequestSerializer {
         boolean lost = false;
         for (Request r : m.all()) {
             if (r.state().isBefore(RequestState.COMPLETED)
-                    && !m.store().isAssigned(r.token())
+                    && !m.store.isAssigned(r.token())
                     && !orphans.contains(r.token())) {
                 orphans.add(r.token());
                 lost |= !r.state().isBefore(RequestState.ASSIGNED);
@@ -114,7 +114,7 @@ public final class RequestSerializer {
                     continue;
                 }
                 if (resolver.isPresent()) {
-                    m.store().restoreAssignment(t, resolver.get());
+                    m.store.restoreAssignment(t, resolver.get());
                 } else if (req.get().state().isBefore(RequestState.COMPLETED)) {
                     orphans.add(t); // a finished one just waits for pickup
                 }

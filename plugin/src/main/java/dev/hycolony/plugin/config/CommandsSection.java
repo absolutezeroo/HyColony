@@ -28,6 +28,11 @@ final class CommandsSection {
                     (s, v) -> s.canPlayerUseModifyCitizensCommand = v,
                     s -> s.canPlayerUseModifyCitizensCommand)
             .add()
+            .append(
+                    new KeyedCodec<>("CanPlayerUseResetCommand", Codec.BOOLEAN),
+                    (s, v) -> s.canPlayerUseResetCommand = v,
+                    s -> s.canPlayerUseResetCommand)
+            .add()
             .build();
 
     private static final ColonyConfig.Commands DEFAULTS =
@@ -37,12 +42,14 @@ final class CommandsSection {
     boolean canPlayerUseAddOfficerCommand = DEFAULTS.canPlayerUseAddOfficerCommand();
     boolean canPlayerUseDeleteColonyCommand = DEFAULTS.canPlayerUseDeleteColonyCommand();
     boolean canPlayerUseModifyCitizensCommand = DEFAULTS.canPlayerUseModifyCitizensCommand();
+    boolean canPlayerUseResetCommand = DEFAULTS.canPlayerUseResetCommand();
 
     ColonyConfig.Commands toCore() {
         return new ColonyConfig.Commands(
                 canPlayerUseShowColonyInfoCommand,
                 canPlayerUseAddOfficerCommand,
                 canPlayerUseDeleteColonyCommand,
-                canPlayerUseModifyCitizensCommand);
+                canPlayerUseModifyCitizensCommand,
+                canPlayerUseResetCommand);
     }
 }

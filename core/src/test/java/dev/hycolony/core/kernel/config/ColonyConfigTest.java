@@ -13,6 +13,11 @@ class ColonyConfigTest {
     }
 
     @Test
+    void playersMayNotResetTheRequestSystemByDefaultAsMineColonies() {
+        assertFalse(ColonyConfig.defaults().commands().canPlayerUseResetCommand());
+    }
+
+    @Test
     void autosaveIntervalIsClampedToAtLeastOneMinute() {
         assertEquals(1, new ColonyConfig.HyColony(0, false, true).autosaveIntervalMinutes());
     }

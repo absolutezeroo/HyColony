@@ -67,7 +67,7 @@ Chaque option est vérifiée seulement si le joueur n'est pas opérateur (ex. `C
 | `canplayerusemodifycitizenscommand` | false | `/mc citizens modify` | porté (`Commands.CanPlayerUseModifyCitizensCommand`, HyLens lot 2) |
 | `canplayeruseaddofficercommand` | true | `/mc colony addOfficer` | ACTUEL (`/hycolony rank`) |
 | `canplayerusedeletecolonycommand` | false | `/mc colony delete` | ACTUEL (`/hycolony delete`) |
-| `canplayeruseresetcommand` | false | `/mc colony requestsystem-reset` | futur |
+| `canplayeruseresetcommand` | false | `/mc colony requestsystem-reset` | porté (`Commands.CanPlayerUseResetCommand`, HyLens lot 3) |
 
 ### 1.4 Serveur, section `claims` (SC:162-168)
 
@@ -222,7 +222,8 @@ Vérifié (clone MC `6b3916a1`) : ce ne sont pas des écarts. `BuilderStock.ACTI
     "CanPlayerUseShowColonyInfoCommand": true,
     "CanPlayerUseAddOfficerCommand": true,
     "CanPlayerUseDeleteColonyCommand": false,
-    "CanPlayerUseModifyCitizensCommand": false
+    "CanPlayerUseModifyCitizensCommand": false,
+    "CanPlayerUseResetCommand": false
   },
   "RequestSystem": {
     "CreativeResolve": false,

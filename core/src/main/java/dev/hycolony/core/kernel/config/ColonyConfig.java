@@ -69,12 +69,15 @@ public record ColonyConfig(
      *
      * @param canPlayerUseModifyCitizensCommand MC canplayerusemodifycitizenscommand: a colony manager who is not an
      *     operator may change a citizen's saturation (/mc citizens modify, HyColony's DebugAccess.modifySaturation)
+     * @param canPlayerUseResetCommand MC canplayeruseresetcommand: a player who is not an operator may reset a colony's
+     *     request system (/mc colony requestsystem-reset, HyColony's DebugAccess.resetRequests)
      */
     public record Commands(
             boolean canPlayerUseShowColonyInfoCommand,
             boolean canPlayerUseAddOfficerCommand,
             boolean canPlayerUseDeleteColonyCommand,
-            boolean canPlayerUseModifyCitizensCommand) {}
+            boolean canPlayerUseModifyCitizensCommand,
+            boolean canPlayerUseResetCommand) {}
 
     /**
      * MC ClientConfiguration, section gameplay.
@@ -124,7 +127,7 @@ public record ColonyConfig(
                 new Gameplay(4, 250, false, 1.0),
                 new Claims(20, 8, 4, 30000, 0),
                 new Permissions(true, Explosions.DAMAGE_ENTITIES, 2),
-                new Commands(true, true, false, false),
+                new Commands(true, true, false, false, false),
                 new Client(50, true),
                 new HyColony(5, false, true),
                 new Structurize(1000));

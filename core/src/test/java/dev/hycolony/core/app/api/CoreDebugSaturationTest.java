@@ -40,7 +40,7 @@ class CoreDebugSaturationTest {
                         g.initialCitizenAmount(), g.maxCitizenPerColony(), g.workersAlwaysWorkInRain(), foodModifier),
                 d.claims(),
                 d.permissions(),
-                new ColonyConfig.Commands(true, true, false, managersMayModify),
+                new ColonyConfig.Commands(true, true, false, managersMayModify, false),
                 d.client(),
                 d.hycolony(),
                 d.structurize());

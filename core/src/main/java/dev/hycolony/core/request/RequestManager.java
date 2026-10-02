@@ -30,7 +30,9 @@ public final class RequestManager {
 
     private final ItemCatalog catalog;
     private final ResolverRegistry resolvers;
-    private final RequestStore store = new RequestStore();
+    /** Read and restored by {@link RequestSerializer}. */
+    final RequestStore store = new RequestStore();
+
     private final OperationQueue queue = new OperationQueue();
     private final RequestCanceller canceller;
     private final RequestAssigner assigner;
@@ -51,6 +53,19 @@ public final class RequestManager {
 
     public void onProviderAdded(ResolverProvider p) {
         resolvers.addProvider(p);
+    }
+
+    /**
+     * MC StandardRequestManager.reset, then InitialUpdate: forgets every request and resolver at once, without a cancel
+     * callback, then registers {@code builtIns} and every one of {@code providers} again. Queued like every mutation.
+     */
+    public void reset(List<Resolver> builtIns, Collection<? extends ResolverProvider> providers) {
+        queue.submit(() -> {
+            store.clear();
+            resolvers.clear();
+            builtIns.forEach(resolvers::register);
+            providers.forEach(resolvers::addProvider);
+        });
     }
 
     /** Reassigns its requests with all its resolvers blacklisted, then drops them (ProviderHandler.removeProvider). */
@@ -232,10 +247,6 @@ public final class RequestManager {
 
     public Optional<Resolver> resolver(String resolverId) {
         return resolvers.byId(resolverId);
-    }
-
-    RequestStore store() {
-        return store;
     }
 
     /**

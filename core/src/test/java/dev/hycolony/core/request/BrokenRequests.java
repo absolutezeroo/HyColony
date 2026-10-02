@@ -9,11 +9,11 @@ public final class BrokenRequests {
 
     /** Forgets {@code token}'s resolver, its state left as is. */
     public static void dropResolver(RequestManager requests, RequestToken token) {
-        requests.store().unassign(token);
+        requests.store.unassign(token);
     }
 
     /** Sets {@code token}'s state without its transition. */
     public static void setState(RequestManager requests, RequestToken token, RequestState state) {
-        requests.store().require(token).setState(state);
+        requests.store.require(token).setState(state);
     }
 }

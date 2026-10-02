@@ -35,6 +35,17 @@ final class ResolverRegistry {
         this.requesters = Objects.requireNonNull(requesters, "requesters");
     }
 
+    /** Forgets every resolver and provider (MC reset's new resolver data stores). */
+    void clear() {
+        resolvers.clear();
+        shared.clear();
+        ownResolvers.clear();
+        resolversById.clear();
+        resolversByRequesterId.clear();
+        providers.clear();
+        beingRemoved.clear();
+    }
+
     void register(Resolver r) {
         checkRegistrable(r);
         resolversById.put(r.resolverId(), r);
