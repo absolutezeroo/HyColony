@@ -6,7 +6,16 @@ $C = "../../Common.ui";
 // grids sit on its slots, so they draw no slot of their own.
 
 @McSlot = 36;
-@McGridStyle = (SlotSize: @McSlot, SlotIconSize: 32, SlotSpacing: 0, DurabilityBar: "../HyBlockUI/Native/DurabilityBar.png", DurabilityBarBackground: "../HyBlockUI/Native/DurabilityBarBackground.png", DurabilityBarAnchor: (Bottom: 4, Left: 4, Width: 28, Height: 2), DurabilityBarColorStart: #a63232, DurabilityBarColorEnd: #63b649);
+@McGridStyle = (
+  SlotSize: @McSlot,
+  SlotIconSize: 32,
+  SlotSpacing: 0,
+  DurabilityBar: "../HyBlockUI/Native/DurabilityBar.png",
+  DurabilityBarBackground: "../HyBlockUI/Native/DurabilityBarBackground.png",
+  DurabilityBarAnchor: (Bottom: 4, Left: 4, Width: 28, Height: 2),
+  DurabilityBarColorStart: #a63232,
+  DurabilityBarColorEnd: #63b649
+);
 @McGrid = ItemGrid {
   AreItemsDraggable: true;
   DisplayItemQuantity: true;

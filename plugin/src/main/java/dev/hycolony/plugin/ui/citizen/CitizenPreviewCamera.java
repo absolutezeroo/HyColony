@@ -52,9 +52,13 @@ final class CitizenPreviewCamera {
         this.body = body;
     }
 
-    /** Gives the camera back (PlayerCameraResetCommand); safe to call more than once. */
+    /** Gives the camera back (PlayerCameraResetCommand); safe to call more than once, and never throws. */
     void stop() {
-        release();
+        try {
+            release();
+        } catch (RuntimeException e) {
+            LOG.at(Level.WARNING).withCause(e).log("HyColony: citizen preview camera not given back");
+        }
     }
 
     /**

@@ -5,6 +5,7 @@ import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.protocol.packets.interface_.CustomPageLifetime;
 import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.entity.entities.Player;
@@ -25,6 +26,7 @@ import dev.hyblockui.api.PlayerSection;
 import dev.hycolony.core.citizen.CitizenData;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import javax.annotation.Nonnull;
 import org.jspecify.annotations.Nullable;
 
@@ -33,8 +35,13 @@ import org.jspecify.annotations.Nullable;
  * name, its 27 slots and 4 armour slots, the frame where the server camera shows it ({@link CitizenPreviewCamera}),
  * and the player's storage and hotbar, all draggable. Redrawn when a move or the citizen's AI changes them. World
  * thread.
+ *
+ * <p>Deviation from MC: a shift-click is Hytale's own (InventoryUtils.smartMoveItem): from the citizen to the player's
+ * inventory as the player's settings place it, from the player to the citizen's 27 slots. MC quickMoveStack tries the
+ * armour slots first from the citizen's slots, then fills the player's from the end; here a piece is put on by drag.
  */
 final class CitizenInventoryPage extends InteractiveCustomUIPage<CitizenInventoryPage.Act> {
+    private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
     private static final String CITIZEN_GRID = "#CitizenSlots";
     private static final String ARMOR_GRID = "#ArmorSlots";
     /** How often the camera is checked and the citizen's own changes looked for, in milliseconds. */
@@ -110,12 +117,26 @@ final class CitizenInventoryPage extends InteractiveCustomUIPage<CitizenInventor
                 setup.armor().getItemContainer());
         setup.camera().follow();
         check = HytaleServer.SCHEDULED_EXECUTOR.scheduleAtFixedRate(
-                () -> setup.world().execute(this::checkNow), CHECK_MILLIS, CHECK_MILLIS, TimeUnit.MILLISECONDS);
+                this::queueCheck, CHECK_MILLIS, CHECK_MILLIS, TimeUnit.MILLISECONDS);
     }
 
-    /** The camera follows the citizen; the page is redrawn when its AI changed what it carries or wears. */
+    /** Queues a check on the world thread; a world that refuses it (stopped) ends the checks. Scheduler thread. */
+    private void queueCheck() {
+        try {
+            setup.world().execute(this::checkNow);
+        } catch (RuntimeException e) {
+            LOG.at(Level.FINE).withCause(e).log("HyColony: citizen inventory checks end with their world");
+            throw e; // a periodic task that throws is never run again (ScheduledExecutorService)
+        }
+    }
+
+    /**
+     * The camera follows the citizen; the page is redrawn when its AI changed what it carries or wears. A page no
+     * longer shown without a dismissal (the player left the world or the server) stops following.
+     */
     private void checkNow() {
         if (!isShown()) {
+            stopFollowing();
             return;
         }
         setup.camera().follow();
@@ -151,9 +172,20 @@ final class CitizenInventoryPage extends InteractiveCustomUIPage<CitizenInventor
         }
     }
 
-    /** Stops following, gives the camera back and closes the citizen's windows. Never throws. */
+    /**
+     * Stops following and gives the camera back, then closes the citizen's windows at the world's next task, after
+     * the client's own close of them when it dismissed the page (HeldWindows.closeLater). Never throws.
+     */
     @Override
     public void onDismiss(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
+        stopFollowing();
+        HeldWindows.closeLater(ref, setup.main());
+        HeldWindows.closeLater(ref, setup.armor());
+        super.onDismiss(ref, store);
+    }
+
+    /** Stops watching the inventories and checking, and gives the camera back; once is enough. */
+    private void stopFollowing() {
         InventoryWatch current = watch;
         watch = null;
         if (current != null) {
@@ -165,18 +197,22 @@ final class CitizenInventoryPage extends InteractiveCustomUIPage<CitizenInventor
             timer.cancel(false);
         }
         setup.camera().stop();
-        HeldWindows.closeIfHeld(ref, store, setup.main());
-        HeldWindows.closeIfHeld(ref, store, setup.armor());
-        super.onDismiss(ref, store);
     }
 
     Setup setup() {
         return setup;
     }
 
-    /** Closes the page from the server (its citizen's colony is gone); its dismissal cleans up. */
+    /**
+     * Closes the page from the server (its citizen's colony is gone), its dismissal cleaning up; a page the player
+     * already left only stops following, so that the page shown now stays open.
+     */
     void closeFromServer() {
-        close();
+        if (isShown()) {
+            close();
+        } else {
+            stopFollowing();
+        }
     }
 
     private void redrawIfShown() {
