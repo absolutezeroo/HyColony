@@ -23,8 +23,7 @@ final class CraftingRun {
     enum Outcome {
         NEXT_RUN,
         DONE,
-        NOT_MADE,
-        TOOL_BROKE
+        FAILED
     }
 
     private final CraftingWorkContext ctx;
@@ -36,15 +35,17 @@ final class CraftingRun {
     }
 
     /**
-     * MC executeCraftingAction for {@code task}, with the tool in {@code toolSlot} if the recipe needs one: NOT_MADE
-     * if the run cannot be made, TOOL_BROKE if the tool broke before the batch's last run; DONE after the batch's last
-     * run, one action done and the recipe maybe improved; else NEXT_RUN.
+     * MC executeCraftingAction for {@code task}, with the tool in {@code toolSlot} if the recipe needs one: FAILED if
+     * the run cannot be made (MC's success reward, which makes the crafter dump) or the tool broke before the batch's
+     * last run (one action and hunger); DONE after the batch's last run, the success reward earned and the recipe
+     * maybe improved; else NEXT_RUN.
      */
     Outcome make(Chosen recipe, Request task, OptionalInt toolSlot) {
         Optional<List<ItemAmount>> added =
                 RecipeExecution.craftOnce(recipe.recipe(), ctx.stock().inventory(), ctx.recipes(), ctx.items());
         if (added.isEmpty()) {
-            return Outcome.NOT_MADE;
+            ctx.job().incrementActions(ctx.stock().actionsUntilDump()); // MC getActionRewardForCraftingSuccess
+            return Outcome.FAILED;
         }
         outputs.route(recipe.recipe(), added.get(), task);
         CraftingTasks tasks = ctx.tasks();
@@ -55,10 +56,17 @@ final class CraftingRun {
             improve(recipe);
             return Outcome.DONE;
         }
-        return broke ? Outcome.TOOL_BROKE : Outcome.NEXT_RUN;
+        if (broke) {
+            ctx.job().incrementActionsAndDecSaturation(); // MC incrementActionsDoneAndDecSaturation
+            return Outcome.FAILED;
+        }
+        return Outcome.NEXT_RUN;
     }
 
-    /** MC CitizenItemUtils.damageItemInHand(1): wears the tool in {@code slot}; true when that broke it. */
+    /**
+     * MC CitizenItemUtils.damageItemInHand(1): wears the tool in {@code slot}; true when that broke it. Deviation from
+     * MC: no research yet, so no TOOL_DURABILITY chance to spare the tool.
+     */
     private boolean wear(int slot) {
         Inventory inventory = ctx.stock().inventory();
         return inventory

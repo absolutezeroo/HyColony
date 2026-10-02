@@ -260,24 +260,13 @@ public final class CraftingWork {
                 yield CraftingStep.GET_RECIPE;
             }
             case DONE -> finalizeCraftingTask();
-            case NOT_MADE -> {
-                // MC executeCraftingAction, addedStacks null: the success reward, which makes the crafter dump
-                ctx.job().incrementActions(ctx.stock().actionsUntilDump());
-                yield endFailedRun();
-            }
-            case TOOL_BROKE -> {
-                ctx.job().incrementActionsAndDecSaturation(); // MC executeCraftingAction: the tool broke
-                yield endFailedRun();
+            case FAILED -> { // MC executeCraftingAction's failed ends, its reward earned by the run
+                currentRequest = null;
+                ctx.tasks().finishRequest(ctx.colony(), false);
+                resetValues();
+                yield CraftingStep.START_WORKING;
             }
         };
-    }
-
-    /** MC executeCraftingAction's failed ends: the task fails, the counters reset, START_WORKING. */
-    private CraftingStep endFailedRun() {
-        currentRequest = null;
-        ctx.tasks().finishRequest(ctx.colony(), false);
-        resetValues();
-        return CraftingStep.START_WORKING;
     }
 
     /**
