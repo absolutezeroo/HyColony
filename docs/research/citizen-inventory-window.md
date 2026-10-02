@@ -184,3 +184,13 @@ Question : afficher le modèle du citoyen dans le panneau de droite (vide aujour
    - cases d'armure sans silhouette ni libellé : le filtre est invisible pour le client ;
    - l'armure du corps n'est qu'une **copie d'affichage**, jamais relue comme vérité (§ 4) ;
    - l'armure du corps change les stats Hytale du PNJ (défense) : voulu pour les gardes, mais c'est alors Hytale qui réduit les dégâts, pas la formule MC. À trancher dans la spec des gardes.
+
+## 9. Aperçu du citoyen par la caméra du serveur (essai en jeu, 2026-10-02, Hytale 0.7.0)
+
+Question : remplacer le dessin de l'entité de MC (`WindowCitizenInventory.renderEntityInInventoryFollowsMouse`, cadre 49 × 72 en (172, 22)) par la caméra du serveur posée sur le citoyen pendant que sa fenêtre est ouverte. Essai jetable `/hycolony camprobe`, retiré après le test.
+
+- **Caméra** : `SetServerCamera(ClientCameraView.Custom, true, settings)` avec `ServerCameraSettings.attachedToType = EntityId`, `attachedToEntityId = NetworkId` du corps, `followAttachedEntity`, `isFirstPerson = false`, `positionDistanceOffsetType = DistanceOffset`, `rotationType = Custom`, `applyLookType = Rotation`, `rotation = lacet du corps + π` (réglages copiés de `SpectatorSystems.applyFollowCamera`, l. 254-288). Retour : `SetServerCamera(Custom, false, null)`, comme `PlayerCameraResetCommand`.
+- **Sans page** : la caméra se fixe sur le citoyen, face à lui **[in-game]**.
+- **Avec `Page.Bench`** (la fenêtre de conteneur actuelle) : la page impose sa caméra. Envoyer la nôtre avant l'ouverture, juste après, ou 100, 500 et 1 500 ms après ne change rien **[in-game]**. Le décor reste visible autour des panneaux, sans assombrissement, mais les panneaux couvrent presque tout l'écran et celui de droite est opaque.
+- **Avec une page personnalisée** (la fenêtre du citoyen, `CitizenPage`) : la caméra reste fixée sur le citoyen **[in-game]**. C'est la voie retenue : notre propre fenêtre d'inventaire, avec les grilles de HyBlockUI (`InventoryGrids`, § 325-333 de `plugin-b-api.md`) et un cadre transparent pour l'aperçu.
+- La caméra garde le citoyen au centre de l'écran. Décaler le citoyen dans un cadre (`positionOffset`, `rotationOffset`) reste à régler sur la vraie fenêtre **[in-game]**.
