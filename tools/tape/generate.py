@@ -15,15 +15,14 @@ from pathlib import Path
 from types import SimpleNamespace
 
 TOOLS = Path(__file__).resolve().parents[1]
-sys.path += [str(TOOLS / "vanilla"), str(TOOLS / "domum")]
+sys.path += [str(TOOLS / "common"), str(TOOLS / "domum")]
 import convert  # noqa: E402
 import icon  # noqa: E402
 import iconmap  # noqa: E402
 import pairs  # noqa: E402
 import tags  # noqa: E402
 from blocks import common  # noqa: E402
-from flower_pots import rounded  # noqa: E402
-from pack import ROOT, write_json  # noqa: E402
+from pack import ROOT, rounded, write_json  # noqa: E402
 from shapes import SHAPES, TEXTURES, elements  # noqa: E402
 
 OUT = ROOT / "plugin" / "src" / "main" / "resources"

@@ -221,6 +221,17 @@ def face_point(side, size, s, t):
             "left": (-hx, hy - t, -hz + s), "top": (-hx + s, hy, -hz + t), "bottom": (-hx + s, -hy, hz - t)}[side]
 
 
+def rounded(data):
+    """data with every float rounded to 4 decimals (1/1000 of a pixel), for compact generated models."""
+    if isinstance(data, float):
+        return round(data, 4)
+    if isinstance(data, dict):
+        return {k: rounded(v) for k, v in data.items()}
+    if isinstance(data, list):
+        return [rounded(v) for v in data]
+    return data
+
+
 def save_png(image, path):
     path.parent.mkdir(parents=True, exist_ok=True)
     image.save(path, optimize=True)

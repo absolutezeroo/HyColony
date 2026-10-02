@@ -14,11 +14,11 @@ hitbox and the pack's id-map fragment (spec 2026-09-28 carpets and flower pots),
 import sys
 from pathlib import Path
 
-from PIL import Image
-
-import beds
-import flower_pots
-from pack import GRADLE_ASSETS, ICON_SIZE, PACK, Assets, draw_box, save_png, validate_pack, write_json
+sys.path.append(str(Path(__file__).resolve().parents[1] / "common"))
+import beds  # noqa: E402
+import flower_pots  # noqa: E402
+from pack import GRADLE_ASSETS, ICON_SIZE, PACK, Assets, draw_box, save_png, validate_pack, write_json  # noqa: E402
+from PIL import Image  # noqa: E402
 
 # The 20 Hytale wool colours: Cloth_Block_Wool_<C>, texture BlockTextures/Cloth_<C>.png.
 WOOL_COLOURS = [

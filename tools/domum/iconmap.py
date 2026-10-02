@@ -15,7 +15,7 @@ from pathlib import Path
 
 from PIL import Image
 
-sys.path.append(str(Path(__file__).resolve().parents[1] / "vanilla"))
+sys.path.append(str(Path(__file__).resolve().parents[1] / "common"))
 from models import TURNS, add, placed, rotate  # noqa: E402
 
 SIZE = 64

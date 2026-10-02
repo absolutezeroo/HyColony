@@ -15,8 +15,7 @@ import iconmap
 import names
 import pairs
 import tags
-from flower_pots import rounded
-from pack import write_json
+from pack import rounded, write_json
 
 # The DO creative tab's single list (every template, as DO's one creative tab); tabs.py names it.
 DO_TAB_LIST = "All"

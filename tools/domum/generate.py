@@ -13,7 +13,7 @@ import shutil
 import sys
 from pathlib import Path
 
-sys.path.append(str(Path(__file__).resolve().parents[1] / "vanilla"))
+sys.path.append(str(Path(__file__).resolve().parents[1] / "common"))
 import manifest  # noqa: E402
 import source  # noqa: E402
 import tabs  # noqa: E402

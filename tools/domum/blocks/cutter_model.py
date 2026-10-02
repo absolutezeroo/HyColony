@@ -15,8 +15,7 @@ from PIL import Image
 import icon
 import iconmap
 from blocks import common
-from flower_pots import check_uvs
-from models import scaled, shift_uvs, walk, xyz
+from models import check_uvs, scaled, shift_uvs, walk, xyz
 
 MODEL = common.MODELS + "ArchitectsCutter.blockymodel"
 TEXTURE = common.MODELS + "ArchitectsCutter_Texture.png"

@@ -64,6 +64,13 @@ def face_rects(nodes):
                    u + max(c[0] for c in corners), v + max(c[1] for c in corners))
 
 
+def check_uvs(owner, nodes, size):
+    """Fails on a face reading outside its texture of size: in an atlas it would read the neighbouring texture."""
+    for name, u0, v0, u1, v1 in face_rects(nodes):
+        if u0 < 0 or v0 < 0 or u1 > size[0] or v1 > size[1]:
+            raise SystemExit(f"{owner}: face of {name} reads ({u0}, {v0})-({u1}, {v1}) outside its {size} texture")
+
+
 def walk(nodes):
     for n in nodes:
         yield n

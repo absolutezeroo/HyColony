@@ -1,11 +1,11 @@
-"""Checks of the hut tools: python tools/huts/check.py (no assets needed). An AssertionError names the case."""
+"""Checks of the shared model tools: python tools/common/check.py (no assets needed). An AssertionError names the case."""
 
 import math
 import sys
 import unittest
 from pathlib import Path
 
-sys.path.append(str(Path(__file__).resolve().parents[1] / "vanilla"))
+sys.path.append(str(Path(__file__).resolve().parents[1] / "common"))
 import bake  # noqa: E402
 from models import bounds, empty_shape, node, placed  # noqa: E402
 from pack import screen, turned, turned_shade  # noqa: E402

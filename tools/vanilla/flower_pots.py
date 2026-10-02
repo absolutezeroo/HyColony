@@ -18,8 +18,8 @@ from PIL import Image
 
 from bake import light_map, lit
 from brushes import average, stone, terracotta
-from models import bounds, empty_shape, face_rects, node, scaled, shift_uvs, walk
-from pack import ICON_SIZE, PACK, draw_model, save_png, write_json
+from models import bounds, check_uvs, empty_shape, node, scaled, shift_uvs, walk
+from pack import ICON_SIZE, PACK, draw_model, rounded, save_png, write_json
 from paint import bleed, paint
 
 POT_MODEL = Path(__file__).parent / "models" / "Flower_Pot.blockymodel"
@@ -192,13 +192,6 @@ def power_of_two(n):
     return 1 << (n - 1).bit_length()
 
 
-def check_uvs(plant_id, nodes, size):
-    """Fails on a face reading outside its texture: in an atlas it would read the neighbouring texture."""
-    for name, u0, v0, u1, v1 in face_rects(nodes):
-        if u0 < 0 or v0 < 0 or u1 > size[0] or v1 > size[1]:
-            raise SystemExit(f"{plant_id}: face of {name} reads ({u0}, {v0})-({u1}, {v1}) outside its {size} texture")
-
-
 def fit(nodes, vanilla_scale, width_room):
     """Uniform scale making the plant stand in the room above the dirt, never sinking below the pot."""
     low, high = bounds(nodes)
@@ -227,16 +220,6 @@ def write_model(name, nodes):
     # Compact, 4 decimals (1/1000 of a pixel): 16 x 122 models would otherwise weigh tens of megabytes.
     text = json.dumps(rounded({"lod": "auto", "nodes": [root]}), separators=(",", ":"))
     path.write_text(text + "\n", encoding="utf-8", newline="\n")
-
-
-def rounded(data):
-    if isinstance(data, float):
-        return round(data, 4)
-    if isinstance(data, dict):
-        return {k: rounded(v) for k, v in data.items()}
-    if isinstance(data, list):
-        return [rounded(v) for v in data]
-    return data
 
 
 def pot_item(colour, clay_item, plants):

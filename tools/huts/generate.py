@@ -18,7 +18,7 @@ import sys
 from pathlib import Path
 
 TOOLS = Path(__file__).resolve().parents[1]
-sys.path.append(str(TOOLS / "vanilla"))
+sys.path.append(str(TOOLS / "common"))
 import build_tool  # noqa: E402
 import builder  # noqa: E402
 import goggles  # noqa: E402

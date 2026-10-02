@@ -1,4 +1,4 @@
-"""Shared colours and tile tints of HyColony's hand-built models (the brushes are in tools/vanilla/brushes.py)."""
+"""Shared colours and tile tints of HyColony's hand-built models (the brushes are in tools/common/brushes.py)."""
 
 from PIL import Image, ImageDraw
 
