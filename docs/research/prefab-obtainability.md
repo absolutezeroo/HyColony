@@ -2,6 +2,8 @@
 
 Research only. Scope: the 10 vanilla prefabs listed in `plugin/src/main/resources/hycolony/styles.json` (styles `outlander` and `kweebec`, levels 1-5; townhall, builder and residence share the same prefab per level). The question: can a survival player obtain every item the builder requests? One unobtainable item stalls a build forever.
 
+> Mise à jour 2026-10-02 (0.7.0-pre.5) : aucun tonneau vanilla n'a de recette. Pour ajouter celle de `Furniture_Tavern_Barrel` (recette autonome au `Furniture_Bench`, butin `Barrels`, `UseDefaultDropWhenPlaced`), voir `barrel-recipe.md`.
+
 Sources: `release-0.6.8-Assets.zip` (`Server/Prefabs`, `Server/Item/Items`, `Server/Item/Recipes`, `Server/Item/ResourceTypes`, `Server/Drops`, `Server/World`, `Server/HytaleGenerator`, `Server/BarterShops`) and the decompiled server in `build/vineflower/hytale-server`. Scripts: `load.py`, `prefabs.py`, `sources.py`, `classify.py`, `gen.py`, `gen2.py`, `alt.py` in the session scratchpad (not committed).
 
 ## TL;DR
