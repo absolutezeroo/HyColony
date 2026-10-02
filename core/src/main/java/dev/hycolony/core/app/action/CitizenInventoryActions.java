@@ -3,11 +3,16 @@ package dev.hycolony.core.app.action;
 import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
+import dev.hycolony.core.citizen.inventory.CitizenEquipment;
+import dev.hycolony.core.citizen.inventory.GuardGear;
+import dev.hycolony.core.citizen.inventory.HeldItems;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyAccess;
 import dev.hycolony.core.colony.permission.Action;
+import dev.hycolony.core.kernel.item.ArmorInfo;
 import dev.hycolony.core.kernel.item.Inventory;
 import dev.hycolony.core.kernel.item.ItemAmount;
+import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.Msg;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.RequestManager;
@@ -57,21 +62,64 @@ public final class CitizenInventoryActions {
      * also calls {@code set} with the rest of a stack shift-clicked out, which overrules nothing here.
      */
     public void onPlayerEdit(int colonyId, int citizenId, Inventory before) {
-        Colony c = manager.byId(colonyId).orElse(null);
-        if (c == null) {
-            return;
+        citizen(colonyId, citizenId)
+                .ifPresent(cd -> offerPut(cd.colony(), cd.data(), cd.data().inventory(), before));
+    }
+
+    /**
+     * As {@link #onPlayerEdit}, for the citizen's armour (MC ContainerCitizenInventory.createArmorSlot's {@code set}):
+     * each piece put on is offered to its workplace's requests, and the body shows the armour now worn.
+     */
+    public void onArmorEdit(int colonyId, int citizenId, Inventory before) {
+        citizen(colonyId, citizenId).ifPresent(cd -> {
+            offerPut(cd.colony(), cd.data(), cd.data().equipment().armor(), before);
+            cd.colony()
+                    .citizens()
+                    .bodyOf(cd.data().id())
+                    .ifPresent(b ->
+                            HeldItems.showArmor(cd.data(), manager.context().bodies(), b));
+        });
+    }
+
+    /**
+     * MC ContainerCitizenInventory.createArmorSlot's {@code mayPlace}: whether {@code item} may go in armour {@code
+     * slot} of the citizen, an armour piece of that slot within what its work building's level allows ({@link
+     * GuardGear}); false for anything else, an unknown citizen or slot, and a citizen without work building.
+     */
+    public boolean mayWear(int colonyId, int citizenId, int slot, ItemKey item) {
+        if (slot < 0 || slot >= CitizenEquipment.ARMOR_SLOTS) {
+            return false;
         }
-        CitizenData d = c.citizens().get(citizenId).orElse(null);
-        if (d == null) {
-            return;
-        }
+        int workLevel = citizen(colonyId, citizenId)
+                .flatMap(cd -> Optional.ofNullable(cd.data().workBuilding())
+                        .flatMap(cd.colony().buildings()::at))
+                .map(Building::level)
+                .orElse(0);
+        return manager.context()
+                .ports()
+                .armors()
+                .armor(item)
+                .filter(piece -> GuardGear.allows(workLevel, piece, ArmorInfo.Slot.values()[slot]))
+                .isPresent();
+    }
+
+    private record ColonyCitizen(Colony colony, CitizenData data) {}
+
+    private Optional<ColonyCitizen> citizen(int colonyId, int citizenId) {
+        return manager.byId(colonyId).flatMap(c -> c.citizens().get(citizenId).map(d -> new ColonyCitizen(c, d)));
+    }
+
+    /**
+     * Marks {@code c} to save, then offers each stack the player put in {@code now} (a slot that was empty or held
+     * another item, compared with {@code before}) to {@code d}'s workplace; nothing without one.
+     */
+    private void offerPut(Colony c, CitizenData d, Inventory now, Inventory before) {
         c.markDirty();
         Building work =
                 Optional.ofNullable(d.workBuilding()).flatMap(c.buildings()::at).orElse(null);
         if (work == null) {
             return;
         }
-        Inventory now = d.inventory();
         for (int i = 0; i < now.size() && i < before.size(); i++) {
             Optional<ItemAmount> is = now.slot(i);
             if (is.isPresent() && placed(before.slot(i), is.get())) {
