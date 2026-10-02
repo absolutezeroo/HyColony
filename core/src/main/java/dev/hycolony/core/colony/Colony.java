@@ -16,8 +16,7 @@ import dev.hycolony.core.kernel.ai.TickRateStateMachine;
 import dev.hycolony.core.request.RequestManager;
 import dev.hycolony.core.request.Requester;
 import dev.hycolony.core.request.model.RequesterId;
-import dev.hycolony.core.request.resolver.PlayerResolver;
-import dev.hycolony.core.request.resolver.RetryingResolver;
+import dev.hycolony.core.request.resolver.BuiltInResolvers;
 import java.util.Optional;
 import java.util.OptionalInt;
 
@@ -65,8 +64,7 @@ public final class Colony {
         this.registries = new ColonyRegistries(pos -> ctx.ports().farming().isFieldBlock(pos));
         this.requests = new RequestManager(this::requester, ctx.ports().catalog());
         this.buildings = new BuildingManager(new ColonyBuildingListener(this));
-        requests.registerBuiltIn(new PlayerResolver(center));
-        requests.registerBuiltIn(new RetryingResolver(center));
+        BuiltInResolvers.of(center).forEach(requests::registerBuiltIn);
         requests.setStateListener(new RequestStatePoster(ctx.bus(), id));
         this.citizens = new CitizenManager(this);
         this.wasDaytime = ctx.clock().isDaytime();

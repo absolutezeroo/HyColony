@@ -6,8 +6,7 @@ import dev.hycolony.core.crafting.task.Crafter;
 import dev.hycolony.core.crafting.task.CraftingTasks;
 import dev.hycolony.core.logistics.courier.DeliverymanJob;
 import dev.hycolony.core.request.model.RequestToken;
-import dev.hycolony.core.request.resolver.PlayerResolver;
-import dev.hycolony.core.request.resolver.RetryingResolver;
+import dev.hycolony.core.request.resolver.BuiltInResolvers;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,11 +27,7 @@ public final class RequestSystemReset {
      * crafters' counters stay, as in MC.
      */
     public static void reset(Colony c) {
-        c.requests()
-                .reset(
-                        List.of(new PlayerResolver(c.center()), new RetryingResolver(c.center())),
-                        c.buildings().all(),
-                        () -> forgetJobTasks(c));
+        c.requests().reset(BuiltInResolvers.of(c.center()), c.buildings().all(), () -> forgetJobTasks(c));
         c.markDirty();
     }
 
