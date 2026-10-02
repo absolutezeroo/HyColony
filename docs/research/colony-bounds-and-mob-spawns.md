@@ -138,3 +138,103 @@ clignotement et pour les membres de meute (`FlockPlugin.trySpawnFlock`, l. 296-3
 - Notre rôle `plugin/src/main/resources/Server/NPC/Roles/HyColony/HyColony_Citizen.json` n'a qu'une instruction
   `HyColonyTarget` + `HyColonySeek` : la cible vient du cœur (`CitizenWander`), donc ni le point d'attache ni les corps
   `Wander*` ne jouent. La restriction se décide dans le cœur, au choix de la cible.
+
+## 6. Retirer après l'apparition : hostilité, crochet, origine (2026-10-02)
+
+Choix de l'utilisateur : aucun monstre hostile né naturellement dans les cellules revendiquées (écart à MC, qui ne
+refuse que dans les bâtiments, § 2), en retirant le PNJ après son apparition (cellules exactes de 16, au lieu des
+chunks de 32 de `SpawnSuppression`).
+
+### 6.1 Reconnaître un PNJ hostile
+
+- **Par groupe (`NPCGroup`)**. Index du groupe : `NPCGroup.getAssetMap().getIndex("Aggressive")`
+  (`builtin/tagset/config/NPCGroup.java:68-70` ; `IndexedLookupTableAssetMap.getIndex` rend `Integer.MIN_VALUE` pour
+  une clé inconnue, `assetstore/map/IndexedLookupTableAssetMap.java:30-47`). L'id est le nom du fichier
+  (`LivingWorld/Aggressive.json` → `"Aggressive"`, comme dans `Spawn_Camp.json`). Test :
+  `TagSetPlugin.get(NPCGroup.class).tagInSet(group, npc.getRoleIndex())` (`builtin/tagset/TagSetPlugin.java:57-80` ;
+  lève `IllegalArgumentException` si le groupe n'existe pas, l. 72-77 ; `getSet` rend `null`, l. 82-84). Raccourci
+  vanilla : `WorldSupport.hasTagInGroup(group, roleIndex)` (`npc/role/support/WorldSupport.java:287-289`). Même motif
+  dans `UseCaptureCrateInteraction.java:125-131`.
+- Les ensembles sont aplatis à partir des index de rôles (`NPCPlugin.putNPCGroups`, `npc/NPCPlugin.java:1380-1393`,
+  avec `builderManager.getNameToIndexMap()`). `IncludeRoles`/`ExcludeRoles` acceptent des motifs glob
+  (`builtin/tagset/TagSetLookupTable.java:108-113`, `StringUtil.isGlobMatching`), et `IncludeGroups`/`ExcludeGroups`
+  d'autres groupes (`NPCGroup.java:23-46`). La suppression d'apparition fait le même calcul (`SpawnSuppressionSystems.java:80-88`
+  puis `SuppressionSpan.includesRole`).
+- **Couverture de `Aggressive`** (calcul glob sur les rôles cités par les 98 apparitions du monde, 96 balises et
+  marqueurs du zip pre.5) : couvre squelettes (`*Skeleton*`), zombies, Vide (`Crawler_Void*`, `Larva_Void*`, `Eye_Void`,
+  `Void_Spectre*`…), gobelins, trorks, `Vermin` (`Rat*`, `Snake*`, `Spider*`, `Scorpion*`), `Predators` (`Fox*`,
+  `Hyena*`, `Toad*`, `Spark*`, `Fen_Stalker`), `PredatorsBig` (`Bear*`, `Wolf*`, `Yeti`, `Emberwulf`, `Leopard_Snow`,
+  `Tiger_Sabertooth`, `Crocodile`, `Raptor_Cave`, `Rex_Cave`).
+  - **Trous** parmi les apparitions du monde ou des balises : `Outlander_Berserker`, `Outlander_Hunter`,
+    `Scarak_Fighter`, `Scarak_Seeker` (les groupes `Outlander` et `Scarak` existent sous `Groups/Intelligent/Aggressive/`
+    mais `Aggressive` ne les inclut pas), `Wraith`, `Hound_Bleached` (gabarit `Template_Predator`, attitude `Hostile`),
+    `Golem_Firesteel`, `Spirit_*`, `Eye_Void_Surge`, `Void_Spawn_Surge`, `Slug_Magma`, `Snail_Magma`, `Molerat`,
+    `Larva_Silk`, `Lizard_Sand`, `Bat`, `Cow_Undead`, `Pig_Undead` (hostilité de ces derniers non vérifiée).
+  - **Faux positif** : `Horse_Skeleton` (monture) entre par `*Skeleton*` (aussi dans `Neutral`).
+  - Animaux passifs : dans `Neutral` (`Prey`, `PreyBig`) ou `Passive` (`Critters`, `Birds`, `Aquatic`), pas dans
+    `Aggressive`. `HyColony_Citizen` n'entre dans aucun des trois.
+  - Un groupe propre au mod (asset `Server/NPC/Groups/...` du pack, `IncludeGroups` `Aggressive`, `Outlander`,
+    `Scarak` + rôles nommés) fermerait les trous. **[in-game]** : chargement d'un `NPCGroup` depuis le pack d'un mod
+    (le magasin lit `NPC/Groups`, `TagSetPlugin.java:33-45`).
+- **Par attitude**. `WorldSupport` est un composant de l'entité (`Role.java:202,219` ; `WorldSupport.getComponentType()`,
+  l. 64) ; `getDefaultPlayerAttitude()` (l. 167) rend un `core/asset/type/attitude/Attitude` (`IGNORE`, `HOSTILE`,
+  `NEUTRAL`, `FRIENDLY`, `REVERED`). **Peu fiable seul** : la valeur par défaut est `HOSTILE`
+  (`npc/asset/builder/SupportConfigBuilder.java:86-95`), et `Template_Birds_Passive`, `Template_Edible_Critter`,
+  `Template_Swimming_Passive` (`Server/NPC/Roles/_Core/Templates/`) ne la fixent pas ; notre `HyColony_Citizen.json` non
+  plus. `Template_Animal_Neutral` et `Template_Livestock` la calculent (`PlayerDefaultAttitude`, défaut `Neutral`),
+  `Template_Predator` et `Template_Flying_Aggressive` la fixent à `Hostile`.
+
+### 6.2 Le crochet
+
+- `RefSystem<EntityStore>` (`component/system/RefSystem.java:10-18`) de requête `NPCEntity`, enregistré dans le
+  registre d'entités du plugin. `Store.addEntity` (`component/Store.java:428-498`) : `assertThread()` (l. 437, thread du
+  monde), puis les `HolderSystem.onEntityAdd` sur le holder (l. 449-458 ; le rôle et `WorldSupport` y sont construits
+  par `RoleBuilderSystem`, `npc/systems/RoleBuilderSystem.java:59,77-81`), puis les `RefSystem.onEntityAdded`
+  (l. 475-487), puis `commandBuffer.consume()` ; si l'entité a été retirée, `addEntity` rend `null` (l. 497).
+- **Ordre** : `NPCPlugin.spawnEntity` appelle `preAddToWorld` **avant** `store.addEntity(holder, AddReason.SPAWN)`
+  (`npc/NPCPlugin.java:1525-1530`), et `postSpawn` après (l. 1536-1538). L'apparition du monde passe son
+  `preAddToWorld` (`WorldSpawnJobSystems.java:278-286,333-342`) : `spawnConfiguration`, `environment` et
+  `spawnRoleIndex` sont donc lisibles dans `onEntityAdded`, quel que soit l'ordre des systèmes.
+- **Meutes** : `FlockPlugin.trySpawnFlock` crée chaque membre par `spawnEntity` avec le même `preAddToWorld`
+  (`flock/FlockPlugin.java:174-224` ; appel `WorldSpawnJobSystems.java:296-307`) : chaque membre passe par le crochet.
+- **Retrait immédiat** (motif vanilla `FailedSpawnSystem`, `npc/systems/FailedSpawnSystem.java:14-32` :
+  `commandBuffer.removeEntity(ref, RemoveReason.REMOVE)` dans `onEntityAdded`, signature `CommandBuffer.java:230`) :
+  l'entité disparaît avant la fin d'`addEntity`, donc avant tout envoi au client (**[in-game]** : aucun fantôme
+  attendu). Mais l'appelant reçoit `null` :
+  - apparition du monde : `NPCPlugin` journalise WARNING (`NPCPlugin.java:1531-1533`) et `WorldSpawnJobSystems`
+    SEVERE « The spawned entity returned null » (l. 287-292), meute non créée ;
+  - balise : `npcPair.first()` sur `null` → exception attrapée, WARNING (`SpawnBeaconSystems.java:744-772`) ;
+  - marqueur : WARNING puis `fail(... INVALID_ROLE)` (`SpawnMarkerEntity.java:447-460`) ; des échecs répétés
+    **suppriment le marqueur** (`fail`, l. 991-1016, `setValidationFailed`).
+- **Retrait différé** (chemin vanilla de disparition) : `npc.setDespawning(true)` puis `npc.setDespawnRemainingSeconds(0)`
+  (`NPCEntity.java:200-205`), comme `NPCPreTickSystem` le fait pour `shouldNPCDespawn` (`npc/systems/NPCPreTickSystem.java:106-110`) ;
+  au tick suivant le même système retire l'entité en `RemoveReason.REMOVE`, après l'animation `Despawn` si le modèle en
+  a une (l. 81-96). Pas de `null` pour l'appelant, ni de journal, ni d'échec de marqueur. **[in-game]** : le client voit
+  sans doute le PNJ un tick (ou son animation de disparition).
+- Le retrait `REMOVE` « dé-compte » le PNJ de l'apparition du monde (`WorldSpawnTrackingSystem.onEntityRemove`,
+  `spawning/world/system/WorldSpawnTrackingSystem.java:166-200`) : le générateur réessaiera dans ces chunks (boucle
+  apparition-retrait bornée par son budget, **[in-game]** pour le coût).
+
+### 6.3 Apparition naturelle ou non
+
+| Origine | Marque | Quand |
+|---|---|---|
+| Monde (`WorldSpawnJobSystems`) | `NPCEntity.getSpawnConfiguration() != Integer.MIN_VALUE` (`NPCEntity.java:124,423`), `getEnvironment()` (l. 419) | avant l'ajout |
+| Enfant d'un PNJ (`ActionSpawn`) | copie le `spawnConfiguration` du parent (`npc/corecomponents/lifecycle/ActionSpawn.java:255`) | — |
+| Balise | composant `SpawnBeaconReference` (`LegacySpawnBeaconEntity.java:305`, via `notifySpawn`, l. 214-229) ; `postSpawn` ne fixe que `spawnRoleIndex` (`SpawnBeaconSystems.java:802-814`) | après l'ajout |
+| Marqueur | composant `SpawnMarkerReference` + `WorldGenId` dans `postSpawn` (`SpawnMarkerEntity.java:439-447`) | après l'ajout |
+| `/npc spawn`, nos citoyens (`NPCPlugin.spawnNPC*`) | aucune de ces marques | — |
+
+`RoleChangeSystem` remet `spawnConfiguration`, `environment` et `spawnRoleIndex` à `Integer.MIN_VALUE` lors d'un
+changement de rôle (`npc/systems/RoleChangeSystem.java:122-124`). Les marques des balises et marqueurs n'existent pas
+encore dans `onEntityAdded` : il faut les lire plus tard (au tick suivant, ou par un système sur l'ajout de ces
+composants, **[in-game]**).
+
+### 6.4 Systèmes vanilla qui retirent un PNJ juste après son apparition
+
+- `FailedSpawnSystem` (ci-dessus) : retrait dans `onEntityAdded` d'un PNJ marqué `FailedSpawnComponent` par
+  `RoleBuilderSystem` (`RoleBuilderSystem.java:250`) quand son rôle ne se construit pas.
+- La disparition par l'heure (`SpawnWrapper.shouldDespawn`, `SpawningPlugin.shouldNPCDespawn`, `SpawningPlugin.java:555-566`)
+  passe par `setDespawning` + `NPCPreTickSystem` (§ 6.2), vérifiée toutes les 30 s (`NPCPreTickSystem.java:97-99`).
+- Les balises retirent leurs PNJ hors rayon ou à l'heure de disparition par `commandBuffer.removeEntity(..., REMOVE)`
+  (`SpawnBeaconSystems.java:120-135`).

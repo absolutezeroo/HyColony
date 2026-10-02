@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingTypes;
+import dev.hycolony.core.citizen.wander.CitizenWander;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.colony.territory.TerritoryIndex;
@@ -201,6 +202,7 @@ class CitizenAITest {
                 new TerritoryIndex(),
                 new Colony.Founding(1, "T", hall, Permissions.createDefault(UUID.randomUUID(), "A")));
         c.buildings().add(Building.create(BuildingTypes.TOWN_HALL, hall, 0));
+        c.claimAround(hall, 8); // the citizens here stand up to 100 blocks off: in the territory, they wander
         return c;
     }
 }
