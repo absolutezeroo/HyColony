@@ -10,6 +10,8 @@
 
 **Spec:** `docs/superpowers/specs/2026-10-02-hycolony-citizen-inventory-mc-design.md`
 
+> **Note (2026-10-03, après les relectures) :** ce plan est l'historique de l'implémentation ; la spec fait foi. Les relectures ont séparé, comme MC, la case tenue de l'objet montré en main : `CitizenEquipment.clearHands`, `HeldItems.holdItem`, `HeldItems.clear` et `HeldItems.show` n'existent plus (`WorkerHands.hold` et les mains vidées passent par `CitizenBodies.setHeldItem` seul, `bind` montre l'armure seule, `HeldItems.release` libère la case au dépôt), le repas ne prend plus la case de la nourriture, et l'usure de l'armure suit Hytale (spec § 3).
+
 ## Global Constraints
 
 - CLAUDE.md en entier : cœurs sans `com.hypixel`, 400 lignes par fichier, 15 fichiers par paquet, 40 lignes par méthode, 5 paramètres, Javadoc courte, `Deviation from MC:`, TDD, `./gradlew build` vert avant chaque commit, spotless fichier par fichier.
