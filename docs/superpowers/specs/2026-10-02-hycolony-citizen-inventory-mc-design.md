@@ -26,9 +26,10 @@ Refaire l'inventaire du citoyen exactement comme MC :
 
 **Vie de l'armure et des mains** :
 - quand le citoyen perd son métier (`AbstractJob.onRemoval`, l. 449-454) : les 4 pièces reviennent dans l'inventaire ; les mains gardent leur case (`moveArmorToInventory` ne fait rien pour elles), et l'entité a ses mains vidées (`setItemSlot`) ;
-- l'entité dessine l'armure lue dans l'inventaire (`EntityCitizen.getItemBySlot`) ;
-- quand il est blessé (`CitizenItemUtils.updateArmorDamage`, appelé par `EntityCitizen.hurt`) : chaque pièce perd `max(1, dégâts / 4)` de durabilité ; une pièce cassée disparaît ;
-- l'outil qui s'use est celui de la case tenue (`CitizenItemUtils.damageItemInHand`, l. 236), et un outil cassé vide la main.
+- l'entité dessine l'armure lue dans l'inventaire (`EntityCitizen.getItemBySlot`) ; sa main, elle, est la sienne : la case tenue (`InventoryCitizen.setHeldItem`) et l'objet montré en main (`setItemInHand`) sont deux choses. `CitizenItemUtils.setHeldItem` change les deux ; `setItemInHand` (repas, ingrédient de l'artisan, `resetValues`) et `removeHeldItem` (sommeil) ne touchent que la main de l'entité ;
+- quand il est blessé (`CitizenItemUtils.updateArmorDamage`, appelé par `EntityCitizen.hurt`) : chaque pièce perd `max(1, dégâts / 4)` de durabilité, sauf au hasard selon la recherche `ARMOR_DURABILITY` ; une pièce cassée disparaît ;
+- l'outil qui s'use est celui de la case tenue (`CitizenItemUtils.damageItemInHand`, l. 236) ; un outil cassé vide la main de l'entité, la case tenue restant ;
+- le dépôt (`AbstractEntityAIBasic.dumpOneMoreSlot`) qui range la case tenue remet la main à −1 et vide celle de l'entité.
 
 **Fenêtre** (`core/client/gui/containers/WindowCitizenInventory.java`, texture `textures/gui/citizen_container.png` 350 × 350) :
 - 245 de large, `114 + 18 × rangées` de haut (168 pour 3 rangées) ;
@@ -43,14 +44,13 @@ Refaire l'inventaire du citoyen exactement comme MC :
 - les 27 cases actuelles ;
 - `CitizenEquipment` : `armor()`, 4 cases dans l'ordre de Hytale (tête, torse, mains, jambes), chacune vide ou une pile avec son usure ; `held(Hand)`, main et main secondaire, chacune l'indice d'une case ou −1. Un indice qui ne pointe plus sur rien (case vidée) reste, comme MC : la main est vide tant que la case l'est.
 
-**Objet tenu** (`HeldItems`, MC `setHeldItem(hand, slot)`) : `holdSlot` tient une case, `holdItem` la première case qui contient l'objet ; le corps montre l'objet de la case au moment où la main la prend. Chaque appel à `CitizenBodies.setHeldItem` est repris :
-- main vide → `clear` ;
-- outil → la case de l'outil qu'il use (`WorkerHands.holdSlot`, `holdTool`) : bâtisseur, artisan, fermier ; un outil qui casse vide la main (MC `damageItemInHand`) ;
-- nourriture → sa case (`EatingTable`) ;
-- bloc posé par le bâtisseur, déjà retiré de l'inventaire → montré sans case (écart, § 5).
+**Objet tenu**, comme MC, en deux choses :
+- la case tenue : `HeldItems.holdSlot` (MC `CitizenItemUtils.setHeldItem`) la prend et montre son objet ; c'est la case de l'outil qu'il use (`WorkerHands.holdSlot` pour le bâtisseur et l'artisan, `holdTool` pour la houe du fermier, MC `holdEfficientTool`, `equipHoe`) ; `HeldItems.release` la rend quand le dépôt range sa pile (`WorkerStock`, MC `dumpOneMoreSlot`) ;
+- l'objet montré en main : `CitizenBodies.setHeldItem` seul (`WorkerHands.hold`, MC `setItemInHand`), la case tenue restant : nourriture du repas, ingrédient de l'artisan, graines du fermier, mains vidées (outil cassé, sommeil, repas fini, `resetValues`), et le bloc que le bâtisseur vient de poser (écart, § 5) ;
+- un nouveau corps montre l'armure, pas l'objet tenu : la main d'une entité de MC est la sienne, l'IA la remplit à son prochain geste.
 
 **Armure** :
-- port `ArmorCatalog` (`citizen/inventory`, dans `GamePorts.armors`) : `armor(ItemKey)` → `Optional<ArmorInfo>` (emplacement et `ItemLevel` de Hytale) ; un port à lui, `ItemCatalog` et son adaptateur étant au bout de leurs dépendances. La vie d'une pièce, en coups, est `ItemCatalog.durability` : `ceil(MaxDurability / DurabilityLossOnHit)` ;
+- port `ArmorCatalog` (`citizen/inventory`, dans `GamePorts.armors`) : `armor(ItemKey)` → `Optional<ArmorInfo>` (emplacement, `ItemLevel` et `MaxDurability` de Hytale) ; un port à lui, `ItemCatalog` et son adaptateur étant au bout de leurs dépendances. La vie d'une pièce, en coups, est `ItemCatalog.durability` : `ceil(MaxDurability / DurabilityLossOnHit)`, 0 (jamais usée) pour une pièce incassable ou à `DurabilityLossOnHit` 0 ;
 - `ArmorLevels.of(itemLevel)` : le niveau MC d'une pièce, 1 à 5, en comparant son `ItemLevel` à celui des pièces de référence (comme MC compare la valeur d'armure) :
 
   | Niveau MC | Référence Hytale (`ItemLevel`) | Familles concernées |
@@ -63,10 +63,10 @@ Refaire l'inventaire du citoyen exactement comme MC :
 
 - `GuardGear` : les paliers de MC par niveau de bâtiment (§ 2) sur ces niveaux : 1 → 0 à 1, 2 → 0 à 2, 3 → 0 à 3, 4 → 2 à 4, 5 → 3 et plus ; rien sans bâtiment ou au-delà du niveau 5 ; testés par emplacement et niveau ;
 - `CitizenInventoryActions` : poser, prendre, déplacer entre les 27 cases, les 4 cases d'armure et l'inventaire du joueur ; l'armure refusée si `GuardGear` dit non ; `MANAGE_HUTS` comme aujourd'hui ; chaque pile posée appelle la clôture de requête de MC (déjà portée pour les 27 cases) ;
-- `ArmorWear.onHurt(colonie, citoyen)` : l'usure de l'armure est une règle du **monde**, donc celle de Hytale (`DamageSystems.DamageArmor`, que Hytale ne donne qu'aux joueurs) : un coup dont la cause use l'armure (`DamageCause.isDurabilityLoss`) ôte un coup de vie à une pièce non cassée tirée au hasard ; une pièce cassée reste portée et protège moins. Le cœur n'écrit la sauvegarde que s'il a usé une pièce ;
+- `ArmorWear.onHurt(colonie, citoyen)` : l'usure de l'armure est une règle du **monde**, donc celle de Hytale (`DamageSystems.DamageArmor`, que Hytale ne donne qu'aux joueurs) : un coup dont la cause use l'armure (`DamageCause.isDurabilityLoss`) tombe sur une pièce non cassée tirée au hasard, incassables comprises, et lui ôte un coup de vie (rien pour une incassable) ; une pièce cassée reste portée et protège moins. Le cœur n'écrit la sauvegarde que s'il a usé une pièce ;
 - perte du métier (`WorkerModule.free`, seul chemin, renvoi comme réparation au chargement) : les 4 pièces reviennent dans l'inventaire, ce qui ne tient pas reste porté ; les mains gardent leur case et le corps a ses mains vidées (MC `AbstractJob.onRemoval`).
 
-**Sauvegarde** : schéma 10. `armor` (4 piles ou `null`), `heldMain`, `heldOff` (−1 par défaut). `MigrationChain` 9 → 10 avec sa fixture ; une valeur absente prend son défaut ; un indice hors des 27 cases devient −1 et l'armure garde ses 4 premières pièces, la colonie étant alors marquée à réécrire (`EquipmentJson.needsRepair`).
+**Sauvegarde** : schéma 10. `armor` (4 piles ou `null`), `heldMain`, `heldOff` (−1 par défaut). `MigrationChain` 9 → 10 avec sa fixture ; une valeur absente prend son défaut ; une main qui n'est pas un nombre ou hors des 27 cases devient −1 et l'armure garde ses 4 premières pièces, la colonie étant alors marquée à réécrire (`EquipmentJson.needsRepair`). Le schéma 9 comptait l'usure d'une pièce d'armure en points de Hytale (le cœur ne l'usait pas, `DurabilityScale` comptant un usage par point) : la migration marque chaque citoyen (`armorWearInPoints`), et la lecture convertit l'usure des pièces de ses 27 cases en coups avec le catalogue (`LegacyArmorWear`, `ceil(points × coups / MaxDurability)`), puis la colonie est réécrite.
 
 **Vue** : pas de record de vue : la page lit le citoyen en direct par ses deux conteneurs (comme la fenêtre de conteneur d'avant), son nom compris.
 
@@ -97,10 +97,11 @@ Chacun porte un `Deviation from MC:` dans le code.
 - Hytale a des gants au lieu de bottes : tête, torse, mains, jambes.
 - Le niveau d'une armure se lit sur son `ItemLevel` (table § 3), Hytale n'ayant pas de valeur d'armure comparable.
 - Monde de Hytale (`Deviation from MC (Hytale world)`) : l'usure de l'armure est celle de Hytale (§ 3) : une pièce au hasard par coup, une pièce cassée gardée, au lieu de `max(1, dégâts / 4)` sur chaque pièce et d'une pièce cassée qui disparaît.
-- Le bâtisseur montre en main le bloc qu'il vient de poser, déjà retiré de son inventaire : cet objet est montré sans case (MC ne tient que des cases).
+- Le bâtisseur montre en main le bloc qu'il vient de poser (geste de joueur demandé), la case tenue restant ; l'entité de MC garde ce qu'elle tenait.
+- L'artisan ne montre rien dans sa main secondaire, où MC montre un ingrédient ou le produit : le corps n'a qu'une main pour un objet.
 - `InventoryCitizen.setHeldItem` de MC écrit aussi la main secondaire (bogue) : non reproduit, chaque main a sa case.
 - Une main absente d'une sauvegarde ne tient rien, là où le `getInt` de MC la lit comme la case 0.
-- Le maj-clic est celui de Hytale : du citoyen vers l'inventaire du joueur selon les réglages du joueur, du joueur vers les 27 cases du citoyen. Le `quickMoveStack` de MC essaie d'abord les cases d'armure depuis celles du citoyen, puis remplit celles du joueur depuis la fin ; ici, une pièce s'enfile en la glissant.
+- Le maj-clic est celui de Hytale (`InventoryUtils.smartMoveItem`) : des cases du citoyen ou de son armure vers l'inventaire du joueur, rangé selon les réglages du joueur ; du joueur vers les 27 cases du citoyen, puis son armure quand elles sont pleines. Le `quickMoveStack` de MC (`ContainerCitizenInventory`) envoie les cases du citoyen vers celles du joueur en partant de la fin, l'armure en dernier ; une pièce d'armure vers les 27 cases du citoyen ; et les objets du joueur vers ces 27 cases seulement.
 - L'aperçu est la vraie scène, filmée par la caméra du serveur, et ne suit pas la souris.
 - 27 cases fixes : pas de recherche qui agrandit l'inventaire.
 
@@ -110,10 +111,11 @@ Chacun porte un `Deviation from MC:` dans le code.
   - `GuardGear` : les 5 niveaux de bâtiment, sans bâtiment, mauvais emplacement ;
   - `ArmorLevels` : chaque seuil de la table ;
   - actions de la fenêtre : armure acceptée ou refusée, déplacements, clôture de requête à la pose, `MANAGE_HUTS` ;
-  - mains : la case tenue, l'outil usé dans cette case (bâtisseur, artisan, fermier), la nourriture, la main vide quand l'outil casse ;
+  - mains : la case de l'outil usé (bâtisseur, artisan, fermier), la main vide quand l'outil casse, la case gardée quand seule la main de l'entité change (repas, houe cassée), la case rendue au dépôt, un nouveau corps sans objet en main ;
   - perte du métier : l'armure revient dans l'inventaire, ce qui ne tient pas reste porté, les mains gardent leur case ;
-  - `ArmorWear` : une pièce par coup, une pièce cassée gardée, rien d'écrit sans usure ;
-  - sauvegarde : aller-retour, fixture du schéma 9, indice hors bornes réparé et réécrit.
+  - `ArmorWear` : une pièce par coup, incassables comprises, une pièce cassée gardée, rien d'écrit sans usure ;
+  - artisan : une fabrication impossible rapporte la récompense de MC, un outil cassé coûte une action et de la saturation ;
+  - sauvegarde : aller-retour, fixture du schéma 9, chaque réparation (main hors bornes, main qui n'est pas un nombre, plus de 4 pièces) réécrite, usure d'armure du schéma 9 convertie de points en coups.
 - En jeu (`docs/TESTING.md`) : la fenêtre (disposition de MC, glisser, maj-clic), l'armure refusée selon le niveau de la hutte, l'aperçu (cadrage, retour de la caméra à la fermeture), l'armure visible sur le PNJ, l'outil en main.
 
 ## 7. À vérifier en jeu
