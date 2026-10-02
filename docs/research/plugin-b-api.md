@@ -1069,6 +1069,14 @@ Sources : décompilé de 0.7.0-pre.5.
 - Hauteur du monde : `ChunkUtil.HEIGHT` = 320 (10 sections de 32).
 - `ClearDebugShapes` (sans champ) efface **toutes** les formes `DisplayDebug` du joueur qui le reçoit (`DebugUtils.clear` l. 83-89 l'envoie à tout le monde).
 
+## 49. Apparition des PNJ : lumière, suppression par zone, point d'attache (2026-10-02)
+
+Sources : décompilé de 0.7.0-pre.5 et assets pre.5. Détail et citations : `docs/research/colony-bounds-and-mob-spawns.md` § 3 à 5.
+
+- La lumière est une condition d'apparition seulement si l'asset déclare `LightRanges` (`NPCSpawn` l. 64-82) : 11 apparitions du monde sur 98, 55 balises sur 96. Les monstres de surface (squelettes, loups, araignées) ne la déclarent pas.
+- Aucun événement d'apparition annulable. Le blocage par zone passe par `SpawnSuppression` (asset `NPC/Spawn/Suppression`) + une entité `SpawnSuppressionComponent`/`TransformComponent`/`UUIDComponent` ajoutée en `AddReason.SPAWN` sur le thread du monde ; grain : chunk Hytale de 32, hauteur ± rayon ; persistant ; sans effet sur `NPCPlugin.spawnNPC*`.
+- Point d'attache : `NPCEntity.leashPoint`, capteur `Leash` (`Range`), corps `WanderInCircle`/`WanderInRect` ; notre rôle citoyen n'en utilise aucun.
+
 ## Could not verify
 
 1. **Client rendering of item animations on NPCs** (`AnimationSlot.Action` with `"Block"/"Build"` or `"Pickaxe"/"Mine"` on `PlayerTestModel_V`) and whether they loop or play once. Only the server packet path is verified.
