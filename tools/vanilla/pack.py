@@ -2,6 +2,7 @@
 
 import io
 import json
+import math
 import zipfile
 from pathlib import Path
 
@@ -117,6 +118,49 @@ def draw_box(icon, box, textures, scale, origin):
     draw_face(icon, textures["right"], right, edge(right, p(x1, y1, z0)), edge(right, p(x1, y0, z1)), 0.65)
     top = p(x0, y1, z0)
     draw_face(icon, textures["top"], top, edge(top, p(x1, y1, z0)), edge(top, p(x0, y1, z1)), 1.0)
+
+
+def draw_model(icon, nodes, texture, scale, origin):
+    """Draws a model's unrotated boxes (their +z, +x and top faces, read from their texture islands) with a depth
+    buffer, so boxes that pass through each other (a sheet fold over a blanket) hide each other correctly."""
+    texels, out = texture.load(), icon.load()
+    nearest = {}
+    for n in nodes:
+        shape, position = n["shape"], n["position"]
+        if shape["type"] != "box" or n.get("children") or n["orientation"]["w"] != 1:
+            raise SystemExit(f"{n['name']}: draw_model takes flat, unrotated boxes")
+        size = shape["settings"]["size"]
+        centre = [position[a] + shape["offset"][a] for a in "xyz"]
+        low = tuple(centre[i] - size[a] / 2 for i, a in enumerate("xyz"))
+        high = tuple(centre[i] + size[a] / 2 for i, a in enumerate("xyz"))
+        for side, face in shape["textureLayout"].items():
+            if side in ICON_SIDES:
+                for point, texel in face_samples(side, low, high, face, scale):
+                    sx, sy = iso(*point, scale, origin)
+                    pixel, depth = (int(sx), int(sy)), sum(point)
+                    colour = texels[texel]
+                    if colour[3] and 0 <= pixel[0] < icon.width and 0 <= pixel[1] < icon.height \
+                            and depth > nearest.get(pixel, float("-inf")):
+                        nearest[pixel] = depth
+                        out[pixel] = (*(int(c * ICON_SIDES[side]) for c in colour[:3]), 255)
+
+
+# Faces an icon shows (seen from +x +y +z) -> their shade, as draw_box.
+ICON_SIDES = {"front": 0.8, "right": 0.65, "top": 1.0}
+
+
+def face_samples(side, low, high, face, scale):
+    """(model point, texel) pairs covering a face, about two samples per icon pixel each way. The view looks along
+    (1, 1, 1), so the nearest point has the largest x + y + z."""
+    (x0, y0, z0), (x1, y1, z1) = low, high
+    w, h = {"front": (x1 - x0, y1 - y0), "right": (z1 - z0, y1 - y0), "top": (x1 - x0, z1 - z0)}[side]
+    columns, rows = max(1, math.ceil(w * scale * 2)), max(1, math.ceil(h * scale * 2))
+    u0, v0 = face["offset"]["x"], face["offset"]["y"]
+    for i in range(columns):
+        for j in range(rows):
+            s, t = (i + 0.5) / columns * w, (j + 0.5) / rows * h
+            point = {"front": (x0 + s, y1 - t, z1), "right": (x1, y1 - t, z1 - s), "top": (x0 + s, y1, z0 + t)}[side]
+            yield point, (int(u0 + s), int(v0 + t))
 
 
 def save_png(image, path):

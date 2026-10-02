@@ -2,19 +2,29 @@
 potted_<plant> blocks. The colours are a requested addition: Minecraft's flower pot has one colour.
 
 Each state's model is the pot plus the plant's vanilla model scaled to stand in it (Minecraft's flower_pot_cross parent
-model does the same with the plant's texture). One atlas serves every pot: each plant texture once, the dirt and one
-clay swatch per colour. Each colour has its own models (its empty pot and one per plant), which differ only in the UVs
-of the pot's faces. To pot a new plant, add its item id to PLANTS and re-run generate.py.
+model does the same with the plant's texture). The pot itself is built in Blockbench (POT_MODEL, Minecraft's shape,
+docs/research/hytale-models.md), its faces unwrapped in one 32 px cell that paint.py fills per colour (clay outside,
+darker clay inside, the dirt). One atlas serves every pot: each plant texture once and one pot cell per colour. Each
+colour has its own models (its empty pot and one per plant), which differ only in the UVs of the pot's faces. To pot a
+new plant, add its item id to PLANTS and re-run generate.py.
 """
 
+import copy
 import json
 import shutil
+from pathlib import Path
 
 from PIL import Image
 
-from models import bounds, box_node, empty_shape, face_rects, node, scaled, shift_uvs, walk
-from pack import ICON_SIZE, PACK, draw_box, save_png, write_json
+from models import bounds, empty_shape, face_rects, node, scaled, shift_uvs, walk
+from pack import ICON_SIZE, PACK, draw_model, save_png, write_json
+from paint import darker, paint
 
+POT_MODEL = Path(__file__).parent / "models" / "Flower_Pot.blockymodel"
+# The inside of the pot, out of the light.
+INSIDE_LIGHT = 0.68
+# The side of each wall facing the pot's centre.
+INNER_SIDES = {"Wall_North": "front", "Wall_South": "back", "Wall_West": "right", "Wall_East": "left"}
 MODELS = "Blocks/HyVanilla/Flower_Pot/"
 ATLAS = MODELS + "Atlas.png"
 DIRT = "BlockTextures/Soil_Dirt_Wet.png"
@@ -30,10 +40,9 @@ COLOURS = {
 CELL = 32
 ATLAS_WIDTH = 512
 
-# Minecraft flower_pot model, in Hytale units (32 per block, Minecraft pixels x 2): 12 wide, 12 high, walls 2 thick,
-# dirt up to 8.
+# Minecraft flower_pot model (POT_MODEL), in Hytale units (32 per block, Minecraft pixels x 2): 12 wide, 12 high,
+# walls 2 thick, dirt up to 8.
 POT_SIZE = 12
-WALL = 2
 DIRT_TOP = 8
 # Room left for the plant above the dirt: flower_pot_cross squeezes a 16 px plant into 12 px (x 0.75).
 PLANT_ROOM = 32 - DIRT_TOP
@@ -98,14 +107,16 @@ def generate(assets):
     plants = {p: assets.item(p)["BlockType"] for p in PLANTS}
     textures = {p: plant_texture(assets, block) for p, block in plants.items()}
     clays = {c: assets.item("Soil_Clay_Smooth_" + c) for c in COLOURS}
-    layout, size = pack_layout(dict(textures.values()), ["clay:" + c for c in COLOURS] + ["dirt"])
+    layout, size = pack_layout(dict(textures.values()), ["pot:" + c for c in COLOURS])
     atlas = Image.new("RGBA", size, (0, 0, 0, 0))
     for key, image in dict(textures.values()).items():
         atlas.paste(image, layout[key])
-    dirt = assets.image("Common/" + DIRT)
-    atlas.paste(dirt.crop((0, 0, CELL, CELL)), layout["dirt"])
-    for colour, clay_item in clays.items():
-        atlas.paste(clay_texture(assets, clay_item).crop((0, 0, CELL, CELL)), layout["clay:" + colour])
+    template = json.loads(POT_MODEL.read_text(encoding="utf-8"))["nodes"]
+    dirt = assets.image("Common/" + DIRT).crop((0, 0, CELL, CELL))
+    cells = {c: pot_cell(template, clay_texture(assets, item).crop((0, 0, CELL, CELL)), dirt)
+             for c, item in clays.items()}
+    for colour, cell in cells.items():
+        atlas.paste(cell, layout["pot:" + colour])
     save_png(atlas, PACK / "Common" / ATLAS)
     potted = {}
     for plant_id, block in plants.items():
@@ -116,13 +127,15 @@ def generate(assets):
         room = PATCH_ROOM if plant_id in PATCHES else PLANT_ROOM
         potted[plant_id] = scaled(model["nodes"], fit(model["nodes"], block.get("CustomModelScale", 1), room), DIRT_TOP)
     for colour, clay_item in clays.items():
-        pot = pot_nodes(layout["clay:" + colour], layout["dirt"])
+        pot = copy.deepcopy(template)
+        shift_uvs(pot, *layout["pot:" + colour])
         write_model(colour + "/Empty", pot)
         for plant_id, plant in potted.items():
             write_model(colour + "/" + plant_id, pot + [plant])
-        write_json(PACK / "Server/Item/Items/HyVanilla" / (pot_id(colour) + ".json"), pot_item(colour, clay_item, plants))
-        save_png(icon(clay_texture(assets, clay_item), dirt), PACK / "Common/Icons/Items/HyVanilla" / (
-            "Flower_Pot_" + colour + ".png"))
+        item_path = PACK / "Server/Item/Items/HyVanilla" / (pot_id(colour) + ".json")
+        write_json(item_path, pot_item(colour, clay_item, plants))
+        icon_path = PACK / "Common/Icons/Items/HyVanilla" / ("Flower_Pot_" + colour + ".png")
+        save_png(icon(template, cells[colour]), icon_path)
     write_json(PACK / "Server/Item/Block/Hitboxes/HyVanilla/HyVanilla_Flower_Pot.json", hitbox())
     write_json(PACK / "hyvanilla/id-map.json", id_map())
 
@@ -195,18 +208,17 @@ def fit(nodes, vanilla_scale, width_room):
     return min(factor, DIRT_TOP / -low[1]) if low[1] < 0 else factor
 
 
-def pot_nodes(clay_uv, dirt_uv):
-    """The four walls (clay) and the dirt."""
-    half = POT_SIZE / 2
-    inner = POT_SIZE - 2 * WALL
-    wall_middle = half - WALL / 2
-    return [
-        box_node("Wall_North", (0, half, -wall_middle), (POT_SIZE, POT_SIZE, WALL), clay_uv),
-        box_node("Wall_South", (0, half, wall_middle), (POT_SIZE, POT_SIZE, WALL), clay_uv),
-        box_node("Wall_West", (-wall_middle, half, 0), (WALL, POT_SIZE, inner), clay_uv),
-        box_node("Wall_East", (wall_middle, half, 0), (WALL, POT_SIZE, inner), clay_uv),
-        box_node("Dirt", (0, DIRT_TOP / 2, 0), (inner, DIRT_TOP, inner), dirt_uv),
-    ]
+def pot_cell(template, clay, dirt):
+    """One colour's 32 px pot cell, painted on the pot model's islands: clay outside and underneath, darker clay
+    inside, the dirt. The walls' side faces join without a seam (no side rims)."""
+    tiles = {"clay": clay, "inside": darker(clay, INSIDE_LIGHT), "dirt": darker(dirt, INSIDE_LIGHT)}
+
+    def material(name, side):
+        if name == "Dirt":
+            return "clay" if side == "bottom" else "dirt"
+        return "inside" if INNER_SIDES.get(name) == side else "clay"
+
+    return paint(template, (CELL, CELL), tiles, material, side_rims=False)
 
 
 def write_model(name, nodes):
@@ -296,15 +308,8 @@ def id_map():
     }}
 
 
-def icon(clay, dirt):
+def icon(template, cell):
+    """The empty pot in perspective, drawn from its model and painted cell."""
     image = Image.new("RGBA", (ICON_SIZE, ICON_SIZE), (0, 0, 0, 0))
-    top = clay.crop((0, 0, POT_SIZE, POT_SIZE))
-    inner = POT_SIZE - 2 * WALL
-    soil = dirt.crop((0, 0, inner, inner))
-    soil = Image.merge("RGBA", (*soil.convert("RGB").point(lambda p: p * 3 // 4).split(), soil.getchannel("A")))
-    top.paste(soil, (WALL, WALL))
-    side = clay.crop((0, 0, POT_SIZE, POT_SIZE))
-    half = POT_SIZE / 2
-    draw_box(image, ((-half, 0, -half), (half, POT_SIZE, half)), {"top": top, "front": side, "right": side}, 2.4,
-             (32, 46))
+    draw_model(image, template, cell, 2.4, (32, 46))
     return image

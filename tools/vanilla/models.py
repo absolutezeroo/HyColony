@@ -4,21 +4,6 @@ import copy
 import math
 
 
-def box_node(name, centre, size, uv):
-    face = {"offset": {"x": uv[0], "y": uv[1]}, "mirror": {"x": False, "y": False}, "angle": 0}
-    return node(name, [0, 0, 0], {
-        "type": "box",
-        "offset": xyz(centre),
-        "stretch": xyz((1, 1, 1)),
-        "settings": {"size": xyz(size)},
-        "visible": True,
-        "doubleSided": False,
-        "shadingMode": "flat",
-        "unwrapMode": "custom",
-        "textureLayout": {side: copy.deepcopy(face) for side in ("front", "back", "left", "right", "top", "bottom")},
-    })
-
-
 def node(name, position, shape, children=()):
     return {"id": "0", "name": name, "children": list(children), "position": xyz(position),
             "orientation": {"x": 0, "y": 0, "z": 0, "w": 1}, "shape": shape}
