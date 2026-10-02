@@ -50,12 +50,15 @@ public final class ConstructionTape {
         remove(colony, HutFootprint.of(colony.context().ports(), building));
     }
 
-    /** MC removeConstructionTape: on each border column around {@code box}, the lowest tape within reach. */
+    /**
+     * MC removeConstructionTape: at each visit of MC's border walk around {@code box}, the lowest tape within reach;
+     * a corner column, visited three times, loses up to three.
+     */
     public static void remove(Colony colony, HutFootprint.Box box) {
         GamePorts p = colony.context().ports();
         int from = Math.min(box.min().y(), box.max().y()) - BELOW;
         int to = Math.max(box.min().y(), box.max().y()) + ABOVE;
-        for (BlockPos column : TapeLayout.columns(box.min(), box.max())) {
+        for (BlockPos column : TapeLayout.removalColumns(box.min(), box.max())) {
             for (int y = from; y <= to; y++) {
                 BlockPos at = new BlockPos(column.x(), y, column.z());
                 if (p.blocks().get(at).filter(s -> p.tape().isTape(s.key())).isPresent()) {

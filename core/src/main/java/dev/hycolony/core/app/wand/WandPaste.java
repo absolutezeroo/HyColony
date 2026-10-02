@@ -20,7 +20,9 @@ import java.util.UUID;
  *
  * <p>Deviation from MC: no "Complete" paste, which would place a MineColonies plan's placeholder blocks themselves:
  * a structure-editing need that Hytale's prefab editor covers. The town hall rules include the founding distance
- * checks at paste time, where MC only checks them when the colony is created.
+ * checks at paste time, where MC only checks them when the colony is created. No construction tape is taken down
+ * when the paste ends (MC CreativeBuildingStructureHandler.onCompletion): a paste places no tape, and pasting over
+ * a hut first removes the old building (HutActions.place), which takes its tape down.
  */
 final class WandPaste {
     private final ColonyManager manager;

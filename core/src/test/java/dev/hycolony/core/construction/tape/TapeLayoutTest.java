@@ -71,6 +71,17 @@ class TapeLayoutTest {
     }
 
     @Test
+    void aTapeStandsInWaterOnTheGroundBelowIt() {
+        // MC firstValidPosition: water is replaceable (the tape is then waterlogged).
+        BlockState water = new BlockState(new BlockKey("~fluid:Water_Source"), 0);
+        catalog.kinds.put(water.key(), BlockKind.FLUID);
+        world.blocks.put(new BlockPos(0, 64, -1), water);
+        world.blocks.put(new BlockPos(0, 65, -1), water);
+
+        assertTrue(layout().contains(tape(0, -1, TapeShape.STRAIGHT, 1)));
+    }
+
+    @Test
     void aColumnWithoutGroundOrRoomInReachGetsNoTape() {
         world.blocks.remove(new BlockPos(1, 63, -1)); // a hole deeper than height + 5
         for (int y = 58; y <= 67; y++) {

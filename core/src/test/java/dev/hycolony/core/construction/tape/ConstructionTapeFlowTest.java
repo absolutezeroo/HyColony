@@ -14,12 +14,16 @@ import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Either;
 import dev.hycolony.core.kernel.item.BlockState;
+import dev.hycolony.core.kernel.persist.FileColonyStorage;
+import dev.hycolony.core.kernel.persist.MigrationChain;
 import dev.hycolony.core.testing.FakeBlueprints;
 import dev.hycolony.core.testing.TestContexts;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * When the tape goes up and comes down (MC WorkOrderBuilding.onAdded and onRemoved, AbstractBuilding.onUpgradeComplete
@@ -92,6 +96,24 @@ class ConstructionTapeFlowTest {
         order(WorkOrderType.BUILD);
 
         assertEquals(16, tapes(), "the border of the level 1 plan widened by one");
+    }
+
+    /** MC WorkOrderBuilding.onAdded: no tape for an order read from a save. */
+    @Test
+    void anOrderReadFromASaveTapesNothing(@TempDir Path dir) {
+        manager.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp4());
+        residence(0);
+        order(WorkOrderType.BUILD);
+        manager.persistence().saveAll();
+        t.blocks.blocks.values().removeIf(s -> t.tape.isTape(s.key())); // the world without the tape
+
+        ColonyManager reloaded = t.manager();
+        reloaded.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp4());
+        reloaded.persistence().loadAll();
+
+        assertEquals(
+                1, reloaded.byId(colony.id()).orElseThrow().work().ordered().size());
+        assertEquals(0, tapes());
     }
 
     @Test

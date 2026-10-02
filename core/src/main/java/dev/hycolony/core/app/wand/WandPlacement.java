@@ -139,9 +139,8 @@ final class WandPlacement {
             manager.huts().place(colony, type.id(), pos, s.rotation(), player);
             Building building = colony.buildings().at(pos).orElseThrow();
             building.setStyle(s.style());
-            if (!creative) {
-                ConstructionTape.place(colony, building); // MC SurvivalHandler.handle, after the hut's plan is set
-            }
+            // MC SurvivalHandler.handle, the build tool's placing button in either game mode, once the plan is set.
+            ConstructionTape.place(colony, building);
             colony.markDirty();
             return new Placed(building);
         }

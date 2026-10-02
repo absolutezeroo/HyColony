@@ -45,9 +45,27 @@ final class TapeLayout {
         return new ArrayList<>(tapes.values());
     }
 
-    /** The columns of the border around the footprint from {@code min} to {@code max}, each once, at y 0. */
-    static List<BlockPos> columns(BlockPos min, BlockPos max) {
-        return Border.around(min, max).columns().stream().distinct().toList();
+    /**
+     * MC removeConstructionTape's walk of the border around the footprint from {@code min} to {@code max}, at y 0:
+     * the north and south edges, the west and east edges, then the four corners, so that a corner comes three times.
+     */
+    static List<BlockPos> removalColumns(BlockPos min, BlockPos max) {
+        Border b = Border.around(min, max);
+        int x3 = b.x() + b.sizeX();
+        int z3 = b.z() + b.sizeZ();
+        List<BlockPos> out = new ArrayList<>();
+        for (int x = b.x(); x <= x3; x++) {
+            out.add(new BlockPos(x, 0, b.z()));
+            out.add(new BlockPos(x, 0, z3));
+        }
+        for (int z = b.z(); z <= z3; z++) {
+            out.add(new BlockPos(b.x(), 0, z));
+            out.add(new BlockPos(x3, 0, z));
+        }
+        out.addAll(List.of(
+                new BlockPos(b.x(), 0, b.z()), new BlockPos(b.x(), 0, z3),
+                new BlockPos(x3, 0, b.z()), new BlockPos(x3, 0, z3)));
+        return out;
     }
 
     /** MC firstValidPosition: above the first solid block, going down from {@code top}, whose upper cell is free. */
@@ -68,9 +86,10 @@ final class TapeLayout {
                 .isPresent();
     }
 
+    /** MC canBeReplaced or isAir: empty, a block of Hytale's material Empty, or a fluid (MC waterlogs the tape). */
     private static boolean free(Optional<BlockState> s, ItemCatalog catalog) {
         return s.map(st -> catalog.kind(st.key()))
-                .map(k -> k == BlockKind.AIR || k == BlockKind.NON_SOLID)
+                .map(k -> k == BlockKind.AIR || k == BlockKind.NON_SOLID || k == BlockKind.FLUID)
                 .orElse(true);
     }
 

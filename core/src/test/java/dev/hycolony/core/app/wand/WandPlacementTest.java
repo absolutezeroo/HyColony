@@ -146,13 +146,14 @@ class WandPlacementTest {
     }
 
     @Test
-    void creativePlacementTapesNothing() {
+    void creativePlacementTapesTheSiteToo() {
+        // MC SurvivalHandler is the build tool's placing button in either game mode; only the paste tapes nothing.
         groundAround(spot);
         t.players.creative.add(alice);
 
         placement.confirm(alice, "Alice", session(spot, BUILDER));
 
-        assertEquals(0, tapes());
+        assertEquals(16, tapes());
     }
 
     @Test
