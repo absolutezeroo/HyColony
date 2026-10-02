@@ -1,8 +1,10 @@
 package dev.hycolony.core.request.model;
 
 import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.core.kernel.item.ToolInfo;
 import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.kernel.port.ItemCatalog;
+import java.util.Comparator;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -22,10 +24,18 @@ public record ToolRequest(ToolType type, int minLevel, int maxLevel) implements 
                 .isPresent();
     }
 
-    /** The first of the catalog's tools, by id, that it accepts (MC ToolRequest's display stacks: the tools fit). */
+    /**
+     * The lowest tier of the catalog's tools it accepts, by id within a tier (MC AbstractRequest.getDisplayStacks: the
+     * items that fit, in its creative tabs' order, wood before stone before iron). Deviation from MC: Hytale has no
+     * creative tab order to follow; the tier gives the same lowest-first choice.
+     */
     @Override
     public Optional<ItemKey> displayed(ItemCatalog catalog) {
-        return catalog.tools().stream().filter(t -> matches(t, catalog)).findFirst();
+        return catalog.tools().stream()
+                .filter(t -> matches(t, catalog))
+                .min(Comparator.comparingInt((ItemKey t) ->
+                                catalog.tool(t).map(ToolInfo::level).orElse(0))
+                        .thenComparing(ItemKey::id));
     }
 
     @Override

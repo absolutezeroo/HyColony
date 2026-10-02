@@ -38,8 +38,9 @@ public final class RequestActions {
     /**
      * "Fournir" ({@link RequestFulfil}): from the player's inventory, or for free in creative mode (MC
      * RequestWindowCitizen), to the requesting citizen (or, for the building itself, its hut containers), and
-     * overrules the request. A partial amount still closes it; the requester asks again for the rest. False if
-     * nothing was handed over, or without MANAGE_HUTS (told).
+     * overrules the request. A partial amount still closes it; the requester asks again for the rest. False for an
+     * unknown colony, a closed request or one for no items, a player holding none of it, or without MANAGE_HUTS
+     * (told).
      *
      * <p>Deviation from MC: a hut's own request (no citizen) is filled into the hut's containers; MC's citizen window
      * hands it to the citizen whose window it is. The clipboard has no citizen to hand it to.

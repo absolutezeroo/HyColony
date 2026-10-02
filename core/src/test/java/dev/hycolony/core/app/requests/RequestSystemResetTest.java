@@ -1,8 +1,8 @@
 package dev.hycolony.core.app.requests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.app.ColonyManager;
@@ -14,12 +14,16 @@ import dev.hycolony.core.farming.job.FarmerJob;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.logistics.courier.DeliverymanJob;
+import dev.hycolony.core.logistics.warehouse.WarehouseBuilding;
+import dev.hycolony.core.logistics.warehouse.WarehouseRequestQueue;
 import dev.hycolony.core.request.Resolver;
+import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.request.model.StackRequest;
 import dev.hycolony.core.request.resolver.PlayerResolver;
 import dev.hycolony.core.request.resolver.RetryingResolver;
 import dev.hycolony.core.testing.TestContexts;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
@@ -47,31 +51,32 @@ class RequestSystemResetTest {
     }
 
     @Test
-    void everyRequestIsForgottenWithoutACallbackAndTheColonySaved() {
-        request();
+    void everyRequestAndIndexIsForgottenWithoutACallbackAndTheColonySaved() {
+        RequestToken old = request();
         request();
         colony.clearDirty();
 
         RequestSystemReset.reset(colony);
 
         assertTrue(colony.requests().all().isEmpty());
+        assertTrue(colony.requests().byRequester(hut.requesterId()).isEmpty(), "the hut's requests");
+        assertTrue(colony.requests().assignedTo(RetryingResolver.ID).isEmpty(), "the assignments");
+        assertTrue(colony.requests().resolverOf(old).isEmpty(), "each request's resolver");
         assertTrue(colony.isDirty());
     }
 
     @Test
-    void thePlayerAndRetryingResolversAreNewAndServeAgain() {
+    void thePlayerAndRetryingResolversAreNewAndOnlyTheNewOnesServe() {
         Resolver retrying = colony.requests().resolver(RetryingResolver.ID).orElseThrow();
         Resolver player = colony.requests().resolver(PlayerResolver.ID).orElseThrow();
 
         RequestSystemReset.reset(colony);
 
-        assertNotSame(retrying, colony.requests().resolver(RetryingResolver.ID).orElseThrow());
+        Resolver newRetrying = colony.requests().resolver(RetryingResolver.ID).orElseThrow();
+        assertNotSame(retrying, newRetrying);
         assertNotSame(player, colony.requests().resolver(PlayerResolver.ID).orElseThrow());
         RequestToken again = request();
-        assertEquals(
-                RetryingResolver.ID,
-                colony.requests().resolverOf(again).map(Resolver::resolverId).orElseThrow(),
-                "a new request is assigned again");
+        assertSame(newRetrying, colony.requests().resolverOf(again).orElseThrow(), "not the forgotten one");
     }
 
     @Test
@@ -114,10 +119,45 @@ class RequestSystemResetTest {
     }
 
     @Test
-    void aResetAskedFromARequestCallbackRunsOnceTheManagerIsFree() {
+    void theWarehouseQueueKeepsItsTokensAsMc() {
+        Building warehouse = Building.create(WarehouseBuilding.TYPE, new BlockPos(10, 64, 0), 0);
+        colony.buildings().add(warehouse);
+        WarehouseRequestQueue queue =
+                warehouse.module(WarehouseRequestQueue.class).orElseThrow();
+        RequestToken old = request();
+        queue.add(old);
+
+        RequestSystemReset.reset(colony);
+
+        assertEquals(List.of(old), queue.tokens(), "MC keeps it on the building; the courier purges dead tokens");
+    }
+
+    @Test
+    void aCraftersTaskScheduledBeforeADeferredResetRunsIsForgottenWithIt() {
+        CitizenData farmer = new CitizenData(1);
+        FarmerJob job = new FarmerJob(farmer);
+        farmer.setJob(job);
+        colony.citizens().restore(farmer);
         boolean[] once = {false};
-        colony.requests().setCreationListener(r -> {
-            if (!once[0]) {
+        colony.requests().setStateListener((r, from) -> {
+            if (!once[0] && r.state() == RequestState.ASSIGNED) {
+                once[0] = true;
+                RequestSystemReset.reset(colony);
+                job.craftingTasks().onTaskBeingScheduled(r.token()); // still before the queued reset
+            }
+        });
+
+        request();
+
+        assertEquals(0, job.craftingTasks().load(), "forgotten in the same step as the requests");
+    }
+
+    @Test
+    void aResetAskedWhileTheManagerAssignsRunsOnceItIsFree() {
+        boolean[] once = {false};
+        // The state listener is called inside a queued step (the assignment), unlike the creation listener.
+        colony.requests().setStateListener((r, from) -> {
+            if (!once[0] && r.state() == RequestState.ASSIGNED) {
                 once[0] = true;
                 RequestSystemReset.reset(colony);
             }
@@ -125,7 +165,11 @@ class RequestSystemResetTest {
 
         request();
 
-        assertTrue(colony.requests().all().isEmpty(), "queued behind the creation, then everything forgotten");
-        assertFalse(colony.requests().resolver(RetryingResolver.ID).isEmpty());
+        assertTrue(colony.requests().all().isEmpty(), "queued behind the assignment, then everything forgotten");
+        RequestToken again = request();
+        assertSame(
+                colony.requests().resolver(RetryingResolver.ID).orElseThrow(),
+                colony.requests().resolverOf(again).orElseThrow(),
+                "the new resolvers serve afterwards");
     }
 }

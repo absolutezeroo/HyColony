@@ -57,14 +57,16 @@ public final class RequestManager {
 
     /**
      * MC StandardRequestManager.reset, then InitialUpdate: forgets every request and resolver at once, without a cancel
-     * callback, then registers {@code builtIns} and every one of {@code providers} again. Queued like every mutation.
+     * callback, registers {@code builtIns} and every one of {@code providers} again, then runs {@code alsoForget} (what
+     * MC keeps in the stores it renews), all in one step. Queued like every mutation.
      */
-    public void reset(List<Resolver> builtIns, Collection<? extends ResolverProvider> providers) {
+    public void reset(List<Resolver> builtIns, Collection<? extends ResolverProvider> providers, Runnable alsoForget) {
         queue.submit(() -> {
             store.clear();
             resolvers.clear();
             builtIns.forEach(resolvers::register);
             providers.forEach(resolvers::addProvider);
+            alsoForget.run();
         });
     }
 

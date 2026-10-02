@@ -22,6 +22,7 @@ import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.Resolver;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequestToken;
+import dev.hycolony.core.request.model.StackList;
 import dev.hycolony.core.request.model.StackRequest;
 import dev.hycolony.core.request.model.ToolRequest;
 import dev.hycolony.core.request.resolver.PlayerResolver;
@@ -295,7 +296,78 @@ class FulfilTest {
 
         assertEquals(5, citizen.inventory().count(PLANKS));
         assertEquals(5, t.playerInventory.count(alice, PLANKS), "the rest goes back to the player");
-        assertEquals(List.of(new ItemAmount(PLANKS, 5)), get(token).deliveries());
+        assertEquals(
+                List.of(new ItemAmount(PLANKS, 10)),
+                get(token).deliveries(),
+                "MC overrules with min(asked, owned), whatever fitted");
+    }
+
+    @Test
+    void aFullCitizenStillClosesTheRequestWithWhatThePlayerOwnsAsMc() {
+        ItemKey dirt = new ItemKey("Dirt");
+        for (int i = 0; i < CitizenData.INVENTORY_SLOTS; i++) {
+            citizen.inventory().insert(new ItemAmount(dirt, 64), k -> 64);
+        }
+        RequestToken token = request(10, 1);
+        t.playerInventory.give(alice, new ItemAmount(PLANKS, 4));
+
+        assertTrue(manager.requestActions().fulfil(alice, colony.id(), token));
+
+        assertEquals(4, t.playerInventory.count(alice, PLANKS), "nothing fitted, nothing taken");
+        assertEquals(List.of(new ItemAmount(PLANKS, 4)), get(token).deliveries());
+    }
+
+    /** MC: a broken tool no longer exists, so a player holding only one has nothing to give. */
+    @Test
+    void aPlayerHoldingOnlyABrokenToolClosesNothing() {
+        ItemKey shovel = new ItemKey("Tool_Shovel_Crude");
+        t.catalog.tools.put(shovel, new ToolInfo(ToolType.SHOVEL, 0, 1f));
+        t.catalog.durability.put(shovel, 150);
+        t.catalog.maxStacks.put(shovel, 1);
+        RequestToken token =
+                colony.requests().createAndAssign(hut, new ToolRequest(ToolType.SHOVEL, 0, 5), citizen.id());
+        t.playerInventory.give(alice, new ItemAmount(shovel, 1, 150));
+
+        assertFalse(manager.requestActions().fulfil(alice, colony.id(), token));
+
+        assertTrue(get(token).state().isBefore(RequestState.COMPLETED));
+        assertTrue(citizen.inventory().contents().isEmpty());
+    }
+
+    @Test
+    void aBrokenToolOfOneKindLetsAGoodOneOfAnotherServe() {
+        ItemKey ironPick = new ItemKey("Pick_Iron");
+        ItemKey stonePick = new ItemKey("Pick_Stone");
+        t.catalog.tools.put(ironPick, new ToolInfo(ToolType.PICKAXE, 2, 1f));
+        t.catalog.tools.put(stonePick, new ToolInfo(ToolType.PICKAXE, 1, 1f));
+        t.catalog.durability.put(ironPick, 250);
+        t.catalog.durability.put(stonePick, 130);
+        t.catalog.maxStacks.put(ironPick, 1);
+        t.catalog.maxStacks.put(stonePick, 1);
+        // Both worn, so that the broken iron pick comes first in the player's inventory.
+        t.playerInventory.give(alice, new ItemAmount(ironPick, 1, 250));
+        t.playerInventory.give(alice, new ItemAmount(stonePick, 1, 10));
+        RequestToken token =
+                colony.requests().createAndAssign(hut, new ToolRequest(ToolType.PICKAXE, 1, 3), citizen.id());
+
+        assertTrue(manager.requestActions().fulfil(alice, colony.id(), token));
+
+        assertEquals(1, citizen.inventory().count(stonePick));
+        assertEquals(List.of(new ItemAmount(stonePick, 1)), get(token).deliveries());
+    }
+
+    /** MC RequestWindowCitizen: the amount closed with is min(asked, every matching item the player holds). */
+    @Test
+    void aListClosesWithEveryMatchingItemThePlayerOwnsAsMc() {
+        ItemKey stone = new ItemKey("Rock_Stone");
+        t.playerInventory.give(alice, new ItemAmount(stone, 2));
+        t.playerInventory.give(alice, new ItemAmount(PLANKS, 3));
+        RequestToken token = colony.requests()
+                .createAndAssign(hut, new StackList(List.of(stone, PLANKS), "any", 5, 5), citizen.id());
+
+        assertTrue(manager.requestActions().fulfil(alice, colony.id(), token));
+
+        assertEquals(5, get(token).deliveries().getFirst().count(), "2 stone and 3 planks match");
     }
 
     @Test

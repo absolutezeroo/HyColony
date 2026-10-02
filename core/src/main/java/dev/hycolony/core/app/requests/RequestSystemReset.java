@@ -14,6 +14,9 @@ import java.util.List;
 /**
  * MC /mc colony requestsystem-reset (StandardRequestManager.reset, then InitialUpdate): a colony's request system
  * started afresh, its workers asking again at their next need (docs/research/request-system-reset.md).
+ *
+ * <p>Deviation from MC: the huts' resolvers are registered again as they are (they keep no state), where MC creates
+ * new ones (AbstractBuilding.createResolvers); and no api event tells of the reset, MC having none.
  */
 public final class RequestSystemReset {
     private RequestSystemReset() {}
@@ -21,13 +24,20 @@ public final class RequestSystemReset {
     /**
      * Forgets every request and assignment of {@code c} without a cancel callback, registers new player and retrying
      * resolvers and every hut again, empties the crafters' tasks and the couriers' queues and deliveries (MC keeps them
-     * in the stores it renews), and saves. The warehouse queue and the crafters' counters stay, as in MC.
+     * in the stores it renews), all in one step of the request manager, and saves. The warehouse queue and the
+     * crafters' counters stay, as in MC.
      */
     public static void reset(Colony c) {
         c.requests()
                 .reset(
                         List.of(new PlayerResolver(c.center()), new RetryingResolver(c.center())),
-                        c.buildings().all());
+                        c.buildings().all(),
+                        () -> forgetJobTasks(c));
+        c.markDirty();
+    }
+
+    /** Empties every crafter's and courier's tasks, which MC keeps in the stores the reset renews. */
+    private static void forgetJobTasks(Colony c) {
         for (CitizenData d : c.citizens().all()) {
             switch (d.job().orElse(null)) {
                 case Crafter crafter -> forget(crafter.craftingTasks());
@@ -35,7 +45,6 @@ public final class RequestSystemReset {
                 case null, default -> {}
             }
         }
-        c.markDirty();
     }
 
     private static void forget(CraftingTasks tasks) {

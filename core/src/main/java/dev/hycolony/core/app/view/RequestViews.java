@@ -54,11 +54,14 @@ final class RequestViews {
         Map<ItemKey, Integer> owned = ctx.ports().playerInventory().contents(player);
         List<RequestsView.RequestRow> rows = new ArrayList<>();
         sorted.forEach(r -> tree(c, r, 0, owned, rows));
-        // Kept at the user's request (RequestsView): Fulfill on a root the player holds items for.
+        // Kept at the user's request (RequestsView): Fulfill on a root the player holds items for, or any item root in
+        // creative mode (MC isFulfillable: isCreative || the player holds it).
+        boolean creative = ctx.players().isCreative(player);
         return new RequestsView(
                 c.id(),
                 rows.stream()
-                        .map(row -> row.withFulfillable(row.depth() == 0 && row.playerHas() > 0))
+                        .map(row -> row.withFulfillable(row.depth() == 0
+                                && (creative ? row.requestable() instanceof Deliverable : row.playerHas() > 0)))
                         .toList(),
                 showImportant);
     }

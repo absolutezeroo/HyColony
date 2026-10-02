@@ -88,7 +88,8 @@ public interface DebugAccess {
      * Hands the open item request {@code requestId} ({@code RequestSnapshot.id}) what it asks for, as MC's request
      * window "Fulfill": a player needs the colony's MANAGE_HUTS right and gives from their inventory, or for free in
      * creative mode; a plugin gives for free. {@link ActionResult.NotFound} for an unknown, malformed or closed
-     * request, {@link ActionResult.Unavailable} when there was nothing to hand over.
+     * request, or one that asks no items (a delivery, a pickup); {@link ActionResult.Unavailable} when the player holds
+     * none of it.
      *
      * @since 1.3
      */

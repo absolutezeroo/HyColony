@@ -17,6 +17,7 @@ import dev.hycolony.core.kernel.config.ColonyConfig;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolType;
+import dev.hycolony.core.request.model.Delivery;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.request.model.StackRequest;
@@ -101,16 +102,24 @@ class CoreDebugRequestsTest {
     }
 
     @Test
-    void nothingToHandOverIsUnavailable() {
+    void aPlayerHoldingNoneOfItIsUnavailable() {
         RequestToken token = request();
 
         assertEquals(new ActionResult.Unavailable(), debug.fulfilRequest(new Actor.Player(owner), ref, id(token)));
-        RequestToken tool = colony.requests().createAndAssign(hut, new ToolRequest(ToolType.SHOVEL, 0, 3), 1);
-        assertEquals(new ActionResult.Unavailable(), debug.fulfilRequest(PLUGIN, ref, id(tool)), "no tool to show");
     }
 
     @Test
-    void aPlayerWithoutManageHutsIsRefusedAndTheColonyToo() {
+    void withNoItemToShowAFreeFulfilClosesTheRequestAsMc() {
+        RequestToken tool = colony.requests().createAndAssign(hut, new ToolRequest(ToolType.SHOVEL, 0, 3), 1);
+
+        assertEquals(new ActionResult.Done(), debug.fulfilRequest(PLUGIN, ref, id(tool)));
+        assertEquals(
+                RequestState.COMPLETED,
+                colony.requests().get(tool).orElseThrow().state());
+    }
+
+    @Test
+    void aPlayerWithoutManageHutsIsRefusedAndTheColonyTooBeforeTheRequestIsLookedUpAsMc() {
         RequestToken token = request();
 
         assertEquals(
@@ -119,6 +128,25 @@ class CoreDebugRequestsTest {
         assertEquals(
                 new ActionResult.Refused(ApiText.of("hycolony.debug.refused.colony")),
                 debug.fulfilRequest(new Actor.Colony(), ref, id(token)));
+        assertEquals(
+                new ActionResult.Refused(ApiText.of("hycolony.permission.denied", "Rivendell")),
+                debug.fulfilRequest(new Actor.Player(UUID.randomUUID()), ref, "not-a-uuid"));
+    }
+
+    @Test
+    void aRequestThatAsksNoItemsIsNotFound() {
+        RequestToken parent = request();
+        RequestToken delivery = colony.requests()
+                .createChild(
+                        hut.resolvers().getFirst(),
+                        parent,
+                        new Delivery(
+                                new BlockPos(5, 64, 5),
+                                hut.requesterId(),
+                                new ItemAmount(PLANKS, 1),
+                                Delivery.DEFAULT_DELIVERY_PRIORITY));
+
+        assertEquals(new ActionResult.NotFound(), debug.fulfilRequest(PLUGIN, ref, id(delivery)));
     }
 
     @Test

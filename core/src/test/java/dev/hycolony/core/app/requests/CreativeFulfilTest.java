@@ -1,7 +1,6 @@
 package dev.hycolony.core.app.requests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.app.ColonyManager;
@@ -14,13 +13,17 @@ import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolInfo;
 import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.request.Request;
+import dev.hycolony.core.request.RequestManager;
+import dev.hycolony.core.request.Requester;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.RequestToken;
+import dev.hycolony.core.request.model.RequesterId;
 import dev.hycolony.core.request.model.StackList;
 import dev.hycolony.core.request.model.StackRequest;
 import dev.hycolony.core.request.model.ToolRequest;
 import dev.hycolony.core.testing.TestContexts;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
@@ -88,7 +91,7 @@ class CreativeFulfilTest {
     }
 
     @Test
-    void creativeGivesTheFirstCatalogToolTheRequestAccepts() {
+    void creativeGivesTheLowestTierCatalogToolTheRequestAccepts() {
         ItemKey stonePick = new ItemKey("Pick_Stone");
         t.catalog.tools.put(new ItemKey("Pick_Iron"), new ToolInfo(ToolType.PICKAXE, 2, 1f));
         t.catalog.tools.put(stonePick, new ToolInfo(ToolType.PICKAXE, 1, 1f));
@@ -98,19 +101,65 @@ class CreativeFulfilTest {
 
         assertTrue(manager.requestActions().fulfil(alice, colony.id(), token));
 
-        assertEquals(1, citizen.inventory().count(new ItemKey("Pick_Iron")), "Pick_Iron sorts before Pick_Stone");
-        assertEquals(
-                List.of(new ItemAmount(new ItemKey("Pick_Iron"), 1)), get(token).deliveries());
+        assertEquals(1, citizen.inventory().count(stonePick), "the lowest tier first, as MC's creative tab order");
+        assertEquals(List.of(new ItemAmount(stonePick, 1)), get(token).deliveries());
     }
 
     @Test
-    void creativeWithNoToolTheRequestAcceptsClosesNothing() {
+    void creativeWithNoItemToShowStillClosesTheRequestWithoutDeliveryAsMc() {
         RequestToken token =
                 colony.requests().createAndAssign(hut, new ToolRequest(ToolType.SHOVEL, 0, 3), citizen.id());
 
-        assertFalse(manager.requestActions().fulfil(alice, colony.id(), token));
+        assertTrue(manager.requestActions().fulfil(alice, colony.id(), token));
 
-        assertTrue(get(token).state().isBefore(RequestState.COMPLETED));
+        assertEquals(RequestState.COMPLETED, get(token).state());
+        assertEquals(List.of(), get(token).deliveries());
+    }
+
+    @Test
+    void creativeHandsAChildRequestToTheHutWhoseResolverAsks() {
+        ItemKey stone = new ItemKey("Rock_Stone");
+        RequestToken parent =
+                colony.requests().createAndAssign(hut, new StackRequest(PLANKS, 4, 4, true), citizen.id());
+        RequestToken child =
+                colony.requests().createChild(hut.resolvers().getFirst(), parent, new StackRequest(stone, 3, 3, true));
+
+        assertTrue(new RequestFulfil(t.context()).fulfil(colony, child, Optional.empty()));
+
+        assertEquals(3, t.containers.count(hut.containers(), stone), "not lost: its resolver's hut gets them");
+    }
+
+    @Test
+    void creativeWithNowhereToHandTheItemsStillClosesTheRequestAsMc() {
+        Requester stray = new Requester() {
+            @Override
+            public RequesterId requesterId() {
+                return new RequesterId("stray");
+            }
+
+            @Override
+            public BlockPos location() {
+                return new BlockPos(500, 64, 500);
+            }
+
+            @Override
+            public String displayName() {
+                return "Stray";
+            }
+
+            @Override
+            public void onRequestComplete(RequestManager m, Request r) {}
+
+            @Override
+            public void onRequestCancelled(RequestManager m, Request r) {}
+        };
+        RequestToken token =
+                colony.requests().createAndAssign(stray, new StackRequest(PLANKS, 4, 4, true), Request.NO_CITIZEN);
+
+        assertTrue(new RequestFulfil(t.context()).fulfil(colony, token, Optional.empty()));
+
+        assertEquals(RequestState.COMPLETED, get(token).state(), "MC overrules whatever the transfer did");
+        assertEquals(List.of(new ItemAmount(PLANKS, 4)), get(token).deliveries());
     }
 
     @Test

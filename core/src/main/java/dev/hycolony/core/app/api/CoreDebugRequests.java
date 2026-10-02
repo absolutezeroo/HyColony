@@ -19,7 +19,9 @@ import java.util.UUID;
  * ({@link RequestFulfil}) and /mc colony requestsystem-reset ({@link RequestSystemReset}).
  *
  * <p>Deviation from MC: both answer an {@link ActionResult}, without MC's texts (the reset's "restarted in 1.618
- * seconds" is a made-up duration); and a plugin fulfils for free, as MC's console would, having no inventory.
+ * seconds" is a made-up duration, and MC tells every operator; HyLens tells the one who asked). A plugin, which MC has
+ * no equivalent of (its console cannot fulfil), fulfils for free, having no inventory. Without a citizen's window to
+ * limit them, any open item request may be fulfilled, where MC's window offers its citizen's and its hut's own.
  */
 final class CoreDebugRequests {
     private final CoreColonyWorld world;
@@ -30,14 +32,14 @@ final class CoreDebugRequests {
 
     /**
      * MC RequestWindowCitizen.onFulfill, then TransferItemsToCitizenRequestMessage and UpdateRequestStateMessage
-     * (MANAGE_HUTS): not found without the colony or an open item request {@code requestId}; refused to a player
-     * without the right; then free for a plugin or a player in creative mode, else from the player's inventory.
+     * (MANAGE_HUTS, checked before the request as MC's colony messages): not found without the colony; refused to the
+     * colony and to a player without the right; not found without an open request {@code requestId} asking for items;
+     * then free for a plugin or a player in creative mode, else from the player's inventory.
      */
     ActionResult fulfilRequest(Actor actor, ColonyRef ref, String requestId) {
         world.checkThread();
         Colony c = world.find(ref).orElse(null);
-        Optional<RequestToken> token = token(requestId).filter(t -> c != null && isOpenItemRequest(c, t));
-        if (c == null || token.isEmpty()) {
+        if (c == null) {
             return new ActionResult.NotFound();
         }
         Optional<UUID> payer;
@@ -52,6 +54,10 @@ final class CoreDebugRequests {
                 }
                 payer = world.isCreative(p.id()) ? Optional.empty() : Optional.of(p.id());
             }
+        }
+        Optional<RequestToken> token = token(requestId).filter(t -> isOpenItemRequest(c, t));
+        if (token.isEmpty()) {
+            return new ActionResult.NotFound();
         }
         return new RequestFulfil(c.context()).fulfil(c, token.get(), payer)
                 ? new ActionResult.Done()

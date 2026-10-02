@@ -11,6 +11,7 @@ import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.request.Request;
+import dev.hycolony.core.request.model.Deliverable;
 import dev.hycolony.core.request.model.RequestState;
 import dev.hycolony.core.request.model.Requestable;
 import java.util.ArrayList;
@@ -76,8 +77,9 @@ final class CitizenViews {
         for (int citizen : List.of(d.id(), Request.NO_CITIZEN)) {
             openOf(c, work, citizen).forEach(r -> requests.tree(c, r, 0, owned, rows));
         }
+        boolean creative = ctx.players().isCreative(player);
         return rows.stream()
-                .map(row -> row.withFulfillable(fulfillable(row, work)))
+                .map(row -> row.withFulfillable(fulfillable(row, work, creative)))
                 .toList();
     }
 
@@ -89,12 +91,12 @@ final class CitizenViews {
     }
 
     /**
-     * MC CitizenRequestTreeWindowModule.isFulfillable: items the player holds, on a root or on a request whose
-     * requester stands at the workplace. Deviation from MC: no creative fulfil without the items (the core hands over
-     * the player's own stacks).
+     * MC CitizenRequestTreeWindowModule.isFulfillable: a request for items, the player in creative mode or holding
+     * some, on a root or on a request whose requester stands at the workplace.
      */
-    private static boolean fulfillable(RequestsView.RequestRow row, Building work) {
-        return row.playerHas() > 0 && (row.depth() == 0 || row.requesterPos().equals(Optional.of(work.position())));
+    private static boolean fulfillable(RequestsView.RequestRow row, Building work, boolean creative) {
+        boolean canGive = creative ? row.requestable() instanceof Deliverable : row.playerHas() > 0;
+        return canGive && (row.depth() == 0 || row.requesterPos().equals(Optional.of(work.position())));
     }
 
     /**

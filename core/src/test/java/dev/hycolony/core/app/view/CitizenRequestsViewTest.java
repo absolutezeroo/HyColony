@@ -17,6 +17,7 @@ import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.logistics.warehouse.WarehouseBuilding;
 import dev.hycolony.core.request.Request;
+import dev.hycolony.core.request.model.Delivery;
 import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.request.model.StackRequest;
 import dev.hycolony.core.testing.TestContexts;
@@ -107,5 +108,25 @@ class CitizenRequestsViewTest {
         assertFalse(rows().getFirst().fulfillable(), "nothing to hand over");
         t.playerInventory.give(alice, new ItemAmount(PLANK, 1));
         assertTrue(rows().getFirst().fulfillable());
+    }
+
+    @Test
+    void creativeModeOffersFulfillWithoutTheItemAsMcIsFulfillable() {
+        ask(bob.id(), 3);
+        t.players.creative.add(alice);
+
+        assertTrue(rows().getFirst().fulfillable(), "MC: isCreative || the player holds it");
+    }
+
+    @Test
+    void creativeModeOffersNoFulfillOnARequestForNoItemsAsMcIsFulfillable() {
+        colony.requests()
+                .createAndAssign(
+                        hut,
+                        new Delivery(new BlockPos(0, 64, 0), hut.requesterId(), new ItemAmount(PLANK, 1), 1),
+                        bob.id());
+        t.players.creative.add(alice);
+
+        assertFalse(rows().getFirst().fulfillable());
     }
 }

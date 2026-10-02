@@ -261,6 +261,22 @@ class LogisticsWindowsTest {
     }
 
     @Test
+    void theClipboardOffersFulfillInCreativeModeWithoutTheItem() {
+        colony.requests().createAndAssign(builder, new StackRequest(STONE, 10, 10, true), -1);
+        t.players.creative.add(alice);
+
+        assertTrue(clipboard().rows().get(0).fulfillable(), "MC: isCreative || the player holds it");
+    }
+
+    @Test
+    void theClipboardOffersNoFulfillOnAPickupEvenInCreativeMode() {
+        assertTrue(manager.hutWindows().pickup().forcePickup(alice, builder.position()));
+        t.players.creative.add(alice);
+
+        assertFalse(clipboard().rows().get(0).fulfillable(), "a pickup asks no items");
+    }
+
+    @Test
     void clipboardShowsAPickupHeldByThePlayer() {
         assertTrue(manager.hutWindows().pickup().forcePickup(alice, builder.position()));
 

@@ -28,19 +28,20 @@ class DeliverableDisplayedTest {
     }
 
     @Test
-    void aToolRequestShowsTheFirstCatalogToolItAcceptsById() {
+    void aToolRequestShowsTheLowestTierCatalogToolItAccepts() {
         catalog.tools.put(new ItemKey("Tool_Pickaxe_Iron"), new ToolInfo(ToolType.PICKAXE, 2, 1));
         catalog.tools.put(new ItemKey("Tool_Pickaxe_Crude"), new ToolInfo(ToolType.PICKAXE, 0, 1));
         catalog.tools.put(new ItemKey("Tool_Hatchet_Crude"), new ToolInfo(ToolType.AXE, 0, 1));
+        catalog.tools.put(new ItemKey("Tool_Pickaxe_Adamantite"), new ToolInfo(ToolType.PICKAXE, 3, 1));
 
         assertEquals(
                 Optional.of(new ItemKey("Tool_Pickaxe_Iron")),
                 new ToolRequest(ToolType.PICKAXE, 1, 3).displayed(catalog),
-                "the crude one is below the levels asked");
+                "the crude one is below the levels asked; Adamantite, first by id, is a higher tier");
         assertEquals(
                 Optional.of(new ItemKey("Tool_Pickaxe_Crude")),
                 new ToolRequest(ToolType.PICKAXE, 0, 3).displayed(catalog),
-                "by id, Crude before Iron");
+                "the lowest tier first");
     }
 
     @Test
