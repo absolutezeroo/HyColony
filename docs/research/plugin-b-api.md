@@ -1060,6 +1060,15 @@ Sources : décompilé de 0.7.0-pre.5.
 - Un joueur accroupi : `MovementStatesComponent.getMovementStates().crouching`, posé par le client (`PlayerInput.SetMovementStates`, l. 227-234) et lu côté serveur par `ConditionInteraction` (l. 110).
 - `InventoryComponent.getCombined(store, ref, HOTBAR_FIRST)` vaut barre d'action puis sac (`InventoryComponent` l. 156) ; la capacité de la barre vient du composant `InventoryComponent.Hotbar`. `ItemContainer.replaceItemStackInSlot(slot, attendu, nouveau)` renvoie une transaction dont `succeeded()` dit si la case tenait bien `attendu`.
 
+## 48. Objet en main, distance de vue et hauteur du monde (`ColonyBorderSystem`, 2026-10-02)
+
+Sources : décompilé de 0.7.0-pre.5.
+
+- Objet en main : `InventoryComponent.getItemInHand(store, ref)` (`InventoryComponent` l. 291-300) renvoie l'objet actif de l'outil s'il est utilisé, sinon celui de la barre d'action (`Hotbar.getActiveItem`).
+- Distance de vue : `Player.getViewRadius()` (l. 673-675), en tronçons de 32 blocs (`ChunkUtil.SIZE`), bornée par le `MaxViewRadius` du serveur ; `getClientViewRadius()` est la valeur demandée par le client. `EntityViewer.viewRadiusBlocks` la donne en blocs (commande `/player viewradius get`).
+- Hauteur du monde : `ChunkUtil.HEIGHT` = 320 (10 sections de 32).
+- `ClearDebugShapes` (sans champ) efface **toutes** les formes `DisplayDebug` du joueur qui le reçoit (`DebugUtils.clear` l. 83-89 l'envoie à tout le monde).
+
 ## Could not verify
 
 1. **Client rendering of item animations on NPCs** (`AnimationSlot.Action` with `"Block"/"Build"` or `"Pickaxe"/"Mine"` on `PlayerTestModel_V`) and whether they loop or play once. Only the server packet path is verified.

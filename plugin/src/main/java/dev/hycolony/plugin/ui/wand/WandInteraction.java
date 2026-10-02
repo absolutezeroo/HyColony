@@ -35,10 +35,14 @@ public final class WandInteraction implements OpenCustomUIInteraction.CustomPage
         this.runtimes = runtimes;
     }
 
-    /** Registers the page id, before the item assets that name it are decoded (plugin setup). */
+    /**
+     * Registers the page id, before the item assets that name it are decoded (plugin setup), and the colony borders
+     * shown while the tool is held.
+     */
     public static void register(PluginBase plugin, WorldRuntimes runtimes) {
         OpenCustomUIInteraction.registerCustomPageSupplier(
                 plugin, WandPage.class, PAGE_ID, new WandInteraction(runtimes));
+        plugin.getEntityStoreRegistry().registerSystem(new ColonyBorderSystem(runtimes));
     }
 
     /** Opens the window at the clicked block, or at the kept anchor on a click in the air; always null. */
