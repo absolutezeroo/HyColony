@@ -16,7 +16,8 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * A citizen's leisure walk, MC EntityAICitizenWander's GO_TO_LEISURE_SITE then WANDER_AT_LEISURE_SITE: to the site,
- * then strolls in its building until it leaves, one time in 300.
+ * then strolls in its building until it leaves, one time in 300. Distances are from the citizen's block, as MC's
+ * BlockPosUtil.dist from blockPosition() and PathJobRandomPos distSqr.
  *
  * <p>Deviation from MC: a sub-state of IDLE, not states of their own; no tagged seats nor stands (HyColony's plans
  * have no tags) nor reading; without a path search, a stroll targets a random spot of the building's box at the hut's
@@ -27,10 +28,7 @@ import org.jspecify.annotations.Nullable;
  * walk under way (MC's walkToPos stops it; the body port has no stop).
  */
 final class LeisureWalk {
-    /**
-     * MC goToLeisureSite: walkToPos(citizen, leisureSite, 3, true), arrived within that many blocks once stopped. All
-     * distances here are from block to block, as MC's BlockPosUtil.dist and PathJobRandomPos distSqr.
-     */
+    /** MC goToLeisureSite: walkToPos(citizen, leisureSite, 3, true), arrived within that many blocks once stopped. */
     private static final int ARRIVED_BLOCKS = 3;
     /** MC EntityNavigationUtils.walkToPos: before any walk, already there within REACHED_DIST blocks. */
     private static final double REACHED_DIST = 1.5;
