@@ -14,33 +14,36 @@ import java.util.Optional;
  *
  * <p>Deviation from MC (Hytale world): MC wears every piece by a quarter of the damage, a broken piece gone → Hytale's
  * own armour wear, which Hytale gives players only (DamageSystems.DamageArmor,
- * ItemUtils.canDecreaseItemStackDurability): a hit whose cause wears armour costs one random piece that is not broken
- * one hit of its life (its DurabilityLossOnHit, ItemCatalog.durability counting hits); a broken piece stays worn,
- * broken. No research effect
- * (MC ARMOR_DURABILITY) exists yet.
+ * ItemUtils.canDecreaseItemStackDurability): a hit whose cause wears armour falls on one random piece that is not
+ * broken, an unbreakable one included, and costs it one hit of its life (its DurabilityLossOnHit,
+ * ItemCatalog.durability counting hits); an unbreakable piece loses nothing, a broken one stays worn. No research
+ * effect (MC ARMOR_DURABILITY) exists yet.
  */
 public final class ArmorWear {
     private ArmorWear() {}
 
     /**
      * {@code d} took a hit whose cause wears armour: one of its pieces that is not broken, chosen at random, takes one
-     * hit; the colony is saved and the body shows it. Nothing without such a piece.
+     * hit; when it wore, the colony is saved and the body shows it. Nothing without such a piece.
      */
     public static void onHurt(Colony c, CitizenData d) {
         Inventory armor = d.equipment().armor();
         ItemCatalog catalog = c.context().ports().catalog();
-        List<Integer> wearable = new ArrayList<>(armor.size());
+        List<Integer> unbroken = new ArrayList<>(armor.size());
         for (int slot = 0; slot < armor.size(); slot++) {
             Optional<ItemAmount> piece = armor.slot(slot);
-            if (piece.isPresent() && catalog.durability(piece.get().item()) > 0 && !catalog.wornOut(piece.get())) {
-                wearable.add(slot);
+            if (piece.isPresent() && !catalog.wornOut(piece.get())) {
+                unbroken.add(slot);
             }
         }
-        if (wearable.isEmpty()) {
+        if (unbroken.isEmpty()) {
             return;
         }
-        int slot = wearable.get(c.context().random().nextInt(wearable.size()));
+        int slot = unbroken.get(c.context().random().nextInt(unbroken.size()));
         ItemAmount piece = armor.slot(slot).orElseThrow();
+        if (catalog.durability(piece.item()) <= 0) {
+            return; // unbreakable: the hit wears nothing (Hytale's ItemStack.isUnbreakable)
+        }
         armor.set(slot, Optional.of(new ItemAmount(piece.item(), piece.count(), piece.damage() + 1)));
         c.markDirty();
         c.citizens()

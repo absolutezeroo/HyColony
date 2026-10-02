@@ -6,9 +6,10 @@ import java.util.Optional;
 /**
  * What the catalog knows of an armour piece: the slot it goes in, in Hytale's ItemArmorSlot order, and its ItemLevel,
  * which stands for MC's armour value (spec 2026-10-02 citizen inventory, § 3). Its wear is counted as a tool's, in the
- * hits it takes before it breaks ({@code ItemCatalog.durability}).
+ * hits it takes before it breaks ({@code ItemCatalog.durability}); {@code maxDurability} is Hytale's MaxDurability, in
+ * points (0 for unbreakable), which a schema-9 save counted the wear in.
  */
-public record ArmorInfo(Slot slot, int itemLevel) {
+public record ArmorInfo(Slot slot, int itemLevel, double maxDurability) {
     public ArmorInfo {
         if (itemLevel < 0) {
             throw new IllegalArgumentException("itemLevel must be >= 0: " + itemLevel);

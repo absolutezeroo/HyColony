@@ -7,10 +7,12 @@ import com.google.gson.JsonPrimitive;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.inventory.CitizenEquipment.Hand;
 import dev.hycolony.core.kernel.item.Inventory;
+import dev.hycolony.core.kernel.port.ItemCatalog;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A citizen's {@link CitizenEquipment} in its saved JSON (schema 10): {@code armor}, {@code heldMain} and {@code
- * heldOff}, as MC CitizenData saves TAG_HELD_ITEM_SLOT and its offhand twin.
+ * heldOff}, as MC CitizenData saves TAG_HELD_ITEM_SLOT and its offhand twin; and the wear of the armour it carries.
  */
 public final class EquipmentJson {
     private EquipmentJson() {}
@@ -35,11 +37,33 @@ public final class EquipmentJson {
         return e;
     }
 
-    /** Whether {@link #read} had to repair {@code o}: a hand outside the inventory, or more than 4 armour pieces. */
+    /**
+     * Counts the wear of the armour pieces in the citizen's {@code inventory} in hits, as schema 10 does, when the
+     * saved citizen {@code o} counted it in points ({@link LegacyArmorWear}).
+     */
+    public static void readArmorWear(JsonObject o, Inventory inventory, ArmorCatalog armors, ItemCatalog items) {
+        if (LegacyArmorWear.marked(o)) {
+            LegacyArmorWear.convert(inventory, armors, items);
+        }
+    }
+
+    /**
+     * Whether reading {@code o} repairs it: a hand that is no number or outside the inventory, more than 4 armour
+     * pieces, or an armour wear counted in points. A missing key only takes its default.
+     */
     public static boolean needsRepair(JsonObject o) {
-        int main = slot(o.get("heldMain"));
-        int off = slot(o.get("heldOff"));
-        return valid(main) != main || valid(off) != off || armor(o).size() > CitizenEquipment.ARMOR_SLOTS;
+        return badHand(o.get("heldMain"))
+                || badHand(o.get("heldOff"))
+                || armor(o).size() > CitizenEquipment.ARMOR_SLOTS
+                || LegacyArmorWear.marked(o);
+    }
+
+    private static boolean badHand(@Nullable JsonElement saved) {
+        if (saved == null) {
+            return false;
+        }
+        int slot = slot(saved);
+        return !(saved instanceof JsonPrimitive p && p.isNumber()) || valid(slot) != slot;
     }
 
     private static JsonArray armor(JsonObject o) {

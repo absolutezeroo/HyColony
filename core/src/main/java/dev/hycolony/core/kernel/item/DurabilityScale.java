@@ -3,8 +3,9 @@ package dev.hycolony.core.kernel.item;
 /**
  * Converts a tool's damage in uses (1 per block, MC) to and from the durability points of the game, where
  * {@code uses} ({@code ItemCatalog.durability}) spend the item's max points. A partly spent use counts as a whole one,
- * so a round trip never repairs. An item the core does not wear ({@code uses} of 0 or less: a weapon, armour) counts
- * one use per point, so its wear travels too; a max of 0 or less is unbreakable, with no damage.
+ * so a round trip never repairs. An armour piece's uses are its hits. An item the core does not wear ({@code uses} of 0
+ * or less: a weapon) counts one use per point, so its wear travels too; a max of 0 or less is unbreakable, with no
+ * damage.
  */
 public final class DurabilityScale {
     /** Floating noise, in uses, so a durability computed from a damage reads back as that same damage. */

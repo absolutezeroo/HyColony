@@ -1,6 +1,7 @@
 package dev.hycolony.core.app.persistence;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.gson.JsonObject;
@@ -9,6 +10,7 @@ import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.inventory.CitizenEquipment;
 import dev.hycolony.core.citizen.inventory.CitizenEquipment.Hand;
+import dev.hycolony.core.kernel.item.ArmorInfo;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.persist.FileColonyStorage;
@@ -19,6 +21,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -38,10 +41,34 @@ class MigrationV9ToV10Test {
     }
 
     private ColonyManager load() {
-        ColonyManager m = new TestContexts().manager();
+        return load(new TestContexts());
+    }
+
+    private ColonyManager load(TestContexts t) {
+        ColonyManager m = t.manager();
         m.persistence().setStorage(new FileColonyStorage(dir), MigrationChain.sp4());
         m.persistence().loadAll();
         return m;
+    }
+
+    @Test
+    void armourWornInASchema9InventoryKeepsItsWearCountedInHits() throws IOException {
+        JsonObject doc = JsonParser.parseString(fixture()).getAsJsonObject();
+        JsonObject citizen = doc.getAsJsonArray("citizens").get(0).getAsJsonObject();
+        citizen.getAsJsonArray("inventory")
+                .add(JsonParser.parseString("{\"item\":\"Armor_Iron_Head\",\"count\":1,\"damage\":10}"));
+        Files.writeString(dir.resolve("colony-1.json"), doc.toString());
+        TestContexts t = new TestContexts();
+        t.catalog.armors.put(HELMET, new ArmorInfo(ArmorInfo.Slot.HEAD, 20, 100));
+        t.catalog.durability.put(HELMET, 200); // DurabilityLossOnHit 0.5
+
+        ColonyManager m = load(t);
+
+        assertEquals(
+                Optional.of(new ItemAmount(HELMET, 1, 20)),
+                aela(m).inventory().slot(1),
+                "schema 9 counted its 10 points worn; 10 points are 20 hits");
+        assertTrue(m.byId(1).orElseThrow().isDirty(), "written again in hits");
     }
 
     private CitizenData aela(ColonyManager m) {
@@ -89,8 +116,7 @@ class MigrationV9ToV10Test {
         citizen.addProperty("heldMain", 99);
         citizen.addProperty("heldOff", -7);
         String piece = "{\"item\":\"Armor_Iron_Head\",\"count\":1}";
-        citizen.add(
-                "armor", JsonParser.parseString("[" + String.join(",", java.util.Collections.nCopies(6, piece)) + "]"));
+        citizen.add("armor", JsonParser.parseString("[" + String.join(",", Collections.nCopies(6, piece)) + "]"));
         Files.writeString(dir.resolve("colony-1.json"), doc.toString());
 
         ColonyManager m = load();
@@ -108,6 +134,6 @@ class MigrationV9ToV10Test {
         Files.writeString(dir.resolve("colony-1.json"), fixture());
         load().persistence().saveAll();
 
-        assertTrue(!load().byId(1).orElseThrow().isDirty(), "nothing to repair once migrated and saved");
+        assertFalse(load().byId(1).orElseThrow().isDirty(), "nothing to repair once migrated and saved");
     }
 }

@@ -1,6 +1,7 @@
 package dev.hycolony.core.citizen.inventory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -54,8 +55,8 @@ class EquipmentLifeTest {
         hut.setBuilt(true);
         colony.citizens().restore(bob);
         assertTrue(hut.module(WorkerModule.class).orElseThrow().hire(colony, hut, bob));
-        t.catalog.armors.put(HELMET, new ArmorInfo(Slot.HEAD, 20));
-        t.catalog.armors.put(CHEST, new ArmorInfo(Slot.CHEST, 20));
+        t.catalog.armors.put(HELMET, new ArmorInfo(Slot.HEAD, 20, 100));
+        t.catalog.armors.put(CHEST, new ArmorInfo(Slot.CHEST, 20, 100));
         t.catalog.durability.put(HELMET, HITS);
         t.catalog.durability.put(CHEST, HITS);
     }
@@ -97,14 +98,15 @@ class EquipmentLifeTest {
     }
 
     @Test
-    void aNewBodyShowsTheArmourAndTheHeldSlot() {
+    void aNewBodyShowsTheArmourButLeavesItsHandToTheAi() {
         wear(Slot.HEAD, HELMET, 7);
         bob.inventory().set(4, Optional.of(new ItemAmount(PICK, 1)));
         bob.equipment().hold(Hand.MAIN, 4);
 
         BodyId body = body();
 
-        assertEquals(PICK, t.bodies.bodies.get(body).held, "MC's entity renders its InventoryCitizen");
+        assertNull(t.bodies.bodies.get(body).held, "MC's entity hand is its own, not the InventoryCitizen's");
+        assertEquals(4, bob.equipment().held(Hand.MAIN));
         assertEquals(
                 Optional.of(new ItemAmount(HELMET, 1, 7)),
                 t.bodies.bodies.get(body).armor.get(Slot.HEAD.index()));
@@ -175,6 +177,19 @@ class EquipmentLifeTest {
         ArmorWear.onHurt(colony, bob);
 
         assertEquals(0, damage(Slot.HEAD));
-        assertTrue(!colony.isDirty(), "nothing changed");
+        assertFalse(colony.isDirty(), "nothing changed");
+    }
+
+    @Test
+    void anUnbreakablePieceTakesItsShareOfTheHits() {
+        wear(Slot.HEAD, new ItemKey("Unbreakable_Hat"), 0);
+        wear(Slot.CHEST, CHEST, 0);
+
+        for (int i = 0; i < HITS; i++) {
+            ArmorWear.onHurt(colony, bob);
+        }
+
+        assertTrue(damage(Slot.CHEST) < HITS * 3 / 4, "DamageArmor draws among every unbroken piece: about half");
+        assertTrue(damage(Slot.CHEST) > HITS / 4, damage(Slot.CHEST) + " hits on the chest");
     }
 }

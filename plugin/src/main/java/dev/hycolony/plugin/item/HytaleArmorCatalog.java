@@ -11,9 +11,9 @@ import java.util.logging.Level;
 
 /**
  * Armour pieces from Hytale's item assets: the slot of {@code Item.getArmor().getArmorSlot()} (ItemArmorSlot order
- * Head, Chest, Hands, Legs) and {@code Item.getItemLevel()}, which a child item inherits from its parent; its hits
- * before it breaks come from the item catalog's durability. Read at each call (one asset lookup, asked when a player
- * moves an item into a citizen's armour). Never throws (CLAUDE.md § 4).
+ * Head, Chest, Hands, Legs), {@code Item.getItemLevel()}, which a child item inherits from its parent, and {@code
+ * Item.getMaxDurability()}; its hits before it breaks come from the item catalog's durability. Read at each call (one
+ * asset lookup, asked when a player moves an item into a citizen's armour). Never throws (CLAUDE.md § 4).
  */
 public final class HytaleArmorCatalog implements ArmorCatalog {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
@@ -28,7 +28,8 @@ public final class HytaleArmorCatalog implements ArmorCatalog {
                 return Optional.empty();
             }
             int itemLevel = Math.max(0, asset.getItemLevel());
-            return ArmorInfo.Slot.at(armor.getArmorSlot().getValue()).map(slot -> new ArmorInfo(slot, itemLevel));
+            double max = Math.max(0, asset.getMaxDurability());
+            return ArmorInfo.Slot.at(armor.getArmorSlot().getValue()).map(slot -> new ArmorInfo(slot, itemLevel, max));
         } catch (RuntimeException e) {
             LOG.at(warned ? Level.FINE : Level.WARNING).withCause(e).log("HyColony armour of %s unread", item.id());
             warned = true;

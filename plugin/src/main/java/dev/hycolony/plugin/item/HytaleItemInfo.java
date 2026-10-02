@@ -54,15 +54,15 @@ public record HytaleItemInfo(int maxStack, Optional<ToolInfo> tool, int durabili
     /**
      * An armour piece's uses: the hits it takes before it breaks, each costing its DurabilityLossOnHit of its
      * MaxDurability, as DamageSystems.DamageArmor wears a player's (100 / 0.5 = 200 for vanilla iron); 0 for anything
-     * else or an unbreakable piece.
+     * else, an unbreakable piece, or one a hit never wears (DurabilityLossOnHit 0: ItemUtils takes -0 off it).
      */
     private static int armorHits(Item item) {
         double max = item.getMaxDurability();
-        if (item.getArmor() == null || max <= 0) {
+        double perHit = item.getDurabilityLossOnHit();
+        if (item.getArmor() == null || max <= 0 || perHit <= 0) {
             return 0;
         }
-        double perHit = item.getDurabilityLossOnHit();
-        return perHit > 0 ? (int) Math.ceil(max / perHit) : (int) max;
+        return (int) Math.ceil(max / perHit);
     }
 
     /**

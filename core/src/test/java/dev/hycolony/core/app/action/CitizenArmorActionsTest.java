@@ -45,9 +45,9 @@ class CitizenArmorActionsTest {
         hut.setLevel(1);
         worker.setWorkBuilding(hall);
         colony.citizens().restore(worker);
-        t.catalog.armors.put(LEATHER_CAP, new ArmorInfo(Slot.HEAD, 15));
-        t.catalog.armors.put(BRONZE_HELM, new ArmorInfo(Slot.HEAD, 25));
-        t.catalog.armors.put(BRONZE_CHEST, new ArmorInfo(Slot.CHEST, 25));
+        t.catalog.armors.put(LEATHER_CAP, new ArmorInfo(Slot.HEAD, 15, 80));
+        t.catalog.armors.put(BRONZE_HELM, new ArmorInfo(Slot.HEAD, 25, 100));
+        t.catalog.armors.put(BRONZE_CHEST, new ArmorInfo(Slot.CHEST, 25, 100));
     }
 
     private boolean mayWear(int slot, ItemKey item) {

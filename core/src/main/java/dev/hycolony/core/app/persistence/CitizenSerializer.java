@@ -61,7 +61,10 @@ final class CitizenSerializer {
         return o;
     }
 
-    /** Whether {@link #read} repairs the saved citizen {@code o} (its equipment), so it is to be written again. */
+    /**
+     * Whether {@link #read} repairs the saved citizen {@code o} (its equipment, or its armour's wear in points), so it
+     * is to be written again.
+     */
     static boolean needsRepair(JsonObject o) {
         return EquipmentJson.needsRepair(o);
     }
@@ -87,6 +90,8 @@ final class CitizenSerializer {
             d.setAsleep(true); // after the leisure time: falling asleep ends it (MC CitizenData.setAsleep)
         }
         d.setInventory(Inventory.read(arrayOr(o.get("inventory")), CitizenData.INVENTORY_SLOTS));
+        EquipmentJson.readArmorWear(
+                o, d.inventory(), ctx.ports().armors(), ctx.ports().catalog());
         d.setEquipment(EquipmentJson.read(o));
         if (o.get("job") instanceof JsonObject job) {
             readJob(job, d, ctx);
