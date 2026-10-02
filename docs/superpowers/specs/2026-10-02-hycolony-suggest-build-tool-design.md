@@ -19,7 +19,7 @@ Port de MineColonies : `EventHandler.onPlayerInteract` (le bloc de hutte en main
 ## 2. Cœur
 
 - `app/wand/HutHandPlacement` :
-  - `handPlaced(player, target, buildingTypeId, hutItem, crouching)` → `Optional<HutPlacement>` : le refus des règles (`HutActions.checkPlacement`) avec sa raison ; vide (annuler sans rien dire) pour une colonie sans `ACCESS_HUTS` ou quand la fenêtre de suggestion s'ouvre ; la pose permise par les règles pour un joueur créatif accroupi ;
+  - `handPlaced(player, target, buildingTypeId, hutItem, crouching)` → `Optional<HutPlacement>` : le refus des règles (`HutActions.checkPlacement`) avec sa raison, sauf pour un hôtel de ville hors colonie, qui va à la suite ; vide (annuler sans rien dire) pour une colonie sans `ACCESS_HUTS` ou quand la fenêtre de suggestion s'ouvre ; la pose permise par les règles pour un joueur créatif accroupi ;
   - `useBuildTool(player, pos, hutItem)` : sans baguette, le message de MC ; sinon l'échange par le port d'inventaire, puis `WandActions.open(player, Optional.of(pos))`.
 - `PlayerInventory.swapIntoHotbar(player, hotbarItem, otherItem)` : la dernière case de la barre d'action qui tient `hotbarItem` et la dernière case de l'inventaire qui tient `otherItem` échangent leur contenu ; faux sans l'une des deux.
 - `UiPort.showSuggestBuildTool(player, view)` avec la vue `SuggestBuildToolView(pos, hutItem)`.
@@ -34,7 +34,7 @@ Port de MineColonies : `EventHandler.onPlayerInteract` (le bloc de hutte en main
 ## 4. Écarts
 
 - L'échange se fait au clic du bouton côté serveur (MC le fait par un message du client) ; le résultat est le même.
-- Le créatif garde les règles de pose : MC (`onBlockHutPlaced`) laisse un joueur créatif poser une hutte hors colonie ou un second hôtel de ville (accroupi), et lui montre le message puis la fenêtre (debout) ; `HutActions.checkPlacement`, port de `AbstractBlockHut.canPaste`, n'a pas cette exception : le message seul (audit M-26, déjà en place avant ce changement).
+- Le créatif garde les règles de pose : MC (`onBlockHutPlaced`) laisse un joueur créatif poser une hutte hors colonie ou un second hôtel de ville (accroupi), et lui montre la fenêtre (debout), après le message hors colonie ; `HutActions.checkPlacement`, port de `AbstractBlockHut.canPaste`, n'a pas cette exception : le message seul (audit M-26, déjà en place avant ce changement).
 - Un hôtel de ville posé tel quel (créatif accroupi) hors colonie rencontre aussitôt les règles de fondation, avec leur message ; MC les applique à la création de la colonie, juste après.
 - La colonie est lue à la case posée (MC la lit au bloc cliqué pour `ACCESS_HUTS`, que `PlaceBlockEvent` ne donne pas) : les deux ne diffèrent qu'à la bordure du territoire.
 - L'inventaire de l'échange est la barre d'action plus le sac (le conteneur combiné de Hytale) ; l'armure et la main secondaire, que MC compte aussi, n'y sont pas.

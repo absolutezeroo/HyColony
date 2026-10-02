@@ -111,7 +111,7 @@ class HutHandPlacementTest {
                 Optional.of(new HutPlacement.Denied(Msg.of("hycolony.hut.tooFar"))),
                 place(alice, far, BUILDER, BUILDER_ITEM, false));
         assertEquals(
-                Optional.of(new HutPlacement.Denied(Msg.of("hycolony.hut.townHallExists", "0 64 0"))),
+                Optional.of(new HutPlacement.Denied(Msg.of("hycolony.hut.townHallExists", "0, 64, 0"))),
                 place(alice, spot, TOWN_HALL, TOWN_HALL_ITEM, false));
         assertFalse(t.ui.shown.containsKey(alice));
     }
@@ -137,7 +137,7 @@ class HutHandPlacementTest {
         assertEquals(new SuggestBuildToolView(far, TOWN_HALL_ITEM), t.ui.shown.get(alice));
     }
 
-    /** Placed as is, the town hall meets the founding rules there, as MC's colony creation does. */
+    /** Placed as is, the town hall meets the founding rules at once (MC: when its colony is created, just after). */
     @Test
     void aCreativeOwnerCrouchingWithATownHallOutsideColoniesIsToldTheFoundingRefusal() {
         t.players.creative.add(alice);

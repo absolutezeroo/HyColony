@@ -9,7 +9,6 @@ import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.building.BuildingTypes;
 import dev.hycolony.core.building.module.BuildingEventsModule;
 import dev.hycolony.core.citizen.CitizenData;
-import dev.hycolony.core.citizen.vitals.DebugText;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyAccess;
 import dev.hycolony.core.colony.ColonyEvents;
@@ -38,7 +37,10 @@ public final class HutActions {
         this.windows = windows;
     }
 
-    /** Port of AbstractBlockHut.canPaste: PLACE_HUTS inside a colony, then {@link #checkHutRules}. */
+    /**
+     * Port of AbstractBlockHut.canPaste: PLACE_HUTS inside a colony, refused with MC's PERMISSION_OPEN_HUT text ("open
+     * huts", MC's own wording), then {@link #checkHutRules}.
+     */
     public HutPlacement checkPlacement(UUID player, BlockPos pos, String buildingTypeId) {
         Optional<Colony> colony = manager.colonyAt(pos);
         if (colony.isPresent() && !ColonyAccess.allows(colony.get(), player, Action.PLACE_HUTS)) {
@@ -62,9 +64,10 @@ public final class HutActions {
         Colony c = colony.get();
         Optional<Building> townHall = c.buildings().townHall();
         if (isTownHall && townHall.isPresent()) {
-            // MC BlockHutTownHall.canPlaceAt: WARNING_DUPLICATE_TOWN_HALL names where the town hall stands.
-            return new HutPlacement.Denied(Msg.of(
-                    "hycolony.hut.townHallExists", DebugText.pos(townHall.get().position())));
+            // MC BlockHutTownHall.canPlaceAt: WARNING_DUPLICATE_TOWN_HALL names where it stands (toShortString).
+            BlockPos at = townHall.get().position();
+            return new HutPlacement.Denied(
+                    Msg.of("hycolony.hut.townHallExists", at.x() + ", " + at.y() + ", " + at.z()));
         }
         return new HutPlacement.Allowed(c);
     }

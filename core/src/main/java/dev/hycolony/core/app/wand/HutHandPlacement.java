@@ -40,8 +40,10 @@ public final class HutHandPlacement {
      * cancel the placement, say nothing.
      *
      * <p>Deviation from MC: MC's onBlockHutPlaced lets a creative player place a hut outside any colony or a second
-     * town hall, and shows a creative player standing its message and the window; HutActions.checkPlacement, the port
-     * of AbstractBlockHut.canPaste, has no creative exception (M-26): the message alone.
+     * town hall, and shows a creative player standing the window (after its message, outside colonies);
+     * HutActions.checkPlacement, the port of AbstractBlockHut.canPaste, has no creative exception (M-26): the message
+     * alone. Deviation from MC: a town hall placed as is outside colonies meets the founding rules at once; MC checks
+     * them when the colony is created (CreateColonyMessage), the block already placed.
      * Deviation from MC: the colony is read at the placed cell, not the clicked one, which PlaceBlockEvent lacks. MC
      * also skips its storage components (IRSComponentBlock); none is ported yet, to exclude here when they are.
      */
