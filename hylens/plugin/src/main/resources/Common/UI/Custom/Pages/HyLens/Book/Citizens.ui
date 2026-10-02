@@ -1,0 +1,100 @@
+$B = "../Mc/Book.ui";
+$C = "../../../Common.ui";
+
+// HyLens' Citizens tab (spec 2026-10-02, § 3.2-3.3), on the town hall book's pages: on the left the chosen colony's
+// citizens; on the right the chosen citizen, its actions (Watch, or Free camera / Follow again and Stop watching while
+// watched), and "send here".
+
+Group {
+  Anchor: (Left: 0, Top: 0, Width: 1048, Height: 486);
+
+  Label {
+    Anchor: (Left: 200, Top: 130, Width: 296, Height: 22);
+    Text: %hylens.menu.citizens;
+    Style: $B.@Heading;
+  }
+
+  Group #Citizens {
+    Anchor: (Left: 200, Top: 160, Width: 296, Height: 278);
+    LayoutMode: TopScrolling;
+    ScrollbarStyle: $C.@DefaultScrollbarStyle;
+  }
+
+  Label #Chosen {
+    Anchor: (Left: 552, Top: 56, Width: 296, Height: 22);
+    Style: $B.@Heading;
+  }
+
+  Label #ChosenState {
+    Anchor: (Left: 552, Top: 84, Width: 296, Height: 20);
+    Style: $B.@FadedCentered;
+  }
+
+  TextButton #WatchButton {
+    Anchor: (Left: 571, Top: 116, Width: 258, Height: 34);
+    Style: $B.@WideButtonStyle;
+    Text: %hylens.menu.watch;
+  }
+
+  TextButton #FreeButton {
+    Anchor: (Left: 552, Top: 116, Width: 128, Height: 34);
+    Style: $B.@SmallCompactButtonStyle;
+    Text: "";
+    Visible: false;
+  }
+
+  TextButton #UnwatchButton {
+    Anchor: (Left: 720, Top: 116, Width: 128, Height: 34);
+    Style: $B.@SmallCompactButtonStyle;
+    Text: %hylens.menu.unwatch;
+    Visible: false;
+  }
+
+  TextButton #LeisureButton {
+    Anchor: (Left: 571, Top: 156, Width: 258, Height: 34);
+    Style: $B.@WideButtonStyle;
+    Text: %hylens.menu.leisure;
+  }
+
+  TextButton #TeleportButton {
+    Anchor: (Left: 571, Top: 196, Width: 258, Height: 34);
+    Style: $B.@WideButtonStyle;
+    Text: %hylens.menu.teleport;
+  }
+
+  TextButton #RespawnButton {
+    Anchor: (Left: 571, Top: 236, Width: 258, Height: 34);
+    Style: $B.@WideButtonStyle;
+    Text: %hylens.menu.respawn;
+  }
+
+  Label {
+    Anchor: (Left: 552, Top: 284, Width: 296, Height: 22);
+    Text: %hylens.menu.sendHere;
+    Style: $B.@Heading;
+  }
+
+  $C.@TextField #SendX {
+    @Anchor = (Left: 552, Top: 312, Width: 88, Height: 34);
+  }
+
+  $C.@TextField #SendY {
+    @Anchor = (Left: 656, Top: 312, Width: 88, Height: 34);
+  }
+
+  $C.@TextField #SendZ {
+    @Anchor = (Left: 760, Top: 312, Width: 88, Height: 34);
+  }
+
+  TextButton #SendButton {
+    Anchor: (Left: 552, Top: 356, Width: 128, Height: 34);
+    Style: $B.@SmallButtonStyle;
+    Text: %hylens.menu.send;
+  }
+
+  TextButton #SendMapButton {
+    Anchor: (Left: 720, Top: 356, Width: 128, Height: 34);
+    Style: $B.@SmallCompactButtonStyle;
+    Text: %hylens.menu.sendMap;
+  }
+}

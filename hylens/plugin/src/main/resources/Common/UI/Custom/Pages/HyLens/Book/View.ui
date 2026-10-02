@@ -1,0 +1,78 @@
+$B = "../Mc/Book.ui";
+
+// HyLens' View tab (spec 2026-10-02, § 3.2), on the town hall book's pages: on the left the drawings and the automatic
+// check; on the right the colony clock.
+
+Group {
+  Anchor: (Left: 0, Top: 0, Width: 1048, Height: 486);
+
+  Label {
+    Anchor: (Left: 200, Top: 130, Width: 296, Height: 22);
+    Text: %hylens.menu.layers;
+    Style: $B.@Heading;
+  }
+
+  Group #Layers {
+    Anchor: (Left: 200, Top: 160, Width: 296, Height: 162);
+    Padding: (Left: 19);
+    LayoutMode: Top;
+  }
+
+  Label {
+    Anchor: (Left: 200, Top: 330, Width: 296, Height: 22);
+    Text: %hylens.menu.checks;
+    Style: $B.@Heading;
+  }
+
+  TextButton #AutoCheckButton {
+    Anchor: (Left: 219, Top: 360, Width: 258, Height: 34);
+    Style: $B.@WideButtonStyle;
+    Text: "";
+  }
+
+  Label {
+    Anchor: (Left: 552, Top: 56, Width: 296, Height: 22);
+    Text: %hylens.menu.clock;
+    Style: $B.@Heading;
+  }
+
+  Label #ClockState {
+    Anchor: (Left: 552, Top: 90, Width: 296, Height: 22);
+    Style: $B.@InkCentered;
+  }
+
+  TextButton #PauseButton {
+    Anchor: (Left: 552, Top: 126, Width: 128, Height: 34);
+    Style: $B.@SmallButtonStyle;
+    Text: %hylens.menu.pause;
+  }
+
+  TextButton #ResumeButton {
+    Anchor: (Left: 720, Top: 126, Width: 128, Height: 34);
+    Style: $B.@SmallButtonStyle;
+    Text: %hylens.menu.resume;
+  }
+
+  TextButton #StepLessButton {
+    Anchor: (Left: 610, Top: 172, Width: 28, Height: 30);
+    Style: $B.@MiniButtonStyle;
+    Text: %hylens.menu.stepLess;
+  }
+
+  Label #StepCount {
+    Anchor: (Left: 642, Top: 172, Width: 116, Height: 30);
+    Style: $B.@InkCentered;
+  }
+
+  TextButton #StepMoreButton {
+    Anchor: (Left: 762, Top: 172, Width: 28, Height: 30);
+    Style: $B.@MiniButtonStyle;
+    Text: %hylens.menu.stepMore;
+  }
+
+  TextButton #StepButton {
+    Anchor: (Left: 571, Top: 214, Width: 258, Height: 34);
+    Style: $B.@WideButtonStyle;
+    Text: %hylens.menu.step;
+  }
+}

@@ -3,17 +3,20 @@ package dev.hylens.plugin.command;
 import dev.hycolony.api.CitizenRef;
 import dev.hycolony.api.ColonyRef;
 import dev.hylens.core.draw.Layers;
+import dev.hylens.core.menu.MenuTab;
 import dev.hylens.core.menu.MenuView;
 import java.util.Optional;
 import java.util.Set;
 
 /**
- * Reads a click on the HyLens menu: which kind it is, and what it names (a colony or citizen id, a layer; empty for
- * one no longer shown).
+ * Reads a click on the HyLens menu: which kind it is, and what it names (a colony or citizen id, a layer, a tab;
+ * empty for one no longer shown).
  */
 final class MenuClicks {
     /** The clicks that record a choice. */
-    static final Set<String> CHOICES = Set.of("colony", "citizen", "layer", "stepLess", "stepMore");
+    static final Set<String> CHOICES = Set.of("colony", "citizen", "layer", "stepLess", "stepMore", "tab");
+    /** The clicks on the watch: start it, free or follow its camera, stop it. */
+    static final Set<String> WATCH = Set.of("watch", "free", "follow", "unwatch");
     /** The clicks on the colony clock. */
     static final Set<String> CLOCK = Set.of("pause", "step", "resume");
     /** The clicks on the checks. */
@@ -50,6 +53,15 @@ final class MenuClicks {
     static Optional<Layers.Layer> layer(String name) {
         try {
             return Optional.of(Layers.Layer.valueOf(name));
+        } catch (IllegalArgumentException e) {
+            return Optional.empty();
+        }
+    }
+
+    /** The tab named {@code name}, if it is one. */
+    static Optional<MenuTab> tab(String name) {
+        try {
+            return Optional.of(MenuTab.valueOf(name));
         } catch (IllegalArgumentException e) {
             return Optional.empty();
         }

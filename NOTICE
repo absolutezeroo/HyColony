@@ -1,0 +1,9 @@
+HyColony
+Licensed under the GNU General Public License v3.0 (see LICENSE).
+
+Game mechanics are ported from MineColonies (https://github.com/ldtteam/minecolonies), by ldtteam, GPL-3.0.
+
+Textures from MineColonies (ldtteam, GPL-3.0, src/main/resources/assets/minecolonies/textures/gui/) are used in a
+modified form: scaled x4 nearest-neighbour into @2x files (2026). They live in:
+- plugin/src/main/resources/Common/UI/Custom/Pages/HyColony/Mc/ (HyColony)
+- hylens/plugin/src/main/resources/Common/UI/Custom/Pages/HyLens/Mc/ (HyLens)

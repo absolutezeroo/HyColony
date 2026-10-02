@@ -1,216 +1,68 @@
 $C = "../../Common.ui";
-$Sounds = "../../Sounds.ui";
+
+// HyLens' menu as MC's town hall book (gui/townhall/windowtownhall.xml), MC positions and sizes doubled, as HyColony's
+// TownHall.ui (spec 2026-10-02, § 3.1): the book, the open tab's page appended into #Page (Book/*.ui), the bookmarks
+// drawn over it, the last action's result under the right page. Textures under Mc/ are MineColonies' (ldtteam, GPL-3),
+// scaled x4 nearest-neighbour into @2x files. Bookmarks are numbered by MenuTab ordinal.
+
+// A closed tab: its short ribbon behind its wax seal (MC "<tab>0" image and "<tab>" button).
+@Mark = Group {
+  @Slot = 0;
+
+  Anchor: (Left: 112, Top: 146 + 48 * @Slot, Width: 62, Height: 28);
+  Visible: false;
+};
+
+@Seal = Button {
+  @Slot = 0;
+
+  Anchor: (Left: 124, Top: 142 + 48 * @Slot, Width: 34, Height: 34);
+  TextTooltipStyle: $C.@DefaultTextTooltipStyle;
+  Visible: false;
+};
+
+// The open tab: its long ribbon with its name (MC "<tab>1" button).
+@Ribbon = Group {
+  Anchor: (Left: 116, Top: 86, Width: 408, Height: 34);
+  Padding: (Left: 70, Top: 4);
+  Visible: false;
+};
+
+@RibbonLabel = Label {
+  Style: (FontSize: 15, TextColor: #ffffff, VerticalAlignment: Center);
+};
 
 $C.@PageOverlay {
   LayoutMode: Middle;
 
-  $C.@DecoratedContainer {
-    Anchor: (Width: 1120);
+  Group {
+    Anchor: (Width: 1048, Height: 486);
 
-    #Title {
-      $C.@Title {
-        @Text = %hylens.menu.title;
-      }
+    Group {
+      Anchor: (Left: 150, Top: 0, Width: 748, Height: 486);
+      Background: "Mc/townhall_book.png";
     }
 
-    #Content {
-      Padding: (Vertical: 20, Horizontal: 30);
-      LayoutMode: Left;
-
-      Group {
-        LayoutMode: Top;
-        Anchor: (Width: 240, Right: 16);
-
-        Label {
-          Text: %hylens.menu.colonies;
-          Style: (RenderBold: true, RenderUppercase: true, TextColor: #94a7bb);
-          Anchor: (Bottom: 6);
-        }
-
-        Group #Colonies {
-          LayoutMode: TopScrolling;
-          ScrollbarStyle: $C.@DefaultScrollbarStyle;
-          Anchor: (Height: 460);
-        }
-      }
-
-      Group {
-        LayoutMode: Top;
-        FlexWeight: 1;
-
-        Label {
-          Text: %hylens.menu.citizens;
-          Style: (RenderBold: true, RenderUppercase: true, TextColor: #94a7bb);
-          Anchor: (Bottom: 6);
-        }
-
-        Group #Citizens {
-          LayoutMode: TopScrolling;
-          ScrollbarStyle: $C.@DefaultScrollbarStyle;
-          Anchor: (Height: 200);
-        }
-
-        Label #Chosen {
-          Style: (RenderBold: true);
-          Anchor: (Top: 10, Bottom: 6);
-        }
-
-        Group {
-          LayoutMode: Left;
-          Anchor: (Height: 44, Bottom: 6);
-
-          $C.@TextButton #WatchButton {
-            @Anchor = (Right: 6);
-            Text: %hylens.menu.watch;
-            FlexWeight: 1;
-          }
-
-          $C.@SecondaryTextButton #LeisureButton {
-            Text: %hylens.menu.leisure;
-            FlexWeight: 1;
-          }
-        }
-
-        Group {
-          LayoutMode: Left;
-          Anchor: (Height: 44);
-
-          $C.@SecondaryTextButton #TeleportButton {
-            @Anchor = (Right: 6);
-            Text: %hylens.menu.teleport;
-            FlexWeight: 1;
-          }
-
-          $C.@SecondaryTextButton #RespawnButton {
-            Text: %hylens.menu.respawn;
-            FlexWeight: 1;
-          }
-        }
-
-        Label {
-          Text: %hylens.menu.sendHere;
-          Style: (RenderBold: true, RenderUppercase: true, TextColor: #94a7bb);
-          Anchor: (Top: 10, Bottom: 6);
-        }
-
-        Group {
-          LayoutMode: Left;
-          Anchor: (Height: 44);
-
-          $C.@TextField #SendX {
-            @Anchor = (Width: 90, Right: 6);
-          }
-
-          $C.@TextField #SendY {
-            @Anchor = (Width: 90, Right: 6);
-          }
-
-          $C.@TextField #SendZ {
-            @Anchor = (Width: 90, Right: 6);
-          }
-
-          $C.@SecondaryTextButton #SendButton {
-            @Anchor = (Right: 6);
-            Text: %hylens.menu.send;
-            FlexWeight: 1;
-          }
-
-          $C.@SecondaryTextButton #SendMapButton {
-            Text: %hylens.menu.sendMap;
-            FlexWeight: 1;
-          }
-        }
-
-        Label #Result {
-          Style: (TextColor: #94a7bb);
-          Anchor: (Top: 6, Height: 24);
-        }
-
-        Label {
-          Text: %hylens.menu.layers;
-          Style: (RenderBold: true, RenderUppercase: true, TextColor: #94a7bb);
-          Anchor: (Top: 10, Bottom: 6);
-        }
-
-        Group #Layers {
-          LayoutMode: LeftWrap;
-        }
-
-        Group {
-          LayoutMode: Left;
-          Anchor: (Top: 8, Bottom: 6, Height: 24);
-
-          Label {
-            Text: %hylens.menu.clock;
-            Style: (RenderBold: true, RenderUppercase: true, TextColor: #94a7bb);
-            Anchor: (Right: 12);
-          }
-
-          Label #ClockState {
-            FlexWeight: 1;
-          }
-        }
-
-        Group {
-          LayoutMode: Left;
-          Anchor: (Height: 44);
-
-          $C.@SecondaryTextButton #PauseButton {
-            @Anchor = (Right: 6);
-            Text: %hylens.menu.pause;
-            FlexWeight: 1;
-          }
-
-          $C.@SecondaryTextButton #StepLessButton {
-            @Anchor = (Width: 60, Right: 6);
-            Text: %hylens.menu.stepLess;
-          }
-
-          Label #StepCount {
-            Anchor: (Width: 110, Right: 6);
-            Style: (HorizontalAlignment: Center, VerticalAlignment: Center);
-          }
-
-          $C.@SecondaryTextButton #StepMoreButton {
-            @Anchor = (Width: 60, Right: 6);
-            Text: %hylens.menu.stepMore;
-          }
-
-          $C.@SecondaryTextButton #StepButton {
-            @Anchor = (Right: 6);
-            Text: %hylens.menu.step;
-            FlexWeight: 1;
-          }
-
-          $C.@SecondaryTextButton #ResumeButton {
-            Text: %hylens.menu.resume;
-            FlexWeight: 1;
-          }
-        }
-
-        Label {
-          Text: %hylens.menu.checks;
-          Style: (RenderBold: true, RenderUppercase: true, TextColor: #94a7bb);
-          Anchor: (Top: 10, Bottom: 6);
-        }
-
-        Group {
-          LayoutMode: Left;
-          Anchor: (Height: 44);
-
-          $C.@SecondaryTextButton #CheckNowButton {
-            @Anchor = (Right: 6);
-            Text: %hylens.menu.checkNow;
-            FlexWeight: 1;
-          }
-
-          $C.@SecondaryTextButton #AutoCheckButton {
-            Text: "";
-            FlexWeight: 1;
-          }
-        }
-      }
+    Group #Page {
+      Anchor: (Left: 0, Top: 0, Width: 1048, Height: 486);
     }
+
+    Label #Result {
+      Anchor: (Left: 552, Top: 404, Width: 296, Height: 34);
+      Style: (FontSize: 12, TextColor: #000000, HorizontalAlignment: Center, VerticalAlignment: Center);
+    }
+
+    @Mark #Mark0 { @Slot = 0; Background: "Mc/bookmark_short_ribbon_01.png"; }
+    @Mark #Mark1 { @Slot = 1; Background: "Mc/bookmark_short_ribbon_02.png"; }
+    @Mark #Mark2 { @Slot = 2; Background: "Mc/bookmark_short_ribbon_03.png"; }
+
+    @Ribbon #Ribbon0 { Background: "Mc/bookmark_ribbon_01.png"; @RibbonLabel #RibbonText0 {} }
+    @Ribbon #Ribbon1 { Background: "Mc/bookmark_ribbon_02.png"; @RibbonLabel #RibbonText1 {} }
+    @Ribbon #Ribbon2 { Background: "Mc/bookmark_ribbon_03.png"; @RibbonLabel #RibbonText2 {} }
+
+    @Seal #Seal0 { @Slot = 0; Style: (Default: (Background: "Mc/red_wax_home.png"), Sounds: $C.@ButtonSounds); }
+    @Seal #Seal1 { @Slot = 1; Style: (Default: (Background: "Mc/red_wax_citizens.png"), Sounds: $C.@ButtonSounds); }
+    @Seal #Seal2 { @Slot = 2; Style: (Default: (Background: "Mc/red_wax_settings.png"), Sounds: $C.@ButtonSounds); }
   }
 }
 

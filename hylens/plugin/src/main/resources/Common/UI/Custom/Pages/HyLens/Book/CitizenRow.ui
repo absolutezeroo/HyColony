@@ -1,0 +1,32 @@
+$B = "../Mc/Book.ui";
+
+Group {
+  LayoutMode: Left;
+  Anchor: (Width: 290, Height: 40, Bottom: 2);
+
+  Group {
+    LayoutMode: Top;
+    FlexWeight: 1;
+
+    Label #Name {
+      Anchor: (Height: 20);
+      Style: (...$B.@Ink, FontSize: 14, RenderBold: true);
+    }
+
+    Label #State {
+      Anchor: (Height: 18);
+      Style: $B.@Faded;
+    }
+  }
+
+  Label #Alerts {
+    Anchor: (Width: 74);
+    Style: $B.@Alert;
+  }
+
+  TextButton #Choose {
+    Anchor: (Left: 4, Width: 28, Height: 30);
+    Style: $B.@MiniButtonStyle;
+    Text: ">";
+  }
+}

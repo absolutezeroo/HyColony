@@ -1,0 +1,7 @@
+$B = "../Mc/Book.ui";
+
+TextButton #Button {
+  Anchor: (Width: 258, Height: 34, Bottom: 4);
+  Style: $B.@WideButtonStyle;
+  Text: "";
+}

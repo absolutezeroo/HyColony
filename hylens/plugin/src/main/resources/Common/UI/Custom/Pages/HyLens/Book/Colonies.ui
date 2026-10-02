@@ -1,0 +1,38 @@
+$B = "../Mc/Book.ui";
+$C = "../../../Common.ui";
+
+// HyLens' Colonies tab (spec 2026-10-02, § 3.2), on the town hall book's pages: on the left the world's colonies; on
+// the right the chosen one's citizens and alerts, and the check.
+
+Group {
+  Anchor: (Left: 0, Top: 0, Width: 1048, Height: 486);
+
+  Label {
+    Anchor: (Left: 200, Top: 130, Width: 296, Height: 22);
+    Text: %hylens.menu.colonies;
+    Style: $B.@Heading;
+  }
+
+  Group #Colonies {
+    Anchor: (Left: 200, Top: 160, Width: 296, Height: 278);
+    Padding: (Left: 19);
+    LayoutMode: TopScrolling;
+    ScrollbarStyle: $C.@DefaultScrollbarStyle;
+  }
+
+  Label #ColonyName {
+    Anchor: (Left: 552, Top: 56, Width: 296, Height: 22);
+    Style: $B.@Heading;
+  }
+
+  Label #ColonyDetail {
+    Anchor: (Left: 552, Top: 90, Width: 296, Height: 22);
+    Style: $B.@InkCentered;
+  }
+
+  TextButton #CheckNowButton {
+    Anchor: (Left: 571, Top: 130, Width: 258, Height: 34);
+    Style: $B.@WideButtonStyle;
+    Text: %hylens.menu.checkNow;
+  }
+}

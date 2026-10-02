@@ -7,6 +7,7 @@ import dev.hycolony.api.Pos;
 import dev.hylens.core.menu.Menus;
 import dev.hylens.core.send.SendTarget;
 import dev.hylens.core.watch.Watches;
+import dev.hylens.plugin.command.book.MenuRender;
 import dev.hylens.plugin.send.MapSend;
 import dev.hylens.plugin.send.SendHere;
 import dev.hylens.plugin.watch.ApiMessages;
@@ -39,10 +40,14 @@ final class MenuSend {
         }
     }
 
-    /** The fields to show: as last typed, else the operator's {@code feet} when the page opens. */
-    Typed fields(Pos feet) {
-        return typed.orElseGet(
+    /**
+     * What the Citizens tab shows: the fields as last typed, else the operator's {@code feet} when the page opens, and
+     * whether their camera is free ({@code cameraFree}).
+     */
+    MenuRender.Watch shown(Pos feet, boolean cameraFree) {
+        Typed cell = typed.orElseGet(
                 () -> new Typed(String.valueOf(feet.x()), String.valueOf(feet.y()), String.valueOf(feet.z())));
+        return new MenuRender.Watch(cell.x(), cell.y(), cell.z(), cameraFree);
     }
 
     /** Arms {@code player}'s map, and tells them to open it. */

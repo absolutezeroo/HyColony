@@ -533,3 +533,14 @@ Spec `docs/superpowers/specs/2026-10-02-hycolony-colony-bounds-design.md`. Une c
 319. **Loisir.** De temps en temps (environ une décision sur vingt), un citoyen part vers sa maison (ou l'hôtel de ville, sous la pluie ou si l'hôtel de ville est au niveau 3), y reste en marchant de temps en temps dans le bâtiment, puis repart au bout de cinq minutes environ (une chance sur 300 chaque seconde) ; il ne flâne ensuite qu'au bout d'une minute. Un citoyen appelé au travail, au repas ou au lit quitte son loisir aussitôt.
 320. **Monstres.** De nuit, rester dans la colonie : aucun squelette, zombie, gobelin ni autre monstre n'apparaît dans le territoire (un monstre né dans une cellule revendiquée peut se voir un instant puis disparaît). Hors de la bordure, les monstres apparaissent comme d'habitude, et ceux qui y sont nés peuvent entrer en marchant. Les animaux passifs (vaches, poulets…) apparaissent toujours dans la colonie. Noter tout monstre apparu dans le territoire (son nom), et tout message d'erreur `hostile spawn` dans le journal du serveur.
 321. **Commande.** Un monstre posé par une commande (`/npc spawn`) dans la colonie reste.
+
+## HyLens en livre de MineColonies
+
+Spec `docs/superpowers/specs/2026-10-02-hylens-livre-mc-design.md`. Un opérateur, une colonie avec quelques citoyens.
+
+322. **Le livre.** `/hylens menu` : le livre de la mairie, ruban long « Colonies » ouvert, sceaux Citoyens et Vue à gauche, leur nom en bulle au survol. Cliquer un sceau ouvre son onglet.
+323. **Colonies.** La liste des colonies ; en choisir une ouvre l'onglet Citoyens. Revenir à Colonies : la colonie choisie en titre, son nombre de citoyens et d'alertes. « Contrôler maintenant » écrit le résumé sous la page de droite.
+324. **Citoyens.** Choisir un citoyen (bouton « > » de sa ligne) : son nom, son état, ses actions. Forcer un loisir, Téléporter vers moi, Refaire le corps marchent comme avant ; le résultat s'écrit sous la page de droite.
+325. **La case gardée.** Taper X Y Z dans « Envoyer ici », ouvrir l'onglet Vue, revenir à Citoyens : la case tapée est toujours là. « Envoyer » envoie le citoyen ; « Par la carte » arme la carte et ferme le livre.
+326. **Vue.** Les quatre dessins se cochent ; « Contrôler toutes les 2 s » se coche ; Pause, -, +, Avancer, Reprendre pilotent l'horloge comme avant.
+327. **Le menu se souvient.** Fermer le livre sur l'onglet Vue, le rouvrir : il s'ouvre sur Vue.

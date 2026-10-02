@@ -18,6 +18,7 @@ import dev.hylens.core.menu.MenuViews;
 import dev.hylens.core.menu.Menus;
 import dev.hylens.core.watch.Watches;
 import dev.hylens.plugin.HyColonyAccess;
+import dev.hylens.plugin.command.book.MenuRender;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -91,7 +92,7 @@ final class MenuPage extends InteractiveCustomUIPage<MenuPage.Data> {
         ui.append(MenuRender.PAGE);
         view(store)
                 .ifPresentOrElse(
-                        v -> MenuRender.render(ui, events, v, result, send.fields(MenuActions.feet(ref, store))),
+                        v -> MenuRender.render(ui, events, v, result, send.shown(MenuActions.feet(ref, store), false)),
                         () -> MenuRender.only(ui, ApiText.of("hylens.notRunning")));
     }
 
@@ -142,11 +143,12 @@ final class MenuPage extends InteractiveCustomUIPage<MenuPage.Data> {
     }
 
     /**
-     * Records the operator's choice {@code action} (a colony, a citizen, a layer, a smaller or larger step) named by
-     * {@code index}; choosing a colony or a citizen clears the last result.
+     * Records the operator's choice {@code action} (a colony, a citizen, a layer, a tab, a smaller or larger step)
+     * named by {@code index}; choosing a colony or a citizen clears the last result.
      */
     private void choose(String action, String index, MenuView v, UUID operator) {
         switch (action) {
+            case "tab" -> MenuClicks.tab(index).ifPresent(t -> menus.update(operator, s -> s.withTab(t)));
             case "colony" -> {
                 MenuClicks.colony(v, index).ifPresent(c -> menus.update(operator, s -> s.withColony(c)));
                 result = Optional.empty();

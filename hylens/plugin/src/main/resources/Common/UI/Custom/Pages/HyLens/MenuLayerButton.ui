@@ -1,6 +1,0 @@
-$C = "../../Common.ui";
-
-$C.@SecondaryTextButton #Button {
-  @Anchor = (Width: 380, Right: 6, Bottom: 6);
-  Text: "";
-}
