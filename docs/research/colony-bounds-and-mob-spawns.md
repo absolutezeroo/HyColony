@@ -38,7 +38,9 @@ décompilées datent du 2026-10-01 20:38, après le téléchargement du jar pre.
 
 Chez nous : `core/.../citizen/CitizenWander.java` porte le pas de 10 blocs, mais **sans la branche loisir**
 (Javadoc de `wander()` : « no leisure branch yet »). C'est elle qui, chez MC, ramène 5 % des décisions vers un
-bâtiment, la maison ou le centre ; sans elle, notre flânerie est une marche aléatoire libre qui dérive.
+bâtiment, la maison ou le centre ; sans elle, notre flânerie est une marche aléatoire libre qui dérive. (État au
+2026-10-02 avant le portage : la branche loisir et le bornage au territoire sont depuis dans `citizen/wander/`,
+spec `2026-10-02-hycolony-colony-bounds-design.md`.)
 
 ## 2. MineColonies : empêche-t-il l'apparition des monstres ?
 

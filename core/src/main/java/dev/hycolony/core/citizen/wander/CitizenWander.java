@@ -3,6 +3,7 @@ package dev.hycolony.core.citizen.wander;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.CitizenState;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.job.Job;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.nav.DangerousCells;
@@ -31,8 +32,13 @@ public final class CitizenWander {
     public static final int WANDER_TIMEOUT_TICKS = 120 * 20;
     /** MC EntityAICitizenWander.LEISURE_CHANCE: in 100 wander decisions, that many go to a leisure site. */
     static final int LEISURE_CHANCE = 5;
-    /** MC decide: setCurrentDelay(60 * 20) once a leisure site is picked. */
+    /**
+     * MC decide: setCurrentDelay(60 * 20) once a leisure site is picked. It delays the next wander decision, whose
+     * countdown runs only in IDLE: MC's leisure states freeze it, so it counts once the leisure walk is over.
+     */
     static final int LEISURE_DELAY_TICKS = 60 * 20;
+    /** MC EntityAICitizenWander: its IDLE transition runs every 100 ticks. */
+    public static final int WANDER_RATE_TICKS = 100;
     /**
      * MC EntityAICitizenWander.decide: walkToRandomPos(citizen, 10, speed), whose PathJobRandomPos only ends more
      * than 10 blocks from the citizen's own position.
@@ -58,12 +64,13 @@ public final class CitizenWander {
     private final CitizenBodies bodies;
     private final RandomGenerator random;
     private final DangerousCells danger;
-    private final IntConsumer delay;
     private final LeisureWalk leisure;
     /** The tick the wander first saw the walk under way, {@link #NOT_WAITING} while it saw none. */
     private long waitingSince = NOT_WAITING;
+    /** The IDLE ticks, out of leisure, the next wander decision still waits ({@link #LEISURE_DELAY_TICKS}). */
+    private int pausedTicks;
 
-    /** {@code delay}: MC setCurrentDelay on the citizen's AI. */
+    /** {@code delay}: MC setCurrentDelay on the citizen's AI, for the leisure walk's transition. */
     public CitizenWander(Colony colony, CitizenData data, BodyId body, IntConsumer delay) {
         this.colony = colony;
         this.data = data;
@@ -72,7 +79,6 @@ public final class CitizenWander {
         this.random = colony.context().random();
         this.danger = new DangerousCells(
                 colony.context().ports().blocks(), colony.context().ports().catalog());
-        this.delay = delay;
         this.leisure = new LeisureWalk(colony, body, delay, danger);
     }
 
@@ -87,13 +93,21 @@ public final class CitizenWander {
     }
 
     /**
-     * MC EntityAICitizenWander.decide, every 100 ticks while no leisure walk is under way: once the last walk is over
-     * (canUse: navigation done), or under way for {@link #WANDER_TIMEOUT_TICKS}, a leisure walk {@link
-     * #LEISURE_CHANCE} times in 100 (the AI then pauses {@link #LEISURE_DELAY_TICKS}), else a walk to a random spot
-     * around the citizen's own position; the citizen stays IDLE.
+     * MC EntityAICitizenWander.decide, every {@link #WANDER_RATE_TICKS} while no leisure walk is under way: once the
+     * last walk is over (canUse: navigation done), or under way for {@link #WANDER_TIMEOUT_TICKS}: a citizen outside
+     * the territory walks home (asked for); else a leisure walk {@link #LEISURE_CHANCE} times in 100 (the next decision
+     * then waits {@link #LEISURE_DELAY_TICKS} of IDLE after it), else a walk to a random spot around the citizen's own
+     * position; never for a child or a guard (canUse); the citizen stays IDLE.
      */
     public @Nullable CitizenState wander() {
-        if (leisure.active() || walkUnderWay()) {
+        if (leisure.active()) {
+            return null;
+        }
+        if (pausedTicks > 0) {
+            pausedTicks -= WANDER_RATE_TICKS;
+            return null;
+        }
+        if (data.isChild() || data.job().filter(Job::isGuard).isPresent() || walkUnderWay()) {
             return null;
         }
         Optional<Vec3> here = bodies.position(body);
@@ -102,12 +116,15 @@ public final class CitizenWander {
         }
         BlockPos at = here.get().toBlockPos();
         if (!colony.contains(at)) {
-            bodies.moveTo(body, centre(home())); // asked for: back into the colony
+            // Asked for: back into the colony. ponytail: a home it cannot reach is tried again at each decision.
+            bodies.moveTo(body, Vec3.center(home()));
             return null;
         }
         if (random.nextInt(100) < LEISURE_CHANCE) {
             leisure.start(LeisureSites.pick(colony, data, random));
-            delay.accept(LEISURE_DELAY_TICKS);
+            // MC setCurrentDelay(60 * 20) on this decision: the transition's own countdown, here counted down
+            // between this check's calls; minus this call's own period, as MC's countdown starts from the decision.
+            pausedTicks = LEISURE_DELAY_TICKS - WANDER_RATE_TICKS;
             return null;
         }
         wanderTarget(at, here.get().y()).ifPresent(target -> bodies.moveTo(body, target));
@@ -167,9 +184,5 @@ public final class CitizenWander {
             }
         }
         return Optional.ofNullable(columnSafe);
-    }
-
-    private static Vec3 centre(BlockPos p) {
-        return new Vec3(p.x() + 0.5, p.y(), p.z() + 0.5);
     }
 }

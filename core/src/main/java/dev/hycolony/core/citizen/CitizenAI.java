@@ -34,8 +34,6 @@ import org.jspecify.annotations.Nullable;
  */
 public final class CitizenAI {
     private static final System.Logger LOG = System.getLogger(CitizenAI.class.getName());
-    /** MC EntityAICitizenWander: its IDLE transition runs every 100 ticks. */
-    private static final int WANDER_RATE_TICKS = 100;
     /** MC EntityAICitizenWander: its leisure transitions run every 20 ticks. */
     private static final int LEISURE_RATE_TICKS = 20;
     /** MC CitizenAI: decideAiTask runs as an EVENT target every 10 ticks. */
@@ -89,8 +87,8 @@ public final class CitizenAI {
         watch.afterTick(CitizenState.IDLE, null, 0); // its vital signs know where it starts
         machine.addTransition(
                 new AITarget<>(CitizenState.IDLE, (IStateSupplier<CitizenState>) this::idle, DECIDE_INTERVAL_TICKS));
-        machine.addTransition(
-                new AITarget<>(CitizenState.IDLE, (IStateSupplier<CitizenState>) wander::wander, WANDER_RATE_TICKS));
+        machine.addTransition(new AITarget<>(
+                CitizenState.IDLE, (IStateSupplier<CitizenState>) wander::wander, CitizenWander.WANDER_RATE_TICKS));
         machine.addTransition(
                 new AITarget<>(CitizenState.IDLE, (IStateSupplier<CitizenState>) wander::leisure, LEISURE_RATE_TICKS));
         machine.addTransition(new AITarget<>(CitizenState.WORKING, (IStateSupplier<CitizenState>) this::work, 1));
@@ -104,8 +102,8 @@ public final class CitizenAI {
     }
 
     /**
-     * One AI tick; then its vital signs note the state, the job step, failures and actions (diagnostics). Timed under
-     * its job (HyLens's /hylens perf).
+     * One AI tick; out of IDLE, a leisure walk under way ends (MC leaves its leisure states); then its vital signs
+     * note the state, the job step, failures and actions (diagnostics). Timed under its job (HyLens's /hylens perf).
      */
     public void tick() {
         long start = colony.context().timings().start();

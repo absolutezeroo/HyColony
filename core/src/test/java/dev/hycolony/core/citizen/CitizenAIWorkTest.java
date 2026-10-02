@@ -29,6 +29,7 @@ class CitizenAIWorkTest {
                 t.context(),
                 new TerritoryIndex(),
                 new Colony.Founding(1, "T", hall, Permissions.createDefault(UUID.randomUUID(), "A")));
+        c.claimAround(hall, 4); // in its territory, an idle citizen wanders
         CitizenData d = new CitizenData(1);
         c.citizens().restore(d);
         BodyId body = t.bodies.existing(1, 1, new Vec3(0, 64, 0));

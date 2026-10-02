@@ -19,7 +19,10 @@ import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.NavStatus;
 import dev.hycolony.core.testing.TestContexts;
 import dev.hycolony.core.testing.TestJobs;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+import java.util.random.RandomGenerator;
 import org.junit.jupiter.api.Test;
 
 class CitizenAITest {
@@ -194,6 +197,78 @@ class CitizenAITest {
 
         assertEquals(CitizenState.IDLE, ai.state());
         assertTrue(t.bodies.moves.isEmpty(), "no walk into the fire: " + t.bodies.moves);
+    }
+
+    /** Draws 0, so a citizen goes for leisure at once, but 1 for leaving its site; records every bound asked. */
+    private static final class Rolls implements RandomGenerator {
+        final List<Integer> bounds = new ArrayList<>();
+
+        @Override
+        public long nextLong() {
+            return 0;
+        }
+
+        @Override
+        public int nextInt(int bound) {
+            bounds.add(bound);
+            return bound == 300 ? 1 : 0;
+        }
+    }
+
+    /** MC EntityAICitizenWander: the leisure walk plays every 20 ticks, and ends when the citizen goes to work. */
+    @Test
+    void aLeisureWalkPlaysThenEndsWhenTheCitizenGoesToWork() {
+        t.random = Rolls::new;
+        BlockPos hall = new BlockPos(0, 64, 0);
+        BodyId body = t.bodies.existing(1, 1, new Vec3(30.5, 64, 30.5));
+        Colony c = colonyAt(hall);
+        CitizenData d = new CitizenData(1);
+        c.citizens().restore(d);
+        CitizenAI ai = new CitizenAI(c, d, body);
+        for (int i = 0; i < 300 && t.bodies.moves.isEmpty(); i++) {
+            ai.tick();
+        }
+        assertEquals(List.of(new Vec3(0.5, 64, 0.5)), t.bodies.moves, "off to the town hall, the leisure site");
+
+        d.setJob(TestJobs.TYPE.factory().apply(d));
+        for (int i = 0; i < 30 && ai.state() != CitizenState.WORKING; i++) {
+            ai.tick();
+        }
+        d.setJob(null);
+        for (int i = 0; i < 30 && ai.state() != CitizenState.IDLE; i++) {
+            ai.tick();
+        }
+        t.bodies.bodies.get(body).status = NavStatus.ARRIVED;
+        int moves = t.bodies.moves.size();
+        for (int i = 0; i < 200; i++) {
+            ai.tick();
+        }
+
+        assertEquals(moves, t.bodies.moves.size(), "the leisure walk is over, and the next wander waits");
+    }
+
+    /** MC wanderAtLeisureSite: setCurrentDelay(30) after a stroll drawn, on the citizen's own AI. */
+    @Test
+    void aStrollDrawnHoldsTheLeisureStepThirtyTicks() {
+        Rolls rolls = new Rolls();
+        t.random = () -> rolls;
+        BlockPos hall = new BlockPos(0, 64, 0);
+        BodyId body = t.bodies.existing(1, 1, new Vec3(0.5, 64, 0.5)); // at the site already
+        Colony c = colonyAt(hall);
+        CitizenData d = new CitizenData(1);
+        c.citizens().restore(d);
+        CitizenAI ai = new CitizenAI(c, d, body);
+        for (int i = 0; i < 300 && !rolls.bounds.contains(10); i++) {
+            ai.tick();
+        }
+        rolls.bounds.clear();
+
+        for (int i = 0; i < 600; i++) {
+            ai.tick();
+        }
+
+        long strolls = rolls.bounds.stream().filter(b -> b == 10).count();
+        assertTrue(strolls >= 19 && strolls <= 21, "a leisure step every 30 ticks, not 20: " + strolls);
     }
 
     private Colony colonyAt(BlockPos hall) {

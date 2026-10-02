@@ -6,7 +6,9 @@ Recherche : `docs/research/colony-bounds-and-mob-spawns.md` (MC ne garde pas ses
 
 ## 1. Ce que fait MineColonies
 
-- `EntityAICitizenWander.decide` (toutes les 100 ticks, au repos) : 5 fois sur 100 (`LEISURE_CHANCE`), un site de loisir (`getRandomLeisureSite`), sinon la maison du citoyen, sinon le centre de la colonie, puis une pause de l'IA de 60 s (`setCurrentDelay(60 * 20)`) et l'état `GO_TO_LEISURE_SITE`. Sinon, une marche vers un point aléatoire à 10 blocs (`walkToRandomPos`).
+- `EntityAICitizenWander.decide` (toutes les 100 ticks, au repos) : 5 fois sur 100 (`LEISURE_CHANCE`), un site de loisir (`getRandomLeisureSite`), sinon la maison du citoyen, sinon le centre de la colonie, et l'état `GO_TO_LEISURE_SITE` ; `setCurrentDelay(60 * 20)` retarde la seule décision de flânerie, dont le compte à rebours ne court qu'au repos : la prochaine décision vient donc 60 s de repos après la fin du loisir. Sinon, une marche vers un point aléatoire à 10 blocs (`walkToRandomPos`). Un enfant ou un garde ne flâne pas (`canUse`).
+- `walkToPos` : avant toute marche, le citoyen est arrivé à 1,5 bloc ; ensuite, une fois sa marche finie, à 3 blocs, sinon il repart ; une marche vers un autre but est remplacée.
+- `walkToRandomPosWithin(citizen, 10, …, coins)` : un point de la boîte, à plus de 10 blocs, sur un sol praticable, hors danger ; rien pendant une marche aléatoire en cours, et un tirage sur deux constate seulement la fin de la précédente (le résultat de chemin est gardé 20 s).
 - `getRandomLeisureSite` : une fois sur 4, l'hôtel de ville s'il est au niveau 3 ; puis site mystique, bibliothèque, université, taverne ; sous la pluie, l'hôtel de ville ; sinon un site de loisir enregistré (décorations) ; sinon rien.
 - `GO_TO_LEISURE_SITE` (toutes les 20 ticks) : marche vers le site jusqu'à 3 blocs, puis `WANDER_AT_LEISURE_SITE`.
 - `WANDER_AT_LEISURE_SITE` (toutes les 20 ticks) : une chance sur 300 de repartir au repos ; si le site n'est pas un bâtiment, retour au repos ; sinon une fois sur 10 une marche vers un point au hasard dans les coins du bâtiment (pause de 30 ticks), ou les places balisées (`sit`, `sit_in`, `stand_in`…) où s'asseoir ou se tenir 30 s, ou la lecture (`READ_A_BOOK`) dans une bibliothèque.
@@ -30,8 +32,9 @@ Recherche : `docs/research/colony-bounds-and-mob-spawns.md` (MC ne garde pas ses
 - Loisir : sans site mystique, bibliothèque, université, taverne ni décorations de loisir, le site est l'hôtel de ville (niveau 3, ou sous la pluie), la maison ou le centre. Pas de places balisées ni de lecture : les plans de HyColony n'ont pas de balises (`sit`…). Pas de préférence pour l'intérieur sous la pluie.
 - Le loisir est un sous-état du repos (l'état affiché reste « repos ») ; MC a trois états à lui.
 - Aller au site s'arrête après 120 s (`WANDER_TIMEOUT_TICKS`) : MC compte sur son anti-blocage qui téléporte.
-- Une marche dans les coins du bâtiment vise un point au hasard dans la boîte, sans recherche de chemin.
-- Bornage de la flânerie et retour vers la maison : ajouts demandés, MC laisse dériver ses citoyens.
+- Une marche dans les coins du bâtiment vise, sans recherche de chemin, un point au hasard dans la boîte à la hauteur du bloc de hutte, à plus de 10 blocs et hors danger ; elle part dès que la précédente est finie (MC saute un tirage tant qu'il garde son dernier résultat de chemin). Pas de préférence liée à la pluie (`preferInside`, qui dans le code de MC écarte d'ailleurs les cases couvertes).
+- La pause de 60 s est comptée par la flânerie elle-même (12 décisions de 100 ticks de repos hors loisir), le loisir n'ayant pas d'état à lui.
+- Bornage de la flânerie et retour vers la maison : ajouts demandés, MC laisse dériver ses citoyens. Une maison inaccessible est retentée à chaque décision.
 - Pas d'apparition naturelle de monstre hostile dans tout le territoire : MC ne refuse que dans les bâtiments (Hytale n'a pas l'équivalent de la lumière). Un monstre qui entre en marchant reste possible.
 
 ## 5. Tests
