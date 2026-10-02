@@ -4,7 +4,7 @@
     "Description": "hycolony.item.hut.builder.description"
   },
   "MaxStack": 1,
-  "Icon": "Icons/ItemsGenerated/Furniture_Crude_Chest_Small.png",
+  "Icon": "Icons/Items/HyColony/Hut_Builder.png",
   "Categories": [
     "Furniture.Containers"
   ],
@@ -22,9 +22,9 @@
     "Material": "Solid",
     "DrawType": "Model",
     "Opacity": "Transparent",
-    "CustomModel": "Blocks/Decorative_Sets/Crude/Chest_Small.blockymodel",
+    "CustomModel": "Blocks/HyColony/Huts/Builder.blockymodel",
     "CustomModelTexture": [
-      { "Texture": "Blocks/Decorative_Sets/Crude/Chest_Small_Texture.png", "Weight": 1 }
+      { "Texture": "Blocks/HyColony/Huts/Builder.png", "Weight": 1 }
     ],
     "VariantRotation": "NESW",
     "Gathering": {
@@ -38,12 +38,10 @@
     "State": {
       "Definitions": {
         "CloseWindow": {
-          "InteractionSoundEventId": "SFX_Chest_Wooden_Close",
-          "CustomModelAnimation": "Blocks/Animations/Chest/Chest_Close.blockyanim"
+          "InteractionSoundEventId": "SFX_Chest_Wooden_Close"
         },
         "OpenWindow": {
-          "InteractionSoundEventId": "SFX_Chest_Wooden_Open",
-          "CustomModelAnimation": "Blocks/Animations/Chest/Chest_Open.blockyanim"
+          "InteractionSoundEventId": "SFX_Chest_Wooden_Open"
         }
       }
     },
@@ -58,11 +56,6 @@
     "BlockSoundSetId": "Wood",
     "PhysicalMaterialId": "Wood",
     "TextureComputedColor": "#573A23"
-  },
-  "IconProperties": {
-    "Scale": 0.55,
-    "Translation": [ 0, -15 ],
-    "Rotation": [ 22.5, 45, 22.5 ]
   },
   "ItemSoundSetId": "ISS_Blocks_Wood"
 }

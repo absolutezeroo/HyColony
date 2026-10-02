@@ -36,13 +36,15 @@ def islands(nodes):
                 yield n["name"], side, *rect
 
 
-def paint(nodes, size, tiles, material_of, side_rims=True):
+def paint(nodes, size, tiles, material_of, side_rims=True, pictures=frozenset()):
     """The model's texture: each island filled with tiles[material_of(node name, side)], then shaded. Without
     side_rims, side faces keep their left and right columns unshaded: walls split into several boxes then join
-    without a seam."""
+    without a seam. The materials in pictures carry a drawing laid out for their island: never turned."""
     image = Image.new("RGBA", size, (0, 0, 0, 0))
     for name, side, u, v, w, h in islands(nodes):
-        image.paste(shaded(fill(tiles[material_of(name, side)], w, h), side, side_rims), (u, v))
+        material = material_of(name, side)
+        island = fill(tiles[material], w, h, material not in pictures)
+        image.paste(shaded(island, side, side_rims), (u, v))
     return image
 
 
@@ -64,9 +66,10 @@ def softened(tile, keep):
     return Image.blend(flat, tile, keep)
 
 
-def fill(tile, w, h):
-    """The tile repeated over w x h, turned so its grain (wood planks) runs along the island's long side."""
-    if h > w:
+def fill(tile, w, h, follow_grain=True):
+    """The tile repeated over w x h; with follow_grain, turned so its grain (wood planks) runs along the island's
+    long side."""
+    if follow_grain and h > w:
         tile = tile.transpose(Image.ROTATE_90)
     out = Image.new("RGBA", (w, h))
     for x in range(0, w, tile.width):

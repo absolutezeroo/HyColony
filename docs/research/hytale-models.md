@@ -61,6 +61,13 @@ Vérifié le 2026-10-02 sur Hytale 0.7.0-pre.5 (`pre-release-0.7.0-pre.5-Assets.
   groupe**. Les cubes suivants deviennent ses enfants, renommés `<cube>--C1`, `--C2`… On nomme donc un groupe
   d'après sa pièce principale (`Board`, `Hammer_Handle`), et un outil qui lit les noms retire le suffixe `--C<n>`.
   La rotation d'un groupe devient l'`orientation` de son nœud.
+- **Placement des enfants** : la position d'un enfant se compte depuis la position de son parent **plus le décalage
+  (`offset`) de la forme du parent**, tourné par le parent (`BlockyModelBoundsParser.accumulateNodeBounds` du serveur :
+  `worldPosition = parentPos + parentRot·(position + orientation·offset)`, transmis aux enfants). Exemple :
+  `Decorative_Sets/Crude/Chest_Small`, dont la serrure, enfant du couvercle, tombe sur la jointure avant seulement
+  ainsi. L'exporteur de Blockbench suit cette règle.
+- **Devant d'un bloc** : le côté +z fait face au joueur qui pose le bloc (vu en jeu, et serrure du petit coffre à +z).
+  Vu depuis +z, la droite du joueur est +x ; sur un dessus, u va vers sa droite et v vers lui.
 - Correspondance des faces à l'export : north → `back`, south → `front` (+z), west → `left`, east → `right` (+x),
   up → `top`, down → `bottom`. Une texture se lit u vers la droite et v vers le bas ; le dessus a u selon +x et v
   selon +z.
@@ -85,6 +92,11 @@ Vérifié le 2026-10-02 sur Hytale 0.7.0-pre.5 (`pre-release-0.7.0-pre.5-Assets.
   - des ombres teintées, bornées entre 14 et 242 (ni noir ni blanc purs).
   Le sens des planches suit le grand côté de la zone. `softened` atténue la trame des tissus, `darker` assombrit
   une matière (intérieur du pot).
-- `pack.draw_model` dessine l'icône à partir du modèle et de sa texture.
+- `pack.draw_model` dessine l'icône à partir du modèle et de sa texture. Il suit les nœuds imbriqués et tournés,
+  avec un tampon de profondeur, vu depuis +x +z, donc côté devant. `models.collect` (bornes, hitbox du lit, mise à
+  l'échelle des plantes en pot) ignore encore le décalage du parent : à corriger à part, car cela change la taille de
+  41 plantes en pot.
+- Les huttes de HyColony suivent la même chaîne : `tools/huts/generate.py`, spec
+  `docs/superpowers/specs/2026-10-02-hycolony-hut-models-design.md`.
 - Pour modifier un modèle : l'ouvrir dans un projet `hytale_prop` (§ 3), le retoucher, le réexporter, puis relancer
   `python tools/vanilla/generate.py`.

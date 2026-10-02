@@ -8,6 +8,8 @@ from pathlib import Path
 
 from PIL import Image, ImageChops, ImageDraw
 
+from models import add, multiply, rotate
+
 ROOT = Path(__file__).resolve().parents[2]
 PACK = ROOT / "vanilla" / "plugin" / "src" / "main" / "resources"
 ICON_SIZE = 64
@@ -121,45 +123,76 @@ def draw_box(icon, box, textures, scale, origin):
 
 
 def draw_model(icon, nodes, texture, scale, origin):
-    """Draws a model's unrotated boxes (their +z, +x and top faces, read from their texture islands) with a depth
-    buffer, so boxes that pass through each other (a sheet fold over a blanket) hide each other correctly."""
-    texels, out = texture.load(), icon.load()
-    nearest = {}
-    for n in nodes:
-        shape, position = n["shape"], n["position"]
-        if shape["type"] != "box" or n.get("children") or n["orientation"]["w"] != 1:
-            raise SystemExit(f"{n['name']}: draw_model takes flat, unrotated boxes")
-        size = shape["settings"]["size"]
-        centre = [position[a] + shape["offset"][a] for a in "xyz"]
-        low = tuple(centre[i] - size[a] / 2 for i, a in enumerate("xyz"))
-        high = tuple(centre[i] + size[a] / 2 for i, a in enumerate("xyz"))
+    """Draws a model's boxes, nested and turned as they are, with a depth buffer (boxes that pass through each other
+    hide each other correctly), each face read from its texture island and shaded by how it faces the view (top 1.0,
+    +z 0.8, +x 0.65, as draw_box). The view from +x +z shows a block's front, +z."""
+    texels, out, nearest = texture.load(), icon.load(), {}
+    for n, position, rotation in placed(nodes):
+        shape = n["shape"]
+        if shape["type"] == "none":
+            continue
+        if shape["type"] != "box":
+            raise SystemExit(f"{n['name']}: draw_model draws boxes only")
+        offset, stretch = (tuple(shape[key][a] for a in "xyz") for key in ("offset", "stretch"))
+        size = tuple(shape["settings"]["size"][a] for a in "xyz")
         for side, face in shape["textureLayout"].items():
-            if side in ICON_SIDES:
-                for point, texel in face_samples(side, low, high, face, scale):
-                    sx, sy = iso(*point, scale, origin)
-                    pixel, depth = (int(sx), int(sy)), sum(point)
-                    colour = texels[texel]
-                    if colour[3] and 0 <= pixel[0] < icon.width and 0 <= pixel[1] < icon.height \
-                            and depth > nearest.get(pixel, float("-inf")):
-                        nearest[pixel] = depth
-                        out[pixel] = (*(int(c * ICON_SIDES[side]) for c in colour[:3]), 255)
+            if face.get("angle", 0) or any(face.get("mirror", {}).values()):
+                raise SystemExit(f"{n['name']} {side}: draw_model reads unturned, unmirrored faces")
+            shade = facing_shade(rotate(rotation, FACE_NORMALS[side]))
+            if shade is None:
+                continue
+            for local, texel in face_samples(side, size, face, scale * max(abs(s) for s in stretch)):
+                stretched = tuple(o + c * s for o, c, s in zip(offset, local, stretch))
+                point = add(position, rotate(rotation, stretched))
+                sx, sy = iso(*point, scale, origin)
+                pixel, depth = (int(sx), int(sy)), sum(point)
+                colour = texels[texel]
+                if colour[3] and 0 <= pixel[0] < icon.width and 0 <= pixel[1] < icon.height \
+                        and depth > nearest.get(pixel, float("-inf")):
+                    nearest[pixel] = depth
+                    out[pixel] = (*(int(c * shade) for c in colour[:3]), 255)
 
 
-# Faces an icon shows (seen from +x +y +z) -> their shade, as draw_box.
-ICON_SIDES = {"front": 0.8, "right": 0.65, "top": 1.0}
+FACE_NORMALS = {"front": (0, 0, 1), "back": (0, 0, -1), "right": (1, 0, 0), "left": (-1, 0, 0), "top": (0, 1, 0),
+                "bottom": (0, -1, 0)}
 
 
-def face_samples(side, low, high, face, scale):
-    """(model point, texel) pairs covering a face, about two samples per icon pixel each way. The view looks along
-    (1, 1, 1), so the nearest point has the largest x + y + z."""
-    (x0, y0, z0), (x1, y1, z1) = low, high
-    w, h = {"front": (x1 - x0, y1 - y0), "right": (z1 - z0, y1 - y0), "top": (x1 - x0, z1 - z0)}[side]
-    columns, rows = max(1, math.ceil(w * scale * 2)), max(1, math.ceil(h * scale * 2))
+def placed(nodes, position=(0.0, 0.0, 0.0), rotation=(0.0, 0.0, 0.0, 1.0)):
+    """(node, world position, world rotation) of every node. A child's position counts from its parent's position
+    plus the parent's shape offset, turned by the parent (Hytale's BlockyModelBoundsParser.accumulateNodeBounds;
+    models.collect still leaves the offset out: bounds() for the bed hitbox, the pots' plant fitting and
+    tools/domum's checks, to fix on its own)."""
+    for n in nodes:
+        o, p, offset = n["orientation"], n["position"], n["shape"]["offset"]
+        own = multiply(rotation, (o["x"], o["y"], o["z"], o["w"]))
+        at = add(position, rotate(rotation, (p["x"], p["y"], p["z"])))
+        yield n, at, own
+        yield from placed(n.get("children", []), add(at, rotate(own, (offset["x"], offset["y"], offset["z"]))), own)
+
+
+def facing_shade(normal):
+    """The shade of a face whose normal is this, seen from +x +y +z; None when it faces away."""
+    x, y, z = normal
+    if x + y + z <= 1e-6:
+        return None
+    return y * y * 1.0 + z * z * 0.8 + x * x * 0.65
+
+
+def face_samples(side, size, face, density):
+    """(point about the box's centre, texel) pairs covering a face, about two samples per icon pixel each way, as
+    Blockbench lays faces out (u right, v down). The view looks along (1, 1, 1): the nearest point has the largest
+    x + y + z."""
+    hx, hy, hz = (s / 2 for s in size)
+    w, h = {"front": (size[0], size[1]), "back": (size[0], size[1]), "right": (size[2], size[1]),
+            "left": (size[2], size[1]), "top": (size[0], size[2]), "bottom": (size[0], size[2])}[side]
+    columns, rows = max(1, math.ceil(w * density * 2)), max(1, math.ceil(h * density * 2))
     u0, v0 = face["offset"]["x"], face["offset"]["y"]
     for i in range(columns):
         for j in range(rows):
             s, t = (i + 0.5) / columns * w, (j + 0.5) / rows * h
-            point = {"front": (x0 + s, y1 - t, z1), "right": (x1, y1 - t, z1 - s), "top": (x0 + s, y1, z0 + t)}[side]
+            point = {"front": (-hx + s, hy - t, hz), "back": (hx - s, hy - t, -hz), "right": (hx, hy - t, hz - s),
+                     "left": (-hx, hy - t, -hz + s), "top": (-hx + s, hy, -hz + t),
+                     "bottom": (-hx + s, -hy, hz - t)}[side]
             yield point, (int(u0 + s), int(v0 + t))
 
 
