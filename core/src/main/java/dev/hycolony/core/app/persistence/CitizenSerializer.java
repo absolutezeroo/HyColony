@@ -22,6 +22,7 @@ import dev.hycolony.core.citizen.Gender;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.citizen.Skills;
 import dev.hycolony.core.citizen.happiness.HappinessJson;
+import dev.hycolony.core.citizen.inventory.EquipmentJson;
 import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.job.Job;
 import dev.hycolony.core.job.JobStatus;
@@ -50,6 +51,7 @@ final class CitizenSerializer {
         writeNeeds(d, o);
         o.addProperty("leisureTime", d.leisureTime());
         o.add("inventory", d.inventory().write());
+        EquipmentJson.write(d.equipment(), o);
         o.add(
                 "job",
                 d.job()
@@ -80,6 +82,7 @@ final class CitizenSerializer {
             d.setAsleep(true); // after the leisure time: falling asleep ends it (MC CitizenData.setAsleep)
         }
         d.setInventory(Inventory.read(arrayOr(o.get("inventory")), CitizenData.INVENTORY_SLOTS));
+        d.setEquipment(EquipmentJson.read(o));
         if (o.get("job") instanceof JsonObject job) {
             readJob(job, d, ctx);
         }

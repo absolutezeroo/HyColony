@@ -28,16 +28,16 @@ public final class MigrationChain {
     }
 
     /**
-     * SP4: schema 9. Schema 2 added citizen inventory/job, colony requests/workOrders/settings, building containers;
+     * SP4: schema 10. Schema 2 added citizen inventory/job, colony requests/workOrders/settings, building containers;
      * schema 3 moved a tool's wear from the job's per-item counter onto the stack; schema 4 added the huts' plan
      * benches and the colony's recipe registry; schema 5 the colony's fields; schema 6 the residences' residents and
      * beds, the citizens' sleep and the colony's auto-housing setting; schema 7 the colony's style, its move-in
      * setting and the event log's positions; schema 8 the citizens' last meals, "just ate", job status and happiness;
-     * schema 9 the colony's construction tape setting.
+     * schema 9 the colony's construction tape setting; schema 10 the citizens' armour and held slots.
      */
     public static MigrationChain sp4() {
         return new MigrationChain(
-                9,
+                10,
                 List.of(
                         new Migration(1, MigrationChain::v1ToV2),
                         new Migration(2, MigrationChain::v2ToV3),
@@ -46,7 +46,8 @@ public final class MigrationChain {
                         new Migration(5, MigrationChain::v5ToV6),
                         new Migration(6, MigrationV6ToV7::apply),
                         new Migration(7, MigrationV7ToV8::apply),
-                        new Migration(8, MigrationV8ToV9::apply)));
+                        new Migration(8, MigrationV8ToV9::apply),
+                        new Migration(9, MigrationV9ToV10::apply)));
     }
 
     private static JsonObject v1ToV2(JsonObject doc) {

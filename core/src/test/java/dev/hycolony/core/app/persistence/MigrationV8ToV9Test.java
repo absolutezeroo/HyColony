@@ -65,7 +65,7 @@ class MigrationV8ToV9Test {
         m.persistence().saveAll();
 
         String saved = Files.readString(dir.resolve("colony-1.json"));
-        assertTrue(saved.contains("\"schemaVersion\":9"), saved);
+        assertTrue(saved.contains("\"schemaVersion\":" + ColonySerializer.SCHEMA_VERSION), saved);
         assertFalse(load().byId(1).orElseThrow().settings().get(Toggle.CONSTRUCTION_TAPE));
     }
 }

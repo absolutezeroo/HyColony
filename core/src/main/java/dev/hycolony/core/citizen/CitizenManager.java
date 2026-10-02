@@ -1,6 +1,7 @@
 package dev.hycolony.core.citizen;
 
 import dev.hycolony.core.building.Building;
+import dev.hycolony.core.citizen.wander.LeisureTimer;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.kernel.BlockPos;
@@ -100,7 +101,7 @@ public final class CitizenManager {
             if (data != null && ctx().bodies().isAlive(e.getValue())) {
                 ctx().bodies().position(e.getValue()).ifPresent(data::moved);
                 data.job().ifPresent(job -> job.tickInactivity(colony));
-                data.tickLeisure(Colony.CITIZEN_DATA_INTERVAL, homeLevel(data), ctx().random());
+                LeisureTimer.tick(data, Colony.CITIZEN_DATA_INTERVAL, homeLevel(data), ctx().random());
             }
         }
         if (!bodies.isEmpty()) {

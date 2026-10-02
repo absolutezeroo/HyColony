@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.building.Building;
+import dev.hycolony.core.citizen.wander.LeisureTimer;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.colony.territory.TerritoryIndex;
@@ -84,9 +85,9 @@ class CitizenLeisureTest {
     void leisureStartsWithMcChanceWhichABetterHomeRaises() {
         Rolls draws = new Rolls();
 
-        citizen.tickLeisure(60, 1, draws);
-        new CitizenData(2).tickLeisure(60, 5, draws);
-        new CitizenData(3).tickLeisure(60, 0, draws); // a home not built yet counts as level 1
+        LeisureTimer.tick(citizen, 60, 1, draws);
+        LeisureTimer.tick(new CitizenData(2), 60, 5, draws);
+        LeisureTimer.tick(new CitizenData(3), 60, 0, draws); // a home not built yet counts as level 1
 
         assertEquals(List.of(2400, 480, 2400), draws.bounds, "one chance in 20 x (120 / home level) per draw");
         assertEquals(CitizenData.LEISURE_TICKS, citizen.leisureTime());
@@ -95,9 +96,9 @@ class CitizenLeisureTest {
     @Test
     void leisureRunsThreeMinutesWithoutNewDraws() {
         Rolls draws = new Rolls();
-        citizen.tickLeisure(60, 1, draws);
+        LeisureTimer.tick(citizen, 60, 1, draws);
 
-        citizen.tickLeisure(60, 1, draws);
+        LeisureTimer.tick(citizen, 60, 1, draws);
 
         assertEquals(CitizenData.LEISURE_TICKS - 60, citizen.leisureTime());
         assertEquals(1, draws.bounds.size());

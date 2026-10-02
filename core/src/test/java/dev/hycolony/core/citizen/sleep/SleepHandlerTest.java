@@ -131,7 +131,7 @@ class SleepHandlerTest {
     @Test
     void wakingUpEndsALeisureBreakDrawnAtNight() {
         handler.trySleep(BED);
-        d.setLeisureTime(500); // tickLeisure runs at night too (MC CitizenData.update)
+        d.setLeisureTime(500); // LeisureTimer.tick runs at night too (MC CitizenData.update)
 
         handler.wakeUp();
 
