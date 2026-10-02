@@ -62,6 +62,14 @@ final class CitizenPreviewCamera {
     }
 
     /**
+     * The player left this world or the server, and Hytale reset its camera already (Player.resetManagers): forgets
+     * the camera without a packet, which would cut a camera set since (another citizen's page).
+     */
+    void forget() {
+        on = false;
+    }
+
+    /**
      * Puts the camera on the body, or aims it again once the citizen turned; gives it back when the body is gone.
      * Called when the page opens, then regularly while it is shown.
      */
