@@ -35,4 +35,10 @@ public interface PlayerInventory {
     /** Gives {@code amount} with its damage. Returns the remainder that did not fit, or {@code null} if all fit. */
     @Nullable
     ItemAmount give(UUID player, ItemAmount amount);
+
+    /**
+     * MC SwitchBuildingWithToolMessage: the last hotbar slot holding {@code hotbarItem} and the last slot of the whole
+     * inventory holding {@code otherItem} swap their stacks; false, changing nothing, without one of them.
+     */
+    boolean swapIntoHotbar(UUID player, ItemKey hotbarItem, ItemKey otherItem);
 }

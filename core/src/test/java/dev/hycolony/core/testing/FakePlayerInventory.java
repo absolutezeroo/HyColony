@@ -63,6 +63,18 @@ public final class FakePlayerInventory implements PlayerInventory {
         return out;
     }
 
+    /** Each successful swapIntoHotbar, as "hotbarItem<->otherItem"; this fake has no slots, so nothing moves. */
+    public final List<String> swaps = new ArrayList<>();
+
+    @Override
+    public boolean swapIntoHotbar(UUID player, ItemKey hotbarItem, ItemKey otherItem) {
+        if (count(player, hotbarItem) < 1 || count(player, otherItem) < 1) {
+            return false;
+        }
+        swaps.add(hotbarItem + "<->" + otherItem);
+        return true;
+    }
+
     @Override
     public ItemAmount give(UUID player, ItemAmount amount) {
         if (full.contains(player)) {

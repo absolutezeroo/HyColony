@@ -7,6 +7,7 @@ import dev.hycolony.core.app.ui.FieldView;
 import dev.hycolony.core.app.ui.FoundColonyView;
 import dev.hycolony.core.app.ui.NeedsPlayerNotice;
 import dev.hycolony.core.app.ui.RequestsView;
+import dev.hycolony.core.app.ui.SuggestBuildToolView;
 import dev.hycolony.core.app.ui.TownHallView;
 import dev.hycolony.core.app.ui.UiPort;
 import dev.hycolony.core.app.ui.WandPacksView;
@@ -82,6 +83,11 @@ public final class FakeUi implements UiPort {
 
     @Override
     public void showWandPacks(UUID player, WandPacksView view) {
+        shown.put(player, view);
+    }
+
+    @Override
+    public void showSuggestBuildTool(UUID player, SuggestBuildToolView view) {
         shown.put(player, view);
     }
 
