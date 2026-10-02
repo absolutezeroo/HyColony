@@ -43,6 +43,23 @@ class TerritoryIndexTest {
     }
 
     @Test
+    void revisionChangesOnlyWhenACellChangesOwner() {
+        TerritoryIndex t = new TerritoryIndex();
+        long start = t.revision();
+        t.claimSquare(1, new ClaimCell(0, 0), 1);
+        long claimed = t.revision();
+        t.claimSquare(2, new ClaimCell(0, 0), 1);
+        t.claimSquareBounded(2, new ClaimCell(0, 0), 1, new ClaimCell(0, 0), 1);
+        t.releaseAll(3);
+        assertEquals(claimed, t.revision(), "nothing changed owner");
+        t.claimSquareBounded(1, new ClaimCell(0, 0), 2, new ClaimCell(0, 0), 2);
+        long grown = t.revision();
+        t.releaseAll(1);
+
+        assertTrue(start < claimed && claimed < grown && grown < t.revision());
+    }
+
+    @Test
     void releaseFreesCells() {
         TerritoryIndex t = new TerritoryIndex();
         t.claimSquare(1, new ClaimCell(0, 0), 2);

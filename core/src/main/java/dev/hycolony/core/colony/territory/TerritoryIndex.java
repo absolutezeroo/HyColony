@@ -8,6 +8,12 @@ import java.util.OptionalInt;
 /** Which colony owns which claim cell, for one world. Rebuilt from colonies on load. */
 public final class TerritoryIndex {
     private final Map<ClaimCell, Integer> owners = new HashMap<>();
+    private long revision;
+
+    /** A number that grows whenever a cell changes owner, so a cache of the territory knows it is stale. */
+    public long revision() {
+        return revision;
+    }
 
     public OptionalInt colonyAt(BlockPos pos) {
         return colonyAt(ClaimCell.of(pos));
@@ -23,8 +29,14 @@ public final class TerritoryIndex {
     public void claimSquare(int colonyId, ClaimCell center, int radius) {
         for (int dx = -radius; dx <= radius; dx++) {
             for (int dz = -radius; dz <= radius; dz++) {
-                owners.putIfAbsent(new ClaimCell(center.x() + dx, center.z() + dz), colonyId);
+                claim(new ClaimCell(center.x() + dx, center.z() + dz), colonyId);
             }
+        }
+    }
+
+    private void claim(ClaimCell cell, int colonyId) {
+        if (owners.putIfAbsent(cell, colonyId) == null) {
+            revision++;
         }
     }
 
@@ -41,13 +53,15 @@ public final class TerritoryIndex {
                 if (distFromCenter > maxSize) {
                     continue;
                 }
-                owners.putIfAbsent(cell, colonyId);
+                claim(cell, colonyId);
             }
         }
     }
 
     public void releaseAll(int colonyId) {
-        owners.values().removeIf(id -> id == colonyId);
+        if (owners.values().removeIf(id -> id == colonyId)) {
+            revision++;
+        }
     }
 
     /** MC ChunkDataHelper.canClaimChunksInRange: no claimed cell within {@code range} cells of {@code center}'s. */

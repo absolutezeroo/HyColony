@@ -48,6 +48,17 @@ class ColonyProtectionTest {
         assertTrue(manager.protection().allowsHostileSpawn(new BlockPos(80, 64, 0)), "the first unclaimed cell");
     }
 
+    /** Asked for: an area touching the territory (cells -4..4, blocks -64..79) is not wilderness. */
+    @Test
+    void anAreaTouchingTheTerritoryIsNotWilderness() {
+        ColonyManager manager = start(2);
+
+        assertFalse(manager.protection().isWilderness(64, 0, 32), "its first cell is claimed");
+        assertFalse(manager.protection().isWilderness(-80, -80, 32), "its last cell is claimed");
+        assertTrue(manager.protection().isWilderness(80, 0, 32), "beside the border");
+        assertTrue(manager.protection().isWilderness(-96, 0, 32), "beside the border, negative side");
+    }
+
     @Test
     void creativeOperatorBypassesProtectionWithTheOperatorRankActions() {
         ColonyManager manager = start(2);

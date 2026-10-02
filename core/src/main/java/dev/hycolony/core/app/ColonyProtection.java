@@ -7,6 +7,8 @@ import dev.hycolony.core.colony.ColonyRefusal;
 import dev.hycolony.core.colony.permission.Action;
 import dev.hycolony.core.colony.permission.BlockUse;
 import dev.hycolony.core.colony.permission.PermissionEvents;
+import dev.hycolony.core.colony.territory.ClaimCell;
+import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.config.Explosions;
 import java.util.Optional;
@@ -38,6 +40,25 @@ public final class ColonyProtection {
      */
     public boolean allowsHostileSpawn(BlockPos pos) {
         return manager.colonyAt(pos).isEmpty();
+    }
+
+    /**
+     * Whether the x/z square of {@code size} blocks from ({@code minX}, {@code minZ}) is wilderness: no colony claims
+     * any cell it touches. Deviation from MC (asked for, Hytale only): Hytale's world events (goblin breaches) open
+     * only in wilderness, and a colony's territory is not.
+     */
+    public boolean isWilderness(int minX, int minZ, int size) {
+        TerritoryIndex territory = manager.territory();
+        ClaimCell min = ClaimCell.of(new BlockPos(minX, 0, minZ));
+        ClaimCell max = ClaimCell.of(new BlockPos(minX + size - 1, 0, minZ + size - 1));
+        for (int x = min.x(); x <= max.x(); x++) {
+            for (int z = min.z(); z <= max.z(); z++) {
+                if (territory.colonyAt(new ClaimCell(x, z)).isPresent()) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     /**
