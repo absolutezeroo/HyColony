@@ -97,8 +97,8 @@ Routes de `BlockbenchRoutes` (la requête est ignorée après `?`, sauf pour `/f
 | `/bb/index.html` | `index.html` de l'asar, avec `<script src="/viewer/node-shim.js">` avant le bundle et `<script src="/viewer/viewer.js" type="module">` après. |
 | `/bb/…` | Entrée de l'asar. |
 | `/viewer/…` | Ressources JS du plugin IntelliJ. |
-| `/fs/read`, `/fs/stat`, `/fs/list` (`?p=`) | `fs` virtuel en **lecture seule**. `/plugins/…` désigne le dossier des plugins de Blockbench. |
-| `/C:/…` (chemin disque) | Fichier (textures). |
+| `/fs/read`, `/fs/stat`, `/fs/list` (`?p=`) | `fs` virtuel en **lecture seule**. `/plugins/…` désigne le dossier des plugins de Blockbench. Les textures y passent aussi : `node-shim.js` réécrit `img.src = "C:/…"` en `/fs/read?p=<chemin encodé>&v=<n>` (un dossier peut contenir `[` ou `%`, et le numéro de version évite le cache après un nouveau bake). |
+| `/plugins/…` | Fichier du dossier des plugins de Blockbench (`hytale_plugin.js`). |
 
 Accès disque limité aux racines de contenu du projet ouvert et au dossier des plugins de Blockbench ; hors de ces
 limites : 404. Aucune requête ne sort de la machine : pas de vérification de mise à jour ni de magasin de plugins.
