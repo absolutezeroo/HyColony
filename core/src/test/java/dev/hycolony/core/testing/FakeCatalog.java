@@ -10,6 +10,7 @@ import dev.hycolony.core.kernel.port.ItemCatalog;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -29,7 +30,7 @@ public final class FakeCatalog implements ItemCatalog {
 
     public final Map<BlockKey, ToolType> toolForBlock = new HashMap<>();
     public final Map<BlockKey, Float> hardness = new HashMap<>();
-    public final Map<ItemKey, ToolInfo> tools = new HashMap<>();
+    public final Map<ItemKey, ToolInfo> tools = new LinkedHashMap<>();
     public final Map<ItemKey, Integer> durability = new HashMap<>();
     public final Map<ItemKey, FoodInfo> foods = new HashMap<>();
     public final Map<ItemKey, ItemKey> cooked = new HashMap<>();
@@ -97,10 +98,10 @@ public final class FakeCatalog implements ItemCatalog {
         return foods.keySet().stream().sorted(Comparator.comparing(ItemKey::id)).toList();
     }
 
-    /** The tools by id. */
+    /** The tools in the order they were put in, as the port promises no order. */
     @Override
     public List<ItemKey> tools() {
-        return tools.keySet().stream().sorted(Comparator.comparing(ItemKey::id)).toList();
+        return List.copyOf(tools.keySet());
     }
 
     @Override

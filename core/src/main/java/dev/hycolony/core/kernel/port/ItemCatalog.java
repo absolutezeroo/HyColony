@@ -44,7 +44,7 @@ public interface ItemCatalog {
     /** Every item {@link #food} knows, in a set order (MC CompatibilityManager's edibles, before filtering). */
     List<ItemKey> foods();
 
-    /** Every item {@link #tool} knows, by id (the tools MC's ToolRequest shows). */
+    /** Every item {@link #tool} knows, in no set order (the tools MC's ToolRequest shows, sorted by it). */
     List<ItemKey> tools();
 
     /**

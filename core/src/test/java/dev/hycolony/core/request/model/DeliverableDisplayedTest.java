@@ -45,6 +45,16 @@ class DeliverableDisplayedTest {
     }
 
     @Test
+    void twoToolsOfTheLowestTierAreToldApartByIdNotByCatalogOrder() {
+        catalog.tools.put(new ItemKey("Tool_Pickaxe_Zinc"), new ToolInfo(ToolType.PICKAXE, 1, 1));
+        catalog.tools.put(new ItemKey("Tool_Pickaxe_Bronze"), new ToolInfo(ToolType.PICKAXE, 1, 1));
+
+        assertEquals(
+                Optional.of(new ItemKey("Tool_Pickaxe_Bronze")),
+                new ToolRequest(ToolType.PICKAXE, 1, 3).displayed(catalog));
+    }
+
+    @Test
     void aToolRequestNoCatalogToolAcceptsShowsNothing() {
         assertEquals(Optional.empty(), new ToolRequest(ToolType.SHOVEL, 0, 3).displayed(catalog));
     }

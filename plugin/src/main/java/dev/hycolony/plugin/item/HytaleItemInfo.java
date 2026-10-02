@@ -3,16 +3,11 @@ package dev.hycolony.plugin.item;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
 import com.hypixel.hytale.server.core.asset.type.item.config.ItemTool;
 import com.hypixel.hytale.server.core.asset.type.item.config.ItemToolSpec;
-import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolInfo;
 import dev.hycolony.core.kernel.item.ToolScale;
 import dev.hycolony.core.kernel.item.ToolType;
-import java.util.Comparator;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -96,14 +91,6 @@ public record HytaleItemInfo(int maxStack, Optional<ToolInfo> tool, int durabili
             }
         }
         return null;
-    }
-
-    /** The items among {@code ids} that are tools, by id (the catalog's {@code tools()}). */
-    public static List<ItemKey> tools(Stream<String> ids, Predicate<ItemKey> isTool) {
-        return ids.map(ItemKey::new)
-                .filter(isTool)
-                .sorted(Comparator.comparing(ItemKey::id))
-                .toList();
     }
 
     /** Blocks of the tool's own gather type mined before it breaks ({@link ToolScale#uses}); 0 = unbreakable. */

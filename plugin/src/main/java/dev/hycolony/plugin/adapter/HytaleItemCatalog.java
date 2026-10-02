@@ -103,11 +103,14 @@ public final class HytaleItemCatalog implements ItemCatalog {
         return foods.foods();
     }
 
-    /** Every Hytale item {@link #tool} knows, by id; listed once, at the first call. */
+    /** Every Hytale item {@link #tool} knows; listed once, at the first call. */
     @Override
     public List<ItemKey> tools() {
         if (tools == null) {
-            tools = HytaleItemInfo.tools(Item.getAssetMap().getAssetMap().keySet().stream(), k -> tool(k).isPresent());
+            tools = Item.getAssetMap().getAssetMap().keySet().stream()
+                    .map(ItemKey::new)
+                    .filter(k -> tool(k).isPresent())
+                    .toList();
         }
         return tools;
     }
