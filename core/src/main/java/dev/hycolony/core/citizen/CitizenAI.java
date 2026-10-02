@@ -269,7 +269,8 @@ public final class CitizenAI {
     /**
      * MC calculateNextState: work only when the rain does not stop it ({@link #rainStopsWork}, checked first as in MC),
      * the job AI cannot go idle and the citizen is not on a break ({@link #onBreak}). Asks a fresh job AI, which then
-     * starts from its first state as MC's resetAI on entering WORK makes it (its fields too: {@link #dropJobAI}).
+     * starts from its first state as MC's resetAI on entering WORK makes it; its fields start afresh too, a deviation
+     * ({@link #dropJobAI}).
      */
     private boolean shouldWork() {
         Job job = data.job().orElse(null);
@@ -312,12 +313,13 @@ public final class CitizenAI {
     }
 
     /**
-     * Forgets the job AI, the next WORK making a fresh one, and its walking speed (MC BuildingDeliveryman removes the
-     * courier's speed modifier with the job; a job AI sets its own again); restarts the wander's wait for a walk under
-     * way. The hand is left as it is, as MC.
+     * Forgets the job AI, the next WORK making a fresh one, and its walking speed (a job AI sets its own again);
+     * restarts the wander's wait for a walk under way. The hand is left as it is, as MC.
      *
      * <p>Deviation from MC: the whole job AI goes, its fields too (the farmer's skippedState and forceLeave, say); MC
-     * keeps its AI and only resets its state machine and render metadata on entering WORK again (resetAI).
+     * keeps its AI and only resets its state machine and render metadata on entering WORK again (resetAI). And the
+     * walking speed goes back to 1, so a courier eats or sleeps at its base speed; MC keeps its speed modifier
+     * (JobDeliveryman.onLevelUp) until it is unassigned (DeliverymanAssignmentModule).
      */
     private void dropJobAI() {
         wander.restartWait(); // back to IDLE: the walk under way is waited for from now

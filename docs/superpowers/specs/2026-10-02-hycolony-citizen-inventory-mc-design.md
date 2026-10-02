@@ -106,7 +106,9 @@ Chacun porte un `Deviation from MC:` dans le code.
 - L'aperçu est la vraie scène, filmée par la caméra du serveur, et ne suit pas la souris.
 - 27 cases fixes : pas de recherche qui agrandit l'inventaire.
 - Avant une pose, le bâtisseur ne s'écarte pas de la case où il se tient (MC `walkAwayFrom`, prévu : `docs/research/architecture/audit-global/02-findings-M.md`), et son geste est le coup « Build » d'une pose réussie, là où MC fait `swing` avant de tenter la pose, même refusée.
-- Écart existant, relevé par les relectures (`CitizenAI.dropJobAI`) : quitter le travail (sommeil, repas, pluie, pause) jette toute l'IA de métier et ses champs (le `skippedState` et le `forceLeave` du fermier par exemple), là où MC garde son IA et ne remet que sa machine à états à zéro en revenant au travail (`resetAI`). Le corriger demande que chaque IA de métier sache se remettre à zéro sans être recréée : un changement à part.
+- Écart existant, relevé par les relectures (`CitizenAI.dropJobAI`) : quitter le travail (sommeil, repas, pluie, pause) jette toute l'IA de métier et ses champs (le `skippedState` et le `forceLeave` du fermier par exemple), là où MC garde son IA et ne remet que sa machine à états à zéro en revenant au travail (`resetAI`). Le corriger demande que chaque IA de métier sache se remettre à zéro sans être recréée : un changement à part. Au même endroit, la vitesse de marche revient à 1 : un coursier mange ou dort à sa vitesse de base, là où MC garde son bonus (`JobDeliveryman.onLevelUp`) jusqu'à sa désaffectation.
+- Monde de Hytale : MC use la dernière case tenue à chaque bloc cassé, même à mains nues (`damageItemInHand` lit la case tenue), dont la houe du fermier à chaque récolte ; Hytale n'use que l'outil qui casse le bloc, et aucun pour un bloc `Soft` comme une culture (`BlockHarvestUtils.calculateDurabilityUse`).
+- Le fermier qui récolte joue un coup sur la culture ; MC la casse d'un coup (`breakBlockWithToolInHand`, délai nul) sans coup. Une culture qui demanderait un outil que le fermier n'a pas (aucune culture de Hytale) : l'outil est demandé et la case laissée, là où MC attend sur elle.
 
 ## 6. Tests
 
