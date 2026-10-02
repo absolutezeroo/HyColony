@@ -7,6 +7,7 @@ import com.hypixel.hytale.math.util.ChunkUtil;
 import com.hypixel.hytale.protocol.BlockMaterial;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.fluid.Fluid;
+import com.hypixel.hytale.server.core.blocktype.component.BlockPhysics;
 import com.hypixel.hytale.server.core.universe.world.SetBlockSettings;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.BlockOperations;
@@ -144,13 +145,25 @@ public final class HytaleWorldBlocks implements WorldBlocks {
             }
             BlockOperations.setBlock(
                     world.getChunkStore(), sec, pos.x(), pos.y(), pos.z(), id, type, state.rotation(), 0, settings);
-            if (type.getMaterial() == BlockMaterial.Solid) {
-                HytaleSections.clearFluid(store, sec, pos);
-            }
+            settle(store, sec, pos, type);
             return blocks.get(pos.x(), pos.y(), pos.z()) == id;
         } catch (RuntimeException e) {
             fail("place", pos, e);
             return false;
+        }
+    }
+
+    /**
+     * After placing {@code type}: marks the cell as a player's placement does (BlockPlaceUtils), so a placed barrel or
+     * goblin stool breaks into itself (UseDefaultDropWhenPlaced) rather than into the loot of one the world generated;
+     * a solid block clears the fluid of its cell.
+     */
+    private static void settle(Store<ChunkStore> store, Ref<ChunkStore> sec, BlockPos pos, BlockType type) {
+        if (type.canBePlacedAsDeco()) {
+            BlockPhysics.markDeco(store, sec, pos.x(), pos.y(), pos.z());
+        }
+        if (type.getMaterial() == BlockMaterial.Solid) {
+            HytaleSections.clearFluid(store, sec, pos);
         }
     }
 
