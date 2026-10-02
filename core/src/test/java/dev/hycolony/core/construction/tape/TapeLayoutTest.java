@@ -82,6 +82,29 @@ class TapeLayoutTest {
     }
 
     @Test
+    void theGroundSearchReachesExactlyHeightPlusFiveBelowTheTop() {
+        // The top is 66 and the height 2: MC tests the cells 66 down to 59 (i = 0 .. 2 + 5).
+        world.blocks.remove(new BlockPos(0, 63, -1));
+        world.blocks.put(new BlockPos(0, 59, -1), STONE);
+        world.blocks.remove(new BlockPos(1, 63, -1));
+        world.blocks.put(new BlockPos(1, 58, -1), STONE);
+
+        List<Tape> tapes = layout();
+
+        assertTrue(tapes.contains(new Tape(new BlockPos(0, 60, -1), TapeShape.STRAIGHT, 1)), "the last cell in reach");
+        assertFalse(tapes.stream().anyMatch(t -> t.pos().x() == 1 && t.pos().z() == -1), "one cell too deep");
+    }
+
+    @Test
+    void anUnbreakableBlockIsGround() {
+        BlockState bedrock = new BlockState(new BlockKey("Rock_Bedrock"), 0);
+        catalog.kinds.put(bedrock.key(), BlockKind.UNBREAKABLE);
+        world.blocks.put(new BlockPos(0, 63, 3), bedrock);
+
+        assertTrue(layout().contains(tape(0, 3, TapeShape.STRAIGHT, 1)));
+    }
+
+    @Test
     void aColumnWithoutGroundOrRoomInReachGetsNoTape() {
         world.blocks.remove(new BlockPos(1, 63, -1)); // a hole deeper than height + 5
         for (int y = 58; y <= 67; y++) {

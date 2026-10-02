@@ -62,7 +62,8 @@ class WorkManagerTest {
         manager = t.manager();
         manager.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
         colony = manager.foundation().confirm(alice, "A").orElseThrow();
-        colony.settings().setConstructionTape(false); // the plans the order reads only (tape: ConstructionTape*)
+        // The tape reads the building's plan too, which these tests count; it is tested in construction/tape.
+        colony.settings().setConstructionTape(false);
         t.notifier.sent.clear();
     }
 

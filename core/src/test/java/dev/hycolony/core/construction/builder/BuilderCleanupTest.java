@@ -87,7 +87,8 @@ class BuilderCleanupTest {
         manager = newManager();
         manager.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
         colony = manager.foundation().confirm(alice, "A").orElseThrow();
-        colony.settings().setConstructionTape(false); // the builder's own world changes only (tape: ConstructionTape*)
+        // The tape's quiet placements would count as the builder's world changes; it is tested in construction/tape.
+        colony.settings().setConstructionTape(false);
         Building hut = hut(ConstructionBuildingTypes.BUILDER.id(), HUT, 5);
         citizen = new CitizenData(1);
         colony.citizens().restore(citizen);

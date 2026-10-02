@@ -52,10 +52,12 @@ Succès :
 
 - Les formes sont calculées par le cœur à la pose (droits et coins), puis par le gabarit de raccord de Hytale quand un joueur change un voisin. Le cœur ne fait pas de T ni de croix entre deux chantiers voisins, et la règle de MC qui coupe la tige d'un T face à un autre T n'est pas reprise.
 - « Remplaçable » est vide, matériau `Empty` (ce que `BlockOperations.testPlaceBlock` tient pour libre) ou fluide, au lieu de `canBeReplaced` de Minecraft. « Plein » est `SOLID` ou `UNBREAKABLE` du catalogue, au lieu d'`isSolid` : un tapis de HyVanilla (matériau `Solid`) ou un bloc sans `Gathering` sert de sol ici. Une colonne non chargée n'a pas de ruban (MC charge le chunk ; un port de HyColony ne charge rien, CLAUDE.md § 4). Le ruban dans l'eau n'a pas d'état waterloggé : l'eau de Hytale est une couche à part, qui reste.
+- Au retrait, une colonne dont le chunk n'est pas chargé garde son ruban (MC charge le chunk) : annuler à distance un ordre lointain peut laisser des rubans, qui ne bloquent rien et se cassent d'un coup.
+- Un bâtiment sans style prend le style de son premier ordre, quel qu'en soit le type (MC n'a pas de bâtiment sans style) : son emprise, et donc le ruban, est celle du plan, pas la hutte seule.
 - Le ruban ne tombe pas quand on creuse sous lui : Hytale n'a pas de bloc à gravité pour un modèle ; il reste en l'air jusqu'à son retrait.
 - Un ruban en coin qui perd un voisin (cassé par un joueur) devient droit, où MC garde le coin : le gabarit de raccord de Hytale ne retient pas qu'il était un coin.
 - La recette demande la laine blanche, où MC prend n'importe quelle laine : Hytale n'a pas de type de ressource laine.
-- Les textures sont celles de Hytale (bois dur, laine blanche), pas celles de Minecraft, et les UV de MC (`uvlock`) ne sont pas repris : la texture est uniforme. La hitbox de chaque forme est la boîte qui englobe son modèle, là où MC a des formes fines.
+- Les textures sont celles de Hytale (bois dur, laine blanche), pas celles de Minecraft. La hitbox de chaque forme est la boîte qui englobe son modèle, là où MC a des formes fines.
 - Pas de retrait propre à la fin d'un collage : voir les branchements.
 
 ## 6. Tests

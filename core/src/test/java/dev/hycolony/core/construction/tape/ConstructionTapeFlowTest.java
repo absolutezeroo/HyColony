@@ -117,6 +117,17 @@ class ConstructionTapeFlowTest {
     }
 
     @Test
+    void aStylelessBuildingTakesItsOrdersStyleSoTheTapeSurroundsThePlan() {
+        Building b = residence(1);
+        b.setStyle(""); // a hut placed before the colony had a style
+
+        order(WorkOrderType.UPGRADE);
+
+        assertEquals(FakeBlueprints.STYLE, b.style());
+        assertEquals(16, tapes(), "around the plan, not around the hut block alone (8)");
+    }
+
+    @Test
     void aCancelledOrderTakesItsTapeDown() {
         residence(0);
         WorkOrder o = order(WorkOrderType.BUILD);
@@ -141,8 +152,9 @@ class ConstructionTapeFlowTest {
 
     @Test
     void aRemovedBuildingTakesItsTapeDown() {
-        residence(0);
-        order(WorkOrderType.BUILD);
+        // A taped hut without an order (as a wand placement leaves it): only MC onDestroyed takes the tape down.
+        ConstructionTape.place(colony, residence(0));
+        assertEquals(16, tapes());
 
         manager.huts().onRemoved(RES, alice);
 

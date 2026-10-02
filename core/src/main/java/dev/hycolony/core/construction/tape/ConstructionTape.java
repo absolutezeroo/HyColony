@@ -53,6 +53,10 @@ public final class ConstructionTape {
     /**
      * MC removeConstructionTape: at each visit of MC's border walk around {@code box}, the lowest tape within reach;
      * a corner column, visited three times, loses up to three.
+     *
+     * <p>Deviation from MC: MC loads a column's chunk to read it; a column whose chunk is not loaded keeps its tape
+     * here (a port loads nothing, CLAUDE.md § 4), as when an order far away is cancelled. Nothing waits on it, and a
+     * player breaks it in one hit.
      */
     public static void remove(Colony colony, HutFootprint.Box box) {
         GamePorts p = colony.context().ports();

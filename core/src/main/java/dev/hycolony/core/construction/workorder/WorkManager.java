@@ -80,8 +80,10 @@ public final class WorkManager {
         builder.ifPresent(order::setClaimedBy);
         order.setFree(isFree(player, type));
         add(order);
-        if (type == WorkOrderType.BUILD) {
-            b.setStyle(order.style()); // the building keeps the style it is built in
+        if (type == WorkOrderType.BUILD || b.style().isEmpty()) {
+            // The building keeps the style it is built in; one without a style takes the order's, so that its
+            // footprint (and the tape around it) is the plan the order builds, not the hut block alone.
+            b.setStyle(order.style());
         }
         ConstructionTape.place(colony, b); // MC WorkOrderBuilding.onAdded, never for an order read from a save
         colony.markDirty();

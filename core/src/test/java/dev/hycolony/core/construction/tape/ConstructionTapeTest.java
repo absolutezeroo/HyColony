@@ -10,11 +10,14 @@ import dev.hycolony.core.colony.territory.ClaimCell;
 import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.BlockKey;
-import dev.hycolony.core.kernel.item.BlockKind;
 import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.core.testing.TestContexts;
 import dev.hycolony.core.testing.tape.FakeTapeBlocks;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
 /** Placing and removing the tape around a site (MC ConstructionTapeHelper place/removeConstructionTape). */
@@ -26,9 +29,6 @@ class ConstructionTapeTest {
     private final Colony colony;
 
     ConstructionTapeTest() {
-        for (TapeShape shape : TapeShape.values()) {
-            t.catalog.kinds.put(FakeTapeBlocks.key(shape), BlockKind.NON_SOLID);
-        }
         for (int x = -3; x <= 5; x++) {
             for (int z = -3; z <= 5; z++) {
                 t.blocks.blocks.put(new BlockPos(x, 63, z), STONE);
@@ -75,6 +75,18 @@ class ConstructionTapeTest {
     }
 
     @Test
+    void aTapeInAnUnloadedColumnIsLeftWhereItIs() {
+        BlockPos far = new BlockPos(0, 64, -1);
+        t.blocks.blocks.put(far, new BlockState(FakeTapeBlocks.key(TapeShape.STRAIGHT), 1));
+        t.blocks.unloaded.add(far);
+
+        ConstructionTape.remove(colony, BOX);
+
+        t.blocks.unloaded.clear();
+        assertEquals(1, tapes(), "a port loads nothing (CLAUDE.md § 4); the player breaks it in one hit");
+    }
+
+    @Test
     void aColonyThatTurnedTheTapeOffGetsNone() {
         colony.settings().set(ColonySettings.Toggle.CONSTRUCTION_TAPE, false);
 
@@ -84,16 +96,30 @@ class ConstructionTapeTest {
     }
 
     @Test
-    void removeTakesTheFirstTapeOfEachBorderColumnFromFiveBelowToOneAbove() {
-        ConstructionTape.place(colony, BOX);
+    void removeTakesTheFirstTapeOfAColumnFromFiveBelowToOneAbove() {
+        // One edge column per case (each visited once): the reach is 59..67 for a footprint from 64 to 66.
         BlockState straight = new BlockState(FakeTapeBlocks.key(TapeShape.STRAIGHT), 0);
-        t.blocks.blocks.put(new BlockPos(-1, 58, 1), straight); // under the reach (64 - 5)
-        t.blocks.blocks.put(new BlockPos(-1, 68, 2), straight); // over the reach (66 + 1)
-        t.blocks.blocks.put(new BlockPos(1, 64, 3), STONE); // not a tape
+        BlockPos lowest = new BlockPos(0, 59, -1);
+        BlockPos under = new BlockPos(1, 58, -1);
+        BlockPos highest = new BlockPos(2, 67, -1);
+        BlockPos over = new BlockPos(0, 68, 3);
+        BlockPos first = new BlockPos(1, 60, 3);
+        BlockPos second = new BlockPos(1, 61, 3);
+        BlockPos stone = new BlockPos(2, 64, 3);
+        for (BlockPos p : List.of(lowest, under, highest, over, first, second)) {
+            t.blocks.blocks.put(p, straight);
+        }
+        t.blocks.blocks.put(stone, STONE);
 
         ConstructionTape.remove(colony, BOX);
 
-        assertEquals(2, tapes());
-        assertEquals(STONE, t.blocks.blocks.get(new BlockPos(1, 64, 3)));
+        assertEquals(
+                Set.of(under, over, second),
+                t.blocks.blocks.entrySet().stream()
+                        .filter(e -> t.tape.isTape(e.getValue().key()))
+                        .map(Map.Entry::getKey)
+                        .collect(Collectors.toSet()),
+                "out of reach, or the second tape of a column, stays");
+        assertEquals(STONE, t.blocks.blocks.get(stone));
     }
 }

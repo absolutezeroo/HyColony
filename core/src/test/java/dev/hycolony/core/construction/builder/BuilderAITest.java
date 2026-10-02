@@ -106,7 +106,8 @@ class BuilderAITest {
         manager = t.manager();
         manager.foundation().begin(alice, "Alice", new BlockPos(0, 64, 0), 0);
         colony = manager.foundation().confirm(alice, "A").orElseThrow();
-        colony.settings().setConstructionTape(false); // the builder's own world changes only (tape: ConstructionTape*)
+        // The tape's quiet placements would count as the builder's world changes; it is tested in construction/tape.
+        colony.settings().setConstructionTape(false);
         hut = hut(ConstructionBuildingTypes.BUILDER, HUT, 5);
         citizen = new CitizenData(1);
         colony.citizens().restore(citizen);
@@ -668,7 +669,8 @@ class BuilderAITest {
 
         tickUntil(() -> gone(o), 5000);
 
-        assertEquals(List.of("medieval/hycolony:residence/2"), loads);
+        // The plan of the level kept; the tape's removal at the end reads it too (MC removes it whatever the setting).
+        assertEquals(Set.of("medieval/hycolony:residence/2"), Set.copyOf(loads));
         assertFalse(t.blocks.blocks.containsKey(at(1, 0, 0)));
         assertFalse(t.blocks.blocks.containsKey(at(1, 1, 0)));
         assertEquals(2, res.level());
