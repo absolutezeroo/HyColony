@@ -41,7 +41,8 @@ Group {
     Visible: false;
   }
 
-  // The options' layout (MC resources box): the item after <<, its name in white.
+  // The options' layout (MC resources box): the item after <<, then its name. Deviation from MC: black ink, MC's
+  // white is unreadable on our paper.
   ItemIcon #OptionIcon {
     Anchor: (Left: 40, Top: 0, Width: 32, Height: 32);
     Visible: false;
@@ -49,7 +50,7 @@ Group {
 
   Label #OptionName {
     Anchor: (Left: 80, Top: 4, Width: 200, Height: 26);
-    Style: (...$B.@Ink, TextColor: #ffffff);
+    Style: $B.@Ink;
     Visible: false;
   }
 

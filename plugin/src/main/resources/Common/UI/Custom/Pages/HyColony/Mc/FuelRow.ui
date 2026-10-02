@@ -1,7 +1,8 @@
 $B = "Book.ui";
 
 // One item of MC's filterable list (layoutfilterablelist.xml resources box), sizes doubled: a 34 px outlined box, the
-// item, its name in white, then its On/Off switch (builder_button_very_small).
+// item, its name, then its On/Off switch (builder_button_very_small).
+// Deviation from MC: the name is in black ink, MC's white is unreadable on our paper.
 
 Group {
   Anchor: (Height: 34);
@@ -14,7 +15,7 @@ Group {
 
   Label #Name {
     Anchor: (Left: 40, Top: 2, Width: 196, Height: 30);
-    Style: (...$B.@Ink, TextColor: #ffffff);
+    Style: $B.@Ink;
   }
 
   TextButton #Switch {
