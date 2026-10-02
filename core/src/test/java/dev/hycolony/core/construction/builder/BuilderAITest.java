@@ -11,6 +11,7 @@ import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.citizen.home.BedModule;
+import dev.hycolony.core.citizen.inventory.CitizenEquipment;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyEvents;
 import dev.hycolony.core.construction.blueprint.Blueprint;
@@ -1222,12 +1223,12 @@ class BuilderAITest {
     @Test
     void theBuilderHoldsTheSlotOfTheToolItWears() {
         ItemKey shovel = shovelWork(9);
-        citizen.inventory().set(0, java.util.Optional.of(new ItemAmount(shovel, 1, 9))); // broken: never used
-        citizen.inventory().set(3, java.util.Optional.of(new ItemAmount(shovel, 1)));
+        citizen.inventory().set(0, Optional.of(new ItemAmount(shovel, 1, 9))); // broken: never used
+        citizen.inventory().set(3, Optional.of(new ItemAmount(shovel, 1)));
 
         tickUntil(() -> dirtLeft() == 2, 5000);
 
-        assertEquals(3, citizen.equipment().held(dev.hycolony.core.citizen.inventory.CitizenEquipment.Hand.MAIN));
+        assertEquals(3, citizen.equipment().held(CitizenEquipment.Hand.MAIN));
         assertEquals(1, citizen.inventory().slot(3).orElseThrow().damage(), "the slot held is the one worn");
     }
 

@@ -2,7 +2,6 @@ package dev.hycolony.core.citizen.sleep;
 
 import dev.hycolony.core.building.module.BuildingEventsModule;
 import dev.hycolony.core.citizen.CitizenData;
-import dev.hycolony.core.citizen.inventory.HeldItems;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.port.BodyId;
@@ -31,7 +30,7 @@ public final class SleepHandler {
         if (!bodies.sleepIn(body, bed)) {
             return false;
         }
-        HeldItems.holdItem(data, bodies, body, Optional.empty());
+        bodies.setHeldItem(body, Optional.empty()); // MC removeHeldItem: the entity's hand, not the held slot
         data.setAsleep(true);
         data.setBedPos(bed);
         colony.markDirty();

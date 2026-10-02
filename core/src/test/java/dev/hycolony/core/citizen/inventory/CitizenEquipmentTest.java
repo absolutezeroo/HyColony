@@ -20,9 +20,6 @@ class CitizenEquipmentTest {
 
         assertEquals(3, equipment.held(Hand.MAIN));
         assertEquals(0, equipment.held(Hand.OFF));
-        equipment.clearHands();
-        assertEquals(CitizenEquipment.NO_SLOT, equipment.held(Hand.MAIN));
-        assertEquals(CitizenEquipment.NO_SLOT, equipment.held(Hand.OFF));
     }
 
     @Test

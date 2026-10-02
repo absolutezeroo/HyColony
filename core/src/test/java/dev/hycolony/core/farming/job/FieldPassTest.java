@@ -313,8 +313,22 @@ class FieldPassTest extends FarmerTestBase {
 
         pass(FarmerState.FARMER_HOE);
 
-        assertEquals(2, citizen.equipment().held(CitizenEquipment.Hand.MAIN), "MC equipTool: the hoe it wears");
+        assertEquals(2, citizen.equipment().held(CitizenEquipment.Hand.MAIN), "MC equipHoe: the hoe it wears");
         assertEquals(8, citizen.inventory().slot(2).orElseThrow().damage());
+    }
+
+    @Test
+    void hoeBrokenOnTheLastCellEmptiesTheHandThoughAnotherHoeIsCarried() {
+        field(true);
+        settings().setFertilize(false);
+        int uses = t.catalog.durability(HOE);
+        citizen.inventory().set(0, Optional.of(new ItemAmount(HOE, 1, uses - 8))); // 8 uses left
+        citizen.inventory().set(3, Optional.of(new ItemAmount(HOE, 1)));
+
+        pass(FarmerState.FARMER_HOE);
+
+        assertEquals(null, t.bodies.bodies.get(body).held, "MC damageItemInHand; equipHoe only at the next cell");
+        assertEquals(0, citizen.equipment().held(CitizenEquipment.Hand.MAIN), "MC keeps the held slot");
     }
 
     @Test

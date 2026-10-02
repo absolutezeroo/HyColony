@@ -15,10 +15,12 @@ import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
-/** MC CitizenItemUtils.setHeldItem(hand, slot) and the body showing its armour (spec 2026-10-02, § 3). */
+/**
+ * MC CitizenItemUtils.setHeldItem(hand, slot), the dump releasing a stored held slot, and the body showing its armour
+ * (spec 2026-10-02, § 3).
+ */
 class HeldItemsTest {
     private static final ItemKey PICK = new ItemKey("Tool_Pickaxe_Iron");
-    private static final ItemKey SEEDS = new ItemKey("Plant_Seeds_Wheat");
     private static final ItemKey HELMET = new ItemKey("Armor_Iron_Head");
     private final FakeBodies bodies = new FakeBodies();
     private final BodyId body = bodies.spawn(new WorldKey("default"), new BlockPos(0, 64, 0), 1, 1, "Bob")
@@ -40,56 +42,41 @@ class HeldItemsTest {
     }
 
     @Test
-    void holdingAnItemOfTheInventoryPointsAtItsFirstSlot() {
-        d.inventory().set(5, Optional.of(new ItemAmount(SEEDS, 8)));
-        d.inventory().set(7, Optional.of(new ItemAmount(SEEDS, 2)));
+    void storingTheHeldSlotReleasesTheHandAndEmptiesTheBodys() {
+        d.inventory().set(3, Optional.of(new ItemAmount(PICK, 1)));
+        HeldItems.holdSlot(d, bodies, body, 3);
+        d.equipment().hold(Hand.OFF, 3);
 
-        HeldItems.holdItem(d, bodies, body, Optional.of(SEEDS));
-
-        assertEquals(5, d.equipment().held(Hand.MAIN));
-        assertEquals(SEEDS, shown().held);
-    }
-
-    @Test
-    void anItemNotInTheInventoryIsShownWithoutASlot() {
-        HeldItems.holdItem(d, bodies, body, Optional.of(PICK));
+        HeldItems.release(d, bodies, Optional.of(body), 3);
 
         assertEquals(CitizenEquipment.NO_SLOT, d.equipment().held(Hand.MAIN));
-        assertEquals(PICK, shown().held);
+        assertEquals(CitizenEquipment.NO_SLOT, d.equipment().held(Hand.OFF));
+        assertNull(shown().held);
     }
 
     @Test
-    void clearEmptiesTheHandAndItsSlot() {
+    void storingAnotherSlotLeavesTheHandAlone() {
         d.inventory().set(3, Optional.of(new ItemAmount(PICK, 1)));
         HeldItems.holdSlot(d, bodies, body, 3);
 
-        HeldItems.clear(d, bodies, body);
+        HeldItems.release(d, bodies, Optional.of(body), 5);
 
-        assertEquals(CitizenEquipment.NO_SLOT, d.equipment().held(Hand.MAIN));
-        assertNull(shown().held);
-    }
-
-    @Test
-    void aNewBodyShowsTheHeldSlotAndTheArmour() {
-        d.inventory().set(2, Optional.of(new ItemAmount(PICK, 1)));
-        d.equipment().hold(Hand.MAIN, 2);
-        d.equipment().armor().set(0, Optional.of(new ItemAmount(HELMET, 1)));
-
-        HeldItems.show(d, bodies, body);
-
+        assertEquals(3, d.equipment().held(Hand.MAIN));
         assertEquals(PICK, shown().held);
-        assertEquals(
-                List.of(Optional.of(new ItemAmount(HELMET, 1)), Optional.empty(), Optional.empty(), Optional.empty()),
-                shown().armor);
     }
 
     @Test
-    void aHeldSlotSinceEmptiedShowsAnEmptyHand() {
-        d.equipment().hold(Hand.MAIN, 4);
+    void theBodyWearsTheArmourWithItsWear() {
+        d.equipment().armor().set(0, Optional.of(new ItemAmount(HELMET, 1, 7)));
 
-        HeldItems.show(d, bodies, body);
+        HeldItems.showArmor(d, bodies, body);
 
-        assertNull(shown().held);
-        assertEquals(4, d.equipment().held(Hand.MAIN), "MC keeps the slot");
+        assertEquals(
+                List.of(
+                        Optional.of(new ItemAmount(HELMET, 1, 7)),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty()),
+                shown().armor);
     }
 }

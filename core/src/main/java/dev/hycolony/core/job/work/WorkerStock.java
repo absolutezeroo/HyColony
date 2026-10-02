@@ -2,6 +2,7 @@ package dev.hycolony.core.job.work;
 
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
+import dev.hycolony.core.citizen.inventory.HeldItems;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.Inventory;
@@ -151,13 +152,18 @@ public final class WorkerStock {
         return true;
     }
 
-    /** Stores all but {@code kept} of the stack {@code a} in {@code slot}; false when the hut could not take it all. */
+    /**
+     * Stores all but {@code kept} of the stack {@code a} in {@code slot}, releasing a hand that held it (MC
+     * dumpOneMoreSlot); false when the hut could not take it all.
+     */
     private boolean store(int slot, ItemAmount a, int kept, List<BlockPos> hc) {
         ItemAmount rest = containers.insert(hc, a.withCount(a.count() - kept));
         int stored = a.count() - kept - (rest == null ? 0 : rest.count());
         if (stored > 0) {
             inventory()
                     .set(slot, stored == a.count() ? Optional.empty() : Optional.of(a.withCount(a.count() - stored)));
+            HeldItems.release(
+                    citizen, colony.context().bodies(), colony.citizens().bodyOf(citizen.id()), slot);
         }
         return rest == null;
     }

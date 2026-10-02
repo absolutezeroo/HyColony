@@ -165,7 +165,7 @@ final class BuilderBlockWork {
         if (tool == null) {
             ctx.gestures().hold(null);
         } else {
-            ctx.gestures().holdSlot(toolSlot.getAsInt(), tool); // MC equipTool: the very slot it wears
+            ctx.gestures().holdSlot(toolSlot.getAsInt(), tool); // MC holdEfficientTool: the very slot it wears
         }
         ctx.gestures()
                 .startMining(
@@ -224,6 +224,8 @@ final class BuilderBlockWork {
         ctx.award(XP_PER_BLOCK);
         ctx.job().incrementActions();
         ctx.site().progress(stage, i + 1);
+        // Deviation from MC (asked for, a player's gesture): the hand shows the block just placed, its held slot left
+        // as it is; MC's entity keeps whatever it held (BuildingStructureHandler.getHeldItem reads it).
         ctx.gestures().hold(cost.isEmpty() ? null : cost.getFirst().item());
         ctx.gestures()
                 .startDelay(

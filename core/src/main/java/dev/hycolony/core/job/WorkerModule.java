@@ -137,7 +137,8 @@ public final class WorkerModule implements PersistentModule, TickingModule, Buil
 
     /**
      * {@code citizen} loses its job (MC AbstractJob.onRemoval, then the job and workplace cleared): the job lets go
-     * of its tasks, the citizen's hands empty and its armour goes back to its inventory ({@link EquipmentReturn}).
+     * of its tasks, its armour goes back to its inventory and its body's hands go empty, the held slots staying as MC
+     * ({@link EquipmentReturn}).
      */
     public static void free(Colony c, CitizenData citizen) {
         citizen.job().ifPresent(job -> job.onRemoval(c));

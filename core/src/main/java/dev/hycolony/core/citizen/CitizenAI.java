@@ -1,7 +1,6 @@
 package dev.hycolony.core.citizen;
 
 import dev.hycolony.core.citizen.food.CitizenEating;
-import dev.hycolony.core.citizen.inventory.HeldItems;
 import dev.hycolony.core.citizen.sleep.CitizenSleep;
 import dev.hycolony.core.citizen.sleep.SleepDecision;
 import dev.hycolony.core.citizen.vitals.AiWatch;
@@ -321,7 +320,7 @@ public final class CitizenAI {
         wander.restartWait(); // back to IDLE: the walk under way is waited for from now
         jobAI = null;
         aiJob = null;
-        HeldItems.holdItem(data, bodies, body, Optional.empty());
+        bodies.setHeldItem(body, Optional.empty()); // the entity's hand only: the held slot stays, as MC
         bodies.setMovementSpeed(body, 1);
     }
 

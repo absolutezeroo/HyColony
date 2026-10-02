@@ -233,14 +233,15 @@ public final class CitizenManager {
 
     /**
      * Binds {@code body} to its citizen, with a fresh AI and an IDLE job status (MC initEntityValues); the body shows
-     * the citizen's armour and held slot, as MC's entity renders its InventoryCitizen.
+     * the citizen's armour, which MC's entity draws from its InventoryCitizen. Its hand is the body's own, as MC's
+     * entity's: the AI fills it at its next gesture.
      */
     private void bind(CitizenData data, BodyId body) {
         failedRespawns.bodied(data.id());
         data.resetJobStatus();
         bodies.put(data.id(), body);
         ais.put(data.id(), new CitizenAI(colony, data, body));
-        HeldItems.show(data, ctx().bodies(), body);
+        HeldItems.showArmor(data, ctx().bodies(), body);
     }
 
     /** A body tagged with this colony was loaded into the world. */

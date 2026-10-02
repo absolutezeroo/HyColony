@@ -146,13 +146,14 @@ class EatAITest {
     }
 
     @Test
-    void anEatingCitizenHoldsTheSlotOfItsFood() {
+    void anEatingCitizenShowsItsFoodAndKeepsItsHeldSlot() {
         citizen.inventory().set(5, Optional.of(new ItemAmount(apple, 20)));
+        citizen.equipment().hold(CitizenEquipment.Hand.MAIN, 2);
         start(2);
 
         tickUntil(() -> apple.equals(t.bodies.bodies.get(body).held));
 
-        assertEquals(5, citizen.equipment().held(CitizenEquipment.Hand.MAIN), "MC setHeldItem(MAIN_HAND, foodSlot)");
+        assertEquals(2, citizen.equipment().held(CitizenEquipment.Hand.MAIN), "MC EntityAIEatTask: setItemInHand only");
     }
 
     @Test

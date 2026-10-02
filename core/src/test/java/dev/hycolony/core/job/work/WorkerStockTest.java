@@ -2,6 +2,7 @@ package dev.hycolony.core.job.work;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.app.ColonyManager;
@@ -9,12 +10,15 @@ import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.building.module.ModuleProducer;
 import dev.hycolony.core.citizen.CitizenData;
+import dev.hycolony.core.citizen.inventory.CitizenEquipment;
+import dev.hycolony.core.citizen.inventory.HeldItems;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolInfo;
 import dev.hycolony.core.kernel.item.ToolType;
+import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.logistics.courier.DeliverymanHut;
 import dev.hycolony.core.logistics.pickup.KeepToolsModule;
 import dev.hycolony.core.testing.TestContexts;
@@ -52,6 +56,20 @@ class WorkerStockTest {
         t.catalog.tools.put(PICK, new ToolInfo(ToolType.PICKAXE, 1, 1f));
         t.catalog.tools.put(IRON_PICK, new ToolInfo(ToolType.PICKAXE, 0, 1f));
         t.catalog.tools.put(DIAMOND_PICK, new ToolInfo(ToolType.PICKAXE, 5, 1f));
+    }
+
+    @Test
+    void dumpingTheHeldSlotReleasesTheHand() {
+        assertTrue(colony.citizens().respawnBody(citizen.id()));
+        BodyId body = colony.citizens().bodyOf(citizen.id()).orElseThrow();
+        citizen.inventory().set(0, Optional.of(new ItemAmount(LOG, 20)));
+        HeldItems.holdSlot(citizen, t.bodies, body, 0);
+
+        stock.dumpKeepingHutRules(true);
+
+        assertEquals(0, citizen.inventory().count(LOG));
+        assertEquals(CitizenEquipment.NO_SLOT, citizen.equipment().held(CitizenEquipment.Hand.MAIN), "MC dump");
+        assertNull(t.bodies.bodies.get(body).held);
     }
 
     @Test

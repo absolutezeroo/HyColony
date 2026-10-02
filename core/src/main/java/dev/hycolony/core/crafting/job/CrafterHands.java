@@ -37,9 +37,10 @@ final class CrafterHands {
     }
 
     /**
-     * MC craft's hit: the tool in {@code toolSlot} in hand (MC also puts an ingredient in the other hand), else one of
-     * the ingredients at random (MC also puts the output in the other hand); then the crafter faces the bench, swings
-     * and hits it, {@code done} of the run made (0 to 1).
+     * MC craft's hit (AbstractEntityAICrafting l. 535-546): holds the slot {@code toolSlot} of its tool (setHeldItem),
+     * else shows one of the ingredients at random in hand, the held slot left as it is (setItemInHand); then the
+     * crafter faces the bench, swings and hits it, {@code done} of the run made (0 to 1). Deviation from MC: nothing in
+     * the other hand (see the class), where MC shows an ingredient or the output.
      */
     void hit(Recipe recipe, OptionalInt toolSlot, float done) {
         BlockPos at = workBlock(recipe);
@@ -53,7 +54,7 @@ final class CrafterHands {
         ctx.colony().context().ports().effects().blockHit(at, done);
     }
 
-    /** MC resetValues: empty hands. */
+    /** MC resetValues: the body's hands empty (setItemInHand), the held slot left as it is. */
     void clear() {
         hands.hold(Optional.empty());
     }

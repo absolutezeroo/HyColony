@@ -1,6 +1,7 @@
 package dev.hycolony.core.job.work;
 
 import dev.hycolony.core.citizen.CitizenData;
+import dev.hycolony.core.citizen.inventory.CitizenEquipment;
 import dev.hycolony.core.citizen.inventory.HeldItems;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
@@ -13,9 +14,9 @@ import java.util.Optional;
 import java.util.OptionalInt;
 
 /**
- * What a worker visibly does with its body, for every job (MC CitizenItemUtils.setHeldItem, WorkerUtil.faceBlock and
- * swing): the item in its hand (kept as its inventory slot, {@link HeldItems}), the block it faces and the gesture it
- * plays.
+ * What a worker visibly does with its body, for every job (MC CitizenItemUtils.setHeldItem, setItemInHand,
+ * WorkerUtil.faceBlock and swing): the slot it holds ({@link HeldItems}), the item its hand shows, the block it faces
+ * and the gesture it plays.
  */
 public final class WorkerHands {
     private final CitizenBodies bodies;
@@ -28,20 +29,24 @@ public final class WorkerHands {
         this.citizen = citizen;
     }
 
-    /** MC setHeldItem: {@code item} in the main hand (its first inventory slot), an empty hand when absent. */
+    /**
+     * MC setItemInHand (and removeHeldItem): the body shows {@code item} in its main hand, an empty hand when absent;
+     * the held slot is left as it is.
+     */
     public void hold(Optional<ItemKey> item) {
-        HeldItems.holdItem(citizen, bodies, body, item);
+        bodies.setHeldItem(body, item);
     }
 
     /**
-     * MC equipTool, setHeldItem(hand, slot): the slot of the tool of {@code type} that {@code stock} would use in
-     * hand, an empty hand without one.
+     * MC EntityAIWorkFarmer.equipHoe, setHeldItem(MAIN_HAND, getHoeSlot()): holds the slot of the tool of {@code type}
+     * that {@code stock} would use; without one, no slot (MC's -1) and an empty hand.
      */
     public void holdTool(WorkerStock stock, ToolType type) {
         OptionalInt slot = stock.toolInInventory(type);
         if (slot.isPresent()) {
             holdSlot(slot.getAsInt());
         } else {
+            citizen.equipment().hold(CitizenEquipment.Hand.MAIN, CitizenEquipment.NO_SLOT);
             hold(Optional.empty());
         }
     }

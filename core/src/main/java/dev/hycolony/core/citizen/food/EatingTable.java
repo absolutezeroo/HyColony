@@ -1,7 +1,6 @@
 package dev.hycolony.core.citizen.food;
 
 import dev.hycolony.core.citizen.CitizenData;
-import dev.hycolony.core.citizen.inventory.HeldItems;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
@@ -76,7 +75,7 @@ final class EatingTable {
         if (stack == null || !FoodRules.canEat(colony, data, stack.item())) {
             return Bite.NOT_EDIBLE;
         }
-        HeldItems.holdSlot(data, bodies, body, foodSlot); // MC setHeldItem(MAIN_HAND, foodSlot)
+        bodies.setHeldItem(body, Optional.of(stack.item())); // MC setItemInHand: the held slot is left as it is
         bodies.playAnimation(body, BodyAnimation.EAT);
         Meals.crumbs(colony, body);
         if (++waiting < EatAI.REQUIRED_TIME_TO_EAT) {
@@ -102,7 +101,7 @@ final class EatingTable {
         data.inventory()
                 .set(foodSlot, stack.count() > 1 ? Optional.of(stack.withCount(stack.count() - 1)) : Optional.empty());
         Meals.eat(colony, data, food);
-        HeldItems.holdItem(data, bodies, body, Optional.empty());
+        bodies.setHeldItem(body, Optional.empty()); // MC: the entity's hand only
     }
 
     /** MC: the meal's foods go in its history, but not twice in a row; it is "just ate". */
@@ -122,6 +121,6 @@ final class EatingTable {
         foodSlot = -1;
         waiting = 0;
         eaten.clear();
-        HeldItems.holdItem(data, bodies, body, Optional.empty());
+        bodies.setHeldItem(body, Optional.empty()); // MC: the entity's hand only
     }
 }

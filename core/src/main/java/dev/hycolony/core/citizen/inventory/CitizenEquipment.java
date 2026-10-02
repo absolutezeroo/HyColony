@@ -62,10 +62,4 @@ public final class CitizenEquipment {
             off = slot;
         }
     }
-
-    /** Both hands empty. */
-    public void clearHands() {
-        main = NO_SLOT;
-        off = NO_SLOT;
-    }
 }

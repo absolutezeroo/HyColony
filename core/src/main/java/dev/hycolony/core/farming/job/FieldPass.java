@@ -134,7 +134,8 @@ final class FieldPass {
         ItemKey tool =
                 ctx.stock().inventory().slot(hoe.getAsInt()).orElseThrow().item();
         if (ctx.stock().inventory().damage(hoe.getAsInt(), 1, catalog().durability(tool))) {
-            ctx.hands().holdTool(ctx.stock(), ToolType.HOE); // worn out: another hoe, or an empty hand
+            // MC damageItemInHand: the broken hoe leaves the hand empty; equipHoe takes the next one at the next cell
+            ctx.hands().hold(Optional.empty());
         }
         ctx.job().decreaseSaturationForContinuousAction(); // MC EntityAIWorkFarmer, after tilling
         fertilize(surface);
