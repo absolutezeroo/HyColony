@@ -34,7 +34,7 @@ class CitizenWanderTest extends WanderFixture {
 
     /**
      * MC setCurrentDelay(60 * 20) on the decision: its countdown is frozen during the leisure states, so the next
-     * wander decision comes 1200 IDLE ticks after the leisure walk ends.
+     * wander decision comes 1200 IDLE ticks after the leisure walk ends (here the twelfth call, 1101 to 1200).
      */
     @Test
     void theNextWanderDecisionWaitsAMinuteAfterTheLeisure() {
@@ -54,7 +54,7 @@ class CitizenWanderTest extends WanderFixture {
         rolls.ints.clear();
         rolls.ints.add(5);
         wander.wander();
-        assertEquals(moves + 1, t.bodies.moves.size(), "the twelfth, 1200 ticks on");
+        assertEquals(moves + 1, t.bodies.moves.size(), "the twelfth call, within 1200 ticks");
     }
 
     @Test

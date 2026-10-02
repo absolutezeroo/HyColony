@@ -27,7 +27,10 @@ import org.jspecify.annotations.Nullable;
  * walk under way (MC's walkToPos stops it; the body port has no stop).
  */
 final class LeisureWalk {
-    /** MC goToLeisureSite: walkToPos(citizen, leisureSite, 3, true), arrived within that many blocks once stopped. */
+    /**
+     * MC goToLeisureSite: walkToPos(citizen, leisureSite, 3, true), arrived within that many blocks once stopped. All
+     * distances here are from block to block, as MC's BlockPosUtil.dist and PathJobRandomPos distSqr.
+     */
     private static final int ARRIVED_BLOCKS = 3;
     /** MC EntityNavigationUtils.walkToPos: before any walk, already there within REACHED_DIST blocks. */
     private static final double REACHED_DIST = 1.5;
@@ -107,7 +110,7 @@ final class LeisureWalk {
         }
         if (goingSince == NOT_STARTED) {
             goingSince = now;
-            if (here.get().distance(Vec3.center(to)) <= REACHED_DIST) {
+            if (here.get().toBlockPos().distSq(to) <= REACHED_DIST * REACHED_DIST) {
                 atSite = true;
             } else {
                 bodies.moveTo(body, Vec3.center(to));
@@ -115,7 +118,7 @@ final class LeisureWalk {
         } else if (now - goingSince >= CitizenWander.WANDER_TIMEOUT_TICKS) {
             stop();
         } else if (bodies.navStatus(body) != NavStatus.MOVING) {
-            if (here.get().distance(Vec3.center(to)) <= ARRIVED_BLOCKS) {
+            if (here.get().toBlockPos().distSq(to) <= (long) ARRIVED_BLOCKS * ARRIVED_BLOCKS) {
                 atSite = true;
             } else {
                 bodies.moveTo(body, Vec3.center(to));
@@ -152,7 +155,7 @@ final class LeisureWalk {
             int x = box.min().x() + random.nextInt(box.max().x() - box.min().x() + 1);
             int z = box.min().z() + random.nextInt(box.max().z() - box.min().z() + 1);
             BlockPos spot = new BlockPos(x, y, z);
-            if (here.get().distance(Vec3.center(spot)) > STROLL_MIN_BLOCKS
+            if (here.get().toBlockPos().distSq(spot) > (long) STROLL_MIN_BLOCKS * STROLL_MIN_BLOCKS
                     && !danger.near(spot, CitizenWander.WANDER_DANGER_HALF_HEIGHT)) {
                 return Optional.of(spot);
             }
