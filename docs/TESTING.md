@@ -544,3 +544,9 @@ Spec `docs/superpowers/specs/2026-10-02-hylens-livre-mc-design.md`. Un opérateu
 325. **La case gardée.** Taper X Y Z dans « Envoyer ici », ouvrir l'onglet Vue, revenir à Citoyens : la case tapée est toujours là. « Envoyer » envoie le citoyen ; « Par la carte » arme la carte et ferme le livre.
 326. **Vue.** Les quatre dessins se cochent ; « Contrôler toutes les 2 s » se coche ; Pause, -, +, Avancer, Reprendre pilotent l'horloge comme avant.
 327. **Le menu se souvient.** Fermer le livre sur l'onglet Vue, le rouvrir : il s'ouvre sur Vue.
+328. **Caméra libre.** Suivre un citoyen depuis le menu, rouvrir `/hylens menu` sur Citoyens : à la place de « Suivre », « Caméra libre » et « Arrêter le suivi ». « Caméra libre » ferme le livre : on vole et traverse les blocs, le HUD et les dessins continuent, message « Caméra libre… ».
+329. **Reprendre.** `/hylens menu` : le bouton dit « Reprendre le suivi » ; il ferme le livre et la caméra revient derrière le citoyen.
+330. **Corps perdu.** En caméra libre, s'éloigner jusqu'à décharger le citoyen (ou le tuer) : « Reprendre le suivi » refuse avec « Le corps de … n'est pas chargé… », le livre reste ouvert, le HUD reste.
+331. **Autre citoyen.** En caméra libre, choisir un autre citoyen et « Suivre » : la caméra le suit.
+332. **Arrêter.** « Arrêter le suivi » : retour au mode de jeu normal, HUD retiré, le livre reste ouvert et montre « Suivre ». `/hylens unwatch` fait toujours de même.
+333. **Déconnexion.** Se déconnecter en caméra libre, se reconnecter : mode de jeu normal.

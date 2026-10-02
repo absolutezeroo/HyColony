@@ -70,6 +70,7 @@ final class MenuPage extends InteractiveCustomUIPage<MenuPage.Data> {
     private final MenuClock clock;
     private final MenuChecks checks;
     private final MenuSend send;
+    private final MenuWatchClicks watchClicks;
     private final MenuEvents events = new MenuEvents();
     private Optional<ApiText> result = Optional.empty();
 
@@ -81,6 +82,7 @@ final class MenuPage extends InteractiveCustomUIPage<MenuPage.Data> {
         this.clock = parts.clock();
         this.checks = new MenuChecks(parts.menus(), parts.alerts());
         this.send = send;
+        this.watchClicks = new MenuWatchClicks(watch, parts.watches());
     }
 
     @Override
@@ -92,7 +94,12 @@ final class MenuPage extends InteractiveCustomUIPage<MenuPage.Data> {
         ui.append(MenuRender.PAGE);
         view(store)
                 .ifPresentOrElse(
-                        v -> MenuRender.render(ui, events, v, result, send.shown(MenuActions.feet(ref, store), false)),
+                        v -> MenuRender.render(
+                                ui,
+                                events,
+                                v,
+                                result,
+                                send.shown(MenuActions.feet(ref, store), watch.cameraFree(store, ref))),
                         () -> MenuRender.only(ui, ApiText.of("hylens.notRunning")));
     }
 
@@ -123,15 +130,16 @@ final class MenuPage extends InteractiveCustomUIPage<MenuPage.Data> {
         }
         if ("send".equals(data.action)) {
             result = Optional.of(send.toCell(playerRef, store.getExternalData().getWorld()));
-        } else if (!"watch".equals(data.action)) {
+        } else if (!MenuClicks.WATCH.contains(data.action)) {
             dispatch(data.action, Objects.requireNonNullElse(data.index, ""), v.get(), ref, store);
         }
         rebuild();
     }
 
     /**
-     * Handles the clicks that may close the page: "watch" closes it once the watch started, "sendMap" arms the map
-     * and closes the page so the operator can open the map. True once closed.
+     * Handles the clicks that may close the page: "sendMap" arms the map and closes it so the operator can open the
+     * map; a watch click on the chosen citizen ({@link MenuWatchClicks}) closes it once the camera follows or is free,
+     * and asks to choose a citizen first when none is. True once closed.
      */
     private boolean closing(String action, MenuView v, Ref<EntityStore> ref, Store<EntityStore> store) {
         if ("sendMap".equals(action)) {
@@ -139,7 +147,21 @@ final class MenuPage extends InteractiveCustomUIPage<MenuPage.Data> {
             close();
             return true;
         }
-        return "watch".equals(action) && startWatch(v, ref, store);
+        if (!MenuClicks.WATCH.contains(action)) {
+            return false;
+        }
+        boolean closed = v.citizens().stream()
+                .filter(MenuView.CitizenRow::chosen)
+                .findFirst()
+                .map(c -> watchClicks.run(action, playerRef, c, ref, store))
+                .orElseGet(() -> {
+                    result = Optional.of(ApiText.of("hylens.action.noneChosen"));
+                    return false;
+                });
+        if (closed) {
+            close();
+        }
+        return closed;
     }
 
     /**
@@ -163,7 +185,7 @@ final class MenuPage extends InteractiveCustomUIPage<MenuPage.Data> {
         }
     }
 
-    /** Handles every click but "watch": a choice, the clock, the checks, or an action on the chosen citizen. */
+    /** Handles every click but the watch's: a choice, the clock, the checks, or an action on the chosen citizen. */
     private void dispatch(String action, String index, MenuView v, Ref<EntityStore> ref, Store<EntityStore> store) {
         UUID operator = playerRef.getUuid();
         if (MenuClicks.CHOICES.contains(action)) {
@@ -195,24 +217,5 @@ final class MenuPage extends InteractiveCustomUIPage<MenuPage.Data> {
 
     private static Optional<ColonyWorld> colonies(Store<EntityStore> store) {
         return HyColonyAccess.world(store.getExternalData().getWorld());
-    }
-
-    /**
-     * Watches the chosen citizen, then closes the page once the watch started; else the page stays open, the reason in
-     * the chat, or asks to choose a citizen first. True once closed.
-     */
-    private boolean startWatch(MenuView v, Ref<EntityStore> ref, Store<EntityStore> store) {
-        Optional<MenuView.CitizenRow> chosen =
-                v.citizens().stream().filter(MenuView.CitizenRow::chosen).findFirst();
-        if (chosen.isEmpty()) {
-            result = Optional.of(ApiText.of("hylens.action.noneChosen"));
-            return false;
-        }
-        watch.start(playerRef, store, ref, chosen.get().ref(), chosen.get().name());
-        if (watches.watched(playerRef.getUuid()).equals(Optional.of(chosen.get().ref()))) {
-            close();
-            return true;
-        }
-        return false;
     }
 }

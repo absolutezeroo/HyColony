@@ -31,7 +31,7 @@ public final class HyLensCommand extends AbstractCommandCollection {
         addSubCommand(new SelfTest());
         CitizenWatch watch = new CitizenWatch(owner, parts.watches(), parts.ids());
         addSubCommand(new WatchCommand(watch));
-        addSubCommand(new UnwatchCommand(parts.watches()));
+        addSubCommand(new UnwatchCommand(watch));
         addSubCommand(new MenuCommand(parts, watch, map));
         addSubCommand(new CheckCommand());
         addSubCommand(new AutoCheckCommand(parts.menus(), parts.alerts()));
