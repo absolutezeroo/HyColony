@@ -141,8 +141,8 @@ public final class WatchHudView {
         return p.x() + " " + p.y() + " " + p.z();
     }
 
-    /** {@code value} with one decimal, whatever the locale. */
-    private static String tenth(double value) {
+    /** {@code value} with one decimal, whatever the locale; the menu shows saturation the same way. */
+    public static String tenth(double value) {
         return String.format(Locale.ROOT, "%.1f", value);
     }
 

@@ -5,6 +5,7 @@ import dev.hycolony.api.CitizenRef;
 import dev.hycolony.api.ColonyRef;
 import dev.hycolony.api.Pos;
 import dev.hylens.core.draw.Layers;
+import dev.hylens.core.hud.WatchHudView;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -80,5 +81,10 @@ public record MenuView(
             Optional<Saturation> saturation) {}
 
     /** A citizen's saturation, as HyColony read it, and its maximum (spec 2026-10-02 lot 2, § 5). */
-    public record Saturation(double value, double max) {}
+    public record Saturation(double value, double max) {
+        /** What the menu shows: the value with one decimal, as the watch panel, out of the whole maximum. */
+        public ApiText text() {
+            return ApiText.of("hylens.menu.saturation", WatchHudView.tenth(value), String.valueOf((int) max));
+        }
+    }
 }

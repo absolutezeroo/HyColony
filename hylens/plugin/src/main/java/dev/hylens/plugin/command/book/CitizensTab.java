@@ -6,7 +6,6 @@ import dev.hylens.core.menu.MenuView;
 import dev.hylens.core.menu.SaturationStep;
 import dev.hylens.plugin.watch.ApiMessages;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -66,11 +65,7 @@ final class CitizensTab {
      */
     private static void saturation(UICommandBuilder ui, MenuBinds binds, Optional<MenuView.Saturation> saturation) {
         ui.set("#SaturationRow.Visible", saturation.isPresent());
-        saturation.ifPresent(s -> ui.set(
-                "#Saturation.TextSpans",
-                Message.translation("hylens.menu.saturation")
-                        .param("p0", String.format(Locale.ROOT, "%.1f", s.value()))
-                        .param("p1", String.valueOf((int) s.max()))));
+        saturation.ifPresent(s -> ui.set("#Saturation.TextSpans", ApiMessages.of(s.text())));
         SATURATION_BUTTONS.forEach((step, button) -> binds.on(button, "saturation", step.name()));
     }
 
