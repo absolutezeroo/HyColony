@@ -34,18 +34,19 @@ class CitizenInventoryViewTest {
     }
 
     @Test
-    void aLivingBodyGivesItsHealthOnMcsScaleAndItsDefense() {
+    void aLivingBodyGivesItsHealthAndMaximumAndItsDefense() {
         BodyId body = t.bodies.existing(1, 1, new Vec3(0, 64, 0));
         colony.citizens().onBodyLoaded(body, d.id());
-        t.bodies.bodies.get(body).healthPercent = 50;
+        t.bodies.bodies.get(body).health = 13.6;
+        t.bodies.bodies.get(body).maxHealth = 24;
         t.bodies.bodies.get(body).defensePercent = 24;
         d.setSaturation(30.7);
 
         CitizenInventoryView v = CitizenInventoryView.of(colony, d);
 
         assertEquals("Bob", v.name());
-        assertEquals(10, v.health(), "MC CitizenDataView: health on 20");
-        assertEquals(CitizenData.MC_MAX_HEALTH, v.maxHealth());
+        assertEquals(13, v.health(), "MC CitizenDataView.getHealth: the entity's own, cast as MC casts it");
+        assertEquals(24, v.maxHealth(), "MC CitizenDataView.getMaxHealth");
         assertEquals(24, v.defensePercent());
         assertEquals(30, v.saturation());
         assertEquals(60, v.maxSaturation(), "MC ICitizenData.MAX_SATURATION");
@@ -56,6 +57,21 @@ class CitizenInventoryViewTest {
         CitizenInventoryView v = CitizenInventoryView.of(colony, d);
 
         assertEquals(CitizenData.MC_MAX_HEALTH, v.health(), "MC: MAX_HEALTH without its entity");
+        assertEquals(CitizenData.MC_MAX_HEALTH, v.maxHealth());
+        assertEquals(0, v.defensePercent());
+    }
+
+    @Test
+    void aDeadOrUnloadedBodyCountsAsNone() {
+        BodyId body = t.bodies.existing(1, 1, new Vec3(0, 64, 0));
+        colony.citizens().onBodyLoaded(body, d.id());
+        t.bodies.bodies.get(body).health = 3;
+        t.bodies.bodies.get(body).defensePercent = 24;
+        t.bodies.bodies.get(body).alive = false;
+
+        CitizenInventoryView v = CitizenInventoryView.of(colony, d);
+
+        assertEquals(CitizenData.MC_MAX_HEALTH, v.health());
         assertEquals(0, v.defensePercent());
     }
 
@@ -74,6 +90,7 @@ class CitizenInventoryViewTest {
 
     @Test
     void aHandHoldingNoSlotOrAnEmptiedOneShowsNothing() {
+        d.inventory().set(0, Optional.of(new ItemAmount(TORCH, 3))); // not what a hand holding no slot shows
         d.equipment().hold(Hand.MAIN, 4);
 
         CitizenInventoryView v = CitizenInventoryView.of(colony, d);

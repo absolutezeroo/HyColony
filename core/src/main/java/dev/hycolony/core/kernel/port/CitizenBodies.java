@@ -22,8 +22,8 @@ public interface CitizenBodies {
     int healthPercent(BodyId body);
 
     /**
-     * The share of physical damage the armour the body wears takes off, in percent rounded down, as the game's own
-     * armour reduction counts it; 0 for a body not alive in a loaded world.
+     * The share of physical damage the body's armour and active effects take off, in percent rounded down (0 to 100),
+     * from the game's own percent resistances; flat ones are left out. 0 for a body not alive in a loaded world.
      */
     int defensePercent(BodyId body);
 
