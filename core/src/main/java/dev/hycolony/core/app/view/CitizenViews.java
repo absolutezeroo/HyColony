@@ -100,10 +100,10 @@ final class CitizenViews {
     /**
      * The body's health on MC's 20 points for the hearts, truncated; full without a living body, as MC
      * CitizenDataView.getHealth gives MAX_HEALTH without its entity. Deviation from MC (Hytale world): MC casts the
-     * entity's own health, whose base maximum is 20 (raised by MC's HEALTH_BOOST research and its guards' health
-     * bonuses, AbstractJobGuard.initEntityValues and JobKnight, none ported) → the body's share of its Hytale maximum,
-     * so that a whole body fills the 10 hearts (above 20, MC CitizenWindowUtils.createHealthBar draws hearts of another
-     * kind).
+     * entity's own health, whose base maximum is 20 (changed by MC's HEALTH_BOOST research and by its guards' health
+     * modifiers, AbstractJobGuard and the guard jobs and buildings, none ported) → the body's share of its Hytale
+     * maximum, so that a whole body fills the 10 hearts (above 20, MC CitizenWindowUtils.createHealthBar draws hearts
+     * of another kind).
      */
     private int health(Colony c, CitizenData d) {
         return c.citizens()
