@@ -9,7 +9,6 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.NPCPlugin;
-import com.hypixel.hytale.server.npc.movement.NavState;
 import com.hypixel.hytale.server.npc.role.Role;
 import com.hypixel.hytale.server.npc.role.support.DisplayNameSupport;
 import com.hypixel.hytale.server.spawning.SpawnTestResult;
@@ -37,6 +36,7 @@ import dev.hycolony.plugin.npc.body.BodyVitals;
 import dev.hycolony.plugin.npc.body.CitizenSpeed;
 import dev.hycolony.plugin.npc.body.HytaleBodyHealth;
 import dev.hycolony.plugin.npc.body.HytaleBodySeats;
+import dev.hycolony.plugin.npc.motion.BodyWalks;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.LongSupplier;
@@ -45,9 +45,6 @@ import org.joml.Vector3d;
 
 /** CitizenBodies over Hytale NPCs. World thread only. */
 public final class HytaleCitizenBodies implements CitizenBodies {
-    /** World ticks after moveTo during which a stale AT_GOAL etc. is ignored. */
-    private static final long FRESH_MOVE_TICKS = 10;
-
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
     private final World world;
@@ -60,6 +57,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
     private final HytaleBodySeats seats;
     private final HytaleStacks stacks;
     private final BodyRefs refs = new BodyRefs();
+    private final BodyWalks walks;
     private boolean speedWarned;
 
     /**
@@ -77,6 +75,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
         this.vitals = new BodyVitals(world, coreTicks);
         this.health = new HytaleBodyHealth(world, refs::entity, vitals, speeds);
         this.seats = new HytaleBodySeats(world, refs::entity);
+        this.walks = new BodyWalks(world);
     }
 
     /** The bodies' health port, on the same Health stats and speeds as these bodies. */
@@ -105,10 +104,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
     public void haltAll() {
         for (Ref<EntityStore> ref : refs.all()) {
             if (ref.isValid()) {
-                MoveTarget mt = store().getComponent(ref, HyColonyComponents.moveTarget());
-                if (mt != null) {
-                    mt.active = false;
-                }
+                walks.stop(ref);
             }
         }
     }
@@ -176,17 +172,21 @@ public final class HytaleCitizenBodies implements CitizenBodies {
     @Override
     public void moveTo(BodyId body, Vec3 target) {
         Ref<EntityStore> ref = refs.ref(body);
-        if (ref == null) {
-            return;
+        if (ref != null) {
+            walks.walkTo(ref, target);
         }
-        MoveTarget mt = store().getComponent(ref, HyColonyComponents.moveTarget());
-        if (mt == null) {
-            mt = new MoveTarget();
-            store().addComponent(ref, HyColonyComponents.moveTarget(), mt);
+    }
+
+    /**
+     * Climbs the body straight up or down to {@code to} ({@link BodyWalks#climbTo}): the mechanics the ported
+     * pathfinding will use for ladders (spec 2026-10-03-hycolony-nage-echelles § 5); until then, the selftest's.
+     * Nothing for an unknown body.
+     */
+    public void climb(BodyId body, Vec3 to) {
+        Ref<EntityStore> ref = refs.ref(body);
+        if (ref != null) {
+            walks.climbTo(ref, to);
         }
-        mt.target.set(target.x(), target.y(), target.z());
-        mt.active = true;
-        mt.sinceTick = world.getTick();
     }
 
     /** The waypoints its HyColonySeek still walks; empty for another body motion, or an unknown body. */
@@ -202,33 +202,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
     @Override
     public NavStatus navStatus(BodyId body) {
         Ref<EntityStore> ref = refs.ref(body);
-        if (ref == null) {
-            return NavStatus.FAILED;
-        }
-        MoveTarget mt = store().getComponent(ref, HyColonyComponents.moveTarget());
-        if (mt == null || !mt.active) {
-            return NavStatus.IDLE;
-        }
-        if (world.getTick() - mt.sinceTick < FRESH_MOVE_TICKS) {
-            return NavStatus.MOVING; // the nav state still describes the previous goal
-        }
-        Role role = BodyTeleport.role(store(), ref);
-        if (role == null) {
-            return NavStatus.FAILED; // no longer an NPC: nothing will move it
-        }
-        NavState state = role.getActiveMotionController().getNavState();
-        // Every NavState: INIT ("doing nothing"), PROGRESSING and DEFER may last forever (e.g. a Seek goal more than
-        // 1 block above the feet is never AT_GOAL): the core's stuck handler watches the position, not this.
-        NavStatus status = switch (state) {
-            case AT_GOAL -> NavStatus.ARRIVED;
-            case BLOCKED -> NavStatus.BLOCKED;
-            case ABORTED -> NavStatus.FAILED;
-            case INIT, PROGRESSING, DEFER -> NavStatus.MOVING;
-        };
-        if (status != NavStatus.MOVING) {
-            mt.active = false;
-        }
-        return status;
+        return ref == null ? NavStatus.FAILED : walks.status(ref);
     }
 
     @Override
@@ -303,10 +277,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
         if (ref == null) {
             return;
         }
-        MoveTarget mt = store().getComponent(ref, HyColonyComponents.moveTarget());
-        if (mt != null) {
-            mt.active = false;
-        }
+        walks.stop(ref);
         BodyGestures.lookAt(ref, target, store());
     }
 

@@ -12,15 +12,23 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 
-/** Selftest steps of a citizen body: spawn one next to the player, walk it 3 blocks, despawn it. */
+/**
+ * Selftest steps of a citizen body: spawn one next to the player, walk it 3 blocks, climb it 3 blocks up then down in
+ * place (the mechanics the ported pathfinding will use for ladders), despawn it.
+ */
 final class BodySelfTest {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
+    /** Blocks the body climbs up, then down. */
+    private static final int CLIMB_BLOCKS = 3;
 
     private BodySelfTest() {}
 
-    /** Reports "spawn" at once and "move" once the body arrives, stops, or has walked for 15 s. */
+    /**
+     * Reports "spawn" at once, then "move", "climb up" and "climb down" as each ends: arrived, stopped, or after 15 s.
+     */
     static void run(SelfTestReport report, WorldRuntime rt, World world, BlockPos at) {
         // Tag (-1, -1): if this body survives a crash, onBodyLoaded finds no colony -1 and despawns it.
         Optional<BodyId> body =
@@ -29,21 +37,37 @@ final class BodySelfTest {
         body.ifPresent(b -> {
             Vec3 start = rt.bodies().position(b).orElseThrow();
             rt.bodies().moveTo(b, new Vec3(start.x() + 3, start.y(), start.z()));
-            long[] waited = {0};
-            boolean[] scheduleWarned = {false};
-            Runnable[] poll = new Runnable[1];
-            poll[0] = () -> {
-                NavStatus s = rt.bodies().navStatus(b);
-                waited[0] += 500;
-                if (s == NavStatus.MOVING && waited[0] < 15_000) {
-                    scheduleLogged(world, poll[0], scheduleWarned);
-                    return;
-                }
-                report.line("move", s == NavStatus.ARRIVED, s.name());
-                rt.bodies().despawn(b);
-            };
-            scheduleLogged(world, poll[0], scheduleWarned);
+            await(world, rt, b, moved -> {
+                report.line("move", moved == NavStatus.ARRIVED, moved.name());
+                Vec3 foot = rt.bodies().position(b).orElse(start);
+                rt.bodies().climb(b, new Vec3(foot.x(), foot.y() + CLIMB_BLOCKS, foot.z()));
+                await(world, rt, b, up -> {
+                    report.line("climb up", up == NavStatus.ARRIVED, up.name());
+                    rt.bodies().climb(b, foot);
+                    await(world, rt, b, down -> {
+                        report.line("climb down", down == NavStatus.ARRIVED, down.name());
+                        rt.bodies().despawn(b);
+                    });
+                });
+            });
         });
+    }
+
+    /** Polls the body's walk status every 500 ms, and gives it to {@code then} once not MOVING, or after 15 s. */
+    private static void await(World world, WorldRuntime rt, BodyId b, Consumer<NavStatus> then) {
+        long[] waited = {0};
+        boolean[] scheduleWarned = {false};
+        Runnable[] poll = new Runnable[1];
+        poll[0] = () -> {
+            NavStatus s = rt.bodies().navStatus(b);
+            waited[0] += 500;
+            if (s == NavStatus.MOVING && waited[0] < 15_000) {
+                scheduleLogged(world, poll[0], scheduleWarned);
+                return;
+            }
+            then.accept(s);
+        };
+        scheduleLogged(world, poll[0], scheduleWarned);
     }
 
     /**
