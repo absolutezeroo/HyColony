@@ -4,10 +4,10 @@ import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.food.FoodRules;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.kernel.catalog.FoodCatalog;
 import dev.hycolony.core.kernel.item.FoodInfo;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
-import dev.hycolony.core.kernel.port.ItemCatalog;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -29,7 +29,7 @@ final class MenuViews {
 
     /** The menu tab of {@code hall}. */
     static MenuView of(Colony colony, Building hall, RestaurantMenuModule module) {
-        ItemCatalog catalog = colony.context().ports().catalog();
+        FoodCatalog catalog = colony.context().ports().foods();
         Set<ItemKey> menu = module.menu();
         List<MenuView.Dish> dishes = sorted(catalog, menu.stream().toList(), menu);
         List<ItemKey> edibles = catalog.foods().stream()
@@ -42,7 +42,7 @@ final class MenuViews {
     }
 
     /** MC applySorting: tier x -100 - nutrition, smallest first. */
-    private static List<MenuView.Dish> sorted(ItemCatalog catalog, List<ItemKey> foods, Set<ItemKey> menu) {
+    private static List<MenuView.Dish> sorted(FoodCatalog catalog, List<ItemKey> foods, Set<ItemKey> menu) {
         Comparator<ItemKey> score =
                 Comparator.comparingInt(f -> -100 * FoodRules.tier(catalog, f) - nutrition(catalog, f));
         return foods.stream()
@@ -52,7 +52,7 @@ final class MenuViews {
                 .toList();
     }
 
-    private static int nutrition(ItemCatalog catalog, ItemKey food) {
+    private static int nutrition(FoodCatalog catalog, ItemKey food) {
         return catalog.food(food).map(FoodInfo::nutrition).orElse(0);
     }
 
@@ -68,7 +68,7 @@ final class MenuViews {
             for (ItemAmount in : r.ingredients()) {
                 perDish.merge(in.item(), (double) in.count() / r.made(), Double::sum);
             }
-            saturationSum += (int) FoodRules.foodValue(colony.context().ports().catalog(), dish);
+            saturationSum += (int) FoodRules.foodValue(colony.context().ports().foods(), dish);
         }
         int consumption = (int) consumption(colony, hall, saturationSum);
         List<MenuView.Ingredient> out = new ArrayList<>();

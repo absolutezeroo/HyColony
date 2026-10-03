@@ -1,7 +1,0 @@
-Group {
-  Anchor: (Height: 20);
-
-  Label #Text {
-    Style: (FontSize: 14, TextColor: #000000, VerticalAlignment: Center);
-  }
-}

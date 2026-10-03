@@ -3,8 +3,8 @@ package dev.hycolony.core.app.wand;
 import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.BlueprintEntry;
+import dev.hycolony.core.kernel.catalog.BlockCatalog;
 import dev.hycolony.core.kernel.item.BlockKind;
-import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.core.kernel.port.PreviewPort;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +36,7 @@ final class WandPreview {
             hide(player);
             return;
         }
-        ItemCatalog catalog = manager.context().ports().catalog();
+        BlockCatalog catalog = manager.context().ports().blockCatalog();
         List<PreviewPort.Block> blocks = new ArrayList<>();
         for (BlueprintEntry e : bp.get().entries()) {
             if (catalog.kind(e.state().key()) != BlockKind.AIR) {

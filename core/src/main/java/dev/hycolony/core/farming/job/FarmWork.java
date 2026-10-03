@@ -46,7 +46,7 @@ final class FarmWork {
         this.ctx = ctx;
         this.scan = new FieldScan(
                 ctx.colony().context().ports().blocks(),
-                ctx.colony().context().ports().catalog(),
+                ctx.colony().context().ports().blockCatalog(),
                 ctx.farming());
         this.pass = new FieldPass(ctx, scan, this);
     }

@@ -73,7 +73,9 @@ L'état de la caméra est lu par le plugin sur le composant `Spectating` (cible 
 
 ### 3.4 Le HUD de suivi
 
-Le HUD garde ses lignes et sa place à droite de l'écran. Il prend l'apparence de la fenêtre de débogage du citoyen de MC (`gui/citizen/debug.xml`, `DebugWindowCitizen`) : le parchemin `builder_paper_wide2` en 400 × 244, doublé en 800 × 488, et les lignes à l'encre noire depuis la place du premier texte de MC, (10, 15), doublé en (20, 30). Qu'il masque une partie du jeu est accepté (utilisateur, 2026-10-02).
+Le HUD garde ses lignes et sa place à droite de l'écran. Il prend l'apparence de la fenêtre de débogage du citoyen de MC (`gui/citizen/debug.xml`, `DebugWindowCitizen`) : le parchemin `builder_paper_wide2` en 400 × 244, doublé en 800 × 488, et les lignes depuis la place du premier texte de MC, (10, 15), doublé en (20, 30). Qu'il masque une partie du jeu est accepté (utilisateur, 2026-10-02).
+
+Les lignes sont rangées en sections (utilisateur, 2026-10-03), avec la palette du livre (`Mc/Book.ui`) : le nom et le métier en gras, des en-têtes rouges (État, Trajet, Besoins, Derniers changements, Alertes), puis des champs, avec le libellé en encre estompée dans une colonne et la valeur en encre noire à côté. Les alertes sont en rouge. Le cœur donne chaque ligne avec son genre (`HudLine`), et le plugin choisit le gabarit qui va avec (`WatchHudTitle`, `WatchHudSection`, `WatchHudField`, `WatchHudAlert`). Au plus 23 lignes (22 px pour le titre, 20 px par en-tête, 18 px par champ ou alerte) tiennent dans les 428 px de `#Lines`.
 
 ### 3.5 Les textures
 

@@ -43,7 +43,7 @@ final class FurnaceWork {
 
     /** MC EntityAIWorkCook.isSmeltable: cooks into a dish on the menu. */
     boolean isSmeltable(ItemKey item) {
-        return ctx.items().cooked(item).map(ctx.menu().menu()::contains).orElse(false);
+        return ctx.foods().cooked(item).map(ctx.menu().menu()::contains).orElse(false);
     }
 
     /** MC needsCurrently: {@link #gather} fetches what {@code wanted} accepts, a stack at most. */
@@ -124,7 +124,7 @@ final class FurnaceWork {
             if (!s.lit()
                     && s.fuelCount() > 0
                     && s.input().stream()
-                            .anyMatch(a -> ctx.items().cooked(a.item()).isPresent())) {
+                            .anyMatch(a -> ctx.foods().cooked(a.item()).isPresent())) {
                 ctx.stations().light(pos);
             }
         }

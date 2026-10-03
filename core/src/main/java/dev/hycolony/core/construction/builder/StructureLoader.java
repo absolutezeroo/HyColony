@@ -42,7 +42,7 @@ final class StructureLoader {
         }
         BuildSite site = ctx.site();
         site.load(o, b, ctx.planFor(bp, o.buildingPos()), previousPlan(o, b));
-        ctx.resources().start(o, NeededResources.compute(site.plan(), ctx.blocks(), ctx.catalog(), ctx.recipes()));
+        ctx.resources().start(o, NeededResources.compute(site.plan(), ctx.blocks(), ctx.catalogs()));
         ctx.requests().cancelUnneeded(ctx.resources().needs().remaining().keySet());
         return true;
     }
@@ -64,7 +64,8 @@ final class StructureLoader {
             return null;
         }
         return blueprint(o, b, o.blueprintLevel() - 1)
-                .map(old -> StructurePlan.build(old, o.buildingPos(), ctx.catalog()))
+                .map(old ->
+                        StructurePlan.build(old, o.buildingPos(), ctx.catalogs().blocks()))
                 .orElse(null);
     }
 }

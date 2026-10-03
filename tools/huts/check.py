@@ -51,6 +51,16 @@ class GlintTest(unittest.TestCase):
         nodes, _ = gem_model()
         self.assertEqual(["Gem"], list(glint.animation(nodes, "Gem", 10)["nodeAnimations"]))
 
+    def test_gems_breathe_unless_told_not_to(self):
+        nodes, _ = gem_model()
+        self.assertEqual(glint.breath(), glint.animation(nodes, "Gem", 10)["nodeAnimations"]["Gem"]["shapeStretch"])
+
+    def test_a_still_glint_keeps_the_flipbook_without_the_breath(self):
+        nodes, _ = gem_model()
+        gem = glint.animation(nodes, "Gem", 10, breathe=False)["nodeAnimations"]["Gem"]
+        self.assertEqual([], gem["shapeStretch"])
+        self.assertEqual(glint.flipbook(10), gem["shapeUvOffset"])
+
 
 if __name__ == "__main__":
     unittest.main()

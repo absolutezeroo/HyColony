@@ -82,9 +82,11 @@ public final class CitizenWander {
         this.bodies = colony.context().bodies();
         this.random = colony.context().random();
         this.danger = new DangerousCells(
-                colony.context().ports().blocks(), colony.context().ports().catalog());
+                colony.context().ports().blocks(), colony.context().ports().blockCatalog());
         this.ground = new WanderGround(
-                colony.context().ports().blocks(), colony.context().ports().catalog());
+                colony.context().ports().blocks(),
+                colony.context().ports().blockCatalog(),
+                colony.context().ports()::isLeaves);
         this.leisure = new LeisureWalk(colony, body, delay, danger);
     }
 

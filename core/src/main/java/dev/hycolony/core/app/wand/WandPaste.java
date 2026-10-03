@@ -9,7 +9,7 @@ import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.StructurePlan;
 import dev.hycolony.core.construction.shared.UpgradeCompletion;
 import dev.hycolony.core.kernel.BlockPos;
-import dev.hycolony.core.kernel.port.ItemCatalog;
+import dev.hycolony.core.kernel.catalog.BlockCatalog;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -82,7 +82,7 @@ final class WandPaste {
      * CreativeStructureHandler picks the world generator's block there (BlockUtils.getSubstitutionBlockAtWorld).
      */
     private StructurePlan plan(Blueprint bp, BlockPos pos) {
-        ItemCatalog catalog = manager.context().ports().catalog();
+        BlockCatalog catalog = manager.context().ports().blockCatalog();
         return manager.context()
                 .ports()
                 .blueprints()

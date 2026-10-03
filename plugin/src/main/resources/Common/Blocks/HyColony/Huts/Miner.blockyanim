@@ -1,0 +1,517 @@
+{
+  "formatVersion": 1,
+  "duration": 180,
+  "holdLastKeyframe": false,
+  "nodeAnimations": {
+    "Gem_Copper_C2": {
+      "position": [],
+      "orientation": [],
+      "shapeStretch": [],
+      "shapeVisible": [],
+      "shapeUvOffset": [
+        {
+          "time": 0,
+          "delta": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "time": 119,
+          "delta": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "time": 120,
+          "delta": {
+            "x": 0,
+            "y": -65
+          }
+        },
+        {
+          "time": 125,
+          "delta": {
+            "x": 0,
+            "y": -65
+          }
+        },
+        {
+          "time": 126,
+          "delta": {
+            "x": 0,
+            "y": -130
+          }
+        },
+        {
+          "time": 131,
+          "delta": {
+            "x": 0,
+            "y": -130
+          }
+        },
+        {
+          "time": 132,
+          "delta": {
+            "x": 0,
+            "y": -195
+          }
+        },
+        {
+          "time": 137,
+          "delta": {
+            "x": 0,
+            "y": -195
+          }
+        },
+        {
+          "time": 138,
+          "delta": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "time": 143,
+          "delta": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "time": 180,
+          "delta": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ]
+    },
+    "Gem_Copper_R2": {
+      "position": [],
+      "orientation": [],
+      "shapeStretch": [],
+      "shapeVisible": [],
+      "shapeUvOffset": [
+        {
+          "time": 0,
+          "delta": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "time": 119,
+          "delta": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "time": 120,
+          "delta": {
+            "x": 0,
+            "y": -65
+          }
+        },
+        {
+          "time": 125,
+          "delta": {
+            "x": 0,
+            "y": -65
+          }
+        },
+        {
+          "time": 126,
+          "delta": {
+            "x": 0,
+            "y": -130
+          }
+        },
+        {
+          "time": 131,
+          "delta": {
+            "x": 0,
+            "y": -130
+          }
+        },
+        {
+          "time": 132,
+          "delta": {
+            "x": 0,
+            "y": -195
+          }
+        },
+        {
+          "time": 137,
+          "delta": {
+            "x": 0,
+            "y": -195
+          }
+        },
+        {
+          "time": 138,
+          "delta": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "time": 143,
+          "delta": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "time": 180,
+          "delta": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ]
+    },
+    "Gem_Gold_C1": {
+      "position": [],
+      "orientation": [],
+      "shapeStretch": [],
+      "shapeVisible": [],
+      "shapeUvOffset": [
+        {
+          "time": 0,
+          "delta": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "time": 119,
+          "delta": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "time": 120,
+          "delta": {
+            "x": 0,
+            "y": -65
+          }
+        },
+        {
+          "time": 125,
+          "delta": {
+            "x": 0,
+            "y": -65
+          }
+        },
+        {
+          "time": 126,
+          "delta": {
+            "x": 0,
+            "y": -130
+          }
+        },
+        {
+          "time": 131,
+          "delta": {
+            "x": 0,
+            "y": -130
+          }
+        },
+        {
+          "time": 132,
+          "delta": {
+            "x": 0,
+            "y": -195
+          }
+        },
+        {
+          "time": 137,
+          "delta": {
+            "x": 0,
+            "y": -195
+          }
+        },
+        {
+          "time": 138,
+          "delta": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "time": 143,
+          "delta": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "time": 180,
+          "delta": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ]
+    },
+    "Gem_Gold_C3": {
+      "position": [],
+      "orientation": [],
+      "shapeStretch": [],
+      "shapeVisible": [],
+      "shapeUvOffset": [
+        {
+          "time": 0,
+          "delta": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "time": 119,
+          "delta": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "time": 120,
+          "delta": {
+            "x": 0,
+            "y": -65
+          }
+        },
+        {
+          "time": 125,
+          "delta": {
+            "x": 0,
+            "y": -65
+          }
+        },
+        {
+          "time": 126,
+          "delta": {
+            "x": 0,
+            "y": -130
+          }
+        },
+        {
+          "time": 131,
+          "delta": {
+            "x": 0,
+            "y": -130
+          }
+        },
+        {
+          "time": 132,
+          "delta": {
+            "x": 0,
+            "y": -195
+          }
+        },
+        {
+          "time": 137,
+          "delta": {
+            "x": 0,
+            "y": -195
+          }
+        },
+        {
+          "time": 138,
+          "delta": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "time": 143,
+          "delta": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "time": 180,
+          "delta": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ]
+    },
+    "Gem_Gold_R1": {
+      "position": [],
+      "orientation": [],
+      "shapeStretch": [],
+      "shapeVisible": [],
+      "shapeUvOffset": [
+        {
+          "time": 0,
+          "delta": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "time": 119,
+          "delta": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "time": 120,
+          "delta": {
+            "x": 0,
+            "y": -65
+          }
+        },
+        {
+          "time": 125,
+          "delta": {
+            "x": 0,
+            "y": -65
+          }
+        },
+        {
+          "time": 126,
+          "delta": {
+            "x": 0,
+            "y": -130
+          }
+        },
+        {
+          "time": 131,
+          "delta": {
+            "x": 0,
+            "y": -130
+          }
+        },
+        {
+          "time": 132,
+          "delta": {
+            "x": 0,
+            "y": -195
+          }
+        },
+        {
+          "time": 137,
+          "delta": {
+            "x": 0,
+            "y": -195
+          }
+        },
+        {
+          "time": 138,
+          "delta": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "time": 143,
+          "delta": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "time": 180,
+          "delta": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ]
+    },
+    "Gem_Gold_R3": {
+      "position": [],
+      "orientation": [],
+      "shapeStretch": [],
+      "shapeVisible": [],
+      "shapeUvOffset": [
+        {
+          "time": 0,
+          "delta": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "time": 119,
+          "delta": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "time": 120,
+          "delta": {
+            "x": 0,
+            "y": -65
+          }
+        },
+        {
+          "time": 125,
+          "delta": {
+            "x": 0,
+            "y": -65
+          }
+        },
+        {
+          "time": 126,
+          "delta": {
+            "x": 0,
+            "y": -130
+          }
+        },
+        {
+          "time": 131,
+          "delta": {
+            "x": 0,
+            "y": -130
+          }
+        },
+        {
+          "time": 132,
+          "delta": {
+            "x": 0,
+            "y": -195
+          }
+        },
+        {
+          "time": 137,
+          "delta": {
+            "x": 0,
+            "y": -195
+          }
+        },
+        {
+          "time": 138,
+          "delta": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "time": 143,
+          "delta": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "time": 180,
+          "delta": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ]
+    }
+  }
+}

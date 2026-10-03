@@ -72,7 +72,7 @@ final class HousingHeal {
         ports.blueprints()
                 .load(b.style(), b.type().id(), b.level(), b.rotation())
                 .ifPresent(bp -> bp.entries().stream()
-                        .filter(e -> ports.catalog().isBed(e.state().key()))
+                        .filter(e -> ports.blockCatalog().isBed(e.state().key()))
                         .forEach(e -> beds.addBed(b.position()
                                 .offset(
                                         e.offset().x(),

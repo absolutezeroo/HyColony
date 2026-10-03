@@ -4,9 +4,9 @@ import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.catalog.FoodCatalog;
 import dev.hycolony.core.kernel.item.FoodInfo;
 import dev.hycolony.core.kernel.item.ItemKey;
-import dev.hycolony.core.kernel.port.ItemCatalog;
 import java.util.Optional;
 import java.util.function.Predicate;
 import org.jspecify.annotations.Nullable;
@@ -23,7 +23,7 @@ public final class FoodRules {
     private FoodRules() {}
 
     /** MC FoodUtils.EDIBLE: a food that does not cook into something else (raw food is not eaten). */
-    public static boolean edible(ItemCatalog catalog, ItemKey item) {
+    public static boolean edible(FoodCatalog catalog, ItemKey item) {
         return catalog.food(item).isPresent() && catalog.cooked(item).isEmpty();
     }
 
@@ -31,7 +31,7 @@ public final class FoodRules {
      * MC FoodUtils.canEatLevel: below home level 3 any food; from there a nutrition of at least the level + 1. Crops
      * (MC ItemCrop) need no rule here: every Hytale crop cooks, so none is {@link #edible}.
      */
-    public static boolean canEatLevel(ItemCatalog catalog, ItemKey item, int homeLevel) {
+    public static boolean canEatLevel(FoodCatalog catalog, ItemKey item, int homeLevel) {
         Optional<FoodInfo> food = catalog.food(item);
         if (homeLevel < PICKY_LEVEL) {
             return food.isPresent();
@@ -43,7 +43,7 @@ public final class FoodRules {
      * MC FoodUtils.canEat: edible, not poisonous, good enough for a home of {@code homeLevel} (0 without one) and let
      * go by the work hut ({@code workAllows}, MC IBuilding.canEat; always true without one).
      */
-    public static boolean canEat(ItemCatalog catalog, ItemKey item, int homeLevel, Predicate<ItemKey> workAllows) {
+    public static boolean canEat(FoodCatalog catalog, ItemKey item, int homeLevel, Predicate<ItemKey> workAllows) {
         return edible(catalog, item)
                 && !catalog.food(item).map(FoodInfo::poisonous).orElse(true)
                 && canEatLevel(catalog, item, homeLevel)
@@ -56,7 +56,7 @@ public final class FoodRules {
      */
     public static boolean canEat(Colony colony, CitizenData citizen, ItemKey item) {
         return canEat(
-                colony.context().ports().catalog(),
+                colony.context().ports().foods(),
                 item,
                 HungerTicks.homeLevel(colony, citizen),
                 workAllows(colony, citizen.workBuilding()));
@@ -81,7 +81,7 @@ public final class FoodRules {
      * MC FoodUtils.getFoodValue: the saturation eating one gives, a dish counting twice; 0 for no food.
      * tools/food/generate.py repeats it for the food tooltips: change both.
      */
-    public static double foodValue(ItemCatalog catalog, ItemKey item) {
+    public static double foodValue(FoodCatalog catalog, ItemKey item) {
         return catalog.food(item)
                 .map(f -> f.nutrition() * (f.isDish() ? DISH_BONUS : 1.0))
                 .orElse(0.0);
@@ -92,12 +92,12 @@ public final class FoodRules {
      * ordinary food of nutrition 12 and saturation 0.8; no Hytale food of the table comes close and saturation
      * modifiers are not ported.
      */
-    public static int tier(ItemCatalog catalog, ItemKey item) {
+    public static int tier(FoodCatalog catalog, ItemKey item) {
         return catalog.food(item).map(FoodInfo::tier).orElse(0);
     }
 
     /** Whether {@code item} is a prepared dish (MC IMinecoloniesFoodItem). */
-    public static boolean isDish(ItemCatalog catalog, ItemKey item) {
+    public static boolean isDish(FoodCatalog catalog, ItemKey item) {
         return catalog.food(item).map(FoodInfo::isDish).orElse(false);
     }
 
@@ -105,7 +105,7 @@ public final class FoodRules {
      * MC FoodUtils.getBuildingLevelForFood: the highest home level the food still feeds, 2 to 5.
      * tools/food/generate.py repeats it for the food tooltips: change both.
      */
-    public static int buildingLevelForFood(ItemCatalog catalog, ItemKey item) {
+    public static int buildingLevelForFood(FoodCatalog catalog, ItemKey item) {
         int nutrition = catalog.food(item).map(FoodInfo::nutrition).orElse(0);
         return Math.max(2, Math.min(nutrition - 1, MAX_BUILDING_LEVEL));
     }

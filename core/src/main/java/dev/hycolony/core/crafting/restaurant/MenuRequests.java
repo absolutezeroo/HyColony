@@ -2,8 +2,8 @@ package dev.hycolony.core.crafting.restaurant;
 
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.kernel.catalog.ItemCatalog;
 import dev.hycolony.core.kernel.item.ItemKey;
-import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.RequestManager;
 import dev.hycolony.core.request.model.RequestState;

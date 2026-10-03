@@ -42,7 +42,7 @@ public final class BlockApproach {
     public BlockApproach(GamePorts ports, BodyWalker walker) {
         this.ports = ports;
         this.walker = walker;
-        this.danger = new DangerousCells(ports.blocks(), ports.catalog());
+        this.danger = new DangerousCells(ports.blocks(), ports.blockCatalog());
     }
 
     /** MC walkToBuilding: to the hut block of {@code building}; true once there. */
@@ -130,7 +130,7 @@ public final class BlockApproach {
     /** The kind of the block at {@code p}; null where the world has none (unloaded). */
     private @Nullable BlockKind kind(BlockPos p) {
         BlockState s = ports.blocks().get(p).orElse(null);
-        return s == null ? null : ports.catalog().kind(s.key());
+        return s == null ? null : ports.blockCatalog().kind(s.key());
     }
 
     private static int manhattan(BlockPos a, BlockPos b) {

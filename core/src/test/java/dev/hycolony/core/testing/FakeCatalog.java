@@ -1,6 +1,12 @@
 package dev.hycolony.core.testing;
 
 import dev.hycolony.core.citizen.inventory.ArmorCatalog;
+import dev.hycolony.core.construction.blueprint.PlacementRules;
+import dev.hycolony.core.construction.blueprint.PlanCatalogs;
+import dev.hycolony.core.crafting.recipe.RecipeCatalog;
+import dev.hycolony.core.kernel.catalog.BlockCatalog;
+import dev.hycolony.core.kernel.catalog.FoodCatalog;
+import dev.hycolony.core.kernel.catalog.ItemCatalog;
 import dev.hycolony.core.kernel.item.ArmorInfo;
 import dev.hycolony.core.kernel.item.BlockItems;
 import dev.hycolony.core.kernel.item.BlockKey;
@@ -9,7 +15,6 @@ import dev.hycolony.core.kernel.item.FoodInfo;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolInfo;
 import dev.hycolony.core.kernel.item.ToolType;
-import dev.hycolony.core.kernel.port.ItemCatalog;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,8 +24,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-/** The item facts tests set, the armour pieces included ({@link #armors}). */
-public final class FakeCatalog implements ItemCatalog, ArmorCatalog {
+/** The item, block, food and placement facts tests set, the armour pieces included ({@link #armors}). */
+public final class FakeCatalog implements ItemCatalog, BlockCatalog, FoodCatalog, PlacementRules, ArmorCatalog {
     public int defaultMaxStack = 64;
     public final Map<ItemKey, Integer> maxStacks = new HashMap<>();
     /** A block's own item, made by a recipe; {@link #blockItems} sets the other facts. */
@@ -51,6 +56,11 @@ public final class FakeCatalog implements ItemCatalog, ArmorCatalog {
     public final Map<ItemKey, Integer> durability = new HashMap<>();
     public final Map<ItemKey, FoodInfo> foods = new HashMap<>();
     public final Map<ItemKey, ItemKey> cooked = new HashMap<>();
+
+    /** This catalog as every catalog a plan reads, with {@code recipes}. */
+    public PlanCatalogs plan(RecipeCatalog recipes) {
+        return new PlanCatalogs(this, this, this, recipes);
+    }
 
     /** Makes {@code item} a food of {@code nutrition} and {@code tier}; returns it. */
     public ItemKey food(String item, int nutrition, int tier) {

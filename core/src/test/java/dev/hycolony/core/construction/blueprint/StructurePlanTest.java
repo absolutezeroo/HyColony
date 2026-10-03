@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.hycolony.core.crafting.recipe.RecipeCatalog;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockKind;
@@ -109,19 +110,19 @@ class StructurePlanTest {
         StructurePlan plan = StructurePlan.build(bp, HUT, catalog);
 
         // Not loaded/placed yet.
-        assertFalse(plan.isDone(e, world, catalog));
+        assertFalse(plan.isDone(e, world, catalog.plan(RecipeCatalog.NONE)));
 
         // Same key, different rotation: not done.
         world.blocks.put(HUT, new BlockState(STONE, 0));
-        assertFalse(plan.isDone(e, world, catalog));
+        assertFalse(plan.isDone(e, world, catalog.plan(RecipeCatalog.NONE)));
 
         // Different key, same rotation: not done.
         world.blocks.put(HUT, new BlockState(PLANK, 1));
-        assertFalse(plan.isDone(e, world, catalog));
+        assertFalse(plan.isDone(e, world, catalog.plan(RecipeCatalog.NONE)));
 
         // Same key and rotation: done.
         world.blocks.put(HUT, new BlockState(STONE, 1));
-        assertTrue(plan.isDone(e, world, catalog));
+        assertTrue(plan.isDone(e, world, catalog.plan(RecipeCatalog.NONE)));
     }
 
     @Test

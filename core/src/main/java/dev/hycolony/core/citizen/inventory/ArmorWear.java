@@ -2,9 +2,9 @@ package dev.hycolony.core.citizen.inventory;
 
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.kernel.catalog.ItemCatalog;
 import dev.hycolony.core.kernel.item.Inventory;
 import dev.hycolony.core.kernel.item.ItemAmount;
-import dev.hycolony.core.kernel.port.ItemCatalog;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;

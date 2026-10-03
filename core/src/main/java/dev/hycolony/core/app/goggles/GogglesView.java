@@ -8,9 +8,9 @@ import dev.hycolony.core.construction.blueprint.BlueprintEntry;
 import dev.hycolony.core.construction.workorder.WorkOrder;
 import dev.hycolony.core.construction.workorder.WorkOrderType;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.catalog.BlockCatalog;
 import dev.hycolony.core.kernel.item.BlockKind;
 import dev.hycolony.core.kernel.item.BlockState;
-import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.core.kernel.port.PreviewPort;
 import dev.hycolony.core.kernel.port.WorldBlocks;
 import java.util.ArrayList;
@@ -67,7 +67,7 @@ final class GogglesView {
             return List.of();
         }
         WorldBlocks world = manager.context().ports().blocks();
-        ItemCatalog catalog = manager.context().ports().catalog();
+        BlockCatalog catalog = manager.context().ports().blockCatalog();
         boolean remove = o.type() == WorkOrderType.REMOVE;
         List<PreviewPort.Block> blocks = new ArrayList<>();
         for (BlueprintEntry e : bp.get().entries()) {
@@ -87,7 +87,7 @@ final class GogglesView {
     }
 
     /** A block the builder's REMOVE stage still mines (StructureScan.mineable). */
-    private static boolean standing(ItemCatalog catalog, BlockState state) {
+    private static boolean standing(BlockCatalog catalog, BlockState state) {
         BlockKind kind = catalog.kind(state.key());
         return kind != BlockKind.AIR && kind != BlockKind.FLUID && kind != BlockKind.UNBREAKABLE;
     }

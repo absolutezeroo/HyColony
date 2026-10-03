@@ -5,12 +5,13 @@ import dev.hycolony.core.farming.FarmingAccess;
 import dev.hycolony.core.farming.field.FarmField;
 import dev.hycolony.core.farming.hut.FieldWalk;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.catalog.BlockCatalog;
+import dev.hycolony.core.kernel.catalog.ItemCatalog;
 import dev.hycolony.core.kernel.item.BlockKind;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.kernel.port.BodyAnimation;
-import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.core.kernel.port.WorldBlocks;
 import java.util.List;
 import java.util.Optional;
@@ -122,7 +123,9 @@ final class FieldPass {
         ctx.hands().face(surface);
         BlockPos above = surface.offset(0, 1, 0);
         WorldBlocks world = ctx.colony().context().ports().blocks();
-        if (world.get(above).map(s -> catalog().kind(s.key()) != BlockKind.AIR).orElse(false)) {
+        if (world.get(above)
+                .map(s -> blockCatalog().kind(s.key()) != BlockKind.AIR)
+                .orElse(false)) {
             world.drop(above, world.breakBlock(above));
         }
         if (!farming().till(surface)) {
@@ -204,7 +207,7 @@ final class FieldPass {
 
     /**
      * MC holdEfficientTool(target), true when the block at {@code pos} may be broken: without a tool the world asks for
-     * it (ItemCatalog.toolFor; MC NO_TOOL), an empty hand (removeHeldItem), the held slot left as it is; else the
+     * it (BlockCatalog.toolFor; MC NO_TOOL), an empty hand (removeHeldItem), the held slot left as it is; else the
      * least powerful such tool that does the job held (WorkerStock.toolInInventory, MC getMostEfficientTool), or, the
      * farmer lacking one (MC TOOL_NOT_FOUND), the tool asked for and false. A Hytale crop asks none
      * (Template_Crop_Block: Gathering.Soft, no Breaking; sp3b-hytale-farming § 3.4), as MC's of hardness 0.
@@ -218,7 +221,7 @@ final class FieldPass {
                 .ports()
                 .blocks()
                 .get(pos)
-                .flatMap(s -> catalog().toolFor(s.key()));
+                .flatMap(s -> blockCatalog().toolFor(s.key()));
         if (type.isEmpty()) {
             ctx.hands().hold(Optional.empty());
             return true;
@@ -271,5 +274,9 @@ final class FieldPass {
 
     private ItemCatalog catalog() {
         return ctx.colony().context().ports().catalog();
+    }
+
+    private BlockCatalog blockCatalog() {
+        return ctx.colony().context().ports().blockCatalog();
     }
 }

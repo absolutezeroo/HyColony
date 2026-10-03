@@ -5,6 +5,7 @@ import dev.hycolony.core.colony.GamePorts;
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.BlueprintEntry;
 import dev.hycolony.core.construction.blueprint.BlueprintSource;
+import dev.hycolony.core.construction.blueprint.PlanCatalogs;
 import dev.hycolony.core.construction.resources.EntryCost;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.plugin.WorldRuntime;
@@ -52,9 +53,9 @@ final class PlanItemsSelfTest {
 
     private static void collect(
             Blueprint bp, String plan, GamePorts ports, HytaleItemSources sources, Map<String, String> missing) {
+        PlanCatalogs catalogs = ports.planCatalogs();
         for (BlueprintEntry e : bp.entries()) {
-            for (ItemAmount a :
-                    EntryCost.of(e, ports.catalog(), ports.crafting().catalog())) {
+            for (ItemAmount a : EntryCost.of(e, catalogs)) {
                 if (!sources.hasSource(a.item().id())) {
                     missing.putIfAbsent(
                             a.item().id(), plan + " <- " + e.state().key().id());

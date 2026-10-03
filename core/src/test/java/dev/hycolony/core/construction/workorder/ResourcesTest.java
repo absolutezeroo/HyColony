@@ -110,7 +110,7 @@ class ResourcesTest {
         world.blocks.put(HUT.offset(2, 0, 0), new BlockState(STONE, 0));
         world.blocks.put(HUT.offset(3, 0, 0), new BlockState(STONE, 1));
 
-        NeededResources n = NeededResources.compute(plan, world, c, RecipeCatalog.NONE);
+        NeededResources n = NeededResources.compute(plan, world, c.plan(RecipeCatalog.NONE));
 
         assertEquals(List.of(PLANK_I, STONE_I, TORCH_I), n.sequence());
         assertEquals(needs(PLANK_I, 1, STONE_I, 1, TORCH_I, 1), n.remaining());
@@ -138,7 +138,7 @@ class ResourcesTest {
         StructurePlan plan =
                 StructurePlan.build(new Blueprint("k", entries, new BlockPos(0, 0, 0), new BlockPos(3, 0, 0)), HUT, c);
 
-        NeededResources n = NeededResources.compute(plan, world, c, RecipeCatalog.NONE);
+        NeededResources n = NeededResources.compute(plan, world, c.plan(RecipeCatalog.NONE));
 
         assertEquals(needs(STONE_I, 2), n.remaining(), "the container and the bench, not the plain turned stone");
     }
@@ -198,7 +198,7 @@ class ResourcesTest {
         for (int i = 0; i < 60; i++) {
             keys.add(i % 2 == 0 ? STONE : PLANK); // A B A B ... -> 4 buckets of 18, 18, 18, 6
         }
-        NeededResources n = NeededResources.compute(row(c, keys), new FakeWorldBlocks(), c, RecipeCatalog.NONE);
+        NeededResources n = NeededResources.compute(row(c, keys), new FakeWorldBlocks(), c.plan(RecipeCatalog.NONE));
         BuildingResourcesModule m = new BuildingResourcesModule();
         m.start(order(1), n);
         assertEquals(needs(STONE_I, 9, PLANK_I, 9), m.currentBucket().orElseThrow());
@@ -223,7 +223,7 @@ class ResourcesTest {
         List<BlockKey> keys = new ArrayList<>(Collections.nCopies(20, STONE));
         keys.add(PLANK);
         keys.add(TORCH);
-        NeededResources n = NeededResources.compute(row(c, keys), new FakeWorldBlocks(), c, RecipeCatalog.NONE);
+        NeededResources n = NeededResources.compute(row(c, keys), new FakeWorldBlocks(), c.plan(RecipeCatalog.NONE));
 
         BuildingResourcesModule m = new BuildingResourcesModule();
         m.start(order(1), n);
@@ -245,7 +245,7 @@ class ResourcesTest {
         c.defaultMaxStack = 1;
         List<BlockKey> keys = new ArrayList<>(Collections.nCopies(18, STONE));
         keys.add(PLANK);
-        NeededResources n = NeededResources.compute(row(c, keys), new FakeWorldBlocks(), c, RecipeCatalog.NONE);
+        NeededResources n = NeededResources.compute(row(c, keys), new FakeWorldBlocks(), c.plan(RecipeCatalog.NONE));
         BuildingResourcesModule m = new BuildingResourcesModule();
         m.start(order(1), n);
 
@@ -269,7 +269,7 @@ class ResourcesTest {
         List<BlockKey> keys = new ArrayList<>(Collections.nCopies(18, STONE));
         keys.addAll(Collections.nCopies(18, PLANK));
         keys.add(TORCH);
-        NeededResources n = NeededResources.compute(row(c, keys), new FakeWorldBlocks(), c, RecipeCatalog.NONE);
+        NeededResources n = NeededResources.compute(row(c, keys), new FakeWorldBlocks(), c.plan(RecipeCatalog.NONE));
         BuildingResourcesModule m = new BuildingResourcesModule();
         m.start(order(1), n);
         assertEquals(needs(PLANK_I, 18), m.nextBucket().orElseThrow());
@@ -296,7 +296,7 @@ class ResourcesTest {
         BuildingResourcesModule m = new BuildingResourcesModule();
         assertEquals(0, m.orderId());
         assertEquals(Stage.DONE, m.stage());
-        m.start(o, NeededResources.compute(plan, world, c, RecipeCatalog.NONE));
+        m.start(o, NeededResources.compute(plan, world, c.plan(RecipeCatalog.NONE)));
         assertEquals(7, m.orderId());
         assertEquals(Stage.CLEAR, m.stage());
 
@@ -309,14 +309,14 @@ class ResourcesTest {
         // the order persists the progress; the module is rebuilt from it, needs recomputed from the world
         WorkOrder loadedOrder = WorkOrder.read(o.write()).orElseThrow();
         BuildingResourcesModule loaded = new BuildingResourcesModule();
-        loaded.start(loadedOrder, NeededResources.compute(plan, world, c, RecipeCatalog.NONE));
+        loaded.start(loadedOrder, NeededResources.compute(plan, world, c.plan(RecipeCatalog.NONE)));
         assertEquals(Stage.SOLID, loaded.stage());
         assertEquals(1, loaded.progressIndex());
         assertEquals(needs(STONE_I, 1, PLANK_I, 1), loaded.currentBucket().orElseThrow());
 
         // a released and reclaimed order restarts from its first stage, not a stale one
         loadedOrder.release();
-        loaded.start(loadedOrder, NeededResources.compute(plan, world, c, RecipeCatalog.NONE));
+        loaded.start(loadedOrder, NeededResources.compute(plan, world, c.plan(RecipeCatalog.NONE)));
         assertEquals(Stage.CLEAR, loaded.stage());
         assertEquals(0, loaded.progressIndex());
     }
@@ -329,7 +329,7 @@ class ResourcesTest {
         m.start(
                 order(1),
                 NeededResources.compute(
-                        row(c, List.of(STONE, STONE, PLANK)), new FakeWorldBlocks(), c, RecipeCatalog.NONE));
+                        row(c, List.of(STONE, STONE, PLANK)), new FakeWorldBlocks(), c.plan(RecipeCatalog.NONE)));
 
         Colony colony = new Colony(
                 new TestContexts().context(),
@@ -354,7 +354,7 @@ class ResourcesTest {
         BuildingResourcesModule m = hut.module(BuildingResourcesModule.class).orElseThrow();
         m.start(
                 order(1),
-                NeededResources.compute(row(c, List.of(PLANK)), new FakeWorldBlocks(), c, RecipeCatalog.NONE));
+                NeededResources.compute(row(c, List.of(PLANK)), new FakeWorldBlocks(), c.plan(RecipeCatalog.NONE)));
         Colony colony = new Colony(
                 new TestContexts().context(),
                 new TerritoryIndex(),

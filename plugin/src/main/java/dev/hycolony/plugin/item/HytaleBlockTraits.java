@@ -7,6 +7,7 @@ import com.hypixel.hytale.server.core.asset.type.fluid.Fluid;
 import com.hypixel.hytale.server.core.asset.type.fluid.FluidTicker;
 import com.hypixel.hytale.server.core.universe.world.connectedblocks.CustomConnectedBlockTemplateAsset;
 import com.hypixel.hytale.server.core.universe.world.connectedblocks.CustomTemplateConnectedBlockRuleSet;
+import dev.hycolony.core.construction.blueprint.PlacementRules;
 import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.plugin.block.HytaleBlockStates;
 import java.util.HashMap;
@@ -21,7 +22,7 @@ import java.util.logging.Level;
  * the asset facts (the id-map lists still name it); the first failure is logged, the next ones at FINE. World thread
  * only.
  */
-public final class HytaleBlockTraits {
+public final class HytaleBlockTraits implements PlacementRules {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
     /** The block group of every tree leaf ({@code Plant_Leaves_*}); the Leaves block set misses them. */
     private static final String LEAVES_GROUP = "Leaves";
@@ -55,36 +56,43 @@ public final class HytaleBlockTraits {
      * solid and drawn as a cube (FluidTicker.isFullySolid), with the full hitbox ({@code BlockBoundingBoxes.DEFAULT}),
      * so that mud (seven eighths high, as MC's) is none.
      */
+    @Override
     public boolean isGoodFloor(BlockKey block) {
         return traits(block).goodFloor();
     }
 
     /** Whether this block is a leaf: of the {@code Leaves} block group. */
+    @Override
     public boolean isLeaves(BlockKey block) {
         return traits(block).leaves();
     }
 
     /** Whether this block is a fluid source: its fluid's maximum level is 1, where a flowing fluid's is 8. */
+    @Override
     public boolean isFluidSource(BlockKey block) {
         return traits(block).fluidSource();
     }
 
     /** Whether the id-map lists this block in MC's dirt tag. */
+    @Override
     public boolean isDirt(BlockKey block) {
         return dirt.contains(block.id());
     }
 
     /** Whether the id-map lists this block among the plan blocks any dirt answers (grass and dirt). */
+    @Override
     public boolean takesAnyDirt(BlockKey block) {
         return dirtCells.contains(block.id());
     }
 
     /** Whether the id-map lists this block among the dirt paths. */
+    @Override
     public boolean isDirtPath(BlockKey block) {
         return dirtPaths.contains(block.id());
     }
 
     /** The id-map's plain dirt block, MC's {@code Blocks.DIRT}; empty if it has none. */
+    @Override
     public Optional<BlockKey> plainDirt() {
         return plainDirt;
     }
@@ -93,6 +101,7 @@ public final class HytaleBlockTraits {
      * The family of a block whose connection template is a free-shape one in the id-map: the template and its first
      * shape's block pattern, the same for every shape of the family; empty for any other block.
      */
+    @Override
     public Optional<String> shapeFamily(BlockKey block) {
         return traits(block).shapeFamily();
     }

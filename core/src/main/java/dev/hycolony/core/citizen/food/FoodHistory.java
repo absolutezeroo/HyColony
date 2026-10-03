@@ -1,7 +1,7 @@
 package dev.hycolony.core.citizen.food;
 
+import dev.hycolony.core.kernel.catalog.FoodCatalog;
 import dev.hycolony.core.kernel.item.ItemKey;
-import dev.hycolony.core.kernel.port.ItemCatalog;
 import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.List;
@@ -48,7 +48,7 @@ public final class FoodHistory {
     }
 
     /** MC getFoodHappinessStats: distinct foods (at least 1) and dishes ({@link FoodRules#isDish}). */
-    public Stats stats(ItemCatalog catalog) {
+    public Stats stats(FoodCatalog catalog) {
         Set<ItemKey> distinct = new HashSet<>();
         int dishes = 0;
         for (ItemKey food : eaten) {

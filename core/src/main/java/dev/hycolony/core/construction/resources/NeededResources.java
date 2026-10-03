@@ -1,11 +1,10 @@
 package dev.hycolony.core.construction.resources;
 
 import dev.hycolony.core.construction.blueprint.BlueprintEntry;
+import dev.hycolony.core.construction.blueprint.PlanCatalogs;
 import dev.hycolony.core.construction.blueprint.StructurePlan;
-import dev.hycolony.core.crafting.recipe.RecipeCatalog;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
-import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.core.kernel.port.WorldBlocks;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,15 +42,14 @@ public final class NeededResources {
      * Every unit of every item a not-yet-done entry costs ({@link EntryCost}), so a bench with its upgrades weighs in
      * the buckets for all it asks; a block only to turn costs nothing ({@link StructurePlan#onlyTurns}).
      */
-    public static NeededResources compute(
-            StructurePlan plan, WorldBlocks world, ItemCatalog catalog, RecipeCatalog recipes) {
+    public static NeededResources compute(StructurePlan plan, WorldBlocks world, PlanCatalogs catalogs) {
         List<ItemKey> seq =
                 new ArrayList<>(plan.solidList().size() + plan.decoList().size());
         for (List<BlueprintEntry> entries : List.of(plan.solidList(), plan.decoList())) {
             for (BlueprintEntry e : entries) {
                 List<ItemAmount> cost =
-                        EntryCost.of(e, world.get(plan.worldPos(e)).orElse(null), catalog, recipes);
-                if (!cost.isEmpty() && !plan.isDone(e, world, catalog) && !plan.onlyTurns(e, world)) {
+                        EntryCost.of(e, world.get(plan.worldPos(e)).orElse(null), catalogs);
+                if (!cost.isEmpty() && !plan.isDone(e, world, catalogs) && !plan.onlyTurns(e, world)) {
                     cost.forEach(a -> seq.addAll(Collections.nCopies(a.count(), a.item())));
                 }
             }
@@ -60,7 +58,7 @@ public final class NeededResources {
         for (ItemKey item : seq) {
             counts.merge(item, 1, Integer::sum);
         }
-        return new NeededResources(seq, counts, seq.size(), catalog::maxStack);
+        return new NeededResources(seq, counts, seq.size(), catalogs.items()::maxStack);
     }
 
     /** Read-only placement order at compute time: one element per unit of item. Not reduced by {@link #reduce}. */

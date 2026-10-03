@@ -186,14 +186,15 @@ public final class SleepAI {
         if (beds == null || bed == null || state == null) {
             return Optional.of(homePos);
         }
-        if (!ports.catalog().isBed(state.key())) {
+        if (!ports.blockCatalog().isBed(state.key())) {
             beds.removeBed(bed);
             colony.markDirty();
             return Optional.empty();
         }
         boolean free = ports.blocks()
                 .get(bed.offset(0, 1, 0))
-                .map(a -> ports.catalog().isBed(a.key()) || ports.catalog().kind(a.key()) != BlockKind.SOLID)
+                .map(a -> ports.blockCatalog().isBed(a.key())
+                        || ports.blockCatalog().kind(a.key()) != BlockKind.SOLID)
                 .orElse(true);
         return Optional.of(free ? bed : homePos);
     }

@@ -195,7 +195,7 @@ final class DiningVisit {
         if (food.isEmpty()) {
             return State.WAIT_FOR_FOOD;
         }
-        double value = FoodRules.foodValue(colony.context().ports().catalog(), food.get());
+        double value = FoodRules.foodValue(colony.context().ports().foods(), food.get());
         int qty = (int) Math.max(1.0, (CitizenData.MAX_SATURATION - data.saturation()) / value);
         FoodTransfer.take(colony, hall, data.inventory(), food.get(), (int) Math.ceil(qty * EXTRA_FOOD));
         return State.EAT;

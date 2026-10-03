@@ -33,7 +33,7 @@ public final class HandFeeding {
 
     /** Feeds {@code food} to {@code citizen}; the caller takes one from the player unless NOT_FOOD or NOT_NOW. */
     public static Outcome feed(Colony colony, CitizenData citizen, ItemKey food) {
-        Optional<FoodInfo> info = colony.context().ports().catalog().food(food);
+        Optional<FoodInfo> info = colony.context().ports().foods().food(food);
         if (info.isEmpty()) {
             return Outcome.NOT_FOOD;
         }

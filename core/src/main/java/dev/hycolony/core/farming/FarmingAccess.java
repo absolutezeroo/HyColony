@@ -11,69 +11,6 @@ import java.util.List;
  * answers false, {@link CropState#NONE} or empty.
  */
 public interface FarmingAccess {
-    /** A world without farming: nothing is tillable, nothing grows. For tests and until the adapter is wired. */
-    FarmingAccess NONE = new FarmingAccess() {
-        @Override
-        public boolean isTillable(BlockPos pos) {
-            return false;
-        }
-
-        @Override
-        public boolean isTilled(BlockPos pos) {
-            return false;
-        }
-
-        @Override
-        public boolean till(BlockPos pos) {
-            return false;
-        }
-
-        @Override
-        public boolean isFertilized(BlockPos pos) {
-            return false;
-        }
-
-        @Override
-        public boolean fertilize(BlockPos pos) {
-            return false;
-        }
-
-        @Override
-        public CropState crop(BlockPos pos) {
-            return CropState.NONE;
-        }
-
-        @Override
-        public boolean plant(BlockPos pos, ItemKey seed) {
-            return false;
-        }
-
-        @Override
-        public List<ItemAmount> harvest(BlockPos pos) {
-            return List.of();
-        }
-
-        @Override
-        public boolean isFieldBarrier(BlockPos pos) {
-            return false;
-        }
-
-        @Override
-        public List<ItemKey> seeds() {
-            return List.of();
-        }
-
-        @Override
-        public boolean isFieldBlock(BlockPos pos) {
-            return false;
-        }
-
-        @Override
-        public ItemKey fertilizerItem() {
-            return new ItemKey("Tool_Fertilizer");
-        }
-    };
-
     /** Whether a hoe turns this block into tilled soil (the 16 soils of Hytale's Hoe_Till). */
     boolean isTillable(BlockPos pos);
 
@@ -110,6 +47,6 @@ public interface FarmingAccess {
     /** Whether the field block stands at {@code pos}. */
     boolean isFieldBlock(BlockPos pos);
 
-    /** The fertilizer tool item (Hytale {@code Tool_Fertilizer}). */
+    /** The fertilizer tool item, named by the id-map. */
     ItemKey fertilizerItem();
 }

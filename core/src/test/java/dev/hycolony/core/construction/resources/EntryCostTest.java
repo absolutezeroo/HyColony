@@ -43,7 +43,7 @@ class EntryCostTest {
 
     private List<ItemAmount> cost(BlockKey block) {
         BlueprintEntry e = new BlueprintEntry(new BlockPos(0, 0, 0), new BlockState(block, 0), false, Optional.empty());
-        return EntryCost.of(e, items, new FakeRecipeCatalog());
+        return EntryCost.of(e, items.plan(new FakeRecipeCatalog()));
     }
 
     private static Optional<ItemKey> own(BlockKey block) {
@@ -125,7 +125,7 @@ class EntryCostTest {
 
     private List<ItemAmount> costOn(BlockKey block, BlockKey world) {
         BlueprintEntry e = new BlueprintEntry(new BlockPos(0, 0, 0), new BlockState(block, 0), false, Optional.empty());
-        return EntryCost.of(e, new BlockState(world, 0), items, new FakeRecipeCatalog());
+        return EntryCost.of(e, new BlockState(world, 0), items.plan(new FakeRecipeCatalog()));
     }
 
     private void plainDirt() {

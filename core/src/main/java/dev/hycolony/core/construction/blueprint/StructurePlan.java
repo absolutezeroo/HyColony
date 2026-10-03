@@ -1,10 +1,10 @@
 package dev.hycolony.core.construction.blueprint;
 
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.catalog.BlockCatalog;
 import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockKind;
 import dev.hycolony.core.kernel.item.BlockState;
-import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.core.kernel.port.WorldBlocks;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -71,16 +71,16 @@ public final class StructurePlan {
      * The plan of {@code bp} at {@code hut}, whose fill cells, if any, get no block: for Hytale prefabs (no markers)
      * and for an UPGRADE's previous level, of which only the remove list is used.
      */
-    public static StructurePlan build(Blueprint bp, BlockPos hut, ItemCatalog catalog) {
+    public static StructurePlan build(Blueprint bp, BlockPos hut, BlockCatalog catalog) {
         return build(bp, hut, catalog, Optional.empty());
     }
 
     /** The plan of {@code bp} at {@code hut}; its fill cells get {@code fillBlock} (MC BUILDER_SETTINGS fillblock). */
-    public static StructurePlan build(Blueprint bp, BlockPos hut, ItemCatalog catalog, BlockKey fillBlock) {
+    public static StructurePlan build(Blueprint bp, BlockPos hut, BlockCatalog catalog, BlockKey fillBlock) {
         return build(bp, hut, catalog, Optional.of(fillBlock));
     }
 
-    private static StructurePlan build(Blueprint bp, BlockPos hut, ItemCatalog catalog, Optional<BlockKey> fillBlock) {
+    private static StructurePlan build(Blueprint bp, BlockPos hut, BlockCatalog catalog, Optional<BlockKey> fillBlock) {
         List<BlueprintEntry> planned = new ArrayList<>(bp.entries());
         Set<BlockPos> fills = new HashSet<>();
         Set<BlockPos> fluids = new HashSet<>();
@@ -115,7 +115,7 @@ public final class StructurePlan {
      * building (MC AbstractEntityAIStructure.skipRemoval skips the substitution blocks).
      */
     private static Lists sortedLists(
-            List<BlueprintEntry> planned, BlockPos hut, ItemCatalog catalog, Set<BlockPos> terrain) {
+            List<BlueprintEntry> planned, BlockPos hut, BlockCatalog catalog, Set<BlockPos> terrain) {
         List<BlueprintEntry> solid = new ArrayList<>();
         List<BlueprintEntry> deco = new ArrayList<>();
         List<BlockPos> remove = new ArrayList<>();
@@ -229,8 +229,8 @@ public final class StructurePlan {
     }
 
     /** True when the world already has what this entry asks for at its position (see {@link #satisfied}). */
-    public boolean isDone(BlueprintEntry e, WorldBlocks world, ItemCatalog catalog) {
-        return satisfied(e, world.get(worldPos(e)).orElse(null), world, catalog);
+    public boolean isDone(BlueprintEntry e, WorldBlocks world, PlanCatalogs catalogs) {
+        return satisfied(e, world.get(worldPos(e)).orElse(null), world, catalogs);
     }
 
     /**
@@ -257,49 +257,51 @@ public final class StructurePlan {
      * <p>Deviation from MC (Hytale world): MC also takes a dry block that can be waterlogged (hasProperty WATERLOGGED)
      * → Hytale block types have no such property (BlockType), so only a block already standing in a source counts.
      */
-    public boolean satisfied(BlueprintEntry e, @Nullable BlockState world, WorldBlocks blocks, ItemCatalog catalog) {
+    public boolean satisfied(BlueprintEntry e, @Nullable BlockState world, WorldBlocks blocks, PlanCatalogs catalogs) {
         if (world == null) {
             return false;
         }
         // cells.marked() first: no allocation for Hytale prefabs, scanned every step
-        return sameBlock(e.state(), world, catalog)
-                || (cells.marked() && cellAnswered(worldPos(e), world, blocks, catalog));
+        return sameBlock(e.state(), world, catalogs.placement())
+                || (cells.marked() && cellAnswered(worldPos(e), world, blocks, catalogs));
     }
 
     /**
      * {@link #satisfied} for the cell at {@code pos}; false where the plan wants nothing. Structurize's iterator skips
      * such cells outside a removal (AbstractBlueprintIterator), so CLEAR and an upgrade's leftovers keep them.
      */
-    public boolean matchesAt(BlockPos pos, @Nullable BlockState world, WorldBlocks blocks, ItemCatalog catalog) {
+    public boolean matchesAt(BlockPos pos, @Nullable BlockState world, WorldBlocks blocks, PlanCatalogs catalogs) {
         BlockState planned = stateAt(pos);
         if (planned == null || world == null) {
             return false;
         }
-        return sameBlock(planned, world, catalog) || (cells.marked() && cellAnswered(pos, world, blocks, catalog));
+        return sameBlock(planned, world, catalogs.placement())
+                || (cells.marked() && cellAnswered(pos, world, blocks, catalogs));
     }
 
     /** The planned state itself, any dirt for a grass or dirt cell, or any shape of a wall or fence's family. */
-    private static boolean sameBlock(BlockState planned, BlockState world, ItemCatalog catalog) {
+    private static boolean sameBlock(BlockState planned, BlockState world, PlacementRules rules) {
         if (world.equals(planned)) {
             return true;
         }
-        if (catalog.takesAnyDirt(planned.key()) && catalog.isDirt(world.key())) {
+        if (rules.takesAnyDirt(planned.key()) && rules.isDirt(world.key())) {
             return true;
         }
-        Optional<String> family = catalog.shapeFamily(planned.key());
-        return family.isPresent() && family.equals(catalog.shapeFamily(world.key()));
+        Optional<String> family = rules.shapeFamily(planned.key());
+        return family.isPresent() && family.equals(rules.shapeFamily(world.key()));
     }
 
     /** A MineColonies plan's fill cell with any good floor, or fluid cell with a source, solid or block in a source. */
-    private boolean cellAnswered(BlockPos pos, BlockState world, WorldBlocks blocks, ItemCatalog catalog) {
+    private boolean cellAnswered(BlockPos pos, BlockState world, WorldBlocks blocks, PlanCatalogs catalogs) {
+        PlacementRules rules = catalogs.placement();
         if (cells.fill().contains(pos)) {
-            return catalog.isGoodFloor(world.key());
+            return rules.isGoodFloor(world.key());
         }
         return cells.fluid().contains(pos)
-                && (catalog.kind(world.key()) == BlockKind.SOLID
-                        || catalog.isFluidSource(world.key())
+                && (catalogs.blocks().kind(world.key()) == BlockKind.SOLID
+                        || rules.isFluidSource(world.key())
                         || blocks.fluidAt(pos)
-                                .filter(f -> catalog.isFluidSource(f.key()))
+                                .filter(f -> rules.isFluidSource(f.key()))
                                 .isPresent());
     }
 }

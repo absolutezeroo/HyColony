@@ -12,9 +12,10 @@ import dev.hycolony.core.job.JobXp;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.job.work.WorkerStock;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.catalog.FoodCatalog;
+import dev.hycolony.core.kernel.catalog.ItemCatalog;
 import dev.hycolony.core.kernel.nav.BodyWalker;
 import dev.hycolony.core.kernel.port.BodyId;
-import dev.hycolony.core.kernel.port.ItemCatalog;
 import java.util.Optional;
 
 /**
@@ -73,6 +74,10 @@ record CookWorkContext(
 
     ItemCatalog items() {
         return colony.context().ports().catalog();
+    }
+
+    FoodCatalog foods() {
+        return colony.context().ports().foods();
     }
 
     CookingStations stations() {

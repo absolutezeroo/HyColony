@@ -1,7 +1,7 @@
 package dev.hycolony.core.request.model;
 
+import dev.hycolony.core.kernel.catalog.ItemCatalog;
 import dev.hycolony.core.kernel.item.ItemKey;
-import dev.hycolony.core.kernel.port.ItemCatalog;
 import java.util.Objects;
 import java.util.Optional;
 

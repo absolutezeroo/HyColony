@@ -1,8 +1,9 @@
-"""Shared colours and tile tints of HyColony's hand-built models (the brushes are in tools/common/brushes.py)."""
+"""Shared colours, tile tints and brushes of HyColony's hand-built models (the general brushes are in
+tools/common/brushes.py)."""
 
 from PIL import Image, ImageDraw
 
-from brushes import jitter
+from brushes import coloured, jitter, painted, smooth
 from paint import softened
 
 LEATHER = (104, 64, 38)
@@ -37,3 +38,15 @@ def leather(rgb, tile):
             k = 0.9 if n < -0.6 else 1.08 if n > 0.85 else 1.0
             pixels[x, y] = (min(255, round(r * k)), min(255, round(g * k)), min(255, round(b * k)), a)
     return base
+
+
+def leaf(rgb):
+    """Young leaves: a mottled green, lighter towards the top of side faces, with a few light veins."""
+    def rule(x, y, w, h, side):
+        k = 1 + 0.08 * smooth(x / 2 + y * 0.7, 31) + 0.04 * jitter(x * 17 + y * 5, 32)
+        if side not in ("top", "bottom") and h > 1:
+            k += 0.12 * (1 - y / (h - 1))
+        if jitter(x * 23 + y * 41, 33) > 0.8:
+            k += 0.15
+        return coloured(rgb, k)
+    return painted(rule)

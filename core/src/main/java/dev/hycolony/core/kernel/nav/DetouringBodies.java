@@ -2,9 +2,9 @@ package dev.hycolony.core.kernel.nav;
 
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
+import dev.hycolony.core.kernel.catalog.BlockCatalog;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.CitizenBodies;
-import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.core.kernel.port.NavStatus;
 import dev.hycolony.core.kernel.port.WorldBlocks;
 import java.util.ArrayList;
@@ -40,7 +40,7 @@ public final class DetouringBodies extends ForwardingBodies {
      */
     private final Map<BodyId, Long> refusedFrom = new HashMap<>();
 
-    public DetouringBodies(CitizenBodies bodies, WorldBlocks blocks, ItemCatalog catalog) {
+    public DetouringBodies(CitizenBodies bodies, WorldBlocks blocks, BlockCatalog catalog) {
         super(bodies);
         DangerousCells danger = new DangerousCells(blocks, catalog);
         this.route = new SafeRoute(danger);

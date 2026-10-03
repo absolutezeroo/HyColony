@@ -7,7 +7,8 @@ import math
 
 from PIL import ImageDraw
 
-from brushes import as_tile, cloth, coloured, crystal, jitter, metal, painted, smooth, stone, terracotta, wood
+from brushes import as_tile, cloth, crystal, jitter, metal, stone, terracotta, wood
+from materials import leaf
 from models import multiply, walk
 
 MODEL = "Blocks/HyColony/Huts/Farmer"
@@ -140,15 +141,3 @@ def tilt(about_x, about_z):
         return tuple(c * math.sin(half) for c in axis) + (math.cos(half),)
 
     return multiply(about((0, 0, 1), about_z), about((1, 0, 0), about_x))
-
-
-def leaf(rgb):
-    """Young leaves: a mottled green, lighter towards the top of side faces, with a few light veins."""
-    def rule(x, y, w, h, side):
-        k = 1 + 0.08 * smooth(x / 2 + y * 0.7, 31) + 0.04 * jitter(x * 17 + y * 5, 32)
-        if side not in ("top", "bottom") and h > 1:
-            k += 0.12 * (1 - y / (h - 1))
-        if jitter(x * 23 + y * 41, 33) > 0.8:
-            k += 0.15
-        return coloured(rgb, k)
-    return painted(rule)

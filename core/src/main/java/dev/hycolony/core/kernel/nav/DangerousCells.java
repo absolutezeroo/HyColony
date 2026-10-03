@@ -1,14 +1,14 @@
 package dev.hycolony.core.kernel.nav;
 
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.catalog.BlockCatalog;
 import dev.hycolony.core.kernel.item.BlockState;
-import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.core.kernel.port.WorldBlocks;
 
 /**
  * Cells a citizen must never be sent to: MC PathfindingUtils.isDangerous (fire, campfire, magma, lava...) as
  * SurfaceType.getSurfaceType and AbstractPathJob.isPassable apply it, where a dangerous block is not passable and
- * neither is the cell above one. Danger is {@link ItemCatalog#isHarmful}.
+ * neither is the cell above one. Danger is {@link BlockCatalog#isHarmful}.
  *
  * <p>Walk targets are kept off these cells, and {@link SafeRoute} routes walks around them.
  *
@@ -18,9 +18,9 @@ import dev.hycolony.core.kernel.port.WorldBlocks;
  */
 public final class DangerousCells {
     private final WorldBlocks blocks;
-    private final ItemCatalog catalog;
+    private final BlockCatalog catalog;
 
-    public DangerousCells(WorldBlocks blocks, ItemCatalog catalog) {
+    public DangerousCells(WorldBlocks blocks, BlockCatalog catalog) {
         this.blocks = blocks;
         this.catalog = catalog;
     }

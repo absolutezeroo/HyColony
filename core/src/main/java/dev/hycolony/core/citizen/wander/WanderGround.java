@@ -2,11 +2,13 @@ package dev.hycolony.core.citizen.wander;
 
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
+import dev.hycolony.core.kernel.catalog.BlockCatalog;
+import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockKind;
 import dev.hycolony.core.kernel.item.BlockState;
-import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.core.kernel.port.WorldBlocks;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 /**
  * Where a wander walk to a column ends (MC PathJobRandomPos ends on a walkable cell, never over water): the standable
@@ -22,11 +24,14 @@ final class WanderGround {
     static final int HALF_HEIGHT = 3;
 
     private final WorldBlocks blocks;
-    private final ItemCatalog catalog;
+    private final BlockCatalog catalog;
+    /** Whether a block is leaves (GamePorts.isLeaves). */
+    private final Predicate<BlockKey> leaves;
 
-    WanderGround(WorldBlocks blocks, ItemCatalog catalog) {
+    WanderGround(WorldBlocks blocks, BlockCatalog catalog, Predicate<BlockKey> leaves) {
         this.blocks = blocks;
         this.catalog = catalog;
+        this.leaves = leaves;
     }
 
     /**
@@ -60,7 +65,7 @@ final class WanderGround {
         }
         for (int dy = -HALF_HEIGHT - 1; dy <= HALF_HEIGHT + 1; dy++) {
             BlockState s = blocks.get(at.offset(0, dy, 0)).orElse(null);
-            if (s != null && (catalog.isLeaves(s.key()) || catalog.kind(s.key()) == BlockKind.FLUID)) {
+            if (s != null && (leaves.test(s.key()) || catalog.kind(s.key()) == BlockKind.FLUID)) {
                 return false;
             }
         }
@@ -75,7 +80,7 @@ final class WanderGround {
         BlockState floor = blocks.get(feet.offset(0, -1, 0)).orElse(null);
         return floor != null
                 && catalog.kind(floor.key()) == BlockKind.SOLID
-                && !catalog.isLeaves(floor.key())
+                && !leaves.test(floor.key())
                 && !blocked(feet)
                 && !blocked(feet.offset(0, 1, 0));
     }
@@ -93,6 +98,6 @@ final class WanderGround {
         return kind == BlockKind.SOLID
                 || kind == BlockKind.UNBREAKABLE
                 || kind == BlockKind.FLUID
-                || catalog.isLeaves(s.key());
+                || leaves.test(s.key());
     }
 }

@@ -6,8 +6,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.inventory.CitizenEquipment.Hand;
+import dev.hycolony.core.kernel.catalog.ItemCatalog;
 import dev.hycolony.core.kernel.item.Inventory;
-import dev.hycolony.core.kernel.port.ItemCatalog;
 import org.jspecify.annotations.Nullable;
 
 /**

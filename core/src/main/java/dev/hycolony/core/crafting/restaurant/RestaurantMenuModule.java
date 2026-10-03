@@ -14,9 +14,10 @@ import dev.hycolony.core.citizen.food.hall.DiningHall;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.catalog.FoodCatalog;
+import dev.hycolony.core.kernel.catalog.ItemCatalog;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.persist.SavedJson;
-import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.core.logistics.pickup.KeepRule;
 import dev.hycolony.core.logistics.pickup.KeepsItems;
 import java.util.ArrayList;
@@ -47,11 +48,11 @@ public final class RestaurantMenuModule
 
     /** MC LivingBuildingView.checkColonyMenu: whether a dining hall of {@code colony} serves a {@code tier}+ dish. */
     public static boolean anyMenuServesTier(Colony colony, int tier) {
-        ItemCatalog catalog = colony.context().ports().catalog();
+        FoodCatalog foods = colony.context().ports().foods();
         return colony.buildings().all().stream()
                 .flatMap(b -> b.module(RestaurantMenuModule.class).stream())
                 .flatMap(m -> m.menu.stream())
-                .anyMatch(dish -> FoodRules.tier(catalog, dish) >= tier);
+                .anyMatch(dish -> FoodRules.tier(foods, dish) >= tier);
     }
 
     /** MC hasReachedLimit: whether the menu of {@code hall} is full. */
@@ -64,7 +65,7 @@ public final class RestaurantMenuModule
      * cooks, no food), one already on it or a full menu.
      */
     public boolean add(Colony colony, Building hall, ItemKey food) {
-        if (!FoodRules.edible(colony.context().ports().catalog(), food) || full(hall) || menu.contains(food)) {
+        if (!FoodRules.edible(colony.context().ports().foods(), food) || full(hall) || menu.contains(food)) {
             return false;
         }
         menu.add(food);
@@ -86,7 +87,7 @@ public final class RestaurantMenuModule
      */
     @Override
     public void onColonyTick(Colony colony, Building building) {
-        menu.removeIf(f -> !FoodRules.edible(colony.context().ports().catalog(), f));
+        menu.removeIf(f -> !FoodRules.edible(colony.context().ports().foods(), f));
         MenuRequests.update(colony, building, List.copyOf(menu));
     }
 

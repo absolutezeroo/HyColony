@@ -72,7 +72,7 @@ public final class DiningRoomModule implements PersistentModule, BuildingEventsM
                 .ports()
                 .blocks()
                 .get(seat)
-                .filter(b -> !colony.context().ports().catalog().isSeat(b.key()))
+                .filter(b -> !colony.context().ports().blockCatalog().isSeat(b.key()))
                 .isPresent();
     }
 
@@ -124,7 +124,7 @@ public final class DiningRoomModule implements PersistentModule, BuildingEventsM
     /** A seat of the plan joins the room (see the class: MC's {@code sit} tags). */
     @Override
     public void onBlockPlacedInBuilding(Colony colony, Building building, BlockPos pos, BlockKey block) {
-        if (colony.context().ports().catalog().isSeat(block)) {
+        if (colony.context().ports().blockCatalog().isSeat(block)) {
             addSeat(pos);
         }
     }
@@ -132,7 +132,7 @@ public final class DiningRoomModule implements PersistentModule, BuildingEventsM
     /** A seat a player placed in the footprint joins the room too (see the class: a deviation); marks the colony. */
     @Override
     public void onBlockPlacedByPlayer(Colony colony, Building building, BlockPos pos, BlockKey block) {
-        if (colony.context().ports().catalog().isSeat(block) && !seats.contains(pos)) {
+        if (colony.context().ports().blockCatalog().isSeat(block) && !seats.contains(pos)) {
             seats.add(pos);
             colony.markDirty();
         }

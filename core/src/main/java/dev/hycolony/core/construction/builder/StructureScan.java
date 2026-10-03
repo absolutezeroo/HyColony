@@ -2,11 +2,11 @@ package dev.hycolony.core.construction.builder;
 
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.construction.blueprint.BlueprintEntry;
+import dev.hycolony.core.construction.blueprint.PlanCatalogs;
 import dev.hycolony.core.construction.workorder.Stage;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.BlockKind;
 import dev.hycolony.core.kernel.item.BlockState;
-import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.core.kernel.port.WorldBlocks;
 import java.util.List;
 
@@ -17,12 +17,12 @@ import java.util.List;
 final class StructureScan {
     private final Colony colony;
     private final WorldBlocks blocks;
-    private final ItemCatalog catalog;
+    private final PlanCatalogs catalogs;
 
-    StructureScan(Colony colony, WorldBlocks blocks, ItemCatalog catalog) {
+    StructureScan(Colony colony, WorldBlocks blocks, PlanCatalogs catalogs) {
         this.colony = colony;
         this.blocks = blocks;
-        this.catalog = catalog;
+        this.catalogs = catalogs;
     }
 
     /** The first index from {@code from} and below {@code limit} whose position needs work; {@code limit} if none. */
@@ -66,16 +66,16 @@ final class StructureScan {
                         : pos.y() >= site.loadedOrder().buildingPos().y()
                                 && world != null
                                 && world.equals(site.previousPlan().stateAt(pos))
-                                && !site.plan().matchesAt(pos, world, blocks, catalog)
+                                && !site.plan().matchesAt(pos, world, blocks, catalogs)
                                 && mineable(world)
                                 && notAHut(pos);
             default -> {
                 BlueprintEntry e = site.entry(stage, i);
                 // The final walk only refills what was broken (air); a block the player changed stays.
                 boolean open = site.finalCheckDone()
-                        ? world == null || catalog.kind(world.key()) == BlockKind.AIR
-                        : world == null || catalog.kind(world.key()) != BlockKind.UNBREAKABLE;
-                yield !site.plan().satisfied(e, world, blocks, catalog)
+                        ? world == null || catalogs.blocks().kind(world.key()) == BlockKind.AIR
+                        : world == null || catalogs.blocks().kind(world.key()) != BlockKind.UNBREAKABLE;
+                yield !site.plan().satisfied(e, world, blocks, catalogs)
                         && open
                         && notAHut(pos); // MC IBuilderUndestroyable: a colony hut is never built over
             }
@@ -88,20 +88,20 @@ final class StructureScan {
      */
     private boolean clears(BuildSite site, BlockPos pos, BlockState world) {
         if (site.plan().isFillCell(pos)) {
-            return mineable(world) && !catalog.isGoodFloor(world.key());
+            return mineable(world) && !catalogs.placement().isGoodFloor(world.key());
         }
-        return clearable(world) && !site.plan().matchesAt(pos, world, blocks, catalog);
+        return clearable(world) && !site.plan().matchesAt(pos, world, blocks, catalogs);
     }
 
     /** Air, fluids and unbreakable blocks are never mined. */
     boolean mineable(BlockState state) {
-        BlockKind kind = catalog.kind(state.key());
+        BlockKind kind = catalogs.blocks().kind(state.key());
         return kind != BlockKind.AIR && kind != BlockKind.FLUID && kind != BlockKind.UNBREAKABLE;
     }
 
     /** CLEAR also removes fluids the plan does not want (MC clears the footprint of water and lava). */
     boolean clearable(BlockState state) {
-        return mineable(state) || catalog.kind(state.key()) == BlockKind.FLUID;
+        return mineable(state) || catalogs.blocks().kind(state.key()) == BlockKind.FLUID;
     }
 
     boolean mustMineFirst(BlockPos pos) {

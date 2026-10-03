@@ -3,9 +3,10 @@ package dev.hycolony.core.logistics.pickup;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.food.FoodRules;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.kernel.catalog.FoodCatalog;
+import dev.hycolony.core.kernel.catalog.ItemCatalog;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
-import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.core.request.Request;
 import dev.hycolony.core.request.RequestManager;
 import dev.hycolony.core.request.Resolver;
@@ -45,12 +46,12 @@ public final class HutKeep {
         if (!inventory) {
             rules.addAll(deliveryRules(colony.requests(), building));
         }
-        ItemCatalog catalog = colony.context().ports().catalog();
         if (FoodRules.keepsFood(building)) {
             // MC AbstractBuilding.keepFood: food its workers may eat (as from no home), level x 2, inventory too.
             Predicate<ItemKey> allowed = FoodRules.workAllows(colony, building.position());
+            FoodCatalog foods = colony.context().ports().foods();
             rules.add(new KeepRule(
-                    item -> FoodRules.canEat(catalog, item, 0, allowed), building.level() * KEPT_FOOD_PER_LEVEL, true));
+                    item -> FoodRules.canEat(foods, item, 0, allowed), building.level() * KEPT_FOOD_PER_LEVEL, true));
         }
         for (var module : building.modules().values()) {
             if (module instanceof KeepsItems keeps) {
@@ -61,7 +62,7 @@ public final class HutKeep {
                 }
             }
         }
-        return new HutKeep(rules, catalog);
+        return new HutKeep(rules, colony.context().ports().catalog());
     }
 
     /** MC: the items in {@code getDeliveries()} of the requests made by the building's resolvers, summed per item. */
