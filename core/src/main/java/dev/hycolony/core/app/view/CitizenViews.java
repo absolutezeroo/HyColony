@@ -98,8 +98,10 @@ final class CitizenViews {
     }
 
     /**
-     * The body's health in MC points, truncated as MC casts its float health; full without a living body, as MC
-     * CitizenDataView.getHealth gives MAX_HEALTH without its entity.
+     * The body's health on MC's 20 points for the hearts, truncated; full without a living body, as MC
+     * CitizenDataView.getHealth gives MAX_HEALTH without its entity. Deviation from MC (Hytale world): MC casts the
+     * entity's own health, whose maximum is 20 → the body's share of its Hytale maximum, so that a whole body fills the
+     * 10 hearts (above 20, MC CitizenWindowUtils.createHealthBar draws hearts of another kind).
      */
     private int health(Colony c, CitizenData d) {
         return c.citizens()
