@@ -216,6 +216,47 @@ avec la hitbox `HyColony_Hut_Tall`. Choisie parmi deux pistes (pile de stock, é
   rayonnage, un sac et un rouleau ont chacun un léger biais.
 - **Objet** : il quitte le petit coffre `Village/Chest_Small` et ses animations de couvercle.
 
+## Bûcheron et mineur
+
+Validés par l'utilisateur dans Blockbench (« nickel pour les 2 »). Les modèles sont écrits par un script, comme le
+presse-papiers ; `tools/huts/lumberjack.py` et `miner.py` en peignent la texture et l'icône. Hauteur d'un bloc
+(34 au plus), donc la hitbox `HyColony_Hut`.
+
+**Blocs de décoration** en attendant leur métier, au choix de l'utilisateur (« tu peux pas juste les implémenter
+mais elles font rien ? ») : objets `HyColony_Hut_Lumberjack` et `HyColony_Hut_Miner`, créatifs seulement (sans
+recette), catégorie `Blocks.Deco`, sans coffre, sans fenêtre ni interaction `Use`. Ils ne sont pas dans l'id-map :
+`HutPlaceSystem` ignore un objet qui n'y est pas, et la colonie ne les voit pas. Noms de MineColonies
+(`manual_en_us.json` : « Forester's Hut », « Mine » ; « Hutte du forestier », « Mine »), et une description qui dit
+que le métier n'est pas encore là. Leur portage ajoutera l'id-map, la recette, le coffre et la fenêtre, comme aux
+autres huttes.
+
+- **Bûcheron** (20 boîtes, texture de 32×224) : une souche fendue en deux par une hache plantée dans la fente, à la
+  demande de l'utilisateur (« vu qu'elle est plantée, autant faire une vraie fissure sur la bûche ») : une fente
+  d'une unité sur toute la hauteur, les deux faces de la fente en bois arraché sombre, les cernes de chaque moitié
+  centrés sur le milieu de la fente (z −1,5). La hache (œil, manche, lame qui s'évase jusqu'au fil clair, enfoncé
+  dans la fente) penche de 30°. Trois racines, un tas de trois bûches derrière (cernes sur leurs bouts), un jeune
+  arbre sur sa butte devant à gauche, des copeaux et une bûche fendue au sol.
+- **Mineur** (44 boîtes, texture de 256×256) : l'entrée d'une galerie boisée (deux montants, un linteau, deux
+  jambes de force, le fond noir de la galerie), une lanterne pendue à sa chaîne, des rails sur quatre traverses.
+  Retours de l'utilisateur :
+  - « les minerais sur Hytale ont des cristaux en 3D qui ressortent » : comme les blocs de minerai de Hytale
+    (`CubeWithModel` : le cube de pierre du bloc, par exemple `Ore_Cobalt_Shale`, et les six prismes allongés,
+    tournés au hasard, de `Resources/Ores/Ore_Large`), le rocher de devant porte trois
+    prismes d'or et de cuivre (pinceau `crystal`), plantés de biais et à moitié enfoncés ;
+  - « le wagonnet est rempli de bois […] il devrait être vide mais rempli de pierre et minerais » : un wagonnet creux
+    (fond et quatre parois en planches, quatre roues), rempli de pierre jusque sous le bord, trois blocs de pierre et
+    trois cristaux qui en dépassent ;
+  - « j'aurais planté la pioche dans le Rock_2, orientée vers le wagonnet en diagonale » : la pioche (œil, manche,
+    deux bras recourbés vers le manche jusqu'à leurs pointes) est plantée de 3 unités dans le dessus du rocher du
+    fond, son plan sur la diagonale du rocher au wagonnet (‑26,6°) ; le fer s'avance vers le wagonnet, le manche
+    remonte au-dessus du rocher. Le manche ne peut pas aller vers le wagonnet : le fer est perpendiculaire au manche,
+    donc la pointe plantée part du même côté que lui, et le fer sortirait du bloc derrière le rocher.
+- **Reflet des cristaux** (demandé par l'utilisateur, « pas de grossissement, juste le reflet ») : le reflet de
+  l'outil de construction (`glint.py`), sans la respiration (`BREATHE = False` dans `miner.py`), sur les six nœuds
+  `Gem_*` : `Miner.blockyanim`. Ses trois images sont peintes sous la texture ; le modèle est déplié sur 256 de large
+  pour que la texture reste à 256×256 (64×768 en largeur 64, plus haut que les 384 déjà vus en jeu). Le bloc la
+  déclare en `CustomModelAnimation`, avec `Looping` à vrai comme le fermier.
+
 ## Lunettes de construction
 
 Des lunettes d'architecte, pièce d'armure de tête (racine `Head` du casque `Armors/Diving_Crude/Head` de Hytale), en
@@ -287,7 +328,7 @@ Pistes proposées à l'utilisateur, chacune à valider sur des captures Blockben
 
 | Hutte | Piste |
 |---|---|
-| Bûcheron | Souche avec une hache plantée, tas de bûches, jeune arbre. Bloc avec le métier (pas encore porté). |
+| Bûcheron, mineur | Faits en blocs de décoration (§ Bûcheron et mineur) ; huttes complètes avec leur métier. |
 
 ## À vérifier en jeu
 
@@ -312,6 +353,9 @@ Pistes proposées à l'utilisateur, chacune à valider sur des captures Blockben
   héritent de `CustomModelAnimation`) ; toutes les 3 s, une goutte perle sous la pomme de l'arrosoir, tombe sur le
   plateau et disparaît, à une taille juste.
 - Le cuisinier : la vapeur monte de la marmite (`HyColony_Stove_Steam`) ; le foyer luit derrière ses barreaux.
+- La hutte du forestier et la mine (inventaire créatif) se posent comme de simples blocs : ni colonie ni message,
+  rien ne s'ouvre en les utilisant ; elles font face au joueur. Les cristaux de la mine luisent d'un reflet toutes les
+  3 s, sans grossir, et l'animation boucle.
 - Utiliser une hutte ouvre toujours sa fenêtre ; aucune erreur d'animation au journal. L'hôtel de ville crée la
   colonie comme avant.
 - Le bloc au-dessus d'une hutte posée après ce changement est occupé (cellule de remplissage de la hitbox de 1,4, ou

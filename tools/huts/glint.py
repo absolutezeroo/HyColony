@@ -1,5 +1,5 @@
-"""Living crystals (spec 2026-10-02 hut models, § build tool): the gems of a held model breathe (shapeStretch, smooth,
-as Hytale's Blocks/Animations/Candle/Candle_Burn) and a glint sweeps across them now and then (a shapeUvOffset
+"""Living crystals (spec 2026-10-02 hut models, § build tool, § miner): the gems of a model may breathe (shapeStretch,
+smooth, as Hytale's Blocks/Animations/Candle/Candle_Burn) and a glint sweeps across them now and then (a shapeUvOffset
 flipbook, as Hytale's VFX/Fire/Fire: frames painted below the texture; an offset of -d reads the island d pixels
 lower). Times are in 1/60 s (Blockbench's Hytale plugin exports blockyanim keyframes at 60 per second)."""
 
@@ -54,11 +54,12 @@ def glint(image, rect, t):
                 pixels[u + x, v + y] = (*mix((r, g, b), GLINT_LIGHT, 0.8 * (1 - distance / GLINT_BAND)), a)
 
 
-def animation(nodes, prefix, step):
-    """The blockyanim of the nodes named prefix*: a breath every DURATION, the glint frames step pixels apart."""
+def animation(nodes, prefix, step, breathe=True):
+    """The blockyanim of the nodes named prefix*: the glint frames step pixels apart and, if breathe, a breath every
+    DURATION."""
     names = sorted(n["name"] for n in walk(nodes) if n["name"].startswith(prefix))
     return {"formatVersion": 1, "duration": DURATION, "holdLastKeyframe": False, "nodeAnimations": {
-        name: {"position": [], "orientation": [], "shapeStretch": breath(), "shapeVisible": [],
+        name: {"position": [], "orientation": [], "shapeStretch": breath() if breathe else [], "shapeVisible": [],
                "shapeUvOffset": flipbook(step)} for name in names}}
 
 

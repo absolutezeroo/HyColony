@@ -1,0 +1,35 @@
+{
+  "TranslationProperties": {
+    "Name": "hycolony.item.hut.lumberjack.name",
+    "Description": "hycolony.item.hut.lumberjack.description"
+  },
+  "MaxStack": 1,
+  "Icon": "Icons/Items/HyColony/Hut_Lumberjack.png",
+  "Categories": [
+    "Blocks.Deco"
+  ],
+  "PlayerAnimationsId": "Block",
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Model",
+    "Opacity": "Transparent",
+    "CustomModel": "Blocks/HyColony/Huts/Lumberjack.blockymodel",
+    "CustomModelTexture": [
+      { "Texture": "Blocks/HyColony/Huts/Lumberjack.png", "Weight": 1 }
+    ],
+    "HitboxType": "HyColony_Hut",
+    "VariantRotation": "NESW",
+    "Gathering": {
+      "Breaking": { "GatherType": "Woods" }
+    },
+    "Support": {
+      "Down": [ { "FaceType": "Full" } ]
+    },
+    "BlockParticleSetId": "Wood",
+    "ParticleColor": "#60402a",
+    "BlockSoundSetId": "Wood",
+    "PhysicalMaterialId": "Wood",
+    "TextureComputedColor": "#60402A"
+  },
+  "ItemSoundSetId": "ISS_Blocks_Wood"
+}

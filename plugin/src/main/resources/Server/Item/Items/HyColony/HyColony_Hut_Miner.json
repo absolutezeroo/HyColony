@@ -1,0 +1,37 @@
+{
+  "TranslationProperties": {
+    "Name": "hycolony.item.hut.miner.name",
+    "Description": "hycolony.item.hut.miner.description"
+  },
+  "MaxStack": 1,
+  "Icon": "Icons/Items/HyColony/Hut_Miner.png",
+  "Categories": [
+    "Blocks.Deco"
+  ],
+  "PlayerAnimationsId": "Block",
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Model",
+    "Opacity": "Transparent",
+    "CustomModel": "Blocks/HyColony/Huts/Miner.blockymodel",
+    "CustomModelTexture": [
+      { "Texture": "Blocks/HyColony/Huts/Miner.png", "Weight": 1 }
+    ],
+    "CustomModelAnimation": "Blocks/HyColony/Huts/Miner.blockyanim",
+    "Looping": true,
+    "HitboxType": "HyColony_Hut",
+    "VariantRotation": "NESW",
+    "Gathering": {
+      "Breaking": { "GatherType": "Woods" }
+    },
+    "Support": {
+      "Down": [ { "FaceType": "Full" } ]
+    },
+    "BlockParticleSetId": "Wood",
+    "ParticleColor": "#68462c",
+    "BlockSoundSetId": "Wood",
+    "PhysicalMaterialId": "Wood",
+    "TextureComputedColor": "#68462C"
+  },
+  "ItemSoundSetId": "ISS_Blocks_Wood"
+}
