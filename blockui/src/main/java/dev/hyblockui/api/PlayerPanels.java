@@ -76,9 +76,14 @@ public final class PlayerPanels {
                 CustomUIEventBindingType.Activating, host + " #SortButton", EventData.of("Action", SORT_ACTION), false);
     }
 
-    /** Sorts the player's storage as the client's own sort button does (InventoryUtils.sortStorage). */
+    /**
+     * Sorts the player's storage as the client's own sort button does (InventoryUtils.sortStorage); nothing for a
+     * player whose inventory is locked ({@link InventoryMoves#mayTouch}).
+     */
     public static void sort(Store<EntityStore> store, Ref<EntityStore> player) {
-        InventoryUtils.sortStorage(player, store);
+        if (InventoryMoves.mayTouch(player, store)) {
+            InventoryUtils.sortStorage(player, store);
+        }
     }
 
     private static boolean empty(ItemContainer container, short slot) {

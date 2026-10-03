@@ -43,9 +43,15 @@ public final class InventoryMoves {
 
     /** As the native handler: a player whose inventory is locked (PreventInventoryAccess) moves nothing. */
     private static boolean allowed(Ref<EntityStore> player, Store<EntityStore> store, InventoryDrop drop) {
-        return drop.complete()
-                && player.isValid()
-                && !store.getArchetype(player).contains(PreventInventoryAccess.getComponentType());
+        return drop.complete() && mayTouch(player, store);
+    }
+
+    /**
+     * Whether player may move items at all, as InventoryPacketHandler checks before every drag, button or sort: a
+     * valid player whose inventory is not locked (blocksInventoryAccess: PreventInventoryAccess).
+     */
+    public static boolean mayTouch(Ref<EntityStore> player, Store<EntityStore> store) {
+        return player.isValid() && !store.getArchetype(player).contains(PreventInventoryAccess.getComponentType());
     }
 
     /** How many of the dropped stack can move: capped by the stack really there; 0 when the drop does not fit. */
