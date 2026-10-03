@@ -58,6 +58,9 @@ public final class CitizenAI {
     private int workTicks;
 
     private boolean failed;
+    /** Whether {@link #jobAI} was reset since the citizen last entered WORKING (MC resetAI on its WORK state). */
+    private boolean jobAIReset;
+
     private @Nullable JobAI jobAI;
     /** The job and work building {@link #jobAI} was created for. */
     private @Nullable Job aiJob;
@@ -111,6 +114,9 @@ public final class CitizenAI {
             machine.tick();
             if (machine.getState() != CitizenState.IDLE) {
                 wander.leftIdle();
+            }
+            if (machine.getState() != CitizenState.WORKING) {
+                jobAIReset = false;
             }
             watch.afterTick(machine.getState(), jobAI, aiJob == null ? 0 : aiJob.actionsDone());
         } finally {
@@ -193,7 +199,7 @@ public final class CitizenAI {
             case GO_TO_SLEEP -> {
                 decidedEating = false;
                 leaveEating(now);
-                dropJobAI(); // the sleep decision ignores canBeInterrupted
+                wander.restartWait(); // the sleep decision ignores canBeInterrupted
                 yield CitizenState.SLEEP;
             }
             case WAKE_UP -> decideHunger(now == CitizenState.SLEEP ? CitizenState.IDLE : now);
@@ -204,7 +210,7 @@ public final class CitizenAI {
 
     /**
      * MC calculateNextState's hunger part, after the sleep part and before the rain and work: to EATING when it should
-     * eat (its job AI dropped, as on leaving WORK), judged as still eating after a decision to eat (MC lastState); out
+     * eat (its job AI kept, as on leaving WORK), judged as still eating after a decision to eat (MC lastState); out
      * of EATING once it should not, straight to work when it should work. {@code now} is the state the sleep part left
      * it in.
      */
@@ -214,7 +220,7 @@ public final class CitizenAI {
         decidedEating = eating.shouldEat(decidedEating || eatingNow, ai == null || ai.canBeInterrupted());
         if (decidedEating) {
             if (!eatingNow) {
-                dropJobAI();
+                wander.restartWait();
             }
             return CitizenState.EATING;
         }
@@ -253,13 +259,14 @@ public final class CitizenAI {
             dropJobAI();
             return CitizenState.IDLE;
         }
-        JobAI ai = jobAI;
-        if (ai == null || !job.equals(aiJob) || !Objects.equals(data.workBuilding(), aiWorkBuilding)) {
-            ai = startJob(job); // fired and hired again (elsewhere) between two ticks: bound to the new hut
+        JobAI ai = jobAIFor(job);
+        if (!jobAIReset) { // MC CitizenAI's WORK target: resetAI, then WORKING
+            ai.resetAI();
+            jobAIReset = true;
         }
         // MC re-decides every DECIDE_INTERVAL_TICKS, which also keeps the order lookup off the per-tick path.
         if (++workTicks % DECIDE_INTERVAL_TICKS == 0 && (rainStopsWork() || ai.canGoIdle() || onBreak(ai))) {
-            dropJobAI();
+            wander.restartWait();
             return CitizenState.IDLE;
         }
         ai.tick();
@@ -268,20 +275,26 @@ public final class CitizenAI {
 
     /**
      * MC calculateNextState: work only when the rain does not stop it ({@link #rainStopsWork}, checked first as in MC),
-     * the job AI cannot go idle and the citizen is not on a break ({@link #onBreak}). Asks a fresh job AI, which then
-     * starts from its first state as MC's resetAI on entering WORK makes it; its fields start afresh too, a deviation
-     * ({@link #dropJobAI}).
+     * the job AI cannot go idle and the citizen is not on a break ({@link #onBreak}). Asks its job AI, made once for
+     * its job and work hut and kept while it sleeps, eats or idles, as MC keeps its worker AI; entering WORKING resets
+     * it ({@link JobAI#resetAI}).
      */
     private boolean shouldWork() {
         Job job = data.job().orElse(null);
         if (job == null || !bodies.isAlive(body) || rainStopsWork()) {
             return false;
         }
+        JobAI ai = jobAIFor(job);
+        return !ai.canGoIdle() && !onBreak(ai);
+    }
+
+    /** Its job AI for {@code job}, made anew when it was hired for another job or hut (even between two ticks). */
+    private JobAI jobAIFor(Job job) {
         JobAI ai = jobAI;
         if (ai == null || !job.equals(aiJob) || !Objects.equals(data.workBuilding(), aiWorkBuilding)) {
             ai = startJob(job);
         }
-        return !ai.canGoIdle() && !onBreak(ai);
+        return ai;
     }
 
     /**
@@ -313,13 +326,9 @@ public final class CitizenAI {
     }
 
     /**
-     * Forgets the job AI, the next WORK making a fresh one, and its walking speed (a job AI sets its own again);
-     * restarts the wander's wait for a walk under way. The hand is left as it is, as MC.
-     *
-     * <p>Deviation from MC: the whole job AI goes, its fields too (the farmer's skippedState and forceLeave, say); MC
-     * keeps its AI and only resets its state machine and render metadata on entering WORK again (resetAI). And the
-     * walking speed goes back to 1, so a courier eats or sleeps at its base speed; MC keeps its speed modifier
-     * (JobDeliveryman.onLevelUp) until it is unassigned (DeliverymanAssignmentModule).
+     * The citizen lost its job: forgets the job AI and its walking speed, as MC removes the courier's speed modifier on
+     * unassignment (DeliverymanAssignmentModule); restarts the wander's wait for a walk under way. The hand is left as
+     * it is, as MC.
      */
     private void dropJobAI() {
         wander.restartWait(); // back to IDLE: the walk under way is waited for from now

@@ -64,6 +64,11 @@ final class CourierContext {
         return body;
     }
 
+    /** Forgets the walk under way ({@link BlockApproach#forget}): another AI has moved the courier since. */
+    void forgetWalk() {
+        approach.forget();
+    }
+
     CitizenData citizen() {
         return job.citizen();
     }

@@ -170,7 +170,7 @@ L'adaptateur coupe la régénération naturelle des PNJ (`HealthRegenState.setRe
 5. (malade et endormi : absent) ;
 6. vrai si saturation ≤ 10 **et** (saturation ≤ 2,5 `RESTAURANT_LIMIT` **ou** (saturation < 6 **et** vie < 6)).
 
-Un citoyen qui part manger perd son IA de métier (`dropJobAI`), comme une sortie vers `IDLE`.
+Un citoyen qui part manger garde son IA de métier, comme une sortie vers `IDLE` ; elle est remise à zéro quand il revient au travail (`JobAI.resetAI`, MC `resetAI`).
 
 ### 5.2 L'IA du repas (`citizen/food/EatAI`, MC `EntityAIEatTask`)
 

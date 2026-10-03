@@ -215,7 +215,7 @@ Quand `sleepIn` réussit :
 
 ### 5.5 Le travail interrompu
 
-Un citoyen en `WORKING` qui part dormir perd son IA de métier (`dropJobAI`, comme une sortie vers `IDLE`). Au réveil, son métier repart de son premier état, comme MC `resetAI`. Les règles « ne pas interrompre » ne s'appliquent pas au sommeil : dans MC, la décision de sommeil passe avant `canBeInterrupted`.
+Un citoyen en `WORKING` qui part dormir garde son IA de métier, ses champs et sa vitesse de marche, comme MC. Quand il revient au travail, son IA repart de son premier état et oublie sa marche (`JobAI.resetAI`, MC `resetAI` à l'entrée de `WORK`) ; elle n'est recréée que pour un autre métier ou une autre hutte. Les règles « ne pas interrompre » ne s'appliquent pas au sommeil : dans MC, la décision de sommeil passe avant `canBeInterrupted`.
 
 ### 5.6 Le réveil (MC `CitizenSleepHandler.onWakeUp`, R § A.5)
 

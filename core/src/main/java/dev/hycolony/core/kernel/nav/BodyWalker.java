@@ -61,6 +61,16 @@ public final class BodyWalker {
         return walks;
     }
 
+    /**
+     * Forgets the walk under way or ended, so the next one starts afresh from wherever the body now is: another AI (a
+     * sleep, a meal) has moved it since.
+     */
+    public void forget() {
+        navTarget = null;
+        settled = null;
+        arrived = false;
+    }
+
     /** The body's block; empty while it has no body. */
     public Optional<BlockPos> at() {
         return bodies.position(body).map(Vec3::toBlockPos);

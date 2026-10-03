@@ -17,6 +17,13 @@ public interface JobAI {
 
     boolean canBeInterrupted();
 
+    /**
+     * MC ITickingStateAI.resetAI, as its citizen enters WORK again: back to its machine's first state, its walks
+     * forgotten (another AI moved the body since); its other fields stay. Nothing by default, for an AI without a
+     * machine or walks.
+     */
+    default void resetAI() {}
+
     /** MC AbstractEntityAIBasic.canGoIdle: true when the worker has nothing to do and may wander; false by default. */
     default boolean canGoIdle() {
         return false;

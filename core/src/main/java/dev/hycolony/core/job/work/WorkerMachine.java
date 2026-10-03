@@ -78,6 +78,11 @@ public final class WorkerMachine<S extends IState> {
         machine.tick();
     }
 
+    /** MC AbstractAISkeleton.resetAI: back to its first state; the worker's wait and its exception pause stay. */
+    public void reset() {
+        machine.reset();
+    }
+
     public S state() {
         return machine.getState();
     }

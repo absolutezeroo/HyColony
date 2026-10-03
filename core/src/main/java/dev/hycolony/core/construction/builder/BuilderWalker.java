@@ -37,6 +37,11 @@ final class BuilderWalker {
         repickedFor = null;
     }
 
+    /** Forgets the walk under way ({@link BlockApproach#forget}), its work spot kept: another AI moved the body. */
+    void forgetWalk() {
+        approach.forget();
+    }
+
     /** True while a walk is under way (for the citizen window). */
     boolean walking() {
         return walker.walking();

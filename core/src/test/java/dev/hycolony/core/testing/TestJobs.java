@@ -56,20 +56,30 @@ public final class TestJobs {
 
         @Override
         public JobAI createAI(Colony colony, BodyId body) {
-            return new JobAI() {
-                @Override
-                public void tick() {}
+            return new TestJobAI();
+        }
+    }
 
-                @Override
-                public String stateName() {
-                    return "working";
-                }
+    /** The test jobs' AI: always working, it counts how often it was reset (MC resetAI on entering WORK). */
+    public static final class TestJobAI implements JobAI {
+        public int resets;
 
-                @Override
-                public boolean canBeInterrupted() {
-                    return true;
-                }
-            };
+        @Override
+        public void tick() {}
+
+        @Override
+        public String stateName() {
+            return "working";
+        }
+
+        @Override
+        public boolean canBeInterrupted() {
+            return true;
+        }
+
+        @Override
+        public void resetAI() {
+            resets++;
         }
     }
 }

@@ -3,6 +3,7 @@ package dev.hycolony.core.citizen.sleep;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.building.Building;
@@ -129,7 +130,46 @@ class SleepCycleTest {
         tickUntil(d::asleep);
 
         assertEquals(BED_POS, t.bodies.bodies.get(body).inBed);
-        assertTrue(c.citizens().ai(d.id()).orElseThrow().jobAi().isEmpty(), "its job AI dropped (MC resetAI)");
+    }
+
+    /** MC keeps the job's AI while its worker sleeps and resets it (resetAI) when it enters WORK again. */
+    @Test
+    void wakingWorkerResumesTheSameJobAiFromItsFirstState() {
+        d.setJob(TestJobs.TYPE.factory().apply(d));
+        citizen(HALL);
+        tickUntil(() -> state() == CitizenState.WORKING);
+        ticks(1);
+        TestJobs.TestJobAI ai = jobAi();
+        assertEquals(1, ai.resets, "reset on entering WORK");
+
+        nightfall();
+        tickUntil(d::asleep);
+        assertSame(ai, jobAi(), "kept while asleep");
+        t.clock.dayTime = 0;
+        tickUntil(() -> state() == CitizenState.WORKING);
+        ticks(1);
+
+        assertSame(ai, jobAi());
+        assertEquals(2, ai.resets);
+    }
+
+    /** MC keeps a courier's speed modifier (JobDeliveryman.onLevelUp) until it is unassigned, asleep too. */
+    @Test
+    void aSleepingWorkerKeepsTheSpeedItsJobGaveIt() {
+        d.setJob(TestJobs.TYPE.factory().apply(d));
+        citizen(HALL);
+        tickUntil(() -> state() == CitizenState.WORKING);
+        t.bodies.bodies.get(body).speed = 1.3; // as the courier's AI sets its Agility speed
+
+        nightfall();
+        tickUntil(d::asleep);
+
+        assertEquals(1.3, t.bodies.bodies.get(body).speed);
+    }
+
+    private TestJobs.TestJobAI jobAi() {
+        return (TestJobs.TestJobAI)
+                c.citizens().ai(d.id()).orElseThrow().jobAi().orElseThrow();
     }
 
     @Test

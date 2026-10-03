@@ -105,6 +105,13 @@ final class DeliverymanAI implements JobAI {
         };
     }
 
+    /** MC AbstractAISkeleton.resetAI: back to its first state, its walk forgotten; its speed and tasks stay. */
+    @Override
+    public void resetAI() {
+        machine.reset();
+        ctx.forgetWalk();
+    }
+
     /** True without a hut. The rain rule is every worker's, in {@code CitizenAI} (MC CitizenAI.calculateNextState). */
     @Override
     public boolean canGoIdle() {

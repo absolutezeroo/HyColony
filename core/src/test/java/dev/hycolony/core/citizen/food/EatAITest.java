@@ -49,10 +49,12 @@ class EatAITest {
     private CitizenAI ai;
     /** Job AIs created for {@link #counting}'s workers. */
     private int jobAis;
+    /** Resets of those job AIs (MC resetAI on entering WORK). */
+    private int jobAiResets;
 
     private final JobType counting = new JobType("test:counting", c -> new CountingJob(this.counting, c));
 
-    /** A job whose AIs are counted: a dropped job AI is created anew. */
+    /** A job whose AIs and their resets are counted. */
     private final class CountingJob extends Job {
         CountingJob(JobType type, CitizenData citizen) {
             super(type, citizen);
@@ -73,6 +75,11 @@ class EatAITest {
                 @Override
                 public boolean canBeInterrupted() {
                     return true;
+                }
+
+                @Override
+                public void resetAI() {
+                    jobAiResets++;
                 }
             };
         }
@@ -209,7 +216,7 @@ class EatAITest {
     }
 
     @Test
-    void goingToEatDropsTheJobAiSoWorkStartsAfresh() {
+    void goingToEatKeepsTheJobAiAndResetsItBackAtWork() {
         citizen.setJob(counting.factory().apply(citizen));
         citizen.inventory().insert(new ItemAmount(apple, 20), _ -> 64);
         start(60);
@@ -219,8 +226,9 @@ class EatAITest {
         citizen.setSaturation(2);
         tickUntil(() -> ai.state() == CitizenState.EATING);
         tickUntil(() -> ai.state() == CitizenState.WORKING);
+        tickUntil(() -> jobAiResets == 2);
 
-        assertEquals(2, jobAis); // MC resetAI on leaving WORK
+        assertEquals(1, jobAis, "MC keeps its worker AI");
     }
 
     @Test

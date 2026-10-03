@@ -180,6 +180,20 @@ class BodyWalkerTest {
         assertTrue(walker.walkTo(HUT));
     }
 
+    /** A job AI back at work after sleeping walks to its hut again, though its last walk had ended there. */
+    @Test
+    void aForgottenWalkStartsAfreshFromWhereAnotherAiLeftTheBody() {
+        walker.walkTo(HUT);
+        navEnds(NavStatus.BLOCKED, ROOF);
+        assertTrue(walker.walkTo(HUT));
+        navEnds(NavStatus.IDLE, new Vec3(30, 64, 0)); // the sleep AI walked it to its bed since
+
+        walker.forget();
+
+        assertFalse(walker.walkTo(HUT), "it is far from the hut now");
+        assertEquals(List.of(Vec3.center(HUT), Vec3.center(HUT)), bodies.moves);
+    }
+
     @Test
     void walksCountsEachWalkToANewTarget() {
         walker.walkCloseTo(STAND, HUT, 4, true);

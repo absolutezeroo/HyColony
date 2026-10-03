@@ -60,6 +60,13 @@ public final class BlockApproach {
         return walk(pos, null, BUILDING_REACH);
     }
 
+    /** Forgets its walker's walk ({@link BodyWalker#forget}) and the cell chosen, looked for again at the next walk. */
+    public void forget() {
+        walker.forget();
+        spot = null;
+        forBlock = null;
+    }
+
     /**
      * Walks to the cell beside {@code block} (see {@link BodyWalker#walkCloseTo}); the cell is chosen again when the
      * block changed, when the walker walked elsewhere since, or while none was found.

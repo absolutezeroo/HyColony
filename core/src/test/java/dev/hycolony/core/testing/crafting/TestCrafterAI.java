@@ -90,6 +90,12 @@ public final class TestCrafterAI implements JobAI {
         return machine.getState().isOkayToEat();
     }
 
+    /** MC resetAI: back to IDLE. */
+    @Override
+    public void resetAI() {
+        machine.reset();
+    }
+
     /** Idle with no task and nothing left to dump: the citizen wanders until a task comes. */
     @Override
     public boolean canGoIdle() {

@@ -39,6 +39,22 @@ class DeliverymanAITest extends CourierAITestBase {
         assertFalse(ai.waiting(), "a task queued: it has work");
     }
 
+    /** MC resetAI as the courier works again after a night: from its first state, walking back from its bed. */
+    @Test
+    void aResetCourierStartsAgainAndWalksBackFromWhereItSlept() {
+        hire();
+        run(300);
+        Vec3 bed = new Vec3(40.5, 64, 0.5);
+        t.bodies.bodies.get(body).position = bed;
+
+        ai.resetAI();
+
+        assertEquals("IDLE", ai.stateName());
+        run(300);
+        assertEquals("START_WORKING", ai.stateName());
+        assertTrue(Vec3.center(warehouse.position()).distance(t.bodies.bodies.get(body).position) < 3);
+    }
+
     @Test
     void aDeliveryServesTheHeadOfItsQueue() {
         hire();

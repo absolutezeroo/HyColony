@@ -122,6 +122,13 @@ final class FarmerAI implements JobAI {
         return machine.state().isOkayToEat();
     }
 
+    /** MC AbstractAISkeleton.resetAI: back to its first state, its walk forgotten; its field work state stays. */
+    @Override
+    public void resetAI() {
+        machine.reset();
+        ctx.approach().forget();
+    }
+
     /** Waiting for the items it asked for (NEEDS_ITEM) lasts as long as their delivery. */
     @Override
     public boolean waiting() {

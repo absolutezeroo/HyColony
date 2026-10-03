@@ -96,4 +96,11 @@ final class CookAI implements JobAI {
     public boolean canBeInterrupted() {
         return machine.state().isOkayToEat();
     }
+
+    /** MC AbstractAISkeleton.resetAI: back to its first state, its walk forgotten. */
+    @Override
+    public void resetAI() {
+        machine.reset();
+        ctx.approach().forget();
+    }
 }

@@ -108,6 +108,13 @@ public final class BuilderAI implements JobAI {
         };
     }
 
+    /** MC AbstractAISkeleton.resetAI: back to IDLE, its walk forgotten; its order, plan and progress stay. */
+    @Override
+    public void resetAI() {
+        machine.reset();
+        ctx.walker().forgetWalk();
+    }
+
     /** Waiting for the items it asked for (NEEDS_ITEM), or for a cell of its plan to load, lasts as it must. */
     @Override
     public boolean waiting() {

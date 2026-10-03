@@ -37,6 +37,21 @@ class WorkerMachineTest {
         assertEquals(Step.SECOND, machine.state());
     }
 
+    /** MC AbstractAISkeleton.resetAI: the machine goes back to its first state and runs on from there. */
+    @Test
+    void resetPutsTheMachineBackInItsFirstState() {
+        machine.target(Step.FIRST, () -> Step.SECOND, 1);
+        machine.target(Step.SECOND, () -> null, 1);
+        tick(WorkerMachine.MACHINE_RATE);
+        assertEquals(Step.SECOND, machine.state());
+
+        machine.reset();
+
+        assertEquals(Step.FIRST, machine.state());
+        tick(WorkerMachine.MACHINE_RATE);
+        assertEquals(Step.SECOND, machine.state());
+    }
+
     @Test
     void machineStaysInItsStateWhileTheWorkerWaits() {
         machine.target(Step.FIRST, () -> Step.SECOND, 1);
