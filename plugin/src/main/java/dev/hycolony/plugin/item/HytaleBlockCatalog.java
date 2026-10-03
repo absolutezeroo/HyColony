@@ -35,12 +35,12 @@ import org.jspecify.annotations.Nullable;
  */
 public final class HytaleBlockCatalog implements BlockCatalog {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
-    private static final BlockInfo UNKNOWN_BLOCK =
-            new BlockInfo(BlockKind.UNBREAKABLE, BlockItems.NONE, false, Optional.empty(), 1f, false, false, false);
+    private static final BlockInfo UNKNOWN_BLOCK = new BlockInfo(
+            BlockKind.UNBREAKABLE, BlockItems.NONE, false, Optional.empty(), 1f, false, false, false, false);
     private static final BlockInfo FLUID =
-            new BlockInfo(BlockKind.FLUID, BlockItems.NONE, false, Optional.empty(), 0f, false, false, false);
+            new BlockInfo(BlockKind.FLUID, BlockItems.NONE, false, Optional.empty(), 0f, false, false, false, false);
     private static final BlockInfo AIR =
-            new BlockInfo(BlockKind.AIR, BlockItems.NONE, false, Optional.empty(), 0f, false, false, false);
+            new BlockInfo(BlockKind.AIR, BlockItems.NONE, false, Optional.empty(), 0f, false, false, false, false);
 
     private record BlockInfo(
             BlockKind kind,
@@ -50,7 +50,8 @@ public final class HytaleBlockCatalog implements BlockCatalog {
             float hardness,
             boolean harmful,
             boolean bed,
-            boolean seat) {}
+            boolean seat,
+            boolean leaves) {}
 
     private final Map<BlockKey, BlockInfo> blocks = new HashMap<>();
     private final Set<String> hutBlockIds;
@@ -74,22 +75,12 @@ public final class HytaleBlockCatalog implements BlockCatalog {
     }
 
     /**
-     * Whether this block is a tree leaf: of the {@code Leaves} block group (HytaleBlockTraits.LEAVES_GROUP), a state
-     * variant by its base block; a fluid, an unknown or unreadable block is none.
+     * Of the {@code Leaves} block group (HytaleBlockTraits.LEAVES_GROUP; a state variant inherits its parent's); a
+     * fluid, an unknown or unreadable block is none.
      */
     @Override
     public boolean isLeaves(BlockKey block) {
-        String id = block.id();
-        if (id.startsWith(HytaleBlockStates.FLUID_PREFIX)) {
-            return false;
-        }
-        try {
-            BlockType type = baseType(id);
-            return type != null && HytaleBlockTraits.LEAVES_GROUP.equals(type.getGroup());
-        } catch (RuntimeException e) {
-            fail(id, e);
-            return false;
-        }
+        return block(block).leaves();
     }
 
     @Override
@@ -184,12 +175,14 @@ public final class HytaleBlockCatalog implements BlockCatalog {
         boolean harmful = type.getDamageToEntities() > 0 || type.isTrigger();
         boolean bed = type.getBeds() != null; // every bed has sleeping points (BlockMountAPI), vanilla and HyVanilla
         boolean seat = type.getSeats() != null; // chairs, stools, benches (BlockMountAPI takes a seat first)
+        boolean leaves = HytaleBlockTraits.LEAVES_GROUP.equals(type.getGroup());
         BlockItems blockItemsOf = blockItems.of(type);
         BlockGathering g = type.getGathering();
         BlockBreakingDropType breaking = g == null ? null : g.getBreaking();
         String gather = breaking == null ? null : breaking.getGatherType();
         if (g == null || "Unbreakable".equals(gather) || hutBlockIds.contains(type.getId())) {
-            return new BlockInfo(BlockKind.UNBREAKABLE, blockItemsOf, false, Optional.empty(), 1f, harmful, bed, seat);
+            return new BlockInfo(
+                    BlockKind.UNBREAKABLE, blockItemsOf, false, Optional.empty(), 1f, harmful, bed, seat, leaves);
         }
         BlockKind kind = type.getMaterial() == BlockMaterial.Empty ? BlockKind.NON_SOLID : BlockKind.SOLID;
         return new BlockInfo(
@@ -200,7 +193,8 @@ public final class HytaleBlockCatalog implements BlockCatalog {
                 HytaleItemInfo.hardness(gather),
                 harmful,
                 bed,
-                seat);
+                seat,
+                leaves);
     }
 
     private static @Nullable ToolType toolType(@Nullable String gather) {
