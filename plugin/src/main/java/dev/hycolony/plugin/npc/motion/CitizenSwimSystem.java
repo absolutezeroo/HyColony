@@ -32,11 +32,10 @@ import org.joml.Vector3d;
  * l. 156-157 setCanFloat, canSwim; AbstractEntityCitizen.java l. 348-349). Its role has Hytale's Walk and Dive
  * controllers, and nothing in Hytale switches them in water (plugin-b-api.md 52): Walk becomes Dive once the water
  * reaches the body's eyes and it cannot walk out; Dive becomes Walk once it can: the body has a floor within a block
- * under its feet, or a bank ahead
- * at most {@link #BANK_HEIGHT} blocks above the floor of the water (Walk sinks, then climbs from there: the role's
- * MaxClimbHeight), its head out of the water once standing there; without a floor within {@link #FLOOR_SCAN} blocks it
- * keeps swimming. At least {@link #SWITCH_GAP_TICKS} pass between two switches, so a body at the edge does not flip
- * back and forth.
+ * under its feet, or a bank ahead at most {@link #BANK_HEIGHT} blocks above the floor of the water (Walk sinks, then
+ * climbs from there: the role's MaxClimbHeight), its head out of the water once standing there; without a floor
+ * within {@link #FLOOR_SCAN} blocks it keeps swimming. At least {@link #SWITCH_GAP_TICKS} pass between two switches, so
+ * a body at the edge does not flip back and forth.
  *
  * <p>Deviation from MC: MC's path weighs water (PathingOptions swimCostEnter 24, swimCost 4, divingCost 4) and never
  * jumps from a swimming node (AbstractPathJob, canJump), so a citizen leaves water only by a bank level with it;
