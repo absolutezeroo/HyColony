@@ -51,12 +51,18 @@ def box_shape(size, sides, offset=(0, 0, 0), shading="standard"):
 MAX_SIDE = 384
 
 
-def unwrap(nodes, widths=(32, 64, 96, 128, 160, 192, 256)):
-    """Lays every box face of the model on its own UV island, 2 pixels apart (paint.bleed fills the gap), in shelves
-    of the texture width of widths giving the smallest texture with no side over MAX_SIDE, else the one of the shortest
-    longest side (as the Blockbench unwrap of docs/research/hytale-models.md). Returns the texture size, sides
-    multiples of 32; changes nodes in place."""
-    faces = []
+# Pixels between two islands (paint.bleed fills them).
+GAP = 2
+# The texture widths unwrap tries.
+WIDTHS = (32, 64, 96, 128, 160, 192, 256)
+
+
+def unwrap(nodes, widths=WIDTHS, apart=lambda name: False):
+    """Lays every box face of the model on its own UV island, GAP pixels apart, at the texture width of widths giving
+    the smallest texture with no side over MAX_SIDE, else the one of the shortest longest side; the faces of the nodes
+    named apart(name) are laid together in a band below all the others (glint.py copies only that band). Returns the
+    texture size, sides multiples of 32; changes nodes in place."""
+    groups = ([], [])
     for n in walk(nodes):
         shape = n["shape"]
         if shape["type"] != "box":
@@ -64,25 +70,41 @@ def unwrap(nodes, widths=(32, 64, 96, 128, 160, 192, 256)):
         size = tuple(shape["settings"]["size"][a] for a in "xyz")
         for side, face in shape["textureLayout"].items():
             w, h = (int(c) for c in face_span(side, size))
-            faces.append((h, w, n["name"] + " " + side, face))
-    faces.sort(key=lambda f: (-f[0], -f[1], f[2]))
+            groups[bool(apart(n["name"]))].append((h, w, n["name"] + " " + side, face))
+    for faces in groups:
+        faces.sort(key=lambda f: (-f[0], -f[1], f[2]))
 
-    def shelves(width):
-        spots, x, y, row = [], 0, 0, 0
-        for h, w, _, face in faces:
-            if w > width:
-                return None
-            if x + w > width:
-                x, y, row = 0, y + row + 2, 0
-            spots.append((face, x, y))
-            x, row = x + w + 2, max(row, h)
-        return spots, 32 * math.ceil((y + row) / 32)
+    def laid(width):
+        spots, top = skyline(groups[0], width, 0)
+        if spots is None:
+            return None
+        band, bottom = skyline(groups[1], width, top + GAP if groups[1] and spots else top)
+        if band is None:
+            return None
+        return spots + band, 32 * math.ceil(bottom / 32)
 
-    fits = [(width, *laid) for width in widths if (laid := shelves(width))]
+    fits = [(width, *layout) for width in widths if (layout := laid(width))]
     width, spots, height = min(fits, key=lambda f: (max(f[0], f[2], MAX_SIDE), f[0] * f[2]))
     for face, x, y in spots:
         face["offset"] = {"x": x, "y": y}
     return width, height
+
+
+def skyline(faces, width, floor):
+    """([(face, x, y)], bottom): the faces, in the order given, each set at the smallest row y (from row floor) where it
+    fits above the islands already laid in a texture of width, leftmost on a tie; bottom is the largest row any island
+    reaches. (None, 0) when a face is wider than the texture."""
+    tops = [floor] * width
+    spots, bottom = [], floor
+    for h, w, _, face in faces:
+        if w > width:
+            return None, 0
+        # A face holds its own columns and the gap after it: the next island beside it stays GAP away.
+        y, x = min((max(tops[x:x + w + GAP]), x) for x in range(width - w + 1))
+        spots.append((face, x, y))
+        tops[x:x + w + GAP] = [y + h + GAP] * len(tops[x:x + w + GAP])
+        bottom = max(bottom, y + h)
+    return spots, bottom
 
 
 def xyz(values):

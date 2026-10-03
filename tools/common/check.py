@@ -7,6 +7,7 @@ import unittest
 from PIL import Image
 
 import bake
+import cull
 from icons import screen, turned, turned_shade
 from models import bounds, box_shape, empty_shape, face_rects, face_span, node, placed, unwrap
 from paint import bleed
@@ -53,7 +54,17 @@ class UnwrapTest(unittest.TestCase):
     def test_every_face_gets_its_own_island_two_pixels_apart_in_a_texture_of_multiples_of_32(self):
         sides = ("front", "back", "left", "right", "top", "bottom")
         nodes = [node("A", (0, 0, 0), box_shape((6, 4, 3), sides)), node("B", (0, 0, 0), box_shape((2, 9, 2), sides))]
-        width, height = unwrap(nodes)
+        self.assert_apart(nodes, unwrap(nodes))
+        bake.light_map(nodes)
+
+    def test_islands_of_many_sizes_stay_two_pixels_apart_on_every_side(self):
+        # Varied sizes leave narrow steps in the skyline: a face set left of an island keeps its gap too.
+        sides = ("front", "back", "left", "right", "top", "bottom")
+        nodes = [node(f"B{i}", (0, 0, 0), box_shape((i % 5 + 1, i % 7 + 1, i % 3 + 1), sides)) for i in range(40)]
+        self.assert_apart(nodes, unwrap(nodes))
+
+    def assert_apart(self, nodes, size):
+        width, height = size
         self.assertEqual((0, 0), (width % 32, height % 32))
         rects = [(u0, v0, u1, v1) for _, u0, v0, u1, v1 in face_rects(nodes)]
         for i, a in enumerate(rects):
@@ -61,12 +72,27 @@ class UnwrapTest(unittest.TestCase):
             for b in rects[i + 1:]:
                 apart = a[2] + 2 <= b[0] or b[2] + 2 <= a[0] or a[3] + 2 <= b[1] or b[3] + 2 <= a[1]
                 self.assertTrue(apart, (a, b))
-        bake.light_map(nodes)
 
     def test_a_texture_taller_than_max_side_gives_way_to_a_wider_one_even_of_a_larger_area(self):
         # 14 faces of 26 x 26: 32 x 416 is smaller than 64 x 224, but 416 is over MAX_SIDE.
         nodes = [node(f"P{i}", (0, 0, 0), box_shape((1, 26, 26), ("left", "right"))) for i in range(7)]
         self.assertEqual((64, 224), unwrap(nodes))
+
+    def test_small_islands_stack_beside_a_tall_one_instead_of_starting_a_new_row(self):
+        # A 10 x 30 face and six 8 x 8: two columns of three squares fit beside the tall face in a 32 x 32 texture
+        # (rows the height of the tall face would need 64).
+        nodes = [node("Tall", (0, 0, 0), box_shape((10, 30, 1), ("front",)))]
+        nodes += [node(f"S{i}", (0, 0, 0), box_shape((8, 8, 1), ("front",))) for i in range(6)]
+        self.assertEqual((32, 32), unwrap(nodes, (32,)))
+
+    def test_faces_set_apart_are_laid_together_below_all_the_others(self):
+        sides = ("front", "back", "left", "right", "top", "bottom")
+        nodes = [node("Gem", (0, 0, 0), box_shape((2, 2, 2), sides)),
+                 node("Block", (0, 0, 0), box_shape((8, 8, 8), sides))]
+        unwrap(nodes, (64,), apart=lambda name: name == "Gem")
+        rects = {(name, v0) for name, _, v0, _, _ in face_rects(nodes)}
+        lowest_block = max(v0 for name, v0 in rects if name == "Block")
+        self.assertTrue(all(v0 >= lowest_block + 8 + 2 for name, v0 in rects if name == "Gem"))
 
 
 class BoundsTest(unittest.TestCase):
@@ -221,6 +247,97 @@ class BakeTest(unittest.TestCase):
         shared = {side: {"offset": {"x": 0, "y": 0}} for side in ("front", "back")}
         with self.assertRaises(SystemExit):
             bake.light_map([box("Block", (0, 0, 0), (2, 2, 2), shared)])
+
+
+SIDES = ("front", "back", "left", "right", "top", "bottom")
+
+
+def sides_of(nodes):
+    return {n["name"]: set(n["shape"]["textureLayout"]) for n in nodes}
+
+
+class CullTest(unittest.TestCase):
+    def test_faces_pressed_together_are_dropped_and_the_rest_kept(self):
+        nodes = [node("A", (0, 0, 0), box_shape((4, 4, 4), SIDES)), node("B", (4, 0, 0), box_shape((4, 4, 4), SIDES))]
+        self.assertEqual([("A", "right"), ("B", "left")], cull.cull(nodes))
+        self.assertEqual({"A": set(SIDES) - {"right"}, "B": set(SIDES) - {"left"}}, sides_of(nodes))
+
+    def test_a_face_only_partly_covered_is_kept(self):
+        nodes = [node("A", (0, 0, 0), box_shape((4, 4, 4), SIDES)), node("B", (3, 0, 0), box_shape((2, 2, 2), SIDES))]
+        self.assertEqual([("B", "left")], cull.cull(nodes))
+
+    def test_a_moving_node_neither_loses_faces_nor_hides_others(self):
+        nodes = [node("A", (0, 0, 0), box_shape((4, 4, 4), SIDES)), node("B", (4, 0, 0), box_shape((4, 4, 4), SIDES))]
+        self.assertEqual([], cull.cull(nodes, frozenset({"B"})))
+
+    def test_the_children_of_a_moving_node_move_with_it(self):
+        child = node("Child", (0, 0, 0), box_shape((4, 4, 4), SIDES))
+        swing = node("Swing", (4, 0, 0), empty_shape(), [child])
+        nodes = [node("A", (0, 0, 0), box_shape((4, 4, 4), SIDES)), swing]
+        self.assertEqual([], cull.cull(nodes, frozenset({"Swing"})))
+
+    def test_a_slab_one_unit_short_of_the_edge_leaves_the_face_below_it(self):
+        # A 32 cube under a 31 wide slab: its top's last column of texels is open to the sky.
+        nodes = [node("A", (0, 0, 0), box_shape((32, 32, 32), SIDES)),
+                 node("Slab", (-0.5, 17, 0), box_shape((31, 2, 32), SIDES))]
+        self.assertNotIn(("A", "top"), cull.cull(nodes))
+
+    def test_a_groove_between_two_slabs_leaves_the_face_below_them(self):
+        nodes = [node("A", (0, 0, 0), box_shape((32, 32, 32), SIDES)),
+                 node("Left", (-8.5, 17, 0), box_shape((15, 2, 32), SIDES)),
+                 node("Right", (8.5, 17, 0), box_shape((15, 2, 32), SIDES))]
+        self.assertNotIn(("A", "top"), cull.cull(nodes))
+
+    def test_a_box_turned_against_the_face_never_hides_it(self):
+        turned_box = node("B", (4, 0, 0), box_shape((6, 6, 6), SIDES))
+        turned_box["orientation"] = {"x": 0, "y": math.sin(math.radians(5)), "z": 0, "w": math.cos(math.radians(5))}
+        nodes = [node("A", (0, 0, 0), box_shape((4, 4, 4), SIDES)), turned_box]
+        self.assertNotIn(("A", "right"), cull.cull(nodes))
+
+    def test_a_box_open_on_some_side_hides_nothing(self):
+        # B shows only its top: through its missing sides one sees into it, and A's face inside.
+        nodes = [node("A", (0, 0, 0), box_shape((4, 4, 4), SIDES)),
+                 node("B", (4, 0, 0), box_shape((4, 4, 4), ("top",)))]
+        self.assertNotIn(("A", "right"), cull.cull(nodes))
+
+    def test_a_mirrored_box_loses_the_face_drawn_against_its_neighbour(self):
+        # Stretched by -1 on x, A draws its right side at x -2 and its left side at x +2, against B.
+        a = node("A", (0, 0, 0), box_shape((4, 4, 4), SIDES))
+        a["shape"]["stretch"] = {"x": -1, "y": 1, "z": 1}
+        dropped = cull.cull([a, node("B", (4, 0, 0), box_shape((4, 4, 4), SIDES))])
+        self.assertIn(("A", "left"), dropped)
+        self.assertNotIn(("A", "right"), dropped)
+
+    def test_a_stretched_box_covers_as_far_as_it_is_drawn(self):
+        # B is 2 wide stretched twice: drawn 4 wide, it covers all of A's right side.
+        b = node("B", (4, 0, 0), box_shape((2, 2, 2), SIDES))
+        b["shape"]["stretch"] = {"x": 2, "y": 2, "z": 2}
+        self.assertIn(("A", "right"), cull.cull([node("A", (0, 0, 0), box_shape((4, 4, 4), SIDES)), b]))
+
+    def test_a_flat_box_keeps_its_faces(self):
+        # Stretched to nothing on y, A is a flat sheet: its faces are not boxes' faces any more, so cull leaves them.
+        a = node("A", (0, 0, 0), box_shape((4, 4, 4), SIDES))
+        a["shape"]["stretch"] = {"x": 1, "y": 0, "z": 1}
+        dropped = cull.cull([a, node("B", (4, 0, 0), box_shape((4, 4, 4), SIDES))])
+        self.assertEqual([], [d for d in dropped if d[0] == "A"])
+
+    def test_an_invisible_box_hides_nothing(self):
+        b = node("B", (4, 0, 0), box_shape((4, 4, 4), SIDES))
+        b["shape"]["visible"] = False
+        self.assertNotIn(("A", "right"), cull.cull([node("A", (0, 0, 0), box_shape((4, 4, 4), SIDES)), b]))
+
+    def test_a_tilted_post_without_its_bottom_is_open_where_its_bottom_lifts_off_the_floor(self):
+        post = node("Post", (0, 4, 0), box_shape((4, 8, 4), tuple(s for s in SIDES if s != "bottom")))
+        post["orientation"] = {"x": 0, "y": 0, "z": math.sin(math.radians(15)), "w": math.cos(math.radians(15))}
+        # Inside it and turned with it, so that only the open bottom can show it.
+        inner = node("Inner", (0, 4, 0), box_shape((1, 1, 1), SIDES))
+        inner["orientation"] = dict(post["orientation"])
+        self.assertEqual([], [d for d in cull.cull([post, inner]) if d[0] == "Inner"])
+
+    def test_a_box_standing_on_the_floor_without_its_bottom_still_hides(self):
+        nodes = [node("A", (0, 2, 0), box_shape((4, 4, 4), SIDES)),
+                 node("B", (4, 2, 0), box_shape((4, 4, 4), tuple(s for s in SIDES if s != "bottom")))]
+        self.assertIn(("A", "right"), cull.cull(nodes))
 
 
 if __name__ == "__main__":
