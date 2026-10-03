@@ -8,7 +8,7 @@ import math
 
 from bake import LIGHT, value_noise
 from effects import Effect, laying, tinting, whole
-from models import add, dot, scale
+from vectors import add, dot, scale
 from weathering import RUST
 
 SCORCH, SOOT, WATER, BLOOD = (58, 38, 24), (34, 30, 28), (68, 58, 46), (108, 22, 18)

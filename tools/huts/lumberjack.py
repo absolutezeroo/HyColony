@@ -5,12 +5,16 @@ spreading, a pile of three logs behind, a sapling on its mound, wood chips and a
 import math
 
 from brushes import coloured, jitter, metal, painted, stone, wood
+from conditions import FOREST, WORN
 from materials import leaf
 
 MODEL = "Blocks/HyColony/Huts/Lumberjack"
 ICON = "Hut_Lumberjack"
 WOOD = (198, 158, 104)
 PICTURES = frozenset()
+# Painted in layers (spec 2026-10-03 blockpaint surfaces): a felling site, hard worked, in the forest.
+CONDITION, ENVIRONMENT, SEED = WORN, FOREST, 11
+FAMILY = {"rings_b": "wood", "rings_f": "wood", "rings": "wood", "crack": "wood", "bark": "wood"}
 
 
 def material(name, side):

@@ -4,10 +4,15 @@ lintel, a hollow minecart on its rails filled with stone and ore, two ore boulde
 jutting out, as Hytale's ore blocks), a pick driven into the one behind, on the diagonal towards the cart."""
 
 from brushes import coloured, crystal, metal, painted, stone, wood
+from conditions import TEMPERATE_OUTDOOR, WORN
 
 MODEL = "Blocks/HyColony/Huts/Miner"
 ICON = "Hut_Miner"
-PICTURES = frozenset()
+PICTURES = frozenset({"void"})
+# Painted in layers (spec 2026-10-03 blockpaint surfaces): a mine entrance, hard worked, outdoors.
+CONDITION, ENVIRONMENT, SEED = WORN, TEMPERATE_OUTDOOR, 11
+# The shaft's dark mouth is drawn (PICTURES): a hole in the rock takes no wear, only what settles in it.
+FAMILY = {"void": "stone", "gold": "noble", "copper": "cuprous"}
 # The ore crystals glint now and then, without breathing (glint.py).
 GLINT = "Gem"
 BREATHE = False

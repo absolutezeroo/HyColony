@@ -17,9 +17,10 @@ texel's colour by its light (shading.graded), in the hytale mode for those layer
 import math
 from collections import namedtuple
 
-from models import FACE_NORMALS, add, bounds, dot, face_point, face_span, length, placed, rotate, scale, sub, unit
+from models import bounds, face_local, face_normal, face_size, placed
 from rays import FLOOR, RAY_START, covered, hit, occlusion, world_boxes
 from shading import graded
+from vectors import add, dot, length, rotate, scale, sub, unit
 
 # What the bake knows of one texel, for the layers painted before the light (spec 2026-10-03 blockpaint surfaces,
 # maps): world point and normal, edge (bevel ring direction and weight, None inside or on a seam), rim (texels to
@@ -73,7 +74,7 @@ def baked(nodes, how, with_contexts):
     values, contexts, owners = {}, {}, {}
     for n, position, rotation in placed(nodes):
         shape = n["shape"]
-        if shape["type"] != "box":
+        if shape["type"] not in ("box", "quad"):
             continue
         mode = shape.get("shadingMode", "standard")
         for side, face in shape.get("textureLayout", {}).items():
@@ -111,11 +112,13 @@ def lit(image, values, mode="legacy"):
 def texels(shape, side, position, rotation, boxes=()):
     """((i, j), world point, world normal, edge) for each texel of a face; edge: (outward direction, ring weight)
     for the two texel rings along the face border, None inside. A border where the surface goes on into one of boxes
-    (two boxes side by side, a wall split in several) is a seam, not a corner: it gets no edge."""
-    w, h = face_span(side, tuple(shape["settings"]["size"][a] for a in "xyz"))
-    normal = rotate(rotation, FACE_NORMALS[side])
+    (two boxes side by side, a wall split in several) is a seam, not a corner: it gets no edge. A quad (a decal) has
+    no edge: it has no thickness to bevel."""
+    w, h = face_size(shape, side)
+    normal = rotate(rotation, face_normal(shape, side))
     world, u_step, v_step = face_frame(shape, side, position, rotation)
     u_dir, v_dir = unit(u_step), unit(v_step)
+    flat = shape["type"] == "quad"
 
     def beyond(d, ring):
         # Half a texel past the border, whichever ring the texel is on (its centre is ring + 0.5 texels from it).
@@ -125,18 +128,18 @@ def texels(shape, side, position, rotation, boxes=()):
     for i in range(int(w)):
         for j in range(int(h)):
             point = world(i + 0.5, j + 0.5)
-            yield (i, j), point, normal, edge((i, j), (int(w), int(h)), (u_dir, v_dir),
-                                              lambda d, ring, p=point: not covered(p, normal, beyond(d, ring), boxes))
+            yield (i, j), point, normal, None if flat else edge(
+                (i, j), (int(w), int(h)), (u_dir, v_dir),
+                lambda d, ring, p=point: not covered(p, normal, beyond(d, ring), boxes))
 
 
 def face_frame(shape, side, position, rotation):
     """(world, u_step, v_step) of a face: world(s, t) is the world point at texel coordinates (s, t) of its island,
     u_step and v_step the world offsets of one texel along the island's u and v."""
-    size = tuple(shape["settings"]["size"][a] for a in "xyz")
     offset, stretch = (tuple(shape[k][a] for a in "xyz") for k in ("offset", "stretch"))
 
     def world(s, t):
-        local = face_point(side, size, s, t)
+        local = face_local(shape, side, s, t)
         return add(position, rotate(rotation, tuple(o + c * k for o, c, k in zip(offset, local, stretch))))
 
     return world, sub(world(1, 0), world(0, 0)), sub(world(0, 1), world(0, 0))
@@ -144,9 +147,12 @@ def face_frame(shape, side, position, rotation):
 
 def rims(shape, side, position, rotation, boxes):
     """{(i, j): texels from each texel of a face to its nearest open border, at most RIM_CAP}. Each border texel tests
-    once whether the surface goes on past it into one of boxes (covered: a seam), so a seam is no border."""
-    w, h = (int(c) for c in face_span(side, tuple(shape["settings"]["size"][a] for a in "xyz")))
-    normal = rotate(rotation, FACE_NORMALS[side])
+    once whether the surface goes on past it into one of boxes (covered: a seam), so a seam is no border. A quad (a
+    decal) has no border: RIM_CAP everywhere."""
+    w, h = (int(c) for c in face_size(shape, side))
+    if shape["type"] == "quad":
+        return {(i, j): RIM_CAP for i in range(w) for j in range(h)}
+    normal = rotate(rotation, face_normal(shape, side))
     world, u_step, v_step = face_frame(shape, side, position, rotation)
 
     def open_past(s, t, step):

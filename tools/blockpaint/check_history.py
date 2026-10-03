@@ -16,7 +16,7 @@ import marks
 import semantics
 import surface
 from check_surfaces import by_face, model
-from models import scale
+from vectors import scale
 
 
 def tower():

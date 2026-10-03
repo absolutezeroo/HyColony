@@ -1,7 +1,7 @@
 """Generates HyColony's plate armor (MC ItemPlateArmor, spec
 docs/superpowers/specs/2026-10-02-hycolony-plate-armor-design.md) and the knight's sword and shield: the models of its
 four pieces (pieces.py) and of the weapons (arms.py), unwrapped one island per face, painted and lit (tools/blockpaint:
-paint.texture, bake.light_map; materials: finish.py), their icons and their items, into HyColony's plugin resources.
+catalog.model_texture, in layers; materials: finish.py), their icons and their items, into HyColony's plugin resources.
 
 Run by hand (`python tools/blockpaint armor`, or this script), then its outputs are committed: the build never runs
 it. Needs Python 3.10+ and Pillow.
@@ -17,13 +17,12 @@ from PIL import Image
 
 TOOLS = Path(__file__).resolve().parents[1]
 sys.path += [str(TOOLS / "blockpaint"), str(TOOLS / "huts")]
-from bake import light_map  # noqa: E402
+from catalog import model_texture  # noqa: E402
 import finish  # noqa: E402
 from icons import ICON_SIZE, draw_model, frame, turned  # noqa: E402
 from models import unwrap, walk  # noqa: E402
 from pack import GRADLE_ASSETS, ROOT, Assets, rounded, save_png, write_json  # noqa: E402
 from pack_rules import validate_pack  # noqa: E402
-from paint import Look, texture  # noqa: E402
 from arms import ARMS  # noqa: E402
 from pieces import PIECES  # noqa: E402
 
@@ -64,7 +63,7 @@ def draw(name, nodes, assets, view):
     size = unwrap(nodes)
     for number, n in enumerate(walk(nodes), 1):
         n["id"] = str(number)
-    image = texture(nodes, size, Look(finish.tiles(assets), finish.material, finish.PICTURES), light_map(nodes))
+    image = model_texture(finish, nodes, assets)
     model = RESOURCES / "Common" / (FOLDER + name + ".blockymodel")
     model.parent.mkdir(parents=True, exist_ok=True)
     model.write_text(json.dumps(rounded({"format": "character", "lod": "auto", "nodes": nodes}), indent=2) + "\n",

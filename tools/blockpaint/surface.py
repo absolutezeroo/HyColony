@@ -31,18 +31,25 @@ Surface = namedtuple("Surface",
 
 def layered(material, surface, face, substrate):
     """The image of one island of material, face (part, side, its rect (u, v, w, h) in the texture): substrate (the
-    brush's image) calmed to the part's detail budget, coats laid, the most useful planned effects and the history's
-    events run on the part (Blockbench's '--C<n>' left out of its name), composed, then swelled by the part-wide
-    macro variation; recorded in surface.record when there is one. Fails without a surface (a layered material needs
-    a CONDITION other than DEFAULT)."""
+    brush's image) calmed to the part's detail budget unless it is a drawing (brushes.drawing: never calmed, only
+    deposits planned on it, as on a plant or a liquid: compat.SETTLED_ONLY), coats laid, the most useful planned
+    effects and the history's events run on the part (Blockbench's '--C<n>' left out of its name), composed, then
+    swelled by the part-wide macro variation; recorded in surface.record when there is one. Fails without a surface
+    (a layered material needs a CONDITION other than DEFAULT)."""
     part, side, (u, v, w, h) = face
     if surface is None or surface.contexts is None:
         raise SystemExit(f"{part} {side}: a layered material needs a model with a CONDITION other than DEFAULT")
     texels = {(i, j): surface.contexts[u + i, v + j] for i in range(w) for j in range(h)}
     seed = surface.seed or 0
     detail = art.detail_of(part, surface.art, surface.focus)
-    island = layers.Island(art.calm(substrate, detail), texels, material, side)
-    uses = most_useful(merged(conditions.plan(surface, part), material.effects, part, surface.roles), material, detail)
+    # A drawing (brushes.drawing) is no noise and no substrate: its every texel stays, and only what settles on it
+    # (deposits) and the history's marks reach it, never wear or the ageing of a material; nor do they reach a living
+    # plant or a liquid (compat.SETTLED_ONLY), calmed as any substrate.
+    drawn = getattr(material.substrate, "drawn", False)
+    settled_only = drawn or material.family in compat.SETTLED_ONLY
+    island = layers.Island(substrate if drawn else art.calm(substrate, detail), texels, material, side)
+    planned = merged(conditions.plan(surface, part), material.effects, part, surface.roles)
+    uses = most_useful([use for use in planned if not settled_only or use[0].moment == "deposit"], material, detail)
     how = effects.Pass(roles.declared(part, surface.roles, surface.usage, surface.focus), seed, surface.art.rest, True)
     effects.run(island, uses + history.uses(surface.history), how)
     image = layers.compose(island)

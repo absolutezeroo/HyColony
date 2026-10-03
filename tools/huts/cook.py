@@ -7,6 +7,7 @@ steams (the item's Particles, on the empty node Steam)."""
 from PIL import ImageDraw
 
 from brushes import as_tile, cloth, coloured, embers, jitter, metal, painted, paper, smooth, terracotta, wood
+from conditions import INDUSTRIAL, USED
 from materials import BRASS
 
 MODEL = "Blocks/HyColony/Huts/Cook"
@@ -16,6 +17,10 @@ IRON = (62, 60, 66)
 RIM = 9
 # Materials drawn for their island, never turned.
 PICTURES = frozenset({"stew"})
+# Painted in layers (spec 2026-10-03 blockpaint surfaces): a stove in use, its soot and grease (a fire's workplace).
+CONDITION, ENVIRONMENT, SEED = USED, INDUSTRIAL, 11
+FAMILY = {"crock": "ceramic", "stew": "liquid", "towel": "textile", "brass": "cuprous", "garlic": "plant",
+          "plate": "ceramic"}
 # Node name prefix -> material.
 PREFIXES = (("Glow", "embers"), ("Oven_Handle", "brass"), ("Rail", "brass"), ("Towel", "towel"), ("Ladle", "steel"),
             ("Garlic_Rope", "rope"), ("Garlic", "garlic"), ("Crock_Lid", "lid"), ("Crock_Knob", "lid"),

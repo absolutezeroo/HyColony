@@ -7,13 +7,16 @@ detail painted on them; the flowers sway in a light breeze (animation)."""
 import math
 
 from brushes import cloth, coloured, metal, painted, stone, terracotta, wood
-from materials import BUCKET_INSIDE, leaf
+from conditions import TEMPERATE_OUTDOOR, USED
+from materials import BUCKET_INSIDE, BUCKET_WOOD, leaf, staves
 from models import walk
 from motion import blockyanim, leaning, track, wave
 
 MODEL = "Blocks/HyColony/Huts/Florist"
 ICON = "Hut_Florist"
 PICTURES = frozenset()
+# Painted in layers (spec 2026-10-03 blockpaint surfaces): a flower stand in use, outdoors.
+CONDITION, ENVIRONMENT, SEED = USED, TEMPERATE_OUTDOOR, 11
 # The breeze: each flower (a node Stem_*, pivoting at its base, its head its child) nods to and fro NOD_DEGREES and
 # sways side to side SWAY_DEGREES over the loop of LOOP_TICKS (1/60 s), all at the same pace. The flowers of a pot (or
 # of the bucket) move nearly as one, a hair apart, so that they never swing into each other; the pots are out of step.
@@ -22,6 +25,8 @@ LOOP_TICKS, NOD_DEGREES, SWAY_DEGREES = 360, 2.5, 3.5
 POT_PHASE, FLOWER_PHASE, BUCKET = 0.29, 0.03, 0.5
 PETALS = {"Red": (204, 62, 58), "Yellow": (242, 202, 64), "Blue": (86, 124, 222), "Purple": (152, 92, 204),
           "White": (238, 234, 226), "Pink": (238, 142, 182), "Orange": (242, 142, 62)}
+FAMILY = {"grip": "paint_film", "lavender": "plant",
+          **{f"{kind}_{c.lower()}": "plant" for kind in ("tulip", "daisy", "rose") for c in PETALS}}
 # Node name prefix -> material, the first that matches.
 PREFIXES = (("Leg", "stand"), ("Tier", "stand"), ("Pot", "pot"), ("Stem", "leaf"), ("Leaf", "leaf"),
             ("Spike", "lavender"), ("Shears_Blade", "iron"), ("Shears_Grip", "grip"), ("Bucket", "bucket"),
@@ -68,7 +73,7 @@ def tiles(assets):
     return {
         "stand": wood((134, 96, 60), plank=6), "pot": terracotta((178, 98, 62)),
         "soil": stone((80, 58, 40), chunk=(2, 2)),
-        "leaf": leaf((86, 148, 58)), "bucket": wood((128, 90, 56), plank=3), "inside": wood((70, 48, 30), plank=3),
+        "leaf": leaf((86, 148, 58)), "bucket": staves(BUCKET_WOOD), "inside": staves((70, 48, 30)),
         "iron": metal((150, 154, 162)), "grip": painted(lambda x, y, w, h, side: coloured((176, 52, 48), 1)),
         "sack": cloth((196, 170, 122)), "compost": stone((72, 52, 36), chunk=(2, 2)),
         "handle": wood((150, 108, 66), plank=99),

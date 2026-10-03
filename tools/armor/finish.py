@@ -3,8 +3,18 @@ Hytale's steel armour paints them, overlapping lames, dark mail, leather, the re
 on the visor; the sword's blade, red grip and gems, the shield's red enamel face."""
 
 from brushes import cloth, coloured, crystal, jitter, painted
+from conditions import MAINTAINED
 from materials import leather
 from PIL import ImageDraw
+
+# Painted in layers (spec 2026-10-03 blockpaint surfaces, catalog.model_texture): a knight's kit, kept with care, worn
+# anywhere (no environment); worn, not standing on a floor. Its "gold" is the brass of its rims, buckles and guard (a
+# gilt alloy, not gold), hence cuprous.
+CONDITION, SEED = MAINTAINED, 11
+FAMILY = {"plate": "ferrous", "trim": "ferrous", "gold": "cuprous", "lames": "ferrous", "mail": "ferrous",
+          "tabard_1": "textile", "tabard_2": "textile", "leather": "leather", "plume": "hair", "plume_white": "hair",
+          "visor_l": "ferrous", "visor_r": "ferrous", "ridge": "ferrous", "grip": "leather", "blade": "ferrous",
+          "edge": "ferrous", "shield": "paint_film", "shield_top": "paint_film"}
 
 STEEL = (156, 164, 178)
 HONED = (226, 232, 240)

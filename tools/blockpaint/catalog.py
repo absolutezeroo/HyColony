@@ -4,9 +4,14 @@ layout; an item model keeps its layout. The texture goes next to the model (<MOD
 brushes and the light baked from the model), the icon to the catalog's icon folder.
 
 A model's module declares:
-- MODEL: its path under Common, without extension; a block's (under Blocks/) stands on a floor that shades its foot;
+- MODEL: its path under Common, without extension; a block's (under Blocks/) stands on a floor that shades its foot,
+  unless GROUNDED, optional, says otherwise (a module painting models of its own: armor, tape, vanilla);
 - ICON: its icon's name;
-- PICTURES: the materials whose tile carries a drawing laid out for its island, never turned;
+- PICTURES: the materials whose tile carries a drawing laid out for its island, never turned nor shifted; layered
+  (effects.material), a drawing (brushes.drawing: never calmed nor worn, paint.tiled lays an image tile as one);
+- FAMILY, optional with CONDITION: {material: family (compat.FAMILIES)} for the tiles whose brush carries none (an
+  image tile, a brush of the module's own) or not the material's (cloth painting a reed's head), over the brush's; a
+  layered material without a family is refused;
 - material(name, side): the material of a node's face, from the node's name (without Blockbench's '--C<n>');
 - tiles(assets): material -> a 32 px tile or a brush (brushes.py);
 - ICON_VIEW, optional: the icon's view (icons.turned) instead of the isometric one of blocks;
@@ -25,7 +30,9 @@ A model's module declares:
 - ROLES, USAGE, FOCUS, optional with CONDITION: {node name: role} (roles.py), {node name: roles.contact(…) and kin},
   and the nodes the eye goes to;
 - ART, optional with CONDITION: the model's art (art.Art: detail budget, rest zones), else art.Art();
-- HISTORY, optional with CONDITION: what happened to it, a few events (history.py: impact, fire, water…)."""
+- HISTORY, optional with CONDITION: what happened to it, a few events (history.py: impact, fire, water…);
+- DECALS, optional on a block model: {name: decals.Decal} small drawings on part of a face or past its border, laid
+  as quads in front of it before the model is laid out, painted as drawings."""
 
 import json
 import math
@@ -33,24 +40,34 @@ import math
 import glint
 from art import Art
 from bake import light_map, survey
+from brushes import drawing
+from compat import FAMILIES
 from conditions import DEFAULT
+from decals import node_name, place
+from effects import Material, material
 from history import resolved
 from icons import ICON_SIZE, draw_model, frame
 from pack import save_png, write_json
-from paint import Look, Painting, islands, texture
+from paint import Look, Painting, islands, texture, tiled
 from PIL import Image
 from surface import Surface
 from trim import faces, trim
+
+# The material name of a decal: DECAL + its name in DECALS.
+DECAL = "decal:"
 
 
 def paint(modules, common, icons, assets):
     """Paints and draws the icon of every model of modules, trimming the blocks (trim.trim) first: their files under
     common (a pack's Common folder), their icons in icons."""
     for module in modules:
+        if hasattr(module, "DECALS") and not module.MODEL.startswith("Blocks/"):
+            raise SystemExit(f"{module.MODEL}: decals go on block models, which catalog lays out")
         model = common / (module.MODEL + ".blockymodel")
         data = json.loads(model.read_text(encoding="utf-8"))
         nodes = data["nodes"]
         if module.MODEL.startswith("Blocks/"):
+            place(nodes, getattr(module, "DECALS", {}))
             read = faces(nodes)
             size = trim(nodes, module)
             write_json(model, data)
@@ -76,8 +93,8 @@ def model_texture(module, nodes, assets):
     condition = getattr(module, "CONDITION", None)
     # DEFAULT is the render of a model that declares nothing: the same bytes.
     if condition is None or condition is DEFAULT:
-        grounded, see_through = module.MODEL.startswith("Blocks/"), getattr(module, "SEE_THROUGH", frozenset())
-        return module_texture(module, nodes, assets, light_map(nodes, grounded, see_through), None)
+        see_through = getattr(module, "SEE_THROUGH", frozenset())
+        return module_texture(module, nodes, assets, light_map(nodes, grounded(module), see_through), None)
     values, contexts = surveyed(module, nodes)
     return module_texture(module, nodes, assets, values, module_surface(module, contexts))
 
@@ -85,18 +102,73 @@ def model_texture(module, nodes, assets):
 def module_texture(module, nodes, assets, values, surface):
     """The model's texture from its module's tiles, materials, seed and axes, lit by values: layered with surface in
     the hytale light, or as before without one."""
-    # Blockbench names a group's later cubes '<cube>--C<n>': the materials read the name before it.
-    look = Look(module.tiles(assets), lambda name, side: module.material(name.split("--")[0], side), module.PICTURES)
+    # A copy: the module's own tiles (a module-wide dict) stay as they are.
+    tiles = dict(module.tiles(assets))
+    if surface is not None:
+        tiles = layered_tiles(module, tiles)
+    tiles.update(decal_tiles(module, tiles, surface is not None))
+    look = Look(tiles, material_of(module), module.PICTURES)
     light = "legacy" if surface is None else "hytale"
     painting = Painting(getattr(module, "SEED", None), getattr(module, "AXES", None), surface, light)
     return texture(nodes, texture_size(nodes), look, values, painting)
 
 
+def material_of(module):
+    """material_of(node name, side) of the module's model as catalog paints it: a decal's node its DECAL material, any
+    other node the module's material of its name before Blockbench's '--C<n>' (a group's later cubes)."""
+    decal_of = {node_name(d.part, name): DECAL + name for name, d in getattr(module, "DECALS", {}).items()}
+
+    def of(name, side):
+        return decal_of.get(name) or module.material(name.split("--")[0], side)
+    return of
+
+
+def decal_tiles(module, tiles, layered):
+    """{DECAL + name: material} of the module's DECALS: each its drawing, layered when the model is, of the family of
+    its part's material on its side (what settles on the part settles on it). Fails, when layered, on a decal whose
+    face's material is not in tiles."""
+    found = {}
+    for name, decal in getattr(module, "DECALS", {}).items():
+        under = module.material(decal.part, decal.side)
+        if layered and under not in tiles:
+            raise SystemExit(f"decal {name}: {decal.part} {decal.side} is of {under}, a material the module has not")
+        found[DECAL + name] = material(drawing(decal.brush), tiles[under].family) if layered else drawing(decal.brush)
+    return found
+
+
+def layered_tiles(module, tiles):
+    """tiles as layered materials, the model layered whole: a brush with its family, an image tile the substrate of
+    its own (paint.tiled), a picture a drawing (never calmed nor worn: surface.layered), of the family the module's
+    FAMILY names over its brush's or its material's. Fails on a material left without a family (every effect would
+    reach it) or of an unknown one."""
+    named = getattr(module, "FAMILY", {})
+    layered = {}
+    for name, tile in tiles.items():
+        if not isinstance(tile, Material):
+            tile = material(tile if callable(tile) else tiled(tile, name in module.PICTURES))
+        if name in named:
+            # Rebuilt, not replaced: material refuses an effect of the tile's own impossible on the new family.
+            tile = material(tile.substrate, named[name], tile.coats, tile.effects, tile.weights)
+        if name in module.PICTURES and not getattr(tile.substrate, "drawn", False):
+            tile = tile._replace(substrate=drawing(tile.substrate))
+        if tile.family not in FAMILIES:
+            raise SystemExit(f"layered material {name}: no known family ({tile.family}); give its brush one or name it"
+                             " in FAMILY")
+        layered[name] = tile
+    return layered
+
+
+def grounded(module):
+    """Whether the module's model stands on a floor that shades its foot: its GROUNDED, else whether it is a block
+    (its MODEL under Blocks/)."""
+    return getattr(module, "GROUNDED", getattr(module, "MODEL", "").startswith("Blocks/"))
+
+
 def surveyed(module, nodes):
-    """(values, contexts) of bake.survey for the model of a module declaring a CONDITION: a block stands on a floor,
-    its SEE_THROUGH nodes cast nothing, the bake's own chips and grime are its condition's."""
-    grounded, see_through = module.MODEL.startswith("Blocks/"), getattr(module, "SEE_THROUGH", frozenset())
-    return survey(nodes, grounded, see_through, module.CONDITION.wear, module.CONDITION.grime)
+    """(values, contexts) of bake.survey for the model of a module declaring a CONDITION: grounded (grounded()), its
+    SEE_THROUGH nodes cast nothing, the bake's own chips and grime are its condition's."""
+    see_through = getattr(module, "SEE_THROUGH", frozenset())
+    return survey(nodes, grounded(module), see_through, module.CONDITION.wear, module.CONDITION.grime)
 
 
 def module_surface(module, contexts, record=None):

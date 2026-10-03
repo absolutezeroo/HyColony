@@ -1,20 +1,21 @@
 """Minecraft's 1x2 bed, one per wool colour (spec 2026-09-29 HyVanilla beds): one shared model built in Blockbench
 (docs/research/hytale-models.md), one texture painted per colour with brushes (brushes.py: cloth in its wool's colour
-for the blanket, in white wool's for the sheet and pillow, wood in softwood planks' for the frame) and lit from the
-model (bake.py), the hitbox, the icons, the recipe from wool and planks, and the recolouring recipes that follow each
-wool's own recipe. Deviation from MC: a four-post wooden frame around the mattress (asked by the user, to suit
-Hytale's furniture); our own geometry."""
+for the blanket, in white wool's for the sheet and pillow, wood in softwood planks' for the frame) in layers and lit
+from the model (catalog.module_texture), the hitbox, the icons, the recipe from wool and planks, and the recolouring
+recipes that follow each wool's own recipe. Deviation from MC: a four-post wooden frame around the mattress (asked by
+the user, to suit Hytale's furniture); our own geometry."""
 
 import json
+from types import SimpleNamespace
 
 from PIL import Image
 
-from bake import light_map
 from brushes import average, cloth, wood
+from catalog import module_surface, module_texture, surveyed
+from conditions import DRY_INTERIOR, MAINTAINED
 from icons import ICON_SIZE, draw_model
 from models import bounds, walk
 from pack import save_png, write_json
-import paint
 from paths import PACK
 
 # Hand-built in Blockbench (Hytale Prop, 32 units per block), not generated: 1 x 2 blocks, the head on the origin cell
@@ -22,7 +23,6 @@ from paths import PACK
 MODEL = "Blocks/HyVanilla/Bed.blockymodel"
 PLANKS = "BlockTextures/Wood_Softwood_Planks_Top.png"
 SHEET = "BlockTextures/Cloth_White.png"
-TEXTURE_SIZE = (128, 160)
 # Node name prefixes of each hitbox part.
 PARTS = {"head": ("Post_Head", "Post_Cap_Head", "Headboard"), "foot": ("Post_Foot", "Post_Cap_Foot", "Footboard"),
          "body": ("Frame", "Mattress", "Blanket"), "pillow": ("Pillow",)}
@@ -42,14 +42,14 @@ def generate(assets, colours):
     write_json(PACK / "Server/Item/Block/Hitboxes/HyVanilla/HyVanilla_Bed.json", hitbox(nodes))
     wooden = wood(average(assets.image("Common/" + PLANKS)))
     sheet = cloth(average(assets.image("Common/" + SHEET)))
-    values = light_map(nodes, grounded=True)
+    values, contexts = surveyed(LOOK, nodes)
     for old in (PACK / "Server/Item/Recipes/HyVanilla").glob("HyVanilla_Bed_*.json"):
         old.unlink()
     for colour in colours:
         wool_item = assets.item("Cloth_Block_Wool_" + colour)
         wool = cloth(average(assets.image("Common/BlockTextures/Cloth_" + colour + ".png")))
-        look = paint.Look({"wood": wooden, "sheet": sheet, "wool": wool}, material)
-        image = paint.texture(nodes, TEXTURE_SIZE, look, values)
+        look = SimpleNamespace(**vars(LOOK), tiles=lambda _, wool=wool: {"wood": wooden, "sheet": sheet, "wool": wool})
+        image = module_texture(look, nodes, assets, values, module_surface(look, contexts))
         save_png(image, PACK / "Common" / texture_path(colour))
         save_png(icon(nodes, image), PACK / "Common/Icons/Items/HyVanilla" / ("Bed_" + colour + ".png"))
         write_json(PACK / "Server/Item/Items/HyVanilla" / (bed_id(colour) + ".json"), bed_item(colour, wool_item))
@@ -63,6 +63,12 @@ def material(name, _side):
     if name.startswith(PARTS["head"] + PARTS["foot"] + ("Frame",)):
         return "wood"
     return "wool" if name == "Blanket" else "sheet"
+
+
+# Painted in layers (spec 2026-10-03 blockpaint surfaces, catalog.module_texture): a bed slept in and kept, indoors,
+# standing on the floor; its tiles are each colour's (generate).
+LOOK = SimpleNamespace(GROUNDED=True, PICTURES=frozenset(), CONDITION=MAINTAINED, ENVIRONMENT=DRY_INTERIOR, SEED=11,
+                       material=material)
 
 
 def hitbox(nodes):

@@ -6,6 +6,7 @@ rivets) and an ochre pencil held on the right by a leather loop."""
 from PIL import ImageDraw
 
 from brushes import as_tile, metal, paper, wood
+from conditions import MAINTAINED
 from icons import turned
 from materials import BRASS, LEATHER, PAPER, leather
 
@@ -15,6 +16,9 @@ ICON = "Clipboard"
 ICON_VIEW = turned(-70, 12, -8)
 # The written page is drawn for the paper's front island, never turned.
 PICTURES = frozenset({"written"})
+# Painted in layers (spec 2026-10-03 blockpaint surfaces): a clipboard carried every day, kept with care.
+CONDITION, SEED = MAINTAINED, 11
+FAMILY = {"written": "paper", "tip": "wood", "leather": "leather", "brass": "cuprous"}
 INK = (112, 92, 78, 255)
 TITLE = (150, 64, 50, 255)
 TICK = (72, 132, 64, 255)

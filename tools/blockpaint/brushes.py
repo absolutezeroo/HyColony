@@ -50,6 +50,24 @@ def family(name):
     return mark
 
 
+def current_face():
+    """(seed, grain) of the face being painted (seeded, grain): what a brush that lays a tile reads."""
+    return _face["seed"], _face["grain"]
+
+
+def drawing(brush):
+    """A brush painting as brush does, marked as a drawing laid out for its island (a clock face, a portrait, a log's
+    rings): a layered material keeps its every texel, never calmed as noise (surface.layered). brush itself is left as
+    it was, for any other material sharing it; the family carries over."""
+    def drawn(w, h, side):
+        return brush(w, h, side)
+
+    drawn.drawn = True
+    if hasattr(brush, "family"):
+        drawn.family = brush.family
+    return drawn
+
+
 def average(image):
     """The image's mean (r, g, b): the colour a brush paints a Hytale material with (a wool, a clay, planks)."""
     return image.convert("RGB").resize((1, 1), Image.BOX).getpixel((0, 0))
@@ -164,7 +182,7 @@ def wood(rgb, plank=8):
 @family("glass")
 def crystal(light, middle, deep):
     """A cut crystal face: light at the top left fading to deep at the bottom right, a lighter facet ridge along the
-    anti-diagonal, a white glint near the lit corner."""
+    anti-diagonal, a white glint near the lit corner. A drawing (its glint is light, not noise: never calmed)."""
     def rule(x, y, w, h, side):
         if w >= 3 and h >= 3 and (x, y) == (1, 1):
             return (236, 252, 255, 255)
@@ -176,7 +194,7 @@ def crystal(light, middle, deep):
         if abs(u - (1 - v)) < 0.5 / max(w, h, 1) + 0.12:
             colour = mix(colour, light, 0.35)
         return (*colour, 255)
-    return painted(rule)
+    return drawing(painted(rule))
 
 
 @family("paper")
@@ -261,13 +279,14 @@ def terracotta(rgb):
 
 @family("stone")
 def embers():
-    """Glowing embers (a fire's bed, a stove's firebox): dark coal broken by orange and yellow glowing cracks."""
+    """Glowing embers (a fire's bed, a stove's firebox): dark coal broken by orange and yellow glowing cracks. A
+    drawing (their glow is light, not noise: never calmed)."""
     def rule(x, y, w, h, side):
         heat = (x * 7 + y * 13 + (x * y) % 5) % 9
         if heat < 3:
             return (255, 212, 96, 255) if heat == 0 else (255, 142, 44, 255)
         return (64, 36, 28, 255) if heat % 2 else (92, 48, 32, 255)
-    return painted(rule)
+    return drawing(painted(rule))
 
 
 @family("ceramic")

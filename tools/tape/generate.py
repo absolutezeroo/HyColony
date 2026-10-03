@@ -1,7 +1,7 @@
 """Génère le bloc du ruban de chantier de HyColony (MC BlockConstructionTape, spec
 docs/superpowers/specs/2026-10-02-hycolony-construction-tape-design.md) : les modèles de ses quatre formes, faits de
-pièces (shapes.py), dépliés une zone par face, peints au pinceau et éclairés comme les huttes (tools/blockpaint :
-paint.texture, bake.light_map), leurs textures et leurs hitbox, son gabarit de raccord, son icône et son objet, dans
+pièces (shapes.py), dépliés une zone par face, peints en couches et éclairés comme les huttes (tools/blockpaint :
+catalog.model_texture), leurs textures et leurs hitbox, son gabarit de raccord, son icône et son objet, dans
 les ressources du plugin de HyColony.
 
 Lancé à la main (`python tools/blockpaint tape`, ou ce script), puis les sorties sont commitées : le build ne le lance
@@ -13,18 +13,19 @@ jamais. Python 3.10+ et Pillow.
 import json
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 from PIL import Image
 
 TOOLS = Path(__file__).resolve().parents[1]
 sys.path += [str(TOOLS / "blockpaint"), str(TOOLS / "domum")]
-from bake import light_map  # noqa: E402
 from blocks import common  # noqa: E402
 from brushes import coloured, jitter, painted, stone, wood  # noqa: E402
+from catalog import model_texture  # noqa: E402
+from conditions import TEMPERATE_OUTDOOR, USED  # noqa: E402
 from icons import ICON_SIZE, draw_model, frame  # noqa: E402
 from models import bounds, unwrap  # noqa: E402
 from pack import ROOT, rounded, save_png, write_json  # noqa: E402
-import paint  # noqa: E402
 from shapes import SHAPES, parts  # noqa: E402
 
 OUT = ROOT / "plugin" / "src" / "main" / "resources"
@@ -97,13 +98,13 @@ def _look(shape):
     """Écrit le modèle, la texture et la hitbox de la forme (et l'icône, pour la forme par défaut) ; renvoie ses clés
     CustomModel, CustomModelTexture et HitboxType."""
     nodes = parts(shape)
-    size = unwrap(nodes)
+    unwrap(nodes)
     model, texture = FOLDER + shape + ".blockymodel", FOLDER + shape + ".png"
     target = OUT / "Common" / model
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(json.dumps(rounded({"lod": "auto", "nodes": nodes}), separators=(",", ":")) + "\n",
                       encoding="utf-8", newline="\n")
-    image = paint.texture(nodes, size, paint.Look(TILES, _material), light_map(nodes, grounded=True))
+    image = model_texture(LOOK, nodes, None)
     save_png(image, OUT / "Common" / texture)
     if shape == DEFAULT:
         icon = Image.new("RGBA", (ICON_SIZE, ICON_SIZE), (0, 0, 0, 0))
@@ -142,6 +143,10 @@ def _rope():
 
 TILES = {"soil": stone((92, 66, 46), chunk=(2, 2)), "stake": wood((112, 82, 54), plank=99),
          "cut": wood((198, 162, 112), plank=99), "rope": _rope()}
+# Peint en couches (spec 2026-10-03 blockpaint surfaces, catalog.model_texture) : un balisage de chantier qui a servi,
+# dehors, planté dans le sol.
+LOOK = SimpleNamespace(GROUNDED=True, PICTURES=frozenset(), CONDITION=USED, ENVIRONMENT=TEMPERATE_OUTDOOR, SEED=11,
+                       FAMILY={"rope": "textile"}, material=_material, tiles=lambda assets: TILES)
 
 
 if __name__ == "__main__":

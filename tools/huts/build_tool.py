@@ -6,6 +6,7 @@ two brass bands, and a cut cyan crystal set through the head in a brass bezel.""
 from PIL import ImageDraw
 
 from brushes import crystal, metal, wood
+from conditions import MAINTAINED
 from materials import BRASS, CYAN, LEATHER, leather
 from icons import turned
 
@@ -15,6 +16,9 @@ ICON = "Build_Tool"
 # from the gem's side.
 ICON_VIEW = turned(70, 15, 45)
 PICTURES = frozenset()
+# Painted in layers (spec 2026-10-03 blockpaint surfaces): an architect's own tool, kept with care.
+CONDITION, SEED = MAINTAINED, 11
+FAMILY = {"wrap": "leather", "brass": "cuprous"}
 # The two cut crystals and their tables breathe and glint (glint.py).
 GLINT = "Gem"
 

@@ -3,7 +3,8 @@ hemisphere above a point the boxes hide (ambient occlusion), and whether a surfa
 
 import math
 
-from models import add, cross, placed, rotate, scale, sub, unit
+from models import placed
+from vectors import add, cross, rotate, scale, sub, unit
 
 AO_DISTANCE = 10.0
 # Rays start this far off the face, so that they never hit their own box.

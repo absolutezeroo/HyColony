@@ -4,12 +4,15 @@ stones and lashed at the top, a pulley, a rope down to a hook and a cut block ha
 winch with its crank between the front legs, cut blocks below. The hanging load swings gently (animation)."""
 
 from brushes import metal, stone, wood
+from conditions import TEMPERATE_OUTDOOR, WORN
 from materials import CUT_STONE, ROCK, rope
 from motion import blockyanim, leaning, track, wave
 
 MODEL = "Blocks/HyColony/Huts/Quarry_Large"
 ICON = "Hut_Quarry_Large"
 PICTURES = frozenset()
+# Painted in layers (spec 2026-10-03 blockpaint surfaces): a quarry's sheerlegs, hard worked, outdoors.
+CONDITION, ENVIRONMENT, SEED = WORN, TEMPERATE_OUTDOOR, 11
 # The hanging load, as a heavy block on a rope moves: it turns slowly on the rope, TWIST_DEGREES each way over the
 # loop of LOOP_TICKS (1/60 s, the blockyanim time unit), and barely swings, a pendulum of about a block of rope
 # (period 2 s, SWING_CYCLES in the loop), SWING_DEGREES to and fro and a little less side to side. At every key the

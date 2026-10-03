@@ -62,6 +62,12 @@ class BrushTest(unittest.TestCase):
         for name, brush in {**BRUSHES, **core}.items():
             self.assertIn(getattr(brush, "family", None), compat.FAMILIES, name)
 
+    def test_glowing_brushes_are_drawings_their_glow_never_calmed(self):
+        self.assertTrue(brushes.embers().drawn)
+        self.assertTrue(brushes.crystal((200, 240, 255), (120, 180, 220), (60, 90, 140)).drawn)
+        self.assertEqual("glass", brushes.crystal((200, 240, 255), (120, 180, 220), (60, 90, 140)).family)
+        self.assertFalse(getattr(brushes.stone((128, 124, 116)), "drawn", False))
+
     def test_every_brush_varies_across_a_face_but_keeps_to_its_colour(self):
         for name, brush in BRUSHES.items():
             pixels = colours(brush(16, 16, "front"))

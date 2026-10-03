@@ -6,12 +6,17 @@ Particles, on the empty node Flame); the embers and the candle's flame glow (ful
 from PIL import Image, ImageDraw
 
 from brushes import as_tile, crystal, embers, metal, paper, stone, terracotta, wood
+from conditions import DRY_INTERIOR, USED
+from decals import Decal
 from materials import BRASS
 
 MODEL = "Blocks/HyColony/Huts/Residence"
 ICON = "Hut_Residence"
 # Materials drawn for their island, never turned with the wood grain.
-PICTURES = frozenset({"log_end", "portrait", "clock_face"})
+PICTURES = frozenset({"log_end", "portrait"})
+# Painted in layers (spec 2026-10-03 blockpaint surfaces): a lived-in home, indoors.
+CONDITION, ENVIRONMENT, SEED = USED, DRY_INTERIOR, 11
+FAMILY = {"log_end": "wood", "portrait": "paint_film", "wax": "wax", "brass": "cuprous", "copper": "cuprous"}
 BARK = (84, 58, 40)
 # The firebox's faces, darkened by soot: node -> its sides inside the fire.
 SOOTED = {"Back": ("front",), "Jamb_L": ("right",), "Jamb_R": ("left",), "Mantel_Beam": ("bottom",)}
@@ -25,7 +30,8 @@ PREFIXES = (("Hearth", "flagstone"), ("Jamb", "stone"), ("Back", "stone"), ("Bre
 
 def material(name, side):
     """The material of a node's face: soot inside the firebox, the cut rings on a log's ends and bark around it, the
-    painting on the portrait's front and its wooden frame elsewhere, then by name."""
+    painting on the portrait's front and its wooden frame elsewhere, the clock's case (its dial a decal), then by
+    name."""
     if side in SOOTED.get(name, ()):
         return "soot"
     # The logs on the fire lie across it (cut ends left and right); the stacked ones show their ends to the player.
@@ -34,7 +40,7 @@ def material(name, side):
     if name == "Portrait":
         return "portrait" if side == "front" else "frame"
     if name == "Clock":
-        return "clock_face" if side == "front" else "beam"
+        return "beam"
     return next(m for prefix, m in PREFIXES if name.startswith(prefix))
 
 
@@ -48,7 +54,6 @@ def tiles(_assets):
         "embers": embers(), "flame": crystal((255, 242, 176), (255, 184, 72), (232, 104, 34)),
         "wax": paper((238, 228, 206), aged=(214, 196, 160)), "brass": metal(BRASS), "iron": metal((72, 72, 80)),
         "copper": metal((184, 104, 62)), "clay": terracotta((156, 92, 60)), "portrait": portrait(),
-        "clock_face": clock_face(),
     }
 
 
@@ -61,16 +66,21 @@ def log_end(size=3):
     return image
 
 
-def clock_face():
-    """The wall clock's 6 x 7 front: a dark wooden case round a cream dial, its hands at ten past ten."""
-    image = as_tile(wood((92, 58, 36), plank=99))
+def dial(w, h, side):
+    """The wall clock's dial, laid on its wooden case (DECALS): cream, its hands at ten past ten, a brass rail under
+    it, clear elsewhere."""
+    image = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
-    draw.rectangle([1, 1, 4, 4], fill=(232, 222, 196, 255))
-    draw.point((2, 2), fill=(40, 34, 30, 255))
-    draw.point((3, 2), fill=(40, 34, 30, 255))
-    draw.point((2, 3), fill=(176, 140, 64, 255))
-    draw.line([(1, 6), (4, 6)], fill=(176, 140, 64, 255))
+    draw.rectangle([0, 0, 3, 3], fill=(232, 222, 196, 255))
+    draw.point((1, 1), fill=(40, 34, 30, 255))
+    draw.point((2, 1), fill=(40, 34, 30, 255))
+    draw.point((1, 2), fill=(176, 140, 64, 255))
+    draw.line([(0, 5), (3, 5)], fill=(176, 140, 64, 255))
     return image
+
+
+# The clock's dial on the front of its case (spec 2026-10-03 blockpaint decals).
+DECALS = {"dial": Decal("Clock", "front", (1, 1, 4, 6), dial)}
 
 
 def portrait():

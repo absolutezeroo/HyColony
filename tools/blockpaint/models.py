@@ -1,9 +1,11 @@
 """Blockymodel geometry shared by the model tools (HyVanilla, HyColony's huts, items and construction tape, HyDomum):
-nodes, their placement, faces, bounds and uniform scaling (32 units per block), and the vector arithmetic they need."""
+nodes, their placement, faces, bounds and uniform scaling (32 units per block); the arithmetic is vectors.py's (add,
+multiply and rotate still read from here by the model tools)."""
 
 import copy
 import math
-import operator
+
+from vectors import add, multiply, rotate
 
 FACE_NORMALS = {"front": (0, 0, 1), "back": (0, 0, -1), "right": (1, 0, 0), "left": (-1, 0, 0), "top": (0, 1, 0),
                 "bottom": (0, -1, 0)}
@@ -28,6 +30,39 @@ def face_point(side, size, s, t):
             "left": (-hx, hy - t, -hz + s), "top": (-hx + s, hy, -hz + t), "bottom": (-hx + s, -hy, hz - t)}[side]
 
 
+def face_size(shape, side):
+    """(width, height) in texels of the face side of a box or quad shape: a quad's one face spans its x and y."""
+    size = shape["settings"]["size"]
+    if quad(shape):
+        return size["x"], size["y"]
+    return face_span(side, (size["x"], size["y"], size["z"]))
+
+
+def face_local(shape, side, s, t):
+    """The point about the shape's centre at texel coordinates (s, t) of its face side: a quad's face is a box's
+    front laid on its plane (z 0), u to the right and v down."""
+    size = shape["settings"]["size"]
+    if quad(shape):
+        return -size["x"] / 2 + s, size["y"] / 2 - t, 0.0
+    return face_point(side, (size["x"], size["y"], size["z"]), s, t)
+
+
+def face_normal(shape, side):
+    """The outward normal of the face side of a box or quad shape, about the shape (unturned)."""
+    return (0, 0, 1) if quad(shape) else FACE_NORMALS[side]
+
+
+def quad(shape):
+    """Whether shape is a quad the model tools paint: facing +Z (Hytale's default and most used normal); fails on a
+    quad facing another way, which its node's orientation turns instead."""
+    if shape["type"] != "quad":
+        return False
+    if shape["settings"].get("normal", "+Z") != "+Z":
+        raise SystemExit(f"a quad facing {shape['settings']['normal']}: the model tools paint +Z quads, turned by "
+                         "their node's orientation")
+    return True
+
+
 def node(name, position, shape, children=()):
     return {"id": "0", "name": name, "children": list(children), "position": xyz(position),
             "orientation": {"x": 0, "y": 0, "z": 0, "w": 1}, "shape": shape}
@@ -50,6 +85,17 @@ def box_shape(size, sides, offset=(0, 0, 0), shading="standard"):
     return shape
 
 
+def quad_shape(size, offset=(0, 0, 0), shading="standard"):
+    """A quad shape of size (x, y) facing +Z, its centre offset from its node, seen from both sides as Hytale's
+    decals are (doubleSided), its one face (front) on its own island once unwrap lays it out."""
+    shape = empty_shape()
+    shape.update({"type": "quad", "offset": xyz(offset), "doubleSided": True, "shadingMode": shading,
+                  "settings": {"isPiece": False, "size": {"x": size[0], "y": size[1]}, "normal": "+Z"},
+                  "textureLayout": {"front": {"offset": {"x": 0, "y": 0}, "mirror": {"x": False, "y": False},
+                                              "angle": 0}}})
+    return shape
+
+
 # The longest texture side unwrap picks when it can: Hytale's block textures reach 352, ours 384 (shown in game);
 # longer strips (the warehouse's smallest layout is 32 x 672) are untried in the client's block atlas. Not a client
 # limit: HyDomum's 576 x 544 board shows in game.
@@ -63,18 +109,17 @@ WIDTHS = (32, 64, 96, 128, 160, 192, 256)
 
 
 def unwrap(nodes, widths=WIDTHS, apart=lambda name: False):
-    """Lays every box face of the model on its own UV island, GAP pixels apart, at the texture width of widths giving
-    the smallest texture with no side over MAX_SIDE, else the one of the shortest longest side; the faces of the nodes
-    named apart(name) are laid together in a band below all the others (glint.py copies only that band). Returns the
-    texture size, sides multiples of 32; changes nodes in place."""
+    """Lays every box and quad face of the model on its own UV island, GAP pixels apart, at the texture width of
+    widths giving the smallest texture with no side over MAX_SIDE, else the one of the shortest longest side; the faces
+    of the nodes named apart(name) are laid together in a band below all the others (glint.py copies only that band).
+    Returns the texture size, sides multiples of 32; changes nodes in place."""
     groups = ([], [])
     for n in walk(nodes):
         shape = n["shape"]
-        if shape["type"] != "box":
+        if shape["type"] not in ("box", "quad"):
             continue
-        size = tuple(shape["settings"]["size"][a] for a in "xyz")
         for side, face in shape["textureLayout"].items():
-            w, h = (int(c) for c in face_span(side, size))
+            w, h = (int(c) for c in face_size(shape, side))
             groups[bool(apart(n["name"]))].append((h, w, n["name"] + " " + side, face))
     for faces in groups:
         faces.sort(key=lambda f: (-f[0], -f[1], f[2]))
@@ -145,7 +190,8 @@ def face_rects(nodes):
         shape = n["shape"]
         size = shape.get("settings", {}).get("size")
         for side, face in shape.get("textureLayout", {}).items():
-            # A quad's one face spans its x and y, whatever side it is named; a quad has no z.
+            # A quad's one face spans its x and y, whatever side it is named; a quad has no z. Not face_size: this reads
+            # Hytale's own models too, whose quads face any way (face_size takes only the +Z quads we paint).
             if shape["type"] == "quad":
                 w, h = size["x"], size["y"]
             else:
@@ -208,59 +254,3 @@ def corners(shape):
             return [(sx * hx, 0, sy * hy) for sx in (-1, 1) for sy in (-1, 1)]
         return [(sx * hx, sy * hy, 0) for sx in (-1, 1) for sy in (-1, 1)]
     return []
-
-
-def add(a, b):
-    return tuple(map(operator.add, a, b))
-
-
-def multiply(q, r):
-    x1, y1, z1, w1 = q
-    x2, y2, z2, w2 = r
-    return (w1 * x2 + x1 * w2 + y1 * z2 - z1 * y2,
-            w1 * y2 - x1 * z2 + y1 * w2 + z1 * x2,
-            w1 * z2 + x1 * y2 - y1 * x2 + z1 * w2,
-            w1 * w2 - x1 * x2 - y1 * y2 - z1 * z2)
-
-
-def rotate(q, v):
-    """v turned by the quaternion q (normalised first): q * v * conjugate(q), written out term by term in the order
-    multiply computes them (the generators' hot path; the same floats as two multiply calls)."""
-    a, b, c, w = q
-    # sum, not +: Python's float sum is compensated, and the generators' outputs are compared bit for bit.
-    norm = math.sqrt(sum((a * a, b * b, c * c, w * w))) or 1.0
-    a, b, c, w = a / norm, b / norm, c / norm, w / norm
-    vx, vy, vz = v
-    px = w * vx + a * 0.0 + b * vz - c * vy
-    py = w * vy - a * vz + b * 0.0 + c * vx
-    pz = w * vz + a * vy - b * vx + c * 0.0
-    pw = w * 0.0 - a * vx - b * vy - c * vz
-    return (pw * -a + px * w + py * -c - pz * -b,
-            pw * -b - px * -c + py * w + pz * -a,
-            pw * -c + px * -b - py * -a + pz * w)
-
-
-def sub(a, b):
-    return (a[0] - b[0], a[1] - b[1], a[2] - b[2])
-
-
-def scale(a, k):
-    return (a[0] * k, a[1] * k, a[2] * k)
-
-
-def dot(a, b):
-    # sum, not +: Python's float sum is compensated, and the generators' outputs are compared bit for bit.
-    return sum((a[0] * b[0], a[1] * b[1], a[2] * b[2]))
-
-
-def cross(a, b):
-    return (a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0])
-
-
-def length(a):
-    return math.sqrt(dot(a, a))
-
-
-def unit(a):
-    size = length(a)
-    return scale(a, 1 / size) if size > 1e-9 else a

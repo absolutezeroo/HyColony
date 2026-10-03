@@ -10,7 +10,8 @@ from collections import namedtuple
 import maps
 import marks
 import weathering
-from models import FACE_AXES, dot
+from models import FACE_AXES
+from vectors import dot
 
 # An event: its kind (for its name), source (point, edge, sky), direction (None, a vector, or GRAVITY), radius (world
 # units), falloff (exponent of its fading; 0: whole up to the radius), severity (0 to 1: the degree its effects

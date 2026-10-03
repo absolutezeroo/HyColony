@@ -6,6 +6,7 @@ brass scale with a stack of gold coins."""
 from PIL import ImageDraw
 
 from brushes import as_tile, cloth, coloured, jitter, metal, painted, terracotta, wood
+from conditions import DRY_INTERIOR, USED
 from materials import BRASS
 
 MODEL = "Blocks/HyColony/Huts/Warehouse"
@@ -14,6 +15,10 @@ CRATE = (168, 126, 80)
 STAVE = (138, 92, 56)
 # Materials drawn for their island, never turned.
 PICTURES = frozenset({"ledger"})
+# Painted in layers (spec 2026-10-03 blockpaint surfaces): a stockroom in use, indoors.
+CONDITION, ENVIRONMENT, SEED = USED, DRY_INTERIOR, 11
+FAMILY = {"label": "wood", "ledger": "paper", "barrel": "wood", "leather": "leather", "brass": "cuprous",
+          "gold": "noble"}
 # Node name prefix -> material.
 PREFIXES = (("Post", "frame"), ("Rack_Top", "frame"), ("Rack_Shelf", "planks"), ("Rack_Back", "boards"),
             ("Sack", "burlap"), ("Box", "crate"), ("Big_Crate", "crate"), ("Ledger", "leather"),

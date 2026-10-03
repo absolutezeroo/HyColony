@@ -2,12 +2,14 @@
 needed). An AssertionError names the case."""
 
 import unittest
+from types import SimpleNamespace
 
 from PIL import Image
 
 import art
 import bake
 import brushes
+import catalog
 import conditions
 import critique
 import effects
@@ -104,6 +106,100 @@ class CalmTest(unittest.TestCase):
 
         self.assertLess(step("Block"), critique.measure(white_noise(16, 16, amount=0.15)).step)
         self.assertLess(step("Other"), step("Block"))
+
+    def test_a_drawing_is_never_calmed(self):
+        noisy = brushes.drawing(lambda w, h, side: white_noise(w, h, amount=0.15))
+        nodes = model(("Block", (0, 8, 0), (16, 16, 16)))
+        size = unwrap(nodes)
+        _, contexts = bake.survey(nodes, grounded=True, wear=0.0, grime=0.0)
+        look = paint.Look({"wood": effects.material(noisy, family="wood")}, lambda n, s: "wood")
+        image = paint.paint(nodes, size, look, paint.Painting(surface=surface.Surface(contexts, conditions.PRISTINE)))
+        u, v, w, h = next(r for r in paint.islands(nodes) if r[:2] == ("Block", "front"))[2:]
+        self.assertGreaterEqual(critique.measure(image.crop((u, v, u + w, v + h))).step,
+                                0.9 * critique.measure(white_noise(16, 16, amount=0.15)).step)
+
+    def test_a_layered_picture_of_a_catalog_module_is_a_drawing(self):
+        nodes = model(("Block", (0, 8, 0), (16, 16, 16)))
+        noisy = (lambda w, h, side: white_noise(w, h, amount=0.15))
+        module = SimpleNamespace(MODEL="Blocks/Test/Block", PICTURES=frozenset({"sign"}),
+                                 CONDITION=conditions.PRISTINE, material=lambda n, s: "sign",
+                                 tiles=lambda a: {"sign": effects.material(noisy, family="paper")})
+        image = catalog.model_texture(module, nodes, None)
+        u, v, w, h = next(r for r in paint.islands(nodes) if r[:2] == ("Block", "front"))[2:]
+        self.assertGreaterEqual(critique.measure(image.crop((u, v, u + w, v + h))).step,
+                                0.9 * critique.measure(white_noise(16, 16, amount=0.15)).step)
+
+    def test_an_image_tile_laid_as_a_brush_follows_the_face_and_a_picture_stays_as_drawn(self):
+        tile = white_noise(32, 32)
+        with brushes.seeded(1234):
+            drawn = paint.tiled(tile, picture=True)(8, 8, "front")
+            self.assertEqual(tile.crop((0, 0, 8, 8)).tobytes(), drawn.tobytes())
+            self.assertNotEqual(tile.crop((0, 0, 8, 8)).tobytes(), paint.tiled(tile)(8, 8, "front").tobytes())
+        self.assertTrue(paint.tiled(tile, picture=True).drawn)
+        self.assertFalse(getattr(paint.tiled(tile), "drawn", False))
+
+    def test_a_drawing_leaves_the_brush_it_draws_with_as_it_was(self):
+        shared = brushes.wood((150, 104, 62))
+        drawn = brushes.drawing(shared)
+        self.assertTrue(drawn.drawn)
+        self.assertEqual("wood", drawn.family)
+        self.assertFalse(getattr(shared, "drawn", False), "another material sharing the brush stays a substrate")
+        self.assertEqual(shared(8, 8, "front").tobytes(), drawn(8, 8, "front").tobytes())
+
+    def test_a_drawing_takes_what_settles_on_it_but_no_wear(self):
+        drawn = brushes.drawing(lambda w, h, side: Image.new("RGBA", (w, h), (232, 222, 196, 255)))
+        nodes = model(("Block", (0, 8, 0), (16, 16, 16)))
+        size = unwrap(nodes)
+        _, contexts = bake.survey(nodes, grounded=True, wear=0.0, grime=0.0)
+        record = []
+        look = paint.Look({"dial": effects.material(drawn)}, lambda n, s: "dial")
+        # Only wear, chips and dust planned: all three fit the island's visible count, so only the drawing's rule
+        # can leave wear and chips out.
+        catalogue = {name: weathering.EFFECTS[name] for name in ("edge_wear", "chips", "dust")}
+        layered = surface.Surface(contexts, conditions.NEGLECTED, catalogue=catalogue, record=record)
+        paint.paint(nodes, size, look, paint.Painting(surface=layered))
+        zones = {name for _, _, _, island, _ in record for name, zone in island.zones.items() if zone}
+        self.assertFalse(zones & {"edge_wear", "chips"}, zones)
+        self.assertIn("dust", zones)
+
+    def test_a_living_plant_or_a_liquid_takes_what_settles_on_it_but_no_wear(self):
+        nodes = model(("Block", (0, 8, 0), (16, 16, 16)))
+        size = unwrap(nodes)
+        _, contexts = bake.survey(nodes, grounded=True, wear=0.0, grime=0.0)
+        catalogue = {name: weathering.EFFECTS[name] for name in ("edge_wear", "chips", "dust")}
+        for family in ("plant", "liquid"):
+            record = []
+            look = paint.Look({"leaf": effects.material(brushes.cloth((86, 148, 58)), family)}, lambda n, s: "leaf")
+            layered = surface.Surface(contexts, conditions.NEGLECTED, catalogue=catalogue, record=record)
+            paint.paint(nodes, size, look, paint.Painting(surface=layered))
+            zones = {name for _, _, _, island, _ in record for name, zone in island.zones.items() if zone}
+            self.assertFalse(zones & {"edge_wear", "chips"}, (family, zones))
+            self.assertIn("dust", zones, family)
+
+    def test_a_layered_catalog_module_names_every_material_s_family(self):
+        nodes = model(("Block", (0, 8, 0), (16, 16, 16)))
+        bare = SimpleNamespace(MODEL="Blocks/Test/Block", PICTURES=frozenset(), CONDITION=conditions.USED,
+                               material=lambda n, s: "board", tiles=lambda a: {"board": white_noise(32, 32)})
+        with self.assertRaises(SystemExit):
+            catalog.model_texture(bare, nodes, None)
+        named = SimpleNamespace(**vars(bare), FAMILY={"board": "wood"})
+        self.assertEqual(catalog.texture_size(nodes), catalog.model_texture(named, nodes, None).size)
+        reed = SimpleNamespace(PICTURES=frozenset(), FAMILY={"head": "plant"})
+        self.assertEqual("plant", catalog.layered_tiles(reed, {"head": brushes.cloth((112, 72, 44))})["head"].family,
+                         "FAMILY names a material's family over its brush's")
+        built = {"head": effects.material(brushes.cloth((112, 72, 44)))}
+        self.assertEqual("plant", catalog.layered_tiles(reed, built)["head"].family, "and over a built material's")
+        with self.assertRaises(SystemExit):
+            catalog.layered_tiles(SimpleNamespace(PICTURES=frozenset(), FAMILY={"head": "reed"}), built)
+        rusting = {"head": effects.material(brushes.metal((150, 154, 162)), effects=((weathering.EFFECTS["rust"], 1),))}
+        with self.assertRaises(SystemExit, msg="a family its own effects are impossible on"):
+            catalog.layered_tiles(SimpleNamespace(PICTURES=frozenset(), FAMILY={"head": "wood"}), rusting)
+
+    def test_a_module_s_grounded_overrides_its_model_s_path(self):
+        self.assertTrue(catalog.grounded(SimpleNamespace(MODEL="Blocks/Test/Block")))
+        self.assertFalse(catalog.grounded(SimpleNamespace(MODEL="Items/Test/Tool")))
+        self.assertTrue(catalog.grounded(SimpleNamespace(GROUNDED=True)))
+        self.assertFalse(catalog.grounded(SimpleNamespace(PICTURES=frozenset())))
 
     def test_low_detail_calms_more_than_high(self):
         # A grain both budgets can reach, so each stops at its own.

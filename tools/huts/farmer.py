@@ -8,6 +8,7 @@ import math
 from PIL import ImageDraw
 
 from brushes import as_tile, cloth, crystal, jitter, metal, stone, terracotta, wood
+from conditions import TEMPERATE_OUTDOOR, USED
 from materials import leaf
 from models import multiply, walk
 from motion import about
@@ -28,6 +29,10 @@ DROP_SHOWN, DROP_FULL, DROP_LANDED, DROP_BEAD, DROP_FALL = 70, 140, 152, 0.3, 3.
 ICON = "Hut_Farmer"
 # Materials drawn for their island, never turned with the wood grain.
 PICTURES = frozenset({"can_top"})
+# Painted in layers (spec 2026-10-03 blockpaint surfaces): a potting bench in use, outdoors.
+CONDITION, ENVIRONMENT, SEED = USED, TEMPERATE_OUTDOOR, 11
+FAMILY = {"soil": "stone", "can_top": "cuprous", "water": "liquid", "copper": "cuprous", "seeds": "plant",
+          "pumpkin": "plant", "stem": "plant", "carrot": "plant"}
 # The drop is shown only part of the time: it casts no baked shadow.
 SEE_THROUGH = frozenset({"Drop"})
 # Node name prefix -> material, for the faces material's rules leave.

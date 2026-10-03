@@ -11,7 +11,7 @@ import brushes
 from bake import lit
 from brushes import average
 from effects import Material
-from models import FACE_AXES, face_span, walk
+from models import FACE_AXES, face_size, walk
 from surface import layered
 
 # What paints each island: tiles ({material: an image, a brush (w, h, side) -> image, or a layered material}),
@@ -25,17 +25,17 @@ Painting = namedtuple("Painting", "seed axes surface light", defaults=(None, Non
 
 
 def islands(nodes):
-    """(node name, side, u, v, w, h) of every box face, once per texture rectangle (shared faces paint once)."""
+    """(node name, side, u, v, w, h) of every box and quad face, once per texture rectangle (shared faces paint
+    once)."""
     seen = set()
     for n in walk(nodes):
         shape = n["shape"]
-        if shape["type"] != "box":
+        if shape["type"] not in ("box", "quad"):
             continue
-        size = tuple(shape["settings"]["size"][a] for a in "xyz")
         for side, face in shape.get("textureLayout", {}).items():
             if face.get("angle", 0) or any(face.get("mirror", {}).values()):
                 raise SystemExit(f"{n['name']} {side}: rotated or mirrored faces are not painted")
-            w, h = (int(c) for c in face_span(side, size))
+            w, h = (int(c) for c in face_size(shape, side))
             rect = (int(face["offset"]["x"]), int(face["offset"]["y"]), w, h)
             if rect not in seen:
                 seen.add(rect)
@@ -58,7 +58,9 @@ def paint(nodes, size, look, painting=Painting()):
             elif callable(tile):
                 island = tile(w, h, side)
             else:
-                island = fill(tile, (w, h), material not in look.pictures, direction, face)
+                # A picture is laid out for its island: neither turned nor shifted by the face's seed.
+                picture = material in look.pictures
+                island = fill(tile, (w, h), not picture, direction, 0 if picture else face)
         image.paste(island, (u, v))
     return image
 
@@ -103,6 +105,15 @@ def softened(tile, keep):
     flat = Image.new("RGBA", tile.size, (*average(tile), 255))
     flat.putalpha(tile.getchannel("A"))
     return Image.blend(flat, tile, keep)
+
+
+def tiled(tile, picture=False):
+    """An image tile as a brush, the substrate of a layered material: laid as paint lays a tile, turned along the
+    face's grain and shifted by its seed (brushes.current_face); a picture laid as drawn, and marked a drawing."""
+    def brush(w, h, side):
+        seed, grain = brushes.current_face()
+        return fill(tile, (w, h), not picture, grain, 0 if picture else seed)
+    return brushes.drawing(brush) if picture else brush
 
 
 def fill(tile, size, follow_grain=True, grain=None, seed=0):

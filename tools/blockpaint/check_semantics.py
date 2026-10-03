@@ -3,15 +3,19 @@ tools/blockpaint/check_semantics.py (no assets needed). Each question answers ye
 a crate rigged to fail it. An AssertionError names the case."""
 
 import unittest
+from types import SimpleNamespace
 
 from PIL import Image
 
+import catalog
 import conditions
+import decals
 import deposits
 import effects
 import roles
 import semantics
 from check_effects import DECLARED, crate_model, crate_module
+from models import unwrap
 
 OUTDOORS = dict(DECLARED, CONDITION=conditions.NEGLECTED, ENVIRONMENT=conditions.TEMPERATE_OUTDOOR)
 
@@ -103,6 +107,21 @@ class SemanticsTest(unittest.TestCase):
                 record[3].zones["rust"].add(cell)
         self.assertFalse(semantics.rust_on_bare_iron(records).ok)
 
+    def test_only_neighbours_of_two_substances_both_readable_from_afar_must_differ(self):
+        def record(part, family, length, x):
+            # A row of texels half a unit apart from x, of one colour: no grain to tell them apart.
+            texels = {(i, 0): SimpleNamespace(point=(x + i * 0.5, 0, 0)) for i in range(length)}
+            return part, "front", None, SimpleNamespace(family=family, texels=texels), \
+                Image.new("RGBA", (length, 1), (120, 90, 60, 255))
+
+        def distinct(*records):
+            return semantics.materials_distinct(list(records), lambda part, side: part).ok
+
+        self.assertFalse(distinct(record("Shaft", "bone", 10, 0), record("Vane", "hair", 10, 5)))
+        self.assertTrue(distinct(record("Stave", "wood", 10, 0), record("Lid", "wood", 10, 5)), "one substance")
+        tip = record("Tip", "hair", semantics.FAR * semantics.FAR * semantics.READABLE - 1, 5)
+        self.assertTrue(distinct(record("Shaft", "bone", 10, 0), tip), "too small to read from afar")
+
     def test_two_parts_apart_are_not_neighbours(self):
         self.assertTrue(semantics.near([(0, 0, 0), (1, 1, 1)], [(1.5, 0, 0)]))
         self.assertFalse(semantics.near([(0, 0, 0), (1, 1, 1)], [(2, 0, 0)]))
@@ -133,6 +152,23 @@ class SemanticsTest(unittest.TestCase):
         records = semantics.records_of(same, crate_model())
         self.assertFalse(semantics.materials_distinct(records, same.material).ok)
         self.assertTrue(semantics.materials_distinct(self.records, self.module.material).ok)
+
+    def test_a_decal_is_judged_as_the_drawing_it_is_not_as_its_part_s_material(self):
+        def material(name, side):
+            # As a hut module: it knows its parts, not their decals (residence: a StopIteration).
+            return {"Band0": "iron", "Band1": "iron", "Body": "wood", "Lid": "wood"}.get(name) or next(
+                m for prefix, m in (("Foot", "wood"),) if name.startswith(prefix))
+
+        sign = crate_module(**dict(OUTDOORS, CONDITION=conditions.PRISTINE))
+        sign.material = material
+        sign.DECALS = {"sign": decals.Decal("Body", "front", (2, 2, 6, 4),
+                                            lambda w, h, side: Image.new("RGBA", (w, h), (120, 90, 60, 255)))}
+        nodes = crate_model()
+        decals.place(nodes, sign.DECALS)
+        unwrap(nodes)
+        self.assertEqual(9, len(semantics.answers(sign, nodes)))
+        self.assertEqual(catalog.DECAL + "sign", catalog.material_of(sign)("Body_Decal_sign", "front"))
+        self.assertEqual("iron", catalog.material_of(sign)("Band0--C2", "top"))
 
 
 if __name__ == "__main__":

@@ -5,7 +5,7 @@ import math
 
 from PIL import Image, ImageChops, ImageDraw
 
-from models import FACE_NORMALS, add, corners, face_point, face_span, multiply, placed, rotate
+from models import add, corners, face_local, face_normal, face_size, multiply, placed, rotate
 
 ICON_SIZE = 64
 # Pixels left free around a framed model (frame).
@@ -104,18 +104,17 @@ def draw_model(icon, nodes, texture, scale, origin, view=None):
         shape = n["shape"]
         if shape["type"] == "none":
             continue
-        if shape["type"] != "box":
-            raise SystemExit(f"{n['name']}: draw_model draws boxes only")
+        if shape["type"] not in ("box", "quad"):
+            raise SystemExit(f"{n['name']}: draw_model draws boxes and quads only")
         offset, stretch = (tuple(shape[key][a] for a in "xyz") for key in ("offset", "stretch"))
-        size = tuple(shape["settings"]["size"][a] for a in "xyz")
         for side, face in shape["textureLayout"].items():
             if face.get("angle", 0) or any(face.get("mirror", {}).values()):
                 raise SystemExit(f"{n['name']} {side}: draw_model reads unturned, unmirrored faces")
-            normal = rotate(rotation, FACE_NORMALS[side])
+            normal = rotate(rotation, face_normal(shape, side))
             shade = facing_shade(normal) if view is None else turned_shade(rotate(view, normal))
             if shade is None:
                 continue
-            for local, texel in face_samples(side, size, face, scale * max(abs(s) for s in stretch)):
+            for local, texel in face_samples(shape, side, face, scale * max(abs(s) for s in stretch)):
                 stretched = tuple(o + c * s for o, c, s in zip(offset, local, stretch))
                 sx, sy, depth = screen(add(position, rotate(rotation, stretched)), scale, origin, view)
                 pixel = (int(sx), int(sy))
@@ -143,13 +142,13 @@ def turned_shade(normal):
     return 0.72 + 0.28 * max(0.0, -0.5 * x + 0.6 * y + 0.62 * z)
 
 
-def face_samples(side, size, face, density):
-    """(point about the box's centre, texel) pairs covering a face, about two samples per icon pixel each way, as
-    Blockbench lays faces out (u right, v down)."""
-    w, h = face_span(side, size)
+def face_samples(shape, side, face, density):
+    """(point about the shape's centre, texel) pairs covering a box's or quad's face, about two samples per icon pixel
+    each way, as Blockbench lays faces out (u right, v down)."""
+    w, h = face_size(shape, side)
     columns, rows = max(1, math.ceil(w * density * 2)), max(1, math.ceil(h * density * 2))
     u0, v0 = face["offset"]["x"], face["offset"]["y"]
     for i in range(columns):
         for j in range(rows):
             s, t = (i + 0.5) / columns * w, (j + 0.5) / rows * h
-            yield face_point(side, size, s, t), (int(u0 + s), int(v0 + t))
+            yield face_local(shape, side, s, t), (int(u0 + s), int(v0 + t))

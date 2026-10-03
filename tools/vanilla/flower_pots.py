@@ -3,30 +3,29 @@ potted_<plant> blocks. The colours are a requested addition: Minecraft's flower 
 
 Each state's model is the pot plus the plant's vanilla model scaled to stand in it (Minecraft's flower_pot_cross parent
 model does the same with the plant's texture). The pot itself is built in Blockbench (POT_MODEL, Minecraft's shape,
-docs/research/hytale-models.md), one UV island per face in a POT_CELL that paint.py fills per colour with brushes
-(brushes.py: the clay, the dirt) and bake.py lights from the pot. One atlas serves every pot: each plant texture once
-and one pot cell per colour. Each colour has its own models (its empty pot and one per plant), which differ only in
-the UVs of the pot's faces. To pot a new plant, add its item id to PLANTS and re-run generate.py.
+docs/research/hytale-models.md), one UV island per face in a pot cell painted per colour in layers with brushes
+(brushes.py: the clay, the dirt) and lit from the pot (catalog.module_texture). One atlas serves every pot: each
+plant texture once and one pot cell per colour. Each colour has its own models (its empty pot and one per plant),
+which differ only in the UVs of the pot's faces. To pot a new plant, add its item id to PLANTS and re-run generate.py.
 """
 
 import copy
 import json
 import shutil
 from pathlib import Path
+from types import SimpleNamespace
 
 from PIL import Image
 
-from bake import light_map
 from brushes import average, stone, terracotta
+from catalog import module_surface, module_texture, surveyed
+from conditions import MAINTAINED
 from icons import ICON_SIZE, draw_model
 from models import bounds, check_uvs, empty_shape, node, scaled, shift_uvs, walk
 from pack import rounded, save_png, write_json
-import paint
 from paths import PACK
 
 POT_MODEL = Path(__file__).parent / "models" / "Flower_Pot.blockymodel"
-# The pot's texture: its 22 face islands, 2 pixels apart.
-POT_CELL = (96, 32)
 # Crumbs of the dirt (stone brush chunks, in pixels).
 DIRT_CRUMBS = (2, 2)
 MODELS = "Blocks/HyVanilla/Flower_Pot/"
@@ -112,9 +111,9 @@ def generate(assets):
     textures = {p: plant_texture(assets, block) for p, block in plants.items()}
     clays = {c: assets.item("Soil_Clay_Smooth_" + c) for c in COLOURS}
     template = json.loads(POT_MODEL.read_text(encoding="utf-8"))["nodes"]
-    values = light_map(template, grounded=True)
+    surveyed_pot = surveyed(LOOK, template)
     dirt = stone(average(assets.image("Common/" + DIRT)), DIRT_CRUMBS)
-    cells = {c: pot_cell(template, values, terracotta(average(clay_texture(assets, item))), dirt)
+    cells = {c: pot_cell(template, surveyed_pot, terracotta(average(clay_texture(assets, item))), dirt)
              for c, item in clays.items()}
     images = dict(textures.values()) | {"pot:" + c: cell for c, cell in cells.items()}
     layout, size = pack_layout(images)
@@ -203,13 +202,22 @@ def fit(nodes, vanilla_scale, width_room):
     return min(factor, DIRT_TOP / -low[1]) if low[1] < 0 else factor
 
 
-def pot_cell(template, values, clay_brush, dirt_brush):
-    """One colour's pot cell, painted on the pot model's islands (the clay, the dirt's top) and lit by values (the
-    pot's light_map: the walls shade their inside and the dirt themselves)."""
-    def material(name, side):
-        return "dirt" if name == "Dirt" and side == "top" else "clay"
+def pot_material(name, side):
+    """The material of a pot face: the dirt's top, else the clay."""
+    return "dirt" if name == "Dirt" and side == "top" else "clay"
 
-    return paint.texture(template, POT_CELL, paint.Look({"clay": clay_brush, "dirt": dirt_brush}, material), values)
+
+# Painted in layers (spec 2026-10-03 blockpaint surfaces, catalog.module_texture): a pot kept with care, indoors or
+# out, standing on the floor; its tiles are each colour's (pot_cell).
+LOOK = SimpleNamespace(GROUNDED=True, PICTURES=frozenset(), CONDITION=MAINTAINED, SEED=11, material=pot_material)
+
+
+def pot_cell(template, surveyed_pot, clay_brush, dirt_brush):
+    """One colour's pot cell, painted in layers on the pot model's islands (the clay, the dirt's top) and lit by
+    surveyed_pot (catalog.surveyed of LOOK on the pot: the walls shade their inside and the dirt themselves)."""
+    values, contexts = surveyed_pot
+    look = SimpleNamespace(**vars(LOOK), tiles=lambda _: {"clay": clay_brush, "dirt": dirt_brush})
+    return module_texture(look, template, None, values, module_surface(look, contexts))
 
 
 def write_model(name, nodes):

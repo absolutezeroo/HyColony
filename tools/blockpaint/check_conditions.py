@@ -77,7 +77,8 @@ TABLE = [("rust", "ferrous", 1.0), ("rust", "cuprous", 0.0), ("rust", "wood", 0.
          ("craquelure", "varnish_film", 1.0), ("chalking", "paint_film", 1.0), ("chalking", "varnish_film", 0.0),
          ("fading", "wood", 1.0), ("fading", "ferrous", 0.0), ("burn", "wood", 1.0), ("burn", "glass", 0.0),
          ("moss", "stone", 1.0), ("moss", "glass", compat.POSSIBLE), ("moss", "noble", 0.0),
-         ("mold", "paper", 1.0), ("mold", "ferrous", 0.0), ("edge_wear", "glass", 1.0), ("rust", None, 1.0)]
+         ("mold", "paper", 1.0), ("mold", "ferrous", 0.0), ("edge_wear", "glass", 1.0), ("rust", None, 1.0),
+         ("burn", "plant", 1.0), ("mold", "plant", compat.POSSIBLE), ("moss", "liquid", 0.0), ("rust", "plant", 0.0)]
 
 
 class CompatTest(unittest.TestCase):

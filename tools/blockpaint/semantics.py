@@ -161,11 +161,13 @@ def seen(zone):
 
 
 def materials_distinct(records, material_of):
-    """Neighbouring parts of different materials differ in mean colour or in grain (a part of two materials, one on
-    some faces and one on others, counts as two)."""
+    """Neighbouring parts of different substances (families) differ in mean colour or in grain (a part of two
+    materials, one on some faces and one on others, counts as two). Two materials of one family are one substance
+    painted twice (a barrel's staves and lid), and a part too small to read from afar (readable) is not judged."""
     parts = {}
     for part, side, _, island, image in records:
-        entry = parts.setdefault((part, material_of(part, side)), {"points": [], "colours": [], "steps": []})
+        entry = parts.setdefault((part, material_of(part, side)),
+                                 {"points": [], "colours": [], "steps": [], "family": island.family})
         entry["points"] += [t.point for t in island.texels.values()]
         entry["colours"] += [p[:3] for p in image.get_flattened_data() if p[3]]
         m = critique.measure(image) if min(image.size) >= 2 else None
@@ -176,7 +178,8 @@ def materials_distinct(records, material_of):
     for k, a in enumerate(keys):
         for b in keys[k + 1:]:
             pa, pb = parts[a], parts[b]
-            if a[1] == b[1] or not near(pa["points"], pb["points"]):
+            small = min(len(pa["points"]), len(pb["points"])) < FAR * FAR * READABLE
+            if a[1] == b[1] or pa["family"] == pb["family"] or small or not near(pa["points"], pb["points"]):
                 continue
             colour = sum(abs(mean(c[n] for c in pa["colours"]) - mean(c[n] for c in pb["colours"])) for n in range(3))
             if colour < DISTINCT_COLOUR and abs(mean(pa["steps"]) - mean(pb["steps"])) < DISTINCT_STEP:
@@ -223,7 +226,7 @@ def answers(module, nodes, assets=None):
     return [dirt_low(records), moss_damp(records),
             touched_worn(records, lambda part: roles.declared(part, role_of, usage, focus)),
             rust_on_bare_iron(records), grain_along_axes(records, getattr(module, "AXES", {})),
-            focus_dominant(records, focus), readable(records), materials_distinct(records, module.material),
+            focus_dominant(records, focus), readable(records), materials_distinct(records, catalog.material_of(module)),
             history_in_place(records, events)]
 
 

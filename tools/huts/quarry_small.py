@@ -3,11 +3,15 @@ quarrier's job is ported), built by a one-off script: a boulder split in two by 
 chisel on it, a first cut block, chips and rubble at its foot."""
 
 from brushes import coloured, jitter, metal, painted, stone, wood
+from conditions import TEMPERATE_OUTDOOR, WORN
 from materials import CUT_STONE, ROCK
 
 MODEL = "Blocks/HyColony/Huts/Quarry_Small"
 ICON = "Hut_Quarry_Small"
 PICTURES = frozenset()
+# Painted in layers (spec 2026-10-03 blockpaint surfaces): a quarry face, hard worked, outdoors.
+CONDITION, ENVIRONMENT, SEED = WORN, TEMPERATE_OUTDOOR, 11
+FAMILY = {"crack": "stone"}
 
 
 def material(name, side):

@@ -6,6 +6,7 @@ envelope sign; on the desk a leather satchel, two tied parcels, a stamp and its 
 from PIL import ImageDraw
 
 from brushes import as_tile, coloured, jitter, metal, painted, paper, wood
+from conditions import DRY_INTERIOR, USED
 from materials import BRASS, LEATHER, leather
 
 MODEL = "Blocks/HyColony/Huts/Courier"
@@ -14,6 +15,10 @@ KRAFT = (178, 134, 88)
 TWINE = (226, 206, 160)
 # Materials drawn for their island, never turned.
 PICTURES = frozenset({"sign"})
+# Painted in layers (spec 2026-10-03 blockpaint surfaces): a sorting desk in use, indoors.
+CONDITION, ENVIRONMENT, SEED = USED, DRY_INTERIOR, 11
+FAMILY = {"letters": "paper", "parcel": "paper", "leather": "leather", "strap": "leather", "ink": "liquid",
+          "sign": "wood", "brass": "cuprous"}
 # Node name prefix -> material.
 PREFIXES = (("Leg", "frame"), ("Drawer_Knob", "brass"), ("Drawer_Case", "cabinet"), ("Drawer", "frame"),
             ("Desk", "planks"), ("Cab", "cabinet"), ("Shelf", "cabinet"), ("Divider", "cabinet"),

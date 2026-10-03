@@ -5,7 +5,10 @@ suits every family."""
 
 # The families of substrates and of coat films.
 FAMILIES = ("ferrous", "cuprous", "noble", "wood", "textile", "leather", "hair", "bone", "stone", "ceramic", "glass",
-            "wax", "rubber", "paper", "paint_film", "varnish_film", "metal_film")
+            "wax", "rubber", "paper", "paint_film", "varnish_film", "metal_film", "plant", "liquid")
+# The families that neither wear nor age (a living plant, a liquid): only what settles on them and the history's marks
+# reach them, as on a drawing (surface.layered).
+SETTLED_ONLY = frozenset({"plant", "liquid"})
 # The weight of an effect where it is only possible.
 POSSIBLE = 0.4
 METALS = {"ferrous", "cuprous", "noble", "metal_film"}
@@ -31,10 +34,10 @@ MATRIX = {
     # The sun bleaches dyes, paint and wood; it hardly touches metal, stone or glass.
     "fading": ({"paint_film", "textile", "wood", "leather", "paper"}, {"varnish_film", "hair", "bone", "rubber"}),
     "micro_scratches": (METALS | FILMS | {"glass", "ceramic"}, {"wood", "stone", "leather", "bone", "rubber", "wax"}),
-    "burn": ({"wood", "textile", "paper", "leather", "hair"},
+    "burn": ({"wood", "textile", "paper", "leather", "hair", "plant"},
              FILMS | {"bone", "wax", "rubber", "stone", "ceramic", "ferrous"}),
     "moss": ({"stone", "wood", "ceramic"}, {"glass", "textile"}),
-    "mold": ({"wood", "textile", "leather", "paper"}, {"stone", "ceramic", "paint_film", "varnish_film"}),
+    "mold": ({"wood", "textile", "leather", "paper"}, {"stone", "ceramic", "paint_film", "varnish_film", "plant"}),
 }
 
 

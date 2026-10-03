@@ -6,12 +6,16 @@ the forehead and a brass dial."""
 from PIL import ImageDraw
 
 from brushes import crystal, metal
+from conditions import MAINTAINED
 from materials import BRASS, CYAN, LEATHER, leather
 
 MODEL = "Items/HyColony/Build_Goggles"
 ICON = "Build_Goggles"
 # The stitches run along the band's 5 high sides: drawn for them, never turned.
 PICTURES = frozenset({"stitched"})
+# Painted in layers (spec 2026-10-03 blockpaint surfaces): an architect's own tool, kept with care.
+CONDITION, SEED = MAINTAINED, 11
+FAMILY = {"leather": "leather", "stitched": "leather", "brass": "cuprous"}
 
 
 def material(name, side):

@@ -231,6 +231,12 @@ class SeedTest(unittest.TestCase):
             self.assertEqual(outer, brushes.jitter(5, 9))
             self.assertEqual("u", brushes._face["grain"])
 
+    def test_a_picture_stays_where_it_is_drawn_on_a_seeded_model(self):
+        picture = brushes.as_tile(brushes.stone((128, 124, 116)))
+        look = paint.Look({"picture": picture}, lambda name, side: "picture", frozenset({"picture"}))
+        seeded = paint.paint(self.nodes, self.size, look, paint.Painting(7))
+        self.assertEqual(picture.crop((0, 0, 8, 8)).tobytes(), island_of(seeded, self.nodes, "A", "front").tobytes())
+
     def test_a_tile_image_shows_another_window_on_each_seeded_face(self):
         tile = brushes.as_tile(brushes.stone((128, 124, 116)))
         look = paint.Look({"stone": tile}, lambda name, side: "stone")

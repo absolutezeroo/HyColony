@@ -6,6 +6,7 @@ painted details only this model has (the carpet's tufted pile, written pages, th
 from PIL import ImageDraw
 
 from brushes import as_tile, cloth, metal, paper, wood
+from conditions import DRY_INTERIOR, USED
 from materials import feather, tinted
 
 RED = (150, 36, 38)
@@ -19,6 +20,10 @@ GOLD = (226, 184, 74, 255)
 STRIPS, BANNER_ROWS = 4, 19
 # Materials drawn for their island, never turned with the wood grain.
 PICTURES = frozenset({"page"} | {f"banner_{i}" for i in range(STRIPS)})
+# Painted in layers (spec 2026-10-03 blockpaint surfaces): the colony's lectern, in use, indoors.
+CONDITION, ENVIRONMENT, SEED = USED, DRY_INTERIOR, 11
+FAMILY = {"plush": "textile", **{f"banner_{i}": "textile" for i in range(STRIPS)}, "leather": "leather",
+          "page": "paper", "ink": "liquid", "shaft": "bone", "feather": "hair", "bronze": "cuprous", "gold": "noble"}
 # Node name -> material, for the nodes no rule below covers.
 NAMED = {"Carpet_Pile": "plush", "Book_Cover": "leather", "Ink": "ink", "Quill": "shaft", "Quill_Vane": "feather",
          "Quill_Tip": "feather", "Mast_Finial": "gold", "Bell_Hanger": "rope", "Bell_Clapper": "iron"}

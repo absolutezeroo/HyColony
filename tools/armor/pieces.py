@@ -5,7 +5,7 @@ negative stretch."""
 
 import math
 
-from models import add, box_shape, empty_shape, multiply, node, rotate
+from models import add, box_shape, empty_shape, multiply, node
 
 ALL = ("front", "back", "left", "right", "top", "bottom")
 SIDES = ((-1, "R"), (1, "L"))
