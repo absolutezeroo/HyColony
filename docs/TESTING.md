@@ -616,3 +616,11 @@ Recherche `docs/research/domaine1-suite.md`. Une colonie avec un bâtisseur ; l'
 371. **Eau.** Un plan MineColonies qui pose de l'eau (case de fluide) : de l'eau qui coule à cet endroit ne compte pas, le bâtisseur y pose une source ; une source ou un bloc solide comptent. Une plante debout dans une source reste ; une plante au sec est remplacée par l'eau.
 372. **Feuilles.** Un plan qui pose des feuilles ne les demande pas : le bâtisseur les pose sans rien prendre.
 373. **Blocs HyDomum cassés.** Casser une clôture, un mur, une porte, une trappe, un panneau, une dalle ou un escalier HyDomum posé (par un joueur ou par le bâtisseur) : il rend lui-même, avec ses matériaux, et non `Wood_Stripped_Deco`. Le faire tomber (bloc support retiré) donne la même chose.
+
+## IA de métier, marches et promenade (2026-10-03)
+
+374. **Au bout du chemin.** Suivre un bâtisseur ou un coursier : à chaque marche, il va jusqu'au bout de son chemin (la sphère de la cible de HyLens), au lieu de s'arrêter 1,5 à 2 blocs avant. Un fermier s'approche de chaque case avant de la travailler.
+375. **Raison de l'arrêt.** Suivre un travailleur avec HyLens : quand il quitte le travail, « Last changes » dit pourquoi, par exemple « IA : WORKING -> IDLE (rien à faire : ni ordre de travail ni tâche) », ou (pluie sur sa hutte), (pause de loisir), (heure de dormir), (faim), (a perdu son métier). Noter la raison d'un arrêt en plein chantier.
+376. **Reprise après la nuit.** Un fermier ou un bâtisseur qui dort puis se réveille reprend son travail depuis sa première étape (il revient d'abord à sa hutte), sans repartir de zéro sur son chantier. Un coursier garde sa vitesse pendant qu'il mange ou dort ; renvoyé (hutte retirée), il marche aussitôt à vitesse normale.
+377. **Amélioration enterrée.** Lancer l'amélioration d'une hutte dont le plan descend sous terre : après les blocs solides, le bâtisseur creuse la terre des cases d'air du plan, puis pose les décorations (comme MineColonies), et non l'inverse.
+378. **Promenade.** Laisser des citoyens oisifs se promener près d'arbres : ils ne montent pas dans les arbres et ne visent pas leurs feuilles.
