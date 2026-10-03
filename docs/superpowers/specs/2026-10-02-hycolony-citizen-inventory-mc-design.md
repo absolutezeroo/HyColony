@@ -1,13 +1,12 @@
-# HyColony : l'inventaire du citoyen comme MineColonies (armure, mains, fenêtre et aperçu)
+# HyColony : l'inventaire du citoyen comme MineColonies (armure, mains, fenêtre)
 
-Conception validée par l'utilisateur le 2026-10-02. Recherche : `docs/research/citizen-inventory-window.md` (§ 8 armure, § 9 aperçu par la caméra, essai en jeu), `docs/research/plugin-b-api.md` § 325-333 (grilles d'inventaire dans une page à nous).
+Conception validée par l'utilisateur le 2026-10-02 ; fenêtre refaite à la manière de l'inventaire de Hytale à sa demande le 2026-10-03 (§ 4). Recherche : `docs/research/citizen-inventory-window.md` (§ 8 armure, § 9 aperçu par la caméra, abandonné), `docs/research/plugin-b-api.md` § 325-333 (grilles d'inventaire dans une page à nous).
 
 ## 1. Objectif
 
-Refaire l'inventaire du citoyen exactement comme MC :
+Refaire l'inventaire du citoyen comme MC :
 - le modèle de MC dans le cœur : 27 cases, 4 cases d'armure à part, et les objets tenus en main et en main secondaire qui pointent vers une case ;
-- la fenêtre d'inventaire de MC, dans **notre propre page** (la page de conteneur de Hytale, `Page.Bench`, est abandonnée) ;
-- un aperçu du citoyen par la caméra du serveur, à la place du dessin de l'entité que fait MC ;
+- sa fenêtre dans **notre propre page** (la page de conteneur de Hytale, `Page.Bench`, est abandonnée), à la manière de l'inventaire de Hytale ;
 - l'armure visible sur le corps du PNJ.
 
 ## 2. MineColonies
@@ -69,22 +68,20 @@ Refaire l'inventaire du citoyen exactement comme MC :
 
 **Sauvegarde** : schéma 10. `armor` (4 piles ou `null`), `heldMain`, `heldOff` (−1 par défaut). `MigrationChain` 9 → 10 avec sa fixture ; une valeur absente prend son défaut ; une main qui n'est pas un nombre ou hors des 27 cases devient −1 et l'armure garde ses 4 premières pièces, la colonie étant alors marquée à réécrire (`EquipmentJson.needsRepair`). Le schéma 9 comptait l'usure d'une pièce d'armure en points de Hytale (le cœur ne l'usait pas, `DurabilityScale` comptant un usage par point) : la migration marque chaque citoyen (`armorWearInPoints`), et la lecture convertit l'usure des pièces de ses 27 cases en coups avec le catalogue (`LegacyArmorWear`, `ceil(points × coups / MaxDurability)`), puis la colonie est réécrite.
 
-**Vue** : pas de record de vue : la page lit le citoyen en direct par ses deux conteneurs (comme la fenêtre de conteneur d'avant), son nom compris.
+**Vue** : les grilles lisent le citoyen en direct par ses deux conteneurs ; le panneau de gauche lit `CitizenInventoryView` (`app/view`) : nom, santé sur 20 comme `CitizenDataView.getHealth` de MC (entière sans corps), défense de son armure (port `CitizenBodies.defensePercent`), saturation sur 60 (`ICitizenData.MAX_SATURATION`), et les objets des cases que tiennent ses deux mains.
 
 ## 4. Plugin
 
-**Notre fenêtre** (`ui/citizen/CitizenInventoryPage`, page personnalisée, comme `CutterPage` de HyDomum) :
-- la disposition de MC ×2 (§ 2) : 490 × 344, fond composé par `tools/ui/citizen_inventory.py` à partir de `citizen_container.png` comme `renderBg` le dessine (haut, bas « joueur », cadre, cases d'armure), agrandi ×4 au plus proche voisin ;
-- des grilles de HyBlockUI : les 27 cases du citoyen et ses 4 cases d'armure (`InventoryGrids.drawContainer`, deux fenêtres), le sac et la barre rapide du joueur aux positions de MC (`InventoryGrids.drawPlayerPart`, ajouté à HyBlockUI). Glisser, déposer et maj-clic sont natifs ; le maj-clic est celui de Hytale (`InventoryUtils.smartMoveItem`, écart § 5) ;
+**Notre fenêtre** (`ui/citizen/CitizenInventoryPage`, page personnalisée, comme `CutterPage` de HyDomum), **à la manière de l'inventaire de Hytale, à la demande de l'utilisateur** (le 2026-10-03, au lieu de la fenêtre de MC) :
+- à gauche (`CitizenSidePanel`, motif `CharacterPanel.ui` du client sans le personnage, que Hytale ne sait dessiner que pour le joueur) : le nom du citoyen en titre ; ses 4 cases d'armure en rangée, avec les silhouettes natives des cases vides ; ses deux mains, main principale et main secondaire, **en lecture seule** (une main est une case des 27) ; le bloc des stats : santé, défense et faim (icône de nourriture de MC, Hytale n'en ayant pas) ;
+- à droite : ses 27 cases (motif `ContainerPanel.ui`) sous les boutons tout prendre, tout déposer et empiler (`CitizenSlotsActions` : `InventoryUtils.takeAll`, `putAll`, `quickStack` sur sa fenêtre, comme le paquet `InventoryAction` du client), puis le sac et la barre rapide du joueur (`PlayerPanels.drawStorage` de HyBlockUI) avec leur bouton trier (`PlayerPanels.enableSort`, `InventoryUtils.sortStorage`). Pas de tri des cases du citoyen : ses mains tiennent des cases qu'un tri déplacerait (MC n'en a pas) ; pas de corbeille ;
+- textures natives copiées du client dans `HyBlockUI/Native` (`docs/native-ui-textures.md`) ;
+- grilles de HyBlockUI : les 27 cases et les 4 cases d'armure (`InventoryGrids.drawContainer`, deux fenêtres). Glisser, déposer et maj-clic sont natifs ; le maj-clic est celui de Hytale (`InventoryUtils.smartMoveItem`, écart § 5) ;
 - un même conteneur adossé au cœur sert les deux parties (`CitizenItemContainer` et `CitizenInventoryPart`) : l'armure refuse ce que `CitizenInventoryActions.mayWear` refuse (type, emplacement, `GuardGear`), et chaque modification est rapportée au cœur (`onPlayerEdit`, `onArmorEdit`) ;
-- titre : le nom du citoyen ; libellé « Inventaire » (clés en-US et fr-FR) ;
+- la page se redessine quand un déplacement, l'IA du citoyen ou son panneau (santé, défense, faim, mains) change, contrôlé toutes les 500 ms ;
 - remplace `CitizenInventoryWindows` (`Page.Bench`).
 
-**Aperçu par la caméra** (`CitizenPreviewCamera`) :
-- à l'ouverture : `SetServerCamera(Custom, true, …)` attachée au `NetworkId` du corps, `followAttachedEntity`, de face (lacet du corps + π), réglages de `SpectatorSystems.applyFollowCamera` ;
-- le cadre de l'aperçu est **transparent** : le citoyen y apparaît. La caméra le garde au centre de l'écran : la fenêtre est placée pour que son cadre tombe au centre, ou la caméra est décalée (`positionOffset`, `rotationOffset`) ; le choix et les valeurs se règlent **en jeu** sur la vraie fenêtre ;
-- retour (`SetServerCamera(Custom, false, null)`) à la fermeture de la page, au changement de monde (Hytale ne remet pas la caméra, `Universe.transferPlayerAsync`), et si le corps n'est plus chargé (la fenêtre reste) ; un joueur déconnecté n'a plus de caméra à rendre : elle est seulement oubliée ;
-- sans corps chargé : la fenêtre s'ouvre sans aperçu (cadre vide).
+**Aperçu par la caméra : abandonné** à la demande de l'utilisateur (la caméra du serveur le téléportait sur le citoyen). La recherche reste dans `citizen-inventory-window.md` § 9.
 
 **Corps** :
 - l'armure du cœur recopiée, avec son usure, dans `InventoryComponent.Armor` du PNJ, au spawn et à chaque changement (le chevalier de test vanilla porte la sienne ainsi). Cette copie protège le PNJ comme l'armure d'un joueur (`ArmorDamageReduction`). Hytale n'use pas l'armure d'un PNJ (`ItemUtils.canDecreaseItemStackDurability` : joueurs seulement) : la copie ne s'use jamais d'elle-même, seul le cœur l'use ;
@@ -103,7 +100,7 @@ Chacun porte un `Deviation from MC:` dans le code.
 - `InventoryCitizen.setHeldItem` de MC écrit aussi la main secondaire (bogue) : non reproduit, chaque main a sa case.
 - Une main absente d'une sauvegarde ne tient rien, là où le `getInt` de MC la lit comme la case 0.
 - Le maj-clic est celui de Hytale (`InventoryUtils.smartMoveItem`) : des cases du citoyen ou de son armure vers l'inventaire du joueur, rangé selon les réglages du joueur ; du joueur vers les 27 cases du citoyen, puis son armure quand elles sont pleines. Le `quickMoveStack` de MC (`ContainerCitizenInventory`) envoie les cases du citoyen vers celles du joueur en partant de la fin, l'armure en dernier ; une pièce d'armure vers les 27 cases du citoyen ; et les objets du joueur vers ces 27 cases seulement.
-- L'aperçu est la vraie scène, filmée par la caméra du serveur, et ne suit pas la souris.
+- À la demande de l'utilisateur, la fenêtre suit la disposition de l'inventaire de Hytale, pas celle de MC (CLAUDE.md § 7 voudrait celle de MC), et le citoyen n'y est pas dessiné (Hytale ne dessine que le personnage du joueur dans une page). Elle montre en plus ses deux mains et ses stats (santé, défense, faim), et les boutons du conteneur natif.
 - 27 cases fixes : pas de recherche qui agrandit l'inventaire.
 - Avant une pose, le bâtisseur ne s'écarte pas de la case où il se tient (MC `walkAwayFrom`, prévu : `docs/research/architecture/audit-global/02-findings-M.md`), et son geste est le coup « Build » d'une pose réussie, là où MC fait `swing` avant de tenter la pose, même refusée.
 - Écart existant, relevé par les relectures (`CitizenAI.dropJobAI`) : quitter le travail (sommeil, repas, pluie, pause) jette toute l'IA de métier et ses champs (le `skippedState` et le `forceLeave` du fermier par exemple), là où MC garde son IA et ne remet que sa machine à états à zéro en revenant au travail (`resetAI`). Le corriger demande que chaque IA de métier sache se remettre à zéro sans être recréée : un changement à part. Au même endroit, la vitesse de marche revient à 1 : un coursier mange ou dort à sa vitesse de base, là où MC garde son bonus (`JobDeliveryman.onLevelUp`) jusqu'à sa désaffectation.
@@ -121,10 +118,11 @@ Chacun porte un `Deviation from MC:` dans le code.
   - `ArmorWear` : une pièce par coup, incassables comprises, une pièce cassée gardée, rien d'écrit sans usure ;
   - artisan : une fabrication impossible rapporte la récompense de MC, un outil cassé coûte une action et de la saturation ;
   - sauvegarde : aller-retour, fixture du schéma 9, chaque réparation (main hors bornes, main qui n'est pas un nombre, plus de 4 pièces) réécrite, usure d'armure du schéma 9 convertie de points en coups.
-- En jeu (`docs/TESTING.md`) : la fenêtre (disposition de MC, glisser, maj-clic), l'armure refusée selon le niveau de la hutte, l'aperçu (cadrage, retour de la caméra à la fermeture), l'armure visible sur le PNJ, l'outil en main.
+  - panneau : santé sur 20, défense, saturation, mains (`CitizenInventoryViewTest`).
+- En jeu (`docs/TESTING.md`) : la fenêtre (disposition, glisser, maj-clic, boutons), le panneau (mains, stats), l'armure refusée selon le niveau de la hutte, l'armure visible sur le PNJ, l'outil en main.
 
 ## 7. À vérifier en jeu
 
-- Le cadrage de l'aperçu sur la vraie fenêtre (§ 4).
+- La disposition de la fenêtre et du panneau de gauche (tailles, alignements).
+- La valeur de la défense face à celle que le client montre pour le joueur portant la même armure.
 - Le rendu de l'armure sur `PlayerTestModel_V`.
-- Le comportement du citoyen pendant l'aperçu (il continue de travailler, la caméra le suit).

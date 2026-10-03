@@ -187,6 +187,8 @@ Question : afficher le modèle du citoyen dans le panneau de droite (vide aujour
 
 ## 9. Aperçu du citoyen par la caméra du serveur (essai en jeu, 2026-10-02, Hytale 0.7.0)
 
+> **Abandonné le 2026-10-03** à la demande de l'utilisateur : la caméra du serveur le téléportait sur le citoyen, ce qui gênait. La fenêtre suit désormais la disposition de l'inventaire de Hytale, sans dessin du citoyen (spec citizen-inventory-mc § 4). Ce qui suit reste comme trace de l'essai.
+
 Question : remplacer le dessin de l'entité de MC (`WindowCitizenInventory.renderEntityInInventoryFollowsMouse`, cadre 49 × 72 en (172, 22)) par la caméra du serveur posée sur le citoyen pendant que sa fenêtre est ouverte. Essai jetable `/hycolony camprobe`, retiré après le test.
 
 - **Caméra** : `SetServerCamera(ClientCameraView.Custom, true, settings)` avec `ServerCameraSettings.attachedToType = EntityId`, `attachedToEntityId = NetworkId` du corps, `followAttachedEntity`, `isFirstPerson = false`, `positionDistanceOffsetType = DistanceOffset`, `rotationType = Custom`, `applyLookType = Rotation`, `rotation = lacet du corps + π` (réglages copiés de `SpectatorSystems.applyFollowCamera`, l. 254-288). Retour : `SetServerCamera(Custom, false, null)`, comme `PlayerCameraResetCommand`.
