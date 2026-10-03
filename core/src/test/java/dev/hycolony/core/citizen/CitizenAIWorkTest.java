@@ -1,6 +1,7 @@
 package dev.hycolony.core.citizen;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.permission.Permissions;
@@ -11,6 +12,7 @@ import dev.hycolony.core.job.JobType;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.port.BodyId;
+import dev.hycolony.core.kernel.port.Msg;
 import dev.hycolony.core.kernel.port.NavStatus;
 import dev.hycolony.core.testing.TestContexts;
 import dev.hycolony.core.testing.TestJobs;
@@ -67,6 +69,7 @@ class CitizenAIWorkTest {
         BodyId body = t.bodies.existing(1, 1, new Vec3(0, 64, 0));
         d.setJob(TestJobs.TYPE.factory().apply(d));
         CitizenAI ai = new CitizenAI(c, d, body);
+        d.vitals().track();
         for (int i = 0; i < 30 && ai.state() != CitizenState.WORKING; i++) {
             ai.tick();
         }
@@ -78,6 +81,10 @@ class CitizenAIWorkTest {
         }
 
         assertEquals(1.0, t.bodies.bodies.get(body).speed); // MC BuildingDeliveryman removes the modifier
+        assertTrue(
+                d.vitals().history().stream()
+                        .anyMatch(e -> e.detail().equals(Msg.of("hycolony.debug.history.leftWork.jobLost", "IDLE"))),
+                "HyLens says why it stopped");
     }
 
     @Test

@@ -92,12 +92,10 @@ class InvariantsTest {
     }
 
     @Test
-    void walkEndedCloseOrTeleportedIsNotReported() {
-        c.walks.walkEnded(HUT, new Vec3(11.5, 64, 0.5), WalkEnd.CLOSE, 3.0, NavStatus.MOVING);
-        assertEquals(List.of(), c.codes(), "close within the range its caller gave");
+    void walkEndedTeleportedIsNotReported() {
+        c.walks.walkEnded(HUT, new Vec3(8.5, 64, 0.5), WalkEnd.TELEPORTED, 0.0, NavStatus.ARRIVED);
 
-        c.walks.walkEnded(HUT, new Vec3(8.5, 64, 0.5), WalkEnd.TELEPORTED, 0.0, NavStatus.MOVING);
-        assertEquals(List.of(), c.codes());
+        assertEquals(List.of(), c.codes(), "the stuck handler's teleport is invariant 10's");
     }
 
     @Test

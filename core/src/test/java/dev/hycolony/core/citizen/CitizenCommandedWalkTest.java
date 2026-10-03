@@ -183,6 +183,7 @@ class CitizenCommandedWalkTest {
     void jobAiIsResetAfterACommandedWalk() {
         t.bodies.instant = true;
         CitizenAI ai = worker();
+        ticksUntilItWorks(ai, 100); // its entry into WORKING reset it already
         int made = jobAis;
         int resets = jobResets;
 
@@ -227,6 +228,7 @@ class CitizenCommandedWalkTest {
     @Test
     void jobAiIsResetAfterATeleport() {
         CitizenAI ai = worker();
+        ticksUntilItWorks(ai, 100);
         int made = jobAis;
         int resets = jobResets;
 

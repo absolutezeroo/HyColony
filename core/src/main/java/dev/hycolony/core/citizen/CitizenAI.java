@@ -115,8 +115,8 @@ public final class CitizenAI {
             if (machine.getState() != CitizenState.WORKING) {
                 jobAI.resetOnNextWork();
             }
-            Job job = jobAI.job();
-            watch.afterTick(machine.getState(), jobAI.ai(), job == null ? 0 : job.actionsDone());
+            Job job = jobAI.job().orElse(null);
+            watch.afterTick(machine.getState(), jobAI.ai().orElse(null), job == null ? 0 : job.actionsDone());
         } finally {
             colony.context().timings().stop(timingPart(), start);
         }
@@ -158,7 +158,7 @@ public final class CitizenAI {
 
     /** The part its ticks are timed as: its job AI's job type id, else {@code "citizen"}; allocates nothing. */
     private String timingPart() {
-        Job job = jobAI.job();
+        Job job = jobAI.job().orElse(null);
         return job == null ? "citizen" : job.type().id();
     }
 
@@ -169,13 +169,12 @@ public final class CitizenAI {
 
     /** Its job's AI, while it has a job; for diagnostics. */
     public Optional<JobAI> jobAi() {
-        return Optional.ofNullable(jobAI.ai());
+        return jobAI.ai();
     }
 
     /** The job AI's own line while working. */
     public Optional<Msg> jobActivity() {
-        JobAI ai = jobAI.ai();
-        return state() == CitizenState.WORKING && ai != null ? ai.describe() : Optional.empty();
+        return state() == CitizenState.WORKING ? jobAI.ai().flatMap(JobAI::describe) : Optional.empty();
     }
 
     /**
@@ -199,11 +198,9 @@ public final class CitizenAI {
 
     /**
      * MC CitizenAI.decideAiTask, every {@link #DECIDE_INTERVAL_TICKS} in any state: the sleep part first (see
-     * {@link SleepDecision}; asleep, it decides again only every 15 s, MC setCurrentDelay), then the hunger part. A
-     * job AI whose job was taken away meanwhile, in any state, goes first ({@link CurrentJobAI#dropIfJobLeft}).
+     * {@link SleepDecision}; asleep, it decides again only every 15 s, MC setCurrentDelay), then the hunger part.
      */
     private @Nullable CitizenState decide() {
-        jobAI.dropIfJobLeft();
         CitizenState now = machine.getState();
         CitizenState next = switch (sleep.decide(now == CitizenState.SLEEP)) {
             case STAY_ASLEEP -> {
@@ -231,7 +228,7 @@ public final class CitizenAI {
      */
     private CitizenState decideHunger(CitizenState now) {
         boolean eatingNow = now == CitizenState.EATING;
-        JobAI ai = jobAI.ai();
+        JobAI ai = jobAI.ai().orElse(null);
         decidedEating = eating.shouldEat(decidedEating || eatingNow, ai == null || ai.canBeInterrupted());
         if (decidedEating) {
             if (!eatingNow) {
@@ -280,10 +277,10 @@ public final class CitizenAI {
         JobAI ai = jobAI.forJob(job);
         jobAI.working(ai);
         // MC re-decides every DECIDE_INTERVAL_TICKS, which also keeps the order lookup off the per-tick path.
-        WorkExit exit = ++workTicks % DECIDE_INTERVAL_TICKS == 0 ? stops.exit(ai) : null;
-        if (exit != null) {
+        Optional<WorkExit> exit = ++workTicks % DECIDE_INTERVAL_TICKS == 0 ? stops.exit(ai) : Optional.empty();
+        if (exit.isPresent()) {
             wander.restartWait();
-            watch.leftWork(exit);
+            watch.leftWork(exit.get());
             return CitizenState.IDLE;
         }
         ai.tick();

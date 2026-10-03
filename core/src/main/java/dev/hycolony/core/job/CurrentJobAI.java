@@ -5,6 +5,7 @@ import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.port.BodyId;
 import java.util.Objects;
+import java.util.Optional;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -18,9 +19,10 @@ public final class CurrentJobAI {
     /** Told once a new AI is made (its vital signs time the new job step). */
     private final Runnable started;
 
-    private @Nullable JobAI ai;
+    /** Its AI; kept as an Optional, made only when the AI changes, so reading it each tick allocates nothing. */
+    private Optional<JobAI> ai = Optional.empty();
     /** The job and work building {@link #ai} was made for. */
-    private @Nullable Job job;
+    private Optional<Job> job = Optional.empty();
 
     private @Nullable BlockPos workBuilding;
     /** Whether {@link #ai} was reset since the citizen last started working. */
@@ -33,13 +35,13 @@ public final class CurrentJobAI {
         this.started = started;
     }
 
-    /** Its AI, while it holds one; null else. */
-    public @Nullable JobAI ai() {
+    /** Its AI, while it holds one. */
+    public Optional<JobAI> ai() {
         return ai;
     }
 
-    /** The job its AI was made for; null without an AI. */
-    public @Nullable Job job() {
+    /** The job its AI was made for; empty without an AI. */
+    public Optional<Job> job() {
         return job;
     }
 
@@ -48,15 +50,15 @@ public final class CurrentJobAI {
      * speed: a courier hired for another job loses its Agility bonus (MC).
      */
     public JobAI forJob(Job job) {
-        JobAI current = ai;
-        if (current != null && job.equals(this.job) && Objects.equals(data.workBuilding(), workBuilding)) {
+        JobAI current = ai.orElse(null);
+        if (current != null && job.equals(this.job.orElse(null)) && Objects.equals(data.workBuilding(), workBuilding)) {
             return current;
         }
         colony.context().bodies().setMovementSpeed(body, 1);
-        this.job = job;
+        this.job = Optional.of(job);
         workBuilding = data.workBuilding();
         JobAI made = job.createAI(colony, body);
-        ai = made;
+        ai = Optional.of(made);
         reset = false;
         started.run(); // once made: a failing createAI leaves the old AI counted as it was
         return made;
@@ -80,10 +82,9 @@ public final class CurrentJobAI {
      * courier's speed modifier on unassignment (DeliverymanAssignmentModule). Nothing while it holds none.
      */
     public void dropIfJobLeft() {
-        Job held = job;
-        if (ai != null && (held == null || !data.job().filter(held::equals).isPresent())) {
-            ai = null;
-            job = null;
+        if (ai.isPresent() && !data.job().equals(job)) {
+            ai = Optional.empty();
+            job = Optional.empty();
             colony.context().bodies().setMovementSpeed(body, 1);
         }
     }

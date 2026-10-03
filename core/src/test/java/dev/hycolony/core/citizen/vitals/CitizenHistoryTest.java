@@ -60,7 +60,9 @@ class CitizenHistoryTest {
         watch.leftWork(WorkExit.RAIN);
         watch.afterTick(CitizenState.IDLE, null, 0);
         t.clock.tick = 50;
-        watch.afterTick(CitizenState.WORKING, job, 0); // a later change says no reason
+        watch.afterTick(CitizenState.WORKING, job, 0);
+        t.clock.tick = 60;
+        watch.afterTick(CitizenState.IDLE, null, 0); // the rain was said once: this exit gives no reason
 
         List<HistoryEntry> states = citizen.vitals().history().stream()
                 .filter(e -> e.kind() == HistoryEntry.Kind.AI_STATE)
@@ -69,8 +71,21 @@ class CitizenHistoryTest {
                 Msg.of("hycolony.debug.history.leftWork.rain", "IDLE"),
                 states.get(1).detail());
         assertEquals(
-                Msg.of("hycolony.debug.history.aiState", "IDLE", "WORKING"),
-                states.get(2).detail());
+                Msg.of("hycolony.debug.history.aiState", "WORKING", "IDLE"),
+                states.get(3).detail());
+    }
+
+    /** A reason given while it does not work (a hungry idler) is no exit from work: its change says none. */
+    @Test
+    void aReasonGivenOutOfWorkIsNotSaid() {
+        citizen.vitals().track();
+        watch.afterTick(CitizenState.IDLE, null, 0);
+        watch.leftWork(WorkExit.MEAL);
+        watch.afterTick(CitizenState.EATING, null, 0);
+
+        assertEquals(
+                Msg.of("hycolony.debug.history.aiState", "IDLE", "EATING"),
+                citizen.vitals().history().getLast().detail());
     }
 
     @Test

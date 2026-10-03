@@ -12,6 +12,7 @@ import dev.hycolony.core.citizen.CitizenAI;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.CitizenState;
 import dev.hycolony.core.citizen.inventory.CitizenEquipment;
+import dev.hycolony.core.citizen.vitals.HistoryEntry;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.colony.territory.TerritoryIndex;
@@ -23,6 +24,7 @@ import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.BodyId;
+import dev.hycolony.core.kernel.port.Msg;
 import dev.hycolony.core.testing.TestContexts;
 import dev.hycolony.core.testing.TestJobs;
 import dev.hycolony.core.testing.food.FakeDiningHall;
@@ -220,11 +222,20 @@ class EatAITest {
         citizen.setJob(counting.factory().apply(citizen));
         citizen.inventory().insert(new ItemAmount(apple, 20), _ -> 64);
         start(60);
+        citizen.vitals().track();
         tickUntil(() -> ai.state() == CitizenState.WORKING);
         assertEquals(1, jobAis);
 
         citizen.setSaturation(2);
         tickUntil(() -> ai.state() == CitizenState.EATING);
+        assertEquals(
+                Msg.of("hycolony.debug.history.leftWork.meal", "EATING"),
+                citizen.vitals().history().stream()
+                        .filter(e -> e.kind() == HistoryEntry.Kind.AI_STATE)
+                        .toList()
+                        .getLast()
+                        .detail(),
+                "HyLens says why it stopped");
         tickUntil(() -> ai.state() == CitizenState.WORKING);
         tickUntil(() -> jobAiResets == 2);
 

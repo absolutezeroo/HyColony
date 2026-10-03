@@ -77,9 +77,9 @@ public final class BodyWalker {
     }
 
     /**
-     * True once within {@link #ARRIVAL_RANGE} of {@code to}, or once the walk to it ended (nav arrived, blocked or
-     * failed, or the stuck handler gave up); false while walking or without a body. Moves the body only when the
-     * target changes, or when the stuck handler says so.
+     * True when already within {@link #ARRIVAL_RANGE} of {@code to} with no walk there under way, or once the walk to
+     * it ended (nav arrived, blocked or failed, or the stuck handler gave up); false while walking or without a body.
+     * Moves the body only when the target changes, or when the stuck handler says so.
      */
     public boolean walkTo(BlockPos to) {
         return walkTo(to, true);
@@ -150,17 +150,11 @@ public final class BodyWalker {
 
     /**
      * Whether the walk to {@code to} ended before, or the body is close with no walk there under way (MC: the distance
-     * counts only when not on that path job, or once its nav is done); a walk to it that had ended then ends close.
+     * counts only when not on that path job, or once its nav is done).
      */
     private boolean alreadyThere(BlockPos to, Vec3 p, @Nullable BlockPos desired) {
         boolean walkingThere = to.equals(navTarget) && !arrived;
-        if (!to.equals(settled) && (walkingThere || !close(p, to, desired))) {
-            return false;
-        }
-        if (to.equals(navTarget)) { // no walk may be under way to another target
-            ended(to, p, desired, WalkEnd.CLOSE, NavStatus.MOVING);
-        }
-        return true;
+        return to.equals(settled) || (!walkingThere && close(p, to, desired));
     }
 
     /** The walk to {@code to} arrived, its nav over; a plain walk ends wherever its nav ended. Returns true. */

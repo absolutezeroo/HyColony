@@ -88,6 +88,25 @@ class BodyWalkerReportsTest {
         assertEquals(List.of("start 1", "stuck REPATH", "stuck TELEPORT", "TELEPORTED 1"), heard);
     }
 
+    /** A teleport that did not get it out (the world put it back on the roof): its give-up is no teleported end. */
+    @Test
+    void walkGivenUpAfterATeleportSaysItGaveUp() {
+        bodies.navEndsAt = ROOF;
+        bodies.navEndStatus = NavStatus.BLOCKED;
+        boolean ended = false;
+
+        for (int i = 0; i < 2000 && !ended; i++) {
+            clock.tick++;
+            bodies.bodies.get(body).position = ROOF; // every teleport fails
+            bodies.bodies.get(body).status = NavStatus.BLOCKED;
+            ended = walker.walkCloseTo(STAND, HUT, 4, true);
+        }
+
+        assertTrue(ended, "no walk waits forever");
+        assertTrue(heard.contains("stuck TELEPORT"));
+        assertEquals("GAVE_UP 5 BLOCKED", heard.getLast());
+    }
+
     /** MC walkToPos: a walk whose nav ended within its range ends in reach, heard once. */
     @Test
     void walkWithinItsRangeEndsInReachOnce() {

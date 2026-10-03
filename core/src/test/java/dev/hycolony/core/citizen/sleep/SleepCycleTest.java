@@ -26,6 +26,7 @@ import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockKind;
 import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.core.kernel.port.BodyId;
+import dev.hycolony.core.kernel.port.Msg;
 import dev.hycolony.core.testing.TestContexts;
 import dev.hycolony.core.testing.TestJobs;
 import java.util.List;
@@ -124,6 +125,7 @@ class SleepCycleTest {
     void workerStopsWorkingAndGoesToBedAtNight() {
         d.setJob(TestJobs.TYPE.factory().apply(d));
         citizen(HALL);
+        d.vitals().track();
         tickUntil(() -> state() == CitizenState.WORKING);
 
         nightfall();
@@ -131,6 +133,10 @@ class SleepCycleTest {
         tickUntil(d::asleep);
 
         assertEquals(BED_POS, t.bodies.bodies.get(body).inBed);
+        assertTrue(
+                d.vitals().history().stream()
+                        .anyMatch(e -> e.detail().equals(Msg.of("hycolony.debug.history.leftWork.sleep", "SLEEP"))),
+                "HyLens says why it stopped");
     }
 
     /** MC keeps the job's AI while its worker sleeps and resets it (resetAI) when it enters WORK again. */

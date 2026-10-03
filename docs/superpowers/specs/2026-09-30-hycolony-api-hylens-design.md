@@ -125,9 +125,9 @@ HyBlockUI ← HyDomum ← HyColony → HyVanilla
 
   **Deviation from MC :**
   - MC met sa navigation en pause 100 ticks, et son IA continue de tourner. Ici, c'est l'IA qui attend 100 ticks. Dans les deux cas, un chemin déjà en cours peut se terminer.
-  - L'IA du métier repart à neuf, car nos marcheurs gardent un état (cible, case d'arrêt) que le `walkToPos` de MC n'a pas. La téléportation de débogage fait de même.
+  - L'IA du métier est remise à son premier état et ses marches oubliées (`JobAI.resetAI`), ses champs gardés : nos marcheurs gardent un état (cible, case d'arrêt) que le `walkToPos` de MC n'a pas. La téléportation de débogage fait de même.
   - Un citoyen sans métier marche de la même façon, surveillé et borné. MC lui donne un simple `moveTo`, que surveille l'anti-blocage de sa navigation ; le nôtre n'en a pas. Une navigation laissée en cours après un abandon ou la limite relève de la limite de temps de la flânerie (tâche 6).
-  - L'IA du métier est oubliée à la commande, mais sa vitesse et l'objet tenu restent : chez MC, la vitesse d'Agilité du livreur est un modificateur gardé avec le métier.
+  - L'IA du métier, sa vitesse et l'objet tenu restent à la commande : chez MC, la vitesse d'Agilité du livreur est un modificateur gardé avec le métier.
   - L'anti-blocage ne téléporte que vers une case vérifiée à côté de la cible, et abandonne sinon, ce qui finit la marche plus tôt. MC cherche une case sûre à 10 blocs et n'abandonne jamais.
   - Les décisions de l'IA attendent aussi : chez MC, `decideAiTask` est un événement qui passe d'abord. La limite de temps est testée avant la marche. Le pas tourne à chaque tick, alors que l'IA d'un citoyen MC tourne tous les 5 ticks.
 - **Actions** `forceLeisure`, `teleport` et `respawnBody`, testées.

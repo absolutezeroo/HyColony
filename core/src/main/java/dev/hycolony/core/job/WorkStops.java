@@ -4,10 +4,14 @@ import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.vitals.WorkExit;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.kernel.BlockPos;
-import org.jspecify.annotations.Nullable;
+import java.util.Optional;
 
 /** MC CitizenAI.calculateNextState's reasons for one worker to stop working: the rain, nothing to do, a break. */
 public final class WorkStops {
+    private static final Optional<WorkExit> RAIN = Optional.of(WorkExit.RAIN);
+    private static final Optional<WorkExit> IDLE = Optional.of(WorkExit.IDLE);
+    private static final Optional<WorkExit> BREAK = Optional.of(WorkExit.BREAK);
+
     private final Colony colony;
     private final CitizenData data;
 
@@ -16,15 +20,15 @@ public final class WorkStops {
         this.data = data;
     }
 
-    /** Why the worker with job AI {@code ai} should stop now, in MC's order (rain, nothing to do, break); else null. */
-    public @Nullable WorkExit exit(JobAI ai) {
+    /** Why the worker with job AI {@code ai} should stop now, in MC's order: rain, nothing to do, break; else empty. */
+    public Optional<WorkExit> exit(JobAI ai) {
         if (rainStopsWork()) {
-            return WorkExit.RAIN;
+            return RAIN;
         }
         if (ai.canGoIdle()) {
-            return WorkExit.IDLE;
+            return IDLE;
         }
-        return onBreak(ai) ? WorkExit.BREAK : null;
+        return onBreak(ai) ? BREAK : Optional.empty();
     }
 
     /**
