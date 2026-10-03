@@ -4,8 +4,9 @@ and draws their icons, with the shared model tools of tools/common.
 Each model is built in Blockbench (docs/research/hytale-models.md; the clipboard, lumberjack and miner by one-off
 scripts) and saved to plugin/src/main/resources/Common/<MODEL>.blockymodel; this script never writes it. It paints
 the model's texture next to it (<MODEL>.png: paint.texture, the materials' brushes and the light baked from the model)
-and draws the item icon (Icons/Items/HyColony/<ICON>.png). Run once after changing a model or its materials, then
-commit the outputs. Needs Python 3.10+ and Pillow.
+and draws the item icon (Icons/Items/HyColony/<ICON>.png). Run once after changing a model or its materials (a hut
+block's model first through trim.py, which drops its hidden faces and lays it out), then commit the outputs. Needs
+Python 3.10+ and Pillow.
 
 A model's module (builder.py, town_hall.py, residence.py, farmer.py, cook.py, courier.py, warehouse.py, lumberjack.py,
 miner.py, goggles.py, build_tool.py, clipboard.py; listed in MODELS) declares:

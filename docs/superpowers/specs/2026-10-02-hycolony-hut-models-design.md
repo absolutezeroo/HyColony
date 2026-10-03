@@ -322,6 +322,31 @@ que conseille Hytale. Chaque modèle passe donc par trois étapes (`tools/common
 **Une zone d'UV par face** : une zone ne peut porter que la lumière d'une seule face. `bake.light_map` refuse un modèle
 dont deux faces partagent un pixel (relecture du 2026-10-02 : l'avant d'un pied montrait la lumière de son arrière).
 
+**Optimisation** (question de l'utilisateur le 2026-10-03, « c'est optimisé comme texturing ? », sans perte de rendu) :
+mesurées sur 380 modèles de meubles et d'établis de Hytale, ses textures portent 2,3 fois plus de surface que de
+pixels (une même zone pour toutes les planches, les pieds, les côtés en miroir : sa lumière est peinte, pas cuite) et
+il en peint 73 % ; les nôtres 1 fois (une zone par face, pour la lumière cuite, que l'on garde) et 32 à 58 %, 10 %
+pour la mine. D'où :
+- `tools/common/cull.py` retire les faces entièrement couvertes par d'autres boîtes, de façon exacte et prudente :
+  seules les boîtes alignées avec la face, qui s'avancent devant elle, comptent, et leurs rectangles doivent la
+  recouvrir sans aucun interstice. Une boîte tournée par rapport à la face, ouverte (une face absente, sauf un
+  dessous posé au sol) ou invisible ne cache rien ; les nœuds qu'anime le modèle et leurs enfants ne perdent ni ne
+  cachent aucune face (leur mouvement découvre ce qu'ils couvrent au repos). Un premier essai par grille de points
+  retirait trois faces de la pioche de la mine qui gardaient une fente (relecture). Le constructeur perd 25 faces,
+  la mine 12, l'hôtel de ville 5, le bûcheron 3 ;
+- `models.unwrap` range les zones en ligne d'horizon (chacune à la plus petite ligne où elle tient, 2 pixels des
+  autres de tous côtés) au lieu de rangées, et peut mettre des nœuds à part dans une bande sous les autres : celle
+  des cristaux de la mine, que `glint.frames` est seule à recopier ;
+- `tools/huts/trim.py` applique les deux aux blocs de huttes, les nœuds animés tirés du module de la hutte (son
+  `animation`, ou son `GLINT` qui respire sauf `BREATHE = False`), et choisit la largeur de la mine reflet compris.
+  Il réécrit le modèle source et ne rend jamais une face : le modèle rouvert dans Blockbench ne l'a plus non plus,
+  et une retouche qui découvrirait une face retirée la réactive à la main sur sa boîte avant d'enregistrer ;
+- textures des neuf huttes : 215 040 pixels avant, 153 600 après (−29 %) ; la mine passe de 256×256 à 64×352.
+  Rendu inchangé : les icônes, dessinées du modèle et de sa texture, sont identiques à l'octet. L'armure de plates
+  et le ruban de chantier, dépliés par le même outil, sont régénérés (icônes identiques aussi).
+
+Le partage de zones à la manière de Hytale gagnerait davantage, mais au prix de la lumière cuite : écarté.
+
 ## Huttes suivantes
 
 Pistes proposées à l'utilisateur, chacune à valider sur des captures Blockbench avant intégration :

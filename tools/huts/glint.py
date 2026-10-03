@@ -28,11 +28,8 @@ def frames(image, nodes, prefix):
     """(image, step): image grown with GLINT_FRAMES copies of the islands of the nodes named prefix*, frame k
     step * k pixels below the islands and its glint k / (GLINT_FRAMES + 1) of the way across each face."""
     rects = [(u, v, w, h) for name, _, u, v, w, h in islands(nodes) if name.startswith(prefix)]
-    if not rects:
-        raise SystemExit(f"glint: no node named {prefix}*")
-    top, bottom = min(r[1] for r in rects), max(r[1] + r[3] for r in rects)
-    step = max(image.height + 1 - top, bottom - top + 2)
-    out = Image.new("RGBA", (image.width, 32 * math.ceil((bottom + 1 + GLINT_FRAMES * step) / 32)), (0, 0, 0, 0))
+    height, step = grown(rects, image.height, prefix)
+    out = Image.new("RGBA", (image.width, height), (0, 0, 0, 0))
     out.paste(image)
     for k in range(1, GLINT_FRAMES + 1):
         for u, v, w, h in rects:
@@ -40,6 +37,21 @@ def frames(image, nodes, prefix):
             out.paste(image.crop((u - 1, v - 1, u + w + 1, v + h + 1)), (u - 1, v - 1 + k * step))
             glint(out, (u, v + k * step, w, h), k / (GLINT_FRAMES + 1))
     return out, step
+
+
+def grown(rects, height, prefix):
+    """(texture height, step) once frames copies the crystal islands rects (u, v, w, h) below a texture of height."""
+    if not rects:
+        raise SystemExit(f"glint: no node named {prefix}*")
+    top, bottom = min(r[1] for r in rects), max(r[1] + r[3] for r in rects)
+    step = max(height + 1 - top, bottom - top + 2)
+    return 32 * math.ceil((bottom + 1 + GLINT_FRAMES * step) / 32), step
+
+
+def grown_size(nodes, prefix, size):
+    """The texture size once frames adds the glint of the nodes named prefix* to a texture of size."""
+    rects = [(u, v, w, h) for name, _, u, v, w, h in islands(nodes) if name.startswith(prefix)]
+    return size[0], grown(rects, size[1], prefix)[0]
 
 
 def glint(image, rect, t):

@@ -3,11 +3,13 @@
 import sys
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 
 from PIL import Image
 
 sys.path.append(str(Path(__file__).resolve().parents[1] / "common"))
 import glint  # noqa: E402
+import trim  # noqa: E402
 from models import box_shape, node, unwrap  # noqa: E402
 
 
@@ -60,6 +62,20 @@ class GlintTest(unittest.TestCase):
         gem = glint.animation(nodes, "Gem", 10, breathe=False)["nodeAnimations"]["Gem"]
         self.assertEqual([], gem["shapeStretch"])
         self.assertEqual(glint.flipbook(10), gem["shapeUvOffset"])
+
+
+class TrimTest(unittest.TestCase):
+    def test_a_glint_alone_moves_nothing_but_a_breath_moves_the_gems(self):
+        nodes, _ = gem_model()
+        self.assertEqual(frozenset(), trim.moving(SimpleNamespace(GLINT="Gem", BREATHE=False), nodes))
+        self.assertEqual(frozenset({"Gem"}), trim.moving(SimpleNamespace(GLINT="Gem"), nodes))
+
+    def test_the_nodes_a_hut_animates_move_whether_or_not_its_blockyanim_was_written(self):
+        nodes, _ = gem_model()
+        sway = {"nodeAnimations": {"Shaft": {"orientation": [{"time": 0}], "position": []},
+                                   "Gem": {"orientation": [], "shapeUvOffset": [{"time": 0}]}}}
+        self.assertEqual(frozenset({"Shaft"}), trim.moving(SimpleNamespace(animation=lambda n: sway), nodes))
+        self.assertEqual(frozenset(), trim.moving(SimpleNamespace(), nodes))
 
 
 if __name__ == "__main__":
