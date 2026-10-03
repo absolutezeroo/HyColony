@@ -286,6 +286,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
     public void teleport(BodyId body, Vec3 target) {
         Ref<EntityStore> ref = refs.ref(body);
         if (ref != null) {
+            walks.stop(ref); // a climb under way or held would set the body back in its column
             teleporter.teleport(ref, target);
         }
     }
@@ -294,7 +295,11 @@ public final class HytaleCitizenBodies implements CitizenBodies {
     @Override
     public boolean sleepIn(BodyId body, BlockPos bed) {
         Ref<EntityStore> ref = refs.ref(body);
-        return ref != null && beds.sleepIn(ref, bed);
+        if (ref == null) {
+            return false;
+        }
+        walks.stop(ref); // a climb under way or held would pull the body out of its bed
+        return beds.sleepIn(ref, bed);
     }
 
     @Override

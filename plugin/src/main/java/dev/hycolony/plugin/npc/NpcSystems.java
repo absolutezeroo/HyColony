@@ -5,6 +5,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.plugin.IdMap;
 import dev.hycolony.plugin.WorldRuntimes;
 import dev.hycolony.plugin.npc.motion.CitizenClimbSystem;
+import dev.hycolony.plugin.npc.motion.CitizenMantleSystem;
 import dev.hycolony.plugin.npc.motion.CitizenSwimSystem;
 import dev.hycolony.plugin.npc.spawn.HostileSpawnSystems;
 

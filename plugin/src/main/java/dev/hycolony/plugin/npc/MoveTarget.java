@@ -22,10 +22,16 @@ public final class MoveTarget implements Component<EntityStore> {
     public boolean climbing;
     /** Where the climb under way ends: the feet's position. */
     public final Vector3d climbTo = new Vector3d();
-    /** Ticks the climb under way may still last before the body is set at its end. */
-    public int climbTicksLeft;
-    /** Whether a climb has ended since the walk status was last read. */
+    /** How high the climb under way has brought the feet: it advances on its own, whatever the gravity did. */
+    public double climbY;
+    /** Seconds the climb under way may still last before the body is set at its end. */
+    public float climbSecondsLeft;
+    /** Whether the body is held at {@link #climbTo} after its climb, as on a ladder, until its next order. */
+    public boolean climbHold;
+    /** Whether a climb has arrived since the walk status was last read. */
     public boolean climbArrived;
+    /** Whether a climb ran out of time since the walk status was last read: the body was set at its end. */
+    public boolean climbTimedOut;
     /** World tick of the last switch between walking and swimming. */
     public long motionSwitchTick;
 
@@ -39,8 +45,11 @@ public final class MoveTarget implements Component<EntityStore> {
         copy.ledgeClimb = ledgeClimb;
         copy.climbing = climbing;
         copy.climbTo.set(climbTo);
-        copy.climbTicksLeft = climbTicksLeft;
+        copy.climbY = climbY;
+        copy.climbSecondsLeft = climbSecondsLeft;
+        copy.climbHold = climbHold;
         copy.climbArrived = climbArrived;
+        copy.climbTimedOut = climbTimedOut;
         copy.motionSwitchTick = motionSwitchTick;
         return copy;
     }

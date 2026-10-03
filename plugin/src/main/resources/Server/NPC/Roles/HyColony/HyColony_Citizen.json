@@ -1,5 +1,5 @@
 {
-  "$Comment": "Deviation from MC: MaxClimbHeight 3, MC climbs 1.3 (plugin-b-api.md 39). HyColonySeek: section 40. Walk and Dive: CitizenSwimSystem switches them, the swim at the surface with the head out (Hytale world: Dive's speeds, not MC's CITIZEN_SWIM_BONUS; section 52). Wade and Breathe relaxed: a path may cross water.",
+  "$Comment": "Deviation from MC: MaxClimbHeight 3 (plugin-b-api.md 39). Walk, Dive, swim speeds: CitizenSwimSystem.",
   "Type": "Generic",
   "Appearance": "PlayerTestModel_V",
   "InitialMotionController": "Walk",
@@ -14,9 +14,9 @@
     },
     {
       "Type": "Dive",
-      "MaxSwimSpeed": 3,
+      "MaxSwimSpeed": 1.8,
       "Acceleration": 10,
-      "MaxDiveSpeed": 2,
+      "MaxDiveSpeed": 2.5,
       "SwimDepth": -0.2,
       "SinkRatio": 0.5,
       "MinDiveDepth": 0,

@@ -1,9 +1,8 @@
-package dev.hycolony.plugin.npc;
+package dev.hycolony.plugin.npc.motion;
 
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentType;
-import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.dependency.Dependency;
 import com.hypixel.hytale.component.dependency.Order;
@@ -11,19 +10,17 @@ import com.hypixel.hytale.component.dependency.SystemDependency;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.protocol.BlockMaterial;
 import com.hypixel.hytale.protocol.MovementStates;
-import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.entity.movement.MovementStatesComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.physics.util.PhysicsMath;
-import com.hypixel.hytale.server.core.universe.world.chunk.section.BlockSection;
-import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 import com.hypixel.hytale.server.npc.movement.MotionKind;
 import com.hypixel.hytale.server.npc.movement.controllers.MotionControllerBase;
 import com.hypixel.hytale.server.npc.systems.MovementStatesSystem;
+import dev.hycolony.plugin.npc.HyColonyComponents;
+import dev.hycolony.plugin.npc.MoveTarget;
 import java.util.Set;
 import java.util.logging.Level;
 import javax.annotation.Nonnull;
@@ -136,21 +133,6 @@ public final class CitizenMantleSystem extends EntityTickingSystem<EntityStore> 
         int ax = (int) Math.floor(x + PhysicsMath.headingX(heading) * AHEAD_BLOCKS);
         int az = (int) Math.floor(z + PhysicsMath.headingZ(heading) * AHEAD_BLOCKS);
         int feet = (int) Math.floor(y);
-        return solid(store, ax, feet + 1, az) && solid(store, ax, feet + 2, az);
-    }
-
-    /** Whether the block at {@code x y z} is solid; false where its section is not loaded. */
-    private static boolean solid(Store<EntityStore> store, int x, int y, int z) {
-        ChunkStore chunks = store.getExternalData().getWorld().getChunkStore();
-        @Nullable Ref<ChunkStore> sec = chunks.getChunkSectionReferenceAtBlock(x, y, z);
-        if (sec == null || !sec.isValid()) {
-            return false;
-        }
-        @Nullable BlockSection blocks = chunks.getStore().getComponent(sec, BlockSection.getComponentType());
-        if (blocks == null) {
-            return false;
-        }
-        @Nullable BlockType type = BlockType.getAssetMap().getAsset(blocks.get(x, y, z));
-        return type != null && type.getMaterial() == BlockMaterial.Solid;
+        return MotionCells.solid(store, ax, feet + 1, az) && MotionCells.solid(store, ax, feet + 2, az);
     }
 }

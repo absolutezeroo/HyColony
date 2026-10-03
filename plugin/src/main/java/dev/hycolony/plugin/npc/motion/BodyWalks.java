@@ -28,19 +28,18 @@ public final class BodyWalks {
         this.world = world;
     }
 
-    /** Walks the body to {@code target}, a climb under way ended. */
+    /** Walks the body to {@code target}, a climb under way or held ended. */
     public void walkTo(Ref<EntityStore> ref, Vec3 target) {
         MoveTarget mt = walk(ref);
+        endClimb(mt);
         mt.target.set(target.x(), target.y(), target.z());
         mt.active = true;
         mt.sinceTick = world.getTick();
-        mt.climbing = false;
-        mt.climbArrived = false;
     }
 
     /**
-     * Climbs the body straight up or down to {@code to} ({@link CitizenClimbSystem}), its walk stopped; nothing for a
-     * body without a position.
+     * Climbs the body straight up or down to {@code to} ({@link CitizenClimbSystem}), from where its feet are, its
+     * walk stopped; nothing for a body without a position.
      */
     public void climbTo(Ref<EntityStore> ref, Vec3 to) {
         TransformComponent t = store().getComponent(ref, TransformComponent.getComponentType());
@@ -48,42 +47,66 @@ public final class BodyWalks {
             return;
         }
         MoveTarget mt = walk(ref);
+        endClimb(mt);
         mt.active = false;
         mt.climbing = true;
-        mt.climbArrived = false;
         mt.climbTo.set(to.x(), to.y(), to.z());
-        mt.climbTicksLeft = CitizenClimbSystem.allowedTicks(t.getPosition().y, to.y());
+        mt.climbY = t.getPosition().y;
+        mt.climbSecondsLeft = CitizenClimbSystem.allowedSeconds(mt.climbY, to.y());
     }
 
-    /** Stops the walk where the body stands (a climb goes on to its end). */
+    /**
+     * Stops the body where it stands: its walk, and a climb under way or held (any other order on the body, a
+     * teleport, a bed, a seat, takes over from the climb).
+     */
     public void stop(Ref<EntityStore> ref) {
         MoveTarget mt = store().getComponent(ref, HyColonyComponents.moveTarget());
         if (mt != null) {
             mt.active = false;
+            endClimb(mt);
         }
     }
 
     /**
-     * How the walk or climb stands: MOVING while climbing, ARRIVED once, after a climb ends; else the nav's own state.
-     * A walk that has ended is IDLE.
+     * How the walk or climb stands: MOVING while climbing, then ARRIVED once, or BLOCKED once if its time ran out;
+     * else the nav's own state. A walk that has ended is IDLE.
      */
     public NavStatus status(Ref<EntityStore> ref) {
         @Nullable MoveTarget mt = store().getComponent(ref, HyColonyComponents.moveTarget());
         if (mt == null) {
             return NavStatus.IDLE;
         }
-        if (mt.climbing) {
-            return NavStatus.MOVING;
-        }
-        if (mt.climbArrived) {
-            mt.climbArrived = false;
-            return NavStatus.ARRIVED;
+        @Nullable NavStatus climb = climbStatus(mt);
+        if (climb != null) {
+            return climb;
         }
         if (!mt.active) {
             return NavStatus.IDLE;
         }
         // Within its first ticks, the nav state still describes the previous goal.
         return world.getTick() - mt.sinceTick < FRESH_MOVE_TICKS ? NavStatus.MOVING : navStatus(ref, mt);
+    }
+
+    /** The climb's status, read once at its end; null when no climb is under way or ending. */
+    private static @Nullable NavStatus climbStatus(MoveTarget mt) {
+        if (mt.climbing) {
+            return NavStatus.MOVING;
+        }
+        if (mt.climbArrived || mt.climbTimedOut) {
+            NavStatus end = mt.climbArrived ? NavStatus.ARRIVED : NavStatus.BLOCKED;
+            mt.climbArrived = false;
+            mt.climbTimedOut = false;
+            return end;
+        }
+        return null;
+    }
+
+    /** No climb under way nor held, and no climb end left to read. */
+    private static void endClimb(MoveTarget mt) {
+        mt.climbing = false;
+        mt.climbHold = false;
+        mt.climbArrived = false;
+        mt.climbTimedOut = false;
     }
 
     /** The nav's own state of the walk under way; a walk that ends is no longer active. */
