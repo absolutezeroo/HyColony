@@ -1182,7 +1182,7 @@ Gravité : pour une entrée *conforme*, elle mesure ce qui reste à faire (en g�
 #### D-2. Hauteur de montée et escalade d'un rebord
 
 1. **MC** : `PathingConstants.MAX_JUMP_HEIGHT = 1.3` (`MC/api/util/constant/PathingConstants.java:44`).
-2. **HyColony** : `HyColony_Citizen.json` `MaxClimbHeight: 3` (`plugin/src/main/resources/Server/NPC/Roles/HyColony/HyColony_Citizen.json:11`, écart marqué l. 2) et `CitizenMantleSystem` qui montre l'escalade de rebord du joueur (`plugin/src/main/java/dev/hycolony/plugin/npc/CitizenMantleSystem.java:32-42`, écart marqué).
+2. **HyColony** : `HyColony_Citizen.json` `MaxClimbHeight: 3` (`plugin/src/main/resources/Server/NPC/Roles/HyColony/HyColony_Citizen.json:11`, écart marqué l. 2) et `CitizenMantleSystem` qui montre l'escalade de rebord du joueur (`plugin/src/main/java/dev/hycolony/plugin/npc/motion/CitizenMantleSystem.java`, écart marqué).
 3. **Hytale** : défaut du contrôleur `Walk` 1,3 (`H/server/npc/movement/controllers/builders/BuilderMotionControllerWalk.java:164-170`) ; le joueur saute 1 à 2 blocs et escalade un rebord de 3 (`builtin/mantling/MantlingPlugin`, animation `Common/Characters/Animations/Mantle/Mantle_Up.blockyanim`), détail dans `plugin-b-api.md` § 39.
 4. **Verdict** : *conforme* : la physique suit celle du joueur de Hytale, réglage que le rôle expose.
 5. **Proposition** : passer le commentaire du rôle et de `CitizenMantleSystem` au format `Deviation from MC (Hytale world): MAX_JUMP_HEIGHT 1.3 → a Hytale player's climb (3-block mantle, MantlingPlugin)`. Rien d'autre ; ni sauvegarde ni configuration.

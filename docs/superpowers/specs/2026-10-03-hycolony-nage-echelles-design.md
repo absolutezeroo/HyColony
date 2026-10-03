@@ -13,7 +13,7 @@ Pistes choisies par l'utilisateur le 2026-10-03 : « nager comme MC » et « gri
 - le navigateur des citoyens flotte et nage (`setCanFloat(true)`, `canSwim`, `MinecoloniesAdvancedPathNavigate.java:155-157`), deux fois plus vite dans l'eau (`CITIZEN_SWIM_BONUS` 2,0), sans être poussé par le courant ;
 - l'A\* nage en surface : entrer dans l'eau coûte 24 (`swimCostEnter`), chaque nœud d'eau 4 (`swimCost`), 4 de plus la tête sous l'eau (`divingCost`) (`PathingOptions.java:43-73`, `AbstractPathJob.java:1037-1116`) ;
 - `EntityAIFloat` : les yeux dans l'eau sans air au-dessus, le citoyen cherche à sortir (`PathJobEscapeWater`), navigation en pause 15 s ;
-- pas de noyade dans le code de MC.
+- le code de MC ne gère pas la respiration : un citoyen de MC se noie par la règle vanilla de Minecraft (MC ne redéfinit pas `canBreatheUnderwater`). La noyade est une règle du monde ; celle de Hytale (`DamageSystems.CanBreathe`) est masquée aujourd'hui par `Invulnerable`, et `HyColonySeek` relâche `Breathe` : à revoir avec la mort des citoyens.
 
 **Échelles** (§ 52, audit D-4) :
 - `PathfindingUtils.isLadder` : les échelles (`LadderBlock`, tag `freeClimbBlocks`) sont toujours permises ; les autres blocs grimpables (lianes) seulement avec `canClimbAdvanced`, donné par la recherche `effects/vinesunlock` ;
@@ -32,27 +32,28 @@ Pistes choisies par l'utilisateur le 2026-10-03 : « nager comme MC » et « gri
 
 **Rôle** (`HyColony_Citizen.json`) :
 - `MotionControllerList` : `Walk` (inchangé) et `Dive`, avec `InitialMotionController: "Walk"` (sans lui, le contrôleur de départ est tiré au hasard) ;
-- `Dive` réglé pour nager **en surface**, la tête hors de l'eau : `MinDepthBelowSurface` 0, `MaxDiveDepth` faible, `SwimDepth` choisi pour garder les yeux dehors. Vitesses de nage : celles d'un joueur de Hytale (monde), réglées en jeu **[in-game]** ;
+- `Dive` réglé pour nager **en surface**, la tête hors de l'eau : `SwimDepth` -0,2 (la surface un peu sous les yeux), `MinDepthBelowSurface` 0, `MaxDiveDepth` 1,5. Vitesses (monde) : l'eau de Hytale ralentit tout marcheur à 0,6 et fait remonter un nageur à 2,5 blocs/s (`Server/Item/Block/FluidFX/Water.json`, `HorizontalSpeedMultiplier`, `SwimUpSpeed`), d'où `MaxSwimSpeed` 1,8 (0,6 × la marche de 3) et `MaxDiveSpeed` 2,5, à régler en jeu **[in-game]** ;
 - `HyColonySeek` relâche `["Wade", "Breathe"]` : le chemin du `Walk` peut traverser l'eau (aujourd'hui, seul `Wade` est relâché, et le citoyen n'entre dans l'eau que tant que ses yeux restent dehors).
 
-**Bascule** (plugin, nouveau `npc/CitizenSwimSystem`, après les états de mouvement, comme `CitizenMantleSystem`) :
-- `Walk` → `Dive` quand le fluide atteint les yeux du corps (`Role.couldBreathe` faux aux yeux, ou la case des yeux est un fluide) ;
-- `Dive` → `Walk` quand le corps a pied (un sol solide sous les pieds à moins d'un bloc), ou quand, à la surface, une case où se tenir l'attend juste devant lui, à `MaxClimbHeight` (3) au plus au-dessus de ses pieds (la berge) : `Walk` la monte comme une marche ;
-- une bascule n'a pas lieu moins de 10 ticks après la précédente (pas de va-et-vient au bord) ;
+**Bascule** (plugin, nouveau `npc/motion/CitizenSwimSystem`, après les états de mouvement, comme `CitizenMantleSystem`) :
+- `Walk` → `Dive` quand l'eau atteint les yeux du corps : un fluide à l'effet `Water` (`Water`, `Water_Source`, `Water_Finite`), car MC ne nage que dans l'eau (`AbstractPathJob` `isWater`, `MovementHandler`) ; la lave ou le goudron ne font pas nager ;
+- `Dive` → `Walk` quand le corps a pied (un sol solide sous les pieds à moins d'un bloc), ou quand une berge l'attend juste devant lui, à `MaxClimbHeight` (3) au plus au-dessus **du fond** de l'eau (`Walk` coule, puis monte depuis le fond comme une marche), la tête hors de l'eau une fois debout sur ce sol ou cette berge. Le fond est cherché 8 blocs au plus sous les pieds ; sans fond, le corps continue de nager ;
+- une bascule n'a pas lieu moins de 10 ticks du monde (30 par seconde) après la précédente (pas de va-et-vient au bord) ;
 - la cible de marche (`MoveTarget`) est gardée : `Seek` suit sa cible avec `Dive` comme avec `Walk`.
 - Système sans état de jeu : il ne lit que le corps et le monde. Un corps rechargé reprend le contrôleur sauvé par Hytale (`RoleSystems.java:483-490`) ; s'il est dans l'eau, la bascule le corrige au tick suivant.
 
 **Cœur** : rien de nouveau.
 - `BlockApproach` garde la pénalité de MC pour une case de fin dans l'eau (`PathJobMoveCloseToXNearY`), et la promenade ne finit jamais au-dessus de l'eau (`WanderGround`, comme `PathJobRandomPos`).
-- `EntityAIFloat` n'est pas porté : en surface, la tête est toujours hors de l'eau (écart ci-dessous).
-
+- `EntityAIFloat` n'est pas porté : en surface, la tête reste hors de l'eau, sauf sous un plafond (écart ci-dessous).
 
 ## 5. Échelles : la mécanique seule
 
 **Ce qui est fait maintenant** (plugin seulement) :
-- `HytaleCitizenBodies.climb(BodyId body, Vec3 to)` et un nouveau `npc/CitizenClimbSystem` : le corps monte ou descend en ligne droite jusqu'à `to`, centré dans sa colonne, à la vitesse d'échelle d'un joueur de Hytale (monde), par petites téléportations exactes à chaque tick. L'état `climbing` est posé pendant ce temps, après les états de mouvement du PNJ comme `CitizenMantleSystem` (animations `ClimbUp`/`ClimbDown`) ;
+- `HytaleCitizenBodies.climb(BodyId body, Vec3 to)` et un nouveau `npc/motion/CitizenClimbSystem` : le corps monte ou descend en ligne droite jusqu'à `to`, centré dans sa colonne, par petites téléportations exactes à chaque tick, à 2 blocs par seconde : une valeur d'attente, car l'unité du `ClimbSpeed` du joueur de Hytale (0,035, `Server/Entity/MovementConfig/Default.json`) n'est pas vérifiée ; elle se règle en jeu. L'état `climbing` est posé pendant ce temps, après les états de mouvement du PNJ comme `CitizenMantleSystem` (animations `ClimbUp`/`ClimbDown`) ;
+- la montée avance sur sa propre hauteur, pas sur celle du corps, que la gravité de `Walk` tire vers le bas à chaque tick : la téléportation, appliquée après le mouvement du PNJ, l'emporte. Elle compte en secondes du monde (`dt`), quel que soit son nombre de ticks ;
 - pendant la montée, `navStatus` vaut `MOVING`, puis `ARRIVED` ; un corps mort ou déchargé n'en fait rien, sans exception ;
-- la montée ne peut pas durer toujours : au-delà de sa durée prévue plus une marge, le corps est posé à `to` ;
+- en haut (ou en bas), le corps reste tenu à sa place, comme sur une échelle (on ne tombe jamais d'une échelle chez MC), jusqu'à son ordre suivant : une marche, une téléportation, un lit ;
+- la montée ne peut pas durer toujours : au-delà de sa durée prévue plus 2 secondes, le corps est posé à `to`, et `navStatus` rend `BLOCKED` (une échéance n'est pas une arrivée) ;
 - `/hycolony selftest` ajoute une étape « climb » : le corps de test monte de 3 blocs sur place, puis redescend. C'est la seule utilisation d'ici la refonte, et elle sert à voir l'animation et le rendu en jeu.
 
 **Ce qui attend la refonte de la recherche de chemin** (portage de l'A\* de MC) :
@@ -62,13 +63,16 @@ Pistes choisies par l'utilisateur le 2026-10-03 : « nager comme MC » et « gri
 
 ## 6. Écarts à MineColonies
 
-Chacun porte un `Deviation from MC:` dans le code.
+Chacun porte un `Deviation from MC:` dans le code (`HyColony_Citizen.json`, `CitizenSwimSystem`, `CitizenClimbSystem`).
 
-- (Hytale world) MC nage en surface avec la physique de Minecraft, deux fois plus vite (`CITIZEN_SWIM_BONUS`) → le contrôleur `Dive` de Hytale, aux vitesses de nage d'un joueur de Hytale.
-- (contrainte Hytale) L'A\* de Hytale coûte la seule distance : ni le coût d'entrée dans l'eau (24), ni le coût de nage (4 par nœud) de MC ne pèsent sur le chemin. Seule la pénalité de case de fin dans l'eau reste (`BlockApproach`). À reprendre avec la refonte de la recherche de chemin.
-- `EntityAIFloat` (sortir de l'eau quand la tête est dessous, pause de 15 s) n'est pas porté : `Dive` garde la tête hors de l'eau, et l'anti-blocage sort un citoyen coincé.
-- (Hytale world) La montée suit la vitesse d'échelle d'un joueur de Hytale (`MovementConfig`, `ClimbSpeed`), pas la physique d'échelle de Minecraft.
+- (Hytale world) MC va deux fois plus vite dans l'eau, qu'il patauge ou nage (`CITIZEN_SWIM_BONUS` 2,0, `AbstractEntityCitizen`) → l'eau de Hytale ralentit à 0,6 et le contrôleur `Dive` nage à 1,8 bloc/s (`FluidFX/Water.json`).
+- (Hytale world) Le citoyen de MC ne prend jamais la pose de nage (`AbstractFastMinecoloniesEntity.updateSwimming` vide : il flotte debout) → `Dive` pose l'état `swimming`, et le client joue les animations `Swim*` du modèle du joueur (`Server/Models/Human/Player.json`).
+- (contrainte Hytale) Le chemin de MC pèse l'eau (24 pour y entrer, 4 par nœud, 4 de plus sous l'eau) et ne saute jamais depuis un nœud de nage (`AbstractPathJob`, `canJump`) : un citoyen de MC ne sort que par une berge au ras de l'eau. L'A\* de Hytale ne pèse que la distance, et notre nageur monte une berge de 3 blocs au plus. Seule la pénalité de case de fin dans l'eau reste (`BlockApproach`). À reprendre avec la refonte de la recherche de chemin.
+- `EntityAIFloat` (la tête sous l'eau sans air au-dessus : chemin de sortie, navigation en pause 300 ticks) n'est pas porté : `Dive` garde la tête hors de l'eau, et un corps retenu sous un plafond (un ponton, de la glace ; `MotionControllerDive.getDesiredVerticalRange` le borne alors à sa hauteur) est laissé à l'anti-blocage.
+- (Hytale world) La montée de MC suit la physique d'échelle de Minecraft, et la descente se fait accroupi (`setShiftKeyDown`, `setYya(-0.5)`) → un déplacement droit à la vitesse d'échelle d'un joueur de Hytale (valeur d'attente, § 5), avec `ClimbUp` et `ClimbDown`.
 - Les citoyens ne prennent pas encore les échelles (audit D-4) : la refonte de la recherche de chemin les fera passer par elles.
+
+**Le courant.** MC empêche l'eau de pousser ses citoyens (`isPushedByFluid` faux, `AbstractEntityCitizen.java:700-708`). Le serveur de Hytale ne pousse aucune entité selon le courant (aucune poussée de flux dans le décompilé) : la règle tient d'elle-même. Qu'aucun courant ne pousse non plus un citoyen côté client reste **[in-game]**.
 
 ## 7. Tests
 
