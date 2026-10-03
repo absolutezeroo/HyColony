@@ -75,7 +75,7 @@ public final class CitizenHurtSystem extends DamageEventSystem {
             // Hytale's DamageArmor wears armour only for a cause that loses durability (DamageCause.isDurabilityLoss).
             boolean wearsArmor = cause != null && cause.isDurabilityLoss();
             rt.manager().byId(tag.colonyId()).ifPresent(c -> {
-                HappinessEvents.hurt(c, rt.bodies().track(ref));
+                HappinessEvents.hurt(c, rt.bodies().refs().track(ref));
                 if (wearsArmor) {
                     c.citizens().get(tag.citizenId()).ifPresent(d -> ArmorWear.onHurt(c, d));
                 }

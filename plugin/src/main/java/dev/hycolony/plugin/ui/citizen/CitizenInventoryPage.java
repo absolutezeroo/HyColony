@@ -5,9 +5,7 @@ import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
-import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.protocol.packets.interface_.CustomPageLifetime;
-import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.entity.entities.player.pages.InteractiveCustomUIPage;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
@@ -22,34 +20,35 @@ import dev.hyblockui.api.InventoryMoves;
 import dev.hyblockui.api.InventoryWatch;
 import dev.hyblockui.api.PageEvents;
 import dev.hyblockui.api.PageRedraw;
+import dev.hyblockui.api.PlayerPanels;
 import dev.hyblockui.api.PlayerSection;
+import dev.hycolony.core.app.view.CitizenInventoryView;
 import dev.hycolony.core.citizen.CitizenData;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
+import dev.hycolony.plugin.item.HytaleStacks;
+import java.util.Optional;
+import java.util.function.Supplier;
 import javax.annotation.Nonnull;
 import org.jspecify.annotations.Nullable;
 
 /**
- * A citizen's inventory window (MC WindowCitizenInventory over ContainerCitizenInventory), MC's layout doubled: its
- * name, its 27 slots and 4 armour slots, the frame where the server camera shows it ({@link CitizenPreviewCamera}),
- * and the player's storage and hotbar, all draggable. Redrawn when a move or the citizen's AI changes them. World
- * thread.
+ * A citizen's inventory window (MC WindowCitizenInventory over ContainerCitizenInventory): its name, armour, held
+ * items and stats, its 27 slots under take all, put all and quick stack, then the player's storage and hotbar, all
+ * draggable but the hands. Redrawn when a move, the citizen's AI or its stats change them. World thread.
  *
- * <p>Deviation from MC: a shift-click is Hytale's own (InventoryUtils.smartMoveItem): from the citizen's slots or its
- * armour to the player's inventory, placed as the player's settings say; from the player to the citizen's 27 slots,
- * then its armour once they are full. MC ContainerCitizenInventory.quickMoveStack sends the citizen's slots to the
- * player's from their end, the armour last; an armour piece to the citizen's 27 slots; the player's items to those 27
- * only.
+ * <p>Deviation from MC (asked for): laid out as Hytale's own inventory (CitizenInventory.ui), not as MC's window, and
+ * the citizen is not drawn (Hytale draws only the player's character in a page). Its 27 slots have no sort button: the
+ * hands hold slots, which a sort would move. A shift-click is Hytale's own (InventoryUtils.smartMoveItem): from the
+ * citizen's slots or its armour to the player's inventory, placed as the player's settings say; from the player to the
+ * citizen's 27 slots, then its armour once they are full. MC ContainerCitizenInventory.quickMoveStack sends the
+ * citizen's slots to the player's from their end, the armour last; an armour piece to the citizen's 27 slots; the
+ * player's items to those 27 only.
  */
 final class CitizenInventoryPage extends InteractiveCustomUIPage<CitizenInventoryPage.Act> {
-    private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
     private static final String CITIZEN_GRID = "#CitizenSlots";
     private static final String ARMOR_GRID = "#ArmorSlots";
-    /** How often the camera is checked and the citizen's own changes looked for, in milliseconds. */
-    private static final long CHECK_MILLIS = 500;
+    private static final String STORAGE = "#Storage";
 
-    /** A grid's drop: its action and where the item came from and went (InventoryDrop). */
+    /** A button's or a grid's event: its action, and for a drop where the item came from and went (InventoryDrop). */
     static final class Act {
         static final BuilderCodec<Act> CODEC = InventoryDrop.appendTo(
                         BuilderCodec.builder(Act.class, Act::new)
@@ -61,24 +60,30 @@ final class CitizenInventoryPage extends InteractiveCustomUIPage<CitizenInventor
         final InventoryDrop drop = new InventoryDrop();
     }
 
-    /** What the page shows: its world, the citizen, the windows on its two parts and the camera on it. */
+    /**
+     * What the page shows: its world, the citizen, the windows on its two parts, the core's view of its side panel
+     * (empty once the citizen is gone) and the stacks of its held items.
+     */
     record Setup(
             World world,
             CitizenData citizen,
             CitizenInventoryWindow main,
             CitizenInventoryWindow armor,
-            CitizenPreviewCamera camera) {}
+            Supplier<Optional<CitizenInventoryView>> panel,
+            HytaleStacks stacks) {}
 
     private final Setup setup;
     private final PageRedraw redraw;
+    private final PageCheckTimer checks;
     private @Nullable InventoryWatch watch;
-    private @Nullable ScheduledFuture<?> check;
     private long drawnChanges = -1;
+    private Optional<CitizenInventoryView> drawnPanel = Optional.empty();
 
     CitizenInventoryPage(PlayerRef playerRef, Setup setup) {
         super(playerRef, CustomPageLifetime.CanDismiss, Act.CODEC);
         this.setup = setup;
         this.redraw = new PageRedraw(setup.world(), this::redrawIfShown, this::isShown);
+        this.checks = new PageCheckTimer(setup.world(), playerRef, this::checkNow, this::stopFollowing);
     }
 
     @Override
@@ -91,8 +96,10 @@ final class CitizenInventoryPage extends InteractiveCustomUIPage<CitizenInventor
             start(store, ref);
         }
         drawnChanges = coreChanges();
+        drawnPanel = setup.panel().get();
         ui.append("Pages/HyColony/CitizenInventory.ui");
-        ui.set("#Name.Text", setup.citizen().name());
+        drawnPanel.ifPresent(
+                view -> CitizenSidePanel.draw(ui, view, setup.armor().getItemContainer(), setup.stacks()));
         InventoryGrids.drawContainer(
                 ui,
                 events,
@@ -105,11 +112,12 @@ final class CitizenInventoryPage extends InteractiveCustomUIPage<CitizenInventor
                 ARMOR_GRID,
                 setup.armor().getItemContainer(),
                 setup.armor().getId());
-        InventoryGrids.drawPlayerPart(ui, events, "#PlayerStorage", PlayerSection.STORAGE, ref);
-        InventoryGrids.drawPlayerPart(ui, events, "#PlayerHotbar", PlayerSection.HOTBAR, ref);
+        PlayerPanels.drawStorage(ui, events, STORAGE, store, ref);
+        PlayerPanels.enableSort(ui, events, STORAGE);
+        CitizenSlotsActions.bind(events);
     }
 
-    /** Follows the player's inventory and the citizen's, and puts the camera on the citizen. */
+    /** Follows the player's inventory and the citizen's, and checks the citizen's own changes. */
     private void start(Store<EntityStore> store, Ref<EntityStore> ref) {
         watch = InventoryWatch.start(
                 store,
@@ -117,54 +125,20 @@ final class CitizenInventoryPage extends InteractiveCustomUIPage<CitizenInventor
                 redraw::soon,
                 setup.main().getItemContainer(),
                 setup.armor().getItemContainer());
-        setup.camera().follow();
-        check = HytaleServer.SCHEDULED_EXECUTOR.scheduleAtFixedRate(
-                this::queueCheck, CHECK_MILLIS, CHECK_MILLIS, TimeUnit.MILLISECONDS);
+        checks.start();
     }
 
     /**
-     * Queues a check on the world thread; a world that refuses it (stopped) ends the checks, and the following stops
-     * on the player's world. Scheduler thread.
-     */
-    private void queueCheck() {
-        try {
-            setup.world().execute(this::checkNow);
-        } catch (RuntimeException e) {
-            LOG.at(Level.FINE).withCause(e).log("HyColony: citizen inventory checks end with their world");
-            stopOnPlayersWorld();
-            throw e; // a periodic task that throws is never run again (ScheduledExecutorService)
-        }
-    }
-
-    /**
-     * The page's world is stopped: stops following on the world the player is in now, where its inventory lives (the
-     * watch also listens to the citizen's containers, whose world no longer runs). Nothing for a player gone, or for a
-     * reference read stale off the world thread: the watch then stays, harmless, as the page is no longer shown. Never
-     * throws.
-     */
-    private void stopOnPlayersWorld() {
-        try {
-            Ref<EntityStore> ref = playerRef.getReference();
-            if (ref != null && ref.isValid()) {
-                ref.getStore().getExternalData().getWorld().execute(this::stopFollowing);
-            }
-        } catch (RuntimeException e) {
-            LOG.at(Level.FINE).withCause(e).log("HyColony: citizen inventory watch left to its player");
-        }
-    }
-
-    /**
-     * The camera follows the citizen; the page is redrawn when its AI changed what it carries or wears. A page no
-     * longer shown without a dismissal (a world change, a disconnection) stops following and gives the camera back
-     * ({@link CitizenPreviewCamera#stop}).
+     * Redraws the page when the citizen's AI changed what it carries or wears, or its side panel changed (health,
+     * defense, hunger, hands). A page no longer shown without a dismissal (a world change, a disconnection) stops
+     * following.
      */
     private void checkNow() {
         if (!isShown()) {
             stopFollowing();
             return;
         }
-        setup.camera().follow();
-        if (coreChanges() != drawnChanges) {
+        if (coreChanges() != drawnChanges || !setup.panel().get().equals(drawnPanel)) {
             redraw.soon();
         }
     }
@@ -178,8 +152,13 @@ final class CitizenInventoryPage extends InteractiveCustomUIPage<CitizenInventor
     @Override
     public void handleDataEvent(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, @Nonnull Act act) {
         PageEvents.guard(getClass(), () -> {
-            if (InventoryGrids.DROP_ACTION.equals(act.action)) {
-                drop(ref, store, act.drop); // the move changes the containers, and the watch redraws once
+            // The moves change the containers, and the watch redraws once.
+            switch (act.action) {
+                case InventoryGrids.DROP_ACTION -> drop(ref, store, act.drop);
+                case PlayerPanels.SORT_ACTION -> PlayerPanels.sort(store, ref);
+                default ->
+                    CitizenSlotsActions.apply(
+                            act.action, ref, store, setup.main().getId());
             }
         });
     }
@@ -197,8 +176,8 @@ final class CitizenInventoryPage extends InteractiveCustomUIPage<CitizenInventor
     }
 
     /**
-     * Stops following and gives the camera back, then closes the citizen's windows at the world's next task, after
-     * the client's own close of them when it dismissed the page (HeldWindows.closeLater). Never throws.
+     * Stops following, then closes the citizen's windows at the world's next task, after the client's own close of
+     * them when it dismissed the page (HeldWindows.closeLater). Never throws.
      */
     @Override
     public void onDismiss(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
@@ -208,19 +187,14 @@ final class CitizenInventoryPage extends InteractiveCustomUIPage<CitizenInventor
         super.onDismiss(ref, store);
     }
 
-    /** Stops watching the inventories and checking, and gives the camera back; once is enough. */
+    /** Stops watching the inventories and checking; once is enough. */
     private void stopFollowing() {
         InventoryWatch current = watch;
         watch = null;
         if (current != null) {
             current.stop();
         }
-        ScheduledFuture<?> timer = check;
-        check = null;
-        if (timer != null) {
-            timer.cancel(false);
-        }
-        setup.camera().stop();
+        checks.cancel();
     }
 
     Setup setup() {

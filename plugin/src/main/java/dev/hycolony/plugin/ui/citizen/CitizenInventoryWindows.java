@@ -9,16 +9,14 @@ import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.app.ColonyManager;
+import dev.hycolony.core.app.view.CitizenInventoryView;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.colony.ColonyEvents;
-import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.plugin.item.HytaleStacks;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BooleanSupplier;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
@@ -32,15 +30,11 @@ public final class CitizenInventoryWindows {
     private record Open(int colonyId, CitizenInventoryPage page) {}
 
     private final Supplier<ColonyManager> manager;
-    private final Function<BodyId, Optional<Ref<EntityStore>>> bodies;
     private final List<Open> open = new ArrayList<>();
     private boolean subscribed;
 
-    /** {@code bodies}: a citizen body's loaded entity, for the camera that shows it. */
-    public CitizenInventoryWindows(
-            Supplier<ColonyManager> manager, Function<BodyId, Optional<Ref<EntityStore>>> bodies) {
+    public CitizenInventoryWindows(Supplier<ColonyManager> manager) {
         this.manager = manager;
-        this.bodies = bodies;
     }
 
     /**
@@ -48,9 +42,6 @@ public final class CitizenInventoryWindows {
      * citizen's window, with a window on its 27 slots and one on its armour beside it
      * (PageManager.openCustomPageWithWindows, as HyDomum's cutter). The core checked the permission; an offline player
      * or a gone citizen is ignored.
-     *
-     * <p>Deviation from MC: our own page, not the game's container screen, so that the camera can show the citizen:
-     * Hytale's container screen imposes its camera (citizen-inventory-window.md § 9).
      */
     public void open(UUID player, int colonyId, int citizenId) {
         PlayerRef pr = Universe.get().getPlayer(player);
@@ -84,13 +75,6 @@ public final class CitizenInventoryWindows {
                 .flatMap(c -> c.citizens().get(citizen.id()))
                 .isPresent();
         CitizenItemContainer.Owner owner = new CitizenItemContainer.Owner(citizen, colonyId, alive);
-        CitizenPreviewCamera camera = new CitizenPreviewCamera(
-                player,
-                world,
-                () -> manager.get()
-                        .byId(colonyId)
-                        .flatMap(c -> c.citizens().bodyOf(citizen.id()))
-                        .flatMap(bodies));
         return new CitizenInventoryPage(
                 player,
                 new CitizenInventoryPage.Setup(
@@ -98,16 +82,22 @@ public final class CitizenInventoryWindows {
                         citizen,
                         window(owner, CitizenInventoryPart.MAIN),
                         window(owner, CitizenInventoryPart.ARMOR),
-                        camera));
+                        () -> manager.get()
+                                .byId(colonyId)
+                                .filter(c -> c.citizens().get(citizen.id()).isPresent())
+                                .map(c -> CitizenInventoryView.of(c, citizen)),
+                        stacks()));
+    }
+
+    /** Hytale stacks of the core's items, at the durability their wear leaves. */
+    private HytaleStacks stacks() {
+        return new HytaleStacks(manager.get().context().ports().catalog()::durability);
     }
 
     /** A window on {@code part} of the owner's inventory; the client gets its state on open. */
     private CitizenInventoryWindow window(CitizenItemContainer.Owner owner, CitizenInventoryPart part) {
-        CitizenItemContainer container = new CitizenItemContainer(
-                owner,
-                part,
-                () -> manager.get().citizenInventories(),
-                new HytaleStacks(manager.get().context().ports().catalog()::durability));
+        CitizenItemContainer container =
+                new CitizenItemContainer(owner, part, () -> manager.get().citizenInventories(), stacks());
         CitizenInventoryWindow window = new CitizenInventoryWindow(container, owner, part);
         window.coreChanged(); // the client gets the current state on open, no need to send it twice
         return window;

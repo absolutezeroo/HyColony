@@ -1,65 +1,237 @@
 $C = "../../Common.ui";
 
-// A citizen's inventory (MC WindowCitizenInventory, textures/gui/citizen_container.png), MC positions and sizes
-// doubled: the citizen's name, its 27 slots, the frame where the server camera shows it, its 4 armour slots, then
-// "Inventory" and the player's storage and hotbar. The background is composed by tools/ui/citizen_inventory.py; the
-// grids sit on its slots, so they draw no slot of their own.
+// A citizen's inventory, laid out as Hytale's own inventory at the player's request (client InventoryPage.ui,
+// CharacterPanel.ui, ContainerPanel.ui): on the left the citizen's name, its 4 armour slots, the slots its hands hold and
+// its stats; on the right its 27 slots under the take all, put all and quick stack buttons, then the player's storage
+// and hotbar (HyBlockUI PlayerStoragePanel, drawn into #Storage). Native textures: ../HyBlockUI/Native/.
 
-@McSlot = 36;
-@McGridStyle = (
-  SlotSize: @McSlot,
-  SlotIconSize: 32,
-  SlotSpacing: 0,
+@Slot = 74;
+@GridStyle = (
+  SlotSize: @Slot,
+  SlotIconSize: 64,
+  SlotSpacing: 2,
+  SlotBackground: "../HyBlockUI/Native/Slot.png",
   DurabilityBar: "../HyBlockUI/Native/DurabilityBar.png",
   DurabilityBarBackground: "../HyBlockUI/Native/DurabilityBarBackground.png",
-  DurabilityBarAnchor: (Bottom: 4, Left: 4, Width: 28, Height: 2),
+  DurabilityBarAnchor: (Bottom: 10, Left: 13, Width: 48, Height: 2),
   DurabilityBarColorStart: #a63232,
   DurabilityBarColorEnd: #63b649
 );
-@McGrid = ItemGrid {
-  AreItemsDraggable: true;
-  DisplayItemQuantity: true;
-  Style: @McGridStyle;
+
+// Drawn over the armour grid, shown only on an empty slot, as the client does; clicks go through.
+@ArmorIcon = Group {
+  @Column = 0;
+
+  HitTestVisible: false;
+  Anchor: (Width: 64, Height: 64, Left: 7 + 76 * @Column, Top: 7);
 };
-@McLabel = LabelStyle(FontSize: 15, TextColor: #404040, VerticalAlignment: Center);
+
+@HandLabel = Label {
+  Anchor: (Width: 76, Height: 20);
+  Style: (TextColor: #878e9c, FontSize: 11, Alignment: Center);
+};
+
+// The client's stats block (CharacterPanel.ui #Stats): an icon on its round background, a name and a value.
+@StatIcon = Group {
+  Anchor: (Width: 35, Height: 35);
+  Background: "../HyBlockUI/Native/CharacterPanelStatIconBackground.png";
+};
+
+@StatName = Label {
+  Anchor: (Top: 1);
+  Style: (TextColor: #878e9c, FontSize: 11, RenderBold: false);
+};
+
+@StatValue = Label {
+  Anchor: (Top: -1);
+  Style: (TextColor: #b4c8c9, FontSize: 14, RenderBold: true);
+};
+
+@StatText = Group {
+  Anchor: (Left: 10);
+  LayoutMode: Middle;
+  FlexWeight: 1;
+};
+
+// A title bar button of the client's container panel (Container.ui @ActionButtonWidth 40, icon 24).
+@ActionButton = Button {
+  Anchor: (Width: 40, Right: 4);
+};
+
+@ActionIcon = Group {
+  Anchor: (Width: 24, Height: 24);
+};
 
 $C.@PageOverlay {
   LayoutMode: Middle;
 
   Group {
-    Anchor: (Width: 490, Height: 344);
-    Background: "Mc/citizen_inventory.png";
+    LayoutMode: Left;
+    Anchor: (Width: 1163);
 
-    Label #Name {
-      Anchor: (Left: 160, Top: 10, Width: 180, Height: 28);
-      Style: @McLabel;
-      Text: "";
+    $C.@DecoratedContainer #CitizenPanel {
+      Anchor: (Width: 410, Height: 470);
+
+      #Title {
+        $C.@Title #Name {
+          @Text = "";
+        }
+      }
+
+      #Content {
+        LayoutMode: Top;
+
+        Group {
+          LayoutMode: Center;
+          Anchor: (Height: 78);
+
+          Group {
+            Anchor: (Width: 308, Height: 78);
+
+            ItemGrid #ArmorSlots {
+              Anchor: (Full: 0);
+              SlotsPerRow: 4;
+              AreItemsDraggable: true;
+              RenderItemQualityBackground: true;
+              Style: @GridStyle;
+              Padding: 2;
+            }
+
+            @ArmorIcon #ArmorIconHead { @Column = 0; Background: "../HyBlockUI/Native/ArmorSlotIconHead.png"; }
+            @ArmorIcon #ArmorIconChest { @Column = 1; Background: "../HyBlockUI/Native/ArmorSlotIconChest.png"; }
+            @ArmorIcon #ArmorIconHands { @Column = 2; Background: "../HyBlockUI/Native/ArmorSlotIconHands.png"; }
+            @ArmorIcon #ArmorIconLegs { @Column = 3; Background: "../HyBlockUI/Native/ArmorSlotIconLegs.png"; }
+          }
+        }
+
+        // The slots the hands hold (MC InventoryCitizen.getHeldItem), shown only: a hand is a slot of the 27.
+        Group {
+          LayoutMode: Center;
+          Anchor: (Height: 78, Top: 16);
+
+          ItemGrid #HeldSlots {
+            Anchor: (Width: 156, Height: 78);
+            SlotsPerRow: 2;
+            AreItemsDraggable: false;
+            DisplayItemQuantity: true;
+            RenderItemQualityBackground: true;
+            Style: @GridStyle;
+            Padding: 2;
+          }
+        }
+
+        Group {
+          LayoutMode: Center;
+          Anchor: (Height: 20);
+
+          @HandLabel { Text: %hycolony.ui.citizenInventory.mainHand; }
+          @HandLabel { Text: %hycolony.ui.citizenInventory.offHand; }
+        }
+
+        Group #Stats {
+          Background: (TexturePath: "../../Common/ContainerPanelPatch.png", Border: 4);
+          Anchor: (Height: 135, Top: 20);
+          Padding: (Horizontal: 10);
+          LayoutMode: Top;
+
+          Label {
+            Text: %hycolony.ui.citizenInventory.stats;
+            Anchor: (Top: 8);
+            Style: (TextColor: #878e9c, FontSize: 14, RenderBold: true, RenderUppercase: true);
+          }
+
+          Group {
+            LayoutMode: Left;
+            Anchor: (Height: 50, Top: 5);
+
+            @StatIcon {
+              Group { Background: "../HyBlockUI/Native/CharacterPanelStatIconHealth.png"; }
+            }
+            @StatText {
+              @StatName { Text: %hycolony.ui.citizenInventory.health; }
+              @StatValue #Health {}
+            }
+
+            @StatIcon {
+              Group { Background: "../HyBlockUI/Native/CharacterPanelStatIconArmor.png"; }
+            }
+            @StatText {
+              @StatName { Text: %hycolony.ui.citizenInventory.defense; }
+              @StatValue #Defense {}
+            }
+          }
+
+          Group {
+            Anchor: (Height: 2);
+            Background: #c1c9d3(0.07);
+          }
+
+          Group {
+            LayoutMode: Left;
+            Anchor: (Height: 50);
+
+            @StatIcon {
+              // MC's food icon (citizen/full.png), Hytale having none for hunger.
+              Group { Anchor: (Left: 7, Top: 7, Width: 21, Height: 21); Background: "Mc/full.png"; }
+            }
+            @StatText {
+              @StatName { Text: %hycolony.ui.citizenInventory.hunger; }
+              @StatValue #Hunger {}
+            }
+
+            Group { FlexWeight: 1; }
+          }
+        }
+      }
     }
 
-    @McGrid #CitizenSlots {
-      Anchor: (Left: 14, Top: 44, Width: 324, Height: 108);
-      SlotsPerRow: 9;
-    }
+    Group {
+      LayoutMode: Top;
+      Anchor: (Width: 715, Left: 38);
 
-    @McGrid #ArmorSlots {
-      Anchor: (Left: 444, Top: 44, Width: 36, Height: 144);
-      SlotsPerRow: 1;
-    }
+      $C.@Container #CitizenStorage {
+        Anchor: (Width: 715);
 
-    Label {
-      Anchor: (Left: 16, Top: 152, Width: 300, Height: 24);
-      Style: @McLabel;
-      Text: %hycolony.ui.citizenInventory.inventory;
-    }
+        #Title {
+          LayoutMode: Left;
 
-    @McGrid #PlayerStorage {
-      Anchor: (Left: 14, Top: 178, Width: 324, Height: 108);
-      SlotsPerRow: 9;
-    }
+          Group { FlexWeight: 1; }
 
-    @McGrid #PlayerHotbar {
-      Anchor: (Left: 14, Top: 294, Width: 324, Height: 36);
-      SlotsPerRow: 9;
+          @ActionButton #TakeAllButton {
+            TooltipText: %hycolony.ui.citizenInventory.takeAll;
+            @ActionIcon { Background: "../HyBlockUI/Native/TakeAll.png"; }
+          }
+
+          @ActionButton #PutAllButton {
+            TooltipText: %hycolony.ui.citizenInventory.putAll;
+            @ActionIcon { Background: "../HyBlockUI/Native/PutAll.png"; }
+          }
+
+          @ActionButton #QuickStackButton {
+            Anchor: (Width: 40, Right: 7);
+            TooltipText: %hycolony.ui.citizenInventory.quickStack;
+            @ActionIcon { Background: "../HyBlockUI/Native/QuickStack.png"; }
+          }
+        }
+
+        #Content {
+          LayoutMode: Top;
+
+          ItemGrid #CitizenSlots {
+            Anchor: (Width: 686, Height: 230);
+            SlotsPerRow: 9;
+            AreItemsDraggable: true;
+            DisplayItemQuantity: true;
+            RenderItemQualityBackground: true;
+            Style: @GridStyle;
+            Padding: 2;
+          }
+        }
+      }
+
+      Group #Storage {
+        Anchor: (Top: 16);
+      }
     }
   }
 }

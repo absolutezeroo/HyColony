@@ -37,6 +37,11 @@ abstract class ForwardingBodies implements CitizenBodies {
     }
 
     @Override
+    public int defensePercent(BodyId body) {
+        return bodies.defensePercent(body);
+    }
+
+    @Override
     public Optional<Vec3> position(BodyId body) {
         return bodies.position(body);
     }

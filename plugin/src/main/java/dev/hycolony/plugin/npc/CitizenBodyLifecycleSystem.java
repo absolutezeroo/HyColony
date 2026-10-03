@@ -49,7 +49,7 @@ public final class CitizenBodyLifecycleSystem extends RefSystem<EntityStore> {
             WorldRuntime rt = runtimes.of(world);
             CitizenTag tag = store.getComponent(ref, HyColonyComponents.citizenTag());
             if (rt != null && rt.enabled() && tag != null) {
-                BodyId body = rt.bodies().track(ref);
+                BodyId body = rt.bodies().refs().track(ref);
                 // The store is processing this load: binding wakes the citizen, which writes to the store, and a
                 // write here throws (Store.assertWriteProcessing). The core binds it once the store is free, from the
                 // world's task queue, before the next colony tick for a chunk load. A body re-added within a tick (an
@@ -72,7 +72,7 @@ public final class CitizenBodyLifecycleSystem extends RefSystem<EntityStore> {
         try {
             if (rt.equals(runtimes.of(world))
                     && rt.enabled()
-                    && rt.bodies().entity(body).isPresent()) {
+                    && rt.bodies().refs().entity(body).isPresent()) {
                 rt.manager().onBodyLoaded(body, colonyId, citizenId);
             }
         } catch (RuntimeException e) {
@@ -91,7 +91,7 @@ public final class CitizenBodyLifecycleSystem extends RefSystem<EntityStore> {
             if (rt == null) {
                 return;
             }
-            Optional<BodyId> body = rt.bodies().untrack(ref); // always, or its entry would stay behind
+            Optional<BodyId> body = rt.bodies().refs().untrack(ref); // always, or its entry would stay behind
             CitizenTag tag = store.getComponent(ref, HyColonyComponents.citizenTag());
             if (tag != null) {
                 body.ifPresent(id -> rt.manager().onBodyUnloaded(id, tag.colonyId()));

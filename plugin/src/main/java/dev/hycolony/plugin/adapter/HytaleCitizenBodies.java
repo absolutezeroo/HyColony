@@ -29,21 +29,19 @@ import dev.hycolony.plugin.npc.CitizenTag;
 import dev.hycolony.plugin.npc.HyColonyComponents;
 import dev.hycolony.plugin.npc.HyColonySeek;
 import dev.hycolony.plugin.npc.MoveTarget;
+import dev.hycolony.plugin.npc.body.BodyDefense;
 import dev.hycolony.plugin.npc.body.BodyGestures;
+import dev.hycolony.plugin.npc.body.BodyRefs;
 import dev.hycolony.plugin.npc.body.BodySpeeds;
 import dev.hycolony.plugin.npc.body.BodyVitals;
 import dev.hycolony.plugin.npc.body.CitizenSpeed;
 import dev.hycolony.plugin.npc.body.HytaleBodyHealth;
 import dev.hycolony.plugin.npc.body.HytaleBodySeats;
-import java.util.HashMap;
-import java.util.IdentityHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.LongSupplier;
 import java.util.logging.Level;
 import org.joml.Vector3d;
-import org.jspecify.annotations.Nullable;
 
 /** CitizenBodies over Hytale NPCs. World thread only. */
 public final class HytaleCitizenBodies implements CitizenBodies {
@@ -61,9 +59,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
     private final HytaleBodyHealth health;
     private final HytaleBodySeats seats;
     private final HytaleStacks stacks;
-    private final Map<Long, Ref<EntityStore>> refs = new HashMap<>();
-    private final IdentityHashMap<Ref<EntityStore>, Long> ids = new IdentityHashMap<>();
-    private long nextId = 1;
+    private final BodyRefs refs = new BodyRefs();
     private boolean speedWarned;
 
     /**
@@ -79,8 +75,8 @@ public final class HytaleCitizenBodies implements CitizenBodies {
         this.teleporter = new BodyTeleport(world);
         this.beds = new CitizenBeds(world, teleporter);
         this.vitals = new BodyVitals(world, coreTicks);
-        this.health = new HytaleBodyHealth(world, this::entity, vitals, speeds);
-        this.seats = new HytaleBodySeats(world, this::entity);
+        this.health = new HytaleBodyHealth(world, refs::entity, vitals, speeds);
+        this.seats = new HytaleBodySeats(world, refs::entity);
     }
 
     /** The bodies' health port, on the same Health stats and speeds as these bodies. */
@@ -97,29 +93,9 @@ public final class HytaleCitizenBodies implements CitizenBodies {
         return world.getEntityStore().getStore();
     }
 
-    public BodyId track(Ref<EntityStore> ref) {
-        Long existing = ids.get(ref);
-        if (existing != null) {
-            return new BodyId(existing);
-        }
-        long id = nextId++;
-        refs.put(id, ref);
-        ids.put(ref, id);
-        return new BodyId(id);
-    }
-
-    public Optional<BodyId> untrack(Ref<EntityStore> ref) {
-        Long id = ids.remove(ref);
-        if (id == null) {
-            return Optional.empty();
-        }
-        refs.remove(id);
-        return Optional.of(new BodyId(id));
-    }
-
-    /** The loaded entity of {@code body}; empty once gone. */
-    public Optional<Ref<EntityStore>> entity(BodyId body) {
-        return Optional.ofNullable(ref(body));
+    /** The bodies' entities, tracked under their ids. */
+    public BodyRefs refs() {
+        return refs;
     }
 
     /**
@@ -127,7 +103,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
      * the NPC); a walker walks again once the nav is no longer moving.
      */
     public void haltAll() {
-        for (Ref<EntityStore> ref : refs.values()) {
+        for (Ref<EntityStore> ref : refs.all()) {
             if (ref.isValid()) {
                 MoveTarget mt = store().getComponent(ref, HyColonyComponents.moveTarget());
                 if (mt != null) {
@@ -135,11 +111,6 @@ public final class HytaleCitizenBodies implements CitizenBodies {
                 }
             }
         }
-    }
-
-    private @Nullable Ref<EntityStore> ref(BodyId body) {
-        Ref<EntityStore> ref = refs.get(body.value());
-        return ref != null && ref.isValid() ? ref : null;
     }
 
     @Override
@@ -169,24 +140,30 @@ public final class HytaleCitizenBodies implements CitizenBodies {
             LOG.at(Level.FINE).log("HyColony: cannot spawn a citizen in the column of %s: %s", near, result);
             return Optional.empty();
         }
-        return Optional.of(track(spawned[0]));
+        return Optional.of(refs.track(spawned[0]));
     }
 
     @Override
     public boolean isAlive(BodyId body) {
-        return ref(body) != null;
+        return refs.ref(body) != null;
     }
 
     /** The NPC's Health stat ({@code DefaultEntityStatTypes.getHealth}) in percent of its range; 0 without one. */
     @Override
     public int healthPercent(BodyId body) {
-        Ref<EntityStore> ref = ref(body);
+        Ref<EntityStore> ref = refs.ref(body);
         return ref == null ? 0 : vitals.percent(ref);
     }
 
     @Override
+    public int defensePercent(BodyId body) {
+        Ref<EntityStore> ref = refs.ref(body);
+        return ref == null ? 0 : BodyDefense.percent(world, store(), ref);
+    }
+
+    @Override
     public Optional<Vec3> position(BodyId body) {
-        Ref<EntityStore> ref = ref(body);
+        Ref<EntityStore> ref = refs.ref(body);
         if (ref == null) {
             return Optional.empty();
         }
@@ -197,7 +174,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
 
     @Override
     public void moveTo(BodyId body, Vec3 target) {
-        Ref<EntityStore> ref = ref(body);
+        Ref<EntityStore> ref = refs.ref(body);
         if (ref == null) {
             return;
         }
@@ -214,7 +191,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
     /** The waypoints its HyColonySeek still walks; empty for another body motion, or an unknown body. */
     @Override
     public List<Vec3> path(BodyId body) {
-        Ref<EntityStore> ref = ref(body);
+        Ref<EntityStore> ref = refs.ref(body);
         Role role = ref == null ? null : BodyTeleport.role(store(), ref);
         return role != null && role.getLastBodySteeringMotion() instanceof HyColonySeek seek
                 ? seek.waypoints()
@@ -223,7 +200,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
 
     @Override
     public NavStatus navStatus(BodyId body) {
-        Ref<EntityStore> ref = ref(body);
+        Ref<EntityStore> ref = refs.ref(body);
         if (ref == null) {
             return NavStatus.FAILED;
         }
@@ -255,7 +232,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
 
     @Override
     public void setDisplayName(BodyId body, String name) {
-        Ref<EntityStore> ref = ref(body);
+        Ref<EntityStore> ref = refs.ref(body);
         if (ref != null) {
             DisplayNameSupport.setDisplayName(ref, name, store());
         }
@@ -264,7 +241,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
     /** Through {@link CitizenSpeed}'s speed effects; never throws (first failure WARNING, then FINE). */
     @Override
     public void setMovementSpeed(BodyId body, double factor) {
-        Ref<EntityStore> ref = ref(body);
+        Ref<EntityStore> ref = refs.ref(body);
         if (ref == null) {
             return;
         }
@@ -278,9 +255,9 @@ public final class HytaleCitizenBodies implements CitizenBodies {
 
     @Override
     public void despawn(BodyId body) {
-        Ref<EntityStore> ref = ref(body);
+        Ref<EntityStore> ref = refs.ref(body);
         if (ref != null) {
-            untrack(ref);
+            refs.untrack(ref);
             // Deferred: despawn can run inside a store's processing (a system, an event handler), where
             // removeEntity throws "Store is currently processing".
             world.execute(() -> {
@@ -294,7 +271,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
     /** See {@link BodyGestures#hold}. */
     @Override
     public void setHeldItem(BodyId body, Optional<ItemKey> item) {
-        Ref<EntityStore> ref = ref(body);
+        Ref<EntityStore> ref = refs.ref(body);
         if (ref != null) {
             BodyGestures.hold(ref, item, store());
         }
@@ -303,7 +280,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
     /** See {@link BodyGestures#wear}. */
     @Override
     public void setArmor(BodyId body, List<Optional<ItemAmount>> pieces) {
-        Ref<EntityStore> ref = ref(body);
+        Ref<EntityStore> ref = refs.ref(body);
         if (ref != null) {
             BodyGestures.wear(ref, pieces, store(), stacks);
         }
@@ -312,7 +289,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
     /** See {@link BodyGestures#animate}. */
     @Override
     public void playAnimation(BodyId body, BodyAnimation animation) {
-        Ref<EntityStore> ref = ref(body);
+        Ref<EntityStore> ref = refs.ref(body);
         if (ref != null) {
             BodyGestures.animate(ref, animation, store());
         }
@@ -321,7 +298,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
     /** Ends the walk, then {@link BodyGestures#lookAt}. */
     @Override
     public void lookAt(BodyId body, Vec3 target) {
-        Ref<EntityStore> ref = ref(body);
+        Ref<EntityStore> ref = refs.ref(body);
         if (ref == null) {
             return;
         }
@@ -335,7 +312,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
     /** MC PathingStuckHandler.completeStuckAction (teleport near the goal), see {@link BodyTeleport}. */
     @Override
     public void teleport(BodyId body, Vec3 target) {
-        Ref<EntityStore> ref = ref(body);
+        Ref<EntityStore> ref = refs.ref(body);
         if (ref != null) {
             teleporter.teleport(ref, target);
         }
@@ -344,19 +321,19 @@ public final class HytaleCitizenBodies implements CitizenBodies {
     /** Hytale's bed mount, see {@link CitizenBeds}; false for an unknown body. */
     @Override
     public boolean sleepIn(BodyId body, BlockPos bed) {
-        Ref<EntityStore> ref = ref(body);
+        Ref<EntityStore> ref = refs.ref(body);
         return ref != null && beds.sleepIn(ref, bed);
     }
 
     @Override
     public boolean isInBed(BodyId body) {
-        Ref<EntityStore> ref = ref(body);
+        Ref<EntityStore> ref = refs.ref(body);
         return ref != null && beds.isInBed(ref);
     }
 
     @Override
     public void wakeUp(BodyId body) {
-        Ref<EntityStore> ref = ref(body);
+        Ref<EntityStore> ref = refs.ref(body);
         if (ref != null) {
             beds.wakeUp(ref);
         }

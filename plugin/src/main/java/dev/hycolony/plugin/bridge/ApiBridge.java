@@ -72,7 +72,7 @@ public final class ApiBridge implements HyColonyApi {
             return rt.manager()
                     .byId(citizen.colony().colonyId())
                     .flatMap(c -> c.citizens().bodyOf(citizen.citizenId()))
-                    .flatMap(rt.bodies()::entity);
+                    .flatMap(rt.bodies().refs()::entity);
         });
     }
 

@@ -48,6 +48,11 @@ public final class GuardedBodies implements CitizenBodies {
     }
 
     @Override
+    public int defensePercent(BodyId body) {
+        return guard("defensePercent", () -> bodies.defensePercent(body), 0);
+    }
+
+    @Override
     public Optional<Vec3> position(BodyId body) {
         return guard("position", () -> bodies.position(body), Optional.empty());
     }

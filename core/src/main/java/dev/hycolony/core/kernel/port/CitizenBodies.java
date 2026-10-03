@@ -21,6 +21,12 @@ public interface CitizenBodies {
     /** The body's health in percent of its maximum, rounded down; 0 for a body not alive in a loaded world. */
     int healthPercent(BodyId body);
 
+    /**
+     * The share of physical damage the armour the body wears takes off, in percent rounded down, as the game's own
+     * armour reduction counts it; 0 for a body not alive in a loaded world.
+     */
+    int defensePercent(BodyId body);
+
     Optional<Vec3> position(BodyId body);
 
     void moveTo(BodyId body, Vec3 target);

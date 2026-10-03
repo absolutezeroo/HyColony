@@ -13,6 +13,5 @@ ExcessiveImports plugin/src/main/java/dev/hycolony/plugin/WorldRuntime.java
 ExcessiveImports plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleCitizenBodies.java
 ExcessiveImports plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleUiPort.java
 ExcessiveImports plugin/src/main/java/dev/hycolony/plugin/command/HyColonyCommand.java
-GodClass plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleCitizenBodies.java
 GodClass plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleItemCatalog.java
 NPathComplexity plugin/src/main/java/dev/hycolony/plugin/adapter/HytaleItemCatalog.java
