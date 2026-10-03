@@ -219,7 +219,7 @@ Pour que les citoyens puissent mourir, il faut retirer `"Invulnerable": true`. I
 
 ### Plugin (`plugin/`)
 
-- `CitizenDeathSystem extends DeathSystems.OnDeathSystem`, requête `citizenTag()`. Dans `onComponentAdded` : attrape `RuntimeException` (SEVERE), trouve le runtime du monde, `bodies().track(ref)` ou l'id existant, lit la position (`TransformComponent`), puis appelle `manager().onBodyDied(id, pos)` (le cœur retrouve la colonie par le tag, comme `onBodyLoaded`).
+- `CitizenDeathSystem extends DeathSystems.OnDeathSystem`, requête `citizenTag()`. Dans `onComponentAdded` : attrape `RuntimeException` (SEVERE), trouve le runtime du monde, `bodies().refs().track(ref)` ou l'id existant, lit la position (`TransformComponent`), puis appelle `manager().onBodyDied(id, pos)` (le cœur retrouve la colonie par le tag, comme `onBodyLoaded`).
 - `HytaleWorldItems.drop` : convertit en `ItemStack` et appelle `ItemComponent.generateItemDrops(store, stacks, pos + (0, 1, 0), rotation)`. L'ajout passe par `world.execute(() -> store.addEntities(drops, AddReason.SPAWN))` : le cœur est appelé pendant le traitement du store, où les changements structurels lèvent une exception (même contrainte que `despawn`/`teleport`).
 - Le cadavre reste géré par vanilla (`CorpseRemoval`, animation 1,5 s). Son `onEntityRemove` (`REMOVE`) arrive ensuite. Si le cœur a déjà délié le corps, `onBodyUnloaded` ne trouve rien et ne fait rien. `HytaleCitizenBodies.isAlive` doit rester `true` jusque-là : sans effet, puisque le citoyen n'est plus dans le cœur.
 - Rôle : retirer `"Invulnerable": true` seulement avec le filtre `HURT_CITIZEN` (2.4).
