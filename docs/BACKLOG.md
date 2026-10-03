@@ -78,7 +78,7 @@ Les corrections de l'audit sont commitées : bugs, socle des métiers (`job/work
   - `RequestsPage` et `CitizenRequestsTab` choisissent la fenêtre à ré-afficher après « Fournir » ;
   - identifiants d'assets hors des id-maps (`Immunity_Fire`, `Physical`, les types de récolte, `Soil_Dirt_Tilled`, `Tool_Fertilizer`, `Block_Spawner_Block`) et descriptions des commandes en anglais brut.
 - **HyDomum** : les règles du cutter (plafond de fabrications, prise dans les emplacements, file de fabrication) sont dans `domum/plugin`, sans test ; les remonter dans `domum/core`. Reporté tant qu'une autre session travaille sur HyDomum.
-- **Outils Python** : une seule recherche d'`Assets.zip` (trois copies, dont une sur `release/latest` au lieu de la version épinglée), un paquet `tools/common` au lieu des `sys.path.append`, les racines du validateur d'assets en un seul endroit (Python et Kotlin divergent déjà).
+- **Outils Python** : une seule recherche d'`Assets.zip` (trois copies, dont une sur `release/latest` au lieu de la version épinglée), un paquet `tools/blockpaint` au lieu des `sys.path.append`, les racines du validateur d'assets en un seul endroit (Python et Kotlin divergent déjà).
 
 ## En cours ou prochain
 

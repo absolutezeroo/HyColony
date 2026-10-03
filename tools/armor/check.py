@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 
 TOOLS = Path(__file__).resolve().parents[1]
-sys.path += [str(TOOLS / "common"), str(TOOLS / "huts")]
+sys.path += [str(TOOLS / "blockpaint"), str(TOOLS / "huts")]
 from arms import ARMS  # noqa: E402
 from finish import PICTURES, STEMS, material  # noqa: E402
 from models import bounds, multiply, placed, rotate, walk  # noqa: E402

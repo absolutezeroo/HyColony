@@ -14,7 +14,7 @@ from pathlib import Path
 from PIL import Image
 
 TOOLS = Path(__file__).resolve().parents[1]
-sys.path.append(str(TOOLS / "common"))
+sys.path.append(str(TOOLS / "blockpaint"))
 from generate import FOLDER, RESOURCES  # noqa: E402
 from models import add, empty_shape, multiply, node, placed, rotate, walk  # noqa: E402
 from pack import GRADLE_ASSETS, Assets, rounded  # noqa: E402

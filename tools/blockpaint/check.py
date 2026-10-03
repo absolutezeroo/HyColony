@@ -1,13 +1,15 @@
-"""Checks of the shared model tools: python tools/common/check.py (no assets needed). An AssertionError names the
-case."""
+"""Checks of blockpaint: python tools/blockpaint/check.py (no assets needed). An AssertionError names the case."""
 
 import math
 import unittest
+from types import SimpleNamespace
 
 from PIL import Image
 
 import bake
 import cull
+import glint
+import trim
 from icons import screen, turned, turned_shade
 from models import bounds, box_shape, empty_shape, face_rects, face_span, node, placed, unwrap
 from paint import bleed
@@ -361,6 +363,93 @@ class CullTest(unittest.TestCase):
         nodes = [node("A", (0, 2, 0), box_shape((4, 4, 4), SIDES)),
                  node("B", (4, 2, 0), box_shape((4, 4, 4), tuple(s for s in SIDES if s != "bottom")))]
         self.assertIn(("A", "right"), cull.cull(nodes))
+
+
+def gem_model():
+    """A shaft and one gem, unwrapped."""
+    nodes = [node("Shaft", (0, 0, 0), box_shape((4, 8, 4), ("front", "back"))),
+             node("Gem", (0, 6, 0), box_shape((2, 2, 2), SIDES))]
+    return nodes, unwrap(nodes)
+
+
+class GlintTest(unittest.TestCase):
+    def test_frames_copy_only_the_gem_islands_below_with_the_glint_moving_across(self):
+        nodes, size = gem_model()
+        image = Image.new("RGBA", size, (40, 90, 160, 255))
+        out, step = glint.frames(image, nodes, "Gem")
+        self.assertEqual(0, out.height % 32)
+        self.assertGreaterEqual(step, image.height)
+        self.assertEqual(image.tobytes(), out.crop((0, 0, *size)).tobytes())
+        u, v, w, h = next((u, v, w, h) for name, side, u, v, w, h in glint.islands(nodes)
+                          if name == "Gem" and side == "front")
+        lit = [[out.getpixel((u + x, v + y + k * step)) != (40, 90, 160, 255) for x in range(w) for y in range(h)]
+               for k in range(1, glint.GLINT_FRAMES + 1)]
+        self.assertTrue(all(any(frame) for frame in lit))
+        self.assertNotEqual(lit[0], lit[-1])
+        for _, _, u, v, w, h in (r for r in glint.islands(nodes) if r[0] == "Shaft"):
+            for k in range(1, glint.GLINT_FRAMES + 1):
+                below = out.crop((u, v + k * step, u + w, v + h + k * step))
+                self.assertEqual((0, 0), below.getextrema()[3], f"Shaft copied in frame {k}")
+
+    def test_the_flipbook_holds_each_frame_and_ends_on_the_plain_islands(self):
+        keys = glint.flipbook(10)
+        times = [k["time"] for k in keys]
+        self.assertEqual(sorted(times), times)
+        self.assertEqual((0, glint.DURATION), (times[0], times[-1]))
+        self.assertEqual(0, keys[-1]["delta"]["y"])
+        for k in range(1, glint.GLINT_FRAMES + 1):
+            held = [key["time"] for key in keys if key["delta"]["y"] == -10 * k]
+            self.assertEqual(glint.GLINT_HOLD, held[-1] - held[0])
+
+    def test_the_animation_names_every_gem_node_and_no_other(self):
+        nodes, _ = gem_model()
+        self.assertEqual(["Gem"], list(glint.animation(nodes, "Gem", 10)["nodeAnimations"]))
+
+    def test_gems_breathe_unless_told_not_to(self):
+        nodes, _ = gem_model()
+        self.assertEqual(glint.breath(), glint.animation(nodes, "Gem", 10)["nodeAnimations"]["Gem"]["shapeStretch"])
+
+    def test_a_still_glint_keeps_the_flipbook_without_the_breath(self):
+        nodes, _ = gem_model()
+        gem = glint.animation(nodes, "Gem", 10, breathe=False)["nodeAnimations"]["Gem"]
+        self.assertEqual([], gem["shapeStretch"])
+        self.assertEqual(glint.flipbook(10), gem["shapeUvOffset"])
+
+
+class TrimTest(unittest.TestCase):
+    def test_every_box_gets_its_bottom_back_and_no_other_face(self):
+        nodes = [node("Open", (0, 0, 0), box_shape((2, 2, 2), ("front", "top"))),
+                 node("Sides", (0, 0, 0), box_shape((2, 2, 2), ("front", "back"))),
+                 node("Closed", (0, 0, 0), box_shape((2, 2, 2), ("front", "bottom")))]
+        nodes.append(node("Root", (0, 0, 0), empty_shape()))
+        trim.close_bottoms(nodes)
+        self.assertEqual([{"front", "top", "bottom"}, {"front", "back", "bottom"}, {"front", "bottom"}, set()],
+                         [set(n["shape"]["textureLayout"]) for n in nodes])
+
+    def test_trimming_a_trimmed_model_changes_nothing(self):
+        # The builder's ink: Ink on Stand, Stand pressed against Wall. A first trim drops Stand's right side and Ink's
+        # bottom; Stand, missing a side now, must still hide the bottom the second trim gives back to Ink.
+        nodes = [node("Stand", (0, 2, 0), box_shape((4, 4, 4), SIDES)),
+                 node("Wall", (4, 2, 0), box_shape((4, 4, 4), SIDES)),
+                 node("Ink", (0, 5, 0), box_shape((2, 2, 2), SIDES))]
+        trim.close_bottoms(nodes)
+        cull.cull(nodes)
+        once = [set(n["shape"]["textureLayout"]) for n in nodes]
+        trim.close_bottoms(nodes)
+        cull.cull(nodes)
+        self.assertEqual(once, [set(n["shape"]["textureLayout"]) for n in nodes])
+
+    def test_a_glint_alone_moves_nothing_but_a_breath_moves_the_gems(self):
+        nodes, _ = gem_model()
+        self.assertEqual(frozenset(), trim.moving(SimpleNamespace(GLINT="Gem", BREATHE=False), nodes))
+        self.assertEqual(frozenset({"Gem"}), trim.moving(SimpleNamespace(GLINT="Gem"), nodes))
+
+    def test_the_nodes_a_model_animates_move_whether_or_not_its_blockyanim_was_written(self):
+        nodes, _ = gem_model()
+        sway = {"nodeAnimations": {"Shaft": {"orientation": [{"time": 0}], "position": []},
+                                   "Gem": {"orientation": [], "shapeUvOffset": [{"time": 0}]}}}
+        self.assertEqual(frozenset({"Shaft"}), trim.moving(SimpleNamespace(animation=lambda n: sway), nodes))
+        self.assertEqual(frozenset(), trim.moving(SimpleNamespace(), nodes))
 
 
 if __name__ == "__main__":

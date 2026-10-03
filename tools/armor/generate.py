@@ -1,9 +1,10 @@
 """Generates HyColony's plate armor (MC ItemPlateArmor, spec
 docs/superpowers/specs/2026-10-02-hycolony-plate-armor-design.md) and the knight's sword and shield: the models of its
-four pieces (pieces.py) and of the weapons (arms.py), unwrapped one island per face, painted and lit (tools/common:
+four pieces (pieces.py) and of the weapons (arms.py), unwrapped one island per face, painted and lit (tools/blockpaint:
 paint.texture, bake.light_map; materials: finish.py), their icons and their items, into HyColony's plugin resources.
 
-Run by hand, then its outputs are committed: the build never runs it. Needs Python 3.10+ and Pillow.
+Run by hand (`python tools/blockpaint armor`, or this script), then its outputs are committed: the build never runs
+it. Needs Python 3.10+ and Pillow.
 
     python tools/armor/generate.py [path/to/Assets.zip]
 """
@@ -15,7 +16,7 @@ from pathlib import Path
 from PIL import Image
 
 TOOLS = Path(__file__).resolve().parents[1]
-sys.path += [str(TOOLS / "common"), str(TOOLS / "huts")]
+sys.path += [str(TOOLS / "blockpaint"), str(TOOLS / "huts")]
 from bake import light_map  # noqa: E402
 import finish  # noqa: E402
 from icons import ICON_SIZE, draw_model, frame, turned  # noqa: E402

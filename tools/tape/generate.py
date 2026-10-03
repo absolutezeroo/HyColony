@@ -1,10 +1,11 @@
 """Génère le bloc du ruban de chantier de HyColony (MC BlockConstructionTape, spec
 docs/superpowers/specs/2026-10-02-hycolony-construction-tape-design.md) : les modèles de ses quatre formes, faits de
-pièces (shapes.py), dépliés une zone par face, peints au pinceau et éclairés comme les huttes (tools/common :
+pièces (shapes.py), dépliés une zone par face, peints au pinceau et éclairés comme les huttes (tools/blockpaint :
 paint.texture, bake.light_map), leurs textures et leurs hitbox, son gabarit de raccord, son icône et son objet, dans
 les ressources du plugin de HyColony.
 
-Lancé à la main, puis les sorties sont commitées : le build ne le lance jamais. Python 3.10+ et Pillow.
+Lancé à la main (`python tools/blockpaint tape`, ou ce script), puis les sorties sont commitées : le build ne le lance
+jamais. Python 3.10+ et Pillow.
 
     python tools/tape/generate.py
 """
@@ -16,7 +17,7 @@ from pathlib import Path
 from PIL import Image
 
 TOOLS = Path(__file__).resolve().parents[1]
-sys.path += [str(TOOLS / "common"), str(TOOLS / "domum")]
+sys.path += [str(TOOLS / "blockpaint"), str(TOOLS / "domum")]
 from bake import light_map  # noqa: E402
 from blocks import common  # noqa: E402
 from brushes import coloured, jitter, painted, stone, wood  # noqa: E402

@@ -4,7 +4,7 @@ import sys
 import unittest
 from pathlib import Path
 
-sys.path.append(str(Path(__file__).resolve().parents[1] / "common"))
+sys.path.append(str(Path(__file__).resolve().parents[1] / "blockpaint"))
 from models import bounds  # noqa: E402
 from shapes import SHAPES, parts  # noqa: E402
 

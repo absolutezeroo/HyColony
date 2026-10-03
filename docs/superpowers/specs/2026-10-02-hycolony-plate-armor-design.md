@@ -65,7 +65,7 @@ vers l'avant, contre le vent. Balayage des 2 340 animations du joueur : la queue
   des jointures, doigts de cuir.
 - **Jambières** : maille aux hanches ; chausses de maille sous un cuissard lisse, sangle de cuir ; genouillère en
   losange ; grève lisse à nervure ; soleret à lames sur le dessus.
-- **Peinture** (`tools/common`, `paint.texture`) : plaques encadrées comme l'armure Steel de Hytale (liseré clair en
+- **Peinture** (`tools/blockpaint`, `paint.texture`) : plaques encadrées comme l'armure Steel de Hytale (liseré clair en
   haut et à gauche, sombre en bas et à droite, rainure intérieure et rivets aux coins, bombé par un centre plus
   clair), lames qui se chevauchent, maille sombre, cuir, tissu rouge, laiton, plumes à tige claire et barbes obliques.
 

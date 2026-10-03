@@ -1,7 +1,8 @@
 """Generates HyVanilla's derived assets from the vanilla assets zip of the pinned Hytale version.
 
-Run once, then commit the outputs (vanilla/plugin/src/main/resources/): the build never runs it. Re-run it after
-changing a table below. Needs Python 3.10+ and Pillow.
+Run once (`python tools/blockpaint vanilla`, or this script), then commit the outputs
+(vanilla/plugin/src/main/resources/): the build never runs it. Re-run it after changing a table below. Needs Python
+3.10+ and Pillow.
 
     python tools/vanilla/generate.py [path/to/Assets.zip]
 
@@ -14,7 +15,7 @@ hitbox and the pack's id-map fragment (spec 2026-09-28 carpets and flower pots),
 import sys
 from pathlib import Path
 
-sys.path.append(str(Path(__file__).resolve().parents[1] / "common"))
+sys.path.append(str(Path(__file__).resolve().parents[1] / "blockpaint"))
 import beds  # noqa: E402
 import flower_pots  # noqa: E402
 from icons import ICON_SIZE, draw_box  # noqa: E402

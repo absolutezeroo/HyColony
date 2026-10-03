@@ -1,5 +1,6 @@
-"""Shared colours, tile tints and brushes of HyColony's hand-built models (the general brushes are in
-tools/common/brushes.py)."""
+"""The brushes of HyColony's hand-built models (the huts set of blockpaint): shared colours, tile tints and the
+brushes several models use (the general brushes are in tools/blockpaint/brushes.py; a drawing of one model's own,
+such as the builder's blueprint, stays in that model's module)."""
 
 from PIL import Image, ImageDraw
 

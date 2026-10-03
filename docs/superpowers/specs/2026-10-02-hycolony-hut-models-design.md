@@ -48,9 +48,10 @@ la portons pas. Chaque hutte a un design à nous, dans le style des meubles de H
     (`paint.bleed`) : sinon une face fine lit la zone voisine (vu sur les lunettes le 2026-10-02). Avec 1 pixel, le
     pixel entre deux zones ne prolongerait que la première.
 - Il est livré tel quel : `plugin/src/main/resources/Common/Blocks/HyColony/Huts/<Hutte>.blockymodel`.
-- `tools/huts/generate.py` peint la texture (`Huts/<Hutte>.png`) avec `tools/common/paint.py` et les matières du
-  module de la hutte (`tools/huts/<hutte>.py`). Il dessine aussi l'icône (`Icons/Items/HyColony/Hut_<Hutte>.png`),
-  vue de face (`icons.draw_model`, vue depuis +x +z).
+- `python tools/blockpaint huts` (`tools/huts/generate.py`, qui passe la liste des modules à
+  `tools/blockpaint/catalog.py`) peint la texture (`Huts/<Hutte>.png`) avec `tools/blockpaint/paint.py` et les
+  matières du module de la hutte (`tools/huts/<hutte>.py`). Il dessine aussi l'icône
+  (`Icons/Items/HyColony/Hut_<Hutte>.png`), vue de face (`icons.draw_model`, vue depuis +x +z).
 - L'objet de la hutte lit ce modèle, cette texture et cette icône. Les objets `HyColony_Hut_<Hutte>` gardent leurs
   états `OpenWindow` et `CloseWindow` (sons du coffre), sans l'animation du couvercle ; `HyColony_TownHall` n'en a
   jamais eu.
@@ -168,7 +169,7 @@ cuisine). Un premier jet de 1,37 bloc était « vraiment petit » à côté de c
 - **Fourneau** en fonte (pinceau `metal`, à peine brossé), un corps d'un bloc de haut sur quatre pieds de 6, sous une
   plaque de cuisson qui déborde.
   En façade : la porte du foyer, un cadre et deux barreaux devant des braises lumineuses (`fullbright`, le pinceau
-  `embers` de `tools/common/brushes.py`), la porte du four à poignée en laiton, et une barre en laiton sur deux
+  `embers` de `tools/blockpaint/brushes.py`), la porte du four à poignée en laiton, et une barre en laiton sur deux
   supports, avec un torchon à carreaux rouges et crème plié dessus.
 - **Plaque** : à droite, quatre feux en carré, à la demande de l'utilisateur (« comme des feux à gaz ») : chacun un
   socle en fonte claire, un chapeau en laiton et un support de casserole en croix. Un premier jet, un rond peint sur la
@@ -311,10 +312,10 @@ un script, peints par `tools/huts/quarry_small.py`, `quarry_medium.py`, `quarry_
   `CustomModelAnimation` en boucle). Hors de sa base plantée dans son pot (ou le fond du seau) et de ses feuilles,
   aucune fleur ne touche une autre fleur, le gradin ni le seau, ni au repos ni à aucune clé (distance mesurée ; des
   têtes d'un même pot, des roses contre le gradin du haut et des tiges contre le seau se traversaient, relecture).
-- **Mouvement continu** (`tools/huts/motion.py`) : ces deux animations sont des mouvements échantillonnés dix fois par
-  seconde, à clés linéaires. Des clés `smooth` toutes les quarts de seconde saccadaient (« des mini freeze ») : une
-  clé `smooth` ralentit jusqu'à l'arrêt sur chaque clé, et Hytale ne pose les siennes qu'aux bouts d'un balancement
-  (`Decorative_Sets/Human_Ruins/Banner_Swing`).
+- **Mouvement continu** (`tools/blockpaint/motion.py`) : ces deux animations sont des mouvements échantillonnés dix
+  fois par seconde, à clés linéaires. Des clés `smooth` toutes les quarts de seconde saccadaient (« des mini
+  freeze ») : une clé `smooth` ralentit jusqu'à l'arrêt sur chaque clé, et Hytale ne pose les siennes qu'aux bouts
+  d'un balancement (`Decorative_Sets/Human_Ruins/Banner_Swing`).
 
 ## Lunettes de construction
 
@@ -332,7 +333,7 @@ frappe en acier, panne en deux paliers, deux bagues de laiton, et un cristal cya
 tourné de 45° et sa table), serti dans un cadre en laiton. Choisi par l'utilisateur parmi quatre pistes (sceptre,
 marteau, compas, bâton à plan) ; un premier jet en équerre et fil à plomb a été écarté. L'objet lit
 `Items/HyColony/Build_Tool.{blockymodel,png}`, son icône et le son `ISS_Weapons_Wood` des marteaux de Hytale.
-**Cristaux vivants** (`tools/huts/glint.py`, constante `GLINT` du module, demandé par l'utilisateur) : l'objet
+**Cristaux vivants** (`tools/blockpaint/glint.py`, constante `GLINT` du module, demandé par l'utilisateur) : l'objet
 déclare `Animation` (`Items/HyColony/Build_Tool.blockyanim`, clé `Animation` de `Item` ; `Item` n'a pas de clé
 `Looping`, et elle boucle comme les poissons de Hytale qui nagent en main : vu en jeu le 2026-10-03). Les
 deux gemmes et leurs tables respirent (étirement de 1 à 1,06 puis retour, lissé, sur un cycle de 3 s, comme la
@@ -364,13 +365,13 @@ icône (debout, vue de trois quarts côté feuille).
 ## Peinture
 
 Retour de l'utilisateur sur les premiers jets : textures trop nettes, sans le travail au crayon et à la brosse douce
-que conseille Hytale. Chaque modèle passe donc par trois étapes (`tools/common/paint.py`, `texture`) :
+que conseille Hytale. Chaque modèle passe donc par trois étapes (`tools/blockpaint/paint.py`, `texture`) :
 
-1. ses matières : les pinceaux de `tools/common/brushes.py` (partagés avec les lits et pots de HyVanilla), qui
+1. ses matières : les pinceaux de `tools/blockpaint/brushes.py` (partagés avec les lits et pots de HyVanilla), qui
    peignent une zone entière (bois, métal brossé, cristal taillé, papier, tissu, pierre, minerai, terre cuite ;
    pierre et minerai pour les huttes de mineur et de carrier, demandés par l'utilisateur), et quelques teintes de
    tuiles de Hytale (`tools/huts/materials.py` : cuir, plume…) ;
-2. `tools/common/bake.py` cuit la lumière à partir du modèle lui-même, pixel par pixel : occlusion ambiante (rayons
+2. `tools/blockpaint/bake.py` cuit la lumière à partir du modèle lui-même, pixel par pixel : occlusion ambiante (rayons
    contre les autres boîtes et, pour un bloc, le sol), ombre portée d'une lumière en haut à l'avant gauche, biseau
    sur les deux anneaux de pixels du bord de chaque zone avec usure (éclats clairs) côté lumière (une arête ne
    s'assombrit que tournée vers le bas, une jointure entre deux boîtes n'a pas de biseau), crasse au pied d'un
@@ -386,7 +387,7 @@ mesurées sur 380 modèles de meubles et d'établis de Hytale, ses textures port
 pixels (une même zone pour toutes les planches, les pieds, les côtés en miroir : sa lumière est peinte, pas cuite) et
 il en peint 73 % ; les nôtres 1 fois (une zone par face, pour la lumière cuite, que l'on garde) et 32 à 58 %, 10 %
 pour la mine. D'où :
-- `tools/common/cull.py` retire les faces entièrement couvertes par d'autres boîtes, de façon exacte et prudente :
+- `tools/blockpaint/cull.py` retire les faces entièrement couvertes par d'autres boîtes, de façon exacte et prudente :
   seules les boîtes alignées avec la face, qui s'avancent devant elle, comptent, et leurs rectangles doivent la
   recouvrir sans aucun interstice. Une boîte tournée par rapport à la face, ouverte (une face absente qui n'est ni un
   dessous posé au sol ni couverte par d'autres boîtes scellées) ou invisible ne cache rien ; les nœuds qu'anime le
@@ -397,8 +398,9 @@ pour la mine. D'où :
 - `models.unwrap` range les zones en ligne d'horizon (chacune à la plus petite ligne où elle tient, 2 pixels des
   autres de tous côtés) au lieu de rangées, et peut mettre des nœuds à part dans une bande sous les autres : celle
   des cristaux de la mine, que `glint.frames` est seule à recopier ;
-- `tools/huts/trim.py` applique les deux aux blocs de huttes, les nœuds animés tirés du module de la hutte (son
-  `animation`, ou son `GLINT` qui respire sauf `BREATHE = False`), et choisit la largeur de la mine reflet compris.
+- `tools/blockpaint/trim.py` applique les deux à chaque bloc avant sa peinture (`catalog.paint`), les nœuds animés
+  tirés du module de la hutte (son `animation`, ou son `GLINT` qui respire sauf `BREATHE = False`), et choisit la
+  largeur de la mine reflet compris.
   Il réécrit le modèle source et ne rend aucune face sauf les dessous : le modèle rouvert dans Blockbench n'a plus
   les autres non plus, et une retouche qui découvrirait une face retirée la réactive à la main sur sa boîte avant
   d'enregistrer ;

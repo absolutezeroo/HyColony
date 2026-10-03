@@ -114,20 +114,26 @@ ne vise un nœud nommé `<nom>--C<n>` par l'exporteur de Blockbench : nos nœuds
   capture à un modèle de référence de Hytale ouvert de la même façon. Ne jamais déplacer la vue de l'utilisateur.
 - Pour afficher un atlas, régler `uv_width` et `uv_height` de la texture à sa taille en pixels.
 
-## 4. Notre chaîne (`tools/common`)
+## 4. Notre chaîne (`tools/blockpaint`)
 
 - Le modèle se construit dans Blockbench, puis s'exporte :
   - directement dans le pack quand il est livré tel quel (`Common/Blocks/HyVanilla/Bed.blockymodel`) ;
   - dans `tools/vanilla/models/` quand le générateur le reprend (le pot, recopié par couleur et par plante, dans un
     dossier que le générateur efface).
-  Le générateur lit ces modèles et ne les écrit plus.
-- La boîte à outils commune est dans `tools/common/` : `models.py` (géométrie, placement des enfants, faces, bornes),
-  `pack.py` (archive d'assets, écriture d'un pack), `pack_rules.py` (validation), `icons.py` (icônes), `paint.py`,
-  `brushes.py`, `bake.py`. HyVanilla (`tools/vanilla`), les huttes et objets de HyColony (`tools/huts`), le ruban de
-  chantier (`tools/tape`) et HyDomum s'en servent ; les tests de la boîte à outils sont dans `tools/common/check.py`.
-- `tools/common/paint.py` peint la texture zone par zone, selon la matière de chaque nœud et le côté de chaque face,
-  avec les pinceaux de `tools/common/brushes.py` (bois, tissu, terre cuite, terre, métal, cristal…), dans la
-  couleur moyenne de la matière de Hytale qu'ils imitent (laine, planches, argile). `tools/common/bake.py` cuit
+  Le générateur de HyVanilla lit ces modèles et ne les écrit plus. Seuls les blocs décrits par un module (les
+  huttes) sont réécrits, par `trim` (plus bas) : la mise en garde sur les faces retirées vaut pour eux.
+- **blockpaint**, l'outil unique de peinture des modèles Blockbench de tous les mods, est dans `tools/blockpaint/` :
+  `models.py` (géométrie, placement des enfants, faces, bornes, dépliage), `pack.py` (archive d'assets, écriture
+  d'un pack), `pack_rules.py` (validation), `icons.py` (icônes), `paint.py`, `brushes.py`, `bake.py`, `cull.py`
+  (faces cachées), `trim.py` (dessous rendus, faces cachées, dépliage d'un bloc), `glint.py` (reflet des cristaux),
+  `motion.py` (animations continues), `catalog.py` (peinture d'une liste de modèles décrits chacun par un module).
+  Une commande peint tout : `python tools/blockpaint [huts] [armor] [tape] [vanilla]`. Chaque ensemble ne garde que
+  sa description (`tools/huts`, `tools/armor`, `tools/tape`, `tools/vanilla` : le `generate.py` de l'ensemble et un
+  module par modèle) ; HyDomum (`tools/domum`) a son propre convertisseur et s'en sert pour écrire son pack. Les
+  tests de l'outil sont dans `tools/blockpaint/check.py`.
+- `tools/blockpaint/paint.py` peint la texture zone par zone, selon la matière de chaque nœud et le côté de chaque
+  face, avec les pinceaux de `tools/blockpaint/brushes.py` (bois, tissu, terre cuite, terre, métal, cristal…), dans la
+  couleur moyenne de la matière de Hytale qu'ils imitent (laine, planches, argile). `tools/blockpaint/bake.py` cuit
   ensuite la lumière du modèle (occlusion ambiante, ombre portée, biseaux, salissure au pied, variation de teinte).
   Chaque face a sa propre zone d'UV. Un bord dont la surface se poursuit dans une autre boîte, un demi-pixel plus
   loin, n'a pas de biseau : jointure (un mur en plusieurs boîtes), coin rentrant, ou pied d'un bloc posé au sol. Les
@@ -143,4 +149,4 @@ ne vise un nœud nommé `<nom>--C<n>` par l'exporteur de Blockbench : nos nœuds
 - Les huttes de HyColony suivent la même chaîne : `tools/huts/generate.py`, spec
   `docs/superpowers/specs/2026-10-02-hycolony-hut-models-design.md`.
 - Pour modifier un modèle : l'ouvrir dans un projet `hytale_prop` (§ 3), le retoucher, le réexporter, puis relancer
-  `python tools/vanilla/generate.py`.
+  `python tools/blockpaint` (ou le seul ensemble concerné, `python tools/blockpaint vanilla`).
