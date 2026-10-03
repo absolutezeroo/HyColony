@@ -15,3 +15,6 @@ Ce dossier ne contient que ces copies, rien d'autre. On n'ajoute une texture que
 | `ArmorSlotIconHead`, `Chest`, `Hands`, `Legs` | silhouettes des cases d'armure vides |
 | `SlotInputBindingBackground` | badges 1 à 9 de la barre rapide |
 | `IngredientSlot`, `IngredientSlotValid` | emplacements de l'établi : gris, puis vert avec coche une fois bien remplis |
+| `TakeAll`, `PutAll`, `QuickStack` | boutons du conteneur (inventaire du citoyen) : tout prendre, tout déposer, empiler |
+| `AutoSortIcon` | bouton « trier » du panneau d'inventaire du joueur |
+| `CharacterPanelStatIconBackground`, `CharacterPanelStatIconHealth`, `CharacterPanelStatIconArmor` | bloc des stats (inventaire du citoyen) : fond rond, santé, défense |

@@ -2,8 +2,11 @@ package dev.hyblockui.api;
 
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.protocol.packets.interface_.CustomUIEventBindingType;
+import com.hypixel.hytale.server.core.inventory.InventoryUtils;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
+import com.hypixel.hytale.server.core.ui.builder.EventData;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
@@ -15,6 +18,9 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
  * grids are draggable (InventoryGrids).
  */
 public final class PlayerPanels {
+    /** The event data action the storage panel's sort button sends ({@link #enableSort}); pages call {@link #sort}. */
+    public static final String SORT_ACTION = "hyblockui.sortStorage";
+
     private static final String CHARACTER = "Pages/HyBlockUI/PlayerCharacterPanel.ui";
     private static final String STORAGE = "Pages/HyBlockUI/PlayerStoragePanel.ui";
     private static final String[] ARMOR_ICONS = {
@@ -61,6 +67,18 @@ public final class PlayerPanels {
                 host + " #PlayerHotbar",
                 PlayerSection.HOTBAR,
                 PlayerSection.HOTBAR.container(store, player));
+    }
+
+    /** Shows the sort button of the storage panel drawn into host; it sends {@link #SORT_ACTION}. */
+    public static void enableSort(UICommandBuilder ui, UIEventBuilder events, String host) {
+        ui.set(host + " #SortButton.Visible", true);
+        events.addEventBinding(
+                CustomUIEventBindingType.Activating, host + " #SortButton", EventData.of("Action", SORT_ACTION), false);
+    }
+
+    /** Sorts the player's storage as the client's own sort button does (InventoryUtils.sortStorage). */
+    public static void sort(Store<EntityStore> store, Ref<EntityStore> player) {
+        InventoryUtils.sortStorage(player, store);
     }
 
     private static boolean empty(ItemContainer container, short slot) {

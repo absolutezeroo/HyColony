@@ -24,9 +24,24 @@ $C.@Container #PlayerStoragePanel {
   Anchor: (Width: 715);
 
   #Title {
+    LayoutMode: Left;
+
     $C.@Title {
       @Text = %hyblockui.inventory.title;
       @Alignment = Start;
+      FlexWeight: 1;
+    }
+
+    // The client's sort button (StoragePanel.ui #AutosortButton); hidden unless the page sorts (PlayerPanels).
+    Button #SortButton {
+      Anchor: (Width: 48, Right: 4);
+      Visible: false;
+      TooltipText: %hyblockui.inventory.sort;
+
+      Group {
+        Anchor: (Width: 24, Height: 24);
+        Background: "Native/AutoSortIcon.png";
+      }
     }
   }
 
