@@ -12,7 +12,9 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 /**
  * A body's defense, as Hytale's armour reduction counts it (DamageSystems.ArmorDamageReduction.getResistanceModifiers):
- * the share of physical damage its worn armour takes off, broken pieces and effects included. World thread.
+ * the share of physical damage its worn armour and active effects take off, broken pieces counted as Hytale does, from
+ * the percent resistances only: flat ones (BaseDamageResistance, only QA and debug pieces have it) are left out. World
+ * thread.
  */
 public final class BodyDefense {
     private BodyDefense() {}

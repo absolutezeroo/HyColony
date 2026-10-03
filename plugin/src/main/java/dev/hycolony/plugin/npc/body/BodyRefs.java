@@ -4,6 +4,7 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.kernel.port.BodyId;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -43,15 +44,18 @@ public final class BodyRefs {
         return Optional.ofNullable(ref(body));
     }
 
-    /** The loaded entity of {@code body}; null once gone or unloaded. */
+    /**
+     * The loaded entity of {@code body}; null once gone or unloaded. A null rather than an Optional: the bodies' port
+     * asks it on every call of a citizen's per-tick moves, where no allocation is wanted (CLAUDE.md § 4).
+     */
     @Nullable
     public Ref<EntityStore> ref(BodyId body) {
         Ref<EntityStore> ref = refs.get(body.value());
         return ref != null && ref.isValid() ? ref : null;
     }
 
-    /** Every tracked entity, loaded or not. */
+    /** Every tracked entity, loaded or not, read only. */
     public Collection<Ref<EntityStore>> all() {
-        return refs.values();
+        return Collections.unmodifiableCollection(refs.values());
     }
 }

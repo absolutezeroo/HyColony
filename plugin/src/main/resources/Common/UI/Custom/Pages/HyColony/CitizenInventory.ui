@@ -1,9 +1,9 @@
 $C = "../../Common.ui";
 
 // A citizen's inventory, laid out as Hytale's own inventory at the player's request (client InventoryPage.ui,
-// CharacterPanel.ui, ContainerPanel.ui): on the left the citizen's name, its 4 armour slots, the slots its hands hold and
-// its stats; on the right its 27 slots under the take all, put all and quick stack buttons, then the player's storage
-// and hotbar (HyBlockUI PlayerStoragePanel, drawn into #Storage). Native textures: ../HyBlockUI/Native/.
+// CharacterPanel.ui, ContainerPanel.ui): on the left the citizen's name, its 4 armour slots, the slots its hands hold
+// and its stats; on the right its 27 slots under the take all, put all and quick stack buttons, then the player's
+// storage and hotbar (HyBlockUI PlayerStoragePanel, drawn into #Storage). Native textures: ../HyBlockUI/Native/.
 
 @Slot = 74;
 @GridStyle = (

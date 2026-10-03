@@ -1,5 +1,6 @@
 package dev.hycolony.plugin.ui.citizen;
 
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
@@ -7,6 +8,8 @@ import dev.hycolony.core.app.view.CitizenInventoryView;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.plugin.item.HytaleStacks;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
 
 /**
  * Fills the side panel of a citizen's inventory page (CitizenInventory.ui #CitizenPanel) from the core's view: its
@@ -14,6 +17,10 @@ import java.util.Optional;
  * panel shows the player's.
  */
 final class CitizenSidePanel {
+    private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
+    /** The first unknown held item is a WARNING, the next ones FINE (CLAUDE.md § 4). */
+    private static final AtomicBoolean WARNED = new AtomicBoolean();
+
     private static final String[] ARMOR_ICONS = {
         "#ArmorIconHead", "#ArmorIconChest", "#ArmorIconHands", "#ArmorIconLegs"
     };
@@ -42,6 +49,8 @@ final class CitizenSidePanel {
         try {
             return held.map(stacks::toStack).orElse(ItemStack.EMPTY);
         } catch (RuntimeException e) {
+            LOG.at(WARNED.getAndSet(true) ? Level.FINE : Level.WARNING).withCause(e).log(
+                    "HyColony: a citizen's held item is unknown to the game, shown empty");
             return ItemStack.EMPTY;
         }
     }

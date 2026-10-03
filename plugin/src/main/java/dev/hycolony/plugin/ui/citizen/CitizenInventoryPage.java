@@ -36,12 +36,13 @@ import org.jspecify.annotations.Nullable;
  * draggable but the hands. Redrawn when a move, the citizen's AI or its stats change them. World thread.
  *
  * <p>Deviation from MC (asked for): laid out as Hytale's own inventory (CitizenInventory.ui), not as MC's window, and
- * the citizen is not drawn (Hytale draws only the player's character in a page). Its 27 slots have no sort button: the
- * hands hold slots, which a sort would move. A shift-click is Hytale's own (InventoryUtils.smartMoveItem): from the
- * citizen's slots or its armour to the player's inventory, placed as the player's settings say; from the player to the
- * citizen's 27 slots, then its armour once they are full. MC ContainerCitizenInventory.quickMoveStack sends the
- * citizen's slots to the player's from their end, the armour last; an armour piece to the citizen's 27 slots; the
- * player's items to those 27 only.
+ * the citizen is not drawn (Hytale draws only the player's character in a page). The hands, the stats (health, defense,
+ * food), the take all, put all and quick stack buttons and the player's sort button are additions MC's window lacks.
+ * The citizen's 27 slots have no sort button: the hands hold slots, which a sort would move. A shift-click is
+ * Hytale's own (InventoryUtils.smartMoveItem): from the citizen's slots or its armour to the player's inventory, placed
+ * as the player's settings say; from the player to the citizen's 27 slots, then its armour once they are full. MC
+ * ContainerCitizenInventory.quickMoveStack sends the citizen's slots to the player's from their end, the armour last;
+ * an armour piece to the citizen's 27 slots; the player's items to those 27 only.
  */
 final class CitizenInventoryPage extends InteractiveCustomUIPage<CitizenInventoryPage.Act> {
     private static final String CITIZEN_GRID = "#CitizenSlots";

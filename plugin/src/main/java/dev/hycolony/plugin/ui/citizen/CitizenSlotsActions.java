@@ -8,6 +8,7 @@ import com.hypixel.hytale.server.core.modules.entity.player.PlayerSettings;
 import com.hypixel.hytale.server.core.ui.builder.EventData;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import dev.hyblockui.api.InventoryMoves;
 
 /**
  * The take all, put all and quick stack buttons over a citizen's 27 slots (CitizenInventory.ui), the moves the
@@ -33,8 +34,14 @@ final class CitizenSlotsActions {
         events.addEventBinding(CustomUIEventBindingType.Activating, selector, EventData.of("Action", action), false);
     }
 
-    /** Hytale's move for {@code action} on the window {@code section}; an unknown action does nothing. */
+    /**
+     * Hytale's move for {@code action} on the window {@code section}; an unknown action, or a player whose inventory
+     * is locked (InventoryMoves.mayTouch, as the native handler checks), does nothing.
+     */
     static void apply(String action, Ref<EntityStore> ref, Store<EntityStore> store, int section) {
+        if (!InventoryMoves.mayTouch(ref, store)) {
+            return;
+        }
         switch (action) {
             case TAKE_ALL -> InventoryUtils.takeAll(ref, section, settings(store, ref), store);
             case PUT_ALL -> InventoryUtils.putAll(ref, section, store);

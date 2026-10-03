@@ -155,6 +155,7 @@ public final class HytaleCitizenBodies implements CitizenBodies {
         return ref == null ? 0 : vitals.percent(ref);
     }
 
+    /** Hytale's physical damage reduction of the body ({@link BodyDefense#percent}); 0 without a loaded body. */
     @Override
     public int defensePercent(BodyId body) {
         Ref<EntityStore> ref = refs.ref(body);
