@@ -1,14 +1,14 @@
 package dev.hycolony.core.construction.resources;
 
 import dev.hycolony.core.construction.blueprint.BlueprintEntry;
-import dev.hycolony.core.crafting.recipe.RecipeCatalog;
+import dev.hycolony.core.construction.blueprint.PlacementRules;
+import dev.hycolony.core.construction.blueprint.PlanCatalogs;
 import dev.hycolony.core.kernel.item.BlockItems;
 import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.Workstation;
-import dev.hycolony.core.kernel.port.ItemCatalog;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -26,9 +26,9 @@ public final class EntryCost {
 
     private EntryCost() {}
 
-    /** {@link #of(BlueprintEntry, BlockState, ItemCatalog, RecipeCatalog)} with nothing known of the cell. */
-    public static List<ItemAmount> of(BlueprintEntry e, ItemCatalog items, RecipeCatalog recipes) {
-        return of(e, null, items, recipes);
+    /** {@link #of(BlueprintEntry, BlockState, PlanCatalogs)} with nothing known of the cell. */
+    public static List<ItemAmount> of(BlueprintEntry e, PlanCatalogs catalogs) {
+        return of(e, null, catalogs);
     }
 
     /**
@@ -41,16 +41,16 @@ public final class EntryCost {
      * <p>Deviation from MC (Hytale world): MC blocks have no tier, a bench there costs its item only → Hytale benches
      * climb tiers by {@code TierLevels[].UpgradeRequirement} (SP3b-1 spec, deviation 3; audit-monde-hytale A-19).
      */
-    public static List<ItemAmount> of(
-            BlueprintEntry e, @Nullable BlockState world, ItemCatalog items, RecipeCatalog recipes) {
+    public static List<ItemAmount> of(BlueprintEntry e, @Nullable BlockState world, PlanCatalogs catalogs) {
         BlockKey block = e.state().key();
-        if (items.isLeaves(block)) {
+        PlacementRules rules = catalogs.placement();
+        if (rules.isLeaves(block)) {
             return List.of();
         }
-        if (items.takesAnyDirt(block) || items.isDirtPath(block)) {
-            return dirtCost(block, world, items);
+        if (rules.takesAnyDirt(block) || rules.isDirtPath(block)) {
+            return dirtCost(block, world, catalogs);
         }
-        Optional<ItemAmount> placing = placingItem(items.blockItems(block));
+        Optional<ItemAmount> placing = placingItem(catalogs.blocks().blockItems(block));
         if (e.workstation().isEmpty()) {
             return placing.map(List::of).orElse(List.of());
         }
@@ -58,7 +58,7 @@ public final class EntryCost {
         Map<ItemKey, Integer> sum = new LinkedHashMap<>();
         // The plan's block item places the bench: several blocks share a bench id (Bench_Farming, Bench_Trough).
         placing.ifPresent(a -> sum.put(a.item(), a.count()));
-        for (ItemAmount a : recipes.benchUpgradeCost(bench.benchId(), FRESH_BENCH_TIER, bench.tier())) {
+        for (ItemAmount a : catalogs.recipes().benchUpgradeCost(bench.benchId(), FRESH_BENCH_TIER, bench.tier())) {
             sum.merge(a.item(), a.count(), Integer::sum);
         }
         List<ItemAmount> out = new ArrayList<>(sum.size());
@@ -68,18 +68,20 @@ public final class EntryCost {
 
     /**
      * Structurize GrassPlacementHandler and BlockGrassPathPlacementHandler getRequiredItems: the item placing MC's
-     * {@code Blocks.DIRT} ({@link ItemCatalog#plainDirt}; the block's own when the map has none), nothing for a path
-     * on that dirt already.
+     * {@code Blocks.DIRT} ({@link PlacementRules#plainDirt}; the block's own when the map has none), nothing for a
+     * path on that dirt already.
      */
-    private static List<ItemAmount> dirtCost(BlockKey block, @Nullable BlockState world, ItemCatalog items) {
-        Optional<BlockKey> dirt = items.plainDirt();
-        if (items.isDirtPath(block)
+    private static List<ItemAmount> dirtCost(BlockKey block, @Nullable BlockState world, PlanCatalogs catalogs) {
+        Optional<BlockKey> dirt = catalogs.placement().plainDirt();
+        if (catalogs.placement().isDirtPath(block)
                 && world != null
                 && dirt.isPresent()
                 && dirt.get().equals(world.key())) {
             return List.of();
         }
-        return placingItem(items.blockItems(dirt.orElse(block))).map(List::of).orElse(List.of());
+        return placingItem(catalogs.blocks().blockItems(dirt.orElse(block)))
+                .map(List::of)
+                .orElse(List.of());
     }
 
     /**

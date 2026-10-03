@@ -75,7 +75,7 @@ final class HappinessFactors {
         if (level == 0 || !history.isFull()) {
             return 1.0;
         }
-        FoodHistory.Stats stats = history.stats(colony.context().ports().catalog());
+        FoodHistory.Stats stats = history.stats(colony.context().ports().foods());
         double diversity = Math.min(FOOD_PART_CAP, (double) stats.diversity() / level);
         double quality = Math.min(FOOD_PART_CAP, stats.quality() / Math.max(1.0, level - 2.0));
         return (diversity + quality) / 2.0;

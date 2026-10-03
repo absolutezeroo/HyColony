@@ -256,7 +256,7 @@ public final class HyColonyCommand extends AbstractCommandCollection {
                 BlockPos test = at.offset(0, 3, 0);
                 boolean air = ports.blocks()
                         .get(test)
-                        .map(st -> ports.catalog().kind(st.key()) == BlockKind.AIR)
+                        .map(st -> ports.blockCatalog().kind(st.key()) == BlockKind.AIR)
                         .orElse(false);
                 if (!air) {
                     report(player, "blocks", false, "the cell 3 blocks above you must be loaded air");
@@ -304,7 +304,7 @@ public final class HyColonyCommand extends AbstractCommandCollection {
             List<ItemAmount> drops = ports.blocks().breakBlock(test);
             boolean gone = ports.blocks()
                     .get(test)
-                    .map(st -> ports.catalog().kind(st.key()) == BlockKind.AIR)
+                    .map(st -> ports.blockCatalog().kind(st.key()) == BlockKind.AIR)
                     .orElse(false);
             report(player, "break", gone && !drops.isEmpty(), "drops " + drops);
         }

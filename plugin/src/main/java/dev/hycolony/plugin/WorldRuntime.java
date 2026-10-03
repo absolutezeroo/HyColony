@@ -8,6 +8,7 @@ import dev.hycolony.core.app.goggles.BuildGoggles;
 import dev.hycolony.core.app.wand.WandActions;
 import dev.hycolony.core.citizen.CitizenNames;
 import dev.hycolony.core.colony.ColonyContext;
+import dev.hycolony.core.colony.GamePorts;
 import dev.hycolony.core.kernel.WorldKey;
 import dev.hycolony.core.kernel.config.ColonyConfig;
 import dev.hycolony.core.kernel.event.EventBus;
@@ -25,14 +26,11 @@ import dev.hycolony.plugin.adapter.HytaleNotifier;
 import dev.hycolony.plugin.adapter.HytalePlayerDirectory;
 import dev.hycolony.plugin.adapter.HytalePreviewPort;
 import dev.hycolony.plugin.adapter.HytaleUiPort;
-import dev.hycolony.plugin.adapter.HytaleWorldBlocks;
 import dev.hycolony.plugin.adapter.HytaleWorldQuery;
-import dev.hycolony.plugin.block.HutBlockSystems;
 import dev.hycolony.plugin.npc.GuardedBodies;
 import dev.hycolony.plugin.npc.body.CitizenSpeed;
 import dev.hycolony.plugin.ui.highlight.HighlightMarkers;
 import java.util.Random;
-import java.util.Set;
 import java.util.logging.Level;
 
 /** One ColonyManager and its adapters for one Hytale world. World thread only. */
@@ -71,9 +69,7 @@ public final class WorldRuntime {
         ColonyConfig config = setup.config();
         IdMap ids = setup.ids();
         this.clock = new HytaleGameClock(world);
-        Set<String> hutBlockIds = HutBlockSystems.byBlockId(setup).keySet(); // the builder never breaks these
-        HytaleItemCatalog catalog =
-                new HytaleItemCatalog(hutBlockIds, ids.farming().hoeLevels(), ids.food(), ids.construction());
+        HytaleItemCatalog catalog = new HytaleItemCatalog(ids.farming().hoeLevels());
         this.bodies = new HytaleCitizenBodies(
                 world,
                 ids.npcs().role("npc.citizen"),
@@ -83,12 +79,15 @@ public final class WorldRuntime {
         this.blocks = new HytaleBlocks(world, catalog.stacks());
         ColonyManager[] self = new ColonyManager[1];
         WandActions[] wandSelf = new WandActions[1]; // the UI port needs it before it exists
-        HytaleWorldBlocks worldBlocks = new HytaleWorldBlocks(world, hutBlockIds, blocks);
+        GamePorts ports = WorldPorts.create(world, setup, catalog, blocks);
         ColonyContext ctx = new ColonyContext(
                 new WorldKey(world.getName()),
                 config,
                 clock,
-                new DetouringBodies(new GuardedBodies(bodies), worldBlocks, catalog), // Hytale's nav walks through fire
+                new DetouringBodies(
+                        new GuardedBodies(bodies),
+                        ports.blocks(),
+                        ports.blockCatalog()), // Hytale's nav walks through fire
                 bodies.health(),
                 bodies.seats(),
                 new HytaleWorldQuery(world, ids.precipitationParticles()),
@@ -99,7 +98,7 @@ public final class WorldRuntime {
                 names,
                 new Random(),
                 new EventBus(),
-                WorldPorts.create(world, setup, catalog, worldBlocks),
+                ports,
                 new TickTimings(System::nanoTime, clock::currentTick));
         this.manager = new ColonyManager(ctx, new HytaleUiPort(() -> self[0], () -> wandSelf[0], blocks, ids));
         self[0] = manager;

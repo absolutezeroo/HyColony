@@ -63,7 +63,7 @@ final class PlannedBlocks {
             BlueprintEntry e = ctx.site().entry(stage, i);
             if (e.hasContainer()
                     || e.workstation().isPresent()
-                    || (keepsBeds && ctx.catalog().isBed(e.state().key()))) {
+                    || (keepsBeds && ctx.catalogs().blocks().isBed(e.state().key()))) {
                 registerIfAsPlanned(positions.get(i), e);
             }
         }
@@ -75,7 +75,7 @@ final class PlannedBlocks {
      */
     private void registerIfAsPlanned(BlockPos pos, BlueprintEntry e) {
         @Nullable BlockState world = ctx.blocks().get(pos).orElse(null);
-        if (!ctx.site().plan().satisfied(e, world, ctx.blocks(), ctx.catalog())) {
+        if (!ctx.site().plan().satisfied(e, world, ctx.blocks(), ctx.catalogs())) {
             return;
         }
         RegisteredBlocks registered = ctx.site().target().registeredBlocks();

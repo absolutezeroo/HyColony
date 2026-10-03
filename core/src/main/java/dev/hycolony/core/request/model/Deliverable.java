@@ -1,8 +1,8 @@
 package dev.hycolony.core.request.model;
 
+import dev.hycolony.core.kernel.catalog.ItemCatalog;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
-import dev.hycolony.core.kernel.port.ItemCatalog;
 import java.util.Optional;
 
 /** A requestable satisfied by handing over items (MineColonies IDeliverable). */

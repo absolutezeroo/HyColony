@@ -5,6 +5,7 @@ import com.hypixel.hytale.protocol.BenchRequirement;
 import com.hypixel.hytale.protocol.BenchType;
 import com.hypixel.hytale.server.core.asset.type.item.config.CraftingRecipe;
 import com.hypixel.hytale.server.core.inventory.MaterialQuantity;
+import dev.hycolony.core.kernel.catalog.FoodCatalog;
 import dev.hycolony.core.kernel.item.FoodInfo;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.plugin.crafting.ResourceTypeIndex;
@@ -17,15 +18,15 @@ import java.util.logging.Level;
 import org.jspecify.annotations.Nullable;
 
 /**
- * What the core's ItemCatalog asks about food: the id-map's food table ({@link FoodIds}) and what the cooking bench's
+ * FoodCatalog over the id-map's food table ({@link FoodIds}) and what the cooking bench's
  * recipes turn each item into (MC the furnace's smelting result). The recipes are read on first use, the asset maps
- * being loaded by then; an asset reload needs a restart, like the rest of the catalog. Never throws.
+ * being loaded by then; an asset reload needs a restart, like {@code HytaleItemCatalog}. Never throws.
  *
  * <p>Deviation from MC: Hytale has no hunger nor nutrition, so the table is HyColony's, after MC's values for the
  * matching foods (spec SP4b § 2.2); MC's tier 1 for a plain food of nutrition 12 and saturation 0.8 has no match, and
  * no Hytale food gives back a container (MC's bowl).
  */
-public final class HytaleFoods {
+public final class HytaleFoods implements FoodCatalog {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
     private final Map<ItemKey, FoodInfo> foods = new HashMap<>();
@@ -44,16 +45,19 @@ public final class HytaleFoods {
         });
     }
 
+    @Override
     public Optional<FoodInfo> food(ItemKey item) {
         return Optional.ofNullable(foods.get(item));
     }
 
     /** Every food of the table, by id. */
+    @Override
     public List<ItemKey> foods() {
         return foods.keySet().stream().sorted(Comparator.comparing(ItemKey::id)).toList();
     }
 
     /** What the cooking bench makes of {@code item}; empty when it does not cook there. */
+    @Override
     public Optional<ItemKey> cooked(ItemKey item) {
         return Optional.ofNullable(cookedMap().get(item));
     }

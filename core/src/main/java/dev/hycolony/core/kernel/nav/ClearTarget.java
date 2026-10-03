@@ -2,9 +2,9 @@ package dev.hycolony.core.kernel.nav;
 
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
+import dev.hycolony.core.kernel.catalog.BlockCatalog;
 import dev.hycolony.core.kernel.item.BlockKind;
 import dev.hycolony.core.kernel.item.BlockState;
-import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.core.kernel.port.WorldBlocks;
 import java.util.Comparator;
 import java.util.stream.IntStream;
@@ -29,10 +29,10 @@ final class ClearTarget {
             .toArray(int[][]::new);
 
     private final WorldBlocks blocks;
-    private final ItemCatalog catalog;
+    private final BlockCatalog catalog;
     private final DangerousCells danger;
 
-    ClearTarget(WorldBlocks blocks, ItemCatalog catalog, DangerousCells danger) {
+    ClearTarget(WorldBlocks blocks, BlockCatalog catalog, DangerousCells danger) {
         this.blocks = blocks;
         this.catalog = catalog;
         this.danger = danger;

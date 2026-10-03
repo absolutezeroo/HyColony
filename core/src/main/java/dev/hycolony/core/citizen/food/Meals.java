@@ -4,9 +4,9 @@ import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.happiness.HappinessEvents;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.kernel.Vec3;
+import dev.hycolony.core.kernel.catalog.FoodCatalog;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.BodyId;
-import dev.hycolony.core.kernel.port.ItemCatalog;
 
 /**
  * Eating one food (MC ItemStackUtils.consumeFood). Deviation from MC: the food's own effects (Hytale's heal and buffs)
@@ -33,7 +33,7 @@ public final class Meals {
      * marked dirty.
      */
     public static void eat(Colony colony, CitizenData citizen, ItemKey food) {
-        ItemCatalog catalog = colony.context().ports().catalog();
+        FoodCatalog catalog = colony.context().ports().foods();
         citizen.hunger().increase(FoodRules.foodValue(catalog, food));
         if (FoodRules.tier(catalog, food) >= HappinessEvents.GREAT_FOOD_TIER) {
             HappinessEvents.greatFood(citizen);

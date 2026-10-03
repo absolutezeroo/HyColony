@@ -116,6 +116,9 @@ public final class TestContexts {
                 bus,
                 new GamePorts(
                         catalog,
+                        catalog,
+                        catalog,
+                        catalog,
                         blocks,
                         containers,
                         playerInventory,

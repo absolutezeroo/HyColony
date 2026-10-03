@@ -38,7 +38,7 @@ public final class ConstructionTape {
             return;
         }
         GamePorts p = colony.context().ports();
-        for (Tape tape : TapeLayout.of(box.min(), box.max(), p.blocks(), p.catalog())) {
+        for (Tape tape : TapeLayout.of(box.min(), box.max(), p.blocks(), p.blockCatalog())) {
             p.tape()
                     .block(tape.shape())
                     .ifPresent(key -> p.blocks().placeQuietly(tape.pos(), new BlockState(key, tape.rotation()), false));

@@ -2,10 +2,10 @@ package dev.hycolony.core.construction.builder;
 
 import dev.hycolony.core.construction.blueprint.StructurePlan;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.catalog.BlockCatalog;
 import dev.hycolony.core.kernel.item.BlockKind;
 import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.core.kernel.nav.DangerousCells;
-import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.core.kernel.port.WorldBlocks;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,10 +35,10 @@ final class WorkSpot {
     record Spot(BlockPos pos, boolean verified) {}
 
     private final WorldBlocks blocks;
-    private final ItemCatalog catalog;
+    private final BlockCatalog catalog;
     private final DangerousCells danger;
 
-    WorkSpot(WorldBlocks blocks, ItemCatalog catalog) {
+    WorkSpot(WorldBlocks blocks, BlockCatalog catalog) {
         this.blocks = blocks;
         this.catalog = catalog;
         this.danger = new DangerousCells(blocks, catalog);

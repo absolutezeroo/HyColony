@@ -6,10 +6,10 @@ import dev.hycolony.core.citizen.food.hall.DiningHalls;
 import dev.hycolony.core.citizen.home.HomePosition;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.catalog.FoodCatalog;
 import dev.hycolony.core.kernel.item.Inventory;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
-import dev.hycolony.core.kernel.port.ItemCatalog;
 import java.util.Optional;
 import java.util.Set;
 import org.jspecify.annotations.Nullable;
@@ -22,7 +22,7 @@ import org.jspecify.annotations.Nullable;
 public final class FoodChoice {
     private final Colony colony;
     private final CitizenData citizen;
-    private final ItemCatalog catalog;
+    private final FoodCatalog catalog;
     private final FoodHistory.Stats stats;
     private final int homeLevel;
     private final int diversityNeeded;
@@ -34,7 +34,7 @@ public final class FoodChoice {
     public FoodChoice(Colony colony, CitizenData citizen) {
         this.colony = colony;
         this.citizen = citizen;
-        this.catalog = colony.context().ports().catalog();
+        this.catalog = colony.context().ports().foods();
         this.stats = citizen.hunger().history().stats(catalog);
         this.homeLevel = HungerTicks.homeLevel(colony, citizen);
         this.diversityNeeded = FoodRules.minDiversity(homeLevel);

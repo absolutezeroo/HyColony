@@ -47,8 +47,7 @@ final class BuilderGathering {
         if (!inBuckets && resources.needs().remaining().containsKey(item) && lastRecomputeIndex != index) {
             lastRecomputeIndex = index;
             resources.start(
-                    ctx.site().loadedOrder(),
-                    NeededResources.compute(ctx.site().plan(), ctx.blocks(), ctx.catalog(), ctx.recipes()));
+                    ctx.site().loadedOrder(), NeededResources.compute(ctx.site().plan(), ctx.blocks(), ctx.catalogs()));
         }
         neededItem = need;
         return BuilderState.GATHERING_REQUIRED_MATERIALS;
@@ -136,6 +135,6 @@ final class BuilderGathering {
     /** MC getTotalAmount: what is still needed of the item, capped to a stack, at least 1. */
     private int requestAmount(ItemKey item) {
         int left = ctx.resources().needs().remaining().getOrDefault(item, 1);
-        return Math.max(1, Math.min(left, ctx.catalog().maxStack(item)));
+        return Math.max(1, Math.min(left, ctx.catalogs().items().maxStack(item)));
     }
 }

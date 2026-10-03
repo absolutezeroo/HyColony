@@ -4,6 +4,7 @@ import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.building.module.BuildingEventsModule;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.construction.blueprint.BlueprintEntry;
+import dev.hycolony.core.construction.blueprint.PlanCatalogs;
 import dev.hycolony.core.construction.blueprint.StructurePlan;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.Workstation;
@@ -32,6 +33,9 @@ final class PasteQueue {
     private static final int DONE = DECO + 1;
 
     private final ColonyManager manager;
+    /** Read once: a paste checks every block against them, up to maxOperationsPerTick times a tick. */
+    private final PlanCatalogs catalogs;
+
     private final ArrayDeque<StructurePlan> queue = new ArrayDeque<>();
     private int phase = CLEAR;
     private int index;
@@ -39,6 +43,7 @@ final class PasteQueue {
 
     PasteQueue(ColonyManager manager) {
         this.manager = manager;
+        this.catalogs = manager.context().ports().planCatalogs();
     }
 
     /** Queues {@code plan} behind the pastes already waiting. */
@@ -97,11 +102,7 @@ final class PasteQueue {
         }
         BlockPos pos = (phase == SOLID ? plan.solidPositions() : plan.decoPositions()).get(index);
         BlueprintEntry e = list.get(index++);
-        if (plan.satisfied(
-                e,
-                blocks().get(pos).orElse(null),
-                blocks(),
-                manager.context().ports().catalog())) {
+        if (plan.satisfied(e, blocks().get(pos).orElse(null), blocks(), catalogs)) {
             // ST StructurePlacer: a block already matching is left as is (a chest keeps its items), yet its container
             // or bench joins the hut, as ST's iterator calls triggerSuccess on it (CreativeBuildingStructureHandler).
             registerFound(plan, pos, e);
@@ -173,7 +174,7 @@ final class PasteQueue {
 
     /** A bed the hut's bed module registers (MC BedHandlingModule, through registerBlockPosition). */
     private boolean isBed(BlueprintEntry e) {
-        return manager.context().ports().catalog().isBed(e.state().key());
+        return manager.context().ports().blockCatalog().isBed(e.state().key());
     }
 
     /** Logs a paste problem: the first one as a warning, the next ones at DEBUG. */

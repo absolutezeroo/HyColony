@@ -33,7 +33,7 @@ import org.jspecify.annotations.Nullable;
  * pseudo-key {@code ~fluid:<FluidId>}; state variants ({@code *…}) are reported as their base block, except
  * connected-block shapes ({@link HytaleBlockStates#blockKey}). A filler cell holds its origin's block id and rotation
  * ({@code FillerBlockUtil.setFillerBlocksAt}), so it reports the origin's
- * key: a hut's filler cells read as the hut, which the catalog calls UNBREAKABLE. A block that cannot rotate
+ * key: a hut's filler cells read as the hut, which the block catalog calls UNBREAKABLE. A block that cannot rotate
  * ({@code VariantRotation.None}) reads as rotation 0, like its blueprint entry. World thread only.
  */
 public final class HytaleWorldBlocks implements WorldBlocks {

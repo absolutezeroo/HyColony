@@ -51,7 +51,7 @@ class NeededResourcesWorkstationTest {
 
     private NeededResources needs(BlueprintEntry... entries) {
         Blueprint bp = new Blueprint("bench", List.of(entries), new BlockPos(0, 0, 0), new BlockPos(2, 0, 0));
-        return NeededResources.compute(StructurePlan.build(bp, HUT, items), new FakeWorldBlocks(), items, recipes);
+        return NeededResources.compute(StructurePlan.build(bp, HUT, items), new FakeWorldBlocks(), items.plan(recipes));
     }
 
     @Test
@@ -79,14 +79,14 @@ class NeededResourcesWorkstationTest {
     void plainBlockCostsItsOwnItem() {
         BlueprintEntry stone = new BlueprintEntry(new BlockPos(2, 0, 0), new BlockState(STONE, 0), false);
 
-        assertEquals(List.of(new ItemAmount(STONE_I, 1)), EntryCost.of(stone, items, recipes));
+        assertEquals(List.of(new ItemAmount(STONE_I, 1)), EntryCost.of(stone, items.plan(recipes)));
     }
 
     @Test
     void benchWithoutAnyKnownItemCostsOnlyItsUpgrades() {
         items.itemForBlock.clear();
 
-        assertEquals(List.of(new ItemAmount(A, 5)), EntryCost.of(bench(2), items, recipes));
+        assertEquals(List.of(new ItemAmount(A, 5)), EntryCost.of(bench(2), items.plan(recipes)));
     }
 
     /** A bench placed from what breaking it gives costs every unit of it, plus its upgrades (EntryCost.placingItem). */
@@ -96,13 +96,14 @@ class NeededResourcesWorkstationTest {
                 BENCH,
                 new BlockItems(Optional.of(BENCH_I), false, Optional.empty(), Optional.of(new ItemAmount(B, 2))));
 
-        assertEquals(List.of(new ItemAmount(B, 2), new ItemAmount(A, 5)), EntryCost.of(bench(2), items, recipes));
+        assertEquals(List.of(new ItemAmount(B, 2), new ItemAmount(A, 5)), EntryCost.of(bench(2), items.plan(recipes)));
     }
 
     @Test
     void anItemAskedByTheBenchAndItsUpgradesIsSummed() {
         recipes.upgradeCosts.put(FARMING + ":2", List.of(new ItemAmount(BENCH_I, 2), new ItemAmount(A, 5)));
 
-        assertEquals(List.of(new ItemAmount(BENCH_I, 3), new ItemAmount(A, 5)), EntryCost.of(bench(2), items, recipes));
+        assertEquals(
+                List.of(new ItemAmount(BENCH_I, 3), new ItemAmount(A, 5)), EntryCost.of(bench(2), items.plan(recipes)));
     }
 }

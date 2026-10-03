@@ -56,7 +56,7 @@ Optional<BlockState> get(BlockPos p) {
     return Optional.of(new BlockState(new BlockKey(key), bs.getRotationIndex(p.x(), p.y(), p.z())));
 }
 ```
-(The `~fluid:` pseudo-key is a suggestion, so that `ItemCatalog.kind` can return `FLUID`.)
+(The `~fluid:` pseudo-key is a suggestion, so that `BlockCatalog.kind` can return `FLUID`.)
 
 ### Place a block (section API; creates its default block entity/container)
 `…/universe/world/chunk/BlockOperations.java`:
@@ -120,7 +120,7 @@ GatherType tally over the vanilla block items: Rocks 799, Woods 511, SoftBlocks 
 - Tool type: `Rocks|VolcanicRocks|Ore*` → PICKAXE, `Woods|SoftWoods` → AXE, `Soils` → SHOVEL, anything else → empty.
 - Suggested hardness: `0.05f / unarmedPower(gatherType)`. This gives Rocks ≈1.4, Woods ≈1.7, Soils 0.5 and SoftBlocks 0.05, which is close to MineColonies, but Ore* would come out at 50. Clamp that to about 3. (ponytail: heuristic, replace it with a table if the balance is off.)
 
-## 2. ItemCatalog
+## 2. ItemCatalog and BlockCatalog
 
 - **Item for a block**: `BlockType.getItem()` → `@Nullable Item` (the asset container key). A block defined inside an item JSON has **the same id** as the item (`Item.processConfig`: `if (hasBlockType) blockId = id`). For a state id (`*…`), use `getDefaultStateKey()` first. This container item is not always the one that **places** the block (a wall torch, a large chest): see § 51.
 - **Block for an item**: `Item.hasBlockType()` and `Item.getBlockId()` (null when there is no block).

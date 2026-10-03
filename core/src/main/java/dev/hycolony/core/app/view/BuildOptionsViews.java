@@ -73,10 +73,9 @@ final class BuildOptionsViews {
     private static List<ItemAmount> resources(Colony c, Building b, Blueprint bp) {
         GamePorts ports = c.context().ports();
         return NeededResources.compute(
-                        StructurePlan.build(bp, b.position(), ports.catalog()),
+                        StructurePlan.build(bp, b.position(), ports.blockCatalog()),
                         ports.blocks(),
-                        ports.catalog(),
-                        ports.crafting().catalog())
+                        ports.planCatalogs())
                 .remaining()
                 .entrySet()
                 .stream()

@@ -17,9 +17,9 @@ import dev.hycolony.core.job.work.SyncRequests;
 import dev.hycolony.core.job.work.ToolRequests;
 import dev.hycolony.core.job.work.WorkerStock;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.catalog.ItemCatalog;
 import dev.hycolony.core.kernel.nav.BodyWalker;
 import dev.hycolony.core.kernel.port.BodyId;
-import dev.hycolony.core.kernel.port.ItemCatalog;
 import java.util.Optional;
 
 /**

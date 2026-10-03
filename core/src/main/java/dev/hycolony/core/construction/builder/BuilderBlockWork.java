@@ -59,9 +59,8 @@ final class BuilderBlockWork {
         }
         BlueprintEntry e = ctx.site().entry(stage, i);
         boolean turn = ctx.site().plan().onlyTurns(e, ctx.blocks());
-        List<ItemAmount> cost = turn
-                ? List.of()
-                : EntryCost.of(e, ctx.blocks().get(pos).orElse(null), ctx.catalog(), ctx.recipes()); // empty: free
+        List<ItemAmount> cost =
+                turn ? List.of() : EntryCost.of(e, ctx.blocks().get(pos).orElse(null), ctx.catalogs()); // empty: free
         Optional<ItemAmount> lacking = ctx.site().loadedOrder().free() ? Optional.empty() : lacking(cost);
         if (lacking.isPresent()) {
             return gathering.missing(lacking.get(), i);
@@ -105,7 +104,7 @@ final class BuilderBlockWork {
             mineTarget = null;
             return BuilderState.BUILDING_STEP;
         }
-        ToolType type = ctx.catalog().toolFor(state.key()).orElse(null);
+        ToolType type = ctx.catalogs().blocks().toolFor(state.key()).orElse(null);
         OptionalInt toolSlot = type == null ? OptionalInt.empty() : ctx.stock().toolInInventory(type);
         if (type != null && toolSlot.isEmpty()) {
             return fetchTool(type);
@@ -173,7 +172,7 @@ final class BuilderBlockWork {
                 .startMining(
                         BuilderTimings.breakDelay(
                                 ctx.citizen().skills().level(ctx.secondary()),
-                                ctx.catalog().hardness(state.key()),
+                                ctx.catalogs().blocks().hardness(state.key()),
                                 ctx.stock().toolSpeed(tool)),
                         pos);
     }
@@ -184,13 +183,13 @@ final class BuilderBlockWork {
         mineDelayed = false;
         mineTarget = null;
         List<ItemAmount> drops = ctx.blocks().breakBlock(pos);
-        if (clearing && ctx.catalog().kind(state.key()) == BlockKind.FLUID) {
+        if (clearing && ctx.catalogs().blocks().kind(state.key()) == BlockKind.FLUID) {
             // Deviation from MC: one removal per fluid cell; a neighbouring source may flow back, and looping on it
             // would never end. Refill after CLEAR is left as is (SOLID overwrites it, decorations sit in it).
             ctx.site().progress(Stage.CLEAR, ctx.site().loadedOrder().progressIndex() + 1);
         }
         forgetRegistered(pos);
-        if (!ctx.catalog().isOre(state.key())) { // MC EntityAIStructureBuilder.mineBlock: getDrops = !isOre
+        if (!ctx.catalogs().blocks().isOre(state.key())) { // MC EntityAIStructureBuilder.mineBlock: getDrops = !isOre
             ctx.stock().storeDrops(drops);
         }
         // MC damageItemInHand: 1 per block; at its durability the tool breaks, no message (the next block asks), and
@@ -201,7 +200,7 @@ final class BuilderBlockWork {
         if (tool != null
                 && ctx.stock()
                         .inventory()
-                        .damage(toolSlot.getAsInt(), 1, ctx.catalog().durability(tool))) {
+                        .damage(toolSlot.getAsInt(), 1, ctx.catalogs().items().durability(tool))) {
             ctx.gestures().hold(null);
         }
         ctx.award(XP_PER_BLOCK);

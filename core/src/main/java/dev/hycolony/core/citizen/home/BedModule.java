@@ -48,7 +48,7 @@ public final class BedModule implements PersistentModule, BuildingEventsModule {
     /** MC onBlockPlacedInBuilding: a bed placed in the building joins its list. */
     @Override
     public void onBlockPlacedInBuilding(Colony colony, Building building, BlockPos pos, BlockKey block) {
-        if (colony.context().ports().catalog().isBed(block)) {
+        if (colony.context().ports().blockCatalog().isBed(block)) {
             addBed(pos);
         }
     }

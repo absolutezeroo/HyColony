@@ -3,6 +3,7 @@ package dev.hycolony.core.construction.blueprint;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.hycolony.core.crafting.recipe.RecipeCatalog;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockKind;
@@ -54,7 +55,7 @@ class StructurePlanMatchTest {
         BlueprintEntry e = new BlueprintEntry(new BlockPos(0, 0, 0), new BlockState(planned, 0), false);
         StructurePlan plan = StructurePlan.build(
                 new Blueprint("k", List.of(e), new BlockPos(0, 0, 0), new BlockPos(0, 0, 0)), HUT, catalog);
-        return plan.satisfied(e, new BlockState(world, 0), blocks, catalog);
+        return plan.satisfied(e, new BlockState(world, 0), blocks, catalog.plan(RecipeCatalog.NONE));
     }
 
     /** Structurize GrassPlacementHandler: a grass or dirt cell takes any block of MC's dirt tag. */
@@ -101,7 +102,7 @@ class StructurePlanMatchTest {
                 new Blueprint("k", List.of(), new BlockPos(0, 0, 0), new BlockPos(0, 0, 0), Optional.of(markers));
         StructurePlan plan = StructurePlan.build(bp, HUT, catalog, STONE);
         BlueprintEntry cell = plan.decoList().getFirst();
-        return plan.satisfied(cell, new BlockState(world, 0), blocks, catalog);
+        return plan.satisfied(cell, new BlockState(world, 0), blocks, catalog.plan(RecipeCatalog.NONE));
     }
 
     /** Structurize FluidSubstitutionPlacementHandler: a fluid cell takes a source or a solid block. */

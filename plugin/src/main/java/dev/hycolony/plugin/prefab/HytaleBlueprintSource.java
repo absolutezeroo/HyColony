@@ -8,8 +8,9 @@ import com.hypixel.hytale.server.core.prefab.selection.buffer.impl.IPrefabBuffer
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.BlueprintMarkers;
 import dev.hycolony.core.construction.blueprint.BlueprintSource;
+import dev.hycolony.core.construction.blueprint.PlacementRules;
+import dev.hycolony.core.kernel.catalog.BlockCatalog;
 import dev.hycolony.core.kernel.item.BlockKey;
-import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.plugin.IdMap;
 import java.nio.file.Path;
 import java.util.List;
@@ -73,11 +74,14 @@ public final class HytaleBlueprintSource implements BlueprintSource {
     private final Map<String, Optional<Blueprint>> cache = new ConcurrentHashMap<>();
     private final Set<String> warned = ConcurrentHashMap.newKeySet();
 
-    /** Blueprints of {@code styles}, whose spawner chests and placeholders come from {@code ids}. */
-    public HytaleBlueprintSource(IdMap ids, PrefabStyles styles, ItemCatalog catalog) {
+    /**
+     * Blueprints of {@code styles}, whose spawner chests and placeholders come from {@code ids}; {@code blocks} and
+     * {@code rules} pick the fill block choices.
+     */
+    public HytaleBlueprintSource(IdMap ids, PrefabStyles styles, BlockCatalog blocks, PlacementRules rules) {
         this.styles = styles;
         this.ids = ids;
-        this.fillBlocks = new FillBlocks(catalog);
+        this.fillBlocks = new FillBlocks(blocks, rules);
     }
 
     /** The id-map's {@code blueprint.fillBlock} (dirt, MC's default fillblock). */

@@ -203,7 +203,7 @@ class ViewsTest {
         StructurePlan plan = StructurePlan.build(bp, res.position(), t.catalog);
         BuildingResourcesModule module =
                 builder.module(BuildingResourcesModule.class).orElseThrow();
-        module.start(order, NeededResources.compute(plan, t.blocks, t.catalog, t.recipes));
+        module.start(order, NeededResources.compute(plan, t.blocks, t.catalog.plan(t.recipes)));
         module.onPlaced(STONE_I);
         bobTheBuilder.inventory().insert(new ItemAmount(STONE_I, 1), k -> 64);
         t.containers.insert(builder.containers(), new ItemAmount(STONE_I, 1));

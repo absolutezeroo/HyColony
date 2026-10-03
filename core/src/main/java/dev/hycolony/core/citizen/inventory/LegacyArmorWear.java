@@ -2,10 +2,10 @@ package dev.hycolony.core.citizen.inventory;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import dev.hycolony.core.kernel.catalog.ItemCatalog;
 import dev.hycolony.core.kernel.item.ArmorInfo;
 import dev.hycolony.core.kernel.item.Inventory;
 import dev.hycolony.core.kernel.item.ItemAmount;
-import dev.hycolony.core.kernel.port.ItemCatalog;
 import java.util.Optional;
 
 /**

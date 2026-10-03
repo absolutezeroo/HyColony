@@ -43,6 +43,6 @@ final class PlayerMeal {
     private static Optional<FoodInfo> menuFood(CookWorkContext ctx, @Nullable ItemAmount stack) {
         return stack == null || !ctx.menu().menu().contains(stack.item())
                 ? Optional.empty()
-                : ctx.items().food(stack.item());
+                : ctx.foods().food(stack.item());
     }
 }

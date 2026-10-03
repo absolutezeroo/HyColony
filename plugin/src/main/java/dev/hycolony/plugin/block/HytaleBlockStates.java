@@ -17,7 +17,7 @@ import java.util.Optional;
  * Never throws on an unknown id: it is empty. World thread only.
  */
 public final class HytaleBlockStates {
-    /** Pseudo-key prefix for fluids, shared with the item catalog and the world adapter. */
+    /** Pseudo-key prefix for fluids, shared with the block catalog, the block traits and the world adapter. */
     public static final String FLUID_PREFIX = "~fluid:";
 
     private static final int ROTATIONS = 64; // RotationTuple.VALUES.length

@@ -7,10 +7,10 @@ import dev.hycolony.core.citizen.vitals.CitizenWalkReports;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.BlueprintSource;
+import dev.hycolony.core.construction.blueprint.PlanCatalogs;
 import dev.hycolony.core.construction.blueprint.StructurePlan;
 import dev.hycolony.core.construction.resources.BuildingResourcesModule;
 import dev.hycolony.core.construction.shared.BuilderSettingsModule;
-import dev.hycolony.core.crafting.recipe.RecipeCatalog;
 import dev.hycolony.core.job.Job;
 import dev.hycolony.core.job.JobXp;
 import dev.hycolony.core.job.WorkerModule;
@@ -21,7 +21,6 @@ import dev.hycolony.core.job.work.WorkerStock;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.CitizenBodies;
-import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.core.kernel.port.WorldBlocks;
 import java.util.Optional;
 
@@ -35,7 +34,7 @@ record BuilderContext(
         Building hut,
         Job job,
         WorldBlocks blocks,
-        ItemCatalog catalog,
+        PlanCatalogs catalogs,
         BuildingResourcesModule resources,
         WorkerStock stock,
         BuilderRequests requests,
@@ -69,7 +68,7 @@ record BuilderContext(
         CitizenData citizen = job.citizen();
         CitizenBodies bodies = colony.context().bodies();
         WorldBlocks blocks = colony.context().ports().blocks();
-        ItemCatalog catalog = colony.context().ports().catalog();
+        PlanCatalogs catalogs = colony.context().ports().planCatalogs();
         Optional<WorkerModule> worker = hut.module(WorkerModule.class);
         WorkerStock stock = new WorkerStock(colony, citizen, hut, ACTIONS_UNTIL_DUMP);
         return new BuilderContext(
@@ -78,7 +77,7 @@ record BuilderContext(
                 hut,
                 job,
                 blocks,
-                catalog,
+                catalogs,
                 resources,
                 stock,
                 new BuilderRequests(colony, citizen, hut),
@@ -95,8 +94,8 @@ record BuilderContext(
                         body,
                         new WorkerHands(bodies, body, citizen),
                         colony.context().ports().effects()),
-                new BuildSite(colony, resources, new WorkSpot(blocks, catalog)),
-                new StructureScan(colony, blocks, catalog),
+                new BuildSite(colony, resources, new WorkSpot(blocks, catalogs.blocks())),
+                new StructureScan(colony, blocks, catalogs),
                 worker.map(WorkerModule::primary).orElse(Skill.Adaptability),
                 worker.map(WorkerModule::secondary).orElse(Skill.Athletics));
     }
@@ -110,13 +109,8 @@ record BuilderContext(
         return hut.module(BuilderSettingsModule.class)
                 .flatMap(s -> s.fillBlock(blueprints))
                 .or(blueprints::defaultFillBlock)
-                .map(block -> StructurePlan.build(bp, at, catalog, block))
-                .orElseGet(() -> StructurePlan.build(bp, at, catalog));
-    }
-
-    /** The Hytale recipes and benches, for what a plan's bench costs. */
-    RecipeCatalog recipes() {
-        return colony.context().ports().crafting().catalog();
+                .map(block -> StructurePlan.build(bp, at, catalogs.blocks(), block))
+                .orElseGet(() -> StructurePlan.build(bp, at, catalogs.blocks()));
     }
 
     /** MC walkToBuilding: true once beside the hut block. */

@@ -145,7 +145,7 @@ final class CookService {
             }
             ItemAmount stack = cook.slot(slot).orElseThrow();
             cook.set(slot, stack.count() > 1 ? Optional.of(stack.withCount(stack.count() - 1)) : Optional.empty());
-            c.hunger().increase(FoodRules.foodValue(ctx.items(), stack.item()));
+            c.hunger().increase(FoodRules.foodValue(ctx.foods(), stack.item()));
             if (c.saturation() >= CitizenData.MAX_SATURATION) {
                 return;
             }
@@ -165,7 +165,7 @@ final class CookService {
         }
         ItemAmount stack = cook.slot(slot).orElseThrow();
         int qty = (int) Math.max(
-                1.0, (CitizenData.MAX_SATURATION - c.saturation()) / FoodRules.foodValue(ctx.items(), stack.item()));
+                1.0, (CitizenData.MAX_SATURATION - c.saturation()) / FoodRules.foodValue(ctx.foods(), stack.item()));
         qty = Math.min(stack.count(), (int) Math.ceil(qty * EXTRA_FOOD));
         if (c.inventory().copy().insert(stack.withCount(qty), ctx.items()::maxStack) == null) {
             c.inventory().insert(stack.withCount(qty), ctx.items()::maxStack);

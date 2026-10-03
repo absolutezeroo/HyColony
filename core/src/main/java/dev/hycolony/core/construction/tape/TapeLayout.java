@@ -1,9 +1,9 @@
 package dev.hycolony.core.construction.tape;
 
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.catalog.BlockCatalog;
 import dev.hycolony.core.kernel.item.BlockKind;
 import dev.hycolony.core.kernel.item.BlockState;
-import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.core.kernel.port.WorldBlocks;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -32,7 +32,7 @@ final class TapeLayout {
     private TapeLayout() {}
 
     /** The tapes around the footprint from {@code min} to {@code max}; a column with no ground in reach has none. */
-    static List<Tape> of(BlockPos min, BlockPos max, WorldBlocks world, ItemCatalog catalog) {
+    static List<Tape> of(BlockPos min, BlockPos max, WorldBlocks world, BlockCatalog catalog) {
         Border border = Border.around(min, max);
         int top = Math.max(min.y(), max.y());
         int depth = Math.abs(max.y() - min.y()) + EXTRA_DEPTH;
@@ -69,7 +69,7 @@ final class TapeLayout {
     }
 
     /** MC firstValidPosition: above the first solid block, going down from {@code top}, whose upper cell is free. */
-    private static Optional<BlockPos> ground(BlockPos column, int top, int depth, WorldBlocks world, ItemCatalog c) {
+    private static Optional<BlockPos> ground(BlockPos column, int top, int depth, WorldBlocks world, BlockCatalog c) {
         for (int i = 0; i <= depth; i++) {
             BlockPos at = new BlockPos(column.x(), top - i, column.z());
             BlockPos up = at.offset(0, 1, 0);
@@ -80,14 +80,14 @@ final class TapeLayout {
         return Optional.empty();
     }
 
-    private static boolean solid(Optional<BlockState> s, ItemCatalog catalog) {
+    private static boolean solid(Optional<BlockState> s, BlockCatalog catalog) {
         return s.map(st -> catalog.kind(st.key()))
                 .filter(k -> k == BlockKind.SOLID || k == BlockKind.UNBREAKABLE)
                 .isPresent();
     }
 
     /** MC canBeReplaced or isAir: empty, a block of Hytale's material Empty, or a fluid (MC waterlogs the tape). */
-    private static boolean free(Optional<BlockState> s, ItemCatalog catalog) {
+    private static boolean free(Optional<BlockState> s, BlockCatalog catalog) {
         return s.map(st -> catalog.kind(st.key()))
                 .map(k -> k == BlockKind.AIR || k == BlockKind.NON_SOLID || k == BlockKind.FLUID)
                 .orElse(true);

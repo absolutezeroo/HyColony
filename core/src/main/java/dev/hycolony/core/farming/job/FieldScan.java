@@ -3,9 +3,9 @@ package dev.hycolony.core.farming.job;
 import dev.hycolony.core.farming.CropState;
 import dev.hycolony.core.farming.FarmingAccess;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.catalog.BlockCatalog;
 import dev.hycolony.core.kernel.item.BlockKind;
 import dev.hycolony.core.kernel.item.BlockState;
-import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.core.kernel.port.WorldBlocks;
 import java.util.Optional;
 
@@ -19,10 +19,10 @@ final class FieldScan {
     static final int MAX_DEPTH = 5;
 
     private final WorldBlocks world;
-    private final ItemCatalog catalog;
+    private final BlockCatalog catalog;
     private final FarmingAccess farming;
 
-    FieldScan(WorldBlocks world, ItemCatalog catalog, FarmingAccess farming) {
+    FieldScan(WorldBlocks world, BlockCatalog catalog, FarmingAccess farming) {
         this.world = world;
         this.catalog = catalog;
         this.farming = farming;
