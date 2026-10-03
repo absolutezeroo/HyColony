@@ -33,6 +33,18 @@ class CookAITest extends DiningHallFixture {
         return t.cooking.stations.get(STATION);
     }
 
+    /** MC resetAI as the waiter works again: its machine is back at its first state. */
+    @Test
+    void aResetWaiterStartsAgainFromIdle() {
+        station();
+        hire();
+        runUntil(() -> !ai.stateName().equals("IDLE"));
+
+        ai.resetAI();
+
+        assertEquals("IDLE", ai.stateName());
+    }
+
     @Test
     void aFuelNoLongerAllowedIsTakenBack() {
         station();

@@ -67,6 +67,17 @@ class BlockApproachTest {
         return t.bodies.moves.getLast();
     }
 
+    /** After {@link BlockApproach#forget} (another AI moved the body), the cell is looked for again. */
+    @Test
+    void aForgottenWalkChoosesItsCellAgain() {
+        walkToShed();
+        put(EAST, FakeBlueprints.PLANKS);
+
+        approach.forget();
+
+        assertEquals(Vec3.center(NORTH), walkToShed());
+    }
+
     @Test
     void standsBesideTheHutOnTheSideOfTheBuildingCentre() {
         assertEquals(Vec3.center(EAST), walkToShed());

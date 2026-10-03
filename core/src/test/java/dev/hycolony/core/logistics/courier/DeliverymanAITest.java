@@ -2,18 +2,21 @@ package dev.hycolony.core.logistics.courier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.citizen.CitizenAI;
 import dev.hycolony.core.citizen.CitizenState;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.citizen.vitals.EndedWalk;
+import dev.hycolony.core.job.JobAI;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.nav.WalkEnd;
+import dev.hycolony.core.kernel.port.Msg;
 import dev.hycolony.core.kernel.port.NavStatus;
 import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.testing.FakeBodies;
@@ -39,9 +42,9 @@ class DeliverymanAITest extends CourierAITestBase {
         assertFalse(ai.waiting(), "a task queued: it has work");
     }
 
-    /** MC resetAI as the courier works again after a night: from its first state, walking back from its bed. */
+    /** MC resetAI as the courier works again after a night: its machine back at its first state, it runs on. */
     @Test
-    void aResetCourierStartsAgainAndWalksBackFromWhereItSlept() {
+    void aResetCourierStartsAgainFromItsFirstState() {
         hire();
         run(300);
         Vec3 bed = new Vec3(40.5, 64, 0.5);
@@ -152,11 +155,20 @@ class DeliverymanAITest extends CourierAITestBase {
         hire();
         hut.setLevel(1); // below max level: MC WorkerBuildingModule.canWorkDuringTheRain is false
         CitizenAI citizenAI = new CitizenAI(colony, citizen, body);
+        citizen.vitals().track();
         assertTrue(tickUntil(citizenAI, CitizenState.WORKING, 40));
+        JobAI working = citizenAI.jobAi().orElseThrow();
+        t.bodies.bodies.get(body).speed = 1.3; // its Agility speed
 
         t.world.raining = true;
 
         assertTrue(tickUntil(citizenAI, CitizenState.IDLE, 10));
+        assertEquals(
+                Msg.of("hycolony.debug.history.leftWork.rain", "IDLE"),
+                citizen.vitals().history().getLast().detail(),
+                "HyLens says why it stopped");
+        assertSame(working, citizenAI.jobAi().orElseThrow(), "MC keeps its worker AI");
+        assertEquals(1.3, t.bodies.bodies.get(body).speed, "and its speed modifier");
         assertFalse(tickUntil(citizenAI, CitizenState.WORKING, 420));
 
         hut.setLevel(DeliverymanHut.MAX_LEVEL);

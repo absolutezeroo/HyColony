@@ -342,6 +342,25 @@ class BuilderAITest {
         assertTrue(citizen.vitals().walks().lastEnd().isPresent(), "its walker reports to its vital signs");
     }
 
+    /** MC resetAI after a night: back from its bed, it walks to its work again before it places the next block. */
+    @Test
+    void aResetBuilderWalksBackToItsWorkBeforePlacing() {
+        Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);
+        blueprint = bp(List.of(entry(2, 0, 0, STONE), entry(3, 0, 0, STONE)));
+        give(STONE_I, 2);
+        order(res, WorkOrderType.UPGRADE);
+        tickUntil(() -> t.blocks.placed.size() == 1, 5000);
+        t.bodies.bodies.get(body).position = new Vec3(70.5, 64, 0.5); // the sleep AI walked it to its bed
+
+        ai.resetAI();
+
+        assertEquals("IDLE", ai.stateName());
+        tickUntil(() -> t.blocks.placed.size() == 2, 5000);
+        assertTrue(
+                t.bodies.bodies.get(body).position.distance(Vec3.center(at(3, 0, 0))) <= 7,
+                "placed from beside it, not from its bed");
+    }
+
     @Test
     void aFailingMachineIsCountedAsTheBuildersFailures() {
         Building res = hut(ConstructionBuildingTypes.RESIDENCE, RES, 1);

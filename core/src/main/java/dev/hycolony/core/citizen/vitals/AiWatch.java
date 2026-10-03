@@ -20,6 +20,8 @@ public final class AiWatch {
     private int seenFailures;
     /** Its job's action count when last watched. */
     private int seenActions;
+    /** Why it is leaving WORKING, said with the next state change ({@link #leftWork}). */
+    private @Nullable WorkExit exit;
 
     public AiWatch(Colony colony, CitizenData citizen) {
         this.colony = colony;
@@ -37,8 +39,9 @@ public final class AiWatch {
             long now = colony.context().clock().currentTick();
             v.aiState(state, now);
             if (v.keepsHistory()) {
-                v.note(HistoryEntry.aiState(now, before, state));
+                v.note(HistoryEntry.aiState(now, before, state, before == CitizenState.WORKING ? exit : null));
             }
+            exit = null;
             EventBus bus = colony.context().bus();
             if (before != null && bus.hasListeners(CitizenDebugEvents.AiStateChanged.class)) {
                 bus.post(new CitizenDebugEvents.AiStateChanged(colony, citizen, before, state));
@@ -63,6 +66,11 @@ public final class AiWatch {
         if (before != null) {
             stepChanged(v, before, "");
         }
+    }
+
+    /** The citizen AI decided to leave WORKING for {@code why}: the next state change says so in its history. */
+    public void leftWork(WorkExit why) {
+        exit = why;
     }
 
     /** The citizen AI caught an exception: counts it in its vital signs. */

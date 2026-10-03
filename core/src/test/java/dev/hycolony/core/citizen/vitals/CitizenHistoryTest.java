@@ -51,6 +51,28 @@ class CitizenHistoryTest {
         }
     };
 
+    /** Why it left WORKING is said on that change, so HyLens shows it: here the rain. */
+    @Test
+    void leavingWorkSaysWhy() {
+        citizen.vitals().track();
+        watch.afterTick(CitizenState.WORKING, job, 0);
+        t.clock.tick = 40;
+        watch.leftWork(WorkExit.RAIN);
+        watch.afterTick(CitizenState.IDLE, null, 0);
+        t.clock.tick = 50;
+        watch.afterTick(CitizenState.WORKING, job, 0); // a later change says no reason
+
+        List<HistoryEntry> states = citizen.vitals().history().stream()
+                .filter(e -> e.kind() == HistoryEntry.Kind.AI_STATE)
+                .toList();
+        assertEquals(
+                Msg.of("hycolony.debug.history.leftWork.rain", "IDLE"),
+                states.get(1).detail());
+        assertEquals(
+                Msg.of("hycolony.debug.history.aiState", "IDLE", "WORKING"),
+                states.get(2).detail());
+    }
+
     @Test
     void untrackedCitizenKeepsNoHistory() {
         watch.afterTick(CitizenState.IDLE, null, 0);

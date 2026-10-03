@@ -19,6 +19,7 @@ import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.BlueprintSource;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
+import dev.hycolony.core.job.WorkerModule;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.item.BlockKey;
@@ -165,6 +166,23 @@ class SleepCycleTest {
         tickUntil(d::asleep);
 
         assertEquals(1.3, t.bodies.bodies.get(body).speed);
+    }
+
+    /** MC DeliverymanAssignmentModule removes the speed modifier on unassignment, whatever the courier is doing. */
+    @Test
+    void aWorkerFiredInItsSleepLosesItsJobAiAndSpeed() {
+        d.setJob(TestJobs.TYPE.factory().apply(d));
+        citizen(HALL);
+        tickUntil(() -> state() == CitizenState.WORKING);
+        t.bodies.bodies.get(body).speed = 1.3;
+        nightfall();
+        tickUntil(d::asleep);
+
+        WorkerModule.free(c, d);
+        ticks(1);
+
+        assertEquals(1.0, t.bodies.bodies.get(body).speed);
+        assertTrue(c.citizens().ai(d.id()).orElseThrow().jobAi().isEmpty());
     }
 
     private TestJobs.TestJobAI jobAi() {

@@ -33,6 +33,21 @@ class FarmerAITest extends FarmerTestBase {
         assertTrue(job.citizen().vitals().walks().lastEnd().isPresent(), "its walker reports to its vital signs");
     }
 
+    /** MC resetAI as the farmer works again: its machine is back at its first state, then it hoes its field. */
+    @Test
+    void aResetFarmerStartsAgainFromIdleAndStillHoesItsField() {
+        field(true);
+        give(HOE, 1);
+        settings().setFertilize(false);
+        JobAI ai = job.createAI(colony, body);
+        runUntil(ai, () -> !ai.stateName().equals("IDLE"));
+
+        ai.resetAI();
+
+        assertEquals("IDLE", ai.stateName());
+        runUntil(ai, () -> t.farming.tilled.containsAll(cells()));
+    }
+
     @Test
     void aFailingMachineIsCountedAsTheFarmersFailures() {
         field(true);

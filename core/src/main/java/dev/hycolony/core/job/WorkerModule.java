@@ -7,6 +7,7 @@ import dev.hycolony.core.building.module.BuildingEventsModule;
 import dev.hycolony.core.building.module.BuildingModule;
 import dev.hycolony.core.building.module.PersistentModule;
 import dev.hycolony.core.building.module.TickingModule;
+import dev.hycolony.core.citizen.CitizenAI;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.citizen.inventory.EquipmentReturn;
@@ -138,13 +139,15 @@ public final class WorkerModule implements PersistentModule, TickingModule, Buil
     /**
      * {@code citizen} loses its job (MC AbstractJob.onRemoval, then the job and workplace cleared): the job lets go
      * of its tasks, its armour goes back to its inventory and its body's hands go empty, the held slots staying as MC
-     * ({@link EquipmentReturn}).
+     * ({@link EquipmentReturn}); its AI drops its job AI and walking speed at once, as MC removes the courier's speed
+     * modifier on unassignment (DeliverymanAssignmentModule).
      */
     public static void free(Colony c, CitizenData citizen) {
         citizen.job().ifPresent(job -> job.onRemoval(c));
         EquipmentReturn.onJobRemoved(c, citizen);
         citizen.setJob(null);
         citizen.setWorkBuilding(null);
+        c.citizens().ai(citizen.id()).ifPresent(CitizenAI::jobLost);
     }
 
     /** MC AbstractAssignedCitizenModule.onDestroyed: fires every worker of the removed hut. */

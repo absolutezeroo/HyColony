@@ -39,6 +39,8 @@ class CitizenCommandedWalkTest {
     private int jobTicks;
     /** How many job AIs its job made. */
     private int jobAis;
+    /** How many times its job AI was reset. */
+    private int jobResets;
 
     CitizenCommandedWalkTest() {
         colony.citizens().restore(citizen);
@@ -64,6 +66,11 @@ class CitizenCommandedWalkTest {
                             @Override
                             public boolean canBeInterrupted() {
                                 return true;
+                            }
+
+                            @Override
+                            public void resetAI() {
+                                jobResets++;
                             }
                         };
                     }
@@ -173,15 +180,17 @@ class CitizenCommandedWalkTest {
     }
 
     @Test
-    void jobAiStartsAfreshAfterACommandedWalk() {
+    void jobAiIsResetAfterACommandedWalk() {
         t.bodies.instant = true;
         CitizenAI ai = worker();
         int made = jobAis;
+        int resets = jobResets;
 
         ai.walkTo(THERE);
         ticksUntilItWorks(ai, 1000);
 
-        assertEquals(made + 1, jobAis, "its old walkers would believe it where it was");
+        assertEquals(made, jobAis, "kept, with its fields");
+        assertEquals(resets + 1, jobResets, "its old walks would believe it where it was");
     }
 
     @Test
@@ -216,15 +225,17 @@ class CitizenCommandedWalkTest {
     }
 
     @Test
-    void jobAiStartsAfreshAfterATeleport() {
+    void jobAiIsResetAfterATeleport() {
         CitizenAI ai = worker();
         int made = jobAis;
+        int resets = jobResets;
 
         ai.teleport(Vec3.center(THERE));
         ticksUntilItWorks(ai, 1000);
 
         assertEquals(Vec3.center(THERE), position());
-        assertEquals(made + 1, jobAis);
+        assertEquals(made, jobAis);
+        assertEquals(resets + 1, jobResets);
     }
 
     @Test

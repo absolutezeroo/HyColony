@@ -64,7 +64,6 @@ public final class BlockApproach {
     public void forget() {
         walker.forget();
         spot = null;
-        forBlock = null;
     }
 
     /**

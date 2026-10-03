@@ -21,15 +21,16 @@ public record HistoryEntry(long tick, Kind kind, String from, String to, Msg det
         STUCK
     }
 
-    /** The citizen AI went from {@code from} (null before its first state) to {@code to}. */
-    static HistoryEntry aiState(long tick, @Nullable CitizenState from, CitizenState to) {
+    /**
+     * The citizen AI went from {@code from} (null before its first state) to {@code to}; {@code exit} says why it left
+     * WORKING, null for no reason given.
+     */
+    static HistoryEntry aiState(long tick, @Nullable CitizenState from, CitizenState to, @Nullable WorkExit exit) {
         String before = from == null ? "" : from.name();
-        return new HistoryEntry(
-                tick,
-                Kind.AI_STATE,
-                before,
-                to.name(),
-                Msg.of("hycolony.debug.history.aiState", shown(before), to.name()));
+        Msg detail = exit == null
+                ? Msg.of("hycolony.debug.history.aiState", shown(before), to.name())
+                : Msg.of(exit.key(), to.name());
+        return new HistoryEntry(tick, Kind.AI_STATE, before, to.name(), detail);
     }
 
     /** The job's AI went from the step {@code from} to {@code to}, {@code ""} for none. */

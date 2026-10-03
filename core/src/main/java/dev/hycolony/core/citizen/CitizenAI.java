@@ -5,12 +5,14 @@ import dev.hycolony.core.citizen.sleep.CitizenSleep;
 import dev.hycolony.core.citizen.sleep.SleepDecision;
 import dev.hycolony.core.citizen.vitals.AiWatch;
 import dev.hycolony.core.citizen.vitals.CitizenWalkReports;
+import dev.hycolony.core.citizen.vitals.WorkExit;
 import dev.hycolony.core.citizen.wander.CitizenWander;
 import dev.hycolony.core.colony.BlockApproach;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.job.CurrentJobAI;
 import dev.hycolony.core.job.Job;
 import dev.hycolony.core.job.JobAI;
-import dev.hycolony.core.job.WorkerModule;
+import dev.hycolony.core.job.WorkStops;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.ai.AIBlockingEventType;
@@ -22,7 +24,6 @@ import dev.hycolony.core.kernel.nav.BodyWalker;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.CitizenBodies;
 import dev.hycolony.core.kernel.port.Msg;
-import java.util.Objects;
 import java.util.Optional;
 import org.jspecify.annotations.Nullable;
 
@@ -30,7 +31,7 @@ import org.jspecify.annotations.Nullable;
  * Top-level citizen AI: sleep, eat, idle (wandering around) or work its job. Port of MC CitizenAI.calculateNextState
  * in MC's order, sleep then hunger then rain then work (sickness, mourning and raids are not ported): the citizen
  * works only when its job AI cannot go idle ({@link JobAI#canGoIdle}), it is not on a leisure break
- * ({@link #onBreak}) and the rain does not stop it ({@link #rainStopsWork}).
+ * ({@link WorkStops#onBreak}) and the rain does not stop it ({@link WorkStops#rainStopsWork}).
  */
 public final class CitizenAI {
     private static final System.Logger LOG = System.getLogger(CitizenAI.class.getName());
@@ -58,14 +59,8 @@ public final class CitizenAI {
     private int workTicks;
 
     private boolean failed;
-    /** Whether {@link #jobAI} was reset since the citizen last entered WORKING (MC resetAI on its WORK state). */
-    private boolean jobAIReset;
-
-    private @Nullable JobAI jobAI;
-    /** The job and work building {@link #jobAI} was created for. */
-    private @Nullable Job aiJob;
-
-    private @Nullable BlockPos aiWorkBuilding;
+    private final CurrentJobAI jobAI;
+    private final WorkStops stops;
 
     /** Starts at the idle state and at normal walking speed. */
     public CitizenAI(Colony colony, CitizenData data, BodyId body) {
@@ -87,6 +82,8 @@ public final class CitizenAI {
                 colony.context().clock()::currentTick);
         this.sleep = new CitizenSleep(colony, data, body);
         this.eating = new CitizenEating(colony, data, body);
+        this.jobAI = new CurrentJobAI(colony, data, body, watch::jobStarted);
+        this.stops = new WorkStops(colony, data);
         watch.afterTick(CitizenState.IDLE, null, 0); // its vital signs know where it starts
         machine.addTransition(
                 new AITarget<>(CitizenState.IDLE, (IStateSupplier<CitizenState>) this::idle, DECIDE_INTERVAL_TICKS));
@@ -116,9 +113,10 @@ public final class CitizenAI {
                 wander.leftIdle();
             }
             if (machine.getState() != CitizenState.WORKING) {
-                jobAIReset = false;
+                jobAI.resetOnNextWork();
             }
-            watch.afterTick(machine.getState(), jobAI, aiJob == null ? 0 : aiJob.actionsDone());
+            Job job = jobAI.job();
+            watch.afterTick(machine.getState(), jobAI.ai(), job == null ? 0 : job.actionsDone());
         } finally {
             colony.context().timings().stop(timingPart(), start);
         }
@@ -130,11 +128,12 @@ public final class CitizenAI {
 
     /**
      * MC CommandCitizenTriggerWalkTo: the citizen walks to {@code target} (see {@link CommandedWalk}), its AI waiting;
-     * a new command replaces the walk under way. Deviation from MC: its job AI then starts afresh, as its walkers would
-     * believe it where it was (MC's walks keep no state).
+     * a new command replaces the walk under way. Deviation from MC: its job AI is then reset when it works again
+     * ({@link JobAI#resetAI}), as its walkers would believe it where it was (MC's walks keep no state); its fields
+     * stay.
      */
     public void walkTo(BlockPos target) {
-        forgetJobAI();
+        moved();
         if (!commanded.active()) {
             machine.addTransition(commanded.transition(machine::getState));
         }
@@ -142,28 +141,41 @@ public final class CitizenAI {
     }
 
     /**
-     * Teleports its body to {@code to}, woken first (MC TeleportHelper); its job AI starts afresh, as for
-     * {@link #walkTo}.
+     * Teleports its body to {@code to}, woken first (MC TeleportHelper); its job AI is reset when it works again, as
+     * for {@link #walkTo}.
      */
     public void teleport(Vec3 to) {
         sleep.wakeUp();
-        forgetJobAI();
+        moved();
         bodies.teleport(body, to);
+    }
+
+    /** A command moved it: its job AI is reset at its next work tick; the wander waits for walks seen from now. */
+    private void moved() {
+        jobAI.resetOnNextWork();
+        wander.restartWait();
     }
 
     /** The part its ticks are timed as: its job AI's job type id, else {@code "citizen"}; allocates nothing. */
     private String timingPart() {
-        return aiJob == null ? "citizen" : aiJob.type().id();
+        Job job = jobAI.job();
+        return job == null ? "citizen" : job.type().id();
+    }
+
+    /** It was just fired ({@link dev.hycolony.core.job.WorkerModule#free}): its job AI and job speed go now. */
+    public void jobLost() {
+        jobAI.dropIfJobLeft();
     }
 
     /** Its job's AI, while it has a job; for diagnostics. */
     public Optional<JobAI> jobAi() {
-        return Optional.ofNullable(jobAI);
+        return Optional.ofNullable(jobAI.ai());
     }
 
     /** The job AI's own line while working. */
     public Optional<Msg> jobActivity() {
-        return state() == CitizenState.WORKING && jobAI != null ? jobAI.describe() : Optional.empty();
+        JobAI ai = jobAI.ai();
+        return state() == CitizenState.WORKING && ai != null ? ai.describe() : Optional.empty();
     }
 
     /**
@@ -187,9 +199,11 @@ public final class CitizenAI {
 
     /**
      * MC CitizenAI.decideAiTask, every {@link #DECIDE_INTERVAL_TICKS} in any state: the sleep part first (see
-     * {@link SleepDecision}; asleep, it decides again only every 15 s, MC setCurrentDelay), then the hunger part.
+     * {@link SleepDecision}; asleep, it decides again only every 15 s, MC setCurrentDelay), then the hunger part. A
+     * job AI whose job was taken away meanwhile, in any state, goes first ({@link CurrentJobAI#dropIfJobLeft}).
      */
     private @Nullable CitizenState decide() {
+        jobAI.dropIfJobLeft();
         CitizenState now = machine.getState();
         CitizenState next = switch (sleep.decide(now == CitizenState.SLEEP)) {
             case STAY_ASLEEP -> {
@@ -199,7 +213,8 @@ public final class CitizenAI {
             case GO_TO_SLEEP -> {
                 decidedEating = false;
                 leaveEating(now);
-                wander.restartWait(); // the sleep decision ignores canBeInterrupted
+                wander.restartWait(); // a walk under way is waited for from now
+                watch.leftWork(WorkExit.SLEEP); // even mid-task: MC's sleep part comes before canBeInterrupted
                 yield CitizenState.SLEEP;
             }
             case WAKE_UP -> decideHunger(now == CitizenState.SLEEP ? CitizenState.IDLE : now);
@@ -216,11 +231,12 @@ public final class CitizenAI {
      */
     private CitizenState decideHunger(CitizenState now) {
         boolean eatingNow = now == CitizenState.EATING;
-        JobAI ai = jobAI;
+        JobAI ai = jobAI.ai();
         decidedEating = eating.shouldEat(decidedEating || eatingNow, ai == null || ai.canBeInterrupted());
         if (decidedEating) {
             if (!eatingNow) {
                 wander.restartWait();
+                watch.leftWork(WorkExit.MEAL);
             }
             return CitizenState.EATING;
         }
@@ -256,17 +272,18 @@ public final class CitizenAI {
     private @Nullable CitizenState work() {
         Job job = data.job().orElse(null);
         if (job == null) {
-            dropJobAI();
+            jobAI.dropIfJobLeft();
+            wander.restartWait();
+            watch.leftWork(WorkExit.JOB_LOST);
             return CitizenState.IDLE;
         }
-        JobAI ai = jobAIFor(job);
-        if (!jobAIReset) { // MC CitizenAI's WORK target: resetAI, then WORKING
-            ai.resetAI();
-            jobAIReset = true;
-        }
+        JobAI ai = jobAI.forJob(job);
+        jobAI.working(ai);
         // MC re-decides every DECIDE_INTERVAL_TICKS, which also keeps the order lookup off the per-tick path.
-        if (++workTicks % DECIDE_INTERVAL_TICKS == 0 && (rainStopsWork() || ai.canGoIdle() || onBreak(ai))) {
+        WorkExit exit = ++workTicks % DECIDE_INTERVAL_TICKS == 0 ? stops.exit(ai) : null;
+        if (exit != null) {
             wander.restartWait();
+            watch.leftWork(exit);
             return CitizenState.IDLE;
         }
         ai.tick();
@@ -274,88 +291,16 @@ public final class CitizenAI {
     }
 
     /**
-     * MC calculateNextState: work only when the rain does not stop it ({@link #rainStopsWork}, checked first as in MC),
-     * the job AI cannot go idle and the citizen is not on a break ({@link #onBreak}). Asks its job AI, made once for
-     * its job and work hut and kept while it sleeps, eats or idles, as MC keeps its worker AI; entering WORKING resets
-     * it ({@link JobAI#resetAI}).
+     * MC calculateNextState: work only when the rain does not stop it ({@link WorkStops#rainStopsWork}, first in MC),
+     * the job AI cannot go idle and the citizen is not on a break ({@link WorkStops#onBreak}). Asks its job AI
+     * ({@link CurrentJobAI}), kept while it sleeps, eats or idles, as MC keeps its worker AI.
      */
     private boolean shouldWork() {
         Job job = data.job().orElse(null);
-        if (job == null || !bodies.isAlive(body) || rainStopsWork()) {
+        if (job == null || !bodies.isAlive(body) || stops.rainStopsWork()) {
             return false;
         }
-        JobAI ai = jobAIFor(job);
-        return !ai.canGoIdle() && !onBreak(ai);
-    }
-
-    /** Its job AI for {@code job}, made anew when it was hired for another job or hut (even between two ticks). */
-    private JobAI jobAIFor(Job job) {
-        JobAI ai = jobAI;
-        if (ai == null || !job.equals(aiJob) || !Objects.equals(data.workBuilding(), aiWorkBuilding)) {
-            ai = startJob(job);
-        }
-        return ai;
-    }
-
-    /**
-     * MC calculateNextState: a citizen on leisure ({@link CitizenData#leisureTime}) idles, unless its job AI cannot be
-     * interrupted right now.
-     */
-    private boolean onBreak(JobAI ai) {
-        return data.leisureTime() > 0 && ai.canBeInterrupted();
-    }
-
-    /**
-     * MC calculateNextState: while it rains a worker idles, even mid-task, unless shouldWorkWhileRaining (the config
-     * workersAlwaysWorkInRain, or its hut's {@link WorkerModule#canWorkDuringTheRain}). Deviation from MC: rain or
-     * snow at the work hut (Hytale weather is per zone), not a world-wide flag; no WORKING_IN_RAIN research nor
-     * BAD_WEATHER status line; a worker without a work hut is left to its job AI (MC idles it).
-     */
-    private boolean rainStopsWork() {
-        BlockPos at = data.workBuilding();
-        if (at == null || colony.context().config().gameplay().workersAlwaysWorkInRain()) {
-            return false;
-        }
-        return colony.buildings()
-                .at(at)
-                .filter(hut -> !hut.module(WorkerModule.class)
-                        .map(m -> m.canWorkDuringTheRain(hut))
-                        .orElse(false))
-                .map(hut -> colony.context().worldQuery().isRainingAt(hut.position()))
-                .orElse(false);
-    }
-
-    /**
-     * The citizen lost its job: forgets the job AI and its walking speed, as MC removes the courier's speed modifier on
-     * unassignment (DeliverymanAssignmentModule); restarts the wander's wait for a walk under way. The hand is left as
-     * it is, as MC.
-     */
-    private void dropJobAI() {
-        wander.restartWait(); // back to IDLE: the walk under way is waited for from now
-        jobAI = null;
-        aiJob = null;
-        bodies.setMovementSpeed(body, 1);
-    }
-
-    /**
-     * Forgets the job AI only, so the next work tick makes a fresh one; its speed and held item stay, as MC's command
-     * leaves them (the courier's Agility is an attribute modifier kept with the job); restarts the wander's wait for a
-     * walk under way.
-     */
-    private void forgetJobAI() {
-        wander.restartWait();
-        jobAI = null;
-        aiJob = null;
-    }
-
-    /** A fresh job AI, now current, at normal speed: a courier hired for another job loses its Agility bonus (MC). */
-    private JobAI startJob(Job job) {
-        bodies.setMovementSpeed(body, 1);
-        aiJob = job;
-        aiWorkBuilding = data.workBuilding();
-        JobAI ai = job.createAI(colony, body);
-        jobAI = ai;
-        watch.jobStarted(); // once made: a failing createAI leaves the old AI counted as it was
-        return ai;
+        JobAI ai = jobAI.forJob(job);
+        return !ai.canGoIdle() && !stops.onBreak(ai);
     }
 }

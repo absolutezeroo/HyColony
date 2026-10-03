@@ -120,7 +120,7 @@ HyBlockUI ← HyDomum ← HyColony → HyVanilla
   Ils tournent aussi dans les simulations de test.
 - **`walkTo`** (MC `CommandCitizenTriggerWalkTo`) :
   - `kernel/ai` porte `shouldRemove`, pour qu'une transition unique dure jusqu'à l'arrivée ;
-  - le citoyen marche jusqu'à 4 blocs de la position (`BlockApproach.walkToSafePos`), pendant 3 minutes au plus. Son IA attend pendant ce temps, puis encore 100 ticks, et reprend avec une IA de métier neuve ;
+  - le citoyen marche jusqu'à 4 blocs de la position (`BlockApproach.walkToSafePos`), pendant 3 minutes au plus. Son IA attend pendant ce temps, puis encore 100 ticks, et reprend avec son IA de métier remise à son premier état, ses marches oubliées (`JobAI.resetAI`) ;
   - une nouvelle demande remplace la marche en cours, avec un marcheur neuf.
 
   **Deviation from MC :**
