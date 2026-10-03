@@ -33,11 +33,8 @@
     "VariantRotation": "DoublePipe",
     "HitboxType": "HyDomum_Panel_HorizontallySquigglyStriped",
     "Gathering": {
-      "Physics": {
-        "ItemId": "Wood_Stripped_Deco"
-      },
+      "Physics": {},
       "Breaking": {
-        "ItemId": "Wood_Stripped_Deco",
         "GatherType": "Woods"
       }
     },

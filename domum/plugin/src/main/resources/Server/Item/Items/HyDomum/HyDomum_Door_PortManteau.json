@@ -75,11 +75,8 @@
     "InteractionHint": "server.interactionHints.openDoor",
     "SoundOcclusionOpacity": 2.0,
     "Gathering": {
-      "Physics": {
-        "ItemId": "Wood_Stripped_Deco"
-      },
+      "Physics": {},
       "Breaking": {
-        "ItemId": "Wood_Stripped_Deco",
         "GatherType": "Woods"
       }
     },

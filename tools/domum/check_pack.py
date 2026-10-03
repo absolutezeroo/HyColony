@@ -246,8 +246,31 @@ def manifest_names_each_template_do_source():
         assert len(shape["components"]) == len(shape["slots"]), shape
 
 
+def every_template_breaks_into_itself():
+    """A template's drops name no other item than itself (a wall state or double slab may name its template, which
+    VariantBlockType renames to the variant): a variant breaks into itself, as a DO block does."""
+    ctx = generate_into_temp()
+
+    def named(node):
+        if isinstance(node, dict):
+            for key, value in node.items():
+                if key in ("ItemId", "DropList") and isinstance(value, str):
+                    yield value
+                else:
+                    yield from named(value)
+        elif isinstance(node, list):
+            for value in node:
+                yield from named(value)
+
+    for ident, item in ctx.items.items():
+        block_type = item.get("BlockType", {})
+        for value in named(block_type.get("Gathering", {})):
+            assert value == ident, (ident, value)
+
+
 def run():
     """Runs this module's checks; an AssertionError names the failing case."""
+    every_template_breaks_into_itself()
     manifest_lists_every_template_with_its_slots()
     manifest_names_each_template_do_source()
     static_templates_live_in_the_do_tab()
