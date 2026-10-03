@@ -1,8 +1,53 @@
 """Brushes of the hand-built models (HyColony's huts and items, HyVanilla's bed and pots), one per kind of material.
 A brush paints a whole island, (w, h, side) -> image, as a painter would (strokes along a plank, folds down a hanging
-cloth, chunks of stone, a gradient across a crystal face); bake.py then lights the result from the model."""
+cloth, chunks of stone, a gradient across a crystal face); bake.py then lights the result from the model.
+
+While paint paints an island it sets the face's seed (seeded: each face of a seeded model draws its own pattern) and
+the grain's direction on it (grain: "u", "v", or None for the island's long side); brushes read both here."""
+
+from contextlib import contextmanager
+from functools import wraps
 
 from PIL import Image
+
+# Mixes the face seed into jitter's hash; a seed of 0 leaves every value as it was before seeds existed.
+SEED_MIX = 2246822519
+_face = {"seed": 0, "grain": None}
+
+
+@contextmanager
+def seeded(seed):
+    """Paints with the face seed seed (0: no seed) until the block ends, even when it ends on an error, then goes
+    back to the seed before it (blocks may nest)."""
+    before, _face["seed"] = _face["seed"], seed
+    try:
+        yield
+    finally:
+        _face["seed"] = before
+
+
+@contextmanager
+def grain(direction):
+    """Paints with the grain along the island's u or v ("u", "v"; None: its long side) until the block ends, then
+    goes back to the grain before it (blocks may nest)."""
+    before, _face["grain"] = _face["grain"], direction
+    try:
+        yield
+    finally:
+        _face["grain"] = before
+
+
+def family(name):
+    """Marks the brushes a factory makes with their family (compat.FAMILIES: a layered material reads it); what they
+    paint does not change."""
+    def mark(factory):
+        @wraps(factory)
+        def make(*args, **kwargs):
+            brush = factory(*args, **kwargs)
+            brush.family = name
+            return brush
+        return make
+    return mark
 
 
 def average(image):
@@ -11,8 +56,8 @@ def average(image):
 
 
 def jitter(i, salt):
-    """Deterministic pseudo-random value in [-1, 1] for an integer."""
-    h = (i * 2654435761 + salt * 40503) & 0xFFFFFFFF
+    """Deterministic pseudo-random value in [-1, 1] for an integer, under the face seed (seeded)."""
+    h = (i * 2654435761 + salt * 40503 + _face["seed"] * SEED_MIX) & 0xFFFFFFFF
     h = ((h ^ (h >> 15)) * 2246822519) & 0xFFFFFFFF
     return ((h ^ (h >> 13)) & 0xFFFF) / 32767.5 - 1.0
 
@@ -25,6 +70,20 @@ def smooth(x, salt):
     return jitter(i, salt) * (1 - f) + jitter(i + 1, salt) * f
 
 
+def smooth2(x, y, salt):
+    """Smooth 2D value noise in [-1, 1]: lattice values one unit apart in x and y, blended between them."""
+    i, j = int(x // 1), int(y // 1)
+    fx, fy = x - i, y - j
+    fx, fy = fx * fx * (3 - 2 * fx), fy * fy * (3 - 2 * fy)
+
+    def at(a, b):
+        return jitter(a * 7919 + b * 104729, salt)
+
+    top = at(i, j) * (1 - fx) + at(i + 1, j) * fx
+    bottom = at(i, j + 1) * (1 - fx) + at(i + 1, j + 1) * fx
+    return top * (1 - fy) + bottom * fy
+
+
 def mix(a, b, t):
     t = max(0.0, min(1.0, t))
     return tuple(round(x + (y - x) * t) for x, y in zip(a, b))
@@ -32,6 +91,22 @@ def mix(a, b, t):
 
 def coloured(rgb, k):
     return (*(max(0, min(255, round(c * k))) for c in rgb), 255)
+
+
+def along(x, y, w, h):
+    """(a, b, length): the texel's place along the grain and across it, and the island's length along it; the grain
+    runs along the island's long side unless the face sets it (grain)."""
+    return (x, y, w) if along_u(w, h) else (y, x, h)
+
+
+def along_u(w, h):
+    """Whether the grain runs along the island's u: as the face sets it (grain), else along its long side."""
+    return _face["grain"] == "u" if _face["grain"] else w >= h
+
+
+def edge(x, y, w, h):
+    """How many texels the texel lies from the island's edge (0 on the rim)."""
+    return min(x, y, w - 1 - x, h - 1 - y)
 
 
 def painted(rule):
@@ -51,11 +126,12 @@ def as_tile(brush):
     return brush(32, 32, "front")
 
 
+@family("ferrous")
 def metal(rgb, streak=0.07, band=0.13):
     """Brushed metal: streaks along the island's long side, a soft highlight band a third down side faces, sparse
     bright flecks."""
     def rule(x, y, w, h, side):
-        k = 1 + streak * jitter(y if w >= h else x, 7) + 0.02 * jitter(x * 31 + y, 3)
+        k = 1 + streak * jitter(along(x, y, w, h)[1], 7) + 0.02 * jitter(x * 31 + y, 3)
         if side not in ("top", "bottom") and h > 2:
             k += band * max(0.0, 1 - abs(y / (h - 1) - 0.3) * 4)
         if jitter(x * 13 + y * 7, 11) > 0.93:
@@ -64,11 +140,12 @@ def metal(rgb, streak=0.07, band=0.13):
     return painted(rule)
 
 
+@family("wood")
 def wood(rgb, plank=8):
     """Painted wood, as Hytale's props: long grain strokes along the island's long side, broken now and then, a
     darker seam every plank width across wide faces, an odd knot, the colour drifting softly along each plank."""
     def rule(x, y, w, h, side):
-        a, b, width = (x, y, h) if w >= h else (y, x, w)
+        a, b, width = (x, y, h) if along_u(w, h) else (y, x, w)
         board = b // plank
         k = 1 + 0.06 * jitter(board, 5) + 0.05 * smooth(a / 6 + board * 3.1, board)
         grain = jitter(b * 7 + board, 9)
@@ -84,6 +161,7 @@ def wood(rgb, plank=8):
     return painted(rule)
 
 
+@family("glass")
 def crystal(light, middle, deep):
     """A cut crystal face: light at the top left fading to deep at the bottom right, a lighter facet ridge along the
     anti-diagonal, a white glint near the lit corner."""
@@ -101,18 +179,20 @@ def crystal(light, middle, deep):
     return painted(rule)
 
 
+@family("paper")
 def paper(rgb, aged=(176, 150, 104)):
     """Paper: fine fibres, a slightly lighter middle and an aged, yellowed rim."""
     def rule(x, y, w, h, side):
         k = 1 + 0.03 * jitter(x * 31 + y * 17, 2) + 0.03 * smooth(x / 5 + y * 0.7, y // 4)
         centre = 1 - max(abs(2 * x / max(w - 1, 1) - 1), abs(2 * y / max(h - 1, 1) - 1))
         colour = coloured(rgb, k + 0.04 * centre)
-        if min(x, y, w - 1 - x, h - 1 - y) == 0:
+        if edge(x, y, w, h) == 0:
             colour = (*mix(colour[:3], aged, 0.3), 255)
         return colour
     return painted(rule)
 
 
+@family("textile")
 def cloth(rgb, folds=0.10):
     """Woven cloth: a fine weave, soft vertical folds down side faces (hanging fabric), a gentler ripple on top."""
     def rule(x, y, w, h, side):
@@ -125,6 +205,7 @@ def cloth(rgb, folds=0.10):
     return painted(rule)
 
 
+@family("stone")
 def stone(rgb, chunk=(4, 3)):
     """Stone: irregular chunks of their own tone, dark cracks between them, light and dark specks."""
     cw, ch = chunk
@@ -143,6 +224,7 @@ def stone(rgb, chunk=(4, 3)):
     return painted(rule)
 
 
+@family("stone")
 def ore(rock, nugget, density=0.15):
     """Ore: stone with 2 x 2 nuggets scattered on a 4 px grid, each lit at its top left and shaded at its bottom
     right."""
@@ -163,6 +245,7 @@ def ore(rock, nugget, density=0.15):
     return brush
 
 
+@family("ceramic")
 def terracotta(rgb):
     """Thrown terracotta (flower pots): a faint warm mottle, soft throwing rings round side faces (the same rows on
     every wall, so split walls line up), fine light grains of sand."""
@@ -176,6 +259,7 @@ def terracotta(rgb):
     return painted(rule)
 
 
+@family("stone")
 def embers():
     """Glowing embers (a fire's bed, a stove's firebox): dark coal broken by orange and yellow glowing cracks."""
     def rule(x, y, w, h, side):
@@ -186,6 +270,7 @@ def embers():
     return painted(rule)
 
 
+@family("ceramic")
 def clay(rgb):
     """Fired clay (bricks): a soft mottle and scattered dark pores."""
     def rule(x, y, w, h, side):

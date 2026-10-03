@@ -209,7 +209,7 @@ def pot_cell(template, values, clay_brush, dirt_brush):
     def material(name, side):
         return "dirt" if name == "Dirt" and side == "top" else "clay"
 
-    return paint.texture(template, POT_CELL, {"clay": clay_brush, "dirt": dirt_brush}, material, values)
+    return paint.texture(template, POT_CELL, paint.Look({"clay": clay_brush, "dirt": dirt_brush}, material), values)
 
 
 def write_model(name, nodes):

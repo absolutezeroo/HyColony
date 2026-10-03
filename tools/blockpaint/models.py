@@ -1,5 +1,5 @@
 """Blockymodel geometry shared by the model tools (HyVanilla, HyColony's huts, items and construction tape, HyDomum):
-nodes, their placement, faces, bounds and uniform scaling (32 units per block)."""
+nodes, their placement, faces, bounds and uniform scaling (32 units per block), and the vector arithmetic they need."""
 
 import copy
 import math
@@ -7,6 +7,11 @@ import operator
 
 FACE_NORMALS = {"front": (0, 0, 1), "back": (0, 0, -1), "right": (1, 0, 0), "left": (-1, 0, 0), "top": (0, 1, 0),
                 "bottom": (0, -1, 0)}
+
+
+# The box axes a face's island runs along: (its u, its v), as face_point lays it out.
+FACE_AXES = {"front": ("x", "y"), "back": ("x", "y"), "right": ("z", "y"), "left": ("z", "y"), "top": ("x", "z"),
+             "bottom": ("x", "z")}
 
 
 def face_span(side, size):
@@ -233,3 +238,29 @@ def rotate(q, v):
     return (pw * -a + px * w + py * -c - pz * -b,
             pw * -b - px * -c + py * w + pz * -a,
             pw * -c + px * -b - py * -a + pz * w)
+
+
+def sub(a, b):
+    return (a[0] - b[0], a[1] - b[1], a[2] - b[2])
+
+
+def scale(a, k):
+    return (a[0] * k, a[1] * k, a[2] * k)
+
+
+def dot(a, b):
+    # sum, not +: Python's float sum is compensated, and the generators' outputs are compared bit for bit.
+    return sum((a[0] * b[0], a[1] * b[1], a[2] * b[2]))
+
+
+def cross(a, b):
+    return (a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0])
+
+
+def length(a):
+    return math.sqrt(dot(a, a))
+
+
+def unit(a):
+    size = length(a)
+    return scale(a, 1 / size) if size > 1e-9 else a

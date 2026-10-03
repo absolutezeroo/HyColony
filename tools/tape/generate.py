@@ -103,7 +103,7 @@ def _look(shape):
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(json.dumps(rounded({"lod": "auto", "nodes": nodes}), separators=(",", ":")) + "\n",
                       encoding="utf-8", newline="\n")
-    image = paint.texture(nodes, size, TILES, _material, light_map(nodes, grounded=True))
+    image = paint.texture(nodes, size, paint.Look(TILES, _material), light_map(nodes, grounded=True))
     save_png(image, OUT / "Common" / texture)
     if shape == DEFAULT:
         icon = Image.new("RGBA", (ICON_SIZE, ICON_SIZE), (0, 0, 0, 0))

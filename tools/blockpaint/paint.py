@@ -1,11 +1,27 @@
 """Paints a hand-built model's texture, island by island (docs/research/hytale-models.md): every face of a box gets
-its material's tile or brush (brushes.py), then the light baked from the model itself (bake.py)."""
+its material's tile, brush (brushes.py) or layered material (effects.material, painted by surface.layered: spec
+2026-10-03 blockpaint surfaces), then the light baked from the model itself (bake.py)."""
+
+import zlib
+from collections import namedtuple
 
 from PIL import Image
 
+import brushes
 from bake import lit
 from brushes import average
-from models import face_span, walk
+from effects import Material
+from models import FACE_AXES, face_span, walk
+from surface import layered
+
+# What paints each island: tiles ({material: an image, a brush (w, h, side) -> image, or a layered material}),
+# material_of(node name, side) and the pictures (materials whose tile carries a drawing laid out for its island,
+# never turned).
+Look = namedtuple("Look", "tiles material_of pictures", defaults=(frozenset(),))
+# How a model is painted beyond its look: its seed (each face draws its own pattern, face_seed; None: as always),
+# axes ({node name before Blockbench's '--C<n>': box axis}, the grain of its faces: grain_of), the surface.Surface of
+# its layered materials and the light's mode (shading.graded).
+Painting = namedtuple("Painting", "seed axes surface light", defaults=(None, None, None, "legacy"))
 
 
 def islands(nodes):
@@ -26,22 +42,46 @@ def islands(nodes):
                 yield n["name"], side, *rect
 
 
-def paint(nodes, size, tiles, material_of, pictures=frozenset()):
-    """The model's unlit texture: each island filled with tiles[material_of(node name, side)]. A tile is an image,
-    or a brush: a function (w, h, side) painting the whole island. The materials in pictures carry a drawing laid out
-    for their island: never turned."""
+def paint(nodes, size, look, painting=Painting()):
+    """The model's unlit texture: each island filled with its tile in look (Look): an image repeated (fill), a
+    brush painting the whole island, or a layered material painted by surface.layered with painting.surface; each
+    face with its seed and grain (Painting)."""
     image = Image.new("RGBA", size, (0, 0, 0, 0))
     for name, side, u, v, w, h in islands(nodes):
-        material = material_of(name, side)
-        tile = tiles[material]
-        image.paste(tile(w, h, side) if callable(tile) else fill(tile, w, h, material not in pictures), (u, v))
+        material = look.material_of(name, side)
+        tile = look.tiles[material]
+        part = name.split("--")[0]
+        face, direction = face_seed(name, side, painting.seed), grain_of(side, (painting.axes or {}).get(part))
+        with brushes.seeded(face), brushes.grain(direction):
+            if isinstance(tile, Material):
+                island = layered(tile, painting.surface, (part, side, (u, v, w, h)), tile.substrate(w, h, side))
+            elif callable(tile):
+                island = tile(w, h, side)
+            else:
+                island = fill(tile, (w, h), material not in look.pictures, direction, face)
+        image.paste(island, (u, v))
     return image
 
 
-def texture(nodes, size, tiles, material_of, values, pictures=frozenset()):
-    """The model's finished texture: painted (paint), lit by values (bake.light_map of the model), each island bled
-    into its gap (bleed)."""
-    return bleed(lit(paint(nodes, size, tiles, material_of, pictures), values), nodes)
+def face_seed(name, side, seed):
+    """The seed of one face of a model seeded with seed: 0 without a model seed, else a stable number of the node,
+    the side and the seed (zlib.crc32: Python's hash() changes from one run to the next)."""
+    return 0 if seed is None else zlib.crc32(f"{name}/{side}/{seed}".encode())
+
+
+def grain_of(side, axis):
+    """The island axis ("u", "v") along which a face of a box shows its grain when it runs along the box axis axis
+    ("x", "y", "z"); None without an axis or when it leaves the face (end grain: the brush picks the long side)."""
+    if axis is None:
+        return None
+    u, v = FACE_AXES[side]
+    return "u" if axis == u else "v" if axis == v else None
+
+
+def texture(nodes, size, look, values, painting=Painting()):
+    """The model's finished texture: painted (paint), lit by values (bake.light_map of the model) in painting's light
+    mode (shading.graded), each island bled into its gap (bleed)."""
+    return bleed(lit(paint(nodes, size, look, painting), values, painting.light), nodes)
 
 
 def bleed(image, nodes):
@@ -65,13 +105,16 @@ def softened(tile, keep):
     return Image.blend(flat, tile, keep)
 
 
-def fill(tile, w, h, follow_grain=True):
-    """The tile repeated over w x h; with follow_grain, turned so its grain (wood planks) runs along the island's
-    long side."""
-    if follow_grain and h > w:
+def fill(tile, size, follow_grain=True, grain=None, seed=0):
+    """The tile repeated over size (w, h); with follow_grain, turned so its grain (wood planks) runs along the
+    island's grain ("u", "v"; None: its long side). A face seed shifts the tile, so each seeded face shows another
+    window."""
+    w, h = size
+    if follow_grain and (grain == "v" if grain else h > w):
         tile = tile.transpose(Image.ROTATE_90)
+    dx, dy = seed % tile.width, seed // tile.width % tile.height
     out = Image.new("RGBA", (w, h))
-    for x in range(0, w, tile.width):
-        for y in range(0, h, tile.height):
+    for x in range(-dx, w, tile.width):
+        for y in range(-dy, h, tile.height):
             out.paste(tile, (x, y))
     return out

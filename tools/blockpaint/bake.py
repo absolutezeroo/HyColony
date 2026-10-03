@@ -4,24 +4,43 @@ from the boxes themselves.
 
 For every texel of every face island it finds the point and the normal on the model (models.placed: Hytale's child
 placement), then darkens it by ambient occlusion (rays into the hemisphere, against every other box and, for a block,
-a floor), by the shadow cast from a light above the front left, lights the bevel of the island's border rings where
-it turns towards that light (with wear: lighter chips) and shades it elsewhere, grimes a block's foot, adds a soft
-world-space colour variation like brush strokes, and tints shadows cool and lights warm. Faces in "flat" shading also
-get the light's direction baked in (the engine does not light them). Every face needs its own island: one island
-can only hold one face's light."""
+a floor: rays.py), by the shadow cast from a light above the front left, lights the bevel of the island's border rings
+where it turns towards that light (with wear: lighter chips) and shades it elsewhere, grimes a block's foot, adds a
+soft world-space colour variation like brush strokes, and tints shadows cool and lights warm. Faces in "flat" shading
+also get the light's direction baked in (the engine does not light them). Every face needs its own island: one island
+can only hold one face's light.
+
+survey does the same pass and also tells what it knows of each texel (Texel: edge, rim, occlusion, height, light,
+face, island axes) for the layers painted before the light (spec 2026-10-03 blockpaint surfaces); lit grades a
+texel's colour by its light (shading.graded), in the hytale mode for those layers."""
 
 import math
+from collections import namedtuple
 
-from models import FACE_NORMALS, add, face_point, face_span, placed, rotate
+from models import FACE_NORMALS, add, bounds, dot, face_point, face_span, length, placed, rotate, scale, sub, unit
+from rays import FLOOR, RAY_START, covered, hit, occlusion, world_boxes
+from shading import graded
+
+# What the bake knows of one texel, for the layers painted before the light (spec 2026-10-03 blockpaint surfaces,
+# maps): world point and normal, edge (bevel ring direction and weight, None inside or on a seam), rim (texels to
+# the face's nearest open border, at most RIM_CAP; a seam is no border), occlusion (0 open to 1 enclosed), height (0
+# at the model's foot to 1 at its top), ground (1 on the floor of a grounded model to 0 from GRIME_HEIGHT up; 0 on a
+# model held or hung, which stands on no floor), light (dot of the normal and LIGHT), face (node name, side), and the
+# world directions of the island's u and v axes.
+Texel = namedtuple("Texel", "point normal edge rim occlusion height ground light face u_dir v_dir")
+RIM_CAP = 8
+# How a model is baked: standing on a floor (grounded), the nodes that cast nothing (see_through), the scale of the
+# light chips on its edges (wear) and of its grimed foot (grime).
+Bake = namedtuple("Bake", "grounded see_through wear grime", defaults=(False, frozenset(), 1.0, 1.0))
+# Where a texel lies for its light: world point and normal, edge (texels' edge), its occlusion (None: computed).
+Spot = namedtuple("Spot", "point normal edge occluded", defaults=(None,))
 
 # Towards the light: above, in front (+z) and to the viewer's left (-x).
 LIGHT = tuple(c / math.sqrt(0.45 ** 2 + 1 + 0.55 ** 2) for c in (-0.45, 1.0, 0.55))
-AO_DISTANCE, AO_STRENGTH = 10.0, 0.85
+AO_STRENGTH = 0.85
 # A glowing (fullbright) face keeps only this much of the occlusion and no cast shadow.
 GLOW_AO = 0.25
 SHADOW, SHADOW_REACH = 0.68, 40.0
-# Rays start this far off the face, so that they never hit their own box.
-RAY_START = 0.05
 # Bevel: strength, clamp, and the weight of the texel ring 0 and 1 from a face border.
 BEVEL, BEVEL_CLAMP, BEVEL_RINGS = 0.9, 0.35, (1.0, 0.45)
 NOISE_CELL, NOISE = 3.5, 0.10
@@ -29,13 +48,6 @@ NOISE_CELL, NOISE = 3.5, 0.10
 GRIME, GRIME_HEIGHT = 0.18, 6.0
 # Wear: worn, lighter texels on the outer ring of edges facing the light.
 WEAR = 0.12
-LOW, HIGH = 12, 244
-# A floor under grounded models (blocks): a wide, 100 units thick slab below y = 0 that occludes like any box.
-FLOOR = ((0.0, -50.0, 0.0), (0.0, 0.0, 0.0, 1.0), (1000.0, 50.0, 1000.0), 1e9)
-# Hemisphere directions around a normal: (elevation, azimuth) in degrees, plus the normal itself.
-RAYS = [(90, 0)] + [(e, a) for e in (25, 55) for a in range(0, 360, 60)]
-# The quaternion of an unturned box.
-UNTURNED = (0.0, 0.0, 0.0, 1.0)
 
 
 def light_map(nodes, grounded=False, see_through=frozenset()):
@@ -43,8 +55,22 @@ def light_map(nodes, grounded=False, see_through=frozenset()):
     model (a block) stands on a floor that occludes and grimes its foot. The nodes named in see_through are lit but
     occlude nothing (a part shown only part of the time, such as an animated drop). Fails when two faces share a
     texel: each face must have its own island, lit for it."""
-    boxes = list(world_boxes(nodes, see_through)) + ([FLOOR] if grounded else [])
-    values, owners = {}, {}
+    return baked(nodes, Bake(grounded, see_through), False)[0]
+
+
+def survey(nodes, grounded=False, see_through=frozenset(), wear=1.0, grime=1.0):
+    """(values, contexts) in one pass: values is light_map's {texel: brightness}, its light chips on edges scaled by
+    wear and its grimed foot by grime (1, 1: light_map's own); contexts is {texel: Texel} for the layers painted before
+    the light. Fails like light_map when two faces share a texel."""
+    return baked(nodes, Bake(grounded, see_through, wear, grime), True)
+
+
+def baked(nodes, how, with_contexts):
+    """(values, contexts) of the model baked as how says (Bake): light_map's values, and survey's contexts when
+    with_contexts (else empty: a model that declares nothing needs no rims). Fails when two faces share a texel."""
+    boxes = list(world_boxes(nodes, how.see_through)) + ([FLOOR] if how.grounded else [])
+    (_, low, _), (_, high, _) = bounds(nodes)
+    values, contexts, owners = {}, {}, {}
     for n, position, rotation in placed(nodes):
         shape = n["shape"]
         if shape["type"] != "box":
@@ -52,26 +78,33 @@ def light_map(nodes, grounded=False, see_through=frozenset()):
         mode = shape.get("shadingMode", "standard")
         for side, face in shape.get("textureLayout", {}).items():
             u0, v0 = int(face["offset"]["x"]), int(face["offset"]["y"])
+            _, u_step, v_step = face_frame(shape, side, position, rotation)
+            rim = rims(shape, side, position, rotation, boxes) if with_contexts else None
             for (i, j), point, normal, edge in texels(shape, side, position, rotation, boxes):
                 texel = (u0 + i, v0 + j)
                 if texel in owners:
                     raise SystemExit(f"{n['name']} {side} shares texel {texel} with {owners[texel]}: give each face "
                                      "its own UV island")
                 owners[texel] = f"{n['name']} {side}"
-                value = brightness(point, normal, edge, boxes, mode)
-                if grounded:
-                    value *= 1.0 - GRIME * min(1.0, max(0.0, 1.0 - point[1] / GRIME_HEIGHT))
-                values[texel] = value
-    return values
+                spot = Spot(point, normal, edge, occlusion(point, normal, boxes))
+                values[texel] = brightness(spot, boxes, mode, how.wear)
+                ground = min(1.0, max(0.0, 1.0 - point[1] / GRIME_HEIGHT)) if how.grounded else 0.0
+                if how.grounded:
+                    values[texel] *= 1.0 - GRIME * how.grime * ground
+                if with_contexts:
+                    height = min(1.0, max(0.0, (point[1] - low) / (high - low))) if high - low > 1e-9 else 0.0
+                    contexts[texel] = Texel(point, normal, edge, rim[i, j], spot.occluded, height, ground,
+                                            dot(normal, LIGHT), (n["name"], side), unit(u_step), unit(v_step))
+    return values, contexts
 
 
-def lit(image, values):
+def lit(image, values, mode="legacy"):
     """image with each painted (not fully transparent) texel of values ({texel: brightness}, light_map) graded by its
-    brightness; texels outside image are skipped. Returns image, changed in place."""
+    brightness in mode (graded); texels outside image are skipped. Returns image, changed in place."""
     pixels = image.load()
     for (x, y), value in values.items():
         if 0 <= x < image.width and 0 <= y < image.height and pixels[x, y][3]:
-            pixels[x, y] = graded(pixels[x, y], value)
+            pixels[x, y] = graded(pixels[x, y], value, mode)
     return image
 
 
@@ -79,16 +112,9 @@ def texels(shape, side, position, rotation, boxes=()):
     """((i, j), world point, world normal, edge) for each texel of a face; edge: (outward direction, ring weight)
     for the two texel rings along the face border, None inside. A border where the surface goes on into one of boxes
     (two boxes side by side, a wall split in several) is a seam, not a corner: it gets no edge."""
-    size = tuple(shape["settings"]["size"][a] for a in "xyz")
-    offset, stretch = (tuple(shape[k][a] for a in "xyz") for k in ("offset", "stretch"))
-    w, h = face_span(side, size)
+    w, h = face_span(side, tuple(shape["settings"]["size"][a] for a in "xyz"))
     normal = rotate(rotation, FACE_NORMALS[side])
-
-    def world(s, t):
-        local = face_point(side, size, s, t)
-        return add(position, rotate(rotation, tuple(o + c * k for o, c, k in zip(offset, local, stretch))))
-
-    u_step, v_step = sub(world(1, 0), world(0, 0)), sub(world(0, 1), world(0, 0))
+    world, u_step, v_step = face_frame(shape, side, position, rotation)
     u_dir, v_dir = unit(u_step), unit(v_step)
 
     def beyond(d, ring):
@@ -99,14 +125,48 @@ def texels(shape, side, position, rotation, boxes=()):
     for i in range(int(w)):
         for j in range(int(h)):
             point = world(i + 0.5, j + 0.5)
-            yield (i, j), point, normal, edge(i, j, int(w), int(h), u_dir, v_dir,
+            yield (i, j), point, normal, edge((i, j), (int(w), int(h)), (u_dir, v_dir),
                                               lambda d, ring, p=point: not covered(p, normal, beyond(d, ring), boxes))
 
 
-def edge(i, j, w, h, u_dir, v_dir, open_side=lambda d, ring: True):
-    """(in-plane direction towards the nearest open face borders, weight of the texel's ring) for the two rings along
-    the border, None for inner texels (and for faces too thin to have an inside). A border direction d counts only
-    when open_side(d, ring)."""
+def face_frame(shape, side, position, rotation):
+    """(world, u_step, v_step) of a face: world(s, t) is the world point at texel coordinates (s, t) of its island,
+    u_step and v_step the world offsets of one texel along the island's u and v."""
+    size = tuple(shape["settings"]["size"][a] for a in "xyz")
+    offset, stretch = (tuple(shape[k][a] for a in "xyz") for k in ("offset", "stretch"))
+
+    def world(s, t):
+        local = face_point(side, size, s, t)
+        return add(position, rotate(rotation, tuple(o + c * k for o, c, k in zip(offset, local, stretch))))
+
+    return world, sub(world(1, 0), world(0, 0)), sub(world(0, 1), world(0, 0))
+
+
+def rims(shape, side, position, rotation, boxes):
+    """{(i, j): texels from each texel of a face to its nearest open border, at most RIM_CAP}. Each border texel tests
+    once whether the surface goes on past it into one of boxes (covered: a seam), so a seam is no border."""
+    w, h = (int(c) for c in face_span(side, tuple(shape["settings"]["size"][a] for a in "xyz")))
+    normal = rotate(rotation, FACE_NORMALS[side])
+    world, u_step, v_step = face_frame(shape, side, position, rotation)
+
+    def open_past(s, t, step):
+        return not covered(world(s, t), normal, step, boxes)
+
+    left = [open_past(0.5, j + 0.5, scale(u_step, -1)) for j in range(h)]
+    right = [open_past(w - 0.5, j + 0.5, u_step) for j in range(h)]
+    top = [open_past(i + 0.5, 0.5, scale(v_step, -1)) for i in range(w)]
+    bottom = [open_past(i + 0.5, h - 0.5, v_step) for i in range(w)]
+    return {(i, j): min([RIM_CAP] + [d for d, opened in ((i, left[j]), (w - 1 - i, right[j]), (j, top[i]),
+                                                          (h - 1 - j, bottom[i])) if opened])
+            for i in range(w) for j in range(h)}
+
+
+def edge(cell, size, axes, open_side=lambda d, ring: True):
+    """(in-plane direction towards the nearest open face borders, weight of the texel's ring) of the texel cell (i, j)
+    of a face size (w, h) texels wide whose island axes run along axes (u_dir, v_dir), for the two rings along the
+    border; None for inner texels (and for faces too thin to have an inside). A border direction d counts only when
+    open_side(d, ring)."""
+    (i, j), (w, h), (u_dir, v_dir) = cell, size, axes
     for ring, weight in enumerate(BEVEL_RINGS):
         if min(w, h) <= 2 * ring + 1:
             break
@@ -121,26 +181,16 @@ def edge(i, j, w, h, u_dir, v_dir, open_side=lambda d, ring: True):
     return None
 
 
-def covered(point, normal, reach, boxes):
-    """Whether the surface at point goes on past its face border: just under the surface, at point + reach (half a
-    texel past the border), lies inside a box. A box beside it (a seam), against it (a concave corner) or the floor
-    under a block's side all cover it."""
-    probe = sub(add(point, reach), scale(normal, RAY_START))
-    return any(inside(probe, box) for box in boxes)
-
-
-def inside(point, box):
-    centre, inverse, half, _ = box
-    local = rotate(inverse, sub(point, centre))
-    return all(abs(local[k]) <= half[k] for k in range(3))
-
-
-def brightness(point, normal, border, boxes, mode):
-    """The light of one texel for a face in shading mode: occlusion, cast shadow, bevel and wear on its border
-    rings, soft variation; Lambert too on flat faces; a glowing (fullbright) face keeps only GLOW_AO of the
-    occlusion and no cast shadow (bevel, wear and variation still apply)."""
+def brightness(spot, boxes, mode, wear=1.0):
+    """The light of one texel (spot: Spot) for a face in shading mode: occlusion (the spot's, computed when None),
+    cast shadow, bevel and wear (scaled by wear) on its border rings, soft variation; Lambert too on flat faces; a
+    glowing (fullbright) face keeps only GLOW_AO of the occlusion and no cast shadow (bevel, wear and variation still
+    apply)."""
+    point, normal, border, occluded = spot
     glowing = mode == "fullbright"
-    value = 1.0 - (GLOW_AO if glowing else AO_STRENGTH) * occlusion(point, normal, boxes)
+    if occluded is None:
+        occluded = occlusion(point, normal, boxes)
+    value = 1.0 - (GLOW_AO if glowing else AO_STRENGTH) * occluded
     facing = dot(normal, LIGHT)
     lit_start = add(point, scale(normal, RAY_START))
     if not glowing and facing > 0 and hit(lit_start, LIGHT, boxes, SHADOW_REACH) is not None:
@@ -156,88 +206,8 @@ def brightness(point, normal, border, boxes, mode):
             lit = max(0.0, lit)
         value *= 1.0 + weight * max(-BEVEL_CLAMP, min(BEVEL_CLAMP, BEVEL * lit))
         if weight == BEVEL_RINGS[0] and lit > 0 and value_noise(scale(point, 3.0)) > 0.35:
-            value *= 1.0 + WEAR
+            value *= 1.0 + WEAR * wear
     return value * (1.0 + NOISE * value_noise(point))
-
-
-def occlusion(point, normal, boxes):
-    """0 (open) to 1 (enclosed): how much of the hemisphere above the point other boxes hide, nearer counting more."""
-    nx, ny, nz = normal
-    tx, ty, tz = unit(cross(normal, (0.0, 1.0, 0.0) if abs(ny) < 0.9 else (1.0, 0.0, 0.0)))
-    bx, by, bz = cross(normal, (tx, ty, tz))
-    start = add(point, scale(normal, RAY_START))
-    total = 0.0
-    for weight, along_t, along_b in RAY_TERMS:
-        direction = (nx * weight + (tx * along_t + bx * along_b), ny * weight + (ty * along_t + by * along_b),
-                     nz * weight + (tz * along_t + bz * along_b))
-        t = hit(start, direction, boxes, AO_DISTANCE)
-        total += weight * (0.0 if t is None else 1.0 - t / AO_DISTANCE)
-    return total / RAY_WEIGHT
-
-
-def ray_terms():
-    """Per ray of RAYS, computed once: (sin elevation, its weight and its share along the normal; its shares along the
-    tangent and the bitangent); and the sum of the weights."""
-    terms = []
-    for elevation, azimuth in RAYS:
-        e, a = math.radians(elevation), math.radians(azimuth)
-        terms.append((math.sin(e), math.cos(e) * math.cos(a), math.cos(e) * math.sin(a)))
-    weight = 0.0
-    for term in terms:
-        weight += term[0]
-    return terms, weight
-
-
-RAY_TERMS, RAY_WEIGHT = ray_terms()
-
-
-def world_boxes(nodes, skipped=frozenset()):
-    """(centre, inverse rotation, half extents, bounding radius) of every box, in world space, but those of the nodes
-    named in skipped."""
-    for n, position, rotation in placed(nodes):
-        shape = n["shape"]
-        if shape["type"] != "box" or n["name"] in skipped:
-            continue
-        offset, stretch = (tuple(shape[k][a] for a in "xyz") for k in ("offset", "stretch"))
-        half = tuple(abs(shape["settings"]["size"][a] * k) / 2 for a, k in zip("xyz", stretch))
-        centre = add(position, rotate(rotation, offset))
-        inverse = (-rotation[0], -rotation[1], -rotation[2], rotation[3])
-        yield centre, inverse, half, math.sqrt(sum(c * c for c in half))
-
-
-def hit(origin, direction, boxes, reach):
-    """Distance along the ray to the nearest box within reach, None if none (slab test in each box's frame)."""
-    nearest = None
-    ox, oy, oz = origin
-    dx, dy, dz = direction
-    for centre, inverse, half, radius in boxes:
-        # The bounding sphere first: most boxes are behind, past reach or beside the ray. sum, as dot computes it.
-        cx, cy, cz = centre
-        tx, ty, tz = cx - ox, cy - oy, cz - oz
-        along = sum((tx * dx, ty * dy, tz * dz))
-        if along < -radius or along > reach + radius:
-            continue
-        if sum((tx * tx, ty * ty, tz * tz)) - along * along > radius * radius:
-            continue
-        o = (ox - cx, oy - cy, oz - cz)
-        d = direction
-        # An unturned box (most of them, and the floor) needs no turn: the identity gives the same values.
-        if inverse != UNTURNED:
-            o, d = rotate(inverse, o), rotate(inverse, d)
-        t0, t1 = 0.0, reach
-        for k in range(3):
-            if abs(d[k]) < 1e-9:
-                if abs(o[k]) > half[k]:
-                    break
-                continue
-            a, b = (-half[k] - o[k]) / d[k], (half[k] - o[k]) / d[k]
-            t0, t1 = max(t0, min(a, b)), min(t1, max(a, b))
-            if t0 > t1:
-                break
-        else:
-            if t0 > 1e-4 and (nearest is None or t0 < nearest):
-                nearest = t0
-    return nearest
 
 
 def value_noise(point):
@@ -260,38 +230,3 @@ def lattice(x, y, z):
     h = (x * 374761393 + y * 668265263 + z * 2147483647) & 0xFFFFFFFF
     h = ((h ^ (h >> 13)) * 1274126177) & 0xFFFFFFFF
     return (h & 0xFFFF) / 32767.5 - 1.0
-
-
-def graded(pixel, value):
-    """pixel lit by value, shadows drifting cool (blue) and lights warm (yellow), clamped off pure black and white."""
-    r, g, b, a = pixel
-    shade = max(0.0, 1.0 - value)
-    glow = max(0.0, value - 1.0)
-    tint = (1 - 0.10 * shade + 0.06 * glow, 1 - 0.04 * shade + 0.03 * glow, 1 + 0.08 * shade - 0.05 * glow)
-    return (*(min(HIGH, max(LOW, round(c * value * k))) for c, k in zip((r, g, b), tint)), a)
-
-
-def sub(a, b):
-    return (a[0] - b[0], a[1] - b[1], a[2] - b[2])
-
-
-def scale(a, k):
-    return (a[0] * k, a[1] * k, a[2] * k)
-
-
-def dot(a, b):
-    # sum, not +: Python's float sum is compensated, and the generators' outputs are compared bit for bit.
-    return sum((a[0] * b[0], a[1] * b[1], a[2] * b[2]))
-
-
-def cross(a, b):
-    return (a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0])
-
-
-def length(a):
-    return math.sqrt(dot(a, a))
-
-
-def unit(a):
-    size = length(a)
-    return scale(a, 1 / size) if size > 1e-9 else a

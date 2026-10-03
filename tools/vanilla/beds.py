@@ -48,7 +48,8 @@ def generate(assets, colours):
     for colour in colours:
         wool_item = assets.item("Cloth_Block_Wool_" + colour)
         wool = cloth(average(assets.image("Common/BlockTextures/Cloth_" + colour + ".png")))
-        image = paint.texture(nodes, TEXTURE_SIZE, {"wood": wooden, "sheet": sheet, "wool": wool}, material, values)
+        look = paint.Look({"wood": wooden, "sheet": sheet, "wool": wool}, material)
+        image = paint.texture(nodes, TEXTURE_SIZE, look, values)
         save_png(image, PACK / "Common" / texture_path(colour))
         save_png(icon(nodes, image), PACK / "Common/Icons/Items/HyVanilla" / ("Bed_" + colour + ".png"))
         write_json(PACK / "Server/Item/Items/HyVanilla" / (bed_id(colour) + ".json"), bed_item(colour, wool_item))

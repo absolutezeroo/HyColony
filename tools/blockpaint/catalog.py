@@ -13,17 +13,33 @@ A model's module declares:
 - animation(nodes), optional: the model's looping blockyanim, written next to it (<MODEL>.blockyanim);
 - SEE_THROUGH, optional: the nodes lit but casting no baked shadow (shown only part of the time by the animation);
 - GLINT, optional: the name prefix of the crystal nodes that breathe and glint (glint.py), instead of animation;
-- BREATHE, optional: False for crystals that only glint."""
+- BREATHE, optional: False for crystals that only glint;
+- SEED, optional: a number that gives each face its own pattern (paint.face_seed); without it, faces of one size and
+  material look alike, as they always did;
+- AXES, optional: {node name: box axis "x", "y" or "z"} along which a part's grain runs (paint.grain_of); without it,
+  along each island's long side;
+- CONDITION, optional: the model's condition (conditions.py): its tiles may then be layered materials
+  (effects.material: coats and effects), and the model is lit in the hytale light; without it or with
+  conditions.DEFAULT, the render of before;
+- AGE, ENVIRONMENT, optional with CONDITION: the model's age (else the condition's) and environment (conditions.py);
+- ROLES, USAGE, FOCUS, optional with CONDITION: {node name: role} (roles.py), {node name: roles.contact(…) and kin},
+  and the nodes the eye goes to;
+- ART, optional with CONDITION: the model's art (art.Art: detail budget, rest zones), else art.Art();
+- HISTORY, optional with CONDITION: what happened to it, a few events (history.py: impact, fire, water…)."""
 
 import json
 import math
 
 import glint
-from bake import light_map
+from art import Art
+from bake import light_map, survey
+from conditions import DEFAULT
+from history import resolved
 from icons import ICON_SIZE, draw_model, frame
 from pack import save_png, write_json
-from paint import islands, texture
+from paint import Look, Painting, islands, texture
 from PIL import Image
+from surface import Surface
 from trim import faces, trim
 
 
@@ -55,12 +71,41 @@ def paint(modules, common, icons, assets):
 
 
 def model_texture(module, nodes, assets):
-    """The model's finished texture (paint.texture) from its module's materials and tiles."""
+    """The model's finished texture (paint.texture) from its module's materials and tiles; layered (surface.py) and
+    in the hytale light when the module declares a CONDITION, else exactly as before."""
+    condition = getattr(module, "CONDITION", None)
+    # DEFAULT is the render of a model that declares nothing: the same bytes.
+    if condition is None or condition is DEFAULT:
+        grounded, see_through = module.MODEL.startswith("Blocks/"), getattr(module, "SEE_THROUGH", frozenset())
+        return module_texture(module, nodes, assets, light_map(nodes, grounded, see_through), None)
+    values, contexts = surveyed(module, nodes)
+    return module_texture(module, nodes, assets, values, module_surface(module, contexts))
+
+
+def module_texture(module, nodes, assets, values, surface):
+    """The model's texture from its module's tiles, materials, seed and axes, lit by values: layered with surface in
+    the hytale light, or as before without one."""
     # Blockbench names a group's later cubes '<cube>--C<n>': the materials read the name before it.
-    return texture(nodes, texture_size(nodes), module.tiles(assets),
-                   lambda name, side: module.material(name.split("--")[0], side),
-                   light_map(nodes, module.MODEL.startswith("Blocks/"), getattr(module, "SEE_THROUGH", frozenset())),
-                   module.PICTURES)
+    look = Look(module.tiles(assets), lambda name, side: module.material(name.split("--")[0], side), module.PICTURES)
+    light = "legacy" if surface is None else "hytale"
+    painting = Painting(getattr(module, "SEED", None), getattr(module, "AXES", None), surface, light)
+    return texture(nodes, texture_size(nodes), look, values, painting)
+
+
+def surveyed(module, nodes):
+    """(values, contexts) of bake.survey for the model of a module declaring a CONDITION: a block stands on a floor,
+    its SEE_THROUGH nodes cast nothing, the bake's own chips and grime are its condition's."""
+    grounded, see_through = module.MODEL.startswith("Blocks/"), getattr(module, "SEE_THROUGH", frozenset())
+    return survey(nodes, grounded, see_through, module.CONDITION.wear, module.CONDITION.grime)
+
+
+def module_surface(module, contexts, record=None):
+    """The Surface a module declaring a CONDITION paints its layered materials with, its HISTORY resolved on contexts;
+    record, a list, receives each layered island (semantics.painted)."""
+    return Surface(contexts, module.CONDITION, getattr(module, "AGE", None), getattr(module, "ENVIRONMENT", None),
+                   getattr(module, "ROLES", {}), getattr(module, "USAGE", {}), getattr(module, "FOCUS", ()),
+                   getattr(module, "SEED", None), getattr(module, "ART", Art()),
+                   resolved(getattr(module, "HISTORY", ()), contexts), record=record)
 
 
 def texture_size(nodes):

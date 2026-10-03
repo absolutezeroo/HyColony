@@ -23,7 +23,7 @@ from icons import ICON_SIZE, draw_model, frame, turned  # noqa: E402
 from models import unwrap, walk  # noqa: E402
 from pack import GRADLE_ASSETS, ROOT, Assets, rounded, save_png, write_json  # noqa: E402
 from pack_rules import validate_pack  # noqa: E402
-from paint import texture  # noqa: E402
+from paint import Look, texture  # noqa: E402
 from arms import ARMS  # noqa: E402
 from pieces import PIECES  # noqa: E402
 
@@ -64,7 +64,7 @@ def draw(name, nodes, assets, view):
     size = unwrap(nodes)
     for number, n in enumerate(walk(nodes), 1):
         n["id"] = str(number)
-    image = texture(nodes, size, finish.tiles(assets), finish.material, light_map(nodes), finish.PICTURES)
+    image = texture(nodes, size, Look(finish.tiles(assets), finish.material, finish.PICTURES), light_map(nodes))
     model = RESOURCES / "Common" / (FOLDER + name + ".blockymodel")
     model.parent.mkdir(parents=True, exist_ok=True)
     model.write_text(json.dumps(rounded({"format": "character", "lod": "auto", "nodes": nodes}), indent=2) + "\n",
