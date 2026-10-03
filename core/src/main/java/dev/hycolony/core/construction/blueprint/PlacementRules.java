@@ -26,9 +26,6 @@ public interface PlacementRules {
     /** MC's {@code Blocks.DIRT}: the block whose item a grass, dirt or path cell costs; empty if the map has none. */
     Optional<BlockKey> plainDirt();
 
-    /** Whether this block is a leaf, which the builder places for free (MC BuildingStructureHandler.isStackFree). */
-    boolean isLeaves(BlockKey block);
-
     /** Whether this block is a fluid source, not a flowing fluid nor any other block. */
     boolean isFluidSource(BlockKey block);
 

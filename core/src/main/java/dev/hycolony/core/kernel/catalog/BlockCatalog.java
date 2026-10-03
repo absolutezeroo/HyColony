@@ -14,6 +14,12 @@ public interface BlockCatalog {
     /** The block's kind (air, solid, non-solid, fluid or unbreakable); UNBREAKABLE for an unknown block. */
     BlockKind kind(BlockKey block);
 
+    /**
+     * Whether this block is a tree leaf: the builder places it for free (MC BuildingStructureHandler.isStackFree), and
+     * an idle citizen never wanders into one.
+     */
+    boolean isLeaves(BlockKey block);
+
     /** Whether this block is an ore, whose drops the builder does not keep (MC EntityAIStructureBuilder.mineBlock). */
     boolean isOre(BlockKey block);
 

@@ -11,7 +11,6 @@ import dev.hycolony.core.farming.FarmingAccess;
 import dev.hycolony.core.kernel.catalog.BlockCatalog;
 import dev.hycolony.core.kernel.catalog.FoodCatalog;
 import dev.hycolony.core.kernel.catalog.ItemCatalog;
-import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.port.ContainerAccess;
 import dev.hycolony.core.kernel.port.PlayerInventory;
 import dev.hycolony.core.kernel.port.WorldBlocks;
@@ -43,10 +42,5 @@ public record GamePorts(
     /** The catalogs a plan's matching and costing read: items, block types, placement rules and recipes. */
     public PlanCatalogs planCatalogs() {
         return new PlanCatalogs(catalog, blockCatalog, placement, crafting.catalog());
-    }
-
-    /** Whether this block is leaves ({@link PlacementRules#isLeaves}), for the features that may not see that port. */
-    public boolean isLeaves(BlockKey block) {
-        return placement.isLeaves(block);
     }
 }

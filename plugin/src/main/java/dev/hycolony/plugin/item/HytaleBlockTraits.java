@@ -25,11 +25,11 @@ import java.util.logging.Level;
 public final class HytaleBlockTraits implements PlacementRules {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
     /** The block group of every tree leaf ({@code Plant_Leaves_*}); the Leaves block set misses them. */
-    private static final String LEAVES_GROUP = "Leaves";
+    static final String LEAVES_GROUP = "Leaves";
 
-    private static final Traits NONE = new Traits(false, false, false, Optional.empty());
+    private static final Traits NONE = new Traits(false, false, Optional.empty());
 
-    private record Traits(boolean goodFloor, boolean leaves, boolean fluidSource, Optional<String> shapeFamily) {}
+    private record Traits(boolean goodFloor, boolean fluidSource, Optional<String> shapeFamily) {}
 
     private final Set<String> dirt;
     private final Set<String> dirtCells;
@@ -59,12 +59,6 @@ public final class HytaleBlockTraits implements PlacementRules {
     @Override
     public boolean isGoodFloor(BlockKey block) {
         return traits(block).goodFloor();
-    }
-
-    /** Whether this block is a leaf: of the {@code Leaves} block group. */
-    @Override
-    public boolean isLeaves(BlockKey block) {
-        return traits(block).leaves();
     }
 
     /** Whether this block is a fluid source: its fluid's maximum level is 1, where a flowing fluid's is 8. */
@@ -119,7 +113,7 @@ public final class HytaleBlockTraits implements PlacementRules {
         try {
             if (id.startsWith(HytaleBlockStates.FLUID_PREFIX)) {
                 Fluid fluid = Fluid.getAssetMap().getAsset(id.substring(HytaleBlockStates.FLUID_PREFIX.length()));
-                return new Traits(false, false, fluid != null && fluid.getMaxFluidLevel() == 1, Optional.empty());
+                return new Traits(false, fluid != null && fluid.getMaxFluidLevel() == 1, Optional.empty());
             }
             BlockType type = BlockType.getAssetMap().getAsset(id);
             if (type == null || type.isUnknown()) {
@@ -127,7 +121,7 @@ public final class HytaleBlockTraits implements PlacementRules {
             }
             boolean leaves = LEAVES_GROUP.equals(type.getGroup());
             boolean full = FluidTicker.isFullySolid(type) && BlockBoundingBoxes.DEFAULT.equals(type.getHitboxType());
-            return new Traits(full && !leaves, leaves, false, family(type));
+            return new Traits(full && !leaves, false, family(type));
         } catch (RuntimeException e) {
             LOG.at(warned ? Level.FINE : Level.WARNING).withCause(e).log("Block facts unreadable for %s", id);
             warned = true;

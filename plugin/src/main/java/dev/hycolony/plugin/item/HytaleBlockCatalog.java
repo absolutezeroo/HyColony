@@ -73,6 +73,25 @@ public final class HytaleBlockCatalog implements BlockCatalog {
         return block(block).kind();
     }
 
+    /**
+     * Whether this block is a tree leaf: of the {@code Leaves} block group (HytaleBlockTraits.LEAVES_GROUP), a state
+     * variant by its base block; a fluid, an unknown or unreadable block is none.
+     */
+    @Override
+    public boolean isLeaves(BlockKey block) {
+        String id = block.id();
+        if (id.startsWith(HytaleBlockStates.FLUID_PREFIX)) {
+            return false;
+        }
+        try {
+            BlockType type = baseType(id);
+            return type != null && HytaleBlockTraits.LEAVES_GROUP.equals(type.getGroup());
+        } catch (RuntimeException e) {
+            fail(id, e);
+            return false;
+        }
+    }
+
     @Override
     public boolean isOre(BlockKey block) {
         return block(block).ore();

@@ -44,7 +44,7 @@ public final class EntryCost {
     public static List<ItemAmount> of(BlueprintEntry e, @Nullable BlockState world, PlanCatalogs catalogs) {
         BlockKey block = e.state().key();
         PlacementRules rules = catalogs.placement();
-        if (rules.isLeaves(block)) {
+        if (catalogs.blocks().isLeaves(block)) {
             return List.of();
         }
         if (rules.takesAnyDirt(block) || rules.isDirtPath(block)) {
