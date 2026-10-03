@@ -624,3 +624,11 @@ Recherche `docs/research/domaine1-suite.md`. Une colonie avec un bâtisseur ; l'
 376. **Reprise après la nuit.** Un fermier ou un bâtisseur qui dort puis se réveille reprend son travail depuis sa première étape (il revient d'abord à sa hutte), sans repartir de zéro sur son chantier. Un coursier garde sa vitesse pendant qu'il mange ou dort ; renvoyé (hutte retirée), il marche aussitôt à vitesse normale.
 377. **Amélioration enterrée.** Lancer l'amélioration d'une hutte dont le plan descend sous terre : après les blocs solides, le bâtisseur creuse la terre des cases d'air du plan, puis pose les décorations (comme MineColonies), et non l'inverse.
 378. **Promenade.** Laisser des citoyens oisifs se promener près d'arbres : ils ne montent pas dans les arbres et ne visent pas leurs feuilles.
+
+## Nage et escalade (2026-10-03)
+
+Spec `2026-10-03-hycolony-nage-echelles-design.md`. Réglages à trouver en jeu : `SwimDepth` et les vitesses du contrôleur `Dive` (`HyColony_Citizen.json`), la vitesse de montée (`CitizenClimbSystem.CLIMB_BLOCKS_PER_SECOND`, 2 blocs par seconde).
+
+379. **Nager.** Faire marcher un citoyen dans un lac profond (envoyer un ouvrier vers une hutte de l'autre côté, ou le pousser à l'eau) : quand l'eau atteint ses yeux, il nage en surface, la tête dehors, avec l'animation de nage ; il ne coule pas au fond. Noter la profondeur de nage et la vitesse.
+380. **Sortir de l'eau.** Il reprend la marche dès qu'il a pied, ou au pied d'une berge de 3 blocs au plus, qu'il monte ; pas de va-et-vient entre nage et marche au bord ni dans une eau de 2 blocs. Un lac aux berges plus hautes : l'anti-blocage finit par le sortir.
+381. **Escalade (selftest).** `/hycolony selftest` : après « move », le corps de test monte de 3 blocs sur place (« climb up »), puis redescend (« climb down »), les deux à ARRIVED. Regarder pendant ce temps : animation d'escalade (`ClimbUp`, puis `ClimbDown`), pas de saccade visible. Les citoyens ne prennent pas encore les échelles : la refonte de la recherche de chemin les y fera passer.

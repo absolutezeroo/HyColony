@@ -1205,6 +1205,7 @@ Gravité : pour une entrée *conforme*, elle mesure ce qui reste à faire (en g�
 4. **Verdict** : *à adapter*. Hytale n'a pas d'équivalent pour un PNJ, et le système en a besoin : les plans de MC mettent des étages derrière des échelles.
 5. **Proposition** : faire grimper le corps comme un joueur de Hytale. Quand une marche s'arrête au pied d'une colonne d'échelle qui mène plus près de la cible, le plugin déplace le corps le long de la colonne, à la vitesse d'échelle du joueur, avec l'animation `Climb`. Une variante plus simple : une téléportation au sommet de la colonne. Les deux sont **[in-game]**. À défaut, marquer l'écart (`Deviation from MC (Hytale world): MC citizens climb ladders → Hytale NPCs cannot (isClimbable unread); the stuck handler teleports`). Ni sauvegarde ni configuration.
 - **Gravité** : incohérent (le citoyen finit par arriver, téléporté). Vérifier en jeu qu'un lit à l'étage d'une résidence est atteint **[in-game]**.
+- **Suivi (2026-10-03)** : la mécanique d'escalade existe (`CitizenClimbSystem`, essayée par `/hycolony selftest`) ; le passage par les échelles attend la refonte de la recherche de chemin (portage de l'A* de MC), spec `2026-10-03-hycolony-nage-echelles-design.md` § 5.
 
 #### D-5. Portes, portillons et trappes
 
@@ -1235,6 +1236,7 @@ Gravité : pour une entrée *conforme*, elle mesure ce qui reste à faire (en g�
 
    Les deux se marquent `Deviation from MC (Hytale world)`. (a) change le comportement en jeu **[in-game]** : traverser une rivière, ne jamais se noyer, mais le rôle est déjà `Invulnerable`. Ni sauvegarde ni configuration.
 - **Gravité** : incohérent : une colonie coupée par une rivière ne se traverse que par téléportation **[in-game]**.
+- **Suivi (2026-10-03)** : ni (a) ni (b) ; la nage de MC est portée avec le contrôleur `Dive` de Hytale (rôle `Walk` + `Dive`, bascule par `CitizenSwimSystem`, `RelaxedConstraints` `Wade` et `Breathe`), spec `2026-10-03-hycolony-nage-echelles-design.md` § 4, `plugin-b-api.md` § 52.
 
 #### D-7. Préférence des routes
 
