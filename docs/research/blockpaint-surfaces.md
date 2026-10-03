@@ -156,6 +156,11 @@ d'environ 15 à 40 % : leur base est donc éclaircie, à teinte égale.
 | céramique | `Clay_Smooth_White`, `Clay_White` | 207, 207, 207 ; 202, 200, 195 | 222, 216, 206 (réchauffée) |
 | coton | `Cloth_White` | 239, 239, 239 | 236, 234, 228 |
 | soie (rouge) | `Cloth_Red` | 135, 57, 48 | 186, 60, 72 (plus vive) |
+| seau (douelles) | `Village/Bucket_Texture.png` | 69, 39, 21 | 112, 62, 34 (× 1,6) |
+
+Le seau se mesure sur son flanc de 21 x 23 en (0, 33), rangées 33 à 48, au-dessus du cerclage de fer (rangées 49 à
+53) ; flanc entier, cerclage compris : 64, 41, 28. Sur la rangée 40, ses douelles vont de 61 à 105 en rouge et ses
+joints de 43 à 53.
 
 Sans équivalent chez Hytale, nos choix : l'acier (150, 158, 166, plus clair et plus bleu que le fer), la fonte
 (96, 99, 101, comme `Metal_Iron_Decorative`, 98, 106, 106), l'argent (200, 204, 210), le granit (152, 144, 138 :

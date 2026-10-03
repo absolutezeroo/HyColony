@@ -108,7 +108,13 @@ Le guide de Hypixel et les mesures des textures de Hytale (recherche § 1 et 2) 
   - métaux : ferreux, cuivreux, précieux ;
   - organique : bois, textile, cuir, cheveux et fourrure, os et corne ;
   - minéral : pierre, céramique, verre ;
-  - autres : cire, caoutchouc.
+  - autres : cire, caoutchouc ;
+  - vivant et liquide : plante, liquide. Ces deux familles ne s'usent ni ne vieillissent (`compat.SETTLED_ONLY`) :
+    comme sur un dessin, seuls les dépôts les atteignent (une feuille n'a ni arête usée ni éclat, l'eau ne rouille
+    pas).
+- Un matériau en couches a toujours une famille : sans elle, tout effet l'atteindrait (la rouille sur une corde). Le
+  module la nomme dans `FAMILY` (`{matériau: famille}`) pour une tuile image ou un pinceau qui n'en porte pas, ou pas la
+  bonne (le tissu qui peint la tête d'un roseau) ; `catalog` refuse un matériau en couches sans famille.
 - La finition est un paramètre du pinceau (`metal(STEEL, finish="forged")`). À 32 pixels par bloc, la finition est le
   grain lui-même : stries brossées, facettes martelées, traces de scie. Chaque matériau vient avec ses finitions, dans
   les lots de contenu (§ 6).
@@ -260,9 +266,9 @@ Une matrice dit, pour chaque famille de matériau (§ 3.1) et de revêtement, si
 | Flaking | films de peinture, de vernis et métallique | pierre, céramique |
 | Fading | film de peinture, textile, bois, cuir, papier | film de vernis, poil, os, caoutchouc |
 | Micro Scratches | métaux, films, verre, céramique | bois, pierre, cuir, os, caoutchouc, cire |
-| Burn | bois, textile, papier, cuir, poil | films, os, cire, caoutchouc, pierre, céramique, ferreux |
+| Burn | bois, textile, papier, cuir, poil, plante | films, os, cire, caoutchouc, pierre, céramique, ferreux |
 | Moss | pierre, bois, céramique | verre, textile |
-| Mold | bois, textile, cuir, papier | pierre, céramique, films de peinture et de vernis |
+| Mold | bois, textile, cuir, papier | pierre, céramique, films de peinture et de vernis, plante |
 
 Pour un effet de la matrice, toute famille qui n'est ni compatible ni possible est **impossible** ; un effet absent de
 la matrice (usure, éclats, rayures, dépôts hors mousse et moisissure, marques de l'histoire) convient à toutes. Les
@@ -391,7 +397,9 @@ question, avec un verdict à chaque ligne.
   - les fibres suivent-elles l'axe de la pièce ?
   - le point focal reste-t-il dominant en détail (écart moyen) ?
   - la texture reste-t-elle lisible à la distance de jeu (réduite au quart, chaque bloc de 2 x 2 texels en un seul) ?
-  - les matériaux voisins restent-ils différenciables ?
+  - les matériaux voisins restent-ils différenciables ? Seulement deux matières (familles) différentes, chacune
+    lisible de loin : deux noms d'une même famille sont une matière peinte deux fois (douelles et couvercle d'un
+    tonneau), et un bout d'un texel ne se lit pas de toute façon ;
   - chaque marque d'un événement reste-t-elle à sa portée ?
 - **À l'œil** : une planche dans Blockbench (six vues, perspective, atlas) et la grille de critiques de
   l'utilisateur (métal trop propre, rouille trop uniforme, éclats trop réguliers…). L'utilisateur valide chaque lot
