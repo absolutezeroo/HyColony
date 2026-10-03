@@ -211,6 +211,17 @@ class CitizenWanderTest extends WanderFixture {
         assertEquals(List.of(), t.bodies.moves);
     }
 
+    /** Nor are leaves 4 blocks above, one higher than the highest feet height tried: it could climb into them. */
+    @Test
+    void leavesJustAboveTheHeightsTriedAreNoWanderSpot() {
+        rolls.ints.add(5); // no leisure: a wander around where it stands
+        east(68, LEAVES);
+
+        wander.wander();
+
+        assertEquals(List.of(), t.bodies.moves);
+    }
+
     /** A hut block is no floor nor room for a body (MC SurfaceType: NOT_PASSABLE), as for BlockApproach. */
     @Test
     void aHutBlockIsNoWanderSpot() {
@@ -245,7 +256,7 @@ class CitizenWanderTest extends WanderFixture {
     private void put(BlockPos at, BlockKey key) {
         t.catalog.kinds.put(DIRT, BlockKind.SOLID);
         t.catalog.kinds.put(TRUNK, BlockKind.SOLID);
-        t.catalog.kinds.put(LEAVES, BlockKind.SOLID);
+        t.catalog.kinds.put(LEAVES, BlockKind.NON_SOLID); // as Hytale's: no Material, BlockType's default Empty
         t.catalog.kinds.put(WATER, BlockKind.FLUID);
         t.catalog.kinds.put(HUT, BlockKind.UNBREAKABLE);
         t.catalog.leaves.add(LEAVES);

@@ -14,8 +14,8 @@ import java.util.Optional;
  * only when it is open there and holds no leaves nor fluid the citizen could climb or drop onto.
  *
  * <p>Deviation from MC (Hytale world): MC climbs 1.3 blocks (PathingConstants.MAX_JUMP_HEIGHT), so a treetop is out of
- * its reach though leaves are walkable (SurfaceType); our citizens climb 3 (plugin-b-api.md 39), so leaves are no floor
- * here.
+ * its reach; our citizens climb 3 (plugin-b-api.md 39) and could stand on a trunk's top within the leaves, so a cell
+ * whose feet or head are in leaves is no wander spot.
  */
 final class WanderGround {
     /** Feet heights tried above and below the citizen's. */
@@ -67,23 +67,31 @@ final class WanderGround {
         return true;
     }
 
-    /** A solid floor that is no leaves, and room for feet and head. */
+    /**
+     * A solid floor and room for feet and head. Leaves are never one: Hytale's have no Material (Plant_Leaves_*.json),
+     * so BlockType's default Empty makes them NON_SOLID, walked through.
+     */
     private boolean standable(BlockPos feet) {
         BlockState floor = blocks.get(feet.offset(0, -1, 0)).orElse(null);
         return floor != null
                 && catalog.kind(floor.key()) == BlockKind.SOLID
-                && !catalog.isLeaves(floor.key())
                 && !blocked(feet)
                 && !blocked(feet.offset(0, 1, 0));
     }
 
-    /** No room for a body: a solid block, a block nobody passes (a hut block, MC NOT_PASSABLE) or a fluid. */
+    /**
+     * No room for a body to stand: a solid block, a block no worker may break (a hut block, an ungatherable block), a
+     * fluid, or leaves (the treetop, not to be climbed into).
+     */
     private boolean blocked(BlockPos p) {
         BlockState s = blocks.get(p).orElse(null);
         if (s == null) {
             return false;
         }
         BlockKind kind = catalog.kind(s.key());
-        return kind == BlockKind.SOLID || kind == BlockKind.UNBREAKABLE || kind == BlockKind.FLUID;
+        return kind == BlockKind.SOLID
+                || kind == BlockKind.UNBREAKABLE
+                || kind == BlockKind.FLUID
+                || catalog.isLeaves(s.key());
     }
 }

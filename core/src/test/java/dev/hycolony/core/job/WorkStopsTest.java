@@ -2,11 +2,13 @@ package dev.hycolony.core.job;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.vitals.WorkExit;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.colony.territory.TerritoryIndex;
+import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.testing.TestContexts;
 import java.util.Optional;
@@ -44,6 +46,19 @@ class WorkStopsTest {
                 return canGoIdle;
             }
         };
+    }
+
+    /** MC calculateNextState checks the rain first: a builder below max level with nothing to do, in the rain. */
+    @Test
+    void rainComesBeforeNothingToDo() {
+        BlockPos at = new BlockPos(10, 64, 0);
+        Building hut = Building.create(ConstructionBuildingTypes.BUILDER, at, 1);
+        hut.setLevel(1);
+        colony.buildings().add(hut);
+        data.setWorkBuilding(at);
+        t.world.raining = true;
+
+        assertEquals(Optional.of(WorkExit.RAIN), stops.exit(ai(true, true)));
     }
 
     @Test
