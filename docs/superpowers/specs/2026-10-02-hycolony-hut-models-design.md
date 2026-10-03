@@ -230,13 +230,13 @@ recette), catégorie `Blocks.Deco`, sans coffre, sans fenêtre ni interaction `U
 que le métier n'est pas encore là. Leur portage ajoutera l'id-map, la recette, le coffre et la fenêtre, comme aux
 autres huttes.
 
-- **Bûcheron** (20 boîtes, texture de 32×224) : une souche fendue en deux par une hache plantée dans la fente, à la
+- **Bûcheron** (20 boîtes, texture de 32×256) : une souche fendue en deux par une hache plantée dans la fente, à la
   demande de l'utilisateur (« vu qu'elle est plantée, autant faire une vraie fissure sur la bûche ») : une fente
   d'une unité sur toute la hauteur, les deux faces de la fente en bois arraché sombre, les cernes de chaque moitié
   centrés sur le milieu de la fente (z −1,5). La hache (œil, manche, lame qui s'évase jusqu'au fil clair, enfoncé
   dans la fente) penche de 30°. Trois racines, un tas de trois bûches derrière (cernes sur leurs bouts), un jeune
   arbre sur sa butte devant à gauche, des copeaux et une bûche fendue au sol.
-- **Mineur** (44 boîtes, texture de 256×256) : l'entrée d'une galerie boisée (deux montants, un linteau, deux
+- **Mineur** (44 boîtes, texture de 64×352) : l'entrée d'une galerie boisée (deux montants, un linteau, deux
   jambes de force, le fond noir de la galerie), une lanterne pendue à sa chaîne, des rails sur quatre traverses.
   Retours de l'utilisateur :
   - « les minerais sur Hytale ont des cristaux en 3D qui ressortent » : comme les blocs de minerai de Hytale
@@ -329,9 +329,10 @@ il en peint 73 % ; les nôtres 1 fois (une zone par face, pour la lumière cuite
 pour la mine. D'où :
 - `tools/common/cull.py` retire les faces entièrement couvertes par d'autres boîtes, de façon exacte et prudente :
   seules les boîtes alignées avec la face, qui s'avancent devant elle, comptent, et leurs rectangles doivent la
-  recouvrir sans aucun interstice. Une boîte tournée par rapport à la face, ouverte (une face absente, sauf un
-  dessous posé au sol) ou invisible ne cache rien ; les nœuds qu'anime le modèle et leurs enfants ne perdent ni ne
-  cachent aucune face (leur mouvement découvre ce qu'ils couvrent au repos). Un premier essai par grille de points
+  recouvrir sans aucun interstice. Une boîte tournée par rapport à la face, ouverte (une face absente qui n'est ni un
+  dessous posé au sol ni couverte par d'autres boîtes scellées) ou invisible ne cache rien ; les nœuds qu'anime le
+  modèle et leurs enfants ne perdent ni ne cachent aucune face (leur mouvement découvre ce qu'ils couvrent au
+  repos). Un premier essai par grille de points
   retirait trois faces de la pioche de la mine qui gardaient une fente (relecture). Le constructeur perd 25 faces,
   la mine 12, l'hôtel de ville 5, le bûcheron 3 ;
 - `models.unwrap` range les zones en ligne d'horizon (chacune à la plus petite ligne où elle tient, 2 pixels des
@@ -339,9 +340,20 @@ pour la mine. D'où :
   des cristaux de la mine, que `glint.frames` est seule à recopier ;
 - `tools/huts/trim.py` applique les deux aux blocs de huttes, les nœuds animés tirés du module de la hutte (son
   `animation`, ou son `GLINT` qui respire sauf `BREATHE = False`), et choisit la largeur de la mine reflet compris.
-  Il réécrit le modèle source et ne rend jamais une face : le modèle rouvert dans Blockbench ne l'a plus non plus,
-  et une retouche qui découvrirait une face retirée la réactive à la main sur sa boîte avant d'enregistrer ;
-- textures des neuf huttes : 215 040 pixels avant, 153 600 après (−29 %) ; la mine passe de 256×256 à 64×352.
+  Il réécrit le modèle source et ne rend aucune face sauf les dessous : le modèle rouvert dans Blockbench n'a plus
+  les autres non plus, et une retouche qui découvrirait une face retirée la réactive à la main sur sa boîte avant
+  d'enregistrer ;
+- **jamais creuse par en dessous** (l'utilisateur, le 2026-10-03 : « les blocs sont vides en dessous […] ça fait pas
+  pro ») : `trim.py` rend d'abord son dessous à chaque boîte, puis `cull` retire ceux que d'autres boîtes cachent.
+  Une hutte posée ne montre son dessous qu'à qui regarde par en dessous : rien ne change en vue normale. Pour que
+  deux passages donnent le même modèle, une boîte dont une face manque reste scellée tant que d'autres boîtes
+  scellées couvrent cette face (`cull.sealed`, en partant de toutes et en écartant les ouvertes) : sans cela, un
+  côté retiré par un passage rouvrait sa boîte au suivant, qui gardait le dessous rendu de sa voisine (relecture).
+  Les boîtes ainsi reconnues scellées cachent 14 côtés de plus, tous couverts (constructeur 5, coursier 6, mine 2,
+  entrepôt 1), et 89 dessous sont rendus. Les dessus des quatre bandes de la bannière de l'hôtel de ville, absents du
+  modèle de Blockbench et par où l'on voyait dans les bandes (relecture), sont rendus aussi ;
+- textures des neuf huttes : 215 040 pixels avant, 153 600 après le premier passage (−29 %), 156 672 une fois les
+  dessous rendus (−27 %) ; la mine passe de 256×256 à 64×352.
   Rendu inchangé : les icônes, dessinées du modèle et de sa texture, sont identiques à l'octet. L'armure de plates
   et le ruban de chantier, dépliés par le même outil, sont régénérés (icônes identiques aussi).
 

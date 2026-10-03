@@ -2,11 +2,12 @@
 2026-10-02 hut models, § painting). Each face kept costs an island in the texture and two triangles in game.
 
 Exact and conservative: a face is hidden when the boxes lying just in front of it, square with it, cover its whole
-rectangle with no gap. A box turned against the face, an open box (one missing a face, save a bottom lying wholly on
-the floor) or an invisible one hides nothing: one could see past its edge or into it. A mirrored box (a negative
-stretch) is judged by where its faces are drawn. Moving nodes (animated in their model's blockyanim, and their
-children) neither lose faces nor hide others: their motion uncovers what they cover at rest. cull never adds a face
-back."""
+rectangle with no gap. A box turned against the face, an open box (one missing a face that neither lies wholly on the
+floor nor is covered by other sealed boxes) or an invisible one hides nothing: one could see past its edge or into
+it. A face an earlier pass dropped keeps sealing its box, so a second pass drops the same faces. A mirrored box (a
+negative stretch) is judged by where its faces are drawn. Moving nodes (animated in their model's blockyanim, and
+their children) neither lose faces nor hide others: their motion uncovers what they cover at rest. cull never adds a
+face back."""
 
 from models import FACE_NORMALS, add, placed, rotate, walk
 
@@ -22,7 +23,7 @@ def cull(nodes, moving=frozenset()):
     """Removes the hidden faces from the textureLayout of the model's boxes, the nodes named in moving and their
     children excepted; returns the (node name, side) dropped, in model order."""
     still = still_boxes(nodes, moving)
-    covering = [box for box in still if closed(box)]
+    covering = sealed(still)
     dropped = []
     for box in still:
         for side in list(box["node"]["shape"]["textureLayout"]):
@@ -58,15 +59,26 @@ def drawn_at(box, side):
     return axis, FACE_NORMALS[side][axis] * (1 if box["stretch"][axis] > 0 else -1)
 
 
-def closed(box):
-    """Whether one cannot see into the box: visible, every side shown but a bottom lying wholly on the floor."""
-    missing = set(FACE_NORMALS) - box["sides"]
-    if not box["visible"] or not missing:
-        return box["visible"]
-    bottom = drawn_at(box, "bottom")
-    if missing != {"bottom"} or bottom is None:
+def sealed(boxes):
+    """The boxes one cannot see into: visible, each missing side lying wholly on the floor (a bottom) or covered by
+    sealed boxes, as an earlier pass left a face others hide. Starts from every visible box and drops those with an
+    open side until none is left (two boxes pressed together seal each other)."""
+    inside = [box for box in boxes if box["visible"]]
+    while True:
+        still_sealed = [box for box in inside if all(
+            on_floor(box, side) or covered(box, side, [other for other in inside if other is not box])
+            for side in set(FACE_NORMALS) - box["sides"])]
+        if len(still_sealed) == len(inside):
+            return inside
+        inside = still_sealed
+
+
+def on_floor(box, side):
+    """Whether the face side is a bottom lying wholly on the floor."""
+    drawn = drawn_at(box, side)
+    if side != "bottom" or drawn is None:
         return False
-    axis, sign = bottom
+    axis, sign = drawn
     return all(to_world(box, corner)[1] <= FLOOR for corner in corners(box) if corner[axis] * sign > 0)
 
 

@@ -334,6 +334,29 @@ class CullTest(unittest.TestCase):
         inner["orientation"] = dict(post["orientation"])
         self.assertEqual([], [d for d in cull.cull([post, inner]) if d[0] == "Inner"])
 
+    def test_a_face_dropped_before_still_seals_its_box(self):
+        # Y on the floor, X on Y: X's bottom and Y's top go. X's bottom given back, Y (missing its top, which X covers)
+        # still hides it, so a second pass drops it again.
+        nodes = [node("Y", (0, 2, 0), box_shape((4, 4, 4), SIDES)), node("X", (0, 6, 0), box_shape((4, 4, 4), SIDES))]
+        self.assertEqual([("Y", "top"), ("X", "bottom")], cull.cull(nodes))
+        nodes[1]["shape"]["textureLayout"]["bottom"] = {"offset": {"x": 0, "y": 0}}
+        self.assertEqual([("X", "bottom")], cull.cull(nodes))
+
+    def test_a_box_sealed_only_by_an_open_box_hides_nothing(self):
+        # Y lacks its top (open to the sky), Z lacks its left (against Y), X is whole. Through Y's top one sees through
+        # Y and Z into X: Z is not sealed, so X's left stays; only Z's right, against whole X, goes.
+        nodes = [node("Y", (0, 2, 0), box_shape((4, 4, 4), tuple(s for s in SIDES if s != "top"))),
+                 node("Z", (4, 2, 0), box_shape((4, 4, 4), tuple(s for s in SIDES if s != "left"))),
+                 node("X", (8, 2, 0), box_shape((4, 4, 4), SIDES))]
+        self.assertEqual([("Z", "right")], cull.cull(nodes))
+
+    def test_two_boxes_pressed_together_still_hide_others_once_their_shared_faces_are_gone(self):
+        nodes = [node("A", (0, 2, 0), box_shape((4, 4, 4), SIDES)), node("B", (4, 2, 0), box_shape((4, 4, 4), SIDES)),
+                 node("C", (2, 6, 0), box_shape((4, 4, 4), SIDES))]
+        cull.cull(nodes)
+        nodes[2]["shape"]["textureLayout"]["bottom"] = {"offset": {"x": 0, "y": 0}}
+        self.assertEqual([("C", "bottom")], cull.cull(nodes))
+
     def test_a_box_standing_on_the_floor_without_its_bottom_still_hides(self):
         nodes = [node("A", (0, 2, 0), box_shape((4, 4, 4), SIDES)),
                  node("B", (4, 2, 0), box_shape((4, 4, 4), tuple(s for s in SIDES if s != "bottom")))]

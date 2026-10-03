@@ -10,7 +10,8 @@ from PIL import Image
 sys.path.append(str(Path(__file__).resolve().parents[1] / "common"))
 import glint  # noqa: E402
 import trim  # noqa: E402
-from models import box_shape, node, unwrap  # noqa: E402
+from cull import cull  # noqa: E402
+from models import box_shape, empty_shape, node, unwrap  # noqa: E402
 
 
 def gem_model():
@@ -65,6 +66,29 @@ class GlintTest(unittest.TestCase):
 
 
 class TrimTest(unittest.TestCase):
+    def test_every_box_gets_its_bottom_back_and_no_other_face(self):
+        nodes = [node("Open", (0, 0, 0), box_shape((2, 2, 2), ("front", "top"))),
+                 node("Sides", (0, 0, 0), box_shape((2, 2, 2), ("front", "back"))),
+                 node("Closed", (0, 0, 0), box_shape((2, 2, 2), ("front", "bottom")))]
+        nodes.append(node("Root", (0, 0, 0), empty_shape()))
+        trim.close_bottoms(nodes)
+        self.assertEqual([{"front", "top", "bottom"}, {"front", "back", "bottom"}, {"front", "bottom"}, set()],
+                         [set(n["shape"]["textureLayout"]) for n in nodes])
+
+    def test_trimming_a_trimmed_model_changes_nothing(self):
+        # The builder's ink: Ink on Stand, Stand pressed against Wall. A first trim drops Stand's right side and Ink's
+        # bottom; Stand, missing a side now, must still hide the bottom the second trim gives back to Ink.
+        sides = ("front", "back", "left", "right", "top", "bottom")
+        nodes = [node("Stand", (0, 2, 0), box_shape((4, 4, 4), sides)),
+                 node("Wall", (4, 2, 0), box_shape((4, 4, 4), sides)),
+                 node("Ink", (0, 5, 0), box_shape((2, 2, 2), sides))]
+        trim.close_bottoms(nodes)
+        cull(nodes)
+        once = [set(n["shape"]["textureLayout"]) for n in nodes]
+        trim.close_bottoms(nodes)
+        cull(nodes)
+        self.assertEqual(once, [set(n["shape"]["textureLayout"]) for n in nodes])
+
     def test_a_glint_alone_moves_nothing_but_a_breath_moves_the_gems(self):
         nodes, _ = gem_model()
         self.assertEqual(frozenset(), trim.moving(SimpleNamespace(GLINT="Gem", BREATHE=False), nodes))

@@ -1,10 +1,10 @@
-"""Drops the hidden faces of HyColony's hut blocks (tools/common/cull.py) and lays their faces out again (models.unwrap,
-a glinting hut's crystals in a band of their own for glint.py's frames), rewriting each hut's <MODEL>.blockymodel in
-generate.py's JSON layout. Run it after building or editing a hut, then generate.py to paint the new layout. Nodes
-the hut animates keep their faces.
+"""Closes the bottom of every box of HyColony's hut blocks, drops the faces other boxes hide (tools/common/cull.py) and
+lays their faces out again (models.unwrap, a glinting hut's crystals in a band of their own for glint.py's frames),
+rewriting each hut's <MODEL>.blockymodel in generate.py's JSON layout. Run it after building or editing a hut, then
+generate.py to paint the new layout. Nodes the hut animates keep their faces.
 
-It rewrites the hut's source model and never adds a face back: a dropped face is gone from the model Blockbench
-reopens too, so an edit that uncovers one enables it again on its box in Blockbench before saving.
+It rewrites the hut's source model and gives back no face but bottoms: a dropped side or top is gone from the model
+Blockbench reopens too, so an edit that uncovers one enables it again on its box in Blockbench before saving.
 
     python tools/huts/trim.py
 """
@@ -18,11 +18,20 @@ sys.path.append(str(TOOLS / "common"))
 import glint  # noqa: E402
 from cull import cull  # noqa: E402
 from generate import MODELS, RESOURCES  # noqa: E402
-from models import MAX_SIDE, WIDTHS, face_rects, unwrap  # noqa: E402
+from models import MAX_SIDE, WIDTHS, face_rects, unwrap, walk  # noqa: E402
 from pack import write_json  # noqa: E402
 
 # The blockyanim tracks that move a node; a UV offset (a glint) does not.
 MOTION = ("position", "orientation", "shapeStretch", "shapeVisible")
+
+
+def close_bottoms(nodes):
+    """Gives every box of the model its bottom face back (the user's rule: seen from below, a hut is never hollow);
+    cull then drops those that other boxes hide."""
+    for n in walk(nodes):
+        layout = n["shape"].get("textureLayout")
+        if n["shape"]["type"] == "box" and "bottom" not in layout:
+            layout["bottom"] = {"offset": {"x": 0, "y": 0}, "mirror": {"x": False, "y": False}, "angle": 0}
 
 
 def moving(module, nodes):
@@ -62,10 +71,17 @@ def main():
             continue
         model = RESOURCES / "Common" / (module.MODEL + ".blockymodel")
         data = json.loads(model.read_text(encoding="utf-8"))
-        dropped = cull(data["nodes"], moving(module, data["nodes"]))
+        read = faces(data["nodes"])
+        close_bottoms(data["nodes"])
+        cull(data["nodes"], moving(module, data["nodes"]))
         size = laid_out(data["nodes"], getattr(module, "GLINT", None))
         write_json(model, data)
-        print(f"{model.stem}: {len(dropped)} hidden faces dropped, {size[0]} x {size[1]}")
+        print(f"{model.stem}: {read} faces read, {faces(data['nodes'])} kept, texture {size[0]} x {size[1]}")
+
+
+def faces(nodes):
+    """How many faces the model's shapes show."""
+    return sum(len(n["shape"].get("textureLayout", {})) for n in walk(nodes))
 
 
 if __name__ == "__main__":
