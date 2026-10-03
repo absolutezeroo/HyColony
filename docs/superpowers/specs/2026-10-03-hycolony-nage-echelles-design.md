@@ -36,7 +36,7 @@ Pistes choisies par l'utilisateur le 2026-10-03 : « nager comme MC » et « gri
 - `HyColonySeek` relâche `["Wade", "Breathe"]` : le chemin du `Walk` peut traverser l'eau (aujourd'hui, seul `Wade` est relâché, et le citoyen n'entre dans l'eau que tant que ses yeux restent dehors).
 
 **Bascule** (plugin, nouveau `npc/motion/CitizenSwimSystem`, après les états de mouvement, comme `CitizenMantleSystem`) :
-- `Walk` → `Dive` quand l'eau atteint les yeux du corps : un fluide à l'effet `Water` (`Water`, `Water_Source`, `Water_Finite`), car MC ne nage que dans l'eau (`AbstractPathJob` `isWater`, `MovementHandler`) ; la lave ou le goudron ne font pas nager ;
+- `Walk` → `Dive` quand l'eau atteint les yeux du corps et qu'il ne peut pas sortir (la règle de sortie ci-dessous, pour que les deux bascules ne se contredisent pas pendant qu'il monte la berge, les yeux encore sous l'eau) ; l'eau : un fluide étiqueté `Fluid: Water` (`Water_Source`, dont `Water` et `Water_Finite` héritent ; le goudron et le poison partagent les effets de l'eau, pas cette étiquette), car MC ne nage que dans l'eau (`AbstractPathJob` `isWater`, `MovementHandler`) ; la lave ou le goudron ne font pas nager ;
 - `Dive` → `Walk` quand le corps a pied (un sol solide sous les pieds à moins d'un bloc), ou quand une berge l'attend juste devant lui, à `MaxClimbHeight` (3) au plus au-dessus **du fond** de l'eau (`Walk` coule, puis monte depuis le fond comme une marche), la tête hors de l'eau une fois debout sur ce sol ou cette berge. Le fond est cherché 8 blocs au plus sous les pieds ; sans fond, le corps continue de nager ;
 - une bascule n'a pas lieu moins de 10 ticks du monde (30 par seconde) après la précédente (pas de va-et-vient au bord) ;
 - la cible de marche (`MoveTarget`) est gardée : `Seek` suit sa cible avec `Dive` comme avec `Walk`.
@@ -49,10 +49,10 @@ Pistes choisies par l'utilisateur le 2026-10-03 : « nager comme MC » et « gri
 ## 5. Échelles : la mécanique seule
 
 **Ce qui est fait maintenant** (plugin seulement) :
-- `HytaleCitizenBodies.climb(BodyId body, Vec3 to)` et un nouveau `npc/motion/CitizenClimbSystem` : le corps monte ou descend en ligne droite jusqu'à `to`, centré dans sa colonne, par petites téléportations exactes à chaque tick, à 2 blocs par seconde : une valeur d'attente, car l'unité du `ClimbSpeed` du joueur de Hytale (0,035, `Server/Entity/MovementConfig/Default.json`) n'est pas vérifiée ; elle se règle en jeu. L'état `climbing` est posé pendant ce temps, après les états de mouvement du PNJ comme `CitizenMantleSystem` (animations `ClimbUp`/`ClimbDown`) ;
+- `HytaleCitizenBodies.climb(BodyId body, Vec3 to)` et un nouveau `npc/motion/CitizenClimbSystem` : le corps monte ou descend en ligne droite jusqu'à `to`, au x et au z de `to`, par petites téléportations exactes à chaque tick, à 2 blocs par seconde : une valeur d'attente, car l'unité du `ClimbSpeed` du joueur de Hytale (0,035, `Server/Entity/MovementConfig/Default.json`) n'est pas vérifiée ; elle se règle en jeu. L'état `climbing` est posé pendant ce temps, après les états de mouvement du PNJ comme `CitizenMantleSystem` (animations `ClimbUp`/`ClimbDown`) ;
 - la montée avance sur sa propre hauteur, pas sur celle du corps, que la gravité de `Walk` tire vers le bas à chaque tick : la téléportation, appliquée après le mouvement du PNJ, l'emporte. Elle compte en secondes du monde (`dt`), quel que soit son nombre de ticks ;
 - pendant la montée, `navStatus` vaut `MOVING`, puis `ARRIVED` ; un corps mort ou déchargé n'en fait rien, sans exception ;
-- en haut (ou en bas), le corps reste tenu à sa place, comme sur une échelle (on ne tombe jamais d'une échelle chez MC), jusqu'à son ordre suivant : une marche, une téléportation, un lit ;
+- en haut (ou en bas), le corps reste tenu à sa place jusqu'à son ordre suivant (un choix de HyColony : sans lui, la gravité le ferait tomber avant la marche ou la montée suivante) : une marche, une téléportation, un lit ;
 - la montée ne peut pas durer toujours : au-delà de sa durée prévue plus 2 secondes, le corps est posé à `to`, et `navStatus` rend `BLOCKED` (une échéance n'est pas une arrivée) ;
 - `/hycolony selftest` ajoute une étape « climb » : le corps de test monte de 3 blocs sur place, puis redescend. C'est la seule utilisation d'ici la refonte, et elle sert à voir l'animation et le rendu en jeu.
 
