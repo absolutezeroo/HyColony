@@ -18,6 +18,7 @@ import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.item.ToolInfo;
 import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.core.kernel.port.BodyAnimation;
+import dev.hycolony.core.kernel.port.NavStatus;
 import dev.hycolony.core.request.model.ToolRequest;
 import dev.hycolony.core.testing.FakeBodies;
 import dev.hycolony.core.testing.farming.FakeFarming;
@@ -225,8 +226,9 @@ class FieldPassTest extends FarmerTestBase {
         return f;
     }
 
+    /** MC walkToSafePos: it walks to a cell 2 blocks off, and works it once its nav ends within 4 blocks. */
     @Test
-    void cellWithinFourBlocksIsWorkedWithoutWalking() {
+    void cellIsWorkedOnceItsWalkEndsWithinFourBlocks() {
         field(true);
         give(HOE, 1);
         settings().setFertilize(false);
@@ -235,9 +237,12 @@ class FieldPassTest extends FarmerTestBase {
         assertEquals(FarmerState.FARMER_HOE, work.prepare());
 
         work.workAtField(FarmerState.FARMER_HOE);
+        assertFalse(t.farming.tilled.contains(cells().get(0)), "more than 1.5 blocks off: it walks first");
+        assertEquals(1, t.bodies.moves.size());
+        t.bodies.bodies.get(body).status = NavStatus.ARRIVED; // its nav ended where it stood, 4 blocks at most off
+        work.workAtField(FarmerState.FARMER_HOE);
 
-        assertTrue(t.farming.tilled.contains(cells().get(0)), "MC walkToSafePos: within 4 blocks");
-        assertTrue(t.bodies.moves.isEmpty());
+        assertTrue(t.farming.tilled.contains(cells().get(0)));
     }
 
     @Test

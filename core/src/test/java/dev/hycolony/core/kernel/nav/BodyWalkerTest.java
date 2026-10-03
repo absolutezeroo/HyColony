@@ -120,10 +120,10 @@ class BodyWalkerTest {
     void walkBackIntoARangeLeftSinceIsWatchedAnew() {
         BlockPos column = new BlockPos(20, 64, 0);
         walker.walkTo(column, 4);
-        bodies.bodies.get(body).position = new Vec3(17.5, 64, 0.5);
-        assertTrue(walker.walkTo(column, 4), "within its range: arrived");
+        navEnds(NavStatus.ARRIVED, new Vec3(17.5, 64, 0.5));
+        assertTrue(walker.walkTo(column, 4), "its nav ended within its range: arrived");
         clock.tick += 5_000; // long after that walk started
-        bodies.bodies.get(body).position = new Vec3(26, 64, 0.5); // pushed out of range, its nav still running
+        navEnds(NavStatus.MOVING, new Vec3(26, 64, 0.5)); // pushed out of range, its nav running again
 
         for (int i = 0; i < 50; i++) {
             clock.tick++;
@@ -131,6 +131,28 @@ class BodyWalkerTest {
         }
 
         assertTrue(bodies.teleports.isEmpty(), "a walk starting again is not stuck at once");
+    }
+
+    /** MC walkCloseToXNearY: REACHED_DIST counts only before walking; a walk under way ends when its nav is done. */
+    @Test
+    void aWalkUnderWayGoesToTheEndOfItsPathThoughItPassesNearTheBlock() {
+        walker.walkCloseTo(STAND, HUT, 4, true);
+        navEnds(NavStatus.MOVING, new Vec3(0.5, 64, 1.5)); // 1 block from the hut, still on its way
+
+        assertFalse(walker.walkCloseTo(STAND, HUT, 4, true));
+        navEnds(NavStatus.ARRIVED, Vec3.center(STAND));
+        assertTrue(walker.walkCloseTo(STAND, HUT, 4, true));
+    }
+
+    /** MC walkToPos: a plain walk under way is not cut short near its target either. */
+    @Test
+    void aPlainWalkUnderWayGoesToTheEndOfItsPath() {
+        walker.walkTo(HUT);
+        navEnds(NavStatus.MOVING, new Vec3(1.5, 64, 1.5));
+
+        assertFalse(walker.walkTo(HUT));
+        navEnds(NavStatus.ARRIVED, Vec3.center(HUT));
+        assertTrue(walker.walkTo(HUT));
     }
 
     @Test

@@ -1,6 +1,7 @@
 package dev.hycolony.core.kernel.nav;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.kernel.BlockPos;
@@ -63,15 +64,18 @@ class BodyWalkerReportsTest {
         assertEquals(List.of("start 0", "NAV_ENDED 5 ARRIVED"), heard);
     }
 
+    /** MC walkCloseToXNearY: a walk under way near its block waits for its nav, then ends in reach, heard once. */
     @Test
-    void closeWalkEndsCloseWithoutWaitingForTheNav() {
+    void closeWalkWaitsForItsNavThenEndsInReach() {
         walker.walkCloseTo(STAND, HUT, 4, true);
         bodies.bodies.get(body).position = new Vec3(1.5, 64, 0.5);
 
+        assertFalse(walker.walkCloseTo(STAND, HUT, 4, true));
+        bodies.bodies.get(body).status = NavStatus.ARRIVED;
         assertTrue(walker.walkCloseTo(STAND, HUT, 4, true));
         walker.walkCloseTo(STAND, HUT, 4, true);
 
-        assertEquals(List.of("start 1", "CLOSE 1"), heard);
+        assertEquals(List.of("start 1", "IN_REACH 1 ARRIVED"), heard);
     }
 
     @Test
@@ -84,16 +88,19 @@ class BodyWalkerReportsTest {
         assertEquals(List.of("start 1", "stuck REPATH", "stuck TELEPORT", "TELEPORTED 1"), heard);
     }
 
+    /** MC walkToPos: a walk whose nav ended within its range ends in reach, heard once. */
     @Test
-    void walkWithinItsRangeEndsCloseOnce() {
+    void walkWithinItsRangeEndsInReachOnce() {
         BlockPos column = new BlockPos(20, 64, 0);
         walker.walkTo(column, 4);
         bodies.bodies.get(body).position = new Vec3(17.5, 64, 0.5);
+        assertFalse(walker.walkTo(column, 4), "its nav still runs");
+        bodies.bodies.get(body).status = NavStatus.ARRIVED;
 
         assertTrue(walker.walkTo(column, 4));
         assertTrue(walker.walkTo(column, 4));
 
-        assertEquals(List.of("start 20", "CLOSE 3"), heard);
+        assertEquals(List.of("start 20", "IN_REACH 3 ARRIVED"), heard);
     }
 
     @Test
@@ -109,7 +116,7 @@ class BodyWalkerReportsTest {
     }
 
     @Test
-    void walkAfterATeleportedOneEndsCloseAgain() {
+    void walkAfterATeleportedOneIsNotReportedTeleported() {
         bodies.navEndsAt = ROOF;
         bodies.navEndStatus = NavStatus.BLOCKED;
         walkBlocked(() -> walker.walkCloseTo(STAND, HUT, 4, true));
@@ -119,9 +126,10 @@ class BodyWalkerReportsTest {
 
         walker.walkCloseTo(beside, other, 4, true);
         bodies.bodies.get(body).position = new Vec3(11.5, 64, 0.5);
+        bodies.bodies.get(body).status = NavStatus.ARRIVED;
         walker.walkCloseTo(beside, other, 4, true);
 
-        assertEquals(List.of("start 11", "CLOSE 1"), heard.subList(heard.size() - 2, heard.size()));
+        assertEquals(List.of("start 11", "IN_REACH 1 ARRIVED"), heard.subList(heard.size() - 2, heard.size()));
     }
 
     @Test

@@ -86,19 +86,12 @@ public final class BodyWalker {
     }
 
     /**
-     * {@link #walkTo(BlockPos)}, already arrived when within {@code range} blocks of {@code to}: a walk under way to
-     * {@code to} then counts as arrived (its end is heard once), and walking there again later is watched anew. A walk
-     * started before is not stopped: the body may finish it, which only shows.
+     * MC EntityNavigationUtils.walkToPos with a range (walkToSafePos): true when already within {@link #REACHED_DIST}
+     * of {@code to} with no walk there under way, or once the nav ended within {@code range} of it; a nav ending
+     * farther walks again ({@link #walkCloseTo} with {@code to} as both cells).
      */
     public boolean walkTo(BlockPos to, int range) {
-        Vec3 p = bodies.position(body).orElse(null);
-        if (p != null && p.distance(Vec3.center(to)) <= range) {
-            if (to.equals(navTarget)) {
-                ended(to, p, null, WalkEnd.CLOSE, NavStatus.MOVING);
-            }
-            return true;
-        }
-        return walkTo(to);
+        return walk(to, true, to, range);
     }
 
     /** {@link #walkTo(BlockPos)}; the stuck handler teleports to {@code to} only when {@code teleportAllowed}. */
@@ -108,12 +101,11 @@ public final class BodyWalker {
 
     /**
      * MC EntityNavigationUtils.walkCloseToXNearY / walkToPos: walks to {@code stand}, a cell by the block
-     * {@code desired}; true once within {@link #REACHED_DIST} of {@code desired}, or once the nav ended within
-     * {@code reach} of it. A nav that ends farther (a partial path, onto a roof) walks again as MC re-paths; the stuck
-     * handler then teleports to {@code stand} when {@code verified}, else gives up, which ends the walk.
-     *
-     * <p>Deviation from MC: {@link #REACHED_DIST} also counts while the nav still runs, as Hytale's nav may keep
-     * steering at its goal.
+     * {@code desired}; true when already within {@link #REACHED_DIST} of {@code desired} with no walk there under way,
+     * or once the nav ended within {@code reach} of it: a walk under way goes to the end of its path, as MC checks the
+     * distance only once its nav is done. A nav that ends farther (a partial path, onto a roof) walks again as MC
+     * re-paths; the stuck handler then teleports to {@code stand} when {@code verified}, else gives up, which ends the
+     * walk.
      */
     public boolean walkCloseTo(BlockPos stand, BlockPos desired, int reach, boolean verified) {
         return walk(stand, verified, desired, reach);
@@ -156,9 +148,13 @@ public final class BodyWalker {
         return unstick(to, p, now, desired, s);
     }
 
-    /** Whether the walk to {@code to} ended before, or the body got close; the walk under way then ends close. */
+    /**
+     * Whether the walk to {@code to} ended before, or the body is close with no walk there under way (MC: the distance
+     * counts only when not on that path job, or once its nav is done); a walk to it that had ended then ends close.
+     */
     private boolean alreadyThere(BlockPos to, Vec3 p, @Nullable BlockPos desired) {
-        if (!to.equals(settled) && !close(p, to, desired)) {
+        boolean walkingThere = to.equals(navTarget) && !arrived;
+        if (!to.equals(settled) && (walkingThere || !close(p, to, desired))) {
             return false;
         }
         if (to.equals(navTarget)) { // no walk may be under way to another target
@@ -177,12 +173,12 @@ public final class BodyWalker {
     }
 
     /**
-     * Marks the walk to {@code to} arrived, telling the listener the first time only; a close end after a teleport is
-     * {@link WalkEnd#TELEPORTED}.
+     * Marks the walk to {@code to} arrived, telling the listener the first time only; an end after a teleport, but a
+     * give-up, is {@link WalkEnd#TELEPORTED}.
      */
     private void ended(BlockPos to, Vec3 p, @Nullable BlockPos desired, WalkEnd how, NavStatus nav) {
         if (!arrived) {
-            WalkEnd end = how == WalkEnd.CLOSE && teleported ? WalkEnd.TELEPORTED : how;
+            WalkEnd end = how != WalkEnd.GAVE_UP && teleported ? WalkEnd.TELEPORTED : how;
             listener.walkEnded(to, p, end, p.distance(Vec3.center(desired == null ? to : desired)), nav);
         }
         arrived = true;
