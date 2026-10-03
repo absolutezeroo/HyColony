@@ -1,11 +1,12 @@
 package dev.hycolony.plugin.npc.motion;
 
+import com.hypixel.hytale.assetstore.AssetExtraInfo;
+import com.hypixel.hytale.assetstore.AssetRegistry;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.protocol.BlockMaterial;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.fluid.Fluid;
-import com.hypixel.hytale.server.core.asset.type.fluidfx.config.FluidFX;
 import com.hypixel.hytale.server.core.universe.world.chunk.section.BlockSection;
 import com.hypixel.hytale.server.core.universe.world.chunk.section.FluidSection;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
@@ -14,8 +15,12 @@ import javax.annotation.Nullable;
 
 /** The cell reads a citizen's motion systems need: solid blocks and water. Never loads a chunk; world thread only. */
 final class MotionCells {
-    /** The fluid effects every water fluid shares ({@code FluidFXId} of Server/Item/Block/Fluids/Water_Source.json). */
-    private static final String WATER_FX = "Water";
+    /**
+     * The tag of water fluids alone: Water_Source.json has {@code "Tags": {"Fluid": ["Water"]}}, which Water and
+     * Water_Finite inherit (tar and poison share Water's fluid effects, not this tag); expanded as "Fluid=Water"
+     * (AssetExtraInfo.Data.putTags).
+     */
+    private static final int WATER_TAG = AssetRegistry.getOrCreateTagIndex("Fluid=Water");
 
     private MotionCells() {}
 
@@ -35,7 +40,7 @@ final class MotionCells {
     }
 
     /**
-     * Whether water fills the cell at {@code x y z}: a fluid with the {@code Water} fluid effects (Water, Water_Source,
+     * Whether water fills the cell at {@code x y z}: a fluid tagged {@link #WATER_TAG} (Water, Water_Source,
      * Water_Finite), as MC swims only in water (AbstractPathJob isWater, MovementHandler); false for another fluid, or
      * where the section is not loaded.
      */
@@ -47,10 +52,12 @@ final class MotionCells {
         }
         @Nullable FluidSection fluids = chunks.getStore().getComponent(sec, FluidSection.getComponentType());
         int id = fluids == null ? Fluid.EMPTY_ID : fluids.getFluidId(x, y, z);
-        @Nullable
-        Fluid fluid = id == Fluid.EMPTY_ID ? null : Fluid.getAssetMap().getAsset(id);
-        @Nullable FluidFX fx = fluid == null ? null : FluidFX.getAssetMap().getAsset(fluid.getFluidFXIndex());
-        return fx != null && WATER_FX.equals(fx.getId());
+        if (id == Fluid.EMPTY_ID) {
+            return false;
+        }
+        @Nullable Fluid fluid = Fluid.getAssetMap().getAsset(id);
+        @Nullable AssetExtraInfo.Data data = fluid == null ? null : fluid.getData();
+        return data != null && data.getExpandedTagIndexes().contains(WATER_TAG);
     }
 
     private static @Nullable Ref<ChunkStore> section(ChunkStore chunks, int x, int y, int z) {

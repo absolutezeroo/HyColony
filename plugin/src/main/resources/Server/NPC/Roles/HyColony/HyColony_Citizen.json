@@ -17,6 +17,7 @@
       "MaxSwimSpeed": 1.8,
       "Acceleration": 10,
       "MaxDiveSpeed": 2.5,
+      "MaxSinkSpeed": 1.35,
       "SwimDepth": -0.2,
       "SinkRatio": 0.5,
       "MinDiveDepth": 0,

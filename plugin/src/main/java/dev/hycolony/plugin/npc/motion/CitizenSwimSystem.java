@@ -31,7 +31,8 @@ import org.joml.Vector3d;
  * Lets a citizen swim at the surface of water, as MC citizens float and swim (MinecoloniesAdvancedPathNavigate.java
  * l. 156-157 setCanFloat, canSwim; AbstractEntityCitizen.java l. 348-349). Its role has Hytale's Walk and Dive
  * controllers, and nothing in Hytale switches them in water (plugin-b-api.md 52): Walk becomes Dive once the water
- * reaches the body's eyes; Dive becomes Walk once the body has a floor within a block under its feet, or a bank ahead
+ * reaches the body's eyes and it cannot walk out; Dive becomes Walk once it can: the body has a floor within a block
+ * under its feet, or a bank ahead
  * at most {@link #BANK_HEIGHT} blocks above the floor of the water (Walk sinks, then climbs from there: the role's
  * MaxClimbHeight), its head out of the water once standing there; without a floor within {@link #FLOOR_SCAN} blocks it
  * keeps swimming. At least {@link #SWITCH_GAP_TICKS} pass between two switches, so a body at the edge does not flip
@@ -49,10 +50,10 @@ import org.joml.Vector3d;
  * Player model's Swim animations (Server/Models/Human/Player.json).
  *
  * <p>Deviation from MC (Hytale world): MC citizens move twice as fast in water, wading or swimming
- * (CITIZEN_SWIM_BONUS 2.0, AbstractEntityCitizen) → Hytale's water slows a walker to 0.6 and lifts a swimmer at 2.5
- * blocks per second (Server/Item/Block/FluidFX/Water.json HorizontalSpeedMultiplier, SwimUpSpeed): the role's Dive
- * has MaxSwimSpeed 1.8 (0.6 times the Walk's 3) and MaxDiveSpeed 2.5, to tune in game. Its HyColonySeek relaxes Wade
- * and Breathe, so a path may cross water.
+ * (CITIZEN_SWIM_BONUS 2.0, AbstractEntityCitizen) → Hytale's water slows a walker to 0.6, lifts a swimmer at 2.5 and
+ * sinks it at 1.35 blocks per second (Server/Item/Block/FluidFX/Water.json HorizontalSpeedMultiplier, SwimUpSpeed,
+ * SinkSpeed): the role's Dive has MaxSwimSpeed 1.8 (0.6 times the Walk's 3), MaxDiveSpeed 2.5 and MaxSinkSpeed 1.35,
+ * to tune in game. Its HyColonySeek relaxes Wade and Breathe, so a path may cross water.
  */
 public final class CitizenSwimSystem extends EntityTickingSystem<EntityStore> {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
@@ -128,24 +129,37 @@ public final class CitizenSwimSystem extends EntityTickingSystem<EntityStore> {
         }
     }
 
-    /** The controller the body should switch to; null to keep the active one. */
+    /**
+     * The controller the body should switch to; null to keep the active one. Both switches read the same way out
+     * ({@link #walkable}): a body that walks out of the water, its eyes still under while it climbs the bank, is not
+     * sent back to swimming.
+     */
     private static @Nullable String next(String active, Store<EntityStore> store, TransformComponent t, float eyes) {
+        Vector3d p = t.getPosition();
+        if (MotionControllerWalk.TYPE.equals(active)) {
+            boolean eyesUnder = MotionCells.water(
+                    store, (int) Math.floor(p.x), (int) Math.floor(p.y + eyes), (int) Math.floor(p.z));
+            return eyesUnder && !walkable(store, t, eyes) ? MotionControllerDive.TYPE : null;
+        }
+        return MotionControllerDive.TYPE.equals(active) && walkable(store, t, eyes) ? MotionControllerWalk.TYPE : null;
+    }
+
+    /**
+     * Whether the body can walk out from here: it has a floor within a block under its feet with its head out of the
+     * water once standing on it, or a bank ahead it can climb from the floor of the water. Walk sinks and climbs from
+     * the bottom, so the bank is measured from the floor it will stand on; without a floor within
+     * {@link #FLOOR_SCAN} blocks, it cannot.
+     */
+    private static boolean walkable(Store<EntityStore> store, TransformComponent t, float eyes) {
         Vector3d p = t.getPosition();
         int x = (int) Math.floor(p.x);
         int z = (int) Math.floor(p.z);
-        if (MotionControllerWalk.TYPE.equals(active)) {
-            return MotionCells.water(store, x, (int) Math.floor(p.y + eyes), z) ? MotionControllerDive.TYPE : null;
-        }
-        if (!MotionControllerDive.TYPE.equals(active)) {
-            return null;
-        }
-        // Walk sinks and climbs from the bottom: the bank is measured from the floor it will stand on.
         int floor = floorUnder(store, x, (int) Math.floor(p.y), z);
         if (floor == NO_FLOOR) {
-            return null;
+            return false;
         }
         boolean standing = floor >= p.y - 1 && headOut(store, x, floor, z, eyes);
-        return standing || bankAhead(store, t, floor, eyes) ? MotionControllerWalk.TYPE : null;
+        return standing || bankAhead(store, t, floor, eyes);
     }
 
     /**
@@ -181,7 +195,7 @@ public final class CitizenSwimSystem extends EntityTickingSystem<EntityStore> {
         return false;
     }
 
-    /** Whether a body standing with its feet at {@code stand} has its eyes out of any fluid: no swim to switch to. */
+    /** Whether a body standing with its feet at {@code stand} has its eyes out of the water: no swim to switch to. */
     private static boolean headOut(Store<EntityStore> store, int x, int stand, int z, float eyes) {
         return !MotionCells.water(store, x, (int) Math.floor(stand + eyes), z);
     }

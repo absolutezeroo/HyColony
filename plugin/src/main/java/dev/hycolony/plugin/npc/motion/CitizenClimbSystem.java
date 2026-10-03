@@ -27,8 +27,9 @@ import org.joml.Vector3d;
  * 2026-10-03-hycolony-nage-echelles § 5). Each tick the climb advances {@link #CLIMB_BLOCKS_PER_SECOND} times the
  * tick's length on its own height ({@code MoveTarget.climbY}), at the end's x and z, and the body is set there by an
  * exact teleport after its own movement, which overrides the Walk controller's gravity; Hytale's climbing state is set
- * then (ClimbUp, ClimbDown), as Hytale clears it each tick. At the end the body is held there, as on a ladder (MC never
- * falls from one), until its next order; past its allowed time it is set at the end, a timed-out climb.
+ * then (ClimbUp, ClimbDown), as Hytale clears it each tick. At the end the body is held there until its next order (our
+ * choice: the gravity would drop it before a next walk or climb starts); past its allowed time it is set at the end, a
+ * timed-out climb.
  *
  * <p>Deviation from MC (Hytale world): Minecraft's ladder physics, and the crouched way down (setShiftKeyDown,
  * setYya -0.5) → a straight move at a Hytale player's ladder pace (Server/Entity/MovementConfig/Default.json ClimbSpeed
