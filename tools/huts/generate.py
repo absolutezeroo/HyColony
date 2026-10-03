@@ -1,15 +1,16 @@
 """Paints HyColony's hand-built models (spec 2026-10-02 hut models: hut blocks, build goggles, build tool, clipboard)
 and draws their icons, with the shared model tools of tools/common.
 
-Each model is built in Blockbench (docs/research/hytale-models.md; the clipboard, lumberjack and miner by one-off
-scripts) and saved to plugin/src/main/resources/Common/<MODEL>.blockymodel; this script never writes it. It paints
-the model's texture next to it (<MODEL>.png: paint.texture, the materials' brushes and the light baked from the model)
-and draws the item icon (Icons/Items/HyColony/<ICON>.png). Run once after changing a model or its materials (a hut
-block's model first through trim.py, which drops its hidden faces and lays it out), then commit the outputs. Needs
-Python 3.10+ and Pillow.
+Each model is built in Blockbench (docs/research/hytale-models.md; the clipboard, lumberjack, miner, quarries,
+plantation and florist by one-off scripts) and saved to plugin/src/main/resources/Common/<MODEL>.blockymodel; this
+script never writes it. It paints the model's texture next to it (<MODEL>.png: paint.texture, the materials' brushes
+and the light baked from the model) and draws the item icon (Icons/Items/HyColony/<ICON>.png). Run once after
+changing a model or its materials (a hut block's model first through trim.py, which gives every box its bottom,
+drops the faces other boxes hide and lays it out), then commit the outputs. Needs Python 3.10+ and Pillow.
 
 A model's module (builder.py, town_hall.py, residence.py, farmer.py, cook.py, courier.py, warehouse.py, lumberjack.py,
-miner.py, goggles.py, build_tool.py, clipboard.py; listed in MODELS) declares:
+miner.py, quarry_small.py, quarry_medium.py, quarry_large.py, plantation.py, florist.py, goggles.py, build_tool.py,
+clipboard.py; listed in MODELS) declares:
 - MODEL: its path under Common, without extension; a block's (under Blocks/) stands on a floor that shades its foot;
 - ICON: its icon's name;
 - PICTURES: the materials whose tile carries a drawing laid out for its island, never turned;
@@ -37,10 +38,15 @@ import clipboard  # noqa: E402
 import cook  # noqa: E402
 import courier  # noqa: E402
 import farmer  # noqa: E402
+import florist  # noqa: E402
 import glint  # noqa: E402
 import goggles  # noqa: E402
 import lumberjack  # noqa: E402
 import miner  # noqa: E402
+import plantation  # noqa: E402
+import quarry_large  # noqa: E402
+import quarry_medium  # noqa: E402
+import quarry_small  # noqa: E402
 import residence  # noqa: E402
 import town_hall  # noqa: E402
 import warehouse  # noqa: E402
@@ -52,8 +58,8 @@ from paint import islands, texture  # noqa: E402
 from PIL import Image  # noqa: E402
 
 RESOURCES = ROOT / "plugin" / "src" / "main" / "resources"
-MODELS = (builder, town_hall, residence, farmer, cook, courier, warehouse, lumberjack, miner, goggles, build_tool,
-          clipboard)
+MODELS = (builder, town_hall, residence, farmer, cook, courier, warehouse, lumberjack, miner, quarry_small,
+          quarry_medium, quarry_large, plantation, florist, goggles, build_tool, clipboard)
 
 
 def main():

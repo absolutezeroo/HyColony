@@ -1,0 +1,35 @@
+{
+  "TranslationProperties": {
+    "Name": "hycolony.item.hut.simplequarry.name",
+    "Description": "hycolony.item.hut.simplequarry.description"
+  },
+  "MaxStack": 1,
+  "Icon": "Icons/Items/HyColony/Hut_Quarry_Small.png",
+  "Categories": [
+    "Blocks.Deco"
+  ],
+  "PlayerAnimationsId": "Block",
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Model",
+    "Opacity": "Transparent",
+    "CustomModel": "Blocks/HyColony/Huts/Quarry_Small.blockymodel",
+    "CustomModelTexture": [
+      { "Texture": "Blocks/HyColony/Huts/Quarry_Small.png", "Weight": 1 }
+    ],
+    "HitboxType": "HyColony_Hut",
+    "VariantRotation": "NESW",
+    "Gathering": {
+      "Breaking": { "GatherType": "Rocks" }
+    },
+    "Support": {
+      "Down": [ { "FaceType": "Full" } ]
+    },
+    "BlockParticleSetId": "Stone",
+    "ParticleColor": "#807c74",
+    "BlockSoundSetId": "Stone",
+    "PhysicalMaterialId": "Stone",
+    "TextureComputedColor": "#807C74"
+  },
+  "ItemSoundSetId": "ISS_Blocks_Stone"
+}

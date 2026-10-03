@@ -10,6 +10,7 @@ from PIL import ImageDraw
 from brushes import as_tile, cloth, crystal, jitter, metal, stone, terracotta, wood
 from materials import leaf
 from models import multiply, walk
+from motion import about
 
 MODEL = "Blocks/HyColony/Huts/Farmer"
 COPPER = (186, 108, 64)
@@ -136,8 +137,4 @@ def drop():
 
 def tilt(about_x, about_z):
     """The quaternion leaning a node about_x degrees about x, then about_z about z."""
-    def about(axis, degrees):
-        half = math.radians(degrees) / 2
-        return tuple(c * math.sin(half) for c in axis) + (math.cos(half),)
-
     return multiply(about((0, 0, 1), about_z), about((1, 0, 0), about_x))

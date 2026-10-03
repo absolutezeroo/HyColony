@@ -40,6 +40,19 @@ def leather(rgb, tile):
     return base
 
 
+def rope():
+    """Twisted hemp rope: light and dark strands in turn along a diagonal."""
+    return painted(lambda x, y, w, h, side: coloured((206, 180, 128), 0.85 if (x + y) % 2 else 1.05))
+
+
+# Cut stone (the quarries' blocks) and rough rock.
+CUT_STONE = (178, 170, 154)
+ROCK = (128, 124, 116)
+# A hollow wooden bucket's faces turned inwards, painted dark (quarry_medium.py, florist.py).
+BUCKET_INSIDE = frozenset({("Bucket_Bottom", "top"), ("Bucket_F", "back"), ("Bucket_B", "front"),
+                           ("Bucket_L", "right"), ("Bucket_R", "left")})
+
+
 def leaf(rgb):
     """Young leaves: a mottled green, lighter towards the top of side faces, with a few light veins."""
     def rule(x, y, w, h, side):

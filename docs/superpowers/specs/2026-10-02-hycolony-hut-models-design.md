@@ -253,9 +253,68 @@ autres huttes.
     donc la pointe plantée part du même côté que lui, et le fer sortirait du bloc derrière le rocher.
 - **Reflet des cristaux** (demandé par l'utilisateur, « pas de grossissement, juste le reflet ») : le reflet de
   l'outil de construction (`glint.py`), sans la respiration (`BREATHE = False` dans `miner.py`), sur les six nœuds
-  `Gem_*` : `Miner.blockyanim`. Ses trois images sont peintes sous la texture ; le modèle est déplié sur 256 de large
-  pour que la texture reste à 256×256 (64×768 en largeur 64, plus haut que les 384 déjà vus en jeu). Le bloc la
+  `Gem_*` : `Miner.blockyanim`. Ses trois images sont peintes sous la texture, et seules les zones des cristaux y
+  sont recopiées : elles sont rangées à part, en bas (§ Peinture, Optimisation ; texture de 64×352). Le bloc la
   déclare en `CustomModelAnimation`, avec `Looping` à vrai comme le fermier.
+
+## Carrières, plantation et fleuriste
+
+Cinq huttes de plus en blocs de décoration, comme le bûcheron et le mineur (mêmes objets créatifs, sans recette, sans
+coffre ni fenêtre, hors de l'id-map) : la carrière simple, la carrière moyenne, la grande carrière, la plantation et
+le fleuriste de MineColonies (`ModBuildings` : `simplequarry`, `mediumquarry`, `largequarry`, `plantation`,
+`florist`). Choisies par l'utilisateur ; pistes proposées puis validées une à une dans Blockbench. Modèles écrits par
+un script, peints par `tools/huts/quarry_small.py`, `quarry_medium.py`, `quarry_large.py`, `plantation.py`,
+`florist.py`. Noms de MineColonies (`manual_en_us.json` : « Simple Quarry », « Medium Quarry », « Large Quarry »,
+« Plantation », « Flower Shop » ; « Carrière simple », « Carrière moyenne », « Grande carrière », « Plantation »,
+« Fleuriste »). Les trois carrières montent en gamme, de l'outil à main à l'engin de levage.
+
+- **Carrière simple** (17 boîtes, hitbox `HyColony_Hut`) : un rocher fendu en deux par trois coins de fer (faces
+  intérieures de la fente sombres), avec un dessus en gradin et des pieds qui débordent pour ne pas faire cube ; un
+  maillet, dont le manche part du centre de la tête et descend jusqu'à toucher la pierre (retour de l'utilisateur),
+  et un ciseau posés dessus ; un premier bloc taillé, des éclats et des gravats au sol.
+- **Carrière moyenne** (30 boîtes, `HyColony_Hut`) : trois blocs taillés sur une palette (trois patins, quatre
+  lattes), ceinturés d'une corde nouée devant ; une masse posée tête au sol, la tête tournée avec le manche et posée
+  sur une arête, le manche appuyé sur l'arête de la pile (retour de l'utilisateur) ; un seau creux cerclé de fer
+  (fond, quatre parois sombres dedans, « le bucket est plein, il devrait pas »), un manche de pioche et un ciseau
+  dedans ; des gravats.
+- **Grande carrière** (31 boîtes, deux blocs de haut, `HyColony_Hut_Tall`) : une chèvre de levage de trois perches
+  enfoncées dans des semelles de pierre (« il manque des pieds qui font ancrer dans le sol ») et liées au sommet, une
+  poulie, une corde jusqu'à un crochet et un bloc taillé de 7×6×7 dans une élingue qui l'entoure (« le sling doit
+  entourer la pierre ») : deux boucles en travers, une sangle plate dessous, la corde sur les côtés, quatre brins
+  jusqu'au crochet. Un treuil entre les pieds avant, au-dessus du bloc, sa manivelle à l'extérieur du pied droit
+  (« le crank rentre dans le pilier »), et deux blocs taillés au sol. **Balancement** : le nœud de la corde, pivot
+  sous la poulie, porte le crochet, l'élingue et le bloc (`Quarry_Large.blockyanim`, `CustomModelAnimation` en
+  boucle). Un premier jet (3° d'avant en arrière puis de côté sur 4 s) « faisait carrément trop » : Hytale n'a pas
+  de physique pour les nœuds d'un modèle, alors l'animation imite celle d'une charge lourde au bout d'environ un
+  mètre de corde, qui tourne lentement sur sa corde (±6° sur 8 s) et oscille à peine (pendule de 0,8° sur 2 s, un
+  peu moins de côté). À chaque clé, le crochet, l'élingue et le bloc restent à 1,03 unité au moins de toute pièce
+  fixe, la bobine du treuil étant la plus proche, les perches à environ 3 (distance calculée entre les surfaces ;
+  « le hung rentre dans le pilier » sur un premier jet).
+- **Plantation** (35 boîtes, 1,45 bloc, `HyColony_Hut_Tall`) : les cultures de la plantation de MineColonies (canne à
+  sucre, cactus, bambou) dans leurs équivalents Hytale (`Plant_Reeds_*`, bambou, cactus) : un bac en planches plein de
+  terre, cinq roseaux dont trois à épi brun, trois tiges de bambou à nœuds liées par une ficelle, un cactus à deux
+  bras et fleur rose dans un pot en terre cuite, une rigole d'eau le long du bac.
+- **Fleuriste** (81 boîtes, `HyColony_Hut`) : un étal à deux gradins, trois pots en haut et trois en bas (tulipes,
+  marguerites, lavande, roses, une à trois fleurs par pot, chacune sur sa tige, inclinée à sa façon, les têtes d'un
+  même pot étagées), un sécateur, un seau de trois fleurs coupées en triangle, penchées vers l'extérieur et tournées
+  avec le seau, et un sac ouvert, son rebord roulé en anneau de quatre bandes autour du compost, un
+  transplantoir planté dedans (le fleuriste de MineColonies fait pousser ses fleurs au compost ; un rebord plein
+  cachait le compost, relecture). Un premier jet « ne faisait pas vraiment fleur » (des cubes sur des tiges) ; un
+  deuxième bâtissait chaque fleur pétale par pétale (141 boîtes, 846 faces, près de trois fois le plus gros meuble
+  de Hytale). Hytale dessine ses fleurs en plans à fond transparent (`Common/Blocks/Foliage/Flowers/*`, plans double
+  face), que nos outils de peinture ne savent pas encore poser : chaque fleur est donc une tige et une ou deux
+  boîtes au détail peint (coupe de la tulipe aux pointes de pétales et au cœur sombre, deux plaques croisées de la
+  marguerite au cœur jaune, pétale extérieur tourné de 45° autour du cœur de la rose, épi strié de la lavande).
+  **Brise** (« les fleurs ne bougent pas ») : chaque fleur est un nœud de tige qui pivote à sa base et porte sa
+  tête ; toutes ondulent au même rythme (2,5° d'avant en arrière, 3,5° de côté, sur 6 s), les fleurs d'un même pot
+  presque ensemble, les pots décalés entre eux, celles du seau deux fois moins (`Florist.blockyanim`,
+  `CustomModelAnimation` en boucle). Hors de sa base plantée dans son pot (ou le fond du seau) et de ses feuilles,
+  aucune fleur ne touche une autre fleur, le gradin ni le seau, ni au repos ni à aucune clé (distance mesurée ; des
+  têtes d'un même pot, des roses contre le gradin du haut et des tiges contre le seau se traversaient, relecture).
+- **Mouvement continu** (`tools/huts/motion.py`) : ces deux animations sont des mouvements échantillonnés dix fois par
+  seconde, à clés linéaires. Des clés `smooth` toutes les quarts de seconde saccadaient (« des mini freeze ») : une
+  clé `smooth` ralentit jusqu'à l'arrêt sur chaque clé, et Hytale ne pose les siennes qu'aux bouts d'un balancement
+  (`Decorative_Sets/Human_Ruins/Banner_Swing`).
 
 ## Lunettes de construction
 
@@ -366,6 +425,7 @@ Pistes proposées à l'utilisateur, chacune à valider sur des captures Blockben
 | Hutte | Piste |
 |---|---|
 | Bûcheron, mineur | Faits en blocs de décoration (§ Bûcheron et mineur) ; huttes complètes avec leur métier. |
+| Carrières, plantation, fleuriste | Faits en blocs de décoration (§ Carrières, plantation et fleuriste). |
 
 ## À vérifier en jeu
 
@@ -393,6 +453,10 @@ Pistes proposées à l'utilisateur, chacune à valider sur des captures Blockben
 - La hutte du forestier et la mine (inventaire créatif) se posent comme de simples blocs : ni colonie ni message,
   rien ne s'ouvre en les utilisant ; elles font face au joueur. Les cristaux de la mine luisent d'un reflet toutes les
   3 s, sans grossir, et l'animation boucle.
+- Les trois carrières, la plantation et le fleuriste font de même ; la plantation et la grande carrière occupent la
+  case au-dessus (hitbox `HyColony_Hut_Tall`). Le bloc pendu de la grande carrière tourne lentement sur sa corde et
+  oscille à peine, sans à-coup ni toucher les perches ; les fleurs du fleuriste ondulent sans à-coup ni se toucher,
+  un pot après l'autre. Vues par en dessous (sous un bloc posé en surplomb), les huttes ne sont pas creuses.
 - Utiliser une hutte ouvre toujours sa fenêtre ; aucune erreur d'animation au journal. L'hôtel de ville crée la
   colonie comme avant.
 - Le bloc au-dessus d'une hutte posée après ce changement est occupé (cellule de remplissage de la hitbox de 1,4, ou

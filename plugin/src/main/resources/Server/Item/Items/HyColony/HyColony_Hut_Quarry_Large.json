@@ -1,0 +1,37 @@
+{
+  "TranslationProperties": {
+    "Name": "hycolony.item.hut.largequarry.name",
+    "Description": "hycolony.item.hut.largequarry.description"
+  },
+  "MaxStack": 1,
+  "Icon": "Icons/Items/HyColony/Hut_Quarry_Large.png",
+  "Categories": [
+    "Blocks.Deco"
+  ],
+  "PlayerAnimationsId": "Block",
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Model",
+    "Opacity": "Transparent",
+    "CustomModel": "Blocks/HyColony/Huts/Quarry_Large.blockymodel",
+    "CustomModelTexture": [
+      { "Texture": "Blocks/HyColony/Huts/Quarry_Large.png", "Weight": 1 }
+    ],
+    "CustomModelAnimation": "Blocks/HyColony/Huts/Quarry_Large.blockyanim",
+    "Looping": true,
+    "HitboxType": "HyColony_Hut_Tall",
+    "VariantRotation": "NESW",
+    "Gathering": {
+      "Breaking": { "GatherType": "Woods" }
+    },
+    "Support": {
+      "Down": [ { "FaceType": "Full" } ]
+    },
+    "BlockParticleSetId": "Wood",
+    "ParticleColor": "#7a5636",
+    "BlockSoundSetId": "Wood",
+    "PhysicalMaterialId": "Wood",
+    "TextureComputedColor": "#7A5636"
+  },
+  "ItemSoundSetId": "ISS_Blocks_Wood"
+}

@@ -1,0 +1,37 @@
+{
+  "TranslationProperties": {
+    "Name": "hycolony.item.hut.florist.name",
+    "Description": "hycolony.item.hut.florist.description"
+  },
+  "MaxStack": 1,
+  "Icon": "Icons/Items/HyColony/Hut_Florist.png",
+  "Categories": [
+    "Blocks.Deco"
+  ],
+  "PlayerAnimationsId": "Block",
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Model",
+    "Opacity": "Transparent",
+    "CustomModel": "Blocks/HyColony/Huts/Florist.blockymodel",
+    "CustomModelTexture": [
+      { "Texture": "Blocks/HyColony/Huts/Florist.png", "Weight": 1 }
+    ],
+    "CustomModelAnimation": "Blocks/HyColony/Huts/Florist.blockyanim",
+    "Looping": true,
+    "HitboxType": "HyColony_Hut",
+    "VariantRotation": "NESW",
+    "Gathering": {
+      "Breaking": { "GatherType": "Woods" }
+    },
+    "Support": {
+      "Down": [ { "FaceType": "Full" } ]
+    },
+    "BlockParticleSetId": "Wood",
+    "ParticleColor": "#86603c",
+    "BlockSoundSetId": "Wood",
+    "PhysicalMaterialId": "Wood",
+    "TextureComputedColor": "#86603C"
+  },
+  "ItemSoundSetId": "ISS_Blocks_Wood"
+}
