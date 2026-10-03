@@ -173,13 +173,15 @@ final class FieldPass {
     }
 
     /**
-     * MC harvestIfAble / mineBlock: the tool the world gives the crop in hand ({@link #holdToolFor}; none held, the
-     * cell is left), facing the crop, a stroke on it, then the harvest drops go to the inventory; one action, the
-     * block's and harvest XP, even without drops. Nothing more when the crop is still mature (the harvest failed).
+     * MC harvestIfAble / mineBlock: the tool the world gives the crop in hand ({@link #holdToolFor}; the farmer lacking
+     * the tool it asks for, the cell is left), facing the crop, a stroke on it, then the harvest drops go to the
+     * inventory; one action, the block's and harvest XP, even without drops. Nothing more when the crop is still
+     * mature (the harvest failed).
      *
-     * <p>Deviation from MC: a hit effect on the crop, where MC breaks it at once (breakBlockWithToolInHand, its delay 0
-     * for a crop) with no hit. Deviation from MC (Hytale world): MC damageItemInHand wears the held slot (the hoe) on
-     * each harvest → breaking a Soft block wears no tool in Hytale (BlockHarvestUtils.calculateDurabilityUse).
+     * <p>Deviation from MC: a hit effect on the crop, and the crop broken at this pass; MC breaks it with no hit
+     * (breakBlockWithToolInHand) at the next pass of workAtField, about 5 ticks later (hasNotDelayed with its delay 0).
+     * Deviation from MC (Hytale world): MC damageItemInHand wears the held slot (the hoe) on each harvest → breaking a
+     * Soft block wears no tool in Hytale (BlockHarvestUtils.calculateDurabilityUse).
      */
     private void harvest(BlockPos surface) {
         BlockPos crop = surface.offset(0, 1, 0);
@@ -206,7 +208,9 @@ final class FieldPass {
      * least powerful such tool that does the job held (WorkerStock.toolInInventory, MC getMostEfficientTool), or, the
      * farmer lacking one (MC TOOL_NOT_FOUND), the tool asked for and false. A Hytale crop asks none
      * (Template_Crop_Block: Gathering.Soft, no Breaking; sp3b-hytale-farming § 3.4), as MC's of hardness 0.
-     * Deviation from MC: the cell is then left, as {@link #hoe} leaves it without a hoe; MC waits on it.
+     * Deviation from MC: only the request; the cell is left, as {@link #hoe} leaves it without a hoe, with neither the
+     * STUCK status nor the walk to take one from the hut (MC requestTool → checkForToolOrWeapon, checkForNeededTool),
+     * which would send the farmer back and forth mid-pass; MC waits on the cell.
      */
     private boolean holdToolFor(BlockPos pos) {
         Optional<ToolType> type = ctx.colony()

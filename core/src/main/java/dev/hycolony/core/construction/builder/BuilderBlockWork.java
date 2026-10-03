@@ -194,7 +194,8 @@ final class BuilderBlockWork {
         // MC damageItemInHand: 1 per block; at its durability the tool breaks, no message (the next block asks), and
         // the hand it emptied shows nothing. Deviation from MC: no research yet, so no TOOL_DURABILITY chance to spare
         // the tool. Deviation from MC (Hytale world): bare-handed, MC still wears the last held slot (damageItemInHand
-        // reads InventoryCitizen.getHeldItem) → Hytale wears only the tool a block is broken with.
+        // reads InventoryCitizen.getHeldItem) → Hytale wears only the tool a block is broken with
+        // (BlockHarvestUtils.applyItemDurabilityLoss, calculateDurabilityUse).
         if (tool != null
                 && ctx.stock()
                         .inventory()

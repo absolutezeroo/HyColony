@@ -323,6 +323,7 @@ class FieldPassTest extends FarmerTestBase {
 
         assertEquals(AXE, t.bodies.bodies.get(body).held, "MC holdEfficientTool: the tool the block asks for");
         assertEquals(1, citizen.equipment().held(CitizenEquipment.Hand.MAIN), "MC setHeldItem(MAIN_HAND, bestSlot)");
+        assertTrue(t.farming.crops.isEmpty(), "and harvested");
     }
 
     @Test
