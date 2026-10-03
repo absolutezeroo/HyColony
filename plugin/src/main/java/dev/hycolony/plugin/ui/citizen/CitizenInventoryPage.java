@@ -131,7 +131,7 @@ final class CitizenInventoryPage extends InteractiveCustomUIPage<CitizenInventor
 
     /**
      * Redraws the page when the citizen's AI changed what it carries or wears, or its side panel changed (health,
-     * defense, hunger, hands). A page no longer shown without a dismissal (a world change, a disconnection) stops
+     * defense, food, hands). A page no longer shown without a dismissal (a world change, a disconnection) stops
      * following.
      */
     private void checkNow() {

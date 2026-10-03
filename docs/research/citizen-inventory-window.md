@@ -199,6 +199,6 @@ Question : remplacer le dessin de l'entité de MC (`WindowCitizenInventory.rende
 
 ### 9.1 Mise en œuvre (2026-10-02)
 
-- Page `CitizenInventoryPage` ouverte par `PageManager.openCustomPageWithWindows(ref, store, page, main, armor)` : deux `ContainerWindow` (les 27 cases, l'armure), dont la page remplit les grilles par `InventoryGrids.drawContainer` ; le sac et la barre rapide du joueur aux positions de MC par `InventoryGrids.drawPlayerPart` (HyBlockUI).
+- Page `CitizenInventoryPage` ouverte par `PageManager.openCustomPageWithWindows(ref, store, page, main, armor)` : deux `ContainerWindow` (les 27 cases, l'armure), dont la page remplit les grilles par `InventoryGrids.drawContainer` ; le sac et la barre rapide du joueur aux positions de MC par `InventoryGrids.drawPlayerPart` (HyBlockUI ; retirée depuis, remplacée par `PlayerPanels.drawStorage`).
 - `CitizenPreviewCamera` : la caméra se pose à l'ouverture, se replace toutes les 500 ms si le citoyen a tourné de plus de 15°, et revient (`SetServerCamera(Custom, false, null)`) à la fermeture de la page ou quand le corps n'est plus chargé. Constantes de cadrage `DISTANCE`, `SIDE`, `HEIGHT`, à régler en jeu (TESTING 361).
 - Hytale n'use l'armure que des joueurs : `ItemUtils.canDecreaseItemStackDurability` renvoie faux sans composant `Player` (`server/core/entity/ItemUtils.java` l. 158-161). L'armure recopiée sur le PNJ (`BodyGestures.wear`, `ItemContainer.setItemStackForSlot` comme `InventoryHelper.useArmor` l. 381-398) ne s'use donc jamais d'elle-même.
