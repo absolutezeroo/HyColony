@@ -6,6 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
+import dev.hycolony.core.kernel.item.BlockKey;
+import dev.hycolony.core.kernel.item.BlockKind;
+import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.core.testing.TestJobs;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -160,6 +163,33 @@ class CitizenWanderTest extends WanderFixture {
         wander.wander();
 
         assertEquals(List.of(new Vec3(64.5, 64, 10.5)), t.bodies.moves);
+    }
+
+    /** A tree is no wander spot: our citizens climb 3 blocks, so its leaves are no floor (Hytale world). */
+    @Test
+    void aTreeIsNoWanderSpotItWandersOnTheGroundBeyond() {
+        BlockKey dirt = new BlockKey("dirt");
+        BlockKey trunk = new BlockKey("trunk");
+        BlockKey leaves = new BlockKey("leaves");
+        t.catalog.kinds.put(dirt, BlockKind.SOLID);
+        t.catalog.kinds.put(trunk, BlockKind.SOLID);
+        t.catalog.kinds.put(leaves, BlockKind.SOLID);
+        t.catalog.leaves.add(leaves);
+        put(new BlockPos(21, 63, 10), dirt); // east, 11 blocks: a tree
+        put(new BlockPos(21, 64, 10), trunk);
+        put(new BlockPos(21, 65, 10), trunk);
+        put(new BlockPos(21, 66, 10), leaves);
+        put(new BlockPos(-1, 61, 10), dirt); // west: ground 2 blocks down
+        rolls.ints.add(5);
+        rolls.doubles.addAll(List.of(0.0, Math.PI));
+
+        wander.wander();
+
+        assertEquals(List.of(new Vec3(-0.5, 62, 10.5)), t.bodies.moves, "its ground, not the trunk's top");
+    }
+
+    private void put(BlockPos at, BlockKey key) {
+        t.blocks.blocks.put(at, new BlockState(key, 0));
     }
 
     /** Asked for: an idle citizen outside the territory walks back to its home. */

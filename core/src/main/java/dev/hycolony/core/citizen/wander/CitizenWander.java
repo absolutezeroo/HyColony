@@ -64,6 +64,7 @@ public final class CitizenWander {
     private final CitizenBodies bodies;
     private final RandomGenerator random;
     private final DangerousCells danger;
+    private final WanderGround ground;
     private final LeisureWalk leisure;
     /** The tick the wander first saw the walk under way, {@link #NOT_WAITING} while it saw none. */
     private long waitingSince = NOT_WAITING;
@@ -81,6 +82,8 @@ public final class CitizenWander {
         this.bodies = colony.context().bodies();
         this.random = colony.context().random();
         this.danger = new DangerousCells(
+                colony.context().ports().blocks(), colony.context().ports().catalog());
+        this.ground = new WanderGround(
                 colony.context().ports().blocks(), colony.context().ports().catalog());
         this.leisure = new LeisureWalk(colony, body, delay, danger);
     }
@@ -167,7 +170,7 @@ public final class CitizenWander {
      * colony's territory, with no dangerous block within 1 block ({@link DangerousCells#near}); else the first such
      * pick whose own column holds none (MC PathJobRandomPos never ends on one, PathfindingUtils.isDangerous); empty
      * after {@link #WANDER_TRIES} picks. Deviation from MC: without a path search, the spot is the cell 11 blocks away
-     * in a random direction; and the territory bound is asked for.
+     * in a random direction, on its column's ground ({@link WanderGround}); and the territory bound is asked for.
      */
     private Optional<Vec3> wanderTarget(BlockPos anchor, double y) {
         Vec3 columnSafe = null;
@@ -175,11 +178,12 @@ public final class CitizenWander {
             double angle = random.nextDouble(2 * Math.PI);
             int dx = (int) Math.round(Math.cos(angle) * (WANDER_RADIUS + 1));
             int dz = (int) Math.round(Math.sin(angle) * (WANDER_RADIUS + 1));
-            Vec3 target = new Vec3(anchor.x() + dx + 0.5, y, anchor.z() + dz + 0.5);
-            BlockPos cell = target.toBlockPos();
-            if (!colony.contains(cell)) {
+            Vec3 target = ground.of(new Vec3(anchor.x() + dx + 0.5, y, anchor.z() + dz + 0.5))
+                    .orElse(null);
+            if (target == null || !colony.contains(target.toBlockPos())) {
                 continue;
             }
+            BlockPos cell = target.toBlockPos();
             if (!danger.near(cell, WANDER_DANGER_HALF_HEIGHT)) {
                 return Optional.of(target);
             }
