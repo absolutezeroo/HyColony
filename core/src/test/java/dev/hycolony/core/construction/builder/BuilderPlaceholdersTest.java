@@ -262,6 +262,35 @@ class BuilderPlaceholdersTest {
         assertEquals(WATER, world(3, 0, 0));
     }
 
+    /**
+     * Structurize FluidSubstitutionPlacementHandler: a block already standing in a source (MC waterlogged) answers a
+     * fluid cell and stays; a dry plant there is replaced by the water, as MC replaces a block it cannot waterlog.
+     */
+    @Test
+    void fluidCellKeepsAPlantStandingInASource() {
+        BlockKey fern = new BlockKey("Plant_Fern");
+        t.catalog.kinds.put(fern, BlockKind.NON_SOLID);
+        mineColoniesPlan();
+        put(3, 0, 0, fern);
+        t.blocks.fluids.put(RES.offset(3, 0, 0), WATER);
+
+        build();
+
+        assertEquals(new BlockState(fern, 0), world(3, 0, 0));
+    }
+
+    @Test
+    void fluidCellReplacesADryPlantWithWater() {
+        BlockKey fern = new BlockKey("Plant_Fern");
+        t.catalog.kinds.put(fern, BlockKind.NON_SOLID);
+        mineColoniesPlan();
+        put(3, 0, 0, fern);
+
+        build();
+
+        assertEquals(WATER, world(3, 0, 0));
+    }
+
     @Test
     void fluidCellKeepsASolidBlock() {
         mineColoniesPlan();

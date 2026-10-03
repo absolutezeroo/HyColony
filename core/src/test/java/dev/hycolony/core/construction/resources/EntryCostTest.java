@@ -25,6 +25,8 @@ class EntryCostTest {
     private static final BlockKey LANTERN = new BlockKey("Deco_Lantern");
     private static final BlockKey CEILING_LANTERN = new BlockKey("Deco_Lantern_Ceiling");
     private static final BlockKey GRASS = new BlockKey("Soil_Grass");
+    private static final BlockKey PATH = new BlockKey("Soil_Pathway");
+    private static final BlockKey PLAIN_DIRT = new BlockKey("Soil_Dirt");
     /** Made up: a block nothing gives, that no item places and whose break gives no single stack. */
     private static final BlockKey STATUE = new BlockKey("Example_Unsourced_Statue");
 
@@ -102,7 +104,10 @@ class EntryCostTest {
         assertEquals(List.of(new ItemAmount(LANTERN_I, 1)), cost(CEILING_LANTERN));
     }
 
-    /** Soil_Grass.json has a Farmingbench recipe and breaks into Soil_Dirt: the grass itself is asked. */
+    /**
+     * Soil_Grass.json has a Farmingbench recipe and breaks into Soil_Dirt: outside a grass cell (takesAnyDirt, below)
+     * its own item is asked.
+     */
     @Test
     void blockWhoseItemHasASourceCostsItsOwnItemWhateverItDrops() {
         items.blockItems.put(
@@ -116,6 +121,45 @@ class EntryCostTest {
         items.blockItems.put(STATUE, new BlockItems(own(STATUE), false, Optional.empty(), Optional.empty()));
 
         assertEquals(List.of(new ItemAmount(new ItemKey(STATUE.id()), 1)), cost(STATUE));
+    }
+
+    private List<ItemAmount> costOn(BlockKey block, BlockKey world) {
+        BlueprintEntry e = new BlueprintEntry(new BlockPos(0, 0, 0), new BlockState(block, 0), false, Optional.empty());
+        return EntryCost.of(e, new BlockState(world, 0), items, new FakeRecipeCatalog());
+    }
+
+    private void plainDirt() {
+        items.plainDirt = Optional.of(PLAIN_DIRT);
+        items.itemForBlock.put(PLAIN_DIRT, DIRT);
+    }
+
+    /** Structurize GrassPlacementHandler.getRequiredItems: a grass or dirt cell costs dirt, as Hytale grass breaks. */
+    @Test
+    void grassCellCostsDirt() {
+        plainDirt();
+        items.takesAnyDirt.add(GRASS);
+
+        assertEquals(List.of(new ItemAmount(DIRT, 1)), cost(GRASS));
+    }
+
+    /** Structurize BlockGrassPathPlacementHandler.getRequiredItems: a path costs dirt, nothing on dirt already. */
+    @Test
+    void pathCellCostsDirtButNothingOnDirt() {
+        plainDirt();
+        items.dirtPaths.add(PATH);
+
+        assertEquals(List.of(new ItemAmount(DIRT, 1)), costOn(PATH, GRASS));
+        assertEquals(List.of(), costOn(PATH, PLAIN_DIRT));
+    }
+
+    /** MC BuildingStructureHandler.isStackFree: leaves cost nothing (Hytale: the Leaves block group). */
+    @Test
+    void leavesAreFree() {
+        BlockKey leaves = new BlockKey("Plant_Leaves_Oak");
+        items.itemForBlock.put(leaves, new ItemKey(leaves.id()));
+        items.leaves.add(leaves);
+
+        assertEquals(List.of(), cost(leaves));
     }
 
     @Test

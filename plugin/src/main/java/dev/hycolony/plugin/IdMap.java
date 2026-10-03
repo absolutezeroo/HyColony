@@ -1,5 +1,8 @@
 package dev.hycolony.plugin;
 
+import static dev.hycolony.plugin.IdChecks.byId;
+import static dev.hycolony.plugin.IdChecks.check;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.hypixel.hytale.builtin.tagset.config.NPCGroup;
@@ -14,9 +17,9 @@ import com.hypixel.hytale.server.npc.NPCPlugin;
 import dev.hycolony.core.kernel.item.ToolType;
 import dev.hycolony.plugin.farming.FarmingIds;
 import dev.hycolony.plugin.food.FoodIds;
+import dev.hycolony.plugin.item.BlockFamilies;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -39,6 +42,7 @@ public final class IdMap {
             List<String> toggleableUseInteractions,
             List<String> potions,
             FarmingIds farming,
+            @Nullable BlockFamilies construction,
             @Nullable FoodIds food,
             @Nullable List<String> hurtIgnoredCauses,
             @Nullable String highlightEffect,
@@ -112,6 +116,11 @@ public final class IdMap {
         return Set.copyOf(Objects.requireNonNullElse(data.toggleableUseInteractions(), List.of()));
     }
 
+    /** The construction section: MC's dirt tag, the cells any dirt answers, free-shape templates; none if absent. */
+    public BlockFamilies construction() {
+        return Objects.requireNonNullElse(data.construction(), BlockFamilies.NONE);
+    }
+
     /** The farming section: seeds and crops, soils, fertilizer, hoes, field barriers; none in an older file. */
     public FarmingIds farming() {
         return Objects.requireNonNullElse(data.farming(), FarmingIds.NONE);
@@ -183,6 +192,7 @@ public final class IdMap {
         check(errors, "npc role", data.npcRoles(), id -> NPCPlugin.get().hasRoleName(id));
         check(errors, "npc group", npcs().groups(), id -> NPCGroup.getAssetMap().getIndex(id) != Integer.MIN_VALUE);
         check(errors, "sound event", byId(farming().tillSoundEvent().stream().toList()), sound);
+        IdChecks.checkConstruction(errors, construction(), block);
         check(errors, "entity effect", byId(highlightEffect().stream().toList()), effect);
         check(errors, "particle system", byId(sleepParticle().stream().toList()), particle);
         check(errors, "food item", byId(List.copyOf(food().table().keySet())), item);
@@ -194,20 +204,5 @@ public final class IdMap {
                 byId(List.of(placeholderFluid())),
                 id -> Fluid.getAssetMap().getAsset(id) != null);
         return errors;
-    }
-
-    /** Adds "what key -> id" to {@code errors} for each missing (or unknown) id. */
-    private static void check(List<String> errors, String what, Map<String, String> ids, Predicate<String> exists) {
-        ids.forEach((key, id) -> {
-            if (id == null || !exists.test(id)) {
-                errors.add(what + " " + key + " -> " + id);
-            }
-        });
-    }
-
-    private static Map<String, String> byId(List<String> ids) {
-        Map<String, String> out = new LinkedHashMap<>();
-        ids.forEach(id -> out.put(id, id));
-        return out;
     }
 }

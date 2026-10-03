@@ -98,7 +98,10 @@ final class PasteQueue {
         BlockPos pos = (phase == SOLID ? plan.solidPositions() : plan.decoPositions()).get(index);
         BlueprintEntry e = list.get(index++);
         if (plan.satisfied(
-                e, blocks().get(pos).orElse(null), manager.context().ports().catalog())) {
+                e,
+                blocks().get(pos).orElse(null),
+                blocks(),
+                manager.context().ports().catalog())) {
             // ST StructurePlacer: a block already matching is left as is (a chest keeps its items), yet its container
             // or bench joins the hut, as ST's iterator calls triggerSuccess on it (CreativeBuildingStructureHandler).
             registerFound(plan, pos, e);

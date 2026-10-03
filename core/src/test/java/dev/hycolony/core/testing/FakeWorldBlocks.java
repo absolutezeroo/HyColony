@@ -16,6 +16,11 @@ import java.util.function.Consumer;
 
 public final class FakeWorldBlocks implements WorldBlocks {
     public final Map<BlockPos, BlockState> blocks = new LinkedHashMap<>();
+    /**
+     * Fluids sharing their cell with a block of {@link #blocks}; a fluid placed in a cell holding a block lands here
+     * and the block stays, as HytaleWorldBlocks.placeFluid writes the fluid layer only.
+     */
+    public final Map<BlockPos, BlockState> fluids = new LinkedHashMap<>();
     /** Drops returned by breakBlock for a given position, set up by the test. */
     public final Map<BlockPos, List<ItemAmount>> drops = new LinkedHashMap<>();
 
@@ -49,7 +54,7 @@ public final class FakeWorldBlocks implements WorldBlocks {
     @Override
     public Optional<BlockState> get(BlockPos pos) {
         reads++;
-        return isLoaded(pos) ? Optional.ofNullable(blocks.get(pos)) : Optional.empty();
+        return isLoaded(pos) ? Optional.ofNullable(blocks.getOrDefault(pos, fluids.get(pos))) : Optional.empty();
     }
 
     @Override
@@ -58,10 +63,28 @@ public final class FakeWorldBlocks implements WorldBlocks {
             return false;
         }
         beforeChange.accept(pos);
-        blocks.put(pos, state);
+        BlockState there = blocks.get(pos);
+        if (isFluid(state) && there != null && !isFluid(there)) {
+            fluids.put(pos, state);
+        } else {
+            blocks.put(pos, state);
+        }
         benchTiers.remove(pos);
         placed.add(pos);
         return true;
+    }
+
+    private static boolean isFluid(BlockState state) {
+        return state.key().id().startsWith("~fluid:");
+    }
+
+    @Override
+    public Optional<BlockState> fluidAt(BlockPos pos) {
+        if (!isLoaded(pos)) {
+            return Optional.empty();
+        }
+        BlockState there = blocks.get(pos);
+        return there != null && isFluid(there) ? Optional.of(there) : Optional.ofNullable(fluids.get(pos));
     }
 
     @Override

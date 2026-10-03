@@ -12,7 +12,6 @@ import com.hypixel.hytale.server.core.universe.world.SetBlockSettings;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.BlockOperations;
 import com.hypixel.hytale.server.core.universe.world.chunk.section.BlockSection;
-import com.hypixel.hytale.server.core.universe.world.chunk.section.FluidSection;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.item.BlockState;
@@ -94,8 +93,7 @@ public final class HytaleWorldBlocks implements WorldBlocks {
             }
             int id = blocks.get(pos.x(), pos.y(), pos.z());
             if (id == BlockType.EMPTY_ID) {
-                FluidSection fluids = store.getComponent(sec, FluidSection.getComponentType());
-                int fluid = fluids == null ? 0 : fluids.getFluidId(pos.x(), pos.y(), pos.z());
+                int fluid = HytaleSections.fluidId(store, sec, pos);
                 if (fluid != Fluid.EMPTY_ID) {
                     return states.fluid(fluid);
                 }
@@ -103,6 +101,22 @@ public final class HytaleWorldBlocks implements WorldBlocks {
             return states.block(id, blocks.getRotationIndex(pos.x(), pos.y(), pos.z()));
         } catch (RuntimeException e) {
             fail("get", pos, e);
+            return Optional.empty();
+        }
+    }
+
+    /** The cell's {@code FluidSection} entry, which a block may share (placeFluid writes it under a block). */
+    @Override
+    public Optional<BlockState> fluidAt(BlockPos pos) {
+        try {
+            Ref<ChunkStore> sec = section(pos);
+            if (sec == null) {
+                return Optional.empty();
+            }
+            int fluid = HytaleSections.fluidId(world.getChunkStore().getStore(), sec, pos);
+            return fluid == Fluid.EMPTY_ID ? Optional.empty() : states.fluid(fluid);
+        } catch (RuntimeException e) {
+            fail("fluidAt", pos, e);
             return Optional.empty();
         }
     }
@@ -131,7 +145,7 @@ public final class HytaleWorldBlocks implements WorldBlocks {
             Store<ChunkStore> store = world.getChunkStore().getStore();
             String key = state.key().id();
             if (key.startsWith(FLUID_PREFIX)) {
-                return placeFluid(store, sec, pos, key.substring(FLUID_PREFIX.length()));
+                return HytaleSections.placeFluid(store, sec, pos, key.substring(FLUID_PREFIX.length()));
             }
             int id = BlockType.getAssetMap().getIndex(key);
             BlockType type =
@@ -182,17 +196,6 @@ public final class HytaleWorldBlocks implements WorldBlocks {
                 type,
                 rotation,
                 (x, y, z, other, rot, filler) -> !isHut(other));
-    }
-
-    /** Fills {@code pos} with fluid {@code fluidId} at its full level; false for an unknown or empty fluid. */
-    private static boolean placeFluid(Store<ChunkStore> store, Ref<ChunkStore> sec, BlockPos pos, String fluidId) {
-        Fluid fluid = Fluid.getAssetMap().getAsset(fluidId);
-        if (fluid == null || fluid == Fluid.EMPTY) {
-            return false;
-        }
-        store.ensureAndGetComponent(sec, FluidSection.getComponentType())
-                .setFluid(pos.x(), pos.y(), pos.z(), fluid, (byte) fluid.getMaxFluidLevel());
-        return true;
     }
 
     @Override

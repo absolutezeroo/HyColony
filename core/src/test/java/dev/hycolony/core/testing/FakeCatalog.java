@@ -32,6 +32,15 @@ public final class FakeCatalog implements ItemCatalog, ArmorCatalog {
     public final Set<BlockKey> harmful = new HashSet<>();
     public final Set<BlockKey> beds = new HashSet<>();
     public final Set<BlockKey> seats = new HashSet<>();
+    public final Set<BlockKey> dirt = new HashSet<>();
+    public final Set<BlockKey> takesAnyDirt = new HashSet<>();
+    public final Set<BlockKey> leaves = new HashSet<>();
+    /** FLUID blocks that flow; every other FLUID block is a source. */
+    public final Set<BlockKey> flowing = new HashSet<>();
+
+    public final Map<BlockKey, String> shapeFamilies = new HashMap<>();
+    public final Set<BlockKey> dirtPaths = new HashSet<>();
+    public Optional<BlockKey> plainDirt = Optional.empty();
     /** SOLID blocks that are no good floor (leaves); every other SOLID block is one. */
     public final Set<BlockKey> notGoodFloor = new HashSet<>();
 
@@ -104,6 +113,42 @@ public final class FakeCatalog implements ItemCatalog, ArmorCatalog {
     @Override
     public boolean isSeat(BlockKey block) {
         return seats.contains(block);
+    }
+
+    @Override
+    public boolean isDirt(BlockKey block) {
+        return dirt.contains(block);
+    }
+
+    @Override
+    public boolean takesAnyDirt(BlockKey block) {
+        return takesAnyDirt.contains(block);
+    }
+
+    @Override
+    public boolean isLeaves(BlockKey block) {
+        return leaves.contains(block);
+    }
+
+    /** A FLUID block not set {@link #flowing}. */
+    @Override
+    public boolean isFluidSource(BlockKey block) {
+        return kind(block) == BlockKind.FLUID && !flowing.contains(block);
+    }
+
+    @Override
+    public Optional<String> shapeFamily(BlockKey block) {
+        return Optional.ofNullable(shapeFamilies.get(block));
+    }
+
+    @Override
+    public boolean isDirtPath(BlockKey block) {
+        return dirtPaths.contains(block);
+    }
+
+    @Override
+    public Optional<BlockKey> plainDirt() {
+        return plainDirt;
     }
 
     /** The foods by id, for a set order. */

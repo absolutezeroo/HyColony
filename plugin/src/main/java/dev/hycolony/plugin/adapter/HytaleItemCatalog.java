@@ -17,8 +17,9 @@ import dev.hycolony.core.kernel.port.ItemCatalog;
 import dev.hycolony.plugin.block.HytaleBlockStates;
 import dev.hycolony.plugin.food.FoodIds;
 import dev.hycolony.plugin.food.HytaleFoods;
+import dev.hycolony.plugin.item.BlockFamilies;
 import dev.hycolony.plugin.item.HytaleBlockItems;
-import dev.hycolony.plugin.item.HytaleGoodFloor;
+import dev.hycolony.plugin.item.HytaleBlockTraits;
 import dev.hycolony.plugin.item.HytaleItemInfo;
 import dev.hycolony.plugin.item.HytaleStacks;
 import java.util.HashMap;
@@ -72,7 +73,7 @@ public final class HytaleItemCatalog implements ItemCatalog {
     private final Map<BlockKey, BlockInfo> blocks = new HashMap<>();
     private final Map<ItemKey, HytaleItemInfo> items = new HashMap<>();
     private @Nullable List<ItemKey> tools;
-    private final HytaleGoodFloor goodFloor = new HytaleGoodFloor();
+    private final HytaleBlockTraits traits;
     private final Set<String> hutBlockIds;
     /** The id-map's hoes and their tool level: Hytale hoes have no tool spec to map (they till by interaction). */
     private final Map<String, Integer> hoeLevels;
@@ -84,12 +85,14 @@ public final class HytaleItemCatalog implements ItemCatalog {
 
     /**
      * {@code hutBlockIds}: the id-map's hut block ids; {@code hoeLevels}: its hoes and their tool level; {@code foods}:
-     * its food table and cooking bench.
+     * its food table and cooking bench; {@code families}: its construction section, for the block facts.
      */
-    public HytaleItemCatalog(Set<String> hutBlockIds, Map<String, Integer> hoeLevels, FoodIds foods) {
+    public HytaleItemCatalog(
+            Set<String> hutBlockIds, Map<String, Integer> hoeLevels, FoodIds foods, BlockFamilies families) {
         this.hutBlockIds = Set.copyOf(hutBlockIds);
         this.hoeLevels = Map.copyOf(hoeLevels);
         this.foods = new HytaleFoods(foods);
+        this.traits = new HytaleBlockTraits(families);
     }
 
     /** The id-map's food table (Hytale has no nutrition, see {@link HytaleFoods}). */
@@ -152,10 +155,45 @@ public final class HytaleItemCatalog implements ItemCatalog {
         return block(block).ore();
     }
 
-    /** Read by {@link HytaleGoodFloor}. */
+    /** Read by {@link HytaleBlockTraits}, as the block facts below (from the assets and the id-map). */
     @Override
     public boolean isGoodFloor(BlockKey block) {
-        return goodFloor.test(block);
+        return traits.isGoodFloor(block);
+    }
+
+    @Override
+    public boolean isLeaves(BlockKey block) {
+        return traits.isLeaves(block);
+    }
+
+    @Override
+    public boolean isFluidSource(BlockKey block) {
+        return traits.isFluidSource(block);
+    }
+
+    @Override
+    public boolean isDirt(BlockKey block) {
+        return traits.isDirt(block);
+    }
+
+    @Override
+    public boolean takesAnyDirt(BlockKey block) {
+        return traits.takesAnyDirt(block);
+    }
+
+    @Override
+    public boolean isDirtPath(BlockKey block) {
+        return traits.isDirtPath(block);
+    }
+
+    @Override
+    public Optional<BlockKey> plainDirt() {
+        return traits.plainDirt();
+    }
+
+    @Override
+    public Optional<String> shapeFamily(BlockKey block) {
+        return traits.shapeFamily(block);
     }
 
     /**

@@ -75,7 +75,7 @@ final class PlannedBlocks {
      */
     private void registerIfAsPlanned(BlockPos pos, BlueprintEntry e) {
         @Nullable BlockState world = ctx.blocks().get(pos).orElse(null);
-        if (!ctx.site().plan().satisfied(e, world, ctx.catalog())) {
+        if (!ctx.site().plan().satisfied(e, world, ctx.blocks(), ctx.catalog())) {
             return;
         }
         RegisteredBlocks registered = ctx.site().target().registeredBlocks();

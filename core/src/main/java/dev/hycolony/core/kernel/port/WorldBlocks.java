@@ -17,6 +17,12 @@ public interface WorldBlocks {
     /** Empty if the chunk is not loaded. */
     Optional<BlockState> get(BlockPos pos);
 
+    /**
+     * The fluid of the cell ({@code ~fluid:<FluidId>}), even under a block that {@link #get} returns instead (a block
+     * standing in water, MC's waterlogged block); empty for no fluid or an unloaded chunk.
+     */
+    Optional<BlockState> fluidAt(BlockPos pos);
+
     boolean place(BlockPos pos, BlockState state, boolean withContainer);
 
     /** Drops, including container contents with their damage. Empty list if the block is air or unloaded. */
