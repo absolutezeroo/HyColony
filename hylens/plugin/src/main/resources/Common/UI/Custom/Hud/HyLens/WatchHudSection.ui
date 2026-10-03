@@ -1,0 +1,8 @@
+// A section header of the watch panel, in MC's red heading ink (Mc/Book.ui's @Heading), set low to leave a gap above.
+Group {
+  Anchor: (Height: 20);
+
+  Label #Label {
+    Style: (FontSize: 13, TextColor: #aa0000, VerticalAlignment: End, RenderBold: true, RenderUppercase: true);
+  }
+}

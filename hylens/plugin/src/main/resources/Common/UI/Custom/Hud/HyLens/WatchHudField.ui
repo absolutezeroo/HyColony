@@ -1,0 +1,15 @@
+// A field of the watch panel: its label in faded ink in a column, its value in black ink (Mc/Book.ui's palette).
+Group {
+  LayoutMode: Left;
+  Anchor: (Height: 18);
+
+  Label #Label {
+    Anchor: (Left: 8, Width: 132);
+    Style: (FontSize: 13, TextColor: #555555, VerticalAlignment: Center);
+  }
+
+  Label #Value {
+    FlexWeight: 1;
+    Style: (FontSize: 14, TextColor: #000000, VerticalAlignment: Center);
+  }
+}

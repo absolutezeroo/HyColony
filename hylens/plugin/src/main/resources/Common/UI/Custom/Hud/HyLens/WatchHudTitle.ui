@@ -1,0 +1,8 @@
+// The watch panel's title: the citizen's name and job, in bold black ink (Mc/Book.ui's palette).
+Group {
+  Anchor: (Height: 22);
+
+  Label #Label {
+    Style: (FontSize: 16, TextColor: #000000, VerticalAlignment: Center, RenderBold: true);
+  }
+}

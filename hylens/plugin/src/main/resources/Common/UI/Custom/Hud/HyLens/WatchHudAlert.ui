@@ -1,0 +1,8 @@
+// An alert of the watch panel, across the whole line in MC's red ink (Mc/Book.ui's @Alert).
+Group {
+  Anchor: (Height: 18);
+
+  Label #Label {
+    Style: (FontSize: 14, TextColor: #aa0000, VerticalAlignment: Center);
+  }
+}
