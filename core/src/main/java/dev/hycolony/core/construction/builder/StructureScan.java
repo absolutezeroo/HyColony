@@ -65,7 +65,7 @@ final class StructureScan {
                         : pos.y() >= site.loadedOrder().buildingPos().y()
                                 && world != null
                                 && world.equals(site.previousPlan().stateAt(pos))
-                                && !world.equals(site.plan().stateAt(pos))
+                                && !site.plan().matchesAt(pos, world, blocks, catalog)
                                 && mineable(world)
                                 && notAHut(pos);
             default -> {
@@ -74,7 +74,7 @@ final class StructureScan {
                 boolean open = site.finalCheckDone()
                         ? world == null || catalog.kind(world.key()) == BlockKind.AIR
                         : world == null || catalog.kind(world.key()) != BlockKind.UNBREAKABLE;
-                yield !site.plan().satisfied(e, world, catalog)
+                yield !site.plan().satisfied(e, world, blocks, catalog)
                         && open
                         && notAHut(pos); // MC IBuilderUndestroyable: a colony hut is never built over
             }
@@ -89,7 +89,7 @@ final class StructureScan {
         if (site.plan().isFillCell(pos)) {
             return mineable(world) && !catalog.isGoodFloor(world.key());
         }
-        return clearable(world) && !world.equals(site.plan().stateAt(pos));
+        return clearable(world) && !site.plan().matchesAt(pos, world, blocks, catalog);
     }
 
     /** Air, fluids and unbreakable blocks are never mined. */

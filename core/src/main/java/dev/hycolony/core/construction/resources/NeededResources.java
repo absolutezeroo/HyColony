@@ -49,7 +49,8 @@ public final class NeededResources {
                 new ArrayList<>(plan.solidList().size() + plan.decoList().size());
         for (List<BlueprintEntry> entries : List.of(plan.solidList(), plan.decoList())) {
             for (BlueprintEntry e : entries) {
-                List<ItemAmount> cost = EntryCost.of(e, catalog, recipes);
+                List<ItemAmount> cost =
+                        EntryCost.of(e, world.get(plan.worldPos(e)).orElse(null), catalog, recipes);
                 if (!cost.isEmpty() && !plan.isDone(e, world, catalog) && !plan.onlyTurns(e, world)) {
                     cost.forEach(a -> seq.addAll(Collections.nCopies(a.count(), a.item())));
                 }

@@ -87,6 +87,22 @@ def hitbox(ctx, ident, model):
     return ident
 
 
+def own_drop(gathering):
+    """gathering without the items it names: a shape breaks into its own variant item, as a Domum Ornamentum block
+    drops itself (DO BlockUtils.getMaterializedItemStack), since Hytale's getDrops falls back on the block's item
+    when a drop names neither ItemId nor DropList. Copying the material's drops made every variant break into
+    Wood_Stripped_Deco (docs/research/domaine1-suite.md section 2)."""
+    out = {}
+    for kind, rule in gathering.items():
+        if isinstance(rule, dict):
+            out[kind] = {k: v for k, v in rule.items() if k not in ("ItemId", "DropList")}
+        elif isinstance(rule, list):
+            out[kind] = [{k: v for k, v in r.items() if k not in ("ItemId", "DropList")} for r in rule]
+        else:
+            out[kind] = rule
+    return out
+
+
 def template(ctx, family, ident, parts, block_type, icon_properties=None, icon_model=None):
     """Registers the template item ident: block_type completed with the default material's sounds, particles and
     gathering, the DO tab category, a name in both languages, a manifest entry, and its icon map and icon drawn
@@ -97,7 +113,7 @@ def template(ctx, family, ident, parts, block_type, icon_properties=None, icon_m
     vanilla = material.get("BlockType", {})
     for key in ("Gathering", "BlockParticleSetId", "ParticleColor", "BlockSoundSetId", "PhysicalMaterialId"):
         if key in vanilla:
-            block_type.setdefault(key, vanilla[key])
+            block_type.setdefault(key, own_drop(vanilla[key]) if key == "Gathering" else vanilla[key])
     key = names.lang_key(ident)
     properties = icon_properties or DEFAULT_ICON
     item = {

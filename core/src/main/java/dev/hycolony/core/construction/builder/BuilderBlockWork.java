@@ -59,7 +59,9 @@ final class BuilderBlockWork {
         }
         BlueprintEntry e = ctx.site().entry(stage, i);
         boolean turn = ctx.site().plan().onlyTurns(e, ctx.blocks());
-        List<ItemAmount> cost = turn ? List.of() : EntryCost.of(e, ctx.catalog(), ctx.recipes()); // empty: free
+        List<ItemAmount> cost = turn
+                ? List.of()
+                : EntryCost.of(e, ctx.blocks().get(pos).orElse(null), ctx.catalog(), ctx.recipes()); // empty: free
         Optional<ItemAmount> lacking = ctx.site().loadedOrder().free() ? Optional.empty() : lacking(cost);
         if (lacking.isPresent()) {
             return gathering.missing(lacking.get(), i);

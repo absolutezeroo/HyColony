@@ -135,3 +135,15 @@ Choix de l'utilisateur : « faut faire comme MC, l'objet qui pose le bloc » ; p
   - les poses du bâtisseur marquées comme celles d'un joueur (`BlockPhysics.markDeco`).
 
   Recherche : `docs/research/barrel-recipe.md`.
+
+### Domaine 1, suite (2026-10-03, recherche `docs/research/domaine1-suite.md`)
+
+- **Correspondances portées** (`StructurePlan.satisfied`) :
+  - une case d'herbe ou de terre est faite par tout bloc du tag `dirt` de MC (Structurize `GrassPlacementHandler`). Ses équivalents Hytale sont listés dans la section `construction` de l'id-map : terres, herbes, aiguilles et litière (podzol), mousses, boue. Les cases concernées sont toutes les variantes Hytale d'herbe et de terre (`dirtCells`), la terre sèche (`coarse_dirt`) exceptée ;
+  - une case de mur, de clôture, de barreaux ou de portillon est faite par toute forme de sa famille (MC `GeneralBlockPlacementHandler` et `DoBlockPlacementHandler`). La famille est celle du gabarit de connexion, si l'id-map le range parmi les formes libres (`WallConnectedBlockTemplate` et les clôtures et vitres de HyDomum) ;
+  - une case de fluide est faite par une source, un bloc solide, ou un bloc debout dans une source (Structurize `FluidSubstitutionPlacementHandler` : `isSource`, bloc noyé, `isAnySolid`). Le bloc noyé de MC devient, dans Hytale, un bloc qui partage sa case avec un fluide (`FluidSection`, port `WorldBlocks.fluidAt`). Une plante sèche est remplacée par l'eau, comme MC remplace un bloc qu'il ne peut pas noyer. `Deviation from MC (Hytale world)` : MC garde aussi un bloc sec qui pourrait être noyé (`WATERLOGGED`) ; les blocs Hytale n'ont pas cette propriété, donc seul un bloc déjà dans une source compte. L'ancien écart « tout fluide compte » disparaît.
+  - CLEAR et les restes d'une amélioration jugent une case de la même façon (`StructurePlan.matchesAt`), comme l'itérateur de Structurize saute hors retrait toute case déjà conforme (`AbstractBlueprintIterator`).
+- **Coût en terre** (`EntryCost`, Structurize `GrassPlacementHandler` et `BlockGrassPathPlacementHandler`) : une case d'herbe, de terre ou de chemin demande de la terre (`plainDirt` de l'id-map, le `Blocks.DIRT` de MC ; l'herbe de Hytale se casse aussi en terre), et un chemin posé sur de la terre ne coûte rien.
+- **Feuilles gratuites** (`EntryCost`, MC `BuildingStructureHandler.isStackFree`) : un bloc du groupe Hytale `Leaves` ne coûte rien.
+- **Bon sol**, `Deviation from MC (Hytale world)` : la forme de collision pleine de Structurize devient le test de bloc plein de Hytale (`FluidTicker.isFullySolid`) avec la hitbox pleine (`Full`), feuilles exclues ; la boue (7/8 de haut, comme celle de MC) n'en est pas un.
+- **HyDomum** : un bloc de forme se rend lui-même à la casse, comme un bloc DO. Le générateur recopiait la casse du matériau par défaut (`Wood_Stripped_Deco`) ; il ne garde plus que sa façon de récolter (`tools/domum/blocks/common.py`, contrôle `every_template_breaks_into_itself`).

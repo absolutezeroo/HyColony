@@ -196,6 +196,56 @@ class BuilderCleanupTest {
         assertEquals(new BlockState(STONE, 0), world(1, 0, 0));
     }
 
+    private static final BlockKey GRASS = new BlockKey("grass");
+    private static final BlockKey MUD = new BlockKey("mud");
+    private static final BlockKey FENCE_END = new BlockKey("fence_end");
+    private static final BlockKey FENCE_POST = new BlockKey("fence_post");
+
+    private void dirtAndFences() {
+        for (BlockKey key : List.of(GRASS, MUD, FENCE_END, FENCE_POST)) {
+            t.catalog.kinds.put(key, BlockKind.SOLID);
+        }
+        t.catalog.dirt.addAll(List.of(GRASS, MUD, DIRT));
+        t.catalog.takesAnyDirt.add(GRASS);
+        t.catalog.shapeFamilies.put(FENCE_END, "fence");
+        t.catalog.shapeFamilies.put(FENCE_POST, "fence");
+    }
+
+    /**
+     * Structurize's iterator skips, outside a removal, every cell whose world already matches the plan
+     * (AbstractBlueprintIterator, doesWorldStateMatchBlueprintState): CLEAR keeps a dirt-tag block on a grass cell
+     * and a fence of another shape.
+     */
+    @Test
+    void clearKeepsADirtTagBlockOnAGrassCellAndAFenceOfAnotherShape() {
+        dirtAndFences();
+        hut(ConstructionBuildingTypes.RESIDENCE.id(), RES, 1);
+        plans.put(1, bp(new BlockPos(2, 0, 0), entry(1, 0, 0, GRASS), entry(2, 0, 0, FENCE_END)));
+        put(1, 0, 0, MUD);
+        put(2, 0, 0, FENCE_POST);
+
+        order(WorkOrderType.REPAIR);
+        tickUntil(this::finished);
+
+        assertEquals(new BlockState(MUD, 0), world(1, 0, 0));
+        assertEquals(new BlockState(FENCE_POST, 0), world(2, 0, 0));
+    }
+
+    /** An upgrade's leftovers are judged the same way: the old level's dirt answers the new level's grass cell. */
+    @Test
+    void upgradeKeepsDirtOnAGrassCell() {
+        dirtAndFences();
+        hut(ConstructionBuildingTypes.RESIDENCE.id(), RES, 1);
+        plans.put(1, bp(new BlockPos(1, 0, 0), entry(1, 0, 0, DIRT)));
+        plans.put(2, bp(new BlockPos(1, 0, 0), entry(1, 0, 0, GRASS)));
+        put(1, 0, 0, DIRT);
+
+        order(WorkOrderType.UPGRADE);
+        tickUntil(this::finished);
+
+        assertEquals(new BlockState(DIRT, 0), world(1, 0, 0));
+    }
+
     /** Level 1 built: stone at x 1..3, and a stone roof at (3, 1, 0) that level 2 no longer has. */
     private void builtLevelOneThenUpgradeDropsTheRoof() {
         hut(ConstructionBuildingTypes.RESIDENCE.id(), RES, 1);

@@ -73,7 +73,7 @@ public final class WorldRuntime {
         this.clock = new HytaleGameClock(world);
         Set<String> hutBlockIds = HutBlockSystems.byBlockId(setup).keySet(); // the builder never breaks these
         HytaleItemCatalog catalog =
-                new HytaleItemCatalog(hutBlockIds, ids.farming().hoeLevels(), ids.food());
+                new HytaleItemCatalog(hutBlockIds, ids.farming().hoeLevels(), ids.food(), ids.construction());
         this.bodies = new HytaleCitizenBodies(
                 world,
                 ids.npcs().role("npc.citizen"),

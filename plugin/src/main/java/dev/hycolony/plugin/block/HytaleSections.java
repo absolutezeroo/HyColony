@@ -22,6 +22,26 @@ public final class HytaleSections {
         return sec != null && sec.isValid() ? sec : null;
     }
 
+    /** The fluid id at {@code pos}, which a block may share; {@link Fluid#EMPTY_ID} for none. */
+    public static int fluidId(Store<ChunkStore> store, Ref<ChunkStore> sec, BlockPos pos) {
+        FluidSection fluids = store.getComponent(sec, FluidSection.getComponentType());
+        return fluids == null ? Fluid.EMPTY_ID : fluids.getFluidId(pos.x(), pos.y(), pos.z());
+    }
+
+    /**
+     * Fills {@code pos} with fluid {@code fluidId} at its full level, under the block there if any; false for an
+     * unknown or empty fluid.
+     */
+    public static boolean placeFluid(Store<ChunkStore> store, Ref<ChunkStore> sec, BlockPos pos, String fluidId) {
+        Fluid fluid = Fluid.getAssetMap().getAsset(fluidId);
+        if (fluid == null || fluid.equals(Fluid.EMPTY)) {
+            return false;
+        }
+        store.ensureAndGetComponent(sec, FluidSection.getComponentType())
+                .setFluid(pos.x(), pos.y(), pos.z(), fluid, (byte) fluid.getMaxFluidLevel());
+        return true;
+    }
+
     /** Removes the fluid at {@code pos}, if any. */
     public static void clearFluid(Store<ChunkStore> store, Ref<ChunkStore> sec, BlockPos pos) {
         FluidSection fluids = store.getComponent(sec, FluidSection.getComponentType());

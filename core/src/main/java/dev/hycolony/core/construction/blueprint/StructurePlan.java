@@ -18,8 +18,8 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Precomputed, immutable work lists for one work order's plan. {@link #build} runs once per order;
- * the getters just hand back the already-sorted lists. A blueprint with markers (MineColonies) also has fill and
- * fluid cells, which the scan judges by the world rather than by equality (MC Solid/FluidSubstitutionPlacementHandler).
+ * the getters just hand back the already-sorted lists. Some cells are judged by the world rather than by equality
+ * ({@link #satisfied}): grass and dirt, walls and fences, and a MineColonies blueprint's fill and fluid cells.
  */
 public final class StructurePlan {
     private static final Comparator<BlueprintEntry> BOTTOM_UP = Comparator.comparingInt(
@@ -230,7 +230,7 @@ public final class StructurePlan {
 
     /** True when the world already has what this entry asks for at its position (see {@link #satisfied}). */
     public boolean isDone(BlueprintEntry e, WorldBlocks world, ItemCatalog catalog) {
-        return satisfied(e, world.get(worldPos(e)).orElse(null), catalog);
+        return satisfied(e, world.get(worldPos(e)).orElse(null), world, catalog);
     }
 
     /**
@@ -247,27 +247,59 @@ public final class StructurePlan {
     }
 
     /**
-     * Whether {@code world} (null: nothing) already answers the entry: its exact state (key and rotation); for a fill
-     * cell any good floor (MC SolidSubstitutionPlacementHandler); for a fluid cell any solid block or any fluid (MC
-     * FluidSubstitutionPlacementHandler: isAnySolid or a fluid source).
+     * Whether {@code world} (null: nothing), the block {@code blocks} reads at the entry's position, already answers
+     * it (Structurize and MC placement handlers' doesWorldStateMatchBlueprintState): its exact state (key and
+     * rotation); for a grass or dirt cell any block of MC's dirt tag (ST GrassPlacementHandler); for a wall, fence,
+     * bars or gate cell any shape of its family (MC GeneralBlockPlacementHandler, DoBlockPlacementHandler); for a fill
+     * cell any good floor (ST SolidSubstitutionPlacementHandler); for a fluid cell a source, a solid block, or a block
+     * standing in a source (ST FluidSubstitutionPlacementHandler: isSource, waterlogged, isAnySolid).
      *
-     * <p>Deviation from MC: any fluid counts, as the core cannot tell a source from a flowing fluid.
+     * <p>Deviation from MC (Hytale world): MC also takes a dry block that can be waterlogged (hasProperty WATERLOGGED)
+     * → Hytale block types have no such property (BlockType), so only a block already standing in a source counts.
      */
-    public boolean satisfied(BlueprintEntry e, @Nullable BlockState world, ItemCatalog catalog) {
+    public boolean satisfied(BlueprintEntry e, @Nullable BlockState world, WorldBlocks blocks, ItemCatalog catalog) {
         if (world == null) {
             return false;
         }
-        if (world.equals(e.state())) {
+        // cells.marked() first: no allocation for Hytale prefabs, scanned every step
+        return sameBlock(e.state(), world, catalog)
+                || (cells.marked() && cellAnswered(worldPos(e), world, blocks, catalog));
+    }
+
+    /**
+     * {@link #satisfied} for the cell at {@code pos}; false where the plan wants nothing. Structurize's iterator skips
+     * such cells outside a removal (AbstractBlueprintIterator), so CLEAR and an upgrade's leftovers keep them.
+     */
+    public boolean matchesAt(BlockPos pos, @Nullable BlockState world, WorldBlocks blocks, ItemCatalog catalog) {
+        BlockState planned = stateAt(pos);
+        if (planned == null || world == null) {
+            return false;
+        }
+        return sameBlock(planned, world, catalog) || (cells.marked() && cellAnswered(pos, world, blocks, catalog));
+    }
+
+    /** The planned state itself, any dirt for a grass or dirt cell, or any shape of a wall or fence's family. */
+    private static boolean sameBlock(BlockState planned, BlockState world, ItemCatalog catalog) {
+        if (world.equals(planned)) {
             return true;
         }
-        if (!cells.marked()) {
-            return false; // no allocation for Hytale prefabs, scanned every step
+        if (catalog.takesAnyDirt(planned.key()) && catalog.isDirt(world.key())) {
+            return true;
         }
-        BlockPos pos = worldPos(e);
+        Optional<String> family = catalog.shapeFamily(planned.key());
+        return family.isPresent() && family.equals(catalog.shapeFamily(world.key()));
+    }
+
+    /** A MineColonies plan's fill cell with any good floor, or fluid cell with a source, solid or block in a source. */
+    private boolean cellAnswered(BlockPos pos, BlockState world, WorldBlocks blocks, ItemCatalog catalog) {
         if (cells.fill().contains(pos)) {
             return catalog.isGoodFloor(world.key());
         }
-        BlockKind kind = catalog.kind(world.key());
-        return cells.fluid().contains(pos) && (kind == BlockKind.SOLID || kind == BlockKind.FLUID);
+        return cells.fluid().contains(pos)
+                && (catalog.kind(world.key()) == BlockKind.SOLID
+                        || catalog.isFluidSource(world.key())
+                        || blocks.fluidAt(pos)
+                                .filter(f -> catalog.isFluidSource(f.key()))
+                                .isPresent());
     }
 }
