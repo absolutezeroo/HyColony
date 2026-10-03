@@ -18,6 +18,7 @@ class CitizenWanderTest extends WanderFixture {
     private static final BlockKey DIRT = new BlockKey("dirt");
     private static final BlockKey TRUNK = new BlockKey("trunk");
     private static final BlockKey LEAVES = new BlockKey("leaves");
+    private static final BlockKey SOLID_LEAVES = new BlockKey("solid_leaves");
     private static final BlockKey WATER = new BlockKey("water");
     private static final BlockKey HUT = new BlockKey("hut");
 
@@ -171,7 +172,7 @@ class CitizenWanderTest extends WanderFixture {
         assertEquals(List.of(new Vec3(64.5, 64, 10.5)), t.bodies.moves);
     }
 
-    /** A tree is no wander spot: our citizens climb 3 blocks, so its leaves are no floor (Hytale world). */
+    /** A tree is no wander spot: our citizens climb 3 blocks, so its leaves are no room for a body (Hytale world). */
     @Test
     void aTreeIsNoWanderSpotItWandersOnTheGroundBeyond() {
         rolls.ints.add(5); // no leisure: a wander around where it stands
@@ -185,6 +186,20 @@ class CitizenWanderTest extends WanderFixture {
         wander.wander();
 
         assertEquals(List.of(new Vec3(-0.5, 62, 10.5)), t.bodies.moves, "its ground, not the trunk's top");
+    }
+
+    /** A pack's solid leaves are no floor either: the treetop is no wander spot. */
+    @Test
+    void solidLeavesAreNoFloor() {
+        rolls.ints.add(5); // no leisure: a wander around where it stands
+        east(63, DIRT);
+        east(64, TRUNK);
+        east(65, TRUNK);
+        east(66, SOLID_LEAVES);
+
+        wander.wander();
+
+        assertEquals(List.of(), t.bodies.moves, "not on top of the treetop, at 67");
     }
 
     /** MC PathJobRandomPos never ends a wander over water; a column with water around its height is no spot. */
@@ -259,7 +274,9 @@ class CitizenWanderTest extends WanderFixture {
         t.catalog.kinds.put(LEAVES, BlockKind.NON_SOLID); // as Hytale's: no Material, BlockType's default Empty
         t.catalog.kinds.put(WATER, BlockKind.FLUID);
         t.catalog.kinds.put(HUT, BlockKind.UNBREAKABLE);
+        t.catalog.kinds.put(SOLID_LEAVES, BlockKind.SOLID); // a pack's, with "Material": "Solid"
         t.catalog.leaves.add(LEAVES);
+        t.catalog.leaves.add(SOLID_LEAVES);
         t.blocks.blocks.put(at, new BlockState(key, 0));
     }
 

@@ -68,13 +68,14 @@ final class WanderGround {
     }
 
     /**
-     * A solid floor and room for feet and head. Leaves are never one: Hytale's have no Material (Plant_Leaves_*.json),
-     * so BlockType's default Empty makes them NON_SOLID, walked through.
+     * A solid floor that is no leaves, and room for feet and head. Vanilla leaves are NON_SOLID (no Material in
+     * Plant_Leaves_*.json, BlockType's default Empty), but a pack may make its own solid.
      */
     private boolean standable(BlockPos feet) {
         BlockState floor = blocks.get(feet.offset(0, -1, 0)).orElse(null);
         return floor != null
                 && catalog.kind(floor.key()) == BlockKind.SOLID
+                && !catalog.isLeaves(floor.key())
                 && !blocked(feet)
                 && !blocked(feet.offset(0, 1, 0));
     }
