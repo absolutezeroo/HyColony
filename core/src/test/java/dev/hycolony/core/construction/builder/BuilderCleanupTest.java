@@ -47,6 +47,8 @@ class BuilderCleanupTest {
     private static final BlockPos RES = new BlockPos(30, 64, 0);
     private static final BlockKey STONE = new BlockKey("stone");
     private static final BlockKey DIRT = new BlockKey("dirt");
+    private static final BlockKey TORCH = new BlockKey("torch");
+    private static final ItemKey TORCH_I = new ItemKey("torch_item");
     private static final ItemKey STONE_I = new ItemKey("stone_item");
     private static final ItemKey DIRT_I = new ItemKey("dirt_item");
 
@@ -264,6 +266,31 @@ class BuilderCleanupTest {
         put(3, 1, 0, STONE);
     }
 
+    /**
+     * MC AbstractEntityAIStructure's stages: BUILD_SOLID, then CLEAR_NON_SOLIDS (our CLEAR_LEFTOVERS), then DECORATE:
+     * the old level's leftovers go before the decorations are placed.
+     */
+    @Test
+    void upgradeRemovesLeftoversBeforeItDecorates() {
+        builtLevelOneThenUpgradeDropsTheRoof();
+        plans.put(
+                2,
+                bp(
+                        new BlockPos(3, 0, 1),
+                        entry(1, 0, 0, STONE),
+                        entry(2, 0, 0, STONE),
+                        entry(3, 0, 0, STONE),
+                        entry(1, 0, 1, TORCH)));
+        t.catalog.kinds.put(TORCH, BlockKind.NON_SOLID);
+        t.catalog.itemForBlock.put(TORCH, TORCH_I);
+        citizen.inventory().insert(new ItemAmount(TORCH_I, 1), t.catalog::maxStack);
+
+        order(WorkOrderType.UPGRADE);
+        tickUntil(() -> world(1, 0, 1) != null);
+
+        assertNull(world(3, 1, 0), "the old roof went before the torch was placed");
+    }
+
     @Test
     void upgradeRemovesOldLevelBlocksTheNewPlanDoesNotWant() {
         builtLevelOneThenUpgradeDropsTheRoof();
@@ -355,5 +382,17 @@ class BuilderCleanupTest {
 
         assertNull(world(3, 0, 0));
         assertEquals(new BlockState(STONE, 0), world(2, 0, 0));
+    }
+
+    /** A save from when CLEAR_LEFTOVERS came after DECORATE: an upgrade saved mid-DECORATE still clears them. */
+    @Test
+    void anUpgradeSavedMidDecorateBeforeTheNewOrderStillClearsItsLeftovers() {
+        builtLevelOneThenUpgradeDropsTheRoof();
+        WorkOrder o = order(WorkOrderType.UPGRADE);
+        o.progress(Stage.DECORATE, 0);
+
+        tickUntil(this::finished);
+
+        assertNull(world(3, 1, 0));
     }
 }

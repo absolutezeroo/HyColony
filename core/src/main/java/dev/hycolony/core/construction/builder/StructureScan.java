@@ -35,12 +35,13 @@ final class StructureScan {
         return i;
     }
 
+    /** MC AbstractEntityAIStructure's stage order: CLEAR, BUILD_SOLID, CLEAR_NON_SOLIDS (CLEAR_LEFTOVERS), DECORATE. */
     static Stage nextStage(Stage stage) {
         return switch (stage) {
             case CLEAR -> Stage.SOLID;
-            case SOLID -> Stage.DECORATE;
-            case DECORATE -> Stage.CLEAR_LEFTOVERS;
-            case CLEAR_LEFTOVERS, REMOVE, DONE -> Stage.DONE;
+            case SOLID -> Stage.CLEAR_LEFTOVERS;
+            case CLEAR_LEFTOVERS -> Stage.DECORATE;
+            case DECORATE, REMOVE, DONE -> Stage.DONE;
         };
     }
 

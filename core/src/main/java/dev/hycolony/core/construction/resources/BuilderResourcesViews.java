@@ -35,7 +35,7 @@ final class BuilderResourcesViews {
 
     /** Stages a BUILD or REPAIR goes through (BuilderAI, StructureScan.nextStage). */
     private static final List<Stage> BUILD_STAGES =
-            List.of(Stage.CLEAR, Stage.SOLID, Stage.DECORATE, Stage.CLEAR_LEFTOVERS);
+            List.of(Stage.CLEAR, Stage.SOLID, Stage.CLEAR_LEFTOVERS, Stage.DECORATE);
     /** An UPGRADE starts at SOLID (WorkOrder.initialStage). */
     private static final List<Stage> UPGRADE_STAGES = BUILD_STAGES.subList(1, BUILD_STAGES.size());
 

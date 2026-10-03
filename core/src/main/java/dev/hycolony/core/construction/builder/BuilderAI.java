@@ -262,11 +262,11 @@ public final class BuilderAI implements JobAI {
     }
 
     private BuilderState stageDone(Stage stage) {
-        Stage next = site.finalCheckDone() && stage == Stage.DECORATE ? Stage.DONE : StructureScan.nextStage(stage);
-        if (next == Stage.DONE && stage == Stage.CLEAR_LEFTOVERS && !site.finalCheckDone()) {
-            // Deviation from MC (its iterator only goes forward): once per loaded order, SOLID and DECORATE are walked
-            // again, so a block broken behind the builder is placed again before completion. It runs after
-            // CLEAR_LEFTOVERS, whose removals the new plan does not want, so it only refills the new plan's cells.
+        Stage next = StructureScan.nextStage(stage);
+        if (next == Stage.DONE && stage == Stage.DECORATE && !site.finalCheckDone()) {
+            // Deviation from MC (its iterator only goes forward): once per loaded order, SOLID, CLEAR_LEFTOVERS and
+            // DECORATE are walked again, so a block broken behind the builder is placed again before completion; it
+            // also clears the leftovers of an order saved mid-DECORATE when CLEAR_LEFTOVERS still came after it.
             site.startFinalCheck();
             next = Stage.SOLID;
         }
