@@ -7,6 +7,7 @@ import dev.hycolony.core.job.work.WorkerMachine;
 import dev.hycolony.core.kernel.ai.AIBlockingEventType;
 import dev.hycolony.core.kernel.ai.IStateSupplier;
 import dev.hycolony.core.kernel.port.Msg;
+import dev.hycolony.core.request.model.RequestState;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BooleanSupplier;
@@ -32,6 +33,8 @@ public final class BuilderAI implements JobAI {
     private final WorkerMachine<BuilderState> machine;
     /** Whether its last building step found the next cell of its plan unloaded, and waits for it. */
     private boolean waitingForChunk;
+    /** Whether this AI loaded a structure yet (MC AbstractEntityAIStructureWithWorkOrder recalculated). */
+    private boolean recalculated;
 
     BuilderAI(BuilderContext ctx) {
         this.ctx = ctx;
@@ -118,13 +121,26 @@ public final class BuilderAI implements JobAI {
         return claimedOrder().isEmpty();
     }
 
-    /** MC checkIfNeedsItem: an open or completed sync request sends the builder to wait for / fetch it. */
+    /**
+     * MC checkIfNeedsItem: an open or completed sync request sends the builder to wait for / fetch it, except before
+     * the claimed order's structure is loaded, with no needs yet and no completed request of its own to fetch
+     * (MC AbstractEntityAIStructureWithWorkOrder.checkIfNeedsItem): the load comes first, once in this AI's life as
+     * MC's {@code recalculated} is never reset. HyColony computes every need when it loads the structure
+     * ({@link StructureLoader}), so an unloaded site stands for MC's unloaded placer or order not yet requested. The
+     * hut's needs, as MC's building-level ones, still count for an AI made anew while they are kept (a builder hired
+     * again without restart).
+     */
     private boolean needsItem() {
         BuilderState s = machine.state();
-        return s != BuilderState.INVENTORY_FULL
-                && s != BuilderState.NEEDS_ITEM
-                && s != BuilderState.COMPLETE_BUILD
-                && ctx.sync().pending();
+        if (s == BuilderState.INVENTORY_FULL || s == BuilderState.NEEDS_ITEM || s == BuilderState.COMPLETE_BUILD) {
+            return false;
+        }
+        boolean beforeLoad = !recalculated
+                && !site.loaded()
+                && claimedOrder().isPresent()
+                && ctx.resources().needs().remaining().isEmpty()
+                && ctx.sync().mine().stream().noneMatch(r -> r.state() == RequestState.COMPLETED);
+        return !beforeLoad && ctx.sync().pending();
     }
 
     /** MC checkIfCanceled: the order vanished (cancelled, removed, completed elsewhere) or left this builder. */
@@ -179,7 +195,11 @@ public final class BuilderAI implements JobAI {
     private BuilderState loadStructure() {
         WorkOrder o = claimedOrder().orElse(null);
         resetStructure();
-        return o != null && loader.load(o) ? BuilderState.BUILDING_STEP : BuilderState.IDLE;
+        if (o == null || !loader.load(o)) {
+            return BuilderState.IDLE;
+        }
+        recalculated = true;
+        return BuilderState.BUILDING_STEP;
     }
 
     private Optional<WorkOrder> claimedOrder() {

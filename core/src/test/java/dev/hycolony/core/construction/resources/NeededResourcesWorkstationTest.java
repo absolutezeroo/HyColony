@@ -6,6 +6,7 @@ import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.BlueprintEntry;
 import dev.hycolony.core.construction.blueprint.StructurePlan;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.item.BlockItems;
 import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.core.kernel.item.ItemAmount;
@@ -86,6 +87,16 @@ class NeededResourcesWorkstationTest {
         items.itemForBlock.clear();
 
         assertEquals(List.of(new ItemAmount(A, 5)), EntryCost.of(bench(2), items, recipes));
+    }
+
+    /** A bench placed from what breaking it gives costs every unit of it, plus its upgrades (EntryCost.placingItem). */
+    @Test
+    void benchPlacedFromSeveralItemsCostsThemAll() {
+        items.blockItems.put(
+                BENCH,
+                new BlockItems(Optional.of(BENCH_I), false, Optional.empty(), Optional.of(new ItemAmount(B, 2))));
+
+        assertEquals(List.of(new ItemAmount(B, 2), new ItemAmount(A, 5)), EntryCost.of(bench(2), items, recipes));
     }
 
     @Test

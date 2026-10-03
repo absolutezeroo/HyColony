@@ -113,3 +113,25 @@ Un bloc de HyVanilla jugé inutile n'est retiré qu'après le passage des plans 
 - Après l'étape 4 : CLAUDE.md, la skill `port-mc` et les trois agents disent la même chose ; `node .claude/hooks/test/run.js` passe toujours (les fichiers modifiés restent des garde-fous).
 - Après l'étape 5 : chaque entrée de l'audit a ses trois sources (MC, HyColony, Hytale) ; aucune affirmation sans `fichier:ligne`.
 - Après chaque correction : `./gradlew build` vert, relectures faites, test en jeu par l'utilisateur.
+
+## 9. Écarts par domaine
+
+### Domaine 1 : ressources du chantier (2026-10-02, audit A-15, A-16)
+
+Choix de l'utilisateur : « faut faire comme MC, l'objet qui pose le bloc » ; pour le tonneau, « on rajoute le craft, dans l'atelier de furniture », « comme le coffre de taverne ».
+
+- **L'objet qui pose un bloc** (`EntryCost.placingItem`), `Deviation from MC (Hytale world)`. MC demande l'objet du bloc (`BlockUtils.getItemStackFromBlockState`). Ici, on prend dans l'ordre :
+  1. l'objet du bloc, s'il a une source en survie : une recette, la scie de l'architecte de HyDomum, la casse ou la récolte d'un bloc (outils compris, comme les cisailles), une liste de butin ;
+  2. sinon, l'objet dont la variante de pose fait le bloc : la torche pour la torche murale, la lanterne pour la lanterne au plafond ;
+  3. sinon, ce que la casse du bloc rend : 2 petits coffres pour un grand coffre, un tronc pour un tronc plein, du pavé (`Rock_Stone_Cobble`) pour `Rock_Stone`. Ce peut être plusieurs objets là où MC en demande un ;
+  4. sinon, l'objet du bloc quand même.
+
+  L'herbe et les chemins demandent leur propre objet, que Hytale fabrique, là où les gestionnaires de pose de Structurize demandent de la terre.
+- **La redéfinition de `checkIfNeedsItem`** de `AbstractEntityAIStructureWithWorkOrder` est portée (`BuilderAI.needsItem`, avec son drapeau `recalculated`) : avant le premier chargement d'une structure, une requête en attente n'envoie pas le bâtisseur attendre.
+- **Réparation des sauvegardes** (`BuilderRequests.cancelUnneeded`), `Deviation from MC`. Au chargement d'un ordre, les requêtes de la hutte pour un objet que plus aucune case ne demande sont annulées. Ce sont celles d'une sauvegarde écrite avant ce changement. Après un redémarrage, cela annule aussi une requête de lot dont toutes les cases ont été posées entre-temps, que MC livrerait encore. MC ne revoit jamais ces requêtes.
+- **Le tonneau de taverne** (ajout demandé) :
+  - une recette au banc de mobilier, catégorie rangement : 3 `Wood_Darkwood_Planks` et 2 `Ingredient_Bar_Iron` ;
+  - un patch Hytalor `UseDefaultDropWhenPlaced`, pour qu'un tonneau posé se rende lui-même à la casse ;
+  - les poses du bâtisseur marquées comme celles d'un joueur (`BlockPhysics.markDeco`).
+
+  Recherche : `docs/research/barrel-recipe.md`.

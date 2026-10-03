@@ -582,6 +582,17 @@ Spec `docs/superpowers/specs/2026-10-02-hycolony-colony-bounds-design.md` (faill
 
 346. **Nature sauvage.** `/wilderness debug` dans la colonie, puis la carte du monde : autour du joueur (seulement son rayon de suivi, environ 3 chunks de 32), les chunks qui touchent le territoire s'affichent comme « maison », ceux d'au-delà comme sauvages. Agrandir le territoire (nouvelle hutte qui revendique) : l'affichage suit sans relancer. Rester une ou deux nuits dans la colonie : aucune faille gobeline ne s'ouvre dans le territoire (une faille juste au-delà de la bordure peut déborder de quelques blocs). Noter tout message `wilderness` dans le journal du serveur.
 
+## Objets demandés par le bâtisseur (monde Hytale)
+
+Audit `docs/research/audit-monde-hytale.md` (A-15, A-16) et `docs/research/barrel-recipe.md`. Une colonie avec un bâtisseur, en survie.
+
+347. **Torche murale.** Lancer la mairie de niveau 1 : l'onglet des ressources du bâtisseur demande des `Furniture_Crude_Torch` (torches grossières), pas des `Wood_Torch_Wall`. Les donner : il les pose au mur, le rendu est celui d'avant.
+348. **Grand coffre, tronc plein, pierre.** Un plan qui pose un grand coffre (entrepôt 1) demande **2** petits coffres grossiers par grand coffre ; un tronc plein demande un tronc ; la pierre lisse (`Rock_Stone`, bâtisseur 2, mairie 2) demande du pavé (`Rock_Stone_Cobble`). Les blocs posés gardent leur apparence.
+349. **Lanternes et blocs HyDomum.** Un plan de niveau 4 (mairie, cuisinier, entrepôt…) : une lanterne posée au sol demande une lanterne (`Deco_Lantern`), une lanterne au plafond aussi. Les clôtures, portillons et escaliers HyDomum demandent leur variante (`HyDomum_Fence__…`, faite à la scie de l'architecte), pas `Wood_Stripped_Deco`.
+350. **Ancienne sauvegarde.** Avec un monde où le bâtisseur attendait déjà des `Wood_Torch_Wall` avant la mise à jour : au redémarrage, la requête disparaît de la liste, il redemande des torches grossières et reprend le chantier, sans rester bloqué.
+351. **Tonneau.** Au banc de mobilier, catégorie rangement : le tonneau de taverne se fabrique avec 3 planches de bois sombre et 2 lingots de fer. Avec Hytalor installé (dépendance optionnelle) : le poser puis le casser, il se rend lui-même ; un tonneau de ruine cassé donne toujours son butin (ou rien) ; un tonneau posé par le bâtisseur, cassé, se rend aussi. Sans Hytalor, un tonneau posé ne rend que le butin.
+352. **Autotest.** `/hycolony selftest` : la ligne « plan items with a source (0 without) » est OK. Si elle est KO, noter les objets qu'elle cite (avec leur plan) : ce sont des blocs des plans sans source en survie.
+
 ## Inventaire du citoyen comme MineColonies
 
 Spec `docs/superpowers/specs/2026-10-02-hycolony-citizen-inventory-mc-design.md`. Une colonie avec un bâtisseur embauché (hutte de niveau 1), en survie, avec dans le sac une armure de cuir léger (`Armor_Leather_Light_*`) et une de bronze (`Armor_Bronze_*`).

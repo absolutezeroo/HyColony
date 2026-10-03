@@ -1,0 +1,8 @@
+{
+  "_BaseAssetPath": "Server/Item/Items/Furniture/Tavern/Unique/Furniture_Tavern_Barrel.json",
+  "BlockType": {
+    "Gathering": {
+      "UseDefaultDropWhenPlaced": true
+    }
+  }
+}

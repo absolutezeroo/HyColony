@@ -234,7 +234,7 @@ marteau, compas, bâton à plan) ; un premier jet en équerre et fil à plomb a 
 `Items/HyColony/Build_Tool.{blockymodel,png}`, son icône et le son `ISS_Weapons_Wood` des marteaux de Hytale.
 **Cristaux vivants** (`tools/huts/glint.py`, constante `GLINT` du module, demandé par l'utilisateur) : l'objet
 déclare `Animation` (`Items/HyColony/Build_Tool.blockyanim`, clé `Animation` de `Item` ; `Item` n'a pas de clé
-`Looping`, et l'on attend qu'elle boucle comme les poissons de Hytale qui nagent en main, à vérifier en jeu). Les
+`Looping`, et elle boucle comme les poissons de Hytale qui nagent en main : vu en jeu le 2026-10-03). Les
 deux gemmes et leurs tables respirent (étirement de 1 à 1,06 puis retour, lissé, sur un cycle de 3 s, comme la
 bougie de Hytale ; au-delà de 1,06, les arêtes des gemmes tournées de 45° traverseraient leur bague), et un reflet
 clair les balaie une fois par cycle : trois images peintes sous la texture, lues par un décalage d'UV
@@ -294,9 +294,9 @@ Pistes proposées à l'utilisateur, chacune à valider sur des captures Blockben
 - Le constructeur, l'hôtel de ville, la résidence, le fermier, le cuisinier, le coursier et l'entrepôt s'affichent
   avec leur modèle et leur texture, sans face qui scintille ni bord de texture étranger, à la taille des meubles de
   Hytale, et font face au joueur qui les pose, dans les quatre directions.
-- Les gemmes du marteau tenu en main respirent et un reflet les balaie toutes les 3 s, sans glisser d'une image à
-  l'autre, et l'animation boucle (un objet n'a pas de `Looping`) ; la hutte du fermier balance ses pousses en
-  continu, même après l'ouverture et la fermeture de sa fenêtre.
+- Les gemmes du marteau tenu en main respirent et un reflet les balaie toutes les 3 s, et l'animation boucle (vu en
+  jeu le 2026-10-03) ; reste à voir que le reflet ne glisse pas d'une image à l'autre. La hutte du fermier balance
+  ses pousses en continu, même après l'ouverture et la fermeture de sa fenêtre.
 - Le presse-papiers tenu en main montre sa feuille écrite au joueur, la planchette droite dans la main comme la carte
   de Hytale. Sinon : si la feuille est tournée vers l'extérieur, un demi-tour autour de y sous `R-Attachment` ; s'il
   est couché dans la main, un quart de tour autour de x, pour reprendre l'axe +z de la carte.

@@ -2,6 +2,7 @@ package dev.hycolony.core.testing;
 
 import dev.hycolony.core.citizen.inventory.ArmorCatalog;
 import dev.hycolony.core.kernel.item.ArmorInfo;
+import dev.hycolony.core.kernel.item.BlockItems;
 import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockKind;
 import dev.hycolony.core.kernel.item.FoodInfo;
@@ -22,7 +23,10 @@ import java.util.Set;
 public final class FakeCatalog implements ItemCatalog, ArmorCatalog {
     public int defaultMaxStack = 64;
     public final Map<ItemKey, Integer> maxStacks = new HashMap<>();
+    /** A block's own item, made by a recipe; {@link #blockItems} sets the other facts. */
     public final Map<BlockKey, ItemKey> itemForBlock = new HashMap<>();
+
+    public final Map<BlockKey, BlockItems> blockItems = new HashMap<>();
     public final Map<BlockKey, BlockKind> kinds = new HashMap<>();
     public final Set<BlockKey> ores = new HashSet<>();
     public final Set<BlockKey> harmful = new HashSet<>();
@@ -61,9 +65,15 @@ public final class FakeCatalog implements ItemCatalog, ArmorCatalog {
         return maxStacks.getOrDefault(item, defaultMaxStack);
     }
 
+    /** The block's items as set in {@link #blockItems}, else its own craftable item from {@link #itemForBlock}. */
     @Override
-    public Optional<ItemKey> itemForBlock(BlockKey block) {
-        return Optional.ofNullable(itemForBlock.get(block));
+    public BlockItems blockItems(BlockKey block) {
+        BlockItems set = blockItems.get(block);
+        if (set != null) {
+            return set;
+        }
+        ItemKey own = itemForBlock.get(block);
+        return own == null ? BlockItems.NONE : BlockItems.of(own);
     }
 
     @Override

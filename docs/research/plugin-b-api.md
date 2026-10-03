@@ -122,7 +122,7 @@ GatherType tally over the vanilla block items: Rocks 799, Woods 511, SoftBlocks 
 
 ## 2. ItemCatalog
 
-- **Item for a block**: `BlockType.getItem()` → `@Nullable Item` (the asset container key). A block defined inside an item JSON has **the same id** as the item (`Item.processConfig`: `if (hasBlockType) blockId = id`). For a state id (`*…`), use `getDefaultStateKey()` first.
+- **Item for a block**: `BlockType.getItem()` → `@Nullable Item` (the asset container key). A block defined inside an item JSON has **the same id** as the item (`Item.processConfig`: `if (hasBlockType) blockId = id`). For a state id (`*…`), use `getDefaultStateKey()` first. This container item is not always the one that **places** the block (a wall torch, a large chest): see § 51.
 - **Block for an item**: `Item.hasBlockType()` and `Item.getBlockId()` (null when there is no block).
 - `Item.getMaxStack()`: when absent it is filled in as 100, or 1 for a tool, weapon, armor or builder tool. The vanilla chest uses 25.
 - **Tool category**: every vanilla tool carries specs for *all* gather types, so read the category from `Item.getPlayerAnimationsId()`, which is inherited from the parent: `"Pickaxe"`, `"Hatchet"` (axe), `"Shovel"`. Tool items are `Server/Item/Items/Tool/{Pickaxe,Hatchet,Shovel}/Tool_<Kind>_<Material>.json`, with `Categories: ["Items.Tools"]` and `Tags.Type: ["Tool"]`.
@@ -685,6 +685,10 @@ Vérifié dans les sources décompilées de 0.6.8 et dans `Assets.zip`, le 2026-
   - Correspondance d'un type de ressource : l'objet liste le type dans `Item.getResourceTypes()` (`ItemContainer.getMatchingResourceType`). Les 1 304 déclarations de 0.6.8 ont toutes `Quantity: 1`.
   - Objets cachés (0.7.0-pre.5, vérifié le 2026-10-02) : Hytale écarte les qualités `Developer`, `Technical`, `Debug` et `Template` (`builtin/buildertools/BlockColorIndex.EXCLUDED_QUALITIES`), comparées à `Item.getQualityIndex()` par l'index de `ItemQuality.getAssetMap().getIndexOrDefault(id, -1)`. Les `Prototype_*`, `Debug_*`, fenêtres `*_Test` et `Furniture_Cybercity_Windows*` de type `Fuel` sont tous `Developer`, sauf `Debug_MusicEmitter_*`. `Quality` n'est pas hérité du `Parent` (`append`, `Item.java:159`), contrairement à `ResourceTypes` : les quatre `_Debug/Debug_MusicEmitter_*` n'ont aucune qualité et héritent les types de leur parent `Wood_Wisteria_Wild_Trunk_Full` (`Fuel`, `Charcoal`, `Wood_*`). Ce sont les seuls objets `Debug_`/`Prototype_` dans ce cas. `ResourceTypeIndex` écarte les qualités cachées et les identifiants `Debug_`.
   - `Item.isState()` n'écarte pas que des états de blocs : il est vrai pour le seau de lait (`Container_Bucket` et `Deco_Bucket` aux états `Filled_*`, seuls fournisseurs de `Milk_Bucket`) et pour les raretés de poisson (`Fish`). Il ne faut donc pas filtrer dessus.
+- **Recette d'un objet vanilla, surcharge entre packs, casse des blocs posés** (pre.5, 2026-10-02) : voir `barrel-recipe.md`. En bref :
+  - une recette autonome doit porter `Output` **et** `PrimaryOutput` (`CraftingRecipe.java:236-239`) ;
+  - un asset de même clé dans un pack chargé plus tard **remplace** l'asset vanilla, sans fusion ni avertissement (`DefaultAssetMap.java:303-304`, `AssetStore.java:67`) ;
+  - `BlockGathering.UseDefaultDropWhenPlaced` rend le bloc lui-même s'il a été posé par un joueur, car la case est alors marquée deco (`BlockHarvestUtils.java:959-965`, `BlockPlaceUtils.java:438-440`). `BlockOperations.setBlock` ne marque pas la case.
 - **Recettes connues d'un joueur** : `Player.getPlayerConfigData().getKnownRecipes()`, un ensemble d'**identifiants d'objet de sortie principale**, pas de recettes (`CraftingManager.isValidBenchForRecipe`, l. 452-466).
 - **Tables** : `BlockType.getBench()`, avec `getType()` (`protocol.BenchType`) et `getId()`.
   - Catégories : `CraftingBench.getCategories()[i].getId()`.
@@ -1088,6 +1092,15 @@ Source : décompilé de 0.7.0-pre.5, `server/core/inventory/InventoryComponent.j
 - Un joueur a un composant par section : `Hotbar` (-1), `Storage` (-2), `Armor` (-3, une case par `ItemArmorSlot`), `Utility` (-5, 4 cases, filtre `getUtility().isUsable()` : l'équivalent de la main secondaire de MC), `Tool` (-8), `Backpack` (-9). `getInventory()` donne l'`ItemContainer` de chacun.
 - `getCombined(accessor, ref, types...)` met en cache un `CombinedItemContainer` dans le composant `Combined`, par **contenu** du tableau de types (`Object2ObjectOpenCustomHashMap` dont la stratégie compare par `Arrays.hashCode`/`Arrays.equals`, l. 452-463) : un tableau neuf de même contenu retrouve l'entrée en cache. `HytalePlayerInventory.equipped` lit simplement `Armor` et `Utility` par `store.getComponent`, chacun dans son ordre.
 - `ItemContainer.forEach` saute les cases vides (l. 1221-1227).
+
+## 51. L'objet qui pose un bloc, et la pose « comme un joueur » (2026-10-02)
+
+Source : décompilé de 0.7.0-pre.5 et `pre-release-0.7.0-pre.5-Assets.zip` ; audit `audit-monde-hytale.md` A-15. Code : `plugin/item/HytaleBlockItems`, `HytaleItemSources`.
+
+- `BlockType.getItem()` est l'objet **conteneur** du bloc, pas forcément celui qui le pose. Un objet pose une variante par `BlockType.getPlacementSettings()` : `getWallPlacementOverrideBlockId()`, `getFloorPlacementOverrideBlockId()`, `getCeilingPlacementOverrideBlockId()` (`BlockPlacementSettings.java:118-128`) ; l'objet d'un `Item` est le `BlockType` de `item.getBlockId()`. `Furniture_Crude_Torch` pose `Wood_Torch_Wall` au mur.
+- Casse : `BlockHarvestUtils.getDrops` (l. 647-667) donne `ItemId` × `Quantity` de `Gathering.Breaking` (ou `Soft`), ou les tirages de `DropList`, ou l'objet du bloc s'il n'y a ni l'un ni l'autre. Une `DropList` en ligne est un asset contenu, lisible par `ItemDropList.getAssetMap().getAsset(id)` ; un `SingleItemDropContainer` de premier niveau donne toujours son `ItemDrop` (pas de tirage, `populateDrops`). `Furniture_Crude_Chest_Large` (deux petits coffres reliés par `ChestConnectedBlockTemplate`, hitbox `Chest_Large`) se casse en 2 `Furniture_Crude_Chest_Small`.
+- `CraftingRecipe.getAssetMap()` contient aussi les recettes portées par les objets ; `getPrimaryOutput()` et `getOutputs()` donnent les objets fabriqués.
+- Pose comme un joueur : `BlockOperations.setBlock` remet à zéro la marque « déco » de la case ; `BlockPlaceUtils` (l. 438-440) la repose par `BlockPhysics.markDeco(store, section, x, y, z)` quand `blockType.canBePlacedAsDeco()` (`ignoreSupportWhenPlaced` ou `Gathering.UseDefaultDropWhenPlaced`). `markDeco` ajoute au besoin le composant `BlockPhysics` à la section (changement structurel, même contexte que `FluidSection` dans `HytaleWorldBlocks.place`). Une case marquée se casse en son propre objet (`BlockHarvestUtils.java:959-965`). **[in-game]** pour la pose du bâtisseur.
 
 ## Could not verify
 
