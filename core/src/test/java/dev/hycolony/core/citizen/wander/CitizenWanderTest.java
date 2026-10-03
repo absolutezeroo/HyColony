@@ -15,6 +15,12 @@ import org.junit.jupiter.api.Test;
 
 /** MC EntityAICitizenWander.decide and getRandomLeisureSite, and the territory bound asked for. */
 class CitizenWanderTest extends WanderFixture {
+    private static final BlockKey DIRT = new BlockKey("dirt");
+    private static final BlockKey TRUNK = new BlockKey("trunk");
+    private static final BlockKey LEAVES = new BlockKey("leaves");
+    private static final BlockKey WATER = new BlockKey("water");
+    private static final BlockKey HUT = new BlockKey("hut");
+
     @Test
     void fiveTimesInAHundredItGoesForLeisureToItsHome() {
         data.setHomeBuilding(HOME);
@@ -168,19 +174,12 @@ class CitizenWanderTest extends WanderFixture {
     /** A tree is no wander spot: our citizens climb 3 blocks, so its leaves are no floor (Hytale world). */
     @Test
     void aTreeIsNoWanderSpotItWandersOnTheGroundBeyond() {
-        BlockKey dirt = new BlockKey("dirt");
-        BlockKey trunk = new BlockKey("trunk");
-        BlockKey leaves = new BlockKey("leaves");
-        t.catalog.kinds.put(dirt, BlockKind.SOLID);
-        t.catalog.kinds.put(trunk, BlockKind.SOLID);
-        t.catalog.kinds.put(leaves, BlockKind.SOLID);
-        t.catalog.leaves.add(leaves);
-        put(new BlockPos(21, 63, 10), dirt); // east, 11 blocks: a tree
-        put(new BlockPos(21, 64, 10), trunk);
-        put(new BlockPos(21, 65, 10), trunk);
-        put(new BlockPos(21, 66, 10), leaves);
-        put(new BlockPos(-1, 61, 10), dirt); // west: ground 2 blocks down
-        rolls.ints.add(5);
+        rolls.ints.add(5); // no leisure: a wander around where it stands
+        east(63, DIRT); // east, 11 blocks: a tree
+        east(64, TRUNK);
+        east(65, TRUNK);
+        east(66, LEAVES);
+        put(new BlockPos(-1, 61, 10), DIRT); // west: ground 2 blocks down
         rolls.doubles.addAll(List.of(0.0, Math.PI));
 
         wander.wander();
@@ -188,7 +187,68 @@ class CitizenWanderTest extends WanderFixture {
         assertEquals(List.of(new Vec3(-0.5, 62, 10.5)), t.bodies.moves, "its ground, not the trunk's top");
     }
 
+    /** MC PathJobRandomPos never ends a wander over water; a column with water around its height is no spot. */
+    @Test
+    void aPondIsNoWanderSpot() {
+        rolls.ints.add(5); // no leisure: a wander around where it stands
+        east(61, DIRT);
+        east(62, WATER);
+        east(63, WATER);
+
+        wander.wander();
+
+        assertEquals(List.of(), t.bodies.moves);
+    }
+
+    /** Down a slope, a treetop below the citizen's height is no spot either (it would drop onto the leaves). */
+    @Test
+    void aTreetopBelowIsNoWanderSpot() {
+        rolls.ints.add(5); // no leisure: a wander around where it stands
+        east(60, LEAVES);
+
+        wander.wander();
+
+        assertEquals(List.of(), t.bodies.moves);
+    }
+
+    /** A hut block is no floor nor room for a body (MC SurfaceType: NOT_PASSABLE), as for BlockApproach. */
+    @Test
+    void aHutBlockIsNoWanderSpot() {
+        rolls.ints.add(5); // no leisure: a wander around where it stands
+        east(63, DIRT);
+        east(64, HUT);
+        east(65, HUT);
+
+        wander.wander();
+
+        assertEquals(List.of(), t.bodies.moves);
+    }
+
+    /** A cell with no room for the head is skipped: here the ceiling's top. */
+    @Test
+    void aCellWithoutHeadroomIsSkipped() {
+        rolls.ints.add(5); // no leisure: a wander around where it stands
+        east(63, DIRT);
+        east(65, DIRT);
+
+        wander.wander();
+
+        assertEquals(List.of(new Vec3(21.5, 66, 10.5)), t.bodies.moves);
+    }
+
+    /** The block at {@code y} of the column the first wander draw (angle 0, 11 blocks east) aims at. */
+    private void east(int y, BlockKey key) {
+        put(new BlockPos(21, y, 10), key);
+    }
+
+    /** Puts {@code key} at {@code at}, the catalog knowing every block these tests use. */
     private void put(BlockPos at, BlockKey key) {
+        t.catalog.kinds.put(DIRT, BlockKind.SOLID);
+        t.catalog.kinds.put(TRUNK, BlockKind.SOLID);
+        t.catalog.kinds.put(LEAVES, BlockKind.SOLID);
+        t.catalog.kinds.put(WATER, BlockKind.FLUID);
+        t.catalog.kinds.put(HUT, BlockKind.UNBREAKABLE);
+        t.catalog.leaves.add(LEAVES);
         t.blocks.blocks.put(at, new BlockState(key, 0));
     }
 

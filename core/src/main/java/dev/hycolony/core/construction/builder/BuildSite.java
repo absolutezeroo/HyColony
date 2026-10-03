@@ -30,7 +30,7 @@ final class BuildSite {
     private @Nullable StructurePlan previousPlan;
 
     private @Nullable Building target;
-    /** The walk over SOLID and DECORATE after the last stage ran for the loaded order. */
+    /** The walk over SOLID, CLEAR_LEFTOVERS and DECORATE again after the last stage ran for the loaded order. */
     private boolean finalCheckDone;
 
     BuildSite(Colony colony, BuildingResourcesModule resources, WorkSpot spots) {

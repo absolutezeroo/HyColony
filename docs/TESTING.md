@@ -619,7 +619,7 @@ Recherche `docs/research/domaine1-suite.md`. Une colonie avec un bâtisseur ; l'
 
 ## IA de métier, marches et promenade (2026-10-03)
 
-374. **Au bout du chemin.** Suivre un bâtisseur ou un coursier : à chaque marche, il va jusqu'au bout de son chemin (la sphère de la cible de HyLens), au lieu de s'arrêter 1,5 à 2 blocs avant. Un fermier s'approche de chaque case avant de la travailler.
+374. **Au bout du chemin.** Suivre un bâtisseur ou un coursier : à chaque marche, il va jusqu'au bout de son chemin (la sphère de la cible de HyLens), au lieu de s'arrêter 1,5 à 2 blocs avant. Un fermier s'approche de chaque case avant de la travailler. Noter un citoyen qui reste planté quelques secondes tout près de sa cible avant de repartir : sa navigation n'arrive pas jusqu'à la cible, et c'est l'anti-blocage qui la termine.
 375. **Raison de l'arrêt.** Suivre un travailleur avec HyLens : quand il quitte le travail, « Last changes » dit pourquoi, par exemple « IA : WORKING -> IDLE (rien à faire : ni ordre de travail ni tâche) », ou (pluie sur sa hutte), (pause de loisir), (heure de dormir), (faim), (a perdu son métier). Noter la raison d'un arrêt en plein chantier.
 376. **Reprise après la nuit.** Un fermier ou un bâtisseur qui dort puis se réveille reprend son travail depuis sa première étape (il revient d'abord à sa hutte), sans repartir de zéro sur son chantier. Un coursier garde sa vitesse pendant qu'il mange ou dort ; renvoyé (hutte retirée), il marche aussitôt à vitesse normale.
 377. **Amélioration enterrée.** Lancer l'amélioration d'une hutte dont le plan descend sous terre : après les blocs solides, le bâtisseur creuse la terre des cases d'air du plan, puis pose les décorations (comme MineColonies), et non l'inverse.

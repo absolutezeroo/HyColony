@@ -285,9 +285,24 @@ class BuilderHutTabsTest {
         assertEquals(WorkOrderType.BUILD, h.type());
         assertEquals(1, h.targetLevel());
         assertEquals(1, h.step(), "CLEAR finished, SOLID under way");
-        assertEquals(4, h.totalSteps(), "CLEAR, SOLID, DECORATE, CLEAR_LEFTOVERS");
+        assertEquals(4, h.totalSteps(), "CLEAR, SOLID, CLEAR_LEFTOVERS, DECORATE");
         assertEquals(40, h.suppliedPercent(), "2 of 5 items supplied");
         assertEquals(0, h.percent(), "nothing placed yet");
+    }
+
+    /** The step counts the stages in the builder's order, as MC's: the air cells are cleared before decorating. */
+    @Test
+    void theStepFollowsTheBuildersStageOrder() {
+        WorkOrder order = order(new BlockPos(20, 64, 0), 0, WorkOrderType.BUILD);
+        colony.work().tick();
+        startBuildWithFourItems(order);
+
+        order.progress(Stage.CLEAR_LEFTOVERS, 0);
+        assertEquals(
+                2, tab(alice, BuilderResourcesView.class).header().orElseThrow().step());
+        order.progress(Stage.DECORATE, 0);
+        assertEquals(
+                3, tab(alice, BuilderResourcesView.class).header().orElseThrow().step());
     }
 
     @Test

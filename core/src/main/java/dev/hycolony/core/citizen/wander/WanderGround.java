@@ -9,12 +9,13 @@ import dev.hycolony.core.kernel.port.WorldBlocks;
 import java.util.Optional;
 
 /**
- * Where a wander walk to a column ends (MC PathJobRandomPos ends on a walkable cell): the standable cell nearest the
- * citizen's height, {@link #HALF_HEIGHT} blocks up or down at most.
+ * Where a wander walk to a column ends (MC PathJobRandomPos ends on a walkable cell, never over water): the standable
+ * cell nearest the citizen's height, {@link #HALF_HEIGHT} blocks up or down at most; a column without one is a spot
+ * only when it is open there and holds no leaves nor fluid the citizen could climb or drop onto.
  *
  * <p>Deviation from MC (Hytale world): MC climbs 1.3 blocks (PathingConstants.MAX_JUMP_HEIGHT), so a treetop is out of
  * its reach though leaves are walkable (SurfaceType); our citizens climb 3 (plugin-b-api.md 39), so leaves are no floor
- * here, and a column a trunk or leaves block at the citizen's height is no wander spot.
+ * here.
  */
 final class WanderGround {
     /** Feet heights tried above and below the citizen's. */
@@ -30,7 +31,7 @@ final class WanderGround {
 
     /**
      * The centre of the standable cell of {@code target}'s column nearest its height; {@code target} itself when the
-     * column has none but is open at that height (a slope, unknown ground); empty when solid or leaves block it.
+     * column has none but is {@link #open} (a slope, unknown ground); empty else.
      */
     Optional<Vec3> of(Vec3 target) {
         BlockPos at = target.toBlockPos();
@@ -42,14 +43,31 @@ final class WanderGround {
                 return Optional.of(centre(at.offset(0, -d, 0)));
             }
         }
-        return blocked(at) || blocked(at.offset(0, 1, 0)) ? Optional.empty() : Optional.of(target);
+        return open(at) ? Optional.of(target) : Optional.empty();
     }
 
     private static Vec3 centre(BlockPos feet) {
         return new Vec3(feet.x() + 0.5, feet.y(), feet.z() + 0.5);
     }
 
-    /** A floor that is no leaves, and room for feet and head. */
+    /**
+     * Room for a body at {@code at}, and no leaves nor fluid from one block below the lowest feet height tried to one
+     * above the highest: the nav could leave it on a treetop or in a pond.
+     */
+    private boolean open(BlockPos at) {
+        if (blocked(at) || blocked(at.offset(0, 1, 0))) {
+            return false;
+        }
+        for (int dy = -HALF_HEIGHT - 1; dy <= HALF_HEIGHT + 1; dy++) {
+            BlockState s = blocks.get(at.offset(0, dy, 0)).orElse(null);
+            if (s != null && (catalog.isLeaves(s.key()) || catalog.kind(s.key()) == BlockKind.FLUID)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /** A solid floor that is no leaves, and room for feet and head. */
     private boolean standable(BlockPos feet) {
         BlockState floor = blocks.get(feet.offset(0, -1, 0)).orElse(null);
         return floor != null
@@ -59,9 +77,13 @@ final class WanderGround {
                 && !blocked(feet.offset(0, 1, 0));
     }
 
-    /** A solid block or leaves: no room for a body. */
+    /** No room for a body: a solid block, a block nobody passes (a hut block, MC NOT_PASSABLE) or a fluid. */
     private boolean blocked(BlockPos p) {
         BlockState s = blocks.get(p).orElse(null);
-        return s != null && (catalog.kind(s.key()) == BlockKind.SOLID || catalog.isLeaves(s.key()));
+        if (s == null) {
+            return false;
+        }
+        BlockKind kind = catalog.kind(s.key());
+        return kind == BlockKind.SOLID || kind == BlockKind.UNBREAKABLE || kind == BlockKind.FLUID;
     }
 }

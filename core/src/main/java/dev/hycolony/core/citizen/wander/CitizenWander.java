@@ -166,11 +166,12 @@ public final class CitizenWander {
     }
 
     /**
-     * A random spot just past {@link #WANDER_RADIUS} of {@code anchor} (horizontally), at height {@code y}, in the
-     * colony's territory, with no dangerous block within 1 block ({@link DangerousCells#near}); else the first such
-     * pick whose own column holds none (MC PathJobRandomPos never ends on one, PathfindingUtils.isDangerous); empty
-     * after {@link #WANDER_TRIES} picks. Deviation from MC: without a path search, the spot is the cell 11 blocks away
-     * in a random direction, on its column's ground ({@link WanderGround}); and the territory bound is asked for.
+     * A random spot just past {@link #WANDER_RADIUS} of {@code anchor} (horizontally), on its column's ground near
+     * height {@code y} ({@link WanderGround}), in the colony's territory, with no dangerous block within 1 block
+     * ({@link DangerousCells#near}); else the first such pick whose own column holds none (MC PathJobRandomPos never
+     * ends on one, PathfindingUtils.isDangerous); empty after {@link #WANDER_TRIES} picks. Deviation from MC: without a
+     * path search, the spot is in the column 11 blocks away in a random direction; and the territory bound is asked
+     * for.
      */
     private Optional<Vec3> wanderTarget(BlockPos anchor, double y) {
         Vec3 columnSafe = null;
