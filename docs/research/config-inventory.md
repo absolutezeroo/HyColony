@@ -79,9 +79,9 @@ Chaque option est vérifiée seulement si le joueur n'est pas opérateur (ex. `C
 | `maxdistancefromworldspawn` | 30000 | 1000-`Integer.MAX_VALUE` | Distance max au spawn, en blocs (`CreateColonyMessage.java:155`) | ACTUEL |
 | `mindistancefromworldspawn` | 0 | 0-1000 | Distance min au spawn, en blocs (`CreateColonyMessage.java:147`) | ACTUEL |
 
-### 1.5 Serveur, section `combat` (SC:170-182) : tout est futur
+### 1.5 Serveur, section `combat` (SC:170-182)
 
-`enablecolonyraids` (true), `raidDifficulty` (5, 0-10), `maxRaiders` (80, 6-400), `raidersbreakblocks` (true), `averagenumberofnightsbetweenraids` (14, 1-50), `minimumnumberofnightsbetweenraids` (10, 1-30), `mobattackcitizens` (true), `raidersbreakdoors` (true), `guardDamageMultiplier` (1.0, 0.1-15), `guardhealthmult` (1.0, 0.1-5), `pvp_mode` (false). Les bornes des raids viennent de `Constants.java:24-28`.
+`mobattackcitizens` (true) est porté : `Combat.MobAttackCitizens` (les monstres du groupe hostile attaquent les citoyens, `CitizenAttitudeSystem`). Le reste est futur : `enablecolonyraids` (true), `raidDifficulty` (5, 0-10), `maxRaiders` (80, 6-400), `raidersbreakblocks` (true), `averagenumberofnightsbetweenraids` (14, 1-50), `minimumnumberofnightsbetweenraids` (10, 1-30), `raidersbreakdoors` (true), `guardDamageMultiplier` (1.0, 0.1-15), `guardhealthmult` (1.0, 0.1-5), `pvp_mode` (false). Les bornes des raids viennent de `Constants.java:24-28`.
 
 ### 1.6 Serveur, section `permissions` (SC:184-188)
 

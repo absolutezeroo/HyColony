@@ -41,7 +41,7 @@ Le cœur (`CitizenDeath`), dans l'ordre de MC :
 5. le message aux membres qui reçoivent les messages et aux gestionnaires : nom, cause, direction depuis le centre de la colonie (en-US et fr-FR) ;
 6. emploi, coursier et logement libérés ; ses requêtes annulées ;
 7. citoyen, corps et IA retirés ;
-8. l'entrée « mort » du journal de la colonie, comptée dans le résumé du soir ;
+8. l'entrée « mort » du journal de la colonie (le résumé du soir de MC, `computeNews`, n'est pas porté dans HyColony) ;
 9. l'événement interne, puis l'événement d'API `CitizenDied` (nouveau type public de l'API, version mineure).
 
 Les nouveaux citoyens arrivent ensuite par le mécanisme existant.
@@ -49,7 +49,7 @@ Les nouveaux citoyens arrivent ensuite par le mécanisme existant.
 ## 4. Les monstres (C-14)
 
 - Un fournisseur d'attitude de Hytale (`AttitudeView.registerProvider`, priorité 150) rend `HOSTILE` un rôle du groupe `HyColony_Hostile` face à un corps de citoyen.
-- Clé `MobAttackCitizens` (défaut `true`, comme MC `mobattackcitizens`) dans la section `Gameplay` de `config.json`.
+- Clé `MobAttackCitizens` (défaut `true`, comme MC `mobattackcitizens`) dans la section `Combat` de `config.json`, comme la section `combat` de MC.
 - Fuite (système, MC `EntityCitizen.performMoveAway` et `EntityAICitizenAvoidEntity`) : un citoyen non garde, frappé, fuit l'attaquant. Le cœur décide ; le plugin fournit « monstre hostile proche » et « s'éloigner de ».
 
 ## 5. Persistance et API
