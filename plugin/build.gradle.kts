@@ -70,14 +70,16 @@ val checkSubpluginAssets by tasks.registering(CheckPackAssets::class) {
 }
 subpluginResources { dependsOn(checkSubpluginAssets) }
 
-// The food tooltips (Hytalor patches and hycolony_food.lang) are written by tools/food/generate.py from the id-map's
-// food table: fail when the table changed without them (docs/research/food-tooltips.md).
+// The food tooltips (Hytalor patches and hycolony_food.lang) are written by tools/food/generate.py from HyColony's
+// food files: fail when the files changed without them (docs/research/food-tooltips.md).
 val checkFoodTooltips by tasks.registering {
     val resources = layout.projectDirectory.dir("src/main/resources").asFile
     val patchDir = resources.resolve("Server/Patch/HyColony/Food")
+    val foodDir = resources.resolve("Server/HyColony/Foods")
     // The languages tools/food/generate.py writes (its TEXTS table).
     val langFiles = listOf("en-US", "fr-FR").map { resources.resolve("Server/Languages/$it/hycolony_food.lang") }
     inputs.files(fileTree(patchDir))
+    inputs.files(fileTree(foodDir))
     inputs.file(resources.resolve("hycolony/id-map.json"))
     inputs.files(langFiles)
     val stamp = layout.buildDirectory.file("tmp/checkFoodTooltips.stamp")
@@ -85,11 +87,14 @@ val checkFoodTooltips by tasks.registering {
     doLast {
         val idMap = groovy.json.JsonSlurper().parse(resources.resolve("hycolony/id-map.json")) as Map<*, *>
         val food = idMap["food"] as Map<*, *>
-        val foods = (food["foods"] as Map<*, *>).mapKeys { it.key.toString() }
+        val foods = foodDir.listFiles().orEmpty().filter { it.name.endsWith(".json") }
+            .associate { it.name.removeSuffix(".json") to (groovy.json.JsonSlurper().parse(it) as Map<*, *>) }
         // Each food's header, then its description line; the bench decides which foods are raw.
         val expected = listOf("# cookingBench=${food["cookingBench"]}") + foods.keys.sorted().flatMap { id ->
-            val f = foods.getValue(id) as Map<*, *>
-            listOf("# $id nutrition=${f["nutrition"]} tier=${f["tier"]} poisonous=${f["poisonous"]}", "$id.description")
+            val f = foods.getValue(id)
+            listOf(
+                "# $id nutrition=${f["Nutrition"]} tier=${f["Tier"]} poisonous=${f["Poisonous"] ?: false}",
+                "$id.description")
         }
         val patches = patchDir.listFiles().orEmpty().map { it.name.removeSuffix(".json") }.toSortedSet()
         val problems = mutableListOf<String>()
@@ -97,7 +102,7 @@ val checkFoodTooltips by tasks.registering {
         langFiles.forEach { file ->
             val lines = file.takeIf { it.isFile }?.readLines().orEmpty().drop(1)
                 .map { if (it.startsWith("#")) it else it.substringBefore(" = ") }
-            if (lines != expected) problems += "${file.parentFile.name}/hycolony_food.lang differs from the id-map"
+            if (lines != expected) problems += "${file.parentFile.name}/hycolony_food.lang differs from the food files"
         }
         if (problems.isNotEmpty()) {
             throw GradleException(

@@ -10,6 +10,7 @@ import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
 import com.hypixel.hytale.server.core.asset.type.fluid.Fluid;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
+import com.hypixel.hytale.server.core.asset.type.item.config.ItemQuality;
 import com.hypixel.hytale.server.core.asset.type.particle.config.ParticleSystem;
 import com.hypixel.hytale.server.core.asset.type.soundevent.config.SoundEvent;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.RootInteraction;
@@ -195,7 +196,12 @@ public final class IdMap {
         IdChecks.checkConstruction(errors, construction(), block);
         check(errors, "entity effect", byId(highlightEffect().stream().toList()), effect);
         check(errors, "particle system", byId(sleepParticle().stream().toList()), particle);
-        check(errors, "food item", byId(List.copyOf(food().table().keySet())), item);
+        check(
+                errors,
+                "item quality",
+                byId(List.copyOf(food().ranks().keySet())),
+                id -> ItemQuality.getAssetMap().getIndexOrDefault(id, Integer.MIN_VALUE) != Integer.MIN_VALUE);
+        check(errors, "food quality rank", food().ranks(), FoodIds::isRank);
         check(errors, "fuel item", byId(food().fuels()), item);
         check(errors, "particle system", byId(food().particle().stream().toList()), particle);
         check(

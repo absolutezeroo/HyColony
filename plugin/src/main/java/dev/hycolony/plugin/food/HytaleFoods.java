@@ -18,42 +18,46 @@ import java.util.logging.Level;
 import org.jspecify.annotations.Nullable;
 
 /**
- * FoodCatalog over the id-map's food table ({@link FoodIds}) and what the cooking bench's
- * recipes turn each item into (MC the furnace's smelting result). The recipes are read on first use, the asset maps
- * being loaded by then; an asset reload needs a restart, like {@code HytaleItemCatalog}. Never throws.
+ * FoodCatalog over HyColony's food files and Hytale's other foods ({@link FoodTable}), and what the cooking bench's
+ * recipes turn each item into (MC the furnace's smelting result). Both are read on first use, the asset maps being
+ * loaded by then; an asset reload needs a restart, like {@code HytaleItemCatalog}. Never throws.
  *
- * <p>Deviation from MC: Hytale has no hunger nor nutrition, so the table is HyColony's, after MC's values for the
- * matching foods (spec SP4b § 2.2); MC's tier 1 for a plain food of nutrition 12 and saturation 0.8 has no match, and
- * no Hytale food gives back a container (MC's bowl).
+ * <p>Deviation from MC: Hytale has no hunger nor nutrition, so the values are HyColony's, after MC's for the matching
+ * foods (spec SP4b § 2.2); MC's tier 1 for a plain food of nutrition 12 and saturation 0.8 has no match, and no Hytale
+ * food gives back a container (MC's bowl).
  */
 public final class HytaleFoods implements FoodCatalog {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
-    private final Map<ItemKey, FoodInfo> foods = new HashMap<>();
     private final FoodIds ids;
+    private @Nullable Map<ItemKey, FoodInfo> foods;
     private @Nullable Map<ItemKey, ItemKey> cooked;
 
-    /** The foods of {@code ids}; an entry out of bounds is skipped and logged. */
     public HytaleFoods(FoodIds ids) {
         this.ids = ids;
-        ids.table().forEach((id, f) -> {
-            try {
-                foods.put(new ItemKey(id), new FoodInfo(f.nutrition(), f.tier(), f.poisonous()));
-            } catch (IllegalArgumentException e) {
-                LOG.at(Level.WARNING).log("id-map food %s skipped: %s", id, e.getMessage());
-            }
-        });
     }
 
     @Override
     public Optional<FoodInfo> food(ItemKey item) {
-        return Optional.ofNullable(foods.get(item));
+        return Optional.ofNullable(table().get(item));
     }
 
-    /** Every food of the table, by id. */
+    /** Every food, by id. */
     @Override
     public List<ItemKey> foods() {
-        return foods.keySet().stream().sorted(Comparator.comparing(ItemKey::id)).toList();
+        return table().keySet().stream()
+                .sorted(Comparator.comparing(ItemKey::id))
+                .toList();
+    }
+
+    /** The foods, read on first use, once the assets are loaded ({@link FoodTable}). */
+    private Map<ItemKey, FoodInfo> table() {
+        Map<ItemKey, FoodInfo> map = foods;
+        if (map == null) {
+            map = FoodTable.load(ids);
+            foods = map;
+        }
+        return map;
     }
 
     /** What the cooking bench makes of {@code item}; empty when it does not cook there. */

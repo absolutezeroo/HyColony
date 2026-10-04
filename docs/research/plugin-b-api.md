@@ -1153,6 +1153,16 @@ Source : décompilé `build/vineflower/hytale-server/com/hypixel/hytale/` (abré
 - **Nage, la plus simple** : garder `Walk` seul et relâcher `Breathe` : le citoyen marche au fond (le `walkUnderWater` de `PathJobEscapeWater`), sans nage. Écart à marquer.
 - **Échelles et lianes** : le cœur planifie les passages d'échelle comme MC (nœuds `isLadder`, coûts, lianes seulement avec la recherche `vinesunlock`, « liane » = bloc `IsClimbable` qui n'est pas une `*_Ladder`), et le plugin fait la montée : au pied de la colonne, il centre le corps, le monte par vitesse ou par petites téléportations à la vitesse d'échelle d'un joueur de Hytale, pose `climbing`, puis rend la main à `HyColonySeek` en haut. Variante minimale : téléporter en haut de la colonne. **[in-game]** : vitesse et rendu, `ClimbUp`, colonne ≤ 3 franchie seule par `Walk`.
 
+## 53. Types d'assets d'un plugin, catégorie et qualité d'un objet (2026-10-04)
+
+Spec `2026-10-04-hycolony-nourriture-ouverte-design.md`, lu dans le décompilé pre.5.
+
+- **Enregistrer un type d'asset.** Dans `setup()`, `getAssetRegistry().register(HytaleAssetStore.builder(T.class, new DefaultAssetMap<>()).setPath(...).setCodec(...).setKeyFunction(...).loadsAfter(Item.class).build())`, comme `ShopPlugin.setup` (`builtin/adventure/shop/ShopPlugin.java:29-41`) ; le registre du plugin retire le magasin à l'arrêt (`server/core/plugin/registry/AssetRegistry.java:18`, `PluginBase.getAssetRegistry`, `PluginBase.java:211`). La classe d'asset suit `ShopAsset` : `JsonAssetWithMap<String, DefaultAssetMap<String, T>>`, codec `AssetBuilderCodec.builder(Class, Supplier, Codec<K>, idSetter, idGetter, dataSetter, dataGetter)` (`assetstore/codec/AssetBuilderCodec.java:111-121`), puis `.append(new KeyedCodec<>("Clé", Codec.INTEGER | BOOLEAN | STRING | STRING_ARRAY), …).add()` (`codec/Codec.java:44-51`, `:118`). La clé d'un fichier est son nom sans `.json`.
+- **Où sont lus les fichiers.** Dans chaque pack, sous `<pack>/Server/<path>` (`assetstore/AssetStore.java:755`) ; HyColony : `Server/HyColony/Foods/`, `Server/HyColony/JobTags/`.
+- **Les lire.** `assetstore.AssetRegistry.getAssetStore(T.class)` (`AssetRegistry.java:34`), puis `getAssetMap().getAssetMap()` (`AssetStore.java:165`, `DefaultAssetMap.java:199`).
+- **Un aliment Hytale.** `Item.getCategories()` (hérité du `Parent`, `Item.java:104-107`, `1098`) contient `Items.Foods` (`Template_Food.json`) ; `isConsumable()` (hérité, `Item.java:378-381`, `1005`) ; `isVariant()` (hérité, `Item.java:386-389`, `1009`) : une variante est cachée de la bibliothèque d'objets, et les poissons crus « rares » (`Food_Fish_Raw_Rare`…) ne sont que des porteurs de recette dont le `PrimaryOutput` est `Food_Fish_Raw`.
+- **La qualité d'un objet.** `getQualityIndex()` (`Item.java:1049`) puis `ItemQuality.getAssetMap().getAsset(int).getId()` (`Item.java:1252-1258`) ; un id de qualité se vérifie par `ItemQuality.getAssetMap().getIndexOrDefault(id, défaut)`. `Quality` est lu par `append`, pas `appendInherited` (`Item.java:159`) : qu'un enfant sans `Quality` hérite de celle de son parent est **[in-game]**.
+
 ## Could not verify
 
 1. **Client rendering of item animations on NPCs** (`AnimationSlot.Action` with `"Block"/"Build"` or `"Pickaxe"/"Mine"` on `PlayerTestModel_V`) and whether they loop or play once. Only the server packet path is verified.
