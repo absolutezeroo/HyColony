@@ -20,11 +20,11 @@ import org.jspecify.annotations.Nullable;
  * The foods a citizen eats (spec 2026-10-04 § 5): each {@code Server/HyColony/Foods} file whose item exists, then each
  * other consumable item of the id-map's food category that is no variant and whose quality is not hidden from search
  * (Hytale's templates), at the value of its quality's rank ({@link dev.hycolony.core.kernel.item.FoodQuality}); then
- * none of the {@code excluded_food} tag (MC ItemStackUtils.ISFOOD), and those of the {@code poisonousfood} tag
- * poisonous. Deviation from MC (Hytale world): MC marks poisonous foods only by its poisonousfood tag → a HyColony food
- * file may say so too ({@code Poisonous}), as our table did. A file out of bounds is skipped, so its item takes
- * its quality's value like a food without a file. Read once the assets are loaded; never throws (a failure answers
- * what was read so far, logged SEVERE).
+ * under the core's food tags ({@link JobTags#applyToFoods}: excluded_food, poisonousfood). Deviation from MC: MC marks
+ * poisonous foods only by its poisonousfood tag; a HyColony food file may say so too ({@code Poisonous}), so that one
+ * file declares a whole food. A file out of bounds is skipped, so its item takes its quality's value like a food
+ * without a file. Read once the assets are loaded; never throws (a failure answers what was read so far, logged
+ * SEVERE).
  *
  * @param foods every food, by item
  * @param fromFiles the item ids whose food file was taken
@@ -37,7 +37,7 @@ record FoodTable(Map<ItemKey, FoodInfo> foods, Set<String> fromFiles) {
         fromFiles = Set.copyOf(fromFiles);
     }
 
-    /** Every food, without the items of {@code tags}' excluded_food and poisonous for those of its poisonousfood. */
+    /** Every food under {@code tags}' food tags; the files whose food a tag excluded are not counted as taken. */
     static FoodTable load(FoodIds ids, JobTags tags) {
         Map<ItemKey, FoodInfo> out = new HashMap<>();
         Set<String> files = new HashSet<>();
@@ -45,16 +45,14 @@ record FoodTable(Map<ItemKey, FoodInfo> foods, Set<String> fromFiles) {
             Map<String, Item> items = Item.getAssetMap().getAssetMap();
             addFiles(items, out, files);
             ids.category().ifPresent(category -> addByQuality(items, category, ids, out));
-            Set<ItemKey> excluded = tags.get(JobTags.EXCLUDED_FOOD);
-            Set<ItemKey> poisonous = tags.get(JobTags.POISONOUS_FOOD);
-            out.keySet().removeAll(excluded);
-            files.removeIf(id -> excluded.contains(new ItemKey(id)));
-            out.replaceAll((item, food) -> poisonous.contains(item) ? poisoned(food) : food);
-            LOG.at(Level.INFO).log("Foods: %d, %d of them from a food file", out.size(), files.size());
+            Map<ItemKey, FoodInfo> tagged = tags.applyToFoods(out);
+            files.removeIf(id -> !tagged.containsKey(new ItemKey(id)));
+            LOG.at(Level.INFO).log("Foods: %d, %d of them from a food file", tagged.size(), files.size());
+            return new FoodTable(tagged, files);
         } catch (RuntimeException e) {
             LOG.at(Level.SEVERE).withCause(e).log("HyColony foods could not be read");
+            return new FoodTable(out, files);
         }
-        return new FoodTable(out, files);
     }
 
     /** Adds each food file of a known item to {@code out} and its id to {@code files}; skips and logs the others. */
@@ -70,11 +68,6 @@ record FoodTable(Map<ItemKey, FoodInfo> foods, Set<String> fromFiles) {
         if (!unknown.isEmpty()) {
             LOG.at(Level.WARNING).log("HyColony food files of unknown items skipped: %s", unknown);
         }
-    }
-
-    /** {@code food}, poisonous (MC poisonousfood tag). */
-    private static FoodInfo poisoned(FoodInfo food) {
-        return new FoodInfo(food.nutrition(), food.tier(), true);
     }
 
     /** Adds one food file; false (logged) when its values are out of bounds. */

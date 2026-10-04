@@ -60,10 +60,10 @@ Un objet sans fichier est un aliment s'il est `Consumable`, n'est pas une varian
 | `RARE` | Rare, Epic, Legendary | 12 | 0 | médiane des 4 aliments Rare |
 
 - **Palier 0** pour tous (revu après la relecture de fidélité) : chez MC, l'aliment d'un autre mod n'est jamais un plat de MC (`FoodUtils.getFoodTier`, `FoodUtils.java:124-137` : palier 0, ou 1 si nutrition ≥ 12 et saturation ≥ 0,8, saturation non portée) et ne reçoit pas le bonus ×2. Un mod qui veut un plat donne son palier dans un fichier.
-- `Poisonous` : faux. Hytale n'a pas de marque « toxique » (ses champignons toxiques appliquent un effet `Poison` quand on les mange) ; nos champignons et ceux d'un mod se marquent par un fichier.
+- `Poisonous` : faux. Hytale n'a pas de marque « toxique » (ses champignons toxiques appliquent un effet `Poison` quand on les mange) ; nos champignons et ceux d'un mod se marquent par un fichier (`"Poisonous": true`) ou par le tag `poisonousfood`.
 - Un fichier hors bornes est écarté : son objet prend alors la valeur de sa qualité, comme un aliment sans fichier, et le selftest le liste.
 - MC `excluded_food` : un objet du tag `excluded_food` (§ 6) n'est jamais un aliment, avec ou sans fichier. HyColony ne livre aucun fichier de ce tag : les 9 objets de MC (`DefaultItemTagsProvider.java:151-160` : pomme dorée enchantée, pomme de terre empoisonnée, chair putréfiée, œil d'araignée…) n'ont pas d'équivalent Hytale à exclure (le fruit empoisonné de Hytale n'empoisonne pas, aucun objet pourri : `docs/research/sp4b-hytale-food.md` l. 89 et 210).
-- MC `poisonousfood` (`TagConstants.java:53`) : un objet de ce tag (§ 6) est toxique, comme un fichier `"Poisonous": true`. Écart marqué dans `FoodTable` : chez MC, seul le tag marque un aliment toxique ; nos fichiers gardent leur champ `Poisonous`, celui de l'ancienne table.
+- MC `poisonousfood` (`TagConstants.java:53`) : un objet de ce tag (§ 6) est toxique, comme un fichier `"Poisonous": true`. Les deux tags d'aliments s'appliquent dans le cœur (`JobTags.applyToFoods`, testé) ; `FoodTable` ne fait que l'appeler. Écart marqué dans `FoodTable` (`Deviation from MC`) : chez MC, seul le tag marque un aliment toxique ; nos fichiers gardent leur champ `Poisonous`, pour qu'un seul fichier décrive un aliment entier.
 - Écart : `Deviation from MC (Hytale world): MC reads an item's FoodProperties nutrition → a Hytale food without a HyColony file takes the median nutrition of our table's foods of its Quality.`
 - Les noms de qualité et la catégorie sont des ids d'assets Hytale : ils vivent dans l'id-map (§ 7), le cœur ne connaît que les trois rangs et leurs valeurs.
 
@@ -107,7 +107,7 @@ Un objet sans fichier est un aliment s'il est `Consumable`, n'est pas une varian
 
 - `crafting/recipe/JobTags` (record) : `Map<String, Set<ItemKey>>`, tag → objets ; `merge` fusionne les fichiers par tag puis ajoute les tags inclus ; `products(crafter)`, `excludedProducts(crafter)`, `get(tag)`.
 - `CraftingRules` reçoit `JobTags` au lieu de lire ces listes dans le JSON ; `allows(jobId, crafter, recipe)` garde l'ordre de MC : exclu → refusé, inclus → accepté (même pour un métier absent de `crafting.json`, comme chez MC où les tags passent avant le `orElse(false)`), sinon `allow` du métier. `isReduceable` et `isExcludedFromReduction` lisent les tags. `CraftingModule` porte le nom de son artisan, que `RecipeCompatibility` passe à `allows`.
-- L'adaptateur `plugin/crafting/HytaleJobTags` lit le magasin `JobTags`, développe les `res:` par le catalogue d'objets, sépare les `#tag` et passe les fichiers au cœur (`JobTags.merge`). `WorldPorts` le lit une fois par monde, pour les règles de fabrication et pour `excluded_food` (`HytaleFoods`). `crafting.json` est lu au `setup()`, avant le chargement des assets ; les tags sont donc ajoutés à la création des ports d'un monde, assets chargés (`CraftingRules.withTags`, dans `WorldPorts`).
+- L'adaptateur `plugin/crafting/HytaleJobTags` lit le magasin `JobTags`, développe les `res:` par le catalogue d'objets, sépare les `#tag` et passe les fichiers au cœur (`JobTags.merge`). `WorldPorts` le lit une fois par monde, pour les règles de fabrication et pour `excluded_food` et `poisonousfood` (`HytaleFoods`). `crafting.json` est lu au `setup()`, avant le chargement des assets ; les tags sont donc ajoutés à la création des ports d'un monde, assets chargés (`CraftingRules.withTags`, dans `WorldPorts`).
 
 ## 7. Partie 3 : les postes de cuisson
 
@@ -137,7 +137,7 @@ L'agent `ui-lang-checker` (qui vérifie la règle des id-maps) et la skill `hyta
 | Tags de MC lus dans des assets Hytale au lieu des tags d'objets de Minecraft | `Deviation from MC (Hytale world)` dans `HytaleJobTags` et `JobTags` |
 | Tags d'ingrédients de MC non lus | `Deviation from MC` dans `CraftingRules.allows` |
 | Boucle ou tag manquant dans les inclusions : lecture tolérante | `Deviation from MC` dans `JobTags.merge` |
-| « Toxique » aussi par le champ `Poisonous` d'un fichier d'aliment, en plus du tag `poisonousfood` | `Deviation from MC (Hytale world)` dans `FoodTable` |
+| « Toxique » aussi par le champ `Poisonous` d'un fichier d'aliment, en plus du tag `poisonousfood` | `Deviation from MC` dans `FoodTable` |
 | Listes `reduceable_*` de MC non encore traduites (audit B-12) | `Deviation from MC (Hytale world)` dans `CraftingRules.isReduceable` |
 | Poste de cuisson : banc `Processing` qui brûle et cuit un aliment, au lieu du four de MC (§ 7) | `Deviation from MC (Hytale world)` dans `CookingBenches` |
 
@@ -154,7 +154,8 @@ L'agent `ui-lang-checker` (qui vérifie la règle des id-maps) et la skill `hyta
 
 - **Cœur (TDD)** :
   - `FoodQuality` : la nutrition de chaque rang, palier 0 ;
-  - `JobTags` et `CraftingRules` : un produit exclu par un tag est refusé même si un autre tag l'inclut ; un produit inclus est accepté sans banc autorisé ; sans tag, `allow` décide ; deux tags du même nom fusionnés ; un tag qui en inclut un autre, une boucle d'inclusions, une inclusion inconnue ; les tags sont ceux de l'artisan, pas du métier ; `reduceable` et `excluded_food` lus dans les tags ;
+  - `JobTags` et `CraftingRules` : un produit exclu par un tag est refusé même si un autre tag l'inclut ; un produit inclus est accepté sans banc autorisé ; sans tag, `allow` décide ; deux tags du même nom fusionnés ; un tag qui en inclut un autre, une boucle d'inclusions, une inclusion inconnue ou qu'aucun fichier ne nomme ; les tags sont ceux de l'artisan, pas du métier ; un métier absent de `crafting.json` apprend ses produits tagués ; `reduceable`, `excluded_food` et `poisonousfood` lus dans les tags ; `applyToFoods` retire un aliment exclu et rend toxique un aliment du tag sans changer sa valeur ;
+  - `RecipeCompatibility` : le tag de l'artisan du module s'applique, un tag nommé d'après l'id du métier ne s'applique pas, la hutte du fermier lit `farmer_*` ;
   - `CraftingRulesJson` : une ancienne clé `includeItems` est ignorée avec un avertissement ;
   - les tests existants de `CraftingRules` passent par `JobTags` au lieu des listes JSON.
 - **Plugin** (`/hycolony selftest` et `docs/TESTING.md`, à partir du point 382) :
