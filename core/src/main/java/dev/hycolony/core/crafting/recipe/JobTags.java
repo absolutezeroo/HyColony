@@ -1,5 +1,6 @@
 package dev.hycolony.core.crafting.recipe;
 
+import dev.hycolony.core.kernel.item.FoodInfo;
 import dev.hycolony.core.kernel.item.ItemKey;
 import java.util.ArrayDeque;
 import java.util.Collection;
@@ -123,6 +124,22 @@ public record JobTags(Map<String, Set<ItemKey>> tags) {
         return out;
     }
 
+    /**
+     * {@code foods} under the food tags: without the items of {@code excluded_food} (MC ItemStackUtils.ISFOOD), and
+     * poisonous for those of {@code poisonousfood} (MC FoodUtils), each keeping its nutrition and tier.
+     */
+    public Map<ItemKey, FoodInfo> applyToFoods(Map<ItemKey, FoodInfo> foods) {
+        Set<ItemKey> excluded = get(EXCLUDED_FOOD);
+        Set<ItemKey> poisonous = get(POISONOUS_FOOD);
+        Map<ItemKey, FoodInfo> out = new LinkedHashMap<>();
+        foods.forEach((item, food) -> {
+            if (!excluded.contains(item)) {
+                out.put(item, poisonous.contains(item) ? new FoodInfo(food.nutrition(), food.tier(), true) : food);
+            }
+        });
+        return out;
+    }
+
     /** The items of {@code tag}; empty for a tag no file names. */
     public Set<ItemKey> get(String tag) {
         return tags.getOrDefault(tag, Set.of());
@@ -138,7 +155,7 @@ public record JobTags(Map<String, Set<ItemKey>> tags) {
         return get(crafter + PRODUCT_EXCLUDED);
     }
 
-    /** Whether HyColony reads {@code tag}: a reduceable tag, excluded_food, or a crafter's product (exclusion) tag. */
+    /** Whether HyColony reads {@code tag}: reduceable, excluded_food, poisonousfood, or a crafter's product tag. */
     static boolean isKnown(String tag) {
         return tag.equals(REDUCEABLE_INGREDIENT)
                 || tag.equals(REDUCEABLE_PRODUCT_EXCLUDED)

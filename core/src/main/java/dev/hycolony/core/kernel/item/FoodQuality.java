@@ -25,7 +25,7 @@ public enum FoodQuality {
 
     /**
      * What a food of this rank gives a citizen. Never poisonous: Hytale has no poisonous flag (its toxic foods apply a
-     * Poison effect when eaten), so a mod marks a poisonous food with a food file.
+     * Poison effect when eaten), so a mod marks a poisonous food with a food file or the poisonousfood tag.
      */
     public FoodInfo food() {
         return food;

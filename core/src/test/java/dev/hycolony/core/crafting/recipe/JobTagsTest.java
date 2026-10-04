@@ -5,15 +5,18 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import dev.hycolony.core.kernel.item.FoodInfo;
 import dev.hycolony.core.kernel.item.ItemKey;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 class JobTagsTest {
     private static final ItemKey BREAD = new ItemKey("Food_Bread");
     private static final ItemKey PIE = new ItemKey("Food_Pie_Apple");
+    private static final FoodInfo BREAD_FOOD = new FoodInfo(6, 1, false);
 
     @Test
     void filesOfOneTagAddUpLikeMinecraftTags() {
@@ -88,6 +91,25 @@ class JobTagsTest {
     void poisonousFoodTagIsReadLikeMcPoisonousfood() {
         JobTags tags = JobTags.merge(List.of(new JobTags.TagFile(JobTags.POISONOUS_FOOD, List.of(PIE))), w -> fail(w));
         assertEquals(Set.of(PIE), tags.get(JobTags.POISONOUS_FOOD));
+    }
+
+    @Test
+    void anExcludedFoodIsNoFoodLikeMcIsFood() {
+        JobTags tags = JobTags.merge(List.of(new JobTags.TagFile(JobTags.EXCLUDED_FOOD, List.of(PIE))), w -> fail(w));
+        Map<ItemKey, FoodInfo> foods = tags.applyToFoods(Map.of(BREAD, BREAD_FOOD, PIE, new FoodInfo(12, 3, false)));
+        assertEquals(Map.of(BREAD, BREAD_FOOD), foods);
+    }
+
+    @Test
+    void aPoisonousFoodKeepsItsValueAndBecomesPoisonous() {
+        JobTags tags =
+                JobTags.merge(List.of(new JobTags.TagFile(JobTags.POISONOUS_FOOD, List.of(BREAD))), w -> fail(w));
+        assertEquals(Map.of(BREAD, new FoodInfo(6, 1, true)), tags.applyToFoods(Map.of(BREAD, BREAD_FOOD)));
+    }
+
+    @Test
+    void foodsAreUnchangedWithoutTags() {
+        assertEquals(Map.of(BREAD, BREAD_FOOD), JobTags.EMPTY.applyToFoods(Map.of(BREAD, BREAD_FOOD)));
     }
 
     @Test
