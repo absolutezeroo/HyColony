@@ -43,8 +43,9 @@ public final class CitizenHurt {
 
     /**
      * MC handleInWallDamage: a citizen suffocating in a block takes no damage and is moved to a free spot where it
-     * stands (MC TeleportHelper.teleportCitizen at its blockPosition: woken first, its walks reset, through its AI).
-     * Nothing for a body without a position.
+     * stands (MC TeleportHelper.teleportCitizen at its blockPosition: woken first, through its AI). Deviation from MC:
+     * its job AI is reset when it works again, as for every HyColony teleport (its walkers keep state, where MC's
+     * navigation keeps none). Nothing for a body without a position.
      */
     public static void outOfWall(Colony colony, BodyId body) {
         CitizenBodies bodies = colony.context().bodies();

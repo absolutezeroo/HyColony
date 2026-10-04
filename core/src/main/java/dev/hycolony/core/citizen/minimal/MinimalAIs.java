@@ -87,15 +87,17 @@ public final class MinimalAIs {
     }
 
     /**
-     * MC decideAiTask in FLEE: while {@code decide} from the state it fled from (MC lastState) gives that state, it
-     * keeps fleeing (null); another one (a meal, bedtime, mourning) takes over. Fled from its bed, it flees on (MC
-     * keeps SLEEP as lastState at night).
+     * MC decideAiTask in FLEE: while MC calculateNextState from the state it fled from (MC lastState) gives that
+     * state, it keeps fleeing (null); another one takes over: a meal, bedtime, mourning ({@code decide}, null to stay
+     * asleep at night), or the rain, a break or work to do ({@code shouldWork}, MC's rain and work parts). Deviation
+     * from MC: MC's lastState is its last decision, taken every 10 ticks; ours is the state it fled from.
      */
-    public @Nullable CitizenState decideWhileFleeing(Function<CitizenState, @Nullable CitizenState> decide) {
-        if (fleeFrom == CitizenState.SLEEP) {
-            return null;
-        }
+    public @Nullable CitizenState decideWhileFleeing(
+            Function<CitizenState, @Nullable CitizenState> decide, BooleanSupplier shouldWork) {
         CitizenState next = decide.apply(fleeFrom);
+        if (next == CitizenState.IDLE || next == CitizenState.WORKING) {
+            next = shouldWork.getAsBoolean() ? CitizenState.WORKING : CitizenState.IDLE;
+        }
         return next == null || next == fleeFrom ? null : next;
     }
 }

@@ -27,8 +27,9 @@ import org.jspecify.annotations.Nullable;
  * completeStuckAction; a Hytale teleport can land it under a roof two blocks off, so the walk is also given up when it
  * circles for a global timeout after the teleport. A walk started without teleport (to a spot never checked, which
  * may be in lava) gives up wherever it would teleport: MC's handler teleports regardless. A citizen is hurt as MC's
- * completeStuckAction hurts it on a teleport or a give-up away from its destination (the listener's,
- * CitizenWalkReports).
+ * completeStuckAction hurts it on a teleport or a give-up away from its destination, once per walk (the listener's,
+ * CitizenWalkReports); with the collapsed levels this full stuck comes after about 15 s without progress, where MC
+ * reaches it after its nine levels or its global timeout (MIN_TP_DELAY, 2 min), so the citizen is hurt sooner.
  */
 public final class StuckHandler {
     public enum Action {

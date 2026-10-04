@@ -19,6 +19,8 @@ import dev.hycolony.core.kernel.port.NavStatus;
 public final class CitizenWalkReports implements WalkListener {
     private final Colony colony;
     private final CitizenData citizen;
+    /** Its walk under way already hurt it for a full stuck. */
+    private boolean hurtThisWalk;
 
     public CitizenWalkReports(Colony colony, CitizenData citizen) {
         this.colony = colony;
@@ -27,6 +29,7 @@ public final class CitizenWalkReports implements WalkListener {
 
     @Override
     public void walkStarted(BlockPos target, Vec3 from) {
+        hurtThisWalk = false;
         citizen.vitals().walks().started(target, now());
     }
 
@@ -48,10 +51,12 @@ public final class CitizenWalkReports implements WalkListener {
     public void stuck(BlockPos target, Vec3 at, StuckHandler.Action action) {
         long now = now();
         // MC completeStuckAction (which hurts) is a teleport, or a give-up away from the goal; by it, MC is never
-        // stuck.
-        if (action == StuckHandler.Action.TELEPORT
+        // stuck. Once per walk: MC resets its stuck timers after it (resetGlobalStuckTimers).
+        boolean complete = action == StuckHandler.Action.TELEPORT
                 || (action == StuckHandler.Action.GIVE_UP
-                        && at.distance(Vec3.center(target)) >= StuckHandler.MIN_TARGET_DIST)) {
+                        && at.distance(Vec3.center(target)) >= StuckHandler.MIN_TARGET_DIST);
+        if (complete && !hurtThisWalk) {
+            hurtThisWalk = true;
             CitizenHurt.stuck(colony, citizen);
         }
         CitizenVitals v = citizen.vitals();

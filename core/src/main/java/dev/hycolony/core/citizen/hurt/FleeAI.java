@@ -19,7 +19,9 @@ import org.jspecify.annotations.Nullable;
  * (MC EntityAICitizenAvoidEntity in FLEE). Its runs go through a walker, whose stuck handler always ends them (MC's
  * navigation and PathingStuckHandler). Deviation from MC: no call for help (no guards yet); no move-away sound (no
  * citizen voice yet); the run keeps the body's speed, where MC's navigation takes 1.1 near a monster and 0.8 further,
- * as the body's speed factor is its job's (a courier's skill).
+ * as the body's speed factor is its job's (a courier's skill); the step away from a harm without an attacker and the
+ * walk back once safe are plain walks outside this AI (no stuck handler: the next AI's wander waits for them
+ * {@code CitizenWander.WANDER_TIMEOUT_TICKS} at most).
  */
 public final class FleeAI {
     /** MC: its flee steps run every 5 ticks. */

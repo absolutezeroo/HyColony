@@ -97,6 +97,18 @@ class CitizenHurtTest {
     }
 
     @Test
+    void aStuckWalkHurtsOnceTillTheNextWalk() {
+        CitizenWalkReports walks = new CitizenWalkReports(colony, citizen);
+        walks.stuck(new BlockPos(5, 64, 5), new Vec3(30, 64, 1), StuckHandler.Action.TELEPORT);
+        walks.stuck(new BlockPos(5, 64, 5), new Vec3(30, 64, 1), StuckHandler.Action.GIVE_UP);
+        assertEquals(80, t.bodies.bodies.get(body).health, EPS, "MC resetGlobalStuckTimers after completeStuckAction");
+
+        walks.walkStarted(new BlockPos(9, 64, 9), new Vec3(30, 64, 1));
+        walks.stuck(new BlockPos(9, 64, 9), new Vec3(30, 64, 1), StuckHandler.Action.TELEPORT);
+        assertEquals(60, t.bodies.bodies.get(body).health, EPS);
+    }
+
+    @Test
     void aGiveUpFarFromItsGoalHurtsAsMcButNotOneBesideIt() {
         CitizenWalkReports walks = new CitizenWalkReports(colony, citizen);
         walks.stuck(new BlockPos(5, 64, 5), new Vec3(5.5, 64, 6.5), StuckHandler.Action.GIVE_UP);

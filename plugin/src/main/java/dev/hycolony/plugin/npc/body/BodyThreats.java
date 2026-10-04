@@ -19,7 +19,8 @@ import org.jspecify.annotations.Nullable;
 /**
  * The hostile creatures near a citizen body (MC EntityAICitizenAvoidEntity.getClosestToAvoid: a Monster in the body's
  * bounding box inflated by the range, 3 up and down): an NPC of {@link HostileGroup}, not dying. Deviation from MC:
- * no line-of-sight check (MC getSensing().hasLineOfSight). World thread only.
+ * no line-of-sight check (MC getSensing().hasLineOfSight), and a monster counts by its position in the box, where MC
+ * counts its own box meeting it (TargetUtil.getAllEntitiesInBox collects positions). World thread only.
  */
 public final class BodyThreats {
     /** MC getClosestToAvoid: the box is inflated 3 blocks up and down. */

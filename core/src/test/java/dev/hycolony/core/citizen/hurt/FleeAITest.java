@@ -122,12 +122,35 @@ class FleeAITest {
     }
 
     @Test
-    void aHitWakesASleeper() {
+    void aWorkerWhoseWorkEndsWhileFleeingStopsFleeing() {
+        data.setJob(TestJobs.TYPE.factory().apply(data));
+        CitizenAI worker = new CitizenAI(colony(), data, body);
+        for (int i = 0; i < 30 && worker.state() != CitizenState.WORKING; i++) {
+            t.clock.tick++;
+            worker.tick();
+        }
+        worker.hit(new Vec3(5.5, 64, 0.5), false);
+        t.clock.tick++;
+        worker.tick();
+        assertEquals(CitizenState.FLEE, worker.state());
+
+        data.setJob(null);
+        for (int i = 0; i < 11; i++) {
+            t.clock.tick++;
+            worker.tick();
+        }
+
+        assertEquals(CitizenState.IDLE, worker.state(), "MC calculateNextState: IDLE != lastState WORK ends FLEE");
+    }
+
+    @Test
+    void aHitSleeperGetsOutOfBed() {
         data.setAsleep(true);
 
         ai.hit(null, true);
 
-        assertFalse(data.asleep(), "Minecraft LivingEntity.hurt: stopSleeping");
+        assertTrue(t.bodies.wakeUps.contains(body), "Minecraft LivingEntity.hurt: stopSleeping, out of bed");
+        assertFalse(data.asleep(), "bedless until it goes to bed again (our asleep means lying in bed)");
     }
 
     @Test

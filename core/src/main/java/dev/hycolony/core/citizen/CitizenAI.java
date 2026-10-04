@@ -127,7 +127,7 @@ public final class CitizenAI {
      * hurt by no entity, it only steps away.
      */
     public void hit(@Nullable Vec3 attacker, boolean fall) {
-        sleep.wakeUp(); // Minecraft LivingEntity.hurt: a hurt sleeper wakes up
+        sleep.hurtAwake();
         if (!fall) {
             minimal.hit(Optional.ofNullable(attacker), now -> leave(now, WorkExit.FLEE));
         }
@@ -194,7 +194,7 @@ public final class CitizenAI {
     private @Nullable CitizenState decide() {
         CitizenState now = machine.getState();
         if (now == CitizenState.FLEE) {
-            return minimal.decideWhileFleeing(this::decideFrom);
+            return minimal.decideWhileFleeing(this::decideFrom, work::shouldWork);
         }
         CitizenState next = decideFrom(now);
         return next == now ? null : next;

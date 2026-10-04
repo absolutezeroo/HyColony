@@ -38,6 +38,10 @@ public final class MournAI {
     static final int AVERAGE_STARE_TIME = 10 * 20;
     /** MC stare: the nearest citizen within its bounding box inflated by 3 blocks. */
     static final double STARE_RANGE = 3;
+    /** The citizen model's hitbox half width, in blocks (Server/Models/Human/Player.json, HitBox Max X). */
+    private static final double HALF_WIDTH = 0.325;
+    /** The citizen model's hitbox height, in blocks (Server/Models/Human/Player.json, HitBox Max Y). */
+    private static final double HEIGHT = 1.85;
 
     private enum Step {
         DECIDE,
@@ -138,7 +142,7 @@ public final class MournAI {
         bodies.position(stared).ifPresent(at -> bodies.lookAt(body, new Vec3(at.x(), at.y() + EYE_HEIGHT, at.z())));
     }
 
-    /** The living body of another citizen nearest to it, within {@link #STARE_RANGE} on each axis. */
+    /** The living body of another citizen nearest to it, {@link #near} it. */
     private Optional<BodyId> nearestCitizen() {
         Vec3 here = bodies.position(body).orElse(null);
         if (here == null) {
@@ -159,10 +163,16 @@ public final class MournAI {
         return Optional.ofNullable(best);
     }
 
+    /**
+     * MC getNearestEntity in its bounding box inflated by {@link #STARE_RANGE}: the other's box meets it, both a
+     * citizen's. Deviation from MC (Hytale world): MC's 0.6 by 1.8 citizen box → the citizen model's hitbox, 0.65 by
+     * 1.85 (Server/Models/Human/Player.json).
+     */
     private static boolean near(Vec3 a, Vec3 b) {
-        return Math.abs(a.x() - b.x()) <= STARE_RANGE
-                && Math.abs(a.y() - b.y()) <= STARE_RANGE
-                && Math.abs(a.z() - b.z()) <= STARE_RANGE;
+        double reach = STARE_RANGE + 2 * HALF_WIDTH;
+        return Math.abs(a.x() - b.x()) <= reach
+                && Math.abs(a.z() - b.z()) <= reach
+                && Math.abs(a.y() - b.y()) <= STARE_RANGE + HEIGHT;
     }
 
     /** MC getMournLocation: the town hall, else its home; empty with neither. */

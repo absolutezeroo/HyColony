@@ -65,6 +65,19 @@ public final class CitizenSleep {
     }
 
     /**
+     * A hurt sleeper gets out of bed (Minecraft LivingEntity.hurt, stopSleeping), without MC's wake-up hooks (its hut,
+     * job and home learn of a wake-up only in the morning). Deviation from MC: MC keeps isAsleep until its morning
+     * onWakeUp; ours reads asleep as lying in bed, so the citizen is bedless and awake until it goes to bed again.
+     * Nothing for a citizen awake.
+     */
+    public void hurtAwake() {
+        if (data.asleep()) {
+            colony.context().bodies().wakeUp(body);
+            handler.leftBed();
+        }
+    }
+
+    /**
      * MC CitizenData.initEntityValues: a body appearing wakes its citizen up. Deviation from MC: always, not only
      * without a bed position, as Hytale saves no NPC lying in a bed.
      */
