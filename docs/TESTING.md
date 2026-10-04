@@ -661,3 +661,15 @@ Spec `2026-10-04-hycolony-mort-des-citoyens-design.md`. Les citoyens sont désor
 398. **Deuil.** Le lendemain matin, les citoyens qui logeaient avec le mort sont « En deuil d'un citoyen » (onglet Citoyens) : ils ne travaillent pas, regardent un citoyen proche ou vont vers la mairie, mangent et dorment normalement ; le surlendemain, ils reprennent le travail.
 399. **Arrivées.** Avec « Arrivée de nouveaux citoyens » actif et moins de citoyens que le nombre initial, un nouveau citoyen arrive ensuite comme d'habitude.
 400. **Sauvegarde.** Après un deuil en cours, sauvegarder et relancer : le citoyen est toujours en deuil, les statistiques de morts sont conservées.
+
+## HyAngler : essai du bouchon (2026-10-04)
+
+Plan `2026-10-04-hyangler-p1.md`, tâche 2 : un essai jetable, avant de construire la pêche. Le bouchon est le crochet du grappin, la ligne la corde `Rope` de Hytale. Noter chaque réponse : elle décide de la suite. Deux cannes : la « physique libre » laisse le crochet à la seule physique de Hytale (la vraie question), le « bouchon figé » le cloue là où il touche l'eau, comme le fera la vraie canne.
+
+401. **Lancer.** Avec deux emplacements libres dans l'inventaire (sinon rien n'est donné), `/hyanglerspike` (opérateur) donne les deux cannes d'essai. Au bord d'un lac, tenir le clic droit puis relâcher : une barre de charge s'affiche, le crochet part, une corde le relie à la main droite. Noter l'animation que joue le personnage.
+402. **Physique libre.** Avec la canne « physique libre », lancer sur un lac : le crochet **flotte-t-il seul** à la surface, coule-t-il, ou rebondit-il ? Puis sur une rivière qui coule : **dérive-t-il** avec le courant ? Noter ce qu'on voit : c'est la réponse de Hytale, que notre code ne touche pas.
+403. **Bouchon figé.** Avec la canne « bouchon figé » : le crochet s'arrête là où il touche l'eau et oscille doucement. Noter s'il paraît posé sur la surface, trop haut (dans l'air) ou dessous (dans l'eau) : sa hauteur n'est qu'une estimation de l'essai.
+404. **Corde.** Le crochet posé à une dizaine de blocs, s'en éloigner à pied à 10, 20 puis 30 blocs : la corde reste-t-elle visible, et suit-elle le crochet ? Noter si elle est trop épaisse, trop fine, ou si elle disparaît.
+405. **Sol et force.** Lancé sur la terre : il se pose et y reste. Relâcher avant 0,5 s, entre 0,5 et 1 s, puis après 1 s de charge : il part de plus en plus loin. Noter les trois distances, à peu près.
+406. **Vues.** En première et en troisième personne : d'où part la corde (main, canne, ailleurs) ? Le crochet disparaît au bout d'une minute.
+407. **Après l'essai.** Jeter les deux cannes d'essai avant la mise à jour qui les retire (tâche 14) : sinon elles restent dans l'inventaire sauvegardé comme objets inconnus.
