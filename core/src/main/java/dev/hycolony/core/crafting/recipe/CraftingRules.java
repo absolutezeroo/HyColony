@@ -72,20 +72,20 @@ public final class CraftingRules {
      * Whether {@code jobId}, whose crafting module reads the tags of {@code crafter} (MC TagConstants.CRAFTING_*: the
      * chef reads {@code cook}), may learn {@code recipe}. As MC CraftingUtils.getProductValidatorBasedOnTags, an output
      * in the crafter's product exclusion tag is refused first and one in its product tag allowed; otherwise the
-     * recipe's bench and categories must be allowed. A job absent from the file may learn nothing (MC BuildingFarmer:
-     * {@code orElse(false)}). Deviation from MC: the ingredient tags ({@code <crafter>_ingredient}, MC
-     * CraftingUtils.isRecipeCompatibleBasedOnTags) are not read yet.
+     * recipe's bench and categories must be allowed by the job's file rules, and a job absent from the file may learn
+     * nothing else (MC BuildingFarmer: the tags first, then {@code orElse(false)}). Deviation from MC: the ingredient
+     * tags ({@code <crafter>_ingredient}, MC CraftingUtils.isRecipeCompatibleBasedOnTags) are not read yet.
      */
     public boolean allows(String jobId, String crafter, Recipe recipe) {
-        JobRules job = jobs.get(jobId);
-        if (job == null) {
-            return false;
-        }
         ItemKey output = recipe.primaryOutput().item();
         if (tags.excludedProducts(crafter).contains(output)) {
             return false;
         }
-        return tags.products(crafter).contains(output) || job.allow().stream().anyMatch(a -> a.accepts(recipe.bench()));
+        if (tags.products(crafter).contains(output)) {
+            return true;
+        }
+        JobRules job = jobs.get(jobId);
+        return job != null && job.allow().stream().anyMatch(a -> a.accepts(recipe.bench()));
     }
 
     /** The custom recipes of {@code jobId}; empty for a job absent from the file. */
@@ -94,7 +94,11 @@ public final class CraftingRules {
         return job == null ? List.of() : job.custom();
     }
 
-    /** Whether an improvement may take one of this ingredient off a recipe (MC crafterIngredient reduceable tag). */
+    /**
+     * Whether an improvement may take one of this ingredient off a recipe (MC crafterIngredient reduceable tag).
+     * Deviation from MC (Hytale world): MC ships about thirty reduceable ingredients (reduceable_ingredient.json) →
+     * HyColony ships no {@code reduceable_ingredient} file yet, so nothing is reduced until audit B-12 writes it.
+     */
     public boolean isReduceable(ItemKey ingredient) {
         return tags.get(JobTags.REDUCEABLE_INGREDIENT).contains(ingredient);
     }

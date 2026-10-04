@@ -7,12 +7,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import dev.hycolony.core.crafting.module.CraftingModule.LearnRefusal;
 import dev.hycolony.core.crafting.recipe.BenchRequirement;
 import dev.hycolony.core.crafting.recipe.Ingredient;
+import dev.hycolony.core.crafting.recipe.JobTags;
 import dev.hycolony.core.crafting.recipe.Recipe;
 import dev.hycolony.core.crafting.recipe.RecipeFixtures;
 import dev.hycolony.core.crafting.recipe.RecipeId;
 import dev.hycolony.core.crafting.recipe.RecipeSource;
+import dev.hycolony.core.farming.hut.FarmerHut;
 import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
+import dev.hycolony.core.testing.TestContexts;
+import dev.hycolony.core.testing.crafting.TestCrafters;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -111,6 +115,52 @@ class RecipeCompatibilityTest {
         h.bench("Workbench", 1);
 
         assertEquals(Optional.of(LearnRefusal.INCOMPATIBLE), canLearn(RecipeFixtures.at("Workbench", "Tools", "Hoe")));
+    }
+
+    @Test
+    void theModulesCrafterTagLetsItLearnWhatItsFileRulesRefuse() {
+        CraftingHut tagged = tagged(TestCrafters.CRAFTER + "_product", new ItemKey("Hoe"));
+        tagged.bench("Workbench", 1);
+        Recipe hoe = RecipeFixtures.at("Workbench", "Tools", "Hoe");
+
+        assertEquals(
+                Optional.empty(),
+                tagged.module.canLearn(tagged.colony, tagged.hut, tagged.register(hoe), tagged.owner));
+    }
+
+    @Test
+    void aTagNamedAfterTheJobIdRatherThanTheCrafterDoesNotApply() {
+        CraftingHut tagged = tagged(TestCrafters.ID + "_product", new ItemKey("Hoe"));
+        tagged.bench("Workbench", 1);
+        Recipe hoe = RecipeFixtures.at("Workbench", "Tools", "Hoe");
+
+        assertEquals(
+                Optional.of(LearnRefusal.INCOMPATIBLE),
+                tagged.module.canLearn(tagged.colony, tagged.hut, tagged.register(hoe), tagged.owner));
+    }
+
+    @Test
+    void theFarmersHutReadsTheFarmerTagsLikeMcCraftingFarmer() {
+        String farmingbench = """
+                {"jobs": {"%s": {"allow": [{"bench": "Farmingbench", "categories": ["*"]}]}}}""";
+        String rules = farmingbench.formatted(FarmerHut.TYPE_ID);
+        TestContexts t = new TestContexts();
+        t.jobTags = JobTags.merge(
+                List.of(new JobTags.TagFile("farmer_product_excluded", List.of(new ItemKey("Plant_Seeds_Wheat")))),
+                w -> {});
+        CraftingHut farmer = new CraftingHut(t, rules, FarmerHut.TYPE);
+        farmer.bench("Farmingbench", 1);
+
+        assertEquals(
+                Optional.of(LearnRefusal.INCOMPATIBLE),
+                farmer.module.canLearn(farmer.colony, farmer.hut, farmer.register(WHEAT), farmer.owner));
+    }
+
+    /** A test crafter hut under {@link CraftingHut#RULES} whose job tag {@code tag} holds {@code item}. */
+    private static CraftingHut tagged(String tag, ItemKey item) {
+        TestContexts t = new TestContexts();
+        t.jobTags = JobTags.merge(List.of(new JobTags.TagFile(tag, List.of(item))), w -> {});
+        return new CraftingHut(t, CraftingHut.RULES, TestCrafters.HUT);
     }
 
     @Test

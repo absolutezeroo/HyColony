@@ -76,6 +76,21 @@ class JobTagsTest {
     }
 
     @Test
+    void includeOfAKnownTagNoFileNamesIsEmptyWithOneWarning() {
+        List<String> warnings = new ArrayList<>();
+        JobTags tags = JobTags.merge(
+                List.of(new JobTags.TagFile("cook_product", List.of(BREAD), List.of("chef_product"))), warnings::add);
+        assertEquals(1, warnings.size(), warnings::toString);
+        assertEquals(Set.of(BREAD), tags.products("cook"));
+    }
+
+    @Test
+    void poisonousFoodTagIsReadLikeMcPoisonousfood() {
+        JobTags tags = JobTags.merge(List.of(new JobTags.TagFile(JobTags.POISONOUS_FOOD, List.of(PIE))), w -> fail(w));
+        assertEquals(Set.of(PIE), tags.get(JobTags.POISONOUS_FOOD));
+    }
+
+    @Test
     void excludedFoodTagIsRead() {
         JobTags tags = JobTags.merge(List.of(new JobTags.TagFile(JobTags.EXCLUDED_FOOD, List.of(PIE))), w -> fail(w));
         assertEquals(Set.of(PIE), tags.get(JobTags.EXCLUDED_FOOD));

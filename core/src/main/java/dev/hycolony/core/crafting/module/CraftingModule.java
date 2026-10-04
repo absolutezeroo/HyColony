@@ -72,7 +72,7 @@ public final class CraftingModule implements PersistentModule, TickingModule, Ke
     }
 
     /** The crafter whose job tags apply ({@code <crafter>_product}…): the farmer's is {@code farmer}. */
-    public String crafter() {
+    String crafter() {
         return crafter;
     }
 

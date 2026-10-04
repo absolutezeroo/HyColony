@@ -66,6 +66,16 @@ class CraftingRulesTest {
     }
 
     @Test
+    void aJobAbsentFromTheFileStillLearnsItsTaggedProductsLikeMcTagsBeforeOrElseFalse() {
+        CraftingRules none = CraftingRules.parse(json("{}"), w -> fail(w)).withTags(TAGS);
+        assertTrue(none.allows("pack:farmer", "farmer", RecipeFixtures.at("Cookingbench", "Bread", "Food_Bread")));
+        assertFalse(none.allows(
+                "pack:farmer", "farmer", RecipeFixtures.at("Farmingbench", "Saplings", "Plant_Sapling_Oak")));
+        assertFalse(
+                none.allows("pack:farmer", "farmer", RecipeFixtures.at("Farmingbench", "Seeds", "Plant_Seeds_Corn")));
+    }
+
+    @Test
     void theTagsAreTheCrafterNamesNotTheJobIdsLikeMcChefReadingCookTags() {
         CraftingRules r = CraftingRules.parse(json("{\"jobs\":{\"hycolony:chef\":{}}}"), w -> fail(w))
                 .withTags(tags(

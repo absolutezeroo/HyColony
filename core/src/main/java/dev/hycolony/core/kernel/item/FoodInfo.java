@@ -2,7 +2,7 @@ package dev.hycolony.core.kernel.item;
 
 /**
  * What a citizen gets from eating an item: MC FoodProperties.getNutrition, the IMinecoloniesFoodItem tier (0 for an
- * ordinary food, 1 to 3 for a prepared dish) and the MC {@code poisonous_food} tag.
+ * ordinary food, 1 to 3 for a prepared dish) and the MC {@code poisonousfood} tag.
  */
 public record FoodInfo(int nutrition, int tier, boolean poisonous) {
     /** The highest dish tier (MC IMinecoloniesFoodItem tiers 1 to 3). */
