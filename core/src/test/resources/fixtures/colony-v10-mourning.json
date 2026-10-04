@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 10,
+  "id": 1,
+  "name": "Fixture",
+  "center": {"x": 0, "y": 64, "z": 0},
+  "day": 3,
+  "style": "Medieval Oak",
+  "permissions": {
+    "owner": "00000000-0000-0000-0000-000000000001",
+    "ownerName": "Owner",
+    "ranks": [
+      {"id": 0, "name": "Owner", "permissions": 2147483647, "initial": true, "colonyManager": true, "hostile": false},
+      {"id": 3, "name": "Neutral", "permissions": 1342177280, "initial": true, "colonyManager": false, "hostile": false}
+    ],
+    "members": [{"uuid": "00000000-0000-0000-0000-000000000001", "name": "Owner", "rank": 0}]
+  },
+  "requests": {},
+  "workOrders": [],
+  "workOrderTopId": 0,
+  "settings": {"autoHiring": true, "autoHousing": false, "moveIn": true, "constructionTape": true},
+  "buildings": [
+    {
+      "type": "hycolony:townhall",
+      "pos": {"x": 0, "y": 64, "z": 0},
+      "rotation": 0,
+      "level": 1,
+      "built": true,
+      "customName": "",
+      "style": "Medieval Oak",
+      "modules": {},
+      "containers": [],
+      "deconstructed": false,
+      "workstations": []
+    }
+  ],
+  "citizens": [
+    {
+      "id": 1,
+      "name": "Aela K. Oakhart",
+      "gender": "FEMALE",
+      "child": false,
+      "skills": {"Athletics": {"level": 3, "xp": 0.5}},
+      "lastPosition": {"x": 1.5, "y": 64.0, "z": 2.5},
+      "respawnPosition": null,
+      "home": null,
+      "bedPos": null,
+      "asleep": false,
+      "work": null,
+      "saturation": 12.5,
+      "leisureTime": 0,
+      "inventory": [{"item": "hycolony:apple", "count": 4}],
+      "job": null,
+      "justAte": false,
+      "foodHistory": [],
+      "jobStatus": "IDLE",
+      "happiness": [],
+      "armor": [],
+      "heldMain": -1,
+      "heldOff": -1
+    }
+  ],
+  "eventLog": [{"type": "citizenSpawned", "day": 1, "params": ["Aela K. Oakhart"], "pos": null}],
+  "recipes": {},
+  "fields": []
+}

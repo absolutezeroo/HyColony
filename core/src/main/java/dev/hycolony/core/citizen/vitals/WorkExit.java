@@ -15,6 +15,8 @@ public enum WorkExit {
     SLEEP,
     /** It goes to eat. */
     MEAL,
+    /** It mourns a deceased citizen. */
+    MOURN,
     /** It lost its job. */
     JOB_LOST;
 
@@ -27,6 +29,7 @@ public enum WorkExit {
                     case BREAK -> "break";
                     case SLEEP -> "sleep";
                     case MEAL -> "meal";
+                    case MOURN -> "mourn";
                     case JOB_LOST -> "jobLost";
                 };
     }

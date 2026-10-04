@@ -1,15 +1,10 @@
 package dev.hycolony.plugin.ui.townhall;
 
-import com.hypixel.hytale.protocol.packets.interface_.CustomUIEventBindingType;
 import com.hypixel.hytale.server.core.Message;
-import com.hypixel.hytale.server.core.ui.DropdownEntryInfo;
-import com.hypixel.hytale.server.core.ui.LocalizableString;
-import com.hypixel.hytale.server.core.ui.builder.EventData;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import dev.hycolony.core.app.ui.TownHallView;
 import dev.hycolony.plugin.ui.ColonyPage;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -17,14 +12,9 @@ import java.util.List;
  * interval (page state, "All Time" first shown, as MC), on the right page the work orders.
  */
 final class TownHallInfoTab implements TownHallTab {
-    /** MC WindowStatsPage.INTERVAL, in days; -1 for all time. */
-    private static final List<Integer> INTERVALS = List.of(1, 7, 100, -1);
-
-    private static final List<String> INTERVAL_KEYS = List.of("yesterday", "lastweek", "100days", "alltime");
-
     private final TownHallView.Info info;
     private final WorkOrderListTab orders;
-    private int interval = -1;
+    private final IntervalChoice interval = new IntervalChoice(IntervalChoice.ALL_TIME);
 
     TownHallInfoTab(TownHallView.Info info, WorkOrderListTab orders) {
         this.info = info;
@@ -33,33 +23,17 @@ final class TownHallInfoTab implements TownHallTab {
 
     /** Keeps the interval {@code previous} showed (the core re-shows the window after each action). */
     void keepIntervalOf(TownHallInfoTab previous) {
-        interval = previous.interval;
+        interval.keep(previous.interval);
     }
 
     @Override
     public void render(UICommandBuilder ui, UIEventBuilder events, String root) {
-        intervalDropdown(ui, events, root + " #Interval");
-        List<TownHallView.EventRow> shown = info.within(interval);
+        interval.render(ui, events, root + " #Interval");
+        List<TownHallView.EventRow> shown = info.within(interval.days());
         for (int i = 0; i < shown.size(); i++) {
             row(ui, root + " #Events", i, shown.get(i));
         }
         orders.render(ui, events, root);
-    }
-
-    private void intervalDropdown(UICommandBuilder ui, UIEventBuilder events, String dropdown) {
-        List<DropdownEntryInfo> entries = new ArrayList<>();
-        for (int i = 0; i < INTERVALS.size(); i++) {
-            entries.add(new DropdownEntryInfo(
-                    LocalizableString.fromMessageId("hycolony.ui.interval." + INTERVAL_KEYS.get(i)),
-                    String.valueOf(INTERVALS.get(i))));
-        }
-        ui.set(dropdown + ".Entries", entries);
-        ui.set(dropdown + ".Value", String.valueOf(interval));
-        events.addEventBinding(
-                CustomUIEventBindingType.ValueChanged,
-                dropdown,
-                EventData.of("Action", "interval").append("@Name", dropdown + ".Value"),
-                false);
     }
 
     /** MC fillEventsList: the action, then the citizen's name or the hut and its level, then x y z. */
@@ -86,16 +60,7 @@ final class TownHallInfoTab implements TownHallTab {
     @Override
     public Outcome handle(ColonyPage.Act act) {
         if ("interval".equals(act.action())) {
-            try {
-                int days = Integer.parseInt(act.name());
-                if (INTERVALS.contains(days)) {
-                    interval = days;
-                    return Outcome.REDRAW;
-                }
-            } catch (NumberFormatException _) {
-                // A forged value: ignored.
-            }
-            return Outcome.NONE;
+            return interval.handle(act) ? Outcome.REDRAW : Outcome.NONE;
         }
         orders.handle(act);
         return Outcome.NONE;

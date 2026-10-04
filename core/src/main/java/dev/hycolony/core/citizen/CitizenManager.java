@@ -2,7 +2,8 @@ package dev.hycolony.core.citizen;
 
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.inventory.HeldItems;
-import dev.hycolony.core.citizen.wander.LeisureTimer;
+import dev.hycolony.core.citizen.mourn.CitizenMourning;
+import dev.hycolony.core.citizen.vitals.CitizenUpdate;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.kernel.BlockPos;
@@ -89,8 +90,7 @@ public final class CitizenManager {
 
     /**
      * Every 60 ticks while ACTIVE, for each citizen whose body is alive (MC CitizenData.update does nothing without a
-     * live entity): records its position (the way since the last one counts as walking, MC decreaseWalkingSaturation),
-     * counts its job's inactivity and its leisure time.
+     * live entity): {@link CitizenUpdate#update}.
      */
     public void tickData() {
         if (failNextTick) {
@@ -100,22 +100,12 @@ public final class CitizenManager {
         for (Map.Entry<Integer, BodyId> e : bodies.entrySet()) {
             CitizenData data = citizens.get(e.getKey());
             if (data != null && ctx().bodies().isAlive(e.getValue())) {
-                ctx().bodies().position(e.getValue()).ifPresent(data::moved);
-                data.job().ifPresent(job -> job.tickInactivity(colony));
-                LeisureTimer.tick(data, Colony.CITIZEN_DATA_INTERVAL, homeLevel(data), ctx().random());
+                CitizenUpdate.update(colony, data, e.getValue());
             }
         }
         if (!bodies.isEmpty()) {
             colony.markDirty();
         }
-    }
-
-    /** The level of the citizen's home; 1 without one (MC CitizenData.update). */
-    private int homeLevel(CitizenData data) {
-        BlockPos home = data.homeBuilding();
-        return home == null
-                ? 1
-                : colony.buildings().at(home).map(Building::level).orElse(1);
     }
 
     /** Every core tick: AI of citizens whose body is alive. */
@@ -149,9 +139,15 @@ public final class CitizenManager {
         }
     }
 
-    /** MC CitizenManager.onWakeUp, at dawn: each citizen without a living body gets one (updateEntityIfNecessary). */
+    /**
+     * MC CitizenManager.onWakeUp, at dawn: each citizen without a living body gets one (updateEntityIfNecessary), and
+     * its mourning starts or ends ({@link CitizenMourning#onWakeUp}).
+     */
     public void onWakeUp() {
-        citizens.values().forEach(this::updateBodyIfNecessary);
+        for (CitizenData data : citizens.values()) {
+            updateBodyIfNecessary(data);
+            data.mourning().onWakeUp();
+        }
     }
 
     private void spawnInitialCitizen(BlockPos townHall) {

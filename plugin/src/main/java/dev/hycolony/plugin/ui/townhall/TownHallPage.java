@@ -98,6 +98,7 @@ public final class TownHallPage extends ColonyPage {
         if (previous instanceof TownHallPage p && p.view.colonyId() == view.colonyId()) {
             tab = p.tab;
             info.keepIntervalOf(p.info);
+            stats.keepIntervalOf(p.stats);
             citizens.keepStateOf(p.citizens);
             permissions.keepStateOf(p.permissions);
         }

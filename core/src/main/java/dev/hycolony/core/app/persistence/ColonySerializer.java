@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 
 /** Colony <-> JSON (schema {@value #SCHEMA_VERSION}). Unknown buildings/modules are kept verbatim. */
 public final class ColonySerializer {
-    public static final int SCHEMA_VERSION = 10;
+    public static final int SCHEMA_VERSION = 11;
 
     private static final System.Logger LOG = System.getLogger(ColonySerializer.class.getName());
 
@@ -54,6 +54,7 @@ public final class ColonySerializer {
         o.addProperty("workOrderTopId", c.work().topId());
         o.add("recipes", c.registries().recipes().write());
         o.add("fields", c.registries().fields().write());
+        o.add("statistics", c.registries().statistics().write());
         o.add("settings", settings(c));
 
         JsonArray buildings = new JsonArray();
@@ -97,6 +98,9 @@ public final class ColonySerializer {
         readBuildings(arrayOr(o.get("buildings")), c, ctx);
         if (o.get("fields") instanceof JsonArray fields) {
             c.registries().fields().load(fields);
+        }
+        if (o.get("statistics") instanceof JsonObject statistics) {
+            c.registries().statistics().load(statistics);
         }
         boolean repaired = readCitizens(arrayOr(o.get("citizens")), c, ctx);
         // After the buildings: they re-registered as resolver providers.

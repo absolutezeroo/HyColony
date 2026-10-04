@@ -1,13 +1,12 @@
 package dev.hycolony.core.citizen;
 
 import dev.hycolony.core.citizen.food.CitizenEating;
+import dev.hycolony.core.citizen.mourn.MournAI;
 import dev.hycolony.core.citizen.sleep.CitizenSleep;
 import dev.hycolony.core.citizen.sleep.SleepDecision;
 import dev.hycolony.core.citizen.vitals.AiWatch;
-import dev.hycolony.core.citizen.vitals.CitizenWalkReports;
 import dev.hycolony.core.citizen.vitals.WorkExit;
 import dev.hycolony.core.citizen.wander.CitizenWander;
-import dev.hycolony.core.colony.BlockApproach;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.job.CurrentJobAI;
 import dev.hycolony.core.job.Job;
@@ -20,16 +19,15 @@ import dev.hycolony.core.kernel.ai.AIEventTarget;
 import dev.hycolony.core.kernel.ai.AITarget;
 import dev.hycolony.core.kernel.ai.IStateSupplier;
 import dev.hycolony.core.kernel.ai.TickRateStateMachine;
-import dev.hycolony.core.kernel.nav.BodyWalker;
 import dev.hycolony.core.kernel.port.BodyId;
-import dev.hycolony.core.kernel.port.CitizenBodies;
 import dev.hycolony.core.kernel.port.Msg;
 import java.util.Optional;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Top-level citizen AI: sleep, eat, idle (wandering around) or work its job. Port of MC CitizenAI.calculateNextState
- * in MC's order, sleep then hunger then rain then work (sickness, mourning and raids are not ported): the citizen
+ * Top-level citizen AI: sleep, eat, mourn, idle (wandering around) or work its job. Port of MC
+ * CitizenAI.calculateNextState in MC's order, sleep then hunger then mourning then rain then work (sickness and raids
+ * are not ported): the citizen
  * works only when its job AI cannot go idle ({@link JobAI#canGoIdle}), it is not on a leisure break
  * ({@link WorkStops#onBreak}) and the rain does not stop it ({@link WorkStops#rainStopsWork}).
  */
@@ -43,13 +41,13 @@ public final class CitizenAI {
     private final Colony colony;
     private final CitizenData data;
     private final BodyId body;
-    private final CitizenBodies bodies;
     private final CitizenWander wander;
     private final TickRateStateMachine<CitizenState> machine;
     private final AiWatch watch;
     private final CommandedWalk commanded;
     private final CitizenSleep sleep;
     private final CitizenEating eating;
+    private final MournAI mourn;
     /**
      * Whether the last decision was EATING (MC {@code lastState == EATING}): it stays so after a meal ends, so a
      * citizen whose meal ended hungry goes back to eat at once, as in MC.
@@ -67,21 +65,13 @@ public final class CitizenAI {
         this.colony = colony;
         this.data = data;
         this.body = body;
-        this.bodies = colony.context().bodies();
         this.machine = new TickRateStateMachine<>(CitizenState.IDLE, this::onException);
         this.wander = new CitizenWander(colony, data, body, machine::setCurrentDelay);
         this.watch = new AiWatch(colony, data);
-        this.commanded = new CommandedWalk(
-                () -> new BlockApproach(
-                        colony.context().ports(),
-                        new BodyWalker(
-                                bodies,
-                                body,
-                                colony.context().clock()::currentTick,
-                                new CitizenWalkReports(colony, data))),
-                colony.context().clock()::currentTick);
+        this.commanded = CommandedWalk.of(colony, data, body);
         this.sleep = new CitizenSleep(colony, data, body);
         this.eating = new CitizenEating(colony, data, body);
+        this.mourn = new MournAI(colony, data, body, wander);
         this.jobAI = new CurrentJobAI(colony, data, body, watch::jobStarted);
         this.stops = new WorkStops(colony, data);
         watch.afterTick(CitizenState.IDLE, null, 0); // its vital signs know where it starts
@@ -95,10 +85,12 @@ public final class CitizenAI {
         machine.addTransition(new AIEventTarget<>(AIBlockingEventType.EVENT, this::decide, DECIDE_INTERVAL_TICKS));
         machine.addTransition(new AITarget<>(CitizenState.SLEEP, (IStateSupplier<CitizenState>) this::sleeping, 1));
         machine.addTransition(new AITarget<>(CitizenState.EATING, (IStateSupplier<CitizenState>) this::eat, 1));
+        machine.addTransition(
+                new AITarget<>(CitizenState.MOURN, (IStateSupplier<CitizenState>) mourn::tick, MournAI.RATE_TICKS));
         sleep.onBodyAppeared();
         // A body can keep a job's speed across a crash (the Hytale effect is saved with the NPC); a job AI sets its
         // own.
-        bodies.setMovementSpeed(body, 1);
+        colony.context().bodies().setMovementSpeed(body, 1);
     }
 
     /**
@@ -147,7 +139,7 @@ public final class CitizenAI {
     public void teleport(Vec3 to) {
         sleep.wakeUp();
         moved();
-        bodies.teleport(body, to);
+        colony.context().bodies().teleport(body, to);
     }
 
     /** A command moved it: its job AI is reset at its next work tick; the wander waits for walks seen from now. */
@@ -214,10 +206,35 @@ public final class CitizenAI {
                 watch.leftWork(WorkExit.SLEEP); // even mid-task: MC's sleep part comes before canBeInterrupted
                 yield CitizenState.SLEEP;
             }
-            case WAKE_UP -> decideHunger(now == CitizenState.SLEEP ? CitizenState.IDLE : now);
-            case NONE -> decideHunger(now);
+            case WAKE_UP -> decideMourning(decideHunger(now == CitizenState.SLEEP ? CitizenState.IDLE : now));
+            case NONE -> decideMourning(decideHunger(now));
         };
         return next == now ? null : next;
+    }
+
+    /**
+     * MC calculateNextState's mourning part, after the hunger and before the rain and work: MOURN while it mourns
+     * (MC asks no canBeInterrupted), its walk or work left; once it mourns no more, back to work when it should.
+     * {@code next} is the state the sleep and hunger parts chose.
+     */
+    private CitizenState decideMourning(CitizenState next) {
+        if (next == CitizenState.SLEEP || next == CitizenState.EATING) {
+            return next;
+        }
+        if (data.mourning().isMourning()) {
+            if (next != CitizenState.MOURN) {
+                if (next == CitizenState.WORKING) {
+                    watch.leftWork(WorkExit.MOURN);
+                }
+                wander.restartWait();
+                mourn.reset();
+            }
+            return CitizenState.MOURN;
+        }
+        if (next == CitizenState.MOURN) {
+            return shouldWork() ? CitizenState.WORKING : CitizenState.IDLE;
+        }
+        return next;
     }
 
     /**
@@ -294,7 +311,7 @@ public final class CitizenAI {
      */
     private boolean shouldWork() {
         Job job = data.job().orElse(null);
-        if (job == null || !bodies.isAlive(body) || stops.rainStopsWork()) {
+        if (job == null || !colony.context().bodies().isAlive(body) || stops.rainStopsWork()) {
             return false;
         }
         JobAI ai = jobAI.forJob(job);

@@ -1,0 +1,10 @@
+// A town hall statistic on the book's right page (MC layoutstats.xml stats list's desc text), MC sizes doubled.
+
+Group {
+  Anchor: (Height: 26);
+
+  Label #Desc {
+    Anchor: (Left: 0, Top: 0, Width: 320, Height: 26);
+    Style: (FontSize: 14, TextColor: #000000, VerticalAlignment: Center);
+  }
+}

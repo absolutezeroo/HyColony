@@ -4,24 +4,53 @@ import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import dev.hycolony.core.app.ui.TownHallView.JobCount;
+import dev.hycolony.core.app.ui.TownHallView.StatCount;
 import dev.hycolony.core.app.ui.TownHallView.Stats;
 import dev.hycolony.core.citizen.home.HousingCapacity;
 import dev.hycolony.plugin.ui.ColonyPage;
 
 /**
- * The town hall's Statistics tab (MC WindowStatsPage, layoutstats.xml): the citizen count over the housing, coloured,
- * then one line per job
- * "job: workers/places", then the children and the unemployed, in MC's list order.
+ * The town hall's Statistics tab (MC WindowStatsPage, layoutstats.xml): on the left page the citizen count over the
+ * housing, coloured, then one line per job "job: workers/places", then the children and the unemployed, in MC's list
+ * order; on the right page the colony's statistics within the chosen interval.
  */
 final class TownHallStatsTab implements TownHallTab {
     private final Stats stats;
+    /** MC WindowStatsPage.selectedInterval, "Since Yesterday" first. */
+    private final IntervalChoice interval = new IntervalChoice(IntervalChoice.YESTERDAY);
 
     TownHallStatsTab(Stats stats) {
         this.stats = stats;
     }
 
+    /** Keeps the interval {@code previous} showed (the core re-shows the window after each action). */
+    void keepIntervalOf(TownHallStatsTab previous) {
+        interval.keep(previous.interval);
+    }
+
     @Override
     public void render(UICommandBuilder ui, UIEventBuilder events, String root) {
+        populationPage(ui, root);
+        interval.render(ui, events, root + " #Interval");
+        // MC updateStats: one line per statistic, its count within the interval.
+        for (int i = 0; i < stats.statistics().size(); i++) {
+            StatCount s = stats.statistics().get(i);
+            ui.append(root + " #Statistics", "Pages/HyColony/Mc/StatRow.ui");
+            ui.set(
+                    root + " #Statistics[" + i + "] #Desc.Text",
+                    Message.translation("hycolony.ui.townhall.stats." + s.id())
+                            .param("p0", String.valueOf(s.within(interval.days(), stats.day()))));
+        }
+    }
+
+    /** The interval is page state (MC selectedInterval). */
+    @Override
+    public Outcome handle(ColonyPage.Act act) {
+        return interval.handle(act) ? Outcome.REDRAW : Outcome.NONE;
+    }
+
+    /** MC createAndSetStatistics: the population on the left page. */
+    private void populationPage(UICommandBuilder ui, String root) {
         ui.set(
                 root + " #TotalCitizens.Text",
                 Message.translation("hycolony.ui.townhall.stats.citizens")

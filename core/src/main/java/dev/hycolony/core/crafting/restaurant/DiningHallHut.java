@@ -14,7 +14,7 @@ import java.util.List;
  * The dining hall type (MC BuildingCook, modules from ModBuildingsInitializer): one waiter at every level
  * (Adaptability, then Knowledge, working in the rain), its campfires, its fuels and its menu, then its room (seats and
  * customers).
- * MC's statistics module is not ported (HyColony has no statistics yet).
+ * MC's building statistics module is not ported.
  */
 public final class DiningHallHut {
     public static final String TYPE_ID = "hycolony:cook";

@@ -7,6 +7,7 @@ import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.app.ui.CitizenView;
 import dev.hycolony.core.app.ui.TownHallView;
 import dev.hycolony.core.app.ui.TownHallView.JobCount;
+import dev.hycolony.core.app.ui.TownHallView.StatCount;
 import dev.hycolony.core.app.ui.TownHallView.Stats;
 import dev.hycolony.core.app.ui.WorkOrdersView;
 import dev.hycolony.core.building.Building;
@@ -14,6 +15,7 @@ import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.citizen.home.HousingCapacity.Population;
 import dev.hycolony.core.colony.Colony;
+import dev.hycolony.core.colony.stats.ColonyStatistics;
 import dev.hycolony.core.construction.blueprint.Blueprint;
 import dev.hycolony.core.construction.blueprint.BlueprintEntry;
 import dev.hycolony.core.construction.blueprint.BlueprintSource;
@@ -25,6 +27,7 @@ import dev.hycolony.core.kernel.item.BlockKey;
 import dev.hycolony.core.kernel.item.BlockState;
 import dev.hycolony.core.testing.TestContexts;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -83,11 +86,28 @@ class WindowTabsTest {
         citizen(3, "Jobless");
         citizen(4, "Kid").setChild(true);
         assertTrue(builder.module(WorkerModule.class).orElseThrow().hire(colony, builder, bob));
+        colony.setDay(9);
+        colony.registries().statistics().increment(ColonyStatistics.DEATH, 1);
+        colony.registries().statistics().increment(ColonyStatistics.DEATH, 9);
+
+        Stats stats = townHall().stats();
 
         assertEquals(
                 // No residence: one place, so four citizens need housing (MC WindowStatsPage, orange).
-                new Stats(4, 4, Population.NEEDS_HOUSING, List.of(new JobCount("hycolony:builder", 1, 2)), 1, 2),
-                townHall().stats());
+                new Stats(
+                        4,
+                        4,
+                        Population.NEEDS_HOUSING,
+                        List.of(new JobCount("hycolony:builder", 1, 2)),
+                        1,
+                        2,
+                        9,
+                        List.of(new StatCount(ColonyStatistics.DEATH, Map.of(1, 1, 9, 1)))),
+                stats);
+        StatCount deaths = stats.statistics().getFirst();
+        assertEquals(1, deaths.within(1, 9), "MC Yesterday: days 8 and 9");
+        assertEquals(2, deaths.within(100, 9));
+        assertEquals(2, deaths.within(-1, 9), "All Time");
     }
 
     @Test

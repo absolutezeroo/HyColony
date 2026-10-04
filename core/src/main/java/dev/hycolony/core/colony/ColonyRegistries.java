@@ -1,5 +1,6 @@
 package dev.hycolony.core.colony;
 
+import dev.hycolony.core.colony.stats.ColonyStatistics;
 import dev.hycolony.core.crafting.recipe.RecipeRegistry;
 import dev.hycolony.core.farming.field.FieldRegistry;
 import dev.hycolony.core.kernel.BlockPos;
@@ -7,11 +8,12 @@ import java.util.function.Predicate;
 
 /**
  * The colony-wide registries its features keep (MC IColonyManager.getRecipeManager, per colony here, and
- * RegisteredStructureManager's building extensions): the recipes its huts learnt, and its fields.
+ * RegisteredStructureManager's building extensions): the recipes its huts learnt, its fields and its statistics.
  */
 public final class ColonyRegistries {
     private final RecipeRegistry recipes = new RecipeRegistry();
     private final FieldRegistry fields = new FieldRegistry();
+    private final ColonyStatistics statistics = new ColonyStatistics();
     private final Predicate<BlockPos> isFieldBlock;
 
     /** @param isFieldBlock whether the world holds a field block at a position (the farming port) */
@@ -27,6 +29,11 @@ public final class ColonyRegistries {
     /** The colony's fields. */
     public FieldRegistry fields() {
         return fields;
+    }
+
+    /** The colony's statistics (MC IColony.getStatisticsManager). */
+    public ColonyStatistics statistics() {
+        return statistics;
     }
 
     /**

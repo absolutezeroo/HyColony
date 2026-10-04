@@ -1,9 +1,13 @@
 package dev.hycolony.core.citizen;
 
+import dev.hycolony.core.citizen.vitals.CitizenWalkReports;
 import dev.hycolony.core.colony.BlockApproach;
+import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.ai.AIOneTimeEventTarget;
 import dev.hycolony.core.kernel.ai.IState;
+import dev.hycolony.core.kernel.nav.BodyWalker;
+import dev.hycolony.core.kernel.port.BodyId;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 import org.jspecify.annotations.Nullable;
@@ -52,6 +56,16 @@ final class CommandedWalk {
     CommandedWalk(Supplier<BlockApproach> walkers, LongSupplier clock) {
         this.walkers = walkers;
         this.clock = clock;
+    }
+
+    /** The commanded walks of {@code data}'s {@code body}: a fresh block approach at each command, walks reported. */
+    static CommandedWalk of(Colony colony, CitizenData data, BodyId body) {
+        LongSupplier clock = colony.context().clock()::currentTick;
+        return new CommandedWalk(
+                () -> new BlockApproach(
+                        colony.context().ports(),
+                        new BodyWalker(colony.context().bodies(), body, clock, new CitizenWalkReports(colony, data))),
+                clock);
     }
 
     /** Whether a commanded walk is under way, or holding. */

@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import dev.hycolony.core.citizen.food.CitizenHunger;
 import dev.hycolony.core.citizen.happiness.CitizenHappiness;
 import dev.hycolony.core.citizen.inventory.CitizenEquipment;
+import dev.hycolony.core.citizen.mourn.CitizenMourning;
 import dev.hycolony.core.citizen.vitals.CitizenVitals;
 import dev.hycolony.core.job.Job;
 import dev.hycolony.core.job.JobStatus;
@@ -45,6 +46,7 @@ public final class CitizenData {
     private @Nullable BlockPos workBuilding;
     private final CitizenHunger hunger = new CitizenHunger(MAX_SATURATION);
     private final CitizenHappiness happiness = new CitizenHappiness();
+    private final CitizenMourning mourning = new CitizenMourning();
     private JobStatus jobStatus = JobStatus.IDLE;
     private int leisureTime;
     private Inventory inventory = new Inventory(INVENTORY_SLOTS);
@@ -100,14 +102,6 @@ public final class CitizenData {
 
     public void setLastPosition(@Nullable Vec3 lastPosition) {
         this.lastPosition = lastPosition;
-    }
-
-    /** Its body stands at {@code pos} now: the way from its last position counts as walking (MC walkDist). */
-    public void moved(Vec3 pos) {
-        if (lastPosition != null) {
-            hunger.walked(lastPosition, pos);
-        }
-        lastPosition = pos;
     }
 
     public @Nullable BlockPos respawnPosition() {
@@ -169,6 +163,11 @@ public final class CitizenData {
     /** Its happiness and modifiers (MC CitizenHappinessHandler). */
     public CitizenHappiness happiness() {
         return happiness;
+    }
+
+    /** The deceased it grieves for and whether it mourns today (MC CitizenMournHandler). */
+    public CitizenMourning mourning() {
+        return mourning;
     }
 
     /** What its job is up to (MC CitizenData.jobStatus). */

@@ -138,6 +138,16 @@ public final class CitizenWander {
         return null;
     }
 
+    /**
+     * MC EntityNavigationUtils.walkToRandomPos(citizen, 10, speed): a walk to a random spot around the body (see
+     * {@link #wanderTarget}); nothing without a position or a spot.
+     */
+    public void walkToRandomSpot() {
+        bodies.position(body)
+                .ifPresent(here ->
+                        wanderTarget(here.toBlockPos(), here.y()).ifPresent(target -> bodies.moveTo(body, target)));
+    }
+
     /** MC's GO_TO_LEISURE_SITE and WANDER_AT_LEISURE_SITE transitions, every 20 ticks; the citizen stays IDLE. */
     public @Nullable CitizenState leisure() {
         leisure.tick();

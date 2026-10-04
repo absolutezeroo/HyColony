@@ -1,7 +1,8 @@
 $B = "../Mc/Book.ui";
 $C = "../../../Common.ui";
 
-// The town hall's Statistics tab (MC layoutstats.xml), MC positions doubled: the population on the left page.
+// The town hall's Statistics tab (MC layoutstats.xml), MC positions doubled: the population on the left page, the
+// interval and the statistics on the right page (MC's view at x 270, plus its children's x).
 
 Group {
   Anchor: (Left: 0, Top: 0, Width: 1048, Height: 486);
@@ -14,6 +15,17 @@ Group {
 
   Group #StatLines {
     Anchor: (Left: 200, Top: 166, Width: 296, Height: 272);
+    LayoutMode: TopScrolling;
+    ScrollbarStyle: $C.@DefaultScrollbarStyle;
+  }
+
+  DropdownBox #Interval {
+    Anchor: (Left: 580, Top: 90, Width: 258, Height: 34);
+    Style: $B.@DropdownStyle;
+  }
+
+  Group #Statistics {
+    Anchor: (Left: 580, Top: 130, Width: 320, Height: 270);
     LayoutMode: TopScrolling;
     ScrollbarStyle: $C.@DefaultScrollbarStyle;
   }

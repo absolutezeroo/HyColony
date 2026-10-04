@@ -12,7 +12,6 @@ import static dev.hycolony.core.kernel.persist.SavedJson.readVec;
 import static dev.hycolony.core.kernel.persist.SavedJson.stringOr;
 import static dev.hycolony.core.kernel.persist.SavedJson.vec;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
@@ -21,14 +20,11 @@ import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.Gender;
 import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.citizen.Skills;
-import dev.hycolony.core.citizen.happiness.HappinessJson;
 import dev.hycolony.core.citizen.inventory.EquipmentJson;
 import dev.hycolony.core.colony.ColonyContext;
 import dev.hycolony.core.job.Job;
-import dev.hycolony.core.job.JobStatus;
 import dev.hycolony.core.job.JobType;
 import dev.hycolony.core.kernel.item.Inventory;
-import dev.hycolony.core.kernel.item.ItemKey;
 import java.util.Optional;
 
 /** One citizen's {@link CitizenData} to and from JSON. An unknown job is kept verbatim, like unknown buildings. */
@@ -48,7 +44,7 @@ final class CitizenSerializer {
         o.add("bedPos", pos(d.bedPos()));
         o.addProperty("asleep", d.asleep());
         o.add("work", pos(d.workBuilding()));
-        writeNeeds(d, o);
+        CitizenNeedsJson.write(d, o);
         o.addProperty("leisureTime", d.leisureTime());
         o.add("inventory", d.inventory().write());
         EquipmentJson.write(d.equipment(), o);
@@ -96,7 +92,7 @@ final class CitizenSerializer {
         if (o.get("job") instanceof JsonObject job) {
             readJob(job, d, ctx);
         }
-        readNeeds(o, d); // after the job, which resets the job status
+        CitizenNeedsJson.read(o, d); // after the job, which resets the job status
         return Optional.of(d);
     }
 
@@ -120,30 +116,6 @@ final class CitizenSerializer {
             }
         }
         return skills;
-    }
-
-    /** Writes its hunger, its job status and its happiness into {@code o}. */
-    private static void writeNeeds(CitizenData d, JsonObject o) {
-        o.addProperty("saturation", d.saturation());
-        o.addProperty("justAte", d.hunger().justAte());
-        JsonArray foods = new JsonArray();
-        d.hunger().history().foods().forEach(f -> foods.add(f.id()));
-        o.add("foodHistory", foods);
-        o.addProperty("jobStatus", d.jobStatus().name());
-        o.add("happiness", HappinessJson.write(d.happiness()));
-    }
-
-    /** Reads its hunger, its job status and its happiness from {@code o}; a missing key keeps the default. */
-    private static void readNeeds(JsonObject o, CitizenData d) {
-        d.setSaturation(doubleOr(o.get("saturation"), d.saturation()));
-        d.hunger().setJustAte(boolOr(o.get("justAte"), false));
-        for (JsonElement food : arrayOr(o.get("foodHistory"))) {
-            if (food instanceof JsonPrimitive p && p.isString()) {
-                d.hunger().history().add(new ItemKey(p.getAsString()));
-            }
-        }
-        d.setJobStatus(enumOf(JobStatus.class, o.get("jobStatus")).orElse(JobStatus.IDLE));
-        HappinessJson.read(arrayOr(o.get("happiness")), d.happiness());
     }
 
     private static void readJob(JsonObject jobJson, CitizenData d, ColonyContext ctx) {

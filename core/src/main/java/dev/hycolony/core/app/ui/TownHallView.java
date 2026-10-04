@@ -10,6 +10,7 @@ import dev.hycolony.core.construction.workorder.WorkOrderType;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.port.PlayerDirectory;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -120,7 +121,8 @@ public record TownHallView(
 
     /**
      * MC WindowStatsPage.createAndSetStatistics: the citizen count over {@code maxCitizens} with its colour
-     * ({@code population}), workers over places per job (sorted by job id), the children and the unemployed adults.
+     * ({@code population}), workers over places per job (sorted by job id), the children and the unemployed adults;
+     * then (MC updateStats) the colony's {@code day} and its statistics, first counted first.
      */
     public record Stats(
             int citizens,
@@ -128,9 +130,33 @@ public record TownHallView(
             HousingCapacity.Population population,
             List<JobCount> jobs,
             int children,
-            int unemployed) {
+            int unemployed,
+            int day,
+            List<StatCount> statistics) {
         public Stats {
             jobs = List.copyOf(jobs);
+            statistics = List.copyOf(statistics);
+        }
+    }
+
+    /** A statistic (MC StatisticsConstants id, "death"...) and its count per colony day. */
+    public record StatCount(String id, Map<Integer, Integer> perDay) {
+        public StatCount {
+            perDay = Map.copyOf(perDay);
+        }
+
+        /**
+         * MC updateStats: the count from {@code today - days} to {@code today} (getStatsInPeriod); every count for a
+         * negative {@code days} (getStatTotal, "All Time").
+         */
+        public int within(int days, int today) {
+            int count = 0;
+            for (Map.Entry<Integer, Integer> e : perDay.entrySet()) {
+                if (days < 0 || (e.getKey() >= today - days && e.getKey() <= today)) {
+                    count += e.getValue();
+                }
+            }
+            return count;
         }
     }
 
