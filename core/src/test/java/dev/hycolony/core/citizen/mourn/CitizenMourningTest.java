@@ -94,6 +94,24 @@ class CitizenMourningTest {
     }
 
     @Test
+    void aMournerStaresAsFarAsTwoCitizenBoxesInflatedByThreeMeet() {
+        assertTrue(staredAt(new Vec3(9.0, 64, 5.5)), "3.5 across: within 3 + 2 x 0.325");
+        assertTrue(staredAt(new Vec3(5.5, 68.5, 5.5)), "4.5 up: within 3 + 1.85");
+        assertFalse(staredAt(new Vec3(9.2, 64, 5.5)), "3.7 across: the boxes do not meet");
+    }
+
+    /** Whether a mourner at (5.5, 64, 5.5) stares at a citizen standing at {@code other}. */
+    private boolean staredAt(Vec3 other) {
+        t.random = () -> (RandomGenerator) () -> Long.MIN_VALUE; // nextBoolean true; nextInt(200) never 0
+        t.bodies.bodies.clear();
+        t.bodies.looks.clear();
+        BodyId body = t.bodies.existing(1, 1, new Vec3(5.5, 64, 5.5));
+        t.bodies.existing(1, 2, other);
+        tick(mourner(body), 60);
+        return t.bodies.looks.contains(new Vec3(other.x(), other.y() + MournAI.EYE_HEIGHT, other.z()));
+    }
+
+    @Test
     void aMournerWhoseWalksGoNowhereStillDecidesAgain() {
         t.random = () -> (RandomGenerator) () -> 0L; // nextBoolean false: walks, no staring
         t.bodies.frozen = true;

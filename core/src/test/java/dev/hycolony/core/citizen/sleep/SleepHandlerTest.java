@@ -9,6 +9,7 @@ import dev.hycolony.core.building.Building;
 import dev.hycolony.core.building.BuildingType;
 import dev.hycolony.core.building.module.BuildingEventsModule;
 import dev.hycolony.core.building.module.ModuleProducer;
+import dev.hycolony.core.citizen.CitizenAI;
 import dev.hycolony.core.citizen.CitizenData;
 import dev.hycolony.core.citizen.inventory.CitizenEquipment;
 import dev.hycolony.core.colony.Colony;
@@ -109,6 +110,20 @@ class SleepHandlerTest {
 
         assertFalse(d.asleep());
         assertNull(d.bedPos());
+    }
+
+    @Test
+    void aHitSleeperLeavesItsBedWithoutTheWakeUpHooks() {
+        Building home = counted(new BlockPos(40, 64, 0));
+        d.setHomeBuilding(home.position());
+        CitizenAI ai = new CitizenAI(c, d, body); // its body appearing wakes it once (MC initEntityValues)
+        handler.trySleep(BED);
+        int before = home.module(WakeCounter.class).orElseThrow().wakeUps;
+
+        ai.hit(null, true);
+
+        assertEquals(before, home.module(WakeCounter.class).orElseThrow().wakeUps, "MC: onWakeUp only in the morning");
+        assertNull(t.bodies.bodies.get(body).inBed, "Minecraft stopSleeping: out of bed");
     }
 
     @Test

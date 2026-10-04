@@ -157,6 +157,18 @@ class FleeAITest {
     }
 
     @Test
+    void workToDoEndsAFlightFromIdleness() {
+        ai.hit(new Vec3(5.5, 64, 0.5), false);
+        tick(1);
+        assertEquals(CitizenState.FLEE, ai.state());
+
+        data.setJob(TestJobs.TYPE.factory().apply(data));
+        tick(11);
+
+        assertEquals(CitizenState.WORKING, ai.state(), "MC calculateNextState: WORK != lastState IDLE ends FLEE");
+    }
+
+    @Test
     void aHitSleeperGetsOutOfBed() {
         data.setAsleep(true);
 
