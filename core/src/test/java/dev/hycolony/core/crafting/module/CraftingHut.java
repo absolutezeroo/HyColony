@@ -51,10 +51,14 @@ public final class CraftingHut {
         this(new TestContexts(), rules, type);
     }
 
-    /** As {@link #CraftingHut(String, BuildingType)}, in a colony made from {@code t}, whose fakes the test set. */
+    /**
+     * As {@link #CraftingHut(String, BuildingType)}, in a colony made from {@code t}, whose fakes the test set, under
+     * {@code t.jobTags}.
+     */
     public CraftingHut(TestContexts t, String rules, BuildingType type) {
         this.t = t;
-        t.craftingRules = CraftingRules.parse(JsonParser.parseString(rules).getAsJsonObject(), w -> {});
+        t.craftingRules = CraftingRules.parse(JsonParser.parseString(rules).getAsJsonObject(), w -> {})
+                .withTags(t.jobTags);
         colony = new Colony(
                 t.context(),
                 new TerritoryIndex(),

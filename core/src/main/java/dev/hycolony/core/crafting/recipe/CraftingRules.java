@@ -8,15 +8,15 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 /**
- * The rules of {@code hycolony/crafting.json}: which recipes each job may learn (MC the {@code crafterProduct} and
- * {@code crafterProductExclusions} item tags), the custom recipes its hut gets by level (MC CustomRecipe) and what a
- * recipe improvement may reduce (MC the {@code crafterIngredient} and {@code crafterProductExclusions} tags of
- * {@code CRAFTING_REDUCEABLE}). Deviation from MC: a job allows benches and their categories rather than a list of
- * products, since every Hytale recipe names its bench.
+ * What each job may learn and improve: the rules of {@code hycolony/crafting.json} (the benches and categories a job
+ * learns from, and the custom recipes its hut gets by level, MC CustomRecipe) and the job tags (MC the
+ * {@code crafterProduct}, {@code crafterProductExclusions} and {@code CRAFTING_REDUCEABLE} item tags, {@link JobTags}).
+ * Deviation from MC: a job allows benches and their categories rather than a list of products, since every Hytale
+ * recipe names its bench.
  */
 public final class CraftingRules {
     /** No job may learn anything, nothing is reduceable. */
-    public static final CraftingRules EMPTY = new CraftingRules(Map.of(), Set.of(), Set.of());
+    public static final CraftingRules EMPTY = new CraftingRules(Map.of(), JobTags.EMPTY);
 
     /** A bench category entry that stands for every category. */
     static final String ANY_CATEGORY = "*";
@@ -39,38 +39,40 @@ public final class CraftingRules {
         }
     }
 
-    /** What one job may learn, and the custom recipes its hut gets. */
-    record JobRules(List<Allow> allow, Set<ItemKey> include, Set<ItemKey> exclude, List<CustomRecipe> custom) {
+    /** What one job may learn by the file, and the custom recipes its hut gets. */
+    record JobRules(List<Allow> allow, List<CustomRecipe> custom) {
         JobRules {
             allow = List.copyOf(allow);
-            include = Set.copyOf(include);
-            exclude = Set.copyOf(exclude);
             custom = List.copyOf(custom);
         }
     }
 
     private final Map<String, JobRules> jobs;
-    private final Set<ItemKey> reduceable;
-    private final Set<ItemKey> excludedFromReduction;
+    private final JobTags tags;
 
-    CraftingRules(Map<String, JobRules> jobs, Set<ItemKey> reduceable, Set<ItemKey> excludedFromReduction) {
+    CraftingRules(Map<String, JobRules> jobs, JobTags tags) {
         this.jobs = Map.copyOf(jobs);
-        this.reduceable = Set.copyOf(reduceable);
-        this.excludedFromReduction = Set.copyOf(excludedFromReduction);
+        this.tags = tags;
     }
 
     /**
-     * Reads {@code crafting.json}. Tolerant: a missing key reads as empty, and each invalid entry is skipped after one
-     * call to {@code warn}.
+     * Reads {@code crafting.json}, without job tags (see {@link #withTags}). Tolerant: a missing key reads as empty,
+     * and each invalid entry is skipped after one call to {@code warn}.
      */
     public static CraftingRules parse(JsonObject json, Consumer<String> warn) {
         return new CraftingRulesJson(warn).read(json);
     }
 
+    /** These file rules with {@code tags}, read once the assets are loaded (spec 2026-10-04 § 6.3). */
+    public CraftingRules withTags(JobTags tags) {
+        return new CraftingRules(jobs, tags);
+    }
+
     /**
-     * Whether {@code jobId} may learn {@code recipe}. As MC CraftingUtils.getProductValidatorBasedOnTags, an excluded
-     * output is refused first and an included one allowed; otherwise the recipe's bench and categories must be
-     * allowed. A job absent from the file may learn nothing (MC BuildingFarmer: {@code orElse(false)}).
+     * Whether {@code jobId} may learn {@code recipe}. As MC CraftingUtils.getProductValidatorBasedOnTags, an output in
+     * the job's product exclusion tag is refused first and one in its product tag allowed; otherwise the recipe's bench
+     * and categories must be allowed. A job absent from the file may learn nothing (MC BuildingFarmer:
+     * {@code orElse(false)}).
      */
     public boolean allows(String jobId, Recipe recipe) {
         JobRules job = jobs.get(jobId);
@@ -78,10 +80,10 @@ public final class CraftingRules {
             return false;
         }
         ItemKey output = recipe.primaryOutput().item();
-        if (job.exclude().contains(output)) {
+        if (tags.excludedProducts(jobId).contains(output)) {
             return false;
         }
-        return job.include().contains(output) || job.allow().stream().anyMatch(a -> a.accepts(recipe.bench()));
+        return tags.products(jobId).contains(output) || job.allow().stream().anyMatch(a -> a.accepts(recipe.bench()));
     }
 
     /** The custom recipes of {@code jobId}; empty for a job absent from the file. */
@@ -92,11 +94,11 @@ public final class CraftingRules {
 
     /** Whether an improvement may take one of this ingredient off a recipe (MC crafterIngredient reduceable tag). */
     public boolean isReduceable(ItemKey ingredient) {
-        return reduceable.contains(ingredient);
+        return tags.get(JobTags.REDUCEABLE_INGREDIENT).contains(ingredient);
     }
 
     /** Whether a recipe making this is never improved (MC crafterProductExclusions reduceable tag). */
     public boolean isExcludedFromReduction(ItemKey product) {
-        return excludedFromReduction.contains(product);
+        return tags.get(JobTags.REDUCEABLE_PRODUCT_EXCLUDED).contains(product);
     }
 }

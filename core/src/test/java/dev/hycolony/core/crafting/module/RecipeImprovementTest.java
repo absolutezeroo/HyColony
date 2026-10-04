@@ -8,6 +8,7 @@ import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.crafting.module.RecipeImprovement.Crafted;
 import dev.hycolony.core.crafting.recipe.BenchRequirement;
 import dev.hycolony.core.crafting.recipe.Ingredient;
+import dev.hycolony.core.crafting.recipe.JobTags;
 import dev.hycolony.core.crafting.recipe.Recipe;
 import dev.hycolony.core.crafting.recipe.RecipeFixtures;
 import dev.hycolony.core.crafting.recipe.RecipeId;
@@ -17,6 +18,8 @@ import dev.hycolony.core.kernel.item.ItemAmount;
 import dev.hycolony.core.kernel.item.ItemKey;
 import dev.hycolony.core.kernel.port.Msg;
 import dev.hycolony.core.testing.FakeNotifier;
+import dev.hycolony.core.testing.TestContexts;
+import dev.hycolony.core.testing.crafting.TestCrafters;
 import java.util.List;
 import java.util.Optional;
 import java.util.random.RandomGenerator;
@@ -33,15 +36,22 @@ class RecipeImprovementTest {
     /** Rolls just under 100: no improvement chance up to 5 % succeeds. */
     private static final RandomGenerator UNLUCKY = () -> -1L;
 
-    private final CraftingHut h = new CraftingHut(rules("[]"), true);
+    private static final String FIELDCRAFT = """
+            {"jobs": {"%s": {"allow": [{"bench": "Fieldcraft", "categories": ["*"]}]}}}""".formatted(CraftingHut.JOB);
+
+    private final CraftingHut h = hut(FIELDCRAFT);
     private final CitizenData crafter = h.hire();
 
-    private static String rules(String excludedProducts) {
-        return """
-                {"jobs": {"%s": {"allow": [{"bench": "Fieldcraft", "categories": ["*"]}]}},
-                 "reduceable": {"ingredients": ["Ingredient_Life_Essence", "Ingredient_Fibre",
-                                                "Wood_Oak_Trunk", "Wood_Birch_Trunk"],
-                                "excludedProducts": %s}}""".formatted(CraftingHut.JOB, excludedProducts);
+    /** A hut under {@code rules}; improvements may cut essence, fibre and trunks, never from {@code excluded}. */
+    private static CraftingHut hut(String rules, ItemKey... excluded) {
+        TestContexts t = new TestContexts();
+        t.jobTags = JobTags.merge(
+                List.of(
+                        new JobTags.TagFile(
+                                JobTags.REDUCEABLE_INGREDIENT, List.of(RecipeFixtures.ESSENCE, FIBRE, OAK, BIRCH)),
+                        new JobTags.TagFile(JobTags.REDUCEABLE_PRODUCT_EXCLUDED, List.of(excluded))),
+                w -> {});
+        return new CraftingHut(t, rules, TestCrafters.hut(true, 1));
     }
 
     /** By hand, {@code inputs} make one wheat seed; the Hytale recipe {@code Seeds}. */
@@ -116,7 +126,7 @@ class RecipeImprovementTest {
 
     @Test
     void improvementNeverTouchesAnExcludedProduct() {
-        CraftingHut excluded = new CraftingHut(rules("[\"Plant_Seeds_Wheat\"]"), true);
+        CraftingHut excluded = hut(FIELDCRAFT, SEEDS);
         RecipeId id = excluded.teach(recipe(item(RecipeFixtures.ESSENCE, 2)));
 
         improve(excluded, id, LUCKY);
@@ -192,9 +202,9 @@ class RecipeImprovementTest {
 
     @Test
     void improvedRecipeTheHutCannotHoldIsNotSwappedIn() {
-        CraftingHut benchHut = new CraftingHut("""
-                {"jobs": {"%s": {"allow": [{"bench": "Farmingbench", "categories": ["*"]}]}},
-                 "reduceable": {"ingredients": ["Ingredient_Life_Essence"]}}""".formatted(CraftingHut.JOB), true);
+        String farmingbench = """
+                {"jobs": {"%s": {"allow": [{"bench": "Farmingbench", "categories": ["*"]}]}}}""";
+        CraftingHut benchHut = hut(farmingbench.formatted(CraftingHut.JOB));
         BlockPos bench = benchHut.bench("Farmingbench", 1);
         RecipeId id = benchHut.teach(RecipeFixtures.at("Farmingbench", "Seeds", "Plant_Seeds_Wheat"));
         benchHut.hut.registeredBlocks().removeWorkstation(bench);

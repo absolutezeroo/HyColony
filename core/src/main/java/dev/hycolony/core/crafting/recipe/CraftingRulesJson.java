@@ -7,10 +7,8 @@ import com.google.gson.JsonPrimitive;
 import dev.hycolony.core.crafting.recipe.CraftingRules.Allow;
 import dev.hycolony.core.crafting.recipe.CraftingRules.CustomRecipe;
 import dev.hycolony.core.crafting.recipe.CraftingRules.JobRules;
-import dev.hycolony.core.kernel.item.ItemKey;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -35,16 +33,15 @@ final class CraftingRulesJson {
         this.warn = warn;
     }
 
-    /** The rules of the whole file; a missing {@code jobs} or {@code reduceable} section reads as empty. */
+    /** The rules of the whole file, without tags; a missing {@code jobs} section reads as empty. */
     CraftingRules read(JsonObject json) {
         Map<String, JobRules> jobs = new LinkedHashMap<>();
         JsonObject jobsJson = object(json, "jobs", "crafting.json");
         for (String jobId : jobsJson.keySet()) {
             job(jobsJson.get(jobId), "jobs." + jobId).ifPresent(j -> jobs.put(jobId, j));
         }
-        JsonObject reduce = object(json, "reduceable", "crafting.json");
-        return new CraftingRules(
-                jobs, items(reduce, "ingredients", "reduceable"), items(reduce, "excludedProducts", "reduceable"));
+        ignoreTagList(json, "reduceable", "crafting.json");
+        return new CraftingRules(jobs, JobTags.EMPTY);
     }
 
     /** One job's entry; empty (with a warning) unless it is an object. */
@@ -60,8 +57,9 @@ final class CraftingRulesJson {
         for (JsonElement c : array(o, "custom", where)) {
             custom(c, where + ".custom").ifPresent(custom::add);
         }
-        return Optional.of(
-                new JobRules(allow, items(o, "includeItems", where), items(o, "excludeItems", where), custom));
+        ignoreTagList(o, "includeItems", where);
+        ignoreTagList(o, "excludeItems", where);
+        return Optional.of(new JobRules(allow, custom));
     }
 
     /** A bench is required; missing categories read as none. */
@@ -90,17 +88,12 @@ final class CraftingRulesJson {
                 o.get("id").getAsString(), o.get("hytaleRecipe").getAsString(), min.getAsInt(), max.getAsInt()));
     }
 
-    /** The item ids listed under {@code key}; each entry that is not a string is skipped with a warning. */
-    private Set<ItemKey> items(JsonObject parent, String key, String where) {
-        Set<ItemKey> out = new LinkedHashSet<>();
-        for (JsonElement e : array(parent, key, where)) {
-            if (isString(e)) {
-                out.add(new ItemKey(e.getAsString()));
-            } else {
-                warnSkipped(where + "." + key, e);
-            }
+    /** Warns once that {@code key}, a job tag list crafting.json no longer holds, is ignored (spec 2026-10-04 § 6). */
+    private void ignoreTagList(JsonObject parent, String key, String where) {
+        if (parent.has(key)) {
+            warn.accept("crafting.json: " + where + "." + key
+                    + " is no longer read: job tags live in Server/HyColony/JobTags");
         }
-        return out;
     }
 
     /** The object under {@code key}; an empty one when absent, or (with a warning) of another type. */

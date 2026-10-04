@@ -12,6 +12,7 @@ import dev.hycolony.core.construction.blueprint.BlueprintSource;
 import dev.hycolony.core.crafting.furnace.CookingSetup;
 import dev.hycolony.core.crafting.recipe.CraftingRules;
 import dev.hycolony.core.crafting.recipe.CraftingSetup;
+import dev.hycolony.core.crafting.recipe.JobTags;
 import dev.hycolony.core.job.JobRegistry;
 import dev.hycolony.core.kernel.WorldKey;
 import dev.hycolony.core.kernel.config.ColonyConfig;
@@ -53,6 +54,9 @@ public final class TestContexts {
     public final FakeWorldEffects effects = new FakeWorldEffects();
     public final FakeRecipeCatalog recipes = new FakeRecipeCatalog();
     public CraftingRules craftingRules = CraftingRules.EMPTY;
+    /** The job tags {@code CraftingHut} adds to the rules it parses (the plugin adds them once assets load). */
+    public JobTags jobTags = JobTags.EMPTY;
+
     public BlueprintSource blueprints = new BlueprintSource() {
         @Override
         public Optional<Blueprint> load(String style, String buildingTypeId, int level, int rotation) {

@@ -23,6 +23,7 @@ import dev.hycolony.core.citizen.Skill;
 import dev.hycolony.core.citizen.inventory.CitizenEquipment;
 import dev.hycolony.core.crafting.module.CraftingHut;
 import dev.hycolony.core.crafting.recipe.Ingredient;
+import dev.hycolony.core.crafting.recipe.JobTags;
 import dev.hycolony.core.crafting.recipe.Recipe;
 import dev.hycolony.core.crafting.task.CraftingTasks;
 import dev.hycolony.core.job.JobAI;
@@ -45,10 +46,12 @@ class CraftingWorkTest {
     /** Rolls 0: every improvement chance succeeds. */
     private static final RandomGenerator LUCKY = () -> 0L;
 
-    private static final String REDUCEABLE_ESSENCE = """
-            {"jobs": {"%s": {"allow": [{"bench": "Farmingbench", "categories": ["*"]}]}},
-             "reduceable": {"ingredients": ["Ingredient_Life_Essence"], "excludedProducts": []}}
+    private static final String FARMINGBENCH = """
+            {"jobs": {"%s": {"allow": [{"bench": "Farmingbench", "categories": ["*"]}]}}}
             """.formatted(CraftingHut.JOB);
+
+    private static final JobTags REDUCEABLE_ESSENCE =
+            JobTags.merge(List.of(new JobTags.TagFile(JobTags.REDUCEABLE_INGREDIENT, List.of(ESSENCE))), w -> {});
 
     private final CrafterRig rig = new CrafterRig();
 
@@ -289,7 +292,8 @@ class CraftingWorkTest {
     void lastRunImprovesTheRecipeThenDumps() {
         TestContexts t = new TestContexts();
         t.random = () -> LUCKY;
-        CrafterRig lucky = new CrafterRig(t, REDUCEABLE_ESSENCE, seeds(List.of(), Optional.empty()));
+        t.jobTags = REDUCEABLE_ESSENCE;
+        CrafterRig lucky = new CrafterRig(t, FARMINGBENCH, seeds(List.of(), Optional.empty()));
         lucky.stock(ESSENCE, 2);
         Request task = lucky.task(lucky.ask(1));
         assertEquals(CRAFT, lucky.toCraft());

@@ -20,17 +20,24 @@ class CraftingRulesTest {
     static final String JSON = """
         {"jobs":{"farmer":{
             "allow":[{"bench":"Farmingbench","categories":["*"]},{"bench":"Fieldcraft","categories":["Seeds"]}],
-            "includeItems":["Food_Bread"],
-            "excludeItems":["Plant_Sapling_Oak"],
             "custom":[{"id":"farmer_wheat_seeds","hytaleRecipe":"Plant_Seeds_Wheat",
-                       "minBuildingLevel":1,"maxBuildingLevel":5}]}},
-         "reduceable":{"ingredients":["Ingredient_Life_Essence"],"excludedProducts":["Plant_Seeds_Wheat"]}}
+                       "minBuildingLevel":1,"maxBuildingLevel":5}]}}}
         """;
 
-    final CraftingRules rules = CraftingRules.parse(json(JSON), w -> fail(w));
+    static final JobTags TAGS = tags(
+            new JobTags.TagFile("farmer_product", List.of(new ItemKey("Food_Bread"))),
+            new JobTags.TagFile("farmer_product_excluded", List.of(new ItemKey("Plant_Sapling_Oak"))),
+            new JobTags.TagFile(JobTags.REDUCEABLE_INGREDIENT, List.of(RecipeFixtures.ESSENCE)),
+            new JobTags.TagFile(JobTags.REDUCEABLE_PRODUCT_EXCLUDED, List.of(new ItemKey("Plant_Seeds_Wheat"))));
+
+    final CraftingRules rules = CraftingRules.parse(json(JSON), w -> fail(w)).withTags(TAGS);
 
     private static JsonObject json(String text) {
         return JsonParser.parseString(text).getAsJsonObject();
+    }
+
+    private static JobTags tags(JobTags.TagFile... files) {
+        return JobTags.merge(List.of(files), w -> fail(w));
     }
 
     @Test
@@ -50,10 +57,38 @@ class CraftingRulesTest {
 
     @Test
     void exclusionWinsOverInclusionLikeMc() {
-        CraftingRules both = CraftingRules.parse(
-                json("{\"jobs\":{\"farmer\":{\"includeItems\":[\"Food_Bread\"],\"excludeItems\":[\"Food_Bread\"]}}}"),
-                w -> fail(w));
+        CraftingRules both = CraftingRules.parse(json("{\"jobs\":{\"farmer\":{}}}"), w -> fail(w))
+                .withTags(tags(
+                        new JobTags.TagFile("farmer_product", List.of(new ItemKey("Food_Bread"))),
+                        new JobTags.TagFile("farmer_product_excluded", List.of(new ItemKey("Food_Bread")))));
         assertFalse(both.allows("farmer", RecipeFixtures.at("Cookingbench", "Bread", "Food_Bread")));
+    }
+
+    @Test
+    void namespacedJobReadsTheTagsOfItsName() {
+        CraftingRules r = CraftingRules.parse(json("{\"jobs\":{\"hycolony:farmer\":{}}}"), w -> fail(w))
+                .withTags(TAGS);
+        assertTrue(r.allows("hycolony:farmer", RecipeFixtures.at("Cookingbench", "Bread", "Food_Bread")));
+    }
+
+    @Test
+    void withoutTagsNothingIsIncludedNorReduceable() {
+        CraftingRules plain = CraftingRules.parse(json(JSON), w -> fail(w));
+        assertFalse(plain.allows("farmer", RecipeFixtures.at("Cookingbench", "Bread", "Food_Bread")));
+        assertFalse(plain.isReduceable(RecipeFixtures.ESSENCE));
+        assertTrue(plain.allows("farmer", RecipeFixtures.at("Farmingbench", "Anything", "Plant_Seeds_Corn")));
+    }
+
+    @Test
+    void oldTagListsInTheFileAreIgnoredWithAWarning() {
+        List<String> warnings = new ArrayList<>();
+        CraftingRules r = CraftingRules.parse(json("""
+            {"jobs":{"farmer":{"includeItems":["Food_Bread"],"excludeItems":[]}},
+             "reduceable":{"ingredients":["Ingredient_Life_Essence"]}}
+            """), warnings::add);
+        assertEquals(3, warnings.size(), warnings::toString);
+        assertFalse(r.allows("farmer", RecipeFixtures.at("Cookingbench", "Bread", "Food_Bread")));
+        assertFalse(r.isReduceable(RecipeFixtures.ESSENCE));
     }
 
     @Test
@@ -125,23 +160,18 @@ class CraftingRulesTest {
         // As the plugin merges crafting.json (SubPlugins.CRAFTING_DEPTH): job by job, then key by key in a job.
         JsonFragments file = new JsonFragments(2);
         file.add("HyColony", json("""
-            {"jobs":{"farmer":{"allow":[{"bench":"Farmingbench","categories":["*"]}]}},
-             "reduceable":{"ingredients":["Ingredient_Life_Essence"],"excludedProducts":[]}}
+            {"jobs":{"farmer":{"allow":[{"bench":"Farmingbench","categories":["*"]}]}}}
             """));
 
         List<JsonFragments.Conflict> conflicts = file.add("Pack", json("""
-            {"jobs":{"farmer":{"allow":[],"includeItems":["Food_Bread"]},
-                     "baker":{"allow":[{"bench":"Cookingbench","categories":["*"]}]}},
-             "reduceable":{"ingredients":["Rock_Stone"]}}
+            {"jobs":{"farmer":{"allow":[]},
+                     "baker":{"allow":[{"bench":"Cookingbench","categories":["*"]}]}}}
             """));
         CraftingRules merged = CraftingRules.parse(file.merged(), w -> fail(w));
 
         assertEquals(List.of(new JsonFragments.Conflict("jobs/farmer/allow", "HyColony", "Pack")), conflicts);
         assertTrue(merged.allows("farmer", RecipeFixtures.at("Farmingbench", "Seeds", "Plant_Seeds_Corn")));
-        assertTrue(merged.allows("farmer", RecipeFixtures.at("Cookingbench", "Bread", "Food_Bread")));
         assertTrue(merged.allows("baker", RecipeFixtures.at("Cookingbench", "Pie", "Food_Pie_Apple")));
-        assertTrue(merged.isReduceable(RecipeFixtures.ESSENCE));
-        assertTrue(merged.isReduceable(new ItemKey("Rock_Stone")));
     }
 
     @Test
@@ -156,7 +186,6 @@ class CraftingRulesTest {
              "reduceable":{"ingredients":"Ingredient_Life_Essence"}}
             """), warnings::add);
         assertEquals(7, warnings.size(), warnings::toString);
-        assertTrue(r.allows("farmer", RecipeFixtures.at("Cookingbench", "Bread", "Food_Bread")));
         assertFalse(r.allows("farmer", RecipeFixtures.at("Farmingbench", "Seeds", "Plant_Seeds_Corn")));
         assertTrue(r.custom("farmer").isEmpty());
     }
