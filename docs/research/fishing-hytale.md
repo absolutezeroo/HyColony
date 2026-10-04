@@ -651,3 +651,140 @@ Les bornes (0,1 à 10 ; 8 à 64) sont rappliquées par le cœur, comme `ColonyCo
 7. § 11 (config) : pas de `ConfigQuarantine` (HyBlockUI) pour HyAngler → copie propre (§ 5.11).
 8. § 6.4 `Zone` : pas de champ de zone ; c'est le tag `ZoneN` de l'environnement (§ 5.6).
 9. § 7.1 : la hache Crude se fabrique aussi à l'établi (`Workbench_Tools`) ; Thorium et Cobalt demandent l'établi de palier 2.
+
+## 6. Essai en jeu (2026-10-04, tâche 2 du plan)
+
+Vu en jeu par l'utilisateur avec les cannes d'essai (`TESTING.md` 401-407, commit `210c5bd4`) :
+
+- **Lancer** : le lancer chargé (`Charging` → interaction Java) part une fois la config du projectile munie d'une interaction (§ 5.1, « Specified map is empty » sinon). On peut lancer sans limite : l'essai ne garde aucun lancer en cours (la vraie canne n'en permet qu'un, spec § 7.4).
+- **Flottaison** : un projectile `Standard` de densité 700 **ne flotte pas** ; laissé à la seule physique de Hytale, il reste sous l'eau. Le calcul du § 3.2 ne se vérifie pas en jeu. Seul le bouchon figé (`setState(INACTIVE)` au premier tick dans l'eau, hauteur tenue par notre système) marche : c'est la voie de la spec § 7.2.
+- À noter encore : hauteur du bouchon figé, lisibilité de la corde à 10, 20 et 30 blocs, distances selon la charge, point de départ de la corde, animation au lancer.
+
+## 7. Animations de la canne et du pêcheur (2026-10-04)
+
+Vérifié dans `HY/` et `zip:` (0.7.0-pre.5), rien lancé en jeu. Question : comment plier la canne (charge, combat), tourner la manivelle, faire frémir le scion et animer le joueur (lancer, mouliner, tirer), et comment le serveur déclenche chaque animation à l'instant voulu.
+
+### 7.1 Le mécanisme de Hytale : l'animation du joueur anime aussi les nœuds de l'objet tenu
+
+- Un jeu d'animations d'objet (`Server/Item/Animations/<Id>.json`, type `ItemPlayerAnimations`) a pour clés `Parent`, `Animations` (table nom → `ItemAnimation`), `WiggleWeights`, `Camera`, `PullbackConfig` et `UseFirstPersonOverrides` (`HY/server/core/asset/type/itemanimation/config/ItemPlayerAnimations.java:85-124`). `Animations` et `WiggleWeights` sont hérités et non nuls : notre jeu prend `"Parent": "Item"` (ou `Default`) pour hériter des deux et de toute la locomotion.
+- Une entrée `ItemAnimation` ne contient **que des animations du personnage** : `ThirdPerson`, `ThirdPersonMoving` (haut du corps en marchant), `ThirdPersonFace` (expression), `FirstPerson`, `FirstPersonOverride`, `KeepPreviousFirstPersonAnimation`, `Speed`, `BlendingDuration` (0,2 s par défaut), `Looping`, `ClipsGeometry` (`HY/server/core/codec/ProtocolCodecs.java:205-261` ; champs dans `HY/protocol/ItemAnimation.java:18-31`). Aucune clé ne nomme une animation propre à l'objet.
+- Chemins : le validateur `ANIMATION_ITEM_CHARACTER` exige un `.blockyanim` sous `Characters/` ou `NPC/` (`HY/server/core/asset/common/CommonAssetValidator.java:43`, test `startsWith` l. 84-97). Une animation de joueur livrée par notre pack va donc sous `Common/Characters/…` (par exemple `Common/Characters/Animations/Items/HyAngler/Rod/Cast.blockyanim`).
+- **Ce qui fait plier l'arc** : les `.blockyanim` du joueur animent, par leur **nom**, des nœuds du modèle de l'objet tenu, comme ils animent les pans de tissu (`hytale-models.md` § 2). Relevé sur les animations de `zip:Common/Characters/Animations/Items/` (script jetable : nœuds animés absents de `Characters/Player.blockymodel`) :
+  - arcs (`Dual_Handed/Bow`, `Shortbow`) : `Bow-Top`, `Bow-Top2`, `Bow-Bot`, `Bow-Bot2`, `Bow-Top-Pulley`, `Bow-Bot-Pulley`, `Rope-Top`/`Top2`/`Bot`/`Bot2` (orientation, position, `shapeStretch`), `ARROW-PLACEHOLDER` (`shapeVisible`) ;
+  - arbalète lourde : `Bow-L`, `Bow-L2`, `Bow-Mid`, `Bow-R`, `Bow-R2`, `L-String`, `R-String` ; fusil : `Hammer` ; cisailles : `Handle2` ;
+  - foreuse (`Drill`) : `Drill-Head` ; grimoire (`Spellbook`) : `Book-Top`, `Book-Bot`, `Page-Top`, `Page-Bot`, `Bookmark`, `Lock-Front` ; grappin : `Hookshot-Head` à `Hookshot-Head14` (`shapeStretch`, `shapeVisible` : la tête disparaît au tir) ; fléau : `Chain` à `Chain4` ; bâton de feu : `Spin1`, `Attachment_Spin1` à `4` ; objets (`Item`) : `Food-Part*`, `Bottle-Lid`.
+- Exemple chiffré : `Shortbow/Attacks/Shoot_Charged/Shoot_Charging.blockyanim` (60 images = 1 s, `holdLastKeyframe: true`) tourne `Bow-Top` de −10° et son enfant `Bow-Top2` de +10° en z, et `Rope-Top` de 305° avec `shapeStretch` x de 1 à 1,15. Il anime en même temps `L-Arm`, `R-Forearm`, `Chest`… Le modèle `zip:Common/Items/Weapons/Bow/Iron.blockymodel` est une **chaîne imbriquée** `Handle › Bow-Top › Bow-Top2 › Rope-Top` (idem `Bot`) : les rotations s'additionnent le long de la chaîne. Une animation peut donc viser des nœuds imbriqués à toute profondeur.
+- Rotation continue : `Drill/Attacks/Drill/Drill.blockyanim` (30 images) tourne `Drill-Head` en y par clés `linear` toutes les 5 images, de 120° en 120° (quaternions de `w` 1 → 0,5 → −0,5 → 1). L'entrée `Drill` n'a pas `Looping`, l'interaction `Drill_Mine` la rejoue (`zip:Server/Item/Interactions/Weapons/Drill/Attacks/Drill_Mine.json:1-6`).
+- Les fichiers `_FPS` animent aussi les nœuds de l'objet (`Shoot_Charging_FPS` anime `Bow-Top`… et `ARROW-PLACEHOLDER`) : chaque entrée a besoin d'un fichier de 3e personne **et** d'un fichier de 1re personne, qui plient tous deux la canne.
+- Format : `duration` en images de 1/60 s, `holdLastKeyframe`, `nodeAnimations.<nœud>.{position, orientation (quaternion delta), shapeStretch, shapeVisible, shapeUvOffset}`, `interpolationType` `smooth` (59 886 clés) ou `linear` (959).
+
+Jeu complet de vanilla (`zip:Server/Item/Animations/Hookshot.json`) :
+
+```json
+{
+  "Parent": "Handgun",
+  "Animations": {
+    "Shoot": {
+      "ThirdPerson": "Characters/Animations/Items/Main_Handed/Hookshot/Shoot/Shoot.blockyanim",
+      "ThirdPersonMoving": "Characters/Animations/Items/Main_Handed/Hookshot/Shoot/Shoot_Moving.blockyanim",
+      "FirstPerson": "Characters/Animations/Items/Main_Handed/Hookshot/Shoot/Shoot_FPS.blockyanim",
+      "Speed": 1,
+      "BlendingDuration": 0
+    }
+  }
+}
+```
+
+Entrées de charge de l'arc court (`zip:Server/Item/Animations/Shortbow.json`, sans parent) :
+
+```json
+"ShootCharging": {
+  "Speed": 1,
+  "ThirdPersonFace": "Characters/Animations/Expressions/Frown.blockyanim",
+  "ThirdPerson": "Characters/Animations/Items/Dual_Handed/Shortbow/Attacks/Shoot_Charged/Shoot_Charging.blockyanim",
+  "ThirdPersonMoving": "Characters/Animations/Items/Dual_Handed/Shortbow/Attacks/Shoot_Charged/Shoot_Charging_Moving.blockyanim",
+  "FirstPerson": "Characters/Animations/Items/Dual_Handed/Shortbow/Attacks/Shoot_Charged/Shoot_Charging_FPS.blockyanim"
+},
+"ShootCharged": {
+  "ThirdPerson": "Characters/Animations/Items/Dual_Handed/Shortbow/Attacks/Shoot_Charged/Shoot_Charged.blockyanim",
+  "ThirdPersonMoving": "Characters/Animations/Items/Dual_Handed/Shortbow/Attacks/Shoot_Charged/Shoot_Charged_Moving.blockyanim",
+  "FirstPerson": "Characters/Animations/Items/Dual_Handed/Shortbow/Attacks/Shoot_Charged/Shoot_Charged_FPS.blockyanim",
+  "Speed": 1,
+  "BlendingDuration": 0,
+  "ThirdPersonFace": "Characters/Animations/Expressions/Rage.blockyanim"
+}
+```
+
+### 7.2 L'animation propre à l'objet (`Animation`) : une seule, fixe
+
+- `Item.Animation` (`HY/server/core/asset/type/item/config/Item.java:218-227`, validateur `ANIMATION_ITEM_BLOCK` : `Blocks/`, `Items/`, `Resources/`, `NPC/`, `VFX/`, `Consumable/`) est une chaîne, « utilisée seulement quand `Item.Model` est posé ». Elle boucle (vu en jeu sur le marteau, `hytale-models.md` § 2). Aucun champ ni packet ne la change à l'exécution.
+- Seul moyen de la changer : un **état** (`State`, table d'objets hérités en `INJECT_PARENT`, `Item.java:1316-1322`), qui est un autre id d'objet. `ItemStack.withState(String)` crée une pile d'un autre `itemId` (`HY/server/core/inventory/ItemStack.java:219-226`), qu'il faut réécrire dans l'emplacement. Une interaction en cours qui a `"OnItemChangeBehavior": "Cancel"` (notre `Charging`, § 5.4) s'annule alors. Coût : une mise à jour d'inventaire par changement ; rendu du modèle **[in-game]**.
+- Variante qui ne touche pas l'inventaire : `ItemAppearanceConditions` (`Item.java:488-494`). Pour chaque statistique d'entité, des plages de valeur changent `Model`, `Texture`, `Particles`, `FirstPersonParticles`, `ModelVFXId` et des sons en boucle, **pas l'animation** (`ItemAppearanceCondition.java:20-100`). Exemple : le planeur change de modèle quand `GlidingActive` vaut 1 (`zip:Server/Item/Items/Glider/Template_Glider.json`, stat `zip:Server/Entity/Stats/GlidingActive.json`, `"Shared": true`). Une stat `Shared` est envoyée aux autres joueurs (`HY/server/core/modules/entitystats/EntityStatMap.java:523-528`) ; le serveur la pose par `EntityStatMap.setStatValue(int, float)` (l. 205).
+- Conclusion : on ne met **rien** de mouvant dans l'`Animation` de la canne, sauf une boucle qui ne touche aucun nœud animé par le joueur (ce qui se passe quand les deux visent le même nœud est inconnu). Tout le mouvement passe par notre jeu d'animations (§ 7.1).
+
+### 7.3 Déclencher une entrée : interaction ou `AnimationUtils`
+
+- **Par interaction** : `Effects.ItemAnimationId` (« l'animation d'objet à jouer au déclenchement »), `Effects.ItemPlayerAnimationsId` (« le jeu d'animations à utiliser pendant cette interaction », sinon celui de l'objet tenu), `ClearAnimationOnFinish`, `WaitForAnimationToFinish` (`HY/server/core/modules/interaction/interaction/config/InteractionEffects.java:65-97`). Le serveur envoie `PlayInteractionFor` à tous les joueurs à portée (`viewDistance`), sauf au client qui a lancé la chaîne (`Interaction.java:430-487`), et le client joue les effets de l'asset. Les squelettes archers (PNJ) s'en servent : `zip:Server/Item/Interactions/NPCs/Undead/Skeleton_Archer/Skeleton_Archer_Bow_Shoot.json` (`"ItemPlayerAnimationsId": "Skeleton_Bow", "ItemAnimationId": "Shoot"`, jeu `Skeleton_Bow` = `{"Parent": "Bow"}`).
+- **Charge et relâche (arc court)** : un `Charging` avec `Effects.ItemAnimationId: "ShootCharging"` et `ClearAnimationOnFinish: true`, puis chaque palier de `Next` mène à une interaction dont `Effects.ItemAnimationId` vaut `"ShootCharged"` (`zip:Server/Item/Interactions/Weapons/Shortbow/Primary/Shoot/Weapon_Shortbow_Primary_Shoot_Charge.json` ; `…_Strength_2.json` = `{"Parent": "Weapon_Shortbow_Primary_Shoot_Projectile", "Config": "Projectile_Config_Arrow_Shortbow_Strength_2", "Effects": {"ItemAnimationId": "ShootCharged"}}`). La pose tendue tient parce que `Shoot_Charging.blockyanim` a `holdLastKeyframe: true`. Même schéma dans `Ability_ChargedShot_Cast.json` (`ItemPlayerAnimationsId: "Sword"`, `ItemAnimationId: "StabDashCharging"`). Les particules d'une interaction peuvent viser un nœud de l'objet : `"TargetEntityPart": "PrimaryItem", "TargetNodeName": "Handle"`.
+- **Par Java, à l'instant voulu** : `AnimationUtils.playAnimation(Ref<EntityStore> ref, AnimationSlot slot, @Nullable String itemAnimationsId, @Nullable String animationId, boolean sendToSelf, ComponentAccessor<EntityStore> acc)` (`HY/server/core/entity/AnimationUtils.java:30-65`) envoie `PlayAnimation(networkId, itemAnimationsId, animationId, slot)` à ceux qui voient l'entité. Le slot `Action` saute le contrôle « animation présente dans le modèle » (l. 44-48). **Le joueur ne se voit lui-même que si `sendToSelf` vaut `true`** : les surcharges à 5 arguments (`(ref, slot, String, String, acc)`, l. 67-75 ; `(ref, slot, ItemPlayerAnimations, String, acc)`, l. 77-86) passent `false`. Arrêt : `stopAnimation(ref, slot, sendToSelf, acc)` (l. 94-109). Slots : `Movement, Status, Action, Face, Emote, ServerAction` (`HY/protocol/AnimationSlot.java`). Les émotes et les blessures jouent ainsi sur le joueur lui-même (`HY/server/core/io/handlers/game/GamePacketHandler.java:973`, `HY/server/core/modules/entity/damage/DamageSystems.java:1252`, `sendToSelf` vrai).
+- Un `PlayAnimation` n'est pas mémorisé : `ActiveAnimationComponent` ne garde qu'un id par slot, sans jeu d'objet (`HY/server/core/modules/entity/component/ActiveAnimationComponent.java:12`, envoyé par `ModelSystems.java:109`). Un joueur qui arrive à portée ne voit pas une boucle déjà lancée : une boucle longue (combat) se renvoie à chaque changement d'intensité.
+- **PNJ (citoyen pêcheur)** : même appel, comme `BodyGestures` le fait déjà (`REPO/plugin/src/main/java/dev/hycolony/plugin/npc/body/BodyGestures.java:72-79`, `(ref, Action, "Block", "Build", store)`), la canne tenue en main. `NPCEntity.playAnimation` ne prend pas de jeu d'objet (`HY/server/npc/entities/NPCEntity.java:237-260`). Autre voie, celle des PNJ de vanilla : une chaîne d'interaction lancée sur le PNJ (`InteractionManager.initChain` puis `queueExecuteChain`, `HY/server/core/entity/InteractionManager.java:1257-1290` ; exemple `HY/server/npc/corecomponents/interaction/ActionSpawnInteraction.java:115-116`). Que le client plie la canne tenue par un PNJ reste **[in-game]** : aucun citoyen n'a encore été vu jouer une entrée d'un jeu d'objet (`plugin-b-api.md` § 6).
+
+### 7.4 Moment par moment
+
+| Moment | Mécanisme | Entrée de notre jeu `HyAngler_Rod` |
+|---|---|---|
+| Tenue, repos | locomotion héritée de `Item` ; `Idle` redéfini si la canne doit osciller | `Idle` (`Looping: true`) |
+| Charge | `Effects.ItemAnimationId` du `Charging`, avec `ClearAnimationOnFinish` | `CastCharging` (`holdLastKeyframe` vrai : canne armée en arrière, scion plié) |
+| Lancer (fouet) | `Effects.ItemAnimationId` des interactions de palier de `Next` (nos `HyAngler_Cast`) | `Cast` (fouet avant, scion qui suit en retard) |
+| Attente | aucune animation : retour à `Idle` | — |
+| Touche (frémissement) | Java : `playAnimation(ref, Action, "HyAngler_Rod", "Bite", true, acc)` | `Bite` (courte, sans boucle) |
+| Ferrage | `Effects.ItemAnimationId` de l'interaction de ferrage, ou Java | `Hook` |
+| Combat (canne pliée) | Java ; une entrée par intensité, renvoyée quand l'intensité change | `FightLight`, `FightHeavy` (`Looping: true`) |
+| Moulinet | Java, ou l'interaction de ramener | `Reel` (`Looping: true` ; `Reel_Crank` tourne de 120° toutes les 5 images, scion plié) |
+| Prise | Java, puis `stopAnimation(ref, Action, true, acc)` | `Catch` |
+| Casse | Java | `Snap` (`shapeVisible` faux sur la ligne du modèle, canne qui se détend) |
+
+Chaque entrée a `ThirdPerson`, `ThirdPersonMoving` et `FirstPerson`, qui plient tous les nœuds de la canne. Esquisse (nos fichiers, non testés) :
+
+```json
+{
+  "Parent": "Item",
+  "Animations": {
+    "CastCharging": {
+      "ThirdPerson": "Characters/Animations/Items/HyAngler/Rod/Cast_Charging.blockyanim",
+      "ThirdPersonMoving": "Characters/Animations/Items/HyAngler/Rod/Cast_Charging_Moving.blockyanim",
+      "FirstPerson": "Characters/Animations/Items/HyAngler/Rod/Cast_Charging_FPS.blockyanim",
+      "Speed": 1
+    },
+    "Reel": {
+      "ThirdPerson": "Characters/Animations/Items/HyAngler/Rod/Reel.blockyanim",
+      "ThirdPersonMoving": "Characters/Animations/Items/HyAngler/Rod/Reel_Moving.blockyanim",
+      "FirstPerson": "Characters/Animations/Items/HyAngler/Rod/Reel_FPS.blockyanim",
+      "Speed": 1,
+      "Looping": true,
+      "BlendingDuration": 0.1
+    }
+  }
+}
+```
+
+### 7.5 Modèle de la canne
+
+- Racine `R-Attachment` avec `isPiece`, comme `zip:Common/Items/Tools/Fishing_Rod/FishingRod.blockymodel` et `zip:Common/Items/Tools/Hookshot/Scrap.blockymodel`. Puis une **chaîne imbriquée** de nœuds charnières, chacun à la base de son segment, sa forme décalée le long de l'axe : `Rod_Butt › Rod_Mid › Rod_Upper › Rod_Tip`, sur le modèle de `Handle › Bow-Top › Bow-Top2 › Rope-Top`. Le pli progressif vient de petites rotations de même sens à chaque niveau (l'arc : ±10° par segment).
+- `Reel_Crank`, enfant de la poignée, pivot sur l'axe du moulinet, pour la rotation `linear` du § 7.1. `Rod_Line` (quad ou boîte fine depuis le scion) : `shapeVisible` pour la cacher au lancer ou à la casse, `shapeStretch` pour l'allonger (comme `Rope-Top`). La vraie ligne (`Beam`) part de `R-Attachment` et pas du scion (§ 5.14, point 5) : le scion plié ne la déplace pas.
+- **Noms uniques**, préfixés, sans nom d'os du joueur (`Characters/Player.blockymodel`) ni nom visé par les animations de vanilla (`Handle`, `Chain`, `Cape1`…) : le jeu `Item` hérité anime par exemple `Food-Part`, et les jeux d'arme animent `Handle`. Le `FishingRod.blockymodel` de vanilla (référencé par aucun objet) répète `Handle` quatre fois et `Node` trois fois : tel quel, on ne peut pas viser ses segments un par un. Pas de nœud animé nommé `<nom>--C<n>` : chaque segment est son propre groupe dans Blockbench (`hytale-models.md` § 3).
+- 255 nœuds au plus (`hytale-models.md` § 2). Aucune autre limite de nœuds animés trouvée.
+- Blockbench (plugin Hytale) : l'animation se fait dans un projet de **personnage** (`hytale_character`) avec la canne chargée en attachement ; l'export `.blockyanim` contient alors les os du joueur et les nœuds de la canne. D'après la description publique du plugin : outils `hytale_set_attachment_piece`, `hytale_list_attachments`, `hytale_create_visibility_keyframe`, `hytale_set_animation_loop` (`loop`, `hold`, `once`), 60 images par seconde (<https://skills.cat/skills/jasonjgardner/blockbench-mcp-project/blockbench-hytale>). Pas essayé ici. Le format est assez simple pour être écrit par script (`REPO/tools/blockpaint/motion.py` écrit déjà des pistes d'orientation `linear`).
+
+### 7.6 Limites et essais en jeu
+
+- Limite dure : l'objet n'a qu'une animation propre, fixe. Toutes les poses qui changent passent par le jeu d'animations du **porteur** : posée au sol ou dans un présentoir, la canne ne plie pas (seule `Item.Animation` y joue).
+- Limite : un `PlayAnimation` n'est pas rejoué pour un joueur qui arrive à portée (§ 7.3).
+- Repli si les nœuds de la canne ne bougent pas chez le PNJ : `ItemAppearanceConditions` sur une stat `Shared` à nous (par exemple `HyAngler_RodBend` à 0, 1 ou 2) qui remplace le modèle par une canne pliée modelée d'avance (sans animation, § 7.2). La ligne (`Beam`, § 5.3) fait le reste du travail visible.
+- **[in-game]** :
+  1. un `.blockyanim` de joueur livré par un pack sous `Common/Characters/` se charge et joue (les `.blockyanim` de blocs et d'objets de nos packs jouent déjà) ;
+  2. les nœuds de notre canne plient en 3e et en 1re personne avec une entrée à nous ;
+  3. `playAnimation(…, Action, "HyAngler_Rod", …, true, …)` se voit sur le joueur lui-même, en 1re personne, et une entrée `Looping` tourne jusqu'à `stopAnimation` ou jusqu'à l'entrée suivante ;
+  4. la même chose sur un citoyen (PNJ `PlayerTestModel_V`) qui tient la canne ;
+  5. ce que fait le client quand `Item.Animation` et une animation du joueur visent le même nœud.
