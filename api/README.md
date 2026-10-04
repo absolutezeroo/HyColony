@@ -97,7 +97,7 @@ to.
 - The stable events are in `dev.hycolony.api.event`:
   - `ColonyCreated`, `ColonyDeleted`;
   - `BuildingPlaced`, `BuildingRemoved`, `BuildingLevelChanged`;
-  - `WorkOrderCreated`, `CitizenSpawned`;
+  - `WorkOrderCreated`, `CitizenSpawned`, `CitizenDied` (since 1.4);
   - `DayStarted`, `NightFell`.
 - The experimental events are in `dev.hycolony.api.debug`: `CitizenStateChanged`, `JobStateChanged`, `WalkEnded`,
   `StuckAction` and `RequestStateChanged`.

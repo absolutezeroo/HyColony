@@ -9,7 +9,7 @@ package dev.hycolony.api;
  */
 public record ApiVersion(int major, int minor, int patch) {
     /** This api's version. */
-    public static final ApiVersion CURRENT = new ApiVersion(1, 3, 0);
+    public static final ApiVersion CURRENT = new ApiVersion(1, 4, 0);
 
     /** {@code major.minor.patch}. */
     @Override

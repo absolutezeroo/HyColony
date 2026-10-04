@@ -299,6 +299,18 @@ public final class CitizenManager {
         });
     }
 
+    /**
+     * MC CitizenManager.removeCivilian, for a death: citizen {@code id}, its body binding, its AI and its failed
+     * respawns go; the body is left to the world (Hytale's corpse fades by itself). Nothing for an unknown id.
+     */
+    public void remove(int id) {
+        citizens.remove(id);
+        bodies.remove(id);
+        ais.remove(id);
+        failedRespawns.bodied(id);
+        colony.markDirty();
+    }
+
     public void despawnAll() {
         bodies.values().forEach(ctx().bodies()::despawn);
         bodies.clear();

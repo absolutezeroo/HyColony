@@ -3,6 +3,7 @@ package dev.hycolony.core.citizen.home;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import dev.hycolony.core.building.Building;
+import dev.hycolony.core.building.module.AssignedCitizenModule;
 import dev.hycolony.core.building.module.BuildingEventsModule;
 import dev.hycolony.core.building.module.PersistentModule;
 import dev.hycolony.core.building.module.ProvidesTab;
@@ -22,7 +23,8 @@ import org.jspecify.annotations.Nullable;
  * The residents of a residence: one per hut level, assigned by hand or taken among the homeless. Port of MC
  * LivingBuildingModule and its AbstractAssignedCitizenModule.
  */
-public final class LivingModule implements PersistentModule, TickingModule, BuildingEventsModule, ProvidesTab {
+public final class LivingModule
+        implements PersistentModule, TickingModule, BuildingEventsModule, ProvidesTab, AssignedCitizenModule {
     private final List<Integer> residents = new ArrayList<>();
     private HiringMode hiringMode = HiringMode.DEFAULT;
 
@@ -71,6 +73,12 @@ public final class LivingModule implements PersistentModule, TickingModule, Buil
         moveHome(c, citizen, b.position());
         c.markDirty();
         return true;
+    }
+
+    /** MC removeCitizen: {@link #remove}. */
+    @Override
+    public boolean removeCitizen(Colony c, Building b, int citizenId) {
+        return remove(c, b, citizenId);
     }
 
     /** MC removeCitizen: the resident leaves, homeless and bedless; false for a citizen who does not live here. */

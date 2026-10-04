@@ -3,6 +3,7 @@ package dev.hycolony.core.logistics.warehouse;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import dev.hycolony.core.building.Building;
+import dev.hycolony.core.building.module.AssignedCitizenModule;
 import dev.hycolony.core.building.module.ModuleTab;
 import dev.hycolony.core.building.module.PersistentModule;
 import dev.hycolony.core.building.module.ProvidesTab;
@@ -21,7 +22,8 @@ import java.util.UUID;
  * Links couriers, already hired by their own hut, to this warehouse (MC {@code CourierAssignmentModule}). It gives no
  * job: it only records which citizens may use the warehouse ({@code canAccessWareHouse}).
  */
-public final class CourierAssignmentModule implements TickingModule, PersistentModule, ProvidesTab {
+public final class CourierAssignmentModule
+        implements TickingModule, PersistentModule, ProvidesTab, AssignedCitizenModule {
     /** The courier job id (MC {@code ModJobs.delivery}); the courier {@code JobType} uses this id. */
     public static final String COURIER_JOB_ID = "hycolony:deliveryman";
 
@@ -45,6 +47,16 @@ public final class CourierAssignmentModule implements TickingModule, PersistentM
     /** MC removeCitizen: detaches {@code citizenId}, who keeps its courier job; false if it was not attached. */
     public boolean detach(int citizenId) {
         return couriers.remove(Integer.valueOf(citizenId));
+    }
+
+    /** MC removeCitizen: {@link #detach}, the colony to be saved when it was attached. */
+    @Override
+    public boolean removeCitizen(Colony colony, Building building, int citizenId) {
+        boolean detached = detach(citizenId);
+        if (detached) {
+            colony.markDirty();
+        }
+        return detached;
     }
 
     /** MC getModuleMax: two couriers per warehouse level, so none at level 0. */

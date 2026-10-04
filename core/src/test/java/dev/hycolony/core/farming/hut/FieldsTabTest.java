@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.farming.field.FarmField;
 import dev.hycolony.core.kernel.BlockPos;
+import dev.hycolony.core.kernel.Directions;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
@@ -15,34 +16,34 @@ class FieldsTabTest {
 
     @Test
     void directionsFollowTheCompass() {
-        assertEquals("n", FieldsTab.direction(HUT, new BlockPos(0, 64, -10)));
-        assertEquals("ne", FieldsTab.direction(HUT, new BlockPos(7, 64, -7)));
-        assertEquals("e", FieldsTab.direction(HUT, new BlockPos(10, 64, 0)));
-        assertEquals("s", FieldsTab.direction(HUT, new BlockPos(0, 64, 10)));
-        assertEquals("w", FieldsTab.direction(HUT, new BlockPos(-10, 64, 1)));
-        assertEquals("nw", FieldsTab.direction(HUT, new BlockPos(-7, 64, -7)));
+        assertEquals("n", Directions.of(HUT, new BlockPos(0, 64, -10)));
+        assertEquals("ne", Directions.of(HUT, new BlockPos(7, 64, -7)));
+        assertEquals("e", Directions.of(HUT, new BlockPos(10, 64, 0)));
+        assertEquals("s", Directions.of(HUT, new BlockPos(0, 64, 10)));
+        assertEquals("w", Directions.of(HUT, new BlockPos(-10, 64, 1)));
+        assertEquals("nw", Directions.of(HUT, new BlockPos(-7, 64, -7)));
     }
 
     @Test
     void sectorBoundsTruncateTheAngleAsMc() {
         // atan2 gives 22.78 and 67.22 degrees; MC truncates to 22 (north) and 67 (west).
-        assertEquals("n", FieldsTab.direction(HUT, new BlockPos(-42, 64, -100)));
-        assertEquals("w", FieldsTab.direction(HUT, new BlockPos(-100, 64, -42)));
-        assertEquals("sw", FieldsTab.direction(HUT, new BlockPos(-7, 64, 7)));
-        assertEquals("se", FieldsTab.direction(HUT, new BlockPos(7, 64, 7)));
-        assertEquals("w", FieldsTab.direction(HUT, new BlockPos(-100, 64, 41)), "112.3 degrees");
-        assertEquals("s", FieldsTab.direction(HUT, new BlockPos(-42, 64, 100)), "157.2 degrees");
-        assertEquals("e", FieldsTab.direction(HUT, new BlockPos(100, 64, 43)), "-113.3 truncates to -113, so 247");
-        assertEquals("ne", FieldsTab.direction(HUT, new BlockPos(100, 64, -42)), "-67.2 truncates to -67, so 293");
-        assertEquals("ne", FieldsTab.direction(HUT, new BlockPos(43, 64, -100)), "-23.3 truncates to 337");
-        assertEquals("n", FieldsTab.direction(HUT, new BlockPos(42, 64, -100)), "-22.8 truncates to -22, so 338");
+        assertEquals("n", Directions.of(HUT, new BlockPos(-42, 64, -100)));
+        assertEquals("w", Directions.of(HUT, new BlockPos(-100, 64, -42)));
+        assertEquals("sw", Directions.of(HUT, new BlockPos(-7, 64, 7)));
+        assertEquals("se", Directions.of(HUT, new BlockPos(7, 64, 7)));
+        assertEquals("w", Directions.of(HUT, new BlockPos(-100, 64, 41)), "112.3 degrees");
+        assertEquals("s", Directions.of(HUT, new BlockPos(-42, 64, 100)), "157.2 degrees");
+        assertEquals("e", Directions.of(HUT, new BlockPos(100, 64, 43)), "-113.3 truncates to -113, so 247");
+        assertEquals("ne", Directions.of(HUT, new BlockPos(100, 64, -42)), "-67.2 truncates to -67, so 293");
+        assertEquals("ne", Directions.of(HUT, new BlockPos(43, 64, -100)), "-23.3 truncates to 337");
+        assertEquals("n", Directions.of(HUT, new BlockPos(42, 64, -100)), "-22.8 truncates to -22, so 338");
     }
 
     @Test
     void sameColumnIsAboveBelowOrSameAsMc() {
-        assertEquals("up", FieldsTab.direction(HUT, new BlockPos(0, 70, 0)));
-        assertEquals("down", FieldsTab.direction(HUT, new BlockPos(0, 60, 0)));
-        assertEquals("same", FieldsTab.direction(HUT, HUT));
+        assertEquals("up", Directions.of(HUT, new BlockPos(0, 70, 0)));
+        assertEquals("down", Directions.of(HUT, new BlockPos(0, 60, 0)));
+        assertEquals("same", Directions.of(HUT, HUT));
     }
 
     @Test

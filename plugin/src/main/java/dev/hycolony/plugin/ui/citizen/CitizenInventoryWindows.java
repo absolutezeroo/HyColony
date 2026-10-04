@@ -11,23 +11,26 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.app.view.CitizenInventoryView;
 import dev.hycolony.core.citizen.CitizenData;
+import dev.hycolony.core.citizen.death.CitizenDied;
 import dev.hycolony.core.colony.ColonyEvents;
 import dev.hycolony.plugin.item.HytaleStacks;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.BooleanSupplier;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
 /**
- * The citizen inventory pages open in one world: opens them, and closes them when their citizen's colony is gone.
+ * The citizen inventory pages open in one world: opens them, and closes them when their citizen dies or its colony
+ * is gone.
  * World thread only.
  */
 public final class CitizenInventoryWindows {
     private static final HytaleLogger LOG = HytaleLogger.forEnclosingClass();
 
-    private record Open(int colonyId, CitizenInventoryPage page) {}
+    private record Open(int colonyId, int citizenId, CitizenInventoryPage page) {}
 
     private final Supplier<ColonyManager> manager;
     private final List<Open> open = new ArrayList<>();
@@ -62,7 +65,7 @@ public final class CitizenInventoryWindows {
         CitizenInventoryPage page = newPage(pr, store.getExternalData().getWorld(), colonyId, citizen);
         CitizenInventoryPage.Setup s = page.setup();
         if (playerComponent.getPageManager().openCustomPageWithWindows(ref, store, page, s.main(), s.armor())) {
-            open.add(new Open(colonyId, page));
+            open.add(new Open(colonyId, citizenId, page));
             s.main().registerCloseEvent(e -> forget(page));
         }
     }
@@ -103,22 +106,32 @@ public final class CitizenInventoryWindows {
         return window;
     }
 
-    /** Citizens only leave with their colony (no death yet), so its deletion is when their pages close. */
+    /** A citizen leaves when it dies or with its colony: then its pages close. */
     private void subscribeOnce() {
         if (!subscribed) {
             subscribed = true;
-            manager.get().context().bus().subscribe(ColonyEvents.ColonyDeleted.class, e -> closeAll(e.colonyId()));
+            manager.get()
+                    .context()
+                    .bus()
+                    .subscribe(ColonyEvents.ColonyDeleted.class, e -> close(o -> o.colonyId() == e.colonyId()));
+            manager.get()
+                    .context()
+                    .bus()
+                    .subscribe(
+                            CitizenDied.class,
+                            e -> close(o -> o.colonyId() == e.colony().id()
+                                    && o.citizenId() == e.citizen().id()));
         }
     }
 
     /**
-     * Closes the colony's pages still open; backwards, since each close removes its entry. A failing close is logged
-     * and forgotten, the others still close.
+     * Closes the pages still open that {@code which} picks; backwards, since each close removes its entry. A failing
+     * close is logged and forgotten, the others still close.
      */
-    private void closeAll(int colonyId) {
+    private void close(Predicate<Open> which) {
         for (int i = open.size() - 1; i >= 0; i--) {
             Open o = open.get(i);
-            if (o.colonyId() != colonyId) {
+            if (!which.test(o)) {
                 continue;
             }
             try {

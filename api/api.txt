@@ -124,6 +124,12 @@ public final record dev.hycolony.api.event.BuildingRemoved extends java.lang.Rec
     public final int dev.hycolony.api.event.BuildingRemoved.hashCode()
     public final java.lang.String dev.hycolony.api.event.BuildingRemoved.toString()
     public java.lang.String dev.hycolony.api.event.BuildingRemoved.type()
+public final record dev.hycolony.api.event.CitizenDied extends java.lang.Record
+    public dev.hycolony.api.CitizenRef dev.hycolony.api.event.CitizenDied.citizen()
+    public dev.hycolony.api.event.CitizenDied(dev.hycolony.api.CitizenRef)
+    public final boolean dev.hycolony.api.event.CitizenDied.equals(java.lang.Object)
+    public final int dev.hycolony.api.event.CitizenDied.hashCode()
+    public final java.lang.String dev.hycolony.api.event.CitizenDied.toString()
 public final record dev.hycolony.api.event.CitizenSpawned extends java.lang.Record
     public dev.hycolony.api.CitizenRef dev.hycolony.api.event.CitizenSpawned.citizen()
     public dev.hycolony.api.event.CitizenSpawned(dev.hycolony.api.CitizenRef)

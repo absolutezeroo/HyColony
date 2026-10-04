@@ -19,11 +19,12 @@ class TownHallInfoViewTest {
         f.colony.log().addAt(f.hall, "citizenSpawned", 1, "Ann");
         f.colony.log().add("buildingPlaced", 1, "hycolony:residence"); // HyColony's own: not shown
         f.colony.log().addAt(res, "buildingBuilt", 2, "hycolony:residence", "1");
+        f.colony.log().addAt(res, "citizenDied", 2, "Ann", "Fall", "");
 
         List<TownHallView.EventRow> events = f.townHallView(f.alice).info().events();
 
         assertEquals(
-                List.of("citizenSpawned", "buildingBuilt"),
+                List.of("citizenSpawned", "buildingBuilt", "citizenDied"),
                 events.stream().map(TownHallView.EventRow::type).toList());
         assertEquals(Optional.of(res), events.get(1).pos());
         assertEquals(List.of("hycolony:residence", "1"), events.get(1).params());

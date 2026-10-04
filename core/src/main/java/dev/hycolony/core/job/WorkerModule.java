@@ -3,6 +3,7 @@ package dev.hycolony.core.job;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import dev.hycolony.core.building.Building;
+import dev.hycolony.core.building.module.AssignedCitizenModule;
 import dev.hycolony.core.building.module.BuildingEventsModule;
 import dev.hycolony.core.building.module.BuildingModule;
 import dev.hycolony.core.building.module.PersistentModule;
@@ -25,7 +26,8 @@ import java.util.Optional;
  * counterpart (no housing capacity yet, see TownHallStats) and its model reset only concerns an assigned citizen
  * without a job.
  */
-public final class WorkerModule implements PersistentModule, TickingModule, BuildingEventsModule {
+public final class WorkerModule
+        implements PersistentModule, TickingModule, BuildingEventsModule, AssignedCitizenModule {
     private final JobType jobType;
     private final Skill primary;
     private final Skill secondary;
@@ -125,6 +127,14 @@ public final class WorkerModule implements PersistentModule, TickingModule, Buil
     /** Load healing: drops worker ids that fail {@code keep}. Returns whether any was dropped. */
     public boolean retainWorkers(java.util.function.IntPredicate keep) {
         return workers.removeIf(id -> !keep.test(id));
+    }
+
+    /** MC removeCitizen: {@link #fire}s {@code citizenId}; false when it does not work here. */
+    @Override
+    public boolean removeCitizen(Colony c, Building b, int citizenId) {
+        boolean works = workers.contains(citizenId);
+        fire(c, b, citizenId);
+        return works;
     }
 
     public void fire(Colony c, Building b, int citizenId) {

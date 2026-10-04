@@ -4,6 +4,8 @@ import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import dev.hycolony.core.app.ui.TownHallView;
+import dev.hycolony.core.kernel.port.Msg;
+import dev.hycolony.plugin.adapter.HytaleNotifier;
 import dev.hycolony.plugin.ui.ColonyPage;
 import java.util.List;
 
@@ -40,10 +42,29 @@ final class TownHallInfoTab implements TownHallTab {
     private static void row(UICommandBuilder ui, String list, int i, TownHallView.EventRow e) {
         String row = list + "[" + i + "]";
         ui.append(list, "Pages/HyColony/Mc/EventRow.ui");
-        ui.set(row + " #Action.Text", Message.translation("hycolony.ui.townhall.event." + e.type()));
-        if (e.type().equals("citizenSpawned")) {
+        if (e.type().equals("citizenDied")) {
+            // MC fillEventsList: the death cause as the action, the citizen's name as the name.
+            if (e.params().size() >= 3) {
+                ui.set(
+                        row + " #Action.TextSpans",
+                        deathCause(e.params().get(1), e.params().get(2)));
+                ui.set(row + " #Name.Text", e.params().getFirst());
+            }
+        } else if (e.type().equals("citizenSpawned")) {
+            ui.set(row + " #Action.Text", Message.translation("hycolony.ui.townhall.event.citizenSpawned"));
             ui.set(row + " #Name.Text", e.params().isEmpty() ? "" : e.params().getFirst());
-        } else if (e.params().size() >= 2) {
+        } else {
+            building(ui, row, e);
+        }
+        ui.set(
+                row + " #Pos.Text",
+                e.pos().map(p -> p.x() + " " + p.y() + " " + p.z()).orElse(""));
+    }
+
+    /** A hut's event: its action, then the hut and its level. */
+    private static void building(UICommandBuilder ui, String row, TownHallView.EventRow e) {
+        ui.set(row + " #Action.Text", Message.translation("hycolony.ui.townhall.event." + e.type()));
+        if (e.params().size() >= 2) {
             // The hut's name is a nested translation: TextSpans, not Text; MC repeats it as the tooltip.
             Message name = Message.join(
                     ColonyPage.buildingName(e.params().get(0)),
@@ -51,9 +72,14 @@ final class TownHallInfoTab implements TownHallTab {
             ui.set(row + " #Name.TextSpans", name);
             ui.set(row + " #Name.TooltipTextSpans", name);
         }
-        ui.set(
-                row + " #Pos.Text",
-                e.pos().map(p -> p.x() + " " + p.y() + " " + p.z()).orElse(""));
+    }
+
+    /** MC CitizenDiedEvent.getDeathCause: killed by {@code killer} (a name or %key), else died of {@code cause}. */
+    private static Message deathCause(String cause, String killer) {
+        return killer.isEmpty()
+                ? HytaleNotifier.toMessage(
+                        Msg.of("hycolony.ui.townhall.event.citizenDied", "%hycolony.citizen.deathCause." + cause))
+                : HytaleNotifier.toMessage(Msg.of("hycolony.ui.townhall.event.citizenKilled", killer));
     }
 
     /** The interval is page state (MC selectedInterval); the orders' buttons go to the core. */

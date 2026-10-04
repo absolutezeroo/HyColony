@@ -7,6 +7,7 @@ import dev.hycolony.api.Subscription;
 import dev.hycolony.api.event.BuildingLevelChanged;
 import dev.hycolony.api.event.BuildingPlaced;
 import dev.hycolony.api.event.BuildingRemoved;
+import dev.hycolony.api.event.CitizenDied;
 import dev.hycolony.api.event.CitizenSpawned;
 import dev.hycolony.api.event.ColonyCreated;
 import dev.hycolony.api.event.ColonyDeleted;
@@ -102,6 +103,10 @@ final class ApiEvents {
                 dev.hycolony.core.citizen.CitizenSpawned.class,
                 e -> new CitizenSpawned(
                         new CitizenRef(ref(e.colony()), e.citizen().id())));
+        route(
+                CitizenDied.class,
+                dev.hycolony.core.citizen.death.CitizenDied.class,
+                e -> new CitizenDied(new CitizenRef(ref(e.colony()), e.citizen().id())));
         route(
                 DayStarted.class,
                 ColonyEvents.DayStarted.class,

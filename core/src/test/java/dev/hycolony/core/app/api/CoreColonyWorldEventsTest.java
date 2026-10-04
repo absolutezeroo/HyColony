@@ -12,6 +12,7 @@ import dev.hycolony.api.Subscription;
 import dev.hycolony.api.event.BuildingLevelChanged;
 import dev.hycolony.api.event.BuildingPlaced;
 import dev.hycolony.api.event.BuildingRemoved;
+import dev.hycolony.api.event.CitizenDied;
 import dev.hycolony.api.event.CitizenSpawned;
 import dev.hycolony.api.event.ColonyCreated;
 import dev.hycolony.api.event.ColonyDeleted;
@@ -21,6 +22,7 @@ import dev.hycolony.api.event.WorkOrderCreated;
 import dev.hycolony.core.app.ColonyManager;
 import dev.hycolony.core.building.Building;
 import dev.hycolony.core.citizen.CitizenData;
+import dev.hycolony.core.citizen.death.DeathCause;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.ColonyEvents;
 import dev.hycolony.core.construction.hut.ConstructionBuildingTypes;
@@ -139,6 +141,7 @@ class CoreColonyWorldEventsTest {
         world.subscribe(BuildingLevelChanged.class, heard::add);
         world.subscribe(WorkOrderCreated.class, heard::add);
         world.subscribe(CitizenSpawned.class, heard::add);
+        world.subscribe(CitizenDied.class, heard::add);
         world.subscribe(DayStarted.class, heard::add);
         world.subscribe(NightFell.class, heard::add);
 
@@ -146,6 +149,8 @@ class CoreColonyWorldEventsTest {
         t.bus.post(new ColonyEvents.BuildingLevelChanged(c, hall, 0, 3, Optional.of(alice))); // a creative paste
         t.bus.post(new ColonyEvents.WorkOrderCreated(c, order, Optional.of(bob)));
         t.bus.post(new dev.hycolony.core.citizen.CitizenSpawned(c, citizen)); // the core's, not the api's
+        t.bus.post(
+                new dev.hycolony.core.citizen.death.CitizenDied(c, citizen, new DeathCause("Fall", Optional.empty())));
         c.setDay(5);
         t.bus.post(new ColonyEvents.DayStarted(c));
         t.bus.post(new ColonyEvents.NightFell(c));
@@ -157,6 +162,7 @@ class CoreColonyWorldEventsTest {
                         new BuildingLevelChanged(ref(c), hall.type().id(), hallPos, 0, 3, new Actor.Player(alice)),
                         new WorkOrderCreated(ref(c), 3, "UPGRADE", hallPos, new Actor.Player(bob)),
                         new CitizenSpawned(new CitizenRef(ref(c), 7)),
+                        new CitizenDied(new CitizenRef(ref(c), 7)),
                         new DayStarted(ref(c), 5),
                         new NightFell(ref(c))),
                 heard);

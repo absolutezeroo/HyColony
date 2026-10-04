@@ -29,8 +29,13 @@ final class TownHallViews {
      * MC EventDescriptionManager's kinds: a citizen moving in, a hut built, upgraded, repaired or deconstructed.
      * Births, coming of age, deaths and visitors need systems HyColony lacks.
      */
-    private static final Set<String> MC_EVENTS =
-            Set.of("citizenSpawned", "buildingBuilt", "buildingUpgraded", "buildingRepaired", "buildingDeconstructed");
+    private static final Set<String> MC_EVENTS = Set.of(
+            "citizenSpawned",
+            "citizenDied",
+            "buildingBuilt",
+            "buildingUpgraded",
+            "buildingRepaired",
+            "buildingDeconstructed");
 
     private final ColonyContext ctx;
 

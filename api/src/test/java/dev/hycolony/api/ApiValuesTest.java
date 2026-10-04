@@ -93,8 +93,8 @@ class ApiValuesTest {
     }
 
     @Test
-    void currentVersionIsOnePointThree() {
-        assertEquals(new ApiVersion(1, 3, 0), ApiVersion.CURRENT);
-        assertEquals("1.3.0", ApiVersion.CURRENT.toString());
+    void currentVersionIsOnePointFour() {
+        assertEquals(new ApiVersion(1, 4, 0), ApiVersion.CURRENT);
+        assertEquals("1.4.0", ApiVersion.CURRENT.toString());
     }
 }
