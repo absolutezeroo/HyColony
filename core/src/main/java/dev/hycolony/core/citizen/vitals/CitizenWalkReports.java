@@ -1,6 +1,7 @@
 package dev.hycolony.core.citizen.vitals;
 
 import dev.hycolony.core.citizen.CitizenData;
+import dev.hycolony.core.citizen.hurt.CitizenHurt;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
@@ -12,8 +13,8 @@ import dev.hycolony.core.kernel.port.NavStatus;
 
 /**
  * One citizen's walks as its vital signs see them: each start, end and stuck action is kept in its
- * {@link CitizenVitals}, and posted as a {@link CitizenDebugEvents} only while someone listens. A job context gives it
- * to the walker of that citizen.
+ * {@link CitizenVitals}, and posted as a {@link CitizenDebugEvents} only while someone listens; a teleport out of a
+ * full stuck also hurts it ({@link CitizenHurt#stuck}). Every walker of that citizen is given one.
  */
 public final class CitizenWalkReports implements WalkListener {
     private final Colony colony;
@@ -46,6 +47,9 @@ public final class CitizenWalkReports implements WalkListener {
     @Override
     public void stuck(BlockPos target, Vec3 at, StuckHandler.Action action) {
         long now = now();
+        if (action == StuckHandler.Action.TELEPORT) {
+            CitizenHurt.stuck(colony, citizen);
+        }
         CitizenVitals v = citizen.vitals();
         v.walks().stuck(action, now);
         if (v.keepsHistory()) {

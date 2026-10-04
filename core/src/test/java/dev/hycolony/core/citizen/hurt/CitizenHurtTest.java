@@ -5,13 +5,16 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.hycolony.core.citizen.CitizenData;
+import dev.hycolony.core.citizen.vitals.CitizenWalkReports;
 import dev.hycolony.core.colony.Colony;
 import dev.hycolony.core.colony.permission.Permissions;
 import dev.hycolony.core.colony.territory.TerritoryIndex;
 import dev.hycolony.core.kernel.BlockPos;
 import dev.hycolony.core.kernel.Vec3;
+import dev.hycolony.core.kernel.nav.StuckHandler;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.testing.TestContexts;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
@@ -64,6 +67,23 @@ class CitizenHurtTest {
     void aCitizenOfTheSameColonyNeverHurtsIt() {
         assertEquals(0, CitizenHurt.allowed(colony, body, 3, new HurtSource.Citizen(1)), EPS);
         assertEquals(3, CitizenHurt.allowed(colony, body, 3, new HurtSource.Citizen(2)), EPS);
+    }
+
+    @Test
+    void aCitizenInAWallIsMovedOutWhereItStands() {
+        CitizenHurt.outOfWall(colony, body);
+        assertEquals(
+                List.of(new Vec3(0, 64, 0)), t.bodies.teleports, "MC TeleportHelper.teleportCitizen(blockPosition)");
+    }
+
+    @Test
+    void aFullStuckCostsAFifthOfMaxHealthAndARepathNothing() {
+        CitizenWalkReports walks = new CitizenWalkReports(colony, citizen);
+        walks.stuck(new BlockPos(5, 64, 5), new Vec3(1, 64, 1), StuckHandler.Action.REPATH);
+        assertEquals(100, t.bodies.bodies.get(body).health, EPS);
+
+        walks.stuck(new BlockPos(5, 64, 5), new Vec3(1, 64, 1), StuckHandler.Action.TELEPORT);
+        assertEquals(80, t.bodies.bodies.get(body).health, EPS, "MC withTakeDamageOnStuck(0.2f)");
     }
 
     @Test

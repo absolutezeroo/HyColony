@@ -13,6 +13,12 @@ public interface BodyHealth {
     /** The body's maximum health (MC getMaxHealth, 100 for a citizen on Hytale's scale). */
     double maxHealth(BodyId body);
 
+    /**
+     * Hurts the body by {@code amount} as its being stuck in place would (MC STUCK_DAMAGE), through the world's damage
+     * rules: armour, the citizen's hit filter, death at 0.
+     */
+    void damage(BodyId body, double amount);
+
     /** Heals the body by {@code amount}, up to its maximum (MC LivingEntity.heal). */
     void heal(BodyId body, double amount);
 

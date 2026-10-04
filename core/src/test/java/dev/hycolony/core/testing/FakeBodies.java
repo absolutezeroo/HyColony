@@ -155,6 +155,14 @@ public final class FakeBodies implements CitizenBodies, BodyHealth, BodySeats {
     }
 
     @Override
+    public void damage(BodyId body, double amount) {
+        if (isAlive(body)) {
+            Body b = bodies.get(body);
+            b.health = Math.max(0, b.health - amount);
+        }
+    }
+
+    @Override
     public void heal(BodyId body, double amount) {
         if (isAlive(body)) {
             Body b = bodies.get(body);

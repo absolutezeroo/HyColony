@@ -6,6 +6,8 @@ import dev.hycolony.plugin.IdMap;
 import dev.hycolony.plugin.WorldRuntimes;
 import dev.hycolony.plugin.npc.hurt.CitizenHitFilter;
 import dev.hycolony.plugin.npc.hurt.CitizenHurtSystem;
+import dev.hycolony.plugin.npc.hurt.CitizenVulnerabilitySystem;
+import dev.hycolony.plugin.npc.hurt.CitizenWallFilter;
 import dev.hycolony.plugin.npc.motion.CitizenClimbSystem;
 import dev.hycolony.plugin.npc.motion.CitizenMantleSystem;
 import dev.hycolony.plugin.npc.motion.CitizenSwimSystem;
@@ -26,6 +28,8 @@ public final class NpcSystems {
         registry.registerSystem(new CitizenUseSystem(worlds));
         registry.registerSystem(new CitizenFireImmunitySystems.Grant());
         registry.registerSystem(new CitizenFireImmunitySystems.Guard());
+        registry.registerSystem(new CitizenVulnerabilitySystem());
+        registry.registerSystem(new CitizenWallFilter(worlds));
         registry.registerSystem(new CitizenHitFilter(worlds));
         registry.registerSystem(new CitizenHurtSystem(worlds, ids.hurtIgnoredCauses()));
         registry.registerSystem(new CitizenMantleSystem());

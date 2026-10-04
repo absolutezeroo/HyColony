@@ -3,11 +3,14 @@ package dev.hycolony.plugin.npc.body;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.modules.entity.component.HealthRegenState;
+import com.hypixel.hytale.server.core.modules.entity.damage.Damage;
+import com.hypixel.hytale.server.core.modules.entity.damage.DamageSystems;
 import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
 import com.hypixel.hytale.server.core.modules.entitystats.EntityStatValue;
 import com.hypixel.hytale.server.core.modules.entitystats.asset.DefaultEntityStatTypes;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import dev.hycolony.plugin.npc.hurt.CauseIndex;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -18,6 +21,7 @@ import org.jspecify.annotations.Nullable;
  */
 public final class BodyVitals {
     private final World world;
+    private final CauseIndex crush = new CauseIndex("Crush");
 
     public BodyVitals(World world) {
         this.world = world;
@@ -51,6 +55,23 @@ public final class BodyVitals {
         if (stats != null) {
             stats.addStatValue(DefaultEntityStatTypes.getHealth(), (float) amount);
         }
+    }
+
+    /**
+     * Deals {@code amount} of {@code Crush} damage, without a source, through Hytale's damage systems (armour, our
+     * filters, death). Deviation from MC (Hytale world): MC's STUCK_DAMAGE → Crush, the closest cause, which armour
+     * reduces as MC's (citizen-death.md § 3). Deferred to world.execute, as a caller may run while the store processes.
+     */
+    public void damage(Ref<EntityStore> ref, double amount) {
+        int cause = crush.get();
+        if (cause == CauseIndex.MISSING) {
+            return;
+        }
+        world.execute(() -> {
+            if (ref.isValid()) {
+                DamageSystems.executeDamage(ref, store(), new Damage(Damage.NULL_SOURCE, cause, (float) amount));
+            }
+        });
     }
 
     private @Nullable EntityStatValue health(Ref<EntityStore> ref) {

@@ -44,6 +44,19 @@ public final class HytaleBodyHealth implements BodyHealth {
         return read("maxHealth", body, vitals::max, 0.0);
     }
 
+    /** Through {@link BodyVitals#damage}, under Hytale's Crush cause. */
+    @Override
+    public void damage(BodyId body, double amount) {
+        read(
+                "damage",
+                body,
+                ref -> {
+                    vitals.damage(ref, amount);
+                    return true;
+                },
+                false);
+    }
+
     @Override
     public void heal(BodyId body, double amount) {
         read(

@@ -25,10 +25,8 @@ import javax.annotation.Nullable;
 /**
  * Fire never hurts a HyColony citizen, and never shows on them either.
  *
- * <p>Deviation from MC: citizens are immune to fire (user request), independent of invulnerability. MC lets a
- * citizen burn like any other living entity; here neither {@code Grant} nor {@code Guard} depend on the
- * {@code Invulnerable} component the role currently carries, so the immunity survives a future change that makes
- * citizens mortal.
+ * <p>Deviation from MC: citizens are immune to fire (user request), though mortal. MC lets a citizen burn like any
+ * other living entity.
  */
 public final class CitizenFireImmunitySystems {
     private CitizenFireImmunitySystems() {}

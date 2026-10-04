@@ -30,7 +30,6 @@
     }
   ],
   "MaxHealth": 100,
-  "Invulnerable": true,
   "Instructions": [
     {
       "Instructions": [
