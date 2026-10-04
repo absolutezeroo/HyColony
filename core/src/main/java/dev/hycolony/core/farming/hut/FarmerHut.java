@@ -25,12 +25,15 @@ public final class FarmerHut {
     /** MC MAX_BUILDING_LEVEL. */
     public static final int MAX_LEVEL = 5;
 
+    /** MC TagConstants.CRAFTING_FARMER: the farmer's crafting module reads the {@code farmer_*} job tags. */
+    static final String CRAFTER = "farmer";
+
     public static final BuildingType TYPE = new BuildingType(
             TYPE_ID,
             "hut.farmer",
             MAX_LEVEL,
             List.of(
-                    new ModuleProducer("crafting", () -> new CraftingModule(TYPE_ID, true)),
+                    new ModuleProducer("crafting", () -> new CraftingModule(TYPE_ID, CRAFTER, true)),
                     new ModuleProducer(
                             "worker", () -> new WorkerModule(FarmerJob.TYPE, Skill.Stamina, Skill.Athletics, 1, false)),
                     new ModuleProducer("craftingResolvers", CraftingResolvers::new),

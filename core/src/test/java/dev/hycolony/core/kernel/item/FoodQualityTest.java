@@ -6,9 +6,16 @@ import org.junit.jupiter.api.Test;
 
 class FoodQualityTest {
     @Test
-    void eachRankFeedsTheMedianOfOurFoodsOfItsQuality() {
-        assertEquals(new FoodInfo(3, 0, false), FoodQuality.COMMON.food());
-        assertEquals(new FoodInfo(8, 2, false), FoodQuality.UNCOMMON.food());
-        assertEquals(new FoodInfo(12, 3, false), FoodQuality.RARE.food());
+    void eachRankFeedsTheMedianNutritionOfOurFoodsOfItsQuality() {
+        assertEquals(3, FoodQuality.COMMON.food().nutrition());
+        assertEquals(8, FoodQuality.UNCOMMON.food().nutrition());
+        assertEquals(12, FoodQuality.RARE.food().nutrition());
+    }
+
+    @Test
+    void aFoodWithoutAFileIsNeverAMineColoniesDishLikeMcForAnotherModsFood() {
+        for (FoodQuality rank : FoodQuality.values()) {
+            assertEquals(new FoodInfo(rank.food().nutrition(), 0, false), rank.food(), rank.name());
+        }
     }
 }

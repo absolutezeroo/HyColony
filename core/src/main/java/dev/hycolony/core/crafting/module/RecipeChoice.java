@@ -111,7 +111,7 @@ public final class RecipeChoice {
                 .recipes()
                 .get(id)
                 .filter(r -> output.test(r.primaryOutput().item()))
-                .filter(r -> RecipeCompatibility.stillValid(colony, hut, module.jobId(), id))
+                .filter(r -> RecipeCompatibility.stillValid(colony, hut, module, id))
                 .map(r -> new Chosen(id, r));
     }
 }

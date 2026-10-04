@@ -42,17 +42,18 @@ class CraftingRulesTest {
 
     @Test
     void jobMayLearnEveryCategoryOfAnAllowedBench() {
-        assertTrue(rules.allows("farmer", RecipeFixtures.at("Farmingbench", "Anything", "Plant_Seeds_Corn")));
+        assertTrue(rules.allows("farmer", "farmer", RecipeFixtures.at("Farmingbench", "Anything", "Plant_Seeds_Corn")));
     }
 
     @Test
     void excludedOutputIsRefusedEvenOnAnAllowedBench() {
-        assertFalse(rules.allows("farmer", RecipeFixtures.at("Farmingbench", "Saplings", "Plant_Sapling_Oak")));
+        assertFalse(
+                rules.allows("farmer", "farmer", RecipeFixtures.at("Farmingbench", "Saplings", "Plant_Sapling_Oak")));
     }
 
     @Test
     void includedOutputIsAllowedOnAnyBench() {
-        assertTrue(rules.allows("farmer", RecipeFixtures.at("Cookingbench", "Bread", "Food_Bread")));
+        assertTrue(rules.allows("farmer", "farmer", RecipeFixtures.at("Cookingbench", "Bread", "Food_Bread")));
     }
 
     @Test
@@ -61,22 +62,25 @@ class CraftingRulesTest {
                 .withTags(tags(
                         new JobTags.TagFile("farmer_product", List.of(new ItemKey("Food_Bread"))),
                         new JobTags.TagFile("farmer_product_excluded", List.of(new ItemKey("Food_Bread")))));
-        assertFalse(both.allows("farmer", RecipeFixtures.at("Cookingbench", "Bread", "Food_Bread")));
+        assertFalse(both.allows("farmer", "farmer", RecipeFixtures.at("Cookingbench", "Bread", "Food_Bread")));
     }
 
     @Test
-    void namespacedJobReadsTheTagsOfItsName() {
-        CraftingRules r = CraftingRules.parse(json("{\"jobs\":{\"hycolony:farmer\":{}}}"), w -> fail(w))
-                .withTags(TAGS);
-        assertTrue(r.allows("hycolony:farmer", RecipeFixtures.at("Cookingbench", "Bread", "Food_Bread")));
+    void theTagsAreTheCrafterNamesNotTheJobIdsLikeMcChefReadingCookTags() {
+        CraftingRules r = CraftingRules.parse(json("{\"jobs\":{\"hycolony:chef\":{}}}"), w -> fail(w))
+                .withTags(tags(
+                        new JobTags.TagFile("cook_product", List.of(new ItemKey("Food_Bread"))),
+                        new JobTags.TagFile("chef_product", List.of(new ItemKey("Food_Pie_Apple")))));
+        assertTrue(r.allows("hycolony:chef", "cook", RecipeFixtures.at("Cookingbench", "Bread", "Food_Bread")));
+        assertFalse(r.allows("hycolony:chef", "cook", RecipeFixtures.at("Cookingbench", "Pie", "Food_Pie_Apple")));
     }
 
     @Test
     void withoutTagsNothingIsIncludedNorReduceable() {
         CraftingRules plain = CraftingRules.parse(json(JSON), w -> fail(w));
-        assertFalse(plain.allows("farmer", RecipeFixtures.at("Cookingbench", "Bread", "Food_Bread")));
+        assertFalse(plain.allows("farmer", "farmer", RecipeFixtures.at("Cookingbench", "Bread", "Food_Bread")));
         assertFalse(plain.isReduceable(RecipeFixtures.ESSENCE));
-        assertTrue(plain.allows("farmer", RecipeFixtures.at("Farmingbench", "Anything", "Plant_Seeds_Corn")));
+        assertTrue(plain.allows("farmer", "farmer", RecipeFixtures.at("Farmingbench", "Anything", "Plant_Seeds_Corn")));
     }
 
     @Test
@@ -87,14 +91,14 @@ class CraftingRulesTest {
              "reduceable":{"ingredients":["Ingredient_Life_Essence"]}}
             """), warnings::add);
         assertEquals(3, warnings.size(), warnings::toString);
-        assertFalse(r.allows("farmer", RecipeFixtures.at("Cookingbench", "Bread", "Food_Bread")));
+        assertFalse(r.allows("farmer", "farmer", RecipeFixtures.at("Cookingbench", "Bread", "Food_Bread")));
         assertFalse(r.isReduceable(RecipeFixtures.ESSENCE));
     }
 
     @Test
     void fieldcraftRecipeFollowsItsCategories() {
-        assertTrue(rules.allows("farmer", RecipeFixtures.fieldcraft("Seeds", "Plant_Seeds_Wheat")));
-        assertFalse(rules.allows("farmer", RecipeFixtures.fieldcraft("Tools", "Tool_Hoe_Crude")));
+        assertTrue(rules.allows("farmer", "farmer", RecipeFixtures.fieldcraft("Seeds", "Plant_Seeds_Wheat")));
+        assertFalse(rules.allows("farmer", "farmer", RecipeFixtures.fieldcraft("Tools", "Tool_Hoe_Crude")));
     }
 
     @Test
@@ -107,12 +111,12 @@ class CraftingRulesTest {
                 Optional.empty(),
                 new RecipeSource.Hytale("Plant_Seeds_Odd"),
                 false);
-        assertFalse(rules.allows("farmer", seedsAndTools));
+        assertFalse(rules.allows("farmer", "farmer", seedsAndTools));
     }
 
     @Test
     void unknownJobMayLearnNothing() {
-        assertFalse(rules.allows("miner", RecipeFixtures.at("Farmingbench", "Seeds", "Plant_Seeds_Corn")));
+        assertFalse(rules.allows("miner", "miner", RecipeFixtures.at("Farmingbench", "Seeds", "Plant_Seeds_Corn")));
     }
 
     @Test
@@ -141,9 +145,10 @@ class CraftingRulesTest {
     @Test
     void emptyFileMeansNoRules() {
         CraftingRules none = CraftingRules.parse(json("{}"), w -> fail(w));
-        assertFalse(none.allows("farmer", RecipeFixtures.at("Farmingbench", "Seeds", "Plant_Seeds_Corn")));
+        assertFalse(none.allows("farmer", "farmer", RecipeFixtures.at("Farmingbench", "Seeds", "Plant_Seeds_Corn")));
         assertFalse(none.isReduceable(RecipeFixtures.ESSENCE));
-        assertFalse(CraftingRules.EMPTY.allows("farmer", RecipeFixtures.fieldcraft("Seeds", "Plant_Seeds_Wheat")));
+        assertFalse(CraftingRules.EMPTY.allows(
+                "farmer", "farmer", RecipeFixtures.fieldcraft("Seeds", "Plant_Seeds_Wheat")));
     }
 
     @Test
@@ -152,7 +157,7 @@ class CraftingRulesTest {
         CraftingRules r =
                 CraftingRules.parse(json("{\"jobs\":{\"farmer\":{\"allow\":[{\"categories\":[]}]}}}"), warnings::add);
         assertEquals(1, warnings.size());
-        assertFalse(r.allows("farmer", RecipeFixtures.at("Farmingbench", "Seeds", "Plant_Seeds_Corn")));
+        assertFalse(r.allows("farmer", "farmer", RecipeFixtures.at("Farmingbench", "Seeds", "Plant_Seeds_Corn")));
     }
 
     @Test
@@ -170,8 +175,8 @@ class CraftingRulesTest {
         CraftingRules merged = CraftingRules.parse(file.merged(), w -> fail(w));
 
         assertEquals(List.of(new JsonFragments.Conflict("jobs/farmer/allow", "HyColony", "Pack")), conflicts);
-        assertTrue(merged.allows("farmer", RecipeFixtures.at("Farmingbench", "Seeds", "Plant_Seeds_Corn")));
-        assertTrue(merged.allows("baker", RecipeFixtures.at("Cookingbench", "Pie", "Food_Pie_Apple")));
+        assertTrue(merged.allows("farmer", "farmer", RecipeFixtures.at("Farmingbench", "Seeds", "Plant_Seeds_Corn")));
+        assertTrue(merged.allows("baker", "baker", RecipeFixtures.at("Cookingbench", "Pie", "Food_Pie_Apple")));
     }
 
     @Test
@@ -186,7 +191,7 @@ class CraftingRulesTest {
              "reduceable":{"ingredients":"Ingredient_Life_Essence"}}
             """), warnings::add);
         assertEquals(7, warnings.size(), warnings::toString);
-        assertFalse(r.allows("farmer", RecipeFixtures.at("Farmingbench", "Seeds", "Plant_Seeds_Corn")));
+        assertFalse(r.allows("farmer", "farmer", RecipeFixtures.at("Farmingbench", "Seeds", "Plant_Seeds_Corn")));
         assertTrue(r.custom("farmer").isEmpty());
     }
 }

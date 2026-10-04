@@ -25,6 +25,9 @@ import java.util.List;
  */
 public final class TestCrafters {
     public static final String ID = "test:crafter";
+    /** The test crafter's job tags are the {@code crafter_*} ones. */
+    public static final String CRAFTER = "crafter";
+
     public static final JobType JOB = new JobType(ID, TestCrafterJob::new);
     /** A hut of max level 5 with one crafter place, whose crafting module may learn many recipes. */
     public static final BuildingType HUT = hut(true, 1);
@@ -44,7 +47,7 @@ public final class TestCrafters {
                 List.of(
                         new ModuleProducer(
                                 "worker", () -> new WorkerModule(JOB, Skill.Dexterity, Skill.Knowledge, places, false)),
-                        new ModuleProducer("crafting", () -> new CraftingModule(ID, many)),
+                        new ModuleProducer("crafting", () -> new CraftingModule(ID, CRAFTER, many)),
                         new ModuleProducer("craftingResolvers", CraftingResolvers::new)));
     }
 

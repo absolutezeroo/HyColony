@@ -73,7 +73,7 @@ class CoreFeaturesTest {
                 "pack:forgetful",
                 "hut.forgetful",
                 5,
-                List.of(new ModuleProducer("crafting", () -> new CraftingModule("pack:crafter", true))));
+                List.of(new ModuleProducer("crafting", () -> new CraftingModule("pack:crafter", "crafter", true))));
 
         assertEquals(List.of(forgetful.id()), withoutCraftingResolvers(List.of(forgetful, TestCrafters.HUT, FARM)));
     }

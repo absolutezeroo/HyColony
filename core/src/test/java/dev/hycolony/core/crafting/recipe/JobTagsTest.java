@@ -34,27 +34,64 @@ class JobTagsTest {
     }
 
     @Test
-    void productTagsAreFoundByTheJobIdWithoutItsNamespace() {
+    void productTagsAreFoundByTheCrafterNameLikeMcTagConstants() {
         JobTags tags = JobTags.merge(
                 List.of(
-                        new JobTags.TagFile("chef_product", List.of(BREAD)),
-                        new JobTags.TagFile("chef_product_excluded", List.of(PIE))),
+                        new JobTags.TagFile("cook_product", List.of(BREAD)),
+                        new JobTags.TagFile("cook_product_excluded", List.of(PIE))),
                 w -> fail(w));
-        assertEquals(Set.of(BREAD), tags.products("hycolony:chef"));
-        assertEquals(Set.of(PIE), tags.excludedProducts("hycolony:chef"));
-        assertEquals(Set.of(BREAD), tags.products("chef"));
+        assertEquals(Set.of(BREAD), tags.products("cook"));
+        assertEquals(Set.of(PIE), tags.excludedProducts("cook"));
+        assertTrue(tags.products("chef").isEmpty());
+    }
+
+    @Test
+    void aTagIncludesAnotherTagLikeMcBakerExcludingCookProducts() {
+        JobTags tags = JobTags.merge(
+                List.of(
+                        new JobTags.TagFile("cook_product", List.of(BREAD)),
+                        new JobTags.TagFile("baker_product_excluded", List.of(PIE), List.of("cook_product"))),
+                w -> fail(w));
+        assertEquals(Set.of(BREAD, PIE), tags.excludedProducts("baker"));
+    }
+
+    @Test
+    void tagsIncludingEachOtherStopAtTheLoop() {
+        JobTags tags = JobTags.merge(
+                List.of(
+                        new JobTags.TagFile("cook_product", List.of(BREAD), List.of("baker_product")),
+                        new JobTags.TagFile("baker_product", List.of(PIE), List.of("cook_product"))),
+                w -> fail(w));
+        assertEquals(Set.of(BREAD, PIE), tags.products("cook"));
+        assertEquals(Set.of(BREAD, PIE), tags.products("baker"));
+    }
+
+    @Test
+    void includeOfAnUnknownTagIsSkippedWithOneWarning() {
+        List<String> warnings = new ArrayList<>();
+        JobTags tags = JobTags.merge(
+                List.of(new JobTags.TagFile("cook_product", List.of(BREAD), List.of("cook_tools"))), warnings::add);
+        assertEquals(1, warnings.size(), warnings::toString);
+        assertEquals(Set.of(BREAD), tags.products("cook"));
+    }
+
+    @Test
+    void excludedFoodTagIsRead() {
+        JobTags tags = JobTags.merge(List.of(new JobTags.TagFile(JobTags.EXCLUDED_FOOD, List.of(PIE))), w -> fail(w));
+        assertEquals(Set.of(PIE), tags.get(JobTags.EXCLUDED_FOOD));
     }
 
     @Test
     void absentTagIsEmpty() {
         assertTrue(JobTags.EMPTY.get(JobTags.REDUCEABLE_INGREDIENT).isEmpty());
-        assertTrue(JobTags.EMPTY.products("hycolony:farmer").isEmpty());
+        assertTrue(JobTags.EMPTY.products("farmer").isEmpty());
     }
 
     @Test
-    void reduceableAndJobTagsAreKnownButABareSuffixIsNot() {
+    void mcTagsAreKnownButABareSuffixIsNot() {
         assertTrue(JobTags.isKnown(JobTags.REDUCEABLE_INGREDIENT));
         assertTrue(JobTags.isKnown(JobTags.REDUCEABLE_PRODUCT_EXCLUDED));
+        assertTrue(JobTags.isKnown(JobTags.EXCLUDED_FOOD));
         assertTrue(JobTags.isKnown("farmer_product_excluded"));
         assertFalse(JobTags.isKnown("_product"));
         assertFalse(JobTags.isKnown(""));

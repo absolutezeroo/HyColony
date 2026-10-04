@@ -74,7 +74,7 @@ final class RecipesTab {
                 continue;
             }
             RecipeId id = colony.registries().recipes().idOf(r).orElseGet(() -> RecipeId.hytale(hytaleId));
-            if (module.recipes().contains(id) || !RecipeCompatibility.compatible(colony, hut, module.jobId(), r)) {
+            if (module.recipes().contains(id) || !RecipeCompatibility.compatible(colony, hut, module, r)) {
                 continue;
             }
             Optional<LearnRefusal> refusal = full ? Optional.of(LearnRefusal.FULL) : unknownTo(colony, r, viewer);

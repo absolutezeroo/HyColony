@@ -69,21 +69,23 @@ public final class CraftingRules {
     }
 
     /**
-     * Whether {@code jobId} may learn {@code recipe}. As MC CraftingUtils.getProductValidatorBasedOnTags, an output in
-     * the job's product exclusion tag is refused first and one in its product tag allowed; otherwise the recipe's bench
-     * and categories must be allowed. A job absent from the file may learn nothing (MC BuildingFarmer:
-     * {@code orElse(false)}).
+     * Whether {@code jobId}, whose crafting module reads the tags of {@code crafter} (MC TagConstants.CRAFTING_*: the
+     * chef reads {@code cook}), may learn {@code recipe}. As MC CraftingUtils.getProductValidatorBasedOnTags, an output
+     * in the crafter's product exclusion tag is refused first and one in its product tag allowed; otherwise the
+     * recipe's bench and categories must be allowed. A job absent from the file may learn nothing (MC BuildingFarmer:
+     * {@code orElse(false)}). Deviation from MC: the ingredient tags ({@code <crafter>_ingredient}, MC
+     * CraftingUtils.isRecipeCompatibleBasedOnTags) are not read yet.
      */
-    public boolean allows(String jobId, Recipe recipe) {
+    public boolean allows(String jobId, String crafter, Recipe recipe) {
         JobRules job = jobs.get(jobId);
         if (job == null) {
             return false;
         }
         ItemKey output = recipe.primaryOutput().item();
-        if (tags.excludedProducts(jobId).contains(output)) {
+        if (tags.excludedProducts(crafter).contains(output)) {
             return false;
         }
-        return tags.products(jobId).contains(output) || job.allow().stream().anyMatch(a -> a.accepts(recipe.bench()));
+        return tags.products(crafter).contains(output) || job.allow().stream().anyMatch(a -> a.accepts(recipe.bench()));
     }
 
     /** The custom recipes of {@code jobId}; empty for a job absent from the file. */

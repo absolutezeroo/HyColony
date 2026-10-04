@@ -51,18 +51,29 @@ public final class CraftingModule implements PersistentModule, TickingModule, Ke
     }
 
     private final String jobId;
+    private final String crafter;
     private final boolean canLearnManyRecipes;
     private final RecipeList list = new RecipeList();
 
-    /** A module for {@code jobId}'s crafters; {@code canLearnManyRecipes} is false for MC SimpleCraftingModule. */
-    public CraftingModule(String jobId, boolean canLearnManyRecipes) {
+    /**
+     * A module for {@code jobId}'s crafters, reading the tags of {@code crafter} (MC TagConstants.CRAFTING_*, the
+     * constant the MC module passes to CraftingUtils); {@code canLearnManyRecipes} is false for MC
+     * SimpleCraftingModule.
+     */
+    public CraftingModule(String jobId, String crafter, boolean canLearnManyRecipes) {
         this.jobId = jobId;
+        this.crafter = crafter;
         this.canLearnManyRecipes = canLearnManyRecipes;
     }
 
     /** The job whose crafters use these recipes (MC jobEntry), and whose {@code crafting.json} rules apply. */
     public String jobId() {
         return jobId;
+    }
+
+    /** The crafter whose job tags apply ({@code <crafter>_product}…): the farmer's is {@code farmer}. */
+    public String crafter() {
+        return crafter;
     }
 
     /** The learnt recipes, in the order crafters try them; read-only. */
@@ -118,7 +129,7 @@ public final class CraftingModule implements PersistentModule, TickingModule, Ke
         if (maxRecipes(hut) <= activeRecipes(colony)) {
             return Optional.of(LearnRefusal.FULL);
         }
-        if (recipe == null || !RecipeCompatibility.compatible(colony, hut, jobId, recipe)) {
+        if (recipe == null || !RecipeCompatibility.compatible(colony, hut, this, recipe)) {
             return Optional.of(LearnRefusal.INCOMPATIBLE);
         }
         if (!RecipeCompatibility.knownBy(colony, recipe, player)) {

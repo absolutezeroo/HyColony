@@ -18,9 +18,10 @@ import java.util.UUID;
  * Whether a hut's crafting module may hold a recipe (MC AbstractCraftingBuildingModule.isRecipeCompatible and the
  * crafter's own override, e.g. BuildingFarmer.CraftingModule: the intermediate block, then the {@code crafterProduct}
  * tags). Deviation from MC: the intermediate block becomes a bench of the hut's plan, with Hytale's categories and
- * tier, and the tags become the job's filter in {@code crafting.json}. Deviation from MC: a recipe with a resource type
- * or tag ingredient the catalog lists no item for is neither compatible nor valid, as its ingredient requests would
- * wait forever; MC recipes name an exact item.
+ * tier; the job's default rule is its benches in {@code crafting.json}, and the crafter's tags come from the
+ * {@code JobTags} asset files ({@link dev.hycolony.core.crafting.recipe.JobTags}). Deviation from MC: a recipe with a
+ * resource type or tag ingredient the catalog lists no item for is neither compatible nor valid, as its ingredient
+ * requests would wait forever; MC recipes name an exact item.
  */
 final class RecipeCompatibility {
     private RecipeCompatibility() {}
@@ -47,15 +48,16 @@ final class RecipeCompatibility {
      * MC isRecipeCompatibleWithCraftingModule: the hut has its bench and the job may learn it; and, a deviation from
      * MC, some item answers each of its ingredients ({@link RecipeMatching#everyIngredientHasItems}).
      */
-    static boolean compatible(Colony colony, Building hut, String jobId, Recipe recipe) {
+    static boolean compatible(Colony colony, Building hut, CraftingModule module, Recipe recipe) {
         CraftingSetup crafting = colony.context().ports().crafting();
         return RecipeMatching.everyIngredientHasItems(recipe, crafting.catalog())
-                && hutAndJobAllow(crafting, hut, jobId, recipe);
+                && hutAndJobAllow(crafting, hut, module, recipe);
     }
 
-    /** {@link #compatible}'s MC part: the hut has the recipe's bench and the job's rules allow it. */
-    private static boolean hutAndJobAllow(CraftingSetup crafting, Building hut, String jobId, Recipe recipe) {
-        return benchPresent(hut, recipe, crafting.catalog()) && crafting.rules().allows(jobId, recipe);
+    /** {@link #compatible}'s MC part: the hut has the recipe's bench and the job's rules and tags allow it. */
+    private static boolean hutAndJobAllow(CraftingSetup crafting, Building hut, CraftingModule module, Recipe recipe) {
+        return benchPresent(hut, recipe, crafting.catalog())
+                && crafting.rules().allows(module.jobId(), module.crafter(), recipe);
     }
 
     /**
@@ -76,19 +78,19 @@ final class RecipeCompatibility {
      * failing it is no longer chosen but stays listed, where MC drops it from the list when its view is refreshed; and
      * even a pre-taught recipe needs an item for each ingredient.
      */
-    static boolean stillValid(Colony colony, Building hut, String jobId, RecipeId id) {
+    static boolean stillValid(Colony colony, Building hut, CraftingModule module, RecipeId id) {
         Optional<Recipe> recipe = colony.registries().recipes().get(id);
         CraftingSetup crafting = colony.context().ports().crafting();
         if (recipe.isEmpty() || !RecipeMatching.everyIngredientHasItems(recipe.get(), crafting.catalog())) {
             return false;
         }
-        List<CustomRecipe> custom = crafting.rules().custom(jobId);
+        List<CustomRecipe> custom = crafting.rules().custom(module.jobId());
         if (recipe.get().source() instanceof RecipeSource.Custom(String customId)
                 && custom.stream().noneMatch(c -> c.id().equals(customId))) {
             return false;
         }
         // The ingredients were checked above: compatible() would check them again.
-        return hutAndJobAllow(crafting, hut, jobId, recipe.get()) || isPreTaught(colony, recipe.get(), custom);
+        return hutAndJobAllow(crafting, hut, module, recipe.get()) || isPreTaught(colony, recipe.get(), custom);
     }
 
     /** MC isPreTaughtRecipe: a custom recipe of the job makes the same item, as many of it. */

@@ -78,7 +78,7 @@ public final class RecipeImprovement {
         Recipe improved = recipe.improvedWith(reduction.get().inputs());
         RecipeId id = colony.registries().recipes().checkOrAdd(improved);
         colony.markDirty();
-        if (RecipeCompatibility.compatible(colony, hut, module.jobId(), improved)) {
+        if (RecipeCompatibility.compatible(colony, hut, module, improved)) {
             module.replaceRecipe(colony, crafted.recipe(), id);
             tellMembers(colony, message(module, crafted, recipe, reduction.get(), random));
         }

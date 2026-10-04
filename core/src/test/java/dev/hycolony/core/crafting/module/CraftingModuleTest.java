@@ -17,6 +17,7 @@ import dev.hycolony.core.request.model.RequestToken;
 import dev.hycolony.core.request.model.StackRequest;
 import dev.hycolony.core.request.resolver.PlayerResolver;
 import dev.hycolony.core.request.resolver.RetryingResolver;
+import dev.hycolony.core.testing.crafting.TestCrafters;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -256,7 +257,7 @@ class CraftingModuleTest {
         JsonObject saved = new JsonObject();
         h.module.write(saved);
 
-        CraftingModule back = new CraftingModule(CraftingHut.JOB, true);
+        CraftingModule back = new CraftingModule(CraftingHut.JOB, TestCrafters.CRAFTER, true);
         back.read(JsonParser.parseString(saved.toString()).getAsJsonObject());
 
         assertEquals(ids, back.recipes());
@@ -266,7 +267,7 @@ class CraftingModuleTest {
 
     @Test
     void malformedSaveReadsWhatItCan() {
-        CraftingModule back = new CraftingModule(CraftingHut.JOB, true);
+        CraftingModule back = new CraftingModule(CraftingHut.JOB, TestCrafters.CRAFTER, true);
         back.read(
                 JsonParser.parseString("{\"recipes\": [\"hytale:A\", 3, \"hytale:A\", \"hytale:B\"], \"disabled\": 7}")
                         .getAsJsonObject());
