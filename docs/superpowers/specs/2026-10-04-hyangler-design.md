@@ -42,7 +42,7 @@ HyAngler (aucune dépendance de mod)
 
 - **HyAngler ne dépend d'aucun mod**, comme HyVanilla. HyColony ne le voit pas en P1 ; le lien (dépendance dure ou facultative du pêcheur) se décide dans la spec de P6.
 - Ses projets déclarent `group = "dev.hyangler"`. `checkModApis` reçoit `"dev.hyangler." to listOf("dev.hyangler.api.", "dev.hyangler.plugin.api.")` (`build-logic/src/main/kotlin/hy.java-checks.gradle.kts:124-126`).
-- Le plugin déclare `Hytale:Beam` dans ses dépendances de manifeste, car il l'appelle en Java (`jar:manifests.json:334`, `fishing-hytale.md` § 3.4).
+- Le plugin déclare `Hytale:Beam` et `Hytale:Weather` dans ses dépendances de manifeste, car il appelle ces plugins intégrés en Java (`jar:manifests.json:332-342, 375-385`, `fishing-hytale.md` § 5.3, § 5.6).
 
 ## 3. Modules
 
@@ -67,10 +67,11 @@ HyAngler (aucune dépendance de mod)
   - corde `BeamComponent` et `AttachedBeam.toEntity(…, "R-Attachment")`, comme le grappin ;
   - objet qui vole vers le joueur : `ItemUtils.interactivelyPickupItem` ;
   - lune : `WorldTimeResource.getMoonPhase()` ;
-  - environnement d'une case : `EnvironmentSection` ;
-  - durabilité : `ItemUtils.decreaseItemStackDurability`.
+  - environnement d'une case : `EnvironmentSection` ; sa zone est son tag `ZoneN`, hérité de `Env_ZoneN` ;
+  - durabilité : `ItemUtils.updateItemStackDurability` (`decreaseItemStackDurability` ne vaut que pour les armes et armures) ;
+  - le monde tourne à 30 ticks/s (`TickingThread.java:17`), pas 20.
   
-  Références : `fishing-hytale.md` § 3.1 à 3.9.
+  Références : `fishing-hytale.md` § 3.1 à 3.9 et § 5 (API vérifiées pour le plan).
 - **Types d'assets d'un plugin** : `getAssetRegistry()`, `HytaleAssetStore.builder`. Les fichiers sont lus dans chaque pack, et un pack chargé après un autre remplace un fichier de même nom (`2026-10-04-hycolony-nourriture-ouverte-design.md` § 4).
 - **Pas d'enchantement, pas d'XP de joueur** : le palier de la canne tient le rôle des enchantements Appât et Chance de la mer (`fishing-hytale.md` § 3.9).
 
@@ -93,7 +94,7 @@ Chaque type est un `AssetStore` de HyAngler, lu dans tous les packs, sous `Serve
 - un fichier par entrée, **nommé par l'id de l'objet Hytale** qu'il décrit ;
 - un pack chargé après HyAngler remplace notre fichier en fournissant le même nom ;
 - lecture tolérante : une clé absente prend sa valeur par défaut, une clé inconnue est ignorée (P2 ajoutera des clés de taille) ;
-- un fichier invalide (objet inconnu, valeur hors bornes, condition inconnue) est écarté, journalisé une fois en WARNING, et listé par le selftest ;
+- un fichier invalide pour le cœur (objet inconnu, valeur hors bornes, condition inconnue ou mal formée) est écarté, journalisé une fois en WARNING, et listé par le selftest. Une **erreur de type** dans un champ typé (`"Weight": "trente"`) est, elle, une erreur de décodage de Hytale : dans un pack zip ou jar, elle arrête le serveur, comme pour tout asset de Hytale (`fishing-hytale.md` § 5.13). Les conditions et modificateurs sont lus en BSON brut et jugés par le cœur : seule une erreur de type sur `Weight`, `Quality`, `Rarities`, `Category`, `Count`, `Tier`, `Lure`, `Luck` ou `MaxLine` peut en arriver là. Nos fichiers sont vérifiés au build (`CheckPackAssets`) ;
 - un objet sans fichier ne se pêche pas.
 
 ### 6.1 Poissons : `Server/HyAngler/Fish/<id d'objet>.json`
@@ -134,7 +135,7 @@ Un poisson à états tire son état après le choix de l'espèce. Les poids sont
 |---|---|---|
 | `All`, `Any`, `Not` | une liste de conditions (`Not` : une seule) | toutes, au moins une, aucune |
 | `Environment` | `Ids` | l'environnement de la case du bouchon en fait partie |
-| `Zone` | `Ids` (`Zone0`…`Zone4`) | la zone de la case en fait partie |
+| `Zone` | `Ids` (`Zone0`…`Zone4`) | la zone de la case en fait partie (le tag `ZoneN` de son environnement) |
 | `Water` | `Kind` : `Fresh` ou `Salt` | eau salée = environnement de la liste `saltEnvironments` de `hyangler/id-map.json` (océans `Env_Zone0_*` et côtes `*_Shores`) ; sinon eau douce |
 | `Depth` | `Min`, `Max` (blocs d'eau sous la surface) | la colonne d'eau sous le bouchon est dans les bornes (parcours borné) |
 | `Time` | `From`, `To` (heures 0 à 24, `From > To` passe minuit) | l'heure du monde est dans la plage |
@@ -181,14 +182,14 @@ Les environnements sont repris des fichiers d'apparition de Hytale (`fishing-hyt
 
 | Canne | Appât | Chance | Durabilité | Recette |
 |---|---|---|---|---|
-| `HyAngler_Rod_Crude` | 0 | 0 | 200 | `Fieldcraft` (`Tools`) : bâtons, fibre |
+| `HyAngler_Rod_Crude` | 0 | 0 | 200 | `Fieldcraft` (`Tools`) et établi (`Workbench_Tools`) : bâtons, fibre |
 | `HyAngler_Rod_Copper` | 1 | 0 | 300 | établi (`Workbench_Tools`) : lingot de cuivre, bois, fibre |
 | `HyAngler_Rod_Iron` | 1 | 1 | 500 | établi : lingot de fer, cuir léger, tissu de lin |
-| `HyAngler_Rod_Thorium` | 2 | 1 | 700 | établi : lingot de thorium, cuir moyen, lin |
-| `HyAngler_Rod_Cobalt` | 2 | 2 | 700 | établi : lingot de cobalt, cuir lourd, shadoweave |
+| `HyAngler_Rod_Thorium` | 2 | 1 | 700 | établi de palier 2 (`RequiredTierLevel` 2) : lingot de thorium, cuir moyen, lin |
+| `HyAngler_Rod_Cobalt` | 2 | 2 | 700 | établi de palier 2 : lingot de cobalt, cuir lourd, shadoweave |
 
 - Les stats viennent de `Server/HyAngler/Rods/<id>.json` (`Tier`, `Lure`, `Luck`, `MaxLine`), ouvert comme les poissons ; la durabilité est celle de l'objet (`MaxDurability`), égale à celle de la hache du même palier (§ 4). Les quantités exactes des recettes s'alignent sur celles des haches du même palier.
-- Les modèles sont nouveaux, faits dans Blockbench par blockpaint, et montrés à l'utilisateur avant le commit. Le modèle client inutilisé `FishingRod.blockymodel` sert de référence de proportions. Chaque canne porte un nœud `Tip` au bout du scion, d'où part la ligne.
+- Les modèles sont nouveaux, faits dans Blockbench par blockpaint, et montrés à l'utilisateur avant le commit. Le modèle client inutilisé `FishingRod.blockymodel` sert de référence de proportions. La ligne ne peut pas partir du bout de la canne : `AttachedBeam` ne vise qu'un nœud du modèle de l'entité, donc elle part de la main du joueur (`R-Attachment`, `fishing-hytale.md` § 5.3).
 
 ### 7.2 Le lancer, le bouchon, la ligne
 
@@ -199,7 +200,7 @@ Les environnements sont repris des fichiers d'apparition de Hytale (`fishing-hyt
 
 ### 7.3 L'attente et la prise
 
-- La machine d'état est dans le cœur (`cast`), nourrie à chaque tick par le plugin (dans l'eau, au sol, distance au joueur, pluie, ciel) :
+- La machine d'état est dans le cœur (`cast`), nourrie à 20 ticks/s par le plugin (dans l'eau, au sol, distance au joueur, pluie, ciel). Le monde de Hytale tourne à 30 ticks/s : le système du bouchon accumule le temps et avance le lancer d'un tick du cœur toutes les 0,05 s, comme `ColonyTickSystem` dans HyColony. Ses états :
   - `FLYING` ;
   - `FLOATING` : l'attente de § 5 ;
   - `APPROACH` : bulles `Water_Bubble_Stream` en sillage vers le bouchon ;
@@ -214,7 +215,8 @@ Les environnements sont repris des fichiers d'apparition de Hytale (`fishing-hyt
 | ferrer hors de la fenêtre | rien ne vient, usure 0 ; la touche passée, retour à l'attente |
 | bouchon posé au sol | ramené au clic, usure 2 |
 | distance joueur-bouchon > `MaxLine` (32 par défaut) | la ligne casse, le bouchon disparaît |
-| plus de canne en main, déconnexion, chunk déchargé, mort | lancer annulé, bouchon et ligne retirés |
+| plus de canne en main, déconnexion, mort | lancer annulé, bouchon et ligne retirés |
+| chunk déchargé (Hytale retire le bouchon, sa `Ref` n'est plus valide) | lancer annulé |
 | `FLYING` plus de 200 ticks sans eau ni sol | lancer annulé |
 | durée totale d'un lancer > `MAX_SESSION_TICKS` (2 400) | lancer annulé (borne de sûreté, au-delà des 600 + 80 + 40 ticks de vanilla) |
 
@@ -237,13 +239,14 @@ Règles reprises de l'API de HyColony (`2026-09-30-hycolony-api-hylens-design.md
 - **`Catch`** (record) : `itemId`, `count`, `category` (`FISH`, `JUNK`, `TREASURE`), `rarity` (facultative), `source` (le fichier d'origine).
 - **`Angler`** (scellé) : `Player(UUID)`, `Plugin(String name, String id)` (un PNJ d'un autre mod, le pêcheur de HyColony).
 - **`Fishing`** (lu par `HyAnglerApi`) :
-  - `roll(FishingContext, RandomGenerator) → Catch`, pur ;
+  - `roll(FishingContext, RandomGenerator) → Optional<Catch>`, pur ; vide quand rien ne peut mordre là ;
   - `chances(FishingContext) → List<CatchChance>` (prise, catégorie, probabilité), pour `/hyangler test`, le futur journal et une fenêtre de HyColony ;
   - `rod(String itemId) → Optional<RodStats>` (`tier`, `lure`, `luck`, `maxLine`) ;
   - `biteDelay(int lure, RandomGenerator) → BiteTimes` (attente, approche, fenêtre ; § 5), pour un client qui veut les délais de vanilla. Le pêcheur de HyColony garde ceux de MC (P6).
 - **`ConditionTypes.register(String type, ConditionFactory)`** : un type de condition d'un autre mod, lu dans les fichiers à côté des nôtres. Il est appelé au `setup` de ce mod, avant le chargement des assets.
 - **`CatchHooks.register(owner, CatchHook)`** : `(Angler, FishingContext, Catch) → Catch`, appelé après le tirage, dans l'ordre d'inscription. C'est ainsi qu'on annule ou modifie une prise (le « prise annulable et modifiable » de Gone Fishing), sans événement mutable.
-- **Événements** (records publiés après les faits, sur le fil du monde, abonnement par `subscribe(owner, Class, Consumer)`) : `CastStarted(Angler, pos)`, `FishBiting(Angler, pos)`, `CatchLanded(Angler, Catch, pos)`, `CastEnded(Angler, Outcome)` (`Outcome` scellé : `Caught`, `Escaped`, `Grounded`, `Broken`, `Cancelled`).
+- **Événements** (records publiés après les faits, sur le fil du monde, abonnement par `subscribe(owner, Class, Consumer)`) : `CastStarted(Angler, pos)`, `FishBiting(Angler, pos)`, `CatchLanded(Angler, Catch, pos)`, `CastEnded(Angler, Outcome)` (`Outcome` scellé : `Caught` (la prise donnée, vide si un crochet l'a annulée ou si rien ne pouvait mordre), `Escaped`, `Grounded`, `Broken`, `Cancelled`).
+- Fils : `roll`, `chances`, `rod` et `biteTimes` sont purs et sûrs depuis n'importe quel fil (le catalogue est immuable une fois lu) ; inscrire un type, un crochet ou un abonné aussi (copie à l'écriture). Seuls les appels qui touchent le monde (§ 8.2) lèvent `IllegalStateException` hors de son fil.
 
 ### 8.2 `dev.hyangler.plugin.api` (types Hytale)
 
@@ -270,7 +273,9 @@ HyAngler y remplace les tables de pêche de Minecraft vers lesquelles MineColoni
 - Un port ne lève jamais d'exception : chunk déchargé, case hors monde ou environnement inconnu donnent un contexte neutre (eau douce, profondeur 0, environnement vide), et le premier échec est journalisé (CLAUDE.md § 4).
 - Tout tourne sur le fil du monde. Les fichiers sont lus une fois, au premier usage après le chargement des assets ; un rechargement demande un redémarrage, comme pour `Foods`.
 - Pas d'allocation par tick dans le suivi des bouchons : un système ECS parcourt seulement les entités qui ont le composant de bouchon de HyAngler. Les parcours d'eau (profondeur, eau libre) sont bornés (`SCAN_LIMIT`) et ne se font qu'au moment du tirage.
-- **Rien n'est sauvegardé en P1** : le lancer et le bouchon sont éphémères (un bouchon trouvé au chargement d'un chunk est retiré). Les records et le journal de P2 seront en JSON versionné, avec migrations et fixtures (CLAUDE.md § 5).
+- **Rien n'est sauvegardé en P1** : le lancer est éphémère, et Hytale ne sauvegarde jamais un projectile (`NonSerialized`, `ProjectileModule.java:240`) ; au déchargement d'un chunk il retire le bouchon, et le lancer s'annule (§ 7.4).
+- **Configuration malformée** : HyAngler ne voit pas HyBlockUI, donc pas son `ConfigQuarantine`. Il en garde une copie à lui, pour qu'un `config.json` malformé soit mis de côté au lieu d'arrêter le démarrage (`fishing-hytale.md` § 5.11).
+- Les records et le journal de P2 seront en JSON versionné, avec migrations et fixtures (CLAUDE.md § 5).
 
 ## 11. Tests
 
@@ -303,7 +308,7 @@ HyAngler y remplace les tables de pêche de Minecraft vers lesquelles MineColoni
    - § 7 : `hyangler.lang`, `hyangler/id-map.json`, les types d'assets `Server/HyAngler/` ;
    - `AGENTS.md` ;
    - les agents (`hycolony-implementer`, `hycolony-reviewer`, `ui-lang-checker`) et la skill `add-lang-key` (liste des `.lang`) ;
-   - `build-logic` (`checkModApis`) ;
+   - `build-logic/src/main/kotlin/hy.java-checks.gradle.kts` : `checkModApis` (`modApis`), NullAway (`AnnotatedPackages`), `apiCheck` (`apiPackages` : `:angler-api` et `:angler-plugin`) ;
    - `.claude/hooks/guard.js` s'il nomme les mods.
 
 ## 13. Feuille de route : le mod complet
