@@ -12,7 +12,6 @@ import dev.hycolony.core.kernel.Vec3;
 import dev.hycolony.core.kernel.nav.BodyWalker;
 import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.core.kernel.port.CitizenBodies;
-import dev.hycolony.core.kernel.port.NavStatus;
 import java.util.Optional;
 import java.util.random.RandomGenerator;
 import org.jspecify.annotations.Nullable;
@@ -99,8 +98,8 @@ public final class MournAI {
      * place when far from it, or wanders.
      */
     private void decide() {
-        if (bodies.navStatus(body) == NavStatus.MOVING) {
-            return;
+        if (wander.walkUnderWay()) {
+            return; // MC: until the navigation is done; a walk that never ends is waited for at most 2 min
         }
         if (random.nextBoolean()) {
             step = Step.STARING;

@@ -36,8 +36,8 @@ final class DeathNotice {
 
     /**
      * MC Colony.getImportantMessageEntityPlayers: the owner and members allowed RECEIVE_MESSAGES, and the colony
-     * managers by rank. Deviation from MC: MC reaches only the players close to the colony (its subscribers), as every
-     * HyColony colony message to its members does (SleepNotice); the notifier skips offline players.
+     * managers by rank. Deviation from MC: MC reaches only the players close to the colony (its subscribers); ours
+     * reaches every online one of them, as every HyColony colony message does (SleepNotice).
      */
     private static Set<UUID> importantPlayers(Colony colony) {
         Set<UUID> to = new LinkedHashSet<>();

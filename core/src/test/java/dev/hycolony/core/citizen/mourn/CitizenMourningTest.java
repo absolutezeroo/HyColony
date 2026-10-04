@@ -94,6 +94,18 @@ class CitizenMourningTest {
     }
 
     @Test
+    void aMournerWhoseWalksGoNowhereStillDecidesAgain() {
+        t.random = () -> (RandomGenerator) () -> 0L; // nextBoolean false: walks, no staring
+        t.bodies.frozen = true;
+        BodyId body = t.bodies.existing(1, 1, new Vec3(300.5, 64, 300.5));
+        CitizenAI ai = mourner(body);
+
+        tick(ai, 20_000);
+
+        assertTrue(t.bodies.looks.size() > 2, "MC: stuck walks end (navigator.stop), it decides again (CLAUDE.md § 4)");
+    }
+
+    @Test
     void aStareEndsOneTimeInTwoHundredAndItDecidesAgain() {
         long[] rolls = {Long.MIN_VALUE, 0L}; // nextBoolean true (stare), then nextInt(200) 0 (end); 0 after
         int[] next = {0};

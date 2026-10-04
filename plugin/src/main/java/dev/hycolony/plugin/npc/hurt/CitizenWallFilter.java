@@ -16,6 +16,7 @@ import com.hypixel.hytale.server.core.modules.entity.damage.DamageModule;
 import com.hypixel.hytale.server.core.modules.entity.damage.DamageSystems;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.hycolony.core.citizen.hurt.CitizenHurt;
+import dev.hycolony.core.kernel.port.BodyId;
 import dev.hycolony.plugin.WorldRuntime;
 import dev.hycolony.plugin.WorldRuntimes;
 import dev.hycolony.plugin.npc.CitizenTag;
@@ -76,13 +77,24 @@ public final class CitizenWallFilter extends DamageEventSystem {
             CitizenTag tag = store.getComponent(ref, HyColonyComponents.citizenTag());
             WorldRuntime rt = runtimes.of(store.getExternalData().getWorld());
             if (tag != null && rt != null && rt.enabled()) {
-                rt.manager()
-                        .byId(tag.colonyId())
-                        .ifPresent(
-                                c -> CitizenHurt.outOfWall(c, rt.bodies().refs().track(ref)));
+                BodyId body = rt.bodies().refs().track(ref);
+                int colonyId = tag.colonyId();
+                // Waking a sleeper takes it out of its bed, a write the processing store refuses (CanBreathe invokes
+                // the damage under its lock): from the world's task queue.
+                store.getExternalData().getWorld().execute(() -> outOfWall(rt, colonyId, body));
             }
         } catch (RuntimeException e) {
             event.setCancelled(true); // CLAUDE.md § 4: a failed check cancels
+            LOG.at(Level.SEVERE).withCause(e).log("HyColony citizen wall filter failed");
+        }
+    }
+
+    private static void outOfWall(WorldRuntime rt, int colonyId, BodyId body) {
+        try {
+            if (rt.enabled()) {
+                rt.manager().byId(colonyId).ifPresent(c -> CitizenHurt.outOfWall(c, body));
+            }
+        } catch (RuntimeException e) {
             LOG.at(Level.SEVERE).withCause(e).log("HyColony citizen wall filter failed");
         }
     }

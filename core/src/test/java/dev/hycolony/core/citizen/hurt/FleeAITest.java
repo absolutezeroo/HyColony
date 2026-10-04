@@ -72,6 +72,19 @@ class FleeAITest {
     }
 
     @Test
+    void aRunFromAMonsterThatCannotMoveStillEnds() {
+        t.bodies.frozen = true;
+        t.bodies.threats.add(new Vec3(12.5, 64, 0.5));
+        ai.hit(new Vec3(5.5, 64, 0.5), false);
+        tick(200); // RUNNING from the monster near, its run going nowhere
+        t.bodies.threats.clear();
+
+        tick(3000);
+
+        assertEquals(CitizenState.IDLE, ai.state(), "the walker's stuck handler ends a run (MC navigator.stop)");
+    }
+
+    @Test
     void mourningTakesOverAFlightAsMcDecideAiTask() {
         ai.hit(new Vec3(5.5, 64, 0.5), false);
         tick(1);

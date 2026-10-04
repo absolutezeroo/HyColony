@@ -140,6 +140,23 @@ class SleepCycleTest {
     }
 
     @Test
+    void aSleeperHitAtNightKeepsFleeingAMonsterNear() {
+        citizen(HALL);
+        nightfall();
+        tickUntil(d::asleep);
+        t.bodies.frozen = true; // its runs go nowhere: the monster by its bed stays near
+        t.bodies.threats.add(new Vec3(23.5, 64, 0.5));
+        c.citizens().ai(d.id()).orElseThrow().hit(new Vec3(24.5, 64, 0.5), false);
+        tickUntil(() -> state() == CitizenState.FLEE);
+        int moves = t.bodies.moves.size();
+
+        ticks(1000);
+
+        assertEquals(CitizenState.FLEE, state(), "MC: lastState SLEEP at night keeps FLEE, not back to bed");
+        assertTrue(t.bodies.moves.size() > moves, "its stuck runs end and it runs again");
+    }
+
+    @Test
     void aMournerStillGoesToBedAtNight() {
         citizen(HALL);
         d.mourning().addDeceased("Bob");

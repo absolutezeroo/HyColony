@@ -154,8 +154,11 @@ public final class CitizenWander {
         return null;
     }
 
-    /** Whether the last walk is still under way and waited for (at most {@link #WANDER_TIMEOUT_TICKS}). */
-    private boolean walkUnderWay() {
+    /**
+     * Whether the last walk is still under way and waited for (MC: the navigation is not done), at most {@link
+     * #WANDER_TIMEOUT_TICKS}.
+     */
+    public boolean walkUnderWay() {
         long now = colony.context().clock().currentTick();
         if (bodies.navStatus(body) == NavStatus.MOVING) {
             if (waitingSince == NOT_WAITING) {

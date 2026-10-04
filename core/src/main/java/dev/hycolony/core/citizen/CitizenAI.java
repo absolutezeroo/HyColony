@@ -32,7 +32,7 @@ public final class CitizenAI {
     /** MC EntityAICitizenWander: its leisure transitions run every 20 ticks. */
     private static final int LEISURE_RATE_TICKS = 20;
     /** MC CitizenAI: decideAiTask runs as an EVENT target every 10 ticks. */
-    private static final int DECIDE_INTERVAL_TICKS = 10;
+    private static final int DECIDE_INTERVAL_TICKS = CitizenWork.DECIDE_INTERVAL_TICKS;
 
     private final Colony colony;
     private final CitizenData data;
@@ -139,7 +139,6 @@ public final class CitizenAI {
         if (now == CitizenState.WORKING) {
             watch.leftWork(why);
         }
-        wander.restartWait();
     }
 
     /**
@@ -200,7 +199,10 @@ public final class CitizenAI {
         return next == now ? null : next;
     }
 
-    /** The sleep, hunger and mourning parts of MC calculateNextState from state {@code now}; null to stay asleep. */
+    /**
+     * The sleep, hunger and mourning parts of MC calculateNextState from state {@code now}; null to stay asleep, its
+     * next decision 15 s later (MC setCurrentDelay, in FLEE too: it delays the decision, not the flight's steps).
+     */
     private @Nullable CitizenState decideFrom(CitizenState now) {
         return switch (sleep.decide(now == CitizenState.SLEEP)) {
             case STAY_ASLEEP -> {
@@ -221,7 +223,13 @@ public final class CitizenAI {
 
     /** The mourning part after {@code next}, the hunger part's ({@link MinimalAIs#decideMourning}). */
     private CitizenState mourning(CitizenState next) {
-        return minimal.decideMourning(next, left -> leave(left, WorkExit.MOURN), work::shouldWork);
+        return minimal.decideMourning(
+                next,
+                left -> {
+                    leave(left, WorkExit.MOURN);
+                    wander.restartWait(); // a walk under way is waited for from now
+                },
+                work::shouldWork);
     }
 
     /**

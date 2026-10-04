@@ -16,8 +16,8 @@ import org.jspecify.annotations.Nullable;
  * and its job AI's tick while it works. Its job AI ({@link CurrentJobAI}) is kept while it sleeps, eats or idles.
  */
 public final class CitizenWork {
-    /** MC CitizenAI: decideAiTask runs every 10 ticks; the work's stops are checked as often. */
-    private static final int DECIDE_INTERVAL_TICKS = 10;
+    /** MC CitizenAI: decideAiTask runs every 10 ticks (an EVENT target); the work's stops are checked as often. */
+    public static final int DECIDE_INTERVAL_TICKS = 10;
 
     private final Colony colony;
     private final CitizenData data;

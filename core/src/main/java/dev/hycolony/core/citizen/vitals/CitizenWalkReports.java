@@ -50,8 +50,8 @@ public final class CitizenWalkReports implements WalkListener {
     @Override
     public void stuck(BlockPos target, Vec3 at, StuckHandler.Action action) {
         long now = now();
-        // MC completeStuckAction (which hurts) is a teleport, or a give-up away from the goal; by it, MC is never
-        // stuck. Once per walk: MC resets its stuck timers after it (resetGlobalStuckTimers).
+        // MC completeStuckAction (which hurts) is a teleport, or a give-up away from the goal; near its goal, MC is
+        // never stuck. Once per walk: MC resets its stuck timers after it (resetGlobalStuckTimers).
         boolean complete = action == StuckHandler.Action.TELEPORT
                 || (action == StuckHandler.Action.GIVE_UP
                         && at.distance(Vec3.center(target)) >= StuckHandler.MIN_TARGET_DIST);
